@@ -1,25 +1,11 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 import * as React from 'react';
 import type { ICustomComponentProps } from './CustomWebComponent';
 import CustomWebComponent from './CustomWebComponent';
 import { renderWithProviders } from '../../../testUtils';
 import type { ITextResource } from 'altinn-shared/types';
 
-describe('components > custom > CustomWebComponent', () => {
-  let handleDataChange: ICustomComponentProps['handleDataChange'];
-  let mockTextResources: ITextResource[];
-
-  beforeAll(() => {
-    handleDataChange = (value: string) => value;
-    mockTextResources = [
-      {
-        id: 'title',
-        value: 'Title',
-      },
-    ];
-  });
-
-  it('should render the component with the provided tag name', async () => {
+describe('CustomWebComponent', () => {
+  it('should render the component with the provided tag name', () => {
     const screen = render({ tagName: 'test-component' });
     const element = screen.getByTestId('test-component');
     expect(element).toBeInTheDocument();
@@ -34,9 +20,9 @@ describe('components > custom > CustomWebComponent', () => {
     );
   });
 
-  it('should render nothing if the tag name is missing', async () => {
+  it('should render nothing if the tag name is missing', () => {
     const screen = render({ tagName: undefined });
-    const element = await screen.queryByTestId('test-component');
+    const element = screen.queryByTestId('test-component');
     expect(element).not.toBeInTheDocument();
   });
 
@@ -49,8 +35,8 @@ describe('components > custom > CustomWebComponent', () => {
       text: {
         title: 'Title',
       },
-      handleDataChange,
-      handleFocusUpdate: () => {},
+      handleDataChange: (value: string) => value,
+      handleFocusUpdate: jest.fn(),
       getTextResource: (key: string) => {
         return key;
       },
@@ -68,6 +54,13 @@ describe('components > custom > CustomWebComponent', () => {
       },
     };
 
+    const resources = [
+      {
+        id: 'title',
+        value: 'Title',
+      },
+    ] as ITextResource[];
+
     return renderWithProviders(
       <CustomWebComponent
         {...allProps}
@@ -77,7 +70,7 @@ describe('components > custom > CustomWebComponent', () => {
         preloadedState: {
           textResources: {
             language: 'nb',
-            resources: mockTextResources,
+            resources,
             error: null,
           },
         },

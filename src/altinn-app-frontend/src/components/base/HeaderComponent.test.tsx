@@ -23,7 +23,7 @@ const render = (props = {}) => {
   rtlRender(<HeaderComponent {...allProps} />);
 };
 
-describe('components/base/HeaderComponent.tsx --- Snapshot', () => {
+describe('HeaderComponent', () => {
   it('should render <h2> when size is "L"', () => {
     render({ size: 'L' });
 

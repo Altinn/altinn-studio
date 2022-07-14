@@ -1,6 +1,6 @@
 import { makeGetFocus, makeGetHidden } from '../../src/selectors/getLayoutData';
 
-describe('selectors > getLayoutData', () => {
+describe('getLayoutData', () => {
   let initialState: any;
   let mockProps: any;
   let mockPropsFocus: any;

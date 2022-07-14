@@ -6,7 +6,7 @@ import { Provider } from 'react-redux';
 import Label from './Label';
 import type { IFormLabelProps } from './Label';
 
-describe('features > form > components >Label.tsx', () => {
+describe('Label', () => {
   const requiredMarking = '*';
   const optionalMarking = 'Valgfri';
 

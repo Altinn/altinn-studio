@@ -266,6 +266,7 @@ function AltinnParty(props: IAltinnPartyProps) {
         tabIndex={!party.onlyHierarchyElementWithNoAccess ? 0 : undefined}
       >
         <i
+          data-testid='AltinnParty-partyIcon'
           className={
             classes.partyIcon + (isOrg ? ' fa fa-corp' : ' fa fa-private')
           }

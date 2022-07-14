@@ -72,9 +72,7 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
     props.setEditIndex(-1);
   };
 
-  const tagSaveIsDisabled = (attachment: IAttachment): boolean => {
-    return attachment.uploaded === false || attachment.updating === true;
-  };
+  const saveIsDisabled = props.attachment.uploaded === false || props.readOnly;
 
   return (
     <div
@@ -217,9 +215,7 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
                   btnText={getLanguageFromKey('general.save', props.language)}
                   onClickFunction={() => props.onSave(props.attachment)}
                   id={`attachment-save-tag-button-${props.attachment.id}`}
-                  disabled={
-                    tagSaveIsDisabled(props.attachment) ? true : props.readOnly
-                  }
+                  disabled={saveIsDisabled}
                 />
               </div>
             )}

@@ -145,7 +145,7 @@ const getHouseNumberField = ({
 const getPostPlaceField = () =>
   getField({ method: 'getByRole', regex: /^address_component\.post_place$/i });
 
-describe('components > advanced > AddressComponent', () => {
+describe('AddressComponent', () => {
   it('should return simplified version when simplified is true', () => {
     render({
       simplified: true,

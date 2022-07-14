@@ -1,89 +1,58 @@
 import * as React from 'react';
-import configureStore from 'redux-mock-store';
-import { mount } from 'enzyme';
-import { Provider } from 'react-redux';
+import { renderWithProviders } from '../../../testUtils';
+import { screen } from '@testing-library/react';
 
 import type { IComponentProps } from 'src/components';
 
 import { ButtonComponent } from './ButtonComponent';
+import { getInitialStateMock } from '../../../__mocks__/mocks';
 
-describe('components/base/ButtonComponent.tsx', () => {
-  let mockId: string;
-  let mockText: string;
-  let formDataCount: number;
-  let mockHandleDataChange: (value: any) => void;
-  let mockDisabled: boolean;
-  let initialState;
-  let initialStateSubmitting;
-  let mockStore;
-  let mockStoreSubmitting;
-  let mockLanguage;
+const submitBtnText = 'Submit form';
 
-  beforeAll(() => {
-    const createStore = configureStore();
-    mockId = 'mock-id';
-    mockHandleDataChange = jest.fn();
-    mockDisabled = false;
-    mockText = 'Submit form';
-    formDataCount = 0;
-    initialState = {
-      formData: {
-        isSubmitting: false,
-      },
-      formLayout: {
-        uiConfig: {
-          autoSave: true,
-        },
-      },
-    };
-    initialStateSubmitting = {
-      formData: {
-        isSubmitting: true,
-      },
-      formLayout: {
-        uiConfig: {
-          autoSave: true,
-        },
-      },
-    };
-
-    mockStore = createStore(initialState);
-    mockStoreSubmitting = createStore(initialStateSubmitting);
-    mockLanguage = {};
-  });
-
+describe('ButtonComponent', () => {
   it('should render button when isSubmitting is false', () => {
-    const wrapper = mount(
-      <Provider store={mockStore}>
-        <ButtonComponent
-          id={mockId}
-          text={mockText}
-          handleDataChange={mockHandleDataChange}
-          disabled={mockDisabled}
-          formDataCount={formDataCount}
-          language={mockLanguage}
-          {...({} as IComponentProps)}
-        />
-      </Provider>,
-    );
-    const submitBtn = wrapper.find('button#' + mockId);
-    expect(submitBtn.text()).toEqual(mockText);
+    render({ isSubmitting: false });
+
+    expect(
+      screen.getByRole('button', { name: submitBtnText }),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('general.loading')).not.toBeInTheDocument();
   });
 
   it('should render loader when isSubmitting is true', () => {
-    const wrapper = mount(
-      <Provider store={mockStoreSubmitting}>
-        <ButtonComponent
-          id={mockId}
-          text={mockText}
-          handleDataChange={mockHandleDataChange}
-          disabled={mockDisabled}
-          formDataCount={formDataCount}
-          language={mockLanguage}
-          {...({} as IComponentProps)}
-        />
-      </Provider>,
-    );
-    expect(wrapper.find('#altinn-loader')).toHaveLength(1);
+    render({ isSubmitting: true });
+
+    expect(screen.getByText('general.loading')).toBeInTheDocument();
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 });
+
+const render = ({ isSubmitting }: { isSubmitting: boolean }) => {
+  const initialState = getInitialStateMock();
+  const preloadedState = {
+    ...initialState,
+    formData: {
+      ...initialState.formData,
+      isSubmitting,
+    },
+    formLayout: {
+      ...initialState.formLayout,
+      uiConfig: {
+        ...initialState.formLayout.uiConfig,
+        autoSave: true,
+      },
+    },
+  };
+
+  renderWithProviders(
+    <ButtonComponent
+      text={submitBtnText}
+      handleDataChange={jest.fn()}
+      disabled={false}
+      formDataCount={0}
+      language={{}}
+      {...({} as IComponentProps)}
+    />,
+    { preloadedState },
+  );
+};

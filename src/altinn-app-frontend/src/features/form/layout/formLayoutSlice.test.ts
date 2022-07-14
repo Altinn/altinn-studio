@@ -1,8 +1,8 @@
 import type { ILayoutState } from './formLayoutSlice';
 import slice, { initialState, FormLayoutActions } from './formLayoutSlice';
 
-describe('features > form > layout > layoutSlice.ts', () => {
-  describe('fetchFulfilled', () => {
+describe('layoutSlice', () => {
+  describe('fetchLayoutFulfilled', () => {
     const layouts = {};
     const navigationConfig = {};
 

@@ -1,10 +1,10 @@
-import * as React from 'react';
-import 'jest';
-import { mount } from 'enzyme';
+import React from 'react';
 import { AltinnAppHeader } from '..';
 import type { IParty } from '../../types';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
-describe('>>> AltinnAppHeader.tsx', () => {
+describe('organisms/AltinnAppHeader', () => {
   const partyPerson = {
     name: 'Test Testesen',
     ssn: '01010000000',
@@ -25,51 +25,55 @@ describe('>>> AltinnAppHeader.tsx', () => {
     },
   };
 
-  /*
-  general.header_profile_icon_label
-  */
-
-  it('+++ should render private icon when party is person', () => {
-    const wrapper = mount(
+  const renderComponent = (party: IParty, user = partyPerson) =>
+    render(
       <AltinnAppHeader
-        party={partyPerson}
-        userParty={partyPerson}
+        party={party}
+        userParty={user}
         logoColor={logoColor}
         headerBackgroundColor={headerBackgroundColor}
         language={language}
       />,
     );
-    expect(wrapper.find('i.fa-private-circle-big')).toHaveLength(1);
+
+  it('should render private icon when party is person', () => {
+    renderComponent(partyPerson);
+    const profileButton = screen.getByRole('button', {
+      name: /profilikon meny/i,
+    });
+    expect(profileButton.firstChild.firstChild).toHaveClass(
+      'fa-private-circle-big',
+    );
   });
 
-  it('+++ should render org icon when party is org', () => {
-    const wrapper = mount(
-      <AltinnAppHeader
-        party={partyOrg}
-        userParty={partyPerson}
-        logoColor={logoColor}
-        headerBackgroundColor={headerBackgroundColor}
-        language={language}
-      />,
+  it('should render org icon when party is org', () => {
+    renderComponent(partyOrg);
+    const profileButton = screen.getByRole('button', {
+      name: /profilikon meny/i,
+    });
+    expect(profileButton.firstChild.firstChild).toHaveClass(
+      'fa-corp-circle-big',
     );
-    expect(wrapper.find('i.fa-corp-circle-big')).toHaveLength(1);
   });
 
-  it('+++ should render menu with logout option when clicking profile icon', () => {
-    const wrapper = mount(
-      <AltinnAppHeader
-        party={partyOrg}
-        userParty={partyPerson}
-        logoColor={logoColor}
-        headerBackgroundColor={headerBackgroundColor}
-        language={language}
-      />,
+  it('should render menu with logout option when clicking profile icon', async () => {
+    renderComponent(partyOrg);
+    expect(
+      screen.queryByRole('link', {
+        name: /logg ut/i,
+        hidden: true,
+      }),
+    ).toBeNull();
+    await userEvent.click(
+      screen.getByRole('button', {
+        name: /profilikon meny/i,
+      }),
     );
-    wrapper.find('#profile-icon-button').hostNodes().simulate('click');
-    expect(wrapper.find('#profile-menu').hostNodes()).toHaveLength(1);
-    expect(wrapper.find('#logout-menu-item').hostNodes()).toHaveLength(1);
-    expect(wrapper.find('#logout-menu-item').hostNodes().text()).toEqual(
-      'Logg ut',
-    );
+    expect(
+      screen.getByRole('link', {
+        name: /logg ut/i,
+        hidden: true,
+      }),
+    ).toBeInTheDocument();
   });
 });

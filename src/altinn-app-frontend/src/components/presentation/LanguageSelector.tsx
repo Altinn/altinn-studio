@@ -2,10 +2,9 @@ import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import { AltinnSpinner, Select } from 'altinn-shared/components';
 import { Box } from '@material-ui/core';
 import * as React from 'react';
-import { useAppSelector } from 'src/common/hooks';
+import { useAppSelector, useAppDispatch } from 'src/common/hooks';
 import { useGetAppLanguageQuery } from 'src/services/LanguageApi';
 import { LanguageActions } from 'src/shared/resources/language/languageSlice';
-import { useDispatch } from 'react-redux';
 import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 
 export const LanguageSelector = () => {
@@ -16,7 +15,7 @@ export const LanguageSelector = () => {
   const textResources = useAppSelector(
     (state) => state.textResources.resources,
   );
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const handleAppLanguageChange = (languageCode: string) => {
     dispatch(
       LanguageActions.updateSelectedAppLanguage({ selected: languageCode }),

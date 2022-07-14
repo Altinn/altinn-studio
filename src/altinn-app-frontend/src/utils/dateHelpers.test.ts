@@ -2,7 +2,7 @@ import moment from 'moment';
 import { getFlagBasedDate, getISOString } from './dateHelpers';
 import type { DateFlags } from 'src/types';
 
-describe('/utils/dateFlagParser.ts', () => {
+describe('dateHelpers', () => {
   describe('getFlagBasedDate(...)', () => {
     test.each(['', undefined, null, 'abcdef'])(
       'should return undefined if flag is %p',
@@ -20,7 +20,7 @@ describe('/utils/dateFlagParser.ts', () => {
     );
   });
 
-  describe('getISOString(...)', () => {
+  describe('getISOString', () => {
     test.each(['', undefined, null])(
       'should return undefined if input date is %p',
       (date) => {

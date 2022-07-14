@@ -1,19 +1,15 @@
 import axios from 'axios';
-import { mount } from 'enzyme';
-import * as React from 'react';
-import { Provider } from 'react-redux';
-import { MemoryRouter } from 'react-router';
-import * as renderer from 'react-test-renderer';
-import configureStore from 'redux-mock-store';
+import React from 'react';
 import { getInitialStateMock } from '../../../__mocks__/mocks';
-import { mockParty } from '../../../__mocks__/initialStateMock';
-import type { IRuntimeState } from 'src/types';
-import { ProcessTaskType } from 'src/types';
-import NavBar from 'src/components/presentation/NavBar';
+import { partyMock } from '../../../__mocks__/partyMock';
 import { AltinnAppTheme, returnUrlToMessagebox } from '../../../../shared/src';
 import { HttpStatusCodes } from 'src/utils/networking';
+import type { IPresentationProvidedProps } from './Presentation';
+import { ProcessTaskType } from 'src/types';
 import Presentation from './Presentation';
-import { mockMediaQuery } from '../../../testUtils';
+import { renderWithProviders } from '../../../testUtils';
+import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 jest.mock('axios');
 
@@ -21,61 +17,35 @@ function flushPromises() {
   return new Promise((resolve) => window.setTimeout(resolve, 0));
 }
 
-const { setScreenWidth } = mockMediaQuery(992);
+const user = userEvent.setup();
 
-describe('containers/Presentation.tsx', () => {
-  let mockHeader: string;
-  let mockStore: any;
-  let mockInitialState: IRuntimeState;
-
-  beforeAll(() => {
-    // Set screen size to desktop
-    setScreenWidth(1200);
-  });
-
-  beforeEach(() => {
-    mockHeader = 'mock-service-name';
-    const createStore = configureStore();
-    mockInitialState = getInitialStateMock({
-      formValidations: {
-        validations: {
-          FormLayout: {
-            'mock-component-id': {
-              simpleBinding: {
-                errors: ['mock-error-message'],
-                warnings: ['mock-warning-message'],
-              },
-            },
+const stateWithErrorsAndWarnings = getInitialStateMock({
+  formValidations: {
+    validations: {
+      FormLayout: {
+        'mock-component-id': {
+          simpleBinding: {
+            errors: ['mock-error-message'],
+            warnings: ['mock-warning-message'],
           },
         },
-        invalidDataTypes: null,
-        error: null,
-        currentSingleFieldValidation: null,
       },
-    });
-    mockStore = createStore(mockInitialState);
-  });
+    },
+    invalidDataTypes: null,
+    error: null,
+    currentSingleFieldValidation: null,
+  },
+});
 
-  it('should match snapshot', () => {
-    const rendered = renderer.create(
-      <MemoryRouter>
-        <Provider store={mockStore}>
-          <Presentation
-            header={mockHeader}
-            type={ProcessTaskType.Data}
-          />
-        </Provider>
-      </MemoryRouter>,
-    );
-    expect(rendered).toMatchSnapshot();
-  });
-
+describe('Presentation', () => {
   it('should change window.location.href to query parameter returnUrl if valid URL', async () => {
     const returnUrl = 'foo';
+
     (axios.get as jest.Mock).mockResolvedValue({
       data: returnUrl,
       status: HttpStatusCodes.Ok,
     });
+
     Object.defineProperty(window, 'location', {
       value: {
         ...window,
@@ -83,22 +53,19 @@ describe('containers/Presentation.tsx', () => {
       },
       writable: true,
     });
-    const wrapper = mount(
-      <MemoryRouter>
-        <Provider store={mockStore}>
-          <Presentation
-            header={mockHeader}
-            type={ProcessTaskType.Data}
-          >
-            <div id='mockFormFiller' />
-          </Presentation>
-        </Provider>
-      </MemoryRouter>,
-    );
-    const closeButton = wrapper.find(NavBar).find('.a-modal-close');
-    closeButton.simulate('click');
-    await flushPromises();
+
+    render({ type: ProcessTaskType.Data });
+
+    expect(window.location.href).not.toEqual(returnUrl);
+
+    const closeButton = screen.getByRole('button', {
+      name: /general\.close_schema/i,
+    });
+    await user.click(closeButton);
+
     expect(window.location.href).toEqual(returnUrl);
+
+    await flushPromises();
   });
 
   it('should change window.location.href to default messagebox url if query parameter returnUrl is not valid', async () => {
@@ -116,27 +83,26 @@ describe('containers/Presentation.tsx', () => {
       },
       writable: true,
     });
-    const wrapper = mount(
-      <MemoryRouter>
-        <Provider store={mockStore}>
-          <Presentation
-            header={mockHeader}
-            type={ProcessTaskType.Data}
-          >
-            <div id='mockFormFiller' />
-          </Presentation>
-        </Provider>
-      </MemoryRouter>,
+
+    render({ type: ProcessTaskType.Data }, stateWithErrorsAndWarnings);
+
+    expect(window.location.href).not.toEqual(
+      returnUrlToMessagebox(origin, partyMock.partyId),
     );
-    const closeButton = wrapper.find(NavBar).find('.a-modal-close');
-    closeButton.simulate('click');
-    await flushPromises();
+
+    const closeButton = screen.getByRole('button', {
+      name: /lukk skjema/i,
+    });
+    await user.click(closeButton);
+
     expect(window.location.href).toEqual(
-      returnUrlToMessagebox(origin, mockParty.partyId),
+      returnUrlToMessagebox(origin, partyMock.partyId),
     );
+
+    await flushPromises();
   });
 
-  it('should change window.location.href to default messagebox url if query parameter returnUrl is not found', () => {
+  it('should change window.location.href to default messagebox url if query parameter returnUrl is not found', async () => {
     const origin = 'https://altinn3local.no';
     Object.defineProperty(window, 'location', {
       value: {
@@ -145,131 +111,76 @@ describe('containers/Presentation.tsx', () => {
       },
       writable: true,
     });
-    const wrapper = mount(
-      <MemoryRouter>
-        <Provider store={mockStore}>
-          <Presentation
-            header={mockHeader}
-            type={ProcessTaskType.Data}
-          >
-            <div id='mockFormFiller' />
-          </Presentation>
-        </Provider>
-      </MemoryRouter>,
+
+    render({ type: ProcessTaskType.Data }, stateWithErrorsAndWarnings);
+
+    expect(window.location.href).not.toEqual(
+      returnUrlToMessagebox(origin, partyMock.partyId),
     );
-    const closeButton = wrapper.find(NavBar).find('.a-modal-close');
-    closeButton.simulate('click');
+
+    const closeButton = screen.getByRole('button', {
+      name: /lukk skjema/i,
+    });
+    await user.click(closeButton);
+
     expect(window.location.href).toEqual(
-      returnUrlToMessagebox(origin, mockParty.partyId),
+      returnUrlToMessagebox(origin, partyMock.partyId),
+    );
+
+    await flushPromises();
+  });
+
+  it('should render children', () => {
+    render({
+      type: ProcessTaskType.Data,
+      children: <div data-testid='child-component' />,
+    });
+
+    expect(screen.getByTestId('child-component')).toBeInTheDocument();
+  });
+
+  it('the background color should be greyLight if type is "ProcessTaskType.Data"', () => {
+    render({ type: ProcessTaskType.Data });
+
+    const appHeader = screen.getByTestId('AltinnAppHeader');
+
+    expect(appHeader).toHaveStyle(
+      `background-color: ${AltinnAppTheme.altinnPalette.primary.greyLight}`,
     );
   });
 
-  it('should render formfiller when step is "formfiller"', () => {
-    const wrapper = mount(
-      <MemoryRouter>
-        <Provider store={mockStore}>
-          <Presentation
-            header={mockHeader}
-            type={ProcessTaskType.Data}
-          >
-            <div id='mockFormFiller' />
-          </Presentation>
-        </Provider>
-      </MemoryRouter>,
-    );
-    expect(wrapper.exists('#mockFormFiller')).toEqual(true);
-  });
+  it('the background color should be lightGreen if type is "ProcessTaskType.Archived"', () => {
+    render({ type: ProcessTaskType.Archived });
 
-  it('the background color should be greyLight if step is "data"', () => {
-    const wrapper = mount(
-      <MemoryRouter>
-        <Provider store={mockStore}>
-          <Presentation
-            header={mockHeader}
-            type={ProcessTaskType.Data}
-          />
-        </Provider>
-      </MemoryRouter>,
-    );
+    const appHeader = screen.getByTestId('AltinnAppHeader');
 
-    expect(wrapper.find('AltinnAppHeader').prop('headerBackgroundColor')).toBe(
-      AltinnAppTheme.altinnPalette.primary.greyLight,
-    );
-  });
-
-  it('the background color should be lightGreen if step is "Archive"', () => {
-    const wrapper = mount(
-      <MemoryRouter>
-        <Provider store={mockStore}>
-          <Presentation
-            header={mockHeader}
-            type={ProcessTaskType.Archived}
-          />
-        </Provider>
-      </MemoryRouter>,
-    );
-
-    expect(wrapper.find('AltinnAppHeader').prop('headerBackgroundColor')).toBe(
-      AltinnAppTheme.altinnPalette.primary.greenLight,
+    expect(appHeader).toHaveStyle(
+      `background-color: ${AltinnAppTheme.altinnPalette.primary.greenLight}`,
     );
   });
 
   it('should map validations if there are any and create error report', () => {
-    const createStore = configureStore();
-    const newState = getInitialStateMock({
-      language: {
-        language: {
-          form_filler: {
-            error_report_header: 'Mock error report',
-            placeholder_user: 'OLA PRIVATPERSON',
-          },
-        },
-        selectedAppLanguage: '',
-        error: null,
-      },
-      formValidations: {
-        validations: {
-          FormLayout: {
-            unmapped: {
-              'mock-component-id': {
-                errors: ['mock-error-message', 'another-mock-error-message'],
-              },
-            },
-          },
-        },
-        invalidDataTypes: null,
-        error: null,
-        currentSingleFieldValidation: null,
-      },
-    });
-    mockStore = createStore(newState);
-    const wrapper = mount(
-      <MemoryRouter>
-        <Provider store={mockStore}>
-          <Presentation
-            header={mockHeader}
-            type={ProcessTaskType.Data}
-          />
-        </Provider>
-      </MemoryRouter>,
-    );
-    expect(wrapper.exists('#errorReport')).toBe(true);
+    render({ type: ProcessTaskType.Data }, stateWithErrorsAndWarnings);
+
+    expect(screen.getByTestId('ErrorReport')).toBeInTheDocument();
   });
 
   it('should hide error report when there are no validation errors', () => {
-    const createStore = configureStore();
-    const newState = getInitialStateMock();
-    mockStore = createStore(newState);
-    const wrapper = mount(
-      <MemoryRouter>
-        <Provider store={mockStore}>
-          <Presentation
-            header={mockHeader}
-            type={ProcessTaskType.Data}
-          />
-        </Provider>
-      </MemoryRouter>,
-    );
-    expect(wrapper.exists('#errorReport')).toBe(false);
+    render({ type: ProcessTaskType.Data });
+
+    expect(screen.queryByTestId('ErrorReport')).not.toBeInTheDocument();
   });
 });
+
+const render = (
+  props: Partial<IPresentationProvidedProps> = {},
+  preloadedState = undefined,
+) => {
+  const allProps = {
+    header: 'Header text',
+    type: ProcessTaskType.Unknown,
+    ...props,
+  };
+
+  renderWithProviders(<Presentation {...allProps} />, { preloadedState });
+};

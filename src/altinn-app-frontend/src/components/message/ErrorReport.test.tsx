@@ -1,75 +1,70 @@
 import * as React from 'react';
-import { mount } from 'enzyme';
-import configureStore from 'redux-mock-store';
-import { Provider } from 'react-redux';
 
 import { getInitialStateMock } from '../../../__mocks__/mocks';
-import type { IRuntimeState } from 'src/types';
+import type { IValidations } from 'src/types';
 import type { IValidationState } from 'src/features/form/validation/validationSlice';
 
-import { getParsedLanguageFromText } from '../../../../shared/src';
+import { getParsedLanguageFromText } from 'altinn-shared/utils';
 import ErrorReport from './ErrorReport';
+import { renderWithProviders } from '../../../testUtils';
+import { screen } from '@testing-library/react';
 
-describe('components > ErrorReport.tsx', () => {
-  const mountComponent = (state: IRuntimeState) => {
-    const createStore = configureStore();
-    const mockStore = createStore(state);
-    return mount(
-      <Provider store={mockStore}>
-        <ErrorReport />
-      </Provider>,
-    );
+describe('ErrorReport', () => {
+  const genericErrorText =
+    getInitialStateMock().language.language.form_filler[
+      'error_report_description'
+    ];
+
+  const render = (validations: Partial<IValidations>) => {
+    const mockValidationState: IValidationState = {
+      validations: {
+        ...validations,
+      },
+      invalidDataTypes: [],
+      currentSingleFieldValidation: null,
+      error: null,
+    };
+    const initialState = getInitialStateMock({
+      formValidations: mockValidationState,
+    });
+
+    return renderWithProviders(<ErrorReport />, {
+      preloadedState: initialState,
+    });
   };
 
   it('should render generic error message by default', () => {
-    const mockValidationState: IValidationState = {
-      validations: {
-        page1: {
-          someComponent: {
-            simpleBinding: {
-              errors: [getParsedLanguageFromText('some error')],
-            },
+    const validations = {
+      page1: {
+        someComponent: {
+          simpleBinding: {
+            errors: [getParsedLanguageFromText('some error')],
           },
         },
       },
-      invalidDataTypes: [],
-      currentSingleFieldValidation: null,
-      error: null,
     };
-    const initialState = getInitialStateMock({
-      formValidations: mockValidationState,
-    });
-    const component = mountComponent(initialState);
-    const genericErrorText =
-      initialState.language.language.form_filler['error_report_description'];
-    expect(component.text().includes(genericErrorText)).toBeTruthy();
+    render(validations);
+
+    expect(screen.getByText(genericErrorText)).toBeInTheDocument();
   });
 
   it('should list unmapped errors if present and hide generic error message', () => {
-    const mockValidationState: IValidationState = {
-      validations: {
+    const validations = {
+      unmapped: {
+        // unmapped layout
         unmapped: {
-          // unmapped layout
+          // unmapped component
           unmapped: {
-            // unmapped component
-            unmapped: {
-              // unmapped data binding
-              errors: [getParsedLanguageFromText('some unmapped error')],
-            },
+            // unmapped data binding
+            errors: [getParsedLanguageFromText('some unmapped error')],
           },
         },
       },
-      invalidDataTypes: [],
-      currentSingleFieldValidation: null,
-      error: null,
     };
-    const initialState = getInitialStateMock({
-      formValidations: mockValidationState,
-    });
-    const component = mountComponent(initialState);
-    const genericErrorText =
-      initialState.language.language.form_filler['error_report_description'];
-    expect(component.text().includes(genericErrorText)).toBeFalsy();
-    expect(component.text().includes('some unmapped error')).toBeTruthy();
+
+    render(validations);
+
+    expect(screen.queryByText(genericErrorText)).not.toBeInTheDocument();
+    expect(screen.getByText('some unmapped error')).toBeInTheDocument();
   });
 });

@@ -1,7 +1,7 @@
 import * as React from 'react';
 import type { FileRejection } from 'react-dropzone';
-import { useDispatch, useSelector } from 'react-redux';
 import { getLanguageFromKey } from 'altinn-shared/utils';
+import { useAppSelector, useAppDispatch } from 'src/common/hooks';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { isMobile } from 'react-device-detect';
 import type { IAttachment } from '../../../../shared/resources/attachments';
@@ -49,26 +49,26 @@ export function FileUploadWithTagComponent({
   textResourceBindings,
   dataModelBindings,
 }: IFileUploadWithTagProps): JSX.Element {
-  const dataDispatch = useDispatch();
+  const dataDispatch = useAppDispatch();
   const [validations, setValidations] = React.useState<
     Array<{ id: string; message: string }>
   >([]);
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
-  const options = useSelector(
+  const options = useAppSelector(
     (state: IRuntimeState) =>
       state.optionState.options[getOptionLookupKey(optionsId, mapping)]
         ?.options,
   );
-  const editIndex = useSelector(
+  const editIndex = useAppSelector(
     (state: IRuntimeState) =>
       state.formLayout.uiConfig.fileUploadersWithTag[id]?.editIndex ?? -1,
   );
-  const chosenOptions = useSelector(
+  const chosenOptions = useAppSelector(
     (state: IRuntimeState) =>
       state.formLayout.uiConfig.fileUploadersWithTag[id]?.chosenOptions ?? {},
   );
 
-  const attachments: IAttachment[] = useSelector(
+  const attachments: IAttachment[] = useAppSelector(
     (state: IRuntimeState) => state.attachments.attachments[id] || emptyArray,
   );
 

@@ -45,11 +45,10 @@ const getOpenCalendarButton = () =>
     name: /date_picker\.aria_label_icon/i,
   });
 
-const getCalendarDayButton = (dayNumber) =>
-  screen.getByRole('button', {
-    name: dayNumber,
-    hidden: true,
-  });
+const getCalendarDayButton = (dayNumber) => {
+  // Getting by role would be better, but it is too slow, because of the big DOM that is generated
+  return screen.getByText(dayNumber);
+};
 
 const { setScreenWidth } = mockMediaQuery(600);
 

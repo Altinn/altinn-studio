@@ -70,7 +70,7 @@ const renderNavBar = ({
   return { mockClose, mockBack, mockAppLanguageChange };
 };
 
-describe('components/presentation/NavBar.tsx', () => {
+describe('NavBar', () => {
   it('should render nav', () => {
     renderNavBar({
       hideCloseButton: true,

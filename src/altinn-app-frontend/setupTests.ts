@@ -1,5 +1,3 @@
-import Enzyme from 'enzyme';
-import Adapter from '@wojtekmaj/enzyme-adapter-react-17';
 import 'jest';
 import '@testing-library/jest-dom/extend-expect';
 
@@ -25,7 +23,3 @@ const altinnWindow = window as Window as IAltinnWindow;
 altinnWindow.org = 'ttd';
 altinnWindow.app = 'test';
 jest.setTimeout(10000);
-
-Enzyme.configure({
-  adapter: new Adapter(),
-});

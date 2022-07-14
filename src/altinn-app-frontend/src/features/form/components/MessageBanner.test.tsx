@@ -5,7 +5,7 @@ import { AltinnAppTheme } from 'altinn-shared/theme';
 import MessageBanner from './MessageBanner';
 import type { ILanguage } from 'altinn-shared/types';
 
-describe('MessageBanner.tsx', () => {
+describe('MessageBanner', () => {
   const descriptionText = 'Obligatoriske felter er merket med *';
   const mockLanguage: ILanguage = {
     form_filler: {

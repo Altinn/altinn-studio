@@ -6,7 +6,7 @@ import { screen } from '@testing-library/react';
 import { getInitialStateMock } from '../../../__mocks__/initialStateMock';
 import { getFormLayoutStateMock } from '../../../__mocks__/formLayoutStateMock';
 
-describe('components/presentation/Header.tsx', () => {
+describe('Header', () => {
   it('should render as expected with header title', () => {
     renderWithProviders(
       <Header

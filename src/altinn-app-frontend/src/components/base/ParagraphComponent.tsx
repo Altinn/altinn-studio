@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
 import type { IComponentProps } from '..';
@@ -49,6 +49,7 @@ export function ParagraphComponent(props: IComponentProps) {
         <Typography
           component={isHeader ? 'div' : 'p'}
           id={props.id}
+          data-testid={`paragraph-component-${props.id}`}
           className={`${classes.spacing} ${classes.typography}`}
         >
           {props.text}

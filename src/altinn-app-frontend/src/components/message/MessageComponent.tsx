@@ -18,17 +18,24 @@ const iconStyles = {
   fontSize: '1.8em',
 };
 
-export function MessageComponent(props: IMessageComponentProps) {
+export function MessageComponent({
+  id,
+  style,
+  messageType,
+  message,
+  children,
+}: IMessageComponentProps) {
   return (
     <div
-      id={props.id}
-      key={props.id}
+      data-testid={`message-component-${id}`}
+      id={id}
+      key={id}
       className={classNames('field-validation-error', 'a-message', {
-        'a-message-info': props.messageType === 'info',
-        'a-message-error': props.messageType === 'error',
-        'a-message-success': props.messageType === 'success',
+        'a-message-info': messageType === 'info',
+        'a-message-error': messageType === 'error',
+        'a-message-success': messageType === 'success',
       })}
-      style={props.style}
+      style={style}
     >
       <Grid
         container
@@ -40,7 +47,7 @@ export function MessageComponent(props: IMessageComponentProps) {
         >
           <i
             className={classNames({
-              'fa fa-circle-exclamation': props.messageType === 'error',
+              'fa fa-circle-exclamation': messageType === 'error',
             })}
             style={iconStyles}
           />
@@ -49,7 +56,7 @@ export function MessageComponent(props: IMessageComponentProps) {
           item
           xs={10}
         >
-          {props.message ? props.message : props.children}
+          {message ? message : children}
         </Grid>
       </Grid>
     </div>

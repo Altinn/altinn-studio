@@ -12,7 +12,7 @@ import type { IComponentProps } from 'src/components';
 
 import { NavigationButtons } from './NavigationButtons';
 
-describe('components/presentation/NavigationButton.tsx', () => {
+describe('NavigationButton', () => {
   let mockStore;
   let mockLayout;
 

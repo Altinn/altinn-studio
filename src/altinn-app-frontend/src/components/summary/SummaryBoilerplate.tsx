@@ -4,7 +4,7 @@ import cn from 'classnames';
 import { EditButton } from 'src/components/summary/EditButton';
 import appTheme from 'altinn-shared/theme/altinnAppTheme';
 
-interface SummaryBoilerplateProps {
+export interface SummaryBoilerplateProps {
   hasValidationMessages?: boolean;
   onChangeClick: () => void;
   changeText: string;

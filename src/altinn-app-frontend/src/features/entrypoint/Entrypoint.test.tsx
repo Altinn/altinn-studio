@@ -12,7 +12,7 @@ import { renderWithProviders } from '../../../testUtils';
 
 jest.mock('axios');
 
-describe('features > entrypoint > Entrypoint.tsx', () => {
+describe('Entrypoint', () => {
   let mockInitialState: IRuntimeState;
   let mockStore: any;
   let mockReducer: any;

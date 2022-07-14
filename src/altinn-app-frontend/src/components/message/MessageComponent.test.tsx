@@ -1,99 +1,82 @@
-import { shallow } from 'enzyme';
 import * as React from 'react';
-import * as renderer from 'react-test-renderer';
+import { render as rtlRender, screen } from '@testing-library/react';
 
-import type { MessageType } from './MessageComponent';
+import type { IMessageComponentProps } from './MessageComponent';
 import { MessageComponent } from './MessageComponent';
 
-describe('components/message/MessageComponent.tsx', () => {
-  let mockId: string;
-  let mockMessageType: MessageType;
-  let mockMessages: string[];
+describe('MessageComponent', () => {
+  it('should have class a-message when messageType is "message", and none of the other a-message-* classes', () => {
+    render({ id: 'id', messageType: 'message' });
 
-  beforeEach(() => {
-    mockId = 'mockId';
-    mockMessageType = 'message';
-    mockMessages = ['this is a message'];
+    const component = screen.getByTestId('message-component-id');
+
+    expect(component).toHaveClass('a-message');
+    expect(component).not.toHaveClass('a-message-info');
+    expect(component).not.toHaveClass('a-message-error');
+    expect(component).not.toHaveClass('a-message-success');
   });
 
-  it('should match snapshot', () => {
-    const rendered = renderer.create(
-      <MessageComponent
-        messageType={mockMessageType}
-        style={{ display: 'block', width: 'fit-content' }}
-        key={'messageType'}
-        id={mockId}
-      >
-        <ol>
-          {mockMessages.map((message: string, idx: number) => {
-            return <li key={idx}>{message}</li>;
-          })}
-        </ol>
-      </MessageComponent>,
-    );
-    expect(rendered).toMatchSnapshot();
+  it('should have class a-message-info when messageType is "info", and none of the other a-message-* classes', () => {
+    render({ id: 'id', messageType: 'info' });
+
+    const component = screen.getByTestId('message-component-id');
+
+    expect(component).toHaveClass('a-message');
+    expect(component).toHaveClass('a-message-info');
+    expect(component).not.toHaveClass('a-message-error');
+    expect(component).not.toHaveClass('a-message-success');
   });
 
-  it('should have class a-message-info when into type', () => {
-    mockMessageType = 'info';
-    const shallowMessageComponent = shallow(
-      <MessageComponent
-        messageType={mockMessageType}
-        style={{ display: 'block', width: 'fit-content' }}
-        key={'messageType'}
-        id={mockId}
-      >
-        <ol>
-          {mockMessages.map((message: string, idx: number) => {
-            return <li key={idx}>{message}</li>;
-          })}
-        </ol>
-      </MessageComponent>,
-    );
-    expect(shallowMessageComponent.find('div').hasClass('a-message-info')).toBe(
-      true,
-    );
+  it('should have class a-message-error when messageType is "error", and none of the other a-message-* classes', () => {
+    render({ id: 'id', messageType: 'error' });
+
+    const component = screen.getByTestId('message-component-id');
+
+    expect(component).toHaveClass('a-message');
+    expect(component).not.toHaveClass('a-message-info');
+    expect(component).toHaveClass('a-message-error');
+    expect(component).not.toHaveClass('a-message-success');
   });
 
-  it('should have class a-message-error when error type', () => {
-    mockMessageType = 'error';
-    const shallowMessageComponent = shallow(
-      <MessageComponent
-        messageType={mockMessageType}
-        style={{ display: 'block', width: 'fit-content' }}
-        key={'messageType'}
-        id={mockId}
-      >
-        <ol>
-          {mockMessages.map((message: string, idx: number) => {
-            return <li key={idx}>{message}</li>;
-          })}
-        </ol>
-      </MessageComponent>,
-    );
+  it('should have class a-message-success when messageType is "success", and none of the other a-message-* classes', () => {
+    render({ id: 'id', messageType: 'success' });
+
+    const component = screen.getByTestId('message-component-id');
+
+    expect(component).toHaveClass('a-message');
+    expect(component).not.toHaveClass('a-message-info');
+    expect(component).not.toHaveClass('a-message-error');
+    expect(component).toHaveClass('a-message-success');
+  });
+
+  it('should render "message" when message is supplied, even when children is supplied', () => {
+    render({
+      message: 'message content',
+      children: <div data-testid='should-not-be-present'></div>,
+    });
+
+    expect(screen.getByText('message content')).toBeInTheDocument();
     expect(
-      shallowMessageComponent.find('div').hasClass('a-message-error'),
-    ).toBe(true);
+      screen.queryByTestId('should-not-be-present'),
+    ).not.toBeInTheDocument();
   });
 
-  it('should have class a-message-success when success type', () => {
-    mockMessageType = 'success';
-    const shallowMessageComponent = shallow(
-      <MessageComponent
-        messageType={mockMessageType}
-        style={{ display: 'block', width: 'fit-content' }}
-        key={'messageType'}
-        id={mockId}
-      >
-        <ol>
-          {mockMessages.map((message: string, idx: number) => {
-            return <li key={idx}>{message}</li>;
-          })}
-        </ol>
-      </MessageComponent>,
-    );
-    expect(
-      shallowMessageComponent.find('div').hasClass('a-message-success'),
-    ).toBe(true);
+  it('should render "children" when children is supplied and no message is supplied', () => {
+    render({
+      children: <div data-testid='should-be-present'></div>,
+    });
+
+    expect(screen.getByTestId('should-be-present')).toBeInTheDocument();
   });
 });
+
+const render = (props: Partial<IMessageComponentProps> = {}) => {
+  const allProps = {
+    messageType: 'message',
+    id: 'id',
+    children: <div></div>,
+    ...props,
+  } as IMessageComponentProps;
+
+  rtlRender(<MessageComponent {...allProps}></MessageComponent>);
+};

@@ -11,7 +11,7 @@ import Confirm, {
 } from 'src/features/confirm/containers/Confirm';
 import type { IParty } from 'altinn-shared/types';
 
-describe('features > confirm > Confirm', () => {
+describe('Confirm', () => {
   it('should show spinner when loading required data', () => {
     renderWithProviders(
       <MemoryRouter>

@@ -10,7 +10,7 @@ import * as React from 'react';
 import type { ILanguage, IParty } from '../../types';
 import { getLanguageFromKey } from '../../utils';
 import { renderPartyName } from '../../utils/party';
-import AltinnLogo from '../AltinnLogo';
+import { AltinnLogo } from '../AltinnLogo';
 import { LandmarkShortcuts } from '../LandmarkShortcuts';
 import AltinnAppHeaderMenu from './AltinnAppHeaderMenu';
 
@@ -69,6 +69,7 @@ export function AltinnAppHeader({
 }: IAltinnAppHeaderProps) {
   return (
     <AppBar
+      data-testid='AltinnAppHeader'
       position='relative'
       classes={{ root: classes.altinnAppHeader }}
       style={{ backgroundColor: headerBackgroundColor, color: logoColor }}

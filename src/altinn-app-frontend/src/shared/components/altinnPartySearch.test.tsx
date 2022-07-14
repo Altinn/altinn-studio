@@ -1,37 +1,34 @@
-import type { ReactWrapper } from 'enzyme';
-import { mount } from 'enzyme';
-import * as React from 'react';
-import { Provider } from 'react-redux';
-import configureStore from 'redux-mock-store';
+import React from 'react';
+import userEvent from '@testing-library/user-event';
+import { screen } from '@testing-library/react';
 
+import { renderWithProviders } from 'src/../testUtils';
+
+import type { IAltinnPartySearchProps } from './altinnPartySearch';
 import AltinnPartySearch from './altinnPartySearch';
 
+const user = userEvent.setup();
+
 describe('AltinnPartySearch', () => {
-  let mountedComponent: ReactWrapper;
-  let mockOnSearchUpdate: (searchString: string) => void;
-  let createStore: any;
-  let mockStore: any;
-  let testSearchString: any;
+  it('should use callback to update when search string is changed', async () => {
+    const handleSearchChange = jest.fn();
+    render({ onSearchUpdated: handleSearchChange });
 
-  beforeEach(() => {
-    mockOnSearchUpdate = (searchString: string) =>
-      (testSearchString = searchString);
-    createStore = configureStore();
-    mockStore = createStore({
-      language: {
-        language: [],
-      },
+    const input = screen.getByRole('textbox', {
+      name: /party_selection\.search_placeholder/i,
     });
-    mountedComponent = mount(
-      <Provider store={mockStore}>
-        <AltinnPartySearch onSearchUpdated={mockOnSearchUpdate} />
-      </Provider>,
-    );
-  });
 
-  it('should use callback to update when search string is changed', () => {
-    const inputField = mountedComponent.find('input');
-    inputField.simulate('change', { target: { value: 'a' } });
-    expect(testSearchString).toEqual('a');
+    await user.type(input, 'Hello world');
+
+    expect(handleSearchChange).toHaveBeenCalledWith('Hello world');
   });
 });
+
+const render = (props: Partial<IAltinnPartySearchProps> = {}) => {
+  const allProps = {
+    onSearchUpdated: jest.fn(),
+    ...props,
+  };
+
+  renderWithProviders(<AltinnPartySearch {...allProps} />);
+};

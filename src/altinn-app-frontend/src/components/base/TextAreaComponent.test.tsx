@@ -1,89 +1,92 @@
 import * as React from 'react';
-
-import { mount } from 'enzyme';
 import { TextAreaComponent } from './TextAreaComponent';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
 import type { IComponentProps } from 'src/components';
+import userEvent from '@testing-library/user-event';
 
 describe('TextAreaComponent.tsx', () => {
-  const mockId = 'mock-id';
-  const mockHandleDataChange: (value: any) => void = jest.fn();
-  const mockIsValid = true;
-  const mockReadOnly = false;
-  const mockFormData = {};
+  const user = userEvent.setup();
 
-  it('should set formdata on change', () => {
-    const onDataChanged = jest.fn();
-    renderTextAreaComponent({
-      handleDataChange: onDataChanged,
+  it('should render with initial text value', () => {
+    render({
+      formData: {
+        simpleBinding: 'initial text content',
+      },
     });
-    const textAreaComponent = screen.getByTestId(mockId);
-    expect(textAreaComponent).toHaveValue('');
-    fireEvent.change(textAreaComponent, { target: { value: 'Test123' } });
-    expect(textAreaComponent).toHaveValue('Test123');
+
+    const textarea = screen.getByRole('textbox');
+
+    expect(textarea).toHaveValue('initial text content');
   });
 
-  it('should render editable component when readOnly is false', () => {
-    const wrapper = mount(
-      <TextAreaComponent
-        id={mockId}
-        formData={mockFormData}
-        handleDataChange={mockHandleDataChange}
-        isValid={mockIsValid}
-        readOnly={mockReadOnly}
-        {...({} as IComponentProps)}
-      />,
-    );
-    expect(wrapper.find('textarea').hasClass('disabled')).toBe(false);
-    expect(wrapper.find('textarea').prop('readOnly')).toBe(false);
-  });
+  it('should fire handleDataChange with value when textarea is blurred', async () => {
+    const initialText = 'initial text content';
+    const addedText = ' + added content';
 
-  it('should render un-editable component when readOnly is true', () => {
-    const wrapper = mount(
-      <TextAreaComponent
-        id={mockId}
-        formData={mockFormData}
-        handleDataChange={mockHandleDataChange}
-        isValid={mockIsValid}
-        readOnly={true}
-        {...({} as IComponentProps)}
-      />,
-    );
-    expect(wrapper.find('textarea').hasClass('disabled')).toBe(true);
-    expect(wrapper.find('textarea').prop('readOnly')).toBe(true);
-  });
-
-  it('should have aria-describedby if textResourceBindings.description is not present', () => {
-    renderTextAreaComponent({
-      textResourceBindings: { description: 'description' },
+    const handleDataChange = jest.fn();
+    render({
+      formData: {
+        simpleBinding: initialText,
+      },
+      handleDataChange,
     });
-    const inputComponent = screen.getByTestId(mockId);
-    expect(inputComponent).toHaveAttribute(
-      'aria-describedby',
-      'description-mock-id',
+
+    const textarea = screen.getByRole('textbox');
+    await user.type(textarea, addedText);
+    await user.keyboard('{Tab}');
+
+    expect(handleDataChange).toHaveBeenCalledWith(
+      `${initialText}${addedText}`,
+      undefined,
+      false,
+      false,
     );
   });
 
-  it('should not have aria-describedby if textResourceBindings.description is not present', () => {
-    renderTextAreaComponent();
-    const inputComponent = screen.getByTestId(mockId);
-    expect(inputComponent).not.toHaveAttribute('aria-describedby');
+  it('should not fire handleDataChange when readOnly is true', async () => {
+    const initialText = 'initial text content';
+    const addedText = ' + added content';
+
+    const handleDataChange = jest.fn();
+    render({
+      formData: {
+        simpleBinding: initialText,
+      },
+      handleDataChange,
+      readOnly: true,
+    });
+
+    const textarea = screen.getByRole('textbox');
+    await user.type(textarea, addedText);
+    await user.keyboard('{Tab}');
+
+    expect(handleDataChange).not.toHaveBeenCalled();
   });
 
-  function renderTextAreaComponent(props: Partial<IComponentProps> = {}) {
-    const defaultProps = {
-      id: mockId,
-      formData: mockFormData,
-      handleDataChange: mockHandleDataChange,
-      isValid: mockIsValid,
-      readOnly: mockReadOnly,
-    } as IComponentProps;
+  it('should have aria-describedby attribute if textResourceBindings is present', () => {
+    render({
+      textResourceBindings: {},
+    });
 
-    render(
-      <TextAreaComponent
-        {...defaultProps}
-        {...props}
-      />,
-    );
-  }
+    const textarea = screen.getByRole('textbox');
+    expect(textarea).toHaveAttribute('aria-describedby', 'description-id');
+  });
+
+  it('should not have aria-describedby attribute if textResourceBindings is not present', () => {
+    render();
+
+    const textarea = screen.getByRole('textbox');
+    expect(textarea).not.toHaveAttribute('aria-describedby');
+  });
 });
+
+const render = (props: Partial<IComponentProps> = {}) => {
+  const allProps = {
+    id: 'id',
+    handleDataChange: jest.fn(),
+    getTextResource: (key: string) => key,
+    ...props,
+  } as IComponentProps;
+
+  rtlRender(<TextAreaComponent {...allProps} />);
+};

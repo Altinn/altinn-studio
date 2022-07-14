@@ -1,42 +1,42 @@
 import * as React from 'react';
-import { screen, render } from '@testing-library/react';
+import { screen, render as rtlRender } from '@testing-library/react';
+
+import type { SummaryBoilerplateProps } from './SummaryBoilerplate';
 
 import SummaryBoilerplate from './SummaryBoilerplate';
 
 describe('SummaryBoilerplate', () => {
-  const defaultProps = {
-    onChangeClick: () => {
-      return;
-    },
-    changeText: 'some text on a button',
-    label: <h3>label text</h3>,
-  };
-  test('should render the boilerplate with the default props', () => {
-    render(<SummaryBoilerplate {...defaultProps} />);
+  it('should render the boilerplate with the default props', () => {
+    render();
+
     expect(screen.getByRole('heading')).toBeInTheDocument();
-    expect(screen.getByRole('button')).toBeInTheDocument();
-    expect(screen.getByRole('button').innerHTML).toContain(
-      'some text on a button',
-    );
+    expect(
+      screen.getByRole('button', {
+        name: /some text on a button/i,
+      }),
+    ).toBeInTheDocument();
   });
 
-  test('should not render change-button', () => {
-    render(
-      <SummaryBoilerplate
-        {...defaultProps}
-        readOnlyComponent
-      />,
-    );
-    expect(screen.queryByRole('button')).toBeNull();
+  it('should not render change-button when readOnlyComponent is true', () => {
+    render({ readOnlyComponent: true });
+
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
-  test('should add validation message', () => {
-    render(
-      <SummaryBoilerplate
-        {...defaultProps}
-        hasValidationMessages
-      />,
-    );
-    expect(screen.queryByTestId('has-validation-message')).not.toBeNull();
+  it('should show validation message when hasValidationMessages is true', () => {
+    render({ hasValidationMessages: true });
+
+    expect(screen.getByTestId('has-validation-message')).toBeInTheDocument();
   });
 });
+
+const render = (props: Partial<SummaryBoilerplateProps> = {}) => {
+  const allProps = {
+    onChangeClick: jest.fn(),
+    changeText: 'some text on a button',
+    label: <h3>label text</h3>,
+    ...props,
+  };
+
+  return rtlRender(<SummaryBoilerplate {...allProps} />);
+};

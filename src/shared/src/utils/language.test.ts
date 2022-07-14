@@ -1,4 +1,3 @@
-import 'jest';
 import type {
   ITextResource,
   IDataSources,

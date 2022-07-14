@@ -4,21 +4,9 @@ import { getFormLayoutStateMock } from './formLayoutStateMock';
 import { getFormDataStateMock } from './formDataStateMock';
 import { applicationMetadataMock } from './applicationMetadataMock';
 import { applicationSettingsMock } from './applicationSettingsMock';
-import type { IParty } from '../../shared/src';
 import { getInstanceDataStateMock } from './instanceDataStateMock';
+import { partyMock } from './partyMock';
 import { getProfileStateMock } from './profileStateMock';
-
-export const mockParty: IParty = {
-  partyId: '12345',
-  name: 'Ola Privatperson',
-  ssn: '01017512345',
-  partyTypeName: null,
-  orgNumber: null,
-  unitType: null,
-  isDeleted: false,
-  onlyHierarchyElementWithNoAccess: false,
-  childParties: null,
-};
 
 export function getInitialStateMock(
   customStates?: Partial<IRuntimeState>,
@@ -88,8 +76,8 @@ export function getInitialStateMock(
     },
     party: {
       error: null,
-      parties: [mockParty],
-      selectedParty: mockParty,
+      parties: [partyMock],
+      selectedParty: partyMock,
     },
     process: {
       error: null,

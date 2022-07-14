@@ -20,7 +20,7 @@ import type {
 } from 'src/features/form/layout';
 import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 
-describe('shared > resources > options > fetch > fetchOptionsSagas', () => {
+describe('fetchOptionsSagas', () => {
   describe('watchCheckIfOptionsShouldRefetchSaga', () => {
     it('should take every updateFormData action and spawn checkIfOptionsShouldRefetchSaga', () => {
       testSaga(watchCheckIfOptionsShouldRefetchSaga)

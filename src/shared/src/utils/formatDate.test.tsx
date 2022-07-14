@@ -1,4 +1,3 @@
-import 'jest';
 import { formatNameAndDate, returnDatestringFromDate } from './formatDate';
 
 describe('formatNameAndDate', () => {

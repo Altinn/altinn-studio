@@ -16,7 +16,7 @@ const renderInstanceSelection = (
 
 const { setScreenWidth } = mockMediaQuery(992);
 
-describe('features/instantiate/InstanceSelection.tsx', () => {
+describe('InstanceSelection', () => {
   let mockInitialState: IRuntimeState;
   let mockStore: any;
   let mockStartNewInstance: () => void;

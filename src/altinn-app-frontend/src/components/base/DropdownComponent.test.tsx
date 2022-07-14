@@ -68,7 +68,7 @@ const render = (
   });
 };
 
-describe('components/base/DropdownComponent', () => {
+describe('DropdownComponent', () => {
   it('should trigger handleDataChange when option is selected', async () => {
     const handleDataChange = jest.fn();
     render({

@@ -1,89 +1,77 @@
-import * as React from 'react';
-import { Provider } from 'react-redux';
-import configureStore from 'redux-mock-store';
-import { render, screen } from '@testing-library/react';
+import React from 'react';
+import { screen } from '@testing-library/react';
 
 import {
   getInitialStateMock,
   getInstanceDataStateMock,
   applicationMetadataMock,
-} from '../../../__mocks__/mocks';
-import type { IApplicationMetadata } from '../../shared/resources/applicationMetadata';
+} from 'src/../__mocks__/mocks';
 import type { IInstanceDataState } from 'src/shared/resources/instanceData';
-import type { IData } from '../../../../shared/src';
+import type { IData } from 'altinn-shared/types';
 import type { IAttachmentListProps } from './AttachmentListComponent';
+
+import { renderWithProviders } from 'src/../testUtils';
 
 import { AttachmentListComponent } from './AttachmentListComponent';
 
-describe('components/base/FileUploadComponent.tsx', () => {
-  let mockApplicationMetadata: IApplicationMetadata;
-  let mockInstanceData: IInstanceDataState;
-  let mockId: string;
-  let mockInitialState: any;
-  let mockStore: any;
-
-  beforeEach(() => {
-    const createStore = configureStore();
-    mockId = 'mockId';
-    mockApplicationMetadata = applicationMetadataMock;
-    const instanceDataMock: IInstanceDataState = getInstanceDataStateMock();
-    const dataElement: IData = {
-      id: 'test-data-element-1',
-      instanceGuid: instanceDataMock.instance.id,
-      dataType: 'test-data-type-1',
-      filename: 'testData1.pdf',
-      contentType: 'application/pdf',
-      blobStoragePath: '',
-      selfLinks: {
-        apps: null,
-        platform: null,
-      },
-      size: 1234,
-      locked: false,
-      refs: [],
-      created: new Date('2021-01-01'),
-      createdBy: 'testUser',
-      lastChanged: new Date('2021-01-01'),
-      lastChangedBy: 'testUser',
-    };
-    mockInstanceData = {
-      ...instanceDataMock,
-    };
-
-    mockInstanceData.instance.data = [dataElement];
-
-    mockInitialState = getInitialStateMock({
-      applicationMetadata: {
-        applicationMetadata: mockApplicationMetadata,
-        error: null,
-      },
-      instanceData: mockInstanceData,
-    });
-
-    mockStore = createStore(mockInitialState);
+describe('FileUploadComponent', () => {
+  it('should render default AttachmentList component', () => {
+    render({ text: 'Attachments' });
+    expect(screen.getByText('Attachments')).toBeInTheDocument();
   });
-
-  test('renders default AttachmentList component', () => {
-    renderFileUploadComponent();
-    expect(screen.getByText('Attachments')).toBeTruthy();
-  });
-
-  function renderFileUploadComponent(
-    props: Partial<IAttachmentListProps> = {},
-  ) {
-    const defaultProps: IAttachmentListProps = {
-      id: mockId,
-      text: 'Attachments',
-      dataTypeIds: ['test-data-type-1'],
-    } as IAttachmentListProps;
-
-    return render(
-      <Provider store={mockStore}>
-        <AttachmentListComponent
-          {...defaultProps}
-          {...props}
-        />
-      </Provider>,
-    );
-  }
 });
+
+function render(props: Partial<IAttachmentListProps> = {}) {
+  const mockId = 'mockId';
+
+  const mockApplicationMetadata = applicationMetadataMock;
+  const instanceDataMock: IInstanceDataState = getInstanceDataStateMock();
+  const dataElement: IData = {
+    id: 'test-data-element-1',
+    instanceGuid: instanceDataMock.instance.id,
+    dataType: 'test-data-type-1',
+    filename: 'testData1.pdf',
+    contentType: 'application/pdf',
+    blobStoragePath: '',
+    selfLinks: {
+      apps: null,
+      platform: null,
+    },
+    size: 1234,
+    locked: false,
+    refs: [],
+    created: new Date('2021-01-01'),
+    createdBy: 'testUser',
+    lastChanged: new Date('2021-01-01'),
+    lastChangedBy: 'testUser',
+  };
+  const mockInstanceData = {
+    ...instanceDataMock,
+  };
+
+  mockInstanceData.instance.data = [dataElement];
+
+  const mockInitialState = getInitialStateMock({
+    applicationMetadata: {
+      applicationMetadata: mockApplicationMetadata,
+      error: null,
+    },
+    instanceData: mockInstanceData,
+  });
+
+  const defaultProps = {
+    id: mockId,
+    text: 'Attachments',
+    dataTypeIds: ['test-data-type-1'],
+  } as IAttachmentListProps;
+
+  return renderWithProviders(
+    <AttachmentListComponent
+      {...defaultProps}
+      {...props}
+    />,
+    {
+      preloadedState: mockInitialState,
+    },
+  );
+}

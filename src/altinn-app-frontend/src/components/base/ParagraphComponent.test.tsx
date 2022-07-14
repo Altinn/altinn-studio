@@ -1,98 +1,69 @@
-import { shallow } from 'enzyme';
-import * as React from 'react';
-import * as renderer from 'react-test-renderer';
-import { render } from '@testing-library/react';
-
-import type { ITextResourceBindings } from 'src/features/form/layout';
+import React from 'react';
+import { render as rtlRender, screen } from '@testing-library/react';
 import type { IComponentProps } from 'src/components';
 
 import { ParagraphComponent } from './ParagraphComponent';
 
 describe('ParagraphComponent', () => {
-  const mockId = 'mock-id';
-  const mockText = 'Here goes a paragraph';
-  const mockGetTextResource = (key: string) => key;
-  const mockLanguage: any = {};
-  const mockTextResourceBindings: ITextResourceBindings = {
-    tile: mockText,
-  };
+  it('should render with supplied text', () => {
+    const textContent = 'paragraph text content';
+    render({ text: textContent });
 
-  it('should match snapshot', () => {
-    const rendered = renderer.create(
-      <ParagraphComponent
-        id={mockId}
-        text={mockText}
-        language={mockLanguage}
-        getTextResource={mockGetTextResource}
-        textResourceBindings={mockTextResourceBindings}
-        {...({} as IComponentProps)}
-      />,
-    );
-    expect(rendered).toMatchSnapshot();
-  });
-  it('should have correct text', () => {
-    const shallowParagraphComponent = shallow(
-      <ParagraphComponent
-        id={mockId}
-        text={'some other text'}
-        language={mockLanguage}
-        getTextResource={mockGetTextResource}
-        textResourceBindings={mockTextResourceBindings}
-        {...({} as IComponentProps)}
-      />,
-    );
-
-    expect(shallowParagraphComponent.text()).toEqual('some other text');
+    expect(screen.getByText(textContent)).toBeInTheDocument();
   });
 
   it('should render help text if help text is supplied', () => {
-    const shallowParagraphComponent = shallow(
-      <ParagraphComponent
-        id={mockId}
-        text={mockText}
-        language={mockLanguage}
-        getTextResource={mockGetTextResource}
-        textResourceBindings={{ help: 'this is the help text' }}
-        {...({} as IComponentProps)}
-      />,
-    );
+    render({
+      textResourceBindings: { help: 'this is the help text' },
+    });
 
-    expect(shallowParagraphComponent.find('HelpTextContainer')).toHaveLength(1);
+    expect(
+      screen.getByRole('button', {
+        name: /popover\.popover_button_helptext/i,
+      }),
+    ).toBeInTheDocument();
+  });
+
+  it('should not render help text if no help text is supplied', () => {
+    render();
+
+    expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 
   it('should render in a <div> when a header text is supplied', () => {
-    const { container } = render(
-      <ParagraphComponent
-        id={mockId}
-        text={<h3>Hello world</h3>}
-        language={mockLanguage}
-        getTextResource={mockGetTextResource}
-        textResourceBindings={mockTextResourceBindings}
-        {...({} as IComponentProps)}
-      />,
-    );
+    const id = 'mock-id';
+    render({ id, text: <h3>Hello world</h3> });
 
-    expect(container.querySelector('#mock-id').tagName).toEqual('DIV');
+    expect(screen.getByTestId(`paragraph-component-${id}`).tagName).toEqual(
+      'DIV',
+    );
   });
 
   it('should render in a <p> when regular text content is supplied', () => {
-    const { container } = render(
-      <ParagraphComponent
-        id={mockId}
-        text={
-          <>
-            Hello world with line
-            <br />
-            break
-          </>
-        }
-        language={mockLanguage}
-        getTextResource={mockGetTextResource}
-        textResourceBindings={mockTextResourceBindings}
-        {...({} as IComponentProps)}
-      />,
-    );
+    const id = 'mock-id';
+    render({
+      id,
+      text: (
+        <>
+          Hello world with line
+          <br />
+          break
+        </>
+      ),
+    });
 
-    expect(container.querySelector('#mock-id').tagName).toEqual('P');
+    expect(screen.queryByTestId(`paragraph-component-${id}`).tagName).toEqual(
+      'P',
+    );
   });
 });
+
+const render = (props: Partial<IComponentProps> = {}) => {
+  const allProps = {
+    text: 'paragraph text content',
+    getTextResource: (key: string) => key,
+    ...props,
+  } as IComponentProps;
+
+  rtlRender(<ParagraphComponent {...allProps} />);
+};

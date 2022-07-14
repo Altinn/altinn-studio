@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`components/summary/MultipleChoiceSummary.tsx components/summary/MultipleChoiceSummary.tsx -- should match snapshot 1`] = `
+exports[`MultipleChoiceSummary MultipleChoiceSummary 1`] = `
 <DocumentFragment>
   <div
     class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-10"

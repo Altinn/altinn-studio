@@ -6,7 +6,7 @@ import type { ITextResource } from '../../../types';
 
 import { RepeatingGroupAddButton } from './RepeatingGroupAddButton';
 
-describe('components/base/InputComponent.tsx', () => {
+describe('InputComponent', () => {
   let mockContainer: ILayoutGroup;
   let mockLanguage: any;
   let mockTextResources: ITextResource[];
@@ -29,7 +29,7 @@ describe('components/base/InputComponent.tsx', () => {
     mockTextResources = [];
   });
 
-  test('components/form/RepeatingGroupsAddButton -- should match snapshot', () => {
+  test('RepeatingGroupsAddButton', () => {
     const { asFragment } = render(
       <RepeatingGroupAddButton
         container={mockContainer}

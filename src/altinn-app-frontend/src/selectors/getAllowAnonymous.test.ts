@@ -4,8 +4,7 @@ import { getInitialStateMock } from '../../__mocks__/initialStateMock';
 import { makeGetAllowAnonymousSelector } from './getAllowAnonymous';
 import { statelessAndAllowAnonymousMock } from '../../__mocks__/statelessAndAllowAnonymousMock';
 
-describe('selectors > getAllowAnonymous', () => {
-  const initialState = getInitialStateMock();
+describe('getAllowAnonymous', () => {
   it('should return true if stateless && allowAnonymous is set to true on dataType', () => {
     const mockInitialState = statelessAndAllowAnonymousMock(true);
     const getAllowAnonymous = makeGetAllowAnonymousSelector();
@@ -28,12 +27,14 @@ describe('selectors > getAllowAnonymous', () => {
   });
 
   it('should return false if not stateless', () => {
+    const initialState = getInitialStateMock();
     const getAllowAnonymous = makeGetAllowAnonymousSelector();
     const result = getAllowAnonymous(initialState);
     expect(result).toBe(false);
   });
 
   it('should return undefined if app metadata is not loaded', () => {
+    const initialState = getInitialStateMock();
     const mockInitialState: IRuntimeState = {
       ...initialState,
       applicationMetadata: {
@@ -47,6 +48,7 @@ describe('selectors > getAllowAnonymous', () => {
   });
 
   it('should return undefined if layout sets is not loaded', () => {
+    const initialState = getInitialStateMock();
     const mockInitialState: IRuntimeState = {
       ...initialState,
       applicationMetadata: {

@@ -29,6 +29,7 @@ const ErrorReport = () => {
 
   return (
     <div
+      data-testid='ErrorReport'
       id='errorReport'
       className='a-modal-content-target'
       style={{ marginTop: '55px' }}

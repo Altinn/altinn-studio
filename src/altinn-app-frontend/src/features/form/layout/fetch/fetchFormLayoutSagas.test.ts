@@ -10,7 +10,7 @@ import type { IApplication, IInstance } from 'altinn-shared/types';
 import { select } from 'redux-saga/effects';
 import { FormLayoutActions } from '../formLayoutSlice';
 
-describe('features / form / layout / fetch / fetchFormLayoutSagas', () => {
+describe('fetchFormLayoutSagas', () => {
   describe('fetchLayoutSaga', () => {
     const instance = {
       id: 'some-instance-id',

@@ -6,7 +6,7 @@ import { Provider } from 'react-redux';
 import Legend from './Legend';
 import type { IFormLegendProps } from './Legend';
 
-describe('features > form > components > Legend.tsx', () => {
+describe('Legend', () => {
   const requiredMarking = '*';
   const optionalMarking = 'Valgfri';
 

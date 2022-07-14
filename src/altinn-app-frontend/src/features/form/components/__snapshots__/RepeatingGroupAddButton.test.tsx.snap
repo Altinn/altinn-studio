@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`components/base/InputComponent.tsx components/form/RepeatingGroupsAddButton -- should match snapshot 1`] = `
+exports[`InputComponent RepeatingGroupsAddButton 1`] = `
 <DocumentFragment>
   <div
     class="MuiGrid-root MuiGrid-container MuiGrid-justify-content-xs-center"

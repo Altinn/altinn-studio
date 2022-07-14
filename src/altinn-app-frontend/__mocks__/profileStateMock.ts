@@ -1,5 +1,5 @@
 import type { IProfileState } from '../src/shared/resources/profile';
-import { mockParty } from './initialStateMock';
+import { partyMock } from './partyMock';
 
 export function getProfileStateMock(
   customStates?: Partial<IProfileState>,
@@ -10,7 +10,7 @@ export function getProfileStateMock(
       userId: 12345,
       userName: 'Ola Normann',
       partyId: 12345,
-      party: mockParty,
+      party: partyMock,
       userType: 1,
       profileSettingPreference: {
         language: 'nb',

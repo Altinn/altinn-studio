@@ -56,21 +56,17 @@
     "@testing-library/react-hooks": "^8.0.0",
     "@testing-library/user-event": "^14.2.0",
     "@types/dot-object": "^2.1.2",
-    "@types/enzyme": "^3.10.12",
     "@types/jest": "^28.1.1",
     "@types/react": "17.0.46",
     "@types/react-dom": "^17.0.17",
     "@types/react-redux": "^7.1.24",
     "@types/react-router-dom": "^5.3.3",
-    "@types/react-test-renderer": "^17.0.2",
     "@types/redux-mock-store": "^1.0.3",
     "@types/uuid": "8.3.4",
-    "@wojtekmaj/enzyme-adapter-react-17": "^0.6.7",
     "altinn-designsystem": "^3.1.0",
     "classnames": "^2.3.1",
     "cross-env": "^7.0.3",
     "css-loader": "^6.7.1",
-    "enzyme": "^3.11.0",
     "eslint": "^8.17.0",
     "fork-ts-checker-notifier-webpack-plugin": "6.0.0",
     "fork-ts-checker-webpack-plugin": "^7.2.11",
@@ -83,7 +79,6 @@
     "react-refresh": "^0.14.0",
     "react-refresh-typescript": "^2.0.5",
     "react-styleguidist": "^11.2.0",
-    "react-test-renderer": "^17.0.2",
     "redux-mock-store": "^1.5.4",
     "redux-saga-test-plan": "4.0.5",
     "rimraf": "^3.0.2",
@@ -126,9 +121,6 @@
     "collectCoverageFrom": [
       "!__tests__/**/*",
       "src/**/*.{ts,tsx}"
-    ],
-    "snapshotSerializers": [
-      "enzyme-to-json/serializer"
     ],
     "testEnvironmentOptions": {
       "url": "https://altinn3local.no/ttd/test"

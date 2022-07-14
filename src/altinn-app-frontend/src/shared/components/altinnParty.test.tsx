@@ -1,118 +1,114 @@
-import type { ReactWrapper } from 'enzyme';
-import { mount } from 'enzyme';
-import * as React from 'react';
-import { Provider } from 'react-redux';
-import configureStore from 'redux-mock-store';
-
-import type { IParty } from 'altinn-shared/types';
-
+import React from 'react';
 import AltinnParty from './altinnParty';
+import type { IAltinnPartyProps } from './altinnParty';
+import { renderWithProviders } from '../../../testUtils';
+import userEvent from '@testing-library/user-event';
+import { partyMock } from '../../../__mocks__/partyMock';
+import { screen } from '@testing-library/react';
+
+const user = userEvent.setup();
+
+const partyWithChildParties = {
+  ...partyMock,
+  childParties: [
+    {
+      ...partyMock,
+      partyId: '1',
+      name: 'Child party 1',
+    },
+    {
+      ...partyMock,
+      partyId: '2',
+      name: 'Child party 2',
+    },
+  ],
+};
 
 describe('altinnParty', () => {
-  let mountedComponent: ReactWrapper;
-  let mockParty: IParty;
-  let selectedParty: IParty;
-  let onSelectPartyMock: (party: IParty) => void;
-  let createStore: any;
-  let mockStore: any;
+  it('should call onSelectParty callback with the clicked party', async () => {
+    const handleSelectParty = jest.fn();
+    render({ onSelectParty: handleSelectParty });
 
-  beforeEach(() => {
-    mockParty = {
-      childParties: [],
-      partyId: 'partyId',
-      partyTypeName: 1,
-      orgNumber: null,
-      ssn: 'ssn',
-      unitType: 'test',
-      name: 'Testing Testing',
-      isDeleted: false,
-      onlyHierarchyElementWithNoAccess: false,
-    };
-    selectedParty = null;
-    onSelectPartyMock = (party: IParty) => (selectedParty = party);
-    createStore = configureStore();
-    mockStore = createStore({
-      language: {
-        language: [],
-      },
-    });
-    mountedComponent = mount(
-      <Provider store={mockStore}>
-        <AltinnParty
-          party={mockParty}
-          onSelectParty={onSelectPartyMock}
-          showSubUnits={true}
-        />
-      </Provider>,
+    const party = screen.getByText(
+      /party_selection\.unit_personal_number 01017512345/i,
     );
+
+    await user.click(party);
+
+    expect(handleSelectParty).toHaveBeenCalledWith(partyMock);
   });
 
-  it('should use callback to select party', () => {
-    mountedComponent
-      .findWhere((n: ReactWrapper<any, any>) => {
-        if (n.type() === 'div') {
-          if (n.getDOMNode().id === `party-${mockParty.partyId}`) {
-            return true;
-          }
-          return false;
-        }
-        return false;
-      })
-      .simulate('click');
-    expect(selectedParty).toEqual(mockParty);
+  describe('showSubUnits', () => {
+    it('should render childParties when party has childParties and showSubUnits is true', () => {
+      render({
+        showSubUnits: true,
+        party: partyWithChildParties,
+      });
+
+      expect(
+        screen.getByText(/2 party_selection\.unit_type_subunit_plural/i),
+      ).toBeInTheDocument();
+      expect(screen.getByText(/child party 1/i)).toBeInTheDocument();
+      expect(screen.getByText(/child party 2/i)).toBeInTheDocument();
+    });
+
+    it('should not render childParties when party has childParties and showSubUnits is false', () => {
+      render({
+        showSubUnits: false,
+        party: partyWithChildParties,
+      });
+
+      expect(
+        screen.queryByText(/2 party_selection\.unit_type_subunit_plural/i),
+      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/child party 1/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/child party 2/i)).not.toBeInTheDocument();
+    });
+
+    it('should not render childParties when party doesnt have childParties and showSubUnits is true', () => {
+      render({
+        showSubUnits: true,
+        party: partyMock,
+      });
+
+      expect(
+        screen.queryByText(/2 party_selection\.unit_type_subunit_plural/i),
+      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/child party 1/i)).not.toBeInTheDocument();
+      expect(screen.queryByText(/child party 2/i)).not.toBeInTheDocument();
+    });
   });
 
   describe('should render with correct icon based on what kind of party it is', () => {
     it("should render with class 'fa fa-private' if party is a person", () => {
-      mockParty = {
-        childParties: [],
-        partyId: 'partyId',
-        partyTypeName: 1,
-        orgNumber: null,
-        ssn: 'ssn',
-        unitType: 'test',
-        name: 'Testing Testing',
-        isDeleted: false,
-        onlyHierarchyElementWithNoAccess: false,
-      };
-      mountedComponent = mount(
-        <Provider store={mockStore}>
-          <AltinnParty
-            party={mockParty}
-            onSelectParty={onSelectPartyMock}
-            showSubUnits={true}
-          />
-        </Provider>,
-      );
-      mountedComponent.containsMatchingElement(
-        <i className={'partyIcon fa fa-private'} />,
-      );
+      render();
+      const icon = screen.getByTestId('AltinnParty-partyIcon');
+
+      expect(icon).toHaveClass('fa-private');
+      expect(icon).not.toHaveClass('fa-corp');
     });
 
     it("should render with class 'fa fa-corp' if party is a organisation", () => {
-      mockParty = {
-        childParties: [],
-        partyId: 'partyId',
-        partyTypeName: 1,
-        orgNumber: 1000000,
-        ssn: 'ssn',
-        unitType: 'test',
-        name: 'Testing Testing',
-        isDeleted: false,
-        onlyHierarchyElementWithNoAccess: false,
-      };
-      mountedComponent = mount(
-        <Provider store={mockStore}>
-          <AltinnParty
-            party={mockParty}
-            onSelectParty={onSelectPartyMock}
-            showSubUnits={true}
-          />
-        </Provider>,
-      );
-      mountedComponent.containsMatchingElement(
-        <i className={'partyIcon fa fa-corp'} />,
-      );
+      render({
+        party: {
+          ...partyMock,
+          orgNumber: 1000000,
+        },
+      });
+      const icon = screen.getByTestId('AltinnParty-partyIcon');
+
+      expect(icon).toHaveClass('fa-corp');
+      expect(icon).not.toHaveClass('fa-private');
     });
   });
 });
+
+const render = (props: Partial<IAltinnPartyProps> = {}) => {
+  const allProps = {
+    party: partyMock,
+    onSelectParty: jest.fn(),
+    showSubUnits: false,
+    ...props,
+  };
+  return renderWithProviders(<AltinnParty {...allProps} />);
+};

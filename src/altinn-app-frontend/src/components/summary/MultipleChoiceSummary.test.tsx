@@ -1,44 +1,34 @@
 import * as React from 'react';
-import { render } from '@testing-library/react';
+import { render as rtlRender } from '@testing-library/react';
 
 import type { IMultipleChoiceSummaryProps } from './MultipleChoiceSummary';
 
 import MultipleChoiceSummary from './MultipleChoiceSummary';
 
-describe('components/summary/MultipleChoiceSummary.tsx', () => {
-  let mockFormData: any;
-  let mockHandleDataChange: () => void;
-
-  beforeEach(() => {
-    mockFormData = {
-      1: 'This is a text',
-      2: 'This is another text',
-    };
-    mockHandleDataChange = jest.fn();
-  });
-
-  test('components/summary/MultipleChoiceSummary.tsx -- should match snapshot', () => {
-    const { asFragment } = renderMultipleChoiceSummaryComponent();
+describe('MultipleChoiceSummary', () => {
+  test('MultipleChoiceSummary', () => {
+    const { asFragment } = render();
     expect(asFragment()).toMatchSnapshot();
   });
-
-  function renderMultipleChoiceSummaryComponent(
-    props: Partial<IMultipleChoiceSummaryProps> = {},
-  ) {
-    const defaultProps: IMultipleChoiceSummaryProps = {
-      formData: mockFormData,
-      label: 'TestLabel',
-      hasValidationMessages: false,
-      changeText: 'Endre',
-      onChangeClick: mockHandleDataChange,
-      readOnlyComponent: false,
-    };
-
-    return render(
-      <MultipleChoiceSummary
-        {...defaultProps}
-        {...props}
-      />,
-    );
-  }
 });
+
+function render(props: Partial<IMultipleChoiceSummaryProps> = {}) {
+  const defaultProps: IMultipleChoiceSummaryProps = {
+    formData: {
+      1: 'This is a text',
+      2: 'This is another text',
+    },
+    label: 'TestLabel',
+    hasValidationMessages: false,
+    changeText: 'Endre',
+    onChangeClick: jest.fn(),
+    readOnlyComponent: false,
+  };
+
+  return rtlRender(
+    <MultipleChoiceSummary
+      {...defaultProps}
+      {...props}
+    />,
+  );
+}

@@ -1,4 +1,3 @@
-import 'jest';
 import type { IData } from '../types';
 import { getInstancePdf, mapInstanceAttachments } from './attachmentsUtils';
 
