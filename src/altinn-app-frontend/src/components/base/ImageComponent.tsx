@@ -57,7 +57,7 @@ export function ImageComponent(props: IImageProps) {
     <Grid
       container
       direction='row'
-      justify={align}
+      justifyContent={align}
     >
       <Grid item={true}>
         {renderSvg ? (

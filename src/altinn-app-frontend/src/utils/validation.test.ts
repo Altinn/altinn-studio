@@ -515,6 +515,25 @@ describe('utils > validation', () => {
         code: '',
       },
     ];
+
+    /**
+     * Silences deprecation warning about jsPropertySyntax from Ajv, so we don't pollute our test runner output with
+     * these warnings. We already know about the deprecation of jsPropertySyntax, and our tests will fail if/when
+     * AJV decides to completely remove support for this syntax.
+     *
+     * @see createValidator
+     */
+    const oldConsoleWarn = console.warn;
+    console.warn = (...args: any[]) => {
+      if (
+        typeof args[0] === 'string' &&
+        args[0].match(/DEPRECATED: option jsPropertySyntax/)
+      ) {
+        return;
+      }
+
+      oldConsoleWarn(...args);
+    };
   });
 
   describe('getErrorCount', () => {

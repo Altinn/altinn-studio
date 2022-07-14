@@ -1,6 +1,7 @@
 import { shallow } from 'enzyme';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
+import { render } from '@testing-library/react';
 
 import type { ITextResourceBindings } from 'src/features/form/layout';
 import type { IComponentProps } from 'src/components';
@@ -57,5 +58,41 @@ describe('ParagraphComponent', () => {
     );
 
     expect(shallowParagraphComponent.find('HelpTextContainer')).toHaveLength(1);
+  });
+
+  it('should render in a <div> when a header text is supplied', () => {
+    const { container } = render(
+      <ParagraphComponent
+        id={mockId}
+        text={<h3>Hello world</h3>}
+        language={mockLanguage}
+        getTextResource={mockGetTextResource}
+        textResourceBindings={mockTextResourceBindings}
+        {...({} as IComponentProps)}
+      />,
+    );
+
+    expect(container.querySelector('#mock-id').tagName).toEqual('DIV');
+  });
+
+  it('should render in a <p> when regular text content is supplied', () => {
+    const { container } = render(
+      <ParagraphComponent
+        id={mockId}
+        text={
+          <>
+            Hello world with line
+            <br />
+            break
+          </>
+        }
+        language={mockLanguage}
+        getTextResource={mockGetTextResource}
+        textResourceBindings={mockTextResourceBindings}
+        {...({} as IComponentProps)}
+      />,
+    );
+
+    expect(container.querySelector('#mock-id').tagName).toEqual('P');
   });
 });

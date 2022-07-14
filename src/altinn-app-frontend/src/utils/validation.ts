@@ -81,7 +81,17 @@ export function createValidator(schema: any): ISchemaValidator {
   const ajvOptions: Options = {
     allErrors: true,
     coerceTypes: true,
+
+    /**
+     * This option is deprecated in AJV, but continues to work for now. We have unit tests that will fail if the
+     * functionality is removed from AJV. The jsPropertySyntax (ex. 'Path.To.Array[0].Item') was replaced with JSON
+     * pointers in v7 (ex. '/Path/To/Array/0/Item'). If the option to keep the old syntax is removed at some point,
+     * we'll have to implement a translator ourselves, as we'll need this format to equal our data model bindings.
+     *
+     * @see https://github.com/ajv-validator/ajv/issues/1577#issuecomment-832216719
+     */
     jsPropertySyntax: true,
+
     strict: false,
     strictTypes: false,
     strictTuples: false,

@@ -59,6 +59,7 @@ describe('DatepickerComponent', () => {
   });
 
   it('should not show calendar initially, and show calendar when clicking calendar button', async () => {
+    jest.spyOn(console, 'error').mockImplementation();
     render();
 
     expect(getCalendarYearHeader('queryByRole')).not.toBeInTheDocument();
@@ -67,6 +68,12 @@ describe('DatepickerComponent', () => {
 
     expect(getCalendarYearHeader()).toBeInTheDocument();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    expect(console.error).toHaveBeenCalledTimes(1);
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringMatching(
+        /Material-UI: The `fade` color utility was renamed to `alpha` to better describe its functionality/,
+      ),
+    );
   });
 
   it('should not show calendar initially, and show calendar in a dialog when clicking calendar button, and screen size is mobile sized', async () => {
@@ -226,6 +233,7 @@ describe('DatepickerComponent', () => {
   });
 
   it('should show error message when typed date is on an invalid format and call handleDataChange with empty value if formdata is present', async () => {
+    jest.spyOn(console, 'warn').mockImplementation();
     const handleDataChange = jest.fn();
     render({ handleDataChange, formData: { simpleBinding: '12.12.2022' } });
 
@@ -241,6 +249,12 @@ describe('DatepickerComponent', () => {
     fireEvent.blur(inputField);
 
     expect(screen.getByRole('alert')).toBeInTheDocument();
+    expect(console.warn).toHaveBeenCalledTimes(1);
+    expect(console.warn).toHaveBeenCalledWith(
+      expect.stringMatching(
+        /Deprecation warning: value provided is not in a recognized RFC2822 or ISO format. moment construction falls back to js Date/,
+      ),
+    );
 
     expect(
       screen.getByText('date_picker.invalid_date_message'),
