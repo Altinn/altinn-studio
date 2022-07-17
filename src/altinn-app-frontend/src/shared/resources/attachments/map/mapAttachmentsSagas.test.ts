@@ -107,14 +107,14 @@ describe('mapAttachments', () => {
     };
 
     const mockedAttachments = [0, 1, 2, 3, 4].map((i) =>
-      mockAttachment('attachment' + i),
+      mockAttachment(`attachment${i}`),
     );
 
     const expected: IAttachments = {
       [basicUploader.id]: [mockedAttachments[0]],
       [basicUploaderWithBindings.id]: [mockedAttachments[1]],
-      [uploaderInRepeatingGroup.id + '-0']: [mockedAttachments[2]],
-      [multiUploaderInRepeatingGroup.id + '-0']: [
+      [`${uploaderInRepeatingGroup.id}-0`]: [mockedAttachments[2]],
+      [`${multiUploaderInRepeatingGroup.id}-0`]: [
         mockedAttachments[3],
         mockedAttachments[4],
       ],

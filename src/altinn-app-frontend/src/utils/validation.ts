@@ -1041,26 +1041,19 @@ export function canFormBeSaved(
   if (!validations || apiMode !== 'Complete') {
     return true;
   }
-  const canBeSaved = Object.keys(validations).every((layoutId: string) => {
-    const layoutCanBeSaved = Object.keys(validations[layoutId])?.every(
-      (componentId: string) => {
-        const componentValidations: IComponentValidations =
-          validations[layoutId][componentId];
-        if (componentValidations === null) {
-          return true;
-        }
-        const componentCanBeSaved = Object.keys(componentValidations).every(
-          (bindingKey: string) => {
-            const componentErrors = componentValidations[bindingKey].errors;
-            return !componentErrors || componentErrors.length === 0;
-          },
-        );
-        return componentCanBeSaved;
-      },
-    );
-    return layoutCanBeSaved;
+  return Object.keys(validations).every((layoutId: string) => {
+    return Object.keys(validations[layoutId])?.every((componentId: string) => {
+      const componentValidations: IComponentValidations =
+        validations[layoutId][componentId];
+      if (componentValidations === null) {
+        return true;
+      }
+      return Object.keys(componentValidations).every((bindingKey: string) => {
+        const componentErrors = componentValidations[bindingKey].errors;
+        return !componentErrors || componentErrors.length === 0;
+      });
+    });
   });
-  return canBeSaved;
 }
 
 export function findLayoutIdsFromValidationIssue(

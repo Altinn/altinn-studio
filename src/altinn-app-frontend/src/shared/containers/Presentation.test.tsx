@@ -49,7 +49,7 @@ describe('Presentation', () => {
     Object.defineProperty(window, 'location', {
       value: {
         ...window,
-        search: '?returnUrl=' + returnUrl,
+        search: `?returnUrl=${returnUrl}`,
       },
       writable: true,
     });
@@ -79,7 +79,7 @@ describe('Presentation', () => {
       value: {
         ...window,
         origin,
-        search: '?returnUrl=' + returnUrl,
+        search: `?returnUrl=${returnUrl}`,
       },
       writable: true,
     });

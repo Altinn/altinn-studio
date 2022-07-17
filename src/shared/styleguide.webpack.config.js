@@ -6,42 +6,40 @@ module.exports = {
   devtool: 'eval',
   entry: './src/index.tsx',
   resolve: {
-    extensions: [".ts", ".tsx", ".js", ".jsx", ".css", ".scss"],
+    extensions: ['.ts', '.tsx', '.js', '.jsx', '.css', '.scss'],
     alias: {
       // CUSTOM PACKAGES
       'altinn-shared': path.resolve(__dirname, './../shared/src'),
-      'src': path.resolve(__dirname, './src')
-    }
+      src: path.resolve(__dirname, './src'),
+    },
   },
   performance: {
     hints: 'warning',
   },
   module: {
-    rules: [{
+    rules: [
+      {
         test: /\.jsx?/,
         exclude: path.resolve(__dirname, 'node_modules'),
         include: path.resolve(__dirname, './src'),
         use: {
-          loader: "babel-loader",
-        }
+          loader: 'babel-loader',
+        },
       },
       {
         test: /\.scss$/,
-        use: [
-          "style-loader",
-          "css-loader"
-        ]
+        use: ['style-loader', 'css-loader'],
       },
       {
         test: /\.css$/,
         use: [
           {
-            loader: "css-loader",
+            loader: 'css-loader',
             options: {
-              url: false
-            }
+              url: false,
+            },
           },
-        ]
+        ],
       },
       {
         test: /\.tsx?/,
@@ -50,19 +48,17 @@ module.exports = {
           path.resolve(__dirname, './src'),
           path.resolve(__dirname, './styleguide'),
         ],
-        loader: "awesome-typescript-loader",
+        loader: 'awesome-typescript-loader',
       },
       {
-        enforce: "pre",
+        enforce: 'pre',
         test: /\.js$/,
-        loader: "source-map-loader",
-      }
+        loader: 'source-map-loader',
+      },
     ],
   },
-  plugins: [
-    new CheckerPlugin(),
-  ],
+  plugins: [new CheckerPlugin()],
   devServer: {
     historyApiFallback: true,
-  }
-}
+  },
+};

@@ -987,7 +987,7 @@ describe('utils > validation', () => {
         type: 'Input',
         required: true,
         dataModelBindings: {
-          simpleBinding: 'Group.' + id,
+          simpleBinding: `Group.${id}`,
         },
         textResourceBindings: {
           title: id,

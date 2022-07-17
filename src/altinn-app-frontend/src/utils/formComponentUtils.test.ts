@@ -729,9 +729,7 @@ describe('formComponentUtils', () => {
       expect(updateValidationWithId).toEqual({
         simpleBinding: {
           errors: [
-            'mock-attachment-id' +
-              AsciiUnitSeparator +
-              'Noe gikk galt under oppdatering av filens merking, prøv igjen senere.',
+            `mock-attachment-id${AsciiUnitSeparator}Noe gikk galt under oppdatering av filens merking, prøv igjen senere.`,
           ],
           warnings: [],
         },
@@ -757,9 +755,7 @@ describe('formComponentUtils', () => {
       const mockValidations = [
         'Noe gikk galt under opplastingen av filen, prøv igjen senere.',
         'Noe gikk galt under oppdatering av filens merking, prøv igjen senere.',
-        'mock-attachment-id' +
-          AsciiUnitSeparator +
-          'Noe gikk galt under oppdatering av filens merking, prøv igjen senere.',
+        `mock-attachment-id${AsciiUnitSeparator}Noe gikk galt under oppdatering av filens merking, prøv igjen senere.`,
         'Noe gikk galt under slettingen av filen, prøv igjen senere.',
       ];
       const expectedResult = [

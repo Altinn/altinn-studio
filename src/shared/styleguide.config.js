@@ -2,7 +2,9 @@ const path = require('node:path');
 module.exports = {
   components: 'src/components/**/*.tsx',
   webpackConfig: require('./styleguide.webpack.config'),
-  propsParser: require('react-docgen-typescript').withDefaultConfig({propFilter: {skipPropsWithName: 'classes'}}).parse,
+  propsParser: require('react-docgen-typescript').withDefaultConfig({
+    propFilter: { skipPropsWithName: 'classes' },
+  }).parse,
   styles: {
     StyleGuide: {
       '@global html': {
@@ -18,18 +20,18 @@ module.exports = {
       links: [
         {
           rel: 'stylesheet',
-          href:
-            '"https://altinncdn.no/fonts/altinn-din/altinn-din.css'
+          href: '"https://altinncdn.no/fonts/altinn-din/altinn-din.css',
         },
       ],
-      scripts: [{
-          src: 'https://use.fortawesome.com/ed31cded.js'
+      scripts: [
+        {
+          src: 'https://use.fortawesome.com/ed31cded.js',
         },
         {
-          src: 'https://use.fortawesome.com/df832575.js'
+          src: 'https://use.fortawesome.com/df832575.js',
         },
         {
-          src: 'https://use.fortawesome.com/bdabc5c1.js'
+          src: 'https://use.fortawesome.com/bdabc5c1.js',
         },
       ],
     },
@@ -40,36 +42,36 @@ module.exports = {
   pagePerSection: true,
   sections: [
     {
-      name: "Introduction",
+      name: 'Introduction',
       content: 'styleguide/introduction.md',
     },
     {
-      name: "Atoms",
+      name: 'Atoms',
       content: 'styleguide/atoms.md',
       components: 'src/components/atoms/*.tsx',
       exampleMode: 'expand',
-      usageMode: 'expand'
+      usageMode: 'expand',
     },
     {
-      name: "Molecules",
+      name: 'Molecules',
       content: 'styleguide/molecules.md',
       components: 'src/components/molecules/*.tsx',
       exampleMode: 'expand',
-      usageMode: 'expand'
+      usageMode: 'expand',
     },
     {
-      name: "Organisms",
+      name: 'Organisms',
       content: 'styleguide/organisms.md',
       components: 'src/components/organisms/*.tsx',
       exampleMode: 'expand',
-      usageMode: 'expand'
+      usageMode: 'expand',
     },
     {
       name: 'Shared Components',
       content: 'styleguide/components.md',
       components: 'src/components/*.tsx',
       exampleMode: 'expand',
-      usageMode: 'expand'
-    }
-  ]
+      usageMode: 'expand',
+    },
+  ],
 };

@@ -193,107 +193,35 @@ export function FileList(props: FileListProps): JSX.Element {
             </TableHead>
           )}
           <TableBody className={classes.tableBody}>
-            {props.attachments.length >= 0 &&
-              props.attachments.map(
-                (attachment: IAttachment, index: number) => {
-                  // Check if filter is applied and includes specified index.
-                  if (
-                    attachment.tags !== undefined &&
-                    attachment.tags.length !== 0 &&
-                    props.editIndex !== index
-                  ) {
-                    return (
-                      <TableRow
-                        key={`altinn-file-list-row-${attachment.id}`}
-                        className={
-                          props.mobileView ? classes.mobileTableRow : ''
-                        }
-                      >
-                        <TableCell
-                          key={`attachment-name-${index}`}
-                          className={classes.textContainer}
-                        >
-                          <div style={{ minWidth: '0px' }}>
-                            {FileName(props.attachments[index].name)}
-                            {props.mobileView ? (
-                              <div
-                                style={{
-                                  color:
-                                    AltinnAppTheme.altinnPalette.primary.grey,
-                                }}
-                              >
-                                {attachment.uploaded ? (
-                                  <div>
-                                    {(attachment.size / bytesInOneMB).toFixed(
-                                      2,
-                                    )}{' '}
-                                    {getLanguageFromKey(
-                                      'form_filler.file_uploader_mb',
-                                      props.language,
-                                    )}
-                                    <i
-                                      className='ai ai-check-circle'
-                                      aria-label={getLanguageFromKey(
-                                        'form_filler.file_uploader_list_status_done',
-                                        props.language,
-                                      )}
-                                      style={
-                                        props.mobileView
-                                          ? { marginLeft: '10px' }
-                                          : null
-                                      }
-                                    />
-                                  </div>
-                                ) : null}
-                                {!attachment.uploaded && (
-                                  <AltinnLoader
-                                    id={`attachment-loader-upload-${props.attachments[index].id}`}
-                                    style={{
-                                      marginBottom: '1.6rem',
-                                      marginRight: '1.3rem',
-                                    }}
-                                    srContent={getLanguageFromKey(
-                                      'general.loading',
-                                      props.language,
-                                    )}
-                                  />
-                                )}
-                              </div>
-                            ) : null}
-                          </div>
-                        </TableCell>
-                        <TableCell
-                          key={`attachment-tag-${index}`}
-                          className={classes.textContainer}
-                        >
-                          {props.getTextResourceAsString(
-                            props.options?.find(
-                              (option) => option.value === attachment.tags[0],
-                            ).label,
-                          )}
-                        </TableCell>
-                        {!props.mobileView ? (
-                          <TableCell
-                            key={`attachment-size-${index}`}
-                            className={classes.textContainer}
+            {props.attachments.map((attachment: IAttachment, index: number) => {
+              // Check if filter is applied and includes specified index.
+              if (
+                attachment.tags !== undefined &&
+                attachment.tags.length !== 0 &&
+                props.editIndex !== index
+              ) {
+                return (
+                  <TableRow
+                    key={`altinn-file-list-row-${attachment.id}`}
+                    className={props.mobileView ? classes.mobileTableRow : ''}
+                  >
+                    <TableCell
+                      key={`attachment-name-${index}`}
+                      className={classes.textContainer}
+                    >
+                      <div style={{ minWidth: '0px' }}>
+                        {FileName(props.attachments[index].name)}
+                        {props.mobileView ? (
+                          <div
+                            style={{
+                              color: AltinnAppTheme.altinnPalette.primary.grey,
+                            }}
                           >
-                            {`${(attachment.size / bytesInOneMB).toFixed(
-                              2,
-                            )} ${getLanguageFromKey(
-                              'form_filler.file_uploader_mb',
-                              props.language,
-                            )}`}
-                          </TableCell>
-                        ) : null}
-                        {!props.mobileView ? (
-                          <TableCell
-                            key={`attachment-status-${index}`}
-                            className={classes.textContainer}
-                          >
-                            {attachment.uploaded && (
+                            {attachment.uploaded ? (
                               <div>
+                                {(attachment.size / bytesInOneMB).toFixed(2)}{' '}
                                 {getLanguageFromKey(
-                                  'form_filler.file_uploader_list_status_done',
+                                  'form_filler.file_uploader_mb',
                                   props.language,
                                 )}
                                 <i
@@ -302,12 +230,16 @@ export function FileList(props: FileListProps): JSX.Element {
                                     'form_filler.file_uploader_list_status_done',
                                     props.language,
                                   )}
+                                  style={
+                                    props.mobileView
+                                      ? { marginLeft: '10px' }
+                                      : null
+                                  }
                                 />
                               </div>
-                            )}
-                            {!attachment.uploaded && (
+                            ) : (
                               <AltinnLoader
-                                id={`attachment-loader-upload-${attachment.id}`}
+                                id={`attachment-loader-upload-${props.attachments[index].id}`}
                                 style={{
                                   marginBottom: '1.6rem',
                                   marginRight: '1.3rem',
@@ -318,62 +250,115 @@ export function FileList(props: FileListProps): JSX.Element {
                                 )}
                               />
                             )}
-                          </TableCell>
+                          </div>
                         ) : null}
-                        <TableCell
-                          align='right'
-                          key={`edit-${index}`}
-                        >
-                          <IconButton
-                            style={{ color: 'black' }}
-                            onClick={() => props.onEdit(index)}
-                            tabIndex={0}
-                            className={classes.editTextContainer}
-                          >
+                      </div>
+                    </TableCell>
+                    <TableCell
+                      key={`attachment-tag-${index}`}
+                      className={classes.textContainer}
+                    >
+                      {props.getTextResourceAsString(
+                        props.options?.find(
+                          (option) => option.value === attachment.tags[0],
+                        ).label,
+                      )}
+                    </TableCell>
+                    {!props.mobileView ? (
+                      <TableCell
+                        key={`attachment-size-${index}`}
+                        className={classes.textContainer}
+                      >
+                        {`${(attachment.size / bytesInOneMB).toFixed(
+                          2,
+                        )} ${getLanguageFromKey(
+                          'form_filler.file_uploader_mb',
+                          props.language,
+                        )}`}
+                      </TableCell>
+                    ) : null}
+                    {!props.mobileView ? (
+                      <TableCell
+                        key={`attachment-status-${index}`}
+                        className={classes.textContainer}
+                      >
+                        {attachment.uploaded ? (
+                          <div>
                             {getLanguageFromKey(
-                              'general.edit_alt',
+                              'form_filler.file_uploader_list_status_done',
                               props.language,
                             )}
                             <i
-                              className={`fa fa-editing-file ${classes.editIcon}`}
+                              className='ai ai-check-circle'
+                              aria-label={getLanguageFromKey(
+                                'form_filler.file_uploader_list_status_done',
+                                props.language,
+                              )}
                             />
-                          </IconButton>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  }
-                  return (
-                    <TableRow
-                      key={`altinn-unchosen-option-attachment-row-${index}`}
-                    >
-                      <TableCell
-                        className={props.mobileView ? classes.fullGrid : ''}
-                        colSpan={!props.mobileView ? 5 : undefined}
-                      >
-                        <EditWindowComponent
-                          id={props.id}
-                          dataModelBindings={props.dataModelBindings}
-                          attachment={props.attachments[index]}
-                          attachmentValidations={props.attachmentValidations}
-                          language={props.language}
-                          mobileView={props.mobileView}
-                          readOnly={props.readOnly}
-                          options={props.options}
-                          getTextResource={props.getTextResource}
-                          getTextResourceAsString={
-                            props.getTextResourceAsString
-                          }
-                          onSave={props.onSave}
-                          onDropdownDataChange={props.onDropdownDataChange}
-                          setEditIndex={props.setEditIndex}
-                          textResourceBindings={props.textResourceBindings}
-                          {...({} as IComponentProps)}
-                        />
+                          </div>
+                        ) : (
+                          <AltinnLoader
+                            id={`attachment-loader-upload-${attachment.id}`}
+                            style={{
+                              marginBottom: '1.6rem',
+                              marginRight: '1.3rem',
+                            }}
+                            srContent={getLanguageFromKey(
+                              'general.loading',
+                              props.language,
+                            )}
+                          />
+                        )}
                       </TableCell>
-                    </TableRow>
-                  );
-                },
-              )}
+                    ) : null}
+                    <TableCell
+                      align='right'
+                      key={`edit-${index}`}
+                    >
+                      <IconButton
+                        style={{ color: 'black' }}
+                        onClick={() => props.onEdit(index)}
+                        tabIndex={0}
+                        className={classes.editTextContainer}
+                      >
+                        {getLanguageFromKey('general.edit_alt', props.language)}
+                        <i
+                          className={`fa fa-editing-file ${classes.editIcon}`}
+                        />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                );
+              }
+              return (
+                <TableRow
+                  key={`altinn-unchosen-option-attachment-row-${index}`}
+                >
+                  <TableCell
+                    className={props.mobileView ? classes.fullGrid : ''}
+                    colSpan={!props.mobileView ? 5 : undefined}
+                  >
+                    <EditWindowComponent
+                      id={props.id}
+                      dataModelBindings={props.dataModelBindings}
+                      attachment={props.attachments[index]}
+                      attachmentValidations={props.attachmentValidations}
+                      language={props.language}
+                      mobileView={props.mobileView}
+                      readOnly={props.readOnly}
+                      options={props.options}
+                      getTextResource={props.getTextResource}
+                      getTextResourceAsString={props.getTextResourceAsString}
+                      onSave={props.onSave}
+                      onDropdownDataChange={props.onDropdownDataChange}
+                      setEditIndex={props.setEditIndex}
+                      textResourceBindings={props.textResourceBindings}
+                      {...({} as IComponentProps)}
+                    />
+                  </TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </TableContainer>

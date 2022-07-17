@@ -59,7 +59,7 @@ export function runConditionalRenderingRules(
         if (connection.repeatingGroup.childGroupId) {
           const childGroup: IRepeatingGroup =
             repeatingGroups[
-              connection.repeatingGroup.childGroupId + '-' + index
+              `${connection.repeatingGroup.childGroupId}-${index}`
             ];
           for (
             let childIndex = 0;

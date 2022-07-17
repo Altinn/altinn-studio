@@ -53,7 +53,7 @@ export const getInstancePdf = (
     return null;
   }
 
-  const result = pdfElements.map((element) => {
+  return pdfElements.map((element) => {
     const pdfUrl = platform
       ? element.selfLinks.platform
       : element.selfLinks.apps;
@@ -64,7 +64,6 @@ export const getInstancePdf = (
       dataType: element.dataType,
     };
   });
-  return result;
 };
 
 /**

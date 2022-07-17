@@ -18,23 +18,22 @@ module.exports = {
       links: [
         {
           rel: 'stylesheet',
-          href:
-            '"https://altinncdn.no/fonts/altinn-din/altinn-din.css'
+          href: '"https://altinncdn.no/fonts/altinn-din/altinn-din.css',
         },
         {
           rel: 'stylesheet',
-          href:
-          'https://altinncdn.no/toolkits/altinn-app-frontend/1/altinn-app-frontend.css'
+          href: 'https://altinncdn.no/toolkits/altinn-app-frontend/1/altinn-app-frontend.css',
         },
       ],
-      scripts: [{
-          src: 'https://use.fortawesome.com/ed31cded.js'
+      scripts: [
+        {
+          src: 'https://use.fortawesome.com/ed31cded.js',
         },
         {
-          src: 'https://use.fortawesome.com/df832575.js'
+          src: 'https://use.fortawesome.com/df832575.js',
         },
         {
-          src: 'https://use.fortawesome.com/bdabc5c1.js'
+          src: 'https://use.fortawesome.com/bdabc5c1.js',
         },
       ],
     },
@@ -45,22 +44,22 @@ module.exports = {
   pagePerSection: true,
   sections: [
     {
-      name: "Introduction",
+      name: 'Introduction',
       content: 'styleguide/introduction.md',
     },
     {
-      name: "Base",
+      name: 'Base',
       content: 'styleguide/base.md',
       components: 'src/components/base/*.tsx',
       exampleMode: 'expand',
-      usageMode: 'expand'
+      usageMode: 'expand',
     },
     {
-      name: "Advanced",
+      name: 'Advanced',
       content: 'styleguide/advanced.md',
       components: 'src/components/advanced/*.tsx',
       exampleMode: 'expand',
-      usageMode: 'expand'
+      usageMode: 'expand',
     },
-  ]
+  ],
 };

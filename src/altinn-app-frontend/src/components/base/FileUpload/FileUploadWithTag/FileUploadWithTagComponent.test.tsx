@@ -219,7 +219,7 @@ const render = ({
           simpleBinding: {
             errors: [
               'mock error message',
-              'attachment-id-2' + AsciiUnitSeparator + 'mock error message',
+              `attachment-id-2${AsciiUnitSeparator}mock error message`,
             ],
           },
         },

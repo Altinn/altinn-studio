@@ -44,7 +44,7 @@ module.exports = {
     historyApiFallback: true,
     allowedHosts: 'all',
     hot: true,
-    headers: { "Access-Control-Allow-Origin": "*" },
+    headers: { 'Access-Control-Allow-Origin': '*' },
     client: {
       overlay: {
         errors: true,
