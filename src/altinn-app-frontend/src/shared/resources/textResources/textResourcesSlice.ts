@@ -1,5 +1,3 @@
-import type { PayloadAction } from '@reduxjs/toolkit';
-import { createSlice, createAction } from '@reduxjs/toolkit';
 import type {
   ITextResourcesState,
   IFetchTextResourcesFulfilled,
@@ -7,6 +5,13 @@ import type {
   IReplaceTextResourcesFulfilled,
   IReplaceTextResourcesRejected,
 } from 'src/shared/resources/textResources/index';
+import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
+import { watchFetchTextResourcesSaga } from 'src/shared/resources/textResources/fetch/fetchTextResourcesSagas';
+import {
+  replaceTextResourcesSaga,
+  watchReplaceTextResourcesSaga,
+} from 'src/shared/resources/textResources/replace/replaceTextResourcesSagas';
 
 const initialState: ITextResourcesState = {
   language: null,
@@ -14,47 +19,43 @@ const initialState: ITextResourcesState = {
   error: null,
 };
 
-const name = 'textResources';
-const textResourcesSlice = createSlice({
-  name,
-  initialState,
-  reducers: {
-    fetchFulfilled: (
-      state,
-      action: PayloadAction<IFetchTextResourcesFulfilled>,
-    ) => {
-      state.language = action.payload.language;
-      state.resources = action.payload.resources;
+const textResourcesSlice = createSagaSlice(
+  (mkAction: MkActionType<ITextResourcesState>) => ({
+    name: 'textResources',
+    initialState,
+    actions: {
+      fetch: mkAction<void>({
+        saga: () => watchFetchTextResourcesSaga,
+      }),
+      fetchFulfilled: mkAction<IFetchTextResourcesFulfilled>({
+        reducer: (state, action) => {
+          state.language = action.payload.language;
+          state.resources = action.payload.resources;
+        },
+      }),
+      fetchRejected: mkAction<IFetchTextResourcesRejected>({
+        reducer: (state, action) => {
+          state.error = action.payload.error;
+        },
+      }),
+      replace: mkAction<void>({
+        takeLatest: replaceTextResourcesSaga,
+        saga: () => watchReplaceTextResourcesSaga,
+      }),
+      replaceFulfilled: mkAction<IReplaceTextResourcesFulfilled>({
+        reducer: (state, action) => {
+          state.language = action.payload.language;
+          state.resources = action.payload.resources;
+        },
+      }),
+      replaceRejected: mkAction<IReplaceTextResourcesRejected>({
+        reducer: (state, action) => {
+          state.error = action.payload.error;
+        },
+      }),
     },
-    fetchRejected: (
-      state,
-      action: PayloadAction<IFetchTextResourcesRejected>,
-    ) => {
-      state.error = action.payload.error;
-    },
-    replaceFulfilled: (
-      state,
-      action: PayloadAction<IReplaceTextResourcesFulfilled>,
-    ) => {
-      state.language = action.payload.language;
-      state.resources = action.payload.resources;
-    },
-    replaceRejected: (
-      state,
-      action: PayloadAction<IReplaceTextResourcesRejected>,
-    ) => {
-      state.error = action.payload.error;
-    },
-  },
-});
+  }),
+);
 
-const actions = {
-  fetch: createAction(`${name}/fetch`),
-  replace: createAction(`${name}/replace`),
-};
-
-export const TextResourcesActions = {
-  ...textResourcesSlice.actions,
-  ...actions,
-};
+export const TextResourcesActions = textResourcesSlice.actions;
 export default textResourcesSlice;

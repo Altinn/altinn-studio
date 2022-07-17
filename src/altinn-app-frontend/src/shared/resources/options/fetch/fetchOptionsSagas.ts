@@ -1,12 +1,5 @@
 import type { SagaIterator } from 'redux-saga';
-import {
-  fork,
-  call,
-  select,
-  takeLatest,
-  takeEvery,
-  put,
-} from 'redux-saga/effects';
+import { fork, call, select, put } from 'redux-saga/effects';
 import type {
   IRuntimeState,
   IOption,
@@ -20,15 +13,12 @@ import type {
 } from 'src/features/form/layout';
 import { get } from 'altinn-shared/utils';
 import { getOptionsUrl } from 'src/utils/appUrlHelper';
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { OptionsActions } from '../optionsSlice';
-import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import type { IUpdateFormDataFulfilled } from 'src/features/form/data/formDataTypes';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { IFormData } from 'src/features/form/data';
 import { getOptionLookupKey } from 'src/utils/options';
 import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
-import { LanguageActions } from 'src/shared/resources/language/languageSlice';
 
 export const formLayoutSelector = (state: IRuntimeState): ILayouts =>
   state.formLayout.layouts;
@@ -107,20 +97,4 @@ export function* checkIfOptionsShouldRefetchSaga({
       });
     }
   }
-}
-
-export function* watchCheckIfOptionsShouldRefetchSaga(): SagaIterator {
-  yield takeEvery(
-    FormDataActions.updateFulfilled,
-    checkIfOptionsShouldRefetchSaga,
-  );
-}
-
-export function* watchInitialFetchOptionSaga(): SagaIterator {
-  yield takeLatest(FormLayoutActions.fetchFulfilled, fetchOptionsSaga);
-}
-
-export function* watchFetchOptionsSaga(): SagaIterator {
-  yield takeLatest(OptionsActions.fetch, fetchOptionsSaga);
-  yield takeLatest(LanguageActions.updateSelectedAppLanguage, fetchOptionsSaga);
 }

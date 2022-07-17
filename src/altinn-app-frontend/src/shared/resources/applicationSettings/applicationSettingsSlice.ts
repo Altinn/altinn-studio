@@ -1,7 +1,11 @@
-import type { PayloadAction } from '@reduxjs/toolkit';
-import { createAction, createSlice } from '@reduxjs/toolkit';
 import type { IApplicationSettings } from 'altinn-shared/types';
-import type * as ApplicationSettingsTypes from './applicationSettingsTypes';
+import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
+import type {
+  IFetchApplicationSettingsFulfilled,
+  IFetchApplicationSettingsRejected,
+} from './applicationSettingsTypes';
+import { getApplicationSettings } from 'src/shared/resources/applicationSettings/fetch/fetchApplicationSettingsSaga';
 
 export interface IApplicationSettingsState {
   applicationSettings: IApplicationSettings;
@@ -13,37 +17,31 @@ export const initialState: IApplicationSettingsState = {
   error: null,
 };
 
-const moduleName = 'applicationSettings';
-
-const applicationSettingsSlice = createSlice({
-  name: moduleName,
-  initialState,
-  reducers: {
-    fetchApplicationSettingsFulfilled: (
-      state,
-      action: PayloadAction<ApplicationSettingsTypes.IFetchApplicationSettingsFulfilled>,
-    ) => {
-      const { settings } = action.payload;
-      state.applicationSettings = settings;
+const applicationSettingsSlice = createSagaSlice(
+  (mkAction: MkActionType<IApplicationSettingsState>) => ({
+    name: 'applicationSettings',
+    initialState,
+    actions: {
+      fetchApplicationSettings: mkAction<void>({
+        takeLatest: getApplicationSettings,
+      }),
+      fetchApplicationSettingsFulfilled:
+        mkAction<IFetchApplicationSettingsFulfilled>({
+          reducer: (state, action) => {
+            const { settings } = action.payload;
+            state.applicationSettings = settings;
+          },
+        }),
+      fetchApplicationSettingsRejected:
+        mkAction<IFetchApplicationSettingsRejected>({
+          reducer: (state, action) => {
+            const { error } = action.payload;
+            state.error = error;
+          },
+        }),
     },
-    fetchApplicationSettingsRejected: (
-      state,
-      action: PayloadAction<ApplicationSettingsTypes.IFetchApplicationSettingsRejected>,
-    ) => {
-      const { error } = action.payload;
-      state.error = error;
-    },
-  },
-});
+  }),
+);
 
-const actions = {
-  fetchApplicationSettings: createAction(
-    `${moduleName}/fetchApplicationSettings`,
-  ),
-};
-
-export const ApplicationSettingsActions = {
-  ...actions,
-  ...applicationSettingsSlice.actions,
-};
+export const ApplicationSettingsActions = applicationSettingsSlice.actions;
 export default applicationSettingsSlice;

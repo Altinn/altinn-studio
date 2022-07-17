@@ -1,4 +1,7 @@
-import { createSlice } from '@reduxjs/toolkit';
+import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
+import { watcherFinishDataTaskIsloadingSaga } from 'src/shared/resources/isLoading/dataTask/dataTaskIsLoadingSagas';
+import { watcherFinishStatelessIsLoadingSaga } from 'src/shared/resources/isLoading/stateless/statelessIsLoadingSagas';
 
 export interface IIsLoadingState {
   dataTask: boolean;
@@ -10,30 +13,36 @@ export const initialState: IIsLoadingState = {
   stateless: null,
 };
 
-const isLoadingSlice = createSlice({
-  name: 'isLoading',
-  initialState,
-  reducers: {
-    startDataTaskIsLoading: (state: IIsLoadingState) => {
-      state.dataTask = true;
+const isLoadingSlice = createSagaSlice(
+  (mkAction: MkActionType<IIsLoadingState>) => ({
+    name: 'isLoading',
+    initialState,
+    actions: {
+      startDataTaskIsLoading: mkAction<void>({
+        reducer: (state) => {
+          state.dataTask = true;
+        },
+      }),
+      finishDataTaskIsLoading: mkAction<void>({
+        saga: () => watcherFinishDataTaskIsloadingSaga,
+        reducer: (state) => {
+          state.dataTask = false;
+        },
+      }),
+      startStatelessIsLoading: mkAction<void>({
+        reducer: (state) => {
+          state.stateless = true;
+        },
+      }),
+      finishStatelessIsLoading: mkAction<void>({
+        saga: () => watcherFinishStatelessIsLoadingSaga,
+        reducer: (state) => {
+          state.stateless = false;
+        },
+      }),
     },
-    finishDataTaskIsLoading: (state: IIsLoadingState) => {
-      state.dataTask = false;
-    },
-    startStatelessIsLoading: (state: IIsLoadingState) => {
-      state.stateless = true;
-    },
-    finishStatelessIsLoading: (state: IIsLoadingState) => {
-      state.stateless = false;
-    },
-  },
-});
+  }),
+);
 
-export const {
-  startDataTaskIsLoading,
-  finishDataTaskIsLoading,
-  startStatelessIsLoading,
-  finishStatelessIsLoading,
-} = isLoadingSlice.actions;
-
+export const IsLoadingActions = isLoadingSlice.actions;
 export default isLoadingSlice;

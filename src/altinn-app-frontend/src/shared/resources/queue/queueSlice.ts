@@ -1,22 +1,22 @@
-import type { PayloadAction } from '@reduxjs/toolkit';
-import { createSlice } from '@reduxjs/toolkit';
-
-export interface IQueueState {
-  dataTask: IQueueTask;
-  appTask: IQueueTask;
-  userTask: IQueueTask;
-  infoTask: IQueueTask;
-  stateless: IQueueTask;
-}
-
-export interface IQueueTask {
-  isDone: boolean;
-  error: any;
-}
-
-export interface IQueueError {
-  error: any;
-}
+import type { IQueueError, IQueueState } from '.';
+import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
+import type { SagaIterator } from 'redux-saga';
+import { put } from 'redux-saga/effects';
+import { ApplicationSettingsActions } from 'src/shared/resources/applicationSettings/applicationSettingsSlice';
+import { TextResourcesActions } from 'src/shared/resources/textResources/textResourcesSlice';
+import { LanguageActions } from 'src/shared/resources/language/languageSlice';
+import { ApplicationMetadataActions } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { OrgsActions } from 'src/shared/resources/orgs/orgsSlice';
+import { FormDataActions } from 'src/features/form/data/formDataSlice';
+import { DataModelActions } from 'src/features/form/datamodel/datamodelSlice';
+import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
+import { ProfileActions } from 'src/shared/resources/profile/profileSlice';
+import { profileApiUrl } from 'src/utils/appUrlHelper';
+import { PartyActions } from 'src/shared/resources/party/partySlice';
+import { IsLoadingActions } from 'src/shared/resources/isLoading/isLoadingSlice';
+import { watchStartInitialInfoTaskQueueSaga } from 'src/shared/resources/queue/infoTask/infoTaskQueueSaga';
 
 const commonState = { isDone: null, error: null };
 export const initialState: IQueueState = {
@@ -27,96 +27,125 @@ export const initialState: IQueueState = {
   stateless: { ...commonState },
 };
 
-const moduleName = 'queue';
-
-const queueSlice = createSlice({
-  name: moduleName,
+const queueSlice = createSagaSlice((mkAction: MkActionType<IQueueState>) => ({
+  name: 'queue',
   initialState,
-  reducers: {
-    appTaskQueueError: (
-      state: IQueueState,
-      action: PayloadAction<IQueueError>,
-    ) => {
-      const { error } = action.payload;
-      state.appTask.error = error;
-    },
-    userTaskQueueError: (
-      state: IQueueState,
-      action: PayloadAction<IQueueError>,
-    ) => {
-      const { error } = action.payload;
-      state.userTask.error = error;
-    },
-    dataTaskQueueError: (
-      state: IQueueState,
-      action: PayloadAction<IQueueError>,
-    ) => {
-      const { error } = action.payload;
-      state.dataTask.error = error;
-    },
-    infoTaskQueueError: (
-      state: IQueueState,
-      action: PayloadAction<IQueueError>,
-    ) => {
-      const { error } = action.payload;
-      state.infoTask.error = error;
-    },
-    statelessQueueError: (
-      state: IQueueState,
-      action: PayloadAction<IQueueError>,
-    ) => {
-      const { error } = action.payload;
-      state.stateless.error = error;
-    },
-    startInitialAppTaskQueue: (state: IQueueState) => {
-      state.appTask.isDone = false;
-    },
-    startInitialAppTaskQueueFulfilled: (state: IQueueState) => {
-      state.appTask.isDone = true;
-    },
-    startInitialUserTaskQueue: (state: IQueueState) => {
-      state.userTask.isDone = false;
-    },
-    startInitialUserTaskQueueFulfilled: (state: IQueueState) => {
-      state.userTask.isDone = true;
-    },
-    startInitialDataTaskQueue: (state: IQueueState) => {
-      state.dataTask.isDone = false;
-    },
-    startInitialDataTaskQueueFulfilled: (state: IQueueState) => {
-      state.dataTask.isDone = true;
-    },
-    startInitialInfoTaskQueue: (state: IQueueState) => {
-      state.infoTask.isDone = false;
-    },
-    startInitialInfoTaskQueueFulfilled: (state: IQueueState) => {
-      state.infoTask.isDone = true;
-    },
-    startInitialStatelessQueue: (state: IQueueState) => {
-      state.stateless.isDone = false;
-    },
-    startInitialStatelessQueueFulfilled: (state: IQueueState) => {
-      state.stateless.isDone = true;
-    },
+  actions: {
+    appTaskQueueError: mkAction<IQueueError>({
+      reducer: (state, action) => {
+        const { error } = action.payload;
+        state.appTask.error = error;
+      },
+    }),
+    userTaskQueueError: mkAction<IQueueError>({
+      reducer: (state, action) => {
+        const { error } = action.payload;
+        state.userTask.error = error;
+      },
+    }),
+    dataTaskQueueError: mkAction<IQueueError>({
+      reducer: (state, action) => {
+        const { error } = action.payload;
+        state.dataTask.error = error;
+      },
+    }),
+    infoTaskQueueError: mkAction<IQueueError>({
+      reducer: (state, action) => {
+        const { error } = action.payload;
+        state.infoTask.error = error;
+      },
+    }),
+    statelessQueueError: mkAction<IQueueError>({
+      reducer: (state, action) => {
+        const { error } = action.payload;
+        state.stateless.error = error;
+      },
+    }),
+    startInitialAppTaskQueue: mkAction<void>({
+      takeEvery: function* (): SagaIterator {
+        yield put(ApplicationSettingsActions.fetchApplicationSettings());
+        yield put(TextResourcesActions.fetch());
+        yield put(LanguageActions.fetchLanguage());
+        yield put(ApplicationMetadataActions.get());
+        yield put(FormLayoutActions.fetchSets());
+        yield put(OrgsActions.fetch());
+        yield put(QueueActions.startInitialAppTaskQueueFulfilled());
+      },
+      reducer: (state) => {
+        state.appTask.isDone = false;
+      },
+    }),
+    startInitialAppTaskQueueFulfilled: mkAction<void>({
+      reducer: (state) => {
+        state.appTask.isDone = true;
+      },
+    }),
+    startInitialUserTaskQueue: mkAction<void>({
+      takeEvery: function* (): SagaIterator {
+        yield put(ProfileActions.fetch({ url: profileApiUrl }));
+        yield put(PartyActions.getCurrentParty());
+        yield put(QueueActions.startInitialUserTaskQueueFulfilled());
+      },
+      reducer: (state) => {
+        state.userTask.isDone = false;
+      },
+    }),
+    startInitialUserTaskQueueFulfilled: mkAction<void>({
+      reducer: (state) => {
+        state.userTask.isDone = true;
+      },
+    }),
+    startInitialDataTaskQueue: mkAction<void>({
+      takeEvery: function* (): SagaIterator {
+        yield put(FormDataActions.fetchInitial());
+        yield put(DataModelActions.fetchJsonSchema());
+        yield put(FormLayoutActions.fetchSets());
+        yield put(FormLayoutActions.fetch());
+        yield put(FormLayoutActions.fetchSettings());
+        yield put(AttachmentActions.mapAttachments());
+        yield put(QueueActions.startInitialDataTaskQueueFulfilled());
+      },
+      reducer: (state) => {
+        state.dataTask.isDone = false;
+      },
+    }),
+    startInitialDataTaskQueueFulfilled: mkAction<void>({
+      reducer: (state) => {
+        state.dataTask.isDone = true;
+      },
+    }),
+    startInitialInfoTaskQueue: mkAction<void>({
+      saga: () => watchStartInitialInfoTaskQueueSaga,
+      reducer: (state) => {
+        state.infoTask.isDone = false;
+      },
+    }),
+    startInitialInfoTaskQueueFulfilled: mkAction<void>({
+      reducer: (state) => {
+        state.infoTask.isDone = true;
+      },
+    }),
+    startInitialStatelessQueue: mkAction<void>({
+      takeLatest: function* (): SagaIterator {
+        yield put(IsLoadingActions.startStatelessIsLoading());
+        yield put(FormDataActions.fetchInitial());
+        yield put(DataModelActions.fetchJsonSchema());
+        yield put(FormLayoutActions.fetchSets());
+        yield put(FormLayoutActions.fetch());
+        yield put(FormLayoutActions.fetchSettings());
+        yield put(QueueActions.startInitialStatelessQueueFulfilled());
+      },
+      reducer: (state) => {
+        state.stateless.isDone = false;
+      },
+    }),
+    startInitialStatelessQueueFulfilled: mkAction<void>({
+      reducer: (state) => {
+        state.stateless.isDone = true;
+      },
+    }),
   },
-});
+}));
 
-export const {
-  appTaskQueueError,
-  userTaskQueueError,
-  dataTaskQueueError,
-  infoTaskQueueError,
-  statelessQueueError,
-  startInitialAppTaskQueue,
-  startInitialAppTaskQueueFulfilled,
-  startInitialUserTaskQueue,
-  startInitialUserTaskQueueFulfilled,
-  startInitialDataTaskQueue,
-  startInitialDataTaskQueueFulfilled,
-  startInitialInfoTaskQueue,
-  startInitialInfoTaskQueueFulfilled,
-  startInitialStatelessQueue,
-  startInitialStatelessQueueFulfilled,
-} = queueSlice.actions;
-
+export const QueueActions = queueSlice.actions;
 export default queueSlice;

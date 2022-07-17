@@ -1,5 +1,5 @@
 import type { SagaIterator } from 'redux-saga';
-import { call, select, takeLatest, all, take, put } from 'redux-saga/effects';
+import { call, select, all, take, put } from 'redux-saga/effects';
 import { get } from 'altinn-shared/utils';
 import type { IInstance } from 'altinn-shared/types';
 import {
@@ -13,7 +13,7 @@ import { FormDataActions } from '../formDataSlice';
 import type { ILayoutSets, IRuntimeState } from '../../../../types';
 import type { IApplicationMetadata } from '../../../../shared/resources/applicationMetadata';
 import { FormDynamicsActions } from '../../dynamics/formDynamicsSlice';
-import { dataTaskQueueError } from '../../../../shared/resources/queue/queueSlice';
+import { QueueActions } from '../../../../shared/resources/queue/queueSlice';
 import type { IProcessState } from '../../../../shared/resources/process';
 import {
   getFetchFormDataUrl,
@@ -32,8 +32,6 @@ import {
 } from 'src/selectors/simpleSelectors';
 import { FormRulesActions } from 'src/features/form/rules/rulesSlice';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
-
-export const allowAnonymousSelector = makeGetAllowAnonymousSelector();
 
 export function* fetchFormDataSaga(): SagaIterator {
   try {
@@ -55,10 +53,6 @@ export function* fetchFormDataSaga(): SagaIterator {
   } catch (error) {
     yield put(FormDataActions.fetchRejected({ error }));
   }
-}
-
-export function* watchFormDataSaga(): SagaIterator {
-  yield takeLatest(FormDataActions.fetch, fetchFormDataSaga);
 }
 
 export function* fetchFormDataInitialSaga(): SagaIterator {
@@ -91,7 +85,7 @@ export function* fetchFormDataInitialSaga(): SagaIterator {
     yield put(FormDynamicsActions.fetch());
   } catch (error) {
     yield put(FormDataActions.fetchRejected({ error }));
-    yield put(dataTaskQueueError({ error }));
+    yield put(QueueActions.dataTaskQueueError({ error }));
   }
 }
 
@@ -102,7 +96,7 @@ function* fetchFormDataStateless(applicationMetadata: IApplicationMetadata) {
     layoutSets,
   );
 
-  const allowAnonymous = yield select(allowAnonymousSelector);
+  const allowAnonymous = yield select(makeGetAllowAnonymousSelector());
 
   let options = {};
 
@@ -156,7 +150,7 @@ export function* watchFetchFormDataInitialSaga(): SagaIterator {
     const application: IApplicationMetadata = yield select(appMetaDataSelector);
     if (isStatelessApp(application)) {
       yield take(DataModelActions.fetchJsonSchemaFulfilled);
-      const allowAnonymous = yield select(allowAnonymousSelector);
+      const allowAnonymous = yield select(makeGetAllowAnonymousSelector());
       if (!allowAnonymous) {
         call(
           waitFor,

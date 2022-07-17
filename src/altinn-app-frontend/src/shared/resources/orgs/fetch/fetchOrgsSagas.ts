@@ -1,5 +1,5 @@
 import type { SagaIterator } from 'redux-saga';
-import { call, takeLatest, put } from 'redux-saga/effects';
+import { call, put } from 'redux-saga/effects';
 import { orgsListUrl } from 'altinn-shared/utils';
 import axios from 'axios';
 import { OrgsActions } from 'src/shared/resources/orgs/orgsSlice';
@@ -14,8 +14,4 @@ export function* fetchOrgsSaga(): SagaIterator {
   } catch (error) {
     yield put(OrgsActions.fetchRejected({ error }));
   }
-}
-
-export function* watchFetchOrgsSaga(): SagaIterator {
-  yield takeLatest(OrgsActions.fetch, fetchOrgsSaga);
 }

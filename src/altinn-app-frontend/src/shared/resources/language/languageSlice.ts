@@ -1,7 +1,14 @@
-import type { PayloadAction } from '@reduxjs/toolkit';
-import { createAction, createSlice } from '@reduxjs/toolkit';
 import type { ILanguage } from 'altinn-shared/types';
 import type { IAltinnWindow } from 'src/types';
+import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
+import type { SagaIterator } from 'redux-saga';
+import { take, call, put } from 'redux-saga/effects';
+import {
+  fetchLanguageSaga,
+  watchFetchLanguageSaga,
+} from 'src/shared/resources/language/fetch/fetchLanguageSagas';
+import { OptionsActions } from 'src/shared/resources/options/optionsSlice';
 
 export interface IFetchLanguageFulfilled {
   language: ILanguage;
@@ -30,44 +37,47 @@ export const initialState: ILanguageState = {
   error: null,
 };
 
-const moduleName = 'language';
-const languageSlice = createSlice({
-  name: moduleName,
-  initialState,
-  reducers: {
-    fetchLanguageFulfilled: (
-      state,
-      action: PayloadAction<IFetchLanguageFulfilled>,
-    ) => {
-      const { language } = action.payload;
-      state.language = language;
+const languageSlice = createSagaSlice(
+  (mkAction: MkActionType<ILanguageState>) => ({
+    name: 'language',
+    initialState,
+    actions: {
+      fetchLanguage: mkAction<void>({
+        saga: () => watchFetchLanguageSaga,
+      }),
+      fetchDefaultLanguage: mkAction<void>({
+        saga: (name) =>
+          function* (): SagaIterator {
+            yield take(name);
+            yield call(fetchLanguageSaga, true);
+          },
+      }),
+      fetchLanguageFulfilled: mkAction<IFetchLanguageFulfilled>({
+        reducer: (state, action) => {
+          const { language } = action.payload;
+          state.language = language;
+        },
+      }),
+      fetchLanguageRejected: mkAction<IFetchLanguageRejected>({
+        reducer: (state, action) => {
+          const { error } = action.payload;
+          state.error = error;
+        },
+      }),
+      updateSelectedAppLanguage: mkAction<IUpdateSelectedAppLanguage>({
+        takeLatest: function* () {
+          yield put(OptionsActions.fetch());
+        },
+        reducer: (state, action) => {
+          const { selected } = action.payload;
+          localStorage.setItem(localStorageSlectedAppLanguageKey, selected);
+          state.selectedAppLanguage = selected;
+        },
+      }),
     },
-    fetchLanguageRejected: (
-      state,
-      action: PayloadAction<IFetchLanguageRejected>,
-    ) => {
-      const { error } = action.payload;
-      state.error = error;
-    },
-    updateSelectedAppLanguage: (
-      state,
-      action: PayloadAction<IUpdateSelectedAppLanguage>,
-    ) => {
-      const { selected } = action.payload;
-      localStorage.setItem(localStorageSlectedAppLanguageKey, selected);
-      state.selectedAppLanguage = selected;
-    },
-  },
-});
+  }),
+);
 
-const actions = {
-  fetchLanguage: createAction(`${moduleName}/fetchLanguage`),
-  fetchDefaultLanguage: createAction(`${moduleName}/fetchDefaultLanguage`),
-};
-
-export const LanguageActions = {
-  ...actions,
-  ...languageSlice.actions,
-};
+export const LanguageActions = languageSlice.actions;
 
 export default languageSlice;

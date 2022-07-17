@@ -3,13 +3,12 @@ import type { IRuntimeState } from 'src/types';
 import type { IProfile } from 'altinn-shared/types';
 import { profileStateSelector } from 'src/selectors/simpleSelectors';
 
-const allowAnonymousSelector = makeGetAllowAnonymousSelector();
 const selectedAppLanguageStateSelector = (state: IRuntimeState) =>
   state.language.selectedAppLanguage;
 
 export const appLanguageStateSelector = (state: IRuntimeState) => {
   let selectedAppLanguage = selectedAppLanguageStateSelector(state);
-  const allowAnonymous = allowAnonymousSelector(state);
+  const allowAnonymous = makeGetAllowAnonymousSelector()(state);
   if (!allowAnonymous) {
     // Fallback to profile language if not anonymous
     const profile: IProfile = profileStateSelector(state);

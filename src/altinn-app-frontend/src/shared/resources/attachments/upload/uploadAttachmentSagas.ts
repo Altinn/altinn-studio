@@ -1,5 +1,5 @@
 import type { SagaIterator } from 'redux-saga';
-import { call, put, select, takeEvery } from 'redux-saga/effects';
+import { call, put, select } from 'redux-saga/effects';
 import type { AxiosRequestConfig } from 'axios';
 import { customEncodeURI } from 'altinn-shared/utils';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
@@ -131,8 +131,4 @@ export function* uploadAttachmentSaga({
       }),
     );
   }
-}
-
-export function* watchUploadAttachmentSaga(): SagaIterator {
-  yield takeEvery(AttachmentActions.uploadAttachment, uploadAttachmentSaga);
 }

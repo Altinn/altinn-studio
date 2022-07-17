@@ -1,5 +1,3 @@
-import type { PayloadAction } from '@reduxjs/toolkit';
-import { createSlice, createAction } from '@reduxjs/toolkit';
 import type {
   IUploadAttachmentAction,
   IUploadAttachmentActionFulfilled,
@@ -20,166 +18,152 @@ import type {
   IMapAttachmentsActionRejected,
 } from 'src/shared/resources/attachments/map/mapAttachmentsActions';
 import type { IAttachmentState } from 'src/shared/resources/attachments/index';
+import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
+import { uploadAttachmentSaga } from 'src/shared/resources/attachments/upload/uploadAttachmentSagas';
+import { updateAttachmentSaga } from 'src/shared/resources/attachments/update/updateAttachmentSagas';
+import { deleteAttachmentSaga } from 'src/shared/resources/attachments/delete/deleteAttachmentSagas';
+import { watchMapAttachmentsSaga } from 'src/shared/resources/attachments/map/mapAttachmentsSagas';
 
 const initialState: IAttachmentState = {
   attachments: {},
   error: undefined,
 };
 
-const name = 'attachments';
-const slice = createSlice({
-  name,
+const slice = createSagaSlice((mkAction: MkActionType<IAttachmentState>) => ({
+  name: 'attachments',
   initialState,
-  reducers: {
-    uploadAttachment: (
-      state,
-      action: PayloadAction<IUploadAttachmentAction>,
-    ) => {
-      const { file, componentId, tmpAttachmentId } = action.payload;
-      if (!state.attachments[componentId]) {
-        state.attachments[componentId] = [];
-      }
+  actions: {
+    uploadAttachment: mkAction<IUploadAttachmentAction>({
+      takeEvery: uploadAttachmentSaga,
+      reducer: (state, action) => {
+        const { file, componentId, tmpAttachmentId } = action.payload;
+        if (!state.attachments[componentId]) {
+          state.attachments[componentId] = [];
+        }
 
-      state.attachments[componentId].push({
-        name: file.name,
-        size: file.size,
-        uploaded: false,
-        id: tmpAttachmentId,
-        tags: [],
-        deleting: false,
-        updating: false,
-      });
-    },
+        state.attachments[componentId].push({
+          name: file.name,
+          size: file.size,
+          uploaded: false,
+          id: tmpAttachmentId,
+          tags: [],
+          deleting: false,
+          updating: false,
+        });
+      },
+    }),
+    uploadAttachmentFulfilled: mkAction<IUploadAttachmentActionFulfilled>({
+      reducer: (state, action) => {
+        const { attachment, componentId, tmpAttachmentId } = action.payload;
+        const index = state.attachments[componentId].findIndex(
+          (item) => item.id === tmpAttachmentId,
+        );
+        if (index < 0) {
+          return;
+        }
 
-    uploadAttachmentFulfilled: (
-      state,
-      action: PayloadAction<IUploadAttachmentActionFulfilled>,
-    ) => {
-      const { attachment, componentId, tmpAttachmentId } = action.payload;
-      const index = state.attachments[componentId].findIndex(
-        (item) => item.id === tmpAttachmentId,
-      );
-      if (index < 0) {
-        return;
-      }
+        state.attachments[componentId][index] = attachment;
+      },
+    }),
+    uploadAttachmentRejected: mkAction<IUploadAttachmentActionRejected>({
+      reducer: (state, action) => {
+        const { componentId, attachmentId } = action.payload;
+        state.attachments[componentId] = state.attachments[componentId].filter(
+          (attachment) => attachment.id !== attachmentId,
+        );
+      },
+    }),
+    updateAttachment: mkAction<IUpdateAttachmentAction>({
+      takeEvery: updateAttachmentSaga,
+      reducer: (state, action) => {
+        const { attachment, componentId } = action.payload;
+        if (!state.attachments[componentId]) {
+          state.attachments[componentId] = [];
+        }
+        const newAttachment = { ...attachment, updating: true };
+        const index = state.attachments[componentId].findIndex(
+          (item) => item.id === attachment.id,
+        );
 
-      state.attachments[componentId][index] = attachment;
-    },
+        state.attachments[componentId][index] = newAttachment;
+      },
+    }),
+    updateAttachmentFulfilled: mkAction<IUpdateAttachmentActionFulfilled>({
+      reducer: (state, action) => {
+        const { attachment, componentId } = action.payload;
+        const newAttachment = { ...attachment, updating: false };
+        const index = state.attachments[componentId].findIndex(
+          (item) => item.id === attachment.id,
+        );
+        state.attachments[componentId][index] = newAttachment;
+      },
+    }),
+    updateAttachmentRejected: mkAction<IUpdateAttachmentActionRejected>({
+      reducer: (state, action) => {
+        const { attachment, componentId, tag } = action.payload;
+        const newAttachment = {
+          ...attachment,
+          tag,
+          updating: false,
+        };
+        const index = state.attachments[componentId].findIndex(
+          (item) => item.id === attachment.id,
+        );
 
-    uploadAttachmentRejected: (
-      state,
-      action: PayloadAction<IUploadAttachmentActionRejected>,
-    ) => {
-      const { componentId, attachmentId } = action.payload;
-      state.attachments[componentId] = state.attachments[componentId].filter(
-        (attachment) => attachment.id !== attachmentId,
-      );
-    },
-
-    updateAttachment: (
-      state,
-      action: PayloadAction<IUpdateAttachmentAction>,
-    ) => {
-      const { attachment, componentId } = action.payload;
-      if (!state.attachments[componentId]) {
-        state.attachments[componentId] = [];
-      }
-      const newAttachment = { ...attachment, updating: true };
-      const index = state.attachments[componentId].findIndex(
-        (item) => item.id === attachment.id,
-      );
-
-      state.attachments[componentId][index] = newAttachment;
-    },
-
-    updateAttachmentFulfilled: (
-      state,
-      action: PayloadAction<IUpdateAttachmentActionFulfilled>,
-    ) => {
-      const { attachment, componentId } = action.payload;
-      const newAttachment = { ...attachment, updating: false };
-      const index = state.attachments[componentId].findIndex(
-        (item) => item.id === attachment.id,
-      );
-      state.attachments[componentId][index] = newAttachment;
-    },
-
-    updateAttachmentRejected: (
-      state,
-      action: PayloadAction<IUpdateAttachmentActionRejected>,
-    ) => {
-      const { attachment, componentId, tag } = action.payload;
-      const newAttachment = {
-        ...attachment,
-        tag,
-        updating: false,
-      };
-      const index = state.attachments[componentId].findIndex(
-        (item) => item.id === attachment.id,
-      );
-
-      state.attachments[componentId][index] = newAttachment;
-    },
-
-    deleteAttachment: (
-      state,
-      action: PayloadAction<IDeleteAttachmentAction>,
-    ) => {
-      const { attachment, componentId } = action.payload;
-      const index = state.attachments[componentId].findIndex(
-        (element) => element.id === attachment.id,
-      );
-      if (index < 0) {
-        return;
-      }
-      state.attachments[componentId][index].deleting = true;
-    },
-
-    deleteAttachmentFulfilled: (
-      state,
-      action: PayloadAction<IDeleteAttachmentActionFulfilled>,
-    ) => {
-      const { attachmentId: id, componentId } = action.payload;
-      state.attachments[componentId] = state.attachments[componentId].filter(
-        (attachment) => attachment.id !== id,
-      );
-    },
-
-    deleteAttachmentRejected: (
-      state,
-      action: PayloadAction<IDeleteAttachmentActionRejected>,
-    ) => {
-      const { attachment, componentId } = action.payload;
-      const newAttachment = { ...attachment, deleting: false };
-      const index = state.attachments[componentId].findIndex(
-        (element) => element.id === attachment.id,
-      );
-      if (index < 0) {
-        return;
-      }
-      state.attachments[componentId][index] = newAttachment;
-    },
-
-    mapAttachmentsFulfilled: (
-      state,
-      action: PayloadAction<IMapAttachmentsActionFulfilled>,
-    ) => {
-      const { attachments } = action.payload;
-      state.attachments = attachments;
-    },
-
-    mapAttachmentsRejected: (
-      state,
-      action: PayloadAction<IMapAttachmentsActionRejected>,
-    ) => {
-      state.error = action.payload.error;
-    },
+        state.attachments[componentId][index] = newAttachment;
+      },
+    }),
+    deleteAttachment: mkAction<IDeleteAttachmentAction>({
+      takeEvery: deleteAttachmentSaga,
+      reducer: (state, action) => {
+        const { attachment, componentId } = action.payload;
+        const index = state.attachments[componentId].findIndex(
+          (element) => element.id === attachment.id,
+        );
+        if (index < 0) {
+          return;
+        }
+        state.attachments[componentId][index].deleting = true;
+      },
+    }),
+    deleteAttachmentFulfilled: mkAction<IDeleteAttachmentActionFulfilled>({
+      reducer: (state, action) => {
+        const { attachmentId: id, componentId } = action.payload;
+        state.attachments[componentId] = state.attachments[componentId].filter(
+          (attachment) => attachment.id !== id,
+        );
+      },
+    }),
+    deleteAttachmentRejected: mkAction<IDeleteAttachmentActionRejected>({
+      reducer: (state, action) => {
+        const { attachment, componentId } = action.payload;
+        const newAttachment = { ...attachment, deleting: false };
+        const index = state.attachments[componentId].findIndex(
+          (element) => element.id === attachment.id,
+        );
+        if (index < 0) {
+          return;
+        }
+        state.attachments[componentId][index] = newAttachment;
+      },
+    }),
+    mapAttachments: mkAction<void>({
+      saga: () => watchMapAttachmentsSaga,
+    }),
+    mapAttachmentsFulfilled: mkAction<IMapAttachmentsActionFulfilled>({
+      reducer: (state, action) => {
+        const { attachments } = action.payload;
+        state.attachments = attachments;
+      },
+    }),
+    mapAttachmentsRejected: mkAction<IMapAttachmentsActionRejected>({
+      reducer: (state, action) => {
+        state.error = action.payload.error;
+      },
+    }),
   },
-});
+}));
 
-export const AttachmentActions = {
-  ...slice.actions,
-  mapAttachments: createAction(`${name}/mapAttachments`),
-};
-
+export const AttachmentActions = slice.actions;
 export default slice;

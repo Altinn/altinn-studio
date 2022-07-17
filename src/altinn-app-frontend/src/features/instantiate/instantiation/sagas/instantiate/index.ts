@@ -1,5 +1,5 @@
 import type { SagaIterator } from 'redux-saga';
-import { call, put, select, takeLatest } from 'redux-saga/effects';
+import { call, put, select } from 'redux-saga/effects';
 import type { IParty } from 'altinn-shared/types';
 import type { AxiosResponse } from 'axios';
 import type { IRuntimeState } from '../../../../../types';
@@ -15,7 +15,7 @@ import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceD
 const SelectedPartySelector = (state: IRuntimeState) =>
   state.party.selectedParty;
 
-function* instantiationSaga(): SagaIterator {
+export function* instantiationSaga(): SagaIterator {
   try {
     const selectedParty: IParty = yield select(SelectedPartySelector);
 
@@ -54,8 +54,4 @@ function* instantiationSaga(): SagaIterator {
   } catch (error) {
     yield put(InstantiationActions.instantiateRejected({ error }));
   }
-}
-
-export function* watchInstantiationSaga(): SagaIterator {
-  yield takeLatest(InstantiationActions.instantiate, instantiationSaga);
 }

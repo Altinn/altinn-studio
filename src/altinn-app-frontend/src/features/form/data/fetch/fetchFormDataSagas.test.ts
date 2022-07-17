@@ -4,7 +4,6 @@ import { expectSaga } from 'redux-saga-test-plan';
 import {
   fetchFormDataSaga,
   fetchFormDataInitialSaga,
-  allowAnonymousSelector,
   watchFetchFormDataInitialSaga,
 } from './fetchFormDataSagas';
 import {
@@ -25,9 +24,10 @@ import { FormDataActions } from '../formDataSlice';
 import type { IApplication } from 'altinn-shared/types';
 import type { ILayoutSets } from 'src/types';
 import { DataModelActions } from '../../datamodel/datamodelSlice';
-import { dataTaskQueueError } from 'src/shared/resources/queue/queueSlice';
+import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import type { AxiosError } from 'axios';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
+import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 
 describe('fetchFormDataSagas', () => {
   let mockInitialState;
@@ -154,7 +154,7 @@ describe('fetchFormDataSagas', () => {
         [select(instanceDataSelector), { ...instance }],
       ])
       .put(FormDataActions.fetchRejected({ error }))
-      .put(dataTaskQueueError({ error }))
+      .put(QueueActions.dataTaskQueueError({ error }))
       .run();
   });
 
@@ -186,7 +186,7 @@ describe('fetchFormDataSagas', () => {
       .provide([
         [select(appMetaDataSelector), appMetadata],
         [select(layoutSetsSelector), mockLayoutSets],
-        [select(allowAnonymousSelector), false],
+        [select(makeGetAllowAnonymousSelector()), false],
         [select(currentSelectedPartyIdSelector), '1234'],
         [call(networking.get, url, options), mockFormData],
       ])
@@ -219,7 +219,7 @@ describe('fetchFormDataSagas', () => {
       .provide([
         [select(appMetaDataSelector), appMetadata],
         [select(layoutSetsSelector), mockLayoutSets],
-        [select(allowAnonymousSelector), true],
+        [select(makeGetAllowAnonymousSelector()), true],
         [call(networking.get, url, options), mockFormData],
       ])
       .put(FormDataActions.fetchFulfilled({ formData: flattenedFormData }))
@@ -268,10 +268,10 @@ describe('fetchFormDataSagas', () => {
       .provide([
         [select(appMetaDataSelector), appMetadata],
         [select(layoutSetsSelector), mockLayoutSets],
-        [select(allowAnonymousSelector), true],
+        [select(makeGetAllowAnonymousSelector()), true],
       ])
       .put(FormDataActions.fetchRejected({ error }))
-      .put(dataTaskQueueError({ error }))
+      .put(QueueActions.dataTaskQueueError({ error }))
       .run();
   });
 
@@ -321,7 +321,7 @@ describe('fetchFormDataSagas', () => {
       .provide([
         [select(appMetaDataSelector), appMetadata],
         [select(layoutSetsSelector), mockLayoutSets],
-        [select(allowAnonymousSelector), true],
+        [select(makeGetAllowAnonymousSelector()), true],
       ])
       .call(appUrlHelper.redirectToUpgrade, 2)
       .run();
@@ -350,7 +350,7 @@ describe('fetchFormDataSagas', () => {
     expectSaga(watchFetchFormDataInitialSaga)
       .provide([
         [select(appMetaDataSelector), appMetadata],
-        [select(allowAnonymousSelector), false],
+        [select(makeGetAllowAnonymousSelector()), false],
       ])
       .take(DataModelActions.fetchJsonSchemaFulfilled)
       .call(fetchFormDataInitialSaga)

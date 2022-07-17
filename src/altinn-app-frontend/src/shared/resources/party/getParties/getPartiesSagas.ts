@@ -1,5 +1,5 @@
 import type { SagaIterator } from 'redux-saga';
-import { call, put, select, takeLatest } from 'redux-saga/effects';
+import { call, put, select } from 'redux-saga/effects';
 import type { IRuntimeState } from 'src/types';
 import type { IParty } from 'altinn-shared/types';
 import { get } from '../../../../utils/networking';
@@ -7,12 +7,12 @@ import {
   currentPartyUrl,
   validPartiesUrl,
 } from '../../../../utils/appUrlHelper';
-import { userTaskQueueError } from '../../queue/queueSlice';
+import { QueueActions } from '../../queue/queueSlice';
 import { PartyActions } from 'src/shared/resources/party/partySlice';
 
 const PartiesSelector = (state: IRuntimeState) => state.party.parties;
 
-function* getPartiesSaga(): SagaIterator {
+export function* getPartiesSaga(): SagaIterator {
   try {
     const parties: IParty[] = yield call(get, validPartiesUrl);
     yield put(PartyActions.getPartiesFulfilled({ parties }));
@@ -21,11 +21,7 @@ function* getPartiesSaga(): SagaIterator {
   }
 }
 
-export function* watchGetPartiesSaga(): SagaIterator {
-  yield takeLatest(PartyActions.getParties, getPartiesSaga);
-}
-
-function* getCurrentPartySaga(): SagaIterator {
+export function* getCurrentPartySaga(): SagaIterator {
   try {
     const currentParty: IParty = yield call(get, currentPartyUrl);
     yield put(PartyActions.selectPartyFulfilled({ party: currentParty }));
@@ -35,10 +31,6 @@ function* getCurrentPartySaga(): SagaIterator {
       yield put(PartyActions.getPartiesFulfilled({ parties: [currentParty] }));
     }
   } catch (error) {
-    yield put(userTaskQueueError({ error }));
+    yield put(QueueActions.userTaskQueueError({ error }));
   }
-}
-
-export function* watchGetCurrentPartySaga(): SagaIterator {
-  yield takeLatest(PartyActions.getCurrentParty, getCurrentPartySaga);
 }

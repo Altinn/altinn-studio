@@ -1,5 +1,5 @@
 import type { SagaIterator } from 'redux-saga';
-import { call, takeLatest, put } from 'redux-saga/effects';
+import { call, put } from 'redux-saga/effects';
 import { get, putWithoutConfig } from '../../../../utils/networking';
 import {
   instancesControllerUrl,
@@ -32,8 +32,4 @@ export function* getInstanceDataSaga({
       yield put(InstanceDataActions.getRejected({ error }));
     }
   }
-}
-
-export function* watchGetInstanceDataSaga(): SagaIterator {
-  yield takeLatest(InstanceDataActions.get, getInstanceDataSaga);
 }

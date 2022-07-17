@@ -1,14 +1,11 @@
 import type { SagaIterator } from 'redux-saga';
-import { all, call, put, select, take, takeLatest } from 'redux-saga/effects';
+import { call, put, select } from 'redux-saga/effects';
 import type { IRuntimeState, IValidations, IUiConfig } from 'src/types';
 import { runConditionalRenderingRules } from '../../../../utils/conditionalRendering';
-import { FormDataActions } from '../../data/formDataSlice';
 import type { IFormData } from '../../data';
 import { FormLayoutActions } from '../../layout/formLayoutSlice';
 import { ValidationActions } from '../../validation/validationSlice';
-import { FormDynamicsActions } from 'src/features/form/dynamics/formDynamicsSlice';
 import type { IConditionalRenderingRules } from 'src/features/form/dynamics';
-import { FormRulesActions } from 'src/features/form/rules/rulesSlice';
 
 export const ConditionalRenderingSelector: (store: IRuntimeState) => any = (
   store: IRuntimeState,
@@ -21,7 +18,7 @@ export const FormValidationSelector: (store: IRuntimeState) => IValidations = (
   store,
 ) => store.formValidations.validations;
 
-function* checkIfConditionalRulesShouldRunSaga(): SagaIterator {
+export function* checkIfConditionalRulesShouldRunSaga(): SagaIterator {
   try {
     const conditionalRenderingState: IConditionalRenderingRules = yield select(
       ConditionalRenderingSelector,
@@ -49,25 +46,6 @@ function* checkIfConditionalRulesShouldRunSaga(): SagaIterator {
     }
   } catch (err) {
     yield call(console.error, err);
-  }
-}
-
-export function* watchCheckIfConditionalRulesShouldRunSaga(): SagaIterator {
-  yield takeLatest(
-    FormDynamicsActions.checkIfConditionalRulesShouldRun,
-    checkIfConditionalRulesShouldRunSaga,
-  );
-}
-
-export function* waitForAppSetupBeforeRunningConditionalRulesSaga(): SagaIterator {
-  while (true) {
-    yield all([
-      take(FormLayoutActions.fetchFulfilled),
-      take(FormDataActions.fetchFulfilled),
-      take(FormDynamicsActions.fetchFulfilled),
-      take(FormRulesActions.fetchFulfilled),
-    ]);
-    yield call(checkIfConditionalRulesShouldRunSaga);
   }
 }
 

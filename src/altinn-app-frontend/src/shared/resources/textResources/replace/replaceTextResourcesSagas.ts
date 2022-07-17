@@ -88,11 +88,3 @@ export function* watchReplaceTextResourcesSaga(): SagaIterator {
     replaceTextResourcesSaga,
   );
 }
-
-export function* watchReplaceTextResourcesSagaDirect(): SagaIterator {
-  yield takeLatest(TextResourcesActions.replace, replaceTextResourcesSaga);
-  yield takeLatest(
-    FormLayoutActions.updateRepeatingGroupsFulfilled,
-    replaceTextResourcesSaga,
-  );
-}

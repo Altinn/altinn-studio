@@ -11,13 +11,10 @@ export interface ICompleteProcessFulfilled {
   taskId: string;
 }
 
+export type IGetProcessStateFulfilled = ICompleteProcessFulfilled;
+
 export interface ICompleteProcessRejected {
   error: Error;
-}
-
-export interface IGetProcessStateFulfilled {
-  processStep: ProcessTaskType;
-  taskId: string;
 }
 
 export interface IGetProcessStateRejected {

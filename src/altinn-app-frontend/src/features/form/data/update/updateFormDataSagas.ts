@@ -1,12 +1,5 @@
 import type { SagaIterator } from 'redux-saga';
-import {
-  actionChannel,
-  call,
-  put,
-  select,
-  take,
-  takeLatest,
-} from 'redux-saga/effects';
+import { call, put, select } from 'redux-saga/effects';
 import type { IRuntimeState, IValidationResult } from 'src/types';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import {
@@ -31,7 +24,7 @@ import type { IFormData } from 'src/features/form/data';
 import type { ILayouts } from 'src/features/form/layout';
 import type { IAttachments } from 'src/shared/resources/attachments';
 
-function* updateFormDataSaga({
+export function* updateFormDataSaga({
   payload: {
     field,
     data,
@@ -159,14 +152,6 @@ function shouldUpdateFormData(currentData: any, newData: any): boolean {
   return false;
 }
 
-export function* watchUpdateFormDataSaga(): SagaIterator {
-  const requestChan = yield actionChannel(FormDataActions.update);
-  while (true) {
-    const value = yield take(requestChan);
-    yield call(updateFormDataSaga, value);
-  }
-}
-
 export const SelectFormData = (s: IRuntimeState) => s.formData.formData;
 export const SelectLayouts = (s: IRuntimeState) => s.formLayout.layouts;
 export const SelectAttachments = (s: IRuntimeState) =>
@@ -198,11 +183,4 @@ export function* deleteAttachmentReferenceSaga({
   } catch (err) {
     console.error(err);
   }
-}
-
-export function* watchDeleteAttachmentReferenceSaga(): SagaIterator {
-  yield takeLatest(
-    FormDataActions.deleteAttachmentReference,
-    deleteAttachmentReferenceSaga,
-  );
 }

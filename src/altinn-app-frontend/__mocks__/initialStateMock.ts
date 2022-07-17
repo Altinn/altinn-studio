@@ -139,6 +139,7 @@ export function getInitialStateMock(
       applicationSettings: applicationSettingsMock,
       error: null,
     },
+    appApi: {} as IRuntimeState['appApi'],
   };
 
   return {

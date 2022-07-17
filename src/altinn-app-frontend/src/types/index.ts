@@ -1,26 +1,7 @@
-import type { IIsLoadingState } from 'src/shared/resources/isLoading/isLoadingSlice';
-import type { IOptionsState } from 'src/shared/resources/options';
-import type { IFormRuleState } from 'src/features/form/rules';
-import type { IDataModelState } from 'src/features/form/datamodel';
 import type { ReactNode } from 'react';
 import type Ajv from 'ajv/dist/core';
-import type { IFormDataState } from '../features/form/data';
-import type { IFormDynamicState } from '../features/form/dynamics';
-import type { ILayoutState } from '../features/form/layout/formLayoutSlice';
-import type { IValidationState } from '../features/form/validation/validationSlice';
-import type { IInstantiationState } from '../features/instantiate/instantiation';
-import type { IApplicationMetadataState } from 'src/shared/resources/applicationMetadata';
-import type { IAttachmentState } from '../shared/resources/attachments';
-import type { IInstanceDataState } from '../shared/resources/instanceData';
-import type { ILanguageState } from '../shared/resources/language/languageSlice';
-import type { IOrgsState } from '../shared/resources/orgs';
-import type { IPartyState } from '../shared/resources/party';
-import type { IProcessState } from '../shared/resources/process';
-import type { IProfileState } from '../shared/resources/profile';
-import type { IQueueState } from '../shared/resources/queue/queueSlice';
-import type { ITextResourcesState } from '../shared/resources/textResources';
-import type { IApplicationSettingsState } from 'src/shared/resources/applicationSettings/applicationSettingsSlice';
 import type { IFormData } from 'src/features/form/data';
+import type { RootState } from 'src/store';
 
 export interface IAltinnWindow extends Window {
   app: string;
@@ -156,37 +137,8 @@ export interface IRules {
   [id: string]: any;
 }
 
-export interface IRuntimeStore {
-  attachments: IAttachmentState;
-  formData: IFormDataState;
-  formDataModel: IDataModelState;
-  formDynamics: IFormDynamicState;
-  formLayout: ILayoutState;
-  language: ILanguageState;
-}
-
-export interface IRuntimeState {
-  applicationMetadata: IApplicationMetadataState;
-  applicationSettings: IApplicationSettingsState;
-  attachments: IAttachmentState;
-  formData: IFormDataState;
-  formDataModel: IDataModelState;
-  formDynamics: IFormDynamicState;
-  formLayout: ILayoutState;
-  formRules: IFormRuleState;
-  formValidations: IValidationState;
-  instanceData: IInstanceDataState;
-  instantiation: IInstantiationState;
-  isLoading: IIsLoadingState;
-  language: ILanguageState;
-  optionState: IOptionsState;
-  organisationMetaData: IOrgsState;
-  party: IPartyState;
-  process: IProcessState;
-  profile: IProfileState;
-  queue: IQueueState;
-  textResources: ITextResourcesState;
-}
+export type IRuntimeState = RootState;
+export type IRuntimeStore = IRuntimeState;
 
 export interface ISchemaValidator {
   rootElementPath: string;

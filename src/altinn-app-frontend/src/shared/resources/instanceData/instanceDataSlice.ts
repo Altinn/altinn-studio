@@ -1,37 +1,39 @@
-import type { PayloadAction } from '@reduxjs/toolkit';
-import { createSlice, createAction } from '@reduxjs/toolkit';
 import type {
   IInstanceDataState,
   IGetInstanceData,
   IGetInstanceDataFulfilled,
   IGetInstanceDataRejected,
 } from '.';
+import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
+import { getInstanceDataSaga } from 'src/shared/resources/instanceData/get/getInstanceDataSagas';
 
 const initialState: IInstanceDataState = {
   instance: null,
   error: null,
 };
 
-const name = 'instanceData';
-const instanceDataSlice = createSlice({
-  name,
-  initialState,
-  reducers: {
-    getFulfilled: (state, action: PayloadAction<IGetInstanceDataFulfilled>) => {
-      state.instance = action.payload.instanceData;
+const instanceDataSlice = createSagaSlice(
+  (mkAction: MkActionType<IInstanceDataState>) => ({
+    name: 'instanceData',
+    initialState,
+    actions: {
+      get: mkAction<IGetInstanceData>({
+        takeLatest: getInstanceDataSaga,
+      }),
+      getFulfilled: mkAction<IGetInstanceDataFulfilled>({
+        reducer: (state, action) => {
+          state.instance = action.payload.instanceData;
+        },
+      }),
+      getRejected: mkAction<IGetInstanceDataRejected>({
+        reducer: (state, action) => {
+          state.error = action.payload.error;
+        },
+      }),
     },
-    getRejected: (state, action: PayloadAction<IGetInstanceDataRejected>) => {
-      state.error = action.payload.error;
-    },
-  },
-});
+  }),
+);
 
-const actions = {
-  get: createAction<IGetInstanceData>(`${name}/get`),
-};
-
-export const InstanceDataActions = {
-  ...instanceDataSlice.actions,
-  ...actions,
-};
+export const InstanceDataActions = instanceDataSlice.actions;
 export default instanceDataSlice;

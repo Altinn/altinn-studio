@@ -1,5 +1,3 @@
-import type { PayloadAction } from '@reduxjs/toolkit';
-import { createSlice, createAction } from '@reduxjs/toolkit';
 import type { IProfile } from 'altinn-shared/types';
 import type {
   IProfileState,
@@ -7,6 +5,9 @@ import type {
   IFetchProfileRejected,
   IFetchProfile,
 } from '.';
+import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
+import { fetchProfileSaga } from 'src/shared/resources/profile/fetch/fetchProfileSagas';
 
 const initialState: IProfileState = {
   profile: {
@@ -17,26 +18,27 @@ const initialState: IProfileState = {
   error: null,
 };
 
-const name = 'profile';
-const profileSlice = createSlice({
-  name,
-  initialState,
-  reducers: {
-    fetchFulfilled: (state, action: PayloadAction<IFetchProfileFulfilled>) => {
-      state.profile = action.payload.profile;
+const profileSlice = createSagaSlice(
+  (mkAction: MkActionType<IProfileState>) => ({
+    name: 'profile',
+    initialState,
+    actions: {
+      fetch: mkAction<IFetchProfile>({
+        takeLatest: fetchProfileSaga,
+      }),
+      fetchFulfilled: mkAction<IFetchProfileFulfilled>({
+        reducer: (state, action) => {
+          state.profile = action.payload.profile;
+        },
+      }),
+      fetchRejected: mkAction<IFetchProfileRejected>({
+        reducer: (state, action) => {
+          state.error = action.payload.error;
+        },
+      }),
     },
-    fetchRejected: (state, action: PayloadAction<IFetchProfileRejected>) => {
-      state.error = action.payload.error;
-    },
-  },
-});
+  }),
+);
 
-const actions = {
-  fetch: createAction<IFetchProfile>(`${name}/fetch`),
-};
-
-export const ProfileActions = {
-  ...profileSlice.actions,
-  ...actions,
-};
+export const ProfileActions = profileSlice.actions;
 export default profileSlice;

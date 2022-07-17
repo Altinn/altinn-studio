@@ -1,5 +1,3 @@
-import type { PayloadAction } from '@reduxjs/toolkit';
-import { createSlice, createAction } from '@reduxjs/toolkit';
 import type {
   IPartyState,
   IGetPartiesRejected,
@@ -8,6 +6,13 @@ import type {
   ISelectPartyRejected,
   ISelectParty,
 } from '.';
+import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
+import {
+  getPartiesSaga,
+  getCurrentPartySaga,
+} from 'src/shared/resources/party/getParties/getPartiesSagas';
+import { selectPartySaga } from 'src/shared/resources/party/selectParty/selectPartySagas';
 
 const initialState: IPartyState = {
   parties: null,
@@ -15,43 +20,41 @@ const initialState: IPartyState = {
   error: null,
 };
 
-const name = 'party';
-const partySlice = createSlice({
-  name,
+const partySlice = createSagaSlice((mkAction: MkActionType<IPartyState>) => ({
+  name: 'party',
   initialState,
-  reducers: {
-    getPartiesFulfilled: (
-      state,
-      action: PayloadAction<IGetPartiesFulfilled>,
-    ) => {
-      state.parties = action.payload.parties;
-    },
-    getPartiesRejected: (state, action: PayloadAction<IGetPartiesRejected>) => {
-      state.error = action.payload.error;
-    },
-    selectPartyFulfilled: (
-      state,
-      action: PayloadAction<ISelectPartyFulfilled>,
-    ) => {
-      state.selectedParty = action.payload.party;
-    },
-    selectPartyRejected: (
-      state,
-      action: PayloadAction<ISelectPartyRejected>,
-    ) => {
-      state.error = action.payload.error;
-    },
+  actions: {
+    getParties: mkAction<void>({
+      takeLatest: getPartiesSaga,
+    }),
+    getCurrentParty: mkAction<void>({
+      takeLatest: getCurrentPartySaga,
+    }),
+    getPartiesFulfilled: mkAction<IGetPartiesFulfilled>({
+      reducer: (state, action) => {
+        state.parties = action.payload.parties;
+      },
+    }),
+    getPartiesRejected: mkAction<IGetPartiesRejected>({
+      reducer: (state, action) => {
+        state.error = action.payload.error;
+      },
+    }),
+    selectParty: mkAction<ISelectParty>({
+      takeLatest: selectPartySaga,
+    }),
+    selectPartyFulfilled: mkAction<ISelectPartyFulfilled>({
+      reducer: (state, action) => {
+        state.selectedParty = action.payload.party;
+      },
+    }),
+    selectPartyRejected: mkAction<ISelectPartyRejected>({
+      reducer: (state, action) => {
+        state.error = action.payload.error;
+      },
+    }),
   },
-});
+}));
 
-const actions = {
-  getParties: createAction(`${name}/getParties`),
-  getCurrentParty: createAction(`${name}/getCurrentParty`),
-  selectParty: createAction<ISelectParty>(`${name}/selectParty`),
-};
-
-export const PartyActions = {
-  ...partySlice.actions,
-  ...actions,
-};
+export const PartyActions = partySlice.actions;
 export default partySlice;

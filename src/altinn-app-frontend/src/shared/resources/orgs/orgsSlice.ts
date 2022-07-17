@@ -1,32 +1,32 @@
-import type { PayloadAction } from '@reduxjs/toolkit';
-import { createSlice, createAction } from '@reduxjs/toolkit';
 import type { IOrgsState, IFetchOrgsFulfilled, IFetchOrgsRejected } from '.';
+import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
+import { fetchOrgsSaga } from 'src/shared/resources/orgs/fetch/fetchOrgsSagas';
 
 const initialState: IOrgsState = {
   allOrgs: null,
   error: null,
 };
 
-const name = 'organisationMetaData';
-const orgsSlice = createSlice({
-  name,
+const orgsSlice = createSagaSlice((mkAction: MkActionType<IOrgsState>) => ({
+  name: 'organisationMetaData',
   initialState,
-  reducers: {
-    fetchFulfilled: (state, action: PayloadAction<IFetchOrgsFulfilled>) => {
-      state.allOrgs = action.payload.orgs;
-    },
-    fetchRejected: (state, action: PayloadAction<IFetchOrgsRejected>) => {
-      state.error = action.payload.error;
-    },
+  actions: {
+    fetch: mkAction<void>({
+      takeLatest: fetchOrgsSaga,
+    }),
+    fetchFulfilled: mkAction<IFetchOrgsFulfilled>({
+      reducer: (state, action) => {
+        state.allOrgs = action.payload.orgs;
+      },
+    }),
+    fetchRejected: mkAction<IFetchOrgsRejected>({
+      reducer: (state, action) => {
+        state.error = action.payload.error;
+      },
+    }),
   },
-});
+}));
 
-const actions = {
-  fetch: createAction(`${name}/fetch`),
-};
-
-export const OrgsActions = {
-  ...orgsSlice.actions,
-  ...actions,
-};
+export const OrgsActions = orgsSlice.actions;
 export default orgsSlice;

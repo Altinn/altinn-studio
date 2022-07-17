@@ -1,43 +1,39 @@
-import type { PayloadAction } from '@reduxjs/toolkit';
-import { createSlice, createAction } from '@reduxjs/toolkit';
 import type {
   IApplicationMetadataState,
-  IGetApplicationMetadataFulfilled,
   IGetApplicationMetadataRejected,
+  IGetApplicationMetadataFulfilled,
 } from 'src/shared/resources/applicationMetadata/index';
+import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
+import { getApplicationMetadata } from 'src/shared/resources/applicationMetadata/sagas/get';
 
 const initialState: IApplicationMetadataState = {
   applicationMetadata: null,
   error: null,
 };
 
-const name = 'applicationMetadata';
-const applicationMetadataSlice = createSlice({
-  name,
-  initialState,
-  reducers: {
-    getFulfilled: (
-      state,
-      action: PayloadAction<IGetApplicationMetadataFulfilled>,
-    ) => {
-      state.applicationMetadata = action.payload.applicationMetadata;
-      state.error = null;
+const applicationMetadataSlice = createSagaSlice(
+  (mkAction: MkActionType<IApplicationMetadataState>) => ({
+    name: 'applicationMetadata',
+    initialState,
+    actions: {
+      get: mkAction<void>({
+        takeLatest: getApplicationMetadata,
+      }),
+      getFulfilled: mkAction<IGetApplicationMetadataFulfilled>({
+        reducer: (state, action) => {
+          state.applicationMetadata = action.payload.applicationMetadata;
+          state.error = null;
+        },
+      }),
+      getRejected: mkAction<IGetApplicationMetadataRejected>({
+        reducer: (state, action) => {
+          state.error = action.payload.error;
+        },
+      }),
     },
-    getRejected: (
-      state,
-      action: PayloadAction<IGetApplicationMetadataRejected>,
-    ) => {
-      state.error = action.payload.error;
-    },
-  },
-});
+  }),
+);
 
-const actions = {
-  get: createAction(`${name}/get`),
-};
-
-export const ApplicationMetadataActions = {
-  ...applicationMetadataSlice.actions,
-  ...actions,
-};
+export const ApplicationMetadataActions = applicationMetadataSlice.actions;
 export default applicationMetadataSlice;

@@ -1,5 +1,5 @@
 import type { SagaIterator } from 'redux-saga';
-import { call, takeEvery, put, select } from 'redux-saga/effects';
+import { call, put, select } from 'redux-saga/effects';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
 import { post, httpDelete } from 'src/utils/networking';
 import type { AxiosRequestConfig } from 'axios';
@@ -129,8 +129,4 @@ export function* updateAttachmentSaga({
       }),
     );
   }
-}
-
-export function* watchUpdateAttachmentSaga(): SagaIterator {
-  yield takeEvery(AttachmentActions.updateAttachment, updateAttachmentSaga);
 }

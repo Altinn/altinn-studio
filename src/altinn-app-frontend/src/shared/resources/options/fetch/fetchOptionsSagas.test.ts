@@ -1,6 +1,5 @@
-import { expectSaga, testSaga } from 'redux-saga-test-plan';
+import { expectSaga } from 'redux-saga-test-plan';
 import { select } from 'redux-saga/effects';
-import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import {
   checkIfOptionsShouldRefetchSaga,
   fetchOptionsSaga,
@@ -9,7 +8,6 @@ import {
   formLayoutSelector,
   instanceIdSelector,
   optionsSelector,
-  watchCheckIfOptionsShouldRefetchSaga,
 } from 'src/shared/resources/options/fetch/fetchOptionsSagas';
 import type { IOptions, IRuntimeState } from 'src/types';
 import * as networking from 'altinn-shared/utils/networking';
@@ -21,19 +19,6 @@ import type {
 import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 
 describe('fetchOptionsSagas', () => {
-  describe('watchCheckIfOptionsShouldRefetchSaga', () => {
-    it('should take every updateFormData action and spawn checkIfOptionsShouldRefetchSaga', () => {
-      testSaga(watchCheckIfOptionsShouldRefetchSaga)
-        .next()
-        .takeEvery(
-          FormDataActions.updateFulfilled,
-          checkIfOptionsShouldRefetchSaga,
-        )
-        .next()
-        .isDone();
-    });
-  });
-
   describe('checkIfOptionsShouldRefetchSaga', () => {
     const userLanguage = 'nb';
     const action = {

@@ -1,9 +1,5 @@
 import type { IIsLoadingState } from './isLoadingSlice';
-import slice, {
-  initialState,
-  startDataTaskIsLoading,
-  finishDataTaskIsLoading,
-} from './isLoadingSlice';
+import slice, { initialState, IsLoadingActions } from './isLoadingSlice';
 
 describe('isLoadingSlice', () => {
   let state: IIsLoadingState;
@@ -12,14 +8,17 @@ describe('isLoadingSlice', () => {
   });
 
   it('handles startDataTaskIsLoading action', () => {
-    const nextState = slice.reducer(state, startDataTaskIsLoading);
+    const nextState = slice.reducer(
+      state,
+      IsLoadingActions.startDataTaskIsLoading,
+    );
     expect(nextState.dataTask).toBeTruthy();
   });
 
   it('handles finishDataTaskIsLoading action', () => {
     const nextState = slice.reducer(
       { dataTask: true, stateless: true },
-      finishDataTaskIsLoading,
+      IsLoadingActions.finishDataTaskIsLoading,
     );
     expect(nextState.dataTask).toBeFalsy();
   });

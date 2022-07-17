@@ -1,5 +1,5 @@
 import type { SagaIterator } from 'redux-saga';
-import { call, put, select, takeEvery } from 'redux-saga/effects';
+import { call, put, select } from 'redux-saga/effects';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
 import { getFileUploadComponentValidations } from '../../../../utils/formComponentUtils';
 import type { IRuntimeState } from '../../../../types';
@@ -10,10 +10,6 @@ import type { AxiosResponse } from 'axios';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { IDeleteAttachmentAction } from 'src/shared/resources/attachments/delete/deleteAttachmentActions';
-
-export function* watchDeleteAttachmentSaga(): SagaIterator {
-  yield takeEvery(AttachmentActions.deleteAttachment, deleteAttachmentSaga);
-}
 
 export function* deleteAttachmentSaga({
   payload: { attachment, attachmentType, componentId, dataModelBindings },

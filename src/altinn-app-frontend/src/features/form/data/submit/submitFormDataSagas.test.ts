@@ -28,8 +28,8 @@ import {
   saveFormDataSaga,
   putFormData,
   saveStatelessData,
-  allowAnonymousSelector,
 } from './submitFormDataSagas';
+import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 
 describe('submitFormDataSagas', () => {
   let stateMock: IRuntimeState;
@@ -133,7 +133,7 @@ describe('submitFormDataSagas', () => {
     return expectSaga(saveFormDataSaga)
       .provide([
         [select(), state],
-        [select(allowAnonymousSelector), false],
+        [select(makeGetAllowAnonymousSelector()), false],
         [
           call(
             post,
@@ -211,7 +211,7 @@ describe('submitFormDataSagas', () => {
     return expectSaga(saveFormDataSaga)
       .provide([
         [select(), state],
-        [select(allowAnonymousSelector), true],
+        [select(makeGetAllowAnonymousSelector()), true],
         [
           call(
             post,

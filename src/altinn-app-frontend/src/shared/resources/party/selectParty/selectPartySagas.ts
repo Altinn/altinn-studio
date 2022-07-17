@@ -1,5 +1,5 @@
 import type { SagaIterator } from 'redux-saga';
-import { call, takeLatest, put } from 'redux-saga/effects';
+import { call, put } from 'redux-saga/effects';
 import type { IAltinnWindow } from 'src/types';
 import { putWithoutConfig } from '../../../../utils/networking';
 import { updateCookieUrl } from '../../../../utils/appUrlHelper';
@@ -7,7 +7,7 @@ import { PartyActions } from 'src/shared/resources/party/partySlice';
 import type { ISelectParty } from 'src/shared/resources/party';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
-function* selectPartySaga({
+export function* selectPartySaga({
   payload: { party, redirect },
 }: PayloadAction<ISelectParty>): SagaIterator {
   try {
@@ -21,8 +21,4 @@ function* selectPartySaga({
   } catch (error) {
     yield put(PartyActions.selectPartyRejected({ error }));
   }
-}
-
-export function* watchSelectPartySaga(): SagaIterator {
-  yield takeLatest(PartyActions.selectParty, selectPartySaga);
 }

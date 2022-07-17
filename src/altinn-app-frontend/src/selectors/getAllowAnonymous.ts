@@ -9,8 +9,13 @@ const getApplicationMetadata = (state: IRuntimeState) =>
   state.applicationMetadata?.applicationMetadata;
 const getLayoutSets = (state: IRuntimeState) => state.formLayout.layoutsets;
 
+let selector: any = undefined;
 const getAllowAnonymous = () => {
-  return createSelector(
+  if (selector) {
+    return selector;
+  }
+
+  selector = createSelector(
     [getApplicationMetadata, getLayoutSets],
     (application, layoutsets) => {
       // Require application metadata - return undefined if not yet loaded
@@ -36,6 +41,8 @@ const getAllowAnonymous = () => {
       return false;
     },
   );
+
+  return selector;
 };
 
 export const makeGetAllowAnonymousSelector = getAllowAnonymous;

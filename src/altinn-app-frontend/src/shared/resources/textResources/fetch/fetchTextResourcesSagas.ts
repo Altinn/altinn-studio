@@ -3,15 +3,13 @@ import { all, call, put, select, take, takeLatest } from 'redux-saga/effects';
 import { get } from 'src/utils/networking';
 import { textResourcesUrl, oldTextResourcesUrl } from 'src/utils/appUrlHelper';
 import { TextResourcesActions } from '../textResourcesSlice';
-import { appTaskQueueError } from '../../queue/queueSlice';
+import { QueueActions } from '../../queue/queueSlice';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 import { LanguageActions } from 'src/shared/resources/language/languageSlice';
 import { ApplicationMetadataActions } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
 import { ProfileActions } from 'src/shared/resources/profile/profileSlice';
-
-export const allowAnonymousSelector = makeGetAllowAnonymousSelector();
 
 export function* fetchTextResources(): SagaIterator {
   try {
@@ -38,7 +36,7 @@ export function* fetchTextResources(): SagaIterator {
     );
   } catch (error) {
     yield put(TextResourcesActions.fetchRejected({ error }));
-    yield put(appTaskQueueError({ error }));
+    yield put(QueueActions.appTaskQueueError({ error }));
   }
 }
 
@@ -49,7 +47,7 @@ export function* watchFetchTextResourcesSaga(): SagaIterator {
     take(TextResourcesActions.fetch),
   ]);
 
-  const allowAnonymous = yield select(allowAnonymousSelector);
+  const allowAnonymous = yield select(makeGetAllowAnonymousSelector());
 
   if (!allowAnonymous) {
     yield take(ProfileActions.fetchFulfilled);

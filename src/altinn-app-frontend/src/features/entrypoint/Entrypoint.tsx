@@ -9,7 +9,7 @@ import { useAppSelector, useAppDispatch } from 'src/common/hooks';
 import { selectAppName, selectAppOwner } from 'src/selectors/language';
 import Presentation from 'src/shared/containers/Presentation';
 import type { ShowTypes } from 'src/shared/resources/applicationMetadata';
-import { startInitialStatelessQueue } from 'src/shared/resources/queue/queueSlice';
+import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import type { ISimpleInstance } from 'src/types';
 import { PresentationType, ProcessTaskType } from 'src/types';
 import { isStatelessApp } from 'src/utils/appMetadata';
@@ -154,7 +154,7 @@ export default function Entrypoint({ allowAnonymous }: any) {
     (allowAnonymous || partyValidation?.valid)
   ) {
     if (statelessLoading === null) {
-      dispatch(startInitialStatelessQueue());
+      dispatch(QueueActions.startInitialStatelessQueue());
     }
     if (statelessLoading === false) {
       return (

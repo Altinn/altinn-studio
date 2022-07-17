@@ -4,7 +4,6 @@ import { expectSaga } from 'redux-saga-test-plan';
 import {
   watchFetchTextResourcesSaga,
   fetchTextResources,
-  allowAnonymousSelector,
 } from './fetchTextResourcesSagas';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { profileStateSelector } from 'src/selectors/simpleSelectors';
@@ -16,6 +15,7 @@ import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector
 import { LanguageActions } from 'src/shared/resources/language/languageSlice';
 import { ApplicationMetadataActions } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
 import { ProfileActions } from 'src/shared/resources/profile/profileSlice';
+import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 
 describe('fetchTextResourcesSagas', () => {
   it('should dispatch action fetchTextResources', () => {
@@ -27,7 +27,9 @@ describe('fetchTextResourcesSagas', () => {
         take(TextResourcesActions.fetch),
       ]),
     );
-    expect(generator.next().value).toEqual(select(allowAnonymousSelector));
+    expect(generator.next().value).toEqual(
+      select(makeGetAllowAnonymousSelector()),
+    );
     expect(generator.next().value).toEqual(take(ProfileActions.fetchFulfilled));
     expect(generator.next().value).toEqual(call(fetchTextResources));
     expect(generator.next().value).toEqual(
@@ -51,7 +53,7 @@ describe('fetchTextResourcesSagas', () => {
     expectSaga(fetchTextResources)
       .provide([
         [select(appLanguageStateSelector), 'nb'],
-        [select(allowAnonymousSelector), true],
+        [select(makeGetAllowAnonymousSelector()), true],
         [call(get, textResourcesUrl('nb')), mockTextResource],
       ])
       .put(
@@ -110,7 +112,7 @@ describe('fetchTextResourcesSagas', () => {
     return expectSaga(fetchTextResources)
       .provide([
         [select(appLanguageStateSelector), 'en'],
-        [select(allowAnonymousSelector), false],
+        [select(makeGetAllowAnonymousSelector()), false],
         [select(profileStateSelector), profileMock],
         [call(get, textResourcesUrl('en')), mockTextResource],
       ])

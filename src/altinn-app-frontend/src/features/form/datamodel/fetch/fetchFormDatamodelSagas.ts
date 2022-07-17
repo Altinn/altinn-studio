@@ -6,7 +6,7 @@ import {
   getCurrentDataTypeForApplication,
   isStatelessApp,
 } from 'src/utils/appMetadata';
-import { dataTaskQueueError } from '../../../../shared/resources/queue/queueSlice';
+import { QueueActions } from '../../../../shared/resources/queue/queueSlice';
 import { get } from '../../../../utils/networking';
 import type { ILayoutSets, IRuntimeState } from '../../../../types';
 import type { IApplicationMetadata } from '../../../../shared/resources/applicationMetadata';
@@ -44,7 +44,7 @@ function* fetchJsonSchemaSaga(): SagaIterator {
     }
   } catch (error) {
     yield put(DataModelActions.fetchJsonSchemaRejected({ error }));
-    yield put(dataTaskQueueError({ error }));
+    yield put(QueueActions.dataTaskQueueError({ error }));
   }
 }
 
