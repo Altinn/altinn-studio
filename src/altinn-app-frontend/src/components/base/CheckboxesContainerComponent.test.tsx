@@ -35,6 +35,7 @@ const render = (
   customState: PreloadedState<RootState> = {},
 ) => {
   const allProps: ICheckboxContainerProps = {
+    type: 'Checkboxes',
     options: [],
     optionsId: 'countries',
     preselectedOptionIndex: undefined,

@@ -2,6 +2,7 @@ import type {
   ILayout,
   ILayoutComponent,
   ILayoutGroup,
+  ILayoutCompFileUploadWithTag,
 } from 'src/features/form/layout';
 import type { IAttachmentState } from 'src/shared/resources/attachments';
 import type { IRepeatingGroups, IMapping, ITextResource } from 'src/types';
@@ -37,7 +38,7 @@ describe('formLayout', () => {
   const testLayout: ILayout = [
     {
       id: 'Group1',
-      type: 'group',
+      type: 'Group',
       dataModelBindings: {
         group: 'Group1',
       },
@@ -165,7 +166,7 @@ describe('formLayout', () => {
     const testLayout: ILayout = [
       {
         id: 'Group1',
-        type: 'group',
+        type: 'Group',
         dataModelBindings: {
           group: 'Group1',
         },
@@ -174,7 +175,7 @@ describe('formLayout', () => {
       } as ILayoutGroup,
       {
         id: 'Group2',
-        type: 'group',
+        type: 'Group',
         dataModelBindings: {
           group: 'Group2',
         },
@@ -296,7 +297,7 @@ describe('formLayout', () => {
       const testLayout: ILayout = [
         {
           id: 'Group1',
-          type: 'group',
+          type: 'Group',
           dataModelBindings: {
             group: 'Group1',
           },
@@ -378,7 +379,7 @@ describe('formLayout', () => {
       const testLayout: ILayout = [
         {
           id: 'Group1',
-          type: 'group',
+          type: 'Group',
           dataModelBindings: {
             group: 'Group1',
           },
@@ -400,7 +401,7 @@ describe('formLayout', () => {
         } as ILayoutComponent,
         {
           id: 'panel-group',
-          type: 'group',
+          type: 'Group',
           dataModelBindings: {
             group: 'Group1',
           },
@@ -541,7 +542,7 @@ describe('formLayout', () => {
         optionsId: 'dataTypes',
         hasCustomFileEndings: true,
         validFileEndings: ['.jpeg', '.jpg', '.pdf'],
-      } as ILayoutComponent,
+      } as ILayoutCompFileUploadWithTag,
       {
         id: 'file-upload-with-tag2',
         type: 'FileUploadWithTag',

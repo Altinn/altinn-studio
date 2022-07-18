@@ -3,17 +3,17 @@ import { screen } from '@testing-library/react';
 
 import { renderWithProviders } from '../../testUtils';
 
+import type { IActualGenericComponentProps } from './GenericComponent';
 import { GenericComponent } from './GenericComponent';
-import type { IGenericComponentProps } from './GenericComponent';
 import {
   getFormDataStateMock,
   getFormLayoutStateMock,
 } from '../../__mocks__/mocks';
 
-const render = (props: Partial<IGenericComponentProps> = {}) => {
-  const allProps: IGenericComponentProps = {
+const render = (props: Partial<IActualGenericComponentProps<any>> = {}) => {
+  const allProps: IActualGenericComponentProps<'Input'> = {
     id: 'mockId',
-    type: 'type',
+    type: 'Input' as any,
     textResourceBindings: {},
     dataModelBindings: {},
     ...props,
@@ -68,7 +68,7 @@ const render = (props: Partial<IGenericComponentProps> = {}) => {
 
 describe('GenericComponent', () => {
   it('should render Unknown component when passing unknown type', () => {
-    render({ type: 'unknown-type' });
+    render({ type: 'unknown-type' } as any);
 
     expect(screen.getByText(/unknown component type/i)).toBeInTheDocument();
   });

@@ -1,6 +1,6 @@
 import type { IFormDataState } from '../../features/form/data';
 import type { IRuleConnections } from '../../features/form/dynamics';
-import type { ILayouts, ILayoutComponent } from '../../features/form/layout';
+import type { ILayouts } from '../../features/form/layout';
 import type { IRuleModelFieldElement } from '../../features/form/rules';
 
 export function checkIfRuleShouldRun(
@@ -55,17 +55,16 @@ export function checkIfRuleShouldRun(
         Object.keys(layouts).forEach((id) => {
           const layout = layouts[id];
           layout.forEach((layoutElement) => {
-            if (layoutElement.type.toLowerCase() === 'group') {
+            if (layoutElement.type === 'Group') {
               return;
             }
-            const layoutComponent = layoutElement as ILayoutComponent;
             let ruleDataBindingKey = null;
-            if (layoutComponent.dataModelBindings) {
+            if (layoutElement.dataModelBindings) {
               ruleDataBindingKey = Object.keys(
-                layoutComponent.dataModelBindings,
+                layoutElement.dataModelBindings,
               ).find((dataBindingKey) => {
                 return (
-                  layoutComponent.dataModelBindings[dataBindingKey] ===
+                  layoutElement.dataModelBindings[dataBindingKey] ===
                   connectionDef.outParams.outParam0
                 );
               });

@@ -5,8 +5,11 @@ import type { IAltinnWindow } from '../../types';
 import { FormDataActions } from '../../features/form/data/formDataSlice';
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import type { IComponentProps } from '..';
+import type { ILayoutCompButton } from 'src/features/form/layout';
 
-export interface IButtonProvidedProps extends IComponentProps {
+export interface IButtonProvidedProps
+  extends IComponentProps,
+    ILayoutCompButton {
   disabled: boolean;
   formDataCount: number;
 }

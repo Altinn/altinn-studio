@@ -3,21 +3,21 @@ import { renderWithProviders } from '../../../testUtils';
 import { screen } from '@testing-library/react';
 
 import { AttachmentWithTagSummaryComponent } from './AttachmentWithTagSummaryComponent';
-import type { ISelectionComponentProps } from 'src/features/form/layout';
+import type { ILayoutCompFileUploadWithTag } from 'src/features/form/layout';
 import type { RootState } from 'src/store';
 
 describe('AttachmentWithTagSummaryComponent', () => {
   const typeName = 'FileUploadWithTag';
   const attachmentName = 'attachment-name-1';
-  const formLayoutItem: ISelectionComponentProps = {
+  const formLayoutItem = {
     id: typeName,
     type: typeName,
     dataModelBindings: {},
     textResourceBindings: {},
     optionsId: 'a',
     mapping: { a: 'b' },
-  };
-  const mockState = (formLayoutItem: ISelectionComponentProps) => ({
+  } as unknown as ILayoutCompFileUploadWithTag;
+  const mockState = (formLayoutItem: ILayoutCompFileUploadWithTag) => ({
     formLayout: {
       layouts: {
         FormLayout: [formLayoutItem],
@@ -132,7 +132,7 @@ describe('AttachmentWithTagSummaryComponent', () => {
   });
 
   const renderHelper = (
-    options: ISelectionComponentProps,
+    options: ILayoutCompFileUploadWithTag,
     extendState?: Partial<RootState>,
   ) => {
     renderWithProviders(

@@ -105,7 +105,7 @@ describe('FileUploadComponent', () => {
 
     it('should display drop area when displayMode is not simple', () => {
       render({
-        props: { displayMode: 'not-simple' },
+        props: { displayMode: 'list' },
         initialState: { attachments: getAttachments({ count: 3 }) },
       });
 
@@ -116,7 +116,7 @@ describe('FileUploadComponent', () => {
 
     it('should not display drop area when displayMode is not simple and max attachments is reached', () => {
       render({
-        props: { displayMode: 'not-simple', maxNumberOfAttachments: 3 },
+        props: { displayMode: 'list', maxNumberOfAttachments: 3 },
         initialState: { attachments: getAttachments({ count: 3 }) },
       });
 
@@ -147,7 +147,7 @@ const render = ({
     },
   };
 
-  const allProps = {
+  const allProps: IFileUploadProps = {
     id: testId,
     displayMode: 'simple',
     maxFileSizeInMB: 2,

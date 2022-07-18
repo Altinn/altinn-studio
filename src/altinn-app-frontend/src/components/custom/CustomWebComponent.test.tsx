@@ -48,7 +48,6 @@ describe('CustomWebComponent', () => {
       shouldFocus: false,
       legend: null,
       label: null,
-      type: 'Custom',
       textResourceBindings: {
         title: 'title',
       },

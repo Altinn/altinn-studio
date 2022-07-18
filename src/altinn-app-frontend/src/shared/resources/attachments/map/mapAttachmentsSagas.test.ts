@@ -14,7 +14,11 @@ import type {
   IAttachments,
   IAttachment,
 } from 'src/shared/resources/attachments';
-import type { ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
+import type {
+  ILayoutComponent,
+  ILayoutGroup,
+  ILayoutCompFileUpload,
+} from 'src/features/form/layout';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 
 describe('mapAttachments', () => {
@@ -53,12 +57,12 @@ describe('mapAttachments', () => {
 
   it('should map attachments to repeating group rows', () => {
     const state = getInitialStateMock();
-    const basicUploader: ILayoutComponent = {
+    const basicUploader = {
       id: 'upload-outside-group',
       type: 'FileUpload',
       dataModelBindings: {},
       textResourceBindings: {},
-    };
+    } as ILayoutCompFileUpload;
     const basicUploaderWithBindings = {
       id: 'upload-outside-group-with-bindings',
       type: 'FileUpload',
@@ -68,14 +72,14 @@ describe('mapAttachments', () => {
       textResourceBindings: {},
       maxNumberOfAttachments: 5,
     };
-    const uploaderInRepeatingGroup: ILayoutComponent = {
+    const uploaderInRepeatingGroup = {
       id: 'upload-in-repeating-group',
       type: 'FileUpload',
       dataModelBindings: {
         simpleBinding: 'Group.SingleAttachment',
       },
       textResourceBindings: {},
-    };
+    } as ILayoutCompFileUpload;
     const multiUploaderInRepeatingGroup = {
       id: 'multi-upload-in-repeating-group',
       type: 'FileUpload',

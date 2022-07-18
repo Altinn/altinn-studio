@@ -1,8 +1,12 @@
 import * as React from 'react';
-import type { IAutoSavedComponentProps } from '..';
+import type { IComponentProps } from '..';
 
 import '../../styles/shared.css';
 import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
+import type { ILayoutCompTextArea } from 'src/features/form/layout';
+
+export type ITextAreaProps = IComponentProps &
+  Omit<ILayoutCompTextArea, 'type'>;
 
 export function TextAreaComponent({
   id,
@@ -12,7 +16,7 @@ export function TextAreaComponent({
   handleDataChange,
   textResourceBindings,
   saveWhileTyping,
-}: IAutoSavedComponentProps) {
+}: ITextAreaProps) {
   const suppliedValue = formData?.simpleBinding;
   const { value, setValue, saveValue, onPaste } = useDelayedSavedState(
     handleDataChange,

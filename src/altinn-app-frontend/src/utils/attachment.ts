@@ -7,11 +7,7 @@ import type {
   ILayoutComponent,
   ILayoutGroup,
 } from 'src/features/form/layout';
-import {
-  isFileUploadComponent,
-  isFileUploadWithTagComponent,
-  splitDashedKey,
-} from 'src/utils/formLayout';
+import { splitDashedKey } from 'src/utils/formLayout';
 
 export function mapAttachmentListToAttachments(
   data: IData[],
@@ -37,8 +33,8 @@ export function mapAttachmentListToAttachments(
     const component = allComponents.find((c) => c.id === baseComponentId);
     if (
       !component ||
-      (!isFileUploadComponent(component) &&
-        !isFileUploadWithTagComponent(component))
+      (component.type !== 'FileUpload' &&
+        component.type !== 'FileUploadWithTag')
     ) {
       return;
     }

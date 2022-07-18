@@ -1,7 +1,11 @@
 import React from 'react';
 import { screen, within } from '@testing-library/react';
 import { mockMediaQuery, renderWithProviders } from '../../../../testUtils';
-import type { ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
+import type {
+  ILayoutComponent,
+  ILayoutGroup,
+  ILayoutCompLikert,
+} from 'src/features/form/layout';
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
 import type { IFormDataState } from 'src/features/form/data';
 import type { ITextResourcesState } from 'src/shared/resources/textResources';
@@ -78,8 +82,8 @@ const createLikertContainer = (props: Partial<ILayoutGroup>): ILayoutGroup => {
 };
 
 const createRadioButton = (
-  props: Partial<ILayoutComponent>,
-): ILayoutComponent => {
+  props: Partial<ILayoutCompLikert>,
+): ILayoutCompLikert => {
   return {
     id: 'field1',
     type: 'Likert',
@@ -202,7 +206,7 @@ interface IQuestion {
 interface IRenderProps {
   mobileView: boolean;
   mockQuestions: IQuestion[];
-  radioButtonProps: Partial<ILayoutComponent>;
+  radioButtonProps: Partial<ILayoutCompLikert>;
   likertContainerProps: Partial<ILayoutGroup>;
   extraTextResources: ITextResource[];
   validations: ILayoutValidations;

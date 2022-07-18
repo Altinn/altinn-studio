@@ -25,6 +25,7 @@ import type { IAttachment } from 'src/shared/resources/attachments';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
 import { FormDynamicsActions } from 'src/features/form/dynamics/formDynamicsSlice';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
+import type { ILayoutCompFileUpload } from 'src/features/form/layout';
 
 jest.mock('altinn-shared/utils');
 
@@ -78,7 +79,7 @@ describe('updateLayoutSagas', () => {
         type: 'FileUpload',
         dataModelBindings: dataModelBinding,
         textResourceBindings: {},
-      });
+      } as ILayoutCompFileUpload);
 
       const initialFormData = { ...state.formData.formData };
       state.formData.formData['Group[0].attachmentRef'] = 'abc123';

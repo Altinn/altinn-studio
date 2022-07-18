@@ -21,7 +21,7 @@ import { FormLayoutActions } from '../../layout/formLayoutSlice';
 import { getCurrentDataTypeForApplication } from '../../../../utils/appMetadata';
 import { removeAttachmentReference } from 'src/utils/databindings';
 import type { IFormData } from 'src/features/form/data';
-import type { ILayouts } from 'src/features/form/layout';
+import type { ILayouts, ILayoutComponent } from 'src/features/form/layout';
 import type { IAttachments } from 'src/shared/resources/attachments';
 
 export function* updateFormDataSaga({
@@ -101,7 +101,7 @@ function* runValidations(
   const component = getLayoutComponentById(
     componentId,
     state.formLayout.layouts,
-  );
+  ) as ILayoutComponent;
   const layoutId = getLayoutIdForComponent(
     componentId,
     state.formLayout.layouts,

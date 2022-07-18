@@ -7,24 +7,24 @@ import type {
   ILayoutComponent,
   ILayoutGroup,
   ILayout,
+  ILayoutComponentOrGroup,
 } from '../../features/form/layout';
 import type { ILayoutSets, ILayoutSet } from 'src/types';
 import { LayoutStyle } from 'src/types';
-import { isGroupComponent } from '../formLayout';
 import { PanelGroupContainer } from 'src/features/form/containers/PanelGroupContainer';
 
 export function getLayoutComponentById(
   id: string,
   layouts: ILayouts,
-): ILayoutComponent {
-  let component: ILayoutComponent;
+): ILayoutComponentOrGroup {
+  let component: ILayoutComponentOrGroup;
   Object.keys(layouts).forEach((layoutId) => {
     if (!component) {
       component = layouts[layoutId].find((element) => {
         // Check against provided id, with potential -{index} postfix.
         const match = matchLayoutComponent(id, element.id);
         return match && match.length > 0;
-      }) as ILayoutComponent;
+      });
     }
   });
 
@@ -61,11 +61,11 @@ export function matchLayoutComponent(providedId: string, componentId: string) {
 }
 
 export function renderGenericComponent(
-  component: ILayoutComponent,
+  component: ILayoutComponentOrGroup,
   layout: ILayout,
   index = -1,
 ) {
-  if (component.type.toLowerCase() === 'group') {
+  if (component.type === 'Group') {
     return renderLayoutGroup(
       component as unknown as ILayoutGroup,
       layout,
@@ -133,7 +133,7 @@ export function setupGroupComponents(
   index: number,
 ): (ILayoutGroup | ILayoutComponent)[] {
   return components.map((component: ILayoutComponent | ILayoutGroup) => {
-    if (isGroupComponent(component)) {
+    if (component.type === 'Group') {
       if (component.panel?.groupReference) {
         // Do not treat as a regular group child as this is merely an option to add elements for another group from this group context
         return component;

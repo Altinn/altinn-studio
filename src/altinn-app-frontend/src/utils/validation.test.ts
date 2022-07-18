@@ -120,7 +120,7 @@ describe('utils > validation', () => {
     };
 
     mockGroup2 = {
-      type: 'group',
+      type: 'Group',
       id: 'group2',
       dataModelBindings: {
         group: 'group_1.group_2',
@@ -130,7 +130,7 @@ describe('utils > validation', () => {
     };
 
     mockGroup1 = {
-      type: 'group',
+      type: 'Group',
       id: 'group1',
       dataModelBindings: {
         group: 'group_1',
@@ -140,7 +140,7 @@ describe('utils > validation', () => {
     };
 
     mockGroup3 = {
-      type: 'group',
+      type: 'Group',
       id: 'group3',
       dataModelBindings: {
         group: 'group_3',
@@ -228,7 +228,7 @@ describe('utils > validation', () => {
           textResourceBindings: {},
         },
         {
-          type: 'group',
+          type: 'Group',
           id: 'group_simple',
           dataModelBindings: {
             group: 'group_simple',

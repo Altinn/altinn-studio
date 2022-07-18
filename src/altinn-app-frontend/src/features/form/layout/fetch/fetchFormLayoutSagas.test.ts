@@ -4,13 +4,37 @@ import {
   fetchLayoutSaga,
   instanceSelector,
   layoutSetsSelector,
+  cleanLayout,
 } from './fetchFormLayoutSagas';
 import * as networking from '../../../../utils/networking';
 import type { IApplication, IInstance } from 'altinn-shared/types';
 import { select } from 'redux-saga/effects';
 import { FormLayoutActions } from '../formLayoutSlice';
+import type {
+  ILayoutGroup,
+  ILayoutCompSummary,
+  ILayoutCompFileUploadWithTag,
+} from 'src/features/form/layout';
 
 describe('fetchFormLayoutSagas', () => {
+  describe('cleanLayout', () => {
+    it('should convert incorrectly cased types to the correct case', () => {
+      expect(
+        cleanLayout([
+          { type: 'group' } as any as ILayoutGroup,
+          { type: 'sUMMARY' } as any as ILayoutCompSummary,
+          { type: 'FileuploadwithTAG' } as any as ILayoutCompFileUploadWithTag,
+          { type: 'ComponentThatDoesNotEXIST' } as any,
+        ]),
+      ).toEqual([
+        { type: 'Group' },
+        { type: 'Summary' },
+        { type: 'FileUploadWithTag' },
+        { type: 'ComponentThatDoesNotEXIST' },
+      ]);
+    });
+  });
+
   describe('fetchLayoutSaga', () => {
     const instance = {
       id: 'some-instance-id',

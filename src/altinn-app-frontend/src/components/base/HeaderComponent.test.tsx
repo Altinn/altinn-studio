@@ -6,8 +6,7 @@ import {
   waitForElementToBeRemoved,
 } from '@testing-library/react';
 
-import type { IComponentProps } from 'src/components';
-
+import type { IHeaderProps } from './HeaderComponent';
 import { HeaderComponent } from './HeaderComponent';
 
 const render = (props = {}) => {
@@ -18,7 +17,7 @@ const render = (props = {}) => {
     language: {},
     textResourceBindings: {},
     ...props,
-  } as IComponentProps;
+  } as IHeaderProps;
 
   rtlRender(<HeaderComponent {...allProps} />);
 };

@@ -9,10 +9,11 @@ import type { ILanguage } from 'altinn-shared/types';
 import type { IComponentValidations, ILabelSettings } from 'src/types';
 import { LayoutStyle, Triggers } from 'src/types';
 import type {
-  IDataModelBindings,
-  IGrid,
   IGridStyling,
-  ITextResourceBindings,
+  ILayoutCompBase,
+  ILayoutComponent,
+  ComponentExceptGroup,
+  ComponentTypes,
 } from '../features/form/layout';
 import { getTextResourceByKey } from 'altinn-shared/utils';
 import { FormDataActions } from '../features/form/data/formDataSlice';
@@ -33,21 +34,17 @@ import { FormLayoutActions } from '../features/form/layout/formLayoutSlice';
 import Description from '../features/form/components/Description';
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 
-export interface IGenericComponentProps {
-  id: string;
-  type: string;
-  textResourceBindings: ITextResourceBindings;
-  dataModelBindings: IDataModelBindings;
+export interface IGenericComponentProps extends Omit<ILayoutCompBase, 'type'> {
   componentValidations?: IComponentValidations;
-  readOnly?: boolean;
-  required?: boolean;
   labelSettings?: ILabelSettings;
-  grid?: IGrid;
-  triggers?: Triggers[];
   hidden?: boolean;
   layout?: LayoutStyle;
   groupContainerId?: string;
-  baseComponentId?: string;
+}
+
+export interface IActualGenericComponentProps<Type extends ComponentTypes>
+  extends IGenericComponentProps {
+  type: Type;
 }
 
 const useStyles = makeStyles((theme) => ({
@@ -96,7 +93,9 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export function GenericComponent(props: IGenericComponentProps) {
+export function GenericComponent<Type extends ComponentExceptGroup>(
+  props: IActualGenericComponentProps<Type>,
+) {
   const { id, ...passThroughProps } = props;
   const dispatch = useAppDispatch();
   const classes = useStyles(props);
@@ -210,7 +209,7 @@ export function GenericComponent(props: IGenericComponentProps) {
   const getValidationsForInternalHandling = () => {
     if (
       props.type === 'AddressComponent' ||
-      props.type === 'Datepicker' ||
+      props.type === 'DatePicker' ||
       props.type === 'FileUpload' ||
       props.type === 'FileUploadWithTag' ||
       (props.type === 'Likert' && props.layout === LayoutStyle.Table)
@@ -226,15 +225,13 @@ export function GenericComponent(props: IGenericComponentProps) {
     passThroughProps.componentValidations = internalComponentValidations;
   }
 
-  const RenderComponent = components.find(
-    (componentCandidate) => componentCandidate.name === props.type,
-  );
+  const RenderComponent = components[props.type as keyof typeof components];
   if (!RenderComponent) {
     return (
       <div>
         Unknown component type: {props.type}
         <br />
-        Valid component types: {components.map((c) => c.name).join(', ')}
+        Valid component types: {Object.keys(components).join(', ')}
       </div>
     );
   }
@@ -287,7 +284,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     return getTextResourceByKey(key, textResources);
   };
 
-  const componentProps: IComponentProps = {
+  const componentProps = {
     handleDataChange,
     handleFocusUpdate,
     getTextResource: getTextResourceWrapper,
@@ -301,7 +298,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     label: RenderLabel,
     legend: RenderLegend,
     ...passThroughProps,
-  };
+  } as IComponentProps & ILayoutComponent<Type>;
 
   const noLabelComponents = [
     'Header',
@@ -327,7 +324,7 @@ export function GenericComponent(props: IGenericComponentProps) {
     ) && hasValidationMessages;
 
   if (props.type === 'Likert' && props.layout === LayoutStyle.Table) {
-    return <RenderComponent.Tag {...componentProps} />;
+    return <RenderComponent {...componentProps} />;
   }
 
   return (
@@ -377,7 +374,7 @@ export function GenericComponent(props: IGenericComponentProps) {
           lg={props.grid?.innerGrid?.lg || false}
           xl={props.grid?.innerGrid?.xl || false}
         >
-          <RenderComponent.Tag {...componentProps} />
+          <RenderComponent {...componentProps} />
           {showValidationMessages &&
             renderValidationMessagesForComponent(
               componentValidations?.simpleBinding,

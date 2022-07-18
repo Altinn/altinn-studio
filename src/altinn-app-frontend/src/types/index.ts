@@ -25,30 +25,6 @@ export interface IComponentValidations {
 
 export { IDataModelBindings } from '../features/form/layout/index';
 
-export interface IFormComponent {
-  id: string;
-  disabled?: boolean;
-  required?: boolean;
-  readOnly?: boolean;
-}
-
-export interface IFormFileUploaderComponent extends IFormComponent {
-  description: string;
-  hasCustomFileEndings: boolean;
-  maxFileSizeInMB: number;
-  displayMode: string;
-  maxNumberOfAttachments: number;
-  minNumberOfAttachments: number;
-  validFileEndings?: string;
-}
-
-export interface IFormFileUploaderWithTagComponent
-  extends IFormFileUploaderComponent {
-  options: IOption[];
-  optionsId: string;
-  mapping?: IMapping;
-}
-
 export interface IFormFileUploaderWithTag {
   chosenOptions: IOptionsChosen;
   editIndex: number;

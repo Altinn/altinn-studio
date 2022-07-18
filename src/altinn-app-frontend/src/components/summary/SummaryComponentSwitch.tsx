@@ -1,21 +1,11 @@
 import * as React from 'react';
-import type {
-  ILayoutComponent,
-  ILayoutGroup,
-  ISelectionComponentProps,
-} from 'src/features/form/layout';
+import type { ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
 import SummaryGroupComponent from './SummaryGroupComponent';
 import SingleInputSummary from './SingleInputSummary';
 import { AttachmentSummaryComponent } from './AttachmentSummaryComponent';
 import { AttachmentWithTagSummaryComponent } from './AttachmentWithTagSummaryComponent';
 import MultipleChoiceSummary from './MultipleChoiceSummary';
 import SummaryBoilerplate from 'src/components/summary/SummaryBoilerplate';
-import {
-  isFileUploadComponent,
-  isFileUploadWithTagComponent,
-  isGroupComponent,
-  isCheckboxesComponent,
-} from 'src/utils/formLayout';
 
 export interface ISummaryComponentSwitch {
   change: {
@@ -51,7 +41,7 @@ export default function SummaryComponentSwitch({
   const hasDataBindings =
     Object.keys(formComponent.dataModelBindings || {}).length === 0;
 
-  if (hasDataBindings && isFileUploadComponent(formComponent)) {
+  if (hasDataBindings && formComponent.type === 'FileUpload') {
     return (
       <>
         <SummaryBoilerplate
@@ -64,7 +54,7 @@ export default function SummaryComponentSwitch({
     );
   }
 
-  if (hasDataBindings && isFileUploadWithTagComponent(formComponent)) {
+  if (hasDataBindings && formComponent.type === 'FileUploadWithTag') {
     return (
       <>
         <SummaryBoilerplate
@@ -74,13 +64,13 @@ export default function SummaryComponentSwitch({
         />
         <AttachmentWithTagSummaryComponent
           componentRef={componentRef}
-          component={formComponent as ISelectionComponentProps}
+          component={formComponent}
         />
       </>
     );
   }
 
-  if (isGroupComponent(formComponent)) {
+  if (formComponent.type === 'Group') {
     return (
       <SummaryGroupComponent
         {...change}
@@ -90,7 +80,7 @@ export default function SummaryComponentSwitch({
     );
   }
 
-  if (isCheckboxesComponent(formComponent) && typeof formData !== 'string') {
+  if (formComponent.type === 'Checkboxes' && typeof formData !== 'string') {
     return (
       <MultipleChoiceSummary
         {...change}

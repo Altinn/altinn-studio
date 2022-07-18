@@ -5,10 +5,10 @@ import { InstantiationActions } from 'src/features/instantiate/instantiation/ins
 import { useInstantiateWithPrefillMutation } from 'src/services/InstancesApi';
 import { mapFormData } from 'src/utils/databindings';
 import { Redirect } from 'react-router';
-import type { IMapping } from 'src/types';
 import type { IComponentProps } from '..';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
+import type { ILayoutCompInstantiationButton } from 'src/features/form/layout';
 
 const buttonStyle = {
   marginBottom: '0',
@@ -30,9 +30,8 @@ const altinnLoaderStyle = {
   height: '45px',
 };
 
-export interface IInstantiationButtonProps extends IComponentProps {
-  mapping: IMapping;
-}
+export type IInstantiationButtonProps = IComponentProps &
+  Omit<ILayoutCompInstantiationButton, 'type'>;
 
 export function InstantiationButtonComponent(props: IInstantiationButtonProps) {
   const dispatch = useAppDispatch();

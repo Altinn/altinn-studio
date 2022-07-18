@@ -4,10 +4,10 @@ import { mapInstanceAttachments } from 'altinn-shared/utils';
 import { Grid, Typography } from '@material-ui/core';
 import { useAppSelector } from 'src/common/hooks';
 import type { IComponentProps } from '..';
+import type { ILayoutCompAttachmentList } from 'src/features/form/layout';
 
-export interface IAttachmentListProps extends IComponentProps {
-  dataTypeIds?: string[];
-}
+export type IAttachmentListProps = IComponentProps &
+  Omit<ILayoutCompAttachmentList, 'type'>;
 
 export function AttachmentListComponent(props: IAttachmentListProps) {
   const currentTaskId = useAppSelector(

@@ -2,14 +2,9 @@ import { object } from 'dot-object';
 import type {
   ILayout,
   ILayoutGroup,
-  ILayoutComponent,
+  ILayoutCompFileUpload,
 } from 'src/features/form/layout';
-import type {
-  IMapping,
-  IRepeatingGroup,
-  IDataModelBindings,
-  IFormFileUploaderComponent,
-} from 'src/types';
+import type { IMapping, IRepeatingGroup, IDataModelBindings } from 'src/types';
 import { getParentGroup } from './validation';
 import type { IFormData } from 'src/features/form/data';
 import type {
@@ -254,7 +249,7 @@ export function deleteGroupData(
 
 interface FoundAttachment {
   attachment: IAttachment;
-  component: IFormFileUploaderComponent & ILayoutComponent;
+  component: ILayoutCompFileUpload;
   componentId: string;
   index: number;
 }
@@ -277,8 +272,8 @@ export function findChildAttachments(
     layout,
   );
   const out: FoundAttachment[] = [];
-  const components = layout.filter((c) =>
-    ['fileupload', 'fileuploadwithtag'].includes(c.type.toLowerCase()),
+  const components = layout.filter(
+    (c) => c.type === 'FileUpload' || c.type === 'FileUploadWithTag',
   );
   const formDataKeys = Object.keys(formData).filter((key) =>
     key.startsWith(`${groupDataModelBinding}[${index}]`),
@@ -290,7 +285,7 @@ export function findChildAttachments(
       (c) =>
         c.dataModelBindings?.simpleBinding === dataBinding ||
         c.dataModelBindings?.list === dataBinding,
-    ) as unknown as IFormFileUploaderComponent & ILayoutComponent;
+    ) as unknown as ILayoutCompFileUpload;
 
     if (component) {
       const groupKeys = getKeyIndex(key);

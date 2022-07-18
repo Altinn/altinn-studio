@@ -41,10 +41,6 @@ import { matchLayoutComponent, setupGroupComponents } from './layout';
 import {
   createRepeatingGroupComponents,
   getRepeatingGroupStartStopIndex,
-  isFileUploadComponent,
-  isFileUploadWithTagComponent,
-  isDatePickerComponent,
-  isGroupComponent,
   splitDashedKey,
 } from './formLayout';
 import { getDataTaskDataTypeId } from './appMetadata';
@@ -228,7 +224,9 @@ export function* iterateFieldsInLayout(
   hiddenFields?: string[],
   filter?: (component: ILayoutComponent) => boolean,
 ): Generator<IteratedComponent, void> {
-  const allGroups = formLayout.filter(isGroupComponent);
+  const allGroups = formLayout.filter(
+    (c) => c.type === 'Group',
+  ) as ILayoutGroup[];
   const childrenWithoutMultiPagePrefix = (group: ILayoutGroup) =>
     group.edit?.multiPage
       ? group.children.map((componentId) => componentId.replace(/^\d+:/g, ''))
@@ -240,7 +238,7 @@ export function* iterateFieldsInLayout(
   );
   const fieldsToCheck = formLayout.filter(
     (component) =>
-      !isGroupComponent(component) &&
+      component.type !== 'Group' &&
       !hiddenFields?.includes(component.id) &&
       (filter ? filter(component) : true) &&
       !fieldsInGroup.includes(component.id),
@@ -253,7 +251,7 @@ export function* iterateFieldsInLayout(
   for (const group of groupsToCheck) {
     const componentsToCheck = formLayout.filter(
       (component) =>
-        !isGroupComponent(component) &&
+        component.type !== 'Group' &&
         (filter ? filter(component) : true) &&
         childrenWithoutMultiPagePrefix(group).indexOf(component.id) > -1 &&
         !hiddenFields?.includes(component.id),
@@ -351,8 +349,8 @@ export function validateEmptyFieldsForLayout(
   );
   for (const { component, groupDataModelBinding, index } of generator) {
     if (
-      isFileUploadComponent(component) ||
-      isFileUploadWithTagComponent(component)
+      component.type === 'FileUpload' ||
+      component.type === 'FileUploadWithTag'
     ) {
       // These components have their own validation in validateFormComponents(). With data model bindings enabled for
       // attachments, the empty field validations would interfere.
@@ -381,16 +379,9 @@ export function getParentGroup(groupId: string, layout: ILayout): ILayoutGroup {
     return null;
   }
   return layout.find((element) => {
-    if (
-      element.id !== groupId &&
-      (element.type === 'Group' || element.type === 'group')
-    ) {
-      const parentGroupCandidate = element as ILayoutGroup;
-      const childrenWithoutMultiPage = parentGroupCandidate.children?.map(
-        (childId) =>
-          parentGroupCandidate.edit?.multiPage
-            ? childId.split(':')[1]
-            : childId,
+    if (element.id !== groupId && element.type === 'Group') {
+      const childrenWithoutMultiPage = element.children?.map((childId) =>
+        element.edit?.multiPage ? childId.split(':')[1] : childId,
       );
       if (childrenWithoutMultiPage?.indexOf(groupId) > -1) {
         return true;
@@ -508,7 +499,7 @@ export function validateFormComponentsForLayout(
     repeatingGroups,
     hiddenFields,
   )) {
-    if (isFileUploadComponent(component)) {
+    if (component.type === 'FileUpload') {
       if (!attachmentsValid(attachments, component)) {
         validations[component.id] = {
           [fieldKey]: {
@@ -526,7 +517,7 @@ export function validateFormComponentsForLayout(
           )}`,
         );
       }
-    } else if (isFileUploadWithTagComponent(component)) {
+    } else if (component.type === 'FileUploadWithTag') {
       validations[component.id] = {
         [fieldKey]: {
           errors: [],
@@ -571,7 +562,7 @@ export function validateFormComponentsForLayout(
     if (hiddenFields.includes(component.id)) {
       continue;
     }
-    if (isDatePickerComponent(component)) {
+    if (component.type === 'DatePicker') {
       let componentValidations: IComponentValidations = {};
       const date = getFormDataForComponent(
         formData,
@@ -1381,29 +1372,28 @@ export function repeatingGroupHasValidations(
         if (element.type !== 'Group') {
           return componentHasValidations(validations, currentView, element.id);
         }
-        const childGroup = element as ILayoutGroup;
 
-        if (!childGroup.dataModelBindings?.group) {
+        if (!element.dataModelBindings?.group) {
           return false;
         }
-        const childGroupIndex = repeatingGroups[childGroup.id]?.index;
+        const childGroupIndex = repeatingGroups[element.id]?.index;
         const childGroupComponents = layout.filter(
-          (childElement) => childGroup.children?.indexOf(childElement.id) > -1,
+          (childElement) => element.children?.indexOf(childElement.id) > -1,
         );
         const renderComponents = setupGroupComponents(
           childGroupComponents,
-          childGroup.dataModelBindings?.group,
+          element.dataModelBindings?.group,
           index,
         );
         const deepCopyComponents = createRepeatingGroupComponents(
-          childGroup,
+          element,
           renderComponents,
           childGroupIndex,
           [],
           hiddenFields,
         );
         return repeatingGroupHasValidations(
-          childGroup,
+          element,
           deepCopyComponents,
           validations,
           currentView,
@@ -1580,17 +1570,14 @@ export function validateGroup(
   const currentView = state.formLayout.uiConfig.currentView;
   const currentLayout = state.formLayout.layouts[currentView];
   const groups = currentLayout.filter(
-    (layoutElement) => layoutElement.type.toLowerCase() === 'group',
+    (layoutElement) => layoutElement.type === 'Group',
   );
 
   const childGroups: string[] = [];
   groups.forEach((groupCandidate: ILayoutGroup) => {
     groupCandidate?.children?.forEach((childId: string) => {
       currentLayout
-        .filter(
-          (element) =>
-            element.id === childId && element.type.toLowerCase() === 'group',
-        )
+        .filter((element) => element.id === childId && element.type === 'Group')
         .forEach((childGroup) => childGroups.push(childGroup.id));
     });
   });
@@ -1699,7 +1686,7 @@ export function removeGroupValidationsByIndex(
     } else {
       childKey = `${element.id}-${index}`;
     }
-    if (element.type !== 'group' && element.type !== 'Group') {
+    if (element.type !== 'Group') {
       // delete component directly
       delete result[currentLayout][childKey];
     } else {
@@ -1739,13 +1726,13 @@ export function removeGroupValidationsByIndex(
             childKey = `${element.id}-${i}`;
             shiftKey = `${element.id}-${i - 1}`;
           }
-          if (element.type !== 'group' && element.type !== 'Group') {
+          if (element.type !== 'Group') {
             delete result[currentLayout][childKey];
             result[currentLayout][shiftKey] =
               validations[currentLayout][childKey];
           } else {
             result = shiftChildGroupValidation(
-              element as ILayoutGroup,
+              element,
               i,
               result,
               repeatingGroups,

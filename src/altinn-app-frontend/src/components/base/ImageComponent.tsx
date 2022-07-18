@@ -1,27 +1,12 @@
 import * as React from 'react';
-import type { GridJustification } from '@material-ui/core';
 import { Grid, makeStyles } from '@material-ui/core';
 import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
 import type { IAltinnWindow } from '../../types';
 import { useAppSelector } from 'src/common/hooks';
 import type { IComponentProps } from '..';
+import type { ILayoutCompImage } from 'src/features/form/layout';
 
-export interface IImageProps extends IComponentProps {
-  image: IImage;
-}
-
-export interface IImage {
-  src: IImagesrc;
-  width: string;
-  align: GridJustification;
-}
-
-export interface IImagesrc {
-  nb: string;
-  nn?: string;
-  en?: string;
-  [language: string]: string;
-}
+export type IImageProps = IComponentProps & Omit<ILayoutCompImage, 'type'>;
 
 const useStyles = makeStyles({
   spacing: {

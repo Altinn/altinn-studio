@@ -35,10 +35,10 @@ const render = (
   customState: PreloadedState<RootState> = {},
 ) => {
   const allProps: IRadioButtonsContainerProps = {
+    type: 'RadioButtons',
     options: [],
     optionsId: 'countries',
     preselectedOptionIndex: undefined,
-    title: 'title',
     legend: 'legend',
     handleDataChange: jest.fn(),
     handleFocusUpdate: jest.fn(),

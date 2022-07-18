@@ -1,17 +1,13 @@
 import React from 'react';
 import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import type { IComponentProps } from '..';
-import type { IMapping, IOptionSource } from 'src/types';
 import { getOptionLookupKey } from 'src/utils/options';
 import { AltinnSpinner, Select } from 'altinn-shared/components';
 import { useGetOptions } from '../hooks';
+import type { ILayoutCompDropdown } from 'src/features/form/layout';
 
-export interface IDropdownProps extends IComponentProps {
-  optionsId?: string;
-  mapping?: IMapping;
-  preselectedOptionIndex?: number;
-  source?: IOptionSource;
-}
+export type IDropdownProps = IComponentProps &
+  Omit<ILayoutCompDropdown, 'type'>;
 
 function DropdownComponent({
   optionsId,

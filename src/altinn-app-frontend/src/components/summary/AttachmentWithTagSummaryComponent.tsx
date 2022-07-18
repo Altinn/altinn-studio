@@ -1,13 +1,13 @@
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 import * as React from 'react';
 import type { IAttachment } from 'src/shared/resources/attachments';
-import type { ISelectionComponentProps } from 'src/features/form/layout';
+import type { ILayoutCompFileUploadWithTag } from 'src/features/form/layout';
 import { getOptionLookupKey } from 'src/utils/options';
 import { useAppSelector } from 'src/common/hooks';
 
 export interface IAttachmentWithTagSummaryComponent {
   componentRef: string;
-  component: ISelectionComponentProps;
+  component: ILayoutCompFileUploadWithTag;
 }
 
 const useStyles = makeStyles({

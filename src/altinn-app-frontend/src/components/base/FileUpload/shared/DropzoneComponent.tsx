@@ -4,6 +4,7 @@ import type { FileRejection } from 'react-dropzone';
 import DropZone from 'react-dropzone';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import type { ITextResourceBindings } from 'src/types';
+import type { ILayoutCompFileUpload } from 'src/features/form/layout';
 
 export interface IDropzoneComponentProps {
   id: string;
@@ -15,7 +16,7 @@ export interface IDropzoneComponentProps {
   onDrop: (acceptedFiles: File[], rejectedFiles: FileRejection[]) => void;
   hasValidationMessages: boolean;
   hasCustomFileEndings?: boolean;
-  validFileEndings?: string;
+  validFileEndings?: ILayoutCompFileUpload['validFileEndings'];
   textResourceBindings: ITextResourceBindings;
 }
 

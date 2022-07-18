@@ -1,4 +1,5 @@
 import * as React from 'react';
+import type { ITextAreaProps } from './TextAreaComponent';
 import { TextAreaComponent } from './TextAreaComponent';
 import { render as rtlRender, screen } from '@testing-library/react';
 import type { IComponentProps } from 'src/components';
@@ -83,10 +84,11 @@ describe('TextAreaComponent.tsx', () => {
 const render = (props: Partial<IComponentProps> = {}) => {
   const allProps = {
     id: 'id',
+    type: 'TextArea',
     handleDataChange: jest.fn(),
     getTextResource: (key: string) => key,
     ...props,
-  } as IComponentProps;
+  } as ITextAreaProps;
 
   rtlRender(<TextAreaComponent {...allProps} />);
 };

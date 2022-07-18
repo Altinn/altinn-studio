@@ -1,17 +1,13 @@
 import React from 'react';
 import type { IComponentProps } from '../../index';
-import type { IMapping, IOption, IOptionSource } from 'src/types';
 import { useRadioButtons } from 'src/components/base/RadioButtons/radioButtonsUtils';
 import { ControlledRadioGroup } from 'src/components/base/RadioButtons/ControlledRadioGroup';
+import type { ILayoutCompRadioButtons } from 'src/features/form/layout';
 
-export interface IRadioButtonsContainerProps extends IComponentProps {
+export interface IRadioButtonsContainerProps
+  extends IComponentProps,
+    ILayoutCompRadioButtons {
   validationMessages?: any;
-  options?: IOption[];
-  optionsId?: string;
-  preselectedOptionIndex: number;
-  title: string;
-  mapping?: IMapping;
-  source?: IOptionSource;
 }
 
 export const RadioButtonContainerComponent = (

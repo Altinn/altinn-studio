@@ -3,10 +3,10 @@ import * as React from 'react';
 import { useAppSelector } from 'src/common/hooks';
 import type { ITextResource, ITextResourceBindings } from 'src/types';
 import type { IComponentProps } from '..';
+import type { ILayoutCompCustom } from 'src/features/form/layout';
 
-export interface ICustomComponentProps extends IComponentProps {
-  tagName: string;
-}
+export type ICustomComponentProps = IComponentProps &
+  Omit<ILayoutCompCustom, 'type'>;
 
 function CustomWebComponent({
   tagName,
@@ -18,7 +18,7 @@ function CustomWebComponent({
   handleDataChange,
   ...passThroughProps
 }: ICustomComponentProps) {
-  const Tag = tagName as any;
+  const Tag = tagName;
   const wcRef = React.useRef(null);
   const textResources = useAppSelector(
     (state) => state.textResources.resources,

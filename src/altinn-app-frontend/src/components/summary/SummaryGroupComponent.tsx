@@ -283,7 +283,7 @@ function SummaryGroupComponent({
         const component = layout.find(
           (c: ILayoutComponent) => c.id === componentId,
         );
-        const isGroupComponent = component.type.toLowerCase() === 'group';
+        const isGroupComponent = component.type === 'Group';
         const summaryType = 'Summary';
         const summaryId = `${component.id}-summary${
           isGroupComponent ? '-group' : ''

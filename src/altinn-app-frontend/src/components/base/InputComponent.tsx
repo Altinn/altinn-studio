@@ -1,12 +1,15 @@
 import * as React from 'react';
 import classNames from 'classnames';
-import type { NumberFormatProps } from 'react-number-format';
 import NumberFormat from 'react-number-format';
 import { Input, makeStyles } from '@material-ui/core';
 
 import '../../styles/shared.css';
-import type { IAutoSavedComponentProps } from '..';
 import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
+import type { IComponentProps } from '..';
+import type {
+  ILayoutCompInput,
+  IInputFormatting,
+} from 'src/features/form/layout';
 
 export interface IInputBaseProps {
   id: string;
@@ -16,14 +19,7 @@ export interface IInputBaseProps {
   inputRef?: ((el: HTMLInputElement) => void) | React.Ref<any>;
 }
 
-export interface IInputFormatting {
-  number?: NumberFormatProps;
-  align?: 'right' | 'center' | 'left';
-}
-
-export interface IInputProps extends IAutoSavedComponentProps {
-  formatting?: IInputFormatting;
-}
+export type IInputProps = IComponentProps & Omit<ILayoutCompInput, 'type'>;
 
 export interface IBasicInputProps extends IInputBaseProps {
   onDataChangeSubmit: () => void;

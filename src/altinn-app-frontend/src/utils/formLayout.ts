@@ -1,5 +1,4 @@
 import type { ITextResource } from 'altinn-shared/types';
-import type { IInstantiationButtonProps } from 'src/components/base/InstantiationButtonComponent';
 import type { IAttachmentState } from 'src/shared/resources/attachments';
 import type {
   IRepeatingGroups,
@@ -8,8 +7,6 @@ import type {
   IFileUploadersWithTag,
   IOptionsChosen,
   IMapping,
-  IFormFileUploaderComponent,
-  IFormFileUploaderWithTagComponent,
 } from 'src/types';
 import type {
   IGroupEditProperties,
@@ -17,8 +14,6 @@ import type {
   ILayoutComponent,
   ILayoutGroup,
 } from '../features/form/layout';
-import type { IDatePickerProps } from 'src/components/base/DatepickerComponent';
-import type { ICheckboxContainerProps } from 'src/components/base/CheckboxesContainerComponent';
 
 interface SplitKey {
   baseComponentId: string;
@@ -74,7 +69,7 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
   const regex = new RegExp(/\[([0-9]+)\]/);
 
   const groups = formLayout.filter(
-    (layoutElement) => layoutElement.type.toLowerCase() === 'group',
+    (layoutElement) => layoutElement.type === 'Group',
   );
 
   const childGroups: string[] = [];
@@ -82,7 +77,7 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
     group.children?.forEach((childId: string) => {
       formLayout
         .filter((element) => {
-          if (element.type.toLowerCase() !== 'group') return false;
+          if (element.type !== 'Group') return false;
           if (group.edit?.multiPage) {
             return childId.split(':')[1] === element.id;
           }
@@ -168,7 +163,7 @@ export function mapFileUploadersWithTag(
     const component = formLayout.find(
       (layoutElement) => layoutElement.id === baseComponentId,
     );
-    if (!component || component.type.toLowerCase() !== 'fileuploadwithtag') {
+    if (!component || component.type !== 'FileUploadWithTag') {
       continue;
     }
 
@@ -318,14 +313,12 @@ export function createRepeatingGroupComponentsForIndex({
   hiddenFields,
 }: ICreateRepeatingGroupCoomponentsForIndexProps) {
   return renderComponents.map((component: ILayoutComponent | ILayoutGroup) => {
-    if (isGroupComponent(component)) {
-      if (component.panel?.groupReference) {
-        // Do not treat as a regular group child as this is merely an option to add elements for another group from this group context
-        return {
-          ...component,
-          baseComponentId: component.id, // used to indicate that it is a child group
-        };
-      }
+    if (component.type === 'Group' && component.panel?.groupReference) {
+      // Do not treat as a regular group child as this is merely an option to add elements for another group from this group context
+      return {
+        ...component,
+        baseComponentId: component.id, // used to indicate that it is a child group
+      };
     }
 
     const componentDeepCopy: ILayoutComponent | ILayoutGroup = JSON.parse(
@@ -351,7 +344,7 @@ export function createRepeatingGroupComponentsForIndex({
     let mapping;
     if (componentDeepCopy.type === 'InstantiationButton') {
       mapping = setMappingForRepeatingGroupComponent(
-        (componentDeepCopy as IInstantiationButtonProps).mapping,
+        componentDeepCopy.mapping,
         index,
       );
     }
@@ -361,7 +354,7 @@ export function createRepeatingGroupComponentsForIndex({
       dataModelBindings,
       id: deepCopyId,
       baseComponentId:
-        (componentDeepCopy as any).baseComponentId || componentDeepCopy.id,
+        componentDeepCopy.baseComponentId || componentDeepCopy.id,
       hidden,
       mapping,
     };
@@ -442,20 +435,18 @@ export function findChildren(
 
   if (root) {
     for (const item of layout) {
-      if (isGroupComponent(item)) {
-        if (item.children) {
-          for (const childId of item.children) {
-            const cleanId = item.edit?.multiPage
-              ? childId.match(/^\d+:(.*)$/)[1]
-              : childId;
-            if (item.id === root) {
-              toConsider.add(cleanId);
-            } else {
-              if (typeof otherGroupComponents[item.id] === 'undefined') {
-                otherGroupComponents[item.id] = new Set();
-              }
-              otherGroupComponents[item.id].add(cleanId);
+      if (item.type === 'Group' && item.children) {
+        for (const childId of item.children) {
+          const cleanId = item.edit?.multiPage
+            ? childId.match(/^\d+:(.*)$/)[1]
+            : childId;
+          if (item.id === root) {
+            toConsider.add(cleanId);
+          } else {
+            if (typeof otherGroupComponents[item.id] === 'undefined') {
+              otherGroupComponents[item.id] = new Set();
             }
+            otherGroupComponents[item.id].add(cleanId);
           }
         }
       }
@@ -470,7 +461,7 @@ export function findChildren(
   }
 
   for (const item of layout) {
-    if (isGroupComponent(item) || (root && !toConsider.has(item.id))) {
+    if (item.type === 'Group' || (root && !toConsider.has(item.id))) {
       continue;
     }
     if (options && options.matching) {
@@ -481,41 +472,4 @@ export function findChildren(
   }
 
   return out;
-}
-
-/**
- * Type guards for inferring component types
- * @see https://www.typescriptlang.org/docs/handbook/2/narrowing.html#using-type-predicates
- */
-
-export function isGroupComponent(
-  component: ILayoutComponent | ILayoutGroup,
-): component is ILayoutGroup {
-  return component.type.toLowerCase() === 'group';
-}
-
-export function isFileUploadComponent(
-  component: ILayoutComponent | ILayoutGroup,
-): component is IFormFileUploaderComponent & ILayoutComponent {
-  return component.type.toLowerCase() === 'fileupload';
-}
-
-export function isFileUploadWithTagComponent(
-  component: ILayoutComponent | ILayoutGroup,
-): component is IFormFileUploaderWithTagComponent & ILayoutComponent {
-  return component.type.toLowerCase() === 'fileuploadwithtag';
-}
-
-export function isDatePickerComponent(
-  component: ILayoutComponent | ILayoutGroup,
-): component is IDatePickerProps & ILayoutComponent {
-  return component.type.toLowerCase() === 'datepicker';
-}
-
-export function isCheckboxesComponent(
-  component: any,
-): component is ICheckboxContainerProps & ILayoutComponent {
-  return (
-    component && component.type && component.type.toLowerCase() === 'checkboxes'
-  );
 }

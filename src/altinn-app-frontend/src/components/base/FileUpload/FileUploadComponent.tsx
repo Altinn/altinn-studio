@@ -14,11 +14,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { useAppSelector, useAppDispatch } from 'src/common/hooks';
 import { AttachmentsCounter, FileName } from './shared/render';
 import { DropzoneComponent } from './shared/DropzoneComponent';
-import type { IFileUploadGenericProps } from './shared/props';
+import type { IComponentProps } from 'src/components';
+import type { ILayoutCompFileUpload } from 'src/features/form/layout';
 
-export interface IFileUploadProps extends IFileUploadGenericProps {
-  displayMode: string;
-}
+export type IFileUploadProps = IComponentProps &
+  Omit<ILayoutCompFileUpload, 'type'>;
 
 export const bytesInOneMB = 1048576;
 export const emptyArray = [];

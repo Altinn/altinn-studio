@@ -6,7 +6,7 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { isMobile } from 'react-device-detect';
 import type { IAttachment } from '../../../../shared/resources/attachments';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
-import type { IMapping, IRuntimeState } from '../../../../types';
+import type { IRuntimeState } from '../../../../types';
 import { renderValidationMessagesForComponent } from '../../../../utils/render';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { v4 as uuidv4 } from 'uuid';
@@ -19,14 +19,12 @@ import {
 import { AttachmentsCounter } from '../shared/render';
 import { FileList } from './FileListComponent';
 import { DropzoneComponent } from '../shared/DropzoneComponent';
-import type { IFileUploadGenericProps } from '../shared/props';
 import type { IComponentProps } from 'src/components';
 import { getOptionLookupKey } from 'src/utils/options';
+import type { ILayoutCompFileUploadWithTag } from 'src/features/form/layout';
 
-export interface IFileUploadWithTagProps extends IFileUploadGenericProps {
-  optionsId: string;
-  mapping?: IMapping;
-}
+export type IFileUploadWithTagProps = IComponentProps &
+  Omit<ILayoutCompFileUploadWithTag, 'type'>;
 
 export const bytesInOneMB = 1048576;
 export const emptyArray = [];

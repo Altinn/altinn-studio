@@ -2,8 +2,7 @@ import * as React from 'react';
 import { renderWithProviders } from '../../../testUtils';
 import { screen } from '@testing-library/react';
 
-import type { IComponentProps } from 'src/components';
-
+import type { IButtonProvidedProps } from './ButtonComponent';
 import { ButtonComponent } from './ButtonComponent';
 import { getInitialStateMock } from '../../../__mocks__/mocks';
 
@@ -51,7 +50,7 @@ const render = ({ isSubmitting }: { isSubmitting: boolean }) => {
       disabled={false}
       formDataCount={0}
       language={{}}
-      {...({} as IComponentProps)}
+      {...({} as IButtonProvidedProps)}
     />,
     { preloadedState },
   );

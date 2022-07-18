@@ -10,6 +10,7 @@ import type {
   ILayoutComponent,
   ILayoutGroup,
   ISelectionComponentProps,
+  ILayoutEntry,
 } from 'src/features/form/layout';
 import type {
   IAttachment,
@@ -32,20 +33,16 @@ import {
   setupSourceOptions,
 } from './options';
 import { getTextFromAppOrDefault } from './textResource';
-import {
-  isFileUploadComponent,
-  isFileUploadWithTagComponent,
-} from 'src/utils/formLayout';
 
 export const componentValidationsHandledByGenericComponent = (
-  dataModelBindings: any,
-  type: string,
+  dataModelBindings: IDataModelBindings,
+  type: ILayoutEntry['type'],
 ): boolean => {
   return (
     !!dataModelBindings?.simpleBinding &&
-    type.toLowerCase() !== 'fileupload' &&
-    type.toLowerCase() !== 'fileuploadwithtag' &&
-    type.toLowerCase() !== 'datepicker'
+    type !== 'FileUpload' &&
+    type !== 'FileUploadWithTag' &&
+    type !== 'DatePicker'
   );
 };
 
@@ -260,8 +257,8 @@ export const getDisplayFormData = (
       return label;
     }
     if (
-      isFileUploadComponent(component) ||
-      isFileUploadWithTagComponent(component)
+      component.type === 'FileUpload' ||
+      component.type === 'FileUploadWithTag'
     ) {
       if (Array.isArray(formDataValue) && !formDataValue.length) {
         return '';
@@ -315,8 +312,8 @@ export const getFormDataForComponentInRepeatingGroup = (
       ? component.dataModelBindings?.address
       : component.dataModelBindings?.simpleBinding;
   if (
-    (isFileUploadComponent(component) ||
-      isFileUploadWithTagComponent(component)) &&
+    (component.type === 'FileUpload' ||
+      component.type === 'FileUploadWithTag') &&
     component.dataModelBindings?.list
   ) {
     dataModelBinding = component.dataModelBindings.list;

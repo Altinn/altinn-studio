@@ -2,6 +2,7 @@ import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
 import type { IComponentProps } from 'src/components';
 
+import type { IParagraphProps } from './ParagraphComponent';
 import { ParagraphComponent } from './ParagraphComponent';
 
 describe('ParagraphComponent', () => {
@@ -60,10 +61,12 @@ describe('ParagraphComponent', () => {
 
 const render = (props: Partial<IComponentProps> = {}) => {
   const allProps = {
+    id: 'abc123',
+    type: 'Paragraph',
     text: 'paragraph text content',
     getTextResource: (key: string) => key,
     ...props,
-  } as IComponentProps;
+  } as IParagraphProps;
 
   rtlRender(<ParagraphComponent {...allProps} />);
 };

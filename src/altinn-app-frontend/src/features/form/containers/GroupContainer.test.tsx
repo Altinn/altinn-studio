@@ -86,7 +86,7 @@ function render({ container = mockContainer }: IRender = {}) {
       FormLayout: [
         {
           id: 'container-closed-id',
-          type: 'group',
+          type: 'Group',
           dataModelBindings: {
             group: 'Group',
           },
@@ -94,7 +94,7 @@ function render({ container = mockContainer }: IRender = {}) {
         },
         {
           id: 'container-in-edit-mode-id',
-          type: 'group',
+          type: 'Group',
           dataModelBindings: {
             group: 'Group',
           },

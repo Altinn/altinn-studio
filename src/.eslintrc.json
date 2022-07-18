@@ -63,7 +63,8 @@
     "sonarjs/prefer-single-boolean-return": ["warn"],
     "sonarjs/no-identical-functions": ["warn"],
     "sonarjs/no-small-switch": ["warn"],
-    "sonarjs/no-nested-template-literals": ["warn"]
+    "sonarjs/no-nested-template-literals": ["warn"],
+    "react/prop-types": ["off"]
   },
   "overrides": [
     {

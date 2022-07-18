@@ -12,7 +12,6 @@ import {
 } from 'redux-saga/effects';
 import type {
   IFileUploadersWithTag,
-  IFormFileUploaderWithTagComponent,
   IRepeatingGroups,
   IRuntimeState,
   IValidationIssue,
@@ -22,8 +21,6 @@ import { Triggers } from 'src/types';
 import {
   mapFileUploadersWithTag,
   findChildren,
-  isFileUploadComponent,
-  isFileUploadWithTagComponent,
   splitDashedKey,
   getRepeatingGroups,
   removeRepeatingGroupFromUIConfig,
@@ -56,9 +53,10 @@ import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
 import type {
   ILayoutComponent,
-  ILayoutEntry,
   ILayoutGroup,
   ILayouts,
+  ILayoutComponentOrGroup,
+  ILayoutCompFileUploadWithTag,
 } from '..';
 import { FormDynamicsActions } from '../../dynamics/formDynamicsSlice';
 import type { ILayoutState } from '../formLayoutSlice';
@@ -151,7 +149,7 @@ export function* updateRepeatingGroupsSaga({
     const childGroups: (ILayoutGroup | ILayoutComponent)[] =
       formLayoutState.layouts[formLayoutState.uiConfig.currentView].filter(
         (element) => {
-          if (element.type.toLowerCase() !== 'group') {
+          if (element.type !== 'Group') {
             return false;
           }
 
@@ -244,7 +242,7 @@ export function* updateRepeatingGroupsSaga({
         const splitLayoutElementId = splitDashedKey(layoutElementId);
         const childFileUploaders = findChildren(layout, {
           matching: (c) =>
-            isFileUploadComponent(c) || isFileUploadWithTagComponent(c),
+            c.type === 'FileUpload' || c.type === 'FileUploadWithTag',
           rootGroupId: splitLayoutElementId.baseComponentId,
         });
         const updatedAttachments = shiftAttachmentRowInRepeatingGroup(
@@ -536,7 +534,7 @@ export function* watchInitialCalculatePageOrderAndMoveToNextPageSaga(): SagaIter
     const appHasCalculateTrigger =
       pageTriggers?.includes(Triggers.CalculatePageOrder) ||
       Object.keys(layouts).some((layout) => {
-        return layouts[layout].some((element: ILayoutEntry) => {
+        return layouts[layout].some((element: ILayoutComponentOrGroup) => {
           if (element.type === 'NavigationButtons') {
             const layoutComponent = element as ILayoutComponent;
             if (
@@ -764,7 +762,7 @@ export function* updateFileUploaderWithTagChosenOptionsSaga({
     const currentView = state.formLayout.uiConfig.currentView;
     const component = state.formLayout.layouts[currentView].find(
       (component: ILayoutComponent) => component.id === baseComponentId,
-    ) as unknown as IFormFileUploaderWithTagComponent;
+    ) as ILayoutCompFileUploadWithTag;
     const componentOptions =
       state.optionState.options[
         getOptionLookupKey(component.optionsId, component.mapping)

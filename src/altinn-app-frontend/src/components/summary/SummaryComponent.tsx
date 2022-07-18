@@ -14,11 +14,6 @@ import { makeGetHidden } from 'src/selectors/getLayoutData';
 import ErrorPaper from '../message/ErrorPaper';
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import SummaryComponentSwitch from 'src/components/summary/SummaryComponentSwitch';
-import {
-  isGroupComponent,
-  isFileUploadComponent,
-  isFileUploadWithTagComponent,
-} from 'src/utils/formLayout';
 
 export interface ISummaryComponent {
   id: string;
@@ -95,12 +90,12 @@ export function SummaryComponent({
     );
   });
   const formData = useAppSelector((state) => {
-    if (isGroupComponent(formComponent)) {
+    if (formComponent.type === 'Group') {
       return undefined;
     }
     if (
-      (isFileUploadComponent(formComponent) ||
-        isFileUploadWithTagComponent(formComponent)) &&
+      (formComponent.type === 'FileUpload' ||
+        formComponent.type === 'FileUploadWithTag') &&
       Object.keys(formComponent.dataModelBindings || {}).length === 0
     ) {
       return undefined;
@@ -143,7 +138,7 @@ export function SummaryComponent({
   };
 
   React.useEffect(() => {
-    if (formComponent && formComponent.type.toLowerCase() !== 'group') {
+    if (formComponent && formComponent.type !== 'Group') {
       const componentId =
         index >= 0 ? `${componentRef}-${index}` : componentRef;
       const validations = getComponentValidations(

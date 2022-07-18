@@ -7,6 +7,8 @@ import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { getTextResource } from '../../utils/formComponentUtils';
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
+import type { IComponentProps } from 'src/components';
+import type { ILayoutCompNavBar } from 'src/features/form/layout';
 
 const useStyles = makeStyles((theme) => ({
   menu: {
@@ -61,9 +63,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export interface INavigationBar {
-  triggers?: Triggers[];
-}
+export type INavigationBar = IComponentProps & Omit<ILayoutCompNavBar, 'type'>;
 
 interface INavigationButton {
   onClick: () => void;

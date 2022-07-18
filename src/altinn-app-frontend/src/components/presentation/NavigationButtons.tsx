@@ -8,6 +8,7 @@ import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import type { IComponentProps } from '..';
+import type { ILayoutCompNavButtons } from 'src/features/form/layout';
 
 const useStyles = makeStyles({
   backButton: {
@@ -15,9 +16,8 @@ const useStyles = makeStyles({
   },
 });
 
-export interface INavigationButtons extends IComponentProps {
-  showBackButton: boolean;
-}
+export type INavigationButtons = IComponentProps &
+  Omit<ILayoutCompNavButtons, 'type'>;
 
 export function NavigationButtons(props: INavigationButtons) {
   const classes = useStyles();
