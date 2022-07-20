@@ -1,11 +1,12 @@
 import * as React from 'react';
-import cn from 'classnames';
-import { Grid, makeStyles, useTheme, useMediaQuery } from '@material-ui/core';
 
-import { Triggers } from 'src/types';
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
-import { getTextResource } from '../../utils/formComponentUtils';
+import { Grid, makeStyles, useMediaQuery, useTheme } from '@material-ui/core';
+import cn from 'classnames';
+
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { Triggers } from 'src/types';
+import { getTextResource } from 'src/utils/formComponentUtils';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { IComponentProps } from 'src/components';
 import type { ILayoutCompNavBar } from 'src/features/form/layout';

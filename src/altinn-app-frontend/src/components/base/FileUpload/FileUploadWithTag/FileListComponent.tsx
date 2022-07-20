@@ -1,24 +1,27 @@
 import * as React from 'react';
-import { AltinnAppTheme } from 'altinn-shared/theme';
+
 import {
   Grid,
-  TableContainer,
-  Table,
-  TableHead,
-  TableRow,
-  TableCell,
-  TableBody,
   IconButton,
   makeStyles,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
 } from '@material-ui/core';
-import { AltinnLoader } from 'altinn-shared/components';
-import type { IAttachment } from '../../../../shared/resources/attachments';
-import type { IOption, IDataModelBindings } from 'src/types';
-import { getLanguageFromKey } from 'altinn-shared/utils';
+
+import { EditWindowComponent } from 'src/components/base/FileUpload/FileUploadWithTag/EditWindowComponent';
+import { FileName } from 'src/components/base/FileUpload/shared/render';
 import { atleastOneTagExists } from 'src/utils/formComponentUtils';
-import { FileName } from '../shared/render';
-import { EditWindowComponent } from './EditWindowComponent';
 import type { IComponentProps } from 'src/components';
+import type { IAttachment } from 'src/shared/resources/attachments';
+import type { IDataModelBindings, IOption } from 'src/types';
+
+import { AltinnLoader } from 'altinn-shared/components';
+import { AltinnAppTheme } from 'altinn-shared/theme';
+import { getLanguageFromKey } from 'altinn-shared/utils';
 
 const useStyles = makeStyles({
   table: {

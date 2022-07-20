@@ -1,7 +1,9 @@
 import React from 'react';
+
 import { Grid, makeStyles, Typography } from '@material-ui/core';
+
 import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
-import type { IComponentProps } from '..';
+import type { IComponentProps } from 'src/components';
 import type { ILayoutCompParagraph } from 'src/features/form/layout';
 
 export type IParagraphProps = IComponentProps &

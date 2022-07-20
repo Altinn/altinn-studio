@@ -1,5 +1,7 @@
 import * as React from 'react';
+
 import { getFileEnding, removeFileEnding } from 'src/utils/attachment';
+
 import { getLanguageFromKey } from 'altinn-shared/utils';
 
 export const FileName = (filename: string) => {

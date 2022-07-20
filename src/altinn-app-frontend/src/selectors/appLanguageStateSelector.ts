@@ -1,7 +1,8 @@
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
-import type { IRuntimeState } from 'src/types';
-import type { IProfile } from 'altinn-shared/types';
 import { profileStateSelector } from 'src/selectors/simpleSelectors';
+import type { IRuntimeState } from 'src/types';
+
+import type { IProfile } from 'altinn-shared/types';
 
 const selectedAppLanguageStateSelector = (state: IRuntimeState) =>
   state.language.selectedAppLanguage;

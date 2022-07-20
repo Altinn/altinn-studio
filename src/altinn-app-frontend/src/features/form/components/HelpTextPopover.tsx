@@ -1,12 +1,12 @@
 import React from 'react';
-import { createTheme, makeStyles } from '@material-ui/core';
 import { isMobile } from 'react-device-detect';
 
-import type { ILanguage } from 'altinn-shared/types';
+import { createTheme, makeStyles } from '@material-ui/core';
 
 import { AltinnPopover } from 'altinn-shared/components';
-import { getLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
+import { getLanguageFromKey } from 'altinn-shared/utils';
+import type { ILanguage } from 'altinn-shared/types';
 
 const theme = createTheme(AltinnAppTheme);
 

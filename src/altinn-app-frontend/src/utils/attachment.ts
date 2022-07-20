@@ -1,13 +1,14 @@
-import type { IData } from 'altinn-shared/types';
-import type { IAttachments } from '../shared/resources/attachments';
+import { deleteGroupData, getKeyIndex } from 'src/utils/databindings';
+import { splitDashedKey } from 'src/utils/formLayout';
 import type { IFormData } from 'src/features/form/data';
-import { getKeyIndex, deleteGroupData } from 'src/utils/databindings';
 import type {
-  ILayouts,
   ILayoutComponent,
   ILayoutGroup,
+  ILayouts,
 } from 'src/features/form/layout';
-import { splitDashedKey } from 'src/utils/formLayout';
+import type { IAttachments } from 'src/shared/resources/attachments';
+
+import type { IData } from 'altinn-shared/types';
 
 export function mapAttachmentListToAttachments(
   data: IData[],

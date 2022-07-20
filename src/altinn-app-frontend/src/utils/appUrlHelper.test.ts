@@ -1,14 +1,14 @@
 import {
+  getCalculatePageOrderUrl,
   getEnvironmentLoginUrl,
+  getFetchFormDynamicsUrl,
+  getHostname,
+  getLayoutSettingsUrl,
+  getLayoutsUrl,
   getOptionsUrl,
   getRulehandlerUrl,
-  getCalculatePageOrderUrl,
-  getLayoutsUrl,
-  getFetchFormDynamicsUrl,
-  getLayoutSettingsUrl,
-  getHostname,
   getStatelessFormDataUrl,
-} from './appUrlHelper';
+} from 'src/utils/appUrlHelper';
 
 describe('Frontend urlHelper.ts', () => {
   describe('getEnvironmentLoginUrl', () => {

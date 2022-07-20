@@ -1,14 +1,16 @@
 import * as React from 'react';
-import { renderWithProviders } from '../../../testUtils';
-import { screen, fireEvent } from '@testing-library/react';
 
-import type { ISummaryComponent } from './SummaryComponent';
-import { SummaryComponent } from './SummaryComponent';
-import type { IValidations } from 'src/types';
-import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
+import { fireEvent, screen } from '@testing-library/react';
+
+import { SummaryComponent } from 'src/components/summary/SummaryComponent';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import type { ISummaryComponent } from 'src/components/summary/SummaryComponent';
 import type { ILayoutComponent } from 'src/features/form/layout';
-import { getFormLayoutStateMock } from '../../../__mocks__/mocks';
+import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
+import type { IValidations } from 'src/types';
+
+import { getFormLayoutStateMock } from 'altinn-app-frontend/__mocks__/mocks';
+import { renderWithProviders } from 'altinn-app-frontend/testUtils';
 
 describe('SummaryComponent', () => {
   const defaultId = 'default';

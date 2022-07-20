@@ -1,11 +1,10 @@
-import { getInitialStateMock } from '../../__mocks__/initialStateMock';
-
+import { makeGetHasErrorsSelector } from 'src/selectors/getErrors';
+import type { IFormDataState } from 'src/features/form/data';
 import type { IFormDynamicState } from 'src/features/form/dynamics';
 import type { IFormRuleState } from 'src/features/form/rules';
 import type { ITextResourcesState } from 'src/shared/resources/textResources';
-import type { IFormDataState } from '../features/form/data';
 
-import { makeGetHasErrorsSelector } from './getErrors';
+import { getInitialStateMock } from 'altinn-app-frontend/__mocks__/initialStateMock';
 
 describe('selectors > getErrors', () => {
   it('should return true if error is present', () => {

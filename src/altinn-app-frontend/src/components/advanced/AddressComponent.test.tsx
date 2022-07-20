@@ -1,14 +1,15 @@
 import * as React from 'react';
-import { render as rtlRender, screen, fireEvent } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 
-import type { IComponentProps } from 'src/components';
-import { AddressComponent } from './AddressComponent';
-import type { IAddressComponentProps } from './AddressComponent';
+import { fireEvent, render as rtlRender, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import configureStore from 'redux-mock-store';
 
-import { setupServer, handlers } from '../../../testUtils';
+import { AddressComponent } from 'src/components/advanced/AddressComponent';
+import type { IComponentProps } from 'src/components';
+import type { IAddressComponentProps } from 'src/components/advanced/AddressComponent';
+
+import { handlers, setupServer } from 'altinn-app-frontend/testUtils';
 
 const server = setupServer(...handlers);
 

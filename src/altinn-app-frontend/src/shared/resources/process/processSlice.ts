@@ -1,17 +1,18 @@
-import type {
-  IProcessState,
-  IGetProcessStateFulfilled,
-  IGetProcessStateRejected,
-  ICompleteProcessFulfilled,
-  ICompleteProcessRejected,
-} from '.';
-import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
-import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
-import { getProcessStateSaga } from 'src/shared/resources/process/getProcessState/getProcessStateSagas';
-import { completeProcessSaga } from 'src/shared/resources/process/completeProcess/completeProcessSagas';
-import { checkProcessUpdated } from 'src/shared/resources/process/checkProcessUpdated/checkProcessUpdatedSagas';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { WritableDraft } from 'immer/dist/types/types-external';
+
+import { checkProcessUpdated } from 'src/shared/resources/process/checkProcessUpdated/checkProcessUpdatedSagas';
+import { completeProcessSaga } from 'src/shared/resources/process/completeProcess/completeProcessSagas';
+import { getProcessStateSaga } from 'src/shared/resources/process/getProcessState/getProcessStateSagas';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
+import type {
+  ICompleteProcessFulfilled,
+  ICompleteProcessRejected,
+  IGetProcessStateFulfilled,
+  IGetProcessStateRejected,
+  IProcessState,
+} from 'src/shared/resources/process';
+import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
 
 const initialState: IProcessState = {
   taskType: null,

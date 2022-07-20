@@ -1,21 +1,23 @@
+import { select } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
+import type { PayloadAction } from '@reduxjs/toolkit';
+
+import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import {
   deleteAttachmentReferenceSaga,
-  SelectFormData,
-  SelectLayouts,
   SelectAttachments,
   SelectCurrentView,
+  SelectFormData,
+  SelectLayouts,
 } from 'src/features/form/data/update/updateFormDataSagas';
-import type { PayloadAction } from '@reduxjs/toolkit';
 import type { IDeleteAttachmentReference } from 'src/features/form/data/formDataTypes';
-import { select } from 'redux-saga/effects';
-import { getInitialStateMock } from '../../../../../__mocks__/mocks';
-import type { IRuntimeState, IDataModelBindings } from 'src/types';
-import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import type {
-  IAttachments,
   IAttachment,
+  IAttachments,
 } from 'src/shared/resources/attachments';
+import type { IDataModelBindings, IRuntimeState } from 'src/types';
+
+import { getInitialStateMock } from 'altinn-app-frontend/__mocks__/mocks';
 
 describe('updateFormDataSagas', () => {
   const testDeleteAttachmentReferenceSaga =

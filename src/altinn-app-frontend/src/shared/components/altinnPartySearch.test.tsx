@@ -1,11 +1,11 @@
 import React from 'react';
-import userEvent from '@testing-library/user-event';
+
 import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import { renderWithProviders } from 'src/../testUtils';
-
-import type { IAltinnPartySearchProps } from './altinnPartySearch';
-import AltinnPartySearch from './altinnPartySearch';
+import AltinnPartySearch from 'src/shared/components/altinnPartySearch';
+import type { IAltinnPartySearchProps } from 'src/shared/components/altinnPartySearch';
 
 const user = userEvent.setup();
 

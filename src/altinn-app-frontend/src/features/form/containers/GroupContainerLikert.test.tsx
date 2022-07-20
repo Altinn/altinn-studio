@@ -1,15 +1,16 @@
+import { screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
 import {
   createFormDataUpdateAction,
   createFormError,
   defaultMockQuestions,
   mockOptions,
+  questionsWithAnswers,
   render,
   validateRadioLayout,
   validateTableLayout,
-  questionsWithAnswers,
 } from 'src/features/form/containers/GroupContainerLikertTestUtils';
-import { screen, within } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 
 describe('GroupContainer', () => {
   describe('Desktop', () => {

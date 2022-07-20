@@ -1,27 +1,30 @@
 import * as React from 'react';
-import type { FileRejection } from 'react-dropzone';
-import { getLanguageFromKey } from 'altinn-shared/utils';
-import { useAppSelector, useAppDispatch } from 'src/common/hooks';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { isMobile } from 'react-device-detect';
-import type { IAttachment } from '../../../../shared/resources/attachments';
-import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
-import type { IRuntimeState } from '../../../../types';
-import { renderValidationMessagesForComponent } from '../../../../utils/render';
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import type { FileRejection } from 'react-dropzone';
+
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { v4 as uuidv4 } from 'uuid';
+
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { FileList } from 'src/components/base/FileUpload/FileUploadWithTag/FileListComponent';
+import { DropzoneComponent } from 'src/components/base/FileUpload/shared/DropzoneComponent';
+import { AttachmentsCounter } from 'src/components/base/FileUpload/shared/render';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import {
   getFileUploadWithTagComponentValidations,
   isAttachmentError,
   isNotAttachmentError,
   parseFileUploadComponentWithTagValidationObject,
 } from 'src/utils/formComponentUtils';
-import { AttachmentsCounter } from '../shared/render';
-import { FileList } from './FileListComponent';
-import { DropzoneComponent } from '../shared/DropzoneComponent';
-import type { IComponentProps } from 'src/components';
 import { getOptionLookupKey } from 'src/utils/options';
+import { renderValidationMessagesForComponent } from 'src/utils/render';
+import type { IComponentProps } from 'src/components';
 import type { ILayoutCompFileUploadWithTag } from 'src/features/form/layout';
+import type { IAttachment } from 'src/shared/resources/attachments';
+import type { IRuntimeState } from 'src/types';
+
+import { getLanguageFromKey } from 'altinn-shared/utils';
 
 export type IFileUploadWithTagProps = IComponentProps &
   Omit<ILayoutCompFileUploadWithTag, 'type'>;

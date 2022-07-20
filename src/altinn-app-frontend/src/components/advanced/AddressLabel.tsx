@@ -1,10 +1,11 @@
 import * as React from 'react';
 
-import type { ILanguage } from 'altinn-shared/types';
-import type { ILabelSettings } from 'src/types';
-import { getLanguageFromKey } from 'altinn-shared/utils';
-import { RequiredIndicator } from 'src/features/form/components/RequiredIndicator';
 import { OptionalIndicator } from 'src/features/form/components/OptionalIndicator';
+import { RequiredIndicator } from 'src/features/form/components/RequiredIndicator';
+import type { ILabelSettings } from 'src/types';
+
+import { getLanguageFromKey } from 'altinn-shared/utils';
+import type { ILanguage } from 'altinn-shared/types';
 
 interface IAddressLabel {
   labelKey: string;

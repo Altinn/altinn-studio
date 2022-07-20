@@ -1,13 +1,14 @@
 import * as React from 'react';
+
 import {
+  fireEvent,
   render as rtlRender,
   screen,
-  fireEvent,
   waitForElementToBeRemoved,
 } from '@testing-library/react';
 
-import type { IHeaderProps } from './HeaderComponent';
-import { HeaderComponent } from './HeaderComponent';
+import { HeaderComponent } from 'src/components/base/HeaderComponent';
+import type { IHeaderProps } from 'src/components/base/HeaderComponent';
 
 const render = (props = {}) => {
   const allProps = {

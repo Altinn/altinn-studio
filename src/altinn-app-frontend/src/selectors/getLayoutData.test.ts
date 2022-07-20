@@ -1,4 +1,4 @@
-import { makeGetFocus, makeGetHidden } from '../../src/selectors/getLayoutData';
+import { makeGetFocus, makeGetHidden } from 'src/selectors/getLayoutData';
 
 describe('getLayoutData', () => {
   let initialState: any;

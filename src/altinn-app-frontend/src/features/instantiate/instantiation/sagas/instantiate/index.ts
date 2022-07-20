@@ -1,16 +1,18 @@
-import type { SagaIterator } from 'redux-saga';
 import { call, put, select } from 'redux-saga/effects';
-import type { IParty } from 'altinn-shared/types';
 import type { AxiosResponse } from 'axios';
-import type { IRuntimeState } from '../../../../../types';
-import { post, putWithoutConfig } from '../../../../../utils/networking';
-import {
-  getCreateInstancesUrl,
-  redirectToUpgrade,
-  invalidateCookieUrl,
-} from '../../../../../utils/appUrlHelper';
+import type { SagaIterator } from 'redux-saga';
+
 import { InstantiationActions } from 'src/features/instantiate/instantiation/instantiationSlice';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
+import {
+  getCreateInstancesUrl,
+  invalidateCookieUrl,
+  redirectToUpgrade,
+} from 'src/utils/appUrlHelper';
+import { post, putWithoutConfig } from 'src/utils/networking';
+import type { IRuntimeState } from 'src/types';
+
+import type { IParty } from 'altinn-shared/types';
 
 const SelectedPartySelector = (state: IRuntimeState) =>
   state.party.selectedParty;

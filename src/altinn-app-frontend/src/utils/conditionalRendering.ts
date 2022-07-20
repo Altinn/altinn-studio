@@ -1,15 +1,15 @@
+import type { IFormData } from 'src/features/form/data';
+import type {
+  IConditionalRenderingRule,
+  IConditionalRenderingRules,
+  IParameters,
+  ISelectedFields,
+} from 'src/features/form/dynamics';
 import type {
   IAltinnWindow,
   IRepeatingGroup,
   IRepeatingGroups,
 } from 'src/types';
-import type { IFormData } from '../features/form/data';
-import type {
-  IConditionalRenderingRules,
-  IConditionalRenderingRule,
-  ISelectedFields,
-  IParameters,
-} from 'src/features/form/dynamics';
 
 /*
  * Runs conditional rendering rules, returns array of affected layout elements

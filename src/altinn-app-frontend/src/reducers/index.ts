@@ -1,25 +1,26 @@
 import { combineReducers } from 'redux';
-import optionsSlice from '../shared/resources/options/optionsSlice';
-import formDataSlice from '../features/form/data/formDataSlice';
+
+import formDataSlice from 'src/features/form/data/formDataSlice';
+import formDataModelSlice from 'src/features/form/datamodel/datamodelSlice';
+import formDynamicsSlice from 'src/features/form/dynamics/formDynamicsSlice';
+import formLayoutSlice from 'src/features/form/layout/formLayoutSlice';
 import formRulesSlice from 'src/features/form/rules/rulesSlice';
+import validationSlice from 'src/features/form/validation/validationSlice';
 import instantiationSlice from 'src/features/instantiate/instantiation/instantiationSlice';
+import { appApi } from 'src/services/AppApi';
 import applicationMetadataSlice from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
+import applicationSettingsSlice from 'src/shared/resources/applicationSettings/applicationSettingsSlice';
 import attachmentSlice from 'src/shared/resources/attachments/attachmentSlice';
 import instanceDataSlice from 'src/shared/resources/instanceData/instanceDataSlice';
+import isLoadingSlice from 'src/shared/resources/isLoading/isLoadingSlice';
+import languageSlice from 'src/shared/resources/language/languageSlice';
+import optionsSlice from 'src/shared/resources/options/optionsSlice';
 import orgsSlice from 'src/shared/resources/orgs/orgsSlice';
-import partySlice from '../shared/resources/party/partySlice';
+import partySlice from 'src/shared/resources/party/partySlice';
 import processSlice from 'src/shared/resources/process/processSlice';
 import profileSlice from 'src/shared/resources/profile/profileSlice';
-import textResourcesSlice from '../shared/resources/textResources/textResourcesSlice';
-import { appApi } from 'src/services/AppApi';
-import formDynamicsSlice from '../features/form/dynamics/formDynamicsSlice';
-import formLayoutSlice from '../features/form/layout/formLayoutSlice';
-import formDataModelSlice from '../features/form/datamodel/datamodelSlice';
-import validationSlice from '../features/form/validation/validationSlice';
-import isLoadingSlice from '../shared/resources/isLoading/isLoadingSlice';
-import languageSlice from '../shared/resources/language/languageSlice';
-import queueSlice from '../shared/resources/queue/queueSlice';
-import applicationSettingsSlice from '../shared/resources/applicationSettings/applicationSettingsSlice';
+import queueSlice from 'src/shared/resources/queue/queueSlice';
+import textResourcesSlice from 'src/shared/resources/textResources/textResourcesSlice';
 
 const reducers = {
   [applicationMetadataSlice.name]: applicationMetadataSlice.reducer,

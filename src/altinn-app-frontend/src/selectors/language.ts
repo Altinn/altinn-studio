@@ -1,6 +1,8 @@
-import { getAppName, getAppOwner } from 'altinn-shared/utils';
 import { createSelector } from 'reselect';
+
 import type { IRuntimeState } from 'src/types';
+
+import { getAppName, getAppOwner } from 'altinn-shared/utils';
 
 const selectTextResources = (state: IRuntimeState) =>
   state.textResources.resources;

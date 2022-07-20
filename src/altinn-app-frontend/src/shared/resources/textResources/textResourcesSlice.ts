@@ -1,17 +1,17 @@
-import type {
-  ITextResourcesState,
-  IFetchTextResourcesFulfilled,
-  IFetchTextResourcesRejected,
-  IReplaceTextResourcesFulfilled,
-  IReplaceTextResourcesRejected,
-} from 'src/shared/resources/textResources/index';
-import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
-import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
 import { watchFetchTextResourcesSaga } from 'src/shared/resources/textResources/fetch/fetchTextResourcesSagas';
 import {
   replaceTextResourcesSaga,
   watchReplaceTextResourcesSaga,
 } from 'src/shared/resources/textResources/replace/replaceTextResourcesSagas';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
+import type {
+  IFetchTextResourcesFulfilled,
+  IFetchTextResourcesRejected,
+  IReplaceTextResourcesFulfilled,
+  IReplaceTextResourcesRejected,
+  ITextResourcesState,
+} from 'src/shared/resources/textResources';
+import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
 
 const initialState: ITextResourcesState = {
   language: null,

@@ -1,10 +1,13 @@
 import React from 'react';
+
 import { Grid } from '@material-ui/core';
+
+import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
+import { OptionalIndicator } from 'src/features/form/components/OptionalIndicator';
+import { RequiredIndicator } from 'src/features/form/components/RequiredIndicator';
 import type { ILabelSettings } from 'src/types';
-import { HelpTextContainer } from './HelpTextContainer';
+
 import type { ILanguage } from 'altinn-shared/types';
-import { RequiredIndicator } from './RequiredIndicator';
-import { OptionalIndicator } from './OptionalIndicator';
 
 export interface IFormLabelProps {
   labelText: any;

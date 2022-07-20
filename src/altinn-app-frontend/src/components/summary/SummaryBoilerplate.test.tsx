@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { screen, render as rtlRender } from '@testing-library/react';
 
-import type { SummaryBoilerplateProps } from './SummaryBoilerplate';
+import { render as rtlRender, screen } from '@testing-library/react';
 
-import SummaryBoilerplate from './SummaryBoilerplate';
+import SummaryBoilerplate from 'src/components/summary/SummaryBoilerplate';
+import type { SummaryBoilerplateProps } from 'src/components/summary/SummaryBoilerplate';
 
 describe('SummaryBoilerplate', () => {
   it('should render the boilerplate with the default props', () => {

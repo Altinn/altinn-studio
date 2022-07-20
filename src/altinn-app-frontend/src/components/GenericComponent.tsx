@@ -1,27 +1,19 @@
 import React, { useMemo } from 'react';
 import { shallowEqual } from 'react-redux';
+
 import { Grid, makeStyles } from '@material-ui/core';
 import classNames from 'classnames';
 
-import components, { FormComponentContext } from '.';
-import type { IComponentProps, IFormComponentContext } from '.';
-import type { ILanguage } from 'altinn-shared/types';
-import type { IComponentValidations, ILabelSettings } from 'src/types';
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import components, { FormComponentContext } from 'src/components';
+import Description from 'src/features/form/components/Description';
+import Label from 'src/features/form/components/Label';
+import Legend from 'src/features/form/components/Legend';
+import { FormDataActions } from 'src/features/form/data/formDataSlice';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { ValidationActions } from 'src/features/form/validation/validationSlice';
+import { makeGetFocus, makeGetHidden } from 'src/selectors/getLayoutData';
 import { LayoutStyle, Triggers } from 'src/types';
-import type {
-  IGridStyling,
-  ILayoutCompBase,
-  ILayoutComponent,
-  ComponentExceptGroup,
-  ComponentTypes,
-} from '../features/form/layout';
-import { getTextResourceByKey } from 'altinn-shared/utils';
-import { FormDataActions } from '../features/form/data/formDataSlice';
-import { ValidationActions } from '../features/form/validation/validationSlice';
-import { makeGetFocus, makeGetHidden } from '../selectors/getLayoutData';
-import Label from '../features/form/components/Label';
-import Legend from '../features/form/components/Legend';
-import { renderValidationMessagesForComponent } from '../utils/render';
 import {
   componentHasValidationMessages,
   componentValidationsHandledByGenericComponent,
@@ -29,10 +21,20 @@ import {
   getTextResource,
   isComponentValid,
   selectComponentTexts,
-} from '../utils/formComponentUtils';
-import { FormLayoutActions } from '../features/form/layout/formLayoutSlice';
-import Description from '../features/form/components/Description';
-import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+} from 'src/utils/formComponentUtils';
+import { renderValidationMessagesForComponent } from 'src/utils/render';
+import type { IComponentProps, IFormComponentContext } from 'src/components';
+import type {
+  ComponentExceptGroup,
+  ComponentTypes,
+  IGridStyling,
+  ILayoutCompBase,
+  ILayoutComponent,
+} from 'src/features/form/layout';
+import type { IComponentValidations, ILabelSettings } from 'src/types';
+
+import { getTextResourceByKey } from 'altinn-shared/utils';
+import type { ILanguage } from 'altinn-shared/types';
 
 export interface IGenericComponentProps extends Omit<ILayoutCompBase, 'type'> {
   componentValidations?: IComponentValidations;

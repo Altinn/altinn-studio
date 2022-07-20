@@ -1,35 +1,35 @@
 import { call, select } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
 
+import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import {
-  getFormDataStateMock,
-  getInitialStateMock,
-  getInstanceDataStateMock,
-} from '../../../../../__mocks__/mocks';
-
-import type { IRuntimeState } from 'src/types';
-import type { IInstanceDataState } from 'src/shared/resources/instanceData';
-import type { IData } from '../../../../../../shared/src';
-
-import { convertDataBindingToModel } from 'src/utils/databindings';
-import { FormDataActions } from '../formDataSlice';
-import { FormDynamicsActions } from '../../dynamics/formDynamicsSlice';
-import { put } from '../../../../../../shared/src/utils/networking';
-import { post } from 'src/utils/networking';
-import {
-  dataElementUrl,
-  getStatelessFormDataUrl,
-} from 'src/utils/appUrlHelper';
+  putFormData,
+  saveFormDataSaga,
+  saveStatelessData,
+} from 'src/features/form/data/submit/submitFormDataSagas';
+import { FormDynamicsActions } from 'src/features/form/dynamics/formDynamicsSlice';
+import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import {
   getCurrentDataTypeForApplication,
   getCurrentTaskDataElementId,
 } from 'src/utils/appMetadata';
 import {
-  saveFormDataSaga,
-  putFormData,
-  saveStatelessData,
-} from './submitFormDataSagas';
-import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
+  dataElementUrl,
+  getStatelessFormDataUrl,
+} from 'src/utils/appUrlHelper';
+import { convertDataBindingToModel } from 'src/utils/databindings';
+import { post } from 'src/utils/networking';
+import type { IInstanceDataState } from 'src/shared/resources/instanceData';
+import type { IRuntimeState } from 'src/types';
+
+import {
+  getFormDataStateMock,
+  getInitialStateMock,
+  getInstanceDataStateMock,
+} from 'altinn-app-frontend/__mocks__/mocks';
+
+import { put } from 'altinn-shared/utils/networking';
+import type { IData } from 'altinn-shared/index';
 
 describe('submitFormDataSagas', () => {
   let stateMock: IRuntimeState;

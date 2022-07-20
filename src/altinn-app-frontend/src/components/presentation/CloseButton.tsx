@@ -1,6 +1,8 @@
-import { getLanguageFromKey } from 'altinn-shared/utils';
 import * as React from 'react';
+
 import { useAppSelector } from 'src/common/hooks';
+
+import { getLanguageFromKey } from 'altinn-shared/utils';
 
 interface CloseButtonProps {
   handleClose: () => void;

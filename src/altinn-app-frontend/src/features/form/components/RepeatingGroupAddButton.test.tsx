@@ -1,10 +1,10 @@
 import * as React from 'react';
+
 import { render } from '@testing-library/react';
 
-import type { ILayoutGroup } from '../layout';
-import type { ITextResource } from '../../../types';
-
-import { RepeatingGroupAddButton } from './RepeatingGroupAddButton';
+import { RepeatingGroupAddButton } from 'src/features/form/components/RepeatingGroupAddButton';
+import type { ILayoutGroup } from 'src/features/form/layout';
+import type { ITextResource } from 'src/types';
 
 describe('InputComponent', () => {
   let mockContainer: ILayoutGroup;

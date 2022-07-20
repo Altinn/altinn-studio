@@ -1,4 +1,4 @@
-import type { IOptions, IOption, IOptionsMetaData } from 'src/types';
+import type { IOption, IOptions, IOptionsMetaData } from 'src/types';
 
 export interface IOptionsState {
   error: Error;

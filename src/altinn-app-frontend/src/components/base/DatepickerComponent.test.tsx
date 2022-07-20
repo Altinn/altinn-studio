@@ -1,13 +1,18 @@
 import React from 'react';
+
+import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { screen, fireEvent } from '@testing-library/react';
 import type { PreloadedState } from '@reduxjs/toolkit';
 
-import DatepickerComponent from './DatepickerComponent';
+import DatepickerComponent from 'src/components/base/DatepickerComponent';
 import type { IComponentProps } from 'src/components';
-import type { IDatePickerProps } from './DatepickerComponent';
-import { mockMediaQuery, renderWithProviders } from '../../../testUtils';
+import type { IDatePickerProps } from 'src/components/base/DatepickerComponent';
 import type { RootState } from 'src/store';
+
+import {
+  mockMediaQuery,
+  renderWithProviders,
+} from 'altinn-app-frontend/testUtils';
 
 const render = (
   props: Partial<IDatePickerProps> = {},

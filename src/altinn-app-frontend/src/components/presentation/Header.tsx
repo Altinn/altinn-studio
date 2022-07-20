@@ -1,11 +1,14 @@
 import * as React from 'react';
-import { getLanguageFromKey } from 'altinn-shared/utils';
-import classNames from 'classnames';
-import type { PresentationType } from 'src/types';
-import { ProcessTaskType } from 'src/types';
+
 import { Grid } from '@material-ui/core';
-import { Progress } from 'src/components/presentation/Progress';
+import classNames from 'classnames';
+
 import { useAppSelector } from 'src/common/hooks';
+import { Progress } from 'src/components/presentation/Progress';
+import { ProcessTaskType } from 'src/types';
+import type { PresentationType } from 'src/types';
+
+import { getLanguageFromKey } from 'altinn-shared/utils';
 
 export interface IHeaderProps {
   type: ProcessTaskType | PresentationType;

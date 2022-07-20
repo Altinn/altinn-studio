@@ -1,18 +1,19 @@
+import { all, call, take } from 'redux-saga/effects';
+import type { SagaIterator } from 'redux-saga';
+
+import { FormDataActions } from 'src/features/form/data/formDataSlice';
+import { checkIfConditionalRulesShouldRunSaga } from 'src/features/form/dynamics/conditionalRendering/conditionalRenderingSagas';
+import { fetchDynamicsSaga } from 'src/features/form/dynamics/fetch/fetchFormDynamicsSagas';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { FormRulesActions } from 'src/features/form/rules/rulesSlice';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
 import type {
-  IFormDynamicState,
+  ICheckIfConditionalRulesShouldRun,
   IFetchServiceConfigFulfilled,
   IFetchServiceConfigRejected,
-  ICheckIfConditionalRulesShouldRun,
-} from 'src/features/form/dynamics/index';
+  IFormDynamicState,
+} from 'src/features/form/dynamics';
 import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
-import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
-import { call, all, take } from 'redux-saga/effects';
-import { fetchDynamicsSaga } from 'src/features/form/dynamics/fetch/fetchFormDynamicsSagas';
-import { checkIfConditionalRulesShouldRunSaga } from 'src/features/form/dynamics/conditionalRendering/conditionalRenderingSagas';
-import { FormRulesActions } from '../rules/rulesSlice';
-import { FormDataActions } from '../data/formDataSlice';
-import { FormLayoutActions } from '../layout/formLayoutSlice';
-import type { SagaIterator } from 'redux-saga';
 
 const initialState: IFormDynamicState = {
   ruleConnection: {},

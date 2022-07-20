@@ -1,34 +1,33 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
+
 import { makeStyles } from '@material-ui/core/styles';
 
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { ValidationActions } from 'src/features/form/validation/validationSlice';
+import { selectAppName } from 'src/selectors/language';
+import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
+import { ProcessActions } from 'src/shared/resources/process/processSlice';
+import { getValidationUrl } from 'src/utils/appUrlHelper';
+import { get } from 'src/utils/networking';
+import { getTextFromAppOrDefault } from 'src/utils/textResource';
+import { mapDataElementValidationToRedux } from 'src/utils/validation';
+import type { IAltinnWindow, IPartyIdInterfaceGuidParams } from 'src/types';
+
 import {
-  AltinnReceipt,
-  AltinnContentLoader,
-  AltinnContentIconReceipt,
   AltinnButton,
+  AltinnContentIconReceipt,
+  AltinnContentLoader,
   AltinnLoader,
+  AltinnReceipt,
 } from 'altinn-shared/components';
-import type { ILanguage, IParty, ITextResource } from 'altinn-shared/types';
-import { getLanguageFromKey } from 'altinn-shared/utils/language';
 import { mapInstanceAttachments } from 'altinn-shared/utils';
 import {
   getAttachmentGroupings,
   getInstancePdf,
 } from 'altinn-shared/utils/attachmentsUtils';
-import { ProcessActions } from 'src/shared/resources/process/processSlice';
-import type {
-  IAltinnWindow,
-  IPartyIdInterfaceGuidParams,
-} from '../../../types';
-import { get } from '../../../utils/networking';
-import { getValidationUrl } from '../../../utils/appUrlHelper';
-import { ValidationActions } from '../../form/validation/validationSlice';
-import { mapDataElementValidationToRedux } from '../../../utils/validation';
-import { getTextFromAppOrDefault } from '../../../utils/textResource';
-import { useAppDispatch, useAppSelector } from 'src/common/hooks';
-import { selectAppName } from 'src/selectors/language';
-import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
+import { getLanguageFromKey } from 'altinn-shared/utils/language';
+import type { ILanguage, IParty, ITextResource } from 'altinn-shared/types';
 
 const useStyles = makeStyles((theme) => ({
   button: {

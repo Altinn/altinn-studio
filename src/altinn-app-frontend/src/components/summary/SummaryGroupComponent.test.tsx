@@ -1,16 +1,17 @@
 import * as React from 'react';
 import { Provider } from 'react-redux';
-import configureStore from 'redux-mock-store';
+
 import { render } from '@testing-library/react';
+import configureStore from 'redux-mock-store';
+
+import SummaryGroupComponent from 'src/components/summary/SummaryGroupComponent';
+import type { ISummaryGroupComponent } from 'src/components/summary/SummaryGroupComponent';
 
 import {
-  getInitialStateMock,
   getFormDataStateMock,
   getFormLayoutStateMock,
-} from '../../../__mocks__/mocks';
-import type { ISummaryGroupComponent } from './SummaryGroupComponent';
-
-import SummaryGroupComponent from './SummaryGroupComponent';
+  getInitialStateMock,
+} from 'altinn-app-frontend/__mocks__/mocks';
 
 describe('SummaryGroupComponent', () => {
   let mockHandleDataChange: () => void;

@@ -1,11 +1,17 @@
 import React from 'react';
+
 import configureStore from 'redux-mock-store';
-import type { IInstanceSelectionProps } from './InstanceSelection';
-import InstanceSelection from './InstanceSelection';
-import type { IRuntimeState, ISimpleInstance } from 'src/types';
-import { getInitialStateMock } from '../../../../__mocks__/initialStateMock';
 import type { Store } from 'redux';
-import { mockMediaQuery, renderWithProviders } from '../../../../testUtils';
+
+import InstanceSelection from 'src/features/instantiate/containers/InstanceSelection';
+import type { IInstanceSelectionProps } from 'src/features/instantiate/containers/InstanceSelection';
+import type { IRuntimeState, ISimpleInstance } from 'src/types';
+
+import { getInitialStateMock } from 'altinn-app-frontend/__mocks__/initialStateMock';
+import {
+  mockMediaQuery,
+  renderWithProviders,
+} from 'altinn-app-frontend/testUtils';
 
 const renderInstanceSelection = (
   store: Store,

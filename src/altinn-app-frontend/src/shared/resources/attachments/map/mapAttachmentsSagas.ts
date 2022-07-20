@@ -1,18 +1,20 @@
+import { all, call, put, select, take, takeLatest } from 'redux-saga/effects';
 import type { SagaIterator } from 'redux-saga';
-import { call, put, select, take, all, takeLatest } from 'redux-saga/effects';
-import type { IData, IInstance } from 'altinn-shared/types';
-import type { IAttachments } from '..';
-import type { IRuntimeState } from 'src/types';
-import { mapAttachmentListToAttachments } from 'src/utils/attachment';
-import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
-import type { IApplicationMetadata } from '../../applicationMetadata';
-import { getCurrentTaskData } from 'src/utils/appMetadata';
-import type { IFormData } from 'src/features/form/data';
+
 import { FormDataActions } from 'src/features/form/data/formDataSlice';
-import type { ILayouts } from 'src/features/form/layout';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { ApplicationMetadataActions } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
+import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
+import { getCurrentTaskData } from 'src/utils/appMetadata';
+import { mapAttachmentListToAttachments } from 'src/utils/attachment';
+import type { IFormData } from 'src/features/form/data';
+import type { ILayouts } from 'src/features/form/layout';
+import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
+import type { IAttachments } from 'src/shared/resources/attachments';
+import type { IRuntimeState } from 'src/types';
+
+import type { IData, IInstance } from 'altinn-shared/types';
 
 export function* watchMapAttachmentsSaga(): SagaIterator {
   yield all([

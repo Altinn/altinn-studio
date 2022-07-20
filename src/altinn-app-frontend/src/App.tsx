@@ -1,21 +1,24 @@
-import { createTheme, MuiThemeProvider } from '@material-ui/core';
 import * as React from 'react';
 import { Route, Switch } from 'react-router-dom';
-import { AltinnAppTheme } from 'altinn-shared/theme';
-import ProcessWrapper from './shared/containers/ProcessWrapper';
-import UnknownError from './features/instantiate/containers/UnknownError';
-import PartySelection from './features/instantiate/containers/PartySelection';
-import { QueueActions } from './shared/resources/queue/queueSlice';
-import { get } from './utils/networking';
+
+import { AppWrapper } from '@altinn/altinn-design-system';
+import { createTheme, MuiThemeProvider } from '@material-ui/core';
+
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import Entrypoint from 'src/features/entrypoint/Entrypoint';
+import PartySelection from 'src/features/instantiate/containers/PartySelection';
+import UnknownError from 'src/features/instantiate/containers/UnknownError';
+import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
+import { makeGetHasErrorsSelector } from 'src/selectors/getErrors';
+import ProcessWrapper from 'src/shared/containers/ProcessWrapper';
+import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import {
   getEnvironmentLoginUrl,
   refreshJwtTokenUrl,
-} from './utils/appUrlHelper';
-import { makeGetHasErrorsSelector } from './selectors/getErrors';
-import Entrypoint from './features/entrypoint/Entrypoint';
-import { useAppDispatch, useAppSelector } from './common/hooks';
-import { makeGetAllowAnonymousSelector } from './selectors/getAllowAnonymous';
-import { AppWrapper } from '@altinn/altinn-design-system';
+} from 'src/utils/appUrlHelper';
+import { get } from 'src/utils/networking';
+
+import { AltinnAppTheme } from 'altinn-shared/theme';
 
 const theme = createTheme(AltinnAppTheme);
 

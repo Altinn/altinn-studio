@@ -1,5 +1,7 @@
 import * as React from 'react';
+
 import { Grid, Typography } from '@material-ui/core';
+
 import { useDisplayData } from 'src/components/hooks';
 import SummaryBoilerplate from 'src/components/summary/SummaryBoilerplate';
 

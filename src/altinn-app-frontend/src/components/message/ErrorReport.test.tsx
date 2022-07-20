@@ -1,13 +1,15 @@
 import * as React from 'react';
 
-import { getInitialStateMock } from '../../../__mocks__/mocks';
-import type { IValidations } from 'src/types';
+import { screen } from '@testing-library/react';
+
+import ErrorReport from 'src/components/message/ErrorReport';
 import type { IValidationState } from 'src/features/form/validation/validationSlice';
+import type { IValidations } from 'src/types';
+
+import { getInitialStateMock } from 'altinn-app-frontend/__mocks__/mocks';
+import { renderWithProviders } from 'altinn-app-frontend/testUtils';
 
 import { getParsedLanguageFromText } from 'altinn-shared/utils';
-import ErrorReport from './ErrorReport';
-import { renderWithProviders } from '../../../testUtils';
-import { screen } from '@testing-library/react';
 
 describe('ErrorReport', () => {
   const genericErrorText =

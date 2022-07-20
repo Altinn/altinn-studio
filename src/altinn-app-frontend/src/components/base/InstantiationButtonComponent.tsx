@@ -1,14 +1,16 @@
-import { AltinnLoader } from 'altinn-shared/components';
 import * as React from 'react';
-import { useAppSelector, useAppDispatch } from 'src/common/hooks';
+import { Redirect } from 'react-router';
+
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import { InstantiationActions } from 'src/features/instantiate/instantiation/instantiationSlice';
 import { useInstantiateWithPrefillMutation } from 'src/services/InstancesApi';
-import { mapFormData } from 'src/utils/databindings';
-import { Redirect } from 'react-router';
-import type { IComponentProps } from '..';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
+import { mapFormData } from 'src/utils/databindings';
+import type { IComponentProps } from 'src/components';
 import type { ILayoutCompInstantiationButton } from 'src/features/form/layout';
+
+import { AltinnLoader } from 'altinn-shared/components';
 
 const buttonStyle = {
   marginBottom: '0',

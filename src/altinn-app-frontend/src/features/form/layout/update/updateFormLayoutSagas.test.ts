@@ -1,31 +1,32 @@
-import { expectSaga, testSaga } from 'redux-saga-test-plan';
+import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { actionChannel, call, select, take } from 'redux-saga/effects';
+import { expectSaga, testSaga } from 'redux-saga-test-plan';
+import type { PayloadAction } from '@reduxjs/toolkit';
 
 import { FormDataActions } from 'src/features/form/data/formDataSlice';
-import { getInitialStateMock } from '__mocks__/initialStateMock';
-import * as sharedUtils from 'altinn-shared/utils';
+import { FormDynamicsActions } from 'src/features/form/dynamics/formDynamicsSlice';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import {
   calculatePageOrderAndMoveToNextPageSaga,
   initRepeatingGroupsSaga,
+  selectAttachmentState,
+  selectFormData,
+  selectFormLayoutState,
+  selectUnsavedChanges,
+  selectValidations,
+  updateCurrentViewSaga,
+  updateRepeatingGroupsSaga,
   watchInitRepeatingGroupsSaga,
   watchUpdateCurrentViewSaga,
-  updateCurrentViewSaga,
-  selectUnsavedChanges,
-  updateRepeatingGroupsSaga,
-  selectFormLayoutState,
-  selectFormData,
-  selectAttachmentState,
-  selectValidations,
-} from './updateFormLayoutSagas';
-import { FormLayoutActions } from '../formLayoutSlice';
-import type { IRuntimeState, IDataModelBindings } from 'src/types';
-import type { IUpdateRepeatingGroups } from 'src/features/form/layout/formLayoutTypes';
-import type { PayloadAction } from '@reduxjs/toolkit';
-import type { IAttachment } from 'src/shared/resources/attachments';
+} from 'src/features/form/layout/update/updateFormLayoutSagas';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
-import { FormDynamicsActions } from 'src/features/form/dynamics/formDynamicsSlice';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import type { ILayoutCompFileUpload } from 'src/features/form/layout';
+import type { IUpdateRepeatingGroups } from 'src/features/form/layout/formLayoutTypes';
+import type { IAttachment } from 'src/shared/resources/attachments';
+import type { IDataModelBindings, IRuntimeState } from 'src/types';
+
+import * as sharedUtils from 'altinn-shared/utils';
 
 jest.mock('altinn-shared/utils');
 

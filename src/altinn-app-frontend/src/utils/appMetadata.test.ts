@@ -1,11 +1,3 @@
-import type {
-  IApplication,
-  IData,
-  IDataType,
-  IInstance,
-} from '../../../shared/src/types';
-import type { ILayoutSets } from 'src/types';
-
 import {
   getCurrentDataTypeForApplication,
   getCurrentTaskData,
@@ -13,7 +5,15 @@ import {
   getDataTaskDataTypeId,
   getLayoutSetIdForApplication,
   isStatelessApp,
-} from './appMetadata';
+} from 'src/utils/appMetadata';
+import type { ILayoutSets } from 'src/types';
+
+import type {
+  IApplication,
+  IData,
+  IDataType,
+  IInstance,
+} from 'altinn-shared/types';
 
 describe('utils/appmetadata.ts', () => {
   const application: IApplication = {

@@ -1,9 +1,12 @@
 import * as React from 'react';
-import { Typography, createTheme, MuiThemeProvider } from '@material-ui/core';
-import { AltinnAppTheme } from 'altinn-shared/theme';
+
+import { createTheme, MuiThemeProvider, Typography } from '@material-ui/core';
+
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import { ProcessActions } from 'src/shared/resources/process/processSlice';
-import { getTextFromAppOrDefault } from '../../utils/textResource';
-import { useAppSelector, useAppDispatch } from 'src/common/hooks';
+import { getTextFromAppOrDefault } from 'src/utils/textResource';
+
+import { AltinnAppTheme } from 'altinn-shared/theme';
 
 const theme = createTheme(AltinnAppTheme);
 

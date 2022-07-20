@@ -1,15 +1,16 @@
-import type { SagaIterator } from 'redux-saga';
 import { call, put, select } from 'redux-saga/effects';
-import { ValidationActions } from 'src/features/form/validation/validationSlice';
-import { post, httpDelete } from 'src/utils/networking';
-import type { AxiosRequestConfig } from 'axios';
-import type { IAttachment } from '..';
-import { getFileUploadComponentValidations } from '../../../../utils/formComponentUtils';
-import type { IRuntimeState } from '../../../../types';
-import { fileTagUrl } from 'src/utils/appUrlHelper';
-import type { IUpdateAttachmentAction } from './updateAttachmentActions';
-import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import type { PayloadAction } from '@reduxjs/toolkit';
+import type { AxiosRequestConfig } from 'axios';
+import type { SagaIterator } from 'redux-saga';
+
+import { ValidationActions } from 'src/features/form/validation/validationSlice';
+import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
+import { fileTagUrl } from 'src/utils/appUrlHelper';
+import { getFileUploadComponentValidations } from 'src/utils/formComponentUtils';
+import { httpDelete, post } from 'src/utils/networking';
+import type { IAttachment } from 'src/shared/resources/attachments';
+import type { IUpdateAttachmentAction } from 'src/shared/resources/attachments/update/updateAttachmentActions';
+import type { IRuntimeState } from 'src/types';
 
 export function* updateAttachmentSaga({
   payload: { attachment, componentId, baseComponentId, tag },

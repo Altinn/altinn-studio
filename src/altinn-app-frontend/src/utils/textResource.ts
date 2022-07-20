@@ -1,4 +1,5 @@
 import type { ITextResource } from 'src/types';
+
 import {
   getParsedLanguageFromKey,
   getParsedLanguageFromText,

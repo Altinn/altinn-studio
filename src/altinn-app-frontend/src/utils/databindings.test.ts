@@ -1,16 +1,15 @@
-import type { ILayout, ILayoutComponent } from 'src/features/form/layout';
-import type { IFormData } from 'src/features/form/data';
-import type { IMapping } from 'src/types';
-
 import {
+  filterOutInvalidData,
   flattenObject,
   getFormDataFromFieldKey,
+  getKeyIndex,
   getKeyWithoutIndex,
   mapFormData,
   removeGroupData,
-  getKeyIndex,
-  filterOutInvalidData,
-} from './databindings';
+} from 'src/utils/databindings';
+import type { IFormData } from 'src/features/form/data';
+import type { ILayout, ILayoutComponent } from 'src/features/form/layout';
+import type { IMapping } from 'src/types';
 
 describe('utils/databindings.ts', () => {
   let testObj: any;

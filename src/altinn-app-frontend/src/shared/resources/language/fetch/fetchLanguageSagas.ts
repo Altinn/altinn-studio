@@ -1,14 +1,15 @@
+import { all, call, put, select, take, takeLatest } from 'redux-saga/effects';
 import type { SagaIterator } from 'redux-saga';
-import { call, put, all, take, select, takeLatest } from 'redux-saga/effects';
 
-import { getLanguageFromCode } from 'altinn-shared/language';
-import { LanguageActions } from '../languageSlice';
-import { QueueActions } from '../../queue/queueSlice';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import { ApplicationMetadataActions } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
+import { LanguageActions } from 'src/shared/resources/language/languageSlice';
 import { ProfileActions } from 'src/shared/resources/profile/profileSlice';
+import { QueueActions } from 'src/shared/resources/queue/queueSlice';
+
+import { getLanguageFromCode } from 'altinn-shared/language';
 
 export function* fetchLanguageSaga(defaultLanguage = false): SagaIterator {
   try {

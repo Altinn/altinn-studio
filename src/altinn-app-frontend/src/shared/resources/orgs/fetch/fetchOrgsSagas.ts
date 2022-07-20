@@ -1,8 +1,10 @@
-import type { SagaIterator } from 'redux-saga';
-import { call, put } from 'redux-saga/effects';
-import { orgsListUrl } from 'altinn-shared/utils';
 import axios from 'axios';
+import { call, put } from 'redux-saga/effects';
+import type { SagaIterator } from 'redux-saga';
+
 import { OrgsActions } from 'src/shared/resources/orgs/orgsSlice';
+
+import { orgsListUrl } from 'altinn-shared/utils';
 
 export function* fetchOrgsSaga(): SagaIterator {
   try {

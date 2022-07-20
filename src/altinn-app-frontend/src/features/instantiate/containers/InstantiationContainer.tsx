@@ -1,10 +1,13 @@
-import type { WithStyles } from '@material-ui/core';
-import { createStyles, Grid, withStyles } from '@material-ui/core';
 import * as React from 'react';
-import { AltinnAppTheme } from 'altinn-shared/theme';
-import Header from '../../../shared/components/altinnAppHeader';
-import { changeBodyBackground } from '../../../utils/bodyStyling';
+
+import { createStyles, Grid, withStyles } from '@material-ui/core';
+import type { WithStyles } from '@material-ui/core';
+
 import { useAppSelector } from 'src/common/hooks';
+import Header from 'src/shared/components/altinnAppHeader';
+import { changeBodyBackground } from 'src/utils/bodyStyling';
+
+import { AltinnAppTheme } from 'altinn-shared/theme';
 
 const styles = createStyles({
   instantiatePage: {

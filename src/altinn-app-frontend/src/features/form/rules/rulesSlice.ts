@@ -1,11 +1,11 @@
+import { fetchRuleModelSaga } from 'src/features/form/rules/fetch/fetchRulesSagas';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
 import type {
-  IFormRuleState,
   IFetchRuleModelFulfilled,
   IFetchRuleModelRejected,
-} from 'src/features/form/rules/index';
+  IFormRuleState,
+} from 'src/features/form/rules';
 import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
-import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
-import { fetchRuleModelSaga } from 'src/features/form/rules/fetch/fetchRulesSagas';
 
 const initialState: IFormRuleState = {
   model: [],

@@ -1,3 +1,5 @@
+import React from 'react';
+
 import {
   Grid,
   IconButton,
@@ -5,6 +7,11 @@ import {
   Typography,
   useMediaQuery,
 } from '@material-ui/core';
+
+import { useAppSelector } from 'src/common/hooks';
+import { getInstanceUiUrl } from 'src/utils/appUrlHelper';
+import type { ISimpleInstance } from 'src/types';
+
 import {
   AltinnButton,
   AltinnMobileTable,
@@ -15,10 +22,6 @@ import {
   AltinnTableRow,
 } from 'altinn-shared/components';
 import { getLanguageFromKey } from 'altinn-shared/utils';
-import React from 'react';
-import { useAppSelector } from 'src/common/hooks';
-import type { ISimpleInstance } from 'src/types';
-import { getInstanceUiUrl } from '../../../utils/appUrlHelper';
 
 export interface IInstanceSelectionProps {
   instances: ISimpleInstance[];

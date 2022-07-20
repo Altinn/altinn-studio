@@ -1,4 +1,5 @@
-import type { WithStyles } from '@material-ui/core';
+import * as React from 'react';
+
 import {
   createStyles,
   Grid,
@@ -6,12 +7,14 @@ import {
   Typography,
   withStyles,
 } from '@material-ui/core';
-import * as React from 'react';
+import type { WithStyles } from '@material-ui/core';
+
+import { useAppSelector } from 'src/common/hooks';
+
 import { AltinnCollapsableList } from 'altinn-shared/components';
 import { AltinnAppTheme } from 'altinn-shared/theme';
-import type { IParty } from 'altinn-shared/types';
-import { useAppSelector } from 'src/common/hooks';
 import { getLanguageFromKey } from 'altinn-shared/utils';
+import type { IParty } from 'altinn-shared/types';
 
 const styles = createStyles({
   partyPaper: {

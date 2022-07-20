@@ -1,15 +1,16 @@
-import type { SagaIterator } from 'redux-saga';
 import { all, call, put, select, take, takeLatest } from 'redux-saga/effects';
-import { get } from 'src/utils/networking';
-import { textResourcesUrl, oldTextResourcesUrl } from 'src/utils/appUrlHelper';
-import { TextResourcesActions } from '../textResourcesSlice';
-import { QueueActions } from '../../queue/queueSlice';
+import type { SagaIterator } from 'redux-saga';
+
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
-import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
-import { LanguageActions } from 'src/shared/resources/language/languageSlice';
+import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import { ApplicationMetadataActions } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
+import { LanguageActions } from 'src/shared/resources/language/languageSlice';
 import { ProfileActions } from 'src/shared/resources/profile/profileSlice';
+import { QueueActions } from 'src/shared/resources/queue/queueSlice';
+import { TextResourcesActions } from 'src/shared/resources/textResources/textResourcesSlice';
+import { oldTextResourcesUrl, textResourcesUrl } from 'src/utils/appUrlHelper';
+import { get } from 'src/utils/networking';
 
 export function* fetchTextResources(): SagaIterator {
   try {

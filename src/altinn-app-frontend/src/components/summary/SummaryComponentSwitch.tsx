@@ -1,11 +1,12 @@
 import * as React from 'react';
-import type { ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
-import SummaryGroupComponent from './SummaryGroupComponent';
-import SingleInputSummary from './SingleInputSummary';
-import { AttachmentSummaryComponent } from './AttachmentSummaryComponent';
-import { AttachmentWithTagSummaryComponent } from './AttachmentWithTagSummaryComponent';
-import MultipleChoiceSummary from './MultipleChoiceSummary';
+
+import { AttachmentSummaryComponent } from 'src/components/summary/AttachmentSummaryComponent';
+import { AttachmentWithTagSummaryComponent } from 'src/components/summary/AttachmentWithTagSummaryComponent';
+import MultipleChoiceSummary from 'src/components/summary/MultipleChoiceSummary';
+import SingleInputSummary from 'src/components/summary/SingleInputSummary';
 import SummaryBoilerplate from 'src/components/summary/SummaryBoilerplate';
+import SummaryGroupComponent from 'src/components/summary/SummaryGroupComponent';
+import type { ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
 
 export interface ISummaryComponentSwitch {
   change: {

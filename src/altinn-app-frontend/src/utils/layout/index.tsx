@@ -1,17 +1,19 @@
 import * as React from 'react';
+
+import { GenericComponent } from 'src/components/GenericComponent';
 import { GroupContainer } from 'src/features/form/containers/GroupContainer';
-import type { IInstance } from 'altinn-shared/types';
-import { GenericComponent } from '../../components/GenericComponent';
-import type {
-  ILayouts,
-  ILayoutComponent,
-  ILayoutGroup,
-  ILayout,
-  ILayoutComponentOrGroup,
-} from '../../features/form/layout';
-import type { ILayoutSets, ILayoutSet } from 'src/types';
-import { LayoutStyle } from 'src/types';
 import { PanelGroupContainer } from 'src/features/form/containers/PanelGroupContainer';
+import { LayoutStyle } from 'src/types';
+import type {
+  ILayout,
+  ILayoutComponent,
+  ILayoutComponentOrGroup,
+  ILayoutGroup,
+  ILayouts,
+} from 'src/features/form/layout';
+import type { ILayoutSet, ILayoutSets } from 'src/types';
+
+import type { IInstance } from 'altinn-shared/types';
 
 export function getLayoutComponentById(
   id: string,

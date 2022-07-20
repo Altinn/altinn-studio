@@ -1,10 +1,10 @@
 import React from 'react';
+
 import { createTheme, makeStyles } from '@material-ui/core';
 
-import type { ILanguage } from 'altinn-shared/types';
-
-import { getLanguageFromKey } from 'altinn-shared/utils';
 import { AltinnAppTheme } from 'altinn-shared/theme';
+import { getLanguageFromKey } from 'altinn-shared/utils';
+import type { ILanguage } from 'altinn-shared/types';
 
 const theme = createTheme(AltinnAppTheme);
 

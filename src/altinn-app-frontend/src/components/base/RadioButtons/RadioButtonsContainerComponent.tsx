@@ -1,7 +1,8 @@
 import React from 'react';
-import type { IComponentProps } from '../../index';
-import { useRadioButtons } from 'src/components/base/RadioButtons/radioButtonsUtils';
+
 import { ControlledRadioGroup } from 'src/components/base/RadioButtons/ControlledRadioGroup';
+import { useRadioButtons } from 'src/components/base/RadioButtons/radioButtonsUtils';
+import type { IComponentProps } from 'src/components';
 import type { ILayoutCompRadioButtons } from 'src/features/form/layout';
 
 export interface IRadioButtonsContainerProps

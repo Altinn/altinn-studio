@@ -1,5 +1,5 @@
-import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import axios from 'axios';
+import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 export enum HttpStatusCodes {
   Ok = 200,

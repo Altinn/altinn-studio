@@ -1,9 +1,10 @@
 import React from 'react';
-import { render as rtlRender, screen } from '@testing-library/react';
-import type { IComponentProps } from 'src/components';
 
-import type { IParagraphProps } from './ParagraphComponent';
-import { ParagraphComponent } from './ParagraphComponent';
+import { render as rtlRender, screen } from '@testing-library/react';
+
+import { ParagraphComponent } from 'src/components/base/ParagraphComponent';
+import type { IComponentProps } from 'src/components';
+import type { IParagraphProps } from 'src/components/base/ParagraphComponent';
 
 describe('ParagraphComponent', () => {
   it('should render with supplied text', () => {

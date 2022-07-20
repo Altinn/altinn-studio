@@ -1,5 +1,10 @@
-import type { IAttachment, IAttachmentState } from '.';
-import slice, { AttachmentActions } from './attachmentSlice';
+import slice, {
+  AttachmentActions,
+} from 'src/shared/resources/attachments/attachmentSlice';
+import type {
+  IAttachment,
+  IAttachmentState,
+} from 'src/shared/resources/attachments';
 
 describe('attachmentReducer', () => {
   it('should set deleting to true when deleteAttachment action is received', () => {

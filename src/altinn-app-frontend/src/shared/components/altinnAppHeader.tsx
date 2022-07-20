@@ -1,20 +1,23 @@
+import * as React from 'react';
+
 import { AppBar, Grid, Toolbar } from '@material-ui/core';
 import {
-  createTheme,
   createStyles,
+  createTheme,
   withStyles,
 } from '@material-ui/core/styles';
-import * as React from 'react';
+
+import { renderParty } from 'src/shared/resources/utils/party';
+
 import { AltinnLogo } from 'altinn-shared/components';
+import { LandmarkShortcuts } from 'altinn-shared/components/LandmarkShortcuts';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { getLanguageFromKey, returnUrlToMessagebox } from 'altinn-shared/utils';
-import type { ILanguage, IProfile } from 'altinn-shared/types';
 import {
   returnUrlToAllSchemas,
   returnUrlToProfile,
 } from 'altinn-shared/utils/urlHelper';
-import { renderParty } from '../resources/utils/party';
-import { LandmarkShortcuts } from 'altinn-shared/components/LandmarkShortcuts';
+import type { ILanguage, IProfile } from 'altinn-shared/types';
 
 export interface IHeaderProps {
   classes: any;

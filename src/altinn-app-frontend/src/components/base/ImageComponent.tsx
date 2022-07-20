@@ -1,10 +1,12 @@
 import * as React from 'react';
+
 import { Grid, makeStyles } from '@material-ui/core';
-import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
-import type { IAltinnWindow } from '../../types';
+
 import { useAppSelector } from 'src/common/hooks';
-import type { IComponentProps } from '..';
+import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
+import type { IComponentProps } from 'src/components';
 import type { ILayoutCompImage } from 'src/features/form/layout';
+import type { IAltinnWindow } from 'src/types';
 
 export type IImageProps = IComponentProps & Omit<ILayoutCompImage, 'type'>;
 

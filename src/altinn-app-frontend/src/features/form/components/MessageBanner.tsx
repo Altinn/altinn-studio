@@ -1,9 +1,11 @@
 import * as React from 'react';
+
 import { Grid, makeStyles } from '@material-ui/core';
+import classNames from 'classnames';
+
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import type { ILanguage } from 'altinn-shared/types';
-import classNames from 'classnames';
 
 const useStyles = makeStyles({
   banner: {

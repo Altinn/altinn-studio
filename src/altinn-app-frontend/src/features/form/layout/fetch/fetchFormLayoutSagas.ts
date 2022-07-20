@@ -1,24 +1,26 @@
+import { all, call, put, select, take } from 'redux-saga/effects';
 import type { SagaIterator } from 'redux-saga';
-import { call, all, put, take, select } from 'redux-saga/effects';
-import type { IInstance } from 'altinn-shared/types';
-import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
+
+import components from 'src/components';
+import { FormDataActions } from 'src/features/form/data/formDataSlice';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { QueueActions } from 'src/shared/resources/queue/queueSlice';
+import { getLayoutSetIdForApplication } from 'src/utils/appMetadata';
 import {
-  getLayoutSettingsUrl,
   getLayoutSetsUrl,
+  getLayoutSettingsUrl,
   getLayoutsUrl,
 } from 'src/utils/appUrlHelper';
-import { get } from '../../../../utils/networking';
-import { FormLayoutActions } from '../formLayoutSlice';
-import { FormDataActions } from '../../data/formDataSlice';
-import { QueueActions } from '../../../../shared/resources/queue/queueSlice';
+import { get } from 'src/utils/networking';
 import type {
-  ILayoutSettings,
-  IRuntimeState,
-  ILayoutSets,
-} from '../../../../types';
-import type { ILayouts, ILayout, ComponentTypes } from '../index';
-import { getLayoutSetIdForApplication } from '../../../../utils/appMetadata';
-import components from 'src/components';
+  ComponentTypes,
+  ILayout,
+  ILayouts,
+} from 'src/features/form/layout';
+import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
+import type { ILayoutSets, ILayoutSettings, IRuntimeState } from 'src/types';
+
+import type { IInstance } from 'altinn-shared/types';
 
 export const layoutSetsSelector = (state: IRuntimeState) =>
   state.formLayout.layoutsets;

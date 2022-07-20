@@ -1,15 +1,17 @@
 import React from 'react';
-import type { PreloadedState } from 'redux';
-import { renderWithProviders } from 'src/../testUtils';
+
 import { getInitialStateMock } from '__mocks__/initialStateMock';
-import type { IPanelGroupContainerProps } from './PanelGroupContainer';
-import { PanelGroupContainer } from './PanelGroupContainer';
-import type { RootState } from 'src/store';
-import type { ILayout, ILayoutGroup } from '../layout';
-import type { ILayoutState } from '../layout/formLayoutSlice';
 import { screen } from '@testing-library/react';
-import type { IUiConfig } from 'src/types';
 import userEvent from '@testing-library/user-event';
+import type { PreloadedState } from 'redux';
+
+import { renderWithProviders } from 'src/../testUtils';
+import { PanelGroupContainer } from 'src/features/form/containers/PanelGroupContainer';
+import type { IPanelGroupContainerProps } from 'src/features/form/containers/PanelGroupContainer';
+import type { ILayout, ILayoutGroup } from 'src/features/form/layout';
+import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
+import type { RootState } from 'src/store';
+import type { IUiConfig } from 'src/types';
 
 describe('PanelGroupContainer', () => {
   const container: ILayoutGroup = {

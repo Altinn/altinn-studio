@@ -1,23 +1,26 @@
-import type { WithStyles } from '@material-ui/core';
+import * as React from 'react';
+import { withRouter } from 'react-router';
+import type { RouteComponentProps } from 'react-router';
+
 import { createStyles, Grid, Typography, withStyles } from '@material-ui/core';
 import AddIcon from '@material-ui/icons/Add';
-import * as React from 'react';
-import type { RouteComponentProps } from 'react-router';
-import { withRouter } from 'react-router';
+import type { WithStyles } from '@material-ui/core';
+
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import InstantiationContainer from 'src/features/instantiate/containers/InstantiationContainer';
+import NoValidPartiesError from 'src/features/instantiate/containers/NoValidPartiesError';
+import { InstantiationActions } from 'src/features/instantiate/instantiation/instantiationSlice';
+import AltinnParty from 'src/shared/components/altinnParty';
+import AltinnPartySearch from 'src/shared/components/altinnPartySearch';
+import { PartyActions } from 'src/shared/resources/party/partySlice';
+import { changeBodyBackground } from 'src/utils/bodyStyling';
+import { HttpStatusCodes } from 'src/utils/networking';
+import { capitalizeName } from 'src/utils/stringHelper';
+
 import { AltinnCheckBox } from 'altinn-shared/components';
 import { AltinnAppTheme } from 'altinn-shared/theme';
-import type { IParty } from 'altinn-shared/types';
-import AltinnParty from '../../../shared/components/altinnParty';
-import AltinnPartySearch from '../../../shared/components/altinnPartySearch';
-import { PartyActions } from 'src/shared/resources/party/partySlice';
-import { changeBodyBackground } from '../../../utils/bodyStyling';
-import { HttpStatusCodes } from '../../../utils/networking';
-import { capitalizeName } from '../../../utils/stringHelper';
-import InstantiationContainer from './InstantiationContainer';
-import NoValidPartiesError from './NoValidPartiesError';
-import { useAppSelector, useAppDispatch } from 'src/common/hooks';
 import { getLanguageFromKey } from 'altinn-shared/utils';
-import { InstantiationActions } from 'src/features/instantiate/instantiation/instantiationSlice';
+import type { IParty } from 'altinn-shared/types';
 
 const styles = createStyles({
   partySelectionTitle: {

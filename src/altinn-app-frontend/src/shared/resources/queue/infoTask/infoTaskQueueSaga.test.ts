@@ -1,23 +1,23 @@
 import { select } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
 
-import { applicationMetadataMock } from '../../../../../__mocks__/applicationMetadataMock';
-import { getInstanceDataStateMock } from '../../../../../__mocks__/instanceDataStateMock';
-
-import type { ITextResource } from 'src/types';
-import type { IInstance } from '../../../../../../shared/src/types';
-import type { IApplicationMetadata } from '../../applicationMetadata';
-
-import { IsLoadingActions } from '../../isLoading/isLoadingSlice';
-import { QueueActions } from '../queueSlice';
-import { FormDataActions } from '../../../../features/form/data/formDataSlice';
-import { TextResourcesActions } from '../../textResources/textResourcesSlice';
+import { FormDataActions } from 'src/features/form/data/formDataSlice';
+import { IsLoadingActions } from 'src/shared/resources/isLoading/isLoadingSlice';
 import {
-  startInitialInfoTaskQueueSaga,
   ApplicationMetadataSelector,
-  TextResourceSelector,
   InstanceDataSelector,
-} from './infoTaskQueueSaga';
+  startInitialInfoTaskQueueSaga,
+  TextResourceSelector,
+} from 'src/shared/resources/queue/infoTask/infoTaskQueueSaga';
+import { QueueActions } from 'src/shared/resources/queue/queueSlice';
+import { TextResourcesActions } from 'src/shared/resources/textResources/textResourcesSlice';
+import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
+import type { ITextResource } from 'src/types';
+
+import { applicationMetadataMock } from 'altinn-app-frontend/__mocks__/applicationMetadataMock';
+import { getInstanceDataStateMock } from 'altinn-app-frontend/__mocks__/instanceDataStateMock';
+
+import type { IInstance } from 'altinn-shared/types';
 
 describe('infoTaskQueueSaga', () => {
   let textResources: ITextResource[];

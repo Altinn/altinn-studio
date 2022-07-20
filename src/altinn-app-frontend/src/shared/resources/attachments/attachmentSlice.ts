@@ -1,29 +1,29 @@
+import { deleteAttachmentSaga } from 'src/shared/resources/attachments/delete/deleteAttachmentSagas';
+import { watchMapAttachmentsSaga } from 'src/shared/resources/attachments/map/mapAttachmentsSagas';
+import { updateAttachmentSaga } from 'src/shared/resources/attachments/update/updateAttachmentSagas';
+import { uploadAttachmentSaga } from 'src/shared/resources/attachments/upload/uploadAttachmentSagas';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
 import type {
-  IUploadAttachmentAction,
-  IUploadAttachmentActionFulfilled,
-  IUploadAttachmentActionRejected,
-} from 'src/shared/resources/attachments/upload/uploadAttachmentActions';
+  IDeleteAttachmentAction,
+  IDeleteAttachmentActionFulfilled,
+  IDeleteAttachmentActionRejected,
+} from 'src/shared/resources/attachments/delete/deleteAttachmentActions';
+import type { IAttachmentState } from 'src/shared/resources/attachments/index';
+import type {
+  IMapAttachmentsActionFulfilled,
+  IMapAttachmentsActionRejected,
+} from 'src/shared/resources/attachments/map/mapAttachmentsActions';
 import type {
   IUpdateAttachmentAction,
   IUpdateAttachmentActionFulfilled,
   IUpdateAttachmentActionRejected,
 } from 'src/shared/resources/attachments/update/updateAttachmentActions';
 import type {
-  IDeleteAttachmentAction,
-  IDeleteAttachmentActionFulfilled,
-  IDeleteAttachmentActionRejected,
-} from 'src/shared/resources/attachments/delete/deleteAttachmentActions';
-import type {
-  IMapAttachmentsActionFulfilled,
-  IMapAttachmentsActionRejected,
-} from 'src/shared/resources/attachments/map/mapAttachmentsActions';
-import type { IAttachmentState } from 'src/shared/resources/attachments/index';
+  IUploadAttachmentAction,
+  IUploadAttachmentActionFulfilled,
+  IUploadAttachmentActionRejected,
+} from 'src/shared/resources/attachments/upload/uploadAttachmentActions';
 import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
-import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
-import { uploadAttachmentSaga } from 'src/shared/resources/attachments/upload/uploadAttachmentSagas';
-import { updateAttachmentSaga } from 'src/shared/resources/attachments/update/updateAttachmentSagas';
-import { deleteAttachmentSaga } from 'src/shared/resources/attachments/delete/deleteAttachmentSagas';
-import { watchMapAttachmentsSaga } from 'src/shared/resources/attachments/map/mapAttachmentsSagas';
 
 const initialState: IAttachmentState = {
   attachments: {},

@@ -1,19 +1,20 @@
-import type { ITextResource } from 'altinn-shared/types';
-import type { IAttachmentState } from 'src/shared/resources/attachments';
-import type {
-  IRepeatingGroups,
-  ILayoutNavigation,
-  ITextResourceBindings,
-  IFileUploadersWithTag,
-  IOptionsChosen,
-  IMapping,
-} from 'src/types';
 import type {
   IGroupEditProperties,
   ILayout,
   ILayoutComponent,
   ILayoutGroup,
-} from '../features/form/layout';
+} from 'src/features/form/layout';
+import type { IAttachmentState } from 'src/shared/resources/attachments';
+import type {
+  IFileUploadersWithTag,
+  ILayoutNavigation,
+  IMapping,
+  IOptionsChosen,
+  IRepeatingGroups,
+  ITextResourceBindings,
+} from 'src/types';
+
+import type { ITextResource } from 'altinn-shared/types';
 
 interface SplitKey {
   baseComponentId: string;

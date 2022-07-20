@@ -1,13 +1,14 @@
-import type { SagaIterator } from 'redux-saga';
 import { call, put } from 'redux-saga/effects';
-import { get, putWithoutConfig } from '../../../../utils/networking';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import type { SagaIterator } from 'redux-saga';
+
+import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 import {
   instancesControllerUrl,
-  redirectToUpgrade,
   invalidateCookieUrl,
-} from '../../../../utils/appUrlHelper';
-import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
-import type { PayloadAction } from '@reduxjs/toolkit';
+  redirectToUpgrade,
+} from 'src/utils/appUrlHelper';
+import { get, putWithoutConfig } from 'src/utils/networking';
 import type { IGetInstanceData } from 'src/shared/resources/instanceData';
 
 export function* getInstanceDataSaga({

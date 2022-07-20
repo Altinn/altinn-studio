@@ -1,5 +1,7 @@
-import { Paper, Grid, createTheme, makeStyles } from '@material-ui/core';
 import * as React from 'react';
+
+import { createTheme, Grid, makeStyles, Paper } from '@material-ui/core';
+
 import { AltinnAppTheme } from 'altinn-shared/theme';
 
 export interface IErrorPaperProps {

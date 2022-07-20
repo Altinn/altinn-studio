@@ -1,6 +1,7 @@
 import * as React from 'react';
+
+import { MessageComponent } from 'src/components/message/MessageComponent';
 import { SoftValidations } from 'src/features/form/components/SoftValidations';
-import { MessageComponent } from '../components/message/MessageComponent';
 
 const messageComponentStyle = {
   display: 'block',

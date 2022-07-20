@@ -1,18 +1,20 @@
-import type { SagaIterator } from 'redux-saga';
 import { call, put, select } from 'redux-saga/effects';
-import type { AxiosRequestConfig } from 'axios';
-import { customEncodeURI } from 'altinn-shared/utils';
-import { ValidationActions } from 'src/features/form/validation/validationSlice';
-import type { IAttachment } from '..';
-import { getFileUploadComponentValidations } from '../../../../utils/formComponentUtils';
-import type { IRuntimeState } from '../../../../types';
-import { post } from '../../../../utils/networking';
-import { fileUploadUrl } from '../../../../utils/appUrlHelper';
-import { FormDataActions } from 'src/features/form/data/formDataSlice';
-import type { ILanguage } from 'altinn-shared/types';
-import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import type { PayloadAction } from '@reduxjs/toolkit';
+import type { AxiosRequestConfig } from 'axios';
+import type { SagaIterator } from 'redux-saga';
+
+import { FormDataActions } from 'src/features/form/data/formDataSlice';
+import { ValidationActions } from 'src/features/form/validation/validationSlice';
+import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
+import { fileUploadUrl } from 'src/utils/appUrlHelper';
+import { getFileUploadComponentValidations } from 'src/utils/formComponentUtils';
+import { post } from 'src/utils/networking';
+import type { IAttachment } from 'src/shared/resources/attachments';
 import type { IUploadAttachmentAction } from 'src/shared/resources/attachments/upload/uploadAttachmentActions';
+import type { IRuntimeState } from 'src/types';
+
+import { customEncodeURI } from 'altinn-shared/utils';
+import type { ILanguage } from 'altinn-shared/types';
 
 export function* uploadAttachmentSaga({
   payload: {

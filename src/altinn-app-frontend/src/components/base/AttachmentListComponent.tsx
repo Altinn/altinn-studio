@@ -1,10 +1,13 @@
 import * as React from 'react';
+
+import { Grid, Typography } from '@material-ui/core';
+
+import { useAppSelector } from 'src/common/hooks';
+import type { IComponentProps } from 'src/components';
+import type { ILayoutCompAttachmentList } from 'src/features/form/layout';
+
 import { AltinnAttachment } from 'altinn-shared/components';
 import { mapInstanceAttachments } from 'altinn-shared/utils';
-import { Grid, Typography } from '@material-ui/core';
-import { useAppSelector } from 'src/common/hooks';
-import type { IComponentProps } from '..';
-import type { ILayoutCompAttachmentList } from 'src/features/form/layout';
 
 export type IAttachmentListProps = IComponentProps &
   Omit<ILayoutCompAttachmentList, 'type'>;

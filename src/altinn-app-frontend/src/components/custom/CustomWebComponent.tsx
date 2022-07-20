@@ -1,9 +1,11 @@
-import { getTextResourceByKey } from 'altinn-shared/utils';
 import * as React from 'react';
+
 import { useAppSelector } from 'src/common/hooks';
-import type { ITextResource, ITextResourceBindings } from 'src/types';
-import type { IComponentProps } from '..';
+import type { IComponentProps } from 'src/components';
 import type { ILayoutCompCustom } from 'src/features/form/layout';
+import type { ITextResource, ITextResourceBindings } from 'src/types';
+
+import { getTextResourceByKey } from 'altinn-shared/utils';
 
 export type ICustomComponentProps = IComponentProps &
   Omit<ILayoutCompCustom, 'type'>;

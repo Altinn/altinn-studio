@@ -1,6 +1,5 @@
+import { getTextResourceByKey } from 'src/utils/textResource';
 import type { ITextResource } from 'src/types';
-
-import { getTextResourceByKey } from './textResource';
 
 describe('textResource', () => {
   let mockTextResources: ITextResource[];

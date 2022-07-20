@@ -1,9 +1,12 @@
 import * as React from 'react';
-import { getLanguageFromKey } from 'altinn-shared/utils';
+
 import { Box } from '@material-ui/core';
+
 import { useAppSelector } from 'src/common/hooks';
 import { CloseButton } from 'src/components/presentation/CloseButton';
 import { LanguageSelector } from 'src/components/presentation/LanguageSelector';
+
+import { getLanguageFromKey } from 'altinn-shared/utils';
 
 export interface INavBarProps {
   handleClose: () => void;

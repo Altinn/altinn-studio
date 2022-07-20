@@ -1,4 +1,4 @@
-import { renderParty } from './party';
+import { renderParty } from 'src/shared/resources/utils/party';
 
 describe('sharedResources/utils/party', () => {
   let mockProfile: any;

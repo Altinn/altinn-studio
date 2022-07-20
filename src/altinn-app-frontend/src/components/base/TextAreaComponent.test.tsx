@@ -1,9 +1,11 @@
 import * as React from 'react';
-import type { ITextAreaProps } from './TextAreaComponent';
-import { TextAreaComponent } from './TextAreaComponent';
+
 import { render as rtlRender, screen } from '@testing-library/react';
-import type { IComponentProps } from 'src/components';
 import userEvent from '@testing-library/user-event';
+
+import { TextAreaComponent } from 'src/components/base/TextAreaComponent';
+import type { IComponentProps } from 'src/components';
+import type { ITextAreaProps } from 'src/components/base/TextAreaComponent';
 
 describe('TextAreaComponent.tsx', () => {
   const user = userEvent.setup();

@@ -1,14 +1,16 @@
-import type { IInstanceContext, IDataSources } from 'altinn-shared/types';
-import { buildInstanceContext } from 'altinn-shared/utils/instanceContext';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { shallowEqual } from 'react-redux';
+
 import { useAppSelector } from 'src/common/hooks';
-import type { IMapping, IOptionSource, IOption } from 'src/types';
 import {
   getOptionLookupKey,
   getRelevantFormDataForOptionSource,
   setupSourceOptions,
 } from 'src/utils/options';
+import type { IMapping, IOption, IOptionSource } from 'src/types';
+
+import { buildInstanceContext } from 'altinn-shared/utils/instanceContext';
+import type { IDataSources, IInstanceContext } from 'altinn-shared/types';
 
 interface IUseGetOptionsParams {
   optionsId: string;

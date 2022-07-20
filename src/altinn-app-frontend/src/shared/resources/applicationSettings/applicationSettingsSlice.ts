@@ -1,11 +1,12 @@
-import type { IApplicationSettings } from 'altinn-shared/types';
-import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
+import { getApplicationSettings } from 'src/shared/resources/applicationSettings/fetch/fetchApplicationSettingsSaga';
 import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
 import type {
   IFetchApplicationSettingsFulfilled,
   IFetchApplicationSettingsRejected,
-} from './applicationSettingsTypes';
-import { getApplicationSettings } from 'src/shared/resources/applicationSettings/fetch/fetchApplicationSettingsSaga';
+} from 'src/shared/resources/applicationSettings/applicationSettingsTypes';
+import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
+
+import type { IApplicationSettings } from 'altinn-shared/types';
 
 export interface IApplicationSettingsState {
   applicationSettings: IApplicationSettings;

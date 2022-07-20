@@ -1,11 +1,12 @@
-import type { SagaIterator } from 'redux-saga';
 import { call, put, select } from 'redux-saga/effects';
-import type { IRuntimeState, IValidations, IUiConfig } from 'src/types';
-import { runConditionalRenderingRules } from '../../../../utils/conditionalRendering';
-import type { IFormData } from '../../data';
-import { FormLayoutActions } from '../../layout/formLayoutSlice';
-import { ValidationActions } from '../../validation/validationSlice';
+import type { SagaIterator } from 'redux-saga';
+
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { ValidationActions } from 'src/features/form/validation/validationSlice';
+import { runConditionalRenderingRules } from 'src/utils/conditionalRendering';
+import type { IFormData } from 'src/features/form/data';
 import type { IConditionalRenderingRules } from 'src/features/form/dynamics';
+import type { IRuntimeState, IUiConfig, IValidations } from 'src/types';
 
 export const ConditionalRenderingSelector: (store: IRuntimeState) => any = (
   store: IRuntimeState,

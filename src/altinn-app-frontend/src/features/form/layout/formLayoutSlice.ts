@@ -1,28 +1,29 @@
-import type { ILayoutSets, IUiConfig } from 'src/types';
-import type { ILayouts } from './index';
-import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
-import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
-import type * as LayoutTypes from './formLayoutTypes';
-import {
-  updateFocus,
-  updateRepeatingGroupsSaga,
-  updateRepeatingGroupEditIndexSaga,
-  updateFileUploaderWithTagEditIndexSaga,
-  updateFileUploaderWithTagChosenOptionsSaga,
-  calculatePageOrderAndMoveToNextPageSaga,
-  watchUpdateCurrentViewSaga,
-  watchInitRepeatingGroupsSaga,
-  watchMapFileUploaderWithTagSaga,
-  watchInitialCalculatePageOrderAndMoveToNextPageSaga,
-} from 'src/features/form/layout/update/updateFormLayoutSagas';
+import { put } from 'redux-saga/effects';
+
 import {
   fetchLayoutSetsSaga,
   watchFetchFormLayoutSaga,
   watchFetchFormLayoutSettingsSaga,
 } from 'src/features/form/layout/fetch/fetchFormLayoutSagas';
-import { replaceTextResourcesSaga } from 'src/shared/resources/textResources/replace/replaceTextResourcesSagas';
-import { put } from 'redux-saga/effects';
+import {
+  calculatePageOrderAndMoveToNextPageSaga,
+  updateFileUploaderWithTagChosenOptionsSaga,
+  updateFileUploaderWithTagEditIndexSaga,
+  updateFocus,
+  updateRepeatingGroupEditIndexSaga,
+  updateRepeatingGroupsSaga,
+  watchInitialCalculatePageOrderAndMoveToNextPageSaga,
+  watchInitRepeatingGroupsSaga,
+  watchMapFileUploaderWithTagSaga,
+  watchUpdateCurrentViewSaga,
+} from 'src/features/form/layout/update/updateFormLayoutSagas';
 import { OptionsActions } from 'src/shared/resources/options/optionsSlice';
+import { replaceTextResourcesSaga } from 'src/shared/resources/textResources/replace/replaceTextResourcesSagas';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
+import type { ILayouts } from 'src/features/form/layout';
+import type * as LayoutTypes from 'src/features/form/layout/formLayoutTypes';
+import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
+import type { ILayoutSets, IUiConfig } from 'src/types';
 
 export interface ILayoutState {
   layouts: ILayouts;

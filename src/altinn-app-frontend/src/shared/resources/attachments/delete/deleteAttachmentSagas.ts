@@ -1,15 +1,16 @@
-import type { SagaIterator } from 'redux-saga';
 import { call, put, select } from 'redux-saga/effects';
-import { ValidationActions } from 'src/features/form/validation/validationSlice';
-import { getFileUploadComponentValidations } from '../../../../utils/formComponentUtils';
-import type { IRuntimeState } from '../../../../types';
-import { httpDelete } from '../../../../utils/networking';
-import { dataElementUrl } from '../../../../utils/appUrlHelper';
-import { FormDataActions } from 'src/features/form/data/formDataSlice';
-import type { AxiosResponse } from 'axios';
-import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import type { PayloadAction } from '@reduxjs/toolkit';
+import type { AxiosResponse } from 'axios';
+import type { SagaIterator } from 'redux-saga';
+
+import { FormDataActions } from 'src/features/form/data/formDataSlice';
+import { ValidationActions } from 'src/features/form/validation/validationSlice';
+import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
+import { dataElementUrl } from 'src/utils/appUrlHelper';
+import { getFileUploadComponentValidations } from 'src/utils/formComponentUtils';
+import { httpDelete } from 'src/utils/networking';
 import type { IDeleteAttachmentAction } from 'src/shared/resources/attachments/delete/deleteAttachmentActions';
+import type { IRuntimeState } from 'src/types';
 
 export function* deleteAttachmentSaga({
   payload: { attachment, attachmentType, componentId, dataModelBindings },

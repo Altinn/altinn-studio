@@ -1,24 +1,26 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import {
-  AltinnContentLoader,
-  AltinnContentIconFormData,
-} from 'altinn-shared/components';
-import type { IAltinnWindow, IPartyIdInterfaceGuidParams } from '../../types';
-import { ProcessTaskType } from '../../types';
-import Presentation from './Presentation';
-import { Form } from '../../features/form/containers/Form';
-import ReceiptContainer from '../../features/receipt/containers/ReceiptContainer';
-import Confirm from '../../features/confirm/containers/Confirm';
-import UnknownError from '../../features/instantiate/containers/UnknownError';
-import { QueueActions } from '../resources/queue/queueSlice';
-import { makeGetHasErrorsSelector } from '../../selectors/getErrors';
-import Feedback from '../../features/feedback/Feedback';
-import { IsLoadingActions } from '../resources/isLoading/isLoadingSlice';
+
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import Confirm from 'src/features/confirm/containers/Confirm';
+import Feedback from 'src/features/feedback/Feedback';
+import { Form } from 'src/features/form/containers/Form';
+import UnknownError from 'src/features/instantiate/containers/UnknownError';
+import ReceiptContainer from 'src/features/receipt/containers/ReceiptContainer';
+import { makeGetHasErrorsSelector } from 'src/selectors/getErrors';
 import { selectAppName, selectAppOwner } from 'src/selectors/language';
+import Presentation from 'src/shared/containers/Presentation';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
+import { IsLoadingActions } from 'src/shared/resources/isLoading/isLoadingSlice';
 import { ProcessActions } from 'src/shared/resources/process/processSlice';
+import { QueueActions } from 'src/shared/resources/queue/queueSlice';
+import { ProcessTaskType } from 'src/types';
+import type { IAltinnWindow, IPartyIdInterfaceGuidParams } from 'src/types';
+
+import {
+  AltinnContentIconFormData,
+  AltinnContentLoader,
+} from 'altinn-shared/components';
 
 const style = {
   marginTop: '2.5rem',

@@ -1,11 +1,13 @@
 import React from 'react';
-import type { ILabelSettings } from 'src/types';
+
+import Description from 'src/features/form/components/Description';
+import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
+import { OptionalIndicator } from 'src/features/form/components/OptionalIndicator';
+import { RequiredIndicator } from 'src/features/form/components/RequiredIndicator';
 import { LayoutStyle } from 'src/types';
-import Description from './Description';
-import { HelpTextContainer } from './HelpTextContainer';
+import type { ILabelSettings } from 'src/types';
+
 import type { ILanguage } from 'altinn-shared/types';
-import { RequiredIndicator } from './RequiredIndicator';
-import { OptionalIndicator } from './OptionalIndicator';
 
 export interface IFormLegendProps {
   labelText: React.ReactNode;

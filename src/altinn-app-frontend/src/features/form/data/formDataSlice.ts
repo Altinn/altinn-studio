@@ -1,35 +1,36 @@
-import type {
-  IFetchFormDataFulfilled,
-  IFormDataRejected,
-  ISubmitDataAction,
-  IUpdateFormDataFulfilled,
-  IFetchFormData,
-  IDeleteAttachmentReference,
-  IUpdateFormData,
-} from 'src/features/form/data/formDataTypes';
-import type { IFormDataState } from 'src/features/form/data/index';
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { actionChannel, call, take } from 'redux-saga/effects';
 import type { AnyAction } from 'redux';
-import { ProcessActions } from 'src/shared/resources/process/processSlice';
-import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
-import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
-import { checkIfRuleShouldRunSaga } from 'src/features/form/rules/check/checkRulesSagas';
+import type { SagaIterator } from 'redux-saga';
+
 import {
   fetchFormDataSaga,
   watchFetchFormDataInitialSaga,
 } from 'src/features/form/data/fetch/fetchFormDataSagas';
 import {
+  autoSaveSaga,
   saveFormDataSaga,
   submitFormSaga,
-  autoSaveSaga,
 } from 'src/features/form/data/submit/submitFormDataSagas';
 import {
   deleteAttachmentReferenceSaga,
   updateFormDataSaga,
 } from 'src/features/form/data/update/updateFormDataSagas';
-import type { SagaIterator } from 'redux-saga';
-import { actionChannel, take, call } from 'redux-saga/effects';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { checkIfRuleShouldRunSaga } from 'src/features/form/rules/check/checkRulesSagas';
 import { checkIfOptionsShouldRefetchSaga } from 'src/shared/resources/options/fetch/fetchOptionsSagas';
+import { ProcessActions } from 'src/shared/resources/process/processSlice';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
+import type { IFormDataState } from 'src/features/form/data';
+import type {
+  IDeleteAttachmentReference,
+  IFetchFormData,
+  IFetchFormDataFulfilled,
+  IFormDataRejected,
+  ISubmitDataAction,
+  IUpdateFormData,
+  IUpdateFormDataFulfilled,
+} from 'src/features/form/data/formDataTypes';
+import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
 
 const initialState: IFormDataState = {
   formData: {},

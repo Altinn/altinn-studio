@@ -1,9 +1,11 @@
-import { Grid, makeStyles, Typography } from '@material-ui/core';
 import * as React from 'react';
-import type { IAttachment } from 'src/shared/resources/attachments';
-import type { ILayoutCompFileUploadWithTag } from 'src/features/form/layout';
-import { getOptionLookupKey } from 'src/utils/options';
+
+import { Grid, makeStyles, Typography } from '@material-ui/core';
+
 import { useAppSelector } from 'src/common/hooks';
+import { getOptionLookupKey } from 'src/utils/options';
+import type { ILayoutCompFileUploadWithTag } from 'src/features/form/layout';
+import type { IAttachment } from 'src/shared/resources/attachments';
 
 export interface IAttachmentWithTagSummaryComponent {
   componentRef: string;

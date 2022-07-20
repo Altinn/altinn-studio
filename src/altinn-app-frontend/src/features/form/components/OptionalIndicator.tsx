@@ -1,7 +1,9 @@
 import * as React from 'react';
+
+import type { ILabelSettings } from 'src/types';
+
 import { getLanguageFromKey } from 'altinn-shared/utils/language';
 import type { ILanguage } from 'altinn-shared/types';
-import type { ILabelSettings } from 'src/types';
 
 interface IOptionalIndicatorProps {
   language: ILanguage;

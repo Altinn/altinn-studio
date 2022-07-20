@@ -2,12 +2,13 @@ import * as React from 'react';
 import { render } from 'react-dom';
 import { Provider } from 'react-redux';
 import { HashRouter } from 'react-router-dom';
-import { App } from './App';
-import { initSagas } from './sagas';
-import { store } from './store';
-import './index.css';
 
-import ErrorBoundary from './components/ErrorBoundary';
+import { App } from 'src/App';
+import ErrorBoundary from 'src/components/ErrorBoundary';
+import { initSagas } from 'src/sagas';
+import { store } from 'src/store';
+
+import 'src/index.css';
 
 initSagas();
 

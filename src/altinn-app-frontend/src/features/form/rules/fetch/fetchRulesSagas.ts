@@ -1,14 +1,16 @@
+import { call, put, select } from 'redux-saga/effects';
 import type { SagaIterator } from 'redux-saga';
-import { call, select, put } from 'redux-saga/effects';
-import type { IInstance } from 'altinn-shared/types';
-import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
-import { getRulehandlerUrl } from 'src/utils/appUrlHelper';
-import { get } from '../../../../utils/networking';
-import { getRuleModelFields } from '../../../../utils/rules';
-import { QueueActions } from '../../../../shared/resources/queue/queueSlice';
-import type { IRuntimeState, ILayoutSets } from '../../../../types';
-import { getLayoutSetIdForApplication } from '../../../../utils/appMetadata';
+
 import { FormRulesActions } from 'src/features/form/rules/rulesSlice';
+import { QueueActions } from 'src/shared/resources/queue/queueSlice';
+import { getLayoutSetIdForApplication } from 'src/utils/appMetadata';
+import { getRulehandlerUrl } from 'src/utils/appUrlHelper';
+import { get } from 'src/utils/networking';
+import { getRuleModelFields } from 'src/utils/rules';
+import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
+import type { ILayoutSets, IRuntimeState } from 'src/types';
+
+import type { IInstance } from 'altinn-shared/types';
 
 const layoutSetsSelector = (state: IRuntimeState) =>
   state.formLayout.layoutsets;

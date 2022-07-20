@@ -1,11 +1,13 @@
 import * as React from 'react';
+
+import { useAppSelector } from 'src/common/hooks';
+import InstantiationErrorPage from 'src/features/instantiate/containers/InstantiationErrorPage';
+import { getTextFromAppOrDefault } from 'src/utils/textResource';
+
 import {
   getLanguageFromKey,
   getParsedLanguageFromKey,
 } from 'altinn-shared/utils';
-import InstantiationErrorPage from './InstantiationErrorPage';
-import { getTextFromAppOrDefault } from '../../../utils/textResource';
-import { useAppSelector } from 'src/common/hooks';
 
 function InstantiateValidationError(props: { message: string }) {
   const language = useAppSelector((state) => state.language.language);

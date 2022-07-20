@@ -1,32 +1,34 @@
-import { AddressComponent as Address } from './advanced/AddressComponent';
-import { AttachmentListComponent } from './base/AttachmentListComponent';
-import { ButtonComponent } from './base/ButtonComponent';
-import { CheckboxContainerComponent } from './base/CheckboxesContainerComponent';
-import DatepickerComponent from './base/DatepickerComponent';
-import DropdownComponent from './base/DropdownComponent';
-import { FileUploadComponent } from './base/FileUpload/FileUploadComponent';
-import { FileUploadWithTagComponent } from './base/FileUpload/FileUploadWithTag/FileUploadWithTagComponent';
-import { HeaderComponent } from './base/HeaderComponent';
-import { InputComponent } from './base/InputComponent';
-import { ParagraphComponent } from './base/ParagraphComponent';
-import { RadioButtonContainerComponent } from './base/RadioButtons/RadioButtonsContainerComponent';
-import { TextAreaComponent } from './base/TextAreaComponent';
-import { ImageComponent } from './base/ImageComponent';
-import { NavigationButtons as NavigationButtonsComponent } from './presentation/NavigationButtons';
-import { NavigationBar as NavigationBarComponent } from './base/NavigationBar';
-import { PanelComponent } from './base/PanelComponent';
-import { InstantiationButtonComponent } from './base/InstantiationButtonComponent';
-import type { IGenericComponentProps } from './GenericComponent';
-import type { ILanguage } from 'altinn-shared/types';
-import type {
-  IGrid,
-  ComponentExceptGroupAndSummary,
-} from 'src/features/form/layout';
 import { createContext } from 'react';
+
+import { AddressComponent as Address } from 'src/components/advanced/AddressComponent';
+import { AttachmentListComponent } from 'src/components/base/AttachmentListComponent';
+import { ButtonComponent } from 'src/components/base/ButtonComponent';
+import { CheckboxContainerComponent } from 'src/components/base/CheckboxesContainerComponent';
+import DatepickerComponent from 'src/components/base/DatepickerComponent';
+import DropdownComponent from 'src/components/base/DropdownComponent';
+import { FileUploadComponent } from 'src/components/base/FileUpload/FileUploadComponent';
+import { FileUploadWithTagComponent } from 'src/components/base/FileUpload/FileUploadWithTag/FileUploadWithTagComponent';
+import { HeaderComponent } from 'src/components/base/HeaderComponent';
+import { ImageComponent } from 'src/components/base/ImageComponent';
+import { InputComponent } from 'src/components/base/InputComponent';
+import { InstantiationButtonComponent } from 'src/components/base/InstantiationButtonComponent';
 import { LikertComponent } from 'src/components/base/LikertComponent';
-import { PrintButtonComponent } from './base/PrintButtonComponent';
-import CustomComponent from './custom/CustomWebComponent';
+import { NavigationBar as NavigationBarComponent } from 'src/components/base/NavigationBar';
+import { PanelComponent } from 'src/components/base/PanelComponent';
+import { ParagraphComponent } from 'src/components/base/ParagraphComponent';
+import { PrintButtonComponent } from 'src/components/base/PrintButtonComponent';
+import { RadioButtonContainerComponent } from 'src/components/base/RadioButtons/RadioButtonsContainerComponent';
+import { TextAreaComponent } from 'src/components/base/TextAreaComponent';
+import CustomComponent from 'src/components/custom/CustomWebComponent';
+import { NavigationButtons as NavigationButtonsComponent } from 'src/components/presentation/NavigationButtons';
+import type { IGenericComponentProps } from 'src/components/GenericComponent';
+import type {
+  ComponentExceptGroupAndSummary,
+  IGrid,
+} from 'src/features/form/layout';
 import type { IComponentFormData } from 'src/utils/formComponentUtils';
+
+import type { ILanguage } from 'altinn-shared/types';
 
 const components: {
   [Type in ComponentExceptGroupAndSummary]: (props: any) => JSX.Element;

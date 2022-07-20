@@ -1,21 +1,23 @@
 import * as React from 'react';
-import {
-  AltinnContentLoader,
-  AltinnContentIconFormData,
-} from 'altinn-shared/components';
 import { Redirect } from 'react-router-dom';
+
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import InstantiateValidationError from 'src/features/instantiate/containers/InstantiateValidationError';
+import MissingRolesError from 'src/features/instantiate/containers/MissingRolesError';
+import UnknownError from 'src/features/instantiate/containers/UnknownError';
+import { InstantiationActions } from 'src/features/instantiate/instantiation/instantiationSlice';
+import Presentation from 'src/shared/containers/Presentation';
+import { ProcessTaskType } from 'src/types';
+import { changeBodyBackground } from 'src/utils/bodyStyling';
+import { HttpStatusCodes } from 'src/utils/networking';
+import { getTextFromAppOrDefault } from 'src/utils/textResource';
+
+import {
+  AltinnContentIconFormData,
+  AltinnContentLoader,
+} from 'altinn-shared/components';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { isAxiosError } from 'altinn-shared/utils';
-import { getTextFromAppOrDefault } from 'src/utils/textResource';
-import Presentation from 'src/shared/containers/Presentation';
-import { ProcessTaskType } from '../../../types';
-import { changeBodyBackground } from '../../../utils/bodyStyling';
-import { HttpStatusCodes } from '../../../utils/networking';
-import MissingRolesError from './MissingRolesError';
-import UnknownError from './UnknownError';
-import InstantiateValidationError from './InstantiateValidationError';
-import { useAppSelector, useAppDispatch } from 'src/common/hooks';
-import { InstantiationActions } from 'src/features/instantiate/instantiation/instantiationSlice';
 
 const titleKey = 'instantiate.starting';
 

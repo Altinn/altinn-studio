@@ -1,13 +1,15 @@
 import * as React from 'react';
 import { Link } from 'react-router-dom';
+
+import { useAppSelector } from 'src/common/hooks';
+import InstantiationErrorPage from 'src/features/instantiate/containers/InstantiationErrorPage';
+import { getHostname } from 'src/utils/appUrlHelper';
+
 import {
   getLanguageFromKey,
   getParsedLanguageFromKey,
   getParsedLanguageFromText,
 } from 'altinn-shared/utils';
-import { getHostname } from '../../../utils/appUrlHelper';
-import InstantiationErrorPage from './InstantiationErrorPage';
-import { useAppSelector } from 'src/common/hooks';
 
 function MissingRolesError() {
   const language = useAppSelector((state) => state.language.language);

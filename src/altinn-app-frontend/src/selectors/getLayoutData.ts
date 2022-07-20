@@ -1,5 +1,6 @@
-import type { ParametricSelector } from 'reselect';
 import { createSelector } from 'reselect';
+import type { ParametricSelector } from 'reselect';
+
 import type { RootState } from 'src/store';
 
 const selectFocusedLayout = (state: RootState) =>

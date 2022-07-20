@@ -1,20 +1,22 @@
+import { select } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
+
 import {
   applicationMetadataSelector,
+  cleanLayout,
   fetchLayoutSaga,
   instanceSelector,
   layoutSetsSelector,
-  cleanLayout,
-} from './fetchFormLayoutSagas';
-import * as networking from '../../../../utils/networking';
-import type { IApplication, IInstance } from 'altinn-shared/types';
-import { select } from 'redux-saga/effects';
-import { FormLayoutActions } from '../formLayoutSlice';
+} from 'src/features/form/layout/fetch/fetchFormLayoutSagas';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import * as networking from 'src/utils/networking';
 import type {
-  ILayoutGroup,
-  ILayoutCompSummary,
   ILayoutCompFileUploadWithTag,
+  ILayoutCompSummary,
+  ILayoutGroup,
 } from 'src/features/form/layout';
+
+import type { IApplication, IInstance } from 'altinn-shared/types';
 
 describe('fetchFormLayoutSagas', () => {
   describe('cleanLayout', () => {

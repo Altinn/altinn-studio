@@ -1,16 +1,16 @@
 import * as React from 'react';
 import { Provider } from 'react-redux';
+
 import { render, screen } from '@testing-library/react';
 import configureStore from 'redux-mock-store';
+
+import { NavigationButtons } from 'src/components/presentation/NavigationButtons';
+import type { IComponentProps } from 'src/components';
 
 import {
   getFormLayoutStateMock,
   getInitialStateMock,
-} from '../../../__mocks__/mocks';
-
-import type { IComponentProps } from 'src/components';
-
-import { NavigationButtons } from './NavigationButtons';
+} from 'altinn-app-frontend/__mocks__/mocks';
 
 describe('NavigationButton', () => {
   let mockStore;

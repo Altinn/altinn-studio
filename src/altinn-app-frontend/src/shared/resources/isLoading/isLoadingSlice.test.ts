@@ -1,5 +1,8 @@
-import type { IIsLoadingState } from './isLoadingSlice';
-import slice, { initialState, IsLoadingActions } from './isLoadingSlice';
+import slice, {
+  initialState,
+  IsLoadingActions,
+} from 'src/shared/resources/isLoading/isLoadingSlice';
+import type { IIsLoadingState } from 'src/shared/resources/isLoading/isLoadingSlice';
 
 describe('isLoadingSlice', () => {
   let state: IIsLoadingState;

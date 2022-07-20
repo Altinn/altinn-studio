@@ -1,11 +1,13 @@
+import slice, {
+  initialState,
+  ValidationActions,
+} from 'src/features/form/validation/validationSlice';
+import type { IValidationState } from 'src/features/form/validation/validationSlice';
 import type {
   IComponentValidations,
   ICurrentSingleFieldValidation,
   IValidations,
-} from '../../../types';
-
-import type { IValidationState } from './validationSlice';
-import slice, { initialState, ValidationActions } from './validationSlice';
+} from 'src/types';
 
 describe('validationSlice', () => {
   let state: IValidationState;

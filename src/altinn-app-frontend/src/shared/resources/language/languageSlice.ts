@@ -1,14 +1,16 @@
-import type { ILanguage } from 'altinn-shared/types';
-import type { IAltinnWindow } from 'src/types';
-import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
-import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
+import { call, put, take } from 'redux-saga/effects';
 import type { SagaIterator } from 'redux-saga';
-import { take, call, put } from 'redux-saga/effects';
+
 import {
   fetchLanguageSaga,
   watchFetchLanguageSaga,
 } from 'src/shared/resources/language/fetch/fetchLanguageSagas';
 import { OptionsActions } from 'src/shared/resources/options/optionsSlice';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
+import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
+import type { IAltinnWindow } from 'src/types';
+
+import type { ILanguage } from 'altinn-shared/types';
 
 export interface IFetchLanguageFulfilled {
   language: ILanguage;

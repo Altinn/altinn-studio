@@ -1,21 +1,20 @@
-import type {
-  ILayout,
-  ILayoutComponent,
-  ILayoutGroup,
-  ILayoutCompFileUploadWithTag,
-} from 'src/features/form/layout';
-import type { IAttachmentState } from 'src/shared/resources/attachments';
-import type { IRepeatingGroups, IMapping, ITextResource } from 'src/types';
-
 import {
   createRepeatingGroupComponents,
-  mapFileUploadersWithTag,
+  findChildren,
   getRepeatingGroups,
   hasRequiredFields,
+  mapFileUploadersWithTag,
   removeRepeatingGroupFromUIConfig,
   setMappingForRepeatingGroupComponent,
-  findChildren,
-} from './formLayout';
+} from 'src/utils/formLayout';
+import type {
+  ILayout,
+  ILayoutCompFileUploadWithTag,
+  ILayoutComponent,
+  ILayoutGroup,
+} from 'src/features/form/layout';
+import type { IAttachmentState } from 'src/shared/resources/attachments';
+import type { IMapping, IRepeatingGroups, ITextResource } from 'src/types';
 
 describe('setMappingForRepeatingGroupComponent', () => {
   it('should replace indexed mapping with the current index', () => {

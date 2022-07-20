@@ -1,16 +1,19 @@
 import * as React from 'react';
-import { AltinnAppTheme } from 'altinn-shared/theme';
+
 import { Grid, IconButton, makeStyles } from '@material-ui/core';
-import { AltinnButton, AltinnLoader } from 'altinn-shared/components';
-import type { IAttachment } from '../../../../shared/resources/attachments';
-import type { IOption } from 'src/types';
-import { getLanguageFromKey } from 'altinn-shared/utils';
+import classNames from 'classnames';
+
+import { useAppDispatch } from 'src/common/hooks';
+import { FileName } from 'src/components/base/FileUpload/shared/render';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import { renderValidationMessages } from 'src/utils/render';
-import { FileName } from '../shared/render';
-import classNames from 'classnames';
 import type { IComponentProps } from 'src/components';
-import { useAppDispatch } from 'src/common/hooks';
+import type { IAttachment } from 'src/shared/resources/attachments';
+import type { IOption } from 'src/types';
+
+import { AltinnButton, AltinnLoader } from 'altinn-shared/components';
+import { AltinnAppTheme } from 'altinn-shared/theme';
+import { getLanguageFromKey } from 'altinn-shared/utils';
 
 const useStyles = makeStyles({
   textContainer: {

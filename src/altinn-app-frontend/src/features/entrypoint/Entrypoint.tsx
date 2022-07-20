@@ -1,34 +1,37 @@
-import {
-  AltinnContentIconFormData,
-  AltinnContentLoader,
-} from 'altinn-shared/components';
-import type { AxiosError } from 'axios';
 import * as React from 'react';
 import { Redirect } from 'react-router-dom';
-import { useAppSelector, useAppDispatch } from 'src/common/hooks';
+
+import type { AxiosError } from 'axios';
+
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { Form } from 'src/features/form/containers/Form';
+import { ValidationActions } from 'src/features/form/validation/validationSlice';
+import Instantiate from 'src/features/instantiate/containers';
+import InstanceSelection from 'src/features/instantiate/containers/InstanceSelection';
+import MissingRolesError from 'src/features/instantiate/containers/MissingRolesError';
+import NoValidPartiesError from 'src/features/instantiate/containers/NoValidPartiesError';
 import { selectAppName, selectAppOwner } from 'src/selectors/language';
 import Presentation from 'src/shared/containers/Presentation';
-import type { ShowTypes } from 'src/shared/resources/applicationMetadata';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
-import type { ISimpleInstance } from 'src/types';
 import { PresentationType, ProcessTaskType } from 'src/types';
 import { isStatelessApp } from 'src/utils/appMetadata';
+import {
+  getActiveInstancesUrl,
+  getPartyValidationUrl,
+} from 'src/utils/appUrlHelper';
 import {
   checkIfAxiosError,
   get,
   HttpStatusCodes,
   post,
 } from 'src/utils/networking';
+import type { ShowTypes } from 'src/shared/resources/applicationMetadata';
+import type { ISimpleInstance } from 'src/types';
+
 import {
-  getActiveInstancesUrl,
-  getPartyValidationUrl,
-} from 'src/utils/appUrlHelper';
-import { Form } from '../form/containers/Form';
-import { ValidationActions } from '../form/validation/validationSlice';
-import Instantiate from '../instantiate/containers';
-import InstanceSelection from '../instantiate/containers/InstanceSelection';
-import MissingRolesError from '../instantiate/containers/MissingRolesError';
-import NoValidPartiesError from '../instantiate/containers/NoValidPartiesError';
+  AltinnContentIconFormData,
+  AltinnContentLoader,
+} from 'altinn-shared/components';
 
 export default function Entrypoint({ allowAnonymous }: any) {
   const [action, setAction] = React.useState<ShowTypes>(null);

@@ -1,11 +1,11 @@
+import type { ILayouts } from 'src/features/form/layout';
 import type {
+  IFileUploadersWithTag,
+  ILayoutSets,
   ILayoutSettings,
   INavigationConfig,
-  ILayoutSets,
   IOption,
-  IFileUploadersWithTag,
 } from 'src/types';
-import type { ILayouts } from '.';
 
 export interface IFormLayoutActionRejected {
   error: Error;

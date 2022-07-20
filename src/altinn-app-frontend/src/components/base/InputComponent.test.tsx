@@ -1,11 +1,11 @@
 import * as React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
 
-import type { IComponentProps } from 'src/components';
-import type { IInputProps } from './InputComponent';
+import { fireEvent, render, screen } from '@testing-library/react';
 
-import { InputComponent } from './InputComponent';
+import { InputComponent } from 'src/components/base/InputComponent';
 import { mockDelayBeforeSaving } from 'src/components/hooks/useDelayedSavedState';
+import type { IComponentProps } from 'src/components';
+import type { IInputProps } from 'src/components/base/InputComponent';
 
 describe('InputComponent.tsx', () => {
   const mockId = 'mock-id';

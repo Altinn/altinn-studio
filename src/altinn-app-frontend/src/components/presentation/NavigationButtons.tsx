@@ -1,14 +1,17 @@
 import * as React from 'react';
-import { AltinnButton } from 'altinn-shared/components';
+
 import { Grid, makeStyles } from '@material-ui/core';
-import type { INavigationConfig, ILayoutNavigation } from 'src/types';
-import { Triggers } from 'src/types';
 import classNames from 'classnames';
-import { getTextFromAppOrDefault } from 'src/utils/textResource';
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
-import type { IComponentProps } from '..';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { Triggers } from 'src/types';
+import { getTextFromAppOrDefault } from 'src/utils/textResource';
+import type { IComponentProps } from 'src/components';
 import type { ILayoutCompNavButtons } from 'src/features/form/layout';
+import type { ILayoutNavigation, INavigationConfig } from 'src/types';
+
+import { AltinnButton } from 'altinn-shared/components';
 
 const useStyles = makeStyles({
   backButton: {

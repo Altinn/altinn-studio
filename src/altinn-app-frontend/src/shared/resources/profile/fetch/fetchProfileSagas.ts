@@ -1,11 +1,13 @@
-import type { SagaIterator } from 'redux-saga';
 import { call, put } from 'redux-saga/effects';
-import type { IProfile } from 'altinn-shared/types';
-import { get } from '../../../../utils/networking';
-import type { IFetchProfile } from 'src/shared/resources/profile';
-import { QueueActions } from '../../queue/queueSlice';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { ProfileActions } from '../profileSlice';
+import type { SagaIterator } from 'redux-saga';
+
+import { ProfileActions } from 'src/shared/resources/profile/profileSlice';
+import { QueueActions } from 'src/shared/resources/queue/queueSlice';
+import { get } from 'src/utils/networking';
+import type { IFetchProfile } from 'src/shared/resources/profile';
+
+import type { IProfile } from 'altinn-shared/types';
 
 export function* fetchProfileSaga({
   payload: { url },

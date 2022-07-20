@@ -1,3 +1,5 @@
+import * as React from 'react';
+
 import {
   Grid,
   List,
@@ -5,7 +7,7 @@ import {
   ListItemText,
   makeStyles,
 } from '@material-ui/core';
-import * as React from 'react';
+
 import SummaryBoilerplate from 'src/components/summary/SummaryBoilerplate';
 
 export interface IMultipleChoiceSummaryProps {

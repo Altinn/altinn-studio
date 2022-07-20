@@ -1,21 +1,28 @@
 import * as React from 'react';
-import type { FileRejection } from 'react-dropzone';
-import { AltinnAppTheme } from 'altinn-shared/theme';
-import { getLanguageFromKey } from 'altinn-shared/utils';
-import { AltinnLoader } from 'altinn-shared/components';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { isMobile } from 'react-device-detect';
-import type { IAttachment } from 'src/shared/resources/attachments';
-import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
-import './FileUploadComponent.css';
-import type { IComponentValidations } from 'src/types';
-import { renderValidationMessagesForComponent } from 'src/utils/render';
+import type { FileRejection } from 'react-dropzone';
+
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { v4 as uuidv4 } from 'uuid';
-import { useAppSelector, useAppDispatch } from 'src/common/hooks';
-import { AttachmentsCounter, FileName } from './shared/render';
-import { DropzoneComponent } from './shared/DropzoneComponent';
+
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { DropzoneComponent } from 'src/components/base/FileUpload/shared/DropzoneComponent';
+import {
+  AttachmentsCounter,
+  FileName,
+} from 'src/components/base/FileUpload/shared/render';
+import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
+import { renderValidationMessagesForComponent } from 'src/utils/render';
 import type { IComponentProps } from 'src/components';
 import type { ILayoutCompFileUpload } from 'src/features/form/layout';
+import type { IAttachment } from 'src/shared/resources/attachments';
+import type { IComponentValidations } from 'src/types';
+
+import { AltinnLoader } from 'altinn-shared/components';
+import { AltinnAppTheme } from 'altinn-shared/theme';
+import { getLanguageFromKey } from 'altinn-shared/utils';
+
+import 'src/components/base/FileUpload/FileUploadComponent.css';
 
 export type IFileUploadProps = IComponentProps &
   Omit<ILayoutCompFileUpload, 'type'>;

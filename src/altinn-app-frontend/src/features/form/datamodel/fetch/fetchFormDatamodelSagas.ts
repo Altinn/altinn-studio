@@ -1,19 +1,21 @@
+import { all, call, put, select, take } from 'redux-saga/effects';
 import type { SagaIterator } from 'redux-saga';
-import { call, select, all, take, put } from 'redux-saga/effects';
-import { getJsonSchemaUrl } from 'src/utils/appUrlHelper';
-import type { IInstance } from 'altinn-shared/types';
+
+import { DataModelActions } from 'src/features/form/datamodel/datamodelSlice';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { ApplicationMetadataActions } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
+import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
+import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import {
   getCurrentDataTypeForApplication,
   isStatelessApp,
 } from 'src/utils/appMetadata';
-import { QueueActions } from '../../../../shared/resources/queue/queueSlice';
-import { get } from '../../../../utils/networking';
-import type { ILayoutSets, IRuntimeState } from '../../../../types';
-import type { IApplicationMetadata } from '../../../../shared/resources/applicationMetadata';
-import { DataModelActions } from '../datamodelSlice';
-import { FormLayoutActions } from '../../layout/formLayoutSlice';
-import { ApplicationMetadataActions } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
-import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
+import { getJsonSchemaUrl } from 'src/utils/appUrlHelper';
+import { get } from 'src/utils/networking';
+import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
+import type { ILayoutSets, IRuntimeState } from 'src/types';
+
+import type { IInstance } from 'altinn-shared/types';
 
 const AppMetadataSelector: (state: IRuntimeState) => IApplicationMetadata = (
   state: IRuntimeState,

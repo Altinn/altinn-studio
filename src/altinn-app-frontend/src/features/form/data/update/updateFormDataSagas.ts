@@ -1,28 +1,26 @@
-import type { SagaIterator } from 'redux-saga';
 import { call, put, select } from 'redux-saga/effects';
-import type { IRuntimeState, IValidationResult } from 'src/types';
 import type { PayloadAction } from '@reduxjs/toolkit';
+import type { SagaIterator } from 'redux-saga';
+
+import { FormDataActions } from 'src/features/form/data/formDataSlice';
+import { FormDynamicsActions } from 'src/features/form/dynamics/formDynamicsSlice';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { ValidationActions } from 'src/features/form/validation/validationSlice';
+import { getCurrentDataTypeForApplication } from 'src/utils/appMetadata';
+import { removeAttachmentReference } from 'src/utils/databindings';
 import {
   getLayoutComponentById,
   getLayoutIdForComponent,
-} from '../../../../utils/layout';
-import {
-  getValidator,
-  validateComponentFormData,
-} from '../../../../utils/validation';
-import { FormDynamicsActions } from '../../dynamics/formDynamicsSlice';
-import { ValidationActions } from '../../validation/validationSlice';
-import { FormDataActions } from '../formDataSlice';
-import type {
-  IUpdateFormData,
-  IDeleteAttachmentReference,
-} from '../formDataTypes';
-import { FormLayoutActions } from '../../layout/formLayoutSlice';
-import { getCurrentDataTypeForApplication } from '../../../../utils/appMetadata';
-import { removeAttachmentReference } from 'src/utils/databindings';
+} from 'src/utils/layout';
+import { getValidator, validateComponentFormData } from 'src/utils/validation';
 import type { IFormData } from 'src/features/form/data';
-import type { ILayouts, ILayoutComponent } from 'src/features/form/layout';
+import type {
+  IDeleteAttachmentReference,
+  IUpdateFormData,
+} from 'src/features/form/data/formDataTypes';
+import type { ILayoutComponent, ILayouts } from 'src/features/form/layout';
 import type { IAttachments } from 'src/shared/resources/attachments';
+import type { IRuntimeState, IValidationResult } from 'src/types';
 
 export function* updateFormDataSaga({
   payload: {

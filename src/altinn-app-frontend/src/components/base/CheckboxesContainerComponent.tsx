@@ -1,22 +1,22 @@
 import React from 'react';
+
 import { FormControlLabel, FormGroup, FormLabel } from '@material-ui/core';
-import type { CheckboxProps } from '@material-ui/core/Checkbox';
 import Checkbox from '@material-ui/core/Checkbox';
 import FormControl from '@material-ui/core/FormControl';
 import { makeStyles } from '@material-ui/core/styles';
 import cn from 'classnames';
+import type { CheckboxProps } from '@material-ui/core/Checkbox';
 
-import type { IComponentProps } from '..';
-import type { IOption, IComponentValidations } from 'src/types';
-
-import { shouldUseRowLayout } from 'src/utils/layout';
-
-import { renderValidationMessagesForComponent } from '../../utils/render';
 import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
+import { useGetOptions } from 'src/components/hooks';
+import { shouldUseRowLayout } from 'src/utils/layout';
 import { getOptionLookupKey } from 'src/utils/options';
-import { AltinnSpinner } from 'altinn-shared/components';
-import { useGetOptions } from '../hooks';
+import { renderValidationMessagesForComponent } from 'src/utils/render';
+import type { IComponentProps } from 'src/components';
 import type { ILayoutCompCheckboxes } from 'src/features/form/layout';
+import type { IComponentValidations, IOption } from 'src/types';
+
+import { AltinnSpinner } from 'altinn-shared/components';
 
 export interface ICheckboxContainerProps
   extends IComponentProps,

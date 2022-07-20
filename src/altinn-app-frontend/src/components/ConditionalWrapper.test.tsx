@@ -1,7 +1,8 @@
 import React from 'react';
+
 import { render as rtlRender, screen } from '@testing-library/react';
 
-import { ConditionalWrapper } from './ConditionalWrapper';
+import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 
 describe('ConditionalWrapper', () => {
   it('should pass children to wrapper callback when condition is true', () => {

@@ -1,6 +1,6 @@
+import { mapFormData } from 'src/utils/databindings';
 import type { IFormData } from 'src/features/form/data';
 import type { IAltinnWindow, IMapping } from 'src/types';
-import { mapFormData } from 'src/utils/databindings';
 
 const altinnWindow = window as Window as IAltinnWindow;
 const { org, app } = altinnWindow;

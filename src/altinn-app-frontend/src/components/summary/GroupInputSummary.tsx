@@ -1,5 +1,7 @@
 import * as React from 'react';
+
 import { makeStyles, Typography } from '@material-ui/core';
+
 import { useDisplayData } from 'src/components/hooks';
 
 export interface ISingleInputSummary {

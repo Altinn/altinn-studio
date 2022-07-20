@@ -1,5 +1,6 @@
+import { appApi } from 'src/services/AppApi';
+
 import type { IInstance } from 'altinn-shared/types';
-import { appApi } from './AppApi';
 
 export interface Prefill {
   [key: string]: any;

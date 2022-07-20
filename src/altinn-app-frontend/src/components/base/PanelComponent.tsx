@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { Panel } from 'src/features/form/components/Panel';
-
 import type { IComponentProps } from 'src/components';
 import type { ILayoutCompPanel } from 'src/features/form/layout';
 

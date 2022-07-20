@@ -1,6 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import moment from 'moment';
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
+
+import moment from 'moment';
+
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { selectAppName } from 'src/selectors/language';
+import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
+import { getTextFromAppOrDefault } from 'src/utils/textResource';
 
 import {
   AltinnContentIconReceipt,
@@ -9,19 +15,15 @@ import {
   AltinnReceiptSimple,
 } from 'altinn-shared/components';
 import {
-  mapInstanceAttachments,
   getLanguageFromKey,
+  mapInstanceAttachments,
   returnUrlToArchive,
 } from 'altinn-shared/utils';
 import {
   getAttachmentGroupings,
   getInstancePdf,
 } from 'altinn-shared/utils/attachmentsUtils';
-import { getTextFromAppOrDefault } from '../../../utils/textResource';
-import { useAppSelector, useAppDispatch } from 'src/common/hooks';
-import { selectAppName } from 'src/selectors/language';
-import type { IParty, IAttachment } from 'altinn-shared/types';
-import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
+import type { IAttachment, IParty } from 'altinn-shared/types';
 
 interface IParams {
   partyId: string;

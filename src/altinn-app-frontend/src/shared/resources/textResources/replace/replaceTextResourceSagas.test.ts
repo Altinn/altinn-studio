@@ -1,11 +1,12 @@
-import { testSaga } from 'redux-saga-test-plan';
 import { take } from 'redux-saga/effects';
+import { testSaga } from 'redux-saga-test-plan';
+
 import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import {
   replaceTextResourcesSaga,
   watchReplaceTextResourcesSaga,
-} from './replaceTextResourcesSagas';
+} from 'src/shared/resources/textResources/replace/replaceTextResourcesSagas';
 import { TextResourcesActions } from 'src/shared/resources/textResources/textResourcesSlice';
 
 describe('watchReplaceTextResourcesSaga', () => {

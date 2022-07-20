@@ -1,8 +1,10 @@
-import type { ILanguage, ITextResource } from 'altinn-shared/types';
 import React from 'react';
+
 import { useAppSelector } from 'src/common/hooks';
-import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import { Panel } from 'src/features/form/components/Panel';
+import { getTextFromAppOrDefault } from 'src/utils/textResource';
+
+import type { ILanguage, ITextResource } from 'altinn-shared/types';
 
 export interface ISoftValidationProps {
   children: React.ReactNode;

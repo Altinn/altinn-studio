@@ -1,11 +1,11 @@
+import { watchFetchJsonSchemaSaga } from 'src/features/form/datamodel/fetch/fetchFormDatamodelSagas';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
 import type {
   IDataModelState,
   IFetchJsonSchemaFulfilled,
   IFetchJsonSchemaRejected,
-} from 'src/features/form/datamodel/index';
+} from 'src/features/form/datamodel';
 import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
-import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
-import { watchFetchJsonSchemaSaga } from 'src/features/form/datamodel/fetch/fetchFormDatamodelSagas';
 
 const initialState: IDataModelState = {
   schemas: {},

@@ -1,7 +1,9 @@
-import { render, screen } from '@testing-library/react';
 import React from 'react';
-import type { IDropzoneComponentProps } from './DropzoneComponent';
-import { DropzoneComponent } from './DropzoneComponent';
+
+import { render, screen } from '@testing-library/react';
+
+import { DropzoneComponent } from 'src/components/base/FileUpload/shared/DropzoneComponent';
+import type { IDropzoneComponentProps } from 'src/components/base/FileUpload/shared/DropzoneComponent';
 
 describe('DropzoneComponent', () => {
   const id = 'mock-id';

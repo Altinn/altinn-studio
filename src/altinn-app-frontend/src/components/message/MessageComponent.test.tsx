@@ -1,8 +1,9 @@
 import * as React from 'react';
+
 import { render as rtlRender, screen } from '@testing-library/react';
 
-import type { IMessageComponentProps } from './MessageComponent';
-import { MessageComponent } from './MessageComponent';
+import { MessageComponent } from 'src/components/message/MessageComponent';
+import type { IMessageComponentProps } from 'src/components/message/MessageComponent';
 
 describe('MessageComponent', () => {
   it('should have class a-message when messageType is "message", and none of the other a-message-* classes', () => {

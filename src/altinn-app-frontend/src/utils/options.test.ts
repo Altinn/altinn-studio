@@ -1,7 +1,8 @@
-import type { IDataSources, ITextResource } from 'altinn-shared/types';
+import { getOptionLookupKey, setupSourceOptions } from 'src/utils/options';
 import type { IFormData } from 'src/features/form/data';
 import type { IOptionSource, IRepeatingGroups } from 'src/types';
-import { getOptionLookupKey, setupSourceOptions } from './options';
+
+import type { IDataSources, ITextResource } from 'altinn-shared/types';
 
 describe('utils > options', () => {
   describe('getOptionLookupKey', () => {

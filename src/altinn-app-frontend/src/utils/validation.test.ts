@@ -1,28 +1,29 @@
 import { createElement } from 'react';
-import { getInitialStateMock } from '../../__mocks__/initialStateMock';
-import { getMockValidationState } from '../../__mocks__/validationStateMock';
-import * as oneOfOnRootSchema from '../../__mocks__/json-schema/one-of-on-root.json';
-import * as refOnRootSchema from '../../__mocks__/json-schema/ref-on-root.json';
-import * as complexSchema from '../../__mocks__/json-schema/complex.json';
 
+import { Severity } from 'src/types';
+import { createRepeatingGroupComponents } from 'src/utils/formLayout';
+import { getParsedTextResourceByKey } from 'src/utils/textResource';
+import * as validation from 'src/utils/validation';
+import { mapToComponentValidations } from 'src/utils/validation';
+import type { ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
 import type {
-  IValidationIssue,
-  IValidations,
-  IRepeatingGroups,
-  IRuntimeState,
   IComponentBindingValidation,
   IComponentValidations,
   ILayoutValidations,
+  IRepeatingGroups,
+  IRuntimeState,
   ITextResource,
+  IValidationIssue,
+  IValidations,
 } from 'src/types';
-import type { ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
 
-import { Severity } from 'src/types';
-import { getParsedLanguageFromKey } from '../../../shared/src';
-import { createRepeatingGroupComponents } from 'src/utils/formLayout';
-import { getParsedTextResourceByKey } from 'src/utils/textResource';
-import * as validation from './validation';
-import { mapToComponentValidations } from './validation';
+import { getInitialStateMock } from 'altinn-app-frontend/__mocks__/initialStateMock';
+import * as complexSchema from 'altinn-app-frontend/__mocks__/json-schema/complex.json';
+import * as oneOfOnRootSchema from 'altinn-app-frontend/__mocks__/json-schema/one-of-on-root.json';
+import * as refOnRootSchema from 'altinn-app-frontend/__mocks__/json-schema/ref-on-root.json';
+import { getMockValidationState } from 'altinn-app-frontend/__mocks__/validationStateMock';
+
+import { getParsedLanguageFromKey } from 'altinn-shared/index';
 
 describe('utils > validation', () => {
   let mockLayout: any;

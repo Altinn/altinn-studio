@@ -1,21 +1,24 @@
+import React, { useState } from 'react';
+
 import { Panel } from '@altinn/altinn-design-system';
 import { Grid } from '@material-ui/core';
-import { EditIconButton } from 'altinn-shared/components/EditIconButton';
-import { SuccessIconButton } from 'altinn-shared/components/SuccessIconButton';
-import { getLanguageFromKey } from 'altinn-shared/utils';
-import React, { useState } from 'react';
+
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
+import { FullWidthGroupWrapper } from 'src/features/form/components/FullWidthGroupWrapper';
+import { FullWidthWrapper } from 'src/features/form/components/FullWidthWrapper';
+import { getVariant } from 'src/features/form/components/Panel';
+import { renderLayoutComponent } from 'src/features/form/containers/Form';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { makeGetHidden } from 'src/selectors/getLayoutData';
 import { getTextResource } from 'src/utils/formComponentUtils';
 import { createRepeatingGroupComponentsForIndex } from 'src/utils/formLayout';
 import { getLayoutComponentById } from 'src/utils/layout';
-import { FullWidthGroupWrapper } from '../components/FullWidthGroupWrapper';
-import { FullWidthWrapper } from '../components/FullWidthWrapper';
-import { getVariant } from '../components/Panel';
-import type { ILayoutComponent, ILayoutGroup } from '../layout';
-import { FormLayoutActions } from '../layout/formLayoutSlice';
-import { renderLayoutComponent } from './Form';
+import type { ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
+
+import { EditIconButton } from 'altinn-shared/components/EditIconButton';
+import { SuccessIconButton } from 'altinn-shared/components/SuccessIconButton';
+import { getLanguageFromKey } from 'altinn-shared/utils';
 
 export interface IPanelGroupContainerProps {
   container: ILayoutGroup;

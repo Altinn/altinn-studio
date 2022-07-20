@@ -1,17 +1,19 @@
-import axios from 'axios';
 import * as React from 'react';
+
+import axios from 'axios';
 import cn from 'classnames';
 
-import { getLanguageFromKey, get } from 'altinn-shared/utils';
-import type { IComponentValidations } from 'src/types';
-import { renderValidationMessagesForComponent } from '../../utils/render';
-import type { IComponentProps } from '..';
-import { AddressLabel } from './AddressLabel';
-
-import './AddressComponent.css';
-import '../../styles/shared.css';
+import { AddressLabel } from 'src/components/advanced/AddressLabel';
 import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
+import { renderValidationMessagesForComponent } from 'src/utils/render';
+import type { IComponentProps } from 'src/components';
 import type { ILayoutCompAddress } from 'src/features/form/layout';
+import type { IComponentValidations } from 'src/types';
+
+import { get, getLanguageFromKey } from 'altinn-shared/utils';
+
+import 'src/components/advanced/AddressComponent.css';
+import 'src/styles/shared.css';
 
 export type IAddressComponentProps = IComponentProps &
   Omit<ILayoutCompAddress, 'type'>;

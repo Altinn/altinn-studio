@@ -1,7 +1,7 @@
-import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
-import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
 import { watcherFinishDataTaskIsloadingSaga } from 'src/shared/resources/isLoading/dataTask/dataTaskIsLoadingSagas';
 import { watcherFinishStatelessIsLoadingSaga } from 'src/shared/resources/isLoading/stateless/statelessIsLoadingSagas';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
+import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
 
 export interface IIsLoadingState {
   dataTask: boolean;

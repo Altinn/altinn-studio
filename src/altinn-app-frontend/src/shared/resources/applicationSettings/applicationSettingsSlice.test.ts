@@ -1,13 +1,12 @@
+import slice, {
+  ApplicationSettingsActions,
+  initialState,
+} from 'src/shared/resources/applicationSettings/applicationSettingsSlice';
+import type { IApplicationSettingsState } from 'src/shared/resources/applicationSettings/applicationSettingsSlice';
 import type {
   IFetchApplicationSettingsFulfilled,
   IFetchApplicationSettingsRejected,
-} from './applicationSettingsTypes';
-
-import type { IApplicationSettingsState } from './applicationSettingsSlice';
-import slice, {
-  initialState,
-  ApplicationSettingsActions,
-} from './applicationSettingsSlice';
+} from 'src/shared/resources/applicationSettings/applicationSettingsTypes';
 
 describe('applicationSettingsSlice', () => {
   let state: IApplicationSettingsState;

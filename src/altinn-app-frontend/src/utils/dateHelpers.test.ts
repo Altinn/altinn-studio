@@ -1,5 +1,6 @@
 import moment from 'moment';
-import { getFlagBasedDate, getISOString } from './dateHelpers';
+
+import { getFlagBasedDate, getISOString } from 'src/utils/dateHelpers';
 import type { DateFlags } from 'src/types';
 
 describe('dateHelpers', () => {

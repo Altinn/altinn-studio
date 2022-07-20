@@ -1,22 +1,23 @@
-import type { IQueueError, IQueueState } from '.';
-import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
-import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
-import type { SagaIterator } from 'redux-saga';
 import { put } from 'redux-saga/effects';
-import { ApplicationSettingsActions } from 'src/shared/resources/applicationSettings/applicationSettingsSlice';
-import { TextResourcesActions } from 'src/shared/resources/textResources/textResourcesSlice';
-import { LanguageActions } from 'src/shared/resources/language/languageSlice';
-import { ApplicationMetadataActions } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
-import { OrgsActions } from 'src/shared/resources/orgs/orgsSlice';
+import type { SagaIterator } from 'redux-saga';
+
 import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import { DataModelActions } from 'src/features/form/datamodel/datamodelSlice';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { ApplicationMetadataActions } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
+import { ApplicationSettingsActions } from 'src/shared/resources/applicationSettings/applicationSettingsSlice';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
-import { ProfileActions } from 'src/shared/resources/profile/profileSlice';
-import { profileApiUrl } from 'src/utils/appUrlHelper';
-import { PartyActions } from 'src/shared/resources/party/partySlice';
 import { IsLoadingActions } from 'src/shared/resources/isLoading/isLoadingSlice';
+import { LanguageActions } from 'src/shared/resources/language/languageSlice';
+import { OrgsActions } from 'src/shared/resources/orgs/orgsSlice';
+import { PartyActions } from 'src/shared/resources/party/partySlice';
+import { ProfileActions } from 'src/shared/resources/profile/profileSlice';
 import { watchStartInitialInfoTaskQueueSaga } from 'src/shared/resources/queue/infoTask/infoTaskQueueSaga';
+import { TextResourcesActions } from 'src/shared/resources/textResources/textResourcesSlice';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
+import { profileApiUrl } from 'src/utils/appUrlHelper';
+import type { IQueueError, IQueueState } from 'src/shared/resources/queue';
+import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
 
 const commonState = { isDone: null, error: null };
 export const initialState: IQueueState = {

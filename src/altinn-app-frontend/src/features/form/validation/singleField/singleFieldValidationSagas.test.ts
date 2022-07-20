@@ -1,19 +1,18 @@
 import { call, select } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
-import type { AxiosRequestConfig } from 'axios';
 import { throwError } from 'redux-saga-test-plan/providers';
+import type { AxiosRequestConfig } from 'axios';
 
-import { getInitialStateMock } from '../../../../../__mocks__/initialStateMock';
-
+import { runSingleFieldValidationSaga } from 'src/features/form/validation/singleField/singleFieldValidationSagas';
+import { ValidationActions } from 'src/features/form/validation/validationSlice';
+import { Severity } from 'src/types';
+import { getDataValidationUrl } from 'src/utils/appUrlHelper';
+import { get } from 'src/utils/networking';
 import type { IRuntimeState, IValidationIssue, IValidations } from 'src/types';
 
-import { get } from '../../../../utils/networking';
-import { ValidationActions } from '../validationSlice';
-import { Severity } from 'src/types';
-import { getDataValidationUrl } from '../../../../utils/appUrlHelper';
-import { getParsedLanguageFromText } from '../../../../../../shared/src';
+import { getInitialStateMock } from 'altinn-app-frontend/__mocks__/initialStateMock';
 
-import { runSingleFieldValidationSaga } from './singleFieldValidationSagas';
+import { getParsedLanguageFromText } from 'altinn-shared/index';
 
 describe('singleFieldValidationSagas', () => {
   let mockState: IRuntimeState;

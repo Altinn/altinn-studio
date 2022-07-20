@@ -1,11 +1,11 @@
+import { instantiationSaga } from 'src/features/instantiate/instantiation/sagas/instantiate';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
 import type {
-  IInstantiationState,
   IInstantiateFulfilled,
   IInstantiateRejected,
-} from '.';
+  IInstantiationState,
+} from 'src/features/instantiate/instantiation';
 import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
-import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
-import { instantiationSaga } from 'src/features/instantiate/instantiation/sagas/instantiate';
 
 const initialState: IInstantiationState = {
   instantiating: false,

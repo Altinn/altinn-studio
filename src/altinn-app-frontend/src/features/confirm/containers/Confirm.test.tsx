@@ -1,14 +1,16 @@
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
-import userEvent from '@testing-library/user-event';
-import { screen } from '@testing-library/react';
 
-import { getInitialStateMock } from '../../../../__mocks__/initialStateMock';
-import { renderWithProviders } from '../../../../testUtils';
+import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import Confirm, {
   returnConfirmSummaryObject,
 } from 'src/features/confirm/containers/Confirm';
+
+import { getInitialStateMock } from 'altinn-app-frontend/__mocks__/initialStateMock';
+import { renderWithProviders } from 'altinn-app-frontend/testUtils';
+
 import type { IParty } from 'altinn-shared/types';
 
 describe('Confirm', () => {

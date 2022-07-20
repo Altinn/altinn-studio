@@ -1,24 +1,26 @@
+import { call, fork, put, select } from 'redux-saga/effects';
+import type { PayloadAction } from '@reduxjs/toolkit';
 import type { SagaIterator } from 'redux-saga';
-import { fork, call, select, put } from 'redux-saga/effects';
-import type {
-  IRuntimeState,
-  IOption,
-  IFetchSpecificOptionSaga,
-  IOptions,
-  IOptionsMetaData,
-} from 'src/types';
+
+import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
+import { OptionsActions } from 'src/shared/resources/options/optionsSlice';
+import { getOptionsUrl } from 'src/utils/appUrlHelper';
+import { getOptionLookupKey } from 'src/utils/options';
+import type { IFormData } from 'src/features/form/data';
+import type { IUpdateFormDataFulfilled } from 'src/features/form/data/formDataTypes';
 import type {
   ILayouts,
   ISelectionComponentProps,
 } from 'src/features/form/layout';
+import type {
+  IFetchSpecificOptionSaga,
+  IOption,
+  IOptions,
+  IOptionsMetaData,
+  IRuntimeState,
+} from 'src/types';
+
 import { get } from 'altinn-shared/utils';
-import { getOptionsUrl } from 'src/utils/appUrlHelper';
-import { OptionsActions } from '../optionsSlice';
-import type { IUpdateFormDataFulfilled } from 'src/features/form/data/formDataTypes';
-import type { PayloadAction } from '@reduxjs/toolkit';
-import type { IFormData } from 'src/features/form/data';
-import { getOptionLookupKey } from 'src/utils/options';
-import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 
 export const formLayoutSelector = (state: IRuntimeState): ILayouts =>
   state.formLayout.layouts;

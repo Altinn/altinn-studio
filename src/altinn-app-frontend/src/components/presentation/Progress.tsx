@@ -1,5 +1,7 @@
 import React from 'react';
+
 import { CircularProgress } from '@altinn/altinn-design-system';
+
 import { useAppSelector } from 'src/common/hooks';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 

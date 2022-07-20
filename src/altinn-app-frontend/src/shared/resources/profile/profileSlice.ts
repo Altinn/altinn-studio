@@ -1,13 +1,14 @@
-import type { IProfile } from 'altinn-shared/types';
+import { fetchProfileSaga } from 'src/shared/resources/profile/fetch/fetchProfileSagas';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
 import type {
-  IProfileState,
+  IFetchProfile,
   IFetchProfileFulfilled,
   IFetchProfileRejected,
-  IFetchProfile,
-} from '.';
+  IProfileState,
+} from 'src/shared/resources/profile';
 import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
-import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
-import { fetchProfileSaga } from 'src/shared/resources/profile/fetch/fetchProfileSagas';
+
+import type { IProfile } from 'altinn-shared/types';
 
 const initialState: IProfileState = {
   profile: {

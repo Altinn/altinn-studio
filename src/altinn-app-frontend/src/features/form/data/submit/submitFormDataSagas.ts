@@ -1,47 +1,49 @@
-import type { SagaIterator } from 'redux-saga';
 import { call, put as sagaPut, select } from 'redux-saga/effects';
-import { get, put } from 'altinn-shared/utils';
-import type { IRuntimeState, IRuntimeStore, IUiConfig } from 'src/types';
-import { Severity } from 'src/types';
 import type { PayloadAction } from '@reduxjs/toolkit';
-import { post } from 'src/utils/networking';
-import {
-  convertDataBindingToModel,
-  convertModelToDataBinding,
-  filterOutInvalidData,
-} from '../../../../utils/databindings';
-import {
-  dataElementUrl,
-  getStatelessFormDataUrl,
-  getValidationUrl,
-} from '../../../../utils/appUrlHelper';
-import {
-  canFormBeSaved,
-  hasValidationsOfSeverity,
-  getValidator,
-  mapDataElementValidationToRedux,
-  mergeValidationObjects,
-  validateEmptyFields,
-  validateFormComponents,
-  validateFormData,
-} from '../../../../utils/validation';
-import type { ILayoutState } from '../../layout/formLayoutSlice';
-import { FormLayoutActions } from '../../layout/formLayoutSlice';
-import { ValidationActions } from '../../validation/validationSlice';
-import { FormDataActions } from '../formDataSlice';
-import { FormDynamicsActions } from '../../dynamics/formDynamicsSlice';
-import type {
-  ISubmitDataAction,
-  IUpdateFormDataFulfilled,
-} from '../formDataTypes';
+import type { SagaIterator } from 'redux-saga';
+
+import { FormDataActions } from 'src/features/form/data/formDataSlice';
+import { FormDynamicsActions } from 'src/features/form/dynamics/formDynamicsSlice';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { ValidationActions } from 'src/features/form/validation/validationSlice';
+import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
+import { ProcessActions } from 'src/shared/resources/process/processSlice';
+import { Severity } from 'src/types';
 import {
   getCurrentDataTypeForApplication,
   getCurrentTaskDataElementId,
   getDataTaskDataTypeId,
   isStatelessApp,
-} from '../../../../utils/appMetadata';
-import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
-import { ProcessActions } from 'src/shared/resources/process/processSlice';
+} from 'src/utils/appMetadata';
+import {
+  dataElementUrl,
+  getStatelessFormDataUrl,
+  getValidationUrl,
+} from 'src/utils/appUrlHelper';
+import {
+  convertDataBindingToModel,
+  convertModelToDataBinding,
+  filterOutInvalidData,
+} from 'src/utils/databindings';
+import { post } from 'src/utils/networking';
+import {
+  canFormBeSaved,
+  getValidator,
+  hasValidationsOfSeverity,
+  mapDataElementValidationToRedux,
+  mergeValidationObjects,
+  validateEmptyFields,
+  validateFormComponents,
+  validateFormData,
+} from 'src/utils/validation';
+import type {
+  ISubmitDataAction,
+  IUpdateFormDataFulfilled,
+} from 'src/features/form/data/formDataTypes';
+import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
+import type { IRuntimeState, IRuntimeStore, IUiConfig } from 'src/types';
+
+import { get, put } from 'altinn-shared/utils';
 
 const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (
   store: IRuntimeStore,

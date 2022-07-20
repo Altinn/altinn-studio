@@ -1,17 +1,18 @@
 import React from 'react';
+
+import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { screen, fireEvent } from '@testing-library/react';
 import type { PreloadedState } from '@reduxjs/toolkit';
 
-import { renderWithProviders } from '../../../../testUtils';
-
-import { RadioButtonContainerComponent } from './RadioButtonsContainerComponent';
-import type { IComponentProps } from 'src/components';
-import type { IRadioButtonsContainerProps } from './RadioButtonsContainerComponent';
+import { RadioButtonContainerComponent } from 'src/components/base/RadioButtons/RadioButtonsContainerComponent';
 import { LayoutStyle } from 'src/types';
-import { getInitialStateMock } from '../../../../__mocks__/initialStateMock';
-import type { RootState } from 'src/store';
+import type { IComponentProps } from 'src/components';
+import type { IRadioButtonsContainerProps } from 'src/components/base/RadioButtons/RadioButtonsContainerComponent';
 import type { IOptionsState } from 'src/shared/resources/options';
+import type { RootState } from 'src/store';
+
+import { getInitialStateMock } from 'altinn-app-frontend/__mocks__/initialStateMock';
+import { renderWithProviders } from 'altinn-app-frontend/testUtils';
 
 const threeOptions = [
   {

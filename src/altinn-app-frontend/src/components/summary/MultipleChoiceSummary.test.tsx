@@ -1,9 +1,9 @@
 import * as React from 'react';
+
 import { render as rtlRender } from '@testing-library/react';
 
-import type { IMultipleChoiceSummaryProps } from './MultipleChoiceSummary';
-
-import MultipleChoiceSummary from './MultipleChoiceSummary';
+import MultipleChoiceSummary from 'src/components/summary/MultipleChoiceSummary';
+import type { IMultipleChoiceSummaryProps } from 'src/components/summary/MultipleChoiceSummary';
 
 describe('MultipleChoiceSummary', () => {
   test('MultipleChoiceSummary', () => {

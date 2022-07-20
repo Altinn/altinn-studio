@@ -1,4 +1,4 @@
-import type { IAttachment } from '..';
+import type { IAttachment } from 'src/shared/resources/attachments';
 
 export interface IUpdateAttachmentAction {
   attachment: IAttachment;

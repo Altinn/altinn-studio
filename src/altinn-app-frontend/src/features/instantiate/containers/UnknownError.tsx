@@ -1,10 +1,12 @@
 import * as React from 'react';
+
+import { useAppSelector } from 'src/common/hooks';
+import InstantiationErrorPage from 'src/features/instantiate/containers/InstantiationErrorPage';
+
 import {
   getLanguageFromKey,
   getParsedLanguageFromKey,
 } from 'altinn-shared/utils';
-import InstantiationErrorPage from './InstantiationErrorPage';
-import { useAppSelector } from 'src/common/hooks';
 
 function UnknownError() {
   const language = useAppSelector((state) => state.language.language);

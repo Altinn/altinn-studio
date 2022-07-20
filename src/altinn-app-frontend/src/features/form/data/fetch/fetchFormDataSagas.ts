@@ -1,37 +1,39 @@
+import { all, call, put, select, take } from 'redux-saga/effects';
 import type { SagaIterator } from 'redux-saga';
-import { call, select, all, take, put } from 'redux-saga/effects';
-import { get } from 'altinn-shared/utils';
-import type { IInstance } from 'altinn-shared/types';
+
+import { FormDataActions } from 'src/features/form/data/formDataSlice';
+import { DataModelActions } from 'src/features/form/datamodel/datamodelSlice';
+import { FormDynamicsActions } from 'src/features/form/dynamics/formDynamicsSlice';
+import { FormRulesActions } from 'src/features/form/rules/rulesSlice';
+import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
+import {
+  appMetaDataSelector,
+  currentSelectedPartyIdSelector,
+  instanceDataSelector,
+  layoutSetsSelector,
+  processStateSelector,
+} from 'src/selectors/simpleSelectors';
+import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
+import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import {
   getCurrentTaskDataElementId,
   getDataTypeByLayoutSetId,
   isStatelessApp,
 } from 'src/utils/appMetadata';
-import { putWithoutConfig } from 'src/utils/networking';
-import { convertModelToDataBinding } from '../../../../utils/databindings';
-import { FormDataActions } from '../formDataSlice';
-import type { ILayoutSets, IRuntimeState } from '../../../../types';
-import type { IApplicationMetadata } from '../../../../shared/resources/applicationMetadata';
-import { FormDynamicsActions } from '../../dynamics/formDynamicsSlice';
-import { QueueActions } from '../../../../shared/resources/queue/queueSlice';
-import type { IProcessState } from '../../../../shared/resources/process';
 import {
   getFetchFormDataUrl,
   getStatelessFormDataUrl,
   invalidateCookieUrl,
   redirectToUpgrade,
-} from '../../../../utils/appUrlHelper';
-import { DataModelActions } from '../../datamodel/datamodelSlice';
-import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
-import {
-  appMetaDataSelector,
-  instanceDataSelector,
-  processStateSelector,
-  currentSelectedPartyIdSelector,
-  layoutSetsSelector,
-} from 'src/selectors/simpleSelectors';
-import { FormRulesActions } from 'src/features/form/rules/rulesSlice';
-import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
+} from 'src/utils/appUrlHelper';
+import { convertModelToDataBinding } from 'src/utils/databindings';
+import { putWithoutConfig } from 'src/utils/networking';
+import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
+import type { IProcessState } from 'src/shared/resources/process';
+import type { ILayoutSets, IRuntimeState } from 'src/types';
+
+import { get } from 'altinn-shared/utils';
+import type { IInstance } from 'altinn-shared/types';
 
 export function* fetchFormDataSaga(): SagaIterator {
   try {

@@ -1,5 +1,6 @@
-import type { IRuntimeState } from 'src/types';
 import { createSelector } from 'reselect';
+
+import type { IRuntimeState } from 'src/types';
 
 let lastLogged: Error | null = null;
 

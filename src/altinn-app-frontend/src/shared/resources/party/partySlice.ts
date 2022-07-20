@@ -1,18 +1,18 @@
-import type {
-  IPartyState,
-  IGetPartiesRejected,
-  IGetPartiesFulfilled,
-  ISelectPartyFulfilled,
-  ISelectPartyRejected,
-  ISelectParty,
-} from '.';
-import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
-import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
 import {
-  getPartiesSaga,
   getCurrentPartySaga,
+  getPartiesSaga,
 } from 'src/shared/resources/party/getParties/getPartiesSagas';
 import { selectPartySaga } from 'src/shared/resources/party/selectParty/selectPartySagas';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
+import type {
+  IGetPartiesFulfilled,
+  IGetPartiesRejected,
+  IPartyState,
+  ISelectParty,
+  ISelectPartyFulfilled,
+  ISelectPartyRejected,
+} from 'src/shared/resources/party';
+import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
 
 const initialState: IPartyState = {
   parties: null,

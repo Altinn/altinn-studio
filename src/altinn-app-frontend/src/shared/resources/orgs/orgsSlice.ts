@@ -1,7 +1,11 @@
-import type { IOrgsState, IFetchOrgsFulfilled, IFetchOrgsRejected } from '.';
-import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
-import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
 import { fetchOrgsSaga } from 'src/shared/resources/orgs/fetch/fetchOrgsSagas';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
+import type {
+  IFetchOrgsFulfilled,
+  IFetchOrgsRejected,
+  IOrgsState,
+} from 'src/shared/resources/orgs';
+import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
 
 const initialState: IOrgsState = {
   allOrgs: null,

@@ -1,11 +1,14 @@
-import { getTextFromAppOrDefault } from 'src/utils/textResource';
-import { AltinnSpinner, Select } from 'altinn-shared/components';
-import { Box } from '@material-ui/core';
 import * as React from 'react';
-import { useAppSelector, useAppDispatch } from 'src/common/hooks';
+
+import { Box } from '@material-ui/core';
+
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 import { useGetAppLanguageQuery } from 'src/services/LanguageApi';
 import { LanguageActions } from 'src/shared/resources/language/languageSlice';
-import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
+import { getTextFromAppOrDefault } from 'src/utils/textResource';
+
+import { AltinnSpinner, Select } from 'altinn-shared/components';
 
 export const LanguageSelector = () => {
   const language = useAppSelector((state) => state.language.language || {});

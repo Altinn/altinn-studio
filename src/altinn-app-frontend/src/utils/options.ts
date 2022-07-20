@@ -1,5 +1,3 @@
-import type { IDataSources } from 'altinn-shared/types';
-import { replaceTextResourceParams } from 'altinn-shared/utils';
 import type { IFormData } from 'src/features/form/data';
 import type {
   IMapping,
@@ -8,6 +6,9 @@ import type {
   IRepeatingGroups,
   ITextResource,
 } from 'src/types';
+
+import { replaceTextResourceParams } from 'altinn-shared/utils';
+import type { IDataSources } from 'altinn-shared/types';
 
 export function getOptionLookupKey(id: string, mapping?: IMapping) {
   if (!mapping) {

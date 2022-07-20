@@ -1,12 +1,12 @@
+import { getInstanceDataSaga } from 'src/shared/resources/instanceData/get/getInstanceDataSagas';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
 import type {
-  IInstanceDataState,
   IGetInstanceData,
   IGetInstanceDataFulfilled,
   IGetInstanceDataRejected,
-} from '.';
+  IInstanceDataState,
+} from 'src/shared/resources/instanceData';
 import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
-import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
-import { getInstanceDataSaga } from 'src/shared/resources/instanceData/get/getInstanceDataSagas';
 
 const initialState: IInstanceDataState = {
   instance: null,

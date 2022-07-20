@@ -1,12 +1,14 @@
+import { call, delay, put, select } from 'redux-saga/effects';
 import type { SagaIterator } from 'redux-saga';
-import { call, delay, select, put } from 'redux-saga/effects';
+
+import { ProcessActions } from 'src/shared/resources/process/processSlice';
+import { ProcessTaskType } from 'src/types';
+import { getProcessStateUrl } from 'src/utils/appUrlHelper';
+import type { IProcessState } from 'src/shared/resources/process';
+import type { IRuntimeState } from 'src/types';
+
 import { get } from 'altinn-shared/utils';
 import type { IProcess } from 'altinn-shared/types';
-import type { IRuntimeState } from '../../../../types';
-import { ProcessTaskType } from '../../../../types';
-import { getProcessStateUrl } from '../../../../utils/appUrlHelper';
-import type { IProcessState } from '../';
-import { ProcessActions } from 'src/shared/resources/process/processSlice';
 
 const processSelector = (state: IRuntimeState): IProcessState => state.process;
 

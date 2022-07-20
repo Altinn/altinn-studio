@@ -1,25 +1,27 @@
-import { expectSaga } from 'redux-saga-test-plan';
 import { select } from 'redux-saga/effects';
+import { expectSaga } from 'redux-saga-test-plan';
+
+import { selectFormLayouts } from 'src/features/form/layout/update/updateFormLayoutSagas';
+import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import {
   mapAttachments,
-  SelectInstance,
   SelectApplicationMetaData,
   SelectFormData,
   SelectFormLayouts,
+  SelectInstance,
   SelectInstanceData,
-} from './mapAttachmentsSagas';
-import { selectFormLayouts } from 'src/features/form/layout/update/updateFormLayoutSagas';
-import { getInitialStateMock } from '../../../../../__mocks__/mocks';
+} from 'src/shared/resources/attachments/map/mapAttachmentsSagas';
 import type {
-  IAttachments,
-  IAttachment,
-} from 'src/shared/resources/attachments';
-import type {
+  ILayoutCompFileUpload,
   ILayoutComponent,
   ILayoutGroup,
-  ILayoutCompFileUpload,
 } from 'src/features/form/layout';
-import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
+import type {
+  IAttachment,
+  IAttachments,
+} from 'src/shared/resources/attachments';
+
+import { getInitialStateMock } from 'altinn-app-frontend/__mocks__/mocks';
 
 describe('mapAttachments', () => {
   const defaultAttachmentProps = {

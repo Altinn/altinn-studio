@@ -1,15 +1,17 @@
 import * as React from 'react';
-import classNames from 'classnames';
 import NumberFormat from 'react-number-format';
-import { Input, makeStyles } from '@material-ui/core';
 
-import '../../styles/shared.css';
+import { Input, makeStyles } from '@material-ui/core';
+import classNames from 'classnames';
+
 import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
-import type { IComponentProps } from '..';
+import type { IComponentProps } from 'src/components';
 import type {
-  ILayoutCompInput,
   IInputFormatting,
+  ILayoutCompInput,
 } from 'src/features/form/layout';
+
+import 'src/styles/shared.css';
 
 export interface IInputBaseProps {
   id: string;

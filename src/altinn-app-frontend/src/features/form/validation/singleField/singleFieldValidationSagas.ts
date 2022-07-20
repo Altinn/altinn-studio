@@ -1,15 +1,16 @@
-import type { SagaIterator } from 'redux-saga';
 import { call, put, select } from 'redux-saga/effects';
 import type { AxiosRequestConfig } from 'axios';
-import type { IRuntimeState, IValidationIssue } from 'src/types';
+import type { SagaIterator } from 'redux-saga';
+
+import { ValidationActions } from 'src/features/form/validation/validationSlice';
+import { getCurrentTaskDataElementId } from 'src/utils/appMetadata';
 import { getDataValidationUrl } from 'src/utils/appUrlHelper';
 import { get } from 'src/utils/networking';
 import {
   mapDataElementValidationToRedux,
   mergeValidationObjects,
-} from '../../../../utils/validation';
-import { ValidationActions } from '../validationSlice';
-import { getCurrentTaskDataElementId } from 'src/utils/appMetadata';
+} from 'src/utils/validation';
+import type { IRuntimeState, IValidationIssue } from 'src/types';
 
 export function* runSingleFieldValidationSaga(): SagaIterator {
   const state: IRuntimeState = yield select();

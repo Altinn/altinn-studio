@@ -1,4 +1,4 @@
-import type { ITitle, IDataType } from '../../../../../shared/src/types';
+import type { IDataType, ITitle } from 'altinn-shared/types';
 
 export interface IApplicationMetadata {
   createdBy: string;

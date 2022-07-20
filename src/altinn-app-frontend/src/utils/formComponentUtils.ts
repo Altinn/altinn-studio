@@ -1,38 +1,40 @@
-import type { ILanguage } from 'altinn-shared/types';
-import {
-  getLanguageFromKey,
-  getParsedLanguageFromText,
-  getTextResourceByKey,
-} from 'altinn-shared/utils';
 import type React from 'react';
+
+import { AsciiUnitSeparator } from 'src/utils/attachment';
+import {
+  getOptionLookupKey,
+  getRelevantFormDataForOptionSource,
+  setupSourceOptions,
+} from 'src/utils/options';
+import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { IFormData } from 'src/features/form/data';
 import type {
   ILayoutComponent,
+  ILayoutEntry,
   ILayoutGroup,
   ISelectionComponentProps,
-  ILayoutEntry,
 } from 'src/features/form/layout';
 import type {
   IAttachment,
   IAttachments,
 } from 'src/shared/resources/attachments';
 import type {
-  IDataModelBindings,
   IComponentValidations,
-  ITextResource,
-  ITextResourceBindings,
+  IDataModelBindings,
   IOption,
   IOptions,
-  IValidations,
   IRepeatingGroups,
+  ITextResource,
+  ITextResourceBindings,
+  IValidations,
 } from 'src/types';
-import { AsciiUnitSeparator } from './attachment';
+
 import {
-  getOptionLookupKey,
-  getRelevantFormDataForOptionSource,
-  setupSourceOptions,
-} from './options';
-import { getTextFromAppOrDefault } from './textResource';
+  getLanguageFromKey,
+  getParsedLanguageFromText,
+  getTextResourceByKey,
+} from 'altinn-shared/utils';
+import type { ILanguage } from 'altinn-shared/types';
 
 export const componentValidationsHandledByGenericComponent = (
   dataModelBindings: IDataModelBindings,

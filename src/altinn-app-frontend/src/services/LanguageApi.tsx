@@ -1,4 +1,5 @@
 import { appApi } from 'src/services/AppApi';
+
 import type { IAppLanguage } from 'altinn-shared/types';
 
 export const languageApi = appApi.injectEndpoints({

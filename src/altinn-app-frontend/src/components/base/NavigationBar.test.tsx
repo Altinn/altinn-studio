@@ -1,11 +1,17 @@
 import * as React from 'react';
+
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { mockMediaQuery, renderWithProviders } from '../../../testUtils';
-import { NavigationBar } from './NavigationBar';
-import type { INavigationBar } from './NavigationBar';
-import { setupStore } from 'src/store';
+
+import { NavigationBar } from 'src/components/base/NavigationBar';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { setupStore } from 'src/store';
+import type { INavigationBar } from 'src/components/base/NavigationBar';
+
+import {
+  mockMediaQuery,
+  renderWithProviders,
+} from 'altinn-app-frontend/testUtils';
 
 const { setScreenWidth } = mockMediaQuery(600);
 

@@ -1,4 +1,5 @@
 import { bindActionCreators } from 'redux';
+
 import { store } from 'src/store';
 
 export type IInstanceDataActions = typeof actions;

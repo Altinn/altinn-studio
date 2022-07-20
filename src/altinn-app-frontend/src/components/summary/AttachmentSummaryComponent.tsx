@@ -1,5 +1,7 @@
-import { Grid, Typography } from '@material-ui/core';
 import * as React from 'react';
+
+import { Grid, Typography } from '@material-ui/core';
+
 import { useAppSelector } from 'src/common/hooks';
 
 export interface IAttachmentSummaryComponent {

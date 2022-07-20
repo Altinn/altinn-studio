@@ -1,12 +1,12 @@
+import { fetchOptionsSaga } from 'src/shared/resources/options/fetch/fetchOptionsSagas';
+import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
 import type {
-  IOptionsState,
+  IFetchingOptionsAction,
   IFetchOptionsFulfilledAction,
   IFetchOptionsRejectedAction,
-  IFetchingOptionsAction,
-} from '.';
+  IOptionsState,
+} from 'src/shared/resources/options';
 import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
-import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
-import { fetchOptionsSaga } from 'src/shared/resources/options/fetch/fetchOptionsSagas';
 
 const initialState: IOptionsState = {
   options: {},

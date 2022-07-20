@@ -1,9 +1,9 @@
 import React from 'react';
 
-import type { ILanguage } from 'altinn-shared/types';
+import HelpTextIcon from 'src/features/form/components/HelpTextIcon';
+import HelpTextPopover from 'src/features/form/components/HelpTextPopover';
 
-import HelpTextPopover from './HelpTextPopover';
-import HelpTextIcon from './HelpTextIcon';
+import type { ILanguage } from 'altinn-shared/types';
 
 export interface IHelpTextContainerProps {
   language: ILanguage;

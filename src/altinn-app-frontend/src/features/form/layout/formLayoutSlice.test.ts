@@ -1,5 +1,8 @@
-import type { ILayoutState } from './formLayoutSlice';
-import slice, { initialState, FormLayoutActions } from './formLayoutSlice';
+import slice, {
+  FormLayoutActions,
+  initialState,
+} from 'src/features/form/layout/formLayoutSlice';
+import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
 
 describe('layoutSlice', () => {
   describe('fetchLayoutFulfilled', () => {

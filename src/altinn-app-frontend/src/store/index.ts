@@ -1,10 +1,11 @@
-import type { SagaMiddleware } from 'redux-saga';
-import createSagaMiddleware from 'redux-saga';
-import reducers from '../reducers';
-import { appApi } from 'src/services/AppApi';
-import type { PreloadedState } from '@reduxjs/toolkit';
 import { configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
+import createSagaMiddleware from 'redux-saga';
+import type { PreloadedState } from '@reduxjs/toolkit';
+import type { SagaMiddleware } from 'redux-saga';
+
+import reducers from 'src/reducers';
+import { appApi } from 'src/services/AppApi';
 
 export const sagaMiddleware: SagaMiddleware<any> = createSagaMiddleware();
 const middlewares = [sagaMiddleware, appApi.middleware];

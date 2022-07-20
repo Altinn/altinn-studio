@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-hooks';
 
-import { useDisplayData } from './useDisplayData';
+import { useDisplayData } from 'src/components/hooks/useDisplayData';
 
 describe('useDisplayData', () => {
   test('should be empty string if formData is null or undefined', async () => {

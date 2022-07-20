@@ -1,14 +1,13 @@
-import type { SagaIterator } from 'redux-saga';
 import { call, put, select } from 'redux-saga/effects';
-import type { IRuntimeState } from 'src/types';
-import type { IParty } from 'altinn-shared/types';
-import { get } from '../../../../utils/networking';
-import {
-  currentPartyUrl,
-  validPartiesUrl,
-} from '../../../../utils/appUrlHelper';
-import { QueueActions } from '../../queue/queueSlice';
+import type { SagaIterator } from 'redux-saga';
+
 import { PartyActions } from 'src/shared/resources/party/partySlice';
+import { QueueActions } from 'src/shared/resources/queue/queueSlice';
+import { currentPartyUrl, validPartiesUrl } from 'src/utils/appUrlHelper';
+import { get } from 'src/utils/networking';
+import type { IRuntimeState } from 'src/types';
+
+import type { IParty } from 'altinn-shared/types';
 
 const PartiesSelector = (state: IRuntimeState) => state.party.parties;
 

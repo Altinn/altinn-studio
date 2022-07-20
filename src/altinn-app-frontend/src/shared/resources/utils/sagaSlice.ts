@@ -1,13 +1,13 @@
+import { createAction, createSlice } from '@reduxjs/toolkit';
+import { takeEvery, takeLatest } from 'redux-saga/effects';
 import type {
-  Slice,
-  PayloadAction,
   CaseReducer,
   CreateSliceOptions,
+  PayloadAction,
+  Slice,
 } from '@reduxjs/toolkit';
-import type { SagaIterator } from 'redux-saga';
 import type { WritableDraft } from 'immer/dist/types/types-external';
-import { createSlice, createAction } from '@reduxjs/toolkit';
-import { takeLatest, takeEvery } from 'redux-saga/effects';
+import type { SagaIterator } from 'redux-saga';
 
 type Saga = () => SagaIterator | any;
 type PayloadSaga<Payload> = (

@@ -1,21 +1,22 @@
 import { all, call, select, take, takeLatest } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
 
-import {
-  watchFetchTextResourcesSaga,
-  fetchTextResources,
-} from './fetchTextResourcesSagas';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
-import { profileStateSelector } from 'src/selectors/simpleSelectors';
-import type { IProfile } from 'altinn-shared/types';
-import { get } from 'src/utils/networking';
-import { textResourcesUrl } from 'src/utils/appUrlHelper';
-import { TextResourcesActions } from '../textResourcesSlice';
 import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
-import { LanguageActions } from 'src/shared/resources/language/languageSlice';
-import { ApplicationMetadataActions } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
-import { ProfileActions } from 'src/shared/resources/profile/profileSlice';
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
+import { profileStateSelector } from 'src/selectors/simpleSelectors';
+import { ApplicationMetadataActions } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
+import { LanguageActions } from 'src/shared/resources/language/languageSlice';
+import { ProfileActions } from 'src/shared/resources/profile/profileSlice';
+import {
+  fetchTextResources,
+  watchFetchTextResourcesSaga,
+} from 'src/shared/resources/textResources/fetch/fetchTextResourcesSagas';
+import { TextResourcesActions } from 'src/shared/resources/textResources/textResourcesSlice';
+import { textResourcesUrl } from 'src/utils/appUrlHelper';
+import { get } from 'src/utils/networking';
+
+import type { IProfile } from 'altinn-shared/types';
 
 describe('fetchTextResourcesSagas', () => {
   it('should dispatch action fetchTextResources', () => {

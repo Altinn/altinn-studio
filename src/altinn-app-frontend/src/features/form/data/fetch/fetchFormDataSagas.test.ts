@@ -1,33 +1,34 @@
 import { call, select } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
+import type { AxiosError } from 'axios';
 
+import { getInitialStateMock } from 'src/../__mocks__/initialStateMock';
 import {
-  fetchFormDataSaga,
   fetchFormDataInitialSaga,
+  fetchFormDataSaga,
   watchFetchFormDataInitialSaga,
-} from './fetchFormDataSagas';
+} from 'src/features/form/data/fetch/fetchFormDataSagas';
+import { FormDataActions } from 'src/features/form/data/formDataSlice';
+import { DataModelActions } from 'src/features/form/datamodel/datamodelSlice';
+import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import {
   appMetaDataSelector,
+  currentSelectedPartyIdSelector,
   instanceDataSelector,
   layoutSetsSelector,
   processStateSelector,
-  currentSelectedPartyIdSelector,
 } from 'src/selectors/simpleSelectors';
-import { getInitialStateMock } from 'src/../__mocks__/initialStateMock';
-import * as appUrlHelper from 'src/utils/appUrlHelper';
-import * as networking from 'altinn-shared/utils/networking';
+import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
+import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import {
   getCurrentTaskDataElementId,
   getDataTypeByLayoutSetId,
 } from 'src/utils/appMetadata';
-import { FormDataActions } from '../formDataSlice';
-import type { IApplication } from 'altinn-shared/types';
+import * as appUrlHelper from 'src/utils/appUrlHelper';
 import type { ILayoutSets } from 'src/types';
-import { DataModelActions } from '../../datamodel/datamodelSlice';
-import { QueueActions } from 'src/shared/resources/queue/queueSlice';
-import type { AxiosError } from 'axios';
-import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
-import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
+
+import * as networking from 'altinn-shared/utils/networking';
+import type { IApplication } from 'altinn-shared/types';
 
 describe('fetchFormDataSagas', () => {
   let mockInitialState;

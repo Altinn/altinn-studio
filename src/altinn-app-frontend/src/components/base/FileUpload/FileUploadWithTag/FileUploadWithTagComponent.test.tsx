@@ -1,18 +1,17 @@
 import React from 'react';
+
 import { screen } from '@testing-library/react';
 
-import type { IComponentProps } from 'src/components';
-
-import type { IFileUploadWithTagProps } from './FileUploadWithTagComponent';
-import type { IAttachment } from 'src/shared/resources/attachments';
-import { AsciiUnitSeparator } from 'src/utils/attachment';
-import { FileUploadWithTagComponent } from './FileUploadWithTagComponent';
-
-import { renderWithProviders } from 'src/../testUtils';
 import { getAttachments } from 'src/../__mocks__/attachmentsMock';
 import { getFormLayoutStateMock } from 'src/../__mocks__/formLayoutStateMock';
-import { getUiConfigStateMock } from 'src/../__mocks__/uiConfigStateMock';
 import { getInitialStateMock } from 'src/../__mocks__/initialStateMock';
+import { getUiConfigStateMock } from 'src/../__mocks__/uiConfigStateMock';
+import { renderWithProviders } from 'src/../testUtils';
+import { FileUploadWithTagComponent } from 'src/components/base/FileUpload/FileUploadWithTag/FileUploadWithTagComponent';
+import { AsciiUnitSeparator } from 'src/utils/attachment';
+import type { IComponentProps } from 'src/components';
+import type { IFileUploadWithTagProps } from 'src/components/base/FileUpload/FileUploadWithTag/FileUploadWithTagComponent';
+import type { IAttachment } from 'src/shared/resources/attachments';
 
 const testId = 'test-id';
 

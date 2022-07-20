@@ -1,22 +1,28 @@
 import React from 'react';
+
 import { screen, within } from '@testing-library/react';
-import { mockMediaQuery, renderWithProviders } from '../../../../testUtils';
+import type { PayloadAction } from '@reduxjs/toolkit';
+
+import { GroupContainer } from 'src/features/form/containers/GroupContainer';
+import { FormDataActions } from 'src/features/form/data/formDataSlice';
+import { setupStore } from 'src/store';
+import type { IFormDataState } from 'src/features/form/data';
+import type { IUpdateFormData } from 'src/features/form/data/formDataTypes';
 import type {
+  ILayoutCompLikert,
   ILayoutComponent,
   ILayoutGroup,
-  ILayoutCompLikert,
 } from 'src/features/form/layout';
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
-import type { IFormDataState } from 'src/features/form/data';
-import type { ITextResourcesState } from 'src/shared/resources/textResources';
-import { getInitialStateMock } from '../../../../__mocks__/initialStateMock';
-import { setupStore } from 'src/store';
-import { GroupContainer } from 'src/features/form/containers/GroupContainer';
-import type { ILayoutValidations, ITextResource } from 'src/types';
 import type { IValidationState } from 'src/features/form/validation/validationSlice';
-import { FormDataActions } from 'src/features/form/data/formDataSlice';
-import type { PayloadAction } from '@reduxjs/toolkit';
-import type { IUpdateFormData } from 'src/features/form/data/formDataTypes';
+import type { ITextResourcesState } from 'src/shared/resources/textResources';
+import type { ILayoutValidations, ITextResource } from 'src/types';
+
+import { getInitialStateMock } from 'altinn-app-frontend/__mocks__/initialStateMock';
+import {
+  mockMediaQuery,
+  renderWithProviders,
+} from 'altinn-app-frontend/testUtils';
 
 export const defaultMockQuestions = [
   { Question: 'Hvordan trives du på skolen?', Answer: '' },

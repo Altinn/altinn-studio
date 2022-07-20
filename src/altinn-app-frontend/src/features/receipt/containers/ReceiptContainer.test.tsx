@@ -1,12 +1,13 @@
 import React from 'react';
-import { screen } from '@testing-library/react';
 import { MemoryRouter as Router, Route } from 'react-router-dom';
 
-import { renderWithProviders } from '../../../../testUtils';
+import { screen } from '@testing-library/react';
 
 import ReceiptContainer, {
   returnInstanceMetaDataObject,
-} from './ReceiptContainer';
+} from 'src/features/receipt/containers/ReceiptContainer';
+
+import { renderWithProviders } from 'altinn-app-frontend/testUtils';
 
 interface IRender {
   populateStore?: boolean;

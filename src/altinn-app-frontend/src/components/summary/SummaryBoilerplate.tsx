@@ -1,7 +1,10 @@
 import * as React from 'react';
+
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 import cn from 'classnames';
+
 import { EditButton } from 'src/components/summary/EditButton';
+
 import appTheme from 'altinn-shared/theme/altinnAppTheme';
 
 export interface SummaryBoilerplateProps {

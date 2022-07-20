@@ -1,4 +1,4 @@
-import { runConditionalRenderingRules } from './conditionalRendering';
+import { runConditionalRenderingRules } from 'src/utils/conditionalRendering';
 import type { IConditionalRenderingRules } from 'src/features/form/dynamics';
 
 describe('conditionalRendering', () => {

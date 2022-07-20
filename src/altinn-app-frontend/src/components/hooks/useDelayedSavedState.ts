@@ -1,4 +1,5 @@
 import * as React from 'react';
+
 import type { IComponentProps } from 'src/components';
 
 let mockDelay: number | undefined = undefined;

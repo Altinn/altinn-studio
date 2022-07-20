@@ -1,9 +1,10 @@
-import type { IRuntimeState } from 'src/types';
 import { createSelector } from 'reselect';
+
 import {
   getDataTypeByLayoutSetId,
   isStatelessApp,
 } from 'src/utils/appMetadata';
+import type { IRuntimeState } from 'src/types';
 
 const getApplicationMetadata = (state: IRuntimeState) =>
   state.applicationMetadata?.applicationMetadata;

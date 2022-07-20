@@ -1,13 +1,15 @@
-import type { GridSize, GridJustification } from '@material-ui/core';
+import type { NumberFormatProps } from 'react-number-format';
+
+import type { GridJustification, GridSize } from '@material-ui/core';
+
 import type {
+  ILabelSettings,
   IMapping,
   IOption,
   IOptionSource,
-  Triggers,
   LayoutStyle,
-  ILabelSettings,
-} from '../../../types';
-import type { NumberFormatProps } from 'react-number-format';
+  Triggers,
+} from 'src/types';
 
 export interface ILayouts {
   [id: string]: ILayout;

@@ -1,8 +1,10 @@
 import * as React from 'react';
-import { render } from '@testing-library/react';
-import { AltinnAppTheme } from 'altinn-shared/theme';
 
-import MessageBanner from './MessageBanner';
+import { render } from '@testing-library/react';
+
+import MessageBanner from 'src/features/form/components/MessageBanner';
+
+import { AltinnAppTheme } from 'altinn-shared/theme';
 import type { ILanguage } from 'altinn-shared/types';
 
 describe('MessageBanner', () => {

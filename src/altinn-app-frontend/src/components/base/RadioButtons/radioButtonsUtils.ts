@@ -1,8 +1,10 @@
-import { makeStyles } from '@material-ui/core/styles';
-import { useGetOptions } from 'src/components/hooks';
-import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
-import { getOptionLookupKey } from 'src/utils/options';
 import React, { useMemo } from 'react';
+
+import { makeStyles } from '@material-ui/core/styles';
+
+import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
+import { useGetOptions } from 'src/components/hooks';
+import { getOptionLookupKey } from 'src/utils/options';
 import type { IRadioButtonsContainerProps } from 'src/components/base/RadioButtons/RadioButtonsContainerComponent';
 
 export const useRadioStyles = makeStyles((theme) => ({

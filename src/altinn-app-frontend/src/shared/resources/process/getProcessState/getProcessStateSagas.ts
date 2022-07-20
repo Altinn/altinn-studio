@@ -1,10 +1,12 @@
-import type { SagaIterator } from 'redux-saga';
 import { call, put } from 'redux-saga/effects';
+import type { SagaIterator } from 'redux-saga';
+
+import { ProcessActions } from 'src/shared/resources/process/processSlice';
+import { ProcessTaskType } from 'src/types';
+import { getProcessStateUrl } from 'src/utils/appUrlHelper';
+
 import { get } from 'altinn-shared/utils';
 import type { IProcess } from 'altinn-shared/types';
-import { ProcessTaskType } from '../../../../types';
-import { getProcessStateUrl } from '../../../../utils/appUrlHelper';
-import { ProcessActions } from 'src/shared/resources/process/processSlice';
 
 export function* getProcessStateSaga(): SagaIterator {
   try {

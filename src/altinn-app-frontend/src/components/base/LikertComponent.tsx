@@ -1,12 +1,14 @@
 import React from 'react';
+
 import { Box, TableCell, TableRow } from '@material-ui/core';
-import { renderValidationMessagesForComponent } from 'src/utils/render';
+
+import { ControlledRadioGroup } from 'src/components/base/RadioButtons/ControlledRadioGroup';
 import { useRadioButtons } from 'src/components/base/RadioButtons/radioButtonsUtils';
 import { StyledRadio } from 'src/components/base/RadioButtons/StyledRadio';
-import type { IControlledRadioGroupProps } from 'src/components/base/RadioButtons/ControlledRadioGroup';
-import { ControlledRadioGroup } from 'src/components/base/RadioButtons/ControlledRadioGroup';
-import type { IRadioButtonsContainerProps } from 'src/components/base/RadioButtons/RadioButtonsContainerComponent';
 import { LayoutStyle } from 'src/types';
+import { renderValidationMessagesForComponent } from 'src/utils/render';
+import type { IControlledRadioGroupProps } from 'src/components/base/RadioButtons/ControlledRadioGroup';
+import type { IRadioButtonsContainerProps } from 'src/components/base/RadioButtons/RadioButtonsContainerComponent';
 
 export const LikertComponent = (props: IRadioButtonsContainerProps) => {
   const { layout } = props;

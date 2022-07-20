@@ -1,8 +1,10 @@
 import * as React from 'react';
-import { getLanguageFromKey } from 'altinn-shared/utils';
-import type { IValidations } from 'src/types';
-import { getUnmappedErrors } from 'src/utils/validation';
+
 import { useAppSelector } from 'src/common/hooks';
+import { getUnmappedErrors } from 'src/utils/validation';
+import type { IValidations } from 'src/types';
+
+import { getLanguageFromKey } from 'altinn-shared/utils';
 
 const ErrorReport = () => {
   const validations = useAppSelector(

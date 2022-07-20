@@ -1,15 +1,17 @@
-import type { SagaIterator } from 'redux-saga';
 import { all, call, put, select, take } from 'redux-saga/effects';
+import type { SagaIterator } from 'redux-saga';
+
+import { FormDataActions } from 'src/features/form/data/formDataSlice';
+import { IsLoadingActions } from 'src/shared/resources/isLoading/isLoadingSlice';
+import { QueueActions } from 'src/shared/resources/queue/queueSlice';
+import { TextResourcesActions } from 'src/shared/resources/textResources/textResourcesSlice';
+import { getFetchFormDataUrl } from 'src/utils/appUrlHelper';
+import { convertModelToDataBinding } from 'src/utils/databindings';
+import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import type { IRuntimeState, ITextResource } from 'src/types';
+
 import { get } from 'altinn-shared/utils';
 import type { IInstance } from 'altinn-shared/types';
-import { FormDataActions } from 'src/features/form/data/formDataSlice';
-import { QueueActions } from '../queueSlice';
-import { TextResourcesActions } from '../../textResources/textResourcesSlice';
-import type { IApplicationMetadata } from '../../applicationMetadata';
-import { getFetchFormDataUrl } from '../../../../utils/appUrlHelper';
-import { convertModelToDataBinding } from '../../../../utils/databindings';
-import { IsLoadingActions } from '../../isLoading/isLoadingSlice';
 
 export const ApplicationMetadataSelector = (state: IRuntimeState) =>
   state.applicationMetadata.applicationMetadata;

@@ -1,16 +1,19 @@
 import React from 'react';
-import type { IOption } from 'src/types';
-import FormControl from '@material-ui/core/FormControl';
+
 import { FormLabel } from '@material-ui/core';
-import cn from 'classnames';
-import { AltinnSpinner } from 'altinn-shared/components';
-import RadioGroup from '@material-ui/core/RadioGroup';
-import { shouldUseRowLayout } from 'src/utils/layout';
+import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import { renderValidationMessagesForComponent } from 'src/utils/render';
-import type { IRadioButtonsContainerProps } from 'src/components/base/RadioButtons/RadioButtonsContainerComponent';
+import RadioGroup from '@material-ui/core/RadioGroup';
+import cn from 'classnames';
+
 import { useRadioStyles } from 'src/components/base/RadioButtons/radioButtonsUtils';
 import { StyledRadio } from 'src/components/base/RadioButtons/StyledRadio';
+import { shouldUseRowLayout } from 'src/utils/layout';
+import { renderValidationMessagesForComponent } from 'src/utils/render';
+import type { IRadioButtonsContainerProps } from 'src/components/base/RadioButtons/RadioButtonsContainerComponent';
+import type { IOption } from 'src/types';
+
+import { AltinnSpinner } from 'altinn-shared/components';
 
 export interface IControlledRadioGroupProps
   extends IRadioButtonsContainerProps {

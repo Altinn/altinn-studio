@@ -1,5 +1,7 @@
-import { expectSaga } from 'redux-saga-test-plan';
 import { select } from 'redux-saga/effects';
+import { expectSaga } from 'redux-saga-test-plan';
+
+import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 import {
   checkIfOptionsShouldRefetchSaga,
   fetchOptionsSaga,
@@ -9,14 +11,14 @@ import {
   instanceIdSelector,
   optionsSelector,
 } from 'src/shared/resources/options/fetch/fetchOptionsSagas';
-import type { IOptions, IRuntimeState } from 'src/types';
-import * as networking from 'altinn-shared/utils/networking';
-import type { IInstance } from 'altinn-shared/types';
 import type {
   ILayouts,
   ISelectionComponentProps,
 } from 'src/features/form/layout';
-import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
+import type { IOptions, IRuntimeState } from 'src/types';
+
+import * as networking from 'altinn-shared/utils/networking';
+import type { IInstance } from 'altinn-shared/types';
 
 describe('fetchOptionsSagas', () => {
   describe('checkIfOptionsShouldRefetchSaga', () => {

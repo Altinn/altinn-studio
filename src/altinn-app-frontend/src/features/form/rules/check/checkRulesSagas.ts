@@ -1,13 +1,14 @@
+import { all, call, put, select } from 'redux-saga/effects';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { SagaIterator } from 'redux-saga';
-import { all, call, put, select } from 'redux-saga/effects';
-import type { IRuntimeState } from '../../../../types';
-import { checkIfRuleShouldRun } from '../../../../utils/rules';
-import { FormDataActions } from '../../data/formDataSlice';
-import type { IFormDataState } from '../../data';
-import type { IUpdateFormDataFulfilled } from '../../data/formDataTypes';
-import type { IRuleConnections } from '../../dynamics';
-import type { ILayoutState } from '../../layout/formLayoutSlice';
+
+import { FormDataActions } from 'src/features/form/data/formDataSlice';
+import { checkIfRuleShouldRun } from 'src/utils/rules';
+import type { IFormDataState } from 'src/features/form/data';
+import type { IUpdateFormDataFulfilled } from 'src/features/form/data/formDataTypes';
+import type { IRuleConnections } from 'src/features/form/dynamics';
+import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
+import type { IRuntimeState } from 'src/types';
 
 const selectRuleConnection = (state: IRuntimeState): IRuleConnections =>
   state.formDynamics.ruleConnection;

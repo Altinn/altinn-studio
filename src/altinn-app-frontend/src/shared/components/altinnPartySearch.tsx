@@ -1,9 +1,12 @@
-import type { WithStyles } from '@material-ui/core';
-import { createStyles, Grid, withStyles } from '@material-ui/core';
 import React from 'react';
+
+import { createStyles, Grid, withStyles } from '@material-ui/core';
+import type { WithStyles } from '@material-ui/core';
+
+import { useAppSelector } from 'src/common/hooks';
+
 import { AltinnInput } from 'altinn-shared/components';
 import { AltinnAppTheme } from 'altinn-shared/theme';
-import { useAppSelector } from 'src/common/hooks';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 
 const styles = createStyles({

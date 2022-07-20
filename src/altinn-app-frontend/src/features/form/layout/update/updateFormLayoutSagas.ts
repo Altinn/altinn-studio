@@ -1,15 +1,83 @@
-import type { PayloadAction } from '@reduxjs/toolkit';
-import type { SagaIterator } from 'redux-saga';
 import {
   actionChannel,
   all,
   call,
   put,
+  race,
   select,
   take,
   takeLatest,
-  race,
 } from 'redux-saga/effects';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import type { AxiosRequestConfig } from 'axios';
+import type { SagaIterator } from 'redux-saga';
+
+import { FormDataActions } from 'src/features/form/data/formDataSlice';
+import { FormDynamicsActions } from 'src/features/form/dynamics/formDynamicsSlice';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { ValidationActions } from 'src/features/form/validation/validationSlice';
+import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
+import { QueueActions } from 'src/shared/resources/queue/queueSlice';
+import { Triggers } from 'src/types';
+import {
+  getCurrentDataTypeForApplication,
+  getCurrentTaskDataElementId,
+  getDataTaskDataTypeId,
+  isStatelessApp,
+} from 'src/utils/appMetadata';
+import {
+  getCalculatePageOrderUrl,
+  getDataValidationUrl,
+} from 'src/utils/appUrlHelper';
+import { shiftAttachmentRowInRepeatingGroup } from 'src/utils/attachment';
+import {
+  convertDataBindingToModel,
+  findChildAttachments,
+  removeGroupData,
+} from 'src/utils/databindings';
+import {
+  findChildren,
+  getRepeatingGroups,
+  mapFileUploadersWithTag,
+  removeRepeatingGroupFromUIConfig,
+  splitDashedKey,
+} from 'src/utils/formLayout';
+import { getLayoutsetForDataElement } from 'src/utils/layout';
+import { getOptionLookupKey } from 'src/utils/options';
+import {
+  canFormBeSaved,
+  getValidator,
+  mapDataElementValidationToRedux,
+  mergeValidationObjects,
+  removeGroupValidationsByIndex,
+  validateEmptyFields,
+  validateFormComponents,
+  validateFormData,
+  validateGroup,
+} from 'src/utils/validation';
+import type { IFormDataState } from 'src/features/form/data';
+import type {
+  ILayoutCompFileUploadWithTag,
+  ILayoutComponent,
+  ILayoutComponentOrGroup,
+  ILayoutGroup,
+  ILayouts,
+} from 'src/features/form/layout';
+import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
+import type {
+  ICalculatePageOrderAndMoveToNextPage,
+  IUpdateCurrentView,
+  IUpdateFileUploaderWithTagChosenOptions,
+  IUpdateFileUploaderWithTagEditIndex,
+  IUpdateFocus,
+  IUpdateRepeatingGroups,
+  IUpdateRepeatingGroupsEditIndex,
+} from 'src/features/form/layout/formLayoutTypes';
+import type { IAttachmentState } from 'src/shared/resources/attachments';
+import type {
+  IDeleteAttachmentActionFulfilled,
+  IDeleteAttachmentActionRejected,
+} from 'src/shared/resources/attachments/delete/deleteAttachmentActions';
 import type {
   IFileUploadersWithTag,
   IRepeatingGroups,
@@ -17,74 +85,8 @@ import type {
   IValidationIssue,
   IValidations,
 } from 'src/types';
-import { Triggers } from 'src/types';
-import {
-  mapFileUploadersWithTag,
-  findChildren,
-  splitDashedKey,
-  getRepeatingGroups,
-  removeRepeatingGroupFromUIConfig,
-} from 'src/utils/formLayout';
-import type { AxiosRequestConfig } from 'axios';
+
 import { get, post } from 'altinn-shared/utils';
-import {
-  getCurrentTaskDataElementId,
-  getDataTaskDataTypeId,
-  isStatelessApp,
-  getCurrentDataTypeForApplication,
-} from 'src/utils/appMetadata';
-import {
-  getCalculatePageOrderUrl,
-  getDataValidationUrl,
-} from 'src/utils/appUrlHelper';
-import {
-  validateFormData,
-  validateFormComponents,
-  validateEmptyFields,
-  mapDataElementValidationToRedux,
-  canFormBeSaved,
-  mergeValidationObjects,
-  removeGroupValidationsByIndex,
-  validateGroup,
-  getValidator,
-} from 'src/utils/validation';
-import { getLayoutsetForDataElement } from 'src/utils/layout';
-import { QueueActions } from 'src/shared/resources/queue/queueSlice';
-import { ValidationActions } from 'src/features/form/validation/validationSlice';
-import type {
-  ILayoutComponent,
-  ILayoutGroup,
-  ILayouts,
-  ILayoutComponentOrGroup,
-  ILayoutCompFileUploadWithTag,
-} from '..';
-import { FormDynamicsActions } from '../../dynamics/formDynamicsSlice';
-import type { ILayoutState } from '../formLayoutSlice';
-import { FormLayoutActions } from '../formLayoutSlice';
-import type {
-  IUpdateFocus,
-  IUpdateRepeatingGroups,
-  IUpdateCurrentView,
-  ICalculatePageOrderAndMoveToNextPage,
-  IUpdateRepeatingGroupsEditIndex,
-  IUpdateFileUploaderWithTagEditIndex,
-  IUpdateFileUploaderWithTagChosenOptions,
-} from '../formLayoutTypes';
-import type { IFormDataState } from '../../data';
-import { FormDataActions } from '../../data/formDataSlice';
-import {
-  convertDataBindingToModel,
-  removeGroupData,
-  findChildAttachments,
-} from '../../../../utils/databindings';
-import { getOptionLookupKey } from 'src/utils/options';
-import type {
-  IDeleteAttachmentActionFulfilled,
-  IDeleteAttachmentActionRejected,
-} from 'src/shared/resources/attachments/delete/deleteAttachmentActions';
-import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
-import { shiftAttachmentRowInRepeatingGroup } from 'src/utils/attachment';
-import type { IAttachmentState } from 'src/shared/resources/attachments';
 
 export const selectFormLayoutState = (state: IRuntimeState): ILayoutState =>
   state.formLayout;

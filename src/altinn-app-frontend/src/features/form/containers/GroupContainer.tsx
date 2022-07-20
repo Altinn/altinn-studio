@@ -1,21 +1,24 @@
 import React, { useCallback, useMemo } from 'react';
+
 import { Grid, makeStyles } from '@material-ui/core';
-import { getLanguageFromKey } from 'altinn-shared/utils';
-import { repeatingGroupHasValidations } from 'src/utils/validation';
+
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import ErrorPaper from 'src/components/message/ErrorPaper';
-import { createRepeatingGroupComponents } from 'src/utils/formLayout';
+import { RepeatingGroupAddButton } from 'src/features/form/components/RepeatingGroupAddButton';
+import { RepeatingGroupsEditContainer } from 'src/features/form/containers/RepeatingGroupsEditContainer';
+import { RepeatingGroupsLikertContainer } from 'src/features/form/containers/RepeatingGroupsLikertContainer';
+import { RepeatingGroupTable } from 'src/features/form/containers/RepeatingGroupTable';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { makeGetHidden } from 'src/selectors/getLayoutData';
+import { Triggers } from 'src/types';
+import { createRepeatingGroupComponents } from 'src/utils/formLayout';
 import { getHiddenFieldsForGroup } from 'src/utils/layout';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
-import type { ILayoutComponent, ILayoutGroup } from '../layout';
-import { FormLayoutActions } from '../layout/formLayoutSlice';
-import type { IRuntimeState } from '../../../types';
-import { Triggers } from '../../../types';
-import { RepeatingGroupTable } from './RepeatingGroupTable';
-import { RepeatingGroupAddButton } from '../components/RepeatingGroupAddButton';
-import { RepeatingGroupsEditContainer } from './RepeatingGroupsEditContainer';
-import { useAppDispatch, useAppSelector } from 'src/common/hooks';
-import { RepeatingGroupsLikertContainer } from 'src/features/form/containers/RepeatingGroupsLikertContainer';
+import { repeatingGroupHasValidations } from 'src/utils/validation';
+import type { ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
+import type { IRuntimeState } from 'src/types';
+
+import { getLanguageFromKey } from 'altinn-shared/utils';
 
 export interface IGroupProps {
   id: string;

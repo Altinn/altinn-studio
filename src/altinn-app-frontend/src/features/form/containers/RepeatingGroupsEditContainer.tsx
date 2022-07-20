@@ -1,13 +1,20 @@
 import React from 'react';
-import { Grid, makeStyles, createTheme, IconButton } from '@material-ui/core';
+
+import { createTheme, Grid, IconButton, makeStyles } from '@material-ui/core';
+
+import { renderGenericComponent } from 'src/utils/layout';
+import type {
+  ILayout,
+  ILayoutComponent,
+  ILayoutGroup,
+} from 'src/features/form/layout';
+import type { ITextResource } from 'src/types';
+
 import { AltinnButton } from 'altinn-shared/components';
+import { SuccessIconButton } from 'altinn-shared/components/SuccessIconButton';
 import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';
 import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils';
-import type { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
-import { renderGenericComponent } from '../../../utils/layout';
-import type { ITextResource } from 'src/types';
 import type { ILanguage } from 'altinn-shared/types';
-import { SuccessIconButton } from 'altinn-shared/components/SuccessIconButton';
 
 export interface IRepeatingGroupsEditContainer {
   id: string;

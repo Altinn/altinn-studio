@@ -1,24 +1,39 @@
 import React from 'react';
+
 import {
-  Grid,
-  makeStyles,
   createTheme,
-  TableRow,
-  TableCell,
+  Grid,
   IconButton,
+  makeStyles,
+  TableCell,
+  TableRow,
   useMediaQuery,
 } from '@material-ui/core';
-import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';
-import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils';
-import {
-  componentHasValidations,
-  repeatingGroupHasValidations,
-} from 'src/utils/validation';
-import { createRepeatingGroupComponents } from 'src/utils/formLayout';
+
 import {
   getFormDataForComponentInRepeatingGroup,
   getTextResource,
 } from 'src/utils/formComponentUtils';
+import { createRepeatingGroupComponents } from 'src/utils/formLayout';
+import { setupGroupComponents } from 'src/utils/layout';
+import {
+  componentHasValidations,
+  repeatingGroupHasValidations,
+} from 'src/utils/validation';
+import type {
+  ILayout,
+  ILayoutComponent,
+  ILayoutGroup,
+} from 'src/features/form/layout';
+import type { IAttachments } from 'src/shared/resources/attachments';
+import type {
+  IOptions,
+  IRepeatingGroups,
+  ITextResource,
+  ITextResourceBindings,
+  IValidations,
+} from 'src/types';
+
 import {
   AltinnMobileTable,
   AltinnMobileTableItem,
@@ -27,18 +42,10 @@ import {
   AltinnTableHeader,
   AltinnTableRow,
 } from 'altinn-shared/components';
+import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';
+import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils';
 import type { IMobileTableItem } from 'altinn-shared/components/molecules/AltinnMobileTableItem';
-import type { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
-import { setupGroupComponents } from '../../../utils/layout';
-import type {
-  ITextResource,
-  IRepeatingGroups,
-  IValidations,
-  IOptions,
-  ITextResourceBindings,
-} from '../../../types';
 import type { ILanguage } from 'altinn-shared/types';
-import type { IAttachments } from 'src/shared/resources/attachments';
 
 export interface IRepeatingGroupTableProps {
   id: string;

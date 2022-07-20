@@ -1,9 +1,15 @@
-import { Grid, Typography, makeStyles } from '@material-ui/core';
 import React from 'react';
+
+import { Grid, makeStyles, Typography } from '@material-ui/core';
+
 import { useAppSelector } from 'src/common/hooks';
 import { makeGetHidden } from 'src/selectors/getLayoutData';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
-import type { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
+import type {
+  ILayout,
+  ILayoutComponent,
+  ILayoutGroup,
+} from 'src/features/form/layout';
 
 export interface IDisplayGroupContainer {
   container: ILayoutGroup;

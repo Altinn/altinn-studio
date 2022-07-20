@@ -1,15 +1,21 @@
-import Grid from '@material-ui/core/Grid';
 import React from 'react';
-import { SummaryComponent } from 'src/components/summary/SummaryComponent';
-import type { ILayout, ILayoutComponent, ILayoutGroup } from '../layout';
-import { GroupContainer } from './GroupContainer';
-import { renderGenericComponent } from 'src/utils/layout';
-import { DisplayGroupContainer } from './DisplayGroupContainer';
+
+import Grid from '@material-ui/core/Grid';
+
 import { useAppSelector } from 'src/common/hooks';
+import { SummaryComponent } from 'src/components/summary/SummaryComponent';
 import MessageBanner from 'src/features/form/components/MessageBanner';
+import { DisplayGroupContainer } from 'src/features/form/containers/DisplayGroupContainer';
+import { GroupContainer } from 'src/features/form/containers/GroupContainer';
+import { PanelGroupContainer } from 'src/features/form/containers/PanelGroupContainer';
 import { hasRequiredFields } from 'src/utils/formLayout';
+import { renderGenericComponent } from 'src/utils/layout';
 import { missingFieldsInLayoutValidations } from 'src/utils/validation';
-import { PanelGroupContainer } from './PanelGroupContainer';
+import type {
+  ILayout,
+  ILayoutComponent,
+  ILayoutGroup,
+} from 'src/features/form/layout';
 
 export function renderLayoutComponent(
   layoutComponent: ILayoutComponent | ILayoutGroup,

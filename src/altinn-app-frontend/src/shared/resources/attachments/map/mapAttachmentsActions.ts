@@ -1,4 +1,4 @@
-import type { IAttachments } from '..';
+import type { IAttachments } from 'src/shared/resources/attachments';
 
 export interface IMapAttachmentsActionFulfilled {
   attachments: IAttachments;

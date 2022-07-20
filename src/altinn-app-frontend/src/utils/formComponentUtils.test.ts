@@ -1,12 +1,20 @@
 import parseHtmlToReact from 'html-react-parser';
 
-import type {
-  IComponentBindingValidation,
-  IComponentValidations,
-  IOptions,
-  ITextResource,
-  IRepeatingGroups,
-} from 'src/types';
+import { AsciiUnitSeparator } from 'src/utils/attachment';
+import {
+  atleastOneTagExists,
+  componentHasValidationMessages,
+  componentValidationsHandledByGenericComponent,
+  getDisplayFormData,
+  getFieldName,
+  getFileUploadComponentValidations,
+  getFormDataForComponentInRepeatingGroup,
+  isAttachmentError,
+  isComponentValid,
+  isNotAttachmentError,
+  parseFileUploadComponentWithTagValidationObject,
+  selectComponentTexts,
+} from 'src/utils/formComponentUtils';
 import type { IFormData } from 'src/features/form/data';
 import type {
   ILayoutComponent,
@@ -16,24 +24,15 @@ import type {
   IAttachment,
   IAttachments,
 } from 'src/shared/resources/attachments';
+import type {
+  IComponentBindingValidation,
+  IComponentValidations,
+  IOptions,
+  IRepeatingGroups,
+  ITextResource,
+} from 'src/types';
 
 import { parseOptions } from 'altinn-shared/utils/language';
-import { AsciiUnitSeparator } from 'src/utils/attachment';
-
-import {
-  atleastOneTagExists,
-  getDisplayFormData,
-  getFormDataForComponentInRepeatingGroup,
-  isAttachmentError,
-  selectComponentTexts,
-  isNotAttachmentError,
-  isComponentValid,
-  componentValidationsHandledByGenericComponent,
-  componentHasValidationMessages,
-  getFieldName,
-  getFileUploadComponentValidations,
-  parseFileUploadComponentWithTagValidationObject,
-} from './formComponentUtils';
 
 describe('formComponentUtils', () => {
   const mockFormData: IFormData = {

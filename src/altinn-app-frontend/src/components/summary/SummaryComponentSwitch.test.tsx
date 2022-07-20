@@ -1,7 +1,8 @@
 import * as React from 'react';
+
 import { render } from '@testing-library/react';
 
-import SummaryComponentSwitch from './SummaryComponentSwitch';
+import SummaryComponentSwitch from 'src/components/summary/SummaryComponentSwitch';
 
 describe('SummaryComponentSwitch', () => {
   test('should not render component', () => {

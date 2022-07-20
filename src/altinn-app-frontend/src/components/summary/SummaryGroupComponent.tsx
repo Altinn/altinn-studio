@@ -1,26 +1,29 @@
-import { Grid, makeStyles, Typography } from '@material-ui/core';
 import * as React from 'react';
 import { shallowEqual } from 'react-redux';
-import appTheme from 'altinn-shared/theme/altinnAppTheme';
-import type {
-  ILayout,
-  ILayoutComponent,
-  ILayoutGroup,
-} from 'src/features/form/layout';
+
+import { Grid, makeStyles, Typography } from '@material-ui/core';
+import cn from 'classnames';
+
+import { useAppSelector } from 'src/common/hooks';
+import ErrorPaper from 'src/components/message/ErrorPaper';
+import { EditButton } from 'src/components/summary/EditButton';
+import GroupInputSummary from 'src/components/summary/GroupInputSummary';
+import { DisplayGroupContainer } from 'src/features/form/containers/DisplayGroupContainer';
+import { renderLayoutComponent } from 'src/features/form/containers/Form';
 import {
   getDisplayFormDataForComponent,
   getFormDataForComponentInRepeatingGroup,
 } from 'src/utils/formComponentUtils';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
-import { renderLayoutComponent } from 'src/features/form/containers/Form';
-import { DisplayGroupContainer } from 'src/features/form/containers/DisplayGroupContainer';
-import { getLanguageFromKey } from 'altinn-shared/utils';
-import GroupInputSummary from './GroupInputSummary';
-import ErrorPaper from '../message/ErrorPaper';
-import { EditButton } from './EditButton';
-import { useAppSelector } from 'src/common/hooks';
-import cn from 'classnames';
+import type {
+  ILayout,
+  ILayoutComponent,
+  ILayoutGroup,
+} from 'src/features/form/layout';
 import type { IRuntimeState } from 'src/types';
+
+import appTheme from 'altinn-shared/theme/altinnAppTheme';
+import { getLanguageFromKey } from 'altinn-shared/utils';
 
 export interface ISummaryGroupComponent {
   pageRef?: string;

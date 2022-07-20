@@ -1,10 +1,12 @@
 import * as React from 'react';
-import { getLanguageFromKey } from 'altinn-shared/utils';
-import type { FileRejection } from 'react-dropzone';
 import DropZone from 'react-dropzone';
-import { AltinnAppTheme } from 'altinn-shared/theme';
-import type { ITextResourceBindings } from 'src/types';
+import type { FileRejection } from 'react-dropzone';
+
 import type { ILayoutCompFileUpload } from 'src/features/form/layout';
+import type { ITextResourceBindings } from 'src/types';
+
+import { AltinnAppTheme } from 'altinn-shared/theme';
+import { getLanguageFromKey } from 'altinn-shared/utils';
 
 export interface IDropzoneComponentProps {
   id: string;

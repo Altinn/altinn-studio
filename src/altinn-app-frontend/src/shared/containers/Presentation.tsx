@@ -1,23 +1,25 @@
 import * as React from 'react';
+
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import ErrorReport from 'src/components/message/ErrorReport';
+import Header from 'src/components/presentation/Header';
+import NavBar from 'src/components/presentation/NavBar';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { PresentationType, ProcessTaskType } from 'src/types';
+import { getRedirectUrl } from 'src/utils/appUrlHelper';
+import { getNextView } from 'src/utils/formLayout';
+import { get } from 'src/utils/networking';
+
 import {
   AltinnAppHeader,
   AltinnSubstatusPaper,
 } from 'altinn-shared/components';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import {
-  returnUrlToMessagebox,
   getTextResourceByKey,
   returnUrlFromQueryParameter,
+  returnUrlToMessagebox,
 } from 'altinn-shared/utils';
-import { ProcessTaskType, PresentationType } from 'src/types';
-import { getNextView } from 'src/utils/formLayout';
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
-import { get } from 'src/utils/networking';
-import { getRedirectUrl } from 'src/utils/appUrlHelper';
-import ErrorReport from '../../components/message/ErrorReport';
-import Header from '../../components/presentation/Header';
-import NavBar from '../../components/presentation/NavBar';
-import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 
 export interface IPresentationProvidedProps {
   header: string;

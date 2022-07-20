@@ -1,11 +1,13 @@
 import React from 'react';
-import { getLanguageFromKey } from 'altinn-shared/utils/language';
-import { AltinnLoader } from 'altinn-shared/components';
-import type { IAltinnWindow } from '../../types';
-import { FormDataActions } from '../../features/form/data/formDataSlice';
+
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
-import type { IComponentProps } from '..';
+import { FormDataActions } from 'src/features/form/data/formDataSlice';
+import type { IComponentProps } from 'src/components';
 import type { ILayoutCompButton } from 'src/features/form/layout';
+import type { IAltinnWindow } from 'src/types';
+
+import { AltinnLoader } from 'altinn-shared/components';
+import { getLanguageFromKey } from 'altinn-shared/utils/language';
 
 export interface IButtonProvidedProps
   extends IComponentProps,
