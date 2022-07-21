@@ -14,6 +14,7 @@ import {
   isNotAttachmentError,
   parseFileUploadComponentWithTagValidationObject,
   selectComponentTexts,
+  smartLowerCaseFirst,
 } from 'src/utils/formComponentUtils';
 import type { IFormData } from 'src/features/form/data';
 import type {
@@ -633,7 +634,7 @@ describe('formComponentUtils', () => {
         mockLanguage,
         'address',
       );
-      expect(result).toEqual('Gateadresse');
+      expect(result).toEqual('gateadresse');
     });
 
     it('should return component shortName (textResourceBindings) when no fieldKey is present', () => {
@@ -651,7 +652,7 @@ describe('formComponentUtils', () => {
         textResources,
         mockLanguage,
       );
-      expect(result).toEqual('Component name');
+      expect(result).toEqual('component name');
     });
 
     it('should return generic field name when fieldKey, shortName and title are all not available', () => {
@@ -661,6 +662,34 @@ describe('formComponentUtils', () => {
         mockLanguage,
       );
       expect(result).toEqual('dette feltet');
+    });
+  });
+
+  describe('smartLowerCaseFirst', () => {
+    it.each([
+      { input: 'Fornavn', expected: 'fornavn' },
+      { input: 'fornavn', expected: 'fornavn' },
+      { input: 'Postnummer', expected: 'postnummer' },
+      { input: 'AlfabeteT', expected: 'alfabeteT' },
+      {
+        input: 'Den dominikanske Republikk',
+        expected: 'den dominikanske Republikk',
+      },
+      {
+        input: 'Den Dominikanske Republikk',
+        expected: 'Den Dominikanske Republikk',
+      },
+      { input: 'Sas', expected: 'sas' },
+      { input: 'SAS', expected: 'SAS' },
+      { input: 'SERIOUSLY', expected: 'SERIOUSLY' },
+      { input: 'ÆØÅ', expected: 'ÆØÅ' },
+      { input: 'Grünerløkka', expected: 'grünerløkka' },
+      { input: 'D.o.B.', expected: 'D.o.B.' },
+      { input: 'SaaB', expected: 'SaaB' },
+      { input: 'S.a.a.B', expected: 'S.a.a.B' },
+      { input: '¿Cómo te llamas?', expected: '¿cómo te llamas?' },
+    ])('Should convert $input to $expected', ({ input, expected }) => {
+      expect(smartLowerCaseFirst(input)).toEqual(expected);
     });
   });
 
