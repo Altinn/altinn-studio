@@ -37,7 +37,7 @@ namespace Altinn.Platform.Storage.DataCleanup
         /// <param name="timer">The trigger timer.</param>
         /// <param name="log">The log.</param>
         [FunctionName("NightlyCleanupDataElements")]
-        public async Task Run([TimerTrigger("0 */5 * * * *", RunOnStartup = true)] TimerInfo timer, ILogger log)
+        public async Task Run([TimerTrigger("0 0 4 * * *", RunOnStartup = false)] TimerInfo timer, ILogger log)
         {
             List<DataElement> dataElements = await _cosmosService.GetHardDeletedDataElements();
 

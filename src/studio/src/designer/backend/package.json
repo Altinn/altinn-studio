@@ -25,9 +25,9 @@
     "bootstrap-list-filter": "^0.3.4",
     "jquery": "^3.6.0",
     "jquery-ui-dist": "^1.13.1",
-    "jquery-validation": "^1.19.4",
+    "jquery-validation": "^1.19.5",
     "jquery-validation-unobtrusive": "^3.2.12",
-    "js-beautify": "^1.14.3",
+    "js-beautify": "^1.14.4",
     "json-editor": "^0.7.28",
     "monaco-editor": "^0.33.0",
     "popper.js": "^1.16.1",
@@ -36,7 +36,7 @@
     "rivets": "^0.9.6",
     "select2": "^4.0.13",
     "sightglass": "^0.2.6",
-    "underscore": "^1.13.3"
+    "underscore": "^1.13.4"
   },
   "packageManager": "yarn@3.2.1"
 }

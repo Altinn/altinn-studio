@@ -1,17 +1,17 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>Altinn.App</AssemblyName>
     <RootNamespace>Altinn.App</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.App.Api" Version="5.3.0">
+    <PackageReference Include="Altinn.App.Api" Version="6.0.0">
       <CopyToOutputDirectory>lib\$(TargetFramework)\*.xml</CopyToOutputDirectory>
     </PackageReference>
-    <PackageReference Include="Altinn.App.Common" Version="5.3.0" />
-    <PackageReference Include="Altinn.App.PlatformServices" Version="5.3.0" />
+    <PackageReference Include="Altinn.App.Common" Version="6.0.0" />
+    <PackageReference Include="Altinn.App.PlatformServices" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="6.0.0" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.3.1" />
   </ItemGroup>
