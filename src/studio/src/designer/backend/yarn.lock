@@ -124,9 +124,9 @@ __metadata:
     gulp-run-command: ^0.0.10
     jquery: ^3.6.0
     jquery-ui-dist: ^1.13.1
-    jquery-validation: ^1.19.4
+    jquery-validation: ^1.19.5
     jquery-validation-unobtrusive: ^3.2.12
-    js-beautify: ^1.14.3
+    js-beautify: ^1.14.4
     json-editor: ^0.7.28
     monaco-editor: ^0.33.0
     popper.js: ^1.16.1
@@ -135,7 +135,7 @@ __metadata:
     rivets: ^0.9.6
     select2: ^4.0.13
     sightglass: ^0.2.6
-    underscore: ^1.13.3
+    underscore: ^1.13.4
   languageName: unknown
   linkType: soft
 
@@ -2194,12 +2194,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jquery-validation@npm:^1.19.4":
-  version: 1.19.4
-  resolution: "jquery-validation@npm:1.19.4"
+"jquery-validation@npm:^1.19.5":
+  version: 1.19.5
+  resolution: "jquery-validation@npm:1.19.5"
   peerDependencies:
     jquery: ^1.7 || ^2.0 || ^3.1
-  checksum: 01f9f81a99c436829e7bd8d9e7a47ffe591a09a6f4fec3573bf962563884a2d5ae5a03c5145d76b4f167182418d716c1e6674e9d3d7f414ffe34cfcccf14ca48
+  checksum: 75e7a84b2eb5a23720f8ab8c60768c76043e871164cd8c2a6821452133293d891bf81c2b4d0cbbdddd4da9bca3c97c50268e2be873f6719260c3123fc2a6ad91
   languageName: node
   linkType: hard
 
@@ -2210,9 +2210,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"js-beautify@npm:^1.14.3":
-  version: 1.14.3
-  resolution: "js-beautify@npm:1.14.3"
+"js-beautify@npm:^1.14.4":
+  version: 1.14.4
+  resolution: "js-beautify@npm:1.14.4"
   dependencies:
     config-chain: ^1.1.13
     editorconfig: ^0.15.3
@@ -2222,7 +2222,7 @@ __metadata:
     css-beautify: js/bin/css-beautify.js
     html-beautify: js/bin/html-beautify.js
     js-beautify: js/bin/js-beautify.js
-  checksum: 475146747ddfa233dedfdcba2c2c29cd0895730e6627455fa5dc388b61074fd856fc874cbd18da92b8dc5c04aea25eb46aec95a1e37b2c32f0dd25fb1f4c4698
+  checksum: ec0c2e12804f7eb556b0d77c12325f2a3ab3451f03d9c6f4639cec1353b6b04711898f5b08a34449719ce244c4c1621edd7ed35d49a10a598b1b71b0ff184805
   languageName: node
   linkType: hard
 
@@ -3879,10 +3879,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"underscore@npm:^1.13.3":
-  version: 1.13.3
-  resolution: "underscore@npm:1.13.3"
-  checksum: 1ea0b333ee20fdb3dcf20883d505817bf9de3dc67f0a674c1c49428cec5e480178ce5f6b7c9f72c3a8fe05a1e344dcec5c918a7f89aa1661632aa378612a2264
+"underscore@npm:^1.13.4":
+  version: 1.13.4
+  resolution: "underscore@npm:1.13.4"
+  checksum: 6b04f66cd454e8793a552dc49c71e24e5208a29b9d9c0af988a96948af79103399c36fb15db43f3629bfed152f8b1fe94f44e1249e9d196069c0fc7edfadb636
   languageName: node
   linkType: hard
 

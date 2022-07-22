@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:5.0-alpine AS build
+FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine AS build
 WORKDIR /LocalTest
 
 COPY ./LocalTest/LocalTest.csproj /LocalTest
@@ -11,7 +11,7 @@ RUN ls /
 RUN dotnet build LocalTest.csproj -c Release -o /app_output
 RUN dotnet publish LocalTest.csproj -c Release -o /app_output
 
-FROM mcr.microsoft.com/dotnet/aspnet:5.0-alpine AS final
+FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine AS final
 EXPOSE 5101
 WORKDIR /app
 COPY --from=build /app_output .
