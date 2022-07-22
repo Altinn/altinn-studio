@@ -1,29 +1,25 @@
 import React from 'react';
 
-import { createStyles, Grid, withStyles } from '@material-ui/core';
-import type { WithStyles } from '@material-ui/core';
+import { Grid, makeStyles } from '@material-ui/core';
 
 import { useAppSelector } from 'src/common/hooks';
 
 import { AltinnInput } from 'altinn-shared/components';
-import { AltinnAppTheme } from 'altinn-shared/theme';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 
-const styles = createStyles({
+const useStyles = makeStyles((theme) => ({
   partySearchContainer: {
     width: '50%',
-    border: `2px solid ${AltinnAppTheme.altinnPalette.primary.blue}`,
+    border: `2px solid ${theme.altinnPalette.primary.blue}`,
   },
-});
+}));
 
-export interface IAltinnPartySearchProps extends WithStyles<typeof styles> {
+export interface IAltinnPartySearchProps {
   onSearchUpdated: (searchString: string) => void;
 }
 
-function AltinnPartySearch({
-  classes,
-  onSearchUpdated,
-}: IAltinnPartySearchProps) {
+function AltinnPartySearch({ onSearchUpdated }: IAltinnPartySearchProps) {
+  const classes = useStyles();
   const language = useAppSelector((state) => state.language.language);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,4 +48,4 @@ function AltinnPartySearch({
   );
 }
 
-export default withStyles(styles)(AltinnPartySearch);
+export default AltinnPartySearch;

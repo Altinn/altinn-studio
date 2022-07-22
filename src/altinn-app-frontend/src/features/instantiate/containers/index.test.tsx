@@ -2,6 +2,7 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { BrowserRouter, Route } from 'react-router-dom';
 
+import { createTheme, MuiThemeProvider } from '@material-ui/core';
 import {
   render as renderRtl,
   screen,
@@ -17,19 +18,24 @@ import type { IRuntimeState } from 'src/types';
 
 import { getInitialStateMock } from 'altinn-app-frontend/__mocks__/initialStateMock';
 
+import { AltinnAppTheme } from 'altinn-shared/theme';
+
 const render = (initialState: Partial<IRuntimeState> = {}) => {
+  const theme = createTheme(AltinnAppTheme);
   const createStore = configureStore();
   const mockInitialState = getInitialStateMock(initialState);
   const mockStore = createStore(mockInitialState);
   mockStore.dispatch = jest.fn();
 
   renderRtl(
-    <BrowserRouter>
-      <Provider store={mockStore}>
-        <Instantiate />
-      </Provider>
-      <Route path='/instance/1'>Instance page</Route>
-    </BrowserRouter>,
+    <MuiThemeProvider theme={theme}>
+      <BrowserRouter>
+        <Provider store={mockStore}>
+          <Instantiate />
+        </Provider>
+        <Route path='/instance/1'>Instance page</Route>
+      </BrowserRouter>
+    </MuiThemeProvider>,
   );
 
   return mockStore.dispatch;

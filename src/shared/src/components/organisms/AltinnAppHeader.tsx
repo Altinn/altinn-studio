@@ -1,12 +1,6 @@
-import type { WithStyles } from '@material-ui/core';
-import {
-  AppBar,
-  createStyles,
-  Grid,
-  Typography,
-  withStyles,
-} from '@material-ui/core';
-import * as React from 'react';
+import { AppBar, Grid, Typography, makeStyles } from '@material-ui/core';
+import React from 'react';
+
 import type { ILanguage, IParty } from '../../types';
 import { getLanguageFromKey } from '../../utils';
 import { renderPartyName } from '../../utils/party';
@@ -14,7 +8,7 @@ import { AltinnLogo } from '../AltinnLogo';
 import { LandmarkShortcuts } from '../LandmarkShortcuts';
 import AltinnAppHeaderMenu from './AltinnAppHeaderMenu';
 
-export interface IAltinnAppHeaderProps extends WithStyles<typeof styles> {
+export interface IAltinnAppHeaderProps {
   /** The party of the instance owner */
   party: IParty;
   /** The party of the currently logged in user */
@@ -27,7 +21,7 @@ export interface IAltinnAppHeaderProps extends WithStyles<typeof styles> {
   language: ILanguage;
 }
 
-const styles = createStyles({
+const useStyles = makeStyles(() => ({
   altinnAppHeader: {
     boxShadow: 'none',
     WebkitBoxShadow: 'none',
@@ -57,16 +51,17 @@ const styles = createStyles({
   appHeaderText: {
     fontSize: 14,
   },
-});
+}));
 
 export function AltinnAppHeader({
-  classes,
   logoColor,
   headerBackgroundColor,
   party,
   userParty,
   language,
 }: IAltinnAppHeaderProps) {
+  const classes = useStyles();
+
   return (
     <AppBar
       data-testid='AltinnAppHeader'
@@ -145,4 +140,4 @@ export function AltinnAppHeader({
   );
 }
 
-export default withStyles(styles)(AltinnAppHeader);
+export default AltinnAppHeader;

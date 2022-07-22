@@ -37,6 +37,9 @@ declare module '@material-ui/core/styles/createTheme' {
       linkBorderBottom: string;
       mainPaddingLeft: number;
       leftDrawerMenuClosedWidth: number;
+      fontWeight: {
+        medium: number;
+      };
     };
   }
 }

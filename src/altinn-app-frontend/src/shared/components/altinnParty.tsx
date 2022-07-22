@@ -1,27 +1,19 @@
-import * as React from 'react';
+import React from 'react';
 
-import {
-  createStyles,
-  Grid,
-  Paper,
-  Typography,
-  withStyles,
-} from '@material-ui/core';
-import type { WithStyles } from '@material-ui/core';
+import { Grid, makeStyles, Paper, Typography } from '@material-ui/core';
 
 import { useAppSelector } from 'src/common/hooks';
 
 import { AltinnCollapsableList } from 'altinn-shared/components';
-import { AltinnAppTheme } from 'altinn-shared/theme';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import type { IParty } from 'altinn-shared/types';
 
-const styles = createStyles({
+const useStyles = makeStyles((theme) => ({
   partyPaper: {
     marginBottom: '1.2rem',
     borderRadius: 0,
-    backgroundColor: AltinnAppTheme.altinnPalette.primary.blueLighter,
-    boxShadow: AltinnAppTheme.sharedStyles.boxShadow,
+    backgroundColor: theme.altinnPalette.primary.blueLighter,
+    boxShadow: theme.sharedStyles.boxShadow,
     width: '100%',
   },
   partyWrapper: {
@@ -41,9 +33,9 @@ const styles = createStyles({
   partyPaperDisabled: {
     marginBottom: '1.2rem',
     borderRadius: 0,
-    backgroundColor: AltinnAppTheme.altinnPalette.primary.blueLighter,
-    boxShadow: AltinnAppTheme.sharedStyles.boxShadow,
-    color: AltinnAppTheme.altinnPalette.primary.grey,
+    backgroundColor: theme.altinnPalette.primary.blueLighter,
+    boxShadow: theme.sharedStyles.boxShadow,
+    color: theme.altinnPalette.primary.grey,
     width: '100%',
   },
   partyIcon: {
@@ -62,7 +54,7 @@ const styles = createStyles({
     fontWeight: 300,
   },
   subUnitWrapper: {
-    color: AltinnAppTheme.altinnPalette.primary.black,
+    color: theme.altinnPalette.primary.black,
   },
   subUnitListHeaderWrapper: {
     '&:hover': {
@@ -70,14 +62,14 @@ const styles = createStyles({
     },
     paddingTop: '1.2rem',
     paddingBottom: '1.2rem',
-    borderTop: `1px solid ${AltinnAppTheme.altinnPalette.primary.greyMedium}`,
+    borderTop: `1px solid ${theme.altinnPalette.primary.greyMedium}`,
   },
   subUnit: {
     width: '100%',
     paddingLeft: '2.4rem',
     paddingRight: '2.4rem',
     '&:hover': {
-      background: AltinnAppTheme.altinnPalette.primary.blueLight,
+      background: theme.altinnPalette.primary.blueLight,
       cursor: 'pointer',
     },
   },
@@ -85,21 +77,21 @@ const styles = createStyles({
     paddingLeft: '2.4rem',
     paddingRight: '2.4rem',
     '&:hover': {
-      background: AltinnAppTheme.altinnPalette.primary.blueLight,
+      background: theme.altinnPalette.primary.blueLight,
       cursor: 'pointer',
     },
   },
   subUnitListHeaderText: {
     paddingTop: '1.2rem',
-    color: AltinnAppTheme.altinnPalette.primary.black,
+    color: theme.altinnPalette.primary.black,
   },
   subUnitListHeaderIcon: {
     padding: '1.2rem',
     fontSize: '1.3rem',
-    color: AltinnAppTheme.altinnPalette.primary.blue,
+    color: theme.altinnPalette.primary.blue,
   },
   subUnitTextWrapper: {
-    borderTop: `1px solid ${AltinnAppTheme.altinnPalette.primary.greyMedium}`,
+    borderTop: `1px solid ${theme.altinnPalette.primary.greyMedium}`,
     paddingRight: '2.1rem',
     paddingLeft: '4.8rem',
   },
@@ -114,18 +106,23 @@ const styles = createStyles({
     paddingLeft: '2.8rem',
     fontSize: '4.2rem',
   },
-});
+}));
 
-export interface IAltinnPartyProps extends WithStyles<typeof styles> {
+export interface IAltinnPartyProps {
   party: IParty;
   onSelectParty: (party: IParty) => void;
   showSubUnits: boolean;
 }
 
-function AltinnParty(props: IAltinnPartyProps) {
+function AltinnParty({
+  party,
+  onSelectParty,
+  showSubUnits,
+}: IAltinnPartyProps) {
+  const classes = useStyles();
+
   const [subUnitsExpanded, setSubUnitsExpanded] =
     React.useState<boolean>(false);
-  const { classes, party, onSelectParty } = props;
   const isOrg: boolean = party.orgNumber != null;
   const language = useAppSelector((state) => state.language.language);
 
@@ -153,7 +150,7 @@ function AltinnParty(props: IAltinnPartyProps) {
       return null;
     }
 
-    if (!props.showSubUnits) {
+    if (!showSubUnits) {
       return null;
     }
 
@@ -201,6 +198,7 @@ function AltinnParty(props: IAltinnPartyProps) {
       >
         {party.childParties.map((childParty: IParty, index: number) => (
           <Grid
+            data-testid='AltinnParty-SubUnitWrapper'
             key={index}
             container={true}
             direction='column'
@@ -249,6 +247,7 @@ function AltinnParty(props: IAltinnPartyProps) {
     >
       <Grid
         id={`party-${party.partyId}`}
+        data-testid='AltinnParty-PartyWrapper'
         container={true}
         direction='row'
         className={
@@ -300,4 +299,4 @@ function AltinnParty(props: IAltinnPartyProps) {
   );
 }
 
-export default withStyles(styles)(AltinnParty);
+export default AltinnParty;

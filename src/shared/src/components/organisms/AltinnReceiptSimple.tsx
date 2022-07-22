@@ -1,45 +1,38 @@
-import { Typography } from '@material-ui/core';
-import type { WithStyles } from '@material-ui/core/styles';
-import {
-  createTheme,
-  createStyles,
-  MuiThemeProvider,
-  withStyles,
-} from '@material-ui/core/styles';
-import * as React from 'react';
-import altinnTheme from '../../theme/altinnAppTheme';
+import { Typography, makeStyles } from '@material-ui/core';
+import React from 'react';
 
-export interface IReceiptComponentProps extends WithStyles<typeof styles> {
+export interface IReceiptComponentProps {
   body: string;
   title: string;
 }
 
-const theme = createTheme(altinnTheme);
-
-const styles = createStyles({
+const useStyles = makeStyles(() => ({
   paddingTop24: {
     paddingTop: '2.4rem',
   },
   wordBreak: {
     wordBreak: 'break-word',
   },
-});
+}));
 
-export function ReceiptComponentSimple(props: IReceiptComponentProps) {
+export function ReceiptComponentSimple({
+  title,
+  body,
+}: IReceiptComponentProps) {
+  const classes = useStyles();
+
   return (
-    <div className={props.classes.wordBreak}>
-      <MuiThemeProvider theme={theme}>
-        <Typography variant='h2'>{props.title}</Typography>
+    <div className={classes.wordBreak}>
+      <Typography variant='h2'>{title}</Typography>
 
-        <Typography
-          variant='body1'
-          className={props.classes.paddingTop24}
-        >
-          {props.body}
-        </Typography>
-      </MuiThemeProvider>
+      <Typography
+        variant='body1'
+        className={classes.paddingTop24}
+      >
+        {body}
+      </Typography>
     </div>
   );
 }
 
-export default withStyles(styles)(ReceiptComponentSimple);
+export default ReceiptComponentSimple;

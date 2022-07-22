@@ -1,20 +1,13 @@
-import { Typography } from '@material-ui/core';
-import type { WithStyles } from '@material-ui/core/styles';
-import {
-  createTheme,
-  createStyles,
-  MuiThemeProvider,
-  withStyles,
-} from '@material-ui/core/styles';
-import * as React from 'react';
+import React from 'react';
+import { Typography, makeStyles } from '@material-ui/core';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
-import altinnTheme from '../../theme/altinnAppTheme';
+
 import type { IAttachment, IAttachmentGrouping } from '../../types';
 import AltinnAttachmentComponent from '../atoms/AltinnAttachment';
 import AltinnCollapsibleAttachmentsComponent from '../molecules/AltinnCollapsibleAttachments';
 import AltinnSummaryTable from '../molecules/AltinnSummaryTable';
 
-export interface IReceiptComponentProps extends WithStyles<typeof styles> {
+export interface IReceiptComponentProps {
   attachmentGroupings?: IAttachmentGrouping;
   body: React.ReactNode;
   collapsibleTitle: React.ReactNode;
@@ -27,9 +20,7 @@ export interface IReceiptComponentProps extends WithStyles<typeof styles> {
   titleSubmitted: React.ReactNode;
 }
 
-const theme = createTheme(altinnTheme);
-
-const styles = createStyles({
+const useStyles = makeStyles(() => ({
   instanceMetaData: {
     marginTop: 36,
   },
@@ -46,7 +37,7 @@ const styles = createStyles({
   wordBreak: {
     wordBreak: 'break-word',
   },
-});
+}));
 
 interface ICollapsibleAttacments {
   attachments: IAttachment[];
@@ -59,12 +50,14 @@ const CollapsibleAttachments = ({
   title,
   hideCollapsibleCount,
 }: ICollapsibleAttacments) => {
+  const isPrint = useMediaQuery('print')
+    ? false
+    : Boolean(attachments.length > 4);
+
   return (
     <AltinnCollapsibleAttachmentsComponent
       attachments={attachments}
-      collapsible={
-        useMediaQuery('print') ? false : Boolean(attachments.length > 4)
-      }
+      collapsible={isPrint}
       title={title}
       hideCount={hideCollapsibleCount}
     />
@@ -121,59 +114,70 @@ const RenderAttachmentGroupings = ({
   );
 };
 
-export function ReceiptComponent(props: IReceiptComponentProps) {
+export function ReceiptComponent({
+  title,
+  instanceMetaDataObject,
+  subtitle,
+  subtitleurl,
+  body,
+  pdf,
+  titleSubmitted,
+  attachmentGroupings,
+  collapsibleTitle,
+  hideCollapsibleCount,
+}: IReceiptComponentProps) {
+  const classes = useStyles();
+
   // renders attachment groups. Always shows default group first
   return (
-    <div className={props.classes.wordBreak}>
-      <MuiThemeProvider theme={theme}>
-        <Typography variant='h2'>{props.title}</Typography>
-        <AltinnSummaryTable summaryDataObject={props.instanceMetaDataObject} />
-        {props.subtitle && (
-          <Typography
-            variant='body1'
-            className={props.classes.paddingTop24}
-          >
-            <a href={props.subtitleurl}>{props.subtitle}</a>
-          </Typography>
-        )}
-
+    <div className={classes.wordBreak}>
+      <Typography variant='h2'>{title}</Typography>
+      <AltinnSummaryTable summaryDataObject={instanceMetaDataObject} />
+      {subtitle && (
         <Typography
-          id='body-text'
           variant='body1'
-          className={props.classes.paddingTop24}
+          className={classes.paddingTop24}
         >
-          {props.body}
+          <a href={subtitleurl}>{subtitle}</a>
         </Typography>
-        {props.pdf && props.pdf.length > 0 && (
-          <>
-            {props.titleSubmitted && (
-              <Typography
-                variant='h3'
-                style={{
-                  paddingTop: '4.1rem',
-                  paddingBottom: '0.5rem',
-                  fontWeight: 600,
-                }}
-              >
-                {props.titleSubmitted}
-              </Typography>
-            )}
-            <AltinnAttachmentComponent
-              attachments={props.pdf}
-              id='attachment-list-pdf'
-            />
-          </>
-        )}
-        {props.attachmentGroupings && (
-          <RenderAttachmentGroupings
-            attachmentGroupings={props.attachmentGroupings}
-            collapsibleTitle={props.collapsibleTitle}
-            hideCollapsibleCount={props.hideCollapsibleCount}
+      )}
+
+      <Typography
+        id='body-text'
+        variant='body1'
+        className={classes.paddingTop24}
+      >
+        {body}
+      </Typography>
+      {pdf && pdf.length > 0 && (
+        <>
+          {titleSubmitted && (
+            <Typography
+              variant='h3'
+              style={{
+                paddingTop: '4.1rem',
+                paddingBottom: '0.5rem',
+                fontWeight: 600,
+              }}
+            >
+              {titleSubmitted}
+            </Typography>
+          )}
+          <AltinnAttachmentComponent
+            attachments={pdf}
+            id='attachment-list-pdf'
           />
-        )}
-      </MuiThemeProvider>
+        </>
+      )}
+      {attachmentGroupings && (
+        <RenderAttachmentGroupings
+          attachmentGroupings={attachmentGroupings}
+          collapsibleTitle={collapsibleTitle}
+          hideCollapsibleCount={hideCollapsibleCount}
+        />
+      )}
     </div>
   );
 }
 
-export default withStyles(styles)(ReceiptComponent);
+export default ReceiptComponent;

@@ -15,7 +15,7 @@ export default class AppFrontend {
     this.instantiationButton = '#instantiation-button';
     this.errorExclamation = '.fa-circle-exclamation';
     this.errorReport = '#errorReport';
-    this.altinnError = 'div[class*="AltinnError-contentMargin"]';
+    this.altinnError = '[data-testid="AltinnError"]';
     this.profileIconButton = '#profile-icon-button';
     this.logOut = '#logout-menu-item';
     this.logOutLink = 'a[href$="/ui/authentication/LogOut"]';
@@ -116,19 +116,26 @@ export default class AppFrontend {
           name: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) > td:nth-child(1)`,
           status: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) > td:nth-child(${statusIdx})`,
           deleteBtn: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) div[role=button]`,
-          ...(isTagged ? {
-            tagSelector: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) select`,
-            tagSave: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) button[id^=attachment-save-tag-button]`,
-            editBtn: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) td:last-of-type button[class*=editTextContainer]`,
-            deleteBtn: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) button[class*=deleteButton]`,
-          } : {})
+          ...(isTagged
+            ? {
+              tagSelector: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) select`,
+              tagSave: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) button[id^=attachment-save-tag-button]`,
+              editBtn: `${tableSelector} > tbody > tr:nth-child(${
+                idx + 1
+              }) td:last-of-type button[class*=editTextContainer]`,
+              deleteBtn: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) button[class*=deleteButton]`,
+            }
+            : {}),
         })),
         addMoreBtn: `#altinn-fileuploader-${id}-${row} > button`,
-        tableRowPreview: typeof row === 'number'
-          ? `#group-mainGroup-table-body > tr:nth-child(${row + 1}) > td:nth-child(${tablePreviewColumn})`
-          : `#group-subGroup-${row.split('-')[0]}-table-body > tr:nth-child(${parseInt(row.split('-')[1]) + 1}) > td:nth-child(${tablePreviewColumn})`,
+        tableRowPreview:
+          typeof row === 'number'
+            ? `#group-mainGroup-table-body > tr:nth-child(${row + 1}) > td:nth-child(${tablePreviewColumn})`
+            : `#group-subGroup-${row.split('-')[0]}-table-body > tr:nth-child(${
+              parseInt(row.split('-')[1]) + 1
+            }) > td:nth-child(${tablePreviewColumn})`,
 
-        test: '#group-subGroup-0-table-body > tr > td:nth-child(2)'
+        test: '#group-subGroup-0-table-body > tr > td:nth-child(2)',
       };
     };
 
@@ -174,11 +181,11 @@ export default class AppFrontend {
               `#nestedOptions-${idx}-${subIdx} input[type=checkbox]:nth(1)`,
               `#nestedOptions-${idx}-${subIdx} input[type=checkbox]:nth(2)`,
             ],
-            editBtn: `#group-subGroup-${idx}-table-body > tr:nth-child(${subIdx + 1}) > td:last-of-type > button`
+            editBtn: `#group-subGroup-${idx}-table-body > tr:nth-child(${subIdx + 1}) > td:last-of-type > button`,
           })),
           groupContainer: `#group-subGroup-${idx}`,
           saveBtn: `#add-button-grp-subGroup-${idx}`,
-        }
+        },
       })),
     };
 
@@ -192,12 +199,12 @@ export default class AppFrontend {
     };
 
     this.reporteeSelection = {
-      appHeader: 'div[class*=AltinnAppHeader-toolbarContainer]',
+      appHeader: '[data-testid="AltinnAppHeader"]',
       searchReportee: 'input[placeholder="Søk etter aktør"]',
       checkbox: 'input[type="checkbox"]',
       seeSubUnits: '.ai.ai-expand-circle',
-      reportee: 'div[class*=AltinnParty-partyWrapper][id^=party-]',
-      subUnits: 'div[class*=AltinnParty-subUnitWrapper]',
+      reportee: '[data-testid="AltinnParty-PartyWrapper"][id^=party-]',
+      subUnits: '[data-testid="AltinnParty-SubUnitWrapper"]',
       error: '#party-selection-error',
     };
 

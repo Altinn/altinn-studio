@@ -1,10 +1,8 @@
-import * as React from 'react';
-import { withRouter } from 'react-router';
-import type { RouteComponentProps } from 'react-router';
+import React from 'react';
+import { useParams } from 'react-router-dom';
 
-import { createStyles, Grid, Typography, withStyles } from '@material-ui/core';
+import { Grid, makeStyles, Typography } from '@material-ui/core';
 import AddIcon from '@material-ui/icons/Add';
-import type { WithStyles } from '@material-ui/core';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import InstantiationContainer from 'src/features/instantiate/containers/InstantiationContainer';
@@ -22,7 +20,7 @@ import { AltinnAppTheme } from 'altinn-shared/theme';
 import { getLanguageFromKey } from 'altinn-shared/utils';
 import type { IParty } from 'altinn-shared/types';
 
-const styles = createStyles({
+const useStyles = makeStyles((theme) => ({
   partySelectionTitle: {
     fontSize: '3.5rem',
     fontWeight: 200,
@@ -32,7 +30,7 @@ const styles = createStyles({
   partySelectionError: {
     fontSize: '1.75rem',
     fontWeight: 300,
-    backgroundColor: AltinnAppTheme.altinnPalette.primary.redLight,
+    backgroundColor: theme.altinnPalette.primary.redLight,
     padding: 12,
     margin: 12,
   },
@@ -49,8 +47,8 @@ const styles = createStyles({
   },
   loadMoreButton: {
     padding: 5,
-    backgroundColor: AltinnAppTheme.altinnPalette.primary.white,
-    border: `2px dotted ${AltinnAppTheme.altinnPalette.primary.blue}`,
+    backgroundColor: theme.altinnPalette.primary.white,
+    border: `2px dotted ${theme.altinnPalette.primary.blue}`,
   },
   loadMoreButtonIcon: {
     marginLeft: '1.5rem',
@@ -69,19 +67,16 @@ const styles = createStyles({
   checkboxLabes: {
     paddingTop: '1.2rem',
   },
-});
+}));
 
 interface IRedirectParams {
-  errorCode: HttpStatusCodes;
+  errorCode?: string;
 }
 
-export interface IPartySelectionProps
-  extends WithStyles<typeof styles>,
-    RouteComponentProps {}
-
-const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
+const PartySelection = () => {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.white);
-  const { classes, match } = props;
+  const classes = useStyles();
+  const { errorCode } = useParams<IRedirectParams>();
 
   const dispatch = useAppDispatch();
   const language = useAppSelector((state) => state.language.language);
@@ -163,45 +158,28 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
     if (!language || !language.party_selection) {
       return null;
     }
-    const params = match.params as IRedirectParams;
-    if (params.errorCode) {
-      try {
-        const errorCode: number = parseInt(params.errorCode.toString(), 10);
-        switch (errorCode) {
-          // Keeping the switch statement because we might extends the enums to handle more errors
-          case HttpStatusCodes.Forbidden: {
-            return (
-              <Typography
-                className={classes.partySelectionError}
-                id='party-selection-error'
-              >
-                {`
-                  ${getLanguageFromKey(
-                    'party_selection.invalid_selection_first_part',
-                    language,
-                  )} ${getRepresentedPartyName()}.
-                  ${getLanguageFromKey(
-                    'party_selection.invalid_selection_second_part',
-                    language,
-                  )} ${templatePartyTypesString()}.
-                  ${getLanguageFromKey(
-                    'party_selection.invalid_selection_third_part',
-                    language,
-                  )}
-                `}
-              </Typography>
-            );
-          }
-          default: {
-            return null;
-          }
-        }
-      } catch (err) {
-        // eslint-disable-next-line no-console
-        console.info('Could not parse number from params');
-      }
+
+    if (errorCode === `${HttpStatusCodes.Forbidden}`) {
+      return (
+        <Typography
+          className={classes.partySelectionError}
+          id='party-selection-error'
+        >
+          {`${getLanguageFromKey(
+            'party_selection.invalid_selection_first_part',
+            language,
+          )} ${getRepresentedPartyName()}.
+            ${getLanguageFromKey(
+              'party_selection.invalid_selection_second_part',
+              language,
+            )} ${templatePartyTypesString()}.
+            ${getLanguageFromKey(
+              'party_selection.invalid_selection_third_part',
+              language,
+            )}`}
+        </Typography>
+      );
     }
-    return null;
   }
 
   function templatePartyTypesString() {
@@ -398,6 +376,6 @@ const PartySelectionWithRouter = withRouter((props: IPartySelectionProps) => {
       </Grid>
     </InstantiationContainer>
   );
-});
+};
 
-export default withStyles(styles)(PartySelectionWithRouter);
+export default PartySelection;

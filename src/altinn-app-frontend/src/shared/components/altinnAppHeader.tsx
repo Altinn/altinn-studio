@@ -1,11 +1,7 @@
-import * as React from 'react';
+import React from 'react';
 
 import { AppBar, Grid, Toolbar } from '@material-ui/core';
-import {
-  createStyles,
-  createTheme,
-  withStyles,
-} from '@material-ui/core/styles';
+import { makeStyles } from '@material-ui/core/styles';
 
 import { renderParty } from 'src/shared/resources/utils/party';
 
@@ -20,15 +16,12 @@ import {
 import type { ILanguage, IProfile } from 'altinn-shared/types';
 
 export interface IHeaderProps {
-  classes: any;
   language: ILanguage;
   profile: IProfile;
   type?: string;
 }
 
-const theme = createTheme(AltinnAppTheme);
-
-const styles = createStyles({
+const useStyles = makeStyles((theme) => ({
   appBarWrapper: {
     flexGrow: 1,
     '& header': {
@@ -36,16 +29,16 @@ const styles = createStyles({
     },
   },
   blueDark: {
-    color: AltinnAppTheme.altinnPalette.primary.blueDark,
+    color: theme.altinnPalette.primary.blueDark,
   },
   blueDarker: {
-    color: AltinnAppTheme.altinnPalette.primary.blueDarker,
+    color: theme.altinnPalette.primary.blueDarker,
   },
   default: {
     backgroundColor: 'transparent',
   },
   headerLink: {
-    color: AltinnAppTheme.altinnPalette.primary.blueDark,
+    color: theme.altinnPalette.primary.blueDark,
     fontSize: '2.4rem',
     lineHeight: '1.5',
     marginLeft: '3.6rem',
@@ -57,12 +50,12 @@ const styles = createStyles({
       padding: 0,
     },
     '& a': {
-      color: AltinnAppTheme.altinnPalette.primary.blueDark,
+      color: theme.altinnPalette.primary.blueDark,
       borderBottom: 0,
     },
     '& a:hover': {
-      color: AltinnAppTheme.altinnPalette.primary.blueDark,
-      borderBottom: `3px solid ${AltinnAppTheme.altinnPalette.primary.blueDark}`,
+      color: theme.altinnPalette.primary.blueDark,
+      borderBottom: `3px solid ${theme.altinnPalette.primary.blueDark}`,
     },
   },
   headerLinkList: {
@@ -101,7 +94,7 @@ const styles = createStyles({
     paddingLeft: '0',
     paddingRight: '0',
   },
-});
+}));
 
 const spanStyle = {
   marginBottom: '10px',
@@ -111,15 +104,17 @@ const gridStyle = { flexGrow: 1 };
 
 const emptyObj = {};
 
-const AltinnAppHeader = ({
-  classes,
-  type,
-  profile,
-  language,
-}: IHeaderProps) => {
+const AltinnAppHeader = ({ type, profile, language }: IHeaderProps) => {
   const party = profile ? profile.party : null;
+  const classes = useStyles();
+
+  const blueClass = type ? classes.blueDark : classes.blueDarker;
+
   return (
-    <div className={classes.appBarWrapper}>
+    <div
+      className={classes.appBarWrapper}
+      data-testid='AltinnAppHeader'
+    >
       <LandmarkShortcuts
         shortcuts={[
           {
@@ -186,16 +181,10 @@ const AltinnAppHeader = ({
               >
                 {!type && (
                   <>
-                    <span
-                      className={`d-block ${
-                        type ? classes.blueDark : classes.blueDarker
-                      }`}
-                    >
+                    <span className={`d-block ${blueClass}`}>
                       {renderParty(profile)}
                     </span>
-                    <span
-                      className={type ? classes.blueDark : classes.blueDarker}
-                    >
+                    <span className={blueClass}>
                       {party &&
                         party.organisation &&
                         `${getLanguageFromKey(
@@ -209,16 +198,12 @@ const AltinnAppHeader = ({
               </span>
               {party && party.organisation ? (
                 <i
-                  className={`fa fa-corp-circle-big ${classes.partyIcon} ${
-                    type ? classes.blueDark : classes.blueDarker
-                  }`}
+                  className={`fa fa-corp-circle-big ${classes.partyIcon} ${blueClass}`}
                   aria-hidden='true'
                 />
               ) : (
                 <i
-                  className={`fa fa-private-circle-big ${classes.partyIcon} ${
-                    type ? classes.blueDark : classes.blueDarker
-                  }`}
+                  className={`fa fa-private-circle-big ${classes.partyIcon} ${blueClass}`}
                   aria-hidden='true'
                 />
               )}
@@ -230,4 +215,4 @@ const AltinnAppHeader = ({
   );
 };
 
-export default withStyles(styles)(AltinnAppHeader);
+export default AltinnAppHeader;

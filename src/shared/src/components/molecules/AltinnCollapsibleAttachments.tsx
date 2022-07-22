@@ -1,19 +1,20 @@
-import { Typography } from '@material-ui/core';
-import Collapse from '@material-ui/core/Collapse';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import createStyles from '@material-ui/core/styles/createStyles';
-import type { WithStyles } from '@material-ui/core/styles/withStyles';
-import withStyles from '@material-ui/core/styles/withStyles';
-import classNames from 'classnames';
-import * as React from 'react';
+import {
+  Typography,
+  makeStyles,
+  Collapse,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+} from '@material-ui/core';
+import React from 'react';
+import cn from 'classnames';
+
 import type { IAttachment } from '../../types';
 import { AltinnIcon } from '../AltinnIcon';
 import AltinnAttachmentComponent from '../atoms/AltinnAttachment';
 
-const styles = createStyles({
+const useStyles = makeStyles(() => ({
   listItemTextPadding: {
     paddingLeft: '0',
   },
@@ -28,31 +29,40 @@ const styles = createStyles({
   collapsedTitle: {
     fontSize: '20px',
   },
-});
+}));
 
-interface IAltinnCollapsibleAttachmentsProps extends WithStyles<typeof styles> {
+interface IAltinnCollapsibleAttachmentsProps {
   attachments?: IAttachment[];
   collapsible?: boolean;
   title?: React.ReactNode;
   hideCount?: boolean;
 }
 
-export function AltinnCollapsibleAttachments(
-  props: IAltinnCollapsibleAttachmentsProps,
-) {
+const fontStyle = {
+  fontSize: 18,
+  fontWeight: 600,
+};
+
+export function AltinnCollapsibleAttachments({
+  attachments,
+  collapsible,
+  title,
+  hideCount,
+}: IAltinnCollapsibleAttachmentsProps) {
   const [open, setOpen] = React.useState(true);
+  const classes = useStyles();
 
   function handleOpenClose() {
     setOpen(!open);
   }
 
-  const attachmentCount = props.hideCount
+  const attachmentCount = hideCount
     ? ''
-    : `(${props.attachments && props.attachments.length})`;
+    : `(${attachments && attachments.length})`;
 
   return (
     <>
-      {props.collapsible ? (
+      {collapsible ? (
         <List
           component='nav'
           id='attachment-collapsible-list'
@@ -64,9 +74,9 @@ export function AltinnCollapsibleAttachments(
           >
             <ListItemIcon
               classes={{
-                root: classNames(
-                  { [props.classes.transformArrowRight]: !open },
-                  props.classes.transition,
+                root: cn(
+                  { [classes.transformArrowRight]: !open },
+                  classes.transition,
                 ),
               }}
             >
@@ -77,10 +87,10 @@ export function AltinnCollapsibleAttachments(
               />
             </ListItemIcon>
             <ListItemText
-              primary={`${props.title} ${attachmentCount}`}
+              primary={`${title} ${attachmentCount}`}
               classes={{
-                root: classNames(props.classes.listItemTextPadding),
-                primary: classNames(props.classes.collapsedTitle),
+                root: cn(classes.listItemTextPadding),
+                primary: cn(classes.collapsedTitle),
               }}
             />
           </ListItem>
@@ -90,7 +100,7 @@ export function AltinnCollapsibleAttachments(
             unmountOnExit={true}
           >
             <AltinnAttachmentComponent
-              attachments={props.attachments}
+              attachments={attachments}
               nested={true}
               listDisableVerticalPadding={true}
             />
@@ -98,11 +108,11 @@ export function AltinnCollapsibleAttachments(
         </List>
       ) : (
         <>
-          <Typography style={{ fontSize: 18, fontWeight: 600 }}>
-            {props.title} {attachmentCount}
+          <Typography style={fontStyle}>
+            {title} {attachmentCount}
           </Typography>
           <AltinnAttachmentComponent
-            attachments={props.attachments}
+            attachments={attachments}
             nested={false}
             listDisableVerticalPadding={false}
             id='attachment-list'
@@ -113,4 +123,4 @@ export function AltinnCollapsibleAttachments(
   );
 }
 
-export default withStyles(styles)(AltinnCollapsibleAttachments);
+export default AltinnCollapsibleAttachments;

@@ -1,8 +1,5 @@
-import * as React from 'react';
+import React from 'react';
 import { Route, Switch } from 'react-router-dom';
-
-import { AppWrapper } from '@altinn/altinn-design-system';
-import { createTheme, MuiThemeProvider } from '@material-ui/core';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import Entrypoint from 'src/features/entrypoint/Entrypoint';
@@ -17,10 +14,6 @@ import {
   refreshJwtTokenUrl,
 } from 'src/utils/appUrlHelper';
 import { get } from 'src/utils/networking';
-
-import { AltinnAppTheme } from 'altinn-shared/theme';
-
-const theme = createTheme(AltinnAppTheme);
 
 // 1 minute = 60.000ms
 const TEN_MINUTE_IN_MILLISECONDS: number = 60000 * 10;
@@ -101,27 +94,23 @@ export const App = () => {
   }
 
   return (
-    <AppWrapper>
-      <MuiThemeProvider theme={theme}>
-        <Switch>
-          <Route
-            path='/'
-            exact={true}
-          >
-            <Entrypoint allowAnonymous={allowAnonymous} />
-          </Route>
-          <Route
-            path='/partyselection/:errorCode?'
-            exact={true}
-            component={PartySelection}
-          />
-          <Route
-            path='/instance/:partyId/:instanceGuid'
-            exact={true}
-            component={ProcessWrapper}
-          />
-        </Switch>
-      </MuiThemeProvider>
-    </AppWrapper>
+    <Switch>
+      <Route
+        path='/'
+        exact={true}
+      >
+        <Entrypoint allowAnonymous={allowAnonymous} />
+      </Route>
+      <Route
+        path='/partyselection/:errorCode?'
+        exact={true}
+        component={PartySelection}
+      />
+      <Route
+        path='/instance/:partyId/:instanceGuid'
+        exact={true}
+        component={ProcessWrapper}
+      />
+    </Switch>
   );
 };

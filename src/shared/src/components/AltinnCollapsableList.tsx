@@ -1,5 +1,5 @@
+import React from 'react';
 import { Collapse, Grid } from '@material-ui/core';
-import * as React from 'react';
 
 export interface IAltinnCollapsableListProps {
   /** Boolean value for if the animation will transition */
@@ -8,13 +8,15 @@ export interface IAltinnCollapsableListProps {
   onClickExpand: () => void;
   /** React nodes values for the list header */
   listHeader: React.ReactNode;
+  children: React.ReactNode;
 }
 
-const AltinnCollapsableList: React.SFC<IAltinnCollapsableListProps> = (
-  props,
-) => {
-  const { transition, listHeader, onClickExpand, children } = props;
-
+const AltinnCollapsableList = ({
+  transition,
+  listHeader,
+  onClickExpand,
+  children,
+}: IAltinnCollapsableListProps) => {
   function onKeyPress(event: React.KeyboardEvent) {
     event.stopPropagation();
     if (event.key === 'Enter' || event.key === ' ') {

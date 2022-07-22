@@ -1,10 +1,8 @@
-import * as React from 'react';
+import React from 'react';
 
-import { createStyles, Grid, Typography, withStyles } from '@material-ui/core';
+import { Grid, makeStyles, Typography } from '@material-ui/core';
 import classNames from 'classnames';
-import type { WithStyles } from '@material-ui/core';
 
-import { AltinnAppTheme } from 'altinn-shared/theme';
 import { altinnAppsIllustrationHelpCircleSvgUrl } from 'altinn-shared/utils';
 
 interface IAltinnErrorClasses {
@@ -13,7 +11,7 @@ interface IAltinnErrorClasses {
   content?: string;
 }
 
-export interface IAltinnErrorProps extends WithStyles<typeof styles> {
+export interface IAltinnErrorProps {
   statusCode: string;
   title: string | React.ReactNode;
   content: string | React.ReactNode;
@@ -25,7 +23,7 @@ export interface IAltinnErrorProps extends WithStyles<typeof styles> {
   styling?: IAltinnErrorClasses;
 }
 
-const styles = createStyles({
+const useStyles = makeStyles((theme) => ({
   contentMargin: {
     marginBottom: 24,
   },
@@ -33,8 +31,8 @@ const styles = createStyles({
     fontSize: 18,
   },
   title: {
-    fontWeight: AltinnAppTheme.sharedStyles.fontWeight.medium,
-    color: AltinnAppTheme.altinnPalette.primary.blueDarker,
+    fontWeight: theme.sharedStyles.fontWeight.medium,
+    color: theme.altinnPalette.primary.blueDarker,
   },
   imageContainer: {
     marginTop: 65,
@@ -44,12 +42,24 @@ const styles = createStyles({
     maxWidth: 750,
     '-ms-flex-wrap': 'nowrap',
   },
-});
+}));
 
-const AltinnError = (props: IAltinnErrorProps): JSX.Element => {
-  const { classes, styling } = props;
+const AltinnError = ({
+  styling,
+  statusCode,
+  title,
+  content,
+  url,
+  urlText,
+  urlTextSuffix,
+  imageAlt,
+  imageUrl,
+}: IAltinnErrorProps) => {
+  const classes = useStyles();
+
   return (
     <Grid
+      data-testid='AltinnError'
       container={true}
       className={`${classes.gridContainer} ${styling ? styling.root : null}`}
     >
@@ -58,7 +68,7 @@ const AltinnError = (props: IAltinnErrorProps): JSX.Element => {
         md={8}
       >
         <div className={classes.contentMargin}>
-          <Typography variant='caption'>{props.statusCode}</Typography>
+          <Typography variant='caption'>{statusCode}</Typography>
         </div>
         <div className={classes.contentMargin}>
           <Typography
@@ -68,7 +78,7 @@ const AltinnError = (props: IAltinnErrorProps): JSX.Element => {
               styling ? styling.title : null,
             )}
           >
-            {props.title}
+            {title}
           </Typography>
         </div>
         <div className={classes.contentMargin}>
@@ -76,16 +86,16 @@ const AltinnError = (props: IAltinnErrorProps): JSX.Element => {
             classes={{ root: classes.articleText }}
             className={styling ? styling.content : null}
           >
-            {props.content}
+            {content}
           </Typography>
         </div>
         <div>
           <Typography variant='body1'>
-            <a href={props.url}>{props.urlText}</a>
+            <a href={url}>{urlText}</a>
           </Typography>
         </div>
         <div>
-          <Typography variant='body1'>{props.urlTextSuffix}</Typography>
+          <Typography variant='body1'>{urlTextSuffix}</Typography>
         </div>
       </Grid>
       <Grid
@@ -94,12 +104,8 @@ const AltinnError = (props: IAltinnErrorProps): JSX.Element => {
       >
         <div className={classes.imageContainer}>
           <img
-            alt={props.imageAlt ? props.imageAlt : 'Altinn Help Illustration'}
-            src={
-              props.imageUrl
-                ? props.imageUrl
-                : altinnAppsIllustrationHelpCircleSvgUrl
-            }
+            alt={imageAlt ? imageAlt : 'Altinn Help Illustration'}
+            src={imageUrl ? imageUrl : altinnAppsIllustrationHelpCircleSvgUrl}
           />
         </div>
       </Grid>
@@ -107,4 +113,4 @@ const AltinnError = (props: IAltinnErrorProps): JSX.Element => {
   );
 };
 
-export default withStyles(styles)(AltinnError);
+export default AltinnError;

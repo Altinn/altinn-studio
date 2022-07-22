@@ -1,18 +1,19 @@
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import createStyles from '@material-ui/core/styles/createStyles';
-import type { WithStyles } from '@material-ui/core/styles/withStyles';
-import withStyles from '@material-ui/core/styles/withStyles';
-import Typography from '@material-ui/core/Typography';
-import classNames from 'classnames';
-import * as React from 'react';
+import {
+  Typography,
+  makeStyles,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+} from '@material-ui/core';
+import cn from 'classnames';
+import React from 'react';
+
 import { makeUrlRelativeIfSameDomain } from '../../utils/urlHelper';
 import type { IAttachment } from '../../types';
 import { AltinnIcon } from '../AltinnIcon';
 
-const styles = createStyles({
+const useStyles = makeStyles(() => ({
   a: {
     '&:hover': {
       borderBottom: '0px',
@@ -42,9 +43,9 @@ const styles = createStyles({
   primaryText: {
     fontWeight: 600,
   },
-});
+}));
 
-interface IAltinnAttachmentProps extends WithStyles<typeof styles> {
+interface IAltinnAttachmentProps {
   /** Attachments array with objects. See code example. */
   attachments?: IAttachment[];
   /** Disables vertical padding (does not currently work in Styleguidist) */
@@ -64,23 +65,30 @@ function ListItemLink(props: any) {
   );
 }
 
-export function AltinnAttachment(props: IAltinnAttachmentProps) {
+export function AltinnAttachment({
+  attachments,
+  listDisableVerticalPadding,
+  nested,
+  id,
+}: IAltinnAttachmentProps) {
+  const classes = useStyles();
+
   return (
     <>
       <List
-        disablePadding={Boolean(props.listDisableVerticalPadding)}
-        id={props.id}
+        disablePadding={Boolean(listDisableVerticalPadding)}
+        id={id}
         data-testid='attachment-list'
       >
-        {props.attachments &&
-          props.attachments.map((attachment, index) => (
+        {attachments &&
+          attachments.map((attachment, index) => (
             <ListItemLink
-              className={classNames(
+              className={cn(
                 {
-                  [props.classes.listItemPadding]: props.nested === true,
-                  [props.classes.listItemPaddingNone]: props.nested !== true,
+                  [classes.listItemPadding]: nested === true,
+                  [classes.listItemPaddingNone]: nested !== true,
                 },
-                props.classes.a,
+                classes.a,
               )}
               href={makeUrlRelativeIfSameDomain(attachment.url)}
               key={index}
@@ -97,23 +105,20 @@ export function AltinnAttachment(props: IAltinnAttachmentProps) {
                   <>
                     <Typography
                       variant='body1'
-                      className={classNames(
-                        props.classes.inline,
-                        props.classes.primaryText,
-                      )}
+                      className={cn(classes.inline, classes.primaryText)}
                     >
                       {attachment.name}
                     </Typography>
                     <Typography
                       variant='body1'
-                      className={props.classes.inline}
+                      className={classes.inline}
                     >
                       &nbsp;(last ned)
                     </Typography>
                   </>
                 }
                 classes={{
-                  root: classNames(props.classes.listItemTextPadding),
+                  root: cn(classes.listItemTextPadding),
                 }}
               />
             </ListItemLink>
@@ -123,4 +128,4 @@ export function AltinnAttachment(props: IAltinnAttachmentProps) {
   );
 }
 
-export default withStyles(styles)(AltinnAttachment);
+export default AltinnAttachment;
