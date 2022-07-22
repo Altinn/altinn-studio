@@ -1,10 +1,10 @@
 using System;
 using System.IO;
+using System.Reflection.Metadata;
 using System.Threading.Tasks;
-
+using Azure.Core;
 using Azure.Storage;
 using Azure.Storage.Blobs;
-
 using Microsoft.Extensions.Configuration;
 
 namespace Altinn.Platform.Storage.CosmosBackup
