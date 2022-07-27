@@ -4,9 +4,13 @@ using System.Reflection;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Filters;
 using Altinn.App.Api.Middleware;
+using Altinn.App.AppLogic.Print;
 using Altinn.App.Core.Health;
 using Altinn.App.PlatformServices.Extensions;
+using Altinn.App.PlatformServices.Interface;
+using Altinn.App.PlatformServices.Options;
 using Altinn.App.Services.Interface;
+using Altinn.App.services.options;
 using Altinn.Common.PEP.Authorization;
 using Altinn.Common.PEP.Clients;
 using AltinnCore.Authentication.JwtCookie;
@@ -60,7 +64,10 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
     services.AddPlatformServices(config, builder.Environment);
 
     // Altinn App implementation service (The concrete implementation of logic from Application repository)
+    services.AddTransient<ICustomPdfHandler, PdfHandler>();
     services.AddTransient<IAltinnApp, Altinn.App.AppLogic.App>();
+    services.AddTransient<IAppOptionsProvider, ReferenceOptions>();
+    services.AddTransient<IInstanceAppOptionsProvider, TestOptionsProvider>();
 
     services.Configure<KestrelServerOptions>(options =>
     {
@@ -146,6 +153,7 @@ void Configure()
     app.UseStaticFiles('/' + applicationId);
     app.UseAuthentication();
     app.UseAuthorization();
+    app.UseStaticFiles("/ttd/frontend-test");
 
     app.UseEndpoints(endpoints =>
     {
