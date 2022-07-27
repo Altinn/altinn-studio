@@ -2,12 +2,11 @@ import React from 'react';
 import { MemoryRouter as Router, Route } from 'react-router-dom';
 
 import { screen } from '@testing-library/react';
+import { renderWithProviders } from 'testUtils';
 
 import ReceiptContainer, {
   returnInstanceMetaDataObject,
 } from 'src/features/receipt/containers/ReceiptContainer';
-
-import { renderWithProviders } from 'altinn-app-frontend/testUtils';
 
 interface IRender {
   populateStore?: boolean;

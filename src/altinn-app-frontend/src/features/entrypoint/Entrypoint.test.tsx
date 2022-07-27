@@ -1,17 +1,16 @@
 import * as React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
+import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { screen, waitFor } from '@testing-library/react';
 import axios from 'axios';
 import { createStore } from 'redux';
+import { renderWithProviders } from 'testUtils';
 import type { AxiosError } from 'axios';
 
 import Entrypoint from 'src/features/entrypoint/Entrypoint';
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import type { IRuntimeState } from 'src/types';
-
-import { getInitialStateMock } from 'altinn-app-frontend/__mocks__/initialStateMock';
-import { renderWithProviders } from 'altinn-app-frontend/testUtils';
 
 jest.mock('axios');
 

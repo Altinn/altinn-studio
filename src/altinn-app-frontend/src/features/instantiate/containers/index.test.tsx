@@ -2,6 +2,7 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { BrowserRouter, Route } from 'react-router-dom';
 
+import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { createTheme, MuiThemeProvider } from '@material-ui/core';
 import {
   render as renderRtl,
@@ -15,8 +16,6 @@ import Instantiate from 'src/features/instantiate/containers';
 import { InstantiationActions } from 'src/features/instantiate/instantiation/instantiationSlice';
 import { HttpStatusCodes } from 'src/utils/networking';
 import type { IRuntimeState } from 'src/types';
-
-import { getInitialStateMock } from 'altinn-app-frontend/__mocks__/initialStateMock';
 
 import { AltinnAppTheme } from 'altinn-shared/theme';
 

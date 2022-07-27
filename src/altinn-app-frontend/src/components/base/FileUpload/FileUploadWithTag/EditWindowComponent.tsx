@@ -93,7 +93,7 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
           className={classes.textContainer}
           style={{ flexShrink: 1 }}
         >
-          {FileName(props.attachment.name)}
+          <FileName>{props.attachment.name}</FileName>
         </Grid>
         <Grid
           className={classes.textContainer}

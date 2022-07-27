@@ -67,7 +67,7 @@ export function splitDashedKey(componentId: string): SplitKey {
 
 export function getRepeatingGroups(formLayout: ILayout, formData: any) {
   const repeatingGroups: IRepeatingGroups = {};
-  const regex = new RegExp(/\[([0-9]+)\]/);
+  const regex = new RegExp(/\[(\d+)\]/);
 
   const groups = formLayout.filter(
     (layoutElement) => layoutElement.type === 'Group',

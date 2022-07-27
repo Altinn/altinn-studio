@@ -12,7 +12,6 @@ import { Severity } from 'src/types';
 import {
   getCurrentDataTypeForApplication,
   getCurrentTaskDataElementId,
-  getDataTaskDataTypeId,
   isStatelessApp,
 } from 'src/utils/appMetadata';
 import {
@@ -28,13 +27,10 @@ import {
 import { post } from 'src/utils/networking';
 import {
   canFormBeSaved,
-  getValidator,
   hasValidationsOfSeverity,
   mapDataElementValidationToRedux,
   mergeValidationObjects,
-  validateEmptyFields,
-  validateFormComponents,
-  validateFormData,
+  runClientSideValidation,
 } from 'src/utils/validation';
 import type {
   ISubmitDataAction,
@@ -57,55 +53,19 @@ export function* submitFormSaga({
 }: PayloadAction<ISubmitDataAction>): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
-    const currentDataTaskDataTypeId = getDataTaskDataTypeId(
-      state.instanceData.instance.process.currentTask.elementId,
-      state.applicationMetadata.applicationMetadata.dataTypes,
-    );
-
-    // Run client validations
-    const validator = getValidator(
-      currentDataTaskDataTypeId,
-      state.formDataModel.schemas,
-    );
-    const model = convertDataBindingToModel(state.formData.formData);
-    const layoutOrder: string[] = state.formLayout.uiConfig.layoutOrder;
-    const validationResult = validateFormData(
+    const {
       model,
-      state.formLayout.layouts,
-      layoutOrder,
-      validator,
-      state.language.language,
-      state.textResources.resources,
-    );
-    let validations = validationResult.validations;
-    const componentSpecificValidations = validateFormComponents(
-      state.attachments.attachments,
-      state.formLayout.layouts,
-      layoutOrder,
-      state.formData.formData,
-      state.language.language,
-      state.formLayout.uiConfig.hiddenFields,
-      state.formLayout.uiConfig.repeatingGroups,
-    );
-    const emptyFieldsValidations = validateEmptyFields(
-      state.formData.formData,
-      state.formLayout.layouts,
-      layoutOrder,
-      state.language.language,
-      state.formLayout.uiConfig.hiddenFields,
-      state.formLayout.uiConfig.repeatingGroups,
-      state.textResources.resources,
-    );
-
-    validations = mergeValidationObjects(
-      validations,
+      validationResult,
       componentSpecificValidations,
-    );
+      emptyFieldsValidations,
+    } = runClientSideValidation(state);
 
-    if (apiMode === 'Complete') {
-      validations = mergeValidationObjects(validations, emptyFieldsValidations);
-    }
-    validationResult.validations = validations;
+    validationResult.validations = mergeValidationObjects(
+      validationResult.validations,
+      componentSpecificValidations,
+      apiMode === 'Complete' ? emptyFieldsValidations : null,
+    );
+    const { validations } = validationResult;
     if (!canFormBeSaved(validationResult, apiMode)) {
       yield sagaPut(ValidationActions.updateValidations({ validations }));
       return yield sagaPut(FormDataActions.submitRejected({ error: null }));

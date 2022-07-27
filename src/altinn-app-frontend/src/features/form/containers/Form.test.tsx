@@ -1,12 +1,17 @@
 import * as React from 'react';
+import { MemoryRouter, Route } from 'react-router-dom';
 
+import { getFormLayoutStateMock } from '__mocks__/formLayoutStateMock';
 import { screen, within } from '@testing-library/react';
+import { renderWithProviders } from 'testUtils';
 import type { PreloadedState } from '@reduxjs/toolkit';
 
-import { getFormLayoutStateMock } from 'src/../__mocks__/formLayoutStateMock';
-import { renderWithProviders } from 'src/../testUtils';
 import { Form } from 'src/features/form/containers/Form';
-import type { ILayout, ILayoutComponent } from 'src/features/form/layout';
+import type {
+  ILayout,
+  ILayoutComponent,
+  ILayoutEntry,
+} from 'src/features/form/layout';
 import type { RootState } from 'src/store';
 
 describe('Form', () => {
@@ -152,19 +157,45 @@ describe('Form', () => {
     expect(screen.getByText('1. FormLayout')).toBeInTheDocument();
   });
 
+  it('should render a summary component', () => {
+    const summaryComponent: ILayoutEntry[] = [
+      ...mockComponents,
+      {
+        id: 'the-summary',
+        type: 'Summary',
+        pageRef: 'FormLayout',
+        componentRef: 'field1',
+      } as unknown as ILayoutEntry,
+    ];
+    renderForm(summaryComponent as ILayout);
+    expect(screen.getByTestId('summary-component')).toBeInTheDocument();
+  });
+
   function renderForm(
     layout = mockComponents,
     customState: PreloadedState<RootState> = {},
   ) {
-    renderWithProviders(<Form />, {
-      preloadedState: {
-        ...customState,
-        formLayout: getFormLayoutStateMock({
-          layouts: {
-            FormLayout: layout,
-          },
-        }),
+    renderWithProviders(
+      <MemoryRouter
+        initialEntries={[
+          '/instance/123456/75154373-aed4-41f7-95b4-e5b5115c2edc',
+        ]}
+      >
+        <Route
+          path={'/instance/:partyId/:instanceGuid'}
+          component={Form}
+        />
+      </MemoryRouter>,
+      {
+        preloadedState: {
+          ...customState,
+          formLayout: getFormLayoutStateMock({
+            layouts: {
+              FormLayout: layout,
+            },
+          }),
+        },
       },
-    });
+    );
   }
 });

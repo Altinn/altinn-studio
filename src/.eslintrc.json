@@ -134,6 +134,13 @@
                 "^altinn-app-frontend/.*\\u0000$"
               ],
               [
+                // Imports from altinn-app-frontend (mostly mocks and test utilities)
+                "^__mocks__/[^\\u0000]+$",
+                "^__mocks__/.*\\u0000$",
+                "^testUtils[^\\u0000]$",
+                "^testUtils$"
+              ],
+              [
                 // Imports from altinn-shared
                 "^altinn-shared/[^\\u0000]+$",
                 "^altinn-shared/.*\\u0000$"

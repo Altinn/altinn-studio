@@ -106,6 +106,7 @@
       "^altinn-shared/(.*)$": "<rootDir>/../shared/src/$1",
       "^src/(.*)$": "<rootDir>/src/$1",
       "^__mocks__/(.*)$": "<rootDir>/__mocks__/$1",
+      "^testUtils$": "<rootDir>/testUtils.tsx",
       "^uuid$": "<rootDir>/../node_modules/uuid/dist/index.js"
     },
     "testRegex": "(/__tests__/.*|.*.(test|spec)).(ts|tsx|js|jsx)$",

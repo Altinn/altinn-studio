@@ -2,6 +2,7 @@
 import AppFrontend from '../pageobjects/app-frontend';
 import Common from '../pageobjects/common';
 import * as texts from '../fixtures/texts.json';
+import {instanceIdExp} from './util';
 
 const appFrontend = new AppFrontend();
 const mui = new Common();
@@ -81,18 +82,24 @@ Cypress.Commands.add('completeTask3Form', () => {
   cy.addItemToGroup(1, 2, 'automation');
   cy.get(appFrontend.group.rows[0].editBtn).click();
   cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
-  cy.get(appFrontend.group.rows[0].uploadSingle.dropZone)
-    .selectFile(mkFile('attachment-in-single.pdf'), { force: true });
-  cy.get(appFrontend.group.rows[0].uploadMulti.dropZone)
-    .selectFile(mkFile('attachment-in-multi1.pdf'), { force: true });
+  cy.get(appFrontend.group.rows[0].uploadSingle.dropZone).selectFile(mkFile('attachment-in-single.pdf'), {
+    force: true,
+  });
+  cy.get(appFrontend.group.rows[0].uploadMulti.dropZone).selectFile(mkFile('attachment-in-multi1.pdf'), {
+    force: true,
+  });
   cy.get(appFrontend.group.rows[0].uploadMulti.addMoreBtn).click();
-  cy.get(appFrontend.group.rows[0].uploadMulti.dropZone)
-    .selectFile(mkFile('attachment-in-multi2.pdf'), { force: true });
+  cy.get(appFrontend.group.rows[0].uploadMulti.dropZone).selectFile(mkFile('attachment-in-multi2.pdf'), {
+    force: true,
+  });
   cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].editBtn).click();
-  cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].uploadTagMulti.dropZone)
-    .selectFile(mkFile('attachment-in-nested.pdf'), { force: true });
+  cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].uploadTagMulti.dropZone).selectFile(
+    mkFile('attachment-in-nested.pdf'),
+    { force: true },
+  );
   cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].uploadTagMulti.attachments[0].tagSelector)
-    .should('be.visible').select('altinn');
+    .should('be.visible')
+    .select('altinn');
   cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].uploadTagMulti.attachments[0].tagSave).click();
   cy.get(appFrontend.group.saveMainGroup).should('be.visible').click().should('not.exist');
 
@@ -102,17 +109,18 @@ Cypress.Commands.add('completeTask3Form', () => {
   cy.get(appFrontend.group.summaryText).should('be.visible');
 });
 
+Cypress.Commands.add('sendAndWaitForConfirmation', () => {
+  cy.intercept('GET', instanceIdExp({ prefix: 'instances', postfix: '$' })).as('getInstance');
+  cy.intercept('GET', instanceIdExp({ prefix: 'instances', postfix: 'data' })).as('getInstanceData');
+  cy.get(appFrontend.sendinButton).should('be.visible').click();
+  cy.wait('@getInstance');
+  cy.wait('@getInstanceData');
+  cy.get(appFrontend.confirm.container).should('be.visible');
+});
+
 Cypress.Commands.add('navigateToTask4', () => {
   cy.completeTask3Form();
-  cy.url().then((url) => {
-    var instanceId = url.split('/').slice(-2).join('/');
-    cy.intercept('GET', `**/instances/${instanceId}`).as('getInstance');
-    cy.intercept('GET', `**/instances/${instanceId}/data/**`).as('getInstanceData');
-    cy.get(appFrontend.sendinButton).should('be.visible').click();
-    cy.wait('@getInstance');
-    cy.wait('@getInstanceData');
-    cy.get(appFrontend.confirm.container).should('be.visible');
-  });
+  cy.sendAndWaitForConfirmation();
 });
 
 Cypress.Commands.add('addItemToGroup', (oldValue, newValue, comment, openByDefault) => {

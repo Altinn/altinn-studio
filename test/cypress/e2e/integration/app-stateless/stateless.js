@@ -38,7 +38,8 @@ describe('Stateless', () => {
   });
 
   it('is possible to start app instance from stateless app', () => {
-    var userFirstName = Cypress.env('testUserName').includes('external') && Cypress.env('environment') !== 'local'
+    const userFirstName = (Cypress.env('testUserName') || '').includes('external')
+    && Cypress.env('environment') !== 'local'
       ? Cypress.env('externalFistName')
       : Cypress.env('firstName');
     cy.startStateFullFromStateless();

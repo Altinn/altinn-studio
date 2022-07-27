@@ -7,7 +7,10 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import { FileList } from 'src/components/base/FileUpload/FileUploadWithTag/FileListComponent';
-import { DropzoneComponent } from 'src/components/base/FileUpload/shared/DropzoneComponent';
+import {
+  DropzoneComponent,
+  handleRejectedFiles,
+} from 'src/components/base/FileUpload/shared';
 import { AttachmentsCounter } from 'src/components/base/FileUpload/shared/render';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
@@ -28,9 +31,6 @@ import { getLanguageFromKey } from 'altinn-shared/utils';
 
 export type IFileUploadWithTagProps = IComponentProps &
   Omit<ILayoutCompFileUploadWithTag, 'type'>;
-
-export const bytesInOneMB = 1048576;
-export const emptyArray = [];
 
 export function FileUploadWithTagComponent({
   id,
@@ -70,7 +70,7 @@ export function FileUploadWithTagComponent({
   );
 
   const attachments: IAttachment[] = useAppSelector(
-    (state: IRuntimeState) => state.attachments.attachments[id] || emptyArray,
+    (state: IRuntimeState) => state.attachments.attachments[id] || [],
   );
 
   const setValidationsFromArray = (validationArray: string[]) => {
@@ -177,13 +177,12 @@ export function FileUploadWithTagComponent({
   ) => {
     const newFiles: IAttachment[] = [];
     const fileType = baseComponentId || id;
-    const tmpValidations: string[] = [];
     const totalAttachments =
       acceptedFiles.length + rejectedFiles.length + attachments.length;
 
     if (totalAttachments > maxNumberOfAttachments) {
       // if the user adds more attachments than max, all should be ignored
-      tmpValidations.push(
+      setValidationsFromArray([
         `${getLanguageFromKey(
           'form_filler.file_uploader_validation_error_exceeds_max_files_1',
           language,
@@ -191,7 +190,7 @@ export function FileUploadWithTagComponent({
           'form_filler.file_uploader_validation_error_exceeds_max_files_2',
           language,
         )}`,
-      );
+      ]);
     } else {
       // we should upload all files, if any rejected files we should display an error
       acceptedFiles.forEach((file: File, index) => {
@@ -218,31 +217,13 @@ export function FileUploadWithTagComponent({
           );
         }
       });
-
-      if (rejectedFiles.length > 0) {
-        rejectedFiles.forEach((fileRejection) => {
-          if (fileRejection.file.size > maxFileSizeInMB * bytesInOneMB) {
-            tmpValidations.push(
-              `${fileRejection.file.name} ${getLanguageFromKey(
-                'form_filler.file_uploader_validation_error_file_size',
-                language,
-              )}`,
-            );
-          } else {
-            tmpValidations.push(
-              `${getLanguageFromKey(
-                'form_filler.file_uploader_validation_error_general_1',
-                language,
-              )} ${fileRejection.file.name} ${getLanguageFromKey(
-                'form_filler.file_uploader_validation_error_general_2',
-                language,
-              )}`,
-            );
-          }
-        });
-      }
+      const rejections = handleRejectedFiles({
+        language,
+        rejectedFiles,
+        maxFileSizeInMB,
+      });
+      setValidationsFromArray(rejections);
     }
-    setValidationsFromArray(tmpValidations);
   };
 
   // Get validations and filter general from identified validations.

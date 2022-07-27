@@ -191,12 +191,9 @@ describe('utils/appmetadata.ts', () => {
     });
 
     it('should return false if routed to an instance', () => {
-      const oldWindowLocation = window.location;
-      delete window.location;
-      window.location = {
-        ...oldWindowLocation,
-        hash: '#/instance/123456/some-guid',
-      };
+      window.location.replace(
+        '#/instance/123456/75154373-aed4-41f7-95b4-e5b5115c2edc',
+      );
       const result = isStatelessApp(application);
       expect(result).toBeFalsy();
     });

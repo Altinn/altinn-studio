@@ -1,8 +1,8 @@
+import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { call, select } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
 import type { AxiosError } from 'axios';
 
-import { getInitialStateMock } from 'src/../__mocks__/initialStateMock';
 import {
   fetchFormDataInitialSaga,
   fetchFormDataSaga,

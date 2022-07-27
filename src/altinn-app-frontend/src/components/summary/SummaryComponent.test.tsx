@@ -1,6 +1,8 @@
 import * as React from 'react';
 
+import { getFormLayoutStateMock } from '__mocks__/mocks';
 import { fireEvent, screen } from '@testing-library/react';
+import { renderWithProviders } from 'testUtils';
 
 import { SummaryComponent } from 'src/components/summary/SummaryComponent';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
@@ -8,9 +10,6 @@ import type { ISummaryComponent } from 'src/components/summary/SummaryComponent'
 import type { ILayoutComponent } from 'src/features/form/layout';
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
 import type { IValidations } from 'src/types';
-
-import { getFormLayoutStateMock } from 'altinn-app-frontend/__mocks__/mocks';
-import { renderWithProviders } from 'altinn-app-frontend/testUtils';
 
 describe('SummaryComponent', () => {
   const defaultId = 'default';

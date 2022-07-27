@@ -2,8 +2,8 @@ import React from 'react';
 
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { renderWithProviders } from 'testUtils';
 
-import { renderWithProviders } from 'src/../testUtils';
 import AltinnPartySearch from 'src/shared/components/altinnPartySearch';
 import type { IAltinnPartySearchProps } from 'src/shared/components/altinnPartySearch';
 

@@ -1,13 +1,13 @@
 import React from 'react';
 
-import { screen } from '@testing-library/react';
-
 import {
   applicationMetadataMock,
   getInitialStateMock,
   getInstanceDataStateMock,
-} from 'src/../__mocks__/mocks';
-import { renderWithProviders } from 'src/../testUtils';
+} from '__mocks__/mocks';
+import { screen } from '@testing-library/react';
+import { renderWithProviders } from 'testUtils';
+
 import { AttachmentListComponent } from 'src/components/base/AttachmentListComponent';
 import type { IAttachmentListProps } from 'src/components/base/AttachmentListComponent';
 import type { IInstanceDataState } from 'src/shared/resources/instanceData';

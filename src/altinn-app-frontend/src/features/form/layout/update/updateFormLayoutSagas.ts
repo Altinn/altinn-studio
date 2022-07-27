@@ -46,13 +46,10 @@ import { getLayoutsetForDataElement } from 'src/utils/layout';
 import { getOptionLookupKey } from 'src/utils/options';
 import {
   canFormBeSaved,
-  getValidator,
   mapDataElementValidationToRedux,
   mergeValidationObjects,
   removeGroupValidationsByIndex,
-  validateEmptyFields,
-  validateFormComponents,
-  validateFormData,
+  runClientSideValidation,
   validateGroup,
 } from 'src/utils/validation';
 import type { IFormDataState } from 'src/features/form/data';
@@ -329,14 +326,12 @@ export function* updateCurrentViewSaga({
 }: PayloadAction<IUpdateCurrentView>): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
-    let currentViewCacheKey: string =
-      state.formLayout.uiConfig.currentViewCacheKey;
-    if (!currentViewCacheKey) {
-      currentViewCacheKey = state.instanceData.instance.id;
-      yield put(
-        FormLayoutActions.setCurrentViewCacheKey({ key: currentViewCacheKey }),
-      );
+    const viewCacheKey = state.formLayout.uiConfig.currentViewCacheKey;
+    const instanceId = state.instanceData.instance?.id || 'NO-INSTANCE';
+    if (!viewCacheKey) {
+      yield put(FormLayoutActions.setCurrentViewCacheKey({ key: instanceId }));
     }
+    const currentViewCacheKey = viewCacheKey || instanceId;
     if (!runValidations) {
       if (!skipPageCaching) {
         localStorage.setItem(currentViewCacheKey, newView);
@@ -345,56 +340,17 @@ export function* updateCurrentViewSaga({
         FormLayoutActions.updateCurrentViewFulfilled({ newView, returnToView }),
       );
     } else {
-      const currentDataTaskDataTypeId = getDataTaskDataTypeId(
-        state.instanceData.instance.process.currentTask.elementId,
-        state.applicationMetadata.applicationMetadata.dataTypes,
-      );
-      const layoutOrder: string[] = state.formLayout.uiConfig.layoutOrder;
-      const validator = getValidator(
-        currentDataTaskDataTypeId,
-        state.formDataModel.schemas,
-      );
-      const model = convertDataBindingToModel(state.formData.formData);
-      const validationResult = validateFormData(
-        model,
-        state.formLayout.layouts,
-        layoutOrder,
-        validator,
-        state.language.language,
-        state.textResources.resources,
-      );
-
-      const componentSpecificValidations = validateFormComponents(
-        state.attachments.attachments,
-        state.formLayout.layouts,
-        layoutOrder,
-        state.formData.formData,
-        state.language.language,
-        state.formLayout.uiConfig.hiddenFields,
-        state.formLayout.uiConfig.repeatingGroups,
-      );
-      const emptyFieldsValidations = validateEmptyFields(
-        state.formData.formData,
-        state.formLayout.layouts,
-        layoutOrder,
-        state.language.language,
-        state.formLayout.uiConfig.hiddenFields,
-        state.formLayout.uiConfig.repeatingGroups,
-        state.textResources.resources,
-      );
-      let validations = mergeValidationObjects(
-        validationResult.validations,
+      const {
+        validationResult,
         componentSpecificValidations,
         emptyFieldsValidations,
-      );
-      const instanceId = state.instanceData.instance.id;
+      } = runClientSideValidation(state);
       const currentView = state.formLayout.uiConfig.currentView;
       const options: AxiosRequestConfig = {
         headers: {
           LayoutId: currentView,
         },
       };
-
       const currentTaskDataId = getCurrentTaskDataElementId(
         state.applicationMetadata.applicationMetadata,
         state.instanceData.instance,
@@ -411,12 +367,16 @@ export function* updateCurrentViewSaga({
         layoutState.layouts,
         state.textResources.resources,
       );
-      validations = mergeValidationObjects(validations, mappedValidations);
-      validationResult.validations = validations;
-      if (runValidations === 'page') {
-        // only store validations for the specific page
-        validations = { [currentView]: validations[currentView] };
-      }
+      validationResult.validations = mergeValidationObjects(
+        validationResult.validations,
+        componentSpecificValidations,
+        emptyFieldsValidations,
+        mappedValidations,
+      );
+      const validations =
+        runValidations === 'page'
+          ? { [currentView]: validationResult.validations[currentView] } // only store validations for the specific page
+          : validationResult.validations;
       yield put(ValidationActions.updateValidations({ validations }));
       if (state.formLayout.uiConfig.returnToView) {
         if (!skipPageCaching) {

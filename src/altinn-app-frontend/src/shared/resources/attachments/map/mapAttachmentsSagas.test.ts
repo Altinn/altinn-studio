@@ -1,3 +1,4 @@
+import { getInitialStateMock } from '__mocks__/mocks';
 import { select } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
 
@@ -20,8 +21,6 @@ import type {
   IAttachment,
   IAttachments,
 } from 'src/shared/resources/attachments';
-
-import { getInitialStateMock } from 'altinn-app-frontend/__mocks__/mocks';
 
 describe('mapAttachments', () => {
   const defaultAttachmentProps = {

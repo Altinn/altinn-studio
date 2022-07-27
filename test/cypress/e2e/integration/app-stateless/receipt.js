@@ -3,6 +3,7 @@
 
 import AppFrontend from '../../pageobjects/app-frontend';
 import * as texts from '../../fixtures/texts.json';
+import {instanceIdExp} from "../../support/util";
 
 const appFrontend = new AppFrontend();
 
@@ -16,12 +17,12 @@ describe('Receipt', () => {
     cy.get(appFrontend.sendinButton).should('be.visible').click();
     cy.wait('@nextProcess').its('response.statusCode').should('eq', 200);
     cy.url().then((url) => {
-      var instanceId = url.split('/').slice(-2).join('/');
-      var requestUrl =
+      const instanceId = instanceIdExp().exec(url)[1];
+      const baseUrl =
         Cypress.env('environment') === 'local'
-          ? `${Cypress.config().baseUrl}`
+          ? (Cypress.config().baseUrl || '')
           : `https://ttd.apps.${Cypress.config('baseUrl').slice(8)}`;
-      requestUrl += `/ttd/${Cypress.env('stateless')}/instances/${instanceId}/process/next`;
+      const requestUrl = `${baseUrl}/ttd/${Cypress.env('stateless')}/instances/${instanceId}/process/next`;
       cy.getCookie('XSRF-TOKEN').then((xsrfToken) => {
         cy.request({
           method: 'PUT',

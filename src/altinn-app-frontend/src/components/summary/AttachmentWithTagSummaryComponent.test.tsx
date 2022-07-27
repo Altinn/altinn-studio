@@ -1,12 +1,11 @@
 import * as React from 'react';
 
 import { screen } from '@testing-library/react';
+import { renderWithProviders } from 'testUtils';
 
 import { AttachmentWithTagSummaryComponent } from 'src/components/summary/AttachmentWithTagSummaryComponent';
 import type { ILayoutCompFileUploadWithTag } from 'src/features/form/layout';
 import type { RootState } from 'src/store';
-
-import { renderWithProviders } from 'altinn-app-frontend/testUtils';
 
 describe('AttachmentWithTagSummaryComponent', () => {
   const typeName = 'FileUploadWithTag';

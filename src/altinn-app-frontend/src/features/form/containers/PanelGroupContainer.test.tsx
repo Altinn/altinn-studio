@@ -3,9 +3,9 @@ import React from 'react';
 import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { renderWithProviders } from 'testUtils';
 import type { PreloadedState } from 'redux';
 
-import { renderWithProviders } from 'src/../testUtils';
 import { PanelGroupContainer } from 'src/features/form/containers/PanelGroupContainer';
 import type { IPanelGroupContainerProps } from 'src/features/form/containers/PanelGroupContainer';
 import type { ILayout, ILayoutGroup } from 'src/features/form/layout';

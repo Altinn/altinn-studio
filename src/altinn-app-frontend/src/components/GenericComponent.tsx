@@ -334,11 +334,7 @@ export function GenericComponent<Type extends ComponentExceptGroup>(
       <Grid
         item={true}
         container={true}
-        xs={props.grid?.xs || 12}
-        sm={props.grid?.sm || false}
-        md={props.grid?.md || false}
-        lg={props.grid?.lg || false}
-        xl={props.grid?.xl || false}
+        {...gridBreakpoints(props.grid)}
         key={`grid-${props.id}`}
         className={classNames(
           'form-group',
@@ -351,11 +347,7 @@ export function GenericComponent<Type extends ComponentExceptGroup>(
         {!noLabelComponents.includes(props.type) && (
           <Grid
             item={true}
-            xs={props.grid?.labelGrid?.xs || 12}
-            sm={props.grid?.labelGrid?.sm || false}
-            md={props.grid?.labelGrid?.md || false}
-            lg={props.grid?.labelGrid?.lg || false}
-            xl={props.grid?.labelGrid?.xl || false}
+            {...gridBreakpoints(props.grid?.labelGrid)}
           >
             <RenderLabelScoped
               props={props}
@@ -370,11 +362,7 @@ export function GenericComponent<Type extends ComponentExceptGroup>(
           key={`form-content-${props.id}`}
           item={true}
           id={`form-content-${props.id}`}
-          xs={props.grid?.innerGrid?.xs || 12}
-          sm={props.grid?.innerGrid?.sm || false}
-          md={props.grid?.innerGrid?.md || false}
-          lg={props.grid?.innerGrid?.lg || false}
-          xl={props.grid?.innerGrid?.xl || false}
+          {...gridBreakpoints(props.grid?.innerGrid)}
         >
           <RenderComponent {...componentProps} />
           {showValidationMessages &&
@@ -408,6 +396,16 @@ const RenderLabelScoped = (props: IRenderLabelProps) => {
   );
 };
 
+const gridBreakpoints = (grid?: IGridStyling) => {
+  const { xs, sm, md, lg, xl } = grid || {};
+  return {
+    xs: xs || 12,
+    ...(sm && { sm }),
+    ...(md && { md }),
+    ...(lg && { lg }),
+    ...(xl && { xl }),
+  };
+};
 const gridToHiddenProps = (
   labelGrid: IGridStyling,
   classes: ReturnType<typeof useStyles>,
@@ -421,5 +419,3 @@ const gridToHiddenProps = (
     [classes.xl]: labelGrid.xl > 0 && labelGrid.xl < 12,
   };
 };
-
-export default GenericComponent;

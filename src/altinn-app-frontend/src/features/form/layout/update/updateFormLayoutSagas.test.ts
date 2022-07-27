@@ -27,7 +27,8 @@ import type { IAttachment } from 'src/shared/resources/attachments';
 import type { IDataModelBindings, IRuntimeState } from 'src/types';
 
 import * as sharedUtils from 'altinn-shared/utils';
-
+import * as original from 'altinn-shared/utils/instanceIdRegExp';
+const originalInstanceIdRegExp = original.getInstanceIdRegExp;
 jest.mock('altinn-shared/utils');
 
 describe('updateLayoutSagas', () => {
@@ -271,6 +272,9 @@ describe('updateLayoutSagas', () => {
 
     it('stateless: should fetch pageOrder and update state accordingly', () => {
       const action = { type: 'test', payload: {} };
+      jest
+        .spyOn(sharedUtils, 'getInstanceIdRegExp')
+        .mockImplementation(originalInstanceIdRegExp);
       const stateWithStatelessApp: IRuntimeState = {
         ...state,
         applicationMetadata: {

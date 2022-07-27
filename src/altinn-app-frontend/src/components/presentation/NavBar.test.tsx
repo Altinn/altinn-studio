@@ -1,18 +1,14 @@
 import React from 'react';
 
+import { getFormLayoutStateMock } from '__mocks__/formLayoutStateMock';
+import { getUiConfigStateMock } from '__mocks__/uiConfigStateMock';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { rest } from 'msw';
+import { renderWithProviders, setupServer } from 'testUtils';
 
 import NavBar from 'src/components/presentation/NavBar';
 import type { ITextResource } from 'src/types';
-
-import { getFormLayoutStateMock } from 'altinn-app-frontend/__mocks__/formLayoutStateMock';
-import { getUiConfigStateMock } from 'altinn-app-frontend/__mocks__/uiConfigStateMock';
-import {
-  renderWithProviders,
-  setupServer,
-} from 'altinn-app-frontend/testUtils';
 
 import { getLanguageFromCode } from 'altinn-shared/language';
 import type { IAppLanguage } from 'altinn-shared/types';

@@ -1,6 +1,9 @@
 import React from 'react';
 
-import { fireEvent, screen } from '@testing-library/react';
+import { getFormLayoutGroupMock, getInitialStateMock } from '__mocks__/mocks';
+import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { mockMediaQuery, renderWithProviders } from 'testUtils';
 
 import { GroupContainer } from 'src/features/form/containers/GroupContainer';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
@@ -8,21 +11,7 @@ import { setupStore } from 'src/store';
 import { Triggers } from 'src/types';
 import type { ILayoutGroup } from 'src/features/form/layout';
 
-import { getInitialStateMock } from 'altinn-app-frontend/__mocks__/mocks';
-import {
-  mockMediaQuery,
-  renderWithProviders,
-} from 'altinn-app-frontend/testUtils';
-
-const mockContainer: ILayoutGroup = {
-  id: 'container-closed-id',
-  type: 'Group',
-  children: ['field1', 'field2', 'field3', 'field4'],
-  maxCount: 8,
-  dataModelBindings: {
-    group: 'some-group',
-  },
-};
+const mockContainer = getFormLayoutGroupMock();
 
 interface IRender {
   container?: ILayoutGroup;
@@ -88,22 +77,17 @@ function render({ container = mockContainer }: IRender = {}) {
   const mockLayout = {
     layouts: {
       FormLayout: [
-        {
-          id: 'container-closed-id',
-          type: 'Group',
+        getFormLayoutGroupMock({
           dataModelBindings: {
             group: 'Group',
           },
-          children: ['field1', 'field2', 'field3', 'field4'],
-        },
-        {
+        }),
+        getFormLayoutGroupMock({
           id: 'container-in-edit-mode-id',
-          type: 'Group',
           dataModelBindings: {
             group: 'Group',
           },
-          children: ['field1', 'field2', 'field3', 'field4'],
-        },
+        }),
       ].concat(mockComponents),
     },
     uiConfig: {
@@ -202,17 +186,17 @@ describe('GroupContainer', () => {
     expect(item).toBeInTheDocument();
   });
 
-  it('should trigger validate when closing edit mode if validation trigger is present', () => {
+  it('should trigger validate when closing edit mode if validation trigger is present', async () => {
     const mockContainerInEditModeWithTrigger = {
       ...mockContainer,
       id: 'container-in-edit-mode-id',
       triggers: [Triggers.Validation],
     };
-
+    const user = userEvent.setup();
     const store = render({ container: mockContainerInEditModeWithTrigger });
 
     const editButton = screen.getAllByText('Rediger')[0].closest('button');
-    fireEvent.click(editButton);
+    await user.click(editButton);
 
     const mockDispatchedAction = {
       payload: {
@@ -227,15 +211,16 @@ describe('GroupContainer', () => {
     expect(store.dispatch).toHaveBeenCalledWith(mockDispatchedAction);
   });
 
-  it('should NOT trigger validate when closing edit mode if validation trigger is NOT present', () => {
+  it('should NOT trigger validate when closing edit mode if validation trigger is NOT present', async () => {
     const mockContainerInEditMode = {
       ...mockContainer,
       id: 'container-in-edit-mode-id',
     };
     const store = render({ container: mockContainerInEditMode });
+    const user = userEvent.setup();
 
     const editButton = screen.getAllByText('Rediger')[0].closest('button');
-    fireEvent.click(editButton);
+    await user.click(editButton);
 
     const mockDispatchedAction = {
       payload: {
@@ -250,16 +235,17 @@ describe('GroupContainer', () => {
     expect(store.dispatch).toHaveBeenCalledWith(mockDispatchedAction);
   });
 
-  it('should trigger validate when saving if validation trigger is present', () => {
+  it('should trigger validate when saving if validation trigger is present', async () => {
     const mockContainerInEditModeWithTrigger = {
       ...mockContainer,
       id: 'container-in-edit-mode-id',
       triggers: [Triggers.Validation],
     };
     const store = render({ container: mockContainerInEditModeWithTrigger });
+    const user = userEvent.setup();
 
     const editButton = screen.getAllByText('Ferdig')[0].closest('button');
-    fireEvent.click(editButton);
+    await user.click(editButton);
 
     const mockDispatchedAction = {
       payload: {
@@ -274,15 +260,16 @@ describe('GroupContainer', () => {
     expect(store.dispatch).toHaveBeenCalledWith(mockDispatchedAction);
   });
 
-  it('should NOT trigger validate when saving if validation trigger is NOT present', () => {
+  it('should NOT trigger validate when saving if validation trigger is NOT present', async () => {
     const mockContainerInEditMode = {
       ...mockContainer,
       id: 'container-in-edit-mode-id',
     };
     const store = render({ container: mockContainerInEditMode });
+    const user = userEvent.setup();
 
     const editButton = screen.getAllByText('Ferdig')[0].closest('button');
-    fireEvent.click(editButton);
+    await user.click(editButton);
 
     const mockDispatchedAction = {
       payload: {

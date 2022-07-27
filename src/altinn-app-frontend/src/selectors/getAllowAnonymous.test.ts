@@ -1,8 +1,8 @@
+import { getInitialStateMock } from '__mocks__/initialStateMock';
+import { statelessAndAllowAnonymousMock } from '__mocks__/statelessAndAllowAnonymousMock';
+
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import type { IRuntimeState } from 'src/types';
-
-import { getInitialStateMock } from 'altinn-app-frontend/__mocks__/initialStateMock';
-import { statelessAndAllowAnonymousMock } from 'altinn-app-frontend/__mocks__/statelessAndAllowAnonymousMock';
 
 describe('getAllowAnonymous', () => {
   it('should return true if stateless && allowAnonymous is set to true on dataType', () => {

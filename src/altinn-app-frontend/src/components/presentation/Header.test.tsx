@@ -1,13 +1,12 @@
 import React from 'react';
 
+import { getFormLayoutStateMock } from '__mocks__/formLayoutStateMock';
+import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { screen } from '@testing-library/react';
+import { renderWithProviders } from 'testUtils';
 
 import Header from 'src/components/presentation/Header';
 import { ProcessTaskType } from 'src/types';
-
-import { getFormLayoutStateMock } from 'altinn-app-frontend/__mocks__/formLayoutStateMock';
-import { getInitialStateMock } from 'altinn-app-frontend/__mocks__/initialStateMock';
-import { renderWithProviders } from 'altinn-app-frontend/testUtils';
 
 describe('Header', () => {
   it('should render as expected with header title', () => {

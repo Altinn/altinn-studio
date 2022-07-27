@@ -6,7 +6,10 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { v4 as uuidv4 } from 'uuid';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
-import { DropzoneComponent } from 'src/components/base/FileUpload/shared/DropzoneComponent';
+import {
+  DropzoneComponent,
+  handleRejectedFiles,
+} from 'src/components/base/FileUpload/shared';
 import {
   AttachmentsCounter,
   FileName,
@@ -76,13 +79,12 @@ export function FileUploadComponent({
   ) => {
     const newFiles: IAttachment[] = [];
     const fileType = baseComponentId || id;
-    const tmpValidations: string[] = [];
     const totalAttachments =
       acceptedFiles.length + rejectedFiles.length + attachments.length;
 
     if (totalAttachments > maxNumberOfAttachments) {
       // if the user adds more attachments than max, all should be ignored
-      tmpValidations.push(
+      setValidations([
         `${getLanguageFromKey(
           'form_filler.file_uploader_validation_error_exceeds_max_files_1',
           language,
@@ -90,7 +92,7 @@ export function FileUploadComponent({
           'form_filler.file_uploader_validation_error_exceeds_max_files_2',
           language,
         )}`,
-      );
+      ]);
     } else {
       // we should upload all files, if any rejected files we should display an error
       acceptedFiles.forEach((file: File, index) => {
@@ -125,31 +127,13 @@ export function FileUploadComponent({
             : attachments.length < maxNumberOfAttachments,
         );
       }
-
-      if (rejectedFiles.length > 0) {
-        rejectedFiles.forEach((fileRejection) => {
-          if (fileRejection.file.size > maxFileSizeInMB * bytesInOneMB) {
-            tmpValidations.push(
-              `${fileRejection.file.name} ${getLanguageFromKey(
-                'form_filler.file_uploader_validation_error_file_size',
-                language,
-              )}`,
-            );
-          } else {
-            tmpValidations.push(
-              `${getLanguageFromKey(
-                'form_filler.file_uploader_validation_error_general_1',
-                language,
-              )} ${fileRejection.file.name} ${getLanguageFromKey(
-                'form_filler.file_uploader_validation_error_general_2',
-                language,
-              )}`,
-            );
-          }
-        });
-      }
+      const rejections = handleRejectedFiles({
+        language,
+        rejectedFiles,
+        maxFileSizeInMB,
+      });
+      setValidations(rejections);
     }
-    setValidations(tmpValidations);
   };
 
   const handleDeleteKeypress = (index: number, event: any) => {
@@ -169,9 +153,118 @@ export function FileUploadComponent({
       }),
     );
   };
+  const NonMobileColumnHeader = () => {
+    return !mobileView ? (
+      <th scope='col'>
+        {getLanguageFromKey(
+          'form_filler.file_uploader_list_header_file_size',
+          language,
+        )}
+      </th>
+    ) : null;
+  };
+  const NameCell = ({
+    attachment,
+  }: {
+    attachment: { name: string; size: number };
+  }) => {
+    const readableSize = `${(attachment.size / bytesInOneMB).toFixed(
+      2,
+    )} ${getLanguageFromKey('form_filler.file_uploader_mb', language)}`;
+    return (
+      <>
+        <td>
+          <FileName>{attachment.name}</FileName>
+          {mobileView ? (
+            <div
+              style={{
+                color: AltinnAppTheme.altinnPalette.primary.grey,
+              }}
+            >
+              {readableSize}
+            </div>
+          ) : null}
+        </td>
+        {!mobileView ? <td>{readableSize}</td> : null}
+      </>
+    );
+  };
+  const StatusCellContent = ({
+    attachment,
+  }: {
+    attachment: { uploaded: boolean };
+  }) => {
+    const { uploaded } = attachment;
+    const status = attachment.uploaded
+      ? getLanguageFromKey(
+          'form_filler.file_uploader_list_status_done',
+          language,
+        )
+      : getLanguageFromKey('general.loading', language);
 
-  const renderFileList = (): JSX.Element => {
-    if (!attachments || attachments.length === 0) {
+    return uploaded ? (
+      <div>
+        {mobileView ? null : status}
+        <i
+          className='ai ai-check-circle'
+          aria-label={status}
+          style={mobileView ? { marginLeft: '10px' } : null}
+        />
+      </div>
+    ) : (
+      <AltinnLoader
+        id='loader-upload'
+        style={{
+          marginBottom: '1.6rem',
+          marginRight: '1.3rem',
+        }}
+        srContent={status}
+      />
+    );
+  };
+  const DeleteCellContent = ({
+    attachment,
+    index,
+  }: {
+    attachment: { deleting: boolean };
+    index: number;
+  }) => {
+    return (
+      <div
+        onClick={handleDeleteFile.bind(this, index)}
+        id={`attachment-delete-${index}`}
+        onKeyPress={handleDeleteKeypress.bind(this, index)}
+        tabIndex={0}
+        role='button'
+      >
+        {attachment.deleting ? (
+          <AltinnLoader
+            id='loader-delete'
+            style={{
+              marginBottom: '1.6rem',
+              marginRight: '1.0rem',
+            }}
+            srContent={getLanguageFromKey('general.loading', language)}
+          />
+        ) : (
+          <>
+            {mobileView
+              ? getLanguageFromKey('general.delete', language)
+              : getLanguageFromKey(
+                  'form_filler.file_uploader_list_delete',
+                  language,
+                )}
+            <i
+              className='ai ai-trash'
+              aria-label={getLanguageFromKey('general.delete', language)}
+            />
+          </>
+        )}
+      </div>
+    );
+  };
+  const FileList = (): JSX.Element => {
+    if (!attachments?.length) {
       return null;
     }
     return (
@@ -194,14 +287,7 @@ export function FileUploadComponent({
                   language,
                 )}
               </th>
-              {!mobileView ? (
-                <th scope='col'>
-                  {getLanguageFromKey(
-                    'form_filler.file_uploader_list_header_file_size',
-                    language,
-                  )}
-                </th>
-              ) : null}
+              <NonMobileColumnHeader />
               <th scope='col'>
                 {getLanguageFromKey(
                   'form_filler.file_uploader_list_header_status',
@@ -220,20 +306,6 @@ export function FileUploadComponent({
           </thead>
           <tbody>
             {attachments.map((attachment, index: number) => {
-              const readableSize = `${(attachment.size / bytesInOneMB).toFixed(
-                2,
-              )} ${getLanguageFromKey(
-                'form_filler.file_uploader_mb',
-                language,
-              )}`;
-
-              const status = attachment.uploaded
-                ? getLanguageFromKey(
-                    'form_filler.file_uploader_list_status_done',
-                    language,
-                  )
-                : getLanguageFromKey('general.loading', language);
-
               return (
                 <tr
                   key={attachment.id}
@@ -241,78 +313,15 @@ export function FileUploadComponent({
                   id={`altinn-file-list-row-${attachment.id}`}
                   tabIndex={0}
                 >
+                  <NameCell attachment={attachment} />
                   <td>
-                    {FileName(attachment.name)}
-                    {mobileView ? (
-                      <div
-                        style={{
-                          color: AltinnAppTheme.altinnPalette.primary.grey,
-                        }}
-                      >
-                        {readableSize}
-                      </div>
-                    ) : null}
-                  </td>
-                  {!mobileView ? <td>{readableSize}</td> : null}
-                  <td>
-                    {attachment.uploaded ? (
-                      <div>
-                        {mobileView ? null : status}
-                        <i
-                          className='ai ai-check-circle'
-                          aria-label={status}
-                          style={mobileView ? { marginLeft: '10px' } : null}
-                        />
-                      </div>
-                    ) : (
-                      <AltinnLoader
-                        id='loader-upload'
-                        style={{
-                          marginBottom: '1.6rem',
-                          marginRight: '1.3rem',
-                        }}
-                        srContent={status}
-                      />
-                    )}
+                    <StatusCellContent attachment={attachment} />
                   </td>
                   <td>
-                    <div
-                      onClick={handleDeleteFile.bind(this, index)}
-                      id={`attachment-delete-${index}`}
-                      onKeyPress={handleDeleteKeypress.bind(this, index)}
-                      tabIndex={0}
-                      role='button'
-                    >
-                      {attachment.deleting ? (
-                        <AltinnLoader
-                          id='loader-delete'
-                          style={{
-                            marginBottom: '1.6rem',
-                            marginRight: '1.0rem',
-                          }}
-                          srContent={getLanguageFromKey(
-                            'general.loading',
-                            language,
-                          )}
-                        />
-                      ) : (
-                        <>
-                          {mobileView
-                            ? getLanguageFromKey('general.delete', language)
-                            : getLanguageFromKey(
-                                'form_filler.file_uploader_list_delete',
-                                language,
-                              )}
-                          <i
-                            className='ai ai-trash'
-                            aria-label={getLanguageFromKey(
-                              'general.delete',
-                              language,
-                            )}
-                          />
-                        </>
-                      )}
-                    </div>
+                    <DeleteCellContent
+                      attachment={attachment}
+                      index={index}
+                    />
                   </td>
                 </tr>
               );
@@ -404,9 +413,7 @@ export function FileUploadComponent({
           validationMessages.simpleBinding,
           id,
         )}
-
-      {renderFileList()}
-
+      <FileList />
       {!shouldShowFileUpload() &&
         AttachmentsCounter({
           language: language,

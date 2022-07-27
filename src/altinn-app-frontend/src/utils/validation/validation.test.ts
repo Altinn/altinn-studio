@@ -1,10 +1,15 @@
 import { createElement } from 'react';
 
+import { getInitialStateMock } from '__mocks__/initialStateMock';
+import * as complexSchema from '__mocks__/json-schema/complex.json';
+import * as oneOfOnRootSchema from '__mocks__/json-schema/one-of-on-root.json';
+import * as refOnRootSchema from '__mocks__/json-schema/ref-on-root.json';
+import { getMockValidationState } from '__mocks__/validationStateMock';
+
 import { Severity } from 'src/types';
 import { createRepeatingGroupComponents } from 'src/utils/formLayout';
 import { getParsedTextResourceByKey } from 'src/utils/textResource';
-import * as validation from 'src/utils/validation';
-import { mapToComponentValidations } from 'src/utils/validation';
+import * as validation from 'src/utils/validation/validation';
 import type { ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
 import type {
   IComponentBindingValidation,
@@ -16,12 +21,6 @@ import type {
   IValidationIssue,
   IValidations,
 } from 'src/types';
-
-import { getInitialStateMock } from 'altinn-app-frontend/__mocks__/initialStateMock';
-import * as complexSchema from 'altinn-app-frontend/__mocks__/json-schema/complex.json';
-import * as oneOfOnRootSchema from 'altinn-app-frontend/__mocks__/json-schema/one-of-on-root.json';
-import * as refOnRootSchema from 'altinn-app-frontend/__mocks__/json-schema/ref-on-root.json';
-import { getMockValidationState } from 'altinn-app-frontend/__mocks__/validationStateMock';
 
 import { getParsedLanguageFromKey } from 'altinn-shared/index';
 
@@ -1489,10 +1488,10 @@ describe('utils > validation', () => {
     });
   });
 
-  describe('mapToComponentValidations', () => {
+  describe('validation.mapToComponentValidations', () => {
     it('should map validation to correct component', () => {
       const validations = {};
-      mapToComponentValidations(
+      validation.mapToComponentValidations(
         'FormLayout',
         mockLayout.FormLayout,
         'dataModelField_2',
@@ -1513,7 +1512,7 @@ describe('utils > validation', () => {
 
     it('should map validation to correct component for component in a repeating group', () => {
       const validations = {};
-      mapToComponentValidations(
+      validation.mapToComponentValidations(
         'FormLayout',
         mockLayout.FormLayout,
         'group_1[0].dataModelField_4',
@@ -1534,7 +1533,7 @@ describe('utils > validation', () => {
 
     it('should map validation to correct component for component in a nested repeating group', () => {
       const validations = {};
-      mapToComponentValidations(
+      validation.mapToComponentValidations(
         'FormLayout',
         mockLayout.FormLayout,
         'group_1[0].group_2[0].dataModelField_5',

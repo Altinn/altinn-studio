@@ -4,20 +4,20 @@ exports[`RepeatingGroupTable should match snapshot 1`] = `
 <DocumentFragment>
   <div
     class="MuiGrid-root MuiGrid-container MuiGrid-item"
-    data-testid="group-mock-container-id"
-    id="group-mock-container-id"
+    data-testid="group-container-closed-id"
+    id="group-container-closed-id"
   >
     <div
       class="MuiGrid-root MuiTableContainer-root"
-      id="group-mock-container-id-table-container"
+      id="group-container-closed-id-table-container"
     >
       <table
         class="MuiTable-root makeStyles-table-4 makeStyles-table-5"
-        id="group-mock-container-id-table"
+        id="group-container-closed-id-table"
       >
         <thead
           class="MuiTableHead-root makeStyles-tableHeader-6 makeStyles-tableHeader-7"
-          id="group-mock-container-id-table-header"
+          id="group-container-closed-id-table-header"
         >
           <tr
             class="MuiTableRow-root MuiTableRow-head"
@@ -54,7 +54,7 @@ exports[`RepeatingGroupTable should match snapshot 1`] = `
         </thead>
         <tbody
           class="MuiTableBody-root makeStyles-tableBody-8 makeStyles-tableBody-9"
-          id="group-mock-container-id-table-body"
+          id="group-container-closed-id-table-body"
         >
           <tr
             class="MuiTableRow-root"

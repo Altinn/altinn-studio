@@ -2,7 +2,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import cn from 'classnames';
 import * as React from 'react';
 import { AltinnAppTheme } from '../theme';
-import '../../../altinn-app-frontend/src/styles/shared.css';
+import 'src/styles/shared.css';
 
 const useStyles = makeStyles({
   select: {

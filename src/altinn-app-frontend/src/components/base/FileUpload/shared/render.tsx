@@ -4,7 +4,7 @@ import { getFileEnding, removeFileEnding } from 'src/utils/attachment';
 
 import { getLanguageFromKey } from 'altinn-shared/utils';
 
-export const FileName = (filename: string) => {
+export const FileName = ({ children }: { children: string }) => {
   return (
     <div
       style={{
@@ -18,9 +18,9 @@ export const FileName = (filename: string) => {
           whiteSpace: 'nowrap',
         }}
       >
-        {removeFileEnding(filename)}
+        {removeFileEnding(children)}
       </div>
-      <div>{getFileEnding(filename)}</div>
+      <div>{getFileEnding(children)}</div>
     </div>
   );
 };

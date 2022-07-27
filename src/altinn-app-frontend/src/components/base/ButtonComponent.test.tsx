@@ -1,12 +1,11 @@
 import * as React from 'react';
 
+import { getInitialStateMock } from '__mocks__/mocks';
 import { screen } from '@testing-library/react';
+import { renderWithProviders } from 'testUtils';
 
 import { ButtonComponent } from 'src/components/base/ButtonComponent';
 import type { IButtonProvidedProps } from 'src/components/base/ButtonComponent';
-
-import { getInitialStateMock } from 'altinn-app-frontend/__mocks__/mocks';
-import { renderWithProviders } from 'altinn-app-frontend/testUtils';
 
 const submitBtnText = 'Submit form';
 

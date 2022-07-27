@@ -1,5 +1,8 @@
 import * as React from 'react';
 
+import { getFormLayoutGroupMock } from '__mocks__/mocks';
+import { renderWithProviders } from 'testUtils';
+
 import { RepeatingGroupTable } from 'src/features/form/containers/RepeatingGroupTable';
 import { createRepeatingGroupComponents } from 'src/utils/formLayout';
 import type {
@@ -10,8 +13,6 @@ import type {
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
 import type { IAttachments } from 'src/shared/resources/attachments';
 import type { IOption, ITextResource } from 'src/types';
-
-import { renderWithProviders } from 'altinn-app-frontend/testUtils';
 
 describe('RepeatingGroupTable', () => {
   let mockContainer: ILayoutGroup;
@@ -86,15 +87,7 @@ describe('RepeatingGroupTable', () => {
       } as ISelectionComponentProps,
     ];
 
-    mockContainer = {
-      type: 'Group',
-      id: 'mock-container-id',
-      children: ['field1', 'field2', 'field3', 'field4'],
-      maxCount: 8,
-      dataModelBindings: {
-        group: 'some-group',
-      },
-    };
+    mockContainer = getFormLayoutGroupMock({});
 
     mockLayout = {
       layouts: {

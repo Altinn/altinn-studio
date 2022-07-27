@@ -1,9 +1,9 @@
 import * as React from 'react';
 
+import { renderWithProviders } from 'testUtils';
+
 import CustomWebComponent from 'src/components/custom/CustomWebComponent';
 import type { ICustomComponentProps } from 'src/components/custom/CustomWebComponent';
-
-import { renderWithProviders } from 'altinn-app-frontend/testUtils';
 
 import type { ITextResource } from 'altinn-shared/types';
 

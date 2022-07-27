@@ -1,9 +1,9 @@
 import React from 'react';
 
+import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { screen } from '@testing-library/react';
+import { renderWithProviders } from 'testUtils';
 
-import { getInitialStateMock } from 'src/../__mocks__/initialStateMock';
-import { renderWithProviders } from 'src/../testUtils';
 import { FormComponentContext } from 'src/components';
 import {
   getPanelTitle,

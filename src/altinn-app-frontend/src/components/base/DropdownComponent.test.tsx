@@ -1,16 +1,15 @@
 import React from 'react';
 
+import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { renderWithProviders } from 'testUtils';
 import type { PreloadedState } from '@reduxjs/toolkit';
 
 import DropdownComponent from 'src/components/base/DropdownComponent';
 import type { IComponentProps } from 'src/components';
 import type { IDropdownProps } from 'src/components/base/DropdownComponent';
 import type { RootState } from 'src/store';
-
-import { getInitialStateMock } from 'altinn-app-frontend/__mocks__/initialStateMock';
-import { renderWithProviders } from 'altinn-app-frontend/testUtils';
 
 const render = (
   props: Partial<IDropdownProps> = {},

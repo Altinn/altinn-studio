@@ -57,6 +57,12 @@ declare namespace Cypress {
     completeTask3Form(): Chainable<Element>;
 
     /**
+     * Puts data and waits for confirmation container to render
+     * @example cy.sendAndWaitForConfirmation()
+     */
+    sendAndWaitForConfirmation(): Chainable<Element>;
+
+    /**
      * Add an item to group component with an item in nested group
      * @example cy.addItemToGroup(1, 2, 'automation')
      */

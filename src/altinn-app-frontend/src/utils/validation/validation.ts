@@ -113,8 +113,8 @@ export function createValidator(schema: any): ISchemaValidator {
     rootElementPath = schema.properties[rootKey].$ref;
   }
   addFormats(ajv);
-  ajv.addFormat('year', /^[0-9]{4}$/);
-  ajv.addFormat('year-month', /^[0-9]{4}-(0[1-9]|1[0-2])$/);
+  ajv.addFormat('year', /^\d{4}$/);
+  ajv.addFormat('year-month', /^\d{4}-(0[1-9]|1[0-2])$/);
   ajv.addSchema(schema, 'schema');
   return {
     validator: ajv,
@@ -1414,14 +1414,17 @@ export function repeatingGroupHasValidations(
 }
 
 export function mergeValidationObjects(
-  ...sources: IValidations[]
+  ...sources: (IValidations | null)[]
 ): IValidations {
   const validations: IValidations = {};
-  if (!sources || !sources.length) {
+  if (!sources?.length) {
     return validations;
   }
 
-  sources.forEach((source: IValidations) => {
+  sources.forEach((source: IValidations | null) => {
+    if (source === null) {
+      return;
+    }
     Object.keys(source).forEach((layout: string) => {
       validations[layout] = mergeLayoutValidations(
         validations[layout] || {},

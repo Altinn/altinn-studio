@@ -1,13 +1,12 @@
 import React from 'react';
 
+import { organisationMock } from '__mocks__/organisationMock';
+import { getProfileStateMock } from '__mocks__/profileStateMock';
 import { screen } from '@testing-library/react';
+import { renderWithProviders } from 'testUtils';
 
 import Header from 'src/shared/components/altinnAppHeader';
 import type { IHeaderProps } from 'src/shared/components/altinnAppHeader';
-
-import { organisationMock } from 'altinn-app-frontend/__mocks__/organisationMock';
-import { getProfileStateMock } from 'altinn-app-frontend/__mocks__/profileStateMock';
-import { renderWithProviders } from 'altinn-app-frontend/testUtils';
 
 import { getLanguageFromCode } from 'altinn-shared/language';
 

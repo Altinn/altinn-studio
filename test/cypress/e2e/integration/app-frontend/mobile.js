@@ -40,15 +40,7 @@ describe('Mobile', () => {
     cy.get(appFrontend.navMenu).should('not.have.attr', 'hidden');
     cy.get(appFrontend.navMenu).find('li > button').last().click();
     cy.get(appFrontend.navMenu).should('have.attr', 'hidden');
-    cy.url().then((url) => {
-      var instanceId = url.split('/').slice(-2).join('/');
-      cy.intercept('GET', `**/instances/${instanceId}`).as('getInstance');
-      cy.intercept('GET', `**/instances/${instanceId}/data/**`).as('getInstanceData');
-      cy.get(appFrontend.sendinButton).should('be.visible').click();
-      cy.wait('@getInstance');
-      cy.wait('@getInstanceData');
-      cy.get(appFrontend.confirm.container).should('be.visible');
-    });
+    cy.sendAndWaitForConfirmation();
     cy.get(appFrontend.confirm.sendIn).should('be.visible').click();
     cy.get(appFrontend.receipt.container).should('be.visible');
     cy.get(appFrontend.receipt.linkToArchive).should('be.visible');

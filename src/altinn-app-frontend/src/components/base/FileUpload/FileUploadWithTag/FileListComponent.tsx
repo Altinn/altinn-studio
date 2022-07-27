@@ -213,7 +213,7 @@ export function FileList(props: FileListProps): JSX.Element {
                       className={classes.textContainer}
                     >
                       <div style={{ minWidth: '0px' }}>
-                        {FileName(props.attachments[index].name)}
+                        <FileName>{props.attachments[index].name}</FileName>
                         {props.mobileView ? (
                           <div
                             style={{

@@ -1,5 +1,5 @@
-import { getLanguageFromCode } from '../../shared/src/language';
-import type { IRuntimeState } from '../src/types';
+import { getLanguageFromCode } from 'altinn-shared/language';
+import type { IRuntimeState } from 'src/types';
 import { getFormLayoutStateMock } from './formLayoutStateMock';
 import { getFormDataStateMock } from './formDataStateMock';
 import { applicationMetadataMock } from './applicationMetadataMock';
