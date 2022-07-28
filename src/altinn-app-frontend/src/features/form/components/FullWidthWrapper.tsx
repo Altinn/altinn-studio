@@ -1,9 +1,11 @@
 import React from 'react';
 
 import { makeStyles } from '@material-ui/core';
+import cn from 'classnames';
 
 export interface IFullWidthWrapperProps {
   children?: React.ReactNode;
+  isOnBottom?: boolean;
 }
 
 const useStyles = makeStyles({
@@ -19,14 +21,25 @@ const useStyles = makeStyles({
       marginRight: '-96px',
     },
   },
+  consumeBottomPadding: {
+    marginBottom: '-24px',
+    '@media (min-width: 768px)': {
+      marginBottom: '-36px',
+    },
+  },
 });
 
-export function FullWidthWrapper({ children }: IFullWidthWrapperProps) {
+export function FullWidthWrapper({
+  children,
+  isOnBottom = false,
+}: IFullWidthWrapperProps) {
   const classes = useStyles();
 
   return (
     <div
-      className={classes.fullWidthWrapper}
+      className={cn(classes.fullWidthWrapper, {
+        [classes.consumeBottomPadding]: isOnBottom,
+      })}
       data-testid='fullWidthWrapper'
     >
       {children}

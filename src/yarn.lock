@@ -5,23 +5,23 @@ __metadata:
   version: 6
   cacheKey: 8
 
-"@altinn/altinn-design-system@npm:0.1.4":
-  version: 0.1.4
-  resolution: "@altinn/altinn-design-system@npm:0.1.4::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40altinn%2Faltinn-design-system%2F0.1.4%2F8be73e9065c8b8f244d77540f8fed74b98e23a369c8927d5d565deddf5cdd108"
+"@altinn/altinn-design-system@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "@altinn/altinn-design-system@npm:0.2.0::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40altinn%2Faltinn-design-system%2F0.2.0%2F44acbeb21e302b1bcb78005b465a48997ff3bdd6aeb414a702e87ecda5b14d70"
   dependencies:
-    "@altinn/figma-design-tokens": ^0.1.0
-    "@react-hookz/web": ^14.2.2
+    "@altinn/figma-design-tokens": ^0.3.0
+    "@react-hookz/web": ^15.0.1
   peerDependencies:
     react: ^17.0.0 || ^18.0.0
     react-dom: ^17.0.0 || ^18.0.0
-  checksum: 89609dd093efc3b510e651b01e5da6674dd2c39de7161c81143e12eb5645d50625376dcba20cff99e313fc12430d9bdabad0ea91c8a8fd75dc2306061b7e0512
+  checksum: 81582d9ff3a8e3aa1f1fdcb763410a9dfa6505282e46a499c366e98491a887072d31cdb183bca70cb5c2342a9da8b8670f2fc0522cee5f373e1f46f6b499d344
   languageName: node
   linkType: hard
 
-"@altinn/figma-design-tokens@npm:^0.1.0":
-  version: 0.1.0
-  resolution: "@altinn/figma-design-tokens@npm:0.1.0::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40altinn%2Ffigma-design-tokens%2F0.1.0%2Fe7eae212dbc9788e35d19c9dd5ad29c342c73589c220ef06cd15fd3f8ef60ef0"
-  checksum: 2c4a01c8e06661ac1d6f0434ad0dad947cbb0c32043bbd82e18bb9dfcf0975613a6c735422980e623ac305180f341cfb31bb141e612d3cfd3eb910596ec9d97e
+"@altinn/figma-design-tokens@npm:^0.3.0":
+  version: 0.3.0
+  resolution: "@altinn/figma-design-tokens@npm:0.3.0::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40altinn%2Ffigma-design-tokens%2F0.3.0%2Fc97036531b1b29622f09e601f9a3c9f8f49b36a5d97649f656bad4411a9fe674"
+  checksum: 72a0fa141e08d93912ff87714d98e5a5537ba0fb5cfb0bdad8e59e6fd05f37efa60bcb171f6ecb7c7901b24e2473d9b3b576dccae141c876d3bd3f536905e2ba
   languageName: node
   linkType: hard
 
@@ -2733,9 +2733,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-hookz/web@npm:^14.2.2":
-  version: 14.2.2
-  resolution: "@react-hookz/web@npm:14.2.2"
+"@react-hookz/web@npm:^15.0.1":
+  version: 15.0.1
+  resolution: "@react-hookz/web@npm:15.0.1"
   dependencies:
     "@react-hookz/deep-equal": ^1.0.2
   peerDependencies:
@@ -2745,7 +2745,7 @@ __metadata:
   peerDependenciesMeta:
     js-cookie:
       optional: true
-  checksum: b85f3bdb64c569e5046d58cea838e23e92b6381241688ee77844c94055b46b86c278d3d1892ac79f00a2b9ad389bab0b68fd020125fe3832a5b1cbcd4606b9ab
+  checksum: 26face421e2fe8722640140203a59dad422607f2d32d35c833631bcf2967018c5de809b93e45ccd2ae82de9c9aec32f8d97143be94b0ea270d18879765dc9d3e
   languageName: node
   linkType: hard
 
@@ -4232,7 +4232,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "altinn-app-frontend@workspace:altinn-app-frontend"
   dependencies:
-    "@altinn/altinn-design-system": 0.1.4
+    "@altinn/altinn-design-system": ^0.2.0
     "@babel/core": ^7.18.6
     "@babel/polyfill": ^7.12.1
     "@babel/preset-env": ^7.18.6

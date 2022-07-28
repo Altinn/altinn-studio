@@ -54,10 +54,8 @@ export const useRadioStyles = makeStyles((theme) => ({
 }));
 
 export const useRadioButtons = ({
-  id,
   optionsId,
   options,
-  handleFocusUpdate,
   handleDataChange,
   preselectedOptionIndex,
   formData,
@@ -103,7 +101,6 @@ export const useRadioButtons = ({
   }, [handleDataChange, optionsHasChanged, formData]);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    handleFocusUpdate(id);
     handleDataChange(event.target.value);
   };
 

@@ -40,9 +40,12 @@ export interface ILayoutGroup extends ILayoutCompBase<'Group'> {
   panel?: IGroupPanel;
 }
 
-export interface IGroupPanel {
-  variant?: string;
+export interface ILayoutCompPanelBase {
+  variant?: 'info' | 'warning' | 'error' | 'success';
   showIcon?: boolean;
+}
+
+export interface IGroupPanel extends ILayoutCompPanelBase {
   iconUrl?: string;
   iconAlt?: string;
   groupReference?: IGroupReference;
@@ -185,10 +188,7 @@ export type ILayoutCompNavBar = ILayoutCompBase<'NavigationBar'>;
 
 export type ILayoutCompPrintButton = ILayoutCompBase<'PrintButton'>;
 
-export interface ILayoutCompPanel extends ILayoutCompBase<'Panel'> {
-  variant?: 'info' | 'warning' | 'success';
-  showIcon?: boolean;
-}
+export type ILayoutCompPanel = ILayoutCompBase<'Panel'> & ILayoutCompPanelBase;
 
 export interface ILayoutCompCustom extends ILayoutCompBase<'Custom'> {
   tagName: string;

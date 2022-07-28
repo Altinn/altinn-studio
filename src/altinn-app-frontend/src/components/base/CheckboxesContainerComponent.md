@@ -1,10 +1,12 @@
 Simple checkbox with 3 options
 
 ```tsx
-import {CheckboxContainerComponent} from './CheckboxesContainerComponent';
+import { CheckboxContainerComponent } from './CheckboxesContainerComponent';
 import Legend from '../../features/form/components/Legend';
-import {nb} from '../../shared/resources/language/texts/nb';
-const dummyFunc = () => {return;}
+import { nb } from '../../shared/resources/language/texts/nb';
+const dummyFunc = () => {
+  return;
+};
 
 const legend = () => {
   return (
@@ -15,13 +17,12 @@ const legend = () => {
       helpTextProps={{}}
     />
   );
-}
+};
 
 const props = {
   id: 'simpleCheckbox',
   formData: '',
   handleDataChange: dummyFunc,
-  handleFocusUpdate: dummyFunc,
   isValid: true,
   validationMessages: {},
   options: [
@@ -44,9 +45,5 @@ const props = {
   legend,
 };
 
-<CheckboxContainerComponent
-  {...props}
-/>
-
+<CheckboxContainerComponent {...props} />;
 ```
-

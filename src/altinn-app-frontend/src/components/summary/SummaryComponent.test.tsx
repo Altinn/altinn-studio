@@ -121,6 +121,7 @@ describe('SummaryComponent', () => {
       newView: pageId,
       runValidations: null,
       returnToView: 'otherPage',
+      focusComponentId: defaultId,
     });
   });
 

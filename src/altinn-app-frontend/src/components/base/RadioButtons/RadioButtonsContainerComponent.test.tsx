@@ -41,7 +41,6 @@ const render = (
     preselectedOptionIndex: undefined,
     legend: 'legend',
     handleDataChange: jest.fn(),
-    handleFocusUpdate: jest.fn(),
     getTextResource: (value) => value,
     ...({} as IComponentProps),
     ...props,

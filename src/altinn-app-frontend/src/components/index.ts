@@ -63,7 +63,6 @@ export interface IComponentProps extends IGenericComponentProps {
     skipValidation?: boolean,
     checkIfRequired?: boolean,
   ) => void;
-  handleFocusUpdate: (componentId: string, step?: number) => void;
   getTextResource: (key: string) => React.ReactNode;
   getTextResourceAsString: (key: string) => string;
   language: ILanguage;

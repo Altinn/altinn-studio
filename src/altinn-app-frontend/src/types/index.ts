@@ -3,6 +3,7 @@ import type { ReactNode } from 'react';
 import type Ajv from 'ajv/dist/core';
 
 import type { IFormData } from 'src/features/form/data';
+import type { IKeepComponentScrollPos } from 'src/features/form/layout/formLayoutTypes';
 import type { RootState } from 'src/store';
 
 export interface IAltinnWindow extends Window {
@@ -165,6 +166,7 @@ export interface IUiConfig {
   hideCloseButton?: boolean;
   showLanguageSelector?: boolean;
   showProgress?: boolean;
+  keepScrollPos?: IKeepComponentScrollPos;
 }
 
 export interface IValidationResult {
@@ -250,4 +252,18 @@ export interface IFetchSpecificOptionSaga {
 export interface IPartyIdInterfaceGuidParams {
   partyId: string;
   instanceGuid: string;
+}
+
+/**
+ * This function can be used to have TypeScript enforce that we never reach the code branch in question
+ * @see https://stackoverflow.com/a/39419171
+ */
+export function assertUnreachable<Ret = never>(
+  _x: never,
+  execute?: () => Ret,
+): Ret {
+  if (execute) {
+    return execute();
+  }
+  throw new Error('Reached unreachable code');
 }

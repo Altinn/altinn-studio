@@ -133,13 +133,50 @@ describe('Validation', () => {
     cy.get(appFrontend.changeOfName.newFirstName).should('be.visible').clear().type('test').blur();
     cy.get(appFrontend.changeOfName.confirmChangeName).should('be.visible').find('input').check();
     cy.intercept('GET', '**/validate').as('validateData');
-    cy.get(mui.button).should('be.visible').click();
+    cy.get(mui.button).should('be.visible').scrollIntoView();
+    cy.get(mui.button).should('be.inViewport');
+    cy.get(mui.button).click();
     cy.wait('@validateData');
     cy.get(appFrontend.errorReport)
       .should('exist')
       .should('be.visible')
-      .should('be.focused')
-      .should('contain.text', texts.errorReport);
+      .should('be.inViewport')
+      .should('contain.text', texts.errorReport)
+      .should('contain.text', texts.requiredFieldLastName)
+      .should('contain.text', texts.requiredFieldDateFrom);
+
+    const lastNameError = appFrontend.fieldValidationError.replace(
+      'field',
+      appFrontend.changeOfName.newLastName.substring(1),
+    );
+    cy.get(lastNameError).should('exist').should('not.be.inViewport');
+    cy.get(appFrontend.changeOfName.newLastName).should('not.be.focused');
+
+    cy.get(appFrontend.errorReport)
+      .get(`button:contains("${texts.requiredFieldLastName}")`)
+      .should('be.inViewport')
+      .click();
+
+    // Observe that we scrolled to show the error message and have the field focussed
+    cy.get(lastNameError).should('be.inViewport');
+    cy.get(appFrontend.changeOfName.newLastName).should('be.focused');
+
+    // Go to the summary page
+    cy.get(appFrontend.navMenu).find('li > button').last().click();
+    cy.get(appFrontend.errorReport)
+      .should('be.visible')
+      .should('contain.text', texts.errorReport)
+      .should('contain.text', texts.requiredFieldLastName)
+      .should('contain.text', texts.requiredFieldDateFrom);
+    cy.get(lastNameError).should('not.exist');
+
+    // Click the error text, which should lead us back to the change name form and focus the field
+    cy.get(appFrontend.errorReport)
+      .get(`button:contains("${texts.requiredFieldLastName}")`)
+      .click();
+
+    cy.get(lastNameError).should('exist').should('be.inViewport');
+    cy.get(appFrontend.changeOfName.newLastName).should('be.focused');
   });
 
   it('Validation on uploaded attachment type', () => {
@@ -175,7 +212,6 @@ describe('Validation', () => {
     cy.get(appFrontend.errorReport)
       .should('exist')
       .should('be.visible')
-      .should('be.focused')
       .should('contain.text', 'task validation');
   });
 });

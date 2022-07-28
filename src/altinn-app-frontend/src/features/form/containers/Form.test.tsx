@@ -157,6 +157,66 @@ describe('Form', () => {
     expect(screen.getByText('1. FormLayout')).toBeInTheDocument();
   });
 
+  it('should not render ErrorReport when there are no validation errors', () => {
+    renderForm(mockComponents);
+    expect(screen.queryByTestId('ErrorReport')).not.toBeInTheDocument();
+  });
+
+  it('should render ErrorReport when there are validation errors', () => {
+    renderForm(
+      mockComponents,
+      mockValidations({
+        component1: {
+          simpleBinding: {
+            errors: ['some error message'],
+          },
+        },
+      }),
+    );
+    expect(screen.getByTestId('ErrorReport')).toBeInTheDocument();
+  });
+
+  it('should render ErrorReport when there are unmapped validation errors', () => {
+    renderForm(
+      mockComponents,
+      mockValidations({
+        unmapped: {
+          simpleBinding: {
+            errors: ['some error message'],
+          },
+        },
+      }),
+    );
+    expect(screen.getByTestId('ErrorReport')).toBeInTheDocument();
+  });
+
+  it('should separate NavigationButtons and display them inside ErrorReport', () => {
+    renderForm(
+      [
+        ...mockComponents,
+        {
+          id: 'bottomNavButtons',
+          type: 'NavigationButtons',
+        },
+      ],
+      mockValidations({
+        component1: {
+          simpleBinding: {
+            errors: ['some error message'],
+          },
+        },
+      }),
+    );
+    const errorReport = screen.getByTestId('ErrorReport');
+    expect(errorReport).toBeInTheDocument();
+
+    expect(screen.getByTestId('NavigationButtons')).toBeInTheDocument();
+
+    expect(
+      within(errorReport).getByTestId('NavigationButtons'),
+    ).toBeInTheDocument();
+  });
+
   it('should render a summary component', () => {
     const summaryComponent: ILayoutEntry[] = [
       ...mockComponents,
@@ -197,5 +257,20 @@ describe('Form', () => {
         },
       },
     );
+  }
+
+  function mockValidations(
+    validations: RootState['formValidations']['validations'][string],
+  ): Partial<RootState> {
+    return {
+      formValidations: {
+        error: null,
+        invalidDataTypes: [],
+        currentSingleFieldValidation: {},
+        validations: {
+          page1: validations,
+        },
+      },
+    };
   }
 });

@@ -59,7 +59,7 @@
     "import/no-unresolved": ["off"],
     "@typescript-eslint/no-unused-vars": [
       "error",
-      { "ignoreRestSiblings": true }
+      { "ignoreRestSiblings": true, "argsIgnorePattern": "^_" }
     ],
     "@typescript-eslint/consistent-type-imports": ["warn"],
     "react-hooks/exhaustive-deps": ["error"],

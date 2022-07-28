@@ -39,7 +39,7 @@ export function nn() {
     },
     form_filler: {
       back_to_summary: 'Attende til samandrag',
-      error_report_header: 'Det er feil i skjema',
+      error_report_header: 'Du må retta desse feila før du kan gå vidare',
       error_report_description:
         'Skjemaet inneheld feil eller manglar som hindrar oss frå å sende det inn. Når du har retta feila, kan du sende inn skjemaet på nytt.',
       error_required: 'Du må fylle ut {0}',

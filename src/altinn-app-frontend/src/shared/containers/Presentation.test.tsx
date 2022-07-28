@@ -161,18 +161,6 @@ describe('Presentation', () => {
       `background-color: ${AltinnAppTheme.altinnPalette.primary.greenLight}`,
     );
   });
-
-  it('should map validations if there are any and create error report', () => {
-    render({ type: ProcessTaskType.Data }, stateWithErrorsAndWarnings);
-
-    expect(screen.getByTestId('ErrorReport')).toBeInTheDocument();
-  });
-
-  it('should hide error report when there are no validation errors', () => {
-    render({ type: ProcessTaskType.Data });
-
-    expect(screen.queryByTestId('ErrorReport')).not.toBeInTheDocument();
-  });
 });
 
 const render = (

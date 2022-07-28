@@ -157,6 +157,7 @@ export function PanelGroupContainer({
                       )
                     : undefined
                 }
+                showIcon={container.panel?.showIcon}
                 variant={getVariant({ variant: container.panel.variant })}
                 showPointer={!!repGroupReference}
               >

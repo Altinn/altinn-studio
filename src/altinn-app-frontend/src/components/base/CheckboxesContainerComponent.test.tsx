@@ -42,7 +42,6 @@ const render = (
     validationMessages: {},
     legend: 'legend',
     handleDataChange: jest.fn(),
-    handleFocusUpdate: jest.fn(),
     getTextResource: (value) => value,
     getTextResourceAsString: (value) => value,
     ...({} as IComponentProps),

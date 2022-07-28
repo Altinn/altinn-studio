@@ -1,7 +1,6 @@
 import * as React from 'react';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
-import ErrorReport from 'src/components/message/ErrorReport';
 import Header from 'src/components/presentation/Header';
 import NavBar from 'src/components/presentation/NavBar';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
@@ -115,7 +114,6 @@ const PresentationComponent = (props: IPresentationProvidedProps) => {
       <main className='container'>
         <div className='row'>
           <div className='col-xl-12 a-p-static'>
-            <ErrorReport />
             {isProcessStepsArchived && instance?.status?.substatus && (
               <AltinnSubstatusPaper
                 label={getTextResourceByKey(

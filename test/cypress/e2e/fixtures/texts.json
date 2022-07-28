@@ -8,7 +8,7 @@
   "dateOfEffect": "Når vil du at navnendringen skal skje?",
   "downloadAttachment": "last ned",
   "errorInGroup": "En av radene er ikke fylt ut riktig, dette må fikses før skjema kan sendes inn",
-  "errorReport": "Det er feil i skjema",
+  "errorReport": "Du må rette disse feilene før du kan gå videre",
   "feedback": "Du må flytte instansen til neste prosess med et API kall til process/next",
   "goToRightPage": "Gå til riktig side i skjema",
   "infoMessage": "Dette er en infomelding",

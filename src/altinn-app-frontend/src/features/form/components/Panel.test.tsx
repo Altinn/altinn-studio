@@ -35,6 +35,12 @@ describe('Panel', () => {
     it('should return PanelVariant.Info when no variant is passed', () => {
       expect(getVariant()).toBe(PanelVariant.Info);
     });
+
+    it('should return PanelVariant.Info when the wrong variant is passed', () => {
+      expect(getVariant({ variant: 'invalid' as 'warning' })).toBe(
+        PanelVariant.Info,
+      );
+    });
   });
 
   describe('FullWidthWrapper', () => {
@@ -66,7 +72,7 @@ const render = (
   const allProps = {
     title: 'Panel Title',
     children: 'Panel Content',
-    variant: 'info',
+    variant: 'info' as const,
     showIcon: false,
     showPointer: false,
     ...props,

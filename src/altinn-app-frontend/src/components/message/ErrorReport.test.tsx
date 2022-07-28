@@ -11,11 +11,6 @@ import type { IValidations } from 'src/types';
 import { getParsedLanguageFromText } from 'altinn-shared/utils';
 
 describe('ErrorReport', () => {
-  const genericErrorText =
-    getInitialStateMock().language.language.form_filler[
-      'error_report_description'
-    ];
-
   const render = (validations: Partial<IValidations>) => {
     const mockValidationState: IValidationState = {
       validations: {
@@ -29,27 +24,17 @@ describe('ErrorReport', () => {
       formValidations: mockValidationState,
     });
 
-    return renderWithProviders(<ErrorReport />, {
+    return renderWithProviders(<ErrorReport components={[]} />, {
       preloadedState: initialState,
     });
   };
 
-  it('should render generic error message by default', () => {
-    const validations = {
-      page1: {
-        someComponent: {
-          simpleBinding: {
-            errors: [getParsedLanguageFromText('some error')],
-          },
-        },
-      },
-    };
-    render(validations);
-
-    expect(screen.getByText(genericErrorText)).toBeInTheDocument();
+  it('should not render when there are no errors', () => {
+    render({});
+    expect(screen.queryByTestId('ErrorReport')).not.toBeInTheDocument();
   });
 
-  it('should list unmapped errors if present and hide generic error message', () => {
+  it('should list unmapped errors as unclickable', () => {
     const validations = {
       unmapped: {
         // unmapped layout
@@ -64,8 +49,31 @@ describe('ErrorReport', () => {
     };
 
     render(validations);
+    expect(screen.getByTestId('ErrorReport')).toBeInTheDocument();
 
-    expect(screen.queryByText(genericErrorText)).not.toBeInTheDocument();
-    expect(screen.getByText('some unmapped error')).toBeInTheDocument();
+    // Unmapped errors should not be clickable
+    const errorNode = screen.getByText('some unmapped error');
+    expect(errorNode).toBeInTheDocument();
+    expect(errorNode.parentElement.tagName).toEqual('LI');
+  });
+
+  it('should list mapped error as clickable', () => {
+    const validations = {
+      page1: {
+        someComponent: {
+          simpleBinding: {
+            errors: [getParsedLanguageFromText('some mapped error')],
+          },
+        },
+      },
+    };
+
+    render(validations);
+    expect(screen.getByTestId('ErrorReport')).toBeInTheDocument();
+
+    const errorNode = screen.getByText('some mapped error');
+    expect(errorNode).toBeInTheDocument();
+    expect(errorNode.parentElement.parentElement.tagName).toEqual('LI');
+    expect(errorNode.parentElement.tagName).toEqual('BUTTON');
   });
 });

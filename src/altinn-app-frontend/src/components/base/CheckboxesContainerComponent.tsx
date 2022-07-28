@@ -85,7 +85,6 @@ export const CheckboxContainerComponent = ({
   formData,
   preselectedOptionIndex,
   handleDataChange,
-  handleFocusUpdate,
   layout,
   legend,
   getTextResourceAsString,
@@ -146,7 +145,6 @@ export const CheckboxContainerComponent = ({
     } else {
       handleDataChange(selected.concat(clickedItem).join(','));
     }
-    handleFocusUpdate(id);
   };
 
   const handleBlur = () => {

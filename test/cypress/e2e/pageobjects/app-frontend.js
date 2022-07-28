@@ -14,7 +14,7 @@ export default class AppFrontend {
     this.sendinButton = '#sendInButton';
     this.instantiationButton = '#instantiation-button';
     this.errorExclamation = '.fa-circle-exclamation';
-    this.errorReport = '#errorReport';
+    this.errorReport = '[data-testid="ErrorReport"]';
     this.altinnError = '[data-testid="AltinnError"]';
     this.profileIconButton = '#profile-icon-button';
     this.logOut = '#logout-menu-item';

@@ -4,7 +4,6 @@ import type { SagaIterator } from 'redux-saga';
 
 import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import { FormDynamicsActions } from 'src/features/form/dynamics/formDynamicsSlice';
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
 import { getCurrentDataTypeForApplication } from 'src/utils/appMetadata';
 import { removeAttachmentReference } from 'src/utils/databindings';
@@ -34,7 +33,6 @@ export function* updateFormDataSaga({
 }: PayloadAction<IUpdateFormData>): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
-    const focus = state.formLayout.uiConfig.focus;
 
     if (!skipValidation) {
       yield call(
@@ -61,10 +59,6 @@ export function* updateFormDataSaga({
 
     if (state.formDynamics.conditionalRendering) {
       yield put(FormDynamicsActions.checkIfConditionalRulesShouldRun({}));
-    }
-
-    if (focus && focus !== '' && componentId !== focus) {
-      yield put(FormLayoutActions.updateFocus({ currentComponentId: '' }));
     }
   } catch (error) {
     console.error(error);

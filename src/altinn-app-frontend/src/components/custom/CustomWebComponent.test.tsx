@@ -39,7 +39,6 @@ describe('CustomWebComponent', () => {
         title: 'Title',
       },
       handleDataChange: (value: string) => value,
-      handleFocusUpdate: jest.fn(),
       getTextResource: (key: string) => {
         return key;
       },

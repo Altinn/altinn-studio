@@ -3,15 +3,23 @@ import React from 'react';
 import Grid from '@material-ui/core/Grid';
 
 import { useAppSelector } from 'src/common/hooks';
+import ErrorReport from 'src/components/message/ErrorReport';
 import { SummaryComponent } from 'src/components/summary/SummaryComponent';
 import MessageBanner from 'src/features/form/components/MessageBanner';
 import { DisplayGroupContainer } from 'src/features/form/containers/DisplayGroupContainer';
 import { mapGroupComponents } from 'src/features/form/containers/formUtils';
 import { GroupContainer } from 'src/features/form/containers/GroupContainer';
 import { PanelGroupContainer } from 'src/features/form/containers/PanelGroupContainer';
-import { hasRequiredFields } from 'src/utils/formLayout';
+import {
+  extractBottomButtons,
+  hasRequiredFields,
+  topLevelComponents,
+} from 'src/utils/formLayout';
 import { renderGenericComponent } from 'src/utils/layout';
-import { missingFieldsInLayoutValidations } from 'src/utils/validation';
+import {
+  getFormHasErrors,
+  missingFieldsInLayoutValidations,
+} from 'src/utils/validation';
 import type {
   ILayout,
   ILayoutComponent,
@@ -90,11 +98,6 @@ function RenderLayoutGroup(
 }
 
 export function Form() {
-  const [filteredLayout, setFilteredLayout] = React.useState<any[]>([]);
-  const [currentLayout, setCurrentLayout] = React.useState<string>();
-  const [requiredFieldsMissing, setRequiredFieldsMissing] =
-    React.useState(false);
-
   const currentView = useAppSelector(
     (state) => state.formLayout.uiConfig.currentView,
   );
@@ -105,45 +108,31 @@ export function Form() {
   const validations = useAppSelector(
     (state) => state.formValidations.validations,
   );
+  const hasErrors = useAppSelector((state) =>
+    getFormHasErrors(state.formValidations.validations),
+  );
 
-  React.useEffect(() => {
-    setCurrentLayout(currentView);
-  }, [currentView]);
-
-  React.useEffect(() => {
+  const requiredFieldsMissing = React.useMemo(() => {
     if (validations && validations[currentView]) {
-      const areRequiredFieldsMissing = missingFieldsInLayoutValidations(
+      return missingFieldsInLayoutValidations(
         validations[currentView],
         language,
       );
-      setRequiredFieldsMissing(areRequiredFieldsMissing);
     }
+
+    return false;
   }, [currentView, language, validations]);
 
-  React.useEffect(() => {
-    let renderedInGroup: string[] = [];
-    if (layout) {
-      const groupComponents = layout.filter(
-        (component) => component.type === 'Group',
-      );
-      groupComponents.forEach((component: ILayoutGroup) => {
-        let childList = component.children;
-        if (component.edit?.multiPage) {
-          childList = component.children.map(
-            (childId) => childId.split(':')[1] || childId,
-          );
-        }
-        renderedInGroup = renderedInGroup.concat(childList);
-      });
-      const componentsToRender = layout.filter(
-        (component) => !renderedInGroup.includes(component.id),
-      );
-      setFilteredLayout(componentsToRender);
+  const [mainComponents, errorReportComponents] = React.useMemo(() => {
+    if (!layout) {
+      return [[], []];
     }
-  }, [layout]);
+    const topLevel = topLevelComponents(layout);
+    return hasErrors ? extractBottomButtons(topLevel) : [topLevel, []];
+  }, [layout, hasErrors]);
 
   return (
-    <div>
+    <>
       {hasRequiredFields(layout) && (
         <MessageBanner
           language={language}
@@ -156,14 +145,11 @@ export function Form() {
         spacing={3}
         alignItems='flex-start'
       >
-        {currentView === currentLayout &&
-          filteredLayout &&
-          filteredLayout.map((component) => {
-            return renderLayoutComponent(component, layout);
-          })}
+        {mainComponents.map((component) =>
+          renderLayoutComponent(component, layout),
+        )}
+        <ErrorReport components={errorReportComponents} />
       </Grid>
-    </div>
+    </>
   );
 }
-
-export default Form;

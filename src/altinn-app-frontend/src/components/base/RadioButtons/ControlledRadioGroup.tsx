@@ -28,7 +28,6 @@ export const ControlledRadioGroup = ({
   id,
   layout,
   legend,
-  shouldFocus,
   getTextResource,
   validationMessages,
   fetchingOptions,
@@ -66,11 +65,7 @@ export const ControlledRadioGroup = ({
           {calculatedOptions.map((option: any, index: number) => (
             <React.Fragment key={index}>
               <FormControlLabel
-                control={
-                  <StyledRadio
-                    autoFocus={shouldFocus && selected === option.value}
-                  />
-                }
+                control={<StyledRadio />}
                 label={getTextResource(option.label)}
                 value={option.value}
                 classes={{ root: cn(classes.margin) }}

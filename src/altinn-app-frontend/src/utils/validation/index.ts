@@ -17,6 +17,9 @@ export {
   removeGroupValidationsByIndex,
   validateGroup,
   getParentGroup,
+  getFormHasErrors,
+  getMappedErrors,
+  type FlatError,
 } from './validation';
 
 export { runClientSideValidation } from './runClientSideValidation';

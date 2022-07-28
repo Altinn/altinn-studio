@@ -8,12 +8,16 @@ import {
 import { FormComponentContext } from 'src/components';
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { FullWidthWrapper } from 'src/features/form/components/FullWidthWrapper';
+import { assertUnreachable } from 'src/types';
+import type { ILayoutCompPanel } from 'src/features/form/layout';
 
 interface IGetVariantProps {
-  variant?: string;
+  variant: ILayoutCompPanel['variant'];
 }
 
-const defaultObj = {};
+const defaultObj: IGetVariantProps = {
+  variant: 'info',
+};
 
 export const getVariant = ({ variant }: IGetVariantProps = defaultObj) => {
   switch (variant) {
@@ -21,17 +25,19 @@ export const getVariant = ({ variant }: IGetVariantProps = defaultObj) => {
       return PanelVariant.Info;
     case 'success':
       return PanelVariant.Success;
+    case 'error':
+      return PanelVariant.Error;
     case 'warning':
       return PanelVariant.Warning;
   }
 
-  return PanelVariant.Info;
+  return assertUnreachable(variant, () => PanelVariant.Info);
 };
 
 export interface IPanelProps {
   title: React.ReactNode;
   children?: React.ReactNode;
-  variant?: string;
+  variant?: ILayoutCompPanel['variant'];
   showIcon?: boolean;
   showPointer?: boolean;
 }

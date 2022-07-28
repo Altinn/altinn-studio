@@ -66,7 +66,6 @@ import type {
   IUpdateCurrentView,
   IUpdateFileUploaderWithTagChosenOptions,
   IUpdateFileUploaderWithTagEditIndex,
-  IUpdateFocus,
   IUpdateRepeatingGroups,
   IUpdateRepeatingGroupsEditIndex,
 } from 'src/features/form/layout/formLayoutTypes';
@@ -97,33 +96,6 @@ export const selectValidations = (state: IRuntimeState): IValidations =>
   state.formValidations.validations;
 export const selectUnsavedChanges = (state: IRuntimeState): boolean =>
   state.formData.unsavedChanges;
-
-export function* updateFocus({
-  payload: { currentComponentId, step },
-}: PayloadAction<IUpdateFocus>): SagaIterator {
-  try {
-    const formLayoutState: ILayoutState = yield select(selectFormLayoutState);
-    if (currentComponentId) {
-      const layout =
-        formLayoutState.layouts[formLayoutState.uiConfig.currentView];
-      const currentComponentIndex = layout.findIndex(
-        (component: ILayoutComponent) => component.id === currentComponentId,
-      );
-      const focusComponentIndex = step
-        ? currentComponentIndex + step
-        : currentComponentIndex;
-      const focusComponentId =
-        focusComponentIndex > 0 ? layout[focusComponentIndex].id : null;
-      yield put(FormLayoutActions.updateFocusFulfilled({ focusComponentId }));
-    } else {
-      yield put(
-        FormLayoutActions.updateFocusFulfilled({ focusComponentId: null }),
-      );
-    }
-  } catch (error) {
-    yield put(FormLayoutActions.updateFocusRejected({ error }));
-  }
-}
 
 export function* updateRepeatingGroupsSaga({
   payload: { layoutElementId, remove, index, leaveOpen },
@@ -322,7 +294,14 @@ export function* updateRepeatingGroupsSaga({
 }
 
 export function* updateCurrentViewSaga({
-  payload: { newView, runValidations, returnToView, skipPageCaching },
+  payload: {
+    newView,
+    runValidations,
+    returnToView,
+    skipPageCaching,
+    keepScrollPos,
+    focusComponentId,
+  },
 }: PayloadAction<IUpdateCurrentView>): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
@@ -337,7 +316,11 @@ export function* updateCurrentViewSaga({
         localStorage.setItem(currentViewCacheKey, newView);
       }
       yield put(
-        FormLayoutActions.updateCurrentViewFulfilled({ newView, returnToView }),
+        FormLayoutActions.updateCurrentViewFulfilled({
+          newView,
+          returnToView,
+          focusComponentId,
+        }),
       );
     } else {
       const {
@@ -382,7 +365,12 @@ export function* updateCurrentViewSaga({
         if (!skipPageCaching) {
           localStorage.setItem(currentViewCacheKey, newView);
         }
-        yield put(FormLayoutActions.updateCurrentViewFulfilled({ newView }));
+        yield put(
+          FormLayoutActions.updateCurrentViewFulfilled({
+            newView,
+            focusComponentId,
+          }),
+        );
       } else if (
         !canFormBeSaved(
           {
@@ -392,7 +380,12 @@ export function* updateCurrentViewSaga({
           'Complete',
         )
       ) {
-        yield put(FormLayoutActions.updateCurrentViewRejected({ error: null }));
+        yield put(
+          FormLayoutActions.updateCurrentViewRejected({
+            error: null,
+            keepScrollPos,
+          }),
+        );
       } else {
         if (!skipPageCaching) {
           localStorage.setItem(currentViewCacheKey, newView);
@@ -401,6 +394,7 @@ export function* updateCurrentViewSaga({
           FormLayoutActions.updateCurrentViewFulfilled({
             newView,
             returnToView,
+            focusComponentId,
           }),
         );
       }
@@ -411,7 +405,7 @@ export function* updateCurrentViewSaga({
 }
 
 export function* calculatePageOrderAndMoveToNextPageSaga({
-  payload: { runValidations, skipMoveToNext },
+  payload: { runValidations, skipMoveToNext, keepScrollPos },
 }: PayloadAction<ICalculatePageOrderAndMoveToNextPage>): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
@@ -469,7 +463,13 @@ export function* calculatePageOrderAndMoveToNextPageSaga({
     const returnToView = state.formLayout.uiConfig.returnToView;
     const newView =
       returnToView || layoutOrder[layoutOrder.indexOf(currentView) + 1];
-    yield put(FormLayoutActions.updateCurrentView({ newView, runValidations }));
+    yield put(
+      FormLayoutActions.updateCurrentView({
+        newView,
+        runValidations,
+        keepScrollPos,
+      }),
+    );
   } catch (error) {
     if (error?.response?.status === 404) {
       // We accept that the app does noe have defined a calculate page order as this is not default for older apps

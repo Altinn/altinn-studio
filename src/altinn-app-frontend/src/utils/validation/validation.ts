@@ -1283,10 +1283,8 @@ function addValidation(
  * gets unmapped errors from validations as string array
  * @param validations the validations
  */
-export function getUnmappedErrors(
-  validations: IValidations,
-): React.ReactNode[] {
-  const messages: React.ReactNode[] = [];
+export function getUnmappedErrors(validations: IValidations): ReactNode[] {
+  const messages: ReactNode[] = [];
   if (!validations) {
     return messages;
   }
@@ -1299,6 +1297,59 @@ export function getUnmappedErrors(
   });
   return messages;
 }
+
+export interface FlatError {
+  layout: string;
+  componentId: string;
+  message: string | ReactNode;
+}
+
+/**
+ * Gets all mapped errors as flat array
+ */
+export const getMappedErrors = (validations: IValidations): FlatError[] => {
+  const errors: FlatError[] = [];
+
+  for (const layout in validations) {
+    for (const componentId in validations[layout]) {
+      if (componentId === 'unmapped') {
+        continue;
+      }
+
+      const validationObject = validations[layout][componentId];
+      for (const fieldKey in validationObject) {
+        for (const message of validationObject[fieldKey].errors || []) {
+          errors.push({
+            layout,
+            componentId,
+            message,
+          });
+        }
+      }
+    }
+  }
+
+  return errors;
+};
+
+/**
+ * Returns true if there are errors in the form at all (faster than getting all mapped/unmapped errors)
+ * When this returns true, ErrorReport.tsx should be displayed
+ */
+export const getFormHasErrors = (validations: IValidations): boolean => {
+  for (const layout in validations) {
+    for (const key in validations[layout]) {
+      const validationObject = validations[layout][key];
+      for (const fieldKey in validationObject) {
+        const fieldValidationErrors = validationObject[fieldKey].errors;
+        if (fieldValidationErrors && fieldValidationErrors.length > 0) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+};
 
 /**
  * checks if a validation contains any errors of a given severity.

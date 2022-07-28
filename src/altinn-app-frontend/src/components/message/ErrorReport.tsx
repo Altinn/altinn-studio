@@ -1,128 +1,141 @@
 import * as React from 'react';
 
-import { useAppSelector } from 'src/common/hooks';
-import { getUnmappedErrors } from 'src/utils/validation';
-import type { IValidations } from 'src/types';
+import { Panel, PanelVariant } from '@altinn/altinn-design-system';
+import { Grid, makeStyles } from '@material-ui/core';
+
+import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { FullWidthWrapper } from 'src/features/form/components/FullWidthWrapper';
+import { renderLayoutComponent } from 'src/features/form/containers/Form';
+import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { getMappedErrors, getUnmappedErrors } from 'src/utils/validation';
+import type { ILayout } from 'src/features/form/layout';
+import type { FlatError } from 'src/utils/validation';
 
 import { getLanguageFromKey } from 'altinn-shared/utils';
 
-const ErrorReport = () => {
-  const validations = useAppSelector(
-    (state) => state.formValidations.validations,
+export interface IErrorReportProps {
+  components: ILayout;
+}
+
+const ArrowForwardIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" style="position: relative; top: 2px">
+  <path d="M12 4l-1.41 1.41L16.17 11H4v2h12.17l-5.58 5.59L12 20l8-8z"></path>
+</svg>`;
+
+const useStyles = makeStyles((theme) => ({
+  errorList: {
+    listStylePosition: 'inside',
+    listStyleImage: `url("data:image/svg+xml,${encodeURIComponent(
+      ArrowForwardIcon,
+    )}")`,
+    '& > li': {
+      marginBottom: theme.spacing(1),
+    },
+  },
+  buttonAsInvisibleLink: {
+    backgroundColor: 'transparent',
+    border: 'none',
+    cursor: 'pointer',
+    textDecoration: 'none',
+    display: 'inline',
+    margin: 0,
+    padding: 0,
+  },
+}));
+
+const ErrorReport = ({ components }: IErrorReportProps) => {
+  const classes = useStyles();
+  const dispatch = useAppDispatch();
+  const currentView = useAppSelector(
+    (state) => state.formLayout.uiConfig.currentView,
   );
-  const unmappedErrors = getUnmappedErrors(validations);
-  const hasUnmappedErrors = unmappedErrors.length > 0;
+  const [errorsMapped, errorsUnmapped] = useAppSelector((state) => [
+    getMappedErrors(state.formValidations.validations),
+    getUnmappedErrors(state.formValidations.validations),
+  ]);
   const language = useAppSelector((state) => state.language.language);
-  const formHasErrors = useAppSelector((state) =>
-    getFormHasErrors(state.formValidations.validations),
-  );
-  const hasSubmitted = useAppSelector((state) => state.formData.hasSubmitted);
-  const errorRef = React.useRef(null);
+  const hasErrors = errorsUnmapped.length > 0 || errorsMapped.length > 0;
 
-  React.useEffect(() => {
-    if (hasSubmitted) {
-      errorRef?.current?.focus();
-    }
-  }, [hasSubmitted, unmappedErrors]);
-
-  if (!formHasErrors) {
+  if (!hasErrors) {
     return null;
   }
 
-  return (
-    <div
-      data-testid='ErrorReport'
-      id='errorReport'
-      className='a-modal-content-target'
-      style={{ marginTop: '55px' }}
-      ref={errorRef}
-      tabIndex={-1}
-    >
-      <div className='a-page a-current-page'>
-        <div className='modalPage'>
-          <div className='modal-content'>
-            <div
-              className='modal-body'
-              style={{ paddingBottom: '0px' }}
-            >
-              <div
-                className='a-iconText'
-                style={{ minHeight: '60px' }}
-              >
-                <div className='a-iconText-icon'>
-                  <i
-                    className='ai ai-circle-exclamation a-icon'
-                    style={{
-                      color: '#E23B53',
-                      fontSize: '4em',
-                      marginLeft: '12px',
-                    }}
-                    aria-hidden='true'
-                  />
-                </div>
-                <h2
-                  className='a-fontReg'
-                  style={{ marginBottom: '0px', marginLeft: '12px' }}
-                >
-                  <span className='a-iconText-text-large'>
-                    {getLanguageFromKey(
-                      'form_filler.error_report_header',
-                      language,
-                    )}
-                  </span>
-                </h2>
-              </div>
-            </div>
-            <div
-              className='modal-body a-modal-body'
-              style={{ paddingTop: '0px', paddingBottom: '24px' }}
-            >
-              {hasUnmappedErrors && (
-                <div>
-                  <ul style={{ listStylePosition: 'inside' }}>
-                    {unmappedErrors.map(
-                      (error: React.ReactNode, index: number) => {
-                        return <li key={index}>{error}</li>;
-                      },
-                    )}
-                  </ul>
-                </div>
-              )}
-              {!hasUnmappedErrors && (
-                // No errors to list, show a generic error message
-                <h4
-                  className='a-fontReg'
-                  style={{ marginBottom: '12px' }}
-                >
-                  <span>
-                    {getLanguageFromKey(
-                      'form_filler.error_report_description',
-                      language,
-                    )}
-                  </span>
-                </h4>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const getFormHasErrors = (validations: IValidations): boolean => {
-  for (const layout in validations) {
-    for (const key in validations[layout]) {
-      const validationObject = validations[layout][key];
-      for (const fieldKey in validationObject) {
-        const fieldValidationErrors = validationObject[fieldKey].errors;
-        if (fieldValidationErrors && fieldValidationErrors.length > 0) {
-          return true;
-        }
+  const handleErrorClick =
+    (error: FlatError) => (ev: React.KeyboardEvent | React.MouseEvent) => {
+      if (
+        ev.type === 'keydown' &&
+        (ev as React.KeyboardEvent).key !== 'Enter'
+      ) {
+        return;
       }
-    }
-  }
-  return false;
+      ev.preventDefault();
+      if (currentView === error.layout) {
+        dispatch(
+          FormLayoutActions.updateFocus({
+            focusComponentId: error.componentId,
+          }),
+        );
+      } else {
+        dispatch(
+          FormLayoutActions.updateCurrentView({
+            newView: error.layout,
+            runValidations: null,
+            returnToView: currentView,
+            focusComponentId: error.componentId,
+          }),
+        );
+      }
+    };
+
+  return (
+    <Grid
+      data-testid='ErrorReport'
+      item={true}
+      xs={12}
+    >
+      <FullWidthWrapper isOnBottom={true}>
+        <Panel
+          title={getLanguageFromKey(
+            'form_filler.error_report_header',
+            language,
+          )}
+          showIcon={false}
+          variant={PanelVariant.Error}
+        >
+          <Grid
+            container={true}
+            item={true}
+            spacing={3}
+            alignItems='flex-start'
+          >
+            <Grid
+              item
+              xs={12}
+            >
+              <ul className={classes.errorList}>
+                {errorsUnmapped.map((error: React.ReactNode, index: number) => (
+                  <li key={`unmapped-${index}`}>{error}</li>
+                ))}
+                {errorsMapped.map((error) => (
+                  <li key={`mapped-${error.componentId}`}>
+                    <button
+                      className={classes.buttonAsInvisibleLink}
+                      onClick={handleErrorClick(error)}
+                      onKeyDown={handleErrorClick(error)}
+                    >
+                      {error.message}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </Grid>
+            {components.map((component) => {
+              return renderLayoutComponent(component, []);
+            })}
+          </Grid>
+        </Panel>
+      </FullWidthWrapper>
+    </Grid>
+  );
 };
 
 export default ErrorReport;
