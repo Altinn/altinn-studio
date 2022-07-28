@@ -127,6 +127,12 @@
         },
         "Endringsmelding-grp-9786": {
           "$ref": "#/definitions/Endringsmelding-grp-9786"
+        },
+        "PrefillValues": {
+          "type": "string"
+        },
+        "PrefillValuesShadow": {
+          "type": "string"
         }
       },
       "required": [
