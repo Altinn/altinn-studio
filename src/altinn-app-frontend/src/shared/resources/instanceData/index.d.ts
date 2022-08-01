@@ -6,7 +6,6 @@ export interface IInstanceDataState {
 }
 
 export interface IGetInstanceData {
-  instanceOwner: string;
   instanceId: string;
 }
 export interface IGetInstanceDataFulfilled {

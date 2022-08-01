@@ -40,7 +40,10 @@ describe('App', () => {
 
   const ProvidedRouter = ({ locationPath }) => {
     return (
-      <MemoryRouter initialEntries={[locationPath]}>
+      <MemoryRouter
+        basename={'/ttd/test'}
+        initialEntries={[`/ttd/test${locationPath}`]}
+      >
         <App />
       </MemoryRouter>
     );
@@ -96,11 +99,19 @@ describe('App', () => {
     });
     expect(screen.getByTestId('presentation-heading')).toBeInTheDocument();
   });
-  it('should go to party selection', () => {
+  it('should render 403 error in party selection', () => {
     mockAllowAnonymousState(false);
     render({
       locationPath: `/partyselection/403`,
     });
+    expect(screen.getByTestId('error-code-403')).toBeInTheDocument();
+  });
+  it('should render the party selection without error', () => {
+    mockAllowAnonymousState(false);
+    render({
+      locationPath: `/partyselection`,
+    });
     expect(screen.getByTestId('AltinnParty-partyIcon')).toBeInTheDocument();
+    expect(screen.queryByTestId(/error-code-/g)).toBeNull();
   });
 });

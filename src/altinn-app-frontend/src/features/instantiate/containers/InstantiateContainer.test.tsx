@@ -1,46 +1,54 @@
 import React from 'react';
-import { Provider } from 'react-redux';
-import { BrowserRouter, Route } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
 import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { createTheme, MuiThemeProvider } from '@material-ui/core';
-import {
-  render as renderRtl,
-  screen,
-  waitFor,
-  within,
-} from '@testing-library/react';
-import configureStore from 'redux-mock-store';
+import { screen, waitFor, within } from '@testing-library/react';
+import { renderWithProviders } from 'testUtils';
 
-import Instantiate from 'src/features/instantiate/containers';
+import { InstantiateContainer } from 'src/features/instantiate/containers';
 import { InstantiationActions } from 'src/features/instantiate/instantiation/instantiationSlice';
+import { setupStore } from 'src/store';
 import { HttpStatusCodes } from 'src/utils/networking';
 import type { IRuntimeState } from 'src/types';
 
 import { AltinnAppTheme } from 'altinn-shared/theme';
 
-const render = (initialState: Partial<IRuntimeState> = {}) => {
-  const theme = createTheme(AltinnAppTheme);
-  const createStore = configureStore();
-  const mockInitialState = getInitialStateMock(initialState);
-  const mockStore = createStore(mockInitialState);
-  mockStore.dispatch = jest.fn();
+describe('InstantiateContainer', () => {
+  function DefinedRoutes() {
+    return (
+      <>
+        <Routes>
+          <Route
+            path={'/ttd/test'}
+            element={<InstantiateContainer />}
+          >
+            <Route
+              path='instance/:partyId/:instanceGuid/*'
+              element={<div>Instance page</div>}
+            />
+          </Route>
+        </Routes>
+      </>
+    );
+  }
 
-  renderRtl(
-    <MuiThemeProvider theme={theme}>
-      <BrowserRouter>
-        <Provider store={mockStore}>
-          <Instantiate />
-        </Provider>
-        <Route path='/instance/1'>Instance page</Route>
-      </BrowserRouter>
-    </MuiThemeProvider>,
-  );
+  const render = (initialState: Partial<IRuntimeState> = {}) => {
+    const theme = createTheme(AltinnAppTheme);
+    const stateMock = getInitialStateMock(initialState);
+    const mockStore = setupStore(stateMock);
+    mockStore.dispatch = jest.fn();
+    const { store } = renderWithProviders(
+      <MuiThemeProvider theme={theme}>
+        <BrowserRouter>
+          <DefinedRoutes />
+        </BrowserRouter>
+      </MuiThemeProvider>,
+      { preloadedState: initialState, store: mockStore },
+    );
+    return store.dispatch;
+  };
 
-  return mockStore.dispatch;
-};
-
-describe('features/instantiate/index', () => {
   it('should show content loader on initial render and start instantiation if valid party', async () => {
     const mockDispatch = render();
 
@@ -110,7 +118,7 @@ describe('features/instantiate/index', () => {
     render({
       instantiation: {
         error: null,
-        instanceId: '1',
+        instanceId: '123456/75154373-aed4-41f7-95b4-e5b5115c2edc',
         instantiating: null,
       },
     });

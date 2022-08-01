@@ -22,12 +22,14 @@ describe('Message', () => {
     cy.get(appFrontend.message['header']).should('exist');
     cy.wait('@createdInstance').then((xhr) => {
       instanceMetadata = xhr.response.body;
-      instanceId = instanceMetadata.id.split('/')[1];
+      instanceId = instanceMetadata.id;
+      const instanceGuid = instanceId.split('/')[1];
       cy.fixture('attachment.json').then((data) => {
-        data.instanceGuid = instanceId;
+        data.instanceGuid = instanceGuid;
         instanceMetadata.data.push(data);
       });
-      cy.intercept('GET', instanceIdExp({ postfix: '$' }), instanceMetadata);
+      const interceptExpression = instanceIdExp({ postfix: '$' });
+      cy.intercept('GET', interceptExpression, instanceMetadata);
     });
     cy.reload();
     cy.get(appFrontend.message['attachmentList'])

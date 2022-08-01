@@ -25,8 +25,8 @@ const instantiationSlice = createSagaSlice(
         },
       }),
       instantiateFulfilled: mkAction<IInstantiateFulfilled>({
-        reducer: (state, action) => {
-          state.instanceId = action.payload.instanceId;
+        reducer: (state, { payload }) => {
+          state.instanceId = payload.instanceId;
           state.instantiating = false;
         },
       }),

@@ -1,8 +1,18 @@
 import React from 'react';
-import { MemoryRouter as Router, Route } from 'react-router-dom';
+import { Route, useLocation } from 'react-router-dom';
 
+import {
+  dataTypes,
+  instanceOwner,
+  partyMember,
+  partyTypesAllowed,
+  userProfile,
+} from '__mocks__/constants';
 import { screen } from '@testing-library/react';
-import { renderWithProviders } from 'testUtils';
+import {
+  MemoryRouterWithRedirectingRoot,
+  renderWithProviders,
+} from 'testUtils';
 
 import ReceiptContainer, {
   returnInstanceMetaDataObject,
@@ -14,28 +24,43 @@ interface IRender {
   hasPdf?: boolean;
 }
 
-const render = ({
-  populateStore = true,
-  autoDeleteOnProcessEnd = false,
-  hasPdf = true,
-}: IRender = {}) => {
-  const url = '/instance/512345/75154373-aed4-41f7-95b4-e5b5115c2edc';
-  const pathMatch = '/instance/:partyId/:instanceGuid';
+const exampleGuid = '75154373-aed4-41f7-95b4-e5b5115c2edc';
+const exampleDataGuid = 'c21ebe7a-038d-4e8d-811c-0df1c16a1aa9';
+const exampleDataGuid2 = 'afaee8fe-6317-4cc4-ae3a-3c8fcdec40bb';
+const exampleInstanceId = `512345/${exampleGuid}`;
+const DefinedRoutes = () => {
+  const HeaderElement = () => {
+    const { pathname } = useLocation();
+    return <p>Location: {pathname}</p>;
+  };
+  return (
+    <>
+      <MemoryRouterWithRedirectingRoot
+        to={`instance/${exampleInstanceId}`}
+        element={<HeaderElement />}
+      >
+        <Route
+          path={'instance/:partyId/:instanceGuid'}
+          element={<ReceiptContainer />}
+        />
+      </MemoryRouterWithRedirectingRoot>
+    </>
+  );
+};
 
+function getMockState({ autoDeleteOnProcessEnd = false, hasPdf = true }) {
   const pdfData = hasPdf
     ? [
         {
-          id: 'c21ebe7a-038d-4e8d-811c-0df1c16a1aa9',
-          instanceGuid: '75154373-aed4-41f7-95b4-e5b5115c2edc',
+          id: exampleDataGuid,
+          instanceGuid: exampleGuid,
           dataType: 'ref-data-as-pdf',
           filename: 'UI komponents App.pdf',
           contentType: 'application/pdf',
-          blobStoragePath:
-            'ttd/ui-components/75154373-aed4-41f7-95b4-e5b5115c2edc/data/c21ebe7a-038d-4e8d-811c-0df1c16a1aa9',
+          blobStoragePath: `ttd/ui-components/${exampleGuid}/data/${exampleDataGuid}`,
           selfLinks: {
-            apps: 'https://altinn3local.no/ttd/ui-components/instances/512345/75154373-aed4-41f7-95b4-e5b5115c2edc/data/c21ebe7a-038d-4e8d-811c-0df1c16a1aa9',
-            platform:
-              'https://platform.altinn3local.no/storage/api/v1/instances/512345/75154373-aed4-41f7-95b4-e5b5115c2edc/data/c21ebe7a-038d-4e8d-811c-0df1c16a1aa9',
+            apps: `https://altinn3local.no/ttd/ui-components/instances/${exampleInstanceId}/data/${exampleDataGuid}`,
+            platform: `https://platform.altinn3local.no/storage/api/v1/instances/${exampleInstanceId}/data/${exampleDataGuid}`,
           },
           size: 15366,
           locked: false,
@@ -49,7 +74,7 @@ const render = ({
       ]
     : [];
 
-  const mockState = {
+  return {
     organisationMetaData: {
       allOrgs: {
         brg: {
@@ -73,54 +98,8 @@ const render = ({
           nb: 'App frontend komponenter',
           en: 'App frontend components',
         },
-        dataTypes: [
-          {
-            id: 'default',
-            description: null,
-            allowedContentTypes: ['application/xml'],
-            allowedContributers: null,
-            appLogic: {
-              autoCreate: true,
-              classRef: 'Altinn.App.Models.Skjema',
-              schemaRef: null,
-            },
-            taskId: 'Task_1',
-            maxSize: null,
-            maxCount: 1,
-            minCount: 1,
-            grouping: null,
-          },
-          {
-            id: 'ref-data-as-pdf',
-            description: null,
-            allowedContentTypes: ['application/pdf'],
-            allowedContributers: null,
-            appLogic: null,
-            taskId: null,
-            maxSize: null,
-            maxCount: 0,
-            minCount: 0,
-            grouping: null,
-          },
-          {
-            id: 'vedlegg',
-            description: null,
-            allowedContentTypes: null,
-            allowedContributers: null,
-            appLogic: null,
-            taskId: 'Task_1',
-            maxSize: 1,
-            maxCount: 3,
-            minCount: 0,
-            grouping: null,
-          },
-        ],
-        partyTypesAllowed: {
-          bankruptcyEstate: false,
-          organisation: false,
-          person: false,
-          subUnit: false,
-        },
+        dataTypes,
+        partyTypesAllowed,
         autoDeleteOnProcessEnd,
         created: '2020-03-02T07:32:53.8640778Z',
         createdBy: 'jeeva',
@@ -130,26 +109,20 @@ const render = ({
     },
     instanceData: {
       instance: {
-        id: '512345/75154373-aed4-41f7-95b4-e5b5115c2edc',
-        instanceOwner: {
-          partyId: '512345',
-          personNumber: '01017512345',
-          organisationNumber: null,
-        },
+        id: exampleInstanceId,
+        instanceOwner,
         org: 'ttd',
         data: [
           {
-            id: 'afaee8fe-6317-4cc4-ae3a-3c8fcdec40bb',
-            instanceGuid: '75154373-aed4-41f7-95b4-e5b5115c2edc',
+            id: '${exampleDataGuid2}',
+            instanceGuid: exampleGuid,
             dataType: 'default',
             filename: null,
             contentType: 'application/xml',
-            blobStoragePath:
-              'ttd/ui-components/75154373-aed4-41f7-95b4-e5b5115c2edc/data/afaee8fe-6317-4cc4-ae3a-3c8fcdec40bb',
+            blobStoragePath: `ttd/ui-components/${exampleGuid}/data/${exampleDataGuid2}`,
             selfLinks: {
-              apps: 'https://altinn3local.no/ttd/ui-components/instances/512345/75154373-aed4-41f7-95b4-e5b5115c2edc/data/afaee8fe-6317-4cc4-ae3a-3c8fcdec40bb',
-              platform:
-                'https://platform.altinn3local.no/storage/api/v1/instances/512345/75154373-aed4-41f7-95b4-e5b5115c2edc/data/afaee8fe-6317-4cc4-ae3a-3c8fcdec40bb',
+              apps: `https://altinn3local.no/ttd/ui-components/instances/${exampleInstanceId}/data/${exampleDataGuid2}`,
+              platform: `https://platform.altinn3local.no/storage/api/v1/instances/${exampleInstanceId}/data/${exampleDataGuid2}`,
             },
             size: 1254,
             locked: true,
@@ -169,92 +142,23 @@ const render = ({
       language: {},
     },
     party: {
-      parties: [
-        {
-          partyId: '512345',
-          orgNumber: null,
-          ssn: '01017512345',
-          name: 'Ola Nordmann',
-          person: {
-            ssn: '01017512345',
-            name: 'Ola Nordmann',
-            firstName: 'Ola',
-            middleName: '',
-            lastName: 'Nordmann',
-            telephoneNumber: '12345678',
-            mobileNumber: '87654321',
-            mailingAddress: 'Blåbæreveien 7',
-            mailingPostalCode: 8450,
-            mailingPostalCity: 'Stokmarknes',
-            addressMunicipalNumber: 1866,
-            addressMunicipalName: 'Hadsel',
-            addressStreetName: 'Blåbærveien',
-            addressHouseNumber: 7,
-            addressHouseLetter: null,
-            addressPostalCode: 8450,
-            addressCity: 'Stokarknes',
-          },
-        },
-      ],
+      parties: [partyMember],
     },
     profile: {
-      profile: {
-        userId: 12345,
-        userName: 'OlaNordmann',
-        phoneNumber: '12345678',
-        email: 'test@test.com',
-        partyId: 512345,
-        party: {
-          partyId: '512345',
-          partyTypeName: 1,
-          orgNumber: null,
-          ssn: '01017512345',
-          unitType: null,
-          name: 'Ola Nordmann',
-          isDeleted: false,
-          onlyHierarchyElementWithNoAccess: false,
-          person: {
-            ssn: '01017512345',
-            name: 'Ola Nordmann',
-            firstName: 'Ola',
-            middleName: '',
-            lastName: 'Nordmann',
-            telephoneNumber: '12345678',
-            mobileNumber: '87654321',
-            mailingAddress: 'Blåbæreveien 7',
-            mailingPostalCode: 8450,
-            mailingPostalCity: 'Stokmarknes',
-            addressMunicipalNumber: 1866,
-            addressMunicipalName: 'Hadsel',
-            addressStreetName: 'Blåbærveien',
-            addressHouseNumber: 7,
-            addressHouseLetter: null,
-            addressPostalCode: 8450,
-            addressCity: 'Stokarknes',
-          },
-        },
-        userType: 0,
-        profileSettingPreference: {
-          language: 'nb',
-          preSelectedPartyId: 0,
-          doNotPromptForParty: false,
-        },
-      },
+      profile: userProfile,
     },
   } as any;
+}
 
-  renderWithProviders(
-    <Router initialEntries={[url]}>
-      <Route
-        exact
-        path={pathMatch}
-        component={ReceiptContainer}
-      />
-    </Router>,
-    {
-      preloadedState: populateStore ? mockState : {},
-    },
-  );
+const render = ({
+  populateStore = true,
+  autoDeleteOnProcessEnd = false,
+  hasPdf = true,
+}: IRender = {}) => {
+  const mockState = getMockState({ hasPdf, autoDeleteOnProcessEnd });
+  renderWithProviders(<DefinedRoutes />, {
+    preloadedState: populateStore ? mockState : {},
+  });
 };
 
 describe('ReceiptContainer', () => {

@@ -12,10 +12,10 @@ import { get, putWithoutConfig } from 'src/utils/networking';
 import type { IGetInstanceData } from 'src/shared/resources/instanceData';
 
 export function* getInstanceDataSaga({
-  payload: { instanceOwner, instanceId },
+  payload: { instanceId },
 }: PayloadAction<IGetInstanceData>): SagaIterator {
   try {
-    const url = `${instancesControllerUrl}/${instanceOwner}/${instanceId}`;
+    const url = `${instancesControllerUrl}/${instanceId}`;
     const result = yield call(get, url);
     yield put(InstanceDataActions.getFulfilled({ instanceData: result }));
   } catch (error) {

@@ -1,7 +1,8 @@
-import { getInstanceIdRegExp } from './instanceIdRegExp';
+import { instanceIdExample } from '__mocks__/mocks';
+
+import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 
 describe('instanceIdRegExp', () => {
-  const instanceIdExample = '123456/75154373-aed4-41f7-95b4-e5b5115c2edc';
   const expr =
     /(\d{1,10}\/[\da-f]{8}-[\da-f]{4}-[1-5][\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12})/i;
   const matchTests = (exp: RegExp) => {

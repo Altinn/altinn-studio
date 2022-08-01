@@ -1,11 +1,11 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
+import { useMatch } from 'react-router-dom';
 
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 import AddIcon from '@material-ui/icons/Add';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
-import InstantiationContainer from 'src/features/instantiate/containers/InstantiationContainer';
+import { InstantiationContainer } from 'src/features/instantiate/containers';
 import NoValidPartiesError from 'src/features/instantiate/containers/NoValidPartiesError';
 import { InstantiationActions } from 'src/features/instantiate/instantiation/instantiationSlice';
 import AltinnParty from 'src/shared/components/altinnParty';
@@ -68,15 +68,11 @@ const useStyles = makeStyles((theme) => ({
     paddingTop: '1.2rem',
   },
 }));
-
-interface IRedirectParams {
-  errorCode?: string;
-}
-
 const PartySelection = () => {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.white);
   const classes = useStyles();
-  const { errorCode } = useParams<IRedirectParams>();
+  const match = useMatch(`/partyselection/:errorCode`);
+  const errorCode = match?.params.errorCode;
 
   const dispatch = useAppDispatch();
   const language = useAppSelector((state) => state.language.language);
@@ -162,6 +158,7 @@ const PartySelection = () => {
     if (errorCode === `${HttpStatusCodes.Forbidden}`) {
       return (
         <Typography
+          data-testid={`error-code-${HttpStatusCodes.Forbidden}`}
           className={classes.partySelectionError}
           id='party-selection-error'
         >

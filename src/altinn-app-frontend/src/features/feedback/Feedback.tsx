@@ -25,7 +25,7 @@ export default function Feedback() {
   }, [processState, dispatch]);
 
   return (
-    <React.Fragment>
+    <div id='FeedbackContainer'>
       <MuiThemeProvider theme={theme}>
         <Typography variant='body1'>
           {getTextFromAppOrDefault('feedback.title', textResources, language)}
@@ -34,6 +34,6 @@ export default function Feedback() {
           {getTextFromAppOrDefault('feedback.body', textResources, language)}
         </Typography>
       </MuiThemeProvider>
-    </React.Fragment>
+    </div>
   );
 }

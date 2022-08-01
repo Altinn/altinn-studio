@@ -42,8 +42,8 @@ export function* completeProcessSaga(): SagaIterator {
         const instanceData: IInstanceDataState = yield select(
           instanceDataSelector,
         );
-        const [instanceOwner, instanceId] = instanceData.instance.id.split('/');
-        yield sagaPut(InstanceDataActions.get({ instanceOwner, instanceId }));
+        const instanceId = instanceData.instance.id;
+        yield sagaPut(InstanceDataActions.get({ instanceId }));
       }
     }
   } catch (error) {

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Redirect } from 'react-router';
+import { Navigate } from 'react-router-dom';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import { InstantiationActions } from 'src/features/instantiate/instantiation/instantiationSlice';
@@ -69,7 +69,7 @@ export function InstantiationButtonComponent(props: IInstantiationButtonProps) {
   }, [isError]);
 
   if (data?.id) {
-    return <Redirect to={`/instance/${data.id}`} />;
+    return <Navigate to={`/instance/${data.id}`} />;
   }
 
   return (

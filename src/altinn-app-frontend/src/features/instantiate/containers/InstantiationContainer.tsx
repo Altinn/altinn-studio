@@ -26,7 +26,10 @@ export interface IInstantiateContainerProps {
   type: 'normal' | 'partyChoice';
 }
 
-function InstantiateContainer({ children, type }: IInstantiateContainerProps) {
+export function InstantiationContainer({
+  children,
+  type,
+}: IInstantiateContainerProps) {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.white);
   const classes = useStyles();
 
@@ -48,5 +51,3 @@ function InstantiateContainer({ children, type }: IInstantiateContainerProps) {
     </Grid>
   );
 }
-
-export default InstantiateContainer;

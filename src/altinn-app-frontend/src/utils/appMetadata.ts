@@ -1,7 +1,7 @@
+import { getInstanceIdRegExp } from 'src/utils';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
 import type { ILayoutSets } from 'src/types';
 
-import { getInstanceIdRegExp } from 'altinn-shared/utils';
 import type { IApplication, IDataType, IInstance } from 'altinn-shared/types';
 
 export function getDataTaskDataTypeId(

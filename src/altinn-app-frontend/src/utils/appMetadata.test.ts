@@ -1,3 +1,5 @@
+import { instanceOwner, partyTypesAllowed } from '__mocks__/constants';
+
 import {
   getCurrentDataTypeForApplication,
   getCurrentTaskData,
@@ -49,12 +51,7 @@ describe('utils/appmetadata.ts', () => {
         minCount: 1,
       },
     ],
-    partyTypesAllowed: {
-      bankruptcyEstate: false,
-      organisation: false,
-      person: false,
-      subUnit: false,
-    },
+    partyTypesAllowed,
     created: '2021-04-28T13:31:24.7328286Z',
     createdBy: 'lorang92',
     lastChanged: '2021-04-28T13:31:24.7328296Z',
@@ -62,11 +59,7 @@ describe('utils/appmetadata.ts', () => {
   };
   const instance: IInstance = {
     id: '512345/c32dc48c-7854-45ec-a32e-2a82c420c9bd',
-    instanceOwner: {
-      partyId: '512345',
-      personNumber: '01017512345',
-      organisationNumber: null,
-    },
+    instanceOwner,
     appId: 'ttd/stateless-app-demo',
     org: 'ttd',
     selfLinks: { apps: '', platform: '' },

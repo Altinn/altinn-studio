@@ -1,9 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
 
 import moment from 'moment';
 
-import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import {
+  useAppDispatch,
+  useAppSelector,
+  useInstanceIdParams,
+} from 'src/common/hooks';
 import { selectAppName } from 'src/selectors/language';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
@@ -24,11 +27,6 @@ import {
   getInstancePdf,
 } from 'altinn-shared/utils/attachmentsUtils';
 import type { IAttachment, IParty } from 'altinn-shared/types';
-
-interface IParams {
-  partyId: string;
-  instanceGuid: string;
-}
 
 export const returnInstanceMetaDataObject = (
   orgsData: any,
@@ -90,7 +88,7 @@ const ReceiptContainer = () => {
 
   const origin = window.location.origin;
 
-  const { partyId, instanceGuid }: IParams = useParams();
+  const { instanceGuid, instanceId } = useInstanceIdParams();
 
   const isLoading = (): boolean =>
     !attachments ||
@@ -103,11 +101,10 @@ const ReceiptContainer = () => {
   useEffect(() => {
     dispatch(
       InstanceDataActions.get({
-        instanceOwner: partyId,
-        instanceId: instanceGuid,
+        instanceId,
       }),
     );
-  }, [partyId, instanceGuid, dispatch]);
+  }, [instanceId, dispatch]);
 
   useEffect(() => {
     if (profile && profile.profileSettingPreference) {
@@ -161,7 +158,7 @@ const ReceiptContainer = () => {
   }, [instance, applicationMetadata]);
 
   return (
-    <>
+    <div id='ReceiptContainer'>
       {isLoading() ? (
         <AltinnContentLoader
           width={705}
@@ -214,7 +211,7 @@ const ReceiptContainer = () => {
           )}
         </>
       )}
-    </>
+    </div>
   );
 };
 

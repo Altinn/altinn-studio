@@ -1,12 +1,12 @@
 import * as React from 'react';
-import { Redirect } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 
 import type { AxiosError } from 'axios';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import { Form } from 'src/features/form/containers/Form';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
-import Instantiate from 'src/features/instantiate/containers';
+import { InstantiateContainer } from 'src/features/instantiate/containers';
 import InstanceSelection from 'src/features/instantiate/containers/InstanceSelection';
 import MissingRolesError from 'src/features/instantiate/containers/MissingRolesError';
 import NoValidPartiesError from 'src/features/instantiate/containers/NoValidPartiesError';
@@ -111,7 +111,7 @@ export default function Entrypoint({ allowAnonymous }: any) {
     if (partyValidation.validParties?.length === 0) {
       return <NoValidPartiesError />;
     }
-    return <Redirect to={`/partyselection/${HttpStatusCodes.Forbidden}`} />;
+    return <Navigate to={`/partyselection/${HttpStatusCodes.Forbidden}`} />;
   }
 
   // error trying to fetch data, if missing rights we display relevant page
@@ -124,7 +124,7 @@ export default function Entrypoint({ allowAnonymous }: any) {
 
   // regular view with instance
   if (action === 'new-instance' && partyValidation?.valid) {
-    return <Instantiate />;
+    return <InstantiateContainer />;
   }
 
   if (
@@ -134,7 +134,7 @@ export default function Entrypoint({ allowAnonymous }: any) {
   ) {
     if (activeInstances.length === 0) {
       // no existing instances exist, we start instantiation
-      return <Instantiate />;
+      return <InstantiateContainer />;
     }
     return (
       // let user decide if continuing on existing or starting new

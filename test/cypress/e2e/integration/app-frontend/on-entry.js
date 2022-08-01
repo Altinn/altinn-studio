@@ -7,10 +7,11 @@ import * as texts from '../../fixtures/texts.json';
 const appFrontend = new AppFrontend();
 
 describe('On Entry', () => {
+  const instanceIdExample = '512345/58f1af2b-a90f-4828-8bf6-38fa24c51379';
   beforeEach(() => {
     cy.intercept('**/active', [
       {
-        id: '512345/58f1af2b-a90f-4828-8bf6-38fa24c51379',
+        id: instanceIdExample,
         lastChanged: '2021-04-06T14:11:02.6893987Z',
         lastChangedBy: 'Ola Nordman',
       },
@@ -36,7 +37,7 @@ describe('On Entry', () => {
           .contains(/04\/06\/2021|06.04.2021/g);
         cy.get(activeInstance).find('td').eq(1).should('have.text', 'Ola Nordman');
         cy.get(activeInstance).find('td').eq(2).find('button').click();
-        cy.url().should('contain', '512345/58f1af2b-a90f-4828-8bf6-38fa24c51379');
+        cy.url().should('contain', instanceIdExample);
       });
   });
 
@@ -47,6 +48,6 @@ describe('On Entry', () => {
     cy.intercept('POST', `/ttd/frontend-test/instances?instanceOwnerPartyId*`).as('createdInstance');
     cy.get(appFrontend.selectInstance.newInstance).should('be.visible').click();
     cy.wait('@createdInstance').its('response.statusCode').should('eq', 201);
-    cy.url().should('not.contain', '512345/58f1af2b-a90f-4828-8bf6-38fa24c51379');
+    cy.url().should('not.contain', instanceIdExample);
   });
 });

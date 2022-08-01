@@ -5,9 +5,9 @@ import {
   TableRow,
   TableCell,
   Typography,
+  makeStyles,
 } from '@material-ui/core';
 import classNames from 'classnames';
-import { makeStyles } from '@material-ui/styles';
 
 const returnGridRow = (
   name: string,

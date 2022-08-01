@@ -1,9 +1,12 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
 
 import { makeStyles } from '@material-ui/core/styles';
 
-import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import {
+  useAppDispatch,
+  useAppSelector,
+  useInstanceIdParams,
+} from 'src/common/hooks';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
 import { selectAppName } from 'src/selectors/language';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
@@ -12,7 +15,7 @@ import { getValidationUrl } from 'src/utils/appUrlHelper';
 import { get } from 'src/utils/networking';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import { mapDataElementValidationToRedux } from 'src/utils/validation';
-import type { IAltinnWindow, IPartyIdInterfaceGuidParams } from 'src/types';
+import type { IAltinnWindow } from 'src/types';
 
 import {
   AltinnButton,
@@ -98,18 +101,17 @@ const Confirm = () => {
     (state) => state.textResources.resources,
   );
 
-  const { partyId, instanceGuid }: IPartyIdInterfaceGuidParams = useParams();
+  const { instanceId } = useInstanceIdParams();
 
   const isLoading = !instance || !parties;
 
   React.useEffect(() => {
     dispatch(
       InstanceDataActions.get({
-        instanceOwner: partyId,
-        instanceId: instanceGuid,
+        instanceId,
       }),
     );
-  }, [partyId, instanceGuid, dispatch]);
+  }, [instanceId, dispatch]);
 
   const getInstanceMetaObject = () => {
     if (instance && instance.org && parties && applicationMetadata) {
@@ -141,7 +143,7 @@ const Confirm = () => {
   };
 
   return (
-    <>
+    <div id='ConfirmContainer'>
       {isLoading ? (
         <AltinnContentLoader
           width={705}
@@ -191,7 +193,7 @@ const Confirm = () => {
           <SubmitButton />
         </>
       )}
-    </>
+    </div>
   );
 };
 

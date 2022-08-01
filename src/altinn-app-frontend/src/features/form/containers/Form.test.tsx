@@ -1,9 +1,12 @@
 import * as React from 'react';
-import { MemoryRouter, Route } from 'react-router-dom';
+import { Route } from 'react-router-dom';
 
 import { getFormLayoutStateMock } from '__mocks__/formLayoutStateMock';
 import { screen, within } from '@testing-library/react';
-import { renderWithProviders } from 'testUtils';
+import {
+  MemoryRouterWithRedirectingRoot,
+  renderWithProviders,
+} from 'testUtils';
 import type { PreloadedState } from '@reduxjs/toolkit';
 
 import { Form } from 'src/features/form/containers/Form';
@@ -236,16 +239,14 @@ describe('Form', () => {
     customState: PreloadedState<RootState> = {},
   ) {
     renderWithProviders(
-      <MemoryRouter
-        initialEntries={[
-          '/instance/123456/75154373-aed4-41f7-95b4-e5b5115c2edc',
-        ]}
+      <MemoryRouterWithRedirectingRoot
+        to={'/instance/123456/75154373-aed4-41f7-95b4-e5b5115c2edc'}
       >
         <Route
           path={'/instance/:partyId/:instanceGuid'}
-          component={Form}
+          element={<Form />}
         />
-      </MemoryRouter>,
+      </MemoryRouterWithRedirectingRoot>,
       {
         preloadedState: {
           ...customState,

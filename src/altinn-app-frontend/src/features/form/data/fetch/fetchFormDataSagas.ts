@@ -64,7 +64,6 @@ export function* fetchFormDataInitialSaga(): SagaIterator {
       appMetaDataSelector,
     );
     let fetchedData: any;
-
     if (isStatelessApp(applicationMetadata)) {
       // stateless app
       fetchedData = yield call(fetchFormDataStateless, applicationMetadata);

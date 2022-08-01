@@ -51,7 +51,7 @@ describe('Entrypoint', () => {
         message: '',
       },
     });
-    renderWithProviders(<Entrypoint />, { store: mockStore });
+    render({ store: mockStore });
     await waitFor(() => {
       // validate party
       expect(axios.post).toBeCalled();
@@ -64,7 +64,7 @@ describe('Entrypoint', () => {
   });
 
   it('should show loader while fetching data then start instantiation by default ', async () => {
-    renderWithProviders(<Entrypoint />, { store: mockStore });
+    render({ store: mockStore });
 
     const contentLoader = await screen.findByText('Loading...');
     expect(contentLoader).not.toBeNull();
@@ -90,7 +90,7 @@ describe('Entrypoint', () => {
     mockStore = createStore(mockReducer, mockStateWithStatelessApplication);
     mockStore.dispatch = jest.fn();
 
-    renderWithProviders(<Entrypoint />, { store: mockStore });
+    render({ store: mockStore });
 
     const contentLoader = await screen.findByText('Loading...');
     expect(contentLoader).not.toBeNull();
@@ -119,7 +119,7 @@ describe('Entrypoint', () => {
     mockStore = createStore(mockReducer, mockStateWithStatelessApplication);
     mockStore.dispatch = jest.fn();
 
-    renderWithProviders(<Entrypoint />, { store: mockStore });
+    render({ store: mockStore });
 
     const contentLoader = await screen.findByText('Loading...');
     expect(contentLoader).not.toBeNull();
@@ -167,7 +167,7 @@ describe('Entrypoint', () => {
         },
       ],
     });
-    renderWithProviders(<Entrypoint />, { store: mockStore });
+    render({ store: mockStore });
 
     await waitFor(() => {
       // validate party and fetch active instances
@@ -190,16 +190,19 @@ describe('Entrypoint', () => {
       },
     };
     mockStore = createStore(mockReducer, mockState);
-    renderWithProviders(
-      <MemoryRouter>
-        <Entrypoint />
-      </MemoryRouter>,
-      { store: mockStore },
-    );
-
+    render({ store: mockStore });
     const missingRolesText = await screen.findByText(
       'Du mangler rettigheter for å se denne tjenesten.',
     );
     expect(missingRolesText).not.toBeNull();
   });
+
+  function render({ store }) {
+    return renderWithProviders(
+      <MemoryRouter>
+        <Entrypoint />
+      </MemoryRouter>,
+      { store },
+    );
+  }
 });

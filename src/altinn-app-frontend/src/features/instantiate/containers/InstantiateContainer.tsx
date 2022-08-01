@@ -1,7 +1,11 @@
 import * as React from 'react';
-import { Redirect } from 'react-router-dom';
+import { Navigate, Outlet } from 'react-router-dom';
 
-import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import {
+  useAppDispatch,
+  useAppSelector,
+  useInstanceIdParams,
+} from 'src/common/hooks';
 import InstantiateValidationError from 'src/features/instantiate/containers/InstantiateValidationError';
 import MissingRolesError from 'src/features/instantiate/containers/MissingRolesError';
 import UnknownError from 'src/features/instantiate/containers/UnknownError';
@@ -21,9 +25,8 @@ import { isAxiosError } from 'altinn-shared/utils';
 
 const titleKey = 'instantiate.starting';
 
-const InstantiateContainer = () => {
+export const InstantiateContainer = () => {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.greyLight);
-
   const dispatch = useAppDispatch();
   const instantiation = useAppSelector((state) => state.instantiation);
   const selectedParty = useAppSelector((state) => state.party.selectedParty);
@@ -52,7 +55,7 @@ const InstantiateContainer = () => {
     instantiation.instanceId,
     dispatch,
   ]);
-
+  const { instanceId } = useInstanceIdParams();
   if (isAxiosError(instantiation.error)) {
     const message = (instantiation.error.response.data as any)?.message;
     if (instantiation.error.response.status === HttpStatusCodes.Forbidden) {
@@ -64,9 +67,16 @@ const InstantiateContainer = () => {
 
     return <UnknownError />;
   }
-
   if (instantiation.instanceId !== null) {
-    return <Redirect to={`/instance/${instantiation.instanceId}`} />;
+    if (!instanceId) {
+      return (
+        <Navigate
+          to={`instance/${instantiation.instanceId}`}
+          replace
+        />
+      );
+    }
+    return <Outlet />;
   }
 
   return (
@@ -83,5 +93,3 @@ const InstantiateContainer = () => {
     </Presentation>
   );
 };
-
-export default InstantiateContainer;

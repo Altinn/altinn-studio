@@ -11,6 +11,8 @@ import type { RootState, AppStore } from 'src/store';
 import { setupStore } from 'src/store';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 
+import { MemoryRouter, Navigate, Route, Routes } from 'react-router-dom';
+
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   preloadedState?: PreloadedState<RootState>;
   store?: AppStore;
@@ -78,3 +80,35 @@ export const mockMediaQuery = (maxWidth: number) => {
 
   return { setScreenWidth };
 };
+
+export function MemoryRouterWithRedirectingRoot({
+  initialEntries = [''],
+  basename = '/ttd/test',
+  element = null,
+  to,
+  children,
+}) {
+  const Relocate = ({ navPath }) => {
+    return (
+      <Navigate
+        to={navPath}
+        replace
+      />
+    );
+  };
+  return (
+    <MemoryRouter
+      initialEntries={initialEntries.map((e) => `${basename}${e}`)}
+      basename={basename}
+    >
+      {element}
+      <Routes>
+        <Route
+          path={'/'}
+          element={<Relocate navPath={to} />}
+        />
+        {children}
+      </Routes>
+    </MemoryRouter>
+  );
+}
