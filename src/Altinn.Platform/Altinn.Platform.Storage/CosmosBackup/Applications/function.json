@@ -3,17 +3,18 @@
   "configurationSource": "attributes",
   "bindings": [
     {
-      "type": "cosmosDBTrigger",
-      "connectionStringSetting": "DBConnection",
-      "leaseCollectionName": "leases",
-      "createLeaseCollectionIfNotExists": true,
       "collectionName": "applications",
+      "connectionStringSetting": "DBConnection",
+      "createLeaseCollectionIfNotExists": true,
       "databaseName": "Storage",
+      "direction": "in",
+      "leaseCollectionName": "leases",
       "leaseDatabaseName": "Storage",
+      "name": "input",
       "startFromBeginning": false,
-      "useMultipleWriteLocations": false,
+      "type": "cosmosDBTrigger",
       "useDefaultJsonSerialization": false,
-      "name": "input"
+      "useMultipleWriteLocations": false
     }
   ],
   "disabled": false,
