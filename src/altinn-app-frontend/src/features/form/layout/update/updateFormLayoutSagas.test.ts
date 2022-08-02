@@ -154,19 +154,11 @@ describe('updateLayoutSagas', () => {
 
   describe('watchUpdateCurrentViewSaga', () => {
     const fakeChannel = {
-      take() {
-        /* Intentionally empty */
-      },
-      flush() {
-        /* Intentionally empty */
-      },
-      close() {
-        /* Intentionally empty */
-      },
+      take: jest.fn(),
+      flush: jest.fn(),
+      close: jest.fn(),
     };
-    const mockSaga = function* () {
-      /* intentially empty */
-    };
+    const mockSaga = jest.fn();
     const mockAction = FormLayoutActions.updateCurrentView({
       newView: 'test',
     });

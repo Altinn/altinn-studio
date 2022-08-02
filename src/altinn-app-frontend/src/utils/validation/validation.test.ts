@@ -2116,9 +2116,9 @@ describe('utils > validation', () => {
 
   describe('getUniqueNewElements', () => {
     it('should return new elements that are not in original array', () => {
-      const originalArray = [1, 2, { test: 'Hello' }];
-      const newArray = [1, 4, 5, { test: 'Hello' }, { test: 'something' }];
-      const expected = [4, 5, { test: 'something' }];
+      const originalArray = [1, 2];
+      const newArray = [1, 4, 5];
+      const expected = [4, 5];
       const actual = validation.getUniqueNewElements(originalArray, newArray);
       expect(actual).toEqual(expected);
     });

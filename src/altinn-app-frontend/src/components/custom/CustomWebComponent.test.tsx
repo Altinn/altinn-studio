@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { renderWithProviders } from 'testUtils';
 
@@ -7,6 +7,8 @@ import type { ICustomComponentProps } from 'src/components/custom/CustomWebCompo
 
 import type { ITextResource } from 'altinn-shared/types';
 
+const jsonAttributeValue = { customKey: 'customValue' };
+
 describe('CustomWebComponent', () => {
   it('should render the component with the provided tag name', () => {
     const screen = render({ tagName: 'test-component' });
@@ -14,13 +16,20 @@ describe('CustomWebComponent', () => {
     expect(element).toBeInTheDocument();
   });
 
+  it('should stringify json values when passed to the dom', () => {
+    const screen = render({ tagName: 'test-component' });
+    const element = screen.getByTestId('test-component');
+    expect(element.id).toEqual('test-component');
+    expect(element.getAttribute('data-CustomAttributeWithJson')).toEqual(
+      JSON.stringify(jsonAttributeValue),
+    );
+  });
+
   it('should render the component with passed props as attributes', () => {
     const screen = render({ tagName: 'test-component' });
     const element = screen.getByTestId('test-component');
     expect(element.id).toEqual('test-component');
-    expect(element.getAttribute('text')).toEqual(
-      JSON.stringify({ title: 'Title' }),
-    );
+    expect(element.getAttribute('text')).toEqual('Title');
   });
 
   it('should render nothing if the tag name is missing', () => {
@@ -35,9 +44,7 @@ describe('CustomWebComponent', () => {
       tagName: '',
       formData: { simpleBinding: 'This is a test' },
       dataModelBindings: { simpleBinding: 'model' },
-      text: {
-        title: 'Title',
-      },
+      text: 'Title',
       handleDataChange: (value: string) => value,
       getTextResource: (key: string) => {
         return key;
@@ -53,6 +60,7 @@ describe('CustomWebComponent', () => {
       textResourceBindings: {
         title: 'title',
       },
+      'data-CustomAttributeWithJson': jsonAttributeValue,
     };
 
     const resources = [

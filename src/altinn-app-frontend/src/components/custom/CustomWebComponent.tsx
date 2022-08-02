@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 
 import { useAppSelector } from 'src/common/hooks';
 import type { IComponentProps } from 'src/components';
@@ -8,7 +8,9 @@ import type { ITextResource, ITextResourceBindings } from 'src/types';
 import { getTextResourceByKey } from 'altinn-shared/utils';
 
 export type ICustomComponentProps = IComponentProps &
-  Omit<ILayoutCompCustom, 'type'>;
+  Omit<ILayoutCompCustom, 'type'> & {
+    [key: string]: string | number | boolean | object;
+  };
 
 function CustomWebComponent({
   tagName,

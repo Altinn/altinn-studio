@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { HashRouter } from 'react-router-dom';
 
@@ -19,7 +19,9 @@ initSagas();
 
 const theme = createTheme(AltinnAppTheme);
 
-render(
+const container = document.getElementById('root');
+const root = createRoot(container);
+root.render(
   <Provider store={store}>
     <HashRouter>
       <AppWrapper>
@@ -31,5 +33,4 @@ render(
       </AppWrapper>
     </HashRouter>
   </Provider>,
-  document.getElementById('root'),
 );

@@ -1,8 +1,8 @@
-import * as React from 'react';
+import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
 import { getInitialStateMock } from '__mocks__/initialStateMock';
-import { screen, waitFor } from '@testing-library/react';
+import { act, screen, waitFor } from '@testing-library/react';
 import axios from 'axios';
 import { createStore } from 'redux';
 import { renderWithProviders } from 'testUtils';
@@ -175,10 +175,10 @@ describe('Entrypoint', () => {
       expect(axios.get).toBeCalled();
     });
 
-    const selectInstnaceText = await screen.findByText(
+    const selectInstanceText = await screen.findByText(
       'Du har allerede startet å fylle ut dette skjemaet.',
     );
-    expect(selectInstnaceText).not.toBeNull();
+    expect(selectInstanceText).not.toBeNull();
   });
 
   it('should display MissingRolesError if getFormData has returned 403', async () => {
@@ -191,10 +191,12 @@ describe('Entrypoint', () => {
     };
     mockStore = createStore(mockReducer, mockState);
     render({ store: mockStore });
-    const missingRolesText = await screen.findByText(
-      'Du mangler rettigheter for å se denne tjenesten.',
-    );
-    expect(missingRolesText).not.toBeNull();
+    await act(async () => {
+      const missingRolesText = await screen.findByText(
+        'Du mangler rettigheter for å se denne tjenesten.',
+      );
+      expect(missingRolesText).not.toBeNull();
+    });
   });
 
   function render({ store }) {
