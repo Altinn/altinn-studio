@@ -41,6 +41,16 @@ namespace Altinn.App.Models
     [JsonPropertyName("Endringsmelding-grp-9786")]
     public Endringsmeldinggrp9786 Endringsmeldinggrp9786 { get; set; }
 
+    [XmlElement("PrefillValues")]
+    [JsonProperty("PrefillValues")]
+    [JsonPropertyName("PrefillValues")]
+    public string PrefillValues { get; set; }
+
+    [XmlElement("PrefillValuesShadow")]
+    [JsonProperty("PrefillValuesShadow")]
+    [JsonPropertyName("PrefillValuesShadow")]
+    public string PrefillValuesShadow { get; set; }
+
   }
   public class Endringsmeldinggrp9786{
     [Range(1,Int32.MaxValue)]

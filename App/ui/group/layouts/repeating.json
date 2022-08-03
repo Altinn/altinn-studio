@@ -314,7 +314,7 @@
           "back": "Forrige"
         },
         "dataModelBindings": {},
-        "showBackButton": false,
+        "showBackButton": true,
         "triggers": ["calculatePageOrder", "validatePage"]
       }
     ]
