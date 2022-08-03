@@ -1,0 +1,55 @@
+{
+  "willBeKept": true,
+  "willBeRemoved": true,
+  "willChangeValue": true,
+  "object": {
+    "willBeKept": 123,
+    "willBeRemoved": 456,
+    "listInObject": [
+      "kept1",
+      "kept2",
+      "removed"
+    ]
+  },
+  "moreAdvanced": {
+    "oneRemovedInList": [
+      "kept1",
+      "kept2",
+      "removed1",
+      "kept3",
+      "kept4"
+    ],
+    "objectWithRemovedProperty": {
+      "kept1": { "hello": "world" },
+      "removed1": { "hello": "world" },
+      "kept2": { "hello": "world" }
+    },
+    "objectWithRemovedPropertyAndInnerChanges": {
+      "kept1": { "hello": "world", "removedProp": true },
+      "removed1": { "hello": "world", "alsoRemovedProp": true },
+      "removed2": { "hello": "world", "alsoRemovedProp": true },
+      "kept2": { "hello": "world" }
+    },
+    "mixedList": [
+      {
+        "first": true
+      },
+      {
+        "first": false
+      },
+      "some string",
+      1234,
+      {
+        "first": "absolutely not",
+        "otherRemovedProp": 1234
+      }
+    ]
+  },
+  "removedArray": [1, 2, 3],
+  "arrayWithItemsAdded": [4, 5, 6],
+  "objectReplacedByArray": {
+    "key": "value"
+  },
+  "arrayReplacedByObject": [1, 2],
+  "scalarReplacedByObject": true
+}
