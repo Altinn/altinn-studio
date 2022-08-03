@@ -32,6 +32,12 @@ export function setup() {
   return data;
 }
 
+function getInstanceIds(runtimeToken, filters) {
+  var res = instances.getAllinstancesWithFilters(runtimeToken, filters);
+  var resBody = JSON.parse(res.body);
+  return resBody.instances.map((i) => i.id);
+}
+
 //Hard delete instances under a party id based on supplied appIds + level2app
 export default function (data) {
   const runtimeToken = data['RuntimeToken'];
@@ -41,8 +47,7 @@ export default function (data) {
   //add party id of org for non prod environments
   if (environment != 'prod') partyIds.push(data['orgNumberPartyId']);
 
-  var res, resBody, success, instanceIds;
-  var instancesCount = 0;
+  var success, instanceIds;
 
   try {
     appIds = appIds.split(',');
@@ -59,24 +64,17 @@ export default function (data) {
       appId: appIds,
     };
 
-    res = instances.getAllinstancesWithFilters(runtimeToken, filters);
-    resBody = JSON.parse(res.body);
-    instanceIds = resBody.instances.map((i) => i.id);
-    instancesCount = instanceIds.count;
-
+    instanceIds = getInstanceIds(runtimeToken, filters)
     do {
-      if (instancesCount > 0) {
+      if (instanceIds.length > 0) {
         sbl.hardDeleteManyInstances(runtimeToken, instanceIds);
 
         //Find more instances to loop through
-        res = instances.getAllinstancesWithFilters(runtimeToken, filters);
-        resBody = JSON.parse(res.body);
-        instanceIds = resBody.instances.map((i) => i.id);
-        instancesCount = instanceIds.count;
+        instanceIds = getInstanceIds(runtimeToken, filters)
       }
-    } while (instancesCount > 0);
+    } while (instanceIds.length > 0);
 
-    success = check(instancesCount, {
+    success = check(instanceIds.length, {
       'Hard delete instances for party. Remaining instance count is 0': (c) => c === 0,
     });
     addErrorCount(success);
