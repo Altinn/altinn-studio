@@ -35,6 +35,7 @@ declare module '@material-ui/core/styles/createTheme' {
     sharedStyles: {
       boxShadow: string;
       linkBorderBottom: string;
+      noLinkBorderBottom: string;
       mainPaddingLeft: number;
       leftDrawerMenuClosedWidth: number;
       fontWeight: {

@@ -41,6 +41,7 @@ const AltinnAppTheme = {
   sharedStyles: {
     boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.25)',
     linkBorderBottom: '1px solid #0062BA',
+    noLinkBorderBottom: '1px solid transparent',
     mainPaddingLeft: 73,
     fontWeight: {
       medium: 500,
