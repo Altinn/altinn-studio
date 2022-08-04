@@ -4,8 +4,10 @@
 import AppFrontend from '../../pageobjects/app-frontend';
 import * as texts from '../../fixtures/texts.json';
 import { instanceIdExp } from '../../support/util';
+import Common from '../../pageobjects/common';
 
 const appFrontend = new AppFrontend();
+const mui = new Common();
 
 describe('Repeating group attachments', () => {
   // Allows you to toggle reload() tests off. These have the effects of testing mapAttachments() to make sure state is
@@ -27,6 +29,7 @@ describe('Repeating group attachments', () => {
 
   beforeEach(() => {
     cy.navigateToTask3();
+    cy.contains(mui.button, texts.next).click();
     cy.get(appFrontend.group.showGroupToContinue).then((checkbox) => {
       cy.get(checkbox).should('be.visible').find('input').check();
     });

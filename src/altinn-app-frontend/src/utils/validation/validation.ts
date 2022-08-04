@@ -547,7 +547,9 @@ export function validateFormComponentsForLayout(
                   'form_filler.file_uploader_validation_error_no_chosen_tag',
                   language,
                 )
-              } ${component.textResourceBindings.tagTitle.toLowerCase()}.`,
+              } ${(
+                component.textResourceBindings.tagTitle || ''
+              ).toLowerCase()}.`,
             );
           });
         }

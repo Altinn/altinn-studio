@@ -141,6 +141,13 @@ export default class AppFrontend {
 
     //group - task 3
     this.group = {
+      prefill: {
+        liten: 'input[name=liten]',
+        middels: 'input[name=middels]',
+        stor: 'input[name=stor]',
+        svaer: 'input[name=svaer]',
+        enorm: 'input[name=enorm]',
+      },
       showGroupToContinue: '#showGroupToContinue',
       mainGroup: '#group-mainGroup',
       secondGroup: '#group-group-2',

@@ -1,4 +1,4 @@
-import { call, put as sagaPut, select } from 'redux-saga/effects';
+import { all, call, put as sagaPut, select } from 'redux-saga/effects';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { SagaIterator } from 'redux-saga';
 
@@ -127,19 +127,16 @@ export function* putFormData(state: IRuntimeState, model: any) {
   } catch (error) {
     if (error.response && error.response.status === 303) {
       // 303 means that data has been changed by calculation on server. Try to update from response.
-      const calculationUpdateHandled = yield call(
-        handleCalculationUpdate,
-        error.response.data?.changedFields,
-      );
-      if (!calculationUpdateHandled) {
+      if (error.response.data?.changedFields) {
+        yield call(handleCalculationUpdate, error.response.data?.changedFields);
+        yield sagaPut(FormLayoutActions.initRepeatingGroups());
+      } else {
         // No changedFields property returned, try to fetch
         yield sagaPut(
           FormDataActions.fetch({
             url: dataElementUrl(defaultDataElementGuid),
           }),
         );
-      } else {
-        yield sagaPut(FormLayoutActions.initRepeatingGroups());
       }
     } else {
       throw error;
@@ -149,20 +146,21 @@ export function* putFormData(state: IRuntimeState, model: any) {
 
 function* handleCalculationUpdate(changedFields) {
   if (!changedFields) {
-    return false;
-  }
-  for (const fieldKey of Object.keys(changedFields)) {
-    yield sagaPut(
-      FormDataActions.update({
-        data: changedFields[fieldKey]?.toString(),
-        field: fieldKey,
-        skipValidation: true,
-        skipAutoSave: true,
-      }),
-    );
+    return;
   }
 
-  return true;
+  yield all(
+    Object.keys(changedFields).map((fieldKey) =>
+      sagaPut(
+        FormDataActions.update({
+          data: changedFields[fieldKey]?.toString(),
+          field: fieldKey,
+          skipValidation: true,
+          skipAutoSave: true,
+        }),
+      ),
+    ),
+  );
 }
 
 export function* saveFormDataSaga(): SagaIterator {

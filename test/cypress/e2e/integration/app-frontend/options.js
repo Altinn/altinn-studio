@@ -2,8 +2,11 @@
 /// <reference types="../../support" />
 
 import AppFrontend from '../../pageobjects/app-frontend';
+import * as texts from '../../fixtures/texts.json';
+import Common from '../../pageobjects/common';
 
 const appFrontend = new AppFrontend();
+const mui = new Common();
 
 describe('Options', () => {
   it('is possible to retrieve options dynamically', () => {
@@ -40,6 +43,7 @@ describe('Options', () => {
   it('is possible to build options from repeating groups', () => {
     cy.navigateToTask3();
     cy.get(appFrontend.navMenu).should('be.visible');
+    cy.contains(mui.button, texts.next).click();
     cy.get(appFrontend.group.showGroupToContinue).find('input').check();
     cy.addItemToGroup(1, 2, 'automation');
     cy.addItemToGroup(3, 4, 'altinn');

@@ -1,6 +1,4 @@
-import { actionChannel, call, take } from 'redux-saga/effects';
 import type { AnyAction } from 'redux';
-import type { SagaIterator } from 'redux-saga';
 
 import {
   fetchFormDataSaga,
@@ -104,14 +102,7 @@ const formDataSlice = createSagaSlice(
         },
       }),
       update: mkAction<IUpdateFormData>({
-        saga: (name) =>
-          function* (): SagaIterator {
-            const requestChan = yield actionChannel(name);
-            while (true) {
-              const value = yield take(requestChan);
-              yield call(updateFormDataSaga, value);
-            }
-          },
+        takeEvery: updateFormDataSaga,
         reducer: (state) => {
           state.hasSubmitted = false;
           state.ignoreWarnings = false;

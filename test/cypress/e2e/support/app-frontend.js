@@ -76,6 +76,7 @@ Cypress.Commands.add('completeTask3Form', () => {
   });
 
   cy.navigateToTask3();
+  cy.contains(mui.button, texts.next).click();
   cy.get(appFrontend.group.showGroupToContinue).then((checkbox) => {
     cy.get(checkbox).should('be.visible').find('input').check();
   });
@@ -101,6 +102,8 @@ Cypress.Commands.add('completeTask3Form', () => {
     .should('be.visible')
     .select('altinn');
   cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].uploadTagMulti.attachments[0].tagSave).click();
+  cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].uploadTagMulti.attachments[0].tagSelector)
+    .should('not.exist');
   cy.get(appFrontend.group.saveMainGroup).should('be.visible').click().should('not.exist');
 
   cy.contains(mui.button, texts.next).click();

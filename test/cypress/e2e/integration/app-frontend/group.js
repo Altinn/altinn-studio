@@ -11,6 +11,7 @@ const mui = new Common();
 describe('Group', () => {
   const init = () => {
     cy.navigateToTask3();
+    cy.contains(mui.button, texts.next).click();
     cy.get(appFrontend.group.showGroupToContinue).should('be.visible');
   };
 
@@ -146,5 +147,52 @@ describe('Group', () => {
     cy.get(appFrontend.group.secondGroup_newValue).should('be.visible').type('2').blur();
     cy.get(appFrontend.group.secondGroup_save).focus().should('be.visible').click();
     cy.get(appFrontend.group.secondGroup_table).find('tbody').find('tr').its('length').should('eq', 1);
+  });
+
+  it('Prefilling repeating group using calculation from server', () => {
+    init();
+    const expectRows = (...rows) => {
+      cy.get(appFrontend.group.mainGroup)
+        .find(mui.tableBody)
+        .then((table) => {
+          if (rows.length) {
+            cy.get(table).find('tr').should('have.length', rows.length);
+          } else {
+            cy.get(table).find('tr').should('not.exist');
+          }
+          let index = 0;
+          for (const row of rows) {
+            cy.get(table).find('tr').eq(index).find('td').eq(0).should('contain.text', row[0]);
+            cy.get(table).find('tr').eq(index).find('td').eq(1).should('contain.text', row[1]);
+            index++;
+          }
+        });
+    };
+
+    cy.get(appFrontend.group.showGroupToContinue).find('input').check();
+    expectRows();
+
+    cy.contains(mui.button, texts.prev).click();
+    cy.get(appFrontend.group.prefill.liten).click();
+    cy.contains(mui.button, texts.next).click();
+    expectRows([1, 5]);
+
+    cy.contains(mui.button, texts.prev).click();
+    cy.get(appFrontend.group.prefill.middels).click();
+    cy.get(appFrontend.group.prefill.svaer).click();
+    cy.contains(mui.button, texts.next).click();
+    expectRows([1, 5], [120, 350], [80323, 123455]);
+
+    cy.contains(mui.button, texts.prev).click();
+    cy.get(appFrontend.group.prefill.middels).click();
+    cy.get(appFrontend.group.prefill.svaer).click();
+    cy.contains(mui.button, texts.next).click();
+    expectRows([1, 5]);
+
+    cy.contains(mui.button, texts.prev).click();
+    cy.get(appFrontend.group.prefill.enorm).click();
+    cy.get(appFrontend.group.prefill.liten).click();
+    cy.contains(mui.button, texts.next).click();
+    expectRows([9872345, 18872345]);
   });
 });

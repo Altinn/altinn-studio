@@ -2,8 +2,11 @@
 /// <reference types="../../support" />
 
 import AppFrontend from '../../pageobjects/app-frontend';
+import * as texts from '../../fixtures/texts.json';
+import Common from '../../pageobjects/common';
 
 const appFrontend = new AppFrontend();
+const mui = new Common();
 
 describe('Formatting', () => {
   it('Number formatting', () => {
@@ -22,6 +25,7 @@ describe('Formatting', () => {
     cy.intercept('**/api/layoutsettings/group').as('getLayoutGroup');
     cy.get(appFrontend.sendinButton).should('be.visible').click();
     cy.wait('@getLayoutGroup');
+    cy.contains(mui.button, texts.next).click();
     cy.get(appFrontend.group.showGroupToContinue).then((checkbox) => {
       cy.get(checkbox).should('be.visible').find('input').check();
     });
