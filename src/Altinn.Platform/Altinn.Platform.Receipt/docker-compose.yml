@@ -9,8 +9,8 @@ services:
     container_name: altinn-receipt-react-app
     image: altinn-receipt-react-app:latest
     build:
-      context: ../../
-      dockerfile: Altinn.Apps/AppFrontend/react/receipt/Dockerfile
+      context: .
+      dockerfile: src/frontend/receipt/Dockerfile
 
   altinn_platform_receipt:
     container_name: altinn-platform-receipt
@@ -31,5 +31,5 @@ services:
     depends_on:
       - altinn_receipt_react_app
     build:
-      context: ../../../
-      dockerfile: src/Altinn.Platform/Altinn.Platform.Receipt/Receipt/Dockerfile
+      context: .
+      dockerfile: Receipt/Dockerfile

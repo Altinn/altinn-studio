@@ -7,7 +7,7 @@ import type {
   IAltinnOrg,
   IAltinnOrgs,
   IApplication,
-} from '../../src/types';
+} from '../types';
 import {
   getAppName,
   getAppOwner,

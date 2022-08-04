@@ -2,7 +2,7 @@ import { createTheme, createStyles, IconButton, Modal, Typography } from '@mater
 import { withStyles } from '@material-ui/core/styles';
 import classNames from 'classnames';
 import * as React from 'react';
-import altinnTheme from './../../theme/altinnStudioTheme';
+import altinnTheme from '../../theme/altinnStudioTheme';
 
 export interface IAltinnModalComponentProvidedProps {
   /** @ignore */

@@ -4,14 +4,14 @@ FROM node:16.16.0-alpine3.16 AS generate-receipt-app
 WORKDIR /build
 
 # Context is ./src, see docker-compose.yaml in src\Altinn.Platform\Altinn.Platform.Receipt\docker-compose.yml
-COPY Altinn.Apps/AppFrontend/react/package.json .
-COPY Altinn.Apps/AppFrontend/react/yarn.lock .
-COPY Altinn.Apps/AppFrontend/react/.yarn/ ./.yarn/
-COPY Altinn.Apps/AppFrontend/react/.yarnrc.yml .
+COPY src/frontend/package.json .
+COPY src/frontend/yarn.lock .
+COPY src/frontend/.yarn/ ./.yarn/
+COPY src/frontend/.yarnrc.yml .
 
 # Copy shared and receipt code.
-COPY Altinn.Apps/AppFrontend/react/shared/ ./shared/
-COPY Altinn.Apps/AppFrontend/react/receipt/ ./receipt/
+COPY src/frontend/shared/ ./shared/
+COPY src/frontend/receipt/ ./receipt/
 
 # Install
 RUN corepack enable
