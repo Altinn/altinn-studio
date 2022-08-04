@@ -4,7 +4,7 @@ import 'jest';
 import * as React from 'react';
 import * as renderer from 'react-test-renderer';
 import AltinnLogo from './AltinnLogo';
-import altinnTheme from '../../src/theme/altinnAppTheme';
+import altinnTheme from '../theme/altinnAppTheme';
 
 describe('>>> AltinnLogo', () => {
   let mockColor: string;

@@ -7,9 +7,9 @@ let jsWatcher = null;
 let cssWatcher = null;
 
 const receiptFile =
-  '../../Altinn.Apps/AppFrontend/react/receipt/dist/receipt.js';
+  'src/frontend/receipt/dist/receipt.js';
 const cssReceiptFile =
-  '../../Altinn.Apps/AppFrontend/react/receipt/dist/receipt.css';
+  'src/frontend/receipt/dist/receipt.css';
 
 function copyReactJs(cb) {
   copyReceiptJS();
