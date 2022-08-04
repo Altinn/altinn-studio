@@ -30,6 +30,12 @@ namespace Altinn.Studio.Designer.Configuration
         /// </summary>
         public bool IsTraceToFile { get; set; } = false;
 
+        /// <inheritdoc/>>
+        public bool IsTraceToDirectory { get; set; } = false;
+
+        /// <inheritdoc/>>
+        public string TraceDirectory { get; set; }
+
         /// <summary>
         /// Info
         /// </summary>      
