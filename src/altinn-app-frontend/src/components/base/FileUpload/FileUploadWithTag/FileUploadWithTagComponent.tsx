@@ -121,7 +121,7 @@ export function FileUploadWithTagComponent({
         message: `${getLanguageFromKey(
           'form_filler.file_uploader_validation_error_no_chosen_tag',
           language,
-        )} ${getTextResource(textResourceBindings.tagTitle)
+        )} ${(getTextResource(textResourceBindings.tagTitle) || '')
           .toString()
           .toLowerCase()}.`,
       });

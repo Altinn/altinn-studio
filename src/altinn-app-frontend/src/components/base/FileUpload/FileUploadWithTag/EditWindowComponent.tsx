@@ -75,7 +75,10 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
     props.setEditIndex(-1);
   };
 
-  const saveIsDisabled = props.attachment.uploaded === false || props.readOnly;
+  const saveIsDisabled =
+    props.attachment.updating === true ||
+    props.attachment.uploaded === false ||
+    props.readOnly;
 
   return (
     <div
@@ -160,7 +163,7 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
                   ? props.attachment.tags[0]
                   : null
               }
-              disabled={props.attachment.updating ? true : props.readOnly}
+              disabled={saveIsDisabled}
               className={classNames(
                 classes.select,
                 'custom-select a-custom-select',
