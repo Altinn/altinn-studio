@@ -21,7 +21,7 @@
   },
   "dependencies": {
     "altinn-designsystem": "^2.7.12",
-    "bootstrap": "^4.6.1",
+    "bootstrap": "^4.6.2",
     "bootstrap-list-filter": "^0.3.4",
     "jquery": "^3.6.0",
     "jquery-ui-dist": "^1.13.1",
@@ -34,7 +34,7 @@
     "requirejs": "^2.3.6",
     "requirejs-text": "^2.0.16",
     "rivets": "^0.9.6",
-    "select2": "^4.0.13",
+    "select2": "^4.1.0-rc.0",
     "sightglass": "^0.2.6",
     "underscore": "^1.13.4"
   },
