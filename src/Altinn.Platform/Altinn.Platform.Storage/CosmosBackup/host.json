@@ -1,4 +1,6 @@
 {
+
+  "version": "2.0",
   "logging": {
     "applicationInsights": {
       "samplingExcludedTypes": "Request",
@@ -10,6 +12,5 @@
       "default": "Information",
       "Function": "Error"
     }
-  },
-  "version": "2.0"
+  }
 }
