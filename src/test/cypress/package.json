@@ -21,10 +21,10 @@
   },
   "devDependencies": {
     "axe-core": "^4.4.3",
-    "cypress": "^10.3.0",
+    "cypress": "^10.4.0",
     "cypress-axe": "^1.0.0",
     "cypress-plugin-tab": "^1.0.5",
-    "eslint": "^8.19.0",
+    "eslint": "^8.21.0",
     "eslint-plugin-cypress": "^2.12.1",
     "fs-extra": "^10.1.0",
     "path": "^0.12.7",
