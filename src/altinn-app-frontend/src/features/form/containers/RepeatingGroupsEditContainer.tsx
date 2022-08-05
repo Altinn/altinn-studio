@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { Button, ButtonVariant } from '@altinn/altinn-design-system';
 import { createTheme, Grid, IconButton, makeStyles } from '@material-ui/core';
 
 import { renderGenericComponent } from 'src/utils/layout';
@@ -11,7 +12,6 @@ import type {
 import type { ITextResource } from 'src/types';
 
 import { AltinnButton } from 'altinn-shared/components';
-import { SuccessIconButton } from 'altinn-shared/components/SuccessIconButton';
 import altinnAppTheme from 'altinn-shared/theme/altinnAppTheme';
 import { getLanguageFromKey, getTextResourceByKey } from 'altinn-shared/utils';
 import type { ILanguage } from 'altinn-shared/types';
@@ -209,18 +209,18 @@ export function RepeatingGroupsEditContainer({
             </div>
           )}
           {!hideSaveButton && (
-            <SuccessIconButton
+            <Button
               id={`add-button-grp-${id}`}
               onClick={closeEditContainer}
-              label={
-                container.textResourceBindings?.save_button
-                  ? getTextResourceByKey(
-                      container.textResourceBindings.save_button,
-                      textResources,
-                    )
-                  : getLanguageFromKey('general.done', language)
-              }
-            />
+              variant={ButtonVariant.Secondary}
+            >
+              {container.textResourceBindings?.save_button
+                ? getTextResourceByKey(
+                    container.textResourceBindings.save_button,
+                    textResources,
+                  )
+                : getLanguageFromKey('general.save_and_close', language)}
+            </Button>
           )}
         </Grid>
       </Grid>

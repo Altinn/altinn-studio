@@ -133,6 +133,7 @@ export function en() {
       progress: 'Page {0} of {1}',
       required: 'Required',
       save: 'Save',
+      save_and_close: 'Save and close',
       search: 'Search',
       select_field: 'Select field',
       service_description_header: 'Description',

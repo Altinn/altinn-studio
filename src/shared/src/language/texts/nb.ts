@@ -133,6 +133,7 @@ export function nb() {
       progress: 'Side {0} av {1}',
       required: 'Obligatorisk',
       save: 'Lagre',
+      save_and_close: 'Lagre og lukk',
       search: 'Søk',
       select_field: 'Velg felt',
       service_description_header: 'Beskrivelse',

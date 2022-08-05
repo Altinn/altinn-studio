@@ -244,7 +244,9 @@ describe('GroupContainer', () => {
     const store = render({ container: mockContainerInEditModeWithTrigger });
     const user = userEvent.setup();
 
-    const editButton = screen.getAllByText('Ferdig')[0].closest('button');
+    const editButton = screen.getByRole('button', {
+      name: /Lagre og lukk/i,
+    });
     await user.click(editButton);
 
     const mockDispatchedAction = {
@@ -268,7 +270,9 @@ describe('GroupContainer', () => {
     const store = render({ container: mockContainerInEditMode });
     const user = userEvent.setup();
 
-    const editButton = screen.getAllByText('Ferdig')[0].closest('button');
+    const editButton = screen.getByRole('button', {
+      name: /Lagre og lukk/i,
+    });
     await user.click(editButton);
 
     const mockDispatchedAction = {

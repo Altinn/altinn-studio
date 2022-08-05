@@ -131,6 +131,7 @@ export function nn() {
       progress: 'Side {0} av {1}',
       required: 'Obligatorisk',
       save: 'Lagre',
+      save_and_close: 'Lagre og lukk',
       search: 'Søk',
       select_field: 'Vel felt',
       service_description_header: 'Beskriving',
