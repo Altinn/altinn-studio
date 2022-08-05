@@ -1,103 +1,102 @@
 import { createTheme, MuiThemeProvider } from '@material-ui/core/styles';
-import { mount } from 'enzyme';
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
-import * as renderer from 'react-test-renderer';
+import { render as rtlRender, screen } from '@testing-library/react';
 import AppBarComponent from './appBar';
+import type { IAppBarComponentProps } from './appBar';
 import altinnTheme from '../../theme/altinnStudioTheme';
 
-import * as AppBarConfig from './appBarConfig';
+import { menu } from './appBarConfig';
 
 describe('AppBarComponent', () => {
   describe('Snapshot', () => {
     it('should match snapshot', () => {
-      const rendered = renderer.create(
-        <MemoryRouter>
-          <AppBarComponent
-            org='jest-test-org'
-            app='jest-test-app'
-            showSubMenu={true}
-            activeSubHeaderSelection='Lage'
-          />
-        </MemoryRouter>,
-      );
-      expect(rendered).toMatchSnapshot();
+      const { container } = render();
+
+      expect(container.firstChild).toMatchSnapshot();
     });
 
     it('should match snapshot with subHeader and Publisere selection active', () => {
-      const rendered = renderer.create(
-        <MemoryRouter>
-          <AppBarComponent
-            org='other-org'
-            app='other-app'
-            showSubMenu={true}
-            activeSubHeaderSelection='Publisere'
-          />
-        </MemoryRouter>,
-      );
-      expect(rendered).toMatchSnapshot();
-    });
+      const { container } = render({
+        org: 'other-org',
+        app: 'other-app',
+        showSubMenu: true,
+        activeSubHeaderSelection: 'Publisere',
+      });
 
-    it('should match snapshot with subHeader and Publisere selection active', () => {
-      const wrapper = renderer.create(
-        <MemoryRouter>
-          <AppBarComponent
-            org='other-org'
-            app='other-app'
-            showSubMenu={true}
-            activeSubHeaderSelection='Publisere'
-          />
-        </MemoryRouter>,
-      );
-      expect(wrapper).toMatchSnapshot();
+      expect(container.firstChild).toMatchSnapshot();
     });
 
     it('should match snapshot and not render subHeader menu', () => {
-      const rendered = renderer.create(
-        <MemoryRouter>
-          <AppBarComponent
-            org='jest-test-org'
-            app='jest-test-app'
-            showSubMenu={false}
-          />
-        </MemoryRouter>,
-      );
-      expect(rendered).toMatchSnapshot();
+      const { container } = render({
+        showSubMenu: false,
+      });
+
+      expect(container.firstChild).toMatchSnapshot();
     });
 
     it('should match snapshot with no app or org', () => {
-      const rendered = renderer.create(
-        <MemoryRouter>
-          <AppBarComponent showSubMenu={false} />
-        </MemoryRouter>,
-      );
-      expect(rendered).toMatchSnapshot();
+      const { container } = render({
+        org: undefined,
+        app: undefined,
+        showSubMenu: false,
+        activeSubHeaderSelection: undefined,
+      });
+
+      expect(container.firstChild).toMatchSnapshot();
     });
   });
 
-  describe('When using AppBarConfig', () => {
-    const theme = createTheme(altinnTheme);
+  describe('When using AppBarConfig menu entries', () => {
+    menu.forEach((entry) => {
+      it(`should render ${entry.key} as current item when activeSubHeaderSelection is set to ${entry.activeSubHeaderSelection}`, () => {
+        const { container } = render({
+          activeSubHeaderSelection: entry.activeSubHeaderSelection,
+          showSubMenu: true,
+          showBreadcrumbOnTablet: true,
+        });
 
-    AppBarConfig.menu.forEach((entry) => {
-      it(`should render ${entry.key}`, () => {
-        const app = mount(
-          <MemoryRouter>
-            <MuiThemeProvider theme={theme}>
-              <AppBarComponent
-                org='mock-org'
-                app='mock-app'
-                showBreadcrumbOnTablet={true}
-                showSubMenu={true}
-                activeSubHeaderSelection={entry.activeSubHeaderSelection}
-              />
-            </MuiThemeProvider>
-          </MemoryRouter>,
-          { attachTo: document.getElementById('root') },
-        );
+        const activeClassNamePartial = 'subHeaderLinkActive';
+
         expect(
-          app.find('AppBarComponent').prop('activeSubHeaderSelection'),
-        ).toEqual(entry.activeSubHeaderSelection);
+          container.querySelectorAll(`[class*="${activeClassNamePartial}"]`),
+        ).toHaveLength(1);
+
+        const link = screen.getByRole('link', { name: entry.key });
+        const hasActiveLinkClass = Array.from(link.classList).some((x) =>
+          x.includes(activeClassNamePartial),
+        );
+
+        expect(hasActiveLinkClass).toBe(true);
       });
     });
   });
 });
+
+const render = (props: Partial<IAppBarComponentProps> = {}) => {
+  const theme = createTheme({
+    ...altinnTheme,
+    props: {
+      ...altinnTheme.props,
+      MuiWithWidth: {
+        initialWidth: 'md', // set initialWidth to md to test with desktop viewport
+      },
+    },
+  });
+
+  const allProps = {
+    org: 'jest-test-org',
+    app: 'jest-test-app',
+    showSubMenu: true,
+    activeSubHeaderSelection: 'Lage',
+    ...props,
+  } as IAppBarComponentProps;
+
+  return rtlRender(
+    <MemoryRouter>
+      <MuiThemeProvider theme={theme}>
+        <AppBarComponent {...allProps} />
+      </MuiThemeProvider>
+    </MemoryRouter>,
+  );
+};

@@ -8,7 +8,7 @@ import type { IAltinnWindow } from '../../types/global';
 import { altinnDocsUrl, sharedUrls } from '../../utils/urlHelper';
 import { post } from '../../utils/networking';
 
-interface IProfileMenuComponentProps {
+export interface IProfileMenuComponentProps {
   showlogout?: boolean;
   classes?: any;
 }

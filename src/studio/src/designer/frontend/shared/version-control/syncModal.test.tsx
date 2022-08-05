@@ -1,44 +1,29 @@
 import React from 'react';
-import * as renderer from 'react-test-renderer';
+import { render as rtlRender } from '@testing-library/react';
 import SyncModalComponent from './syncModal';
+import type { ISyncModalComponentProps } from './syncModal';
 
 describe('syncModal', () => {
-  let mockAnchorEl: any;
-  let mockHeader: string;
-  let mockDescriptionText: string[];
-  let mockIsLoading: boolean;
-  let mockShouldShowDoneIcon: boolean;
-  let mockBtnText: string;
-  let mockShouldShowCommitBox: boolean;
-  let mockHandleClose: any;
-  let mockBtnClick: any;
+  it('should match snapshot when anchor element is null', () => {
+    const { container } = render();
 
-  beforeEach(() => {
-    mockAnchorEl = null;
-    mockHeader = 'Header text';
-    mockDescriptionText = ['Description text'];
-    mockIsLoading = false;
-    mockShouldShowDoneIcon = false;
-    mockBtnText = 'Btn text';
-    mockShouldShowCommitBox = false;
-    mockHandleClose = jest.fn();
-    mockBtnClick = jest.fn();
-  });
-
-  it('Should match snapshot when anchor element is null', () => {
-    const rendered = renderer.create(
-      <SyncModalComponent
-        anchorEl={mockAnchorEl}
-        header={mockHeader}
-        descriptionText={mockDescriptionText}
-        isLoading={mockIsLoading}
-        shouldShowDoneIcon={mockShouldShowDoneIcon}
-        btnText={mockBtnText}
-        shouldShowCommitBox={mockShouldShowCommitBox}
-        handleClose={mockHandleClose}
-        btnClick={mockBtnClick}
-      />,
-    );
-    expect(rendered).toMatchSnapshot();
+    expect(container.firstChild).toMatchSnapshot();
   });
 });
+
+const render = (props: Partial<ISyncModalComponentProps> = {}) => {
+  const allProps = {
+    anchorEl: null,
+    header: 'Header text',
+    descriptionText: ['Description text'],
+    isLoading: false,
+    shouldShowDoneIcon: false,
+    btnText: 'Button text',
+    shouldShowCommitBox: false,
+    handleClose: jest.fn(),
+    btnClick: jest.fn(),
+    ...props,
+  } as ISyncModalComponentProps;
+
+  return rtlRender(<SyncModalComponent {...allProps} />);
+};
