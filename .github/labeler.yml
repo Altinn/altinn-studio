@@ -48,9 +48,6 @@ area/app-deploy:
 area/dashboard:
   - 'src/studio/src/designer/frontend/dashboard/**/*'
 
-area/data-storage:
-  - 'src/Altinn.Platform/Altinn.Platform.Storage/**/*'
-
 area/pdf:
   - 'src/Altinn.Platform/Altinn.Platform.PDF/**/*'
 
