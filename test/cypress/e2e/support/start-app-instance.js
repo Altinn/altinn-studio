@@ -12,6 +12,25 @@ Cypress.Commands.add('startAppInstance', (appName, anonymous=false) => {
     },
   };
 
+  if (Cypress.env('responseFuzzing') === 'on') {
+    const [min, max] = [10, 1000];
+    cy.log(`Response fuzzing on, will delay responses randomly between ${min}ms and ${max}ms`);
+
+    const rand = () => {
+      return Math.floor(Math.random() * (max - min + 1) + min);
+    };
+
+    const randomDelays = (req) => {
+      req.on('response', (res) => {
+        res.setDelay(rand());
+      });
+    };
+    cy.intercept('**/api/**', randomDelays);
+    cy.intercept('**/instances/**', randomDelays);
+  } else {
+    cy.log(`Response fuzzing off, enable with --env responseFuzzing=on`);
+  }
+
   cy.visit('/', visitOptions);
   if (Cypress.env('environment') === 'local') {
     if (anonymous) {

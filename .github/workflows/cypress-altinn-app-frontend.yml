@@ -59,6 +59,12 @@ jobs:
           ./node_modules/.bin/start-server-and-test 'cd $GITHUB_WORKSPACE/src/altinn-app-frontend && yarn start --no-hot' http://localhost:8080/altinn-app-frontend.js 'yarn run test:all:headless --env environment=tt02,testUserName=tt02testuser,testUserPwd=${{ secrets.CYPRESS_ALTINN_USERPWD }} --record --parallel --tag "altinn-app-frontend" --group altinn-app-frontend --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT'
         working-directory: test/cypress
 
+      - uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: redux-state-history
+          path: test/cypress/redux-history/*.json
+
   altinn-app-frontend-test-on-fork-pr:
     if: |
      github.repository_owner == 'Altinn' &&
@@ -89,3 +95,9 @@ jobs:
           yarn run cy:verify
           ./node_modules/.bin/start-server-and-test 'cd $GITHUB_WORKSPACE/src/altinn-app-frontend && yarn start --no-hot' http://localhost:8080/altinn-app-frontend.js 'yarn run test:all:headless --config watchForFileChanges=false --env environment=tt02,testUserName=testuserexternal,testUserPwd=r@h74Rz7XYQJ'
         working-directory: test/cypress
+
+      - uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: redux-state-history
+          path: test/cypress/redux-history/*.json

@@ -27,3 +27,6 @@ downloads/
 !/.yarn/versions
 
 .env
+
+# Redux state history saved when tests fail
+/redux-history
