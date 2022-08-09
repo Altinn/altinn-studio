@@ -2,14 +2,7 @@
   display: flex;
   flex-direction: column;
   width: 100%;
-}
-
-.address-component .form-control {
-  margin-bottom: 18px;
-}
-
-.address-component input {
-  max-width: 100%;
+  gap: 18px;
 }
 
 .address-component-postplace-zipCode {
@@ -17,11 +10,11 @@
   flex-direction: row;
   align-content: space-between;
   align-items: baseline;
+  gap: 1.5rem;
 }
 
 .address-component-postplace {
   flex-grow: 4;
-  padding-left: 1.5rem;
   max-width: 300px;
 }
 
@@ -30,20 +23,5 @@
 }
 
 .address-component-small-inputs {
-  max-width: 90px !important;
-}
-
-.address-component-label {
-  font-weight: 500;
-  padding-top: 2.4rem;
-  padding-bottom: 1.2rem;
-}
-
-.address-component-label-smaller {
-  font-weight: 100;
-  font-size: 1.5rem;
-}
-
-.address-component-validation-label {
-  color: red;
+  max-width: 90px;
 }

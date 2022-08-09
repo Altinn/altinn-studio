@@ -1,55 +1,56 @@
-import * as React from 'react';
+import React from 'react';
 
-import { fireEvent, render, screen } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
 import { InputComponent } from 'src/components/base/InputComponent';
 import { mockDelayBeforeSaving } from 'src/components/hooks/useDelayedSavedState';
-import type { IComponentProps } from 'src/components';
 import type { IInputProps } from 'src/components/base/InputComponent';
 
-describe('InputComponent.tsx', () => {
-  const mockId = 'mock-id';
-  const mockFormData = null;
-  const mockHandleDataChange = jest.fn();
-  const mockIsValid = true;
-  const mockReadOnly = false;
-  const mockRequired = false;
+const user = userEvent.setup();
 
+describe('InputComponent', () => {
   it('should correct value with no form data provided', () => {
-    renderInputComponent();
-    const inputComponent = screen.getByTestId(mockId);
+    render();
+    const inputComponent = screen.getByRole('textbox');
 
     expect(inputComponent).toHaveValue('');
   });
 
   it('should have correct value with specified form data', () => {
-    const customProps: Partial<IComponentProps> = {
-      formData: { simpleBinding: 'it123' },
-    };
-    renderInputComponent(customProps);
-    const inputComponent: any = screen.getByTestId(mockId);
+    const simpleBindingValue = 'it123';
+    render({
+      formData: {
+        simpleBinding: simpleBindingValue,
+      },
+    });
+    const inputComponent = screen.getByRole('textbox') as HTMLInputElement;
 
-    expect(inputComponent.value).toEqual('it123');
+    expect(inputComponent.value).toEqual(simpleBindingValue);
   });
 
-  it('should have correct form data after change', () => {
-    renderInputComponent();
-    const inputComponent = screen.getByTestId(mockId);
+  it('should have correct form data after user types in field', async () => {
+    const typedValue = 'banana';
+    render();
+    const inputComponent = screen.getByRole('textbox');
 
-    fireEvent.change(inputComponent, { target: { value: 'it' } });
+    await user.type(inputComponent, typedValue);
 
-    expect(inputComponent).toHaveValue('it');
+    expect(inputComponent).toHaveValue(typedValue);
   });
 
   it('should call supplied dataChanged function after data change', async () => {
     const handleDataChange = jest.fn();
-    renderInputComponent({ handleDataChange });
-    const inputComponent = screen.getByTestId(mockId);
+    const typedValue = 'test input';
+    render({ handleDataChange });
+    const inputComponent = screen.getByRole('textbox');
 
     mockDelayBeforeSaving(25);
-    fireEvent.change(inputComponent, { target: { value: 'it123' } });
-    expect(inputComponent).toHaveValue('it123');
+    await user.type(inputComponent, typedValue);
+
+    expect(inputComponent).toHaveValue(typedValue);
     expect(handleDataChange).not.toHaveBeenCalled();
+
     await new Promise((r) => setTimeout(r, 25));
     expect(handleDataChange).toHaveBeenCalled();
     mockDelayBeforeSaving(undefined);
@@ -57,23 +58,29 @@ describe('InputComponent.tsx', () => {
 
   it('should call supplied dataChanged function immediately after onBlur', async () => {
     const handleDataChange = jest.fn();
-    renderInputComponent({ handleDataChange });
-    const inputComponent = screen.getByTestId(mockId);
+    const typedValue = 'test input';
+    render({ handleDataChange });
+    const inputComponent = screen.getByRole('textbox');
 
-    fireEvent.change(inputComponent, { target: { value: 'it123' } });
-    fireEvent.blur(inputComponent);
-    expect(inputComponent).toHaveValue('it123');
+    await user.type(inputComponent, typedValue);
+    await user.tab();
+    expect(inputComponent).toHaveValue(typedValue);
     expect(handleDataChange).toHaveBeenCalledWith(
-      'it123',
+      typedValue,
       undefined,
       false,
       false,
     );
   });
 
-  it('should render input with formatted number when this is specified', () => {
+  it('should render input with formatted number when this is specified', async () => {
     const handleDataChange = jest.fn();
-    renderInputComponent({
+    const inputValuePlainText = '123456';
+    const inputValueFormatted = '$123,456';
+    const typedValue = '789';
+    const finalValuePlainText = `${inputValuePlainText}${typedValue}`;
+    const finalValueFormatted = '$123,456,789';
+    render({
       handleDataChange,
       formatting: {
         number: {
@@ -81,17 +88,20 @@ describe('InputComponent.tsx', () => {
           prefix: '$',
         },
       },
-      formData: { simpleBinding: '123456' },
+      formData: {
+        simpleBinding: inputValuePlainText,
+      },
     });
-    const inputComponent = screen.getByTestId(`${mockId}-formatted-number`);
-    expect(inputComponent).toHaveValue('$123,456');
+    const inputComponent = screen.getByRole('textbox');
+    expect(inputComponent).toHaveValue(inputValueFormatted);
 
-    fireEvent.change(inputComponent, { target: { value: '1234567' } });
-    fireEvent.blur(inputComponent);
-    expect(inputComponent).toHaveValue('$1,234,567');
+    await user.type(inputComponent, typedValue);
+    await user.tab();
+
+    expect(inputComponent).toHaveValue(finalValueFormatted);
     expect(handleDataChange).toHaveBeenCalledTimes(1);
     expect(handleDataChange).toHaveBeenCalledWith(
-      '1234567',
+      finalValuePlainText,
       undefined,
       false,
       false,
@@ -99,13 +109,13 @@ describe('InputComponent.tsx', () => {
   });
 
   it('should show aria-describedby if textResourceBindings.description is present', () => {
-    renderInputComponent({
+    render({
       textResourceBindings: {
         description: 'description',
       },
     });
 
-    const inputComponent = screen.getByTestId(mockId);
+    const inputComponent = screen.getByRole('textbox');
     expect(inputComponent).toHaveAttribute(
       'aria-describedby',
       'description-mock-id',
@@ -113,26 +123,23 @@ describe('InputComponent.tsx', () => {
   });
 
   it('should not show aria-describedby if textResourceBindings.description is not present', () => {
-    renderInputComponent();
-    const inputComponent = screen.getByTestId(mockId);
+    render();
+    const inputComponent = screen.getByRole('textbox');
+
     expect(inputComponent).not.toHaveAttribute('aria-describedby');
   });
 
-  function renderInputComponent(props: Partial<IInputProps> = {}) {
-    const defaultProps: IInputProps = {
-      id: mockId,
-      formData: mockFormData,
-      handleDataChange: mockHandleDataChange,
-      isValid: mockIsValid,
-      readOnly: mockReadOnly,
-      required: mockRequired,
-    } as unknown as IInputProps;
+  function render(props: Partial<IInputProps> = {}) {
+    const allProps = {
+      id: 'mock-id',
+      formData: null,
+      handleDataChange: jest.fn(),
+      isValid: true,
+      readOnly: false,
+      required: false,
+      ...props,
+    } as IInputProps;
 
-    render(
-      <InputComponent
-        {...defaultProps}
-        {...props}
-      />,
-    );
+    rtlRender(<InputComponent {...allProps} />);
   }
 });

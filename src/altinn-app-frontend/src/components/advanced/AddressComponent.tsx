@@ -1,7 +1,7 @@
-import * as React from 'react';
+import React from 'react';
 
+import { TextField } from '@altinn/altinn-design-system';
 import axios from 'axios';
-import cn from 'classnames';
 
 import { AddressLabel } from 'src/components/advanced/AddressLabel';
 import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
@@ -13,7 +13,6 @@ import type { IComponentValidations } from 'src/types';
 import { get, getLanguageFromKey } from 'altinn-shared/utils';
 
 import 'src/components/advanced/AddressComponent.css';
-import 'src/styles/shared.css';
 
 export type IAddressComponentProps = IComponentProps &
   Omit<ILayoutCompAddress, 'type'>;
@@ -289,35 +288,35 @@ export function AddressComponent({
       className='address-component'
       key={`address_component_${id}`}
     >
-      <AddressLabel
-        labelKey={'address_component.address'}
-        id={`address_address_${id}`}
-        language={language}
-        required={required}
-        readOnly={readOnly}
-        labelSettings={labelSettings}
-      />
-      <input
-        id={`address_address_${id}`}
-        className={cn('form-control', {
-          'validation-error': allValidations.address.errors.length,
-          disabled: readOnly,
-        })}
-        value={address}
-        onChange={updateField.bind(null, AddressKeys.address, false)}
-        onBlur={updateField.bind(null, AddressKeys.address, true)}
-        onPaste={() => onAddressPaste()}
-        readOnly={readOnly}
-        required={required}
-      />
-      {allValidations?.[AddressKeys.address]
-        ? renderValidationMessagesForComponent(
-            allValidations[AddressKeys.address],
-            `${id}_${AddressKeys.address}`,
-          )
-        : null}
+      <div>
+        <AddressLabel
+          labelKey={'address_component.address'}
+          id={`address_address_${id}`}
+          language={language}
+          required={required}
+          readOnly={readOnly}
+          labelSettings={labelSettings}
+        />
+        <TextField
+          id={`address_address_${id}`}
+          isValid={allValidations.address.errors.length === 0}
+          value={address}
+          onChange={updateField.bind(null, AddressKeys.address, false)}
+          onBlur={updateField.bind(null, AddressKeys.address, true)}
+          onPaste={() => onAddressPaste()}
+          readOnly={readOnly}
+          required={required}
+        />
+        {allValidations?.[AddressKeys.address]
+          ? renderValidationMessagesForComponent(
+              allValidations[AddressKeys.address],
+              `${id}_${AddressKeys.address}`,
+            )
+          : null}
+      </div>
+
       {!simplified && (
-        <>
+        <div>
           <AddressLabel
             labelKey={'address_component.care_of'}
             id={`address_care_of_${id}`}
@@ -326,12 +325,9 @@ export function AddressComponent({
             readOnly={readOnly}
             labelSettings={labelSettings}
           />
-          <input
+          <TextField
             id={`address_care_of_${id}`}
-            className={cn('form-control', {
-              'validation-error': allValidations.careOf.errors.length,
-              disabled: readOnly,
-            })}
+            isValid={allValidations.careOf.errors.length === 0}
             value={careOf}
             onChange={updateField.bind(null, AddressKeys.careOf, false)}
             onBlur={updateField.bind(null, AddressKeys.careOf, true)}
@@ -344,7 +340,7 @@ export function AddressComponent({
                 `${id}_${AddressKeys.careOf}`,
               )
             : null}
-        </>
+        </div>
       )}
 
       <div className='address-component-postplace-zipCode'>
@@ -357,20 +353,19 @@ export function AddressComponent({
             readOnly={readOnly}
             labelSettings={labelSettings}
           />
-          <input
-            id={`address_zip_code_${id}`}
-            className={cn('address-component-small-inputs', 'form-control', {
-              'validation-error': allValidations.zipCode.errors.length,
-              disabled: readOnly,
-            })}
-            value={zipCode}
-            onChange={updateField.bind(null, AddressKeys.zipCode, false)}
-            onBlur={updateField.bind(null, AddressKeys.zipCode, true)}
-            onPaste={() => onZipCodePaste()}
-            readOnly={readOnly}
-            required={required}
-            inputMode='numeric'
-          />
+          <div className={'address-component-small-inputs'}>
+            <TextField
+              id={`address_zip_code_${id}`}
+              isValid={allValidations.zipCode.errors.length === 0}
+              value={zipCode}
+              onChange={updateField.bind(null, AddressKeys.zipCode, false)}
+              onBlur={updateField.bind(null, AddressKeys.zipCode, true)}
+              onPaste={() => onZipCodePaste()}
+              readOnly={readOnly}
+              required={required}
+              inputMode='numeric'
+            />
+          </div>
           {allValidations?.[AddressKeys.careOf]
             ? renderValidationMessagesForComponent(
                 allValidations[AddressKeys.zipCode],
@@ -388,11 +383,9 @@ export function AddressComponent({
             readOnly={true}
             labelSettings={labelSettings}
           />
-          <input
+          <TextField
             id={`address_post_place_${id}`}
-            className={cn('form-control disabled', {
-              'validation-error': allValidations.postPlace.errors.length,
-            })}
+            isValid={allValidations.postPlace.errors.length === 0}
             value={postPlace}
             readOnly={true}
             required={required}
@@ -405,8 +398,9 @@ export function AddressComponent({
             : null}
         </div>
       </div>
+
       {!simplified && (
-        <>
+        <div>
           <AddressLabel
             labelKey='address_component.house_number'
             id={`address_house_number_${id}`}
@@ -421,25 +415,24 @@ export function AddressComponent({
               language,
             )}
           </p>
-          <input
-            id={`address_house_number_${id}`}
-            className={cn('address-component-small-inputs', 'form-control', {
-              'validation-error': allValidations.houseNumber.errors.length,
-              disabled: readOnly,
-            })}
-            value={houseNumber}
-            onChange={updateField.bind(null, AddressKeys.houseNumber, false)}
-            onBlur={updateField.bind(null, AddressKeys.houseNumber, true)}
-            onPaste={() => onHouseNumberPaste()}
-            readOnly={readOnly}
-          />
+          <div className={'address-component-small-inputs'}>
+            <TextField
+              id={`address_house_number_${id}`}
+              isValid={allValidations.houseNumber.errors.length === 0}
+              value={houseNumber}
+              onChange={updateField.bind(null, AddressKeys.houseNumber, false)}
+              onBlur={updateField.bind(null, AddressKeys.houseNumber, true)}
+              onPaste={() => onHouseNumberPaste()}
+              readOnly={readOnly}
+            />
+          </div>
           {allValidations?.[AddressKeys.houseNumber]
             ? renderValidationMessagesForComponent(
                 allValidations[AddressKeys.houseNumber],
                 `${id}_${AddressKeys.houseNumber}`,
               )
             : null}
-        </>
+        </div>
       )}
     </div>
   );

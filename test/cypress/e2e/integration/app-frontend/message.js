@@ -8,7 +8,6 @@ import { instanceIdExp } from '../../support/util';
 const appFrontend = new AppFrontend();
 
 describe('Message', () => {
-  let instanceMetadata, instanceId;
   const instanceIdExpr = instanceIdExp();
 
   before(() => {
@@ -21,9 +20,8 @@ describe('Message', () => {
   it('Attachments List displays correct number of attachments', () => {
     cy.get(appFrontend.message['header']).should('exist');
     cy.wait('@createdInstance').then((xhr) => {
-      instanceMetadata = xhr.response.body;
-      instanceId = instanceMetadata.id;
-      const instanceGuid = instanceId.split('/')[1];
+      const instanceMetadata = xhr.response.body;
+      const instanceGuid = instanceMetadata.id.split('/')[1];
       cy.fixture('attachment.json').then((data) => {
         data.instanceGuid = instanceGuid;
         instanceMetadata.data.push(data);

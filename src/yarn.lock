@@ -5,16 +5,24 @@ __metadata:
   version: 6
   cacheKey: 8
 
-"@altinn/altinn-design-system@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "@altinn/altinn-design-system@npm:0.2.0::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40altinn%2Faltinn-design-system%2F0.2.0%2F44acbeb21e302b1bcb78005b465a48997ff3bdd6aeb414a702e87ecda5b14d70"
+"@adobe/css-tools@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "@adobe/css-tools@npm:4.0.1"
+  checksum: 80226e2229024c21da9ffa6b5cd4a34b931f071e06f45aba4777ade071d7a6c94605cf73b13718b0c4b34e8b124c65c607b82eaa53a326d3eb73d9682a04a593
+  languageName: node
+  linkType: hard
+
+"@altinn/altinn-design-system@npm:^0.5.4":
+  version: 0.5.4
+  resolution: "@altinn/altinn-design-system@npm:0.5.4::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40altinn%2Faltinn-design-system%2F0.5.4%2Fc78b5a095cf3c3ef98b359f49f2d02d91c5995ee61c732c55f4e3fbc9884e172"
   dependencies:
     "@altinn/figma-design-tokens": ^0.3.0
     "@react-hookz/web": ^15.0.1
+    react-number-format: ^4.9.3
   peerDependencies:
-    react: ^17.0.0 || ^18.0.0
-    react-dom: ^17.0.0 || ^18.0.0
-  checksum: 81582d9ff3a8e3aa1f1fdcb763410a9dfa6505282e46a499c366e98491a887072d31cdb183bca70cb5c2342a9da8b8670f2fc0522cee5f373e1f46f6b499d344
+    react: ^18.0.0
+    react-dom: ^18.0.0
+  checksum: 295069185d2bd8cec147a66cc241d83c97126e06483d9a558c48bf449098f8d83b85359e9e7433dc658c2bc8f0ede757dc50eed83a9aa6aaaef940b066eee63a
   languageName: node
   linkType: hard
 
@@ -3067,20 +3075,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/jest-dom@npm:^5.16.4":
-  version: 5.16.4
-  resolution: "@testing-library/jest-dom@npm:5.16.4"
+"@testing-library/jest-dom@npm:^5.16.5":
+  version: 5.16.5
+  resolution: "@testing-library/jest-dom@npm:5.16.5"
   dependencies:
+    "@adobe/css-tools": ^4.0.1
     "@babel/runtime": ^7.9.2
     "@types/testing-library__jest-dom": ^5.9.1
     aria-query: ^5.0.0
     chalk: ^3.0.0
-    css: ^3.0.0
     css.escape: ^1.5.1
     dom-accessibility-api: ^0.5.6
     lodash: ^4.17.15
     redent: ^3.0.0
-  checksum: 4240501223b72b97a44d4e3c669f39b208c49fb645d11d08d5f178d607265c5dfad07efbe027f41a0e2458178ff1fd5bf437fc05661b9109dcd013b95a37079e
+  checksum: 94911f901a8031f3e489d04ac057cb5373621230f5d92bed80e514e24b069fb58a3166d1dd86963e55f078a1bd999da595e2ab96ed95f452d477e272937d792a
   languageName: node
   linkType: hard
 
@@ -3098,12 +3106,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/user-event@npm:^14.4.1":
-  version: 14.4.1
-  resolution: "@testing-library/user-event@npm:14.4.1"
+"@testing-library/user-event@npm:^14.4.2":
+  version: 14.4.2
+  resolution: "@testing-library/user-event@npm:14.4.2"
   peerDependencies:
     "@testing-library/dom": ">=7.21.4"
-  checksum: 01f2318097d64ab99c400a2825680b241451c7d87e69fbda9135b7c896d4205afff46b55b25fcfff47542732d38918c6ca49d2e937892931f6f93346ccbc1950
+  checksum: 66364f2c503ddc01f5fdf98507aecf40b4edf0b9c140332aaf0161b1d7d52dea8a5d93baee927ae955bd7d6d58be0c12367a2cff924bdb4232746f0e614f9e03
   languageName: node
   linkType: hard
 
@@ -3585,14 +3593,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:18.0.15":
-  version: 18.0.15
-  resolution: "@types/react@npm:18.0.15"
+"@types/react@npm:18.0.16":
+  version: 18.0.16
+  resolution: "@types/react@npm:18.0.16"
   dependencies:
     "@types/prop-types": "*"
     "@types/scheduler": "*"
     csstype: ^3.0.2
-  checksum: e22cc388d1c145aa184787e44dc28db4789976c704cd5db475c170bb76a560eb81def5f346cfe750949bb3d43ad88822b8cbb9f19b1286e3795892a8263e7715
+  checksum: 47853419adbf7f35f302cd4ef804c5a50498a0917a34e696caa693fc60b9c52c644ca2ecf64cbba4a5efd963771167d241906f117d16d59e20e84b882215b6bd
   languageName: node
   linkType: hard
 
@@ -4386,7 +4394,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "altinn-app-frontend@workspace:altinn-app-frontend"
   dependencies:
-    "@altinn/altinn-design-system": ^0.2.0
+    "@altinn/altinn-design-system": ^0.5.4
     "@babel/core": ^7.18.10
     "@babel/polyfill": ^7.12.1
     "@babel/preset-env": ^7.18.10
@@ -4397,12 +4405,12 @@ __metadata:
     "@material-ui/pickers": ^3.3.10
     "@pmmmwh/react-refresh-webpack-plugin": ^0.5.7
     "@reduxjs/toolkit": ^1.8.3
-    "@testing-library/jest-dom": ^5.16.4
+    "@testing-library/jest-dom": ^5.16.5
     "@testing-library/react": ^13.3.0
-    "@testing-library/user-event": ^14.4.1
+    "@testing-library/user-event": ^14.4.2
     "@types/dot-object": ^2.1.2
     "@types/jest": ^28.1.6
-    "@types/react": 18.0.15
+    "@types/react": 18.0.16
     "@types/react-dom": ^18.0.6
     "@types/react-redux": ^7.1.24
     "@types/react-router-dom": ^5.3.3
@@ -6279,17 +6287,6 @@ __metadata:
   version: 1.5.1
   resolution: "css.escape@npm:1.5.1"
   checksum: f6d38088d870a961794a2580b2b2af1027731bb43261cfdce14f19238a88664b351cc8978abc20f06cc6bbde725699dec8deb6fe9816b139fc3f2af28719e774
-  languageName: node
-  linkType: hard
-
-"css@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "css@npm:3.0.0"
-  dependencies:
-    inherits: ^2.0.4
-    source-map: ^0.6.1
-    source-map-resolve: ^0.6.0
-  checksum: 4273ac816ddf99b99acb9c1d1a27d86d266a533cc01118369d941d8e8a78277a83cad3315e267a398c509d930fbb86504e193ea1ebc620a4a4212e06fe76e8be
   languageName: node
   linkType: hard
 
@@ -14390,13 +14387,13 @@ __metadata:
   dependencies:
     "@babel/core": ^7.18.10
     "@material-ui/core": ^4.12.4
-    "@testing-library/jest-dom": ^5.16.4
+    "@testing-library/jest-dom": ^5.16.5
     "@testing-library/react": ^13.3.0
-    "@testing-library/user-event": ^14.4.1
+    "@testing-library/user-event": ^14.4.2
     "@types/dompurify": ^2.3.3
     "@types/jest": ^28.1.6
     "@types/marked": ^4.0.3
-    "@types/react": 18.0.15
+    "@types/react": 18.0.16
     axios: ^0.27.2
     babel-jest: ^28.1.3
     classnames: ^2.3.1
@@ -14660,16 +14657,6 @@ __metadata:
     source-map-url: ^0.4.0
     urix: ^0.1.0
   checksum: c73fa44ac00783f025f6ad9e038ab1a2e007cd6a6b86f47fe717c3d0765b4a08d264f6966f3bd7cd9dbcd69e4832783d5472e43247775b2a550d6f2155d24bae
-  languageName: node
-  linkType: hard
-
-"source-map-resolve@npm:^0.6.0":
-  version: 0.6.0
-  resolution: "source-map-resolve@npm:0.6.0"
-  dependencies:
-    atob: ^2.1.2
-    decode-uri-component: ^0.2.0
-  checksum: fe503b9e5dac1c54be835282fcfec10879434e7b3ee08a9774f230299c724a8d403484d9531276d1670c87390e0e4d1d3f92b14cca6e4a2445ea3016b786ecd4
   languageName: node
   linkType: hard
 
