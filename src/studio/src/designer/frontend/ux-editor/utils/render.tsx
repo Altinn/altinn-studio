@@ -157,11 +157,15 @@ function SelectTextFromRecources(props: React.PropsWithChildren<IInnerProps>) {
         isClearable={true}
         placeholder={!defaultValue && placeholderText}
         noOptionsMessage={noOptMessage}
+        inputId={inputId}
       />
     </div>
   );
-}
+};
 
+/**
+ * @deprecated use SelectTextFromRecources component directly instead
+ */
 export function renderSelectTextFromResources(
   labelText: string,
   onChangeFunction: (e: any) => void,
@@ -170,7 +174,7 @@ export function renderSelectTextFromResources(
   selected?: string,
   placeholder?: string,
   description?: string,
-): JSX.Element {
+) {
   return (
     <SelectTextFromRecources
       labelText={labelText}
