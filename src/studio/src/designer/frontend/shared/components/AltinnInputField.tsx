@@ -142,7 +142,7 @@ class AltinnInputFieldComponent extends React.Component<IAltinnInputFieldCompone
             placeholder={this.props.placeholder}
             disabled={this.props.isDisabled}
             multiline={!!this.props.textAreaRows}
-            rows={this.props.textAreaRows || null}
+            minRows={this.props.textAreaRows || null}
             InputProps={{
               disableUnderline: true,
               classes: { root: classNames(classes.inputFieldText) },
