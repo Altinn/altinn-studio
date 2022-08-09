@@ -4,7 +4,6 @@ import {
   FormControlLabel,
   Grid,
   IconButton,
-  TextField,
 } from '@material-ui/core';
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -14,50 +13,34 @@ import type {
   Restriction,
   ILanguage,
   ISchemaState,
-  FieldType,
   IUiSchemaItem,
-  CombinationKind,
 } from '../types';
-import { NameError, ObjectKind } from '../types/enums';
+import { ObjectKind } from '../types/enums';
 import { PropertyItem } from './PropertyItem';
 import {
   setRestriction,
   setRestrictionKey,
   deleteField,
   setPropertyName,
-  setRef,
   addRestriction,
   deleteProperty,
-  setTitle,
-  setDescription,
-  setType,
   setRequired,
   addProperty,
-  setItems,
   addEnum,
   deleteEnum,
-  navigateToType,
-  setCombinationType,
-  addCombinationItem,
-  deleteCombinationItem,
 } from '../features/editor/schemaEditorSlice';
 import {
-  getDomFriendlyID,
   splitParentPathAndName,
   getUiSchemaItem,
-  combinationIsNullable,
-  nullableType,
 } from '../utils/schemaUtils';
 import { getTranslation } from '../utils/languageUtils';
 import { RestrictionField } from './RestrictionField';
 import { EnumField } from './EnumField';
 import { SchemaTab } from './SchemaTab';
 import InlineObject from './InlineObject';
-import { CombinationSelect } from './CombinationSelect';
-import { TypeSelect } from './TypeSelect';
-import { isNameInUse, isValidName } from '../utils/checksUtils';
-import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
+import { isFieldRequired, isNameInUse } from '../utils/checksUtils';
 import { AddPropertyButton } from './AddPropertyButton';
+import { ItemDataComponent } from './ItemDataComponent';
 
 const useStyles = makeStyles(
   createStyles({
@@ -82,40 +65,10 @@ const useStyles = makeStyles(
         background: 'gray',
       },
     },
-    name: {
-      marginBottom: 6,
-      padding: 0,
-      fontWeight: 400,
-      fontSize: 16,
-    },
     divider: {
       marginTop: 2,
       marginBottom: 2,
       padding: '8px 2px 8px 2px',
-    },
-    navButton: {
-      background: 'none',
-      border: 'none',
-      textDecoration: 'underline',
-      cursor: 'pointer',
-      color: '#006BD8',
-    },
-    field: {
-      background: 'white',
-      color: 'black',
-      border: '1px solid #006BD8',
-      boxSsizing: 'border-box',
-      marginTop: 2,
-      padding: 4,
-      '&.Mui-disabled': {
-        background: '#f4f4f4',
-        color: 'black',
-        border: '1px solid #6A6A6A',
-        boxSizing: 'border-box',
-      },
-    },
-    fieldText: {
-      fontSize: '1.6rem',
     },
     appBar: {
       border: 'none',
@@ -146,37 +99,15 @@ export interface ISchemaInspectorProps {
 const SchemaInspector = (props: ISchemaInspectorProps) => {
   const classes = useStyles();
   const dispatch = useDispatch();
-  const [nodeName, setNodeName] = React.useState<string>('');
-  const [description, setItemDescription] = React.useState<string>('');
-  const [title, setItemTitle] = React.useState<string>('');
-  const [fieldType, setFieldType] = React.useState<FieldType | undefined>(
-    undefined,
-  );
-  const [arrayType, setArrayType] = React.useState<
-    FieldType | string | undefined
-  >(undefined);
+
   const [objectKind, setObjectKind] = React.useState<ObjectKind>(ObjectKind.Field);
   const [isRequired, setIsRequired] = React.useState<boolean>(false);
-  const [nameError, setNameError] = React.useState('');
   const selectedId = useSelector((state: ISchemaState) =>
     state.selectedEditorTab === 'properties'
       ? state.selectedPropertyNodeId
       : state.selectedDefinitionNodeId,
   );
-  const focusName = useSelector((state: ISchemaState) => state.focusNameField);
   const [tabIndex, setTabIndex] = React.useState('0');
-
-  const nameFieldRef = React.useCallback(
-    (node: any) => {
-      if (node && focusName && focusName === selectedId) {
-        setTimeout(() => {
-          node.select();
-        }, 100);
-      }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    },
-    [focusName, selectedId],
-  );
 
   const selectedItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
@@ -207,22 +138,15 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
   });
 
   React.useEffect(() => {
-    setNodeName(selectedItem?.displayName ?? '');
-    setItemTitle(selectedItem?.title ?? '');
-    setItemDescription(selectedItem?.description ?? '');
-    setFieldType(selectedItem?.type);
-    setArrayType(selectedItem?.items?.$ref ?? selectedItem?.items?.type ?? '');
     if (selectedItem) {
       if (tabIndex === '2' && itemToDisplay?.type !== 'object') {
         setTabIndex('0');
       }
-      setIsRequired(
-        parentItem?.required?.includes(selectedItem?.displayName) ?? false,
-      );
-      if (
-        selectedItem.$ref !== undefined ||
-        selectedItem.items?.$ref !== undefined
-      ) {
+
+      setIsRequired(isFieldRequired(parentItem, selectedItem));
+
+      if (selectedItem.$ref !== undefined ||
+        selectedItem.items?.$ref !== undefined) {
         setObjectKind(ObjectKind.Reference);
       } else if (selectedItem.combination) {
         setObjectKind(ObjectKind.Combination);
@@ -238,10 +162,6 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
 
   const readOnly = selectedItem?.$ref !== undefined;
 
-  React.useEffect(() => {
-    setNodeName(selectedItem?.displayName ?? '');
-  }, [selectedItem]);
-
   const onChangeValue = (path: string, value: any, key: string) => {
     const data = {
       path,
@@ -249,14 +169,6 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
       key,
     };
     dispatch(setRestriction(data));
-  };
-
-  const onChangeRef = (path: string, ref: string) => {
-    const data = {
-      path,
-      ref,
-    };
-    dispatch(setRef(data));
   };
 
   const onChangeKey = (path: string, oldKey: string, newKey: string) => {
@@ -293,29 +205,15 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
     dispatch(deleteEnum({ path, value }));
   };
 
-  const onChangeNodeName = () => {
-    if (
-      isNameInUse({
-        uiSchemaItems: uiSchema,
-        parentSchema: parentItem,
-        path: selectedId,
-        name: nodeName,
-      })
-    ) {
-      setNameError(NameError.AlreadyInUse);
-      return;
-    }
+  const checkIsNameInUse = (name: string) => {
+    return isNameInUse({
+      uiSchemaItems: uiSchema,
+      parentSchema: parentItem,
+      path: selectedId,
+      name,
+    });
+  }
 
-    if (!nameError && selectedItem && selectedItem.displayName !== nodeName) {
-      dispatch(
-        setPropertyName({
-          path: selectedItem.path,
-          name: nodeName,
-          navigate: selectedItem.path,
-        }),
-      );
-    }
-  };
   const onChangeEnumValue = (value: string, oldValue?: string) => {
     if (itemToDisplay) {
       dispatch(
@@ -323,16 +221,6 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
           path: itemToDisplay.path,
           value,
           oldValue,
-        }),
-      );
-    }
-  };
-  const onChangeCombinationType = (value: CombinationKind) => {
-    if (selectedItem?.path) {
-      dispatch(
-        setCombinationType({
-          path: selectedItem.path,
-          type: value,
         }),
       );
     }
@@ -379,92 +267,6 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
       );
     }
   };
-
-  const onGoToDefButtonClick = () => {
-    if (!selectedItem?.$ref) {
-      return;
-    }
-    dispatch(
-      navigateToType({
-        id: selectedItem?.$ref,
-      }),
-    );
-  };
-
-  const onChangeType = (type: FieldType) => {
-    if (selectedItem) {
-      dispatch(
-        setType({
-          path: selectedItem.path,
-          type,
-        }),
-      );
-      setFieldType(type);
-    }
-  };
-
-  const onChangeArrayType = (type: string | FieldType | undefined) => {
-    if (selectedItem) {
-      setArrayType(type ?? '');
-      let items;
-      if (type === undefined) {
-        items = undefined;
-      } else {
-        items = objectKind === ObjectKind.Field ? { type } : { $ref: type };
-      }
-      dispatch(
-        setItems({
-          path: selectedItem.path,
-          items,
-        }),
-      );
-    }
-  };
-
-  const onChangeNullable = (_x: any, nullable: boolean) => {
-    if (nullable && selectedItem) {
-      dispatch(
-        addCombinationItem({
-          path: selectedItem.path,
-          props: { type: 'null' },
-        }),
-      );
-    } else {
-      const itemToRemove = selectedItem?.combination?.find(nullableType);
-      if (itemToRemove) {
-        dispatch(deleteCombinationItem({ path: itemToRemove.path }));
-      }
-    }
-  };
-
-  const onChangeTitle = () => {
-    dispatch(setTitle({ path: selectedId, title }));
-  };
-
-  const onChangeDescription = () => {
-    dispatch(setDescription({ path: selectedId, description }));
-  };
-
-  const handleIsArrayChanged = (e: any, checked: boolean) => {
-    if (!selectedItem) {
-      return;
-    }
-
-    if (checked) {
-      const type =
-        objectKind === ObjectKind.Reference ? selectedItem.$ref : selectedItem.type;
-      onChangeArrayType(type);
-      onChangeType('array');
-    } else {
-      if (objectKind === ObjectKind.Reference) {
-        onChangeRef(selectedItem.path, arrayType || '');
-      } else {
-        onChangeType(arrayType as FieldType);
-      }
-      onChangeArrayType(undefined);
-    }
-  };
-
   const handleRequiredChanged = (e: any, checked: boolean) => {
     if (selectedItem) {
       dispatch(
@@ -475,16 +277,6 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
         }),
       );
       setIsRequired(checked);
-    }
-  };
-
-  const onNameChange = (e: any) => {
-    const name: string = e.target.value;
-    setNodeName(name);
-    if (!isValidName(name)) {
-      setNameError(NameError.InvalidCharacter);
-    } else {
-      setNameError(NameError.NoError);
     }
   };
 
@@ -547,142 +339,6 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
     setTabIndex(newValue);
   };
 
-  const renderItemData = () => (
-    <div>
-      {!selectedItem?.combinationItem && (
-        <>
-          <p className={classes.name}>
-            {getTranslation('name', props.language)}
-          </p>
-          <TextField
-            id='selectedItemName'
-            className={classes.field}
-            inputRef={nameFieldRef}
-            placeholder='Name'
-            fullWidth={true}
-            value={nodeName}
-            error={!!nameError}
-            helperText={getTranslation(nameError, props.language)}
-            onChange={onNameChange}
-            onBlur={onChangeNodeName}
-            InputProps={{
-              disableUnderline: true,
-              classes: {root: classes.fieldText}
-            }}
-          />
-        </>
-      )}
-      {selectedItem && objectKind === ObjectKind.Field && (
-        <>
-          <p className={classes.header}>
-            {getTranslation('type', props.language)}
-          </p>
-          <TypeSelect
-            value={selectedItem.type === 'array' ? arrayType : fieldType}
-            id={`${getDomFriendlyID(selectedItem.path)}-type-select`}
-            onChange={
-              selectedItem.type === 'array' ? onChangeArrayType : onChangeType
-            }
-            language={props.language}
-          />
-        </>
-      )}
-      <ReferenceSelectionComponent
-        arrayType={arrayType}
-        classes={classes}
-        selectedItem={selectedItem}
-        objectKind={objectKind}
-        language={props.language}
-        onChangeArrayType={onChangeArrayType}
-        onChangeRef={onChangeRef}
-        onGoToDefButtonClick={onGoToDefButtonClick}
-      />
-      {(objectKind === ObjectKind.Reference || objectKind === ObjectKind.Field) && (
-        <FormControlLabel
-          id='multiple-answers-checkbox'
-          className={classes.header}
-          control={
-            <Checkbox
-              color='primary'
-              checked={selectedItem?.type === 'array'}
-              onChange={handleIsArrayChanged}
-              name='checkedMultipleAnswers'
-            />
-          }
-          label={getTranslation('multiple_answers', props.language)}
-        />
-      )}
-      {objectKind === ObjectKind.Combination && (
-        <>
-          <p className={classes.header}>
-            {getTranslation('type', props.language)}
-          </p>
-          <CombinationSelect
-            value={selectedItem?.combinationKind}
-            id={`${getDomFriendlyID(
-              selectedItem?.path || '',
-            )}-change-combination`}
-            onChange={onChangeCombinationType}
-            language={props.language}
-          />
-        </>
-      )}
-      {objectKind === ObjectKind.Combination && (
-        <FormControlLabel
-          id='multiple-answers-checkbox'
-          className={classes.header}
-          control={
-            <Checkbox
-              color='primary'
-              checked={combinationIsNullable(selectedItem)}
-              onChange={onChangeNullable}
-              name='checkedNullable'
-            />
-          }
-          label={getTranslation('nullable', props.language)}
-        />
-      )}
-      <hr className={classes.divider} />
-      <p className={classes.header}>
-        {getTranslation('descriptive_fields', props.language)}
-      </p>
-      <p className={classes.header}>
-        {getTranslation('title', props.language)}
-      </p>
-      <TextField
-        id={`${getDomFriendlyID(selectedId ?? '')}-title`}
-        className={classes.field}
-        fullWidth
-        value={title}
-        margin='normal'
-        onChange={(e) => setItemTitle(e.target.value)}
-        onBlur={onChangeTitle}
-        InputProps={{
-          disableUnderline: true,
-          classes: {root: classes.fieldText}
-        }}
-      />
-      <p className={classes.header}>
-        {getTranslation('description', props.language)}
-      </p>
-      <TextField
-        id={`${getDomFriendlyID(selectedId ?? '')}-description`}
-        multiline={true}
-        className={classes.field}
-        fullWidth
-        style={{ height: 100 }}
-        value={description}
-        margin='normal'
-        onChange={(e) => setItemDescription(e.target.value)}
-        onBlur={onChangeDescription}
-        InputProps={{
-          disableUnderline: true,
-          classes: {root: classes.fieldText}
-        }}
-      />
-    </div>
-  );
-
   if (!selectedId) {
     return (
       <div>
@@ -722,7 +378,14 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
           {selectedItem?.combinationItem && selectedItem.$ref === undefined ? (
             <InlineObject item={selectedItem} language={props.language} />
           ) : (
-            renderItemData()
+            <ItemDataComponent
+              selectedId={selectedId}
+              selectedItem={selectedItem}
+              parentItem={parentItem}
+              objectKind={objectKind}
+              language={props.language}
+              checkIsNameInUse={checkIsNameInUse}
+            />
           )}
         </TabPanel>
         <TabPanel value='1'>
@@ -759,7 +422,7 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
               <i className='fa fa-plus' />
               {getTranslation('add_restriction', props.language)}
             </IconButton>
-            {fieldType !== 'object' && (
+            {selectedItem && selectedItem.type !== 'object' && (
               <>
                 <Grid item xs={12}>
                   <hr className={classes.divider} />
