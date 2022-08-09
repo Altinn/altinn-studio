@@ -31,10 +31,10 @@ import type {
   CombinationKind,
   FieldType,
   ISchemaState,
-  UiSchemaItem,
+  IUiSchemaItem,
 } from '../../types';
 import { dataMock } from '../../mockData';
-import { getUiSchemaItem, resetUniqueNumber } from '../../utils';
+import { getUiSchemaItem, resetUniqueNumber } from '../../utils/schemaUtils';
 
 describe('SchemaEditorSlice', () => {
   let state: ISchemaState;
@@ -160,7 +160,7 @@ describe('SchemaEditorSlice', () => {
       path: '#/definitions/Kontaktperson/properties/navn',
     };
     const nextState = reducer(state, setRef(payload));
-    const item: UiSchemaItem | undefined = nextState.uiSchema.find(
+    const item: IUiSchemaItem | undefined = nextState.uiSchema.find(
       (f) => f.path === '#/definitions/Kontaktperson',
     );
     if (!item || !item.properties) {
@@ -300,7 +300,7 @@ describe('SchemaEditorSlice', () => {
       path: '#/definitions/Kontaktperson',
       props: {
         type: 'object',
-      } as Partial<UiSchemaItem>,
+      } as Partial<IUiSchemaItem>,
     };
     const nextState = reducer(state, addProperty(payload));
 
@@ -320,7 +320,7 @@ describe('SchemaEditorSlice', () => {
       location: 'definitions',
       props: {
         type: 'object',
-      } as Partial<UiSchemaItem>,
+      } as Partial<IUiSchemaItem>,
     };
     let nextState = reducer(state, addRootItem(payload));
     expect(nextState.uiSchema).toContainEqual({
@@ -407,7 +407,7 @@ describe('SchemaEditorSlice', () => {
       path: '#/definitions/Kontaktperson',
     };
     const nextState = reducer(state, setTitle(payload));
-    const item: UiSchemaItem | undefined = nextState.uiSchema.find(
+    const item: IUiSchemaItem | undefined = nextState.uiSchema.find(
       (f) => f.path === '#/definitions/Kontaktperson',
     );
     expect(item?.title).toBe('test12312');
@@ -419,7 +419,7 @@ describe('SchemaEditorSlice', () => {
       path: '#/definitions/Kontaktperson',
     };
     const nextState = reducer(state, setDescription(payload));
-    const item: UiSchemaItem | undefined = nextState.uiSchema.find(
+    const item: IUiSchemaItem | undefined = nextState.uiSchema.find(
       (f) => f.path === '#/definitions/Kontaktperson',
     );
     expect(item?.description).toBe('descriptionasdsfsa');

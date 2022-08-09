@@ -5,13 +5,13 @@ import { mount, ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
 import SchemaEditor from './Editor';
 import { dataMock } from '../mockData';
-import { buildUISchema } from '../utils';
-import type { ILanguage, ISchemaState, UiSchemaItem } from '../types';
+import { buildUISchema } from '../utils/schemaUtils';
+import type { ILanguage, ISchemaState, IUiSchemaItem } from '../types';
 import reducer from '../features/editor/schemaEditorSlice';
 
 let mockStore: any = null;
 let mockInitialState: ISchemaState;
-let mockUiSchema: UiSchemaItem[];
+let mockUiSchema: IUiSchemaItem[];
 let mockLanguage: ILanguage;
 
 const mountComponent = () =>

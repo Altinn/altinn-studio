@@ -12,13 +12,13 @@ import SchemaInspector, {
   isPathOnDefinitionsRoot,
 } from './SchemaInspector';
 import { dataMock } from '../mockData';
-import { buildUISchema, resetUniqueNumber } from '../utils';
-import type { ISchemaState, UiSchemaItem } from '../types';
+import { buildUISchema, resetUniqueNumber } from '../utils/schemaUtils';
+import type { ISchemaState, IUiSchemaItem } from '../types';
 
 let mockStore: any = null;
 let mockInitialState: ISchemaState;
 let createStore: any;
-let mockUiSchema: UiSchemaItem[];
+let mockUiSchema: IUiSchemaItem[];
 
 const dispatchMock = () => Promise.resolve({});
 
@@ -475,7 +475,7 @@ test('dispatches correctly when adding fields', () => {
 });
 
 test('should not be possible to have two properties with the same name', () => {
-  const uiSchemaItems: UiSchemaItem[] = [
+  const uiSchemaItems: IUiSchemaItem[] = [
     {
       path: '#/definitions/name',
       type: 'object',

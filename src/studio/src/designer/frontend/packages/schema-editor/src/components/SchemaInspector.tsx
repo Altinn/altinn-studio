@@ -14,12 +14,12 @@ import type {
   Restriction,
   ILanguage,
   ISchemaState,
-  ObjectKind,
   FieldType,
-  UiSchemaItem,
+  IUiSchemaItem,
   CombinationKind,
 } from '../types';
-import { InputField } from './InputField';
+import { NameError, ObjectKind } from '../types/enums';
+import { PropertyItem } from './PropertyItem';
 import {
   setRestriction,
   setRestrictionKey,
@@ -41,21 +41,23 @@ import {
   addCombinationItem,
   deleteCombinationItem,
 } from '../features/editor/schemaEditorSlice';
-import { RefSelect } from './RefSelect';
 import {
   getDomFriendlyID,
   splitParentPathAndName,
-  getTranslation,
   getUiSchemaItem,
   combinationIsNullable,
   nullableType,
-} from '../utils';
+} from '../utils/schemaUtils';
+import { getTranslation } from '../utils/languageUtils';
 import { RestrictionField } from './RestrictionField';
 import { EnumField } from './EnumField';
 import { SchemaTab } from './SchemaTab';
 import InlineObject from './InlineObject';
 import { CombinationSelect } from './CombinationSelect';
 import { TypeSelect } from './TypeSelect';
+import { isNameInUse, isValidName } from '../utils/checksUtils';
+import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
+import { AddPropertyButton } from './AddPropertyButton';
 
 const useStyles = makeStyles(
   createStyles({
@@ -112,6 +114,9 @@ const useStyles = makeStyles(
         boxSizing: 'border-box',
       },
     },
+    fieldText: {
+      fontSize: '1.6rem',
+    },
     appBar: {
       border: 'none',
       boxShadow: 'none',
@@ -138,67 +143,6 @@ export interface ISchemaInspectorProps {
   language: ILanguage;
 }
 
-export const isValidName = (name: string) => {
-  return Boolean(name.match(/^[a-zA-ZæÆøØåÅ][a-zA-Z0-9_.\-æÆøØåÅ ]*$/));
-};
-
-type NameInUseProps = {
-  uiSchemaItems: UiSchemaItem[];
-  parentSchema: UiSchemaItem | null;
-  path: string;
-  name: string;
-};
-export const isNameInUse = ({
-  uiSchemaItems,
-  parentSchema,
-  path,
-  name,
-}: NameInUseProps) => {
-  // Check if the parent node has other children with the same name.
-  if (
-    parentSchema?.properties?.some(
-      (prop) => prop.displayName === name && prop.path !== path,
-    )
-  ) {
-    return true;
-  } else if (
-    isPathOnPropertiesRoot(path) &&
-    uiSchemaItems.some(
-      (schemaItem) =>
-        schemaItem.displayName === name && schemaItem.path !== path,
-    )
-  ) {
-    return true;
-  } else if (
-    isPathOnDefinitionsRoot(path) &&
-    uiSchemaItems.some(
-      (schemaItem) =>
-        schemaItem.displayName === name && schemaItem.path !== path,
-    )
-  ) {
-    return true;
-  }
-
-  return false;
-};
-
-export const isPathOnPropertiesRoot = (path: string) => {
-  const noOfMatches: number = (
-    (path || '').match(/^#\/properties\/[a-zæøåA-ZÆØÅ0-9]*$/) || []
-  ).length;
-  return noOfMatches === 1 ? true : false;
-};
-
-export const isPathOnDefinitionsRoot = (path: string) => {
-  const noOfDefinitionMatches: number = (
-    (path || '').match(/^#\/definitions\/[a-zæøåA-ZÆØÅ0-9]*$/) || []
-  ).length;
-  const noOfDefsMatches: number = (
-    (path || '').match(/^#\/\$defs\/[a-zæøåA-ZÆØÅ0-9]*$/) || []
-  ).length;
-  return noOfDefinitionMatches === 1 || noOfDefsMatches === 1 ? true : false;
-};
-
 const SchemaInspector = (props: ISchemaInspectorProps) => {
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -211,7 +155,7 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
   const [arrayType, setArrayType] = React.useState<
     FieldType | string | undefined
   >(undefined);
-  const [objectKind, setObjectKind] = React.useState<ObjectKind>('field');
+  const [objectKind, setObjectKind] = React.useState<ObjectKind>(ObjectKind.Field);
   const [isRequired, setIsRequired] = React.useState<boolean>(false);
   const [nameError, setNameError] = React.useState('');
   const selectedId = useSelector((state: ISchemaState) =>
@@ -244,7 +188,7 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
   // if item is a reference, we want to show the properties of the reference.
   const itemToDisplay = useSelector((state: ISchemaState) =>
     selectedItem?.$ref
-      ? state.uiSchema.find((i: UiSchemaItem) => i.path === selectedItem.$ref)
+      ? state.uiSchema.find((i: IUiSchemaItem) => i.path === selectedItem.$ref)
       : selectedItem,
   );
 
@@ -279,15 +223,15 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
         selectedItem.$ref !== undefined ||
         selectedItem.items?.$ref !== undefined
       ) {
-        setObjectKind('reference');
+        setObjectKind(ObjectKind.Reference);
       } else if (selectedItem.combination) {
-        setObjectKind('combination');
+        setObjectKind(ObjectKind.Combination);
       } else {
-        setObjectKind('field');
+        setObjectKind(ObjectKind.Field);
       }
     } else {
       setIsRequired(false);
-      setObjectKind('field');
+      setObjectKind(ObjectKind.Field);
       setTabIndex('0');
     }
   }, [selectedItem, parentItem, tabIndex, itemToDisplay]);
@@ -301,7 +245,6 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
   const onChangeValue = (path: string, value: any, key: string) => {
     const data = {
       path,
-      // eslint-disable-next-line no-restricted-globals
       value: isNaN(value) ? value : +value,
       key,
     };
@@ -329,7 +272,7 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
     );
   };
 
-  const onChangPropertyName = (path: string, value: string) => {
+  const onChangePropertyName = (path: string, value: string) => {
     dispatch(
       setPropertyName({
         path,
@@ -359,7 +302,7 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
         name: nodeName,
       })
     ) {
-      setNameError('Name already in use');
+      setNameError(NameError.AlreadyInUse);
       return;
     }
 
@@ -421,6 +364,10 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
     }
   };
 
+  const onRestrictionReturn = (e: any) => {
+    onAddRestrictionClick(e);
+  };
+
   const onAddEnumButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     if (itemToDisplay) {
@@ -444,111 +391,6 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
     );
   };
 
-  const renderReferenceSelection = () => {
-    if (selectedItem && objectKind === 'reference') {
-      return (
-        <div>
-          <p className={classes.header}>
-            {getTranslation('reference_to', props.language)}
-          </p>
-          {selectedItem.type === 'array' ? (
-            <RefSelect
-              id={selectedItem.path}
-              value={arrayType ?? ''}
-              onChange={onChangeArrayType}
-              fullWidth={true}
-            />
-          ) : (
-            <RefSelect
-              id={selectedItem.path}
-              value={selectedItem.$ref ?? ''}
-              onChange={onChangeRef}
-              fullWidth={true}
-            />
-          )}
-          <button
-            type='button'
-            className={classes.navButton}
-            onClick={onGoToDefButtonClick}
-          >
-            {getTranslation('go_to_type', props.language)}
-          </button>
-        </div>
-      );
-    }
-    return null;
-  };
-
-  const renderAddPropertyButton = () => (
-    <IconButton
-      id='add-property-button'
-      aria-label='Add reference'
-      onClick={onAddPropertyClicked}
-    >
-      <i className='fa fa-plus' />
-      {getTranslation('add_property', props.language)}
-    </IconButton>
-  );
-
-  const renderItemProperties = (item: UiSchemaItem) =>
-    item.properties?.map((p: UiSchemaItem) => {
-      return (
-        <InputField
-          language={props.language}
-          key={p.path}
-          required={item.required?.includes(p.displayName)}
-          readOnly={readOnly}
-          value={p.displayName}
-          fullPath={p.path}
-          onChangeValue={onChangPropertyName}
-          onDeleteField={onDeleteObjectClick}
-        />
-      );
-    });
-
-  const onRestrictionReturn = (e: any) => {
-    onAddRestrictionClick(e);
-  };
-  const renderItemRestrictions = (item: UiSchemaItem) =>
-    item.restrictions?.map((field: Restriction) => {
-      if (field.key && field.key.startsWith('@')) {
-        return null;
-      }
-      return (
-        <RestrictionField
-          key={field.key}
-          language={props.language}
-          type={itemToDisplay?.type}
-          value={field.value}
-          keyName={field.key}
-          readOnly={readOnly}
-          path={item.path}
-          onChangeValue={onChangeValue}
-          onChangeKey={onChangeKey}
-          onDeleteField={onDeleteFieldClick}
-          onReturn={onRestrictionReturn}
-        />
-      );
-    });
-
-  const renderEnums = (item: UiSchemaItem) => {
-    return item.enum?.map((value: string) => (
-      <EnumField
-        key={value}
-        language={props.language}
-        path={item.path}
-        fullWidth={true}
-        value={value}
-        onChange={onChangeEnumValue}
-        onDelete={onDeleteEnumClick}
-      />
-    ));
-  };
-
-  const handleTabChange = (event: any, newValue: string) => {
-    setTabIndex(newValue);
-  };
-
   const onChangeType = (type: FieldType) => {
     if (selectedItem) {
       dispatch(
@@ -568,7 +410,7 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
       if (type === undefined) {
         items = undefined;
       } else {
-        items = objectKind === 'field' ? { type } : { $ref: type };
+        items = objectKind === ObjectKind.Field ? { type } : { $ref: type };
       }
       dispatch(
         setItems({
@@ -610,11 +452,11 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
 
     if (checked) {
       const type =
-        objectKind === 'reference' ? selectedItem.$ref : selectedItem.type;
+        objectKind === ObjectKind.Reference ? selectedItem.$ref : selectedItem.type;
       onChangeArrayType(type);
       onChangeType('array');
     } else {
-      if (objectKind === 'reference') {
+      if (objectKind === ObjectKind.Reference) {
         onChangeRef(selectedItem.path, arrayType || '');
       } else {
         onChangeType(arrayType as FieldType);
@@ -640,10 +482,69 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
     const name: string = e.target.value;
     setNodeName(name);
     if (!isValidName(name)) {
-      setNameError('Invalid character in name');
+      setNameError(NameError.InvalidCharacter);
     } else {
-      setNameError('');
+      setNameError(NameError.NoError);
     }
+  };
+
+  const renderItemProperties = (item: IUiSchemaItem) =>{
+    if (!item.properties) return null;
+
+    return item.properties.map((p: IUiSchemaItem) => {
+      return (
+        <PropertyItem
+          language={props.language}
+          key={p.path}
+          required={item.required?.includes(p.displayName)}
+          readOnly={readOnly}
+          value={p.displayName}
+          fullPath={p.path}
+          onChangeValue={onChangePropertyName}
+          onDeleteField={onDeleteObjectClick}
+        />
+      );
+    });
+  }
+
+  const renderItemRestrictions = (item: IUiSchemaItem) =>
+    item.restrictions?.map((field: Restriction) => {
+      if (field.key && field.key.startsWith('@')) {
+        return null;
+      }
+      return (
+        <RestrictionField
+          key={field.key}
+          language={props.language}
+          type={itemToDisplay?.type}
+          value={field.value}
+          keyName={field.key}
+          readOnly={readOnly}
+          path={item.path}
+          onChangeValue={onChangeValue}
+          onChangeKey={onChangeKey}
+          onDeleteField={onDeleteFieldClick}
+          onReturn={onRestrictionReturn}
+        />
+      );
+    });
+
+  const renderEnums = (item: IUiSchemaItem) => {
+    return item.enum?.map((value: string) => (
+      <EnumField
+        key={value}
+        language={props.language}
+        path={item.path}
+        fullWidth={true}
+        value={value}
+        onChange={onChangeEnumValue}
+        onDelete={onDeleteEnumClick}
+      />
+    ));
+  };
+
+  const handleTabChange = (event: any, newValue: string) => {
+    setTabIndex(newValue);
   };
 
   const renderItemData = () => (
@@ -661,16 +562,17 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
             fullWidth={true}
             value={nodeName}
             error={!!nameError}
-            helperText={nameError}
+            helperText={getTranslation(nameError, props.language)}
             onChange={onNameChange}
             onBlur={onChangeNodeName}
             InputProps={{
               disableUnderline: true,
+              classes: {root: classes.fieldText}
             }}
           />
         </>
       )}
-      {selectedItem && objectKind === 'field' && (
+      {selectedItem && objectKind === ObjectKind.Field && (
         <>
           <p className={classes.header}>
             {getTranslation('type', props.language)}
@@ -685,8 +587,17 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
           />
         </>
       )}
-      {renderReferenceSelection()}
-      {(objectKind === 'reference' || objectKind === 'field') && (
+      <ReferenceSelectionComponent
+        arrayType={arrayType}
+        classes={classes}
+        selectedItem={selectedItem}
+        objectKind={objectKind}
+        language={props.language}
+        onChangeArrayType={onChangeArrayType}
+        onChangeRef={onChangeRef}
+        onGoToDefButtonClick={onGoToDefButtonClick}
+      />
+      {(objectKind === ObjectKind.Reference || objectKind === ObjectKind.Field) && (
         <FormControlLabel
           id='multiple-answers-checkbox'
           className={classes.header}
@@ -701,7 +612,7 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
           label={getTranslation('multiple_answers', props.language)}
         />
       )}
-      {objectKind === 'combination' && (
+      {objectKind === ObjectKind.Combination && (
         <>
           <p className={classes.header}>
             {getTranslation('type', props.language)}
@@ -716,7 +627,7 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
           />
         </>
       )}
-      {objectKind === 'combination' && (
+      {objectKind === ObjectKind.Combination && (
         <FormControlLabel
           id='multiple-answers-checkbox'
           className={classes.header}
@@ -748,6 +659,7 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
         onBlur={onChangeTitle}
         InputProps={{
           disableUnderline: true,
+          classes: {root: classes.fieldText}
         }}
       />
       <p className={classes.header}>
@@ -765,6 +677,7 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
         onBlur={onChangeDescription}
         InputProps={{
           disableUnderline: true,
+          classes: {root: classes.fieldText}
         }}
       />
     </div>
@@ -792,7 +705,7 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
               language={props.language}
               value='1'
               hide={
-                objectKind === 'combination' || selectedItem?.combinationItem
+                objectKind === ObjectKind.Combination || selectedItem?.combinationItem
               }
             />
             <SchemaTab
@@ -871,7 +784,12 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
           <Grid container spacing={3} className={classes.gridContainer}>
             {itemToDisplay && renderItemProperties(itemToDisplay)}
           </Grid>
-          {!readOnly && renderAddPropertyButton()}
+          {!readOnly &&
+            <AddPropertyButton
+              onAddPropertyClick={onAddPropertyClicked}
+              language={props.language}
+            />
+          }
         </TabPanel>
       </TabContext>
     </div>

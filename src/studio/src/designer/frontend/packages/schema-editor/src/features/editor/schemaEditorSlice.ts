@@ -6,13 +6,13 @@ import {
   getUiSchemaItem,
   getUniqueNumber,
   mapCombinationChildren,
-} from '../../utils';
+} from '../../utils/schemaUtils';
 import type {
   CombinationKind,
   FieldType,
   ISchema,
   ISchemaState,
-  UiSchemaItem,
+  IUiSchemaItem,
 } from '../../types';
 
 export const initialState: ISchemaState = {
@@ -26,7 +26,7 @@ export const initialState: ISchemaState = {
   selectedEditorTab: 'properties',
 };
 
-const updateChildPaths = (item: UiSchemaItem, parentId: string) => {
+const updateChildPaths = (item: IUiSchemaItem, parentId: string) => {
   item.path = `${parentId}/properties/${item.displayName}`;
   if (item.properties) {
     item.properties.forEach((p) => updateChildPaths(p, item.path));
@@ -84,7 +84,7 @@ const schemaEditorSlice = createSlice({
       action: PayloadAction<{
         location: string;
         name: string;
-        props: Partial<UiSchemaItem>;
+        props: Partial<IUiSchemaItem>;
       }>,
     ) {
       const { location, name, props } = action.payload;
@@ -116,12 +116,12 @@ const schemaEditorSlice = createSlice({
       action: PayloadAction<{
         path: string;
         keepSelection?: boolean;
-        props?: Partial<UiSchemaItem>;
+        props?: Partial<IUiSchemaItem>;
       }>,
     ) {
       const { path, keepSelection, props } = action.payload;
       const addToItem = getUiSchemaItem(state.uiSchema, path);
-      const item: UiSchemaItem = {
+      const item: IUiSchemaItem = {
         ...props,
         path: `${path}/properties/name`,
         displayName: 'name',
@@ -179,7 +179,7 @@ const schemaEditorSlice = createSlice({
       state.uiSchema.push(copy);
 
       // create ref pointing to the new item
-      const ref: UiSchemaItem = {
+      const ref: IUiSchemaItem = {
         path,
         $ref: copy.path,
         displayName: item.displayName,
@@ -198,7 +198,7 @@ const schemaEditorSlice = createSlice({
       } else {
         // if this is a root property, we can just create a new rooot item with ref
         const rootIndex = state.uiSchema.findIndex(
-          (e: UiSchemaItem) => e.path === path,
+          (e: IUiSchemaItem) => e.path === path,
         ); // remove original item
         if (rootIndex >= 0) {
           state.uiSchema.splice(rootIndex, 1);
@@ -233,7 +233,7 @@ const schemaEditorSlice = createSlice({
       // delete root property / definition
       // if this is a definition, we need to find all references to this definition, and remove them (?)
       const rootIndex = state.uiSchema.findIndex(
-        (e: UiSchemaItem) => e.path === path,
+        (e: IUiSchemaItem) => e.path === path,
       );
       if (rootIndex >= 0) {
         state.uiSchema.splice(rootIndex, 1);
@@ -381,11 +381,11 @@ const schemaEditorSlice = createSlice({
     },
     addCombinationItem(
       state,
-      action: PayloadAction<{ path: string; props: Partial<UiSchemaItem> }>,
+      action: PayloadAction<{ path: string; props: Partial<IUiSchemaItem> }>,
     ) {
       const { path, props } = action.payload;
       const addToItem = getUiSchemaItem(state.uiSchema, path);
-      const item: UiSchemaItem = {
+      const item: IUiSchemaItem = {
         ...props,
         displayName: props.$ref !== undefined ? 'ref' : 'Inline object',
         path: `${path}/${addToItem.combinationKind}/${addToItem.combination?.length}`,

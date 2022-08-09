@@ -1,6 +1,18 @@
+/** Interfaces */
+export interface ILanguage {
+  [key: string]: string | ILanguage;
+}
+
+export interface ISchema {
+  properties: { [key: string]: { [key: string]: any } };
+  definitions: { [key: string]: { [key: string]: any } };
+  $schema?: string;
+  $id?: string;
+}
+
 export interface ISchemaState {
   schema: ISchema;
-  uiSchema: UiSchemaItem[];
+  uiSchema: IUiSchemaItem[];
   name: string;
   saveSchemaUrl: string;
   selectedDefinitionNodeId: string;
@@ -9,9 +21,27 @@ export interface ISchemaState {
   navigate?: string; // used to trigger navigation in tree, the value is not used.
   selectedEditorTab: 'definitions' | 'properties';
 }
-export interface ILanguage {
-  [key: string]: string | ILanguage;
+
+export interface IUiSchemaItem {
+  path: string;
+  type?: FieldType;
+  $ref?: string;
+  restrictions?: Restriction[];
+  properties?: IUiSchemaItem[];
+  value?: any;
+  displayName: string;
+  required?: string[];
+  title?: string;
+  description?: string;
+  items?: { type?: string; $ref?: string };
+  enum?: string[];
+  combination?: IUiSchemaItem[];
+  combinationKind?: CombinationKind;
+  combinationItem?: boolean;
 }
+
+/** Types */
+export type CombinationKind = 'allOf' | 'anyOf' | 'oneOf';
 
 export type FieldType =
   | 'string'
@@ -22,36 +52,15 @@ export type FieldType =
   | 'array'
   | 'null';
 
-export type ObjectKind = 'combination' | 'reference' | 'field';
-
-export type CombinationKind = 'allOf' | 'anyOf' | 'oneOf';
+export type NameInUseProps = {
+  uiSchemaItems: IUiSchemaItem[];
+  parentSchema: IUiSchemaItem | null;
+  path: string;
+  name: string;
+};
 
 export type Restriction = {
   key: string;
   value: any;
 };
 
-export interface UiSchemaItem {
-  path: string;
-  type?: FieldType;
-  $ref?: string;
-  restrictions?: Restriction[];
-  properties?: UiSchemaItem[];
-  value?: any;
-  displayName: string;
-  required?: string[];
-  title?: string;
-  description?: string;
-  items?: { type?: string; $ref?: string };
-  enum?: string[];
-  combination?: UiSchemaItem[];
-  combinationKind?: CombinationKind;
-  combinationItem?: boolean;
-}
-
-export interface ISchema {
-  properties: { [key: string]: { [key: string]: any } };
-  definitions: { [key: string]: { [key: string]: any } };
-  $schema?: string;
-  $id?: string;
-}

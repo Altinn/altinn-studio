@@ -8,7 +8,8 @@ import {
 } from '@material-ui/core';
 import { DeleteOutline } from '@material-ui/icons';
 import { Autocomplete } from '@material-ui/lab';
-import { getDomFriendlyID, getRestrictions, getTranslation } from '../utils';
+import { getTranslation } from '../utils/languageUtils';
+import { getDomFriendlyID, getRestrictions } from '../utils/schemaUtils';
 import type { ILanguage } from '../types';
 
 export interface IRestrictionFieldProps {

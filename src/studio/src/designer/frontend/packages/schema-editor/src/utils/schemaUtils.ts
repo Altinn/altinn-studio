@@ -1,7 +1,7 @@
-import type { CombinationKind, ILanguage, UiSchemaItem } from './types';
+import type { CombinationKind, IUiSchemaItem } from '../types';
 import JsonPointer from 'jsonpointer';
 
-function flat(input: UiSchemaItem[] | undefined, depth = 1, stack: UiSchemaItem[] = []) {
+function flat(input: IUiSchemaItem[] | undefined, depth = 1, stack: IUiSchemaItem[] = []) {
   if (input) {
     for (const item of input) {
       stack.push(item);
@@ -16,7 +16,7 @@ function flat(input: UiSchemaItem[] | undefined, depth = 1, stack: UiSchemaItem[
   return stack;
 }
 
-export function getUiSchemaItem(schema: UiSchemaItem[], path: string): UiSchemaItem {
+export function getUiSchemaItem(schema: IUiSchemaItem[], path: string): IUiSchemaItem {
   const matches = schema.filter((s) => path.includes(s.path));
   if (matches.length === 1 && matches[0].path === path) {
     return matches[0];
@@ -62,11 +62,11 @@ export const splitParentPathAndName = (path: string): [string | null, string | n
 };
 
 export function getUiSchemaTreeFromItem(
-  schema: UiSchemaItem[],
-  item: UiSchemaItem,
+  schema: IUiSchemaItem[],
+  item: IUiSchemaItem,
   isProperty?: boolean,
-): UiSchemaItem[] {
-  let itemList: UiSchemaItem[] = [];
+): IUiSchemaItem[] {
+  let itemList: IUiSchemaItem[] = [];
   if (!isProperty) {
     itemList.push(item);
   }
@@ -88,7 +88,7 @@ export function getUiSchemaTreeFromItem(
   return itemList;
 }
 
-export function buildJsonSchema(uiSchema: UiSchemaItem[]): any {
+export function buildJsonSchema(uiSchema: IUiSchemaItem[]): any {
   const result: any = {};
   uiSchema.forEach((uiItem) => {
     const item = createJsonSchemaItem(uiItem);
@@ -98,13 +98,13 @@ export function buildJsonSchema(uiSchema: UiSchemaItem[]): any {
   return result;
 }
 
-export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
+export function createJsonSchemaItem(uiSchemaItem: IUiSchemaItem | any): any {
   let item: any = {};
   Object.keys(uiSchemaItem).forEach((key) => {
     switch (key) {
       case 'properties': {
         item.properties = {};
-        uiSchemaItem.properties?.forEach((property: UiSchemaItem) => {
+        uiSchemaItem.properties?.forEach((property: IUiSchemaItem) => {
           item.properties[property.displayName] = createJsonSchemaItem(property);
         });
         break;
@@ -127,7 +127,7 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
         if (uiSchemaItem[key]?.length) {
           const combinationKind = uiSchemaItem.combinationKind;
           item[combinationKind] = [];
-          uiSchemaItem[key]?.forEach((property: UiSchemaItem) => {
+          uiSchemaItem[key]?.forEach((property: IUiSchemaItem) => {
             item[combinationKind].push(createJsonSchemaItem(property));
           });
         }
@@ -146,8 +146,8 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
   return item;
 }
 
-export function buildUISchema(schema: any, rootPath: string, includeDisplayName = true): UiSchemaItem[] {
-  const result: UiSchemaItem[] = [];
+export function buildUISchema(schema: any, rootPath: string, includeDisplayName = true): IUiSchemaItem[] {
+  const result: IUiSchemaItem[] = [];
   if (typeof schema !== 'object') {
     result.push({
       path: rootPath,
@@ -216,7 +216,7 @@ export const mapJsonSchemaCombinationToUiSchemaItem = (item: { [id: string]: any
     return null;
   }
   const combination = item[combinationKind]?.map(
-    (child: UiSchemaItem, index: number) => mapCombinationItemTypeToUiSchemaItem(
+    (child: IUiSchemaItem, index: number) => mapCombinationItemTypeToUiSchemaItem(
       child, index, combinationKind, parentPath,
     ),
   );
@@ -227,7 +227,7 @@ export const mapJsonSchemaCombinationToUiSchemaItem = (item: { [id: string]: any
 };
 
 export const mapCombinationItemTypeToUiSchemaItem = (
-  item: UiSchemaItem, index: number, key: CombinationKind, parentPath: string,
+  item: IUiSchemaItem, index: number, key: CombinationKind, parentPath: string,
 ) => {
   return {
     ...item,
@@ -237,13 +237,13 @@ export const mapCombinationItemTypeToUiSchemaItem = (
   };
 };
 
-export const nullableType = (item: UiSchemaItem) => item.type?.toLowerCase() === 'null';
+export const nullableType = (item: IUiSchemaItem) => item.type?.toLowerCase() === 'null';
 
-export const combinationIsNullable = (item?: UiSchemaItem | null): boolean => {
+export const combinationIsNullable = (item?: IUiSchemaItem | null): boolean => {
   return !!(item?.combination?.some(nullableType));
 };
 
-export const mapCombinationChildren = (children: UiSchemaItem[], toType: CombinationKind): UiSchemaItem[] => {
+export const mapCombinationChildren = (children: IUiSchemaItem[], toType: CombinationKind): IUiSchemaItem[] => {
   // example case, going from oneOf to allOf
   // example input: #/definitions/allOfTest/allOf/1/something/properties/oneOfTest/oneOf/0
   // example output: #/definitions/allOfTest/allOf/1/something/properties/oneOfTest/allOf/0
@@ -259,7 +259,7 @@ export const mapCombinationChildren = (children: UiSchemaItem[], toType: Combina
 };
 
 export const buildUiSchemaForItemWithProperties = (schema: { [key: string]: { [key: string]: any } },
-  name: string, displayName?: string): UiSchemaItem => {
+  name: string, displayName?: string): IUiSchemaItem => {
   const rootProperties: any[] = [];
 
   Object.keys(schema.properties).forEach((key) => {
@@ -269,7 +269,7 @@ export const buildUiSchemaForItemWithProperties = (schema: { [key: string]: { [k
       type, title, description, properties, enum: enums, items, oneOf, allOf, anyOf, ...restrictions
     } = currentProperty;
     const path = `${name}/properties/${key}`;
-    const item: UiSchemaItem = {
+    const item: IUiSchemaItem = {
       path,
       displayName: key,
       type,
@@ -312,18 +312,6 @@ export const buildUiSchemaForItemWithProperties = (schema: { [key: string]: { [k
 };
 
 export const getDomFriendlyID = (id: string) => id.replace(/\//g, '').replace('#', '');
-
-export const getTranslation = (key: string, language: ILanguage) => {
-  if (!key) {
-    return key;
-  }
-  const string = `schema_editor.${key}`;
-  return getNestedObject(language, string.split('.')) ?? key;
-};
-
-const getNestedObject = (nestedObj: any, pathArr: string[]) => {
-  return pathArr.reduce((obj, key) => ((obj && obj[key] !== 'undefined') ? obj[key] : undefined), nestedObj);
-};
 
 const stringRestrictions = ['minLength', 'maxLength', 'pattern', 'format'];
 const integerRestrictions = ['minimum', 'exclusiveminimum', 'maximum', 'exclusivemaximum'];

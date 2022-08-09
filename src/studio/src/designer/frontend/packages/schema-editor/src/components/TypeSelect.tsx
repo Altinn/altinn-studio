@@ -1,7 +1,7 @@
 import { MenuItem } from '@material-ui/core';
 import React from 'react';
 import type { FieldType, ILanguage } from '../types';
-import { getTranslation } from '../utils';
+import { getTranslation } from '../utils/languageUtils';
 import { StyledSelect } from './StyledSelect';
 
 export interface IFieldTypeSelect {

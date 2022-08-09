@@ -11,12 +11,13 @@ import {
   promoteProperty,
   setSelectedId,
 } from '../features/editor/schemaEditorSlice';
-import type { ILanguage, ISchemaState, ObjectKind, UiSchemaItem } from '../types';
+import type { ILanguage, ISchemaState, IUiSchemaItem } from '../types';
+import { ObjectKind } from '../types/enums';
 import { SchemaItemLabel } from './SchemaItemLabel';
-import { getDomFriendlyID } from '../utils';
+import { getDomFriendlyID } from '../utils/schemaUtils';
 
 type SchemaItemProps = TreeItemProps & {
-  item: UiSchemaItem;
+  item: IUiSchemaItem;
   keyPrefix: string;
   language: ILanguage;
   isPropertiesView?: boolean;
@@ -102,7 +103,7 @@ const useStyles = (isRef: boolean) =>
     },
   });
 
-const getRefItem = (schema: any[], path: string | undefined): UiSchemaItem => {
+const getRefItem = (schema: any[], path: string | undefined): IUiSchemaItem => {
   return schema.find((item) => item.path === path);
 };
 
@@ -113,8 +114,8 @@ function SchemaItem(props: SchemaItemProps) {
     item.$ref !== undefined || item.items?.$ref !== undefined,
   )();
 
-  const [itemToDisplay, setItemToDisplay] = React.useState<UiSchemaItem>(item);
-  const refItem: UiSchemaItem | undefined = useSelector(
+  const [itemToDisplay, setItemToDisplay] = React.useState<IUiSchemaItem>(item);
+  const refItem: IUiSchemaItem | undefined = useSelector(
     (state: ISchemaState) => {
       if (item.$ref) {
         return getRefItem(state.uiSchema, item.$ref);
@@ -130,13 +131,13 @@ function SchemaItem(props: SchemaItemProps) {
     setItemToDisplay(item);
   }, [item.restrictions, item, refItem]);
 
-  const onItemClick = (e: any, schemaItem: UiSchemaItem) => {
+  const onItemClick = (e: any, schemaItem: IUiSchemaItem) => {
     e.preventDefault();
     dispatch(setSelectedId({ id: schemaItem.path }));
   };
 
-  const renderProperties = (itemProperties: UiSchemaItem[]) =>
-    itemProperties.map((property: UiSchemaItem) => {
+  const renderProperties = (itemProperties: IUiSchemaItem[]) =>
+    itemProperties.map((property: IUiSchemaItem) => {
       return (
         <SchemaItem
           keyPrefix={`${keyPrefix}-properties`}
@@ -164,11 +165,11 @@ function SchemaItem(props: SchemaItemProps) {
   const handleAddProperty = (type: ObjectKind) => {
     const path = itemToDisplay.path;
     const propertyProps = {
-      type: type === 'field' ? 'object' : undefined,
-      $ref: type === 'reference' ? '' : undefined,
-      combination: type === 'combination' ? [] : undefined,
-      combinationKind: type === 'combination' ? 'allOf' : undefined,
-    } as UiSchemaItem;
+      type: type === ObjectKind.Field ? 'object' : undefined,
+      $ref: type === ObjectKind.Reference ? '' : undefined,
+      combination: type === ObjectKind.Combination ? [] : undefined,
+      combinationKind: type === ObjectKind.Combination ? 'allOf' : undefined,
+    } as IUiSchemaItem;
 
     if (itemToDisplay.combination) {
       dispatch(
