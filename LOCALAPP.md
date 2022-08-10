@@ -8,7 +8,7 @@ These are some of the required steps, tips and tricks when it comes to running a
 
 ### Prerequisites
 
-1. Newest [.NET 5 SDK](https://dotnet.microsoft.com/download/dotnet/5.0)
+1. Newest [.NET 6 SDK](https://dotnet.microsoft.com/download/dotnet/6.0)
 2. Newest [Git](https://git-scm.com/downloads)
 3. A code editor - we like [Visual Studio Code](https://code.visualstudio.com/Download)
     - Also install [recommended extensions](https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions) (f.ex. [C#](https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp))
