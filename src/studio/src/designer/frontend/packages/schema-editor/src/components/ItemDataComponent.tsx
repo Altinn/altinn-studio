@@ -2,7 +2,7 @@ import { Checkbox, FormControlLabel, TextField } from '@material-ui/core';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { CombinationKind, FieldType, ILanguage, ISchemaState, IUiSchemaItem } from '../types';
+import { CombinationKind, FieldType, ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { NameError, ObjectKind } from '../types/enums';
 import { isValidName } from '../utils/checks';
 import { getTranslation } from '../utils/language';
@@ -24,8 +24,8 @@ import { CombinationSelect } from './CombinationSelect';
 
 export interface IItemDataComponentProps {
   selectedId: string;
-  selectedItem: IUiSchemaItem | null;
-  parentItem: IUiSchemaItem | null;
+  selectedItem: UiSchemaItem | null;
+  parentItem: UiSchemaItem | null;
   objectKind: ObjectKind;
   language: ILanguage;
   checkIsNameInUse: (name: string) => boolean;

@@ -1,7 +1,7 @@
-import type { CombinationKind, IUiSchemaItem } from '../types';
+import type { CombinationKind, UiSchemaItem } from '../types';
 import JsonPointer from 'jsonpointer';
 
-function flat(input: IUiSchemaItem[] | undefined, depth = 1, stack: IUiSchemaItem[] = []) {
+function flat(input: UiSchemaItem[] | undefined, depth = 1, stack: UiSchemaItem[] = []) {
   if (input) {
     for (const item of input) {
       stack.push(item);
@@ -16,7 +16,7 @@ function flat(input: IUiSchemaItem[] | undefined, depth = 1, stack: IUiSchemaIte
   return stack;
 }
 
-export function getUiSchemaItem(schema: IUiSchemaItem[], path: string): IUiSchemaItem {
+export function getUiSchemaItem(schema: UiSchemaItem[], path: string): UiSchemaItem {
   const matches = schema.filter((s) => path.includes(s.path));
   if (matches.length === 1 && matches[0].path === path) {
     return matches[0];
@@ -62,11 +62,11 @@ export const splitParentPathAndName = (path: string): [string | null, string | n
 };
 
 export function getUiSchemaTreeFromItem(
-  schema: IUiSchemaItem[],
-  item: IUiSchemaItem,
+  schema: UiSchemaItem[],
+  item: UiSchemaItem,
   isProperty?: boolean,
-): IUiSchemaItem[] {
-  let itemList: IUiSchemaItem[] = [];
+): UiSchemaItem[] {
+  let itemList: UiSchemaItem[] = [];
   if (!isProperty) {
     itemList.push(item);
   }
@@ -88,7 +88,7 @@ export function getUiSchemaTreeFromItem(
   return itemList;
 }
 
-export function buildJsonSchema(uiSchema: IUiSchemaItem[]): any {
+export function buildJsonSchema(uiSchema: UiSchemaItem[]): any {
   const result: any = {};
   uiSchema.forEach((uiItem) => {
     const item = createJsonSchemaItem(uiItem);
@@ -98,13 +98,13 @@ export function buildJsonSchema(uiSchema: IUiSchemaItem[]): any {
   return result;
 }
 
-export function createJsonSchemaItem(uiSchemaItem: IUiSchemaItem | any): any {
+export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
   let item: any = {};
   Object.keys(uiSchemaItem).forEach((key) => {
     switch (key) {
       case 'properties': {
         item.properties = {};
-        uiSchemaItem.properties?.forEach((property: IUiSchemaItem) => {
+        uiSchemaItem.properties?.forEach((property: UiSchemaItem) => {
           item.properties[property.displayName] = createJsonSchemaItem(property);
         });
         break;
@@ -127,7 +127,7 @@ export function createJsonSchemaItem(uiSchemaItem: IUiSchemaItem | any): any {
         if (uiSchemaItem[key]?.length) {
           const combinationKind = uiSchemaItem.combinationKind;
           item[combinationKind] = [];
-          uiSchemaItem[key]?.forEach((property: IUiSchemaItem) => {
+          uiSchemaItem[key]?.forEach((property: UiSchemaItem) => {
             item[combinationKind].push(createJsonSchemaItem(property));
           });
         }
@@ -146,8 +146,8 @@ export function createJsonSchemaItem(uiSchemaItem: IUiSchemaItem | any): any {
   return item;
 }
 
-export function buildUISchema(schema: any, rootPath: string, includeDisplayName = true): IUiSchemaItem[] {
-  const result: IUiSchemaItem[] = [];
+export function buildUISchema(schema: any, rootPath: string, includeDisplayName = true): UiSchemaItem[] {
+  const result: UiSchemaItem[] = [];
   if (typeof schema !== 'object') {
     result.push({
       path: rootPath,
@@ -216,7 +216,7 @@ export const mapJsonSchemaCombinationToUiSchemaItem = (item: { [id: string]: any
     return null;
   }
   const combination = item[combinationKind]?.map(
-    (child: IUiSchemaItem, index: number) => mapCombinationItemTypeToUiSchemaItem(
+    (child: UiSchemaItem, index: number) => mapCombinationItemTypeToUiSchemaItem(
       child, index, combinationKind, parentPath,
     ),
   );
@@ -227,7 +227,7 @@ export const mapJsonSchemaCombinationToUiSchemaItem = (item: { [id: string]: any
 };
 
 export const mapCombinationItemTypeToUiSchemaItem = (
-  item: IUiSchemaItem, index: number, key: CombinationKind, parentPath: string,
+  item: UiSchemaItem, index: number, key: CombinationKind, parentPath: string,
 ) => {
   return {
     ...item,
@@ -237,13 +237,13 @@ export const mapCombinationItemTypeToUiSchemaItem = (
   };
 };
 
-export const nullableType = (item: IUiSchemaItem) => item.type?.toLowerCase() === 'null';
+export const nullableType = (item: UiSchemaItem) => item.type?.toLowerCase() === 'null';
 
-export const combinationIsNullable = (item?: IUiSchemaItem | null): boolean => {
+export const combinationIsNullable = (item?: UiSchemaItem | null): boolean => {
   return !!(item?.combination?.some(nullableType));
 };
 
-export const mapCombinationChildren = (children: IUiSchemaItem[], toType: CombinationKind): IUiSchemaItem[] => {
+export const mapCombinationChildren = (children: UiSchemaItem[], toType: CombinationKind): UiSchemaItem[] => {
   // example case, going from oneOf to allOf
   // example input: #/definitions/allOfTest/allOf/1/something/properties/oneOfTest/oneOf/0
   // example output: #/definitions/allOfTest/allOf/1/something/properties/oneOfTest/allOf/0
@@ -259,7 +259,7 @@ export const mapCombinationChildren = (children: IUiSchemaItem[], toType: Combin
 };
 
 export const buildUiSchemaForItemWithProperties = (schema: { [key: string]: { [key: string]: any } },
-  name: string, displayName?: string): IUiSchemaItem => {
+  name: string, displayName?: string): UiSchemaItem => {
   const rootProperties: any[] = [];
 
   Object.keys(schema.properties).forEach((key) => {
@@ -269,7 +269,7 @@ export const buildUiSchemaForItemWithProperties = (schema: { [key: string]: { [k
       type, title, description, properties, enum: enums, items, oneOf, allOf, anyOf, ...restrictions
     } = currentProperty;
     const path = `${name}/properties/${key}`;
-    const item: IUiSchemaItem = {
+    const item: UiSchemaItem = {
       path,
       displayName: key,
       type,

@@ -1,4 +1,4 @@
-import { IUiSchemaItem, NameInUseProps } from "../types";
+import { UiSchemaItem, NameInUseProps } from "../types";
 
 export const isValidName = (name: string) => {
   return Boolean(name.match(/^[a-zA-ZæÆøØåÅ][a-zA-Z0-9_.\-æÆøØåÅ ]*$/));
@@ -55,6 +55,6 @@ export const isPathOnDefinitionsRoot = (path: string) => {
   return noOfDefinitionMatches === 1 || noOfDefsMatches === 1 ? true : false;
 };
 
-export const isFieldRequired = (parentItem: IUiSchemaItem | null, selectedItem: IUiSchemaItem): boolean => {
+export const isFieldRequired = (parentItem: UiSchemaItem | null, selectedItem: UiSchemaItem): boolean => {
   return parentItem?.required?.includes(selectedItem?.displayName) ?? false
 }

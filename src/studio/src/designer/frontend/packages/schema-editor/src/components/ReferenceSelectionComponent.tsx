@@ -1,6 +1,6 @@
 import { ClassNameMap } from '@material-ui/core/styles/withStyles';
 import * as React from 'react';
-import type { ILanguage, IUiSchemaItem, FieldType } from '../types';
+import type { ILanguage, UiSchemaItem, FieldType } from '../types';
 import { ObjectKind } from '../types/enums';
 import { getTranslation } from '../utils/language';
 import { RefSelect } from './RefSelect';
@@ -8,7 +8,7 @@ import { RefSelect } from './RefSelect';
 export interface IReferenceSelectionProps {
   arrayType: string | FieldType | undefined;
   classes: ClassNameMap;
-  selectedItem: IUiSchemaItem | null;
+  selectedItem: UiSchemaItem | null;
   objectKind: ObjectKind;
   language: ILanguage;
   onChangeArrayType: (type: string | FieldType | undefined) => void;

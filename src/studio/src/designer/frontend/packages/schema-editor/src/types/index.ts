@@ -12,7 +12,7 @@ export interface ISchema {
 
 export interface ISchemaState {
   schema: ISchema;
-  uiSchema: IUiSchemaItem[];
+  uiSchema: UiSchemaItem[];
   name: string;
   saveSchemaUrl: string;
   selectedDefinitionNodeId: string;
@@ -22,12 +22,12 @@ export interface ISchemaState {
   selectedEditorTab: 'definitions' | 'properties';
 }
 
-export interface IUiSchemaItem {
+export interface UiSchemaItem {
   path: string;
   type?: FieldType;
   $ref?: string;
   restrictions?: Restriction[];
-  properties?: IUiSchemaItem[];
+  properties?: UiSchemaItem[];
   value?: any;
   displayName: string;
   required?: string[];
@@ -35,7 +35,7 @@ export interface IUiSchemaItem {
   description?: string;
   items?: { type?: string; $ref?: string };
   enum?: string[];
-  combination?: IUiSchemaItem[];
+  combination?: UiSchemaItem[];
   combinationKind?: CombinationKind;
   combinationItem?: boolean;
 }
@@ -53,8 +53,8 @@ export type FieldType =
   | 'null';
 
 export type NameInUseProps = {
-  uiSchemaItems: IUiSchemaItem[];
-  parentSchema: IUiSchemaItem | null;
+  uiSchemaItems: UiSchemaItem[];
+  parentSchema: UiSchemaItem | null;
   path: string;
   name: string;
 };

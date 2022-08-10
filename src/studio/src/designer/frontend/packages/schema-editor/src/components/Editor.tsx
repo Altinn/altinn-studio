@@ -9,7 +9,7 @@ import type {
   ILanguage,
   ISchema,
   ISchemaState,
-  IUiSchemaItem,
+  UiSchemaItem,
 } from '../types';
 import { ObjectKind } from '../types/enums';
 import {
@@ -129,12 +129,12 @@ export const Editor = (props: IEditorProps) => {
     (state: ISchemaState) => state.selectedDefinitionNodeId,
   );
   const definitions = useSelector((state: ISchemaState) =>
-    state.uiSchema.filter((d: IUiSchemaItem) =>
+    state.uiSchema.filter((d: UiSchemaItem) =>
       d.path.startsWith('#/definitions'),
     ),
   );
   const properties = useSelector((state: ISchemaState) =>
-    state.uiSchema.filter((d: IUiSchemaItem) =>
+    state.uiSchema.filter((d: UiSchemaItem) =>
       d.path.startsWith('#/properties/'),
     ),
   );
@@ -277,7 +277,7 @@ export const Editor = (props: IEditorProps) => {
                   expanded={expandedPropertiesNodes}
                   onNodeToggle={handlePropertiesNodeExpanded}
                 >
-                  {properties?.map((item: IUiSchemaItem) => (
+                  {properties?.map((item: UiSchemaItem) => (
                     <SchemaItem
                       keyPrefix='properties'
                       key={item.path}

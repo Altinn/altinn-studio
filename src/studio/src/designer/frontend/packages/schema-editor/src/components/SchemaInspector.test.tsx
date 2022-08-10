@@ -8,12 +8,12 @@ import { MenuItem } from '@material-ui/core';
 import SchemaInspector from './SchemaInspector';
 import { dataMock } from '../mockData';
 import { buildUISchema, resetUniqueNumber } from '../utils/schema';
-import type { ISchemaState, IUiSchemaItem } from '../types';
+import type { ISchemaState, UiSchemaItem } from '../types';
 
 let mockStore: any = null;
 let mockInitialState: ISchemaState;
 let createStore: any;
-let mockUiSchema: IUiSchemaItem[];
+let mockUiSchema: UiSchemaItem[];
 
 const dispatchMock = () => Promise.resolve({});
 

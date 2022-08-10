@@ -1,7 +1,7 @@
-import type { IUiSchemaItem } from '../types';
+import type { UiSchemaItem } from '../types';
 import { buildJsonSchema, buildUISchema, getUiSchemaItem } from './schema';
 
-const mockUiSchema: IUiSchemaItem[] = [
+const mockUiSchema: UiSchemaItem[] = [
   {
     path: '#/properties/id1',
     displayName: 'id1',
@@ -27,7 +27,7 @@ const mockUiSchema: IUiSchemaItem[] = [
         $ref: '#/$defs/refTest',
         displayName: 'ref',
         combinationItem: true,
-      } as IUiSchemaItem,
+      } as UiSchemaItem,
     ],
     combinationKind: 'allOf',
     restrictions: [],
@@ -41,7 +41,7 @@ const mockUiSchema: IUiSchemaItem[] = [
         $ref: '#/$defs/refTest',
         displayName: 'ref',
         combinationItem: true,
-      } as IUiSchemaItem,
+      } as UiSchemaItem,
     ],
     combinationKind: 'oneOf',
     restrictions: [],
@@ -55,7 +55,7 @@ const mockUiSchema: IUiSchemaItem[] = [
         $ref: '#/$defs/refTest',
         displayName: 'ref',
         combinationItem: true,
-      } as IUiSchemaItem,
+      } as UiSchemaItem,
     ],
     combinationKind: 'anyOf',
     restrictions: [],

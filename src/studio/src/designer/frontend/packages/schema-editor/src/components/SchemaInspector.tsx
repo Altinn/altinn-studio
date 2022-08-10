@@ -13,7 +13,7 @@ import type {
   Restriction,
   ILanguage,
   ISchemaState,
-  IUiSchemaItem,
+  UiSchemaItem,
 } from '../types';
 import { ObjectKind } from '../types/enums';
 import { PropertyItem } from './PropertyItem';
@@ -119,7 +119,7 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
   // if item is a reference, we want to show the properties of the reference.
   const itemToDisplay = useSelector((state: ISchemaState) =>
     selectedItem?.$ref
-      ? state.uiSchema.find((i: IUiSchemaItem) => i.path === selectedItem.$ref)
+      ? state.uiSchema.find((i: UiSchemaItem) => i.path === selectedItem.$ref)
       : selectedItem,
   );
 
@@ -280,10 +280,10 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
     }
   };
 
-  const renderItemProperties = (item: IUiSchemaItem) =>{
+  const renderItemProperties = (item: UiSchemaItem) =>{
     if (!item.properties) return null;
 
-    return item.properties.map((p: IUiSchemaItem) => {
+    return item.properties.map((p: UiSchemaItem) => {
       return (
         <PropertyItem
           language={props.language}
@@ -299,7 +299,7 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
     });
   }
 
-  const renderItemRestrictions = (item: IUiSchemaItem) =>
+  const renderItemRestrictions = (item: UiSchemaItem) =>
     item.restrictions?.map((field: Restriction) => {
       if (field.key && field.key.startsWith('@')) {
         return null;
@@ -321,7 +321,7 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
       );
     });
 
-  const renderEnums = (item: IUiSchemaItem) => {
+  const renderEnums = (item: UiSchemaItem) => {
     return item.enum?.map((value: string) => (
       <EnumField
         key={value}

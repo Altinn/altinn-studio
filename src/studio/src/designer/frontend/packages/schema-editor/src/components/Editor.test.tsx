@@ -6,12 +6,12 @@ import { act } from 'react-dom/test-utils';
 import SchemaEditor from './Editor';
 import { dataMock } from '../mockData';
 import { buildUISchema } from '../utils/schema';
-import type { ILanguage, ISchemaState, IUiSchemaItem } from '../types';
+import type { ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import reducer from '../features/editor/schemaEditorSlice';
 
 let mockStore: any = null;
 let mockInitialState: ISchemaState;
-let mockUiSchema: IUiSchemaItem[];
+let mockUiSchema: UiSchemaItem[];
 let mockLanguage: ILanguage;
 
 const mountComponent = () =>

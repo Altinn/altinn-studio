@@ -11,13 +11,13 @@ import {
   promoteProperty,
   setSelectedId,
 } from '../features/editor/schemaEditorSlice';
-import type { ILanguage, ISchemaState, IUiSchemaItem } from '../types';
+import type { ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import { ObjectKind } from '../types/enums';
 import { SchemaItemLabel } from './SchemaItemLabel';
 import { getDomFriendlyID } from '../utils/schema';
 
 type SchemaItemProps = TreeItemProps & {
-  item: IUiSchemaItem;
+  item: UiSchemaItem;
   keyPrefix: string;
   language: ILanguage;
   isPropertiesView?: boolean;
@@ -103,7 +103,7 @@ const useStyles = (isRef: boolean) =>
     },
   });
 
-const getRefItem = (schema: any[], path: string | undefined): IUiSchemaItem => {
+const getRefItem = (schema: any[], path: string | undefined): UiSchemaItem => {
   return schema.find((item) => item.path === path);
 };
 
@@ -114,8 +114,8 @@ function SchemaItem(props: SchemaItemProps) {
     item.$ref !== undefined || item.items?.$ref !== undefined,
   )();
 
-  const [itemToDisplay, setItemToDisplay] = React.useState<IUiSchemaItem>(item);
-  const refItem: IUiSchemaItem | undefined = useSelector(
+  const [itemToDisplay, setItemToDisplay] = React.useState<UiSchemaItem>(item);
+  const refItem: UiSchemaItem | undefined = useSelector(
     (state: ISchemaState) => {
       if (item.$ref) {
         return getRefItem(state.uiSchema, item.$ref);
@@ -131,13 +131,13 @@ function SchemaItem(props: SchemaItemProps) {
     setItemToDisplay(item);
   }, [item.restrictions, item, refItem]);
 
-  const onItemClick = (e: any, schemaItem: IUiSchemaItem) => {
+  const onItemClick = (e: any, schemaItem: UiSchemaItem) => {
     e.preventDefault();
     dispatch(setSelectedId({ id: schemaItem.path }));
   };
 
-  const renderProperties = (itemProperties: IUiSchemaItem[]) =>
-    itemProperties.map((property: IUiSchemaItem) => {
+  const renderProperties = (itemProperties: UiSchemaItem[]) =>
+    itemProperties.map((property: UiSchemaItem) => {
       return (
         <SchemaItem
           keyPrefix={`${keyPrefix}-properties`}
@@ -169,7 +169,7 @@ function SchemaItem(props: SchemaItemProps) {
       $ref: type === ObjectKind.Reference ? '' : undefined,
       combination: type === ObjectKind.Combination ? [] : undefined,
       combinationKind: type === ObjectKind.Combination ? 'allOf' : undefined,
-    } as IUiSchemaItem;
+    } as UiSchemaItem;
 
     if (itemToDisplay.combination) {
       dispatch(
