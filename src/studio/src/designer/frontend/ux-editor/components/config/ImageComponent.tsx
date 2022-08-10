@@ -78,7 +78,7 @@ export const ImageComponent = ({
   const altTextSelectId = `image_alt-input-${component.id}`;
 
   return (
-    <Grid spacing={2} container={true}>
+    <Grid spacing={2} container={true} data-testid="ImageComponent">
       <Grid item={true} xs={12}>
         <AltinnInputField
           id={`image_nb_src-${component.id}`}

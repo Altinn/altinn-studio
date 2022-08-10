@@ -1,257 +1,196 @@
-import { mount } from 'enzyme';
 import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import {
-  EditModalContent,
-  EditModalContentComponent,
-} from './EditModalContent';
-import { ImageComponent } from './ImageComponent';
+import { EditModalContent } from './EditModalContent';
+import { render as rtlRender, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
-describe('containers/EditModalContent', () => {
-  let mockComponent: any;
-  let mockLanguage: any;
-  let mockHandleComponentUpdate: () => any;
-  let mockStore: any;
+const user = userEvent.setup();
 
-  beforeEach(() => {
-    const createStore = configureStore();
-    mockLanguage = {
-      general: {
-        label: '',
-        value: '',
+describe('EditModalContent', () => {
+  it('should return input specific content when type input', () => {
+    const { rendered } = render({
+      componentProps: {
+        type: 'Input',
       },
-      ux_editor: {
-        modal_header_type_h2: 'H2',
-        modal_header_type_h3: 'H3',
-        modal_header_type_h4: 'H4',
-        modal_properties_image_src_value_label: 'Source',
-        modal_properties_image_placement_label: 'Placement',
-        modal_properties_image_alt_text_label: 'Alt text',
-        modal_properties_image_width_label: 'Width',
+    });
+
+    expect(rendered.container.querySelectorAll('input').length).toBe(6);
+  });
+
+  it('should return header specific content when type header', () => {
+    const { rendered } = render({
+      componentProps: {
+        type: 'Header',
       },
-    };
-    mockComponent = {
-      dataModelBindings: {},
-      readOnly: false,
+    });
+
+    expect(rendered.container.querySelectorAll('input').length).toBe(3);
+  });
+
+  it('should return file uploader specific content when type file uploader', () => {
+    const { rendered } = render({
+      componentProps: {
+        type: 'FileUpload',
+      },
+    });
+
+    expect(rendered.container.querySelectorAll('input').length).toBe(10);
+  });
+
+  it('should call handleComponentUpdate with max number of attachments to 1 when clearing max number of attachments', async () => {
+    const handleUpdate = jest.fn();
+    const { allComponentProps } = render({
+      componentProps: {
+        maxNumberOfAttachments: 3,
+        type: 'FileUpload',
+      },
+      handleComponentUpdate: handleUpdate,
+    });
+
+    const maxFilesInput = screen.getByRole('spinbutton', {
+      name: /ux_editor\.modal_properties_maximum_files/i,
+    });
+
+    await user.clear(maxFilesInput);
+    expect(handleUpdate).toHaveBeenCalledWith({
+      ...allComponentProps,
+      maxNumberOfAttachments: 1,
+    });
+  });
+
+  it('should call handleComponentUpdate with required: false when min number of attachments is set to 0', async () => {
+    const handleUpdate = jest.fn();
+    const { allComponentProps } = render({
+      componentProps: {
+        required: true,
+        minNumberOfAttachments: 1,
+        type: 'FileUpload',
+      },
+      handleComponentUpdate: handleUpdate,
+    });
+
+    const minFilesInput = screen.getByRole('spinbutton', {
+      name: /ux_editor\.modal_properties_minimum_files/i,
+    });
+
+    await user.clear(minFilesInput);
+    expect(handleUpdate).toHaveBeenCalledWith({
+      ...allComponentProps,
       required: false,
-      textResourceBindings: {
-        title: 'Input',
-      },
-      type: 'Input',
-    };
-    const initialState = {
-      appData: {
-        codeLists: {
-          codeLists: [] as any,
-          error: null as any,
-          fetched: true,
-          fetching: false,
-        },
-        languageState: {
-          language: mockLanguage,
-        },
-        dataModel: {
-          model: [] as any[],
-        },
-        textResources: {
-          resources: [{ id: 'appName', value: 'Test' }],
-        },
-      },
-      thirdPartyComponents: {
-        components: null as any,
-        error: null as any,
-      },
-      formDesigner: {
-        layout: {
-          selectedLayout: 'FormLayout',
-          layouts: {
-            FormLayout: {
-              components: {},
-              containers: {},
-            },
-          },
-        },
-      },
-    };
-    mockHandleComponentUpdate = () => {
-      // something
-    };
-    mockStore = createStore(initialState);
-  });
-
-  it('should return input spesific content when type input', () => {
-    const mountedEditModalContent = mount(
-      <Provider store={mockStore}>
-        <EditModalContent
-          component={mockComponent}
-          language={mockLanguage}
-          handleComponentUpdate={mockHandleComponentUpdate}
-        />
-      </Provider>,
-    );
-    expect(mountedEditModalContent.find('input').length).toBe(6);
-  });
-
-  it('should return header spesific content when type header', () => {
-    mockComponent = {
-      dataModelBindings: {},
-      readOnly: false,
-      required: false,
-      textResourceBindings: {
-        title: 'Header',
-      },
-      type: 'Header',
-    };
-    const mountedEditModalContent = mount(
-      <Provider store={mockStore}>
-        <EditModalContent
-          component={mockComponent}
-          language={mockLanguage}
-          handleComponentUpdate={mockHandleComponentUpdate}
-        />
-      </Provider>,
-    );
-    expect(mountedEditModalContent.find('input').length).toBe(3);
-  });
-
-  it('should return file uploader spesific content when type file uploader', () => {
-    mockComponent = {
-      dataModelBindings: {},
-      readOnly: false,
-      required: false,
-      textResourceBindings: {
-        title: 'FileUpload',
-      },
-      type: 'FileUpload',
-    };
-    const mountedEditModalContent = mount(
-      <Provider store={mockStore}>
-        <EditModalContent
-          component={mockComponent}
-          language={mockLanguage}
-          handleComponentUpdate={mockHandleComponentUpdate}
-          classes={null}
-        />
-      </Provider>,
-    );
-    expect(mountedEditModalContent.find('input').length).toBe(10);
-  });
-
-  it('should update min/max number of files on change', () => {
-    mockComponent = {
-      dataModelBindings: {},
-      readOnly: false,
-      required: true,
-      textResourceBindings: {
-        title: 'FileUpload',
-      },
-      type: 'FileUpload',
-    };
-    const mountedEditModalContent = mount(
-      <Provider store={mockStore}>
-        <EditModalContentComponent
-          component={mockComponent}
-          language={mockLanguage}
-          handleComponentUpdate={mockHandleComponentUpdate}
-          classes={null}
-          textResources={[]}
-        />
-      </Provider>,
-    );
-    const instance = mountedEditModalContent
-      .childAt(0)
-      .instance() as EditModalContentComponent;
-    const maxFilesInput = mountedEditModalContent
-      .find('#modal-properties-maximum-files')
-      .first()
-      .find('input');
-    const minFilesInput = mountedEditModalContent
-      .find('#modal-properties-minimum-files')
-      .first()
-      .find('input');
-
-    const spy = jest.spyOn(instance, 'handleNumberOfAttachmentsChange');
-    maxFilesInput.simulate('change', { target: { value: '2' } });
-    instance.forceUpdate();
-    expect(spy).toHaveBeenCalled();
-    expect(spy).toHaveBeenCalledWith('max');
-    expect(instance.state.component.required).toBe(true);
-
-    minFilesInput.simulate('change', { target: { value: '0' } });
-    instance.forceUpdate();
-    expect(spy).toHaveBeenCalled();
-    expect(spy).toHaveBeenCalledWith('min');
-    expect(instance.state.component.required).toBe(false);
+      minNumberOfAttachments: 0,
+    });
   });
 
   it('should return button spesific content when type button', () => {
-    mockComponent = {
-      dataModelBindings: {},
-      readOnly: false,
-      required: false,
-      textResourceBindings: {
-        title: 'Button',
+    const { rendered } = render({
+      componentProps: {
+        type: 'Button',
       },
-      type: 'Button',
-    };
-    const mountedEditModalContent = mount(
-      <Provider store={mockStore}>
-        <EditModalContent
-          component={mockComponent}
-          language={mockLanguage}
-          handleComponentUpdate={mockHandleComponentUpdate}
-        />
-      </Provider>,
-    );
-    expect(mountedEditModalContent.find('input').length).toBe(3);
+    });
+
+    expect(rendered.container.querySelectorAll('input').length).toBe(3);
   });
 
   it('should render Image component when component type is Image', () => {
-    const componentData = {
-      id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
-      dataModelBindings: {},
-      textResourceBindings: {
-        title: 'Input',
+    render({
+      componentProps: {
+        type: 'Image',
       },
-      readOnly: false,
-      required: false,
-      type: 'Image',
-    };
-    const mountedEditModalContent = mount(
-      <Provider store={mockStore}>
-        <EditModalContent
-          component={componentData}
-          language={mockLanguage}
-          handleComponentUpdate={mockHandleComponentUpdate}
-        />
-      </Provider>,
-    );
+    });
 
-    expect(mountedEditModalContent.find(ImageComponent).length).toBe(1);
+    expect(screen.getByTestId('ImageComponent')).toBeInTheDocument();
   });
 
   it('should not render Image component when component type is not Image', () => {
-    const componentData = {
-      id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
-      dataModelBindings: {},
-      readOnly: false,
-      required: false,
-      textResourceBindings: {
-        title: 'Button',
+    render({
+      componentProps: {
+        type: 'Button',
       },
-      type: 'Button',
-    };
-    const mountedEditModalContent = mount(
-      <Provider store={mockStore}>
-        <EditModalContent
-          component={componentData}
-          language={mockLanguage}
-          handleComponentUpdate={mockHandleComponentUpdate}
-        />
-      </Provider>,
-    );
+    });
 
-    expect(mountedEditModalContent.find(ImageComponent).length).toBe(0);
+    expect(screen.queryByTestId('ImageComponent')).not.toBeInTheDocument();
   });
 });
+
+const render = ({
+  componentProps = undefined,
+  handleComponentUpdate = jest.fn,
+} = {}) => {
+  const createStore = configureStore();
+  const mockLanguage = {
+    general: {
+      label: '',
+      value: '',
+    },
+    ux_editor: {
+      modal_header_type_h2: 'H2',
+      modal_header_type_h3: 'H3',
+      modal_header_type_h4: 'H4',
+      modal_properties_image_src_value_label: 'Source',
+      modal_properties_image_placement_label: 'Placement',
+      modal_properties_image_alt_text_label: 'Alt text',
+      modal_properties_image_width_label: 'Width',
+    },
+  };
+  const initialState = {
+    appData: {
+      codeLists: {
+        codeLists: [] as any,
+        error: null as any,
+        fetched: true,
+        fetching: false,
+      },
+      languageState: {
+        language: mockLanguage,
+      },
+      dataModel: {
+        model: [] as any[],
+      },
+      textResources: {
+        resources: [{ id: 'appName', value: 'Test' }],
+      },
+    },
+    thirdPartyComponents: {
+      components: null as any,
+      error: null as any,
+    },
+    formDesigner: {
+      layout: {
+        selectedLayout: 'FormLayout',
+        layouts: {
+          FormLayout: {
+            components: {},
+            containers: {},
+          },
+        },
+      },
+    },
+  };
+
+  const store = createStore(initialState);
+
+  const allComponentProps = {
+    dataModelBindings: {},
+    readOnly: false,
+    required: false,
+    textResourceBindings: {
+      title: 'title',
+    },
+    type: 'Input',
+    ...componentProps,
+  };
+
+  return {
+    rendered: rtlRender(
+      <Provider store={store}>
+        <EditModalContent
+          component={allComponentProps}
+          language={mockLanguage}
+          handleComponentUpdate={handleComponentUpdate}
+        />
+      </Provider>,
+    ),
+    allComponentProps,
+  };
+};
