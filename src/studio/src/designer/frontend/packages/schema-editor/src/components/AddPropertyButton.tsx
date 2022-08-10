@@ -1,7 +1,7 @@
 import IconButton from '@material-ui/core/IconButton';
 import * as React from 'react';
 import { ILanguage } from '../types';
-import { getTranslation } from '../utils/languageUtils';
+import { getTranslation } from '../utils/language';
 
 export interface IAddPropertyButtonProps {
   onAddPropertyClick: (event: React.BaseSyntheticEvent) => void;

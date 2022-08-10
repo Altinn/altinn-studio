@@ -7,7 +7,7 @@ import { Autocomplete } from '@material-ui/lab';
 import { MenuItem } from '@material-ui/core';
 import SchemaInspector from './SchemaInspector';
 import { dataMock } from '../mockData';
-import { buildUISchema, resetUniqueNumber } from '../utils/schemaUtils';
+import { buildUISchema, resetUniqueNumber } from '../utils/schema';
 import type { ISchemaState, IUiSchemaItem } from '../types';
 
 let mockStore: any = null;

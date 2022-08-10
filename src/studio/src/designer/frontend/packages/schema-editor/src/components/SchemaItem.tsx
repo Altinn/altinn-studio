@@ -14,7 +14,7 @@ import {
 import type { ILanguage, ISchemaState, IUiSchemaItem } from '../types';
 import { ObjectKind } from '../types/enums';
 import { SchemaItemLabel } from './SchemaItemLabel';
-import { getDomFriendlyID } from '../utils/schemaUtils';
+import { getDomFriendlyID } from '../utils/schema';
 
 type SchemaItemProps = TreeItemProps & {
   item: IUiSchemaItem;

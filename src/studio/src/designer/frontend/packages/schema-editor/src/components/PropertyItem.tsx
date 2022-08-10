@@ -11,8 +11,8 @@ import {
 import { useDispatch } from 'react-redux';
 import { DeleteOutline } from '@material-ui/icons';
 import type { ILanguage } from '../types';
-import { getDomFriendlyID, getUniqueNumber } from '../utils/schemaUtils';
-import { getTranslation } from '../utils/languageUtils';
+import { getDomFriendlyID, getUniqueNumber } from '../utils/schema';
+import { getTranslation } from '../utils/language';
 import { setRequired } from '../features/editor/schemaEditorSlice';
 
 const useStyles = (readonly?: boolean) => makeStyles({

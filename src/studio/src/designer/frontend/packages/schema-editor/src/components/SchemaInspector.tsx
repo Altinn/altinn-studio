@@ -32,13 +32,13 @@ import {
 import {
   splitParentPathAndName,
   getUiSchemaItem,
-} from '../utils/schemaUtils';
-import { getTranslation } from '../utils/languageUtils';
+} from '../utils/schema';
+import { getTranslation } from '../utils/language';
 import { RestrictionField } from './RestrictionField';
 import { EnumField } from './EnumField';
 import { SchemaTab } from './SchemaTab';
 import InlineObject from './InlineObject';
-import { isFieldRequired, isNameInUse } from '../utils/checksUtils';
+import { isFieldRequired, isNameInUse } from '../utils/checks';
 import { AddPropertyButton } from './AddPropertyButton';
 import { ItemDataComponent } from './ItemDataComponent';
 

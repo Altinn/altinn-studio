@@ -4,8 +4,8 @@ import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { CombinationKind, FieldType, ILanguage, ISchemaState, IUiSchemaItem } from '../types';
 import { NameError, ObjectKind } from '../types/enums';
-import { isValidName } from '../utils/checksUtils';
-import { getTranslation } from '../utils/languageUtils';
+import { isValidName } from '../utils/checks';
+import { getTranslation } from '../utils/language';
 import { addCombinationItem,
   deleteCombinationItem,
   navigateToType,
@@ -17,7 +17,7 @@ import { addCombinationItem,
   setTitle,
   setType,
 } from '../features/editor/schemaEditorSlice';
-import { combinationIsNullable, getDomFriendlyID, nullableType } from '../utils/schemaUtils';
+import { combinationIsNullable, getDomFriendlyID, nullableType } from '../utils/schema';
 import { TypeSelect } from './TypeSelect';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { CombinationSelect } from './CombinationSelect';

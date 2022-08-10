@@ -2,7 +2,7 @@ import { ClassNameMap } from '@material-ui/core/styles/withStyles';
 import * as React from 'react';
 import type { ILanguage, IUiSchemaItem, FieldType } from '../types';
 import { ObjectKind } from '../types/enums';
-import { getTranslation } from '../utils/languageUtils';
+import { getTranslation } from '../utils/language';
 import { RefSelect } from './RefSelect';
 
 export interface IReferenceSelectionProps {

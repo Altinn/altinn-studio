@@ -21,8 +21,8 @@ import {
   setSelectedTab,
 } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
-import { getTranslation } from '../utils/languageUtils';
-import { getDomFriendlyID } from '../utils/schemaUtils';
+import { getTranslation } from '../utils/language';
+import { getDomFriendlyID } from '../utils/schema';
 import SchemaInspector from './SchemaInspector';
 import { SchemaTab } from './SchemaTab';
 import TopToolbar from './TopToolbar';

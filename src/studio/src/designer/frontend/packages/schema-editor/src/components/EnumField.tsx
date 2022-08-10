@@ -1,8 +1,8 @@
 import React from 'react';
 import { Grid, IconButton, makeStyles, TextField } from '@material-ui/core';
 import { DeleteOutline } from '@material-ui/icons';
-import { getTranslation } from '../utils/languageUtils';
-import { getDomFriendlyID } from '../utils/schemaUtils';
+import { getTranslation } from '../utils/language';
+import { getDomFriendlyID } from '../utils/schema';
 import type { ILanguage } from '../types';
 
 export interface IEnumFieldProps {

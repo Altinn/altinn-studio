@@ -1,5 +1,5 @@
 import { IUiSchemaItem } from "../types";
-import { isNameInUse, isPathOnDefinitionsRoot, isPathOnPropertiesRoot, isValidName } from "./checksUtils";
+import { isNameInUse, isPathOnDefinitionsRoot, isPathOnPropertiesRoot, isValidName } from "./checks";
 
 describe('checksUtils', () => {
   test('should not be possible to have two properties with the same name', () => {
