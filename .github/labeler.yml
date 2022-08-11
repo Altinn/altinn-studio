@@ -28,10 +28,6 @@ area/api-expose:
 area/api-use:
   - 'src/Altinn.Apps/AppTemplates/AspNet/Altinn.App.PlatformServices/**/*'
 
-area/authentication:
-  - 'src/Altinn.Platform/Altinn.Platform.Authentication/**/*'
-  - 'src/Altinn.Common/Authentication/**/*'
-
 area/authorization:
   - 'src/Altinn.Platform/Altinn.Platform.Authorization/**/*'
   - 'src/Altinn.Common/Altinn.Common.AccessToken/**/*'
