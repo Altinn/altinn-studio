@@ -11,9 +11,10 @@ import {
   promoteProperty,
   setSelectedId,
 } from '../features/editor/schemaEditorSlice';
-import type { ILanguage, ISchemaState, ObjectKind, UiSchemaItem } from '../types';
+import type { ILanguage, ISchemaState, UiSchemaItem } from '../types';
+import { ObjectKind } from '../types/enums';
 import { SchemaItemLabel } from './SchemaItemLabel';
-import { getDomFriendlyID } from '../utils';
+import { getDomFriendlyID } from '../utils/schema';
 
 type SchemaItemProps = TreeItemProps & {
   item: UiSchemaItem;
@@ -164,10 +165,10 @@ function SchemaItem(props: SchemaItemProps) {
   const handleAddProperty = (type: ObjectKind) => {
     const path = itemToDisplay.path;
     const propertyProps = {
-      type: type === 'field' ? 'object' : undefined,
-      $ref: type === 'reference' ? '' : undefined,
-      combination: type === 'combination' ? [] : undefined,
-      combinationKind: type === 'combination' ? 'allOf' : undefined,
+      type: type === ObjectKind.Field ? 'object' : undefined,
+      $ref: type === ObjectKind.Reference ? '' : undefined,
+      combination: type === ObjectKind.Combination ? [] : undefined,
+      combinationKind: type === ObjectKind.Combination ? 'allOf' : undefined,
     } as UiSchemaItem;
 
     if (itemToDisplay.combination) {

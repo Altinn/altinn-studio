@@ -6,7 +6,7 @@ import {
   getUiSchemaItem,
   getUniqueNumber,
   mapCombinationChildren,
-} from '../../utils';
+} from '../../utils/schema';
 import type {
   CombinationKind,
   FieldType,

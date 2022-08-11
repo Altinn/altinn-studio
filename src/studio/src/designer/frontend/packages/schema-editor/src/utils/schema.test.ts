@@ -1,5 +1,5 @@
-import type { UiSchemaItem } from './types';
-import { buildJsonSchema, buildUISchema, getUiSchemaItem } from './utils';
+import type { UiSchemaItem } from '../types';
+import { buildJsonSchema, buildUISchema, getUiSchemaItem } from './schema';
 
 const mockUiSchema: UiSchemaItem[] = [
   {

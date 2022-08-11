@@ -1,7 +1,7 @@
 import React from 'react';
 import { makeStyles, Tab } from '@material-ui/core';
 import type { ILanguage } from '../types';
-import { getTranslation } from '../utils';
+import { getTranslation } from '../utils/language';
 
 export interface ISchemaTabProps {
   label: string;

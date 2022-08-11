@@ -9,9 +9,9 @@ import type {
   ILanguage,
   ISchema,
   ISchemaState,
-  ObjectKind,
   UiSchemaItem,
 } from '../types';
+import { ObjectKind } from '../types/enums';
 import {
   setUiSchema,
   setJsonSchema,
@@ -21,7 +21,8 @@ import {
   setSelectedTab,
 } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
-import { getDomFriendlyID, getTranslation } from '../utils';
+import { getTranslation } from '../utils/language';
+import { getDomFriendlyID } from '../utils/schema';
 import SchemaInspector from './SchemaInspector';
 import { SchemaTab } from './SchemaTab';
 import TopToolbar from './TopToolbar';
@@ -183,10 +184,10 @@ export const Editor = (props: IEditorProps) => {
         name: 'name',
         location: 'properties',
         props: {
-          type: type === 'field' ? 'object' : undefined,
-          $ref: type === 'reference' ? '' : undefined,
-          combination: type === 'combination' ? [] : undefined,
-          combinationKind: type === 'combination' ? 'allOf' : undefined,
+          type: type === ObjectKind.Field ? 'object' : undefined,
+          $ref: type === ObjectKind.Reference ? '' : undefined,
+          combination: type === ObjectKind.Combination ? [] : undefined,
+          combinationKind: type === ObjectKind.Combination ? 'allOf' : undefined,
         },
       }),
     );
@@ -340,19 +341,19 @@ export const Editor = (props: IEditorProps) => {
         onClose={closeMenu}
       >
         <AltinnMenuItem
-          onClick={() => handleAddProperty('field')}
+          onClick={() => handleAddProperty(ObjectKind.Field)}
           text={getTranslation('field', language)}
           iconClass='fa fa-datamodel-properties'
           id='add-field-button'
         />
         <AltinnMenuItem
-          onClick={() => handleAddProperty('reference')}
+          onClick={() => handleAddProperty(ObjectKind.Reference)}
           text={getTranslation('reference', language)}
           iconClass='fa fa-datamodel-ref'
           id='add-reference-button'
         />
         <AltinnMenuItem
-          onClick={() => handleAddProperty('combination')}
+          onClick={() => handleAddProperty(ObjectKind.Combination)}
           text={getTranslation('combination', language)}
           iconClass='fa fa-group'
           id='add-combination-button'

@@ -5,7 +5,7 @@ import { mount, ReactWrapper } from 'enzyme';
 import { act } from 'react-dom/test-utils';
 import SchemaEditor from './Editor';
 import { dataMock } from '../mockData';
-import { buildUISchema } from '../utils';
+import { buildUISchema } from '../utils/schema';
 import type { ILanguage, ISchemaState, UiSchemaItem } from '../types';
 import reducer from '../features/editor/schemaEditorSlice';
 

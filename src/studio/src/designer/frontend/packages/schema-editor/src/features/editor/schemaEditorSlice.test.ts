@@ -34,7 +34,7 @@ import type {
   UiSchemaItem,
 } from '../../types';
 import { dataMock } from '../../mockData';
-import { getUiSchemaItem, resetUniqueNumber } from '../../utils';
+import { getUiSchemaItem, resetUniqueNumber } from '../../utils/schema';
 
 describe('SchemaEditorSlice', () => {
   let state: ISchemaState;

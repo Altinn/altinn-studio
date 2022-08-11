@@ -1,3 +1,15 @@
+/** Interfaces */
+export interface ILanguage {
+  [key: string]: string | ILanguage;
+}
+
+export interface ISchema {
+  properties: { [key: string]: { [key: string]: any } };
+  definitions: { [key: string]: { [key: string]: any } };
+  $schema?: string;
+  $id?: string;
+}
+
 export interface ISchemaState {
   schema: ISchema;
   uiSchema: UiSchemaItem[];
@@ -9,27 +21,6 @@ export interface ISchemaState {
   navigate?: string; // used to trigger navigation in tree, the value is not used.
   selectedEditorTab: 'definitions' | 'properties';
 }
-export interface ILanguage {
-  [key: string]: string | ILanguage;
-}
-
-export type FieldType =
-  | 'string'
-  | 'integer'
-  | 'number'
-  | 'boolean'
-  | 'object'
-  | 'array'
-  | 'null';
-
-export type ObjectKind = 'combination' | 'reference' | 'field';
-
-export type CombinationKind = 'allOf' | 'anyOf' | 'oneOf';
-
-export type Restriction = {
-  key: string;
-  value: any;
-};
 
 export interface UiSchemaItem {
   path: string;
@@ -49,9 +40,27 @@ export interface UiSchemaItem {
   combinationItem?: boolean;
 }
 
-export interface ISchema {
-  properties: { [key: string]: { [key: string]: any } };
-  definitions: { [key: string]: { [key: string]: any } };
-  $schema?: string;
-  $id?: string;
-}
+/** Types */
+export type CombinationKind = 'allOf' | 'anyOf' | 'oneOf';
+
+export type FieldType =
+  | 'string'
+  | 'integer'
+  | 'number'
+  | 'boolean'
+  | 'object'
+  | 'array'
+  | 'null';
+
+export type NameInUseProps = {
+  uiSchemaItems: UiSchemaItem[];
+  parentSchema: UiSchemaItem | null;
+  path: string;
+  name: string;
+};
+
+export type Restriction = {
+  key: string;
+  value: any;
+};
+

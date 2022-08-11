@@ -1,7 +1,7 @@
 import { makeStyles } from '@material-ui/core';
 import React from 'react';
 import type { ILanguage } from '../types';
-import { getTranslation } from '../utils';
+import { getTranslation } from '../utils/language';
 import TopToolbarButton from './TopToolbarButton';
 
 const useStyles = makeStyles({

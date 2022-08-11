@@ -3,7 +3,7 @@ import { makeStyles, TextField } from '@material-ui/core';
 import { useSelector } from 'react-redux';
 import { Autocomplete } from '@material-ui/lab';
 import type { ISchemaState } from '../types';
-import { getDomFriendlyID } from '../utils';
+import { getDomFriendlyID } from '../utils/schema';
 
 export interface IRefSelectProps {
   id: string;

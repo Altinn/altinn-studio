@@ -5,7 +5,7 @@ exports[`Should match snapshot (enums): enums 1`] = `
   class="makeStyles-root-1"
 >
   <header
-    class="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorDefault makeStyles-appBar-7 MuiPaper-elevation4"
+    class="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorDefault makeStyles-appBar-4 MuiPaper-elevation4"
   >
     <div
       class="MuiTabs-root"
@@ -21,43 +21,43 @@ exports[`Should match snapshot (enums): enums 1`] = `
         >
           <button
             aria-selected="true"
-            class="MuiButtonBase-root MuiTab-root makeStyles-root-10 MuiTab-textColorInherit Mui-selected"
+            class="MuiButtonBase-root MuiTab-root makeStyles-root-7 MuiTab-textColorInherit Mui-selected"
             role="tab"
             tabindex="0"
             type="button"
           >
             <span
-              class="MuiTab-wrapper makeStyles-wrapper-11"
+              class="MuiTab-wrapper makeStyles-wrapper-8"
             >
               properties
             </span>
             <span
-              class="PrivateTabIndicator-root-12 PrivateTabIndicator-colorSecondary-14 MuiTabs-indicator"
+              class="PrivateTabIndicator-root-9 PrivateTabIndicator-colorSecondary-11 MuiTabs-indicator"
             />
           </button>
           <button
             aria-selected="false"
-            class="MuiButtonBase-root MuiTab-root makeStyles-root-10 MuiTab-textColorInherit"
+            class="MuiButtonBase-root MuiTab-root makeStyles-root-7 MuiTab-textColorInherit"
             role="tab"
             tabindex="-1"
             type="button"
           >
             <span
-              class="MuiTab-wrapper makeStyles-wrapper-11"
+              class="MuiTab-wrapper makeStyles-wrapper-8"
             >
               restrictions
             </span>
           </button>
           <button
             aria-selected="false"
-            class="MuiButtonBase-root MuiTab-root makeStyles-root-10 MuiTab-textColorInherit"
+            class="MuiButtonBase-root MuiTab-root makeStyles-root-7 MuiTab-textColorInherit"
             hidden=""
             role="tab"
             tabindex="-1"
             type="button"
           >
             <span
-              class="MuiTab-wrapper makeStyles-wrapper-11"
+              class="MuiTab-wrapper makeStyles-wrapper-8"
             >
               fields
             </span>
@@ -72,15 +72,15 @@ exports[`Should match snapshot (enums): enums 1`] = `
   >
     <div>
       <p
-        class="makeStyles-name-3"
+        class="makeStyles-name-17"
       >
         name
       </p>
       <div
-        class="MuiFormControl-root MuiTextField-root makeStyles-field-6 MuiFormControl-fullWidth"
+        class="MuiFormControl-root MuiTextField-root makeStyles-field-14 MuiFormControl-fullWidth"
       >
         <div
-          class="MuiInputBase-root MuiInput-root MuiInputBase-fullWidth MuiInput-fullWidth MuiInputBase-formControl MuiInput-formControl"
+          class="MuiInputBase-root MuiInput-root makeStyles-fieldText-15 MuiInputBase-fullWidth MuiInput-fullWidth MuiInputBase-formControl MuiInput-formControl"
         >
           <input
             aria-invalid="false"
@@ -94,12 +94,12 @@ exports[`Should match snapshot (enums): enums 1`] = `
         
       </div>
       <p
-        class="makeStyles-header-2"
+        class="makeStyles-header-16"
       >
         type
       </p>
       <div
-        class="MuiInputBase-root MuiInput-root makeStyles-root-16 MuiInputBase-fullWidth MuiInput-fullWidth"
+        class="MuiInputBase-root MuiInput-root makeStyles-root-19 MuiInputBase-fullWidth MuiInput-fullWidth"
       >
         <div
           aria-haspopup="listbox"
@@ -131,18 +131,18 @@ exports[`Should match snapshot (enums): enums 1`] = `
         </svg>
       </div>
       <label
-        class="MuiFormControlLabel-root makeStyles-header-2"
+        class="MuiFormControlLabel-root makeStyles-header-16"
         id="multiple-answers-checkbox"
       >
         <span
           aria-disabled="false"
-          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-17 MuiCheckbox-root MuiCheckbox-colorPrimary MuiIconButton-colorPrimary"
+          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-20 MuiCheckbox-root MuiCheckbox-colorPrimary MuiIconButton-colorPrimary"
         >
           <span
             class="MuiIconButton-label"
           >
             <input
-              class="PrivateSwitchBase-input-20"
+              class="PrivateSwitchBase-input-23"
               data-indeterminate="false"
               name="checkedMultipleAnswers"
               type="checkbox"
@@ -167,23 +167,23 @@ exports[`Should match snapshot (enums): enums 1`] = `
         </span>
       </label>
       <hr
-        class="makeStyles-divider-4"
+        class="makeStyles-divider-13"
       />
       <p
-        class="makeStyles-header-2"
+        class="makeStyles-header-16"
       >
         descriptive_fields
       </p>
       <p
-        class="makeStyles-header-2"
+        class="makeStyles-header-16"
       >
         title
       </p>
       <div
-        class="MuiFormControl-root MuiTextField-root makeStyles-field-6 MuiFormControl-marginNormal MuiFormControl-fullWidth"
+        class="MuiFormControl-root MuiTextField-root makeStyles-field-14 MuiFormControl-marginNormal MuiFormControl-fullWidth"
       >
         <div
-          class="MuiInputBase-root MuiInput-root MuiInputBase-fullWidth MuiInput-fullWidth MuiInputBase-formControl MuiInput-formControl"
+          class="MuiInputBase-root MuiInput-root makeStyles-fieldText-15 MuiInputBase-fullWidth MuiInput-fullWidth MuiInputBase-formControl MuiInput-formControl"
         >
           <input
             aria-invalid="false"
@@ -195,16 +195,16 @@ exports[`Should match snapshot (enums): enums 1`] = `
         </div>
       </div>
       <p
-        class="makeStyles-header-2"
+        class="makeStyles-header-16"
       >
         description
       </p>
       <div
-        class="MuiFormControl-root MuiTextField-root makeStyles-field-6 MuiFormControl-marginNormal MuiFormControl-fullWidth"
+        class="MuiFormControl-root MuiTextField-root makeStyles-field-14 MuiFormControl-marginNormal MuiFormControl-fullWidth"
         style="height: 100px;"
       >
         <div
-          class="MuiInputBase-root MuiInput-root MuiInputBase-fullWidth MuiInput-fullWidth MuiInputBase-formControl MuiInput-formControl MuiInputBase-multiline MuiInput-multiline"
+          class="MuiInputBase-root MuiInput-root makeStyles-fieldText-15 MuiInputBase-fullWidth MuiInput-fullWidth MuiInputBase-formControl MuiInput-formControl MuiInputBase-multiline MuiInput-multiline"
         >
           <textarea
             aria-invalid="false"
@@ -241,7 +241,7 @@ exports[`Should match snapshot (restrictions): restrictions 1`] = `
   class="makeStyles-root-1"
 >
   <header
-    class="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorDefault makeStyles-appBar-7 MuiPaper-elevation4"
+    class="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorDefault makeStyles-appBar-4 MuiPaper-elevation4"
   >
     <div
       class="MuiTabs-root"
@@ -257,43 +257,43 @@ exports[`Should match snapshot (restrictions): restrictions 1`] = `
         >
           <button
             aria-selected="true"
-            class="MuiButtonBase-root MuiTab-root makeStyles-root-10 MuiTab-textColorInherit Mui-selected"
+            class="MuiButtonBase-root MuiTab-root makeStyles-root-7 MuiTab-textColorInherit Mui-selected"
             role="tab"
             tabindex="0"
             type="button"
           >
             <span
-              class="MuiTab-wrapper makeStyles-wrapper-11"
+              class="MuiTab-wrapper makeStyles-wrapper-8"
             >
               properties
             </span>
             <span
-              class="PrivateTabIndicator-root-12 PrivateTabIndicator-colorSecondary-14 MuiTabs-indicator"
+              class="PrivateTabIndicator-root-9 PrivateTabIndicator-colorSecondary-11 MuiTabs-indicator"
             />
           </button>
           <button
             aria-selected="false"
-            class="MuiButtonBase-root MuiTab-root makeStyles-root-10 MuiTab-textColorInherit"
+            class="MuiButtonBase-root MuiTab-root makeStyles-root-7 MuiTab-textColorInherit"
             role="tab"
             tabindex="-1"
             type="button"
           >
             <span
-              class="MuiTab-wrapper makeStyles-wrapper-11"
+              class="MuiTab-wrapper makeStyles-wrapper-8"
             >
               restrictions
             </span>
           </button>
           <button
             aria-selected="false"
-            class="MuiButtonBase-root MuiTab-root makeStyles-root-10 MuiTab-textColorInherit"
+            class="MuiButtonBase-root MuiTab-root makeStyles-root-7 MuiTab-textColorInherit"
             hidden=""
             role="tab"
             tabindex="-1"
             type="button"
           >
             <span
-              class="MuiTab-wrapper makeStyles-wrapper-11"
+              class="MuiTab-wrapper makeStyles-wrapper-8"
             >
               fields
             </span>
@@ -308,15 +308,15 @@ exports[`Should match snapshot (restrictions): restrictions 1`] = `
   >
     <div>
       <p
-        class="makeStyles-name-3"
+        class="makeStyles-name-17"
       >
         name
       </p>
       <div
-        class="MuiFormControl-root MuiTextField-root makeStyles-field-6 MuiFormControl-fullWidth"
+        class="MuiFormControl-root MuiTextField-root makeStyles-field-14 MuiFormControl-fullWidth"
       >
         <div
-          class="MuiInputBase-root MuiInput-root MuiInputBase-fullWidth MuiInput-fullWidth MuiInputBase-formControl MuiInput-formControl"
+          class="MuiInputBase-root MuiInput-root makeStyles-fieldText-15 MuiInputBase-fullWidth MuiInput-fullWidth MuiInputBase-formControl MuiInput-formControl"
         >
           <input
             aria-invalid="false"
@@ -330,12 +330,12 @@ exports[`Should match snapshot (restrictions): restrictions 1`] = `
         
       </div>
       <p
-        class="makeStyles-header-2"
+        class="makeStyles-header-16"
       >
         type
       </p>
       <div
-        class="MuiInputBase-root MuiInput-root makeStyles-root-16 MuiInputBase-fullWidth MuiInput-fullWidth"
+        class="MuiInputBase-root MuiInput-root makeStyles-root-19 MuiInputBase-fullWidth MuiInput-fullWidth"
       >
         <div
           aria-haspopup="listbox"
@@ -367,18 +367,18 @@ exports[`Should match snapshot (restrictions): restrictions 1`] = `
         </svg>
       </div>
       <label
-        class="MuiFormControlLabel-root makeStyles-header-2"
+        class="MuiFormControlLabel-root makeStyles-header-16"
         id="multiple-answers-checkbox"
       >
         <span
           aria-disabled="false"
-          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-17 MuiCheckbox-root MuiCheckbox-colorPrimary MuiIconButton-colorPrimary"
+          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-20 MuiCheckbox-root MuiCheckbox-colorPrimary MuiIconButton-colorPrimary"
         >
           <span
             class="MuiIconButton-label"
           >
             <input
-              class="PrivateSwitchBase-input-20"
+              class="PrivateSwitchBase-input-23"
               data-indeterminate="false"
               name="checkedMultipleAnswers"
               type="checkbox"
@@ -403,23 +403,23 @@ exports[`Should match snapshot (restrictions): restrictions 1`] = `
         </span>
       </label>
       <hr
-        class="makeStyles-divider-4"
+        class="makeStyles-divider-13"
       />
       <p
-        class="makeStyles-header-2"
+        class="makeStyles-header-16"
       >
         descriptive_fields
       </p>
       <p
-        class="makeStyles-header-2"
+        class="makeStyles-header-16"
       >
         title
       </p>
       <div
-        class="MuiFormControl-root MuiTextField-root makeStyles-field-6 MuiFormControl-marginNormal MuiFormControl-fullWidth"
+        class="MuiFormControl-root MuiTextField-root makeStyles-field-14 MuiFormControl-marginNormal MuiFormControl-fullWidth"
       >
         <div
-          class="MuiInputBase-root MuiInput-root MuiInputBase-fullWidth MuiInput-fullWidth MuiInputBase-formControl MuiInput-formControl"
+          class="MuiInputBase-root MuiInput-root makeStyles-fieldText-15 MuiInputBase-fullWidth MuiInput-fullWidth MuiInputBase-formControl MuiInput-formControl"
         >
           <input
             aria-invalid="false"
@@ -431,16 +431,16 @@ exports[`Should match snapshot (restrictions): restrictions 1`] = `
         </div>
       </div>
       <p
-        class="makeStyles-header-2"
+        class="makeStyles-header-16"
       >
         description
       </p>
       <div
-        class="MuiFormControl-root MuiTextField-root makeStyles-field-6 MuiFormControl-marginNormal MuiFormControl-fullWidth"
+        class="MuiFormControl-root MuiTextField-root makeStyles-field-14 MuiFormControl-marginNormal MuiFormControl-fullWidth"
         style="height: 100px;"
       >
         <div
-          class="MuiInputBase-root MuiInput-root MuiInputBase-fullWidth MuiInput-fullWidth MuiInputBase-formControl MuiInput-formControl MuiInputBase-multiline MuiInput-multiline"
+          class="MuiInputBase-root MuiInput-root makeStyles-fieldText-15 MuiInputBase-fullWidth MuiInput-fullWidth MuiInputBase-formControl MuiInput-formControl MuiInputBase-multiline MuiInput-multiline"
         >
           <textarea
             aria-invalid="false"
@@ -477,7 +477,7 @@ exports[`Should match snapshot 1`] = `
   class="makeStyles-root-1"
 >
   <header
-    class="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorDefault makeStyles-appBar-7 MuiPaper-elevation4"
+    class="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorDefault makeStyles-appBar-4 MuiPaper-elevation4"
   >
     <div
       class="MuiTabs-root"
@@ -493,43 +493,43 @@ exports[`Should match snapshot 1`] = `
         >
           <button
             aria-selected="true"
-            class="MuiButtonBase-root MuiTab-root makeStyles-root-10 MuiTab-textColorInherit Mui-selected"
+            class="MuiButtonBase-root MuiTab-root makeStyles-root-7 MuiTab-textColorInherit Mui-selected"
             role="tab"
             tabindex="0"
             type="button"
           >
             <span
-              class="MuiTab-wrapper makeStyles-wrapper-11"
+              class="MuiTab-wrapper makeStyles-wrapper-8"
             >
               properties
             </span>
             <span
-              class="PrivateTabIndicator-root-12 PrivateTabIndicator-colorSecondary-14 MuiTabs-indicator"
+              class="PrivateTabIndicator-root-9 PrivateTabIndicator-colorSecondary-11 MuiTabs-indicator"
             />
           </button>
           <button
             aria-selected="false"
-            class="MuiButtonBase-root MuiTab-root makeStyles-root-10 MuiTab-textColorInherit"
+            class="MuiButtonBase-root MuiTab-root makeStyles-root-7 MuiTab-textColorInherit"
             role="tab"
             tabindex="-1"
             type="button"
           >
             <span
-              class="MuiTab-wrapper makeStyles-wrapper-11"
+              class="MuiTab-wrapper makeStyles-wrapper-8"
             >
               restrictions
             </span>
           </button>
           <button
             aria-selected="false"
-            class="MuiButtonBase-root MuiTab-root makeStyles-root-10 MuiTab-textColorInherit"
+            class="MuiButtonBase-root MuiTab-root makeStyles-root-7 MuiTab-textColorInherit"
             hidden=""
             role="tab"
             tabindex="-1"
             type="button"
           >
             <span
-              class="MuiTab-wrapper makeStyles-wrapper-11"
+              class="MuiTab-wrapper makeStyles-wrapper-8"
             >
               fields
             </span>
@@ -544,15 +544,15 @@ exports[`Should match snapshot 1`] = `
   >
     <div>
       <p
-        class="makeStyles-name-3"
+        class="makeStyles-name-17"
       >
         name
       </p>
       <div
-        class="MuiFormControl-root MuiTextField-root makeStyles-field-6 MuiFormControl-fullWidth"
+        class="MuiFormControl-root MuiTextField-root makeStyles-field-14 MuiFormControl-fullWidth"
       >
         <div
-          class="MuiInputBase-root MuiInput-root MuiInputBase-fullWidth MuiInput-fullWidth MuiInputBase-formControl MuiInput-formControl"
+          class="MuiInputBase-root MuiInput-root makeStyles-fieldText-15 MuiInputBase-fullWidth MuiInput-fullWidth MuiInputBase-formControl MuiInput-formControl"
         >
           <input
             aria-invalid="false"
@@ -566,12 +566,12 @@ exports[`Should match snapshot 1`] = `
         
       </div>
       <p
-        class="makeStyles-header-2"
+        class="makeStyles-header-16"
       >
         type
       </p>
       <div
-        class="MuiInputBase-root MuiInput-root makeStyles-root-16 MuiInputBase-fullWidth MuiInput-fullWidth"
+        class="MuiInputBase-root MuiInput-root makeStyles-root-19 MuiInputBase-fullWidth MuiInput-fullWidth"
       >
         <div
           aria-haspopup="listbox"
@@ -603,18 +603,18 @@ exports[`Should match snapshot 1`] = `
         </svg>
       </div>
       <label
-        class="MuiFormControlLabel-root makeStyles-header-2"
+        class="MuiFormControlLabel-root makeStyles-header-16"
         id="multiple-answers-checkbox"
       >
         <span
           aria-disabled="false"
-          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-17 MuiCheckbox-root MuiCheckbox-colorPrimary MuiIconButton-colorPrimary"
+          class="MuiButtonBase-root MuiIconButton-root PrivateSwitchBase-root-20 MuiCheckbox-root MuiCheckbox-colorPrimary MuiIconButton-colorPrimary"
         >
           <span
             class="MuiIconButton-label"
           >
             <input
-              class="PrivateSwitchBase-input-20"
+              class="PrivateSwitchBase-input-23"
               data-indeterminate="false"
               name="checkedMultipleAnswers"
               type="checkbox"
@@ -639,23 +639,23 @@ exports[`Should match snapshot 1`] = `
         </span>
       </label>
       <hr
-        class="makeStyles-divider-4"
+        class="makeStyles-divider-13"
       />
       <p
-        class="makeStyles-header-2"
+        class="makeStyles-header-16"
       >
         descriptive_fields
       </p>
       <p
-        class="makeStyles-header-2"
+        class="makeStyles-header-16"
       >
         title
       </p>
       <div
-        class="MuiFormControl-root MuiTextField-root makeStyles-field-6 MuiFormControl-marginNormal MuiFormControl-fullWidth"
+        class="MuiFormControl-root MuiTextField-root makeStyles-field-14 MuiFormControl-marginNormal MuiFormControl-fullWidth"
       >
         <div
-          class="MuiInputBase-root MuiInput-root MuiInputBase-fullWidth MuiInput-fullWidth MuiInputBase-formControl MuiInput-formControl"
+          class="MuiInputBase-root MuiInput-root makeStyles-fieldText-15 MuiInputBase-fullWidth MuiInput-fullWidth MuiInputBase-formControl MuiInput-formControl"
         >
           <input
             aria-invalid="false"
@@ -667,16 +667,16 @@ exports[`Should match snapshot 1`] = `
         </div>
       </div>
       <p
-        class="makeStyles-header-2"
+        class="makeStyles-header-16"
       >
         description
       </p>
       <div
-        class="MuiFormControl-root MuiTextField-root makeStyles-field-6 MuiFormControl-marginNormal MuiFormControl-fullWidth"
+        class="MuiFormControl-root MuiTextField-root makeStyles-field-14 MuiFormControl-marginNormal MuiFormControl-fullWidth"
         style="height: 100px;"
       >
         <div
-          class="MuiInputBase-root MuiInput-root MuiInputBase-fullWidth MuiInput-fullWidth MuiInputBase-formControl MuiInput-formControl MuiInputBase-multiline MuiInput-multiline"
+          class="MuiInputBase-root MuiInput-root makeStyles-fieldText-15 MuiInputBase-fullWidth MuiInput-fullWidth MuiInputBase-formControl MuiInput-formControl MuiInputBase-multiline MuiInput-multiline"
         >
           <textarea
             aria-invalid="false"

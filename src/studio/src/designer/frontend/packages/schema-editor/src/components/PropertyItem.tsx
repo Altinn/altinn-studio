@@ -2,8 +2,8 @@ import React from 'react';
 import {
   makeStyles,
   FormControl,
-  Input,
   IconButton,
+  Input,
   FormControlLabel,
   Checkbox,
   Grid,
@@ -11,24 +11,24 @@ import {
 import { useDispatch } from 'react-redux';
 import { DeleteOutline } from '@material-ui/icons';
 import type { ILanguage } from '../types';
-import { getDomFriendlyID, getTranslation, getUniqueNumber } from '../utils';
+import { getDomFriendlyID, getUniqueNumber } from '../utils/schema';
+import { getTranslation } from '../utils/language';
 import { setRequired } from '../features/editor/schemaEditorSlice';
 
-const useStyles = (readonly?: boolean) =>
-  makeStyles({
-    field: {
-      background: 'white',
+const useStyles = (readonly?: boolean) => makeStyles({
+  field: {
+    background: 'white',
+    color: 'black',
+    border: readonly ? '1px solid grey' : '1px solid #006BD8',
+    boxSsizing: 'border-box',
+    padding: 4,
+    '&.Mui-disabled': {
+      background: '#f4f4f4',
       color: 'black',
-      border: readonly ? '1px solid grey' : '1px solid #006BD8',
-      boxSsizing: 'border-box',
-      padding: 4,
-      '&.Mui-disabled': {
-        background: '#f4f4f4',
-        color: 'black',
-        border: '1px solid #6A6A6A',
-        boxSizing: 'border-box',
-      },
+      border: '1px solid #6A6A6A',
+      boxSizing: 'border-box',
     },
+  },
     inline: {
       display: 'inline-block',
     },
@@ -44,7 +44,7 @@ const useStyles = (readonly?: boolean) =>
     },
   });
 
-export interface IInputFieldProps {
+export interface IPropertyItemProps {
   value: string;
   fullPath: string;
   language: ILanguage;
@@ -55,7 +55,7 @@ export interface IInputFieldProps {
   readOnly?: boolean;
 }
 
-export function InputField(props: IInputFieldProps) {
+export function PropertyItem(props: IPropertyItemProps) {
   const classes = useStyles(props.readOnly)();
 
   const [value, setValue] = React.useState<string>(props.value || '');
@@ -90,7 +90,7 @@ export function InputField(props: IInputFieldProps) {
   return (
     <>
       <Grid item xs={4}>
-        <FormControl>
+      <FormControl>
           <Input
             id={`${baseId}-key-${getUniqueNumber()}`}
             value={value}

@@ -1,4 +1,4 @@
-import type { CombinationKind, ILanguage, UiSchemaItem } from './types';
+import type { CombinationKind, UiSchemaItem } from '../types';
 import JsonPointer from 'jsonpointer';
 
 function flat(input: UiSchemaItem[] | undefined, depth = 1, stack: UiSchemaItem[] = []) {
@@ -312,18 +312,6 @@ export const buildUiSchemaForItemWithProperties = (schema: { [key: string]: { [k
 };
 
 export const getDomFriendlyID = (id: string) => id.replace(/\//g, '').replace('#', '');
-
-export const getTranslation = (key: string, language: ILanguage) => {
-  if (!key) {
-    return key;
-  }
-  const string = `schema_editor.${key}`;
-  return getNestedObject(language, string.split('.')) ?? key;
-};
-
-const getNestedObject = (nestedObj: any, pathArr: string[]) => {
-  return pathArr.reduce((obj, key) => ((obj && obj[key] !== 'undefined') ? obj[key] : undefined), nestedObj);
-};
 
 const stringRestrictions = ['minLength', 'maxLength', 'pattern', 'format'];
 const integerRestrictions = ['minimum', 'exclusiveminimum', 'maximum', 'exclusivemaximum'];

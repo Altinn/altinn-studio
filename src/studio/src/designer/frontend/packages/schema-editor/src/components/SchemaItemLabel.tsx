@@ -1,8 +1,9 @@
 import React from 'react';
 import { IconButton, Divider, makeStyles } from '@material-ui/core';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
-import { getTranslation } from '../utils';
-import type { ILanguage, ObjectKind } from '../types';
+import { getTranslation } from '../utils/language';
+import type { ILanguage } from '../types';
+import { ObjectKind } from '../types/enums';
 
 export interface SchemaItemLabelProps {
   icon: string;
@@ -117,7 +118,7 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
           <AltinnMenuItem
             id='add-reference-to-node-button'
             key='add_reference'
-            onClick={(event) => handleAddNode(event, 'reference')}
+            onClick={(event) => handleAddNode(event, ObjectKind.Reference)}
             text={getTranslation('add_reference', props.language)}
             iconClass='fa fa-datamodel-ref'
           />
@@ -126,7 +127,7 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
           <AltinnMenuItem
             id='add-field-to-node-button'
             key='add_field'
-            onClick={(event) => handleAddNode(event, 'field')}
+            onClick={(event) => handleAddNode(event, ObjectKind.Field)}
             text={getTranslation('add_field', props.language)}
             iconClass='fa fa-datamodel-properties'
           />
@@ -135,7 +136,7 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
           <AltinnMenuItem
             id='add-combination-to-node-button'
             key='add_combination'
-            onClick={(event) => handleAddNode(event, 'combination')}
+            onClick={(event) => handleAddNode(event, ObjectKind.Combination)}
             text={getTranslation('add_combination', props.language)}
             iconClass='fa fa-group'
           />

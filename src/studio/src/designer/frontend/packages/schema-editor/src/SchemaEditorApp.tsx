@@ -4,7 +4,7 @@ import './App.css';
 import SchemaEditor from './components/Editor';
 import { store } from './store';
 import type { ILanguage, ISchema } from './types';
-import { getTranslation } from './utils';
+import { getTranslation } from './utils/language';
 
 export interface IAppProps extends React.PropsWithChildren<any> {
   schema: ISchema;
