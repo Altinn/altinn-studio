@@ -20,6 +20,7 @@ using AltinnCore.Authentication.JwtCookie;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 
+using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WindowsServer.TelemetryChannel;
@@ -37,7 +38,7 @@ ILogger logger;
 
 string applicationInsightsKeySecretName = "ApplicationInsights--InstrumentationKey";
 
-string applicationInsightsKey = string.Empty;
+string applicationInsightsConnectionString = string.Empty;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -116,7 +117,7 @@ async Task ConnectToKeyVaultAndSetApplicationInsights(ConfigurationManager confi
         {
             SecretClient client = new SecretClient(new Uri(keyVaultSettings.SecretUri), new EnvironmentCredential());
             KeyVaultSecret secret = await client.GetSecretAsync(applicationInsightsKeySecretName);
-            applicationInsightsKey = secret.Value;
+            applicationInsightsConnectionString = string.Format("InstrumentationKey={0}", secret.Value);
         }
         catch (Exception vaultException)
         {
@@ -144,15 +145,13 @@ void ConfigureLogging(ILoggingBuilder logging)
     // Clear log providers
     logging.ClearProviders();
 
-    // Setup up application insight if ApplicationInsightsKey is available
-    if (!string.IsNullOrEmpty(applicationInsightsKey))
+    // Setup up application insight if ApplicationInsightsConnectionString is available
+    if (!string.IsNullOrEmpty(applicationInsightsConnectionString))
     {
         // Add application insights https://docs.microsoft.com/en-us/azure/azure-monitor/app/ilogger
-        // Providing an instrumentation key here is required if you're using
-        // standalone package Microsoft.Extensions.Logging.ApplicationInsights
-        // or if you want to capture logs from early in the application startup
-        // pipeline from Startup.cs or Program.cs itself.
-        logging.AddApplicationInsights(applicationInsightsKey);
+        logging.AddApplicationInsights(
+         configureTelemetryConfiguration: (config) => config.ConnectionString = applicationInsightsConnectionString,
+         configureApplicationInsightsLoggerOptions: (options) => { });
 
         // Optional: Apply filters to control what logs are sent to Application Insights.
         // The following configures LogLevel Information or above to be sent to
@@ -227,10 +226,14 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
     services.AddHttpClient<IOidcProvider, OidcProviderService>();
     services.AddSingleton<IAuthentication, AuthenticationCore>();
 
-    if (!string.IsNullOrEmpty(applicationInsightsKey))
+    if (!string.IsNullOrEmpty(applicationInsightsConnectionString))
     {
         services.AddSingleton(typeof(ITelemetryChannel), new ServerTelemetryChannel() { StorageFolder = "/tmp/logtelemetry" });
-        services.AddApplicationInsightsTelemetry(applicationInsightsKey);
+        services.AddApplicationInsightsTelemetry(new ApplicationInsightsServiceOptions
+        {
+            ConnectionString = applicationInsightsConnectionString
+        });
+
         services.AddApplicationInsightsTelemetryProcessor<HealthTelemetryFilter>();
         services.AddApplicationInsightsTelemetryProcessor<IdentityTelemetryFilter>();
         services.AddSingleton<ITelemetryInitializer, CustomTelemetryInitializer>();
