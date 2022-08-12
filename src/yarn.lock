@@ -12,17 +12,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@altinn/altinn-design-system@npm:^0.5.4":
-  version: 0.5.4
-  resolution: "@altinn/altinn-design-system@npm:0.5.4::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40altinn%2Faltinn-design-system%2F0.5.4%2Fc78b5a095cf3c3ef98b359f49f2d02d91c5995ee61c732c55f4e3fbc9884e172"
+"@altinn/altinn-design-system@npm:^0.5.6":
+  version: 0.5.6
+  resolution: "@altinn/altinn-design-system@npm:0.5.6::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40Altinn%2Faltinn-design-system%2F0.5.6%2F990461254766d5a449bccf731fdc6940f48ba589"
   dependencies:
     "@altinn/figma-design-tokens": ^0.3.0
     "@react-hookz/web": ^15.0.1
+    leaflet: ^1.8.0
+    react-leaflet: ^4.0.1
     react-number-format: ^4.9.3
   peerDependencies:
     react: ^18.0.0
     react-dom: ^18.0.0
-  checksum: 295069185d2bd8cec147a66cc241d83c97126e06483d9a558c48bf449098f8d83b85359e9e7433dc658c2bc8f0ede757dc50eed83a9aa6aaaef940b066eee63a
+  checksum: b862e88a5cecc961fd18b405df6db4107003f18037d51245f034e050ed32313cb838ac994b05723e5d2c7d060d17c39ee318532602e388da79c3619bb5fd9290
   languageName: node
   linkType: hard
 
@@ -2951,6 +2953,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-leaflet/core@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@react-leaflet/core@npm:2.0.0"
+  peerDependencies:
+    leaflet: ^1.8.0
+    react: ^18.0.0
+    react-dom: ^18.0.0
+  checksum: 8528b05bb3f2218dc783d508fad571ed34986bb9a15e8296f3ca6e090934ee4b9858172cab25bc2ae3255c880660d648477bb609c496bee70d1c0e3fb99f0533
+  languageName: node
+  linkType: hard
+
 "@redux-saga/core@npm:^1.1.3":
   version: 1.1.3
   resolution: "@redux-saga/core@npm:1.1.3"
@@ -4394,7 +4407,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "altinn-app-frontend@workspace:altinn-app-frontend"
   dependencies:
-    "@altinn/altinn-design-system": ^0.5.4
+    "@altinn/altinn-design-system": ^0.5.6
     "@babel/core": ^7.18.10
     "@babel/polyfill": ^7.12.1
     "@babel/preset-env": ^7.18.10
@@ -10838,6 +10851,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"leaflet@npm:^1.8.0":
+  version: 1.8.0
+  resolution: "leaflet@npm:1.8.0"
+  checksum: 4a27895d4253844f2f13f94cbc52a2030b10833cdf553085d931b834745236a8d2a38844a01eb968cc109eb43268bfadb97aad85b51deffb17b6ccd106542e00
+  languageName: node
+  linkType: hard
+
 "leven@npm:^3.1.0":
   version: 3.1.0
   resolution: "leven@npm:3.1.0"
@@ -13170,6 +13190,19 @@ __metadata:
   version: 18.1.0
   resolution: "react-is@npm:18.1.0"
   checksum: d206a0fe6790851bff168727bfb896de02c5591695afb0c441163e8630136a3e13ee1a7ddd59fdccddcc93968b4721ae112c10f790b194b03b35a3dc13a355ef
+  languageName: node
+  linkType: hard
+
+"react-leaflet@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "react-leaflet@npm:4.0.1"
+  dependencies:
+    "@react-leaflet/core": ^2.0.0
+  peerDependencies:
+    leaflet: ^1.8.0
+    react: ^18.0.0
+    react-dom: ^18.0.0
+  checksum: f5e94c0e3b49f8d7d3c464185f8624ab0ad6958a950dd153974183ed93be1b61216c1cddd09967a85e65762f6696a39dfac086ab770980689405e80b3c43a6c1
   languageName: node
   linkType: hard
 

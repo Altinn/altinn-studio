@@ -13,6 +13,7 @@ import { ImageComponent } from 'src/components/base/ImageComponent';
 import { InputComponent } from 'src/components/base/InputComponent';
 import { InstantiationButtonComponent } from 'src/components/base/InstantiationButtonComponent';
 import { LikertComponent } from 'src/components/base/LikertComponent';
+import { MapComponent } from 'src/components/base/MapComponent';
 import { NavigationBar as NavigationBarComponent } from 'src/components/base/NavigationBar';
 import { PanelComponent } from 'src/components/base/PanelComponent';
 import { ParagraphComponent } from 'src/components/base/ParagraphComponent';
@@ -54,6 +55,7 @@ const components: {
   PrintButton: PrintButtonComponent,
   AddressComponent: Address,
   Custom: CustomComponent,
+  Map: MapComponent,
 };
 
 export interface IComponentProps extends IGenericComponentProps {

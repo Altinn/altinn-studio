@@ -274,5 +274,9 @@ export function nn() {
       required: 'Feltet er påkravd',
       enum: 'Kun verdiane {0} er tillatne',
     },
+    map_component: {
+      selectedLocation: 'Valt lokasjon: {0}° nord, {1}° øst',
+      noSelectedLocation: 'Ingen lokasjon valt',
+    },
   };
 }

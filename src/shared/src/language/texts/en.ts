@@ -275,5 +275,9 @@ export function en() {
       required: 'Field is required',
       enum: 'Only the values {0} are permitted',
     },
+    map_component: {
+      selectedLocation: 'Selected location: {0}° north, {1}° east',
+      noSelectedLocation: 'No selected location',
+    },
   };
 }

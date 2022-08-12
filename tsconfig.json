@@ -2,7 +2,7 @@
   "compilerOptions": {
     "outDir": "compiled",
     "module": "commonjs",
-    "target": "es5",
+    "target": "es6",
     "downlevelIteration": true,
     "lib": ["es6", "dom", "es7", "esnext"],
     "sourceMap": true,

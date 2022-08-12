@@ -1,5 +1,6 @@
 import type { NumberFormatProps } from 'react-number-format';
 
+import type { Location, MapLayer } from '@altinn/altinn-design-system';
 import type { GridJustification, GridSize } from '@material-ui/core';
 
 import type {
@@ -194,6 +195,12 @@ export interface ILayoutCompCustom extends ILayoutCompBase<'Custom'> {
   tagName: string;
 }
 
+export interface ILayoutCompMap extends ILayoutCompBase<'Map'> {
+  layers?: MapLayer[];
+  centerLocation?: Location;
+  zoom?: number;
+}
+
 /**
  * This interface type defines all the possible components, along with their 'type' key and associated layout
  * definition. If you want to reference a particular component layout type you can either reference the individual
@@ -223,6 +230,7 @@ interface Map {
   PrintButton: ILayoutCompPrintButton;
   Panel: ILayoutCompPanel;
   Custom: ILayoutCompCustom;
+  Map: ILayoutCompMap;
 }
 
 export type ComponentTypes = keyof Map;

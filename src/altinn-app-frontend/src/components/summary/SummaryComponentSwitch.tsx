@@ -2,6 +2,7 @@ import * as React from 'react';
 
 import { AttachmentSummaryComponent } from 'src/components/summary/AttachmentSummaryComponent';
 import { AttachmentWithTagSummaryComponent } from 'src/components/summary/AttachmentWithTagSummaryComponent';
+import MapComponentSummary from 'src/components/summary/MapComponentSummary';
 import MultipleChoiceSummary from 'src/components/summary/MultipleChoiceSummary';
 import SingleInputSummary from 'src/components/summary/SingleInputSummary';
 import SummaryBoilerplate from 'src/components/summary/SummaryBoilerplate';
@@ -90,6 +91,22 @@ export default function SummaryComponentSwitch({
         formData={formData}
         readOnlyComponent={(formComponent as ILayoutComponent).readOnly}
       />
+    );
+  }
+
+  if (formComponent.type === 'Map') {
+    return (
+      <>
+        <SummaryBoilerplate
+          {...change}
+          label={label}
+          hasValidationMessages={hasValidationMessages}
+        />
+        <MapComponentSummary
+          component={formComponent}
+          formData={formData}
+        />
+      </>
     );
   }
 
