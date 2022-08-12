@@ -61,9 +61,6 @@ const useStyles = makeStyles({
   deleteItem: {
     paddingBottom: '0px !important',
   },
-  saveItem: {
-    paddingTop: '0px !important',
-  },
   deleteButton: {
     color: theme.altinnPalette.primary.red,
     fontWeight: 700,
@@ -176,10 +173,7 @@ export function RepeatingGroupsEditContainer({
             },
           )}
         </Grid>
-        <Grid
-          item={true}
-          className={classes.saveItem}
-        >
+        <Grid item={true}>
           {container.edit?.multiPage && (
             <div style={style}>
               {multiPageIndex > -1 &&
