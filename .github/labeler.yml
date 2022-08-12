@@ -51,10 +51,6 @@ area/process:
   - 'src/Altinn.Apps/AppTemplates/AspNet/Altinn.App.Common/Process/**/*'
   - 'src/Altinn.Apps/AppTemplates/AspNet/App/config/process/**/*'
 
-area/receipt:
-  - 'src/Altinn.Platform/Altinn.Platform.Receipt/**/*'
-  - 'src/Altinn.Apps/AppFrontend/react/receipt/**/*'
-
 area/ui-editor:
   - 'src/studio/src/designer/frontend/ux-editor/**/*'
 
