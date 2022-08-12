@@ -3,7 +3,7 @@ import { createTheme } from '@material-ui/core/styles';
 import React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
-interface IAltinnRadioProps {
+export interface IAltinnRadioProps {
   id?: any;
   value?: any;
   checked?: boolean;

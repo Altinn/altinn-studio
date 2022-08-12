@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import { getLanguageFromKey } from '../utils/language';
 import theme from '../theme/altinnStudioTheme';
 
-interface IFileSelectorProps extends StyledComponentProps {
+export interface IFileSelectorProps extends StyledComponentProps {
   language: any;
   submitHandler: (file: FormData, fileName: string) => void;
   busy: boolean;
@@ -96,6 +96,7 @@ function FileSelector(props: IFileSelectorProps) {
   return (
     <form onSubmit={handleSubmit} className={classes.root}>
       <input
+        data-testid="FileSelector-input"
         type='file'
         id='file-upload-picker'
         className='sr-only'

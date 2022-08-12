@@ -1,36 +1,55 @@
-import { mount } from 'enzyme';
+import { render as rtlRender, screen } from '@testing-library/react';
+import userEvent, {
+  PointerEventsCheckLevel,
+} from '@testing-library/user-event';
 import React from 'react';
 import FileSelector from './FileSelector';
+import type { IFileSelectorProps } from './FileSelector';
+
+const user = userEvent.setup();
 
 describe('FileSelector', () => {
-  const language = {
-    general: { label: 'download' },
-    shared: { submit_upload: 'upload' },
-  };
-  const submitHandler = jest.fn();
+  it('should not call submitHandler when no files are selected and submit button is clicked', async () => {
+    const userWithNoPointerEventCheck = userEvent.setup({
+      pointerEventsCheck: PointerEventsCheckLevel.Never,
+    });
+    const handleSubmit = jest.fn();
+    render({ submitHandler: handleSubmit });
 
-  beforeEach(() => {
-    submitHandler.mockReset();
+    const submitButton = screen.getByRole('button', {
+      name: /upload/i,
+    });
+    await userWithNoPointerEventCheck.click(submitButton);
+    expect(handleSubmit).not.toHaveBeenCalled();
   });
 
-  const mountComponent = (busy: boolean) =>
-    mount(
-      <FileSelector
-        language={language}
-        labelTextResource='general.label'
-        busy={busy}
-        accept='.xsd'
-        formFileName='thefile'
-        submitHandler={submitHandler}
-      />,
-    );
+  it('should call submitHandler when a file is selected and submit button is clicked', async () => {
+    const file = new File(['hello'], 'hello.png', { type: 'image/png' });
+    const handleSubmit = jest.fn();
+    render({ submitHandler: handleSubmit });
 
-  it('should not submit without file selected', () => {
-    const wrapper = mountComponent(false);
-    const submitButton = wrapper.find('button');
-    expect(submitButton).toHaveLength(1);
-    submitButton.simulate('click');
-    expect(submitButton.props().disabled).toBe(true);
-    expect(submitHandler).toHaveBeenCalledTimes(0);
+    const fileInput = screen.getByTestId('FileSelector-input');
+    await user.upload(fileInput, file);
+
+    const submitButton = screen.getByRole('button', {
+      name: /upload/i,
+    });
+    await user.click(submitButton);
+    expect(handleSubmit).toHaveBeenCalledWith(
+      expect.any(FormData),
+      'hello.png',
+    );
   });
 });
+
+const render = (props: Partial<IFileSelectorProps> = {}) => {
+  const allProps = {
+    language: {
+      general: { label: 'download' },
+      shared: { submit_upload: 'upload' },
+    },
+    ...props,
+  } as IFileSelectorProps;
+
+  rtlRender(<FileSelector {...allProps} />);
+};
