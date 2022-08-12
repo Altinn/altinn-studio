@@ -60,9 +60,9 @@ export interface IData {
   refs: string[];
   isRead?: boolean;
   tags?: string[];
-  created: Date;
+  created: string;
   createdBy: string;
-  lastChanged: Date;
+  lastChanged: string;
   lastChangedBy: string;
 }
 
@@ -86,19 +86,19 @@ export interface IExtendedInstance {
 
 export interface IInstance {
   appId: string;
-  created: Date;
+  created: string;
   data: IData[];
-  dueBefore?: Date;
+  dueBefore?: string;
   id: string;
   instanceOwner: IInstanceOwner;
   instanceState: IInstanceState;
-  lastChanged: Date;
+  lastChanged: string;
   org: string;
   process: IProcess;
   selfLinks: ISelfLinks;
   status: IInstanceStatus;
   title: ITitle;
-  visibleAfter?: Date;
+  visibleAfter?: string;
 }
 
 export interface IInstanceStatus {

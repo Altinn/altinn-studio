@@ -52,9 +52,9 @@ describe('submitFormDataSagas', () => {
       size: 1234,
       locked: false,
       refs: [],
-      created: new Date('2021-01-01'),
+      created: new Date('2021-01-01').toISOString(),
       createdBy: 'testUser',
-      lastChanged: new Date('2021-01-01'),
+      lastChanged: new Date('2021-01-01').toISOString(),
       lastChangedBy: 'testUser',
     };
     const mockInstanceData: IInstanceDataState = {

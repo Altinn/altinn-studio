@@ -11,8 +11,6 @@ import { getDataValidationUrl } from 'src/utils/appUrlHelper';
 import { get } from 'src/utils/networking';
 import type { IRuntimeState, IValidationIssue, IValidations } from 'src/types';
 
-import { getParsedLanguageFromText } from 'altinn-shared/index';
-
 describe('singleFieldValidationSagas', () => {
   let mockState: IRuntimeState;
   const mockTriggerField = 'mockField';
@@ -52,7 +50,7 @@ describe('singleFieldValidationSagas', () => {
       FormLayout: {
         field1: {
           simpleBinding: {
-            errors: [getParsedLanguageFromText(mockErrorMessage) as any],
+            errors: [mockErrorMessage],
           },
         },
       },

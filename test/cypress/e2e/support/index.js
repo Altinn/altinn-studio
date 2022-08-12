@@ -1,5 +1,4 @@
 import './localtest';
-import './app';
 import './app-frontend';
 import './custom';
 import 'cypress-plugin-tab';

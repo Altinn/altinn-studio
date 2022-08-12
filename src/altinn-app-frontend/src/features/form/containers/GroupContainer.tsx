@@ -399,6 +399,7 @@ export function GroupContainer({
           container={true}
           style={gridStyle}
           direction='column'
+          data-testid={'group-table-errors'}
         >
           <ErrorPaper
             message={getLanguageFromKey('group.row_error', language)}

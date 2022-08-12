@@ -175,6 +175,7 @@ export default class AppFrontend {
       back: 'button[aria-label="Tilbake"]',
       mainGroupSummary: '[id^="mainGroup-"][id$="-summary"]',
       options: '#reduxOptions',
+      tableErrors: '[data-testid=group-table-errors]',
       rows: [0, 1].map((idx) => ({
         uploadSingle: makeUploaderSelectors('mainUploaderSingle', idx, 3),
         uploadMulti: makeUploaderSelectors('mainUploaderMulti', idx, 4),

@@ -11,7 +11,10 @@ import { getMappedErrors, getUnmappedErrors } from 'src/utils/validation';
 import type { ILayout } from 'src/features/form/layout';
 import type { FlatError } from 'src/utils/validation';
 
-import { getLanguageFromKey } from 'altinn-shared/utils';
+import {
+  getLanguageFromKey,
+  getParsedLanguageFromText,
+} from 'altinn-shared/utils';
 
 export interface IErrorReportProps {
   components: ILayout;
@@ -121,8 +124,10 @@ const ErrorReport = ({ components }: IErrorReportProps) => {
               xs={12}
             >
               <ul className={classes.errorList}>
-                {errorsUnmapped.map((error: React.ReactNode, index: number) => (
-                  <li key={`unmapped-${index}`}>{error}</li>
+                {errorsUnmapped.map((error: string, index: number) => (
+                  <li key={`unmapped-${index}`}>
+                    {getParsedLanguageFromText(error)}
+                  </li>
                 ))}
                 {errorsMapped.map((error) => (
                   <li key={`mapped-${error.componentId}`}>
@@ -131,7 +136,7 @@ const ErrorReport = ({ components }: IErrorReportProps) => {
                       onClick={handleErrorClick(error)}
                       onKeyDown={handleErrorClick(error)}
                     >
-                      {error.message}
+                      {getParsedLanguageFromText(error.message)}
                     </button>
                   </li>
                 ))}

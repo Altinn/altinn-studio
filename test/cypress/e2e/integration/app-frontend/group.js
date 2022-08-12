@@ -24,18 +24,11 @@ describe('Group', () => {
 
   [true, false].forEach((openByDefault) => {
     it(`Add and delete items on main and nested group (openByDefault = ${openByDefault ? 'true' : 'false'})`, () => {
-      cy.intercept('**/api/layouts/group', (req) => {
-        req.reply(res => {
-          const modified = JSON.parse(res.body);
-          modified.repeating.data.layout = modified.repeating.data.layout.map((component) => {
-            if (component.edit && typeof component.edit.openByDefault === 'boolean') {
-              component.edit.openByDefault = openByDefault;
-            }
-            return component;
-          });
-
-          res.send(JSON.stringify(modified));
-        });
+      cy.interceptLayout('group', (component) => {
+        if (component.edit && typeof component.edit.openByDefault === 'boolean') {
+          component.edit.openByDefault = openByDefault;
+        }
+        return component;
       });
       init();
 
@@ -114,10 +107,10 @@ describe('Group', () => {
       .should('exist')
       .should('be.visible')
       .should('have.text', texts.zeroIsNotValid);
-    cy.get(appFrontend.group.mainGroup).siblings(mui.gridContainer).should('contain.text', texts.errorInGroup);
+    cy.get(appFrontend.group.mainGroup).siblings(appFrontend.group.tableErrors).should('contain.text', texts.errorInGroup);
     cy.get(appFrontend.group.newValue).should('be.visible').clear().type('1').blur();
     cy.get(appFrontend.fieldValidationError.replace('field', 'newValue')).should('not.exist');
-    cy.get(appFrontend.group.mainGroup).siblings(mui.gridContainer).should('not.contain.text', texts.errorInGroup);
+    cy.get(appFrontend.group.mainGroup).siblings(appFrontend.group.tableErrors).should('not.exist');
     cy.get(appFrontend.group.mainGroup)
       .siblings(appFrontend.group.editContainer)
       .find(appFrontend.group.next)
@@ -129,11 +122,11 @@ describe('Group', () => {
       .should('exist')
       .should('be.visible')
       .should('have.text', texts.testIsNotValidValue);
-    cy.get(appFrontend.group.subGroup).siblings(mui.gridContainer).should('contain.text', texts.errorInGroup);
+    cy.get(appFrontend.group.subGroup).siblings(appFrontend.group.tableErrors).should('contain.text', texts.errorInGroup);
     cy.get(appFrontend.group.comments).clear().type('automation').blur();
     cy.get(appFrontend.fieldValidationError.replace('field', 'comments')).should('not.exist');
-    cy.get(appFrontend.group.subGroup).siblings(mui.gridContainer).should('not.contain.text', texts.errorInGroup);
-    cy.get(appFrontend.group.mainGroup).siblings(mui.gridContainer).should('not.contain.text', texts.errorInGroup);
+    cy.get(appFrontend.group.subGroup).siblings(appFrontend.group.tableErrors).should('not.exist');
+    cy.get(appFrontend.group.mainGroup).siblings(appFrontend.group.tableErrors).should('not.exist');
     cy.get(appFrontend.group.saveSubGroup).should('be.visible').click().should('not.exist');
     cy.get(appFrontend.group.saveMainGroup).should('be.visible').click().should('not.exist');
   });
@@ -194,5 +187,39 @@ describe('Group', () => {
     cy.get(appFrontend.group.prefill.liten).click();
     cy.contains(mui.button, texts.next).click();
     expectRows([9872345, 18872345]);
+  });
+
+  it('Delete group row after validation', () => {
+    cy.interceptLayout('group', (component) => {
+      if (['currentValue', 'newValue'].includes(component.id)) {
+        // Sets these two components to required
+        component.required = true;
+      }
+      return component;
+    });
+    init();
+
+    cy.get(appFrontend.group.showGroupToContinue).find('input').check();
+    cy.get(appFrontend.group.addNewItem).click();
+    cy.get(appFrontend.group.saveMainGroup).click();
+
+    cy.get(appFrontend.fieldValidationError.replace('field', 'currentValue-0'))
+      .should('be.visible')
+      .should('have.text', texts.requiredFieldFromValue);
+    cy.get(appFrontend.fieldValidationError.replace('field', 'newValue-0'))
+      .should('be.visible')
+      .should('have.text', texts.requiredFieldToValue);
+    cy.get(appFrontend.group.mainGroup)
+      .siblings(appFrontend.group.tableErrors)
+      .should('have.text', texts.errorInGroup);
+
+    cy.get(appFrontend.group.mainGroup)
+      .siblings(appFrontend.group.editContainer)
+      .find(appFrontend.group.delete)
+      .should('be.visible')
+      .click();
+
+    cy.contains(mui.button, texts.next).click();
+    cy.get(appFrontend.group.sendersName).should('exist');
   });
 });

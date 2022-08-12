@@ -1,5 +1,3 @@
-import { createElement } from 'react';
-
 import { getInitialStateMock } from '__mocks__/initialStateMock';
 import * as complexSchema from '__mocks__/json-schema/complex.json';
 import * as oneOfOnRootSchema from '__mocks__/json-schema/one-of-on-root.json';
@@ -8,7 +6,7 @@ import { getMockValidationState } from '__mocks__/validationStateMock';
 
 import { Severity } from 'src/types';
 import { createRepeatingGroupComponents } from 'src/utils/formLayout';
-import { getParsedTextResourceByKey } from 'src/utils/textResource';
+import { getTextResourceByKey } from 'src/utils/textResource';
 import * as validation from 'src/utils/validation/validation';
 import type { ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
 import type {
@@ -403,6 +401,7 @@ describe('utils > validation', () => {
                   'validation_errors.min',
                   mockLanguage.language,
                   [0],
+                  true,
                 ),
               ],
             },
@@ -414,6 +413,7 @@ describe('utils > validation', () => {
                   'validation_errors.minLength',
                   mockLanguage.language,
                   [10],
+                  true,
                 ),
               ],
             },
@@ -424,6 +424,8 @@ describe('utils > validation', () => {
                 getParsedLanguageFromKey(
                   'validation_errors.pattern',
                   mockLanguage.language,
+                  [],
+                  true,
                 ),
               ],
             },
@@ -435,6 +437,7 @@ describe('utils > validation', () => {
                   'validation_errors.minLength',
                   mockLanguage.language,
                   [10],
+                  true,
                 ),
               ],
             },
@@ -1079,14 +1082,14 @@ describe('utils > validation', () => {
         FormLayout: {
           componentId_1: {
             simpleBinding: {
-              errors: [getParsedTextResourceByKey('Error message', [])],
-              info: [getParsedTextResourceByKey('Info message', [])],
+              errors: [getTextResourceByKey('Error message', [])],
+              info: [getTextResourceByKey('Info message', [])],
             },
           },
           componentId_2: {
             customBinding: {
-              success: [getParsedTextResourceByKey('Success message', [])],
-              warnings: [getParsedTextResourceByKey('Warning message', [])],
+              success: [getTextResourceByKey('Success message', [])],
+              warnings: [getTextResourceByKey('Warning message', [])],
             },
           },
         },
@@ -1129,8 +1132,8 @@ describe('utils > validation', () => {
           AnotherComponent: {
             simpleBinding: {
               errors: [
-                getParsedTextResourceByKey('Error message 1', []),
-                getParsedTextResourceByKey('Error message 2', []),
+                getTextResourceByKey('Error message 1', []),
+                getTextResourceByKey('Error message 2', []),
               ],
             },
           },
@@ -1189,7 +1192,7 @@ describe('utils > validation', () => {
         FormLayout: {
           componentId_customError: {
             simpleBinding: {
-              errors: [getParsedTextResourceByKey('custom_error', mockTexts)],
+              errors: [getTextResourceByKey('custom_error', mockTexts)],
             },
           },
         },
@@ -1703,6 +1706,7 @@ describe('utils > validation', () => {
                   `validation_errors.pattern`,
                   state.language.language,
                   [],
+                  true,
                 ),
               ],
             },
@@ -1714,6 +1718,7 @@ describe('utils > validation', () => {
                   `validation_errors.minLength`,
                   state.language.language,
                   [10],
+                  true,
                 ),
               ],
             },
@@ -1789,6 +1794,7 @@ describe('utils > validation', () => {
                   `validation_errors.minLength`,
                   state.language.language,
                   [10],
+                  true,
                 ),
               ],
             },
@@ -2116,9 +2122,9 @@ describe('utils > validation', () => {
 
   describe('getUniqueNewElements', () => {
     it('should return new elements that are not in original array', () => {
-      const originalArray = [1, 2];
-      const newArray = [1, 4, 5];
-      const expected = [4, 5];
+      const originalArray = ['1', '2'];
+      const newArray = ['1', '4', '5'];
+      const expected = ['4', '5'];
       const actual = validation.getUniqueNewElements(originalArray, newArray);
       expect(actual).toEqual(expected);
     });
@@ -2288,7 +2294,6 @@ describe('utils > validation', () => {
       });
     });
   });
-
   describe('getSchemaPartOldGenerator', () => {
     it('should return definition from parent schema', () => {
       const result = validation.getSchemaPartOldGenerator(
@@ -2365,24 +2370,8 @@ describe('utils > validation', () => {
       );
       expect(result).toBeTruthy();
     });
-    it('should return true when validations contain messages (react element) for missing fields', () => {
-      const node = createElement('span', {}, 'Du må fylle ut ');
-      const validations: ILayoutValidations = {
-        field: {
-          simple_binding: {
-            errors: ['Some random error', node],
-            warnings: [],
-          },
-        },
-      };
-      const result = validation.missingFieldsInLayoutValidations(
-        validations,
-        mockLanguage.language,
-      );
-      expect(result).toBeTruthy();
-    });
     it('should return true when validations contain arrays with error message for missing fields', () => {
-      const validations = (err: any[]): ILayoutValidations => ({
+      const validations = (err: string): ILayoutValidations => ({
         field: {
           simple_binding: {
             errors: ['Some random error', err],
@@ -2390,15 +2379,8 @@ describe('utils > validation', () => {
           },
         },
       });
-      const shallow = ['Første linje', '\n', 'Du må fylle ut '];
-      const deep = [
-        'Dette er feil:',
-        ['Første linje', '\n', 'Du må fylle ut '],
-      ];
-      const withNode = [
-        'Dette er feil:',
-        ['Første linje', '\n', createElement('span', {}, 'Du må fylle ut ')],
-      ];
+      const shallow = 'Første linje\nDu må fylle ut ';
+      const deep = 'Dette er feil:\nFørste linje\nDu må fylle ut ';
       expect(
         validation.missingFieldsInLayoutValidations(
           validations(shallow),
@@ -2408,12 +2390,6 @@ describe('utils > validation', () => {
       expect(
         validation.missingFieldsInLayoutValidations(
           validations(deep),
-          mockLanguage.language,
-        ),
-      ).toBeTruthy();
-      expect(
-        validation.missingFieldsInLayoutValidations(
-          validations(withNode),
           mockLanguage.language,
         ),
       ).toBeTruthy();

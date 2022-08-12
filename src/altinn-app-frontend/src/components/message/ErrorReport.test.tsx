@@ -8,8 +8,6 @@ import ErrorReport from 'src/components/message/ErrorReport';
 import type { IValidationState } from 'src/features/form/validation/validationSlice';
 import type { IValidations } from 'src/types';
 
-import { getParsedLanguageFromText } from 'altinn-shared/utils';
-
 describe('ErrorReport', () => {
   const render = (validations: Partial<IValidations>) => {
     const mockValidationState: IValidationState = {
@@ -42,7 +40,7 @@ describe('ErrorReport', () => {
           // unmapped component
           unmapped: {
             // unmapped data binding
-            errors: [getParsedLanguageFromText('some unmapped error')],
+            errors: ['some unmapped error'],
           },
         },
       },
@@ -62,7 +60,7 @@ describe('ErrorReport', () => {
       page1: {
         someComponent: {
           simpleBinding: {
-            errors: [getParsedLanguageFromText('some mapped error')],
+            errors: ['some mapped error'],
           },
         },
       },

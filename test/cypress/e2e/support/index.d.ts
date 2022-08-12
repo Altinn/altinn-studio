@@ -8,19 +8,6 @@ declare namespace Cypress {
     getTokenForOrg(orgname: string): Chainable<Element>;
 
     /**
-     * Custom command to upload an attachment to an app instance
-     * @example cy.uploadAttachment(ttd, app, "512345", "fc56bb33-eb24-4583-967d-7cf2c2d5fa53", "attachment", "jwttoken")
-     */
-    uploadAttachment(
-      orgname: string,
-      appname: string,
-      partyId: string,
-      instanceId: string,
-      attachmentId: string,
-      token: string,
-    ): Chainable<Element>;
-
-    /**
      * Custom command to navigate to change name layout in task_2 in app: frontend-test
      * @example cy.navigateToChangeName()
      */
@@ -96,5 +83,13 @@ declare namespace Cypress {
      * @example cy.getReduxState((state) => state.formData).should('have.length', 3)
      */
     getReduxState(selector?:(state:any)=>any):any;
+
+    /**
+     * Allows you to intercept the fetched layout and make changes to it. This makes
+     * it possible to add small adjustments to the layout not originally intended in
+     * the app you're testing, such as marking some components as required, etc.
+     * Must be called in the beginning of your test.
+     */
+    interceptLayout(layoutName:string, mutator:(component:any) => any):Chainable<Element>;
   }
 }

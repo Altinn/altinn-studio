@@ -1,5 +1,3 @@
-import type { ReactNode } from 'react';
-
 import type Ajv from 'ajv/dist/core';
 
 import type { IFormData } from 'src/features/form/data';
@@ -15,11 +13,11 @@ export interface IAltinnWindow extends Window {
 }
 
 export interface IComponentBindingValidation {
-  errors?: (string | ReactNode)[];
-  warnings?: (string | ReactNode)[];
-  info?: (string | ReactNode)[];
-  success?: (string | ReactNode)[];
-  fixed?: (string | ReactNode)[];
+  errors?: string[];
+  warnings?: string[];
+  info?: string[];
+  success?: string[];
+  fixed?: string[];
 }
 
 export interface IComponentValidations {
