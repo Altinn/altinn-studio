@@ -54,20 +54,27 @@ export const getParsedLanguageFromKey = (
 
 export const getParsedLanguageFromText = (
   text: string,
-  allowedTags?: string[],
-  allowedAttr?: string[],
+  options?: {
+    allowedTags?: string[];
+    allowedAttr?: string[];
+    disallowedTags?: string[];
+  },
 ) => {
   const dirty = marked.parse(text);
-  const options: DOMPurify.Config = {};
-  if (allowedTags) {
-    options.ALLOWED_TAGS = allowedTags;
+  const actualOptions: DOMPurify.Config = {};
+  if (options && options.allowedTags) {
+    actualOptions.ALLOWED_TAGS = options.allowedTags;
   }
 
-  if (allowedAttr) {
-    options.ALLOWED_ATTR = allowedAttr;
+  if (options && options.allowedAttr) {
+    actualOptions.ALLOWED_ATTR = options.allowedAttr;
   }
 
-  const clean = DOMPurify.sanitize(dirty, options);
+  if (options && options.disallowedTags) {
+    actualOptions.FORBID_TAGS = options.disallowedTags;
+  }
+
+  const clean = DOMPurify.sanitize(dirty, actualOptions);
   return parseHtmlToReact(clean.toString().trim(), parseOptions);
 };
 

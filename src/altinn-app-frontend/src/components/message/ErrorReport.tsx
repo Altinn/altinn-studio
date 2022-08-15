@@ -37,10 +37,10 @@ const useStyles = makeStyles((theme) => ({
     },
     '& > li > button': {
       textAlign: 'left',
-      borderBottom: theme.sharedStyles.noLinkBorderBottom,
+      borderBottom: '2px solid transparent',
     },
     '& > li > button:hover': {
-      borderBottom: theme.sharedStyles.linkBorderBottom,
+      borderBottom: `2px solid black`,
     },
   },
   buttonAsInvisibleLink: {
@@ -126,7 +126,9 @@ const ErrorReport = ({ components }: IErrorReportProps) => {
               <ul className={classes.errorList}>
                 {errorsUnmapped.map((error: string, index: number) => (
                   <li key={`unmapped-${index}`}>
-                    {getParsedLanguageFromText(error)}
+                    {getParsedLanguageFromText(error, {
+                      disallowedTags: ['a'],
+                    })}
                   </li>
                 ))}
                 {errorsMapped.map((error) => (
@@ -136,7 +138,9 @@ const ErrorReport = ({ components }: IErrorReportProps) => {
                       onClick={handleErrorClick(error)}
                       onKeyDown={handleErrorClick(error)}
                     >
-                      {getParsedLanguageFromText(error.message)}
+                      {getParsedLanguageFromText(error.message, {
+                        disallowedTags: ['a'],
+                      })}
                     </button>
                   </li>
                 ))}
