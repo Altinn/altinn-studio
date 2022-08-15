@@ -122,6 +122,11 @@ function DataModelling({
     dispatch(DataModelsMetadataActions.getDataModelsMetadata());
   };
 
+  const loadingIndicator = (
+    <AltinnSpinner
+      spinnerText={getLanguageFromKey('general.loading', language)}
+    />
+  );
   return (
     <SchemaEditor
       language={language}
@@ -129,9 +134,11 @@ function DataModelling({
       onSaveSchema={handleSaveSchema}
       name={selectedOption?.label}
       LoadingComponent={
-        <AltinnSpinner
-          spinnerText={getLanguageFromKey('general.loading', language)}
-        />
+        metadataLoadingState === LoadingState.LoadingModels ? (
+          loadingIndicator
+        ) : (
+          <></>
+        )
       }
     >
       <XSDUpload
