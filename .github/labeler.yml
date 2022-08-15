@@ -29,10 +29,8 @@ area/api-use:
   - 'src/Altinn.Apps/AppTemplates/AspNet/Altinn.App.PlatformServices/**/*'
 
 area/authorization:
-  - 'src/Altinn.Platform/Altinn.Platform.Authorization/**/*'
   - 'src/Altinn.Common/Altinn.Common.AccessToken/**/*'
   - 'src/Altinn.Common/Altinn.Common.PEP/**/*'
-  - 'src/Altinn.Platform/Altinn.Platform.Models/Models/Authorization/**/*'
 
 area/app-deploy:
   - 'src/studio/src/designer/frontend/app-development/features/appPublish/**/*'
