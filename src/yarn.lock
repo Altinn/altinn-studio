@@ -12,11 +12,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@altinn/altinn-design-system@npm:^0.5.6":
-  version: 0.5.6
-  resolution: "@altinn/altinn-design-system@npm:0.5.6::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40Altinn%2Faltinn-design-system%2F0.5.6%2F990461254766d5a449bccf731fdc6940f48ba589"
+"@altinn/altinn-design-system@npm:^0.5.7":
+  version: 0.5.7
+  resolution: "@altinn/altinn-design-system@npm:0.5.7"
   dependencies:
-    "@altinn/figma-design-tokens": ^0.3.0
+    "@altinn/figma-design-tokens": ^2.0.2
     "@react-hookz/web": ^15.0.1
     leaflet: ^1.8.0
     react-leaflet: ^4.0.1
@@ -24,14 +24,14 @@ __metadata:
   peerDependencies:
     react: ^18.0.0
     react-dom: ^18.0.0
-  checksum: b862e88a5cecc961fd18b405df6db4107003f18037d51245f034e050ed32313cb838ac994b05723e5d2c7d060d17c39ee318532602e388da79c3619bb5fd9290
+  checksum: cd20759989247d9c9ca4a4bc5080916a8bf056de69295256d482e85142f177ef11192165f1ba93826b4f51bc7f1d3b48d2e0bdb94b29c2aebf20c0b39070b92a
   languageName: node
   linkType: hard
 
-"@altinn/figma-design-tokens@npm:^0.3.0":
-  version: 0.3.0
-  resolution: "@altinn/figma-design-tokens@npm:0.3.0::__archiveUrl=https%3A%2F%2Fnpm.pkg.github.com%2Fdownload%2F%40altinn%2Ffigma-design-tokens%2F0.3.0%2Fc97036531b1b29622f09e601f9a3c9f8f49b36a5d97649f656bad4411a9fe674"
-  checksum: 72a0fa141e08d93912ff87714d98e5a5537ba0fb5cfb0bdad8e59e6fd05f37efa60bcb171f6ecb7c7901b24e2473d9b3b576dccae141c876d3bd3f536905e2ba
+"@altinn/figma-design-tokens@npm:^2.0.2":
+  version: 2.0.2
+  resolution: "@altinn/figma-design-tokens@npm:2.0.2"
+  checksum: 60cc5076962e94743a083ff00180a8315c8e4469ffd0776af3f438b434f49e46045498fa95bc073e340191c4f0f9e156643275a860c466fa64505c8c82fb278d
   languageName: node
   linkType: hard
 
@@ -4407,7 +4407,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "altinn-app-frontend@workspace:altinn-app-frontend"
   dependencies:
-    "@altinn/altinn-design-system": ^0.5.6
+    "@altinn/altinn-design-system": ^0.5.7
     "@babel/core": ^7.18.10
     "@babel/polyfill": ^7.12.1
     "@babel/preset-env": ^7.18.10

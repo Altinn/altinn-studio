@@ -11,17 +11,6 @@ React SPA used by applications developed in [altinn-studio](https://github.com/A
 
 This project is using [`yarn`](https://yarnpkg.com/) instead of the default `npm` CLI. This means that you should execute package.json scripts with `yarn` instead of `npm`. F.ex instead of `npm run test` you should execute `yarn run test`. With `yarn`, the `run` keyword is optional, so you can also execute `yarn test`.
 
-### Setup Github PAT Token
-
-We are currently using Github registry to publish packages. This means you need to setup a PAT (Personal Access Token) on your machine.
-
-- Acquire a [GitHub PAT](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/creating-a-personal-access-token). The only permission you need to grant is read:packages.
-- Assign the PAT to the GITHUB_PACKAGES_PAT environment variable:
-  - Mac/Linux: add the line `export GITHUB_PACKAGES_PAT=<PAT>` to the `~/.bash_profile` file and restart the terminal
-  - Windows: Execute `setx GITHUB_PACKAGES_PAT <PAT> /m` and restart the terminal
-
-If you are using z shell (default on macOS since v10.15 Catalina), you need to update the `~/.zshrc` file instead of file `~/.bash_profile` or `~/.profile.`. 
-
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
