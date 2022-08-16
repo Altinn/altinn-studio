@@ -41,7 +41,10 @@ jobs:
         run: yarn test --coverage
 
       - name: SonarCloud Scan
-        if: github.event.repository.fork == false
+        if: |
+          github.repository_owner == 'Altinn' &&
+          (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
+          (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
         with:
           projectBaseDir: app-frontend
         uses: SonarSource/sonarcloud-github-action@master
