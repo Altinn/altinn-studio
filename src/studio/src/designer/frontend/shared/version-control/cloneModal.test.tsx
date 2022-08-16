@@ -1,52 +1,44 @@
-import { mount } from 'enzyme';
 import React from 'react';
 import CloneModal from './cloneModal';
+import type { ICloneModalProps } from './cloneModal';
+import { render as rtlRender, screen } from '@testing-library/react';
 
 describe('cloneModal', () => {
-  let mockClasses: any;
-  let element: Element;
-
-  beforeAll(() => {
-    mockClasses = {
-      modalContainer: '',
-      itemSeparator: '',
-      sectionSeparator: '',
-      blackText: '',
-    };
-    element = mount(<div />).getDOMNode();
-  });
-
   it('should show copy link if copy feature is supported', () => {
     document.queryCommandSupported = jest.fn(() => {
       return true;
     });
-    const wrapper = mount(
-      <CloneModal
-        open={true}
-        anchorEl={element}
-        onClose={null}
-        language={{}}
-        classes={mockClasses}
-      />,
-    );
-    const exists = wrapper.exists('#copy-repository-url-button');
-    expect(exists).toBe(true);
+    render();
+
+    expect(
+      screen.getByRole('button', {
+        name: /sync_header\.clone_https_button/i,
+      }),
+    ).toBeInTheDocument();
   });
 
   it('should NOT show copy link if copy feature is NOT supported', () => {
     document.queryCommandSupported = jest.fn(() => {
       return false;
     });
-    const wrapper = mount(
-      <CloneModal
-        open={true}
-        anchorEl={element}
-        onClose={null}
-        language={{}}
-        classes={mockClasses}
-      />,
-    );
-    const exists = wrapper.exists('#copy-repository-url-button');
-    expect(exists).toBe(false);
+    render();
+
+    expect(
+      screen.queryByRole('button', {
+        name: /sync_header\.clone_https_button/i,
+      }),
+    ).not.toBeInTheDocument();
   });
 });
+
+const render = (props: Partial<ICloneModalProps> = {}) => {
+  const allProps = {
+    anchorEl: document.querySelector('body'),
+    onClose: jest.fn(),
+    open: true,
+    language: {},
+    ...props,
+  };
+
+  return rtlRender(<CloneModal {...allProps} />);
+};

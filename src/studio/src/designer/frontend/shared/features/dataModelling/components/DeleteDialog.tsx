@@ -12,7 +12,7 @@ import {
 } from '../../../utils/language';
 import altinnTheme from '../../../theme/altinnStudioTheme';
 
-interface IDeleteDialogProps {
+export interface IDeleteDialogProps {
   anchor: Element;
   language: any;
   schemaName: string;

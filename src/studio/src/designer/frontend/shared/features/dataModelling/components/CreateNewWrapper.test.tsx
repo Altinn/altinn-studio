@@ -1,141 +1,163 @@
-import { mount } from 'enzyme';
 import React from 'react';
-import * as renderer from 'react-test-renderer';
-import { act } from 'react-dom/test-utils';
+import { render as rtlRender, screen } from '@testing-library/react';
+import userEvent, {
+  PointerEventsCheckLevel,
+} from '@testing-library/user-event';
 import CreateNewWrapper from './CreateNewWrapper';
+import type { ICreateNewWrapper } from './CreateNewWrapper';
+
+const user = userEvent.setup();
 
 describe('CreateNewWrapper', () => {
-  const language = { administration: {} };
-  let someValue = 'unchangedValue';
-  let wrapper: any = null;
-  const changeValue = (v: { name: string; relativePath?: string }) => {
-    someValue = `${v.name}${v.relativePath}`;
-  };
+  it('should open the popup when clicking "new" button', async () => {
+    render();
 
-  beforeEach(() => {
-    someValue = 'unchangedValue';
-    wrapper = null;
-  });
-
-  const mountComponent = (
-    modelNames: string[],
-    onCreate?: (payload: { name: string }) => void,
-    c = false,
-  ) =>
-    mount(
-      <CreateNewWrapper
-        language={language}
-        dataModelNames={modelNames}
-        createAction={onCreate}
-        createPathOption={c}
-      />,
-    );
-
-  const openDialog = () => {
-    const newButton = wrapper.find('TopToolbarButton');
-    newButton.at(0).simulate('click');
-    return wrapper.find('div#newModelInput').find('ForwardRef(TextField)');
-  };
-
-  it('Should match snapshot with the least amount of params', () => {
-    const rendered = renderer.create(
-      <CreateNewWrapper
-        language={language}
-        dataModelNames={[]}
-        createAction={() => {
-          /* intentional */
-        }}
-      />,
-    );
-    expect(rendered).toMatchSnapshot();
-  });
-
-  it('opens the popup when clicking new', () => {
-    act(() => {
-      wrapper = mountComponent([]);
+    const newButton = screen.getByRole('button', {
+      name: /general\.create_new/i,
     });
 
-    const newButton = wrapper.find('TopToolbarButton');
-    expect(wrapper.find('input').length).toBe(0);
-    newButton.at(0).simulate('click');
-    expect(wrapper.find('input').length).toBe(1);
-    const inputField = wrapper.find('div#newModelInput').find('input');
-    expect(inputField).toBeTruthy();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', {
+        name: /ok/i,
+      }),
+    ).not.toBeInTheDocument();
+
+    await user.click(newButton);
+
+    expect(
+      screen.queryByRole('button', {
+        name: /general\.create_new/i,
+      }),
+    ).not.toBeInTheDocument();
+
+    expect(screen.getByRole('textbox')).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: /ok/i,
+      }),
+    ).toBeInTheDocument();
   });
 
-  it('executes the on change function', () => {
-    act(() => {
-      wrapper = mountComponent(['some', 'names'], changeValue);
-    });
-    const inputField = openDialog().find('input');
-    inputField.simulate('change', { target: { value: 'new-model' } });
-    inputField.simulate('blur');
-    const okButton = wrapper.find('#newModelInput').find('button');
-    okButton.simulate('click');
-    wrapper.update();
-    expect(someValue).toBe('new-modelundefined');
-  });
+  describe('createAction', () => {
+    it('should call createAction callback when ok button is clicked', async () => {
+      const handleChange = jest.fn();
+      render({ createAction: handleChange });
 
-  it('should call createAction callback when submit button is clicked', () => {
-    act(() => {
-      wrapper = mountComponent(['some', 'names'], changeValue, true);
-    });
+      const newButton = screen.getByRole('button', {
+        name: /general\.create_new/i,
+      });
+      await user.click(newButton);
 
-    const inputField = openDialog().find('input');
-    inputField.simulate('change', { target: { value: 'new-model' } });
-    inputField.simulate('blur');
-    const okButton = wrapper.find('#newModelInput').find('button');
-    okButton.simulate('click');
-    wrapper.update();
-    expect(someValue).toBe('new-model');
-  });
-
-  it('should call createAction callback when input is focused and enter key is pressed', () => {
-    act(() => {
-      wrapper = mountComponent(['some', 'names'], changeValue);
+      const textInput = screen.getByRole('textbox');
+      const okButton = screen.getByRole('button', {
+        name: /ok/i,
+      });
+      await user.type(textInput, 'new-model');
+      await user.click(okButton);
+      expect(handleChange).toHaveBeenCalledWith({
+        name: 'new-model',
+        relativePath: undefined,
+      });
     });
 
-    const inputField = openDialog();
-    inputField
-      .find('input')
-      .simulate('change', { target: { value: 'new-model' } });
-    inputField.find('input').simulate('keydown', { key: 'Enter', keyCode: 13 });
-    expect(someValue).toBe('new-modelundefined');
-  });
+    it('should call createAction callback when input is focused and Enter key is pressed', async () => {
+      const handleChange = jest.fn();
+      render({ createAction: handleChange });
 
-  it('fails to run create name for an existing model', () => {
-    act(() => {
-      wrapper = mountComponent(
-        ['some', 'existing-model', 'names'],
-        changeValue,
-      );
+      const newButton = screen.getByRole('button', {
+        name: /general\.create_new/i,
+      });
+      await user.click(newButton);
+
+      const textInput = screen.getByRole('textbox');
+
+      await user.type(textInput, 'new-model');
+      await user.keyboard('{Enter}');
+      expect(handleChange).toHaveBeenCalledWith({
+        name: 'new-model',
+        relativePath: undefined,
+      });
     });
 
-    const inputField = openDialog();
-    inputField.simulate('change', { target: { value: 'existing-model' } });
-    inputField.simulate('blur');
-    const okButton = wrapper.find('#newModelInput').find('button');
-    okButton.simulate('click');
-    wrapper.update();
-    expect(someValue).toBe('unchangedValue');
-  });
+    it('should call createAction callback with relativePath when createPathOption is set and ok button is clicked', async () => {
+      const handleChange = jest.fn();
+      render({ createAction: handleChange, createPathOption: true });
 
-  it('fails to run create when name-field is empty', () => {
-    act(() => {
-      wrapper = mountComponent(
-        ['some', 'existing-model', 'names'],
-        changeValue,
-      );
+      const newButton = screen.getByRole('button', {
+        name: /general\.create_new/i,
+      });
+      await user.click(newButton);
+
+      const textInput = screen.getByRole('textbox');
+      const okButton = screen.getByRole('button', {
+        name: /ok/i,
+      });
+      await user.type(textInput, 'new-model');
+      await user.click(okButton);
+      expect(handleChange).toHaveBeenCalledWith({
+        name: 'new-model',
+        relativePath: '',
+      });
     });
 
-    const inputField = openDialog();
-    inputField.simulate('change', { target: { value: 'dirty-field' } });
-    inputField.simulate('blur');
-    inputField.simulate('change', { target: { value: '' } });
-    inputField.simulate('blur');
-    const okButton = wrapper.find('#newModelInput').find('button');
-    okButton.simulate('click');
-    wrapper.update();
-    expect(someValue).toBe('unchangedValue');
+    it('should not call createAction callback and show error message when trying to create a new model with the same name as an existing one when ok button is clicked', async () => {
+      const handleChange = jest.fn();
+      const modelName = 'existing-model-name';
+      const errMessage =
+        /a model with name existing-model-name already exists\./i;
+      render({ createAction: handleChange, dataModelNames: [modelName] });
+
+      const newButton = screen.getByRole('button', {
+        name: /general\.create_new/i,
+      });
+      await user.click(newButton);
+
+      const textInput = screen.getByRole('textbox');
+      const okButton = screen.getByRole('button', {
+        name: /ok/i,
+      });
+
+      await user.type(textInput, modelName);
+      expect(screen.queryByText(errMessage)).not.toBeInTheDocument();
+
+      await user.click(okButton);
+
+      expect(handleChange).not.toHaveBeenCalled();
+      expect(screen.getByText(errMessage)).toBeInTheDocument();
+    });
+
+    it('should not call createAction callback when trying to create a new model with no name when ok button is clicked', async () => {
+      const userWithNoPointerEventCheck = userEvent.setup({
+        pointerEventsCheck: PointerEventsCheckLevel.Never,
+      });
+      const handleChange = jest.fn();
+      const modelName = '';
+      render({ createAction: handleChange, dataModelNames: [modelName] });
+
+      const newButton = screen.getByRole('button', {
+        name: /general\.create_new/i,
+      });
+      await userWithNoPointerEventCheck.click(newButton);
+
+      const okButton = screen.getByRole('button', {
+        name: /ok/i,
+      });
+
+      await userWithNoPointerEventCheck.click(okButton);
+
+      expect(handleChange).not.toHaveBeenCalled();
+    });
   });
 });
+
+const render = (props: Partial<ICreateNewWrapper> = {}) => {
+  const allProps = {
+    language: { administration: {} },
+    dataModelNames: [],
+    createAction: jest.fn(),
+    ...props,
+  } as ICreateNewWrapper;
+
+  return rtlRender(<CreateNewWrapper {...allProps} />);
+};

@@ -1,22 +1,22 @@
-import { mount } from 'enzyme';
 import React from 'react';
-import * as renderer from 'react-test-renderer';
-import AltinnLogo from './AltinnLogo';
+import { render as rtlRender, screen } from '@testing-library/react';
+import { AltinnLogo } from './AltinnLogo';
+import type { IAltinnLogoProps } from './AltinnLogo';
 
 describe('AltinnLogo', () => {
-  let mockColor: string;
+  it('should have correct color', () => {
+    render({ color: '#fff' });
 
-  beforeEach(() => {
-    mockColor = '#FFF';
-  });
+    const group = screen.getByTestId('AltinnLogo-group');
 
-  it('Should match snapshot', () => {
-    const rendered = renderer.create(<AltinnLogo color={mockColor} />);
-    expect(rendered).toMatchSnapshot();
-  });
-
-  it('Should have correct color', () => {
-    const mountedAltinnLogo = mount(<AltinnLogo color={mockColor} />);
-    expect(mountedAltinnLogo.find('#Desktop').props().fill).toEqual('#FFF');
+    expect(group).toHaveAttribute('fill', '#fff');
   });
 });
+
+const render = (props: Partial<IAltinnLogoProps> = {}) => {
+  const allProps = {
+    color: '#000',
+    ...props,
+  };
+  rtlRender(<AltinnLogo {...allProps} />);
+};

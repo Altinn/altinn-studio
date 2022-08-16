@@ -1,213 +1,126 @@
 import React from 'react';
-import { mount } from 'enzyme';
-import Select from 'react-select';
+import { render as rtlRender, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
-import { ImageComponent as Component } from './ImageComponent';
+import { ImageComponent } from './ImageComponent';
+import type { IImageComponentProps } from './ImageComponent';
 
-const language = {
-  ux_editor: {
-    modal_properties_image_src_value_label: 'Source',
-    modal_properties_image_placement_label: 'Placement',
-    modal_properties_image_alt_text_label: 'Alt text',
-    modal_properties_image_width_label: 'Width',
+const user = userEvent.setup();
+
+const componentData = {
+  id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
+  textResourceBindings: {},
+  type: 'Image',
+  image: {
+    src: {},
   },
 };
 
-const textResources = [
-  { id: 'altTextImg', value: 'Alternative text' },
-  { id: 'altTextImg2', value: 'Alternative text 2' },
-];
-
-describe('ImageComponent/SourceRow', () => {
-  it('should call handleComponentUpdate callback with image src value for nb when image source input is changed', () => {
+describe('ImageComponent', () => {
+  it('should call handleComponentUpdate callback with image src value for nb when image source input is changed', async () => {
     const handleUpdate = jest.fn();
+    const imgSrc = 'placekitten.com/500/500';
+    render({ handleComponentUpdate: handleUpdate });
 
-    const componentData = {
-      id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
-      textResourceBindings: {},
-      type: 'Image',
-      image: {
-        src: {},
-        width: '100%',
-        align: 'center',
-      },
-    };
-
-    const component = mount(
-      <Component
-        component={componentData}
-        handleComponentUpdate={handleUpdate}
-        language={language}
-        textResources={textResources}
-      />,
-    );
-
-    const input = component.find('#image_nb_src input');
-
-    input.simulate('change', {
-      target: {
-        value: 'placekitten.com/500/500',
-      },
+    const srcInput = screen.getByRole('textbox', {
+      name: /source/i,
     });
+
+    await user.type(srcInput, imgSrc);
 
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentData,
       image: {
+        ...componentData.image,
         src: {
-          nb: 'placekitten.com/500/500',
+          nb: imgSrc,
         },
-        width: '100%',
-        align: 'center',
       },
     });
   });
 
-  it('should call handleComponentUpdate callback with image width value when image width input is changed', () => {
+  it('should call handleComponentUpdate callback with image width value when image width input is changed', async () => {
     const handleUpdate = jest.fn();
+    const size = '250px';
+    render({ handleComponentUpdate: handleUpdate });
 
-    const componentData = {
-      id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
-      textResourceBindings: {},
-      type: 'Image',
-      image: {
-        src: {},
-        width: '100%',
-        align: 'center',
-      },
-    };
-
-    const component = mount(
-      <Component
-        component={componentData}
-        handleComponentUpdate={handleUpdate}
-        language={language}
-        textResources={textResources}
-      />,
-    );
-
-    const input = component.find('#image_width input');
-
-    input.simulate('change', {
-      target: {
-        value: '250px',
-      },
+    const widthInput = screen.getByRole('textbox', {
+      name: /width/i,
     });
+
+    await user.type(widthInput, size);
 
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentData,
       image: {
-        src: {},
-        width: '250px',
-        align: 'center',
+        ...componentData.image,
+        width: size,
       },
     });
   });
 
-  it('should call handleComponentUpdate callback with alignment when placement select is changed', () => {
+  it('should call handleComponentUpdate callback with alignment when placement select is changed', async () => {
     const handleUpdate = jest.fn();
+    render({ handleComponentUpdate: handleUpdate });
 
-    const componentData = {
-      id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
-      textResourceBindings: {},
-      type: 'Image',
-      image: {
-        src: {},
-        width: '100%',
-        align: 'center',
-      },
-    };
+    const placementInput = screen.getByRole('textbox', {
+      name: /placement/i,
+    });
 
-    const component = mount(
-      <Component
-        component={componentData}
-        handleComponentUpdate={handleUpdate}
-        language={language}
-        textResources={textResources}
-      />,
-    );
-
-    const select = component
-      .find('[data-testid="image-placement-select"]')
-      .find(Select);
-
-    select.props().onChange({ value: 'flex-start' });
+    await user.type(placementInput, 'L'); // Type something to trigger showing Select options
+    await user.click(screen.getByText('Left'));
 
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentData,
       image: {
-        src: {},
-        width: '100%',
+        ...componentData.image,
         align: 'flex-start',
       },
     });
-
-    select.props().onChange();
-
-    expect(handleUpdate).toHaveBeenCalledWith({
-      ...componentData,
-      image: {
-        src: {},
-        width: '100%',
-        align: null,
-      },
-    });
   });
 
-  it('should call handleComponentUpdate callback with alt text resource when alt text select is changed', () => {
+  it('should call handleComponentUpdate callback with alt text value when alt text input is changed', async () => {
     const handleUpdate = jest.fn();
+    render({ handleComponentUpdate: handleUpdate });
 
-    const componentData = {
-      id: '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
-      textResourceBindings: {
-        altTextImg: 'originalAltTest',
-      },
-      type: 'Image',
-      image: {
-        src: {},
-        width: '100%',
-        align: 'center',
-      },
-    };
-
-    const component = mount(
-      <Component
-        component={componentData}
-        handleComponentUpdate={handleUpdate}
-        language={language}
-        textResources={textResources}
-      />,
-    );
-
-    const select = component
-      .find('[data-testid="image-alt-text-select"]')
-      .find(Select);
-
-    select.props().onChange({ value: 'altTest' });
-
-    expect(handleUpdate).toHaveBeenCalledWith({
-      ...componentData,
-      image: {
-        src: {},
-        width: '100%',
-        align: 'center',
-      },
-      textResourceBindings: {
-        altTextImg: 'altTest',
-      },
+    const altTextInput = screen.getByRole('textbox', {
+      name: /alt text/i,
     });
 
-    select.props().onChange();
+    await user.type(altTextInput, 'A'); // Type something to trigger showing Select options
+    await user.click(screen.getByText(/alternative text 2 \(alttextimg2\)/i));
 
     expect(handleUpdate).toHaveBeenCalledWith({
       ...componentData,
-      image: {
-        src: {},
-        width: '100%',
-        align: 'center',
-      },
       textResourceBindings: {
-        altTextImg: null,
+        altTextImg: 'altTextImg2',
       },
     });
   });
 });
+
+const render = (props: Partial<IImageComponentProps> = {}) => {
+  const allProps = {
+    component: componentData,
+    language: {
+      ux_editor: {
+        modal_properties_image_src_value_label: 'Source',
+        modal_properties_image_placement_label: 'Placement',
+        modal_properties_image_alt_text_label: 'Alt text',
+        modal_properties_image_width_label: 'Width',
+        modal_properties_image_placement_left: 'Left',
+        modal_properties_image_placement_center: 'Center',
+        modal_properties_image_placement_right: 'Right',
+      },
+    },
+    handleComponentUpdate: jest.fn(),
+    textResources: [
+      { id: 'altTextImg', value: 'Alternative text' },
+      { id: 'altTextImg2', value: 'Alternative text 2' },
+    ],
+
+    ...props,
+  } as IImageComponentProps;
+
+  return rtlRender(<ImageComponent {...allProps} />);
+};

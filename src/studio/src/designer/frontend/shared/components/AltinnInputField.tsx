@@ -113,6 +113,8 @@ class AltinnInputFieldComponent extends React.Component<IAltinnInputFieldCompone
         )}
         {this.props.inputDescription && (
           <Typography
+            component='label'
+            htmlFor={this.props.textFieldId}
             style={this.props.inputDescriptionStyling}
             className={classNames(classes.descriptionInput, {
               [classes.marginTop_10]: this.props.inputHeader,
@@ -142,7 +144,7 @@ class AltinnInputFieldComponent extends React.Component<IAltinnInputFieldCompone
             placeholder={this.props.placeholder}
             disabled={this.props.isDisabled}
             multiline={!!this.props.textAreaRows}
-            rows={this.props.textAreaRows || null}
+            minRows={this.props.textAreaRows || null}
             InputProps={{
               disableUnderline: true,
               classes: { root: classNames(classes.inputFieldText) },

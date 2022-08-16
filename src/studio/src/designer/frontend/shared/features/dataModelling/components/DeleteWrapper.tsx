@@ -3,7 +3,7 @@ import React from 'react';
 import { getLanguageFromKey } from '../../../utils/language';
 import DeleteDialog from './DeleteDialog';
 
-interface IDeleteWrapper {
+export interface IDeleteWrapper {
   language: any;
   deleteAction: () => void;
   schemaName: string;

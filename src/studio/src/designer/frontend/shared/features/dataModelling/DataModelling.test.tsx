@@ -1,152 +1,51 @@
-import { mount } from 'enzyme';
 import React from 'react';
-import { act } from 'react-dom/test-utils';
 import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import DataModelling, { shouldSelectFirstEntry } from './DataModelling';
-import { SchemaSelect, XSDUpload, Create, Delete } from './components';
 import { LoadingState } from './sagas/metadata';
+import { render as rtlRender } from '@testing-library/react';
 
-describe('Shared > DataModelling', () => {
-  const language = {
-    administration: Object({ first: 'some text', second: 'other text' }),
-  };
-  let wrapper: any = null;
-  let store: any;
-  const modelName = 'some-existing-model';
-  const modelName2 = 'some-other-model';
-  const initialState = {
-    dataModelsMetadataState: {
-      dataModelsMetadata: [
-        {
-          repositoryRelativeUrl: `/App/models/${modelName}.schema.json`,
-          fileName: `${modelName}.schema.json`,
-          fileType: '.json',
-        },
-        {
-          repositoryRelativeUrl: `/App/models/${modelName2}.schema.json`,
-          fileName: `${modelName2}.schema.json`,
-          fileType: '.json',
-        },
-      ],
-      loadState: LoadingState.ModelsLoaded,
-    },
-    dataModelling: {
-      schema: {},
-      saving: false,
-    },
-  };
-  const dispatchMock = () => Promise.resolve({});
-  const initialStoreCall = {
-    type: 'dataModelling/fetchDataModel',
-    payload: {
-      metadata: {
-        label: modelName,
-        value: initialState.dataModelsMetadataState.dataModelsMetadata[0],
+const modelName = 'some-existing-model';
+const modelName2 = 'some-other-model';
+const initialState = {
+  dataModelsMetadataState: {
+    dataModelsMetadata: [
+      {
+        repositoryRelativeUrl: `/App/models/${modelName}.schema.json`,
+        fileName: `${modelName}.schema.json`,
+        fileType: '.json',
       },
+      {
+        repositoryRelativeUrl: `/App/models/${modelName2}.schema.json`,
+        fileName: `${modelName2}.schema.json`,
+        fileType: '.json',
+      },
+    ],
+    loadState: LoadingState.ModelsLoaded,
+  },
+  dataModelling: {
+    schema: {},
+    saving: false,
+  },
+};
+const initialStoreCall = {
+  type: 'dataModelling/fetchDataModel',
+  payload: {
+    metadata: {
+      label: modelName,
+      value: initialState.dataModelsMetadataState.dataModelsMetadata[0],
     },
-  };
+  },
+};
 
-  beforeEach(() => {
-    wrapper = null;
-    store = configureStore()(initialState);
-    store.dispatch = jest.fn(dispatchMock);
-  });
-
-  const mountComponent = (props?: any) =>
-    mount(
-      React.createElement(
-        () => (
-          <Provider store={store}>
-            <DataModelling
-              language={language}
-              org='test-org'
-              repo='test-repo'
-            />
-          </Provider>
-        ),
-        props,
-      ),
-    );
-
+describe('DataModelling', () => {
   it('should fetch models on mount', () => {
-    act(() => {
-      mountComponent();
-    });
+    const { store } = render();
 
     expect(store.dispatch).toHaveBeenCalledWith(initialStoreCall);
   });
 
-  it('should show all items in the toolbar', () => {
-    act(() => {
-      wrapper = mountComponent();
-    });
-
-    expect(wrapper.find(XSDUpload).exists()).toBe(true);
-    expect(wrapper.find(Create).exists()).toBe(true);
-    expect(wrapper.find(SchemaSelect).exists()).toBe(true);
-    expect(wrapper.find(Delete).exists()).toBe(true);
-  });
-
-  it('should dispatch dataModelsMetadata/getDataModelsMetadata when file is uploaded', () => {
-    const uploadedFilename = 'uploaded.xsd';
-
-    act(() => {
-      wrapper = mountComponent();
-    });
-
-    wrapper.update();
-
-    act(() => {
-      wrapper.find(XSDUpload).props().onXSDUploaded(uploadedFilename);
-    });
-
-    wrapper.update();
-
-    expect(store.dispatch).toHaveBeenLastCalledWith({
-      type: 'dataModelsMetadata/getDataModelsMetadata',
-      payload: undefined,
-    });
-  });
-
-  it('should dispatch dataModelling/createDataModel when running createAction', () => {
-    const newModel = { name: 'test' };
-
-    act(() => {
-      wrapper = mountComponent();
-    });
-
-    wrapper.update();
-
-    act(() => {
-      wrapper.find(Create).props().createAction(newModel);
-    });
-
-    expect(store.dispatch).toHaveBeenCalledTimes(2);
-    expect(store.dispatch).toHaveBeenCalledWith({
-      type: 'dataModelling/createDataModel',
-      payload: newModel,
-    });
-  });
-
-  it('should dispatch dataModelsMetadata/getDataModelsMetadata when delete is called', () => {
-    act(() => {
-      wrapper = mountComponent();
-    });
-
-    wrapper.update();
-
-    act(() => {
-      wrapper.find(Delete).props().deleteAction();
-    });
-
-    expect(store.dispatch).toHaveBeenCalledWith({
-      type: 'dataModelling/deleteDataModel',
-      payload: initialStoreCall.payload,
-    });
-  });
-
-  describe('Shared > DataModelling > shouldSelectFirstEntry', () => {
+  describe('shouldSelectFirstEntry', () => {
     it('should return true when metadataOptions.length is greater than 0, selectedOption is undefined and metadataLoadingState is ModelsLoaded', () => {
       expect(
         shouldSelectFirstEntry({
@@ -223,3 +122,25 @@ describe('Shared > DataModelling', () => {
     });
   });
 });
+
+const render = () => {
+  const store = configureStore()(initialState);
+  store.dispatch = jest.fn();
+
+  rtlRender(
+    <Provider store={store}>
+      <DataModelling
+        language={{
+          administration: {
+            first: 'some text',
+            second: 'other text',
+          },
+        }}
+        org='test-org'
+        repo='test-repo'
+      />
+    </Provider>,
+  );
+
+  return { store };
+};

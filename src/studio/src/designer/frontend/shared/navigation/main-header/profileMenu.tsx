@@ -8,14 +8,13 @@ import type { IAltinnWindow } from '../../types/global';
 import { altinnDocsUrl, sharedUrls } from '../../utils/urlHelper';
 import { post } from '../../utils/networking';
 
-interface IProfileMenuComponentProps {
+export interface IProfileMenuComponentProps {
   showlogout?: boolean;
   classes?: any;
 }
 
 interface IProfileMenuComponentState {
   anchorEl: any;
-  open: boolean;
 }
 
 const styles = {
@@ -39,11 +38,6 @@ class ProfileMenuComponent extends React.Component<
 > {
   public state = {
     anchorEl: null as any,
-    open: false,
-  };
-
-  public handleToggle = () => {
-    this.setState((state) => ({ open: !state.open }));
   };
 
   public handleClick = (event: any) => {

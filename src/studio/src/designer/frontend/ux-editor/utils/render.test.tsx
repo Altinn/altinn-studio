@@ -1,66 +1,90 @@
-import { mount } from 'enzyme';
-import { renderSelectTextFromResources } from './render';
+import React from 'react';
+import { SelectTextFromRecources } from './render';
+import type { ISelectTextFromRecources } from './render';
+import { render as rtlRender, within, screen } from '@testing-library/react';
+
+const textResources = [
+  {
+    id: '25795.OppgavegiverNavnPreutfyltdatadef25795.Label',
+    value: 'Navn',
+  },
+];
+const labelTextKey = 'modal_properties_label_helper';
+const labelText = 'Søk etter ledetekst';
 
 describe('utils/render', () => {
-  let mockLabelText: string;
-  let mockOnChangeFunction: (e: any, returnValue?: string) => void;
-  let mockTextResources: any[];
-  let mockLanguage: any;
-  let mockPlaceholder: string;
-  beforeEach(() => {
-    mockLabelText = 'modal_properties_label_helper';
-    mockTextResources = [
-      {
-        id: 'appName',
-        value: 'fiskesløying',
-      },
-      {
-        id: '25795.OppgavegiverNavnPreutfyltdatadef25795.Label',
-        value: 'Navn',
-      },
-    ];
-    mockLanguage = {
-      ux_editor: {
-        modal_properties_description_helper: 'Søk etter beskrivelse',
-        modal_properties_label_helper: 'Søk etter ledetekst',
-      },
-    };
-    mockOnChangeFunction = (): void => {
-      // do someting
-    };
-    mockPlaceholder = '25795.OppgavegiverNavnPreutfyltdatadef25795.Label';
-  });
+  describe('SelectTextFromRecources', () => {
+    it('should render select with custom placeholder', () => {
+      render({ textResources, placeholder: textResources[0].id });
 
-  it('should render select with placeholder', () => {
-    const render = renderSelectTextFromResources(
-      mockLabelText,
-      mockOnChangeFunction,
-      mockTextResources,
-      mockLanguage,
-      undefined,
-      mockPlaceholder,
-    );
-    expect(typeof render).toBe('object');
-    const wrapper = mount(render);
-    expect(
-      wrapper.children().last().children().last().props().placeholder,
-    ).toEqual('Navn');
-  });
+      const labelContainer = screen.getByTestId(
+        'SelectTextFromRecources-label',
+      );
 
-  it('should render select with default placeholder', () => {
-    const render = renderSelectTextFromResources(
-      mockLabelText,
-      mockOnChangeFunction,
-      mockTextResources,
-      mockLanguage,
-    );
-    expect(typeof render).toBe('object');
-    const wrapper = mount(render);
-    expect(
-      wrapper.children().first().children().first().children().text(),
-    ).toEqual('Søk etter ledetekst');
-    expect(
-      wrapper.children().last().children().last().props().placeholder,
-    ).toEqual('Søk etter ledetekst');
+      expect(screen.getByText(textResources[0].value)).toBeInTheDocument();
+      expect(within(labelContainer).getByText(labelText)).toBeInTheDocument();
+    });
+
+    it('should render labelText value as placeholder when no placeholder is defined', () => {
+      render();
+
+      const labelContainer = screen.getByTestId(
+        'SelectTextFromRecources-label',
+      );
+      const allLabelTexts = screen.getAllByText(labelText);
+
+      expect(allLabelTexts.length).toBe(2);
+      expect(within(labelContainer).getByText(labelText)).toBeInTheDocument();
+      expect(
+        screen.queryByText(textResources[0].value),
+      ).not.toBeInTheDocument();
+    });
+
+    it('should render chilren into label container', () => {
+      const children = 'Children content';
+      render({ children });
+
+      const labelContainer = screen.getByTestId(
+        'SelectTextFromRecources-label',
+      );
+
+      expect(within(labelContainer).getByText(children)).toBeInTheDocument();
+    });
+
+    it('should render description text when description is passed', () => {
+      render({ description: 'description text' });
+
+      const descriptionContainer = screen.getByTestId('renderDescription');
+
+      expect(
+        within(descriptionContainer).getByText('description text'),
+      ).toBeInTheDocument();
+    });
+
+    it('should not render description text when description is not passed', () => {
+      render({ description: undefined });
+
+      expect(screen.queryByTestId('renderDescription')).not.toBeInTheDocument();
+    });
   });
 });
+
+const render = (props: Partial<ISelectTextFromRecources> = {}) => {
+  const allProps = {
+    labelText: labelTextKey,
+    onChangeFunction: jest.fn(),
+    textResources: [],
+    language: {
+      ux_editor: {
+        modal_properties_description_helper: 'Søk etter beskrivelse',
+        [labelTextKey]: labelText,
+      },
+    },
+    selected: undefined,
+    placeholder: undefined,
+    description: undefined,
+    ...props,
+  } as ISelectTextFromRecources;
+
+  return rtlRender(<SelectTextFromRecources {...allProps} />);
+};
