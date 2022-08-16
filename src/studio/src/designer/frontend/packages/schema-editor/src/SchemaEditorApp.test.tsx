@@ -1,7 +1,7 @@
 import React from 'react';
 import { unmountComponentAtNode } from 'react-dom';
-import { act } from 'react-dom/test-utils';
-import { mount } from 'enzyme';
+import { screen, act, render } from '@testing-library/react';
+
 import SchemaEditorApp from './SchemaEditorApp';
 import { dataMock } from './mockData';
 
@@ -20,7 +20,7 @@ afterEach(() => {
 test('renders schema editor app', () => {
   let wrapper: any = null;
   act(() => {
-    wrapper = mount(
+    wrapper = render(
       <SchemaEditorApp
         schema={dataMock}
         language={{}}
@@ -29,5 +29,5 @@ test('renders schema editor app', () => {
       />,
     );
   });
-  expect(wrapper.find('SchemaEditorApp')).toHaveLength(1);
+  expect(screen.getByTestId('schema-editor')).toBeDefined();
 });

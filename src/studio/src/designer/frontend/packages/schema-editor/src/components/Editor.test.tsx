@@ -1,314 +1,288 @@
 import React from 'react';
-import { Provider } from 'react-redux';
-import { createStore } from 'redux';
-import { mount, ReactWrapper } from 'enzyme';
-import { act } from 'react-dom/test-utils';
 import SchemaEditor from './Editor';
-import { dataMock } from '../mockData';
+import configureStore from 'redux-mock-store';
+import { Provider } from 'react-redux';
+import { act } from 'react-dom/test-utils';
 import { buildUISchema } from '../utils/schema';
-import type { ILanguage, ISchemaState, UiSchemaItem } from '../types';
-import reducer from '../features/editor/schemaEditorSlice';
+import { dataMock } from '../mockData';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { ISchemaState } from '../types';
 
-let mockStore: any = null;
-let mockInitialState: ISchemaState;
-let mockUiSchema: UiSchemaItem[];
-let mockLanguage: ILanguage;
+const mockLanguage = {
+  schema_editor: {
+    add: 'Legg til',
+    add_element: 'Add Element',
+    add_property: 'Legg til felt',
+    add_reference: 'Legg til referanse',
+    delete: 'Slett',
+    field: 'Felt',
+    reference: 'Referanse',
+  },
+};
+const renderEditor = async (customState?: Partial<ISchemaState>) => {
+  const mockUiSchema = buildUISchema(
+    dataMock.properties,
+    '#/properties',
+  ).concat(buildUISchema(dataMock.definitions, '#/definitions'));
 
-const mountComponent = () =>
-  mount(
+  const mockInitialState = {
+    name: 'test',
+    saveSchemaUrl: '',
+    schema: dataMock,
+    uiSchema: mockUiSchema,
+    selectedDefinitionNodeId: '',
+    selectedPropertyNodeId: '',
+    selectedEditorTab: 'properties',
+  };
+  const customStateCopy = customState ?? {};
+  const mockStore = configureStore()({
+    ...mockInitialState,
+    ...customStateCopy,
+  });
+  const onSaveSchema = jest.fn();
+
+  await render(
     <Provider store={mockStore}>
       <SchemaEditor
         Toolbar={<div>toolbar goes here</div>}
         LoadingIndicator={<div>loading</div>}
         schema={dataMock}
         language={mockLanguage}
-        onSaveSchema={jest.fn()}
+        onSaveSchema={onSaveSchema}
         name='test'
       />
     </Provider>,
   );
 
-describe('Editor', () => {
-  beforeEach(() => {
-    mockUiSchema = buildUISchema(dataMock.properties, '#/properties').concat(
-      buildUISchema(dataMock.definitions, '#/definitions'),
-    );
+  return [mockStore];
+};
 
-    mockInitialState = {
-      name: 'test',
-      saveSchemaUrl: '',
-      schema: dataMock,
-      uiSchema: mockUiSchema,
-      selectedDefinitionNodeId: '',
-      selectedPropertyNodeId: '',
-      selectedEditorTab: 'properties',
-    };
-    mockLanguage = {
-      schema_editor: {
-        add: 'Legg til',
-        add_element: 'Add Element',
-        add_property: 'Legg til felt',
-        add_reference: 'Legg til referanse',
-        delete: 'Slett',
-        field: 'Felt',
-        reference: 'Referanse',
-      },
-    };
-    mockStore = createStore(reducer, mockInitialState);
-    mockStore.dispatch = jest.fn();
+const clickOpenAddMenuButton = () =>
+  fireEvent.click(
+    screen.getByRole('button', {
+      name: mockLanguage.schema_editor.add,
+    }),
+  );
+const clickAddMenuItem = (name: string) =>
+  fireEvent.click(screen.getByRole('menuitem', { name }));
+
+const clickOpenContextMenuButton = () =>
+  fireEvent.click(screen.getByTestId('open-context-menu-button'));
+
+test('renders schema editor with populated schema', async () => {
+  const [store] = await renderEditor();
+  const editor = await screen.getByTestId('schema-editor');
+  expect(editor).toBeDefined();
+  const saveButton = await screen.getByRole('button', {
+    name: 'save_data_model',
   });
+  expect(saveButton).toBeDefined();
+});
 
-  it('renders schema editor with populated schema', () => {
-    let wrapper: ReactWrapper = new ReactWrapper(<div />);
-    act(() => {
-      wrapper = mountComponent();
-    });
-
-    expect(wrapper.find('.schema-editor')).toBeTruthy();
-    expect(
-      wrapper.findWhere((n: ReactWrapper) =>
-        n.text().includes('Save data model'),
-      ),
-    ).toBeTruthy();
+test('should show context menu and trigger correct dispatch when adding a field on root', async () => {
+  const [store] = await renderEditor();
+  clickOpenAddMenuButton();
+  clickAddMenuItem(mockLanguage.schema_editor.field);
+  const actions = store.getActions();
+  const lastAction = actions.at(-1);
+  expect(lastAction.type).toBe('schemaEditor/addRootItem');
+  expect(lastAction.payload).toEqual({
+    name: 'name',
+    location: 'properties',
+    props: {
+      type: 'object',
+    },
   });
+});
+test('should show context menu and trigger correct dispatch when adding a reference on root', async () => {
+  const [store] = await renderEditor();
+  clickOpenAddMenuButton();
+  clickAddMenuItem(mockLanguage.schema_editor.reference);
 
-  const findTreeItems = (wrapper: ReactWrapper, text: string) =>
-    wrapper
-      .find('.MuiTypography-root')
-      .findWhere((r: ReactWrapper) => r.text() === text);
-
-  it('does not render properties on item click while in models view', () => {
-    let wrapper: ReactWrapper = new ReactWrapper(<div />);
-    act(() => {
-      wrapper = mountComponent();
-    });
-    wrapper
-      .find('.MuiTreeItem-iconContainer')
-      .hostNodes()
-      .at(0)
-      .simulate('click');
-    expect(findTreeItems(wrapper, ' dataFormatProvider').length).toBe(0);
+  const actions = store.getActions();
+  const lastAction = actions.at(-1);
+  expect(lastAction.type).toBe('schemaEditor/addRootItem');
+  expect(lastAction.payload).toEqual({
+    name: 'name',
+    location: 'properties',
+    props: {
+      $ref: '',
+    },
   });
+});
 
-  it('should show context menu and trigger correct dispatch when adding a field on root', () => {
-    const wrapper = mountComponent();
-    wrapper.find('#add-button').hostNodes().simulate('click');
-    wrapper.find('#add-field-button').hostNodes().simulate('click');
-    expect(mockStore.dispatch).toBeCalledWith({
-      type: 'schemaEditor/addRootItem',
-      payload: {
-        name: 'name',
-        location: 'properties',
-        props: {
-          type: 'object',
-        },
-      },
-    });
+test('should show context menu and trigger correct dispatch when adding field on a specific node', async () => {
+  const [store] = await renderEditor({
+    schema: { properties: { mockItem: { type: 'object' } }, definitions: {} },
+    uiSchema: buildUISchema({ mockItem: { type: 'object' } }, '#/properties'),
   });
+  clickOpenContextMenuButton();
+  clickAddMenuItem('add_field');
+  const actions = store.getActions();
+  const lastAction = actions.at(-1);
+  expect(lastAction.type).toBe('schemaEditor/addProperty');
+  expect(lastAction.payload).toEqual({
+    path: '#/properties/mockItem',
+    props: {
+      type: 'object',
+    },
+  });
+});
 
-  it('should show context menu and trigger correct dispatch when adding a reference on root', () => {
-    const wrapper = mountComponent();
-    wrapper.find('#add-button').hostNodes().simulate('click');
-    wrapper.find('#add-reference-button').hostNodes().simulate('click');
-    expect(mockStore.dispatch).toBeCalledWith({
-      type: 'schemaEditor/addRootItem',
-      payload: {
-        name: 'name',
-        location: 'properties',
-        props: {
-          $ref: '',
-        },
-      },
-    });
+test('should show context menu and trigger correct dispatch when adding reference on a specific node', async () => {
+  const [store] = await renderEditor({
+    schema: { properties: { mockItem: { type: 'object' } }, definitions: {} },
+    uiSchema: buildUISchema({ mockItem: { type: 'object' } }, '#/properties'),
   });
+  clickOpenContextMenuButton();
+  clickAddMenuItem('Legg til referanse');
+  const actions = store.getActions();
+  const lastAction = actions.at(-1);
+  expect(lastAction.type).toBe('schemaEditor/addProperty');
+  expect(lastAction.payload).toEqual({
+    path: '#/properties/mockItem',
+    props: {
+      $ref: '',
+    },
+  });
+});
 
-  it('should show context menu and trigger correct dispatch when adding field on a specific node', () => {
-    const customState = {
-      schema: { properties: { mockItem: { type: 'object' } }, definitions: {} },
-      uiSchema: buildUISchema({ mockItem: { type: 'object' } }, '#/properties'),
-    };
-    mockStore = createStore(reducer, { ...mockInitialState, ...customState });
-    mockStore.dispatch = jest.fn();
-    const wrapper = mountComponent();
-    wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
-    wrapper.find('#add-field-to-node-button').hostNodes().simulate('click');
-    expect(mockStore.dispatch).toBeCalledWith({
-      type: 'schemaEditor/addProperty',
-      payload: {
-        path: '#/properties/mockItem',
-        props: {
-          type: 'object',
-        },
-      },
-    });
+test('should show context menu and trigger correct dispatch when deleting a specific node', async () => {
+  const [store] = await renderEditor();
+  clickOpenContextMenuButton();
+  clickAddMenuItem('Slett');
+  const actions = store.getActions();
+  const lastAction = actions.at(-1);
+  expect(lastAction.type).toBe('schemaEditor/deleteProperty');
+  expect(lastAction.payload).toEqual({
+    path: '#/properties/melding',
   });
+});
 
-  it('should show context menu and trigger correct dispatch when adding reference on a specific node', () => {
-    const customState = {
-      schema: { properties: { mockItem: { type: 'object' } }, definitions: {} },
-      uiSchema: buildUISchema({ mockItem: { type: 'object' } }, '#/properties'),
-    };
-    mockStore = createStore(reducer, { ...mockInitialState, ...customState });
-    mockStore.dispatch = jest.fn();
-    const wrapper = mountComponent();
-    wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
-    wrapper.find('#add-reference-to-node-button').hostNodes().simulate('click');
-    expect(mockStore.dispatch).toBeCalledWith({
-      type: 'schemaEditor/addProperty',
-      payload: {
-        path: '#/properties/mockItem',
-        props: {
-          $ref: '',
-        },
-      },
-    });
+test('should not show add property or add reference buttons on a reference node', async () => {
+  const properties = {
+    mockItem: { $ref: '#/definitions/mockDefinition' },
+  };
+  const definitions = {
+    mockDefinition: { type: 'object' },
+  };
+  await renderEditor({
+    schema: { properties, definitions },
+    uiSchema: buildUISchema(properties, '#/properties').concat(
+      buildUISchema(definitions, '#/definitions'),
+    ),
   });
+  clickOpenContextMenuButton();
+  const menuitems = screen.getAllByRole('menuitem');
+  const menuItemIds: string[] = menuitems.map((menuitem) => menuitem.id);
+  expect(menuItemIds).not.toContain('add-field-to-node-button');
+  expect(menuItemIds).not.toContain('add-reference-to-node-button');
+});
 
-  it('should show context menu and trigger correct dispatch when deleting a specific node', () => {
-    const wrapper = mountComponent();
-    wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
-    wrapper.find('#delete-node-button').hostNodes().simulate('click');
-    expect(mockStore.dispatch).toBeCalledWith({
-      type: 'schemaEditor/deleteProperty',
-      payload: {
-        path: '#/properties/melding',
-      },
-    });
+test('should not show add property or add reference buttons on a reference node that has not yet set reference', async () => {
+  const properties = {
+    mockItem: { $ref: '' },
+  };
+  const definitions = {
+    mockDefinition: { type: 'object' },
+  };
+  await renderEditor({
+    schema: { properties, definitions },
+    uiSchema: buildUISchema(properties, '#/properties').concat(
+      buildUISchema(definitions, '#/definitions'),
+    ),
   });
+  clickOpenContextMenuButton();
+  const menuitems = screen.getAllByRole('menuitem');
+  const menuItemIds: string[] = menuitems.map((menuitem) => menuitem.id);
+  expect(menuItemIds).not.toContain('add-field-to-node-button');
+  expect(menuItemIds).not.toContain('add-reference-to-node-button');
+});
 
-  it('should not show add property or add reference buttons on a reference node', () => {
-    const mockProperties = {
-      mockItem: { $ref: '#/definitions/mockDefinition' },
-    };
-    const mockDefinitions = {
-      mockDefinition: { type: 'object' },
-    };
-    const customState = {
-      schema: { properties: mockProperties, definitions: mockDefinitions },
-      uiSchema: buildUISchema(mockProperties, '#/properties').concat(
-        buildUISchema(mockDefinitions, '#/definitions'),
-      ),
-    };
-    mockStore = createStore(reducer, { ...mockInitialState, ...customState });
-    mockStore.dispatch = jest.fn();
-    const wrapper = mountComponent();
-    wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
-    expect(wrapper.contains('#add-field-to-node-button')).toBe(false);
-    expect(wrapper.contains('#add-reference-to-node-button')).toBe(false);
+test('should not show add property or add reference buttons on a field that is not type object', async () => {
+  const properties = {
+    mockItem: { $ref: '#/definitions/mockDefinition' },
+  };
+  const definitions = {
+    mockDefinition: { type: 'integer' },
+  };
+  await renderEditor({
+    schema: { properties, definitions },
+    uiSchema: buildUISchema(properties, '#/properties').concat(
+      buildUISchema(definitions, '#/definitions'),
+    ),
   });
+  clickOpenContextMenuButton();
+  const menuitems = screen.getAllByRole('menuitem');
+  const menuItemIds: string[] = menuitems.map((menuitem) => menuitem.id);
+  expect(menuItemIds).not.toContain('add-field-to-node-button');
+  expect(menuItemIds).not.toContain('add-reference-to-node-button');
+});
 
-  it('should not show add property or add reference buttons on a reference node that has not yet set reference', () => {
-    const mockProperties = {
-      mockItem: { $ref: '' },
-    };
-    const mockDefinitions = {
-      mockDefinition: { type: 'object' },
-    };
-    const customState = {
-      schema: { properties: mockProperties, definitions: mockDefinitions },
-      uiSchema: buildUISchema(mockProperties, '#/properties').concat(
-        buildUISchema(mockDefinitions, '#/definitions'),
-      ),
-    };
-    mockStore = createStore(reducer, { ...mockInitialState, ...customState });
-    mockStore.dispatch = jest.fn();
-    const wrapper = mountComponent();
-    wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
-    expect(wrapper.contains('#add-field-to-node-button')).toBe(false);
-    expect(wrapper.contains('#add-reference-to-node-button')).toBe(false);
-  });
+test('should show menu with option field, reference, and combination when pressing add', async () => {
+  await renderEditor();
+  clickOpenAddMenuButton();
+  expect(
+    screen.getAllByRole('menuitem', { name: mockLanguage.schema_editor.field }),
+  ).toHaveLength(1);
+  expect(
+    screen.getAllByRole('menuitem', {
+      name: mockLanguage.schema_editor.reference,
+    }),
+  ).toHaveLength(1);
+  expect(screen.getAllByRole('menuitem', { name: 'combination' })).toHaveLength(
+    1,
+  );
+});
 
-  it('should not show add property or add reference buttons on a field that is not type object', () => {
-    const mockProperties = {
-      mockItem: { $ref: '#/definitions/mockDefinition' },
-    };
-    const mockDefinitions = {
-      mockDefinition: { type: 'integer' },
-    };
-    const customState = {
-      schema: { properties: mockProperties, definitions: mockDefinitions },
-      uiSchema: buildUISchema(mockProperties, '#/properties').concat(
-        buildUISchema(mockDefinitions, '#/definitions'),
-      ),
-    };
-    mockStore = createStore(reducer, { ...mockInitialState, ...customState });
-    mockStore.dispatch = jest.fn();
-    const wrapper = mountComponent();
-    wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
-    expect(wrapper.find('#add-field-to-node-button')).toHaveLength(0);
-    expect(wrapper.find('#add-reference-to-node-button')).toHaveLength(0);
+test('should trigger correct dispatch when adding combination to root', async () => {
+  const [store] = await renderEditor();
+  clickOpenAddMenuButton();
+  clickAddMenuItem('combination');
+  const actions = store.getActions();
+  const lastAction = actions.at(-1);
+  expect(lastAction.type).toBe('schemaEditor/addRootItem');
+  expect(lastAction.payload).toEqual({
+    name: 'name',
+    location: 'properties',
+    props: {
+      combination: [],
+      combinationKind: 'allOf',
+    },
   });
+});
 
-  it('should show menu with option field, reference, and combination when pressing add', () => {
-    const wrapper = mountComponent();
-    wrapper.find('#add-button').hostNodes().simulate('click');
-    expect(wrapper.find('#add-field-button').hostNodes()).toHaveLength(1);
-    expect(wrapper.find('#add-reference-button').hostNodes()).toHaveLength(1);
-    expect(wrapper.find('#add-combination-button').hostNodes()).toHaveLength(1);
+test('should show context menu and trigger correct dispatch when adding a combination on a specific node', async () => {
+  const [store] = await renderEditor({
+    schema: { properties: { mockItem: { type: 'object' } }, definitions: {} },
+    uiSchema: buildUISchema({ mockItem: { type: 'object' } }, '#/properties'),
   });
+  clickOpenContextMenuButton();
+  clickAddMenuItem('add_combination');
+  const actions = store.getActions();
+  const lastAction = actions.at(-1);
+  expect(lastAction.type).toBe('schemaEditor/addProperty');
+  expect(lastAction.payload).toEqual({
+    path: '#/properties/mockItem',
+    props: {
+      combination: [],
+      combinationKind: 'allOf',
+    },
+  });
+});
 
-  it('should trigger correct dispatch when adding combination to root', () => {
-    const wrapper = mountComponent();
-    wrapper.find('#add-button').hostNodes().simulate('click');
-    wrapper.find('#add-combination-button').hostNodes().simulate('click');
-    expect(mockStore.dispatch).toBeCalledWith({
-      type: 'schemaEditor/addRootItem',
-      payload: {
-        name: 'name',
-        location: 'properties',
-        props: {
-          combination: [],
-          combinationKind: 'allOf',
-        },
-      },
-    });
+test('should only be possible to add a reference to a combination type', async () => {
+  const [store] = await renderEditor({
+    schema: { properties: { mockItem: { type: 'object' } }, definitions: {} },
+    uiSchema: buildUISchema(
+      { mockItem: { allOf: [], name: 'allOfTest' } },
+      '#/properties',
+    ),
   });
-
-  it('should show context menu and trigger correct dispatch when adding a combination on a specific node', () => {
-    const customState = {
-      schema: { properties: { mockItem: { type: 'object' } }, definitions: {} },
-      uiSchema: buildUISchema({ mockItem: { type: 'object' } }, '#/properties'),
-    };
-    mockStore = createStore(reducer, { ...mockInitialState, ...customState });
-    mockStore.dispatch = jest.fn();
-    const wrapper = mountComponent();
-    wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
-    wrapper
-      .find('#add-combination-to-node-button')
-      .hostNodes()
-      .simulate('click');
-    expect(mockStore.dispatch).toBeCalledWith({
-      type: 'schemaEditor/addProperty',
-      payload: {
-        path: '#/properties/mockItem',
-        props: {
-          combination: [],
-          combinationKind: 'allOf',
-        },
-      },
-    });
-  });
-
-  it('should only be possible to add a reference to a combination type', () => {
-    const customState = {
-      schema: { properties: { mockItem: { type: 'object' } }, definitions: {} },
-      uiSchema: buildUISchema(
-        { mockItem: { allOf: [], name: 'allOfTest' } },
-        '#/properties',
-      ),
-    };
-    mockStore = createStore(reducer, { ...mockInitialState, ...customState });
-    mockStore.dispatch = jest.fn();
-    const wrapper = mountComponent();
-    wrapper.find('#open-context-menu-button').hostNodes().simulate('click');
-    expect(wrapper.find('#add-field-to-node-button').hostNodes()).toHaveLength(
-      0,
-    );
-    expect(
-      wrapper.find('#add-reference-to-node-button').hostNodes(),
-    ).toHaveLength(1);
-    expect(
-      wrapper.find('#add-combination-to-node-button').hostNodes(),
-    ).toHaveLength(0);
-  });
+  clickOpenContextMenuButton();
+  const menuitems = screen.getAllByRole('menuitem');
+  const menuItemIds: string[] = menuitems.map((menuitem) => menuitem.id);
+  expect(menuItemIds).not.toContain('add-field-to-node-button');
+  expect(menuItemIds).toContain('add-reference-to-node-button');
+  expect(menuItemIds).not.toContain('add-combination-to-node-button');
 });
