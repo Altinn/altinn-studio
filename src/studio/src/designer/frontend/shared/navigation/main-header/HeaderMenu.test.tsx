@@ -52,7 +52,7 @@ describe('HeaderMenu', () => {
     );
   });
 
-  it('should call setSelectedContext with selkf keyword when clicking Self item in menu', async () => {
+  it('should call setSelectedContext with self keyword when clicking Self item in menu', async () => {
     const { handleSetSelectedContext } = render();
     await openMenu();
 
