@@ -32,7 +32,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-type HeaderMenuProps = {
+export type HeaderMenuProps = {
   language: any;
 };
 

@@ -10,7 +10,7 @@ import React from 'react';
 import type { IParty } from '../../types/global';
 import { renderPartyName } from '../../utils/party';
 import AltinnIcon from '../AltinnIcon';
-import AltinnLogo from '../AltinnLogo';
+import { AltinnLogo } from '../AltinnLogo';
 
 interface IAltinnAppHeaderProps extends WithStyles<typeof styles> {
   /** The party of the instance owner */

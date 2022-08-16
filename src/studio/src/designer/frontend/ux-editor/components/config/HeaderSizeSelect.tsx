@@ -2,7 +2,7 @@ import Select from 'react-select';
 import React from 'react';
 import { Grid } from '@material-ui/core';
 import {
-  renderPropertyLabel,
+  PropertyLabel,
   renderSelectTextFromResources,
   selectStyles,
 } from '../../utils/render';
@@ -42,6 +42,8 @@ export const HeaderSizeSelect = ({
     ? sizes.find((size) => size.value === selectedHeaderSize)
     : sizes[0];
 
+  const id = `HeaderSizeSelect-input-${component.id}`;
+
   return (
     <Grid container={true} spacing={0} direction='column'>
       {renderChangeId()}
@@ -56,12 +58,16 @@ export const HeaderSizeSelect = ({
         )}
       </div>
       <Grid item={true} xs={12} data-testid='header-size-select-wrapper'>
-        {renderPropertyLabel(language.ux_editor.modal_header_type_helper)}
+        <PropertyLabel
+          textKey={language.ux_editor.modal_header_type_helper}
+          htmlFor={id}
+        />
         <Select
           styles={selectStyles}
           defaultValue={selectedValue}
           onChange={handleUpdateHeaderSize}
           options={sizes}
+          inputId={id}
         />
       </Grid>
     </Grid>

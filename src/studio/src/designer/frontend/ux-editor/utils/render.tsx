@@ -34,9 +34,18 @@ export const selectStyles = {
   }),
 };
 
-export function renderPropertyLabel(textKey: string) {
-  return <Typography style={styles.inputHelper}>{textKey}</Typography>;
+export interface IPropertyLabelProps {
+  textKey: string;
+  htmlFor?: string;
 }
+
+export const PropertyLabel = ({ textKey, htmlFor }: IPropertyLabelProps) => {
+  return (
+    <Typography style={styles.inputHelper} component='label' htmlFor={htmlFor}>
+      {textKey}
+    </Typography>
+  );
+};
 
 export function renderOptionalLabel(text: string) {
   return (
@@ -45,7 +54,11 @@ export function renderOptionalLabel(text: string) {
 }
 
 export function renderDescription(text: string) {
-  return <Typography style={styles.description}>{text}</Typography>;
+  return (
+    <Typography data-testid='renderDescription' style={styles.description}>
+      {text}
+    </Typography>
+  );
 }
 
 export function noOptionsMessage(language: any): string {
@@ -66,11 +79,13 @@ export function renderSelectDataModelBinding(
   const noOptMessage = () => noOptionsMessage(language);
   return (
     <div key={uniqueKey || ''}>
-      {renderPropertyLabel(
-        label
-          ? `${language.ux_editor.modal_properties_data_model_helper} ${language.general.for} ${label}`
-          : language.ux_editor.modal_properties_data_model_helper,
-      )}
+      <PropertyLabel
+        textKey={
+          label
+            ? `${language.ux_editor.modal_properties_data_model_helper} ${language.general.for} ${label}`
+            : language.ux_editor.modal_properties_data_model_helper
+        }
+      />
       <SelectDataModelComponent
         selectedElement={dataModelBinding[key]}
         onDataModelChange={onDMChange}
@@ -89,9 +104,10 @@ export function renderSelectGroupDataModelBinding(
 ): JSX.Element {
   return (
     <div>
-      {renderPropertyLabel(
-        language.ux_editor.modal_properties_data_model_helper,
-      )}
+      <PropertyLabel
+        textKey={language.ux_editor.modal_properties_data_model_helper}
+      />
+
       <SelectDataModelComponent
         selectedElement={dataModelBinding[key]}
         onDataModelChange={(dataModelField) =>
@@ -105,7 +121,7 @@ export function renderSelectGroupDataModelBinding(
   );
 }
 
-interface IInnerProps {
+export interface ISelectTextFromRecources {
   labelText: string;
   onChangeFunction: (e: any) => void;
   textResources: ITextResource[];
@@ -113,18 +129,21 @@ interface IInnerProps {
   selected?: string;
   placeholder?: string;
   description?: string;
+  children?: React.ReactNode;
+  inputId?: string;
 }
-function SelectTextFromRecources(props: React.PropsWithChildren<IInnerProps>) {
-  const {
-    labelText,
-    onChangeFunction,
-    textResources,
-    language,
-    selected,
-    placeholder,
-    description,
-    children,
-  } = props;
+
+export const SelectTextFromRecources = ({
+  labelText,
+  onChangeFunction,
+  textResources,
+  language,
+  selected,
+  placeholder,
+  description,
+  inputId,
+  children,
+}: ISelectTextFromRecources) => {
   const resources = !textResources
     ? []
     : textResources.map((textResource: any) => {
@@ -142,10 +161,17 @@ function SelectTextFromRecources(props: React.PropsWithChildren<IInnerProps>) {
   const placeholderText = placeholder
     ? truncate(getTextResource(placeholder, textResources), 40)
     : language.ux_editor[labelText];
+
   return (
     <div>
-      <div style={{ display: 'flex' }}>
-        {renderPropertyLabel(language.ux_editor[labelText])}
+      <div
+        data-testid='SelectTextFromRecources-label'
+        style={{ display: 'flex' }}
+      >
+        <PropertyLabel
+          textKey={language.ux_editor[labelText]}
+          htmlFor={inputId}
+        />
         {children}
       </div>
       {description && renderDescription(description)}
@@ -157,11 +183,15 @@ function SelectTextFromRecources(props: React.PropsWithChildren<IInnerProps>) {
         isClearable={true}
         placeholder={!defaultValue && placeholderText}
         noOptionsMessage={noOptMessage}
+        inputId={inputId}
       />
     </div>
   );
-}
+};
 
+/**
+ * @deprecated use SelectTextFromRecources component directly instead
+ */
 export function renderSelectTextFromResources(
   labelText: string,
   onChangeFunction: (e: any) => void,
@@ -170,7 +200,7 @@ export function renderSelectTextFromResources(
   selected?: string,
   placeholder?: string,
   description?: string,
-): JSX.Element {
+) {
   return (
     <SelectTextFromRecources
       labelText={labelText}

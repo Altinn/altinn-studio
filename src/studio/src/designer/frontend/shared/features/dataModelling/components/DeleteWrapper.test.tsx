@@ -1,97 +1,122 @@
-import { mount } from 'enzyme';
-import { Modal, Typography, Button } from '@material-ui/core';
 import React from 'react';
-import * as renderer from 'react-test-renderer';
+import { render as rtlRender, screen } from '@testing-library/react';
+import userEvent, {
+  PointerEventsCheckLevel,
+} from '@testing-library/user-event';
 import DeleteWrapper from './DeleteWrapper';
+import type { IDeleteWrapper } from './DeleteWrapper';
+
+const user = userEvent.setup();
 
 describe('DeleteWrapper', () => {
-  const language = { administration: { delete_model_confirm: 'Delete {0}?' } };
-  let someValue = 'unchangedValue';
-  let wrapper: any = null;
+  it('should not be able to open the delete dialog if no schemaName is set', async () => {
+    const userWithNoPointerEventCheck = userEvent.setup({
+      pointerEventsCheck: PointerEventsCheckLevel.Never,
+    });
+    render({ schemaName: undefined });
 
-  const onDelete = () => {
-    someValue = null;
-  };
+    expect(
+      screen.queryByRole('heading', {
+        name: /delete some-name\?/i,
+      }),
+    ).not.toBeInTheDocument();
 
-  const mountComponent = (schemaName: string) =>
-    mount(
-      <DeleteWrapper
-        language={language}
-        schemaName={schemaName}
-        deleteAction={onDelete}
-      />,
-    );
+    const deleteButton = screen.getByRole('button', {
+      name: /general\.delete/i,
+    });
+    await userWithNoPointerEventCheck.click(deleteButton);
 
-  const openDialog = () => {
-    const deleteButton = wrapper.find('TopToolbarButton');
-    deleteButton.at(0).simulate('click');
-    return wrapper.find(Modal).find('div.MuiGrid-root');
-  };
-
-  beforeEach(() => {
-    someValue = 'unchangedValue';
-    wrapper = null;
+    expect(
+      screen.queryByRole('heading', {
+        name: /delete some-name\?/i,
+      }),
+    ).not.toBeInTheDocument();
   });
 
-  it('Should match snapshot with the least amount of params', () => {
-    const rendered = renderer.create(
-      <DeleteWrapper
-        language={language}
-        schemaName='deletable-model'
-        deleteAction={jest.fn()}
-      />,
-    );
+  it('should open the delete dialog when clicking delete button and schemaName is set', async () => {
+    render({ schemaName: 'some-name' });
 
-    expect(rendered).toMatchSnapshot();
+    expect(
+      screen.queryByRole('heading', {
+        name: /delete some-name\?/i,
+      }),
+    ).not.toBeInTheDocument();
+    const deleteButton = screen.getByRole('button', {
+      name: /general\.delete/i,
+    });
+    await user.click(deleteButton);
+
+    expect(
+      screen.getByRole('heading', {
+        name: /delete some-name\?/i,
+      }),
+    ).toBeInTheDocument();
   });
 
-  it('opens the pop-up if there is a schemaName', () => {
-    wrapper = mountComponent('deletable-model');
+  it('should call deleteAction callback and close dialog when clicking continue button', async () => {
+    const handleDelete = jest.fn();
+    render({
+      schemaName: 'some-name',
+      deleteAction: handleDelete,
+    });
 
-    expect(wrapper.find(Modal)).toHaveLength(0);
-    const dialog = openDialog();
-    expect(wrapper.find(Modal)).toHaveLength(1);
-    const target = dialog.find(Typography);
-    expect(target).toHaveLength(1);
-    expect(target).toBeTruthy();
-    expect(target.text()).toBe('Delete deletable-model?');
-    expect(dialog.find(Button)).toHaveLength(2);
+    const deleteButton = screen.getByRole('button', {
+      name: /general\.delete/i,
+    });
+    await user.click(deleteButton);
+
+    const continueButton = screen.getByRole('button', {
+      name: /general\.continue/i,
+    });
+    await user.click(continueButton);
+
+    expect(handleDelete).toHaveBeenCalled();
+    expect(
+      screen.queryByRole('heading', {
+        name: /delete some-name\?/i,
+      }),
+    ).not.toBeInTheDocument();
   });
 
-  it('does not open pop-up if there is no schemaName', () => {
-    wrapper = mountComponent(undefined);
+  it('should close the delete dialog when clicking cancel', async () => {
+    render({ schemaName: 'some-name' });
 
-    const dialog = openDialog();
-    expect(dialog).toHaveLength(0);
-  });
+    expect(
+      screen.queryByRole('heading', {
+        name: /delete some-name\?/i,
+      }),
+    ).not.toBeInTheDocument();
+    const deleteButton = screen.getByRole('button', {
+      name: /general\.delete/i,
+    });
+    await user.click(deleteButton);
 
-  it('runs the delete action and closes the modal', () => {
-    wrapper = mountComponent('deletable modal');
+    expect(
+      screen.getByRole('heading', {
+        name: /delete some-name\?/i,
+      }),
+    ).toBeInTheDocument();
 
-    const dialog = openDialog();
-    expect(someValue).toBeTruthy();
-    dialog.find(Button).first().simulate('click');
-    expect(wrapper.find(Modal)).toHaveLength(0);
-    expect(someValue).toBeFalsy();
-  });
+    const cancelButton = screen.getByRole('button', {
+      name: /general\.cancel/i,
+    });
+    await user.click(cancelButton);
 
-  it('cancels as expected', () => {
-    wrapper = mountComponent('deletable modal');
-
-    // click cancel
-    const dialog = openDialog();
-    expect(wrapper.find(Modal)).toHaveLength(1);
-    dialog.find(Button).at(1).simulate('click');
-    expect(wrapper.find(Modal)).toHaveLength(0);
-    expect(someValue).toBeTruthy();
-
-    // click outside
-    openDialog();
-    const modalRoot = wrapper.find(Modal);
-    expect(modalRoot).toHaveLength(1);
-    const target = modalRoot.find('ForwardRef(SimpleBackdrop)');
-    target.simulate('click');
-    expect(wrapper.find(Modal)).toHaveLength(0);
-    expect(someValue).toBeTruthy();
+    expect(
+      screen.queryByRole('heading', {
+        name: /delete some-name\?/i,
+      }),
+    ).not.toBeInTheDocument();
   });
 });
+
+const render = (props: Partial<IDeleteWrapper> = {}) => {
+  const allProps = {
+    language: { administration: { delete_model_confirm: 'Delete {0}?' } },
+    deleteAction: jest.fn(),
+    schemaName: 'deletable-model',
+    ...props,
+  } as IDeleteWrapper;
+
+  return rtlRender(<DeleteWrapper {...allProps} />);
+};

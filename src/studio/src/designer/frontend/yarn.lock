@@ -334,13 +334,13 @@ __metadata:
   linkType: hard
 
 "@babel/generator@npm:^7.18.10":
-  version: 7.18.10
-  resolution: "@babel/generator@npm:7.18.10"
+  version: 7.18.12
+  resolution: "@babel/generator@npm:7.18.12"
   dependencies:
     "@babel/types": ^7.18.10
     "@jridgewell/gen-mapping": ^0.3.2
     jsesc: ^2.5.1
-  checksum: 6e888448dd018571e2a36859c1722dc389e22abac99180523422112d208b9eff137da57f03325c9b1e78c2e8b9b4e7004c9a880cc04643582177b9252dd1435f
+  checksum: 07dd71d255144bb703a80ab0156c35d64172ce81ddfb70ff24e2be687b052080233840c9a28d92fa2c33f7ecb8a8b30aef03b807518afc53b74c7908bf8859b1
   languageName: node
   linkType: hard
 
@@ -1272,14 +1272,14 @@ __metadata:
   linkType: hard
 
 "@babel/helper-wrap-function@npm:^7.18.9":
-  version: 7.18.10
-  resolution: "@babel/helper-wrap-function@npm:7.18.10"
+  version: 7.18.11
+  resolution: "@babel/helper-wrap-function@npm:7.18.11"
   dependencies:
     "@babel/helper-function-name": ^7.18.9
     "@babel/template": ^7.18.10
-    "@babel/traverse": ^7.18.10
+    "@babel/traverse": ^7.18.11
     "@babel/types": ^7.18.10
-  checksum: 7fb8ee956b9a241e078e302da2cb700022524ed3993af9fbd47bb6507f863b8d89dbbced27fdaac1088b004125e7e58ef192033d4a1e29e9c7cf127966ce8e64
+  checksum: e2fb909cdeb5c8688513261202cdeab7c6a8ac1f30daa5a1e0111631f270c26118c2e6b27014fc9f5d2c0ee1182fc40a3db2d30e45425587067f49dcae737dc9
   languageName: node
   linkType: hard
 
@@ -1423,12 +1423,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/parser@npm:^7.18.10":
-  version: 7.18.10
-  resolution: "@babel/parser@npm:7.18.10"
+"@babel/parser@npm:^7.18.10, @babel/parser@npm:^7.18.11":
+  version: 7.18.11
+  resolution: "@babel/parser@npm:7.18.11"
   bin:
     parser: ./bin/babel-parser.js
-  checksum: adf417daccb5bc5edb53cc86b8e60abd911eaee8212703ea702ec17ff7967a9a17a84f6aa19b1cd0faec58e9beaa31a026c85238fd8ca08f2d66ba1db8180dc6
+  checksum: 5ecc75b83e62ec53a947b1635a6ca75d6210d4a4f962f9f16f4239a6783f98e57f9662b598fa2fb1b8e12c0ad5c2bd86846ed0b97b85eb73dd7498b3a6d71a4b
   languageName: node
   linkType: hard
 
@@ -4254,9 +4254,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/traverse@npm:^7.18.10, @babel/traverse@npm:^7.18.9":
-  version: 7.18.10
-  resolution: "@babel/traverse@npm:7.18.10"
+"@babel/traverse@npm:^7.18.10, @babel/traverse@npm:^7.18.11, @babel/traverse@npm:^7.18.9":
+  version: 7.18.11
+  resolution: "@babel/traverse@npm:7.18.11"
   dependencies:
     "@babel/code-frame": ^7.18.6
     "@babel/generator": ^7.18.10
@@ -4264,11 +4264,11 @@ __metadata:
     "@babel/helper-function-name": ^7.18.9
     "@babel/helper-hoist-variables": ^7.18.6
     "@babel/helper-split-export-declaration": ^7.18.6
-    "@babel/parser": ^7.18.10
+    "@babel/parser": ^7.18.11
     "@babel/types": ^7.18.10
     debug: ^4.1.0
     globals: ^11.1.0
-  checksum: c58b744b1c145649d3bf8167f7a3a6df032808f4582fb8f86b15fba0b7f237640f2289e67b854abfd7f1bda0abdbc0a71527fe78c6d470120ba0a96e64f8bf36
+  checksum: 727409464d5cf27f33555010098ce9bb435f0648cc76e674f4fb7513522356655ba62be99c8df330982b391ccf5f0c0c23c7bd7453d4936d47e2181693fed14c
   languageName: node
   linkType: hard
 
@@ -5766,8 +5766,8 @@ __metadata:
   linkType: hard
 
 "@mui/x-data-grid@npm:^5.15.0":
-  version: 5.15.0
-  resolution: "@mui/x-data-grid@npm:5.15.0"
+  version: 5.15.1
+  resolution: "@mui/x-data-grid@npm:5.15.1"
   dependencies:
     "@babel/runtime": ^7.18.6
     "@mui/utils": ^5.4.1
@@ -5779,7 +5779,7 @@ __metadata:
     "@mui/system": ^5.4.1
     react: ^17.0.2 || ^18.0.0
     react-dom: ^17.0.2 || ^18.0.0
-  checksum: 52faf9f1f49471f3972d7ae5d2179e2960b2a1c0ebb9a2e735eaf3e201bd7cb7fa78aa864110aacfae69f7604df2153a348b64f882c78acb3b3852f58c9a7986
+  checksum: 687b420942593e6a1eb3e1f51f806dd02b540b3f96e6e06586b5743a64ec36be2c7ce9c21a5ab05e1ca3e3edbe6e29835322624e295964ee706feace25723247
   languageName: node
   linkType: hard
 
@@ -6284,11 +6284,11 @@ __metadata:
   linkType: hard
 
 "@testing-library/user-event@npm:^14.4.1":
-  version: 14.4.1
-  resolution: "@testing-library/user-event@npm:14.4.1"
+  version: 14.4.2
+  resolution: "@testing-library/user-event@npm:14.4.2"
   peerDependencies:
     "@testing-library/dom": ">=7.21.4"
-  checksum: 01f2318097d64ab99c400a2825680b241451c7d87e69fbda9135b7c896d4205afff46b55b25fcfff47542732d38918c6ca49d2e937892931f6f93346ccbc1950
+  checksum: 66364f2c503ddc01f5fdf98507aecf40b4edf0b9c140332aaf0161b1d7d52dea8a5d93baee927ae955bd7d6d58be0c12367a2cff924bdb4232746f0e614f9e03
   languageName: node
   linkType: hard
 
@@ -6392,7 +6392,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/cheerio@npm:*, @types/cheerio@npm:^0.22.22":
+"@types/cheerio@npm:*":
   version: 0.22.30
   resolution: "@types/cheerio@npm:0.22.30"
   dependencies:
@@ -6930,15 +6930,6 @@ __metadata:
     "@types/react-dom": "*"
     "@types/react-transition-group": "*"
   checksum: c247c7fe45cc1d1db1fb0e5a569e288037081ed05d17f377376de82a58a5d334bb7282922ee5eaf3c30957437b028097235be81cb0bed905b3b73f9a5b8c7b58
-  languageName: node
-  linkType: hard
-
-"@types/react-test-renderer@npm:^17.0.2":
-  version: 17.0.2
-  resolution: "@types/react-test-renderer@npm:17.0.2"
-  dependencies:
-    "@types/react": ^17
-  checksum: 0be325798b6b38cc31fbb11f2f1e1a5578cc3b23eddf1ddd1ab58ccf50966e8f779383084d8bc3a7db3108ad815af8fbae5c0f54329a88d52200e01547d85c33
   languageName: node
   linkType: hard
 
@@ -8107,7 +8098,6 @@ __metadata:
     "@types/react-modal": ^3.13.1
     "@types/react-redux": ^7.1.24
     "@types/react-router-dom": ^5.3.3
-    "@types/react-test-renderer": ^17.0.2
     "@types/redux-mock-store": ^1.0.3
     "@wojtekmaj/enzyme-adapter-react-17": ^0.6.7
     altinn-designsystem: 2.7.12
@@ -8135,7 +8125,6 @@ __metadata:
     react-redux: ^8.0.2
     react-router-dom: ^5.3.3
     react-select: ^4.3.1
-    react-test-renderer: ^17.0.2
     react-truncate-markup: ^5.1.2
     redux: ^4.2.0
     redux-mock-store: ^1.5.4
@@ -10553,7 +10542,6 @@ __metadata:
     "@types/react-dom": ^17.0.17
     "@types/react-modal": ^3.13.1
     "@types/react-router-dom": ^5.3.3
-    "@types/react-test-renderer": ^17.0.2
     "@types/redux-mock-store": ^1.0.3
     "@wojtekmaj/enzyme-adapter-react-17": ^0.6.7
     altinn-designsystem: 2.7.12
@@ -10581,7 +10569,6 @@ __metadata:
     react-modal: ^3.15.1
     react-redux: ^8.0.2
     react-router-dom: ^5.3.3
-    react-test-renderer: ^17.0.2
     react-truncate-markup: ^5.1.2
     react-use: ^17.4.0
     redux: ^4.2.0
@@ -11381,19 +11368,6 @@ __metadata:
     has: ^1.0.3
     object-is: ^1.1.2
   checksum: 54bbad0955683f09252568bfcb9d7e934a27c06634057db9e82b54c0d9f7a27b6160d77643177d973c133b87d404f284cc6aa0481c0a1c81cdff05b072e2bb49
-  languageName: node
-  linkType: hard
-
-"enzyme-to-json@npm:^3.6.2":
-  version: 3.6.2
-  resolution: "enzyme-to-json@npm:3.6.2"
-  dependencies:
-    "@types/cheerio": ^0.22.22
-    lodash: ^4.17.21
-    react-is: ^16.12.0
-  peerDependencies:
-    enzyme: ^3.4.0
-  checksum: e81f3dc05b5c440da416544a3cbc41fb9e79de0777453e48fe55de822f7d6f56ee08e5173d46a7624cf2781198396509c470bdd616a1ea441e6fa9ddf4396477
   languageName: node
   linkType: hard
 
@@ -19659,7 +19633,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-is@npm:^16.12.0, react-is@npm:^16.13.1, react-is@npm:^16.6.0, react-is@npm:^16.7.0, react-is@npm:^16.8.1":
+"react-is@npm:^16.13.1, react-is@npm:^16.6.0, react-is@npm:^16.7.0, react-is@npm:^16.8.1":
   version: 16.13.1
   resolution: "react-is@npm:16.13.1"
   checksum: f7a19ac3496de32ca9ae12aa030f00f14a3d45374f1ceca0af707c831b2a6098ef0d6bdae51bd437b0a306d7f01d4677fcc8de7c0d331eb47ad0f46130e53c5f
@@ -19973,7 +19947,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-test-renderer@npm:^17.0.0, react-test-renderer@npm:^17.0.2":
+"react-test-renderer@npm:^17.0.0":
   version: 17.0.2
   resolution: "react-test-renderer@npm:17.0.2"
   dependencies:
@@ -21226,17 +21200,16 @@ __metadata:
     "@material-ui/core": ^4.12.4
     "@material-ui/icons": ^4.11.3
     "@reduxjs/toolkit": ^1.8.3
+    "@testing-library/jest-dom": ^5.16.4
     "@testing-library/react": ^12.1.5
     "@types/classnames": ^2.3.1
     "@types/diff": ^5.0.2
     "@types/dompurify": ^2.3.3
-    "@types/enzyme": ^3.10.12
     "@types/jest": ^28.1.6
     "@types/marked": ^4.0.3
     "@types/react": 17.0.48
     "@types/react-html-parser": ^2.0.2
     "@types/react-router-dom": ^5.3.3
-    "@types/react-test-renderer": ^17.0.2
     "@types/redux-mock-store": ^1.0.3
     altinn-designsystem: 2.7.12
     axios: ^0.27.2
@@ -21246,8 +21219,6 @@ __metadata:
     core-js: ^3.24.1
     diff: ^5.1.0
     dompurify: ^2.3.10
-    enzyme: ^3.11.0
-    enzyme-to-json: ^3.6.2
     fork-ts-checker-notifier-webpack-plugin: ^6.0.0
     fork-ts-checker-webpack-plugin: ^7.2.13
     jest: ^28.1.3
@@ -21266,7 +21237,6 @@ __metadata:
     react-redux: ^8.0.2
     react-router-dom: ^5.3.3
     react-styleguidist: ^11.2.0
-    react-test-renderer: ^17.0.2
     react-truncate-markup: ^5.1.2
     redux-mock-store: ^1.5.4
     redux-saga: ^1.1.3
@@ -23180,7 +23150,6 @@ __metadata:
     "@testing-library/user-event": ^14.4.1
     "@types/classnames": ^2.3.1
     "@types/deepmerge": ^2.2.0
-    "@types/enzyme": ^3.10.12
     "@types/jest": ^28.1.6
     "@types/react": 17.0.48
     "@types/react-dom": ^17.0.17
@@ -23188,10 +23157,8 @@ __metadata:
     "@types/react-redux": ^7.1.24
     "@types/react-router-dom": ^5.3.3
     "@types/react-select": ^4.0.18
-    "@types/react-test-renderer": ^17.0.2
     "@types/redux-mock-store": ^1.0.3
     "@types/uuid": 8.3.4
-    "@wojtekmaj/enzyme-adapter-react-17": ^0.6.7
     altinn-designsystem: 2.7.12
     axios: ^0.27.2
     babel-jest: ^28.1.3
@@ -23200,7 +23167,6 @@ __metadata:
     cross-env: ^7.0.3
     css-loader: ^6.7.1
     deepmerge: ^4.2.2
-    enzyme: ^3.11.0
     eslint: ^8.21.0
     jest: ^28.1.3
     jest-environment-jsdom: ^28.1.3
@@ -23216,7 +23182,6 @@ __metadata:
     react-redux: ^8.0.2
     react-router-dom: ^5.3.3
     react-select: ^4.3.1
-    react-test-renderer: ^17.0.2
     redux: ^4.2.0
     redux-mock-store: ^1.5.4
     redux-saga: ^1.1.3

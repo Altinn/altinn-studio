@@ -1,29 +1,25 @@
-import { mount } from 'enzyme';
-import toJson from 'enzyme-to-json';
 import React from 'react';
 import DeleteDialog from './DeleteDialog';
+import type { IDeleteDialogProps } from './DeleteDialog';
+import { render as rtlRender } from '@testing-library/react';
 
 describe('DeleteDialog', () => {
-  const language = { administration: {} };
-  let schemaName: string;
+  it('should match snapshot with the least amount of params', () => {
+    const { container } = render();
 
-  beforeEach(() => {
-    schemaName = 'some-name';
-  });
-
-  const mountComponent = () =>
-    mount(
-      <DeleteDialog
-        anchor={document.body}
-        language={language}
-        schemaName={schemaName}
-        onCancel={jest.fn()}
-        onConfirm={jest.fn()}
-      />,
-    );
-
-  it('Should match snapshot with the least amount of params', () => {
-    const wrapper = mountComponent();
-    expect(toJson(wrapper)).toMatchSnapshot();
+    expect(container.firstChild).toMatchSnapshot;
   });
 });
+
+const render = (props: Partial<IDeleteDialogProps> = {}) => {
+  const allProps = {
+    anchor: document.body,
+    language: { administration: {} },
+    schemaName: 'some-name',
+    onCancel: jest.fn(),
+    onConfirm: jest.fn(),
+    ...props,
+  } as IDeleteDialogProps;
+
+  return rtlRender(<DeleteDialog {...allProps} />);
+};

@@ -403,6 +403,7 @@ export function EditContainer(props: IEditContainerProvidedProps) {
                   {(activeList.length < 1 ||
                     (activeList.length === 1 && activeListIndex === 0)) && (
                     <IconButton
+                      data-testid='EditContainer-edit-button'
                       type='button'
                       className={classes.formComponentsBtn}
                       onClick={handleOpenEdit}
@@ -420,7 +421,6 @@ export function EditContainer(props: IEditContainerProvidedProps) {
               <Grid
                 container={true}
                 direction='row'
-                // eslint-disable-next-line max-len
                 className={
                   props.partOfGroup
                     ? classes.gridForBtnSingleActiveGroup

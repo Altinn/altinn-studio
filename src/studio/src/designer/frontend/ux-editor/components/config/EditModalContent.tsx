@@ -825,6 +825,7 @@ export class EditModalContentComponent extends React.Component<
             <Grid item={true} xs={12}>
               <AltinnInputField
                 id='modal-properties-minimum-files'
+                textFieldId={`modal-properties-minimum-files-input-${component.id}`}
                 onChangeFunction={this.handleNumberOfAttachmentsChange('min')}
                 inputValue={component.minNumberOfAttachments || 0}
                 inputDescription={getLanguageFromKey(
@@ -839,6 +840,7 @@ export class EditModalContentComponent extends React.Component<
             <Grid item={true} xs={12}>
               <AltinnInputField
                 id='modal-properties-maximum-files'
+                textFieldId={`modal-properties-maximum-files-input-${component.id}`}
                 onChangeFunction={this.handleNumberOfAttachmentsChange('max')}
                 inputValue={component.maxNumberOfAttachments || 1}
                 inputDescription={getLanguageFromKey(
@@ -949,6 +951,7 @@ export class EditModalContentComponent extends React.Component<
       <Grid item={true} xs={12}>
         <AltinnInputField
           id='component-id'
+          textFieldId={`component-id-input${this.props.component.id}`}
           onChangeFunction={this.handleIdChange}
           onBlurFunction={this.handleNewId}
           inputValue={this.state.tmpId}

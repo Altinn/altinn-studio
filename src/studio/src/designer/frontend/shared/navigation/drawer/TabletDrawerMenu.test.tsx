@@ -1,43 +1,50 @@
 import { createTheme, MuiThemeProvider } from '@material-ui/core/styles';
-import { mount } from 'enzyme';
 import React from 'react';
 import TabletDrawerMenu from './TabletDrawerMenu';
+import type { ITabletDrawerMenuProps } from './TabletDrawerMenu';
 import altinnTheme from '../../theme/altinnStudioTheme';
+import { render as rtlRender, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
+const theme = createTheme(altinnTheme);
+const user = userEvent.setup();
 
 describe('TabletDrawerMenu', () => {
-  describe('when the tabletDrawerOpen is true', () => {
-    let mockTabletDrawerOpen: boolean;
-    let mockHandleTabletDrawerMenu: () => void;
+  it('should not render the menu when tabletDrawerOpen is false', () => {
+    render({ tabletDrawerOpen: false });
 
-    const theme = createTheme(altinnTheme);
+    expect(screen.getByText(/logg ut/i)).not.toBeVisible();
+  });
 
-    beforeEach(() => {
-      mockTabletDrawerOpen = true;
-      mockHandleTabletDrawerMenu = jest.fn();
+  it('should render the menu when tabletDrawerOpen is true', () => {
+    render({ tabletDrawerOpen: true });
+
+    expect(screen.getByText(/logg ut/i)).toBeVisible();
+  });
+
+  it('should call handleTabletDrawerMenu when clicking menu button, ', async () => {
+    const handleTabletDrawerMenu = jest.fn();
+    render({ handleTabletDrawerMenu, tabletDrawerOpen: false });
+
+    const menuButton = screen.getByRole('button', {
+      name: /meny/i,
     });
-
-    it('should render tablet menu and the mock function should have been called, ', () => {
-      const tabletDrawerMenu = mount(
-        <MuiThemeProvider theme={theme}>
-          <TabletDrawerMenu
-            tabletDrawerOpen={mockTabletDrawerOpen}
-            handleTabletDrawerMenu={mockHandleTabletDrawerMenu}
-            mainMenuItems={[]}
-          />
-        </MuiThemeProvider>,
-        { attachTo: document.getElementById('root') },
-      );
-
-      tabletDrawerMenu.update();
-      tabletDrawerMenu.find('button').simulate('click');
-      expect(mockHandleTabletDrawerMenu).toHaveBeenCalled();
-      expect(tabletDrawerMenu.find('button').text()).toEqual('lukk');
-      expect(
-        tabletDrawerMenu
-          .find('WithStyles(ForwardRef(Drawer))[variant="persistent"]')
-          .prop('open'),
-      ).toEqual(true);
-      tabletDrawerMenu.unmount();
-    });
+    await user.click(menuButton);
+    expect(handleTabletDrawerMenu).toHaveBeenCalled();
   });
 });
+
+const render = (props: Partial<ITabletDrawerMenuProps> = {}) => {
+  const allProps = {
+    mainMenuItems: [],
+    tabletDrawerOpen: true,
+    handleTabletDrawerMenu: jest.fn(),
+    ...props,
+  } as ITabletDrawerMenuProps;
+
+  return rtlRender(
+    <MuiThemeProvider theme={theme}>
+      <TabletDrawerMenu {...allProps} />
+    </MuiThemeProvider>,
+  );
+};

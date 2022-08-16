@@ -4,13 +4,16 @@ import Select from 'react-select';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import {
-  renderSelectTextFromResources,
-  renderPropertyLabel,
+  PropertyLabel,
+  SelectTextFromRecources,
   selectStyles,
 } from '../../utils/render';
-import type { IFormImageComponent, FormComponentType } from '../../types/global';
+import type {
+  IFormImageComponent,
+  FormComponentType,
+} from '../../types/global';
 
-interface ImageComponentProps {
+export interface IImageComponentProps {
   component: IFormImageComponent;
   handleComponentUpdate: (updatedComponent: FormComponentType) => void;
   language: any;
@@ -22,7 +25,7 @@ export const ImageComponent = ({
   language,
   handleComponentUpdate,
   textResources,
-}: ImageComponentProps) => {
+}: IImageComponentProps) => {
   const alignOptions = [
     {
       value: 'flex-start',
@@ -71,11 +74,15 @@ export const ImageComponent = ({
     handleComponentUpdate(updatedComponent);
   };
 
+  const placementSelectId = `image_placement-input-${component.id}`;
+  const altTextSelectId = `image_alt-input-${component.id}`;
+
   return (
-    <Grid spacing={2} container={true}>
+    <Grid spacing={2} container={true} data-testid="ImageComponent">
       <Grid item={true} xs={12}>
         <AltinnInputField
-          id='image_nb_src'
+          id={`image_nb_src-${component.id}`}
+          textFieldId={`image_nb_src-input-${component.id}`}
           inputValue={nbSrc}
           inputDescription={
             language.ux_editor.modal_properties_image_src_value_label
@@ -86,44 +93,44 @@ export const ImageComponent = ({
       </Grid>
 
       <Grid item={true} xs={12}>
-        <div data-testid='image-alt-text-select'>
-          {renderSelectTextFromResources(
-            'modal_properties_image_alt_text_label',
-            handleAltTextChange,
-            textResources,
-            language,
-            component.textResourceBindings?.altTextImg,
-            component.textResourceBindings?.altTextImg,
-          )}
-        </div>
+        <SelectTextFromRecources
+          labelText={'modal_properties_image_alt_text_label'}
+          textResources={textResources}
+          onChangeFunction={handleAltTextChange}
+          language={language}
+          selected={component.textResourceBindings?.altTextImg}
+          placeholder={component.textResourceBindings?.altTextImg}
+          inputId={altTextSelectId}
+        />
       </Grid>
 
       <Grid item={true} xs={3}>
         <AltinnInputField
-          id='image_width'
+          id={`image_width-${component.id}`}
+          textFieldId={`image_width-input-${component.id}`}
           inputValue={component.image?.width}
           inputDescription={
             language.ux_editor.modal_properties_image_width_label
           }
-          onChangeFunction={handleWidthChange}
           inputFieldStyling={{ width: '100%' }}
+          onChangeFunction={handleWidthChange}
         />
       </Grid>
 
       <Grid item={true} xs={9}>
-        <div data-testid='image-placement-select'>
-          {renderPropertyLabel(
-            language.ux_editor.modal_properties_image_placement_label,
-          )}
-          <Select
-            styles={selectStyles}
-            options={alignOptions}
-            onChange={handlePlacementChange}
-            defaultValue={selectedPlacement}
-            isClearable={true}
-            placeholder=''
-          />
-        </div>
+        <PropertyLabel
+          textKey={language.ux_editor.modal_properties_image_placement_label}
+          htmlFor={placementSelectId}
+        />
+        <Select
+          styles={selectStyles}
+          options={alignOptions}
+          onChange={handlePlacementChange}
+          defaultValue={selectedPlacement}
+          isClearable={true}
+          placeholder=''
+          inputId={placementSelectId}
+        />
       </Grid>
 
       <Grid item={true} xs={12}>

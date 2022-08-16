@@ -4,7 +4,7 @@ export interface IAltinnLogoProps {
   color: string;
 }
 
-export const altinnLogo = (props: IAltinnLogoProps) => {
+export const AltinnLogo = ({ color }: IAltinnLogoProps) => {
   return (
     <svg
       width='132px'
@@ -17,9 +17,10 @@ export const altinnLogo = (props: IAltinnLogoProps) => {
       <title>altinn-logo</title>
 
       <g
+        data-testid='AltinnLogo-group'
         id='Desktop'
         transform='translate(-108.000000, -20.000000)'
-        fill={props.color}
+        fill={color}
         className='svg-logo-color'
       >
         <g id='altinn-logo-blue' transform='translate(108.000000, 20.000000)'>
@@ -74,5 +75,3 @@ export const altinnLogo = (props: IAltinnLogoProps) => {
     </svg>
   );
 };
-
-export default altinnLogo;

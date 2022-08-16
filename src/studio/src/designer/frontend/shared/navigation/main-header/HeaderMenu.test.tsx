@@ -1,33 +1,13 @@
 import React from 'react';
-import { mount } from 'enzyme';
 import * as networking from '../../utils/networking';
-import { HeaderContext } from './Header';
+import { HeaderContext, SelectedContextType } from './Header';
 import { HeaderMenu } from './HeaderMenu';
+import type { HeaderMenuProps } from './HeaderMenu';
+import { render as rtlRender, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
-describe('Shared > Navigation > Main Header > HeaderMenu', () => {
-  const setSelectedContextMock = jest.fn();
-  const headerContextValue = {
-    selectableOrgs: [
-      {
-        avatar_url: 'avatar_url',
-        description: 'description',
-        id: 1,
-        location: 'location',
-        username: 'username',
-        website: 'website',
-        full_name: 'full_name',
-      },
-    ],
-    selectedContext: 'self',
-    setSelectedContext: setSelectedContextMock,
-    user: {
-      full_name: 'John Smith',
-      avatar_url: 'avatar_url',
-      login: 'login',
-    },
-  };
-  const originalLocation = window.location;
-
+const originalLocation = window.location;
+describe('HeaderMenu', () => {
   beforeEach(() => {
     delete window.location;
 
@@ -41,53 +21,105 @@ describe('Shared > Navigation > Main Header > HeaderMenu', () => {
     window.location = originalLocation;
   });
 
-  it('should render', () => {
-    const component = mount(
-      <HeaderContext.Provider value={headerContextValue}>
-        <HeaderMenu language={{}} />
-      </HeaderContext.Provider>,
-    );
-
-    expect(component.isEmptyRender()).toBe(false);
-  });
-
   it('should call gitea logout api when clicking log out', async () => {
     const postSpy = jest.spyOn(networking, 'post').mockResolvedValue(null);
+    render();
 
-    const component = mount(
-      <HeaderContext.Provider value={headerContextValue}>
-        <HeaderMenu language={{}} />
-      </HeaderContext.Provider>,
-    );
-    component.find('#profile-icon-button').hostNodes().simulate('click');
-    component.find('#menu-logout').hostNodes().simulate('click');
+    await openMenu();
+    const logoutButton = screen.getByRole('menuitem', {
+      name: /shared\.header_logout/i,
+    });
+
+    await userEvent.click(logoutButton);
+
     expect(postSpy).toHaveBeenCalledWith(
       `${window.location.origin}/repos/user/logout`,
     );
   });
 
-  it.each(['self', 'all'])(
-    'should call setSelectedContext with reserved keyword when setting context to %p',
-    (context) => {
-      const component = mount(
-        <HeaderContext.Provider value={headerContextValue}>
-          <HeaderMenu language={{}} />
-        </HeaderContext.Provider>,
-      );
-      component.find('#profile-icon-button').hostNodes().simulate('click');
-      component.find(`#menu-${context}`).hostNodes().simulate('click');
-      expect(setSelectedContextMock).toHaveBeenCalledWith(context);
-    },
-  );
+  it('should call setSelectedContext with all keyword when clicking All item in menu', async () => {
+    const { handleSetSelectedContext } = render();
+    await openMenu();
 
-  it('should call setSelectedContext with org-id when selecting org as context', () => {
-    const component = mount(
-      <HeaderContext.Provider value={headerContextValue}>
-        <HeaderMenu language={{}} />
-      </HeaderContext.Provider>,
+    const allItem = screen.getByRole('menuitem', {
+      name: /shared\.header_all/i,
+    });
+
+    await userEvent.click(allItem);
+
+    expect(handleSetSelectedContext).toHaveBeenCalledWith(
+      SelectedContextType.All,
     );
-    component.find('#profile-icon-button').hostNodes().simulate('click');
-    component.find('#menu-org-1').hostNodes().simulate('click');
-    expect(setSelectedContextMock).toHaveBeenCalledWith(1);
+  });
+
+  it('should call setSelectedContext with self keyword when clicking Self item in menu', async () => {
+    const { handleSetSelectedContext } = render();
+    await openMenu();
+
+    const selfItem = screen.getByRole('menuitem', {
+      name: /john smith/i,
+    });
+
+    await userEvent.click(selfItem);
+
+    expect(handleSetSelectedContext).toHaveBeenCalledWith(
+      SelectedContextType.Self,
+    );
+  });
+
+  it('should call setSelectedContext with org-id when selecting org as context', async () => {
+    const { handleSetSelectedContext } = render();
+    await openMenu();
+
+    const orgItem = screen.getByRole('menuitem', {
+      name: /organization 1/i,
+    });
+
+    await userEvent.click(orgItem);
+    expect(handleSetSelectedContext).toHaveBeenCalledWith(1);
   });
 });
+
+const openMenu = async () => {
+  const menuButton = screen.getByRole('button', {
+    name: /shared\.header_button_alt/i,
+  });
+  await userEvent.click(menuButton);
+};
+
+const render = (props: Partial<HeaderMenuProps> = {}) => {
+  const handleSetSelectedContext = jest.fn();
+  const headerContextValue = {
+    selectableOrgs: [
+      {
+        avatar_url: 'avatar_url',
+        description: 'description',
+        id: 1,
+        location: 'location',
+        username: 'username',
+        website: 'website',
+        full_name: 'Organization 1',
+      },
+    ],
+    selectedContext: 'self',
+    setSelectedContext: handleSetSelectedContext,
+    user: {
+      full_name: 'John Smith',
+      avatar_url: 'avatar_url',
+      login: 'login',
+    },
+  };
+  const allProps = {
+    language: {},
+    ...props,
+  };
+
+  return {
+    rendered: rtlRender(
+      <HeaderContext.Provider value={headerContextValue}>
+        <HeaderMenu {...allProps} />
+      </HeaderContext.Provider>,
+    ),
+    handleSetSelectedContext,
+  };
+};

@@ -4,10 +4,16 @@ import AltinnInputField from '../../../components/AltinnInputField';
 import AltinnPopoverSimple from '../../../components/molecules/AltinnPopoverSimple';
 import { getLanguageFromKey } from '../../../utils/language';
 
-interface ICreateNewWrapper {
-  language: any,
-  createAction: ({ name, relativePath }: { name: string, relativePath: string | undefined }) => void,
-  dataModelNames: string[],
+export interface ICreateNewWrapper {
+  language: any;
+  createAction: ({
+    name,
+    relativePath,
+  }: {
+    name: string;
+    relativePath: string | undefined;
+  }) => void;
+  dataModelNames: string[];
   createPathOption?: boolean;
 }
 
@@ -20,8 +26,11 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
   const onCreateClick = (event: any) => {
     setCreateButtonAnchor(event.currentTarget);
   };
-  const nameIsValid = () => newModelName.match(/^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/);
-  const validateName = () => { setNameError(!nameIsValid() ? 'Invalid name' : ''); };
+  const nameIsValid = () =>
+    newModelName.match(/^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/);
+  const validateName = () => {
+    setNameError(!nameIsValid() ? 'Invalid name' : '');
+  };
   const onInputBlur = () => {
     if (confirmedWithReturn) {
       setConfirmedWithReturn(false);
@@ -71,7 +80,7 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
       >
         {getLanguageFromKey('general.create_new', props.language)}
       </TopToolbarButton>
-      {createButtonAnchor &&
+      {createButtonAnchor && (
         <AltinnPopoverSimple
           anchorEl={createButtonAnchor}
           handleClose={onCancelCreate}
@@ -92,7 +101,8 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
             onBtnClickFunction={onCreateConfirmClick}
             onReturn={onReturnButtonConfirm}
           />
-        </AltinnPopoverSimple>}
+        </AltinnPopoverSimple>
+      )}
     </>
   );
 }

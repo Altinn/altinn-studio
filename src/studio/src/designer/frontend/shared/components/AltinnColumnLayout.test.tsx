@@ -1,35 +1,32 @@
-import { mount } from 'enzyme';
+import { render as rtlRender, screen } from '@testing-library/react';
 import React from 'react';
 import AltinnColumnLayoutComponent from './AltinnColumnLayout';
+import type { IAltinnColumnLayoutProps } from './AltinnColumnLayout';
 
 describe('AltinnColumnLayout', () => {
-  let mockHeader: string;
-  let mockChildren: any;
-  let mockSideMenuChildren: any;
-  let mockAboveColumnChildren: any;
+  it('should render title and all children', () => {
+    render({
+      children: <div data-testid='children' />,
+      sideMenuChildren: <div data-testid='sideMenuChildren' />,
+      aboveColumnChildren: <div data-testid='aboveColumnChildren' />,
+      header: 'Header text',
+    });
 
-  beforeEach(() => {
-    mockHeader = 'Header text';
-    mockChildren = <div id='childId'>Some content</div>;
-    mockSideMenuChildren = <div id='sideMenuId'>Some content</div>;
-    mockAboveColumnChildren = <div id='aboveColumnId'>Some content</div>;
-  });
-
-  it('+++ should render all children', () => {
-    const mounted = mount(
-      <AltinnColumnLayoutComponent
-        header={mockHeader}
-        sideMenuChildren={mockSideMenuChildren}
-        aboveColumnChildren={mockAboveColumnChildren}
-      >
-        {mockChildren}
-      </AltinnColumnLayoutComponent>,
-    );
-    const children = mounted.find('#childId');
-    const sideMenuChildren = mounted.find('#sideMenuId');
-    const aboveColumnChildren = mounted.find('#aboveColumnId');
-    expect(children.length).toBe(1);
-    expect(sideMenuChildren.length).toBe(1);
-    expect(aboveColumnChildren.length).toBe(1);
+    expect(screen.getByText('Header text')).toBeInTheDocument();
+    expect(screen.getByTestId('children')).toBeInTheDocument();
+    expect(screen.getByTestId('sideMenuChildren')).toBeInTheDocument();
+    expect(screen.getByTestId('aboveColumnChildren')).toBeInTheDocument();
   });
 });
+
+const render = (props: Partial<IAltinnColumnLayoutProps> = {}) => {
+  const allProps = {
+    children: <div data-testid='children' />,
+    sideMenuChildren: <div data-testid='sideMenuChildren' />,
+    aboveColumnChildren: <div data-testid='aboveColumnChildren' />,
+    header: 'Header text',
+    ...props,
+  } as IAltinnColumnLayoutProps;
+
+  rtlRender(<AltinnColumnLayoutComponent {...allProps} />);
+};

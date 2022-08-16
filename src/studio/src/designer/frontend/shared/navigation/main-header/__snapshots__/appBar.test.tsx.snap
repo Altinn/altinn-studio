@@ -2,25 +2,25 @@
 
 exports[`AppBarComponent Snapshot should match snapshot 1`] = `
 <div
-  className="AppBarComponent-root-1"
+  class="AppBarComponent-root-1"
 >
   <header
-    className="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorPrimary AppBarComponent-appBar-2 AppBarComponent-appBarEditor-4 MuiPaper-elevation0"
+    class="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorPrimary AppBarComponent-appBar-2 AppBarComponent-appBarEditor-4 MuiPaper-elevation0"
   >
     <div
-      className="MuiToolbar-root MuiToolbar-regular MuiToolbar-gutters"
+      class="MuiToolbar-root MuiToolbar-regular MuiToolbar-gutters"
     >
       <div
-        className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-space-between"
+        class="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-space-between"
       >
         <div
-          className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-true"
+          class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-true"
         >
           <div
-            className="MuiGrid-root MuiGrid-item"
+            class="MuiGrid-root MuiGrid-item"
           >
             <a
-              className="AppBarComponent-aImgStyling-12"
+              class="AppBarComponent-aImgStyling-12"
               href="/"
             >
               <img
@@ -31,9 +31,94 @@ exports[`AppBarComponent Snapshot should match snapshot 1`] = `
           </div>
         </div>
         <div
-          className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-flex-end MuiGrid-grid-xs-true"
+          class="MuiGrid-root AppBarComponent-paper-7 MuiGrid-item MuiGrid-grid-xs-true"
+        >
+          jest-test-org / jest-test-app
+        </div>
+        <div
+          class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-flex-end MuiGrid-grid-xs-true"
         >
           
+          <div
+            class="MuiGrid-root MuiGrid-item"
+          >
+            <div>
+              <button
+                aria-haspopup="true"
+                aria-label="profilikon knapp"
+                class="MuiButtonBase-root MuiIconButton-root"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiIconButton-label"
+                >
+                  <svg
+                    aria-label="profilikon"
+                    class="MuiSvgIcon-root MuiSvgIcon-fontSizeLarge"
+                    focusable="false"
+                    role="img"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"
+                    />
+                    <title>
+                      profilikon
+                    </title>
+                  </svg>
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div
+      class="MuiToolbar-root MuiToolbar-regular MuiToolbar-gutters"
+    >
+      <div
+        class="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-center"
+      >
+        <div
+          class="MuiGrid-root AppBarComponent-subHeader-8 MuiGrid-item"
+        >
+          <a
+            class="AppBarComponent-subHeaderLink-9"
+            href="/about"
+          >
+            Om
+          </a>
+        </div>
+        <div
+          class="MuiGrid-root AppBarComponent-subHeader-8 MuiGrid-item"
+        >
+          <a
+            class="AppBarComponent-subHeaderLink-9 AppBarComponent-subHeaderLinkActive-10"
+            href="/edit"
+          >
+            Lage
+          </a>
+        </div>
+        <div
+          class="MuiGrid-root AppBarComponent-subHeader-8 MuiGrid-item"
+        >
+          <a
+            class="AppBarComponent-subHeaderLink-9"
+            href="/texts"
+          >
+            Språk
+          </a>
+        </div>
+        <div
+          class="MuiGrid-root AppBarComponent-subHeader-8 MuiGrid-item"
+        >
+          <a
+            class="AppBarComponent-subHeaderLink-9"
+            href="/deploy"
+          >
+            Deploy
+          </a>
         </div>
       </div>
     </div>
@@ -43,25 +128,25 @@ exports[`AppBarComponent Snapshot should match snapshot 1`] = `
 
 exports[`AppBarComponent Snapshot should match snapshot and not render subHeader menu 1`] = `
 <div
-  className="AppBarComponent-root-1"
+  class="AppBarComponent-root-29"
 >
   <header
-    className="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorPrimary AppBarComponent-appBar-2 AppBarComponent-appBarEditor-4 MuiPaper-elevation0"
+    class="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorPrimary AppBarComponent-appBar-30 AppBarComponent-appBarEditor-32 MuiPaper-elevation0"
   >
     <div
-      className="MuiToolbar-root MuiToolbar-regular MuiToolbar-gutters"
+      class="MuiToolbar-root MuiToolbar-regular MuiToolbar-gutters"
     >
       <div
-        className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-space-between"
+        class="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-space-between"
       >
         <div
-          className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-true"
+          class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-true"
         >
           <div
-            className="MuiGrid-root MuiGrid-item"
+            class="MuiGrid-root MuiGrid-item"
           >
             <a
-              className="AppBarComponent-aImgStyling-12"
+              class="AppBarComponent-aImgStyling-40"
               href="/"
             >
               <img
@@ -72,9 +157,46 @@ exports[`AppBarComponent Snapshot should match snapshot and not render subHeader
           </div>
         </div>
         <div
-          className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-flex-end MuiGrid-grid-xs-true"
+          class="MuiGrid-root AppBarComponent-paper-35 MuiGrid-item MuiGrid-grid-xs-true"
+        >
+          jest-test-org / jest-test-app
+        </div>
+        <div
+          class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-flex-end MuiGrid-grid-xs-true"
         >
           
+          <div
+            class="MuiGrid-root MuiGrid-item"
+          >
+            <div>
+              <button
+                aria-haspopup="true"
+                aria-label="profilikon knapp"
+                class="MuiButtonBase-root MuiIconButton-root"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiIconButton-label"
+                >
+                  <svg
+                    aria-label="profilikon"
+                    class="MuiSvgIcon-root MuiSvgIcon-fontSizeLarge"
+                    focusable="false"
+                    role="img"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"
+                    />
+                    <title>
+                      profilikon
+                    </title>
+                  </svg>
+                </span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -84,25 +206,25 @@ exports[`AppBarComponent Snapshot should match snapshot and not render subHeader
 
 exports[`AppBarComponent Snapshot should match snapshot with no app or org 1`] = `
 <div
-  className="AppBarComponent-root-1"
+  class="AppBarComponent-root-43"
 >
   <header
-    className="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorPrimary AppBarComponent-appBar-2 AppBarComponent-appBarDashboard-3 MuiPaper-elevation0"
+    class="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorPrimary AppBarComponent-appBar-44 AppBarComponent-appBarDashboard-45 MuiPaper-elevation0"
   >
     <div
-      className="MuiToolbar-root MuiToolbar-regular MuiToolbar-gutters"
+      class="MuiToolbar-root MuiToolbar-regular MuiToolbar-gutters"
     >
       <div
-        className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-space-between"
+        class="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-space-between"
       >
         <div
-          className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-true"
+          class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-true"
         >
           <div
-            className="MuiGrid-root MuiGrid-item"
+            class="MuiGrid-root MuiGrid-item"
           >
             <a
-              className="AppBarComponent-aImgStyling-12"
+              class="AppBarComponent-aImgStyling-54"
               href="/"
             >
               <img
@@ -113,9 +235,44 @@ exports[`AppBarComponent Snapshot should match snapshot with no app or org 1`] =
           </div>
         </div>
         <div
-          className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-flex-end MuiGrid-grid-xs-true"
+          class="MuiGrid-root AppBarComponent-paper-49 MuiGrid-item MuiGrid-grid-xs-true"
+        />
+        <div
+          class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-flex-end MuiGrid-grid-xs-true"
         >
           
+          <div
+            class="MuiGrid-root MuiGrid-item"
+          >
+            <div>
+              <button
+                aria-haspopup="true"
+                aria-label="profilikon knapp"
+                class="MuiButtonBase-root MuiIconButton-root"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiIconButton-label"
+                >
+                  <svg
+                    aria-label="profilikon"
+                    class="MuiSvgIcon-root MuiSvgIcon-fontSizeLarge"
+                    focusable="false"
+                    role="img"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"
+                    />
+                    <title>
+                      profilikon
+                    </title>
+                  </svg>
+                </span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -125,25 +282,25 @@ exports[`AppBarComponent Snapshot should match snapshot with no app or org 1`] =
 
 exports[`AppBarComponent Snapshot should match snapshot with subHeader and Publisere selection active 1`] = `
 <div
-  className="AppBarComponent-root-1"
+  class="AppBarComponent-root-15"
 >
   <header
-    className="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorPrimary AppBarComponent-appBar-2 AppBarComponent-appBarEditor-4 MuiPaper-elevation0"
+    class="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorPrimary AppBarComponent-appBar-16 AppBarComponent-appBarEditor-18 MuiPaper-elevation0"
   >
     <div
-      className="MuiToolbar-root MuiToolbar-regular MuiToolbar-gutters"
+      class="MuiToolbar-root MuiToolbar-regular MuiToolbar-gutters"
     >
       <div
-        className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-space-between"
+        class="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-space-between"
       >
         <div
-          className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-true"
+          class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-true"
         >
           <div
-            className="MuiGrid-root MuiGrid-item"
+            class="MuiGrid-root MuiGrid-item"
           >
             <a
-              className="AppBarComponent-aImgStyling-12"
+              class="AppBarComponent-aImgStyling-26"
               href="/"
             >
               <img
@@ -154,50 +311,94 @@ exports[`AppBarComponent Snapshot should match snapshot with subHeader and Publi
           </div>
         </div>
         <div
-          className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-flex-end MuiGrid-grid-xs-true"
+          class="MuiGrid-root AppBarComponent-paper-21 MuiGrid-item MuiGrid-grid-xs-true"
+        >
+          other-org / other-app
+        </div>
+        <div
+          class="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-flex-end MuiGrid-grid-xs-true"
         >
           
+          <div
+            class="MuiGrid-root MuiGrid-item"
+          >
+            <div>
+              <button
+                aria-haspopup="true"
+                aria-label="profilikon knapp"
+                class="MuiButtonBase-root MuiIconButton-root"
+                tabindex="0"
+                type="button"
+              >
+                <span
+                  class="MuiIconButton-label"
+                >
+                  <svg
+                    aria-label="profilikon"
+                    class="MuiSvgIcon-root MuiSvgIcon-fontSizeLarge"
+                    focusable="false"
+                    role="img"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"
+                    />
+                    <title>
+                      profilikon
+                    </title>
+                  </svg>
+                </span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </header>
-</div>
-`;
-
-exports[`AppBarComponent Snapshot should match snapshot with subHeader and Publisere selection active 2`] = `
-<div
-  className="AppBarComponent-root-1"
->
-  <header
-    className="MuiPaper-root MuiAppBar-root MuiAppBar-positionStatic MuiAppBar-colorPrimary AppBarComponent-appBar-2 AppBarComponent-appBarEditor-4 MuiPaper-elevation0"
-  >
     <div
-      className="MuiToolbar-root MuiToolbar-regular MuiToolbar-gutters"
+      class="MuiToolbar-root MuiToolbar-regular MuiToolbar-gutters"
     >
       <div
-        className="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-space-between"
+        class="MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-center"
       >
         <div
-          className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-grid-xs-true"
+          class="MuiGrid-root AppBarComponent-subHeader-22 MuiGrid-item"
         >
-          <div
-            className="MuiGrid-root MuiGrid-item"
+          <a
+            class="AppBarComponent-subHeaderLink-23"
+            href="/about"
           >
-            <a
-              className="AppBarComponent-aImgStyling-12"
-              href="/"
-            >
-              <img
-                alt="Altinn logo"
-                src="https://altinncdn.no/img/Altinn-logo-blue.svg"
-              />
-            </a>
-          </div>
+            Om
+          </a>
         </div>
         <div
-          className="MuiGrid-root MuiGrid-container MuiGrid-item MuiGrid-align-items-xs-center MuiGrid-justify-content-xs-flex-end MuiGrid-grid-xs-true"
+          class="MuiGrid-root AppBarComponent-subHeader-22 MuiGrid-item"
         >
-          
+          <a
+            class="AppBarComponent-subHeaderLink-23"
+            href="/edit"
+          >
+            Lage
+          </a>
+        </div>
+        <div
+          class="MuiGrid-root AppBarComponent-subHeader-22 MuiGrid-item"
+        >
+          <a
+            class="AppBarComponent-subHeaderLink-23"
+            href="/texts"
+          >
+            Språk
+          </a>
+        </div>
+        <div
+          class="MuiGrid-root AppBarComponent-subHeader-22 MuiGrid-item"
+        >
+          <a
+            class="AppBarComponent-subHeaderLink-23"
+            href="/deploy"
+          >
+            Deploy
+          </a>
         </div>
       </div>
     </div>

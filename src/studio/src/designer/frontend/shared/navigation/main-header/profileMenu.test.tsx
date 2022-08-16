@@ -1,56 +1,114 @@
-import { shallow } from 'enzyme';
 import React from 'react';
-import * as render from 'react-test-renderer';
+import { render as rtlRender, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import ProfileMenuComponent from './profileMenu';
+import type { IProfileMenuComponentProps } from './profileMenu';
+import { IAltinnWindow } from 'app-shared/types/global';
+
+const user = userEvent.setup();
 
 describe('ProfileMenu', () => {
-  let rendered: any;
-
-  afterEach(() => {
-    rendered = null;
-  });
-
   it('should match snapshot', () => {
-    rendered = render.create(<ProfileMenuComponent />);
-    expect(rendered).toMatchSnapshot();
+    const { container } = render();
+    expect(container.firstChild).toMatchSnapshot;
   });
 
   it('should match snapshot with logout text', () => {
-    rendered = render.create(<ProfileMenuComponent showlogout={true} />);
-    expect(rendered).toMatchSnapshot();
+    const { container } = render({ showlogout: true });
+    expect(container.firstChild).toMatchSnapshot;
+  });
+
+  it('should show menu with link to documentation when clicking profile button', async () => {
+    render();
+
+    expect(
+      screen.queryByRole('link', {
+        name: /dokumentasjon/i,
+      }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', {
+        name: /åpne repository/i,
+      }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('menuitem', {
+        name: /logout/i,
+      }),
+    ).not.toBeInTheDocument();
+
+    const profileBtn = screen.getByRole('button', {
+      name: /profilikon knapp/i,
+    });
+    await user.click(profileBtn);
+
+    expect(
+      screen.getByRole('link', {
+        name: /dokumentasjon/i,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', {
+        name: /åpne repository/i,
+      }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('menuitem', {
+        name: /logout/i,
+      }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should show menu with link to documentation, logout and open repository when showlogout is true, window object has org and repo properties, and clicking profile button', async () => {
+    const altinnWindow = window as Window as IAltinnWindow;
+    altinnWindow.org = 'org';
+    altinnWindow.app = 'app';
+    render({ showlogout: true });
+
+    expect(
+      screen.queryByRole('link', {
+        name: /dokumentasjon/i,
+      }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', {
+        name: /åpne repository/i,
+      }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('menuitem', {
+        name: /logout/i,
+      }),
+    ).not.toBeInTheDocument();
+
+    const profileBtn = screen.getByRole('button', {
+      name: /profilikon knapp/i,
+    });
+    await user.click(profileBtn);
+
+    expect(
+      screen.getByRole('link', {
+        name: /dokumentasjon/i,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', {
+        name: /åpne repository/i,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('menuitem', {
+        name: /logout/i,
+      }),
+    ).toBeInTheDocument();
   });
 });
 
-describe('ProfileMenu function', () => {
-  let profileMenu: any;
-  let rendered: any;
+const render = (props: Partial<IProfileMenuComponentProps> = {}) => {
+  const allProps = {
+    showlogout: false,
+    ...props,
+  } as IProfileMenuComponentProps;
 
-  afterEach(() => {
-    profileMenu = null;
-    rendered = null;
-  });
-
-  it('handleToggle() should change state', () => {
-    rendered = shallow(<ProfileMenuComponent showlogout={true} />);
-    profileMenu = rendered.shallow();
-
-    expect(profileMenu.state().open).toEqual(false);
-    profileMenu.instance().handleToggle();
-    expect(profileMenu.state().open).toEqual(true);
-    profileMenu.instance().handleToggle();
-    expect(profileMenu.state().open).toEqual(false);
-  });
-
-  it('handleClose() should change state', () => {
-    rendered = shallow(<ProfileMenuComponent showlogout={true} />);
-    profileMenu = rendered.shallow();
-
-    expect(profileMenu.state().anchorEl).toEqual(null);
-
-    profileMenu.setState({ anchorEl: 'notNull' });
-    expect(profileMenu.state().anchorEl).toEqual('notNull');
-
-    profileMenu.instance().handleClose();
-    expect(profileMenu.state().anchorEl).toEqual(null);
-  });
-});
+  return rtlRender(<ProfileMenuComponent {...allProps} />);
+};

@@ -1,16 +1,25 @@
 import React from 'react';
-import { mount } from 'enzyme';
 import {
   createTheme as createThemeV4,
   ThemeProvider as ThemeProviderV4,
 } from '@material-ui/core/styles';
+import { render as rtlRender, screen } from '@testing-library/react';
 
-import { Header, HeaderContext, getOrgNameById } from './Header';
+import {
+  Header,
+  HeaderContext,
+  getOrgNameById,
+  SelectedContextType,
+} from './Header';
+import type { IHeaderContext } from './Header';
 import altinnTheme from '../../theme/altinnStudioTheme';
 
 const themeV4 = createThemeV4(altinnTheme);
 
-describe('Shared > Navigation > Main Header > Header', () => {
+const orgId = 1;
+const orgFullName = 'Organization 1';
+
+describe('Header', () => {
   const orgProps = {
     avatar_url: 'avatar_url',
     description: 'description',
@@ -21,28 +30,20 @@ describe('Shared > Navigation > Main Header > Header', () => {
     full_name: 'full_name',
   };
 
-  it('should render', () => {
-    const headerContextValue = {
-      selectableOrgs: [{ ...orgProps }],
-      selectedContext: 'self',
-      setSelectedContext: jest.fn(),
-      user: {
-        full_name: 'John Smith',
-        avatar_url: 'avatar_url',
-        login: 'login',
-      },
-    };
+  it(`should render org name when selected context is a org id`, () => {
+    render({ selectedContext: orgId });
 
-    const component = mount(
-      <ThemeProviderV4 theme={themeV4}>
-        <HeaderContext.Provider value={headerContextValue}>
-          <Header language={{}} />
-        </HeaderContext.Provider>
-        ,
-      </ThemeProviderV4>,
-    );
+    expect(screen.getByTestId('Header-org-name')).toBeInTheDocument();
+    expect(screen.getByText(orgFullName)).toBeInTheDocument();
+  });
 
-    expect(component.isEmptyRender()).toBe(false);
+  Object.values(SelectedContextType).forEach((context) => {
+    it(`should not render org name when selected context is ${context}`, () => {
+      render({ selectedContext: context });
+
+      expect(screen.queryByTestId('Header-org-name')).not.toBeInTheDocument();
+      expect(screen.queryByText(orgFullName)).not.toBeInTheDocument();
+    });
   });
 
   describe('getOrgNameById', () => {
@@ -87,3 +88,36 @@ describe('Shared > Navigation > Main Header > Header', () => {
     });
   });
 });
+
+const render = ({
+  selectedContext = SelectedContextType.Self,
+}: Pick<IHeaderContext, 'selectedContext'>) => {
+  const orgProps = {
+    avatar_url: 'avatar_url',
+    description: 'description',
+    id: orgId,
+    location: 'location',
+    username: 'username',
+    website: 'website',
+    full_name: orgFullName,
+  };
+
+  const headerContextValue = {
+    selectableOrgs: [{ ...orgProps }],
+    selectedContext,
+    setSelectedContext: jest.fn(),
+    user: {
+      full_name: 'John Smith',
+      avatar_url: 'avatar_url',
+      login: 'login',
+    },
+  };
+
+  return rtlRender(
+    <ThemeProviderV4 theme={themeV4}>
+      <HeaderContext.Provider value={headerContextValue}>
+        <Header language={{}} />
+      </HeaderContext.Provider>
+    </ThemeProviderV4>,
+  );
+};
