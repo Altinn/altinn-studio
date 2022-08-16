@@ -127,7 +127,7 @@ describe('CreateNewWrapper', () => {
       expect(screen.getByText(errMessage)).toBeInTheDocument();
     });
 
-    it('should not call createAction callback and when trying to create a new model with no name when ok button is clicked', async () => {
+    it('should not call createAction callback when trying to create a new model with no name when ok button is clicked', async () => {
       const userWithNoPointerEventCheck = userEvent.setup({
         pointerEventsCheck: PointerEventsCheckLevel.Never,
       });
