@@ -134,11 +134,9 @@ function DataModelling({
       onSaveSchema={handleSaveSchema}
       name={selectedOption?.label}
       LoadingComponent={
-        metadataLoadingState === LoadingState.LoadingModels ? (
-          loadingIndicator
-        ) : (
-          <></>
-        )
+        metadataLoadingState === LoadingState.LoadingModels
+          ? loadingIndicator
+          : null
       }
     >
       <XSDUpload
