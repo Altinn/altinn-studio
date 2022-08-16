@@ -123,6 +123,53 @@ describe('getRepeatingGroups', () => {
     expect(result).toEqual(expected);
   });
 
+  it('should handle nested groups with index above 9', () => {
+    const formData = {
+      'Group1[0].prop1': 'value-0-1',
+      'Group1[0].Group2[0].group2prop': 'group2-0-0-value',
+      'Group1[1].prop1': 'value-1-1',
+      'Group1[1].Group2[0].group2prop': 'group2-1-0-value',
+      'Group1[1].Group2[1].group2prop': 'group2-1-1-value',
+      'Group1[1].Group2[2].group2prop': 'group2-1-2-value',
+      'Group1[1].Group2[3].group2prop': 'group2-1-3-value',
+      'Group1[1].Group2[4].group2prop': 'group2-1-3-value',
+      'Group1[1].Group2[5].group2prop': 'group2-1-3-value',
+      'Group1[1].Group2[6].group2prop': 'group2-1-3-value',
+      'Group1[1].Group2[7].group2prop': 'group2-1-3-value',
+      'Group1[1].Group2[8].group2prop': 'group2-1-3-value',
+      'Group1[1].Group2[9].group2prop': 'group2-1-3-value',
+      'Group1[1].Group2[10].group2prop': 'group2-1-3-value',
+      'Group1[2].prop1': 'value-2-1',
+      'Group1[2].Group2[0].group2prop': 'group2-2-1-value',
+      'Group1[2].Group2[1].group2prop': 'group2-2-2-value',
+    };
+    const expected = {
+      Group1: {
+        index: 2,
+        dataModelBinding: 'Group1',
+        editIndex: -1,
+      },
+      'Group2-0': {
+        index: 0,
+        baseGroupId: 'Group2',
+        editIndex: -1,
+      },
+      'Group2-1': {
+        index: 10,
+        baseGroupId: 'Group2',
+        editIndex: -1,
+      },
+      'Group2-2': {
+        index: 1,
+        baseGroupId: 'Group2',
+        editIndex: -1,
+      },
+    };
+
+    const result = getRepeatingGroups(testLayout, formData);
+    expect(result).toEqual(expected);
+  });
+
   it('should correctly handle out-of-order formData', () => {
     const formData = {
       'Group1[2].prop1': 'value-2-1',
@@ -228,6 +275,51 @@ describe('getRepeatingGroups', () => {
       Group2: {
         index: 2,
         dataModelBinding: 'Group2',
+        editIndex: -1,
+      },
+    };
+    const result = getRepeatingGroups(testLayout, formData);
+    expect(result).toEqual(expected);
+  });
+  it('should return correct index from unordered formdata', () => {
+    const testLayout: ILayout = [
+      {
+        id: 'Group1',
+        type: 'Group',
+        dataModelBindings: {
+          group: 'Group1',
+        },
+        children: ['field1'],
+        maxCount: 99,
+      } as ILayoutGroup,
+      {
+        id: 'field1',
+        type: 'Input',
+        textResourceBindings: {
+          title: 'Title',
+        },
+        readOnly: false,
+        required: false,
+        disabled: false,
+      } as ILayoutComponent,
+    ];
+    const formData = {
+      'Group1[0].prop': 'value-0',
+      'Group1[1].prop': 'value-1',
+      'Group1[12].prop': 'value-1',
+      'Group1[2].prop': 'value-2',
+      'Group1[3].prop': 'value-3',
+      'Group1[4].prop': 'value-0',
+      'Group1[5].prop': 'value-1',
+      'Group1[6].prop': 'value-2',
+      'Group1[7].prop': 'value-3',
+      'Group1[8].prop': 'value-3',
+      'Group1[9].prop': 'value-3',
+    };
+    const expected = {
+      Group1: {
+        index: 12,
+        dataModelBinding: 'Group1',
         editIndex: -1,
       },
     };

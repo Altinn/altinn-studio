@@ -66,9 +66,25 @@ export function splitDashedKey(componentId: string): SplitKey {
   };
 }
 
+const getMaxIndexInKeys = (keys: string[], nested = false) => {
+  const arrayIndexRegex = new RegExp(/\[(\d+)\]/);
+  const nestedArrayIndexRegex = new RegExp(/^.+?\[(\d+)].+?\[(\d+)]/);
+  return Math.max(
+    ...keys.map((formDataKey) => {
+      const match = formDataKey.match(
+        nested ? nestedArrayIndexRegex : arrayIndexRegex,
+      );
+      const indexAsString = match[nested ? 2 : 1];
+      if (indexAsString) {
+        return parseInt(indexAsString, 10);
+      }
+      return -1;
+    }),
+  );
+};
+
 export function getRepeatingGroups(formLayout: ILayout, formData: any) {
   const repeatingGroups: IRepeatingGroups = {};
-  const regex = new RegExp(/\[(\d+)\]/);
 
   const groups = formLayout.filter(
     (layoutElement) => layoutElement.type === 'Group',
@@ -102,10 +118,9 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
         })
         .sort();
       if (groupFormData && groupFormData.length > 0) {
-        const lastItem = groupFormData[groupFormData.length - 1];
-        const match = lastItem.match(regex);
-        if (match && match[1]) {
-          const index = parseInt(match[1], 10);
+        const maxIndex = getMaxIndexInKeys(groupFormData);
+        if (maxIndex !== -1) {
+          const index = maxIndex;
           repeatingGroups[groupElement.id] = {
             index,
             dataModelBinding: groupElement.dataModelBindings?.group,
@@ -188,8 +203,6 @@ function getIndexForNestedRepeatingGroup(
   parentGroupBinding: string,
   parentIndex: number,
 ): number {
-  const regex = new RegExp(/^.+?\[(\d+)].+?\[(\d+)]/);
-
   if (!groupBinding) {
     return -1;
   }
@@ -203,11 +216,7 @@ function getIndexForNestedRepeatingGroup(
     })
     .sort();
   if (groupFormData && groupFormData.length > 0) {
-    const lastItem = groupFormData[groupFormData.length - 1];
-    const match = lastItem.match(regex);
-    if (match && match[2]) {
-      return parseInt(match[2], 10);
-    }
+    return getMaxIndexInKeys(groupFormData, true);
   }
   return -1;
 }
