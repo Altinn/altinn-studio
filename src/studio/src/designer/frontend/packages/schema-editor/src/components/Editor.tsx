@@ -22,10 +22,11 @@ import {
 } from '../features/editor/schemaEditorSlice';
 import SchemaItem from './SchemaItem';
 import { getTranslation } from '../utils/language';
-import { getDomFriendlyID } from '../utils/schema';
+import { getDomFriendlyID, getSchemaFromPath } from '../utils/schema';
 import SchemaInspector from './SchemaInspector';
 import { SchemaTab } from './SchemaTab';
 import TopToolbar from './TopToolbar';
+import { getSchemaSettings } from '../settings';
 
 const useStyles = makeStyles({
   root: {
@@ -128,15 +129,24 @@ export const Editor = (props: IEditorProps) => {
   const selectedDefinitionNode = useSelector(
     (state: ISchemaState) => state.selectedDefinitionNodeId,
   );
+
+  const schemaSettings = getSchemaSettings({schemaUrl: jsonSchema?.$schema});
   const definitions = useSelector((state: ISchemaState) =>
     state.uiSchema.filter((d: UiSchemaItem) =>
-      d.path.startsWith('#/definitions'),
+      d.path.startsWith(schemaSettings.definitionsPath),
     ),
   );
-  const properties = useSelector((state: ISchemaState) =>
-    state.uiSchema.filter((d: UiSchemaItem) =>
-      d.path.startsWith('#/properties/'),
-    ),
+  const modelView = useSelector((state: ISchemaState) =>
+    state.uiSchema.filter((d: UiSchemaItem) => {
+      if (schemaSettings.rootNodePath !== '#/oneOf') {
+        return d.path.startsWith(schemaSettings.rootNodePath);
+      }
+      const modelsArray = getSchemaFromPath(schemaSettings.rootNodePath.slice(1), jsonSchema);
+      if (modelsArray && Array.isArray(modelsArray)) {
+        return modelsArray.find(m => m.$ref === d.path);
+      }
+      return false;
+    }),
   );
   const selectedTab: string = useSelector(
     (state: ISchemaState) => state.selectedEditorTab,
@@ -277,7 +287,7 @@ export const Editor = (props: IEditorProps) => {
                   expanded={expandedPropertiesNodes}
                   onNodeToggle={handlePropertiesNodeExpanded}
                 >
-                  {properties?.map((item: UiSchemaItem) => (
+                  {modelView?.map((item: UiSchemaItem) => (
                     <SchemaItem
                       keyPrefix='properties'
                       key={item.path}

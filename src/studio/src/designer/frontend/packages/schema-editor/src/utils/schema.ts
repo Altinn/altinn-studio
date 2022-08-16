@@ -146,8 +146,25 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
   return item;
 }
 
-export function buildUISchema(schema: any, rootPath: string, includeDisplayName = true): UiSchemaItem[] {
+export function getSubSchema(schema: any, pathArray: string[]): any {
+  const subSchema = schema[pathArray[0]];
+  if (pathArray.length === 1) {
+    return subSchema;
+  }
+  return getSubSchema(subSchema, pathArray.slice(1));
+}
+
+export function getSchemaFromPath(path: string, schema: any) {
+  return JsonPointer.compile(path).get(schema);
+}
+
+export function buildUISchema(
+  schema: any,
+  rootPath: string,
+  includeDisplayName = true,
+): UiSchemaItem[] {
   const result: UiSchemaItem[] = [];
+
   if (typeof schema !== 'object') {
     result.push({
       path: rootPath,
@@ -312,6 +329,13 @@ export const buildUiSchemaForItemWithProperties = (schema: { [key: string]: { [k
 };
 
 export const getDomFriendlyID = (id: string) => id.replace(/\//g, '').replace('#', '');
+
+export const updateChildPaths = (item: UiSchemaItem, parentId: string) => {
+  item.path = `${parentId}/properties/${item.displayName}`;
+  if (item.properties) {
+    item.properties.forEach((p) => updateChildPaths(p, item.path));
+  }
+};
 
 const stringRestrictions = ['minLength', 'maxLength', 'pattern', 'format'];
 const integerRestrictions = ['minimum', 'exclusiveminimum', 'maximum', 'exclusivemaximum'];
