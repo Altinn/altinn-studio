@@ -1,5 +1,5 @@
 # studio frontend
-FROM node:16.16.0-alpine3.16 AS generate-studio-frontend
+FROM node:16.17.0-alpine3.16 AS generate-studio-frontend
 
 WORKDIR /build
 
