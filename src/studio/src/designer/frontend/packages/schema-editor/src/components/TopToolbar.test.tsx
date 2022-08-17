@@ -1,19 +1,16 @@
 import React from 'react';
 import { act } from 'react-dom/test-utils';
-import { mount } from 'enzyme';
 import TopToolbar from './TopToolbar';
+import { fireEvent, render, screen } from '@testing-library/react';
 
-const makeWrapper = (
-  Toolbar: JSX.Element = <></>,
-  saveAction: any = undefined,
-) => {
-  let wrapper: any = null;
+const renderToolbar = (Toolbar: JSX.Element = <></>) => {
+  const saveAction = jest.fn();
   act(() => {
-    wrapper = mount(
+    render(
       <TopToolbar Toolbar={Toolbar} language={{}} saveAction={saveAction} />,
     );
   });
-  return wrapper;
+  return saveAction;
 };
 
 const selectTopToolbar = (wrapper: any) => {
@@ -21,22 +18,17 @@ const selectTopToolbar = (wrapper: any) => {
 };
 
 test('renders the top toolbar', () => {
-  const wrapper = makeWrapper();
-  const topToolbar = selectTopToolbar(wrapper);
-  expect(topToolbar).toHaveLength(1);
+  renderToolbar();
+  const topToolbar = screen.getByRole('toolbar');
+  expect(topToolbar).toBeDefined();
 });
 
 test('handles a click on the save button', () => {
-  let clicked = false;
-
-  const saveFunc = () => {
-    clicked = true;
-  };
-  const wrapper = makeWrapper(<></>, saveFunc);
-  const topToolbar = selectTopToolbar(wrapper);
-  expect(topToolbar).toHaveLength(1);
-  const saveButton = topToolbar.find('TopToolbarButton');
-  expect(saveButton).toHaveLength(1);
-  saveButton.simulate('click');
-  expect(clicked).toBeTruthy();
+  const clicked = renderToolbar(<></>);
+  const topToolbar = screen.getByRole('toolbar');
+  expect(topToolbar).toBeDefined();
+  const saveButton = screen.getByRole('button');
+  expect(saveButton).toBeDefined();
+  fireEvent.click(saveButton);
+  expect(clicked).toBeCalledTimes(1);
 });

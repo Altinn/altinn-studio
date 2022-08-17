@@ -2,11 +2,18 @@ import { Checkbox, FormControlLabel, TextField } from '@material-ui/core';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { CombinationKind, FieldType, ILanguage, ISchemaState, UiSchemaItem } from '../types';
+import {
+  CombinationKind,
+  FieldType,
+  ILanguage,
+  ISchemaState,
+  UiSchemaItem,
+} from '../types';
 import { NameError, ObjectKind } from '../types/enums';
 import { isValidName } from '../utils/checks';
 import { getTranslation } from '../utils/language';
-import { addCombinationItem,
+import {
+  addCombinationItem,
   deleteCombinationItem,
   navigateToType,
   setCombinationType,
@@ -17,7 +24,11 @@ import { addCombinationItem,
   setTitle,
   setType,
 } from '../features/editor/schemaEditorSlice';
-import { combinationIsNullable, getDomFriendlyID, nullableType } from '../utils/schema';
+import {
+  combinationIsNullable,
+  getDomFriendlyID,
+  nullableType,
+} from '../utils/schema';
 import { TypeSelect } from './TypeSelect';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { CombinationSelect } from './CombinationSelect';
@@ -103,8 +114,6 @@ export function ItemDataComponent({
     FieldType | string | undefined
   >(undefined);
 
-
-
   const focusName = useSelector((state: ISchemaState) => state.focusNameField);
 
   React.useEffect(() => {
@@ -114,7 +123,7 @@ export function ItemDataComponent({
     setItemDescription(selectedItem?.description ?? '');
     setFieldType(selectedItem?.type);
     setArrayType(selectedItem?.items?.$ref ?? selectedItem?.items?.type ?? '');
-  }, [selectedItem, parentItem])
+  }, [selectedItem, parentItem]);
 
   const nameFieldRef = React.useCallback(
     (node: any) => {
@@ -136,7 +145,7 @@ export function ItemDataComponent({
     } else {
       setNameError(NameError.NoError);
     }
-  }
+  };
 
   const onChangeRef = (path: string, ref: string) => {
     const data = {
@@ -229,7 +238,9 @@ export function ItemDataComponent({
 
     if (checked) {
       const type =
-        objectKind === ObjectKind.Reference ? selectedItem.$ref : selectedItem.type;
+        objectKind === ObjectKind.Reference
+          ? selectedItem.$ref
+          : selectedItem.type;
       onChangeArrayType(type);
       onChangeType('array');
     } else {
@@ -254,22 +265,21 @@ export function ItemDataComponent({
           path: selectedItem.path,
           name: nodeName,
           navigate: selectedItem.path,
-        })
+        }),
       );
     }
-  }
+  };
 
   return (
     <div>
       {!selectedItem?.combinationItem && (
         <>
-          <p className={classes.name}>
-            {getTranslation('name', language)}
-          </p>
+          <p className={classes.name}>{getTranslation('name', language)}</p>
           <TextField
             id='selectedItemName'
             className={classes.field}
             inputRef={nameFieldRef}
+            aria-describedby='Selected Item Name'
             placeholder='Name'
             fullWidth={true}
             value={nodeName}
@@ -279,16 +289,14 @@ export function ItemDataComponent({
             onBlur={handleChangeNodeName}
             InputProps={{
               disableUnderline: true,
-              classes: {root: classes.fieldText}
+              classes: { root: classes.fieldText },
             }}
           />
         </>
       )}
       {selectedItem && objectKind === ObjectKind.Field && (
         <>
-          <p className={classes.header}>
-            {getTranslation('type', language)}
-          </p>
+          <p className={classes.header}>{getTranslation('type', language)}</p>
           <TypeSelect
             value={selectedItem.type === 'array' ? arrayType : fieldType}
             id={`${getDomFriendlyID(selectedItem.path)}-type-select`}
@@ -309,7 +317,8 @@ export function ItemDataComponent({
         onChangeRef={onChangeRef}
         onGoToDefButtonClick={onGoToDefButtonClick}
       />
-      {(objectKind === ObjectKind.Reference || objectKind === ObjectKind.Field) && (
+      {(objectKind === ObjectKind.Reference ||
+        objectKind === ObjectKind.Field) && (
         <FormControlLabel
           id='multiple-answers-checkbox'
           className={classes.header}
@@ -326,9 +335,7 @@ export function ItemDataComponent({
       )}
       {objectKind === ObjectKind.Combination && (
         <>
-          <p className={classes.header}>
-            {getTranslation('type', language)}
-          </p>
+          <p className={classes.header}>{getTranslation('type', language)}</p>
           <CombinationSelect
             value={selectedItem?.combinationKind}
             id={`${getDomFriendlyID(
@@ -358,9 +365,7 @@ export function ItemDataComponent({
       <p className={classes.header}>
         {getTranslation('descriptive_fields', language)}
       </p>
-      <p className={classes.header}>
-        {getTranslation('title', language)}
-      </p>
+      <p className={classes.header}>{getTranslation('title', language)}</p>
       <TextField
         id={`${getDomFriendlyID(selectedId ?? '')}-title`}
         className={classes.field}
@@ -371,7 +376,7 @@ export function ItemDataComponent({
         onBlur={onChangeTitle}
         InputProps={{
           disableUnderline: true,
-          classes: {root: classes.fieldText}
+          classes: { root: classes.fieldText },
         }}
       />
       <p className={classes.header}>
@@ -389,7 +394,7 @@ export function ItemDataComponent({
         onBlur={onChangeDescription}
         InputProps={{
           disableUnderline: true,
-          classes: {root: classes.fieldText}
+          classes: { root: classes.fieldText },
         }}
       />
     </div>

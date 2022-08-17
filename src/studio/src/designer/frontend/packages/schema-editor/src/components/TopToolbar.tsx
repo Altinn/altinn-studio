@@ -28,7 +28,7 @@ export default function TopToolbar({
 }: TopToolbarProps) {
   const classes = useStyles();
   return (
-    <section className={classes.toolbar}>
+    <section className={classes.toolbar} role={'toolbar'}>
       {Toolbar}
       <TopToolbarButton
         onClick={saveAction || (() => undefined)}
