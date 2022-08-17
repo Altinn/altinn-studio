@@ -30,6 +30,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 ConfigureServices(builder.Services, builder.Configuration);
 
+ConfigureWebHost(builder.WebHost);
+
 var app = builder.Build();
 
 Configure();
@@ -119,6 +121,14 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
     {
         c.SwaggerDoc("v1", new OpenApiInfo { Title = "Altinn App Api", Version = "v1" });
         IncludeXmlComments(c);
+    });
+}
+
+void ConfigureWebHost(IWebHostBuilder webHostBuilder)
+{
+    webHostBuilder.ConfigureAppConfiguration((_, configBuilder) =>
+    {
+        configBuilder.LoadAppConfig(args);
     });
 }
 
