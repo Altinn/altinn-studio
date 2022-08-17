@@ -5,12 +5,7 @@ import { TabContext, TabList, TabPanel, TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 import { AppBar, Button, Typography } from '@material-ui/core';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
-import type {
-  ILanguage,
-  ISchema,
-  ISchemaState,
-  UiSchemaItem,
-} from '../types';
+import type { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
 import { ObjectKind } from '../types/enums';
 import {
   setUiSchema,
@@ -187,7 +182,8 @@ export const Editor = (props: IEditorProps) => {
           type: type === ObjectKind.Field ? 'object' : undefined,
           $ref: type === ObjectKind.Reference ? '' : undefined,
           combination: type === ObjectKind.Combination ? [] : undefined,
-          combinationKind: type === ObjectKind.Combination ? 'allOf' : undefined,
+          combinationKind:
+            type === ObjectKind.Combination ? 'allOf' : undefined,
         },
       }),
     );
@@ -237,7 +233,11 @@ export const Editor = (props: IEditorProps) => {
           saveAction={name ? saveSchema : undefined}
         />
         {name && schema ? (
-          <div id='schema-editor' className={classes.editor}>
+          <div
+            data-testid='schema-editor'
+            id='schema-editor'
+            className={classes.editor}
+          >
             <TabContext value={selectedTab}>
               <AppBar
                 position='static'

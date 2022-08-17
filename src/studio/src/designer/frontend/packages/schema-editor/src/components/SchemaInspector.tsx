@@ -5,7 +5,7 @@ import {
   Grid,
   IconButton,
 } from '@material-ui/core';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
@@ -29,10 +29,7 @@ import {
   addEnum,
   deleteEnum,
 } from '../features/editor/schemaEditorSlice';
-import {
-  splitParentPathAndName,
-  getUiSchemaItem,
-} from '../utils/schema';
+import { splitParentPathAndName, getUiSchemaItem } from '../utils/schema';
 import { getTranslation } from '../utils/language';
 import { RestrictionField } from './RestrictionField';
 import { EnumField } from './EnumField';
@@ -100,21 +97,21 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
   const classes = useStyles();
   const dispatch = useDispatch();
 
-  const [objectKind, setObjectKind] = React.useState<ObjectKind>(ObjectKind.Field);
+  const [objectKind, setObjectKind] = React.useState<ObjectKind>(
+    ObjectKind.Field,
+  );
   const [isRequired, setIsRequired] = React.useState<boolean>(false);
+  const [tabIndex, setTabIndex] = React.useState('0');
+
   const selectedId = useSelector((state: ISchemaState) =>
     state.selectedEditorTab === 'properties'
       ? state.selectedPropertyNodeId
       : state.selectedDefinitionNodeId,
   );
-  const [tabIndex, setTabIndex] = React.useState('0');
 
-  const selectedItem = useSelector((state: ISchemaState) => {
-    if (selectedId) {
-      return getUiSchemaItem(state.uiSchema, selectedId);
-    }
-    return null;
-  });
+  const selectedItem = useSelector((state: ISchemaState) =>
+    selectedId ? getUiSchemaItem(state.uiSchema, selectedId) : null,
+  );
 
   // if item is a reference, we want to show the properties of the reference.
   const itemToDisplay = useSelector((state: ISchemaState) =>
@@ -133,11 +130,9 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
     return null;
   });
 
-  const uiSchema = useSelector((state: ISchemaState) => {
-    return state.uiSchema;
-  });
+  const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (selectedItem) {
       if (tabIndex === '2' && itemToDisplay?.type !== 'object') {
         setTabIndex('0');
@@ -145,8 +140,10 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
 
       setIsRequired(isFieldRequired(parentItem, selectedItem));
 
-      if (selectedItem.$ref !== undefined ||
-        selectedItem.items?.$ref !== undefined) {
+      if (
+        selectedItem.$ref !== undefined ||
+        selectedItem.items?.$ref !== undefined
+      ) {
         setObjectKind(ObjectKind.Reference);
       } else if (selectedItem.combination) {
         setObjectKind(ObjectKind.Combination);
@@ -162,14 +159,14 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
 
   const readOnly = selectedItem?.$ref !== undefined;
 
-  const onChangeValue = (path: string, value: any, key: string) => {
-    const data = {
-      path,
-      value: isNaN(value) ? value : +value,
-      key,
-    };
-    dispatch(setRestriction(data));
-  };
+  const onChangeValue = (path: string, value: any, key: string) =>
+    dispatch(
+      setRestriction({
+        path,
+        value: isNaN(value) ? value : +value,
+        key,
+      }),
+    );
 
   const onChangeKey = (path: string, oldKey: string, newKey: string) => {
     if (oldKey === newKey) {
@@ -184,35 +181,30 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
     );
   };
 
-  const onChangePropertyName = (path: string, value: string) => {
+  const onChangePropertyName = (path: string, value: string) =>
     dispatch(
       setPropertyName({
         path,
         name: value,
       }),
     );
-  };
 
-  const onDeleteFieldClick = (path: string, key: string) => {
+  const onDeleteFieldClick = (path: string, key: string) =>
     dispatch(deleteField({ path, key }));
-  };
 
-  const onDeleteObjectClick = (path: string) => {
+  const onDeleteObjectClick = (path: string) =>
     dispatch(deleteProperty({ path }));
-  };
 
-  const onDeleteEnumClick = (path: string, value: string) => {
+  const onDeleteEnumClick = (path: string, value: string) =>
     dispatch(deleteEnum({ path, value }));
-  };
 
-  const checkIsNameInUse = (name: string) => {
-    return isNameInUse({
+  const checkIsNameInUse = (name: string) =>
+    isNameInUse({
       uiSchemaItems: uiSchema,
       parentSchema: parentItem,
       path: selectedId,
       name,
     });
-  }
 
   const onChangeEnumValue = (value: string, oldValue?: string) => {
     if (itemToDisplay) {
@@ -252,10 +244,6 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
     }
   };
 
-  const onRestrictionReturn = (e: any) => {
-    onAddRestrictionClick(e);
-  };
-
   const onAddEnumButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     if (itemToDisplay) {
@@ -280,7 +268,7 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
     }
   };
 
-  const renderItemProperties = (item: UiSchemaItem) =>{
+  const renderItemProperties = (item: UiSchemaItem) => {
     if (!item.properties) return null;
 
     return item.properties.map((p: UiSchemaItem) => {
@@ -297,7 +285,7 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
         />
       );
     });
-  }
+  };
 
   const renderItemRestrictions = (item: UiSchemaItem) =>
     item.restrictions?.map((field: Restriction) => {
@@ -316,13 +304,13 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
           onChangeValue={onChangeValue}
           onChangeKey={onChangeKey}
           onDeleteField={onDeleteFieldClick}
-          onReturn={onRestrictionReturn}
+          onReturn={onAddRestrictionClick}
         />
       );
     });
 
-  const renderEnums = (item: UiSchemaItem) => {
-    return item.enum?.map((value: string) => (
+  const renderEnums = (item: UiSchemaItem) =>
+    item.enum?.map((value: string) => (
       <EnumField
         key={value}
         language={props.language}
@@ -333,11 +321,9 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
         onDelete={onDeleteEnumClick}
       />
     ));
-  };
 
-  const handleTabChange = (event: any, newValue: string) => {
+  const handleTabChange = (event: any, newValue: string) =>
     setTabIndex(newValue);
-  };
 
   if (!selectedId) {
     return (
@@ -351,7 +337,7 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
   }
 
   return (
-    <div className={classes.root}>
+    <div className={classes.root} data-testid='schema-inspector'>
       <TabContext value={tabIndex}>
         <AppBar position='static' color='default' className={classes.appBar}>
           <TabList onChange={handleTabChange} aria-label='inspector tabs'>
@@ -361,7 +347,8 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
               language={props.language}
               value='1'
               hide={
-                objectKind === ObjectKind.Combination || selectedItem?.combinationItem
+                objectKind === ObjectKind.Combination ||
+                selectedItem?.combinationItem
               }
             />
             <SchemaTab
@@ -447,12 +434,12 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
           <Grid container spacing={3} className={classes.gridContainer}>
             {itemToDisplay && renderItemProperties(itemToDisplay)}
           </Grid>
-          {!readOnly &&
+          {!readOnly && (
             <AddPropertyButton
               onAddPropertyClick={onAddPropertyClicked}
               language={props.language}
             />
-          }
+          )}
         </TabPanel>
       </TabContext>
     </div>
