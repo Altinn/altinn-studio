@@ -2,7 +2,7 @@ import React from 'react';
 import { StyledComponentProps, makeStyles } from '@material-ui/core';
 import { getLanguageFromKey } from '../utils/language';
 import theme from '../theme/altinnStudioTheme';
-import TopToolbarButton from "@altinn/schema-editor/components/TopToolbarButton";
+import TopToolbarButton from "../../packages/schema-editor/src/components/TopToolbarButton";
 
 export interface IFileSelectorProps extends StyledComponentProps {
   language: any;
