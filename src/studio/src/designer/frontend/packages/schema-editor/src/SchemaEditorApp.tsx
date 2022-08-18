@@ -4,14 +4,13 @@ import './App.css';
 import SchemaEditor from './components/Editor';
 import { store } from './store';
 import type { ILanguage, ISchema } from './types';
-import { getTranslation } from './utils/language';
 
 export interface IAppProps extends React.PropsWithChildren<any> {
-  schema: ISchema;
   language: ILanguage;
+  loading?: boolean;
   name?: string;
   onSaveSchema: (payload: any) => void;
-  LoadingComponent?: JSX.Element;
+  schema: ISchema;
 }
 
 function SchemaEditorApp(props: IAppProps) {
@@ -19,15 +18,11 @@ function SchemaEditorApp(props: IAppProps) {
     <Provider store={store}>
       <SchemaEditor
         Toolbar={props.children}
-        LoadingIndicator={
-          props.LoadingComponent || (
-            <div>{getTranslation('loading', props.language)}</div>
-          )
-        }
-        schema={props.schema}
         language={props.language}
-        onSaveSchema={props.onSaveSchema}
+        loading={props.loading}
         name={props.name}
+        onSaveSchema={props.onSaveSchema}
+        schema={props.schema}
       />
     </Provider>
   );
