@@ -1,9 +1,8 @@
-import { Description } from '@material-ui/icons';
 import React from 'react';
-import { Button, StyledComponentProps, makeStyles } from '@material-ui/core';
-import classNames from 'classnames';
+import { StyledComponentProps, makeStyles } from '@material-ui/core';
 import { getLanguageFromKey } from '../utils/language';
 import theme from '../theme/altinnStudioTheme';
+import TopToolbarButton from "../../packages/schema-editor/src/components/TopToolbarButton";
 
 export interface IFileSelectorProps extends StyledComponentProps {
   language: any;
@@ -16,31 +15,8 @@ export interface IFileSelectorProps extends StyledComponentProps {
 
 const useStyles = makeStyles({
   root: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    '&>*': { margin: 4, height: 36 },
-    '& input:focus-visible + label': {
-      outline: '2px solid black',
-    },
-    '& label': {
-      flex: 1,
-      display: 'inline-flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      '& span': {
-        flex: 1,
-        height: 36,
-        padding: 2,
-        paddingTop: 5,
-        boxSizing: 'border-box',
-        border: '1px solid #0062BA',
-        '&.empty': {
-          fontStyle: 'italic',
-          color: 'grey',
-        },
-      },
-    },
     '& button': {
+      height: 36,
       borderBottom: `1px solid ${theme.altinnPalette.primary.blueDark}`,
       color: theme.altinnPalette.primary.white,
       background: theme.altinnPalette.primary.blueDark,
@@ -74,10 +50,9 @@ function FileSelector(props: IFileSelectorProps) {
   } = props;
   const classes = useStyles();
   const fileInput = React.useRef<HTMLInputElement>(null);
-  const [selectedFileName, setSelectedFileName] = React.useState('');
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const handleSubmit = (event?: React.FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
     const file = fileInput?.current?.files?.item(0);
     if (file) {
       const formData = new FormData();
@@ -88,9 +63,7 @@ function FileSelector(props: IFileSelectorProps) {
 
   const handleInputChange = () => {
     const file = fileInput?.current?.files?.item(0);
-    if (file) {
-      setSelectedFileName(file.name);
-    }
+    if (file) handleSubmit();
   };
 
   return (
@@ -105,19 +78,17 @@ function FileSelector(props: IFileSelectorProps) {
         name={formFileName}
         onChange={handleInputChange}
         disabled={busy}
+        tabIndex={-1}
       />
-      <label
-        htmlFor='file-upload-picker'
-        title={getLanguageFromKey(labelTextResource, language)}
+      <TopToolbarButton
+        data-testid="upload-button"
+        faIcon='fa fa-upload'
+        iconSize={38}
+        hideText={true}
+        onClick={() => fileInput?.current?.click()}
       >
-        <Description fontSize='large' />
-        <span className={classNames({ empty: !selectedFileName })}>
-          {selectedFileName || getLanguageFromKey(labelTextResource, language)}
-        </span>
-      </label>
-      <Button type='submit' disabled={!selectedFileName || busy}>
-        {getLanguageFromKey('shared.submit_upload', language)}
-      </Button>
+        {getLanguageFromKey(labelTextResource, language)}
+      </TopToolbarButton>
     </form>
   );
 }

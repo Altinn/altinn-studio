@@ -1,7 +1,5 @@
 import { render as rtlRender, screen } from '@testing-library/react';
-import userEvent, {
-  PointerEventsCheckLevel,
-} from '@testing-library/user-event';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 import FileSelector from './FileSelector';
 import type { IFileSelectorProps } from './FileSelector';
@@ -9,21 +7,17 @@ import type { IFileSelectorProps } from './FileSelector';
 const user = userEvent.setup();
 
 describe('FileSelector', () => {
-  it('should not call submitHandler when no files are selected and submit button is clicked', async () => {
-    const userWithNoPointerEventCheck = userEvent.setup({
-      pointerEventsCheck: PointerEventsCheckLevel.Never,
-    });
+  it('should not call submitHandler when no files are selected', async () => {
     const handleSubmit = jest.fn();
     render({ submitHandler: handleSubmit });
 
-    const submitButton = screen.getByRole('button', {
-      name: /upload/i,
-    });
-    await userWithNoPointerEventCheck.click(submitButton);
+    const fileInput = screen.getByTestId('FileSelector-input');
+    await user.upload(fileInput, null);
+
     expect(handleSubmit).not.toHaveBeenCalled();
   });
 
-  it('should call submitHandler when a file is selected and submit button is clicked', async () => {
+  it('should call submitHandler when a file is selected', async () => {
     const file = new File(['hello'], 'hello.png', { type: 'image/png' });
     const handleSubmit = jest.fn();
     render({ submitHandler: handleSubmit });
@@ -31,10 +25,6 @@ describe('FileSelector', () => {
     const fileInput = screen.getByTestId('FileSelector-input');
     await user.upload(fileInput, file);
 
-    const submitButton = screen.getByRole('button', {
-      name: /upload/i,
-    });
-    await user.click(submitButton);
     expect(handleSubmit).toHaveBeenCalledWith(
       expect.any(FormData),
       'hello.png',
