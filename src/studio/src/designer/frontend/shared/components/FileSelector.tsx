@@ -1,7 +1,6 @@
 import React from 'react';
-import { StyledComponentProps, makeStyles } from '@material-ui/core';
+import { StyledComponentProps } from '@material-ui/core';
 import { getLanguageFromKey } from '../utils/language';
-import theme from '../theme/altinnStudioTheme';
 import TopToolbarButton from "../../packages/schema-editor/src/components/TopToolbarButton";
 
 export interface IFileSelectorProps extends StyledComponentProps {
@@ -13,32 +12,6 @@ export interface IFileSelectorProps extends StyledComponentProps {
   accept?: string;
 }
 
-const useStyles = makeStyles({
-  root: {
-    '& button': {
-      height: 36,
-      borderBottom: `1px solid ${theme.altinnPalette.primary.blueDark}`,
-      color: theme.altinnPalette.primary.white,
-      background: theme.altinnPalette.primary.blueDark,
-      textTransform: 'none',
-      fontSize: 16,
-      fontWeight: 400,
-      borderRadius: '0',
-      '&:hover': {
-        background: theme.altinnPalette.primary.blueDarker,
-        color: theme.altinnPalette.primary.white,
-      },
-      '&:focus': {
-        background: theme.altinnPalette.primary.blueDarker,
-        color: theme.altinnPalette.primary.white,
-      },
-      '&:disabled': {
-        borderBottom: `1px solid ${theme.altinnPalette.primary.greyMedium}`,
-      },
-    },
-  },
-});
-
 function FileSelector(props: IFileSelectorProps) {
   const {
     language,
@@ -48,7 +21,6 @@ function FileSelector(props: IFileSelectorProps) {
     busy,
     submitHandler,
   } = props;
-  const classes = useStyles();
   const fileInput = React.useRef<HTMLInputElement>(null);
 
   const handleSubmit = (event?: React.FormEvent<HTMLFormElement>) => {
@@ -67,7 +39,7 @@ function FileSelector(props: IFileSelectorProps) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className={classes.root}>
+    <form onSubmit={handleSubmit}>
       <input
         data-testid="FileSelector-input"
         type='file'
