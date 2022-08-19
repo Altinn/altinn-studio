@@ -7,7 +7,6 @@ import { dataMock } from '../mockData';
 import { buildUISchema, resetUniqueNumber } from '../utils/schema';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { ISchemaState } from '../types';
-import userEvent from '@testing-library/user-event';
 
 const renderSchemaInspector = (customState?: Partial<ISchemaState>) => {
   resetUniqueNumber();
@@ -22,23 +21,23 @@ const renderSchemaInspector = (customState?: Partial<ISchemaState>) => {
     selectedEditorTab: 'properties',
   };
   const customStateCopy = customState ?? {};
-  const store = configureStore()({
+  const mockStore = configureStore()({
     ...mockInitialState,
     ...customStateCopy,
   });
-  const user = userEvent.setup();
   act(() => {
     render(
-      <Provider store={store}>
+      <Provider store={mockStore}>
         <SchemaInspector language={{}} />
       </Provider>,
     );
   });
-  return { store, user };
+  return [mockStore];
 };
 
-test('dispatches correctly when entering text in textboxes', async () => {
-  const { store, user } = renderSchemaInspector();
+test('dispatches correctly when entering text in textboxes', () => {
+  const [store] = renderSchemaInspector();
+
   expect(screen.getByTestId('schema-inspector')).toBeDefined();
   const tablist = screen.getByRole('tablist');
   expect(tablist).toBeDefined();
@@ -46,13 +45,10 @@ test('dispatches correctly when entering text in textboxes', async () => {
   expect(tabpanel).toBeDefined();
   expect(screen.getAllByRole('tab')).toHaveLength(2);
   const textboxes = screen.getAllByRole('textbox');
-  let textboxIndex = 0;
-  while (textboxes[textboxIndex]) {
-    await user.clear(textboxes[textboxIndex]);
-    await user.type(textboxes[textboxIndex], 'New value');
-    await user.tab();
-    textboxIndex++;
-  }
+  textboxes.forEach((textbox) => {
+    fireEvent.change(textbox, { target: { value: 'New value' } });
+    fireEvent.blur(textbox);
+  });
   const actions = store.getActions();
   expect(actions.length).toBeGreaterThanOrEqual(1);
   expect(actions).toHaveLength(textboxes.length);
@@ -63,7 +59,7 @@ test('dispatches correctly when entering text in textboxes', async () => {
 });
 
 test('renders no item if nothing is selected', () => {
-  renderSchemaInspector({
+  const [store] = renderSchemaInspector({
     selectedDefinitionNodeId: undefined,
     selectedPropertyNodeId: undefined,
   });
@@ -71,9 +67,9 @@ test('renders no item if nothing is selected', () => {
   expect(textboxes).toHaveLength(0);
 });
 
-test('dispatches correctly when changing restriction value', async () => {
-  const { store, user } = renderSchemaInspector();
-  await user.click(screen.getByRole('tab', { name: 'restrictions' }));
+test('dispatches correctly when changing restriction value', () => {
+  const [store] = renderSchemaInspector();
+  fireEvent.click(screen.getByRole('tab', { name: 'restrictions' }));
 
   const textboxes = screen.getAllByRole('textbox');
   textboxes.forEach((textbox) => {
