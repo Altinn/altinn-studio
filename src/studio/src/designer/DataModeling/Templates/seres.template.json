@@ -46,13 +46,32 @@
   "$defs": {
     "{{modellnavn}}": {
       "properties": {
+        "dataFormatProvider": {
+          "type": "string",
+          "const": "SERES",
+          "@xsdType": "string",
+          "@xsdAttribute": true
+        },
+        "dataFormatId": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdAttribute": true
+        },
+        "dataFormatVersion": {
+          "type": "string",
+          "@xsdType": "string",
+          "@xsdAttribute": true
+        },
         "e1": {
           "type": "string",
           "@xsdType": "string"
         }
       },
       "required": [
-        "e1"
+        "e1",
+        "dataFormatProvider",
+        "dataFormatId",
+        "dataFormatVersion"
       ]
     }
   }
