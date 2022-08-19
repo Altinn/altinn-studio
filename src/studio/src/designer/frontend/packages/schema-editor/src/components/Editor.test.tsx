@@ -45,7 +45,6 @@ const renderEditor = async (customState?: Partial<ISchemaState>) => {
     <Provider store={mockStore}>
       <SchemaEditor
         Toolbar={<div>toolbar goes here</div>}
-        LoadingIndicator={<div>loading</div>}
         schema={dataMock}
         language={mockLanguage}
         onSaveSchema={onSaveSchema}

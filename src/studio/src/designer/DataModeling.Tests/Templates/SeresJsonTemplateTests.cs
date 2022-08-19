@@ -1,4 +1,12 @@
 using System;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Linq;
+using System.Xml.Schema;
+using Altinn.Studio.DataModeling.Converter.Json;
+using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Templates;
 using Altinn.Studio.DataModeling.Utils;
@@ -33,6 +41,41 @@ namespace DataModeling.Tests.Templates
             value.GetProperty("modellnavn").GetString().Should().Be("melding-modell");
 
             var messageType = jsonSchema.FollowReference(JsonPointer.Parse("#/$defs/melding-modell")).Should().NotBeNull();
+        }
+
+        [Fact]
+        public void TemplateShouldBeValidSeresXsd()
+        {
+            JsonSchemaKeywords.RegisterXsdKeywords();
+
+            var id = "https://dev.altinn.studio/org/repository/app/model/model.schema.json";
+            var jsonSeresTemplate = new SeresJsonTemplate(new Uri(id), "melding");
+            JsonSchema jsonSchema = JsonSchema.FromText(jsonSeresTemplate.GetJsonString());
+
+            XmlSchema xsd = ConvertJsonSchema(jsonSchema);
+
+            xsd.Items.Count.Should().Be(3);
+            xsd.Items[2].GetName().Should().Be("melding-modell");
+
+            XmlSchemaComplexType complexType = xsd.Items[2].As<XmlSchemaComplexType>();
+            var attributes = complexType.Attributes.Count.Should().Be(3);
+
+            foreach (XmlSchemaAttribute attribute in complexType.Attributes)
+            {
+                if (attribute.Name == "dataFormatProvider")
+                {
+                    attribute.FixedValue.Should().Be("SERES");
+                }
+            }
+        }
+
+        private static XmlSchema ConvertJsonSchema(JsonSchema jsonSchema)
+        {
+            var converter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
+
+            var actualXsd = converter.Convert(jsonSchema);
+
+            return actualXsd;
         }
     }
 }

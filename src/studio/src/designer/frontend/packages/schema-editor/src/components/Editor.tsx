@@ -4,7 +4,11 @@ import { ArrowDropDown, ArrowRight } from '@material-ui/icons';
 import { TabContext, TabList, TabPanel, TreeView } from '@material-ui/lab';
 import { useSelector, useDispatch } from 'react-redux';
 import { AppBar, Button, Typography } from '@material-ui/core';
-import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
+import {
+  AltinnMenu,
+  AltinnMenuItem,
+  AltinnSpinner,
+} from 'app-shared/components';
 import type { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
 import { ObjectKind } from '../types/enums';
 import {
@@ -21,6 +25,7 @@ import { getDomFriendlyID } from '../utils/schema';
 import SchemaInspector from './SchemaInspector';
 import { SchemaTab } from './SchemaTab';
 import TopToolbar from './TopToolbar';
+import { getLanguageFromKey } from 'app-shared/utils/language';
 
 const useStyles = makeStyles({
   root: {
@@ -102,17 +107,16 @@ const useStyles = makeStyles({
 });
 
 export interface IEditorProps {
-  schema: ISchema;
-  onSaveSchema: (payload: any) => void;
   Toolbar: JSX.Element;
-  LoadingIndicator: JSX.Element;
-  name?: string;
   language: ILanguage;
+  loading?: boolean;
+  name?: string;
+  onSaveSchema: (payload: any) => void;
+  schema: ISchema;
 }
 
 export const Editor = (props: IEditorProps) => {
-  const { Toolbar, LoadingIndicator, schema, onSaveSchema, name, language } =
-    props;
+  const { Toolbar, loading, schema, onSaveSchema, name, language } = props;
 
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -223,7 +227,11 @@ export const Editor = (props: IEditorProps) => {
   ) => {
     dispatch(setSelectedTab({ selectedTab: value }));
   };
-
+  const loadingIndicator = loading ? (
+    <AltinnSpinner
+      spinnerText={getLanguageFromKey('general.loading', language)}
+    />
+  ) : null;
   return (
     <div className={classes.root}>
       <main>
@@ -327,7 +335,7 @@ export const Editor = (props: IEditorProps) => {
             </TabContext>
           </div>
         ) : (
-          LoadingIndicator
+          loadingIndicator
         )}
       </main>
       {schema && (
