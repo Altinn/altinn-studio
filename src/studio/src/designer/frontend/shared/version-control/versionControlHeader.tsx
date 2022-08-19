@@ -9,7 +9,11 @@ import axios from 'axios';
 import React from 'react';
 import { get, post } from '../utils/networking';
 import altinnTheme from '../theme/altinnStudioTheme';
-import type { IAltinnWindow, IGitStatus, IContentStatus } from '../types/global';
+import type {
+  IAltinnWindow,
+  IGitStatus,
+  IContentStatus,
+} from '../types/global';
 import { getLanguageFromKey } from '../utils/language';
 import postMessages from '../utils/postMessages';
 import FetchChangesComponent from './fetchChanges';

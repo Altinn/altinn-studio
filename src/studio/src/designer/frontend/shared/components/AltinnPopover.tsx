@@ -129,7 +129,12 @@ const AltinnPopoverComponent = (props: any) => {
 
   const renderSpinnerOrDoneIcon = () => {
     if (props.isLoading) {
-      return <CircularProgress className={classNames(classes.spinner)} />;
+      return (
+        <CircularProgress
+          className={classNames(classes.spinner)}
+          role='progressbar'
+        />
+      );
     }
     if (props.shouldShowDoneIcon) {
       return (
