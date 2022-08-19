@@ -4,6 +4,7 @@ import * as networking from 'app-shared/utils/networking';
 import { HandleMergeConflictDiscardChanges } from './HandleMergeConflictDiscardChanges';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { ClassNameMap } from '@material-ui/core/styles/withStyles';
 
 const consoleError = jest
   .spyOn(console, 'error')
@@ -11,11 +12,9 @@ const consoleError = jest
 
 const renderHandleMergeConflictDiscardChanges = () => {
   const user = userEvent.setup();
-
+  const classes: ClassNameMap = {};
   const container = render(
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore
-    <HandleMergeConflictDiscardChanges classes={{}} language={{}} />,
+    <HandleMergeConflictDiscardChanges classes={classes} language={{}} />,
   );
   return { container, user };
 };
