@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { HashRouter } from 'react-router-dom';
 import throttle from 'lodash-es/throttle';
@@ -24,11 +24,13 @@ store.subscribe(
  */
 run();
 
-render(
+const container = document.getElementById('root');
+const root = createRoot(container);
+
+root.render(
   <Provider store={store}>
     <HashRouter>
       <App />
     </HashRouter>
   </Provider>,
-  document.getElementById('root'),
 );
