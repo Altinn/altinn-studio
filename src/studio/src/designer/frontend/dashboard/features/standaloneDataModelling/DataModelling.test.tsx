@@ -1,14 +1,13 @@
-
 import React from 'react';
 import ReactRouter from 'react-router';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import { act } from 'react-dom/test-utils';
-import { mount } from 'enzyme';
-import StandaloneDataModelling from './DataModelling';
+import DataModelling from './DataModelling';
 import { LoadingState } from 'app-shared/features/dataModelling/sagas/metadata';
 
-describe('Dashboard > StandaloneDataModelling', () => {
+import { render as rtlRender } from '@testing-library/react';
+
+describe('DataModelling', () => {
   const language = { administration: {} };
   const modelName = 'model-name';
   const initialState = {
@@ -50,18 +49,12 @@ describe('Dashboard > StandaloneDataModelling', () => {
     store.dispatch = jest.fn(dispatchMock);
   });
 
-  const mountComponent = () =>
-    mount(
-      <Provider store={store}>
-        <StandaloneDataModelling language={language} />
-      </Provider>,
-      { context: { store } },
-    );
-
   it('should fetch models on mount', () => {
-    act(() => {
-      mountComponent();
-    });
+    rtlRender(
+      <Provider store={store}>
+        <DataModelling language={language} />
+      </Provider>,
+    );
 
     expect(store.dispatch).toHaveBeenCalledWith(initialStoreCall);
   });
