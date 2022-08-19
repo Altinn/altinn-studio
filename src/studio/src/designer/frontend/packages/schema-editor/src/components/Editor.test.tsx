@@ -272,7 +272,7 @@ test('should show context menu and trigger correct dispatch when adding a combin
 });
 
 test('should only be possible to add a reference to a combination type', async () => {
-  const { store, user } = renderEditor({
+  const { user } = renderEditor({
     schema: { properties: { mockItem: { type: 'object' } }, definitions: {} },
     uiSchema: buildUISchema(
       { mockItem: { allOf: [], name: 'allOfTest' } },
