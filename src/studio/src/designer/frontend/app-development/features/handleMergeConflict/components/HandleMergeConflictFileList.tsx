@@ -103,6 +103,7 @@ export class HandleMergeConflictFileList extends React.Component<
               ? repoStatus.contentStatus.map((item: any, index: any) => {
                   return (
                     <ListItem
+                      role='listitem'
                       id={`handleMergeConflictFileListItem${index}`}
                       button={true}
                       // eslint-disable-next-line react/no-array-index-key

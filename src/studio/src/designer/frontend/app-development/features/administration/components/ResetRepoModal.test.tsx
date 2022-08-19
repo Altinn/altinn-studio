@@ -1,9 +1,9 @@
 import React from 'react';
-import { mount } from 'enzyme';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import ResetRepoModal from './ResetRepoModal';
 import type { IResetRepoModalProps } from './ResetRepoModal';
+import ResetRepoModal from './ResetRepoModal';
+import { render, screen } from '@testing-library/react';
 
 describe('ResetRepoModal', () => {
   let mockLanguage: any;
@@ -48,7 +48,8 @@ describe('ResetRepoModal', () => {
   };
 
   it('renders the component', () => {
-    const wrapper = mount(<RenderResetRepoModal />);
-    expect(wrapper.getDOMNode()).toMatchSnapshot();
+    render(<RenderResetRepoModal />);
+    const resetRepoContainer = screen.getByTestId('reset-repo-container');
+    expect(resetRepoContainer).toBeDefined();
   });
 });
