@@ -2,15 +2,15 @@ name: PDF Scan
 
 on:
   schedule:
-  - cron: '0 8 * * 1,4'
+    - cron: '21 8 * * 1,4'
   push:
     branches: [ master ]
     paths:
-      - 'src/Altinn.Platform/Altinn.Platform.PDF/**'
+      - 'src/Altinn.Platform/Altinn.Platform.PDF/**/Dockerfile'
   pull_request:
     branches: [ master ]
     paths:
-      - 'src/Altinn.Platform/Altinn.Platform.PDF/**'
+      - 'src/Altinn.Platform/Altinn.Platform.PDF/**/Dockerfile'
 
 jobs:
   build:
