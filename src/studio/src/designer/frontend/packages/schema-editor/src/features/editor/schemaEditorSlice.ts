@@ -171,7 +171,8 @@ const schemaEditorSlice = createSlice({
       // copy item and give new id
       const split = item.path.split('/');
       const name = split[split.length - 1];
-      const copy = { ...item, path: `#/$defs/${name}` };
+      const { definitionsPath } = getSchemaSettings({ schemaUrl: state.schema?.$schema});
+      const copy = { ...item, path: `${definitionsPath}/${name}` };
       state.uiSchema.push(copy);
 
       // create ref pointing to the new item
@@ -508,7 +509,7 @@ const schemaEditorSlice = createSlice({
       if (state.uiSchema.length > 0) {
         const id = state.uiSchema[0].path;
         state.focusNameField = id;
-        if (id.startsWith('#/definitions')) {
+        if (id.startsWith(schemaSettings.definitionsPath)) {
           state.selectedDefinitionNodeId = id;
         } else {
           state.selectedPropertyNodeId = id;

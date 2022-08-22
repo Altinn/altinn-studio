@@ -132,7 +132,7 @@ export const Editor = (props: IEditorProps) => {
   const schemaSettings = getSchemaSettings({schemaUrl: jsonSchema?.$schema});
   const definitions = useSelector((state: ISchemaState) =>
     state.uiSchema.filter((d: UiSchemaItem) =>
-      d.path.startsWith(schemaSettings.definitionsPath),
+      d.path.startsWith(`${schemaSettings.definitionsPath}/`),
     ),
   );
   const modelView = useSelector((state: ISchemaState) =>
