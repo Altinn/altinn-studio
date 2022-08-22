@@ -1,4 +1,9 @@
-import { Checkbox, FormControlLabel, TextField } from '@material-ui/core';
+import {
+  Checkbox,
+  Divider,
+  FormControlLabel,
+  TextField,
+} from '@material-ui/core';
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
@@ -44,11 +49,6 @@ export interface IItemDataComponentProps {
 
 const useStyles = makeStyles(
   createStyles({
-    divider: {
-      marginTop: 2,
-      marginBottom: 2,
-      padding: '8px 2px 8px 2px',
-    },
     field: {
       background: 'white',
       color: 'black',
@@ -361,7 +361,7 @@ export function ItemDataComponent({
           label={getTranslation('nullable', language)}
         />
       )}
-      <hr className={classes.divider} />
+      <Divider />
       <p className={classes.header}>
         {getTranslation('descriptive_fields', language)}
       </p>

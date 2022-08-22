@@ -1,14 +1,12 @@
-import { AppBar } from '@material-ui/core';
-import React, { useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { AppBar, Divider } from '@material-ui/core';
+import React, { useEffect, useState } from 'react';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
-import type { ILanguage, ISchemaState, UiSchemaItem } from '../types';
+import type { ILanguage, UiSchemaItem } from '../types';
 import { ObjectKind } from '../types/enums';
-import { getUiSchemaItem, splitParentPathAndName } from '../utils/schema';
 import { getTranslation } from '../utils/language';
 import { SchemaTab } from './SchemaTab';
-import { isFieldRequired, isNameInUse } from '../utils/checks';
+import { isFieldRequired } from '../utils/checks';
 import { ItemRestrictionsTab } from './SchemaInspector/ItemRestrictionsTab';
 import { ItemPropertiesTab } from './SchemaInspector/ItemPropertiesTab';
 import { getObjectKind } from '../utils/ui-schema-utils';
@@ -37,11 +35,6 @@ const useStyles = makeStyles(
         background: 'gray',
       },
     },
-    divider: {
-      marginTop: 2,
-      marginBottom: 2,
-      padding: '8px 2px 8px 2px',
-    },
     appBar: {
       border: 'none',
       boxShadow: 'none',
@@ -66,44 +59,25 @@ const useStyles = makeStyles(
 
 export interface ISchemaInspectorProps {
   language: ILanguage;
+  selectedId?: string;
+  selectedItem?: UiSchemaItem;
+  itemToDisplay?: UiSchemaItem;
+  parentItem?: UiSchemaItem;
+  checkIsNameInUse: (name: string) => boolean;
 }
 
-export const SchemaInspector = (props: ISchemaInspectorProps) => {
+export const SchemaInspector = ({
+  language,
+  selectedItem,
+  selectedId,
+  itemToDisplay,
+  parentItem,
+  checkIsNameInUse,
+}: ISchemaInspectorProps) => {
   const classes = useStyles();
-  const [objectKind, setObjectKind] = React.useState<ObjectKind>(
-    ObjectKind.Field,
-  );
+  const [objectKind, setObjectKind] = useState<ObjectKind>(ObjectKind.Field);
 
-  const [tabIndex, setTabIndex] = React.useState('0');
-
-  const selectedId = useSelector((state: ISchemaState) =>
-    state.selectedEditorTab === 'properties'
-      ? state.selectedPropertyNodeId
-      : state.selectedDefinitionNodeId,
-  );
-
-  const selectedItem = useSelector((state: ISchemaState) =>
-    selectedId ? getUiSchemaItem(state.uiSchema, selectedId) : null,
-  );
-
-  // if item is a reference, we want to show the properties of the reference.
-  const itemToDisplay = useSelector((state: ISchemaState) =>
-    selectedItem?.$ref
-      ? state.uiSchema.find((i: UiSchemaItem) => i.path === selectedItem.$ref)
-      : selectedItem,
-  );
-
-  const parentItem = useSelector((state: ISchemaState) => {
-    if (selectedId) {
-      const [parentPath] = splitParentPathAndName(selectedId);
-      if (parentPath) {
-        return getUiSchemaItem(state.uiSchema, parentPath);
-      }
-    }
-    return null;
-  });
-
-  const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
+  const [tabIndex, setTabIndex] = useState('0');
 
   const isRequired = selectedItem
     ? isFieldRequired(parentItem, selectedItem)
@@ -122,26 +96,19 @@ export const SchemaInspector = (props: ISchemaInspectorProps) => {
     }
   }, [tabIndex, itemToDisplay]);
 
-  const checkIsNameInUse = (name: string) =>
-    isNameInUse({
-      uiSchemaItems: uiSchema,
-      parentSchema: parentItem,
-      path: selectedId,
-      name,
-    });
-
-  const handleTabChange = (event: any, newValue: string) =>
-    setTabIndex(newValue);
+  const __ = (key: string) => getTranslation(key, language);
 
   return selectedId ? (
     <div className={classes.root} data-testid='schema-inspector'>
       <TabContext value={tabIndex}>
         <AppBar position='static' color='default' className={classes.appBar}>
-          <TabList onChange={handleTabChange} aria-label='inspector tabs'>
-            <SchemaTab label='properties' language={props.language} value='0' />
+          <TabList
+            onChange={(e: any, v: string) => setTabIndex(v)}
+            aria-label='inspector tabs'
+          >
+            <SchemaTab label={__('properties')} value='0' />
             <SchemaTab
-              label='restrictions'
-              language={props.language}
+              label={__('restrictions')}
               value='1'
               hide={
                 objectKind === ObjectKind.Combination ||
@@ -149,8 +116,7 @@ export const SchemaInspector = (props: ISchemaInspectorProps) => {
               }
             />
             <SchemaTab
-              label='fields'
-              language={props.language}
+              label={__('fields')}
               value='2'
               hide={
                 selectedItem?.type !== 'object' || selectedItem.combinationItem
@@ -162,7 +128,7 @@ export const SchemaInspector = (props: ISchemaInspectorProps) => {
           <ItemPropertiesTab
             checkIsNameInUse={checkIsNameInUse}
             itemToDisplay={itemToDisplay ?? undefined}
-            language={props.language}
+            language={language}
             parentItem={parentItem ?? undefined}
           />
         </TabPanel>
@@ -171,7 +137,7 @@ export const SchemaInspector = (props: ISchemaInspectorProps) => {
             classes={classes}
             isRequired={isRequired}
             itemToDisplay={itemToDisplay ?? undefined}
-            language={props.language}
+            language={language}
             readonly={readOnly}
           />
         </TabPanel>
@@ -179,7 +145,7 @@ export const SchemaInspector = (props: ISchemaInspectorProps) => {
           <ItemFieldsTab
             classes={classes}
             itemToDisplay={itemToDisplay ?? undefined}
-            language={props.language}
+            language={language}
             readonly={readOnly}
           />
         </TabPanel>
@@ -188,9 +154,9 @@ export const SchemaInspector = (props: ISchemaInspectorProps) => {
   ) : (
     <div>
       <p className={classes.noItem} id='no-item-paragraph'>
-        {getTranslation('no_item_selected', props.language)}
+        {__('no_item_selected')}
       </p>
-      <hr className={classes.divider} />
+      <Divider />
     </div>
   );
 };

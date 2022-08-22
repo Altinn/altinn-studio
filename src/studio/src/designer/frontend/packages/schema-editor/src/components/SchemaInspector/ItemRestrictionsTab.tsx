@@ -1,11 +1,12 @@
+import React from 'react';
 import {
   Checkbox,
+  Divider,
   FormControlLabel,
   Grid,
   IconButton,
 } from '@material-ui/core';
 import { getTranslation } from '../../utils/language';
-import React from 'react';
 import { ILanguage, Restriction, UiSchemaItem } from '../../types';
 import { RestrictionField } from '../RestrictionField';
 import { EnumField } from '../EnumField';
@@ -162,7 +163,7 @@ export const ItemRestrictionsTab = ({
         />
       </Grid>
       <Grid item xs={12}>
-        <hr className={classes.divider} />
+        <Divider />
       </Grid>
       <Grid item xs={4}>
         <p>{getTranslation('keyword', language)}</p>
@@ -183,7 +184,7 @@ export const ItemRestrictionsTab = ({
       {itemToDisplay && itemToDisplay?.type !== 'object' && (
         <>
           <Grid item xs={12}>
-            <hr className={classes.divider} />
+            <Divider />
             <p className={classes.header}>{getTranslation('enum', language)}</p>
           </Grid>
           {itemToDisplay && renderEnums(itemToDisplay)}

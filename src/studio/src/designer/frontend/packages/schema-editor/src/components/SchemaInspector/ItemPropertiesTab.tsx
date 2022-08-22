@@ -1,7 +1,7 @@
-import { ILanguage, UiSchemaItem } from '../../types';
-import InlineObject from '../InlineObject';
-import { ItemDataComponent } from '../ItemDataComponent';
 import React from 'react';
+import { ILanguage, UiSchemaItem } from '../../types';
+import { InlineObject } from '../InlineObject';
+import { ItemDataComponent } from '../ItemDataComponent';
 import { getObjectKind } from '../../utils/ui-schema-utils';
 
 interface ItemPropertiesTabProps {
