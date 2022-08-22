@@ -4,7 +4,7 @@ import {
   FormControlLabel,
   TextField,
 } from '@material-ui/core';
-import { makeStyles, createStyles } from '@material-ui/core/styles';
+import { createStyles, makeStyles } from '@material-ui/core/styles';
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -37,12 +37,10 @@ import {
 import { TypeSelect } from './TypeSelect';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { CombinationSelect } from './CombinationSelect';
+import { getObjectKind } from '../utils/ui-schema-utils';
 
 export interface IItemDataComponentProps {
-  selectedId: string;
   selectedItem: UiSchemaItem | null;
-  parentItem: UiSchemaItem | null;
-  objectKind: ObjectKind;
   language: ILanguage;
   checkIsNameInUse: (name: string) => boolean;
 }
@@ -94,15 +92,13 @@ const useStyles = makeStyles(
 
 export function ItemDataComponent({
   language,
-  selectedId,
   selectedItem,
-  parentItem,
-  objectKind,
   checkIsNameInUse,
 }: IItemDataComponentProps) {
   const classes = useStyles();
   const dispatch = useDispatch();
-
+  const objectKind = getObjectKind(selectedItem ?? undefined);
+  const selectedId = selectedItem?.path ?? '';
   const [nameError, setNameError] = React.useState('');
   const [nodeName, setNodeName] = React.useState('');
   const [description, setItemDescription] = React.useState<string>('');
@@ -123,7 +119,7 @@ export function ItemDataComponent({
     setItemDescription(selectedItem?.description ?? '');
     setFieldType(selectedItem?.type);
     setArrayType(selectedItem?.items?.$ref ?? selectedItem?.items?.type ?? '');
-  }, [selectedItem, parentItem]);
+  }, [selectedItem]);
 
   const nameFieldRef = React.useCallback(
     (node: any) => {

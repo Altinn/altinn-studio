@@ -29,7 +29,6 @@ const renderSchemaInspector = (selectedId?: string) => {
         <SchemaInspector
           language={{}}
           checkIsNameInUse={checkIsNameInUse}
-          selectedId={selectedId}
           selectedItem={selectedItem}
           itemToDisplay={selectedItem}
         />

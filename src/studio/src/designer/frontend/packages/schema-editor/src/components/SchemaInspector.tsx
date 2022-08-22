@@ -59,7 +59,6 @@ const useStyles = makeStyles(
 
 export interface ISchemaInspectorProps {
   language: ILanguage;
-  selectedId?: string;
   selectedItem?: UiSchemaItem;
   itemToDisplay?: UiSchemaItem;
   parentItem?: UiSchemaItem;
@@ -69,7 +68,6 @@ export interface ISchemaInspectorProps {
 export const SchemaInspector = ({
   language,
   selectedItem,
-  selectedId,
   itemToDisplay,
   parentItem,
   checkIsNameInUse,
@@ -98,7 +96,7 @@ export const SchemaInspector = ({
 
   const __ = (key: string) => getTranslation(key, language);
 
-  return selectedId ? (
+  return selectedItem ? (
     <div className={classes.root} data-testid='schema-inspector'>
       <TabContext value={tabIndex}>
         <AppBar position='static' color='default' className={classes.appBar}>
@@ -129,7 +127,6 @@ export const SchemaInspector = ({
             checkIsNameInUse={checkIsNameInUse}
             itemToDisplay={itemToDisplay ?? undefined}
             language={language}
-            parentItem={parentItem ?? undefined}
           />
         </TabPanel>
         <TabPanel value='1'>

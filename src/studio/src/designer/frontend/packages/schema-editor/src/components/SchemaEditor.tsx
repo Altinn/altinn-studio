@@ -383,7 +383,6 @@ export const SchemaEditor = (props: IEditorProps) => {
         <aside className={classes.inspector}>
           <SchemaInspector
             language={language}
-            selectedId={selectedId}
             itemToDisplay={itemToDisplay ?? undefined}
             selectedItem={selectedItem ?? undefined}
             parentItem={parentItem ?? undefined}
