@@ -2,7 +2,6 @@ import React from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
 import { SchemaEditor } from '@altinn/schema-editor/index';
 import type { ILanguage } from '@altinn/schema-editor/types';
-import { getLanguageFromKey } from '../../utils/language';
 import {
   deleteDataModel,
   fetchDataModel,
@@ -13,7 +12,6 @@ import { Create, Delete, SchemaSelect, XSDUpload } from './components';
 import createDataModelMetadataOptions from './functions/createDataModelMetadataOptions';
 import findPreferredMetadataOption from './functions/findPreferredMetadataOption';
 import schemaPathIsSame from './functions/schemaPathIsSame';
-import { AltinnSpinner } from '../../components';
 import { DataModelsMetadataActions, LoadingState } from './sagas/metadata';
 import type { IMetadataOption } from './functions/types';
 
@@ -128,11 +126,7 @@ function DataModelling({
       schema={jsonSchema}
       onSaveSchema={handleSaveSchema}
       name={selectedOption?.label}
-      LoadingComponent={
-        <AltinnSpinner
-          spinnerText={getLanguageFromKey('general.loading', language)}
-        />
-      }
+      loading={metadataLoadingState === LoadingState.LoadingModels}
     >
       <XSDUpload
         language={language}
