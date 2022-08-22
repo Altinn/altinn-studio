@@ -369,7 +369,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of repository.</param>
-        /// <param name="datamodellingPreference">The prefered way of doing data modelling for this app. See <see cref="DatamodellingPreference"/> for options.
         /// XSD is the Altinn 2 way, while Json Schema is the Altinn 3 way. You can go from XSD to Json Schema, but there isn't an easy way to go from Json Schema to XSD.
         /// </param>
         /// <returns>
@@ -378,7 +377,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Authorize]
         [HttpPost]
         [Route("{org}")]
-        public async Task<ActionResult<RepositoryModel>> CreateApp(string org, [FromQuery] string repository, [FromQuery] DatamodellingPreference datamodellingPreference = DatamodellingPreference.JsonSchema)
+        public async Task<ActionResult<RepositoryModel>> CreateApp(string org, [FromQuery] string repository)
         {
             try
             {
@@ -389,16 +388,10 @@ namespace Altinn.Studio.Designer.Controllers
                 return BadRequest($"{repository} is an invalid repository name.");
             }
 
-            if (datamodellingPreference == DatamodellingPreference.Unknown)
-            {
-                datamodellingPreference = DatamodellingPreference.JsonSchema;
-            }
-
             var config = new ServiceConfiguration
             {
                 RepositoryName = repository,
-                ServiceName = repository,
-                DatamodellingPreference = datamodellingPreference
+                ServiceName = repository
             };
 
             var repositoryResult = await _repository.CreateService(org, config);

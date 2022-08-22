@@ -70,15 +70,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// <inheritdoc/>
-        /// </summary>
-        public async Task<DatamodellingPreference> GetDatamodellingPreference()
-        {
-            var settings = await GetAltinnStudioSettings();
-            return settings.DatamodellingPreference;
-        }
-
-        /// <summary>
         /// Saves the AltinnStudioSettings to disk.
         /// </summary>
         /// <param name="altinnStudioSettings">The <see cref="AltinnStudioSettings"/> object to save. This will overwrite the existing file.</param>
@@ -146,11 +137,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             AltinnStudioSettings newAltinnStudioSettings;
             if (IsDatamodelsRepo())
             {
-                newAltinnStudioSettings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.Datamodels, DatamodellingPreference = DatamodellingPreference.JsonSchema };
+                newAltinnStudioSettings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.Datamodels };
             }
             else
             {
-                newAltinnStudioSettings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.App, DatamodellingPreference = DatamodellingPreference.Xsd };
+                newAltinnStudioSettings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.App };
             }
 
             await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, newAltinnStudioSettings, true);
@@ -168,12 +159,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             if (altinnStudioSettings.RepoType == AltinnRepositoryType.Unknown)
             {
                 altinnStudioSettings.RepoType = IsDatamodelsRepo() ? AltinnRepositoryType.Datamodels : AltinnRepositoryType.App;
-                needsSaving = true;
-            }
-
-            if (altinnStudioSettings.DatamodellingPreference == DatamodellingPreference.Unknown)
-            {
-                altinnStudioSettings.DatamodellingPreference = IsDatamodelsRepo() ? DatamodellingPreference.JsonSchema : DatamodellingPreference.Xsd;
                 needsSaving = true;
             }
 

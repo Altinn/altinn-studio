@@ -118,14 +118,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             MemoryStream xsdMemoryStream = new MemoryStream();
             xsdStream.CopyTo(xsdMemoryStream);
-
+            string jsonContent;
             AltinnRepositoryType altinnRepositoryType = await altinnAppGitRepository.GetRepositoryType();
 
             if (altinnRepositoryType == AltinnRepositoryType.Datamodels)
             {
                 xsdMemoryStream.Position = 0;
                 Json.Schema.JsonSchema jsonSchema = GenerateJsonSchemaFromXsd(xsdMemoryStream);
-                var jsonContent = SerializeJson(jsonSchema);
+                jsonContent = SerializeJson(jsonSchema);
 
                 await altinnAppGitRepository.WriteTextByRelativePathAsync(
                     Path.ChangeExtension(fileName, "schema.json"), jsonContent, true);
@@ -136,32 +136,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
             /* From here repository is assumed to be for an app. Validate with a Directory.Exist check? */
 
             string filePath = Path.Combine(altinnAppGitRepository.GetRelativeModelFolder(), fileName);
+            
+            /* Using the NEW model processing. */
 
-            DatamodellingPreference datamodellingPreference =
-                await altinnAppGitRepository.GetDatamodellingPreference();
-            switch (datamodellingPreference)
-            {
-                case DatamodellingPreference.JsonSchema:
-                    /* Using the NEW model processing. */
+            xsdMemoryStream.Position = 0;
+            await SaveOriginalXsd(org, repository, developer, filePath, xsdMemoryStream);
 
-                    xsdMemoryStream.Position = 0;
-                    await SaveOriginalXsd(org, repository, developer, filePath, xsdMemoryStream);
+            xsdMemoryStream.Position = 0;
+            jsonContent = await ProcessNewXsd(altinnAppGitRepository, xsdMemoryStream, filePath);
 
-                    xsdMemoryStream.Position = 0;
-                    string jsonContent = await ProcessNewXsd(altinnAppGitRepository, xsdMemoryStream, filePath);
-
-                    return jsonContent;
-                case DatamodellingPreference.Xsd:
-                default:
-                    /* Using the OLD model processing. */ 
-
-                    xsdMemoryStream.Position = 0;
-                    Manatee.Json.Schema.JsonSchema schemaJsonSchema = GenerateJsonSchema(xsdMemoryStream);
-                    string jsonSerialized = SerializeJson(schemaJsonSchema);
-                    await UpdateAllAppModelFiles(org, repository, developer, Path.ChangeExtension(filePath, "schema.json"), jsonSerialized);
-
-                    return jsonSerialized;
-            }
+            return jsonContent;
         }
 
         /// <inheritdoc/>

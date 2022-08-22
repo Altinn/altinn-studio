@@ -52,7 +52,6 @@ namespace Designer.Tests.Controllers
                 var altinnStudioSettings = await response.Content.ReadAsAsync<AltinnStudioSettings>();
 
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                Assert.Equal(DatamodellingPreference.JsonSchema, altinnStudioSettings.DatamodellingPreference);
                 Assert.Equal(AltinnRepositoryType.Datamodels, altinnStudioSettings.RepoType);
             }
             finally
@@ -101,7 +100,6 @@ namespace Designer.Tests.Controllers
                 var altinnStudioSettings = await response.Content.ReadAsAsync<AltinnStudioSettings>();
 
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-                Assert.Equal(DatamodellingPreference.JsonSchema, altinnStudioSettings.DatamodellingPreference);
                 Assert.Equal(AltinnRepositoryType.Datamodels, altinnStudioSettings.RepoType);
             }
             finally
