@@ -2,10 +2,10 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import {
   buildJsonSchema,
   buildUISchema,
-  splitParentPathAndName,
   getUiSchemaItem,
   getUniqueNumber,
   mapCombinationChildren,
+  splitParentPathAndName,
 } from '../../utils/schema';
 import type {
   CombinationKind,
@@ -534,6 +534,8 @@ const schemaEditorSlice = createSlice({
   },
 });
 
+export const { reducer } = schemaEditorSlice;
+
 export const {
   addRestriction,
   addEnum,
@@ -565,5 +567,3 @@ export const {
   setSelectedTab,
   navigateToType,
 } = schemaEditorSlice.actions;
-
-export default schemaEditorSlice.reducer;

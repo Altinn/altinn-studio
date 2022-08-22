@@ -1,6 +1,6 @@
 import React from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { SchemaEditor } from '@altinn/schema-editor/index';
+import { SchemaEditorApp } from '@altinn/schema-editor/index';
 import type { ILanguage } from '@altinn/schema-editor/types';
 import {
   deleteDataModel,
@@ -121,7 +121,7 @@ function DataModelling({
   };
 
   return (
-    <SchemaEditor
+    <SchemaEditorApp
       language={language}
       schema={jsonSchema}
       onSaveSchema={handleSaveSchema}
@@ -151,7 +151,7 @@ function DataModelling({
         deleteAction={handleDeleteSchema}
         language={language}
       />
-    </SchemaEditor>
+    </SchemaEditorApp>
   );
 }
 export default DataModelling;

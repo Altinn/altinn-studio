@@ -1,5 +1,4 @@
 import React from 'react';
-import SchemaEditor from './Editor';
 import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import { buildUISchema } from '../utils/schema';
@@ -8,6 +7,7 @@ import { render, screen } from '@testing-library/react';
 import { ISchemaState } from '../types';
 import userEvent from '@testing-library/user-event';
 import { UserEvent } from '@testing-library/user-event/setup/index';
+import { SchemaEditor } from './SchemaEditor';
 
 const mockLanguage = {
   schema_editor: {
