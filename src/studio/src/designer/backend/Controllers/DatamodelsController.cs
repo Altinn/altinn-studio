@@ -123,7 +123,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Post action that is used when uploading a XSD and secondary XSD
+        /// Post action that is used when uploading a XSD and secondary XSD. TODO: To be removed?
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">Application identifier which is unique within an organisation.</param>
@@ -158,8 +158,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="thefile">The XSD file being uploaded.</param>
         [Authorize]
         [HttpPost("upload")]
-        public async Task<IActionResult> AddXsd(
-            string org, string repository, [FromForm(Name = "file")] IFormFile thefile)
+        public async Task<IActionResult> AddXsd(string org, string repository, [FromForm(Name = "file")] IFormFile thefile)
         {
             Guard.AssertArgumentNotNull(thefile, nameof(thefile));
 
@@ -168,8 +167,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            var jsonSchema = await _schemaModelService.BuildSchemaFromXsd(
-                org, repository, developer, fileName, thefile.OpenReadStream());
+            var jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, fileName, thefile.OpenReadStream());
 
             return Created(fileName, jsonSchema);
         }
