@@ -149,7 +149,7 @@ export interface IOrganisation {
 export interface IParty {
   partyId: string;
   partyTypeName: number;
-  orgNumber: number;
+  orgNumber: number | string;
   ssn: string;
   unitType: string;
   name: string;

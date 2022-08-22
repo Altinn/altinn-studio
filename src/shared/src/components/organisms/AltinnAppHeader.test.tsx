@@ -16,6 +16,21 @@ describe('organisms/AltinnAppHeader', () => {
     partyId: '54321',
     name: 'Bedrift',
   } as IParty;
+
+  const selfIdentifiedUser = {
+    childParties: null,
+    isDeleted: false,
+    name: 'uidp_brxzt8pt992',
+    onlyHierarchyElementWithNoAccess: false,
+    orgNumber: '',
+    organization: null,
+    partyId: '52057791',
+    partyTypeName: 3,
+    person: null,
+    ssn: '',
+    unitType: null,
+  } as IParty;
+
   const headerBackgroundColor = 'blue';
   const logoColor = 'blue';
   const language = {
@@ -38,6 +53,16 @@ describe('organisms/AltinnAppHeader', () => {
 
   it('should render private icon when party is person', () => {
     renderComponent(partyPerson);
+    const profileButton = screen.getByRole('button', {
+      name: /profilikon meny/i,
+    });
+    expect(profileButton.firstChild.firstChild).toHaveClass(
+      'fa-private-circle-big',
+    );
+  });
+
+  it('should render private icon for user without ssn or org number', () => {
+    renderComponent(selfIdentifiedUser);
     const profileButton = screen.getByRole('button', {
       name: /profilikon meny/i,
     });

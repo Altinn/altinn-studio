@@ -56,22 +56,14 @@ function AltinnAppHeaderMenu(props: IAltinnAppHeaderMenuProps) {
         className={classes.iconButton}
         id='profile-icon-button'
       >
-        {party.ssn && (
-          <AltinnIcon
-            iconClass='fa fa-private-circle-big'
-            iconColor={logoColor}
-            iconSize={31}
-            margin='0px 0px 0px 5px'
-          />
-        )}
-        {party.orgNumber && (
-          <AltinnIcon
-            iconClass='fa fa-corp-circle-big'
-            iconColor={logoColor}
-            iconSize={31}
-            margin='0px 0px 0px 5px'
-          />
-        )}
+        <AltinnIcon
+          iconClass={`fa ${
+            party.orgNumber ? 'fa-corp-circle-big' : 'fa-private-circle-big'
+          }`}
+          iconColor={logoColor}
+          iconSize={31}
+          margin='0px 0px 0px 5px'
+        />
       </IconButton>
       <Menu
         id='profile-menu'
