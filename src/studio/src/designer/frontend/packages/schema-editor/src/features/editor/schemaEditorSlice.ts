@@ -482,6 +482,8 @@ const schemaEditorSlice = createSlice({
           schemaSettings.rootNodePath,
           true,
         );
+      } else {
+        rootUiSchema = buildUISchema(state.schema, '#', true);
       }
 
       const defsUiSchema = buildUISchema(
@@ -519,9 +521,6 @@ const schemaEditorSlice = createSlice({
     ) {
       const { onSaveSchema } = action.payload;
       const updatedSchema: ISchema = buildJsonSchema(state.uiSchema);
-      if (!updatedSchema.definitions) {
-        updatedSchema.definitions = {};
-      }
       state.schema = updatedSchema;
       if (onSaveSchema) {
         onSaveSchema(updatedSchema);
