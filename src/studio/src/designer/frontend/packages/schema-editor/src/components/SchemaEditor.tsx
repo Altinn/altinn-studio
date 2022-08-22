@@ -2,7 +2,7 @@ import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { ArrowDropDown, ArrowRight } from '@material-ui/icons';
 import { TabContext, TabList, TabPanel, TreeView } from '@material-ui/lab';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { AppBar, Button, Typography } from '@material-ui/core';
 import {
   AltinnMenu,
@@ -12,19 +12,19 @@ import {
 import type { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
 import { ObjectKind } from '../types/enums';
 import {
-  setUiSchema,
-  setJsonSchema,
-  updateJsonSchema,
   addRootItem,
+  setJsonSchema,
   setSchemaName,
   setSelectedTab,
+  setUiSchema,
+  updateJsonSchema,
 } from '../features/editor/schemaEditorSlice';
-import SchemaItem from './SchemaItem';
+import { SchemaItem } from './SchemaItem';
 import { getTranslation } from '../utils/language';
 import { getDomFriendlyID } from '../utils/schema';
-import SchemaInspector from './SchemaInspector';
+import { SchemaInspector } from './SchemaInspector';
 import { SchemaTab } from './SchemaTab';
-import TopToolbar from './TopToolbar';
+import { TopToolbar } from './TopToolbar';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 
 const useStyles = makeStyles({
@@ -115,7 +115,7 @@ export interface IEditorProps {
   schema: ISchema;
 }
 
-export const Editor = (props: IEditorProps) => {
+export const SchemaEditor = (props: IEditorProps) => {
   const { Toolbar, loading, schema, onSaveSchema, name, language } = props;
 
   const classes = useStyles();
@@ -370,4 +370,3 @@ export const Editor = (props: IEditorProps) => {
     </div>
   );
 };
-export default Editor;

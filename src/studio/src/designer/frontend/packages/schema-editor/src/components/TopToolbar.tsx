@@ -2,7 +2,7 @@ import { makeStyles } from '@material-ui/core';
 import React from 'react';
 import type { ILanguage } from '../types';
 import { getTranslation } from '../utils/language';
-import TopToolbarButton from './TopToolbarButton';
+import { TopToolbarButton } from './TopToolbarButton';
 
 const useStyles = makeStyles({
   toolbar: {
@@ -21,11 +21,7 @@ interface TopToolbarProps {
   saveAction?: (payload: any) => void;
   language: ILanguage;
 }
-export default function TopToolbar({
-  Toolbar,
-  saveAction,
-  language,
-}: TopToolbarProps) {
+export function TopToolbar({ Toolbar, saveAction, language }: TopToolbarProps) {
   const classes = useStyles();
   return (
     <section className={classes.toolbar} role={'toolbar'}>

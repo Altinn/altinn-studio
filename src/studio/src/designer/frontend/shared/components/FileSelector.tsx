@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyledComponentProps } from '@material-ui/core';
 import { getLanguageFromKey } from '../utils/language';
-import TopToolbarButton from "../../packages/schema-editor/src/components/TopToolbarButton";
+import { TopToolbarButton } from '../../packages/schema-editor/src/components/TopToolbarButton';
 
 export interface IFileSelectorProps extends StyledComponentProps {
   language: any;
@@ -41,7 +41,7 @@ function FileSelector(props: IFileSelectorProps) {
   return (
     <form onSubmit={handleSubmit}>
       <input
-        data-testid="FileSelector-input"
+        data-testid='FileSelector-input'
         type='file'
         id='file-upload-picker'
         className='sr-only'
@@ -53,7 +53,7 @@ function FileSelector(props: IFileSelectorProps) {
         tabIndex={-1}
       />
       <TopToolbarButton
-        data-testid="upload-button"
+        data-testid='upload-button'
         faIcon='fa fa-upload'
         iconSize={38}
         hideText={true}

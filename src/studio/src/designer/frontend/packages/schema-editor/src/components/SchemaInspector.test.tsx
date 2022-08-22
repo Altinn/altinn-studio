@@ -2,7 +2,7 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { act } from 'react-dom/test-utils';
-import SchemaInspector from './SchemaInspector';
+import { SchemaInspector } from './SchemaInspector';
 import { dataMock } from '../mockData';
 import { buildUISchema, resetUniqueNumber } from '../utils/schema';
 import { fireEvent, render, screen } from '@testing-library/react';
