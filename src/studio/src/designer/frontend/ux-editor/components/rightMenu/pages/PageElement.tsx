@@ -22,15 +22,20 @@ export interface IPageElementProps {
 }
 
 const useStyles = makeStyles({
+  grid: {
+    display: 'grid',
+    gap: '1rem',
+    gridTemplateColumns: '1fr auto',
+  },
   ellipsisButton: {
     marginLeft: '1.2rem',
     visibility: 'hidden',
   },
-  mainButton: {
+  buttonWrapper: {
     width: '100%',
-    fontSize: '1.4rem',
-    fontWeight: 400,
-    textTransform: 'unset',
+    '&:hover': {
+      background: 'rgba(0, 0, 0, 0.04)',
+    },
     '&:hover #ellipsis-button': {
       visibility: 'visible',
     },
@@ -40,6 +45,12 @@ const useStyles = makeStyles({
     '&:focus-within #ellipsis-button': {
       visibility: 'visible',
     },
+  },
+  mainButton: {
+    width: '100%',
+    fontSize: '1.4rem',
+    fontWeight: 400,
+    textTransform: 'unset',
   },
 });
 
@@ -181,48 +192,50 @@ export default function PageElement({ name }: IPageElementProps) {
   };
 
   return (
-    <Button className={classes.mainButton} onClick={onPageClick}>
-      <Grid container={true} direction='row'>
-        <Grid item={true} xs={1}>
-          {selectedLayout === name && (
-            <i
-              className='fa fa-arrowright'
-              style={{
-                width: 'auto',
-                color: '#022F51',
-                marginBottom: '0.4rem',
-              }}
-            />
-          )}
-        </Grid>
-        <Grid
-          item={true}
-          xs={9}
-          style={{ textAlign: 'left', paddingLeft: '1.2rem' }}
-        >
-          {!editMode && name}
-          {editMode && (
-            <InlineTextField
-              onBlur={handleOnBlur}
-              onKeyDown={handleKeyPress}
-              onChange={handleOnChange}
-              defaultValue={name}
-              error={Boolean(errorMessage)}
-              helperText={errorMessage}
-            />
-          )}
-        </Grid>
-        <Grid item={true} xs={2}>
-          <IconButton
-            onClick={onPageSettingsClick}
-            className={classes.ellipsisButton}
-            id='ellipsis-button'
-            style={menuAnchorEl ? { visibility: 'visible' } : {}}
+    <div className={classes.buttonWrapper}>
+      <div className={classes.grid}>
+        <Button onClick={onPageClick} className={classes.mainButton}>
+          <Grid item={true} xs={1}>
+            {selectedLayout === name && (
+              <i
+                className='fa fa-arrowright'
+                style={{
+                  width: 'auto',
+                  color: '#022F51',
+                  marginBottom: '0.4rem',
+                }}
+              />
+            )}
+          </Grid>
+          <Grid
+            item={true}
+            xs={9}
+            style={{ textAlign: 'left', paddingLeft: '1.2rem' }}
           >
-            <i className='fa fa-ellipsismenu' style={{ width: 'auto' }} />
-          </IconButton>
-        </Grid>
-      </Grid>
+            {!editMode && name}
+            {editMode && (
+              <InlineTextField
+                onBlur={handleOnBlur}
+                onKeyDown={handleKeyPress}
+                onChange={handleOnChange}
+                defaultValue={name}
+                error={Boolean(errorMessage)}
+                helperText={errorMessage}
+              />
+            )}
+          </Grid>
+        </Button>
+
+        <IconButton
+          onClick={onPageSettingsClick}
+          className={classes.ellipsisButton}
+          id='ellipsis-button'
+          style={menuAnchorEl ? { visibility: 'visible' } : {}}
+        >
+          <i className='fa fa-ellipsismenu' style={{ width: 'auto' }} />
+        </IconButton>
+      </div>
+
       <AltinnMenu
         anchorEl={menuAnchorEl}
         open={Boolean(menuAnchorEl)}
@@ -277,7 +290,7 @@ export default function PageElement({ name }: IPageElementProps) {
         onCancel={handleConfirmDeleteClose}
         onConfirm={handleConfirmDelete}
       />
-    </Button>
+    </div>
   );
 }
 
