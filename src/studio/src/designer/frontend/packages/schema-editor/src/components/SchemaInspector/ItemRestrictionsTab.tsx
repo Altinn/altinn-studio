@@ -120,20 +120,19 @@ export const ItemRestrictionsTab = ({
     dispatch(deleteEnum({ path, value }));
 
   const renderEnums = (item: UiSchemaItem) =>
-    item.enum?.map((value: string) => (
+    item.enum?.map((value: string, index) => (
       <EnumField
-        key={value}
+        key={'add-enum-field-' + index}
         language={language}
         path={item.path}
         fullWidth={true}
         value={value}
         onChange={onChangeEnumValue}
         onDelete={onDeleteEnumClick}
+        onEnterKeyPress={dispatchAddEnum}
       />
     ));
-
-  const onAddEnumButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
+  const dispatchAddEnum = () => {
     if (selectedItem) {
       dispatch(
         addEnum({
@@ -142,6 +141,10 @@ export const ItemRestrictionsTab = ({
         }),
       );
     }
+  };
+  const onAddEnumButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    dispatchAddEnum();
   };
   return (
     <Grid container spacing={1} className={classes.gridContainer}>

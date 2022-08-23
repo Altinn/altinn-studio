@@ -44,11 +44,11 @@ export const ItemFieldsTab = ({
         fullPath={p.path}
         onChangeValue={onChangePropertyName}
         onDeleteField={onDeleteObjectClick}
+        onEnterKeyPress={dispatchAddProperty}
       />
     ));
   };
-  const onAddPropertyClicked = (event: React.BaseSyntheticEvent) => {
-    event.preventDefault();
+  const dispatchAddProperty = () => {
     const path = selectedItem?.path;
     if (path) {
       dispatch(
@@ -58,6 +58,10 @@ export const ItemFieldsTab = ({
         }),
       );
     }
+  };
+  const onAddPropertyClicked = (event: React.BaseSyntheticEvent) => {
+    event.preventDefault();
+    dispatchAddProperty();
   };
   return (
     <>
