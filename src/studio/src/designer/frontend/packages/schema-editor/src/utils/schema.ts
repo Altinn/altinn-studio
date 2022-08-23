@@ -1,7 +1,7 @@
-import type { CombinationKind, UiSchemaItem } from '../types';
+import type { CombinationKind, Restriction, UiSchemaItem } from '../types';
 import JsonPointer from 'jsonpointer';
 
-function flat(input: UiSchemaItem[] | undefined, depth = 1, stack: UiSchemaItem[] = []) {
+export function flat(input: UiSchemaItem[] | undefined, depth = 1, stack: UiSchemaItem[] = []) {
   if (input) {
     for (const item of input) {
       stack.push(item);
@@ -94,7 +94,6 @@ export function buildJsonSchema(uiSchema: UiSchemaItem[]): any {
     const item = createJsonSchemaItem(uiItem);
     JsonPointer.set(result, uiItem.path.replace(/^#/, ''), item);
   });
-  result.$schema = 'https://json-schema.org/draft/2020-12/schema';
   return result;
 }
 
@@ -110,6 +109,13 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
         break;
       }
       case 'restrictions': {
+        if (['#/oneOf'].includes(uiSchemaItem.path)) {
+          item = uiSchemaItem.restrictions.map((res: Restriction) => {
+            return res.value;
+          });
+          break;
+        }
+
         uiSchemaItem.restrictions?.forEach((field: any) => {
           item[field.key] = field.value;
         });
@@ -139,15 +145,35 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
       case 'combinationKind':
         break;
       default:
-        item[key] = uiSchemaItem[key];
+        if (typeof item === 'object') {
+          item[key] = uiSchemaItem[key];
+        }
+
         break;
     }
   });
   return item;
 }
 
-export function buildUISchema(schema: any, rootPath: string, includeDisplayName = true): UiSchemaItem[] {
+export function getSubSchema(schema: any, pathArray: string[]): any {
+  const subSchema = schema[pathArray[0]];
+  if (pathArray.length === 1) {
+    return subSchema;
+  }
+  return getSubSchema(subSchema, pathArray.slice(1));
+}
+
+export function getSchemaFromPath(path: string, schema: any) {
+  return JsonPointer.compile(path).get(schema);
+}
+
+export function buildUISchema(
+  schema: any,
+  rootPath: string,
+  includeDisplayName = true,
+): UiSchemaItem[] {
   const result: UiSchemaItem[] = [];
+
   if (typeof schema !== 'object') {
     result.push({
       path: rootPath,
@@ -158,13 +184,11 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName 
   }
 
   Object.keys(schema).forEach((key) => {
-    if (key === '$schema') {
-      return;
-    }
     const item = schema[key];
+    if (item === undefined) return;
     const path = `${rootPath}/${key}`;
     const displayName = includeDisplayName ? key : path;
-    if (item.properties && Object.keys(item.properties).length > 0) {
+    if (item?.properties && Object.keys(item.properties).length > 0) {
       result.push(buildUiSchemaForItemWithProperties(item, path, displayName));
     } else if (item.$ref) {
       result.push({
@@ -216,7 +240,7 @@ export const mapJsonSchemaCombinationToUiSchemaItem = (item: { [id: string]: any
     return null;
   }
   const combination = item[combinationKind]?.map(
-    (child: UiSchemaItem, index: number) => mapCombinationItemTypeToUiSchemaItem(
+    (child: any, index: number) => mapCombinationItemTypeToUiSchemaItem(
       child, index, combinationKind, parentPath,
     ),
   );
@@ -227,12 +251,17 @@ export const mapJsonSchemaCombinationToUiSchemaItem = (item: { [id: string]: any
 };
 
 export const mapCombinationItemTypeToUiSchemaItem = (
-  item: UiSchemaItem, index: number, key: CombinationKind, parentPath: string,
+  item: any, index: number, key: CombinationKind, parentPath: string,
 ) => {
+  const uiSchemaItem = item.properties
+    ? buildUiSchemaForItemWithProperties(item, `${parentPath}/${key}/${index}`)
+    : {
+      ...item,
+      path: `${parentPath}/${key}/${index}`,
+    };
   return {
-    ...item,
-    path: `${parentPath}/${key}/${index}`,
-    displayName: item.$ref !== undefined ? 'ref' : 'Inline object',
+    ...uiSchemaItem,
+    displayName: item.$ref !== undefined ? 'ref' : `allOf[${index}]`,
     combinationItem: true,
   };
 };
@@ -312,6 +341,13 @@ export const buildUiSchemaForItemWithProperties = (schema: { [key: string]: { [k
 };
 
 export const getDomFriendlyID = (id: string) => id.replace(/\//g, '').replace('#', '');
+
+export const updateChildPaths = (item: UiSchemaItem, parentId: string) => {
+  item.path = `${parentId}/properties/${item.displayName}`;
+  if (item.properties) {
+    item.properties.forEach((p) => updateChildPaths(p, item.path));
+  }
+};
 
 const stringRestrictions = ['minLength', 'maxLength', 'pattern', 'format'];
 const integerRestrictions = ['minimum', 'exclusiveminimum', 'maximum', 'exclusivemaximum'];
