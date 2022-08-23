@@ -23,26 +23,22 @@ import { useDispatch } from 'react-redux';
 
 interface ItemRestrictionsProps {
   classes: any;
-  isRequired: boolean;
-  itemToDisplay?: UiSchemaItem;
+  selectedItem?: UiSchemaItem;
   language: ILanguage;
-  readonly: boolean;
 }
 export const ItemRestrictionsTab = ({
   classes,
-  isRequired,
-  itemToDisplay,
+  selectedItem,
   language,
-  readonly,
 }: ItemRestrictionsProps) => {
   const dispatch = useDispatch();
-
+  const readonly = selectedItem?.$ref !== undefined;
   const handleRequiredChanged = (e: any, checked: boolean) => {
-    if (itemToDisplay && checked !== isRequired) {
+    if (selectedItem && checked !== selectedItem.isRequired) {
       dispatch(
         setRequired({
-          path: itemToDisplay?.path,
-          key: itemToDisplay?.displayName,
+          path: selectedItem?.path,
+          key: selectedItem?.displayName,
           required: checked,
         }),
       );
@@ -79,10 +75,10 @@ export const ItemRestrictionsTab = ({
 
   const onAddRestrictionClick = (event?: React.BaseSyntheticEvent) => {
     event?.preventDefault();
-    if (itemToDisplay) {
+    if (selectedItem) {
       dispatch(
         addRestriction({
-          path: itemToDisplay.path,
+          path: selectedItem.path,
           key: '',
           value: '',
         }),
@@ -96,7 +92,7 @@ export const ItemRestrictionsTab = ({
         <RestrictionField
           key={field.key}
           language={language}
-          type={itemToDisplay?.type}
+          type={selectedItem?.type}
           value={field.value}
           keyName={field.key}
           readOnly={readonly}
@@ -110,10 +106,10 @@ export const ItemRestrictionsTab = ({
     );
 
   const onChangeEnumValue = (value: string, oldValue?: string) => {
-    if (itemToDisplay) {
+    if (selectedItem) {
       dispatch(
         addEnum({
-          path: itemToDisplay.path,
+          path: selectedItem.path,
           value,
           oldValue,
         }),
@@ -138,10 +134,10 @@ export const ItemRestrictionsTab = ({
 
   const onAddEnumButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
-    if (itemToDisplay) {
+    if (selectedItem) {
       dispatch(
         addEnum({
-          path: itemToDisplay.path,
+          path: selectedItem.path,
           value: 'value',
         }),
       );
@@ -154,7 +150,7 @@ export const ItemRestrictionsTab = ({
           className={classes.header}
           control={
             <Checkbox
-              checked={isRequired}
+              checked={selectedItem?.isRequired}
               onChange={handleRequiredChanged}
               name='checkedRequired'
             />
@@ -162,32 +158,37 @@ export const ItemRestrictionsTab = ({
           label={getTranslation('required', language)}
         />
       </Grid>
-      <Grid item xs={12}>
-        <Divider />
-      </Grid>
-      <Grid item xs={4}>
-        <p>{getTranslation('keyword', language)}</p>
-      </Grid>
-      <Grid item xs={1} />
-      <Grid item xs={7}>
-        <p>{getTranslation('value', language)}</p>
-      </Grid>
-      {itemToDisplay && renderItemRestrictions(itemToDisplay)}
-      <IconButton
-        id='add-restriction-button'
-        aria-label={getTranslation('add_restriction', language)}
-        onClick={onAddRestrictionClick}
-      >
-        <i className='fa fa-plus' />
-        {getTranslation('add_restriction', language)}
-      </IconButton>
-      {itemToDisplay && itemToDisplay?.type !== 'object' && (
+      {selectedItem && selectedItem?.$ref === undefined && (
+        <>
+          <Grid item xs={12}>
+            <Divider />
+          </Grid>
+          <Grid item xs={4}>
+            <p>{getTranslation('keyword', language)}</p>
+          </Grid>
+          <Grid item xs={1} />
+          <Grid item xs={7}>
+            <p>{getTranslation('value', language)}</p>
+          </Grid>
+          {renderItemRestrictions(selectedItem)}
+          <IconButton
+            id='add-restriction-button'
+            aria-label={getTranslation('add_restriction', language)}
+            onClick={onAddRestrictionClick}
+          >
+            <i className='fa fa-plus' />
+            {getTranslation('add_restriction', language)}
+          </IconButton>
+        </>
+      )}
+
+      {selectedItem && selectedItem?.type !== 'object' && (
         <>
           <Grid item xs={12}>
             <Divider />
             <p className={classes.header}>{getTranslation('enum', language)}</p>
           </Grid>
-          {itemToDisplay && renderEnums(itemToDisplay)}
+          {selectedItem && renderEnums(selectedItem)}
           <IconButton
             id='add-enum-button'
             aria-label={getTranslation('add_enum', language)}

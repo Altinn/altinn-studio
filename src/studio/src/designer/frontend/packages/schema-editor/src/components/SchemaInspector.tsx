@@ -1,12 +1,11 @@
-import { AppBar, Divider } from '@material-ui/core';
 import React, { useEffect, useState } from 'react';
+import { AppBar, Divider } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
-import type { ILanguage, UiSchemaItem } from '../types';
+import { ILanguage, UiSchemaItem } from '../types';
 import { ObjectKind } from '../types/enums';
 import { getTranslation } from '../utils/language';
 import { SchemaTab } from './SchemaTab';
-import { isFieldRequired } from '../utils/checks';
 import { ItemRestrictionsTab } from './SchemaInspector/ItemRestrictionsTab';
 import { ItemPropertiesTab } from './SchemaInspector/ItemPropertiesTab';
 import { getObjectKind } from '../utils/ui-schema-utils';
@@ -60,41 +59,29 @@ const useStyles = makeStyles(
 export interface ISchemaInspectorProps {
   language: ILanguage;
   selectedItem?: UiSchemaItem;
-  itemToDisplay?: UiSchemaItem;
-  parentItem?: UiSchemaItem;
+  referredItem?: UiSchemaItem;
   checkIsNameInUse: (name: string) => boolean;
 }
 
 export const SchemaInspector = ({
   language,
   selectedItem,
-  itemToDisplay,
-  parentItem,
+  referredItem,
   checkIsNameInUse,
 }: ISchemaInspectorProps) => {
   const classes = useStyles();
-  const [objectKind, setObjectKind] = useState<ObjectKind>(ObjectKind.Field);
-
   const [tabIndex, setTabIndex] = useState('0');
-
-  const isRequired = selectedItem
-    ? isFieldRequired(parentItem, selectedItem)
-    : false;
-  const readOnly = selectedItem?.$ref !== undefined;
+  const __ = (key: string) => getTranslation(key, language);
 
   useEffect(() => {
-    if (itemToDisplay) {
-      if (tabIndex === '2' && itemToDisplay?.type !== 'object') {
+    if (selectedItem) {
+      if (tabIndex === '2' && selectedItem?.type !== 'object') {
         setTabIndex('0');
       }
-      setObjectKind(getObjectKind(itemToDisplay));
     } else {
-      setObjectKind(ObjectKind.Field);
       setTabIndex('0');
     }
-  }, [tabIndex, itemToDisplay]);
-
-  const __ = (key: string) => getTranslation(key, language);
+  }, [tabIndex, selectedItem]);
 
   return selectedItem ? (
     <div className={classes.root} data-testid='schema-inspector'>
@@ -109,7 +96,7 @@ export const SchemaInspector = ({
               label={__('restrictions')}
               value='1'
               hide={
-                objectKind === ObjectKind.Combination ||
+                getObjectKind(selectedItem) === ObjectKind.Combination ||
                 selectedItem?.combinationItem
               }
             />
@@ -122,28 +109,26 @@ export const SchemaInspector = ({
             />
           </TabList>
         </AppBar>
+        <div style={{ color: 'lightgray' }}>{selectedItem.path}</div>
         <TabPanel value='0'>
           <ItemPropertiesTab
             checkIsNameInUse={checkIsNameInUse}
-            itemToDisplay={itemToDisplay ?? undefined}
+            selectedItem={selectedItem}
             language={language}
           />
         </TabPanel>
         <TabPanel value='1'>
           <ItemRestrictionsTab
             classes={classes}
-            isRequired={isRequired}
-            itemToDisplay={itemToDisplay ?? undefined}
+            selectedItem={selectedItem}
             language={language}
-            readonly={readOnly}
           />
         </TabPanel>
         <TabPanel value='2'>
           <ItemFieldsTab
             classes={classes}
-            itemToDisplay={itemToDisplay ?? undefined}
+            selectedItem={selectedItem}
             language={language}
-            readonly={readOnly}
           />
         </TabPanel>
       </TabContext>

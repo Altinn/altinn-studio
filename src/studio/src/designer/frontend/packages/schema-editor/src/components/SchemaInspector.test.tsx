@@ -30,7 +30,6 @@ const renderSchemaInspector = (selectedId?: string) => {
           language={{}}
           checkIsNameInUse={checkIsNameInUse}
           selectedItem={selectedItem}
-          itemToDisplay={selectedItem}
         />
       </Provider>,
     );

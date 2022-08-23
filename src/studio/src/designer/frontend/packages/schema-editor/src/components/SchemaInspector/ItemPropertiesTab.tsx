@@ -5,20 +5,20 @@ import { ItemDataComponent } from '../ItemDataComponent';
 
 interface ItemPropertiesTabProps {
   language: ILanguage;
-  itemToDisplay?: UiSchemaItem;
+  selectedItem?: UiSchemaItem;
   checkIsNameInUse: (name: string) => boolean;
 }
 
 export const ItemPropertiesTab = ({
   language,
-  itemToDisplay,
+  selectedItem,
   checkIsNameInUse,
 }: ItemPropertiesTabProps) => {
-  return itemToDisplay?.combinationItem && itemToDisplay?.$ref === undefined ? (
-    <InlineObject item={itemToDisplay} language={language} />
+  return selectedItem?.combinationItem && selectedItem?.$ref === undefined ? (
+    <InlineObject item={selectedItem} language={language} />
   ) : (
     <ItemDataComponent
-      selectedItem={itemToDisplay ?? null}
+      selectedItem={selectedItem ?? null}
       language={language}
       checkIsNameInUse={checkIsNameInUse}
     />

@@ -249,10 +249,10 @@ export const SchemaEditor = (props: IEditorProps) => {
   );
 
   // if item is a reference, we want to show the properties of the reference.
-  const itemToDisplay = useSelector((state: ISchemaState) =>
+  const referredItem = useSelector((state: ISchemaState) =>
     selectedItem?.$ref
       ? state.uiSchema.find((i: UiSchemaItem) => i.path === selectedItem.$ref)
-      : selectedItem,
+      : null,
   );
 
   const parentItem = useSelector((state: ISchemaState) => {
@@ -266,6 +266,7 @@ export const SchemaEditor = (props: IEditorProps) => {
   });
 
   const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
+
   const checkIsNameInUse = (name: string) =>
     isNameInUse({
       uiSchemaItems: uiSchema,
@@ -383,9 +384,8 @@ export const SchemaEditor = (props: IEditorProps) => {
         <aside className={classes.inspector}>
           <SchemaInspector
             language={language}
-            itemToDisplay={itemToDisplay ?? undefined}
+            referredItem={referredItem ?? undefined}
             selectedItem={selectedItem ?? undefined}
-            parentItem={parentItem ?? undefined}
             checkIsNameInUse={checkIsNameInUse}
           />
         </aside>
