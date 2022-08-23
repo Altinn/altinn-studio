@@ -99,6 +99,30 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
+        /// <inheritdoc/>
+        public async Task<string> UpdateModelFilesFromJsonSchema(string org, string repository, string developer, string relativeFilePath, string jsonContent)
+        {
+            //Json.Schema.JsonSchema jsonSchema = GenerateJsonSchemaFromXsd(xsdMemoryStream);
+            //var jsonContent = SerializeJson(jsonSchema);
+
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
+
+            await altinnAppGitRepository.WriteTextByRelativePathAsync(Path.ChangeExtension(relativeFilePath, "schema.json"), jsonContent, true);
+            var jsonSchema = Json.Schema.JsonSchema.FromText(jsonContent);
+            var jsonSchemaConverterStrategy = JsonSchemaConverterStrategyFactory.SelectStrategy(jsonSchema);
+
+            var schemaName = GetSchemaName(relativeFilePath);
+
+            var metamodelConverter = new JsonSchemaToMetamodelConverter(jsonSchemaConverterStrategy.GetAnalyzer());
+            var modelMetadata = metamodelConverter.Convert(schemaName, jsonContent);
+            await altinnAppGitRepository.UpdateModelMetadata(modelMetadata, schemaName);
+
+            await UpdateCSharpClasses(altinnAppGitRepository, modelMetadata, schemaName);
+
+            await UpdateApplicationMetadata(altinnAppGitRepository, schemaName, schemaName);
+            return jsonContent;
+        }
+
         /// <summary>
         /// Builds a JSON schema based on the uploaded XSD.
         /// </summary>
@@ -281,7 +305,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await UpdateJsonSchema(altinnAppGitRepository, relativeFilePath, jsonContent);
             await UpdateXsd(altinnAppGitRepository, jsonSchema, schemaName);
             var modelMetadata = await UpdateModelMetadata(altinnAppGitRepository, jsonSchema, schemaName);
-            await UpdateApplicationMetadata(altinnAppGitRepository, schemaName, rootName);
+            await UpdateApplicationMetadata(altinnAppGitRepository, schemaName, schemaName);
             await UpdateCSharpClasses(altinnAppGitRepository, modelMetadata, schemaName);
         }
 

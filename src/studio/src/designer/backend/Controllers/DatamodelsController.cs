@@ -221,7 +221,7 @@ namespace Altinn.Studio.Designer.Controllers
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var content = await ReadRequestBodyContentAsync();
 
-            await _schemaModelService.UpdateSchema(org, repository, developer, modelPath, content);
+            await _schemaModelService.UpdateModelFilesFromJsonSchema(org, repository, developer, modelPath, content);
 
             return NoContent();
         }
