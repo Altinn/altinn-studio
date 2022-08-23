@@ -20,6 +20,7 @@ const mockUiSchema: UiSchemaItem[] = [
         path: '#/properties/id2/properties/id3',
         displayName: 'id3',
         $ref: '#/$defs/id3',
+        isRequired: true,
       },
     ],
     required: ['id3'],
