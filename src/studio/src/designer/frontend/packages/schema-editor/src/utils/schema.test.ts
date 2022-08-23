@@ -117,7 +117,7 @@ const mockJsonSchema = {
 };
 test('gets referenced items', () => {
   const result = getUiSchemaItemsByRef(mockUiSchema, '#/$defs/id3');
-  console.log(result);
+  expect(result).toHaveLength(2);
 });
 test('gets UI schema item', () => {
   const result = getUiSchemaItem(mockUiSchema, '#/$defs/id3');
