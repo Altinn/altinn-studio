@@ -17,6 +17,7 @@ const mockUiSchema: UiSchemaItem[] = [
         $ref: '#/$defs/id3',
       },
     ],
+    type: 'object'
   },
   {
     path: '#/properties/allOfTest',

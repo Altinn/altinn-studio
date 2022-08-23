@@ -133,6 +133,9 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
         }
         break;
       }
+      case 'type':
+        if (uiSchemaItem.type !== 'object') item.type = uiSchemaItem.type;
+        break;
       case 'path':
       case 'displayName':
       case 'combinationItem':
@@ -174,7 +177,7 @@ export function buildUISchema(schema: any, rootPath: string, includeDisplayName 
         title: item.title,
         description: item.description,
       });
-    } else if (typeof item === 'object' && item !== null) {
+    } else if (typeof item === 'object') {
       const {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         title, description, type, enum: enums, items, oneOf, allOf, anyOf, ...restrictions
@@ -282,7 +285,7 @@ export const buildUiSchemaForItemWithProperties = (schema: { [key: string]: { [k
 
     if (currentProperty.$ref) {
       item.$ref = currentProperty.$ref;
-    } else if (typeof currentProperty === 'object' && currentProperty !== null) {
+    } else if (typeof currentProperty === 'object') {
       if (properties) {
         item.properties = buildUISchema(currentProperty.properties, `${item.path}/properties`, true);
       }
@@ -307,6 +310,7 @@ export const buildUiSchemaForItemWithProperties = (schema: { [key: string]: { [k
     properties: rootProperties,
     required: schema.required,
     displayName,
+    type: 'object',
     ...rest,
   };
 };
