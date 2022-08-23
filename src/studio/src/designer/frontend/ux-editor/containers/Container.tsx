@@ -481,6 +481,7 @@ export class ContainerComponent extends React.Component<
     if (this.state.editMode) {
       return this.renderEditMode();
     }
+
     return (
       <Grid
         container={true}

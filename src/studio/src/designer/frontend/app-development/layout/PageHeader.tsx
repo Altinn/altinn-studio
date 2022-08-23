@@ -18,46 +18,37 @@ const PageHeader = (ownProps: IPageHeaderProps) => {
     <Grid item xs={12}>
       {!repoStatus.hasMergeConflict &&
         redirects.map((route) => (
-          <Route
-            key={route.to}
-            exact={true}
-            path={route.from}
-            render={() => <Redirect to={route.to} />}
-          />
+          <Route key={route.to} exact={true} path={route.from}>
+            <Redirect to={route.to} />
+          </Route>
         ))}
       {routes.map((route) => (
-        <Route
-          key={route.path}
-          path={route.path}
-          exact={route.exact}
-          render={(props) => (
-            <AppBarComponent
-              {...props}
-              activeLeftMenuSelection={route.activeLeftMenuSelection}
-              activeSubHeaderSelection={route.activeSubHeaderSelection}
-              logoutButton={repoStatus.hasMergeConflict}
-              org={org}
-              app={app}
-              showBreadcrumbOnTablet={true}
-              showSubMenu={!repoStatus.hasMergeConflict}
-              mainMenuItems={[
-                {
-                  displayText: 'Om',
-                  navLink: '/about',
-                  menuType: 'about',
-                  activeSubHeaderSelection: 'Om',
-                },
-                {
-                  displayText: 'Lage',
-                  navLink: '/ui-editor',
-                  menuType: 'create',
-                  activeSubHeaderSelection: 'Lage',
-                },
-              ]}
-              subMenuItems={appDevelopmentLeftDrawerSettings}
-            />
-          )}
-        />
+        <Route key={route.path} path={route.path} exact={route.exact}>
+          <AppBarComponent
+            activeLeftMenuSelection={route.activeLeftMenuSelection}
+            activeSubHeaderSelection={route.activeSubHeaderSelection}
+            logoutButton={repoStatus.hasMergeConflict}
+            org={org}
+            app={app}
+            showBreadcrumbOnTablet={true}
+            showSubMenu={!repoStatus.hasMergeConflict}
+            mainMenuItems={[
+              {
+                displayText: 'Om',
+                navLink: '/about',
+                menuType: 'about',
+                activeSubHeaderSelection: 'Om',
+              },
+              {
+                displayText: 'Lage',
+                navLink: '/ui-editor',
+                menuType: 'create',
+                activeSubHeaderSelection: 'Lage',
+              },
+            ]}
+            subMenuItems={appDevelopmentLeftDrawerSettings}
+          />
+        </Route>
       ))}
     </Grid>
   );

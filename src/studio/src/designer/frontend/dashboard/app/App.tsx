@@ -115,24 +115,19 @@ export const App = () => {
                 <HeaderContext.Provider value={headerContextValue}>
                   <Header language={language} />
                 </HeaderContext.Provider>
-                <Route
-                  path='/'
-                  exact={true}
-                  render={() => (
-                    <>
-                      <CenterContainer>
-                        <Dashboard />
-                      </CenterContainer>
-                      <Footer />
-                    </>
-                  )}
-                />
-                <Route
-                  path='/datamodelling/:org/:repoName'
-                  exact={true}
-                  component={StandaloneDataModelling}
-                />
-                <Route path='/new' exact={true} component={CreateService} />
+                <Route path='/' exact={true}>
+                  <CenterContainer>
+                    <Dashboard />
+                  </CenterContainer>
+                  <Footer />
+                </Route>
+
+                <Route path='/datamodelling/:org/:repoName' exact={true}>
+                  <StandaloneDataModelling language={language} />
+                </Route>
+                <Route path='/new' exact={true}>
+                  <CreateService />
+                </Route>
               </Root>
             ) : (
               <CenterContainer>
