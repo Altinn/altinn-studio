@@ -23,7 +23,7 @@ import { useDispatch } from 'react-redux';
 
 interface ItemRestrictionsProps {
   classes: any;
-  selectedItem?: UiSchemaItem;
+  selectedItem: UiSchemaItem;
   language: ILanguage;
 }
 export const ItemRestrictionsTab = ({
@@ -32,13 +32,13 @@ export const ItemRestrictionsTab = ({
   language,
 }: ItemRestrictionsProps) => {
   const dispatch = useDispatch();
-  const readonly = selectedItem?.$ref !== undefined;
+  const readonly = selectedItem.$ref !== undefined;
   const handleRequiredChanged = (e: any, checked: boolean) => {
-    if (selectedItem && checked !== selectedItem.isRequired) {
+    if (checked !== selectedItem.isRequired) {
       dispatch(
         setRequired({
-          path: selectedItem?.path,
-          key: selectedItem?.displayName,
+          path: selectedItem.path,
+          key: selectedItem.displayName,
           required: checked,
         }),
       );
@@ -75,15 +75,13 @@ export const ItemRestrictionsTab = ({
 
   const onAddRestrictionClick = (event?: React.BaseSyntheticEvent) => {
     event?.preventDefault();
-    if (selectedItem) {
-      dispatch(
-        addRestriction({
-          path: selectedItem.path,
-          key: '',
-          value: '',
-        }),
-      );
-    }
+    dispatch(
+      addRestriction({
+        path: selectedItem.path,
+        key: '',
+        value: '',
+      }),
+    );
   };
 
   const renderItemRestrictions = (item: UiSchemaItem) =>
@@ -92,7 +90,7 @@ export const ItemRestrictionsTab = ({
         <RestrictionField
           key={field.key}
           language={language}
-          type={selectedItem?.type}
+          type={selectedItem.type}
           value={field.value}
           keyName={field.key}
           readOnly={readonly}
@@ -105,17 +103,15 @@ export const ItemRestrictionsTab = ({
       ) : null,
     );
 
-  const onChangeEnumValue = (value: string, oldValue?: string) => {
-    if (selectedItem) {
-      dispatch(
-        addEnum({
-          path: selectedItem.path,
-          value,
-          oldValue,
-        }),
-      );
-    }
-  };
+  const onChangeEnumValue = (value: string, oldValue?: string) =>
+    dispatch(
+      addEnum({
+        path: selectedItem.path,
+        value,
+        oldValue,
+      }),
+    );
+
   const onDeleteEnumClick = (path: string, value: string) =>
     dispatch(deleteEnum({ path, value }));
 
@@ -153,7 +149,7 @@ export const ItemRestrictionsTab = ({
           className={classes.header}
           control={
             <Checkbox
-              checked={selectedItem?.isRequired}
+              checked={selectedItem.isRequired}
               onChange={handleRequiredChanged}
               name='checkedRequired'
             />
@@ -161,7 +157,7 @@ export const ItemRestrictionsTab = ({
           label={getTranslation('required', language)}
         />
       </Grid>
-      {selectedItem && selectedItem?.$ref === undefined && (
+      {selectedItem.$ref === undefined && (
         <>
           <Grid item xs={12}>
             <Divider />
@@ -185,13 +181,13 @@ export const ItemRestrictionsTab = ({
         </>
       )}
 
-      {selectedItem && selectedItem?.type !== 'object' && (
+      {selectedItem.type !== 'object' && (
         <>
           <Grid item xs={12}>
             <Divider />
             <p className={classes.header}>{getTranslation('enum', language)}</p>
           </Grid>
-          {selectedItem && renderEnums(selectedItem)}
+          {renderEnums(selectedItem)}
           <IconButton
             id='add-enum-button'
             aria-label={getTranslation('add_enum', language)}

@@ -5,7 +5,7 @@ import { ItemDataComponent } from '../ItemDataComponent';
 
 interface ItemPropertiesTabProps {
   language: ILanguage;
-  selectedItem?: UiSchemaItem;
+  selectedItem: UiSchemaItem;
   checkIsNameInUse: (name: string) => boolean;
 }
 
@@ -14,11 +14,11 @@ export const ItemPropertiesTab = ({
   selectedItem,
   checkIsNameInUse,
 }: ItemPropertiesTabProps) => {
-  return selectedItem?.combinationItem && selectedItem?.$ref === undefined ? (
+  return selectedItem.combinationItem && selectedItem.$ref === undefined ? (
     <InlineObject item={selectedItem} language={language} />
   ) : (
     <ItemDataComponent
-      selectedItem={selectedItem ?? null}
+      selectedItem={selectedItem}
       language={language}
       checkIsNameInUse={checkIsNameInUse}
     />

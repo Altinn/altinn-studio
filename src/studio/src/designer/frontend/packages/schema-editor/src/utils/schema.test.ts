@@ -4,6 +4,7 @@ import {
   buildUISchema,
   getUiSchemaItem,
   getUiSchemaItemsByRef,
+  getUiSchemaTreeFromItem,
 } from './schema';
 
 const mockUiSchema: UiSchemaItem[] = [
@@ -175,4 +176,10 @@ test('build UI schema', () => {
     '#/properties',
   ).concat(buildUISchema(mockJsonSchema.$defs, '#/$defs'));
   expect(result).toEqual(mockUiSchema);
+});
+
+test('that we get uiSchemaTree from item ', () => {
+  const testSchema = getUiSchemaItem(mockUiSchema, '#/properties/id2');
+  const tree = getUiSchemaTreeFromItem(mockUiSchema, testSchema);
+  expect(tree).toHaveLength(2);
 });

@@ -66,7 +66,6 @@ export interface ISchemaInspectorProps {
 export const SchemaInspector = ({
   language,
   selectedItem,
-  referredItem,
   checkIsNameInUse,
 }: ISchemaInspectorProps) => {
   const classes = useStyles();
@@ -97,14 +96,14 @@ export const SchemaInspector = ({
               value='1'
               hide={
                 getObjectKind(selectedItem) === ObjectKind.Combination ||
-                selectedItem?.combinationItem
+                selectedItem.combinationItem
               }
             />
             <SchemaTab
               label={__('fields')}
               value='2'
               hide={
-                selectedItem?.type !== 'object' || selectedItem.combinationItem
+                selectedItem.type !== 'object' || selectedItem.combinationItem
               }
             />
           </TabList>

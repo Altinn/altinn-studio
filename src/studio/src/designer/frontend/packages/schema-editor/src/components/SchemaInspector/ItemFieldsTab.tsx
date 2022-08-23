@@ -12,7 +12,7 @@ import { useDispatch } from 'react-redux';
 
 interface ItemFieldsTabProps {
   classes: any;
-  selectedItem?: UiSchemaItem;
+  selectedItem: UiSchemaItem;
   language: ILanguage;
 }
 export const ItemFieldsTab = ({
@@ -20,7 +20,7 @@ export const ItemFieldsTab = ({
   selectedItem,
   language,
 }: ItemFieldsTabProps) => {
-  const readonly = selectedItem?.$ref !== undefined;
+  const readonly = selectedItem.$ref !== undefined;
   const dispatch = useDispatch();
   const onChangePropertyName = (path: string, value: string) =>
     dispatch(
@@ -49,7 +49,7 @@ export const ItemFieldsTab = ({
     ));
   };
   const dispatchAddProperty = () => {
-    const path = selectedItem?.path;
+    const path = selectedItem.path;
     if (path) {
       dispatch(
         addProperty({
@@ -66,7 +66,7 @@ export const ItemFieldsTab = ({
   return (
     <>
       <Grid container spacing={3} className={classes.gridContainer}>
-        {selectedItem && renderItemProperties(selectedItem)}
+        {renderItemProperties(selectedItem)}
       </Grid>
       {!readonly && (
         <AddPropertyButton
