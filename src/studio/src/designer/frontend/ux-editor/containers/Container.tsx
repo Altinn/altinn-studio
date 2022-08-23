@@ -496,7 +496,11 @@ export class ContainerComponent extends React.Component<
           ref={ref}
           className={this.props.classes.wrapper}
         >
-          <Grid item={true} xs={11} className={className} alignItems='stretch'>
+          <Grid
+            item={true}
+            xs={11}
+            className={className}
+          >
             {!this.props.baseContainer && (
               <Grid item={true} style={{ paddingTop: '12px' }}>
                 <IconButton
@@ -516,8 +520,7 @@ export class ContainerComponent extends React.Component<
           </Grid>
           {!this.props.baseContainer && (
             <Grid
-              container={true}
-              direction='row'
+              item={true}
               className={this.props.classes.containerEdit}
               xs={1}
             >
@@ -693,7 +696,6 @@ export class ContainerComponent extends React.Component<
           <Grid
             item={true}
             xs={11}
-            alignItems='stretch'
             className={this.props.classes.editSection}
           >
             {this.renderEditSection()}

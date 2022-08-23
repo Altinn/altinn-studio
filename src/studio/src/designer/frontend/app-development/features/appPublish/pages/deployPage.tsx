@@ -49,7 +49,7 @@ function DeployPage(props: IDeployPaperProps) {
   if (isLoading()) {
     return (
       <Grid item={true} className={classes.deployPaper}>
-        <Grid container={true} direction='row' justify='space-between'>
+        <Grid container={true} direction='row' justifyContent='space-between'>
           <Grid item={true} xs={12}>
             <AltinnContentLoader width={1200} height={600}>
               <rect x='862' y='3' rx='0' ry='0' width='300' height='600' />
@@ -70,7 +70,7 @@ function DeployPage(props: IDeployPaperProps) {
   ) {
     return (
       <Grid item={true} className={classes.deployPaper}>
-        <Grid container={true} direction='row' justify='space-between'>
+        <Grid container={true} direction='row' justifyContent='space-between'>
           <Grid item={true} xs={12}>
             <AltinnInformationCardForChildren
               headerText={getParsedLanguageFromKey(
@@ -96,7 +96,7 @@ function DeployPage(props: IDeployPaperProps) {
 
   return (
     <Grid item={true} className={classes.deployPaper}>
-      <Grid container={true} direction='row' justify='space-between'>
+      <Grid container={true} direction='row' justifyContent='space-between'>
         <Grid item={true} xs={9}>
           <DeployContainerComponent />
         </Grid>

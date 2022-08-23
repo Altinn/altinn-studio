@@ -115,7 +115,7 @@ export class HandleMergeConflictContainer extends React.Component<
       <React.Fragment>
         <MuiThemeProvider theme={theme}>
           <div className={classes.root} id='handleMergeConflictContainer'>
-            <Grid container={true} justify='flex-start' alignItems='stretch'>
+            <Grid container={true} justifyContent='flex-start' alignItems='stretch'>
               <Grid item={true} xs={12}>
                 {repoStatus.hasMergeConflict ? null : (
                   <VersionControlHeader language={language} />
@@ -148,7 +148,7 @@ export class HandleMergeConflictContainer extends React.Component<
                       item={true}
                       xs={12}
                       container={true}
-                      justify='center'
+                      justifyContent='center'
                       alignItems='center'
                       className={classes.containerMessage}
                     >
@@ -222,7 +222,7 @@ export class HandleMergeConflictContainer extends React.Component<
                 item={true}
                 xs={12}
                 alignItems='center'
-                justify='flex-start'
+                justifyContent='flex-start'
                 className={classes.boxBottom}
               >
                 <Grid item={true}>
