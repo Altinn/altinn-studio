@@ -218,8 +218,7 @@ export const SchemaInspector = (props: ISchemaInspectorProps) => {
     }
   };
 
-  const onAddPropertyClicked = (event: React.BaseSyntheticEvent) => {
-    event.preventDefault();
+  const dispatchAddProperty = () => {
     const path = itemToDisplay?.path;
     if (path) {
       dispatch(
@@ -229,6 +228,11 @@ export const SchemaInspector = (props: ISchemaInspectorProps) => {
         }),
       );
     }
+  };
+
+  const onAddPropertyClicked = (event: React.BaseSyntheticEvent) => {
+    event.preventDefault();
+    dispatchAddProperty();
   };
 
   const onAddRestrictionClick = (event?: React.BaseSyntheticEvent) => {
@@ -244,8 +248,7 @@ export const SchemaInspector = (props: ISchemaInspectorProps) => {
     }
   };
 
-  const onAddEnumButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
+  const dispatchAddEnum = () => {
     if (itemToDisplay) {
       dispatch(
         addEnum({
@@ -254,6 +257,11 @@ export const SchemaInspector = (props: ISchemaInspectorProps) => {
         }),
       );
     }
+  };
+
+  const onAddEnumButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    dispatchAddEnum();
   };
   const handleRequiredChanged = (e: any, checked: boolean) => {
     if (selectedItem) {
@@ -282,6 +290,7 @@ export const SchemaInspector = (props: ISchemaInspectorProps) => {
           fullPath={p.path}
           onChangeValue={onChangePropertyName}
           onDeleteField={onDeleteObjectClick}
+          onEnterKeyPress={dispatchAddProperty}
         />
       );
     });
@@ -319,6 +328,7 @@ export const SchemaInspector = (props: ISchemaInspectorProps) => {
         value={value}
         onChange={onChangeEnumValue}
         onDelete={onDeleteEnumClick}
+        onEnterKeyPress={dispatchAddEnum}
       />
     ));
 
