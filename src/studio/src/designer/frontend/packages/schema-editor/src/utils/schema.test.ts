@@ -154,7 +154,14 @@ test('gets UI schema item from allOf/anyOf/oneOf ', () => {
 });
 
 test('build json schema', () => {
-  const result = buildJsonSchema(mockUiSchema);
+  const uiSchema: UiSchemaItem[] = [
+    {
+      path: '#/$schema',
+      value: 'https://json-schema.org/draft/2020-12/schema',
+      displayName: 'schema',
+    } as UiSchemaItem,
+  ].concat(mockUiSchema);
+  const result = buildJsonSchema(uiSchema, mockJsonSchema);
   expect(result).toEqual(mockJsonSchema);
 });
 
