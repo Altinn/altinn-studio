@@ -11,24 +11,23 @@ import {
 } from '../utils/schema';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { UiSchemaItem } from '../types';
 
-const renderSchemaInspector = (selectedId?: string) => {
-  resetUniqueNumber();
+const getMockSchemaByPath = (selectedId: string): UiSchemaItem => {
   const mockUiSchema = buildUISchema(dataMock.definitions, '#/definitions');
+  return getUiSchemaItem(mockUiSchema, selectedId);
+};
+
+const renderSchemaInspector = (selectedItem?: UiSchemaItem) => {
+  resetUniqueNumber();
   const store = configureStore()({});
-  const selectedItem = selectedId
-    ? getUiSchemaItem(mockUiSchema, selectedId)
-    : undefined;
-
-  const checkIsNameInUse = () => false;
-
   const user = userEvent.setup();
   act(() => {
     render(
       <Provider store={store}>
         <SchemaInspector
           language={{}}
-          checkIsNameInUse={checkIsNameInUse}
+          checkIsNameInUse={() => false}
           selectedItem={selectedItem}
         />
       </Provider>,
@@ -39,7 +38,7 @@ const renderSchemaInspector = (selectedId?: string) => {
 
 test('dispatches correctly when entering text in textboxes', async () => {
   const { store, user } = renderSchemaInspector(
-    '#/definitions/Kommentar2000Restriksjon',
+    getMockSchemaByPath('#/definitions/Kommentar2000Restriksjon'),
   );
   expect(screen.getByTestId('schema-inspector')).toBeDefined();
   const tablist = screen.getByRole('tablist');
@@ -65,14 +64,14 @@ test('dispatches correctly when entering text in textboxes', async () => {
 });
 
 test('renders no item if nothing is selected', () => {
-  renderSchemaInspector('');
+  renderSchemaInspector();
   const textboxes = screen.queryAllByRole('textbox');
   expect(textboxes).toHaveLength(0);
 });
 
 test('dispatches correctly when changing restriction value', async () => {
   const { store, user } = renderSchemaInspector(
-    '#/definitions/Kommentar2000Restriksjon',
+    getMockSchemaByPath('#/definitions/Kommentar2000Restriksjon'),
   );
   await user.click(screen.getByRole('tab', { name: 'restrictions' }));
 
@@ -98,43 +97,35 @@ test('dispatches correctly when changing restriction value', async () => {
 
 test('Adds new object field when pressing the enter key', async () => {
   const { store, user } = renderSchemaInspector({
-    uiSchema: [
+    type: 'object',
+    path: '#/properties/test',
+    displayName: 'test',
+    properties: [
       {
-        type: "object",
-        path: "#/properties/test",
-        displayName: "test",
-        properties: [
-          {
-            path: "#/properties/test/properties/abc",
-            displayName: "abc"
-          }
-        ]
-      }
+        path: '#/properties/test/properties/abc',
+        displayName: 'abc',
+      },
     ],
-    selectedPropertyNodeId: '#/properties/test',
-    selectedDefinitionNodeId: ''
   });
   await user.click(screen.queryAllByRole('tab')[2]);
   await user.click(screen.getByDisplayValue('abc'));
   await user.keyboard('{Enter}');
-  expect(store.getActions().map(a => a.type)).toContain('schemaEditor/addProperty');
+  expect(store.getActions().map((a) => a.type)).toContain(
+    'schemaEditor/addProperty',
+  );
 });
 
 test('Adds new valid value field when pressing the enter key', async () => {
   const { store, user } = renderSchemaInspector({
-    uiSchema: [
-      {
-        type: "string",
-        path: "#/properties/test",
-        displayName: "test",
-        enum: ["valid value"]
-      }
-    ],
-    selectedPropertyNodeId: '#/properties/test',
-    selectedDefinitionNodeId: ''
+    type: 'string',
+    path: '#/properties/test',
+    displayName: 'test',
+    enum: ['valid value'],
   });
   await user.click(screen.queryAllByRole('tab')[1]);
   await user.click(screen.getByDisplayValue('valid value'));
   await user.keyboard('{Enter}');
-  expect(store.getActions().map(a => a.type)).toContain('schemaEditor/addEnum');
+  expect(store.getActions().map((a) => a.type)).toContain(
+    'schemaEditor/addEnum',
+  );
 });
