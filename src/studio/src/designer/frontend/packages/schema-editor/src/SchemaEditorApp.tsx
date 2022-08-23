@@ -1,11 +1,12 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import './App.css';
-import SchemaEditor from './components/Editor';
+import { SchemaEditor } from './components/SchemaEditor';
+
 import { store } from './store';
 import type { ILanguage, ISchema } from './types';
 
-export interface IAppProps extends React.PropsWithChildren<any> {
+export interface ISchemaEditorProps extends React.PropsWithChildren<any> {
   language: ILanguage;
   loading?: boolean;
   name?: string;
@@ -13,7 +14,7 @@ export interface IAppProps extends React.PropsWithChildren<any> {
   schema: ISchema;
 }
 
-function SchemaEditorApp(props: IAppProps) {
+export function SchemaEditorApp(props: ISchemaEditorProps) {
   return (
     <Provider store={store}>
       <SchemaEditor
@@ -27,5 +28,3 @@ function SchemaEditorApp(props: IAppProps) {
     </Provider>
   );
 }
-
-export default SchemaEditorApp;

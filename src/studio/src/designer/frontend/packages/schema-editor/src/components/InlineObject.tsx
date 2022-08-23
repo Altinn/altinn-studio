@@ -23,7 +23,7 @@ const useStyles = makeStyles(
   }),
 );
 
-function InlineObject({ item, language }: IInlineObjectProps) {
+export function InlineObject({ item, language }: IInlineObjectProps) {
   // present as plain json object, not with any meta fields used in UiSchemaItem
   const jsonObject = createJsonSchemaItem(item);
   const classes = useStyles();
@@ -52,5 +52,3 @@ function InlineObject({ item, language }: IInlineObjectProps) {
     </Grid>
   );
 }
-
-export default InlineObject;

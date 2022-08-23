@@ -2,12 +2,12 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import {
   buildJsonSchema,
   buildUISchema,
-  splitParentPathAndName,
   getUiSchemaItem,
   getUniqueNumber,
   mapCombinationChildren,
   updateChildPaths,
   getSchemaFromPath,
+  splitParentPathAndName,
 } from '../../utils/schema';
 import type {
   CombinationKind,
@@ -521,7 +521,7 @@ const schemaEditorSlice = createSlice({
       action: PayloadAction<{ onSaveSchema: (payload: any) => void }>,
     ) {
       const { onSaveSchema } = action.payload;
-      const updatedSchema: ISchema = buildJsonSchema(state.uiSchema);
+      const updatedSchema: ISchema = buildJsonSchema(state.uiSchema, state.schema);
       state.schema = updatedSchema;
       if (onSaveSchema) {
         onSaveSchema(updatedSchema);
@@ -541,6 +541,8 @@ const schemaEditorSlice = createSlice({
     },
   },
 });
+
+export const { reducer } = schemaEditorSlice;
 
 export const {
   addRestriction,
@@ -573,5 +575,3 @@ export const {
   setSelectedTab,
   navigateToType,
 } = schemaEditorSlice.actions;
-
-export default schemaEditorSlice.reducer;

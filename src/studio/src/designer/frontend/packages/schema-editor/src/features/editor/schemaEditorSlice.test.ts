@@ -1,4 +1,4 @@
-import reducer, {
+import {
   addRestriction,
   addProperty,
   deleteField,
@@ -26,6 +26,7 @@ import reducer, {
   setCombinationType,
   addCombinationItem,
   deleteCombinationItem,
+  reducer,
 } from './schemaEditorSlice';
 import type {
   CombinationKind,

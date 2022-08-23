@@ -97,8 +97,9 @@ export function buildJsonSchema(uiSchema: UiSchemaItem[], originalJsonSchema: an
   return result;
 }
 
-export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any, originalJsonSchema: any): any {
-  let item: any = JsonPointer.get(originalJsonSchema, uiSchemaItem.path.replace(/^#/, '')) || {};
+export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any, originalJsonSchema?: any): any {
+  let item: any = originalJsonSchema ?
+    JsonPointer.get(originalJsonSchema, uiSchemaItem.path.replace(/^#/, '')) : {};
   Object.keys(uiSchemaItem).forEach((key) => {
     switch (key) {
       case 'properties': {

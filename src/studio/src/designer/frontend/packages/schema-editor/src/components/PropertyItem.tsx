@@ -53,6 +53,7 @@ export interface IPropertyItemProps {
   onChangeRequired?: (path: string, required: boolean) => void;
   onDeleteField?: (path: string, key: string) => void;
   readOnly?: boolean;
+  onEnterKeyPress?: () => void;
 }
 
 export function PropertyItem(props: IPropertyItemProps) {
@@ -86,11 +87,15 @@ export function PropertyItem(props: IPropertyItemProps) {
       }),
     );
   };
+
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) =>
+    e?.key === 'Enter' && props.onEnterKeyPress && props.onEnterKeyPress();
+
   const baseId = getDomFriendlyID(props.fullPath);
   return (
     <>
       <Grid item xs={4}>
-      <FormControl>
+        <FormControl>
           <Input
             id={`${baseId}-key-${getUniqueNumber()}`}
             value={value}
@@ -101,6 +106,7 @@ export function PropertyItem(props: IPropertyItemProps) {
             onChange={onChangeValue}
             onBlur={onBlur}
             className={classes.field}
+            onKeyDown={onKeyDown}
           />
         </FormControl>
       </Grid>

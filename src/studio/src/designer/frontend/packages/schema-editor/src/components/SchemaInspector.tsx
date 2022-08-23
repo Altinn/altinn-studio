@@ -7,37 +7,37 @@ import {
 } from '@material-ui/core';
 import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { makeStyles, createStyles } from '@material-ui/core/styles';
+import { createStyles, makeStyles } from '@material-ui/core/styles';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
 import type {
-  Restriction,
   ILanguage,
   ISchemaState,
+  Restriction,
   UiSchemaItem,
 } from '../types';
 import { ObjectKind } from '../types/enums';
 import { PropertyItem } from './PropertyItem';
 import {
+  addEnum,
+  addProperty,
+  addRestriction,
+  deleteEnum,
+  deleteField,
+  deleteProperty,
+  setPropertyName,
+  setRequired,
   setRestriction,
   setRestrictionKey,
-  deleteField,
-  setPropertyName,
-  addRestriction,
-  deleteProperty,
-  setRequired,
-  addProperty,
-  addEnum,
-  deleteEnum,
 } from '../features/editor/schemaEditorSlice';
-import { splitParentPathAndName, getUiSchemaItem } from '../utils/schema';
+import { getUiSchemaItem, splitParentPathAndName } from '../utils/schema';
 import { getTranslation } from '../utils/language';
 import { RestrictionField } from './RestrictionField';
 import { EnumField } from './EnumField';
 import { SchemaTab } from './SchemaTab';
-import InlineObject from './InlineObject';
 import { isFieldRequired, isNameInUse } from '../utils/checks';
 import { AddPropertyButton } from './AddPropertyButton';
 import { ItemDataComponent } from './ItemDataComponent';
+import { InlineObject } from './InlineObject';
 
 const useStyles = makeStyles(
   createStyles({
@@ -93,7 +93,7 @@ export interface ISchemaInspectorProps {
   language: ILanguage;
 }
 
-const SchemaInspector = (props: ISchemaInspectorProps) => {
+export const SchemaInspector = (props: ISchemaInspectorProps) => {
   const classes = useStyles();
   const dispatch = useDispatch();
 
@@ -218,8 +218,7 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
     }
   };
 
-  const onAddPropertyClicked = (event: React.BaseSyntheticEvent) => {
-    event.preventDefault();
+  const dispatchAddProperty = () => {
     const path = itemToDisplay?.path;
     if (path) {
       dispatch(
@@ -229,6 +228,11 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
         }),
       );
     }
+  };
+
+  const onAddPropertyClicked = (event: React.BaseSyntheticEvent) => {
+    event.preventDefault();
+    dispatchAddProperty();
   };
 
   const onAddRestrictionClick = (event?: React.BaseSyntheticEvent) => {
@@ -244,8 +248,7 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
     }
   };
 
-  const onAddEnumButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
+  const dispatchAddEnum = () => {
     if (itemToDisplay) {
       dispatch(
         addEnum({
@@ -254,6 +257,11 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
         }),
       );
     }
+  };
+
+  const onAddEnumButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    dispatchAddEnum();
   };
   const handleRequiredChanged = (e: any, checked: boolean) => {
     if (selectedItem) {
@@ -282,6 +290,7 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
           fullPath={p.path}
           onChangeValue={onChangePropertyName}
           onDeleteField={onDeleteObjectClick}
+          onEnterKeyPress={dispatchAddProperty}
         />
       );
     });
@@ -319,6 +328,7 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
         value={value}
         onChange={onChangeEnumValue}
         onDelete={onDeleteEnumClick}
+        onEnterKeyPress={dispatchAddEnum}
       />
     ));
 
@@ -445,5 +455,3 @@ const SchemaInspector = (props: ISchemaInspectorProps) => {
     </div>
   );
 };
-
-export default SchemaInspector;
