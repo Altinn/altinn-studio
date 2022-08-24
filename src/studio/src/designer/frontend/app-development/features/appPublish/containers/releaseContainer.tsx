@@ -283,12 +283,12 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
       !handleMergeConflict.repoStatus.contentStatus
     ) {
       return (
-        <Grid container={true} direction='row' justify='center'>
-          <Grid container={true} direction='row' justify='center'>
+        <Grid container={true} direction='row' justifyContent='center'>
+          <Grid container={true} direction='row' justifyContent='center'>
             <Grid
               container={true}
               direction='column'
-              justify='space-evenly'
+              justifyContent='space-evenly'
               style={{
                 padding: '2rem',
               }}
@@ -472,7 +472,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
             direction='column'
             className={classes.appCreateReleaseWrapper}
           >
-            <Grid container={true} direction='row' justify='space-between'>
+            <Grid container={true} direction='row' justifyContent='space-between'>
               <Grid item={true} xs={10}>
                 <Typography className={classes.appCreateReleaseTitle}>
                   {renderCreateReleaseTitle()}

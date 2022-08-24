@@ -338,7 +338,7 @@ class FileEditor extends React.Component<
         item={true}
         xs={true}
         container={true}
-        justify='flex-end'
+        justifyContent='flex-end'
         alignItems='center'
       >
         <Grid item={true}>
@@ -381,7 +381,7 @@ class FileEditor extends React.Component<
           item={true}
           xs={true}
           container={true}
-          justify='flex-start'
+          justifyContent='flex-start'
           alignItems='center'
           className={classes.fileHeader}
         >

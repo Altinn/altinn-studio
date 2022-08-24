@@ -113,7 +113,7 @@ function ReleaseComponent(props: IAppReleaseComponent) {
 
   return (
     <Grid container={true} direction='row' className={classes.releaseWrapper}>
-      <Grid container={true} direction='row' justify='space-between'>
+      <Grid container={true} direction='row' justifyContent='space-between'>
         <Grid item={true} className={classes.releaseRow}>
           <Typography className={classes.releaseText}>
             {getLanguageFromKey('app_release.release_version', language)}{' '}
@@ -129,7 +129,7 @@ function ReleaseComponent(props: IAppReleaseComponent) {
       <Grid
         container={true}
         direction='row'
-        justify='space-between'
+        justifyContent='space-between'
         className={classes.releaseRow}
       >
         <Grid item={true}>
