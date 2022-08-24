@@ -6,10 +6,9 @@
     <AssemblyName>Altinn.Studio.Designer</AssemblyName>
     <Company>Altinn</Company>
     <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
-    <TypeScriptToolsVersion>3.7</TypeScriptToolsVersion>
+    <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
     <TypeScriptCompileBlocked>True</TypeScriptCompileBlocked>
     <MvcRazorExcludeRefAssembliesFromPublish>false</MvcRazorExcludeRefAssembliesFromPublish>
-    <TypeScriptCompileBlocked>True</TypeScriptCompileBlocked>
     <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
     <UserSecretsId>c958e7e5-da9b-411d-8ee0-70bcfe1f64ed</UserSecretsId>
     <RootNamespace>Altinn.Studio.Designer</RootNamespace>
