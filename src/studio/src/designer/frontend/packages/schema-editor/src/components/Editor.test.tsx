@@ -6,7 +6,7 @@ import { dataMock } from '../mockData';
 import { render, screen } from '@testing-library/react';
 import { ISchemaState } from '../types';
 import userEvent from '@testing-library/user-event';
-import { UserEvent } from '@testing-library/user-event/setup/index';
+import type { UserEvent } from '@testing-library/user-event/dist/types/setup/setup';
 import { SchemaEditor } from './SchemaEditor';
 
 const mockLanguage = {
@@ -166,7 +166,7 @@ test('should not show add property or add reference buttons on a reference node'
   const definitions = {
     mockDefinition: { type: 'object' },
   };
-  const { store, user } = renderEditor({
+  const { user } = renderEditor({
     schema: { properties, definitions },
     uiSchema: buildUISchema(properties, '#/properties').concat(
       buildUISchema(definitions, '#/definitions'),
