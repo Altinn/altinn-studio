@@ -16,15 +16,16 @@ import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import RightMenu from '../components/rightMenu/RightMenu';
 import { filterDataModelForIntellisense } from '../utils/datamodel';
-import DesignView from './DesignView';
+import { DesignView, IDesignerPreviewState } from './DesignView';
 import { Toolbar } from './Toolbar';
 import { fetchServiceConfiguration } from '../features/serviceConfigurations/serviceConfigurationSlice';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import type {
+  IAppState,
   IDataModelFieldElement,
   LogicMode,
-  IAppState,
 } from '../types/global';
+import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 
 const useTheme = createTheme(altinnTheme);
 
@@ -182,7 +183,22 @@ function FormDesigner() {
       </Drawer>
     );
   };
-
+  const designerViewState = useSelector(
+    (appState: IAppState): IDesignerPreviewState => {
+      const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
+      const selectedLayout = appState.formDesigner.layout.selectedLayout;
+      return {
+        layoutOrder: JSON.parse(
+          JSON.stringify(
+            appState.formDesigner.layout.layouts[selectedLayout]?.order || {},
+          ),
+        ),
+        order: GetLayoutOrderSelector(appState),
+        activeList: appState.formDesigner.layout.activeList,
+        isDragging: false,
+      };
+    },
+  );
   return (
     <DndProvider backend={HTML5Backend}>
       <div className={classes.root}>
@@ -222,7 +238,7 @@ function FormDesigner() {
                 marginLeft: '24px',
               }}
             >
-              <DesignView />
+              <DesignView {...designerViewState} />
               {codeEditorOpen ? renderLogicEditor() : null}
             </div>
           </Grid>

@@ -1,78 +1,46 @@
-import React from 'react';
-import { connect } from 'react-redux';
-import { Dispatch } from 'redux';
-import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
+import React, { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { Container } from './Container';
 import DroppableDraggableContainer from './DroppableDraggableContainer';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
-import type { IFormLayoutOrder, IAppState } from '../types/global';
+import type { IFormLayoutOrder } from '../types/global';
 
-interface IDesignerPreviewProvidedProps {
-  dispatch?: Dispatch;
-}
-
-interface IDesignerPreviewProps extends IDesignerPreviewProvidedProps {
-  layoutOrder: IFormLayoutOrder;
-  order: IFormLayoutOrder;
-  activeList: any[];
-}
-
-interface IDesignerPreviewState {
+export interface IDesignerPreviewState {
   layoutOrder: IFormLayoutOrder;
   order: IFormLayoutOrder;
   activeList: any[];
   isDragging: boolean;
 }
 
-class DesignView extends React.Component<
-  IDesignerPreviewProps,
-  IDesignerPreviewState
-> {
-  public static getDerivedStateFromProps(
-    nextProps: IDesignerPreviewProps,
-    prevState: IDesignerPreviewState,
-  ) {
-    if (prevState.isDragging) {
-      return {
-        ...prevState,
-      };
-    }
-    return {
-      ...nextProps,
-    };
-  }
+export const DesignView = (initialState: IDesignerPreviewState) => {
+  const [state, setState] = useState<IDesignerPreviewState>({
+    layoutOrder: {},
+    order: {},
+    activeList: [],
+    isDragging: false,
+  });
+  useEffect(() => setState(initialState), [initialState]);
 
-  constructor(_props: IDesignerPreviewProps) {
-    super(_props);
+  const dispatch = useDispatch();
 
-    this.state = {
-      layoutOrder: _props.layoutOrder,
-      isDragging: false,
-      order: _props.order,
-      activeList: _props.activeList,
-    };
-  }
-
-  public moveComponent = (
+  const moveComponent = (
     id: string,
     index: number,
     sourceContainerId: string,
     destinationContainerId: string,
   ): void => {
     if (!id) {
-      // dragging a toolbaritem - they don't have ids
-      return;
+      return; // dragging a toolbaritem - they don't have ids
     }
 
     if (sourceContainerId === destinationContainerId) {
-      const { layoutOrder } = this.state;
-      const updatedOrder: string[] = layoutOrder[sourceContainerId];
+      const updatedOrder: string[] = state.layoutOrder[sourceContainerId];
       if (updatedOrder.indexOf(id) === index) {
         return;
       }
       const [moveItem] = updatedOrder.splice(updatedOrder.indexOf(id), 1);
       updatedOrder.splice(index, 0, moveItem);
-      this.setState((prevState: IDesignerPreviewState) => {
+      setState((prevState: IDesignerPreviewState) => {
         return {
           ...prevState,
           layoutOrder: {
@@ -85,10 +53,10 @@ class DesignView extends React.Component<
     } else {
       // Moving to different container
       // If element is still inside old container => remove from old and place in the new conatiner
-      const { layoutOrder } = this.state;
-      const updatedOrderSource: string[] = layoutOrder[sourceContainerId];
+      const updatedOrderSource: string[] = state.layoutOrder[sourceContainerId];
       const updatedOrderDestination: string[] =
-        layoutOrder[destinationContainerId];
+        state.layoutOrder[destinationContainerId];
+
       if (updatedOrderSource.indexOf(id) > -1) {
         // Remove component from source, place in dest layoutOrder
         const [moveItem] = updatedOrderSource.splice(
@@ -96,7 +64,7 @@ class DesignView extends React.Component<
           1,
         );
         updatedOrderDestination.splice(index, 0, moveItem);
-        this.setState((prevState: IDesignerPreviewState) => {
+        setState((prevState: IDesignerPreviewState) => {
           return {
             ...prevState,
             layoutOrder: {
@@ -109,26 +77,24 @@ class DesignView extends React.Component<
         });
       } else {
         // The component has been dragged to an unknown container, locate the container and remove
-        const container = Object.keys(layoutOrder).find(
-          (containerId: string) => {
-            return layoutOrder[containerId].includes(id);
-          },
+        const container = Object.keys(state.layoutOrder).find(
+          (containerId: string) => state.layoutOrder[containerId].includes(id),
         );
-        const [movedComponent] = layoutOrder[container].splice(
-          layoutOrder[container].indexOf(id),
+        const [movedComponent] = state.layoutOrder[container].splice(
+          state.layoutOrder[container].indexOf(id),
           1,
         );
         if (!movedComponent) {
           return;
         }
         updatedOrderDestination.splice(index, 0, movedComponent);
-        this.setState((prevState: IDesignerPreviewState) => {
+        setState((prevState: IDesignerPreviewState) => {
           return {
             ...prevState,
             layoutOrder: {
               ...prevState.layoutOrder,
               [destinationContainerId]: [...updatedOrderDestination],
-              [container]: [...layoutOrder[container]],
+              [container]: [...state.layoutOrder[container]],
             },
             isDragging: true,
           };
@@ -137,41 +103,38 @@ class DesignView extends React.Component<
     }
   };
 
-  public getStatefullIndexOfContainer = (
+  const getStatefullIndexOfContainer = (
     containerId: string,
-    parentContainerId: string = Object.keys(this.props.layoutOrder)[0],
+    parentContainerId: string = Object.keys(state.layoutOrder)[0],
   ): number => {
     if (containerId === parentContainerId) {
       return 0;
     }
-    return this.state.layoutOrder[parentContainerId]?.indexOf(containerId);
+    return state.layoutOrder[parentContainerId]?.indexOf(containerId);
   };
 
-  public moveContainer = (
+  const moveContainer = (
     id: string,
     index: number,
     sourceContainerId: string,
     destinationContainerId: string,
-  ) => {
+  ): void => {
     if (!id) {
-      // No id, no drag
-      return;
+      return; // No id, no drag
     }
 
     if (!destinationContainerId) {
-      // dont know where to put the container, ignore
-      return;
+      return; // dont know where to put the container, ignore
     }
 
     if (sourceContainerId === destinationContainerId) {
-      const { layoutOrder } = this.state;
-      const updatedOrder: string[] = layoutOrder[sourceContainerId];
+      const updatedOrder: string[] = state.layoutOrder[sourceContainerId];
       if (updatedOrder.indexOf(id) < 0) {
         return;
       }
       const [movedContainer] = updatedOrder.splice(updatedOrder.indexOf(id), 1);
       updatedOrder.splice(index, 0, movedContainer);
-      this.setState((prevState: IDesignerPreviewState) => {
+      setState((prevState: IDesignerPreviewState) => {
         return {
           ...prevState,
           layoutOrder: {
@@ -182,19 +145,19 @@ class DesignView extends React.Component<
         };
       });
     } else {
-      const { layoutOrder } = this.state;
-      const updatedSource: string[] = layoutOrder[sourceContainerId];
-      const updatedDestination: string[] = layoutOrder[destinationContainerId];
+      const updatedSource: string[] = state.layoutOrder[sourceContainerId];
+      const updatedDestination: string[] =
+        state.layoutOrder[destinationContainerId];
       if (updatedDestination?.indexOf('placeholder') > -1) {
         // remove the placeholder in the destination (if there is one)
         updatedDestination.splice(updatedDestination.indexOf('placeholder'), 1);
       }
       const [movedContainer] = updatedSource.splice(
-        layoutOrder[sourceContainerId].indexOf(id),
+        state.layoutOrder[sourceContainerId].indexOf(id),
         1,
       );
       updatedDestination?.splice(index, 0, movedContainer);
-      this.setState((prevState: IDesignerPreviewState) => {
+      setState((prevState: IDesignerPreviewState) => {
         return {
           ...prevState,
           layoutOrder: {
@@ -207,14 +170,13 @@ class DesignView extends React.Component<
     }
   };
 
-  public dropContainer = () => {
-    const { dispatch } = this.props;
+  const dropContainer = () => {
     dispatch(
       FormLayoutActions.updateFormComponentOrder({
-        updatedOrder: this.state.layoutOrder,
+        updatedOrder: state.layoutOrder,
       }),
     );
-    this.setState((prevState: IDesignerPreviewState) => {
+    setState((prevState: IDesignerPreviewState) => {
       return {
         ...prevState,
         isDragging: false,
@@ -222,20 +184,19 @@ class DesignView extends React.Component<
     });
     dispatch(
       FormLayoutActions.updateActiveListOrder({
-        containerList: this.props.activeList,
-        orderList: this.props.order as any,
+        containerList: state.activeList,
+        orderList: state.order as any,
       }),
     );
   };
 
-  public dropComponent = () => {
-    const { dispatch } = this.props;
+  const dropComponent = () => {
     dispatch(
       FormLayoutActions.updateFormComponentOrder({
-        updatedOrder: this.state.layoutOrder,
+        updatedOrder: state.layoutOrder,
       }),
     );
-    this.setState((prevState: IDesignerPreviewState) => {
+    setState((prevState: IDesignerPreviewState) => {
       return {
         ...prevState,
         isDragging: false,
@@ -243,62 +204,40 @@ class DesignView extends React.Component<
     });
     dispatch(
       FormLayoutActions.updateActiveListOrder({
-        containerList: this.props.activeList,
-        orderList: this.props.order as any,
+        containerList: state.activeList,
+        orderList: state.order as any,
       }),
     );
   };
+  const baseContainerId =
+    Object.keys(state.layoutOrder).length > 0
+      ? Object.keys(state.layoutOrder)[0]
+      : null;
 
-  public render(): JSX.Element {
-    const baseContainerId =
-      Object.keys(this.state.layoutOrder).length > 0
-        ? Object.keys(this.state.layoutOrder)[0]
-        : null;
-    if (!baseContainerId) {
-      return null;
-    }
-    return (
+  return (
+    baseContainerId && (
       <DroppableDraggableContainer
         id={baseContainerId}
         baseContainer={true}
         canDrag={false}
-        onDropComponent={this.dropComponent}
-        onMoveComponent={this.moveComponent}
-        onDropContainer={this.dropContainer}
-        onMoveContainer={this.moveContainer}
-        getIndex={this.getStatefullIndexOfContainer}
+        onDropComponent={dropComponent}
+        onMoveComponent={moveComponent}
+        onDropContainer={dropContainer}
+        onMoveContainer={moveContainer}
+        getIndex={getStatefullIndexOfContainer}
       >
         <Container
           baseContainer={true}
           id={baseContainerId}
-          items={this.state.layoutOrder[baseContainerId]}
+          items={state.layoutOrder[baseContainerId]}
           key={baseContainerId}
-          layoutOrder={this.state.layoutOrder}
-          onDropComponent={this.dropComponent}
-          onMoveComponent={this.moveComponent}
-          onDropContainer={this.dropContainer}
-          onMoveContainer={this.moveContainer}
+          layoutOrder={state.layoutOrder}
+          onDropComponent={dropComponent}
+          onMoveComponent={moveComponent}
+          onDropContainer={dropContainer}
+          onMoveContainer={moveContainer}
         />
       </DroppableDraggableContainer>
-    );
-  }
-}
-const mapsStateToProps = (
-  state: IAppState,
-  props: IDesignerPreviewProvidedProps,
-): IDesignerPreviewProps => {
-  const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
-  const selectedLayout = state.formDesigner.layout.selectedLayout;
-  return {
-    layoutOrder: JSON.parse(
-      JSON.stringify(
-        state.formDesigner.layout.layouts[selectedLayout]?.order || {},
-      ),
-    ),
-    order: GetLayoutOrderSelector(state),
-    activeList: state.formDesigner.layout.activeList,
-    dispatch: props.dispatch,
-  };
+    )
+  );
 };
-
-export default connect(mapsStateToProps)(DesignView);
