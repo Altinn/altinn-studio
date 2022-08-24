@@ -1,5 +1,5 @@
 import { Grid } from '@material-ui/core';
-import AppBarComponent from 'app-shared/navigation/main-header/appBar';
+import { AppBar } from './AppBar';
 import React from 'react';
 import { Redirect, Route } from 'react-router-dom';
 import routes from '../config/routes';
@@ -24,7 +24,7 @@ const PageHeader = (ownProps: IPageHeaderProps) => {
         ))}
       {routes.map((route) => (
         <Route key={route.path} path={route.path} exact={route.exact}>
-          <AppBarComponent
+          <AppBar
             activeLeftMenuSelection={route.activeLeftMenuSelection}
             activeSubHeaderSelection={route.activeSubHeaderSelection}
             logoutButton={repoStatus.hasMergeConflict}

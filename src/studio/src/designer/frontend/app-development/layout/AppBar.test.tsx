@@ -2,13 +2,13 @@ import { createTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 import { render as rtlRender, screen } from '@testing-library/react';
-import AppBarComponent from './appBar';
-import type { IAppBarComponentProps } from './appBar';
-import altinnTheme from '../../theme/altinnStudioTheme';
+import { AppBar } from './AppBar';
+import type { IAppBarProps } from './AppBar';
+import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 
 import { menu } from './appBarConfig';
 
-describe('AppBarComponent', () => {
+describe('AppBar', () => {
   describe('Snapshot', () => {
     it('should match snapshot', () => {
       const { container } = render();
@@ -73,7 +73,7 @@ describe('AppBarComponent', () => {
   });
 });
 
-const render = (props: Partial<IAppBarComponentProps> = {}) => {
+const render = (props: Partial<IAppBarProps> = {}) => {
   const theme = createTheme({
     ...altinnTheme,
     props: {
@@ -90,12 +90,12 @@ const render = (props: Partial<IAppBarComponentProps> = {}) => {
     showSubMenu: true,
     activeSubHeaderSelection: 'Lage',
     ...props,
-  } as IAppBarComponentProps;
+  } as IAppBarProps;
 
   return rtlRender(
     <MemoryRouter>
       <MuiThemeProvider theme={theme}>
-        <AppBarComponent {...allProps} />
+        <AppBar {...allProps} />
       </MuiThemeProvider>
     </MemoryRouter>,
   );
