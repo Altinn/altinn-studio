@@ -1,4 +1,6 @@
-import { Grid, Hidden, StyledComponentProps } from '@material-ui/core';
+import { Grid, StyledComponentProps } from '@material-ui/core';
+import type { Theme } from '@material-ui/core';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 import LeftDrawerMenu from 'app-shared/navigation/drawer/LeftDrawerMenu';
 import classNames from 'classnames';
 import React from 'react';
@@ -13,45 +15,44 @@ interface ILeftMenuProps extends StyledComponentProps {
   language: any;
 }
 
+const SideBar = () => {
+  const shouldHideLeftMenu = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down('sm'),
+  );
+
+  if (shouldHideLeftMenu) {
+    return null;
+  }
+
+  return (
+    <div style={{ top: 50 }}>
+      {routes.map((route) => (
+        <Route key={route.path} path={route.path} exact={route.exact}>
+          <LeftDrawerMenu
+            menuType={route.menu}
+            activeLeftMenuSelection={route.activeLeftMenuSelection}
+            leftMenuItems={appDevelopmentLeftDrawerSettings}
+          />
+        </Route>
+      ))}
+    </div>
+  );
+};
+
 const LeftMenu = ({ repoStatus, classes, language }: ILeftMenuProps) => {
   return (
     <Grid item xs={12}>
       {!repoStatus.hasMergeConflict ? (
         <>
-          <Hidden smDown>
-            <div style={{ top: 50 }}>
-              {routes.map((route) => (
-                <Route
-                  key={route.path}
-                  path={route.path}
-                  exact={route.exact}
-                  render={(props) => (
-                    <LeftDrawerMenu
-                      {...props}
-                      menuType={route.menu}
-                      activeLeftMenuSelection={route.activeLeftMenuSelection}
-                      leftMenuItems={appDevelopmentLeftDrawerSettings}
-                    />
-                  )}
-                />
-              ))}
-            </div>
-          </Hidden>
+          <SideBar />
           <div className={classes.subApp}>
-            {routes.map((route) => (
-              <Route
-                key={route.path}
-                path={route.path}
-                exact={route.exact}
-                render={(props) => (
-                  <route.subapp
-                    {...props}
-                    {...route.props}
-                    language={language}
-                  />
-                )}
-              />
-            ))}
+            {routes.map((route) => {
+              return (
+                <Route key={route.path} path={route.path} exact={route.exact}>
+                  <route.subapp {...route.props} language={language} />
+                </Route>
+              );
+            })}
           </div>
         </>
       ) : (
@@ -62,11 +63,9 @@ const LeftMenu = ({ repoStatus, classes, language }: ILeftMenuProps) => {
           })}
         >
           <Switch>
-            <Route
-              path='/mergeconflict'
-              exact={true}
-              component={HandleMergeConflict}
-            />
+            <Route path='/mergeconflict' exact={true}>
+              <HandleMergeConflict />
+            </Route>
             <Redirect to='/mergeconflict' />
           </Switch>
         </div>

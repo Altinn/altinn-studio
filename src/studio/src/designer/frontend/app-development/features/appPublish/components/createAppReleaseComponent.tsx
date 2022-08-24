@@ -141,7 +141,7 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
           direction='column'
           className={classes.createReleaseFormItem}
         >
-          <Grid container={true} direction='column-reverse' justify='flex-end'>
+          <Grid container={true} direction='column-reverse' justifyContent='flex-end'>
             {!versionNameValid() ? (
               <Grid
                 className={classes.createReleaseInvalidTagNameWrapper}

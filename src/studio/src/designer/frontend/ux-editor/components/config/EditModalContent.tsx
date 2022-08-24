@@ -667,7 +667,6 @@ export class EditModalContentComponent extends React.Component<
                   (element) => element.value === this.state.component.type,
                 )}
                 onChange={this.handleButtonTypeChange}
-                selectedElement={this.state.component.type}
                 placeholder={getLanguageFromKey(
                   'ux_editor.modal_properties_button_type_submit',
                   this.props.language,
