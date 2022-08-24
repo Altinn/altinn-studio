@@ -369,8 +369,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">The name of repository.</param>
-        /// XSD is the Altinn 2 way, while Json Schema is the Altinn 3 way. You can go from XSD to Json Schema, but there isn't an easy way to go from Json Schema to XSD.
-        /// </param>
         /// <returns>
         /// An indication if app was created successful or not.
         /// </returns>
