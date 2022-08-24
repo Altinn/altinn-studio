@@ -53,7 +53,6 @@ describe('AppBar', () => {
         const { container } = render({
           activeSubHeaderSelection: entry.activeSubHeaderSelection,
           showSubMenu: true,
-          showBreadcrumbOnTablet: true,
         });
 
         const activeClassNamePartial = 'subHeaderLinkActive';

@@ -30,7 +30,6 @@ const PageHeader = (ownProps: IPageHeaderProps) => {
             logoutButton={repoStatus.hasMergeConflict}
             org={org}
             app={app}
-            showBreadcrumbOnTablet={true}
             showSubMenu={!repoStatus.hasMergeConflict}
             mainMenuItems={[
               {

@@ -1,6 +1,6 @@
 import MuiAppBar from '@material-ui/core/AppBar';
 import Grid from '@material-ui/core/Grid';
-import Hidden from '@material-ui/core/Hidden';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
 import type { Theme } from '@material-ui/core/styles';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -20,7 +20,6 @@ export interface IAppBarProps {
   org?: string;
   app?: string;
   user?: string;
-  showBreadcrumbOnTablet?: boolean;
   showSubMenu?: boolean;
   mainMenuItems?: IMenuItem[];
   subMenuItems?: { [key: string]: IMenuItem[] };
@@ -108,13 +107,18 @@ export const AppBar = ({
   org,
   app,
   user,
-  showBreadcrumbOnTablet,
   mainMenuItems,
   subMenuItems,
   showSubMenu,
 }: IAppBarProps) => {
   const classes = useStyles();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const hiddenMdUp = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.up('md'),
+  );
+  const hiddenSmDown = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down('sm'),
+  );
 
   const handleDrawerMenuClick = () => {
     setIsMenuOpen((prev) => !prev);
@@ -143,25 +147,22 @@ export const AppBar = ({
                   <img src={altinnImgLogoHeaderUrl} alt='Altinn logo' />
                 </a>
               </Grid>
-              <Hidden mdUp>
-                {!showBreadcrumbOnTablet ? null : (
-                  <Grid item className={classes.breadCrumb}>
-                    {activeSubHeaderSelection &&
-                      `/ ${activeSubHeaderSelection}`}{' '}
-                    /
-                    <span className={classes.breadCrumbSubApp}>
-                      {' '}
-                      {activeLeftMenuSelection}{' '}
-                    </span>
-                  </Grid>
-                )}
-              </Hidden>
+              {hiddenMdUp ? null : (
+                <Grid item className={classes.breadCrumb}>
+                  {activeSubHeaderSelection && `/ ${activeSubHeaderSelection}`}{' '}
+                  /
+                  <span className={classes.breadCrumbSubApp}>
+                    {' '}
+                    {activeLeftMenuSelection}{' '}
+                  </span>
+                </Grid>
+              )}
             </Grid>
-            <Hidden smDown>
+            {hiddenSmDown ? null : (
               <Grid xs item className={classes.paper}>
                 {org && app ? `${org} / ${app}` : ''}
               </Grid>
-            </Hidden>
+            )}
             <Grid
               item
               xs
@@ -171,12 +172,12 @@ export const AppBar = ({
               justifyContent='flex-end'
             >
               {user || ''}
-              <Hidden smDown>
+              {hiddenSmDown ? null : (
                 <Grid item>
                   <ProfileMenu showlogout />
                 </Grid>
-              </Hidden>
-              <Hidden mdUp>
+              )}
+              {hiddenMdUp ? null : (
                 <Grid item>
                   <TabletDrawerMenu
                     handleTabletDrawerMenu={handleDrawerMenuClick}
@@ -188,41 +189,41 @@ export const AppBar = ({
                     leftDrawerMenuItems={subMenuItems}
                   />
                 </Grid>
-              </Hidden>
+              )}
             </Grid>
           </Grid>
         </Toolbar>
-        <Hidden smDown>
-          {showSubMenu && (
-            <Toolbar>
-              <Grid
-                container
-                direction='row'
-                justifyContent='center'
-                alignItems='center'
-              >
-                {menu.map((item) => (
-                  <Grid
-                    item
-                    key={item.key}
-                    className={classNames(classes.subHeader)}
-                  >
-                    <Link
-                      to={item.link}
-                      className={classNames(classes.subHeaderLink, {
-                        [classes.subHeaderLinkActive]:
-                          activeSubHeaderSelection ===
-                          item.activeSubHeaderSelection,
-                      })}
+        {hiddenSmDown
+          ? null
+          : showSubMenu && (
+              <Toolbar>
+                <Grid
+                  container
+                  direction='row'
+                  justifyContent='center'
+                  alignItems='center'
+                >
+                  {menu.map((item) => (
+                    <Grid
+                      item
+                      key={item.key}
+                      className={classNames(classes.subHeader)}
                     >
-                      {item.key}
-                    </Link>
-                  </Grid>
-                ))}
-              </Grid>
-            </Toolbar>
-          )}
-        </Hidden>
+                      <Link
+                        to={item.link}
+                        className={classNames(classes.subHeaderLink, {
+                          [classes.subHeaderLinkActive]:
+                            activeSubHeaderSelection ===
+                            item.activeSubHeaderSelection,
+                        })}
+                      >
+                        {item.key}
+                      </Link>
+                    </Grid>
+                  ))}
+                </Grid>
+              </Toolbar>
+            )}
       </MuiAppBar>
     </div>
   );
