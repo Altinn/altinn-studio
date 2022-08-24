@@ -161,7 +161,7 @@ test('build json schema', () => {
       displayName: 'schema',
     } as UiSchemaItem,
   ].concat(mockUiSchema);
-  const result = buildJsonSchema(uiSchema, mockJsonSchema);
+  const result = buildJsonSchema(uiSchema);
   expect(result).toEqual(mockJsonSchema);
 });
 

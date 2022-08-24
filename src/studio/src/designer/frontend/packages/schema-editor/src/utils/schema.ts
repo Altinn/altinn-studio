@@ -88,24 +88,23 @@ export function getUiSchemaTreeFromItem(
   return itemList;
 }
 
-export function buildJsonSchema(uiSchema: UiSchemaItem[], originalJsonSchema: any): any {
+export function buildJsonSchema(uiSchema: UiSchemaItem[]): any {
   const result: any = {};
   uiSchema.forEach((uiItem) => {
-    const item = createJsonSchemaItem(uiItem, originalJsonSchema);
+    const item = createJsonSchemaItem(uiItem);
     JsonPointer.set(result, uiItem.path.replace(/^#/, ''), item);
   });
   return result;
 }
 
-export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any, originalJsonSchema?: any): any {
-  let item: any = originalJsonSchema ?
-    JsonPointer.get(originalJsonSchema, uiSchemaItem.path.replace(/^#/, '')) : {};
+export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
+  let item: any = {};
   Object.keys(uiSchemaItem).forEach((key) => {
     switch (key) {
       case 'properties': {
         item.properties = item.properties || {};
         uiSchemaItem.properties?.forEach((property: UiSchemaItem) => {
-          item.properties[property.displayName] = createJsonSchemaItem(property, originalJsonSchema);
+          item.properties[property.displayName] = createJsonSchemaItem(property);
         });
         break;
       }
@@ -135,7 +134,7 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any, originalJ
           const combinationKind = uiSchemaItem.combinationKind;
           item[combinationKind] = [];
           uiSchemaItem[key]?.forEach((property: UiSchemaItem) => {
-            item[combinationKind].push(createJsonSchemaItem(property, originalJsonSchema));
+            item[combinationKind].push(createJsonSchemaItem(property));
           });
         }
         break;
@@ -188,21 +187,7 @@ export function buildUISchema(
     const item = schema[key];
     const path = `${rootPath}/${key}`;
     const displayName = includeDisplayName ? key : path;
-    const {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      title, description, type, enum: enums, items, oneOf, allOf, anyOf, ...restProps
-    } = item;
 
-    if (item.$ref) {
-      result.push({
-        path,
-        $ref: item.$ref,
-        displayName,
-        ...(title && { title }),
-        ...( description && { description }),
-      });
-      return;
-    }
     if (item?.properties && Object.keys(item.properties).length > 0) {
       result.push(buildUiSchemaForItemWithProperties(item, path, displayName));
     } else if (item.$ref) {
@@ -210,10 +195,14 @@ export function buildUISchema(
         path,
         $ref: item.$ref,
         displayName,
-        ...(title && { title }),
+        ...(item.title && { title: item.title }),
         ...( item.description && {description: item.description }),
       });
     } else if (typeof item === 'object' && item !== null) {
+      const {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        title, description, type, enum: enums, items, oneOf, allOf, anyOf, ...restProps
+      } = item;
       result.push({
         path,
         restrictions: Object.keys(restProps).map((k: any) => ({ key: k, value: restProps[k] })),

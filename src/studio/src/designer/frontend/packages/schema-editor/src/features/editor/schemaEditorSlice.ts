@@ -521,7 +521,7 @@ const schemaEditorSlice = createSlice({
       action: PayloadAction<{ onSaveSchema: (payload: any) => void }>,
     ) {
       const { onSaveSchema } = action.payload;
-      const updatedSchema: ISchema = buildJsonSchema(state.uiSchema, state.schema);
+      const updatedSchema: ISchema = buildJsonSchema(state.uiSchema);
       state.schema = updatedSchema;
       if (onSaveSchema) {
         onSaveSchema(updatedSchema);
