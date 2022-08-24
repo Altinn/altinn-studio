@@ -149,6 +149,9 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
         }
         break;
       }
+      case 'type':
+        if (uiSchemaItem.type !== 'object') item.type = uiSchemaItem.type;
+        break;
       case 'path':
       case 'displayName':
       case 'combinationItem':
@@ -375,6 +378,7 @@ export const buildUiSchemaForItemWithProperties = (
     properties: rootProperties,
     required: schema.required,
     displayName,
+    type: 'object',
     ...rest,
   };
 };
