@@ -3,11 +3,11 @@ import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
 import DataModelling, { shouldSelectFirstEntry } from './DataModelling';
 import { LoadingState } from './sagas/metadata';
-import { render as rtlRender } from '@testing-library/react';
+import { render as rtlRender, screen } from '@testing-library/react';
 
 const modelName = 'some-existing-model';
 const modelName2 = 'some-other-model';
-const initialState = {
+const defaultInitialState = {
   dataModelsMetadataState: {
     dataModelsMetadata: [
       {
@@ -33,7 +33,7 @@ const initialStoreCall = {
   payload: {
     metadata: {
       label: modelName,
-      value: initialState.dataModelsMetadataState.dataModelsMetadata[0],
+      value: defaultInitialState.dataModelsMetadataState.dataModelsMetadata[0],
     },
   },
 };
@@ -121,9 +121,48 @@ describe('DataModelling', () => {
       ).toBe(false);
     });
   });
+
+  it('Should show start dialog when no models are present', () => {
+    render();
+    expect(screen.queryByText('Dialog header')).toBeInTheDocument();
+  });
+
+  it('Should not show start dialog when the models have not been loaded yet', () => {
+    render({ dataModelsMetadataState: { loadState: LoadingState.LoadingModels } });
+    expect(screen.queryByText('Dialog header')).not.toBeInTheDocument();
+  });
+
+  it('Should not show start dialog when the models have not been loaded yet', () => {
+    render({ dataModelsMetadataState: { loadState: LoadingState.LoadingModels } });
+    expect(screen.queryByText('Dialog header')).not.toBeInTheDocument();
+  });
+
+  it('Should not show start dialog when there are models present', () => {
+    const schema = {
+      properties: { SomeSchema: { $ref: '#/definitions/Something' } },
+      definitions: { Something: { type: 'string' } }
+    };
+    render({ dataModelling: { schema } });
+    expect(screen.queryByText('Dialog header')).not.toBeInTheDocument();
+  });
 });
 
-const render = () => {
+const render = (state: {[K in keyof typeof defaultInitialState]?: Partial<typeof defaultInitialState[K]>} = {}) => {
+
+  const dataModelsMetadataState = state?.dataModelsMetadataState;
+  const dataModelling = state?.dataModelling;
+
+  const initialState = {
+    dataModelsMetadataState: {
+      ...defaultInitialState.dataModelsMetadataState,
+      ...dataModelsMetadataState
+    },
+    dataModelling: {
+      ...defaultInitialState.dataModelling,
+      ...dataModelling
+    }
+  };
+
   const store = configureStore()(initialState);
   store.dispatch = jest.fn();
 
@@ -135,6 +174,9 @@ const render = () => {
             first: 'some text',
             second: 'other text',
           },
+          app_data_modelling: {
+            landing_dialog_header: 'Dialog header'
+          }
         }}
         org='test-org'
         repo='test-repo'

@@ -2,6 +2,7 @@ import React from 'react';
 import { StyledComponentProps } from '@material-ui/core';
 import { getLanguageFromKey } from '../utils/language';
 import { TopToolbarButton } from '../../packages/schema-editor/src/components/TopToolbarButton';
+import { AltinnButton } from "app-shared/components/index";
 
 export interface IFileSelectorProps extends StyledComponentProps {
   language: any;
@@ -10,6 +11,7 @@ export interface IFileSelectorProps extends StyledComponentProps {
   labelTextResource: string;
   formFileName: string;
   accept?: string;
+  isInTopToolbar?: boolean;
 }
 
 function FileSelector(props: IFileSelectorProps) {
@@ -20,6 +22,7 @@ function FileSelector(props: IFileSelectorProps) {
     formFileName,
     busy,
     submitHandler,
+    isInTopToolbar
   } = props;
   const fileInput = React.useRef<HTMLInputElement>(null);
 
@@ -52,15 +55,22 @@ function FileSelector(props: IFileSelectorProps) {
         disabled={busy}
         tabIndex={-1}
       />
-      <TopToolbarButton
-        data-testid='upload-button'
-        faIcon='fa fa-upload'
-        iconSize={38}
-        hideText={true}
-        onClick={() => fileInput?.current?.click()}
-      >
-        {getLanguageFromKey(labelTextResource, language)}
-      </TopToolbarButton>
+      {isInTopToolbar ? (
+        <TopToolbarButton
+          data-testid='upload-button'
+          faIcon='fa fa-upload'
+          iconSize={38}
+          hideText={true}
+          onClick={() => fileInput?.current?.click()}
+        >
+          {getLanguageFromKey(labelTextResource, language)}
+        </TopToolbarButton>
+      ) : (
+        <AltinnButton
+          onClickFunction={() => fileInput?.current?.click()}
+          btnText={getLanguageFromKey(labelTextResource, language)}
+        />
+      )}
     </form>
   );
 }
