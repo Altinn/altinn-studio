@@ -260,41 +260,39 @@ const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
     }
   },
 };
-
-class DroppableDraggableComponent extends React.Component<
-  IDroppableDraggableComponentProps & {
-    connectDragPreview: ConnectDragPreview;
-    connectDragSource: ConnectDragSource;
-    connectDropTarget: ConnectDropTarget;
-    dropTargetMonitor: DropTargetMonitor;
-    isDragging: boolean;
-  },
-  any
-> {
-  public render() {
-    const {
-      id,
-      connectDropTarget,
-      connectDragPreview,
-      connectDragSource,
-      isDragging,
-    } = this.props;
-    const style = isDragging
-      ? {
-          opacity: 0,
-        }
-      : null;
-    return connectDropTarget(
-      connectDragPreview(
-        connectDragSource(
-          <div key={id} style={style}>
-            {this.props.children}
-          </div>,
-        ),
-      ),
-    );
-  }
+interface Collected {
+  connectDragPreview: ConnectDragPreview;
+  connectDragSource: ConnectDragSource;
+  connectDropTarget: ConnectDropTarget;
+  dropTargetMonitor: DropTargetMonitor;
+  isDragging: boolean;
 }
+
+const DroppableDraggableComponent: React.FC<
+  IDroppableDraggableComponentProps & Collected
+> = ({
+  id,
+  connectDropTarget,
+  connectDragPreview,
+  connectDragSource,
+  children,
+  isDragging,
+}) => {
+  const style = isDragging
+    ? {
+        opacity: 0,
+      }
+    : null;
+  return connectDropTarget(
+    connectDragPreview(
+      connectDragSource(
+        <div key={id} style={style}>
+          {children}
+        </div>,
+      ),
+    ),
+  );
+};
 
 export default DropTarget(
   ['ITEM', 'TOOLBAR_ITEM', 'CONTAINER'],

@@ -16,30 +16,25 @@ export interface IDraggableProps {
   onDrop?: (...args: any) => void;
 }
 
-interface IDraggablePropsCollected {
+interface Collected {
   isDragging: boolean;
   connectDragSource: ConnectDragSource;
 }
 
-class Draggable extends React.Component<
-  IDraggableProps & IDraggablePropsCollected,
-  any
-> {
-  public render() {
-    const { connectDragSource } = this.props;
-    return connectDragSource(
-      <div tabIndex={0} onKeyDown={this.handleKeyDown}>
-        {this.props.children}
-      </div>,
-    );
-  }
+const Draggable: React.FC<IDraggableProps & Collected> = ({
+  connectDragSource,
+  children,
+  onDrop,
+}) => {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) =>
+    event.key === 'Enter' ? onDrop() : undefined;
 
-  public handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'Enter') {
-      this.props.onDrop();
-    }
-  };
-}
+  return connectDragSource(
+    <div tabIndex={0} onKeyDown={handleKeyDown}>
+      {children}
+    </div>,
+  );
+};
 
 export default (
   type: string | string[],

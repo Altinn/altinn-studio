@@ -223,41 +223,44 @@ export interface IDroppableDraggableContainerProps {
   onMoveContainer?: (...args: any) => void;
   onDropContainer?: (...args: any) => void;
 }
-
-class DroppableDraggableContainer extends React.Component<
-  IDroppableDraggableContainerProps & {
-    connectDragPreview: ConnectDragPreview;
-    connectDragSource: ConnectDragSource;
-    connectDropTarget: ConnectDropTarget;
-    isOver: boolean;
-  },
-  any
-> {
-  public render() {
-    const { connectDropTarget, connectDragPreview, connectDragSource, isOver } =
-      this.props;
-    return connectDropTarget(
-      connectDragPreview(
-        connectDragSource(
-          <div
-            style={{
-              backgroundColor: isOver
-                ? 'white'
-                : altinnTheme.altinnPalette.primary.greyLight,
-              paddingLeft: '1.2rem',
-              paddingRight: '1.2rem',
-              paddingTop: this.props.baseContainer ? '1.2rem' : '',
-              border: this.props.parentContainerId ? '' : '1px solid #ccc',
-              marginBottom: this.props.baseContainer ? '' : '12px',
-            }}
-          >
-            {this.props.children}
-          </div>,
-        ),
-      ),
-    );
-  }
+interface Collected {
+  connectDragPreview: ConnectDragPreview;
+  connectDragSource: ConnectDragSource;
+  connectDropTarget: ConnectDropTarget;
+  isOver: boolean;
 }
+const DroppableDraggableContainer: React.FC<
+  IDroppableDraggableContainerProps & Collected
+> = ({
+  children,
+  connectDropTarget,
+  connectDragPreview,
+  connectDragSource,
+  isOver,
+  baseContainer,
+  parentContainerId,
+}) => {
+  return connectDropTarget(
+    connectDragPreview(
+      connectDragSource(
+        <div
+          style={{
+            backgroundColor: isOver
+              ? 'white'
+              : altinnTheme.altinnPalette.primary.greyLight,
+            paddingLeft: '1.2rem',
+            paddingRight: '1.2rem',
+            paddingTop: baseContainer ? '1.2rem' : '',
+            border: parentContainerId ? '' : '1px solid #ccc',
+            marginBottom: baseContainer ? '' : '12px',
+          }}
+        >
+          {children}
+        </div>,
+      ),
+    ),
+  );
+};
 
 export default DropTarget(
   ['TOOLBAR_ITEM', 'CONTAINER', 'ITEM'],
