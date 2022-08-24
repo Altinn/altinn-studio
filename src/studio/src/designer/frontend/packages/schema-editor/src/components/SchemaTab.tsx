@@ -6,7 +6,7 @@ import { getTranslation } from '../utils/language';
 export interface ISchemaTabProps {
   label: string;
   value: string;
-  language: ILanguage;
+  language?: ILanguage;
   hide?: boolean;
 }
 
@@ -37,7 +37,7 @@ export const SchemaTab = (props: ISchemaTabProps) => {
   const classes = useStyles();
   return (
     <Tab
-      label={getTranslation(label, language)}
+      label={language ? getTranslation(label, language) : label}
       classes={classes}
       id={`inspector-tab-${value}`}
       value={value}

@@ -1,5 +1,11 @@
 import type { UiSchemaItem } from '../types';
-import { buildJsonSchema, buildUISchema, getUiSchemaItem } from './schema';
+import {
+  buildJsonSchema,
+  buildUISchema,
+  getUiSchemaItem,
+  getUiSchemaItemsByRef,
+  getUiSchemaTreeFromItem,
+} from './schema';
 
 const mockUiSchema: UiSchemaItem[] = [
   {
@@ -15,8 +21,10 @@ const mockUiSchema: UiSchemaItem[] = [
         path: '#/properties/id2/properties/id3',
         displayName: 'id3',
         $ref: '#/$defs/id3',
+        isRequired: true,
       },
     ],
+    required: ['id3'],
   },
   {
     path: '#/properties/allOfTest',
@@ -86,6 +94,7 @@ const mockJsonSchema = {
           $ref: '#/$defs/id3',
         },
       },
+      required: ['id3'],
     },
     allOfTest: {
       allOf: [{ $ref: '#/$defs/refTest' }],
@@ -108,7 +117,10 @@ const mockJsonSchema = {
     },
   },
 };
-
+test('gets referenced items', () => {
+  const result = getUiSchemaItemsByRef(mockUiSchema, '#/$defs/id3');
+  expect(result).toHaveLength(2);
+});
 test('gets UI schema item', () => {
   const result = getUiSchemaItem(mockUiSchema, '#/$defs/id3');
   expect(result).toEqual({
@@ -164,4 +176,10 @@ test('build UI schema', () => {
     '#/properties',
   ).concat(buildUISchema(mockJsonSchema.$defs, '#/$defs'));
   expect(result).toEqual(mockUiSchema);
+});
+
+test('that we get uiSchemaTree from item ', () => {
+  const testSchema = getUiSchemaItem(mockUiSchema, '#/properties/id2');
+  const tree = getUiSchemaTreeFromItem(mockUiSchema, testSchema);
+  expect(tree).toHaveLength(2);
 });
