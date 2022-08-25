@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Text.Json;
 
 using Altinn.Studio.Designer.Helpers;
@@ -42,7 +44,9 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            IList<string> languages = _languagesService.GetLanguages(org, repo, developer);
+            List<string> languages = new List<string>(_languagesService.GetLanguages(org, repo, developer));
+
+            languages.Sort();
 
             string jsonLanguages = JsonSerializer.Serialize(languages);
 

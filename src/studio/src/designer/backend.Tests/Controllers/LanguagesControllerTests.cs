@@ -51,7 +51,7 @@ namespace Designer.Tests.Controllers
 
             List<string> responseList = JsonSerializer.Deserialize<List<string>>(responseDocument.RootElement.ToString());
 
-            Assert.Equal(new List<string>{"nn", "nb"}, responseList);
+            Assert.Equal(new List<string>{ "nb", "nn" }, responseList);
         }
 
         private HttpClient GetTestClient()
