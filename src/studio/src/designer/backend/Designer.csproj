@@ -42,7 +42,7 @@
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.24" />
     <PackageReference Include="Microsoft.VisualStudio.Web.BrowserLink" Version="2.2.0" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.43" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.45" />
     <PackageReference Include="Microsoft.DiaSymReader.Native" Version="1.7.0" />
     <PackageReference Include="Markdig" Version="0.30.3" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.8" />
