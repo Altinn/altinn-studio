@@ -1,7 +1,7 @@
 import React from 'react';
 import { hot } from 'react-hot-loader';
 import postMessages from 'app-shared/utils/postMessages';
-import { Route } from 'react-router-dom';
+import {Route, HashRouter, Routes} from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { ErrorMessageComponent } from './components/message/ErrorMessageComponent';
 import FormDesigner from './containers/FormDesigner';
@@ -57,12 +57,14 @@ export function App() {
   }, [dispatch]);
 
   return (
-    <div>
-      <ErrorMessageComponent />
-      <Route exact={true} path='/ui-editor'>
-        <FormDesigner />
-      </Route>
-    </div>
+    <>
+      <ErrorMessageComponent/>
+      <HashRouter>
+        <Routes>
+          <Route path='/ui-editor' element={<FormDesigner/>}/>
+        </Routes>
+      </HashRouter>
+    </>
   );
 }
 

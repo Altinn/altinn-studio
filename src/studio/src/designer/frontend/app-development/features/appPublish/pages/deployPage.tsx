@@ -6,7 +6,6 @@ import {
   WithStyles,
 } from '@material-ui/core';
 import React from 'react';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
 import AltinnContentLoader from 'app-shared/components/molecules/AltinnContentLoader';
 import AltinnInformationCardForChildren from 'app-shared/components/molecules/AltinnInformationCardForChildren';
 import { getParsedLanguageFromKey } from 'app-shared/utils/language';
@@ -25,9 +24,7 @@ const styles = createStyles({
     paddingTop: '2.4rem',
   },
 });
-interface IDeployPaperProps
-  extends WithStyles<typeof styles>,
-    RouteComponentProps {}
+type IDeployPaperProps = WithStyles<typeof styles>
 
 function DeployPage(props: IDeployPaperProps) {
   const { org } = window as Window as IAltinnWindow;
@@ -107,4 +104,4 @@ function DeployPage(props: IDeployPaperProps) {
     </Grid>
   );
 }
-export default withStyles(styles)(withRouter(DeployPage));
+export default withStyles(styles)(DeployPage);
