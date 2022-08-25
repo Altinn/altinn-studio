@@ -1,12 +1,7 @@
-import { Identifier } from 'dnd-core';
 import React from 'react';
-import {
-  ConnectDragSource,
-  DragSource,
-  DragSourceConnector,
-  DragSourceMonitor,
-  DragSourceSpec,
-} from 'react-dnd';
+import { useDrag } from 'react-dnd';
+import { DragSourceHookSpec } from 'react-dnd/src/hooks/types';
+import { EditorDraggableItem, ItemType } from './helpers/dnd-helpers';
 
 export interface IDraggableProps {
   id: string;
@@ -16,35 +11,30 @@ export interface IDraggableProps {
   onDrop?: (...args: any) => void;
 }
 
-interface Collected {
-  isDragging: boolean;
-  connectDragSource: ConnectDragSource;
-}
+const draggableToolbarItemSpec = (
+  item: EditorDraggableItem,
+  notDraggable: boolean,
+): DragSourceHookSpec<any, any, any> => ({
+  item,
+  type: ItemType.TOOLBAR_ITEM,
+  canDrag: () => !notDraggable,
+});
 
-const Draggable: React.FC<IDraggableProps & Collected> = ({
-  connectDragSource,
+export const DraggableToolbarItem: React.FC<IDraggableProps> = ({
+  id,
   children,
   onDrop,
+  notDraggable,
 }) => {
+  const [_collected, drag] = useDrag(
+    draggableToolbarItemSpec({ id, onDrop }, notDraggable),
+  );
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) =>
     event.key === 'Enter' ? onDrop() : undefined;
 
-  return connectDragSource(
-    <div tabIndex={0} onKeyDown={handleKeyDown}>
+  return (
+    <div ref={drag} onKeyDown={handleKeyDown}>
       {children}
-    </div>,
+    </div>
   );
 };
-
-export default (
-  type: string | string[],
-  draggableSpec: DragSourceSpec<IDraggableProps, any>,
-) =>
-  DragSource(
-    type as Identifier,
-    draggableSpec,
-    (connect: DragSourceConnector, monitor: DragSourceMonitor) => ({
-      connectDragSource: connect.dragSource(),
-      isDragging: monitor.isDragging(),
-    }),
-  )(Draggable);
