@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 namespace Altinn.Studio.Designer.Services.Interfaces
 {
     /// <summary>
-    /// ITextResourceService
+    /// Interface for dealing with available languages in an app repository.
     /// </summary>
     public interface ILanguagesService
     {
@@ -16,6 +16,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Organisation</param>
         /// <param name="repo">Repository</param>
         /// <param name="developer">Username of developer</param>
-        public List<string> GetLanguages(string org, string repo, string developer);
+        public IList<string> GetLanguages(string org, string repo, string developer);
     }
 }
