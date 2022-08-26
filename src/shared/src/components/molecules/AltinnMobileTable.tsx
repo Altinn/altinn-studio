@@ -27,6 +27,7 @@ export default function AltinnMobileTable({
       direction='column'
       className={classes.mobileContainer}
       id={id}
+      data-testid='altinn-mobile-table'
     >
       {children}
     </Grid>

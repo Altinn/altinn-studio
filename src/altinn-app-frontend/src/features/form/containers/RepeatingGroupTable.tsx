@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 
 import {
   createTheme,
@@ -66,6 +66,10 @@ export interface IRepeatingGroupTableProps {
   validations: IValidations;
   editIndex: number;
   setEditIndex: (index: number) => void;
+  onClickRemove: (groupIndex: number) => void;
+  setMultiPageIndex?: (index: number) => void;
+  deleting: boolean;
+  hideDeleteButton?: boolean;
   filteredIndexes?: number[];
 }
 
@@ -86,6 +90,10 @@ const useStyles = makeStyles({
     paddingRight: '6px',
     fontSize: '28px',
     marginTop: '-2px',
+    '@media (max-width: 768px)': {
+      margin: '0px',
+      padding: '0px',
+    },
   },
   tableEditButton: {
     color: theme.altinnPalette.primary.blueDark,
@@ -101,6 +109,30 @@ const useStyles = makeStyles({
       background: theme.altinnPalette.primary.blueLighter,
       outline: `2px dotted ${theme.altinnPalette.primary.blueDark}`,
     },
+  },
+  deleteButton: {
+    color: theme.altinnPalette.primary.red,
+    fontWeight: 700,
+    padding: '8px 12px 6px 6px',
+    borderRadius: '0',
+    marginRight: '-12px',
+    '@media (min-width:768px)': {
+      margin: '0',
+    },
+    '&:hover': {
+      background: theme.altinnPalette.primary.red,
+      color: theme.altinnPalette.primary.white,
+    },
+    '&:focus': {
+      outlineColor: theme.altinnPalette.primary.red,
+    },
+    '& .ai': {
+      fontSize: '2em',
+      marginTop: '-3px',
+    },
+  },
+  editButtonCell: {
+    padding: '0',
   },
 });
 
@@ -143,6 +175,9 @@ export function RepeatingGroupTable({
   repeatingGroups,
   validations,
   setEditIndex,
+  onClickRemove,
+  hideDeleteButton,
+  deleting,
   filteredIndexes,
 }: IRepeatingGroupTableProps): JSX.Element {
   const classes = useStyles();
@@ -154,6 +189,7 @@ export function RepeatingGroupTable({
     components.map((c) => (c as any).baseComponentId || c.id) ||
     [];
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
+  const mobileViewSmall = useMediaQuery('(max-width:768px)');
   const componentTitles: string[] = [];
   renderComponents.forEach((component: ILayoutComponent) => {
     const childId = (component as any).baseComponentId || component.id;
@@ -225,6 +261,15 @@ export function RepeatingGroupTable({
     );
   };
 
+  const removeClicked = useCallback(
+    (index: number) => {
+      return async () => {
+        onClickRemove(index);
+      };
+    },
+    [onClickRemove],
+  );
+
   return (
     <Grid
       container={true}
@@ -245,7 +290,33 @@ export function RepeatingGroupTable({
                     {getTextResource(title, textResources)}
                   </TableCell>
                 ))}
-                <TableCell />
+                <TableCell
+                  style={{ width: '110px', padding: 0 }}
+                  align='left'
+                >
+                  <i
+                    style={{
+                      color: theme.altinnPalette.primary.blueDark,
+                      paddingLeft: '14px',
+                    }}
+                    className={`fa fa-edit ${classes.editIcon}`}
+                  />
+                </TableCell>
+                {!hideDeleteButton && (
+                  <TableCell
+                    style={{ width: '80px', padding: 0 }}
+                    align='left'
+                  >
+                    <i
+                      style={{
+                        color: theme.altinnPalette.primary.red,
+                        paddingLeft: '9px',
+                        paddingBottom: '5px',
+                      }}
+                      className={'ai ai-trash'}
+                    />
+                  </TableCell>
+                )}
               </TableRow>
             </AltinnTableHeader>
           )}
@@ -282,8 +353,9 @@ export function RepeatingGroupTable({
                         );
                       })}
                       <TableCell
-                        align='right'
-                        key={`delete-${index}`}
+                        align='left'
+                        style={{ padding: 0 }}
+                        key={`edit-${index}`}
                       >
                         <IconButton
                           className={classes.tableEditButton}
@@ -309,6 +381,22 @@ export function RepeatingGroupTable({
                               )}
                         </IconButton>
                       </TableCell>
+                      {!hideDeleteButton && (
+                        <TableCell
+                          align='left'
+                          style={{ padding: 0 }}
+                          key={`delete-${index}`}
+                        >
+                          <IconButton
+                            className={classes.deleteButton}
+                            disabled={deleting}
+                            onClick={removeClicked(index)}
+                          >
+                            <i className='ai ai-trash' />
+                            {getLanguageFromKey('general.delete', language)}
+                          </IconButton>
+                        </TableCell>
+                      )}
                     </AltinnTableRow>
                   );
                 },
@@ -346,8 +434,9 @@ export function RepeatingGroupTable({
                     key={index}
                     items={items}
                     valid={!rowHasErrors}
-                    onClick={() => onClickEdit(index)}
-                    iconNode={
+                    onEditClick={() => onClickEdit(index)}
+                    onDeleteClick={() => onClickRemove(index)}
+                    editIconNode={
                       <>
                         <i
                           className={
@@ -356,18 +445,28 @@ export function RepeatingGroupTable({
                               : `fa fa-edit ${classes.editIcon}`
                           }
                         />
-                        {rowHasErrors
-                          ? getLanguageFromKey(
-                              'general.edit_alt_error',
-                              language,
-                            )
-                          : getEditButtonText(
-                              language,
-                              editIndex === index,
-                              textResources,
-                              container.textResourceBindings,
-                            )}
+                        {!mobileViewSmall &&
+                          (rowHasErrors
+                            ? getLanguageFromKey(
+                                'general.edit_alt_error',
+                                language,
+                              )
+                            : getEditButtonText(
+                                language,
+                                editIndex === index,
+                                textResources,
+                                container.textResourceBindings,
+                              ))}
                       </>
+                    }
+                    deleteIconNode={
+                      !hideDeleteButton && (
+                        <>
+                          <i className={'ai ai-trash'} />
+                          {!mobileViewSmall &&
+                            getLanguageFromKey('general.delete', language)}
+                        </>
+                      )
                     }
                   />
                 );

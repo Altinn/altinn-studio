@@ -101,9 +101,9 @@ export default function InstanceSelection({
                     value: instance.lastChangedBy,
                   },
                 ]}
-                onClick={() => openInstance(instance.id)}
+                onEditClick={() => openInstance(instance.id)}
                 key={instance.id}
-                iconNode={
+                editIconNode={
                   <>
                     <Typography
                       variant='body1'

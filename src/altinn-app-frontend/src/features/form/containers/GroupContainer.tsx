@@ -308,7 +308,11 @@ export function GroupContainer({
           repeatingGroupDeepCopyComponents={repeatingGroupDeepCopyComponents}
           repeatingGroupIndex={repeatingGroupIndex}
           repeatingGroups={repeatingGroups}
+          deleting={deletingIndexes.includes(repeatingGroupIndex)}
           setEditIndex={setEditIndex}
+          onClickRemove={onClickRemove}
+          hideDeleteButton={container.edit?.deleteButton === false}
+          setMultiPageIndex={setMultiPageIndex}
           textResources={textResources}
           validations={validations}
           filteredIndexes={filteredIndexList}
@@ -339,12 +343,9 @@ export function GroupContainer({
           language={language}
           textResources={textResources}
           layout={layout}
-          deleting={deletingIndexes.includes(repeatingGroupIndex)}
-          onClickRemove={onClickRemove}
           onClickSave={onClickSave}
           repeatingGroupDeepCopyComponents={repeatingGroupDeepCopyComponents}
           hideSaveButton={container.edit?.saveButton === false}
-          hideDeleteButton={container.edit?.deleteButton === false}
           multiPageIndex={multiPageIndex}
           setMultiPageIndex={setMultiPageIndex}
         />
@@ -371,14 +372,11 @@ export function GroupContainer({
                 language={language}
                 textResources={textResources}
                 layout={layout}
-                deleting={deletingIndexes.includes(index)}
-                onClickRemove={onClickRemove}
                 onClickSave={onClickSave}
                 repeatingGroupDeepCopyComponents={
                   repeatingGroupDeepCopyComponents
                 }
                 hideSaveButton={true}
-                hideDeleteButton={container.edit?.deleteButton === false}
               />
             );
           })}

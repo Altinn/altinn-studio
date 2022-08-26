@@ -1,6 +1,8 @@
 import React from 'react';
 
 import { getInitialStateMock } from '__mocks__/initialStateMock';
+import { screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import configureStore from 'redux-mock-store';
 import { mockMediaQuery, renderWithProviders } from 'testUtils';
 import type { Store } from 'redux';
@@ -17,6 +19,7 @@ const renderInstanceSelection = (
 };
 
 const { setScreenWidth } = mockMediaQuery(992);
+const user = userEvent.setup();
 
 describe('InstanceSelection', () => {
   let mockInitialState: IRuntimeState;
@@ -92,13 +95,58 @@ describe('InstanceSelection', () => {
     expect(secondInstanceLastChanged).not.toBeNull();
   });
 
-  it('pressing "Start på nytt" should trigger callback', () => {
-    const rendered = renderInstanceSelection(mockStore, {
+  it('pressing "Start på nytt" should trigger callback', async () => {
+    renderInstanceSelection(mockStore, {
       instances: mockActiveInstances,
       onNewInstance: mockStartNewInstance,
     });
 
-    rendered.getByText('Start på nytt').click();
+    await user.click(screen.getByText(/start på nytt/i));
     expect(mockStartNewInstance).toBeCalledTimes(1);
+  });
+
+  it('should trigger openInstance on editButton click', async () => {
+    renderInstanceSelection(mockStore, {
+      instances: mockActiveInstances,
+      onNewInstance: mockStartNewInstance,
+    });
+    const row = screen.getByRole('row', {
+      name: /10\/05\/2021 navn navnesen fortsett her/i,
+    });
+    expect(window.location.href).toBe('https://altinn3local.no/ttd/test');
+
+    const button = within(row).getByRole('button', {
+      name: /fortsett her/i,
+    });
+
+    await user.click(button);
+    expect(window.location.href).toBe(
+      'https://altinn3local.no/ttd/test#/instance/some-id',
+    );
+  });
+
+  it('should trigger openInstance on editButton click during mobile view', async () => {
+    // Set screen size to mobile
+    setScreenWidth(600);
+    renderInstanceSelection(mockStore, {
+      instances: mockActiveInstances,
+      onNewInstance: mockStartNewInstance,
+    });
+
+    const row = screen.getByRole('row', {
+      name: /sist endret 05\/13\/2021 fortsett her/i,
+    });
+    expect(window.location.href).toBe(
+      'https://altinn3local.no/ttd/test#/instance/some-id',
+    );
+
+    const button = within(row).getByRole('button', {
+      name: /fortsett her/i,
+    });
+
+    await user.click(button);
+    expect(window.location.href).toBe(
+      'https://altinn3local.no/ttd/test#/instance/some-other-id',
+    );
   });
 });

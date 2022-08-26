@@ -1,7 +1,9 @@
 import * as React from 'react';
 
 import { getFormLayoutGroupMock } from '__mocks__/mocks';
-import { renderWithProviders } from 'testUtils';
+import { screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { mockMediaQuery, renderWithProviders } from 'testUtils';
 
 import { RepeatingGroupTable } from 'src/features/form/containers/RepeatingGroupTable';
 import { createRepeatingGroupComponents } from 'src/utils/formLayout';
@@ -18,9 +20,16 @@ import type { IOption, ITextResource } from 'src/types';
 
 import type { ILanguage } from 'altinn-shared/types';
 
+const user = userEvent.setup();
+
 describe('RepeatingGroupTable', () => {
   const group: ILayoutGroup = getFormLayoutGroupMock({});
-  const language: ILanguage = {};
+  const language: ILanguage = {
+    general: {
+      delete: 'Delete',
+      edit_alt: 'Edit',
+    },
+  };
   const textResources: ITextResource[] = [
     { id: 'option.label', value: 'Value to be shown' },
   ];
@@ -133,6 +142,69 @@ describe('RepeatingGroupTable', () => {
     expect(tableHeader).not.toBeInTheDocument();
   });
 
+  describe('desktop view', () => {
+    const { setScreenWidth } = mockMediaQuery(992);
+    beforeEach(() => {
+      setScreenWidth(1337);
+    });
+
+    it('should trigger onClickRemove on delete-button click', async () => {
+      const onClickRemove = jest.fn();
+      render({ onClickRemove: onClickRemove });
+
+      await user.click(screen.getAllByRole('button', { name: /delete/i })[0]);
+
+      expect(onClickRemove).toBeCalledTimes(1);
+    });
+
+    it('should trigger setEditIndex on edit-button click', async () => {
+      const setEditIndex = jest.fn();
+      render({ setEditIndex: setEditIndex });
+
+      await user.click(screen.getAllByRole('button', { name: /edit/i })[0]);
+
+      expect(setEditIndex).toBeCalledTimes(1);
+    });
+  });
+
+  describe('tablet view', () => {
+    const { setScreenWidth } = mockMediaQuery(992);
+    beforeEach(() => {
+      setScreenWidth(992);
+    });
+
+    it('should render as mobile-version for small screens', () => {
+      render();
+
+      const altinnMobileTable = screen.queryByTestId(/altinn-mobile-table/i);
+
+      expect(altinnMobileTable).toBeInTheDocument();
+    });
+  });
+
+  describe('mobile view', () => {
+    const { setScreenWidth } = mockMediaQuery(768);
+    beforeEach(() => {
+      setScreenWidth(768);
+    });
+
+    it('should render edit and delete buttons as icons for screens smaller thnn 786px', () => {
+      render();
+
+      const iconButtonsDelete = screen.getAllByTestId(/delete-button/i);
+      const iconButtonsEdit = screen.getAllByTestId(/edit-button/i);
+
+      expect(iconButtonsDelete).toHaveLength(4);
+      expect(iconButtonsEdit).toHaveLength(4);
+
+      const iconButtonsDeleteWithText = screen.queryAllByText(/delete/i);
+      const iconButtonsEditWithText = screen.queryAllByText(/edit/i);
+
+      expect(iconButtonsDeleteWithText).toHaveLength(0);
+      expect(iconButtonsEditWithText).toHaveLength(0);
+    });
+  });
+
   const render = (props: Partial<IRepeatingGroupTableProps> = {}) => {
     const allProps: IRepeatingGroupTableProps = {
       container: group,
@@ -150,6 +222,8 @@ describe('RepeatingGroupTable', () => {
       repeatingGroupDeepCopyComponents: repeatingGroupDeepCopyComponents,
       repeatingGroupIndex: repeatingGroupIndex,
       repeatingGroups: layout.uiConfig.repeatingGroups,
+      deleting: false,
+      onClickRemove: jest.fn(),
       setEditIndex: jest.fn(),
       validations: {},
       ...props,

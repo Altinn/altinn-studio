@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Button, ButtonVariant } from '@altinn/altinn-design-system';
-import { createTheme, Grid, IconButton, makeStyles } from '@material-ui/core';
+import { createTheme, Grid, makeStyles } from '@material-ui/core';
 
 import { renderGenericComponent } from 'src/utils/layout';
 import type {
@@ -23,12 +23,9 @@ export interface IRepeatingGroupsEditContainer {
   language: ILanguage;
   textResources: ITextResource[];
   layout: ILayout;
-  deleting: boolean;
   editIndex: number;
-  onClickRemove: (groupIndex: number) => void;
   onClickSave: () => void;
   hideSaveButton?: boolean;
-  hideDeleteButton?: boolean;
   multiPageIndex?: number;
   setMultiPageIndex?: (index: number) => void;
 }
@@ -95,12 +92,9 @@ export function RepeatingGroupsEditContainer({
   language,
   textResources,
   layout,
-  deleting,
   editIndex,
-  onClickRemove,
   onClickSave,
   hideSaveButton,
-  hideDeleteButton,
   multiPageIndex,
   setMultiPageIndex,
 }: IRepeatingGroupsEditContainer): JSX.Element {
@@ -108,13 +102,6 @@ export function RepeatingGroupsEditContainer({
 
   const closeEditContainer = () => {
     onClickSave();
-    if (container.edit?.multiPage) {
-      setMultiPageIndex(0);
-    }
-  };
-
-  const removeClicked = () => {
-    onClickRemove(editIndex);
     if (container.edit?.multiPage) {
       setMultiPageIndex(0);
     }
@@ -128,27 +115,6 @@ export function RepeatingGroupsEditContainer({
         direction='row'
         spacing={3}
       >
-        {!hideDeleteButton && (
-          <Grid
-            item={true}
-            container={true}
-            direction='column'
-            alignItems='flex-end'
-            spacing={3}
-            className={classes.deleteItem}
-          >
-            <Grid item={true}>
-              <IconButton
-                classes={{ root: classes.deleteButton }}
-                disabled={deleting}
-                onClick={removeClicked}
-              >
-                <i className='ai ai-trash' />
-                {getLanguageFromKey('general.delete', language)}
-              </IconButton>
-            </Grid>
-          </Grid>
-        )}
         <Grid
           container={true}
           alignItems='flex-start'

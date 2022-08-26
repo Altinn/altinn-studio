@@ -39,7 +39,7 @@ describe('Group', () => {
         .then((table) => {
           cy.get(table).find(mui.tableElement).first().invoke('text').should('equal', '1');
           cy.get(table).find(mui.tableElement).eq(1).invoke('text').should('equal', '2');
-          cy.get(table).find(mui.tableElement).find(mui.buttonIcon).should('be.visible').click();
+          cy.get(table).find(mui.tableElement).find(mui.buttonIcon).first().should('be.visible').click();
         });
       cy.get(appFrontend.group.mainGroup)
         .siblings(appFrontend.group.editContainer)
@@ -50,13 +50,9 @@ describe('Group', () => {
         .find(mui.tableBody)
         .then((table) => {
           cy.get(table).find(mui.tableElement).first().invoke('text').should('equal', 'automation');
-          cy.get(table).find(mui.tableElement).find(mui.buttonIcon).should('be.visible').click();
+          cy.get(table).find(mui.tableElement).find(mui.buttonIcon).first().should('be.visible').click();
+          cy.get(table).find(mui.tableElement).find(appFrontend.group.delete).should('be.visible').click();
         });
-      cy.get(appFrontend.group.subGroup)
-        .siblings(appFrontend.group.editContainer)
-        .find(appFrontend.group.delete)
-        .should('be.visible')
-        .click();
 
       if (openByDefault) {
         cy.get(appFrontend.group.subGroup).find(mui.tableElement).eq(0).should('not.contain.text', 'automation');
@@ -72,10 +68,12 @@ describe('Group', () => {
         .should('be.visible')
         .click();
       cy.get(appFrontend.group.mainGroup)
-        .siblings(appFrontend.group.editContainer)
-        .find(appFrontend.group.delete)
-        .should('be.visible')
-        .click();
+        .find(mui.tableBody)
+        .then((table) => {
+          cy.get(table).find(mui.tableElement).find(appFrontend.group.delete)
+            .should('be.visible')
+            .click();
+        });
 
       if (openByDefault) {
         cy.get(appFrontend.group.saveMainGroup).should('be.visible');
@@ -213,11 +211,12 @@ describe('Group', () => {
       .siblings(appFrontend.group.tableErrors)
       .should('have.text', texts.errorInGroup);
 
-    cy.get(appFrontend.group.mainGroup)
-      .siblings(appFrontend.group.editContainer)
-      .find(appFrontend.group.delete)
-      .should('be.visible')
-      .click();
+    cy.get(appFrontend.group.mainGroup).find(mui.tableBody).then((table) => {
+      cy.get(table)
+        .find(appFrontend.group.delete)
+        .should('be.visible')
+        .click();
+    });
 
     cy.contains(mui.button, texts.next).click();
     cy.get(appFrontend.group.sendersName).should('exist');
