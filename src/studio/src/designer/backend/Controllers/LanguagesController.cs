@@ -32,7 +32,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Controller to handle the languages in the app
+        /// Endpoint for getting the available languages in the application.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repo">Application identifier which is unique within an organisation.</param>
