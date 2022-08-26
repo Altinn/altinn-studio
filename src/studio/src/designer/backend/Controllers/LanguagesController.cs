@@ -1,22 +1,20 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Controllers
 {
     /// <summary>
-    /// Controller containing all actions related to languages and text-resources
+    /// Controller containing actions related to languages
     /// </summary>
-    /// <remarks>
-    /// Should not be confused with TextController.cs (singular). This class
-    /// handles text resources written in the new format with key-value pairs.
-    /// </remarks>
     [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/v1/{org}/{repo}/languages")]
@@ -40,11 +38,15 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repo">Application identifier which is unique within an organisation.</param>
         /// <returns>List of languages as JSON</returns>
         [HttpGet]
+        [Produces("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public ActionResult<List<string>> GetLanguages(string org, string repo)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            List<string> languages = _languagesService.GetLanguages(org, repo, developer);
+            List<string> languages = new List<string>(_languagesService.GetLanguages(org, repo, developer));
+
+            languages.Sort();
 
             string jsonLanguages = JsonSerializer.Serialize(languages);
 

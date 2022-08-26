@@ -104,7 +104,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <summary>
         /// Finds all text files regardless of location in repository.
         /// </summary>
-        public List<string> GetLanguageFiles()
+        public IList<string> GetLanguageFiles()
         {
             var languageFiles = FindFiles(new string[] { TEXT_FILES_PATTERN_JSON });
 

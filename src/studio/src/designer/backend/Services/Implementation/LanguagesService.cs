@@ -29,13 +29,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <param name="repo">Repository identifier which is unique within an organisation.</param>
         /// <param name="developer">Username of developer currently working in the repo.</param>
         /// <returns>The languages</returns>
-        public List<string> GetLanguages(string org, string repo, string developer)
+        public IList<string> GetLanguages(string org, string repo, string developer)
         {
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-            List<string> languages = new List<string>();
+            IList<string> languages = new List<string>();
 
-            List<string> languageFiles = altinnGitRepository.GetLanguageFiles();
+            IList<string> languageFiles = altinnGitRepository.GetLanguageFiles();
 
             foreach (string languageFile in languageFiles)
             {
