@@ -3,7 +3,6 @@ import {
   createTheme,
   createStyles,
   Grid,
-  Hidden,
   Popover,
   Tab,
   Tabs,
@@ -12,6 +11,8 @@ import {
   WithStyles,
 } from '@material-ui/core';
 import React from 'react';
+import type { Theme } from '@material-ui/core';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 import AltinnIcon from 'app-shared/components/AltinnIcon';
 import AltinnStudioTheme from 'app-shared/theme/altinnStudioTheme';
 import {
@@ -163,6 +164,9 @@ const styles = createStyles({
 type IAppReleaseContainer = WithStyles<typeof styles>;
 
 function AppReleaseContainer(props: IAppReleaseContainer) {
+  const hiddenMdDown = useMediaQuery((appTheme: Theme) =>
+    appTheme.breakpoints.down('md'),
+  );
   const { classes } = props;
   const dispatch = useAppDispatch();
 
@@ -202,7 +206,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     return () => {
       dispatch(AppReleaseActions.getAppReleaseStopInterval());
     };
-  }, []);
+  }, [dispatch, language]);
 
   function handleChangeTabIndex(event: React.ChangeEvent, value: number) {
     setTabIndex(value);
@@ -243,14 +247,14 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
         className={classes.cannotCreateReleaseContainer}
         spacing={1}
       >
-        <Hidden mdDown={true}>
+        {hiddenMdDown ? null : (
           <Grid item={true} xs={1}>
             <AltinnIcon
               iconClass={`${classes.renderCannotCreateReleaseIcon} ai ai-circle-exclamation`}
               iconColor={theme.altinnPalette.primary.red}
             />
           </Grid>
-        </Hidden>
+        )}
         <Grid item={true} xs={12} md={10}>
           <Grid container={true} direction='column'>
             <Typography className={classes.cannotCreateReleaseTitle}>
@@ -385,8 +389,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
         </Typography>
       );
     }
-    // eslint-disable-next-line no-extra-boolean-cast
-    if (!!handleMergeConflict.repoStatus.contentStatus) {
+    if (handleMergeConflict.repoStatus.contentStatus) {
       return (
         <Typography>
           {getLanguageFromKey(
@@ -472,7 +475,11 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
             direction='column'
             className={classes.appCreateReleaseWrapper}
           >
-            <Grid container={true} direction='row' justifyContent='space-between'>
+            <Grid
+              container={true}
+              direction='row'
+              justifyContent='space-between'
+            >
               <Grid item={true} xs={10}>
                 <Typography className={classes.appCreateReleaseTitle}>
                   {renderCreateReleaseTitle()}

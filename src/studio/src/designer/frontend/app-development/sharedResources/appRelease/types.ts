@@ -7,7 +7,6 @@ export enum BuildStatus {
   postponed = 'postponed',
 }
 
-
 export enum BuildResult {
   canceled = 'canceled',
   failed = 'failed',
