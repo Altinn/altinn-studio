@@ -47,11 +47,11 @@ namespace Designer.Tests.Controllers
 
             string responseBody = await response.Content.ReadAsStringAsync();
 
-            JsonDocument document = JsonDocument.Parse(responseBody);
+            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
 
-            List<string> jsonDocument = JsonSerializer.Deserialize<List<string>>(document);
+            List<string> responseList = JsonSerializer.Deserialize<List<string>>(responseDocument.RootElement.ToString());
 
-            Assert.Equal(new List<string>{"nn", "nb"}, jsonDocument);
+            Assert.Equal(new List<string> { "nb", "nn" }, responseList);
         }
 
         private HttpClient GetTestClient()
