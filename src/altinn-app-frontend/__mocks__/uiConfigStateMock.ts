@@ -16,6 +16,10 @@ export const getUiConfigStateMock = (
         index: 1,
         dataModelBinding: 'referencedGroup',
       },
+      testGroupId: {
+        index: 1,
+        dataModelBinding: 'Group',
+      },
     },
     fileUploadersWithTag: null,
     currentView: 'FormLayout',

@@ -20,6 +20,7 @@ import {
   componentHasValidations,
   repeatingGroupHasValidations,
 } from 'src/utils/validation';
+import type { IFormData } from 'src/features/form/data';
 import type {
   ILayout,
   ILayoutComponent,
@@ -55,7 +56,7 @@ export interface IRepeatingGroupTableProps {
   repeatingGroups: IRepeatingGroups;
   repeatingGroupDeepCopyComponents: (ILayoutComponent | ILayoutGroup)[][];
   hiddenFields: string[];
-  formData: any;
+  formData: IFormData;
   attachments: IAttachments;
   options: IOptions;
   textResources: ITextResource[];
@@ -160,6 +161,7 @@ export function RepeatingGroupTable({
       componentTitles.push(component.textResourceBindings?.title || '');
     }
   });
+  const showTableHeader = repeatingGroupIndex > -1;
 
   const getFormDataForComponent = (
     component: ILayoutComponent | ILayoutGroup,
@@ -232,19 +234,21 @@ export function RepeatingGroupTable({
     >
       {!mobileView && (
         <AltinnTable id={`group-${id}-table`}>
-          <AltinnTableHeader id={`group-${id}-table-header`}>
-            <TableRow>
-              {componentTitles.map((title: string) => (
-                <TableCell
-                  align='left'
-                  key={title}
-                >
-                  {getTextResource(title, textResources)}
-                </TableCell>
-              ))}
-              <TableCell />
-            </TableRow>
-          </AltinnTableHeader>
+          {showTableHeader && (
+            <AltinnTableHeader id={`group-${id}-table-header`}>
+              <TableRow>
+                {componentTitles.map((title: string) => (
+                  <TableCell
+                    align='left'
+                    key={title}
+                  >
+                    {getTextResource(title, textResources)}
+                  </TableCell>
+                ))}
+                <TableCell />
+              </TableRow>
+            </AltinnTableHeader>
+          )}
           <AltinnTableBody id={`group-${id}-table-body`}>
             {repeatingGroupIndex >= 0 &&
               [...Array(repeatingGroupIndex + 1)].map(
