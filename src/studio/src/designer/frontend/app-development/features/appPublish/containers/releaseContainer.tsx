@@ -4,8 +4,6 @@ import {
   createStyles,
   Grid,
   Popover,
-  Tab,
-  Tabs,
   Typography,
   withStyles,
   WithStyles,
@@ -41,57 +39,7 @@ import CreateReleaseComponent from '../components/createAppReleaseComponent';
 import { useAppSelector, useAppDispatch } from 'common/hooks';
 import type { IAltinnWindow } from '../../../types/global';
 
-interface IStyledTabsProps {
-  value: number;
-  onChange: (event: React.ChangeEvent, newValue: number) => void;
-}
-
 const theme = createTheme(AltinnStudioTheme);
-
-const StyledTabs = withStyles(
-  createStyles({
-    scroller: {
-      maxHeight: '3.7rem',
-    },
-    indicator: {
-      display: 'flex',
-      justifyContent: 'center',
-      backgroundColor: 'transparent',
-      textTransform: 'none',
-      minHeight: 0,
-      '& > div': {
-        width: '70%',
-        borderBottom: `2px solid ${theme.altinnPalette.primary.blue}`,
-      },
-    },
-    flexContainer: {
-      borderBottom: `1px solid ${theme.altinnPalette.primary.greyMedium}`,
-    },
-  }),
-)((props: IStyledTabsProps) => (
-  <Tabs {...props} TabIndicatorProps={{ children: <div /> }} />
-));
-
-const StyledTab = withStyles(
-  createStyles({
-    root: {
-      minHeight: 0,
-      textTransform: 'none',
-      width: 'wrap',
-      '&:focus': {
-        outline: 0,
-        color: theme.altinnPalette.primary.blue,
-      },
-      paddingBottom: 0,
-      paddingLeft: '1.8rem',
-      paddingRight: '1.8rem',
-      minWidth: 0,
-    },
-    wrapper: {
-      fontSize: '1.6rem',
-    },
-  }),
-)(Tab);
 
 const styles = createStyles({
   appReleaseWrapper: {
@@ -159,6 +107,17 @@ const styles = createStyles({
   renderCannotCreateReleaseIcon: {
     paddingTop: '2rem',
   },
+  versionHeader: {
+    borderBottom: '1px solid #BCC7CC',
+    padding: `1rem 2rem 0`,
+  },
+  versionHeaderTitle: {
+    borderBottom: `2px solid ${theme.altinnPalette.primary.blue}`,
+    padding: 0,
+    display: 'inline-block',
+    fontWeight: 500,
+    marginBottom: '-2px',
+  }
 });
 
 type IAppReleaseContainer = WithStyles<typeof styles>;
@@ -170,7 +129,6 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
   const { classes } = props;
   const dispatch = useAppDispatch();
 
-  const [tabIndex, setTabIndex] = React.useState(0);
   const [anchorElement, setAchorElement] = React.useState<Element>();
 
   const [popoverOpenClick, setPopoverOpenClick] =
@@ -207,10 +165,6 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
       dispatch(AppReleaseActions.getAppReleaseStopInterval());
     };
   }, [dispatch, language]);
-
-  function handleChangeTabIndex(event: React.ChangeEvent, value: number) {
-    setTabIndex(value);
-  }
 
   function handlePopoverKeyPress(event: React.KeyboardEvent) {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -459,15 +413,10 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
         className={classes.appReleaseWrapper}
       >
         <Grid container={true} direction='column'>
-          <Grid item={true}>
-            <StyledTabs value={tabIndex} onChange={handleChangeTabIndex}>
-              <StyledTab
-                label={getLanguageFromKey(
-                  'app_release.release_tab_versions',
-                  language,
-                )}
-              />
-            </StyledTabs>
+          <Grid item={true} className={classes.versionHeader}>
+            <Typography className={classes.versionHeaderTitle}>
+              {getLanguageFromKey('app_release.release_tab_versions', language)}
+            </Typography>
           </Grid>
 
           <Grid
