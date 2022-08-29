@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.ModelMetadatalModels;
-
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository
@@ -38,11 +38,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         /// <summary>
         /// Gets the application metadata.
-        /// </summary>    
+        /// </summary>
         public async Task<Application> GetApplicationMetadata()
         {
-            var appMetadataRealtiveFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
-            var fileContent = await ReadTextByRelativePathAsync(appMetadataRealtiveFilePath);
+            var appMetadataRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
+            var fileContent = await ReadTextByRelativePathAsync(appMetadataRelativeFilePath);
 
             return JsonConvert.DeserializeObject<Application>(fileContent);
         }
@@ -192,6 +192,21 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                     allResourceTexts[key].Add(language, textResourceElement);
                 }
             }
+        }
+
+        /// <summary>
+        /// Returns content in text file identified by languageCode in filename as a string
+        /// </summary>
+        /// <param name="languageCode">Language identifier</param>
+        public async Task<string> GetTextContentForLanguage(string languageCode)
+        {
+            string fileName = "text." + languageCode + ".json";
+
+            var textFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
+
+            var fileContent = await ReadTextByRelativePathAsync(textFileRelativeFilePath);
+
+            return JsonConvert.DeserializeObject<string>(fileContent);
         }
 
         /// <summary>
