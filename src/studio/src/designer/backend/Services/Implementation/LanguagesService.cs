@@ -22,13 +22,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         }
 
-        /// <summary>
-        /// Returns the languages when the text-files appear in new format
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repo">Repository identifier which is unique within an organisation.</param>
-        /// <param name="developer">Username of developer currently working in the repo.</param>
-        /// <returns>The languages</returns>
+        /// <inheritdoc />
         public IList<string> GetLanguages(string org, string repo, string developer)
         {
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
