@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -23,6 +24,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
     {
         private const string SCHEMA_FILES_PATTERN_JSON = "*.schema.json";
         private const string STUDIO_SETTINGS_FILEPATH = ".altinnstudio/settings.json";
+        private const string TEXT_FILES_PATTERN_JSON = "text.*.json";
 
         private AltinnStudioSettings _altinnStudioSettings;
 
@@ -89,7 +91,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         /// <summary>
         /// Finds all schema files regardless of location in repository.
-        /// </summary>        
+        /// </summary>
         public IList<AltinnCoreFile> GetSchemaFiles()
         {
             var schemaFiles = FindFiles(new string[] { SCHEMA_FILES_PATTERN_JSON });
@@ -97,6 +99,16 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             var altinnCoreSchemaFiles = MapFilesToAltinnCoreFiles(schemaFiles);
 
             return altinnCoreSchemaFiles;
+        }
+
+        /// <summary>
+        /// Finds all text files regardless of location in repository.
+        /// </summary>
+        public IList<string> GetLanguageFiles()
+        {
+            var languageFiles = FindFiles(new string[] { TEXT_FILES_PATTERN_JSON });
+
+            return languageFiles.ToList();
         }
 
         /// <summary>

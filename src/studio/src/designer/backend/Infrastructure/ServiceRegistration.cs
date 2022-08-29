@@ -42,6 +42,7 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<ITextResourceService, TextResourceService>();
             services.AddTransient<IAccessTokenGenerator, AccessTokenGenerator>();
             services.AddTransient<ISigningCredentialsResolver, SigningCredentialsResolver>();
+            services.AddTransient<ILanguagesService, LanguagesService>();
 
             return services;
         }
