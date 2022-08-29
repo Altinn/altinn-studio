@@ -199,6 +199,7 @@ function FormDesigner() {
       };
     },
   );
+
   return (
     <DndProvider backend={HTML5Backend}>
       <div className={classes.root}>

@@ -14,10 +14,7 @@ import {
 import { InformationPanelComponent } from '../components/toolbar/InformationPanelComponent';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import { ToolbarGroup } from './ToolbarGroup';
-import type {
-  IAppState,
-  IWidget,
-} from '../types/global';
+import type { IAppState, IWidget } from '../types/global';
 
 import './ToolBar.css';
 
@@ -25,7 +22,7 @@ export interface IToolbarElement {
   label: string;
   icon?: string;
   type: string;
-  actionMethod: (containerId: string, index: number) => void;
+  actionMethod: (containerId: string, position: number) => void;
 }
 
 export enum LayoutItemType {

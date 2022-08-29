@@ -1,22 +1,22 @@
 import React from 'react';
 import { useDrag } from 'react-dnd';
 import { DragSourceHookSpec } from 'react-dnd/src/hooks/types';
-import { EditorDraggableItem, ItemType } from './helpers/dnd-helpers';
+import { EditorDndItem, ItemType } from './helpers/dnd-helpers';
 
 export interface IDraggableProps {
   id: string;
   index?: number;
   containerId: string;
   notDraggable?: boolean;
-  onDrop?: (...args: any) => void;
+  onDrop?: (containerId?: string, position?: number) => void;
 }
 
 const draggableToolbarItemSpec = (
-  item: EditorDraggableItem,
+  item: EditorDndItem,
   notDraggable: boolean,
 ): DragSourceHookSpec<any, any, any> => ({
   item,
-  type: ItemType.TOOLBAR_ITEM,
+  type: item.type,
   canDrag: () => !notDraggable,
 });
 
@@ -26,9 +26,9 @@ export const DraggableToolbarItem: React.FC<IDraggableProps> = ({
   onDrop,
   notDraggable,
 }) => {
-  const [_collected, drag] = useDrag(
-    draggableToolbarItemSpec({ id, onDrop }, notDraggable),
-  );
+  const item = { id, onDrop, type: ItemType.TOOLBAR_ITEM };
+  // eslint-disable-next-line no-empty-pattern
+  const [{}, drag] = useDrag(draggableToolbarItemSpec(item, notDraggable));
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) =>
     event.key === 'Enter' ? onDrop() : undefined;
 

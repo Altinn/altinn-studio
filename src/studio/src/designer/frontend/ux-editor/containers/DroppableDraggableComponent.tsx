@@ -1,15 +1,14 @@
 import React, { RefObject, useRef } from 'react';
 import {
-  DragSourceHookSpec,
-  DragSourceMonitor,
   DropTargetHookSpec,
   DropTargetMonitor,
   useDrag,
   useDrop,
 } from 'react-dnd';
 import {
+  dragSourceSpec,
   EditorDndEvents,
-  EditorDraggableItem,
+  EditorDndItem,
   hoverIndexHelper,
   ItemType,
 } from './helpers/dnd-helpers';
@@ -22,104 +21,45 @@ export interface IDroppableDraggableComponentProps {
   dndEvents: EditorDndEvents;
 }
 
-const dragSourceSpec = (
-  item: EditorDraggableItem,
-  onDropComponent: (reset: boolean) => void,
-  canDrag: boolean,
-): DragSourceHookSpec<any, any, any> => ({
-  type: 'ITEM',
-  item,
-  collect: (monitor: DragSourceMonitor) => ({
-    isDragging: monitor.isDragging(),
-  }),
-  canDrag() {
-    return canDrag;
-  },
-  end(draggedItem: EditorDraggableItem, monitor: DragSourceMonitor) {
-    if (!monitor.didDrop() && draggedItem) {
-      onDropComponent(true);
-    }
-    console.log(draggedItem, monitor.didDrop());
-  },
-});
-
 const dropTargetSpec = (
-  targetItem: EditorDraggableItem,
+  targetItem: EditorDndItem,
   events: EditorDndEvents,
   ref: RefObject<HTMLDivElement>,
 ): DropTargetHookSpec<any, any, any> => ({
   accept: Object.keys(ItemType),
-  drop(droppedItem: EditorDraggableItem, monitor: DropTargetMonitor) {
+  drop(droppedItem: EditorDndItem, monitor: DropTargetMonitor) {
     if (!droppedItem) {
       return;
     }
     if (monitor.isOver({ shallow: true })) {
-      switch (monitor.getItemType()) {
-        case ItemType.TOOLBAR_ITEM: {
-          if (!droppedItem.onDrop) {
-            console.warn("Draggable Item doesn't have an onDrop-event");
-            break;
-          }
-          droppedItem.onDrop(targetItem.containerId, targetItem.index);
-          break;
+      if (monitor.getItemType() === ItemType.TOOLBAR_ITEM) {
+        if (!droppedItem.onDrop) {
+          console.warn("Draggable Item doesn't have an onDrop-event");
+          return;
         }
-        case ItemType.ITEM: {
-          events.onDropComponent();
-          break;
-        }
-        case ItemType.CONTAINER: {
-          events.onDropContainer();
-          break;
-        }
-        default: {
-          break;
-        }
+        droppedItem.onDrop(targetItem.containerId, targetItem.index);
+      } else {
+        events.onDropItem();
       }
     }
   },
-  canDrop(
-    props: IDroppableDraggableComponentProps,
-    monitor: DropTargetMonitor,
-  ) {
+  canDrop(draggedItem: EditorDndItem, monitor: DropTargetMonitor) {
     return monitor.isOver({ shallow: true });
   },
-  hover(draggedItem: EditorDraggableItem, monitor: DropTargetMonitor) {
+  hover(draggedItem: EditorDndItem, monitor: DropTargetMonitor) {
     if (!draggedItem) {
       return;
     }
-    if (
-      monitor.isOver({ shallow: true }) &&
-      hoverIndexHelper(draggedItem, targetItem, ref, monitor.getClientOffset())
-    ) {
-      switch (monitor.getItemType()) {
-        case ItemType.TOOLBAR_ITEM: {
-          events.onMoveComponent(draggedItem, targetItem);
-          break;
-        }
-        case ItemType.ITEM: {
-          events.onMoveComponent(draggedItem, targetItem);
-          draggedItem.index = targetItem.index;
-          draggedItem.containerId = targetItem.containerId;
-          break;
-        }
-
-        case ItemType.CONTAINER: {
-          if (
-            draggedItem.id === targetItem.id ||
-            draggedItem.index === targetItem.index ||
-            draggedItem.containerId === targetItem.id
-          ) {
-            return;
-          }
-          events.onMoveContainer(draggedItem, targetItem);
-          draggedItem.index = targetItem.index;
-          break;
-        }
-        default: {
-          break;
-        }
-      }
+    if (!monitor.isOver({ shallow: true })) {
+      return; // we are not over... do nothing
     }
+    if (
+      !hoverIndexHelper(draggedItem, targetItem, ref, monitor.getClientOffset())
+    ) {
+      return; // we are not performing any actions
+    }
+    const movingDown = monitor.getDifferenceFromInitialOffset().y > 0;
+    events.moveItem(draggedItem, targetItem, movingDown);
   },
 });
 
@@ -127,16 +67,19 @@ export const DroppableDraggableComponent: React.FC<
   IDroppableDraggableComponentProps
 > = ({ id, index, dndEvents, children, containerId, canDrag }) => {
   const ref = useRef<HTMLDivElement>(null);
-  const item = { id, containerId, index };
+  const item = { id, containerId, index, type: ItemType.ITEM };
+  // eslint-disable-next-line no-empty-pattern
   const [{ isDragging }, drag] = useDrag(
-    dragSourceSpec(item, dndEvents.onDropComponent, canDrag),
+    dragSourceSpec(item, canDrag, dndEvents.onDropItem),
   );
+
   // eslint-disable-next-line no-empty-pattern
   const [{}, drop] = useDrop(dropTargetSpec(item, dndEvents, ref));
   const opacity = isDragging ? 0 : 1;
+  const background = isDragging ? 'inherit !important' : undefined;
   drag(drop(ref));
   return (
-    <div style={{ opacity }} ref={ref}>
+    <div style={{ opacity, background }} ref={ref}>
       {children}
     </div>
   );

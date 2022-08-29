@@ -1,7 +1,7 @@
 /**
  * Have no clue what this actually does... but code was repeted a lot
  */
-import { XYCoord } from 'react-dnd';
+import { DragSourceHookSpec, DragSourceMonitor, XYCoord } from 'react-dnd';
 import { RefObject } from 'react';
 
 /**
@@ -9,8 +9,8 @@ import { RefObject } from 'react';
  * @see https://react-dnd.github.io/react-dnd/examples/sortable/simple
  */
 export const hoverIndexHelper = (
-  draggedItem: EditorDraggableItem,
-  hoveredItem: EditorDraggableItem,
+  draggedItem: EditorDndItem,
+  hoveredItem: EditorDndItem,
   ref: RefObject<HTMLDivElement>,
   clientOffset: XYCoord,
 ): boolean => {
@@ -47,12 +47,12 @@ export const hoverIndexHelper = (
   return true;
 };
 
-export interface EditorDraggableItem {
-  id: string;
+export interface EditorDndItem {
+  id: string; // itemId, regardless.
   containerId?: string;
-  onDrop?: (containerId: string, index: number) => void;
-  parentContainerId?: string;
+  onDrop?: (containerId: string, position: number) => void;
   index?: number;
+  type: ItemType;
 }
 
 export enum ItemType {
@@ -66,16 +66,14 @@ export enum ItemType {
  * @see DesignView
  */
 export interface EditorDndEvents {
-  onDropComponent: (reset?: boolean) => void;
-  onDropContainer: (reset?: boolean) => void;
-  onMoveComponent: (
-    movedItem: EditorDraggableItem,
-    targetItem: EditorDraggableItem,
+  moveItem: (
+    movedItem: EditorDndItem,
+    targetItem: EditorDndItem,
+    movingDown?: boolean,
   ) => void;
-  onMoveContainer: (
-    movedItem: EditorDraggableItem,
-    targetItem: EditorDraggableItem,
-  ) => void;
+  moveItemToBottom: (item: EditorDndItem) => void;
+  moveItemToTop: (item: EditorDndItem) => void;
+  onDropItem: (reset?: boolean) => void;
 }
 
 /**
@@ -92,3 +90,38 @@ export const swapArrayElements = (arr: any[], itemA: any, itemB: any) => {
   out[indexB] = arr[indexA];
   return out;
 };
+
+export const removeArrayElement = (arr: any[], item: any) => {
+  const out = [...arr];
+  const index = arr.indexOf(item);
+  if (index > -1) {
+    // only splice array when item is found
+    out.splice(index, 1); // 2nd parameter means remove one item only
+  }
+  return out;
+};
+
+export const dragSourceSpec = (
+  item: EditorDndItem,
+  canDrag: boolean,
+  onDropItem: (reset: boolean) => void,
+): DragSourceHookSpec<any, any, any> => ({
+  type: item.type,
+  item,
+  collect: (monitor: DragSourceMonitor) => {
+    return {
+      isDragging: monitor.isDragging(),
+    };
+  },
+  canDrag() {
+    return canDrag;
+  },
+  isDragging(monitor) {
+    return item.id === monitor.getItem()?.id;
+  },
+  end(draggedItem: EditorDndItem, monitor: DragSourceMonitor) {
+    if (!monitor.didDrop() && draggedItem) {
+      onDropItem(true);
+    }
+  },
+});

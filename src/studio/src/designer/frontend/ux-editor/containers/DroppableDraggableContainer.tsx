@@ -1,7 +1,5 @@
 import React, { RefObject, useRef } from 'react';
 import {
-  DragSourceHookSpec,
-  DragSourceMonitor,
   DropTargetHookSpec,
   DropTargetMonitor,
   useDrag,
@@ -9,30 +7,17 @@ import {
 } from 'react-dnd';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import {
+  dragSourceSpec,
   EditorDndEvents,
-  EditorDraggableItem,
+  EditorDndItem,
+  hoverIndexHelper,
   ItemType,
 } from './helpers/dnd-helpers';
 
-const dragSourceSpec = (
-  item: EditorDraggableItem,
-  canDrag: boolean,
-): DragSourceHookSpec<any, any, any> => ({
-  type: ItemType.CONTAINER,
-  item,
-  collect: (monitor: DragSourceMonitor) => ({
-    isDragging: monitor.isDragging(),
-  }),
-  canDrag() {
-    return canDrag;
-  },
-});
-
 const dropTargetSpec = (
-  targetItem: EditorDraggableItem,
+  targetItem: EditorDndItem,
   dndEvents: EditorDndEvents,
   ref: RefObject<HTMLDivElement>,
-  isBaseContainer: boolean,
 ): DropTargetHookSpec<any, any, any> => ({
   accept: Object.keys(ItemType),
   collect(monitor: DropTargetMonitor) {
@@ -40,75 +25,45 @@ const dropTargetSpec = (
       isOver: monitor.isOver(),
     };
   },
-  drop(droppedItem: EditorDraggableItem, monitor: DropTargetMonitor) {
+  drop(droppedItem: EditorDndItem, monitor: DropTargetMonitor) {
     if (monitor.isOver({ shallow: true })) {
-      switch (monitor.getItemType()) {
-        case ItemType.TOOLBAR_ITEM: {
-          if (!droppedItem.onDrop) {
-            console.warn("Draggable Item doesn't have an onDrop-event");
-            break;
-          }
-          droppedItem.onDrop(targetItem.id, targetItem.index);
-          break;
+      if (monitor.getItemType() === ItemType.TOOLBAR_ITEM) {
+        if (!droppedItem.onDrop) {
+          console.warn("Draggable Item doesn't have an onDrop-event");
+          return;
         }
-        case ItemType.ITEM: {
-          dndEvents.onDropComponent();
-          droppedItem.index = targetItem.index;
-          break;
-        }
-        case ItemType.CONTAINER: {
-          if (isBaseContainer) {
-            // We can't get the index here, so let's not do anything
-            dndEvents.onDropContainer();
-            break;
-          } else {
-            dndEvents.onDropContainer();
-          }
-          break;
-        }
-        default: {
-          break;
-        }
+        // this need to figure out if we are at the top or bottom of the component
+        droppedItem.onDrop(targetItem.id, 0);
+      } else {
+        dndEvents.onDropItem();
       }
     }
   },
-  hover(draggedItem: EditorDraggableItem, monitor: DropTargetMonitor) {
+  hover(draggedItem: EditorDndItem, monitor: DropTargetMonitor) {
     if (!draggedItem) {
       return;
     }
-
-    if (monitor.isOver({ shallow: true })) {
-      switch (monitor.getItemType()) {
-        case ItemType.CONTAINER: {
-          if (
-            draggedItem.id === targetItem.id ||
-            draggedItem.index === targetItem.index ||
-            draggedItem.containerId === targetItem.id
-          ) {
-            return;
-          }
-          dndEvents.onMoveContainer(draggedItem, targetItem);
-          draggedItem.index = targetItem.index;
-          break;
-        }
-        case ItemType.ITEM: {
-          if (
-            draggedItem.id === targetItem.id ||
-            draggedItem.index === targetItem.index ||
-            draggedItem.containerId === targetItem.id
-          ) {
-            return;
-          }
-          dndEvents.onMoveContainer(draggedItem, targetItem);
-          draggedItem.index = targetItem.index;
-          draggedItem.containerId = targetItem.id;
-          break;
-        }
-        default: {
-          break;
-        }
-      }
+    if (!monitor.isOver({ shallow: true })) {
+      return; // we are not over... do nothing
     }
+
+    if (
+      !hoverIndexHelper(draggedItem, targetItem, ref, monitor.getClientOffset())
+    ) {
+      return; // we are not performing any actions
+    }
+
+    const movingDown = monitor.getDifferenceFromInitialOffset().y > 0;
+    // Item is in this container all ready
+    if (draggedItem.containerId === targetItem.id) {
+      movingDown
+        ? dndEvents.moveItemToBottom(draggedItem)
+        : dndEvents.moveItemToTop(draggedItem);
+    } else {
+      dndEvents.moveItem(draggedItem, targetItem, movingDown);
+    }
+
+    // We are not moving the container when we change positions
   },
 });
 
@@ -133,11 +88,16 @@ export const DroppableDraggableContainer: React.FC<
   parentContainerId,
 }) => {
   const ref = useRef<HTMLDivElement>(null);
-  const item = { id, index };
-  const [{ isDragging }, drag] = useDrag(dragSourceSpec(item, canDrag));
-  const [{ isOver }, drop] = useDrop(
-    dropTargetSpec(item, dndEvents, ref, isBaseContainer),
+  const item = {
+    id,
+    index,
+    containerId: parentContainerId,
+    type: ItemType.CONTAINER,
+  };
+  const [{ isDragging }, drag] = useDrag(
+    dragSourceSpec(item, canDrag, dndEvents.onDropItem),
   );
+  const [{ isOver }, drop] = useDrop(dropTargetSpec(item, dndEvents, ref));
   const opacity = isDragging ? 0 : 1;
   const backgroundColor = isOver
     ? 'white'
@@ -153,7 +113,7 @@ export const DroppableDraggableContainer: React.FC<
   };
   drag(drop(ref));
   return (
-    <div style={style} ref={ref}>
+    <div style={style} ref={ref} data-testid={'droppable-draggable-container'}>
       {children}
     </div>
   );
