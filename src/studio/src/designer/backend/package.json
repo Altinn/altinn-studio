@@ -13,30 +13,30 @@
     "gulp-develop-designer-frontend": "gulp develop-designer-frontend"
   },
   "devDependencies": {
-    "chokidar": "^3.5.3",
-    "cross-env": "^7.0.3",
-    "del": "^6.1.1",
-    "gulp": "^4.0.2",
-    "gulp-run-command": "^0.0.10"
+    "chokidar": "3.5.3",
+    "cross-env": "7.0.3",
+    "del": "6.1.1",
+    "gulp": "4.0.2",
+    "gulp-run-command": "0.0.10"
   },
   "dependencies": {
-    "altinn-designsystem": "^2.7.12",
-    "bootstrap": "^4.6.2",
-    "bootstrap-list-filter": "^0.3.4",
-    "jquery": "^3.6.0",
-    "jquery-ui-dist": "^1.13.1",
-    "jquery-validation": "^1.19.5",
-    "jquery-validation-unobtrusive": "^3.2.12",
-    "js-beautify": "^1.14.4",
-    "json-editor": "^0.7.28",
-    "monaco-editor": "^0.33.0",
-    "popper.js": "^1.16.1",
-    "requirejs": "^2.3.6",
-    "requirejs-text": "^2.0.16",
-    "rivets": "^0.9.6",
-    "select2": "^4.1.0-rc.0",
-    "sightglass": "^0.2.6",
-    "underscore": "^1.13.4"
+    "altinn-designsystem": "2.7.12",
+    "bootstrap": "4.6.2",
+    "bootstrap-list-filter": "0.3.4",
+    "jquery": "3.6.0",
+    "jquery-ui-dist": "1.13.1",
+    "jquery-validation": "1.19.5",
+    "jquery-validation-unobtrusive": "3.2.12",
+    "js-beautify": "1.14.4",
+    "json-editor": "0.7.28",
+    "monaco-editor": "0.33.0",
+    "popper.js": "1.16.1",
+    "requirejs": "2.3.6",
+    "requirejs-text": "2.0.16",
+    "rivets": "0.9.6",
+    "select2": "4.1.0-rc.0",
+    "sightglass": "0.2.6",
+    "underscore": "1.13.4"
   },
   "packageManager": "yarn@3.2.1"
 }
