@@ -20,7 +20,7 @@
     "gulp-run-command": "0.0.10"
   },
   "dependencies": {
-    "altinn-designsystem": "2.7.12",
+    "altinn-designsystem": "4.1.0",
     "bootstrap": "4.6.2",
     "bootstrap-list-filter": "0.3.4",
     "jquery": "3.6.0",
