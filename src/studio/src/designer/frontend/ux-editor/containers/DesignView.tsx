@@ -5,8 +5,10 @@ import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayou
 import type { IFormLayoutOrder } from '../types/global';
 import { DroppableDraggableContainer } from './DroppableDraggableContainer';
 import {
+  ContainerPos,
   EditorDndEvents,
   EditorDndItem,
+  insertArrayElementAtPos,
   ItemType,
   removeArrayElement,
   swapArrayElements,
@@ -34,6 +36,9 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
     containerId: string,
     layoutOrder: string[],
   ) => {
+    if (layoutOrder.includes(containerId)) {
+      throw Error("can't add item to itself");
+    }
     setState((prevState: IDesignerPreviewState) => {
       return {
         ...prevState,
@@ -57,12 +62,15 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
   const addItemToContainer = (
     item: EditorDndItem,
     targetContainerId: string,
-    targetPosition: number,
+    targetPos: number,
   ) => {
-    const layoutOrder = [...state.layoutOrder[targetContainerId]];
-    layoutOrder.splice(targetPosition, 0, item.id);
-    setContainerLayoutOrder(targetContainerId, layoutOrder);
-    item.index = targetPosition;
+    const newLayoutOrder = insertArrayElementAtPos(
+      state.layoutOrder[targetContainerId],
+      item.id,
+      targetPos,
+    );
+    setContainerLayoutOrder(targetContainerId, newLayoutOrder);
+    item.index = newLayoutOrder.indexOf(item.id);
     item.containerId = targetContainerId;
   };
   const moveItemBetweenContainers = (
@@ -106,18 +114,19 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
   const moveItem = (
     movedItem: EditorDndItem,
     targetItem: EditorDndItem,
-    movingDown?: boolean,
+    containerPos?: ContainerPos,
   ): void => {
-    const targetContainerId =
-      targetItem.type === ItemType.CONTAINER
-        ? targetItem.id
-        : targetItem.containerId;
-
     if (!movedItem.id) {
       return; // No id, no drag
     }
-    if (!targetContainerId) {
-      return; // don't know where to put the container, ignore
+    if (ItemType.ITEM && !movedItem.containerId) {
+      return; // don't know where to put the item, ignore
+    }
+    if (
+      targetItem.type === ItemType.CONTAINER &&
+      movedItem.containerId === targetItem.id
+    ) {
+      return; // Need to check if item already is in the targeted container.
     }
     if (movedItem.id === targetItem.id) {
       return; // we are hovering our selves... no need to do anything.
@@ -125,16 +134,24 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
     if (!beforeDrag) {
       setBeforeDrag(state.layoutOrder); // store the before drag state.
     }
-
     // they are in the same container easy swap this is regardless about their type
     if (movedItem.containerId === targetItem.containerId) {
       swapItemsInsideTheSameContainer(movedItem, targetItem.id);
-    } else if (targetItem.type === ItemType.CONTAINER) {
-      // For now, put the item at the top
-      moveItemBetweenContainers(movedItem, targetContainerId, 0);
-    } else {
+    } else if (targetItem.type === ItemType.CONTAINER && containerPos) {
+      const targetContainerPos = containerPos === ContainerPos.TOP ? 0 : 99;
+      moveItemBetweenContainers(movedItem, targetItem.id, targetContainerPos);
+    } else if (
+      targetItem.type === ItemType.ITEM &&
+      movedItem.id !== targetItem.containerId
+    ) {
       // We are moving the item to the new container at the position of the target item.
-      moveItemBetweenContainers(movedItem, targetContainerId, targetItem.index);
+      moveItemBetweenContainers(
+        movedItem,
+        targetItem.containerId,
+        targetItem.index,
+      );
+    } else {
+      console.log('Nothing to do');
     }
   };
 
@@ -147,7 +164,6 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
           isDragging: false,
         };
       });
-      setBeforeDrag(null);
     }
   };
   /**
@@ -177,6 +193,8 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
         }),
       );
     }
+    // Resetting the before drag status
+    setBeforeDrag(null);
   };
   const baseContainerId =
     Object.keys(state.layoutOrder).length > 0

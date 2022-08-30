@@ -62,6 +62,10 @@ export enum ItemType {
   Right = 'RIGHT',
 }
 
+export enum ContainerPos {
+  TOP = 'TOP',
+  BOTTOM = 'BOTTOM',
+}
 /**
  * @see DesignView
  */
@@ -69,7 +73,7 @@ export interface EditorDndEvents {
   moveItem: (
     movedItem: EditorDndItem,
     targetItem: EditorDndItem,
-    movingDown?: boolean,
+    containerPos?: ContainerPos,
   ) => void;
   moveItemToBottom: (item: EditorDndItem) => void;
   moveItemToTop: (item: EditorDndItem) => void;
@@ -101,6 +105,23 @@ export const removeArrayElement = (arr: any[], item: any) => {
   return out;
 };
 
+export const insertArrayElementAtPos = (
+  arr: any[],
+  item: any,
+  targetPos: number,
+) => {
+  if (targetPos < 0) {
+    throw Error(`Cant insert element at array position ${targetPos}`);
+  }
+  const out = [...arr];
+  if (targetPos >= arr.length) {
+    out.push(item);
+  } else {
+    out.splice(targetPos, 0, item);
+  }
+  return out;
+};
+
 export const dragSourceSpec = (
   item: EditorDndItem,
   canDrag: boolean,
@@ -125,3 +146,28 @@ export const dragSourceSpec = (
     }
   },
 });
+
+/**
+ *
+ *
+ *
+ * @param boundingClientRect
+ * @param clientOffset
+ */
+export const getContainerPosition = (
+  boundingClientRect: DOMRect,
+  clientOffset: XYCoord,
+): ContainerPos | undefined => {
+  const toptop = boundingClientRect.top;
+  const topbottom = boundingClientRect.top + 50;
+  const bottomtop = boundingClientRect.bottom - 50;
+  const bottombottom = boundingClientRect.bottom;
+  const { y } = clientOffset;
+  if (y > toptop && y < topbottom) {
+    return ContainerPos.TOP;
+  }
+  if (y > bottomtop && y < bottombottom) {
+    return ContainerPos.BOTTOM;
+  }
+  return undefined;
+};
