@@ -1,11 +1,12 @@
 import React from 'react';
+import type { ComponentType } from 'react';
 import { render as rtlRender } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import type { RenderOptions } from '@testing-library/react';
 import type { PreloadedState } from '@reduxjs/toolkit';
 import { HashRouter as Router } from 'react-router-dom';
-import { AppStore, RootState, setupStore } from '../store';
-
+import { setupStore } from '../store';
+import type { AppStore, RootState } from '../store';
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   preloadedState?: PreloadedState<RootState>;
@@ -31,7 +32,7 @@ export const renderWithProviders = (
   return {
     store,
     ...rtlRender(component, {
-      wrapper: Wrapper,
+      wrapper: Wrapper as ComponentType,
       ...renderOptions,
     }),
   };
