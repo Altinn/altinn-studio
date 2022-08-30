@@ -22,13 +22,12 @@ describe('Validation', () => {
       .blur()
       .focus()
       .clear()
-      .blur();
+      .blur()
     cy.get(appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newFirstName.substring(1)))
       .should('exist')
       .should('be.visible')
-      .should('have.text', texts.requiredField)
-      .find(appFrontend.errorExclamation)
-      .should('be.visible');
+      .should('have.text', texts.requiredField);
+
 
     // Doing the same for any other field (without server-side required validation) should not show an error
     cy.get(appFrontend.changeOfName.newMiddleName)
@@ -75,9 +74,7 @@ describe('Validation', () => {
     cy.get(appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newLastName.substring(1)))
       .should('exist')
       .should('be.visible')
-      .should('have.text', texts.requiredFieldLastName)
-      .find(appFrontend.errorExclamation)
-      .should('be.visible');
+      .should('have.text', texts.requiredFieldLastName);
   });
 
   it('Custom field validation - error', () => {
@@ -90,7 +87,6 @@ describe('Validation', () => {
       .should('be.visible')
       .should('have.text', texts.testIsNotValidValue)
       .then((error) => {
-        cy.get(error).find(appFrontend.errorExclamation).should('be.visible');
         cy.get(error).find('a[href="https://www.altinn.no/"]').should('exist');
       });
   });

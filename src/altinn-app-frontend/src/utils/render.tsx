@@ -1,15 +1,11 @@
 import * as React from 'react';
 
-import { MessageComponent } from 'src/components/message/MessageComponent';
+import { ErrorMessage } from '@altinn/altinn-design-system';
+
 import { SoftValidations } from 'src/features/form/components/SoftValidations';
 import type { IComponentBindingValidation } from 'src/types';
 
 import { getParsedLanguageFromText } from 'altinn-shared/utils';
-
-const messageComponentStyle = {
-  display: 'block',
-  width: 'fit-content',
-};
 
 export function renderValidationMessagesForComponent(
   validationMessages: IComponentBindingValidation,
@@ -74,14 +70,11 @@ export function renderValidationMessages(
   }
 
   return (
-    <MessageComponent
-      messageType='error'
-      style={messageComponentStyle}
-      key='error'
-      id={id}
-    >
-      <ol>{messages.map(validationMessagesToList)}</ol>
-    </MessageComponent>
+    <div style={{ paddingTop: '0.375rem' }}>
+      <ErrorMessage id={id}>
+        <ol>{messages.map(validationMessagesToList)}</ol>
+      </ErrorMessage>
+    </div>
   );
 }
 

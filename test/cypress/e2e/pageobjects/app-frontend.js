@@ -13,7 +13,6 @@ export default class AppFrontend {
     this.attachmentIcon = '.reg-attachment';
     this.sendinButton = '#sendInButton';
     this.instantiationButton = '#instantiation-button';
-    this.errorExclamation = '.fa-circle-exclamation';
     this.errorReport = '[data-testid="ErrorReport"]';
     this.altinnError = '[data-testid="AltinnError"]';
     this.profileIconButton = '#profile-icon-button';
