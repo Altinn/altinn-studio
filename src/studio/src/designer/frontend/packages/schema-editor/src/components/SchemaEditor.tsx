@@ -21,12 +21,18 @@ import {
 } from '../features/editor/schemaEditorSlice';
 import { SchemaItem } from './SchemaItem';
 import { getTranslation } from '../utils/language';
-import { getDomFriendlyID, getSchemaFromPath } from '../utils/schema';
+import {
+  getDomFriendlyID,
+  getSchemaFromPath,
+  getUiSchemaItem,
+  splitParentPathAndName,
+} from '../utils/schema';
 import { SchemaInspector } from './SchemaInspector';
 import { SchemaTab } from './SchemaTab';
 import { TopToolbar } from './TopToolbar';
 import { getSchemaSettings } from '../settings';
 import { getLanguageFromKey } from 'app-shared/utils/language';
+import { isNameInUse } from '../utils/checks';
 
 const useStyles = makeStyles({
   root: {
@@ -242,6 +248,43 @@ export const SchemaEditor = (props: IEditorProps) => {
       spinnerText={getLanguageFromKey('general.loading', language)}
     />
   ) : null;
+
+  const selectedId = useSelector((state: ISchemaState) =>
+    state.selectedEditorTab === 'properties'
+      ? state.selectedPropertyNodeId
+      : state.selectedDefinitionNodeId,
+  );
+
+  const selectedItem = useSelector((state: ISchemaState) =>
+    selectedId ? getUiSchemaItem(state.uiSchema, selectedId) : null,
+  );
+
+  // if item is a reference, we want to show the properties of the reference.
+  const referredItem = useSelector((state: ISchemaState) =>
+    selectedItem?.$ref
+      ? state.uiSchema.find((i: UiSchemaItem) => i.path === selectedItem.$ref)
+      : null,
+  );
+
+  const parentItem = useSelector((state: ISchemaState) => {
+    if (selectedId) {
+      const [parentPath] = splitParentPathAndName(selectedId);
+      if (parentPath) {
+        return getUiSchemaItem(state.uiSchema, parentPath);
+      }
+    }
+    return null;
+  });
+
+  const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
+
+  const checkIsNameInUse = (name: string) =>
+    isNameInUse({
+      uiSchemaItems: uiSchema,
+      parentSchema: parentItem,
+      path: selectedId,
+      name,
+    });
   return (
     <div className={classes.root}>
       <main>
@@ -350,7 +393,12 @@ export const SchemaEditor = (props: IEditorProps) => {
       </main>
       {schema && (
         <aside className={classes.inspector}>
-          <SchemaInspector language={language} />
+          <SchemaInspector
+            language={language}
+            referredItem={referredItem ?? undefined}
+            selectedItem={selectedItem ?? undefined}
+            checkIsNameInUse={checkIsNameInUse}
+          />
         </aside>
       )}
       <AltinnMenu

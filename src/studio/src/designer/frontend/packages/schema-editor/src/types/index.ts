@@ -39,6 +39,7 @@ export interface UiSchemaItem {
   combination?: UiSchemaItem[];
   combinationKind?: CombinationKind;
   combinationItem?: boolean;
+  isRequired?: boolean;
 }
 
 /** Types */
@@ -64,4 +65,3 @@ export type Restriction = {
   key: string;
   value: any;
 };
-

@@ -3,6 +3,7 @@ import {
   buildJsonSchema,
   buildUISchema,
   getUiSchemaItem,
+  getUiSchemaItemsByRef,
   getUniqueNumber,
   mapCombinationChildren,
   updateChildPaths,
@@ -444,6 +445,11 @@ const schemaEditorSlice = createSlice({
             state.selectedPropertyNodeId = item.path;
           }
         }
+
+        // Update references
+        getUiSchemaItemsByRef(state.uiSchema, path).forEach(
+          (reffedItem) => (reffedItem.$ref = item.path),
+        );
       }
     },
     setSchemaName(state, action: PayloadAction<{ name: string }>) {

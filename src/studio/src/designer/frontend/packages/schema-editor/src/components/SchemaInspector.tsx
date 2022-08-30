@@ -1,43 +1,15 @@
-import {
-  AppBar,
-  Checkbox,
-  FormControlLabel,
-  Grid,
-  IconButton,
-} from '@material-ui/core';
-import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React, { useEffect, useState } from 'react';
+import { AppBar, Divider } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
-import type {
-  ILanguage,
-  ISchemaState,
-  Restriction,
-  UiSchemaItem,
-} from '../types';
+import { ILanguage, UiSchemaItem } from '../types';
 import { ObjectKind } from '../types/enums';
-import { PropertyItem } from './PropertyItem';
-import {
-  addEnum,
-  addProperty,
-  addRestriction,
-  deleteEnum,
-  deleteField,
-  deleteProperty,
-  setPropertyName,
-  setRequired,
-  setRestriction,
-  setRestrictionKey,
-} from '../features/editor/schemaEditorSlice';
-import { getUiSchemaItem, splitParentPathAndName } from '../utils/schema';
 import { getTranslation } from '../utils/language';
-import { RestrictionField } from './RestrictionField';
-import { EnumField } from './EnumField';
 import { SchemaTab } from './SchemaTab';
-import { isFieldRequired, isNameInUse } from '../utils/checks';
-import { AddPropertyButton } from './AddPropertyButton';
-import { ItemDataComponent } from './ItemDataComponent';
-import { InlineObject } from './InlineObject';
+import { ItemRestrictionsTab } from './SchemaInspector/ItemRestrictionsTab';
+import { ItemPropertiesTab } from './SchemaInspector/ItemPropertiesTab';
+import { getObjectKind } from '../utils/ui-schema-utils';
+import { ItemFieldsTab } from './SchemaInspector/ItemFieldsTab';
 
 const useStyles = makeStyles(
   createStyles({
@@ -61,11 +33,6 @@ const useStyles = makeStyles(
       '& .Mui-focusVisible': {
         background: 'gray',
       },
-    },
-    divider: {
-      marginTop: 2,
-      marginBottom: 2,
-      padding: '8px 2px 8px 2px',
     },
     appBar: {
       border: 'none',
@@ -91,367 +58,86 @@ const useStyles = makeStyles(
 
 export interface ISchemaInspectorProps {
   language: ILanguage;
+  selectedItem?: UiSchemaItem;
+  referredItem?: UiSchemaItem;
+  checkIsNameInUse: (name: string) => boolean;
 }
 
-export const SchemaInspector = (props: ISchemaInspectorProps) => {
+export const SchemaInspector = ({
+  language,
+  selectedItem,
+  checkIsNameInUse,
+}: ISchemaInspectorProps) => {
   const classes = useStyles();
-  const dispatch = useDispatch();
-
-  const [objectKind, setObjectKind] = React.useState<ObjectKind>(
-    ObjectKind.Field,
-  );
-  const [isRequired, setIsRequired] = React.useState<boolean>(false);
-  const [tabIndex, setTabIndex] = React.useState('0');
-
-  const selectedId = useSelector((state: ISchemaState) =>
-    state.selectedEditorTab === 'properties'
-      ? state.selectedPropertyNodeId
-      : state.selectedDefinitionNodeId,
-  );
-
-  const selectedItem = useSelector((state: ISchemaState) =>
-    selectedId ? getUiSchemaItem(state.uiSchema, selectedId) : null,
-  );
-
-  // if item is a reference, we want to show the properties of the reference.
-  const itemToDisplay = useSelector((state: ISchemaState) =>
-    selectedItem?.$ref
-      ? state.uiSchema.find((i: UiSchemaItem) => i.path === selectedItem.$ref)
-      : selectedItem,
-  );
-
-  const parentItem = useSelector((state: ISchemaState) => {
-    if (selectedId) {
-      const [parentPath] = splitParentPathAndName(selectedId);
-      if (parentPath) {
-        return getUiSchemaItem(state.uiSchema, parentPath);
-      }
-    }
-    return null;
-  });
-
-  const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
+  const [tabIndex, setTabIndex] = useState('0');
+  const __ = (key: string) => getTranslation(key, language);
 
   useEffect(() => {
     if (selectedItem) {
-      if (tabIndex === '2' && itemToDisplay?.type !== 'object') {
+      if (tabIndex === '2' && selectedItem?.type !== 'object') {
         setTabIndex('0');
       }
-
-      setIsRequired(isFieldRequired(parentItem, selectedItem));
-
-      if (
-        selectedItem.$ref !== undefined ||
-        selectedItem.items?.$ref !== undefined
-      ) {
-        setObjectKind(ObjectKind.Reference);
-      } else if (selectedItem.combination) {
-        setObjectKind(ObjectKind.Combination);
-      } else {
-        setObjectKind(ObjectKind.Field);
-      }
     } else {
-      setIsRequired(false);
-      setObjectKind(ObjectKind.Field);
       setTabIndex('0');
     }
-  }, [selectedItem, parentItem, tabIndex, itemToDisplay]);
+  }, [tabIndex, selectedItem]);
 
-  const readOnly = selectedItem?.$ref !== undefined;
-
-  const onChangeValue = (path: string, value: any, key: string) =>
-    dispatch(
-      setRestriction({
-        path,
-        value: isNaN(value) ? value : +value,
-        key,
-      }),
-    );
-
-  const onChangeKey = (path: string, oldKey: string, newKey: string) => {
-    if (oldKey === newKey) {
-      return;
-    }
-    dispatch(
-      setRestrictionKey({
-        path,
-        oldKey,
-        newKey,
-      }),
-    );
-  };
-
-  const onChangePropertyName = (path: string, value: string) =>
-    dispatch(
-      setPropertyName({
-        path,
-        name: value,
-      }),
-    );
-
-  const onDeleteFieldClick = (path: string, key: string) =>
-    dispatch(deleteField({ path, key }));
-
-  const onDeleteObjectClick = (path: string) =>
-    dispatch(deleteProperty({ path }));
-
-  const onDeleteEnumClick = (path: string, value: string) =>
-    dispatch(deleteEnum({ path, value }));
-
-  const checkIsNameInUse = (name: string) =>
-    isNameInUse({
-      uiSchemaItems: uiSchema,
-      parentSchema: parentItem,
-      path: selectedId,
-      name,
-    });
-
-  const onChangeEnumValue = (value: string, oldValue?: string) => {
-    if (itemToDisplay) {
-      dispatch(
-        addEnum({
-          path: itemToDisplay.path,
-          value,
-          oldValue,
-        }),
-      );
-    }
-  };
-
-  const dispatchAddProperty = () => {
-    const path = itemToDisplay?.path;
-    if (path) {
-      dispatch(
-        addProperty({
-          path,
-          keepSelection: true,
-        }),
-      );
-    }
-  };
-
-  const onAddPropertyClicked = (event: React.BaseSyntheticEvent) => {
-    event.preventDefault();
-    dispatchAddProperty();
-  };
-
-  const onAddRestrictionClick = (event?: React.BaseSyntheticEvent) => {
-    event?.preventDefault();
-    if (itemToDisplay) {
-      dispatch(
-        addRestriction({
-          path: itemToDisplay.path,
-          key: '',
-          value: '',
-        }),
-      );
-    }
-  };
-
-  const dispatchAddEnum = () => {
-    if (itemToDisplay) {
-      dispatch(
-        addEnum({
-          path: itemToDisplay.path,
-          value: 'value',
-        }),
-      );
-    }
-  };
-
-  const onAddEnumButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
-    event.preventDefault();
-    dispatchAddEnum();
-  };
-  const handleRequiredChanged = (e: any, checked: boolean) => {
-    if (selectedItem) {
-      dispatch(
-        setRequired({
-          path: selectedId,
-          key: selectedItem.displayName,
-          required: checked,
-        }),
-      );
-      setIsRequired(checked);
-    }
-  };
-
-  const renderItemProperties = (item: UiSchemaItem) => {
-    if (!item.properties) return null;
-
-    return item.properties.map((p: UiSchemaItem) => {
-      return (
-        <PropertyItem
-          language={props.language}
-          key={p.path}
-          required={item.required?.includes(p.displayName)}
-          readOnly={readOnly}
-          value={p.displayName}
-          fullPath={p.path}
-          onChangeValue={onChangePropertyName}
-          onDeleteField={onDeleteObjectClick}
-          onEnterKeyPress={dispatchAddProperty}
-        />
-      );
-    });
-  };
-
-  const renderItemRestrictions = (item: UiSchemaItem) =>
-    item.restrictions?.map((field: Restriction) => {
-      if (field.key && field.key.startsWith('@')) {
-        return null;
-      }
-      return (
-        <RestrictionField
-          key={field.key}
-          language={props.language}
-          type={itemToDisplay?.type}
-          value={field.value}
-          keyName={field.key}
-          readOnly={readOnly}
-          path={item.path}
-          onChangeValue={onChangeValue}
-          onChangeKey={onChangeKey}
-          onDeleteField={onDeleteFieldClick}
-          onReturn={onAddRestrictionClick}
-        />
-      );
-    });
-
-  const renderEnums = (item: UiSchemaItem) =>
-    item.enum?.map((value: string) => (
-      <EnumField
-        key={value}
-        language={props.language}
-        path={item.path}
-        fullWidth={true}
-        value={value}
-        onChange={onChangeEnumValue}
-        onDelete={onDeleteEnumClick}
-        onEnterKeyPress={dispatchAddEnum}
-      />
-    ));
-
-  const handleTabChange = (event: any, newValue: string) =>
-    setTabIndex(newValue);
-
-  if (!selectedId) {
-    return (
-      <div>
-        <p className={classes.noItem} id='no-item-paragraph'>
-          {getTranslation('no_item_selected', props.language)}
-        </p>
-        <hr className={classes.divider} />
-      </div>
-    );
-  }
-
-  return (
+  return selectedItem ? (
     <div className={classes.root} data-testid='schema-inspector'>
       <TabContext value={tabIndex}>
         <AppBar position='static' color='default' className={classes.appBar}>
-          <TabList onChange={handleTabChange} aria-label='inspector tabs'>
-            <SchemaTab label='properties' language={props.language} value='0' />
+          <TabList
+            onChange={(e: any, v: string) => setTabIndex(v)}
+            aria-label='inspector tabs'
+          >
+            <SchemaTab label={__('properties')} value='0' />
             <SchemaTab
-              label='restrictions'
-              language={props.language}
+              label={__('restrictions')}
               value='1'
               hide={
-                objectKind === ObjectKind.Combination ||
-                selectedItem?.combinationItem
+                getObjectKind(selectedItem) === ObjectKind.Combination ||
+                selectedItem.combinationItem
               }
             />
             <SchemaTab
-              label='fields'
-              language={props.language}
+              label={__('fields')}
               value='2'
               hide={
-                selectedItem?.type !== 'object' || selectedItem.combinationItem
+                selectedItem.type !== 'object' || selectedItem.combinationItem
               }
             />
           </TabList>
         </AppBar>
+        <div style={{ color: 'lightgray' }}>{selectedItem.path}</div>
         <TabPanel value='0'>
-          {selectedItem?.combinationItem && selectedItem.$ref === undefined ? (
-            <InlineObject item={selectedItem} language={props.language} />
-          ) : (
-            <ItemDataComponent
-              selectedId={selectedId}
-              selectedItem={selectedItem}
-              parentItem={parentItem}
-              objectKind={objectKind}
-              language={props.language}
-              checkIsNameInUse={checkIsNameInUse}
-            />
-          )}
+          <ItemPropertiesTab
+            checkIsNameInUse={checkIsNameInUse}
+            selectedItem={selectedItem}
+            language={language}
+          />
         </TabPanel>
         <TabPanel value='1'>
-          <Grid container spacing={1} className={classes.gridContainer}>
-            <Grid item xs={12}>
-              <FormControlLabel
-                className={classes.header}
-                control={
-                  <Checkbox
-                    checked={isRequired}
-                    onChange={handleRequiredChanged}
-                    name='checkedRequired'
-                  />
-                }
-                label={getTranslation('required', props.language)}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <hr className={classes.divider} />
-            </Grid>
-            <Grid item xs={4}>
-              <p>{getTranslation('keyword', props.language)}</p>
-            </Grid>
-            <Grid item xs={1} />
-            <Grid item xs={7}>
-              <p>{getTranslation('value', props.language)}</p>
-            </Grid>
-            {itemToDisplay && renderItemRestrictions(itemToDisplay)}
-            <IconButton
-              id='add-restriction-button'
-              aria-label={getTranslation('add_restriction', props.language)}
-              onClick={onAddRestrictionClick}
-            >
-              <i className='fa fa-plus' />
-              {getTranslation('add_restriction', props.language)}
-            </IconButton>
-            {selectedItem && selectedItem.type !== 'object' && (
-              <>
-                <Grid item xs={12}>
-                  <hr className={classes.divider} />
-                  <p className={classes.header}>
-                    {getTranslation('enum', props.language)}
-                  </p>
-                </Grid>
-                {itemToDisplay && renderEnums(itemToDisplay)}
-                <IconButton
-                  id='add-enum-button'
-                  aria-label={getTranslation('add_enum', props.language)}
-                  onClick={onAddEnumButtonClick}
-                >
-                  <i className='fa fa-plus' />
-                  {getTranslation('add_enum', props.language)}
-                </IconButton>
-              </>
-            )}
-          </Grid>
+          <ItemRestrictionsTab
+            classes={classes}
+            selectedItem={selectedItem}
+            language={language}
+          />
         </TabPanel>
         <TabPanel value='2'>
-          <Grid container spacing={3} className={classes.gridContainer}>
-            {itemToDisplay && renderItemProperties(itemToDisplay)}
-          </Grid>
-          {!readOnly && (
-            <AddPropertyButton
-              onAddPropertyClick={onAddPropertyClicked}
-              language={props.language}
-            />
-          )}
+          <ItemFieldsTab
+            classes={classes}
+            selectedItem={selectedItem}
+            language={language}
+          />
         </TabPanel>
       </TabContext>
+    </div>
+  ) : (
+    <div>
+      <p className={classes.noItem} id='no-item-paragraph'>
+        {__('no_item_selected')}
+      </p>
+      <Divider />
     </div>
   );
 };
