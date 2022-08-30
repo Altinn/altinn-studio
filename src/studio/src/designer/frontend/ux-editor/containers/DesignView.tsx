@@ -5,14 +5,16 @@ import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayou
 import type { IFormLayoutOrder } from '../types/global';
 import { DroppableDraggableContainer } from './DroppableDraggableContainer';
 import {
+  insertArrayElementAtPos,
+  removeArrayElement,
+  swapArrayElements,
+} from './helpers/array-functions';
+import {
   ContainerPos,
   EditorDndEvents,
   EditorDndItem,
-  insertArrayElementAtPos,
   ItemType,
-  removeArrayElement,
-  swapArrayElements,
-} from './helpers/dnd-helpers';
+} from './helpers/dnd-types';
 
 export interface IDesignerPreviewState {
   layoutOrder: IFormLayoutOrder;
@@ -30,7 +32,6 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
     isDragging: false,
   });
   useEffect(() => setState(initialState), [initialState]);
-  const dispatch = useDispatch();
 
   const setContainerLayoutOrder = (
     containerId: string,
@@ -50,6 +51,7 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
       };
     });
   };
+
   const removeItemFromContainer = (item: EditorDndItem): void => {
     const layoutOrder = removeArrayElement(
       state.layoutOrder[item.containerId],
@@ -59,6 +61,7 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
     item.index = undefined;
     item.containerId = undefined;
   };
+
   const addItemToContainer = (
     item: EditorDndItem,
     targetContainerId: string,
@@ -73,6 +76,7 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
     item.index = newLayoutOrder.indexOf(item.id);
     item.containerId = targetContainerId;
   };
+
   const moveItemBetweenContainers = (
     item: EditorDndItem,
     targetContainerId: string,
@@ -86,17 +90,12 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
     const arr = state.layoutOrder[item.containerId];
     swapItemsInsideTheSameContainer(item, arr[0]);
   };
+
   const moveItemToBottom = (item: EditorDndItem) => {
     const arr = state.layoutOrder[item.containerId];
     swapItemsInsideTheSameContainer(item, arr[arr.length - 1]);
   };
 
-  /**
-   * Swaps item inside a container and returns the new index to update the item.
-   * @param movedId
-   * @param targetId
-   * @param containerId
-   */
   const swapItemsInsideTheSameContainer = (
     movedItem: EditorDndItem,
     targetId: string,
@@ -134,12 +133,17 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
     if (!beforeDrag) {
       setBeforeDrag(state.layoutOrder); // store the before drag state.
     }
-    // they are in the same container easy swap this is regardless about their type
+
     if (movedItem.containerId === targetItem.containerId) {
+      // they are in the same container easy swap this is regardless about their type
       swapItemsInsideTheSameContainer(movedItem, targetItem.id);
     } else if (targetItem.type === ItemType.CONTAINER && containerPos) {
-      const targetContainerPos = containerPos === ContainerPos.TOP ? 0 : 99;
-      moveItemBetweenContainers(movedItem, targetItem.id, targetContainerPos);
+      // Targeted item is an new container and we are hovering a containerPos (TOP or BOTTOM)
+      moveItemBetweenContainers(
+        movedItem,
+        targetItem.id,
+        containerPos === ContainerPos.TOP ? 0 : 99,
+      );
     } else if (
       targetItem.type === ItemType.ITEM &&
       movedItem.id !== targetItem.containerId
@@ -151,7 +155,7 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
         targetItem.index,
       );
     } else {
-      console.log('Nothing to do');
+      // There is nothing that should be moved.
     }
   };
 
@@ -166,11 +170,7 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
       });
     }
   };
-  /**
-   * Comitting the drop state
-   *
-   * @param reset
-   */
+  const dispatch = useDispatch();
   const onDropItem = (reset?: boolean) => {
     if (reset) {
       resetState();
@@ -201,10 +201,10 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
       ? Object.keys(state.layoutOrder)[0]
       : null;
   const dndEvents: EditorDndEvents = {
-    onDropItem,
     moveItem,
-    moveItemToTop,
     moveItemToBottom,
+    moveItemToTop,
+    onDropItem,
   };
   return (
     baseContainerId && (
@@ -218,7 +218,6 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
           isBaseContainer={true}
           id={baseContainerId}
           items={state.layoutOrder[baseContainerId]}
-          key={baseContainerId}
           layoutOrder={state.layoutOrder}
           dndEvents={dndEvents}
         />

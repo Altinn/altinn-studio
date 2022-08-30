@@ -15,8 +15,8 @@ import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayou
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import type {
   FormComponentType,
-  IFormComponent,
   IAppState,
+  IFormComponent,
 } from '../types/global';
 
 const useStyles = makeStyles({
@@ -303,7 +303,6 @@ export function EditContainer(props: IEditContainerProvidedProps) {
   const activeListIndex = activeList.findIndex(
     (item: any) => item.id === props.id,
   );
-
   return (
     <>
       <Grid container={true}>

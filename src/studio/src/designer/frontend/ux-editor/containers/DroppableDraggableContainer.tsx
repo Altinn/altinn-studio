@@ -6,14 +6,13 @@ import {
   useDrop,
 } from 'react-dnd';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
+import { dragSourceSpec, getContainerPosition } from './helpers/dnd-helpers';
 import {
   ContainerPos,
-  dragSourceSpec,
   EditorDndEvents,
   EditorDndItem,
-  getContainerPosition,
   ItemType,
-} from './helpers/dnd-helpers';
+} from './helpers/dnd-types';
 
 const dropTargetSpec = (
   targetItem: EditorDndItem,
@@ -98,23 +97,23 @@ const dropTargetSpec = (
 });
 
 export interface IDroppableDraggableContainerProps {
-  isBaseContainer: boolean;
   canDrag: boolean;
+  children?: ReactNode;
   dndEvents: EditorDndEvents;
   id: string;
   index?: number;
+  isBaseContainer: boolean;
   parentContainerId?: string;
-  children?: ReactNode;
 }
 
 export const DroppableDraggableContainer: FC<IDroppableDraggableContainerProps> =
   memo(function DroppableDraggableContainer({
-    dndEvents,
-    isBaseContainer,
     canDrag,
     children,
+    dndEvents,
     id,
     index,
+    isBaseContainer,
     parentContainerId,
   }: IDroppableDraggableContainerProps) {
     const ref = useRef<HTMLDivElement>(null);

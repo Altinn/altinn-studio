@@ -1,17 +1,13 @@
-import React, { memo, RefObject, useRef } from 'react';
+import React, { memo, RefObject, useRef, useState } from 'react';
 import {
   DropTargetHookSpec,
   DropTargetMonitor,
   useDrag,
   useDrop,
 } from 'react-dnd';
-import {
-  dragSourceSpec,
-  EditorDndEvents,
-  EditorDndItem,
-  hoverIndexHelper,
-  ItemType,
-} from './helpers/dnd-helpers';
+import { dragSourceSpec, hoverIndexHelper } from './helpers/dnd-helpers';
+import { EditorDndEvents, EditorDndItem, ItemType } from './helpers/dnd-types';
+import classNames from 'classnames';
 
 const dropTargetSpec = (
   targetItem: EditorDndItem,
@@ -56,24 +52,25 @@ const dropTargetSpec = (
 });
 
 export interface IDroppableDraggableComponentProps {
+  canDrag: boolean;
+  children?: React.ReactNode;
+  containerId: string;
+  dndEvents: EditorDndEvents;
   id: string;
   index: number;
-  containerId: string;
-  canDrag: boolean;
-  dndEvents: EditorDndEvents;
-  children?: React.ReactNode;
 }
 
 export const DroppableDraggableComponent: React.FC<IDroppableDraggableComponentProps> =
   memo(function DroppableDraggableComponent({
-    id,
-    index,
-    dndEvents,
+    canDrag,
     children,
     containerId,
-    canDrag,
+    dndEvents,
+    id,
+    index,
   }: IDroppableDraggableComponentProps) {
     const ref = useRef<HTMLDivElement>(null);
+
     const item = { id, containerId, index, type: ItemType.ITEM };
     // eslint-disable-next-line no-empty-pattern
     const [{ isDragging }, drag] = useDrag(
@@ -84,9 +81,20 @@ export const DroppableDraggableComponent: React.FC<IDroppableDraggableComponentP
     const [{}, drop] = useDrop(dropTargetSpec(item, dndEvents, ref));
     const opacity = isDragging ? 0 : 1;
     const background = isDragging ? 'inherit !important' : undefined;
+
+    const [dragging, setDragging] = useState(false);
+    const onDrag = () => setDragging(true);
+    const onDragEnd = () => setDragging(false);
+
     drag(drop(ref));
     return (
-      <div style={{ opacity, background }} ref={ref}>
+      <div
+        style={{ opacity, background }}
+        ref={ref}
+        className={classNames({ dragging })}
+        onDrag={onDrag}
+        onDragEnd={onDragEnd}
+      >
         {children}
       </div>
     );

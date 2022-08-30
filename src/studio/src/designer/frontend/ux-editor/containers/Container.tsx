@@ -39,7 +39,7 @@ import type {
 } from '../types/global';
 import { DroppableDraggableComponent } from './DroppableDraggableComponent';
 import { DroppableDraggableContainer } from './DroppableDraggableContainer';
-import { EditorDndEvents } from './helpers/dnd-helpers';
+import { EditorDndEvents } from './helpers/dnd-types';
 
 export interface IProvidedContainerProps extends WithStyles<typeof styles> {
   isBaseContainer?: boolean;

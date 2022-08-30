@@ -1,13 +1,8 @@
-/**
- * Have no clue what this actually does... but code was repeted a lot
- */
 import { DragSourceHookSpec, DragSourceMonitor, XYCoord } from 'react-dnd';
 import { RefObject } from 'react';
+import { ContainerPos, EditorDndItem } from './dnd-types';
 
-/**
- *
- * @see https://react-dnd.github.io/react-dnd/examples/sortable/simple
- */
+// @see https://react-dnd.github.io/react-dnd/examples/sortable/simple
 export const hoverIndexHelper = (
   draggedItem: EditorDndItem,
   hoveredItem: EditorDndItem,
@@ -45,81 +40,6 @@ export const hoverIndexHelper = (
   }
 
   return true;
-};
-
-export interface EditorDndItem {
-  id: string; // itemId, regardless.
-  containerId?: string;
-  onDrop?: (containerId: string, position: number) => void;
-  index?: number;
-  type: ItemType;
-}
-
-export enum ItemType {
-  TOOLBAR_ITEM = 'TOOLBAR_ITEM',
-  ITEM = 'ITEM',
-  CONTAINER = 'CONTAINER',
-  Right = 'RIGHT',
-}
-
-export enum ContainerPos {
-  TOP = 'TOP',
-  BOTTOM = 'BOTTOM',
-}
-/**
- * @see DesignView
- */
-export interface EditorDndEvents {
-  moveItem: (
-    movedItem: EditorDndItem,
-    targetItem: EditorDndItem,
-    containerPos?: ContainerPos,
-  ) => void;
-  moveItemToBottom: (item: EditorDndItem) => void;
-  moveItemToTop: (item: EditorDndItem) => void;
-  onDropItem: (reset?: boolean) => void;
-}
-
-/**
- * Very simple helper to just swap two items in an array
- * @param arr
- * @param itemA
- * @param itemB
- */
-export const swapArrayElements = (arr: any[], itemA: any, itemB: any) => {
-  const out = [...arr];
-  const indexA = arr.indexOf(itemA);
-  const indexB = arr.indexOf(itemB);
-  out[indexA] = arr[indexB];
-  out[indexB] = arr[indexA];
-  return out;
-};
-
-export const removeArrayElement = (arr: any[], item: any) => {
-  const out = [...arr];
-  const index = arr.indexOf(item);
-  if (index > -1) {
-    // only splice array when item is found
-    out.splice(index, 1); // 2nd parameter means remove one item only
-  }
-  return out;
-};
-
-export const insertArrayElementAtPos = (
-  arr: any[],
-  item: any,
-  targetPos: number,
-) => {
-  if (targetPos < 0) {
-    throw Error(`Cant insert element at array position ${targetPos}`);
-  }
-  const out = [...arr];
-  if (targetPos >= arr.length) {
-    out.push(item);
-  } else {
-    out.splice(targetPos, 0, item);
-  }
-  return out;
 };
 
 export const dragSourceSpec = (
