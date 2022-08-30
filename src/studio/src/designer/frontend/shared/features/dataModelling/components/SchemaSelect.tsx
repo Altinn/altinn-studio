@@ -18,6 +18,7 @@ const useStyles = makeStyles({
   },
   select: {
     minWidth: 147,
+    zIndex: 1101
   },
   chevron: {
     margin: 12,

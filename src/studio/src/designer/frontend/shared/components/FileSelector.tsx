@@ -56,7 +56,7 @@ function FileSelector(props: IFileSelectorProps) {
         data-testid='upload-button'
         faIcon='fa fa-upload'
         iconSize={38}
-        hideText={true}
+        hideText={false}
         onClick={() => fileInput?.current?.click()}
       >
         {getLanguageFromKey(labelTextResource, language)}
