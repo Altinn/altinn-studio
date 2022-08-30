@@ -108,7 +108,7 @@ const styles = createStyles({
     paddingTop: '2rem',
   },
   versionHeader: {
-    borderBottom: '1px solid #BCC7CC',
+    borderBottom: `1px solid ${theme.altinnPalette.primary. greyMedium}`,
     padding: `1rem 2rem 0`,
   },
   versionHeaderTitle: {
