@@ -30,6 +30,34 @@ describe('FileSelector', () => {
       'hello.png',
     );
   });
+
+  it('Should show text on the button by default', async () => {
+    render();
+    expect(screen.getByText('Upload button text')).toBeInTheDocument();
+  });
+
+  it('Should not show text on the button when it is part of the top toolbar', async () => {
+    render({ isInTopToolbar: true });
+    expect(screen.queryByText('Upload button text')).not.toBeInTheDocument();
+  });
+
+  it('Should call file input onClick handler when the default upload button is clicked', async () => {
+    render();
+    const button = screen.getByText('Upload button text');
+    const fileInput = screen.getByTestId('FileSelector-input');
+    fileInput.onclick = jest.fn();
+    await user.click(button);
+    expect(fileInput.onclick).toHaveBeenCalled();
+  });
+
+  it('Should call file input onClick handler when the top toolbar upload button is clicked', async () => {
+    render({ isInTopToolbar: true });
+    const button = screen.getByLabelText('Upload button text');
+    const fileInput = screen.getByTestId('FileSelector-input');
+    fileInput.onclick = jest.fn();
+    await user.click(button);
+    expect(fileInput.onclick).toHaveBeenCalled();
+  });
 });
 
 const render = (props: Partial<IFileSelectorProps> = {}) => {
@@ -38,6 +66,7 @@ const render = (props: Partial<IFileSelectorProps> = {}) => {
       general: { label: 'download' },
       shared: { submit_upload: 'upload' },
     },
+    labelTextResource: "Upload button text",
     ...props,
   } as IFileSelectorProps;
 
