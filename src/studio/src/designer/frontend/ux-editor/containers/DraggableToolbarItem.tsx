@@ -27,14 +27,6 @@ export const DraggableToolbarItem: React.FC<IDraggableProps> = ({
   notDraggable,
 }) => {
   const item = { id, onDrop, type: ItemType.TOOLBAR_ITEM };
-  // eslint-disable-next-line no-empty-pattern
-  const [{}, drag] = useDrag(draggableToolbarItemSpec(item, notDraggable));
-  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) =>
-    event.key === 'Enter' ? onDrop() : undefined;
-
-  return (
-    <div ref={drag} onKeyDown={handleKeyDown}>
-      {children}
-    </div>
-  );
+  const [, drag] = useDrag(draggableToolbarItemSpec(item, notDraggable));
+  return <div ref={drag}>{children}</div>;
 };

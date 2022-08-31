@@ -1,4 +1,4 @@
-import React, { memo, RefObject, useRef, useState } from 'react';
+import React, { memo, RefObject, useRef } from 'react';
 import {
   DropTargetHookSpec,
   DropTargetMonitor,
@@ -7,7 +7,6 @@ import {
 } from 'react-dnd';
 import { dragSourceSpec, hoverIndexHelper } from './helpers/dnd-helpers';
 import { EditorDndEvents, EditorDndItem, ItemType } from './helpers/dnd-types';
-import classNames from 'classnames';
 
 const dropTargetSpec = (
   targetItem: EditorDndItem,
@@ -77,24 +76,13 @@ export const DroppableDraggableComponent: React.FC<IDroppableDraggableComponentP
       dragSourceSpec(item, canDrag, dndEvents.onDropItem),
     );
 
-    // eslint-disable-next-line no-empty-pattern
-    const [{}, drop] = useDrop(dropTargetSpec(item, dndEvents, ref));
+    const [, drop] = useDrop(dropTargetSpec(item, dndEvents, ref));
     const opacity = isDragging ? 0 : 1;
     const background = isDragging ? 'inherit !important' : undefined;
 
-    const [dragging, setDragging] = useState(false);
-    const onDrag = () => setDragging(true);
-    const onDragEnd = () => setDragging(false);
-
     drag(drop(ref));
     return (
-      <div
-        style={{ opacity, background }}
-        ref={ref}
-        className={classNames({ dragging })}
-        onDrag={onDrag}
-        onDragEnd={onDragEnd}
-      >
+      <div style={{ opacity, background }} ref={ref}>
         {children}
       </div>
     );

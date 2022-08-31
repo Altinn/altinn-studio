@@ -23,7 +23,7 @@ export interface IDesignerPreviewState {
   isDragging: boolean;
 }
 
-export const DesignView = (initialState: IDesignerPreviewState) => {
+export const DesignView: React.FC<IDesignerPreviewState> = (initialState) => {
   const [beforeDrag, setBeforeDrag] = useState(null);
   const [state, setState] = useState<IDesignerPreviewState>({
     layoutOrder: {},
