@@ -1,12 +1,5 @@
-import {
-  createStyles,
-  Grid,
-  Typography,
-  withStyles,
-  WithStyles,
-} from '@material-ui/core';
+import { Grid, Typography, makeStyles } from '@material-ui/core';
 import React from 'react';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
 import AltinnContentLoader from 'app-shared/components/molecules/AltinnContentLoader';
 import AltinnInformationCardForChildren from 'app-shared/components/molecules/AltinnInformationCardForChildren';
 import { getParsedLanguageFromKey } from 'app-shared/utils/language';
@@ -17,7 +10,7 @@ import { fetchDeployPermissions } from '../../../sharedResources/user/userSlice'
 import { useAppSelector, useAppDispatch } from 'common/hooks';
 import type { IAltinnWindow } from '../../../types/global';
 
-const styles = createStyles({
+const useStyles = makeStyles({
   deployPaper: {
     height: 'calc(100% - 111px)',
   },
@@ -25,13 +18,10 @@ const styles = createStyles({
     paddingTop: '2.4rem',
   },
 });
-interface IDeployPaperProps
-  extends WithStyles<typeof styles>,
-    RouteComponentProps {}
 
-function DeployPage(props: IDeployPaperProps) {
+function DeployPage() {
+  const classes = useStyles();
   const { org } = window as Window as IAltinnWindow;
-  const { classes } = props;
   const dispatch = useAppDispatch();
 
   const orgs: any = useAppSelector((state) => state.configuration.orgs);
@@ -40,7 +30,7 @@ function DeployPage(props: IDeployPaperProps) {
   React.useEffect(() => {
     dispatch(ConfigurationActions.getOrgs());
     dispatch(fetchDeployPermissions());
-  }, []);
+  }, [dispatch]);
 
   const isLoading = (): boolean => {
     return !orgs.allOrgs || !language;
@@ -107,4 +97,4 @@ function DeployPage(props: IDeployPaperProps) {
     </Grid>
   );
 }
-export default withStyles(styles)(withRouter(DeployPage));
+export default DeployPage;

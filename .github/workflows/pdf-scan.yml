@@ -16,7 +16,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Build the Docker image
       run: docker build src/Altinn.Platform/Altinn.Platform.PDF --file src/Altinn.Platform/Altinn.Platform.PDF/Dockerfile --tag altinn-pdf:${{github.sha}}
       
