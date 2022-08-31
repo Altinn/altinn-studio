@@ -1,4 +1,12 @@
-import { configureStore } from '@reduxjs/toolkit';
-import schemaReducer from './features/editor/schemaEditorSlice';
+import { configureStore, EnhancedStore } from '@reduxjs/toolkit';
+import { reducer as schemaReducer } from './features/editor/schemaEditorSlice';
 
-export const store = configureStore({ reducer: schemaReducer });
+export const store: EnhancedStore = configureStore({
+  reducer: schemaReducer,
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({
+      serializableCheck: {
+        ignoredActionPaths: ['payload.onSaveSchema'],
+      },
+    }),
+});

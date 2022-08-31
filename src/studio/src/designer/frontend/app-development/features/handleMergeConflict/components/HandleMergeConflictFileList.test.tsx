@@ -1,241 +1,96 @@
-import { mount } from 'enzyme';
 import React from 'react';
-
 import { HandleMergeConflictFileList } from './HandleMergeConflictFileList';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 
-describe('HandleMergeConflictFileList', () => {
-  let mockClasses: any;
-  let mockLanguage: any;
-  let mockRepostatus: any;
+const renderHandleMergeConflictFileList = (mockRepostatus?: any) => {
+  const user = userEvent.setup();
+  const mockClasses: any = {};
+  const mockLanguage: any = {};
+  const repoStatus = mockRepostatus ?? {
+    behindBy: 1,
+    aheadBy: 3,
+    contentStatus: [
+      {
+        filePath: 'Model/ServiceModel.cs',
+        fileStatus: 'ModifiedInWorkdir',
+      },
+      {
+        filePath: 'Resources/FormLayout.json',
+        fileStatus: 'Conflicted',
+      },
+      {
+        filePath: 'Resources/react-app.css',
+        fileStatus: 'ModifiedInWorkdir',
+      },
+    ],
+    repositoryStatus: 'MergeConflict',
+    hasMergeConflict: true,
+  };
+  const changeSelectedFile: (file: string) => void = jest.fn();
+  const container = render(
+    <HandleMergeConflictFileList
+      changeSelectedFile={changeSelectedFile}
+      classes={mockClasses}
+      language={mockLanguage}
+      repoStatus={repoStatus}
+    />,
+  );
+  return { changeSelectedFile, user, repoStatus, container };
+};
 
-  let mockChangeSelectedFile: (file: string) => void;
+test('should render 3 files', () => {
+  const { repoStatus } = renderHandleMergeConflictFileList();
+  const handleMergeConflictFileList = screen.getByRole('list');
+  expect(handleMergeConflictFileList.id).toBe('handleMergeConflictFileList');
+  expect(screen.getAllByRole('listitem')).toHaveLength(
+    repoStatus.contentStatus.length,
+  );
+});
 
-  beforeEach(() => {
-    mockLanguage = {};
-    mockRepostatus = {};
-    mockClasses = {};
-    mockChangeSelectedFile = jest.fn();
+test('should render correct text in fileListItem', () => {
+  const { repoStatus } = renderHandleMergeConflictFileList();
+
+  const expectedFilenames = repoStatus.contentStatus
+    .map((item: any) => item.filePath)
+    .sort();
+  const renderedFilenames = screen
+    .getAllByRole('listitem')
+    .map((listitem) => listitem.textContent)
+    .sort();
+  expect(expectedFilenames).toEqual(renderedFilenames);
+});
+
+test('should show correct icons', () => {
+  const { container } = renderHandleMergeConflictFileList();
+  // Expect correct icons to show
+  expect(container.baseElement.getElementsByClassName('fa-check')).toHaveLength(
+    2,
+  );
+  expect(
+    container.baseElement.getElementsByClassName('fa-circlecancel'),
+  ).toHaveLength(1);
+});
+
+test('should trigger handleListItemClick() when listItem is clicked', async () => {
+  const { user, changeSelectedFile } = renderHandleMergeConflictFileList();
+  const listitems = screen.getAllByRole('listitem');
+  await user.click(listitems[0]);
+  expect(changeSelectedFile).toHaveBeenCalled();
+});
+
+test('should render nothing when repoStatus.contentStatus is null', async () => {
+  renderHandleMergeConflictFileList({
+    contentStatus: null,
   });
+  // Expect file list to not exist
+  expect(screen.queryAllByRole('list')).toHaveLength(0);
+});
 
-  it('should render 3 files', async () => {
-    mockChangeSelectedFile = jest.fn();
-
-    mockRepostatus = {
-      behindBy: 1,
-      aheadBy: 3,
-      contentStatus: [
-        {
-          filePath: 'Model/ServiceModel.cs',
-          fileStatus: 'ModifiedInWorkdir',
-        },
-        {
-          filePath: 'Resources/FormLayout.json',
-          fileStatus: 'Conflicted',
-        },
-        {
-          filePath: 'Resources/react-app.css',
-          fileStatus: 'ModifiedInWorkdir',
-        },
-      ],
-      repositoryStatus: 'MergeConflict',
-      hasMergeConflict: true,
-    };
-
-    const wrapper = mount(
-      <HandleMergeConflictFileList
-        changeSelectedFile={mockChangeSelectedFile}
-        classes={mockClasses}
-        language={mockLanguage}
-        repoStatus={mockRepostatus}
-      />,
-    );
-
-    // Expect file list to show
-    expect(wrapper.exists('#handleMergeConflictFileList')).toEqual(true);
-
-    // Expect to have 3 listitems
-    expect(wrapper.find('WithStyles(ForwardRef(ListItem))')).toHaveLength(
-      mockRepostatus.contentStatus.length,
-    );
+test('should render list, no items, when repoStatus.contentStatus.length is 0', async () => {
+  renderHandleMergeConflictFileList({
+    contentStatus: [],
   });
-
-  it('should render correct text in fileListItem', async () => {
-    mockChangeSelectedFile = jest.fn();
-
-    mockRepostatus = {
-      behindBy: 1,
-      aheadBy: 3,
-      contentStatus: [
-        {
-          filePath: 'Model/ServiceModel.cs',
-          fileStatus: 'ModifiedInWorkdir',
-        },
-        {
-          filePath: 'Resources/FormLayout.json',
-          fileStatus: 'Conflicted',
-        },
-        {
-          filePath: 'Resources/react-app.css',
-          fileStatus: 'ModifiedInWorkdir',
-        },
-      ],
-      repositoryStatus: 'MergeConflict',
-      hasMergeConflict: true,
-    };
-
-    const wrapper = mount(
-      <HandleMergeConflictFileList
-        changeSelectedFile={mockChangeSelectedFile}
-        classes={mockClasses}
-        language={mockLanguage}
-        repoStatus={mockRepostatus}
-      />,
-    );
-
-    // Expect file list to exist
-    expect(wrapper.exists('#handleMergeConflictFileList')).toEqual(true);
-
-    // Expect filePaths to be found as text
-    mockRepostatus.contentStatus.map((item: any) => {
-      expect(wrapper.text()).toMatch(item.filePath);
-    });
-  });
-
-  it('should show correct icons', async () => {
-    mockChangeSelectedFile = jest.fn();
-
-    mockRepostatus = {
-      behindBy: 1,
-      aheadBy: 3,
-      contentStatus: [
-        {
-          filePath: 'Model/ServiceModel.cs',
-          fileStatus: 'ModifiedInWorkdir',
-        },
-        {
-          filePath: 'Resources/FormLayout.json',
-          fileStatus: 'Conflicted',
-        },
-        {
-          filePath: 'Resources/react-app.css',
-          fileStatus: 'ModifiedInWorkdir',
-        },
-      ],
-      repositoryStatus: 'MergeConflict',
-      hasMergeConflict: true,
-    };
-
-    const wrapper = mount(
-      <HandleMergeConflictFileList
-        changeSelectedFile={mockChangeSelectedFile}
-        classes={mockClasses}
-        language={mockLanguage}
-        repoStatus={mockRepostatus}
-      />,
-    );
-
-    // Expect file list to exist
-    expect(wrapper.exists('#handleMergeConflictFileList')).toEqual(true);
-
-    // Expect correct icons to show
-    expect(wrapper.getDOMNode().getElementsByClassName('fa-check').length).toBe(
-      2,
-    );
-    expect(
-      wrapper.getDOMNode().getElementsByClassName('fa-circlecancel').length,
-    ).toBe(1);
-  });
-
-  it('should trigger handleListItemClick() when listItem is clicked', async () => {
-    mockChangeSelectedFile = jest.fn();
-
-    mockRepostatus = {
-      behindBy: 1,
-      aheadBy: 3,
-      contentStatus: [
-        {
-          filePath: 'Model/ServiceModel.cs',
-          fileStatus: 'ModifiedInWorkdir',
-        },
-        {
-          filePath: 'Resources/FormLayout.json',
-          fileStatus: 'Conflicted',
-        },
-        {
-          filePath: 'Resources/react-app.css',
-          fileStatus: 'ModifiedInWorkdir',
-        },
-      ],
-      repositoryStatus: 'MergeConflict',
-      hasMergeConflict: true,
-    };
-
-    const wrapper = mount(
-      <HandleMergeConflictFileList
-        changeSelectedFile={mockChangeSelectedFile}
-        classes={mockClasses}
-        language={mockLanguage}
-        repoStatus={mockRepostatus}
-      />,
-    );
-
-    const instance = wrapper.instance() as HandleMergeConflictFileList;
-
-    // Spies
-    const spyOnHandleListItemClick = jest.spyOn(
-      instance,
-      'handleListItemClick',
-    );
-
-    // Expect file list to exist
-    expect(wrapper.exists('#handleMergeConflictFileList')).toEqual(true);
-
-    wrapper
-      .find('.MuiButtonBase-root#handleMergeConflictFileListItem0')
-      .simulate('click');
-    expect(spyOnHandleListItemClick).toHaveBeenCalled();
-    expect(instance.state.selectedIndex).toEqual(0);
-    expect(mockChangeSelectedFile).toHaveBeenCalled();
-  });
-
-  it('should render nothing when repoStatus.contentStatus is null', async () => {
-    mockChangeSelectedFile = jest.fn();
-
-    mockRepostatus = {
-      contentStatus: null,
-    };
-
-    const wrapper = mount(
-      <HandleMergeConflictFileList
-        changeSelectedFile={mockChangeSelectedFile}
-        classes={mockClasses}
-        language={mockLanguage}
-        repoStatus={mockRepostatus}
-      />,
-    );
-
-    // Expect file list to not exist
-    expect(wrapper.exists('#handleMergeConflictFileList')).toEqual(false);
-  });
-
-  it('should render list, no items, when repoStatus.contentStatus.length is 0', async () => {
-    mockChangeSelectedFile = jest.fn();
-
-    mockRepostatus = {
-      contentStatus: [],
-    };
-
-    const wrapper = mount(
-      <HandleMergeConflictFileList
-        changeSelectedFile={mockChangeSelectedFile}
-        classes={mockClasses}
-        language={mockLanguage}
-        repoStatus={mockRepostatus}
-      />,
-    );
-
-    // Expect file list to not exist
-    expect(wrapper.exists('#handleMergeConflictFileList')).toEqual(true);
-    expect(wrapper.exists('#handleMergeConflictFileListItem0')).toEqual(false);
-  });
+  expect(screen.queryAllByRole('list')).toHaveLength(1);
+  expect(screen.queryAllByRole('listitem')).toHaveLength(0);
 });

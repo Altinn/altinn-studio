@@ -28,7 +28,7 @@ import {
 
 import { getRepoEditUrl } from 'common/utils/urlUtils';
 
-interface IRepoListProps {
+export interface IRepoListProps {
   isLoading: boolean;
   repos?: IRepository[];
   isServerSort?: boolean;
@@ -247,6 +247,7 @@ export const RepoList = ({
             <a
               key={params.row.id}
               href={params.row.html_url}
+              data-testid="gitea-repo-link"
               className={cn(classes.actionLink, classes.repoLink)}
             >
               <span>
@@ -257,6 +258,7 @@ export const RepoList = ({
             <a
               key={params.row.id}
               href={editUrl}
+              data-testid="edit-repo-link"
               className={cn(classes.actionLink, classes.editLink)}
             >
               <span>{getLanguageFromKey('dashboard.edit_app', language)}</span>

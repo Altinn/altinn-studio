@@ -26,42 +26,42 @@ import { fetchServiceConfiguration } from './features/serviceConfigurations/serv
 export function App() {
   const dispatch = useDispatch();
 
-  const fetchFiles = () => {
-    dispatch(fetchDataModel());
-    dispatch(FormLayoutActions.fetchFormLayout());
-
-    const languageCode = 'nb';
-    dispatch(loadTextResources({ url: getLoadTextResourcesUrl(languageCode) }));
-    dispatch(fetchServiceConfiguration());
-    dispatch(fetchRuleModel());
-    dispatch(fetchLanguage({ languageCode }));
-    dispatch(fetchWidgetSettings());
-    dispatch(FormLayoutActions.fetchLayoutSettings());
-    dispatch(fetchWidgets());
-  };
-
-  const shouldRefetchFiles = (event: any) => {
-    if (event.data === postMessages.refetchFiles) {
-      fetchFiles();
-    }
-  };
-
   React.useEffect(() => {
+    const fetchFiles = () => {
+      dispatch(fetchDataModel());
+      dispatch(FormLayoutActions.fetchFormLayout());
+
+      const languageCode = 'nb';
+      dispatch(
+        loadTextResources({ url: getLoadTextResourcesUrl(languageCode) }),
+      );
+      dispatch(fetchServiceConfiguration());
+      dispatch(fetchRuleModel());
+      dispatch(fetchLanguage({ languageCode }));
+      dispatch(fetchWidgetSettings());
+      dispatch(FormLayoutActions.fetchLayoutSettings());
+      dispatch(fetchWidgets());
+    };
+
+    const shouldRefetchFiles = (event: any) => {
+      if (event.data === postMessages.refetchFiles) {
+        fetchFiles();
+      }
+    };
+
     window.addEventListener('message', shouldRefetchFiles);
     fetchFiles();
     return () => {
       window.removeEventListener('message', shouldRefetchFiles);
     };
-  }, []);
-
-  const renderFormDesigner = (): JSX.Element => {
-    return <FormDesigner />;
-  };
+  }, [dispatch]);
 
   return (
     <div>
       <ErrorMessageComponent />
-      <Route exact={true} path='/ui-editor' render={renderFormDesigner} />
+      <Route exact={true} path='/ui-editor'>
+        <FormDesigner />
+      </Route>
     </div>
   );
 }

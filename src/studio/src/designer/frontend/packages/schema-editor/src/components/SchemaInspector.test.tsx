@@ -2,42 +2,44 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { act } from 'react-dom/test-utils';
-import SchemaInspector from './SchemaInspector';
+import { SchemaInspector } from './SchemaInspector';
 import { dataMock } from '../mockData';
-import { buildUISchema, resetUniqueNumber } from '../utils/schema';
+import {
+  buildUISchema,
+  getUiSchemaItem,
+  resetUniqueNumber,
+} from '../utils/schema';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { ISchemaState } from '../types';
+import userEvent from '@testing-library/user-event';
+import { UiSchemaItem } from '../types';
 
-const renderSchemaInspector = (customState?: Partial<ISchemaState>) => {
-  resetUniqueNumber();
+const getMockSchemaByPath = (selectedId: string): UiSchemaItem => {
   const mockUiSchema = buildUISchema(dataMock.definitions, '#/definitions');
-  const mockInitialState: ISchemaState = {
-    name: 'test',
-    saveSchemaUrl: '',
-    schema: dataMock,
-    uiSchema: mockUiSchema,
-    selectedDefinitionNodeId: '#/definitions/Kommentar2000Restriksjon',
-    selectedPropertyNodeId: '#/definitions/Kommentar2000Restriksjon',
-    selectedEditorTab: 'properties',
-  };
-  const customStateCopy = customState ?? {};
-  const mockStore = configureStore()({
-    ...mockInitialState,
-    ...customStateCopy,
-  });
+  return getUiSchemaItem(mockUiSchema, selectedId);
+};
+
+const renderSchemaInspector = (selectedItem?: UiSchemaItem) => {
+  resetUniqueNumber();
+  const store = configureStore()({});
+  const user = userEvent.setup();
   act(() => {
     render(
-      <Provider store={mockStore}>
-        <SchemaInspector language={{}} />
+      <Provider store={store}>
+        <SchemaInspector
+          language={{}}
+          checkIsNameInUse={() => false}
+          selectedItem={selectedItem}
+        />
       </Provider>,
     );
   });
-  return [mockStore];
+  return { store, user };
 };
 
-test('dispatches correctly when entering text in textboxes', () => {
-  const [store] = renderSchemaInspector();
-
+test('dispatches correctly when entering text in textboxes', async () => {
+  const { store, user } = renderSchemaInspector(
+    getMockSchemaByPath('#/definitions/Kommentar2000Restriksjon'),
+  );
   expect(screen.getByTestId('schema-inspector')).toBeDefined();
   const tablist = screen.getByRole('tablist');
   expect(tablist).toBeDefined();
@@ -45,10 +47,13 @@ test('dispatches correctly when entering text in textboxes', () => {
   expect(tabpanel).toBeDefined();
   expect(screen.getAllByRole('tab')).toHaveLength(2);
   const textboxes = screen.getAllByRole('textbox');
-  textboxes.forEach((textbox) => {
-    fireEvent.change(textbox, { target: { value: 'New value' } });
-    fireEvent.blur(textbox);
-  });
+  let textboxIndex = 0;
+  while (textboxes[textboxIndex]) {
+    await user.clear(textboxes[textboxIndex]);
+    await user.type(textboxes[textboxIndex], 'New value');
+    await user.tab();
+    textboxIndex++;
+  }
   const actions = store.getActions();
   expect(actions.length).toBeGreaterThanOrEqual(1);
   expect(actions).toHaveLength(textboxes.length);
@@ -59,17 +64,16 @@ test('dispatches correctly when entering text in textboxes', () => {
 });
 
 test('renders no item if nothing is selected', () => {
-  const [store] = renderSchemaInspector({
-    selectedDefinitionNodeId: undefined,
-    selectedPropertyNodeId: undefined,
-  });
+  renderSchemaInspector();
   const textboxes = screen.queryAllByRole('textbox');
   expect(textboxes).toHaveLength(0);
 });
 
-test('dispatches correctly when changing restriction value', () => {
-  const [store] = renderSchemaInspector();
-  fireEvent.click(screen.getByRole('tab', { name: 'restrictions' }));
+test('dispatches correctly when changing restriction value', async () => {
+  const { store, user } = renderSchemaInspector(
+    getMockSchemaByPath('#/definitions/Kommentar2000Restriksjon'),
+  );
+  await user.click(screen.getByRole('tab', { name: 'restrictions' }));
 
   const textboxes = screen.getAllByRole('textbox');
   textboxes.forEach((textbox) => {
@@ -89,4 +93,39 @@ test('dispatches correctly when changing restriction value', () => {
     expect(['minLength', 'maxLength']).toContain(action.payload.key);
     expect([100, 666]).toContain(action.payload.value);
   });
+});
+
+test('Adds new object field when pressing the enter key', async () => {
+  const { store, user } = renderSchemaInspector({
+    type: 'object',
+    path: '#/properties/test',
+    displayName: 'test',
+    properties: [
+      {
+        path: '#/properties/test/properties/abc',
+        displayName: 'abc',
+      },
+    ],
+  });
+  await user.click(screen.queryAllByRole('tab')[2]);
+  await user.click(screen.getByDisplayValue('abc'));
+  await user.keyboard('{Enter}');
+  expect(store.getActions().map((a) => a.type)).toContain(
+    'schemaEditor/addProperty',
+  );
+});
+
+test('Adds new valid value field when pressing the enter key', async () => {
+  const { store, user } = renderSchemaInspector({
+    type: 'string',
+    path: '#/properties/test',
+    displayName: 'test',
+    enum: ['valid value'],
+  });
+  await user.click(screen.queryAllByRole('tab')[1]);
+  await user.click(screen.getByDisplayValue('valid value'));
+  await user.keyboard('{Enter}');
+  expect(store.getActions().map((a) => a.type)).toContain(
+    'schemaEditor/addEnum',
+  );
 });

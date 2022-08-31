@@ -11,45 +11,14 @@ jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe('XSDUpload', () => {
-  it('should not show file picker by default', () => {
+  it('should show file picker button', () => {
     render();
+
+    const button = screen.getByLabelText("app_data_modelling.upload_xsd");
+    expect(button).toBeInTheDocument();
 
     const fileInput = screen.queryByTestId('FileSelector-input');
-    expect(fileInput).not.toBeInTheDocument();
-  });
-
-  it('should show file picker when clicking upload button', async () => {
-    render();
-
-    await showUploadDialog();
-
-    const fileInput = screen.getByTestId('FileSelector-input');
     expect(fileInput).toBeInTheDocument();
-  });
-
-  it('should show uploading spinner and hide file picker when file upload is in progress', async () => {
-    mockedAxios.post.mockImplementation(() => new Promise(jest.fn()));
-    const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
-    render();
-
-    await showUploadDialog();
-
-    expect(
-      screen.queryByText(/app_data_modelling\.uploading_xsd/i),
-    ).not.toBeInTheDocument();
-
-    const fileInput = screen.getByTestId('FileSelector-input');
-    const submitButton = screen.getByRole('button', {
-      name: /shared\.submit_upload/i,
-    });
-
-    await user.upload(fileInput, file);
-    await user.click(submitButton);
-
-    expect(
-      screen.getByText(/app_data_modelling\.uploading_xsd/i),
-    ).toBeInTheDocument();
-    expect(screen.queryByTestId('FileSelector-input')).not.toBeInTheDocument();
   });
 
   it('should show error text when file upload results in error', async () => {
@@ -59,19 +28,15 @@ describe('XSDUpload', () => {
     const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
     render();
 
-    await showUploadDialog();
+    await clickUploadButton();
 
     expect(
       screen.queryByText(/form_filler\.file_uploader_validation_error_upload/i),
     ).not.toBeInTheDocument();
 
     const fileInput = screen.getByTestId('FileSelector-input');
-    const submitButton = screen.getByRole('button', {
-      name: /shared\.submit_upload/i,
-    });
 
     await user.upload(fileInput, file);
-    await user.click(submitButton);
 
     expect(
       screen.queryByText(/form_filler\.file_uploader_validation_error_upload/i),
@@ -84,25 +49,18 @@ describe('XSDUpload', () => {
     const handleUpload = jest.fn();
     render({ onXSDUploaded: handleUpload });
 
-    await showUploadDialog();
+    await clickUploadButton();
 
     const fileInput = screen.getByTestId('FileSelector-input');
-    const submitButton = screen.getByRole('button', {
-      name: /shared\.submit_upload/i,
-    });
 
     await user.upload(fileInput, file);
-    await user.click(submitButton);
 
     expect(handleUpload).toHaveBeenCalledWith('hello.xsd');
   });
 });
 
-const showUploadDialog = async () => {
-  const btn = screen.getByRole('button', {
-    name: /app_data_modelling\.upload_xsd/i,
-  });
-
+const clickUploadButton = async () => {
+  const btn = screen.getByLabelText("app_data_modelling.upload_xsd");
   await user.click(btn);
 };
 

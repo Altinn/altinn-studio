@@ -2,10 +2,11 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import {
   buildJsonSchema,
   buildUISchema,
-  splitParentPathAndName,
   getUiSchemaItem,
+  getUiSchemaItemsByRef,
   getUniqueNumber,
   mapCombinationChildren,
+  splitParentPathAndName,
 } from '../../utils/schema';
 import type {
   CombinationKind,
@@ -447,6 +448,11 @@ const schemaEditorSlice = createSlice({
             state.selectedPropertyNodeId = item.path;
           }
         }
+
+        // Update references
+        getUiSchemaItemsByRef(state.uiSchema, path).forEach(
+          (reffedItem) => (reffedItem.$ref = item.path),
+        );
       }
     },
     setSchemaName(state, action: PayloadAction<{ name: string }>) {
@@ -534,6 +540,8 @@ const schemaEditorSlice = createSlice({
   },
 });
 
+export const { reducer } = schemaEditorSlice;
+
 export const {
   addRestriction,
   addEnum,
@@ -565,5 +573,3 @@ export const {
   setSelectedTab,
   navigateToType,
 } = schemaEditorSlice.actions;
-
-export default schemaEditorSlice.reducer;

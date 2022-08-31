@@ -1,167 +1,115 @@
-import { mount } from 'enzyme';
 import React from 'react';
-import * as networking from 'app-shared/utils/networking';
-
 import { HandleMergeConflictAbort } from './HandleMergeConflictAbort';
+import { render, screen } from '@testing-library/react';
+import * as networking from 'app-shared/utils/networking';
+import userEvent from '@testing-library/user-event';
+import { UserEvent } from '@testing-library/user-event/setup/setup';
 
-describe('HandleMergeConflictAbort', () => {
-  let mockLanguage: any;
-  let consoleError: any;
+const renderHandleMergeConflictAbort = () => {
+  const user = userEvent.setup();
+  const container = render(<HandleMergeConflictAbort language={{}} />);
+  return { user, container };
+};
 
-  beforeAll(() => {
-    consoleError = jest.spyOn(console, 'error').mockImplementation(() => {
-      return {};
-    });
+// find and click the button that opens the popover
+const findAndClickOpenPopoverButton = (user: UserEvent) =>
+  user.click(
+    screen.getByRole('button', {
+      name: 'handle_merge_conflict.abort_merge_button',
+    }),
+  );
+
+const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {
+  return {};
+});
+
+test('should handle successfully returned data from API', async () => {
+  // Setting up som mocks and stubs and renders the component
+  const { user } = renderHandleMergeConflictAbort();
+
+  const mockGet = jest
+    .spyOn(networking, 'get')
+    .mockImplementationOnce(() => Promise.resolve());
+
+  // the popover should be closed at this point
+  expect(screen.queryByRole('presentation')).toBeNull();
+
+  // find and click the button that opens the popover
+  await findAndClickOpenPopoverButton(user);
+
+  // The popover should be open at this point
+  expect(screen.getByRole('presentation')).toBeDefined();
+
+  // Expect discard button to exist and click it
+  const abortMergeButtonCancel = screen.getByRole('button', {
+    name: 'handle_merge_conflict.abort_merge_button_cancel',
   });
+  expect(abortMergeButtonCancel).toBeDefined();
+  await user.click(abortMergeButtonCancel);
 
-  beforeEach(() => {
-    mockLanguage = {};
+  // the popover should be closed at this point
+  expect(screen.queryByRole('presentation')).toBeNull();
+
+  // find and click the button that opens the popover again
+  await findAndClickOpenPopoverButton(user);
+
+  // the popover should be open at this point
+  expect(screen.queryByRole('presentation')).toBeDefined();
+
+  // Expect the abort merge button to exists and click it
+  const abortMergeButtonConfirm = screen.getByRole('button', {
+    name: 'handle_merge_conflict.abort_merge_button_confirm',
   });
+  expect(abortMergeButtonConfirm).toBeDefined();
 
-  it('should handle successfully returned data from API', async () => {
-    const wrapper = mount(<HandleMergeConflictAbort language={mockLanguage} />);
+  expect(mockGet).not.toHaveBeenCalled();
 
-    const instance = wrapper.instance() as HandleMergeConflictAbort;
+  // creating a mock for the return value
+  await user.click(abortMergeButtonConfirm);
+  // the mock get function should have been called
+  expect(mockGet).toHaveBeenCalled();
+});
 
-    // Spies
-    const spyOnAbortPopover = jest.spyOn(instance, 'AbortPopover');
-    const spyOnAbortConfirmed = jest.spyOn(instance, 'AbortConfirmed');
+test('should handle unsuccessfully returned data from API', async () => {
+  const { user } = renderHandleMergeConflictAbort();
 
-    // Mocks
-    const getStub = jest.fn();
-    const mockGet = jest.spyOn(networking, 'get').mockImplementation(getStub);
-    getStub.mockReturnValue(Promise.resolve());
+  // Mocks
 
-    // Expected no result from networking yet
-    expect(instance.state.networkingRes).toEqual(null);
+  const mockGet = jest
+    .spyOn(networking, 'get')
+    .mockImplementationOnce(() => Promise.reject('Error'));
 
-    // Expect discard button to exist
-    expect(wrapper.exists('#abortMergeBtn')).toEqual(true);
-
-    // workaround, have to click twice the first time
-    wrapper.find('button#abortMergeBtn').simulate('click');
-    // Click the discard button
-    wrapper.find('button#abortMergeBtn').simulate('click');
-    expect(spyOnAbortPopover).toHaveBeenCalled();
-
-    // Expect the button inside the popover to exist
-    expect(wrapper.exists('#abortMergeConfirmBtn')).toEqual(true);
-
-    // Click the confirm button
-    wrapper.find('button#abortMergeConfirmBtn').simulate('click');
-
-    // Expect functions to be called
-    expect(spyOnAbortConfirmed).toHaveBeenCalled();
-    expect(mockGet).toHaveBeenCalled();
-
-    // Expect state to change
-    expect(instance.state.popoverState.isLoading).toEqual(true);
-    expect(instance.state.popoverState.shouldShowDoneIcon).toEqual(false);
-
-    // Resolve mocked networking
-    await Promise.resolve();
-
-    // Expect state to change
-    expect(instance.state.popoverState.isLoading).toEqual(false);
-    expect(instance.state.popoverState.shouldShowDoneIcon).toEqual(true);
+  // find and click the button that opens the popover
+  await findAndClickOpenPopoverButton(user);
+  const abortMergeButtonConfirm = screen.getByRole('button', {
+    name: 'handle_merge_conflict.abort_merge_button_confirm',
   });
+  // Click the confirm button
+  await user.click(abortMergeButtonConfirm);
 
-  it('should handle unsuccessfully returned data from API', async () => {
-    const wrapper = mount(<HandleMergeConflictAbort language={mockLanguage} />);
+  // Expect functions to be called
+  expect(mockGet).toHaveBeenCalled();
 
-    const instance = wrapper.instance() as HandleMergeConflictAbort;
+  // Resolve mocked networking (Really? is this the way this works?)
+  expect(consoleError).toHaveBeenCalled();
+});
 
-    // Spies
-    const spyOnAbortPopover = jest.spyOn(instance, 'AbortPopover');
-    const spyOnAbortConfirmed = jest.spyOn(instance, 'AbortConfirmed');
+test('should catch error from networked function', async () => {
+  const { user } = renderHandleMergeConflictAbort();
 
-    // Mocks
-    const getStub = jest.fn();
-    const mockGet = jest.spyOn(networking, 'get').mockImplementation(getStub);
-    getStub.mockReturnValue(Promise.reject());
+  const mockGet = jest
+    .spyOn(networking, 'get')
+    .mockImplementation(() => Promise.reject(Error('mocked error')));
 
-    // Expected no result from networking yet
-    expect(instance.state.networkingRes).toEqual(null);
-
-    // Expect discard button to exist
-    expect(wrapper.exists('#abortMergeBtn')).toEqual(true);
-
-    // workaround, have to click twice the first time
-    wrapper.find('button#abortMergeBtn').simulate('click');
-    // Click the discard button
-    wrapper.find('button#abortMergeBtn').simulate('click');
-    expect(spyOnAbortPopover).toHaveBeenCalled();
-
-    // Expect the button inside the popover to exist
-    expect(wrapper.exists('#abortMergeConfirmBtn')).toEqual(true);
-
-    // Click the confirm button
-    wrapper.find('button#abortMergeConfirmBtn').simulate('click');
-
-    // Expect functions to be called
-    expect(spyOnAbortConfirmed).toHaveBeenCalled();
-    expect(mockGet).toHaveBeenCalled();
-
-    // Expect state to change
-    expect(instance.state.popoverState.isLoading).toEqual(true);
-    expect(instance.state.popoverState.shouldShowDoneIcon).toEqual(false);
-
-    // Resolve mocked networking
-    await Promise.resolve();
-
-    // Expect state to change
-    expect(instance.state.popoverState.isLoading).toEqual(false);
-    expect(instance.state.popoverState.shouldShowDoneIcon).toEqual(false);
-    expect(consoleError).toHaveBeenCalled();
+  // find and click the button that opens the popover
+  await findAndClickOpenPopoverButton(user);
+  const abortMergeButtonConfirm = screen.getByRole('button', {
+    name: 'handle_merge_conflict.abort_merge_button_confirm',
   });
+  // Click the confirm button
+  await user.click(abortMergeButtonConfirm);
+  expect(mockGet).toHaveBeenCalled();
 
-  it('should catch error from networked function', async () => {
-    const wrapper = mount(<HandleMergeConflictAbort language={mockLanguage} />);
-
-    const instance = wrapper.instance() as HandleMergeConflictAbort;
-
-    // Spies
-    const spyOnAbortPopover = jest.spyOn(instance, 'AbortPopover');
-    const spyOnAbortConfirmed = jest.spyOn(instance, 'AbortConfirmed');
-
-    // Mocks
-    const mockError = Error('mocked error');
-    const getStub = jest.fn();
-    const mockGet = jest.spyOn(networking, 'get').mockImplementation(getStub);
-    getStub.mockReturnValue(Promise.reject(mockError));
-
-    // Expected no result from networking yet
-    expect(instance.state.networkingRes).toEqual(null);
-
-    // Expect discard button to exist
-    expect(wrapper.exists('#abortMergeBtn')).toEqual(true);
-
-    // workaround, have to click twice the first time
-    wrapper.find('button#abortMergeBtn').simulate('click');
-    // Click the discard button
-    wrapper.find('button#abortMergeBtn').simulate('click');
-    expect(spyOnAbortPopover).toHaveBeenCalled();
-
-    // Expect the button inside the popover to exist
-    expect(wrapper.exists('#abortMergeConfirmBtn')).toEqual(true);
-
-    // Click the confirm button
-    wrapper.find('button#abortMergeConfirmBtn').simulate('click');
-
-    // Expect functions to be called
-    expect(spyOnAbortConfirmed).toHaveBeenCalled();
-    expect(mockGet).toHaveBeenCalled();
-
-    // Error is thrown
-    await Promise.resolve();
-
-    // Expect state to change, and error to be saved to state
-    expect(instance.state.popoverState.isLoading).toEqual(false);
-    expect(instance.state.popoverState.shouldShowDoneIcon).toEqual(false);
-    expect(instance.state.errorObj).toMatchObject(Error('mocked error'));
-    expect(instance.state.networkingRes).toEqual('error');
-
-    // Expect console.error to be called.
-    expect(consoleError).toHaveBeenCalled();
-  });
+  // Expect console.error to be called.
+  expect(consoleError).toHaveBeenCalled();
 });

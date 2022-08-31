@@ -2,25 +2,35 @@ import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { ArrowDropDown, ArrowRight } from '@material-ui/icons';
 import { TabContext, TabList, TabPanel, TreeView } from '@material-ui/lab';
-import { useSelector, useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { AppBar, Button, Typography } from '@material-ui/core';
-import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
+import {
+  AltinnMenu,
+  AltinnMenuItem,
+  AltinnSpinner,
+} from 'app-shared/components';
 import type { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
 import { ObjectKind } from '../types/enums';
 import {
-  setUiSchema,
-  setJsonSchema,
-  updateJsonSchema,
   addRootItem,
+  setJsonSchema,
   setSchemaName,
   setSelectedTab,
+  setUiSchema,
+  updateJsonSchema,
 } from '../features/editor/schemaEditorSlice';
-import SchemaItem from './SchemaItem';
+import { SchemaItem } from './SchemaItem';
 import { getTranslation } from '../utils/language';
-import { getDomFriendlyID } from '../utils/schema';
-import SchemaInspector from './SchemaInspector';
+import {
+  getDomFriendlyID,
+  getUiSchemaItem,
+  splitParentPathAndName,
+} from '../utils/schema';
+import { SchemaInspector } from './SchemaInspector';
 import { SchemaTab } from './SchemaTab';
-import TopToolbar from './TopToolbar';
+import { TopToolbar } from './TopToolbar';
+import { getLanguageFromKey } from 'app-shared/utils/language';
+import { isNameInUse } from '../utils/checks';
 
 const useStyles = makeStyles({
   root: {
@@ -102,17 +112,16 @@ const useStyles = makeStyles({
 });
 
 export interface IEditorProps {
-  schema: ISchema;
-  onSaveSchema: (payload: any) => void;
   Toolbar: JSX.Element;
-  LoadingIndicator: JSX.Element;
-  name?: string;
   language: ILanguage;
+  loading?: boolean;
+  name?: string;
+  onSaveSchema: (payload: any) => void;
+  schema: ISchema;
 }
 
-export const Editor = (props: IEditorProps) => {
-  const { Toolbar, LoadingIndicator, schema, onSaveSchema, name, language } =
-    props;
+export const SchemaEditor = (props: IEditorProps) => {
+  const { Toolbar, loading, schema, onSaveSchema, name, language } = props;
 
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -223,7 +232,48 @@ export const Editor = (props: IEditorProps) => {
   ) => {
     dispatch(setSelectedTab({ selectedTab: value }));
   };
+  const loadingIndicator = loading ? (
+    <AltinnSpinner
+      spinnerText={getLanguageFromKey('general.loading', language)}
+    />
+  ) : null;
 
+  const selectedId = useSelector((state: ISchemaState) =>
+    state.selectedEditorTab === 'properties'
+      ? state.selectedPropertyNodeId
+      : state.selectedDefinitionNodeId,
+  );
+
+  const selectedItem = useSelector((state: ISchemaState) =>
+    selectedId ? getUiSchemaItem(state.uiSchema, selectedId) : null,
+  );
+
+  // if item is a reference, we want to show the properties of the reference.
+  const referredItem = useSelector((state: ISchemaState) =>
+    selectedItem?.$ref
+      ? state.uiSchema.find((i: UiSchemaItem) => i.path === selectedItem.$ref)
+      : null,
+  );
+
+  const parentItem = useSelector((state: ISchemaState) => {
+    if (selectedId) {
+      const [parentPath] = splitParentPathAndName(selectedId);
+      if (parentPath) {
+        return getUiSchemaItem(state.uiSchema, parentPath);
+      }
+    }
+    return null;
+  });
+
+  const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
+
+  const checkIsNameInUse = (name: string) =>
+    isNameInUse({
+      uiSchemaItems: uiSchema,
+      parentSchema: parentItem,
+      path: selectedId,
+      name,
+    });
   return (
     <div className={classes.root}>
       <main>
@@ -327,12 +377,17 @@ export const Editor = (props: IEditorProps) => {
             </TabContext>
           </div>
         ) : (
-          LoadingIndicator
+          loadingIndicator
         )}
       </main>
       {schema && (
         <aside className={classes.inspector}>
-          <SchemaInspector language={language} />
+          <SchemaInspector
+            language={language}
+            referredItem={referredItem ?? undefined}
+            selectedItem={selectedItem ?? undefined}
+            checkIsNameInUse={checkIsNameInUse}
+          />
         </aside>
       )}
       <AltinnMenu
@@ -362,4 +417,3 @@ export const Editor = (props: IEditorProps) => {
     </div>
   );
 };
-export default Editor;

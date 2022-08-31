@@ -13,6 +13,7 @@ export interface IEnumFieldProps {
   fullWidth?: boolean;
   onChange: (value: string, oldValue?: string) => void;
   onDelete?: (path: string, key: string) => void;
+  onEnterKeyPress?: () => void;
 }
 
 const useStyles = makeStyles({
@@ -51,6 +52,9 @@ export const EnumField = (props: IEnumFieldProps) => {
     setVal(e.target.value);
   };
 
+  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) =>
+    e?.key === 'Enter' && props.onEnterKeyPress && props.onEnterKeyPress();
+
   const baseId = getDomFriendlyID(props.path);
   return (
     <>
@@ -66,6 +70,8 @@ export const EnumField = (props: IEnumFieldProps) => {
           InputProps={{
             disableUnderline: true,
           }}
+          onKeyDown={onKeyDown}
+          autoFocus
         />
       </Grid>
       <Grid item xs={1} />

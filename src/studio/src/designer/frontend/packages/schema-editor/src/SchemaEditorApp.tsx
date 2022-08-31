@@ -1,36 +1,30 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import './App.css';
-import SchemaEditor from './components/Editor';
+import { SchemaEditor } from './components/SchemaEditor';
+
 import { store } from './store';
 import type { ILanguage, ISchema } from './types';
-import { getTranslation } from './utils/language';
 
-export interface IAppProps extends React.PropsWithChildren<any> {
-  schema: ISchema;
+export interface ISchemaEditorProps extends React.PropsWithChildren<any> {
   language: ILanguage;
+  loading?: boolean;
   name?: string;
   onSaveSchema: (payload: any) => void;
-  LoadingComponent?: JSX.Element;
+  schema: ISchema;
 }
 
-function SchemaEditorApp(props: IAppProps) {
+export function SchemaEditorApp(props: ISchemaEditorProps) {
   return (
     <Provider store={store}>
       <SchemaEditor
         Toolbar={props.children}
-        LoadingIndicator={
-          props.LoadingComponent || (
-            <div>{getTranslation('loading', props.language)}</div>
-          )
-        }
-        schema={props.schema}
         language={props.language}
-        onSaveSchema={props.onSaveSchema}
+        loading={props.loading}
         name={props.name}
+        onSaveSchema={props.onSaveSchema}
+        schema={props.schema}
       />
     </Provider>
   );
 }
-
-export default SchemaEditorApp;

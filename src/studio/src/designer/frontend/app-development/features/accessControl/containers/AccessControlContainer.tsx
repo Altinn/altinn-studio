@@ -125,16 +125,14 @@ export class AccessControlContainerClass extends React.Component<
 
   constructor(props: IAccessControlContainerProps) {
     super(props);
-    const { partyTypesAllowedProps } = props.applicationMetadata;
-    const partyTypesAllowed = {
-      bankruptcyEstate: !!partyTypesAllowedProps?.bankruptcyEstate,
-      organisation: !!partyTypesAllowedProps?.organisation,
-      person: !!partyTypesAllowedProps?.person,
-      subUnit: !!partyTypesAllowedProps?.subUnit,
-    };
-
+    const { partyTypesAllowed } = props.applicationMetadata;
     this.state = {
-      partyTypesAllowed,
+      partyTypesAllowed: {
+        bankruptcyEstate: !!partyTypesAllowed?.bankruptcyEstate,
+        organisation: !!partyTypesAllowed?.organisation,
+        person: !!partyTypesAllowed?.person,
+        subUnit: !!partyTypesAllowed?.subUnit,
+      },
       setStateCalled: false,
     };
   }
@@ -144,19 +142,14 @@ export class AccessControlContainerClass extends React.Component<
   }
 
   public handlePartyTypesAllowedChange(partyType: PartyTypes) {
-    this.setState(
-      (prev) => {
-        const partyTypesAllowed = { ...prev.partyTypesAllowed };
-        partyTypesAllowed[partyType] = !partyTypesAllowed[partyType];
-        return {
-          partyTypesAllowed,
-          setStateCalled: true,
-        };
-      },
-      () => {
-        this.saveApplicationMetadata();
-      },
-    );
+    this.setState((prev) => {
+      const partyTypesAllowed = { ...prev.partyTypesAllowed };
+      partyTypesAllowed[partyType] = !partyTypesAllowed[partyType];
+      return {
+        partyTypesAllowed,
+        setStateCalled: true,
+      };
+    }, this.saveApplicationMetadata);
   }
 
   public saveApplicationMetadata() {
@@ -180,7 +173,10 @@ export class AccessControlContainerClass extends React.Component<
   public renderPartySection = (): JSX.Element => {
     const partyTypeKeys = Object.keys(PartyTypes);
     return (
-      <div className={this.props.classes.contentMargin}>
+      <div
+        className={this.props.classes.contentMargin}
+        data-testid='access-control-container'
+      >
         <Typography className={this.props.classes.sectionHeader}>
           {getLanguageFromKey(
             'access_control.party_type_header',
