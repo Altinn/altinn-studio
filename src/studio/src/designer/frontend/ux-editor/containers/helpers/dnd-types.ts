@@ -1,5 +1,5 @@
 export interface EditorDndItem {
-  id: string; // itemId, regardless.
+  id: string;
   containerId?: string;
   onDrop?: (containerId: string, position: number) => void;
   index?: number;
@@ -10,7 +10,6 @@ export enum ItemType {
   TOOLBAR_ITEM = 'TOOLBAR_ITEM',
   ITEM = 'ITEM',
   CONTAINER = 'CONTAINER',
-  Right = 'RIGHT',
 }
 
 export enum ContainerPos {

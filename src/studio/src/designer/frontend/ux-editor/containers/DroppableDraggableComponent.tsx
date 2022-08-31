@@ -16,10 +16,10 @@ const dropTargetSpec = (
   accept: Object.keys(ItemType),
   drop(droppedItem: EditorDndItem, monitor: DropTargetMonitor) {
     if (!droppedItem) {
-      return; // no dropped item exiting
+      return;
     }
     if (!monitor.isOver({ shallow: true })) {
-      return; // is not over this particular item exiting
+      return;
     }
     if (monitor.getItemType() === ItemType.TOOLBAR_ITEM) {
       if (!droppedItem.onDrop) {
@@ -39,12 +39,12 @@ const dropTargetSpec = (
       return;
     }
     if (!monitor.isOver({ shallow: true })) {
-      return; // we are not over... do nothing
+      return;
     }
     if (
       !hoverIndexHelper(draggedItem, targetItem, ref, monitor.getClientOffset())
     ) {
-      return; // we are not performing any actions
+      return;
     }
     events.moveItem(draggedItem, targetItem);
   },
@@ -71,7 +71,6 @@ export const DroppableDraggableComponent: React.FC<IDroppableDraggableComponentP
     const ref = useRef<HTMLDivElement>(null);
 
     const item = { id, containerId, index, type: ItemType.ITEM };
-    // eslint-disable-next-line no-empty-pattern
     const [{ isDragging }, drag] = useDrag(
       dragSourceSpec(item, canDrag, dndEvents.onDropItem),
     );

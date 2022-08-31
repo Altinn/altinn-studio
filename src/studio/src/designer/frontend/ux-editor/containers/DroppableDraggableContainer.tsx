@@ -27,10 +27,10 @@ const dropTargetSpec = (
   },
   drop(droppedItem: EditorDndItem, monitor: DropTargetMonitor) {
     if (!droppedItem) {
-      return; // no dropped item exiting
+      return;
     }
     if (!monitor.isOver({ shallow: true })) {
-      return; // is not over this particular item exiting
+      return;
     }
 
     if (monitor.getItemType() === ItemType.TOOLBAR_ITEM) {
@@ -63,13 +63,13 @@ const dropTargetSpec = (
       return;
     }
     if (draggedItem.id === targetItem.id) {
-      return; // We are at the same item
+      return;
     }
     if (draggedItem.containerId === targetItem.id) {
-      return; // We are at the same item
+      return;
     }
     if (!monitor.isOver({ shallow: true })) {
-      return; // we are not over... do nothing
+      return;
     }
     const containerPos = getContainerPosition(
       ref.current?.getBoundingClientRect(),
@@ -77,11 +77,10 @@ const dropTargetSpec = (
     );
 
     if (!containerPos) {
-      return; // we are not performing any actions
+      return;
     }
 
     const movingDown = monitor.getDifferenceFromInitialOffset().y > 0;
-    // Item is in this container all ready
     if (draggedItem.containerId === targetItem.id) {
       movingDown
         ? events.moveItemToBottom(draggedItem)
@@ -91,8 +90,6 @@ const dropTargetSpec = (
         events.moveItem(draggedItem, targetItem, containerPos);
       }
     }
-
-    // We are not moving the container when we change positions
   },
 });
 

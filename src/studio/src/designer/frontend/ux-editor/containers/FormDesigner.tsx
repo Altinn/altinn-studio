@@ -16,7 +16,7 @@ import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import RightMenu from '../components/rightMenu/RightMenu';
 import { filterDataModelForIntellisense } from '../utils/datamodel';
-import { DesignView, IDesignerPreviewState } from './DesignView';
+import { DesignView } from './DesignView';
 import { Toolbar } from './Toolbar';
 import { fetchServiceConfiguration } from '../features/serviceConfigurations/serviceConfigurationSlice';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
@@ -183,21 +183,22 @@ function FormDesigner() {
       </Drawer>
     );
   };
-  const designerViewState = useSelector(
-    (appState: IAppState): IDesignerPreviewState => {
-      const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
-      const selectedLayout = appState.formDesigner.layout.selectedLayout;
-      return {
-        layoutOrder: JSON.parse(
-          JSON.stringify(
-            appState.formDesigner.layout.layouts[selectedLayout]?.order || {},
-          ),
-        ),
-        order: GetLayoutOrderSelector(appState),
-        activeList: appState.formDesigner.layout.activeList,
-        isDragging: false,
-      };
-    },
+
+  const activeList = useSelector(
+    (state: IAppState) => state.formDesigner.layout.activeList,
+  );
+  const layoutOrder = useSelector((state: IAppState) =>
+    JSON.parse(
+      JSON.stringify(
+        state.formDesigner.layout.layouts[
+          state.formDesigner.layout.selectedLayout
+        ]?.order || {},
+      ),
+    ),
+  );
+
+  const order = useSelector((state: IAppState) =>
+    makeGetLayoutOrderSelector()(state),
   );
 
   return (
@@ -239,7 +240,12 @@ function FormDesigner() {
                 marginLeft: '24px',
               }}
             >
-              <DesignView {...designerViewState} />
+              <DesignView
+                order={order}
+                activeList={activeList}
+                isDragging={false}
+                layoutOrder={layoutOrder}
+              />
               {codeEditorOpen ? renderLogicEditor() : null}
             </div>
           </Grid>

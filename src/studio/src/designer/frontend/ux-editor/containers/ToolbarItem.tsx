@@ -5,7 +5,6 @@ import { DraggableToolbarItem } from './DraggableToolbarItem';
 interface IToolbarItemProps {
   text: string;
   onDropAction: (containerId: string, position: number) => void;
-  // eslint-disable-next-line react/require-default-props
   notDraggable?: boolean;
   onClick: (...args: any) => void;
   componentType: string;

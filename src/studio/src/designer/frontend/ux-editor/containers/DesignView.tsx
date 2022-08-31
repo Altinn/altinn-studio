@@ -116,29 +116,27 @@ export const DesignView: React.FC<IDesignerPreviewState> = (initialState) => {
     containerPos?: ContainerPos,
   ): void => {
     if (!movedItem.id) {
-      return; // No id, no drag
+      return;
     }
     if (ItemType.ITEM && !movedItem.containerId) {
-      return; // don't know where to put the item, ignore
+      return;
     }
     if (
       targetItem.type === ItemType.CONTAINER &&
       movedItem.containerId === targetItem.id
     ) {
-      return; // Need to check if item already is in the targeted container.
+      return;
     }
     if (movedItem.id === targetItem.id) {
-      return; // we are hovering our selves... no need to do anything.
+      return;
     }
     if (!beforeDrag) {
-      setBeforeDrag(state.layoutOrder); // store the before drag state.
+      setBeforeDrag(state.layoutOrder);
     }
 
     if (movedItem.containerId === targetItem.containerId) {
-      // they are in the same container easy swap this is regardless about their type
       swapItemsInsideTheSameContainer(movedItem, targetItem.id);
     } else if (targetItem.type === ItemType.CONTAINER && containerPos) {
-      // Targeted item is an new container and we are hovering a containerPos (TOP or BOTTOM)
       moveItemBetweenContainers(
         movedItem,
         targetItem.id,
@@ -148,7 +146,6 @@ export const DesignView: React.FC<IDesignerPreviewState> = (initialState) => {
       targetItem.type === ItemType.ITEM &&
       movedItem.id !== targetItem.containerId
     ) {
-      // We are moving the item to the new container at the position of the target item.
       moveItemBetweenContainers(
         movedItem,
         targetItem.containerId,
@@ -193,7 +190,6 @@ export const DesignView: React.FC<IDesignerPreviewState> = (initialState) => {
         }),
       );
     }
-    // Resetting the before drag status
     setBeforeDrag(null);
   };
   const baseContainerId =
