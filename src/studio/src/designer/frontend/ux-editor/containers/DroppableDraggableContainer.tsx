@@ -32,8 +32,7 @@ const dropTargetSpec = (
     if (!monitor.isOver({ shallow: true })) {
       return;
     }
-
-    if (monitor.getItemType() === ItemType.TOOLBAR_ITEM) {
+    if (monitor.getItemType() === ItemType.ToolbarItem) {
       if (!droppedItem.onDrop) {
         console.warn("Draggable Item doesn't have an onDrop-event");
         return;
@@ -42,7 +41,7 @@ const dropTargetSpec = (
         getContainerPosition(
           ref.current.getBoundingClientRect(),
           monitor.getClientOffset(),
-        ) === ContainerPos.TOP
+        ) === ContainerPos.Top
       ) {
         droppedItem.onDrop(targetItem.id, 0);
       } else {
@@ -56,19 +55,16 @@ const dropTargetSpec = (
     if (!draggedItem) {
       return;
     }
-    if (
-      !draggedItem.containerId &&
-      draggedItem.type !== ItemType.TOOLBAR_ITEM
-    ) {
+    if (!monitor.isOver({ shallow: true })) {
+      return;
+    }
+    if (!draggedItem.containerId && draggedItem.type !== ItemType.ToolbarItem) {
       return;
     }
     if (draggedItem.id === targetItem.id) {
       return;
     }
     if (draggedItem.containerId === targetItem.id) {
-      return;
-    }
-    if (!monitor.isOver({ shallow: true })) {
       return;
     }
     const containerPos = getContainerPosition(
@@ -80,15 +76,12 @@ const dropTargetSpec = (
       return;
     }
 
-    const movingDown = monitor.getDifferenceFromInitialOffset().y > 0;
     if (draggedItem.containerId === targetItem.id) {
-      movingDown
+      monitor.getDifferenceFromInitialOffset().y > 0
         ? events.moveItemToBottom(draggedItem)
         : events.moveItemToTop(draggedItem);
-    } else {
-      if (containerPos) {
-        events.moveItem(draggedItem, targetItem, containerPos);
-      }
+    } else if (containerPos) {
+      events.moveItem(draggedItem, targetItem, containerPos);
     }
   },
 });
@@ -118,7 +111,7 @@ export const DroppableDraggableContainer: FC<IDroppableDraggableContainerProps> 
       id,
       index,
       containerId: parentContainerId,
-      type: ItemType.CONTAINER,
+      type: ItemType.Container,
     };
     const [{ isDragging }, drag] = useDrag(
       dragSourceSpec(item, canDrag, dndEvents.onDropItem),

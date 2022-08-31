@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Component, createRef, RefObject } from 'react';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
@@ -75,9 +75,9 @@ export interface IContainerState {
   tmpId: string;
   expanded: boolean;
   groupIdError: string;
-  groupIdPopoverRef: React.RefObject<HTMLDivElement>;
+  groupIdPopoverRef: RefObject<HTMLDivElement>;
   tableHeadersError: string;
-  tableHeadersPopoverRef: React.RefObject<HTMLDivElement>;
+  tableHeadersPopoverRef: RefObject<HTMLDivElement>;
 }
 
 const styles = createStyles({
@@ -142,7 +142,7 @@ const styles = createStyles({
     border: '0.15rem solid #fff',
   },
 });
-export class ContainerComponent extends React.Component<
+export class ContainerComponent extends Component<
   IContainerProps,
   IContainerState
 > {
@@ -174,9 +174,9 @@ export class ContainerComponent extends React.Component<
       tmpId: this.props.id,
       expanded: true,
       groupIdError: null,
-      groupIdPopoverRef: React.createRef<HTMLDivElement>(),
+      groupIdPopoverRef: createRef<HTMLDivElement>(),
       tableHeadersError: null,
-      tableHeadersPopoverRef: React.createRef<HTMLDivElement>(),
+      tableHeadersPopoverRef: createRef<HTMLDivElement>(),
     };
   }
 
@@ -211,19 +211,6 @@ export class ContainerComponent extends React.Component<
         },
       };
     });
-  };
-
-  public getStatefulIndexOfContainer = (
-    containerId: string,
-    parentContainerId: string = Object.keys(this.props.containers)[0],
-  ): number => {
-    if (!containerId) {
-      return 0;
-    }
-    if (containerId === parentContainerId) {
-      return 0;
-    }
-    return this.props.containers[parentContainerId]?.indexOf(containerId);
   };
 
   public handleContainerDelete = (

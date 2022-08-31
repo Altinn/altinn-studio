@@ -15,9 +15,9 @@ test('getContainerPosition returns correct positions', () => {
     toJSON: () => '',
   };
   const scenarios: [number, string][] = [
-    [300, ContainerPos.TOP],
+    [300, ContainerPos.Top],
     [290, undefined],
-    [400, ContainerPos.BOTTOM],
+    [400, ContainerPos.Bottom],
     [500, undefined],
   ];
   scenarios.forEach((scenario) => {

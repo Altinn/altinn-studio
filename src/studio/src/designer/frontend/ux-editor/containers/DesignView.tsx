@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { FC, useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Container } from './Container';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
@@ -23,7 +23,7 @@ export interface IDesignerPreviewState {
   isDragging: boolean;
 }
 
-export const DesignView: React.FC<IDesignerPreviewState> = (initialState) => {
+export const DesignView: FC<IDesignerPreviewState> = (initialState) => {
   const [beforeDrag, setBeforeDrag] = useState(null);
   const [state, setState] = useState<IDesignerPreviewState>({
     layoutOrder: {},
@@ -118,11 +118,11 @@ export const DesignView: React.FC<IDesignerPreviewState> = (initialState) => {
     if (!movedItem.id) {
       return;
     }
-    if (ItemType.ITEM && !movedItem.containerId) {
+    if (ItemType.Item && !movedItem.containerId) {
       return;
     }
     if (
-      targetItem.type === ItemType.CONTAINER &&
+      targetItem.type === ItemType.Container &&
       movedItem.containerId === targetItem.id
     ) {
       return;
@@ -136,14 +136,14 @@ export const DesignView: React.FC<IDesignerPreviewState> = (initialState) => {
 
     if (movedItem.containerId === targetItem.containerId) {
       swapItemsInsideTheSameContainer(movedItem, targetItem.id);
-    } else if (targetItem.type === ItemType.CONTAINER && containerPos) {
+    } else if (targetItem.type === ItemType.Container && containerPos) {
       moveItemBetweenContainers(
         movedItem,
         targetItem.id,
-        containerPos === ContainerPos.TOP ? 0 : 99,
+        containerPos === ContainerPos.Top ? 0 : 99,
       );
     } else if (
-      targetItem.type === ItemType.ITEM &&
+      targetItem.type === ItemType.Item &&
       movedItem.id !== targetItem.containerId
     ) {
       moveItemBetweenContainers(

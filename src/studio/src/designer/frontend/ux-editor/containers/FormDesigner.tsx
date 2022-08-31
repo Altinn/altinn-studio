@@ -7,7 +7,7 @@ import {
   Typography,
 } from '@material-ui/core';
 import classNames from 'classnames';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDispatch, useSelector } from 'react-redux';
@@ -131,8 +131,8 @@ function FormDesigner() {
   const classes = useStyles(useTheme);
   const dispatch = useDispatch();
 
-  const [codeEditorOpen, setCodeEditorOpen] = React.useState<boolean>(false);
-  const [codeEditorMode, setCodeEditorMode] = React.useState<LogicMode>(null);
+  const [codeEditorOpen, setCodeEditorOpen] = useState<boolean>(false);
+  const [codeEditorMode, setCodeEditorMode] = useState<LogicMode>(null);
 
   const selectedLayout: string = useSelector(
     (state: IAppState) => state.formDesigner.layout.selectedLayout,
@@ -144,7 +144,7 @@ function FormDesigner() {
     (state: IAppState) => state.appData.dataModel.model,
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     dispatch(FormLayoutActions.fetchFormLayout());
     dispatch(fetchServiceConfiguration());
   }, [dispatch]);

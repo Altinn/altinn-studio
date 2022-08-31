@@ -86,10 +86,10 @@ export const getContainerPosition = (
   const bottombottom = boundingClientRect.bottom;
   const { y } = clientOffset;
   if (y > toptop && y < topbottom) {
-    return ContainerPos.TOP;
+    return ContainerPos.Top;
   }
   if (y > bottomtop && y < bottombottom) {
-    return ContainerPos.BOTTOM;
+    return ContainerPos.Bottom;
   }
   return undefined;
 };

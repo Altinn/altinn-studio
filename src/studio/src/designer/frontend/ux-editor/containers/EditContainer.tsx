@@ -1,5 +1,5 @@
 import { Grid, IconButton, ListItem, makeStyles } from '@material-ui/core';
-import React from 'react';
+import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { EditModalContent } from '../components/config/EditModalContent';
@@ -168,12 +168,12 @@ export function EditContainer(props: IEditContainerProvidedProps) {
   const classes = useStyles();
   const dispatch = useDispatch();
 
-  const [component, setComponent] = React.useState<any>({
+  const [component, setComponent] = useState<any>({
     id: props.id,
     ...props.component,
   });
-  const [isEditMode, setIsEditMode] = React.useState<boolean>(false);
-  const [listItem, setListItem] = React.useState<any>({
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
+  const [listItem, setListItem] = useState<any>({
     id: props.id,
     firstInActiveList: props.firstInActiveList,
     lastInActiveList: props.lastInActiveList,

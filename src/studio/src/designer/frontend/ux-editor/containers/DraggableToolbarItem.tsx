@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { FC } from 'react';
 import { useDrag } from 'react-dnd';
 import { DragSourceHookSpec } from 'react-dnd/src/hooks/types';
 import { EditorDndItem, ItemType } from './helpers/dnd-types';
@@ -20,13 +20,13 @@ const draggableToolbarItemSpec = (
   canDrag: () => !notDraggable,
 });
 
-export const DraggableToolbarItem: React.FC<IDraggableProps> = ({
+export const DraggableToolbarItem: FC<IDraggableProps> = ({
   id,
   children,
   onDrop,
   notDraggable,
 }) => {
-  const item = { id, onDrop, type: ItemType.TOOLBAR_ITEM };
+  const item = { id, onDrop, type: ItemType.ToolbarItem };
   const [, drag] = useDrag(draggableToolbarItemSpec(item, notDraggable));
   return <div ref={drag}>{children}</div>;
 };

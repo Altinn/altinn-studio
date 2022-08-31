@@ -1,4 +1,4 @@
-import React, { memo, RefObject, useRef } from 'react';
+import React, { FC, memo, ReactNode, RefObject, useRef } from 'react';
 import {
   DropTargetHookSpec,
   DropTargetMonitor,
@@ -14,6 +14,9 @@ const dropTargetSpec = (
   ref: RefObject<HTMLDivElement>,
 ): DropTargetHookSpec<any, any, any> => ({
   accept: Object.keys(ItemType),
+  canDrop(draggedItem: EditorDndItem, monitor: DropTargetMonitor) {
+    return monitor.isOver({ shallow: true });
+  },
   drop(droppedItem: EditorDndItem, monitor: DropTargetMonitor) {
     if (!droppedItem) {
       return;
@@ -21,7 +24,7 @@ const dropTargetSpec = (
     if (!monitor.isOver({ shallow: true })) {
       return;
     }
-    if (monitor.getItemType() === ItemType.TOOLBAR_ITEM) {
+    if (monitor.getItemType() === ItemType.ToolbarItem) {
       if (!droppedItem.onDrop) {
         console.warn("Draggable Item doesn't have an onDrop-event");
         return;
@@ -30,9 +33,6 @@ const dropTargetSpec = (
     } else {
       events.onDropItem();
     }
-  },
-  canDrop(draggedItem: EditorDndItem, monitor: DropTargetMonitor) {
-    return monitor.isOver({ shallow: true });
   },
   hover(draggedItem: EditorDndItem, monitor: DropTargetMonitor) {
     if (!draggedItem) {
@@ -52,14 +52,14 @@ const dropTargetSpec = (
 
 export interface IDroppableDraggableComponentProps {
   canDrag: boolean;
-  children?: React.ReactNode;
+  children?: ReactNode;
   containerId: string;
   dndEvents: EditorDndEvents;
   id: string;
   index: number;
 }
 
-export const DroppableDraggableComponent: React.FC<IDroppableDraggableComponentProps> =
+export const DroppableDraggableComponent: FC<IDroppableDraggableComponentProps> =
   memo(function DroppableDraggableComponent({
     canDrag,
     children,
@@ -70,7 +70,7 @@ export const DroppableDraggableComponent: React.FC<IDroppableDraggableComponentP
   }: IDroppableDraggableComponentProps) {
     const ref = useRef<HTMLDivElement>(null);
 
-    const item = { id, containerId, index, type: ItemType.ITEM };
+    const item = { id, containerId, index, type: ItemType.Item };
     const [{ isDragging }, drag] = useDrag(
       dragSourceSpec(item, canDrag, dndEvents.onDropItem),
     );
