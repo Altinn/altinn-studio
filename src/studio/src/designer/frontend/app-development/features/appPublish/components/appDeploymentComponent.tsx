@@ -2,10 +2,10 @@ import {
   createTheme,
   createStyles,
   Grid,
-  Hidden,
   Typography,
 } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
+import type { Theme } from '@material-ui/core';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -31,6 +31,7 @@ import { AppDeploymentActions } from '../../../sharedResources/appDeployment/app
 import type {
   ICreateAppDeploymentEnvObject,
   ICreateAppDeploymentErrors,
+  IDeployment,
 } from '../../../sharedResources/appDeployment/types';
 import { getAzureDevopsBuildResultUrl } from '../../../utils/urlHelper';
 
@@ -133,9 +134,47 @@ const useStyles = makeStyles(() =>
   }),
 );
 
-const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
-  const classes = useStyles(props);
+enum DeploymentStatus {
+  canceled = 'canceled',
+  failed = 'failed',
+  inProgress = 'inProgress',
+  none = 'none',
+  partiallySucceeded = 'partiallySucceeded',
+  succeeded = 'succeeded',
+}
+
+interface IPopoverState {
+  btnConfirmText: string;
+  btnMethod: () => void;
+  btnCancelText: string;
+  btnPrimaryId: string;
+  children: any;
+  anchorOrigin: any;
+  transformOrigin: any;
+  paperProps: any;
+}
+
+const AppDeploymentComponent = ({
+  deployError,
+  deployHistory,
+  deploymentList,
+  deployPermission,
+  envName,
+  envObj,
+  language,
+  releases,
+  urlToApp,
+  urlToAppLinkTxt,
+  orgName,
+}: IAppDeploymentComponentProps) => {
+  const classes = useStyles();
   const dispatch = useDispatch();
+  const hiddenMdDown = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.down('md'),
+  );
+  const breakpointMdUp = useMediaQuery((theme: Theme) =>
+    theme.breakpoints.up('md'),
+  );
 
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [deployButtonDisabled, setDeployButtonDisabled] = React.useState(true);
@@ -147,19 +186,6 @@ const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
   const [succeededDeployHistory, setSucceededDeployHistory] = React.useState(
     [],
   );
-
-  const breakpointMdUp = useMediaQuery(theme.breakpoints.up('md'));
-
-  interface IPopoverState {
-    btnConfirmText: string;
-    btnMethod: () => void;
-    btnCancelText: string;
-    btnPrimaryId: string;
-    children: any;
-    anchorOrigin: any;
-    transformOrigin: any;
-    paperProps: any;
-  }
 
   const initialPopoverState: IPopoverState = {
     btnConfirmText: '',
@@ -179,33 +205,10 @@ const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
 
   const deployButtonRef = React.createRef<HTMLInputElement>();
 
-  const {
-    deployError,
-    deployHistory,
-    deploymentList,
-    envName,
-    envObj,
-    language,
-    releases,
-    urlToApp,
-    urlToAppLinkTxt,
-  } = props;
-
   const appDeployedVersion =
     deploymentList && deploymentList.items && deploymentList.items.length > 0
       ? deploymentList.items[0].version
       : undefined;
-
-  // TODO: SHared enum with releases.
-  // eslint-disable-next-line no-shadow
-  enum deploymentStatusEnum {
-    canceled = 'canceled',
-    failed = 'failed',
-    inProgress = 'inProgress',
-    none = 'none',
-    partiallySucceeded = 'partiallySucceeded',
-    succeeded = 'succeeded',
-  }
 
   const doSetSelectedImageTag = (event: any) => {
     if (getValueByPath(event, 'value', null) !== null) {
@@ -241,7 +244,7 @@ const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
       deployHistory[0].build.finished === null
     ) {
       setDeployInProgress(true);
-      setDeploymentStatus(deploymentStatusEnum.inProgress);
+      setDeploymentStatus(DeploymentStatus.inProgress);
     } else if (
       deployHistory &&
       deployHistory[0] &&
@@ -257,8 +260,8 @@ const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
 
     setSucceededDeployHistory(
       deployHistory.filter(
-        (deployment: any) =>
-          deployment.build.result === deploymentStatusEnum.succeeded &&
+        (deployment: IDeployment) =>
+          deployment.build.result === DeploymentStatus.succeeded &&
           deployment.build.finished !== null,
       ),
     );
@@ -268,7 +271,6 @@ const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
       const deployCreatedPlusOneHour = moment(
         new Date(deployHistory[0].created),
       ).add(60, 'm');
-      // eslint-disable-next-line no-unused-expressions
       now < deployCreatedPlusOneHour
         ? setShouldDisplayDeployStatus(true)
         : setShouldDisplayDeployStatus(false);
@@ -280,7 +282,7 @@ const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
       deployError[0] &&
       deployError[0].errorMessage !== null
     ) {
-      deployFailedPopover('Create deployment failed');
+      deployFailedPopover();
     }
   }, [deployHistory]);
 
@@ -312,8 +314,7 @@ const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
     setAnchorEl(event.currentTarget);
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const deployFailedPopover = (children: string) => {
+  const deployFailedPopover = () => {
     setDeployButtonHasShownError(true);
     setAnchorEl(deployButtonRef.current);
     setPopoverState({
@@ -375,7 +376,7 @@ const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
           {getParsedLanguageFromKey(
             'app_publish.missing_rights',
             language,
-            [envName.toUpperCase(), props.orgName],
+            [envName.toUpperCase(), orgName],
             true,
           )}
         </Typography>
@@ -435,26 +436,26 @@ const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
           alignItems='center'
         >
           <Grid item={true} className={classes.deploySpinnerGridItem} xs={1}>
-            {deploymentStatus === deploymentStatusEnum.inProgress && (
+            {deploymentStatus === DeploymentStatus.inProgress && (
               <AltinnSpinner />
             )}
-            {deploymentStatus === deploymentStatusEnum.succeeded && (
+            {deploymentStatus === DeploymentStatus.succeeded && (
               <AltinnIcon
                 iconClass='ai ai-check-circle'
                 iconColor={theme.altinnPalette.primary.green}
                 iconSize='3.6rem'
               />
             )}
-            {(deploymentStatus === deploymentStatusEnum.partiallySucceeded ||
-              deploymentStatus === deploymentStatusEnum.none) && (
+            {(deploymentStatus === DeploymentStatus.partiallySucceeded ||
+              deploymentStatus === DeploymentStatus.none) && (
               <AltinnIcon
                 iconClass='ai ai-info-circle'
                 iconColor={theme.altinnPalette.primary.blueMedium}
                 iconSize='3.6rem'
               />
             )}
-            {(deploymentStatus === deploymentStatusEnum.canceled ||
-              deploymentStatus === deploymentStatusEnum.failed) && (
+            {(deploymentStatus === DeploymentStatus.canceled ||
+              deploymentStatus === DeploymentStatus.failed) && (
               <AltinnIcon
                 iconClass='ai ai-circle-exclamation'
                 iconColor={theme.altinnPalette.primary.red}
@@ -463,7 +464,7 @@ const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
             )}
           </Grid>
           <Grid item={true} xs={true}>
-            {deploymentStatus === deploymentStatusEnum.inProgress && (
+            {deploymentStatus === DeploymentStatus.inProgress && (
               <Typography>
                 {getParsedLanguageFromKey(
                   'app_deploy_messages.deploy_in_progress',
@@ -476,7 +477,7 @@ const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
                 )}
               </Typography>
             )}
-            {deploymentStatus === deploymentStatusEnum.succeeded && (
+            {deploymentStatus === DeploymentStatus.succeeded && (
               <Typography>
                 {getParsedLanguageFromKey(
                   'app_deploy_messages.success',
@@ -493,7 +494,7 @@ const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
                 )}
               </Typography>
             )}
-            {deploymentStatus === deploymentStatusEnum.failed && (
+            {deploymentStatus === DeploymentStatus.failed && (
               <Typography>
                 {getParsedLanguageFromKey(
                   'app_deploy_messages.failed',
@@ -509,7 +510,7 @@ const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
                 )}
               </Typography>
             )}
-            {deploymentStatus === deploymentStatusEnum.canceled && (
+            {deploymentStatus === DeploymentStatus.canceled && (
               <Typography>
                 {getParsedLanguageFromKey(
                   'app_deploy_messages.canceled',
@@ -525,7 +526,7 @@ const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
                 )}
               </Typography>
             )}
-            {deploymentStatus === deploymentStatusEnum.partiallySucceeded && (
+            {deploymentStatus === DeploymentStatus.partiallySucceeded && (
               <Typography>
                 {getParsedLanguageFromKey(
                   'app_deploy_messages.partiallySucceeded',
@@ -541,7 +542,7 @@ const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
                 )}
               </Typography>
             )}
-            {deploymentStatus === deploymentStatusEnum.none && (
+            {deploymentStatus === DeploymentStatus.none && (
               <Typography>
                 {getParsedLanguageFromKey(
                   'app_deploy_messages.none',
@@ -578,8 +579,6 @@ const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
           />
         </Grid>
         <Grid item={true} xs={true}>
-          {/* Huff da, vi opplever en teknisk feil og klarer derfor ikke å tilgjengeliggjøre deploy.
-          Vennligst prøv igjen senere. Dersom problemet vedvarer, kontakt Altinn servicedesk. */}
           {getParsedLanguageFromKey(
             'app_deploy_messages.unable_to_list_deploys',
             language,
@@ -649,14 +648,14 @@ const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
           md={5}
           className={classNames(classes.dropdownGrid)}
         >
-          {!props.deployPermission && returnMissingPermissionsText()}
+          {!deployPermission && returnMissingPermissionsText()}
           {deploymentList &&
             deploymentList.getStatus.success === true &&
-            props.deployPermission &&
+            deployPermission &&
             returnDeployDropDown()}
           {deploymentList &&
             deploymentList.getStatus.success === false &&
-            props.deployPermission &&
+            deployPermission &&
             returnDeployUnavailable()}
         </Grid>
 
@@ -715,7 +714,7 @@ const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
                           )}
                         </Typography>
                       </TableCell>
-                      <Hidden mdDown={true}>
+                      {hiddenMdDown ? null : (
                         <TableCell className={classes.colorBlack}>
                           <Typography>
                             {getParsedLanguageFromKey(
@@ -724,14 +723,16 @@ const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
                             )}
                           </Typography>
                         </TableCell>
-                      </Hidden>
+                      )}
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {succeededDeployHistory.map(
-                      (deploy: any, index: number) => (
-                        // eslint-disable-next-line react/no-array-index-key
-                        <TableRow key={index} className={classes.tableRow}>
+                    {succeededDeployHistory.map((deploy: IDeployment) => {
+                      return (
+                        <TableRow
+                          key={deploy.tagName}
+                          className={classes.tableRow}
+                        >
                           <TableCell component='th' scope='row'>
                             <Typography>{deploy.tagName}</Typography>
                           </TableCell>
@@ -742,14 +743,14 @@ const AppDeploymentComponent = (props: IAppDeploymentComponentProps) => {
                               )}
                             </Typography>
                           </TableCell>
-                          <Hidden mdDown={true}>
+                          {hiddenMdDown ? null : (
                             <TableCell>
                               <Typography>{deploy.createdBy}</Typography>
                             </TableCell>
-                          </Hidden>
+                          )}
                         </TableRow>
-                      ),
-                    )}
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>

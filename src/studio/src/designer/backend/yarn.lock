@@ -103,7 +103,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"altinn-designsystem@npm:^2.7.12":
+"altinn-designsystem@npm:2.7.12":
   version: 2.7.12
   resolution: "altinn-designsystem@npm:2.7.12"
   checksum: 7f93757cb5db8d229e452ee2e6c14e071b6724f30e7cde57a37a04f0038a49afc6258a7f904a66aeddb5d868d9bef81a65ec9673b6326e21a6597ebe0083977e
@@ -114,28 +114,28 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "altinncore@workspace:."
   dependencies:
-    altinn-designsystem: ^2.7.12
-    bootstrap: ^4.6.2
-    bootstrap-list-filter: ^0.3.4
-    chokidar: ^3.5.3
-    cross-env: ^7.0.3
-    del: ^6.1.1
-    gulp: ^4.0.2
-    gulp-run-command: ^0.0.10
-    jquery: ^3.6.0
-    jquery-ui-dist: ^1.13.1
-    jquery-validation: ^1.19.5
-    jquery-validation-unobtrusive: ^3.2.12
-    js-beautify: ^1.14.4
-    json-editor: ^0.7.28
-    monaco-editor: ^0.33.0
-    popper.js: ^1.16.1
-    requirejs: ^2.3.6
-    requirejs-text: ^2.0.16
-    rivets: ^0.9.6
-    select2: ^4.1.0-rc.0
-    sightglass: ^0.2.6
-    underscore: ^1.13.4
+    altinn-designsystem: 2.7.12
+    bootstrap: 4.6.2
+    bootstrap-list-filter: 0.3.4
+    chokidar: 3.5.3
+    cross-env: 7.0.3
+    del: 6.1.1
+    gulp: 4.0.2
+    gulp-run-command: 0.0.10
+    jquery: 3.6.0
+    jquery-ui-dist: 1.13.1
+    jquery-validation: 1.19.5
+    jquery-validation-unobtrusive: 3.2.12
+    js-beautify: 1.14.4
+    json-editor: 0.7.28
+    monaco-editor: 0.33.0
+    popper.js: 1.16.1
+    requirejs: 2.3.6
+    requirejs-text: 2.0.16
+    rivets: 0.9.6
+    select2: 4.1.0-rc.0
+    sightglass: 0.2.6
+    underscore: 1.13.4
   languageName: unknown
   linkType: soft
 
@@ -453,7 +453,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bootstrap-list-filter@npm:^0.3.4":
+"bootstrap-list-filter@npm:0.3.4":
   version: 0.3.4
   resolution: "bootstrap-list-filter@npm:0.3.4"
   dependencies:
@@ -472,7 +472,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"bootstrap@npm:^4.6.2":
+"bootstrap@npm:4.6.2":
   version: 4.6.2
   resolution: "bootstrap@npm:4.6.2"
   peerDependencies:
@@ -593,6 +593,25 @@ __metadata:
   languageName: node
   linkType: hard
 
+"chokidar@npm:3.5.3":
+  version: 3.5.3
+  resolution: "chokidar@npm:3.5.3"
+  dependencies:
+    anymatch: ~3.1.2
+    braces: ~3.0.2
+    fsevents: ~2.3.2
+    glob-parent: ~5.1.2
+    is-binary-path: ~2.1.0
+    is-glob: ~4.0.1
+    normalize-path: ~3.0.0
+    readdirp: ~3.6.0
+  dependenciesMeta:
+    fsevents:
+      optional: true
+  checksum: b49fcde40176ba007ff361b198a2d35df60d9bb2a5aab228279eb810feae9294a6b4649ab15981304447afe1e6ffbf4788ad5db77235dc770ab777c6e771980c
+  languageName: node
+  linkType: hard
+
 "chokidar@npm:^2.0.0":
   version: 2.1.8
   resolution: "chokidar@npm:2.1.8"
@@ -613,25 +632,6 @@ __metadata:
     fsevents:
       optional: true
   checksum: 0c43e89cbf0268ef1e1f41ce8ec5233c7ba022c6f3282c2ef6530e351d42396d389a1148c5a040f291cf1f4083a4c6b2f51dad3f31c726442ea9a337de316bcf
-  languageName: node
-  linkType: hard
-
-"chokidar@npm:^3.5.3":
-  version: 3.5.3
-  resolution: "chokidar@npm:3.5.3"
-  dependencies:
-    anymatch: ~3.1.2
-    braces: ~3.0.2
-    fsevents: ~2.3.2
-    glob-parent: ~5.1.2
-    is-binary-path: ~2.1.0
-    is-glob: ~4.0.1
-    normalize-path: ~3.0.0
-    readdirp: ~3.6.0
-  dependenciesMeta:
-    fsevents:
-      optional: true
-  checksum: b49fcde40176ba007ff361b198a2d35df60d9bb2a5aab228279eb810feae9294a6b4649ab15981304447afe1e6ffbf4788ad5db77235dc770ab777c6e771980c
   languageName: node
   linkType: hard
 
@@ -831,7 +831,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cross-env@npm:^7.0.3":
+"cross-env@npm:7.0.3":
   version: 7.0.3
   resolution: "cross-env@npm:7.0.3"
   dependencies:
@@ -962,7 +962,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"del@npm:^6.1.1":
+"del@npm:6.1.1":
   version: 6.1.1
   resolution: "del@npm:6.1.1"
   dependencies:
@@ -1632,7 +1632,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"gulp-run-command@npm:^0.0.10":
+"gulp-run-command@npm:0.0.10":
   version: 0.0.10
   resolution: "gulp-run-command@npm:0.0.10"
   dependencies:
@@ -1644,7 +1644,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"gulp@npm:^4.0.2":
+"gulp@npm:4.0.2":
   version: 4.0.2
   resolution: "gulp@npm:4.0.2"
   dependencies:
@@ -2166,7 +2166,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jquery-ui-dist@npm:^1.13.1":
+"jquery-ui-dist@npm:1.13.1":
   version: 1.13.1
   resolution: "jquery-ui-dist@npm:1.13.1"
   dependencies:
@@ -2175,13 +2175,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jquery-validation-unobtrusive@npm:^3.2.12":
+"jquery-validation-unobtrusive@npm:3.2.12":
   version: 3.2.12
   resolution: "jquery-validation-unobtrusive@npm:3.2.12"
   dependencies:
     jquery: ^3.5.1
     jquery-validation: ">=1.16"
   checksum: a0298b841d404730c15fcf3e238d94b634c7976fcccd811cb1abfd9925f5b9835fd57ce1719410a7dba1bc65c44dc4d9ea2459b4259d46fe7fa03c3f183ef878
+  languageName: node
+  linkType: hard
+
+"jquery-validation@npm:1.19.5":
+  version: 1.19.5
+  resolution: "jquery-validation@npm:1.19.5"
+  peerDependencies:
+    jquery: ^1.7 || ^2.0 || ^3.1
+  checksum: 75e7a84b2eb5a23720f8ab8c60768c76043e871164cd8c2a6821452133293d891bf81c2b4d0cbbdddd4da9bca3c97c50268e2be873f6719260c3123fc2a6ad91
   languageName: node
   linkType: hard
 
@@ -2194,23 +2203,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jquery-validation@npm:^1.19.5":
-  version: 1.19.5
-  resolution: "jquery-validation@npm:1.19.5"
-  peerDependencies:
-    jquery: ^1.7 || ^2.0 || ^3.1
-  checksum: 75e7a84b2eb5a23720f8ab8c60768c76043e871164cd8c2a6821452133293d891bf81c2b4d0cbbdddd4da9bca3c97c50268e2be873f6719260c3123fc2a6ad91
-  languageName: node
-  linkType: hard
-
-"jquery@npm:*, jquery@npm:>=1.8.0 <4.0.0, jquery@npm:^3.5.1, jquery@npm:^3.6.0":
+"jquery@npm:*, jquery@npm:3.6.0, jquery@npm:>=1.8.0 <4.0.0, jquery@npm:^3.5.1":
   version: 3.6.0
   resolution: "jquery@npm:3.6.0"
   checksum: 8fd5fef4aa48fd374ec716dd1c1df1af407814a228e15c1260ca140de3a697c2a77c30c54ff1d238b6a3ab4ddc445ddeef9adce6c6d28e4869d85eb9d3951c0e
   languageName: node
   linkType: hard
 
-"js-beautify@npm:^1.14.4":
+"js-beautify@npm:1.14.4":
   version: 1.14.4
   resolution: "js-beautify@npm:1.14.4"
   dependencies:
@@ -2226,7 +2226,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"json-editor@npm:^0.7.28":
+"json-editor@npm:0.7.28":
   version: 0.7.28
   resolution: "json-editor@npm:0.7.28"
   checksum: 9fa4d8e55de3ce83b7fe086792d1534c71b44e658e075fd7657ecb34b4c4b896ace78c66bc1fc3779818a723d524b367a663f3cd2d4c6cea6ef3cc069b93f713
@@ -2561,7 +2561,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"monaco-editor@npm:^0.33.0":
+"monaco-editor@npm:0.33.0":
   version: 0.33.0
   resolution: "monaco-editor@npm:0.33.0"
   checksum: f88fd1c9be0d6845436aa92ee7f7bcc49f9e9bf452f73bb5efbbe52e50678d1c2aec4d612a943310f5e2282c1d9fcc41b792b65a5b9008e6054908e7e10311ea
@@ -2983,7 +2983,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"popper.js@npm:^1.16.1":
+"popper.js@npm:1.16.1":
   version: 1.16.1
   resolution: "popper.js@npm:1.16.1"
   checksum: c56ae5001ec50a77ee297a8061a0221d99d25c7348d2e6bcd3e45a0d0f32a1fd81bca29d46cb0d4bdf13efb77685bd6a0ce93f9eb3c608311a461f945fffedbe
@@ -3237,14 +3237,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"requirejs-text@npm:^2.0.16":
+"requirejs-text@npm:2.0.16":
   version: 2.0.16
   resolution: "requirejs-text@npm:2.0.16"
   checksum: 862d75cff38e8f9fb5618f8b4e7fe05c6bca685a962c9978f6f37b4f503d7bb6f4e9f07098b3ad243d21899ce639b33657c9599dcab2d6dc59fb03e7067c15c4
   languageName: node
   linkType: hard
 
-"requirejs@npm:^2.3.6":
+"requirejs@npm:2.3.6":
   version: 2.3.6
   resolution: "requirejs@npm:2.3.6"
   bin:
@@ -3332,7 +3332,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rivets@npm:^0.9.6":
+"rivets@npm:0.9.6":
   version: 0.9.6
   resolution: "rivets@npm:0.9.6"
   dependencies:
@@ -3380,7 +3380,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"select2@npm:^4.1.0-rc.0":
+"select2@npm:4.1.0-rc.0":
   version: 4.1.0-rc.0
   resolution: "select2@npm:4.1.0-rc.0"
   checksum: c27cefc3967d2082b2887869e8379f6e8e0ec2e02a268b7abbaec87fbda20abe4d62ac008b87a14f17bfa46dd27aa0b33ee793ed30142e3bc30ba408e208ad20
@@ -3451,7 +3451,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"sightglass@npm:^0.2.6, sightglass@npm:~0.2.4":
+"sightglass@npm:0.2.6, sightglass@npm:~0.2.4":
   version: 0.2.6
   resolution: "sightglass@npm:0.2.6"
   checksum: 93ce9d3cb2952d859a3cb8e873f241e15b420b140869a52f92eaab0528682fc468ce2242d4e43bfe13c8f610321a0b760b6d3b547956f2b5996fd17cb464c980
@@ -3879,7 +3879,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"underscore@npm:^1.13.4":
+"underscore@npm:1.13.4":
   version: 1.13.4
   resolution: "underscore@npm:1.13.4"
   checksum: 6b04f66cd454e8793a552dc49c71e24e5208a29b9d9c0af988a96948af79103399c36fb15db43f3629bfed152f8b1fe94f44e1249e9d196069c0fc7edfadb636
