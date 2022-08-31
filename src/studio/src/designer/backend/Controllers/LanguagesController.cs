@@ -48,9 +48,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             languages.Sort();
 
-            string jsonLanguages = JsonSerializer.Serialize(languages);
-
-            return Ok(jsonLanguages);
+            return Ok(languages);
         }
     }
 }
