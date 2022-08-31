@@ -847,7 +847,7 @@ const makeMapStateToProps = () => {
       components: GetLayoutComponentsSelector(state),
       containers: GetLayoutContainersSelector(state),
       dataModel: state.appData.dataModel.model,
-      dataModelGroup: container.dataModelGroup,
+      dataModelGroup: container?.dataModelGroup,
       dispatch: props.dispatch,
       dndEvents: props.dndEvents,
       formContainerActive: GetActiveFormContainer(state, props),
@@ -855,7 +855,7 @@ const makeMapStateToProps = () => {
       index: props.index,
       itemOrder: !props.items ? itemOrder : props.items,
       language: state.appData.languageState.language,
-      repeating: container.repeating,
+      repeating: container?.repeating,
       textResources: state.appData.textResources.resources,
     };
   };
