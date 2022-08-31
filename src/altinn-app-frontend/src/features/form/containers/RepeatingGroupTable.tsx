@@ -9,6 +9,7 @@ import {
   TableRow,
   useMediaQuery,
 } from '@material-ui/core';
+import cn from 'classnames';
 
 import {
   getFormDataForComponentInRepeatingGroup,
@@ -109,6 +110,10 @@ const useStyles = makeStyles({
       background: theme.altinnPalette.primary.blueLighter,
       outline: `2px dotted ${theme.altinnPalette.primary.blueDark}`,
     },
+  },
+  editButtonActivated: {
+    background: theme.altinnPalette.primary.blueLighter,
+    outline: `2px dotted ${theme.altinnPalette.primary.blueDark}`,
   },
   deleteButton: {
     color: theme.altinnPalette.primary.red,
@@ -358,7 +363,9 @@ export function RepeatingGroupTable({
                         key={`edit-${index}`}
                       >
                         <IconButton
-                          className={classes.tableEditButton}
+                          className={cn(classes.tableEditButton, {
+                            [classes.editButtonActivated]: editIndex === index,
+                          })}
                           onClick={() => onClickEdit(index)}
                         >
                           <i
@@ -434,6 +441,7 @@ export function RepeatingGroupTable({
                     key={index}
                     items={items}
                     valid={!rowHasErrors}
+                    editIndex={editIndex}
                     onEditClick={() => onClickEdit(index)}
                     onDeleteClick={() => onClickRemove(index)}
                     editIconNode={
