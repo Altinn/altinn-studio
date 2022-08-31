@@ -10,6 +10,7 @@ import { DisplayGroupContainer } from 'src/features/form/containers/DisplayGroup
 import { mapGroupComponents } from 'src/features/form/containers/formUtils';
 import { GroupContainer } from 'src/features/form/containers/GroupContainer';
 import { PanelGroupContainer } from 'src/features/form/containers/PanelGroupContainer';
+import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
 import {
   extractBottomButtons,
   hasRequiredFields,
@@ -150,6 +151,7 @@ export function Form() {
         )}
         <ErrorReport components={errorReportComponents} />
       </Grid>
+      <ReadyForPrint />
     </>
   );
 }

@@ -9,6 +9,7 @@ import {
 } from '@material-ui/core';
 
 import { useAppSelector } from 'src/common/hooks';
+import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
 import { getInstanceUiUrl } from 'src/utils/appUrlHelper';
 import type { ISimpleInstance } from 'src/types';
 
@@ -175,49 +176,52 @@ export default function InstanceSelection({
   };
 
   return (
-    <Grid
-      container
-      id='instance-selection-container'
-    >
-      <Grid item>
-        <Typography
-          variant='h2'
-          id='instance-selection-header'
-        >
-          {getLanguageFromKey('instance_selection.header', language)}
-        </Typography>
-      </Grid>
+    <>
       <Grid
-        item
-        id='instance-selection-description'
+        container
+        id='instance-selection-container'
       >
-        <Typography
-          variant='body1'
+        <Grid item>
+          <Typography
+            variant='h2'
+            id='instance-selection-header'
+          >
+            {getLanguageFromKey('instance_selection.header', language)}
+          </Typography>
+        </Grid>
+        <Grid
+          item
+          id='instance-selection-description'
+        >
+          <Typography
+            variant='body1'
+            style={marginTop12}
+          >
+            {getLanguageFromKey('instance_selection.description', language)}
+          </Typography>
+        </Grid>
+        <Grid
+          item
+          style={marginTop26}
+        >
+          {mobileView && renderMobileTable()}
+          {!mobileView && renderTable()}
+        </Grid>
+        <Grid
+          item
           style={marginTop12}
         >
-          {getLanguageFromKey('instance_selection.description', language)}
-        </Typography>
+          <AltinnButton
+            btnText={getLanguageFromKey(
+              'instance_selection.new_instance',
+              language,
+            )}
+            onClickFunction={onNewInstance}
+            id='new-instance-button'
+          />
+        </Grid>
       </Grid>
-      <Grid
-        item
-        style={marginTop26}
-      >
-        {mobileView && renderMobileTable()}
-        {!mobileView && renderTable()}
-      </Grid>
-      <Grid
-        item
-        style={marginTop12}
-      >
-        <AltinnButton
-          btnText={getLanguageFromKey(
-            'instance_selection.new_instance',
-            language,
-          )}
-          onClickFunction={onNewInstance}
-          id='new-instance-button'
-        />
-      </Grid>
-    </Grid>
+      <ReadyForPrint />
+    </>
   );
 }

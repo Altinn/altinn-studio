@@ -9,6 +9,7 @@ import {
 } from 'src/common/hooks';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
 import { selectAppName } from 'src/selectors/language';
+import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 import { ProcessActions } from 'src/shared/resources/process/processSlice';
 import { getValidationUrl } from 'src/utils/appUrlHelper';
@@ -191,6 +192,7 @@ const Confirm = () => {
             pdf={getInstancePdf(instance.data)}
           />
           <SubmitButton />
+          <ReadyForPrint />
         </>
       )}
     </div>

@@ -8,6 +8,7 @@ import {
   useInstanceIdParams,
 } from 'src/common/hooks';
 import { selectAppName } from 'src/selectors/language';
+import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 
@@ -209,6 +210,7 @@ const ReceiptContainer = () => {
               )}`}
             />
           )}
+          <ReadyForPrint />
         </>
       )}
     </div>

@@ -4,6 +4,7 @@ import { Grid, makeStyles } from '@material-ui/core';
 
 import { useAppSelector } from 'src/common/hooks';
 import Header from 'src/shared/components/altinnAppHeader';
+import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
 import { changeBodyBackground } from 'src/utils/bodyStyling';
 
 import { AltinnAppTheme } from 'altinn-shared/theme';
@@ -48,6 +49,7 @@ export function InstantiationContainer({
         type={type}
       />
       <main id='main-content'>{children}</main>
+      <ReadyForPrint />
     </Grid>
   );
 }
