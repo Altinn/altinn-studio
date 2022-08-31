@@ -1,34 +1,35 @@
 import React from 'react';
 import {
-  makeStyles,
+  Checkbox,
   FormControl,
+  FormControlLabel,
+  Grid,
   IconButton,
   Input,
-  FormControlLabel,
-  Checkbox,
-  Grid,
+  makeStyles,
 } from '@material-ui/core';
 import { useDispatch } from 'react-redux';
 import { DeleteOutline } from '@material-ui/icons';
-import type { ILanguage } from '../types';
-import { getDomFriendlyID, getUniqueNumber } from '../utils/schema';
-import { getTranslation } from '../utils/language';
-import { setRequired } from '../features/editor/schemaEditorSlice';
+import type { ILanguage } from '../../types';
+import { getDomFriendlyID, getUniqueNumber } from '../../utils/schema';
+import { getTranslation } from '../../utils/language';
+import { setRequired } from '../../features/editor/schemaEditorSlice';
 
-const useStyles = (readonly?: boolean) => makeStyles({
-  field: {
-    background: 'white',
-    color: 'black',
-    border: readonly ? '1px solid grey' : '1px solid #006BD8',
-    boxSsizing: 'border-box',
-    padding: 4,
-    '&.Mui-disabled': {
-      background: '#f4f4f4',
+const useStyles = (readonly?: boolean) =>
+  makeStyles({
+    field: {
+      background: 'white',
       color: 'black',
-      border: '1px solid #6A6A6A',
-      boxSizing: 'border-box',
+      border: readonly ? '1px solid grey' : '1px solid #006BD8',
+      boxSsizing: 'border-box',
+      padding: 4,
+      '&.Mui-disabled': {
+        background: '#f4f4f4',
+        color: 'black',
+        border: '1px solid #6A6A6A',
+        boxSizing: 'border-box',
+      },
     },
-  },
     inline: {
       display: 'inline-block',
     },

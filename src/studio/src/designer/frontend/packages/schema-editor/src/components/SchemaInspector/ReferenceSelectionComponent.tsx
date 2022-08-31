@@ -1,8 +1,8 @@
 import { ClassNameMap } from '@material-ui/core/styles/withStyles';
 import * as React from 'react';
-import type { ILanguage, UiSchemaItem, FieldType } from '../types';
-import { ObjectKind } from '../types/enums';
-import { getTranslation } from '../utils/language';
+import type { FieldType, ILanguage, UiSchemaItem } from '../../types';
+import { ObjectKind } from '../../types/enums';
+import { getTranslation } from '../../utils/language';
 import { RefSelect } from './RefSelect';
 
 export interface IReferenceSelectionProps {
@@ -26,7 +26,6 @@ export function ReferenceSelectionComponent({
   onChangeRef,
   onGoToDefButtonClick,
 }: IReferenceSelectionProps) {
-
   if (!(selectedItem && objectKind === ObjectKind.Reference)) {
     return null;
   }

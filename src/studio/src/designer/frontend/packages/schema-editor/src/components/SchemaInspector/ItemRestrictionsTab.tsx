@@ -8,8 +8,8 @@ import {
 } from '@material-ui/core';
 import { getTranslation } from '../../utils/language';
 import { ILanguage, Restriction, UiSchemaItem } from '../../types';
-import { RestrictionField } from '../RestrictionField';
-import { EnumField } from '../EnumField';
+import { RestrictionField } from './RestrictionField';
+import { EnumField } from './EnumField';
 import {
   addEnum,
   addRestriction,

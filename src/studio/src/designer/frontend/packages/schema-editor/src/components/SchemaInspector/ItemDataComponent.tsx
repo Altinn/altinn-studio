@@ -13,10 +13,10 @@ import {
   ILanguage,
   ISchemaState,
   UiSchemaItem,
-} from '../types';
-import { NameError, ObjectKind } from '../types/enums';
-import { isValidName } from '../utils/checks';
-import { getTranslation } from '../utils/language';
+} from '../../types';
+import { NameError, ObjectKind } from '../../types/enums';
+import { isValidName } from '../../utils/checks';
+import { getTranslation } from '../../utils/language';
 import {
   addCombinationItem,
   deleteCombinationItem,
@@ -28,16 +28,16 @@ import {
   setRef,
   setTitle,
   setType,
-} from '../features/editor/schemaEditorSlice';
+} from '../../features/editor/schemaEditorSlice';
 import {
   combinationIsNullable,
   getDomFriendlyID,
   nullableType,
-} from '../utils/schema';
+} from '../../utils/schema';
 import { TypeSelect } from './TypeSelect';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { CombinationSelect } from './CombinationSelect';
-import { getObjectKind } from '../utils/ui-schema-utils';
+import { getObjectKind } from '../../utils/ui-schema-utils';
 
 export interface IItemDataComponentProps {
   selectedItem: UiSchemaItem | null;

@@ -1,15 +1,13 @@
 import IconButton from '@material-ui/core/IconButton';
 import * as React from 'react';
-import { ILanguage } from '../types';
-import { getTranslation } from '../utils/language';
 
 export interface IAddPropertyButtonProps {
   onAddPropertyClick: (event: React.BaseSyntheticEvent) => void;
-  language: ILanguage;
+  label: string;
 }
-export function AddPropertyButton ({
+export function AddPropertyButton({
   onAddPropertyClick,
-  language
+  label,
 }: IAddPropertyButtonProps) {
   return (
     <IconButton
@@ -18,7 +16,7 @@ export function AddPropertyButton ({
       onClick={onAddPropertyClick}
     >
       <i className='fa fa-plus' />
-      {getTranslation('add_property', language)}
+      {label}
     </IconButton>
   );
 }
