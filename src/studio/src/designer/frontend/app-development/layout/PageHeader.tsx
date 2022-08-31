@@ -3,10 +3,9 @@
 import {Grid} from '@material-ui/core';
 import {AppBar} from './AppBar';
 import React from 'react';
-import {Navigate, Route, Routes} from 'react-router-dom';
+import {Route, Routes} from 'react-router-dom';
 import routes from '../config/routes';
 import appDevelopmentLeftDrawerSettings from '../config/subPathSettings';
-import {redirects} from '../config/redirects';
 import type {IAltinnWindow} from '../types/global';
 
 interface IPageHeaderProps {
@@ -18,12 +17,6 @@ const PageHeader = (ownProps: IPageHeaderProps) => {
   const {app, org} = window as Window as IAltinnWindow;
   return (
     <Routes>
-      {(!repoStatus.hasMergeConflict || null) &&
-        redirects.map((route) => (
-          <Route key={route.to} path={route.from} element={
-            <Navigate to={route.to} replace/>
-          }/>
-        ))}
       {routes.map((route) => (
         <Route key={route.path} path={route.path} element={
           <Grid item xs={12}>
@@ -37,7 +30,7 @@ const PageHeader = (ownProps: IPageHeaderProps) => {
               mainMenuItems={[
                 {
                   displayText: 'Om',
-                  navLink: '/about',
+                  navLink: '/',
                   menuType: 'about',
                   activeSubHeaderSelection: 'Om',
                 },

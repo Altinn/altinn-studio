@@ -19342,7 +19342,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-hot-loader@npm:4.13.0, react-hot-loader@npm:^4.13.0":
+"react-hot-loader@npm:4.13.0":
   version: 4.13.0
   resolution: "react-hot-loader@npm:4.13.0"
   dependencies:
@@ -19489,7 +19489,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-router-dom@npm:6.3.0, react-router-dom@npm:^6.3.0":
+"react-router-dom@npm:6.3.0":
   version: 6.3.0
   resolution: "react-router-dom@npm:6.3.0"
   dependencies:
@@ -22905,10 +22905,8 @@ __metadata:
     react-dnd: ^11.1.3
     react-dnd-html5-backend: ^11.1.3
     react-dom: ^17.0.2
-    react-hot-loader: ^4.13.0
     react-modal: ^3.15.1
     react-redux: ^8.0.2
-    react-router-dom: ^6.3.0
     react-select: ^5.4.0
     redux: ^4.2.0
     redux-mock-store: 1.5.4
