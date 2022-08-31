@@ -1,11 +1,15 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using JetBrains.Annotations;
+using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 {
@@ -120,12 +124,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Returns a specific text resource based on language code from the application.
+        /// Returns a specific text resource written in the old text format
+        /// based on language code from the application.
         /// </summary>
         /// <remarks>
         /// Format of the dictionary is: &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
         /// </remarks>
-        public async Task<Designer.Models.TextResource> GetTextResources(string language)
+        public async Task<Designer.Models.TextResource> GetTextContentV1(string language)
         {
             string resourcePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, $"resource.{language}.json");
 
@@ -195,18 +200,19 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Returns content in text file identified by languageCode in filename as a string
+        /// Returns content in text file written in the new text format
+        /// identified by languageCode in filename as a string.
         /// </summary>
         /// <param name="languageCode">Language identifier</param>
-        public async Task<string> GetTextContentForLanguage(string languageCode)
+        public async Task<string> GetTextContentV2(string languageCode)
         {
             string fileName = "text." + languageCode + ".json";
 
             var textFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
 
-            var fileContent = await ReadTextByRelativePathAsync(textFileRelativeFilePath);
+            string fileContent = await ReadTextByRelativePathAsync(textFileRelativeFilePath);
 
-            return JsonConvert.DeserializeObject<string>(fileContent);
+            return fileContent;
         }
 
         /// <summary>

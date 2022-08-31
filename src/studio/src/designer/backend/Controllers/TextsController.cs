@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -35,25 +37,29 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Endpoint for getting a text file in a specific language.
+        /// Endpoint for getting the complete text file for a specific language.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repo">Application identifier which is unique within an organisation.</param>
-        /// <returns>List of languages as JSON</returns>
+        /// <param name="languageCode">Language identifier specifying the text file to read.</param>
+        /// <returns>Text file</returns>
+        /// <remarks>If duplicates of keys are tried added the
+        /// deserialization to dictionary will overwrite the first
+        /// key:value pair with the last key:value pair</remarks>
         [HttpGet]
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [Route("{languageCode}")]
-        public async Task<ActionResult<string>> GetText(string org, string repo, [FromRoute] string languageCode)
+        public async Task<ActionResult<Dictionary<string, string>>> GetText(string org, string repo, [FromRoute] string languageCode)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            ActionResult<string> text = await _textsService.GetTextContent(org, repo, developer, languageCode);
+            string textContent = await _textsService.GetTextContent(org, repo, developer, languageCode);
 
-            string jsonText = JsonSerializer.Serialize(text);
+            Dictionary<string, string> jsonTextContent =
+                JsonSerializer.Deserialize<Dictionary<string, string>>(textContent);
 
-            return Ok(jsonText);
+            return Ok(jsonTextContent);
         }
-
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Mvc;
@@ -17,6 +18,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="repo">Repository</param>
         /// <param name="developer">Username of developer</param>
         /// <param name="languageCode">LanguageCode</param>
-        public Task<ActionResult<string>> GetTextContent(string org, string repo, string developer, string languageCode);
+        /// <returns>The text file as a string</returns>
+        public Task<string> GetTextContent(string org, string repo, string developer, string languageCode);
     }
 }
