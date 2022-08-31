@@ -7,14 +7,14 @@ export interface EditorDndItem {
 }
 
 export enum ItemType {
-  TOOLBAR_ITEM = 'TOOLBAR_ITEM',
-  ITEM = 'ITEM',
-  CONTAINER = 'CONTAINER',
+  ToolbarItem = 'TOOLBAR_ITEM',
+  Item = 'ITEM',
+  Container = 'CONTAINER',
 }
 
 export enum ContainerPos {
-  TOP = 'TOP',
-  BOTTOM = 'BOTTOM',
+  Top = 'TOP',
+  Bottom = 'BOTTOM',
 }
 
 /**
