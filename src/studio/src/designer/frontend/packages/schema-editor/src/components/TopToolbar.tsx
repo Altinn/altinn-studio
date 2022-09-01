@@ -1,5 +1,6 @@
 import { makeStyles } from '@material-ui/core';
 import React from 'react';
+import { AltinnSwitch } from 'app-shared/components/AltinnSwitch';
 import type { ILanguage } from '../types';
 import { getTranslation } from '../utils/language';
 import { TopToolbarButton } from './TopToolbarButton';
@@ -13,6 +14,23 @@ const useStyles = makeStyles({
     '& > button:last-child': {
       marginLeft: 'auto',
     },
+  },
+  switchLabel: {
+    fontSize: '16px',
+  },
+  switchLabelRoot: {
+    marginLeft: '0',
+  },
+  switchInput: {
+    fontSize: '16px',
+    marginTop: '10px',
+  },
+  switch: {
+    background: 'none',
+    marginLeft: 24,
+    '&:hover': {
+      border: '2px solid #008FD6',
+    }
   },
 });
 
@@ -35,12 +53,12 @@ export function TopToolbar({ Toolbar, saveAction, toggleEditMode, language }: To
       >
         {getTranslation('save_data_model', language)}
       </TopToolbarButton>
-      <TopToolbarButton
-        onClick={toggleEditMode || (() => undefined)}
-        faIcon='fa fa-edit'
-      >
-        Toggle edit mode
-      </TopToolbarButton>
+      <AltinnSwitch
+        classes={classes}
+        id='edit-mode-switch'
+        onChangeFunction={toggleEditMode}
+        switchHeader='Toggle edit mode'
+      />
     </section>
   );
 }
