@@ -4,10 +4,11 @@ export interface ILanguage {
 }
 
 export interface ISchema {
-  properties: { [key: string]: { [key: string]: any } };
-  definitions: { [key: string]: { [key: string]: any } };
+  properties?: { [key: string]: { [key: string]: any } };
+  definitions?: { [key: string]: { [key: string]: any } };
   $schema?: string;
   $id?: string;
+  [key: string]: any;
 }
 
 export interface ISchemaState {

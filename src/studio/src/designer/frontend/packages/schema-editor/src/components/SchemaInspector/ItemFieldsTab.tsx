@@ -1,14 +1,15 @@
-import React from 'react';
+import React, { BaseSyntheticEvent } from 'react';
 import { Grid } from '@material-ui/core';
-import { AddPropertyButton } from '../AddPropertyButton';
+import { AddPropertyButton } from './AddPropertyButton';
 import { ILanguage, UiSchemaItem } from '../../types';
-import { PropertyItem } from '../PropertyItem';
+import { PropertyItem } from './PropertyItem';
 import {
   addProperty,
   deleteProperty,
   setPropertyName,
 } from '../../features/editor/schemaEditorSlice';
 import { useDispatch } from 'react-redux';
+import { getTranslation } from '../../utils/language';
 
 interface ItemFieldsTabProps {
   classes: any;
@@ -33,21 +34,6 @@ export const ItemFieldsTab = ({
   const onDeleteObjectClick = (path: string) =>
     dispatch(deleteProperty({ path }));
 
-  const renderItemProperties = (item: UiSchemaItem) => {
-    return item.properties?.map((p: UiSchemaItem) => (
-      <PropertyItem
-        language={language}
-        key={p.path}
-        required={item.required?.includes(p.displayName)}
-        readOnly={readonly}
-        value={p.displayName}
-        fullPath={p.path}
-        onChangeValue={onChangePropertyName}
-        onDeleteField={onDeleteObjectClick}
-        onEnterKeyPress={dispatchAddProperty}
-      />
-    ));
-  };
   const dispatchAddProperty = () => {
     const path = selectedItem.path;
     if (path) {
@@ -59,19 +45,31 @@ export const ItemFieldsTab = ({
       );
     }
   };
-  const onAddPropertyClicked = (event: React.BaseSyntheticEvent) => {
+  const onAddPropertyClicked = (event: BaseSyntheticEvent) => {
     event.preventDefault();
     dispatchAddProperty();
   };
   return (
     <>
       <Grid container spacing={3} className={classes.gridContainer}>
-        {renderItemProperties(selectedItem)}
+        {selectedItem?.properties?.map((prop) => (
+          <PropertyItem
+            language={language}
+            key={prop.path}
+            required={selectedItem?.required?.includes(prop.displayName)}
+            readOnly={readonly}
+            value={prop.displayName}
+            fullPath={prop.path}
+            onChangeValue={onChangePropertyName}
+            onDeleteField={onDeleteObjectClick}
+            onEnterKeyPress={dispatchAddProperty}
+          />
+        ))}
       </Grid>
       {!readonly && (
         <AddPropertyButton
           onAddPropertyClick={onAddPropertyClicked}
-          language={language}
+          label={getTranslation('add_property', language)}
         />
       )}
     </>

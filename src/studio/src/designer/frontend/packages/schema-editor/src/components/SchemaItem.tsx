@@ -136,8 +136,8 @@ export function SchemaItem(props: SchemaItemProps) {
     dispatch(setSelectedId({ id: schemaItem.path }));
   };
 
-  const renderProperties = (itemProperties: UiSchemaItem[]) =>
-    itemProperties.map((property: UiSchemaItem) => {
+  const renderProperties = (itemProperties: UiSchemaItem[]) => {
+    return itemProperties.map((property: UiSchemaItem) => {
       return (
         <SchemaItem
           keyPrefix={`${keyPrefix}-properties`}
@@ -149,7 +149,7 @@ export function SchemaItem(props: SchemaItemProps) {
           isPropertiesView={isPropertiesView}
         />
       );
-    });
+    })};
 
   const handlePromoteClick = () => {
     dispatch(promoteProperty({ path: item.path }));
