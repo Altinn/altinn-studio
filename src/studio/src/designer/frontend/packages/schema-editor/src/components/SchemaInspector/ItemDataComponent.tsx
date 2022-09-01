@@ -5,7 +5,7 @@ import {
   TextField,
 } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   CombinationKind,
@@ -38,6 +38,8 @@ import { TypeSelect } from './TypeSelect';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { CombinationSelect } from './CombinationSelect';
 import { getObjectKind } from '../../utils/ui-schema-utils';
+import { Label } from './Label';
+import { getTypeOptions } from './helpers/helpers';
 
 export interface IItemDataComponentProps {
   selectedItem: UiSchemaItem | null;
@@ -99,20 +101,18 @@ export function ItemDataComponent({
   const dispatch = useDispatch();
   const objectKind = getObjectKind(selectedItem ?? undefined);
   const selectedId = selectedItem?.path ?? '';
-  const [nameError, setNameError] = React.useState('');
-  const [nodeName, setNodeName] = React.useState('');
-  const [description, setItemDescription] = React.useState<string>('');
-  const [title, setItemTitle] = React.useState<string>('');
-  const [fieldType, setFieldType] = React.useState<FieldType | undefined>(
+  const [nameError, setNameError] = useState('');
+  const [nodeName, setNodeName] = useState('');
+  const [description, setItemDescription] = useState<string>('');
+  const [title, setItemTitle] = useState<string>('');
+  const [fieldType, setFieldType] = useState<FieldType | undefined>(undefined);
+  const [arrayType, setArrayType] = useState<FieldType | string | undefined>(
     undefined,
   );
-  const [arrayType, setArrayType] = React.useState<
-    FieldType | string | undefined
-  >(undefined);
 
   const focusName = useSelector((state: ISchemaState) => state.focusNameField);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setNodeName(selectedItem?.displayName ?? '');
     setNameError(NameError.NoError);
     setItemTitle(selectedItem?.title ?? '');
@@ -121,7 +121,7 @@ export function ItemDataComponent({
     setArrayType(selectedItem?.items?.$ref ?? selectedItem?.items?.type ?? '');
   }, [selectedItem]);
 
-  const nameFieldRef = React.useCallback(
+  const nameFieldRef = useCallback(
     (node: any) => {
       if (node && focusName && focusName === selectedId) {
         setTimeout(() => {
@@ -265,12 +265,12 @@ export function ItemDataComponent({
       );
     }
   };
-
+  const __ = (key: string) => getTranslation(key, language);
   return (
     <div>
       {!selectedItem?.combinationItem && (
         <>
-          <p className={classes.name}>{getTranslation('name', language)}</p>
+          <p className={classes.name}>{__('name')}</p>
           <TextField
             id='selectedItemName'
             className={classes.field}
@@ -280,7 +280,7 @@ export function ItemDataComponent({
             fullWidth={true}
             value={nodeName}
             error={!!nameError}
-            helperText={getTranslation(nameError, language)}
+            helperText={__(nameError)}
             onChange={onNameChange}
             onBlur={handleChangeNodeName}
             InputProps={{
@@ -292,14 +292,15 @@ export function ItemDataComponent({
       )}
       {selectedItem && objectKind === ObjectKind.Field && (
         <>
-          <p className={classes.header}>{getTranslation('type', language)}</p>
+          <Label>{__('type')}</Label>
           <TypeSelect
             value={selectedItem.type === 'array' ? arrayType : fieldType}
             id={`${getDomFriendlyID(selectedItem.path)}-type-select`}
             onChange={
               selectedItem.type === 'array' ? onChangeArrayType : onChangeType
             }
-            language={language}
+            label={__('type')}
+            options={getTypeOptions(__)}
           />
         </>
       )}
@@ -308,13 +309,13 @@ export function ItemDataComponent({
         classes={classes}
         selectedItem={selectedItem}
         objectKind={objectKind}
-        language={language}
+        label={__('reference_to')}
+        buttonText={__('go_to_type')}
         onChangeArrayType={onChangeArrayType}
         onChangeRef={onChangeRef}
         onGoToDefButtonClick={onGoToDefButtonClick}
       />
-      {(objectKind === ObjectKind.Reference ||
-        objectKind === ObjectKind.Field) && (
+      {[ObjectKind.Reference, ObjectKind.Field].includes(objectKind) && (
         <FormControlLabel
           id='multiple-answers-checkbox'
           className={classes.header}
@@ -326,12 +327,12 @@ export function ItemDataComponent({
               name='checkedMultipleAnswers'
             />
           }
-          label={getTranslation('multiple_answers', language)}
+          label={__('multiple_answers')}
         />
       )}
       {objectKind === ObjectKind.Combination && (
         <>
-          <p className={classes.header}>{getTranslation('type', language)}</p>
+          <Label>{__('type')}</Label>
           <CombinationSelect
             value={selectedItem?.combinationKind}
             id={`${getDomFriendlyID(
@@ -354,14 +355,11 @@ export function ItemDataComponent({
               name='checkedNullable'
             />
           }
-          label={getTranslation('nullable', language)}
+          label={__('nullable')}
         />
       )}
       <Divider />
-      <p className={classes.header}>
-        {getTranslation('descriptive_fields', language)}
-      </p>
-      <p className={classes.header}>{getTranslation('title', language)}</p>
+      <Label>{__('descriptive_fields')}</Label>
       <TextField
         id={`${getDomFriendlyID(selectedId ?? '')}-title`}
         className={classes.field}
@@ -375,9 +373,7 @@ export function ItemDataComponent({
           classes: { root: classes.fieldText },
         }}
       />
-      <p className={classes.header}>
-        {getTranslation('description', language)}
-      </p>
+      <Label>{__('description')}</Label>
       <TextField
         id={`${getDomFriendlyID(selectedId ?? '')}-description`}
         multiline={true}

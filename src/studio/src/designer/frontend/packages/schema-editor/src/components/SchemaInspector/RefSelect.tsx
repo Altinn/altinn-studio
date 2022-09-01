@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ChangeEvent } from 'react';
 import { makeStyles, TextField } from '@material-ui/core';
 import { useSelector } from 'react-redux';
 import { Autocomplete } from '@material-ui/lab';
@@ -38,7 +38,7 @@ export const RefSelect = (props: IRefSelectProps) => {
       .map((d) => d.path.replace('#/definitions/', '')),
   );
 
-  const onChangeValue = (event: React.ChangeEvent<unknown>, val: unknown) => {
+  const onChangeValue = (event: ChangeEvent<unknown>, val: unknown) => {
     if (!val) {
       return;
     }

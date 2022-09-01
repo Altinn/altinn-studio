@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { KeyboardEvent, useEffect, useState } from 'react';
 import { Grid, IconButton, makeStyles, TextField } from '@material-ui/core';
 import { DeleteOutline } from '@material-ui/icons';
 import { getTranslation } from '../../utils/language';
@@ -52,7 +52,7 @@ export const EnumField = (props: IEnumFieldProps) => {
     setVal(e.target.value);
   };
 
-  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) =>
+  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
     e?.key === 'Enter' && props.onEnterKeyPress && props.onEnterKeyPress();
 
   const baseId = getDomFriendlyID(props.path);

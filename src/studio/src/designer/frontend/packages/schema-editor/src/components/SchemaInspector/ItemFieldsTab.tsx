@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { BaseSyntheticEvent } from 'react';
 import { Grid } from '@material-ui/core';
 import { AddPropertyButton } from './AddPropertyButton';
 import { ILanguage, UiSchemaItem } from '../../types';
@@ -45,7 +45,7 @@ export const ItemFieldsTab = ({
       );
     }
   };
-  const onAddPropertyClicked = (event: React.BaseSyntheticEvent) => {
+  const onAddPropertyClicked = (event: BaseSyntheticEvent) => {
     event.preventDefault();
     dispatchAddProperty();
   };

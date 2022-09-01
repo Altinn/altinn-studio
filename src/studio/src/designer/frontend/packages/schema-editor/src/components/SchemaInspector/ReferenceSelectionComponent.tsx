@@ -1,19 +1,20 @@
 import { ClassNameMap } from '@material-ui/core/styles/withStyles';
 import * as React from 'react';
-import type { FieldType, ILanguage, UiSchemaItem } from '../../types';
+import type { FieldType, UiSchemaItem } from '../../types';
 import { ObjectKind } from '../../types/enums';
-import { getTranslation } from '../../utils/language';
 import { RefSelect } from './RefSelect';
+import { Label } from './Label';
 
 export interface IReferenceSelectionProps {
   arrayType: string | FieldType | undefined;
+  buttonText: string;
   classes: ClassNameMap;
-  selectedItem: UiSchemaItem | null;
+  label: string;
   objectKind: ObjectKind;
-  language: ILanguage;
   onChangeArrayType: (type: string | FieldType | undefined) => void;
   onChangeRef: (path: string, ref: string) => void;
   onGoToDefButtonClick: () => void;
+  selectedItem: UiSchemaItem | null;
 }
 
 export function ReferenceSelectionComponent({
@@ -21,7 +22,8 @@ export function ReferenceSelectionComponent({
   classes,
   selectedItem,
   objectKind,
-  language,
+  label,
+  buttonText,
   onChangeArrayType,
   onChangeRef,
   onGoToDefButtonClick,
@@ -32,9 +34,7 @@ export function ReferenceSelectionComponent({
 
   return (
     <div>
-      <p className={classes.header}>
-        {getTranslation('reference_to', language)}
-      </p>
+      <Label>{label}</Label>
       {selectedItem.type === 'array' ? (
         <RefSelect
           id={selectedItem.path}
@@ -55,7 +55,7 @@ export function ReferenceSelectionComponent({
         className={classes.navButton}
         onClick={onGoToDefButtonClick}
       >
-        {getTranslation('go_to_type', language)}
+        {buttonText}
       </button>
     </div>
   );

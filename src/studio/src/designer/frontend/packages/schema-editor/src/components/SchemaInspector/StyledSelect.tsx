@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { makeStyles, Select } from '@material-ui/core';
 
 export interface IStyledSelectProps {
@@ -8,7 +8,7 @@ export interface IStyledSelectProps {
   readOnly?: boolean;
   fullWidth?: boolean;
   label?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 const useStyles = makeStyles({

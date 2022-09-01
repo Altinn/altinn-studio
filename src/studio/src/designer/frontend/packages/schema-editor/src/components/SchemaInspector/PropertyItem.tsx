@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { KeyboardEvent, useEffect, useState } from 'react';
 import {
   Checkbox,
   FormControl,
@@ -60,9 +60,9 @@ export interface IPropertyItemProps {
 export function PropertyItem(props: IPropertyItemProps) {
   const classes = useStyles(props.readOnly)();
 
-  const [value, setValue] = React.useState<string>(props.value || '');
+  const [value, setValue] = useState<string>(props.value || '');
   const dispatch = useDispatch();
-  React.useEffect(() => {
+  useEffect(() => {
     setValue(props.value);
   }, [props.value]);
 
@@ -89,7 +89,7 @@ export function PropertyItem(props: IPropertyItemProps) {
     );
   };
 
-  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) =>
+  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
     e?.key === 'Enter' && props.onEnterKeyPress && props.onEnterKeyPress();
 
   const baseId = getDomFriendlyID(props.fullPath);

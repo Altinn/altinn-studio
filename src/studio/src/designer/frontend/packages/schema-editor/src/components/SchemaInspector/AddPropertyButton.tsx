@@ -1,8 +1,9 @@
 import IconButton from '@material-ui/core/IconButton';
 import * as React from 'react';
+import { BaseSyntheticEvent } from 'react';
 
 export interface IAddPropertyButtonProps {
-  onAddPropertyClick: (event: React.BaseSyntheticEvent) => void;
+  onAddPropertyClick: (event: BaseSyntheticEvent) => void;
   label: string;
 }
 export function AddPropertyButton({
