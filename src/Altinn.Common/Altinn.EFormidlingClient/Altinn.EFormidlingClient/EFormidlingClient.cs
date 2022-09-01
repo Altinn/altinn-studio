@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Web;
 
 using Altinn.Common.EFormidlingClient.Configuration;
 using Altinn.Common.EFormidlingClient.Models;
@@ -232,6 +233,8 @@ namespace Altinn.Common.EFormidlingClient
             AssertNotNullOrEmpty(id, nameof(id));
             AssertNotNullOrEmpty(filename, nameof(filename));
             AssertNotNull(stream, nameof(stream));
+
+            filename = HttpUtility.UrlEncode(filename);
 
             var streamContent = new StreamContent(stream);
             streamContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
