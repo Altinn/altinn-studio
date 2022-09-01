@@ -1,6 +1,7 @@
 import type React from 'react';
 
 import { AsciiUnitSeparator } from 'src/utils/attachment';
+import { setMappingForRepeatingGroupComponent } from 'src/utils/formLayout';
 import {
   getOptionLookupKey,
   getRelevantFormDataForOptionSource,
@@ -107,6 +108,10 @@ export const getDisplayFormDataForComponent = (
   repeatingGroups: IRepeatingGroups,
   multiChoice?: boolean,
 ) => {
+  if (!component.dataModelBindings) {
+    return '';
+  }
+
   if (
     component.dataModelBindings?.simpleBinding ||
     component.dataModelBindings?.list
@@ -170,11 +175,11 @@ export const getDisplayFormData = (
       let label: string;
       if (selectionComponent.optionsId) {
         label = options[
-          getOptionLookupKey(
-            selectionComponent.optionsId,
-            selectionComponent.mapping,
-          )
-        ].options?.find(
+          getOptionLookupKey({
+            id: selectionComponent.optionsId,
+            mapping: selectionComponent.mapping,
+          })
+        ]?.options?.find(
           (option: IOption) => option.value === formDataValue,
         )?.label;
       } else if (selectionComponent.options) {
@@ -213,10 +218,10 @@ export const getDisplayFormData = (
         split?.forEach((value: string) => {
           const optionsForComponent = selectionComponent?.optionsId
             ? options[
-                getOptionLookupKey(
-                  selectionComponent.optionsId,
-                  selectionComponent.mapping,
-                )
+                getOptionLookupKey({
+                  id: selectionComponent.optionsId,
+                  mapping: selectionComponent.mapping,
+                })
               ].options
             : selectionComponent.options;
           const textKey =
@@ -243,10 +248,10 @@ export const getDisplayFormData = (
           label +=
             getTextResourceByKey(
               options[
-                getOptionLookupKey(
-                  selectionComponent.optionsId,
-                  selectionComponent.mapping,
-                )
+                getOptionLookupKey({
+                  id: selectionComponent.optionsId,
+                  mapping: selectionComponent.mapping,
+                })
               ]?.options.find((option: IOption) => option.value === value)
                 ?.label,
               textResources,
@@ -327,9 +332,20 @@ export const getFormDataForComponentInRepeatingGroup = (
   );
   const componentId = `${component.id}-${index}`;
 
+  let mapping;
+  if ('mapping' in component) {
+    mapping = setMappingForRepeatingGroupComponent(component.mapping, index);
+  }
+
+  const indexedComponent = {
+    ...component,
+    mapping,
+    id: componentId,
+  };
+
   return getDisplayFormData(
     replaced,
-    component,
+    indexedComponent,
     componentId,
     attachments,
     formData,

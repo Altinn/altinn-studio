@@ -14,6 +14,7 @@ import {
   getDisplayFormDataForComponent,
   getFormDataForComponentInRepeatingGroup,
 } from 'src/utils/formComponentUtils';
+import { setMappingForRepeatingGroupComponent } from 'src/utils/formLayout';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type {
   ILayout,
@@ -228,6 +229,20 @@ function SummaryGroupComponent({
             componentDeepCopy.dataModelBindings[key] = binding;
           });
 
+          if ('mapping' in component) {
+            componentDeepCopy.mapping = setMappingForRepeatingGroupComponent(
+              component.mapping,
+              index,
+            );
+
+            if (parentGroup) {
+              componentDeepCopy.mapping = setMappingForRepeatingGroupComponent(
+                componentDeepCopy.mapping,
+                i,
+              );
+            }
+          }
+
           const formDataForComponent = getDisplayFormDataForComponent(
             formData,
             attachments,
@@ -291,13 +306,6 @@ function SummaryGroupComponent({
         const summaryId = `${component.id}-summary${
           isGroupComponent ? '-group' : ''
         }`;
-        const dataModelBinding: any = {};
-        Object.keys(component.dataModelBindings).forEach((key) => {
-          dataModelBinding[key] = component.dataModelBindings[key].replace(
-            groupComponent.dataModelBindings.group,
-            `${groupComponent.dataModelBindings.group}[${i}]`,
-          );
-        });
         let formDataForComponent: any;
         if (!isGroupComponent) {
           formDataForComponent = getFormDataForComponentInRepeatingGroup(

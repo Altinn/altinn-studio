@@ -41,7 +41,7 @@ export const RepeatingGroupsLikertContainer = ({
   const calculatedOptions = apiOptions || options || [];
   const fetchingOptions = useAppSelector(
     (state) =>
-      state.optionState.options[getOptionLookupKey(optionsId, mapping)]
+      state.optionState.options[getOptionLookupKey({ id: optionsId, mapping })]
         ?.loading,
   );
 

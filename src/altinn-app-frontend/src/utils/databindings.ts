@@ -2,16 +2,17 @@ import { object } from 'dot-object';
 
 import { getParentGroup } from 'src/utils/validation';
 import type { IFormData } from 'src/features/form/data';
-import type {
-  ILayout,
-  ILayoutCompFileUpload,
-  ILayoutGroup,
-} from 'src/features/form/layout';
+import type { ILayout, ILayoutCompFileUpload } from 'src/features/form/layout';
 import type {
   IAttachment,
   IAttachments,
 } from 'src/shared/resources/attachments';
-import type { IDataModelBindings, IMapping, IRepeatingGroup } from 'src/types';
+import type {
+  IDataModelBindings,
+  IMapping,
+  IRepeatingGroup,
+  IRepeatingGroups,
+} from 'src/types';
 
 /**
  * Converts the formdata in store (that is flat) to a JSON
@@ -51,6 +52,9 @@ export interface IData {
   [key: string]: any;
 }
 
+export const INDEX_KEY_INDICATOR_REGEX = /\[{\d+\}]/;
+export const GLOBAL_INDEX_KEY_INDICATOR_REGEX = /\[{\d+\}]/g;
+
 /**
  * Converts JSON to the flat datamodel used in Redux data store
  * @param data The form data as JSON
@@ -60,7 +64,7 @@ export function convertModelToDataBinding(data: any): any {
 }
 
 export function getKeyWithoutIndex(keyWithIndex: string): string {
-  if (keyWithIndex.indexOf('[') === -1) {
+  if (keyWithIndex?.indexOf('[') === -1) {
     return keyWithIndex;
   }
 
@@ -68,6 +72,122 @@ export function getKeyWithoutIndex(keyWithIndex: string): string {
     keyWithIndex.substring(0, keyWithIndex.indexOf('[')) +
       keyWithIndex.substring(keyWithIndex.indexOf(']') + 1),
   );
+}
+
+export function getKeyWithoutIndexIndicators(
+  keyWithIndexIndicators: string,
+): string {
+  return keyWithIndexIndicators.replaceAll(
+    GLOBAL_INDEX_KEY_INDICATOR_REGEX,
+    '',
+  );
+}
+
+export function keyHasIndexIndicators(key: string): boolean {
+  return key.match(GLOBAL_INDEX_KEY_INDICATOR_REGEX)?.length > 0;
+}
+
+/** Replaces index indicators with indexes
+ * @param keyWithIndexIndicators The key with index indicators
+ * @param index The indexes to replace the index indicators with
+ * Example input:
+ *  keyWithIndexIndicators: SomeField.Group[{0}].SubGroup[{1}].Field
+ *  index: [0, 1]
+ * Example output:
+ *  SomeField.Group[0].SubGroup[1].Field
+ */
+export function replaceIndexIndicatorsWithIndexes(
+  key: string,
+  indexes: number[] = [],
+) {
+  return indexes.reduce((acc, index) => {
+    return acc.replace(INDEX_KEY_INDICATOR_REGEX, `[${index}]`);
+  }, key);
+}
+
+/*
+  Gets possible combinations of repeating group or nested groups
+  Example input ["group", "group.subGroup"] (note that sub groups should)
+  For the group setup
+  {
+    group: {
+      index: 2
+    },
+    subGroup-0: {
+      index: 2
+    },
+    subGroup-1: {
+      index: 1
+    }
+  }
+  Would produce the following output: [[0, 0], [0, 1], [0, 2], [1, 0]]
+*/
+export function getIndexCombinations(
+  baseGroupBindings: string[],
+  repeatingGroups: IRepeatingGroups,
+): number[][] {
+  const combinations: number[][] = [];
+
+  if (!baseGroupBindings?.length || !repeatingGroups) {
+    return combinations;
+  }
+
+  const repeatingGroupValues = Object.values(repeatingGroups);
+  const mainGroupMaxIndex = repeatingGroupValues.find(
+    (group) => group.dataModelBinding === baseGroupBindings[0],
+  ).index;
+
+  if (baseGroupBindings.length === 1) {
+    return Array.from(Array(mainGroupMaxIndex + 1).keys()).map((x) => [x]);
+  } else {
+    const subGroupBinding = baseGroupBindings[1];
+    for (
+      let mainGroupIndex = 0;
+      mainGroupIndex <= mainGroupMaxIndex;
+      mainGroupIndex++
+    ) {
+      const subGroupKey = Object.keys(repeatingGroups).filter(
+        (key) =>
+          repeatingGroups[key].dataModelBinding === subGroupBinding &&
+          mainGroupIndex === Number(key.split('-').pop()),
+      )[0];
+      const subGroupMaxIndex = repeatingGroups[subGroupKey]?.index;
+
+      if (subGroupMaxIndex < 0) {
+        combinations.push([mainGroupIndex]);
+        continue;
+      }
+
+      for (
+        let subGroupIndex = 0;
+        subGroupIndex <= subGroupMaxIndex;
+        subGroupIndex++
+      ) {
+        combinations.push([mainGroupIndex, subGroupIndex]);
+      }
+    }
+  }
+
+  return combinations;
+}
+
+/**
+ * Returns base group data bindings
+ * SomeField.Group[{0}].SubGroup[{1}].Field
+ *                  ^             ^
+ * Will return ["SomeField.Group", "SomeField.Group.SubGroup"]
+ */
+export function getBaseGroupDataModelBindingFromKeyWithIndexIndicators(
+  key: string,
+): string[] {
+  const baseGroups: string[] = [];
+  const matches = key.match(GLOBAL_INDEX_KEY_INDICATOR_REGEX);
+  matches?.forEach((match) =>
+    baseGroups.push(
+      getKeyWithoutIndexIndicators(key.substring(0, key.indexOf(match))),
+    ),
+  );
+  return baseGroups;
 }
 
 /**
@@ -114,28 +234,27 @@ export function flattenObject(data: any, index = false): any {
   return toReturn;
 }
 
-function getGroupDataModelBinding(
+export function getGroupDataModelBinding(
   repeatingGroup: IRepeatingGroup,
   groupId: string,
   layout: ILayout,
 ) {
-  const groupElementId = repeatingGroup.baseGroupId || groupId;
-  const groupElement = layout.find((element) => {
-    return element.id === groupElementId;
-  }) as ILayoutGroup;
-  const parentGroup = getParentGroup(groupElement.id, layout);
+  const parentGroup = getParentGroup(
+    repeatingGroup.baseGroupId || groupId,
+    layout,
+  );
   if (parentGroup) {
     const splitId = groupId.split('-');
     const parentIndex = Number.parseInt(splitId[splitId.length - 1], 10);
     const parentDataBinding = parentGroup.dataModelBindings?.group;
     const indexedParentDataBinding = `${parentDataBinding}[${parentIndex}]`;
-    return groupElement.dataModelBindings?.group.replace(
+    return repeatingGroup.dataModelBinding.replace(
       parentDataBinding,
       indexedParentDataBinding,
     );
   }
 
-  return groupElement.dataModelBindings.group;
+  return repeatingGroup.dataModelBinding;
 }
 
 export function removeGroupData(

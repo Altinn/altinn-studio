@@ -33,6 +33,24 @@ describe('setMappingForRepeatingGroupComponent', () => {
     const result = setMappingForRepeatingGroupComponent(mapping, 2);
     expect(result).toEqual(expectedResult);
   });
+
+  it('should replace indexed mapping with correct index for nested groups', () => {
+    const mapping: IMapping = {
+      'some.group[{0}].group[{1}].field1': 'mappedGroupField1',
+      'some.group[{0}].group[{1}].field2': 'mappedGroupField2',
+      'some.regular.field': 'mappedRegularField',
+    };
+    const expectedResult: IMapping = {
+      'some.group[2].group[3].field1': 'mappedGroupField1',
+      'some.group[2].group[3].field2': 'mappedGroupField2',
+      'some.regular.field': 'mappedRegularField',
+    };
+
+    const firstIteration = setMappingForRepeatingGroupComponent(mapping, 2);
+    const result = setMappingForRepeatingGroupComponent(firstIteration, 3);
+
+    expect(result).toEqual(expectedResult);
+  });
 });
 
 const testLayout: ILayout = [
@@ -106,16 +124,19 @@ describe('getRepeatingGroups', () => {
       'Group2-0': {
         index: 0,
         baseGroupId: 'Group2',
+        dataModelBinding: 'Group1.Group2',
         editIndex: -1,
       },
       'Group2-1': {
         index: 4,
         baseGroupId: 'Group2',
+        dataModelBinding: 'Group1.Group2',
         editIndex: -1,
       },
       'Group2-2': {
         index: 1,
         baseGroupId: 'Group2',
+        dataModelBinding: 'Group1.Group2',
         editIndex: -1,
       },
     };
@@ -152,16 +173,19 @@ describe('getRepeatingGroups', () => {
       'Group2-0': {
         index: 0,
         baseGroupId: 'Group2',
+        dataModelBinding: 'Group1.Group2',
         editIndex: -1,
       },
       'Group2-1': {
         index: 10,
         baseGroupId: 'Group2',
+        dataModelBinding: 'Group1.Group2',
         editIndex: -1,
       },
       'Group2-2': {
         index: 1,
         baseGroupId: 'Group2',
+        dataModelBinding: 'Group1.Group2',
         editIndex: -1,
       },
     };
@@ -193,16 +217,19 @@ describe('getRepeatingGroups', () => {
       'Group2-0': {
         index: 0,
         baseGroupId: 'Group2',
+        dataModelBinding: 'Group1.Group2',
         editIndex: -1,
       },
       'Group2-1': {
         index: 4,
         baseGroupId: 'Group2',
+        dataModelBinding: 'Group1.Group2',
         editIndex: -1,
       },
       'Group2-2': {
         index: 1,
         baseGroupId: 'Group2',
+        dataModelBinding: 'Group1.Group2',
         editIndex: -1,
       },
     };

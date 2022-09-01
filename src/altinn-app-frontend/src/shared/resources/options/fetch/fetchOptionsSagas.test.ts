@@ -10,6 +10,8 @@ import {
   formLayoutSelector,
   instanceIdSelector,
   optionsSelector,
+  optionsWithIndexIndicatorsSelector,
+  repeatingGroupsSelector,
 } from 'src/shared/resources/options/fetch/fetchOptionsSagas';
 import type {
   ILayouts,
@@ -50,6 +52,7 @@ describe('fetchOptionsSagas', () => {
           [select(formDataSelector), formData],
           [select(appLanguageStateSelector), userLanguage],
           [select(optionsSelector), optionsWithField],
+          [select(optionsWithIndexIndicatorsSelector), []],
           [select(instanceIdSelector), 'someId'],
         ])
         .fork(fetchSpecificOptionSaga, {
@@ -77,6 +80,7 @@ describe('fetchOptionsSagas', () => {
           [select(formDataSelector), formData],
           [select(appLanguageStateSelector), userLanguage],
           [select(optionsSelector), optionsWithoutField],
+          [select(optionsWithIndexIndicatorsSelector), []],
         ])
         .run();
     });
@@ -132,6 +136,7 @@ describe('fetchOptionsSagas', () => {
       return expectSaga(fetchOptionsSaga)
         .provide([
           [select(formLayoutSelector), formLayoutWithTwoSharedOptionIds],
+          [select(repeatingGroupsSelector), {}],
           [select(instanceIdSelector), 'someId'],
         ])
         .fork(fetchSpecificOptionSaga, {
@@ -192,6 +197,7 @@ describe('fetchOptionsSagas', () => {
             select(formLayoutSelector),
             formLayoutWithSameOptionIdButDifferentMapping,
           ],
+          [select(repeatingGroupsSelector), {}],
           [select(instanceIdSelector), 'someId'],
         ])
         .fork(fetchSpecificOptionSaga, {

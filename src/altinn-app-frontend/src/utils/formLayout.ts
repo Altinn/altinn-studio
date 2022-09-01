@@ -1,3 +1,4 @@
+import { INDEX_KEY_INDICATOR_REGEX } from 'src/utils/databindings';
 import type {
   ComponentTypes,
   IGroupEditProperties,
@@ -153,6 +154,7 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
                   ),
                   baseGroupId: childGroup.id,
                   editIndex: -1,
+                  dataModelBinding: childGroup.dataModelBindings?.group,
                 };
               },
             );
@@ -353,7 +355,7 @@ export function createRepeatingGroupComponentsForIndex({
       (field) => field === `${deepCopyId}[${index}]`,
     );
     let mapping;
-    if (componentDeepCopy.type === 'InstantiationButton') {
+    if ('mapping' in componentDeepCopy) {
       mapping = setMappingForRepeatingGroupComponent(
         componentDeepCopy.mapping,
         index,
@@ -381,11 +383,14 @@ export function setMappingForRepeatingGroupComponent(
       ...mapping,
     };
     const mappingsWithRepeatingGroupSources = Object.keys(mapping).filter(
-      (source) => source.includes('[{0}]'),
+      (source) => source.match(INDEX_KEY_INDICATOR_REGEX),
     );
     mappingsWithRepeatingGroupSources.forEach((sourceMapping) => {
       delete indexedMapping[sourceMapping];
-      const newSource = sourceMapping.replace('[{0}]', `[${index}]`);
+      const newSource = sourceMapping.replace(
+        INDEX_KEY_INDICATOR_REGEX,
+        `[${index}]`,
+      );
       indexedMapping[newSource] = mapping[sourceMapping];
       delete indexedMapping[sourceMapping];
     });

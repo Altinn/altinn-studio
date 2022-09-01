@@ -12,6 +12,7 @@ import {
   selectAttachmentState,
   selectFormData,
   selectFormLayoutState,
+  selectOptions,
   selectUnsavedChanges,
   selectValidations,
   updateCurrentViewSaga,
@@ -21,6 +22,7 @@ import {
 } from 'src/features/form/layout/update/updateFormLayoutSagas';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
+import { OptionsActions } from 'src/shared/resources/options/optionsSlice';
 import type { ILayoutCompFileUpload } from 'src/features/form/layout';
 import type {
   ICalculatePageOrderAndMoveToNextPage,
@@ -73,6 +75,7 @@ describe('updateLayoutSagas', () => {
         'repeating-group': {
           index: 0,
           editIndex: -1,
+          dataModelBinding: 'Group',
         },
       };
       const dataModelBinding: IDataModelBindings = {
@@ -116,6 +119,7 @@ describe('updateLayoutSagas', () => {
           [select(selectFormData), selectFormData(state)],
           [select(selectAttachmentState), selectAttachmentState(state)],
           [select(selectValidations), selectValidations(state)],
+          [select(selectOptions), selectOptions(state)],
           [
             take(AttachmentActions.deleteAttachmentFulfilled),
             AttachmentActions.deleteAttachmentFulfilled({
@@ -135,6 +139,7 @@ describe('updateLayoutSagas', () => {
           }),
         )
         .put(ValidationActions.updateValidations({ validations: {} }))
+        .put(OptionsActions.setOptions({ options: {} }))
         .put(
           FormLayoutActions.updateRepeatingGroupsFulfilled({
             repeatingGroups: {
@@ -142,6 +147,7 @@ describe('updateLayoutSagas', () => {
                 index: -1,
                 editIndex: -1,
                 deletingIndex: undefined,
+                dataModelBinding: 'Group',
               },
             },
           }),

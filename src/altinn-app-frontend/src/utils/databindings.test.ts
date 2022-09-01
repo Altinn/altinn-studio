@@ -1,7 +1,9 @@
 import {
   filterOutInvalidData,
   flattenObject,
+  getBaseGroupDataModelBindingFromKeyWithIndexIndicators,
   getFormDataFromFieldKey,
+  getIndexCombinations,
   getKeyIndex,
   getKeyWithoutIndex,
   mapFormData,
@@ -9,7 +11,7 @@ import {
 } from 'src/utils/databindings';
 import type { IFormData } from 'src/features/form/data';
 import type { ILayout, ILayoutComponent } from 'src/features/form/layout';
-import type { IMapping } from 'src/types';
+import type { IMapping, IRepeatingGroups } from 'src/types';
 
 describe('utils/databindings.ts', () => {
   let testObj: any;
@@ -229,6 +231,7 @@ describe('utils/databindings.ts', () => {
     it('should remove form data with the specified index, for the specified group id', () => {
       const result = removeGroupData(testFormData, 1, testLayout, testGroupId, {
         index: 2,
+        dataModelBinding: 'Group',
       });
       const expected = {
         'Group[0].prop1': 'value-0-1',
@@ -361,6 +364,85 @@ describe('utils/databindings.ts', () => {
           'group[1].field': 'another value',
         });
       });
+    });
+  });
+
+  describe('getBaseGroupDataModelBindingFromKeyWithIndexIndicators', () => {
+    it('should return base group databindings', () => {
+      const result = getBaseGroupDataModelBindingFromKeyWithIndexIndicators(
+        'someBaseProp.someGroup[{0}].someOtherGroup[{1}].someProp',
+      );
+      expect(result).toEqual([
+        'someBaseProp.someGroup',
+        'someBaseProp.someGroup.someOtherGroup',
+      ]);
+    });
+
+    it('should return an empty array if no groups are present', () => {
+      const result =
+        getBaseGroupDataModelBindingFromKeyWithIndexIndicators(
+          'someField.someProp',
+        );
+      expect(result).toEqual([]);
+    });
+  });
+
+  describe('getIndexCombinations', () => {
+    it('should return correct combinations for a repeating group', () => {
+      const repeatingGroups: IRepeatingGroups = {
+        group: {
+          index: 2,
+          dataModelBinding: 'Gruppe',
+          editIndex: -1,
+        },
+      };
+
+      const expected = [[0], [1], [2]];
+      const result = getIndexCombinations(['Gruppe'], repeatingGroups);
+
+      expect(result).toEqual(expected);
+    });
+
+    it('should return correct combinations for nested repeating groups', () => {
+      const repeatingGroups: IRepeatingGroups = {
+        group: {
+          index: 2,
+          dataModelBinding: 'Gruppe',
+          editIndex: -1,
+        },
+        'underGruppe-0': {
+          index: -1,
+          baseGroupId: 'underGruppe',
+          editIndex: -1,
+          dataModelBinding: 'Gruppe.UnderGruppe',
+        },
+        'underGruppe-1': {
+          index: 1,
+          baseGroupId: 'underGruppe',
+          editIndex: -1,
+          dataModelBinding: 'Gruppe.UnderGruppe',
+        },
+        'underGruppe-2': {
+          index: 2,
+          baseGroupId: 'underGruppe',
+          editIndex: -1,
+          dataModelBinding: 'Gruppe.UnderGruppe',
+        },
+      };
+
+      const expected = [[0], [1, 0], [1, 1], [2, 0], [2, 1], [2, 2]];
+      const result = getIndexCombinations(
+        ['Gruppe', 'Gruppe.UnderGruppe'],
+        repeatingGroups,
+      );
+      expect(result).toEqual(expected);
+    });
+
+    it('should return an empty array when no groups exist', () => {
+      const expected = [];
+      const result = getIndexCombinations([], {});
+
+      expect(result).toEqual(expected);
     });
   });
 });

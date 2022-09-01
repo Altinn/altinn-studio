@@ -17,6 +17,7 @@ import { FormDynamicsActions } from 'src/features/form/dynamics/formDynamicsSlic
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
+import { OptionsActions } from 'src/shared/resources/options/optionsSlice';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import { Triggers } from 'src/types';
 import {
@@ -43,7 +44,10 @@ import {
   splitDashedKey,
 } from 'src/utils/formLayout';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
-import { getOptionLookupKey } from 'src/utils/options';
+import {
+  getOptionLookupKey,
+  removeGroupOptionsByIndex,
+} from 'src/utils/options';
 import {
   canFormBeSaved,
   mapDataElementValidationToRedux,
@@ -76,6 +80,7 @@ import type {
 } from 'src/shared/resources/attachments/delete/deleteAttachmentActions';
 import type {
   IFileUploadersWithTag,
+  IOptions,
   IRepeatingGroups,
   IRuntimeState,
   IValidationIssue,
@@ -96,6 +101,8 @@ export const selectValidations = (state: IRuntimeState): IValidations =>
   state.formValidations.validations;
 export const selectUnsavedChanges = (state: IRuntimeState): boolean =>
   state.formData.unsavedChanges;
+export const selectOptions = (state: IRuntimeState): IOptions =>
+  state.optionState.options;
 
 export function* updateRepeatingGroupsSaga({
   payload: { layoutElementId, remove, index, leaveOpen },
@@ -145,6 +152,7 @@ export function* updateRepeatingGroupsSaga({
         updatedRepeatingGroups[groupId] = {
           index: -1,
           baseGroupId: group.id,
+          dataModelBinding: group.dataModelBindings?.group,
           editIndex: -1,
         };
       }
@@ -156,6 +164,7 @@ export function* updateRepeatingGroupsSaga({
       const layout =
         formLayoutState.layouts[formLayoutState.uiConfig.currentView];
       const validations: IValidations = yield select(selectValidations);
+      const options: IOptions = yield select(selectOptions);
       const repeatingGroup =
         formLayoutState.uiConfig.repeatingGroups[layoutElementId];
 
@@ -246,6 +255,16 @@ export function* updateRepeatingGroupsSaga({
             validations: updatedValidations,
           }),
         );
+
+        // Remove options associated with the group
+        const updatedOptions = removeGroupOptionsByIndex({
+          groupId: layoutElementId,
+          index,
+          repeatingGroups: formLayoutState.uiConfig.repeatingGroups,
+          options,
+          layout,
+        });
+        yield put(OptionsActions.setOptions({ options: updatedOptions }));
 
         updatedRepeatingGroups[layoutElementId].deletingIndex =
           updatedRepeatingGroups[layoutElementId].deletingIndex?.filter(
@@ -727,7 +746,10 @@ export function* updateFileUploaderWithTagChosenOptionsSaga({
     ) as ILayoutCompFileUploadWithTag;
     const componentOptions =
       state.optionState.options[
-        getOptionLookupKey(component.optionsId, component.mapping)
+        getOptionLookupKey({
+          id: component.optionsId,
+          mapping: component.mapping,
+        })
       ]?.options;
     if (componentOptions.find((op) => op.value === option.value)) {
       yield put(

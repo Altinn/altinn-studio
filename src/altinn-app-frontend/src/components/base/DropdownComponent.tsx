@@ -26,7 +26,7 @@ function DropdownComponent({
   const options = useGetOptions({ optionsId, mapping, source });
   const fetchingOptions = useAppSelector(
     (state) =>
-      state.optionState.options[getOptionLookupKey(optionsId, mapping)]
+      state.optionState.options[getOptionLookupKey({ id: optionsId, mapping })]
         ?.loading,
   );
   const hasSelectedInitial = React.useRef(false);

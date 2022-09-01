@@ -43,7 +43,9 @@ export const useGetOptions = ({
 
   useEffect(() => {
     if (optionsId) {
-      setOptions(optionState[getOptionLookupKey(optionsId, mapping)]?.options);
+      setOptions(
+        optionState[getOptionLookupKey({ id: optionsId, mapping })]?.options,
+      );
     }
 
     if (!source || !repeatingGroups) {

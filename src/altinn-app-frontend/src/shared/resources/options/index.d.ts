@@ -3,6 +3,7 @@ import type { IOption, IOptions, IOptionsMetaData } from 'src/types';
 export interface IOptionsState {
   error: Error;
   options: IOptions;
+  optionsWithIndexIndicators?: IOptionsMetaData[];
 }
 
 export interface IFetchOptionsFulfilledAction {
@@ -18,4 +19,12 @@ export interface IFetchOptionsRejectedAction {
 export interface IFetchingOptionsAction {
   key: string;
   metaData: IOptionsMetaData;
+}
+
+export interface ISetOptionsWithIndexIndicators {
+  optionsWithIndexIndicators: IOptionsMetaData[];
+}
+
+export interface ISetOptions {
+  options: IOptions;
 }

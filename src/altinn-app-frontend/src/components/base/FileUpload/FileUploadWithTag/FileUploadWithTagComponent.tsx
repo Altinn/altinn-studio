@@ -57,7 +57,7 @@ export function FileUploadWithTagComponent({
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
   const options = useAppSelector(
     (state: IRuntimeState) =>
-      state.optionState.options[getOptionLookupKey(optionsId, mapping)]
+      state.optionState.options[getOptionLookupKey({ id: optionsId, mapping })]
         ?.options,
   );
   const editIndex = useAppSelector(

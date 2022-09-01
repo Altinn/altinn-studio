@@ -62,9 +62,6 @@ const formLayoutSlice = createSagaSlice(
         saga: () => watchFetchFormLayoutSaga,
       }),
       fetchFulfilled: mkAction<LayoutTypes.IFetchLayoutFulfilled>({
-        takeLatest: function* () {
-          yield put(OptionsActions.fetch());
-        },
         reducer: (state, action) => {
           const { layouts, navigationConfig } = action.payload;
           state.layouts = layouts;
@@ -72,6 +69,9 @@ const formLayoutSlice = createSagaSlice(
           state.uiConfig.layoutOrder = Object.keys(layouts);
           state.error = null;
           state.uiConfig.repeatingGroups = {};
+        },
+        takeLatest: function* () {
+          yield put(OptionsActions.fetch());
         },
       }),
       fetchRejected: mkAction<LayoutTypes.IFormLayoutActionRejected>({

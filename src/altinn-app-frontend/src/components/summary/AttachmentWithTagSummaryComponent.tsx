@@ -22,12 +22,13 @@ const useStyles = makeStyles({
   },
 });
 
-export function AttachmentWithTagSummaryComponent(
-  props: IAttachmentWithTagSummaryComponent,
-) {
+export function AttachmentWithTagSummaryComponent({
+  componentRef,
+  component,
+}: IAttachmentWithTagSummaryComponent) {
   const classes = useStyles();
   const attachments: IAttachment[] = useAppSelector(
-    (state) => state.attachments.attachments[props.componentRef],
+    (state) => state.attachments.attachments[componentRef],
   );
   const textResources = useAppSelector(
     (state) => state.textResources.resources,
@@ -35,7 +36,10 @@ export function AttachmentWithTagSummaryComponent(
   const options = useAppSelector(
     (state) =>
       state.optionState.options[
-        getOptionLookupKey(props.component.optionsId, props.component.mapping)
+        getOptionLookupKey({
+          id: component.optionsId,
+          mapping: component.mapping,
+        })
       ]?.options,
   );
 

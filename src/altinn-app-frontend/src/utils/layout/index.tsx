@@ -4,6 +4,7 @@ import { GenericComponent } from 'src/components/GenericComponent';
 import { GroupContainer } from 'src/features/form/containers/GroupContainer';
 import { PanelGroupContainer } from 'src/features/form/containers/PanelGroupContainer';
 import { LayoutStyle } from 'src/types';
+import { setMappingForRepeatingGroupComponent } from 'src/utils/formLayout';
 import type {
   ILayout,
   ILayoutComponent,
@@ -160,6 +161,14 @@ export function setupGroupComponents(
         groupDataModelBinding,
       );
     });
+
+    let mapping;
+    if ('mapping' in componentDeepCopy) {
+      mapping = setMappingForRepeatingGroupComponent(
+        componentDeepCopy.mapping,
+        index,
+      );
+    }
     const deepCopyId = `${componentDeepCopy.id}-${index}`;
 
     return {
@@ -167,6 +176,7 @@ export function setupGroupComponents(
       dataModelBindings,
       id: deepCopyId,
       baseComponentId: componentDeepCopy.id,
+      mapping,
     };
   });
 }
