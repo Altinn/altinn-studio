@@ -1,5 +1,4 @@
 import React from 'react';
-import type { ComponentType } from 'react';
 import { render as rtlRender } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import type { RenderOptions } from '@testing-library/react';
@@ -32,7 +31,7 @@ export const renderWithProviders = (
   return {
     store,
     ...rtlRender(component, {
-      wrapper: Wrapper as ComponentType,
+      wrapper: Wrapper,
       ...renderOptions,
     }),
   };

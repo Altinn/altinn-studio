@@ -166,7 +166,7 @@ exports[`AppBar Snapshot should match snapshot 1`] = `
         >
           <a
             class="makeStyles-subHeaderLink-9"
-            href="/about"
+            href="/"
           >
             Om
           </a>
@@ -176,7 +176,7 @@ exports[`AppBar Snapshot should match snapshot 1`] = `
         >
           <a
             class="makeStyles-subHeaderLink-9 makeStyles-subHeaderLinkActive-10"
-            href="/edit"
+            href="/ui-editor"
           >
             Lage
           </a>
@@ -688,7 +688,7 @@ exports[`AppBar Snapshot should match snapshot with subHeader and Publisere sele
         >
           <a
             class="makeStyles-subHeaderLink-34"
-            href="/about"
+            href="/"
           >
             Om
           </a>
@@ -698,7 +698,7 @@ exports[`AppBar Snapshot should match snapshot with subHeader and Publisere sele
         >
           <a
             class="makeStyles-subHeaderLink-34"
-            href="/edit"
+            href="/ui-editor"
           >
             Lage
           </a>

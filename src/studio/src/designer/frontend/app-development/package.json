@@ -29,6 +29,7 @@
     "react-router-dom": "6.3.0",
     "react-select": "5.4.0",
     "react-truncate-markup": "5.1.2",
+    "react-use": "17.4.0",
     "redux": "4.2.0",
     "redux-saga": "1.2.1",
     "reselect": "4.1.6",
@@ -76,10 +77,10 @@
   "jest": {
     "transform": {
       "\\.(ts|tsx)": "ts-jest",
-      "node_modules/(react-dnd|dnd-core|@react-dnd|react-dnd-html5-backend)/.+\\.(j|t)sx?$": "ts-jest"
+      "node_modules(\\\\|/)(react-dnd|dnd-core|@react-dnd|react-dnd-html5-backend)(\\\\|/).+\\.(j|t)sx?$": "ts-jest"
     },
     "transformIgnorePatterns": [
-      "node_modules/(?!react-dnd|dnd-core|@react-dnd|react-dnd-html5-backend)"
+      "node_modules(\\\\|/)(?!react-dnd|dnd-core|@react-dnd|react-dnd-html5-backend)"
     ],
     "reporters": [
       "default",

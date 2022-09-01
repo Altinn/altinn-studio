@@ -1,9 +1,10 @@
 import React from 'react';
-import { render } from 'react-dom';
-import { Provider } from 'react-redux';
+import {render} from 'react-dom';
+import {Provider} from 'react-redux';
 import App from './App';
-import { run } from './sagas';
-import { setupStore } from './store';
+import {run} from './sagas';
+import {setupStore} from './store';
+import {HashRouter as Router} from 'react-router-dom';
 
 const store = setupStore();
 
@@ -14,7 +15,9 @@ run();
 
 render(
   <Provider store={store}>
-    <App />
+    <Router>
+      <App/>
+    </Router>
   </Provider>,
   document.getElementById('root'),
 );
