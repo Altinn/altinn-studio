@@ -2,28 +2,38 @@ import React from 'react';
 import { StyledComponentProps } from '@material-ui/core';
 import { getLanguageFromKey } from '../utils/language';
 import { TopToolbarButton } from '../../packages/schema-editor/src/components/TopToolbarButton';
-import { AltinnButton } from "app-shared/components/index";
 
 export interface IFileSelectorProps extends StyledComponentProps {
   language: any;
   submitHandler: (file: FormData, fileName: string) => void;
   busy: boolean;
-  labelTextResource: string;
   formFileName: string;
   accept?: string;
-  isInTopToolbar?: boolean;
+  submitButtonRenderer?: ((fileInputClickHandler: (event: any) => void) => JSX.Element);
 }
 
 function FileSelector(props: IFileSelectorProps) {
   const {
     language,
-    labelTextResource,
     accept,
     formFileName,
     busy,
     submitHandler,
-    isInTopToolbar
+    submitButtonRenderer
   } = props;
+
+  const defaultSubmitButtonRenderer = (fileInputClickHandler: (event: any) => void) => (
+    <TopToolbarButton
+      data-testid='upload-button'
+      faIcon='fa fa-upload'
+      iconSize={38}
+      hideText={true}
+      onClick={fileInputClickHandler}
+    >
+      {getLanguageFromKey('app_data_modelling.upload_xsd', language)}
+    </TopToolbarButton>
+  );
+
   const fileInput = React.useRef<HTMLInputElement>(null);
 
   const handleSubmit = (event?: React.FormEvent<HTMLFormElement>) => {
@@ -55,22 +65,7 @@ function FileSelector(props: IFileSelectorProps) {
         disabled={busy}
         tabIndex={-1}
       />
-      {isInTopToolbar ? (
-        <TopToolbarButton
-          data-testid='upload-button'
-          faIcon='fa fa-upload'
-          iconSize={38}
-          hideText={true}
-          onClick={() => fileInput?.current?.click()}
-        >
-          {getLanguageFromKey(labelTextResource, language)}
-        </TopToolbarButton>
-      ) : (
-        <AltinnButton
-          onClickFunction={() => fileInput?.current?.click()}
-          btnText={getLanguageFromKey(labelTextResource, language)}
-        />
-      )}
+      {(submitButtonRenderer ?? defaultSubmitButtonRenderer)(() => fileInput?.current?.click())}
     </form>
   );
 }

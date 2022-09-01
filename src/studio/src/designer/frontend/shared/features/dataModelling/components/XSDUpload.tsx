@@ -9,11 +9,16 @@ export interface IXSDUploadProps {
   onXSDUploaded: (filename: string) => void;
   org: string;
   repo: string;
-  isInTopToolbar?: boolean;
-  labelTextResource: string;
+  submitButtonRenderer?: ((fileInputClickHandler: (event: any) => void) => JSX.Element);
 }
 
-const XSDUpload = ({ language, onXSDUploaded, org, repo, isInTopToolbar, labelTextResource }: IXSDUploadProps) => {
+const XSDUpload = ({
+  language,
+  onXSDUploaded,
+  org,
+  repo,
+  submitButtonRenderer
+}: IXSDUploadProps) => {
   const [uploading, setUploading] = React.useState(false);
   const [errorText, setErrorText] = React.useState(null);
 
@@ -63,9 +68,8 @@ const XSDUpload = ({ language, onXSDUploaded, org, repo, isInTopToolbar, labelTe
             language={language}
             submitHandler={handleUpload}
             accept='.xsd'
-            labelTextResource={labelTextResource}
             formFileName='file'
-            isInTopToolbar={isInTopToolbar}
+            submitButtonRenderer={submitButtonRenderer}
           />
         )}
       </span>

@@ -20,7 +20,6 @@ import { getLanguageFromKey } from "app-shared/utils/language";
 
 const useStyles = makeStyles({
   landingDialog: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
     backgroundColor: 'rgba(255, 255, 255, 0.5)',
     '& [role="dialog"]': {
       backgroundColor: '#E3F7FF',
@@ -75,9 +74,9 @@ type shouldSelectFirstEntryProps = {
 };
 
 enum LandingDialogState {
-  HAS_NOT_YET_BEEN_SHOWN, // Datamodels are not yet loaded
-  IS_VISIBLE, // Dialog should be visible
-  IS_NOT_GOING_TO_BE_SHOWN // Dialog should never (again) be visible
+  DatamodelsNotLoaded = 'DATAMODELS_NOT_LOADED',
+  DialogIsVisible = 'DIALOG_IS_VISIBLE',
+  DialogShouldNotBeShown = 'DIALOG_SHOULD_NOT_BE_SHOWN',
 }
 
 export const shouldSelectFirstEntry = ({
@@ -151,17 +150,17 @@ function DataModelling({
   }, [selectedOption, dispatch]);
 
   const [landingDialogState, setLandingDialogState] =
-    React.useState<LandingDialogState>(LandingDialogState.HAS_NOT_YET_BEEN_SHOWN);
+    React.useState<LandingDialogState>(LandingDialogState.DatamodelsNotLoaded);
 
-  const closeLandingpage = () => setLandingDialogState(LandingDialogState.IS_NOT_GOING_TO_BE_SHOWN);
+  const closeLandingpage = () => setLandingDialogState(LandingDialogState.DialogShouldNotBeShown);
 
   React.useEffect(
     () => {
       if (metadataLoadingState === LoadingState.ModelsLoaded) {
         if (jsonSchema && Object.keys(jsonSchema).length) {
-          setLandingDialogState(LandingDialogState.IS_NOT_GOING_TO_BE_SHOWN);
-        } else if (landingDialogState === LandingDialogState.HAS_NOT_YET_BEEN_SHOWN) {
-          setLandingDialogState(LandingDialogState.IS_VISIBLE);
+          setLandingDialogState(LandingDialogState.DialogShouldNotBeShown);
+        } else if (landingDialogState === LandingDialogState.DatamodelsNotLoaded) {
+          setLandingDialogState(LandingDialogState.DialogIsVisible);
         }
       }
     },
@@ -195,7 +194,7 @@ function DataModelling({
 
   return (
     <>
-      {landingDialogState === LandingDialogState.IS_VISIBLE && (
+      {landingDialogState === LandingDialogState.DialogIsVisible && (
         <Dialog
           open={true}
           className={classes.landingDialog}
@@ -212,7 +211,12 @@ function DataModelling({
               }}
               org={org}
               repo={repo}
-              labelTextResource='app_data_modelling.landing_dialog_upload'
+              submitButtonRenderer={(fileInputClickHandler) => (
+                <AltinnButton
+                  onClickFunction={fileInputClickHandler}
+                  btnText={getLanguageFromKey('app_data_modelling.landing_dialog_upload', language)}
+                />
+              )}
             />
             <AltinnButton
               btnText={getLanguageFromKey('app_data_modelling.landing_dialog_create', language)}
@@ -234,8 +238,6 @@ function DataModelling({
           onXSDUploaded={handleXSDUploaded}
           org={org}
           repo={repo}
-          isInTopToolbar
-          labelTextResource='app_data_modelling.upload_xsd'
         />
         <Create
           language={language}

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import React from 'react';
 import FileSelector from './FileSelector';
 import type { IFileSelectorProps } from './FileSelector';
+import {Button} from "@material-ui/core";
 
 const user = userEvent.setup();
 
@@ -33,26 +34,26 @@ describe('FileSelector', () => {
 
   it('Should show text on the button by default', async () => {
     render();
-    expect(screen.getByText('Upload button text')).toBeInTheDocument();
+    expect(screen.getByLabelText('Upload button text')).toBeInTheDocument();
   });
 
-  it('Should not show text on the button when it is part of the top toolbar', async () => {
-    render({ isInTopToolbar: true });
-    expect(screen.queryByText('Upload button text')).not.toBeInTheDocument();
+  it('Should show custom button', async () => {
+    render({ submitButtonRenderer: testCustomButtonRenderer });
+    expect(screen.getByText('Lorem ipsum')).toBeInTheDocument();
   });
 
   it('Should call file input onClick handler when the default upload button is clicked', async () => {
     render();
-    const button = screen.getByText('Upload button text');
+    const button = screen.getByLabelText('Upload button text');
     const fileInput = screen.getByTestId('FileSelector-input');
     fileInput.onclick = jest.fn();
     await user.click(button);
     expect(fileInput.onclick).toHaveBeenCalled();
   });
 
-  it('Should call file input onClick handler when the top toolbar upload button is clicked', async () => {
-    render({ isInTopToolbar: true });
-    const button = screen.getByLabelText('Upload button text');
+  it('Should call file input onClick handler when the custom upload button is clicked', async () => {
+    render({ submitButtonRenderer: testCustomButtonRenderer });
+    const button = screen.getByText('Lorem ipsum');
     const fileInput = screen.getByTestId('FileSelector-input');
     fileInput.onclick = jest.fn();
     await user.click(button);
@@ -65,10 +66,13 @@ const render = (props: Partial<IFileSelectorProps> = {}) => {
     language: {
       general: { label: 'download' },
       shared: { submit_upload: 'upload' },
+      app_data_modelling: { upload_xsd: 'Upload button text' }
     },
-    labelTextResource: "Upload button text",
     ...props,
   } as IFileSelectorProps;
 
   rtlRender(<FileSelector {...allProps} />);
 };
+
+const testCustomButtonRenderer =
+  (onClick: React.MouseEventHandler<HTMLButtonElement>) => <Button onClick={onClick}>Lorem ipsum</Button>;
