@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { BaseSyntheticEvent, useEffect, useState } from 'react';
 import {
   Grid,
   IconButton,
@@ -8,9 +8,9 @@ import {
 } from '@material-ui/core';
 import { DeleteOutline } from '@material-ui/icons';
 import { Autocomplete } from '@material-ui/lab';
-import { getTranslation } from '../utils/language';
-import { getDomFriendlyID, getRestrictions } from '../utils/schema';
-import type { ILanguage } from '../types';
+import { getTranslation } from '../../utils/language';
+import { getDomFriendlyID, getRestrictions } from '../../utils/schema';
+import type { ILanguage } from '../../types';
 
 export interface IRestrictionFieldProps {
   type?: string;
@@ -23,7 +23,7 @@ export interface IRestrictionFieldProps {
   onChangeKey: (id: string, oldKey: string, newKey: string) => void;
   onChangeValue: (id: string, key: string, value: string) => void;
   onDeleteField?: (path: string, key: string) => void;
-  onReturn?: (e: React.BaseSyntheticEvent) => void;
+  onReturn?: (e: BaseSyntheticEvent) => void;
 }
 
 const useStyles = makeStyles({
@@ -48,8 +48,8 @@ const useStyles = makeStyles({
 
 export const RestrictionField = (props: IRestrictionFieldProps) => {
   const classes = useStyles();
-  const [keyName, setKeyName] = React.useState(props.keyName);
-  React.useEffect(() => {
+  const [keyName, setKeyName] = useState(props.keyName);
+  useEffect(() => {
     setKeyName(props.keyName);
   }, [props.keyName]);
 

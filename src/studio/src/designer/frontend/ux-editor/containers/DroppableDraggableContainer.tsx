@@ -1,4 +1,4 @@
-import React, { FC, memo, ReactNode, RefObject, useRef } from 'react';
+import React, { memo, ReactNode, RefObject, useRef } from 'react';
 import {
   DropTargetHookSpec,
   DropTargetMonitor,
@@ -19,7 +19,7 @@ const dropTargetSpec = (
   events: EditorDndEvents,
   ref: RefObject<HTMLDivElement>,
 ): DropTargetHookSpec<any, any, any> => ({
-  accept: Object.keys(ItemType),
+  accept: Object.values(ItemType),
   collect(monitor: DropTargetMonitor) {
     return {
       isOver: monitor.isOver(),
@@ -96,8 +96,8 @@ export interface IDroppableDraggableContainerProps {
   parentContainerId?: string;
 }
 
-export const DroppableDraggableContainer: FC<IDroppableDraggableContainerProps> =
-  memo(function DroppableDraggableContainer({
+export const DroppableDraggableContainer = memo(
+  function DroppableDraggableContainer({
     canDrag,
     children,
     dndEvents,
@@ -140,4 +140,5 @@ export const DroppableDraggableContainer: FC<IDroppableDraggableContainerProps> 
         {children}
       </div>
     );
-  });
+  },
+);
