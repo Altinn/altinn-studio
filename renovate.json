@@ -7,7 +7,7 @@
         "dockerfile",
         "npm",
         "github-actions",
-        "dotnet",
+        "nuget",
         "maven"
       ],
       "groupName": "{{manager}} non-major dependencies",
