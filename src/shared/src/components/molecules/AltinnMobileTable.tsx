@@ -1,22 +1,27 @@
 import { Grid, makeStyles } from '@material-ui/core';
 import React from 'react';
 import theme from '../../theme/altinnStudioTheme';
+import cn from 'classnames';
 
 export interface IAltinnMobileTableProps {
   children: React.ReactNode;
   id: string;
+  showBorder?: boolean;
 }
 
 const useStyles = makeStyles({
   mobileContainer: {
-    borderTop: `2px solid ${theme.altinnPalette.primary.blueMedium}`,
     marginBottom: '1.2rem',
+  },
+  border: {
+    borderTop: `2px solid ${theme.altinnPalette.primary.blueMedium}`,
   },
 });
 
 export default function AltinnMobileTable({
   children,
   id,
+  showBorder = true,
 }: IAltinnMobileTableProps) {
   const classes = useStyles();
 
@@ -25,7 +30,9 @@ export default function AltinnMobileTable({
       container={true}
       item={true}
       direction='column'
-      className={classes.mobileContainer}
+      className={cn(classes.mobileContainer, {
+        [classes.border]: showBorder,
+      })}
       id={id}
       data-testid='altinn-mobile-table'
     >

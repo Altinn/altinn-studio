@@ -412,7 +412,10 @@ export function RepeatingGroupTable({
         </AltinnTable>
       )}
       {mobileView && (
-        <AltinnMobileTable id={`group-${id}-table`}>
+        <AltinnMobileTable
+          id={`group-${id}-table`}
+          showBorder={showTableHeader}
+        >
           {repeatingGroupIndex >= 0 &&
             [...Array(repeatingGroupIndex + 1)].map(
               (_x: any, index: number) => {
