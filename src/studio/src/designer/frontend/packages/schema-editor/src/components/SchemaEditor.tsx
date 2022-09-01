@@ -136,13 +136,9 @@ export const SchemaEditor = (props: IEditorProps) => {
   );
 
   const schemaSettings = getSchemaSettings({schemaUrl: jsonSchema?.$schema});
-  const definitions = useSelector((state: ISchemaState) =>
-    state.uiSchema.filter((d: UiSchemaItem) =>
-      d.path.startsWith(`${schemaSettings.definitionsPath}/`),
-    ),
-  );
-  const modelView = useSelector((state: ISchemaState) =>
-    state.uiSchema.filter((d: UiSchemaItem) => {
+  const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
+  const definitions = uiSchema.filter((d: UiSchemaItem) => d.path.startsWith(`${schemaSettings.definitionsPath}/`));
+  const modelView = uiSchema.filter((d: UiSchemaItem) => {
       if (schemaSettings.rootNodePath !== '#/oneOf') {
         return d.path.startsWith(schemaSettings.rootNodePath);
       }
@@ -151,8 +147,9 @@ export const SchemaEditor = (props: IEditorProps) => {
         return modelsArray.find(m => m.$ref === d.path);
       }
       return false;
-    }),
+    }
   );
+
   const selectedTab: string = useSelector(
     (state: ISchemaState) => state.selectedEditorTab,
   );
@@ -275,8 +272,6 @@ export const SchemaEditor = (props: IEditorProps) => {
     }
     return null;
   });
-
-  const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
 
   const checkIsNameInUse = (name: string) =>
     isNameInUse({
