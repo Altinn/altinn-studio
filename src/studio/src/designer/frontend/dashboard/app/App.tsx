@@ -5,7 +5,7 @@ import {
   StylesProvider,
 } from '@material-ui/core/styles';
 
-import {HashRouter as Router, Route, Routes} from 'react-router-dom';
+import { Route, Routes} from 'react-router-dom';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import { AltinnButton } from 'app-shared/components';
 import { post } from 'app-shared/utils/networking';
@@ -114,7 +114,6 @@ export const App = () => {
               <HeaderContext.Provider value={headerContextValue}>
                 <Header language={language} />
               </HeaderContext.Provider>
-              <Router>
                 <Routes>
                   <Route path='/' element={<>
                     <CenterContainer>
@@ -125,7 +124,6 @@ export const App = () => {
                   <Route path='/datamodelling/:org/:repoName' element={<StandaloneDataModelling language={language} />} />
                   <Route path='/new' element={<CreateService />} />
                 </Routes>
-              </Router>
             </Root>
           ) : (
             <CenterContainer>

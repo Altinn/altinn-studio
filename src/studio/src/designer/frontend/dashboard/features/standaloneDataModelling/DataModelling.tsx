@@ -25,7 +25,7 @@ const DataModellingContainer = ({
   const dispatch = useAppDispatch();
   dispatch(DataModelsMetadataActions.getDataModelsMetadata());
 
-  const { org, repoName } = useParams(); // check if this works after upgrade to router 6
+  const { org, repoName } = useParams();
   if( org && repoName) {
     return (
       <Grid item className={classes.containerGrid}>
