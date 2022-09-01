@@ -21,6 +21,7 @@
     "axios": "0.27.2",
     "classnames": "2.3.1",
     "core-js": "3.25.0",
+    "history": "^5.3.0",
     "moment": "2.29.4",
     "react": "17.0.2",
     "react-dom": "17.0.2",
