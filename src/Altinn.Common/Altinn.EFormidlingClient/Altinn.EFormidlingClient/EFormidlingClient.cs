@@ -234,14 +234,14 @@ namespace Altinn.Common.EFormidlingClient
             AssertNotNullOrEmpty(filename, nameof(filename));
             AssertNotNull(stream, nameof(stream));
 
-            filename = HttpUtility.UrlEncode(filename);
-
             var streamContent = new StreamContent(stream);
             streamContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
             {
                 Name = "attachment",
-                FileName = filename
+                FileName = filename,
+                FileNameStar = filename,
             };
+
             streamContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
 
             HttpResponseMessage response = await _client.PutAsync($"messages/out/{id}?title={filename}", streamContent, requestHeaders);
