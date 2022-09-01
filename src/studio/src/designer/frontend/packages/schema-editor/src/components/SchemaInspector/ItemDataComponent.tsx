@@ -39,7 +39,7 @@ import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { CombinationSelect } from './CombinationSelect';
 import { getObjectKind } from '../../utils/ui-schema-utils';
 import { Label } from './Label';
-import { getCombinationOptions, getTypeOptions } from './helpers/helpers';
+import { getCombinationOptions, getTypeOptions } from './helpers/options';
 
 export interface IItemDataComponentProps {
   selectedItem: UiSchemaItem | null;
@@ -265,7 +265,7 @@ export function ItemDataComponent({
       );
     }
   };
-  const __ = (key: string) => getTranslation(key, language);
+  const t = (key: string) => getTranslation(key, language);
   const inputProps = {
     disableUnderline: true,
     classes: { root: classes.fieldText },
@@ -274,14 +274,14 @@ export function ItemDataComponent({
     <div>
       {!selectedItem?.combinationItem && (
         <>
-          <p className={classes.name}>{__('name')}</p>
+          <p className={classes.name}>{t('name')}</p>
           <TextField
             InputProps={inputProps}
             aria-describedby='Selected Item Name'
             className={classes.field}
             error={!!nameError}
             fullWidth={true}
-            helperText={__(nameError)}
+            helperText={t(nameError)}
             id='selectedItemName'
             inputRef={nameFieldRef}
             onBlur={handleChangeNodeName}
@@ -293,23 +293,23 @@ export function ItemDataComponent({
       )}
       {selectedItem && objectKind === ObjectKind.Field && (
         <>
-          <Label>{__('type')}</Label>
+          <Label>{t('type')}</Label>
           <TypeSelect
             value={selectedItem.type === 'array' ? arrayType : fieldType}
             id={`${getDomFriendlyID(selectedItem.path)}-type-select`}
             onChange={
               selectedItem.type === 'array' ? onChangeArrayType : onChangeType
             }
-            label={__('type')}
-            options={getTypeOptions(__)}
+            label={t('type')}
+            options={getTypeOptions(t)}
           />
         </>
       )}
       <ReferenceSelectionComponent
         arrayType={arrayType}
-        buttonText={__('go_to_type')}
+        buttonText={t('go_to_type')}
         classes={classes}
-        label={__('reference_to')}
+        label={t('reference_to')}
         objectKind={objectKind}
         onChangeArrayType={onChangeArrayType}
         onChangeRef={onChangeRef}
@@ -328,17 +328,17 @@ export function ItemDataComponent({
               name='checkedMultipleAnswers'
             />
           }
-          label={__('multiple_answers')}
+          label={t('multiple_answers')}
         />
       )}
       {objectKind === ObjectKind.Combination && (
         <>
-          <Label>{__('type')}</Label>
+          <Label>{t('type')}</Label>
           <CombinationSelect
             id={`${getDomFriendlyID(selectedItem?.path || '')}-combi-sel`}
-            label={__('type')}
+            label={t('type')}
             onChange={onChangeCombinationType}
-            options={getCombinationOptions(__)}
+            options={getCombinationOptions(t)}
             value={selectedItem?.combinationKind}
           />
         </>
@@ -355,11 +355,11 @@ export function ItemDataComponent({
               name='checkedNullable'
             />
           }
-          label={__('nullable')}
+          label={t('nullable')}
         />
       )}
       <Divider />
-      <Label>{__('descriptive_fields')}</Label>
+      <Label>{t('descriptive_fields')}</Label>
       <TextField
         InputProps={inputProps}
         className={classes.field}
@@ -370,7 +370,7 @@ export function ItemDataComponent({
         onChange={(e) => setItemTitle(e.target.value)}
         value={title}
       />
-      <Label>{__('description')}</Label>
+      <Label>{t('description')}</Label>
       <TextField
         InputProps={inputProps}
         className={classes.field}
