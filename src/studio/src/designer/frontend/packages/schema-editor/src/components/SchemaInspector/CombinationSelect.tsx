@@ -2,7 +2,7 @@ import React from 'react';
 import { MenuItem } from '@material-ui/core';
 import type { CombinationKind } from '../../types';
 import { StyledSelect } from './StyledSelect';
-import { Option } from './helpers/helpers';
+import { Option } from './helpers/options';
 
 export interface ICombinationSelectProps {
   value?: string;
