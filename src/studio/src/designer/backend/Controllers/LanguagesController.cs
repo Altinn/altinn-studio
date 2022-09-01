@@ -46,8 +46,6 @@ namespace Altinn.Studio.Designer.Controllers
 
             List<string> languages = new List<string>(_languagesService.GetLanguages(org, repo, developer));
 
-            languages.Sort();
-            
             return Ok(languages);
         }
     }

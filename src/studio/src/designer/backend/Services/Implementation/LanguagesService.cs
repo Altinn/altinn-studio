@@ -27,7 +27,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-            IList<string> languages = new List<string>();
+            List<string> languages = new List<string>();
 
             IList<string> languageFiles = altinnGitRepository.GetLanguageFiles();
 
@@ -37,6 +37,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 string[] nameParts = fileName.Split('.');
                 languages.Add(nameParts[1]);
             }
+
+            languages.Sort();
 
             return languages;
         }
