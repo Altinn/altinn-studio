@@ -77,10 +77,10 @@
   "jest": {
     "transform": {
       ".(ts|tsx)": "ts-jest",
-      "node_modules/(react-dnd|dnd-core|@react-dnd|react-dnd-html5-backend)/.+\\.(j|t)sx?$": "ts-jest"
+      "node_modules(\\\\|/)(react-dnd|dnd-core|@react-dnd|react-dnd-html5-backend)(\\\\|/).+\\.(j|t)sx?$": "ts-jest"
     },
     "transformIgnorePatterns": [
-      "node_modules/(?!react-dnd|dnd-core|@react-dnd|react-dnd-html5-backend)"
+      "node_modules(\\\\|/)(?!react-dnd|dnd-core|@react-dnd|react-dnd-html5-backend)"
     ],
     "reporters": [
       "default",
