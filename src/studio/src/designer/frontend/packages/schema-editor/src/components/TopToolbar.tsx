@@ -19,9 +19,10 @@ const useStyles = makeStyles({
 interface TopToolbarProps {
   Toolbar: JSX.Element;
   saveAction?: (payload: any) => void;
+  toggleEditMode?: (e: any) => void;
   language: ILanguage;
 }
-export function TopToolbar({ Toolbar, saveAction, language }: TopToolbarProps) {
+export function TopToolbar({ Toolbar, saveAction, toggleEditMode, language }: TopToolbarProps) {
   const classes = useStyles();
   return (
     <section className={classes.toolbar} role={'toolbar'}>
@@ -33,6 +34,12 @@ export function TopToolbar({ Toolbar, saveAction, language }: TopToolbarProps) {
         iconSize={24}
       >
         {getTranslation('save_data_model', language)}
+      </TopToolbarButton>
+      <TopToolbarButton
+        onClick={toggleEditMode || (() => undefined)}
+        faIcon='fa fa-edit'
+      >
+        Toggle edit mode
       </TopToolbarButton>
     </section>
   );

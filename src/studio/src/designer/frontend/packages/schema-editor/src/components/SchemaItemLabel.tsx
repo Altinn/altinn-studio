@@ -10,6 +10,7 @@ export interface SchemaItemLabelProps {
   label: string;
   language: ILanguage;
   limitedItem?: boolean;
+  editMode: boolean;
   onAddProperty?: (type: ObjectKind) => void;
   onAddReference?: (type: ObjectKind) => void;
   onAddCombination?: (type: ObjectKind) => void;
@@ -122,6 +123,7 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
             onClick={(event) => handleAddNode(event, ObjectKind.Reference)}
             text={getTranslation('add_reference', props.language)}
             iconClass='fa fa-datamodel-ref'
+            disabled={!props.editMode}
           />
         )}
         {props.onAddProperty && !props.limitedItem && (
@@ -131,6 +133,7 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
             onClick={(event) => handleAddNode(event, ObjectKind.Field)}
             text={getTranslation('add_field', props.language)}
             iconClass='fa fa-datamodel-properties'
+            disabled={!props.editMode}
           />
         )}
         {props.onAddCombination && !props.limitedItem && (
@@ -140,6 +143,7 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
             onClick={(event) => handleAddNode(event, ObjectKind.Combination)}
             text={getTranslation('add_combination', props.language)}
             iconClass='fa fa-group'
+            disabled={!props.editMode}
           />
         )}
         {props.onPromote && !props.limitedItem && (
@@ -149,6 +153,7 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
             onClick={handlePromoteClick}
             text={getTranslation('promote', props.language)}
             iconClass='fa fa-arrowup'
+            disabled={!props.editMode}
           />
         )}
         {props.onGoToType && (
@@ -168,6 +173,7 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
             onClick={handleDeleteClick}
             text={getTranslation('delete', props.language)}
             iconClass='fa fa-trash'
+            disabled={!props.editMode}
           />,
         ]}
       </AltinnMenu>

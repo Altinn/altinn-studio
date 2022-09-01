@@ -21,6 +21,7 @@ type SchemaItemProps = TreeItemProps & {
   keyPrefix: string;
   language: ILanguage;
   isPropertiesView?: boolean;
+  editMode: boolean;
 };
 
 SchemaItem.defaultProps = {
@@ -109,7 +110,7 @@ const getRefItem = (schema: any[], path: string | undefined): UiSchemaItem => {
 
 export function SchemaItem(props: SchemaItemProps) {
   const dispatch = useDispatch();
-  const { item, keyPrefix, isPropertiesView, ...other } = props;
+  const { item, keyPrefix, isPropertiesView, editMode, ...other } = props;
   const classes = useStyles(
     item.$ref !== undefined || item.items?.$ref !== undefined,
   )();
@@ -140,13 +141,14 @@ export function SchemaItem(props: SchemaItemProps) {
     return itemProperties.map((property: UiSchemaItem) => {
       return (
         <SchemaItem
-          keyPrefix={`${keyPrefix}-properties`}
-          key={`${keyPrefix}-${property.path}`}
+          editMode={editMode}
+          isPropertiesView={isPropertiesView}
           item={property}
+          key={`${keyPrefix}-${property.path}`}
+          keyPrefix={`${keyPrefix}-properties`}
+          language={props.language}
           nodeId={`${getDomFriendlyID(property.path)}`}
           onLabelClick={(e) => onItemClick(e, property)}
-          language={props.language}
-          isPropertiesView={isPropertiesView}
         />
       );
     })};
@@ -224,13 +226,14 @@ export function SchemaItem(props: SchemaItemProps) {
     if (itemToDisplay.$ref && refItem) {
       items.push(
         <SchemaItem
+          editMode={editMode}
+          isPropertiesView={isPropertiesView}
+          item={refItem}
           keyPrefix={`${keyPrefix}-${refItem.path}`}
           key={`${keyPrefix}-${refItem.path}`}
-          onLabelClick={(e) => onItemClick(e, refItem)}
-          item={refItem}
-          nodeId={getDomFriendlyID(refItem.path)}
           language={props.language}
-          isPropertiesView={isPropertiesView}
+          nodeId={getDomFriendlyID(refItem.path)}
+          onLabelClick={(e) => onItemClick(e, refItem)}
         />,
       );
     }
@@ -247,12 +250,18 @@ export function SchemaItem(props: SchemaItemProps) {
       classes={{ root: classes.treeItem }}
       label={
         <SchemaItemLabel
-          language={props.language}
+          editMode={editMode}
           icon={getIconStr()}
+          key={`${item.path}-label`}
           label={
             refItem
               ? `${item.displayName} : ${refItem.displayName}`
               : item.displayName
+          }
+          language={props.language}
+          limitedItem={item.combinationItem}
+          onAddCombination={
+            item.type === 'object' ? handleAddProperty : undefined
           }
           onAddProperty={item.type === 'object' ? handleAddProperty : undefined}
           onAddReference={
@@ -260,20 +269,15 @@ export function SchemaItem(props: SchemaItemProps) {
               ? handleAddProperty
               : undefined
           }
-          onAddCombination={
-            item.type === 'object' ? handleAddProperty : undefined
-          }
           onDelete={handleDeleteClick}
+          onGoToType={
+            item.$ref && isPropertiesView ? handleGoToType : undefined
+          }
           onPromote={
             item.$ref !== undefined || item.path.startsWith('#/def')
               ? undefined
               : handlePromoteClick
           }
-          onGoToType={
-            item.$ref && isPropertiesView ? handleGoToType : undefined
-          }
-          key={`${item.path}-label`}
-          limitedItem={item.combinationItem}
         />
       }
       onLabelClick={(e) => onItemClick(e, itemToDisplay)}
