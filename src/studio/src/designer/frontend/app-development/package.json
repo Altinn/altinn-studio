@@ -77,8 +77,12 @@
   },
   "jest": {
     "transform": {
-      "\\.(ts|tsx)": "ts-jest"
+      "\\.(ts|tsx)": "ts-jest",
+      "node_modules/(react-dnd|dnd-core|@react-dnd|react-dnd-html5-backend)/.+\\.(j|t)sx?$": "ts-jest"
     },
+    "transformIgnorePatterns": [
+      "node_modules/(?!react-dnd|dnd-core|@react-dnd|react-dnd-html5-backend)"
+    ],
     "reporters": [
       "default",
       "jest-junit"

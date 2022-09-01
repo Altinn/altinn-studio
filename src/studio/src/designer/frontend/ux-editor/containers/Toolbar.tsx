@@ -1,5 +1,5 @@
 import List from '@material-ui/core/List';
-import React from 'react';
+import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   mapComponentToToolbarElement,
@@ -14,10 +14,7 @@ import {
 import { InformationPanelComponent } from '../components/toolbar/InformationPanelComponent';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import { ToolbarGroup } from './ToolbarGroup';
-import type {
-  IAppState,
-  IWidget,
-} from '../types/global';
+import type { IAppState, IWidget } from '../types/global';
 
 import './ToolBar.css';
 
@@ -25,7 +22,7 @@ export interface IToolbarElement {
   label: string;
   icon?: string;
   type: string;
-  actionMethod: (containerId: string, index: number) => void;
+  actionMethod: (containerId: string, position: number) => void;
 }
 
 export enum LayoutItemType {
@@ -43,31 +40,30 @@ export enum CollapsableMenus {
 export function Toolbar() {
   const dispatch = useDispatch();
   const [componentInformationPanelOpen, setComponentInformationPanelOpen] =
-    React.useState<boolean>(false);
+    useState<boolean>(false);
   const [
     componentSelectedForInformationPanel,
     setComponentSelectedForInformationPanel,
-  ] = React.useState<ComponentTypes>(null);
-  const [anchorElement, setAnchorElement] = React.useState<any>(null);
-  const [componentListOpen, setComponentListOpen] =
-    React.useState<boolean>(true);
+  ] = useState<ComponentTypes>(null);
+  const [anchorElement, setAnchorElement] = useState<any>(null);
+  const [componentListOpen, setComponentListOpen] = useState<boolean>(true);
   const [componentListCloseAnimationDone, setComponentListCloseAnimationDone] =
-    React.useState<boolean>(false);
-  const [textListOpen, setTextListOpen] = React.useState<boolean>(false);
+    useState<boolean>(false);
+  const [textListOpen, setTextListOpen] = useState<boolean>(false);
   const [textListCloseAnimationDone, setTextListCloseAnimationDone] =
-    React.useState<boolean>(false);
+    useState<boolean>(false);
   const [advancedComponentListOpen, setAdvancedComponentListOpen] =
-    React.useState<boolean>(false);
+    useState<boolean>(false);
   const [
     advancedComponentListCloseAnimationDone,
     setAdvancedComponentListCloseAnimationDone,
-  ] = React.useState<boolean>(false);
+  ] = useState<boolean>(false);
   const [widgetComponentListOpen, setWidgetComponentListOpen] =
-    React.useState<boolean>(false);
+    useState<boolean>(false);
   const [
     widgetComponentListCloseAnimationDone,
     setWidgetComponentListCloseAnimationDone,
-  ] = React.useState<boolean>(false);
+  ] = useState<boolean>(false);
 
   const activeList: any[] = useSelector(
     (state: IAppState) => state.formDesigner.layout.activeList,
