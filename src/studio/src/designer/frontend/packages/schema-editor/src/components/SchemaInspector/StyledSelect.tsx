@@ -28,9 +28,16 @@ const useStyles = makeStyles({
   },
 });
 
-export function StyledSelect(props: IStyledSelectProps) {
+export function StyledSelect({
+  id,
+  label,
+  value,
+  onChange,
+  readOnly,
+  fullWidth,
+  children,
+}: IStyledSelectProps) {
   const classes = useStyles();
-  const { id, label, value, onChange } = props;
 
   const onValueChange = (event: any) => {
     onChange(event.target.value);
@@ -39,15 +46,15 @@ export function StyledSelect(props: IStyledSelectProps) {
   return (
     <Select
       id={id}
-      disabled={props.readOnly}
+      disabled={readOnly}
       label={label}
       value={value || ''}
       onChange={onValueChange}
       className={classes.root}
       disableUnderline={true}
-      fullWidth={props.fullWidth}
+      fullWidth={fullWidth}
     >
-      {props.children}
+      {children}
     </Select>
   );
 }

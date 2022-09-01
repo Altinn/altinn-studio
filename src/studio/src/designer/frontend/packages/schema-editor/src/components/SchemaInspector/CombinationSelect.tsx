@@ -1,5 +1,5 @@
-import { MenuItem } from '@material-ui/core';
 import React from 'react';
+import { MenuItem } from '@material-ui/core';
 import type { CombinationKind } from '../../types';
 import { StyledSelect } from './StyledSelect';
 import { Option } from './helpers/helpers';
@@ -12,8 +12,13 @@ export interface ICombinationSelectProps {
   options: Option[];
 }
 
-export function CombinationSelect(props: ICombinationSelectProps) {
-  const { value, onChange, id, label, options } = props;
+export function CombinationSelect({
+  value,
+  onChange,
+  id,
+  label,
+  options,
+}: ICombinationSelectProps) {
   return (
     <StyledSelect
       fullWidth={true}
@@ -23,7 +28,11 @@ export function CombinationSelect(props: ICombinationSelectProps) {
       onChange={(combination) => onChange(combination as CombinationKind)}
     >
       {options.map(({ value, label }) => (
-        <MenuItem value={value} key={'combination-select-' + value}>
+        <MenuItem
+          value={value}
+          key={'combination-select-' + value}
+          role={'menuitem'}
+        >
           {label}
         </MenuItem>
       ))}

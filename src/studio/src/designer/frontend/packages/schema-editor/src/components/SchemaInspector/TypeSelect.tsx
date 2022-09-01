@@ -12,8 +12,13 @@ export interface IFieldTypeSelect {
   label: string;
 }
 
-export function TypeSelect(props: IFieldTypeSelect) {
-  const { value, onChange, id, options, label } = props;
+export function TypeSelect({
+  value,
+  onChange,
+  id,
+  options,
+  label,
+}: IFieldTypeSelect) {
   return (
     <StyledSelect
       label={label}

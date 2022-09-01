@@ -13,7 +13,13 @@ export interface IRefSelectProps {
   onChange: (id: string, value: string) => void;
 }
 
-export const RefSelect = (props: IRefSelectProps) => {
+export const RefSelect = ({
+  id,
+  onChange,
+  value,
+  fullWidth,
+  readOnly,
+}: IRefSelectProps) => {
   const classes = makeStyles({
     root: {
       background: 'white',
@@ -31,7 +37,6 @@ export const RefSelect = (props: IRefSelectProps) => {
     },
   })();
 
-  const { id, onChange, value } = props;
   const definitions: string[] = useSelector((state: ISchemaState) =>
     state.uiSchema
       .filter((s) => s.path.includes('#/definitions'))
@@ -48,9 +53,9 @@ export const RefSelect = (props: IRefSelectProps) => {
   return (
     <Autocomplete
       freeSolo={false}
-      fullWidth={props.fullWidth}
+      fullWidth={fullWidth}
       id={`${getDomFriendlyID(id)}-ref-select`}
-      disabled={props.readOnly}
+      disabled={readOnly}
       value={value?.replace('#/definitions/', '')}
       onChange={onChangeValue}
       className={classes.root}
