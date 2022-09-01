@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import { makeStyles, Select } from '@material-ui/core';
 
 export interface IStyledSelectProps {
@@ -8,7 +8,7 @@ export interface IStyledSelectProps {
   readOnly?: boolean;
   fullWidth?: boolean;
   label?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 const useStyles = makeStyles({
@@ -28,9 +28,16 @@ const useStyles = makeStyles({
   },
 });
 
-export function StyledSelect(props: IStyledSelectProps) {
+export function StyledSelect({
+  id,
+  label,
+  value,
+  onChange,
+  readOnly,
+  fullWidth,
+  children,
+}: IStyledSelectProps) {
   const classes = useStyles();
-  const { id, label, value, onChange } = props;
 
   const onValueChange = (event: any) => {
     onChange(event.target.value);
@@ -39,15 +46,15 @@ export function StyledSelect(props: IStyledSelectProps) {
   return (
     <Select
       id={id}
-      disabled={props.readOnly}
+      disabled={readOnly}
       label={label}
       value={value || ''}
       onChange={onValueChange}
       className={classes.root}
       disableUnderline={true}
-      fullWidth={props.fullWidth}
+      fullWidth={fullWidth}
     >
-      {props.children}
+      {children}
     </Select>
   );
 }

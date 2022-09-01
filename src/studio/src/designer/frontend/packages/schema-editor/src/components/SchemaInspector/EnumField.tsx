@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { KeyboardEvent, useEffect, useState } from 'react';
 import { Grid, IconButton, makeStyles, TextField } from '@material-ui/core';
 import { DeleteOutline } from '@material-ui/icons';
-import { getTranslation } from '../utils/language';
-import { getDomFriendlyID } from '../utils/schema';
-import type { ILanguage } from '../types';
+import { getTranslation } from '../../utils/language';
+import { getDomFriendlyID } from '../../utils/schema';
+import type { ILanguage } from '../../types';
 
 export interface IEnumFieldProps {
   path: string;
@@ -38,8 +38,8 @@ const useStyles = makeStyles({
 
 export const EnumField = (props: IEnumFieldProps) => {
   const classes = useStyles();
-  const [val, setVal] = React.useState(props.value);
-  React.useEffect(() => {
+  const [val, setVal] = useState(props.value);
+  useEffect(() => {
     setVal(props.value);
   }, [props.value]);
 
@@ -52,7 +52,7 @@ export const EnumField = (props: IEnumFieldProps) => {
     setVal(e.target.value);
   };
 
-  const onKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) =>
+  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
     e?.key === 'Enter' && props.onEnterKeyPress && props.onEnterKeyPress();
 
   const baseId = getDomFriendlyID(props.path);
