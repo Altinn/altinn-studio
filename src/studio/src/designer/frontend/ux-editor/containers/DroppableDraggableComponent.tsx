@@ -1,316 +1,88 @@
-/* eslint-disable react/no-find-dom-node */
-import React from 'react';
+import React, { FC, memo, ReactNode, RefObject, useRef } from 'react';
 import {
-  ConnectDragPreview,
-  ConnectDragSource,
-  ConnectDropTarget,
-  DragSource,
-  DragSourceConnector,
-  DragSourceMonitor,
-  DragSourceSpec,
-  DropTarget,
-  DropTargetConnector,
+  DropTargetHookSpec,
   DropTargetMonitor,
-  DropTargetSpec,
+  useDrag,
+  useDrop,
 } from 'react-dnd';
-import ReactDOM from 'react-dom';
+import { dragSourceSpec, hoverIndexHelper } from './helpers/dnd-helpers';
+import { EditorDndEvents, EditorDndItem, ItemType } from './helpers/dnd-types';
+
+const dropTargetSpec = (
+  targetItem: EditorDndItem,
+  events: EditorDndEvents,
+  ref: RefObject<HTMLDivElement>,
+): DropTargetHookSpec<any, any, any> => ({
+  accept: Object.keys(ItemType),
+  canDrop(draggedItem: EditorDndItem, monitor: DropTargetMonitor) {
+    return monitor.isOver({ shallow: true });
+  },
+  drop(droppedItem: EditorDndItem, monitor: DropTargetMonitor) {
+    if (!droppedItem) {
+      return;
+    }
+    if (!monitor.isOver({ shallow: true })) {
+      return;
+    }
+    if (monitor.getItemType() === ItemType.ToolbarItem) {
+      if (!droppedItem.onDrop) {
+        console.warn("Draggable Item doesn't have an onDrop-event");
+        return;
+      }
+      droppedItem.onDrop(targetItem.containerId, targetItem.index);
+    } else {
+      events.onDropItem();
+    }
+  },
+  hover(draggedItem: EditorDndItem, monitor: DropTargetMonitor) {
+    if (!draggedItem) {
+      return;
+    }
+    if (!monitor.isOver({ shallow: true })) {
+      return;
+    }
+    if (
+      !hoverIndexHelper(draggedItem, targetItem, ref, monitor.getClientOffset())
+    ) {
+      return;
+    }
+    events.moveItem(draggedItem, targetItem);
+  },
+});
 
 export interface IDroppableDraggableComponentProps {
+  canDrag: boolean;
+  children?: ReactNode;
+  containerId: string;
+  dndEvents: EditorDndEvents;
   id: string;
   index: number;
-  containerId: string;
-  canDrag: boolean;
-  onMoveComponent?: (...args: any) => void;
-  onDropComponent?: (...args: any) => void;
-  onMoveContainer?: (...args: any) => void;
-  onDropContainer?: (...args: any) => void;
 }
 
-const dragSourceSpec: DragSourceSpec<IDroppableDraggableComponentProps, any> = {
-  beginDrag(props: any) {
-    return {
-      ...props,
-    };
-  },
+export const DroppableDraggableComponent: FC<IDroppableDraggableComponentProps> =
+  memo(function DroppableDraggableComponent({
+    canDrag,
+    children,
+    containerId,
+    dndEvents,
+    id,
+    index,
+  }: IDroppableDraggableComponentProps) {
+    const ref = useRef<HTMLDivElement>(null);
 
-  isDragging(
-    props: IDroppableDraggableComponentProps,
-    monitor: DragSourceMonitor,
-  ) {
-    return props.id === monitor.getItem().id;
-  },
-  canDrag(props: IDroppableDraggableComponentProps) {
-    return props.canDrag;
-  },
-  endDrag(
-    props: IDroppableDraggableComponentProps,
-    monitor: DragSourceMonitor,
-    component: any,
-  ) {
-    if (!monitor.didDrop() && component) {
-      const draggedComponent = monitor.getItem();
-      props.onDropComponent(
-        draggedComponent.id,
-        draggedComponent.containerId,
-        props.containerId,
-      );
-    }
-  },
-};
-
-const dropTargetSpec: DropTargetSpec<IDroppableDraggableComponentProps> = {
-  drop(
-    props: IDroppableDraggableComponentProps,
-    monitor: DropTargetMonitor,
-    component: any,
-  ) {
-    if (!component) {
-      return;
-    }
-    if (monitor.isOver({ shallow: true })) {
-      switch (monitor.getItemType()) {
-        case 'TOOLBAR_ITEM': {
-          const toolbarItem = monitor.getItem();
-          let hoverOverIndex = props.index;
-
-          const hoverBoundingRect = (
-            ReactDOM.findDOMNode(component) as Element
-          ).getBoundingClientRect();
-          const hoverMiddleY =
-            (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-          const clientOffset = monitor.getClientOffset();
-          const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-
-          if (props.id !== 'temporary' && hoverClientY > hoverMiddleY) {
-            hoverOverIndex += 1;
-          }
-
-          if (!toolbarItem.onDrop) {
-            console.warn("Draggable Item doesn't have an onDrop-event");
-            break;
-          }
-          toolbarItem.onDrop(props.containerId, hoverOverIndex);
-          break;
-        }
-        case 'ITEM': {
-          const draggedComponent = monitor.getItem();
-          props.onDropComponent(
-            draggedComponent.id,
-            draggedComponent.containerId,
-            props.containerId,
-          );
-
-          break;
-        }
-        case 'CONTAINER': {
-          const draggedContainer = monitor.getItem();
-          let hoverOverIndex = props.index;
-
-          const hoverBoundingRect = (
-            ReactDOM.findDOMNode(component) as Element
-          ).getBoundingClientRect();
-          const hoverMiddleY =
-            (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-          const clientOffset = monitor.getClientOffset();
-          const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-
-          if (hoverOverIndex === draggedContainer.index) {
-            return;
-          }
-
-          if (hoverClientY > hoverMiddleY) {
-            hoverOverIndex += 1;
-          }
-          props.onDropContainer(
-            draggedContainer.id,
-            hoverOverIndex,
-            props.containerId,
-            draggedContainer.parentContainerId,
-          );
-          break;
-        }
-        default: {
-          break;
-        }
-      }
-    }
-  },
-  canDrop(
-    props: IDroppableDraggableComponentProps,
-    monitor: DropTargetMonitor,
-  ) {
-    if (!monitor.isOver({ shallow: true })) {
-      return false;
-    }
-    return true;
-  },
-  hover(
-    props: IDroppableDraggableComponentProps,
-    monitor: DropTargetMonitor,
-    component: any,
-  ) {
-    if (!component) {
-      return;
-    }
-    if (monitor.isOver({ shallow: true })) {
-      switch (monitor.getItemType()) {
-        case 'TOOLBAR_ITEM': {
-          const draggedItem = monitor.getItem();
-          const hoverOverIndex = props.index;
-
-          const hoverBoundingRect = (
-            ReactDOM.findDOMNode(component) as Element
-          ).getBoundingClientRect();
-          const hoverMiddleY =
-            (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-          const clientOffset = monitor.getClientOffset();
-          const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-
-          if (hoverClientY > hoverMiddleY) {
-            props.onMoveComponent(
-              draggedItem.id,
-              hoverOverIndex + 1,
-              null, // Toolbar items doesn't have a container
-              props.containerId,
-            );
-          } else {
-            props.onMoveComponent(
-              draggedItem.id,
-              hoverOverIndex,
-              null, // Toolbar items doesn't have a container
-              props.containerId,
-            );
-          }
-          break;
-        }
-        case 'ITEM': {
-          const draggedItem = monitor.getItem();
-          let hoverOverIndex = props.index;
-          const hoverBoundingRect = (
-            ReactDOM.findDOMNode(component) as Element
-          ).getBoundingClientRect();
-          const hoverMiddleY =
-            (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-          const clientOffset = monitor.getClientOffset();
-          const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-
-          if (draggedItem.id === props.id) {
-            return;
-          }
-
-          if (hoverClientY > hoverMiddleY) {
-            hoverOverIndex += 1;
-            if (draggedItem.index === hoverOverIndex) {
-              return;
-            }
-          }
-
-          props.onMoveComponent(
-            draggedItem.id,
-            hoverOverIndex,
-            draggedItem.containerId,
-            props.containerId,
-          );
-
-          draggedItem.index = hoverOverIndex;
-          draggedItem.containerId = props.containerId;
-          break;
-        }
-        case 'CONTAINER': {
-          const draggedContainer = monitor.getItem();
-          let hoverOverIndex = props.index;
-
-          const hoverBoundingRect = (
-            ReactDOM.findDOMNode(component) as Element
-          ).getBoundingClientRect();
-          const hoverMiddleY =
-            (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
-          const clientOffset = monitor.getClientOffset();
-          const hoverClientY = clientOffset.y - hoverBoundingRect.top;
-
-          if (
-            draggedContainer.id === props.id ||
-            draggedContainer.index === props.index ||
-            draggedContainer.containerId === props.id
-          ) {
-            return;
-          }
-
-          if (hoverClientY > hoverMiddleY) {
-            hoverOverIndex += 1;
-            if (hoverOverIndex === draggedContainer.index) {
-              return;
-            }
-          }
-
-          props.onMoveContainer(
-            draggedContainer.id,
-            hoverOverIndex,
-            props.containerId,
-            component.props.containerId,
-          );
-
-          draggedContainer.index = hoverOverIndex;
-          break;
-        }
-        default: {
-          break;
-        }
-      }
-    }
-  },
-};
-
-class DroppableDraggableComponent extends React.Component<
-  IDroppableDraggableComponentProps & {
-    connectDragPreview: ConnectDragPreview;
-    connectDragSource: ConnectDragSource;
-    connectDropTarget: ConnectDropTarget;
-    dropTargetMonitor: DropTargetMonitor;
-    isDragging: boolean;
-  },
-  any
-> {
-  public render() {
-    const {
-      id,
-      connectDropTarget,
-      connectDragPreview,
-      connectDragSource,
-      isDragging,
-    } = this.props;
-    const style = isDragging
-      ? {
-          opacity: 0,
-        }
-      : null;
-    return connectDropTarget(
-      connectDragPreview(
-        connectDragSource(
-          <div key={id} style={style}>
-            {this.props.children}
-          </div>,
-        ),
-      ),
+    const item = { id, containerId, index, type: ItemType.Item };
+    const [{ isDragging }, drag] = useDrag(
+      dragSourceSpec(item, canDrag, dndEvents.onDropItem),
     );
-  }
-}
 
-export default DropTarget(
-  ['ITEM', 'TOOLBAR_ITEM', 'CONTAINER'],
-  dropTargetSpec,
-  (connect: DropTargetConnector, monitor: DropTargetMonitor) => ({
-    connectDropTarget: connect.dropTarget(),
-    dropTargetMonitor: monitor,
-  }),
-)(
-  DragSource(
-    'ITEM',
-    dragSourceSpec,
-    (connect: DragSourceConnector, monitor: DragSourceMonitor) => ({
-      connectDragSource: connect.dragSource(),
-      connectDragPreview: connect.dragPreview(),
-      isDragging: monitor.isDragging(),
-    }),
-  )(DroppableDraggableComponent),
-);
+    const [, drop] = useDrop(dropTargetSpec(item, dndEvents, ref));
+    const opacity = isDragging ? 0 : 1;
+    const background = isDragging ? 'inherit !important' : undefined;
+
+    drag(drop(ref));
+    return (
+      <div style={{ opacity, background }} ref={ref}>
+        {children}
+      </div>
+    );
+  });

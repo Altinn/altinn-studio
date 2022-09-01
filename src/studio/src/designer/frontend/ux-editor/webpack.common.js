@@ -12,6 +12,10 @@ module.exports = {
     alias: {
       'app-shared': path.resolve(__dirname, '../shared/'),
     },
+    fallback: {
+      'react/jsx-runtime': 'react/jsx-runtime.js',
+      'react/jsx-dev-runtime': 'react/jsx-dev-runtime.js',
+    },
   },
   module: {
     rules: [
