@@ -3,6 +3,21 @@ export interface Option {
   label: string;
 }
 
+export const getCombinationOptions = (__: (key: string) => string) => [
+  {
+    value: 'allOf',
+    label: __('all_of'),
+  },
+  {
+    value: 'anyOf',
+    label: __('any_of'),
+  },
+  {
+    value: 'oneOf',
+    label: __('one_of'),
+  },
+];
+
 export const getTypeOptions = (__: (key: string) => string) => [
   {
     value: 'string',

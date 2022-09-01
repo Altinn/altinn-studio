@@ -1,29 +1,32 @@
 import { MenuItem } from '@material-ui/core';
 import React from 'react';
-import type { CombinationKind, ILanguage } from '../../types';
-import { getTranslation } from '../../utils/language';
+import type { CombinationKind } from '../../types';
 import { StyledSelect } from './StyledSelect';
+import { Option } from './helpers/helpers';
 
 export interface ICombinationSelectProps {
   value?: string;
   onChange: (value: CombinationKind) => void;
   id: string;
-  language: ILanguage;
+  label: string;
+  options: Option[];
 }
 
 export function CombinationSelect(props: ICombinationSelectProps) {
-  const { value, onChange, id, language } = props;
+  const { value, onChange, id, label, options } = props;
   return (
     <StyledSelect
       fullWidth={true}
       value={value}
       id={id}
-      label={getTranslation('type', language)}
+      label={label}
       onChange={(combination) => onChange(combination as CombinationKind)}
     >
-      <MenuItem value='allOf'>{getTranslation('all_of', language)}</MenuItem>
-      <MenuItem value='anyOf'>{getTranslation('any_of', language)}</MenuItem>
-      <MenuItem value='oneOf'>{getTranslation('one_of', language)}</MenuItem>
+      {options.map(({ value, label }) => (
+        <MenuItem value={value} key={'combination-select-' + value}>
+          {label}
+        </MenuItem>
+      ))}
     </StyledSelect>
   );
 }

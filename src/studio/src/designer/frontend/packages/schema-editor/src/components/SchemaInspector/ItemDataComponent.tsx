@@ -39,7 +39,7 @@ import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { CombinationSelect } from './CombinationSelect';
 import { getObjectKind } from '../../utils/ui-schema-utils';
 import { Label } from './Label';
-import { getTypeOptions } from './helpers/helpers';
+import { getCombinationOptions, getTypeOptions } from './helpers/helpers';
 
 export interface IItemDataComponentProps {
   selectedItem: UiSchemaItem | null;
@@ -266,27 +266,28 @@ export function ItemDataComponent({
     }
   };
   const __ = (key: string) => getTranslation(key, language);
+  const inputProps = {
+    disableUnderline: true,
+    classes: { root: classes.fieldText },
+  };
   return (
     <div>
       {!selectedItem?.combinationItem && (
         <>
           <p className={classes.name}>{__('name')}</p>
           <TextField
-            id='selectedItemName'
-            className={classes.field}
-            inputRef={nameFieldRef}
+            InputProps={inputProps}
             aria-describedby='Selected Item Name'
-            placeholder='Name'
-            fullWidth={true}
-            value={nodeName}
+            className={classes.field}
             error={!!nameError}
+            fullWidth={true}
             helperText={__(nameError)}
-            onChange={onNameChange}
+            id='selectedItemName'
+            inputRef={nameFieldRef}
             onBlur={handleChangeNodeName}
-            InputProps={{
-              disableUnderline: true,
-              classes: { root: classes.fieldText },
-            }}
+            onChange={onNameChange}
+            placeholder='Name'
+            value={nodeName}
           />
         </>
       )}
@@ -306,14 +307,14 @@ export function ItemDataComponent({
       )}
       <ReferenceSelectionComponent
         arrayType={arrayType}
-        classes={classes}
-        selectedItem={selectedItem}
-        objectKind={objectKind}
-        label={__('reference_to')}
         buttonText={__('go_to_type')}
+        classes={classes}
+        label={__('reference_to')}
+        objectKind={objectKind}
         onChangeArrayType={onChangeArrayType}
         onChangeRef={onChangeRef}
         onGoToDefButtonClick={onGoToDefButtonClick}
+        selectedItem={selectedItem}
       />
       {[ObjectKind.Reference, ObjectKind.Field].includes(objectKind) && (
         <FormControlLabel
@@ -334,12 +335,11 @@ export function ItemDataComponent({
         <>
           <Label>{__('type')}</Label>
           <CombinationSelect
-            value={selectedItem?.combinationKind}
-            id={`${getDomFriendlyID(
-              selectedItem?.path || '',
-            )}-change-combination`}
+            id={`${getDomFriendlyID(selectedItem?.path || '')}-combi-sel`}
+            label={__('type')}
             onChange={onChangeCombinationType}
-            language={language}
+            options={getCombinationOptions(__)}
+            value={selectedItem?.combinationKind}
           />
         </>
       )}
@@ -361,33 +361,27 @@ export function ItemDataComponent({
       <Divider />
       <Label>{__('descriptive_fields')}</Label>
       <TextField
-        id={`${getDomFriendlyID(selectedId ?? '')}-title`}
+        InputProps={inputProps}
         className={classes.field}
         fullWidth
-        value={title}
+        id={`${getDomFriendlyID(selectedId ?? '')}-title`}
         margin='normal'
-        onChange={(e) => setItemTitle(e.target.value)}
         onBlur={onChangeTitle}
-        InputProps={{
-          disableUnderline: true,
-          classes: { root: classes.fieldText },
-        }}
+        onChange={(e) => setItemTitle(e.target.value)}
+        value={title}
       />
       <Label>{__('description')}</Label>
       <TextField
-        id={`${getDomFriendlyID(selectedId ?? '')}-description`}
-        multiline={true}
+        InputProps={inputProps}
         className={classes.field}
         fullWidth
+        id={`${getDomFriendlyID(selectedId ?? '')}-description`}
+        margin='normal'
+        multiline={true}
+        onBlur={onChangeDescription}
+        onChange={(e) => setItemDescription(e.target.value)}
         style={{ height: 100 }}
         value={description}
-        margin='normal'
-        onChange={(e) => setItemDescription(e.target.value)}
-        onBlur={onChangeDescription}
-        InputProps={{
-          disableUnderline: true,
-          classes: { root: classes.fieldText },
-        }}
       />
     </div>
   );
