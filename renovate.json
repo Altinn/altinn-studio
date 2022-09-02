@@ -2,19 +2,18 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:base"],
   "stabilityDays": 3,
+  "timezone": "Europe/Oslo",
   "internalChecksFilter": "strict",
+  "schedule": [
+    "every thursday before 07:00"
+  ],
   "packageRules": [
     {
-      "matchLanguages": [
-        "javascript",
-        "java",
-        "csharp"
-      ],
-      "groupName": "{{language}} non-major dependencies",
+      "groupName": "all non-major dependencies",
       "matchCurrentVersion": ">=1.0.0",
       "matchPackagePatterns": ["*"],
       "matchUpdateTypes": ["minor", "patch"],
-      "groupSlug": "{{language}}-minor-patch"
+      "groupSlug": "all-minor-patch"
     }
   ]
 }
