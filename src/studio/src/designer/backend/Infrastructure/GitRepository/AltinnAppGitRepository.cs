@@ -1,15 +1,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.ModelMetadatalModels;
-using JetBrains.Annotations;
+
 using Microsoft.AspNetCore.Mvc;
+
 using Newtonsoft.Json;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 {
@@ -34,7 +33,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="org">Organization owning the repository identified by it's short name.</param>
         /// <param name="repository">Repository name to search for schema files.</param>
         /// <param name="developer">Developer that is working on the repository.</param>
-        /// <param name="repositoriesRootDirectory">Base path (full) for where the repository recides on-disk.</param>
+        /// <param name="repositoriesRootDirectory">Base path (full) for where the repository resides on-disk.</param>
         /// <param name="repositoryDirectory">Full path to the root directory of this repository on-disk.</param>
         public AltinnAppGitRepository(string org, string repository, string developer, string repositoriesRootDirectory, string repositoryDirectory) : base(org, repository, developer, repositoriesRootDirectory, repositoryDirectory)
         {
@@ -58,9 +57,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public async Task UpdateApplicationMetadata(Application applicationMetadata)
         {
             string metadataAsJson = JsonConvert.SerializeObject(applicationMetadata, Formatting.Indented);
-            var appMetadataRealtiveFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
+            var appMetadataRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
 
-            await WriteTextByRelativePathAsync(appMetadataRealtiveFilePath, metadataAsJson, true);
+            await WriteTextByRelativePathAsync(appMetadataRelativeFilePath, metadataAsJson, true);
         }
 
         /// <summary>
@@ -80,7 +79,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <summary>
         /// Updates the generated C# classes for the application model.
         /// </summary>
-        /// <param name="csharpClasses">All C# classes that should be percisted (in one file).</param>
+        /// <param name="csharpClasses">All C# classes that should be persisted (in one file).</param>
         /// <param name="modelName">The name of the model, will be used as filename.</param>
         public async Task UpdateCSharpClasses(string csharpClasses, string modelName)
         {
@@ -94,7 +93,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="jsonSchema">The Json Schema that should be persisted</param>
         /// <param name="modelName">The name of the model without extensions. This will be used as filename.</param>
-        /// <returns>A string containging the relative path to the file saved.</returns>
+        /// <returns>A string containing the relative path to the file saved.</returns>
         public async Task<string> SaveJsonSchema(string jsonSchema, string modelName)
         {
             string relativeFilePath = GetRelativeModelFilePath(modelName);
@@ -115,7 +114,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Gets the folder where the datamodels are stored.
+        /// Gets the folder where the data models are stored.
         /// </summary>
         /// <returns>A string with the relative path to the model folder within the app.</returns>
         public string GetRelativeModelFolder()
@@ -130,7 +129,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <remarks>
         /// Format of the dictionary is: &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
         /// </remarks>
-        public async Task<Designer.Models.TextResource> GetTextContentV1(string language)
+        public async Task<Designer.Models.TextResource> GetTextV1(string language)
         {
             string resourcePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, $"resource.{language}.json");
 
@@ -200,19 +199,20 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Returns content in text file written in the new text format
-        /// identified by languageCode in filename as a string.
+        /// Reads text file from disk written in the new text format
+        /// identified by the languageCode in filename.
         /// </summary>
         /// <param name="languageCode">Language identifier</param>
-        public async Task<string> GetTextContentV2(string languageCode)
+        /// <returns>Text as a string</returns>
+        public async Task<string> GetTextV2(string languageCode)
         {
-            string fileName = "text." + languageCode + ".json";
+            string fileName = $"text.{languageCode}.json";
 
             var textFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
 
-            string fileContent = await ReadTextByRelativePathAsync(textFileRelativeFilePath);
+            string text = await ReadTextByRelativePathAsync(textFileRelativeFilePath);
 
-            return fileContent;
+            return text;
         }
 
         /// <summary>

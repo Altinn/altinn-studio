@@ -85,7 +85,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, developer);
             var altinnAppGitRepository = new AltinnAppGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory);
 
-            var textResource = await altinnAppGitRepository.GetTextContentV1("nb");
+            var textResource = await altinnAppGitRepository.GetTextV1("nb");
 
             textResource.Should().NotBeNull();
             textResource.Resources.First(r => r.Id == "ServiceName").Value.Should().Be("Hvem er hvem?");

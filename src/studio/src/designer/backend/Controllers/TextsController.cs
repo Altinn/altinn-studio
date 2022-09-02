@@ -54,12 +54,9 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            string textContent = await _textsService.GetTextContent(org, repo, developer, languageCode);
+            Dictionary<string, string> text = await _textsService.GetText(org, repo, developer, languageCode);
 
-            Dictionary<string, string> jsonTextContent =
-                JsonSerializer.Deserialize<Dictionary<string, string>>(textContent);
-
-            return Ok(jsonTextContent);
+            return Ok(text);
         }
     }
 }
