@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <OutputType>Library</OutputType>
-    <Version>1.3.1.0</Version>
-    <AssemblyVersion>1.3.1.0</AssemblyVersion>
+    <Version>1.3.2.0</Version>
+    <AssemblyVersion>1.3.2.0</AssemblyVersion>
     <PackageId>Altinn.Common.EFormidlingClient</PackageId>
     <PackageTags>Altinn;Studio;eFormidling;client</PackageTags>
     <Description>
@@ -17,7 +17,7 @@
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <IsPackable>true</IsPackable>
-    
+
     <!-- SonarCloud requires a ProjectGuid to separate projects. -->
     <ProjectGuid>{790c4782-cdb0-4c06-8e16-514cb617b8e0}</ProjectGuid>
   </PropertyGroup>
