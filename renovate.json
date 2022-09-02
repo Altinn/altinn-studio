@@ -1,13 +1,4 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base", "schedule:earlyMondays", "npm:unpublishSafe"],
-  "packageRules": [
-    {
-      "matchCurrentVersion": ">=1.0.0",
-      "matchPackagePatterns": ["*"],
-      "matchUpdateTypes": ["minor", "patch"],
-      "groupName": "all non-major dependencies",
-      "groupSlug": "all-minor-patch"
-    }
-  ]
+  "extends": ["local>Altinn/renovate-config"]
 }
