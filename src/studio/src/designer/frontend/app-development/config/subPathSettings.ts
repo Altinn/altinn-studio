@@ -2,7 +2,7 @@ const subPathSettings = {
   about: [
     {
       displayText: 'Om appen',
-      navLink: '/about',
+      navLink: '/',
       activeLeftMenuSelection: 'Om appen',
       iconClass: 'fa fa-info-circle',
     },
