@@ -55,4 +55,21 @@ describe('Header', () => {
     });
     screen.getByRole('progressbar', { name: /Side 3 av 6/i });
   });
+  it('should not render progress when Archieved', () => {
+    const mockFormLayout = getFormLayoutStateMock();
+    renderWithProviders(<Header type={ProcessTaskType.Archived} />, {
+      preloadedState: getInitialStateMock({
+        formLayout: {
+          ...mockFormLayout,
+          uiConfig: {
+            ...mockFormLayout.uiConfig,
+            showProgress: true,
+            currentView: '3',
+            layoutOrder: ['1', '2', '3', '4', '5', '6'],
+          },
+        },
+      }),
+    });
+    expect(screen.queryByRole('progressbar')).toBeNull();
+  });
 });

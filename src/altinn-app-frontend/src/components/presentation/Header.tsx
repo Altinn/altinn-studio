@@ -17,10 +17,14 @@ export interface IHeaderProps {
 }
 
 const Header = ({ type, header, appOwner }: IHeaderProps) => {
-  const showProgress = useAppSelector(
+  const showProgressSettings = useAppSelector(
     (state) => state.formLayout.uiConfig.showProgress,
   );
   const language = useAppSelector((state) => state.language.language);
+
+  const showProgress =
+    type !== ProcessTaskType.Archived && showProgressSettings;
+
   return (
     <header
       className={classNames('modal-header', 'a-modal-header', {

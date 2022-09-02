@@ -41,6 +41,7 @@ export interface IFileUploadersWithTag {
 
 export interface ILayoutSets {
   sets: ILayoutSet[];
+  uiSettings?: Omit<IPagesSettings, 'order'>;
 }
 
 export interface ILayoutSet {
