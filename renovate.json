@@ -12,15 +12,20 @@
         "dockerfile",
         "github-actions",
         "maven",
-        "npm",
-        "nuget"
+        "npm"
       ],
-      "matchPaths": ["*"],
       "groupName": "{{manager}} non-major dependencies",
       "matchCurrentVersion": ">=1.0.0",
       "matchPackagePatterns": ["*"],
       "matchUpdateTypes": ["minor", "patch"],
       "groupSlug": "{{manager}}-minor-patch"
+    },
+    {
+      "matchManagers": ["nuget"],
+      "groupName": "nuget non-major dependencies",
+      "matchPackagePatterns": ["*"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupSlug": "nuget-minor-patch"
     }
   ]
 }
