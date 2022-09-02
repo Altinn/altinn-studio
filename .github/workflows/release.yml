@@ -60,16 +60,15 @@ jobs:
           cd ..
           echo Copy Major Version
           mkdir -p ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR }}
-          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.js ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR }}/altinn-app-frontend.js
-          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.css ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR }}/altinn-app-frontend.css
+          git rm ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR }}/*
+          cp -fr ./app-frontend/src/altinn-app-frontend/dist/* ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR }}/
           echo Copy Minor Version
           mkdir -p ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR_MINOR }}
-          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.js ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR_MINOR }}/altinn-app-frontend.js
-          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.css ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR_MINOR }}/altinn-app-frontend.css
+          git rm ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR_MINOR }}/*
+          cp -fr ./app-frontend/src/altinn-app-frontend/dist/* ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR_MINOR }}/
           echo Copy Patch
           mkdir -p ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}
-          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.js ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}/altinn-app-frontend.js
-          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.css ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}/altinn-app-frontend.css
+          cp -fr ./app-frontend/src/altinn-app-frontend/dist/* ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}/
 
       - name: Copy version (pre-release)
         working-directory: app-frontend
@@ -79,8 +78,7 @@ jobs:
           cd ..
           echo Copy Patch
           mkdir -p ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}
-          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.js ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}/altinn-app-frontend.js
-          cp -fr ./app-frontend/src/altinn-app-frontend/dist/altinn-app-frontend.css ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}/altinn-app-frontend.css
+          cp -fr ./app-frontend/src/altinn-app-frontend/dist/* ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}/
 
       - name: Copy patch version and commit to CDN
         working-directory: cdn
