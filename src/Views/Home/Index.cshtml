@@ -7,7 +7,7 @@
   if (Model.HttpException != null)
   {
     <div class="alert alert-dark" role="alert">
-      An exception occured while fetching aplicationData
+      An exception occured while fetching applicationData
       @if (Model.HttpException.StatusCode == System.Net.HttpStatusCode.Unauthorized) {
         <pre>401(Unauthorized) Could not access @(Model.LocalAppUrl)</pre>
         <p>
