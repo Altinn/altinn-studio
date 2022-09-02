@@ -1,6 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base"],
+  "extends": ["config:base", "group:recommended"],
   "stabilityDays": 3,
   "timezone": "Europe/Oslo",
   "internalChecksFilter": "strict",
@@ -12,20 +12,20 @@
         "dockerfile",
         "github-actions",
         "maven",
-        "npm"
+        "nuget"
       ],
       "groupName": "{{manager}} non-major dependencies",
-      "matchCurrentVersion": ">=1.0.0",
       "matchPackagePatterns": ["*"],
       "matchUpdateTypes": ["minor", "patch"],
       "groupSlug": "{{manager}}-minor-patch"
     },
     {
-      "matchManagers": ["nuget"],
-      "groupName": "nuget non-major dependencies",
+      "matchManagers": ["npm"],
+      "groupName": "npm non-major dependencies",
+      "matchCurrentVersion": ">=1.0.0",
       "matchPackagePatterns": ["*"],
       "matchUpdateTypes": ["minor", "patch"],
-      "groupSlug": "nuget-minor-patch"
+      "groupSlug": "npm-minor-patch"
     }
   ]
 }
