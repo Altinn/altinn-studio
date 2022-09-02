@@ -15,6 +15,7 @@
         "npm",
         "nuget"
       ],
+      "matchPaths": ["*"],
       "groupName": "{{manager}} non-major dependencies",
       "matchCurrentVersion": ">=1.0.0",
       "matchPackagePatterns": ["*"],
