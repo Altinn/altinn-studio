@@ -1,5 +1,3 @@
-// TODO: this does not really need to be a router and have the AppBar fully re-render on navigation.
-// TODO: Move the re-directs out from this component. They do not make sense here.
 import {Grid} from '@material-ui/core';
 import {AppBar} from './AppBar';
 import React from 'react';
