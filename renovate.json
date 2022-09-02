@@ -3,10 +3,14 @@
   "extends": ["local>Altinn/renovate-config"],
   "packageRules": [
     {
-      "matchPackagePatterns": ["LibGit2Sharp"]
+      "groupName": "LibGit2Sharp dependency",
+      "groupSlug": "LibGit2Sharp",
+      "matchPackageNames": ["LibGit2Sharp"]
     },
     {
-      "matchPackagePatterns": ["gitea"]
+      "groupName": "gitea dependency",
+      "groupSlug": "gitea",
+      "matchPackageNames": ["gitea"]
     }
   ]
 }
