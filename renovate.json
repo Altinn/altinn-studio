@@ -7,6 +7,12 @@
   "schedule": ["before 07:00 on Thursday"],
   "packageRules": [
     {
+      "groupName": "other non-major dependencies",
+      "matchPackagePatterns": ["*"],
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupSlug": "other-minor-patch"
+    },
+    {
       "matchManagers": [
         "docker-compose",
         "dockerfile",
