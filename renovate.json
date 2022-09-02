@@ -1,7 +1,8 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:base", "group:recommended"],
-  "stabilityDays": 3,
+  "description": "Groups minor and patch updates together in a single PR, and treat NPM 0.x.x updates as major updates. Will not create a PR for updates that are less than 3 days old.",
+  "stabilityDays": 2,
   "timezone": "Europe/Oslo",
   "internalChecksFilter": "strict",
   "schedule": ["before 07:00 on Thursday"],
