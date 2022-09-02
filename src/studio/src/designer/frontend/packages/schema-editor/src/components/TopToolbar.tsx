@@ -1,6 +1,6 @@
 import { makeStyles } from '@material-ui/core';
 import React from 'react';
-import { AltinnSwitch } from 'app-shared/components/AltinnSwitch';
+import { ToggleButton, ToggleButtonGroup } from '@altinn/altinn-design-system';
 import type { ILanguage } from '../types';
 import { getTranslation } from '../utils/language';
 import { TopToolbarButton } from './TopToolbarButton';
@@ -36,12 +36,15 @@ const useStyles = makeStyles({
 
 interface TopToolbarProps {
   Toolbar: JSX.Element;
+  editMode: boolean;
   saveAction?: (payload: any) => void;
   toggleEditMode?: (e: any) => void;
   language: ILanguage;
 }
-export function TopToolbar({ Toolbar, saveAction, toggleEditMode, language }: TopToolbarProps) {
+
+export function TopToolbar({ editMode, Toolbar, saveAction, toggleEditMode, language }: TopToolbarProps) {
   const classes = useStyles();
+
   return (
     <section className={classes.toolbar} role={'toolbar'}>
       {Toolbar}
@@ -53,12 +56,12 @@ export function TopToolbar({ Toolbar, saveAction, toggleEditMode, language }: To
       >
         {getTranslation('save_data_model', language)}
       </TopToolbarButton>
-      <AltinnSwitch
-        classes={classes}
-        id='edit-mode-switch'
-        onChangeFunction={toggleEditMode}
-        switchHeader='Toggle edit mode'
-      />
+      {toggleEditMode &&
+        <ToggleButtonGroup selectedValue={editMode ? 'edit' : 'view'} onChange={toggleEditMode}>
+          <ToggleButton value='view'>View</ToggleButton>
+          <ToggleButton value='edit'>Edit</ToggleButton>
+        </ToggleButtonGroup>
+      }
     </section>
   );
 }

@@ -206,8 +206,7 @@ export const SchemaEditor = (props: IEditorProps) => {
     setMenuAnchorEl(null);
   };
 
-  const toggleEditMode = (e: MouseEvent) => {
-    e.stopPropagation();
+  const toggleEditMode = () => {
     setEditMode((prevState) => !prevState );
   }
 
@@ -292,6 +291,7 @@ export const SchemaEditor = (props: IEditorProps) => {
           language={language}
           saveAction={name ? saveSchema : undefined}
           toggleEditMode={name ? toggleEditMode : undefined}
+          editMode={editMode}
         />
         {name && schema ? (
           <div
