@@ -1,20 +1,20 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:base", "npm:unpublishSafe"],
+  "extends": ["config:base"],
+  "stabilityDays": 3,
+  "internalChecksFilter": "strict",
   "packageRules": [
     {
-      "matchManagers": [
-        "dockerfile",
-        "npm",
-        "github-actions",
-        "nuget",
-        "maven"
+      "matchLanguages": [
+        "javascript",
+        "java",
+        "csharp"
       ],
-      "groupName": "{{manager}} non-major dependencies",
+      "groupName": "{{language}} non-major dependencies",
       "matchCurrentVersion": ">=1.0.0",
       "matchPackagePatterns": ["*"],
       "matchUpdateTypes": ["minor", "patch"],
-      "groupSlug": "{{manager}}-minor-patch"
+      "groupSlug": "{{language}}-minor-patch"
     }
   ]
 }
