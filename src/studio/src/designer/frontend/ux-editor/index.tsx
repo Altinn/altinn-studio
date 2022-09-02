@@ -20,9 +20,7 @@ run();
  */
 render(
   <Provider store={store}>
-    <div>
-      <AppComponent />
-    </div>
+    <AppComponent />
   </Provider>,
   document.getElementById('root'),
 );

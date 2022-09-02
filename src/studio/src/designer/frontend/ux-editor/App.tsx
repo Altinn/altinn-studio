@@ -55,10 +55,10 @@ export function App() {
   }, [dispatch]);
 
   return (
-    <>
+    <div>
       <ErrorMessageComponent/>
       <FormDesigner/>
-    </>
+    </div>
   );
 }
 
