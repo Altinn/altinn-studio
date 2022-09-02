@@ -4,16 +4,22 @@
   "stabilityDays": 3,
   "timezone": "Europe/Oslo",
   "internalChecksFilter": "strict",
-  "schedule": [
-    "before 07:00 on Thursday"
-  ],
+  "schedule": ["before 07:00 on Thursday"],
   "packageRules": [
     {
-      "groupName": "all non-major dependencies",
+      "matchManagers": [
+        "docker-compose",
+        "dockerfile",
+        "github-actions",
+        "maven",
+        "npm",
+        "nuget"
+      ],
+      "groupName": "{{manager}} non-major dependencies",
       "matchCurrentVersion": ">=1.0.0",
       "matchPackagePatterns": ["*"],
       "matchUpdateTypes": ["minor", "patch"],
-      "groupSlug": "all-minor-patch"
+      "groupSlug": "{{manager}}-minor-patch"
     }
   ]
 }
