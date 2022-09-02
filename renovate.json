@@ -5,7 +5,7 @@
   "timezone": "Europe/Oslo",
   "internalChecksFilter": "strict",
   "schedule": [
-    "every thursday before 07:00"
+    "thursdays before 07:00"
   ],
   "packageRules": [
     {
