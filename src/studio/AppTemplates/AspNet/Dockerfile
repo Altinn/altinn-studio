@@ -8,7 +8,7 @@ WORKDIR /App
 RUN dotnet build App.csproj --configuration Release --output /app_output
 RUN dotnet publish App.csproj --configuration Release --output /app_output
 
-FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine AS final
+FROM mcr.microsoft.com/dotnet/aspnet:7.0-alpine AS final
 EXPOSE 5005
 WORKDIR /app
 COPY --from=build /app_output .
