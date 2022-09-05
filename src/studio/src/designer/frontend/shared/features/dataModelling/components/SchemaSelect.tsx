@@ -56,7 +56,6 @@ const SchemaSelect = (props: ISchemaSelectProps) => {
         components={{ IndicatorSeparator, DropdownIndicator }}
         onChange={onChange}
         className={classes.select}
-        fullWidth={true}
         options={options}
         value={selectedOption}
       />

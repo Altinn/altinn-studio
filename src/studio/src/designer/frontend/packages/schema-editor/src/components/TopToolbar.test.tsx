@@ -1,6 +1,6 @@
 import React from 'react';
 import { act } from 'react-dom/test-utils';
-import TopToolbar from './TopToolbar';
+import { TopToolbar } from './TopToolbar';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 

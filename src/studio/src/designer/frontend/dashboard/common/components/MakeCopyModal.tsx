@@ -63,7 +63,7 @@ export const MakeCopyModal = ({
             url: `${window.location.origin}/designer/api/v1/user/repos`,
           }),
         );
-        window.location.href = `${window.location.origin}/designer/${org}/${repoName}#/about?copiedApp=true`;
+        window.location.href = `${window.location.origin}/designer/${org}/${repoName}#/?copiedApp=true`;
       } catch (error) {
         if (error?.response?.status === 409) {
           setErrorMessage(

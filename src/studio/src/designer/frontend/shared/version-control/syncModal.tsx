@@ -171,7 +171,7 @@ class SyncModalComponent extends React.Component<
               id='test'
               multiline={true}
               value={this.state.commitMessage}
-              rows={3}
+              minRows={3}
               onChange={this.handleChange}
               InputProps={{
                 disableUnderline: true,
