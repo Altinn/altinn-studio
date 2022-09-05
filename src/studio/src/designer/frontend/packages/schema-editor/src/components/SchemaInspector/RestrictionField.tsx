@@ -29,26 +29,14 @@ export interface IRestrictionFieldProps {
   onReturn?: (e: BaseSyntheticEvent) => void;
   path: string;
   readOnly?: boolean;
-  value: string;
+  value?: string;
 }
 
-export const RestrictionField = ({
-  keyName,
-  label,
-  onChangeValue,
-  onReturn,
-  path,
-  readOnly,
-  value,
-}: IRestrictionFieldProps) => {
+export const RestrictionField = ({ keyName, label, onChangeValue, path, readOnly, value }: IRestrictionFieldProps) => {
   const classes = useStyles();
 
-  const onValueKeyDown = (e: any) => {
-    if (onReturn && e.keyCode === 13) {
-      onReturn(e);
-    }
-  };
   const baseId = getDomFriendlyID(path);
+
   return (
     <>
       <Grid item xs={12}>
@@ -58,9 +46,8 @@ export const RestrictionField = ({
           id={`${baseId}-${keyName}-value`}
           disabled={readOnly}
           className={classes.field}
-          value={value}
+          value={value ?? ''}
           disableUnderline={true}
-          onKeyDown={onValueKeyDown}
           onChange={(e) => onChangeValue(path, e.target.value, keyName)}
         />
       </Grid>

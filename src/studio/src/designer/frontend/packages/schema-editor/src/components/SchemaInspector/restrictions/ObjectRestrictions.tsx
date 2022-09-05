@@ -4,22 +4,22 @@ import { getRestrictions } from '../../../utils/restrictions';
 import { RestrictionField } from '../RestrictionField';
 import { FieldType } from '../../../types';
 import { getTranslation } from '../../../utils/language';
+import { Divider } from '@material-ui/core';
 
-export function ObjectRestrictions({ restrictions, language, onChangeRestrictionValue }: RestrictionItemProps) {
+export function ObjectRestrictions({ restrictions, path, language, onChangeRestrictionValue }: RestrictionItemProps) {
   const defaults = getRestrictions(FieldType.Object);
-
   return (
     <>
+      <Divider />
       {defaults?.map((key) => (
         <RestrictionField
           key={key}
-          path={key}
+          path={path}
           label={getTranslation(key, language)}
           value={restrictions.find((r) => r.key === key)?.value}
           keyName={key}
           readOnly={false}
           onChangeValue={onChangeRestrictionValue}
-          onReturn={console.log}
         />
       ))}
     </>

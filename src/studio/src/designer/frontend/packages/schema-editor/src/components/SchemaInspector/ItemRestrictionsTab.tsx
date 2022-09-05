@@ -91,10 +91,7 @@ export const ItemRestrictionsTab = ({ classes, item, language }: Props) => {
         />
       </Grid>
       {item.$ref === undefined && (
-        <>
-          <Grid item xs={12}>
-            <Divider />
-          </Grid>
+        <Grid item xs={12}>
           {
             {
               [FieldType.Array]: <ArrayRestrictions {...restrictionProps} />,
@@ -106,9 +103,8 @@ export const ItemRestrictionsTab = ({ classes, item, language }: Props) => {
               default: undefined,
             }[item.type ?? 'default']
           }
-        </>
+        </Grid>
       )}
-
       {item.type !== FieldType.Object && (
         <>
           <Grid item xs={12}>

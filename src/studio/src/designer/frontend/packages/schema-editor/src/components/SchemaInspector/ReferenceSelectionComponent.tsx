@@ -1,5 +1,5 @@
+import React from 'react';
 import { ClassNameMap } from '@material-ui/core/styles/withStyles';
-import * as React from 'react';
 import { FieldType, UiSchemaItem } from '../../types';
 import { ObjectKind } from '../../types/enums';
 import { RefSelect } from './RefSelect';

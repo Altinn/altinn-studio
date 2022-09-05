@@ -1,4 +1,4 @@
-import { FieldType } from '../../../types';
+import { CombinationKind, FieldType } from '../../../types';
 
 export interface Option {
   value: string;
@@ -7,15 +7,15 @@ export interface Option {
 
 export const getCombinationOptions = (t: (key: string) => string): Option[] => [
   {
-    value: 'allOf',
+    value: CombinationKind.AllOf,
     label: t('all_of'),
   },
   {
-    value: 'anyOf',
+    value: CombinationKind.AnyOf,
     label: t('any_of'),
   },
   {
-    value: 'oneOf',
+    value: CombinationKind.OneOf,
     label: t('one_of'),
   },
 ];
