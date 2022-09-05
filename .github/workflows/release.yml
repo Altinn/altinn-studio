@@ -53,32 +53,33 @@ jobs:
           git log -1 | grep -Ev "commit|Author|Date" > ./../commitmsg.txt
 
       - name: Copy version
-        working-directory: app-frontend
+        working-directory: cdn
         if: "!github.event.release.prerelease"
         run: |
           echo altinn-app-frontend version: ${{ steps.prepare.outputs.APP_FULL }}
-          cd ..
           echo Copy Major Version
-          mkdir -p ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR }}
-          git rm ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR }}/*
-          cp -fr ./app-frontend/src/altinn-app-frontend/dist/* ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR }}/
+          test -e toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR }} && git rm -r toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR }}
+          mkdir -p toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR }}
+          cp -fr ../app-frontend/src/altinn-app-frontend/dist/* toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR }}/
           echo Copy Minor Version
-          mkdir -p ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR_MINOR }}
-          git rm ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR_MINOR }}/*
-          cp -fr ./app-frontend/src/altinn-app-frontend/dist/* ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR_MINOR }}/
+          test -e toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR_MINOR }} && git rm -r toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR_MINOR }}
+          mkdir -p toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR_MINOR }}
+          cp -fr ../app-frontend/src/altinn-app-frontend/dist/* toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR_MINOR }}/
           echo Copy Patch
+          test -e toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }} && git rm -r toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}
           mkdir -p ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}
-          cp -fr ./app-frontend/src/altinn-app-frontend/dist/* ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}/
+          cp -fr ../app-frontend/src/altinn-app-frontend/dist/* toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}/
 
       - name: Copy version (pre-release)
-        working-directory: app-frontend
+        working-directory: cdn
         if: "github.event.release.prerelease"
         run: |
           echo altinn-app-frontend version: ${{ steps.prepare.outputs.APP_FULL }}
           cd ..
           echo Copy Patch
-          mkdir -p ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}
-          cp -fr ./app-frontend/src/altinn-app-frontend/dist/* ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}/
+          test -e toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }} && git rm -r toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}
+          mkdir -p toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}
+          cp -fr ../app-frontend/src/altinn-app-frontend/dist/* toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}/
 
       - name: Copy patch version and commit to CDN
         working-directory: cdn
