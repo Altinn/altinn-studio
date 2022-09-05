@@ -3,9 +3,16 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.ts",
+  "proxy": "http://localhost:5050",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "backend": "json-server --watch mock_data.json --port 5050 --delay=1000"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "json-server": "^0.17.0",
+    "react-select": "^5.4.0"
+  }
 }

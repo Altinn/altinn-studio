@@ -1,0 +1,448 @@
+{
+  "nb": {
+    "37133.SkattemeldingEndringEtterFristKommentardatadef37133.Label": "S",
+    "68.OppgavegiverNavndatadef68.Label": "Oppgave giver navn",
+    "BegrunnelseAnnet": "Forklar hvorfor du ønsker å ta navnet, og eventuelt hvilken tilknytning du har til navnet:",
+    "BegrunnelseGard1": "Gårdsbruk du vil ta navnet fra",
+    "BegrunnelseGard2": "Kommune gårdsbruket ligger i",
+    "BegrunnelseGard3": "Gårdsnummer",
+    "BegrunnelseGard4": "Bruksnummer",
+    "BegrunnelseGard5": "Forklar din tilknytning til gårdsbruket",
+    "BegrunnelseNyttNavn": "Du ønsker å ta et navn som du tror er nytt i Norge. Forklar hvorfor du ønsker dette navnet:",
+    "BegrunnelseSamboer1": "Etternavn på samboer",
+    "BegrunnelseSamboer2": "Fødselsnummer på samboer",
+    "BegrunnelseSlektskap": "Forklar hvem du tar navnet fra, og hvilken side slektskapet ligger",
+    "BegrunnelseSteforeldre": "Etternavn på ste- eller fosterforeldre du ønsker å ta navnet til",
+    "BegrunnelseValgNavn": "Vennligst oppgi begrunnelse for endring av navn",
+    "BekreftNavnTittel": "Bekreftelse av navn",
+    "DineEndringer": "Dine endringer",
+    "EndreNavnFra": "Du har valgt å endre:",
+    "EndreNavnTil": "Til:",
+    "Epost": "E-post",
+    "Fodselsnummer": "Fødselsnummer",
+    "HintEtternavn": "Bindestrek må benyttes dersom du ønsker to etternavn.",
+    "HintMellomnavn": "Mellomnavn må være et navn som kan benyttes som etternavn. Du har nå skrevet ${{dmv.ServiceModel-test.mellomnavnNytt}}",
+    "Kontaktinformasjon": "Kontaktinformasjon",
+    "NavarendeNavn": "Nåværende navn",
+    "PersonNyttEtternavn": "Nytt etternavn",
+    "PersonNyttFornavn": "Nytt fornavn",
+    "PersonNyttFornavn.helptext": "Tenk deg godt om, det tar 10 år før du kan endre navn igjen",
+    "PersonNyttMellomnavn": "Nytt mellomnavn",
+    "ServiceName": "frontend-test",
+    "confirm.body": "Vennligst vent, endrer navn til ${{dmv.ServiceModel-test.fornavnFolkeregisteret}}. <br/> <br/> Du har startet instance: ${{ic.instanceId}} for app: ${{ic.appId}}. <br/> <br/>Trykk [her](${{as.appUrl}}) for å starte på nytt.",
+    "datofeltet": "Når vil du at navnendringen skal skje?",
+    "dato-short": "dato for navneendring",
+    "error.testValue": "test er ikke en gyldig <a href='https://www.altinn.no/' target='_blank'>verdi</a>",
+    "kontaktinfoBeskrivelse": "Denne kontaktinformasjonen brukes til å kontakte deg hvis det er noen spørsmål rundt informasjonen du har sendt inn.",
+    "messageAttachments": "Vedlegg",
+    "messageBody": "Bruke dette app for å teste app frontend <br/> 1. Melding <br/> 2. Endring-av-navn-v2 <br/> 3. Repeterende gruppe <br/> 4. Bekreftelse side",
+    "messageTitle": "## Appen for test av app frontend",
+    "messageTitleHelp": "Bruk dette appen for test av app frontend",
+    "summaryTitle": "## Oppsummering",
+    "vedlegg": "Last opp eventuell dokumentasjon for ditt nye navn",
+    "startAgain": "Du har startet instance: ${{ic.instanceId}} for app: ${{ic.appId}}.<br/> <br/> Trykk [her](${{as.appUrl}}) for å starte på nytt.",
+    "optionsFromRepeatingGroup": "Endre fra: ${{dmv.nested-group.fristOpprinneligBelop}}, Endre til: ${{dmv.nested-group.fristOpprinneligBelop}}"
+  },
+  "lang": [
+    {
+      "id": 1,
+      "lang": "Assamese"
+    },
+    {
+      "id": 2,
+      "lang": "Georgian"
+    },
+    {
+      "id": 3,
+      "lang": "Croatian"
+    },
+    {
+      "id": 4,
+      "lang": "Finnish"
+    },
+    {
+      "id": 5,
+      "lang": "Swedish"
+    },
+    {
+      "id": 6,
+      "lang": "Dhivehi"
+    },
+    {
+      "id": 7,
+      "lang": "Nepali"
+    },
+    {
+      "id": 8,
+      "lang": "Indonesian"
+    },
+    {
+      "id": 9,
+      "lang": "Kazakh"
+    },
+    {
+      "id": 10,
+      "lang": "Ndebele"
+    },
+    {
+      "id": 11,
+      "lang": "Bengali"
+    },
+    {
+      "id": 12,
+      "lang": "Tetum"
+    },
+    {
+      "id": 13,
+      "lang": "Aymara"
+    },
+    {
+      "id": 14,
+      "lang": "Kashmiri"
+    },
+    {
+      "id": 15,
+      "lang": "Armenian"
+    },
+    {
+      "id": 16,
+      "lang": "Swahili"
+    },
+    {
+      "id": 17,
+      "lang": "West Frisian"
+    },
+    {
+      "id": 18,
+      "lang": "Tok Pisin"
+    },
+    {
+      "id": 19,
+      "lang": "Luxembourgish"
+    },
+    {
+      "id": 20,
+      "lang": "Sotho"
+    },
+    {
+      "id": 21,
+      "lang": "Kurdish"
+    },
+    {
+      "id": 22,
+      "lang": "Māori"
+    },
+    {
+      "id": 23,
+      "lang": "Sotho"
+    },
+    {
+      "id": 24,
+      "lang": "Kyrgyz"
+    },
+    {
+      "id": 25,
+      "lang": "Papiamento"
+    },
+    {
+      "id": 26,
+      "lang": "Afrikaans"
+    },
+    {
+      "id": 27,
+      "lang": "Azeri"
+    },
+    {
+      "id": 28,
+      "lang": "Luxembourgish"
+    },
+    {
+      "id": 29,
+      "lang": "Catalan"
+    },
+    {
+      "id": 30,
+      "lang": "Tajik"
+    },
+    {
+      "id": 31,
+      "lang": "Hiri Motu"
+    },
+    {
+      "id": 32,
+      "lang": "Kyrgyz"
+    },
+    {
+      "id": 33,
+      "lang": "Bislama"
+    },
+    {
+      "id": 34,
+      "lang": "Dutch"
+    },
+    {
+      "id": 35,
+      "lang": "Kashmiri"
+    },
+    {
+      "id": 36,
+      "lang": "Swedish"
+    },
+    {
+      "id": 37,
+      "lang": "Luxembourgish"
+    },
+    {
+      "id": 38,
+      "lang": "Malay"
+    },
+    {
+      "id": 39,
+      "lang": "Lithuanian"
+    },
+    {
+      "id": 40,
+      "lang": "Dari"
+    },
+    {
+      "id": 41,
+      "lang": "Thai"
+    },
+    {
+      "id": 42,
+      "lang": "Kurdish"
+    },
+    {
+      "id": 43,
+      "lang": "Dhivehi"
+    },
+    {
+      "id": 44,
+      "lang": "Tswana"
+    },
+    {
+      "id": 45,
+      "lang": "Italian"
+    },
+    {
+      "id": 46,
+      "lang": "Chinese"
+    },
+    {
+      "id": 47,
+      "lang": "Lao"
+    },
+    {
+      "id": 48,
+      "lang": "Dutch"
+    },
+    {
+      "id": 49,
+      "lang": "Italian"
+    },
+    {
+      "id": 50,
+      "lang": "Moldovan"
+    },
+    {
+      "id": 51,
+      "lang": "Bosnian"
+    },
+    {
+      "id": 52,
+      "lang": "Hebrew"
+    },
+    {
+      "id": 53,
+      "lang": "Dutch"
+    },
+    {
+      "id": 54,
+      "lang": "New Zealand Sign Language"
+    },
+    {
+      "id": 55,
+      "lang": "Haitian Creole"
+    },
+    {
+      "id": 56,
+      "lang": "Latvian"
+    },
+    {
+      "id": 57,
+      "lang": "West Frisian"
+    },
+    {
+      "id": 58,
+      "lang": "Mongolian"
+    },
+    {
+      "id": 59,
+      "lang": "Danish"
+    },
+    {
+      "id": 60,
+      "lang": "Polish"
+    },
+    {
+      "id": 61,
+      "lang": "Bosnian"
+    },
+    {
+      "id": 62,
+      "lang": "Hungarian"
+    },
+    {
+      "id": 63,
+      "lang": "Norwegian"
+    },
+    {
+      "id": 64,
+      "lang": "German"
+    },
+    {
+      "id": 65,
+      "lang": "Bengali"
+    },
+    {
+      "id": 66,
+      "lang": "Catalan"
+    },
+    {
+      "id": 67,
+      "lang": "New Zealand Sign Language"
+    },
+    {
+      "id": 68,
+      "lang": "Estonian"
+    },
+    {
+      "id": 69,
+      "lang": "Icelandic"
+    },
+    {
+      "id": 70,
+      "lang": "Swahili"
+    },
+    {
+      "id": 71,
+      "lang": "Haitian Creole"
+    },
+    {
+      "id": 72,
+      "lang": "Norwegian"
+    },
+    {
+      "id": 73,
+      "lang": "Norwegian"
+    },
+    {
+      "id": 74,
+      "lang": "Czech"
+    },
+    {
+      "id": 75,
+      "lang": "Amharic"
+    },
+    {
+      "id": 76,
+      "lang": "Aymara"
+    },
+    {
+      "id": 77,
+      "lang": "Hiri Motu"
+    },
+    {
+      "id": 78,
+      "lang": "West Frisian"
+    },
+    {
+      "id": 79,
+      "lang": "Croatian"
+    },
+    {
+      "id": 80,
+      "lang": "Thai"
+    },
+    {
+      "id": 81,
+      "lang": "Finnish"
+    },
+    {
+      "id": 82,
+      "lang": "Assamese"
+    },
+    {
+      "id": 83,
+      "lang": "Pashto"
+    },
+    {
+      "id": 84,
+      "lang": "Kurdish"
+    },
+    {
+      "id": 85,
+      "lang": "Tswana"
+    },
+    {
+      "id": 86,
+      "lang": "Persian"
+    },
+    {
+      "id": 87,
+      "lang": "Bosnian"
+    },
+    {
+      "id": 88,
+      "lang": "Czech"
+    },
+    {
+      "id": 89,
+      "lang": "Montenegrin"
+    },
+    {
+      "id": 90,
+      "lang": "Georgian"
+    },
+    {
+      "id": 91,
+      "lang": "Yiddish"
+    },
+    {
+      "id": 92,
+      "lang": "Estonian"
+    },
+    {
+      "id": 93,
+      "lang": "Malagasy"
+    },
+    {
+      "id": 94,
+      "lang": "Pashto"
+    },
+    {
+      "id": 95,
+      "lang": "Swedish"
+    },
+    {
+      "id": 96,
+      "lang": "Persian"
+    },
+    {
+      "id": 97,
+      "lang": "Catalan"
+    },
+    {
+      "id": 98,
+      "lang": "Tajik"
+    },
+    {
+      "id": 99,
+      "lang": "Macedonian"
+    },
+    {
+      "id": 100,
+      "lang": "Hungarian"
+    }
+  ]
+}

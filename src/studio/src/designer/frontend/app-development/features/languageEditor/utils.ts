@@ -19,18 +19,18 @@ export const useGetLanguages = () => {
 
   useEffect(() => {
     const fetchLanguages = async () => {
-      const [en, nb, nn] = await Promise.all([
-        Axios.get(getLoadTextResourcesUrl('en')),
+      const [nb] = await Promise.all([
+        // Axios.get(getLoadTextResourcesUrl('en')),
         Axios.get(getLoadTextResourcesUrl('nb')),
-        Axios.get(getLoadTextResourcesUrl('nn')),
+        // Axios.get(getLoadTextResourcesUrl('nn')),
       ]);
 
       /* eslint-disable-next-line */
       /* @ts-ignore */
       setLanguages({
-        ...(en.data && { en: en.data }),
-        ...(nb.data && { nb: nb.data }),
-        ...(nn.data && { nn: nn.data }),
+        // ...(en.data && { Engelsk: en.data }),
+        ...(nb.data && { Bokmal: nb.data }),
+        // ...(nn.data && { Nynorsk: nn.data }),
       });
     };
 

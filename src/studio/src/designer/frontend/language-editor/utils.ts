@@ -2,6 +2,18 @@ export interface ILanguageEditor {
   languages: {
     [languageKey: string]: Record<string, string>;
   };
+  addNewSprak: (addNewSprakKey: any) => void;
+  setAddNewSprak: (setAddNewSprakKey: any) => void;
+  isNewTextInput: boolean;
+  setIsNewTextInput: (isNewTextInput: boolean) => void;
+  sprak: { [key: string]: any };
+  setSprak: (sprak: { [key: string]: any }) => void;
+  selectedSprak: string;
+  setSelectedSprak: (selectedSprak: string) => void;
+  sprakOptions: { [key: string]: any };
+  setSprakOptions: (sprakOptions: { [key: string]: any }) => void;
+  newSprakField: { [key: string]: any };
+  setNewSprakField: (newSprakField: { [key: string]: any }) => void;
 }
 
 interface ITransformLanguagesProps extends ILanguageEditor {
