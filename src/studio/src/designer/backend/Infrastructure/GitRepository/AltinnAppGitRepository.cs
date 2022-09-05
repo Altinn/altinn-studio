@@ -1,5 +1,8 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 using Altinn.Platform.Storage.Interface.Models;
@@ -38,7 +41,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         /// <summary>
         /// Gets the application metadata.
-        /// </summary>    
+        /// </summary>
         public async Task<Application> GetApplicationMetadata()
         {
             var appMetadataRealtiveFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
@@ -133,6 +136,38 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             var textResource = JsonConvert.DeserializeObject<Designer.Models.TextResource>(fileContent);
 
             return textResource;
+        }
+
+        /// <summary>
+        /// Returns content in text file written in the new text format
+        /// identified by languageCode in filename as a string.
+        /// </summary>
+        /// <param name="languageCode">Language identifier</param>
+        public async Task<string> GetTextContentV2(string languageCode)
+        {
+            string fileName = "text." + languageCode + ".json";
+
+            var textFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
+
+            string fileContent = await ReadTextByRelativePathAsync(textFileRelativeFilePath);
+
+            return fileContent;
+        }
+
+        /// <summary>
+        /// Overwrite a V2 text file with an updated V2 text file
+        /// </summary>
+        /// <param name="languageCode">Language identifier</param>
+        /// <param name="jsonText">Text file for language as string</param>
+        public async Task SaveTextV2(string languageCode, Dictionary<string, string> jsonText)
+        {
+            string fileName = $"text.{languageCode}.json";
+
+            var textFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
+
+            string text = System.Text.Json.JsonSerializer.Serialize(jsonText);
+
+            await WriteTextByRelativePathAsync(textFileRelativeFilePath, text);
         }
 
         /// <summary>
