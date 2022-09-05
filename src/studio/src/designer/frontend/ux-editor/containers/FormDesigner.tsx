@@ -7,7 +7,7 @@ import {
   Typography,
 } from '@material-ui/core';
 import classNames from 'classnames';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDispatch, useSelector } from 'react-redux';
@@ -16,15 +16,16 @@ import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import RightMenu from '../components/rightMenu/RightMenu';
 import { filterDataModelForIntellisense } from '../utils/datamodel';
-import DesignView from './DesignView';
+import { DesignView } from './DesignView';
 import { Toolbar } from './Toolbar';
 import { fetchServiceConfiguration } from '../features/serviceConfigurations/serviceConfigurationSlice';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import type {
+  IAppState,
   IDataModelFieldElement,
   LogicMode,
-  IAppState,
 } from '../types/global';
+import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 
 const useTheme = createTheme(altinnTheme);
 
@@ -130,8 +131,8 @@ function FormDesigner() {
   const classes = useStyles(useTheme);
   const dispatch = useDispatch();
 
-  const [codeEditorOpen, setCodeEditorOpen] = React.useState<boolean>(false);
-  const [codeEditorMode, setCodeEditorMode] = React.useState<LogicMode>(null);
+  const [codeEditorOpen, setCodeEditorOpen] = useState<boolean>(false);
+  const [codeEditorMode, setCodeEditorMode] = useState<LogicMode>(null);
 
   const selectedLayout: string = useSelector(
     (state: IAppState) => state.formDesigner.layout.selectedLayout,
@@ -143,7 +144,7 @@ function FormDesigner() {
     (state: IAppState) => state.appData.dataModel.model,
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     dispatch(FormLayoutActions.fetchFormLayout());
     dispatch(fetchServiceConfiguration());
   }, [dispatch]);
@@ -182,6 +183,23 @@ function FormDesigner() {
       </Drawer>
     );
   };
+
+  const activeList = useSelector(
+    (state: IAppState) => state.formDesigner.layout.activeList,
+  );
+  const layoutOrder = useSelector((state: IAppState) =>
+    JSON.parse(
+      JSON.stringify(
+        state.formDesigner.layout.layouts[
+          state.formDesigner.layout.selectedLayout
+        ]?.order || {},
+      ),
+    ),
+  );
+
+  const order = useSelector((state: IAppState) =>
+    makeGetLayoutOrderSelector()(state),
+  );
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -222,7 +240,12 @@ function FormDesigner() {
                 marginLeft: '24px',
               }}
             >
-              <DesignView />
+              <DesignView
+                order={order}
+                activeList={activeList}
+                isDragging={false}
+                layoutOrder={layoutOrder}
+              />
               {codeEditorOpen ? renderLogicEditor() : null}
             </div>
           </Grid>

@@ -1,4 +1,4 @@
-import { Hidden, Typography } from '@material-ui/core';
+import { Typography } from '@material-ui/core';
 import Grid from '@material-ui/core/Grid';
 import {
   createTheme,
@@ -115,20 +115,22 @@ export class HandleMergeConflictContainer extends React.Component<
       <React.Fragment>
         <MuiThemeProvider theme={theme}>
           <div className={classes.root} id='handleMergeConflictContainer'>
-            <Grid container={true} justifyContent='flex-start' alignItems='stretch'>
+            <Grid
+              container={true}
+              justifyContent='flex-start'
+              alignItems='stretch'
+            >
               <Grid item={true} xs={12}>
                 {repoStatus.hasMergeConflict ? null : (
                   <VersionControlHeader language={language} />
                 )}
 
-                <Hidden smDown={true}>
-                  <Typography variant='h1'>
-                    {getLanguageFromKey(
-                      'handle_merge_conflict.container_title',
-                      language,
-                    )}
-                  </Typography>
-                </Hidden>
+                <Typography variant='h1'>
+                  {getLanguageFromKey(
+                    'handle_merge_conflict.container_title',
+                    language,
+                  )}
+                </Typography>
 
                 {repoStatus.hasMergeConflict ? (
                   <div
@@ -216,7 +218,6 @@ export class HandleMergeConflictContainer extends React.Component<
                 </Grid>
               </Grid>
 
-              {/* Bottom grid */}
               <Grid
                 container={true}
                 item={true}
@@ -248,14 +249,12 @@ export class HandleMergeConflictContainer extends React.Component<
 
 const makeMapStateToProps = () => {
   const GetRepoStatusSelector = makeGetRepoStatusSelector();
-  const mapStateToProps = (state: RootState) => {
+  return (state: RootState) => {
     return {
       repoStatus: GetRepoStatusSelector(state),
       language: state.languageState.language,
     };
   };
-
-  return mapStateToProps;
 };
 
 export default withStyles(styles)(

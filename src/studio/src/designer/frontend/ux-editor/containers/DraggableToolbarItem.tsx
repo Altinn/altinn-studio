@@ -1,55 +1,32 @@
-import { Identifier } from 'dnd-core';
-import React from 'react';
-import {
-  ConnectDragSource,
-  DragSource,
-  DragSourceConnector,
-  DragSourceMonitor,
-  DragSourceSpec,
-} from 'react-dnd';
+import React, { FC } from 'react';
+import { useDrag } from 'react-dnd';
+import { DragSourceHookSpec } from 'react-dnd/src/hooks/types';
+import { EditorDndItem, ItemType } from './helpers/dnd-types';
 
 export interface IDraggableProps {
   id: string;
   index?: number;
   containerId: string;
   notDraggable?: boolean;
-  onDrop?: (...args: any) => void;
+  onDrop?: (containerId?: string, position?: number) => void;
 }
 
-interface IDraggablePropsCollected {
-  isDragging: boolean;
-  connectDragSource: ConnectDragSource;
-}
+const draggableToolbarItemSpec = (
+  item: EditorDndItem,
+  notDraggable: boolean,
+): DragSourceHookSpec<any, any, any> => ({
+  item,
+  type: item.type,
+  canDrag: () => !notDraggable,
+});
 
-class Draggable extends React.Component<
-  IDraggableProps & IDraggablePropsCollected,
-  any
-> {
-  public render() {
-    const { connectDragSource } = this.props;
-    return connectDragSource(
-      <div tabIndex={0} onKeyDown={this.handleKeyDown}>
-        {this.props.children}
-      </div>,
-    );
-  }
-
-  public handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'Enter') {
-      this.props.onDrop();
-    }
-  };
-}
-
-export default (
-  type: string | string[],
-  draggableSpec: DragSourceSpec<IDraggableProps, any>,
-) =>
-  DragSource(
-    type as Identifier,
-    draggableSpec,
-    (connect: DragSourceConnector, monitor: DragSourceMonitor) => ({
-      connectDragSource: connect.dragSource(),
-      isDragging: monitor.isDragging(),
-    }),
-  )(Draggable);
+export const DraggableToolbarItem: FC<IDraggableProps> = ({
+  id,
+  children,
+  onDrop,
+  notDraggable,
+}) => {
+  const item = { id, onDrop, type: ItemType.ToolbarItem };
+  const [, drag] = useDrag(draggableToolbarItemSpec(item, notDraggable));
+  return <div ref={drag}>{children}</div>;
+};

@@ -2,21 +2,21 @@ name: Designer Scan
 
 on:
   schedule:
-  - cron: '0 8 * * 1,4'
+    - cron: '14 8 * * 1,4'
   push:
     branches: [ master ]
     paths:
-      - 'src/studio/src/designer/**'
+      - 'src/studio/src/designer/**/Dockerfile'
   pull_request:
     branches: [ master ]
     paths:
-      - 'src/studio/src/designer**'
+      - 'src/studio/src/designer/**/Dockerfile'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Build the Docker image
       run: docker build src/studio/ --file  src/studio/src/designer/Dockerfile --tag altinn-designer:${{github.sha}}
       

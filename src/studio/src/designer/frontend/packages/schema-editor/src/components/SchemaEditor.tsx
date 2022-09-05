@@ -21,11 +21,18 @@ import {
 } from '../features/editor/schemaEditorSlice';
 import { SchemaItem } from './SchemaItem';
 import { getTranslation } from '../utils/language';
-import { getDomFriendlyID } from '../utils/schema';
+import {
+  getDomFriendlyID,
+  getSchemaFromPath,
+  getUiSchemaItem,
+  splitParentPathAndName,
+} from '../utils/schema';
 import { SchemaInspector } from './SchemaInspector';
 import { SchemaTab } from './SchemaTab';
 import { TopToolbar } from './TopToolbar';
+import { getSchemaSettings } from '../settings';
 import { getLanguageFromKey } from 'app-shared/utils/language';
+import { isNameInUse } from '../utils/checks';
 
 const useStyles = makeStyles({
   root: {
@@ -127,16 +134,22 @@ export const SchemaEditor = (props: IEditorProps) => {
   const selectedDefinitionNode = useSelector(
     (state: ISchemaState) => state.selectedDefinitionNodeId,
   );
-  const definitions = useSelector((state: ISchemaState) =>
-    state.uiSchema.filter((d: UiSchemaItem) =>
-      d.path.startsWith('#/definitions'),
-    ),
+
+  const schemaSettings = getSchemaSettings({schemaUrl: jsonSchema?.$schema});
+  const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
+  const definitions = uiSchema.filter((d: UiSchemaItem) => d.path.startsWith(`${schemaSettings.definitionsPath}/`));
+  const modelView = uiSchema.filter((d: UiSchemaItem) => {
+      if (schemaSettings.rootNodePath !== '#/oneOf') {
+        return d.path.startsWith(schemaSettings.rootNodePath);
+      }
+      const modelsArray = getSchemaFromPath(schemaSettings.rootNodePath.slice(1), jsonSchema);
+      if (modelsArray && Array.isArray(modelsArray)) {
+        return modelsArray.find(m => m.$ref === d.path);
+      }
+      return false;
+    }
   );
-  const properties = useSelector((state: ISchemaState) =>
-    state.uiSchema.filter((d: UiSchemaItem) =>
-      d.path.startsWith('#/properties/'),
-    ),
-  );
+
   const selectedTab: string = useSelector(
     (state: ISchemaState) => state.selectedEditorTab,
   );
@@ -232,6 +245,41 @@ export const SchemaEditor = (props: IEditorProps) => {
       spinnerText={getLanguageFromKey('general.loading', language)}
     />
   ) : null;
+
+  const selectedId = useSelector((state: ISchemaState) =>
+    state.selectedEditorTab === 'properties'
+      ? state.selectedPropertyNodeId
+      : state.selectedDefinitionNodeId,
+  );
+
+  const selectedItem = useSelector((state: ISchemaState) =>
+    selectedId ? getUiSchemaItem(state.uiSchema, selectedId) : null,
+  );
+
+  // if item is a reference, we want to show the properties of the reference.
+  const referredItem = useSelector((state: ISchemaState) =>
+    selectedItem?.$ref
+      ? state.uiSchema.find((i: UiSchemaItem) => i.path === selectedItem.$ref)
+      : null,
+  );
+
+  const parentItem = useSelector((state: ISchemaState) => {
+    if (selectedId) {
+      const [parentPath] = splitParentPathAndName(selectedId);
+      if (parentPath) {
+        return getUiSchemaItem(state.uiSchema, parentPath);
+      }
+    }
+    return null;
+  });
+
+  const checkIsNameInUse = (name: string) =>
+    isNameInUse({
+      uiSchemaItems: uiSchema,
+      parentSchema: parentItem,
+      path: selectedId,
+      name,
+    });
   return (
     <div className={classes.root}>
       <main>
@@ -285,7 +333,7 @@ export const SchemaEditor = (props: IEditorProps) => {
                   expanded={expandedPropertiesNodes}
                   onNodeToggle={handlePropertiesNodeExpanded}
                 >
-                  {properties?.map((item: UiSchemaItem) => (
+                  {modelView?.map((item: UiSchemaItem) => (
                     <SchemaItem
                       keyPrefix='properties'
                       key={item.path}
@@ -340,7 +388,12 @@ export const SchemaEditor = (props: IEditorProps) => {
       </main>
       {schema && (
         <aside className={classes.inspector}>
-          <SchemaInspector language={language} />
+          <SchemaInspector
+            language={language}
+            referredItem={referredItem ?? undefined}
+            selectedItem={selectedItem ?? undefined}
+            checkIsNameInUse={checkIsNameInUse}
+          />
         </aside>
       )}
       <AltinnMenu
