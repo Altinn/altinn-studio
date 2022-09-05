@@ -1,4 +1,5 @@
 import type { UiSchemaItem } from '../types';
+import { CombinationKind, FieldType } from '../types';
 import {
   buildJsonSchema,
   buildUISchema,
@@ -24,8 +25,8 @@ const mockUiSchema: UiSchemaItem[] = [
         isRequired: true,
       },
     ],
-    type: 'object',
-    required: ['id3']
+    type: FieldType.Object,
+    required: ['id3'],
   },
   {
     path: '#/properties/allOfTest',
@@ -38,7 +39,7 @@ const mockUiSchema: UiSchemaItem[] = [
         combinationItem: true,
       } as UiSchemaItem,
     ],
-    combinationKind: 'allOf',
+    combinationKind: CombinationKind.AllOf,
     restrictions: [],
   },
   {
@@ -52,7 +53,7 @@ const mockUiSchema: UiSchemaItem[] = [
         combinationItem: true,
       } as UiSchemaItem,
     ],
-    combinationKind: 'oneOf',
+    combinationKind: CombinationKind.OneOf,
     restrictions: [],
   },
   {
@@ -66,11 +67,11 @@ const mockUiSchema: UiSchemaItem[] = [
         combinationItem: true,
       } as UiSchemaItem,
     ],
-    combinationKind: 'anyOf',
+    combinationKind: CombinationKind.AnyOf,
     restrictions: [],
   },
   {
-    type: 'string',
+    type: FieldType.String,
     path: '#/$defs/refTest',
     displayName: 'refTest',
     restrictions: [{ key: 'minLength', value: 2 }],
@@ -78,7 +79,7 @@ const mockUiSchema: UiSchemaItem[] = [
   {
     path: '#/$defs/id3',
     displayName: 'id3',
-    type: 'string',
+    type: FieldType.String,
     restrictions: [{ key: 'maxLength', value: 10 }],
   },
 ];
@@ -127,7 +128,7 @@ test('gets UI schema item', () => {
   expect(result).toEqual({
     path: '#/$defs/id3',
     displayName: 'id3',
-    type: 'string',
+    type: FieldType.String,
     restrictions: [{ key: 'maxLength', value: 10 }],
   });
 });

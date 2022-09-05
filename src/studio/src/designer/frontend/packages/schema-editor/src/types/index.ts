@@ -43,16 +43,20 @@ export interface UiSchemaItem {
 }
 
 /** Types */
-export type CombinationKind = 'allOf' | 'anyOf' | 'oneOf';
+export enum CombinationKind {
+  AllOf = 'allOf',
+  AnyOf = 'anyOf',
+  OneOf = 'oneOf',
+}
 
-export type FieldType =
-  | 'string'
-  | 'integer'
-  | 'number'
-  | 'boolean'
-  | 'object'
-  | 'array'
-  | 'null';
+export enum FieldType {
+  String = 'string',
+  Integer = 'integer',
+  Number = 'number',
+  Boolean = 'boolean',
+  Object = 'object',
+  Array = 'array',
+}
 
 export type NameInUseProps = {
   uiSchemaItems: UiSchemaItem[];

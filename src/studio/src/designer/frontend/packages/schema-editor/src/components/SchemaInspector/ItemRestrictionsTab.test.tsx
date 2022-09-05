@@ -2,13 +2,14 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { renderWithRedux } from '../../../test/renderWithRedux';
 import { ItemRestrictionsTab } from './ItemRestrictionsTab';
+import { FieldType } from '../../types';
 
 test('item restrictions require checkbox to work', async () => {
   const { user, store } = renderWithRedux(
     <ItemRestrictionsTab
       language={{}}
-      selectedItem={{
-        type: 'string',
+      item={{
+        type: FieldType.String,
         path: '#/properties/test',
         displayName: 'test',
       }}
@@ -25,8 +26,8 @@ test('item restrictions tab require checkbox to decheck', async () => {
   const { user, store } = renderWithRedux(
     <ItemRestrictionsTab
       language={{}}
-      selectedItem={{
-        type: 'string',
+      item={{
+        type: FieldType.String,
         path: '#/properties/test',
         displayName: 'test',
         isRequired: true,

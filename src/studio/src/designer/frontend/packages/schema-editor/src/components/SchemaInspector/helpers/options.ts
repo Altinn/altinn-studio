@@ -1,3 +1,5 @@
+import { FieldType } from '../../../types';
+
 export interface Option {
   value: string;
   label: string;
@@ -20,23 +22,23 @@ export const getCombinationOptions = (t: (key: string) => string): Option[] => [
 
 export const getTypeOptions = (t: (key: string) => string): Option[] => [
   {
-    value: 'string',
+    value: FieldType.String,
     label: t('string'),
   },
   {
-    value: 'integer',
+    value: FieldType.Integer,
     label: t('integer'),
   },
   {
-    value: 'number',
+    value: FieldType.Number,
     label: t('number'),
   },
   {
-    value: 'boolean',
+    value: FieldType.Boolean,
     label: t('boolean'),
   },
   {
-    value: 'object',
+    value: FieldType.Object,
     label: t('object'),
   },
 ];

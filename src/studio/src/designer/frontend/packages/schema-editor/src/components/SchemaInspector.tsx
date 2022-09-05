@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { AppBar, Divider } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
-import { ILanguage, UiSchemaItem } from '../types';
+import { FieldType, ILanguage, UiSchemaItem } from '../types';
 import { ObjectKind } from '../types/enums';
 import { getTranslation } from '../utils/language';
 import { SchemaTab } from './SchemaTab';
@@ -74,7 +74,7 @@ export const SchemaInspector = ({
 
   useEffect(() => {
     if (selectedItem) {
-      if (tabIndex === '2' && selectedItem?.type !== 'object') {
+      if (tabIndex === '2' && selectedItem?.type !== FieldType.Object) {
         setTabIndex('0');
       }
     } else {
@@ -103,7 +103,8 @@ export const SchemaInspector = ({
               label={t('fields')}
               value='2'
               hide={
-                selectedItem.type !== 'object' || selectedItem.combinationItem
+                selectedItem.type !== FieldType.Object ||
+                selectedItem.combinationItem
               }
             />
           </TabList>
@@ -119,7 +120,7 @@ export const SchemaInspector = ({
         <TabPanel value='1'>
           <ItemRestrictionsTab
             classes={classes}
-            selectedItem={selectedItem}
+            item={selectedItem}
             language={language}
           />
         </TabPanel>
