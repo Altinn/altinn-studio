@@ -1,7 +1,6 @@
 import React from 'react';
 import { render } from 'react-dom';
 import { Provider } from 'react-redux';
-import { HashRouter } from 'react-router-dom';
 import AppComponent from './App';
 import { run } from './sagas';
 import { store } from './store';
@@ -21,9 +20,7 @@ run();
  */
 render(
   <Provider store={store}>
-    <HashRouter>
-      <AppComponent />
-    </HashRouter>
+    <AppComponent />
   </Provider>,
   document.getElementById('root'),
 );

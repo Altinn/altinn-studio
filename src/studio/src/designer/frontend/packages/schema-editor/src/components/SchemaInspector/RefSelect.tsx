@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { ChangeEvent } from 'react';
 import { makeStyles, TextField } from '@material-ui/core';
 import { useSelector } from 'react-redux';
 import { Autocomplete } from '@material-ui/lab';
-import type { ISchemaState } from '../types';
-import { getDomFriendlyID } from '../utils/schema';
+import type { ISchemaState } from '../../types';
+import { getDomFriendlyID } from '../../utils/schema';
 
 export interface IRefSelectProps {
   id: string;
@@ -13,7 +13,13 @@ export interface IRefSelectProps {
   onChange: (id: string, value: string) => void;
 }
 
-export const RefSelect = (props: IRefSelectProps) => {
+export const RefSelect = ({
+  id,
+  onChange,
+  value,
+  fullWidth,
+  readOnly,
+}: IRefSelectProps) => {
   const classes = makeStyles({
     root: {
       background: 'white',
@@ -31,14 +37,13 @@ export const RefSelect = (props: IRefSelectProps) => {
     },
   })();
 
-  const { id, onChange, value } = props;
   const definitions: string[] = useSelector((state: ISchemaState) =>
     state.uiSchema
       .filter((s) => s.path.includes('#/definitions'))
       .map((d) => d.path.replace('#/definitions/', '')),
   );
 
-  const onChangeValue = (event: React.ChangeEvent<unknown>, val: unknown) => {
+  const onChangeValue = (event: ChangeEvent<unknown>, val: unknown) => {
     if (!val) {
       return;
     }
@@ -48,9 +53,9 @@ export const RefSelect = (props: IRefSelectProps) => {
   return (
     <Autocomplete
       freeSolo={false}
-      fullWidth={props.fullWidth}
+      fullWidth={fullWidth}
       id={`${getDomFriendlyID(id)}-ref-select`}
-      disabled={props.readOnly}
+      disabled={readOnly}
       value={value?.replace('#/definitions/', '')}
       onChange={onChangeValue}
       className={classes.root}

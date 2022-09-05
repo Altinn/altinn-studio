@@ -3,15 +3,14 @@ import {
   createTheme,
   createStyles,
   Grid,
-  Hidden,
   Popover,
-  Tab,
-  Tabs,
   Typography,
   withStyles,
   WithStyles,
 } from '@material-ui/core';
 import React from 'react';
+import type { Theme } from '@material-ui/core';
+import useMediaQuery from '@material-ui/core/useMediaQuery';
 import AltinnIcon from 'app-shared/components/AltinnIcon';
 import AltinnStudioTheme from 'app-shared/theme/altinnStudioTheme';
 import {
@@ -40,57 +39,7 @@ import CreateReleaseComponent from '../components/createAppReleaseComponent';
 import { useAppSelector, useAppDispatch } from 'common/hooks';
 import type { IAltinnWindow } from '../../../types/global';
 
-interface IStyledTabsProps {
-  value: number;
-  onChange: (event: React.ChangeEvent, newValue: number) => void;
-}
-
 const theme = createTheme(AltinnStudioTheme);
-
-const StyledTabs = withStyles(
-  createStyles({
-    scroller: {
-      maxHeight: '3.7rem',
-    },
-    indicator: {
-      display: 'flex',
-      justifyContent: 'center',
-      backgroundColor: 'transparent',
-      textTransform: 'none',
-      minHeight: 0,
-      '& > div': {
-        width: '70%',
-        borderBottom: `2px solid ${theme.altinnPalette.primary.blue}`,
-      },
-    },
-    flexContainer: {
-      borderBottom: `1px solid ${theme.altinnPalette.primary.greyMedium}`,
-    },
-  }),
-)((props: IStyledTabsProps) => (
-  <Tabs {...props} TabIndicatorProps={{ children: <div /> }} />
-));
-
-const StyledTab = withStyles(
-  createStyles({
-    root: {
-      minHeight: 0,
-      textTransform: 'none',
-      width: 'wrap',
-      '&:focus': {
-        outline: 0,
-        color: theme.altinnPalette.primary.blue,
-      },
-      paddingBottom: 0,
-      paddingLeft: '1.8rem',
-      paddingRight: '1.8rem',
-      minWidth: 0,
-    },
-    wrapper: {
-      fontSize: '1.6rem',
-    },
-  }),
-)(Tab);
 
 const styles = createStyles({
   appReleaseWrapper: {
@@ -158,15 +107,28 @@ const styles = createStyles({
   renderCannotCreateReleaseIcon: {
     paddingTop: '2rem',
   },
+  versionHeader: {
+    borderBottom: `1px solid ${theme.altinnPalette.primary.greyMedium}`,
+    padding: `1rem 2rem 0`,
+  },
+  versionHeaderTitle: {
+    borderBottom: `2px solid ${theme.altinnPalette.primary.blue}`,
+    padding: 0,
+    display: 'inline-block',
+    fontWeight: 500,
+    marginBottom: '-2px',
+  }
 });
 
 type IAppReleaseContainer = WithStyles<typeof styles>;
 
 function AppReleaseContainer(props: IAppReleaseContainer) {
+  const hiddenMdDown = useMediaQuery((appTheme: Theme) =>
+    appTheme.breakpoints.down('md'),
+  );
   const { classes } = props;
   const dispatch = useAppDispatch();
 
-  const [tabIndex, setTabIndex] = React.useState(0);
   const [anchorElement, setAchorElement] = React.useState<Element>();
 
   const [popoverOpenClick, setPopoverOpenClick] =
@@ -202,11 +164,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     return () => {
       dispatch(AppReleaseActions.getAppReleaseStopInterval());
     };
-  }, []);
-
-  function handleChangeTabIndex(event: React.ChangeEvent, value: number) {
-    setTabIndex(value);
-  }
+  }, [dispatch, language]);
 
   function handlePopoverKeyPress(event: React.KeyboardEvent) {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -243,14 +201,14 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
         className={classes.cannotCreateReleaseContainer}
         spacing={1}
       >
-        <Hidden mdDown={true}>
+        {hiddenMdDown ? null : (
           <Grid item={true} xs={1}>
             <AltinnIcon
               iconClass={`${classes.renderCannotCreateReleaseIcon} ai ai-circle-exclamation`}
               iconColor={theme.altinnPalette.primary.red}
             />
           </Grid>
-        </Hidden>
+        )}
         <Grid item={true} xs={12} md={10}>
           <Grid container={true} direction='column'>
             <Typography className={classes.cannotCreateReleaseTitle}>
@@ -385,8 +343,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
         </Typography>
       );
     }
-    // eslint-disable-next-line no-extra-boolean-cast
-    if (!!handleMergeConflict.repoStatus.contentStatus) {
+    if (handleMergeConflict.repoStatus.contentStatus) {
       return (
         <Typography>
           {getLanguageFromKey(
@@ -456,15 +413,10 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
         className={classes.appReleaseWrapper}
       >
         <Grid container={true} direction='column'>
-          <Grid item={true}>
-            <StyledTabs value={tabIndex} onChange={handleChangeTabIndex}>
-              <StyledTab
-                label={getLanguageFromKey(
-                  'app_release.release_tab_versions',
-                  language,
-                )}
-              />
-            </StyledTabs>
+          <Grid item={true} className={classes.versionHeader}>
+            <Typography className={classes.versionHeaderTitle}>
+              {getLanguageFromKey('app_release.release_tab_versions', language)}
+            </Typography>
           </Grid>
 
           <Grid
@@ -472,7 +424,11 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
             direction='column'
             className={classes.appCreateReleaseWrapper}
           >
-            <Grid container={true} direction='row' justifyContent='space-between'>
+            <Grid
+              container={true}
+              direction='row'
+              justifyContent='space-between'
+            >
               <Grid item={true} xs={10}>
                 <Typography className={classes.appCreateReleaseTitle}>
                   {renderCreateReleaseTitle()}

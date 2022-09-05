@@ -1,13 +1,13 @@
-import React from 'react';
+import React, { Component, createRef, RefObject } from 'react';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import {
   createStyles,
-  IconButton,
-  withStyles,
-  WithStyles,
   Grid,
+  IconButton,
+  WithStyles,
+  withStyles,
 } from '@material-ui/core';
 
 import '../styles/index.css';
@@ -22,33 +22,33 @@ import {
   makeGetLayoutContainersSelector,
 } from '../selectors/getLayoutData';
 import {
-  renderSelectGroupDataModelBinding,
   renderOptionalSelectTextFromResources,
+  renderSelectGroupDataModelBinding,
 } from '../utils/render';
 import { FormComponentWrapper } from '../components/FormComponent';
 import { getTextResource } from '../utils/language';
 import { idExists, validComponentId } from '../utils/formLayout';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import type {
-  IFormLayoutOrder,
-  IFormDesignerComponents,
-  IDataModelFieldElement,
-  ITextResource,
-  ICreateFormContainer,
   IAppState,
+  ICreateFormContainer,
+  IDataModelFieldElement,
+  IFormDesignerComponents,
+  IFormLayoutOrder,
+  ITextResource,
 } from '../types/global';
+import { DroppableDraggableComponent } from './DroppableDraggableComponent';
+import { DroppableDraggableContainer } from './DroppableDraggableContainer';
+import { EditorDndEvents } from './helpers/dnd-types';
 
 export interface IProvidedContainerProps extends WithStyles<typeof styles> {
+  isBaseContainer?: boolean;
+  dispatch?: Dispatch;
   id: string;
   index?: number;
-  baseContainer?: boolean;
   items?: string[];
   layoutOrder?: IFormLayoutOrder;
-  dispatch?: Dispatch;
-  onMoveComponent?: (...args: any) => void;
-  onDropComponent?: (...args: any) => void;
-  onMoveContainer?: (...args: any) => void;
-  onDropContainer?: (...args: any) => void;
+  dndEvents: EditorDndEvents;
   sendListToParent?: (item: object) => void;
 }
 
@@ -75,9 +75,9 @@ export interface IContainerState {
   tmpId: string;
   expanded: boolean;
   groupIdError: string;
-  groupIdPopoverRef: React.RefObject<HTMLDivElement>;
+  groupIdPopoverRef: RefObject<HTMLDivElement>;
   tableHeadersError: string;
-  tableHeadersPopoverRef: React.RefObject<HTMLDivElement>;
+  tableHeadersPopoverRef: RefObject<HTMLDivElement>;
 }
 
 const styles = createStyles({
@@ -142,7 +142,7 @@ const styles = createStyles({
     border: '0.15rem solid #fff',
   },
 });
-export class ContainerComponent extends React.Component<
+export class ContainerComponent extends Component<
   IContainerProps,
   IContainerState
 > {
@@ -174,9 +174,9 @@ export class ContainerComponent extends React.Component<
       tmpId: this.props.id,
       expanded: true,
       groupIdError: null,
-      groupIdPopoverRef: React.createRef<HTMLDivElement>(),
+      groupIdPopoverRef: createRef<HTMLDivElement>(),
       tableHeadersError: null,
-      tableHeadersPopoverRef: React.createRef<HTMLDivElement>(),
+      tableHeadersPopoverRef: createRef<HTMLDivElement>(),
     };
   }
 
@@ -211,19 +211,6 @@ export class ContainerComponent extends React.Component<
         },
       };
     });
-  };
-
-  public getStatefulIndexOfContainer = (
-    containerId: string,
-    parentContainerId: string = Object.keys(this.props.containers)[0],
-  ): number => {
-    if (!containerId) {
-      return 0;
-    }
-    if (containerId === parentContainerId) {
-      return 0;
-    }
-    return this.props.containers[parentContainerId]?.indexOf(containerId);
   };
 
   public handleContainerDelete = (
@@ -471,11 +458,11 @@ export class ContainerComponent extends React.Component<
     });
   };
 
-  public renderContent = (ref?: any): JSX.Element => {
-    const className: string = this.props.baseContainer
+  public render = (ref?: any): JSX.Element => {
+    const className: string = this.props.isBaseContainer
       ? 'col-12'
       : `${this.props.classes.formGroup} ${this.props.classes.borderTop}`;
-    const hoverClass: string = this.props.baseContainer
+    const hoverClass: string = this.props.isBaseContainer
       ? ''
       : this.props.classes.hoverStyle;
     if (this.state.editMode) {
@@ -486,7 +473,7 @@ export class ContainerComponent extends React.Component<
       <Grid
         container={true}
         style={
-          this.props.baseContainer
+          this.props.isBaseContainer
             ? { paddingTop: '24px', paddingBottom: '24px' }
             : undefined
         }
@@ -497,12 +484,8 @@ export class ContainerComponent extends React.Component<
           ref={ref}
           className={this.props.classes.wrapper}
         >
-          <Grid
-            item={true}
-            xs={11}
-            className={className}
-          >
-            {!this.props.baseContainer && (
+          <Grid item={true} xs={11} className={className}>
+            {!this.props.isBaseContainer && (
               <Grid item={true} style={{ paddingTop: '12px' }}>
                 <IconButton
                   type='button'
@@ -519,7 +502,7 @@ export class ContainerComponent extends React.Component<
               </Grid>
             )}
           </Grid>
-          {!this.props.baseContainer && (
+          {!this.props.isBaseContainer && (
             <Grid
               item={true}
               className={this.props.classes.containerEdit}
@@ -547,7 +530,7 @@ export class ContainerComponent extends React.Component<
               })}
           </Grid>
         </Grid>
-        {!this.props.baseContainer && (
+        {!this.props.isBaseContainer && (
           <Grid container={true} direction='row' spacing={0}>
             <Grid
               item={true}
@@ -672,14 +655,9 @@ export class ContainerComponent extends React.Component<
   };
 
   public renderContainerPlaceholder = () => {
-    const DroppableDraggableComponent =
-      require('./DroppableDraggableComponent').default;
     return (
       <DroppableDraggableComponent
-        onDropComponent={this.props.onDropComponent}
-        onMoveComponent={this.props.onMoveComponent}
-        onDropContainer={this.props.onDropContainer}
-        onMoveContainer={this.props.onMoveContainer}
+        dndEvents={this.props.dndEvents}
         canDrag={false}
         id='placeholder'
         index={0}
@@ -694,11 +672,7 @@ export class ContainerComponent extends React.Component<
     return (
       <Grid container={true}>
         <Grid container={true} className={this.props.classes.editWrapper}>
-          <Grid
-            item={true}
-            xs={11}
-            className={this.props.classes.editSection}
-          >
+          <Grid item={true} xs={11} className={this.props.classes.editSection}>
             {this.renderEditSection()}
           </Grid>
           <Grid item={true} xs={1} className={this.props.classes.containerEdit}>
@@ -761,8 +735,6 @@ export class ContainerComponent extends React.Component<
   };
 
   public renderContainer = (id: string, index: number): JSX.Element => {
-    const DroppableDraggableContainer =
-      require('./DroppableDraggableContainer').default;
     const canDrag = !this.state.activeList.find(
       (element: any) => element.id === id,
     );
@@ -770,14 +742,10 @@ export class ContainerComponent extends React.Component<
       <DroppableDraggableContainer
         id={id}
         index={index}
-        baseContainer={false}
+        isBaseContainer={false}
         parentContainerId={this.props.id}
         canDrag={canDrag}
-        onDropComponent={this.props.onDropComponent}
-        onMoveComponent={this.props.onMoveComponent}
-        onDropContainer={this.props.onDropContainer}
-        onMoveContainer={this.props.onMoveContainer}
-        getIndex={this.getStatefulIndexOfContainer}
+        dndEvents={this.props.dndEvents}
         key={id}
       >
         <Container
@@ -785,12 +753,9 @@ export class ContainerComponent extends React.Component<
           key={id}
           index={index}
           items={this.props.layoutOrder[id]}
-          baseContainer={false}
+          isBaseContainer={false}
           layoutOrder={this.props.layoutOrder}
-          onDropComponent={this.props.onDropComponent}
-          onMoveComponent={this.props.onMoveComponent}
-          onDropContainer={this.props.onDropContainer}
-          onMoveContainer={this.props.onMoveContainer}
+          dndEvents={this.props.dndEvents}
           sendListToParent={this.handleActiveListChange}
         />
       </DroppableDraggableContainer>
@@ -807,8 +772,6 @@ export class ContainerComponent extends React.Component<
     const activeListIndex = this.props.activeList.findIndex(
       (listItem: any) => listItem.id === id,
     );
-    const DroppableDraggableComponent =
-      require('./DroppableDraggableComponent').default;
     let canDrag = true;
     // eslint-disable-next-line no-restricted-syntax
     for (const activeItem of this.state.activeList) {
@@ -816,35 +779,31 @@ export class ContainerComponent extends React.Component<
         canDrag = false;
       }
     }
+    const firstInActiveList =
+      activeListIndex >= 0
+        ? this.props.activeList[activeListIndex].firstInActiveList
+        : true;
+    const lastInActiveList =
+      activeListIndex >= 0
+        ? this.props.activeList[activeListIndex].lastInActiveList
+        : true;
     return (
       <DroppableDraggableComponent
         canDrag={canDrag}
+        containerId={this.props.id}
+        dndEvents={this.props.dndEvents}
         id={id}
         index={index}
-        key={index}
-        containerId={this.props.id}
-        onDropComponent={this.props.onDropComponent}
-        onMoveComponent={this.props.onMoveComponent}
-        onDropContainer={this.props.onDropContainer}
-        onMoveContainer={this.props.onMoveContainer}
+        key={id}
       >
         <FormComponentWrapper
-          key={index}
-          id={id}
           activeList={this.props.activeList}
-          firstInActiveList={
-            activeListIndex >= 0
-              ? this.props.activeList[activeListIndex].firstInActiveList
-              : true
-          }
-          lastInActiveList={
-            activeListIndex >= 0
-              ? this.props.activeList[activeListIndex].lastInActiveList
-              : true
-          }
+          firstInActiveList={firstInActiveList}
+          id={id}
+          lastInActiveList={lastInActiveList}
+          partOfGroup={!this.props.isBaseContainer}
           sendListToParent={this.handleActiveListChange}
           singleSelected={this.props.activeList.length === 1}
-          partOfGroup={!this.props.baseContainer}
         />
       </DroppableDraggableComponent>
     );
@@ -853,10 +812,6 @@ export class ContainerComponent extends React.Component<
   public changeActiveFormContainer = (e: any) => {
     e.stopPropagation();
   };
-
-  public render() {
-    return this.renderContent();
-  }
 }
 
 const makeMapStateToProps = () => {
@@ -875,22 +830,19 @@ const makeMapStateToProps = () => {
     return {
       ...props,
       activeList: state.formDesigner.layout.activeList,
-      dataModelGroup: container.dataModelGroup,
-      repeating: container.repeating,
-      formContainerActive: GetActiveFormContainer(state, props),
+      isBaseContainer: props.isBaseContainer,
       components: GetLayoutComponentsSelector(state),
       containers: GetLayoutContainersSelector(state),
+      dataModel: state.appData.dataModel.model,
+      dataModelGroup: container?.dataModelGroup,
       dispatch: props.dispatch,
-      language: state.appData.languageState.language,
-      itemOrder: !props.items ? itemOrder : props.items,
+      dndEvents: props.dndEvents,
+      formContainerActive: GetActiveFormContainer(state, props),
       id: props.id,
       index: props.index,
-      baseContainer: props.baseContainer,
-      dataModel: state.appData.dataModel.model,
-      onMoveComponent: props.onMoveComponent,
-      onDropComponent: props.onDropComponent,
-      onMoveContainer: props.onMoveContainer,
-      onDropContainer: props.onDropContainer,
+      itemOrder: !props.items ? itemOrder : props.items,
+      language: state.appData.languageState.language,
+      repeating: container?.repeating,
       textResources: state.appData.textResources.resources,
     };
   };

@@ -1,12 +1,12 @@
 import React from 'react';
-import { render } from 'react-dom';
-import { Provider } from 'react-redux';
-import { HashRouter } from 'react-router-dom';
+import {render} from 'react-dom';
+import {HashRouter as Router} from 'react-router-dom';
+import {Provider} from 'react-redux';
 import throttle from 'lodash-es/throttle';
 
-import { App } from './app/App';
-import { run } from './app/rootSaga';
-import { setupStore } from './app/store';
+import {App} from './app/App';
+import {run} from './app/rootSaga';
+import {setupStore} from './app/store';
 import {
   saveToLocalStorage,
   loadFromLocalStorage,
@@ -26,9 +26,9 @@ run();
 
 render(
   <Provider store={store}>
-    <HashRouter>
-      <App />
-    </HashRouter>
+    <Router>
+      <App/>
+    </Router>
   </Provider>,
   document.getElementById('root'),
 );

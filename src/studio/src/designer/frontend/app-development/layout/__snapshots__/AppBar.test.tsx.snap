@@ -88,10 +88,10 @@ exports[`AppBar Snapshot should match snapshot 1`] = `
             class="MuiGrid-root MuiGrid-item"
           >
             <div
-              class="MuiDrawer-root MuiDrawer-docked TabletDrawerMenu-drawer-15 undefined"
+              class="MuiDrawer-root MuiDrawer-docked makeStyles-drawer-15"
             >
               <div
-                class="MuiPaper-root TabletDrawerMenu-drawerMenuPaper-21 MuiDrawer-paper undefined MuiDrawer-paperAnchorRight MuiDrawer-paperAnchorDockedRight MuiPaper-elevation0"
+                class="MuiPaper-root makeStyles-drawerMenuPaper-21 MuiDrawer-paper MuiDrawer-paperAnchorRight MuiDrawer-paperAnchorDockedRight MuiPaper-elevation0"
                 style="visibility: hidden; webkit-transform: translateX(1024px) translateX(0px); transform: translateX(1024px) translateX(0px);"
               >
                 <ul
@@ -107,7 +107,7 @@ exports[`AppBar Snapshot should match snapshot 1`] = `
                       class="MuiListItemText-root"
                     >
                       <span
-                        class="MuiTypography-root MuiListItemText-primary TabletDrawerMenu-menuItemText-19 MuiTypography-body1 MuiTypography-displayBlock"
+                        class="MuiTypography-root MuiListItemText-primary makeStyles-menuItemText-19 MuiTypography-body1 MuiTypography-displayBlock"
                       >
                         Logg ut
                       </span>
@@ -115,7 +115,7 @@ exports[`AppBar Snapshot should match snapshot 1`] = `
                   </div>
                 </ul>
                 <hr
-                  class="MuiDivider-root TabletDrawerMenu-divider-16"
+                  class="MuiDivider-root makeStyles-divider-16"
                 />
                 <ul
                   class="MuiList-root MuiList-padding"
@@ -123,25 +123,25 @@ exports[`AppBar Snapshot should match snapshot 1`] = `
                   <div>
                     <div
                       aria-disabled="false"
-                      class="MuiButtonBase-root MuiListItem-root TabletDrawerMenu-mainMenuItem-20 MuiListItem-gutters MuiListItem-button"
+                      class="MuiButtonBase-root MuiListItem-root makeStyles-mainMenuItem-20 MuiListItem-gutters MuiListItem-button"
                       role="button"
                       tabindex="0"
                     >
                       <div
-                        class="MuiListItemText-root TabletDrawerMenu-mainMenuItem-20"
+                        class="MuiListItemText-root makeStyles-mainMenuItem-20"
                       >
                         Språk
                       </div>
                     </div>
                     <hr
-                      class="MuiDivider-root TabletDrawerMenu-divider-16"
+                      class="MuiDivider-root makeStyles-divider-16"
                     />
                   </div>
                 </ul>
               </div>
             </div>
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-outlined TabletDrawerMenu-commonButton-22 TabletDrawerMenu-closeButton-24 MuiButton-outlinedSizeSmall MuiButton-sizeSmall"
+              class="MuiButtonBase-root MuiButton-root MuiButton-outlined makeStyles-commonButton-22 makeStyles-closeButton-24 MuiButton-outlinedSizeSmall MuiButton-sizeSmall"
               tabindex="0"
               type="button"
             >
@@ -166,7 +166,7 @@ exports[`AppBar Snapshot should match snapshot 1`] = `
         >
           <a
             class="makeStyles-subHeaderLink-9"
-            href="/about"
+            href="/"
           >
             Om
           </a>
@@ -176,7 +176,7 @@ exports[`AppBar Snapshot should match snapshot 1`] = `
         >
           <a
             class="makeStyles-subHeaderLink-9 makeStyles-subHeaderLinkActive-10"
-            href="/edit"
+            href="/ui-editor"
           >
             Lage
           </a>
@@ -295,10 +295,10 @@ exports[`AppBar Snapshot should match snapshot and not render subHeader menu 1`]
             class="MuiGrid-root MuiGrid-item"
           >
             <div
-              class="MuiDrawer-root MuiDrawer-docked TabletDrawerMenu-drawer-65 undefined"
+              class="MuiDrawer-root MuiDrawer-docked makeStyles-drawer-65"
             >
               <div
-                class="MuiPaper-root TabletDrawerMenu-drawerMenuPaper-71 MuiDrawer-paper undefined MuiDrawer-paperAnchorRight MuiDrawer-paperAnchorDockedRight MuiPaper-elevation0"
+                class="MuiPaper-root makeStyles-drawerMenuPaper-71 MuiDrawer-paper MuiDrawer-paperAnchorRight MuiDrawer-paperAnchorDockedRight MuiPaper-elevation0"
                 style="visibility: hidden; webkit-transform: translateX(1024px) translateX(0px); transform: translateX(1024px) translateX(0px);"
               >
                 <ul
@@ -314,7 +314,7 @@ exports[`AppBar Snapshot should match snapshot and not render subHeader menu 1`]
                       class="MuiListItemText-root"
                     >
                       <span
-                        class="MuiTypography-root MuiListItemText-primary TabletDrawerMenu-menuItemText-69 MuiTypography-body1 MuiTypography-displayBlock"
+                        class="MuiTypography-root MuiListItemText-primary makeStyles-menuItemText-69 MuiTypography-body1 MuiTypography-displayBlock"
                       >
                         Logg ut
                       </span>
@@ -322,7 +322,7 @@ exports[`AppBar Snapshot should match snapshot and not render subHeader menu 1`]
                   </div>
                 </ul>
                 <hr
-                  class="MuiDivider-root TabletDrawerMenu-divider-66"
+                  class="MuiDivider-root makeStyles-divider-66"
                 />
                 <ul
                   class="MuiList-root MuiList-padding"
@@ -330,25 +330,25 @@ exports[`AppBar Snapshot should match snapshot and not render subHeader menu 1`]
                   <div>
                     <div
                       aria-disabled="false"
-                      class="MuiButtonBase-root MuiListItem-root TabletDrawerMenu-mainMenuItem-70 MuiListItem-gutters MuiListItem-button"
+                      class="MuiButtonBase-root MuiListItem-root makeStyles-mainMenuItem-70 MuiListItem-gutters MuiListItem-button"
                       role="button"
                       tabindex="0"
                     >
                       <div
-                        class="MuiListItemText-root TabletDrawerMenu-mainMenuItem-70"
+                        class="MuiListItemText-root makeStyles-mainMenuItem-70"
                       >
                         Språk
                       </div>
                     </div>
                     <hr
-                      class="MuiDivider-root TabletDrawerMenu-divider-66"
+                      class="MuiDivider-root makeStyles-divider-66"
                     />
                   </div>
                 </ul>
               </div>
             </div>
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-outlined TabletDrawerMenu-commonButton-72 TabletDrawerMenu-closeButton-74 MuiButton-outlinedSizeSmall MuiButton-sizeSmall"
+              class="MuiButtonBase-root MuiButton-root MuiButton-outlined makeStyles-commonButton-72 makeStyles-closeButton-74 MuiButton-outlinedSizeSmall MuiButton-sizeSmall"
               tabindex="0"
               type="button"
             >
@@ -451,10 +451,10 @@ exports[`AppBar Snapshot should match snapshot with no app or org 1`] = `
             class="MuiGrid-root MuiGrid-item"
           >
             <div
-              class="MuiDrawer-root MuiDrawer-docked TabletDrawerMenu-drawer-90 undefined"
+              class="MuiDrawer-root MuiDrawer-docked makeStyles-drawer-90"
             >
               <div
-                class="MuiPaper-root TabletDrawerMenu-drawerMenuPaper-96 MuiDrawer-paper undefined MuiDrawer-paperAnchorRight MuiDrawer-paperAnchorDockedRight MuiPaper-elevation0"
+                class="MuiPaper-root makeStyles-drawerMenuPaper-96 MuiDrawer-paper MuiDrawer-paperAnchorRight MuiDrawer-paperAnchorDockedRight MuiPaper-elevation0"
                 style="visibility: hidden; webkit-transform: translateX(1024px) translateX(0px); transform: translateX(1024px) translateX(0px);"
               >
                 <ul
@@ -470,7 +470,7 @@ exports[`AppBar Snapshot should match snapshot with no app or org 1`] = `
                       class="MuiListItemText-root"
                     >
                       <span
-                        class="MuiTypography-root MuiListItemText-primary TabletDrawerMenu-menuItemText-94 MuiTypography-body1 MuiTypography-displayBlock"
+                        class="MuiTypography-root MuiListItemText-primary makeStyles-menuItemText-94 MuiTypography-body1 MuiTypography-displayBlock"
                       >
                         Logg ut
                       </span>
@@ -478,7 +478,7 @@ exports[`AppBar Snapshot should match snapshot with no app or org 1`] = `
                   </div>
                 </ul>
                 <hr
-                  class="MuiDivider-root TabletDrawerMenu-divider-91"
+                  class="MuiDivider-root makeStyles-divider-91"
                 />
                 <ul
                   class="MuiList-root MuiList-padding"
@@ -486,25 +486,25 @@ exports[`AppBar Snapshot should match snapshot with no app or org 1`] = `
                   <div>
                     <div
                       aria-disabled="false"
-                      class="MuiButtonBase-root MuiListItem-root TabletDrawerMenu-mainMenuItem-95 MuiListItem-gutters MuiListItem-button"
+                      class="MuiButtonBase-root MuiListItem-root makeStyles-mainMenuItem-95 MuiListItem-gutters MuiListItem-button"
                       role="button"
                       tabindex="0"
                     >
                       <div
-                        class="MuiListItemText-root TabletDrawerMenu-mainMenuItem-95"
+                        class="MuiListItemText-root makeStyles-mainMenuItem-95"
                       >
                         Språk
                       </div>
                     </div>
                     <hr
-                      class="MuiDivider-root TabletDrawerMenu-divider-91"
+                      class="MuiDivider-root makeStyles-divider-91"
                     />
                   </div>
                 </ul>
               </div>
             </div>
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-outlined TabletDrawerMenu-commonButton-97 TabletDrawerMenu-closeButton-99 MuiButton-outlinedSizeSmall MuiButton-sizeSmall"
+              class="MuiButtonBase-root MuiButton-root MuiButton-outlined makeStyles-commonButton-97 makeStyles-closeButton-99 MuiButton-outlinedSizeSmall MuiButton-sizeSmall"
               tabindex="0"
               type="button"
             >
@@ -610,10 +610,10 @@ exports[`AppBar Snapshot should match snapshot with subHeader and Publisere sele
             class="MuiGrid-root MuiGrid-item"
           >
             <div
-              class="MuiDrawer-root MuiDrawer-docked TabletDrawerMenu-drawer-40 undefined"
+              class="MuiDrawer-root MuiDrawer-docked makeStyles-drawer-40"
             >
               <div
-                class="MuiPaper-root TabletDrawerMenu-drawerMenuPaper-46 MuiDrawer-paper undefined MuiDrawer-paperAnchorRight MuiDrawer-paperAnchorDockedRight MuiPaper-elevation0"
+                class="MuiPaper-root makeStyles-drawerMenuPaper-46 MuiDrawer-paper MuiDrawer-paperAnchorRight MuiDrawer-paperAnchorDockedRight MuiPaper-elevation0"
                 style="visibility: hidden; webkit-transform: translateX(1024px) translateX(0px); transform: translateX(1024px) translateX(0px);"
               >
                 <ul
@@ -629,7 +629,7 @@ exports[`AppBar Snapshot should match snapshot with subHeader and Publisere sele
                       class="MuiListItemText-root"
                     >
                       <span
-                        class="MuiTypography-root MuiListItemText-primary TabletDrawerMenu-menuItemText-44 MuiTypography-body1 MuiTypography-displayBlock"
+                        class="MuiTypography-root MuiListItemText-primary makeStyles-menuItemText-44 MuiTypography-body1 MuiTypography-displayBlock"
                       >
                         Logg ut
                       </span>
@@ -637,7 +637,7 @@ exports[`AppBar Snapshot should match snapshot with subHeader and Publisere sele
                   </div>
                 </ul>
                 <hr
-                  class="MuiDivider-root TabletDrawerMenu-divider-41"
+                  class="MuiDivider-root makeStyles-divider-41"
                 />
                 <ul
                   class="MuiList-root MuiList-padding"
@@ -645,25 +645,25 @@ exports[`AppBar Snapshot should match snapshot with subHeader and Publisere sele
                   <div>
                     <div
                       aria-disabled="false"
-                      class="MuiButtonBase-root MuiListItem-root TabletDrawerMenu-mainMenuItem-45 MuiListItem-gutters MuiListItem-button"
+                      class="MuiButtonBase-root MuiListItem-root makeStyles-mainMenuItem-45 MuiListItem-gutters MuiListItem-button"
                       role="button"
                       tabindex="0"
                     >
                       <div
-                        class="MuiListItemText-root TabletDrawerMenu-mainMenuItem-45"
+                        class="MuiListItemText-root makeStyles-mainMenuItem-45"
                       >
                         Språk
                       </div>
                     </div>
                     <hr
-                      class="MuiDivider-root TabletDrawerMenu-divider-41"
+                      class="MuiDivider-root makeStyles-divider-41"
                     />
                   </div>
                 </ul>
               </div>
             </div>
             <button
-              class="MuiButtonBase-root MuiButton-root MuiButton-outlined TabletDrawerMenu-commonButton-47 TabletDrawerMenu-closeButton-49 MuiButton-outlinedSizeSmall MuiButton-sizeSmall"
+              class="MuiButtonBase-root MuiButton-root MuiButton-outlined makeStyles-commonButton-47 makeStyles-closeButton-49 MuiButton-outlinedSizeSmall MuiButton-sizeSmall"
               tabindex="0"
               type="button"
             >
@@ -688,7 +688,7 @@ exports[`AppBar Snapshot should match snapshot with subHeader and Publisere sele
         >
           <a
             class="makeStyles-subHeaderLink-34"
-            href="/about"
+            href="/"
           >
             Om
           </a>
@@ -698,7 +698,7 @@ exports[`AppBar Snapshot should match snapshot with subHeader and Publisere sele
         >
           <a
             class="makeStyles-subHeaderLink-34"
-            href="/edit"
+            href="/ui-editor"
           >
             Lage
           </a>

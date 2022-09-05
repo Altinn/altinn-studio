@@ -1,8 +1,8 @@
 //Selectors in designer
 export const designer = {
   appMenu: {
-    about: "a[href='#/about']",
-    edit: "a[href='#/edit']",
+    about: "a[href='#/']",
+    edit: "a[href='#/ui-editor']",
     texts: "a[href='#/texts']",
     deploy: "a[href='#/deploy']",
   },

@@ -25,11 +25,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc />
         public IList<string> GetLanguages(string org, string repo, string developer)
         {
-            var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-            IList<string> languages = new List<string>();
+            List<string> languages = new List<string>();
 
-            IList<string> languageFiles = altinnGitRepository.GetLanguageFiles();
+            IList<string> languageFiles = altinnAppGitRepository.GetLanguageFiles();
 
             foreach (string languageFile in languageFiles)
             {
@@ -37,6 +37,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 string[] nameParts = fileName.Split('.');
                 languages.Add(nameParts[1]);
             }
+
+            languages.Sort();
 
             return languages;
         }

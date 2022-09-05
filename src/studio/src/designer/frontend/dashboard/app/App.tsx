@@ -5,7 +5,7 @@ import {
   StylesProvider,
 } from '@material-ui/core/styles';
 
-import { HashRouter as Router, Route } from 'react-router-dom';
+import { Route, Routes} from 'react-router-dom';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import { AltinnButton } from 'app-shared/components';
 import { post } from 'app-shared/utils/networking';
@@ -109,51 +109,46 @@ export const App = () => {
     <StylesProvider generateClassName={generateClassName}>
       <ThemeProviderV4 theme={themeV4}>
         <ThemeProviderV5 theme={themeV5}>
-          <Router>
-            {user && !isLoadingOrganizations ? (
-              <Root>
-                <HeaderContext.Provider value={headerContextValue}>
-                  <Header language={language} />
-                </HeaderContext.Provider>
-                <Route path='/' exact={true}>
-                  <CenterContainer>
-                    <Dashboard />
-                  </CenterContainer>
-                  <Footer />
-                </Route>
-
-                <Route path='/datamodelling/:org/:repoName' exact={true}>
-                  <StandaloneDataModelling language={language} />
-                </Route>
-                <Route path='/new' exact={true}>
-                  <CreateService />
-                </Route>
-              </Root>
-            ) : (
-              <CenterContainer>
-                <AltinnSpinner
-                  spinnerText={getLanguageFromKey(
-                    'dashboard.loading',
-                    language,
-                  )}
-                />
-                {showLogOutButton && (
-                  <AltinnButton
-                    onClickFunction={() =>
-                      post(`${window.location.origin}/repos/user/logout`).then(
-                        () => {
-                          window.location.assign(
-                            `${window.location.origin}/Home/Logout`,
-                          );
-                        },
-                      )
-                    }
-                    btnText={getLanguageFromKey('dashboard.logout', language)}
-                  />
+          {user && !isLoadingOrganizations ? (
+            <Root>
+              <HeaderContext.Provider value={headerContextValue}>
+                <Header language={language} />
+              </HeaderContext.Provider>
+                <Routes>
+                  <Route path='/' element={<>
+                    <CenterContainer>
+                      <Dashboard />
+                    </CenterContainer>
+                    <Footer />
+                  </>} />
+                  <Route path='/datamodelling/:org/:repoName' element={<StandaloneDataModelling language={language} />} />
+                  <Route path='/new' element={<CreateService />} />
+                </Routes>
+            </Root>
+          ) : (
+            <CenterContainer>
+              <AltinnSpinner
+                spinnerText={getLanguageFromKey(
+                  'dashboard.loading',
+                  language,
                 )}
-              </CenterContainer>
-            )}
-          </Router>
+              />
+              {showLogOutButton && (
+                <AltinnButton
+                  onClickFunction={() =>
+                    post(`${window.location.origin}/repos/user/logout`).then(
+                      () => {
+                        window.location.assign(
+                          `${window.location.origin}/Home/Logout`,
+                        );
+                      },
+                    )
+                  }
+                  btnText={getLanguageFromKey('dashboard.logout', language)}
+                />
+              )}
+            </CenterContainer>
+          )}
         </ThemeProviderV5>
       </ThemeProviderV4>
     </StylesProvider>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { BaseSyntheticEvent, MouseEvent } from 'react';
 import {
   Checkbox,
   Divider,
@@ -8,8 +8,8 @@ import {
 } from '@material-ui/core';
 import { getTranslation } from '../../utils/language';
 import { ILanguage, Restriction, UiSchemaItem } from '../../types';
-import { RestrictionField } from '../RestrictionField';
-import { EnumField } from '../EnumField';
+import { RestrictionField } from './RestrictionField';
+import { EnumField } from './EnumField';
 import {
   addEnum,
   addRestriction,
@@ -20,8 +20,9 @@ import {
   setRestrictionKey,
 } from '../../features/editor/schemaEditorSlice';
 import { useDispatch } from 'react-redux';
+import { Label } from './Label';
 
-interface ItemRestrictionsProps {
+interface Props {
   classes: any;
   selectedItem: UiSchemaItem;
   language: ILanguage;
@@ -30,7 +31,7 @@ export const ItemRestrictionsTab = ({
   classes,
   selectedItem,
   language,
-}: ItemRestrictionsProps) => {
+}: Props) => {
   const dispatch = useDispatch();
   const readonly = selectedItem.$ref !== undefined;
   const handleRequiredChanged = (e: any, checked: boolean) => {
@@ -73,7 +74,7 @@ export const ItemRestrictionsTab = ({
   const onDeleteFieldClick = (path: string, key: string) =>
     dispatch(deleteField({ path, key }));
 
-  const onAddRestrictionClick = (event?: React.BaseSyntheticEvent) => {
+  const onAddRestrictionClick = (event?: BaseSyntheticEvent) => {
     event?.preventDefault();
     dispatch(
       addRestriction({
@@ -115,19 +116,6 @@ export const ItemRestrictionsTab = ({
   const onDeleteEnumClick = (path: string, value: string) =>
     dispatch(deleteEnum({ path, value }));
 
-  const renderEnums = (item: UiSchemaItem) =>
-    item.enum?.map((value: string, index) => (
-      <EnumField
-        key={'add-enum-field-' + index}
-        language={language}
-        path={item.path}
-        fullWidth={true}
-        value={value}
-        onChange={onChangeEnumValue}
-        onDelete={onDeleteEnumClick}
-        onEnterKeyPress={dispatchAddEnum}
-      />
-    ));
   const dispatchAddEnum = () => {
     if (selectedItem) {
       dispatch(
@@ -138,7 +126,7 @@ export const ItemRestrictionsTab = ({
       );
     }
   };
-  const onAddEnumButtonClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const onAddEnumButtonClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     dispatchAddEnum();
   };
@@ -185,9 +173,20 @@ export const ItemRestrictionsTab = ({
         <>
           <Grid item xs={12}>
             <Divider />
-            <p className={classes.header}>{getTranslation('enum', language)}</p>
+            <Label>{getTranslation('enum', language)}</Label>
           </Grid>
-          {renderEnums(selectedItem)}
+          {selectedItem.enum?.map((value: string, index) => (
+            <EnumField
+              key={'add-enum-field-' + index}
+              language={language}
+              path={selectedItem.path}
+              fullWidth={true}
+              value={value}
+              onChange={onChangeEnumValue}
+              onDelete={onDeleteEnumClick}
+              onEnterKeyPress={dispatchAddEnum}
+            />
+          ))}
           <IconButton
             id='add-enum-button'
             aria-label={getTranslation('add_enum', language)}

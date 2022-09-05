@@ -24,6 +24,10 @@ module.exports = {
       services: path.resolve(__dirname, 'src/services/'),
       common: path.resolve(__dirname, 'common/'),
     },
+    fallback: {
+      'react/jsx-runtime': 'react/jsx-runtime.js',
+      'react/jsx-dev-runtime': 'react/jsx-dev-runtime.js',
+    },
   },
   module: {
     rules: [
