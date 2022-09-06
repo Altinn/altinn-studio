@@ -14,6 +14,51 @@ import findPreferredMetadataOption from './functions/findPreferredMetadataOption
 import schemaPathIsSame from './functions/schemaPathIsSame';
 import { DataModelsMetadataActions, LoadingState } from './sagas/metadata';
 import type { IMetadataOption } from './functions/types';
+import { Dialog, makeStyles } from "@material-ui/core";
+import { AltinnButton } from "app-shared/components";
+import { getLanguageFromKey } from "app-shared/utils/language";
+
+const useStyles = makeStyles({
+  landingDialog: {
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    '& [role="dialog"]': {
+      backgroundColor: '#E3F7FF',
+      borderRadius: 0,
+      boxShadow: '1px 1px 3px 2px rgb(0 0 0 / 25%)',
+      padding: '3rem'
+    },
+    '& h1': {
+      fontSize: 18,
+      fontWeight: 'bold'
+    }
+  },
+  buttons: {
+    display: 'flex',
+    '& > :first-child button': {
+      marginRight: '2rem',
+      overflow: 'hidden', // Without this, the :before symbol makes the focus outline look weird
+      '&:before': {
+        content: '"\\f02f"',
+        fontFamily: 'AltinnStudio',
+        fontSize: '4rem',
+        marginRight: '1rem'
+      }
+    },
+    '& > :last-child': {
+      backgroundColor: "#FFF",
+      border: '2px solid #50ABDD',
+      color: '#50ABDD',
+      transition: 'none',
+      '& .MuiButton-label span': {
+        borderBottomWidth: 0
+      },
+      '&:hover': {
+        borderColor: '#0062BA',
+        color: '#0062BA'
+      }
+    }
+  }
+});
 
 interface IDataModellingContainerProps extends React.PropsWithChildren<any> {
   language: ILanguage;
@@ -27,6 +72,12 @@ type shouldSelectFirstEntryProps = {
   selectedOption?: any;
   metadataLoadingState: LoadingState;
 };
+
+enum LandingDialogState {
+  DatamodelsNotLoaded = 'DATAMODELS_NOT_LOADED',
+  DialogIsVisible = 'DIALOG_IS_VISIBLE',
+  DialogShouldNotBeShown = 'DIALOG_SHOULD_NOT_BE_SHOWN',
+}
 
 export const shouldSelectFirstEntry = ({
   metadataOptions,
@@ -46,6 +97,9 @@ function DataModelling({
   repo,
   createPathOption,
 }: IDataModellingContainerProps): JSX.Element {
+
+  const classes = useStyles();
+
   const dispatch = useDispatch();
   const jsonSchema = useSelector((state: any) => state.dataModelling.schema);
   const metadataOptions = useSelector(
@@ -95,6 +149,24 @@ function DataModelling({
     }
   }, [selectedOption, dispatch]);
 
+  const [landingDialogState, setLandingDialogState] =
+    React.useState<LandingDialogState>(LandingDialogState.DatamodelsNotLoaded);
+
+  const closeLandingpage = () => setLandingDialogState(LandingDialogState.DialogShouldNotBeShown);
+
+  React.useEffect(
+    () => {
+      if (metadataLoadingState === LoadingState.ModelsLoaded) {
+        if (jsonSchema && Object.keys(jsonSchema).length) {
+          setLandingDialogState(LandingDialogState.DialogShouldNotBeShown);
+        } else if (landingDialogState === LandingDialogState.DatamodelsNotLoaded) {
+          setLandingDialogState(LandingDialogState.DialogIsVisible);
+        }
+      }
+    },
+    [jsonSchema, landingDialogState, metadataLoadingState]
+  );
+
   const handleSaveSchema = (schema: any) => {
     dispatch(saveDataModel({ schema, metadata: selectedOption }));
   };
@@ -121,37 +193,70 @@ function DataModelling({
   };
 
   return (
-    <SchemaEditorApp
-      language={language}
-      schema={jsonSchema}
-      onSaveSchema={handleSaveSchema}
-      name={selectedOption?.label}
-      loading={metadataLoadingState === LoadingState.LoadingModels}
-    >
-      <XSDUpload
+    <>
+      {landingDialogState === LandingDialogState.DialogIsVisible && (
+        <Dialog
+          open={true}
+          className={classes.landingDialog}
+          hideBackdrop={true}
+        >
+          <h1>{getLanguageFromKey('app_data_modelling.landing_dialog_header', language)}</h1>
+          <p>{getLanguageFromKey('app_data_modelling.landing_dialog_paragraph', language)}</p>
+          <div className={classes.buttons}>
+            <XSDUpload
+              language={language}
+              onXSDUploaded={(filename) => {
+                handleXSDUploaded(filename);
+                closeLandingpage();
+              }}
+              org={org}
+              repo={repo}
+              submitButtonRenderer={(fileInputClickHandler) => (
+                <AltinnButton
+                  onClickFunction={fileInputClickHandler}
+                  btnText={getLanguageFromKey('app_data_modelling.landing_dialog_upload', language)}
+                />
+              )}
+            />
+            <AltinnButton
+              btnText={getLanguageFromKey('app_data_modelling.landing_dialog_create', language)}
+              secondaryButton
+              onClickFunction={closeLandingpage}
+            />
+          </div>
+        </Dialog>
+      )}
+      <SchemaEditorApp
         language={language}
-        onXSDUploaded={handleXSDUploaded}
-        org={org}
-        repo={repo}
-      />
-
-      <Create
-        language={language}
-        createAction={handleCreateSchema}
-        dataModelNames={modelNames}
-        createPathOption={createPathOption}
-      />
-      <SchemaSelect
-        selectedOption={selectedOption}
-        onChange={setSelectedOption}
-        options={metadataOptions}
-      />
-      <Delete
-        schemaName={selectedOption?.value && selectedOption?.label}
-        deleteAction={handleDeleteSchema}
-        language={language}
-      />
-    </SchemaEditorApp>
+        schema={jsonSchema}
+        onSaveSchema={handleSaveSchema}
+        name={selectedOption?.label}
+        loading={metadataLoadingState === LoadingState.LoadingModels}
+      >
+        <XSDUpload
+          language={language}
+          onXSDUploaded={handleXSDUploaded}
+          org={org}
+          repo={repo}
+        />
+        <Create
+          language={language}
+          createAction={handleCreateSchema}
+          dataModelNames={modelNames}
+          createPathOption={createPathOption}
+        />
+        <SchemaSelect
+          selectedOption={selectedOption}
+          onChange={setSelectedOption}
+          options={metadataOptions}
+        />
+        <Delete
+          schemaName={selectedOption?.value && selectedOption?.label}
+          deleteAction={handleDeleteSchema}
+          language={language}
+        />
+      </SchemaEditorApp>
+    </>
   );
 }
 export default DataModelling;
