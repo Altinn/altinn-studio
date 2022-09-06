@@ -1,4 +1,4 @@
-import React, { FC, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { Container } from './Container';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
@@ -23,7 +23,7 @@ export interface IDesignerPreviewState {
   isDragging: boolean;
 }
 
-export const DesignView: FC<IDesignerPreviewState> = (initialState) => {
+export const DesignView = (initialState: IDesignerPreviewState) => {
   const [beforeDrag, setBeforeDrag] = useState(null);
   const [state, setState] = useState<IDesignerPreviewState>({
     layoutOrder: {},
