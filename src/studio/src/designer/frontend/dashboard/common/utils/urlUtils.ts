@@ -5,7 +5,7 @@ interface IApplicationAboutPage {
 export const applicationAboutPage = ({
   repoFullName,
 }: IApplicationAboutPage) => {
-  return `${window.location.origin}/designer/${repoFullName}#/about`;
+  return `${window.location.origin}/designer/${repoFullName}#/`;
 };
 
 interface IGetRepoUrl {

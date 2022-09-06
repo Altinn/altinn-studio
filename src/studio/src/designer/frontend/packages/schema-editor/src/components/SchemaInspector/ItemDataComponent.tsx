@@ -5,7 +5,7 @@ import {
   TextField,
 } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   CombinationKind,
@@ -13,10 +13,10 @@ import {
   ILanguage,
   ISchemaState,
   UiSchemaItem,
-} from '../types';
-import { NameError, ObjectKind } from '../types/enums';
-import { isValidName } from '../utils/checks';
-import { getTranslation } from '../utils/language';
+} from '../../types';
+import { NameError, ObjectKind } from '../../types/enums';
+import { isValidName } from '../../utils/checks';
+import { getTranslation } from '../../utils/language';
 import {
   addCombinationItem,
   deleteCombinationItem,
@@ -28,16 +28,18 @@ import {
   setRef,
   setTitle,
   setType,
-} from '../features/editor/schemaEditorSlice';
+} from '../../features/editor/schemaEditorSlice';
 import {
   combinationIsNullable,
   getDomFriendlyID,
   nullableType,
-} from '../utils/schema';
+} from '../../utils/schema';
 import { TypeSelect } from './TypeSelect';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { CombinationSelect } from './CombinationSelect';
-import { getObjectKind } from '../utils/ui-schema-utils';
+import { getObjectKind } from '../../utils/ui-schema-utils';
+import { Label } from './Label';
+import { getCombinationOptions, getTypeOptions } from './helpers/options';
 
 export interface IItemDataComponentProps {
   selectedItem: UiSchemaItem | null;
@@ -99,20 +101,18 @@ export function ItemDataComponent({
   const dispatch = useDispatch();
   const objectKind = getObjectKind(selectedItem ?? undefined);
   const selectedId = selectedItem?.path ?? '';
-  const [nameError, setNameError] = React.useState('');
-  const [nodeName, setNodeName] = React.useState('');
-  const [description, setItemDescription] = React.useState<string>('');
-  const [title, setItemTitle] = React.useState<string>('');
-  const [fieldType, setFieldType] = React.useState<FieldType | undefined>(
+  const [nameError, setNameError] = useState('');
+  const [nodeName, setNodeName] = useState('');
+  const [description, setItemDescription] = useState<string>('');
+  const [title, setItemTitle] = useState<string>('');
+  const [fieldType, setFieldType] = useState<FieldType | undefined>(undefined);
+  const [arrayType, setArrayType] = useState<FieldType | string | undefined>(
     undefined,
   );
-  const [arrayType, setArrayType] = React.useState<
-    FieldType | string | undefined
-  >(undefined);
 
   const focusName = useSelector((state: ISchemaState) => state.focusNameField);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setNodeName(selectedItem?.displayName ?? '');
     setNameError(NameError.NoError);
     setItemTitle(selectedItem?.title ?? '');
@@ -121,7 +121,7 @@ export function ItemDataComponent({
     setArrayType(selectedItem?.items?.$ref ?? selectedItem?.items?.type ?? '');
   }, [selectedItem]);
 
-  const nameFieldRef = React.useCallback(
+  const nameFieldRef = useCallback(
     (node: any) => {
       if (node && focusName && focusName === selectedId) {
         setTimeout(() => {
@@ -265,56 +265,58 @@ export function ItemDataComponent({
       );
     }
   };
-
+  const t = (key: string) => getTranslation(key, language);
+  const inputProps = {
+    disableUnderline: true,
+    classes: { root: classes.fieldText },
+  };
   return (
     <div>
       {!selectedItem?.combinationItem && (
         <>
-          <p className={classes.name}>{getTranslation('name', language)}</p>
+          <p className={classes.name}>{t('name')}</p>
           <TextField
-            id='selectedItemName'
-            className={classes.field}
-            inputRef={nameFieldRef}
+            InputProps={inputProps}
             aria-describedby='Selected Item Name'
-            placeholder='Name'
-            fullWidth={true}
-            value={nodeName}
+            className={classes.field}
             error={!!nameError}
-            helperText={getTranslation(nameError, language)}
-            onChange={onNameChange}
+            fullWidth={true}
+            helperText={t(nameError)}
+            id='selectedItemName'
+            inputRef={nameFieldRef}
             onBlur={handleChangeNodeName}
-            InputProps={{
-              disableUnderline: true,
-              classes: { root: classes.fieldText },
-            }}
+            onChange={onNameChange}
+            placeholder='Name'
+            value={nodeName}
           />
         </>
       )}
       {selectedItem && objectKind === ObjectKind.Field && (
         <>
-          <p className={classes.header}>{getTranslation('type', language)}</p>
+          <Label>{t('type')}</Label>
           <TypeSelect
             value={selectedItem.type === 'array' ? arrayType : fieldType}
             id={`${getDomFriendlyID(selectedItem.path)}-type-select`}
             onChange={
               selectedItem.type === 'array' ? onChangeArrayType : onChangeType
             }
-            language={language}
+            label={t('type')}
+            options={getTypeOptions(t)}
           />
         </>
       )}
       <ReferenceSelectionComponent
         arrayType={arrayType}
+        buttonText={t('go_to_type')}
         classes={classes}
-        selectedItem={selectedItem}
+        label={t('reference_to')}
         objectKind={objectKind}
-        language={language}
         onChangeArrayType={onChangeArrayType}
         onChangeRef={onChangeRef}
         onGoToDefButtonClick={onGoToDefButtonClick}
+        selectedItem={selectedItem}
       />
-      {(objectKind === ObjectKind.Reference ||
-        objectKind === ObjectKind.Field) && (
+      {[ObjectKind.Reference, ObjectKind.Field].includes(objectKind) && (
         <FormControlLabel
           id='multiple-answers-checkbox'
           className={classes.header}
@@ -326,19 +328,18 @@ export function ItemDataComponent({
               name='checkedMultipleAnswers'
             />
           }
-          label={getTranslation('multiple_answers', language)}
+          label={t('multiple_answers')}
         />
       )}
       {objectKind === ObjectKind.Combination && (
         <>
-          <p className={classes.header}>{getTranslation('type', language)}</p>
+          <Label>{t('type')}</Label>
           <CombinationSelect
-            value={selectedItem?.combinationKind}
-            id={`${getDomFriendlyID(
-              selectedItem?.path || '',
-            )}-change-combination`}
+            id={`${getDomFriendlyID(selectedItem?.path || '')}-combi-sel`}
+            label={t('type')}
             onChange={onChangeCombinationType}
-            language={language}
+            options={getCombinationOptions(t)}
+            value={selectedItem?.combinationKind}
           />
         </>
       )}
@@ -354,44 +355,33 @@ export function ItemDataComponent({
               name='checkedNullable'
             />
           }
-          label={getTranslation('nullable', language)}
+          label={t('nullable')}
         />
       )}
       <Divider />
-      <p className={classes.header}>
-        {getTranslation('descriptive_fields', language)}
-      </p>
-      <p className={classes.header}>{getTranslation('title', language)}</p>
+      <Label>{t('descriptive_fields')}</Label>
       <TextField
+        InputProps={inputProps}
+        className={classes.field}
+        fullWidth
         id={`${getDomFriendlyID(selectedId ?? '')}-title`}
-        className={classes.field}
-        fullWidth
-        value={title}
         margin='normal'
-        onChange={(e) => setItemTitle(e.target.value)}
         onBlur={onChangeTitle}
-        InputProps={{
-          disableUnderline: true,
-          classes: { root: classes.fieldText },
-        }}
+        onChange={(e) => setItemTitle(e.target.value)}
+        value={title}
       />
-      <p className={classes.header}>
-        {getTranslation('description', language)}
-      </p>
+      <Label>{t('description')}</Label>
       <TextField
-        id={`${getDomFriendlyID(selectedId ?? '')}-description`}
-        multiline={true}
+        InputProps={inputProps}
         className={classes.field}
         fullWidth
+        id={`${getDomFriendlyID(selectedId ?? '')}-description`}
+        margin='normal'
+        multiline={true}
+        onBlur={onChangeDescription}
+        onChange={(e) => setItemDescription(e.target.value)}
         style={{ height: 100 }}
         value={description}
-        margin='normal'
-        onChange={(e) => setItemDescription(e.target.value)}
-        onBlur={onChangeDescription}
-        InputProps={{
-          disableUnderline: true,
-          classes: { root: classes.fieldText },
-        }}
       />
     </div>
   );

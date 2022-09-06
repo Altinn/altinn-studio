@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.Studio.Designer.Services.Interfaces
 {
     /// <summary>
-    /// Interface for dealing with texts in new format in an app repository.
+    /// Interface for handling texts in new format.
     /// </summary>
     public interface ITextsService
     {

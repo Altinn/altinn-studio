@@ -12,11 +12,6 @@ interface IStandaloneDataModellingProps {
   classes: any;
 }
 
-interface IOrgRepoType {
-  org: string;
-  repoName: string;
-}
-
 const styles = createStyles({
   containerGrid: {
     marginTop: 70,
@@ -30,18 +25,20 @@ const DataModellingContainer = ({
   const dispatch = useAppDispatch();
   dispatch(DataModelsMetadataActions.getDataModelsMetadata());
 
-  const { org, repoName } = useParams() as IOrgRepoType;
-
-  return (
-    <Grid item className={classes.containerGrid}>
-      <DataModelling
-        language={language}
-        org={org}
-        repo={repoName}
-        createPathOption
-      />
-    </Grid>
-  );
+  const { org, repoName } = useParams();
+  if( org && repoName) {
+    return (
+      <Grid item className={classes.containerGrid}>
+        <DataModelling
+          language={language}
+          org={org}
+          repo={repoName}
+          createPathOption
+        />
+      </Grid>
+    );
+  }
+  return <p>Either organization/repository-name was undefined</p>
 };
 
 const mapStateToProps = (

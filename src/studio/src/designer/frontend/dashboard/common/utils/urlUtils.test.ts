@@ -8,7 +8,7 @@ describe('urlUtils', () => {
       });
 
       expect(result).toEqual(
-        'http://localhost/designer/org-name/app-name#/about',
+        'http://localhost/designer/org-name/app-name#/',
       );
     });
   });

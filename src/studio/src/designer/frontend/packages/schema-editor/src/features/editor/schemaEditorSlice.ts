@@ -6,6 +6,8 @@ import {
   getUiSchemaItemsByRef,
   getUniqueNumber,
   mapCombinationChildren,
+  updateChildPaths,
+  getSchemaFromPath,
   splitParentPathAndName,
 } from '../../utils/schema';
 import type {
@@ -15,9 +17,10 @@ import type {
   ISchemaState,
   UiSchemaItem,
 } from '../../types';
+import { getSchemaSettings } from '../../settings';
 
 export const initialState: ISchemaState = {
-  schema: { properties: {}, definitions: {} },
+  schema: {},
   uiSchema: [],
   name: '/',
   saveSchemaUrl: '',
@@ -25,13 +28,6 @@ export const initialState: ISchemaState = {
   selectedDefinitionNodeId: '',
   focusNameField: '',
   selectedEditorTab: 'properties',
-};
-
-const updateChildPaths = (item: UiSchemaItem, parentId: string) => {
-  item.path = `${parentId}/properties/${item.displayName}`;
-  if (item.properties) {
-    item.properties.forEach((p) => updateChildPaths(p, item.path));
-  }
 };
 
 const schemaEditorSlice = createSlice({
@@ -176,7 +172,8 @@ const schemaEditorSlice = createSlice({
       // copy item and give new id
       const split = item.path.split('/');
       const name = split[split.length - 1];
-      const copy = { ...item, path: `#/definitions/${name}` };
+      const { definitionsPath } = getSchemaSettings({ schemaUrl: state.schema?.$schema});
+      const copy = { ...item, path: `${definitionsPath}/${name}` };
       state.uiSchema.push(copy);
 
       // create ref pointing to the new item
@@ -478,20 +475,34 @@ const schemaEditorSlice = createSlice({
     },
     setUiSchema(state, action: PayloadAction<{ name: string }>) {
       const { name } = action.payload;
-      let uiSchema: any[] = [];
+      let uiSchema: UiSchemaItem[] = [];
 
-      const uiSchemaProps = buildUISchema(
-        state.schema.properties,
-        '#/properties',
-        true,
-      );
-      uiSchema = uiSchema.concat(uiSchemaProps);
-      const uiSchemaDefs = buildUISchema(
-        state.schema.definitions,
-        '#/definitions',
-        true,
-      );
-      uiSchema = uiSchema.concat(uiSchemaDefs);
+      const schemaSettings = getSchemaSettings({
+        schemaUrl: state.schema.$schema,
+        schemaInfo: state.schema.info,
+      });
+
+      let rootUiSchema: UiSchemaItem[] = [];
+      if (schemaSettings.rootNodePath !== '#/oneOf') {
+        rootUiSchema = buildUISchema(
+          getSchemaFromPath(schemaSettings.rootNodePath.slice(1), state.schema),
+          schemaSettings.rootNodePath,
+          true,
+        );
+      } else {
+        rootUiSchema = buildUISchema(state.schema, '#', true);
+      }
+
+      const defsUiSchema = buildUISchema(
+        getSchemaFromPath(schemaSettings.definitionsPath.slice(1),
+          state.schema),
+          schemaSettings.definitionsPath,
+          true,
+      )
+
+      uiSchema = uiSchema
+        .concat(rootUiSchema)
+        .concat(defsUiSchema);
 
       state.uiSchema = uiSchema;
       state.name = name;
@@ -504,7 +515,7 @@ const schemaEditorSlice = createSlice({
       if (state.uiSchema.length > 0) {
         const id = state.uiSchema[0].path;
         state.focusNameField = id;
-        if (id.startsWith('#/definitions')) {
+        if (id.startsWith(schemaSettings.definitionsPath)) {
           state.selectedDefinitionNodeId = id;
         } else {
           state.selectedPropertyNodeId = id;
@@ -517,9 +528,6 @@ const schemaEditorSlice = createSlice({
     ) {
       const { onSaveSchema } = action.payload;
       const updatedSchema: ISchema = buildJsonSchema(state.uiSchema);
-      if (!updatedSchema.definitions) {
-        updatedSchema.definitions = {};
-      }
       state.schema = updatedSchema;
       if (onSaveSchema) {
         onSaveSchema(updatedSchema);

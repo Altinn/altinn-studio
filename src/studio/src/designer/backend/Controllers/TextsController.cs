@@ -32,7 +32,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// Initializes a new instance of the <see cref="TextsController"/> class.
         /// </summary>
-        /// <param name="textsService">The text service.</param>
+        /// <param name="textsService">The texts service.</param>
         public TextsController(ITextsService textsService)
         {
             _textsService = textsService;
