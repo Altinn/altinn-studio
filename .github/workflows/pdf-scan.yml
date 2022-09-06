@@ -2,21 +2,21 @@ name: PDF Scan
 
 on:
   schedule:
-  - cron: '0 8 * * 1,4'
+    - cron: '21 8 * * 1,4'
   push:
     branches: [ master ]
     paths:
-      - 'src/Altinn.Platform/Altinn.Platform.PDF/**'
+      - 'src/Altinn.Platform/Altinn.Platform.PDF/**/Dockerfile'
   pull_request:
     branches: [ master ]
     paths:
-      - 'src/Altinn.Platform/Altinn.Platform.PDF/**'
+      - 'src/Altinn.Platform/Altinn.Platform.PDF/**/Dockerfile'
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Build the Docker image
       run: docker build src/Altinn.Platform/Altinn.Platform.PDF --file src/Altinn.Platform/Altinn.Platform.PDF/Dockerfile --tag altinn-pdf:${{github.sha}}
       

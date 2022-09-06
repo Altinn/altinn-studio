@@ -1,14 +1,13 @@
 import React from 'react';
-import ReactRouter from 'react-router';
-import { Provider } from 'react-redux';
-import configureStore from 'redux-mock-store';
+import {Route, Routes, Navigate} from 'react-router-dom';
 import DataModelling from './DataModelling';
-import { LoadingState } from 'app-shared/features/dataModelling/sagas/metadata';
+import {LoadingState} from 'app-shared/features/dataModelling/sagas/metadata';
 
-import { render as rtlRender } from '@testing-library/react';
+import {renderWithProviders} from "test/testUtils";
+import {setupStore} from "app/store";
 
 describe('DataModelling', () => {
-  const language = { administration: {} };
+  const language = {administration: {}};
   const modelName = 'model-name';
   const initialState = {
     dataModelsMetadataState: {
@@ -27,8 +26,6 @@ describe('DataModelling', () => {
     },
   };
 
-  let store: any;
-  const dispatchMock = () => Promise.resolve({});
   const initialStoreCall = {
     type: 'dataModelling/fetchDataModel',
     payload: {
@@ -39,23 +36,22 @@ describe('DataModelling', () => {
     },
   };
 
-  beforeEach(() => {
-    jest.spyOn(ReactRouter, 'useParams').mockReturnValue({
-      org: 'test-org',
-      repoName: 'test-repo',
-    });
-
-    store = configureStore()({ ...initialState, language: { language } });
-    store.dispatch = jest.fn(dispatchMock);
-  });
-
   it('should fetch models on mount', () => {
-    rtlRender(
-      <Provider store={store}>
-        <DataModelling language={language} />
-      </Provider>,
+    jest.mock('react-router', () => ({
+      useParams: jest.fn().mockReturnValue({org: 'test-org', repoName: 'test-repo'}),
+    }));
+    const initStore = setupStore({ ...initialState, language: { language } } as unknown);
+    const dispatch = jest.spyOn(initStore, 'dispatch').mockImplementation(jest.fn());
+    renderWithProviders(
+      <Routes>
+        <Route path="/" element={<Navigate to={"/org/repo"} replace/>}/>
+        <Route path="/:org/:repoName" element={
+          <DataModelling language={language}/>}/>
+      </Routes>
+      , {
+        store: initStore
+      }
     );
-
-    expect(store.dispatch).toHaveBeenCalledWith(initialStoreCall);
+    expect(dispatch).toHaveBeenCalledWith(initialStoreCall);
   });
 });

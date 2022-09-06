@@ -70,7 +70,7 @@ export const SchemaInspector = ({
 }: ISchemaInspectorProps) => {
   const classes = useStyles();
   const [tabIndex, setTabIndex] = useState('0');
-  const __ = (key: string) => getTranslation(key, language);
+  const t = (key: string) => getTranslation(key, language);
 
   useEffect(() => {
     if (selectedItem) {
@@ -90,9 +90,9 @@ export const SchemaInspector = ({
             onChange={(e: any, v: string) => setTabIndex(v)}
             aria-label='inspector tabs'
           >
-            <SchemaTab label={__('properties')} value='0' />
+            <SchemaTab label={t('properties')} value='0' />
             <SchemaTab
-              label={__('restrictions')}
+              label={t('restrictions')}
               value='1'
               hide={
                 getObjectKind(selectedItem) === ObjectKind.Combination ||
@@ -100,7 +100,7 @@ export const SchemaInspector = ({
               }
             />
             <SchemaTab
-              label={__('fields')}
+              label={t('fields')}
               value='2'
               hide={
                 selectedItem.type !== 'object' || selectedItem.combinationItem
@@ -135,7 +135,7 @@ export const SchemaInspector = ({
   ) : (
     <div>
       <p className={classes.noItem} id='no-item-paragraph'>
-        {__('no_item_selected')}
+        {t('no_item_selected')}
       </p>
       <Divider />
     </div>

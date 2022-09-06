@@ -2,12 +2,12 @@ export const menu = [
   {
     key: 'Om',
     activeSubHeaderSelection: 'Om',
-    link: '/about',
+    link: '/',
   },
   {
     key: 'Lage',
     activeSubHeaderSelection: 'Lage',
-    link: '/edit',
+    link: '/ui-editor',
   },
   {
     key: 'Språk',

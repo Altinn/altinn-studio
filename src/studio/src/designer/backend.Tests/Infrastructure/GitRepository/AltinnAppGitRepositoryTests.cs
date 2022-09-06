@@ -11,7 +11,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
 {
     public class AltinnAppGitRepositoryTests
     {
-        [Fact]        
+        [Fact]
         public void Constructor_ValidParameters_ShouldInstantiate()
         {
             var org = "ttd";
@@ -22,14 +22,14 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, developer);
 
             var altinnAppGitRepository = new AltinnAppGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory);
-            
+
             Assert.Equal(org, altinnAppGitRepository.Org);
             Assert.Equal(repository, altinnAppGitRepository.Repository);
             Assert.Equal(developer, altinnAppGitRepository.Developer);
-            Assert.Contains(repositoriesRootDirectory, altinnAppGitRepository.RepositoriesRootDirectory);            
+            Assert.Contains(repositoriesRootDirectory, altinnAppGitRepository.RepositoriesRootDirectory);
         }
 
-        [Fact]        
+        [Fact]
         public async Task GetApplicationMetadata_FileExists_ShouldHaveCorrectValues()
         {
             var org = "ttd";
@@ -41,7 +41,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             var altinnAppGitRepository = new AltinnAppGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory);
 
             var applicationMetadata = await altinnAppGitRepository.GetApplicationMetadata();
-                        
+
             applicationMetadata.Id.Should().Be("yabbin/hvem-er-hvem");
             applicationMetadata.Org.Should().Be("yabbin");
             applicationMetadata.Title.Should().ContainValues("Hvem er hvem?", "who-is-who");
@@ -85,7 +85,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, developer);
             var altinnAppGitRepository = new AltinnAppGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory);
 
-            var textResource = await altinnAppGitRepository.GetTextResources("nb");
+            var textResource = await altinnAppGitRepository.GetTextV1("nb");
 
             textResource.Should().NotBeNull();
             textResource.Resources.First(r => r.Id == "ServiceName").Value.Should().Be("Hvem er hvem?");
