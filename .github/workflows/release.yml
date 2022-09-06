@@ -67,7 +67,7 @@ jobs:
           cp -fr ../app-frontend/src/altinn-app-frontend/dist/* toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_MAJOR_MINOR }}/
           echo Copy Patch
           test -e toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }} && git rm -r toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}
-          mkdir -p ./cdn/toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}
+          mkdir -p toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}
           cp -fr ../app-frontend/src/altinn-app-frontend/dist/* toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}/
 
       - name: Copy version (pre-release)
