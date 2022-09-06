@@ -73,15 +73,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
 
-            return altinnGitRepository.GetSchemaFiles();            
+            return altinnGitRepository.GetSchemaFiles();
         }
 
         /// <inheritdoc/>
         public async Task<string> GetSchema(string org, string repository, string developer, string relativeFilePath)
         {
-            var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
 
-            return await altinnGitRepository.ReadTextByRelativePathAsync(relativeFilePath);
+            return await altinnAppGitRepository.ReadTextByRelativePathAsync(relativeFilePath);
         }
 
         /// <inheritdoc/>
@@ -93,7 +93,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 await UpdateAllAppModelFiles(org, repository, developer, relativeFilePath, jsonContent);
             }
-            else 
+            else
             {
                 await altinnGitRepository.WriteTextByRelativePathAsync(relativeFilePath, jsonContent, true);
             }
@@ -153,7 +153,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     return jsonContent;
                 case DatamodellingPreference.Xsd:
                 default:
-                    /* Using the OLD model processing. */ 
+                    /* Using the OLD model processing. */
 
                     xsdMemoryStream.Position = 0;
                     Manatee.Json.Schema.JsonSchema schemaJsonSchema = GenerateJsonSchema(xsdMemoryStream);

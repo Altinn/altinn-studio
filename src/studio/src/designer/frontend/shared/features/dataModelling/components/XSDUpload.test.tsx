@@ -72,6 +72,8 @@ const render = (props: Partial<IXSDUploadProps> = {}) => {
     org: 'test-org',
     repo: 'test-repo',
     onXSDUploaded: jest.fn(),
+    labelTextResource: 'app_data_modelling.upload_xsd',
+    isInTopToolbar: true,
     ...props,
   } as IXSDUploadProps;
 

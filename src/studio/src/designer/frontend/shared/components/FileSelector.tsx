@@ -7,20 +7,33 @@ export interface IFileSelectorProps extends StyledComponentProps {
   language: any;
   submitHandler: (file: FormData, fileName: string) => void;
   busy: boolean;
-  labelTextResource: string;
   formFileName: string;
   accept?: string;
+  submitButtonRenderer?: ((fileInputClickHandler: (event: any) => void) => JSX.Element);
 }
 
 function FileSelector(props: IFileSelectorProps) {
   const {
     language,
-    labelTextResource,
     accept,
     formFileName,
     busy,
     submitHandler,
+    submitButtonRenderer
   } = props;
+
+  const defaultSubmitButtonRenderer = (fileInputClickHandler: (event: any) => void) => (
+    <TopToolbarButton
+      data-testid='upload-button'
+      faIcon='fa fa-upload'
+      iconSize={38}
+      hideText={true}
+      onClick={fileInputClickHandler}
+    >
+      {getLanguageFromKey('app_data_modelling.upload_xsd', language)}
+    </TopToolbarButton>
+  );
+
   const fileInput = React.useRef<HTMLInputElement>(null);
 
   const handleSubmit = (event?: React.FormEvent<HTMLFormElement>) => {
@@ -52,15 +65,7 @@ function FileSelector(props: IFileSelectorProps) {
         disabled={busy}
         tabIndex={-1}
       />
-      <TopToolbarButton
-        data-testid='upload-button'
-        faIcon='fa fa-upload'
-        iconSize={38}
-        hideText={true}
-        onClick={() => fileInput?.current?.click()}
-      >
-        {getLanguageFromKey(labelTextResource, language)}
-      </TopToolbarButton>
+      {(submitButtonRenderer ?? defaultSubmitButtonRenderer)(() => fileInput?.current?.click())}
     </form>
   );
 }
