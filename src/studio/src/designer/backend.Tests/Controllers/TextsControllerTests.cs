@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
+
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Services.Interfaces;
@@ -43,9 +44,10 @@ namespace Designer.Tests.Controllers
             response.EnsureSuccessStatusCode();
             string responseBody = await response.Content.ReadAsStringAsync();
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-            Dictionary<string, string> responseText = JsonSerializer.Deserialize<Dictionary<string, string>>(responseDocument.RootElement.ToString());
+            Dictionary<string, string> responseDictionary = JsonSerializer.Deserialize<Dictionary<string, string>>(responseDocument.RootElement.ToString());
 
-            Assert.Equal(new Dictionary<string, string> { { "key_1", "value_1" }, { "key_2", "value_2" } }, responseText);
+            Dictionary<string, string> expectedDictionary = new Dictionary<string, string> { { "nb_key1", "nb_value1" }, { "nb_key2", "nb_value2" } };
+            Assert.Equal(expectedDictionary, responseDictionary);
         }
 
         [Fact]
@@ -77,45 +79,42 @@ namespace Designer.Tests.Controllers
 
         private HttpClient GetTestClient()
         {
-            string unitTestFolder =
-                Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.Location).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.Location).LocalPath);
             string projectDir = Directory.GetCurrentDirectory();
             string configPath = Path.Combine(projectDir, "appsettings.json");
 
             HttpClient client = _factory.WithWebHostBuilder(builder =>
             {
-                builder.ConfigureAppConfiguration((context, conf) => { conf.AddJsonFile(configPath); });
+                builder.ConfigureAppConfiguration((context, conf) =>
+                {
+                    conf.AddJsonFile(configPath);
+                });
 
                 var configuration = new ConfigurationBuilder()
                     .AddJsonFile(configPath)
                     .Build();
 
-                configuration.GetSection("ServiceRepositorySettings:RepositoryLocation").Value =
-                    Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories");
+                configuration.GetSection("ServiceRepositorySettings:RepositoryLocation").Value = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories");
 
-                IConfigurationSection serviceRepositorySettingSection =
-                    configuration.GetSection("ServiceRepositorySettings");
+                IConfigurationSection serviceRepositorySettingSection = configuration.GetSection("ServiceRepositorySettings");
 
                 Mock<IRepository> repositoryMock = new Mock<IRepository>() { CallBase = true, };
                 repositoryMock
-                    .Setup(r => r.UpdateApplicationWithAppLogicModel(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Verifiable();
+                    .Setup(r => r.UpdateApplicationWithAppLogicModel(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+                    .Verifiable();
 
-                repositoryMock.Setup(r => r.ReadData(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                    .Returns<string, string, string>(async (org, repo, path) =>
+                repositoryMock.
+                    Setup(r => r.ReadData(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).
+                    Returns<string, string, string>(async (org, repo, path) =>
                     {
                         string repopath = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories", "testUser", org, repo, path);
 
                         Stream fs = File.OpenRead(repopath);
                         return await Task.FromResult(fs);
                     });
-                repositoryMock.Setup(r => r.DeleteData(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                    .Verifiable();
-                repositoryMock.Setup(r =>
-                        r.WriteData(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>()))
-                    .Verifiable();
-                repositoryMock.Setup(r =>
-                        r.DeleteMetadataForAttachment(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                    .Returns(true);
+                repositoryMock.Setup(r => r.DeleteData(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Verifiable();
+                repositoryMock.Setup(r => r.WriteData(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>())).Verifiable();
+                repositoryMock.Setup(r => r.DeleteMetadataForAttachment(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
                 builder.ConfigureTestServices(services =>
                 {
                     services.Configure<ServiceRepositorySettings>(serviceRepositorySettingSection);

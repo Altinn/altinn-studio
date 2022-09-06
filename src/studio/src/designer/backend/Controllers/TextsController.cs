@@ -80,16 +80,13 @@ namespace Altinn.Studio.Designer.Controllers
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [Route("{languageCode}")]
-        public async Task<ActionResult<Dictionary<string, string>>> GetText(string org, string repo, string languageCode)
+        public async Task<ActionResult<Dictionary<string, string>>> GetText(string org, string repo, [FromRoute] string languageCode)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            string textContent = await _textsService.GetTextContent(org, repo, developer, languageCode);
+            Dictionary<string, string> text = await _textsService.GetText(org, repo, developer, languageCode);
 
-            Dictionary<string, string> jsonTextContent =
-                JsonSerializer.Deserialize<Dictionary<string, string>>(textContent);
-
-            return jsonTextContent;
+            return Ok(text);
         }
     }
 }
