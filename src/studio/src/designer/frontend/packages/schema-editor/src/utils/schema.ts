@@ -205,7 +205,6 @@ export function buildUISchema(
 
   Object.keys(schema).forEach((key) => {
     const item = schema[key];
-    if (item === undefined) return;
     const path = `${rootPath}/${key}`;
     const displayName = includeDisplayName ? key : path;
 
@@ -408,13 +407,6 @@ export const buildUiSchemaForItemWithProperties = (
 
 export const getDomFriendlyID = (id: string) =>
   id.replace(/\//g, '').replace('#', '');
-
-export const updateChildPaths = (item: UiSchemaItem, parentId: string) => {
-  item.path = `${parentId}/properties/${item.displayName}`;
-  if (item.properties) {
-    item.properties.forEach((p) => updateChildPaths(p, item.path));
-  }
-};
 
 export const updateChildPaths = (item: UiSchemaItem, parentId: string) => {
   item.path = `${parentId}/properties/${item.displayName}`;
