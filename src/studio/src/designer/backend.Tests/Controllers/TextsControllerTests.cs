@@ -1,14 +1,16 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
-using System.Net;
+
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Services.Interfaces;
+
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 
