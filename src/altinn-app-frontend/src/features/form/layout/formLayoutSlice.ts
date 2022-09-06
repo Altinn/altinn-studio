@@ -86,6 +86,9 @@ const formLayoutSlice = createSagaSlice(
       fetchSetsFulfilled: mkAction<LayoutTypes.IFetchLayoutSetsFulfilled>({
         reducer: (state, action) => {
           const { layoutSets } = action.payload;
+          if (!layoutSets) {
+            return;
+          }
           if (layoutSets.sets) {
             state.layoutsets = { sets: layoutSets.sets };
           }
