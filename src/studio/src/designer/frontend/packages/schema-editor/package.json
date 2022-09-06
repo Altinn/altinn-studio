@@ -79,7 +79,10 @@
       "tsx",
       "js"
     ],
-    "testEnvironment": "jsdom"
+    "testEnvironment": "jsdom",
+    "setupFilesAfterEnv": [
+      "<rootDir>/test/setupTests.ts"
+    ]
   },
   "browserslist": {
     "production": [
