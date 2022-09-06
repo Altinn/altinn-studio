@@ -206,7 +206,7 @@ namespace Designer.Tests.Services
                 altinnAppGitRepository.FileExistsByRelativePath($"{relativeDirectory}/{schemaName}.original.xsd").Should().BeTrue();
                 altinnAppGitRepository.FileExistsByRelativePath($"{relativeDirectory}/{schemaName}.cs").Should().BeTrue();
 
-                var textResource = await altinnAppGitRepository.GetTextResources("nb");
+                var textResource = await altinnAppGitRepository.GetTextV1("nb");
                 textResource.Language.Should().Be("nb");
                 textResource.Resources.Should().HaveCount(9);
                 textResource.Resources.First(r => r.Id == "27688.KontaktpersonEPostdatadef27688.Label").Value.Should().Be("E-post");

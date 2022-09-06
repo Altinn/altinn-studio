@@ -39,7 +39,7 @@ const useStyles = makeStyles({
   },
 });
 
-export default function TopToolbarButton({
+export function TopToolbarButton({
   onClick,
   disabled,
   faIcon,

@@ -1,29 +1,24 @@
 import { render as rtlRender, screen } from '@testing-library/react';
-import userEvent, {
-  PointerEventsCheckLevel,
-} from '@testing-library/user-event';
+import userEvent from '@testing-library/user-event';
 import React from 'react';
 import FileSelector from './FileSelector';
 import type { IFileSelectorProps } from './FileSelector';
+import {Button} from "@material-ui/core";
 
 const user = userEvent.setup();
 
 describe('FileSelector', () => {
-  it('should not call submitHandler when no files are selected and submit button is clicked', async () => {
-    const userWithNoPointerEventCheck = userEvent.setup({
-      pointerEventsCheck: PointerEventsCheckLevel.Never,
-    });
+  it('should not call submitHandler when no files are selected', async () => {
     const handleSubmit = jest.fn();
     render({ submitHandler: handleSubmit });
 
-    const submitButton = screen.getByRole('button', {
-      name: /upload/i,
-    });
-    await userWithNoPointerEventCheck.click(submitButton);
+    const fileInput = screen.getByTestId('FileSelector-input');
+    await user.upload(fileInput, null);
+
     expect(handleSubmit).not.toHaveBeenCalled();
   });
 
-  it('should call submitHandler when a file is selected and submit button is clicked', async () => {
+  it('should call submitHandler when a file is selected', async () => {
     const file = new File(['hello'], 'hello.png', { type: 'image/png' });
     const handleSubmit = jest.fn();
     render({ submitHandler: handleSubmit });
@@ -31,14 +26,38 @@ describe('FileSelector', () => {
     const fileInput = screen.getByTestId('FileSelector-input');
     await user.upload(fileInput, file);
 
-    const submitButton = screen.getByRole('button', {
-      name: /upload/i,
-    });
-    await user.click(submitButton);
     expect(handleSubmit).toHaveBeenCalledWith(
       expect.any(FormData),
       'hello.png',
     );
+  });
+
+  it('Should show text on the button by default', async () => {
+    render();
+    expect(screen.getByLabelText('Upload button text')).toBeInTheDocument();
+  });
+
+  it('Should show custom button', async () => {
+    render({ submitButtonRenderer: testCustomButtonRenderer });
+    expect(screen.getByText('Lorem ipsum')).toBeInTheDocument();
+  });
+
+  it('Should call file input onClick handler when the default upload button is clicked', async () => {
+    render();
+    const button = screen.getByLabelText('Upload button text');
+    const fileInput = screen.getByTestId('FileSelector-input');
+    fileInput.onclick = jest.fn();
+    await user.click(button);
+    expect(fileInput.onclick).toHaveBeenCalled();
+  });
+
+  it('Should call file input onClick handler when the custom upload button is clicked', async () => {
+    render({ submitButtonRenderer: testCustomButtonRenderer });
+    const button = screen.getByText('Lorem ipsum');
+    const fileInput = screen.getByTestId('FileSelector-input');
+    fileInput.onclick = jest.fn();
+    await user.click(button);
+    expect(fileInput.onclick).toHaveBeenCalled();
   });
 });
 
@@ -47,9 +66,13 @@ const render = (props: Partial<IFileSelectorProps> = {}) => {
     language: {
       general: { label: 'download' },
       shared: { submit_upload: 'upload' },
+      app_data_modelling: { upload_xsd: 'Upload button text' }
     },
     ...props,
   } as IFileSelectorProps;
 
   rtlRender(<FileSelector {...allProps} />);
 };
+
+const testCustomButtonRenderer =
+  (onClick: React.MouseEventHandler<HTMLButtonElement>) => <Button onClick={onClick}>Lorem ipsum</Button>;

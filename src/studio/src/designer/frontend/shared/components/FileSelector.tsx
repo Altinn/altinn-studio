@@ -1,83 +1,43 @@
-import { Description } from '@material-ui/icons';
 import React from 'react';
-import { Button, StyledComponentProps, makeStyles } from '@material-ui/core';
-import classNames from 'classnames';
+import { StyledComponentProps } from '@material-ui/core';
 import { getLanguageFromKey } from '../utils/language';
-import theme from '../theme/altinnStudioTheme';
+import { TopToolbarButton } from '../../packages/schema-editor/src/components/TopToolbarButton';
 
 export interface IFileSelectorProps extends StyledComponentProps {
   language: any;
   submitHandler: (file: FormData, fileName: string) => void;
   busy: boolean;
-  labelTextResource: string;
   formFileName: string;
   accept?: string;
+  submitButtonRenderer?: ((fileInputClickHandler: (event: any) => void) => JSX.Element);
 }
-
-const useStyles = makeStyles({
-  root: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    '&>*': { margin: 4, height: 36 },
-    '& input:focus-visible + label': {
-      outline: '2px solid black',
-    },
-    '& label': {
-      flex: 1,
-      display: 'inline-flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      '& span': {
-        flex: 1,
-        height: 36,
-        padding: 2,
-        paddingTop: 5,
-        boxSizing: 'border-box',
-        border: '1px solid #0062BA',
-        '&.empty': {
-          fontStyle: 'italic',
-          color: 'grey',
-        },
-      },
-    },
-    '& button': {
-      borderBottom: `1px solid ${theme.altinnPalette.primary.blueDark}`,
-      color: theme.altinnPalette.primary.white,
-      background: theme.altinnPalette.primary.blueDark,
-      textTransform: 'none',
-      fontSize: 16,
-      fontWeight: 400,
-      borderRadius: '0',
-      '&:hover': {
-        background: theme.altinnPalette.primary.blueDarker,
-        color: theme.altinnPalette.primary.white,
-      },
-      '&:focus': {
-        background: theme.altinnPalette.primary.blueDarker,
-        color: theme.altinnPalette.primary.white,
-      },
-      '&:disabled': {
-        borderBottom: `1px solid ${theme.altinnPalette.primary.greyMedium}`,
-      },
-    },
-  },
-});
 
 function FileSelector(props: IFileSelectorProps) {
   const {
     language,
-    labelTextResource,
     accept,
     formFileName,
     busy,
     submitHandler,
+    submitButtonRenderer
   } = props;
-  const classes = useStyles();
-  const fileInput = React.useRef<HTMLInputElement>(null);
-  const [selectedFileName, setSelectedFileName] = React.useState('');
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+  const defaultSubmitButtonRenderer = (fileInputClickHandler: (event: any) => void) => (
+    <TopToolbarButton
+      data-testid='upload-button'
+      faIcon='fa fa-upload'
+      iconSize={38}
+      hideText={true}
+      onClick={fileInputClickHandler}
+    >
+      {getLanguageFromKey('app_data_modelling.upload_xsd', language)}
+    </TopToolbarButton>
+  );
+
+  const fileInput = React.useRef<HTMLInputElement>(null);
+
+  const handleSubmit = (event?: React.FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
     const file = fileInput?.current?.files?.item(0);
     if (file) {
       const formData = new FormData();
@@ -88,15 +48,13 @@ function FileSelector(props: IFileSelectorProps) {
 
   const handleInputChange = () => {
     const file = fileInput?.current?.files?.item(0);
-    if (file) {
-      setSelectedFileName(file.name);
-    }
+    if (file) handleSubmit();
   };
 
   return (
-    <form onSubmit={handleSubmit} className={classes.root}>
+    <form onSubmit={handleSubmit}>
       <input
-        data-testid="FileSelector-input"
+        data-testid='FileSelector-input'
         type='file'
         id='file-upload-picker'
         className='sr-only'
@@ -105,19 +63,9 @@ function FileSelector(props: IFileSelectorProps) {
         name={formFileName}
         onChange={handleInputChange}
         disabled={busy}
+        tabIndex={-1}
       />
-      <label
-        htmlFor='file-upload-picker'
-        title={getLanguageFromKey(labelTextResource, language)}
-      >
-        <Description fontSize='large' />
-        <span className={classNames({ empty: !selectedFileName })}>
-          {selectedFileName || getLanguageFromKey(labelTextResource, language)}
-        </span>
-      </label>
-      <Button type='submit' disabled={!selectedFileName || busy}>
-        {getLanguageFromKey('shared.submit_upload', language)}
-      </Button>
+      {(submitButtonRenderer ?? defaultSubmitButtonRenderer)(() => fileInput?.current?.click())}
     </form>
   );
 }

@@ -250,6 +250,7 @@ export class SelectionEditComponent extends React.Component<
                 return (
                   <Grid
                     container={true}
+                    item={true}
                     xs={12}
                     key={key}
                     classes={{ container: this.props.classes.gridContainer }}
@@ -312,7 +313,7 @@ export class SelectionEditComponent extends React.Component<
                         />
                       </Grid>
                     </Grid>
-                    <Grid xs={1} container={true} direction='column'>
+                    <Grid xs={1} container={true} direction='column' item={true}>
                       <IconButton
                         type='button'
                         className={`${this.props.classes.formComponentsBtn} ${this.props.classes.specialBtn}`}

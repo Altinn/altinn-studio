@@ -1,5 +1,5 @@
-import { createStyles } from '@material-ui/core/styles';
 import altinnTheme from '../../theme/altinnStudioTheme';
+import {makeStyles} from "@material-ui/core";
 
 const drawerWidth = 240;
 const innerHover = {
@@ -7,8 +7,7 @@ const innerHover = {
   fontWeight: 500,
   backgroundColor: 'transparent',
 };
-export const styles = () =>
-  createStyles({
+export const useDrawerStyles = makeStyles( {
     drawer: {
       flexShrink: 0,
       paddingRight: 16,

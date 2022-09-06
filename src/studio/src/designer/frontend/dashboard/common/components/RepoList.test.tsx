@@ -1,122 +1,156 @@
 import React from 'react';
-import { mount } from 'enzyme';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import { DataGrid } from '@mui/x-data-grid';
 import { RepoList } from 'common/components/RepoList';
 import * as userApi from 'services/userApi';
-import type { IRepository } from 'app-shared/types/global';
+import { render as rtlRender, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import type { IRepoListProps } from './RepoList';
+
+const user = userEvent.setup();
 
 const useSetStarredRepoMutationSpy = jest.fn();
 const useUnsetStarredRepoMutationSpy = jest.fn();
 
-jest.spyOn(userApi, 'useSetStarredRepoMutation').
-  mockImplementation(jest.fn().mockReturnValue([useSetStarredRepoMutationSpy]));
+jest
+  .spyOn(userApi, 'useSetStarredRepoMutation')
+  .mockImplementation(
+    jest.fn().mockReturnValue([useSetStarredRepoMutationSpy]),
+  );
 
-jest.spyOn(userApi, 'useUnsetStarredRepoMutation').
-  mockImplementation(jest.fn().mockReturnValue([useUnsetStarredRepoMutationSpy]));
+jest
+  .spyOn(userApi, 'useUnsetStarredRepoMutation')
+  .mockImplementation(
+    jest.fn().mockReturnValue([useUnsetStarredRepoMutationSpy]),
+  );
 
-describe('Dashboard > Common > Components > RepoList', () => {
-  let repos : IRepository[];
-  beforeEach(() => {
-    repos = [
-      {
-        name: 'repo name',
-        full_name: 'full_name',
-        owner: {
-          avatar_url: 'avatar_url',
-          login: 'login',
-          full_name: 'full_name',
-        },
-        description: 'description',
-        is_cloned_to_local: false,
-        updated_at: '2021-11-16T07:05:02Z',
-        html_url: 'html_url',
-        clone_url: 'clone_url',
-        id: 1,
-        user_has_starred: false,
-      },
-      {
-        name: 'other repo',
-        full_name: 'full_name',
-        owner: {
-          avatar_url: 'avatar_url',
-          login: 'login',
-          full_name: 'full_name',
-        },
-        description: 'description',
-        is_cloned_to_local: false,
-        updated_at: '2021-11-16T07:05:02Z',
-        html_url: 'html_url',
-        clone_url: 'clone_url',
-        id: 2,
-        user_has_starred: true,
-      },
-    ];
+const repos = [
+  {
+    name: 'repo name',
+    full_name: 'full_name',
+    owner: {
+      avatar_url: 'avatar_url',
+      login: 'login',
+      full_name: 'full_name',
+    },
+    description: 'description',
+    is_cloned_to_local: false,
+    updated_at: '2021-11-16T07:05:02Z',
+    html_url: 'html_url',
+    clone_url: 'clone_url',
+    id: 1,
+    user_has_starred: false,
+  },
+  {
+    name: 'other repo',
+    full_name: 'full_name',
+    owner: {
+      avatar_url: 'avatar_url',
+      login: 'login',
+      full_name: 'full_name',
+    },
+    description: 'description',
+    is_cloned_to_local: false,
+    updated_at: '2021-11-16T07:05:02Z',
+    html_url: 'html_url',
+    clone_url: 'clone_url',
+    id: 2,
+    user_has_starred: true,
+  },
+];
+
+describe('RepoList', () => {
+  it('should not call onSortModelChange when clicking sort button and isServerSort is false', async () => {
+    const handleSort = jest.fn();
+    const { container } = render({
+      onSortModelChange: handleSort,
+      isServerSort: false,
+    });
+
+    const sortBtn = container.querySelector('button[aria-label="Sort"]');
+    await user.click(sortBtn);
+
+    expect(handleSort).not.toHaveBeenCalled();
   });
 
-  it('should render client side sort', () => {
-    const component = mountComponent();
+  it('should call onSortModelChange when clicking sort button and isServerSort is true', async () => {
+    const handleSort = jest.fn();
+    const { container } = render({
+      onSortModelChange: handleSort,
+      isServerSort: true,
+      rowCount: 5,
+    });
 
-    expect(component.isEmptyRender()).toBe(false);
-    expect(component.find(DataGrid).prop('sortingMode')).toBe(undefined);
+    const sortBtn = container.querySelector('button[aria-label="Sort"]');
+    await user.click(sortBtn);
+
+    expect(handleSort).toHaveBeenCalledWith([{ field: 'name', sort: 'asc' }], {
+      reason: undefined,
+    });
   });
 
-  it('should render server side sort', () => {
-    const component = mountComponent({ isServerSort: true });
+  it('should call useSetStarredRepoMutation when adding a favorite', async () => {
+    render();
 
-    expect(component.isEmptyRender()).toBe(false);
-    expect(component.find(DataGrid).prop('sortingMode')).toBe('server');
-  });
+    const favoriteBtn = screen.getByRole('button', {
+      name: /dashboard.star/i,
+    });
+    await user.click(favoriteBtn);
 
-  it('should render with repos', () => {
-    const component = mountComponent({ repos });
-
-    expect(component.isEmptyRender()).toBe(false);
-  });
-
-  it('should call useSetStarredRepoMutation when adding a favorites', () => {
-    const component = mountComponent({ repos });
-
-    component.find('#fav-repo-1').hostNodes().simulate('click');
     expect(useSetStarredRepoMutationSpy).toBeCalledWith(repos[0]);
   });
 
-  it('should call useUnsetStarredRepoMutation when removing repo from favorites', () => {
-    const component = mountComponent({ repos });
-    component.find('#fav-repo-2').hostNodes().simulate('click');
+  it('should call useUnsetStarredRepoMutation when removing a favorite', async () => {
+    render();
+
+    const unFavoriteBtn = screen.getByRole('button', {
+      name: /dashboard.unstar/i,
+    });
+    await user.click(unFavoriteBtn);
+
     expect(useUnsetStarredRepoMutationSpy).toBeCalledWith(repos[1]);
   });
 
-  it('should show gitea icon and hide edit app displaying a "-datamodels" repo', () => {
+  it('should show gitea icon and hide edit app when displaying a "-datamodels" repo', () => {
     const datamodelsRepo = {
-        name: 'test-datamodels',
-        full_name: 'test-datamodels',
-        owner: {
-          avatar_url: 'avatar_url',
-          login: 'login',
-          full_name: 'full_name',
-        },
-        description: 'description',
-        is_cloned_to_local: false,
-        updated_at: '2021-11-16T07:05:02Z',
-        html_url: 'html_url',
-        clone_url: 'clone_url',
-        id: 2,
-        user_has_starred: true,
-    }
-    const component = mountComponent({ repos: [datamodelsRepo] });
+      name: 'test-datamodels',
+      full_name: 'test-datamodels',
+      owner: {
+        avatar_url: 'avatar_url',
+        login: 'login',
+        full_name: 'full_name',
+      },
+      description: 'description',
+      is_cloned_to_local: false,
+      updated_at: '2021-11-16T07:05:02Z',
+      html_url: 'html_url',
+      clone_url: 'clone_url',
+      id: 2,
+      user_has_starred: true,
+    };
+    render({ repos: [datamodelsRepo] });
 
-    expect(component.find('.fa-edit')).toHaveLength(0);
-    expect(component.find('.fa-gitea')).toHaveLength(1);
-    expect(component.isEmptyRender()).toBe(false);
+    expect(screen.getByTestId('gitea-repo-link')).toBeInTheDocument();
+    expect(screen.queryByTestId('edit-repo-link')).not.toBeInTheDocument();
+  });
+
+  it('should show gitea icon edit app not when displaying a "-datamodels" repo', () => {
+    render({ repos: [repos[0]] });
+
+    expect(screen.getByTestId('gitea-repo-link')).toBeInTheDocument();
+    expect(screen.getByTestId('edit-repo-link')).toBeInTheDocument();
   });
 });
 
-const mountComponent = (props = {}) => {
+const render = (props: Partial<IRepoListProps> = {}) => {
   const initialState = {
     language: {
-      language: {},
+      language: {
+        dashboard: {
+          edit_app: 'Edit app',
+          repository: 'Repository',
+        },
+      },
     },
     designerApi: {},
   };
@@ -125,12 +159,13 @@ const mountComponent = (props = {}) => {
   const allProps = {
     isLoading: false,
     disableVirtualization: true, // https://github.com/mui-org/material-ui-x/issues/1151
+    repos,
     ...props,
   };
 
-  return mount(
+  return rtlRender(
     <Provider store={store}>
       <RepoList {...allProps} />
-    </Provider>
+    </Provider>,
   );
 };

@@ -1,202 +1,71 @@
-import { mount } from 'enzyme';
 import React from 'react';
 import * as networking from 'app-shared/utils/networking';
 
 import { HandleMergeConflictDiscardChanges } from './HandleMergeConflictDiscardChanges';
+import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { ClassNameMap } from '@material-ui/core/styles/withStyles';
 
-describe('HandleMergeConflictDiscardChanges', () => {
-  let mockClasses: any;
-  let mockLanguage: any;
-  let consoleError: any;
+const consoleError = jest
+  .spyOn(console, 'error')
+  .mockImplementation(() => 'error');
 
-  beforeAll(() => {
-    consoleError = jest.spyOn(console, 'error').mockImplementation(() => {
-      return {};
-    });
+const renderHandleMergeConflictDiscardChanges = () => {
+  const user = userEvent.setup();
+  const classes: ClassNameMap = {};
+  const container = render(
+    <HandleMergeConflictDiscardChanges classes={classes} language={{}} />,
+  );
+  return { container, user };
+};
+
+test('should handle successfully returned data from API', async () => {
+  const { user } = renderHandleMergeConflictDiscardChanges();
+
+  // Mocks
+  const mockGet = jest
+    .spyOn(networking, 'get')
+    .mockImplementationOnce(() => Promise.resolve());
+
+  const discardMergeChangesBtn = screen.getByRole('button', {
+    name: 'handle_merge_conflict.discard_changes_button',
   });
 
-  beforeEach(() => {
-    mockClasses = {};
-    mockLanguage = {};
+  // Expect discard button to exist
+  expect(discardMergeChangesBtn).toBeDefined();
+
+  // Expect this button to open the popup
+  expect(screen.queryAllByRole('presentation')).toHaveLength(0);
+  await user.click(discardMergeChangesBtn);
+  expect(screen.getByRole('presentation')).toBeDefined();
+
+  const discardMergeChangesConfirmBtn = screen.getByRole('button', {
+    name: 'handle_merge_conflict.discard_changes_button_confirm',
+  });
+  expect(discardMergeChangesConfirmBtn).toBeDefined();
+  await user.click(discardMergeChangesConfirmBtn);
+  expect(mockGet).toHaveBeenCalled();
+});
+
+test('should handle unsuccessfully returned data from API', async () => {
+  const { user } = renderHandleMergeConflictDiscardChanges();
+
+  // Mocks
+  const mockGet = jest
+    .spyOn(networking, 'get')
+    .mockImplementationOnce(() => Promise.reject());
+
+  const discardMergeChangesBtn = screen.getByRole('button', {
+    name: 'handle_merge_conflict.discard_changes_button',
   });
 
-  it('should handle successfully returned data from API', async () => {
-    const wrapper = mount(
-      <HandleMergeConflictDiscardChanges
-        classes={mockClasses}
-        language={mockLanguage}
-      />,
-    );
+  await user.click(discardMergeChangesBtn);
 
-    const instance = wrapper.instance() as HandleMergeConflictDiscardChanges;
-
-    // Spies
-    const spyOnDiscardChangesPopover = jest.spyOn(
-      instance,
-      'discardChangesPopover',
-    );
-    const spyOnDiscardChangesConfirmed = jest.spyOn(
-      instance,
-      'discardChangesConfirmed',
-    );
-
-    // Mocks
-    const getStub = jest.fn();
-    const mockGet = jest.spyOn(networking, 'get').mockImplementation(getStub);
-    getStub.mockReturnValue(Promise.resolve());
-
-    // Expected no result from networking yet
-    expect(instance.state.networkingRes).toEqual(null);
-
-    // Expect discard button to exist
-    expect(wrapper.exists('#discardMergeChangesBtn')).toEqual(true);
-
-    // workaround, have to click twice the first time
-    wrapper.find('button#discardMergeChangesBtn').simulate('click');
-    // Click the discard button
-    wrapper.find('button#discardMergeChangesBtn').simulate('click');
-    expect(spyOnDiscardChangesPopover).toHaveBeenCalled();
-
-    // Expect the button inside the popover to exist
-    expect(wrapper.exists('#discardMergeChangesConfirmBtn')).toEqual(true);
-
-    // Click the confirm button
-    wrapper.find('button#discardMergeChangesConfirmBtn').simulate('click');
-
-    // Expect functions to be called
-    expect(spyOnDiscardChangesConfirmed).toHaveBeenCalled();
-    expect(mockGet).toHaveBeenCalled();
-
-    // Expect state to change
-    expect(instance.state.popoverState.isLoading).toEqual(true);
-    expect(instance.state.popoverState.shouldShowDoneIcon).toEqual(false);
-
-    // Resolve mocked networking
-    await Promise.resolve();
-
-    // Expect state to change
-    expect(instance.state.popoverState.isLoading).toEqual(false);
-    expect(instance.state.popoverState.shouldShowDoneIcon).toEqual(true);
+  const discardMergeChangesConfirmBtn = screen.getByRole('button', {
+    name: 'handle_merge_conflict.discard_changes_button_confirm',
   });
 
-  it('should handle unsuccessfully returned data from API', async () => {
-    const wrapper = mount(
-      <HandleMergeConflictDiscardChanges
-        classes={mockClasses}
-        language={mockLanguage}
-      />,
-    );
-
-    const instance = wrapper.instance() as HandleMergeConflictDiscardChanges;
-
-    // Spies
-    const spyOnDiscardChangesPopover = jest.spyOn(
-      instance,
-      'discardChangesPopover',
-    );
-    const spyOnDiscardChangesConfirmed = jest.spyOn(
-      instance,
-      'discardChangesConfirmed',
-    );
-
-    // Mocks
-    const getStub = jest.fn();
-    const mockGet = jest.spyOn(networking, 'get').mockImplementation(getStub);
-    getStub.mockReturnValue(Promise.reject());
-
-    // Expected no result from networking yet
-    expect(instance.state.networkingRes).toEqual(null);
-
-    // Expect discard button to exist
-    expect(wrapper.exists('#discardMergeChangesBtn')).toEqual(true);
-
-    // workaround, have to click twice the first time
-    wrapper.find('button#discardMergeChangesBtn').simulate('click');
-    // Click the discard button
-    wrapper.find('button#discardMergeChangesBtn').simulate('click');
-    expect(spyOnDiscardChangesPopover).toHaveBeenCalled();
-
-    // Expect the button inside the popover to exist
-    expect(wrapper.exists('#discardMergeChangesConfirmBtn')).toEqual(true);
-
-    // Click the confirm button
-    wrapper.find('button#discardMergeChangesConfirmBtn').simulate('click');
-
-    // Expect functions to be called
-    expect(spyOnDiscardChangesConfirmed).toHaveBeenCalled();
-    expect(mockGet).toHaveBeenCalled();
-
-    // Expect state to change
-    expect(instance.state.popoverState.isLoading).toEqual(true);
-    expect(instance.state.popoverState.shouldShowDoneIcon).toEqual(false);
-
-    // Resolve mocked networking
-    await Promise.resolve();
-
-    // Expect state to change
-    expect(instance.state.popoverState.isLoading).toEqual(false);
-    expect(instance.state.popoverState.shouldShowDoneIcon).toEqual(false);
-    expect(consoleError).toHaveBeenCalled();
-  });
-
-  it('should catch error from networked function', async () => {
-    const wrapper = mount(
-      <HandleMergeConflictDiscardChanges
-        classes={mockClasses}
-        language={mockLanguage}
-      />,
-    );
-
-    const instance = wrapper.instance() as HandleMergeConflictDiscardChanges;
-
-    // Spies
-    const spyOnDiscardChangesPopover = jest.spyOn(
-      instance,
-      'discardChangesPopover',
-    );
-    const spyOnDiscardChangesConfirmed = jest.spyOn(
-      instance,
-      'discardChangesConfirmed',
-    );
-
-    // Mocks
-    const mockError = Error('mocked error');
-    const getStub = jest.fn();
-    const mockGet = jest.spyOn(networking, 'get').mockImplementation(getStub);
-    getStub.mockReturnValue(Promise.reject(mockError));
-
-    // Expected no result from networking yet
-    expect(instance.state.networkingRes).toEqual(null);
-
-    // Expect discard button to exist
-    expect(wrapper.exists('#discardMergeChangesBtn')).toEqual(true);
-
-    // workaround, have to click twice the first time
-    wrapper.find('button#discardMergeChangesBtn').simulate('click');
-    // Click the discard button
-    wrapper.find('button#discardMergeChangesBtn').simulate('click');
-    expect(spyOnDiscardChangesPopover).toHaveBeenCalled();
-
-    // Expect the button inside the popover to exist
-    expect(wrapper.exists('#discardMergeChangesConfirmBtn')).toEqual(true);
-
-    // Click the confirm button
-    wrapper.find('button#discardMergeChangesConfirmBtn').simulate('click');
-
-    // Expect functions to be called
-    expect(spyOnDiscardChangesConfirmed).toHaveBeenCalled();
-    expect(mockGet).toHaveBeenCalled();
-
-    // Resolve mocked networking
-    await Promise.resolve();
-
-    // Expect state to change
-    expect(instance.state.popoverState.isLoading).toEqual(false);
-    expect(instance.state.popoverState.shouldShowDoneIcon).toEqual(false);
-    expect(instance.state.errorObj).toMatchObject(Error('mocked error'));
-    expect(instance.state.networkingRes).toEqual('error');
-
-    // Expect console.error to be called.
-    expect(consoleError).toHaveBeenCalled();
-  });
+  await user.click(discardMergeChangesConfirmBtn);
+  expect(mockGet).toHaveBeenCalled();
+  expect(consoleError).toHaveBeenCalled();
 });

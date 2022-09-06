@@ -100,6 +100,7 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
         {props.label}
       </div>
       <IconButton
+        data-testid={'open-context-menu-button'}
         className={classes.contextButton}
         aria-controls='simple-menu'
         aria-haspopup='true'

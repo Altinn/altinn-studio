@@ -35,14 +35,14 @@ const AltinnInformationCardForChildren = (
       direction='column'
       className={classes.root}
       spacing={0}
-      justify='center'
+      justifyContent='center'
       alignContent='center'
     >
       <Grid
         container={true}
         item={true}
         spacing={0}
-        justify='center'
+        justifyContent='center'
         alignContent='center'
         className={classNames(classes.scrollable)}
       >
@@ -68,7 +68,7 @@ const AltinnInformationCardForChildren = (
               md={5}
               item={true}
               spacing={0}
-              justify='center'
+              justifyContent='center'
               alignContent='center'
             >
               <img alt='information' src={props.imageSource} />

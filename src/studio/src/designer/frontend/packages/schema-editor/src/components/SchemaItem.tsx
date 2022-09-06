@@ -107,7 +107,7 @@ const getRefItem = (schema: any[], path: string | undefined): UiSchemaItem => {
   return schema.find((item) => item.path === path);
 };
 
-function SchemaItem(props: SchemaItemProps) {
+export function SchemaItem(props: SchemaItemProps) {
   const dispatch = useDispatch();
   const { item, keyPrefix, isPropertiesView, ...other } = props;
   const classes = useStyles(
@@ -136,8 +136,8 @@ function SchemaItem(props: SchemaItemProps) {
     dispatch(setSelectedId({ id: schemaItem.path }));
   };
 
-  const renderProperties = (itemProperties: UiSchemaItem[]) =>
-    itemProperties.map((property: UiSchemaItem) => {
+  const renderProperties = (itemProperties: UiSchemaItem[]) => {
+    return itemProperties.map((property: UiSchemaItem) => {
       return (
         <SchemaItem
           keyPrefix={`${keyPrefix}-properties`}
@@ -149,7 +149,7 @@ function SchemaItem(props: SchemaItemProps) {
           isPropertiesView={isPropertiesView}
         />
       );
-    });
+    })};
 
   const handlePromoteClick = () => {
     dispatch(promoteProperty({ path: item.path }));
@@ -284,5 +284,3 @@ function SchemaItem(props: SchemaItemProps) {
     </TreeItem>
   );
 }
-
-export default SchemaItem;

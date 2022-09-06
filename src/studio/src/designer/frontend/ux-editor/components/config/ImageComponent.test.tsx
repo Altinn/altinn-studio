@@ -63,7 +63,7 @@ describe('ImageComponent', () => {
     const handleUpdate = jest.fn();
     render({ handleComponentUpdate: handleUpdate });
 
-    const placementInput = screen.getByRole('textbox', {
+    const placementInput = screen.getByRole('combobox', {
       name: /placement/i,
     });
 
@@ -83,7 +83,7 @@ describe('ImageComponent', () => {
     const handleUpdate = jest.fn();
     render({ handleComponentUpdate: handleUpdate });
 
-    const altTextInput = screen.getByRole('textbox', {
+    const altTextInput = screen.getByRole('combobox', {
       name: /alt text/i,
     });
 

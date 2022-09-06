@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Web;
 
 using Altinn.Common.EFormidlingClient.Configuration;
 using Altinn.Common.EFormidlingClient.Models;
@@ -237,8 +238,10 @@ namespace Altinn.Common.EFormidlingClient
             streamContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
             {
                 Name = "attachment",
-                FileName = filename
+                FileName = filename,
+                FileNameStar = filename,
             };
+
             streamContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
 
             HttpResponseMessage response = await _client.PutAsync($"messages/out/{id}?title={filename}", streamContent, requestHeaders);

@@ -58,7 +58,7 @@ const routes: IRoute[] = [
     },
   },
   {
-    path: '/about',
+    path: '/',
     exact: true,
     activeSubHeaderSelection: 'Om',
     activeLeftMenuSelection: 'Om appen',

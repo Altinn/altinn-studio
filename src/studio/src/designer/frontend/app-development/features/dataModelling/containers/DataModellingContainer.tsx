@@ -19,12 +19,11 @@ const useStyles = makeStyles(
 
 const DataModellingContainer = ({ language }: IDataModellingContainerProps) => {
   const classes = useStyles();
-  const repo = useAppSelector(
-    (state) => state.serviceInformation.serviceNameObj.name,
-  );
-  const org = useAppSelector(
-    (state) => state.applicationMetadataState.applicationMetadata.org,
-  );
+
+  const [org, repo] = useAppSelector((state) => {
+    const id = state.applicationMetadataState.applicationMetadata.id;
+    return id?.split('/') || [];
+  })
 
   return (
     <div className={classes.root}>
