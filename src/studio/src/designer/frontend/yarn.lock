@@ -21,11 +21,11 @@ __metadata:
     "@material-ui/lab": 4.0.0-alpha.61
     "@reduxjs/toolkit": 1.8.5
     "@testing-library/jest-dom": 5.16.5
-    "@testing-library/react": 13.3.0
+    "@testing-library/react": 13.4.0
     "@testing-library/user-event": 14.4.3
     "@types/jest": 28.1.8
-    "@types/react": 17.0.48
-    "@types/react-dom": 17.0.17
+    "@types/react": 18.0.18
+    "@types/react-dom": 18.0.6
     "@types/react-redux": 7.1.24
     "@types/redux-mock-store": 1.0.3
     axios: 0.27.2
@@ -52,12 +52,12 @@ __metadata:
   peerDependencies:
     "@material-ui/core": ^4.12.4
     "@material-ui/icons": ^4.11.3
-    "@material-ui/lab": 4.0.0-alpha.61
+    "@material-ui/lab": ^4.0.0-alpha.61
     "@reduxjs/toolkit": ^1.8.3
     axios: ^0.27.2
     jsonpointer: ^4.1.0
-    react: ^17.0.2
-    react-dom: ^17.0.2
+    react: ^18.2.0
+    react-dom: ^18.2.0
     react-redux: ^8.0.2
   languageName: unknown
   linkType: soft
@@ -6343,9 +6343,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/react@npm:13.3.0":
-  version: 13.3.0
-  resolution: "@testing-library/react@npm:13.3.0"
+"@testing-library/react@npm:13.4.0":
+  version: 13.4.0
+  resolution: "@testing-library/react@npm:13.4.0"
   dependencies:
     "@babel/runtime": ^7.12.5
     "@testing-library/dom": ^8.5.0
@@ -6353,7 +6353,7 @@ __metadata:
   peerDependencies:
     react: ^18.0.0
     react-dom: ^18.0.0
-  checksum: 98fd8616a7cae0ecfcbe97b5b3c5b91fbafccf449c04875395ccc0e3f0b139e53b3261b9536ec2169a5e2883a1be2098907209064061fe0c2ff21dfbc785dd40
+  checksum: 51ec548c1fdb1271089a5c63e0908f0166f2c7fcd9cacd3108ebbe0ce64cb4351812d885892020dc37608418cfb15698514856502b3cab0e5cc58d6cc1bd4a3e
   languageName: node
   linkType: hard
 
@@ -6874,15 +6874,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react-dom@npm:17.0.17":
-  version: 17.0.17
-  resolution: "@types/react-dom@npm:17.0.17"
-  dependencies:
-    "@types/react": ^17
-  checksum: 23caf98aa03e968811560f92a2c8f451694253ebe16b670929b24eaf0e7fa62ba549abe9db0ac028a9d8a9086acd6ab9c6c773f163fa21224845edbc00ba6232
-  languageName: node
-  linkType: hard
-
 "@types/react-dom@npm:18.0.6, @types/react-dom@npm:^18.0.0":
   version: 18.0.6
   resolution: "@types/react-dom@npm:18.0.6"
@@ -6950,47 +6941,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:*":
-  version: 17.0.37
-  resolution: "@types/react@npm:17.0.37"
+"@types/react@npm:*, @types/react@npm:18.0.18":
+  version: 18.0.18
+  resolution: "@types/react@npm:18.0.18"
   dependencies:
     "@types/prop-types": "*"
     "@types/scheduler": "*"
     csstype: ^3.0.2
-  checksum: e68b0d59aa69577fc6a6d654b25d5d8408625498f4c483f160b557fac21e840f6e8807cbde93e9f039949b6d624a019b1990d18499c1d65aecf3605c25e30242
-  languageName: node
-  linkType: hard
-
-"@types/react@npm:17.0.48":
-  version: 17.0.48
-  resolution: "@types/react@npm:17.0.48"
-  dependencies:
-    "@types/prop-types": "*"
-    "@types/scheduler": "*"
-    csstype: ^3.0.2
-  checksum: b683fa33f751ced0b8c8715df9f40de15513c1d7ce66064a75cdfb8805cc913b0b214a2e7022ef0b724bd62a1e8651d040cd265dd0452bde03cca9b8e495742d
-  languageName: node
-  linkType: hard
-
-"@types/react@npm:18.0.17":
-  version: 18.0.17
-  resolution: "@types/react@npm:18.0.17"
-  dependencies:
-    "@types/prop-types": "*"
-    "@types/scheduler": "*"
-    csstype: ^3.0.2
-  checksum: 18cae64f5bfd6bb58fbd8ee2ba52ec82de844f114254e26de7b513e4b86621f643f9b71d7066958cd571b0d78cb86cbceda449c5289f9349ca573df29ab69252
-  languageName: node
-  linkType: hard
-
-"@types/react@npm:^17":
-  version: 17.0.44
-  resolution: "@types/react@npm:17.0.44"
-  dependencies:
-    "@types/prop-types": "*"
-    "@types/scheduler": "*"
-    csstype: ^3.0.2
-  checksum: ebee02778ca08f954c316dc907802264e0121c87b8fa2e7e0156ab0ef2a1b0a09d968c016a3600ec4c9a17dc09b4274f292d9b15a1a5369bb7e4072def82808f
+  checksum: 6d72d35ab3eecf382a5e0f225923f5a2c753045fce02e4e29713f36c99a24f0f770666a49dde96167f37c86271f93339d1b7e2b8969d011b137a9ebd24ee6806
   languageName: node
   linkType: hard
 
@@ -8067,12 +8025,12 @@ __metadata:
     "@material-ui/icons": 4.11.3
     "@reduxjs/toolkit": 1.8.5
     "@testing-library/jest-dom": 5.16.5
-    "@testing-library/react": 13.3.0
+    "@testing-library/react": 13.4.0
     "@testing-library/user-event": 14.4.3
     "@types/classnames": 2.3.1
     "@types/jest": 28.1.8
-    "@types/react": 17.0.48
-    "@types/react-dom": 17.0.17
+    "@types/react": 18.0.18
+    "@types/react-dom": 18.0.6
     "@types/react-modal": 3.13.1
     "@types/react-redux": 7.1.24
     "@types/redux-mock-store": 1.0.3
@@ -10456,12 +10414,12 @@ __metadata:
     "@mui/x-data-grid": 5.15.3
     "@reduxjs/toolkit": 1.8.5
     "@testing-library/jest-dom": 5.16.5
-    "@testing-library/react": 13.3.0
+    "@testing-library/react": 13.4.0
     "@testing-library/user-event": 14.4.3
     "@types/classnames": 2.3.1
     "@types/jest": 28.1.8
     "@types/lodash-es": 4.17.6
-    "@types/react": 18.0.17
+    "@types/react": 18.0.18
     "@types/react-dom": 18.0.6
     "@types/react-modal": 3.13.1
     "@types/redux-mock-store": 1.0.3
@@ -20861,13 +20819,13 @@ __metadata:
     "@material-ui/icons": 4.11.3
     "@reduxjs/toolkit": 1.8.5
     "@testing-library/jest-dom": 5.16.5
-    "@testing-library/react": 13.3.0
+    "@testing-library/react": 13.4.0
     "@types/classnames": 2.3.1
     "@types/diff": 5.0.2
     "@types/dompurify": 2.3.4
     "@types/jest": 28.1.8
     "@types/marked": 4.0.6
-    "@types/react": 17.0.48
+    "@types/react": 18.0.18
     "@types/react-html-parser": 2.0.2
     "@types/redux-mock-store": 1.0.3
     altinn-designsystem: 2.7.12
@@ -22831,13 +22789,13 @@ __metadata:
     "@material-ui/icons": 4.11.3
     "@reduxjs/toolkit": 1.8.5
     "@testing-library/jest-dom": 5.16.5
-    "@testing-library/react": 13.3.0
+    "@testing-library/react": 13.4.0
     "@testing-library/user-event": 14.4.3
     "@types/classnames": 2.3.1
     "@types/deepmerge": 2.2.0
     "@types/jest": 28.1.8
-    "@types/react": 17.0.48
-    "@types/react-dom": 17.0.17
+    "@types/react": 18.0.18
+    "@types/react-dom": 18.0.6
     "@types/react-modal": 3.13.1
     "@types/react-redux": 7.1.24
     "@types/redux-mock-store": 1.0.3
