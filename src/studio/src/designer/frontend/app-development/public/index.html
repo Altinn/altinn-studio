@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <meta name="description" content="" />
+    <meta name="author" content="" />
+    <title>Altinn Studio</title>
+    <link
+      href="https://fonts.googleapis.com/css?family=Roboto:300,400,500"
+      rel="stylesheet"
+    />
+    <script src="https://use.fortawesome.com/bdabc5c1.js"></script>
+    <script src="https://use.fortawesome.com/ed31cded.js"></script>
+    <style>
+      html,
+      body {
+        height: 100%;
+      }
+      ::-webkit-scrollbar {
+        width: 5px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: darkgray;
+        border-radius: 5px;
+      }
+
+      body {
+        font-family: Roboto, 'San Fransisco', 'Helvetica Neue', Helvetica, Arial,
+          sans-serif;
+      }
+
+      h1,
+      h2,
+      h3 {
+        letter-spacing: 2px;
+      }
+      .btn,
+      .form-control,
+      .list-group-item:last-child,
+      .list-group-item:first-child,
+      .card {
+        border-radius: 0;
+      }
+
+      #search ~ .fa-search {
+        float: right !important;
+        margin-right: 10px;
+        margin-top: -28px;
+        position: relative;
+        z-index: 2;
+      }
+
+      .control-label {
+        margin-bottom: 0;
+      }
+
+      .errormsg {
+        color: red;
+      }
+    </style>
+  </head>
+
+  <body class="a-bgWhite flex-column d-flex">
+    <div class="container-fluid flex-column d-flex media-body">
+      <script>
+        window.org = 'someorg';
+        window.app = 'someapp';
+      </script>
+      <link rel="stylesheet" href="http://localhost:8080/app-development.css">
+
+      <div id="root" class="media-body flex-column d-flex"></div>
+      <script src="http://localhost:8080/app-development.js" asp-append-version="true" type="text/javascript"></script>
+      <script src="http://localhost:8080/1.app-development.js" asp-append-version="true" type="text/javascript"></script>
+      <script src="http://localhost:8080/2.app-development.js" asp-append-version="true" type="text/javascript"></script>
+      <script src="http://localhost:8080/3.app-development.js" asp-append-version="true" type="text/javascript"></script>
+      <script src="http://localhost:8080/4.app-development.js" asp-append-version="true" type="text/javascript"></script>
+    </div>
+  </body>
+</html>
