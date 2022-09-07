@@ -42,6 +42,7 @@ export const RestrictionField = ({ keyName, label, onChangeValue, path, readOnly
       <Grid item xs={12}>
         <Label>{label}</Label>
         <Input
+          inputProps={{ 'aria-label': label }}
           fullWidth={true}
           id={`${baseId}-${keyName}-value`}
           disabled={readOnly}
