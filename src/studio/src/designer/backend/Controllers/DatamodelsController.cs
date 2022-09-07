@@ -123,21 +123,21 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Post action that is used when uploading a XSD and secondary XSD
+        /// Post action that is used when uploading a XSD and secondary XSD. TODO: To be removed?
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">Application identifier which is unique within an organisation.</param>
-        /// <param name="thefile">The main XSD</param>
+        /// <param name="xsdFile">The main XSD</param>
         /// <returns>Return JSON of the generated model</returns>
         [HttpPost]
-        public async Task<ActionResult<string>> Upload(string org, string repository, [FromForm(Name = "file")] IFormFile thefile)
+        public async Task<ActionResult<string>> Upload(string org, string repository, [FromForm(Name = "file")] IFormFile xsdFile)
         {
-            Guard.AssertArgumentNotNull(thefile, nameof(thefile));
+            Guard.AssertArgumentNotNull(xsdFile, nameof(xsdFile));
 
-            string mainFileName = GetFileNameFromUploadedFile(thefile);
+            string mainFileName = GetFileNameFromUploadedFile(xsdFile);
             Guard.AssertFileExtensionIsOfType(mainFileName, ".xsd");
 
-            MemoryStream fileMemoryStream = CopyFileStream(thefile);
+            MemoryStream fileMemoryStream = CopyFileStream(xsdFile);
 
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
@@ -158,8 +158,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="thefile">The XSD file being uploaded.</param>
         [Authorize]
         [HttpPost("upload")]
-        public async Task<IActionResult> AddXsd(
-            string org, string repository, [FromForm(Name = "file")] IFormFile thefile)
+        public async Task<IActionResult> AddXsd(string org, string repository, [FromForm(Name = "file")] IFormFile thefile)
         {
             Guard.AssertArgumentNotNull(thefile, nameof(thefile));
 
@@ -168,8 +167,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            var jsonSchema = await _schemaModelService.BuildSchemaFromXsd(
-                org, repository, developer, fileName, thefile.OpenReadStream());
+            var jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, fileName, thefile.OpenReadStream());
 
             return Created(fileName, jsonSchema);
         }
@@ -223,7 +221,7 @@ namespace Altinn.Studio.Designer.Controllers
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var content = await ReadRequestBodyContentAsync();
 
-            await _schemaModelService.UpdateSchema(org, repository, developer, modelPath, content);
+            await _schemaModelService.UpdateModelFilesFromJsonSchema(org, repository, developer, modelPath, content);
 
             return NoContent();
         }
