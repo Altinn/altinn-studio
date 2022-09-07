@@ -28,6 +28,7 @@ __metadata:
     "@types/react-dom": 18.0.6
     "@types/react-redux": 7.1.24
     "@types/redux-mock-store": 1.0.3
+    ajv: ^8.11.0
     axios: 0.27.2
     cross-env: 7.0.3
     css-loader: 6.7.1
@@ -7879,7 +7880,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ajv@npm:^8.0.0, ajv@npm:^8.6.0, ajv@npm:^8.8.0":
+"ajv@npm:^8.0.0, ajv@npm:^8.11.0, ajv@npm:^8.6.0, ajv@npm:^8.8.0":
   version: 8.11.0
   resolution: "ajv@npm:8.11.0"
   dependencies:
