@@ -1,10 +1,10 @@
 import React from 'react';
-import {render} from 'react-dom';
-import {Provider} from 'react-redux';
+import { createRoot } from 'react-dom/client';
+import { Provider } from 'react-redux';
+import { HashRouter as Router } from 'react-router-dom';
 import App from './App';
-import {run} from './sagas';
-import {setupStore} from './store';
-import {HashRouter as Router} from 'react-router-dom';
+import { run } from './sagas';
+import { setupStore } from './store';
 
 const store = setupStore();
 
@@ -13,11 +13,13 @@ const store = setupStore();
  */
 run();
 
-render(
+const container = document.getElementById('root');
+const root = createRoot(container);
+
+root.render(
   <Provider store={store}>
     <Router>
-      <App/>
+      <App />
     </Router>
   </Provider>,
-  document.getElementById('root'),
 );
