@@ -531,7 +531,7 @@ describe('SchemaEditorSlice', () => {
     expect(item?.combination).toEqual([
       { ...combinationItemChild, path: '#/definitions/allOfTest/allOf/0' },
     ]);
-    expect(item?.combinationKind).toEqual('allOf');
+    expect(item?.combinationKind).toEqual(CombinationKind.AllOf);
 
     const payload = {
       path: '#/definitions/allOfTest',
@@ -558,7 +558,7 @@ describe('SchemaEditorSlice', () => {
     expect(item?.combination).toEqual([
       { ...combinationItemChild, path: '#/definitions/allOfTest/anyOf/0' },
     ]);
-    expect(item?.combinationKind).toEqual('anyOf');
+    expect(item?.combinationKind).toEqual(CombinationKind.AnyOf);
 
     // change back to allOf => verify state
     nextState = reducer(
@@ -572,7 +572,7 @@ describe('SchemaEditorSlice', () => {
     expect(item?.combination).toEqual([
       { ...combinationItemChild, path: '#/definitions/allOfTest/allOf/0' },
     ]);
-    expect(item?.combinationKind).toEqual('allOf');
+    expect(item?.combinationKind).toEqual(CombinationKind.AllOf);
   });
 
   it('handles deleting a "combination" (anyOf, allOf, oneOf) child and shifting children paths', () => {
@@ -656,7 +656,7 @@ describe('SchemaEditorSlice', () => {
       (f) => f.path === '#/definitions/allOfTest',
     );
     expect(updatedAllOfItem?.combination?.length).toBe(2);
-    expect(updatedAllOfItem?.combination?.[1].type).toBe('string');
+    expect(updatedAllOfItem?.combination?.[1].type).toBe(FieldType.String);
 
     // oneOf
     const oneOfItem = state.uiSchema.find(
@@ -674,6 +674,6 @@ describe('SchemaEditorSlice', () => {
       (f) => f.path === '#/definitions/oneOfTestNullable',
     );
     expect(updatedOneOfItem?.combination?.length).toBe(3);
-    expect(updatedOneOfItem?.combination?.[2].type).toBe('string');
+    expect(updatedOneOfItem?.combination?.[2].type).toBe(FieldType.String);
   });
 });

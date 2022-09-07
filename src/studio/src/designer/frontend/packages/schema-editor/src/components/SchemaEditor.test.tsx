@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import { buildUISchema } from '../utils/schema';
 import { dataMock } from '../mockData';
 import { render, screen } from '@testing-library/react';
-import { ISchemaState } from '../types';
+import { CombinationKind, FieldType, ISchemaState } from '../types';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event/dist/types/setup/setup';
 import { SchemaEditor } from './SchemaEditor';
@@ -90,7 +90,7 @@ test('should show context menu and trigger correct dispatch when adding a field 
     name: 'name',
     location: 'properties',
     props: {
-      type: 'object',
+      type: FieldType.Object,
     },
   });
 });
@@ -113,8 +113,14 @@ test('should show context menu and trigger correct dispatch when adding a refere
 
 test('should show context menu and trigger correct dispatch when adding field on a specific node', async () => {
   const { store, user } = renderEditor({
-    schema: { properties: { mockItem: { type: 'object' } }, definitions: {} },
-    uiSchema: buildUISchema({ mockItem: { type: 'object' } }, '#/properties'),
+    schema: {
+      properties: { mockItem: { type: FieldType.Object } },
+      definitions: {},
+    },
+    uiSchema: buildUISchema(
+      { mockItem: { type: FieldType.Object } },
+      '#/properties',
+    ),
   });
   await clickOpenContextMenuButton(user);
   await clickAddMenuItem(user, 'add_field');
@@ -124,15 +130,21 @@ test('should show context menu and trigger correct dispatch when adding field on
   expect(lastAction.payload).toEqual({
     path: '#/properties/mockItem',
     props: {
-      type: 'object',
+      type: FieldType.Object,
     },
   });
 });
 
 test('should show context menu and trigger correct dispatch when adding reference on a specific node', async () => {
   const { store, user } = renderEditor({
-    schema: { properties: { mockItem: { type: 'object' } }, definitions: {} },
-    uiSchema: buildUISchema({ mockItem: { type: 'object' } }, '#/properties'),
+    schema: {
+      properties: { mockItem: { type: FieldType.Object } },
+      definitions: {},
+    },
+    uiSchema: buildUISchema(
+      { mockItem: { type: FieldType.Object } },
+      '#/properties',
+    ),
   });
   await clickOpenContextMenuButton(user);
   await clickAddMenuItem(user, 'Legg til referanse');
@@ -164,7 +176,7 @@ test('should not show add property or add reference buttons on a reference node'
     mockItem: { $ref: '#/definitions/mockDefinition' },
   };
   const definitions = {
-    mockDefinition: { type: 'object' },
+    mockDefinition: { type: FieldType.Object },
   };
   const { user } = renderEditor({
     schema: { properties, definitions },
@@ -184,7 +196,7 @@ test('should not show add property or add reference buttons on a reference node 
     mockItem: { $ref: '' },
   };
   const definitions = {
-    mockDefinition: { type: 'object' },
+    mockDefinition: { type: FieldType.Object },
   };
   const { user } = renderEditor({
     schema: { properties, definitions },
@@ -204,7 +216,7 @@ test('should not show add property or add reference buttons on a field that is n
     mockItem: { $ref: '#/definitions/mockDefinition' },
   };
   const definitions = {
-    mockDefinition: { type: 'integer' },
+    mockDefinition: { type: FieldType.Integer },
   };
   const { user } = renderEditor({
     schema: { properties, definitions },
@@ -247,15 +259,21 @@ test('should trigger correct dispatch when adding combination to root', async ()
     location: 'properties',
     props: {
       combination: [],
-      combinationKind: 'allOf',
+      combinationKind: CombinationKind.AllOf,
     },
   });
 });
 
 test('should show context menu and trigger correct dispatch when adding a combination on a specific node', async () => {
   const { store, user } = renderEditor({
-    schema: { properties: { mockItem: { type: 'object' } }, definitions: {} },
-    uiSchema: buildUISchema({ mockItem: { type: 'object' } }, '#/properties'),
+    schema: {
+      properties: { mockItem: { type: FieldType.Object } },
+      definitions: {},
+    },
+    uiSchema: buildUISchema(
+      { mockItem: { type: FieldType.Object } },
+      '#/properties',
+    ),
   });
   await clickOpenContextMenuButton(user);
   await clickAddMenuItem(user, 'add_combination');
@@ -266,14 +284,17 @@ test('should show context menu and trigger correct dispatch when adding a combin
     path: '#/properties/mockItem',
     props: {
       combination: [],
-      combinationKind: 'allOf',
+      combinationKind: CombinationKind.AllOf,
     },
   });
 });
 
 test('should only be possible to add a reference to a combination type', async () => {
   const { user } = renderEditor({
-    schema: { properties: { mockItem: { type: 'object' } }, definitions: {} },
+    schema: {
+      properties: { mockItem: { type: FieldType.Object } },
+      definitions: {},
+    },
     uiSchema: buildUISchema(
       { mockItem: { allOf: [], name: 'allOfTest' } },
       '#/properties',

@@ -12,7 +12,7 @@ import {
   setSelectedId,
 } from '../features/editor/schemaEditorSlice';
 import type { ILanguage, ISchemaState, UiSchemaItem } from '../types';
-import { FieldType } from '../types';
+import { CombinationKind, FieldType } from '../types';
 import { ObjectKind } from '../types/enums';
 import { SchemaItemLabel } from './SchemaItemLabel';
 import { getDomFriendlyID } from '../utils/schema';
@@ -170,7 +170,8 @@ export function SchemaItem(props: SchemaItemProps) {
       type: type === ObjectKind.Field ? FieldType.Object : undefined,
       $ref: type === ObjectKind.Reference ? '' : undefined,
       combination: type === ObjectKind.Combination ? [] : undefined,
-      combinationKind: type === ObjectKind.Combination ? 'allOf' : undefined,
+      combinationKind:
+        type === ObjectKind.Combination ? CombinationKind.AllOf : undefined,
     } as UiSchemaItem;
 
     if (itemToDisplay.combination) {

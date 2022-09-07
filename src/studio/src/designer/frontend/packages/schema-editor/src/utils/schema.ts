@@ -119,51 +119,50 @@ export function buildJsonSchema(uiSchema: UiSchemaItem[]): any {
 }
 
 export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
-  let item: any = {};
+  let jsonSchemaItem: any = {};
   Object.keys(uiSchemaItem).forEach((key) => {
     switch (key) {
       case 'properties': {
-        item.properties = item.properties || {};
+        jsonSchemaItem.properties = jsonSchemaItem.properties || {};
         uiSchemaItem.properties?.forEach((property: UiSchemaItem) => {
-          item.properties[property.displayName] =
+          jsonSchemaItem.properties[property.displayName] =
             createJsonSchemaItem(property);
         });
         break;
       }
       case 'restrictions': {
         if (['#/oneOf'].includes(uiSchemaItem.path)) {
-          item = uiSchemaItem.restrictions.map((res: Restriction) => {
+          jsonSchemaItem = uiSchemaItem.restrictions.map((res: Restriction) => {
             return res.value;
           });
           break;
         }
 
         uiSchemaItem.restrictions?.forEach((field: any) => {
-          item[field.key] = field.value;
+          jsonSchemaItem[field.key] = field.value;
         });
         break;
       }
       case 'required': {
-        item.required = uiSchemaItem.required;
+        jsonSchemaItem.required = uiSchemaItem.required;
         break;
       }
       case 'value': {
-        item = uiSchemaItem.value;
+        jsonSchemaItem = uiSchemaItem.value;
         break;
       }
       case 'combination': {
         if (uiSchemaItem[key]?.length) {
           const combinationKind = uiSchemaItem.combinationKind;
-          item[combinationKind] = [];
+          jsonSchemaItem[combinationKind] = [];
           uiSchemaItem[key]?.forEach((property: UiSchemaItem) => {
-            item[combinationKind].push(createJsonSchemaItem(property));
+            jsonSchemaItem[combinationKind].push(
+              createJsonSchemaItem(property),
+            );
           });
         }
         break;
       }
-      case 'type':
-        if (uiSchemaItem.type !== 'object') item.type = uiSchemaItem.type;
-        break;
       case 'path':
       case 'displayName':
       case 'combinationItem':
@@ -171,14 +170,14 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
       case 'isRequired':
         break;
       default:
-        if (typeof item === 'object') {
-          item[key] = uiSchemaItem[key];
+        if (typeof jsonSchemaItem === 'object') {
+          jsonSchemaItem[key] = uiSchemaItem[key];
         }
 
         break;
     }
   });
-  return item;
+  return jsonSchemaItem;
 }
 
 export function getSubSchema(schema: any, pathArray: string[]): any {

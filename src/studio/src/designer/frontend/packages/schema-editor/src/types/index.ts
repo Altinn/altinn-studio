@@ -49,6 +49,9 @@ export enum CombinationKind {
   OneOf = 'oneOf',
 }
 
+/**
+ * @link https://json-schema.org/understanding-json-schema/reference/type.html
+ */
 export enum FieldType {
   String = 'string',
   Integer = 'integer',
@@ -56,6 +59,7 @@ export enum FieldType {
   Boolean = 'boolean',
   Object = 'object',
   Array = 'array',
+  Null = 'null',
 }
 
 export type NameInUseProps = {

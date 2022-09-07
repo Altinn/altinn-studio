@@ -7,6 +7,7 @@ import {
   getUiSchemaItemsByRef,
   getUiSchemaTreeFromItem,
 } from './schema';
+import Ajv2020 from 'ajv/dist/2020';
 
 const mockUiSchema: UiSchemaItem[] = [
   {
@@ -97,6 +98,7 @@ const mockJsonSchema = {
         },
       },
       required: ['id3'],
+      type: FieldType.Object,
     },
     allOfTest: {
       allOf: [{ $ref: '#/$defs/refTest' }],
@@ -110,15 +112,19 @@ const mockJsonSchema = {
   },
   $defs: {
     refTest: {
-      type: 'string',
+      type: FieldType.String,
       minLength: 2,
     },
     id3: {
-      type: 'string',
+      type: FieldType.String,
       maxLength: 10,
     },
   },
 };
+test('json schema should validate', () => {
+  const result = new Ajv2020().validateSchema(mockJsonSchema);
+  expect(result).toBeTruthy();
+});
 test('gets referenced items', () => {
   const result = getUiSchemaItemsByRef(mockUiSchema, '#/$defs/id3');
   expect(result).toHaveLength(2);
