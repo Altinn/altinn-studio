@@ -93,6 +93,27 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+        /// Parses the filename and extracts the logical schema name.
+        /// </summary>
+        /// <param name="filePath">Filepath to the model - either Json Schema or Xsd.</param>
+        /// <returns>The logical schema name</returns>
+        public string GetSchemaName(string filePath)
+        {
+            var fileInfo = new FileInfo(filePath);
+
+            if (fileInfo.Extension.ToLower() == ".json" && fileInfo.Name.EndsWith(".schema.json"))
+            {
+                return fileInfo.Name.Remove(fileInfo.Name.ToLower().IndexOf(".schema.json"));
+            }
+            else if (fileInfo.Extension.ToLower() == ".xsd")
+            {
+                return fileInfo.Name.Remove(fileInfo.Name.ToLower().IndexOf(".xsd"));
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>
         /// Finds all text files regardless of location in repository.
         /// </summary>
         public IList<string> GetLanguageFiles()

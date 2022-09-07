@@ -1175,7 +1175,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             appMetadata.LastChangedBy = developer;
             appMetadata.Created = DateTime.UtcNow;
             appMetadata.LastChanged = appMetadata.Created;
-            await targetAppRepository.UpdateApplicationMetadata(appMetadata);
+            await targetAppRepository.SaveApplicationMetadata(appMetadata);
 
             CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = targetRepository, Message = $"App cloned from {sourceRepository} {DateTime.Now.Date.ToShortDateString()}" };
             _sourceControl.PushChangesForRepository(commitInfo);

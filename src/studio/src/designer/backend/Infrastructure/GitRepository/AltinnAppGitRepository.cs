@@ -1,14 +1,17 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 using System.Threading.Tasks;
-
+using System.Xml;
+using System.Xml.Schema;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 
 using Microsoft.AspNetCore.Mvc;
 
 using Newtonsoft.Json;
+using Formatting = Newtonsoft.Json.Formatting;
 
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 {
@@ -51,10 +54,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Updates the application metadata file.
+        /// Saves the application metadata file to disk.
         /// </summary>
         /// <param name="applicationMetadata">The updated application metadata to persist.</param>
-        public async Task UpdateApplicationMetadata(Application applicationMetadata)
+        public async Task SaveApplicationMetadata(Application applicationMetadata)
         {
             string metadataAsJson = JsonConvert.SerializeObject(applicationMetadata, Formatting.Indented);
             var appMetadataRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
@@ -63,12 +66,12 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Updates the model metadata model for the application (a JSON where the model hierarchy is flatten,
-        /// in order to easier generate the C# class).
+        /// Saves the model metadata model for the application (a JSON where the model hierarchy is flatten,
+        /// in order to easier generate the C# class) to disk.
         /// </summary>
         /// <param name="modelMetadata">Model metadata to persist.</param>
         /// <param name="modelName">The name of the model. </param>
-        public async Task UpdateModelMetadata(ModelMetadata modelMetadata, string modelName)
+        public async Task SaveModelMetadata(ModelMetadata modelMetadata, string modelName)
         {
             string metadataAsJson = JsonConvert.SerializeObject(modelMetadata);
             string modelMetadataRelativeFilePath = Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.metadata.json");
@@ -77,11 +80,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Updates the generated C# classes for the application model.
+        /// Saves the generated C# classes for the application model to disk.
         /// </summary>
         /// <param name="csharpClasses">All C# classes that should be persisted (in one file).</param>
         /// <param name="modelName">The name of the model, will be used as filename.</param>
-        public async Task UpdateCSharpClasses(string csharpClasses, string modelName)
+        public async Task SaveCSharpClasses(string csharpClasses, string modelName)
         {
             string modelMetadataRelativeFilePath = Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.cs");
 
@@ -89,7 +92,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Updates the Json Schema file representing the application model.
+        /// Saves the Json Schema file representing the application model to disk.
         /// </summary>
         /// <param name="jsonSchema">The Json Schema that should be persisted</param>
         /// <param name="modelName">The name of the model without extensions. This will be used as filename.</param>
@@ -101,6 +104,49 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             await WriteTextByRelativePathAsync(relativeFilePath, jsonSchema, true);
 
             return relativeFilePath;
+        }
+
+        /// <summary>
+        /// Saves the Xsd to the disk.
+        /// </summary>
+        /// <param name="xsdMemoryStream">Stream representing the Xsd to be saved.</param>
+        /// <param name="fileName">The filename of the file to be saved excluding path.</param>
+        /// <returns>A string containg the relative path to the file saved.</returns>
+        public async Task<string> SaveXsd(MemoryStream xsdMemoryStream, string fileName)
+        {
+            string filePath = Path.Combine(GetRelativeModelFolder(), fileName);
+            xsdMemoryStream.Position = 0;
+            await WriteStreamByRelativePathAsync(filePath, xsdMemoryStream, true);
+            xsdMemoryStream.Position = 0;
+
+            return filePath;
+        }
+
+        /// <summary>
+        /// Saves the Xsd to the disk.
+        /// </summary>
+        /// <param name="xsd">String representing the Xsd to be saved.</param>
+        /// <param name="fileName">The filename of the file to be saved excluding path.</param>
+        /// <returns>A string containg the relative path to the file saved.</returns>
+        public async Task<string> SaveXsd(string xsd, string fileName)
+        {
+            string filePath = Path.Combine(GetRelativeModelFolder(), fileName);
+            await WriteTextByRelativePathAsync(filePath, xsd, true);
+
+            return filePath;
+        }
+
+        /// <summary>
+        /// Saves the Xsd to the disk.
+        /// </summary>
+        /// <param name="xmlSchema">Xml schema to be saved.</param>
+        /// <param name="fileName">The filename of the file to be saved excluding path.</param>
+        /// <returns>A string containg the relative path to the file saved.</returns>
+        public async Task<string> SaveXsd(XmlSchema xmlSchema, string fileName)
+        {
+            string xsd = await SerializeXsdToString(xmlSchema);
+
+            return await SaveXsd(xsd, fileName);
         }
 
         /// <summary>
@@ -275,6 +321,28 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             }
 
             return false;
+        }
+
+        private static async Task<string> SerializeXsdToString(XmlSchema xmlSchema)
+        {
+            string xsd;
+            await using (var sw = new Utf8StringWriter())
+            await using (var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true }))
+            {
+                xmlSchema.Write(xw);
+                xsd = sw.ToString();
+            }
+
+            return xsd;
+        }
+
+        /// <summary>
+        /// Stringwriter that ensures UTF8 is used.
+        /// </summary>
+        internal class Utf8StringWriter : StringWriter
+        {
+            /// <inheritdoc/>
+            public override Encoding Encoding => Encoding.UTF8;
         }
     }
 }
