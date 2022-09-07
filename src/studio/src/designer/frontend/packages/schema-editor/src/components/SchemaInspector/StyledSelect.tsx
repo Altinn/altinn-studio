@@ -28,15 +28,7 @@ const useStyles = makeStyles({
   },
 });
 
-export function StyledSelect({
-  id,
-  label,
-  value,
-  onChange,
-  readOnly,
-  fullWidth,
-  children,
-}: IStyledSelectProps) {
+export function StyledSelect({ id, label, value, onChange, readOnly, fullWidth, children }: IStyledSelectProps) {
   const classes = useStyles();
 
   const onValueChange = (event: any) => {

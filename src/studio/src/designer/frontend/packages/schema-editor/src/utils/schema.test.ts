@@ -1,4 +1,5 @@
 import type { UiSchemaItem } from '../types';
+import { CombinationKind, FieldType } from '../types';
 import {
   buildJsonSchema,
   buildUISchema,
@@ -6,6 +7,7 @@ import {
   getUiSchemaItemsByRef,
   getUiSchemaTreeFromItem,
 } from './schema';
+import Ajv2020 from 'ajv/dist/2020';
 
 const mockUiSchema: UiSchemaItem[] = [
   {
@@ -24,8 +26,8 @@ const mockUiSchema: UiSchemaItem[] = [
         isRequired: true,
       },
     ],
-    type: 'object',
-    required: ['id3']
+    type: FieldType.Object,
+    required: ['id3'],
   },
   {
     path: '#/properties/allOfTest',
@@ -38,7 +40,7 @@ const mockUiSchema: UiSchemaItem[] = [
         combinationItem: true,
       } as UiSchemaItem,
     ],
-    combinationKind: 'allOf',
+    combinationKind: CombinationKind.AllOf,
     restrictions: [],
   },
   {
@@ -52,7 +54,7 @@ const mockUiSchema: UiSchemaItem[] = [
         combinationItem: true,
       } as UiSchemaItem,
     ],
-    combinationKind: 'oneOf',
+    combinationKind: CombinationKind.OneOf,
     restrictions: [],
   },
   {
@@ -66,11 +68,11 @@ const mockUiSchema: UiSchemaItem[] = [
         combinationItem: true,
       } as UiSchemaItem,
     ],
-    combinationKind: 'anyOf',
+    combinationKind: CombinationKind.AnyOf,
     restrictions: [],
   },
   {
-    type: 'string',
+    type: FieldType.String,
     path: '#/$defs/refTest',
     displayName: 'refTest',
     restrictions: [{ key: 'minLength', value: 2 }],
@@ -78,7 +80,7 @@ const mockUiSchema: UiSchemaItem[] = [
   {
     path: '#/$defs/id3',
     displayName: 'id3',
-    type: 'string',
+    type: FieldType.String,
     restrictions: [{ key: 'maxLength', value: 10 }],
   },
 ];
@@ -96,6 +98,7 @@ const mockJsonSchema = {
         },
       },
       required: ['id3'],
+      type: FieldType.Object,
     },
     allOfTest: {
       allOf: [{ $ref: '#/$defs/refTest' }],
@@ -109,15 +112,19 @@ const mockJsonSchema = {
   },
   $defs: {
     refTest: {
-      type: 'string',
+      type: FieldType.String,
       minLength: 2,
     },
     id3: {
-      type: 'string',
+      type: FieldType.String,
       maxLength: 10,
     },
   },
 };
+test('json schema should validate', () => {
+  const result = new Ajv2020().validateSchema(mockJsonSchema);
+  expect(result).toBeTruthy();
+});
 test('gets referenced items', () => {
   const result = getUiSchemaItemsByRef(mockUiSchema, '#/$defs/id3');
   expect(result).toHaveLength(2);
@@ -127,7 +134,7 @@ test('gets UI schema item', () => {
   expect(result).toEqual({
     path: '#/$defs/id3',
     displayName: 'id3',
-    type: 'string',
+    type: FieldType.String,
     restrictions: [{ key: 'maxLength', value: 10 }],
   });
 });

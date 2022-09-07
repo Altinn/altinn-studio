@@ -1,6 +1,6 @@
+import React from 'react';
 import { ClassNameMap } from '@material-ui/core/styles/withStyles';
-import * as React from 'react';
-import type { FieldType, UiSchemaItem } from '../../types';
+import { FieldType, UiSchemaItem } from '../../types';
 import { ObjectKind } from '../../types/enums';
 import { RefSelect } from './RefSelect';
 import { Label } from './Label';
@@ -35,26 +35,12 @@ export function ReferenceSelectionComponent({
   return (
     <div>
       <Label>{label}</Label>
-      {selectedItem.type === 'array' ? (
-        <RefSelect
-          id={selectedItem.path}
-          value={arrayType ?? ''}
-          onChange={onChangeArrayType}
-          fullWidth={true}
-        />
+      {selectedItem.type === FieldType.Array ? (
+        <RefSelect id={selectedItem.path} value={arrayType ?? ''} onChange={onChangeArrayType} fullWidth={true} />
       ) : (
-        <RefSelect
-          id={selectedItem.path}
-          value={selectedItem.$ref ?? ''}
-          onChange={onChangeRef}
-          fullWidth={true}
-        />
+        <RefSelect id={selectedItem.path} value={selectedItem.$ref ?? ''} onChange={onChangeRef} fullWidth={true} />
       )}
-      <button
-        type='button'
-        className={classes.navButton}
-        onClick={onGoToDefButtonClick}
-      >
+      <button type='button' className={classes.navButton} onClick={onGoToDefButtonClick}>
         {buttonText}
       </button>
     </div>

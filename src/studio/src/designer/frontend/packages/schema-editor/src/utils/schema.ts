@@ -1,4 +1,10 @@
-import type { CombinationKind, Restriction, UiSchemaItem } from '../types';
+import {
+  CombinationKind,
+  FieldType,
+  Restriction,
+  UiSchemaItem,
+} from '../types';
+
 import JsonPointer from 'jsonpointer';
 
 function flat(
@@ -113,51 +119,50 @@ export function buildJsonSchema(uiSchema: UiSchemaItem[]): any {
 }
 
 export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
-  let item: any = {};
+  let jsonSchemaItem: any = {};
   Object.keys(uiSchemaItem).forEach((key) => {
     switch (key) {
       case 'properties': {
-        item.properties = item.properties || {};
+        jsonSchemaItem.properties = jsonSchemaItem.properties || {};
         uiSchemaItem.properties?.forEach((property: UiSchemaItem) => {
-          item.properties[property.displayName] =
+          jsonSchemaItem.properties[property.displayName] =
             createJsonSchemaItem(property);
         });
         break;
       }
       case 'restrictions': {
         if (['#/oneOf'].includes(uiSchemaItem.path)) {
-          item = uiSchemaItem.restrictions.map((res: Restriction) => {
+          jsonSchemaItem = uiSchemaItem.restrictions.map((res: Restriction) => {
             return res.value;
           });
           break;
         }
 
         uiSchemaItem.restrictions?.forEach((field: any) => {
-          item[field.key] = field.value;
+          jsonSchemaItem[field.key] = field.value;
         });
         break;
       }
       case 'required': {
-        item.required = uiSchemaItem.required;
+        jsonSchemaItem.required = uiSchemaItem.required;
         break;
       }
       case 'value': {
-        item = uiSchemaItem.value;
+        jsonSchemaItem = uiSchemaItem.value;
         break;
       }
       case 'combination': {
         if (uiSchemaItem[key]?.length) {
           const combinationKind = uiSchemaItem.combinationKind;
-          item[combinationKind] = [];
+          jsonSchemaItem[combinationKind] = [];
           uiSchemaItem[key]?.forEach((property: UiSchemaItem) => {
-            item[combinationKind].push(createJsonSchemaItem(property));
+            jsonSchemaItem[combinationKind].push(
+              createJsonSchemaItem(property),
+            );
           });
         }
         break;
       }
-      case 'type':
-        if (uiSchemaItem.type !== 'object') item.type = uiSchemaItem.type;
-        break;
       case 'path':
       case 'displayName':
       case 'combinationItem':
@@ -165,14 +170,14 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
       case 'isRequired':
         break;
       default:
-        if (typeof item === 'object') {
-          item[key] = uiSchemaItem[key];
+        if (typeof jsonSchemaItem === 'object') {
+          jsonSchemaItem[key] = uiSchemaItem[key];
         }
 
         break;
     }
   });
-  return item;
+  return jsonSchemaItem;
 }
 
 export function getSubSchema(schema: any, pathArray: string[]): any {
@@ -216,7 +221,7 @@ export function buildUISchema(
         $ref: item.$ref,
         displayName,
         ...(item.title && { title: item.title }),
-        ...( item.description && {description: item.description }),
+        ...(item.description && { description: item.description }),
       });
     } else if (typeof item === 'object') {
       const {
@@ -237,11 +242,11 @@ export function buildUISchema(
           value: restrictions[k],
         })),
         displayName,
-        ...(items && {items}),
+        ...(items && { items }),
         ...(type && { type }),
         ...(title && { title }),
-        ...(enums && {enum: enums}),
-        ...(description && {description}),
+        ...(enums && { enum: enums }),
+        ...(description && { description }),
         ...mapJsonSchemaCombinationToUiSchemaItem(item, path),
       });
     } else {
@@ -249,8 +254,8 @@ export function buildUISchema(
         path,
         value: item,
         displayName,
-        ...(item.title && {title: item.title}),
-        ...(item.description && {description: item.description}),
+        ...(item.title && { title: item.title }),
+        ...(item.description && { description: item.description }),
       });
     }
   });
@@ -264,11 +269,11 @@ export const mapJsonSchemaCombinationToUiSchemaItem = (
 ) => {
   let combinationKind: CombinationKind;
   if (item.anyOf) {
-    combinationKind = 'anyOf';
+    combinationKind = CombinationKind.AnyOf;
   } else if (item.allOf) {
-    combinationKind = 'allOf';
+    combinationKind = CombinationKind.AllOf;
   } else if (item.oneOf) {
-    combinationKind = 'oneOf';
+    combinationKind = CombinationKind.OneOf;
   } else {
     return null;
   }
@@ -296,9 +301,9 @@ export const mapCombinationItemTypeToUiSchemaItem = (
   const uiSchemaItem = item.properties
     ? buildUiSchemaForItemWithProperties(item, `${parentPath}/${key}/${index}`)
     : {
-      ...item,
-      path: `${parentPath}/${key}/${index}`,
-    };
+        ...item,
+        path: `${parentPath}/${key}/${index}`,
+      };
   return {
     ...uiSchemaItem,
     displayName: item.$ref !== undefined ? 'ref' : `allOf[${index}]`,
@@ -358,9 +363,9 @@ export const buildUiSchemaForItemWithProperties = (
       displayName: key,
       ...(type && { type }),
       ...(title && { title }),
-      ...(enums && {enum: enums}),
-      ...(items && {items}),
-      ...(description && {description}),
+      ...(enums && { enum: enums }),
+      ...(items && { items }),
+      ...(description && { description }),
       ...mapJsonSchemaCombinationToUiSchemaItem(currentProperty, path),
     };
 
@@ -400,7 +405,7 @@ export const buildUiSchemaForItemWithProperties = (
     path: name,
     properties: rootProperties,
     displayName,
-    type: 'object',
+    type: FieldType.Object,
     ...rest,
   };
 };
@@ -415,29 +420,7 @@ export const updateChildPaths = (item: UiSchemaItem, parentId: string) => {
   }
 };
 
-const stringRestrictions = ['minLength', 'maxLength', 'pattern', 'format'];
-const integerRestrictions = [
-  'minimum',
-  'exclusiveminimum',
-  'maximum',
-  'exclusivemaximum',
-];
-const objectRestrictions = ['minProperties', 'maxProperties'];
-const arrayRestrictions = ['minItems', 'maxItems'];
-
-const restrictionMap = new Map([
-  ['string', stringRestrictions],
-  ['integer', integerRestrictions],
-  ['number', integerRestrictions],
-  ['object', objectRestrictions],
-  ['array', arrayRestrictions],
-]);
-export const getRestrictions = (type: string) => restrictionMap.get(type);
-
 let unusedNumber = 0;
-export const getUniqueNumber = () => {
-  return unusedNumber++;
-};
-export const resetUniqueNumber = () => {
-  unusedNumber = 0;
-};
+export const getUniqueNumber = () => unusedNumber++;
+
+export const resetUniqueNumber = () => (unusedNumber = 0);

@@ -13,13 +13,7 @@ export interface IRefSelectProps {
   onChange: (id: string, value: string) => void;
 }
 
-export const RefSelect = ({
-  id,
-  onChange,
-  value,
-  fullWidth,
-  readOnly,
-}: IRefSelectProps) => {
+export const RefSelect = ({ id, onChange, value, fullWidth, readOnly }: IRefSelectProps) => {
   const classes = makeStyles({
     root: {
       background: 'white',
@@ -38,9 +32,7 @@ export const RefSelect = ({
   })();
 
   const definitions: string[] = useSelector((state: ISchemaState) =>
-    state.uiSchema
-      .filter((s) => s.path.includes('#/definitions'))
-      .map((d) => d.path.replace('#/definitions/', '')),
+    state.uiSchema.filter((s) => s.path.includes('#/definitions')).map((d) => d.path.replace('#/definitions/', '')),
   );
 
   const onChangeValue = (event: ChangeEvent<unknown>, val: unknown) => {

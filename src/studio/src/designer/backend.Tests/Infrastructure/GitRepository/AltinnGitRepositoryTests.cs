@@ -124,35 +124,6 @@ namespace Designer.Tests.Infrastructure.GitRepository
             }
         }
 
-        [Fact]
-        public async Task ModelPreference_SettingsExists_ShouldUseThat()
-        {
-            var altinnGitRepository = GetTestRepository("ttd", "ttd-datamodels", "testUser");
-
-            Assert.Equal(DatamodellingPreference.JsonSchema, await altinnGitRepository.GetDatamodellingPreference());
-        }
-
-        [Fact]
-        public async Task ModelPreference_SettingsFileExistsButNotDatamodellingPreference_ShouldUseCorrectDefault()
-        {
-            var org = "ttd";
-            var sourceRepository = "xyz-datamodels";
-            var developer = "testUser";
-            var targetRepository = $"{Guid.NewGuid()}-datamodels";
-
-            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
-
-            try
-            {
-                var altinnGitRepository = GetTestRepository(org, targetRepository, developer);
-                Assert.Equal(DatamodellingPreference.JsonSchema, await altinnGitRepository.GetDatamodellingPreference());
-            }
-            finally
-            {
-                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
-            }
-        }
-
         private static AltinnGitRepository GetTestRepository(string org, string repository, string developer)
         {
             var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();

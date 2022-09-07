@@ -1,45 +1,37 @@
-import React, { BaseSyntheticEvent, MouseEvent } from 'react';
-import {
-  Checkbox,
-  Divider,
-  FormControlLabel,
-  Grid,
-  IconButton,
-} from '@material-ui/core';
+import React, { MouseEvent } from 'react';
+import { Checkbox, Divider, FormControlLabel, Grid, IconButton } from '@material-ui/core';
 import { getTranslation } from '../../utils/language';
-import { ILanguage, Restriction, UiSchemaItem } from '../../types';
-import { RestrictionField } from './RestrictionField';
+import { FieldType, ILanguage, Restriction, UiSchemaItem } from '../../types';
 import { EnumField } from './EnumField';
-import {
-  addEnum,
-  addRestriction,
-  deleteEnum,
-  deleteField,
-  setRequired,
-  setRestriction,
-  setRestrictionKey,
-} from '../../features/editor/schemaEditorSlice';
+import { addEnum, deleteEnum, setRequired, setRestriction } from '../../features/editor/schemaEditorSlice';
 import { useDispatch } from 'react-redux';
 import { Label } from './Label';
+import { ArrayRestrictions } from './restrictions/ArrayRestrictions';
+import { BooleanRestrictions } from './restrictions/BooleanRestrictions';
+import { NumberRestrictions } from './restrictions/NumberRestrictions';
+import { ObjectRestrictions } from './restrictions/ObjectRestrictions';
+import { StringRestrictions } from './restrictions/StringRestrictions';
 
+export interface RestrictionItemProps {
+  restrictions: Restriction[];
+  readonly: boolean;
+  path: string;
+  language: ILanguage;
+  onChangeRestrictionValue: (id: string, key: string, value: string) => void;
+}
 interface Props {
   classes: any;
-  selectedItem: UiSchemaItem;
+  item: UiSchemaItem;
   language: ILanguage;
 }
-export const ItemRestrictionsTab = ({
-  classes,
-  selectedItem,
-  language,
-}: Props) => {
+export const ItemRestrictionsTab = ({ classes, item, language }: Props) => {
   const dispatch = useDispatch();
-  const readonly = selectedItem.$ref !== undefined;
   const handleRequiredChanged = (e: any, checked: boolean) => {
-    if (checked !== selectedItem.isRequired) {
+    if (checked !== item.isRequired) {
       dispatch(
         setRequired({
-          path: selectedItem.path,
-          key: selectedItem.displayName,
+          path: item.path,
+          key: item.displayName,
           required: checked,
         }),
       );
@@ -55,72 +47,22 @@ export const ItemRestrictionsTab = ({
       }),
     );
 
-  const onChangeRestrictionKey = (
-    path: string,
-    oldKey: string,
-    newKey: string,
-  ) => {
-    if (oldKey !== newKey) {
-      dispatch(
-        setRestrictionKey({
-          path,
-          oldKey,
-          newKey,
-        }),
-      );
-    }
-  };
-
-  const onDeleteFieldClick = (path: string, key: string) =>
-    dispatch(deleteField({ path, key }));
-
-  const onAddRestrictionClick = (event?: BaseSyntheticEvent) => {
-    event?.preventDefault();
-    dispatch(
-      addRestriction({
-        path: selectedItem.path,
-        key: '',
-        value: '',
-      }),
-    );
-  };
-
-  const renderItemRestrictions = (item: UiSchemaItem) =>
-    item.restrictions?.map((field: Restriction) =>
-      !field.key.startsWith('@') ? (
-        <RestrictionField
-          key={field.key}
-          language={language}
-          type={selectedItem.type}
-          value={field.value}
-          keyName={field.key}
-          readOnly={readonly}
-          path={item.path}
-          onChangeValue={onChangeRestrictionValue}
-          onChangeKey={onChangeRestrictionKey}
-          onDeleteField={onDeleteFieldClick}
-          onReturn={onAddRestrictionClick}
-        />
-      ) : null,
-    );
-
   const onChangeEnumValue = (value: string, oldValue?: string) =>
     dispatch(
       addEnum({
-        path: selectedItem.path,
+        path: item.path,
         value,
         oldValue,
       }),
     );
 
-  const onDeleteEnumClick = (path: string, value: string) =>
-    dispatch(deleteEnum({ path, value }));
+  const onDeleteEnumClick = (path: string, value: string) => dispatch(deleteEnum({ path, value }));
 
   const dispatchAddEnum = () => {
-    if (selectedItem) {
+    if (item) {
       dispatch(
         addEnum({
-          path: selectedItem.path,
+          path: item.path,
           value: 'value',
         }),
       );
@@ -130,56 +72,51 @@ export const ItemRestrictionsTab = ({
     event.preventDefault();
     dispatchAddEnum();
   };
+
+  const t = (key: string) => getTranslation(key, language);
+  const restrictionProps: RestrictionItemProps = {
+    restrictions: item.restrictions ?? [],
+    readonly: item.$ref !== undefined,
+    path: item.path,
+    onChangeRestrictionValue,
+    language,
+  };
   return (
     <Grid container spacing={1} className={classes.gridContainer}>
       <Grid item xs={12}>
         <FormControlLabel
           className={classes.header}
-          control={
-            <Checkbox
-              checked={selectedItem.isRequired}
-              onChange={handleRequiredChanged}
-              name='checkedRequired'
-            />
-          }
-          label={getTranslation('required', language)}
+          control={<Checkbox checked={item.isRequired} onChange={handleRequiredChanged} name='checkedRequired' />}
+          label={t('required')}
         />
       </Grid>
-      {selectedItem.$ref === undefined && (
-        <>
-          <Grid item xs={12}>
-            <Divider />
-          </Grid>
-          <Grid item xs={4}>
-            <p>{getTranslation('keyword', language)}</p>
-          </Grid>
-          <Grid item xs={1} />
-          <Grid item xs={7}>
-            <p>{getTranslation('value', language)}</p>
-          </Grid>
-          {renderItemRestrictions(selectedItem)}
-          <IconButton
-            id='add-restriction-button'
-            aria-label={getTranslation('add_restriction', language)}
-            onClick={onAddRestrictionClick}
-          >
-            <i className='fa fa-plus' />
-            {getTranslation('add_restriction', language)}
-          </IconButton>
-        </>
+      {item.$ref === undefined && (
+        <Grid item xs={12}>
+          {
+            {
+              [FieldType.Array]: <ArrayRestrictions {...restrictionProps} />,
+              [FieldType.Boolean]: <BooleanRestrictions {...restrictionProps} />,
+              [FieldType.Integer]: <NumberRestrictions {...restrictionProps} />,
+              [FieldType.Number]: <NumberRestrictions {...restrictionProps} />,
+              [FieldType.Object]: <ObjectRestrictions {...restrictionProps} />,
+              [FieldType.String]: <StringRestrictions {...restrictionProps} />,
+              [FieldType.Null]: undefined,
+              default: undefined,
+            }[item.type ?? 'default']
+          }
+        </Grid>
       )}
-
-      {selectedItem.type !== 'object' && (
+      {item.type !== FieldType.Object && (
         <>
           <Grid item xs={12}>
             <Divider />
-            <Label>{getTranslation('enum', language)}</Label>
+            <Label>{t('enum')}</Label>
           </Grid>
-          {selectedItem.enum?.map((value: string, index) => (
+          {item.enum?.map((value: string, index) => (
             <EnumField
               key={'add-enum-field-' + index}
               language={language}
-              path={selectedItem.path}
+              path={item.path}
               fullWidth={true}
               value={value}
               onChange={onChangeEnumValue}
@@ -187,13 +124,9 @@ export const ItemRestrictionsTab = ({
               onEnterKeyPress={dispatchAddEnum}
             />
           ))}
-          <IconButton
-            id='add-enum-button'
-            aria-label={getTranslation('add_enum', language)}
-            onClick={onAddEnumButtonClick}
-          >
+          <IconButton id='add-enum-button' aria-label={t('add_enum')} onClick={onAddEnumButtonClick}>
             <i className='fa fa-plus' />
-            {getTranslation('add_enum', language)}
+            {t('add_enum')}
           </IconButton>
         </>
       )}

@@ -11,7 +11,7 @@ import {
 } from '../utils/schema';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { UiSchemaItem } from '../types';
+import { FieldType, UiSchemaItem } from '../types';
 
 const getMockSchemaByPath = (selectedId: string): UiSchemaItem => {
   const mockUiSchema = buildUISchema(dataMock.definitions, '#/definitions');
@@ -97,7 +97,7 @@ test('dispatches correctly when changing restriction value', async () => {
 
 test('Adds new object field when pressing the enter key', async () => {
   const { store, user } = renderSchemaInspector({
-    type: 'object',
+    type: FieldType.Object,
     path: '#/properties/test',
     displayName: 'test',
     properties: [
@@ -117,7 +117,7 @@ test('Adds new object field when pressing the enter key', async () => {
 
 test('Adds new valid value field when pressing the enter key', async () => {
   const { store, user } = renderSchemaInspector({
-    type: 'string',
+    type: FieldType.String,
     path: '#/properties/test',
     displayName: 'test',
     enum: ['valid value'],

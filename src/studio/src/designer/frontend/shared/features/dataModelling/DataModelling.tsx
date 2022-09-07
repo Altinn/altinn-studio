@@ -233,17 +233,17 @@ function DataModelling({
         name={selectedOption?.label}
         loading={metadataLoadingState === LoadingState.LoadingModels}
       >
-        <XSDUpload
-          language={language}
-          onXSDUploaded={handleXSDUploaded}
-          org={org}
-          repo={repo}
-        />
         <Create
           language={language}
           createAction={handleCreateSchema}
           dataModelNames={modelNames}
           createPathOption={createPathOption}
+        />
+        <XSDUpload
+          language={language}
+          onXSDUploaded={handleXSDUploaded}
+          org={org}
+          repo={repo}
         />
         <SchemaSelect
           selectedOption={selectedOption}

@@ -12,6 +12,7 @@ import {
   setSelectedId,
 } from '../features/editor/schemaEditorSlice';
 import type { ILanguage, ISchemaState, UiSchemaItem } from '../types';
+import { CombinationKind, FieldType } from '../types';
 import { ObjectKind } from '../types/enums';
 import { SchemaItemLabel } from './SchemaItemLabel';
 import { getDomFriendlyID } from '../utils/schema';
@@ -149,7 +150,8 @@ export function SchemaItem(props: SchemaItemProps) {
           isPropertiesView={isPropertiesView}
         />
       );
-    })};
+    });
+  };
 
   const handlePromoteClick = () => {
     dispatch(promoteProperty({ path: item.path }));
@@ -165,10 +167,11 @@ export function SchemaItem(props: SchemaItemProps) {
   const handleAddProperty = (type: ObjectKind) => {
     const path = itemToDisplay.path;
     const propertyProps = {
-      type: type === ObjectKind.Field ? 'object' : undefined,
+      type: type === ObjectKind.Field ? FieldType.Object : undefined,
       $ref: type === ObjectKind.Reference ? '' : undefined,
       combination: type === ObjectKind.Combination ? [] : undefined,
-      combinationKind: type === ObjectKind.Combination ? 'allOf' : undefined,
+      combinationKind:
+        type === ObjectKind.Combination ? CombinationKind.AllOf : undefined,
     } as UiSchemaItem;
 
     if (itemToDisplay.combination) {
@@ -199,8 +202,8 @@ export function SchemaItem(props: SchemaItemProps) {
   };
 
   const getIconStr = () => {
-    const type = item.type;
-    if (type !== 'array' && item.$ref !== undefined) {
+    const { type } = item;
+    if (type !== FieldType.Array && item.$ref !== undefined) {
       return 'fa-datamodel-ref';
     }
 
@@ -208,11 +211,11 @@ export function SchemaItem(props: SchemaItemProps) {
       return 'fa-group';
     }
 
-    if (item.type === 'integer') {
+    if (type === FieldType.Integer) {
       return 'fa-datamodel-number';
     }
 
-    if (type === 'null') {
+    if (type === FieldType.Null) {
       return 'fa-datamodel-object';
     }
 
@@ -254,14 +257,16 @@ export function SchemaItem(props: SchemaItemProps) {
               ? `${item.displayName} : ${refItem.displayName}`
               : item.displayName
           }
-          onAddProperty={item.type === 'object' ? handleAddProperty : undefined}
+          onAddProperty={
+            item.type === FieldType.Object ? handleAddProperty : undefined
+          }
           onAddReference={
-            item.type === 'object' || item.combination
+            item.type === FieldType.Object || item.combination
               ? handleAddProperty
               : undefined
           }
           onAddCombination={
-            item.type === 'object' ? handleAddProperty : undefined
+            item.type === FieldType.Object ? handleAddProperty : undefined
           }
           onDelete={handleDeleteClick}
           onPromote={

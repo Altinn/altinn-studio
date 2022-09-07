@@ -1,3 +1,5 @@
+import { CombinationKind, FieldType } from '../../../types';
+
 export interface Option {
   value: string;
   label: string;
@@ -5,38 +7,38 @@ export interface Option {
 
 export const getCombinationOptions = (t: (key: string) => string): Option[] => [
   {
-    value: 'allOf',
+    value: CombinationKind.AllOf,
     label: t('all_of'),
   },
   {
-    value: 'anyOf',
+    value: CombinationKind.AnyOf,
     label: t('any_of'),
   },
   {
-    value: 'oneOf',
+    value: CombinationKind.OneOf,
     label: t('one_of'),
   },
 ];
 
 export const getTypeOptions = (t: (key: string) => string): Option[] => [
   {
-    value: 'string',
+    value: FieldType.String,
     label: t('string'),
   },
   {
-    value: 'integer',
+    value: FieldType.Integer,
     label: t('integer'),
   },
   {
-    value: 'number',
+    value: FieldType.Number,
     label: t('number'),
   },
   {
-    value: 'boolean',
+    value: FieldType.Boolean,
     label: t('boolean'),
   },
   {
-    value: 'object',
+    value: FieldType.Object,
     label: t('object'),
   },
 ];

@@ -1,19 +1,8 @@
-import {
-  Checkbox,
-  Divider,
-  FormControlLabel,
-  TextField,
-} from '@material-ui/core';
+import { Checkbox, Divider, FormControlLabel, TextField } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
 import React, { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  CombinationKind,
-  FieldType,
-  ILanguage,
-  ISchemaState,
-  UiSchemaItem,
-} from '../../types';
+import { CombinationKind, FieldType, ILanguage, ISchemaState, UiSchemaItem } from '../../types';
 import { NameError, ObjectKind } from '../../types/enums';
 import { isValidName } from '../../utils/checks';
 import { getTranslation } from '../../utils/language';
@@ -29,11 +18,7 @@ import {
   setTitle,
   setType,
 } from '../../features/editor/schemaEditorSlice';
-import {
-  combinationIsNullable,
-  getDomFriendlyID,
-  nullableType,
-} from '../../utils/schema';
+import { combinationIsNullable, getDomFriendlyID, nullableType } from '../../utils/schema';
 import { TypeSelect } from './TypeSelect';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { CombinationSelect } from './CombinationSelect';
@@ -92,11 +77,7 @@ const useStyles = makeStyles(
   }),
 );
 
-export function ItemDataComponent({
-  language,
-  selectedItem,
-  checkIsNameInUse,
-}: IItemDataComponentProps) {
+export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: IItemDataComponentProps) {
   const classes = useStyles();
   const dispatch = useDispatch();
   const objectKind = getObjectKind(selectedItem ?? undefined);
@@ -106,9 +87,7 @@ export function ItemDataComponent({
   const [description, setItemDescription] = useState<string>('');
   const [title, setItemTitle] = useState<string>('');
   const [fieldType, setFieldType] = useState<FieldType | undefined>(undefined);
-  const [arrayType, setArrayType] = useState<FieldType | string | undefined>(
-    undefined,
-  );
+  const [arrayType, setArrayType] = useState<FieldType | string | undefined>(undefined);
 
   const focusName = useSelector((state: ISchemaState) => state.focusNameField);
 
@@ -168,7 +147,7 @@ export function ItemDataComponent({
       dispatch(
         addCombinationItem({
           path: selectedItem.path,
-          props: { type: 'null' },
+          props: { type: FieldType.Null },
         }),
       );
     } else {
@@ -233,12 +212,9 @@ export function ItemDataComponent({
     }
 
     if (checked) {
-      const type =
-        objectKind === ObjectKind.Reference
-          ? selectedItem.$ref
-          : selectedItem.type;
+      const type = objectKind === ObjectKind.Reference ? selectedItem.$ref : selectedItem.type;
       onChangeArrayType(type);
-      onChangeType('array');
+      onChangeType(FieldType.Array);
     } else {
       if (objectKind === ObjectKind.Reference) {
         onChangeRef(selectedItem.path, arrayType || '');
@@ -295,11 +271,9 @@ export function ItemDataComponent({
         <>
           <Label>{t('type')}</Label>
           <TypeSelect
-            value={selectedItem.type === 'array' ? arrayType : fieldType}
+            value={selectedItem.type === FieldType.Array ? arrayType : fieldType}
             id={`${getDomFriendlyID(selectedItem.path)}-type-select`}
-            onChange={
-              selectedItem.type === 'array' ? onChangeArrayType : onChangeType
-            }
+            onChange={selectedItem.type === FieldType.Array ? onChangeArrayType : onChangeType}
             label={t('type')}
             options={getTypeOptions(t)}
           />
@@ -323,7 +297,7 @@ export function ItemDataComponent({
           control={
             <Checkbox
               color='primary'
-              checked={selectedItem?.type === 'array'}
+              checked={selectedItem?.type === FieldType.Array}
               onChange={handleIsArrayChanged}
               name='checkedMultipleAnswers'
             />

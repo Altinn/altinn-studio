@@ -120,9 +120,9 @@ namespace Designer.Tests.Services
 
             try
             {
-                var repository = await repositoryService.CreateService(org, new ServiceConfiguration() { RepositoryName = repositoryName, ServiceName = repositoryName, DatamodellingPreference = DatamodellingPreference.JsonSchema });
+                var repository = await repositoryService.CreateService(org, new ServiceConfiguration() { RepositoryName = repositoryName, ServiceName = repositoryName });
                 var altinnStudioSettings = await new AltinnGitRepositoryFactory(repositoriesRootDirectory).GetAltinnGitRepository(org, repositoryName, developer).GetAltinnStudioSettings();
-                altinnStudioSettings.DatamodellingPreference.Should().Be(DatamodellingPreference.JsonSchema);
+                altinnStudioSettings.RepoType.Should().Be(AltinnRepositoryType.App);
             }
             finally
             {
