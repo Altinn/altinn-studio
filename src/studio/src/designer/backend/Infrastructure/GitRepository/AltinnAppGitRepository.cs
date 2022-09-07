@@ -218,11 +218,9 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <summary>
         /// Deletes the text file for a specific languageCode.
         /// </summary>
-        /// <param name="org">Organisation identifier</param>
-        /// <param name="repo">Repository identifier</param>
         /// <param name="languageCode">Language identifier</param>
         /// <returns>A boolean value that indicates if the file was deleted or not</returns>
-        public bool DeleteLanguage(string org, string repo, string languageCode)
+        public bool DeleteLanguage(string languageCode)
         {
             string fileName = $"text.{languageCode}.json";
 
