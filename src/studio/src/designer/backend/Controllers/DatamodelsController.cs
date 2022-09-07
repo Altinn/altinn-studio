@@ -127,17 +127,17 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">Application identifier which is unique within an organisation.</param>
-        /// <param name="thefile">The main XSD</param>
+        /// <param name="xsdFile">The main XSD</param>
         /// <returns>Return JSON of the generated model</returns>
         [HttpPost]
-        public async Task<ActionResult<string>> Upload(string org, string repository, [FromForm(Name = "file")] IFormFile thefile)
+        public async Task<ActionResult<string>> Upload(string org, string repository, [FromForm(Name = "file")] IFormFile xsdFile)
         {
-            Guard.AssertArgumentNotNull(thefile, nameof(thefile));
+            Guard.AssertArgumentNotNull(xsdFile, nameof(xsdFile));
 
-            string mainFileName = GetFileNameFromUploadedFile(thefile);
+            string mainFileName = GetFileNameFromUploadedFile(xsdFile);
             Guard.AssertFileExtensionIsOfType(mainFileName, ".xsd");
 
-            MemoryStream fileMemoryStream = CopyFileStream(thefile);
+            MemoryStream fileMemoryStream = CopyFileStream(xsdFile);
 
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 

@@ -94,9 +94,11 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
             _modelMetadata = new ModelMetadata();
             _schema = JsonSchema.FromText(jsonSchema);
-            var schemaUri = _schema.GetKeyword<IdKeyword>().Id;
-            _schemaXsdMetadata = _schemaAnalyzer.AnalyzeSchema(_schema, schemaUri);
+            IdKeyword idKeyword; 
+            var idKeywordParsed = _schema.TryGetKeyword<IdKeyword>(out idKeyword);
 
+            _schemaXsdMetadata = _schemaAnalyzer.AnalyzeSchema(_schema, idKeywordParsed ? idKeyword.Id : new Uri(modelName, UriKind.Relative));
+            
             ProcessSchema(_schema);
 
             return _modelMetadata;
@@ -107,6 +109,12 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             var rootPath = JsonPointer.Parse("#");
             var name = ConvertToCSharpCompatibleName(ModelName);
             var context = new SchemaContext() { Id = name, ParentId = string.Empty, Name = name, XPath = "/" };
+
+            var propertiesKeyword = schema.GetKeyword<PropertiesKeyword>();
+            if (propertiesKeyword != null)
+            {
+                AddElement(rootPath, schema, context);
+            }
 
             foreach (var keyword in schema.Keywords)
             {
@@ -138,6 +146,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 case EnumKeyword:
                 case DefinitionsKeyword:
                 case DefsKeyword:
+                case MinItemsKeyword:
+                case MaxItemsKeyword:
                     break;
                 
                 case RefKeyword k:

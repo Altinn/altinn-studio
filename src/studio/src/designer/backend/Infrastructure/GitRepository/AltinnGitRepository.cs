@@ -146,19 +146,19 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         private async Task<AltinnStudioSettings> CreateNewAltinnStudioSettings()
         {
-            AltinnStudioSettings newAltinnStudioSettings;
+            AltinnStudioSettings settings;
             if (IsDatamodelsRepo())
             {
-                newAltinnStudioSettings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.Datamodels };
+                settings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.Datamodels };
             }
             else
             {
-                newAltinnStudioSettings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.App };
+                settings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.App };
             }
 
-            await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, newAltinnStudioSettings, true);
+            await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, settings, true);
 
-            return newAltinnStudioSettings;
+            return settings;
         }
 
         private async Task<(AltinnStudioSettings AltinnStudioSettinngs, bool NeedsSaving)> MigrateExistingAltinnStudioSettings()

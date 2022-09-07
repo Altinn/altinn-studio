@@ -11,8 +11,10 @@ using System.Xml.Linq;
 using System.Xml.Schema;
 
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Converter.Xml;
+using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Templates;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Enums;
@@ -108,10 +110,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             var jsonSchema = Json.Schema.JsonSchema.FromText(jsonContent);
             var jsonSchemaConverterStrategy = JsonSchemaConverterStrategyFactory.SelectStrategy(jsonSchema);
 
+            var converter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
+            XmlSchema xsd = converter.Convert(jsonSchema);
+            await altinnAppGitRepository.WriteTextByRelativePathAsync(Path.ChangeExtension(relativeFilePath, "xsd"), "a", true);
+
             var schemaName = GetSchemaName(relativeFilePath);
 
             var metamodelConverter = new JsonSchemaToMetamodelConverter(jsonSchemaConverterStrategy.GetAnalyzer());
-            var modelMetadata = metamodelConverter.Convert(schemaName, jsonContent);
+            ModelMetadata modelMetadata = metamodelConverter.Convert(schemaName, jsonContent);
             await altinnAppGitRepository.UpdateModelMetadata(modelMetadata, schemaName);
 
             await UpdateCSharpClasses(altinnAppGitRepository, modelMetadata, schemaName);
@@ -160,9 +166,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             
             /* Using the NEW model processing. */
 
-            xsdMemoryStream.Position = 0;
-            await SaveOriginalXsd(org, repository, developer, filePath, xsdMemoryStream);
-
+            xsdMemoryStream.Position = 0;            
+            await altinnAppGitRepository.WriteStreamByRelativePathAsync(filePath, xsdMemoryStream, true);
             xsdMemoryStream.Position = 0;
             jsonContent = await ProcessNewXsd(altinnAppGitRepository, xsdMemoryStream, filePath);
 
