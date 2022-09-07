@@ -18,8 +18,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// Controller containing actions related to languages
     /// </summary>
     [Authorize]
-
-    //[AutoValidateAntiforgeryToken]
+    [AutoValidateAntiforgeryToken]
     [Route("designer/api/v1/{org}/{repo}/languages")]
     public class LanguagesController : ControllerBase
     {
@@ -68,7 +67,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            bool deleted = _languagesService.DeleteLanguage(org, repo , developer, languageCode);
+            bool deleted = _languagesService.DeleteLanguage(org, repo, developer, languageCode);
 
             if (!deleted)
             {
