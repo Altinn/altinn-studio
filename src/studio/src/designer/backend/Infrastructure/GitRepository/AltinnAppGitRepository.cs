@@ -228,13 +228,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
             bool deleted = false;
 
-            try
+            if (File.Exists(fileName))
             {
                 DeleteFileByRelativePath(textFileRelativeFilePath);
-            }
-            catch (Exception e)
-            {
-                return deleted;
+                deleted = true;
             }
 
             return deleted;

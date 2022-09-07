@@ -9,6 +9,8 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using NuGet.Protocol;
+using NuGet.Protocol.Plugins;
 
 namespace Altinn.Studio.Designer.Controllers
 {
@@ -16,7 +18,8 @@ namespace Altinn.Studio.Designer.Controllers
     /// Controller containing actions related to languages
     /// </summary>
     [Authorize]
-    [AutoValidateAntiforgeryToken]
+
+    //[AutoValidateAntiforgeryToken]
     [Route("designer/api/v1/{org}/{repo}/languages")]
     public class LanguagesController : ControllerBase
     {
@@ -59,13 +62,24 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpDelete]
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public ActionResult<bool> DeleteLanguage(string org, string repo, string languageCode)
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Route("{languageCode}")]
+        public ActionResult<bool> DeleteLanguage(string org, string repo, [FromRoute] string languageCode)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
             bool deleted = _languagesService.DeleteLanguage(org, repo , developer, languageCode);
 
-            return Ok(deleted);
+            if (!deleted)
+            {
+                return new NotFoundResult();
+            }
+
+            return new JsonResult(new
+            {
+                Success = deleted,
+                Message = "Language successfully deleted."
+            });
         }
     }
 }
