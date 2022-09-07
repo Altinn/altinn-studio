@@ -147,7 +147,7 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
       dispatch(
         addCombinationItem({
           path: selectedItem.path,
-          props: { type: undefined },
+          props: { type: FieldType.Null },
         }),
       );
     } else {

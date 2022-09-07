@@ -215,7 +215,7 @@ export function SchemaItem(props: SchemaItemProps) {
       return 'fa-datamodel-number';
     }
 
-    if (!type) {
+    if (type === FieldType.Null) {
       return 'fa-datamodel-object';
     }
 
