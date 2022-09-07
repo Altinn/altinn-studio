@@ -100,6 +100,7 @@ export const ItemRestrictionsTab = ({ classes, item, language }: Props) => {
               [FieldType.Number]: <NumberRestrictions {...restrictionProps} />,
               [FieldType.Object]: <ObjectRestrictions {...restrictionProps} />,
               [FieldType.String]: <StringRestrictions {...restrictionProps} />,
+              [FieldType.Null]: undefined,
               default: undefined,
             }[item.type ?? 'default']
           }
