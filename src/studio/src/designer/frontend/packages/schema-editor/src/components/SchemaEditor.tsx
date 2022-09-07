@@ -36,23 +36,29 @@ import { isNameInUse } from '../utils/checks';
 
 const useStyles = makeStyles({
   root: {
-    height: '100%',
+    height: 'calc(100vh - 111px)',
     width: '100%',
-    display: 'inline-flex',
-    flexWrap: 'wrap',
+    display: 'flex',
+    flexDirection: 'column',
+    overflow: 'hidden',
     '& > main': {
-      flex: 1,
-      maxWidth: 'calc(100% - 501px)',
+      display: 'flex',
+      flexDirection: 'row',
+      flexGrow: 1,
+      alignItems: 'stretch',
+      minHeight: 0
     },
   },
   editor: {
     backgroundColor: 'white',
-    boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
     minHeight: 200,
-    margin: 18,
+    flexGrow: 1,
+    height: '100%',
+    display: 'flex',
+    flexDirection: 'column'
   },
   appBar: {
-    border: 'none',
+    borderBottom: '1px solid #C9C9C9',
     boxShadow: 'none',
     backgroundColor: '#fff',
     color: '#000',
@@ -65,6 +71,10 @@ const useStyles = makeStyles({
   },
   tab: {
     minWidth: 70,
+  },
+  tabPanel: {
+    overflowY: 'scroll',
+    flexGrow: 1
   },
   treeItem: {
     marginLeft: 8,
@@ -80,17 +90,12 @@ const useStyles = makeStyles({
       },
   },
   treeView: {
-    height: 600,
     flexGrow: 1,
     overflow: 'auto',
   },
   inspector: {
     background: 'white',
     borderLeft: '1px solid #C9C9C9',
-    position: 'sticky',
-    top: 110,
-    width: 500,
-    height: 'calc(100vh - 110px)',
     overflowX: 'clip',
     overflowY: 'auto',
   },
@@ -282,12 +287,12 @@ export const SchemaEditor = (props: IEditorProps) => {
     });
   return (
     <div className={classes.root}>
+      <TopToolbar
+        Toolbar={Toolbar}
+        language={language}
+        saveAction={name ? saveSchema : undefined}
+      />
       <main>
-        <TopToolbar
-          Toolbar={Toolbar}
-          language={language}
-          saveAction={name ? saveSchema : undefined}
-        />
         {name && schema ? (
           <div
             data-testid='schema-editor'
@@ -313,7 +318,7 @@ export const SchemaEditor = (props: IEditorProps) => {
                   />
                 </TabList>
               </AppBar>
-              <TabPanel value='properties'>
+              <TabPanel className={classes.tabPanel} value='properties'>
                 <Button
                   endIcon={<i className='fa fa-drop-down' />}
                   onClick={openMenu}
@@ -346,7 +351,7 @@ export const SchemaEditor = (props: IEditorProps) => {
                   ))}
                 </TreeView>
               </TabPanel>
-              <TabPanel value='definitions'>
+              <TabPanel className={classes.tabPanel} value='definitions'>
                 <Button
                   startIcon={<i className='fa fa-plus' />}
                   onClick={handleAddDefinition}
@@ -385,17 +390,17 @@ export const SchemaEditor = (props: IEditorProps) => {
         ) : (
           loadingIndicator
         )}
+        {schema && (
+          <aside className={classes.inspector}>
+            <SchemaInspector
+              language={language}
+              referredItem={referredItem ?? undefined}
+              selectedItem={selectedItem ?? undefined}
+              checkIsNameInUse={checkIsNameInUse}
+            />
+          </aside>
+        )}
       </main>
-      {schema && (
-        <aside className={classes.inspector}>
-          <SchemaInspector
-            language={language}
-            referredItem={referredItem ?? undefined}
-            selectedItem={selectedItem ?? undefined}
-            checkIsNameInUse={checkIsNameInUse}
-          />
-        </aside>
-      )}
       <AltinnMenu
         anchorEl={menuAnchorEl}
         open={Boolean(menuAnchorEl)}

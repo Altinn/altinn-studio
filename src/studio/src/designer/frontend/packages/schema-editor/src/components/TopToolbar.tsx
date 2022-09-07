@@ -9,9 +9,15 @@ const useStyles = makeStyles({
     display: 'flex',
     background: '#fff',
     padding: 8,
-    boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
-    '& > button:last-child': {
-      marginLeft: 'auto',
+    borderBottom: '1px solid #C9C9C9',
+    '& > *': { marginRight: '1rem' },
+    '& button': {
+      color: '#0062BA',
+      transition: 'none',
+      '&:last-child': {
+        marginLeft: 'auto',
+        marginRight: 0
+      }
     },
   },
 });

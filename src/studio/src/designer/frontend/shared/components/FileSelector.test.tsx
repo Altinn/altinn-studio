@@ -34,7 +34,7 @@ describe('FileSelector', () => {
 
   it('Should show text on the button by default', async () => {
     render();
-    expect(screen.getByLabelText('Upload button text')).toBeInTheDocument();
+    expect(screen.getByText('Upload button text')).toBeInTheDocument();
   });
 
   it('Should show custom button', async () => {
@@ -44,7 +44,7 @@ describe('FileSelector', () => {
 
   it('Should call file input onClick handler when the default upload button is clicked', async () => {
     render();
-    const button = screen.getByLabelText('Upload button text');
+    const button = screen.getByText('Upload button text');
     const fileInput = screen.getByTestId('FileSelector-input');
     fileInput.onclick = jest.fn();
     await user.click(button);
