@@ -228,7 +228,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
             bool deleted = false;
 
-            if (File.Exists(fileName))
+            if (File.Exists(GetAbsoluteFilePathSanitized(textFileRelativeFilePath)))
             {
                 DeleteFileByRelativePath(textFileRelativeFilePath);
                 deleted = true;
