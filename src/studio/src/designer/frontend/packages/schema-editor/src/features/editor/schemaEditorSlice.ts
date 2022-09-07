@@ -2,15 +2,15 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import {
   buildJsonSchema,
   buildUISchema,
+  getSchemaFromPath,
   getUiSchemaItem,
   getUiSchemaItemsByRef,
   getUniqueNumber,
   mapCombinationChildren,
-  updateChildPaths,
-  getSchemaFromPath,
   splitParentPathAndName,
+  updateChildPaths,
 } from '../../utils/schema';
-import type {
+import {
   CombinationKind,
   FieldType,
   ISchema,
@@ -172,7 +172,9 @@ const schemaEditorSlice = createSlice({
       // copy item and give new id
       const split = item.path.split('/');
       const name = split[split.length - 1];
-      const { definitionsPath } = getSchemaSettings({ schemaUrl: state.schema?.$schema});
+      const { definitionsPath } = getSchemaSettings({
+        schemaUrl: state.schema?.$schema,
+      });
       const copy = { ...item, path: `${definitionsPath}/${name}` };
       state.uiSchema.push(copy);
 
@@ -327,7 +329,7 @@ const schemaEditorSlice = createSlice({
       const { path, type } = action.payload;
       const schemaItem = getUiSchemaItem(state.uiSchema, path);
       schemaItem.$ref = undefined;
-      if (type === 'array') {
+      if (type === FieldType.Array) {
         schemaItem.properties = undefined;
       }
       schemaItem.type = type;
@@ -494,15 +496,15 @@ const schemaEditorSlice = createSlice({
       }
 
       const defsUiSchema = buildUISchema(
-        getSchemaFromPath(schemaSettings.definitionsPath.slice(1),
-          state.schema),
-          schemaSettings.definitionsPath,
-          true,
-      )
+        getSchemaFromPath(
+          schemaSettings.definitionsPath.slice(1),
+          state.schema,
+        ),
+        schemaSettings.definitionsPath,
+        true,
+      );
 
-      uiSchema = uiSchema
-        .concat(rootUiSchema)
-        .concat(defsUiSchema);
+      uiSchema = uiSchema.concat(rootUiSchema).concat(defsUiSchema);
 
       state.uiSchema = uiSchema;
       state.name = name;

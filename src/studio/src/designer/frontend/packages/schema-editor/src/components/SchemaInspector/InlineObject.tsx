@@ -30,22 +30,12 @@ export function InlineObject({ item, language }: IInlineObjectProps) {
   return (
     <Grid container spacing={4}>
       <Grid item xs={12}>
-        <Paper
-          id='json-paper'
-          classes={{ root: classes.jsonPaper }}
-          square
-          variant='outlined'
-        >
+        <Paper id='json-paper' classes={{ root: classes.jsonPaper }} square variant='outlined'>
           {JSON.stringify(jsonObject, null, '    ')}
         </Paper>
       </Grid>
       <Grid item xs={12}>
-        <Paper
-          id='information-paper'
-          classes={{ root: classes.informationPaper }}
-          square
-          variant='outlined'
-        >
+        <Paper id='information-paper' classes={{ root: classes.informationPaper }} square variant='outlined'>
           {getTranslation('combination_inline_object_disclaimer', language)}
         </Paper>
       </Grid>

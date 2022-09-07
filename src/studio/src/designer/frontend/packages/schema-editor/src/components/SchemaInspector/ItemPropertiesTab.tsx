@@ -9,18 +9,10 @@ interface ItemPropertiesTabProps {
   checkIsNameInUse: (name: string) => boolean;
 }
 
-export const ItemPropertiesTab = ({
-  language,
-  selectedItem,
-  checkIsNameInUse,
-}: ItemPropertiesTabProps) => {
+export const ItemPropertiesTab = ({ language, selectedItem, checkIsNameInUse }: ItemPropertiesTabProps) => {
   return selectedItem.combinationItem && selectedItem.$ref === undefined ? (
     <InlineObject item={selectedItem} language={language} />
   ) : (
-    <ItemDataComponent
-      selectedItem={selectedItem}
-      language={language}
-      checkIsNameInUse={checkIsNameInUse}
-    />
+    <ItemDataComponent selectedItem={selectedItem} language={language} checkIsNameInUse={checkIsNameInUse} />
   );
 };

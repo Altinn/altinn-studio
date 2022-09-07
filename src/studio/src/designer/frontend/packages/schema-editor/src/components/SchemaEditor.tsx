@@ -10,6 +10,7 @@ import {
   AltinnSpinner,
 } from 'app-shared/components';
 import type { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
+import { CombinationKind, FieldType } from '../types';
 import { ObjectKind } from '../types/enums';
 import {
   addRootItem,
@@ -140,20 +141,24 @@ export const SchemaEditor = (props: IEditorProps) => {
     (state: ISchemaState) => state.selectedDefinitionNodeId,
   );
 
-  const schemaSettings = getSchemaSettings({schemaUrl: jsonSchema?.$schema});
+  const schemaSettings = getSchemaSettings({ schemaUrl: jsonSchema?.$schema });
   const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
-  const definitions = uiSchema.filter((d: UiSchemaItem) => d.path.startsWith(`${schemaSettings.definitionsPath}/`));
-  const modelView = uiSchema.filter((d: UiSchemaItem) => {
-      if (schemaSettings.rootNodePath !== '#/oneOf') {
-        return d.path.startsWith(schemaSettings.rootNodePath);
-      }
-      const modelsArray = getSchemaFromPath(schemaSettings.rootNodePath.slice(1), jsonSchema);
-      if (modelsArray && Array.isArray(modelsArray)) {
-        return modelsArray.find(m => m.$ref === d.path);
-      }
-      return false;
-    }
+  const definitions = uiSchema.filter((d: UiSchemaItem) =>
+    d.path.startsWith(`${schemaSettings.definitionsPath}/`),
   );
+  const modelView = uiSchema.filter((d: UiSchemaItem) => {
+    if (schemaSettings.rootNodePath !== '#/oneOf') {
+      return d.path.startsWith(schemaSettings.rootNodePath);
+    }
+    const modelsArray = getSchemaFromPath(
+      schemaSettings.rootNodePath.slice(1),
+      jsonSchema,
+    );
+    if (modelsArray && Array.isArray(modelsArray)) {
+      return modelsArray.find((m) => m.$ref === d.path);
+    }
+    return false;
+  });
 
   const selectedTab: string = useSelector(
     (state: ISchemaState) => state.selectedEditorTab,
@@ -201,11 +206,11 @@ export const SchemaEditor = (props: IEditorProps) => {
         name: 'name',
         location: 'properties',
         props: {
-          type: type === ObjectKind.Field ? 'object' : undefined,
+          type: type === ObjectKind.Field ? FieldType.Object : undefined,
           $ref: type === ObjectKind.Reference ? '' : undefined,
           combination: type === ObjectKind.Combination ? [] : undefined,
           combinationKind:
-            type === ObjectKind.Combination ? 'allOf' : undefined,
+            type === ObjectKind.Combination ? CombinationKind.AllOf : undefined,
         },
       }),
     );
@@ -219,7 +224,7 @@ export const SchemaEditor = (props: IEditorProps) => {
         name: 'name',
         location: 'definitions',
         props: {
-          type: 'object',
+          type: FieldType.Object,
         },
       }),
     );

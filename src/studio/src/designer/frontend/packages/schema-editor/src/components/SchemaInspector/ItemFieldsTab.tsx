@@ -3,11 +3,7 @@ import { Grid } from '@material-ui/core';
 import { AddPropertyButton } from './AddPropertyButton';
 import { ILanguage, UiSchemaItem } from '../../types';
 import { PropertyItem } from './PropertyItem';
-import {
-  addProperty,
-  deleteProperty,
-  setPropertyName,
-} from '../../features/editor/schemaEditorSlice';
+import { addProperty, deleteProperty, setPropertyName } from '../../features/editor/schemaEditorSlice';
 import { useDispatch } from 'react-redux';
 import { getTranslation } from '../../utils/language';
 
@@ -16,11 +12,7 @@ interface ItemFieldsTabProps {
   selectedItem: UiSchemaItem;
   language: ILanguage;
 }
-export const ItemFieldsTab = ({
-  classes,
-  selectedItem,
-  language,
-}: ItemFieldsTabProps) => {
+export const ItemFieldsTab = ({ classes, selectedItem, language }: ItemFieldsTabProps) => {
   const readonly = selectedItem.$ref !== undefined;
   const dispatch = useDispatch();
   const onChangePropertyName = (path: string, value: string) =>
@@ -31,8 +23,7 @@ export const ItemFieldsTab = ({
       }),
     );
 
-  const onDeleteObjectClick = (path: string) =>
-    dispatch(deleteProperty({ path }));
+  const onDeleteObjectClick = (path: string) => dispatch(deleteProperty({ path }));
 
   const dispatchAddProperty = () => {
     const path = selectedItem.path;
@@ -67,10 +58,7 @@ export const ItemFieldsTab = ({
         ))}
       </Grid>
       {!readonly && (
-        <AddPropertyButton
-          onAddPropertyClick={onAddPropertyClicked}
-          label={getTranslation('add_property', language)}
-        />
+        <AddPropertyButton onAddPropertyClick={onAddPropertyClicked} label={getTranslation('add_property', language)} />
       )}
     </>
   );

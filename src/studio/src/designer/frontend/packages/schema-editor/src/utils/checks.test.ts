@@ -1,21 +1,26 @@
-import { UiSchemaItem } from "../types";
-import { isNameInUse, isPathOnDefinitionsRoot, isPathOnPropertiesRoot, isValidName } from "./checks";
+import { FieldType, UiSchemaItem } from '../types';
+import {
+  isNameInUse,
+  isPathOnDefinitionsRoot,
+  isPathOnPropertiesRoot,
+  isValidName,
+} from './checks';
 
 describe('checksUtils', () => {
   test('should not be possible to have two properties with the same name', () => {
     const uiSchemaItems: UiSchemaItem[] = [
       {
         path: '#/definitions/name',
-        type: 'object',
+        type: FieldType.Object,
         properties: [
           {
             path: '#/definitions/name/properties/child1',
-            type: 'string',
+            type: FieldType.String,
             displayName: 'child1',
           },
           {
             path: '#/definitions/name/properties/child2',
-            type: 'string',
+            type: FieldType.String,
             displayName: 'child2',
           },
         ],
@@ -23,16 +28,16 @@ describe('checksUtils', () => {
       },
       {
         path: '#/definitions/name2',
-        type: 'object',
+        type: FieldType.Object,
         properties: [
           {
             path: '#/definitions/name/properties/child1',
-            type: 'string',
+            type: FieldType.String,
             displayName: 'child21',
           },
           {
             path: '#/definitions/name/properties/child2',
-            type: 'string',
+            type: FieldType.String,
             displayName: 'child22',
           },
         ],
@@ -120,10 +125,12 @@ describe('checksUtils', () => {
 
   test('should match if a definitions based path is on root', () => {
     expect(isPathOnDefinitionsRoot('#/definitions/prop1')).toBe(true);
-    expect(isPathOnDefinitionsRoot('#/definitions/prop1/properties/prop2')).toBe(
+    expect(
+      isPathOnDefinitionsRoot('#/definitions/prop1/properties/prop2'),
+    ).toBe(false);
+    expect(isPathOnDefinitionsRoot('#/$defs/prop1')).toBe(true);
+    expect(isPathOnDefinitionsRoot('#/$defs/prop1/properties/prop2')).toBe(
       false,
     );
-    expect(isPathOnDefinitionsRoot('#/$defs/prop1')).toBe(true);
-    expect(isPathOnDefinitionsRoot('#/$defs/prop1/properties/prop2')).toBe(false);
   });
 });

@@ -1,13 +1,5 @@
 import React, { KeyboardEvent, useEffect, useState } from 'react';
-import {
-  Checkbox,
-  FormControl,
-  FormControlLabel,
-  Grid,
-  IconButton,
-  Input,
-  makeStyles,
-} from '@material-ui/core';
+import { Checkbox, FormControl, FormControlLabel, Grid, IconButton, Input, makeStyles } from '@material-ui/core';
 import { useDispatch } from 'react-redux';
 import { DeleteOutline } from '@material-ui/icons';
 import type { ILanguage } from '../../types';
@@ -116,13 +108,7 @@ export function PropertyItem(props: IPropertyItemProps) {
         <FormControl>
           <FormControlLabel
             className={classes.checkBox}
-            control={
-              <Checkbox
-                checked={props.required ?? false}
-                onChange={onChangeRequired}
-                name='checkedArray'
-              />
-            }
+            control={<Checkbox checked={props.required ?? false} onChange={onChangeRequired} name='checkedArray' />}
             label={getTranslation('required', props.language)}
           />
         </FormControl>
