@@ -216,6 +216,33 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+        /// Deletes the text file for a specific languageCode.
+        /// </summary>
+        /// <param name="org">Organisation identifier</param>
+        /// <param name="repo">Repository identifier</param>
+        /// <param name="languageCode">Language identifier</param>
+        /// <returns>A boolean value that indicates if the file was deleted or not</returns>
+        public bool DeleteLanguage(string org, string repo, string languageCode)
+        {
+            string fileName = $"text.{languageCode}.json";
+
+            var textFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
+
+            bool deleted = false;
+
+            try
+            {
+                DeleteFileByRelativePath(textFileRelativeFilePath);
+            }
+            catch (Exception e)
+            {
+                return deleted;
+            }
+
+            return deleted;
+        }
+
+        /// <summary>
         /// Save app texts to resource files
         /// </summary>
         /// <param name="allResourceTexts">The texts to be saved</param>
