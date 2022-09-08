@@ -19,7 +19,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="developer">Username of developer</param>
         /// <param name="languageCode">LanguageCode</param>
         /// <returns>The text file as a dictionary with ID and text as key:value pairs</returns>
-        public Task<Dictionary<string, string>> GetText(string org, string repo, string developer, string languageCode);
+        public Task<Dictionary<string, string>> GetTexts(string org, string repo, string developer, string languageCode);
 
         /// <summary>
         /// Edit text file for specific language by overwriting old text file.
@@ -29,6 +29,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="developer">Username of developer</param>
         /// <param name="languageCode">LanguageCode</param>
         /// <param name="jsonText">Text to be added to new text file</param>
-        public Task EditText(string org, string repo, string developer, string languageCode, Dictionary<string, string> jsonText);
+        public Task UpdateTexts(string org, string repo, string developer, string languageCode, Dictionary<string, string> jsonText);
     }
 }

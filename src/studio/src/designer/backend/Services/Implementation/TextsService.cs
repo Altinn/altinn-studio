@@ -25,7 +25,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Dictionary<string, string>> GetText(string org, string repo, string developer, string languageCode)
+        public async Task<Dictionary<string, string>> GetTexts(string org, string repo, string developer, string languageCode)
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
@@ -37,7 +37,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task EditText(string org, string repo, string developer, string languageCode, Dictionary<string, string> jsonText)
+        public async Task UpdateTexts(string org, string repo, string developer, string languageCode, Dictionary<string, string> jsonText)
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 

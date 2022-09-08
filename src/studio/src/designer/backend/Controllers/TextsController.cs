@@ -11,6 +11,7 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.Studio.Designer.Controllers
 {
@@ -39,7 +40,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Endpoint for editing text file for a specific language.
+        /// Endpoint for updating a text file for a specific language.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repo">Application identifier which is unique within an organisation.</param>
@@ -50,20 +51,21 @@ namespace Altinn.Studio.Designer.Controllers
         /// key:value pair with the last key:value pair</remarks>
         [HttpPut]
         [Produces("application/json")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Route("{languageCode}")]
         public async Task<ActionResult> Put(string org, string repo, string languageCode, [FromBody] Dictionary<string, string> jsonText)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            await _textsService.EditText(org, repo, developer, languageCode, jsonText);
-
-            return new JsonResult(new
+            if (jsonText.IsNullOrEmpty())
             {
-                Success = true,
-                Message = "Texts are updated."
-            });
+                return new ObjectResult(new { errorMessage = "The texts file you are trying to add have invalid format." }) { StatusCode = 400 };
+            }
+
+            await _textsService.UpdateTexts(org, repo, developer, languageCode, jsonText);
+
+            return NoContent();
         }
 
         /// <summary>
@@ -84,7 +86,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            Dictionary<string, string> text = await _textsService.GetText(org, repo, developer, languageCode);
+            Dictionary<string, string> text = await _textsService.GetTexts(org, repo, developer, languageCode);
 
             return Ok(text);
         }
