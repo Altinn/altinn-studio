@@ -68,13 +68,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
             catch (JsonException)
             {
-                return new ObjectResult(new
-                {
-                    errorMessage = "The format of the file you tried to access might be invalid."
-                })
-                {
-                    StatusCode = 500
-                };
+                return new ObjectResult(new { errorMessage = "The format of the file you tried to access might be invalid." }) { StatusCode = 500 };
             }
         }
     }
