@@ -47,7 +47,7 @@ namespace DataModeling.Tests
         [InlineData("Seres/schema_5259_1_forms_9999_50000.xsd", "")]
         [InlineData("Seres/schema_4956_1_forms_5692_42617.xsd", "")]
         [InlineData("Seres/schema_4660_1_forms_2500_2500.xsd", "")]
-        public async Task ConvertSeresXsd_SeresGeneratedXsd_ShouldConvertToJsonSchemaAndBackToXsd(string xsdSchemaPath, string xmlPath)
+        public void ConvertSeresXsd_SeresGeneratedXsd_ShouldConvertToJsonSchemaAndBackToXsd(string xsdSchemaPath, string xmlPath)
         {
             Given.That.XdsSchemaLoaded(xsdSchemaPath)
                 .And.JsonSchemaKeywordsRegistered()
@@ -55,10 +55,6 @@ namespace DataModeling.Tests
                 .And.When.ConvertedJsonSchemaConvertedToXsdSchema()
                 .Then.OriginalAndConvertedXsdSchemasShouldBeEquivalent()
                 .And.XmlShouldBeValidWithOriginalAndConvertedSchema(xmlPath);
-
-            var convertedJsonSchemaString = JsonSerializer.Serialize(_convertedJsonSchema, new JsonSerializerOptions() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement), WriteIndented = true });
-            var convertedXsdString = await Serialize(_convertedXsdSchema);
-            var originalXsdString = await Serialize(_originalXsdSchema);
         }
 
         private bool ValidateXml(XmlSchema xmlSchema, string xml)
