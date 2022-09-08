@@ -13,7 +13,7 @@
     "axios": "0.27.2",
     "classnames": "2.3.1",
     "dompurify": "2.4.0",
-    "html-react-parser": "1.4.14",
+    "html-react-parser": "3.0.4",
     "marked": "4.1.0",
     "moment": "2.29.4",
     "react-content-loader": "6.2.0",
