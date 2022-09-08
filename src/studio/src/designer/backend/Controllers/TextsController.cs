@@ -53,7 +53,7 @@ namespace Altinn.Studio.Designer.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Route("{languageCode}")]
-        public async Task<ActionResult> EditText(string org, string repo, string languageCode, [FromBody] Dictionary<string, string> jsonText)
+        public async Task<ActionResult> PutTexts(string org, string repo, string languageCode, [FromBody] Dictionary<string, string> jsonText)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
@@ -62,7 +62,7 @@ namespace Altinn.Studio.Designer.Controllers
             return new JsonResult(new
             {
                 Success = true,
-                Message = "Språk lagret"
+                Message = "Texts are updated."
             });
         }
 

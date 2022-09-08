@@ -13,7 +13,6 @@ using Altinn.Studio.Designer.Services.Interfaces;
 
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
-
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
@@ -28,9 +27,13 @@ namespace Designer.Tests.Controllers
         private readonly WebApplicationFactory<TextsController> _factory;
         private readonly string _versionPrefix = "designer/api/v2";
 
+        //private readonly ITextsService _textsService;
+
         public TextsControllerTests(WebApplicationFactory<TextsController> factory)
         {
             _factory = factory;
+
+            //_textsService = textsService;
             TestSetupUtils.SetupDirtyHackIfLinux();
         }
 
@@ -38,7 +41,7 @@ namespace Designer.Tests.Controllers
         public async Task GetText_ReturnsNbText()
         {
             HttpClient client = GetTestClient();
-            string dataPathWithData = $"{_versionPrefix}/ttd/new-resource-format/texts/nb";
+            string dataPathWithData = $"{_versionPrefix}/ttd/new-texts-format/texts/nb";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
             await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
 
@@ -53,10 +56,10 @@ namespace Designer.Tests.Controllers
         }
 
         [Fact]
-        public async Task EditText_NewNbText()
+        public async Task PutTexts_UpdatedNbTexts()
         {
             var targetRepository = Guid.NewGuid().ToString();
-            await TestDataHelper.CopyRepositoryForTest("ttd", "new-resource-format", "testUser", targetRepository);
+            await TestDataHelper.CopyRepositoryForTest("ttd", "new-texts-format", "testUser", targetRepository);
 
             HttpClient client = GetTestClient();
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
@@ -69,9 +72,16 @@ namespace Designer.Tests.Controllers
 
             try
             {
-                string text = File.ReadAllText($"../../../_TestData/Repositories/testUser/ttd/{targetRepository}/App/config/texts/text.nb.json");
-                Dictionary<string, string> jsonText = JsonSerializer.Deserialize<Dictionary<string, string>>(text);
-                Assert.Equal(new Dictionary<string, string> { { "new_key_1", "new_value_1" }, { "new_key_2", "new_value_2" } }, jsonText);
+                HttpRequestMessage httpRequestMessageGet = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
+                await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessageGet);
+
+                HttpResponseMessage responseGet = await client.SendAsync(httpRequestMessageGet);
+                string responseBody = await responseGet.Content.ReadAsStringAsync();
+                JsonDocument responseDocument = JsonDocument.Parse(responseBody);
+                Dictionary<string, string> responseText = JsonSerializer.Deserialize<Dictionary<string, string>>(responseDocument.RootElement.ToString());
+
+                //Dictionary<string, string> responseText = await _textsService.GetText("ttd", targetRepository, "testUser", "nb");
+                Assert.Equal(new Dictionary<string, string> { { "new_key_1", "new_value_1" }, { "new_key_2", "new_value_2" } }, responseText);
             }
             finally
             {
