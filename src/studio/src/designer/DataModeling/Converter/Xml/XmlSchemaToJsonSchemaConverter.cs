@@ -492,7 +492,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                     case XmlSchemaChoice x:
                         steps.Add(b => HandleChoice(x, optional, array, b));
                         break;
-                    case XmlSchemaAll x:                        
+                    case XmlSchemaAll x:
                         steps.Add(b => HandleAll(x, optional, array, b));
                         break;
                     case XmlSchemaSequence x:
@@ -782,7 +782,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             HandleParticle(complexConentExtension.Particle, optional, array, steps);
 
             AddAttributes(complexConentExtension.Attributes, optional, array, steps, properties);
-            
+
             properties.AddCurrentPropertiesToStep(steps);
 
             steps.BuildWithAllOf(builder);
@@ -913,6 +913,8 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
         {
             JsonSchemaBuilder builder = new JsonSchemaBuilder();
 
+            var name = item.Name;
+
             HandleAnnotation(item, builder);
 
             if (!item.RefName.IsEmpty)
@@ -926,7 +928,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
             else
             {
-                var itemsBuilder = builder; 
+                var itemsBuilder = builder;
                 if (item.MaxOccurs > 1)
                 {
                     itemsBuilder = new JsonSchemaBuilder();
@@ -943,7 +945,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                 }
 
                 if (item.MaxOccurs > 1)
-                {                    
+                {
                     if (item.IsNillable)
                     {
                         builder.Type(SchemaValueType.Array, SchemaValueType.Null);
@@ -968,6 +970,11 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
 
             AddUnhandledAttributes(item, builder);
+
+            if (!string.IsNullOrWhiteSpace(item.MinOccursString))
+            {
+                builder.MinItems((uint)item.MinOccurs);
+            }
 
             return builder;
         }
@@ -1092,7 +1099,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                         typeBuilder.Type(new SchemaValueType[] { type.Value, SchemaValueType.Null });
                     }
                     else
-                    { 
+                    {
                         typeBuilder.Type(type.Value);
                     }
                 }
@@ -1330,9 +1337,9 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             /*
              * The XML schema spec specifies that floating point numbers are represented using a period and
              * not using a comma. The locale doesn't have any affect on what is valid XML.
-             * 
+             *
              * Default behaviour of TryParse is to use CurrentCulture. This must be overridden.
-             * 
+             *
              * We assumed that XSD do not allow the use of group separators. This is why we have not
              * made a similar override for parsing of whole numbers like integer.
              */

@@ -1,0 +1,19 @@
+﻿namespace DataModeling.Tests;
+
+/// <summary>
+/// Base class for fluent tests.
+/// </summary>
+/// <typeparam name="T"></typeparam>
+public class TestBase<T>
+    where T : class
+{
+    protected T Given => this as T;
+
+    protected T That => this as T;
+
+    protected T And => this as T;
+
+    protected T When => this as T;
+
+    protected T Then => this as T;
+}
