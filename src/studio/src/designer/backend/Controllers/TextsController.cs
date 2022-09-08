@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -54,9 +55,26 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            Dictionary<string, string> text = await _textsService.GetText(org, repo, developer, languageCode);
+            try
+            {
+                Dictionary<string, string> text = await _textsService.GetText(org, repo, developer, languageCode);
+                return Ok(text);
+            }
+            catch (IOException)
+            {
+                return NotFound();
+            }
+            catch (JsonException)
+            {
+                return new ObjectResult(new
+                {
+                    errorMessage = "The format of the file you tried to access might be invalid."
+                })
+                {
+                    StatusCode = 500
 
-            return Ok(text);
+                };
+            }
         }
     }
 }
