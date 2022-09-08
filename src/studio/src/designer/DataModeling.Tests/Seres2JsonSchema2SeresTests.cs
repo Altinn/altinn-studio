@@ -49,7 +49,7 @@ namespace DataModeling.Tests
         [InlineData("Seres/schema_4660_1_forms_2500_2500.xsd", "")]
         public void ConvertSeresXsd_SeresGeneratedXsd_ShouldConvertToJsonSchemaAndBackToXsd(string xsdSchemaPath, string xmlPath)
         {
-            Given.That.XdsSchemaLoaded(xsdSchemaPath)
+            Given.That.XsdSchemaLoaded(xsdSchemaPath)
                 .And.JsonSchemaKeywordsRegistered()
                 .When.LoadedXsdSchemaConvertedToJsonSchema()
                 .And.When.ConvertedJsonSchemaConvertedToXsdSchema()
@@ -95,7 +95,7 @@ namespace DataModeling.Tests
             return this;
         }
 
-        private Seres2JsonSchema2SeresTests XdsSchemaLoaded(string xsdSchemaPath)
+        private Seres2JsonSchema2SeresTests XsdSchemaLoaded(string xsdSchemaPath)
         {
             _originalXsdSchema = ResourceHelpers.LoadXmlSchemaTestData(xsdSchemaPath);
             return this;

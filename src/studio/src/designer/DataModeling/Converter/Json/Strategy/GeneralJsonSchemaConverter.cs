@@ -1005,6 +1005,15 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 SetFixed(subItem, property.Keywords.GetKeyword<ConstKeyword>());
                 SetDefault(subItem, property.Keywords.GetKeyword<DefaultKeyword>());
 
+                if (subItem is XmlSchemaParticle particle)
+                {
+                    var minItemsKeyword = property.Keywords.GetKeyword<MinItemsKeyword>();
+                    if (minItemsKeyword != default)
+                    {
+                        particle.MinOccurs = minItemsKeyword.Value;
+                    }
+                }
+
                 switch (subItem)
                 {
                     case XmlSchemaAttribute attribute:
@@ -1014,13 +1023,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     case XmlSchemaElement element:
                         element.Parent = sequence;
                         sequence.Items.Add(element);
-
-                        var minItemsKeyword = property.Keywords.GetKeyword<MinItemsKeyword>();
-                        if (minItemsKeyword != default)
-                        {
-                            element.MinOccurs = minItemsKeyword.Value;
-                        }
-
                         AddUnhandledAttributes(element, property.Keywords.GetKeyword<XsdUnhandledAttributesKeyword>());
                         break;
                     default:

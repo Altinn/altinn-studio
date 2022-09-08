@@ -970,11 +970,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
 
             AddUnhandledAttributes(item, builder);
-
-            if (!string.IsNullOrWhiteSpace(item.MinOccursString))
-            {
-                builder.MinItems((uint)item.MinOccurs);
-            }
+            CarryMinOccursProperty(item, builder);
 
             return builder;
         }
@@ -993,6 +989,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             JsonSchemaBuilder builder = new JsonSchemaBuilder();
 
             HandleSequence(item, optional, array, builder);
+            CarryMinOccursProperty(item, builder);
 
             return builder;
         }
@@ -1014,12 +1011,15 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             {
                 case XmlSchemaChoice x:
                     HandleChoice(x, optional, array, builder);
+                    CarryMinOccursProperty(x, builder);
                     break;
                 case XmlSchemaAll x:
                     HandleAll(x, optional, array, builder);
+                    CarryMinOccursProperty(x, builder);
                     break;
                 case XmlSchemaSequence x:
                     HandleSequence(x, optional, array, builder);
+                    CarryMinOccursProperty(x, builder);
                     break;
             }
         }
@@ -1345,6 +1345,14 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
              */
 
             return decimal.TryParse(facetValue, NumberStyles.Float, CultureInfo.InvariantCulture, out dLength);
+        }
+
+        private static void CarryMinOccursProperty(XmlSchemaParticle item, JsonSchemaBuilder builder)
+        {
+            if (!string.IsNullOrWhiteSpace(item.MinOccursString))
+            {
+                builder.MinItems((uint)item.MinOccurs);
+            }
         }
     }
 }
