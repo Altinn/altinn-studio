@@ -4,14 +4,14 @@ import Axios from 'axios';
 import type { IAltinnWindow } from '../../types/global';
 
 const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
-const basePath = `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}`;
+const basePath = `${altinnWindow.location.origin}/designer/api/v1/${altinnWindow.org}/${altinnWindow.app}/texts`;
 
 const getLoadTextResourcesUrl = (languageCode: string) => {
-  return `${basePath}/UIEditor/GetTextResources/${languageCode}`;
+  return `${basePath}/${languageCode}`;
 };
 
 export const getSaveTextResourcesUrl = (languageCode: string) => {
-  return `${basePath}/Text/SaveResource/${languageCode}`;
+  return `${basePath}/${languageCode}`;
 };
 
 export const useGetLanguages = () => {
@@ -39,3 +39,10 @@ export const useGetLanguages = () => {
 
   return { languages };
 };
+
+export async function updateLanguage({ languages, translationKey, e }: any) {
+  await Axios.put(getLoadTextResourcesUrl('nb'), {
+    ...languages?.nb,
+    [translationKey]: e.target.value,
+  });
+}

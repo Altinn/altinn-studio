@@ -165,7 +165,7 @@ ILanguageEditorProps) => {
                 left: '36px',
               }}
             >
-              <Typography style={{ fontSize: '24px' }}>Språk </Typography>
+              <Typography style={{ fontSize: '24px' }}>Språk</Typography>
             </div>
             <div
               style={{

@@ -17,7 +17,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// <summary>
     /// Controller containing actions related to languages
     /// </summary>
-    [Authorize]
+    // [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/v1/{org}/{repo}/languages")]
     public class LanguagesController : ControllerBase
