@@ -53,7 +53,7 @@ namespace Altinn.Studio.Designer.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Route("{languageCode}")]
-        public async Task<ActionResult> PutTexts(string org, string repo, string languageCode, [FromBody] Dictionary<string, string> jsonText)
+        public async Task<ActionResult> Put(string org, string repo, string languageCode, [FromBody] Dictionary<string, string> jsonText)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
@@ -80,7 +80,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [Route("{languageCode}")]
-        public async Task<ActionResult<Dictionary<string, string>>> GetText(string org, string repo, [FromRoute] string languageCode)
+        public async Task<ActionResult<Dictionary<string, string>>> Get(string org, string repo, [FromRoute] string languageCode)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
