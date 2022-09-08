@@ -50,6 +50,8 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Route("{languageCode}")]
         public async Task<ActionResult<Dictionary<string, string>>> GetText(string org, string repo, [FromRoute] string languageCode)
         {
