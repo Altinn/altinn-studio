@@ -62,7 +62,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
             catch (IOException)
             {
-                return NotFound();
+                return new ObjectResult(new { errorMessage = "The texts you are trying to find does not exist." }) { StatusCode = 404 };
             }
             catch (JsonException)
             {
@@ -72,7 +72,6 @@ namespace Altinn.Studio.Designer.Controllers
                 })
                 {
                     StatusCode = 500
-
                 };
             }
         }

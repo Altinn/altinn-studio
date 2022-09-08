@@ -10,13 +10,15 @@ using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
-
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using NuGet.Protocol;
 using Xunit;
+using Xunit.Sdk;
 
 namespace Designer.Tests.Controllers
 {
@@ -35,7 +37,7 @@ namespace Designer.Tests.Controllers
         public async Task GetText_ReturnsNorwegianBokmalText()
         {
             HttpClient client = GetTestClient();
-            string dataPathWithData = $"{_versionPrefix}/ttd/new-resource-format/texts/nb";
+            string dataPathWithData = $"{_versionPrefix}/ttd/new-texts-format/texts/nb";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
             await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
 
@@ -47,6 +49,40 @@ namespace Designer.Tests.Controllers
 
             Dictionary<string, string> expectedDictionary = new Dictionary<string, string> { { "nb_key1", "nb_value1" }, { "nb_key2", "nb_value2" } };
             Assert.Equal(expectedDictionary, responseDictionary);
+        }
+
+        [Fact]
+        public async Task GetText_NonExistingFile_Returns404()
+        {
+            HttpClient client = GetTestClient();
+            string dataPathWithData = $"{_versionPrefix}/ttd/new-texts-format/texts/uk";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseBody = await response.Content.ReadAsStringAsync();
+            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
+            Dictionary<string, string> responseDictionary = JsonSerializer.Deserialize<Dictionary<string, string>>(responseDocument.RootElement.ToString());
+
+            Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
+            Assert.Equal("The texts you are trying to find does not exist.", responseDictionary["errorMessage"]);
+        }
+
+        [Fact]
+        public async Task GetText_InvalidFile_Returns500()
+        {
+            HttpClient client = GetTestClient();
+            string dataPathWithData = $"{_versionPrefix}/ttd/invalid-texts-format/texts/en";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseBody = await response.Content.ReadAsStringAsync();
+            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
+            Dictionary<string, string> responseDictionary = JsonSerializer.Deserialize<Dictionary<string, string>>(responseDocument.RootElement.ToString());
+
+            Assert.Equal(StatusCodes.Status500InternalServerError, (int)response.StatusCode);
+            Assert.Equal("The format of the file you tried to access might be invalid.", responseDictionary["errorMessage"]);
         }
 
         private HttpClient GetTestClient()
