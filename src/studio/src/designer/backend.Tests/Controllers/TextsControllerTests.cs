@@ -83,7 +83,6 @@ namespace Designer.Tests.Controllers
             HttpClient client = GetTestClient();
             string dataPathWithData = $"{_versionPrefix}/ttd/invalid-texts-format/texts/en";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
-
             await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
@@ -100,7 +99,6 @@ namespace Designer.Tests.Controllers
         {
             var targetRepository = Guid.NewGuid().ToString();
             await TestDataHelper.CopyRepositoryForTest("ttd", "new-texts-format", "testUser", targetRepository);
-
             HttpClient client = GetTestClient();
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
@@ -108,7 +106,6 @@ namespace Designer.Tests.Controllers
             await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            response.EnsureSuccessStatusCode();
 
             try
             {
@@ -125,7 +122,6 @@ namespace Designer.Tests.Controllers
         {
             var targetRepository = Guid.NewGuid().ToString();
             await TestDataHelper.CopyRepositoryForTest("ttd", "new-texts-format", "testUser", targetRepository);
-
             HttpClient client = GetTestClient();
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
