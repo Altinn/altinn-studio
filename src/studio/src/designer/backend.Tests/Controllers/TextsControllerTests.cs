@@ -9,16 +9,20 @@ using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Controllers;
+using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
+using LibGit2Sharp;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
+using IRepository = Altinn.Studio.Designer.Services.Interfaces.IRepository;
 
 namespace Designer.Tests.Controllers
 {
@@ -27,13 +31,9 @@ namespace Designer.Tests.Controllers
         private readonly WebApplicationFactory<TextsController> _factory;
         private readonly string _versionPrefix = "designer/api/v2";
 
-        //private readonly ITextsService _textsService;
-
         public TextsControllerTests(WebApplicationFactory<TextsController> factory)
         {
             _factory = factory;
-
-            //_textsService = textsService;
             TestSetupUtils.SetupDirtyHackIfLinux();
         }
 
@@ -56,7 +56,7 @@ namespace Designer.Tests.Controllers
         }
 
         [Fact]
-        public async Task PutTexts_UpdatedNbTexts()
+        public async Task PutTexts_UpdatedNbTexts_204NoContent()
         {
             var targetRepository = Guid.NewGuid().ToString();
             await TestDataHelper.CopyRepositoryForTest("ttd", "new-texts-format", "testUser", targetRepository);
@@ -68,20 +68,10 @@ namespace Designer.Tests.Controllers
             await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            response.EnsureSuccessStatusCode();
 
             try
             {
-                HttpRequestMessage httpRequestMessageGet = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
-                await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessageGet);
-
-                HttpResponseMessage responseGet = await client.SendAsync(httpRequestMessageGet);
-                string responseBody = await responseGet.Content.ReadAsStringAsync();
-                JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-                Dictionary<string, string> responseText = JsonSerializer.Deserialize<Dictionary<string, string>>(responseDocument.RootElement.ToString());
-
-                //Dictionary<string, string> responseText = await _textsService.GetText("ttd", targetRepository, "testUser", "nb");
-                Assert.Equal(new Dictionary<string, string> { { "new_key_1", "new_value_1" }, { "new_key_2", "new_value_2" } }, responseText);
+                Assert.Equal(StatusCodes.204, response.StatusCode);
             }
             finally
             {
