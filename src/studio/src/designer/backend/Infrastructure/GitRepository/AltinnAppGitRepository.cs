@@ -188,22 +188,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Returns content in text file written in the new text format
-        /// identified by languageCode in filename as a string.
-        /// </summary>
-        /// <param name="languageCode">Language identifier</param>
-        public async Task<string> GetTextContentV2(string languageCode)
-        {
-            string fileName = "text." + languageCode + ".json";
-
-            var textFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
-
-            string fileContent = await ReadTextByRelativePathAsync(textFileRelativeFilePath);
-
-            return fileContent;
-        }
-
-        /// <summary>
         /// Overwrite a V2 text file with an updated V2 text file
         /// </summary>
         /// <param name="languageCode">Language identifier</param>
