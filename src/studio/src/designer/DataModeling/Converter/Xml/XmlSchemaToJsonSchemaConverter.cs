@@ -913,8 +913,6 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
         {
             JsonSchemaBuilder builder = new JsonSchemaBuilder();
 
-            var name = item.Name;
-
             HandleAnnotation(item, builder);
 
             if (!item.RefName.IsEmpty)
