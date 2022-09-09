@@ -58,7 +58,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            if (jsonText.IsNullOrEmpty())
+            if (jsonText == null)
             {
                 return new ObjectResult(new { errorMessage = "The texts file you are trying to add have invalid format." }) { StatusCode = 400 };
             }
