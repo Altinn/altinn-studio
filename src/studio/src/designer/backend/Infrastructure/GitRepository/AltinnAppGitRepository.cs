@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
@@ -183,6 +185,22 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             var textResource = JsonConvert.DeserializeObject<Designer.Models.TextResource>(fileContent);
 
             return textResource;
+        }
+
+        /// <summary>
+        /// Overwrite a V2 text file with an updated V2 text file
+        /// </summary>
+        /// <param name="languageCode">Language identifier</param>
+        /// <param name="jsonText">Text file for language as string</param>
+        public async Task SaveTextV2(string languageCode, Dictionary<string, string> jsonText)
+        {
+            string fileName = $"text.{languageCode}.json";
+
+            var textFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
+
+            string text = System.Text.Json.JsonSerializer.Serialize(jsonText);
+
+            await WriteTextByRelativePathAsync(textFileRelativeFilePath, text);
         }
 
         /// <summary>
