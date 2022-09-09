@@ -39,7 +39,7 @@ namespace Designer.Tests.Controllers
         }
 
         [Fact]
-        public async Task GetText_ReturnsNbText()
+        public async Task Get_ReturnsNbText()
         {
             HttpClient client = GetTestClient();
             string dataPathWithData = $"{_versionPrefix}/ttd/new-texts-format/texts/nb";
@@ -57,7 +57,7 @@ namespace Designer.Tests.Controllers
         }
 
         [Fact]
-        public async Task PutTexts_UpdatedNbTexts_204NoContent()
+        public async Task Put_UpdatedNbTexts_204NoContent()
         {
             var targetRepository = Guid.NewGuid().ToString();
             await TestDataHelper.CopyRepositoryForTest("ttd", "new-texts-format", "testUser", targetRepository);
@@ -81,7 +81,7 @@ namespace Designer.Tests.Controllers
         }
 
         [Fact]
-        public async Task PutTexts_UpdatedInvalidFormat_400BadRequest()
+        public async Task Put_UpdatedInvalidFormat_400BadRequest()
         {
             var targetRepository = Guid.NewGuid().ToString();
             await TestDataHelper.CopyRepositoryForTest("ttd", "new-texts-format", "testUser", targetRepository);
