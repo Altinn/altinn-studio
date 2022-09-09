@@ -22,6 +22,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
+using Xunit.Sdk;
 using IRepository = Altinn.Studio.Designer.Services.Interfaces.IRepository;
 
 namespace Designer.Tests.Controllers
@@ -71,7 +72,35 @@ namespace Designer.Tests.Controllers
 
             try
             {
-                Assert.Equal(StatusCodes.204, response.StatusCode);
+                Assert.Equal(StatusCodes.Status204NoContent, (int)response.StatusCode);
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
+            }
+        }
+
+        [Fact]
+        public async Task PutTexts_UpdatedInvalidFormat_400BadRequest()
+        {
+            var targetRepository = Guid.NewGuid().ToString();
+            await TestDataHelper.CopyRepositoryForTest("ttd", "new-texts-format", "testUser", targetRepository);
+
+            HttpClient client = GetTestClient();
+            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
+            httpRequestMessage.Content = JsonContent.Create(new { valid_key = "valid_value", invalid_key = new { invalid_format = "invalid_format" } });
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseBody = await response.Content.ReadAsStringAsync();
+            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
+            Dictionary<string, string> responseDictionary = JsonSerializer.Deserialize<Dictionary<string, string>>(responseDocument.RootElement.ToString());
+
+            try
+            {
+                Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+                Assert.Equal("The texts file you are trying to add have invalid format.", responseDictionary["errorMessage"]);
             }
             finally
             {
