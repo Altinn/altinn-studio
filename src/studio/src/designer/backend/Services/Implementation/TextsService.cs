@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
+
 using Altinn.Studio.Designer.Services.Interfaces;
+
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -23,7 +25,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Dictionary<string, string>> GetText(string org, string repo, string developer, string languageCode)
+        public async Task<Dictionary<string, string>> GetTexts(string org, string repo, string developer, string languageCode)
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
@@ -32,6 +34,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             Dictionary<string, string> jsonText = JsonSerializer.Deserialize<Dictionary<string, string>>(text);
 
             return jsonText;
+        }
+
+        /// <inheritdoc />
+        public async Task UpdateTexts(string org, string repo, string developer, string languageCode, Dictionary<string, string> jsonText)
+        {
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+
+            await altinnAppGitRepository.SaveTextV2(languageCode, jsonText);
         }
     }
 }
