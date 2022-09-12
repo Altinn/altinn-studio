@@ -10,8 +10,6 @@ export interface ILanguageEditor {
   setSprak: (sprak: { [key: string]: any }) => void;
   selectedSprak: string;
   setSelectedSprak: (selectedSprak: string) => void;
-  sprakOptions: { [key: string]: any };
-  setSprakOptions: (sprakOptions: { [key: string]: any }) => void;
   newSprakField: { [key: string]: any };
   setNewSprakField: (newSprakField: { [key: string]: any }) => void;
 }
@@ -37,9 +35,9 @@ export const getAllTranslationKeys = ({ languages }: ILanguageEditor) => {
 };
 
 export const transformLanguages = ({
-  translationKeys,
-  languages,
-}: ITransformLanguagesProps) => {
+                                     translationKeys,
+                                     languages,
+                                   }: ITransformLanguagesProps) => {
   return Object.keys(translationKeys).reduce((acc, curr) => {
     const translations = Object.keys(languages).map((langCode) => {
       return {
