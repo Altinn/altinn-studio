@@ -3,8 +3,10 @@ using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
-
+using System.Xml.Schema;
+using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Xml;
+using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Json.Formats;
 using Altinn.Studio.DataModeling.Json.Keywords;
 
@@ -18,9 +20,12 @@ using Xunit.Abstractions;
 
 namespace DataModeling.Tests
 {
-    public class XmlSchemaToJsonTests
+    public class XmlSchemaToJsonTests: FluentTestsBase<XmlSchemaToJsonTests>
     {
         private readonly ITestOutputHelper _testOutputHelper;
+        private XmlSchema _loadedXsdSchema;
+        private JsonSchema _loadedJsonSchema;
+        private JsonSchema _convertedJsonSchema;
 
         public XmlSchemaToJsonTests(ITestOutputHelper testOutputHelper)
         {
@@ -67,19 +72,13 @@ namespace DataModeling.Tests
         {
             _testOutputHelper.WriteLine(testCase);
 
-            // Arrange
-            JsonSchemaKeywords.RegisterXsdKeywords();
-            JsonSchemaFormats.RegisterFormats();
-            var converter = new XmlSchemaToJsonSchemaConverter();
+            await Given.That.JsonSchemaKeywordsRegistered()
+                .And.JsonFormatsRegistered()
+                .And.XsdSchemaLoaded(schemaPath)
+                .And.JsonSchemaLoaded(expectedPath);
 
-            var xsd = ResourceHelpers.LoadXmlSchemaTestData(schemaPath);
-            var actual = converter.Convert(xsd);
-
-            var actualJson = await SerializeJsonSchemaToString(actual);
-
-            // Assert
-            var expected = await ResourceHelpers.LoadJsonSchemaTestData(expectedPath);
-            JsonSchemaAssertions.IsEquivalentTo(expected, actual);
+            When.LoadedXsdSchemaConvertedToJsonSchema()
+                .Then.LoadedAndConvertedJsonSchemasShouldBeEquivalent();
         }
 
         private static async Task<string> SerializeJsonSchemaToString(JsonSchema schema)
@@ -89,6 +88,45 @@ namespace DataModeling.Tests
             schema.ToJsonDocument().WriteTo(writer);
             await writer.FlushAsync();
             return Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length);
+        }
+
+        // Fluent methods for test
+        private XmlSchemaToJsonTests JsonSchemaKeywordsRegistered()
+        {
+            JsonSchemaKeywords.RegisterXsdKeywords();
+            return this;
+        }
+
+        private XmlSchemaToJsonTests JsonFormatsRegistered()
+        {
+            JsonSchemaFormats.RegisterFormats();
+            return this;
+        }
+
+        private XmlSchemaToJsonTests XsdSchemaLoaded(string xsdSchemaPath)
+        {
+            _loadedXsdSchema = ResourceHelpers.LoadXmlSchemaTestData(xsdSchemaPath);
+            return this;
+        }
+
+        private async Task<XmlSchemaToJsonTests> JsonSchemaLoaded(string jsonSchemaPath)
+        {
+            _loadedJsonSchema = await ResourceHelpers.LoadJsonSchemaTestData(jsonSchemaPath);
+            return this;
+        }
+
+        private XmlSchemaToJsonTests LoadedXsdSchemaConvertedToJsonSchema()
+        {
+            var xsdToJsonConverter = new XmlSchemaToJsonSchemaConverter();
+            _convertedJsonSchema = xsdToJsonConverter.Convert(_loadedXsdSchema);
+            return this;
+        }
+
+        // Assertion methods
+        private XmlSchemaToJsonTests LoadedAndConvertedJsonSchemasShouldBeEquivalent()
+        {
+            JsonSchemaAssertions.IsEquivalentTo(_loadedJsonSchema, _convertedJsonSchema);
+            return this;
         }
     }
 }

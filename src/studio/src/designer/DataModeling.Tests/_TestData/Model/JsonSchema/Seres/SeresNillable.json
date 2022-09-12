@@ -152,14 +152,16 @@
               "Namespace": "##any",
               "ProcessContent": "None"
             }
-          }
+          },
+          "minItems": 0
         },
         "code": {
           "type": [
             "string",
             "null"
           ],
-          "@xsdType": "string"
+          "@xsdType": "string",
+          "minItems": 0
         }
       }
     },
@@ -170,14 +172,16 @@
             "string",
             "null"
           ],
-          "@xsdType": "string"
+          "@xsdType": "string",
+          "minItems": 0
         },
         "email": {
           "type": [
             "string",
             "null"
           ],
-          "@xsdType": "string"
+          "@xsdType": "string",
+          "minItems": 0
         }
       }
     }

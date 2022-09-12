@@ -57,14 +57,16 @@
                     "type": "string",
                     "minItems": 1
                   },
-                  "@xsdType": "string"
+                  "@xsdType": "string",
+                  "minItems": 1
                 },
                 "contacts": {
                   "type": "array",
                   "items": {
                     "$ref": "#/$defs/contact",
                     "maxItems": 10
-                  }
+                  },
+                  "minItems": 0
                 }
               },
               "required": [
@@ -160,7 +162,8 @@
         },
         "co": {
           "type": "string",
-          "@xsdType": "string"
+          "@xsdType": "string",
+          "minItems": 0
         },
         "zipCode": {
           "type": "string",
@@ -195,7 +198,8 @@
             },
             "co": {
               "type": "string",
-              "@xsdType": "string"
+              "@xsdType": "string",
+              "minItems": 0
             },
             "zipCode": {
               "allOf": [
@@ -239,7 +243,8 @@
             },
             "co": {
               "type": "string",
-              "@xsdType": "string"
+              "@xsdType": "string",
+              "minItems": 0
             },
             "zipCode": {
               "allOf": [
