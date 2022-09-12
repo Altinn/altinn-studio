@@ -1008,7 +1008,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 if (subItem is XmlSchemaParticle particle)
                 {
                     var minItemsKeyword = property.Keywords.GetKeyword<MinItemsKeyword>();
-                    if (minItemsKeyword != default)
+                    if (minItemsKeyword != null)
                     {
                         particle.MinOccurs = minItemsKeyword.Value;
                     }
