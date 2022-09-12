@@ -71,14 +71,10 @@ namespace Altinn.Studio.Designer.Controllers
 
             if (!deleted)
             {
-                return new NotFoundResult();
+                return NotFound($"The file texts.{languageCode}.json is not found or already deleted.");
             }
 
-            return new JsonResult(new
-            {
-                Success = deleted,
-                Message = "Language successfully deleted."
-            });
+            return Ok("Language successfully deleted.");
         }
     }
 }
