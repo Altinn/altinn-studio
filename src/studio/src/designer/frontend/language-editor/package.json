@@ -11,7 +11,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@altinn/altinn-design-system": "^0.7.0",
     "axios": "^0.27.2",
+    "iso-639-1": "^2.1.15",
     "json-server": "^0.17.0",
     "react-select": "^5.4.0"
   }

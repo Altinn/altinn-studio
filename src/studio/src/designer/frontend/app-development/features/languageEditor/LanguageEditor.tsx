@@ -1,30 +1,15 @@
 import { LanguageEditor as BaseLanguageEditor } from '../../../language-editor';
 import React, { useState } from 'react';
 import { post } from 'app-shared/utils/networking';
-
 import { useGetLanguages, getSaveTextResourcesUrl } from './utils';
 
 export const LanguageEditor = () => {
   const { languages: initialLanguages } = useGetLanguages();
   const [isNewTextInput, setIsNewTextInput] = useState(false);
-
-  // Initial supported languages in the Aktive sprak list
-  const [sprak, setSprak] = useState([
-    { id: 'no', name: 'Bokmål' },
-    { id: 'en', name: 'Engelsk' },
-    { id: 'ny', name: 'Nynorsk' },
-  ]);
+  const [sprak, setSprak] = useState([]);
   const [selectedSprak, setSelectedSprak] = useState(null);
   const [addNewSprak, setAddNewSprak] = useState();
 
-  // List of available supported languages in the Legg til språk dropdown
-  const [sprakOptions, setSprakOptions] = useState([
-    { id: 'no', value: 'bokmål', label: 'Bokmål' },
-    { id: 'en', value: 'en', label: 'Engelsk' },
-    { id: 'no', value: 'nynorsk', label: 'Nynorsk' },
-    { id: 'se', value: 'svensk', label: 'Svensk' },
-    { id: 'de', value: 'tysk', label: 'Tysk' },
-  ]);
   const [languages, setLanguages] = useState(initialLanguages);
   const [newSprakField, setNewSprakField] = useState({
     id: '',
@@ -100,16 +85,6 @@ export const LanguageEditor = () => {
     });
   };
 
-  React.useEffect(() => {
-    const newValues = sprakOptions.filter((d) => {
-      const data = sprak.find(
-        (s) => s.name.toLowerCase() === d.label.toLowerCase(),
-      );
-      return !data;
-    });
-    setSprakOptions(newValues);
-  }, []);
-
   return (
     <BaseLanguageEditor
       addNewSprak={addNewSprak}
@@ -125,8 +100,6 @@ export const LanguageEditor = () => {
       setNewSprakField={setNewSprakField}
       sprak={sprak}
       setSprak={setSprak}
-      sprakOptions={sprakOptions}
-      setSprakOptions={setSprakOptions}
     />
   );
 };

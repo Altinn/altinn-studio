@@ -1,17 +1,16 @@
 import { useEffect, useState } from 'react';
 import Axios from 'axios';
-
 import type { IAltinnWindow } from '../../types/global';
 
 const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
-const basePath = `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}`;
+const basePath = `${altinnWindow.location.origin}/designer/api/v2/${altinnWindow.org}/${altinnWindow.app}/texts`;
 
 const getLoadTextResourcesUrl = (languageCode: string) => {
-  return `${basePath}/UIEditor/GetTextResources/${languageCode}`;
+  return `${basePath}/${languageCode}`;
 };
 
 export const getSaveTextResourcesUrl = (languageCode: string) => {
-  return `${basePath}/Text/SaveResource/${languageCode}`;
+  return `${basePath}/${languageCode}`;
 };
 
 export const useGetLanguages = () => {
