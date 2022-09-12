@@ -139,6 +139,18 @@ const useStyles = makeStyles({
   editButtonCell: {
     padding: '0',
   },
+  visuallyHidden: {
+    border: 0,
+    padding: 0,
+    margin: 0,
+    position: 'absolute',
+    height: '1px',
+    width: '1px',
+    overflow: 'hidden',
+    clip: 'rect(1px 1px 1px 1px)',
+    clipPath: 'inset(50%)',
+    whiteSpace: 'nowrap',
+  },
 });
 
 function getEditButtonText(
@@ -194,7 +206,6 @@ export function RepeatingGroupTable({
     components.map((c) => (c as any).baseComponentId || c.id) ||
     [];
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
-  const mobileViewSmall = useMediaQuery('(max-width:768px)');
   const componentTitles: string[] = [];
   renderComponents.forEach((component: ILayoutComponent) => {
     const childId = (component as any).baseComponentId || component.id;
@@ -295,31 +306,16 @@ export function RepeatingGroupTable({
                     {getTextResource(title, textResources)}
                   </TableCell>
                 ))}
-                <TableCell
-                  style={{ width: '110px', padding: 0 }}
-                  align='left'
-                >
-                  <i
-                    style={{
-                      color: theme.altinnPalette.primary.blueDark,
-                      paddingLeft: '14px',
-                    }}
-                    className={`fa fa-edit ${classes.editIcon}`}
-                  />
+                <TableCell style={{ width: '110px', padding: 0 }}>
+                  <span className={classes.visuallyHidden}>
+                    {getLanguageFromKey('general.edit', language)}
+                  </span>
                 </TableCell>
                 {!hideDeleteButton && (
-                  <TableCell
-                    style={{ width: '80px', padding: 0 }}
-                    align='left'
-                  >
-                    <i
-                      style={{
-                        color: theme.altinnPalette.primary.red,
-                        paddingLeft: '9px',
-                        paddingBottom: '5px',
-                      }}
-                      className={'ai ai-trash'}
-                    />
+                  <TableCell style={{ width: '80px', padding: 0 }}>
+                    <span className={classes.visuallyHidden}>
+                      {getLanguageFromKey('general.delete', language)}
+                    </span>
                   </TableCell>
                 )}
               </TableRow>
@@ -334,6 +330,24 @@ export function RepeatingGroupTable({
                   ].some((component: ILayoutComponent | ILayoutGroup) => {
                     return childElementHasErrors(component, index);
                   });
+                  const editButtonText = rowHasErrors
+                    ? getLanguageFromKey('general.edit_alt_error', language)
+                    : getEditButtonText(
+                        language,
+                        editIndex === index,
+                        textResources,
+                        container.textResourceBindings,
+                      );
+
+                  const deleteButtonText = getLanguageFromKey(
+                    'general.delete',
+                    language,
+                  );
+
+                  const firstCellData = getFormDataForComponent(
+                    components[0],
+                    index,
+                  );
 
                   // Check if filter is applied and includes specified index.
                   if (filteredIndexes && !filteredIndexes.includes(index)) {
@@ -351,6 +365,7 @@ export function RepeatingGroupTable({
                         if (!tableHeaderComponents.includes(childId)) {
                           return null;
                         }
+
                         return (
                           <TableCell key={`${component.id} ${index}`}>
                             {getFormDataForComponent(component, index)}
@@ -367,6 +382,7 @@ export function RepeatingGroupTable({
                             [classes.editButtonActivated]: editIndex === index,
                           })}
                           onClick={() => onClickEdit(index)}
+                          aria-label={`${editButtonText}-${firstCellData}`}
                         >
                           <i
                             className={
@@ -375,17 +391,7 @@ export function RepeatingGroupTable({
                                 : `fa fa-edit ${classes.editIcon}`
                             }
                           />
-                          {rowHasErrors
-                            ? getLanguageFromKey(
-                                'general.edit_alt_error',
-                                language,
-                              )
-                            : getEditButtonText(
-                                language,
-                                editIndex === index,
-                                textResources,
-                                container.textResourceBindings,
-                              )}
+                          {editButtonText}
                         </IconButton>
                       </TableCell>
                       {!hideDeleteButton && (
@@ -398,9 +404,10 @@ export function RepeatingGroupTable({
                             className={classes.deleteButton}
                             disabled={deleting}
                             onClick={removeClicked(index)}
+                            aria-label={`${deleteButtonText}-${firstCellData}`}
                           >
                             <i className='ai ai-trash' />
-                            {getLanguageFromKey('general.delete', language)}
+                            {deleteButtonText}
                           </IconButton>
                         </TableCell>
                       )}
@@ -447,37 +454,31 @@ export function RepeatingGroupTable({
                     editIndex={editIndex}
                     onEditClick={() => onClickEdit(index)}
                     onDeleteClick={() => onClickRemove(index)}
+                    editButtonText={
+                      rowHasErrors
+                        ? getLanguageFromKey('general.edit_alt_error', language)
+                        : getEditButtonText(
+                            language,
+                            editIndex === index,
+                            textResources,
+                            container.textResourceBindings,
+                          )
+                    }
+                    deleteButtonText={getLanguageFromKey(
+                      'general.delete',
+                      language,
+                    )}
                     editIconNode={
-                      <>
-                        <i
-                          className={
-                            rowHasErrors
-                              ? `ai ai-circle-exclamation ${classes.errorIcon}`
-                              : `fa fa-edit ${classes.editIcon}`
-                          }
-                        />
-                        {!mobileViewSmall &&
-                          (rowHasErrors
-                            ? getLanguageFromKey(
-                                'general.edit_alt_error',
-                                language,
-                              )
-                            : getEditButtonText(
-                                language,
-                                editIndex === index,
-                                textResources,
-                                container.textResourceBindings,
-                              ))}
-                      </>
+                      <i
+                        className={
+                          rowHasErrors
+                            ? `ai ai-circle-exclamation ${classes.errorIcon}`
+                            : `fa fa-edit ${classes.editIcon}`
+                        }
+                      />
                     }
                     deleteIconNode={
-                      !hideDeleteButton && (
-                        <>
-                          <i className={'ai ai-trash'} />
-                          {!mobileViewSmall &&
-                            getLanguageFromKey('general.delete', language)}
-                        </>
-                      )
+                      !hideDeleteButton && <i className={'ai ai-trash'} />
                     }
                   />
                 );

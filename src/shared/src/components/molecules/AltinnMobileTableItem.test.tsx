@@ -11,11 +11,11 @@ const user = userEvent.setup();
 
 describe('AltinnMobileTableItem', () => {
   it('renders delete icon-button when deleteIconNode is given as property', () => {
-    render({ deleteIconNode: 'Delete' });
+    render({ deleteButtonText: 'Delete', deleteIconNode: ' i ' });
 
     expect(
       screen.getByRole('button', {
-        name: /delete/i,
+        name: /delete-value1/i,
       }),
     ).toBeInTheDocument();
   });
@@ -25,17 +25,21 @@ describe('AltinnMobileTableItem', () => {
 
     expect(
       screen.queryByRole('button', {
-        name: /delete/i,
+        name: /delete-value1/i,
       }),
     ).not.toBeInTheDocument();
   });
   it('triggers onEditClick when editbutton is present and clicked', async () => {
     const onEditClick = jest.fn();
-    render({ deleteIconNode: 'Delete', onEditClick: onEditClick });
+    render({
+      deleteButtonText: 'Delete',
+      deleteIconNode: ' i ',
+      onEditClick: onEditClick,
+    });
 
     await user.click(
       screen.queryByRole('button', {
-        name: /edit/i,
+        name: /edit-value1/i,
       }),
     );
 
@@ -44,11 +48,16 @@ describe('AltinnMobileTableItem', () => {
 
   it('triggers onDeleteClick when delete-button is present and clicked', async () => {
     const onDeleteClick = jest.fn();
-    render({ deleteIconNode: 'Delete', onDeleteClick: onDeleteClick });
+    render({
+      deleteButtonText: 'Delete',
+      deleteIconNode: ' i ',
+      onDeleteClick: onDeleteClick,
+    });
+    screen.debug();
 
     await user.click(
       screen.queryByRole('button', {
-        name: /delete/i,
+        name: /delete-value1/i,
       }),
     );
 
@@ -66,7 +75,8 @@ const render = (props: Partial<IAltinnMobileTableItemProps> = {}) => {
     items: items,
     onEditClick: jest.fn(),
     onDeleteClick: jest.fn(),
-    editIconNode: 'Edit',
+    editIconNode: ' i ',
+    editButtonText: 'Edit',
     ...props,
   } as IAltinnMobileTableItemProps;
 

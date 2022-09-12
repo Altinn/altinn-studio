@@ -8,6 +8,7 @@ import {
   TableContainer,
   TableRow,
   Typography,
+  useMediaQuery,
 } from '@material-ui/core';
 import React from 'react';
 import theme from '../../theme/altinnStudioTheme';
@@ -25,6 +26,8 @@ export interface IAltinnMobileTableItemProps {
   editIndex?: number;
   onEditClick: () => void;
   onDeleteClick?: () => void;
+  editButtonText?: string;
+  deleteButtonText?: string;
   deleteIconNode?: React.ReactNode;
   editIconNode: React.ReactNode;
 }
@@ -158,10 +161,13 @@ export default function AltinnMobileTableItem({
   editIndex,
   onEditClick,
   onDeleteClick,
+  editButtonText,
+  deleteButtonText,
   editIconNode,
   deleteIconNode,
 }: IAltinnMobileTableItemProps) {
   const classes = useStyles();
+  const mobileViewSmall = useMediaQuery('(max-width:768px)');
 
   return (
     <TableContainer
@@ -205,8 +211,10 @@ export default function AltinnMobileTableItem({
                       })}
                       onClick={onEditClick}
                       data-testid='edit-button'
+                      aria-label={`${editButtonText}-${item.value}`}
                     >
                       {editIconNode}
+                      {!mobileViewSmall && editButtonText}
                     </IconButton>
                   </TableCell>
                 )}
@@ -219,8 +227,10 @@ export default function AltinnMobileTableItem({
                       className={classes.deleteButton}
                       onClick={onDeleteClick}
                       data-testid='delete-button'
+                      aria-label={`${deleteButtonText}-${item.value}`}
                     >
                       {deleteIconNode}
+                      {!mobileViewSmall && deleteButtonText}
                     </IconButton>
                   </TableCell>
                 )}

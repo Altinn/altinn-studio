@@ -67,7 +67,7 @@ describe('Summary', () => {
       .siblings()
       .contains(mui.gridContainer, texts.dateOfEffect)
       .then((summaryDate) => {
-        cy.get(summaryDate).contains(texts.dateOfEffect).should('have.css', 'color', 'rgb(226, 59, 83)');
+        cy.get(summaryDate).contains(texts.dateOfEffect).should('have.css', 'color', 'rgb(213, 32, 59)');
         cy.get(summaryDate).contains(mui.gridContainer, texts.requiredFieldDateFrom).should('be.visible');
         cy.get(summaryDate).contains('button', texts.goToRightPage).should('be.visible').click();
         cy.get(appFrontend.changeOfName.dateOfEffect)
@@ -86,7 +86,7 @@ describe('Summary', () => {
       .siblings()
       .contains(mui.gridContainer, texts.dateOfEffect)
       .then((summaryDate) => {
-        cy.get(summaryDate).contains(texts.dateOfEffect).should('not.have.css', 'color', 'rgb(226, 59, 83)');
+        cy.get(summaryDate).contains(texts.dateOfEffect).should('not.have.css', 'color', 'rgb(213, 32, 59)');
         cy.get(summaryDate).contains(mui.gridContainer, texts.requiredFieldDateFrom).should('not.exist');
       });
   });

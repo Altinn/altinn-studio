@@ -134,14 +134,14 @@ describe('InstanceSelection', () => {
     });
 
     const row = screen.getByRole('row', {
-      name: /sist endret 05\/13\/2021 fortsett her/i,
+      name: /sist endret 05\/13\/2021/i,
     });
     expect(window.location.href).toBe(
       'https://altinn3local.no/ttd/test#/instance/some-id',
     );
 
     const button = within(row).getByRole('button', {
-      name: /fortsett her/i,
+      name: /fortsett her-05\/13\/2021/i,
     });
 
     await user.click(button);

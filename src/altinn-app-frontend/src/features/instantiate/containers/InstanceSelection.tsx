@@ -104,22 +104,15 @@ export default function InstanceSelection({
                 ]}
                 onEditClick={() => openInstance(instance.id)}
                 key={instance.id}
+                editButtonText={getLanguageFromKey(
+                  'instance_selection.continue',
+                  language,
+                )}
                 editIconNode={
-                  <>
-                    <Typography
-                      variant='body1'
-                      style={typographyStyle}
-                    >
-                      {getLanguageFromKey(
-                        'instance_selection.continue',
-                        language,
-                      )}
-                    </Typography>
-                    <i
-                      className='fa fa-edit'
-                      style={iconStyle}
-                    />
-                  </>
+                  <i
+                    className='fa fa-edit'
+                    style={iconStyle}
+                  />
                 }
               />
             );

@@ -64,7 +64,7 @@ export const commonTheme = {
       green: '#12AA64',
       greenHover: '#45D489',
       greenLight: '#D4F9E4',
-      red: '#E23B53',
+      red: '#D5203B',
       redLight: '#F9CAD3',
       purple: '#3F3161',
       purpleLight: '#E0DAF7',
