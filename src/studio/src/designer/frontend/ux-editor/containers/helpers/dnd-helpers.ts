@@ -88,6 +88,9 @@ export const getContainerPosition = (
   boundingClientRect: DOMRect,
   clientOffset: XYCoord,
 ): ContainerPos | undefined => {
+  if (!clientOffset) {
+    return undefined;
+  }
   // need to support smaller boxes so that they don't jump around.
   const boundaryHeight = Math.min(50, boundingClientRect.height / 4);
   const toptop = boundingClientRect.top;
