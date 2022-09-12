@@ -1,6 +1,7 @@
 package altinn.platform.pdf.utils;
 
 import java.util.Map;
+import java.util.Objects;
 
 public class MapUtils {
   private MapUtils() {
@@ -12,7 +13,7 @@ public class MapUtils {
 
     if (options != null) {
       for (Map.Entry<String, String> entry : options.entrySet()) {
-        if (entry.getValue().equals((innerValue))) {
+        if (Objects.equals(entry.getValue(), innerValue)) {
           return entry.getKey();
         }
       }
