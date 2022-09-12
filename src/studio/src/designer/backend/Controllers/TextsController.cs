@@ -81,14 +81,26 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Route("{languageCode}")]
         public async Task<ActionResult<Dictionary<string, string>>> Get(string org, string repo, [FromRoute] string languageCode)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            Dictionary<string, string> text = await _textsService.GetTexts(org, repo, developer, languageCode);
-
-            return Ok(text);
+            try
+            {
+                Dictionary<string, string> text = await _textsService.GetTexts(org, repo, developer, languageCode);
+                return Ok(text);
+            }
+            catch (IOException)
+            {
+                return new ObjectResult(new { errorMessage = "The texts you are trying to find does not exist." }) { StatusCode = 404 };
+            }
+            catch (JsonException)
+            {
+                return new ObjectResult(new { errorMessage = "The format of the file you tried to access might be invalid." }) { StatusCode = 500 };
+            }
         }
     }
 }
