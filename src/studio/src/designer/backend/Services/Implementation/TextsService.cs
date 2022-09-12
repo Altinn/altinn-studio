@@ -43,5 +43,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             await altinnAppGitRepository.SaveTextsV2(languageCode, jsonTexts);
         }
+
+        /// <inheritdoc />
+        public bool DeleteTexts(string org, string repo, string developer, string languageCode)
+        {
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+
+            bool deleted = altinnAppGitRepository.DeleteTexts(languageCode);
+
+            return deleted;
+        }
     }
 }

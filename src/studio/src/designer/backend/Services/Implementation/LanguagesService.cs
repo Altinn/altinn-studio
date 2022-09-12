@@ -42,15 +42,5 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             return languages;
         }
-
-        /// <inheritdoc />
-        public bool DeleteLanguage(string org, string repo, string developer, string languageCode)
-        {
-            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
-
-            bool deleted = altinnAppGitRepository.DeleteLanguage(languageCode);
-
-            return deleted;
-        }
     }
 }

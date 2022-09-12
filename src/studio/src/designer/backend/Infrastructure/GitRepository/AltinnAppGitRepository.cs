@@ -188,7 +188,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Overwrite a V2 text file with an updated V2 text file
+        /// Overwrite a V2 texts file with an updated V2 texts file
         /// </summary>
         /// <param name="languageCode">Language identifier</param>
         /// <param name="jsonTexts">Text file for language as string</param>
@@ -267,7 +267,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// identified by the languageCode in filename.
         /// </summary>
         /// <param name="languageCode">Language identifier</param>
-        /// <returns>Text as a string</returns>
+        /// <returns>Texts as a string</returns>
         public async Task<string> GetTextsV2(string languageCode)
         {
             string fileName = $"texts.{languageCode}.json";
@@ -280,11 +280,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Deletes the text file for a specific languageCode.
+        /// Deletes the texts file for a specific languageCode.
         /// </summary>
         /// <param name="languageCode">Language identifier</param>
         /// <returns>A boolean value that indicates if the file was deleted or not</returns>
-        public bool DeleteLanguage(string languageCode)
+        public bool DeleteTexts(string languageCode)
         {
             string fileName = $"texts.{languageCode}.json";
 
