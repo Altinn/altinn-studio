@@ -1,6 +1,7 @@
 import { DropTargetHookSpec, DropTargetMonitor, useDrop } from 'react-dnd';
 import React from 'react';
 import { EditorDndEvents, EditorDndItem, ItemType } from './helpers/dnd-types';
+import { handleDrop } from './helpers/dnd-helpers';
 
 const dropTargetSpec = (
   containerId: string,
@@ -14,21 +15,7 @@ const dropTargetSpec = (
     };
   },
   drop(droppedItem: EditorDndItem, monitor: DropTargetMonitor) {
-    if (!droppedItem) {
-      return;
-    }
-    if (!monitor.isOver({ shallow: true })) {
-      return;
-    }
-    if (monitor.getItemType() === ItemType.ToolbarItem) {
-      if (!droppedItem.onDrop) {
-        console.warn("Draggable Item doesn't have an onDrop-event");
-        return;
-      }
-      droppedItem.onDrop(containerId, index);
-    } else {
-      events.onDropItem();
-    }
+    handleDrop(droppedItem, monitor, events, containerId, index);
   },
   hover(draggedItem: EditorDndItem, monitor: DropTargetMonitor) {
     if (!draggedItem) {

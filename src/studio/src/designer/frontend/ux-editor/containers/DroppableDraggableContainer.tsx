@@ -6,7 +6,11 @@ import {
   useDrop,
 } from 'react-dnd';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
-import { dragSourceSpec, getContainerPosition } from './helpers/dnd-helpers';
+import {
+  dragSourceSpec,
+  getContainerPosition,
+  handleDrop,
+} from './helpers/dnd-helpers';
 import {
   ContainerPos,
   EditorDndEvents,
@@ -27,30 +31,18 @@ const dropTargetSpec = (
     };
   },
   drop(droppedItem: EditorDndItem, monitor: DropTargetMonitor) {
-    if (!droppedItem) {
-      return;
-    }
-    if (!monitor.isOver({ shallow: true })) {
-      return;
-    }
-    if (monitor.getItemType() === ItemType.ToolbarItem) {
-      if (!droppedItem.onDrop) {
-        console.warn("Draggable Item doesn't have an onDrop-event");
-        return;
-      }
-      if (
-        getContainerPosition(
-          ref.current.getBoundingClientRect(),
-          monitor.getClientOffset(),
-        ) === ContainerPos.Top
-      ) {
-        droppedItem.onDrop(targetItem.id, 0);
-      } else {
-        droppedItem.onDrop(targetItem.id, 99);
-      }
-    } else {
-      events.onDropItem();
-    }
+    handleDrop(
+      droppedItem,
+      monitor,
+      events,
+      targetItem.id,
+      getContainerPosition(
+        ref.current.getBoundingClientRect(),
+        monitor.getClientOffset(),
+      ) === ContainerPos.Top
+        ? 0
+        : 99,
+    );
   },
   hover(draggedItem: EditorDndItem, monitor: DropTargetMonitor) {
     if (!draggedItem) {

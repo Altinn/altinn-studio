@@ -1,6 +1,16 @@
-import { DragSourceHookSpec, DragSourceMonitor, XYCoord } from 'react-dnd';
+import {
+  DragSourceHookSpec,
+  DragSourceMonitor,
+  DropTargetMonitor,
+  XYCoord,
+} from 'react-dnd';
 import { RefObject } from 'react';
-import { ContainerPos, EditorDndItem } from './dnd-types';
+import {
+  ContainerPos,
+  EditorDndEvents,
+  EditorDndItem,
+  ItemType,
+} from './dnd-types';
 
 // @see https://react-dnd.github.io/react-dnd/examples/sortable/simple
 export const hoverIndexHelper = (
@@ -92,4 +102,28 @@ export const getContainerPosition = (
     return ContainerPos.Bottom;
   }
   return undefined;
+};
+
+export const handleDrop = (
+  droppedItem: EditorDndItem,
+  monitor: DropTargetMonitor,
+  events: EditorDndEvents,
+  containerId: string,
+  index: number,
+) => {
+  if (!droppedItem) {
+    return;
+  }
+  if (!monitor.isOver({ shallow: true })) {
+    return;
+  }
+  if (monitor.getItemType() === ItemType.ToolbarItem) {
+    if (!droppedItem.onDrop) {
+      console.warn("Draggable Item doesn't have an onDrop-event");
+      return;
+    }
+    droppedItem.onDrop(containerId, index);
+  } else {
+    events.onDropItem();
+  }
 };

@@ -5,7 +5,11 @@ import {
   useDrag,
   useDrop,
 } from 'react-dnd';
-import { dragSourceSpec, hoverIndexHelper } from './helpers/dnd-helpers';
+import {
+  dragSourceSpec,
+  handleDrop,
+  hoverIndexHelper,
+} from './helpers/dnd-helpers';
 import { EditorDndEvents, EditorDndItem, ItemType } from './helpers/dnd-types';
 
 const dropTargetSpec = (
@@ -18,21 +22,13 @@ const dropTargetSpec = (
     return monitor.isOver({ shallow: true });
   },
   drop(droppedItem: EditorDndItem, monitor: DropTargetMonitor) {
-    if (!droppedItem) {
-      return;
-    }
-    if (!monitor.isOver({ shallow: true })) {
-      return;
-    }
-    if (monitor.getItemType() === ItemType.ToolbarItem) {
-      if (!droppedItem.onDrop) {
-        console.warn("Draggable Item doesn't have an onDrop-event");
-        return;
-      }
-      droppedItem.onDrop(targetItem.containerId, targetItem.index);
-    } else {
-      events.onDropItem();
-    }
+    handleDrop(
+      droppedItem,
+      monitor,
+      events,
+      targetItem.containerId,
+      targetItem.index,
+    );
   },
   hover(draggedItem: EditorDndItem, monitor: DropTargetMonitor) {
     if (!draggedItem) {
