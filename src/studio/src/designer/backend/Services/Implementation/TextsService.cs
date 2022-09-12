@@ -29,11 +29,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-            string text = await altinnAppGitRepository.GetTextsV2(languageCode);
+            string texts = await altinnAppGitRepository.GetTextsV2(languageCode);
 
-            Dictionary<string, string> jsonText = JsonSerializer.Deserialize<Dictionary<string, string>>(text);
+            Dictionary<string, string> jsonTexts = JsonSerializer.Deserialize<Dictionary<string, string>>(texts);
 
-            return jsonText;
+            return jsonTexts;
         }
 
         /// <inheritdoc />

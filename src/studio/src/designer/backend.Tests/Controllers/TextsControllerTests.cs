@@ -73,7 +73,7 @@ namespace Designer.Tests.Controllers
             Dictionary<string, string> responseDictionary = JsonSerializer.Deserialize<Dictionary<string, string>>(responseDocument.RootElement.ToString());
 
             Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
-            Assert.Equal("The texts you are trying to find does not exist.", responseDictionary["errorMessage"]);
+            Assert.Equal("The texts file, texts.uk.json, that you are trying to find does not exist.", responseDictionary["errorMessage"]);
         }
 
         [Fact]
@@ -90,7 +90,7 @@ namespace Designer.Tests.Controllers
             Dictionary<string, string> responseDictionary = JsonSerializer.Deserialize<Dictionary<string, string>>(responseDocument.RootElement.ToString());
 
             Assert.Equal(StatusCodes.Status500InternalServerError, (int)response.StatusCode);
-            Assert.Equal("The format of the file you tried to access might be invalid.", responseDictionary["errorMessage"]);
+            Assert.Equal("The format of the file, texts.en.json, that you tried to access might be invalid.", responseDictionary["errorMessage"]);
         }
 
         [Fact]
@@ -135,7 +135,7 @@ namespace Designer.Tests.Controllers
             try
             {
                 Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
-                Assert.Equal("The texts file you are trying to add have invalid format.", responseDictionary["errorMessage"]);
+                Assert.Equal("The texts file, texts.nb.json, that you are trying to add have invalid format.", responseDictionary["errorMessage"]);
             }
             finally
             {

@@ -67,11 +67,11 @@ namespace Altinn.Studio.Designer.Controllers
             }
             catch (IOException)
             {
-                return new ObjectResult(new { errorMessage = "The texts you are trying to find does not exist." }) { StatusCode = 404 };
+                return new ObjectResult(new { errorMessage = $"The texts file, texts.{languageCode}.json, that you are trying to find does not exist." }) { StatusCode = 404 };
             }
             catch (JsonException)
             {
-                return new ObjectResult(new { errorMessage = "The format of the file you tried to access might be invalid." }) { StatusCode = 500 };
+                return new ObjectResult(new { errorMessage = $"The format of the file, texts.{languageCode}.json, that you tried to access might be invalid." }) { StatusCode = 500 };
             }
         }
 
@@ -96,7 +96,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             if (jsonTexts == null)
             {
-                return new ObjectResult(new { errorMessage = "The texts file you are trying to add have invalid format." }) { StatusCode = 400 };
+                return new ObjectResult(new { errorMessage = $"The texts file, texts.{languageCode}.json, that you are trying to add have invalid format." }) { StatusCode = 400 };
             }
 
             await _textsService.UpdateTexts(org, repo, developer, languageCode, jsonTexts);
@@ -127,7 +127,7 @@ namespace Altinn.Studio.Designer.Controllers
                 return NotFound($"The file texts.{languageCode}.json is not found or already deleted.");
             }
 
-            return Ok("Language successfully deleted.");
+            return Ok($"Texts file, texts.{languageCode}.json, was successfully deleted.");
         }
     }
 }

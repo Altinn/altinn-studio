@@ -34,21 +34,14 @@ namespace Designer.Tests.Controllers
         public async Task GetLanguages_ReturnsNnAndNb()
         {
             HttpClient client = GetTestClient();
-
             string dataPathWithData = $"{_versionPrefix}/ttd/new-texts-format/languages";
-
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
-
             await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-
             response.EnsureSuccessStatusCode();
-
             string responseBody = await response.Content.ReadAsStringAsync();
-
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-
             List<string> responseList = JsonSerializer.Deserialize<List<string>>(responseDocument.RootElement.ToString());
 
             Assert.Equal(new List<string> { "nb", "nn" }, responseList);
