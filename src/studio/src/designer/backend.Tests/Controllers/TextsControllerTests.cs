@@ -23,7 +23,6 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using NuGet.Protocol;
 using Xunit;
 using Xunit.Sdk;
 
