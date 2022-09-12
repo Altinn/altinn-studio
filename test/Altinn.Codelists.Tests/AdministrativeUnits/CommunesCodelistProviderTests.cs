@@ -22,7 +22,7 @@ namespace Altinn.Codelists.Tests.AdministrativeUnits
 
             appOptions.Options.Should().HaveCount(356);
             appOptions.Options.First(x => x.Value == "4640").Label.Should().Be("Sogndal");
-            appOptions.Options.First(x => x.Value == "1813").Label.Should().Be("Br¯nn¯y");
+            appOptions.Options.First(x => x.Value == "1813").Label.Should().Be("Br√∏nn√∏y");
         }
 
         [Fact]
