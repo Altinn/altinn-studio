@@ -14,7 +14,9 @@ using Altinn.Studio.Designer.Services.Interfaces;
 
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
+
 using LibGit2Sharp;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -23,6 +25,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 using Xunit.Sdk;
+
 using IRepository = Altinn.Studio.Designer.Services.Interfaces.IRepository;
 
 namespace Designer.Tests.Controllers
@@ -39,7 +42,7 @@ namespace Designer.Tests.Controllers
         }
 
         [Fact]
-        public async Task Get_ReturnsNbText()
+        public async Task Get_ReturnsNbTexts()
         {
             HttpClient client = GetTestClient();
             string dataPathWithData = $"{_versionPrefix}/ttd/new-texts-format/texts/nb";
@@ -57,11 +60,44 @@ namespace Designer.Tests.Controllers
         }
 
         [Fact]
-        public async Task Put_UpdatedNbTexts_204NoContent()
+        public async Task Get_NonExistingFile_Returns404()
+        {
+            HttpClient client = GetTestClient();
+            string dataPathWithData = $"{_versionPrefix}/ttd/new-texts-format/texts/uk";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseBody = await response.Content.ReadAsStringAsync();
+            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
+            Dictionary<string, string> responseDictionary = JsonSerializer.Deserialize<Dictionary<string, string>>(responseDocument.RootElement.ToString());
+
+            Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
+            Assert.Equal("The texts you are trying to find does not exist.", responseDictionary["errorMessage"]);
+        }
+
+        [Fact]
+        public async Task Get_InvalidFile_Returns500()
+        {
+            HttpClient client = GetTestClient();
+            string dataPathWithData = $"{_versionPrefix}/ttd/invalid-texts-format/texts/en";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseBody = await response.Content.ReadAsStringAsync();
+            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
+            Dictionary<string, string> responseDictionary = JsonSerializer.Deserialize<Dictionary<string, string>>(responseDocument.RootElement.ToString());
+
+            Assert.Equal(StatusCodes.Status500InternalServerError, (int)response.StatusCode);
+            Assert.Equal("The format of the file you tried to access might be invalid.", responseDictionary["errorMessage"]);
+        }
+
+        [Fact]
+        public async Task Put_UpdateNbTexts_204NoContent()
         {
             var targetRepository = Guid.NewGuid().ToString();
             await TestDataHelper.CopyRepositoryForTest("ttd", "new-texts-format", "testUser", targetRepository);
-
             HttpClient client = GetTestClient();
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
@@ -81,11 +117,10 @@ namespace Designer.Tests.Controllers
         }
 
         [Fact]
-        public async Task Put_UpdatedInvalidFormat_400BadRequest()
+        public async Task Put_UpdateInvalidFormat_400BadRequest()
         {
             var targetRepository = Guid.NewGuid().ToString();
             await TestDataHelper.CopyRepositoryForTest("ttd", "new-texts-format", "testUser", targetRepository);
-
             HttpClient client = GetTestClient();
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
