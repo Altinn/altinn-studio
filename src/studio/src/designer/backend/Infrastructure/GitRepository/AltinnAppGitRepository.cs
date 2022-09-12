@@ -191,16 +191,16 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// Overwrite a V2 text file with an updated V2 text file
         /// </summary>
         /// <param name="languageCode">Language identifier</param>
-        /// <param name="jsonText">Text file for language as string</param>
-        public async Task SaveTextV2(string languageCode, Dictionary<string, string> jsonText)
+        /// <param name="jsonTexts">Text file for language as string</param>
+        public async Task SaveTextsV2(string languageCode, Dictionary<string, string> jsonTexts)
         {
-            string fileName = $"text.{languageCode}.json";
+            string fileName = $"texts.{languageCode}.json";
 
-            var textFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
+            var textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
 
-            string text = System.Text.Json.JsonSerializer.Serialize(jsonText);
+            string texts = System.Text.Json.JsonSerializer.Serialize(jsonTexts);
 
-            await WriteTextByRelativePathAsync(textFileRelativeFilePath, text);
+            await WriteTextByRelativePathAsync(textsFileRelativeFilePath, texts);
         }
 
         /// <summary>
@@ -268,15 +268,15 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="languageCode">Language identifier</param>
         /// <returns>Text as a string</returns>
-        public async Task<string> GetTextV2(string languageCode)
+        public async Task<string> GetTextsV2(string languageCode)
         {
-            string fileName = $"text.{languageCode}.json";
+            string fileName = $"texts.{languageCode}.json";
 
-            var textFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
+            var textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
 
-            string text = await ReadTextByRelativePathAsync(textFileRelativeFilePath);
+            string texts = await ReadTextByRelativePathAsync(textsFileRelativeFilePath);
 
-            return text;
+            return texts;
         }
 
         /// <summary>
@@ -286,15 +286,15 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <returns>A boolean value that indicates if the file was deleted or not</returns>
         public bool DeleteLanguage(string languageCode)
         {
-            string fileName = $"text.{languageCode}.json";
+            string fileName = $"texts.{languageCode}.json";
 
-            var textFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
+            var textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
 
             bool deleted = false;
 
-            if (File.Exists(GetAbsoluteFilePathSanitized(textFileRelativeFilePath)))
+            if (File.Exists(GetAbsoluteFilePathSanitized(textsFileRelativeFilePath)))
             {
-                DeleteFileByRelativePath(textFileRelativeFilePath);
+                DeleteFileByRelativePath(textsFileRelativeFilePath);
                 deleted = true;
             }
 

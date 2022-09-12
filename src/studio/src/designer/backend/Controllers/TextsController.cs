@@ -45,7 +45,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repo">Application identifier which is unique within an organisation.</param>
         /// <param name="languageCode">Language identifier specifying the text file to read.</param>
-        /// <param name="jsonText">New content from request body to be added to the text file.</param>
+        /// <param name="jsonTexts">New content from request body to be added to the text file.</param>
         /// <remarks>If duplicates of keys are tried added the
         /// deserialization to dictionary will overwrite the first
         /// key:value pair with the last key:value pair</remarks>
@@ -54,16 +54,16 @@ namespace Altinn.Studio.Designer.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Route("{languageCode}")]
-        public async Task<ActionResult> Put(string org, string repo, string languageCode, [FromBody] Dictionary<string, string> jsonText)
+        public async Task<ActionResult> Put(string org, string repo, string languageCode, [FromBody] Dictionary<string, string> jsonTexts)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            if (jsonText == null)
+            if (jsonTexts == null)
             {
                 return new ObjectResult(new { errorMessage = "The texts file you are trying to add have invalid format." }) { StatusCode = 400 };
             }
 
-            await _textsService.UpdateTexts(org, repo, developer, languageCode, jsonText);
+            await _textsService.UpdateTexts(org, repo, developer, languageCode, jsonTexts);
 
             return NoContent();
         }
@@ -90,8 +90,8 @@ namespace Altinn.Studio.Designer.Controllers
 
             try
             {
-                Dictionary<string, string> text = await _textsService.GetTexts(org, repo, developer, languageCode);
-                return Ok(text);
+                Dictionary<string, string> texts = await _textsService.GetTexts(org, repo, developer, languageCode);
+                return Ok(texts);
             }
             catch (IOException)
             {

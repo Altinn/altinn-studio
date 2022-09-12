@@ -28,7 +28,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="repo">Repository</param>
         /// <param name="developer">Username of developer</param>
         /// <param name="languageCode">LanguageCode</param>
-        /// <param name="jsonText">Text to be added to new text file</param>
-        public Task UpdateTexts(string org, string repo, string developer, string languageCode, Dictionary<string, string> jsonText);
+        /// <param name="jsonTexts">Text to be added to new text file</param>
+        public Task UpdateTexts(string org, string repo, string developer, string languageCode, Dictionary<string, string> jsonTexts);
     }
 }
