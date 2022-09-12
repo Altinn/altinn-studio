@@ -16,4 +16,6 @@ public class FluentTestsBase<T>
     protected T When => this as T;
 
     protected T Then => this as T;
+
+    protected T But => this as T;
 }
