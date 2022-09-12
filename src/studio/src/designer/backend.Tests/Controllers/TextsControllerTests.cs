@@ -116,6 +116,7 @@ namespace Designer.Tests.Controllers
                 TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
             }
         }
+        
 
         [Fact]
         public async Task Put_UpdateInvalidFormat_400BadRequest()
@@ -143,7 +144,7 @@ namespace Designer.Tests.Controllers
                 TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
             }
         }
-
+        
         private HttpClient GetTestClient()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.Location).LocalPath);
