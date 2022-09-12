@@ -67,7 +67,7 @@ namespace Altinn.Studio.Designer.Controllers
             }
             catch (IOException)
             {
-                return new ObjectResult(new { errorMessage = $"The texts file, texts.{languageCode}.json, that you are trying to find does not exist." }) { StatusCode = 404 };
+                return NotFound($"The texts file, texts.{languageCode}.json, that you are trying to find does not exist.");
             }
             catch (JsonException)
             {
@@ -96,7 +96,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             if (jsonTexts == null)
             {
-                return new ObjectResult(new { errorMessage = $"The texts file, texts.{languageCode}.json, that you are trying to add have invalid format." }) { StatusCode = 400 };
+                return BadRequest($"The texts file, texts.{languageCode}.json, that you are trying to add have invalid format.");
             }
 
             await _textsService.UpdateTexts(org, repo, developer, languageCode, jsonTexts);

@@ -9,7 +9,7 @@ using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
-
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
@@ -44,6 +44,7 @@ namespace Designer.Tests.Controllers
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
             List<string> responseList = JsonSerializer.Deserialize<List<string>>(responseDocument.RootElement.ToString());
 
+            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
             Assert.Equal(new List<string> { "nb", "nn" }, responseList);
         }
 
