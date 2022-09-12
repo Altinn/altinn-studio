@@ -13,6 +13,7 @@ import {
   EditorDndItem,
   ItemType,
 } from './helpers/dnd-types';
+import { DummyDropTarget } from './DummyDropTarget';
 
 const dropTargetSpec = (
   targetItem: EditorDndItem,
@@ -81,7 +82,8 @@ const dropTargetSpec = (
         ? events.moveItemToBottom(draggedItem)
         : events.moveItemToTop(draggedItem);
     } else if (containerPos) {
-      events.moveItem(draggedItem, targetItem, containerPos);
+      const toIndex = containerPos === ContainerPos.Top ? 0 : 99;
+      events.moveItem(draggedItem, targetItem, toIndex);
     }
   },
 });
@@ -125,20 +127,30 @@ export const DroppableDraggableContainer = memo(
       backgroundColor,
       paddingLeft: '1.2rem',
       paddingRight: '1.2rem',
-      paddingTop: isBaseContainer ? '1.2rem' : '',
       border: parentContainerId ? '' : '1px solid #ccc',
-      marginBottom: isBaseContainer ? '' : '12px',
       opacity,
     };
     drag(drop(ref));
     return (
-      <div
-        style={style}
-        ref={ref}
-        data-testid={'droppable-draggable-container'}
-      >
-        {children}
-      </div>
+      <>
+        <DummyDropTarget
+          index={isBaseContainer ? 0 : index}
+          containerId={isBaseContainer ? id : parentContainerId}
+          events={dndEvents}
+        />
+        <div
+          style={style}
+          ref={ref}
+          data-testid={'droppable-draggable-container'}
+        >
+          {children}
+        </div>
+        <DummyDropTarget
+          index={isBaseContainer ? 99 : index + 1}
+          containerId={isBaseContainer ? id : parentContainerId}
+          events={dndEvents}
+        />
+      </>
     );
   },
 );

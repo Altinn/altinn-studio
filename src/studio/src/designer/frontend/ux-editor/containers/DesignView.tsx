@@ -9,12 +9,7 @@ import {
   removeArrayElement,
   swapArrayElements,
 } from './helpers/array-functions';
-import {
-  ContainerPos,
-  EditorDndEvents,
-  EditorDndItem,
-  ItemType,
-} from './helpers/dnd-types';
+import { EditorDndEvents, EditorDndItem, ItemType } from './helpers/dnd-types';
 
 export interface IDesignerPreviewState {
   layoutOrder: IFormLayoutOrder;
@@ -113,7 +108,7 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
   const moveItem = (
     movedItem: EditorDndItem,
     targetItem: EditorDndItem,
-    containerPos?: ContainerPos,
+    toIndex?: number,
   ): void => {
     if (!movedItem.id) {
       return;
@@ -136,12 +131,11 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
 
     if (movedItem.containerId === targetItem.containerId) {
       swapItemsInsideTheSameContainer(movedItem, targetItem.id);
-    } else if (targetItem.type === ItemType.Container && containerPos) {
-      moveItemBetweenContainers(
-        movedItem,
-        targetItem.id,
-        containerPos === ContainerPos.Top ? 0 : 99,
-      );
+    } else if (
+      targetItem.type === ItemType.Container &&
+      toIndex !== undefined
+    ) {
+      moveItemBetweenContainers(movedItem, targetItem.id, toIndex);
     } else if (
       targetItem.type === ItemType.Item &&
       movedItem.id !== targetItem.containerId
