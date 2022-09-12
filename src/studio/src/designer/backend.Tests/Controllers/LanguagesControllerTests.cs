@@ -35,7 +35,7 @@ namespace Designer.Tests.Controllers
         {
             HttpClient client = GetTestClient();
 
-            string dataPathWithData = $"{_versionPrefix}/ttd/new-resource-format/languages";
+            string dataPathWithData = $"{_versionPrefix}/ttd/new-texts-format/languages";
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
 
