@@ -18,7 +18,7 @@ using XmlSchemaValidator = DataModeling.Tests.TestHelpers.XmlSchemaValidator;
 
 namespace DataModeling.Tests
 {
-    public class Seres2JsonSchema2SeresTests: TestBase<Seres2JsonSchema2SeresTests>
+    public class Seres2JsonSchema2SeresTests: FluentTestsBase<Seres2JsonSchema2SeresTests>
     {
         private readonly ITestOutputHelper _testOutputHelper;
 

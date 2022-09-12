@@ -20,7 +20,7 @@ using Xunit.Abstractions;
 
 namespace DataModeling.Tests
 {
-    public class XmlSchemaToJsonTests: TestBase<XmlSchemaToJsonTests>
+    public class XmlSchemaToJsonTests: FluentTestsBase<XmlSchemaToJsonTests>
     {
         private readonly ITestOutputHelper _testOutputHelper;
         private XmlSchema _loadedXsdSchema;

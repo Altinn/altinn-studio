@@ -4,7 +4,7 @@
 /// Base class for fluent tests.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public class TestBase<T>
+public class FluentTestsBase<T>
     where T : class
 {
     protected T Given => this as T;
