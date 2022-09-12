@@ -1,0 +1,2 @@
+# Response is saved raw into countries.json
+GET https://restcountries.com/v3.1/all

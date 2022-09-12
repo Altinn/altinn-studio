@@ -1,0 +1,21 @@
+###
+# Oversikt: https://www.ssb.no/klass/
+
+# Fylker
+GET http://data.ssb.no/api/klass/v1/classifications/104/codes?from=2022-07-10
+Accept: application/json;charset=utf-8
+
+###
+# Kjønn
+GET http://data.ssb.no/api/klass/v1/classifications/2/codes?from=2022-07-10
+Accept: application/json;charset=utf-8
+
+###
+# Næringsgruppering
+GET http://data.ssb.no/api/klass/v1/classifications/6/codes?from=2022-07-10
+Accept: application/json;charset=utf-8
+
+###
+# Sivilstand
+GET http://data.ssb.no/api/klass/v1/classifications/19/codes?from=2022-07-10
+Accept: application/json;charset=utf-8

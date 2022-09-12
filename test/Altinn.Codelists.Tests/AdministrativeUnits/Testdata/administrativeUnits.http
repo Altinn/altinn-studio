@@ -1,0 +1,15 @@
+# Install Visual Studio Code Extension https://github.com/Huachao/vscode-restclient
+# to test the api used by the AdministrativeUnitsHttpClient
+# The json files commentet above the requests are stored as test data.
+
+###
+# fylker.json
+GET https://ws.geonorge.no/kommuneinfo/v1/fylker
+
+###
+# kommuner.json
+GET https://ws.geonorge.no/kommuneinfo/v1/kommuner
+
+###
+# fylke46_kommuner.json
+GET https://ws.geonorge.no/kommuneinfo/v1/fylker/46?filtrer=kommuner,fylkesnavn,fylkesnummer
