@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import Axios from 'axios';
-
 import type { IAltinnWindow } from '../../types/global';
 
 const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;

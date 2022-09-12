@@ -12,7 +12,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@altinn/altinn-design-system@npm:^0.7.0, @altinn/altinn-design-system@npm:^0.7.1":
+"@altinn/altinn-design-system@npm:^0.7.0":
   version: 0.7.1
   resolution: "@altinn/altinn-design-system@npm:0.7.1"
   dependencies:
@@ -8311,7 +8311,6 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "altinn-studio-frontend@workspace:."
   dependencies:
-    "@altinn/altinn-design-system": ^0.7.1
     "@typescript-eslint/eslint-plugin": 5.35.1
     "@typescript-eslint/parser": 5.35.1
     eslint: 8.22.0

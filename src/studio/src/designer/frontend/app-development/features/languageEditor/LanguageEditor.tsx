@@ -1,7 +1,6 @@
 import { LanguageEditor as BaseLanguageEditor } from '../../../language-editor';
 import React, { useState } from 'react';
 import { post } from 'app-shared/utils/networking';
-
 import { useGetLanguages, getSaveTextResourcesUrl } from './utils';
 
 export const LanguageEditor = () => {

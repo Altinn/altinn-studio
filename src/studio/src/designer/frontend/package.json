@@ -10,7 +10,6 @@
     "start-app-development": "yarn workspace app-development start"
   },
   "devDependencies": {
-    "@altinn/altinn-design-system": "^0.7.1",
     "@typescript-eslint/eslint-plugin": "5.35.1",
     "@typescript-eslint/parser": "5.35.1",
     "eslint": "8.22.0",

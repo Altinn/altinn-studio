@@ -24,7 +24,6 @@ export const getAllTranslationKeys = ({ languages }: ILanguageEditor) => {
   if (!languages) {
     return {};
   }
-
   return Object.values(languages).reduce((acc, curr) => {
     acc = {
       ...acc,
