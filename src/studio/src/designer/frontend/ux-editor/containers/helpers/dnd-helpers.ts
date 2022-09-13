@@ -10,13 +10,16 @@ import { ContainerPos, EditorDndItem, ItemType } from './dnd-types';
 export const hoverIndexHelper = (
   draggedItem: EditorDndItem,
   hoveredItem: EditorDndItem,
-  hoverBoundingRect: DOMRect,
-  clientOffset: XYCoord,
+  hoverBoundingRect?: DOMRect,
+  clientOffset?: XYCoord,
 ): boolean => {
   const dragIndex = draggedItem.index;
   const hoverIndex = hoveredItem.index;
 
   if (!hoverBoundingRect || dragIndex === hoverIndex) {
+    return false;
+  }
+  if (!clientOffset) {
     return false;
   }
 
