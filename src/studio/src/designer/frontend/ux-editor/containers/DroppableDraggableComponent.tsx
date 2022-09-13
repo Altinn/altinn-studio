@@ -38,7 +38,12 @@ const dropTargetSpec = (
       return;
     }
     if (
-      !hoverIndexHelper(draggedItem, targetItem, ref, monitor.getClientOffset())
+      !hoverIndexHelper(
+        draggedItem,
+        targetItem,
+        ref.current?.getBoundingClientRect(),
+        monitor.getClientOffset(),
+      )
     ) {
       return;
     }

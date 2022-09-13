@@ -4,25 +4,21 @@ import {
   DropTargetMonitor,
   XYCoord,
 } from 'react-dnd';
-import { RefObject } from 'react';
 import { ContainerPos, EditorDndItem, ItemType } from './dnd-types';
 
 // @see https://react-dnd.github.io/react-dnd/examples/sortable/simple
 export const hoverIndexHelper = (
   draggedItem: EditorDndItem,
   hoveredItem: EditorDndItem,
-  ref: RefObject<HTMLDivElement>,
+  hoverBoundingRect: DOMRect,
   clientOffset: XYCoord,
 ): boolean => {
   const dragIndex = draggedItem.index;
   const hoverIndex = hoveredItem.index;
 
-  if (!ref.current || dragIndex === hoverIndex) {
+  if (!hoverBoundingRect || dragIndex === hoverIndex) {
     return false;
   }
-
-  // Determine rectangle on screen
-  const hoverBoundingRect = ref.current?.getBoundingClientRect();
 
   // Get vertical middle
   const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
