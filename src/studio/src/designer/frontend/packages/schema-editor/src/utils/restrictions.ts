@@ -38,4 +38,5 @@ const restrictionMap: Map<string, string[]> = new Map([
   [FieldType.Array, [...Object.values(ArrAttribs)]],
 ]);
 
-export const getRestrictions = (type: FieldType) => restrictionMap.get(type);
+export const getRestrictions = (type: FieldType): string[] =>
+  restrictionMap.get(type) ?? [];
