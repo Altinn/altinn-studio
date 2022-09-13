@@ -75,7 +75,6 @@ jobs:
         if: "github.event.release.prerelease"
         run: |
           echo altinn-app-frontend version: ${{ steps.prepare.outputs.APP_FULL }}
-          cd ..
           echo Copy Patch
           test -e toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }} && git rm -r toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}
           mkdir -p toolkits/altinn-app-frontend/${{ steps.prepare.outputs.APP_FULL }}
