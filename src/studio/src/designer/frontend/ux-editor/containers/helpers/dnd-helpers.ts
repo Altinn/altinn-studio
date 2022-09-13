@@ -5,12 +5,7 @@ import {
   XYCoord,
 } from 'react-dnd';
 import { RefObject } from 'react';
-import {
-  ContainerPos,
-  EditorDndEvents,
-  EditorDndItem,
-  ItemType,
-} from './dnd-types';
+import { ContainerPos, EditorDndItem, ItemType } from './dnd-types';
 
 // @see https://react-dnd.github.io/react-dnd/examples/sortable/simple
 export const hoverIndexHelper = (
@@ -109,8 +104,8 @@ export const getContainerPosition = (
 
 export const handleDrop = (
   droppedItem: EditorDndItem,
-  monitor: DropTargetMonitor,
-  events: EditorDndEvents,
+  monitor: Partial<DropTargetMonitor>,
+  onDropItem: () => void,
   containerId: string,
   index: number,
 ) => {
@@ -127,6 +122,6 @@ export const handleDrop = (
     }
     droppedItem.onDrop(containerId, index);
   } else {
-    events.onDropItem();
+    onDropItem();
   }
 };

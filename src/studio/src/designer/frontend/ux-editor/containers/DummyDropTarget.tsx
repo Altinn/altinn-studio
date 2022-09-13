@@ -15,7 +15,7 @@ const dropTargetSpec = (
     };
   },
   drop(droppedItem: EditorDndItem, monitor: DropTargetMonitor) {
-    handleDrop(droppedItem, monitor, events, containerId, index);
+    handleDrop(droppedItem, monitor, events.onDropItem, containerId, index);
   },
   hover(draggedItem: EditorDndItem, monitor: DropTargetMonitor) {
     if (!draggedItem) {
@@ -48,5 +48,11 @@ export const DummyDropTarget = ({
   events,
 }: DummyDropTargetProps) => {
   const [, drop] = useDrop(dropTargetSpec(containerId, index, events));
-  return <div ref={drop} style={{ height: 12 }}></div>;
+  return (
+    <div
+      ref={drop}
+      style={{ height: 12 }}
+      data-testid={'dummy-drop-target'}
+    ></div>
+  );
 };

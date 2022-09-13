@@ -34,7 +34,7 @@ const dropTargetSpec = (
     handleDrop(
       droppedItem,
       monitor,
-      events,
+      events.onDropItem,
       targetItem.id,
       getContainerPosition(
         ref.current.getBoundingClientRect(),

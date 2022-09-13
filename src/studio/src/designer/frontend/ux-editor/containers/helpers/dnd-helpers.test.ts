@@ -1,6 +1,7 @@
-import { getContainerPosition } from './dnd-helpers';
-import { XYCoord } from 'react-dnd';
-import { ContainerPos } from './dnd-types';
+import { getContainerPosition, handleDrop } from './dnd-helpers';
+import { DropTargetMonitor, XYCoord } from 'react-dnd';
+import { ContainerPos, EditorDndItem, ItemType } from './dnd-types';
+import { randomUUID } from 'crypto';
 
 test('getContainerPosition returns correct positions', () => {
   const boundingBox: DOMRect = {
@@ -26,4 +27,53 @@ test('getContainerPosition returns correct positions', () => {
     const result = getContainerPosition(boundingBox, xyCord);
     expect(result).toBe(expected);
   });
+});
+
+const createDummyData = (
+  itemType: ItemType,
+): [EditorDndItem, Partial<DropTargetMonitor>, () => void, () => void] => {
+  const onDrop = jest.fn();
+
+  const droppedItem: EditorDndItem = {
+    id: randomUUID(),
+    type: itemType,
+    onDrop,
+  };
+  const monitor: Partial<DropTargetMonitor> = {
+    isOver(): boolean {
+      return true;
+    },
+    getItemType(): string | null {
+      return droppedItem.type;
+    },
+  };
+  const onDropItem = jest.fn();
+
+  return [droppedItem, monitor, onDrop, onDropItem];
+};
+
+test('should handle that ' + ItemType.Item + ' gets dropped', () => {
+  const [droppedItem, monitor, onDrop, onDropItem] = createDummyData(
+    ItemType.Item,
+  );
+  handleDrop(droppedItem, monitor, onDropItem, randomUUID(), 3);
+  expect(onDrop).not.toBeCalled();
+  expect(onDropItem).toBeCalled();
+});
+test('should handle that ' + ItemType.Container + ' gets dropped', () => {
+  const [droppedItem, monitor, onDrop, onDropItem] = createDummyData(
+    ItemType.Container,
+  );
+  handleDrop(droppedItem, monitor, onDropItem, randomUUID(), 3);
+  expect(onDrop).not.toBeCalled();
+  expect(onDropItem).toBeCalled();
+});
+
+test('should handle that ' + ItemType.ToolbarItem + ' gets dropped', () => {
+  const [droppedItem, monitor, onDrop, onDropItem] = createDummyData(
+    ItemType.ToolbarItem,
+  );
+  handleDrop(droppedItem, monitor, onDropItem, randomUUID(), 3);
+  expect(onDrop).toBeCalled();
+  expect(onDropItem).not.toBeCalled();
 });

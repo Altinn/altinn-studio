@@ -25,7 +25,7 @@ const dropTargetSpec = (
     handleDrop(
       droppedItem,
       monitor,
-      events,
+      events.onDropItem,
       targetItem.containerId,
       targetItem.index,
     );
