@@ -3,7 +3,7 @@ import React from 'react';
 import { EditorDndEvents, EditorDndItem, ItemType } from './helpers/dnd-types';
 import { handleDrop } from './helpers/dnd-helpers';
 
-const dropTargetSpec = (
+export const dropTargetSpec = (
   containerId: string,
   index: number,
   events: EditorDndEvents,
@@ -27,7 +27,6 @@ const dropTargetSpec = (
     if (!draggedItem.containerId && draggedItem.type !== ItemType.ToolbarItem) {
       return;
     }
-
     const targetItem: EditorDndItem = {
       id: containerId,
       type: ItemType.Container,

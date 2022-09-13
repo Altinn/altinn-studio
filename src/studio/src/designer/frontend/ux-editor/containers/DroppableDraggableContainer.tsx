@@ -19,7 +19,7 @@ import {
 } from './helpers/dnd-types';
 import { DummyDropTarget } from './DummyDropTarget';
 
-const dropTargetSpec = (
+export const dropTargetSpec = (
   targetItem: EditorDndItem,
   events: EditorDndEvents,
   ref: RefObject<HTMLDivElement>,
@@ -37,7 +37,7 @@ const dropTargetSpec = (
       events.onDropItem,
       targetItem.id,
       getContainerPosition(
-        ref.current.getBoundingClientRect(),
+        ref.current?.getBoundingClientRect(),
         monitor.getClientOffset(),
       ) === ContainerPos.Top
         ? 0

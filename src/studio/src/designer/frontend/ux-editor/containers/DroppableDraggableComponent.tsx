@@ -12,7 +12,7 @@ import {
 } from './helpers/dnd-helpers';
 import { EditorDndEvents, EditorDndItem, ItemType } from './helpers/dnd-types';
 
-const dropTargetSpec = (
+export const dropTargetSpec = (
   targetItem: EditorDndItem,
   events: EditorDndEvents,
   ref: RefObject<HTMLDivElement>,

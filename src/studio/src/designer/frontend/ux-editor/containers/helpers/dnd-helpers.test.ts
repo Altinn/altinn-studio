@@ -4,7 +4,12 @@ import {
   hoverIndexHelper,
 } from './dnd-helpers';
 import { DropTargetMonitor, XYCoord } from 'react-dnd';
-import { ContainerPos, EditorDndItem, ItemType } from './dnd-types';
+import {
+  ContainerPos,
+  EditorDndEvents,
+  EditorDndItem,
+  ItemType,
+} from './dnd-types';
 import { randomUUID } from 'crypto';
 
 const boundingBox: DOMRect = {
@@ -33,7 +38,29 @@ test('getContainerPosition returns correct positions', () => {
     expect(result).toBe(expected);
   });
 });
-
+export const createMockMonitor = (
+  isOver: boolean,
+  itemType: ItemType,
+): Partial<DropTargetMonitor> => {
+  const monitor: Partial<DropTargetMonitor> = {
+    isOver(): boolean {
+      return isOver;
+    },
+    getItemType(): string | null {
+      return itemType;
+    },
+    getClientOffset(): XYCoord | null {
+      return { x: 100, y: 200 };
+    },
+  };
+  return monitor;
+};
+export const createMockedDndEvents = (): EditorDndEvents => ({
+  moveItem: jest.fn(),
+  moveItemToBottom: jest.fn(),
+  moveItemToTop: jest.fn(),
+  onDropItem: jest.fn(),
+});
 const createDummyData = (
   itemType: ItemType,
   isOver: boolean,
@@ -45,14 +72,8 @@ const createDummyData = (
     type: itemType,
     onDrop,
   };
-  const monitor: Partial<DropTargetMonitor> = {
-    isOver(): boolean {
-      return isOver;
-    },
-    getItemType(): string | null {
-      return droppedItem.type;
-    },
-  };
+  const monitor = createMockMonitor(isOver, droppedItem.type);
+
   const onDropItem = jest.fn();
 
   return [droppedItem, monitor, onDrop, onDropItem];
