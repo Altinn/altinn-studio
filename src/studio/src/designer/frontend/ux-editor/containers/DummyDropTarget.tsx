@@ -1,7 +1,7 @@
 import { DropTargetHookSpec, DropTargetMonitor, useDrop } from 'react-dnd';
 import React from 'react';
 import { EditorDndEvents, EditorDndItem, ItemType } from './helpers/dnd-types';
-import { handleDrop } from './helpers/dnd-helpers';
+import { handleDrop, hoverShouldBeIgnored } from './helpers/dnd-helpers';
 
 export const dropTargetSpec = (
   containerId: string,
@@ -18,13 +18,7 @@ export const dropTargetSpec = (
     handleDrop(droppedItem, monitor, events.onDropItem, containerId, index);
   },
   hover(draggedItem: EditorDndItem, monitor: DropTargetMonitor) {
-    if (!draggedItem) {
-      return;
-    }
-    if (!monitor.isOver({ shallow: true })) {
-      return;
-    }
-    if (!draggedItem.containerId && draggedItem.type !== ItemType.ToolbarItem) {
+    if (hoverShouldBeIgnored(monitor, draggedItem)) {
       return;
     }
     const targetItem: EditorDndItem = {

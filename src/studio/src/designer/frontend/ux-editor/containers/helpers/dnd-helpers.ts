@@ -124,3 +124,19 @@ export const handleDrop = (
     onDropItem();
   }
 };
+
+export const hoverShouldBeIgnored = (
+  monitor: DropTargetMonitor,
+  draggedItem?: EditorDndItem,
+) => {
+  if (!draggedItem) {
+    return true;
+  }
+  if (!monitor.isOver({ shallow: true })) {
+    return true;
+  }
+  if (!draggedItem.containerId && draggedItem.type !== ItemType.ToolbarItem) {
+    return true;
+  }
+  return false;
+};

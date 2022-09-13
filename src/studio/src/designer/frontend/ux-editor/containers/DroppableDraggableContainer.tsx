@@ -10,6 +10,7 @@ import {
   dragSourceSpec,
   getContainerPosition,
   handleDrop,
+  hoverShouldBeIgnored,
 } from './helpers/dnd-helpers';
 import {
   ContainerPos,
@@ -45,13 +46,7 @@ export const dropTargetSpec = (
     );
   },
   hover(draggedItem: EditorDndItem, monitor: DropTargetMonitor) {
-    if (!draggedItem) {
-      return;
-    }
-    if (!monitor.isOver({ shallow: true })) {
-      return;
-    }
-    if (!draggedItem.containerId && draggedItem.type !== ItemType.ToolbarItem) {
+    if (hoverShouldBeIgnored(monitor, draggedItem)) {
       return;
     }
     if (draggedItem.id === targetItem.id) {

@@ -9,6 +9,7 @@ import {
   dragSourceSpec,
   handleDrop,
   hoverIndexHelper,
+  hoverShouldBeIgnored,
 } from './helpers/dnd-helpers';
 import { EditorDndEvents, EditorDndItem, ItemType } from './helpers/dnd-types';
 
@@ -31,10 +32,7 @@ export const dropTargetSpec = (
     );
   },
   hover(draggedItem: EditorDndItem, monitor: DropTargetMonitor) {
-    if (!draggedItem) {
-      return;
-    }
-    if (!monitor.isOver({ shallow: true })) {
+    if (hoverShouldBeIgnored(monitor, draggedItem)) {
       return;
     }
     if (

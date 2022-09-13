@@ -2,6 +2,7 @@ import {
   getContainerPosition,
   handleDrop,
   hoverIndexHelper,
+  hoverShouldBeIgnored,
 } from './dnd-helpers';
 import { DropTargetMonitor, XYCoord } from 'react-dnd';
 import {
@@ -41,7 +42,7 @@ test('getContainerPosition returns correct positions', () => {
 export const createMockMonitor = (
   isOver: boolean,
   itemType: ItemType,
-): Partial<DropTargetMonitor> => {
+): DropTargetMonitor => {
   const monitor: Partial<DropTargetMonitor> = {
     isOver(): boolean {
       return isOver;
@@ -53,7 +54,7 @@ export const createMockMonitor = (
       return { x: 100, y: 200 };
     },
   };
-  return monitor;
+  return monitor as DropTargetMonitor;
 };
 export const createMockedDndEvents = (): EditorDndEvents => ({
   moveItem: jest.fn(),
@@ -145,3 +146,16 @@ test('that hoverIndexHelper can be initiated', () => {
   );
   expect(result).toBeFalsy();
 });
+const id = randomUUID();
+test.each([
+  [true, undefined, true],
+  [false, undefined, true],
+  [true, { id, type: ItemType.Item }, true],
+  [true, { id, containerId: randomUUID(), type: ItemType.Item }, false],
+])(
+  'if hoverShouldBeIgnored when isOver is %p and item is %p',
+  (isOver: boolean, item: EditorDndItem, result: boolean) => {
+    const monitor = createMockMonitor(isOver, item?.type);
+    expect(hoverShouldBeIgnored(monitor, item)).toBe(result);
+  },
+);
