@@ -22,7 +22,7 @@ export const setupStore = (preloadedState?: PreloadedState<RootState>) => {
 
   const innerStore = configureStore({
     reducer: reducers,
-    devTools: isDev,
+    devTools: true,
     middleware: (getDefaultMiddleware) =>
       getDefaultMiddleware({
         serializableCheck: isDev,
