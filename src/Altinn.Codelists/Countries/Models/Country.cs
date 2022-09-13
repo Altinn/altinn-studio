@@ -2,13 +2,22 @@
 
 namespace Altinn.Codelists.Countries.Models
 {
+    /// <summary>
+    /// Holds information of a country.
+    /// </summary>
     public class Country
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="Country"/> class.
+        /// </summary>
         public Country(Name name)
         {
             Name = name;
         }
 
+        /// <summary>
+        /// The name of the country (in english)
+        /// </summary>
         [JsonPropertyName("name")]
         public Name Name { get; set; }
 
@@ -52,27 +61,51 @@ namespace Altinn.Codelists.Countries.Models
         [JsonPropertyName("unMember")]
         public bool UnitedNationsMember { get; set; }
 
+        /// <summary>
+        /// Emojii flag character
+        /// </summary>
         [JsonPropertyName("flag")]
         public string EmojiFlag { get; set; } = "";
 
+        /// <summary>
+        /// Region
+        /// </summary>
         [JsonPropertyName("region")]
         public string Region { get; set; } = "";
 
+        /// <summary>
+        /// Subregion
+        /// </summary>
         [JsonPropertyName("subregion")]
         public string SubRegion { get; set; } = "";
 
+        /// <summary>
+        /// Official languages
+        /// </summary>
         [JsonPropertyName("languages")]
         public Dictionary<string, string> Languages { get; set; } = new Dictionary<string, string>();
 
+        /// <summary>
+        /// Name of country translated to various languages.
+        /// </summary>
         [JsonPropertyName("translations")]
         public Dictionary<string, Name> Translations {get; set;} = new Dictionary<string, Name>();
 
+        /// <summary>
+        /// Latitude and longitude
+        /// </summary>
         [JsonPropertyName("latlng")]
         public decimal[] LatitudeLongitude { get; set; } = Array.Empty<decimal>();
 
+        /// <summary>
+        /// Top level domains
+        /// </summary>
         [JsonPropertyName("tld")]
         public string[] TopLevelDomains { get; set; } = Array.Empty<string>();
 
+        /// <summary>
+        /// Currencies used
+        /// </summary>
         [JsonPropertyName("currencies")]
         public Dictionary<string, Currency> Currencies { get; set; } = new Dictionary<string, Currency>();
     }

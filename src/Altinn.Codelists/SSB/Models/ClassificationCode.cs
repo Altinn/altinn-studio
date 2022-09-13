@@ -4,6 +4,9 @@ namespace Altinn.Codelists.SSB.Models
 {
     public class ClassificationCode
     {
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ClassificationCode"/> class.
+        /// </summary>
         public ClassificationCode(string code, string level, string name)
         {
             Code = code;

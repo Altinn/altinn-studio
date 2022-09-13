@@ -2,8 +2,16 @@
 
 namespace Altinn.Codelists.Utilities
 {
+    /// <summary>
+    /// Helper class for embeded resources.
+    /// </summary>
     public static class EmbeddedResource
     {
+        /// <summary>
+        /// Finds an embeded resource, by name, within the executing assembly and reads it as string.
+        /// </summary>
+        /// <param name="resourceName"></param>
+        /// <returns></returns>
         public async static Task<string> LoadDataAsString(string resourceName)
         {
             var resourceStream = LoadDataAsStream(resourceName);
@@ -14,6 +22,11 @@ namespace Altinn.Codelists.Utilities
             return text;
         }
 
+        /// <summary>
+        /// Finds an embeded resource, by name, within the executing assembly and reads it as a <see cref="Stream"/>
+        /// </summary>
+        /// <param name="resourceName">The name of the resource including namespace.</param>
+        /// <exception cref="InvalidOperationException"></exception>
         public static Stream LoadDataAsStream(string resourceName)
         {
             var assembly = Assembly.GetExecutingAssembly();

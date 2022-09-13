@@ -52,7 +52,7 @@ namespace Altinn.Codelists.Tests.AdministrativeUnits.Mocks
             return _administrativeUnitsHttpClient.GetCommunes();
         }
 
-        public Task<List<Commune>> GetCommunes(string countyNumber = "")
+        public Task<List<Commune>> GetCommunes(string countyNumber)
         {
             return _administrativeUnitsHttpClient.GetCommunes(countyNumber);
         }

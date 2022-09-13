@@ -4,8 +4,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.Codelists.AdministrativeUnits.Extensions
 {
+    /// <summary>
+    /// Extends the <see cref="IServiceCollection"/>.
+    /// </summary>
     public static class ServiceCollectionExtensions
     {
+        /// <summary>
+        /// Registers the services required to get support for counties(fylker) and communes(kommuner) codelists.
+        /// </summary>
         public static IServiceCollection AddAdministrativeUnits(this IServiceCollection services)
         {
             services.AddMemoryCache();

@@ -3,8 +3,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Altinn.Codelists.Extensions
 {
+    /// <summary>
+    /// Extends the <see cref="IServiceCollection"/>.
+    /// </summary>
     public static class ServiceCollectionExtensions
     {
+        /// <summary>
+        /// Registers the services required to get support for all codelists.
+        /// </summary>
         public static IServiceCollection AddAltinnCodelists(this IServiceCollection services)
         {
             services.AddAdministrativeUnits();
