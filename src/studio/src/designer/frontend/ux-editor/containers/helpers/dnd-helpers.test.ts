@@ -145,6 +145,9 @@ test('that hoverIndexHelper can be initiated', () => {
     hoverIndexHelper(draggedItem, hoveredItem, undefined, clientOffset),
   ).toBeFalsy();
   expect(
+    hoverIndexHelper(draggedItem, hoveredItem, boundingBox, undefined),
+  ).toBeFalsy();
+  expect(
     hoverIndexHelper(draggedItem, draggedItem, boundingBox, clientOffset),
   ).toBeFalsy();
 });

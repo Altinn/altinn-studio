@@ -114,7 +114,7 @@ export const DroppableDraggableContainer = memo(
       backgroundColor,
       paddingLeft: '1.2rem',
       paddingRight: '1.2rem',
-      border: parentContainerId ? '' : '1px solid #ccc',
+      border: isBaseContainer ? '' : '1px solid #ccc',
       opacity,
     };
     drag(drop(ref));
