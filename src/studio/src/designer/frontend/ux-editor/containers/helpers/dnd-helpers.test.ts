@@ -138,14 +138,17 @@ test('that hoverIndexHelper can be initiated', () => {
     index: 1,
   };
   const clientOffset: XYCoord = { x: 500, y: 290 };
-  const result = hoverIndexHelper(
-    draggedItem,
-    hoveredItem,
-    boundingBox,
-    clientOffset,
-  );
-  expect(result).toBeFalsy();
+  expect(
+    hoverIndexHelper(draggedItem, hoveredItem, boundingBox, clientOffset),
+  ).toBeFalsy();
+  expect(
+    hoverIndexHelper(draggedItem, hoveredItem, undefined, clientOffset),
+  ).toBeFalsy();
+  expect(
+    hoverIndexHelper(draggedItem, draggedItem, boundingBox, clientOffset),
+  ).toBeFalsy();
 });
+
 const id = randomUUID();
 test.each([
   [true, undefined, true],
