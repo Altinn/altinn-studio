@@ -3,11 +3,9 @@
 namespace Designer.Tests;
 
 /// <summary>
-/// TODO: This is the same class as the one in the DataModeling.Tests project.
-/// TODO: Create new project or externalize class in some common nuget package.
+/// Base class for fluent tests.
 /// </summary>
 /// <typeparam name="T"></typeparam>
-[Obsolete("Move and merge with same class from Datamodeling.Tests")]
 public class FluentTestsBase<T>
     where T : class
 {
