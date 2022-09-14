@@ -15,28 +15,18 @@ const useStyles = makeStyles({
     '& button': {
       color: '#0062BA',
       transition: 'none',
-      '&:last-child': {
-        marginLeft: 'auto',
-        marginRight: 0
-      }
+    },
+    '& button[class*="selected"]': {
+      color: '#FFF',
+    },
+    '& button[class*="toggle"]': {
+      fontSize: '1em',
+      paddingTop: 4,
     },
   },
-  switchLabel: {
-    fontSize: '16px',
-  },
-  switchLabelRoot: {
-    marginLeft: '0',
-  },
-  switchInput: {
-    fontSize: '16px',
-    marginTop: '10px',
-  },
-  switch: {
-    background: 'none',
-    marginLeft: 24,
-    '&:hover': {
-      border: '2px solid #008FD6',
-    }
+  saveButton: {
+    marginLeft: 'auto',
+    marginRight: 10,
   },
 });
 
@@ -56,9 +46,10 @@ export function TopToolbar({ editMode, Toolbar, saveAction, toggleEditMode, lang
       {Toolbar}
       <TopToolbarButton
         onClick={saveAction || (() => undefined)}
-        disabled={!saveAction}
+        disabled={!editMode || !saveAction}
         faIcon='fa fa-floppy'
         iconSize={24}
+        className={classes.saveButton}
       >
         {getTranslation('save_data_model', language)}
       </TopToolbarButton>

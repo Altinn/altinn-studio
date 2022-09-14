@@ -19404,6 +19404,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-leaflet@npm:^4.0.1":
+  version: 4.0.2
+  resolution: "react-leaflet@npm:4.0.2"
+  dependencies:
+    "@react-leaflet/core": ^2.0.1
+  peerDependencies:
+    leaflet: ^1.8.0
+    react: ^18.0.0
+    react-dom: ^18.0.0
+  checksum: 252cc8c5c1f38cddfd1f9093bac4b11d1c8c4a373bed097d2141ae8b50d3fbc7262c1c0e67a0d680af652ca1612e0444a05203847e2b5cd80e5c4795230299b4
+  languageName: node
+  linkType: hard
+
 "react-lifecycles-compat@npm:^3.0.0":
   version: 3.0.4
   resolution: "react-lifecycles-compat@npm:3.0.4"
@@ -19436,6 +19449,18 @@ __metadata:
     "@types/react": ^17.x
     react: ^17.x
   checksum: ac260730208fc2b852bdd8c2a7bf3e8c60d4d9b701bde87d4791f4a6469361c2475c5b3eb9c40dcb9ec547984bf0e8e8461cbf277827dcdc45afba379622f382
+  languageName: node
+  linkType: hard
+
+"react-number-format@npm:^4.9.3":
+  version: 4.9.4
+  resolution: "react-number-format@npm:4.9.4"
+  dependencies:
+    prop-types: ^15.7.2
+  peerDependencies:
+    react: ^0.14 || ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
+    react-dom: ^0.14 || ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
+  checksum: 61df4ce5fecfcd3424309af65928327aebbe80094cda28941da324995e49152d71b28fedb4c6494ca2fdfb9be1879032da9077f4d33a41ecc999f251c604d5c9
   languageName: node
   linkType: hard
 
