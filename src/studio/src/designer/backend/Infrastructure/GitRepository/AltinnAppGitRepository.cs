@@ -194,7 +194,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="jsonTexts">Text file for language as string</param>
         public async Task SaveTextsV2(string languageCode, Dictionary<string, string> jsonTexts)
         {
-            string fileName = $"texts.{languageCode}.json";
+            string fileName = $"{languageCode}.texts.json";
 
             var textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
 
@@ -270,7 +270,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <returns>Texts as a string</returns>
         public async Task<string> GetTextsV2(string languageCode)
         {
-            string fileName = $"texts.{languageCode}.json";
+            string fileName = $"{languageCode}.texts.json";
 
             var textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
 
@@ -286,7 +286,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <returns>A boolean value that indicates if the file was deleted or not</returns>
         public bool DeleteTexts(string languageCode)
         {
-            string fileName = $"texts.{languageCode}.json";
+            string fileName = $"{languageCode}.texts.json";
 
             var textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
 
