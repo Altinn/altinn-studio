@@ -318,7 +318,7 @@ describe('SchemaEditorSlice', () => {
   it('handles addRootItem', () => {
     const payload = {
       name: 'superman',
-      location: 'definitions',
+      location: '#/definitions',
       props: {
         type: FieldType.Object,
       } as Partial<UiSchemaItem>,

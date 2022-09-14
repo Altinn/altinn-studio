@@ -1,6 +1,7 @@
 export interface SchemaSettings {
   rootNodePath: string;
   definitionsPath: string;
+  propertiesPath: string;
 }
 
 export enum JsonSchemaDrafts {
@@ -20,24 +21,18 @@ export interface SchemaSettingsProps {
 
 
 export function getSchemaSettings({
-  schemaUrl,
-  schemaInfo}
+  schemaUrl}
 : SchemaSettingsProps): SchemaSettings {
-  if (schemaUrl && schemaUrl === JsonSchemaDrafts.v12) {
-    return {
-      rootNodePath: '#/oneOf',
-      definitionsPath: '#/$defs',
-    }
-  }
-
-  let rootNodePath = '#/properties';
-
-  if (schemaInfo && schemaInfo.meldingsnavn) {
-    rootNodePath = `#/properties`;
-  }
-
-  return {
-    rootNodePath,
+  const settings: SchemaSettings = {
     definitionsPath: '#/definitions',
+    propertiesPath: '#/properties',
+    rootNodePath: '#/properties',
+  };
+
+  if (schemaUrl && schemaUrl === JsonSchemaDrafts.v12) {
+    settings.definitionsPath = '#/$defs';
+    settings.rootNodePath = '#/oneOf';
   }
+
+  return settings;
 }

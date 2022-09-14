@@ -88,7 +88,7 @@ test('should show context menu and trigger correct dispatch when adding a field 
   expect(lastAction.type).toBe('schemaEditor/addRootItem');
   expect(lastAction.payload).toEqual({
     name: 'name',
-    location: 'properties',
+    location: '#/properties',
     props: {
       type: FieldType.Object,
     },
@@ -104,7 +104,7 @@ test('should show context menu and trigger correct dispatch when adding a refere
   expect(lastAction.type).toBe('schemaEditor/addRootItem');
   expect(lastAction.payload).toEqual({
     name: 'name',
-    location: 'properties',
+    location: '#/properties',
     props: {
       $ref: '',
     },
@@ -256,7 +256,7 @@ test('should trigger correct dispatch when adding combination to root', async ()
   expect(lastAction.type).toBe('schemaEditor/addRootItem');
   expect(lastAction.payload).toEqual({
     name: 'name',
-    location: 'properties',
+    location: '#/properties',
     props: {
       combination: [],
       combinationKind: CombinationKind.AllOf,

@@ -147,6 +147,10 @@ export const SchemaEditor = (props: IEditorProps) => {
     d.path.startsWith(`${schemaSettings.definitionsPath}/`),
   );
   const modelView = uiSchema.filter((d: UiSchemaItem) => {
+    if (d.path.startsWith(schemaSettings.propertiesPath)) {
+      return true;
+    }
+
     if (schemaSettings.rootNodePath !== '#/oneOf') {
       return d.path.startsWith(schemaSettings.rootNodePath);
     }
@@ -204,7 +208,7 @@ export const SchemaEditor = (props: IEditorProps) => {
     dispatch(
       addRootItem({
         name: 'name',
-        location: 'properties',
+        location: schemaSettings.propertiesPath,
         props: {
           type: type === ObjectKind.Field ? FieldType.Object : undefined,
           $ref: type === ObjectKind.Reference ? '' : undefined,
@@ -222,7 +226,7 @@ export const SchemaEditor = (props: IEditorProps) => {
     dispatch(
       addRootItem({
         name: 'name',
-        location: 'definitions',
+        location: schemaSettings.definitionsPath,
         props: {
           type: FieldType.Object,
         },
