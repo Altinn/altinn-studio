@@ -7,32 +7,34 @@ export const createNodeId = () => (Math.random() + 1).toString(36).substring(7);
 
 export const ROOT_POINTER = '#';
 
-interface ItemBase {
+export interface NewUiSchemaItem {
   nodeId: string;
-  pointer: string;
-  isRequired?: boolean;
-  children: string[];
-  attributes: Map<string, any>;
-  restrictions: Restriction[];
-}
-export interface NewUiSchemaItem extends ItemBase {
-  description?: string;
-  enum?: string[];
-  fieldType?: FieldType;
-  objectKind?: ObjectKind;
+  objectKind: ObjectKind;
+  fieldType: FieldType | CombinationKind;
+  implicitType: boolean; // the
   pointer: string;
   ref?: string;
+  attributes: { [key: string]: any };
+  children: string[];
+  description?: string;
+  enum?: string[];
+  isRequired: boolean;
   title?: string;
   value?: any;
+  restrictions: Restriction[];
 }
-const createNodeBase = (pointer: string): ItemBase => {
+const createNodeBase = (...args: string[]): NewUiSchemaItem => {
+  const pointer = args.join('/');
   return {
+    fieldType: FieldType.Object,
+    objectKind: ObjectKind.Field,
     nodeId: createNodeId(),
     pointer,
-    isRequired: true,
+    isRequired: false,
     children: [],
-    attributes: new Map(),
+    attributes: {},
     restrictions: [],
+    implicitType: false,
   };
 };
 
@@ -45,9 +47,12 @@ const createPointerLookupTable = (
 };
 export const createUiSchema = (
   parentSchema: any,
-  nodeBase?: ItemBase,
+  nodeBase?: NewUiSchemaItem,
 ): Map<string, NewUiSchemaItem> => {
   const parentNode = nodeBase ?? createNodeBase(ROOT_POINTER);
+  parentNode.objectKind =
+    parentSchema.$ref !== undefined ? ObjectKind.Reference : ObjectKind.Field;
+
   const map = new Map<string, NewUiSchemaItem>();
 
   /**
@@ -55,48 +60,59 @@ export const createUiSchema = (
    */
   Object.values(CombinationKind).forEach((kind) => {
     if (parentSchema[kind]) {
-      const combo = createNodeBase([parentNode.pointer, kind].join('/'));
+      // The current schema is a combination schema.
       parentSchema[kind].map((node: any, index: any) => {
-        const child = createNodeBase([combo.pointer, index].join('/'));
+        const child = createNodeBase(parentNode.pointer, kind, index);
+        child.isRequired = false;
         createUiSchema(node, child).forEach((i, k) => map.set(k, i));
-        combo.children.push(child.nodeId);
+        parentNode.children.push(child.nodeId);
       });
-      map.set(combo.nodeId, {
-        ...combo,
-        objectKind: ObjectKind.Combination,
-      });
+      parentNode.objectKind = ObjectKind.Combination;
+
+      // For some weird reason some combination items might have a type set, and apparently that is ok.
+      parentNode.fieldType = parentSchema.type ?? kind;
     }
   });
 
   /**
    * Dealing properties and definitions
    */
-  const containsNodes = ['$defs', 'properties'];
-  containsNodes.forEach((key1) => {
-    if (parentSchema[key1]) {
-      Object.keys(parentSchema[key1]).forEach((key2) => {
-        const child = createNodeBase(
-          [parentNode.pointer, key1, key2].join('/'),
-        );
-        child.isRequired = !!parentSchema.required?.includes(key2);
-        createUiSchema(parentSchema[key1][key2], child).forEach((v, k) =>
-          map.set(k, v),
-        );
-        parentNode.children.push(child.nodeId);
-      });
-    }
-  });
-  const ignore = ['type', '$ref', 'required'];
+
+  if (parentSchema.$defs) {
+    Object.keys(parentSchema.$defs).forEach((key) => {
+      const child = createNodeBase(parentNode.pointer, '$defs', key);
+      createUiSchema(parentSchema.$defs[key], child).forEach((v, k) =>
+        map.set(k, v),
+      );
+      parentNode.children.push(child.nodeId);
+    });
+  }
+  if (parentSchema.properties) {
+    Object.keys(parentSchema.properties).forEach((key) => {
+      const child = createNodeBase(parentNode.pointer, 'properties', key);
+      child.isRequired = !!parentSchema.required?.includes(key);
+      createUiSchema(parentSchema.properties[key], child).forEach((v, k) =>
+        map.set(k, v),
+      );
+      parentNode.children.push(child.nodeId);
+    });
+  }
+  const specialAttributes = [
+    'type',
+    '$ref',
+    '$defs',
+    'required',
+    'properties',
+    ...Object.values(CombinationKind),
+  ];
   Object.keys(parentSchema).forEach((key) => {
-    if (!containsNodes.includes(key) && !ignore.includes(key)) {
-      parentNode.attributes.set(key, parentSchema[key]);
+    if (!specialAttributes.includes(key)) {
+      parentNode.attributes[key] = parentSchema[key];
     }
   });
-  const objectKind =
-    parentSchema.$ref !== undefined ? ObjectKind.Reference : ObjectKind.Field;
 
   // Restrictions
-  if (parentSchema.type) {
+  if (parentSchema.type && parentNode.objectKind === ObjectKind.Field) {
     getRestrictions(parentSchema.type).forEach((key) =>
       parentNode.restrictions.push({
         key,
@@ -114,10 +130,19 @@ export const createUiSchema = (
       }
     });
   }
+
+  if (typeof parentSchema.properties === 'object') {
+    parentNode.fieldType = FieldType.Object;
+  } else if (parentSchema.type && parentNode.objectKind === ObjectKind.Field) {
+    parentNode.fieldType = parentSchema.type;
+  }
+
+  if (!parentSchema.type) {
+    parentNode.implicitType = true;
+  }
+
   return map.set(parentNode.nodeId, {
     ...parentNode,
-    fieldType: parentSchema.type,
-    objectKind,
     ref: parentSchema.$ref,
   });
 };
@@ -125,13 +150,11 @@ export const createUiSchema = (
 export const createJsonSchema = (uiSchemaMap: Map<string, NewUiSchemaItem>) => {
   const allPointers: string[] = [];
   const output: any = {};
+  const lookup = createPointerLookupTable(uiSchemaMap);
   uiSchemaMap.forEach((uiSchemaNode) => {
     if (uiSchemaNode.pointer === ROOT_POINTER) {
-      uiSchemaNode.attributes.forEach((value, key) => {
-        output[key] = value;
-      });
+      Object.assign(output, uiSchemaNode.attributes);
       output.type = uiSchemaNode.fieldType;
-
       // Find required children
       JSONPointer.set(
         output,
@@ -142,18 +165,17 @@ export const createJsonSchema = (uiSchemaMap: Map<string, NewUiSchemaItem>) => {
       allPointers.push(uiSchemaNode.pointer);
     }
   });
-  allPointers.sort();
 
-  const lookup = createPointerLookupTable(uiSchemaMap);
+  allPointers.sort();
   allPointers.forEach((sortedPointer: string) => {
     const uiSchemaNode = uiSchemaMap.get(
       lookup.get(sortedPointer) as string,
     ) as NewUiSchemaItem;
     const pointer = uiSchemaNode.pointer.replace(ROOT_POINTER, '');
-    const startValue =
-      uiSchemaNode.objectKind === ObjectKind.Combination
-        ? []
-        : Object.fromEntries(uiSchemaNode.attributes);
+    const startValue = Object.assign({}, uiSchemaNode.attributes);
+    if (uiSchemaNode.objectKind === ObjectKind.Combination) {
+      startValue[uiSchemaNode.fieldType] = [];
+    }
 
     JSONPointer.set(output, pointer, startValue);
 
@@ -162,8 +184,12 @@ export const createJsonSchema = (uiSchemaMap: Map<string, NewUiSchemaItem>) => {
       const reference = uiSchemaMap.get(uiSchemaNode.ref) as NewUiSchemaItem;
       JSONPointer.set(output, [pointer, '$ref'].join('/'), reference.pointer);
     }
-    // Setting Type
-    if (uiSchemaNode.fieldType) {
+
+    // Setting Type for fields
+    if (
+      uiSchemaNode.objectKind === ObjectKind.Field &&
+      !uiSchemaNode.implicitType
+    ) {
       JSONPointer.set(
         output,
         [pointer, 'type'].join('/'),
