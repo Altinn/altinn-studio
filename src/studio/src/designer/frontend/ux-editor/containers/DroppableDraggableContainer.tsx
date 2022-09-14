@@ -6,15 +6,21 @@ import {
   useDrop,
 } from 'react-dnd';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
-import { dragSourceSpec, getContainerPosition } from './helpers/dnd-helpers';
+import {
+  dragSourceSpec,
+  getContainerPosition,
+  handleDrop,
+  hoverShouldBeIgnored,
+} from './helpers/dnd-helpers';
 import {
   ContainerPos,
   EditorDndEvents,
   EditorDndItem,
   ItemType,
 } from './helpers/dnd-types';
+import { DummyDropTarget } from './DummyDropTarget';
 
-const dropTargetSpec = (
+export const dropTargetSpec = (
   targetItem: EditorDndItem,
   events: EditorDndEvents,
   ref: RefObject<HTMLDivElement>,
@@ -26,39 +32,21 @@ const dropTargetSpec = (
     };
   },
   drop(droppedItem: EditorDndItem, monitor: DropTargetMonitor) {
-    if (!droppedItem) {
-      return;
-    }
-    if (!monitor.isOver({ shallow: true })) {
-      return;
-    }
-    if (monitor.getItemType() === ItemType.ToolbarItem) {
-      if (!droppedItem.onDrop) {
-        console.warn("Draggable Item doesn't have an onDrop-event");
-        return;
-      }
-      if (
-        getContainerPosition(
-          ref.current.getBoundingClientRect(),
-          monitor.getClientOffset(),
-        ) === ContainerPos.Top
-      ) {
-        droppedItem.onDrop(targetItem.id, 0);
-      } else {
-        droppedItem.onDrop(targetItem.id, 99);
-      }
-    } else {
-      events.onDropItem();
-    }
+    handleDrop(
+      droppedItem,
+      monitor,
+      events.onDropItem,
+      targetItem.id,
+      getContainerPosition(
+        ref.current?.getBoundingClientRect(),
+        monitor.getClientOffset(),
+      ) === ContainerPos.Top
+        ? 0
+        : 99,
+    );
   },
   hover(draggedItem: EditorDndItem, monitor: DropTargetMonitor) {
-    if (!draggedItem) {
-      return;
-    }
-    if (!monitor.isOver({ shallow: true })) {
-      return;
-    }
-    if (!draggedItem.containerId && draggedItem.type !== ItemType.ToolbarItem) {
+    if (hoverShouldBeIgnored(monitor, draggedItem)) {
       return;
     }
     if (draggedItem.id === targetItem.id) {
@@ -81,7 +69,8 @@ const dropTargetSpec = (
         ? events.moveItemToBottom(draggedItem)
         : events.moveItemToTop(draggedItem);
     } else if (containerPos) {
-      events.moveItem(draggedItem, targetItem, containerPos);
+      const toIndex = containerPos === ContainerPos.Top ? 0 : 99;
+      events.moveItem(draggedItem, targetItem, toIndex);
     }
   },
 });
@@ -125,20 +114,30 @@ export const DroppableDraggableContainer = memo(
       backgroundColor,
       paddingLeft: '1.2rem',
       paddingRight: '1.2rem',
-      paddingTop: isBaseContainer ? '1.2rem' : '',
-      border: parentContainerId ? '' : '1px solid #ccc',
-      marginBottom: isBaseContainer ? '' : '12px',
+      border: isBaseContainer ? '1px solid #ccc' : '',
       opacity,
     };
     drag(drop(ref));
     return (
-      <div
-        style={style}
-        ref={ref}
-        data-testid={'droppable-draggable-container'}
-      >
-        {children}
-      </div>
+      <>
+        <DummyDropTarget
+          index={isBaseContainer ? 0 : index}
+          containerId={isBaseContainer ? id : parentContainerId}
+          events={dndEvents}
+        />
+        <div
+          style={style}
+          ref={ref}
+          data-testid={'droppable-draggable-container'}
+        >
+          {children}
+        </div>
+        <DummyDropTarget
+          index={isBaseContainer ? 99 : index + 1}
+          containerId={isBaseContainer ? id : parentContainerId}
+          events={dndEvents}
+        />
+      </>
     );
   },
 );
