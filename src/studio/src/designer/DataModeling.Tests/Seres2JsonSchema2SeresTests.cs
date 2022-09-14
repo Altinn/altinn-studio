@@ -14,18 +14,23 @@ using DataModeling.Tests.Assertions;
 using Json.Schema;
 using Xunit;
 using Xunit.Abstractions;
+using XmlSchemaValidator = DataModeling.Tests.TestHelpers.XmlSchemaValidator;
 
 namespace DataModeling.Tests
 {
-    public class Seres2JsonSchema2SeresTests
+    public class Seres2JsonSchema2SeresTests: FluentTestsBase<Seres2JsonSchema2SeresTests>
     {
         private readonly ITestOutputHelper _testOutputHelper;
+
+        private XmlSchema _originalXsdSchema;
+        private JsonSchema _convertedJsonSchema;
+        private XmlSchema _convertedXsdSchema;
 
         public Seres2JsonSchema2SeresTests(ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
         }
-        
+
         [Theory]
         [InlineData("Seres/HvemErHvem.xsd", "Seres/HvemErHvem.xml")]
         [InlineData("Model/XmlSchema/Seres/SeresNillable.xsd", "")]
@@ -41,39 +46,20 @@ namespace DataModeling.Tests
         [InlineData("Seres/schema_5064_1_forms_5793_42882.xsd", "")]
         [InlineData("Seres/schema_5259_1_forms_9999_50000.xsd", "")]
         [InlineData("Seres/schema_4956_1_forms_5692_42617.xsd", "")]
-        public async Task ConvertSeresXsd_SeresGeneratedXsd_ShouldConvertToJsonSchemaAndBackToXsd(string xsdSchemaPath, string xmlPath)
+        [InlineData("Seres/schema_4660_1_forms_2500_2500.xsd", "")]
+        public void ConvertSeresXsd_SeresGeneratedXsd_ShouldConvertToJsonSchemaAndBackToXsd(string xsdSchemaPath, string xmlPath)
         {
-            JsonSchemaKeywords.RegisterXsdKeywords();
-
-            XmlSchema originalXsd = ResourceHelpers.LoadXmlSchemaTestData(xsdSchemaPath);
-
-            // Convert the XSD to JSON Schema
-            var xsdToJsonConverter = new XmlSchemaToJsonSchemaConverter();
-            JsonSchema convertedJsonSchema = xsdToJsonConverter.Convert(originalXsd);
-            var convertedJsonSchemaString = JsonSerializer.Serialize(convertedJsonSchema, new JsonSerializerOptions() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement), WriteIndented = true });
-
-            // Convert the converted JSON Schema back to XSD
-            var jsonToXsdConverter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
-            var convertedXsd = jsonToXsdConverter.Convert(convertedJsonSchema);
-
-            var convertedXsdString = await Serialize(convertedXsd);
-            var originalXsdString = await Serialize(originalXsd);
-
-            // The two XSD's should be structural equal, but there might be minor differences if you compare the text
-            XmlSchemaAssertions.IsEquivalentTo(originalXsd, convertedXsd);
-
-            if (!string.IsNullOrEmpty(xmlPath))
-            {
-                // The XML should validate against both XSD's
-                var xml = ResourceHelpers.LoadTestDataAsString(xmlPath);
-                Assert.True(ValidateXml(originalXsd, xml));
-                Assert.True(ValidateXml(convertedXsd, xml));
-            }
+            Given.That.XsdSchemaLoaded(xsdSchemaPath)
+                .And.JsonSchemaKeywordsRegistered()
+                .When.LoadedXsdSchemaConvertedToJsonSchema()
+                .And.When.ConvertedJsonSchemaConvertedToXsdSchema()
+                .Then.OriginalAndConvertedXsdSchemasShouldBeEquivalent()
+                .And.XmlShouldBeValidWithOriginalAndConvertedSchema(xmlPath);
         }
 
         private bool ValidateXml(XmlSchema xmlSchema, string xml)
         {
-            var xmlSchemaValidator = new TestHelpers.XmlSchemaValidator(xmlSchema);
+            var xmlSchemaValidator = new XmlSchemaValidator(xmlSchema);
 
             var validXml = xmlSchemaValidator.Validate(xml);
             if (!validXml)
@@ -100,6 +86,53 @@ namespace DataModeling.Tests
         internal class Utf8StringWriter : StringWriter
         {
             public override Encoding Encoding => Encoding.UTF8;
+        }
+
+        // Fluent methods for test
+        private Seres2JsonSchema2SeresTests JsonSchemaKeywordsRegistered()
+        {
+            JsonSchemaKeywords.RegisterXsdKeywords();
+            return this;
+        }
+
+        private Seres2JsonSchema2SeresTests XsdSchemaLoaded(string xsdSchemaPath)
+        {
+            _originalXsdSchema = ResourceHelpers.LoadXmlSchemaTestData(xsdSchemaPath);
+            return this;
+        }
+
+        private Seres2JsonSchema2SeresTests LoadedXsdSchemaConvertedToJsonSchema()
+        {
+            var xsdToJsonConverter = new XmlSchemaToJsonSchemaConverter();
+            _convertedJsonSchema = xsdToJsonConverter.Convert(_originalXsdSchema);
+            return this;
+        }
+
+        private Seres2JsonSchema2SeresTests ConvertedJsonSchemaConvertedToXsdSchema()
+        {
+            var jsonToXsdConverter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
+            _convertedXsdSchema = jsonToXsdConverter.Convert(_convertedJsonSchema);
+            return this;
+        }
+
+       // Assertion methods
+        private Seres2JsonSchema2SeresTests OriginalAndConvertedXsdSchemasShouldBeEquivalent()
+        {
+            XmlSchemaAssertions.IsEquivalentTo(_originalXsdSchema, _convertedXsdSchema);
+            return this;
+        }
+
+        private Seres2JsonSchema2SeresTests XmlShouldBeValidWithOriginalAndConvertedSchema(string xmlPath)
+        {
+            if (!string.IsNullOrEmpty(xmlPath))
+            {
+                // The XML should validate against both XSD's
+                var xml = ResourceHelpers.LoadTestDataAsString(xmlPath);
+                Assert.True(ValidateXml(_originalXsdSchema, xml));
+                Assert.True(ValidateXml(_convertedXsdSchema, xml));
+            }
+
+            return this;
         }
     }
 }

@@ -65,4 +65,23 @@ class MapUtilsTest {
     assertEquals(expectedResult, result);
   }
 
+  @Test
+  void shouldHandleNullValue() {
+    // Arrange
+    Map<String, Map<String, String>> dictionary = new HashMap<>() {{
+      put("nullValueTest", new HashMap<>() {{
+        put("", null);
+      }});
+    }};
+    String outerKey = "nullValueTest";
+    String innerValue = null;
+    String expectedResult = "";
+
+    // Act
+    String result = MapUtils.getLabelFromValue(dictionary, outerKey, innerValue);
+
+    // Assert
+    assertEquals(expectedResult, result);
+  }
+
 }

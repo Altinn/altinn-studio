@@ -41,7 +41,6 @@ const useStyles = makeStyles({
     border: `0.15rem dotted ${altinnTheme.altinnPalette.primary.grey}`,
     color: `${altinnTheme.altinnPalette.primary.blueDarker}!important`,
     padding: '0.45rem 1.05rem 1.05rem 1.05rem',
-    marginBottom: '1.2rem',
     '&:hover': {
       backgroundColor: '#fff',
       boxShadow: '0rem 0rem 0.4rem rgba(0, 0, 0, 0.25)',

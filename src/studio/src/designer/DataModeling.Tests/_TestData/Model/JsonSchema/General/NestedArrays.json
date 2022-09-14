@@ -25,6 +25,7 @@
             "type": "string",
             "maxItems": 100
           },
+          "minItems": 0,
           "@xsdType": "string"
         }
       },
@@ -48,6 +49,7 @@
               "items": {
                 "type": "string"
               },
+              "minItems": 0,
               "@xsdType": "string"
             }
           }
@@ -66,6 +68,7 @@
               "items": {
                 "type": "string"
               },
+              "minItems": 0,
               "@xsdType": "string"
             }
           }
@@ -84,6 +87,7 @@
               "items": {
                 "type": "string"
               },
+              "minItems": 0,
               "@xsdType": "string"
             }
           }
