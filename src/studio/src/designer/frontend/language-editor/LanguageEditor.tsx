@@ -112,12 +112,11 @@ ILanguageEditorProps) => {
     languages,
   });
 
-  const languageCodes = ISO6391.getLanguages(ISO6391.getAllCodes());
-  const [modifiedLanguageCodes, setModifiedLanguageCodes] = React.useState(
-    languageCodes.map((x: any) => {
-      x.id = x.code;
-      return { value: x.id, label: x.name };
-    }),);
+  const languageCodes = ISO6391.getLanguages(ISO6391.getAllCodes())
+  const [modifiedLanguageCodes, setModifiedLanguageCodes] = React.useState(languageCodes.map((x: any) => {
+    x.id = x.code;
+    return { value: x.id, label: x.name };
+  }));
 
   const handleSelectOnChange = (event) => {
     setSelectedSprak(event);
