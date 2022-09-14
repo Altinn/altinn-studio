@@ -49,13 +49,5 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             altinnAppGitRepository.DeleteTexts(languageCode);
         }
-
-        /// <inheritdoc />
-        public async Task UpdateTexts(string org, string repo, string developer, string languageCode, Dictionary<string, string> jsonText)
-        {
-            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
-
-            await altinnAppGitRepository.SaveTextV2(languageCode, jsonText);
-        }
     }
 }
