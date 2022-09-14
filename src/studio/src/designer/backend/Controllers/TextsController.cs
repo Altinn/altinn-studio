@@ -17,7 +17,7 @@ namespace Altinn.Studio.Designer.Controllers
 {
     /// <summary>
     /// Controller containing actions related to text files in the
-    /// new format; texts.*.json with key:value pairs.
+    /// new format; *.texts.json with key:value pairs.
     /// </summary>
     /// <remarks>
     /// NB: Must not be confused with TextController (singular)
@@ -66,11 +66,11 @@ namespace Altinn.Studio.Designer.Controllers
             }
             catch (IOException)
             {
-                return NotFound($"The texts file, texts.{languageCode}.json, that you are trying to find does not exist.");
+                return NotFound($"The texts file, {languageCode}.texts.json, that you are trying to find does not exist.");
             }
             catch (JsonException)
             {
-                return new ObjectResult(new { errorMessage = $"The format of the file, texts.{languageCode}.json, that you tried to access might be invalid." }) { StatusCode = 500 };
+                return new ObjectResult(new { errorMessage = $"The format of the file, {languageCode}.texts.json, that you tried to access might be invalid." }) { StatusCode = 500 };
             }
         }
 
@@ -95,7 +95,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             if (jsonTexts == null)
             {
-                return BadRequest($"The texts file, texts.{languageCode}.json, that you are trying to add have invalid format.");
+                return BadRequest($"The texts file, {languageCode}.texts.json, that you are trying to add have invalid format.");
             }
 
             await _textsService.UpdateTexts(org, repo, developer, languageCode, jsonTexts);
@@ -123,10 +123,10 @@ namespace Altinn.Studio.Designer.Controllers
 
             if (!deleted)
             {
-                return NotFound($"The file texts.{languageCode}.json is not found or already deleted.");
+                return NotFound($"The file {languageCode}.texts.json is not found or already deleted.");
             }
 
-            return Ok($"Texts file, texts.{languageCode}.json, was successfully deleted.");
+            return Ok($"Texts file, {languageCode}.texts.json, was successfully deleted.");
         }
     }
 }
