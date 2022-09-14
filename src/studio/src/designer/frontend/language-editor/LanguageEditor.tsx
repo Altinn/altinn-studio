@@ -3,6 +3,7 @@
 
 import React from 'react';
 import Select from 'react-select';
+
 import ISO6391 from 'iso-639-1';
 
 import type { ILanguageEditor } from './utils';
@@ -116,8 +117,7 @@ ILanguageEditorProps) => {
     languageCodes.map((x: any) => {
       x.id = x.code;
       return { value: x.id, label: x.name };
-    }),
-  );
+    }),);
 
   const handleSelectOnChange = (event) => {
     setSelectedSprak(event);
@@ -160,8 +160,7 @@ ILanguageEditorProps) => {
 
   return (
     <div style={{ paddingTop: '0', marginTop: '0', backgroundColor: '#FFF' }}>
-      <AltinnColumnLayout
-        style={{ paddingTop: '0', marginTop: '0' }}
+      <AltinnColumnLayout style={{ paddingTop: '0', marginTop: '0' }}
         sideMenuChildren={
           <div className={classes.rightColBodyContainer}>
             <div
@@ -218,7 +217,8 @@ ILanguageEditorProps) => {
                       }}
                     >
                       <div>
-                        <label htmlFor={sprak.id}></label>
+                        <label htmlFor={sprak.id}>
+                        </label>
                       </div>
                       <div>{sprak.name}</div>
                     </div>
@@ -284,7 +284,7 @@ ILanguageEditorProps) => {
           </div>
         }
       >
-        <div style={{ marginBottom: '10rem' }}>
+        <div style={{marginBottom: '10rem'}}>
           <div className={classes.stickyHeader}>
             <Button
               id='nyTekstBtn'
