@@ -29,9 +29,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-            string texts = await altinnAppGitRepository.GetTextsV2(languageCode);
-
-            Dictionary<string, string> jsonTexts = JsonSerializer.Deserialize<Dictionary<string, string>>(texts);
+            Dictionary<string, string> jsonTexts = await altinnAppGitRepository.GetTextsV2(languageCode);
 
             return jsonTexts;
         }
@@ -45,13 +43,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public bool DeleteTexts(string org, string repo, string developer, string languageCode)
+        public void DeleteTexts(string org, string repo, string developer, string languageCode)
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-            bool deleted = altinnAppGitRepository.DeleteTexts(languageCode);
-
-            return deleted;
+            altinnAppGitRepository.DeleteTexts(languageCode);
         }
     }
 }

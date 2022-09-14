@@ -38,7 +38,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="repo">Repository identifier which is unique within an organisation.</param>
         /// <param name="developer">Username of developer currently working in the repo.</param>
         /// <param name="languageCode">LanguageCode to identify the specific text file.</param>
-        /// <returns>A boolean value indicating if the language was deleted or not.</returns>
-        public bool DeleteTexts(string org, string repo, string developer, string languageCode);
+        public void DeleteTexts(string org, string repo, string developer, string languageCode);
     }
 }

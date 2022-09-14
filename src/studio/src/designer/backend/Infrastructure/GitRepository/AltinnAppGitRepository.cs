@@ -268,7 +268,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="languageCode">Language identifier</param>
         /// <returns>Texts as a string</returns>
-        public async Task<string> GetTextsV2(string languageCode)
+        public async Task<Dictionary<string, string>> GetTextsV2(string languageCode)
         {
             string fileName = $"{languageCode}.texts.json";
 
@@ -276,29 +276,22 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
             string texts = await ReadTextByRelativePathAsync(textsFileRelativeFilePath);
 
-            return texts;
+            Dictionary<string, string> jsonTexts = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(texts);
+
+            return jsonTexts;
         }
 
         /// <summary>
         /// Deletes the texts file for a specific languageCode.
         /// </summary>
         /// <param name="languageCode">Language identifier</param>
-        /// <returns>A boolean value that indicates if the file was deleted or not</returns>
-        public bool DeleteTexts(string languageCode)
+        public void DeleteTexts(string languageCode)
         {
             string fileName = $"{languageCode}.texts.json";
 
             var textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
 
-            bool deleted = false;
-
-            if (File.Exists(GetAbsoluteFilePathSanitized(textsFileRelativeFilePath)))
-            {
-                DeleteFileByRelativePath(textsFileRelativeFilePath);
-                deleted = true;
-            }
-
-            return deleted;
+            DeleteFileByRelativePath(textsFileRelativeFilePath);
         }
 
         /// <summary>

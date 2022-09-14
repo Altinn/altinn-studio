@@ -113,18 +113,12 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpDelete]
         [Produces("application/json")]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [Route("{languageCode}")]
-        public ActionResult<bool> Delete(string org, string repo, [FromRoute] string languageCode)
+        public ActionResult<string> Delete(string org, string repo, [FromRoute] string languageCode)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            bool deleted = _textsService.DeleteTexts(org, repo, developer, languageCode);
-
-            if (!deleted)
-            {
-                return NotFound($"The file {languageCode}.texts.json is not found or already deleted.");
-            }
+            _textsService.DeleteTexts(org, repo, developer, languageCode);
 
             return Ok($"Texts file, {languageCode}.texts.json, was successfully deleted.");
         }
