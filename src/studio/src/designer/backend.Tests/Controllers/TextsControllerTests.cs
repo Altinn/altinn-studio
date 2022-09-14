@@ -74,7 +74,7 @@ namespace Designer.Tests.Controllers
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
 
             Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
-            Assert.Equal("The texts file, texts.uk.json, that you are trying to find does not exist.", responseDocument.RootElement.ToString());
+            Assert.Equal("The texts file, uk.texts.json, that you are trying to find does not exist.", responseDocument.RootElement.ToString());
         }
 
         [Fact]
@@ -91,7 +91,7 @@ namespace Designer.Tests.Controllers
             Dictionary<string, string> responseDictionary = JsonSerializer.Deserialize<Dictionary<string, string>>(responseDocument.RootElement.ToString());
 
             Assert.Equal(StatusCodes.Status500InternalServerError, (int)response.StatusCode);
-            Assert.Equal("The format of the file, texts.en.json, that you tried to access might be invalid.", responseDictionary["errorMessage"]);
+            Assert.Equal("The format of the file, en.texts.json, that you tried to access might be invalid.", responseDictionary["errorMessage"]);
         }
 
         [Fact]
@@ -135,7 +135,7 @@ namespace Designer.Tests.Controllers
             try
             {
                 Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
-                Assert.Equal("The texts file, texts.nb.json, that you are trying to add have invalid format.", responseDocument.RootElement.ToString());
+                Assert.Equal("The texts file, nb.texts.json, that you are trying to add have invalid format.", responseDocument.RootElement.ToString());
             }
             finally
             {
@@ -160,7 +160,7 @@ namespace Designer.Tests.Controllers
             try
             {
                 Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-                Assert.Equal("Texts file, texts.nb.json, was successfully deleted.", responseDocument.RootElement.ToString());
+                Assert.Equal("Texts file, nb.texts.json, was successfully deleted.", responseDocument.RootElement.ToString());
             }
             finally
             {
@@ -185,7 +185,7 @@ namespace Designer.Tests.Controllers
             try
             {
                 Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
-                Assert.Equal("The file texts.uk.json is not found or already deleted.", responseDocument.RootElement.ToString());
+                Assert.Equal("The file uk.texts.json is not found or already deleted.", responseDocument.RootElement.ToString());
             }
             finally
             {
