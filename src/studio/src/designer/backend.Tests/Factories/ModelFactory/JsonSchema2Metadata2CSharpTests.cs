@@ -34,7 +34,7 @@ namespace Designer.Tests.Factories.ModelFactory
         private string _csharpClasses;
         private Assembly _compiledAssembly;
         private Type _typeFromAssembly;
-        private object _deserializedObjectFromAssemblyType;
+        private object _deserializedJsonObjectFromAssemblyType;
         private string _serializedManateeObject;
         private XmlSchema _xsdSchema;
         private object _deserializedXmlObject;
@@ -43,6 +43,8 @@ namespace Designer.Tests.Factories.ModelFactory
         private JsonSchema _expectedJsonSchema;
         private Type _expectedType;
         private object _expectedInstanceFromType;
+        private object _expectedXmlObject;
+        private object _expectedJsonObject;
 
         public JsonSchema2Metadata2CSharpTests(ITestOutputHelper outputHelper)
         {
@@ -63,7 +65,7 @@ namespace Designer.Tests.Factories.ModelFactory
                 .And.CSharpClassesGeneratedFromModelMetadata()
                 .And.Then.CSharpClassesCompiledToAssembly()
                 .And.TypeReadFromAssembly("Altinn.App.Models.melding")
-                .And.ObjectDeserializedToTypeFromAssembly(
+                .And.JsonObjectDeserializedToTypeFromAssembly(
                     @"{""test"":{""navn"":""Ronny""}}")
                 .And.Then
                 .DeserializedObjectSerializedToStringWithManatee()
@@ -73,7 +75,7 @@ namespace Designer.Tests.Factories.ModelFactory
                 .And.LoadedJsonSchemaConvertedToXsdSchemaOld()
                 .Then.XmlShouldBeValidWithXsdSchema(xmlStr)
                 .And.When
-                .XmlDeserializedToTypeFromAssembly(xmlStr)
+                .XmlObjectDeserializedToTypeFromAssembly(xmlStr)
                 .Then.DeserializedObjectFromAssemblyShouldBeEquivalentToDeserializedXmlObjectFromAssembly();
         }
 
@@ -83,16 +85,17 @@ namespace Designer.Tests.Factories.ModelFactory
         [InlineData("Designer.Tests._TestData.Model.JsonSchema.hvem-er-hvem.json", "Altinn.App.Models.HvemErHvem_M", "{\"dataFormatProvider\":\"SERES\",\"dataFormatId\":\"5742\",\"dataFormatVersion\":\"34627\",\"Innrapportoer\":{\"geek\":{\"navn\":\"Ronny\",\"foedselsdato\":\"1971-11-02\",\"epost\":\"ronny.birkeli@gmail.com\"}},\"InnrapporterteData\":{\"geekType\":\"backend\",\"altinnErfaringAAr\":0}}", "<?xml version=\"1.0\"?><melding xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" dataFormatProvider=\"SERES\" dataFormatId=\"5742\" dataFormatVersion=\"34627\"><Innrapportoer><geek><navn>Ronny</navn><foedselsdato>1971-11-02</foedselsdato><epost>ronny.birkeli@gmail.com</epost></geek></Innrapportoer><InnrapporterteData><geekType>backend</geekType><altinnErfaringAAr>0</altinnErfaringAAr></InnrapporterteData></melding>")]
         public void SeresSchema_ShouldSerializeToCSharp(string resourceName, string modelName, string json, string xml)
         {
+            // Preparing objects using old classes and metadata.
             Given.That.JsonSchemaLoaded(resourceName)
                 .And.ModelMetadataCreatedFromJsonSchemaOldWay("yabbin", "hvem-er-hvem")
                 .And.CSharpClassesGeneratedFromModelMetadata()
                 .When.CSharpClassesCompiledToAssembly()
                 .And.TypeReadFromAssembly(modelName)
-                .And.ObjectDeserializedToTypeFromAssembly(json)
+                .And.JsonObjectDeserializedToTypeFromAssembly(json)
                 .And.DeserializedObjectSerializedToStringWithManatee()
                 .Then.JsonStringShouldBeTheSameAsSerializedObjectWithManatee(json)
                 .And.When
-                .XmlDeserializedToTypeFromAssembly(xml)
+                .XmlObjectDeserializedToTypeFromAssembly(xml)
                 .And.LoadedJsonSchemaConvertedToXsdSchemaOld()
                 .Then.XmlShouldBeValidWithXsdSchema(xml)
                 .And.DeserializedObjectFromAssemblyShouldBeEquivalentToDeserializedXmlObjectFromAssembly();
@@ -103,6 +106,7 @@ namespace Designer.Tests.Factories.ModelFactory
         [InlineData("Designer.Tests._TestData.Model.Xsd.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd", "Altinn.App.Models.HvemErHvem_M", "Designer.Tests._TestData.Model.JsonSchema.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.expected.schema.json", "Designer.Tests._TestData.Model.CSharp.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.expected.csharp.txt")]
         public void SeresOrXmlSchema_ShouldSerializeToCSharp(string xsdResource, string modelName, string expectedJsonSchemaResource, string expectedCSharpResource)
         {
+            // Preparing objects using old classes and metadata.
             Given.That.InfoKeywordAddedToSchemaKeywordCatalog()
                 .When.JsonSchemaLoadedFromXsdResourceOldWay(xsdResource)
                 .And.ExpectedJsonSchemaLoaded(expectedJsonSchemaResource)
@@ -114,46 +118,35 @@ namespace Designer.Tests.Factories.ModelFactory
                 .And.ModelInstanceObjectCreatedFromType()
                 .Then.TypeShouldBeDecoratedWithXmlRootAttribute()
                 .And.When.ExpectedTypeAndInstanceObjectLoadedFromCsharpResource(expectedCSharpResource, modelName)
-                .Then.TypeShouldHasSameMetadataDefinitionAsExpected()
-                .And.ModelInstanceObjectShouldBeEquivalentAsExpected();
+                .Then.TypeShouldHasSameMetadataDefinitionToExpected()
+                .And.ModelInstanceObjectShouldBeEquivalentToExpected();
         }
 
         [Theory]
         [InlineData("Designer.Tests._TestData.Model.Xsd.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd", "Altinn.App.Models.HvemErHvem_M", "{\"dataFormatProvider\":\"SERES\",\"dataFormatId\":\"5742\",\"dataFormatVersion\":\"34627\",\"Innrapportoer\":{\"geek\":{\"navn\":\"Ronny\",\"foedselsdato\":\"1971-11-02\",\"epost\":\"ronny.birkeli@gmail.com\"}},\"InnrapporterteData\":{\"geekType\":\"backend\",\"altinnErfaringAAr\":0}}", "<?xml version=\"1.0\"?><melding xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" dataFormatProvider=\"SERES\" dataFormatId=\"5742\" dataFormatVersion=\"34627\"><Innrapportoer><geek><navn>Ronny</navn><foedselsdato>1971-11-02</foedselsdato><epost>ronny.birkeli@gmail.com</epost></geek></Innrapportoer><InnrapporterteData><geekType>backend</geekType><altinnErfaringAAr>0</altinnErfaringAAr></InnrapporterteData></melding>")]
         public void XSD_ConvertToCSharp_NewAndOldShouldResultInSameCSharp(string xsdResource, string modelName, string jsonModel, string xmlModel)
         {
-            Given.That.JsonSchemaKeywordsRegistered();
+            // Preparing objects using old classes and metadata.
+            Given.That.JsonSchemaKeywordsRegistered()
+                .And.JsonSchemaLoadedFromXsdResourceOldWay(xsdResource)
+                .And.ModelMetadataCreatedFromJsonSchemaOldWay("yabbin", "hvem-er-hvem")
+                .And.CSharpClassesGeneratedFromModelMetadata()
+                .And.CSharpClassesCompiledToAssembly()
+                .And.TypeReadFromAssembly(modelName)
+                .And.JsonObjectDeserializedToTypeFromAssembly(jsonModel)
+                .And.XmlObjectDeserializedToTypeFromAssembly(xmlModel)
 
-            Altinn.Studio.DataModeling.Json.Keywords.JsonSchemaKeywords.RegisterXsdKeywords();
-            var org = "yabbin";
-            var app = "hvem-er-hvem";
-
-            Assembly assemblyOld = CreateCSharpInstanceOldWay(xsdResource, org, app, modelName);
-            Assembly assemblyNew = CreateCSharpInstanceNewWay(xsdResource, org, app, modelName);
-
-            Type oldType = assemblyOld.GetType(modelName);
-            Type newType = assemblyNew.GetType(modelName);
-
-            object oldJsonObject = JsonSerializer.Deserialize(jsonModel, oldType);
-            object newJsonObject = JsonSerializer.Deserialize(jsonModel, newType);
-
-            object oldXmlObject = SerializationHelper.Deserialize(xmlModel, oldType);
-            object newXmlObject = SerializationHelper.Deserialize(xmlModel, newType);
-
-            // They should all be the same, at least for the cases provided so far.
-            newJsonObject.Should().BeEquivalentTo(oldJsonObject);
-            newXmlObject.Should().BeEquivalentTo(oldXmlObject);
-            newJsonObject.Should().BeEquivalentTo(newXmlObject);
-        }
-
-        private static Assembly CreateCSharpInstanceOldWay(string xsdResource, string org, string app, string modelName)
-        {
-            ModelMetadata modelMetadataOld = CreateMetamodelOldWay(xsdResource, org, app);
-            string classesOldWay = GenerateCSharpClasses(modelMetadataOld);
-            var instanceOldWay = CreateCSharpInstance(modelName, classesOldWay);
-            Assembly assembly = Compiler.CompileToAssembly(classesOldWay);
-
-            return assembly;
+                // Create expected objects created with new classes.
+                .When.ExpectedJsonAndXmlObjectCreatedNewWay(
+                    "yabbin",
+                    "hvem-er-hvem",
+                    xsdResource,
+                    modelName,
+                    jsonModel,
+                    xmlModel)
+                .Then.JsonObjectShouldBeEquivalentToExpected()
+                .And.XmlObjectShouldBeEquivalentToExpected()
+                .And.ExpectedJsonObjectShouldBeEquivalentToExpectedXmlObject();
         }
 
         private static Assembly CreateCSharpInstanceNewWay(string xsdResource, string org, string app, string modelName)
@@ -308,15 +301,15 @@ namespace Designer.Tests.Factories.ModelFactory
             return this;
         }
 
-        private JsonSchema2Metadata2CSharpTests ObjectDeserializedToTypeFromAssembly(string json)
+        private JsonSchema2Metadata2CSharpTests JsonObjectDeserializedToTypeFromAssembly(string json)
         {
-            _deserializedObjectFromAssemblyType = JsonSerializer.Deserialize(json, _typeFromAssembly);
+            _deserializedJsonObjectFromAssemblyType = JsonSerializer.Deserialize(json, _typeFromAssembly);
             return this;
         }
 
         private JsonSchema2Metadata2CSharpTests DeserializedObjectSerializedToStringWithManatee()
         {
-            _serializedManateeObject = new Manatee.Json.Serialization.JsonSerializer().Serialize(_deserializedObjectFromAssemblyType).ToString();
+            _serializedManateeObject = new Manatee.Json.Serialization.JsonSerializer().Serialize(_deserializedJsonObjectFromAssemblyType).ToString();
             return this;
         }
 
@@ -327,7 +320,7 @@ namespace Designer.Tests.Factories.ModelFactory
             return this;
         }
 
-        private JsonSchema2Metadata2CSharpTests XmlDeserializedToTypeFromAssembly(string xml)
+        private JsonSchema2Metadata2CSharpTests XmlObjectDeserializedToTypeFromAssembly(string xml)
         {
             _deserializedXmlObject = SerializationHelper.Deserialize(xml, _typeFromAssembly);
             return this;
@@ -339,6 +332,24 @@ namespace Designer.Tests.Factories.ModelFactory
             Assembly expectedAssembly = Compiler.CompileToAssembly(expectedClasses);
             _expectedType = expectedAssembly.GetType(modelName);
             _expectedInstanceFromType = expectedAssembly.CreateInstance(_expectedType.FullName);
+            return this;
+        }
+
+        private JsonSchema2Metadata2CSharpTests ExpectedTypeXmlAndJsonObjectLoadedFromCsharpResource(string csharpResource, string modelName)
+        {
+            string expectedClasses = TestDataHelper.LoadDataFromEmbeddedResourceAsString(csharpResource);
+            Assembly expectedAssembly = Compiler.CompileToAssembly(expectedClasses);
+            _expectedType = expectedAssembly.GetType(modelName);
+            _expectedInstanceFromType = expectedAssembly.CreateInstance(_expectedType.FullName);
+            return this;
+        }
+
+        private JsonSchema2Metadata2CSharpTests ExpectedJsonAndXmlObjectCreatedNewWay(string org, string app, string xsdResource, string modelName, string jsonModel, string xmlModel)
+        {
+            Assembly assemblyNew = CreateCSharpInstanceNewWay(xsdResource, org, app, modelName);
+            Type newType = assemblyNew.GetType(modelName);
+            _expectedJsonObject = JsonSerializer.Deserialize(jsonModel, newType);
+            _expectedXmlObject = SerializationHelper.Deserialize(xmlModel, newType);
             return this;
         }
 
@@ -370,7 +381,7 @@ namespace Designer.Tests.Factories.ModelFactory
 
         private JsonSchema2Metadata2CSharpTests DeserializedObjectFromAssemblyShouldBeEquivalentToDeserializedXmlObjectFromAssembly()
         {
-            _deserializedObjectFromAssemblyType.Should().BeEquivalentTo(_deserializedXmlObject);
+            _deserializedJsonObjectFromAssemblyType.Should().BeEquivalentTo(_deserializedXmlObject);
             return this;
         }
 
@@ -392,17 +403,34 @@ namespace Designer.Tests.Factories.ModelFactory
             return this;
         }
 
-        private JsonSchema2Metadata2CSharpTests TypeShouldHasSameMetadataDefinitionAsExpected()
+        private JsonSchema2Metadata2CSharpTests TypeShouldHasSameMetadataDefinitionToExpected()
         {
             _typeFromAssembly.HasSameMetadataDefinitionAs(_expectedType);
             return this;
         }
 
-        private JsonSchema2Metadata2CSharpTests ModelInstanceObjectShouldBeEquivalentAsExpected()
+        private JsonSchema2Metadata2CSharpTests ModelInstanceObjectShouldBeEquivalentToExpected()
         {
             _modelInstanceFromType.Should().BeEquivalentTo(_expectedInstanceFromType);
             return this;
         }
 
+        private JsonSchema2Metadata2CSharpTests JsonObjectShouldBeEquivalentToExpected()
+        {
+            _deserializedJsonObjectFromAssemblyType.Should().BeEquivalentTo(_expectedJsonObject);
+            return this;
+        }
+
+        private JsonSchema2Metadata2CSharpTests XmlObjectShouldBeEquivalentToExpected()
+        {
+            _deserializedXmlObject.Should().BeEquivalentTo(_expectedXmlObject);
+            return this;
+        }
+
+        private JsonSchema2Metadata2CSharpTests ExpectedJsonObjectShouldBeEquivalentToExpectedXmlObject()
+        {
+            _expectedJsonObject.Should().BeEquivalentTo(_expectedXmlObject);
+            return this;
+        }
     }
 }
