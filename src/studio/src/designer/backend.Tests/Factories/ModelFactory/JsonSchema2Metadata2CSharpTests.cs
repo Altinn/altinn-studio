@@ -11,9 +11,8 @@ using System.Xml.Schema;
 using System.Xml.Serialization;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Converter.Xml;
-
+using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.Designer.Factories.ModelFactory;
-using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using Designer.Tests.Utils;
 using FluentAssertions;
@@ -21,6 +20,7 @@ using Manatee.Json;
 using Manatee.Json.Schema;
 using Xunit;
 using Xunit.Abstractions;
+using InfoKeyword = Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json.InfoKeyword;
 using XmlSchemaValidator = Designer.Tests.Utils.XmlSchemaValidator;
 
 namespace Designer.Tests.Factories.ModelFactory
@@ -59,6 +59,7 @@ namespace Designer.Tests.Factories.ModelFactory
             const string jsonStr = @"{""test"":{""navn"":""Ronny""}}";
             const string xmlStr = "<melding><test><navn>Ronny</navn></test></melding>";
 
+            // Preparing objects using old classes and metadata.
             await Given.That.JsonSchemaLoadedWithContentString(jsonSchemaString);
 
             When.ModelMetadataCreatedFromJsonSchemaOldWay("yabbin", "datamodelling")
@@ -68,15 +69,16 @@ namespace Designer.Tests.Factories.ModelFactory
                 .And.JsonObjectDeserializedToTypeFromAssembly(
                     @"{""test"":{""navn"":""Ronny""}}")
                 .And.Then
-                .DeserializedObjectSerializedToStringWithManatee()
+                .DeserializedJsonObjectSerializedToStringWithManatee()
                 .Then.JsonStringShouldBeTheSameAsSerializedObjectWithManatee(jsonStr)
                 .And.SerializedManateeObjectShouldBeValidAgainstJsonSchema()
                 .And.JsonShouldBeValidAgainstJsonSchema(jsonStr)
-                .And.LoadedJsonSchemaConvertedToXsdSchemaOld()
+                .And.When
+                .LoadedJsonSchemaConvertedToXsdSchemaOld()
                 .Then.XmlShouldBeValidWithXsdSchema(xmlStr)
                 .And.When
                 .XmlObjectDeserializedToTypeFromAssembly(xmlStr)
-                .Then.DeserializedObjectFromAssemblyShouldBeEquivalentToDeserializedXmlObjectFromAssembly();
+                .Then.DeserializedJsonObjectFromAssemblyShouldBeEquivalentToDeserializedXmlObjectFromAssembly();
         }
 
         // TODO: This is the one that should work
@@ -92,13 +94,13 @@ namespace Designer.Tests.Factories.ModelFactory
                 .When.CSharpClassesCompiledToAssembly()
                 .And.TypeReadFromAssembly(modelName)
                 .And.JsonObjectDeserializedToTypeFromAssembly(json)
-                .And.DeserializedObjectSerializedToStringWithManatee()
+                .And.DeserializedJsonObjectSerializedToStringWithManatee()
                 .Then.JsonStringShouldBeTheSameAsSerializedObjectWithManatee(json)
                 .And.When
                 .XmlObjectDeserializedToTypeFromAssembly(xml)
                 .And.LoadedJsonSchemaConvertedToXsdSchemaOld()
                 .Then.XmlShouldBeValidWithXsdSchema(xml)
-                .And.DeserializedObjectFromAssemblyShouldBeEquivalentToDeserializedXmlObjectFromAssembly();
+                .And.DeserializedJsonObjectFromAssemblyShouldBeEquivalentToDeserializedXmlObjectFromAssembly();
         }
 
         [Theory]
@@ -110,7 +112,7 @@ namespace Designer.Tests.Factories.ModelFactory
             Given.That.InfoKeywordAddedToSchemaKeywordCatalog()
                 .When.JsonSchemaLoadedFromXsdResourceOldWay(xsdResource)
                 .And.ExpectedJsonSchemaLoaded(expectedJsonSchemaResource)
-                .Then.JsonSchemaShouldBeEquivalentWithExpected()
+                .Then.JsonSchemaShouldBeEquivalentToExpected()
                 .And.When.ModelMetadataCreatedFromJsonSchemaOldWay("yabbin", "hvem-er-hvem")
                 .And.CSharpClassesGeneratedFromModelMetadata()
                 .And.CSharpClassesCompiledToAssembly()
@@ -118,7 +120,7 @@ namespace Designer.Tests.Factories.ModelFactory
                 .And.ModelInstanceObjectCreatedFromType()
                 .Then.TypeShouldBeDecoratedWithXmlRootAttribute()
                 .And.When.ExpectedTypeAndInstanceObjectLoadedFromCsharpResource(expectedCSharpResource, modelName)
-                .Then.TypeShouldHasSameMetadataDefinitionToExpected()
+                .Then.TypeShouldHasSameMetadataDefinitionAsExpected()
                 .And.ModelInstanceObjectShouldBeEquivalentToExpected();
         }
 
@@ -151,21 +153,11 @@ namespace Designer.Tests.Factories.ModelFactory
 
         private static Assembly CreateCSharpInstanceNewWay(string xsdResource, string org, string app, string modelName)
         {
-            ModelMetadata modelMetadataNew = CreateMetamodelNewWay(xsdResource, org, app);
-            string classesNewWay = GenerateCSharpClasses(modelMetadataNew);
-            var instanceNewWay = CreateCSharpInstance(modelName, classesNewWay);
-            Assembly assembly = Compiler.CompileToAssembly(classesNewWay);
+            var modelMetadataNew = CreateMetamodelNewWay(xsdResource, org, app);
+            var classesNewWay = GenerateCSharpClasses(modelMetadataNew);
+            var assembly = Compiler.CompileToAssembly(classesNewWay);
 
             return assembly;
-        }
-
-        private static object CreateCSharpInstance(string modelName, string classes)
-        {
-            Assembly assembly = Compiler.CompileToAssembly(classes);
-            Type type = assembly.GetType(modelName);
-            var modelInstance = assembly.CreateInstance(type.FullName);
-
-            return modelInstance;
         }
 
         /// <summary>
@@ -272,7 +264,7 @@ namespace Designer.Tests.Factories.ModelFactory
 
         private JsonSchema2Metadata2CSharpTests JsonSchemaKeywordsRegistered()
         {
-            Altinn.Studio.DataModeling.Json.Keywords.JsonSchemaKeywords.RegisterXsdKeywords();
+            JsonSchemaKeywords.RegisterXsdKeywords();
             return this;
         }
 
@@ -307,7 +299,7 @@ namespace Designer.Tests.Factories.ModelFactory
             return this;
         }
 
-        private JsonSchema2Metadata2CSharpTests DeserializedObjectSerializedToStringWithManatee()
+        private JsonSchema2Metadata2CSharpTests DeserializedJsonObjectSerializedToStringWithManatee()
         {
             _serializedManateeObject = new Manatee.Json.Serialization.JsonSerializer().Serialize(_deserializedJsonObjectFromAssemblyType).ToString();
             return this;
@@ -335,19 +327,10 @@ namespace Designer.Tests.Factories.ModelFactory
             return this;
         }
 
-        private JsonSchema2Metadata2CSharpTests ExpectedTypeXmlAndJsonObjectLoadedFromCsharpResource(string csharpResource, string modelName)
-        {
-            string expectedClasses = TestDataHelper.LoadDataFromEmbeddedResourceAsString(csharpResource);
-            Assembly expectedAssembly = Compiler.CompileToAssembly(expectedClasses);
-            _expectedType = expectedAssembly.GetType(modelName);
-            _expectedInstanceFromType = expectedAssembly.CreateInstance(_expectedType.FullName);
-            return this;
-        }
-
         private JsonSchema2Metadata2CSharpTests ExpectedJsonAndXmlObjectCreatedNewWay(string org, string app, string xsdResource, string modelName, string jsonModel, string xmlModel)
         {
-            Assembly assemblyNew = CreateCSharpInstanceNewWay(xsdResource, org, app, modelName);
-            Type newType = assemblyNew.GetType(modelName);
+            var assemblyNew = CreateCSharpInstanceNewWay(xsdResource, org, app, modelName);
+            var newType = assemblyNew.GetType(modelName);
             _expectedJsonObject = JsonSerializer.Deserialize(jsonModel, newType);
             _expectedXmlObject = SerializationHelper.Deserialize(xmlModel, newType);
             return this;
@@ -379,13 +362,13 @@ namespace Designer.Tests.Factories.ModelFactory
             return this;
         }
 
-        private JsonSchema2Metadata2CSharpTests DeserializedObjectFromAssemblyShouldBeEquivalentToDeserializedXmlObjectFromAssembly()
+        private JsonSchema2Metadata2CSharpTests DeserializedJsonObjectFromAssemblyShouldBeEquivalentToDeserializedXmlObjectFromAssembly()
         {
             _deserializedJsonObjectFromAssemblyType.Should().BeEquivalentTo(_deserializedXmlObject);
             return this;
         }
 
-        private JsonSchema2Metadata2CSharpTests JsonSchemaShouldBeEquivalentWithExpected()
+        private JsonSchema2Metadata2CSharpTests JsonSchemaShouldBeEquivalentToExpected()
         {
             _expectedJsonSchema.Should().BeEquivalentTo(_jsonSchema);
             return this;
@@ -403,7 +386,7 @@ namespace Designer.Tests.Factories.ModelFactory
             return this;
         }
 
-        private JsonSchema2Metadata2CSharpTests TypeShouldHasSameMetadataDefinitionToExpected()
+        private JsonSchema2Metadata2CSharpTests TypeShouldHasSameMetadataDefinitionAsExpected()
         {
             _typeFromAssembly.HasSameMetadataDefinitionAs(_expectedType);
             return this;
