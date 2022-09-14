@@ -9,8 +9,6 @@ using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using NuGet.Protocol;
-using NuGet.Protocol.Plugins;
 
 namespace Altinn.Studio.Designer.Controllers
 {
