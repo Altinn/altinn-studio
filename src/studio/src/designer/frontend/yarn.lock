@@ -7176,10 +7176,26 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/lodash.debounce@npm:^4.0.7":
+  version: 4.0.7
+  resolution: "@types/lodash.debounce@npm:4.0.7"
+  dependencies:
+    "@types/lodash": "*"
+  checksum: e873b2d77f89010876baba3437ef826b17221b98948e00b5590828334a481dea1c8f9d28543210e564adc53199584f42c3cb171f8b6c3614fefc0b4e0888679c
+  languageName: node
+  linkType: hard
+
 "@types/lodash@npm:*":
   version: 4.14.178
   resolution: "@types/lodash@npm:4.14.178"
   checksum: a69a04a60bfc5257c3130a554b4efa0c383f0141b7b3db8ab7cf07ad2a46ea085fce66d0242da41da7e5647b133d5dfb2c15add9cbed8d7fef955e4a1e5b3128
+  languageName: node
+  linkType: hard
+
+"@types/lodash@npm:^4.14.185":
+  version: 4.14.185
+  resolution: "@types/lodash@npm:4.14.185"
+  checksum: f81d13da5ecab110ca9c5c7cc2bedc3c9802a6acf668576aecd1b8f4b134ed81d06c15f1e600fb08f05975098280a0d97d30cddfc2cb39ec1c6b56e971ca53b3
   languageName: node
   linkType: hard
 
@@ -8451,6 +8467,7 @@ __metadata:
     "@testing-library/user-event": 14.4.3
     "@types/classnames": 2.3.1
     "@types/jest": 29.0.0
+    "@types/lodash": ^4.14.185
     "@types/react": 18.0.18
     "@types/react-dom": 18.0.6
     "@types/react-modal": 3.13.1
@@ -8471,6 +8488,7 @@ __metadata:
     jest: 29.0.2
     jest-environment-jsdom: 29.0.2
     jest-junit: 14.0.1
+    lodash: ^4.17.21
     mini-css-extract-plugin: 2.6.1
     moment: 2.29.4
     monaco-editor-webpack-plugin: 4.2.0
@@ -16808,9 +16826,11 @@ __metadata:
   resolution: "language-editor@workspace:language-editor"
   dependencies:
     "@altinn/altinn-design-system": ^0.7.0
+    "@types/lodash.debounce": ^4.0.7
     axios: ^0.27.2
     iso-639-1: ^2.1.15
     json-server: ^0.17.0
+    lodash.debounce: ^4.0.8
     react-select: ^5.4.0
   languageName: unknown
   linkType: soft

@@ -4,81 +4,17 @@
 import React from 'react';
 import Select from 'react-select';
 import ISO6391 from 'iso-639-1'
+import debounce from 'lodash.debounce';
 
 import type { ILanguageEditor } from './utils';
 
 import { Button, TextField } from '@altinn/altinn-design-system';
-
 import AltinnColumnLayout from 'app-shared/components/AltinnColumnLayout';
 import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
-
 import { getAllTranslationKeys, transformLanguages } from './utils';
+import { updateLanguage} from '../../frontend/app-development/features/languageEditor/utils'
 
 import { makeStyles, Typography } from '@material-ui/core';
-
-const useStyles = makeStyles({
-  btn: {
-    backgroundColor: '#17C96B',
-    border: 'none',
-    boxShadow: 'none',
-    boxSizing: 'border-box',
-    height: '36px',
-    position: 'sticky',
-    marginBottom: '29px',
-    marginTop: '5rem',
-    top: '177px',
-    width: '100px',
-  },
-  btnSecondary: {
-    backgroundColor: 'transparent',
-    border: '2px dashed #ccc',
-    height: '36px',
-    width: '84px',
-    active: {
-      border: '2px dashed #000000',
-    },
-  },
-  leftColBodyContainer: {
-    display: 'grid',
-    backgroundColor: '#FFF',
-    height: '100%',
-    columnGap: '10rem',
-    gridTemplateColumns: '1fr 2fr',
-    gridAutoRows: 'minmax(100px, auto)',
-    paddingRight: '3rem',
-    marginTop: '2rem',
-    width: '100%',
-  },
-  lineBorder: {
-    border: '0.5px solid #BCC7CC',
-    position: 'sticky',
-    marginTop: '2rem',
-    top: '0px',
-    width: '100%',
-  },
-  radioGroup: {
-    width: '100%',
-    display: 'flex',
-    borderBottom: '1px solid #BCC7CC',
-    marginBottom: '5px',
-    padding: '1rem',
-    justifyContent: 'space-evenly',
-    alignItems: 'center',
-  },
-  rightColBodyContainer: {
-    backgroundColor: '#E5E5E5',
-    height: '100%',
-    padding: '7rem',
-    width: '100%',
-  },
-  stickyHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    position: 'sticky',
-    marginBottom: '8rem',
-    top: '0',
-  },
-});
 
 interface ILanguageEditorProps extends ILanguageEditor {
   onTranslationChange: ({
@@ -180,14 +116,14 @@ ILanguageEditorProps) => {
                                   top: '95px',
                                   left: '36px',
                                   lineHeight: '24.32px',
-                                  width: '323px',
+                                  width: '100%',
                                 }}
                               >
               <span>
                 Vi anbefaler å legge til oversettelser for bokmål, nynorsk og
                 engelsk. Ved behov kan du også legge til andre språk.
               </span>
-                              </div>
+                                  </div>
 
                               <div
                                 style={{
@@ -245,56 +181,56 @@ ILanguageEditorProps) => {
                                 })}
                               </AltinnRadioGroup>
 
-                              <div
-                                style={{
-                                  height: '19px',
-                                  width: '317px',
-                                  margin: '5rem 0 1rem 0',
-                                }}
-                              >
-                                <Typography style={{ fontSize: '14px', fontWeight: '400' }}>
-                                  Legg til språk:
-                                </Typography>
-                              </div>
-                              <div
-                                style={{
-                                  display: 'flex',
-                                  width: '400px',
-                                  justifyContent: 'space-evenly',
-                                }}
-                              >
-                                <div style={{ width: '280px' }}>
-                                  <Select
-                                    onChange={handleSelectOnChange}
-                                    options={modifiedLanguageCodes}
-                                    value={selectedSprak}
-                                  />
-                                </div>
-                                <div style={{ alignContent: 'end' }}>
-                                  <Button
-                                    onClick={handleLeggTilNyttSprak}
-                                    className={classes.btnSecondary}
-                                    disabled={!selectedSprak}
+                                  <div
+                                    style={{
+                                      height: '19px',
+                                      width: '317px',
+                                      margin: '5rem 0 1rem 0',
+                                    }}
                                   >
-                                    Legg til
-                                  </Button>
+                                    <Typography style={{ fontSize: '14px', fontWeight: '400' }}>
+                                      Legg til språk:
+                                    </Typography>
+                                  </div>
+                                  <div
+                                    style={{
+                                      display: 'flex',
+                                      width: '100%',
+                                      justifyContent: 'space-around',
+                                    }}
+                                  >
+                                    <div style={{border: '1px solid #000000', width: '240px' }}>
+                                      <Select
+                                        onChange={handleSelectOnChange}
+                                        options={modifiedLanguageCodes}
+                                        value={selectedSprak}
+                                      />
+                                    </div>
+                                    <div style={{ alignContent: 'end' }}>
+                                      <Button
+                                        onClick={handleLeggTilNyttSprak}
+                                        className={classes.btnSecondary}
+                                        disabled={!selectedSprak}
+                                      >
+                                        Legg til
+                                      </Button>
+                                    </div>
+                                  </div>
+                                  <div className={classes.lineBorder} />
                                 </div>
-                              </div>
-                              <div className={classes.lineBorder} />
-                            </div>
-                          }
-      >
-        <div style={{marginBottom: '10rem'}}>
-          <div className={classes.stickyHeader}>
-            <Button
-              id='nyTekstBtn'
-              onClick={handleAddNewTextField}
-              disabled={false}
-              className={classes.btn}
-            >
-              {isNewTextInput ? 'Cancel' : '+ Ny tekst'}
-            </Button>
-          </div>
+                              }
+          >
+            <div style={{marginBottom: '10rem', backgroundColor: "#fff"}}>
+              <div className={classes.stickyHeader}>
+                <Button
+                  id='nyTekstBtn'
+                  onClick={handleAddNewTextField}
+                  disabled={false}
+                  className={classes.btn}
+                >
+                  {isNewTextInput ? 'Cancel' : '+ Ny tekst'}
+                </Button>
+              </div>
 
           {isNewTextInput && (
             <div className={classes.leftColBodyContainer}>
@@ -355,6 +291,13 @@ ILanguageEditorProps) => {
                               defaultValue={
                                 transformedLanguages[translationKey][language]
                               }
+                              onChange={debounce(async (e) => {
+                                await updateLanguage({
+                                  languages,
+                                  translationKey,
+                                  e,
+                                });
+                              }, 1000)}
                             />
                           </div>
                         );
@@ -370,3 +313,67 @@ ILanguageEditorProps) => {
     </div>
   );
 };
+
+
+const useStyles = makeStyles({
+  btn: {
+    backgroundColor: '#17C96B',
+    border: 'none',
+    boxShadow: 'none',
+    boxSizing: 'border-box',
+    height: '36px',
+    position: 'sticky',
+    marginBottom: '29px',
+    marginTop: '5rem',
+    top: '177px',
+    width: '100px',
+  },
+  btnSecondary: {
+    backgroundColor: 'transparent',
+    border: '2px dashed #ccc',
+    height: '36px',
+    width: '84px',
+    active: {
+      border: '2px dashed #000000',
+    },
+  },
+  leftColBodyContainer: {
+    display: 'grid',
+    backgroundColor: '#FFF',
+    height: '100%',
+    columnGap: '10rem',
+    gridTemplateColumns: '1fr 2fr',
+    gridAutoRows: 'minmax(100px, auto)',
+    marginTop: '2rem',
+    width: '100%',
+  },
+  lineBorder: {
+    border: '1px solid #BCC7CC',
+    marginTop: '2rem',
+    top: '0px',
+    width: '100%',
+  },
+  radioGroup: {
+    width: '100%',
+    display: 'flex',
+    borderBottom: '1px solid #BCC7CC',
+    marginBottom: '5px',
+    padding: '1rem',
+    justifyContent: 'space-around',
+    alignItems: 'center',
+  },
+  rightColBodyContainer: {
+    height: '100%',
+    padding: '7rem',
+    width: '100%',
+  },
+  stickyHeader: {
+    borderBottom: '1px solid #BCC7CC',
+    display: 'flex',
+    justifyContent: 'space-between',
+    paddingBottom: '1rem',
+    position: 'sticky',
+    marginBottom: '5rem',
+    top: '0',
+  },
+});
