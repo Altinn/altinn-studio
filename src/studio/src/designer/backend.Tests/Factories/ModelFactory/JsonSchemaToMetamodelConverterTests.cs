@@ -52,9 +52,9 @@ namespace Designer.Tests.Factories.ModelFactory
         public void Convert_FromSeresSchema_ShouldConvert(string xsdSchemaPath, string expectedMetamodelPath)
         {
             Given.That.XsdSchemaLoaded(xsdSchemaPath)
-                .And.XsdSchemaConverted2JsonSchema()
+                .When.XsdSchemaConverted2JsonSchema()
                 .And.JsonSchemaConverted2Metamodel("melding")
-                .When.ExpectedMetamodelLoaded(expectedMetamodelPath)
+                .And.ExpectedMetamodelLoaded(expectedMetamodelPath)
                 .Then.MetamodelShouldBeEquivalentToExpected()
                 .And.When.CSharpClassesCreatedFromMetamodel()
                 .And.CSharpClassesCompiledToAssembly()
