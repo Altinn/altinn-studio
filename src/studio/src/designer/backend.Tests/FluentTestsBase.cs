@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Designer.Tests;
+﻿namespace Designer.Tests;
 
 /// <summary>
 /// Base class for fluent tests.
