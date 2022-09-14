@@ -147,7 +147,7 @@ export const SchemaEditor = (props: IEditorProps) => {
     d.path.startsWith(`${schemaSettings.definitionsPath}/`),
   );
   const modelView = uiSchema.filter((d: UiSchemaItem) => {
-    if (d.path.startsWith('#/properties')) {
+    if (d.path.startsWith(schemaSettings.propertiesPath)) {
       return true;
     }
 
@@ -208,7 +208,7 @@ export const SchemaEditor = (props: IEditorProps) => {
     dispatch(
       addRootItem({
         name: 'name',
-        location: '#/properties',
+        location: schemaSettings.propertiesPath,
         props: {
           type: type === ObjectKind.Field ? FieldType.Object : undefined,
           $ref: type === ObjectKind.Reference ? '' : undefined,
