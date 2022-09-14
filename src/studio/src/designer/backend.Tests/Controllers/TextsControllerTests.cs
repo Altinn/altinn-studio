@@ -168,31 +168,6 @@ namespace Designer.Tests.Controllers
             }
         }
 
-        [Fact]
-        public async Task Delete_NonExistingFile_404NotFound()
-        {
-            var targetRepository = Guid.NewGuid().ToString();
-            await TestDataHelper.CopyRepositoryForTest("ttd", "new-texts-format", "testUser", targetRepository);
-            HttpClient client = GetTestClient();
-            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/uk";
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, dataPathWithData);
-            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
-
-            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseBody = await response.Content.ReadAsStringAsync();
-            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-
-            try
-            {
-                Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
-                Assert.Equal("The file uk.texts.json is not found or already deleted.", responseDocument.RootElement.ToString());
-            }
-            finally
-            {
-                TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
-            }
-        }
-
         private HttpClient GetTestClient()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.Location).LocalPath);
