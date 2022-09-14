@@ -1,22 +1,21 @@
-import { Grid, Typography } from '@material-ui/core';
+import {Grid, Typography} from '@material-ui/core';
 import {
   createTheme,
   MuiThemeProvider,
   makeStyles,
 } from '@material-ui/core/styles';
 import React from 'react';
-import { HashRouter as Router } from 'react-router-dom';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import postMessages from 'app-shared/utils/postMessages';
 import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
-import { getLanguageFromKey } from 'app-shared/utils/language';
-import { DataModelsMetadataActions } from 'app-shared/features/dataModelling/sagas/metadata';
-import { HandleServiceInformationActions } from './features/administration/handleServiceInformationSlice';
-import { fetchRepoStatus } from './features/handleMergeConflict/handleMergeConflictSlice';
-import { makeGetRepoStatusSelector } from './features/handleMergeConflict/handleMergeConflictSelectors';
-import { ApplicationMetadataActions } from './sharedResources/applicationMetadata/applicationMetadataSlice';
-import { fetchLanguage } from './utils/fetchLanguage/languageSlice';
-import { repoStatusUrl } from './utils/urlHelper';
+import {getLanguageFromKey} from 'app-shared/utils/language';
+import {DataModelsMetadataActions} from 'app-shared/features/dataModelling/sagas/metadata';
+import {HandleServiceInformationActions} from './features/administration/handleServiceInformationSlice';
+import {fetchRepoStatus} from './features/handleMergeConflict/handleMergeConflictSlice';
+import {makeGetRepoStatusSelector} from './features/handleMergeConflict/handleMergeConflictSelectors';
+import {ApplicationMetadataActions} from './sharedResources/applicationMetadata/applicationMetadataSlice';
+import {fetchLanguage} from './utils/fetchLanguage/languageSlice';
+import {repoStatusUrl} from './utils/urlHelper';
 import {
   fetchRemainingSession,
   keepAliveSession,
@@ -24,8 +23,8 @@ import {
 } from './sharedResources/user/userSlice';
 import LeftMenu from './layout/LeftMenu';
 import PageHeader from './layout/PageHeader';
-import { useAppDispatch, useAppSelector } from 'common/hooks';
-import type { IAltinnWindow } from './types/global';
+import {useAppDispatch, useAppSelector} from 'common/hooks';
+import type {IAltinnWindow} from './types/global';
 
 import './App.css';
 
@@ -69,7 +68,7 @@ export function App() {
   const sessionExpiredPopoverRef = React.useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    const { org, app } = window as Window as IAltinnWindow;
+    const {org, app} = window as Window as IAltinnWindow;
     dispatch(
       fetchLanguage({
         url: `${window.location.origin}/designerapi/Language/GetLanguageAsJSON`,
@@ -129,7 +128,7 @@ export function App() {
       }
     };
     const checkForMergeConflict = () => {
-      const { org, app } = window as Window as IAltinnWindow;
+      const {org, app} = window as Window as IAltinnWindow;
       dispatch(
         fetchRepoStatus({
           url: repoStatusUrl,
@@ -163,39 +162,37 @@ export function App() {
 
   return (
     <MuiThemeProvider theme={theme}>
-      <Router>
-        <div className={classes.container} ref={sessionExpiredPopoverRef}>
-          <AltinnPopoverSimple
-            anchorEl={
-              remainingSessionMinutes < 11
-                ? sessionExpiredPopoverRef.current
-                : null
-            }
-            anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-            transformOrigin={{ vertical: 'top', horizontal: 'center' }}
-            handleClose={(event: string) => handleSessionExpiresClose(event)}
-            btnCancelText={getLanguageFromKey('general.sign_out', language)}
-            btnConfirmText={getLanguageFromKey('general.continue', language)}
-            btnClick={handleSessionExpiresClose}
-            paperProps={{ style: { margin: '2.4rem' } }}
-          >
-            <Typography variant='h2'>
-              {getLanguageFromKey('session.expires', language)}
-            </Typography>
-            <Typography variant='body1' style={{ marginTop: '1.6rem' }}>
-              {getLanguageFromKey('session.inactive', language)}
-            </Typography>
-          </AltinnPopoverSimple>
-          <Grid container={true} direction='row'>
-            <PageHeader repoStatus={repoStatus} />
-            <LeftMenu
-              repoStatus={repoStatus}
-              classes={classes}
-              language={language}
-            />
-          </Grid>
-        </div>
-      </Router>
+      <div className={classes.container} ref={sessionExpiredPopoverRef}>
+        <AltinnPopoverSimple
+          anchorEl={
+            remainingSessionMinutes < 11
+              ? sessionExpiredPopoverRef.current
+              : null
+          }
+          anchorOrigin={{vertical: 'top', horizontal: 'center'}}
+          transformOrigin={{vertical: 'top', horizontal: 'center'}}
+          handleClose={(event: string) => handleSessionExpiresClose(event)}
+          btnCancelText={getLanguageFromKey('general.sign_out', language)}
+          btnConfirmText={getLanguageFromKey('general.continue', language)}
+          btnClick={handleSessionExpiresClose}
+          paperProps={{style: {margin: '2.4rem'}}}
+        >
+          <Typography variant='h2'>
+            {getLanguageFromKey('session.expires', language)}
+          </Typography>
+          <Typography variant='body1' style={{marginTop: '1.6rem'}}>
+            {getLanguageFromKey('session.inactive', language)}
+          </Typography>
+        </AltinnPopoverSimple>
+        <Grid container={true} direction='row'>
+          <PageHeader repoStatus={repoStatus}/>
+          <LeftMenu
+            repoStatus={repoStatus}
+            classes={classes}
+            language={language}
+          />
+        </Grid>
+      </div>
     </MuiThemeProvider>
   );
 }

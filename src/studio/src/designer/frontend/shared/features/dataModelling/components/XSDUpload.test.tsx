@@ -14,7 +14,7 @@ describe('XSDUpload', () => {
   it('should show file picker button', () => {
     render();
 
-    const button = screen.getByLabelText("app_data_modelling.upload_xsd");
+    const button = screen.getByText("app_data_modelling.upload_xsd");
     expect(button).toBeInTheDocument();
 
     const fileInput = screen.queryByTestId('FileSelector-input');
@@ -60,7 +60,7 @@ describe('XSDUpload', () => {
 });
 
 const clickUploadButton = async () => {
-  const btn = screen.getByLabelText("app_data_modelling.upload_xsd");
+  const btn = screen.getByText("app_data_modelling.upload_xsd");
   await user.click(btn);
 };
 
@@ -72,6 +72,8 @@ const render = (props: Partial<IXSDUploadProps> = {}) => {
     org: 'test-org',
     repo: 'test-repo',
     onXSDUploaded: jest.fn(),
+    labelTextResource: 'app_data_modelling.upload_xsd',
+    isInTopToolbar: true,
     ...props,
   } as IXSDUploadProps;
 

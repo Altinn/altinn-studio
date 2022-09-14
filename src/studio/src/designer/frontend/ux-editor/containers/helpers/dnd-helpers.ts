@@ -1,23 +1,27 @@
-import { DragSourceHookSpec, DragSourceMonitor, XYCoord } from 'react-dnd';
-import { RefObject } from 'react';
-import { ContainerPos, EditorDndItem } from './dnd-types';
+import {
+  DragSourceHookSpec,
+  DragSourceMonitor,
+  DropTargetMonitor,
+  XYCoord,
+} from 'react-dnd';
+import { ContainerPos, EditorDndItem, ItemType } from './dnd-types';
 
 // @see https://react-dnd.github.io/react-dnd/examples/sortable/simple
 export const hoverIndexHelper = (
   draggedItem: EditorDndItem,
   hoveredItem: EditorDndItem,
-  ref: RefObject<HTMLDivElement>,
-  clientOffset: XYCoord,
+  hoverBoundingRect?: DOMRect,
+  clientOffset?: XYCoord,
 ): boolean => {
   const dragIndex = draggedItem.index;
   const hoverIndex = hoveredItem.index;
 
-  if (!ref.current || dragIndex === hoverIndex) {
+  if (!hoverBoundingRect || dragIndex === hoverIndex) {
     return false;
   }
-
-  // Determine rectangle on screen
-  const hoverBoundingRect = ref.current?.getBoundingClientRect();
+  if (!clientOffset) {
+    return false;
+  }
 
   // Get vertical middle
   const hoverMiddleY = (hoverBoundingRect.bottom - hoverBoundingRect.top) / 2;
@@ -78,6 +82,12 @@ export const getContainerPosition = (
   boundingClientRect: DOMRect,
   clientOffset: XYCoord,
 ): ContainerPos | undefined => {
+  if (!clientOffset) {
+    return undefined;
+  }
+  if (!boundingClientRect) {
+    return undefined;
+  }
   // need to support smaller boxes so that they don't jump around.
   const boundaryHeight = Math.min(50, boundingClientRect.height / 4);
   const toptop = boundingClientRect.top;
@@ -92,4 +102,44 @@ export const getContainerPosition = (
     return ContainerPos.Bottom;
   }
   return undefined;
+};
+
+export const handleDrop = (
+  droppedItem: EditorDndItem,
+  monitor: Partial<DropTargetMonitor>,
+  onDropItem: () => void,
+  containerId: string,
+  index: number,
+) => {
+  if (!droppedItem) {
+    return;
+  }
+  if (!monitor.isOver({ shallow: true })) {
+    return;
+  }
+  if (monitor.getItemType() === ItemType.ToolbarItem) {
+    if (!droppedItem.onDrop) {
+      console.warn("Draggable Item doesn't have an onDrop-event");
+      return;
+    }
+    droppedItem.onDrop(containerId, index);
+  } else {
+    onDropItem();
+  }
+};
+
+export const hoverShouldBeIgnored = (
+  monitor: DropTargetMonitor,
+  draggedItem?: EditorDndItem,
+) => {
+  if (!draggedItem) {
+    return true;
+  }
+  if (!monitor.isOver({ shallow: true })) {
+    return true;
+  }
+  if (!draggedItem.containerId && draggedItem.type !== ItemType.ToolbarItem) {
+    return true;
+  }
+  return false;
 };

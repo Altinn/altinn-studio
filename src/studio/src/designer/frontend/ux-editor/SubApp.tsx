@@ -1,6 +1,5 @@
 import React from 'react';
 import { Provider } from 'react-redux';
-import { HashRouter } from 'react-router-dom';
 import AppComponent from './App';
 import { run } from './sagas';
 import { store } from './store';
@@ -23,9 +22,7 @@ export default class SubApp extends React.Component<any, any> {
   public render() {
     return (
       <Provider store={store}>
-        <HashRouter>
-          <AppComponent />
-        </HashRouter>
+        <AppComponent />
       </Provider>
     );
   }

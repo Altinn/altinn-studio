@@ -2,6 +2,16 @@ import { TopToolbarButton } from '@altinn/schema-editor/index';
 import React from 'react';
 import { getLanguageFromKey } from '../../../utils/language';
 import DeleteDialog from './DeleteDialog';
+import {makeStyles} from "@material-ui/core";
+import theme from "app-shared/theme/altinnStudioTheme";
+
+const useStyles = makeStyles({
+  root: {
+    '&:not(:hover):not(:disabled)': {
+      color: theme.altinnPalette.primary.red + ' !important'
+    }
+  }
+});
 
 export interface IDeleteWrapper {
   language: any;
@@ -21,6 +31,7 @@ export default function DeleteWrapper(props: IDeleteWrapper) {
   const onCancelDelete = () => {
     setDeleteButtonAnchor(null);
   };
+  const classes = useStyles();
 
   return (
     <>
@@ -29,8 +40,8 @@ export default function DeleteWrapper(props: IDeleteWrapper) {
         faIcon='ai ai-trash'
         iconSize={24}
         onClick={onDeleteClick}
-        hideText
         warning
+        className={classes.root}
       >
         {getLanguageFromKey('general.delete', props.language)}
       </TopToolbarButton>

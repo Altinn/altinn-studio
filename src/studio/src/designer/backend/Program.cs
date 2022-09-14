@@ -300,13 +300,13 @@ void Configure(IConfiguration configuration)
     {
         // ------------------------- DEV ----------------------------- //
         endpoints.MapControllerRoute(
-    name: "orgRoute",
-    pattern: "designer/{org}/{controller}/{action=Index}/",
-    defaults: new { controller = "Config" },
-    constraints: new
-    {
-        controller = "Config|Datamodels",
-    });
+            name: "orgRoute",
+            pattern: "designer/{org}/{controller}/{action=Index}/",
+            defaults: new { controller = "Config" },
+            constraints: new
+            {
+                controller = "Config|Datamodels",
+            });
 
         endpoints.MapControllerRoute(
                 name: "serviceDevelopmentRoute",
@@ -348,9 +348,9 @@ void Configure(IConfiguration configuration)
 
         // -------------------------- DEFAULT ------------------------- //
         endpoints.MapControllerRoute(
-   name: "defaultRoute2",
-   pattern: "{controller}/{action=StartPage}/{id?}",
-   defaults: new { controller = "Home" });
+           name: "defaultRoute2",
+           pattern: "{controller}/{action=StartPage}/{id?}",
+           defaults: new { controller = "Home" });
 
         endpoints.MapControllerRoute(
             name: "defaultRoute",

@@ -24,7 +24,7 @@ export interface EditorDndEvents {
   moveItem: (
     movedItem: EditorDndItem,
     targetItem: EditorDndItem,
-    containerPos?: ContainerPos,
+    toIndex?: number,
   ) => void;
   moveItemToBottom: (item: EditorDndItem) => void;
   moveItemToTop: (item: EditorDndItem) => void;

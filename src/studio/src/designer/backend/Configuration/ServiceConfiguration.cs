@@ -33,10 +33,5 @@ namespace Altinn.Studio.Designer.Configuration
         /// Gets or sets the description of the
         /// </summary>
         public string ServiceDescription { get; set; }
-
-        /// <summary>
-        /// The prefered way of doing datamodelling within this repository. See <see cref="DatamodellingPreference"/>
-        /// </summary>
-        public DatamodellingPreference DatamodellingPreference { get; set; }
     }
 }

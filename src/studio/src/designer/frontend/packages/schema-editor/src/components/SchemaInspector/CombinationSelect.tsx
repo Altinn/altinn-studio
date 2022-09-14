@@ -12,13 +12,7 @@ export interface ICombinationSelectProps {
   options: Option[];
 }
 
-export function CombinationSelect({
-  value,
-  onChange,
-  id,
-  label,
-  options,
-}: ICombinationSelectProps) {
+export function CombinationSelect({ value, onChange, id, label, options }: ICombinationSelectProps) {
   return (
     <StyledSelect
       fullWidth={true}
@@ -28,11 +22,7 @@ export function CombinationSelect({
       onChange={(combination) => onChange(combination as CombinationKind)}
     >
       {options.map(({ value, label }) => (
-        <MenuItem
-          value={value}
-          key={'combination-select-' + value}
-          role={'menuitem'}
-        >
+        <MenuItem value={value} key={'combination-select-' + value} role={'menuitem'}>
           {label}
         </MenuItem>
       ))}

@@ -76,7 +76,7 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
       <TopToolbarButton
         faIcon='fa fa-plus'
         onClick={onCreateClick}
-        hideText={true}
+        hideText={false}
       >
         {getLanguageFromKey('general.create_new', props.language)}
       </TopToolbarButton>

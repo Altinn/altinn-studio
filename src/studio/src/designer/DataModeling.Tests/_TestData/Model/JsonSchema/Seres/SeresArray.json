@@ -58,7 +58,8 @@
           "type": "array",
           "items": {
             "$ref": "#/$defs/simpleType"
-          }
+          },
+          "minItems": 0
         },
         "e4": {
           "type": "array",

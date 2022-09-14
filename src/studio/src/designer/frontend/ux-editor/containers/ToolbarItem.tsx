@@ -18,7 +18,7 @@ export const ToolbarItem = ({
   onClick,
   text,
   icon,
-}: IToolbarItemProps): JSX.Element => {
+}: IToolbarItemProps) => {
   return (
     <div>
       <DraggableToolbarItem

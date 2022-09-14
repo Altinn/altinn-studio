@@ -9,6 +9,7 @@ interface TopToolbarButtonProps extends React.PropsWithChildren<any> {
   disabled?: boolean;
   hideText?: boolean;
   warning?: boolean;
+  className?: string;
 }
 
 const useStyles = makeStyles({
@@ -32,6 +33,13 @@ const useStyles = makeStyles({
     '& .MuiButton-startIcon': {
       marginRight: 4,
     },
+    '& .fa': {
+      width: 'auto',
+      margin: 4
+    },
+    '& .fa-plus:before': {
+      content: '"\\f068"'
+    }
   },
   iconButton: {
     width: 36,
@@ -47,12 +55,14 @@ export function TopToolbarButton({
   hideText,
   warning,
   iconSize,
+  className
 }: TopToolbarButtonProps) {
   const classes = useStyles();
   const computedClasses = classNames([
     classes.toolbarButton,
     hideText && classes.iconButton,
     warning && 'warn',
+    className
   ]);
   const icon = (
     <i

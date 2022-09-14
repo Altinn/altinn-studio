@@ -35,7 +35,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             _xsd = new XmlSchema();
             _namespaces = new Dictionary<string, string>();
 
-            HandleSchemaAttributes();   
+            HandleSchemaAttributes();
             HandleNamespaces();
             HandleSchemaUnhandledAttributes();
 
@@ -761,7 +761,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             return facets;
         }
-        
+
         private static XmlQualifiedName GetTypeNameFromTypeKeyword(TypeKeyword typeKeyword, WorkList<IJsonSchemaKeyword> keywords)
         {
             // This is the case of nillable, so we remove the Null type to be left with the actual type.
@@ -1005,6 +1005,15 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 SetFixed(subItem, property.Keywords.GetKeyword<ConstKeyword>());
                 SetDefault(subItem, property.Keywords.GetKeyword<DefaultKeyword>());
 
+                if (subItem is XmlSchemaParticle particle)
+                {
+                    var minItemsKeyword = property.Keywords.GetKeyword<MinItemsKeyword>();
+                    if (minItemsKeyword != null)
+                    {
+                        particle.MinOccurs = minItemsKeyword.Value;
+                    }
+                }
+
                 switch (subItem)
                 {
                     case XmlSchemaAttribute attribute:
@@ -1014,7 +1023,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     case XmlSchemaElement element:
                         element.Parent = sequence;
                         sequence.Items.Add(element);
-
                         AddUnhandledAttributes(element, property.Keywords.GetKeyword<XsdUnhandledAttributesKeyword>());
                         break;
                     default:
@@ -1152,7 +1160,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 return;
             }
 
-            var unhandledAttributes = new List<XmlAttribute>();            
+            var unhandledAttributes = new List<XmlAttribute>();
             foreach (var (name, value) in xsdUnhandledAttributesKeyword.Properties)
             {
                 XmlAttribute attribute = CreateAttribute(name, value);
@@ -1355,7 +1363,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
 
             // Fallback to open string value
-            return "string"; 
+            return "string";
         }
 
         private static int GetKeywordSubSchemaIndex<T>(IReadOnlyList<JsonSchema> schemas)
