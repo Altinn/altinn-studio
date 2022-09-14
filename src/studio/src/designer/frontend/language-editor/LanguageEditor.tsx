@@ -5,13 +5,13 @@ import React from 'react';
 import Select from 'react-select';
 import ISO6391 from 'iso-639-1'
 
+import ISO6391 from 'iso-639-1';
+
 import type { ILanguageEditor } from './utils';
 
 import { Button, TextField } from '@altinn/altinn-design-system';
-
 import AltinnColumnLayout from 'app-shared/components/AltinnColumnLayout';
 import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
-
 import { getAllTranslationKeys, transformLanguages } from './utils';
 
 import { makeStyles, Typography } from '@material-ui/core';

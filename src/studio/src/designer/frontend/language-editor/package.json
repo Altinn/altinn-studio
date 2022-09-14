@@ -15,6 +15,10 @@
     "axios": "^0.27.2",
     "iso-639-1": "^2.1.15",
     "json-server": "^0.17.0",
+    "lodash.debounce": "^4.0.8",
     "react-select": "^5.4.0"
+  },
+  "devDependencies": {
+    "@types/lodash.debounce": "^4.0.7"
   }
 }

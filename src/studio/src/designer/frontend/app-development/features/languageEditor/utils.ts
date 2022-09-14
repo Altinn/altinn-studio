@@ -28,13 +28,19 @@ export const useGetLanguages = () => {
       /* @ts-ignore */
       setLanguages({
         // ...(en.data && { Engelsk: en.data }),
-        ...(nb.data && { Bokmal: nb.data }),
-        // ...(nn.data && { Nynorsk: nn.data }),
+        ...(nb.data && { 'Norwegian Bokmal': nb.data }),
+        // ...(nn.data && { 'Norwegian Nynorsk': nn.data }),
       });
+      // console.log('nb:', nb)
+      // console.log(JSON.stringify(nb.data, null, 2))
+
     };
 
     fetchLanguages();
   }, []);
-
   return { languages };
 };
+
+export async function updateLanguage({ languages, translationKey, e }: any) {
+  await Axios.put(getLoadTextResourcesUrl('nb'), {...languages["Norwegian Bokmal"], [translationKey]: e.target.value});
+}
