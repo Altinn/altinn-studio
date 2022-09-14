@@ -200,5 +200,11 @@ namespace DataModeling.Tests
         {
             await TestFiles("Model/JsonSchema/General/SimpleTypeList.json", "Model/XmlSchema/General/SimpleTypeList.xsd", "Root");
         }
+
+        [Fact]
+        public async Task SchemaWithTargetNamespace()
+        {
+            await TestFiles("Model/JsonSchema/General/SchemaWithTargetNamespace.json", "Model/XmlSchema/General/SchemaWithTargetNamespace.xsd", "Root");
+        }
     }
 }
