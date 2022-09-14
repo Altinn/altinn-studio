@@ -158,130 +158,130 @@ ILanguageEditorProps) => {
   };
 
   return (
-    <div style={{ paddingTop: '0', marginTop: '0', backgroundColor: '#FFF' }}>
-      <AltinnColumnLayout style={{ paddingTop: '0', marginTop: '0' }}
-        sideMenuChildren={
-          <div className={classes.rightColBodyContainer}>
-            <div
-              style={{
-                height: '5rem',
-                width: '100%',
-                top: '36px',
-                left: '36px',
-              }}
-            >
-              <Typography style={{ fontSize: '24px' }}>Språk</Typography>
-            </div>
-            <div
-              style={{
-                height: '100px',
-                marginBottom: '2rem',
-                top: '95px',
-                left: '36px',
-                lineHeight: '24.32px',
-                width: '323px',
-              }}
-            >
+    <div style={{paddingTop: '0', marginTop: '0', backgroundColor: '#FFF'}}>
+      <AltinnColumnLayout style={{paddingTop: '0', marginTop: '0'}}
+                          sideMenuChildren={
+                            <div className={classes.rightColBodyContainer}>
+                              <div
+                                style={{
+                                  height: '5rem',
+                                  width: '100%',
+                                  top: '36px',
+                                  left: '36px',
+                                }}
+                              >
+                                <Typography style={{ fontSize: '24px' }}>Språk</Typography>
+                              </div>
+                              <div
+                                style={{
+                                  height: '100px',
+                                  marginBottom: '2rem',
+                                  top: '95px',
+                                  left: '36px',
+                                  lineHeight: '24.32px',
+                                  width: '323px',
+                                }}
+                              >
               <span>
                 Vi anbefaler å legge til oversettelser for bokmål, nynorsk og
                 engelsk. Ved behov kan du også legge til andre språk.
               </span>
             </div>
 
-            <div
-              style={{
-                height: '24px',
-                lineHeight: '24px',
-                marginBottom: '2rem',
-                width: '100px',
-              }}
-            >
-              <Typography style={{ fontSize: '16px', fontWeight: '700' }}>
-                Aktive språk:
-              </Typography>
-            </div>
-            <AltinnRadioGroup
-              key={sprak.id}
-              value={sprak}
-              style={{ width: '100%' }}
-            >
-              {sprak?.map((sprak, index) => {
-                return (
-                  <div id={sprak.id} key={index} className={classes.radioGroup}>
-                    <div
-                      style={{
-                        width: '100%',
-                        gap: '1rem',
-                        display: 'flex',
-                      }}
-                    >
-                      <div>
-                        <label htmlFor={sprak.id}>
-                        </label>
-                      </div>
-                      <div>{sprak.name}</div>
-                    </div>
-                    <div
-                      style={{
-                        width: '100%',
-                        gap: '1rem',
-                        display: 'flex',
-                      }}
-                    >
-                      <div>
-                        <input
-                          type='radio'
-                          name='sprak'
-                          value={sprak.id}
-                          onChange={() => {
-                            updateUIList(sprak);
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </AltinnRadioGroup>
+                              <div
+                                style={{
+                                  height: '24px',
+                                  lineHeight: '24px',
+                                  marginBottom: '2rem',
+                                  width: '100px',
+                                }}
+                              >
+                                <Typography style={{ fontSize: '16px', fontWeight: '700' }}>
+                                  Aktive språk:
+                                </Typography>
+                              </div>
+                              <AltinnRadioGroup
+                                key={sprak.id}
+                                value={sprak}
+                                style={{ width: '100%' }}
+                              >
+                                {sprak?.map((sprak, index) => {
+                                  return (
+                                    <div id={sprak.id} key={index} className={classes.radioGroup}>
+                                      <div
+                                        style={{
+                                          width: '100%',
+                                          gap: '1rem',
+                                          display: 'flex',
+                                        }}
+                                      >
+                                        <div>
+                                          <label htmlFor={sprak.id}>
+                                          </label>
+                                        </div>
+                                        <div>{sprak.name}</div>
+                                      </div>
+                                      <div
+                                        style={{
+                                          width: '100%',
+                                          gap: '1rem',
+                                          display: 'flex',
+                                        }}
+                                      >
+                                        <div>
+                                          <input
+                                            type='radio'
+                                            name='sprak'
+                                            value={sprak.id}
+                                            onChange={() => {
+                                              updateUIList(sprak);
+                                            }}
+                                          />
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </AltinnRadioGroup>
 
-            <div
-              style={{
-                height: '19px',
-                width: '317px',
-                margin: '5rem 0 1rem 0',
-              }}
-            >
-              <Typography style={{ fontSize: '14px', fontWeight: '400' }}>
-                Legg til språk:
-              </Typography>
-            </div>
-            <div
-              style={{
-                display: 'flex',
-                width: '400px',
-                justifyContent: 'space-evenly',
-              }}
-            >
-              <div style={{ width: '280px' }}>
-                <Select
-                  onChange={handleSelectOnChange}
-                  options={modifiedLanguageCodes}
-                  value={selectedSprak}
-                />
-              </div>
-              <div style={{ alignContent: 'end' }}>
-                <Button
-                  onClick={handleLeggTilNyttSprak}
-                  className={classes.btnSecondary}
-                  disabled={!selectedSprak}
-                >
-                  Legg til
-                </Button>
-              </div>
-            </div>
-            <div className={classes.lineBorder} />
-          </div>
-        }
+                              <div
+                                style={{
+                                  height: '19px',
+                                  width: '317px',
+                                  margin: '5rem 0 1rem 0',
+                                }}
+                              >
+                                <Typography style={{ fontSize: '14px', fontWeight: '400' }}>
+                                  Legg til språk:
+                                </Typography>
+                              </div>
+                              <div
+                                style={{
+                                  display: 'flex',
+                                  width: '400px',
+                                  justifyContent: 'space-evenly',
+                                }}
+                              >
+                                <div style={{ width: '280px' }}>
+                                  <Select
+                                    onChange={handleSelectOnChange}
+                                    options={modifiedLanguageCodes}
+                                    value={selectedSprak}
+                                  />
+                                </div>
+                                <div style={{ alignContent: 'end' }}>
+                                  <Button
+                                    onClick={handleLeggTilNyttSprak}
+                                    className={classes.btnSecondary}
+                                    disabled={!selectedSprak}
+                                  >
+                                    Legg til
+                                  </Button>
+                                </div>
+                              </div>
+                              <div className={classes.lineBorder} />
+                            </div>
+                          }
       >
         <div style={{marginBottom: '10rem'}}>
           <div className={classes.stickyHeader}>
