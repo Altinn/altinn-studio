@@ -739,7 +739,7 @@ namespace DataModeling.Tests.Assertions
 
         private static void KeywordEqual(XsdSchemaAttributesKeyword expected, XsdSchemaAttributesKeyword actual)
         {
-            Assert.Equal(expected.Properties.Count, expected.Properties.Count);
+            Assert.Equal(expected.Properties.Count, actual.Properties.Count);
             for (int i = 0; i < expected.Properties.Count; i++)
             {
                 Assert.Equal(expected.Properties[i].Name,  actual.Properties[i].Name);
