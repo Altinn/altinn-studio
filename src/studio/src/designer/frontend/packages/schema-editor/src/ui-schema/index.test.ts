@@ -1,25 +1,19 @@
-import {
-  createJsonSchema,
-  createUiSchema,
-  ROOT_POINTER,
-} from './internal-model';
-import {
-  getGeneralJsonSchemasForTest,
-  getSeresJsonSchemasForTest,
-} from '../../test/testUtils';
-import { ObjectKind } from '../types/enums';
+import { getGeneralJsonSchemasForTest, getSeresJsonSchemasForTest } from '../../test/testUtils';
 import fs from 'fs';
+import { JsonSchemaNode, ROOT_POINTER } from './types';
+import { toJsonSchema, toUiSchema } from './index';
+import { ObjectKind } from '../types/enums';
 
 test.each(getSeresJsonSchemasForTest())(
   'Seres model %p can be converted',
-  (name: string, testSchema: object) => {
-    const map = createUiSchema(testSchema);
+  (name: string, testSchema: JsonSchemaNode) => {
+    const map = toUiSchema(testSchema);
     fs.writeFileSync(
       __dirname + '/debug/' + name + '.json',
       JSON.stringify(Array.from(map.values()), null, 4),
       'utf-8',
     );
-    const jsonSchema = createJsonSchema(map);
+    const jsonSchema = toJsonSchema(map);
     expect(jsonSchema).toEqual(testSchema);
 
     map.forEach((uiSchema) => {
@@ -33,20 +27,19 @@ test.each(getSeresJsonSchemasForTest())(
         expect(uiSchema.fieldType).toBeDefined();
       }
     });
-    //console.log(JSON.stringify(Object.fromEntries(map), null, 4));
   },
 );
 
 test.each(getGeneralJsonSchemasForTest())(
   'General model %p can be converted',
   (name: string, testSchema: object) => {
-    const map = createUiSchema(testSchema);
+    const map = toUiSchema(testSchema);
     fs.writeFileSync(
       __dirname + '/debug/' + name + '.json',
       JSON.stringify(Array.from(map.values()), null, 4),
       'utf-8',
     );
-    const jsonSchema = createJsonSchema(map);
+    const jsonSchema = toJsonSchema(map);
     expect(jsonSchema).toEqual(testSchema);
 
     //console.log(JSON.stringify(Object.fromEntries(map), null, 4));
