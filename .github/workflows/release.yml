@@ -85,7 +85,7 @@ jobs:
         run: |
           echo altinn-app-frontend version: ${{ steps.prepare.outputs.APP_FULL }}
           cd toolkits/altinn-app-frontend
-          ls -1 | grep --perl-regexp '^[\d\.]+(-[a-z]+)?$' | sort --version-sort | jq --raw-input --slurp 'split("\n") | map(select(. != ""))' > index.json
+          ls -1 | grep --perl-regexp '^[\d\.]+(-[a-z0-9.]+)?$' | sort --version-sort | jq --raw-input --slurp 'split("\n") | map(select(. != ""))' > index.json
           cd ../..
           git config --global user.email "${{ steps.prepare.outputs.AUTHOR_EMAIL }}"
           git config --global user.name "${{ steps.prepare.outputs.AUTHOR_NAME }}"
