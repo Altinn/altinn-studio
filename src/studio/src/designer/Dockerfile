@@ -58,7 +58,7 @@ RUN yarn --immutable
 COPY src/designer/backend .
 RUN yarn run gulp build
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0.400-1-alpine3.16 AS build
+FROM mcr.microsoft.com/dotnet/sdk:6.0.401-alpine3.16 AS build
 WORKDIR /build
 COPY src/designer/Designer.sln ./
 COPY src/designer/backend ./designer/
