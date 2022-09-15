@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
 import createSagaMiddleware from 'redux-saga';
-import type { PreloadedState } from '@reduxjs/toolkit';
+import type { PreloadedState } from 'redux';
 import type { SagaMiddleware } from 'redux-saga';
 
 import reducers from 'src/reducers';

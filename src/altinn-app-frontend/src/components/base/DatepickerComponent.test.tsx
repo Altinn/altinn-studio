@@ -3,7 +3,7 @@ import React from 'react';
 import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { mockMediaQuery, renderWithProviders } from 'testUtils';
-import type { PreloadedState } from '@reduxjs/toolkit';
+import type { PreloadedState } from 'redux';
 
 import DatepickerComponent from 'src/components/base/DatepickerComponent';
 import type { IComponentProps } from 'src/components';

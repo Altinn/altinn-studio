@@ -5,7 +5,7 @@ import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import { render as rtlRender } from '@testing-library/react';
 import type { RenderOptions } from '@testing-library/react';
-import type { PreloadedState } from '@reduxjs/toolkit';
+import type { PreloadedState } from 'redux';
 
 import type { RootState, AppStore } from 'src/store';
 import { setupStore } from 'src/store';

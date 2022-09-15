@@ -7,7 +7,7 @@ import {
   MemoryRouterWithRedirectingRoot,
   renderWithProviders,
 } from 'testUtils';
-import type { PreloadedState } from '@reduxjs/toolkit';
+import type { PreloadedState } from 'redux';
 
 import { Form } from 'src/features/form/containers/Form';
 import type {

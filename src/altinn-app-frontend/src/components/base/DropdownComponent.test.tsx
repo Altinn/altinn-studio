@@ -4,7 +4,7 @@ import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from 'testUtils';
-import type { PreloadedState } from '@reduxjs/toolkit';
+import type { PreloadedState } from 'redux';
 
 import DropdownComponent from 'src/components/base/DropdownComponent';
 import type { IComponentProps } from 'src/components';
