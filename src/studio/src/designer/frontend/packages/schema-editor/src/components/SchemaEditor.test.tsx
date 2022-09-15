@@ -70,7 +70,7 @@ const clickOpenContextMenuButton = (user: UserEvent) =>
   user.click(screen.getByTestId('open-context-menu-button'));
 
 const toggleEditMode = (user: UserEvent) =>
-  user.click(screen.getByText('Edit'));
+  user.click(screen.getByText('edit_mode'));
 
 test('renders schema editor with populated schema in view mode', () => {
   renderEditor();

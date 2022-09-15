@@ -40,6 +40,7 @@ interface TopToolbarProps {
 
 export function TopToolbar({ editMode, Toolbar, saveAction, toggleEditMode, language }: TopToolbarProps) {
   const classes = useStyles();
+  const t = (key: string) => getTranslation(key, language);
 
   return (
     <section className={classes.toolbar} role={'toolbar'}>
@@ -51,12 +52,12 @@ export function TopToolbar({ editMode, Toolbar, saveAction, toggleEditMode, lang
         iconSize={24}
         className={classes.saveButton}
       >
-        {getTranslation('save_data_model', language)}
+        {t('save_data_model')}
       </TopToolbarButton>
       {toggleEditMode &&
         <ToggleButtonGroup selectedValue={editMode ? 'edit' : 'view'} onChange={toggleEditMode}>
-          <ToggleButton value='view'>View</ToggleButton>
-          <ToggleButton value='edit'>Edit</ToggleButton>
+          <ToggleButton value='view'>{t('view_mode')}</ToggleButton>
+          <ToggleButton value='edit'>{t('edit_mode')}</ToggleButton>
         </ToggleButtonGroup>
       }
     </section>

@@ -84,9 +84,6 @@
       ".(ts|tsx)": "ts-jest",
       "node_modules(\\\\|/)(@?react-leaflet)(\\\\|/).+\\.(j|t)sx?$": "ts-jest"
     },
-    "transformIgnorePatterns": [
-      "node_modules(\\\\|/)(?!@?react-leaflet)"
-    ],
     "reporters": [
       "default",
       "jest-junit"

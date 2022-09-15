@@ -42,7 +42,7 @@ test('handles a click on the toggle edit mode button', async () => {
   const { toggleEditMode, user} = renderToolbar(<></>);
   const topToolbar = screen.getByRole('toolbar');
   expect(topToolbar).toBeDefined();
-  const toggleEditModeButton = screen.getByText('Edit');
+  const toggleEditModeButton = screen.getByText('edit_mode');
   expect(toggleEditModeButton).toBeDefined();
   await user.click(toggleEditModeButton);
   expect(toggleEditMode).toBeCalledTimes(1);
