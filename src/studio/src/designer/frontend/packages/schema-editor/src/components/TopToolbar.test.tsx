@@ -32,7 +32,9 @@ test('handles a click on the save button', async () => {
   const { saveAction, user } = renderToolbar(<></>);
   const topToolbar = screen.getByRole('toolbar');
   expect(topToolbar).toBeDefined();
-  const saveButton = screen.getByText('save_data_model');
+  const saveButton = screen.getByRole('button', {
+    name: 'save_data_model',
+  });
   expect(saveButton).toBeDefined();
   await user.click(saveButton);
   expect(saveAction).toBeCalledTimes(1);
