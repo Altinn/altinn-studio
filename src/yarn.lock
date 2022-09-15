@@ -12,9 +12,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@altinn/altinn-design-system@npm:0.7.0":
-  version: 0.7.0
-  resolution: "@altinn/altinn-design-system@npm:0.7.0"
+"@altinn/altinn-design-system@npm:0.7.1":
+  version: 0.7.1
+  resolution: "@altinn/altinn-design-system@npm:0.7.1"
   dependencies:
     "@altinn/figma-design-tokens": ^2.0.2
     "@radix-ui/react-popover": ^1.0.0
@@ -25,7 +25,7 @@ __metadata:
   peerDependencies:
     react: ^18.0.0
     react-dom: ^18.0.0
-  checksum: c91537e05fbe529ed1687c77baf2d33fb28cbc3de3beeaa83dcd6364c2527764148c204cdd22c8abfd0413d3ee7ae49389731dbd9edbd49281af3aad17b9a015
+  checksum: 90f4a8a7d353e1ea5cb0d2cacf1c636000342c64bf694120e62dadfb9767461efe2bbd8b0c048fd9f961fcd3244f081d8029e399e9d4a8b13101e0e97b431407
   languageName: node
   linkType: hard
 
@@ -4693,7 +4693,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "altinn-app-frontend@workspace:altinn-app-frontend"
   dependencies:
-    "@altinn/altinn-design-system": 0.7.0
+    "@altinn/altinn-design-system": 0.7.1
     "@babel/core": 7.18.13
     "@babel/polyfill": 7.12.1
     "@babel/preset-env": 7.18.10
