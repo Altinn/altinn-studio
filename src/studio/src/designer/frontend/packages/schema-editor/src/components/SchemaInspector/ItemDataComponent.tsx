@@ -1,8 +1,8 @@
-import { Checkbox, Divider, FormControlLabel, TextField } from '@material-ui/core';
+import { Checkbox, Divider, FormControlLabel, TextField as MaterialTextField } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
-import React, { useCallback, useEffect, useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { CombinationKind, FieldType, ILanguage, ISchemaState, UiSchemaItem } from '../../types';
+import React, { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { CombinationKind, FieldType, ILanguage, UiSchemaItem } from '../../types';
 import { NameError, ObjectKind } from '../../types/enums';
 import { isValidName } from '../../utils/checks';
 import { getTranslation } from '../../utils/language';
@@ -25,6 +25,7 @@ import { CombinationSelect } from './CombinationSelect';
 import { getObjectKind } from '../../utils/ui-schema-utils';
 import { Label } from './Label';
 import { getCombinationOptions, getTypeOptions } from './helpers/options';
+import { TextField, ErrorMessage } from '@altinn/altinn-design-system';
 
 export interface IItemDataComponentProps {
   selectedItem: UiSchemaItem | null;
@@ -38,7 +39,7 @@ const useStyles = makeStyles(
       background: 'white',
       color: 'black',
       border: '1px solid #006BD8',
-      boxSsizing: 'border-box',
+      boxSizing: 'border-box',
       marginTop: 2,
       padding: 4,
       '&.Mui-disabled': {
@@ -89,8 +90,6 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
   const [fieldType, setFieldType] = useState<FieldType | undefined>(undefined);
   const [arrayType, setArrayType] = useState<FieldType | string | undefined>(undefined);
 
-  const focusName = useSelector((state: ISchemaState) => state.focusNameField);
-
   useEffect(() => {
     setNodeName(selectedItem?.displayName ?? '');
     setNameError(NameError.NoError);
@@ -99,18 +98,6 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
     setFieldType(selectedItem?.type);
     setArrayType(selectedItem?.items?.$ref ?? selectedItem?.items?.type ?? '');
   }, [selectedItem]);
-
-  const nameFieldRef = useCallback(
-    (node: any) => {
-      if (node && focusName && focusName === selectedId) {
-        setTimeout(() => {
-          node.select();
-        }, 100);
-      }
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    },
-    [focusName, selectedId],
-  );
 
   const onNameChange = (e: any) => {
     const name: string = e.target.value;
@@ -252,19 +239,16 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
         <>
           <p className={classes.name}>{t('name')}</p>
           <TextField
-            InputProps={inputProps}
             aria-describedby='Selected Item Name'
-            className={classes.field}
-            error={!!nameError}
-            fullWidth={true}
-            helperText={t(nameError)}
             id='selectedItemName'
-            inputRef={nameFieldRef}
             onBlur={handleChangeNodeName}
             onChange={onNameChange}
             placeholder='Name'
             value={nodeName}
+            aria-errormessage={t(nameError)}
+            aria-placeholder='Name'
           />
+          {nameError && <ErrorMessage>{t(nameError)}</ErrorMessage>}
         </>
       )}
       {selectedItem && objectKind === ObjectKind.Field && (
@@ -335,17 +319,13 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
       <Divider />
       <Label>{t('descriptive_fields')}</Label>
       <TextField
-        InputProps={inputProps}
-        className={classes.field}
-        fullWidth
         id={`${getDomFriendlyID(selectedId ?? '')}-title`}
-        margin='normal'
         onBlur={onChangeTitle}
         onChange={(e) => setItemTitle(e.target.value)}
         value={title}
       />
       <Label>{t('description')}</Label>
-      <TextField
+      <MaterialTextField
         InputProps={inputProps}
         className={classes.field}
         fullWidth

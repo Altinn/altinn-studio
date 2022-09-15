@@ -8,6 +8,7 @@
   "jsnext:main": "dist/index.es.js",
   "types": "dist/index.d.ts",
   "peerDependencies": {
+    "@altinn/altinn-design-system": "^0.7.1",
     "@material-ui/core": "^4.12.4",
     "@material-ui/icons": "^4.11.3",
     "@material-ui/lab": "^4.0.0-alpha.61",
@@ -63,7 +64,8 @@
   },
   "jest": {
     "transform": {
-      ".(ts|tsx)": "ts-jest"
+      ".(ts|tsx)": "ts-jest",
+      "node_modules(\\\\|/)(@?react-leaflet)(\\\\|/).+\\.(j|t)sx?$": "ts-jest"
     },
     "reporters": [
       "default",
@@ -83,6 +85,9 @@
     "testEnvironment": "jsdom",
     "setupFilesAfterEnv": [
       "<rootDir>/test/setupTests.ts"
+    ],
+    "transformIgnorePatterns": [
+      "node_modules(\\\\|/)(?!@?react-leaflet)"
     ]
   },
   "browserslist": {

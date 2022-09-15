@@ -81,7 +81,8 @@
   },
   "jest": {
     "transform": {
-      ".(ts|tsx)": "ts-jest"
+      ".(ts|tsx)": "ts-jest",
+      "node_modules(\\\\|/)(@?react-leaflet)(\\\\|/).+\\.(j|t)sx?$": "ts-jest"
     },
     "reporters": [
       "default",
@@ -107,7 +108,8 @@
     "testEnvironment": "jsdom",
     "setupFilesAfterEnv": [
       "<rootDir>/test/setupTests.ts"
-    ]
+    ],
+    "transformIgnorePatterns": ["node_modules(\\\\|/)(?!@?react-leaflet)"]
   },
   "browserslist": [
     ">0.2%",
