@@ -128,7 +128,7 @@ __metadata:
     jquery-validation-unobtrusive: 3.2.12
     js-beautify: 1.14.6
     json-editor: 0.7.28
-    monaco-editor: 0.34.0
+    monaco-editor: 0.33.0
     popper.js: 1.16.1
     requirejs: 2.3.6
     requirejs-text: 2.0.16
@@ -2599,10 +2599,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"monaco-editor@npm:0.34.0":
-  version: 0.34.0
-  resolution: "monaco-editor@npm:0.34.0"
-  checksum: 10a28c1fe07268a23106ec9b743339af603e00c3ce646de72bf74f77e3d44065536f1a11f1a86ed459dfd9cb891261e6c7974377fc511eb65f354d6ddc89275b
+"monaco-editor@npm:0.33.0":
+  version: 0.33.0
+  resolution: "monaco-editor@npm:0.33.0"
+  checksum: f88fd1c9be0d6845436aa92ee7f7bcc49f9e9bf452f73bb5efbbe52e50678d1c2aec4d612a943310f5e2282c1d9fcc41b792b65a5b9008e6054908e7e10311ea
   languageName: node
   linkType: hard
 
