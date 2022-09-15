@@ -26,7 +26,7 @@ public class InstanceUtils {
 
     for (Data data: instance.getData()) {
       if (id.equals(data.getDataType())) {
-        list.add(data.getFilename());
+        list.add(TextUtils.removeIllegalChars(data.getFilename()));
       }
     }
     return list;
@@ -46,7 +46,7 @@ public class InstanceUtils {
 
     for (Data data: instance.getData()) {
       if (id.equals(data.getDataType())) {
-        map.put(data.getFilename(), data.getTags());
+        map.put(TextUtils.removeIllegalChars(data.getFilename()), data.getTags());
       }
     }
     return map;
