@@ -104,24 +104,25 @@ namespace Altinn.Studio.Designer.Controllers
 
             Console.WriteLine(org + app + id);
 
-            // JArray resources = json["resources"] as JArray;
-            // string[] duplicateKeys = resources.GroupBy(obj => obj["id"]).Where(grp => grp.Count() > 1).Select(grp => grp.Key.ToString()).ToArray();
-            // if (duplicateKeys.Length > 0)
-            // {
-            //     return BadRequest($"Text keys must be unique. Please review keys: {string.Join(", ", duplicateKeys)}");
-            // }
+            JArray resources = json["resources"] as JArray;
+            string[] duplicateKeys = resources.GroupBy(obj => obj["id"]).Where(grp => grp.Count() > 1).Select(grp => grp.Key.ToString()).ToArray();
+            if (duplicateKeys.Length > 0)
+            {
+                return BadRequest($"Text keys must be unique. Please review keys: {string.Join(", ", duplicateKeys)}");
+            }
 
-            // JArray sorted = new JArray(resources.OrderBy(obj => obj["id"]));
-            // json["resources"].Replace(sorted);
+            JArray sorted = new JArray(resources.OrderBy(obj => obj["id"]));
+            json["resources"].Replace(sorted);
 
-            // // updating application metadata with appTitle.
-            // JToken appTitleToken = resources.FirstOrDefault(x => x.Value<string>("id") == "appName" || x.Value<string>("id") == "ServiceName");
+            // updating application metadata with appTitle.
+            JToken appTitleToken = resources.FirstOrDefault(x => x.Value<string>("id") == "appName" || x.Value<string>("id") == "ServiceName");
 
-            // if (!(appTitleToken == null))
-            // {
-            //     string appTitle = appTitleToken.Value<string>("value");
-            //     _repository.UpdateAppTitle(org, app, id, appTitle);
-            // }
+            if (!(appTitleToken == null))
+            {
+                string appTitle = appTitleToken.Value<string>("value");
+                _repository.UpdateAppTitle(org, app, id, appTitle);
+            }
+
             _repository.SaveLanguageResource(org, app, id, json.ToString());
 
             return Json(new
