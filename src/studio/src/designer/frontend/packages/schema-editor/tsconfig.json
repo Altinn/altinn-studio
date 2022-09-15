@@ -27,6 +27,7 @@
         "../../shared/*"
       ],
     },
+    "allowJs": true
   },
   "include": ["**/*.ts", "**/*.tsx"],
   "exclude": [

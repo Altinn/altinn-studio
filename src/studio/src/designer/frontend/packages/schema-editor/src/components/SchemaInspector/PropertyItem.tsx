@@ -1,41 +1,35 @@
 import React, { KeyboardEvent, useEffect, useState } from 'react';
-import { Checkbox, FormControl, FormControlLabel, Grid, IconButton, Input, makeStyles } from '@material-ui/core';
+import {
+  Checkbox,
+  FormControl,
+  FormControlLabel,
+  Grid,
+  IconButton,
+  makeStyles,
+} from '@material-ui/core';
 import { useDispatch } from 'react-redux';
 import { DeleteOutline } from '@material-ui/icons';
 import type { ILanguage } from '../../types';
 import { getDomFriendlyID, getUniqueNumber } from '../../utils/schema';
 import { getTranslation } from '../../utils/language';
 import { setRequired } from '../../features/editor/schemaEditorSlice';
+import { TextField } from "@altinn/altinn-design-system";
 
-const useStyles = (readonly?: boolean) =>
-  makeStyles({
-    field: {
-      background: 'white',
-      color: 'black',
-      border: readonly ? '1px solid grey' : '1px solid #006BD8',
-      boxSsizing: 'border-box',
-      padding: 4,
-      '&.Mui-disabled': {
-        background: '#f4f4f4',
-        color: 'black',
-        border: '1px solid #6A6A6A',
-        boxSizing: 'border-box',
-      },
+const useStyles = makeStyles({
+  inline: {
+    display: 'inline-block',
+  },
+  delete: {
+    marginLeft: '8px',
+    padding: '12px',
+  },
+  checkBox: {
+    marginTop: 4,
+    '& .Mui-focusVisible': {
+      background: 'gray',
     },
-    inline: {
-      display: 'inline-block',
-    },
-    delete: {
-      marginLeft: '8px',
-      padding: '12px',
-    },
-    checkBox: {
-      marginTop: 4,
-      '& .Mui-focusVisible': {
-        background: 'gray',
-      },
-    },
-  });
+  },
+});
 
 export interface IPropertyItemProps {
   value: string;
@@ -50,7 +44,7 @@ export interface IPropertyItemProps {
 }
 
 export function PropertyItem(props: IPropertyItemProps) {
-  const classes = useStyles(props.readOnly)();
+  const classes = useStyles();
 
   const [value, setValue] = useState<string>(props.value || '');
   const dispatch = useDispatch();
@@ -87,23 +81,19 @@ export function PropertyItem(props: IPropertyItemProps) {
   const baseId = getDomFriendlyID(props.fullPath);
   return (
     <>
-      <Grid item xs={4}>
+      <Grid item xs={6}>
         <FormControl>
-          <Input
+          <TextField
             id={`${baseId}-key-${getUniqueNumber()}`}
             value={value}
-            disableUnderline={true}
-            fullWidth
             autoFocus
             disabled={props.readOnly}
             onChange={onChangeValue}
             onBlur={onBlur}
-            className={classes.field}
             onKeyDown={onKeyDown}
           />
         </FormControl>
       </Grid>
-      <Grid item xs={1} />
       <Grid item xs={4}>
         <FormControl>
           <FormControlLabel
@@ -113,7 +103,7 @@ export function PropertyItem(props: IPropertyItemProps) {
           />
         </FormControl>
       </Grid>
-      <Grid item xs={3}>
+      <Grid item xs={2}>
         {props.onDeleteField && (
           <IconButton
             id={`${baseId}-delete-${getUniqueNumber()}`}

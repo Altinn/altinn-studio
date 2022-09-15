@@ -1,9 +1,10 @@
 import React, { KeyboardEvent, useEffect, useState } from 'react';
-import { Grid, IconButton, makeStyles, TextField } from '@material-ui/core';
+import { Grid, IconButton, makeStyles } from '@material-ui/core';
 import { DeleteOutline } from '@material-ui/icons';
 import { getTranslation } from '../../utils/language';
 import { getDomFriendlyID } from '../../utils/schema';
 import type { ILanguage } from '../../types';
+import { TextField } from "@altinn/altinn-design-system";
 
 export interface IEnumFieldProps {
   path: string;
@@ -20,19 +21,6 @@ const useStyles = makeStyles({
   delete: {
     marginLeft: '8px',
     padding: '12px',
-  },
-  field: {
-    background: 'white',
-    color: 'black',
-    border: '1px solid #006BD8',
-    boxSsizing: 'border-box',
-    padding: 4,
-    '&.Mui-disabled': {
-      background: '#f4f4f4',
-      color: 'black',
-      border: '1px solid #6A6A6A',
-      boxSizing: 'border-box',
-    },
   },
 });
 
@@ -58,23 +46,17 @@ export const EnumField = (props: IEnumFieldProps) => {
   const baseId = getDomFriendlyID(props.path);
   return (
     <>
-      <Grid item xs={8}>
+      <Grid item xs={9}>
         <TextField
           id={`${baseId}-enum-${props.value}`}
-          className={classes.field}
-          fullWidth={true}
           disabled={props.readOnly}
           value={val}
           onChange={onChange}
           onBlur={onBlur}
-          InputProps={{
-            disableUnderline: true,
-          }}
           onKeyDown={onKeyDown}
           autoFocus
         />
       </Grid>
-      <Grid item xs={1} />
       {props.onDelete && (
         <Grid item xs={3}>
           <IconButton
