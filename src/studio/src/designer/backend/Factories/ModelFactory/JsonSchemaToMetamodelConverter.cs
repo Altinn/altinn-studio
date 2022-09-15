@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Xml.Schema;
 using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Json.Keywords;
@@ -94,11 +95,11 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
             _modelMetadata = new ModelMetadata();
             _schema = JsonSchema.FromText(jsonSchema);
-            IdKeyword idKeyword; 
+            IdKeyword idKeyword;
             var idKeywordParsed = _schema.TryGetKeyword<IdKeyword>(out idKeyword);
 
             _schemaXsdMetadata = _schemaAnalyzer.AnalyzeSchema(_schema, idKeywordParsed ? idKeyword.Id : new Uri(modelName, UriKind.Relative));
-            
+
             ProcessSchema(_schema);
 
             return _modelMetadata;
@@ -109,6 +110,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             var rootPath = JsonPointer.Parse("#");
             var name = ConvertToCSharpCompatibleName(ModelName);
             var context = new SchemaContext() { Id = name, ParentId = string.Empty, Name = name, XPath = "/" };
+            SetTargetNamespace(schema);
 
             var propertiesKeyword = schema.GetKeyword<PropertiesKeyword>();
             if (propertiesKeyword != null)
@@ -149,7 +151,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 case MinItemsKeyword:
                 case MaxItemsKeyword:
                     break;
-                
+
                 case RefKeyword k:
                     ProcessRefKeyword(path, k, context);
                     break;
@@ -191,7 +193,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
         private void ProcessOneOfKeyword(JsonPointer path, OneOfKeyword keyword, SchemaContext context)
         {
-            // A oneOf keyword with only one subschema which isn't null makes it required 
+            // A oneOf keyword with only one subschema which isn't null makes it required
             if (KeywordHasSingleNonNullSchema(keyword))
             {
                 AddRequiredProperties(context.Id, new List<string>() { context.Name });
@@ -249,7 +251,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 ProcessSubSchema(subSchemaPath, subSchema, context);
 
                 subSchemaIndex++;
-            }         
+            }
         }
 
         private void ProcessPropertiesKeyword(JsonPointer path, PropertiesKeyword keyword, SchemaContext context)
@@ -277,7 +279,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
             else
             {
-                ProcessNonPrimitiveType(path, subSchema, context);            
+                ProcessNonPrimitiveType(path, subSchema, context);
             }
 
             OnSubSchemaProcessed(new SubSchemaProcessedEventArgs() { Path = path, SubSchema = subSchema });
@@ -323,7 +325,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             else if (IsRestrictionType(path))
             {
                 ProcessRestrictionType(path, subSchema, context);
-            }            
+            }
             else
             {
                 ProcessRegularType(path, subSchema, context);
@@ -393,7 +395,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 context.IsNillable = true;
 
                 ProcessSubSchema(path, schema, context);
-            }            
+            }
         }
 
         private void ProcessRegularType(JsonPointer path, JsonSchema subSchema, SchemaContext context)
@@ -415,7 +417,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             int maxOccurs = GetMaxOccurs(subSchema, context);
             string xPath = CombineXPath(context.XPath, context.Name);
             string name = ConvertToCSharpCompatibleName(context.Name);
-            
+
             _modelMetadata.Elements.Add(
                 id,
                 new ElementMetadata()
@@ -737,7 +739,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
             else if (@type == ElementType.Group && maxOccurs > 1)
             {
-                return GetDataBindingName(id, xPath); 
+                return GetDataBindingName(id, xPath);
             }
 
             return null;
@@ -865,7 +867,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         /// <summary>
         /// Checks if the actualType parameter is of the expectedType parameter combined with null.
         /// SchemaValueType is a bitwise Enum and can hold all possible combinations.
-        /// this method checks if one of the primitive types only is combined with null, ie. it's a nullable primitive type. 
+        /// this method checks if one of the primitive types only is combined with null, ie. it's a nullable primitive type.
         /// </summary>
         private static bool IsNullablePrimitiveType(SchemaValueType actualType, SchemaValueType expectedType)
         {
@@ -921,6 +923,20 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
 
             return typeKeyword.Type == SchemaValueType.Array;
-        }        
+        }
+
+        private void SetTargetNamespace(JsonSchema jsonSchema)
+        {
+            var attributesKeyword = jsonSchema.GetKeyword<XsdSchemaAttributesKeyword>();
+
+            var targetNamespace =
+                attributesKeyword?.Properties?.Where(x => x.Name == nameof(XmlSchema.TargetNamespace))
+                    .Select(x => x.Value).FirstOrDefault();
+
+            if (!string.IsNullOrWhiteSpace(targetNamespace))
+            {
+                _modelMetadata.TargetNamespace = targetNamespace;
+            }
+        }
     }
 }

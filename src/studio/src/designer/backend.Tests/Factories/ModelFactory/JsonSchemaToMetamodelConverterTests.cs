@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Reflection;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -19,9 +20,17 @@ using Xunit.Abstractions;
 
 namespace Designer.Tests.Factories.ModelFactory
 {
-    public class JsonSchemaToMetamodelConverterTests
+    public class JsonSchemaToMetamodelConverterTests: FluentTestsBase<JsonSchemaToMetamodelConverterTests>
     {
         private readonly ITestOutputHelper _outputHelper;
+
+        private XmlSchema _xsdSchema;
+        private JsonSchema _convertedJsonSchema;
+        private ModelMetadata _modelMetadata;
+        private string _cSharpClasses;
+        private Assembly _compiledAssembly;
+
+        private ModelMetadata _expectedModelMetadata;
 
         public JsonSchemaToMetamodelConverterTests(ITestOutputHelper outputHelper)
         {
@@ -40,37 +49,17 @@ namespace Designer.Tests.Factories.ModelFactory
         [InlineData("Model/Xsd/schema_4830_4000_forms_5524_41951.xsd", "Model/Metadata/schema_4830_4000_forms_5524_41951.metadata.json")]
         [InlineData("Model/Xsd/schema_4582_2000_forms_5244_42360.xsd", "Model/Metadata/schema_4582_2000_forms_5244_42360.metadata.json")]
         [InlineData("Model/Xsd/schema_4741_4280_forms_5273_41269.xsd", "Model/Metadata/schema_4741_4280_forms_5273_41269.metadata.json")]
+        [InlineData("Model/Xsd/SchemaWithTargetNamespace.xsd", "Model/Metadata/SchemaWithTargetNamespace.metadata.json")]
         public void Convert_FromSeresSchema_ShouldConvert(string xsdSchemaPath, string expectedMetamodelPath)
         {
-            // Arrange
-            // Convert the Seres XSD to JSON Schema
-            XmlSchema originalXsd = TestDataHelper.LoadXmlSchemaTestData(xsdSchemaPath);
-            var xsdToJsonConverter = new XmlSchemaToJsonSchemaConverter();
-            JsonSchema convertedJsonSchema = xsdToJsonConverter.Convert(originalXsd);
-            var convertedJsonSchemaString = JsonSerializer.Serialize(convertedJsonSchema, new JsonSerializerOptions() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement), WriteIndented = true });
-
-            // Convert to Metadata model
-            var metamodelConverter = new JsonSchemaToMetamodelConverter(new SeresJsonSchemaAnalyzer());
-            metamodelConverter.KeywordProcessed += KeywordProcessedHandler;
-            metamodelConverter.SubSchemaProcessed += SubSchemaProcessedHandler;
-
-            // Act
-            var actualMetamodel = metamodelConverter.Convert("melding", convertedJsonSchemaString);
-
-            // Leaving this for easy access/manual verification
-            var actualMetamodelJson = JsonSerializer.Serialize(actualMetamodel, new JsonSerializerOptions() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase, WriteIndented = true, Converters = { new JsonStringEnumConverter() } });
-
-            // Assert
-            var expectedMetamodelJson = TestDataHelper.LoadTestDataFromFileAsString(expectedMetamodelPath);
-            var expectedMetamodel = JsonSerializer.Deserialize<ModelMetadata>(expectedMetamodelJson, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, Converters = { new JsonStringEnumConverter() } });
-            MetadataAssertions.IsEquivalentTo(expectedMetamodel, actualMetamodel);
-
-            actualMetamodel.Elements.Values.Where(e => e.ParentElement == null).ToList().Count.Should().Be(1);
-
-            // Compile the generated class to verify it compiles without errors
-            var classes = new JsonMetadataParser().CreateModelFromMetadata(actualMetamodel);
-            var compiledAssembly = Compiler.CompileToAssembly(classes);
-            compiledAssembly.Should().NotBeNull();
+            Given.That.XsdSchemaLoaded(xsdSchemaPath)
+                .When.XsdSchemaConverted2JsonSchema()
+                .And.JsonSchemaConverted2Metamodel("melding")
+                .And.ExpectedMetamodelLoaded(expectedMetamodelPath)
+                .Then.MetamodelShouldBeEquivalentToExpected()
+                .And.When.CSharpClassesCreatedFromMetamodel()
+                .And.CSharpClassesCompiledToAssembly()
+                .Then.CompiledAssemblyShouldNotBeNull();
         }
 
         private void KeywordProcessedHandler(object sender, KeywordProcessedEventArgs e)
@@ -81,6 +70,70 @@ namespace Designer.Tests.Factories.ModelFactory
         private void SubSchemaProcessedHandler(object sender, SubSchemaProcessedEventArgs e)
         {
             _outputHelper.WriteLine($"Processed sub-schema at {e.Path.Source}");
+        }
+
+        // Fluent methods
+        private JsonSchemaToMetamodelConverterTests XsdSchemaLoaded(string xsdSchemaPath)
+        {
+            _xsdSchema = TestDataHelper.LoadXmlSchemaTestData(xsdSchemaPath);
+            return this;
+        }
+
+        private JsonSchemaToMetamodelConverterTests XsdSchemaConverted2JsonSchema()
+        {
+            var xsdToJsonConverter = new XmlSchemaToJsonSchemaConverter();
+            _convertedJsonSchema = xsdToJsonConverter.Convert(_xsdSchema);
+            return this;
+        }
+
+        private JsonSchemaToMetamodelConverterTests JsonSchemaConverted2Metamodel(string modelName)
+        {
+            var metamodelConverter = new JsonSchemaToMetamodelConverter(new SeresJsonSchemaAnalyzer());
+            metamodelConverter.KeywordProcessed += KeywordProcessedHandler;
+            metamodelConverter.SubSchemaProcessed += SubSchemaProcessedHandler;
+
+            var convertedJsonSchemaString = JsonSerializer.Serialize(_convertedJsonSchema, new JsonSerializerOptions() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement), WriteIndented = true });
+
+            _modelMetadata = metamodelConverter.Convert(modelName, convertedJsonSchemaString);
+            return this;
+        }
+
+        private JsonSchemaToMetamodelConverterTests ExpectedMetamodelLoaded(string expectedMetamodelPath)
+        {
+            var expectedMetamodelJson = TestDataHelper.LoadTestDataFromFileAsString(expectedMetamodelPath);
+            _expectedModelMetadata = JsonSerializer.Deserialize<ModelMetadata>(expectedMetamodelJson, new JsonSerializerOptions() { PropertyNameCaseInsensitive = true, Converters = { new JsonStringEnumConverter() } });
+            return this;
+        }
+
+        private JsonSchemaToMetamodelConverterTests CSharpClassesCreatedFromMetamodel()
+        {
+            _cSharpClasses = new JsonMetadataParser().CreateModelFromMetadata(_modelMetadata);
+            return this;
+        }
+
+        private JsonSchemaToMetamodelConverterTests CSharpClassesCompiledToAssembly()
+        {
+            _compiledAssembly = Compiler.CompileToAssembly(_cSharpClasses);
+            return this;
+        }
+
+        // Assertion methods
+        private JsonSchemaToMetamodelConverterTests MetamodelShouldBeEquivalentToExpected()
+        {
+            MetadataAssertions.IsEquivalentTo(_expectedModelMetadata, _modelMetadata);
+            return this;
+        }
+
+        private JsonSchemaToMetamodelConverterTests MetamodelShouldHaveOneRootElement()
+        {
+            _modelMetadata.Elements.Values.Where(e => e.ParentElement == null).ToList().Count.Should().Be(1);
+            return this;
+        }
+
+        private JsonSchemaToMetamodelConverterTests CompiledAssemblyShouldNotBeNull()
+        {
+            _compiledAssembly.Should().NotBeNull();
+            return this;
         }
     }
 }

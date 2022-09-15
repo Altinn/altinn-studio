@@ -16,6 +16,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
     /// <summary>
     ///     Utility class for converting JSON Schema to Xsd
     /// </summary>
+    [Obsolete("Use Altinn.Studio.DataModeling.Converter.Json.JsonSchemaToXmlSchemaConverter instead")]
     public class JsonSchemaToXsd
     {
         private const string XML_SCHEMA_NS = "http://www.w3.org/2001/XMLSchema";
@@ -245,7 +246,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         {
             if (jSchema == JsonSchema.Empty)
             {
-                // empty type, 
+                // empty type,
                 XmlSchemaComplexType complexType = new XmlSchemaComplexType
                 {
                     Name = name,
