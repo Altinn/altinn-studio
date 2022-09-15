@@ -1,16 +1,15 @@
 import React from 'react';
-import { RestrictionItemProps } from '../ItemRestrictionsTab';
+import { RestrictionItemProps } from '../ItemRestrictions';
 import { getRestrictions } from '../../../utils/restrictions';
 import { RestrictionField } from '../RestrictionField';
 import { FieldType } from '../../../types';
 import { getTranslation } from '../../../utils/language';
-import { Divider } from '@material-ui/core';
 
 export function ArrayRestrictions({ restrictions, language, path, onChangeRestrictionValue }: RestrictionItemProps) {
   const defaults = getRestrictions(FieldType.Array);
   return (
     <>
-      <Divider />
+      <hr/>
       {defaults?.map((key: string) => (
         <RestrictionField
           key={key}

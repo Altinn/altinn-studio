@@ -1,8 +1,6 @@
 import { FieldType } from '../types';
 
 export enum IntegerRestrictions {
-  exclusiveMaximum = 'exclusiveMaximum',
-  exclusiveMinimum = 'exclusiveMinimum',
   maximum = 'maximum',
   minimum = 'minimum',
   multipleOf = 'multipleOf',
@@ -15,15 +13,14 @@ export enum StringRestrictions {
   pattern = 'pattern',
 }
 
-export enum ObjectRestrictions {
-  maxProperties = 'maxProperties',
-  minProperties = 'minProperties',
-}
+export enum ObjectRestrictions {}
+
 export enum ArrayRestrictions {
   maxItems = 'maxItems',
   minItems = 'minItems',
   uniqueItems = 'uniqueItems',
 }
+
 export const AllRestrictions = {
   ...ArrayRestrictions,
   ...IntegerRestrictions,

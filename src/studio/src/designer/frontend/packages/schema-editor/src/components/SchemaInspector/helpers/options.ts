@@ -41,4 +41,8 @@ export const getTypeOptions = (t: (key: string) => string): Option[] => [
     value: FieldType.Object,
     label: t('object'),
   },
+  {
+    value: FieldType.Array,
+    label: t('array'),
+  }
 ];

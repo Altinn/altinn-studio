@@ -87,7 +87,6 @@ const useStyles = (isRef: boolean) =>
       fontSize: '10px',
     },
     treeItem: {
-      marginLeft: 8,
       '&.Mui-selected': {
         background: '#E3F7FF',
         border: isRef ? '1px dashed #006BD8' : '1px solid #006BD8',

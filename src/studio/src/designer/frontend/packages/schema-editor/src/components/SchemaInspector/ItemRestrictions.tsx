@@ -1,16 +1,15 @@
 import React, { MouseEvent } from 'react';
-import { Checkbox, Divider, FormControlLabel, Grid, IconButton } from '@material-ui/core';
+import { Checkbox, FormControlLabel } from '@material-ui/core';
 import { getTranslation } from '../../utils/language';
 import { FieldType, ILanguage, Restriction, UiSchemaItem } from '../../types';
 import { EnumField } from './EnumField';
 import { addEnum, deleteEnum, setRequired, setRestriction } from '../../features/editor/schemaEditorSlice';
 import { useDispatch } from 'react-redux';
-import { Label } from './Label';
 import { ArrayRestrictions } from './restrictions/ArrayRestrictions';
-import { BooleanRestrictions } from './restrictions/BooleanRestrictions';
 import { NumberRestrictions } from './restrictions/NumberRestrictions';
 import { ObjectRestrictions } from './restrictions/ObjectRestrictions';
 import { StringRestrictions } from './restrictions/StringRestrictions';
+import styles from './ItemRestrictions.module.css';
 
 export interface RestrictionItemProps {
   restrictions: Restriction[];
@@ -20,11 +19,10 @@ export interface RestrictionItemProps {
   onChangeRestrictionValue: (id: string, key: string, value: string) => void;
 }
 interface Props {
-  classes: any;
   item: UiSchemaItem;
   language: ILanguage;
 }
-export const ItemRestrictionsTab = ({ classes, item, language }: Props) => {
+export const ItemRestrictions = ({ item, language }: Props) => {
   const dispatch = useDispatch();
   const handleRequiredChanged = (e: any, checked: boolean) => {
     if (checked !== item.isRequired) {
@@ -82,54 +80,53 @@ export const ItemRestrictionsTab = ({ classes, item, language }: Props) => {
     language,
   };
   return (
-    <Grid container spacing={1} className={classes.gridContainer}>
-      <Grid item xs={12}>
-        <FormControlLabel
-          className={classes.header}
-          control={<Checkbox checked={item.isRequired} onChange={handleRequiredChanged} name='checkedRequired' />}
-          label={t('required')}
-        />
-      </Grid>
+    <div>
+      <FormControlLabel
+        control={<Checkbox checked={item.isRequired} onChange={handleRequiredChanged} name='checkedRequired' />}
+        label={t('required')}
+      />
       {item.$ref === undefined && (
-        <Grid item xs={12}>
-          {
-            {
-              [FieldType.Array]: <ArrayRestrictions {...restrictionProps} />,
-              [FieldType.Boolean]: <BooleanRestrictions {...restrictionProps} />,
-              [FieldType.Integer]: <NumberRestrictions {...restrictionProps} />,
-              [FieldType.Number]: <NumberRestrictions {...restrictionProps} />,
-              [FieldType.Object]: <ObjectRestrictions {...restrictionProps} />,
-              [FieldType.String]: <StringRestrictions {...restrictionProps} />,
-              [FieldType.Null]: undefined,
-              default: undefined,
-            }[item.type ?? 'default']
-          }
-        </Grid>
+        {
+          [FieldType.Array]: <ArrayRestrictions {...restrictionProps} />,
+          [FieldType.Boolean]: null,
+          [FieldType.Integer]: <NumberRestrictions {...restrictionProps} />,
+          [FieldType.Number]: <NumberRestrictions {...restrictionProps} />,
+          [FieldType.Object]: <ObjectRestrictions {...restrictionProps} />,
+          [FieldType.String]: <StringRestrictions {...restrictionProps} />,
+          [FieldType.Null]: undefined,
+          default: undefined,
+        }[item.type ?? 'default']
       )}
       {item.type !== FieldType.Object && (
         <>
-          <Grid item xs={12}>
-            <Divider />
-            <Label>{t('enum')}</Label>
-          </Grid>
-          {item.enum?.map((value: string, index) => (
-            <EnumField
-              key={'add-enum-field-' + index}
-              language={language}
-              path={item.path}
-              fullWidth={true}
-              value={value}
-              onChange={onChangeEnumValue}
-              onDelete={onDeleteEnumClick}
-              onEnterKeyPress={dispatchAddEnum}
-            />
-          ))}
-          <IconButton id='add-enum-button' aria-label={t('add_enum')} onClick={onAddEnumButtonClick}>
-            <i className='fa fa-plus' />
-            {t('add_enum')}
-          </IconButton>
+          <hr/>
+          <fieldset className={styles.enumFieldset}>
+            <legend>Liste med gyldige verdier</legend>
+            {!item.enum?.length && <p>{t('enum_empty')}</p>}
+            {item.enum?.map((value: string, index) => (
+              <EnumField
+                fullWidth={true}
+                key={'add-enum-field-' + index}
+                language={language}
+                onChange={onChangeEnumValue}
+                onDelete={onDeleteEnumClick}
+                onEnterKeyPress={dispatchAddEnum}
+                path={item.path}
+                value={value}
+              />
+            ))}
+            <button
+              aria-label={t('add_enum')}
+              className={styles.addEnumButton}
+              id='add-enum-button'
+              onClick={onAddEnumButtonClick}
+            >
+              <i/>
+              <span>{t('add_enum')}</span>
+            </button>
+          </fieldset>
         </>
       )}
-    </Grid>
+    </div>
   );
 };

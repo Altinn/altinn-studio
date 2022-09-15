@@ -1,9 +1,9 @@
 import React, { BaseSyntheticEvent } from 'react';
 import { getDomFriendlyID } from '../../utils/schema';
-import { Label } from './Label';
 import { TextField } from "@altinn/altinn-design-system";
 
 export interface IRestrictionFieldProps {
+  className?: string;
   keyName: string;
   label: string;
   onChangeValue: (id: string, key: string, value: string) => void;
@@ -13,20 +13,28 @@ export interface IRestrictionFieldProps {
   value?: string;
 }
 
-export const RestrictionField = ({ keyName, label, onChangeValue, path, readOnly, value }: IRestrictionFieldProps) => {
+export const RestrictionField = ({
+  className,
+  keyName,
+  label,
+  onChangeValue,
+  path,
+  readOnly,
+  value
+}: IRestrictionFieldProps) => {
 
-  const baseId = getDomFriendlyID(path);
+  const fieldId = `${getDomFriendlyID(path)}-${keyName}-value`;
 
   return (
-    <>
-      <Label>{label}</Label>
+    <div className={className}>
+      <label htmlFor={fieldId}>{label}</label>
       <TextField
-        id={`${baseId}-${keyName}-value`}
+        id={fieldId}
         value={value ?? ''}
         onChange={(e) => onChangeValue(path, e.target.value, keyName)}
         aria-label={label}
         readOnly={readOnly}
       />
-    </>
+    </div>
   );
 };

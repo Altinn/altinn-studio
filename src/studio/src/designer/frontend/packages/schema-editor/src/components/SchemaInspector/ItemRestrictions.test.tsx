@@ -1,19 +1,18 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { renderWithRedux } from '../../../test/renderWithRedux';
-import { ItemRestrictionsTab } from './ItemRestrictionsTab';
+import { ItemRestrictions } from './ItemRestrictions';
 import { FieldType } from '../../types';
 
 test('item restrictions require checkbox to work', async () => {
   const { user, store } = renderWithRedux(
-    <ItemRestrictionsTab
+    <ItemRestrictions
       language={{}}
       item={{
         type: FieldType.String,
         path: '#/properties/test',
         displayName: 'test',
       }}
-      classes={{}}
     />,
   );
   await user.click(screen.getByRole('checkbox'));
@@ -24,7 +23,7 @@ test('item restrictions require checkbox to work', async () => {
 
 test('item restrictions tab require checkbox to decheck', async () => {
   const { user, store } = renderWithRedux(
-    <ItemRestrictionsTab
+    <ItemRestrictions
       language={{}}
       item={{
         type: FieldType.String,
@@ -32,7 +31,6 @@ test('item restrictions tab require checkbox to decheck', async () => {
         displayName: 'test',
         isRequired: true,
       }}
-      classes={{}}
     />,
   );
   await user.click(screen.getByRole('checkbox'));
