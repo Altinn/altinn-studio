@@ -10443,7 +10443,7 @@ __metadata:
     lodash-es: 4.17.21
     mini-css-extract-plugin: 2.6.1
     moment: 2.29.4
-    msw: 0.47.0
+    msw: 0.47.1
     prettier: 2.7.1
     react: 18.2.0
     react-dom: 18.2.0
@@ -16822,9 +16822,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"msw@npm:0.47.0":
-  version: 0.47.0
-  resolution: "msw@npm:0.47.0"
+"msw@npm:0.47.1":
+  version: 0.47.1
+  resolution: "msw@npm:0.47.1"
   dependencies:
     "@mswjs/cookies": ^0.2.2
     "@mswjs/interceptors": ^0.17.2
@@ -16853,7 +16853,7 @@ __metadata:
       optional: true
   bin:
     msw: cli/index.js
-  checksum: d48cd73327da0e44700595ebaaf0b8ee5f1b6c56c081d65ceed52dd8f49b64ce7a6734c84f8ab1093594e0c87b2554b6c35f7f92894c93148540dbfac826c441
+  checksum: 37c99836014181ad52267fe031bb9dec355d3728b9f57abbf239340dcbe9c75d29a959c627fb812b353c4ed292dbc51d557f0d0ef0108e439dfec0e8962ddd83
   languageName: node
   linkType: hard
 
@@ -20854,7 +20854,7 @@ __metadata:
     jest-junit: 14.0.1
     marked: 4.1.0
     moment: 2.29.4
-    msw: 0.47.0
+    msw: 0.47.1
     parse5: 7.1.1
     react: 18.2.0
     react-content-loader: 6.2.0
