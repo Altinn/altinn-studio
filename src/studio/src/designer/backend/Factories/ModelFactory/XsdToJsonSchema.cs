@@ -15,6 +15,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
     /// <summary>
     /// For, like, converting Xsd to JsonSchema
     /// </summary>
+    [Obsolete("Use Altinn.Studio.DataModeling.Converter.Xml.XmlSchemaToJsonSchemaConverter instead")]
     public class XsdToJsonSchema
     {
         private ILogger<XsdToJsonSchema> _logger;
@@ -36,7 +37,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             this.xsdReader = xsdReader;
             this._logger = logger;
 
-            mainXsd = XmlSchema.Read(xsdReader, ValidationCallback);            
+            mainXsd = XmlSchema.Read(xsdReader, ValidationCallback);
         }
 
         /// <summary>
@@ -172,10 +173,10 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 AppendAnnotated(item, elementSchema);
             }
 
-            if (item.UnhandledAttributes != null) 
+            if (item.UnhandledAttributes != null)
             {
                 int sequence = 1;
-                foreach (XmlAttribute attribute in item.UnhandledAttributes) 
+                foreach (XmlAttribute attribute in item.UnhandledAttributes)
                 {
                     TagUnhandledAttribute(elementSchema, attribute, sequence);
                     sequence++;
@@ -287,10 +288,10 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 TagAnyAttribute(complexTypeSchema);
             }
 
-            if (item.UnhandledAttributes != null) 
+            if (item.UnhandledAttributes != null)
             {
                 int sequence = 1;
-                foreach (XmlAttribute attribute in item.UnhandledAttributes) 
+                foreach (XmlAttribute attribute in item.UnhandledAttributes)
                 {
                     TagUnhandledAttribute(complexTypeSchema, attribute, sequence);
                     sequence++;
@@ -361,10 +362,10 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 AppendAnnotated(item, appendToSchema);
             }
 
-            if (item.UnhandledAttributes != null) 
+            if (item.UnhandledAttributes != null)
             {
                 int sequence = 1;
-                foreach (XmlAttribute attribute in item.UnhandledAttributes) 
+                foreach (XmlAttribute attribute in item.UnhandledAttributes)
                 {
                     TagUnhandledAttribute(appendToSchema, attribute, sequence);
                     sequence++;
@@ -736,14 +737,14 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     JsonSchema choiceSchema = new JsonSchema();
                     XmlQualifiedName itemQName = GetItemName(choiceItem);
                     JsonSchema refSchema = new JsonSchema();
-                 
+
                     if (choiceItem is XmlSchemaSequence)
                     {
                         // special case handling SKD <choice><sequence><element> ...</sequence><sequence><element ...
                         XmlSchemaSequence sequence = (XmlSchemaSequence)choiceItem;
                         XmlSchemaObject choiceItemInSequence = sequence.Items[0];
                         itemQName = GetItemName(choiceItemInSequence);
-                        
+
                         AppendType(choiceItemInSequence, refSchema);
                     }
                     else

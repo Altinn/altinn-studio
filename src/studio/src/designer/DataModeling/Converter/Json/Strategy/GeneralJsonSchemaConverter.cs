@@ -153,6 +153,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                         case "FinalDefault":
                             _xsd.FinalDefault = Enum.TryParse(value, true, out XmlSchemaDerivationMethod xmlSchemaDerivationFinal) ? xmlSchemaDerivationFinal : XmlSchemaDerivationMethod.None;
                             break;
+                        case nameof(XmlSchema.TargetNamespace):
+                            _xsd.TargetNamespace = value;
+                            break;
                     }
                 }
             }

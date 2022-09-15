@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "schema.json",
+  "type": "object",
+  "@xsdNamespaces": {
+    "xs": "http://www.w3.org/2001/XMLSchema"
+  },
+  "@xsdSchemaAttributes": {
+    "AttributeFormDefault": "None",
+    "ElementFormDefault": "Qualified",
+    "BlockDefault": "None",
+    "FinalDefault": "None",
+    "TargetNamespace": "http://NamespaceTest.com/CommonTypes"
+  },
+  "$defs": {
+    "AddressType": {
+      "properties": {
+        "Line1": {
+          "type": "string",
+          "@xsdType": "string"
+        },
+        "Line2": {
+          "type": "string",
+          "@xsdType": "string"
+        }
+      },
+      "required": [
+        "Line1",
+        "Line2"
+      ]
+    },
+    "PriceType": {
+      "allOf": [
+        {
+          "type": "number",
+          "@xsdType": "decimal"
+        },
+        {
+          "multipleOf": 0.01
+        }
+      ]
+    },
+    "PaymentMethodType": {
+      "allOf": [
+        {
+          "type": "string",
+          "@xsdType": "string"
+        },
+        {
+          "enum": [
+            "VISA",
+            "MasterCard",
+            "Cash",
+            "AMEX"
+          ]
+        }
+      ]
+    }
+  }
+}

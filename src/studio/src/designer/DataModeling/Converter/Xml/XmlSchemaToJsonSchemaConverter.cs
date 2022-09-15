@@ -53,11 +53,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                     schema.Namespaces
                        .ToArray()
                        .Select(ns => (ns.Name, ns.Namespace)))
-               .XsdSchemaAttributes(
-                    (nameof(XmlSchema.AttributeFormDefault), schema.AttributeFormDefault.ToString()),
-                    (nameof(XmlSchema.ElementFormDefault), schema.ElementFormDefault.ToString()),
-                    (nameof(XmlSchema.BlockDefault), schema.BlockDefault.ToString()),
-                    (nameof(XmlSchema.FinalDefault), schema.FinalDefault.ToString()));
+               .XsdSchemaAttributes(schema.XsdAttributes().ToArray());
 
             if (schema.UnhandledAttributes is not null)
             {
