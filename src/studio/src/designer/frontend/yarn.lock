@@ -8523,7 +8523,7 @@ __metadata:
     jest-junit: 14.0.1
     mini-css-extract-plugin: 2.6.1
     moment: 2.29.4
-    monaco-editor-webpack-plugin: 7.0.1
+    monaco-editor-webpack-plugin: 4.2.0
     prettier: 2.7.1
     react: 18.2.0
     react-dom: 18.2.0
@@ -16681,7 +16681,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"loader-utils@npm:^2.0.0, loader-utils@npm:^2.0.2":
+"loader-utils@npm:^2.0.0":
   version: 2.0.2
   resolution: "loader-utils@npm:2.0.2"
   dependencies:
@@ -17377,15 +17377,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"monaco-editor-webpack-plugin@npm:7.0.1":
-  version: 7.0.1
-  resolution: "monaco-editor-webpack-plugin@npm:7.0.1"
+"monaco-editor-webpack-plugin@npm:4.2.0":
+  version: 4.2.0
+  resolution: "monaco-editor-webpack-plugin@npm:4.2.0"
   dependencies:
-    loader-utils: ^2.0.2
+    loader-utils: ^2.0.0
   peerDependencies:
-    monaco-editor: ">= 0.31.0"
+    monaco-editor: 0.25.x || 0.26.x || 0.27.x || 0.28.x
     webpack: ^4.5.0 || 5.x
-  checksum: 436814c724d5033254519ef8203f0df600d15c6bf0a3bf48a42ea678086becb56ed5685df2bca4cd4107855ecf8cea73722e52b63573edba5c020ff51b4f2d31
+  checksum: 165da4085635e19f8dc7f9a30c6c473422ea54115d8051c99fb4c90eb94e6403ab9ddb99f5506016feb8065ec50a27d2c340f10cc90c2e500dc7258da659846e
   languageName: node
   linkType: hard
 
