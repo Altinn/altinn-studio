@@ -40,8 +40,6 @@ export function en() {
     form_filler: {
       back_to_summary: 'Return to summary',
       error_report_header: 'These need to be corrected before continuing',
-      error_report_description:
-        'The form contains errors that prevent it from being submitted. Try submitting again once the errors are corrected.',
       error_required: 'You have to fill out {0}',
       file_upload_valid_file_format_all: 'all',
       file_uploader_add_attachment: 'Add more attachments',
