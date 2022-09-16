@@ -8033,7 +8033,6 @@ __metadata:
     "@testing-library/user-event": 14.4.3
     "@types/classnames": 2.3.1
     "@types/jest": 29.0.0
-    "@types/lodash": ^4.14.185
     "@types/react": 18.0.18
     "@types/react-dom": 18.0.6
     "@types/react-modal": 3.13.1
@@ -8054,7 +8053,6 @@ __metadata:
     jest: 29.0.2
     jest-environment-jsdom: 29.0.2
     jest-junit: 14.0.1
-    lodash: ^4.17.21
     mini-css-extract-plugin: 2.6.1
     moment: 2.29.4
     monaco-editor-webpack-plugin: 4.2.0
@@ -15983,23 +15981,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-<<<<<<< Updated upstream
-=======
-"language-editor@workspace:language-editor":
-  version: 0.0.0-use.local
-  resolution: "language-editor@workspace:language-editor"
-  dependencies:
-    "@altinn/altinn-design-system": ^0.7.0
-    "@types/lodash.debounce": ^4.0.7
-    axios: ^0.27.2
-    iso-639-1: ^2.1.15
-    json-server: ^0.17.0
-    lodash.debounce: ^4.0.8
-    react-select: ^5.4.0
-  languageName: unknown
-  linkType: soft
-
->>>>>>> Stashed changes
 "language-subtag-registry@npm:~0.3.2":
   version: 0.3.21
   resolution: "language-subtag-registry@npm:0.3.21"
