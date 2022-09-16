@@ -262,6 +262,7 @@ export function SchemaItem(props: SchemaItemProps) {
               : item.displayName
           }
           language={props.language}
+          limitedItem={item.combinationItem}
           onAddProperty={
             item.type === FieldType.Object ? handleAddProperty : undefined
           }
