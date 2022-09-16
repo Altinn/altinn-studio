@@ -98,9 +98,11 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         public IActionResult SaveResource([FromBody] dynamic jsonData, string id, string org, string app)
         {
-
-            id = id.Split('-')[0];
+            // TODO: Why is this method partially commented out?
+            // id = id.Split('-')[0];
             JObject json = jsonData;
+
+            Console.WriteLine(org + app + id);
 
             JArray resources = json["resources"] as JArray;
             string[] duplicateKeys = resources.GroupBy(obj => obj["id"]).Where(grp => grp.Count() > 1).Select(grp => grp.Key.ToString()).ToArray();
