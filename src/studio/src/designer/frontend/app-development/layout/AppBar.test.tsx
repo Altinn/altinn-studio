@@ -49,9 +49,9 @@ describe('AppBar', () => {
 
   describe('When using AppBarConfig menu entries', () => {
     menu.forEach((entry) => {
-      it(`should render ${entry.key} as current item when activeSubHeaderSelection is set to ${entry.activeSubHeaderSelection}`, () => {
+      it(`should render ${entry.key} as current item when activeSubHeaderSelection is set to ${entry.key}`, () => {
         const { container } = render({
-          activeSubHeaderSelection: entry.activeSubHeaderSelection,
+          activeSubHeaderSelection: entry.key,
           showSubMenu: true,
         });
 
