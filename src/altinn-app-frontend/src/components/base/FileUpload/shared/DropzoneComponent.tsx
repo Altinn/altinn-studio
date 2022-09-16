@@ -2,6 +2,7 @@ import * as React from 'react';
 import DropZone from 'react-dropzone';
 import type { FileRejection } from 'react-dropzone';
 
+import { mapExtensionToAcceptMime } from 'src/components/base/FileUpload/shared/mapExtensionToAcceptMime';
 import type { ILayoutCompFileUpload } from 'src/features/form/layout';
 import type { ITextResourceBindings } from 'src/types';
 
@@ -75,7 +76,11 @@ export function DropzoneComponent({
         onDrop={onDrop}
         maxSize={maxFileSizeInMB * bytesInOneMB} // mb to bytes
         disabled={readOnly}
-        accept={hasCustomFileEndings ? validFileEndings : null}
+        accept={
+          hasCustomFileEndings
+            ? mapExtensionToAcceptMime({ extensionList: validFileEndings })
+            : null
+        }
       >
         {({ getRootProps, getInputProps, isDragActive, isDragReject }) => {
           let styles = { ...baseStyle };
