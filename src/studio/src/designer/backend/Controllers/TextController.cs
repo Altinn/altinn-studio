@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -98,30 +97,27 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPost]
         public IActionResult SaveResource([FromBody] dynamic jsonData, string id, string org, string app)
         {
-            // TODO: Why is this method partially commented out?
-            // id = id.Split('-')[0];
+            id = id.Split('-')[0];
             JObject json = jsonData;
+            JArray resources = json["resources"] as JArray;
+            string[] duplicateKeys = resources.GroupBy(obj => obj["id"]).Where(grp => grp.Count() > 1).Select(grp => grp.Key.ToString()).ToArray();
+            if (duplicateKeys.Length > 0)
+            {
+                return BadRequest($"Text keys must be unique. Please review keys: {string.Join(", ", duplicateKeys)}");
+            }
 
-            Console.WriteLine(org + app + id);
+            JArray sorted = new JArray(resources.OrderBy(obj => obj["id"]));
+            json["resources"].Replace(sorted);
 
-            // JArray resources = json["resources"] as JArray;
-            // string[] duplicateKeys = resources.GroupBy(obj => obj["id"]).Where(grp => grp.Count() > 1).Select(grp => grp.Key.ToString()).ToArray();
-            // if (duplicateKeys.Length > 0)
-            // {
-            //     return BadRequest($"Text keys must be unique. Please review keys: {string.Join(", ", duplicateKeys)}");
-            // }
+            // updating application metadata with appTitle.
+            JToken appTitleToken = resources.FirstOrDefault(x => x.Value<string>("id") == "appName" || x.Value<string>("id") == "ServiceName");
 
-            // JArray sorted = new JArray(resources.OrderBy(obj => obj["id"]));
-            // json["resources"].Replace(sorted);
+            if (!(appTitleToken == null))
+            {
+                string appTitle = appTitleToken.Value<string>("value");
+                _repository.UpdateAppTitle(org, app, id, appTitle);
+            }
 
-            // // updating application metadata with appTitle.
-            // JToken appTitleToken = resources.FirstOrDefault(x => x.Value<string>("id") == "appName" || x.Value<string>("id") == "ServiceName");
-
-            // if (!(appTitleToken == null))
-            // {
-            //     string appTitle = appTitleToken.Value<string>("value");
-            //     _repository.UpdateAppTitle(org, app, id, appTitle);
-            // }
             _repository.SaveLanguageResource(org, app, id, json.ToString());
 
             return Json(new
@@ -241,7 +237,6 @@ namespace Altinn.Studio.Designer.Controllers
                     Language = "nb",
                     Resources = new List<Resource> { new Resource { Id = "appName", Value = serviceName.serviceName.ToString() } }
                 };
-
                 _repository.SaveLanguageResource(org, app, "nb", JsonConvert.SerializeObject(resourceCollection, _serializerSettings));
             }
         }
