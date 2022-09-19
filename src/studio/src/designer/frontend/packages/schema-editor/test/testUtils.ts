@@ -62,12 +62,14 @@ export const getGeneralJsonSchemaForTest = (name: string): JsonSchemaNode => {
 };
 
 export const dumpToDebug = (dirname: string, basename: string, data: any) => {
-  const preppedData = data instanceof Map ? Array.from(data) : data;
-  fs.writeFileSync(
-    dirname + '/debug/' + basename + '.json',
-    JSON.stringify(preppedData, null, 4),
-    'utf-8',
-  );
+  if (process.env.DEBUG === 'true') {
+    const preppedData = data instanceof Map ? Array.from(data) : data;
+    fs.writeFileSync(
+      dirname + '/debug/' + basename + '.json',
+      JSON.stringify(preppedData, null, 4),
+      'utf-8',
+    );
+  }
 };
 
 export const validateSchema = (schema: JsonSchemaNode) => {
