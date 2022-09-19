@@ -12,6 +12,7 @@ export interface ISchemaEditorProps extends React.PropsWithChildren<any> {
   name?: string;
   onSaveSchema: (payload: any) => void;
   schema: ISchema;
+  LandingPagePanel: JSX.Element;
 }
 
 export function SchemaEditorApp(props: ISchemaEditorProps) {
@@ -19,6 +20,7 @@ export function SchemaEditorApp(props: ISchemaEditorProps) {
     <Provider store={store}>
       <SchemaEditor
         Toolbar={props.children}
+        LandingPagePanel={props.LandingPagePanel}
         language={props.language}
         loading={props.loading}
         name={props.name}

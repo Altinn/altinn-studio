@@ -46,6 +46,7 @@ export function TopToolbar({ editMode, Toolbar, saveAction, toggleEditMode, lang
     <section className={classes.toolbar} role={'toolbar'}>
       {Toolbar}
       <TopToolbarButton
+        id='save-model-button'
         onClick={saveAction || (() => undefined)}
         disabled={!editMode || !saveAction}
         faIcon='fa fa-floppy'
