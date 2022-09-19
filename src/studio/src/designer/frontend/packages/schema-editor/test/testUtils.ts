@@ -63,12 +63,13 @@ export const getGeneralJsonSchemaForTest = (name: string): JsonSchemaNode => {
 
 export const dumpToDebug = (dirname: string, basename: string, data: any) => {
   if (process.env.DEBUG === 'true') {
+    const dir = path.join(dirname, 'debug');
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir);
+    }
     const preppedData = data instanceof Map ? Array.from(data) : data;
-    fs.writeFileSync(
-      dirname + '/debug/' + basename + '.json',
-      JSON.stringify(preppedData, null, 4),
-      'utf-8',
-    );
+    const filename = path.join(dir, basename + '.json');
+    fs.writeFileSync(filename, JSON.stringify(preppedData, null, 4), 'utf-8');
   }
 };
 
