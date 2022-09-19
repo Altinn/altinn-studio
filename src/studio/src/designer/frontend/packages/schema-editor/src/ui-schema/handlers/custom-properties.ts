@@ -7,9 +7,8 @@ const specialAttributes = [
   ...Object.values(CombinationKind),
   ...Object.values(AllRestrictions),
 ] as string[];
-/**
- * Deals with custom properties... or really what properties that we not know about.
- */
+
+// Deals with custom properties... or really what properties that we not know about.
 export const handleCustomProperties = (schemaNode: JsonSchemaNode) => {
   const outout: JsonSchemaNode = {};
   Object.keys(schemaNode).forEach((key) => {

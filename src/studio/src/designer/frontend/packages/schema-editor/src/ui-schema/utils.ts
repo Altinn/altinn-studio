@@ -1,6 +1,6 @@
 import { CombinationKind, FieldType } from '../types';
 import { ObjectKind } from '../types/enums';
-import { JsonSchemaNode, UiSchemaNode } from './types';
+import { JsonSchemaNode, UiSchemaMap, UiSchemaNode } from './types';
 
 export const createNodeBase = (...args: string[]): UiSchemaNode => {
   const pointer = args.join('/');
@@ -19,9 +19,16 @@ export const createNodeBase = (...args: string[]): UiSchemaNode => {
     enum: [],
   };
 };
-export const createNodeId = () => (Math.random() + 1).toString(36).substring(7);
+let currentId = 0;
+export const createNodeId = (): number => {
+  currentId++;
+  return 1000 + currentId;
+};
+export const resetNodeIds = () => {
+  currentId = 0;
+};
 
-export const createPointerLookupTable = (map: Map<string, UiSchemaNode>): Map<string, string> => {
+export const createPointerLookupTable = (map: UiSchemaMap): Map<string, number> => {
   const lookupTable = new Map();
   map.forEach((item) => lookupTable.set(item.pointer, item.nodeId));
   return lookupTable;
@@ -52,3 +59,29 @@ export const schemaTypeIncludes = (schemaNodeType: string | string[], type: Fiel
 
 export const schemaTypeIsNillable = (schemaNodeType: string | string[]) =>
   schemaNodeType !== FieldType.Null && schemaTypeIncludes(schemaNodeType, FieldType.Null);
+
+export const getParentNodeByPointer = (
+  map: UiSchemaMap,
+  pointer: string,
+): UiSchemaNode | undefined => {
+  const lookup = createPointerLookupTable(map);
+  const pointerParts = pointer.split('/');
+  while (pointerParts.length) {
+    pointerParts.pop();
+    const parentNodePointer = pointerParts.join('/');
+    if (lookup.has(parentNodePointer)) {
+      return map.get(lookup.get(parentNodePointer) as number);
+    }
+  }
+};
+
+export const arrayIntersection = (arrA: any[], arrB: any[]) => arrA.filter((x) => arrB.includes(x));
+
+export const arrayUnique = (arr: any[]) => {
+  const j: any = {};
+  arr.forEach((v) => (j[`${v}::${typeof v}`] = v));
+  return Object.keys(j).map((v) => j[v]);
+};
+
+export const cloneMap = (map: Map<any, any>): Map<any, any> =>
+  new Map(JSON.parse(JSON.stringify(Array.from(map))));

@@ -1,21 +1,19 @@
 import {
   getGeneralJsonSchemasForTest,
   getSeresJsonSchemasForTest,
+  validateSchema,
 } from './testUtils';
-import Ajv2020 from 'ajv/dist/2020';
 
-test('that we get test json schemas', () => {
-  const schemas = getSeresJsonSchemasForTest();
-  schemas.forEach((value) => {
-    expect(new Ajv2020().validateSchema(value)).toBeTruthy();
-  });
-  expect(schemas.length).toBeGreaterThan(3);
-});
+test.each(getSeresJsonSchemasForTest())(
+  'that %p seres schema is valid',
+  (name: string, testSchema: object) => {
+    expect(validateSchema(testSchema)).toBeTruthy();
+  },
+);
 
-test('that we get test json schemas', () => {
-  const schemas = getGeneralJsonSchemasForTest();
-  schemas.forEach((value) => {
-    expect(new Ajv2020().validateSchema(value)).toBeTruthy();
-  });
-  expect(schemas.length).toBeGreaterThan(3);
-});
+test.each(getGeneralJsonSchemasForTest())(
+  'that %p general schema is valid',
+  (name: string, testSchema: object) => {
+    expect(validateSchema(testSchema)).toBeTruthy();
+  },
+);

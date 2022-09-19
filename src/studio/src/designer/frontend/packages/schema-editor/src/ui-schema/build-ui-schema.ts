@@ -1,10 +1,17 @@
-import { JsonSchemaNode, Keywords, UiSchemaNode } from './types';
+import { JsonSchemaNode, Keywords, ROOT_POINTER, UiSchemaMap, UiSchemaNode } from './types';
+import {
+  createNodeBase,
+  createPointerLookupTable,
+  getCombinationKind,
+  getObjectKind,
+  resetNodeIds,
+  schemaTypeIsNillable,
+} from './utils';
 import { handleCustomProperties } from './handlers/custom-properties';
 import { handleRestrictions } from './handlers/restrictions';
-import { ObjectKind } from '../types/enums';
-import { createNodeBase, getCombinationKind, getObjectKind, schemaTypeIsNillable } from './utils';
 import { getUiFieldType } from './handlers/field-type';
 import { handleGenericKeywords } from './handlers/generic';
+import { ObjectKind } from '../types/enums';
 
 /**
  * Recursive function that traverse the json schema tree. This should not be accessed directly but through `toUiSchema`
@@ -12,10 +19,7 @@ import { handleGenericKeywords } from './handlers/generic';
  * @param schemaNode
  * @param uiNode
  */
-export const createUiNode = (
-  schemaNode: JsonSchemaNode,
-  uiNode: UiSchemaNode,
-): Map<string, UiSchemaNode> => {
+const createUiNode = (schemaNode: JsonSchemaNode, uiNode: UiSchemaNode): UiSchemaMap => {
   uiNode.objectKind = getObjectKind(schemaNode);
   uiNode.custom = handleCustomProperties(schemaNode);
   uiNode.restrictions = handleRestrictions(schemaNode);
@@ -26,8 +30,7 @@ export const createUiNode = (
 
   Object.assign(uiNode, handleGenericKeywords(schemaNode));
 
-  const map = new Map<string, UiSchemaNode>();
-
+  const map: UiSchemaMap = new Map();
   // Combinations
   if (uiNode.objectKind === ObjectKind.Combination) {
     const kind = getCombinationKind(schemaNode);
@@ -61,4 +64,25 @@ export const createUiNode = (
   });
 
   return map.set(uiNode.nodeId, uiNode);
+};
+
+export const buildUiSchema = (jsonSchema: JsonSchemaNode): UiSchemaMap => {
+  resetNodeIds();
+  const map = createUiNode(jsonSchema, createNodeBase(ROOT_POINTER));
+
+  // Just resolve references when we are dealing with the root, all items is resolved at this point.
+  const lookup = createPointerLookupTable(map);
+  map.forEach((item) => {
+    if (item.ref) {
+      // is a pointer
+      const refNodeId = lookup.get(item.ref.toString()) as number;
+      const refNode = map.get(refNodeId) as UiSchemaNode;
+      item.ref = refNodeId;
+      if (item.fieldType === undefined) {
+        // just inherit the field type
+        item.fieldType = refNode.fieldType;
+      }
+    }
+  });
+  return map;
 };

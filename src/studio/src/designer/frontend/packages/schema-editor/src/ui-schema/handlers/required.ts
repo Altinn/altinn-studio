@@ -1,8 +1,8 @@
-import { UiSchemaNode } from '../types';
+import { UiSchemaMap, UiSchemaNode } from '../types';
 
 export const findRequiredProps = (
-  parentNodeId: string,
-  uiNodeMap: Map<string, UiSchemaNode>,
+  uiNodeMap: UiSchemaMap,
+  parentNodeId: number,
 ): string[] | undefined => {
   const uiSchemaNode = uiNodeMap.get(parentNodeId) as UiSchemaNode;
   const required: string[] = [];

@@ -18,6 +18,7 @@ test.each([
   [{ anyOf: [], type: FieldType.String }, FieldType.String],
   [{ oneOf: [], type: FieldType.String }, FieldType.String],
   [{ allOf: [], type: FieldType.String }, FieldType.String],
+  [{ pattern: '' }, FieldType.String],
 ])('correct ui type for %p', (schemaNode: JsonSchemaNode, expected) => {
   expect(getUiFieldType(schemaNode)).toBe(expected);
 });

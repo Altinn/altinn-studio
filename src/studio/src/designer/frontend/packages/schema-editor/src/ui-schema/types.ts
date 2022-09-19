@@ -7,16 +7,18 @@ export interface JsonSchemaNode {
   [key: string]: any;
 }
 
+export type UiSchemaMap = Map<number, UiSchemaNode>;
+
 export interface UiSchemaNode {
-  nodeId: string;
+  nodeId: number;
   objectKind: ObjectKind;
   fieldType: FieldType | CombinationKind;
   implicitType: boolean; // the
   isNillable: boolean;
   pointer: string;
-  ref?: string;
+  ref?: string | number;
   custom: JsonSchemaNode;
-  children: string[];
+  children: number[];
   description?: string;
   enum?: string[];
   isRequired: boolean;
