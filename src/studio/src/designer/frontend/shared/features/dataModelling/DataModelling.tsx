@@ -63,6 +63,7 @@ function DataModelling({
     (state: any) => state.dataModelsMetadataState.loadState,
   );
   const [selectedOption, setSelectedOption] = React.useState(undefined);
+  const [createNewOpen, setCreateNewOpen] = React.useState(false);
 
   const uploadedOrCreatedFileName = React.useRef(null);
   const prevFetchedOption = React.useRef(null);
@@ -145,6 +146,10 @@ function DataModelling({
     dispatch(DataModelsMetadataActions.getDataModelsMetadata());
   };
 
+  const handleCreateNewFromLandingPage = () => {
+    setCreateNewOpen(true);
+  }
+
   const shouldDisplayLandingPage = landingDialogState === LandingDialogState.DialogIsVisible;
 
   return (
@@ -161,6 +166,7 @@ function DataModelling({
             org={org}
             repo={repo}
             handleXSDUploaded={handleXSDUploaded}
+            handleCreateModelClick={handleCreateNewFromLandingPage}
             closeLandingPage={closeLandingPage}
           />
         )}
@@ -171,6 +177,7 @@ function DataModelling({
           dataModelNames={modelNames}
           createPathOption={createPathOption}
           disabled={shouldDisplayLandingPage}
+          openByDefault={createNewOpen}
         />
         <XSDUpload
           language={language}

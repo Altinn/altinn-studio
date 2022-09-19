@@ -58,6 +58,7 @@ export interface LandingPageProps {
   org: string;
   repo: string;
   handleXSDUploaded: (filename: string) => void;
+  handleCreateModelClick: () => void;
   closeLandingPage: () => void;
 }
 
@@ -67,9 +68,11 @@ export function LandingPagePanel({
   repo,
   closeLandingPage,
   handleXSDUploaded,
+  handleCreateModelClick,
 }: LandingPageProps) {
   const classes = useStyles();
   const t = (key: string) => getLanguageFromKey(key, language);
+
   return (
     <div className={classes.landingDialog}>
         <h1>{t('app_data_modelling.landing_dialog_header')}</h1>
@@ -93,7 +96,10 @@ export function LandingPagePanel({
           <AltinnButton
             btnText={getLanguageFromKey('app_data_modelling.landing_dialog_create', language)}
             secondaryButton
-            onClickFunction={closeLandingPage}
+            onClickFunction={() => {
+              handleCreateModelClick();
+              closeLandingPage();
+            }}
           />
         </div>
       </div>

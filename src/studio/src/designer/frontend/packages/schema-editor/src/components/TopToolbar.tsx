@@ -33,6 +33,7 @@ export function TopToolbar({ Toolbar, saveAction, language }: TopToolbarProps) {
     <section className={classes.toolbar} role={'toolbar'}>
       {Toolbar}
       <TopToolbarButton
+        id='save-model-button'
         onClick={saveAction || (() => undefined)}
         disabled={!saveAction}
         faIcon='fa fa-floppy'

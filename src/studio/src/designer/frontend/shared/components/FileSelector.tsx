@@ -30,6 +30,7 @@ function FileSelector({
       hideText={false}
       onClick={fileInputClickHandler}
       disabled={disabled}
+      id='file-upload-button'
     >
       {getLanguageFromKey('app_data_modelling.upload_xsd', language)}
     </TopToolbarButton>
