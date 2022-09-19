@@ -15,6 +15,7 @@ export interface ICreateNewWrapper {
   }) => void;
   dataModelNames: string[];
   createPathOption?: boolean;
+  disabled: boolean;
 }
 
 export default function CreateNewWrapper(props: ICreateNewWrapper) {
@@ -77,6 +78,7 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
         faIcon='fa fa-plus'
         onClick={onCreateClick}
         hideText={false}
+        disabled={props.disabled}
       >
         {getLanguageFromKey('general.create_new', props.language)}
       </TopToolbarButton>

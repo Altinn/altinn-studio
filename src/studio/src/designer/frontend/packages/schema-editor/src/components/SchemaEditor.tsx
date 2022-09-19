@@ -121,6 +121,7 @@ const useStyles = makeStyles({
 
 export interface IEditorProps {
   Toolbar: JSX.Element;
+  LandingPagePanel: JSX.Element;
   language: ILanguage;
   loading?: boolean;
   name?: string;
@@ -129,7 +130,7 @@ export interface IEditorProps {
 }
 
 export const SchemaEditor = (props: IEditorProps) => {
-  const { Toolbar, loading, schema, onSaveSchema, name, language } = props;
+  const { Toolbar, LandingPagePanel, loading, schema, onSaveSchema, name, language } = props;
 
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -302,6 +303,7 @@ export const SchemaEditor = (props: IEditorProps) => {
         saveAction={name ? saveSchema : undefined}
       />
       <main>
+        {LandingPagePanel}
         {name && schema ? (
           <div
             data-testid='schema-editor'
