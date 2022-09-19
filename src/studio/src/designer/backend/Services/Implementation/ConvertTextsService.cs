@@ -60,6 +60,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
+        /// <summary>
+        /// Converts a single text resource element in the
+        /// old texts format to a key:value pair.
+        /// </summary>
+        /// <param name="text">The text resource element from the old texts format.</param>
+        /// <returns>The new string that will be the value in the new texts format.</returns>
         private string ConvertText(TextResourceElement text)
         {
             string newText = " ";
@@ -79,19 +85,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return newText;
         }
 
-        private string ConvertVariable(string variable)
+        /// <summary>
+        /// Converts the longer datasource values, applicationSettings,
+        /// instanceContext and dataModel to the short versions; as, ic and dm.
+        /// </summary>
+        /// <param name="datasource">The datasource value from a variable connected to a text</param>
+        /// <returns>The short version of the datasource.</returns>
+        private string ConvertVariable(string datasource)
         {
-            if (variable == "applicationSettings")
+            if (datasource == "applicationSettings")
             {
                 return "as";
             }
 
-            if (variable == "instanceContext")
+            if (datasource == "instanceContext")
             {
                 return "ic";
             }
 
-            string shortVariable = "dm." + variable.Split(".").Last();
+            string shortVariable = "dm." + datasource.Split(".").Last();
             return shortVariable;
         }
     }
