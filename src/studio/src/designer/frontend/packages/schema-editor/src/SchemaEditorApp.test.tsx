@@ -25,6 +25,7 @@ test('renders schema editor app', () => {
         language={{}}
         onSaveSchema={jest.fn()}
         name='test'
+        LandingPagePanel={<div>landing page panel goes here</div>}
       />,
     );
   });
