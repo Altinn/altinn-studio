@@ -14,8 +14,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// in old format to texts files in new format; *.text.json with key:value pairs.
     /// </summary>
     [Authorize]
-
-    //[AutoValidateAntiforgeryToken]
+    [AutoValidateAntiforgeryToken]
     [Route("designer/api/v1/{org}/{repo}/convertTexts")]
     public class ConvertV1TextsToV2Controller : ControllerBase
     {
