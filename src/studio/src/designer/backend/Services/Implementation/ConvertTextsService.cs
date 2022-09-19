@@ -76,7 +76,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 string variableNumber = text.Variables.IndexOf(variable).ToString();
                 string oldString = "{" + variableNumber + "}";
-                string newString = "${{" + ConvertVariable(variable.DataSource) + "." + variable.Key + "}}";
+                string newString = "${{" + DatasourceAlias(variable.DataSource) + "." + variable.Key + "}}";
                 builder.Replace(oldString, newString);
                 newText = builder.ToString();
             }
@@ -86,11 +86,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         /// <summary>
         /// Converts the longer datasource values, applicationSettings,
-        /// instanceContext and dataModel to the short versions; as, ic and dm.
+        /// instanceContext and dataModel to the short alias versions; as, ic and dm.
         /// </summary>
         /// <param name="datasource">The datasource value from a variable connected to a text</param>
         /// <returns>The short version of the datasource.</returns>
-        private static string ConvertVariable(string datasource)
+        private static string DatasourceAlias(string datasource)
         {
             if (datasource == "applicationSettings")
             {
