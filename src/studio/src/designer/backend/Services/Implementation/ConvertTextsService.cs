@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.Json;
@@ -37,7 +38,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 Dictionary<string, string> newTexts = new Dictionary<string, string>();
 
-                string languageCode = languageFile.Split(".")[1];
+                string fileName = Path.GetFileName(languageFile);
+                string languageCode = fileName.Split(".")[1];
                 TextResource texts = await altinnAppGitRepository.GetTextV1(languageCode);
 
                 foreach (TextResourceElement text in texts.Resources)
@@ -46,23 +48,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                     if (text.Variables != null)
                     {
-                        Console.Write("OLD TEXT\n\n");
-                        Console.WriteLine(newText);
-
-                        // converting value string to a mutable string type
-                        StringBuilder builder = new StringBuilder(text.Value);
-
-                        foreach (TextResourceVariable variable in text.Variables)
-                        {
-                            string variableNumber = text.Variables.IndexOf(variable).ToString();
-                            string oldString = "{" + variableNumber + "}";
-                            string newString = "${{" + variable.DataSource + "." + variable.Key + "}}";
-                            builder.Replace(oldString, newString);
-                            newText = builder.ToString();
-                        }
-
-                        Console.Write("\n\nNEW TEXT\n\n");
-                        Console.WriteLine(newText);
+                        newText = ConvertText(text);
                     }
 
                     newTexts[text.Id] = newText;
@@ -72,6 +58,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 await altinnAppGitRepository.SaveTextV2(languageCode, newTexts);
                 altinnAppGitRepository.DeleteFileByAbsolutePath(languageFile);
             }
+        }
+
+        private string ConvertText(TextResourceElement text)
+        {
+            string newText = " ";
+
+            // converting value string to a mutable string type
+            StringBuilder builder = new StringBuilder(text.Value);
+
+            foreach (TextResourceVariable variable in text.Variables)
+            {
+                string variableNumber = text.Variables.IndexOf(variable).ToString();
+                string oldString = "{" + variableNumber + "}";
+                string newString = "${{" + variable.DataSource + "." + variable.Key + "}}";
+                builder.Replace(oldString, newString);
+                newText = builder.ToString();
+            }
+
+            return newText;
         }
     }
 }
