@@ -36,6 +36,7 @@ export default function DeleteWrapper(props: IDeleteWrapper) {
   return (
     <>
       <TopToolbarButton
+        id='delete-model-button'
         disabled={!props.schemaName}
         faIcon='ai ai-trash'
         iconSize={24}

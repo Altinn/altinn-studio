@@ -1,5 +1,5 @@
 import { TopToolbarButton } from '@altinn/schema-editor/index';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import AltinnInputField from '../../../components/AltinnInputField';
 import AltinnPopoverSimple from '../../../components/molecules/AltinnPopoverSimple';
 import { getLanguageFromKey } from '../../../utils/language';
@@ -15,13 +15,22 @@ export interface ICreateNewWrapper {
   }) => void;
   dataModelNames: string[];
   createPathOption?: boolean;
+  disabled: boolean;
+  openByDefault?: boolean;
 }
 
 export default function CreateNewWrapper(props: ICreateNewWrapper) {
-  const [createButtonAnchor, setCreateButtonAnchor] = React.useState(null);
-  const [newModelName, setNewModelName] = React.useState('');
-  const [nameError, setNameError] = React.useState('');
-  const [confirmedWithReturn, setConfirmedWithReturn] = React.useState(false);
+  const [createButtonAnchor, setCreateButtonAnchor] = useState(null);
+  const [newModelName, setNewModelName] = useState('');
+  const [nameError, setNameError] = useState('');
+  const [confirmedWithReturn, setConfirmedWithReturn] = useState(false);
+
+  useEffect(() => {
+    if (props.openByDefault) {
+      setCreateButtonAnchor(document.getElementById('create-new-datamodel-button'));
+    }
+  }, [props.openByDefault])
+
   const relativePath = props.createPathOption ? '' : undefined;
   const onCreateClick = (event: any) => {
     setCreateButtonAnchor(event.currentTarget);
@@ -74,9 +83,11 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
   return (
     <>
       <TopToolbarButton
+        id='create-new-datamodel-button'
         faIcon='fa fa-plus'
         onClick={onCreateClick}
         hideText={false}
+        disabled={props.disabled}
       >
         {getLanguageFromKey('general.create_new', props.language)}
       </TopToolbarButton>
