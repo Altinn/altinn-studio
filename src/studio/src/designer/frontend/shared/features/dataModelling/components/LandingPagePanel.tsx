@@ -94,7 +94,7 @@ export function LandingPagePanel({
             )}
           />
           <AltinnButton
-            btnText={getLanguageFromKey('app_data_modelling.landing_dialog_create', language)}
+            btnText={t('app_data_modelling.landing_dialog_create')}
             secondaryButton
             onClickFunction={() => {
               handleCreateModelClick();
