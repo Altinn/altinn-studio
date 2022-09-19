@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Panel, PanelVariant } from '@altinn/altinn-design-system';
 import { AppBar, Divider } from '@material-ui/core';
 import { createStyles, makeStyles } from '@material-ui/core/styles';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
@@ -84,6 +85,9 @@ export const SchemaInspector = ({
 
   return selectedItem ? (
     <div className={classes.root} data-testid='schema-inspector'>
+      <Panel variant={PanelVariant.Warning} forceMobileLayout={true}>
+        <span>{t('warning_under_development')}</span>
+      </Panel>
       <TabContext value={tabIndex}>
         <AppBar position='static' color='default' className={classes.appBar}>
           <TabList
