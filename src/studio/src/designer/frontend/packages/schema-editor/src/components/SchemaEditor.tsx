@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ChangeEvent, MouseEvent, SyntheticEvent, useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { ArrowDropDown, ArrowRight } from '@material-ui/icons';
 import { TabContext, TabList, TabPanel, TreeView } from '@material-ui/lab';
@@ -133,6 +133,7 @@ export const SchemaEditor = (props: IEditorProps) => {
 
   const classes = useStyles();
   const dispatch = useDispatch();
+
   const jsonSchema = useSelector((state: ISchemaState) => state.schema);
   const selectedPropertyNode = useSelector(
     (state: ISchemaState) => state.selectedPropertyNodeId,
@@ -167,39 +168,37 @@ export const SchemaEditor = (props: IEditorProps) => {
   const selectedTab: string = useSelector(
     (state: ISchemaState) => state.selectedEditorTab,
   );
-  const [expandedPropertiesNodes, setExpandedPropertiesNodes] = React.useState<
-    string[]
-  >([]);
-  const [expandedDefinitionsNodes, setExpandedDefinitionsNodes] =
-    React.useState<string[]>([]);
-  const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | Element>(null);
+  const [expandedPropertiesNodes, setExpandedPropertiesNodes] = useState<string[]>([]);
+  const [expandedDefinitionsNodes, setExpandedDefinitionsNodes] = useState<string[]>([]);
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | Element>(null);
+  const [editMode, setEditMode] = useState(false);
 
   const saveSchema = () => {
     dispatch(updateJsonSchema({ onSaveSchema }));
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (name) {
       dispatch(setSchemaName({ name }));
     }
   }, [dispatch, name]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (jsonSchema && name) {
       dispatch(setUiSchema({ name }));
     }
   }, [dispatch, jsonSchema, name]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     dispatch(setJsonSchema({ schema }));
   }, [dispatch, schema]);
 
-  const openMenu = (e: React.MouseEvent) => {
+  const openMenu = (e: MouseEvent) => {
     e.stopPropagation();
     setMenuAnchorEl(e.currentTarget);
   };
 
-  const closeMenu = (e: React.SyntheticEvent) => {
+  const closeMenu = (e: SyntheticEvent) => {
     e.stopPropagation();
     setMenuAnchorEl(null);
   };
@@ -221,7 +220,11 @@ export const SchemaEditor = (props: IEditorProps) => {
     setMenuAnchorEl(null);
   };
 
-  const handleAddDefinition = (e: React.MouseEvent) => {
+  const toggleEditMode = () => {
+    setEditMode((prevState) => !prevState );
+  }
+
+  const handleAddDefinition = (e: MouseEvent) => {
     e.stopPropagation();
     dispatch(
       addRootItem({
@@ -235,21 +238,21 @@ export const SchemaEditor = (props: IEditorProps) => {
   };
 
   const handlePropertiesNodeExpanded = (
-    _x: React.ChangeEvent<unknown>,
+    _x: ChangeEvent<unknown>,
     nodeIds: string[],
   ) => {
     setExpandedPropertiesNodes(nodeIds);
   };
 
   const handleDefinitionsNodeExpanded = (
-    _x: React.ChangeEvent<unknown>,
+    _x: ChangeEvent<unknown>,
     nodeIds: string[],
   ) => {
     setExpandedDefinitionsNodes(nodeIds);
   };
 
   const handleTabChanged = (
-    _x: React.ChangeEvent<unknown>,
+    _x: ChangeEvent<unknown>,
     value: 'definitions' | 'properties',
   ) => {
     dispatch(setSelectedTab({ selectedTab: value }));
@@ -300,6 +303,8 @@ export const SchemaEditor = (props: IEditorProps) => {
         Toolbar={Toolbar}
         language={language}
         saveAction={name ? saveSchema : undefined}
+        toggleEditMode={name ? toggleEditMode : undefined}
+        editMode={editMode}
       />
       <main>
         {name && schema ? (
@@ -328,16 +333,18 @@ export const SchemaEditor = (props: IEditorProps) => {
                 </TabList>
               </AppBar>
               <TabPanel className={classes.tabPanel} value='properties'>
-                <Button
-                  endIcon={<i className='fa fa-drop-down' />}
-                  onClick={openMenu}
-                  className={classes.addButton}
-                  id='add-button'
-                >
-                  <Typography variant='body1'>
-                    {getTranslation('add', language)}
-                  </Typography>
-                </Button>
+                {editMode &&
+                  <Button
+                    endIcon={<i className='fa fa-drop-down' />}
+                    onClick={openMenu}
+                    className={classes.addButton}
+                    id='add-button'
+                  >
+                    <Typography variant='body1'>
+                      {getTranslation('add', language)}
+                    </Typography>
+                  </Button>
+                }
                 <TreeView
                   className={classes.treeView}
                   multiSelect={false}
@@ -349,30 +356,33 @@ export const SchemaEditor = (props: IEditorProps) => {
                 >
                   {modelView?.map((item: UiSchemaItem) => (
                     <SchemaItem
-                      keyPrefix='properties'
-                      key={item.path}
-                      item={item}
-                      nodeId={getDomFriendlyID(item.path)}
+                      editMode={editMode}
                       id={getDomFriendlyID(item.path)}
-                      language={language}
                       isPropertiesView={true}
+                      item={item}
+                      key={item.path}
+                      keyPrefix='properties'
+                      language={language}
+                      nodeId={getDomFriendlyID(item.path)}
                     />
                   ))}
                 </TreeView>
               </TabPanel>
               <TabPanel className={classes.tabPanel} value='definitions'>
-                <Button
-                  startIcon={<i className='fa fa-plus' />}
-                  onClick={handleAddDefinition}
-                  className={classes.addButton}
-                  classes={{
-                    startIcon: classes.startIcon,
-                  }}
-                >
-                  <Typography variant='body1'>
-                    {getTranslation('add_element', language)}
-                  </Typography>
-                </Button>
+                {editMode &&
+                  <Button
+                    startIcon={<i className='fa fa-plus' />}
+                    onClick={handleAddDefinition}
+                    className={classes.addButton}
+                    classes={{
+                      startIcon: classes.startIcon,
+                    }}
+                  >
+                    <Typography variant='body1'>
+                      {getTranslation('add_element', language)}
+                    </Typography>
+                  </Button>
+                }
                 <TreeView
                   className={classes.treeView}
                   multiSelect={false}
@@ -384,12 +394,13 @@ export const SchemaEditor = (props: IEditorProps) => {
                 >
                   {definitions.map((def) => (
                     <SchemaItem
-                      keyPrefix='definitions'
+                      editMode={editMode}
+                      id={getDomFriendlyID(def.path)}
                       item={def}
                       key={def.path}
-                      nodeId={getDomFriendlyID(def.path)}
-                      id={getDomFriendlyID(def.path)}
+                      keyPrefix='definitions'
                       language={language}
+                      nodeId={getDomFriendlyID(def.path)}
                     />
                   ))}
                 </TreeView>
@@ -399,7 +410,7 @@ export const SchemaEditor = (props: IEditorProps) => {
         ) : (
           loadingIndicator
         )}
-        {schema && (
+        {schema && editMode && (
           <aside className={classes.inspector}>
             <SchemaInspector
               language={language}

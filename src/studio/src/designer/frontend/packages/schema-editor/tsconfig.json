@@ -20,6 +20,7 @@
     "declarationDir": "dist",
     "outDir": "./dist/",
     "sourceMap": true,
+    "allowJs": true,
     "rootDir": "../..",
     "paths": {
       "app-shared/*": [
