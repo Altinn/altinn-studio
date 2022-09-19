@@ -66,11 +66,11 @@ const routes: IRoute[] = [
     subapp: Administration,
   },
   {
-    path: '/datamodelling',
+    path: '/datamodel-old',
     exact: true,
     activeSubHeaderSelection: TopBarMenu.Datamodel,
-    activeLeftMenuSelection: 'Datamodell',
-    menu: 'create',
+    activeLeftMenuSelection: '',
+    menu: 'datamodel',
     subapp: IFrame,
     props: {
       headerTextKey: 'shared.wip_title',
