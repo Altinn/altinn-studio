@@ -69,7 +69,10 @@ const clickAddMenuItem = (user: UserEvent, name: string) =>
 const clickOpenContextMenuButton = (user: UserEvent) =>
   user.click(screen.getByTestId('open-context-menu-button'));
 
-test('renders schema editor with populated schema', () => {
+const toggleEditMode = (user: UserEvent) =>
+  user.click(screen.getByText('edit_mode'));
+
+test('renders schema editor with populated schema in view mode', () => {
   renderEditor();
   const editor = screen.getByTestId('schema-editor');
   expect(editor).toBeDefined();
@@ -77,10 +80,28 @@ test('renders schema editor with populated schema', () => {
     name: 'save_data_model',
   });
   expect(saveButton).toBeDefined();
+  expect(saveButton).toBeDisabled();
+  const schemaInspector = screen.queryByTestId('schema-inspector');
+  expect(schemaInspector).toBeNull();
+});
+
+test('renders schema editor with populated schema in edit mode', async () => {
+  const { user } = renderEditor();
+  const editor = screen.getByTestId('schema-editor');
+  expect(editor).toBeDefined();
+  await toggleEditMode(user);
+  const saveButton = screen.getByRole('button', {
+    name: 'save_data_model',
+  });
+  expect(saveButton).toBeDefined();
+  expect(saveButton).toBeEnabled();
+  const schemaInspector = screen.queryByTestId('schema-inspector');
+  expect(schemaInspector).toBeDefined();
 });
 
 test('should show context menu and trigger correct dispatch when adding a field on root', async () => {
   const { store, user } = renderEditor();
+  await toggleEditMode(user);
   await clickOpenAddMenuButton(user);
   await clickAddMenuItem(user, mockLanguage.schema_editor.field);
   const actions = store.getActions();
@@ -94,8 +115,10 @@ test('should show context menu and trigger correct dispatch when adding a field 
     },
   });
 });
+
 test('should show context menu and trigger correct dispatch when adding a reference on root', async () => {
   const { store, user } = renderEditor();
+  await toggleEditMode(user);
   await clickOpenAddMenuButton(user);
   await clickAddMenuItem(user, mockLanguage.schema_editor.reference);
 
@@ -122,6 +145,7 @@ test('should show context menu and trigger correct dispatch when adding field on
       '#/properties',
     ),
   });
+  await toggleEditMode(user);
   await clickOpenContextMenuButton(user);
   await clickAddMenuItem(user, 'add_field');
   const actions = store.getActions();
@@ -146,6 +170,7 @@ test('should show context menu and trigger correct dispatch when adding referenc
       '#/properties',
     ),
   });
+  await toggleEditMode(user);
   await clickOpenContextMenuButton(user);
   await clickAddMenuItem(user, 'Legg til referanse');
   const actions = store.getActions();
@@ -161,6 +186,7 @@ test('should show context menu and trigger correct dispatch when adding referenc
 
 test('should show context menu and trigger correct dispatch when deleting a specific node', async () => {
   const { store, user } = renderEditor();
+  await toggleEditMode(user);
   await clickOpenContextMenuButton(user);
   await clickAddMenuItem(user, 'Slett');
   const actions = store.getActions();
@@ -233,6 +259,7 @@ test('should not show add property or add reference buttons on a field that is n
 
 test('should show menu with option field, reference, and combination when pressing add', async () => {
   const { user } = renderEditor();
+  await toggleEditMode(user);
   await clickOpenAddMenuButton(user);
   expect(
     screen.getAllByRole('menuitem', { name: mockLanguage.schema_editor.field }),
@@ -249,6 +276,7 @@ test('should show menu with option field, reference, and combination when pressi
 
 test('should trigger correct dispatch when adding combination to root', async () => {
   const { store, user } = renderEditor();
+  await toggleEditMode(user);
   await clickOpenAddMenuButton(user);
   await clickAddMenuItem(user, 'combination');
   const actions = store.getActions();
@@ -275,6 +303,7 @@ test('should show context menu and trigger correct dispatch when adding a combin
       '#/properties',
     ),
   });
+  await toggleEditMode(user);
   await clickOpenContextMenuButton(user);
   await clickAddMenuItem(user, 'add_combination');
   const actions = store.getActions();
@@ -300,6 +329,7 @@ test('should only be possible to add a reference to a combination type', async (
       '#/properties',
     ),
   });
+  await toggleEditMode(user);
   await clickOpenContextMenuButton(user);
   const menuitems = screen.getAllByRole('menuitem');
   const menuItemIds: string[] = menuitems.map((menuitem) => menuitem.id);
