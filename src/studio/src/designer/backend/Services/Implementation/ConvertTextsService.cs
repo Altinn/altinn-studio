@@ -54,7 +54,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     newTexts[text.Id] = newText;
                 }
 
-                string textsString = JsonSerializer.Serialize(newTexts);
                 await altinnAppGitRepository.SaveTextV2(languageCode, newTexts);
                 altinnAppGitRepository.DeleteFileByAbsolutePath(languageFile);
             }
@@ -91,7 +90,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// </summary>
         /// <param name="datasource">The datasource value from a variable connected to a text</param>
         /// <returns>The short version of the datasource.</returns>
-        private string ConvertVariable(string datasource)
+        private static string ConvertVariable(string datasource)
         {
             if (datasource == "applicationSettings")
             {
