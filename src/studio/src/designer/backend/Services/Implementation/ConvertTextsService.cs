@@ -71,12 +71,28 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 string variableNumber = text.Variables.IndexOf(variable).ToString();
                 string oldString = "{" + variableNumber + "}";
-                string newString = "${{" + variable.DataSource + "." + variable.Key + "}}";
+                string newString = "${{" + ConvertVariable(variable.DataSource) + "." + variable.Key + "}}";
                 builder.Replace(oldString, newString);
                 newText = builder.ToString();
             }
 
             return newText;
+        }
+
+        private string ConvertVariable(string variable)
+        {
+            if (variable == "applicationSettings")
+            {
+                return "as";
+            }
+
+            if (variable == "instanceContext")
+            {
+                return "ic";
+            }
+
+            string shortVariable = "dm." + variable.Split(".").Last();
+            return shortVariable;
         }
     }
 }
