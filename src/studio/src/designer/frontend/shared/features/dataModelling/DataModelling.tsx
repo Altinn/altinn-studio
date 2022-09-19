@@ -1,5 +1,6 @@
 import React from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
+import { Button, ButtonVariant, Panel } from '@altinn/altinn-design-system';
 import { SchemaEditorApp } from '@altinn/schema-editor/index';
 import type { ILanguage } from '@altinn/schema-editor/types';
 import {
@@ -15,6 +16,8 @@ import schemaPathIsSame from './functions/schemaPathIsSame';
 import { DataModelsMetadataActions, LoadingState } from './sagas/metadata';
 import type { IMetadataOption } from './functions/types';
 import { LandingPagePanel } from './components/LandingPagePanel';
+import { Dialog, makeStyles, createStyles } from '@material-ui/core';
+import { getLanguageFromKey } from 'app-shared/utils/language';
 
 interface IDataModellingContainerProps extends React.PropsWithChildren<any> {
   language: ILanguage;
@@ -47,12 +50,24 @@ export const shouldSelectFirstEntry = ({
   );
 };
 
+const useStyles = makeStyles(
+  createStyles({
+    root: {
+      padding: 10,
+    },
+    button: {
+      marginLeft: 16,
+    }
+  }),
+);
+
 function DataModelling({
   language,
   org,
   repo,
   createPathOption,
 }: IDataModellingContainerProps): JSX.Element {
+  const classes = useStyles();
   const dispatch = useDispatch();
   const jsonSchema = useSelector((state: any) => state.dataModelling.schema);
   const metadataOptions = useSelector(
@@ -151,9 +166,37 @@ function DataModelling({
   }
 
   const shouldDisplayLandingPage = landingDialogState === LandingDialogState.DialogIsVisible;
+  const [hideIntroPage, setHideIntroPage] = React.useState(!!localStorage.getItem('studio.app.datamodelling.hideIntroPage'));
+  const handleHideIntroPageButtonClick = () => {
+    localStorage.setItem('studio.app.datamodelling.hideIntroPage', 'true');
+    setHideIntroPage(true);
+  }
+
+  const t = (key: string) => getLanguageFromKey(key, language);
 
   return (
     <>
+      <Dialog open={!hideIntroPage}>
+        <Panel
+          forceMobileLayout={true}
+          title={t('schema_editor.info_dialog_title')}
+        >
+          <div className={classes.root}>
+            <p>{t('schema_editor.info_dialog_1')}</p>
+            <p>{t('schema_editor.info_dialog_2')}</p>
+            <p>{t('schema_editor.info_dialog_3')} <a href='https://docs.altinn.studio/app/development/data/data-model/'>{t('schema_editor.info_dialog_docs_link')}</a></p>
+          </div>
+          <span className={classes.button}><Button onClick={() => setHideIntroPage(true)}>Lukk</Button></span>
+          <span className={classes.button}>
+            <Button
+              onClick={handleHideIntroPageButtonClick}
+              variant={ButtonVariant.Secondary}
+            >
+              Ikke vis igjen
+            </Button>
+          </span>
+        </Panel>
+      </Dialog>
       <SchemaEditorApp
         language={language}
         schema={jsonSchema}
