@@ -46,6 +46,7 @@ const renderEditor = (customState?: Partial<ISchemaState>) => {
     <Provider store={store}>
       <SchemaEditor
         Toolbar={<div>toolbar goes here</div>}
+        LandingPagePanel={<div>landing page panel goes here</div>}
         schema={dataMock}
         language={mockLanguage}
         onSaveSchema={onSaveSchema}
