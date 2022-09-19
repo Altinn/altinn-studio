@@ -65,7 +65,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// </summary>
         /// <param name="text">The text resource element from the old texts format.</param>
         /// <returns>The new string that will be the value in the new texts format.</returns>
-        private string ConvertText(TextResourceElement text)
+        private static string ConvertText(TextResourceElement text)
         {
             string newText = " ";
 
