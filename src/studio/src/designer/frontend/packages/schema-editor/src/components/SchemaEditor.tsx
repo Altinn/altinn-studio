@@ -1,7 +1,12 @@
-import React, { ChangeEvent, MouseEvent, SyntheticEvent, useEffect, useState } from 'react';
+import React, {
+  ChangeEvent,
+  MouseEvent,
+  SyntheticEvent,
+  useEffect,
+  useState,
+} from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { ArrowDropDown, ArrowRight } from '@material-ui/icons';
-import { TabContext, TabList, TabPanel, TreeView } from '@material-ui/lab';
+import { TabContext, TabList, TabPanel } from '@material-ui/lab';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppBar, Button, Typography } from '@material-ui/core';
 import {
@@ -20,20 +25,19 @@ import {
   setUiSchema,
   updateJsonSchema,
 } from '../features/editor/schemaEditorSlice';
-import { SchemaItem } from './SchemaItem';
 import { getTranslation } from '../utils/language';
 import {
-  getDomFriendlyID,
   getSchemaFromPath,
   getUiSchemaItem,
   splitParentPathAndName,
 } from '../utils/schema';
 import { SchemaInspector } from './SchemaInspector';
-import { SchemaTab } from './SchemaTab';
+import { SchemaTab } from './common/SchemaTab';
 import { TopToolbar } from './TopToolbar';
 import { getSchemaSettings } from '../settings';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { isNameInUse } from '../utils/checks';
+import { SchemaTreeView } from './TreeView/SchemaTreeView';
 
 const useStyles = makeStyles({
   root: {
@@ -47,7 +51,7 @@ const useStyles = makeStyles({
       flexDirection: 'row',
       flexGrow: 1,
       alignItems: 'stretch',
-      minHeight: 0
+      minHeight: 0,
     },
   },
   editor: {
@@ -56,7 +60,7 @@ const useStyles = makeStyles({
     flexGrow: 1,
     height: '100%',
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
   },
   appBar: {
     borderBottom: '1px solid #C9C9C9',
@@ -70,29 +74,9 @@ const useStyles = makeStyles({
       backgroundColor: '#006BD8',
     },
   },
-  tab: {
-    minWidth: 70,
-  },
   tabPanel: {
     overflowY: 'scroll',
-    flexGrow: 1
-  },
-  treeItem: {
-    marginLeft: 8,
-    '&.Mui-selected': {
-      background: '#E3F7FF',
-      border: '1px solid #006BD8',
-      boxSizing: 'border-box',
-      borderRadius: '5px',
-    },
-    '&.Mui-selected > .MuiTreeItem-content .MuiTreeItem-label, .MuiTreeItem-root.Mui-selected:focus > .MuiTreeItem-content .MuiTreeItem-label':
-      {
-        backgroundColor: 'transparent',
-      },
-  },
-  treeView: {
     flexGrow: 1,
-    overflow: 'auto',
   },
   inspector: {
     background: 'white',
@@ -130,7 +114,15 @@ export interface IEditorProps {
 }
 
 export const SchemaEditor = (props: IEditorProps) => {
-  const { Toolbar, LandingPagePanel, loading, schema, onSaveSchema, name, language } = props;
+  const {
+    Toolbar,
+    LandingPagePanel,
+    loading,
+    schema,
+    onSaveSchema,
+    name,
+    language,
+  } = props;
 
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -169,8 +161,12 @@ export const SchemaEditor = (props: IEditorProps) => {
   const selectedTab: string = useSelector(
     (state: ISchemaState) => state.selectedEditorTab,
   );
-  const [expandedPropertiesNodes, setExpandedPropertiesNodes] = useState<string[]>([]);
-  const [expandedDefinitionsNodes, setExpandedDefinitionsNodes] = useState<string[]>([]);
+  const [expandedPropertiesNodes, setExpandedPropertiesNodes] = useState<
+    string[]
+  >([]);
+  const [expandedDefinitionsNodes, setExpandedDefinitionsNodes] = useState<
+    string[]
+  >([]);
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | Element>(null);
   const [editMode, setEditMode] = useState(false);
 
@@ -222,8 +218,8 @@ export const SchemaEditor = (props: IEditorProps) => {
   };
 
   const toggleEditMode = () => {
-    setEditMode((prevState) => !prevState );
-  }
+    setEditMode((prevState) => !prevState);
+  };
 
   const handleAddDefinition = (e: MouseEvent) => {
     e.stopPropagation();
@@ -298,6 +294,7 @@ export const SchemaEditor = (props: IEditorProps) => {
       path: selectedId,
       name,
     });
+  const t = (key: string) => getTranslation(key, language);
   return (
     <div className={classes.root}>
       <TopToolbar
@@ -322,56 +319,32 @@ export const SchemaEditor = (props: IEditorProps) => {
                 className={classes.appBar}
               >
                 <TabList onChange={handleTabChanged} aria-label='model-tabs'>
-                  <SchemaTab
-                    label='model'
-                    language={language}
-                    value='properties'
-                  />
-                  <SchemaTab
-                    label='types'
-                    language={language}
-                    value='definitions'
-                  />
+                  <SchemaTab label={t('model')} value='properties' />
+                  <SchemaTab label={t('types')} value='definitions' />
                 </TabList>
               </AppBar>
               <TabPanel className={classes.tabPanel} value='properties'>
-                {editMode &&
+                {editMode && (
                   <Button
                     endIcon={<i className='fa fa-drop-down' />}
                     onClick={openMenu}
                     className={classes.addButton}
                     id='add-button'
                   >
-                    <Typography variant='body1'>
-                      {getTranslation('add', language)}
-                    </Typography>
+                    <Typography variant='body1'>{t('add')}</Typography>
                   </Button>
-                }
-                <TreeView
-                  className={classes.treeView}
-                  multiSelect={false}
-                  selected={getDomFriendlyID(selectedPropertyNode)}
-                  defaultCollapseIcon={<ArrowDropDown />}
-                  defaultExpandIcon={<ArrowRight />}
+                )}
+                <SchemaTreeView
+                  editMode={editMode}
                   expanded={expandedPropertiesNodes}
+                  items={modelView}
+                  translate={t}
                   onNodeToggle={handlePropertiesNodeExpanded}
-                >
-                  {modelView?.map((item: UiSchemaItem) => (
-                    <SchemaItem
-                      editMode={editMode}
-                      id={getDomFriendlyID(item.path)}
-                      isPropertiesView={true}
-                      item={item}
-                      key={item.path}
-                      keyPrefix='properties'
-                      language={language}
-                      nodeId={getDomFriendlyID(item.path)}
-                    />
-                  ))}
-                </TreeView>
+                  selectedNode={selectedPropertyNode}
+                />
               </TabPanel>
               <TabPanel className={classes.tabPanel} value='definitions'>
-                {editMode &&
+                {editMode && (
                   <Button
                     startIcon={<i className='fa fa-plus' />}
                     onClick={handleAddDefinition}
@@ -380,32 +353,17 @@ export const SchemaEditor = (props: IEditorProps) => {
                       startIcon: classes.startIcon,
                     }}
                   >
-                    <Typography variant='body1'>
-                      {getTranslation('add_element', language)}
-                    </Typography>
+                    <Typography variant='body1'>{t('add_element')}</Typography>
                   </Button>
-                }
-                <TreeView
-                  className={classes.treeView}
-                  multiSelect={false}
-                  selected={getDomFriendlyID(selectedDefinitionNode)}
-                  defaultCollapseIcon={<ArrowDropDown />}
-                  defaultExpandIcon={<ArrowRight />}
+                )}
+                <SchemaTreeView
+                  editMode={editMode}
                   expanded={expandedDefinitionsNodes}
+                  items={definitions}
+                  translate={t}
                   onNodeToggle={handleDefinitionsNodeExpanded}
-                >
-                  {definitions.map((def) => (
-                    <SchemaItem
-                      editMode={editMode}
-                      id={getDomFriendlyID(def.path)}
-                      item={def}
-                      key={def.path}
-                      keyPrefix='definitions'
-                      language={language}
-                      nodeId={getDomFriendlyID(def.path)}
-                    />
-                  ))}
-                </TreeView>
+                  selectedNode={selectedDefinitionNode}
+                />
               </TabPanel>
             </TabContext>
           </div>

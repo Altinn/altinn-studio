@@ -1,14 +1,12 @@
 import React from 'react';
-import { IconButton, Divider, makeStyles } from '@material-ui/core';
+import { Divider, IconButton, makeStyles } from '@material-ui/core';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
-import { getTranslation } from '../utils/language';
-import type { ILanguage } from '../types';
-import { ObjectKind } from '../types/enums';
+import { ObjectKind } from '../../types/enums';
 
 export interface SchemaItemLabelProps {
   icon: string;
   label: string;
-  language: ILanguage;
+  translate: (key: string) => string;
   limitedItem?: boolean;
   editMode: boolean;
   onAddProperty?: (type: ObjectKind) => void;
@@ -47,26 +45,29 @@ const useStyles = makeStyles({
   },
 });
 
-export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
+export const SchemaItemLabel = ({
+  translate,
+  ...props
+}: SchemaItemLabelProps) => {
   const [contextAnchor, setContextAnchor] = React.useState<any>(null);
   const classes = useStyles();
   const handleContextMenuClick = (e: React.SyntheticEvent) => {
     setContextAnchor(e.currentTarget);
     e.stopPropagation();
   };
-  const handleAddNode = (e: React.SyntheticEvent, type: ObjectKind) => {
+  const handleAddNode = (e: React.SyntheticEvent, objectKind: ObjectKind) => {
     setContextAnchor(null);
     e.stopPropagation();
-    switch (type) {
-      case 'combination':
-        props?.onAddCombination?.(type);
+    switch (objectKind) {
+      case ObjectKind.Combination:
+        props?.onAddCombination?.(objectKind);
         break;
-      case 'reference':
-        props?.onAddReference?.(type);
+      case ObjectKind.Reference:
+        props?.onAddReference?.(objectKind);
         break;
-      case 'field':
+      case ObjectKind.Field:
       default:
-        props?.onAddProperty?.(type);
+        props?.onAddProperty?.(objectKind);
     }
   };
   const handlePromoteClick = (e: React.SyntheticEvent) => {
@@ -89,6 +90,7 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
     setContextAnchor(null);
     e.stopPropagation();
   };
+
   return (
     <div className={classes.propertiesLabel}>
       <div className={classes.label}>
@@ -121,7 +123,7 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
             id='add-reference-to-node-button'
             key='add_reference'
             onClick={(event) => handleAddNode(event, ObjectKind.Reference)}
-            text={getTranslation('add_reference', props.language)}
+            text={translate('add_reference')}
             iconClass='fa fa-datamodel-ref'
             disabled={!props.editMode}
           />
@@ -131,7 +133,7 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
             id='add-field-to-node-button'
             key='add_field'
             onClick={(event) => handleAddNode(event, ObjectKind.Field)}
-            text={getTranslation('add_field', props.language)}
+            text={translate('add_field')}
             iconClass='fa fa-datamodel-properties'
             disabled={!props.editMode}
           />
@@ -141,7 +143,7 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
             id='add-combination-to-node-button'
             key='add_combination'
             onClick={(event) => handleAddNode(event, ObjectKind.Combination)}
-            text={getTranslation('add_combination', props.language)}
+            text={translate('add_combination')}
             iconClass='fa fa-group'
             disabled={!props.editMode}
           />
@@ -151,7 +153,7 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
             id='promote-item-button'
             key='promote'
             onClick={handlePromoteClick}
-            text={getTranslation('promote', props.language)}
+            text={translate('promote')}
             iconClass='fa fa-arrowup'
             disabled={!props.editMode}
           />
@@ -161,7 +163,7 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
             id='go-to-type-button'
             key='go_to_type'
             onClick={handleGoToType}
-            text={getTranslation('go_to_type', props.language)}
+            text={translate('go_to_type')}
             iconClass='fa fa-datamodel-ref'
           />
         )}
@@ -171,7 +173,7 @@ export const SchemaItemLabel = (props: SchemaItemLabelProps) => {
             id='delete-node-button'
             key='delete'
             onClick={handleDeleteClick}
-            text={getTranslation('delete', props.language)}
+            text={translate('delete')}
             iconClass='fa fa-trash'
             disabled={!props.editMode}
           />,
