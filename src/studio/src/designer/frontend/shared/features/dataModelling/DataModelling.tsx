@@ -52,11 +52,8 @@ export const shouldSelectFirstEntry = ({
 
 const useStyles = makeStyles(
   createStyles({
-    root: {
-      padding: 10,
-    },
     button: {
-      marginLeft: 16,
+      marginRight: 16,
     }
   }),
 );
@@ -181,7 +178,7 @@ function DataModelling({
           forceMobileLayout={true}
           title={t('schema_editor.info_dialog_title')}
         >
-          <div className={classes.root}>
+          <div>
             <p>{t('schema_editor.info_dialog_1')}</p>
             <p>{t('schema_editor.info_dialog_2')}</p>
             <p>{t('schema_editor.info_dialog_3')} <a href='https://docs.altinn.studio/app/development/data/data-model/'>{t('schema_editor.info_dialog_docs_link')}</a></p>
