@@ -1,19 +1,9 @@
-import React, {
-  ChangeEvent,
-  MouseEvent,
-  SyntheticEvent,
-  useEffect,
-  useState,
-} from 'react';
+import React, { ChangeEvent, MouseEvent, SyntheticEvent, useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppBar, Button, Typography } from '@material-ui/core';
-import {
-  AltinnMenu,
-  AltinnMenuItem,
-  AltinnSpinner,
-} from 'app-shared/components';
+import { AltinnMenu, AltinnMenuItem, AltinnSpinner } from 'app-shared/components';
 import type { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
 import { CombinationKind, FieldType } from '../types';
 import { ObjectKind } from '../types/enums';
@@ -26,11 +16,7 @@ import {
   updateJsonSchema,
 } from '../features/editor/schemaEditorSlice';
 import { getTranslation } from '../utils/language';
-import {
-  getSchemaFromPath,
-  getUiSchemaItem,
-  splitParentPathAndName,
-} from '../utils/schema';
+import { getSchemaFromPath, getUiSchemaItem, splitParentPathAndName } from '../utils/schema';
 import { SchemaInspector } from './SchemaInspector';
 import { SchemaTab } from './common/SchemaTab';
 import { TopToolbar } from './TopToolbar';
@@ -38,6 +24,7 @@ import { getSchemaSettings } from '../settings';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { isNameInUse } from '../utils/checks';
 import { SchemaTreeView } from './TreeView/SchemaTreeView';
+import { createRefSelector } from './TreeView/tree-view-helpers';
 
 const useStyles = makeStyles({
   root: {
@@ -114,32 +101,18 @@ export interface IEditorProps {
 }
 
 export const SchemaEditor = (props: IEditorProps) => {
-  const {
-    Toolbar,
-    LandingPagePanel,
-    loading,
-    schema,
-    onSaveSchema,
-    name,
-    language,
-  } = props;
+  const { Toolbar, LandingPagePanel, loading, schema, onSaveSchema, name, language } = props;
 
   const classes = useStyles();
   const dispatch = useDispatch();
 
   const jsonSchema = useSelector((state: ISchemaState) => state.schema);
-  const selectedPropertyNode = useSelector(
-    (state: ISchemaState) => state.selectedPropertyNodeId,
-  );
-  const selectedDefinitionNode = useSelector(
-    (state: ISchemaState) => state.selectedDefinitionNodeId,
-  );
+  const selectedPropertyNode = useSelector((state: ISchemaState) => state.selectedPropertyNodeId);
+  const selectedDefinitionNode = useSelector((state: ISchemaState) => state.selectedDefinitionNodeId);
 
   const schemaSettings = getSchemaSettings({ schemaUrl: jsonSchema?.$schema });
   const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
-  const definitions = uiSchema.filter((d: UiSchemaItem) =>
-    d.path.startsWith(`${schemaSettings.definitionsPath}/`),
-  );
+  const definitions = uiSchema.filter((d: UiSchemaItem) => d.path.startsWith(`${schemaSettings.definitionsPath}/`));
   const modelView = uiSchema.filter((d: UiSchemaItem) => {
     if (d.path.startsWith(schemaSettings.propertiesPath)) {
       return true;
@@ -148,25 +121,16 @@ export const SchemaEditor = (props: IEditorProps) => {
     if (schemaSettings.rootNodePath !== '#/oneOf') {
       return d.path.startsWith(schemaSettings.rootNodePath);
     }
-    const modelsArray = getSchemaFromPath(
-      schemaSettings.rootNodePath.slice(1),
-      jsonSchema,
-    );
+    const modelsArray = getSchemaFromPath(schemaSettings.rootNodePath.slice(1), jsonSchema);
     if (modelsArray && Array.isArray(modelsArray)) {
       return modelsArray.find((m) => m.$ref === d.path);
     }
     return false;
   });
 
-  const selectedTab: string = useSelector(
-    (state: ISchemaState) => state.selectedEditorTab,
-  );
-  const [expandedPropertiesNodes, setExpandedPropertiesNodes] = useState<
-    string[]
-  >([]);
-  const [expandedDefinitionsNodes, setExpandedDefinitionsNodes] = useState<
-    string[]
-  >([]);
+  const selectedTab: string = useSelector((state: ISchemaState) => state.selectedEditorTab);
+  const [expandedPropertiesNodes, setExpandedPropertiesNodes] = useState<string[]>([]);
+  const [expandedDefinitionsNodes, setExpandedDefinitionsNodes] = useState<string[]>([]);
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | Element>(null);
   const [editMode, setEditMode] = useState(false);
 
@@ -209,17 +173,14 @@ export const SchemaEditor = (props: IEditorProps) => {
           type: type === ObjectKind.Field ? FieldType.Object : undefined,
           $ref: type === ObjectKind.Reference ? '' : undefined,
           combination: type === ObjectKind.Combination ? [] : undefined,
-          combinationKind:
-            type === ObjectKind.Combination ? CombinationKind.AllOf : undefined,
+          combinationKind: type === ObjectKind.Combination ? CombinationKind.AllOf : undefined,
         },
       }),
     );
     setMenuAnchorEl(null);
   };
 
-  const toggleEditMode = () => {
-    setEditMode((prevState) => !prevState);
-  };
+  const toggleEditMode = () => setEditMode((prevState) => !prevState);
 
   const handleAddDefinition = (e: MouseEvent) => {
     e.stopPropagation();
@@ -234,36 +195,23 @@ export const SchemaEditor = (props: IEditorProps) => {
     );
   };
 
-  const handlePropertiesNodeExpanded = (
-    _x: ChangeEvent<unknown>,
-    nodeIds: string[],
-  ) => {
+  const handlePropertiesNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) => {
     setExpandedPropertiesNodes(nodeIds);
   };
 
-  const handleDefinitionsNodeExpanded = (
-    _x: ChangeEvent<unknown>,
-    nodeIds: string[],
-  ) => {
+  const handleDefinitionsNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) => {
     setExpandedDefinitionsNodes(nodeIds);
   };
 
-  const handleTabChanged = (
-    _x: ChangeEvent<unknown>,
-    value: 'definitions' | 'properties',
-  ) => {
+  const handleTabChanged = (_x: ChangeEvent<unknown>, value: 'definitions' | 'properties') => {
     dispatch(setSelectedTab({ selectedTab: value }));
   };
   const loadingIndicator = loading ? (
-    <AltinnSpinner
-      spinnerText={getLanguageFromKey('general.loading', language)}
-    />
+    <AltinnSpinner spinnerText={getLanguageFromKey('general.loading', language)} />
   ) : null;
 
   const selectedId = useSelector((state: ISchemaState) =>
-    state.selectedEditorTab === 'properties'
-      ? state.selectedPropertyNodeId
-      : state.selectedDefinitionNodeId,
+    state.selectedEditorTab === 'properties' ? state.selectedPropertyNodeId : state.selectedDefinitionNodeId,
   );
 
   const selectedItem = useSelector((state: ISchemaState) =>
@@ -271,11 +219,7 @@ export const SchemaEditor = (props: IEditorProps) => {
   );
 
   // if item is a reference, we want to show the properties of the reference.
-  const referredItem = useSelector((state: ISchemaState) =>
-    selectedItem?.$ref
-      ? state.uiSchema.find((i: UiSchemaItem) => i.path === selectedItem.$ref)
-      : null,
-  );
+  const referredItem = useSelector(createRefSelector(selectedItem?.$ref));
 
   const parentItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
@@ -307,17 +251,9 @@ export const SchemaEditor = (props: IEditorProps) => {
       <main>
         {LandingPagePanel}
         {name && schema ? (
-          <div
-            data-testid='schema-editor'
-            id='schema-editor'
-            className={classes.editor}
-          >
+          <div data-testid='schema-editor' id='schema-editor' className={classes.editor}>
             <TabContext value={selectedTab}>
-              <AppBar
-                position='static'
-                color='default'
-                className={classes.appBar}
-              >
+              <AppBar position='static' color='default' className={classes.appBar}>
                 <TabList onChange={handleTabChanged} aria-label='model-tabs'>
                   <SchemaTab label={t('model')} value='properties' />
                   <SchemaTab label={t('types')} value='definitions' />
@@ -349,9 +285,7 @@ export const SchemaEditor = (props: IEditorProps) => {
                     startIcon={<i className='fa fa-plus' />}
                     onClick={handleAddDefinition}
                     className={classes.addButton}
-                    classes={{
-                      startIcon: classes.startIcon,
-                    }}
+                    classes={{ startIcon: classes.startIcon }}
                   >
                     <Typography variant='body1'>{t('add_element')}</Typography>
                   </Button>
@@ -381,26 +315,22 @@ export const SchemaEditor = (props: IEditorProps) => {
           </aside>
         )}
       </main>
-      <AltinnMenu
-        anchorEl={menuAnchorEl}
-        open={Boolean(menuAnchorEl)}
-        onClose={closeMenu}
-      >
+      <AltinnMenu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={closeMenu}>
         <AltinnMenuItem
           onClick={() => handleAddProperty(ObjectKind.Field)}
-          text={getTranslation('field', language)}
+          text={t('field')}
           iconClass='fa fa-datamodel-properties'
           id='add-field-button'
         />
         <AltinnMenuItem
           onClick={() => handleAddProperty(ObjectKind.Reference)}
-          text={getTranslation('reference', language)}
+          text={t('reference')}
           iconClass='fa fa-datamodel-ref'
           id='add-reference-button'
         />
         <AltinnMenuItem
           onClick={() => handleAddProperty(ObjectKind.Combination)}
-          text={getTranslation('combination', language)}
+          text={t('combination')}
           iconClass='fa fa-group'
           id='add-combination-button'
         />

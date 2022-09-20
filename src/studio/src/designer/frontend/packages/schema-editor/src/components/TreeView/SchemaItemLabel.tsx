@@ -45,19 +45,16 @@ const useStyles = makeStyles({
   },
 });
 
-export const SchemaItemLabel = ({
-  translate,
-  ...props
-}: SchemaItemLabelProps) => {
+export const SchemaItemLabel = ({ translate, ...props }: SchemaItemLabelProps) => {
   const [contextAnchor, setContextAnchor] = React.useState<any>(null);
   const classes = useStyles();
   const handleContextMenuClick = (e: React.SyntheticEvent) => {
-    setContextAnchor(e.currentTarget);
     e.stopPropagation();
+    setContextAnchor(e.currentTarget);
   };
   const handleAddNode = (e: React.SyntheticEvent, objectKind: ObjectKind) => {
-    setContextAnchor(null);
     e.stopPropagation();
+    setContextAnchor(null);
     switch (objectKind) {
       case ObjectKind.Combination:
         props?.onAddCombination?.(objectKind);
@@ -71,34 +68,31 @@ export const SchemaItemLabel = ({
     }
   };
   const handlePromoteClick = (e: React.SyntheticEvent) => {
-    setContextAnchor(null);
     e.stopPropagation();
+    setContextAnchor(null);
     props.onPromote?.();
   };
   const handleDeleteClick = (e: React.SyntheticEvent) => {
-    setContextAnchor(null);
     e.stopPropagation();
+    setContextAnchor(null);
     props.onDelete?.();
   };
-  const handleGoToType = (event: React.SyntheticEvent) => {
+  const handleGoToType = (e: React.SyntheticEvent) => {
+    e.stopPropagation();
     setContextAnchor(null);
-    event.stopPropagation();
     props.onGoToType?.();
   };
 
   const handleCloseContextMenu = (e: React.SyntheticEvent) => {
-    setContextAnchor(null);
     e.stopPropagation();
+    setContextAnchor(null);
   };
 
   return (
     <div className={classes.propertiesLabel}>
       <div className={classes.label}>
         <span className={classes.iconContainer}>
-          <i
-            className={`fa ${props.icon}`}
-            style={{ color: 'white', textAlign: 'center' }}
-          />
+          <i className={`fa ${props.icon}`} style={{ color: 'white', textAlign: 'center' }} />
         </span>{' '}
         {props.label}
       </div>

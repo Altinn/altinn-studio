@@ -47,41 +47,26 @@ const useStyles = (isRef: boolean) =>
     },
   });
 
-export function SchemaItem({
-  item,
-  isPropertiesView,
-  editMode,
-  translate,
-}: SchemaItemProps) {
+export function SchemaItem({ item, isPropertiesView, editMode, translate }: SchemaItemProps) {
   const dispatch = useDispatch();
   const keyPrefix = isPropertiesView ? 'properties' : 'definitions';
   const [itemToDisplay, setItemToDisplay] = React.useState<UiSchemaItem>(item);
-  const refItem: UiSchemaItem | undefined = useSelector(
-    createRefSelector(item.$ref ?? item.items?.$ref),
-  );
+  const refItem: UiSchemaItem | undefined = useSelector(createRefSelector(item.$ref ?? item.items?.$ref));
   const classes = useStyles(refItem !== undefined)();
   // if item props changed, update with latest item, or if reference, refItem.
-  React.useEffect(
-    () => setItemToDisplay(item),
-    [item.restrictions, item, refItem],
-  );
+  React.useEffect(() => setItemToDisplay(item), [item.restrictions, item, refItem]);
 
   const onItemClick = (e: any, schemaItem: UiSchemaItem) => {
     e.preventDefault();
     dispatch(setSelectedId({ id: schemaItem.path }));
   };
 
-  const handlePromoteClick = () => {
-    dispatch(promoteProperty({ path: item.path }));
-  };
+  const handlePromoteClick = () => dispatch(promoteProperty({ path: item.path }));
 
-  const handleDeleteClick = () => {
-    if (item.combinationItem) {
-      dispatch(deleteCombinationItem({ path: item.path }));
-    } else {
-      dispatch(deleteProperty({ path: item.path }));
-    }
-  };
+  const handleDeleteClick = () =>
+    item.combinationItem
+      ? dispatch(deleteCombinationItem({ path: item.path }))
+      : dispatch(deleteProperty({ path: item.path }));
 
   const handleAddProperty = (objectKind: ObjectKind) => {
     const { path } = itemToDisplay;
@@ -89,36 +74,17 @@ export function SchemaItem({
       type: objectKind === ObjectKind.Field ? FieldType.Object : undefined,
       $ref: objectKind === ObjectKind.Reference ? '' : undefined,
       combination: objectKind === ObjectKind.Combination ? [] : undefined,
-      combinationKind:
-        objectKind === ObjectKind.Combination
-          ? CombinationKind.AllOf
-          : undefined,
+      combinationKind: objectKind === ObjectKind.Combination ? CombinationKind.AllOf : undefined,
     } as UiSchemaItem;
 
-    if (itemToDisplay.combination) {
-      dispatch(
-        addCombinationItem({
-          path,
-          props: propertyProps,
-        }),
-      );
-    } else {
-      dispatch(
-        addProperty({
-          path,
-          props: propertyProps,
-        }),
-      );
-    }
+    itemToDisplay.combination
+      ? dispatch(addCombinationItem({ path, props: propertyProps }))
+      : dispatch(addProperty({ path, props: propertyProps }));
   };
 
   const handleGoToType = () => {
     if (item.$ref) {
-      dispatch(
-        navigateToType({
-          id: item.$ref,
-        }),
-      );
+      dispatch(navigateToType({ id: item.$ref }));
     }
   };
 
@@ -143,33 +109,15 @@ export function SchemaItem({
           editMode={editMode}
           icon={getIconStr(item)}
           key={`${item.path}-label`}
-          label={
-            refItem
-              ? `${item.displayName} : ${refItem.displayName}`
-              : item.displayName
-          }
+          label={refItem ? `${item.displayName} : ${refItem.displayName}` : item.displayName}
           translate={translate}
           limitedItem={item.combinationItem}
-          onAddProperty={
-            item.type === FieldType.Object ? handleAddProperty : undefined
-          }
-          onAddReference={
-            item.type === FieldType.Object || item.combination
-              ? handleAddProperty
-              : undefined
-          }
-          onAddCombination={
-            item.type === FieldType.Object ? handleAddProperty : undefined
-          }
+          onAddProperty={item.type === FieldType.Object ? handleAddProperty : undefined}
+          onAddReference={item.type === FieldType.Object || item.combination ? handleAddProperty : undefined}
+          onAddCombination={item.type === FieldType.Object ? handleAddProperty : undefined}
           onDelete={handleDeleteClick}
-          onGoToType={
-            item.$ref && isPropertiesView ? handleGoToType : undefined
-          }
-          onPromote={
-            item.$ref !== undefined || item.path.startsWith('#/def')
-              ? undefined
-              : handlePromoteClick
-          }
+          onGoToType={item.$ref && isPropertiesView ? handleGoToType : undefined}
+          onPromote={item.$ref !== undefined || item.path.startsWith('#/def') ? undefined : handlePromoteClick}
         />
       }
       onLabelClick={(e) => onItemClick(e, itemToDisplay)}
