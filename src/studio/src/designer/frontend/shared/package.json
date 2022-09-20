@@ -89,7 +89,9 @@
     "setupFilesAfterEnv": [
       "<rootDir>/test/setupTests.ts"
     ],
-    "transformIgnorePatterns": ["node_modules(\\\\|/)(?!@?react-leaflet)"]
+    "transformIgnorePatterns": [
+      "node_modules(\\\\|/)(?!@?react-leaflet)"
+    ]
   },
   "browserslist": [
     ">0.2%",
