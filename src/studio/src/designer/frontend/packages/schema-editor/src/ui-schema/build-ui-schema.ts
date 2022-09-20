@@ -73,9 +73,9 @@ export const buildUiSchema = (jsonSchema: JsonSchemaNode): UiSchemaMap => {
   // Just resolve references when we are dealing with the root, all items is resolved at this point.
   const lookup = createPointerLookupTable(map);
   map.forEach((item) => {
-    if (item.ref) {
+    if (typeof item.ref === 'string') {
       // is a pointer
-      const refNodeId = lookup.get(item.ref.toString()) as number;
+      const refNodeId = lookup.get(item.ref) as number;
       const refNode = map.get(refNodeId) as UiSchemaNode;
       item.ref = refNodeId;
       if (item.fieldType === undefined) {

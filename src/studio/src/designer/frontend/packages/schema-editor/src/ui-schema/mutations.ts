@@ -13,7 +13,7 @@ export const removeItemByPointer = (uiNodeMap: UiSchemaMap, pointer: string) => 
   const mutatedUiNodeMap: UiSchemaMap = cloneMap(uiNodeMap) as UiSchemaMap;
   const lookup = createPointerLookupTable(mutatedUiNodeMap);
   if (!lookup.has(pointer)) {
-    throw `Can't remove ${pointer}, doesn't exist`;
+    throw new Error(`Can't remove ${pointer}, doesn't exist`);
   }
 
   // Remove the child node id from the parent
@@ -22,7 +22,7 @@ export const removeItemByPointer = (uiNodeMap: UiSchemaMap, pointer: string) => 
   if (parentNode) {
     parentNode.children = parentNode.children.filter((nodeId) => nodeId !== childNodeId);
   } else {
-    throw `Can't find ParentNode for pointer ${pointer}`;
+    throw new Error(`Can't find ParentNode for pointer ${pointer}`);
   }
 
   // Remove itself decendants... just using the pointer
@@ -42,12 +42,12 @@ export const renameItemPointer = (
 ) => {
   // some assertsions before.
   if (oldPointer === newPointer) {
-    throw 'Old and new name is equal';
+    throw new Error('Old and new name is equal');
   }
   const oldPointerParts = oldPointer.split('/');
   const newPointerParts = newPointer.split('/');
   if (oldPointerParts.length !== newPointerParts.length) {
-    throw 'Refuses to move node between';
+    throw new Error('Refuses to move node between');
   }
   let changeCount = 0;
   oldPointerParts.forEach((part, index) => {
@@ -56,7 +56,7 @@ export const renameItemPointer = (
     }
   });
   if (changeCount !== 1) {
-    throw 'Refusing to change more than one part of the pointer';
+    throw new Error('Refusing to change more than one part of the pointer');
   }
   const mutatedUiNodeMap: UiSchemaMap = new Map();
   uiNodeMap.forEach((uiNode: UiSchemaNode, key: number) => {
@@ -72,12 +72,12 @@ export const renameItemPointer = (
 export const insertNodeToMap = (uiNodeMap: UiSchemaMap, newNode: UiSchemaNode) => {
   const lookup = createPointerLookupTable(uiNodeMap);
   if (lookup.has(newNode.pointer)) {
-    throw `Pointer ${newNode.pointer} exists allready`;
+    throw new Error(`Pointer ${newNode.pointer} exists allready`);
   }
   const mutatedUiNodeMap: UiSchemaMap = cloneMap(uiNodeMap) as UiSchemaMap;
   const parentNode = getParentNodeByPointer(mutatedUiNodeMap, newNode.pointer);
   if (!parentNode) {
-    throw `Can't find ParentNode for pointer ${newNode.pointer}`;
+    throw new Error(`Can't find ParentNode for pointer ${newNode.pointer}`);
   }
   parentNode.children.push(newNode.nodeId);
   return mutatedUiNodeMap.set(newNode.nodeId, newNode);
@@ -97,9 +97,9 @@ export const createChildNode = (
 ): UiSchemaNode => {
   const { pointer, objectKind, children, fieldType } = parentNode;
   if (objectKind === ObjectKind.Array) {
-    throw "This application doesn't support combined array types.";
+    throw new Error("This application doesn't support combined array types.");
   } else if (objectKind === ObjectKind.Reference && fieldType !== FieldType.Object) {
-    throw "Can't create a new node under a reference.";
+    throw new Error("Can't create a new node under a reference.");
   } else if (objectKind === ObjectKind.Combination) {
     return createNodeBase(pointer, fieldType, children.length.toString());
   } else if (fieldType === FieldType.Object && isDefinition) {
@@ -107,8 +107,8 @@ export const createChildNode = (
   } else if (fieldType === FieldType.Object && !isDefinition) {
     return createNodeBase(pointer, Keywords.Properties, displayName);
   } else if (objectKind === ObjectKind.Field) {
-    throw `Can't add node to fieldtype ${fieldType}`;
+    throw new Error(`Can't add node to fieldtype ${fieldType}`);
   } else {
-    throw 'invalid parent node';
+    throw new Error('invalid parent node');
   }
 };

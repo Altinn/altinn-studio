@@ -36,9 +36,9 @@ export const buildJsonSchema = (uiNodeMap: UiSchemaMap): JsonSchemaNode => {
     JSONPointer.set(out, pointer, startValue);
 
     // Resolving and setting reference
-    if (uiSchemaNode.ref !== undefined) {
-      const reference = uiNodeMap.get(uiSchemaNode.ref as number) as UiSchemaNode;
-      JSONPointer.set(out, [pointer, Keywords.Reference].join('/'), reference.pointer);
+    if (typeof uiSchemaNode.ref === 'number') {
+      const reference = uiNodeMap.get(uiSchemaNode.ref);
+      JSONPointer.set(out, [pointer, Keywords.Reference].join('/'), reference?.pointer);
     }
 
     // Setting Type for fields
