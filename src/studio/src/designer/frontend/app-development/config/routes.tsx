@@ -43,7 +43,7 @@ const routes: IRoute[] = [
     path: '/texts',
     exact: true,
     activeSubHeaderSelection: 'Språk',
-    activeLeftMenuSelection: 'Tekster',
+    activeLeftMenuSelection: 'Tekster (gammel)',
     menu: 'language',
     subapp: IFrame,
     props: {
@@ -130,9 +130,8 @@ const routes: IRoute[] = [
   {
     path: '/language-editor',
     exact: true,
-    activeSubHeaderSelection: 'Oversett1',
-    activeLeftMenuSelection: 'Oversett2',
-    menu: 'Oversett3',
+    activeSubHeaderSelection: 'Tekster',
+    menu: 'texts',
     subapp: LanguageEditor,
   },
 ];

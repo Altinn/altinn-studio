@@ -15,8 +15,8 @@ export const menu = [
     link: '/texts',
   },
   {
-    key: 'Oversett',
-    activeSubHeaderSelection: 'Oversett1',
+    key: 'Tekster',
+    activeSubHeaderSelection: 'Tekster',
     link: '/language-editor',
   },
   {
