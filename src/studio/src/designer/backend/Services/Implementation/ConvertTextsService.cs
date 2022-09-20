@@ -17,6 +17,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     public class ConvertTextsService : IConvertTextsService
     {
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
+        private readonly string testStatic;
 
         /// <summary>
         /// Constructor
@@ -69,7 +70,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             string newText = " ";
 
-            // converting value string to a mutable string type
             StringBuilder builder = new StringBuilder(text.Value);
 
             foreach (TextResourceVariable variable in text.Variables)
