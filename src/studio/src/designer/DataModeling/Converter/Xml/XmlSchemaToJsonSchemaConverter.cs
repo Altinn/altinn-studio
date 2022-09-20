@@ -302,7 +302,11 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
             else if (!item.BaseTypeName.IsEmpty)
             {
-                steps.Add(b => HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, b));
+                steps.Add(b =>
+                {
+                    HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, b);
+                    AddUnhandledAttributes(item, b);
+                });
             }
 
             if (item.Facets.Count > 0)
