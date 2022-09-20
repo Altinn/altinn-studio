@@ -76,7 +76,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 string variableNumber = text.Variables.IndexOf(variable).ToString();
                 string oldString = "{" + variableNumber + "}";
-                string newString = "${{" + DatasourceAlias(variable.DataSource) + "." + variable.Key + "}}";
+                string newString = "${{" + DatasourceAlias(variable.DataSource) + "::" + variable.Key + "}}";
                 builder.Replace(oldString, newString);
                 newText = builder.ToString();
             }
