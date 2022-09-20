@@ -17,7 +17,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
     public class ConvertTextsService : IConvertTextsService
     {
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
-        private readonly string testStatic;
 
         /// <summary>
         /// Constructor
