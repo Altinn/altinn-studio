@@ -10,6 +10,7 @@ const renderButton = (text: string, style = 'text', disabled = false) => {
   act(() => {
     render(
       <TopToolbarButton
+        id='toolbar-test-button'
         faIcon='fa ai-trash'
         hideText={style === 'icon'}
         onClick={handleClick}

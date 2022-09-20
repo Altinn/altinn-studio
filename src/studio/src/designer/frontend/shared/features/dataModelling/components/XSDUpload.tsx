@@ -5,6 +5,7 @@ import axios from 'axios';
 import ErrorPopover from "app-shared/components/ErrorPopover";
 
 export interface IXSDUploadProps {
+  disabled?: boolean;
   language: any;
   onXSDUploaded: (filename: string) => void;
   org: string;
@@ -13,6 +14,7 @@ export interface IXSDUploadProps {
 }
 
 const XSDUpload = ({
+  disabled,
   language,
   onXSDUploaded,
   org,
@@ -70,6 +72,7 @@ const XSDUpload = ({
             accept='.xsd'
             formFileName='file'
             submitButtonRenderer={submitButtonRenderer}
+            disabled={disabled}
           />
         )}
       </span>

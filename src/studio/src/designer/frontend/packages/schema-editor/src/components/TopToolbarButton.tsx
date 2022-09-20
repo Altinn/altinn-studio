@@ -10,6 +10,7 @@ interface TopToolbarButtonProps extends React.PropsWithChildren<any> {
   hideText?: boolean;
   warning?: boolean;
   className?: string;
+  id: string;
 }
 
 const useStyles = makeStyles({
@@ -55,7 +56,8 @@ export function TopToolbarButton({
   hideText,
   warning,
   iconSize,
-  className
+  className,
+  id,
 }: TopToolbarButtonProps) {
   const classes = useStyles();
   const computedClasses = classNames([
@@ -86,6 +88,7 @@ export function TopToolbarButton({
   }
   return (
     <Button
+      id={id}
       className={computedClasses}
       onClick={onClick}
       variant='text'
