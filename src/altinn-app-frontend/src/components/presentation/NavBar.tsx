@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { Box } from '@material-ui/core';
+import { Box, useTheme } from '@material-ui/core';
 
 import { useAppSelector } from 'src/common/hooks';
 import { CloseButton } from 'src/components/presentation/CloseButton';
@@ -19,6 +19,7 @@ const NavBar = (props: INavBarProps) => {
     (state) => state.formLayout.uiConfig.hideCloseButton,
   );
   const language = useAppSelector((state) => state.language.language || {});
+  const theme = useTheme();
 
   const showLanguageSelector = useAppSelector(
     (state) => state.formLayout.uiConfig.showLanguageSelector,
@@ -44,7 +45,9 @@ const NavBar = (props: INavBarProps) => {
           >
             <span className='ai-stack'>
               <i
-                className='ai-stack-1x ai ai-back'
+                className={`ai-stack-1x ai ${
+                  theme.direction === 'rtl' ? 'ai-arrowright' : 'ai-back'
+                }`}
                 aria-hidden='true'
               />
             </span>

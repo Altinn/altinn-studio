@@ -49,7 +49,7 @@ function AltinnAppHeaderMenu(props: IAltinnAppHeaderMenuProps) {
   return (
     <>
       <IconButton
-        aria-owns={anchorEl ? 'simple-menu' : undefined}
+        aria-owns={anchorEl ? 'profile-menu' : undefined}
         aria-haspopup='true'
         aria-label={ariaLabel}
         onClick={handleClick}
@@ -62,7 +62,6 @@ function AltinnAppHeaderMenu(props: IAltinnAppHeaderMenuProps) {
           }`}
           iconColor={logoColor}
           iconSize={31}
-          margin='0px 0px 0px 5px'
         />
       </IconButton>
       <Menu

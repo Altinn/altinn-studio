@@ -97,6 +97,7 @@ export function AltinnAppHeader({
           alignItems='center'
           item={true}
           xs={6}
+          spacing={1}
         >
           <Grid item={true}>
             {party && userParty && party.partyId === userParty.partyId && (
