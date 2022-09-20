@@ -5,7 +5,7 @@ import { TabContext, TabList, TabPanel } from '@material-ui/lab';
 import { FieldType, ILanguage, UiSchemaItem } from '../types';
 import { ObjectKind } from '../types/enums';
 import { getTranslation } from '../utils/language';
-import { SchemaTab } from './SchemaTab';
+import { SchemaTab } from './common/SchemaTab';
 import { ItemRestrictionsTab } from './SchemaInspector/ItemRestrictionsTab';
 import { ItemPropertiesTab } from './SchemaInspector/ItemPropertiesTab';
 import { getObjectKind } from '../utils/ui-schema-utils';
