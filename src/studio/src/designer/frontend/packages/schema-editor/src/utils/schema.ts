@@ -180,14 +180,6 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
   return jsonSchemaItem;
 }
 
-export function getSubSchema(schema: any, pathArray: string[]): any {
-  const subSchema = schema[pathArray[0]];
-  if (pathArray.length === 1) {
-    return subSchema;
-  }
-  return getSubSchema(subSchema, pathArray.slice(1));
-}
-
 export function getSchemaFromPath(path: string, schema: any) {
   return JsonPointer.compile(path).get(schema);
 }
