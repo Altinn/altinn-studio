@@ -5,6 +5,21 @@ import DataModelling, { shouldSelectFirstEntry } from './DataModelling';
 import { LoadingState } from './sagas/metadata';
 import { render as rtlRender, screen } from '@testing-library/react';
 
+// workaround for https://jestjs.io/docs/26.x/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(), // deprecated
+    removeListener: jest.fn(), // deprecated
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })),
+});
+
 const modelName = 'some-existing-model';
 const modelName2 = 'some-other-model';
 const defaultInitialState = {
@@ -122,22 +137,46 @@ describe('DataModelling', () => {
     });
   });
 
-  it('Should show start dialog when no models are present', () => {
+  it('Should show info dialog by default when loading the page', () => {
+    // make sure setting to turn off info dialog is cleared
+    localStorage.removeItem('datamodelLocalStorage');
+    render();
+    const dialogHeader = screen.queryByText('schema_editor.info_dialog_title');
+    expect(dialogHeader).toBeInTheDocument();
+  });
+
+  it('Should not show info dialog when loading the page if user has asked to not show it again', () => {
+    // make sure setting to turn off info dialog is set
+    localStorage.setItem('datamodelLocalStorage', JSON.stringify({ hideIntroPage: true}));
+    render();
+    const dialogHeader = screen.queryByText('schema_editor.info_dialog_title');
+    expect(dialogHeader).not.toBeInTheDocument();
+  });
+
+  it('Should show start dialog when no models are present and intro page is closed', () => {
+    // make sure setting to turn off info dialog is set
+    localStorage.setItem('datamodelLocalStorage', JSON.stringify({ hideIntroPage: true}));
     render();
     expect(screen.queryByText('Dialog header')).toBeInTheDocument();
   });
 
   it('Should not show start dialog when the models have not been loaded yet', () => {
+    // make sure setting to turn off info dialog is set
+    localStorage.setItem('datamodelLocalStorage', JSON.stringify({ hideIntroPage: true}));
     render({ dataModelsMetadataState: { loadState: LoadingState.LoadingModels } });
     expect(screen.queryByText('Dialog header')).not.toBeInTheDocument();
   });
 
   it('Should not show start dialog when the models have not been loaded yet', () => {
+    // make sure setting to turn off info dialog is set
+    localStorage.setItem('datamodelLocalStorage', JSON.stringify({ hideIntroPage: true}));
     render({ dataModelsMetadataState: { loadState: LoadingState.LoadingModels } });
     expect(screen.queryByText('Dialog header')).not.toBeInTheDocument();
   });
 
   it('Should not show start dialog when there are models present', () => {
+    // make sure setting to turn off info dialog is set
+    localStorage.setItem('datamodelLocalStorage', JSON.stringify({ hideIntroPage: true}));
     const schema = {
       properties: { SomeSchema: { $ref: '#/definitions/Something' } },
       definitions: { Something: { type: 'string' } }

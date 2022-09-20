@@ -163,9 +163,15 @@ function DataModelling({
   }
 
   const shouldDisplayLandingPage = landingDialogState === LandingDialogState.DialogIsVisible;
-  const [hideIntroPage, setHideIntroPage] = React.useState(!!localStorage.getItem('studio.app.datamodelling.hideIntroPage'));
+  const [hideIntroPage, setHideIntroPage] =React.useState(() => {
+    const datamodelLocalStorage = (JSON.parse(localStorage.getItem('datamodelLocalStorage')) as any);
+    if (datamodelLocalStorage) return datamodelLocalStorage.hideIntroPage;
+    return false;
+  }
+
+  );
   const handleHideIntroPageButtonClick = () => {
-    localStorage.setItem('studio.app.datamodelling.hideIntroPage', 'true');
+    localStorage.setItem('datamodelLocalStorage', JSON.stringify({ hideIntroPage: true }));
     setHideIntroPage(true);
   }
 

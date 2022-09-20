@@ -1,6 +1,6 @@
 import { TopToolbarButton } from '@altinn/schema-editor/index';
 import React, { useEffect, useState } from 'react';
-import {Button, TextField} from '@altinn/altinn-design-system';
+import {Button, ErrorMessage, TextField} from '@altinn/altinn-design-system';
 import AltinnPopoverSimple from '../../../components/molecules/AltinnPopoverSimple';
 import { getLanguageFromKey } from '../../../utils/language';
 
@@ -71,6 +71,16 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
     setNewModelName('');
     setNameError('');
   };
+  const handleReturnButtonConfirm = () => {
+    validateName();
+    onCreateConfirmClick();
+    setConfirmedWithReturn(true);
+  };
+  const onKeyUp = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleReturnButtonConfirm();
+    }
+  }
 
   const onCancelCreate = () => {
     setCreateButtonAnchor(null);
@@ -104,7 +114,9 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
             isValid={!nameError}
             onChange={onNameChange}
             onBlur={onInputBlur}
+            onKeyUp={onKeyUp}
           />
+          {nameError && <ErrorMessage>{t(nameError)}</ErrorMessage>}
           <Button
             onClick={onCreateConfirmClick}
             style={{marginTop: 22}}
