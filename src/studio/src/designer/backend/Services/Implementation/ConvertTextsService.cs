@@ -102,8 +102,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 return "ic";
             }
 
-            string shortVariable = "dm." + datasource.Split(".").Last();
-            return shortVariable;
+            StringBuilder builder = new StringBuilder(datasource);
+            builder.Replace("dataModel", "dm");
+            return builder.ToString();
         }
     }
 }
