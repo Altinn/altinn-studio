@@ -266,3 +266,6 @@ Temporary Items
 Session.vim
 .netrwhist
 *~
+
+# Rider
+.idea

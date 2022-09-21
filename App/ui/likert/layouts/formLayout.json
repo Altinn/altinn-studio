@@ -1,0 +1,103 @@
+﻿{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "likert-group",
+        "type": "Group",
+        "textResourceBindings": {
+          "title": "Skolearbeid (Frivillig)",
+          "description": "På de neste spørsmålene skal du svare i kontekst av klasserommet.",
+          "leftColumnHeader": "Spørsmål"
+        },
+        "maxCount": 99,
+        "children": [
+          "likert-row"
+        ],
+        "dataModelBindings": {
+          "group": "Questions"
+        },
+        "edit": {
+          "mode": "likert",
+          "filter": [
+            {
+              "key": "start",
+              "value": "0"
+            },
+            {
+              "key": "stop",
+              "value": "3"
+            }
+          ]
+        }
+      },
+      {
+        "id": "likert-row",
+        "type": "Likert",
+        "textResourceBindings": {
+          "title": "likert-row-title"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Questions.Answer"
+        },
+        "optionsId": "likertOptions",
+        "required": false,
+        "readOnly": false
+      },
+      {
+        "id": "likert-group-required",
+        "type": "Group",
+        "textResourceBindings": {
+          "title": "Medvirkning"
+        },
+        "maxCount": 99,
+        "children": [
+          "likert-row-required"
+        ],
+        "dataModelBindings": {
+          "group": "Questions"
+        },
+        "edit": {
+          "mode": "likert",
+          "filter": [
+            {
+              "key": "start",
+              "value": "3"
+            },
+            {
+              "key": "stop",
+              "value": "6"
+            }
+          ]
+        }
+      },
+      {
+        "id": "likert-row-required",
+        "type": "Likert",
+        "textResourceBindings": {
+          "title": "likert-row-title"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Questions.Answer"
+        },
+        "optionsId": "likertOptions",
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "summary-1",
+        "type": "Summary",
+        "componentRef": "likert-group",
+        "pageRef": "formLayout"
+      },
+      {
+        "id": "sendInButton",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "Send inn"
+        },
+        "dataModelBindings": {}
+      }
+    ]
+  }
+}

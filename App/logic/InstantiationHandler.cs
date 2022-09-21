@@ -53,7 +53,7 @@ namespace Altinn.App.AppLogic
         /// <param name="prefill">External prefill available under instansiation if supplied</param>
         public async Task DataCreation(Instance instance, object data, Dictionary<string, string> prefill)
         {
-           if (data.GetType() == typeof(Skjema))
+            if (data.GetType() == typeof(Skjema))
             {
                 Skjema model = (Skjema)data;
                 int partyId;
@@ -71,6 +71,45 @@ namespace Altinn.App.AppLogic
                         }
                     };
                 }
+            }
+
+            if (data.GetType() == typeof(LikertSurvey))
+            {
+                var survey = data as LikertSurvey;
+
+                survey.Questions = new List<Question>
+                {
+                    new Question
+                    {
+                        Id = "question-1",
+                        Answer = ""
+                    },
+                    new Question
+                    {
+                        Id = "question-2",
+                        Answer = ""
+                    },
+                    new Question
+                    {
+                        Id = "question-3",
+                        Answer = ""
+                    },
+                    new Question
+                    {
+                        Id = "question-4",
+                        Answer = ""
+                    },
+                    new Question
+                    {
+                        Id = "question-5",
+                        Answer = ""
+                    },
+                    new Question
+                    {
+                        Id = "question-6",
+                        Answer = ""
+                    }
+                };
             }
 
             await Task.CompletedTask;

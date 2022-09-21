@@ -87,6 +87,19 @@
       "minCount": 1
     },
     {
+      "id": "likert",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.LikertSurvey"
+      },
+      "taskId": "Task_4",
+      "maxCount": 1,
+      "minCount": 1
+    },
+    {
       "id": "ref-data-as-pdf",
       "allowedContentTypes": [
         "application/pdf"
