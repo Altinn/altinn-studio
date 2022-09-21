@@ -27,7 +27,6 @@
     "app-development",
     "shared",
     "ux-editor",
-    "packages/schema-editor",
-    "language-editor"
+    "packages/schema-editor"
   ]
 }

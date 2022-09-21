@@ -15,11 +15,6 @@ export const menu = [
     link: '/texts',
   },
   {
-    key: 'Tekster',
-    activeSubHeaderSelection: 'Tekster',
-    link: '/language-editor',
-  },
-  {
     key: 'Deploy',
     activeSubHeaderSelection: 'Deploy',
     link: '/deploy',

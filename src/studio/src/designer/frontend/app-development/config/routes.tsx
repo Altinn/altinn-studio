@@ -1,7 +1,6 @@
 import uieditorApp from '../../ux-editor/SubApp';
 import AccessControlContainer from '../features/accessControl/containers/AccessControlContainer';
 import { Administration } from '../features/administration/components/Administration';
-import {LanguageEditor} from '../features/languageEditor/LanguageEditor';
 import DeployPage from '../features/appPublish/pages/deployPage';
 import HandleMergeConflictContainerComponent from '../features/handleMergeConflict/HandleMergeConflictContainer';
 import { IFrame } from '../features/iFrame/iFrameComponent';
@@ -43,7 +42,7 @@ const routes: IRoute[] = [
     path: '/texts',
     exact: true,
     activeSubHeaderSelection: 'Språk',
-    activeLeftMenuSelection: 'Tekster (gammel)',
+    activeLeftMenuSelection: 'Tekster',
     menu: 'language',
     subapp: IFrame,
     props: {
@@ -126,13 +125,6 @@ const routes: IRoute[] = [
       imageSource: '../../designer/img/illustration-help-circle.svg',
       shadow: true,
     },
-  },
-  {
-    path: '/language-editor',
-    exact: true,
-    activeSubHeaderSelection: 'Tekster',
-    menu: 'texts',
-    subapp: LanguageEditor,
   },
 ];
 
