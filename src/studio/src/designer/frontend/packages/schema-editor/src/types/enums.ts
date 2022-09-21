@@ -4,9 +4,4 @@ export enum NameError {
   NoError = '',
 }
 
-export enum ObjectKind {
-  Combination = 'combination',
-  Field = 'field',
-  Reference = 'reference',
-  Array = 'array',
-}
+export { ObjectKind } from '@altinn/schema-model';

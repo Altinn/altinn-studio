@@ -1,5 +1,5 @@
-import { AllRestrictions } from '../../utils/restrictions';
 import { JsonSchemaNode } from '../types';
+import { AllRestrictions } from '../restrictions';
 
 /**
  * Handling restrictions

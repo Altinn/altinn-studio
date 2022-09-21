@@ -1,12 +1,10 @@
-import { Keywords, UiSchemaMap, UiSchemaNode } from './types';
+import { FieldType, Keywords, ObjectKind, UiSchemaMap, UiSchemaNode } from './types';
 import {
   cloneMap,
   createNodeBase,
   createPointerLookupTable,
   getParentNodeByPointer,
 } from './utils';
-import { ObjectKind } from '../types/enums';
-import { FieldType } from '../types';
 
 // Changes to the uiNodeMap
 export const removeItemByPointer = (uiNodeMap: UiSchemaMap, pointer: string) => {

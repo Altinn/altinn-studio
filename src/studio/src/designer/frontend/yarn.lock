@@ -76,6 +76,7 @@ __metadata:
     webpack-dev-server: 4.11.0
   peerDependencies:
     "@altinn/altinn-design-system": ^0.7.1 || ^0.8.0
+    "@altinn/schema-model": "*"
     "@material-ui/core": ^4.12.4
     "@material-ui/icons": ^4.11.3
     "@material-ui/lab": ^4.0.0-alpha.61
@@ -85,6 +86,16 @@ __metadata:
     react: ^18.2.0
     react-dom: ^18.2.0
     react-redux: ^8.0.2
+  languageName: unknown
+  linkType: soft
+
+"@altinn/schema-model@workspace:packages/schema-model":
+  version: 0.0.0-use.local
+  resolution: "@altinn/schema-model@workspace:packages/schema-model"
+  dependencies:
+    jest: ^29.0.3
+  peerDependencies:
+    jsonpointer: ^4.1.0 || ^5.0.0
   languageName: unknown
   linkType: soft
 
@@ -16116,7 +16127,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest@npm:29.0.3":
+"jest@npm:29.0.3, jest@npm:^29.0.3":
   version: 29.0.3
   resolution: "jest@npm:29.0.3"
   dependencies:

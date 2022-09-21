@@ -1,6 +1,11 @@
-import { CombinationKind, FieldType } from '../types';
-import { ObjectKind } from '../types/enums';
-import { JsonSchemaNode, UiSchemaMap, UiSchemaNode } from './types';
+import {
+  CombinationKind,
+  FieldType,
+  JsonSchemaNode,
+  ObjectKind,
+  UiSchemaMap,
+  UiSchemaNode,
+} from './types';
 
 export const createNodeBase = (...args: string[]): UiSchemaNode => {
   const pointer = args.join('/');
@@ -73,6 +78,7 @@ export const getParentNodeByPointer = (
       return map.get(lookup.get(parentNodePointer) as number);
     }
   }
+  return undefined;
 };
 
 export const arrayIntersection = (arrA: any[], arrB: any[]) => arrA.filter((x) => arrB.includes(x));

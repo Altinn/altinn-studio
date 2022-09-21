@@ -5,8 +5,8 @@ import {
   getParentNodeByPointer,
 } from './utils';
 import { ROOT_POINTER, UiSchemaMap } from './types';
-import { buildUiSchema } from './index';
 import { getGeneralJsonSchemaForTest } from '../../test/testUtils';
+import { buildUiSchema } from './build-ui-schema';
 
 test('creatNodeBase', () => {
   const nodeBase = createNodeBase(ROOT_POINTER, 'world', 'ish');

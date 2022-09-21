@@ -3,8 +3,7 @@ import {
   getGeneralJsonSchemasForTest,
   getSeresJsonSchemasForTest,
 } from '../../test/testUtils';
-import { JsonSchemaNode, ROOT_POINTER } from './types';
-import { ObjectKind } from '../types/enums';
+import { JsonSchemaNode, ObjectKind, ROOT_POINTER } from './types';
 import { buildUiSchema } from './build-ui-schema';
 import { buildJsonSchema } from './build-json-schema';
 

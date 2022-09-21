@@ -1,4 +1,11 @@
-import { JsonSchemaNode, Keywords, ROOT_POINTER, UiSchemaMap, UiSchemaNode } from './types';
+import {
+  JsonSchemaNode,
+  Keywords,
+  ObjectKind,
+  ROOT_POINTER,
+  UiSchemaMap,
+  UiSchemaNode,
+} from './types';
 import {
   createNodeBase,
   createPointerLookupTable,
@@ -11,7 +18,6 @@ import { handleCustomProperties } from './handlers/custom-properties';
 import { handleRestrictions } from './handlers/restrictions';
 import { getUiFieldType } from './handlers/field-type';
 import { handleGenericKeywords } from './handlers/generic';
-import { ObjectKind } from '../types/enums';
 
 /**
  * Recursive function that traverse the json schema tree. This should not be accessed directly but through `toUiSchema`

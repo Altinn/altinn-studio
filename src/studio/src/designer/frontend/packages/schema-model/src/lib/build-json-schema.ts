@@ -1,8 +1,14 @@
-import { JsonSchemaNode, Keywords, ROOT_POINTER, UiSchemaMap, UiSchemaNode } from './types';
+import {
+  JsonSchemaNode,
+  Keywords,
+  ObjectKind,
+  ROOT_POINTER,
+  UiSchemaMap,
+  UiSchemaNode,
+} from './types';
 import { createPointerLookupTable } from './utils';
 import JSONPointer from 'jsonpointer';
 import { findRequiredProps } from './handlers/required';
-import { ObjectKind } from '../types/enums';
 import { getJsonFieldType } from './handlers/field-type';
 import { genericKeywords } from './handlers/generic';
 

@@ -1,14 +1,14 @@
 import { dumpToDebug, getGeneralJsonSchemaForTest, validateSchema } from '../../test/testUtils';
-import { buildJsonSchema, buildUiSchema } from './index';
 import {
   createChildNode,
   insertNodeToMap,
   removeItemByPointer,
   renameItemPointer,
 } from './mutations';
-import { ObjectKind } from '../types/enums';
-import { FieldType } from '../types';
-import { Keywords, ROOT_POINTER } from './types';
+
+import { FieldType, Keywords, ObjectKind, ROOT_POINTER } from './types';
+import { buildUiSchema } from './build-ui-schema';
+import { buildJsonSchema } from './build-json-schema';
 
 const testComplexSchema = getGeneralJsonSchemaForTest('ComplexSchema');
 const testSimpleSchema = {

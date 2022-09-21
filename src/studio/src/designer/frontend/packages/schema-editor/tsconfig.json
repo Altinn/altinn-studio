@@ -23,11 +23,9 @@
     "allowJs": true,
     "rootDir": "../..",
     "paths": {
-      "app-shared/*": [
-        "../../shared/*"
-      ],
+      "app-shared/*": ["../../shared/*"],
+      "@altinn/schema-model": ["../schema-model/src/index"]
     },
-    "allowJs": true
   },
   "include": ["**/*.ts", "**/*.tsx"],
   "exclude": [
