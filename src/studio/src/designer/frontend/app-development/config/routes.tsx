@@ -6,6 +6,7 @@ import DeployPage from '../features/appPublish/pages/deployPage';
 import HandleMergeConflictContainerComponent from '../features/handleMergeConflict/HandleMergeConflictContainer';
 import { IFrame } from '../features/iFrame/iFrameComponent';
 import DataModellingContainer from '../features/dataModelling/containers/DataModellingContainer';
+import { TopBarMenu } from '../layout/appBarConfig';
 
 interface IRouteProps {
   headerTextKey?: string;
@@ -23,7 +24,7 @@ interface IRouteProps {
 interface IRoute {
   path: string;
   exact: boolean;
-  activeSubHeaderSelection: string;
+  activeSubHeaderSelection: TopBarMenu;
   menu: string;
   subapp: any;
   activeLeftMenuSelection?: string;
@@ -34,7 +35,7 @@ const routes: IRoute[] = [
   {
     path: '/ui-editor',
     exact: true,
-    activeSubHeaderSelection: 'Lage',
+    activeSubHeaderSelection: TopBarMenu.Create,
     activeLeftMenuSelection: 'UI-Editor',
     menu: 'create',
     subapp: uieditorApp,
@@ -42,8 +43,8 @@ const routes: IRoute[] = [
   {
     path: '/texts',
     exact: true,
-    activeSubHeaderSelection: 'Språk',
-    activeLeftMenuSelection: 'Tekster (gammel)',
+    activeSubHeaderSelection: TopBarMenu.Text,
+    activeLeftMenuSelection: 'Tekster',
     menu: 'language',
     subapp: IFrame,
     props: {
@@ -60,17 +61,17 @@ const routes: IRoute[] = [
   {
     path: '/',
     exact: true,
-    activeSubHeaderSelection: 'Om',
+    activeSubHeaderSelection: TopBarMenu.About,
     activeLeftMenuSelection: 'Om appen',
     menu: 'about',
     subapp: Administration,
   },
   {
-    path: '/datamodel',
+    path: '/datamodel-old',
     exact: true,
-    activeSubHeaderSelection: 'Lage',
-    activeLeftMenuSelection: 'Datamodell',
-    menu: 'create',
+    activeSubHeaderSelection: TopBarMenu.Datamodel,
+    activeLeftMenuSelection: '',
+    menu: 'datamodel',
     subapp: IFrame,
     props: {
       headerTextKey: 'shared.wip_title',
@@ -84,17 +85,17 @@ const routes: IRoute[] = [
     },
   },
   {
-    path: '/datamodelling',
+    path: '/datamodel',
     exact: true,
-    activeSubHeaderSelection: 'Lage',
-    activeLeftMenuSelection: 'Data-Modelling',
-    menu: 'create',
+    activeSubHeaderSelection: TopBarMenu.Datamodel,
+    activeLeftMenuSelection: '',
+    menu: 'datamodel',
     subapp: DataModellingContainer,
   },
   {
     path: '/accesscontrol',
     exact: true,
-    activeSubHeaderSelection: 'Lage',
+    activeSubHeaderSelection: TopBarMenu.Create,
     activeLeftMenuSelection: 'Access-Controll',
     menu: 'create',
     subapp: AccessControlContainer,
@@ -105,7 +106,7 @@ const routes: IRoute[] = [
   {
     path: '/deploy',
     exact: true,
-    activeSubHeaderSelection: 'Deploy',
+    activeSubHeaderSelection: TopBarMenu.Deploy,
     activeLeftMenuSelection: '',
     menu: 'deploy',
     subapp: DeployPage,
@@ -113,7 +114,7 @@ const routes: IRoute[] = [
   {
     path: '/mergeconflict',
     exact: true,
-    activeSubHeaderSelection: '',
+    activeSubHeaderSelection: TopBarMenu.None,
     activeLeftMenuSelection: 'Mergekonflikt',
     menu: 'create',
     subapp: HandleMergeConflictContainerComponent,

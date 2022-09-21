@@ -38,7 +38,7 @@ const useStyles = makeStyles(
     field: {
       background: 'white',
       color: 'black',
-      border: '1px solid #006BD8',
+      border: '2px solid #008fd6',
       boxSizing: 'border-box',
       marginTop: 2,
       padding: 4,
@@ -317,7 +317,10 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
         />
       )}
       <Divider />
-      <Label>{t('descriptive_fields')}</Label>
+      <div style={{paddingTop: 22}}>
+        <span style={{fontWeight: 'bold'}}>{t('descriptive_fields')}</span>
+      </div>
+      <Label>{t('title')}</Label>
       <TextField
         id={`${getDomFriendlyID(selectedId ?? '')}-title`}
         onBlur={onChangeTitle}
