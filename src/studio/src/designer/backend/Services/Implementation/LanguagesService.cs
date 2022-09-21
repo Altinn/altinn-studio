@@ -35,7 +35,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 string fileName = Path.GetFileName(languageFile);
                 string[] nameParts = fileName.Split('.');
-                languages.Add(nameParts[1]);
+                languages.Add(nameParts[0]);
             }
 
             languages.Sort();
