@@ -12,6 +12,8 @@ import type { IMenuItem } from 'app-shared/navigation/drawer/drawerMenuSettings'
 import TabletDrawerMenu from 'app-shared/navigation/drawer/TabletDrawerMenu';
 import { menu } from './appBarConfig';
 import ProfileMenu from 'app-shared/navigation/main-header/profileMenu';
+import { useAppSelector } from 'common/hooks';
+import { getLanguageFromKey } from 'app-shared/utils/language';
 
 export interface IAppBarProps {
   activeSubHeaderSelection?: string;
@@ -120,6 +122,9 @@ export const AppBar = ({
     theme.breakpoints.down('sm'),
   );
 
+  const language = useAppSelector(state => state.languageState.language);
+  const t = (key: string) => getLanguageFromKey(key, language);
+
   const handleDrawerMenuClick = () => {
     setIsMenuOpen((prev) => !prev);
   };
@@ -149,7 +154,7 @@ export const AppBar = ({
               </Grid>
               {hiddenMdUp ? null : (
                 <Grid item className={classes.breadCrumb}>
-                  {activeSubHeaderSelection && `/ ${activeSubHeaderSelection}`}{' '}
+                  {activeSubHeaderSelection && `/ ${t(activeSubHeaderSelection)}`}{' '}
                   /
                   <span className={classes.breadCrumbSubApp}>
                     {' '}
@@ -214,10 +219,10 @@ export const AppBar = ({
                         className={classNames(classes.subHeaderLink, {
                           [classes.subHeaderLinkActive]:
                             activeSubHeaderSelection ===
-                            item.activeSubHeaderSelection,
+                            item.key,
                         })}
                       >
-                        {item.key}
+                        {t(item.key)}
                       </Link>
                     </Grid>
                   ))}

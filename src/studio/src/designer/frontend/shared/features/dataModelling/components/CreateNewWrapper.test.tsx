@@ -19,7 +19,7 @@ describe('CreateNewWrapper', () => {
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
     expect(
       screen.queryByRole('button', {
-        name: /ok/i,
+        name: /schema_editor\.create_model_confirm_button/i,
       }),
     ).not.toBeInTheDocument();
 
@@ -34,7 +34,7 @@ describe('CreateNewWrapper', () => {
     expect(screen.getByRole('textbox')).toBeInTheDocument();
     expect(
       screen.getByRole('button', {
-        name: /ok/i,
+        name: /schema_editor\.create_model_confirm_button/i,
       }),
     ).toBeInTheDocument();
   });
@@ -51,7 +51,7 @@ describe('CreateNewWrapper', () => {
 
       const textInput = screen.getByRole('textbox');
       const okButton = screen.getByRole('button', {
-        name: /ok/i,
+        name: /schema_editor\.create_model_confirm_button/i,
       });
       await user.type(textInput, 'new-model');
       await user.click(okButton);
@@ -91,7 +91,7 @@ describe('CreateNewWrapper', () => {
 
       const textInput = screen.getByRole('textbox');
       const okButton = screen.getByRole('button', {
-        name: /ok/i,
+        name: /schema_editor\.create_model_confirm_button/i,
       });
       await user.type(textInput, 'new-model');
       await user.click(okButton);
@@ -115,7 +115,7 @@ describe('CreateNewWrapper', () => {
 
       const textInput = screen.getByRole('textbox');
       const okButton = screen.getByRole('button', {
-        name: /ok/i,
+        name: /schema_editor\.create_model_confirm_button/i,
       });
 
       await user.type(textInput, modelName);
@@ -141,7 +141,7 @@ describe('CreateNewWrapper', () => {
       await userWithNoPointerEventCheck.click(newButton);
 
       const okButton = screen.getByRole('button', {
-        name: /ok/i,
+        name: /schema_editor\.create_model_confirm_button/i,
       });
 
       await userWithNoPointerEventCheck.click(okButton);

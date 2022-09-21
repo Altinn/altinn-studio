@@ -9,12 +9,6 @@ const subPathSettings = {
   ],
   create: [
     {
-      displayText: 'Datamodellering',
-      navLink: '/datamodel',
-      activeLeftMenuSelection: 'Data-Modelling',
-      iconClass: 'fa fa-archive',
-    },
-    {
       displayText: 'UI-Editor',
       navLink: '/ui-editor',
       activeLeftMenuSelection: 'UI-Editor',
