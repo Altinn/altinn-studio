@@ -131,7 +131,7 @@ const routes: IRoute[] = [
   {
     path: '/language-editor',
     exact: true,
-    activeSubHeaderSelection: 'Tekster',
+    activeSubHeaderSelection: TopBarMenu.Texts,
     menu: 'texts',
     subapp: LanguageEditor,
   },
