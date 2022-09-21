@@ -32,9 +32,6 @@ export const useGetLanguages = () => {
   return { languages };
 };
 
-export async function updateLanguage({ languages, translationKey, e }: any) {
-  await Axios.put(getLoadTextResourcesUrl('nb'), {
-    ...languages['Norwegian Bokmal'],
-    [translationKey]: e.target.value,
-  });
+export async function updateLanguage({ translations }: Record<string, string>) {
+  await Axios.put(getLoadTextResourcesUrl('nb'), translations);
 }

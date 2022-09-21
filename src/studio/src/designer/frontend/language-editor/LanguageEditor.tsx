@@ -4,7 +4,7 @@
 import React from 'react';
 import Select from 'react-select';
 import ISO6391 from 'iso-639-1';
-import debounce from 'lodash.debounce';
+// import debounce from 'lodash.debounce';
 
 import type { ILanguageEditor } from './utils';
 
@@ -12,21 +12,24 @@ import { Button, TextField } from '@altinn/altinn-design-system';
 import AltinnColumnLayout from 'app-shared/components/AltinnColumnLayout';
 import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
 import { getAllTranslationKeys, transformLanguages } from './utils';
-import { updateLanguage } from '../../frontend/app-development/features/languageEditor/utils';
+// import { updateLanguage } from '../../frontend/app-development/features/languageEditor/utils';
+
+import { LanguageRow } from './LanguageRow';
 
 import { makeStyles, Typography } from '@material-ui/core';
 
 interface ILanguageEditorProps extends ILanguageEditor {
-  onTranslationChange: ({
-    translationKey,
-    langCode,
-    newValue,
-  }: {
-    translationKey: string;
-    langCode: string;
-    newValue: string;
-  }) => void;
-  onKeyChange: ({ id, newValue }: { id: string; newValue: string }) => void;
+  // onTranslationChange: ({
+  //   translationKey,
+  //   langCode,
+  //   newValue,
+  // }: {
+  //   translationKey: string;
+  //   langCode: string;
+  //   newValue: string;
+  // }) => void;
+  // onKeyChange: ({ id, newValue }: { id: string; newValue: string }) => void;
+  onTranslationChange: ({ translations }: Record<string, string>) => void;
 }
 
 export const LanguageEditor = ({
@@ -39,6 +42,7 @@ export const LanguageEditor = ({
   setSelectedSprak,
   languages,
   setIsNewTextInput,
+  onTranslationChange,
 }: // onKeyChange,
 // onTranslationChange,
 ILanguageEditorProps) => {
@@ -86,14 +90,25 @@ ILanguageEditorProps) => {
     setNewSprakField({ ...s, value: '' });
   };
 
-  const handleUpdateLanguage = async (nb) => {
-    const index = nb.findIndex(
-      (x) => x.translationKey === languageToUpdate.translationKey,
-    );
-    const updateLanguage = [...nb];
-    updateLanguage[index] = languageToUpdate;
-    setNb(updateLanguage);
-    setForEditing(0);
+  const handleIdChange = ({
+    oldValue,
+    newValue,
+  }: {
+    oldValue: string;
+    newValue: string;
+  }) => {
+    const updatedLanguages = {
+      ...languages,
+    };
+
+    Object.keys(updatedLanguages).forEach((langCode) => {
+      updatedLanguages[langCode][newValue] =
+        updatedLanguages[langCode][oldValue];
+
+      delete updatedLanguages[langCode][oldValue];
+    });
+
+    onTranslationChange({ translations: updatedLanguages['Norwegian Bokmal'] });
   };
 
   return (
@@ -156,7 +171,7 @@ ILanguageEditorProps) => {
                       }}
                     >
                       <div>
-                        <label htmlFor={sprak.id}></label>
+                        <span htmlFor={sprak.id}></span>
                       </div>
                       <div>{sprak.name}</div>
                     </div>
@@ -262,51 +277,12 @@ ILanguageEditorProps) => {
           <div>
             {Object.keys(transformedLanguages).map((translationKey) => {
               return (
-                <div
+                <LanguageRow
                   key={translationKey}
-                  className={classes.leftColBodyContainer}
-                >
-                  <div style={{ marginRight: '2rem', width: '246px' }}>
-                    <div>
-                      <label htmlFor={translationKey}>ID</label>
-                    </div>
-                    <TextField
-                      disabled={true}
-                      defaultValue={translationKey}
-                      type='text'
-                      onKeyUp={handleUpdateLanguage}
-                    />
-                  </div>
-                  <div>
-                    {Object.keys(transformedLanguages[translationKey]).map(
-                      (language) => {
-                        const id = `${translationKey}-${language}`;
-                        return (
-                          <div key={id}>
-                            <div>
-                              <label htmlFor={id}>
-                                {newSprakField.name ?? language}
-                              </label>
-                            </div>
-                            <TextField
-                              id={id}
-                              defaultValue={
-                                transformedLanguages[translationKey][language]
-                              }
-                              onChange={debounce(async (e) => {
-                                await updateLanguage({
-                                  languages,
-                                  translationKey,
-                                  e,
-                                });
-                              }, 1000)}
-                            />
-                          </div>
-                        );
-                      },
-                    )}
-                  </div>
-                </div>
+                  translationKey={translationKey}
+                  transformedLanguages={transformedLanguages}
+                  onIdChange={handleIdChange}
+                />
               );
             })}
           </div>
