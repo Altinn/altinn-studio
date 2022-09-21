@@ -19,21 +19,12 @@ export const useGetLanguages = () => {
   useEffect(() => {
     const fetchLanguages = async () => {
       const [nb] = await Promise.all([
-        // Axios.get(getLoadTextResourcesUrl('en')),
         Axios.get(getLoadTextResourcesUrl('nb')),
-        // Axios.get(getLoadTextResourcesUrl('nn')),
       ]);
 
-      /* eslint-disable-next-line */
-      /* @ts-ignore */
       setLanguages({
-        // ...(en.data && { Engelsk: en.data }),
         ...(nb.data && { 'Norwegian Bokmal': nb.data }),
-        // ...(nn.data && { 'Norwegian Nynorsk': nn.data }),
       });
-      // console.log('nb:', nb)
-      // console.log(JSON.stringify(nb.data, null, 2))
-
     };
 
     fetchLanguages();
@@ -42,5 +33,8 @@ export const useGetLanguages = () => {
 };
 
 export async function updateLanguage({ languages, translationKey, e }: any) {
-  await Axios.put(getLoadTextResourcesUrl('nb'), {...languages["Norwegian Bokmal"], [translationKey]: e.target.value});
+  await Axios.put(getLoadTextResourcesUrl('nb'), {
+    ...languages['Norwegian Bokmal'],
+    [translationKey]: e.target.value,
+  });
 }
