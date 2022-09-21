@@ -4,9 +4,11 @@
 import AppFrontend from '../../pageobjects/app-frontend';
 import Common from '../../pageobjects/common';
 import * as texts from '../../fixtures/texts.json';
+import { Likert } from '../../pageobjects/likert';
 
 const appFrontend = new AppFrontend();
 const mui = new Common();
+const likertPage = new Likert();
 
 describe('Mobile', () => {
   beforeEach(() => {
@@ -36,11 +38,16 @@ describe('Mobile', () => {
     cy.contains(mui.button, texts.next).click();
     cy.get(appFrontend.group.sendersName).should('be.visible').type('automation');
     cy.get(appFrontend.navMenu).should('have.attr', 'hidden');
-    cy.get(appFrontend.group.navigationBarButton).should('be.visible').and('have.attr', 'aria-expanded', 'false').click();
+    cy.get(appFrontend.group.navigationBarButton)
+      .should('be.visible')
+      .and('have.attr', 'aria-expanded', 'false')
+      .click();
     cy.get(appFrontend.group.navigationBarButton).should('have.attr', 'aria-expanded', 'true');
     cy.get(appFrontend.navMenu).should('not.have.attr', 'hidden');
     cy.get(appFrontend.navMenu).find('li > button').last().click();
     cy.get(appFrontend.navMenu).should('have.attr', 'hidden');
+    cy.get(appFrontend.sendinButton).click();
+    likertPage.selectRequiredRadiosInMobile();
     cy.sendAndWaitForConfirmation();
     cy.get(appFrontend.confirm.sendIn).should('be.visible').click();
     cy.get(appFrontend.receipt.container).should('be.visible');

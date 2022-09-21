@@ -27,6 +27,7 @@
     "test:all:headless": "cypress run -s 'e2e/integration/*/*.js'"
   },
   "devDependencies": {
+    "@testing-library/cypress": "^8.0.3",
     "axe-core": "^4.4.3",
     "concurrently": "^7.3.0",
     "cypress": "^10.4.0",

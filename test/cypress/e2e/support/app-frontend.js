@@ -2,7 +2,8 @@
 import AppFrontend from '../pageobjects/app-frontend';
 import Common from '../pageobjects/common';
 import * as texts from '../fixtures/texts.json';
-import {instanceIdExp} from './util';
+import { instanceIdExp } from './util';
+import { Likert } from '../pageobjects/likert';
 
 const appFrontend = new AppFrontend();
 const mui = new Common();
@@ -102,14 +103,26 @@ Cypress.Commands.add('completeTask3Form', () => {
     .should('be.visible')
     .select('altinn');
   cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].uploadTagMulti.attachments[0].tagSave).click();
-  cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].uploadTagMulti.attachments[0].tagSelector)
-    .should('not.exist');
+  cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].uploadTagMulti.attachments[0].tagSelector).should('not.exist');
   cy.get(appFrontend.group.saveMainGroup).should('be.visible').click().should('not.exist');
 
   cy.contains(mui.button, texts.next).click();
   cy.get(appFrontend.group.sendersName).should('be.visible').type('automation');
   cy.contains(mui.button, texts.next).click();
   cy.get(appFrontend.group.summaryText).should('be.visible');
+});
+
+Cypress.Commands.add('navigateToTask4', () => {
+  cy.completeTask3Form();
+  cy.intercept('**/api/layoutsettings/likert').as('getLayoutGroup');
+  cy.get(appFrontend.sendinButton).should('be.visible').click();
+  cy.wait('@getLayoutGroup');
+});
+
+Cypress.Commands.add('completeTask4Form', () => {
+  cy.navigateToTask4();
+  const likertPage = new Likert();
+  likertPage.selectRequiredRadios();
 });
 
 Cypress.Commands.add('sendAndWaitForConfirmation', () => {
@@ -121,8 +134,8 @@ Cypress.Commands.add('sendAndWaitForConfirmation', () => {
   cy.get(appFrontend.confirm.container).should('be.visible');
 });
 
-Cypress.Commands.add('navigateToTask4', () => {
-  cy.completeTask3Form();
+Cypress.Commands.add('navigateToTask5', () => {
+  cy.completeTask4Form();
   cy.sendAndWaitForConfirmation();
 });
 
@@ -159,18 +172,22 @@ Cypress.Commands.add('startStateFullFromStateless', () => {
 });
 
 Cypress.Commands.add('getReduxState', (selector) => {
-  return cy.window().its('reduxStore').invoke('getState').then((state) => {
-    if (selector) {
-      return selector(state);
-    }
+  return cy
+    .window()
+    .its('reduxStore')
+    .invoke('getState')
+    .then((state) => {
+      if (selector) {
+        return selector(state);
+      }
 
-    return state;
-  });
+      return state;
+    });
 });
 
 Cypress.Commands.add('interceptLayout', (layoutName, mutator) => {
   cy.intercept(`**/api/layouts/${layoutName}`, (req) => {
-    req.reply(res => {
+    req.reply((res) => {
       const modified = JSON.parse(res.body);
       modified.repeating.data.layout = modified.repeating.data.layout.map(mutator);
       res.send(JSON.stringify(modified));

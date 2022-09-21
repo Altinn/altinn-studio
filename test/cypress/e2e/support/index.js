@@ -6,6 +6,7 @@ import './start-app-instance';
 import './wcag';
 import 'cypress-axe';
 import chaiExtensions from './chai-extensions';
+import '@testing-library/cypress/add-commands';
 
 before(() => {
   chai.use(chaiExtensions);
@@ -24,7 +25,10 @@ afterEach(function () {
     }
 
     const title = this.currentTest.title.replace(/\s+/, '-').replace(/[^a-zA-Z\-0-9_]/, '');
-    const specBaseName = Cypress.spec.relative.split(/[\\\/]/).pop().split('.')[0];
+    const specBaseName = Cypress.spec.relative
+      .split(/[\\\/]/)
+      .pop()
+      .split('.')[0];
     const attempt = `failed${failedCaseTable[testName]}`;
     const fileName = `redux-${specBaseName}-${title}-${attempt}.json`;
 

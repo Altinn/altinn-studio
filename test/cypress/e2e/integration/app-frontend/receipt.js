@@ -10,7 +10,7 @@ const appFrontend = new AppFrontend();
 
 describe('Receipt', () => {
   it('Receipt page displays links and attachments', () => {
-    cy.navigateToTask4();
+    cy.navigateToTask5();
     cy.get(appFrontend.confirm.sendIn).should('be.visible').click();
     cy.get(appFrontend.receipt.container)
       .should('be.visible')
@@ -22,7 +22,7 @@ describe('Receipt', () => {
     cy.get(appFrontend.receipt.linkToArchive).should('be.visible');
     cy.get(appFrontend.receipt.pdf)
       .find('a')
-      .should('have.length', 3)
+      .should('have.length', 4)
       .first()
       .should('contain.text', `${Cypress.env('multiData2Stage')}.pdf`);
 

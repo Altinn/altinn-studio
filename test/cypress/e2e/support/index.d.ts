@@ -44,6 +44,24 @@ declare namespace Cypress {
     completeTask3Form(): Chainable<Element>;
 
     /**
+     * Navigate to the task4 of app ttd/frontend-test
+     * @example cy.navigateToTask3()
+     */
+    navigateToTask4(): Chainable<Element>;
+
+    /**
+     * navigate to task 3 and complete task 3 form
+     * @example cy.completeTask3Form()
+     */
+    completeTask4Form(): Chainable<Element>;
+
+    /**
+     * Navigate to the task4 of app ttd/frontend-test
+     * @example cy.navigateToTask3()
+     */
+    navigateToTask5(): Chainable<Element>;
+
+    /**
      * Puts data and waits for confirmation container to render
      * @example cy.sendAndWaitForConfirmation()
      */
@@ -53,7 +71,7 @@ declare namespace Cypress {
      * Add an item to group component with an item in nested group
      * @example cy.addItemToGroup(1, 2, 'automation')
      */
-    addItemToGroup(oldValue: Number, newValue: Number, comment: string, openByDefault?:boolean): Chainable<Element>;
+    addItemToGroup(oldValue: Number, newValue: Number, comment: string, openByDefault?: boolean): Chainable<Element>;
 
     /**
      * Test for WCAG violations of impact critical, serious, moderate
@@ -82,7 +100,7 @@ declare namespace Cypress {
      * Get the current redux state
      * @example cy.getReduxState((state) => state.formData).should('have.length', 3)
      */
-    getReduxState(selector?:(state:any)=>any):any;
+    getReduxState(selector?: (state: any) => any): any;
 
     /**
      * Allows you to intercept the fetched layout and make changes to it. This makes
@@ -90,6 +108,6 @@ declare namespace Cypress {
      * the app you're testing, such as marking some components as required, etc.
      * Must be called in the beginning of your test.
      */
-    interceptLayout(layoutName:string, mutator:(component:any) => any):Chainable<Element>;
+    interceptLayout(layoutName: string, mutator: (component: any) => any): Chainable<Element>;
   }
 }

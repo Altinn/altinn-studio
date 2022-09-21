@@ -3,20 +3,19 @@
 
 import AppFrontend from '../../pageobjects/app-frontend';
 import * as texts from '../../fixtures/texts.json';
-import {instanceIdExp} from "../../support/util";
+import { instanceIdExp } from '../../support/util';
 
 const appFrontend = new AppFrontend();
 
 describe('Confirm', () => {
   it('Confirm page displays texts and attachments', () => {
-    cy.completeTask3Form();
-    cy.get(appFrontend.backButton).should('be.visible');
+    cy.completeTask4Form();
     cy.get(appFrontend.sendinButton).should('be.visible').click();
     cy.get(appFrontend.confirm.container).should('be.visible');
     cy.get(appFrontend.confirm.body).should('contain.text', texts.confirmBody);
     cy.get(appFrontend.confirm.receiptPdf)
       .find('a')
-      .should('have.length', 3)
+      .should('have.length', 4)
       .first()
       .should('contain.text', `${Cypress.env('multiData2Stage')}.pdf`);
 
