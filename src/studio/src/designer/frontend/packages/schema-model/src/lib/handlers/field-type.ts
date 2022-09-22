@@ -34,19 +34,23 @@ export const getUiFieldType = (schemaNode: JsonSchemaNode) => {
   } else if (arrayIntersection(keys, Object.values(ObjectRestrictions)).length) {
     return FieldType.Object;
   } else if (Array.isArray(schemaNode.enum) && schemaNode.enum.length) {
-    const checks = arrayUnique(schemaNode.enum.map((x: any) => typeof x));
-    if (checks.length === 1 && checks[0] === 'string') {
-      return FieldType.String;
-    }
-    if (checks.length === 1 && checks[0] === 'object') {
-      return FieldType.Object;
-    }
-    if (checks.length === 1 && checks[0] === 'number') {
-      return FieldType.Number;
-    }
+    return getEnumFieldType(schemaNode.enum);
   } else {
     return undefined;
   }
+};
+export const getEnumFieldType = (nodeEnum: any[]) => {
+  const checks = arrayUnique(nodeEnum.map((x: any) => typeof x));
+  if (checks.length === 1 && checks[0] === 'string') {
+    return FieldType.String;
+  }
+  if (checks.length === 1 && checks[0] === 'object') {
+    return FieldType.Object;
+  }
+  if (checks.length === 1 && checks[0] === 'number') {
+    return FieldType.Number;
+  }
+  return undefined;
 };
 
 export const getJsonFieldType = (uiNode: UiSchemaNode) => {

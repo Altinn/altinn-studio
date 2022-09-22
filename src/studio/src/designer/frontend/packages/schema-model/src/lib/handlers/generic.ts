@@ -8,10 +8,8 @@ export const genericKeywords = [
   Keywords.Description,
 ];
 
-export const handleGenericKeywords = (schemaNode: JsonSchemaNode) => {
+export const findGenericKeywordsOnNode = (schemaNode: JsonSchemaNode) => {
   const out: { [key: string]: any } = {};
-  genericKeywords.forEach((keyword) => {
-    out[keyword] = schemaNode[keyword];
-  });
+  genericKeywords.forEach((keyword) => (out[keyword] = schemaNode[keyword]));
   return out;
 };

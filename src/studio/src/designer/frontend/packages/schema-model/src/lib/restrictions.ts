@@ -1,4 +1,4 @@
-import { FieldType } from './types';
+import { FieldType, JsonSchemaNode } from './types';
 
 export enum IntegerRestrictions {
   maximum = 'maximum',
@@ -36,3 +36,17 @@ const restrictionMap: Map<string, string[]> = new Map([
 ]);
 
 export const getRestrictions = (type: FieldType): string[] => restrictionMap.get(type) ?? [];
+
+/**
+ * Handling restrictions
+ * @param schemaNode
+ */
+export const findRestrictionsOnNode = (schemaNode: JsonSchemaNode): JsonSchemaNode => {
+  const restrictions: JsonSchemaNode = {};
+  Object.values(AllRestrictions).forEach((key) => {
+    if (schemaNode[key] !== undefined) {
+      restrictions[key] = schemaNode[key];
+    }
+  });
+  return restrictions;
+};

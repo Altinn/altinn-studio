@@ -17,9 +17,23 @@ test.each([
   [{ oneOf: [], type: FieldType.String }, FieldType.String],
   [{ allOf: [], type: FieldType.String }, FieldType.String],
   [{ pattern: '' }, FieldType.String],
+  [{ enum: ['h'] }, FieldType.String],
 ])('correct ui type for %p', (schemaNode: JsonSchemaNode, expected) => {
   expect(getUiFieldType(schemaNode)).toBe(expected);
 });
+
+test.each([
+  [
+    [1, 2],
+    FieldType.Integer,
+    ['s', 'f'],
+    FieldType.String,
+    [1, 'f'],
+    undefined,
+    [{}, {}],
+    FieldType.Object,
+  ],
+])('correct enum type for %p', (nodeEnum: any[], expected) => {});
 
 test.each([
   [{}, undefined],

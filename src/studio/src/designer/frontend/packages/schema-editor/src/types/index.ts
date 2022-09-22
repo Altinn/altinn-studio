@@ -27,6 +27,9 @@ export interface ISchemaState {
   selectedEditorTab: 'definitions' | 'properties';
 }
 
+/**
+ * @deprecated
+ */
 export interface UiSchemaItem {
   path: string;
   type?: FieldType;
