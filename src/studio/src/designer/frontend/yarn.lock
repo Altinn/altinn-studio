@@ -12,9 +12,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@altinn/altinn-design-system@npm:0.8.0":
-  version: 0.8.0
-  resolution: "@altinn/altinn-design-system@npm:0.8.0"
+"@altinn/altinn-design-system@npm:0.7.1":
+  version: 0.7.1
+  resolution: "@altinn/altinn-design-system@npm:0.7.1"
   dependencies:
     "@altinn/figma-design-tokens": ^2.0.2
     "@radix-ui/react-popover": ^1.0.0
@@ -25,7 +25,7 @@ __metadata:
   peerDependencies:
     react: ^18.0.0
     react-dom: ^18.0.0
-  checksum: 68e7a40df12dddf381ecd07227844a76abe008e349655d9b9cee5e9e7d8b2f31370c93582b25fa6a8a36c337a2840f37f7af9f32c04806161282a883c4e531b1
+  checksum: 90f4a8a7d353e1ea5cb0d2cacf1c636000342c64bf694120e62dadfb9767461efe2bbd8b0c048fd9f961fcd3244f081d8029e399e9d4a8b13101e0e97b431407
   languageName: node
   linkType: hard
 
@@ -75,8 +75,7 @@ __metadata:
     webpack-cli: 4.10.0
     webpack-dev-server: 4.11.0
   peerDependencies:
-    "@altinn/altinn-design-system": ^0.7.1 || ^0.8.0
-    "@altinn/schema-model": "*"
+    "@altinn/altinn-design-system": ^0.7.1
     "@material-ui/core": ^4.12.4
     "@material-ui/icons": ^4.11.3
     "@material-ui/lab": ^4.0.0-alpha.61
@@ -86,19 +85,6 @@ __metadata:
     react: ^18.2.0
     react-dom: ^18.2.0
     react-redux: ^8.0.2
-  languageName: unknown
-  linkType: soft
-
-"@altinn/schema-model@workspace:packages/schema-model":
-  version: 0.0.0-use.local
-  resolution: "@altinn/schema-model@workspace:packages/schema-model"
-  dependencies:
-    cross-env: 7.0.3
-    jest: ^29.0.3
-    jest-junit: 14.0.1
-    webpack: 5.74.0
-  peerDependencies:
-    jsonpointer: 5.0.1
   languageName: unknown
   linkType: soft
 
@@ -4889,7 +4875,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@eslint/eslintrc@npm:^1.3.2":
+"@eslint/eslintrc@npm:^1.3.1":
   version: 1.3.2
   resolution: "@eslint/eslintrc@npm:1.3.2"
   dependencies:
@@ -5790,19 +5776,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mswjs/interceptors@npm:^0.17.5":
-  version: 0.17.5
-  resolution: "@mswjs/interceptors@npm:0.17.5"
+"@mswjs/interceptors@npm:^0.17.2":
+  version: 0.17.3
+  resolution: "@mswjs/interceptors@npm:0.17.3"
   dependencies:
     "@open-draft/until": ^1.0.3
     "@types/debug": ^4.1.7
     "@xmldom/xmldom": ^0.7.5
     debug: ^4.3.3
-    headers-polyfill: ^3.1.0
+    headers-polyfill: ^3.0.4
     outvariant: ^1.2.1
     strict-event-emitter: ^0.2.4
     web-encoding: ^1.1.5
-  checksum: 0293ccc56c1c85fb7334cd5902574f7df20c26be74d633c83fde64ffd7620f81e08253fe7985c6b5ad3b64c04ad53c3610e9b9c07621518aabd977343026bb2b
+  checksum: 1c879fe78e2e19e29f610d3572f22990b67f3f892719530ed1d8b0191a644e03461b812ed8137586ab126e66c49dbfd53ea1ff830696589d1b1ad238df40f206
   languageName: node
   linkType: hard
 
@@ -8389,7 +8375,7 @@ __metadata:
   dependencies:
     "@typescript-eslint/eslint-plugin": 5.36.2
     "@typescript-eslint/parser": 5.36.2
-    eslint: 8.23.1
+    eslint: 8.23.0
     eslint-config-prettier: 8.5.0
     eslint-import-resolver-typescript: 3.5.1
     eslint-plugin-import: 2.26.0
@@ -8502,7 +8488,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-development@workspace:app-development"
   dependencies:
-    "@altinn/altinn-design-system": 0.8.0
+    "@altinn/altinn-design-system": 0.7.1
     "@babel/core": 7.19.0
     "@babel/polyfill": 7.12.1
     "@babel/preset-env": 7.19.0
@@ -8528,7 +8514,7 @@ __metadata:
     core-js: 3.25.1
     cross-env: 7.0.3
     css-loader: 6.7.1
-    eslint: 8.23.1
+    eslint: 8.23.0
     fork-ts-checker-notifier-webpack-plugin: 6.0.0
     fork-ts-checker-webpack-plugin: 7.2.13
     history: 5.3.0
@@ -10952,7 +10938,7 @@ __metadata:
     core-js: 3.25.1
     cross-env: 7.0.3
     css-loader: 6.7.1
-    eslint: 8.23.1
+    eslint: 8.23.0
     fork-ts-checker-notifier-webpack-plugin: 6.0.0
     fork-ts-checker-webpack-plugin: 7.2.13
     jest: 29.0.3
@@ -10961,7 +10947,7 @@ __metadata:
     lodash-es: 4.17.21
     mini-css-extract-plugin: 2.6.1
     moment: 2.29.4
-    msw: 0.47.3
+    msw: 0.47.1
     prettier: 2.7.1
     react: 18.2.0
     react-dom: 18.2.0
@@ -12287,11 +12273,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:8.23.1":
-  version: 8.23.1
-  resolution: "eslint@npm:8.23.1"
+"eslint@npm:8.23.0":
+  version: 8.23.0
+  resolution: "eslint@npm:8.23.0"
   dependencies:
-    "@eslint/eslintrc": ^1.3.2
+    "@eslint/eslintrc": ^1.3.1
     "@humanwhocodes/config-array": ^0.10.4
     "@humanwhocodes/gitignore-to-minimatch": ^1.0.2
     "@humanwhocodes/module-importer": ^1.0.1
@@ -12310,6 +12296,7 @@ __metadata:
     fast-deep-equal: ^3.1.3
     file-entry-cache: ^6.0.1
     find-up: ^5.0.0
+    functional-red-black-tree: ^1.0.1
     glob-parent: ^6.0.1
     globals: ^13.15.0
     globby: ^11.1.0
@@ -12318,7 +12305,6 @@ __metadata:
     import-fresh: ^3.0.0
     imurmurhash: ^0.1.4
     is-glob: ^4.0.0
-    js-sdsl: ^4.1.4
     js-yaml: ^4.1.0
     json-stable-stringify-without-jsonify: ^1.0.1
     levn: ^0.4.1
@@ -12332,7 +12318,7 @@ __metadata:
     text-table: ^0.2.0
   bin:
     eslint: bin/eslint.js
-  checksum: a727e15492786a03b438bcf021db49f715680679846a7b8d79b98ad34576f2a570404ffe882d3c3e26f6359bff7277ef11fae5614bfe8629adb653f20d018c71
+  checksum: ff6075daa28d817a7ac4508f31bc108a04d9ab5056608c8651b5bf9cfea5d708ca16dea6cdab2c3c0ae99b0bf0e726af8504eaa8e17c8e12e242cb68237ead64
   languageName: node
   linkType: hard
 
@@ -13793,10 +13779,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"headers-polyfill@npm:^3.1.0":
-  version: 3.1.0
-  resolution: "headers-polyfill@npm:3.1.0"
-  checksum: a95257065684653b7185efbb9a380c547ea832002991b5adf0d90cd222073da2701be9dc2849d1970ecf15e8c35b383984358566afe6e76ca8ff1dbd7cdce3af
+"headers-polyfill@npm:^3.0.4":
+  version: 3.0.4
+  resolution: "headers-polyfill@npm:3.0.4"
+  checksum: cdfe5f40b033e89f31a1ce9018864a54ba3efc7ef05c9ad220851bbf65ac78bfc81f12f669994936c040a4404a885004f5d370acbf954f40147c9e4bb189cc43
   languageName: node
   linkType: hard
 
@@ -16130,7 +16116,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest@npm:29.0.3, jest@npm:^29.0.3":
+"jest@npm:29.0.3":
   version: 29.0.3
   resolution: "jest@npm:29.0.3"
   dependencies:
@@ -16178,13 +16164,6 @@ __metadata:
   version: 1.1.6
   resolution: "js-levenshtein@npm:1.1.6"
   checksum: 409f052a7f1141be4058d97da7860e08efd97fc588b7a4c5cfa0548bc04f6d576644dae65ab630266dff685d56fb90d494e03d4d79cb484c287746b4f1bf0694
-  languageName: node
-  linkType: hard
-
-"js-sdsl@npm:^4.1.4":
-  version: 4.1.4
-  resolution: "js-sdsl@npm:4.1.4"
-  checksum: 1977cea4ab18e0e03e28bdf0371d8b443fad65ca0988e0faa216406faf6bb943714fe8f7cc7a5bfe5f35ba3d94ddae399f4d10200f547f2c3320688b0670d726
   languageName: node
   linkType: hard
 
@@ -17452,12 +17431,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"msw@npm:0.47.3":
-  version: 0.47.3
-  resolution: "msw@npm:0.47.3"
+"msw@npm:0.47.1":
+  version: 0.47.1
+  resolution: "msw@npm:0.47.1"
   dependencies:
     "@mswjs/cookies": ^0.2.2
-    "@mswjs/interceptors": ^0.17.5
+    "@mswjs/interceptors": ^0.17.2
     "@open-draft/until": ^1.0.3
     "@types/cookie": ^0.4.1
     "@types/js-levenshtein": ^1.1.1
@@ -17465,7 +17444,7 @@ __metadata:
     chokidar: ^3.4.2
     cookie: ^0.4.2
     graphql: ^15.0.0 || ^16.0.0
-    headers-polyfill: ^3.1.0
+    headers-polyfill: ^3.0.4
     inquirer: ^8.2.0
     is-node-process: ^1.0.1
     js-levenshtein: ^1.1.6
@@ -17483,7 +17462,7 @@ __metadata:
       optional: true
   bin:
     msw: cli/index.js
-  checksum: 1be018c7b2eff982409967cccb5c604e45f65710ee9698bab57fbe794f8426d1a4d33e52b75ef395c6d226948c799241c7c2c7748ec4f5b741e7f25bcbafbd1e
+  checksum: 37c99836014181ad52267fe031bb9dec355d3728b9f57abbf239340dcbe9c75d29a959c627fb812b353c4ed292dbc51d557f0d0ef0108e439dfec0e8962ddd83
   languageName: node
   linkType: hard
 
@@ -21572,7 +21551,7 @@ __metadata:
     jest-junit: 14.0.1
     marked: 4.1.0
     moment: 2.29.4
-    msw: 0.47.3
+    msw: 0.47.1
     parse5: 7.1.1
     react: 18.2.0
     react-content-loader: 6.2.0
@@ -23594,7 +23573,7 @@ __metadata:
     cross-env: 7.0.3
     css-loader: 6.7.1
     deepmerge: 4.2.2
-    eslint: 8.23.1
+    eslint: 8.23.0
     jest: 29.0.3
     jest-environment-jsdom: 29.0.3
     jest-junit: 14.0.1
