@@ -25,6 +25,7 @@ import { getObjectKind } from '../../utils/ui-schema-utils';
 import { getCombinationOptions, getTypeOptions } from './helpers/options';
 import { ErrorMessage, TextField } from '@altinn/altinn-design-system';
 import classes from './ItemDataComponent.module.css';
+import { ItemRestrictions } from "./ItemRestrictions";
 
 export interface IItemDataComponentProps {
   selectedItem: UiSchemaItem | null;
@@ -283,6 +284,7 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
           label={t('nullable')}
         />
       )}
+      {selectedItem && <ItemRestrictions item={selectedItem} language={language}/>}
       <hr/>
       <fieldset>
         <legend>{t('descriptive_fields')}</legend>

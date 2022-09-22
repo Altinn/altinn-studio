@@ -7,7 +7,6 @@ export enum IntegerRestrictions {
 }
 
 export enum StringRestrictions {
-  format = 'format',
   maxLength = 'maxLength',
   minLength = 'minLength',
   pattern = 'pattern',

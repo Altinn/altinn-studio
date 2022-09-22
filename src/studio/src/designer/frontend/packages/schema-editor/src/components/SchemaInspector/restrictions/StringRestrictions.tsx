@@ -81,7 +81,7 @@ function splitStringByMatches(pattern: string, value: string): StrPart[] {
   try {
     const patternRegex = new RegExp(pattern, 'g');
     let match;
-    let strParts: StrPart[] = [];
+    const strParts: StrPart[] = [];
     let lastIndex = 0;
     while (value && (match = patternRegex.exec(value)) !== null) {
       if (match.index > lastIndex) {

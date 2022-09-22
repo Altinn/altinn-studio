@@ -2,7 +2,6 @@ import React from 'react';
 import { ILanguage, UiSchemaItem } from '../../types';
 import { InlineObject } from './InlineObject';
 import { ItemDataComponent } from './ItemDataComponent';
-import { ItemRestrictions } from "./ItemRestrictions";
 
 interface ItemPropertiesTabProps {
   language: ILanguage;
@@ -18,7 +17,6 @@ export const ItemPropertiesTab = ({ language, selectedItem, checkIsNameInUse }: 
       ) : (
         <ItemDataComponent selectedItem={selectedItem} language={language} checkIsNameInUse={checkIsNameInUse} />
       )}
-      <ItemRestrictions item={selectedItem} language={language}/>
     </>
   );
 };

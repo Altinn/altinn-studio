@@ -9,10 +9,6 @@
   width: 150px;
 }
 
-.root :global(.MuiTabPanel-root) > div:first-child label:first-child {
-  margin-top: 0;
-}
-
 .root hr {
   border-color: rgba(0, 0, 0, 0.12);
   border-style: solid;
@@ -70,4 +66,5 @@
 .tabPanel {
   flex: 1;
   overflow-y: scroll;
+  padding-top: 0 !important;
 }

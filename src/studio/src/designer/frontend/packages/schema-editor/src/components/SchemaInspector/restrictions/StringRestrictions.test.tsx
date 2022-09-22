@@ -4,7 +4,7 @@ import { StringRestrictions } from './StringRestrictions';
 import { getRestrictions } from '../../../utils/restrictions';
 import { FieldType } from '../../../types';
 
-test('StringRestrictions should redner correctly', async () => {
+test('StringRestrictions should render correctly', async () => {
   const onChangeRestrictionValue = jest.fn();
   const path = '#/properties/xxsfds';
   render(
