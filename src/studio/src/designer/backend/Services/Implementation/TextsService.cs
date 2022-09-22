@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -39,6 +41,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
+            // Dictionary<string, string> jsonTextsWithoutMd = ExtractMarkdown(languageCode, jsonTexts)
             await altinnAppGitRepository.SaveTextsV2(languageCode, jsonTexts);
         }
 
@@ -48,6 +51,23 @@ namespace Altinn.Studio.Designer.Services.Implementation
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
             altinnAppGitRepository.DeleteTexts(languageCode);
+        }
+
+        // returns Tuple(Dictionary<string, string>, Dictionary<string, string>) of keys and texts that should be stored as markdown
+        private Tuple<Dictionary<string, string>, Dictionary<string, string>> ExtractMarkdown(string languageCode, Dictionary<string, string> texts)
+        {
+            Dictionary<string, string> textsWithMd = new Dictionary<string, string>();
+            foreach (KeyValuePair<string, string> text in texts)
+            {
+                if (text.Value.Contains('\n'))
+                {
+                    string fileName = $"{text.Key}.{languageCode}.md";
+                    text.Value = "${{}}";
+
+                }
+            }
+
+            return Tuple.Create(texts, texts);
         }
     }
 }
