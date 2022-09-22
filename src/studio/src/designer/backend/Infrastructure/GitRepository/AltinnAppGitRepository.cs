@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -32,7 +33,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string MARKDOWN_TEXTS_FOLDER_NAME = "md/";
 
         private const string APP_METADATA_FILENAME = "applicationmetadata.json";
-        private const string TEXT_FILES_PATTERN = "*.texts.*";
+        private const string MARKDOWN_TEXT_FILES_PATTERN = ".texts.*";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AltinnGitRepository"/> class.
@@ -298,16 +299,34 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+        /// Get the markdown text specific for a key identified in the filename.
+        /// </summary>
+        /// <param name="markdownFileName">Filename for file with markdown text for a key</param>
+        /// <returns>Markdown text as a string</returns>
+        public async Task<string> GetMarkdownText(string markdownFileName)
+        {
+            var textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, MARKDOWN_TEXTS_FOLDER_NAME, markdownFileName);
+
+            string text = await ReadTextByRelativePathAsync(textsFileRelativeFilePath);
+
+            return text;
+        }
+
+        /// <summary>
         /// Deletes the texts file for a specific languageCode.
         /// </summary>
         /// <param name="languageCode">Language identifier</param>
         public void DeleteTexts(string languageCode)
         {
-            // string fileName = $"{languageCode}.texts.json";
-            foreach (string fileNamePath in FindFiles(new string[] { TEXT_FILES_PATTERN }))
+            string textsFileName = $"{languageCode}.texts.json";
+            var textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, textsFileName);
+            DeleteFileByRelativePath(textsFileRelativeFilePath);
+
+            var fileNames = FindFiles(new string[] { $"*.{languageCode}{MARKDOWN_TEXT_FILES_PATTERN}" });
+            foreach (string fileNamePath in fileNames)
             {
                 string fileName = Path.GetFileName(fileNamePath);
-                var textsFileRelativeFilePath = fileName.Contains(".md") ? Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, MARKDOWN_TEXTS_FOLDER_NAME, fileName) : Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
+                textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, MARKDOWN_TEXTS_FOLDER_NAME, fileName);
                 DeleteFileByRelativePath(textsFileRelativeFilePath);
             }
         }

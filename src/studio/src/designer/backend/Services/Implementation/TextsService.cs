@@ -33,6 +33,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             Dictionary<string, string> jsonTexts = await altinnAppGitRepository.GetTextsV2(languageCode);
 
+            List<string> markdownFileNames = ExtractMarkdownFileNames(jsonTexts);
+            foreach (string markdownFileName in markdownFileNames)
+            {
+                string key = markdownFileName.Split('.')[0];
+                string text = await altinnAppGitRepository.GetMarkdownText(markdownFileName);
+                jsonTexts[key] = text;
+            }
+
             return jsonTexts;
         }
 
@@ -59,9 +67,24 @@ namespace Altinn.Studio.Designer.Services.Implementation
             altinnAppGitRepository.DeleteTexts(languageCode);
         }
 
+        private static List<string> ExtractMarkdownFileNames(Dictionary<string, string> texts)
+        {
+            List<string> markdownFileNames = new List<string>();
+            foreach (KeyValuePair<string, string> text in texts)
+            {
+                if (text.Value.StartsWith("${{") && text.Value.EndsWith(".md}}"))
+                {
+                    string fileName = text.Value.Substring(3, text.Value.Length - 5);
+                    markdownFileNames.Add(fileName);
+                }
+            }
+
+            return markdownFileNames;
+        }
+
         // REMARKS: Autosave in FE results in old md files that never will be overwritten when client change ID.
         // returns Tuple(Dictionary<string, string>, Dictionary<string, string>) of keys and texts that should be stored as markdown
-        private (Dictionary<string, string> textsWithMd, Dictionary<string, string> texts) ExtractMarkdown(string languageCode, Dictionary<string, string> texts)
+        private static (Dictionary<string, string> textsWithMd, Dictionary<string, string> texts) ExtractMarkdown(string languageCode, Dictionary<string, string> texts)
         {
             Dictionary<string, string> textsWithMd = new Dictionary<string, string>();
             foreach (KeyValuePair<string, string> text in texts)
