@@ -607,6 +607,11 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     throw new JsonSchemaConvertException($"Invalid base type for SimpleType restriction {path.Combine(JsonPointer.Parse($"/allOf/[{baseTypeSchemaIndex}]"))}");
                 }
 
+                if (baseTypeSchema.HasKeyword<XsdUnhandledAttributesKeyword>())
+                {
+                    AddUnhandledAttributes(restriction, baseTypeSchema.Keywords.GetKeyword<XsdUnhandledAttributesKeyword>());
+                }
+
                 restrictionsKeywordsList.AddRange(restrictionSchemas.Select(restrictionSchema => restrictionSchema.AsWorkList()));
             }
             else

@@ -1,8 +1,5 @@
 using System.IO;
 using System.Text;
-using System.Text.Encodings.Web;
-using System.Text.Json;
-using System.Text.Unicode;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
@@ -22,9 +19,11 @@ namespace DataModeling.Tests
     {
         private readonly ITestOutputHelper _testOutputHelper;
 
-        private XmlSchema _originalXsdSchema;
-        private JsonSchema _convertedJsonSchema;
-        private XmlSchema _convertedXsdSchema;
+        private XmlSchema OriginalXsdSchema { get; set; }
+
+        private JsonSchema ConvertedJsonSchema { get; set; }
+
+        private XmlSchema ConvertedXsdSchema { get; set; }
 
         public Seres2JsonSchema2SeresTests(ITestOutputHelper testOutputHelper)
         {
@@ -47,6 +46,7 @@ namespace DataModeling.Tests
         [InlineData("Seres/schema_5259_1_forms_9999_50000.xsd", "")]
         [InlineData("Seres/schema_4956_1_forms_5692_42617.xsd", "")]
         [InlineData("Seres/schema_4660_1_forms_2500_2500.xsd", "")]
+        [InlineData("Seres/schema_4108-41505.xsd", "")]
         public void ConvertSeresXsd_SeresGeneratedXsd_ShouldConvertToJsonSchemaAndBackToXsd(string xsdSchemaPath, string xmlPath)
         {
             Given.That.XsdSchemaLoaded(xsdSchemaPath)
@@ -97,28 +97,28 @@ namespace DataModeling.Tests
 
         private Seres2JsonSchema2SeresTests XsdSchemaLoaded(string xsdSchemaPath)
         {
-            _originalXsdSchema = ResourceHelpers.LoadXmlSchemaTestData(xsdSchemaPath);
+            OriginalXsdSchema = ResourceHelpers.LoadXmlSchemaTestData(xsdSchemaPath);
             return this;
         }
 
         private Seres2JsonSchema2SeresTests LoadedXsdSchemaConvertedToJsonSchema()
         {
             var xsdToJsonConverter = new XmlSchemaToJsonSchemaConverter();
-            _convertedJsonSchema = xsdToJsonConverter.Convert(_originalXsdSchema);
+            ConvertedJsonSchema = xsdToJsonConverter.Convert(OriginalXsdSchema);
             return this;
         }
 
         private Seres2JsonSchema2SeresTests ConvertedJsonSchemaConvertedToXsdSchema()
         {
             var jsonToXsdConverter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
-            _convertedXsdSchema = jsonToXsdConverter.Convert(_convertedJsonSchema);
+            ConvertedXsdSchema = jsonToXsdConverter.Convert(ConvertedJsonSchema);
             return this;
         }
 
        // Assertion methods
         private Seres2JsonSchema2SeresTests OriginalAndConvertedXsdSchemasShouldBeEquivalent()
         {
-            XmlSchemaAssertions.IsEquivalentTo(_originalXsdSchema, _convertedXsdSchema);
+            XmlSchemaAssertions.IsEquivalentTo(OriginalXsdSchema, ConvertedXsdSchema);
             return this;
         }
 
@@ -128,8 +128,8 @@ namespace DataModeling.Tests
             {
                 // The XML should validate against both XSD's
                 var xml = ResourceHelpers.LoadTestDataAsString(xmlPath);
-                Assert.True(ValidateXml(_originalXsdSchema, xml));
-                Assert.True(ValidateXml(_convertedXsdSchema, xml));
+                Assert.True(ValidateXml(OriginalXsdSchema, xml));
+                Assert.True(ValidateXml(ConvertedXsdSchema, xml));
             }
 
             return this;

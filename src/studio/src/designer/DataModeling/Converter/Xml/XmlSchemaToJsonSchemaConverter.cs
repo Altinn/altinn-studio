@@ -302,7 +302,11 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
             else if (!item.BaseTypeName.IsEmpty)
             {
-                steps.Add(b => HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, b));
+                steps.Add(b =>
+                {
+                    HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, b);
+                    AddUnhandledAttributes(item, b);
+                });
             }
 
             if (item.Facets.Count > 0)
@@ -1253,71 +1257,6 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             format = null;
             xsdType = null;
             return true;
-        }
-
-        private class PropertiesBuilder
-        {
-            private readonly List<(string Name, JsonSchema Schema, bool Required)> _properties = new List<(string Name, JsonSchema Schema, bool Required)>();
-
-            public void Add(string name, JsonSchema schema, bool required)
-            {
-                _properties.Add((name, schema, required));
-            }
-
-            public void AddCurrentPropertiesToStep(StepsBuilder steps)
-            {
-                if (_properties.Count > 0)
-                {
-                    (string Name, JsonSchema Schema)[] currentProperties = _properties.Select(prop => (prop.Name, prop.Schema)).ToArray();
-                    string[] required = _properties.Where(prop => prop.Required).Select(prop => prop.Name).ToArray();
-                    steps.Add(b =>
-                    {
-                        b.Properties(currentProperties);
-                        if (required.Length > 0)
-                        {
-                            b.Required(required);
-                        }
-                    });
-                    _properties.Clear();
-                }
-            }
-
-            public void Build(JsonSchemaBuilder builder)
-            {
-                if (_properties.Count > 0)
-                {
-                    (string Name, JsonSchema Schema)[] properties = _properties.Select(prop => (prop.Name, prop.Schema)).ToArray();
-                    string[] required = _properties.Where(prop => prop.Required).Select(prop => prop.Name).ToArray();
-
-                    builder.Properties(properties);
-                    if (required.Length > 0)
-                    {
-                        builder.Required(required);
-                    }
-
-                    _properties.Clear();
-                }
-            }
-        }
-
-        private class StepsBuilder
-        {
-            private readonly List<Action<JsonSchemaBuilder>> _steps = new List<Action<JsonSchemaBuilder>>();
-
-            public void Add(Action<JsonSchemaBuilder> step)
-            {
-                _steps.Add(step);
-            }
-
-            public void BuildWithAllOf(JsonSchemaBuilder builder)
-            {
-                builder.AllOf(_steps.Select(step =>
-                {
-                    JsonSchemaBuilder stepBuilder = new JsonSchemaBuilder();
-                    step(stepBuilder);
-                    return stepBuilder.Build();
-                }));
-            }
         }
 
         private static bool TryParseDecimal(string facetValue, out decimal dLength)
