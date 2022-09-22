@@ -15,9 +15,10 @@ const useStyles = makeStyles({
   root: {
     background: 'white',
     color: 'black',
-    border: '1px solid #006BD8',
-    boxSsizing: 'border-box',
-    padding: 4,
+    border: '2px solid #008fd6',
+    boxSizing: 'border-box',
+    fontSize: '1.6rem',
+    paddingLeft: 12,
     marginTop: 4,
     '&.Mui-disabled': {
       background: '#f4f4f4',

@@ -2,7 +2,7 @@ import React from 'react';
 import { ILanguage, UiSchemaItem } from '../../types';
 import { InlineObject } from './InlineObject';
 import { ItemDataComponent } from './ItemDataComponent';
-import {ItemRestrictions} from "./ItemRestrictions";
+import { ItemRestrictions } from "./ItemRestrictions";
 
 interface ItemPropertiesTabProps {
   language: ILanguage;

@@ -9,7 +9,7 @@ using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
-
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
@@ -34,23 +34,17 @@ namespace Designer.Tests.Controllers
         public async Task GetLanguages_ReturnsNnAndNb()
         {
             HttpClient client = GetTestClient();
-
             string dataPathWithData = $"{_versionPrefix}/ttd/new-texts-format/languages";
-
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
-
             await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-
             response.EnsureSuccessStatusCode();
-
             string responseBody = await response.Content.ReadAsStringAsync();
-
             JsonDocument responseDocument = JsonDocument.Parse(responseBody);
-
             List<string> responseList = JsonSerializer.Deserialize<List<string>>(responseDocument.RootElement.ToString());
 
+            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
             Assert.Equal(new List<string> { "nb", "nn" }, responseList);
         }
 

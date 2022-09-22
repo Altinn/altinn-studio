@@ -29,19 +29,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-            string text = await altinnAppGitRepository.GetTextV2(languageCode);
+            Dictionary<string, string> jsonTexts = await altinnAppGitRepository.GetTextsV2(languageCode);
 
-            Dictionary<string, string> jsonText = JsonSerializer.Deserialize<Dictionary<string, string>>(text);
-
-            return jsonText;
+            return jsonTexts;
         }
 
         /// <inheritdoc />
-        public async Task UpdateTexts(string org, string repo, string developer, string languageCode, Dictionary<string, string> jsonText)
+        public async Task UpdateTexts(string org, string repo, string developer, string languageCode, Dictionary<string, string> jsonTexts)
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-            await altinnAppGitRepository.SaveTextV2(languageCode, jsonText);
+            await altinnAppGitRepository.SaveTextsV2(languageCode, jsonTexts);
+        }
+
+        /// <inheritdoc />
+        public void DeleteTexts(string org, string repo, string developer, string languageCode)
+        {
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+
+            altinnAppGitRepository.DeleteTexts(languageCode);
         }
     }
 }

@@ -67,3 +67,9 @@ function onChange(id, value) {
 
 <StyledSelect id='sometype' itemType='string' onChange={onChange}/>
 ```
+
+
+
+### Run against mock
+
+`http://localhost:8080/designer/my-org/my-app#/datamodelling`

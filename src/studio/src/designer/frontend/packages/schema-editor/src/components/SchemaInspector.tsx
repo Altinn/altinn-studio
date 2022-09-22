@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
+import { Panel, PanelVariant } from '@altinn/altinn-design-system';
 import { AppBar, Divider } from '@material-ui/core';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
 import { FieldType, ILanguage, UiSchemaItem } from '../types';
 import { getTranslation } from '../utils/language';
-import { SchemaTab } from './SchemaTab';
+import { SchemaTab } from './common/SchemaTab';
 import { ItemPropertiesTab } from './SchemaInspector/ItemPropertiesTab';
 import { ItemFieldsTab } from './SchemaInspector/ItemFieldsTab';
 import classes from './SchemaInspector.module.css';
@@ -35,6 +36,9 @@ export const SchemaInspector = ({
 
   return selectedItem ? (
     <div className={classes.root} data-testid='schema-inspector'>
+      <Panel variant={PanelVariant.Warning} forceMobileLayout={true}>
+        <span>{t('warning_under_development')}</span>
+      </Panel>
       <TabContext value={tabIndex}>
         <AppBar position='static' color='default' className={classes.appBar}>
           <TabList

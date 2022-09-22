@@ -1,10 +1,10 @@
-import {Checkbox, FormControlLabel, TextField as MaterialTextField } from '@material-ui/core';
-import React, {useEffect, useState} from 'react';
-import {useDispatch} from 'react-redux';
-import {CombinationKind, FieldType, ILanguage, UiSchemaItem} from '../../types';
-import {NameError, ObjectKind} from '../../types/enums';
-import {isValidName} from '../../utils/checks';
-import {getTranslation} from '../../utils/language';
+import { Checkbox, FormControlLabel, TextField as MaterialTextField } from '@material-ui/core';
+import React, { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { CombinationKind, FieldType, ILanguage, UiSchemaItem } from '../../types';
+import { NameError, ObjectKind } from '../../types/enums';
+import { isValidName } from '../../utils/checks';
+import { getTranslation } from '../../utils/language';
 import {
   addCombinationItem,
   deleteCombinationItem,
@@ -17,13 +17,13 @@ import {
   setTitle,
   setType,
 } from '../../features/editor/schemaEditorSlice';
-import {combinationIsNullable, getDomFriendlyID, nullableType} from '../../utils/schema';
-import {TypeSelect} from './TypeSelect';
-import {ReferenceSelectionComponent} from './ReferenceSelectionComponent';
-import {CombinationSelect} from './CombinationSelect';
-import {getObjectKind} from '../../utils/ui-schema-utils';
-import {getCombinationOptions, getTypeOptions} from './helpers/options';
-import {ErrorMessage, TextField} from '@altinn/altinn-design-system';
+import { combinationIsNullable, getDomFriendlyID, nullableType } from '../../utils/schema';
+import { TypeSelect } from './TypeSelect';
+import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
+import { CombinationSelect } from './CombinationSelect';
+import { getObjectKind } from '../../utils/ui-schema-utils';
+import { getCombinationOptions, getTypeOptions } from './helpers/options';
+import { ErrorMessage, TextField } from '@altinn/altinn-design-system';
 import classes from './ItemDataComponent.module.css';
 
 export interface IItemDataComponentProps {
@@ -284,26 +284,29 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
         />
       )}
       <hr/>
-      <label htmlFor={titleId}>{t('descriptive_fields')}</label>
-      <TextField
-        id={titleId}
-        onBlur={onChangeTitle}
-        onChange={(e) => setItemTitle(e.target.value)}
-        value={title}
-      />
-      <label htmlFor={descriptionId}>{t('description')}</label>
-      <MaterialTextField
-        InputProps={{disableUnderline: true}}
-        className={classes.field}
-        fullWidth
-        id={descriptionId}
-        margin='normal'
-        multiline={true}
-        onBlur={onChangeDescription}
-        onChange={(e) => setItemDescription(e.target.value)}
-        style={{ height: 100 }}
-        value={description}
-      />
+      <fieldset>
+        <legend>{t('descriptive_fields')}</legend>
+        <label htmlFor={titleId}>{t('title')}</label>
+        <TextField
+          id={titleId}
+          onBlur={onChangeTitle}
+          onChange={(e) => setItemTitle(e.target.value)}
+          value={title}
+        />
+        <label htmlFor={descriptionId}>{t('description')}</label>
+        <MaterialTextField
+          InputProps={{disableUnderline: true}}
+          className={classes.field}
+          fullWidth
+          id={descriptionId}
+          margin='normal'
+          multiline={true}
+          onBlur={onChangeDescription}
+          onChange={(e) => setItemDescription(e.target.value)}
+          style={{ height: 100 }}
+          value={description}
+        />
+      </fieldset>
     </div>
   );
 }

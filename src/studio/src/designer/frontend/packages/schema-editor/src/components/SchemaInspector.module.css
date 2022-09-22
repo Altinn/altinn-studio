@@ -26,6 +26,10 @@
   margin-top: 2rem;
 }
 
+.root legend {
+  font-weight: bold;
+}
+
 .header {
   font-size: 16px;
   font-weight: 400;
