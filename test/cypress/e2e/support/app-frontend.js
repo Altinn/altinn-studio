@@ -147,7 +147,7 @@ Cypress.Commands.add('addItemToGroup', (oldValue, newValue, comment, openByDefau
   cy.get(appFrontend.group.currentValue).should('be.visible').type(oldValue).blur();
   cy.get(appFrontend.group.newValue).should('be.visible').type(newValue).blur();
   cy.get(appFrontend.group.mainGroup)
-    .siblings(appFrontend.group.editContainer)
+    .find(appFrontend.group.editContainer)
     .find(appFrontend.group.next)
     .should('be.visible')
     .click();

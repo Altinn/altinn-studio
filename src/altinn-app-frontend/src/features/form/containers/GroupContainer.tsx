@@ -313,6 +313,7 @@ export function GroupContainer({
           onClickRemove={onClickRemove}
           hideDeleteButton={container.edit?.deleteButton === false}
           setMultiPageIndex={setMultiPageIndex}
+          multiPageIndex={multiPageIndex}
           textResources={textResources}
           validations={validations}
           filteredIndexes={filteredIndexList}
@@ -335,7 +336,7 @@ export function GroupContainer({
             textResources={textResources}
           />
         )}
-      {editIndex >= 0 && (
+      {editIndex >= 0 && container.edit?.mode === 'hideTable' && (
         <RepeatingGroupsEditContainer
           container={container}
           editIndex={editIndex}
@@ -370,13 +371,16 @@ export function GroupContainer({
                 container={container}
                 id={id}
                 language={language}
+                deleting={deletingIndexes.includes(index)}
                 textResources={textResources}
                 layout={layout}
                 onClickSave={onClickSave}
+                onClickRemove={onClickRemove}
                 repeatingGroupDeepCopyComponents={
                   repeatingGroupDeepCopyComponents
                 }
                 hideSaveButton={true}
+                hideDeleteButton={container.edit?.deleteButton === false}
               />
             );
           })}

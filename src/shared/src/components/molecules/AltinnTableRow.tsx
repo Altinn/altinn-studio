@@ -1,5 +1,6 @@
 import type { TableRowProps } from '@material-ui/core';
 import { makeStyles, TableRow } from '@material-ui/core';
+import cn from 'classnames';
 import React from 'react';
 import theme from '../../theme/altinnAppTheme';
 
@@ -22,7 +23,10 @@ export default function AltinnTableRow(props: IAltinnTableRow & TableRowProps) {
   return (
     <TableRow
       {...tableProps}
-      className={valid === false ? classes.tableRowError : ''}
+      className={cn(
+        { [classes.tableRowError]: valid === false },
+        tableProps.className,
+      )}
     >
       {children}
     </TableRow>

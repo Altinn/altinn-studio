@@ -21,7 +21,7 @@ describe('Repeating group attachments', () => {
 
   const gotoSecondPage = () => {
     cy.get(appFrontend.group.mainGroup)
-      .siblings(appFrontend.group.editContainer)
+      .find(appFrontend.group.editContainer)
       .find(appFrontend.group.next)
       .should('be.visible')
       .click();
@@ -56,7 +56,7 @@ describe('Repeating group attachments', () => {
     }
   };
 
-  const uploadFile = ({ item, idx, fileName, verifyTableRow, isTaggedUploader }) => {
+  const uploadFile = ({ item, idx, fileName, verifyTableRow, tableRow, isTaggedUploader }) => {
     cy.get(item.dropZoneContainer).should('be.visible');
     cy.get(item.dropZone).selectFile(makeTestFile(fileName), { force: true });
 
@@ -71,7 +71,9 @@ describe('Repeating group attachments', () => {
     cy.get(item.attachments[idx].name).should('be.visible').should('contain.text', fileName);
 
     if (verifyTableRow) {
+      cy.get(tableRow.editBtn).click();
       verifyTableRowPreview(item, fileName);
+      cy.get(tableRow.editBtn).click();
     }
   };
 
@@ -179,13 +181,14 @@ describe('Repeating group attachments', () => {
       idx: 0,
       fileName: filenames[0].single,
       verifyTableRow: true,
+      tableRow: appFrontend.group.rows[0],
     });
     getState().should('deep.equal', {
       [appFrontend.group.rows[0].uploadSingle.stateKey]: [filenames[0].single],
     });
 
     filenames[0].multi.forEach((fileName, idx) => {
-      uploadFile({ item: appFrontend.group.rows[0].uploadMulti, idx, fileName, verifyTableRow: true });
+      uploadFile({ item: appFrontend.group.rows[0].uploadMulti, idx, fileName, verifyTableRow: true, tableRow: appFrontend.group.rows[0], });
       if (idx !== filenames[0].multi.length - 1) {
         cy.get(appFrontend.group.rows[0].uploadMulti.addMoreBtn).click();
       }
@@ -201,6 +204,7 @@ describe('Repeating group attachments', () => {
       idx: 0,
       fileName: filenames[1].single,
       verifyTableRow: true,
+      tableRow: appFrontend.group.rows[1],
     });
     filenames[1].multi.forEach((fileName, idx) => {
       uploadFile({
@@ -208,6 +212,7 @@ describe('Repeating group attachments', () => {
         idx,
         fileName,
         verifyTableRow: true,
+        tableRow: appFrontend.group.rows[1],
       });
       if (idx !== filenames[1].multi.length - 1) {
         cy.get(appFrontend.group.rows[1].uploadMulti.addMoreBtn).click();
@@ -227,6 +232,7 @@ describe('Repeating group attachments', () => {
             fileName,
             verifyTableRow: true,
             isTaggedUploader: true,
+            tableRow: appFrontend.group.rows[row].nestedGroup.rows[nestedRowIdx],
           });
         });
         cy.get(appFrontend.group.rows[row].nestedGroup.saveBtn).click();
@@ -290,9 +296,11 @@ describe('Repeating group attachments', () => {
       .should('contain.text', filenames[0].multi[2]);
 
     // This verifies that the deleted filename is no longer part of the table header preview:
+    cy.get(appFrontend.group.rows[0].editBtn).click();
     verifyPreview();
 
     // Let's also delete one of the nested attachments to verify the same thing happens there.
+    cy.get(appFrontend.group.rows[0].editBtn).click();
     cy.get(appFrontend.group.saveMainGroup).click();
     cy.get(appFrontend.group.saveMainGroup).should('not.exist');
     cy.get(appFrontend.group.rows[1].editBtn).click();
@@ -309,7 +317,9 @@ describe('Repeating group attachments', () => {
       .should('be.visible')
       .should('contain.text', filenames[1].nested[1][2]);
 
+    cy.get(appFrontend.group.rows[1].editBtn).click();
     verifyPreview();
+    cy.get(appFrontend.group.rows[1].editBtn).click();
 
     const expectedAttachmentState = {
       [appFrontend.group.rows[0].uploadSingle.stateKey]: [filenames[0].single],
@@ -420,8 +430,11 @@ describe('Repeating group attachments', () => {
 
     // Verify that one of the attachments in the next nested row is visible in the table header. This is also a trick
     // to ensure we wait until the deletion is done before we fetch the redux state.
+    cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].editBtn).click();
     cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].uploadTagMulti.tableRowPreview)
       .should('contain.text', filenames[0].nested[1][2]);
+    cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].editBtn).click();
+
 
     cy.getReduxState(simplifyFormData).should('deep.equal', expectedFormDataAfterDeletingFirstNestedRow);
     getState().should('deep.equal', expectedAttachmentStateAfterDeletingFirstNestedRow);
@@ -431,7 +444,7 @@ describe('Repeating group attachments', () => {
     cy.get(appFrontend.group.saveMainGroup).click();
     cy.get(appFrontend.group.saveMainGroup).should('not.exist');
     cy.get(appFrontend.group.rows[0].deleteBtn).click();
-    
+
     verifyPreview(true);
     waitForFormDataSave();
 

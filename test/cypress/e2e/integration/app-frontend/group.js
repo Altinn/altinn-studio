@@ -42,7 +42,7 @@ describe('Group', () => {
           cy.get(table).find(mui.tableElement).find(mui.buttonIcon).first().should('be.visible').click();
         });
       cy.get(appFrontend.group.mainGroup)
-        .siblings(appFrontend.group.editContainer)
+        .find(appFrontend.group.editContainer)
         .find(appFrontend.group.next)
         .should('be.visible')
         .click();
@@ -63,7 +63,7 @@ describe('Group', () => {
       }
 
       cy.get(appFrontend.group.mainGroup)
-        .siblings(appFrontend.group.editContainer)
+        .find(appFrontend.group.editContainer)
         .find(appFrontend.group.back)
         .should('be.visible')
         .click();
@@ -110,7 +110,7 @@ describe('Group', () => {
     cy.get(appFrontend.fieldValidationError.replace('field', 'newValue')).should('not.exist');
     cy.get(appFrontend.group.mainGroup).siblings(appFrontend.group.tableErrors).should('not.exist');
     cy.get(appFrontend.group.mainGroup)
-      .siblings(appFrontend.group.editContainer)
+      .find(appFrontend.group.editContainer)
       .find(appFrontend.group.next)
       .should('be.visible')
       .click();
@@ -139,6 +139,7 @@ describe('Group', () => {
     cy.get(appFrontend.group.secondGroup_currentValue).should('be.visible').type('1').blur();
     cy.get(appFrontend.group.secondGroup_newValue).should('be.visible').type('2').blur();
     cy.get(appFrontend.group.secondGroup_save).focus().should('be.visible').click();
+    cy.get(appFrontend.group.secondGroup_save_and_close).focus().should('be.visible').click();
     cy.get(appFrontend.group.secondGroup_table).find('tbody').find('tr').its('length').should('eq', 1);
   });
 

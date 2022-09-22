@@ -22,6 +22,7 @@ export interface IMobileTableItem {
 
 export interface IAltinnMobileTableItemProps {
   items: IMobileTableItem[];
+  tableItemIndex?: number;
   valid?: boolean;
   editIndex?: number;
   onEditClick: () => void;
@@ -153,10 +154,21 @@ const useStyles = makeStyles({
     overflow: 'hidden',
     textOverflow: 'ellipsis',
   },
+  editingRow: {
+    backgroundColor: 'rgba(227, 247, 255, 0.5)',
+    borderTop: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
+    marginTop: '-1px',
+    borderBottom: 0,
+    boxSizing: 'border-box',
+  },
+  aboveEditingRow: {
+    borderBottom: 0,
+  },
 });
 
 export default function AltinnMobileTableItem({
   items,
+  tableItemIndex,
   valid = true,
   editIndex,
   onEditClick,
@@ -172,9 +184,18 @@ export default function AltinnMobileTableItem({
   return (
     <TableContainer
       component={Grid}
-      className={`${classes.tableContainer} ${
-        valid ? '' : classes.tableRowError
-      }`}
+      className={cn(
+        classes.tableContainer,
+        {
+          [classes.tableRowError]: !valid,
+        },
+        {
+          [classes.editingRow]: tableItemIndex === editIndex,
+        },
+        {
+          [classes.aboveEditingRow]: tableItemIndex === editIndex - 1,
+        },
+      )}
     >
       <Table className={classes.table}>
         <TableBody>
@@ -207,7 +228,8 @@ export default function AltinnMobileTableItem({
                   >
                     <IconButton
                       className={cn(classes.tableEditButton, {
-                        [classes.editButtonActivated]: editIndex === index,
+                        [classes.editButtonActivated]:
+                          editIndex === tableItemIndex,
                       })}
                       onClick={onEditClick}
                       data-testid='edit-button'

@@ -10,6 +10,7 @@ export interface IAltinnTableBody {
 const useStyles = makeStyles((theme) => ({
   tableBody: ({ padding }: IAltinnTableBody) => {
     return {
+      position: 'relative',
       '& td': {
         borderBottom: `1px solid ${theme.altinnPalette.primary.blueMedium}`,
         padding: padding === 'dense' ? '0 12px' : '0 18px 0px 36px',

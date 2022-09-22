@@ -155,6 +155,7 @@ export default class AppFrontend {
       secondGroup_add: '[id^="add-button-group-2"]',
       secondGroup_add_to_reference_group: '[id^="add-reference-button-group-reference"]',
       secondGroup_save: '[id^="save-reference-button-group-reference"]',
+      secondGroup_save_and_close: '[id^="add-button-grp-group-2"]',
       secondGroup_table: '[id^="group-group-2-table"]',
       subGroup: '[id^="group-subGroup"]',
       currentValue: 'input[id^="currentValue"]',

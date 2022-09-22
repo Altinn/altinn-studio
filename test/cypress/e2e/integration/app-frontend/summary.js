@@ -119,7 +119,9 @@ describe('Summary', () => {
 
     // Check to show a couple of nested options, then go back to the summary
     cy.get(appFrontend.group.rows[0].editBtn).click();
-    cy.get(appFrontend.group.mainGroup).siblings(appFrontend.group.editContainer).find(appFrontend.group.next).click();
+    cy.get(appFrontend.group.mainGroup)
+      .find(appFrontend.group.editContainer)
+      .find(appFrontend.group.next).click();
     cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].nestedDynamics).click();
     cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].nestedOptions[1]).click();
     cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].nestedOptions[2]).click();

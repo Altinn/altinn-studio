@@ -15,6 +15,7 @@ const useStyles = makeStyles({
   },
   border: {
     borderTop: `2px solid ${theme.altinnPalette.primary.blueMedium}`,
+    marginTop: '-1px',
   },
 });
 

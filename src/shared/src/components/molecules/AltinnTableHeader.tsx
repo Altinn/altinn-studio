@@ -1,11 +1,13 @@
 import { makeStyles, TableHead } from '@material-ui/core';
 import React from 'react';
 import theme from '../../theme/altinnAppTheme';
+import cn from 'classnames';
 
 export interface IAltinnTableHeaderProps {
   id: string;
   children: React.ReactNode;
   padding?: 'dense';
+  showBorder?: boolean;
 }
 
 const useStyles = makeStyles({
@@ -24,15 +26,23 @@ const useStyles = makeStyles({
       },
     };
   },
+  removeHeader: {
+    borderColor: 'transparent !important',
+    '& th': {
+      borderColor: 'transparent !important',
+    },
+  },
 });
 
 export function AltinnTableHeader(props: IAltinnTableHeaderProps) {
-  const { children, id } = props;
+  const { children, id, showBorder } = props;
   const classes = useStyles(props);
   return (
     <TableHead
       id={id}
-      className={classes.tableHeader}
+      className={cn(classes.tableHeader, {
+        [classes.removeHeader]: !showBorder,
+      })}
     >
       {children}
     </TableHead>

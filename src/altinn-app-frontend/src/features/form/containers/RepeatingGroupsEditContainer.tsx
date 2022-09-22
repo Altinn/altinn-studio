@@ -1,7 +1,8 @@
 import React from 'react';
 
 import { Button, ButtonVariant } from '@altinn/altinn-design-system';
-import { createTheme, Grid, makeStyles } from '@material-ui/core';
+import { createTheme, Grid, IconButton, makeStyles } from '@material-ui/core';
+import cn from 'classnames';
 
 import { renderGenericComponent } from 'src/utils/layout';
 import type {
@@ -18,14 +19,18 @@ import type { ILanguage } from 'altinn-shared/types';
 
 export interface IRepeatingGroupsEditContainer {
   id: string;
+  className?: string;
   container: ILayoutGroup;
   repeatingGroupDeepCopyComponents: (ILayoutComponent | ILayoutGroup)[][];
   language: ILanguage;
   textResources: ITextResource[];
   layout: ILayout;
+  deleting?: boolean;
   editIndex: number;
+  onClickRemove?: (groupIndex: number) => void;
   onClickSave: () => void;
   hideSaveButton?: boolean;
+  hideDeleteButton?: boolean;
   multiPageIndex?: number;
   setMultiPageIndex?: (index: number) => void;
 }
@@ -41,10 +46,9 @@ const useStyles = makeStyles({
     paddingTop: '12px',
     width: '100%',
     marginBottom: '24px',
-    backgroundColor: 'rgba(227, 247, 255, 0.3)',
+    backgroundColor: 'rgba(227, 247, 255, 0.5)',
     '@media (min-width:768px)': {
       padding: '24px',
-      border: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
     },
     '@media (min-width:993px)': {
       padding: '36px',
@@ -87,14 +91,18 @@ const style = {
 
 export function RepeatingGroupsEditContainer({
   id,
+  className,
   container,
   repeatingGroupDeepCopyComponents,
   language,
   textResources,
   layout,
+  deleting,
   editIndex,
+  onClickRemove,
   onClickSave,
   hideSaveButton,
+  hideDeleteButton,
   multiPageIndex,
   setMultiPageIndex,
 }: IRepeatingGroupsEditContainer): JSX.Element {
@@ -107,14 +115,42 @@ export function RepeatingGroupsEditContainer({
     }
   };
 
+  const removeClicked = () => {
+    onClickRemove(editIndex);
+    if (container.edit?.multiPage) {
+      setMultiPageIndex(0);
+    }
+  };
+
   return (
-    <div className={classes.editContainer}>
+    <div className={cn([classes.editContainer], className)}>
       <Grid
         container={true}
         item={true}
         direction='row'
         spacing={3}
       >
+        {!hideDeleteButton && container.edit?.mode === 'showAll' && (
+          <Grid
+            item={true}
+            container={true}
+            direction='column'
+            alignItems='flex-end'
+            spacing={3}
+            className={classes.deleteItem}
+          >
+            <Grid item={true}>
+              <IconButton
+                classes={{ root: classes.deleteButton }}
+                disabled={deleting}
+                onClick={removeClicked}
+              >
+                <i className='ai ai-trash' />
+                {getLanguageFromKey('general.delete', language)}
+              </IconButton>
+            </Grid>
+          </Grid>
+        )}
         <Grid
           container={true}
           alignItems='flex-start'
