@@ -1,10 +1,10 @@
 import { FieldType, JsonSchemaNode, ObjectKind, UiSchemaNode } from '../types';
 import { arrayIntersection, arrayUnique, getCombinationKind, getObjectKind } from '../utils';
 import {
-  ArrayRestrictions,
-  IntegerRestrictions,
-  ObjectRestrictions,
-  StringRestrictions,
+  ArrRestrictionKeys,
+  IntRestrictionKeys,
+  ObjRestrictionKeys,
+  StrRestrictionKeys,
 } from '../restrictions';
 
 export const isCompundFieldType = (schemaNodeType: string | string[]) =>
@@ -25,13 +25,13 @@ export const getUiFieldType = (schemaNode: JsonSchemaNode) => {
   } else if (isCompundFieldType(schemaNode.type)) {
     // @see SeresNillable.json, we need to support types where stuff can be null.
     return schemaNode.type.filter((t: FieldType) => t !== FieldType.Null).pop();
-  } else if (arrayIntersection(keys, Object.values(IntegerRestrictions)).length) {
+  } else if (arrayIntersection(keys, Object.values(IntRestrictionKeys)).length) {
     return FieldType.Number;
-  } else if (arrayIntersection(keys, Object.values(ArrayRestrictions)).length) {
+  } else if (arrayIntersection(keys, Object.values(ArrRestrictionKeys)).length) {
     return FieldType.Boolean;
-  } else if (arrayIntersection(keys, Object.values(StringRestrictions)).length) {
+  } else if (arrayIntersection(keys, Object.values(StrRestrictionKeys)).length) {
     return FieldType.String;
-  } else if (arrayIntersection(keys, Object.values(ObjectRestrictions)).length) {
+  } else if (arrayIntersection(keys, Object.values(ObjRestrictionKeys)).length) {
     return FieldType.Object;
   } else if (Array.isArray(schemaNode.enum) && schemaNode.enum.length) {
     return getEnumFieldType(schemaNode.enum);

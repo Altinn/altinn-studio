@@ -4,7 +4,7 @@ import { createPointerLookupTable } from './lib/utils';
 export * from './lib/build-ui-schema';
 export * from './lib/build-json-schema';
 export * from './lib/types';
-export { getRestrictions } from './lib/restrictions';
+export * from './lib/restrictions';
 
 export const isPointerInUse = (uiNodeMap: UiSchemaMap, pointer: string) => {
   return createPointerLookupTable(uiNodeMap).has(pointer);
