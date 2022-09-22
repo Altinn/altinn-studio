@@ -84,7 +84,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         // REMARKS: Autosave in FE results in old md files that never will be overwritten when client change ID.
         // returns Tuple(Dictionary<string, string>, Dictionary<string, string>) of keys and texts that should be stored as markdown
-        private static (Dictionary<string, string> textsWithMd, Dictionary<string, string> texts) ExtractMarkdown(string languageCode, Dictionary<string, string> texts)
+        private static (Dictionary<string, string> TtextsWithMd, Dictionary<string, string> Ttexts) ExtractMarkdown(string languageCode, Dictionary<string, string> texts)
         {
             Dictionary<string, string> textsWithMd = new Dictionary<string, string>();
             foreach (KeyValuePair<string, string> text in texts)
