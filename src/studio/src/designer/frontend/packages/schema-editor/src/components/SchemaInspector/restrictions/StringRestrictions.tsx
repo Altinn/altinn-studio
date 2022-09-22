@@ -5,6 +5,8 @@ import { RestrictionField } from '../RestrictionField';
 import { getTranslation } from '../../../utils/language';
 import classes from './StringRestrictions.module.css';
 import { TextField } from "@altinn/altinn-design-system";
+import { Divider } from "../Divider";
+import { Label } from "../Label";
 
 export function StringRestrictions({ restrictions, path, language, onChangeRestrictionValue }: RestrictionItemProps) {
   const t = (key: string) => getTranslation(key, language);
@@ -33,7 +35,7 @@ export function StringRestrictions({ restrictions, path, language, onChangeRestr
           value={restrictions.find((r) => r.key === Restrictions.maxLength)?.value || ''}
         />
       </div>
-      <hr/>
+      <Divider />
       <RestrictionField
         keyName={Restrictions.pattern}
         label={t(Restrictions.pattern)}
@@ -42,7 +44,7 @@ export function StringRestrictions({ restrictions, path, language, onChangeRestr
         value={pattern}
       />
       <div className={classes.regexTestLabel}>
-        <label htmlFor='regextestfield'>{t('pattern_test_field')}</label>
+        <Label htmlFor='regextestfield'>{t('pattern_test_field')}</Label>
         {pattern && (
           regexTestValueMatchesRegex
             ? <span className={classes.regexTestMatchIndicatorTrue}>{t('pattern_matches')}</span>

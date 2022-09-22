@@ -4,12 +4,13 @@ import { getRestrictions } from '../../../utils/restrictions';
 import { RestrictionField } from '../RestrictionField';
 import { FieldType } from '../../../types';
 import { getTranslation } from '../../../utils/language';
+import { Divider } from "../Divider";
 
 export function ArrayRestrictions({ restrictions, language, path, onChangeRestrictionValue }: RestrictionItemProps) {
   const defaults = getRestrictions(FieldType.Array);
   return (
     <>
-      <hr/>
+      <Divider />
       {defaults?.map((key: string) => (
         <RestrictionField
           key={key}

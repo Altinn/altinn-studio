@@ -26,6 +26,9 @@ import { getCombinationOptions, getTypeOptions } from './helpers/options';
 import { ErrorMessage, TextField } from '@altinn/altinn-design-system';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from "./ItemRestrictions";
+import { Divider } from "./Divider";
+import { Label } from "./Label";
+import { Fieldset } from "./Fieldset";
 
 export interface IItemDataComponentProps {
   selectedItem: UiSchemaItem | null;
@@ -189,7 +192,7 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
       const typeSelectId = `${getDomFriendlyID(selectedItem.path)}-type-select`;
       return (
         <>
-          <label htmlFor={typeSelectId}>{t('type')}</label>
+          <Label htmlFor={typeSelectId}>{t('type')}</Label>
           <TypeSelect
             value={selectedItem.type === FieldType.Array ? arrayType : fieldType}
             id={typeSelectId}
@@ -207,7 +210,7 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
       const combinationSelectId = `${getDomFriendlyID(selectedItem?.path || '')}-combi-sel`;
       return (
         <>
-          <label htmlFor={combinationSelectId}>{t('type')}</label>
+          <Label htmlFor={combinationSelectId}>{t('type')}</Label>
           <CombinationSelect
             id={combinationSelectId}
             label={t('type')}
@@ -227,7 +230,7 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
     <div>
       {!selectedItem?.combinationItem && (
         <>
-          <label htmlFor='selectedItemName'>{t('name')}</label>
+          <Label htmlFor='selectedItemName'>{t('name')}</Label>
           <TextField
             aria-describedby='Selected Item Name'
             id='selectedItemName'
@@ -285,17 +288,16 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
         />
       )}
       {selectedItem && <ItemRestrictions item={selectedItem} language={language}/>}
-      <hr/>
-      <fieldset>
-        <legend>{t('descriptive_fields')}</legend>
-        <label htmlFor={titleId}>{t('title')}</label>
+      <Divider />
+      <Fieldset legend={t('descriptive_fields')}>
+        <Label htmlFor={titleId}>{t('title')}</Label>
         <TextField
           id={titleId}
           onBlur={onChangeTitle}
           onChange={(e) => setItemTitle(e.target.value)}
           value={title}
         />
-        <label htmlFor={descriptionId}>{t('description')}</label>
+        <Label htmlFor={descriptionId}>{t('description')}</Label>
         <MaterialTextField
           InputProps={{disableUnderline: true}}
           className={classes.field}
@@ -308,7 +310,7 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
           style={{ height: 100 }}
           value={description}
         />
-      </fieldset>
+      </Fieldset>
     </div>
   );
 }

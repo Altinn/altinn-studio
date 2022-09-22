@@ -9,7 +9,9 @@ import { ArrayRestrictions } from './restrictions/ArrayRestrictions';
 import { NumberRestrictions } from './restrictions/NumberRestrictions';
 import { ObjectRestrictions } from './restrictions/ObjectRestrictions';
 import { StringRestrictions } from './restrictions/StringRestrictions';
-import styles from './ItemRestrictions.module.css';
+import classes from './ItemRestrictions.module.css';
+import { Divider } from "./Divider";
+import { Fieldset } from "./Fieldset";
 
 export interface RestrictionItemProps {
   restrictions: Restriction[];
@@ -99,10 +101,9 @@ export const ItemRestrictions = ({ item, language }: Props) => {
       )}
       {item.type !== FieldType.Object && (
         <>
-          <hr/>
-          <fieldset className={styles.enumFieldset}>
-            <legend>Liste med gyldige verdier</legend>
-            {!item.enum?.length && <p>{t('enum_empty')}</p>}
+          <Divider />
+          <Fieldset legend={t('enum_legend')}>
+            {!item.enum?.length && <p className={classes.emptyEnumMessage}>{t('enum_empty')}</p>}
             {item.enum?.map((value: string, index) => (
               <EnumField
                 fullWidth={true}
@@ -117,14 +118,14 @@ export const ItemRestrictions = ({ item, language }: Props) => {
             ))}
             <button
               aria-label={t('add_enum')}
-              className={styles.addEnumButton}
+              className={classes.addEnumButton}
               id='add-enum-button'
               onClick={onAddEnumButtonClick}
             >
               <i/>
               <span>{t('add_enum')}</span>
             </button>
-          </fieldset>
+          </Fieldset>
         </>
       )}
     </div>

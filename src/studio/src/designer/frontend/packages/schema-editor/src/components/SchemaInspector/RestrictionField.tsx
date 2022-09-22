@@ -1,6 +1,7 @@
 import React, { BaseSyntheticEvent } from 'react';
 import { getDomFriendlyID } from '../../utils/schema';
 import { TextField } from "@altinn/altinn-design-system";
+import { Label } from "./Label";
 
 export interface IRestrictionFieldProps {
   className?: string;
@@ -27,7 +28,7 @@ export const RestrictionField = ({
 
   return (
     <div className={className}>
-      <label htmlFor={fieldId}>{label}</label>
+      <Label htmlFor={fieldId}>{label}</Label>
       <TextField
         id={fieldId}
         value={value ?? ''}

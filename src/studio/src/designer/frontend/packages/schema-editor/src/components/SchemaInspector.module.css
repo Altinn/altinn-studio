@@ -9,23 +9,6 @@
   width: 150px;
 }
 
-.root hr {
-  border-color: rgba(0, 0, 0, 0.12);
-  border-style: solid;
-  border-width: 1px 0 0 0;
-  margin: 2rem 0;
-}
-
-.root label {
-  display: block;
-  margin-bottom: 6px;
-  margin-top: 2rem;
-}
-
-.root legend {
-  font-weight: bold;
-}
-
 .header {
   font-size: 16px;
   font-weight: 400;
