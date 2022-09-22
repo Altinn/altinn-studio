@@ -41,8 +41,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-            // Dictionary<string, string> jsonTextsWithoutMd = ExtractMarkdown(languageCode, jsonTexts)
-            await altinnAppGitRepository.SaveTextsV2(languageCode, jsonTexts);
+            (Dictionary<string, string>, Dictionary<string, string>) textsExtractedMd = ExtractMarkdown(languageCode, jsonTexts);
+
+            foreach (KeyValuePair<string, string> text in textsExtractedMd.Item1)
+            {
+                await altinnAppGitRepository.SaveTextMarkdown(languageCode, text);
+            }
+
+            await altinnAppGitRepository.SaveTextsV2(languageCode, textsExtractedMd.Item2);
         }
 
         /// <inheritdoc />
@@ -53,21 +59,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
             altinnAppGitRepository.DeleteTexts(languageCode);
         }
 
+        // REMARKS: Autosave in FE results in old md files that never will be overwritten when client change ID.
         // returns Tuple(Dictionary<string, string>, Dictionary<string, string>) of keys and texts that should be stored as markdown
-        private Tuple<Dictionary<string, string>, Dictionary<string, string>> ExtractMarkdown(string languageCode, Dictionary<string, string> texts)
+        private (Dictionary<string, string> textsWithMd, Dictionary<string, string> texts) ExtractMarkdown(string languageCode, Dictionary<string, string> texts)
         {
             Dictionary<string, string> textsWithMd = new Dictionary<string, string>();
             foreach (KeyValuePair<string, string> text in texts)
             {
                 if (text.Value.Contains('\n'))
                 {
-                    string fileName = $"{text.Key}.{languageCode}.md";
-                    text.Value = "${{}}";
-
+                    textsWithMd[text.Key] = text.Value;
+                    string fileName = $"{text.Key}.{languageCode}.texts.md";
+                    texts[text.Key] = "${{" + fileName + "}}";
                 }
             }
 
-            return Tuple.Create(texts, texts);
+            return (textsWithMd, texts);
         }
     }
 }

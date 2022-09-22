@@ -18,19 +18,21 @@ using Formatting = Newtonsoft.Json.Formatting;
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 {
     /// <summary>
-    /// Class representing a application specific git repository.
+    /// Class representing an application specific git repository.
     /// </summary>
     /// <remarks>This class knows that the repository is an Altinn application and hence knows
     /// about folders and file names and can map them to their respective models.
-    /// It shoud however, not have any business logic. The <see cref="GetTextResourcesForAllLanguages"/> method is borderline
+    /// It should however, not have any business logic. The <see cref="GetTextResourcesForAllLanguages"/> method is borderline
     /// as it merges multiple on-disk models into another structure.</remarks>
     public class AltinnAppGitRepository : AltinnGitRepository
     {
         private const string MODEL_FOLDER_PATH = "App/models/";
         private const string CONFIG_FOLDER_PATH = "App/config/";
         private const string LANGUAGE_RESOURCE_FOLDER_NAME = "texts/";
+        private const string MARKDOWN_TEXTS_FOLDER_NAME = "md/";
 
         private const string APP_METADATA_FILENAME = "applicationmetadata.json";
+        private const string TEXT_FILES_PATTERN = "*.texts.*";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AltinnGitRepository"/> class.
@@ -204,6 +206,20 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+        /// Overwrite or creates a markdown file for a specific text for a specific language.
+        /// </summary>
+        /// <param name="languageCode">Language identifier</param>
+        /// <param name="text">Keyvaluepair containing markdown text</param>
+        public async Task SaveTextMarkdown(string languageCode, KeyValuePair<string, string> text)
+        {
+            string fileName = $"{text.Key}.{languageCode}.texts.md";
+
+            var textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, MARKDOWN_TEXTS_FOLDER_NAME, fileName);
+
+            await WriteTextByRelativePathAsync(textsFileRelativeFilePath, text.Value, true);
+        }
+
+        /// <summary>
         /// Gets a merged set of all text resources in the application.
         /// </summary>
         /// Format of the dictionary is: &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
@@ -287,11 +303,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="languageCode">Language identifier</param>
         public void DeleteTexts(string languageCode)
         {
-            string fileName = $"{languageCode}.texts.json";
-
-            var textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
-
-            DeleteFileByRelativePath(textsFileRelativeFilePath);
+            // string fileName = $"{languageCode}.texts.json";
+            foreach (string fileNamePath in FindFiles(new string[] { TEXT_FILES_PATTERN }))
+            {
+                string fileName = Path.GetFileName(fileNamePath);
+                var textsFileRelativeFilePath = fileName.Contains(".md") ? Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, MARKDOWN_TEXTS_FOLDER_NAME, fileName) : Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
+                DeleteFileByRelativePath(textsFileRelativeFilePath);
+            }
         }
 
         /// <summary>
