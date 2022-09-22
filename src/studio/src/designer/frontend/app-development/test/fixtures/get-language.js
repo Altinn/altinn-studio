@@ -7,7 +7,7 @@ require('fs')
   .filter(line => !line.startsWith('#') && !line.startsWith(';') && line.length)
   .forEach(line => {
     if (/^\[.*]$/.test(line)) {
-      currentCategory = line.replace(/^\[|]$/g,'');
+      currentCategory = line.replace(/(^\[)|(]$)/g, '');
       module.exports[currentCategory] = {};
     } else if (currentCategory?.length) {
       const firstEqualsSignIndex = line.indexOf('=');
