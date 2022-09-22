@@ -12,7 +12,7 @@ import type { IFormData } from 'src/features/form/data';
 import type { ILayouts } from 'src/features/form/layout';
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import type { IAttachments } from 'src/shared/resources/attachments';
-import type { IRuntimeState } from 'src/types';
+import type { ILayoutSets, IRuntimeState } from 'src/types';
 
 import type { IData, IInstance } from 'altinn-shared/types';
 
@@ -39,12 +39,19 @@ export const SelectFormData = (state: IRuntimeState): IFormData =>
   state.formData.formData;
 export const SelectFormLayouts = (state: IRuntimeState): ILayouts =>
   state.formLayout.layouts;
+export const SelectFormLayoutSets = (state: IRuntimeState): ILayoutSets =>
+  state.formLayout.layoutsets;
 
 export function* mapAttachments(): SagaIterator {
   try {
     const instance = yield select(SelectInstance);
     const applicationMetadata = yield select(SelectApplicationMetaData);
-    const defaultElement = getCurrentTaskData(applicationMetadata, instance);
+    const layoutSets: ILayoutSets = yield select(SelectFormLayoutSets);
+    const defaultElement = getCurrentTaskData(
+      applicationMetadata,
+      instance,
+      layoutSets,
+    );
 
     const formData = yield select(SelectFormData);
     const layouts = yield select(SelectFormLayouts);

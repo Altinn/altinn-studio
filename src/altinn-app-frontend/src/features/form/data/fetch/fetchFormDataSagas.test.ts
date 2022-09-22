@@ -51,7 +51,12 @@ describe('fetchFormDataSagas', () => {
   it('should fetch form data', () => {
     const appMetadata = appMetaDataSelector(mockInitialState);
     const instance = instanceDataSelector(mockInitialState);
-    const taskId = getCurrentTaskDataElementId(appMetadata, instance);
+    const layoutSets: ILayoutSets = { sets: [] };
+    const taskId = getCurrentTaskDataElementId(
+      appMetadata,
+      instance,
+      layoutSets,
+    );
     const url = appUrlHelper.getFetchFormDataUrl(instance.id, taskId);
 
     expectSaga(fetchFormDataSaga)
@@ -106,7 +111,12 @@ describe('fetchFormDataSagas', () => {
   it('should fetch form data initial', () => {
     const appMetadata = appMetaDataSelector(mockInitialState);
     const instance = instanceDataSelector(mockInitialState);
-    const taskId = getCurrentTaskDataElementId(appMetadata, instance);
+    const layoutSets: ILayoutSets = { sets: [] };
+    const taskId = getCurrentTaskDataElementId(
+      appMetadata,
+      instance,
+      layoutSets,
+    );
     const url = appUrlHelper.getFetchFormDataUrl(instance.id, taskId);
 
     expectSaga(fetchFormDataInitialSaga)

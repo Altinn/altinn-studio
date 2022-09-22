@@ -121,6 +121,7 @@ export function* putFormData(state: IRuntimeState, model: any) {
   const defaultDataElementGuid = getCurrentTaskDataElementId(
     state.applicationMetadata.applicationMetadata,
     state.instanceData.instance,
+    state.formLayout.layoutsets,
   );
   try {
     yield call(put, dataElementUrl(defaultDataElementGuid), model);

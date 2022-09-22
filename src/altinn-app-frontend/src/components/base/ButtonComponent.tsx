@@ -13,7 +13,6 @@ export interface IButtonProvidedProps
   extends IComponentProps,
     ILayoutCompButton {
   disabled: boolean;
-  formDataCount: number;
 }
 
 const buttonStyle = {
@@ -36,7 +35,7 @@ const rowStyle = {
   marginLeft: '0',
 };
 
-export function ButtonComponent(props: IButtonProvidedProps) {
+export function ButtonComponent({ id, text, language }: IButtonProvidedProps) {
   const dispatch = useAppDispatch();
   const autoSave = useAppSelector(
     (state) => state.formLayout.uiConfig.autoSave,
@@ -57,10 +56,10 @@ export function ButtonComponent(props: IButtonProvidedProps) {
             type='submit'
             className='a-btn a-btn-success'
             onClick={submitForm}
-            id={props.id}
+            id={id}
             style={buttonStyle}
           >
-            {props.text}
+            {text}
           </button>
         )}
       </div>
@@ -94,7 +93,7 @@ export function ButtonComponent(props: IButtonProvidedProps) {
   const renderLoader = () => {
     return (
       <AltinnLoader
-        srContent={getLanguageFromKey('general.loading', props.language)}
+        srContent={getLanguageFromKey('general.loading', language)}
         style={altinnLoaderStyle}
       />
     );

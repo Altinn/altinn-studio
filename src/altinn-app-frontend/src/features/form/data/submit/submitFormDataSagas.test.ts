@@ -79,6 +79,7 @@ describe('submitFormDataSagas', () => {
     const defaultDataElementGuid = getCurrentTaskDataElementId(
       state.applicationMetadata.applicationMetadata,
       state.instanceData.instance,
+      state.formLayout.layoutsets,
     );
     return expectSaga(saveFormDataSaga)
       .provide([

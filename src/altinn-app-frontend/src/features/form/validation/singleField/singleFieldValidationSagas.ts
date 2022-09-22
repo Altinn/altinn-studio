@@ -17,6 +17,7 @@ export function* runSingleFieldValidationSaga(): SagaIterator {
   const currentTaskDataId = getCurrentTaskDataElementId(
     state.applicationMetadata.applicationMetadata,
     state.instanceData.instance,
+    state.formLayout.layoutsets,
   );
   const url = getDataValidationUrl(
     state.instanceData.instance.id,

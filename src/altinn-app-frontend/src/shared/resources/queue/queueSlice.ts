@@ -100,7 +100,6 @@ const queueSlice = createSagaSlice((mkAction: MkActionType<IQueueState>) => ({
       takeEvery: function* (): SagaIterator {
         yield put(FormDataActions.fetchInitial());
         yield put(DataModelActions.fetchJsonSchema());
-        yield put(FormLayoutActions.fetchSets());
         yield put(FormLayoutActions.fetch());
         yield put(FormLayoutActions.fetchSettings());
         yield put(AttachmentActions.mapAttachments());
@@ -131,7 +130,6 @@ const queueSlice = createSagaSlice((mkAction: MkActionType<IQueueState>) => ({
         yield put(IsLoadingActions.startStatelessIsLoading());
         yield put(FormDataActions.fetchInitial());
         yield put(DataModelActions.fetchJsonSchema());
-        yield put(FormLayoutActions.fetchSets());
         yield put(FormLayoutActions.fetch());
         yield put(FormLayoutActions.fetchSettings());
         yield put(QueueActions.startInitialStatelessQueueFulfilled());

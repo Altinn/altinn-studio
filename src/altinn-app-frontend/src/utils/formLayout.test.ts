@@ -1,4 +1,5 @@
 import {
+  behavesLikeDataTask,
   createRepeatingGroupComponents,
   extractBottomButtons,
   findChildren,
@@ -16,7 +17,12 @@ import type {
   ILayoutGroup,
 } from 'src/features/form/layout';
 import type { IAttachmentState } from 'src/shared/resources/attachments';
-import type { IMapping, IRepeatingGroups, ITextResource } from 'src/types';
+import type {
+  ILayoutSets,
+  IMapping,
+  IRepeatingGroups,
+  ITextResource,
+} from 'src/types';
 
 describe('setMappingForRepeatingGroupComponent', () => {
   it('should replace indexed mapping with the current index', () => {
@@ -944,5 +950,25 @@ describe('extractBottomButtons', () => {
       },
     ]);
     expect(onlyIds(extractedButtons)).toEqual(['bottomButton']);
+  });
+});
+
+describe('behavesLikeDataTask', () => {
+  const layoutSets: ILayoutSets = {
+    sets: [
+      { id: 'set_1', dataType: 'SomeType', tasks: ['Task_1'] },
+      { id: 'set_2', dataType: 'SomeType', tasks: ['Task_2'] },
+    ],
+  };
+  it('should return true if a given task has configured a layout set', () => {
+    const task = 'Task_1';
+    const result = behavesLikeDataTask(task, layoutSets);
+    expect(result).toBe(true);
+  });
+
+  it('should return false if a given task is not configured as a layout set', () => {
+    const task = 'Task_3';
+    const result = behavesLikeDataTask(task, layoutSets);
+    expect(result).toBe(false);
   });
 });

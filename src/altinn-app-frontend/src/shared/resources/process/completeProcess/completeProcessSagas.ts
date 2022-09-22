@@ -1,11 +1,13 @@
 import { call, put as sagaPut, select } from 'redux-saga/effects';
 import type { SagaIterator } from 'redux-saga';
 
+import { layoutSetsSelector } from 'src/selectors/simpleSelectors';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 import { IsLoadingActions } from 'src/shared/resources/isLoading/isLoadingSlice';
 import { ProcessActions } from 'src/shared/resources/process/processSlice';
 import { ProcessTaskType } from 'src/types';
 import { getCompleteProcessUrl } from 'src/utils/appUrlHelper';
+import { behavesLikeDataTask } from 'src/utils/formLayout';
 import type { IInstanceDataState } from 'src/shared/resources/instanceData';
 import type { IRuntimeState } from 'src/types';
 
@@ -34,9 +36,10 @@ export function* completeProcessSaga(): SagaIterator {
           taskId: result.currentTask.elementId,
         }),
       );
+      const layoutSets = yield select(layoutSetsSelector);
       if (
-        (result.currentTask.altinnTaskType as ProcessTaskType) ===
-        ProcessTaskType.Data
+        result.currentTask.altinnTaskType === ProcessTaskType.Data ||
+        behavesLikeDataTask(result.currentTask.elementId, layoutSets)
       ) {
         yield sagaPut(IsLoadingActions.startDataTaskIsLoading());
         const instanceData: IInstanceDataState = yield select(

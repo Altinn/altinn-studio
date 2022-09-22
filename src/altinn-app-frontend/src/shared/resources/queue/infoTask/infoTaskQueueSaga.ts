@@ -2,6 +2,7 @@ import { all, call, put, select, take } from 'redux-saga/effects';
 import type { SagaIterator } from 'redux-saga';
 
 import { FormDataActions } from 'src/features/form/data/formDataSlice';
+import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 import { IsLoadingActions } from 'src/shared/resources/isLoading/isLoadingSlice';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import { TextResourcesActions } from 'src/shared/resources/textResources/textResourcesSlice';
@@ -72,6 +73,7 @@ export function* watchStartInitialInfoTaskQueueSaga(): SagaIterator {
   yield all([
     take(QueueActions.startInitialInfoTaskQueue),
     take(TextResourcesActions.fetchFulfilled),
+    take(InstanceDataActions.getFulfilled),
   ]);
   yield call(startInitialInfoTaskQueueSaga);
 }

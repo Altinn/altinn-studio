@@ -2,22 +2,17 @@ import { instanceOwner, partyTypesAllowed } from '__mocks__/constants';
 
 import {
   getCurrentDataTypeForApplication,
+  getCurrentDataTypeId,
   getCurrentTaskData,
   getCurrentTaskDataElementId,
-  getDataTaskDataTypeId,
   getLayoutSetIdForApplication,
   isStatelessApp,
 } from 'src/utils/appMetadata';
 import type { ILayoutSets } from 'src/types';
 
-import type {
-  IApplication,
-  IData,
-  IDataType,
-  IInstance,
-} from 'altinn-shared/types';
+import type { IApplication, IData, IInstance } from 'altinn-shared/types';
 
-describe('utils/appmetadata.ts', () => {
+describe('appMetadata.ts', () => {
   const application: IApplication = {
     id: 'ttd/stateless-app-demo',
     org: 'ttd',
@@ -37,6 +32,17 @@ describe('utils/appmetadata.ts', () => {
         appLogic: {
           autoCreate: true,
           classRef: 'Altinn.App.Models.StatelessV1',
+        },
+        taskId: 'Task_1',
+        maxCount: 1,
+        minCount: 1,
+      },
+      {
+        id: 'Datamodel-for-confirm',
+        allowedContentTypes: ['application/xml'],
+        appLogic: {
+          autoCreate: true,
+          classRef: 'Altinn.App.Models.Confirm',
         },
         taskId: 'Task_1',
         maxCount: 1,
@@ -193,15 +199,21 @@ describe('utils/appmetadata.ts', () => {
   });
 
   describe('getCurrentTaskDataElementId', () => {
+    const layoutSets: ILayoutSets = { sets: [] };
     it('should return current task data element id', () => {
-      const result = getCurrentTaskDataElementId(application, instance);
+      const result = getCurrentTaskDataElementId(
+        application,
+        instance,
+        layoutSets,
+      );
       expect(result).toEqual('datamodel-data-guid');
     });
   });
 
   describe('getCurrentTaskData', () => {
+    const layoutSets: ILayoutSets = { sets: [] };
     it('should return current task data', () => {
-      const result = getCurrentTaskData(application, instance);
+      const result = getCurrentTaskData(application, instance, layoutSets);
       const expected = instance.data.find(
         (e) => e.id === 'datamodel-data-guid',
       );
@@ -209,59 +221,46 @@ describe('utils/appmetadata.ts', () => {
     });
   });
 
-  describe('getDataTaskDataTypeId', () => {
-    it('should return data task type id from element that has appLogic.schemaRef and connected taskId', () => {
-      const dataTypes: IDataType[] = [
-        {
-          id: 'ref-data-as-pdf',
-          allowedContentTypes: ['application/pdf'],
-          maxCount: 0,
-          minCount: 0,
-        },
-        {
-          id: 'type-with-no-schemaRef',
-          allowedContentTypes: ['application/xml'],
-          maxCount: 0,
-          minCount: 0,
-          appLogic: {},
-          taskId: 'Task_1',
-        },
-        {
-          id: 'type-with-schemaRef',
-          allowedContentTypes: ['application/xml'],
-          maxCount: 0,
-          minCount: 0,
-          appLogic: {
-            classRef: 'Altinn.Skjema',
-          },
-          taskId: 'Task_1',
-        },
-      ];
-
-      const result = getDataTaskDataTypeId('Task_1', dataTypes);
-      expect(result).toBe('type-with-schemaRef');
+  describe('getCurrentDataTypeId', () => {
+    it('should return connected dataTypeId in app metadata if no layout set is configured', () => {
+      const layoutSets: ILayoutSets = { sets: [] };
+      const result = getCurrentDataTypeId(application, instance, layoutSets);
+      const expected = 'Datamodel';
+      expect(result).toEqual(expected);
     });
 
-    it('should not return data task type id if element has appLogic and connected taskId but is missing schemaRef', () => {
-      const dataTypes: IDataType[] = [
-        {
-          id: 'ref-data-as-pdf',
-          allowedContentTypes: ['application/pdf'],
-          maxCount: 0,
-          minCount: 0,
+    it('should return connected dataTypeId based on data type defined in layout sets if the current task has this configured', () => {
+      const instanceInConfirm: IInstance = {
+        ...instance,
+        process: {
+          ...instance.process,
+          currentTask: {
+            ...instance.process.currentTask,
+            flow: 3,
+            elementId: 'Task_2',
+            name: 'Bekreftelse',
+            altinnTaskType: 'confirm',
+          },
         },
-        {
-          id: 'simpel-model',
-          allowedContentTypes: ['application/xml'],
-          maxCount: 0,
-          minCount: 0,
-          appLogic: {},
-          taskId: 'Task_1',
-        },
-      ];
+      };
 
-      const result = getDataTaskDataTypeId('Task_1', dataTypes);
-      expect(result).toBe(undefined);
+      const layoutSets: ILayoutSets = {
+        sets: [
+          {
+            id: 'confirm',
+            dataType: 'Datamodel-for-confirm',
+            tasks: ['Task_2'],
+          },
+        ],
+      };
+
+      const result = getCurrentDataTypeId(
+        application,
+        instanceInConfirm,
+        layoutSets,
+      );
+      const expected = 'Datamodel-for-confirm';
+      expect(result).toEqual(expected);
     });
   });
 });

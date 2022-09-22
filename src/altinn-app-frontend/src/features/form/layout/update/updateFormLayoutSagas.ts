@@ -22,8 +22,8 @@ import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import { Triggers } from 'src/types';
 import {
   getCurrentDataTypeForApplication,
+  getCurrentDataTypeId,
   getCurrentTaskDataElementId,
-  getDataTaskDataTypeId,
   isStatelessApp,
 } from 'src/utils/appMetadata';
 import {
@@ -356,6 +356,7 @@ export function* updateCurrentViewSaga({
       const currentTaskDataId = getCurrentTaskDataElementId(
         state.applicationMetadata.applicationMetadata,
         state.instanceData.instance,
+        state.formLayout.layoutsets,
       );
       const serverValidation: any = yield call(
         get,
@@ -444,9 +445,10 @@ export function* calculatePageOrderAndMoveToNextPageSaga({
       layoutSetId = state.applicationMetadata.applicationMetadata.onEntry.show;
     } else {
       const instance = state.instanceData.instance;
-      dataTypeId = getDataTaskDataTypeId(
-        instance.process.currentTask.elementId,
-        state.applicationMetadata.applicationMetadata.dataTypes,
+      dataTypeId = getCurrentDataTypeId(
+        state.applicationMetadata.applicationMetadata,
+        instance,
+        state.formLayout.layoutsets,
       );
       if (layoutSets != null) {
         layoutSetId = getLayoutsetForDataElement(
@@ -567,6 +569,7 @@ export function* updateRepeatingGroupEditIndexSaga({
       const currentTaskDataId = getCurrentTaskDataElementId(
         state.applicationMetadata.applicationMetadata,
         state.instanceData.instance,
+        state.formLayout.layoutsets,
       );
       const serverValidations: IValidationIssue[] = yield call(
         get,

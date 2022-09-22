@@ -6,6 +6,7 @@ import { IsLoadingActions } from 'src/shared/resources/isLoading/isLoadingSlice'
 import { ProcessActions } from 'src/shared/resources/process/processSlice';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import { ProcessTaskType } from 'src/types';
+import { behavesLikeDataTask } from 'src/utils/formLayout';
 
 export function useProcess() {
   const dispatch = useAppDispatch();
@@ -15,6 +16,7 @@ export function useProcess() {
     (state) => state.applicationMetadata.applicationMetadata,
   );
   const process = useAppSelector((state) => state.process);
+  const layoutSets = useAppSelector((state) => state.formLayout.layoutsets);
 
   React.useEffect(() => {
     if (!applicationMetadata || !instanceData) {
@@ -26,11 +28,15 @@ export function useProcess() {
       return;
     }
 
+    if (
+      process.taskType === ProcessTaskType.Data ||
+      behavesLikeDataTask(process.taskId, layoutSets)
+    ) {
+      dispatch(QueueActions.startInitialDataTaskQueue());
+      return;
+    }
+
     switch (process.taskType) {
-      case ProcessTaskType.Data: {
-        dispatch(QueueActions.startInitialDataTaskQueue());
-        break;
-      }
       case ProcessTaskType.Confirm:
       case ProcessTaskType.Feedback:
         dispatch(QueueActions.startInitialInfoTaskQueue());
@@ -42,7 +48,7 @@ export function useProcess() {
       default:
         break;
     }
-  }, [process, applicationMetadata, instanceData, dispatch]);
+  }, [process, applicationMetadata, instanceData, dispatch, layoutSets]);
 
   const appName = useAppSelector(selectAppName);
   const appOwner = useAppSelector(selectAppOwner);

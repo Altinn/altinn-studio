@@ -42,9 +42,11 @@ export function* fetchFormDataSaga(): SagaIterator {
       appMetaDataSelector,
     );
     const instance: IInstance = yield select(instanceDataSelector);
+    const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
     const currentTaskDataElementId = getCurrentTaskDataElementId(
       applicationMetadata,
       instance,
+      layoutSets,
     );
     const fetchedData: any = yield call(
       get,
@@ -70,9 +72,11 @@ export function* fetchFormDataInitialSaga(): SagaIterator {
     } else {
       // app with instance
       const instance: IInstance = yield select(instanceDataSelector);
+      const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
       const currentTaskDataId = getCurrentTaskDataElementId(
         applicationMetadata,
         instance,
+        layoutSets,
       );
       fetchedData = yield call(
         get,

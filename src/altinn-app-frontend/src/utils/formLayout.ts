@@ -10,6 +10,7 @@ import type { IAttachmentState } from 'src/shared/resources/attachments';
 import type {
   IFileUploadersWithTag,
   ILayoutNavigation,
+  ILayoutSets,
   IMapping,
   IOptionsChosen,
   IRepeatingGroups,
@@ -530,4 +531,16 @@ export function extractBottomButtons(layout: ILayout) {
   }
 
   return [toMainLayout.reverse(), toErrorReport.reverse()];
+}
+
+/**
+ * Some tasks other than data (for instance confirm, or other in the future) can be configured to behave like data steps
+ * @param task the task
+ * @param layoutSets the layout sets
+ */
+export function behavesLikeDataTask(
+  task: string,
+  layoutSets: ILayoutSets,
+): boolean {
+  return layoutSets?.sets.some((set) => set.tasks?.includes(task));
 }

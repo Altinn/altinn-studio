@@ -49,7 +49,6 @@ const render = ({ isSubmitting }: { isSubmitting: boolean }) => {
       text={submitBtnText}
       handleDataChange={jest.fn()}
       disabled={false}
-      formDataCount={0}
       language={{}}
       {...({} as IButtonProvidedProps)}
     />,

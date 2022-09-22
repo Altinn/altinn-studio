@@ -9,6 +9,7 @@ import {
   SelectApplicationMetaData,
   SelectFormData,
   SelectFormLayouts,
+  SelectFormLayoutSets,
   SelectInstance,
   SelectInstanceData,
 } from 'src/shared/resources/attachments/map/mapAttachmentsSagas';
@@ -145,6 +146,7 @@ describe('mapAttachments', () => {
         [select(SelectInstanceData), SelectInstanceData(state)],
         [select(SelectInstance), SelectInstance(state)],
         [select(SelectApplicationMetaData), SelectApplicationMetaData(state)],
+        [select(SelectFormLayoutSets), SelectFormLayoutSets(state)],
         [select(SelectFormData), SelectFormData(state)],
         [select(SelectFormLayouts), selectFormLayouts(state)],
       ])
