@@ -5776,19 +5776,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@mswjs/interceptors@npm:^0.17.2":
-  version: 0.17.3
-  resolution: "@mswjs/interceptors@npm:0.17.3"
+"@mswjs/interceptors@npm:^0.17.5":
+  version: 0.17.5
+  resolution: "@mswjs/interceptors@npm:0.17.5"
   dependencies:
     "@open-draft/until": ^1.0.3
     "@types/debug": ^4.1.7
     "@xmldom/xmldom": ^0.7.5
     debug: ^4.3.3
-    headers-polyfill: ^3.0.4
+    headers-polyfill: ^3.1.0
     outvariant: ^1.2.1
     strict-event-emitter: ^0.2.4
     web-encoding: ^1.1.5
-  checksum: 1c879fe78e2e19e29f610d3572f22990b67f3f892719530ed1d8b0191a644e03461b812ed8137586ab126e66c49dbfd53ea1ff830696589d1b1ad238df40f206
+  checksum: 0293ccc56c1c85fb7334cd5902574f7df20c26be74d633c83fde64ffd7620f81e08253fe7985c6b5ad3b64c04ad53c3610e9b9c07621518aabd977343026bb2b
   languageName: node
   linkType: hard
 
@@ -10947,7 +10947,7 @@ __metadata:
     lodash-es: 4.17.21
     mini-css-extract-plugin: 2.6.1
     moment: 2.29.4
-    msw: 0.47.1
+    msw: 0.47.3
     prettier: 2.7.1
     react: 18.2.0
     react-dom: 18.2.0
@@ -13779,10 +13779,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"headers-polyfill@npm:^3.0.4":
-  version: 3.0.4
-  resolution: "headers-polyfill@npm:3.0.4"
-  checksum: cdfe5f40b033e89f31a1ce9018864a54ba3efc7ef05c9ad220851bbf65ac78bfc81f12f669994936c040a4404a885004f5d370acbf954f40147c9e4bb189cc43
+"headers-polyfill@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "headers-polyfill@npm:3.1.0"
+  checksum: a95257065684653b7185efbb9a380c547ea832002991b5adf0d90cd222073da2701be9dc2849d1970ecf15e8c35b383984358566afe6e76ca8ff1dbd7cdce3af
   languageName: node
   linkType: hard
 
@@ -17431,12 +17431,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"msw@npm:0.47.1":
-  version: 0.47.1
-  resolution: "msw@npm:0.47.1"
+"msw@npm:0.47.3":
+  version: 0.47.3
+  resolution: "msw@npm:0.47.3"
   dependencies:
     "@mswjs/cookies": ^0.2.2
-    "@mswjs/interceptors": ^0.17.2
+    "@mswjs/interceptors": ^0.17.5
     "@open-draft/until": ^1.0.3
     "@types/cookie": ^0.4.1
     "@types/js-levenshtein": ^1.1.1
@@ -17444,7 +17444,7 @@ __metadata:
     chokidar: ^3.4.2
     cookie: ^0.4.2
     graphql: ^15.0.0 || ^16.0.0
-    headers-polyfill: ^3.0.4
+    headers-polyfill: ^3.1.0
     inquirer: ^8.2.0
     is-node-process: ^1.0.1
     js-levenshtein: ^1.1.6
@@ -17462,7 +17462,7 @@ __metadata:
       optional: true
   bin:
     msw: cli/index.js
-  checksum: 37c99836014181ad52267fe031bb9dec355d3728b9f57abbf239340dcbe9c75d29a959c627fb812b353c4ed292dbc51d557f0d0ef0108e439dfec0e8962ddd83
+  checksum: 1be018c7b2eff982409967cccb5c604e45f65710ee9698bab57fbe794f8426d1a4d33e52b75ef395c6d226948c799241c7c2c7748ec4f5b741e7f25bcbafbd1e
   languageName: node
   linkType: hard
 
@@ -21551,7 +21551,7 @@ __metadata:
     jest-junit: 14.0.1
     marked: 4.1.0
     moment: 2.29.4
-    msw: 0.47.1
+    msw: 0.47.3
     parse5: 7.1.1
     react: 18.2.0
     react-content-loader: 6.2.0
