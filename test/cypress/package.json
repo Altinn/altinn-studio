@@ -29,12 +29,12 @@
   "devDependencies": {
     "@testing-library/cypress": "^8.0.3",
     "axe-core": "^4.4.3",
-    "concurrently": "^7.3.0",
-    "cypress": "^10.4.0",
+    "concurrently": "7.4.0",
+    "cypress": "10.8.0",
     "cypress-axe": "^1.0.0",
     "cypress-plugin-tab": "^1.0.5",
-    "dotenv": "^16.0.1",
-    "eslint": "^8.21.0",
+    "dotenv": "16.0.2",
+    "eslint": "8.23.1",
     "eslint-plugin-cypress": "^2.12.1",
     "execa": "^6.1.0",
     "lint-staged": "^13.0.3",
@@ -42,7 +42,7 @@
     "rimraf": "^3.0.2",
     "start-server-and-test": "^1.14.0"
   },
-  "packageManager": "yarn@3.2.1",
+  "packageManager": "yarn@3.2.3",
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": "../../.husky/pre-commit-check-for-skipped-tests"
   }

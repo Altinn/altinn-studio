@@ -5,6 +5,7 @@ import {
   makeStyles,
   Typography,
 } from '@material-ui/core';
+import type { ArgumentArray } from 'classnames';
 import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
@@ -12,7 +13,7 @@ import altinnTheme from '../theme/altinnStudioTheme';
 export interface IAltinnSpinnerComponentProvidedProps {
   id?: string;
   spinnerText?: any;
-  styleObj?: object;
+  styleObj?: ArgumentArray;
 }
 
 const theme = createTheme(altinnTheme);
