@@ -1,94 +1,24 @@
-/* eslint-disable-next-line */
-// @ts-nocheck
-
 import React from 'react';
-import Select from 'react-select';
-import ISO6391 from 'iso-639-1';
-// import debounce from 'lodash.debounce';
 
-import type { ILanguageEditor } from './utils';
-
-import { Button, TextField } from '@altinn/altinn-design-system';
 import AltinnColumnLayout from 'app-shared/components/AltinnColumnLayout';
-import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
-import { getAllTranslationKeys, transformLanguages } from './utils';
-// import { updateLanguage } from '../../frontend/app-development/features/languageEditor/utils';
-
 import { LanguageRow } from './LanguageRow';
 
 import { makeStyles, Typography } from '@material-ui/core';
 
-interface ILanguageEditorProps extends ILanguageEditor {
-  // onTranslationChange: ({
-  //   translationKey,
-  //   langCode,
-  //   newValue,
-  // }: {
-  //   translationKey: string;
-  //   langCode: string;
-  //   newValue: string;
-  // }) => void;
-  // onKeyChange: ({ id, newValue }: { id: string; newValue: string }) => void;
-  onTranslationChange: ({ translations }: Record<string, string>) => void;
+export type Language =  Record<string, string>
+export type OnTranslationChange= { translations: Language }
+
+interface ILanguageEditorProps {
+  language: Language
+  onTranslationChange: ({ translations }: OnTranslationChange) => void;
 }
 
 export const LanguageEditor = ({
-  newSprakField,
-  setNewSprakField,
-  isNewTextInput,
-  sprak,
-  setSprak,
-  selectedSprak,
-  setSelectedSprak,
-  languages,
-  setIsNewTextInput,
+  language,
   onTranslationChange,
-}: // onKeyChange,
-// onTranslationChange,
+}:
 ILanguageEditorProps) => {
   const classes = useStyles();
-  const allTranslationKeys = getAllTranslationKeys({ languages });
-  const transformedLanguages = transformLanguages({
-    translationKeys: allTranslationKeys,
-    languages,
-  });
-
-  const languageCodes = ISO6391.getLanguages(ISO6391.getAllCodes());
-  const [modifiedLanguageCodes, setModifiedLanguageCodes] = React.useState(
-    languageCodes.map((x: any) => {
-      x.id = x.code;
-      return { value: x.id, label: x.name };
-    }),
-  );
-
-  const handleSelectOnChange = (event) => {
-    setSelectedSprak(event);
-  };
-  const handleLeggTilNyttSprak = (event) => {
-    event.currentTarget.disabled = true;
-    const newSprak = { id: selectedSprak.value, name: selectedSprak.label };
-    setSprak([...sprak, newSprak]);
-    event.currentTarget.disabled = false;
-    setSelectedSprak('');
-
-    const newValues = modifiedLanguageCodes.filter((d) => {
-      const data = sprak.find(
-        (s) => s.name.toLowerCase() === d.label.toLowerCase(),
-      );
-      return !data;
-    });
-    const newerValues = newValues.filter(
-      (d) => d.label.toLowerCase() !== selectedSprak.label.toLowerCase(),
-    );
-    setModifiedLanguageCodes(newerValues);
-  };
-
-  const handleAddNewTextField = () => {
-    setIsNewTextInput((prev) => !prev);
-  };
-  const updateUIList = (s) => {
-    setNewSprakField({ ...s, value: '' });
-  };
 
   const handleIdChange = ({
     oldValue,
@@ -97,24 +27,21 @@ ILanguageEditorProps) => {
     oldValue: string;
     newValue: string;
   }) => {
-    const updatedLanguages = {
-      ...languages,
+    const updatedLanguage = {
+      ...language,
     };
 
-    Object.keys(updatedLanguages).forEach((langCode) => {
-      updatedLanguages[langCode][newValue] =
-        updatedLanguages[langCode][oldValue];
 
-      delete updatedLanguages[langCode][oldValue];
-    });
+      updatedLanguage[newValue] = updatedLanguage[oldValue];
+      delete updatedLanguage[oldValue];
 
-    onTranslationChange({ translations: updatedLanguages['Norwegian Bokmal'] });
+    onTranslationChange({ translations: updatedLanguage });
   };
 
   return (
     <div style={{ paddingTop: '0', marginTop: '0', backgroundColor: '#FFF' }}>
       <AltinnColumnLayout
-        style={{ paddingTop: '0', marginTop: '0' }}
+        header={ '' }
         sideMenuChildren={
           <div className={classes.rightColBodyContainer}>
             <div
@@ -155,48 +82,6 @@ ILanguageEditorProps) => {
                 Aktive språk:
               </Typography>
             </div>
-            <AltinnRadioGroup
-              key={sprak.id}
-              value={sprak}
-              style={{ width: '100%' }}
-            >
-              {sprak?.map((sprak, index) => {
-                return (
-                  <div id={sprak.id} key={index} className={classes.radioGroup}>
-                    <div
-                      style={{
-                        width: '100%',
-                        gap: '1rem',
-                        display: 'flex',
-                      }}
-                    >
-                      <div>
-                        <span htmlFor={sprak.id}></span>
-                      </div>
-                      <div>{sprak.name}</div>
-                    </div>
-                    <div
-                      style={{
-                        width: '100%',
-                        gap: '1rem',
-                        display: 'flex',
-                      }}
-                    >
-                      <div>
-                        <input
-                          type='radio'
-                          name='sprak'
-                          value={sprak.id}
-                          onChange={() => {
-                            updateUIList(sprak);
-                          }}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </AltinnRadioGroup>
 
             <div
               style={{
@@ -209,78 +94,17 @@ ILanguageEditorProps) => {
                 Legg til språk:
               </Typography>
             </div>
-            <div
-              style={{
-                display: 'flex',
-                width: '100%',
-                justifyContent: 'space-around',
-              }}
-            >
-              <div style={{ border: '1px solid #000000', width: '240px' }}>
-                <Select
-                  onChange={handleSelectOnChange}
-                  options={modifiedLanguageCodes}
-                  value={selectedSprak}
-                />
-              </div>
-              <div style={{ alignContent: 'end' }}>
-                <Button
-                  onClick={handleLeggTilNyttSprak}
-                  className={classes.btnSecondary}
-                  disabled={!selectedSprak}
-                >
-                  Legg til
-                </Button>
-              </div>
-            </div>
-            <div className={classes.lineBorder} />
           </div>
         }
       >
         <div style={{ marginBottom: '10rem', backgroundColor: '#fff' }}>
-          <div className={classes.stickyHeader}>
-            <Button
-              id='nyTekstBtn'
-              onClick={handleAddNewTextField}
-              disabled={false}
-              className={classes.btn}
-            >
-              {isNewTextInput ? 'Cancel' : '+ Ny tekst'}
-            </Button>
-          </div>
-
-          {isNewTextInput && (
-            <div className={classes.leftColBodyContainer}>
-              <div style={{ marginRight: '2rem', width: '246px' }}>
-                <div>
-                  <label htmlFor={newSprakField.id}>ID</label>
-                </div>
-                <TextField type='text' label='Id' />
-              </div>
-              <div>
-                <div>
-                  <label>{newSprakField.name}</label>
-                </div>
-                <TextField
-                  type='text'
-                  label='Tekst'
-                  onChange={(e) => {
-                    setNewSprakField({
-                      ...newSprakField,
-                      value: e.target.value,
-                    });
-                  }}
-                />
-              </div>
-            </div>
-          )}
           <div>
-            {Object.keys(transformedLanguages).map((translationKey) => {
+            {language && Object.keys(language).map((translationKey) => {
               return (
                 <LanguageRow
                   key={translationKey}
                   translationKey={translationKey}
-                  transformedLanguages={transformedLanguages}
+                  transformedLanguages={language}
                   onIdChange={handleIdChange}
                 />
               );

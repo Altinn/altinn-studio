@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import Axios from 'axios';
 import type { IAltinnWindow } from '../../types/global';
+import type {OnTranslationChange} from '../../../language-editor';
 
 const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
 const basePath = `${altinnWindow.location.origin}/designer/api/v2/${altinnWindow.org}/${altinnWindow.app}/texts`;
@@ -14,7 +15,7 @@ export const getSaveTextResourcesUrl = (languageCode: string) => {
 };
 
 export const useGetLanguages = () => {
-  const [languages, setLanguages] = useState(null);
+  const [language, setLanguage] = useState(null);
 
   useEffect(() => {
     const fetchLanguages = async () => {
@@ -22,16 +23,14 @@ export const useGetLanguages = () => {
         Axios.get(getLoadTextResourcesUrl('nb')),
       ]);
 
-      setLanguages({
-        ...(nb.data && { 'Norwegian Bokmal': nb.data }),
-      });
+      setLanguage(nb.data);
     };
 
     fetchLanguages();
   }, []);
-  return { languages };
+  return { language };
 };
 
-export async function updateLanguage({ translations }: Record<string, string>) {
+export async function updateLanguage({ translations }: OnTranslationChange) {
   await Axios.put(getLoadTextResourcesUrl('nb'), translations);
 }

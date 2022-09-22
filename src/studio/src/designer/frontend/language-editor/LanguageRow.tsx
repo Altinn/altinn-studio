@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+
 import { TextField } from '@altinn/altinn-design-system';
 import { makeStyles } from '@material-ui/core';
 
@@ -15,7 +16,6 @@ interface ILanguageRowProps {
 
 export const LanguageRow = ({
   translationKey,
-  transformedLanguages,
   onIdChange,
 }: ILanguageRowProps) => {
   const classes = useStyles();
@@ -30,39 +30,14 @@ export const LanguageRow = ({
     onIdChange({ oldValue: translationKey, newValue: idValue });
   };
 
-  console.log('transformedLanguages', transformedLanguages)
-
   return (
     <div className={classes.leftColBodyContainer}>
-      <div style={{ marginRight: '2rem', width: '246px' }}>
+      <div className={classes.leftColFirstBox}>
         <div>
           <label htmlFor={translationKey}>ID</label>
         </div>
         <TextField value={idValue} type='text' onBlur={handleIdBlur} onChange={handleIdChange} />
       </div>
-      {/* <div>
-        {Object.keys(transformedLanguages[translationKey]).map((language) => {
-          const id = `${translationKey}-${language}`;
-          return (
-            <div key={id}>
-              <div>
-                <label htmlFor={id}>{language}</label>
-              </div>
-              <TextField
-                id={id}
-                defaultValue={transformedLanguages[translationKey][language]}
-                // onChange={debounce(async (e) => {
-                //   await updateLanguage({
-                //     languages,
-                //     translationKey,
-                //     e,
-                //   });
-                // }, 1000)}
-              />
-            </div>
-          );
-        })}
-      </div> */}
     </div>
   );
 };
@@ -98,6 +73,9 @@ const useStyles = makeStyles({
     gridAutoRows: 'minmax(100px, auto)',
     marginTop: '2rem',
     width: '100%',
+  },
+  leftColFirstBox: {
+     marginRight: '2rem', width: '246px'
   },
   lineBorder: {
     border: '1px solid #BCC7CC',
