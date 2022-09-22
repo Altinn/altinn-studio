@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
-import { JsonSchemaNode } from '../src/ui-schema/types';
 import Ajv2020 from 'ajv/dist/2020';
+import { JsonSchemaNode } from '../src';
 
 /**
  * Some schemas might not be valid
@@ -18,9 +18,7 @@ const cache = new Map();
 /**
  * Returns a map with json schemas.
  */
-const getJsonSchemasForTest = (
-  dirPath: string,
-): Map<string, JsonSchemaNode> => {
+const getJsonSchemasForTest = (dirPath: string): Map<string, JsonSchemaNode> => {
   if (!cache.has(dirPath)) {
     const output = new Map<string, JsonSchemaNode>();
     fs.readdirSync(dirPath).forEach((filename) => {

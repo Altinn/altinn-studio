@@ -1,4 +1,11 @@
-import { JsonSchemaNode, Keywords, ROOT_POINTER, UiSchemaMap, UiSchemaNode } from './types';
+import {
+  JsonSchemaNode,
+  Keywords,
+  ObjectKind,
+  ROOT_POINTER,
+  UiSchemaMap,
+  UiSchemaNode,
+} from './types';
 import {
   createNodeBase,
   createPointerLookupTable,
@@ -8,10 +15,9 @@ import {
   schemaTypeIsNillable,
 } from './utils';
 import { handleCustomProperties } from './handlers/custom-properties';
-import { handleRestrictions } from './handlers/restrictions';
+import { findRestrictionsOnNode } from './restrictions';
 import { getUiFieldType } from './handlers/field-type';
-import { handleGenericKeywords } from './handlers/generic';
-import { ObjectKind } from '../types/enums';
+import { findGenericKeywordsOnNode } from './handlers/generic';
 
 /**
  * Recursive function that traverse the json schema tree. This should not be accessed directly but through `toUiSchema`
@@ -22,13 +28,13 @@ import { ObjectKind } from '../types/enums';
 const createUiNode = (schemaNode: JsonSchemaNode, uiNode: UiSchemaNode): UiSchemaMap => {
   uiNode.objectKind = getObjectKind(schemaNode);
   uiNode.custom = handleCustomProperties(schemaNode);
-  uiNode.restrictions = handleRestrictions(schemaNode);
+  uiNode.restrictions = findRestrictionsOnNode(schemaNode);
   uiNode.fieldType = getUiFieldType(schemaNode);
   uiNode.implicitType = !schemaNode.type;
   uiNode.ref = schemaNode[Keywords.Reference];
   uiNode.isNillable = schemaTypeIsNillable(schemaNode.type);
 
-  Object.assign(uiNode, handleGenericKeywords(schemaNode));
+  Object.assign(uiNode, findGenericKeywordsOnNode(schemaNode));
 
   const map: UiSchemaMap = new Map();
   // Combinations

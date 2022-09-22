@@ -3,6 +3,10 @@ export interface ILanguage {
   [key: string]: string | ILanguage;
 }
 
+import { CombinationKind, FieldType } from '@altinn/schema-model';
+
+export { CombinationKind, FieldType };
+
 export interface ISchema {
   properties?: { [key: string]: { [key: string]: any } };
   definitions?: { [key: string]: { [key: string]: any } };
@@ -23,6 +27,9 @@ export interface ISchemaState {
   selectedEditorTab: 'definitions' | 'properties';
 }
 
+/**
+ * @deprecated
+ */
 export interface UiSchemaItem {
   path: string;
   type?: FieldType;
@@ -42,26 +49,6 @@ export interface UiSchemaItem {
   isRequired?: boolean;
 }
 
-/** Types */
-export enum CombinationKind {
-  AllOf = 'allOf',
-  AnyOf = 'anyOf',
-  OneOf = 'oneOf',
-}
-
-/**
- * @link https://json-schema.org/understanding-json-schema/reference/type.html
- */
-export enum FieldType {
-  String = 'string',
-  Integer = 'integer',
-  Number = 'number',
-  Boolean = 'boolean',
-  Object = 'object',
-  Array = 'array',
-  Null = 'null',
-}
-
 export type NameInUseProps = {
   uiSchemaItems: UiSchemaItem[];
   parentSchema: UiSchemaItem | null;
@@ -69,6 +56,9 @@ export type NameInUseProps = {
   name: string;
 };
 
+/**
+ * @deprecated
+ */
 export type Restriction = {
   key: string;
   value: any;

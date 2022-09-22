@@ -1,6 +1,5 @@
-import { CombinationKind } from '../../types';
-import { JsonSchemaNode, Keywords } from '../types';
-import { AllRestrictions } from '../../utils/restrictions';
+import { AllRestrictions } from '../restrictions';
+import { CombinationKind, JsonSchemaNode, Keywords } from '../types';
 
 const specialAttributes = [
   ...Object.values(Keywords),

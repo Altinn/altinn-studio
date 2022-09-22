@@ -3,6 +3,7 @@
   "name": "altinncore",
   "private": true,
   "scripts": {
+    "fix-for-local-development": "gulp fix-for-local-development",
     "gulp": "gulp",
     "gulp-clean": "gulp clean",
     "gulp-develop": "gulp develop",
@@ -17,7 +18,8 @@
     "cross-env": "7.0.3",
     "del": "6.1.1",
     "gulp": "4.0.2",
-    "gulp-run-command": "0.0.10"
+    "gulp-run-command": "0.0.10",
+    "gulp-string-replace": "^1.1.2"
   },
   "dependencies": {
     "altinn-designsystem": "2.7.12",

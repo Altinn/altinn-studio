@@ -413,6 +413,7 @@ export const updateChildPaths = (item: UiSchemaItem, parentId: string) => {
 };
 
 let unusedNumber = 0;
+
 export const getUniqueNumber = () => unusedNumber++;
 
 export const resetUniqueNumber = () => (unusedNumber = 0);

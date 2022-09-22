@@ -1,8 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { ArrayRestrictions } from './ArrayRestrictions';
-import { getRestrictions } from '../../../utils/restrictions';
 import { FieldType } from '../../../types';
+import { getRestrictions } from '@altinn/schema-model';
 
 test('ArrayRestrictions should redner correctly', async () => {
   const onChangeRestrictionValue = jest.fn();

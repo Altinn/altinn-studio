@@ -1,5 +1,29 @@
-import { ObjectKind } from '../types/enums';
-import { CombinationKind, FieldType } from '../types';
+export enum ObjectKind {
+  Combination = 'combination',
+  Field = 'field',
+  Reference = 'reference',
+  Array = 'array',
+}
+
+/** Types */
+export enum CombinationKind {
+  AllOf = 'allOf',
+  AnyOf = 'anyOf',
+  OneOf = 'oneOf',
+}
+
+/**
+ * @link https://json-schema.org/understanding-json-schema/reference/type.html
+ */
+export enum FieldType {
+  String = 'string',
+  Integer = 'integer',
+  Number = 'number',
+  Boolean = 'boolean',
+  Object = 'object',
+  Array = 'array',
+  Null = 'null',
+}
 
 export const ROOT_POINTER = '#';
 
