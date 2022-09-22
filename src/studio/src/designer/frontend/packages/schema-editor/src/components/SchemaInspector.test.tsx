@@ -60,7 +60,7 @@ test('dispatches correctly when entering text in textboxes', async () => {
   expect(tablist).toBeDefined();
   const tabpanel = screen.getByRole('tabpanel');
   expect(tabpanel).toBeDefined();
-  expect(screen.getAllByRole('tab')).toHaveLength(2);
+  expect(screen.getAllByRole('tab')).toHaveLength(1);
   const textboxes = screen.getAllByRole('textbox');
   let textboxIndex = 0;
   while (textboxes[textboxIndex]) {
@@ -71,11 +71,10 @@ test('dispatches correctly when entering text in textboxes', async () => {
   }
   const actions = store.getActions();
   expect(actions.length).toBeGreaterThanOrEqual(1);
-  expect(actions).toHaveLength(textboxes.length);
-  actions.forEach((action) => {
-    expect(action.type).toContain('schemaEditor');
-    expect(Object.values(action.payload)).toContain('New value');
-  });
+  const actionTypes = actions.map(a => a.type);
+  expect(actionTypes).toContain("schemaEditor/setPropertyName");
+  expect(actionTypes).toContain("schemaEditor/setTitle");
+  expect(actionTypes).toContain("schemaEditor/setDescription");
 });
 
 test('renders no item if nothing is selected', () => {
@@ -85,10 +84,9 @@ test('renders no item if nothing is selected', () => {
 });
 
 test('dispatches correctly when changing restriction value', async () => {
-  const { store, user } = renderSchemaInspector(
+  const { store } = renderSchemaInspector(
     getMockSchemaByPath('#/definitions/Kommentar2000Restriksjon'),
   );
-  await user.click(screen.getByRole('tab', { name: 'restrictions' }));
 
   const textboxes = screen.getAllByRole('textbox');
   textboxes.forEach((textbox) => {
@@ -122,7 +120,7 @@ test('Adds new object field when pressing the enter key', async () => {
       },
     ],
   });
-  await user.click(screen.queryAllByRole('tab')[2]);
+  await user.click(screen.queryAllByRole('tab')[1]);
   await user.click(screen.getByDisplayValue('abc'));
   await user.keyboard('{Enter}');
   expect(store.getActions().map((a) => a.type)).toContain(

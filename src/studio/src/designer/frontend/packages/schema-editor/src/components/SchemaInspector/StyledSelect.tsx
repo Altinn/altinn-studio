@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
 import { makeStyles, Select } from '@material-ui/core';
+import { Label } from "./Label";
 
 export interface IStyledSelectProps {
   id: string;
@@ -37,17 +38,20 @@ export function StyledSelect({ id, label, value, onChange, readOnly, fullWidth, 
   };
 
   return (
-    <Select
-      id={id}
-      disabled={readOnly}
-      label={label}
-      value={value || ''}
-      onChange={onValueChange}
-      className={classes.root}
-      disableUnderline={true}
-      fullWidth={fullWidth}
-    >
-      {children}
-    </Select>
+    <>
+      <Label htmlFor={id}>{label}</Label>
+      <Select
+        id={id}
+        disabled={readOnly}
+        label={label}
+        value={value || ''}
+        onChange={onValueChange}
+        className={classes.root}
+        disableUnderline={true}
+        fullWidth={fullWidth}
+      >
+        {children}
+      </Select>
+    </>
   );
 }

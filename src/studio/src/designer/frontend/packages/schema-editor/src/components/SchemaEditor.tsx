@@ -54,6 +54,7 @@ const useStyles = makeStyles({
     boxShadow: 'none',
     backgroundColor: '#fff',
     color: '#000',
+    paddingLeft: 12,
     '& .Mui-Selected': {
       color: '#6A6A6A',
     },
@@ -66,10 +67,9 @@ const useStyles = makeStyles({
     flexGrow: 1,
   },
   inspector: {
-    background: 'white',
-    borderLeft: '1px solid #C9C9C9',
     overflowX: 'clip',
     overflowY: 'auto',
+    backgroundColor: '#F7F7F7'
   },
   addButton: {
     border: '1px dashed rgba(0, 0, 0, 1)',
@@ -83,7 +83,6 @@ const useStyles = makeStyles({
       fontSize: '24px',
     },
     marginBottom: '12px',
-    marginLeft: '8px',
   },
   startIcon: {
     marginRight: '0px',

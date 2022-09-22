@@ -1,61 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Panel, PanelVariant } from '@altinn/altinn-design-system';
 import { AppBar, Divider } from '@material-ui/core';
-import { createStyles, makeStyles } from '@material-ui/core/styles';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
 import { FieldType, ILanguage, UiSchemaItem } from '../types';
-import { ObjectKind } from '../types/enums';
 import { getTranslation } from '../utils/language';
 import { SchemaTab } from './common/SchemaTab';
-import { ItemRestrictionsTab } from './SchemaInspector/ItemRestrictionsTab';
 import { ItemPropertiesTab } from './SchemaInspector/ItemPropertiesTab';
-import { getObjectKind } from '../utils/ui-schema-utils';
 import { ItemFieldsTab } from './SchemaInspector/ItemFieldsTab';
-
-const useStyles = makeStyles(
-  createStyles({
-    root: {
-      width: 500,
-      padding: 14,
-      paddingTop: 8,
-      '& .MuiAutocomplete-input': {
-        width: 150,
-      },
-      '& .MuiTabPanel-root > div > div:first-child p': {
-        marginTop: 0,
-      },
-    },
-    header: {
-      padding: 0,
-      fontWeight: 400,
-      fontSize: 16,
-      marginTop: 24,
-      marginBottom: 6,
-      '& .Mui-focusVisible': {
-        background: 'gray',
-      },
-    },
-    appBar: {
-      border: 'none',
-      boxShadow: 'none',
-      backgroundColor: '#fff',
-      color: '#000',
-      '& .Mui-Selected': {
-        color: '#6A6A6A',
-      },
-      '& .MuiTabs-indicator': {
-        backgroundColor: '#006BD8',
-      },
-    },
-    gridContainer: {
-      maxWidth: 500,
-    },
-    noItem: {
-      fontWeight: 500,
-      margin: 18,
-    },
-  }),
-);
+import classes from './SchemaInspector.module.css';
 
 export interface ISchemaInspectorProps {
   language: ILanguage;
@@ -69,7 +21,6 @@ export const SchemaInspector = ({
   selectedItem,
   checkIsNameInUse,
 }: ISchemaInspectorProps) => {
-  const classes = useStyles();
   const [tabIndex, setTabIndex] = useState('0');
   const t = (key: string) => getTranslation(key, language);
 
@@ -96,14 +47,6 @@ export const SchemaInspector = ({
           >
             <SchemaTab label={t('properties')} value='0' />
             <SchemaTab
-              label={t('restrictions')}
-              value='1'
-              hide={
-                getObjectKind(selectedItem) === ObjectKind.Combination ||
-                selectedItem.combinationItem
-              }
-            />
-            <SchemaTab
               label={t('fields')}
               value='2'
               hide={
@@ -113,22 +56,14 @@ export const SchemaInspector = ({
             />
           </TabList>
         </AppBar>
-        <div style={{ color: 'lightgray' }}>{selectedItem.path}</div>
-        <TabPanel value='0'>
+        <TabPanel className={classes.tabPanel} value='0'>
           <ItemPropertiesTab
             checkIsNameInUse={checkIsNameInUse}
             selectedItem={selectedItem}
             language={language}
           />
         </TabPanel>
-        <TabPanel value='1'>
-          <ItemRestrictionsTab
-            classes={classes}
-            item={selectedItem}
-            language={language}
-          />
-        </TabPanel>
-        <TabPanel value='2'>
+        <TabPanel className={classes.tabPanel} value='2'>
           <ItemFieldsTab
             classes={classes}
             selectedItem={selectedItem}
