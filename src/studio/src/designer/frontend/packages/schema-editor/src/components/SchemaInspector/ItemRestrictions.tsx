@@ -10,8 +10,9 @@ import { NumberRestrictions } from './restrictions/NumberRestrictions';
 import { ObjectRestrictions } from './restrictions/ObjectRestrictions';
 import { StringRestrictions } from './restrictions/StringRestrictions';
 import classes from './ItemRestrictions.module.css';
-import { Divider } from "./Divider";
-import { Fieldset } from "./Fieldset";
+import { Divider } from './Divider';
+import { Fieldset } from './Fieldset';
+import { Button } from '@altinn/altinn-design-system';
 
 export interface RestrictionItemProps {
   restrictions: Restriction[];
@@ -116,7 +117,7 @@ export const ItemRestrictions = ({ item, language }: Props) => {
                 value={value}
               />
             ))}
-            <button
+            <Button
               aria-label={t('add_enum')}
               className={classes.addEnumButton}
               id='add-enum-button'
@@ -124,7 +125,7 @@ export const ItemRestrictions = ({ item, language }: Props) => {
             >
               <i/>
               <span>{t('add_enum')}</span>
-            </button>
+            </Button>
           </Fieldset>
         </>
       )}

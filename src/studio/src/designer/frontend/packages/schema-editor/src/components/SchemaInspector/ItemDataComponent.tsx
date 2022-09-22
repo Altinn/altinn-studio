@@ -185,44 +185,8 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
       );
     }
   };
+
   const t = (key: string) => getTranslation(key, language);
-
-  const TypeSelectWithLabel = () => {
-    if (selectedItem && objectKind === ObjectKind.Field) {
-      const typeSelectId = `${getDomFriendlyID(selectedItem.path)}-type-select`;
-      return (
-        <>
-          <Label htmlFor={typeSelectId}>{t('type')}</Label>
-          <TypeSelect
-            value={selectedItem.type === FieldType.Array ? arrayType : fieldType}
-            id={typeSelectId}
-            onChange={selectedItem.type === FieldType.Array ? onChangeArrayType : onChangeType}
-            label={t('type')}
-            options={getTypeOptions(t)}
-          />
-        </>
-      );
-    } else return null;
-  }
-
-  const CombinationSelectWithLabel = () => {
-    if (objectKind === ObjectKind.Combination) {
-      const combinationSelectId = `${getDomFriendlyID(selectedItem?.path || '')}-combi-sel`;
-      return (
-        <>
-          <Label htmlFor={combinationSelectId}>{t('type')}</Label>
-          <CombinationSelect
-            id={combinationSelectId}
-            label={t('type')}
-            onChange={onChangeCombinationType}
-            options={getCombinationOptions(t)}
-            value={selectedItem?.combinationKind}
-          />
-        </>
-      );
-    } else return null;
-  }
-
   const titleId = `${getDomFriendlyID(selectedId ?? '')}-title`;
   const descriptionId = `${getDomFriendlyID(selectedId ?? '')}-description`;
 
@@ -244,7 +208,15 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
           {nameError && <ErrorMessage>{t(nameError)}</ErrorMessage>}
         </>
       )}
-      <TypeSelectWithLabel/>
+      {selectedItem && objectKind === ObjectKind.Field && (
+        <TypeSelect
+          id={`${getDomFriendlyID(selectedItem.path)}-type-select`}
+          label={t('type')}
+          onChange={selectedItem.type === FieldType.Array ? onChangeArrayType : onChangeType}
+          options={getTypeOptions(t)}
+          value={selectedItem.type === FieldType.Array ? arrayType : fieldType}
+        />
+      )}
       <ReferenceSelectionComponent
         arrayType={arrayType}
         buttonText={t('go_to_type')}
@@ -271,7 +243,15 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
           label={t('multiple_answers')}
         />
       )}
-      <CombinationSelectWithLabel/>
+      {objectKind === ObjectKind.Combination && (
+        <CombinationSelect
+          id={`${getDomFriendlyID(selectedItem?.path || '')}-combi-sel`}
+          label={t('type')}
+          onChange={onChangeCombinationType}
+          options={getCombinationOptions(t)}
+          value={selectedItem?.combinationKind}
+        />
+      )}
       {objectKind === ObjectKind.Combination && (
         <FormControlLabel
           id='multiple-answers-checkbox'
