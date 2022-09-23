@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -85,7 +84,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         public IList<AltinnCoreFile> GetSchemaFiles()
         {
-            var schemaFiles = FindFiles(new string[] { SCHEMA_FILES_PATTERN_JSON });
+            var schemaFiles = FindFiles(new[] { SCHEMA_FILES_PATTERN_JSON });
 
             var altinnCoreSchemaFiles = MapFilesToAltinnCoreFiles(schemaFiles);
 

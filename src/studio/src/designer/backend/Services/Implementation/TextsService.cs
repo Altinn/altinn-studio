@@ -1,14 +1,8 @@
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Services.Interfaces;
-
-using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -69,6 +63,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
             altinnAppGitRepository.DeleteTexts(languageCode);
         }
 
+        /// <summary>
+        /// Helper method for extracting the markdown filenames from values in a texts objects.
+        /// </summary>
+        /// <param name="texts">Json object consisting of texts with key:value pairs id:text</param>
+        /// <returns>List of markdown filenames</returns>
         private static List<string> ExtractMarkdownFileNames(Dictionary<string, string> texts)
         {
             List<string> markdownFileNames = new List<string>();
@@ -81,8 +80,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
             return markdownFileNames;
         }
 
-        // REMARKS: Autosave in FE results in old md files that never will be overwritten when client change ID.
-        // returns Tuple(Dictionary<string, string>, Dictionary<string, string>) of keys and texts that should be stored as markdown
+        /// <summary>
+        /// Replacing inline markdown from text-values in texts object
+        /// with a reference to a .md file and stores content in that file.
+        /// </summary>
+        /// <param name="languageCode">Language identifier</param>
+        /// <param name="texts">Texts object with inline markdown</param>
+        /// <returns>Tuple of dictionary with keys and texts that
+        /// should be stored as markdown and the original texts objects
+        /// where inline markdown is replaced with the filename.</returns>
+        /// <remarks>Autosave in FE results in old md files that never
+        /// will be overwritten when client change ID.</remarks>
         private static (Dictionary<string, string> TtextsWithMd, Dictionary<string, string> Ttexts) ExtractMarkdown(string languageCode, Dictionary<string, string> texts)
         {
             Dictionary<string, string> textsWithMd = new Dictionary<string, string>();

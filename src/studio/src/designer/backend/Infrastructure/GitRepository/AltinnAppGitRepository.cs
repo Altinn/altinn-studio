@@ -1,17 +1,11 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.ModelMetadatalModels;
-
-using Microsoft.AspNetCore.Mvc;
 
 using Newtonsoft.Json;
 using Formatting = Newtonsoft.Json.Formatting;
@@ -322,7 +316,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             var textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, textsFileName);
             DeleteFileByRelativePath(textsFileRelativeFilePath);
 
-            var fileNames = FindFiles(new string[] { $"*.{languageCode}{MARKDOWN_TEXT_FILES_PATTERN}" });
+            var fileNames = FindFiles(new[] { $"*.{languageCode}{MARKDOWN_TEXT_FILES_PATTERN}" });
             foreach (string fileNamePath in fileNames)
             {
                 string fileName = Path.GetFileName(fileNamePath);
