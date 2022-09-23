@@ -33,7 +33,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             foreach (string markdownFileName in markdownFileNames)
             {
                 string key = markdownFileName.Split('.')[0];
-                string text = await altinnAppGitRepository.GetMarkdownText(markdownFileName);
+                string text = await altinnAppGitRepository.GetTextMarkdown(markdownFileName);
                 jsonTexts[key] = text;
             }
 

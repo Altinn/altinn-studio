@@ -297,7 +297,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="markdownFileName">Filename for file with markdown text for a key</param>
         /// <returns>Markdown text as a string</returns>
-        public async Task<string> GetMarkdownText(string markdownFileName)
+        public async Task<string> GetTextMarkdown(string markdownFileName)
         {
             var textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, MARKDOWN_TEXTS_FOLDER_NAME, markdownFileName);
 
