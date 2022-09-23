@@ -1244,9 +1244,17 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             {
                 return GetTypeNameFromTypeKeyword(typeKeyword, keywords);
             }
-            else if (schema.TryGetKeyword<RefKeyword>(out RefKeyword refKeyword))
+
+            if (schema.TryGetKeyword<RefKeyword>(out RefKeyword refKeyword))
             {
                 return GetTypeNameFromReference(refKeyword.Reference);
+            }
+
+            // Nillable array
+            if (schema.TryGetKeyword<OneOfKeyword>(out var oneOfKeyword))
+            {
+                var refKeywordSubSchema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
+                return GetTypeNameFromReference(refKeywordSubSchema.GetKeyword<RefKeyword>().Reference);
             }
 
             return new XmlQualifiedName();

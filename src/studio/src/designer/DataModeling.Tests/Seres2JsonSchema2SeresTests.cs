@@ -47,6 +47,7 @@ namespace DataModeling.Tests
         [InlineData("Seres/schema_4956_1_forms_5692_42617.xsd", "")]
         [InlineData("Seres/schema_4660_1_forms_2500_2500.xsd", "")]
         [InlineData("Seres/schema_4108-41505.xsd", "")]
+        [InlineData("Seres/schema_4388-39288.xsd", "")]
         public void ConvertSeresXsd_SeresGeneratedXsd_ShouldConvertToJsonSchemaAndBackToXsd(string xsdSchemaPath, string xmlPath)
         {
             Given.That.XsdSchemaLoaded(xsdSchemaPath)
