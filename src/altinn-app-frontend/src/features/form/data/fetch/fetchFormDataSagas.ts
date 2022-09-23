@@ -28,9 +28,10 @@ import {
 } from 'src/utils/appUrlHelper';
 import { convertModelToDataBinding } from 'src/utils/databindings';
 import { putWithoutConfig } from 'src/utils/networking';
+import { waitFor } from 'src/utils/sagas';
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import type { IProcessState } from 'src/shared/resources/process';
-import type { ILayoutSets, IRuntimeState } from 'src/types';
+import type { ILayoutSets } from 'src/types';
 
 import { get } from 'altinn-shared/utils';
 import type { IInstance } from 'altinn-shared/types';
@@ -135,18 +136,6 @@ function* fetchFormDataStateless(applicationMetadata: IApplicationMetadata) {
   }
 }
 
-function* waitFor(selector) {
-  if (yield select(selector)) {
-    return;
-  }
-  while (true) {
-    yield take('*');
-    if (yield select(selector)) {
-      return;
-    }
-  }
-}
-
 export function* watchFetchFormDataInitialSaga(): SagaIterator {
   while (true) {
     yield take(FormDataActions.fetchInitial);
@@ -157,10 +146,8 @@ export function* watchFetchFormDataInitialSaga(): SagaIterator {
       yield take(DataModelActions.fetchJsonSchemaFulfilled);
       const allowAnonymous = yield select(makeGetAllowAnonymousSelector());
       if (!allowAnonymous) {
-        call(
-          waitFor,
-          (state: IRuntimeState) =>
-            currentSelectedPartyIdSelector(state) !== undefined,
+        yield waitFor(
+          (state) => currentSelectedPartyIdSelector(state) !== undefined,
         );
       }
     } else if (

@@ -7,7 +7,6 @@ import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import { profileStateSelector } from 'src/selectors/simpleSelectors';
 import { ApplicationMetadataActions } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
 import { LanguageActions } from 'src/shared/resources/language/languageSlice';
-import { ProfileActions } from 'src/shared/resources/profile/profileSlice';
 import {
   fetchTextResources,
   watchFetchTextResourcesSaga,
@@ -15,6 +14,7 @@ import {
 import { TextResourcesActions } from 'src/shared/resources/textResources/textResourcesSlice';
 import { textResourcesUrl } from 'src/utils/appUrlHelper';
 import { get } from 'src/utils/networking';
+import { waitForFunc } from 'src/utils/sagas';
 
 import type { IProfile } from 'altinn-shared/types';
 
@@ -31,7 +31,9 @@ describe('fetchTextResourcesSagas', () => {
     expect(generator.next().value).toEqual(
       select(makeGetAllowAnonymousSelector()),
     );
-    expect(generator.next().value).toEqual(take(ProfileActions.fetchFulfilled));
+    expect(generator.next().value).toEqual(
+      call(waitForFunc, expect.anything()),
+    );
     expect(generator.next().value).toEqual(call(fetchTextResources));
     expect(generator.next().value).toEqual(
       takeLatest(TextResourcesActions.fetch, fetchTextResources),
