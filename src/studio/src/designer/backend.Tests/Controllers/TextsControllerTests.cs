@@ -56,6 +56,28 @@ namespace Designer.Tests.Controllers
         }
 
         [Fact]
+        public async Task Get_Markdown_200Ok()
+        {
+            var targetRepository = Guid.NewGuid().ToString();
+            await TestDataHelper.CopyRepositoryForTest("ttd", "markdown-files", "testUser", targetRepository);
+            HttpClient client = GetTestClient();
+            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            try
+            {
+                Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
+            }
+        }
+
+        [Fact]
         public async Task Get_NonExistingFile_404NotFound()
         {
             HttpClient client = GetTestClient();
@@ -97,6 +119,29 @@ namespace Designer.Tests.Controllers
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
             httpRequestMessage.Content = JsonContent.Create(new { new_key_1 = "new_value_1", new_key_2 = "new_value_2" });
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            try
+            {
+                Assert.Equal(StatusCodes.Status204NoContent, (int)response.StatusCode);
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
+            }
+        }
+
+        [Fact]
+        public async Task Put_Markdown_204NoContent()
+        {
+            var targetRepository = Guid.NewGuid().ToString();
+            await TestDataHelper.CopyRepositoryForTest("ttd", "markdown-files", "testUser", targetRepository);
+            HttpClient client = GetTestClient();
+            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
+            httpRequestMessage.Content = JsonContent.Create(new { markdown_key = "## This is a markdown text \n\n Here is a list \n - Item1 \n - Item2 \n - Item3 \n\n # HERE IS SOME IMPORTANT CODE \n `print(Hello world)`" });
             await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
