@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -70,13 +72,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private static List<string> ExtractMarkdownFileNames(Dictionary<string, string> texts)
         {
             List<string> markdownFileNames = new List<string>();
-            foreach (KeyValuePair<string, string> text in texts)
+            foreach (KeyValuePair<string, string> text in texts.Where(text => text.Value.StartsWith("${{") && text.Value.EndsWith(".md}}")))
             {
-                if (text.Value.StartsWith("${{") && text.Value.EndsWith(".md}}"))
-                {
-                    string fileName = text.Value.Substring(3, text.Value.Length - 5);
-                    markdownFileNames.Add(fileName);
-                }
+                string fileName = text.Value.Substring(3, text.Value.Length - 5);
+                markdownFileNames.Add(fileName);
             }
 
             return markdownFileNames;
@@ -87,14 +86,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private static (Dictionary<string, string> TtextsWithMd, Dictionary<string, string> Ttexts) ExtractMarkdown(string languageCode, Dictionary<string, string> texts)
         {
             Dictionary<string, string> textsWithMd = new Dictionary<string, string>();
-            foreach (KeyValuePair<string, string> text in texts)
+            foreach (KeyValuePair<string, string> text in texts.Where(text => text.Value.Contains('\n')))
             {
-                if (text.Value.Contains('\n'))
-                {
-                    textsWithMd[text.Key] = text.Value;
-                    string fileName = $"{text.Key}.{languageCode}.texts.md";
-                    texts[text.Key] = "${{" + fileName + "}}";
-                }
+                textsWithMd[text.Key] = text.Value;
+                string fileName = $"{text.Key}.{languageCode}.texts.md";
+                texts[text.Key] = "${{" + fileName + "}}";
             }
 
             return (textsWithMd, texts);
