@@ -207,6 +207,31 @@ namespace Designer.Tests.Controllers
             }
         }
 
+        [Fact]
+        public async Task Delete_Markdown_200Ok()
+        {
+            var targetRepository = Guid.NewGuid().ToString();
+            await TestDataHelper.CopyRepositoryForTest("ttd", "markdown-files", "testUser", targetRepository);
+            HttpClient client = GetTestClient();
+            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, dataPathWithData);
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseBody = await response.Content.ReadAsStringAsync();
+            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
+
+            try
+            {
+                Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+                Assert.Equal("Texts file, nb.texts.json, was successfully deleted.", responseDocument.RootElement.ToString());
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
+            }
+        }
+
         private HttpClient GetTestClient()
         {
             string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.Location).LocalPath);
