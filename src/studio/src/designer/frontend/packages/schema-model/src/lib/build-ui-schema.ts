@@ -11,6 +11,7 @@ import { handleCustomProperties } from './handlers/custom-properties';
 import { findRestrictionsOnNode } from './restrictions';
 import { getUiFieldType } from './handlers/field-type';
 import { findGenericKeywordsOnNode } from './handlers/generic';
+import { getNodeByPointer } from './selectors';
 
 /**
  * Recursive function that traverse the json schema tree. This should not be accessed directly but through `toUiSchema`
@@ -69,13 +70,14 @@ export const buildUiSchema = (jsonSchema: JsonSchemaNode): UiSchemaMap => {
   // Just resolve references when we are dealing with the root, all items is resolved at this point.
   uiNodeMap.forEach((item) => {
     if (typeof item.ref === 'string') {
-      if (!uiNodeMap.has(item.ref)) {
+      if (uiNodeMap.has(item.ref)) {
+        const refNode = getNodeByPointer(uiNodeMap, item.ref);
+        if (item.fieldType === undefined) {
+          // just inherit the field type
+          item.fieldType = refNode.fieldType;
+        }
+      } else {
         throw Error(`Refered uiNode was not found ${item.ref}`);
-      }
-      const refNode = uiNodeMap.get(item.ref);
-      if (item.fieldType === undefined) {
-        // just inherit the field type
-        item.fieldType = refNode.fieldType;
       }
     }
   });

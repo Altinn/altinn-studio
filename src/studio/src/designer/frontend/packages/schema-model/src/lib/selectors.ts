@@ -3,9 +3,9 @@ import { FieldType, Keywords, ROOT_POINTER, UiSchemaMap, UiSchemaNode } from './
 export const getRootNodes = (uiSchemaMap: UiSchemaMap, defs: boolean): UiSchemaNode[] => {
   const childNodes: UiSchemaNode[] = [];
   if (uiSchemaMap.has(ROOT_POINTER)) {
-    uiSchemaMap.get(ROOT_POINTER).children.forEach((pointer) => {
-      if (pointer.startsWith([ROOT_POINTER, Keywords.Definitions].join('/')) === defs) {
-        childNodes.push(uiSchemaMap.get(pointer));
+    getNodeByPointer(uiSchemaMap, ROOT_POINTER).children.forEach((childPointer) => {
+      if (childPointer.startsWith([ROOT_POINTER, Keywords.Definitions].join('/')) === defs) {
+        childNodes.push(getNodeByPointer(uiSchemaMap, childPointer));
       }
     });
   }
@@ -32,7 +32,7 @@ export const getUniqueNodePath = (uiNodeMap: UiSchemaMap, targetPointer: string)
 
 export const getNodeByPointer = (uiNodeMap: UiSchemaMap, pointer: string): UiSchemaNode => {
   if (uiNodeMap.has(pointer)) {
-    return uiNodeMap.get(pointer);
+    return uiNodeMap.get(pointer) as UiSchemaNode;
   } else {
     throw new Error("Can't find node with pointer " + pointer);
   }

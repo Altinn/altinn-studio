@@ -92,10 +92,9 @@ export function SchemaItem({ item, isPropertiesView, editMode, translate }: Sche
 
   const childItems = useSelector((state: ISchemaState) => {
     const children: UiSchemaNode[] = [];
-    if (item.ref) {
-      children.push(getNodeByPointer(state.uiSchema, item.ref));
-    }
-    item.children.forEach((childPointer) => getNodeByPointer(state.uiSchema, childPointer));
+    item.children.forEach((childPointer) =>
+      children.push(getNodeByPointer(state.uiSchema, childPointer)),
+    );
     return children;
   });
 

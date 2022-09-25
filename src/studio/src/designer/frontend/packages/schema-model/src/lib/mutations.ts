@@ -1,6 +1,6 @@
 import { FieldType, Keywords, ObjectKind, ROOT_POINTER, UiSchemaMap, UiSchemaNode } from './types';
 import { cloneMap, createNodeBase, getParentNodeByPointer } from './utils';
-import { getUniqueNodePath } from './selectors';
+import { getNodeByPointer, getUniqueNodePath } from './selectors';
 
 // Changes to the uiNodeMap
 export const removeItemByPointer = (uiNodeMap: UiSchemaMap, pointer: string) => {
@@ -55,11 +55,11 @@ export const renameItemPointer = (
   }
   const mutatedUiNodeMap: UiSchemaMap = new Map();
   uiNodeMap.forEach((uiNode: UiSchemaNode, uiNodePointer: string) => {
-    const nodeCopy = { ...uiNode };
+    const nodeCopy = Object.assign({}, uiNode);
     if (uiNodePointer.startsWith(oldPointer)) {
       nodeCopy.pointer = nodeCopy.pointer.replace(oldPointer, newPointer);
     }
-    if (uiNode.ref.startsWith(oldPointer)) {
+    if (nodeCopy.ref && nodeCopy.ref.startsWith(oldPointer)) {
       nodeCopy.ref = nodeCopy.ref.replace(oldPointer, newPointer);
     }
     mutatedUiNodeMap.set(nodeCopy.pointer, nodeCopy);
@@ -114,7 +114,7 @@ export const promotePropertyToType = (uiNodeMap: UiSchemaMap, pointer: string) =
   if (!uiNodeMap.has(pointer)) {
     throw new Error(`Can't promote ${pointer}, it doesn't exist`);
   }
-  const uiNode = uiNodeMap.get(pointer);
+  const uiNode = getNodeByPointer(uiNodeMap, pointer);
   if (uiNode.objectKind === ObjectKind.Reference) {
     throw new Error(`Pointer ${pointer}, is already a reference.`);
   }

@@ -1,13 +1,19 @@
 import React from 'react';
 import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import { buildUISchema } from '../utils/schema';
 import { dataMock } from '../mockData';
 import { render, screen } from '@testing-library/react';
-import { CombinationKind, FieldType, ISchemaState } from '../types';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event/dist/types/setup/setup';
 import { SchemaEditor } from './SchemaEditor';
+import { ISchemaState } from '../types';
+import {
+  buildUiSchema,
+  CombinationKind,
+  FieldType,
+  Keywords,
+  ROOT_POINTER,
+} from '@altinn/schema-model';
 
 const mockLanguage = {
   schema_editor: {
@@ -21,9 +27,7 @@ const mockLanguage = {
   },
 };
 const renderEditor = (customState?: Partial<ISchemaState>) => {
-  const mockUiSchema = buildUISchema(dataMock.properties, '#/properties').concat(
-    buildUISchema(dataMock.definitions, '#/definitions'),
-  );
+  const mockUiSchema = buildUiSchema(dataMock);
 
   const mockInitialState = {
     name: 'test',
@@ -139,7 +143,7 @@ test('should show context menu and trigger correct dispatch when adding field on
       properties: { mockItem: { type: FieldType.Object } },
       $defs: {},
     },
-    uiSchema: buildUISchema({ mockItem: { type: FieldType.Object } }, '#/properties'),
+    uiSchema: buildUiSchema({ mockItem: { type: FieldType.Object } }),
   });
   await toggleEditMode(user);
   await clickOpenContextMenuButton(user);
@@ -161,7 +165,7 @@ test('should show context menu and trigger correct dispatch when adding referenc
       properties: { mockItem: { type: FieldType.Object } },
       $defs: {},
     },
-    uiSchema: buildUISchema({ mockItem: { type: FieldType.Object } }, '#/properties'),
+    uiSchema: buildUiSchema({ mockItem: { type: FieldType.Object } }),
   });
   await toggleEditMode(user);
   await clickOpenContextMenuButton(user);
@@ -191,17 +195,17 @@ test('should show context menu and trigger correct dispatch when deleting a spec
 });
 
 test('should not show add property or add reference buttons on a reference node', async () => {
-  const properties = {
-    mockItem: { $ref: '#/definitions/mockDefinition' },
-  };
-  const definitions = {
-    mockDefinition: { type: FieldType.Object },
+  const jsonSchema = {
+    [Keywords.Properties]: {
+      mockItem: { $ref: [ROOT_POINTER, Keywords.Definitions, 'mockDefinition'] },
+    },
+    [Keywords.Definitions]: {
+      mockDefinition: { type: FieldType.Object },
+    },
   };
   const { user } = renderEditor({
-    schema: { properties, $defs: definitions },
-    uiSchema: buildUISchema(properties, '#/properties').concat(
-      buildUISchema(definitions, '#/definitions'),
-    ),
+    schema: jsonSchema,
+    uiSchema: buildUiSchema(jsonSchema),
   });
   await clickOpenContextMenuButton(user);
   const menuitems = screen.getAllByRole('menuitem');
@@ -211,17 +215,17 @@ test('should not show add property or add reference buttons on a reference node'
 });
 
 test('should not show add property or add reference buttons on a reference node that has not yet set reference', async () => {
-  const properties = {
-    mockItem: { $ref: '' },
-  };
-  const definitions = {
-    mockDefinition: { type: FieldType.Object },
+  const jsonSchema = {
+    [Keywords.Properties]: {
+      mockItem: { $ref: '' },
+    },
+    [Keywords.Definitions]: {
+      mockDefinition: { type: FieldType.Object },
+    },
   };
   const { user } = renderEditor({
-    schema: { properties, $defs: definitions },
-    uiSchema: buildUISchema(properties, '#/properties').concat(
-      buildUISchema(definitions, '#/definitions'),
-    ),
+    schema: jsonSchema,
+    uiSchema: buildUiSchema(jsonSchema),
   });
   await clickOpenContextMenuButton(user);
   const menuitems = screen.getAllByRole('menuitem');
@@ -231,17 +235,17 @@ test('should not show add property or add reference buttons on a reference node 
 });
 
 test('should not show add property or add reference buttons on a field that is not type object', async () => {
-  const properties = {
-    mockItem: { $ref: '#/definitions/mockDefinition' },
-  };
-  const definitions = {
-    mockDefinition: { type: FieldType.Integer },
+  const jsonSchema = {
+    [Keywords.Properties]: {
+      mockItem: { $ref: [ROOT_POINTER, Keywords.Definitions, 'mockDefinition'] },
+    },
+    [Keywords.Definitions]: {
+      mockDefinition: { type: FieldType.Integer },
+    },
   };
   const { user } = renderEditor({
-    schema: { properties, $defs: definitions },
-    uiSchema: buildUISchema(properties, '#/properties').concat(
-      buildUISchema(definitions, '#/definitions'),
-    ),
+    schema: jsonSchema,
+    uiSchema: buildUiSchema(jsonSchema),
   });
   await clickOpenContextMenuButton(user);
   const menuitems = screen.getAllByRole('menuitem');
@@ -284,12 +288,13 @@ test('should trigger correct dispatch when adding combination to root', async ()
 });
 
 test('should show context menu and trigger correct dispatch when adding a combination on a specific node', async () => {
+  const jsonSchema = {
+    properties: { mockItem: { type: FieldType.Object } },
+    $defs: {},
+  };
   const { store, user } = renderEditor({
-    schema: {
-      properties: { mockItem: { type: FieldType.Object } },
-      $defs: {},
-    },
-    uiSchema: buildUISchema({ mockItem: { type: FieldType.Object } }, '#/properties'),
+    schema: jsonSchema,
+    uiSchema: buildUiSchema(jsonSchema),
   });
   await toggleEditMode(user);
   await clickOpenContextMenuButton(user);
@@ -307,12 +312,13 @@ test('should show context menu and trigger correct dispatch when adding a combin
 });
 
 test('should only be possible to add a reference to a combination type', async () => {
+  const jsonSchema = {
+    properties: { mockItem: { allOf: [], name: 'allOfTest' } },
+    $defs: {},
+  };
   const { user } = renderEditor({
-    schema: {
-      properties: { mockItem: { type: FieldType.Object } },
-      $defs: {},
-    },
-    uiSchema: buildUISchema({ mockItem: { allOf: [], name: 'allOfTest' } }, '#/properties'),
+    schema: jsonSchema,
+    uiSchema: buildUiSchema(jsonSchema),
   });
   await toggleEditMode(user);
   await clickOpenContextMenuButton(user);

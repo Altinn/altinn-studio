@@ -1,5 +1,5 @@
 /** Interfaces */
-import { UiSchemaMap } from '@altinn/schema-model';
+import type { UiSchemaMap } from '@altinn/schema-model';
 
 export interface ILanguage {
   [key: string]: string | ILanguage;

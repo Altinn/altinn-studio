@@ -1,4 +1,4 @@
-/* eslint-disable no-useless-escape */
+/* eslint-disable no-useless-escape lanuage=JSON*/
 const mockString = `
 {
 	"$schema" : "http://json-schema.org/schema#",
@@ -6,7 +6,7 @@ const mockString = `
 	"type" : "object",
 	"properties" : {
 			"melding" : {
-					"$ref" : "#/definitions/RA-0678_M"
+					"$ref" : "#/$defs/RA-0678_M"
 				}
 		},
 	"info" : {
@@ -35,7 +35,7 @@ const mockString = `
 			"XSD-variant" : "Altinn",
 			"XSD-transformatorversjon" : "1.2"
 		},
-	"definitions" : {
+	    "$defs" : {
 			"RA-0678_M" : {
 					"type": "object",
 					"properties" : {
@@ -55,37 +55,37 @@ const mockString = `
 									"@xsdType" : "XmlAttribute"
 								},
 							"InternInformasjon" : {
-									"$ref" : "#/definitions/InternInformasjon",
+									"$ref" : "#/$defs/InternInformasjon",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Meldingsdel",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Meldingsdel/InternInformasjon/479039"
 								},
 							"KontaktpersonOgKommentarfelt" : {
-									"$ref" : "#/definitions/KontaktpersonOgKommentarfelt",
+									"$ref" : "#/$defs/KontaktpersonOgKommentarfelt",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Meldingsdel",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Meldingsdel/KontaktpersonOgKommentarfelt/487843"
 								},
 							"ForetakOgVirksomhetsopplysninger" : {
-									"$ref" : "#/definitions/ForetakOgVirksomhetsopplysninger",
+									"$ref" : "#/$defs/ForetakOgVirksomhetsopplysninger",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Meldingsdel",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Meldingsdel/ForetakOgVirksomhetsopplysninger/492169"
 								},
 							"StatusVirksomhetMedDriftsperiode" : {
-									"$ref" : "#/definitions/StatusVirksomhetMedDriftsperiode",
+									"$ref" : "#/$defs/StatusVirksomhetMedDriftsperiode",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Meldingsdel",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Meldingsdel/StatusVirksomhetMedDriftsperiode/526334"
 								},
 							"Naeringskontrollspoersmaal" : {
-									"$ref" : "#/definitions/Naeringskontrollspoersmaal",
+									"$ref" : "#/$defs/Naeringskontrollspoersmaal",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Meldingsdel",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Meldingsdel/Næringskontroll/526331"
 								},
 							"Oppgavebyrde" : {
-									"$ref" : "#/definitions/Oppgavebyrde",
+									"$ref" : "#/$defs/Oppgavebyrde",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Meldingsdel",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Meldingsdel/Oppgavebyrde/492705"
 								},
 							"Skjemadata" : {
-									"$ref" : "#/definitions/Skjemadata",
+									"$ref" : "#/$defs/Skjemadata",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Meldingsdel",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Meldingsdel/Skjemadata/600884"
 								}
@@ -109,37 +109,37 @@ const mockString = `
 			"InternInformasjon" : {
 					"properties" : {
 							"periodeFritekst" : {
-									"$ref" : "#/definitions/Tekst_50",
+									"$ref" : "#/$defs/Tekst_50",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/periode/479038"
 								},
 							"rapportPeriode" : {
-									"$ref" : "#/definitions/Tidsrom",
+									"$ref" : "#/$defs/Tidsrom",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/rapportPeriode/479037"
 								},
 							"raNummer" : {
-									"$ref" : "#/definitions/Tekst",
+									"$ref" : "#/$defs/Tekst",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/raNummer/479036"
 								},
 							"delRegNummer" : {
-									"$ref" : "#/definitions/Tekst",
+									"$ref" : "#/$defs/Tekst",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/delRegNummer/479035"
 								},
 							"identnummerEnhet" : {
-									"$ref" : "#/definitions/Tekst_30",
+									"$ref" : "#/$defs/Tekst_30",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/enhetsIdentNummer/492113"
 								},
 							"sendtFraSluttbrukersystem" : {
-									"$ref" : "#/definitions/Tekst_09",
+									"$ref" : "#/$defs/Tekst_09",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/sendtFraSluttbrukersystem/555500"
 								},
 							"statistiskEnhet" : {
-									"$ref" : "#/definitions/StatistiskEnhet",
+									"$ref" : "#/$defs/StatistiskEnhet",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Relasjonsegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/statistiskEnhet/569286"
 								}
@@ -153,12 +153,12 @@ const mockString = `
 			"Tidsrom" : {
 					"properties" : {
 							"fomDato" : {
-									"$ref" : "#/definitions/Dato",
+									"$ref" : "#/$defs/Dato",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=DataTypeegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/DataTypeegenskap/fomDato/476090"
 								},
 							"tomDato" : {
-									"$ref" : "#/definitions/Dato",
+									"$ref" : "#/$defs/Dato",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=DataTypeegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/DataTypeegenskap/tomDato/476089"
 								}
@@ -169,12 +169,12 @@ const mockString = `
 			"StatistiskEnhet" : {
 					"properties" : {
 							"enhetsident" : {
-									"$ref" : "#/definitions/Tekst_50",
+									"$ref" : "#/$defs/Tekst_50",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/enhetsident/569284"
 								},
 							"enhetstype" : {
-									"$ref" : "#/definitions/StatistiskeEnhetstyper",
+									"$ref" : "#/$defs/StatistiskeEnhetstyper",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/enhetstype/569283"
 								}
@@ -185,12 +185,12 @@ const mockString = `
 			"KontaktpersonOgKommentarfelt" : {
 					"properties" : {
 							"kommentar" : {
-									"$ref" : "#/definitions/Kommentar",
+									"$ref" : "#/$defs/Kommentar",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/kommentar/487842"
 								},
 							"kontaktperson" : {
-									"$ref" : "#/definitions/Kontaktperson",
+									"$ref" : "#/$defs/Kontaktperson",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Relasjonsegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/kontaktperson/487841"
 								}
@@ -201,17 +201,17 @@ const mockString = `
 			"Kontaktperson" : {
 					"properties" : {
 							"epostadresse" : {
-									"$ref" : "#/definitions/Epost",
+									"$ref" : "#/$defs/Epost",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/epostadresse/476085"
 								},
 							"navn" : {
-									"$ref" : "#/definitions/NavnSomToken",
+									"$ref" : "#/$defs/NavnSomToken",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/navn/489943"
 								},
 							"telefonSFU" : {
-									"$ref" : "#/definitions/Tekst_25",
+									"$ref" : "#/$defs/Tekst_25",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/telefonSFU/566757"
 								}
@@ -222,17 +222,17 @@ const mockString = `
 			"ForetakOgVirksomhetsopplysninger" : {
 					"properties" : {
 							"organisasjonsnummerKontekst" : {
-									"$ref" : "#/definitions/Organisasjonsnummer",
+									"$ref" : "#/$defs/Organisasjonsnummer",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/organisasjonsnummerKontekst/492166"
 								},
 							"foretak" : {
-									"$ref" : "#/definitions/Foretak",
+									"$ref" : "#/$defs/Foretak",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Relasjonsegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/foretak/492168"
 								},
 							"virksomhet" : {
-									"$ref" : "#/definitions/Virksomhet",
+									"$ref" : "#/$defs/Virksomhet",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Relasjonsegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/virksomhet/492167"
 								}
@@ -243,17 +243,17 @@ const mockString = `
 			"Foretak" : {
 					"properties" : {
 							"organisasjonsnummerForetak" : {
-									"$ref" : "#/definitions/Organisasjonsnummer",
+									"$ref" : "#/$defs/Organisasjonsnummer",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/organisasjonsnummerForetak/492156"
 								},
 							"navnForetak" : {
-									"$ref" : "#/definitions/Tekst",
+									"$ref" : "#/$defs/Tekst",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/navnForetak/492155"
 								},
 							"adresseForetak" : {
-									"$ref" : "#/definitions/Besoeksadresse",
+									"$ref" : "#/$defs/Besoeksadresse",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/postadresseForetak/492453"
 								}
@@ -264,17 +264,17 @@ const mockString = `
 			"Besoeksadresse" : {
 					"properties" : {
 							"gateadresse" : {
-									"$ref" : "#/definitions/Tekst200",
+									"$ref" : "#/$defs/Tekst200",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=DataTypeegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/DataTypeegenskap/gateadresse/486193"
 								},
 							"postnummer" : {
-									"$ref" : "#/definitions/Postnummer",
+									"$ref" : "#/$defs/Postnummer",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=DataTypeegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/DataTypeegenskap/postnummer/486192"
 								},
 							"poststed" : {
-									"$ref" : "#/definitions/Tekst100",
+									"$ref" : "#/$defs/Tekst100",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=DataTypeegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/DataTypeegenskap/poststed/486191"
 								}
@@ -285,22 +285,22 @@ const mockString = `
 			"Virksomhet" : {
 					"properties" : {
 							"organisasjonsnummerVirksomhet" : {
-									"$ref" : "#/definitions/Organisasjonsnummer",
+									"$ref" : "#/$defs/Organisasjonsnummer",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/organisasjonsnummerVirksomhet/492152"
 								},
 							"navnVirksomhet" : {
-									"$ref" : "#/definitions/NavnString",
+									"$ref" : "#/$defs/NavnString",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/navnVirksomhet/492151"
 								},
 							"adresseVirksomhet" : {
-									"$ref" : "#/definitions/Besoeksadresse",
+									"$ref" : "#/$defs/Besoeksadresse",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/forretningsadresseVirksomhet/492452"
 								},
 							"avdeling" : {
-									"$ref" : "#/definitions/NavnString",
+									"$ref" : "#/$defs/NavnString",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/avdeling/492150"
 								}
@@ -311,7 +311,7 @@ const mockString = `
 			"StatusVirksomhetMedDriftsperiode" : {
 					"properties" : {
 							"driftsstatusPeriode" : {
-									"$ref" : "#/definitions/DriftsstatusPeriode",
+									"$ref" : "#/$defs/DriftsstatusPeriode",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/driftsstatusPeriode/526333"
 								}
@@ -322,12 +322,12 @@ const mockString = `
 			"Naeringskontrollspoersmaal" : {
 					"properties" : {
 							"visNaeringskontrollJaNeiPrefill" : {
-									"$ref" : "#/definitions/SvaralternativJaNei",
+									"$ref" : "#/$defs/SvaralternativJaNei",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/visNæringskontrollJaNeiPrefill/526330"
 								},
 							"Naeringskontroll" : {
-									"$ref" : "#/definitions/Naeringskontroll",
+									"$ref" : "#/$defs/Naeringskontroll",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Relasjonsegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/næringskontroll/526329"
 								}
@@ -338,27 +338,27 @@ const mockString = `
 			"Naeringskontroll" : {
 					"properties" : {
 							"naeringOk" : {
-									"$ref" : "#/definitions/SvaralternativJaNei",
+									"$ref" : "#/$defs/SvaralternativJaNei",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/næringOk/488726"
 								},
 							"naeringskode" : {
-									"$ref" : "#/definitions/Naeringskode",
+									"$ref" : "#/$defs/Naeringskode",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/næringskode/487207"
 								},
 							"naeringstekst" : {
-									"$ref" : "#/definitions/Tekst4000",
+									"$ref" : "#/$defs/Tekst4000",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/næringstekst/487206"
 								},
 							"naeringsbeskrivelse" : {
-									"$ref" : "#/definitions/Tekst4000",
+									"$ref" : "#/$defs/Tekst4000",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/næringsbeskrivelse/592349"
 								},
 							"nyNaeringsbeskrivelse" : {
-									"$ref" : "#/definitions/NyNaeringsbeskrivelse",
+									"$ref" : "#/$defs/NyNaeringsbeskrivelse",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Relasjonsegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/nyNæringsbeskrivelse/488725"
 								}
@@ -369,17 +369,17 @@ const mockString = `
 			"NyNaeringsbeskrivelse" : {
 					"properties" : {
 							"nyNaeringTekst" : {
-									"$ref" : "#/definitions/Kommentar",
+									"$ref" : "#/$defs/Kommentar",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/nyNæringTekst/488723"
 								},
 							"alltidViktigsteAktivitet" : {
-									"$ref" : "#/definitions/Checkboks01",
+									"$ref" : "#/$defs/Checkboks01",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/AlltidViktigsteAktivitet/525326"
 								},
 							"datoNaeringsendring" : {
-									"$ref" : "#/definitions/Dato",
+									"$ref" : "#/$defs/Dato",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/datoNæringsendring/594362"
 								}
@@ -390,37 +390,37 @@ const mockString = `
 			"Oppgavebyrde" : {
 					"properties" : {
 							"visOppgavebyrdeJaNeiPrefill" : {
-									"$ref" : "#/definitions/SvaralternativJaNei",
+									"$ref" : "#/$defs/SvaralternativJaNei",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/visOppgavebyrdeJaNeiPrefill/492910"
 								},
 							"antallPersonerHjelp" : {
-									"$ref" : "#/definitions/AntallMedNull",
+									"$ref" : "#/$defs/AntallMedNull",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/antallPersonerHjelp/492704"
 								},
 							"fikkHjelpAvAndre" : {
-									"$ref" : "#/definitions/SvaralternativJaNei",
+									"$ref" : "#/$defs/SvaralternativJaNei",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/fikkHjelpAvAndre/492703"
 								},
 							"harSamletInformasjon" : {
-									"$ref" : "#/definitions/SvaralternativJaNei",
+									"$ref" : "#/$defs/SvaralternativJaNei",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/harSamletInformasjon/492702"
 								},
 							"tidsbrukSamleInformasjon" : {
-									"$ref" : "#/definitions/Tidsbruk",
+									"$ref" : "#/$defs/Tidsbruk",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/tidsbrukSamleInformasjon/492701"
 								},
 							"tidsbrukSelveSkjemautfyllingen" : {
-									"$ref" : "#/definitions/Tidsbruk",
+									"$ref" : "#/$defs/Tidsbruk",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/tidsbrukSelveSkjemautfyllingen/492700"
 								},
 							"tidsbrukTotalHjelpAvAndre" : {
-									"$ref" : "#/definitions/Tidsbruk",
+									"$ref" : "#/$defs/Tidsbruk",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/tidsbrukTotalHjelpAvAndre/492699"
 								}
@@ -431,12 +431,12 @@ const mockString = `
 			"Tidsbruk" : {
 					"properties" : {
 							"AntallTimer" : {
-									"$ref" : "#/definitions/AntallMedNull",
+									"$ref" : "#/$defs/AntallMedNull",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=DataTypeegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/DataTypeegenskap/AntallTimer/487646"
 								},
 							"AntallMinutter" : {
-									"$ref" : "#/definitions/AntallMinutter",
+									"$ref" : "#/$defs/AntallMinutter",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=DataTypeegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/DataTypeegenskap/AntallMinutter/487645"
 								}
@@ -447,12 +447,12 @@ const mockString = `
 			"Skjemadata" : {
 					"properties" : {
 							"Data" : {
-									"$ref" : "#/definitions/Data",
+									"$ref" : "#/$defs/Data",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Relasjonsegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/Data/600883"
 								},
 							"Prefilldata" : {
-									"$ref" : "#/definitions/Prefilldata",
+									"$ref" : "#/$defs/Prefilldata",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Relasjonsegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Relasjonsegenskap/Prefilldata/600882"
 								}
@@ -463,7 +463,7 @@ const mockString = `
 			"Data" : {
 					"properties" : {
 							"LedigeStillinger" : {
-									"$ref" : "#/definitions/HeltallAlleMaks6siffer",
+									"$ref" : "#/$defs/HeltallAlleMaks6siffer",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/SPML16/600880"
 								}
@@ -474,12 +474,12 @@ const mockString = `
 			"Prefilldata" : {
 					"properties" : {
 							"AntallAnsatte" : {
-									"$ref" : "#/definitions/TokenTekst",
+									"$ref" : "#/$defs/TokenTekst",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/AntallAnsatte/600878"
 								},
 							"Dato" : {
-									"$ref" : "#/definitions/TokenTekst",
+									"$ref" : "#/$defs/TokenTekst",
 									"@xsdUnhandledAttribute1" : "seres:elementtype=Dataegenskap",
 									"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataegenskap/Dato/600877"
 								}
@@ -488,7 +488,7 @@ const mockString = `
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataobjekttype/Prefilldata/600879"
 				},
 			"Tekst_50" : {
-					"$ref" : "#/definitions/Tekst_50Restriksjon",
+					"$ref" : "#/$defs/Tekst_50Restriksjon",
 					"@xsdUnhandledAttribute1" : "seres:elementtype=Dataenkeltype",
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Tekst50/479312"
 				},
@@ -501,14 +501,14 @@ const mockString = `
 			"allOfTest": {
 					"allOf": [
 						{
-							"$ref": "#/definitions/Tekst_50"
+							"$ref": "#/$defs/Tekst_50"
 						}
 					]
 				},
       "oneOfTestNullable": {
           "oneOf": [
             {
-              "$ref": "#/definitions/Tekst_50"
+              "$ref": "#/$defs/Tekst_50"
             },
             {
               "type": "null"
@@ -518,13 +518,13 @@ const mockString = `
       "anyOfTestSeveralItems": {
           "anyOf": [
             {
-              "$ref": "#/definitions/Tekst_50"
+              "$ref": "#/$defs/Tekst_50"
             },
             {
               "type": "null"
             },
             {
-              "$ref": "#/definitions/Tekst_50"
+              "$ref": "#/$defs/Tekst_50"
             },
             {
               "type": "string"
@@ -543,7 +543,7 @@ const mockString = `
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Tekst/476104"
 				},
 			"Tekst_30" : {
-					"$ref" : "#/definitions/Tekst_30Restriksjon",
+					"$ref" : "#/$defs/Tekst_30Restriksjon",
 					"@xsdUnhandledAttribute1" : "seres:elementtype=Dataenkeltype",
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Tekst_30/492116"
 				},
@@ -554,7 +554,7 @@ const mockString = `
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Tegnrestriksjon/Tekst_30Restriksjon/502224"
 				},
 			"Tekst_09" : {
-					"$ref" : "#/definitions/Tekst_09Restriksjon",
+					"$ref" : "#/$defs/Tekst_09Restriksjon",
 					"@xsdUnhandledAttribute1" : "seres:elementtype=Dataenkeltype",
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Tekst_09/566760"
 				},
@@ -579,7 +579,7 @@ const mockString = `
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Datakodeutvalg/StatistiskeEnhetstyper/492035"
 				},
 			"Kommentar" : {
-					"$ref" : "#/definitions/Kommentar2000Restriksjon",
+					"$ref" : "#/$defs/Kommentar2000Restriksjon",
 					"@xsdUnhandledAttribute1" : "seres:elementtype=Dataenkeltype",
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Kommentar/4721"
 				},
@@ -591,7 +591,7 @@ const mockString = `
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Tegnrestriksjon/Kommentar2000Restriksjon/502246"
 				},
 			"Epost" : {
-					"$ref" : "#/definitions/EPostRestriksjon",
+					"$ref" : "#/$defs/EPostRestriksjon",
 					"@xsdUnhandledAttribute1" : "seres:elementtype=Dataenkeltype",
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Epost/476105"
 				},
@@ -608,7 +608,7 @@ const mockString = `
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/NavnSomToken/488179"
 				},
 			"Tekst_25" : {
-					"$ref" : "#/definitions/Tekst_25Restriksjon",
+					"$ref" : "#/$defs/Tekst_25Restriksjon",
 					"@xsdUnhandledAttribute1" : "seres:elementtype=Dataenkeltype",
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Tekst_25/566761"
 				},
@@ -619,7 +619,7 @@ const mockString = `
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Tegnrestriksjon/Tekst_25Restriksjon/566759"
 				},
 			"Organisasjonsnummer" : {
-					"$ref" : "#/definitions/OrganisasjonsnummerRestriksjon",
+					"$ref" : "#/$defs/OrganisasjonsnummerRestriksjon",
 					"@xsdUnhandledAttribute1" : "seres:elementtype=Dataenkeltype",
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Organisasjonsnummer/476107"
 				},
@@ -631,7 +631,7 @@ const mockString = `
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Tegnrestriksjon/OrganisasjonsnummerRestriksjon/502234"
 				},
 			"Tekst200" : {
-					"$ref" : "#/definitions/Tekst200Restriksjon",
+					"$ref" : "#/$defs/Tekst200Restriksjon",
 					"@xsdUnhandledAttribute1" : "seres:elementtype=Dataenkeltype",
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Tekst200/491779"
 				},
@@ -642,7 +642,7 @@ const mockString = `
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Tegnrestriksjon/Tekst200Restriksjon/502227"
 				},
 			"Postnummer" : {
-					"$ref" : "#/definitions/Tallkode_4SiffRestriksjon",
+					"$ref" : "#/$defs/Tallkode_4SiffRestriksjon",
 					"@xsdUnhandledAttribute1" : "seres:elementtype=Dataenkeltype",
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Postnummer/4733"
 				},
@@ -655,7 +655,7 @@ const mockString = `
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Tegnrestriksjon/Tallkode_4SiffRestriksjon/502226"
 				},
 			"Tekst100" : {
-					"$ref" : "#/definitions/Tekst100Restriksjon",
+					"$ref" : "#/$defs/Tekst100Restriksjon",
 					"@xsdUnhandledAttribute1" : "seres:elementtype=Dataenkeltype",
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Tekst100/479311"
 				},
@@ -666,7 +666,7 @@ const mockString = `
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Tegnrestriksjon/Tekst100Restriksjon/502231"
 				},
 			"NavnString" : {
-					"$ref" : "#/definitions/NavnRestriksjon",
+					"$ref" : "#/$defs/NavnRestriksjon",
 					"@xsdUnhandledAttribute1" : "seres:elementtype=Dataenkeltype",
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Navn/4722"
 				},
@@ -698,7 +698,7 @@ const mockString = `
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Datakodeutvalg/Svaralternativ/13653"
 				},
 			"Naeringskode" : {
-					"$ref" : "#/definitions/Tekst_06Restriksjon",
+					"$ref" : "#/$defs/Tekst_06Restriksjon",
 					"@xsdUnhandledAttribute1" : "seres:elementtype=Dataenkeltype",
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Næringskode/13640"
 				},
@@ -709,7 +709,7 @@ const mockString = `
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Tegnrestriksjon/Tekst_06Restriksjon/571136"
 				},
 			"Tekst4000" : {
-					"$ref" : "#/definitions/Tekst4000Restriksjon",
+					"$ref" : "#/$defs/Tekst4000Restriksjon",
 					"@xsdUnhandledAttribute1" : "seres:elementtype=Dataenkeltype",
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/Tekst4000/571139"
 				},
@@ -730,7 +730,7 @@ const mockString = `
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Datakodeliste/Checkboks01/593709"
 				},
 			"AntallMedNull" : {
-					"$ref" : "#/definitions/AntallRestriksjon",
+					"$ref" : "#/$defs/AntallRestriksjon",
 					"@xsdUnhandledAttribute1" : "seres:elementtype=Dataenkeltype",
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/AntallMedNull/477092"
 				},
@@ -741,7 +741,7 @@ const mockString = `
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Tallrestriksjon/AntallRestriksjon/502249"
 				},
 			"AntallMinutter" : {
-					"$ref" : "#/definitions/AntallMinutterRestriksjon",
+					"$ref" : "#/$defs/AntallMinutterRestriksjon",
 					"@xsdUnhandledAttribute1" : "seres:elementtype=Dataenkeltype",
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/AntallMinutter/592850"
 				},
@@ -753,7 +753,7 @@ const mockString = `
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Tallrestriksjon/AntallMinutterRestriksjon/592849"
 				},
 			"HeltallAlleMaks6siffer" : {
-					"$ref" : "#/definitions/HeltallMaks6sifferRestriksjon",
+					"$ref" : "#/$defs/HeltallMaks6sifferRestriksjon",
 					"@xsdUnhandledAttribute1" : "seres:elementtype=Dataenkeltype",
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/AlleHeltallMaks6siffer/479391"
 				},
@@ -770,6 +770,7 @@ const mockString = `
 					"@xsdUnhandledAttribute2" : "seres:guid=http://seres.no/guid/StatistiskSentralbyrå/Dataenkeltype/TokenTekst/486190"
 				}
 		}
-}`;
+}
+`;
 
 export const dataMock = JSON.parse(mockString);

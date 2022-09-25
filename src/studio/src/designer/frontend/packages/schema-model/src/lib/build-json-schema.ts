@@ -10,6 +10,7 @@ import JSONPointer from 'jsonpointer';
 import { findRequiredProps } from './handlers/required';
 import { getJsonFieldType } from './handlers/field-type';
 import { genericKeywords } from './handlers/generic';
+import { getNodeByPointer } from './selectors';
 
 export const buildJsonSchema = (uiNodeMap: UiSchemaMap): JsonSchemaNode => {
   const allPointers: string[] = [];
@@ -28,7 +29,7 @@ export const buildJsonSchema = (uiNodeMap: UiSchemaMap): JsonSchemaNode => {
 
   allPointers.sort();
   allPointers.forEach((sortedPointer: string) => {
-    const uiSchemaNode = uiNodeMap.get(sortedPointer);
+    const uiSchemaNode = getNodeByPointer(uiNodeMap, sortedPointer);
     const jsonPointer = uiSchemaNode.pointer.replace(ROOT_POINTER, '');
     const startValue = Object.assign({}, uiSchemaNode.custom);
     if (uiSchemaNode.objectKind === ObjectKind.Combination) {

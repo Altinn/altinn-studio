@@ -2,33 +2,32 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { ItemPropertiesTab } from './ItemPropertiesTab';
 import { renderWithRedux } from '../../../test/renderWithRedux';
-import { FieldType, UiSchemaNode } from '@altinn/schema-model';
+import {
+  CombinationKind,
+  createChildNode,
+  createNodeBase,
+  FieldType,
+  Keywords,
+  ObjectKind,
+  ROOT_POINTER,
+} from '@altinn/schema-model';
 
 test('item property tab renders combinations', async () => {
   const checkIsNameInUse = jest.fn();
-  const selectedItem: UiSchemaNode = {
-    fieldType: FieldType.Object,
-    pointer: '#/properties/test',
-    displayName: 'test',
-    combinationItem: true,
-    combinationKind: CombinationKind.AnyOf,
-    combination: [
-      {
-        type: FieldType.String,
-        path: '#/properties/test/donald',
-        displayName: 'donald',
-      },
-      {
-        type: FieldType.String,
-        path: '#/properties/test/dolly',
-        displayName: 'dolly',
-      },
-    ],
-  };
+  const selectedNode = createNodeBase(ROOT_POINTER, Keywords.Properties, 'test');
+  selectedNode.objectKind = ObjectKind.Combination;
+  selectedNode.fieldType = CombinationKind.AnyOf;
+
+  ['donald', 'dolly'].forEach((childNodeName) => {
+    const childNode = createChildNode(selectedNode, childNodeName, false);
+    childNode.fieldType = FieldType.String;
+    selectedNode.children.push(childNode.pointer);
+  });
+
   renderWithRedux(
     <ItemPropertiesTab
       language={{}}
-      selectedItem={selectedItem}
+      selectedItem={selectedNode}
       checkIsNameInUse={checkIsNameInUse}
     />,
   );
