@@ -36,11 +36,11 @@ const useStyles = makeStyles({
     },
     '& .fa': {
       width: 'auto',
-      margin: 4
+      margin: 4,
     },
     '& .fa-plus:before': {
-      content: '"\\f068"'
-    }
+      content: '"\\f068"',
+    },
   },
   iconButton: {
     width: 36,
@@ -64,14 +64,10 @@ export function TopToolbarButton({
     classes.toolbarButton,
     hideText && classes.iconButton,
     warning && 'warn',
-    className
+    className,
   ]);
   const icon = (
-    <i
-      className={faIcon}
-      style={{ ...(iconSize && { fontSize: iconSize }) }}
-      aria-hidden
-    />
+    <i className={faIcon} style={{ ...(iconSize && { fontSize: iconSize }) }} aria-hidden />
   );
   if (hideText) {
     return (

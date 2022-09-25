@@ -118,19 +118,13 @@ describe('checksUtils', () => {
 
   test('should match if a properties based path is on root', () => {
     expect(isPathOnPropertiesRoot('#/properties/prop1')).toBe(true);
-    expect(isPathOnPropertiesRoot('#/properties/prop1/properties/prop2')).toBe(
-      false,
-    );
+    expect(isPathOnPropertiesRoot('#/properties/prop1/properties/prop2')).toBe(false);
   });
 
   test('should match if a definitions based path is on root', () => {
     expect(isPathOnDefinitionsRoot('#/definitions/prop1')).toBe(true);
-    expect(
-      isPathOnDefinitionsRoot('#/definitions/prop1/properties/prop2'),
-    ).toBe(false);
+    expect(isPathOnDefinitionsRoot('#/definitions/prop1/properties/prop2')).toBe(false);
     expect(isPathOnDefinitionsRoot('#/$defs/prop1')).toBe(true);
-    expect(isPathOnDefinitionsRoot('#/$defs/prop1/properties/prop2')).toBe(
-      false,
-    );
+    expect(isPathOnDefinitionsRoot('#/$defs/prop1/properties/prop2')).toBe(false);
   });
 });

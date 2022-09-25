@@ -140,18 +140,9 @@ test('gets UI schema item', () => {
 });
 
 test('gets UI schema item from allOf/anyOf/oneOf ', () => {
-  const allOfItem = getUiSchemaItem(
-    mockUiSchema,
-    '#/properties/allOfTest/allOf/0',
-  );
-  const anyOfItem = getUiSchemaItem(
-    mockUiSchema,
-    '#/properties/anyOfTest/anyOf/0',
-  );
-  const oneOfItem = getUiSchemaItem(
-    mockUiSchema,
-    '#/properties/oneOfTest/oneOf/0',
-  );
+  const allOfItem = getUiSchemaItem(mockUiSchema, '#/properties/allOfTest/allOf/0');
+  const anyOfItem = getUiSchemaItem(mockUiSchema, '#/properties/anyOfTest/anyOf/0');
+  const oneOfItem = getUiSchemaItem(mockUiSchema, '#/properties/oneOfTest/oneOf/0');
 
   expect(allOfItem).toEqual({
     path: '#/properties/allOfTest/allOf/0',
@@ -186,10 +177,9 @@ test('build json schema', () => {
 });
 
 test('build UI schema', () => {
-  const result = buildUISchema(
-    mockJsonSchema.properties,
-    '#/properties',
-  ).concat(buildUISchema(mockJsonSchema.$defs, '#/$defs'));
+  const result = buildUISchema(mockJsonSchema.properties, '#/properties').concat(
+    buildUISchema(mockJsonSchema.$defs, '#/$defs'),
+  );
   expect(result).toEqual(mockUiSchema);
 });
 

@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { makeStyles, Select } from '@material-ui/core';
-import { Label } from "./Label";
+import { Label } from './Label';
 
 export interface IStyledSelectProps {
   id: string;
@@ -30,7 +30,15 @@ const useStyles = makeStyles({
   },
 });
 
-export function StyledSelect({ id, label, value, onChange, readOnly, fullWidth, children }: IStyledSelectProps) {
+export function StyledSelect({
+  id,
+  label,
+  value,
+  onChange,
+  readOnly,
+  fullWidth,
+  children,
+}: IStyledSelectProps) {
   const classes = useStyles();
 
   const onValueChange = (event: any) => {

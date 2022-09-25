@@ -1,21 +1,30 @@
 import React from 'react';
-import { ILanguage, UiSchemaItem } from '../../types';
+import { ILanguage } from '../../types';
 import { InlineObject } from './InlineObject';
 import { ItemDataComponent } from './ItemDataComponent';
+import { ObjectKind, UiSchemaNode } from '@altinn/schema-model';
 
 interface ItemPropertiesTabProps {
   language: ILanguage;
-  selectedItem: UiSchemaItem;
+  selectedItem: UiSchemaNode;
   checkIsNameInUse: (name: string) => boolean;
 }
 
-export const ItemPropertiesTab = ({ language, selectedItem, checkIsNameInUse }: ItemPropertiesTabProps) => {
+export const ItemPropertiesTab = ({
+  language,
+  selectedItem,
+  checkIsNameInUse,
+}: ItemPropertiesTabProps) => {
   return (
     <>
-      {selectedItem.combinationItem && selectedItem.$ref === undefined ? (
+      {selectedItem.objectKind === ObjectKind.Combination ? (
         <InlineObject item={selectedItem} language={language} />
       ) : (
-        <ItemDataComponent selectedItem={selectedItem} language={language} checkIsNameInUse={checkIsNameInUse} />
+        <ItemDataComponent
+          selectedItem={selectedItem}
+          language={language}
+          checkIsNameInUse={checkIsNameInUse}
+        />
       )}
     </>
   );

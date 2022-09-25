@@ -1,4 +1,4 @@
-import { getJsonFieldType, getUiFieldType } from './field-type';
+import { getEnumFieldType, getJsonFieldType, getUiFieldType } from './field-type';
 import { CombinationKind, FieldType, JsonSchemaNode, ObjectKind, UiSchemaNode } from '../types';
 
 test.each([
@@ -25,7 +25,7 @@ test.each([
 test.each([
   [
     [1, 2],
-    FieldType.Integer,
+    FieldType.Number,
     ['s', 'f'],
     FieldType.String,
     [1, 'f'],
@@ -33,7 +33,9 @@ test.each([
     [{}, {}],
     FieldType.Object,
   ],
-])('correct enum type for %p', (nodeEnum: any[], expected) => {});
+])('correct enum type for %p', (nodeEnum: any[], expected) =>
+  expect(getEnumFieldType(nodeEnum)).toBe(expected),
+);
 
 test.each([
   [{}, undefined],

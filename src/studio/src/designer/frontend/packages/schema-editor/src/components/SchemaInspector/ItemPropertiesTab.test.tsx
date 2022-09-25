@@ -1,14 +1,14 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { ItemPropertiesTab } from './ItemPropertiesTab';
-import { CombinationKind, FieldType, UiSchemaItem } from '../../types';
 import { renderWithRedux } from '../../../test/renderWithRedux';
+import { FieldType, UiSchemaNode } from '@altinn/schema-model';
 
 test('item property tab renders combinations', async () => {
   const checkIsNameInUse = jest.fn();
-  const selectedItem: UiSchemaItem = {
-    type: FieldType.Object,
-    path: '#/properties/test',
+  const selectedItem: UiSchemaNode = {
+    fieldType: FieldType.Object,
+    pointer: '#/properties/test',
     displayName: 'test',
     combinationItem: true,
     combinationKind: CombinationKind.AnyOf,
@@ -25,6 +25,12 @@ test('item property tab renders combinations', async () => {
       },
     ],
   };
-  renderWithRedux(<ItemPropertiesTab language={{}} selectedItem={selectedItem} checkIsNameInUse={checkIsNameInUse} />);
+  renderWithRedux(
+    <ItemPropertiesTab
+      language={{}}
+      selectedItem={selectedItem}
+      checkIsNameInUse={checkIsNameInUse}
+    />,
+  );
   expect(screen.getByText('combination_inline_object_disclaimer')).toBeDefined();
 });

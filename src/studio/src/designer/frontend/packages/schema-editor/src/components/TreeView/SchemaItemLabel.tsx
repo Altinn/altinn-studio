@@ -1,7 +1,7 @@
 import React from 'react';
 import { Divider, IconButton, makeStyles } from '@material-ui/core';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
-import { ObjectKind } from '../../types/enums';
+import { ObjectKind } from '@altinn/schema-model';
 
 export interface SchemaItemLabelProps {
   icon: string;
@@ -9,9 +9,9 @@ export interface SchemaItemLabelProps {
   translate: (key: string) => string;
   limitedItem?: boolean;
   editMode: boolean;
-  onAddProperty?: (type: ObjectKind) => void;
-  onAddReference?: (type: ObjectKind) => void;
-  onAddCombination?: (type: ObjectKind) => void;
+  onAddProperty?: (objectKind: ObjectKind) => void;
+  onAddReference?: (objectKind: ObjectKind) => void;
+  onAddCombination?: (objectKind: ObjectKind) => void;
   onDelete?: () => void;
   onImport?: () => void;
   onPromote?: () => void;

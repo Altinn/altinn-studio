@@ -2,17 +2,18 @@ import React, { useEffect, useState } from 'react';
 import { Panel, PanelVariant } from '@altinn/altinn-design-system';
 import { AppBar, Divider } from '@material-ui/core';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
-import { FieldType, ILanguage, UiSchemaItem } from '../types';
+import { ILanguage } from '../types';
 import { getTranslation } from '../utils/language';
 import { SchemaTab } from './common/SchemaTab';
 import { ItemPropertiesTab } from './SchemaInspector/ItemPropertiesTab';
 import { ItemFieldsTab } from './SchemaInspector/ItemFieldsTab';
 import classes from './SchemaInspector.module.css';
+import { FieldType, ObjectKind, UiSchemaNode } from '@altinn/schema-model';
 
 export interface ISchemaInspectorProps {
   language: ILanguage;
-  selectedItem?: UiSchemaItem;
-  referredItem?: UiSchemaItem;
+  selectedItem?: UiSchemaNode;
+  referredItem?: UiSchemaNode;
   checkIsNameInUse: (name: string) => boolean;
 }
 
@@ -26,7 +27,7 @@ export const SchemaInspector = ({
 
   useEffect(() => {
     if (selectedItem) {
-      if (tabIndex === '2' && selectedItem?.type !== FieldType.Object) {
+      if (tabIndex === '2' && selectedItem?.fieldType !== FieldType.Object) {
         setTabIndex('0');
       }
     } else {
@@ -41,17 +42,14 @@ export const SchemaInspector = ({
       </Panel>
       <TabContext value={tabIndex}>
         <AppBar position='static' color='default' className={classes.appBar}>
-          <TabList
-            onChange={(e: any, v: string) => setTabIndex(v)}
-            aria-label='inspector tabs'
-          >
+          <TabList onChange={(e: any, v: string) => setTabIndex(v)} aria-label='inspector tabs'>
             <SchemaTab label={t('properties')} value='0' />
             <SchemaTab
               label={t('fields')}
               value='2'
               hide={
-                selectedItem.type !== FieldType.Object ||
-                selectedItem.combinationItem
+                selectedItem.fieldType !== FieldType.Object ||
+                selectedItem.objectKind === ObjectKind.Combination
               }
             />
           </TabList>
@@ -64,11 +62,7 @@ export const SchemaInspector = ({
           />
         </TabPanel>
         <TabPanel className={classes.tabPanel} value='2'>
-          <ItemFieldsTab
-            classes={classes}
-            selectedItem={selectedItem}
-            language={language}
-          />
+          <ItemFieldsTab classes={classes} selectedItem={selectedItem} language={language} />
         </TabPanel>
       </TabContext>
     </div>

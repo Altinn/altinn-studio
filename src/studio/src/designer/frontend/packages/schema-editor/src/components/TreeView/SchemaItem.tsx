@@ -11,15 +11,20 @@ import {
   promoteProperty,
   setSelectedId,
 } from '../../features/editor/schemaEditorSlice';
-
-import { CombinationKind, FieldType, UiSchemaItem } from '../../types';
-import { ObjectKind } from '../../types/enums';
 import { SchemaItemLabel } from './SchemaItemLabel';
-import { createRefSelector, getIconStr } from './tree-view-helpers';
-import { getDomFriendlyID } from '../../utils/schema';
+import { getIconStr } from './tree-view-helpers';
+import {
+  FieldType,
+  getNodeByPointer,
+  getNodeDisplayName,
+  ObjectKind,
+  UiSchemaNode,
+} from '@altinn/schema-model';
+import { ISchemaState } from '../../types';
+import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 
 type SchemaItemProps = {
-  item: UiSchemaItem;
+  item: UiSchemaNode;
   translate: (key: string) => string;
   isPropertiesView?: boolean;
   editMode: boolean;
@@ -50,84 +55,90 @@ const useStyles = (isRef: boolean) =>
 export function SchemaItem({ item, isPropertiesView, editMode, translate }: SchemaItemProps) {
   const dispatch = useDispatch();
   const keyPrefix = isPropertiesView ? 'properties' : 'definitions';
-  const [itemToDisplay, setItemToDisplay] = React.useState<UiSchemaItem>(item);
-  const refItem: UiSchemaItem | undefined = useSelector(createRefSelector(item.$ref ?? item.items?.$ref));
-  const classes = useStyles(refItem !== undefined)();
-  // if item props changed, update with latest item, or if reference, refItem.
-  React.useEffect(() => setItemToDisplay(item), [item.restrictions, item, refItem]);
+  const classes = useStyles(item.ref !== undefined)();
 
-  const onItemClick = (e: any, schemaItem: UiSchemaItem) => {
+  const onItemClick = (e: any, schemaItem: UiSchemaNode) => {
     e.preventDefault();
-    dispatch(setSelectedId({ id: schemaItem.path }));
+    dispatch(setSelectedId({ id: schemaItem.pointer }));
   };
 
-  const handlePromoteClick = () => dispatch(promoteProperty({ path: item.path }));
+  const handlePromoteClick = () => dispatch(promoteProperty({ path: item.pointer }));
 
   const handleDeleteClick = () =>
-    item.combinationItem
-      ? dispatch(deleteCombinationItem({ path: item.path }))
-      : dispatch(deleteProperty({ path: item.path }));
+    item.objectKind === ObjectKind.Combination
+      ? dispatch(deleteCombinationItem({ path: item.pointer }))
+      : dispatch(deleteProperty({ path: item.pointer }));
 
   const handleAddProperty = (objectKind: ObjectKind) => {
-    const { path } = itemToDisplay;
+    const { pointer } = item;
     const propertyProps = {
-      type: objectKind === ObjectKind.Field ? FieldType.Object : undefined,
-      $ref: objectKind === ObjectKind.Reference ? '' : undefined,
-      combination: objectKind === ObjectKind.Combination ? [] : undefined,
-      combinationKind: objectKind === ObjectKind.Combination ? CombinationKind.AllOf : undefined,
-    } as UiSchemaItem;
+      objectKind,
+      fieldType: objectKind === ObjectKind.Field ? FieldType.Object : undefined,
+      ref: objectKind === ObjectKind.Reference ? '' : undefined,
+    };
 
-    itemToDisplay.combination
-      ? dispatch(addCombinationItem({ path, props: propertyProps }))
-      : dispatch(addProperty({ path, props: propertyProps }));
+    item.objectKind === ObjectKind.Combination
+      ? // @ts-ignore
+        dispatch(addCombinationItem({ path: pointer, props: propertyProps }))
+      : // @ts-ignore
+        dispatch(addProperty({ path: pointer, props: propertyProps }));
   };
 
   const handleGoToType = () => {
-    if (item.$ref) {
-      dispatch(navigateToType({ id: item.$ref }));
+    if (item.ref) {
+      dispatch(navigateToType({ id: item.ref }));
     }
   };
 
-  let childItems = [];
-
-  if (itemToDisplay.$ref && refItem) {
-    childItems.push(refItem);
-  }
-  if (itemToDisplay.properties) {
-    childItems = childItems.concat(itemToDisplay.properties);
-  }
-  if (item.combination) {
-    childItems = childItems.concat(item.combination);
-  }
+  const childItems = useSelector((state: ISchemaState) => {
+    const children: UiSchemaNode[] = [];
+    if (item.ref) {
+      children.push(getNodeByPointer(state.uiSchema, item.ref));
+    }
+    item.children.forEach((childPointer) => getNodeByPointer(state.uiSchema, childPointer));
+    return children;
+  });
 
   return (
     <TreeItem
-      nodeId={getDomFriendlyID(item.path)}
+      nodeId={getDomFriendlyID(item.pointer)}
       classes={{ root: classes.treeItem }}
       label={
         <SchemaItemLabel
           editMode={editMode}
           icon={getIconStr(item)}
-          key={`${item.path}-label`}
-          label={refItem ? `${item.displayName} : ${refItem.displayName}` : item.displayName}
+          key={`${item.pointer}-label`}
+          label={getNodeDisplayName(item)}
           translate={translate}
-          limitedItem={item.combinationItem}
-          onAddProperty={item.type === FieldType.Object ? handleAddProperty : undefined}
-          onAddReference={item.type === FieldType.Object || item.combination ? handleAddProperty : undefined}
-          onAddCombination={item.type === FieldType.Object ? handleAddProperty : undefined}
+          limitedItem={item.objectKind === ObjectKind.Combination}
+          onAddProperty={item.fieldType === FieldType.Object ? handleAddProperty : undefined}
+          onAddReference={
+            item.fieldType === FieldType.Object || item.objectKind === ObjectKind.Combination
+              ? handleAddProperty
+              : undefined
+          }
+          onAddCombination={item.fieldType === FieldType.Object ? handleAddProperty : undefined}
           onDelete={handleDeleteClick}
-          onGoToType={item.$ref && isPropertiesView ? handleGoToType : undefined}
-          onPromote={item.$ref !== undefined || item.path.startsWith('#/def') ? undefined : handlePromoteClick}
+          onGoToType={
+            item.objectKind === ObjectKind.Combination && isPropertiesView
+              ? handleGoToType
+              : undefined
+          }
+          onPromote={
+            item.objectKind === ObjectKind.Combination || item.pointer.startsWith('#/def')
+              ? undefined
+              : handlePromoteClick
+          }
         />
       }
-      onLabelClick={(e) => onItemClick(e, itemToDisplay)}
+      onLabelClick={(e) => onItemClick(e, item)}
     >
-      {childItems.map((property: UiSchemaItem) => (
+      {childItems.map((property: UiSchemaNode) => (
         <SchemaItem
           editMode={editMode}
           isPropertiesView={isPropertiesView}
           item={property}
-          key={`${keyPrefix}-${property.path}`}
+          key={`${keyPrefix}-${property.pointer}`}
           translate={translate}
           onLabelClick={(e: any) => onItemClick(e, property)}
         />

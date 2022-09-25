@@ -38,7 +38,13 @@ interface TopToolbarProps {
   language: ILanguage;
 }
 
-export function TopToolbar({ editMode, Toolbar, saveAction, toggleEditMode, language }: TopToolbarProps) {
+export function TopToolbar({
+  editMode,
+  Toolbar,
+  saveAction,
+  toggleEditMode,
+  language,
+}: TopToolbarProps) {
   const classes = useStyles();
   const t = (key: string) => getTranslation(key, language);
 
@@ -55,12 +61,12 @@ export function TopToolbar({ editMode, Toolbar, saveAction, toggleEditMode, lang
       >
         {t('save_data_model')}
       </TopToolbarButton>
-      {toggleEditMode &&
+      {toggleEditMode && (
         <ToggleButtonGroup selectedValue={editMode ? 'edit' : 'view'} onChange={toggleEditMode}>
           <ToggleButton value='view'>{t('view_mode')}</ToggleButton>
           <ToggleButton value='edit'>{t('edit_mode')}</ToggleButton>
         </ToggleButtonGroup>
-      }
+      )}
     </section>
   );
 }

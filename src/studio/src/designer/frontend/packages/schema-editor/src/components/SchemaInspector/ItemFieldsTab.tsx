@@ -1,19 +1,24 @@
 import React, { BaseSyntheticEvent } from 'react';
 import { Grid } from '@material-ui/core';
 import { AddPropertyButton } from './AddPropertyButton';
-import { ILanguage, UiSchemaItem } from '../../types';
+import { ILanguage, ISchemaState } from '../../types';
 import { PropertyItem } from './PropertyItem';
-import { addProperty, deleteProperty, setPropertyName } from '../../features/editor/schemaEditorSlice';
-import { useDispatch } from 'react-redux';
+import {
+  addProperty,
+  deleteProperty,
+  setPropertyName,
+} from '../../features/editor/schemaEditorSlice';
+import { useDispatch, useSelector } from 'react-redux';
 import { getTranslation } from '../../utils/language';
+import { getChildNodesByPointer, getNodeDisplayName, UiSchemaNode } from '@altinn/schema-model';
 
 interface ItemFieldsTabProps {
   classes: any;
-  selectedItem: UiSchemaItem;
+  selectedItem: UiSchemaNode;
   language: ILanguage;
 }
 export const ItemFieldsTab = ({ classes, selectedItem, language }: ItemFieldsTabProps) => {
-  const readonly = selectedItem.$ref !== undefined;
+  const readonly = selectedItem.ref !== undefined;
   const dispatch = useDispatch();
   const onChangePropertyName = (path: string, value: string) =>
     dispatch(
@@ -26,7 +31,7 @@ export const ItemFieldsTab = ({ classes, selectedItem, language }: ItemFieldsTab
   const onDeleteObjectClick = (path: string) => dispatch(deleteProperty({ path }));
 
   const dispatchAddProperty = () => {
-    const path = selectedItem.path;
+    const path = selectedItem.pointer;
     if (path) {
       dispatch(
         addProperty({
@@ -40,17 +45,20 @@ export const ItemFieldsTab = ({ classes, selectedItem, language }: ItemFieldsTab
     event.preventDefault();
     dispatchAddProperty();
   };
+  const childNodes = useSelector((state: ISchemaState) =>
+    getChildNodesByPointer(state.uiSchema, selectedItem.pointer),
+  );
   return (
     <>
       <Grid container spacing={3} className={classes.gridContainer}>
-        {selectedItem?.properties?.map((prop) => (
+        {childNodes.map((childNode) => (
           <PropertyItem
             language={language}
-            key={prop.path}
-            required={selectedItem?.required?.includes(prop.displayName)}
+            key={childNode.pointer}
+            required={childNode.isRequired}
             readOnly={readonly}
-            value={prop.displayName}
-            fullPath={prop.path}
+            value={getNodeDisplayName(childNode)}
+            fullPath={childNode.pointer}
             onChangeValue={onChangePropertyName}
             onDeleteField={onDeleteObjectClick}
             onEnterKeyPress={dispatchAddProperty}
@@ -58,7 +66,10 @@ export const ItemFieldsTab = ({ classes, selectedItem, language }: ItemFieldsTab
         ))}
       </Grid>
       {!readonly && (
-        <AddPropertyButton onAddPropertyClick={onAddPropertyClicked} label={getTranslation('add_property', language)} />
+        <AddPropertyButton
+          onAddPropertyClick={onAddPropertyClicked}
+          label={getTranslation('add_property', language)}
+        />
       )}
     </>
   );

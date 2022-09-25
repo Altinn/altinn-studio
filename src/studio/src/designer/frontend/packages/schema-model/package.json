@@ -4,7 +4,7 @@
   "private": true,
   "description": "JSON schema internal model",
   "main": "src/index.ts",
-  "peerDependencies": {
+  "dependencies": {
     "jsonpointer": "5.0.1"
   },
   "devDependencies": {

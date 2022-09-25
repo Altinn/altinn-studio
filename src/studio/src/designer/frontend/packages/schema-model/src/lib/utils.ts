@@ -12,7 +12,6 @@ export const createNodeBase = (...args: string[]): UiSchemaNode => {
   return {
     objectKind: ObjectKind.Field,
     fieldType: FieldType.Object,
-    nodeId: createNodeId(),
     pointer,
     isRequired: false,
     isNillable: false,
@@ -24,29 +23,12 @@ export const createNodeBase = (...args: string[]): UiSchemaNode => {
     enum: [],
   };
 };
-let currentId = 0;
-export const createNodeId = (): number => {
-  currentId++;
-  return 1000 + currentId;
-};
-export const resetNodeIds = () => {
-  currentId = 0;
-};
 
-export const createPointerLookupTable = (map: UiSchemaMap): Map<string, number> => {
-  const lookupTable = new Map();
-  map.forEach((item) => lookupTable.set(item.pointer, item.nodeId));
-  return lookupTable;
-};
-
-/**
- * Returns a combination kind or undefined.
- * @param schemaNode
- */
 export const getCombinationKind = (schemaNode: JsonSchemaNode): CombinationKind => {
   const kinds = Object.values(CombinationKind).filter((k) => Object.keys(schemaNode).includes(k));
   return kinds[0];
 };
+
 export const getObjectKind = (schemaNode: JsonSchemaNode): ObjectKind => {
   if (schemaNode.$ref) {
     return ObjectKind.Reference;
@@ -66,16 +48,15 @@ export const schemaTypeIsNillable = (schemaNodeType: string | string[]) =>
   schemaNodeType !== FieldType.Null && schemaTypeIncludes(schemaNodeType, FieldType.Null);
 
 export const getParentNodeByPointer = (
-  map: UiSchemaMap,
+  uiNodeMap: UiSchemaMap,
   pointer: string,
 ): UiSchemaNode | undefined => {
-  const lookup = createPointerLookupTable(map);
   const pointerParts = pointer.split('/');
   while (pointerParts.length) {
     pointerParts.pop();
     const parentNodePointer = pointerParts.join('/');
-    if (lookup.has(parentNodePointer)) {
-      return map.get(lookup.get(parentNodePointer) as number);
+    if (uiNodeMap.has(parentNodePointer)) {
+      return uiNodeMap.get(parentNodePointer);
     }
   }
   return undefined;
@@ -91,3 +72,10 @@ export const arrayUnique = (arr: any[]) => {
 
 export const cloneMap = (map: Map<any, any>): Map<any, any> =>
   new Map(JSON.parse(JSON.stringify(Array.from(map))));
+
+export const replaceLastPointerSegment = (pointer: string, newLastSegment: string): string => {
+  const newPointerParts = pointer.split('/');
+  newPointerParts.pop();
+  newPointerParts.push(newLastSegment);
+  return newPointerParts.join('/');
+};

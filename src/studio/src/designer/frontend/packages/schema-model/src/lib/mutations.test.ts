@@ -2,6 +2,7 @@ import { dumpToDebug, getGeneralJsonSchemaForTest, validateSchema } from '../../
 import {
   createChildNode,
   insertNodeToMap,
+  promotePropertyToType,
   removeItemByPointer,
   renameItemPointer,
 } from './mutations';
@@ -25,6 +26,8 @@ const testSimpleSchema = {
     },
   },
 };
+const worldPointer = [ROOT_POINTER, Keywords.Properties, 'world'].join('/');
+
 test('that we can create nodes', () => {
   const map = buildUiSchema(testComplexSchema);
   map.forEach((parentNode) => {
@@ -92,7 +95,7 @@ test('that we can insert nodes into the map', () => {
 
 test('that we can remove a node by pointer', () => {
   const originalNodeMap = buildUiSchema(testSimpleSchema);
-  const changedNodeMap = removeItemByPointer(originalNodeMap, '#/properties/world');
+  const changedNodeMap = removeItemByPointer(originalNodeMap, worldPointer);
   const jsonSchema = buildJsonSchema(changedNodeMap);
   expect(originalNodeMap).toEqual(buildUiSchema(testSimpleSchema));
   expect(validateSchema(jsonSchema)).toBeTruthy();
@@ -103,5 +106,15 @@ test('that we can remove a node by pointer', () => {
         [Keywords.Type]: FieldType.String,
       },
     },
+  });
+});
+
+test('that we can promote a node', () => {
+  const originalNodeMap = buildUiSchema(testSimpleSchema);
+  const promotedNodeMap = promotePropertyToType(originalNodeMap, worldPointer);
+  expect(buildJsonSchema(promotedNodeMap)).toEqual({
+    [Keywords.Type]: FieldType.Object,
+    [Keywords.Properties]: { hello: { [Keywords.Type]: FieldType.String } },
+    [Keywords.Definitions]: { world: testSimpleSchema[Keywords.Properties]['world'] },
   });
 });

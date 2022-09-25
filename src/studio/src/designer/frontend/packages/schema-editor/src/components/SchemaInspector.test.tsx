@@ -4,11 +4,7 @@ import configureStore from 'redux-mock-store';
 import { act } from 'react-dom/test-utils';
 import { SchemaInspector } from './SchemaInspector';
 import { dataMock } from '../mockData';
-import {
-  buildUISchema,
-  getUiSchemaItem,
-  resetUniqueNumber,
-} from '../utils/schema';
+import { buildUISchema, getUiSchemaItem, resetUniqueNumber } from '../utils/schema';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { FieldType, UiSchemaItem } from '../types';
@@ -16,7 +12,7 @@ import { FieldType, UiSchemaItem } from '../types';
 // workaround for https://jestjs.io/docs/26.x/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
+  value: jest.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -40,11 +36,7 @@ const renderSchemaInspector = (selectedItem?: UiSchemaItem) => {
   act(() => {
     render(
       <Provider store={store}>
-        <SchemaInspector
-          language={{}}
-          checkIsNameInUse={() => false}
-          selectedItem={selectedItem}
-        />
+        <SchemaInspector language={{}} checkIsNameInUse={() => false} selectedItem={selectedItem} />
       </Provider>,
     );
   });
@@ -71,10 +63,10 @@ test('dispatches correctly when entering text in textboxes', async () => {
   }
   const actions = store.getActions();
   expect(actions.length).toBeGreaterThanOrEqual(1);
-  const actionTypes = actions.map(a => a.type);
-  expect(actionTypes).toContain("schemaEditor/setPropertyName");
-  expect(actionTypes).toContain("schemaEditor/setTitle");
-  expect(actionTypes).toContain("schemaEditor/setDescription");
+  const actionTypes = actions.map((a) => a.type);
+  expect(actionTypes).toContain('schemaEditor/setPropertyName');
+  expect(actionTypes).toContain('schemaEditor/setTitle');
+  expect(actionTypes).toContain('schemaEditor/setDescription');
 });
 
 test('renders no item if nothing is selected', () => {
@@ -123,9 +115,7 @@ test('Adds new object field when pressing the enter key', async () => {
   await user.click(screen.queryAllByRole('tab')[1]);
   await user.click(screen.getByDisplayValue('abc'));
   await user.keyboard('{Enter}');
-  expect(store.getActions().map((a) => a.type)).toContain(
-    'schemaEditor/addProperty',
-  );
+  expect(store.getActions().map((a) => a.type)).toContain('schemaEditor/addProperty');
 });
 
 test('Adds new valid value field when pressing the enter key', async () => {
@@ -138,7 +128,5 @@ test('Adds new valid value field when pressing the enter key', async () => {
   await user.click(screen.queryAllByRole('tab')[1]);
   await user.click(screen.getByDisplayValue('valid value'));
   await user.keyboard('{Enter}');
-  expect(store.getActions().map((a) => a.type)).toContain(
-    'schemaEditor/addEnum',
-  );
+  expect(store.getActions().map((a) => a.type)).toContain('schemaEditor/addEnum');
 });

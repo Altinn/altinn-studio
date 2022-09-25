@@ -27,12 +27,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export const SchemaTab = ({
-  label,
-  value,
-  hide,
-  ...other
-}: ISchemaTabProps) => {
+export const SchemaTab = ({ label, value, hide, ...other }: ISchemaTabProps) => {
   const classes = useStyles();
   return (
     <Tab

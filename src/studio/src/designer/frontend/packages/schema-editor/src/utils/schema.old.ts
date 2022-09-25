@@ -1,17 +1,6 @@
-import {
-  CombinationKind,
-  FieldType,
-  Restriction,
-  UiSchemaItem,
-} from '../types';
-
 import JsonPointer from 'jsonpointer';
 
-function flat(
-  input: UiSchemaItem[] | undefined,
-  depth = 1,
-  stack: UiSchemaItem[] = [],
-) {
+function flat(input: UiSchemaItem[] | undefined, depth = 1, stack: UiSchemaItem[] = []) {
   if (input) {
     for (const item of input) {
       stack.push(item);
@@ -25,17 +14,11 @@ function flat(
   }
   return stack;
 }
-export function getUiSchemaItemsByRef(
-  uiSchemaItems: UiSchemaItem[],
-  $ref: string,
-): UiSchemaItem[] {
+export function getUiSchemaItemsByRef(uiSchemaItems: UiSchemaItem[], $ref: string): UiSchemaItem[] {
   return flat(uiSchemaItems).filter((item) => item.$ref === $ref);
 }
 
-export function getUiSchemaItem(
-  uiSchemaItems: UiSchemaItem[],
-  path: string,
-): UiSchemaItem {
+export function getUiSchemaItem(uiSchemaItems: UiSchemaItem[], path: string): UiSchemaItem {
   const matches = uiSchemaItems.filter((s) => path.includes(s.path));
   const uiSchemaFound =
     matches.length === 1 && matches[0].path === path
@@ -48,9 +31,7 @@ export function getUiSchemaItem(
   return uiSchemaFound;
 }
 
-export const splitParentPathAndName = (
-  path: string,
-): [string | null, string | null] => {
+export const splitParentPathAndName = (path: string): [string | null, string | null] => {
   if (path.match(/[^#]\/properties/)) {
     const index = path.lastIndexOf('/properties/');
     const p = path.substring(0, index);
@@ -125,8 +106,7 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
       case 'properties': {
         jsonSchemaItem.properties = jsonSchemaItem.properties || {};
         uiSchemaItem.properties?.forEach((property: UiSchemaItem) => {
-          jsonSchemaItem.properties[property.displayName] =
-            createJsonSchemaItem(property);
+          jsonSchemaItem.properties[property.displayName] = createJsonSchemaItem(property);
         });
         break;
       }
@@ -156,9 +136,7 @@ export function createJsonSchemaItem(uiSchemaItem: UiSchemaItem | any): any {
           const combinationKind = uiSchemaItem.combinationKind;
           jsonSchemaItem[combinationKind] = [];
           uiSchemaItem[key]?.forEach((property: UiSchemaItem) => {
-            jsonSchemaItem[combinationKind].push(
-              createJsonSchemaItem(property),
-            );
+            jsonSchemaItem[combinationKind].push(createJsonSchemaItem(property));
           });
         }
         break;
@@ -269,14 +247,8 @@ export const mapJsonSchemaCombinationToUiSchemaItem = (
   } else {
     return null;
   }
-  const combination = item[combinationKind]?.map(
-    (child: UiSchemaItem, index: number) =>
-      mapCombinationItemTypeToUiSchemaItem(
-        child,
-        index,
-        combinationKind,
-        parentPath,
-      ),
+  const combination = item[combinationKind]?.map((child: UiSchemaItem, index: number) =>
+    mapCombinationItemTypeToUiSchemaItem(child, index, combinationKind, parentPath),
   );
   return {
     combination,
@@ -303,8 +275,7 @@ export const mapCombinationItemTypeToUiSchemaItem = (
   };
 };
 
-export const nullableType = (item: UiSchemaItem) =>
-  item.type?.toLowerCase() === 'null';
+export const nullableType = (item: UiSchemaItem) => item.type?.toLowerCase() === 'null';
 
 export const combinationIsNullable = (item?: UiSchemaItem | null): boolean => {
   return !!item?.combination?.some(nullableType);
@@ -401,9 +372,6 @@ export const buildUiSchemaForItemWithProperties = (
     ...rest,
   };
 };
-
-export const getDomFriendlyID = (id: string) =>
-  id.replace(/\//g, '').replace('#', '');
 
 export const updateChildPaths = (item: UiSchemaItem, parentId: string) => {
   item.path = `${parentId}/properties/${item.displayName}`;

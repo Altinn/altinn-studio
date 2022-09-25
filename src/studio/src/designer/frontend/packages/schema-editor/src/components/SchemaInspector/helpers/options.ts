@@ -1,4 +1,4 @@
-import { CombinationKind, FieldType } from '../../../types';
+import { CombinationKind, FieldType } from '@altinn/schema-model';
 
 export interface Option {
   value: string;
@@ -44,5 +44,5 @@ export const getTypeOptions = (t: (key: string) => string): Option[] => [
   {
     value: FieldType.Array,
     label: t('array'),
-  }
+  },
 ];

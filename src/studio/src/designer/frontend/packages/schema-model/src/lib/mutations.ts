@@ -1,32 +1,26 @@
-import { FieldType, Keywords, ObjectKind, UiSchemaMap, UiSchemaNode } from './types';
-import {
-  cloneMap,
-  createNodeBase,
-  createPointerLookupTable,
-  getParentNodeByPointer,
-} from './utils';
+import { FieldType, Keywords, ObjectKind, ROOT_POINTER, UiSchemaMap, UiSchemaNode } from './types';
+import { cloneMap, createNodeBase, getParentNodeByPointer } from './utils';
+import { getUniqueNodePath } from './selectors';
 
 // Changes to the uiNodeMap
 export const removeItemByPointer = (uiNodeMap: UiSchemaMap, pointer: string) => {
   const mutatedUiNodeMap: UiSchemaMap = cloneMap(uiNodeMap) as UiSchemaMap;
-  const lookup = createPointerLookupTable(mutatedUiNodeMap);
-  if (!lookup.has(pointer)) {
+  if (!uiNodeMap.has(pointer)) {
     throw new Error(`Can't remove ${pointer}, doesn't exist`);
   }
 
   // Remove the child node id from the parent
-  const childNodeId = lookup.get(pointer) as number;
   const parentNode = getParentNodeByPointer(mutatedUiNodeMap, pointer);
   if (parentNode) {
-    parentNode.children = parentNode.children.filter((nodeId) => nodeId !== childNodeId);
+    parentNode.children = parentNode.children.filter((childPointer) => pointer !== childPointer);
   } else {
     throw new Error(`Can't find ParentNode for pointer ${pointer}`);
   }
 
   // Remove itself decendants... just using the pointer
-  mutatedUiNodeMap.forEach((uiNode: UiSchemaNode, key: number) => {
+  mutatedUiNodeMap.forEach((uiNode: UiSchemaNode, nodePointer: string) => {
     if (uiNode.pointer.startsWith(pointer)) {
-      mutatedUiNodeMap.delete(key);
+      mutatedUiNodeMap.delete(nodePointer);
     }
   });
 
@@ -38,6 +32,9 @@ export const renameItemPointer = (
   oldPointer: string,
   newPointer: string,
 ) => {
+  if (!uiNodeMap.has(oldPointer)) {
+    throw new Error(`Can't rename pointer ${oldPointer}, it doesn't exist`);
+  }
   // some assertsions before.
   if (oldPointer === newPointer) {
     throw new Error('Old and new name is equal');
@@ -57,19 +54,21 @@ export const renameItemPointer = (
     throw new Error('Refusing to change more than one part of the pointer');
   }
   const mutatedUiNodeMap: UiSchemaMap = new Map();
-  uiNodeMap.forEach((uiNode: UiSchemaNode, key: number) => {
+  uiNodeMap.forEach((uiNode: UiSchemaNode, uiNodePointer: string) => {
     const nodeCopy = { ...uiNode };
-    if (nodeCopy.pointer.startsWith(oldPointer)) {
+    if (uiNodePointer.startsWith(oldPointer)) {
       nodeCopy.pointer = nodeCopy.pointer.replace(oldPointer, newPointer);
     }
-    mutatedUiNodeMap.set(key, nodeCopy);
+    if (uiNode.ref.startsWith(oldPointer)) {
+      nodeCopy.ref = nodeCopy.ref.replace(oldPointer, newPointer);
+    }
+    mutatedUiNodeMap.set(nodeCopy.pointer, nodeCopy);
   });
   return mutatedUiNodeMap;
 };
 
 export const insertNodeToMap = (uiNodeMap: UiSchemaMap, newNode: UiSchemaNode) => {
-  const lookup = createPointerLookupTable(uiNodeMap);
-  if (lookup.has(newNode.pointer)) {
+  if (uiNodeMap.has(newNode.pointer)) {
     throw new Error(`Pointer ${newNode.pointer} exists allready`);
   }
   const mutatedUiNodeMap: UiSchemaMap = cloneMap(uiNodeMap) as UiSchemaMap;
@@ -77,8 +76,8 @@ export const insertNodeToMap = (uiNodeMap: UiSchemaMap, newNode: UiSchemaNode) =
   if (!parentNode) {
     throw new Error(`Can't find ParentNode for pointer ${newNode.pointer}`);
   }
-  parentNode.children.push(newNode.nodeId);
-  return mutatedUiNodeMap.set(newNode.nodeId, newNode);
+  parentNode.children.push(newNode.pointer);
+  return mutatedUiNodeMap.set(newNode.pointer, newNode);
 };
 
 /**
@@ -109,4 +108,20 @@ export const createChildNode = (
   } else {
     throw new Error('invalid parent node');
   }
+};
+
+export const promotePropertyToType = (uiNodeMap: UiSchemaMap, pointer: string) => {
+  if (!uiNodeMap.has(pointer)) {
+    throw new Error(`Can't promote ${pointer}, it doesn't exist`);
+  }
+  const uiNode = uiNodeMap.get(pointer);
+  if (uiNode.objectKind === ObjectKind.Reference) {
+    throw new Error(`Pointer ${pointer}, is already a reference.`);
+  }
+  const displayName = pointer.split('/').pop();
+  const newPointer = getUniqueNodePath(
+    uiNodeMap,
+    [ROOT_POINTER, Keywords.Definitions, displayName].join('/'),
+  );
+  return renameItemPointer(uiNodeMap, pointer, newPointer);
 };

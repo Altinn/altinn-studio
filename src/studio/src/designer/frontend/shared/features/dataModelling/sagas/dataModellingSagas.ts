@@ -1,22 +1,22 @@
 import { SagaIterator } from 'redux-saga';
-import { call, takeLatest, put } from 'redux-saga/effects';
-import type { ISchema } from '@altinn/schema-editor/types';
-import { get, put as networkPut, post, del } from '../../../utils/networking';
+import { call, put, takeLatest } from 'redux-saga/effects';
+import type { IJsonSchema } from '@altinn/schema-editor/types';
+import { del, get, post, put as networkPut } from '../../../utils/networking';
 import { sharedUrls } from '../../../utils/urlHelper';
 import {
-  fetchDataModel,
-  fetchDataModelFulfilled,
-  fetchDataModelRejected,
-  saveDataModel,
-  saveDataModelFulfilled,
-  saveDataModelRejected,
   createDataModel,
   createDataModelFulfilled,
   createDataModelRejected,
-  IDataModelAction,
   deleteDataModel,
   deleteDataModelFulfilled,
   deleteDataModelRejected,
+  fetchDataModel,
+  fetchDataModelFulfilled,
+  fetchDataModelRejected,
+  IDataModelAction,
+  saveDataModel,
+  saveDataModelFulfilled,
+  saveDataModelRejected,
 } from './dataModellingSlice';
 import { DataModelsMetadataActions } from './metadata';
 
@@ -54,7 +54,7 @@ function* createDataModelSaga(action: IDataModelAction) {
   const { name, relativePath } = action.payload;
   const body = { modelName: name, relativeDirectory: relativePath };
   try {
-    const schema: ISchema = yield call(
+    const schema: IJsonSchema = yield call(
       post,
       sharedUrls().createDataModelUrl,
       body,

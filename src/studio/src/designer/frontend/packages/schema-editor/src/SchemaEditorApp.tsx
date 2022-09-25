@@ -4,29 +4,21 @@ import './App.css';
 import { SchemaEditor } from './components/SchemaEditor';
 
 import { store } from './store';
-import type { ILanguage, ISchema } from './types';
+import type { IJsonSchema, ILanguage } from './types';
 
 export interface ISchemaEditorProps extends React.PropsWithChildren<any> {
   language: ILanguage;
   loading?: boolean;
   name?: string;
   onSaveSchema: (payload: any) => void;
-  schema: ISchema;
+  schema: IJsonSchema;
   LandingPagePanel: JSX.Element;
 }
 
-export function SchemaEditorApp(props: ISchemaEditorProps) {
+export function SchemaEditorApp({ children, ...other }: ISchemaEditorProps) {
   return (
     <Provider store={store}>
-      <SchemaEditor
-        Toolbar={props.children}
-        LandingPagePanel={props.LandingPagePanel}
-        language={props.language}
-        loading={props.loading}
-        name={props.name}
-        onSaveSchema={props.onSaveSchema}
-        schema={props.schema}
-      />
+      <SchemaEditor Toolbar={children} {...other} />
     </Provider>
   );
 }

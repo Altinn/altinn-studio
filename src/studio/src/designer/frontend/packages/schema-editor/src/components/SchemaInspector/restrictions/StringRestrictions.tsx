@@ -8,10 +8,15 @@ import { Divider } from '../Divider';
 import { Label } from '../Label';
 import { StrRestrictionKeys } from '@altinn/schema-model';
 
-export function StringRestrictions({ restrictions, path, language, onChangeRestrictionValue }: RestrictionItemProps) {
+export function StringRestrictions({
+  restrictions,
+  path,
+  language,
+  onChangeRestrictionValue,
+}: RestrictionItemProps) {
   const t = (key: string) => getTranslation(key, language);
   const [regexTestValue, setRegexTestValue] = useState<string>('');
-  const pattern = restrictions.find((r) => r.key === StrRestrictionKeys.pattern)?.value || '';
+  const pattern = restrictions[StrRestrictionKeys.pattern] || '';
   const regexTestValueSplitByMatches = splitStringByMatches(pattern, regexTestValue);
   const regexTestValueMatchesRegex = regexTestValueSplitByMatches.some(({ match }) => match);
 
@@ -24,7 +29,7 @@ export function StringRestrictions({ restrictions, path, language, onChangeRestr
           label={t(StrRestrictionKeys.minLength)}
           onChangeValue={onChangeRestrictionValue}
           path={path}
-          value={restrictions.find((r) => r.key === StrRestrictionKeys.minLength)?.value || ''}
+          value={restrictions[StrRestrictionKeys.minLength] || ''}
         />
         <RestrictionField
           className={classes.lengthField}
@@ -32,7 +37,7 @@ export function StringRestrictions({ restrictions, path, language, onChangeRestr
           label={t(StrRestrictionKeys.maxLength)}
           onChangeValue={onChangeRestrictionValue}
           path={path}
-          value={restrictions.find((r) => r.key === StrRestrictionKeys.maxLength)?.value || ''}
+          value={restrictions[StrRestrictionKeys.maxLength] || ''}
         />
       </div>
       <Divider />
@@ -49,13 +54,18 @@ export function StringRestrictions({ restrictions, path, language, onChangeRestr
           (regexTestValueMatchesRegex ? (
             <span className={classes.regexTestMatchIndicatorTrue}>{t('pattern_matches')}</span>
           ) : (
-            <span className={classes.regexTestMatchIndicatorFalse}>{t('pattern_does_not_match')}</span>
+            <span className={classes.regexTestMatchIndicatorFalse}>
+              {t('pattern_does_not_match')}
+            </span>
           ))}
       </div>
       <div className={classes.regexTestContainer}>
         <div className={classes.regexTestStyleField}>
           {regexTestValueSplitByMatches.map((strPart, i) => (
-            <span className={strPart.match ? classes.regexTestMatch : undefined} key={`regexTestPart${i}`}>
+            <span
+              className={strPart.match ? classes.regexTestMatch : undefined}
+              key={`regexTestPart${i}`}
+            >
               {strPart.str}
             </span>
           ))}

@@ -21,10 +21,9 @@ const mockLanguage = {
   },
 };
 const renderEditor = (customState?: Partial<ISchemaState>) => {
-  const mockUiSchema = buildUISchema(
-    dataMock.properties,
-    '#/properties',
-  ).concat(buildUISchema(dataMock.definitions, '#/definitions'));
+  const mockUiSchema = buildUISchema(dataMock.properties, '#/properties').concat(
+    buildUISchema(dataMock.definitions, '#/definitions'),
+  );
 
   const mockInitialState = {
     name: 'test',
@@ -70,8 +69,7 @@ const clickAddMenuItem = (user: UserEvent, name: string) =>
 const clickOpenContextMenuButton = (user: UserEvent) =>
   user.click(screen.getByTestId('open-context-menu-button'));
 
-const toggleEditMode = (user: UserEvent) =>
-  user.click(screen.getByText('edit_mode'));
+const toggleEditMode = (user: UserEvent) => user.click(screen.getByText('edit_mode'));
 
 test('renders schema editor with populated schema in view mode', () => {
   renderEditor();
@@ -139,12 +137,9 @@ test('should show context menu and trigger correct dispatch when adding field on
   const { store, user } = renderEditor({
     schema: {
       properties: { mockItem: { type: FieldType.Object } },
-      definitions: {},
+      $defs: {},
     },
-    uiSchema: buildUISchema(
-      { mockItem: { type: FieldType.Object } },
-      '#/properties',
-    ),
+    uiSchema: buildUISchema({ mockItem: { type: FieldType.Object } }, '#/properties'),
   });
   await toggleEditMode(user);
   await clickOpenContextMenuButton(user);
@@ -164,12 +159,9 @@ test('should show context menu and trigger correct dispatch when adding referenc
   const { store, user } = renderEditor({
     schema: {
       properties: { mockItem: { type: FieldType.Object } },
-      definitions: {},
+      $defs: {},
     },
-    uiSchema: buildUISchema(
-      { mockItem: { type: FieldType.Object } },
-      '#/properties',
-    ),
+    uiSchema: buildUISchema({ mockItem: { type: FieldType.Object } }, '#/properties'),
   });
   await toggleEditMode(user);
   await clickOpenContextMenuButton(user);
@@ -206,7 +198,7 @@ test('should not show add property or add reference buttons on a reference node'
     mockDefinition: { type: FieldType.Object },
   };
   const { user } = renderEditor({
-    schema: { properties, definitions },
+    schema: { properties, $defs: definitions },
     uiSchema: buildUISchema(properties, '#/properties').concat(
       buildUISchema(definitions, '#/definitions'),
     ),
@@ -226,7 +218,7 @@ test('should not show add property or add reference buttons on a reference node 
     mockDefinition: { type: FieldType.Object },
   };
   const { user } = renderEditor({
-    schema: { properties, definitions },
+    schema: { properties, $defs: definitions },
     uiSchema: buildUISchema(properties, '#/properties').concat(
       buildUISchema(definitions, '#/definitions'),
     ),
@@ -246,7 +238,7 @@ test('should not show add property or add reference buttons on a field that is n
     mockDefinition: { type: FieldType.Integer },
   };
   const { user } = renderEditor({
-    schema: { properties, definitions },
+    schema: { properties, $defs: definitions },
     uiSchema: buildUISchema(properties, '#/properties').concat(
       buildUISchema(definitions, '#/definitions'),
     ),
@@ -262,17 +254,15 @@ test('should show menu with option field, reference, and combination when pressi
   const { user } = renderEditor();
   await toggleEditMode(user);
   await clickOpenAddMenuButton(user);
-  expect(
-    screen.getAllByRole('menuitem', { name: mockLanguage.schema_editor.field }),
-  ).toHaveLength(1);
+  expect(screen.getAllByRole('menuitem', { name: mockLanguage.schema_editor.field })).toHaveLength(
+    1,
+  );
   expect(
     screen.getAllByRole('menuitem', {
       name: mockLanguage.schema_editor.reference,
     }),
   ).toHaveLength(1);
-  expect(screen.getAllByRole('menuitem', { name: 'combination' })).toHaveLength(
-    1,
-  );
+  expect(screen.getAllByRole('menuitem', { name: 'combination' })).toHaveLength(1);
 });
 
 test('should trigger correct dispatch when adding combination to root', async () => {
@@ -297,12 +287,9 @@ test('should show context menu and trigger correct dispatch when adding a combin
   const { store, user } = renderEditor({
     schema: {
       properties: { mockItem: { type: FieldType.Object } },
-      definitions: {},
+      $defs: {},
     },
-    uiSchema: buildUISchema(
-      { mockItem: { type: FieldType.Object } },
-      '#/properties',
-    ),
+    uiSchema: buildUISchema({ mockItem: { type: FieldType.Object } }, '#/properties'),
   });
   await toggleEditMode(user);
   await clickOpenContextMenuButton(user);
@@ -323,12 +310,9 @@ test('should only be possible to add a reference to a combination type', async (
   const { user } = renderEditor({
     schema: {
       properties: { mockItem: { type: FieldType.Object } },
-      definitions: {},
+      $defs: {},
     },
-    uiSchema: buildUISchema(
-      { mockItem: { allOf: [], name: 'allOfTest' } },
-      '#/properties',
-    ),
+    uiSchema: buildUISchema({ mockItem: { allOf: [], name: 'allOfTest' } }, '#/properties'),
   });
   await toggleEditMode(user);
   await clickOpenContextMenuButton(user);
