@@ -1,6 +1,9 @@
-import { LanguageEditor as BaseLanguageEditor } from '../../../language-editor';
 import React, { useState } from 'react';
+
 import { useGetLanguages, updateLanguage } from './utils';
+import { LanguageEditor as BaseLanguageEditor } from '../../../language-editor';
+
+
 import type {OnTranslationChange} from '../../../language-editor';
 
 export const LanguageEditor = () => {
@@ -23,6 +26,7 @@ export const LanguageEditor = () => {
     <BaseLanguageEditor
       language={language}
       onTranslationChange={handleTranslationChange}
+      setLanguage={setLanguage}
     />
   );
 };

@@ -11,11 +11,13 @@ export type OnTranslationChange= { translations: Language }
 interface ILanguageEditorProps {
   language: Language
   onTranslationChange: ({ translations }: OnTranslationChange) => void;
+  setLanguage: (language: Language) => void;
 }
 
 export const LanguageEditor = ({
   language,
   onTranslationChange,
+  setLanguage
 }:
 ILanguageEditorProps) => {
   const classes = useStyles();
@@ -27,69 +29,46 @@ ILanguageEditorProps) => {
     oldValue: string;
     newValue: string;
   }) => {
+    const updatedLanguage = {...language};
+    updatedLanguage[newValue] = updatedLanguage[oldValue];
+    delete updatedLanguage[oldValue];
+
+    onTranslationChange({ translations: updatedLanguage });
+  };
+
+  const handleValueChange = ({newValue, translationKey}: {
+    newValue: string;
+    translationKey: string;
+  }) => {
     const updatedLanguage = {
       ...language,
     };
-
-
-      updatedLanguage[newValue] = updatedLanguage[oldValue];
-      delete updatedLanguage[oldValue];
+    updatedLanguage[translationKey] = newValue;
 
     onTranslationChange({ translations: updatedLanguage });
   };
 
   return (
-    <div style={{ paddingTop: '0', marginTop: '0', backgroundColor: '#FFF' }}>
+    <div style={{ paddingTop: "0", backgroundColor: "white", width: "100%", height: "100%"}} >
       <AltinnColumnLayout
         header={ '' }
         sideMenuChildren={
           <div className={classes.rightColBodyContainer}>
-            <div
-              style={{
-                height: '5rem',
-                width: '100%',
-                top: '36px',
-                left: '36px',
-              }}
-            >
+            <div>
               <Typography style={{ fontSize: '24px' }}>Språk</Typography>
             </div>
-            <div
-              style={{
-                height: '100px',
-                marginBottom: '2rem',
-                top: '95px',
-                left: '36px',
-                lineHeight: '24.32px',
-                width: '100%',
-              }}
-            >
+            <div className={classes.rightColBodyText}>
               <span>
                 Vi anbefaler å legge til oversettelser for bokmål, nynorsk og
                 engelsk. Ved behov kan du også legge til andre språk.
               </span>
             </div>
-
-            <div
-              style={{
-                height: '24px',
-                lineHeight: '24px',
-                marginBottom: '2rem',
-                width: '100px',
-              }}
-            >
+            <div className={classes.rightColBodyTextTwo}>
               <Typography style={{ fontSize: '16px', fontWeight: '700' }}>
                 Aktive språk:
               </Typography>
             </div>
-
-            <div
-              style={{
-                height: '19px',
-                width: '317px',
-                margin: '5rem 0 1rem 0',
-              }}
-            >
+            <div className={classes.rightColBodyTextTwo}>
               <Typography style={{ fontSize: '14px', fontWeight: '400' }}>
                 Legg til språk:
               </Typography>
@@ -101,12 +80,18 @@ ILanguageEditorProps) => {
           <div>
             {language && Object.keys(language).map((translationKey) => {
               return (
-                <LanguageRow
-                  key={translationKey}
-                  translationKey={translationKey}
-                  transformedLanguages={language}
-                  onIdChange={handleIdChange}
-                />
+                <div key={translationKey}>
+                  <LanguageRow
+                    key={translationKey}
+                    translationKey={translationKey}
+                    transformedLanguages={language}
+                    onIdChange={handleIdChange}
+                    onValueChange={handleValueChange}
+                    setLanguage={setLanguage}
+                    onTranslationChange={onTranslationChange}
+                  />
+                </div>
+
               );
             })}
           </div>
@@ -139,7 +124,8 @@ const useStyles = makeStyles({
     },
   },
   leftColBodyContainer: {
-    display: 'grid',
+    display: 'flex',
+    flexDirection: 'column',
     backgroundColor: '#FFF',
     height: '100%',
     columnGap: '10rem',
@@ -167,6 +153,20 @@ const useStyles = makeStyles({
     height: '100%',
     padding: '7rem',
     width: '100%',
+  },
+  rightColBodyText: {
+    height: '100px',
+    marginBottom: '2rem',
+    top: '95px',
+    left: '36px',
+    lineHeight: '24.32px',
+    width: '100%',
+  },
+  rightColBodyTextTwo: {
+    height: '24px',
+    lineHeight: '24px',
+    marginBottom: '2rem',
+    width: '100px',
   },
   stickyHeader: {
     borderBottom: '1px solid #BCC7CC',
