@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-
 import { useGetLanguages, updateLanguage } from './utils';
 import { LanguageEditor as BaseLanguageEditor } from '../../../language-editor';
 

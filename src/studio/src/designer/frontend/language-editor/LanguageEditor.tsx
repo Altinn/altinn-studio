@@ -1,5 +1,4 @@
 import React from 'react';
-
 import AltinnColumnLayout from 'app-shared/components/AltinnColumnLayout';
 import { LanguageRow } from './LanguageRow';
 

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { TextField } from '@altinn/altinn-design-system';
+
 import { MoreVertical, Trash2} from 'react-feather';
 import { makeStyles } from '@material-ui/core';
 
