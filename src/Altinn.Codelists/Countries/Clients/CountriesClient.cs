@@ -1,7 +1,10 @@
 using Altinn.Codelists.Countries.Data;
 using Altinn.Codelists.Countries.Models;
 using Altinn.Codelists.Utilities;
+using Microsoft.IdentityModel.Tokens;
+using System;
 using System.Text.Json;
+using static Microsoft.Extensions.Logging.EventSource.LoggingEventSource;
 
 namespace Altinn.Codelists
 {
@@ -15,14 +18,52 @@ namespace Altinn.Codelists
         /// <summary>
         /// Sends a asynchronus internal request to get all the countries of the world.
         /// </summary>
-        public async Task<List<Country>> GetAllCountries()
+        public async Task<List<Country>> GetCountries()
+        {
+            var filters = new List<Filter>();
+         
+            return await GetCountries(filters);
+        }
+
+        /// <summary>
+        /// Sends a asynchronus internal request to get all countries of the world,
+        /// matching the specified filters.
+        /// Values within the same filter object are AND'ed,
+        /// while values between filter objects are OR'ed.
+        /// </summary>
+        public async Task<List<Country>> GetCountries(IEnumerable<Filter> filters)
         {
             string json = await EmbeddedResource.LoadDataAsString(Resources.CountriesJson);
-            var countries = JsonSerializer.Deserialize<List<Country>>(json);
+            var countries = JsonSerializer.Deserialize<List<Country>>(json) ?? new List<Country>();
 
-            countries ??= new List<Country>();
+            IQueryable<Country> query = BuildQuery(countries, filters);
 
-            return countries;
+            return query.ToList();
+        }
+
+        private static IQueryable<Country> BuildQuery(IEnumerable<Country> countries, IEnumerable<Filter> filters)
+        {
+            var query = countries.AsQueryable();
+
+            var predicate = PredicateBuilder.False<Country>();
+
+            foreach (var filter in filters)
+            {
+                var subPredicate = PredicateBuilder.True<Country>();
+                if (!filter.Region.IsNullOrEmpty())
+                {
+                    subPredicate = subPredicate.And(c => c.Region.Equals(filter.Region));
+                }
+
+                if (!filter.SubRegion.IsNullOrEmpty())
+                {
+                    subPredicate = subPredicate.And(c => c.SubRegion.Equals(filter.SubRegion));
+                }
+
+                predicate = predicate.Or(subPredicate);
+            }
+
+            return query.Where(predicate);
         }
     }
 }

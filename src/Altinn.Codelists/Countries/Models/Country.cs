@@ -68,7 +68,7 @@ namespace Altinn.Codelists.Countries.Models
         public string EmojiFlag { get; set; } = "";
 
         /// <summary>
-        /// Region
+        /// Region (Africa, Americas, Antarctic, Asia, Europe, Oceania)
         /// </summary>
         [JsonPropertyName("region")]
         public string Region { get; set; } = "";

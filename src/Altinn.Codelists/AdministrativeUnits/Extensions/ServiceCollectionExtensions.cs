@@ -1,4 +1,4 @@
-﻿using Altinn.App.Core.Features.Options;
+﻿using Altinn.App.Core.Features;
 using Altinn.Codelists.AdministrativeUnits.Clients;
 using Microsoft.Extensions.DependencyInjection;
 

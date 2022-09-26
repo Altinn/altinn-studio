@@ -1,4 +1,5 @@
-﻿using Altinn.App.Core.Features.Options;
+﻿using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Options;
 using Altinn.Codelists.AdministrativeUnits.Extensions;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
