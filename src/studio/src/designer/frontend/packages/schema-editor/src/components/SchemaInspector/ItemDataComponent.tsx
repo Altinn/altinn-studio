@@ -70,22 +70,11 @@ export function ItemDataComponent({
     !isValidName(name) ? setNameError(NameError.InvalidCharacter) : setNameError(NameError.NoError);
   };
 
-  const onChangeRef = (path: string, ref: string) =>
-    dispatch(
-      setRef({
-        path,
-        ref,
-      }),
-    );
+  const onChangeRef = (path: string, ref: string) => dispatch(setRef({ path, ref }));
 
   const onChangeType = (pointer: string, type: FieldType) => {
     if (selectedItem) {
-      dispatch(
-        setType({
-          path: selectedItem.pointer,
-          type,
-        }),
-      );
+      dispatch(setType({ path: selectedItem.pointer, type }));
       setFieldType(type);
     }
   };
@@ -96,10 +85,7 @@ export function ItemDataComponent({
   const onChangeNullable = (_x: any, isNullable: boolean) => {
     if (isNullable) {
       dispatch(
-        addCombinationItem({
-          path: selectedItem.pointer,
-          props: { fieldType: FieldType.Null },
-        }),
+        addCombinationItem({ path: selectedItem.pointer, props: { fieldType: FieldType.Null } }),
       );
     } else {
       childNodes.forEach((childNode: UiSchemaNode) => {
@@ -119,30 +105,16 @@ export function ItemDataComponent({
     if (selectedItem.ref === undefined) {
       return;
     }
-    dispatch(
-      navigateToType({
-        id: selectedItem.ref,
-      }),
-    );
+    dispatch(navigateToType({ id: selectedItem.ref }));
   };
 
   const onChangeArrayType = (pointer: string, fieldType: FieldType) => {
     setArrayType(fieldType ?? '');
-    dispatch(
-      setType({
-        path: [pointer, Keywords.Items].join('/'),
-        type: fieldType,
-      }),
-    );
+    dispatch(setType({ path: [pointer, Keywords.Items].join('/'), type: fieldType }));
   };
 
   const onChangeCombinationType = (value: CombinationKind) =>
-    dispatch(
-      setCombinationType({
-        path: selectedItem.pointer,
-        type: value,
-      }),
-    );
+    dispatch(setCombinationType({ path: selectedItem.pointer, type: value }));
 
   const handleArrayPropertyToggle = (e: any, checked: boolean) => {
     if (!selectedItem) {

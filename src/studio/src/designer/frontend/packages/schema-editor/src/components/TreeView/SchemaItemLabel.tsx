@@ -111,7 +111,7 @@ export const SchemaItemLabel = ({ translate, ...props }: SchemaItemLabelProps) =
         open={Boolean(contextAnchor)}
         onClose={handleCloseContextMenu}
       >
-        {props.onAddReference && !props.limitedItem && (
+        {props.onAddReference && (
           <AltinnMenuItem
             id='add-reference-to-node-button'
             key='add_reference'

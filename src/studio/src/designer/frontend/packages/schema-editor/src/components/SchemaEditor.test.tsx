@@ -11,6 +11,7 @@ import {
   buildUiSchema,
   CombinationKind,
   FieldType,
+  getNodeByPointer,
   Keywords,
   ObjectKind,
   ROOT_POINTER,
@@ -214,9 +215,19 @@ test('should not show add property or add reference buttons on a reference node 
       mockDefinition: { [Keywords.Type]: FieldType.Object },
     },
   };
+  const uiSchema = buildUiSchema(jsonSchema);
+
+  /**
+   * Important, the new model engine doesn't allow references to be unknown. While the old would use an empty string.
+   * This logic need to be implemented.
+   */
+  const mockItem = getNodeByPointer(uiSchema, '#/properties/mockItem');
+  mockItem.ref = '';
+  mockItem.objectKind = ObjectKind.Reference;
+
   const { user } = renderEditor({
     schema: jsonSchema,
-    uiSchema: buildUiSchema(jsonSchema),
+    uiSchema,
   });
   await clickOpenContextMenuButton(user);
   const menuitems = screen.getAllByRole('menuitem');
@@ -304,15 +315,15 @@ test('should only be possible to add a reference to a combination type', async (
   const jsonSchema = {
     [Keywords.Properties]: {
       mockItem: {
-        allOf: [],
-        name: 'allOfTest',
+        [CombinationKind.AllOf]: [{ [Keywords.Type]: FieldType.String }],
       },
     },
     [Keywords.Definitions]: {},
   };
+  const uiSchema = buildUiSchema(jsonSchema);
   const { user } = renderEditor({
     schema: jsonSchema,
-    uiSchema: buildUiSchema(jsonSchema),
+    uiSchema,
   });
   await toggleEditMode(user);
   await clickOpenContextMenuButton(user);

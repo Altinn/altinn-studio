@@ -192,9 +192,7 @@ export const SchemaEditor = ({
       addRootItem({
         name: 'name',
         location: schemaSettings.definitionsPath,
-        props: {
-          fieldType: FieldType.Object,
-        },
+        props: { fieldType: FieldType.Object },
       }),
     );
   };
