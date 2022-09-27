@@ -32,14 +32,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-            var languageFiles = altinnAppGitRepository.FindFiles(new string[] { "resource.*.json" });
+            IEnumerable<string> languageFiles = altinnAppGitRepository.FindFiles(new string[] { "resource.*.json" });
 
             foreach (string languageFile in languageFiles.ToList())
             {
                 Dictionary<string, string> newTexts = new Dictionary<string, string>();
 
-                string fileName = Path.GetFileName(languageFile);
-                string languageCode = fileName.Split(".")[1];
+                string languageCode = GetLanguageCodeFromFilePath(languageFile);
                 TextResource texts = await altinnAppGitRepository.GetTextV1(languageCode);
 
                 foreach (TextResourceElement text in texts.Resources)
@@ -60,6 +59,18 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <summary>
+        /// Extracts language code from path to language file.
+        /// </summary>
+        /// <param name="filePath">Path to language file</param>
+        /// <returns>A two letter language code</returns>
+        private string GetLanguageCodeFromFilePath(string filePath)
+        {
+            string fileName = Path.GetFileName(filePath);
+            string languageCode = fileName.Split(".")[1];
+            return languageCode;
+        }
+
+        /// <summary>
         /// Converts a single text resource element in the
         /// old texts format to a key:value pair.
         /// </summary>
@@ -67,7 +78,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>The new string that will be the value in the new texts format.</returns>
         private static string ConvertText(TextResourceElement text)
         {
-            string newText = " ";
+            string newText = string.Empty;
 
             StringBuilder builder = new StringBuilder(text.Value);
 
@@ -75,7 +86,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 string variableNumber = text.Variables.IndexOf(variable).ToString();
                 string oldString = "{" + variableNumber + "}";
-                string newString = "${{" + DatasourceAlias(variable.DataSource) + "::" + variable.Key + "}}";
+                string newString = "${{" + GetDatasourceAlias(variable.DataSource) + "::" + variable.Key + "}}";
                 builder.Replace(oldString, newString);
                 newText = builder.ToString();
             }
@@ -89,21 +100,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// </summary>
         /// <param name="datasource">The datasource value from a variable connected to a text</param>
         /// <returns>The short version of the datasource.</returns>
-        private static string DatasourceAlias(string datasource)
+        private static string GetDatasourceAlias(string datasource)
         {
-            if (datasource == "applicationSettings")
+            if (datasource.ToLower() == "applicationsettings")
             {
                 return "as";
             }
-
-            if (datasource == "instanceContext")
+            else if (datasource.ToLower() == "instancecontext")
             {
                 return "ic";
             }
+            else if (datasource.ToLower().StartsWith("datamodel"))
+            {
+                return datasource.ToLower().Replace("datamodel", "dm");
+            }
 
-            StringBuilder builder = new StringBuilder(datasource);
-            builder.Replace("dataModel", "dm");
-            return builder.ToString();
+            throw new ArgumentOutOfRangeException(nameof(datasource), $"{datasource} is not an expected datasource value.");
         }
     }
 }
