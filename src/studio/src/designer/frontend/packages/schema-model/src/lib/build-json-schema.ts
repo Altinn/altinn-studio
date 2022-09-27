@@ -9,7 +9,6 @@ import {
 import JSONPointer from 'jsonpointer';
 import { findRequiredProps } from './handlers/required';
 import { getJsonFieldType } from './handlers/field-type';
-import { genericKeywords } from './handlers/generic';
 import { getNodeByPointer } from './selectors';
 
 export const buildJsonSchema = (uiNodeMap: UiSchemaMap): JsonSchemaNode => {
@@ -50,13 +49,18 @@ export const buildJsonSchema = (uiNodeMap: UiSchemaMap): JsonSchemaNode => {
     JSONPointer.set(out, [jsonPointer, Keywords.Type].join('/'), getJsonFieldType(uiSchemaNode));
 
     // Adding generics back
-    genericKeywords.forEach((keyword) => {
+    [Keywords.Default, Keywords.Const, Keywords.Title, Keywords.Description].forEach((keyword) => {
       JSONPointer.set(
         out,
         [jsonPointer, keyword].join('/'),
         uiSchemaNode[keyword as keyof UiSchemaNode],
       );
     });
+
+    // Adding enums
+    if (uiSchemaNode.enum && uiSchemaNode.enum.length > 0) {
+      JSONPointer.set(out, [jsonPointer, Keywords.Enum].join('/'), uiSchemaNode[Keywords.Enum]);
+    }
 
     // Restrictions
     Object.keys(uiSchemaNode.restrictions).forEach((key) =>

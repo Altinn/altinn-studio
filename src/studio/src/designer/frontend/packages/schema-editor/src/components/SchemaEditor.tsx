@@ -22,7 +22,14 @@ import { getSchemaSettings } from '../settings';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { SchemaTreeView } from './TreeView/SchemaTreeView';
 import { createRefSelector } from './TreeView/tree-view-helpers';
-import { FieldType, getRootNodes, isPointerInUse, ObjectKind } from '@altinn/schema-model';
+import {
+  CombinationKind,
+  FieldType,
+  getRootNodes,
+  isPointerInUse,
+  ObjectKind,
+  UiSchemaNode,
+} from '@altinn/schema-model';
 
 const useStyles = makeStyles({
   root: {
@@ -156,21 +163,24 @@ export const SchemaEditor = ({
   };
 
   const handleAddProperty = (objectKind: ObjectKind) => {
-    /**
+    const newNode: Partial<UiSchemaNode> = {
+      objectKind,
+    };
+    if (objectKind === ObjectKind.Field) {
+      newNode.fieldType = FieldType.Object;
+    }
+    if (objectKind === ObjectKind.Combination) {
+      newNode.fieldType = CombinationKind.AllOf;
+    }
+    newNode.ref = objectKind === ObjectKind.Reference ? '' : undefined;
     dispatch(
       addRootItem({
         name: 'name',
         location: schemaSettings.propertiesPath,
-        props: {
-          fieldType: objectKind === ObjectKind.Field ? FieldType.Object : undefined,
-          $ref: objectKind === ObjectKind.Reference ? '' : undefined,
-          combination: objectKind === ObjectKind.Combination ? [] : undefined,
-          combinationKind:
-            objectKind === ObjectKind.Combination ? CombinationKind.AllOf : undefined,
-        },
+        props: newNode,
       }),
     );
-     */
+
     setMenuAnchorEl(null);
   };
 

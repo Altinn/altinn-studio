@@ -14,6 +14,7 @@ import {
 import { SchemaItemLabel } from './SchemaItemLabel';
 import { getIconStr } from './tree-view-helpers';
 import {
+  CombinationKind,
   FieldType,
   getNodeByPointer,
   getNodeDisplayName,
@@ -71,17 +72,21 @@ export function SchemaItem({ item, isPropertiesView, editMode, translate }: Sche
 
   const handleAddProperty = (objectKind: ObjectKind) => {
     const { pointer } = item;
+    const defaultFieldType: any = {
+      [ObjectKind.Field]: FieldType.Object,
+      [ObjectKind.Combination]: CombinationKind.AllOf,
+      [ObjectKind.Array]: FieldType.Array,
+      [ObjectKind.Reference]: undefined,
+    };
     const propertyProps = {
       objectKind,
-      fieldType: objectKind === ObjectKind.Field ? FieldType.Object : undefined,
+      fieldType: defaultFieldType[objectKind],
       ref: objectKind === ObjectKind.Reference ? '' : undefined,
     };
 
     item.objectKind === ObjectKind.Combination
-      ? // @ts-ignore
-        dispatch(addCombinationItem({ path: pointer, props: propertyProps }))
-      : // @ts-ignore
-        dispatch(addProperty({ path: pointer, props: propertyProps }));
+      ? dispatch(addCombinationItem({ path: pointer, props: propertyProps }))
+      : dispatch(addProperty({ path: pointer, props: propertyProps }));
   };
 
   const handleGoToType = () => {
@@ -110,9 +115,13 @@ export function SchemaItem({ item, isPropertiesView, editMode, translate }: Sche
           label={getNodeDisplayName(item)}
           translate={translate}
           limitedItem={item.objectKind === ObjectKind.Combination}
-          onAddProperty={item.fieldType === FieldType.Object ? handleAddProperty : undefined}
+          onAddProperty={
+            item.objectKind === ObjectKind.Field && item.fieldType === FieldType.Object
+              ? handleAddProperty
+              : undefined
+          }
           onAddReference={
-            item.fieldType === FieldType.Object || item.objectKind === ObjectKind.Combination
+            item.objectKind === ObjectKind.Field || item.objectKind === ObjectKind.Combination
               ? handleAddProperty
               : undefined
           }
@@ -124,7 +133,7 @@ export function SchemaItem({ item, isPropertiesView, editMode, translate }: Sche
               : undefined
           }
           onPromote={
-            item.objectKind === ObjectKind.Combination || item.pointer.startsWith('#/def')
+            item.objectKind === ObjectKind.Combination || item.pointer.startsWith('#/$defs')
               ? undefined
               : handlePromoteClick
           }

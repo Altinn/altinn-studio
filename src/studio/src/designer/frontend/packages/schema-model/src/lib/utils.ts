@@ -18,7 +18,7 @@ export const createNodeBase = (...args: string[]): UiSchemaNode => {
     children: [],
     custom: {},
     restrictions: [],
-    implicitType: false,
+    implicitType: true,
     default: undefined,
     enum: [],
   };
@@ -74,8 +74,18 @@ export const cloneMap = (map: Map<any, any>): Map<any, any> =>
   new Map(JSON.parse(JSON.stringify(Array.from(map))));
 
 export const replaceLastPointerSegment = (pointer: string, newLastSegment: string): string => {
-  const newPointerParts = pointer.split('/');
-  newPointerParts.pop();
-  newPointerParts.push(newLastSegment);
-  return newPointerParts.join('/');
+  const parts = pointer.split('/');
+  parts.pop();
+  parts.push(newLastSegment);
+  return parts.join('/');
 };
+
+export const splitPointerInBaseAndName = (pointer: string) => {
+  const parts = pointer.split('/');
+  return {
+    name: parts.pop(),
+    base: parts.join('/'),
+  };
+};
+
+export const isNumeric = (str: string) => parseInt(str).toString() === str;

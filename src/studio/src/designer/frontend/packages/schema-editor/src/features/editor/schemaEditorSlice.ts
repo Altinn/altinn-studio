@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { enableMapSet } from 'immer';
 import { IJsonSchema, ISchemaState } from '../../types';
 import { getSchemaSettings } from '../../settings';
 import {
@@ -17,6 +18,8 @@ import {
   ROOT_POINTER,
   UiSchemaNode,
 } from '@altinn/schema-model';
+
+enableMapSet();
 
 export const initialState: ISchemaState = {
   schema: {},
@@ -67,9 +70,12 @@ const schemaEditorSlice = createSlice({
       const schemaSettings = getSchemaSettings({
         schemaUrl: state.schema.$schema,
       });
-      props.pointer = newPointer;
+      const newItem = {
+        ...props,
+        pointer: newPointer,
+      };
       // @ts-ignore
-      state.uiSchema.set(newPointer, props);
+      state.uiSchema.set(newPointer, newItem);
       if (location === schemaSettings.definitionsPath) {
         state.selectedDefinitionNodeId = newPointer;
       } else {
@@ -140,6 +146,13 @@ const schemaEditorSlice = createSlice({
     deleteCombinationItem(state, action: PayloadAction<{ path: string }>) {
       // removing a "combination" array item (foo.anyOf[i]), could be oneOf, allOf, anyOf
       const { path } = action.payload;
+
+      if (state.selectedDefinitionNodeId === path) {
+        state.selectedDefinitionNodeId = '';
+      }
+      if (state.selectedPropertyNodeId === path) {
+        state.selectedPropertyNodeId = '';
+      }
       state.uiSchema = removeItemByPointer(state.uiSchema, path);
     },
     setRestriction(state, action: PayloadAction<{ path: string; value: string; key: string }>) {
@@ -152,7 +165,7 @@ const schemaEditorSlice = createSlice({
       state,
       action: PayloadAction<{
         path: string;
-        items: { type?: string; $ref?: string };
+        items: { fieldType?: string; $ref?: string };
       }>,
     ) {
       const { path, items } = action.payload;
@@ -197,7 +210,7 @@ const schemaEditorSlice = createSlice({
       const { type, path } = action.payload;
       const uiSchemaNode = getNodeByPointer(state.uiSchema, path);
       const oldPointer = [path, uiSchemaNode.fieldType].join('/');
-      const newPointer = [oldPointer, type].join('/');
+      const newPointer = [path, type].join('/');
       uiSchemaNode.fieldType = type;
       state.uiSchema = renameItemPointer(state.uiSchema, oldPointer, newPointer);
     },
@@ -225,8 +238,7 @@ const schemaEditorSlice = createSlice({
       state,
       action: PayloadAction<{ path: string; name: string; navigate?: string }>,
     ) {
-      const { path, navigate } = action.payload;
-      let name = action.payload.name;
+      const { path, navigate, name } = action.payload;
       if (!name || name.length === 0) {
         return;
       }

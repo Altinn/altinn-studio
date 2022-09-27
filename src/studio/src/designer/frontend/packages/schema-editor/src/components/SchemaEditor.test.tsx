@@ -12,6 +12,7 @@ import {
   CombinationKind,
   FieldType,
   Keywords,
+  ObjectKind,
   ROOT_POINTER,
 } from '@altinn/schema-model';
 
@@ -27,13 +28,11 @@ const mockLanguage = {
   },
 };
 const renderEditor = (customState?: Partial<ISchemaState>) => {
-  const mockUiSchema = buildUiSchema(dataMock);
-
   const mockInitialState = {
     name: 'test',
     saveSchemaUrl: '',
     schema: dataMock,
-    uiSchema: mockUiSchema,
+    uiSchema: buildUiSchema(dataMock),
     selectedDefinitionNodeId: '',
     selectedPropertyNodeId: '',
     selectedEditorTab: 'properties',
@@ -57,7 +56,6 @@ const renderEditor = (customState?: Partial<ISchemaState>) => {
       />
     </Provider>,
   );
-
   return { store, user };
 };
 
@@ -71,7 +69,7 @@ const clickAddMenuItem = (user: UserEvent, name: string) =>
   user.click(screen.getByRole('menuitem', { name }));
 
 const clickOpenContextMenuButton = (user: UserEvent) =>
-  user.click(screen.getByTestId('open-context-menu-button'));
+  user.click(screen.getAllByTestId('open-context-menu-button')[0]);
 
 const toggleEditMode = (user: UserEvent) => user.click(screen.getByText('edit_mode'));
 
@@ -110,13 +108,11 @@ test('should show context menu and trigger correct dispatch when adding a field 
   const actions = store.getActions();
   const lastAction = actions.at(-1);
   expect(lastAction.type).toBe('schemaEditor/addRootItem');
-  expect(lastAction.payload).toEqual({
-    name: 'name',
-    location: '#/properties',
-    props: {
-      type: FieldType.Object,
-    },
-  });
+  console.log(lastAction.payload);
+  expect(lastAction.payload.name).toBe('name');
+  expect(lastAction.payload.location).toBe('#/properties');
+  expect(lastAction.payload.props.fieldType).toBe(FieldType.Object);
+  expect(lastAction.payload.props.objectKind).toBe(ObjectKind.Field);
 });
 
 test('should show context menu and trigger correct dispatch when adding a reference on root', async () => {
@@ -128,22 +124,20 @@ test('should show context menu and trigger correct dispatch when adding a refere
   const actions = store.getActions();
   const lastAction = actions.at(-1);
   expect(lastAction.type).toBe('schemaEditor/addRootItem');
-  expect(lastAction.payload).toEqual({
-    name: 'name',
-    location: '#/properties',
-    props: {
-      $ref: '',
-    },
-  });
+  expect(lastAction.payload.name).toBe('name');
+  expect(lastAction.payload.location).toBe('#/properties');
+  expect(lastAction.payload.props.objectKind).toBe(ObjectKind.Reference);
+  expect(lastAction.payload.props.ref).toBe('');
 });
 
 test('should show context menu and trigger correct dispatch when adding field on a specific node', async () => {
+  const jsonSchema = {
+    [Keywords.Properties]: { mockItem: { [Keywords.Type]: FieldType.Object } },
+    [Keywords.Definitions]: {},
+  };
   const { store, user } = renderEditor({
-    schema: {
-      properties: { mockItem: { type: FieldType.Object } },
-      $defs: {},
-    },
-    uiSchema: buildUiSchema({ mockItem: { type: FieldType.Object } }),
+    schema: jsonSchema,
+    uiSchema: buildUiSchema(jsonSchema),
   });
   await toggleEditMode(user);
   await clickOpenContextMenuButton(user);
@@ -151,21 +145,19 @@ test('should show context menu and trigger correct dispatch when adding field on
   const actions = store.getActions();
   const lastAction = actions.at(-1);
   expect(lastAction.type).toBe('schemaEditor/addProperty');
-  expect(lastAction.payload).toEqual({
-    path: '#/properties/mockItem',
-    props: {
-      type: FieldType.Object,
-    },
-  });
+  expect(lastAction.payload.path).toBe('#/properties/mockItem');
+  expect(lastAction.payload.props.objectKind).toBe(ObjectKind.Field);
+  expect(lastAction.payload.props.fieldType).toBe(FieldType.Object);
 });
 
 test('should show context menu and trigger correct dispatch when adding reference on a specific node', async () => {
+  const jsonSchema = {
+    [Keywords.Properties]: { mockItem: { [Keywords.Type]: FieldType.Object } },
+    [Keywords.Definitions]: {},
+  };
   const { store, user } = renderEditor({
-    schema: {
-      properties: { mockItem: { type: FieldType.Object } },
-      $defs: {},
-    },
-    uiSchema: buildUiSchema({ mockItem: { type: FieldType.Object } }),
+    schema: jsonSchema,
+    uiSchema: buildUiSchema(jsonSchema),
   });
   await toggleEditMode(user);
   await clickOpenContextMenuButton(user);
@@ -173,12 +165,9 @@ test('should show context menu and trigger correct dispatch when adding referenc
   const actions = store.getActions();
   const lastAction = actions.at(-1);
   expect(lastAction.type).toBe('schemaEditor/addProperty');
-  expect(lastAction.payload).toEqual({
-    path: '#/properties/mockItem',
-    props: {
-      $ref: '',
-    },
-  });
+  expect(lastAction.payload.path).toBe('#/properties/mockItem');
+  expect(lastAction.payload.props.objectKind).toBe(ObjectKind.Reference);
+  expect(lastAction.payload.props.ref).toBe('');
 });
 
 test('should show context menu and trigger correct dispatch when deleting a specific node', async () => {
@@ -197,10 +186,12 @@ test('should show context menu and trigger correct dispatch when deleting a spec
 test('should not show add property or add reference buttons on a reference node', async () => {
   const jsonSchema = {
     [Keywords.Properties]: {
-      mockItem: { $ref: [ROOT_POINTER, Keywords.Definitions, 'mockDefinition'] },
+      mockItem: {
+        [Keywords.Reference]: [ROOT_POINTER, Keywords.Definitions, 'mockDefinition'].join('/'),
+      },
     },
     [Keywords.Definitions]: {
-      mockDefinition: { type: FieldType.Object },
+      mockDefinition: { [Keywords.Type]: FieldType.Object },
     },
   };
   const { user } = renderEditor({
@@ -217,10 +208,10 @@ test('should not show add property or add reference buttons on a reference node'
 test('should not show add property or add reference buttons on a reference node that has not yet set reference', async () => {
   const jsonSchema = {
     [Keywords.Properties]: {
-      mockItem: { $ref: '' },
+      mockItem: { [Keywords.Reference]: undefined },
     },
     [Keywords.Definitions]: {
-      mockDefinition: { type: FieldType.Object },
+      mockDefinition: { [Keywords.Type]: FieldType.Object },
     },
   };
   const { user } = renderEditor({
@@ -237,10 +228,12 @@ test('should not show add property or add reference buttons on a reference node 
 test('should not show add property or add reference buttons on a field that is not type object', async () => {
   const jsonSchema = {
     [Keywords.Properties]: {
-      mockItem: { $ref: [ROOT_POINTER, Keywords.Definitions, 'mockDefinition'] },
+      mockItem: {
+        [Keywords.Reference]: [ROOT_POINTER, Keywords.Definitions, 'mockDefinition'].join('/'),
+      },
     },
     [Keywords.Definitions]: {
-      mockDefinition: { type: FieldType.Integer },
+      mockDefinition: { [Keywords.Type]: FieldType.Integer },
     },
   };
   const { user } = renderEditor({
@@ -277,20 +270,15 @@ test('should trigger correct dispatch when adding combination to root', async ()
   const actions = store.getActions();
   const lastAction = actions.at(-1);
   expect(lastAction.type).toBe('schemaEditor/addRootItem');
-  expect(lastAction.payload).toEqual({
-    name: 'name',
-    location: '#/properties',
-    props: {
-      combination: [],
-      combinationKind: CombinationKind.AllOf,
-    },
-  });
+  expect(lastAction.payload.location).toBe('#/properties');
+  expect(lastAction.payload.props.objectKind).toBe(ObjectKind.Combination);
+  expect(lastAction.payload.props.fieldType).toBe(CombinationKind.AllOf);
 });
 
 test('should show context menu and trigger correct dispatch when adding a combination on a specific node', async () => {
   const jsonSchema = {
-    properties: { mockItem: { type: FieldType.Object } },
-    $defs: {},
+    [Keywords.Properties]: { mockItem: { type: FieldType.Object } },
+    [Keywords.Definitions]: {},
   };
   const { store, user } = renderEditor({
     schema: jsonSchema,
@@ -305,16 +293,22 @@ test('should show context menu and trigger correct dispatch when adding a combin
   expect(lastAction.payload).toEqual({
     path: '#/properties/mockItem',
     props: {
-      combination: [],
-      combinationKind: CombinationKind.AllOf,
+      objectKind: ObjectKind.Combination,
+      fieldType: CombinationKind.AllOf,
+      ref: undefined,
     },
   });
 });
 
 test('should only be possible to add a reference to a combination type', async () => {
   const jsonSchema = {
-    properties: { mockItem: { allOf: [], name: 'allOfTest' } },
-    $defs: {},
+    [Keywords.Properties]: {
+      mockItem: {
+        allOf: [],
+        name: 'allOfTest',
+      },
+    },
+    [Keywords.Definitions]: {},
   };
   const { user } = renderEditor({
     schema: jsonSchema,

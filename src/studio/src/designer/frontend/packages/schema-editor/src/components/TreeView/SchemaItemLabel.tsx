@@ -101,7 +101,6 @@ export const SchemaItemLabel = ({ translate, ...props }: SchemaItemLabelProps) =
         className={classes.contextButton}
         aria-controls='simple-menu'
         aria-haspopup='true'
-        id='open-context-menu-button'
         onClick={handleContextMenuClick}
       >
         <i className='fa fa-ellipsismenu' />

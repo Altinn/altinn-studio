@@ -1,13 +1,16 @@
 /* eslint-disable no-useless-escape lanuage=JSON*/
 const mockString = `
 {
-	"$schema" : "http://json-schema.org/schema#",
+	"$schema" : "https://json-schema.org/draft/2020-12/schema",
 	"$id" : "schema.json",
 	"type" : "object",
 	"properties" : {
 			"melding" : {
 					"$ref" : "#/$defs/RA-0678_M"
-				}
+				},
+			"arrayForTest": {
+			   "type":"array"
+			}
 		},
 	"info" : {
 			"XSLT-skriptnavn" : "SERES_XSD_GEN",

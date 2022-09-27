@@ -22,7 +22,7 @@ export const getNodeDisplayName = (node: UiSchemaNode) => {
 
 export const getUniqueNodePath = (uiNodeMap: UiSchemaMap, targetPointer: string): string => {
   let newPointer = targetPointer;
-  let postfix = 1;
+  let postfix = 0;
   while (uiNodeMap.has(newPointer)) {
     newPointer = targetPointer + postfix;
     postfix++;
