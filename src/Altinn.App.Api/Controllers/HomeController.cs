@@ -2,10 +2,9 @@ using System.Collections.Generic;
 using System.Text.Json;
 using System.Web;
 
-using Altinn.App.Api.Models;
-using Altinn.App.Common.Models;
-using Altinn.App.Services.Configuration;
-using Altinn.App.Services.Interface;
+using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Interface;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Antiforgery;

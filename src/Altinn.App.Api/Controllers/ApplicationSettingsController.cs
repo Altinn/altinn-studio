@@ -1,7 +1,5 @@
 using System.Text.Json;
-
-using Altinn.App.Services.Configuration;
-
+using Altinn.App.Core.Configuration;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 

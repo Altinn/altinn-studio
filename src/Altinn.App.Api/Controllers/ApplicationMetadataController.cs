@@ -1,6 +1,4 @@
-using System.Threading.Tasks;
-
-using Altinn.App.Services.Interface;
+using Altinn.App.Core.Interface;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Authorization;

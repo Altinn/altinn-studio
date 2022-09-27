@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
+        <TargetFrameworks>net6.0</TargetFrameworks>
         <Nullable>enable</Nullable>
 
         <IsPackable>false</IsPackable>
@@ -24,7 +24,15 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\Altinn.App.Api\Altinn.App.Api.csproj" />
+        <ProjectReference Include="..\..\src\Altinn.App.Api\Altinn.App.Api.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="TestResources/**">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+            <LinkBase>/</LinkBase>
+            <Link>/%(RecursiveDir)%(Filename)%(Extension)</Link>
+        </None>
     </ItemGroup>
 
 </Project>

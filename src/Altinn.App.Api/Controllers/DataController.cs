@@ -7,17 +7,16 @@ using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
-
-using Altinn.App.Api.Filters;
-using Altinn.App.Common.Constants;
-using Altinn.App.Common.Helpers;
-using Altinn.App.Common.Helpers.Extensions;
-using Altinn.App.Common.Models;
-using Altinn.App.Common.Serialization;
-using Altinn.App.PlatformServices.Extensions;
-using Altinn.App.PlatformServices.Helpers;
-using Altinn.App.Services.Helpers;
-using Altinn.App.Services.Interface;
+using Altinn.App.Api.Infrastructure.Filters;
+using Altinn.App.Core.Constants;
+using Altinn.App.Core.Extensions;
+using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Helpers.Extensions;
+using Altinn.App.Core.Helpers.Serialization;
+using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Authorization;
@@ -37,8 +36,10 @@ namespace Altinn.App.Api.Controllers
     {
         private readonly ILogger<DataController> _logger;
         private readonly IData _dataClient;
+        private readonly IDataProcessor _dataProcessor;
         private readonly IInstance _instanceClient;
-        private readonly IAltinnApp _altinnApp;
+        private readonly IInstantiationProcessor _instantiationProcessor;
+        private readonly IAppModel _appModel;
         private readonly IAppResources _appResourcesService;
         private readonly IPrefill _prefillService;
 
@@ -49,23 +50,29 @@ namespace Altinn.App.Api.Controllers
         /// </summary>
         /// <param name="logger">logger</param>
         /// <param name="instanceClient">instance service to store instances</param>
+        /// <param name="instantiationProcessor">Instantiation processor</param>
         /// <param name="dataClient">A service with access to data storage.</param>
-        /// <param name="altinnApp">The app logic for current service</param>
+        /// <param name="dataProcessor">Serive implemnting logic during data read/write</param>
+        /// <param name="appModel">Service for generating app model</param>
         /// <param name="appResourcesService">The apps resource service</param>
         /// <param name="prefillService">A service with prefill related logic.</param>
         public DataController(
             ILogger<DataController> logger,
             IInstance instanceClient,
+            IInstantiationProcessor instantiationProcessor,
             IData dataClient,
-            IAltinnApp altinnApp,
+            IDataProcessor dataProcessor,
+            IAppModel appModel,
             IAppResources appResourcesService,
             IPrefill prefillService)
         {
             _logger = logger;
 
             _instanceClient = instanceClient;
+            _instantiationProcessor = instantiationProcessor;
             _dataClient = dataClient;
-            _altinnApp = altinnApp;
+            _dataProcessor = dataProcessor;
+            _appModel = appModel;
             _appResourcesService = appResourcesService;
             _prefillService = prefillService;
         }
@@ -383,11 +390,11 @@ namespace Altinn.App.Api.Controllers
 
             if (Request.ContentType == null)
             {
-                appModel = _altinnApp.CreateNewAppModel(classRef);
+                appModel = _appModel.Create(classRef);
             }
             else
             {
-                ModelDeserializer deserializer = new ModelDeserializer(_logger, _altinnApp.GetAppModelType(classRef));
+                ModelDeserializer deserializer = new ModelDeserializer(_logger, _appModel.GetModelType(classRef));
                 appModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
 
                 if (!string.IsNullOrEmpty(deserializer.Error))
@@ -399,23 +406,14 @@ namespace Altinn.App.Api.Controllers
             // runs prefill from repo configuration if config exists
             await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, dataType, appModel);
 
-            // send events to trigger application business logic
-            try
-            {
-                await _altinnApp.RunDataCreation(instance, appModel, null);
-            }
-            catch (NotImplementedException)
-            {
-                // Trigger application business logic the old way. DEPRICATED
-                await _altinnApp.RunDataCreation(instance, appModel);
-            }
+            await _instantiationProcessor.DataCreation(instance, appModel, null);
 
             await UpdatePresentationTextsOnInstance(instance, dataType, appModel);
             await UpdateDataValuesOnInstance(instance, dataType, appModel);
 
             int instanceOwnerPartyId = int.Parse(instance.InstanceOwner.PartyId);
 
-            DataElement dataElement = await _dataClient.InsertFormData(appModel, instanceGuid, _altinnApp.GetAppModelType(classRef), org, app, instanceOwnerPartyId, dataType);
+            DataElement dataElement = await _dataClient.InsertFormData(appModel, instanceGuid, _appModel.GetModelType(classRef), org, app, instanceOwnerPartyId, dataType);
             SelfLinkHelper.SetDataAppSelfLinks(instanceOwnerPartyId, instanceGuid, dataElement, Request);
 
             return Created(dataElement.SelfLinks.Apps, dataElement);
@@ -502,7 +500,7 @@ namespace Altinn.App.Api.Controllers
             // Get Form Data from data service. Assumes that the data element is form data.
             object appModel = await _dataClient.GetFormData(
                 instanceGuid,
-                _altinnApp.GetAppModelType(appModelclassRef),
+                _appModel.GetModelType(appModelclassRef),
                 org,
                 app,
                 instanceOwnerId,
@@ -513,7 +511,7 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest($"Did not find form data for data element {dataGuid}");
             }
 
-            await _altinnApp.RunProcessDataRead(instance, dataGuid, appModel);
+            await _dataProcessor.ProcessDataRead(instance, dataGuid, appModel);
 
             string userOrgClaim = User.GetOrg();
             if (userOrgClaim == null || !org.Equals(userOrgClaim, StringComparison.InvariantCultureIgnoreCase))
@@ -539,7 +537,7 @@ namespace Altinn.App.Api.Controllers
             string classRef = _appResourcesService.GetClassRefForLogicDataType(dataType);
             Guid instanceGuid = Guid.Parse(instance.Id.Split("/")[1]);
 
-            ModelDeserializer deserializer = new ModelDeserializer(_logger, _altinnApp.GetAppModelType(classRef));
+            ModelDeserializer deserializer = new ModelDeserializer(_logger, _appModel.GetModelType(classRef));
             object serviceModel = await deserializer.DeserializeAsync(Request.Body, Request.ContentType);
 
             if (!string.IsNullOrEmpty(deserializer.Error))
@@ -553,7 +551,7 @@ namespace Altinn.App.Api.Controllers
             }
 
             string serviceModelJsonString = JsonSerializer.Serialize(serviceModel);
-            bool changedByCalculation = await _altinnApp.RunProcessDataWrite(instance, dataGuid, serviceModel);
+            bool changedByCalculation = await _dataProcessor.ProcessDataWrite(instance, dataGuid, serviceModel);
 
             await UpdatePresentationTextsOnInstance(instance, dataType, serviceModel);
             await UpdateDataValuesOnInstance(instance, dataType, serviceModel);
@@ -562,7 +560,7 @@ namespace Altinn.App.Api.Controllers
             DataElement updatedDataElement = await _dataClient.UpdateData(
                 serviceModel,
                 instanceGuid,
-                _altinnApp.GetAppModelType(classRef),
+                _appModel.GetModelType(classRef),
                 org,
                 app,
                 instanceOwnerPartyId,

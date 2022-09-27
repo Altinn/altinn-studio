@@ -1,10 +1,8 @@
 using System;
 using System.Globalization;
 using System.IO;
-
-using Altinn.App.Services.Helpers;
-using Altinn.App.Services.Interface;
-
+using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Interface;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Altinn.App.Api.Controllers

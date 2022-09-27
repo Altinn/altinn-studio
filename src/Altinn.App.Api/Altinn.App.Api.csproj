@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFrameworks>net5.0;net6.0</TargetFrameworks>
+    <TargetFrameworks>net6.0</TargetFrameworks>
     <OutputType>Library</OutputType>
     <PackageId>Altinn.App.Api</PackageId>
     <PackageTags>Altinn;Studio;App;Api;Controllers</PackageTags>
@@ -23,11 +23,6 @@
     <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.11.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Altinn.App.Common\Altinn.App.Common.csproj" />
-    <ProjectReference Include="..\Altinn.App.PlatformServices\Altinn.App.PlatformServices.csproj" />
-  </ItemGroup>
-
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
      <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.376">
       <PrivateAssets>all</PrivateAssets>
@@ -36,6 +31,10 @@
     <AdditionalFiles Include="..\..\stylecop.json">
       <Link>stylecop.json</Link>
     </AdditionalFiles>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Altinn.App.Core\Altinn.App.Core.csproj" />
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">

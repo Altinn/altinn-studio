@@ -5,25 +5,20 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-
-using Altinn.App.Api.Filters;
+using Altinn.App.Api.Helpers.RequestHandling;
+using Altinn.App.Api.Infrastructure.Filters;
 using Altinn.App.Api.Mappers;
 using Altinn.App.Api.Models;
-using Altinn.App.Common.Constants;
-using Altinn.App.Common.Helpers;
-using Altinn.App.Common.RequestHandling;
-using Altinn.App.Common.Serialization;
+using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Constants;
+using Altinn.App.Core.Extensions;
+using Altinn.App.Core.Features;
+using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Helpers.Serialization;
 using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Models;
-using Altinn.App.PlatformServices.Extensions;
-using Altinn.App.PlatformServices.Helpers;
-using Altinn.App.PlatformServices.Interface;
-using Altinn.App.PlatformServices.Models;
-using Altinn.App.Services.Configuration;
-using Altinn.App.Services.Helpers;
-using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models.Validation;
-
+using Altinn.App.Core.Models.Validation;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
@@ -64,7 +59,9 @@ namespace Altinn.App.Api.Controllers
         private readonly IProfile _profileClientClient;
 
         private readonly IAppResources _appResourcesService;
-        private readonly IAltinnApp _altinnApp;
+        private readonly IAppModel _appModel;
+        private readonly IInstantiationProcessor _instantiationProcessor;
+        private readonly IInstantiationValidator _instantiationValidator;
         private readonly IPDP _pdp;
         private readonly IPrefill _prefillService;
         private readonly IProcessEngine _processEngine;
@@ -81,7 +78,9 @@ namespace Altinn.App.Api.Controllers
             IInstance instanceClient,
             IData dataClient,
             IAppResources appResourcesService,
-            IAltinnApp altinnApp,
+            IAppModel appModel,
+            IInstantiationProcessor instantiationProcessor,
+            IInstantiationValidator instantiationValidator,
             IPDP pdp,
             IEvents eventsService,
             IOptions<AppSettings> appSettings,
@@ -94,7 +93,9 @@ namespace Altinn.App.Api.Controllers
             _dataClient = dataClient;
             _appResourcesService = appResourcesService;
             _registerClient = registerClient;
-            _altinnApp = altinnApp;
+            _appModel = appModel;
+            _instantiationProcessor = instantiationProcessor;
+            _instantiationValidator = instantiationValidator;
             _pdp = pdp;
             _eventsService = eventsService;
             _appSettings = appSettings.Value;
@@ -266,7 +267,7 @@ namespace Altinn.App.Api.Controllers
             }
 
             // Run custom app logic to validate instantiation
-            InstantiationValidationResult validationResult = await _altinnApp.RunInstantiationValidation(instanceTemplate);
+            InstantiationValidationResult validationResult = await _instantiationValidator.Validate(instanceTemplate);
             if (validationResult != null && !validationResult.Valid)
             {
                 return StatusCode((int)HttpStatusCode.Forbidden, validationResult);
@@ -416,7 +417,7 @@ namespace Altinn.App.Api.Controllers
             };
 
             // Run custom app logic to validate instantiation
-            InstantiationValidationResult validationResult = await _altinnApp.RunInstantiationValidation(instanceTemplate);
+            InstantiationValidationResult validationResult = await _instantiationValidator.Validate(instanceTemplate);
             if (validationResult != null && !validationResult.Valid)
             {
                 return StatusCode((int)HttpStatusCode.Forbidden, validationResult);
@@ -520,7 +521,7 @@ namespace Altinn.App.Api.Controllers
                     Type type;
                     try
                     {
-                        type = _altinnApp.GetAppModelType(dt.AppLogic.ClassRef);
+                        type = _appModel.GetModelType(dt.AppLogic.ClassRef);
                     }
                     catch (Exception altinnAppException)
                     {
@@ -535,16 +536,8 @@ namespace Altinn.App.Api.Controllers
                     }
 
                     await _prefillService.PrefillDataModel(instanceOwnerPartyId.ToString(), dt.Id, data);
-
-                    try
-                    {
-                        await _altinnApp.RunDataCreation(targetInstance, data, null);
-                    }
-                    catch (NotImplementedException)
-                    {
-                        // Trigger application business logic the old way. DEPRECATED
-                        await _altinnApp.RunDataCreation(targetInstance, data);
-                    }
+                    
+                    await _instantiationProcessor.DataCreation(targetInstance, data, null);
 
                     await _dataClient.InsertFormData(
                         data,
@@ -854,7 +847,7 @@ namespace Altinn.App.Api.Controllers
                     Type type;
                     try
                     {
-                        type = _altinnApp.GetAppModelType(dataType.AppLogic.ClassRef);
+                        type = _appModel.GetModelType(dataType.AppLogic.ClassRef);
                     }
                     catch (Exception altinnAppException)
                     {
@@ -870,15 +863,8 @@ namespace Altinn.App.Api.Controllers
                     }
 
                     await _prefillService.PrefillDataModel(instance.InstanceOwner.PartyId, part.Name, data);
-                    try
-                    {
-                        await _altinnApp.RunDataCreation(instance, data, null);
-                    }
-                    catch (NotImplementedException)
-                    {
-                        // Trigger application business logic the old way. DEPRECATED
-                        await _altinnApp.RunDataCreation(instance, data);
-                    }
+                    
+                    await _instantiationProcessor.DataCreation(instance, data, null);
 
                     dataElement = await _dataClient.InsertFormData(
                         data,

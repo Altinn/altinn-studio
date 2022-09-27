@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using Altinn.App.Common.Models;
-using Altinn.App.PlatformServices.Interface;
+using Altinn.App.Core.Internal.Language;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using ApplicationLanguage = Altinn.App.Core.Models.ApplicationLanguage;
 
 namespace Altinn.App.Api.Controllers
 {

@@ -5,15 +5,14 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 
-using Altinn.App.Api.Filters;
-using Altinn.App.Common.Process;
-using Altinn.App.Common.Process.Elements;
+using Altinn.App.Api.Infrastructure.Filters;
+using Altinn.App.Core.Features.Validation;
+using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Internal.Process.Elements;
 using Altinn.App.Core.Models;
-using Altinn.App.PlatformServices.Helpers;
-using Altinn.App.Services.Helpers;
-using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models.Validation;
+using Altinn.App.Core.Models.Validation;
 using Altinn.Authorization.ABAC.Xacml.JsonProfile;
 using Altinn.Common.PEP.Helpers;
 using Altinn.Common.PEP.Interfaces;
@@ -42,7 +41,6 @@ namespace Altinn.App.Api.Controllers
         private readonly ILogger<ProcessController> _logger;
         private readonly IInstance _instanceClient;
         private readonly IProcess _processService;
-        private readonly IAltinnApp _altinnApp;
         private readonly IValidation _validationService;
         private readonly IPDP _pdp;
         private readonly IProcessEngine _processEngine;
@@ -55,7 +53,6 @@ namespace Altinn.App.Api.Controllers
             ILogger<ProcessController> logger,
             IInstance instanceClient,
             IProcess processService,
-            IAltinnApp altinnApp,
             IValidation validationService,
             IPDP pdp,
             IProcessEngine processEngine)
@@ -63,7 +60,6 @@ namespace Altinn.App.Api.Controllers
             _logger = logger;
             _instanceClient = instanceClient;
             _processService = processService;
-            _altinnApp = altinnApp;
             _validationService = validationService;
             _pdp = pdp;
             _processEngine = processEngine;
@@ -224,11 +220,11 @@ namespace Altinn.App.Api.Controllers
             {
                 validationIssues = await _validationService.ValidateAndUpdateProcess(instance, currentElementId);
 
-                canEndTask = await _altinnApp.CanEndProcessTask(currentElementId, instance, validationIssues);
+                canEndTask = await ProcessHelper.CanEndProcessTask(currentElementId, instance, validationIssues);
             }
             else
             {
-                canEndTask = await _altinnApp.CanEndProcessTask(currentElementId, instance, validationIssues);
+                canEndTask = await ProcessHelper.CanEndProcessTask(currentElementId, instance, validationIssues);
             }
 
             return canEndTask;

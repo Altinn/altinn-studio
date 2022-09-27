@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Altinn.App.Api.Controllers;
 using Altinn.App.Api.Tests.Controllers.TestResources;
-using Altinn.App.PlatformServices.Models;
-using Altinn.App.Services.Interface;
+using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.PageOrder;
+using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Models;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -26,14 +29,14 @@ public class StatelessPagesControllerTests
         // Arrange
         var appResourcesMock = new Mock<IAppResources>();
         var pageOrderMock = new Mock<IPageOrder>();
-        var altinnAppMock = new Mock<IAltinnApp>();
+        var appModelMock = new Mock<IAppModel>();
         const string dataTypeId = "DummyModel";
         string classRef = typeof(DummyModel).FullName;
         List<string> expected = new List<string> { "pagetwo", "pagethree" };
         Type type = typeof(DummyModel);
         appResourcesMock.Setup(r => r.GetClassRefForLogicDataType(dataTypeId))
             .Returns(classRef);
-        altinnAppMock.Setup(a => a.GetAppModelType(classRef)).Returns(type);
+        appModelMock.Setup(a => a.GetModelType(classRef)).Returns(type);
         pageOrderMock.Setup(p =>
                 p.GetPageOrder(
                     It.IsAny<AppIdentifier>(),
@@ -57,7 +60,7 @@ public class StatelessPagesControllerTests
                 ));
 
         var controller = new StatelessPagesController(
-            altinnAppMock.Object,
+            appModelMock.Object,
             appResourcesMock.Object,
             pageOrderMock.Object);
 
@@ -75,9 +78,9 @@ public class StatelessPagesControllerTests
         // Arrange
         var appResourcesMock = new Mock<IAppResources>();
         var pageOrderMock = new Mock<IPageOrder>();
-        var altinnAppMock = new Mock<IAltinnApp>();
+        var appModelMock = new Mock<IAppModel>();
         var controller = new StatelessPagesController(
-            altinnAppMock.Object,
+            appModelMock.Object,
             appResourcesMock.Object,
             pageOrderMock.Object
         );
@@ -89,7 +92,7 @@ public class StatelessPagesControllerTests
         response.Result.Should().BeOfType<BadRequestObjectResult>();
         appResourcesMock.VerifyNoOtherCalls();
         pageOrderMock.VerifyNoOtherCalls();
-        altinnAppMock.VerifyNoOtherCalls();
+        appModelMock.VerifyNoOtherCalls();
     }
     
     [Fact]
@@ -98,9 +101,9 @@ public class StatelessPagesControllerTests
         // Arrange
         var appResourcesMock = new Mock<IAppResources>();
         var pageOrderMock = new Mock<IPageOrder>();
-        var altinnAppMock = new Mock<IAltinnApp>();
+        var appModelMock = new Mock<IAppModel>();
         var controller = new StatelessPagesController(
-            altinnAppMock.Object,
+            appModelMock.Object,
             appResourcesMock.Object,
             pageOrderMock.Object
         );
@@ -112,6 +115,6 @@ public class StatelessPagesControllerTests
         response.Result.Should().BeOfType<BadRequestObjectResult>();
         appResourcesMock.VerifyNoOtherCalls();
         pageOrderMock.VerifyNoOtherCalls();
-        altinnAppMock.VerifyNoOtherCalls();
+        appModelMock.VerifyNoOtherCalls();
     }
 }

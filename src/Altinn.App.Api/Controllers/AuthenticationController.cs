@@ -1,11 +1,10 @@
 using System.Threading.Tasks;
-using Altinn.App.Services.Configuration;
-using Altinn.App.Services.Constants;
-using Altinn.App.Services.Interface;
+using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Constants;
+using Altinn.App.Core.Interface;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Altinn.App.Api.Controllers

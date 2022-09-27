@@ -19,6 +19,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="C:\Users\rbi\.nuget\packages\altinn.common.pep\1.0.39\contentFiles\any\netcoreapp3.1\appsettings.Development.json" />
+    <Content Remove="C:\Users\rbi\.nuget\packages\altinn.common.pep\1.0.39\contentFiles\any\netcoreapp3.1\appsettings.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
 
@@ -45,9 +50,6 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <AdditionalFiles Include="..\..\stylecop.json">
-      <Link>stylecop.json</Link>
-    </AdditionalFiles>
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">

@@ -1,9 +1,8 @@
 using System.Threading.Tasks;
-
-using Altinn.App.Services.Configuration;
-using Altinn.App.Services.Helpers;
-using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models;
+using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Interface;
+using Altinn.App.Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
