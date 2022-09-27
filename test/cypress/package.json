@@ -27,20 +27,20 @@
     "test:all:headless": "cypress run -s 'e2e/integration/*/*.js'"
   },
   "devDependencies": {
-    "@testing-library/cypress": "^8.0.3",
-    "axe-core": "^4.4.3",
+    "@testing-library/cypress": "8.0.3",
+    "axe-core": "4.4.3",
     "concurrently": "7.4.0",
     "cypress": "10.8.0",
-    "cypress-axe": "^1.0.0",
-    "cypress-plugin-tab": "^1.0.5",
+    "cypress-axe": "1.0.0",
+    "cypress-plugin-tab": "1.0.5",
     "dotenv": "16.0.2",
     "eslint": "8.23.1",
-    "eslint-plugin-cypress": "^2.12.1",
-    "execa": "^6.1.0",
-    "lint-staged": "^13.0.3",
-    "prettier": "^2.7.1",
-    "rimraf": "^3.0.2",
-    "start-server-and-test": "^1.14.0"
+    "eslint-plugin-cypress": "2.12.1",
+    "execa": "6.1.0",
+    "lint-staged": "13.0.3",
+    "prettier": "2.7.1",
+    "rimraf": "3.0.2",
+    "start-server-and-test": "1.14.0"
   },
   "packageManager": "yarn@3.2.3",
   "lint-staged": {

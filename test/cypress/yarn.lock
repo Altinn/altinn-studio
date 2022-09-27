@@ -192,7 +192,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/cypress@npm:^8.0.3":
+"@testing-library/cypress@npm:8.0.3":
   version: 8.0.3
   resolution: "@testing-library/cypress@npm:8.0.3"
   dependencies:
@@ -462,7 +462,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axe-core@npm:^4.4.3":
+"axe-core@npm:4.4.3":
   version: 4.4.3
   resolution: "axe-core@npm:4.4.3"
   checksum: c3ea000d9ace3ba0bc747c8feafc24b0de62a0f7d93021d0f77b19c73fca15341843510f6170da563d51535d6cfb7a46c5fc0ea36170549dbb44b170208450a2
@@ -806,24 +806,24 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "cypress-altinn-app-frontend@workspace:."
   dependencies:
-    "@testing-library/cypress": ^8.0.3
-    axe-core: ^4.4.3
+    "@testing-library/cypress": 8.0.3
+    axe-core: 4.4.3
     concurrently: 7.4.0
     cypress: 10.8.0
-    cypress-axe: ^1.0.0
-    cypress-plugin-tab: ^1.0.5
+    cypress-axe: 1.0.0
+    cypress-plugin-tab: 1.0.5
     dotenv: 16.0.2
     eslint: 8.23.1
-    eslint-plugin-cypress: ^2.12.1
-    execa: ^6.1.0
-    lint-staged: ^13.0.3
-    prettier: ^2.7.1
-    rimraf: ^3.0.2
-    start-server-and-test: ^1.14.0
+    eslint-plugin-cypress: 2.12.1
+    execa: 6.1.0
+    lint-staged: 13.0.3
+    prettier: 2.7.1
+    rimraf: 3.0.2
+    start-server-and-test: 1.14.0
   languageName: unknown
   linkType: soft
 
-"cypress-axe@npm:^1.0.0":
+"cypress-axe@npm:1.0.0":
   version: 1.0.0
   resolution: "cypress-axe@npm:1.0.0"
   peerDependencies:
@@ -833,7 +833,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cypress-plugin-tab@npm:^1.0.5":
+"cypress-plugin-tab@npm:1.0.5":
   version: 1.0.5
   resolution: "cypress-plugin-tab@npm:1.0.5"
   dependencies:
@@ -1073,7 +1073,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-cypress@npm:^2.12.1":
+"eslint-plugin-cypress@npm:2.12.1":
   version: 2.12.1
   resolution: "eslint-plugin-cypress@npm:2.12.1"
   dependencies:
@@ -1267,7 +1267,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"execa@npm:^6.1.0":
+"execa@npm:6.1.0, execa@npm:^6.1.0":
   version: 6.1.0
   resolution: "execa@npm:6.1.0"
   dependencies:
@@ -1954,7 +1954,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"lint-staged@npm:^13.0.3":
+"lint-staged@npm:13.0.3":
   version: 13.0.3
   resolution: "lint-staged@npm:13.0.3"
   dependencies:
@@ -2414,7 +2414,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"prettier@npm:^2.7.1":
+"prettier@npm:2.7.1":
   version: 2.7.1
   resolution: "prettier@npm:2.7.1"
   bin:
@@ -2565,7 +2565,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rimraf@npm:^3.0.0, rimraf@npm:^3.0.2":
+"rimraf@npm:3.0.2, rimraf@npm:^3.0.0, rimraf@npm:^3.0.2":
   version: 3.0.2
   resolution: "rimraf@npm:3.0.2"
   dependencies:
@@ -2750,7 +2750,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"start-server-and-test@npm:^1.14.0":
+"start-server-and-test@npm:1.14.0":
   version: 1.14.0
   resolution: "start-server-and-test@npm:1.14.0"
   dependencies:
