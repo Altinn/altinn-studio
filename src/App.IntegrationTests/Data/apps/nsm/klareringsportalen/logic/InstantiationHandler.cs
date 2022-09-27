@@ -1,8 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using Altinn.App.Models; // Uncomment this line to refer to app model(s)
-using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models.Validation;
+using Altinn.App.Core.Features;
+using Altinn.App.Core.Interface;
+using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Apps.nsm.klareringsportalen.models;
 using Adresse = App.IntegrationTests.Mocks.Apps.nsm.klareringsportalen.models.Adresse;
@@ -10,16 +11,18 @@ using Adresse = App.IntegrationTests.Mocks.Apps.nsm.klareringsportalen.models.Ad
 #pragma warning disable SA1500 // Braces for multi-line statements should not share line
 #pragma warning disable SA1300 // Element should begin with upper-case letter
 #pragma warning disable SA1505 // Opening braces should not be followed by blank line
+#pragma warning disable IDE0130 // Namespace does not match folder structure
 namespace App.IntegrationTests.Mocks.Apps.nsm.klareringsportalen.AppLogic
+#pragma warning restore IDE0130 // Namespace does not match folder structure
 #pragma warning restore SA1300 // Element should begin with upper-case letter
 {
     /// <summary>
     /// Represents a business logic class responsible for running logic related to instantiation.
     /// </summary>
-    public class InstantiationHandler
+    public class InstantiationHandler : IInstantiationValidator, IInstantiationProcessor
     {
-        private IProfile _profileService;
-        private IRegister _registerService;
+        private readonly IProfile _profileService;
+        private readonly IRegister _registerService;
 
         /// <summary>
         /// Initialize a new instance of the <see cref="InstantiationHandler"/> class with services
@@ -45,7 +48,7 @@ namespace App.IntegrationTests.Mocks.Apps.nsm.klareringsportalen.AppLogic
         /// </example>
         /// <param name="instance">The instance being validated</param>
         /// <returns>The validation result object (null if no errors) </returns>
-        public async Task<InstantiationValidationResult> RunInstantiationValidation(Instance instance)
+        public async Task<InstantiationValidationResult> Validate(Instance instance)
         {
             return await Task.FromResult((InstantiationValidationResult)null);
         }
@@ -58,63 +61,76 @@ namespace App.IntegrationTests.Mocks.Apps.nsm.klareringsportalen.AppLogic
         /// </remarks>
         /// <param name="instance">Instance information</param>
         /// <param name="data">The data object created</param>
-        public async Task DataCreation(Instance instance, object data)
+        /// <param name="prefill">Dictionary with custom prefill values.</param>
+        public async Task DataCreation(Instance instance, object data, Dictionary<string, string> prefill)
         {
-            ePOB_M model = (ePOB_M)data;
+            var model = (ePOB_M)data;
 
-            if (model.PersonInformasjon == null) {
+            if (model.PersonInformasjon == null)
+            {
                 model.PersonInformasjon = new Personalia();
             }
 
-            if (model.PersonInformasjon.person == null) {
-              model.PersonInformasjon.person = new Person();
+            if (model.PersonInformasjon.person == null)
+            {
+                model.PersonInformasjon.person = new Person();
             }
 
-            if (model.PersonInformasjon.postadresse == null) {
-              model.PersonInformasjon.postadresse = new Adresse();
+            if (model.PersonInformasjon.postadresse == null)
+            {
+                model.PersonInformasjon.postadresse = new Adresse();
             }
 
-            if (model.DeusRequest == null) {
-              model.DeusRequest = new Deusrequest();
+            if (model.DeusRequest == null)
+            {
+                model.DeusRequest = new Deusrequest();
             }
 
-            if (model.PersonRelasjoner == null) {
-              model.PersonRelasjoner = new Relasjoner();
+            if (model.PersonRelasjoner == null)
+            {
+                model.PersonRelasjoner = new Relasjoner();
             }
 
-            if (model.Samboerellerektefelle == null) {
-              model.Samboerellerektefelle = new Samboerektefelle();
+            if (model.Samboerellerektefelle == null)
+            {
+                model.Samboerellerektefelle = new Samboerektefelle();
             }
 
-            if (model.PersonligOkonomi == null) {
-              model.PersonligOkonomi = new OEkonomi();
+            if (model.PersonligOkonomi == null)
+            {
+                model.PersonligOkonomi = new OEkonomi();
             }
 
-            if (model.HelsePerson == null) {
-              model.HelsePerson = new Helse();
+            if (model.HelsePerson == null)
+            {
+                model.HelsePerson = new Helse();
             }
 
-            if (model.PersonRusmidler == null) {
-              model.PersonRusmidler = new Rusmidler();
+            if (model.PersonRusmidler == null)
+            {
+                model.PersonRusmidler = new Rusmidler();
             }
 
-            if (model.Straff == null) {
-              model.Straff = new Strafferettslig();
+            if (model.Straff == null)
+            {
+                model.Straff = new Strafferettslig();
             }
 
-            if (model.StatsTilknytning == null) {
-              model.StatsTilknytning = new Statstilknytning();
+            if (model.StatsTilknytning == null)
+            {
+                model.StatsTilknytning = new Statstilknytning();
             }
 
-            if (model.SikkerhetsOpplysninger == null) {
-              model.SikkerhetsOpplysninger = new Sikkerhetsopplysninger();
+            if (model.SikkerhetsOpplysninger == null)
+            {
+                model.SikkerhetsOpplysninger = new Sikkerhetsopplysninger();
             }
 
             Altinn.Platform.Register.Models.Party party = await _registerService.GetParty(Convert.ToInt32(instance.InstanceOwner.PartyId));
-            
+
             model.PersonInformasjon.person.personnavn.fulltnavn = party.Name;
             Addfodselsdato(model, model.PersonInformasjon.person.foedselsnummer);
-            
+
             model.PersonInformasjon.bostedsadresse.land = "NOR";
 
             model.PersonInformasjon.postadresse.land = "NOR";
@@ -172,16 +188,19 @@ namespace App.IntegrationTests.Mocks.Apps.nsm.klareringsportalen.AppLogic
 
         private void Addfodselsdato(ePOB_M model, string foedselsnummer)
         {
-          if (foedselsnummer != null)
-          {
-            string century = "20";
-            int year = int.Parse(foedselsnummer.Substring(4, 2));
-            if (year >= 20 && year <= 99) {
-              century = "19";
-            }
+            if (foedselsnummer != null)
+            {
+                string century = "20";
+                int year = int.Parse(foedselsnummer.Substring(4, 2));
+#pragma warning disable IDE0078 // Use pattern matching
+                if (year >= 20 && year <= 99)
+                {
+                    century = "19";
+                }
+#pragma warning restore IDE0078 // Use pattern matching
 
-            model.PersonInformasjon.person.foedselsdato = century + foedselsnummer.Substring(4, 2) + "-" + foedselsnummer.Substring(2, 2) + "-" + foedselsnummer.Substring(0, 2);
-          }
+                model.PersonInformasjon.person.foedselsdato = century + foedselsnummer.Substring(4, 2) + "-" + foedselsnummer.Substring(2, 2) + "-" + foedselsnummer[..2];
+            }
         }
     }
 }

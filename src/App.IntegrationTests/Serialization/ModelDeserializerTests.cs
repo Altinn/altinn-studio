@@ -1,8 +1,6 @@
 using System.IO;
 using System.Threading.Tasks;
-
-using Altinn.App.Common.Serialization;
-
+using Altinn.App.Core.Helpers.Serialization;
 using Microsoft.Extensions.Logging;
 
 using Moq;

@@ -8,9 +8,8 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Xml.Serialization;
 using Altinn.App;
-
+using Altinn.App.Core.Models.Validation;
 using Altinn.App.IntegrationTests;
-using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 
 using App.IntegrationTests.Utils;
@@ -21,11 +20,11 @@ using Xunit;
 
 namespace App.IntegrationTestsRef.EndToEndTests
 {
-    public class NabovarselEndToEnd : IClassFixture<CustomWebApplicationFactory<Altinn.App.AppLogic.App>>
+    public class NabovarselEndToEnd : IClassFixture<CustomWebApplicationFactory<TestDummy>>
     {
-        private readonly CustomWebApplicationFactory<Altinn.App.AppLogic.App> _factory;
+        private readonly CustomWebApplicationFactory<TestDummy> _factory;
 
-        public NabovarselEndToEnd(CustomWebApplicationFactory<Altinn.App.AppLogic.App> factory)
+        public NabovarselEndToEnd(CustomWebApplicationFactory<TestDummy> factory)
         {
             _factory = factory;
         }

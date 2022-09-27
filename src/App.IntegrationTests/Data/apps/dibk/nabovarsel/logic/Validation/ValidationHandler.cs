@@ -1,22 +1,15 @@
 using System.Threading.Tasks;
+using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTestsRef.Data.apps.dibk.nabovarsel;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 #pragma warning disable SA1300 // Element should begin with upper-case letter
 namespace App.IntegrationTests.Mocks.Apps.dibk.nabovarsel
 #pragma warning restore SA1300 // Element should begin with upper-case letter
 {
-    public class ValidationHandler
+    public class ValidationHandler: IInstanceValidator
     {
-        private IHttpContextAccessor _httpContextAccessor;
-
-        public ValidationHandler(IHttpContextAccessor httpContextAccessor = null)
-        {
-            _httpContextAccessor = httpContextAccessor;
-        }
-
         public async Task ValidateData(object instance, ModelStateDictionary validationResults)
         {
             if (instance.GetType().Equals(typeof(SvarPaaNabovarselType)))

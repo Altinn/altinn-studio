@@ -1,8 +1,7 @@
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Altinn.App.Common.Models;
-using Altinn.App.PlatformServices.Interface;
+using Altinn.App.Core.Features;
+using Altinn.App.Core.Models;
 using App.IntegrationTestsRef.Data.apps.dibk.nabovarsel;
 
 #pragma warning disable SA1300 // Element should begin with upper-case letter
@@ -12,7 +11,7 @@ namespace App.IntegrationTests.Mocks.Apps.dibk.nabovarsel
     /// <summary>
     /// Handler for formatting PDF. Dow
     /// </summary>
-    public class PdfHandler
+    public class PdfHandler: IPdfFormatter
     {
         /// <summary>
         /// Method to format PDF

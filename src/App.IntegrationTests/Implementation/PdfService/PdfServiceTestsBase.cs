@@ -4,11 +4,13 @@ using System.IO;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using Altinn.App.PlatformServices.Implementation;
-using Altinn.App.PlatformServices.Options;
-using Altinn.App.Services.Configuration;
-using Altinn.App.Services.Implementation;
-using Altinn.App.Services.Interface;
+using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Options;
+using Altinn.App.Core.Features.Pdf;
+using Altinn.App.Core.Implementation;
+using Altinn.App.Core.Infrastructure.Clients.Pdf;
+using Altinn.App.Core.Interface;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Enums;
 using App.IntegrationTests.Mocks.Apps.Ttd.DynamicOptions2.Options;
@@ -135,7 +137,7 @@ namespace App.IntegrationTestsRef.Implementation.PdfService
             return Options.Create(appSettings);
         }
 
-        internal virtual Altinn.App.PlatformServices.Implementation.PdfService BuildPdfService(Action<HttpRequestMessage, CancellationToken> onDataPostCallback)
+        internal virtual Altinn.App.Core.Internal.Pdf.PdfService BuildPdfService(Action<HttpRequestMessage, CancellationToken> onDataPostCallback)
         {
             PDFClient pdfClient = MockPdfClient(onDataPostCallback);
             AppResourcesSI appResources = BuildAppResourcesService();
@@ -144,9 +146,9 @@ namespace App.IntegrationTestsRef.Implementation.PdfService
             Mock<IHttpContextAccessor> httpContextAccessor = MockUserInHttpContext();
             Mock<IProfile> profileClient = MockProfileClient();
             var registerClient = new Mock<IRegister>();
-            var customPdfHandler = new NullPdfHandler();
+            var customPdfHandler = new NullPdfFormatter();
 
-            var pdfService = new Altinn.App.PlatformServices.Implementation.PdfService(pdfClient, appResources, appOptionsService, dataClient.Object, httpContextAccessor.Object, profileClient.Object, registerClient.Object, customPdfHandler);
+            var pdfService = new Altinn.App.Core.Internal.Pdf.PdfService(pdfClient, appResources, appOptionsService, dataClient.Object, httpContextAccessor.Object, profileClient.Object, registerClient.Object, customPdfHandler);
 
             return pdfService;
         }

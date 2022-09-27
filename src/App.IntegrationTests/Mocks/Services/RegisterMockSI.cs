@@ -2,9 +2,8 @@ using System;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
-using Altinn.App.PlatformServices.Helpers;
-using Altinn.App.Services.Interface;
-using Altinn.Platform.Register.Enums;
+using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Interface;
 using Altinn.Platform.Register.Models;
 
 using Newtonsoft.Json;

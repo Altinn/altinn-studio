@@ -4,10 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
-
-using Altinn.App.PlatformServices.Extensions;
-using Altinn.App.PlatformServices.Helpers;
-using Altinn.App.Services.Interface;
+using Altinn.App.Core.Extensions;
+using Altinn.App.Core.Helpers;
+using Altinn.App.Core.Interface;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Http;

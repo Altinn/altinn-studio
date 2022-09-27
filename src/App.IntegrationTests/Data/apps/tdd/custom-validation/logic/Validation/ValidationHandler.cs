@@ -1,34 +1,38 @@
 using System.Linq;
-
-using Altinn.App.Services.Configuration;
+using System.Threading.Tasks;
+using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 
 #pragma warning disable SA1300 // Element should begin with upper-case letter
 namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
 #pragma warning restore SA1300 // Element should begin with upper-case letter
 {
-    public class ValidationHandler
+    public class ValidationHandler : IInstanceValidator
     {
-        private IHttpContextAccessor _httpContextAccessor;
-        private GeneralSettings _settings;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly GeneralSettings _settings;
         private readonly string validationField = "opplysningerOmArbeidstakerengrp8819.skjemainstansgrp8854.journalnummerdatadef33316.value";
         private readonly string validationMessage = "Value cannot be 1234";
 
-        public ValidationHandler(GeneralSettings settings, IHttpContextAccessor httpContextAccessor = null)
+        public ValidationHandler(IOptions<GeneralSettings> settings, IHttpContextAccessor httpContextAccessor = null)
         {
             _httpContextAccessor = httpContextAccessor;
-            _settings = settings;
+            _settings = settings.Value;
         }
 
-        public void ValidateData(object instance, ModelStateDictionary validationResults)
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
+        public async Task ValidateData(object instance, ModelStateDictionary validationResults)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             if (instance.GetType() == typeof(Skjema))
             {
-                Skjema model = (Skjema)instance;
+                var model = (Skjema)instance;
 
                 _httpContextAccessor.HttpContext.Request.Headers
                     .TryGetValue("ValidationTriggerField", out StringValues value);
@@ -68,8 +72,9 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
             }
         }
 
-        public void ValidateTask(Instance instance, string taskId, ModelStateDictionary validationResults)
+        public async Task ValidateTask(Instance instance, string taskId, ModelStateDictionary validationResults)
         {
+            await Task.CompletedTask;
         }
     }
 }

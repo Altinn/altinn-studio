@@ -3,9 +3,9 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-
+using Altinn.App;
+using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.IntegrationTests;
-
 using App.IntegrationTests.Utils;
 using Newtonsoft.Json;
 
@@ -13,11 +13,11 @@ using Xunit;
 
 namespace App.IntegrationTests.ApiTests
 {
-    public class StatelessDataApiTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.AppLogic.App>>
+    public class StatelessDataApiTest : IClassFixture<CustomWebApplicationFactory<TestDummy>>
     {
-        private readonly CustomWebApplicationFactory<Altinn.App.AppLogic.App> _factory;
+        private readonly CustomWebApplicationFactory<TestDummy> _factory;
 
-        public StatelessDataApiTest(CustomWebApplicationFactory<Altinn.App.AppLogic.App> factory)
+        public StatelessDataApiTest(CustomWebApplicationFactory<TestDummy> factory)
         {
             _factory = factory;
         }

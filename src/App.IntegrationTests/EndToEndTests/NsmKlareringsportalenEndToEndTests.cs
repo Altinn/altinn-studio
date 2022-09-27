@@ -4,8 +4,8 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Xml.Serialization;
-
 using Altinn.App;
+using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.IntegrationTests;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Apps.nsm.klareringsportalen.models;
@@ -16,11 +16,11 @@ using Xunit;
 
 namespace App.IntegrationTestsRef.EndToEndTests
 {
-    public class NsmKlareringsportalenEndToEndTests : IClassFixture<CustomWebApplicationFactory<Altinn.App.AppLogic.App>>
+    public class NsmKlareringsportalenEndToEndTests : IClassFixture<CustomWebApplicationFactory<TestDummy>>
     {
-        private readonly CustomWebApplicationFactory<Altinn.App.AppLogic.App> _factory;
+        private readonly CustomWebApplicationFactory<TestDummy> _factory;
 
-        public NsmKlareringsportalenEndToEndTests(CustomWebApplicationFactory<Altinn.App.AppLogic.App> factory)
+        public NsmKlareringsportalenEndToEndTests(CustomWebApplicationFactory<TestDummy> factory)
         {
             _factory = factory;
         }

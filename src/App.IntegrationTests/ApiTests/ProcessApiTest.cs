@@ -4,9 +4,9 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
-using System.Text.Json;
 using System.Threading.Tasks;
-
+using Altinn.App;
+using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.IntegrationTests;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Utils;
@@ -16,11 +16,11 @@ using Xunit;
 
 namespace App.IntegrationTests.ApiTests
 {
-    public class ProcessApiTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.AppLogic.App>>
+    public class ProcessApiTest : IClassFixture<CustomWebApplicationFactory<TestDummy>>
     {
-        private readonly CustomWebApplicationFactory<Altinn.App.AppLogic.App> _factory;
+        private readonly CustomWebApplicationFactory<TestDummy> _factory;
 
-        public ProcessApiTest(CustomWebApplicationFactory<Altinn.App.AppLogic.App> factory)
+        public ProcessApiTest(CustomWebApplicationFactory<TestDummy> factory)
         {
             _factory = factory;
         }

@@ -1,24 +1,20 @@
-using Microsoft.AspNetCore.Http;
+using System;
+using System.Threading.Tasks;
+using Altinn.App.Core.Features;
+using Altinn.Platform.Storage.Interface.Models;
 
 #pragma warning disable SA1300 // Element should begin with upper-case letter
 namespace App.IntegrationTests.Mocks.Apps.ttd.model_validation
 #pragma warning restore SA1300 // Element should begin with upper-case letter
 {
-    public class CalculationHandler
+    public class CalculationHandler: IDataProcessor
     {
-        private IHttpContextAccessor _httpContextAccessor;
-
-        public CalculationHandler(IHttpContextAccessor httpContextAccessor = null)
-        {
-            _httpContextAccessor = httpContextAccessor;
-        }
-
-        public bool Calculate(object instance)
+        public async Task<bool> ProcessDataRead(Instance instance, Guid? dataId, object data)
         {
             bool changed = false;
-            if (instance.GetType() == typeof(Skjema))
+            if (data.GetType() == typeof(Skjema))
             {
-                Skjema model = (Skjema)instance;
+                Skjema model = (Skjema)data;
                 decimal? journalnummer = model.OpplysningerOmArbeidstakerengrp8819?.Skjemainstansgrp8854?.Journalnummerdatadef33316?.value;
                 if (journalnummer != null && journalnummer == 1000)
                 {
@@ -27,7 +23,12 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.model_validation
                 }
             }
 
-            return changed;
+            return await Task.FromResult(changed);
+        }
+
+        public async Task<bool> ProcessDataWrite(Instance instance, Guid? dataId, object data)
+        {
+            return await Task.FromResult(false);
         }
     }
 }

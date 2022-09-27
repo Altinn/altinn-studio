@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Altinn.App.Common.Models;
-using Altinn.App.PlatformServices.Models;
-using Altinn.App.PlatformServices.Options;
+using Altinn.App.Core.Features;
+using Altinn.App.Core.Models;
 
 namespace App.IntegrationTests.Mocks.Apps.Ttd.DynamicOptions2.Options
 {

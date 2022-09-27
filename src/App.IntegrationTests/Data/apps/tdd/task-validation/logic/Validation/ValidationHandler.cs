@@ -1,5 +1,6 @@
 using System;
-
+using System.Threading.Tasks;
+using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;
 
 using Microsoft.AspNetCore.Http;
@@ -9,7 +10,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 namespace App.IntegrationTests.Mocks.Apps.tdd.task_validation
 #pragma warning restore SA1300 // Element should begin with upper-case letter
 {
-    public class ValidationHandler
+    public class ValidationHandler: IInstanceValidator
     {
         private IHttpContextAccessor _httpContextAccessor;
 
@@ -18,11 +19,12 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.task_validation
             _httpContextAccessor = httpContextAccessor;
         }
 
-        public void ValidateData(object data, ModelStateDictionary validationResults)
+        public async Task ValidateData(object data, ModelStateDictionary validationResults)
         {
+            await Task.CompletedTask;
         }
 
-        public void ValidateTask(Instance instance, string taskId, ModelStateDictionary validationResults)
+        public async Task ValidateTask(Instance instance, string taskId, ModelStateDictionary validationResults)
         {
             int maxTimeTask = 48;
 
@@ -38,6 +40,8 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.task_validation
                 default:
                     break;
             }
+
+            await Task.CompletedTask;
         }
     }
 }

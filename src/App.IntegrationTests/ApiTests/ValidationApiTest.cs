@@ -3,9 +3,10 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-
+using Altinn.App;
+using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Models.Validation;
 using Altinn.App.IntegrationTests;
-using Altinn.App.Services.Models.Validation;
 using App.IntegrationTests.Utils;
 
 using Newtonsoft.Json;
@@ -13,11 +14,11 @@ using Xunit;
 
 namespace App.IntegrationTestsRef.ApiTests
 {
-    public class ValidationApiTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.AppLogic.App>>
+    public class ValidationApiTest : IClassFixture<CustomWebApplicationFactory<TestDummy>>
     {
-        private readonly CustomWebApplicationFactory<Altinn.App.AppLogic.App> _factory;
+        private readonly CustomWebApplicationFactory<TestDummy> _factory;
 
-        public ValidationApiTest(CustomWebApplicationFactory<Altinn.App.AppLogic.App> factory)
+        public ValidationApiTest(CustomWebApplicationFactory<TestDummy> factory)
         {
             _factory = factory;
         }

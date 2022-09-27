@@ -1,35 +1,25 @@
 using System;
 using System.Threading.Tasks;
-using Altinn.App.Services.Interface;
+using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 #pragma warning disable SA1300 // Element should begin with upper-case letter
 namespace App.IntegrationTests.Mocks.Apps.tdd.complex_process.AppLogic.Validation
 #pragma warning restore SA1300 // Element should begin with upper-case letter
 {
-    public class ValidationHandler
+    public class ValidationHandler: IInstanceValidator
     {
-        private IHttpContextAccessor _httpContextAccessor;
-        private IInstance _instanceService;
-
-        public ValidationHandler(IInstance instanceService, IHttpContextAccessor httpContextAccessor = null)
+        public async Task ValidateData(object data, ModelStateDictionary validationResults)
         {
-            _httpContextAccessor = httpContextAccessor;
-            _instanceService = instanceService;
-        }
-
-        public async Task ValidateData(object instance, ModelStateDictionary validationResults)
-        {   
             await Task.CompletedTask;
         }
 
-        public async Task ValidateTask(Instance instance, string task, ModelStateDictionary validationResults)
+        public async Task ValidateTask(Instance instance, string taskId, ModelStateDictionary validationResults)
         {
             DateTime valid = instance.Process.CurrentTask.Started.Value.AddSeconds(10);
 
-            switch (task)
+            switch (taskId)
             {
                 case "Task_1":
                     break;

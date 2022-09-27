@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;
 
 //// using Altinn.App.Models; // <-- Uncomment this line to refer to app model(s)
@@ -12,7 +13,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
     /// <summary>
     /// Represents a business logic class responsible for running calculations on an instance.
     /// </summary>
-    public class DataProcessingHandler
+    public class DataProcessingHandler : IDataProcessor
     {
         /// <summary>
         /// Perform data processing on data read. When reading data from App API
@@ -27,7 +28,9 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
         /// <param name="instance">The instance that data belongs to</param>
         /// <param name="dataId">The dataId for data if available</param>
         /// <param name="data">The data as object</param>
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public async Task<bool> ProcessDataRead(Instance instance, Guid? dataId, object data)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             return ProcessData(data);
         }
@@ -45,7 +48,9 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
         /// <param name="instance">The instance that data belongs to</param>
         /// <param name="dataId">The dataId for data if available</param>
         /// <param name="data">The data as object</param>
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
         public async Task<bool> ProcessDataWrite(Instance instance, Guid? dataId, object data)
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         {
             return ProcessData(data);
         }
@@ -55,8 +60,9 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
             bool changed = false;
             if (data.GetType() == typeof(Skjema))
             {
-                Skjema model = (Skjema)data;
+                var model = (Skjema)data;
                 decimal? journalnummer = model.OpplysningerOmArbeidstakerengrp8819?.Skjemainstansgrp8854?.Journalnummerdatadef33316?.value;
+#pragma warning disable IDE0078 // Use pattern matching
                 if (journalnummer != null && journalnummer == 1000)
                 {
                     model.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854.Journalnummerdatadef33316.value = (decimal)journalnummer + 1;
@@ -87,6 +93,7 @@ namespace App.IntegrationTests.Mocks.Apps.tdd.custom_validation
                     model.OpplysningerOmArbeidstakerengrp8819.Skjemainstansgrp8854.IdentifikasjonsnummerKravdatadef33317 = null;
                     changed = true;
                 }
+#pragma warning restore IDE0078 // Use pattern matching
             }
 
             return changed;

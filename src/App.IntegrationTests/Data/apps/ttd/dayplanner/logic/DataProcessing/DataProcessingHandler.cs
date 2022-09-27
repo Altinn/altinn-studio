@@ -1,7 +1,7 @@
 using System;
 using System.Threading.Tasks;
+using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;
-using App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner;
 
 //// using Altinn.App.Models; // <-- Uncomment this line to refer to app model(s)
 
@@ -10,7 +10,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.Dayplanner
     /// <summary>
     /// Represents a business logic class responsible for running calculations on an instance.
     /// </summary>
-    public class DataProcessingHandler
+    public class DataProcessingHandler: IDataProcessor
     {
         /// <summary>
         /// Perform data processing on data write. When posting and putting data against app

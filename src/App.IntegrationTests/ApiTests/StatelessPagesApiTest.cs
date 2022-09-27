@@ -4,9 +4,9 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-
+using Altinn.App;
+using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.IntegrationTests;
-
 using App.IntegrationTests.Utils;
 
 using Newtonsoft.Json;
@@ -18,11 +18,11 @@ namespace App.IntegrationTestsRef.ApiTests
     /// <summary>
     /// Test clas for PagesController
     /// </summary>
-    public class StatelessPagesApiTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.AppLogic.App>>
+    public class StatelessPagesApiTest : IClassFixture<CustomWebApplicationFactory<TestDummy>>
     {
-        private readonly CustomWebApplicationFactory<Altinn.App.AppLogic.App> _factory;
+        private readonly CustomWebApplicationFactory<TestDummy> _factory;
 
-        public StatelessPagesApiTest(CustomWebApplicationFactory<Altinn.App.AppLogic.App> factory)
+        public StatelessPagesApiTest(CustomWebApplicationFactory<TestDummy> factory)
         {
             _factory = factory;
         }

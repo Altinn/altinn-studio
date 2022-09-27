@@ -5,10 +5,9 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
-
-using Altinn.App.PlatformServices.Extensions;
-using Altinn.App.Services.Interface;
-using Altinn.App.Services.Models;
+using Altinn.App.Core.Extensions;
+using Altinn.App.Core.Interface;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 
 using App.IntegrationTests.Utils;

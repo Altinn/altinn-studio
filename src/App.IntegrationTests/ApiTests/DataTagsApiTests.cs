@@ -6,8 +6,9 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
-
+using Altinn.App;
 using Altinn.App.Api.Models;
+using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.IntegrationTests;
 using Altinn.Platform.Storage.Interface.Models;
 
@@ -17,15 +18,15 @@ using Xunit;
 
 namespace App.IntegrationTestsRef.ApiTests
 {
-    public class DataTagsApiTests : IClassFixture<CustomWebApplicationFactory<Altinn.App.AppLogic.App>>
+    public class DataTagsApiTests : IClassFixture<CustomWebApplicationFactory<TestDummy>>
     {
         private const string Org = "tdd";
         private const string App = "endring-av-navn";
         private const string InstanceGuid = "9bca707e-466d-4565-9497-317f379d046e";
 
-        private readonly CustomWebApplicationFactory<Altinn.App.AppLogic.App> _factory;
+        private readonly CustomWebApplicationFactory<TestDummy> _factory;
 
-        public DataTagsApiTests(CustomWebApplicationFactory<Altinn.App.AppLogic.App> factory)
+        public DataTagsApiTests(CustomWebApplicationFactory<TestDummy> factory)
         {
             _factory = factory;
         }
@@ -38,7 +39,7 @@ namespace App.IntegrationTestsRef.ApiTests
 
             HttpClient client = GetClient();
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
+            var httpRequestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
                 $"/tdd/endring-av-navn/instances/1337/{InstanceGuid}/data/{dataGuid}/tags");
 
@@ -65,7 +66,7 @@ namespace App.IntegrationTestsRef.ApiTests
 
             HttpClient client = GetClient();
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
+            var httpRequestMessage = new HttpRequestMessage(
                 HttpMethod.Get,
                 $"/tdd/endring-av-navn/instances/1337/{InstanceGuid}/data/{dataGuid}/tags");
 
@@ -97,10 +98,12 @@ namespace App.IntegrationTestsRef.ApiTests
 
             HttpClient client = GetClient();
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
+            var httpRequestMessage = new HttpRequestMessage(
                 HttpMethod.Post,
-                $"/tdd/endring-av-navn/instances/1337/{InstanceGuid}/data/{dataGuid}/tags");
-            httpRequestMessage.Content = JsonContent.Create(tagName);
+                $"/tdd/endring-av-navn/instances/1337/{InstanceGuid}/data/{dataGuid}/tags")
+            {
+                Content = JsonContent.Create(tagName)
+            };
 
             DataElement dataElement = CreateDataElement(dataGuid, new List<string> { "cat", "lion" });
 
@@ -133,10 +136,12 @@ namespace App.IntegrationTestsRef.ApiTests
 
             HttpClient client = GetClient();
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
+            var httpRequestMessage = new HttpRequestMessage(
                 HttpMethod.Post,
-                $"/tdd/endring-av-navn/instances/1337/{InstanceGuid}/data/{dataGuid}/tags");
-            httpRequestMessage.Content = JsonContent.Create(tagName);
+                $"/tdd/endring-av-navn/instances/1337/{InstanceGuid}/data/{dataGuid}/tags")
+            {
+                Content = JsonContent.Create(tagName)
+            };
 
             DataElement dataElement = CreateDataElement(dataGuid, new List<string> { "cat", "lion" });
 
@@ -159,7 +164,7 @@ namespace App.IntegrationTestsRef.ApiTests
 
             HttpClient client = GetClient();
 
-            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(
+            var httpRequestMessage = new HttpRequestMessage(
                 HttpMethod.Delete,
                 $"/tdd/endring-av-navn/instances/1337/{InstanceGuid}/data/{dataGuid}/tags/{tagName}");
 

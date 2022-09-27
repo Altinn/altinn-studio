@@ -1,6 +1,6 @@
 using System;
 
-using Altinn.App.Common.Helpers.Extensions;
+using Altinn.App.Core.Helpers.Extensions;
 
 using Xunit;
 

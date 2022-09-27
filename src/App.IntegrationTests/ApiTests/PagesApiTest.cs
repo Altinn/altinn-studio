@@ -4,9 +4,9 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-
+using Altinn.App;
+using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.IntegrationTests;
-
 using App.IntegrationTests.Utils;
 
 using Newtonsoft.Json;
@@ -18,11 +18,11 @@ namespace App.IntegrationTestsRef.ApiTests
     /// <summary>
     /// Test clas for PagesController
     /// </summary>
-    public class PagesApiTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.AppLogic.App>>
+    public class PagesApiTest : IClassFixture<CustomWebApplicationFactory<TestDummy>>
     {
-        private readonly CustomWebApplicationFactory<Altinn.App.AppLogic.App> _factory;
+        private readonly CustomWebApplicationFactory<TestDummy> _factory;
 
-        public PagesApiTest(CustomWebApplicationFactory<Altinn.App.AppLogic.App> factory)
+        public PagesApiTest(CustomWebApplicationFactory<TestDummy> factory)
         {
             _factory = factory;
         }
@@ -108,34 +108,6 @@ namespace App.IntegrationTestsRef.ApiTests
             client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
             HttpRequestMessage httpRequestMessage =
                 new HttpRequestMessage(HttpMethod.Post, $"/{org}/{app}/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order?dataTypeId=default");
-            httpRequestMessage.Content = new StringContent("{\"skjemanummer\": \"1337\"}", Encoding.UTF8, "application/json");
-
-            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
-            string responseContent = await response.Content.ReadAsStringAsync();
-
-            List<string> actual = JsonConvert.DeserializeObject<List<string>>(responseContent);
-
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-            Assert.Equal(expected, actual);
-        }
-
-        /// <summary>
-        /// Scenario: Get page order for an app with layout set. No custom implementation in app.
-        /// Successful: Pages retrieved from correct layout settings and returned without manipulation.
-        /// </summary>
-        [Fact]
-        public async Task GetPageOrder_NoCustomConfigurationLayoutSet_PageOrderIsRetrievedFromAppBaseAndReturned()
-        {
-            string org = "ttd";
-            string app = "frontend-test";
-            List<string> expected = new List<string> { "formLayout", "summary" };
-
-            // Using default app here to not reference App.cs in the app repo.
-            HttpClient client = SetupUtil.GetTestClient(_factory, org, app);
-            string token = PrincipalUtil.GetToken(1337);
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-            HttpRequestMessage httpRequestMessage =
-                new HttpRequestMessage(HttpMethod.Post, $"/{org}/{app}/instances/1001/26133fb5-a9f2-45d4-90b1-f6d93ad40713/pages/order?layoutSetId=changename&dataTypeId=message");
             httpRequestMessage.Content = new StringContent("{\"skjemanummer\": \"1337\"}", Encoding.UTF8, "application/json");
 
             HttpResponseMessage response = await client.SendAsync(httpRequestMessage);

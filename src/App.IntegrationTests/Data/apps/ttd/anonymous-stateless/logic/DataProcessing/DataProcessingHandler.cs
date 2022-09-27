@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;
 using App.IntegrationTests.Mocks.Apps.Ttd.AnonymousStateless.Models;
 
@@ -10,7 +11,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.AnonymousStateless
     /// <summary>
     /// Represents a business logic class responsible for running calculations on an instance.
     /// </summary>
-    public class DataProcessingHandler
+    public class DataProcessingHandler: IDataProcessor
     {
         /// <summary>
         /// Perform data processing on data read. When reading data from App API
@@ -25,7 +26,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.AnonymousStateless
         /// <param name="instance">The instance that data belongs to</param>
         /// <param name="dataId">The dataId for data if available</param>
         /// <param name="data">The data as object</param>
-        public static async Task<bool> ProcessDataRead(Instance instance, Guid? dataId, object data)
+        public async Task<bool> ProcessDataRead(Instance instance, Guid? dataId, object data)
         {
             bool changed = false;
             if (data.GetType() == typeof(Veileder))
@@ -54,7 +55,7 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.AnonymousStateless
         /// <param name="instance">The instance that data belongs to</param>
         /// <param name="dataId">The dataId for data if available</param>
         /// <param name="data">The data as object</param>
-        public static async Task<bool> ProcessDataWrite(Instance instance, Guid? dataId, object data)
+        public async Task<bool> ProcessDataWrite(Instance instance, Guid? dataId, object data)
         {
             return await Task.FromResult(false);
         }

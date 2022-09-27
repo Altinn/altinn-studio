@@ -8,10 +8,11 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-
+using Altinn.App;
 using Altinn.App.Api.Models;
+using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Models.Validation;
 using Altinn.App.IntegrationTests;
-using Altinn.App.Services.Models.Validation;
 using Altinn.Platform.Storage.Interface.Models;
 
 using App.IntegrationTests.Mocks.Apps.tdd.endring_av_navn;
@@ -26,12 +27,12 @@ using Xunit.Abstractions;
 
 namespace App.IntegrationTests.ApiTests
 {
-    public class InstanceApiTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.AppLogic.App>>
+    public class InstanceApiTest : IClassFixture<CustomWebApplicationFactory<TestDummy>>
     {
-        private readonly CustomWebApplicationFactory<Altinn.App.AppLogic.App> _factory;
+        private readonly CustomWebApplicationFactory<TestDummy> _factory;
         private readonly ITestOutputHelper _output;
 
-        public InstanceApiTest(CustomWebApplicationFactory<Altinn.App.AppLogic.App> factory, ITestOutputHelper output)
+        public InstanceApiTest(CustomWebApplicationFactory<TestDummy> factory, ITestOutputHelper output)
         {
             _factory = factory;
             _output = output;

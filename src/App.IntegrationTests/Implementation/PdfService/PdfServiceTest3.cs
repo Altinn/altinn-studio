@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Altinn.App.PlatformServices.Options;
-using Altinn.App.Services.Configuration;
-using Altinn.App.Services.Models;
+using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.Options;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Options;
@@ -25,7 +24,7 @@ namespace App.IntegrationTestsRef.Implementation.PdfService
         {
             // Arrange
             string postedPdfContextJson = string.Empty;
-            Altinn.App.PlatformServices.Implementation.PdfService pdfService = BuildPdfService((requestMessage, cancellationToken) =>
+            Altinn.App.Core.Internal.Pdf.PdfService pdfService = BuildPdfService((requestMessage, cancellationToken) =>
             {
                 postedPdfContextJson = requestMessage.Content.ReadAsStringAsync(cancellationToken).Result;
             });

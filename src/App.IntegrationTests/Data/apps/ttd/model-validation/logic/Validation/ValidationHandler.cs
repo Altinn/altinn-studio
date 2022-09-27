@@ -1,22 +1,16 @@
+using System.Threading.Tasks;
+using Altinn.App.Core.Features;
 using Altinn.Platform.Storage.Interface.Models;
 
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 #pragma warning disable SA1300 // Element should begin with upper-case letter
 namespace App.IntegrationTests.Mocks.Apps.ttd.model_validation
 #pragma warning restore SA1300 // Element should begin with upper-case letter
 {
-    public class ValidationHandler
+    public class ValidationHandler: IInstanceValidator
     {
-        private IHttpContextAccessor _httpContextAccessor;
-
-        public ValidationHandler(IHttpContextAccessor httpContextAccessor = null)
-        {
-            _httpContextAccessor = httpContextAccessor;
-        }
-
-        public void ValidateData(object instance, ModelStateDictionary validationResults)
+        public async Task ValidateData(object instance, ModelStateDictionary validationResults)
         {
             if (instance.GetType() == typeof(Skjema))
             {
@@ -28,10 +22,13 @@ namespace App.IntegrationTests.Mocks.Apps.ttd.model_validation
                         "Value cannot be 1234");
                 }
             }
+            
+            await Task.CompletedTask;
         }
 
-        public void ValidateTask(Instance instance, string taskId, ModelStateDictionary validationResults)
+        public async Task ValidateTask(Instance instance, string taskId, ModelStateDictionary validationResults)
         {
+            await Task.CompletedTask;
         }
     }
 }

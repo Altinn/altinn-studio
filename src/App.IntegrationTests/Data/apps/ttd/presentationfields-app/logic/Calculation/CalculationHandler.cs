@@ -1,6 +1,7 @@
+using System;
 using System.Threading.Tasks;
-using Altinn.App.PlatformServices.Interface;
-using Altinn.App.PlatformServices.Models;
+using Altinn.App.Core.Features;
+using Altinn.Platform.Storage.Interface.Models;
 
 //// using Altinn.App.Models; // <-- Uncomment this line to refer to app model(s)
 
@@ -9,25 +10,14 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
     /// <summary>
     /// Represents a business logic class responsible for running calculations on an instance.
     /// </summary>
-    public static class CalculationHandler
+    public class CalculationHandler: IDataProcessor
     {
-        /// <summary>
-        /// Perform calculations and update data model
-        /// </summary>
-        /// <example>
-        /// if (instance.GetType() == typeof(Skjema)
-        /// {
-        ///     Skjema model = (Skjema)instance;
-        ///     // Perform calculations and manipulation of data model here
-        /// }
-        /// </example>
-        /// <param name="instance">The data</param>
-        public static async Task<bool> Calculate(object instance)
+        public async Task<bool> ProcessDataRead(Instance instance, Guid? dataId, object data)
         {
             bool changed = false;
-            if (instance.GetType() == typeof(Skjema))
+            if (data.GetType() == typeof(Skjema))
             {
-                Skjema model = (Skjema)instance;
+                Skjema model = (Skjema)data;
 
                 model.OpplysningerOmArbeidstakerengrp8819 = model.OpplysningerOmArbeidstakerengrp8819 ?? new OpplysningerOmArbeidstakerengrp8819();
 
@@ -42,6 +32,11 @@ namespace App.IntegrationTests.Mocks.Apps.Ttd.PresentationTextsApp
             }
 
             return await Task.FromResult(changed);
+        }
+
+        public async Task<bool> ProcessDataWrite(Instance instance, Guid? dataId, object data)
+        {
+            return await Task.FromResult(false);
         }
     }
 }

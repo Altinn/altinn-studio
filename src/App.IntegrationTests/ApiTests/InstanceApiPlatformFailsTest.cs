@@ -2,7 +2,7 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-
+using Altinn.App;
 using Altinn.App.IntegrationTests;
 using App.IntegrationTests.Utils;
 
@@ -10,11 +10,11 @@ using Xunit;
 
 namespace App.IntegrationTestsRef.ApiTests
 {
-    public class InstanceApiPlatformFailsTest : IClassFixture<CustomWebApplicationFactory<Altinn.App.AppLogic.App>>
+    public class InstanceApiPlatformFailsTest : IClassFixture<CustomWebApplicationFactory<TestDummy>>
     {
-        private readonly CustomWebApplicationFactory<Altinn.App.AppLogic.App> _factory;
+        private readonly CustomWebApplicationFactory<TestDummy> _factory;
 
-        public InstanceApiPlatformFailsTest(CustomWebApplicationFactory<Altinn.App.AppLogic.App> factory)
+        public InstanceApiPlatformFailsTest(CustomWebApplicationFactory<TestDummy> factory)
         {
             _factory = factory;
         }

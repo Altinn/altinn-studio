@@ -1,7 +1,8 @@
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
-
+using Altinn.App;
+using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.IntegrationTests;
 using App.IntegrationTests.Utils;
 
@@ -9,11 +10,11 @@ using Xunit;
 
 namespace App.IntegrationTestsRef.ApiTests
 {
-    public class ResourceApiTests : IClassFixture<CustomWebApplicationFactory<Altinn.App.AppLogic.App>>
+    public class ResourceApiTests : IClassFixture<CustomWebApplicationFactory<TestDummy>>
     {
-        private readonly CustomWebApplicationFactory<Altinn.App.AppLogic.App> _factory;
+        private readonly CustomWebApplicationFactory<TestDummy> _factory;
 
-        public ResourceApiTests(CustomWebApplicationFactory<Altinn.App.AppLogic.App> factory)
+        public ResourceApiTests(CustomWebApplicationFactory<TestDummy> factory)
         {
             _factory = factory;
         }

@@ -1,11 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Altinn.App.Common.RequestHandling;
+using Altinn.App.Api.Helpers.RequestHandling;
 using Altinn.Platform.Storage.Interface.Models;
 
 using App.IntegrationTests.Utils;
