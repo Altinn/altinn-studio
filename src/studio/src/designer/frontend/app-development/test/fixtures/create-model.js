@@ -21,5 +21,5 @@ module.exports = (modelname) => {
   const filepath = path.resolve(__dirname, 'storage', filename);
   const newSchema = getModel(modelname);
   fs.writeFileSync(filepath, newSchema, 'utf-8');
-  return newSchema;
+  return JSON.parse(newSchema);
 };

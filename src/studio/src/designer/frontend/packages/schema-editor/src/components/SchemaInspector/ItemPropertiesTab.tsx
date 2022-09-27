@@ -2,7 +2,7 @@ import React from 'react';
 import { ILanguage } from '../../types';
 import { InlineObject } from './InlineObject';
 import { ItemDataComponent } from './ItemDataComponent';
-import { ObjectKind, UiSchemaNode } from '@altinn/schema-model';
+import { UiSchemaNode } from '@altinn/schema-model';
 
 interface ItemPropertiesTabProps {
   language: ILanguage;
@@ -17,7 +17,7 @@ export const ItemPropertiesTab = ({
 }: ItemPropertiesTabProps) => {
   return (
     <>
-      {selectedItem.objectKind === ObjectKind.Combination ? (
+      {selectedItem.isCombinationItem ? (
         <InlineObject item={selectedItem} language={language} />
       ) : (
         <ItemDataComponent

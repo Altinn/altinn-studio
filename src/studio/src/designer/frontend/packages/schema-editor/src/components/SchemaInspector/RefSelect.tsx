@@ -55,9 +55,7 @@ export const RefSelect = ({
         id={domElementId}
         disabled={readOnly}
         value={value?.replace('#/definitions/', '')}
-        onChange={(event: ChangeEvent<unknown>, newValue: string) =>
-          value ? onChange(newValue) : undefined
-        }
+        onChange={(event: ChangeEvent<unknown>, newValue: string) => onChange(newValue)}
         className={classes.root}
         disableClearable={true}
         options={definitions.map((node) => node.pointer)}

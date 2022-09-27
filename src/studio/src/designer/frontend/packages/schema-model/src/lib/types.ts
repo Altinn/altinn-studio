@@ -38,6 +38,7 @@ export interface UiSchemaNode {
   fieldType: FieldType | CombinationKind;
   implicitType: boolean; // the
   isNillable: boolean;
+  isCombinationItem: boolean;
   pointer: string;
   ref?: string;
   custom: JsonSchemaNode;

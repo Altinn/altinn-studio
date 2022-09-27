@@ -162,22 +162,23 @@ export function ItemDataComponent({
 
   return (
     <div>
-      {selectedItem.objectKind !== ObjectKind.Combination && (
-        <>
-          <Label htmlFor='selectedItemName'>{t('name')}</Label>
-          <TextField
-            aria-describedby='Selected Item Name'
-            id='selectedItemName'
-            onBlur={handleChangeNodeName}
-            onChange={onNameChange}
-            placeholder='Name'
-            value={nodeName}
-            aria-errormessage={t(nameError)}
-            aria-placeholder='Name'
-          />
-          {nameError && <ErrorMessage>{t(nameError)}</ErrorMessage>}
-        </>
-      )}
+      {!selectedItem.isCombinationItem ||
+        (selectedItem.objectKind === ObjectKind.Reference && (
+          <>
+            <Label htmlFor='selectedItemName'>{t('name')}</Label>
+            <TextField
+              aria-describedby='Selected Item Name'
+              id='selectedItemName'
+              onBlur={handleChangeNodeName}
+              onChange={onNameChange}
+              placeholder='Name'
+              value={nodeName}
+              aria-errormessage={t(nameError)}
+              aria-placeholder='Name'
+            />
+            {nameError && <ErrorMessage>{t(nameError)}</ErrorMessage>}
+          </>
+        ))}
       {selectedItem.objectKind === ObjectKind.Field && (
         <TypeSelect
           id={getDomFriendlyID(selectedItem.pointer, 'type-select')}

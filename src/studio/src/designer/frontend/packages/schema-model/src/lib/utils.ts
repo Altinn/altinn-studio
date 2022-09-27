@@ -16,6 +16,7 @@ export const createNodeBase = (...args: string[]): UiSchemaNode => {
     pointer,
     isRequired: false,
     isNillable: false,
+    isCombinationItem: false,
     children: [],
     custom: {},
     restrictions: [],
