@@ -63,11 +63,17 @@ export function matchLayoutComponent(providedId: string, componentId: string) {
   return providedId.match(`^(${componentId})(-[0-9]+)*$`);
 }
 
-export function renderGenericComponent(
-  component: ILayoutComponentOrGroup,
-  layout: ILayout,
+interface RenderGenericComponentProps {
+  component: ILayoutComponentOrGroup;
+  layout?: ILayout;
+  index?: number;
+}
+
+export function renderGenericComponent({
+  component,
+  layout,
   index = -1,
-) {
+}: RenderGenericComponentProps) {
   if (component.type === 'Group') {
     return renderLayoutGroup(
       component as unknown as ILayoutGroup,
@@ -114,7 +120,7 @@ export function renderLayoutGroup(
     return (
       <>
         {deepCopyComponents.map((component: ILayoutComponent) => {
-          return renderGenericComponent(component, layout);
+          return renderGenericComponent({ component, layout });
         })}
       </>
     );
@@ -136,11 +142,9 @@ export function setupGroupComponents(
   index: number,
 ): (ILayoutGroup | ILayoutComponent)[] {
   return components.map((component: ILayoutComponent | ILayoutGroup) => {
-    if (component.type === 'Group') {
-      if (component.panel?.groupReference) {
-        // Do not treat as a regular group child as this is merely an option to add elements for another group from this group context
-        return component;
-      }
+    if (component.type === 'Group' && component.panel?.groupReference) {
+      // Do not treat as a regular group child as this is merely an option to add elements for another group from this group context
+      return component;
     }
 
     if (!groupDataModelBinding) {

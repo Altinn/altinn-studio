@@ -8,6 +8,7 @@ describe('SummaryComponentSwitch', () => {
   test('should not render component', () => {
     const { container } = render(
       <SummaryComponentSwitch
+        id='summary-comp-id'
         change={null}
         formComponent={null}
       />,

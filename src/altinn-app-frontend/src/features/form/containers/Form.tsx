@@ -55,7 +55,7 @@ export function renderLayoutComponent(
 }
 
 function GenericComponent(component: ILayoutComponent, layout: ILayout) {
-  return renderGenericComponent(component, layout);
+  return renderGenericComponent({ component, layout });
 }
 
 function RenderLayoutGroup(

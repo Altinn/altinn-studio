@@ -20,6 +20,7 @@ import type {
   ILayout,
   ILayoutComponent,
   ILayoutGroup,
+  SummaryDisplayProperties,
 } from 'src/features/form/layout';
 import type { IRuntimeState } from 'src/types';
 
@@ -34,6 +35,7 @@ export interface ISummaryGroupComponent {
   onChangeClick: () => void;
   largeGroup?: boolean;
   parentGroup?: string;
+  display?: SummaryDisplayProperties;
 }
 
 export function getComponentForSummaryGroup(
@@ -48,6 +50,12 @@ const gridStyle = {
 };
 
 const useStyles = makeStyles({
+  border: {
+    border: '2px solid #EFEFEF',
+    marginTop: 12,
+    marginBottom: 12,
+    padding: 12,
+  },
   label: {
     fontWeight: 500,
     fontSize: '1.8rem',
@@ -79,6 +87,7 @@ function SummaryGroupComponent({
   largeGroup,
   onChangeClick,
   changeText,
+  display,
 }: ISummaryGroupComponent) {
   const classes = useStyles();
 
@@ -270,7 +279,7 @@ function SummaryGroupComponent({
       componentArray.push(
         <div
           key={i}
-          style={{ paddingBottom: 24 }}
+          className={classes.border}
         >
           {childSummaryComponents}
         </div>,
@@ -333,6 +342,7 @@ function SummaryGroupComponent({
           formData: formDataForComponent,
           index: i,
           parentGroup: isGroupComponent ? groupComponent.id : undefined,
+          display,
         };
 
         childSummaryComponents.push(summaryComponent);
@@ -383,10 +393,12 @@ function SummaryGroupComponent({
           item
           xs={2}
         >
-          <EditButton
-            onClick={onChangeClick}
-            editText={changeText}
-          />
+          {!display?.hideChangeButton && (
+            <EditButton
+              onClick={onChangeClick}
+              editText={changeText}
+            />
+          )}
         </Grid>
         <Grid
           item
@@ -407,19 +419,21 @@ function SummaryGroupComponent({
             item={true}
             xs={12}
           >
-            <button
-              className={classes.link}
-              onClick={onChangeClick}
-              type='button'
-            >
-              {getTextFromAppOrDefault(
-                'form_filler.summary_go_to_correct_page',
-                textResources,
-                language,
-                [],
-                true,
-              )}
-            </button>
+            {!display?.hideChangeButton && (
+              <button
+                className={classes.link}
+                onClick={onChangeClick}
+                type='button'
+              >
+                {getTextFromAppOrDefault(
+                  'form_filler.summary_go_to_correct_page',
+                  textResources,
+                  language,
+                  [],
+                  true,
+                )}
+              </button>
+            )}
           </Grid>
         </Grid>
       )}

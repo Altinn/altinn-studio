@@ -2,6 +2,7 @@ import * as React from 'react';
 import { shallowEqual } from 'react-redux';
 
 import { Grid, makeStyles } from '@material-ui/core';
+import cn from 'classnames';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import ErrorPaper from 'src/components/message/ErrorPaper';
@@ -14,25 +15,25 @@ import {
   getDisplayFormDataForComponent,
 } from 'src/utils/formComponentUtils';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
-import type { IGrid, ILayoutComponent } from 'src/features/form/layout';
+import type {
+  ILayoutComponent,
+  ILayoutCompSummary,
+} from 'src/features/form/layout';
 import type { IComponentValidations, IRuntimeState } from 'src/types';
 
-export interface ISummaryComponent {
-  id: string;
-  componentRef?: string;
-  pageRef?: string;
+export interface ISummaryComponent extends Omit<ILayoutCompSummary, 'type'> {
   parentGroup?: string;
-  largeGroup?: boolean;
   index?: number;
   formData?: any;
-  grid?: IGrid;
 }
 
 const useStyles = makeStyles({
   row: {
-    borderBottom: '1px dashed #008FD6',
     marginBottom: 10,
     paddingBottom: 10,
+  },
+  border: {
+    borderBottom: '1px dashed #008FD6',
   },
   link: {
     background: 'none',
@@ -48,7 +49,7 @@ export function SummaryComponent({
   grid,
   ...summaryProps
 }: ISummaryComponent) {
-  const { componentRef, ...groupProps } = summaryProps;
+  const { componentRef, display, ...groupProps } = summaryProps;
   const { pageRef, index } = groupProps;
   const classes = useStyles();
   const dispatch = useAppDispatch();
@@ -161,21 +162,27 @@ export function SummaryComponent({
     onChangeClick,
     changeText,
   };
+
+  const displayGrid =
+    display && display.useComponentGrid ? formComponent.grid : grid;
   return (
     <Grid
       item={true}
-      xs={grid?.xs || 12}
-      sm={grid?.sm || false}
-      md={grid?.md || false}
-      lg={grid?.lg || false}
-      xl={grid?.xl || false}
+      xs={displayGrid?.xs || 12}
+      sm={displayGrid?.sm || false}
+      md={displayGrid?.md || false}
+      lg={displayGrid?.lg || false}
+      xl={displayGrid?.xl || false}
       data-testid='summary-component'
     >
       <Grid
         container={true}
-        className={classes.row}
+        className={cn(classes.row, {
+          [classes.border]: !display?.hideBottomBorder,
+        })}
       >
         <SummaryComponentSwitch
+          id={id}
           change={change}
           formComponent={formComponent}
           label={label}
@@ -183,6 +190,7 @@ export function SummaryComponent({
           formData={formData}
           componentRef={componentRef}
           groupProps={groupProps}
+          display={display}
         />
         {hasValidationMessages && (
           <Grid
@@ -204,13 +212,15 @@ export function SummaryComponent({
               item={true}
               xs={12}
             >
-              <button
-                className={classes.link}
-                onClick={onChangeClick}
-                type='button'
-              >
-                {goToCorrectPageLinkText}
-              </button>
+              {!display?.hideChangeButton && (
+                <button
+                  className={classes.link}
+                  onClick={onChangeClick}
+                  type='button'
+                >
+                  {goToCorrectPageLinkText}
+                </button>
+              )}
             </Grid>
           </Grid>
         )}

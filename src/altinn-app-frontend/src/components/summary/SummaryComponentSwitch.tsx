@@ -7,9 +7,14 @@ import MultipleChoiceSummary from 'src/components/summary/MultipleChoiceSummary'
 import SingleInputSummary from 'src/components/summary/SingleInputSummary';
 import SummaryBoilerplate from 'src/components/summary/SummaryBoilerplate';
 import SummaryGroupComponent from 'src/components/summary/SummaryGroupComponent';
-import type { ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
+import type {
+  ILayoutComponent,
+  ILayoutCompSummary,
+  ILayoutGroup,
+} from 'src/features/form/layout';
 
-export interface ISummaryComponentSwitch {
+export interface ISummaryComponentSwitch
+  extends Omit<ILayoutCompSummary, 'type'> {
   change: {
     onChangeClick: () => void;
     changeText: string;
@@ -18,7 +23,6 @@ export interface ISummaryComponentSwitch {
   hasValidationMessages?: boolean;
   label?: any;
   formData?: any;
-  componentRef?: string;
   groupProps?: {
     parentGroup?: string;
     pageRef?: string;
@@ -35,6 +39,7 @@ export default function SummaryComponentSwitch({
   hasValidationMessages,
   formData,
   groupProps = {},
+  display,
 }: ISummaryComponentSwitch) {
   if (!formComponent) {
     return null;
@@ -50,6 +55,7 @@ export default function SummaryComponentSwitch({
           {...change}
           label={label}
           hasValidationMessages={hasValidationMessages}
+          display={display}
         />
         <AttachmentSummaryComponent componentRef={componentRef} />
       </>
@@ -63,6 +69,7 @@ export default function SummaryComponentSwitch({
           {...change}
           label={label}
           hasValidationMessages={hasValidationMessages}
+          display={display}
         />
         <AttachmentWithTagSummaryComponent
           componentRef={componentRef}
@@ -78,6 +85,7 @@ export default function SummaryComponentSwitch({
         {...change}
         {...groupProps}
         componentRef={componentRef}
+        display={display}
       />
     );
   }
@@ -101,6 +109,7 @@ export default function SummaryComponentSwitch({
           {...change}
           label={label}
           hasValidationMessages={hasValidationMessages}
+          display={display}
         />
         <MapComponentSummary
           component={formComponent}
@@ -117,6 +126,7 @@ export default function SummaryComponentSwitch({
       hasValidationMessages={hasValidationMessages}
       formData={formData}
       readOnlyComponent={(formComponent as ILayoutComponent).readOnly}
+      display={display}
     />
   );
 }

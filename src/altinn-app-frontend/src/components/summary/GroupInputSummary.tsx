@@ -10,7 +10,7 @@ export interface ISingleInputSummary {
 }
 
 const useStyles = makeStyles({
-  label: {
+  data: {
     fontWeight: 500,
     '& p': {
       fontWeight: 500,
@@ -23,10 +23,10 @@ function GroupInputSummary({ formData, label }: ISingleInputSummary) {
   const classes = useStyles();
   return (
     <Typography variant='body1'>
-      <span className={classes.label}>
+      <span>
         {label} {': '}
       </span>
-      <span>{displayData}</span>
+      <span className={classes.data}>{displayData}</span>
     </Typography>
   );
 }

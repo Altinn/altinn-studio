@@ -6,7 +6,7 @@ exports[`MultipleChoiceSummary MultipleChoiceSummary 1`] = `
     class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-10"
   >
     <span
-      class="MuiTypography-root makeStyles-label-3 MuiTypography-body1"
+      class="MuiTypography-root MuiTypography-body1"
     >
       TestLabel
     </span>

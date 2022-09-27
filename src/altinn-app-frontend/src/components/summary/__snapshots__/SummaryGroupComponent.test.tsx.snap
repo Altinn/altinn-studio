@@ -10,7 +10,7 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
       class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-10"
     >
       <span
-        class="MuiTypography-root makeStyles-label-1 MuiTypography-body1"
+        class="MuiTypography-root makeStyles-label-2 MuiTypography-body1"
       >
         Mock group
       </span>
@@ -19,7 +19,7 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
       class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-2"
     >
       <button
-        class="MuiButtonBase-root MuiIconButton-root makeStyles-editButton-4"
+        class="MuiButtonBase-root MuiIconButton-root makeStyles-editButton-5"
         tabindex="0"
         type="button"
       >
@@ -27,13 +27,13 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
           class="MuiIconButton-label"
         >
           <p
-            class="MuiTypography-root makeStyles-change-6 MuiTypography-body1"
+            class="MuiTypography-root makeStyles-change-7 MuiTypography-body1"
           >
             <span>
               Change
             </span>
             <i
-              class="fa fa-editing-file makeStyles-editIcon-5"
+              class="fa fa-editing-file makeStyles-editIcon-6"
             />
           </p>
         </span>
@@ -46,35 +46,35 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
       class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-12"
     >
       <div
-        style="padding-bottom: 24px;"
+        class="makeStyles-border-1"
       >
         <p
           class="MuiTypography-root MuiTypography-body1"
         >
-          <span
-            class="makeStyles-label-7"
-          >
+          <span>
             <span>
               Mock field 1
             </span>
              : 
           </span>
-          <span>
+          <span
+            class="makeStyles-data-8"
+          >
             1
           </span>
         </p>
         <p
           class="MuiTypography-root MuiTypography-body1"
         >
-          <span
-            class="makeStyles-label-7"
-          >
+          <span>
             <span>
               Mock field 2
             </span>
              : 
           </span>
-          <span>
+          <span
+            class="makeStyles-data-8"
+          >
             2
           </span>
         </p>

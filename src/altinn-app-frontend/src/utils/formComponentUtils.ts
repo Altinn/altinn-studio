@@ -10,6 +10,7 @@ import {
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { IFormData } from 'src/features/form/data';
 import type {
+  IGridStyling,
   ILayoutComponent,
   ILayoutEntry,
   ILayoutGroup,
@@ -252,7 +253,7 @@ export const getDisplayFormData = (
                   id: selectionComponent.optionsId,
                   mapping: selectionComponent.mapping,
                 })
-              ]?.options.find((option: IOption) => option.value === value)
+              ]?.options?.find((option: IOption) => option.value === value)
                 ?.label,
               textResources,
             ) || '';
@@ -614,3 +615,14 @@ export function smartLowerCaseFirst(text: string): string {
 
   return lowerCaseFirst(text, firstLetterIdx);
 }
+
+export const gridBreakpoints = (grid?: IGridStyling) => {
+  const { xs, sm, md, lg, xl } = grid || {};
+  return {
+    xs: xs || 12,
+    ...(sm && { sm }),
+    ...(md && { md }),
+    ...(lg && { lg }),
+    ...(xl && { xl }),
+  };
+};
