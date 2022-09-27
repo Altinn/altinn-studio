@@ -3,9 +3,10 @@ import {
   FieldType,
   JsonSchemaNode,
   ObjectKind,
-  UiSchemaMap,
   UiSchemaNode,
+  UiSchemaNodes,
 } from './types';
+import { getNodeIndexByPointer } from './selectors';
 
 export const createNodeBase = (...args: string[]): UiSchemaNode => {
   const pointer = args.join('/');
@@ -48,15 +49,15 @@ export const schemaTypeIsNillable = (schemaNodeType: string | string[]) =>
   schemaNodeType !== FieldType.Null && schemaTypeIncludes(schemaNodeType, FieldType.Null);
 
 export const getParentNodeByPointer = (
-  uiNodeMap: UiSchemaMap,
+  uiSchemaNodes: UiSchemaNodes,
   pointer: string,
 ): UiSchemaNode | undefined => {
   const pointerParts = pointer.split('/');
   while (pointerParts.length) {
     pointerParts.pop();
-    const parentNodePointer = pointerParts.join('/');
-    if (uiNodeMap.has(parentNodePointer)) {
-      return uiNodeMap.get(parentNodePointer);
+    const parentNodeIndex = getNodeIndexByPointer(uiSchemaNodes, pointerParts.join('/'));
+    if (parentNodeIndex !== undefined) {
+      return uiSchemaNodes[parentNodeIndex];
     }
   }
   return undefined;

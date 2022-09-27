@@ -109,7 +109,6 @@ test('should show context menu and trigger correct dispatch when adding a field 
   const actions = store.getActions();
   const lastAction = actions.at(-1);
   expect(lastAction.type).toBe('schemaEditor/addRootItem');
-  console.log(lastAction.payload);
   expect(lastAction.payload.name).toBe('name');
   expect(lastAction.payload.location).toBe('#/properties');
   expect(lastAction.payload.props.fieldType).toBe(FieldType.Object);

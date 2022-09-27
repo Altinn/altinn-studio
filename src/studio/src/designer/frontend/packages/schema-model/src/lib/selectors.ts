@@ -1,44 +1,71 @@
-import { FieldType, Keywords, ROOT_POINTER, UiSchemaMap, UiSchemaNode } from './types';
+import { FieldType, Keywords, ROOT_POINTER, UiSchemaNode, UiSchemaNodes } from './types';
 
-export const getRootNodes = (uiSchemaMap: UiSchemaMap, defs: boolean): UiSchemaNode[] => {
+export const getRootNodes = (uiSchemaMap: UiSchemaNodes, defs: boolean): UiSchemaNode[] => {
   const childNodes: UiSchemaNode[] = [];
-  if (uiSchemaMap.has(ROOT_POINTER)) {
-    getNodeByPointer(uiSchemaMap, ROOT_POINTER).children.forEach((childPointer) => {
+  const parentNodeIndex = getNodeIndexByPointer(uiSchemaMap, ROOT_POINTER);
+  if (parentNodeIndex !== undefined) {
+    uiSchemaMap[parentNodeIndex].children.forEach((childPointer) => {
       if (childPointer.startsWith([ROOT_POINTER, Keywords.Definitions].join('/')) === defs) {
         childNodes.push(getNodeByPointer(uiSchemaMap, childPointer));
       }
     });
   }
+
   return childNodes;
 };
 
-export const isPointerInUse = (uiNodeMap: UiSchemaMap, pointer: string): boolean =>
-  !!uiNodeMap.has(pointer);
+export const pointerExists = (uiSchemaNodes: UiSchemaNodes, pointer: string): boolean =>
+  getNodeIndexByPointer(uiSchemaNodes, pointer) !== undefined;
 
-export const getNodeDisplayName = (node: UiSchemaNode) => {
-  const pointer = node.ref ?? node.pointer;
+export const getNodeDisplayName = (uiSchemaNode: UiSchemaNode) => {
+  const pointer = uiSchemaNode.ref ?? uiSchemaNode.pointer;
   return pointer.split('/').pop() ?? '';
 };
 
-export const getUniqueNodePath = (uiNodeMap: UiSchemaMap, targetPointer: string): string => {
+export const getUniqueNodePath = (uiNodeMap: UiSchemaNodes, targetPointer: string): string => {
   let newPointer = targetPointer;
   let postfix = 0;
-  while (uiNodeMap.has(newPointer)) {
+  while (pointerExists(uiNodeMap, newPointer)) {
     newPointer = targetPointer + postfix;
     postfix++;
   }
   return newPointer;
 };
 
-export const getNodeByPointer = (uiNodeMap: UiSchemaMap, pointer: string): UiSchemaNode => {
-  if (uiNodeMap.has(pointer)) {
-    return uiNodeMap.get(pointer) as UiSchemaNode;
+/**
+ * Return the node or throw an error. If you need to do a check of existance use getNodeIndexByPointer and
+ * just access the item directly to avoid duplicate scans.
+ *
+ * @param uiSchemaNodes
+ * @param pointer
+ */
+export const getNodeByPointer = (uiSchemaNodes: UiSchemaNodes, pointer: string): UiSchemaNode => {
+  const uiSchemaNode = uiSchemaNodes.find((node) => node.pointer === pointer);
+  if (uiSchemaNode) {
+    return uiSchemaNode;
   } else {
     throw new Error("Can't find node with pointer " + pointer);
   }
 };
 
-export const getChildNodesByPointer = (uiNodeMap: UiSchemaMap, pointer: string): UiSchemaNode[] => {
+/**
+ * Returns the index or undefined.
+ *
+ * @param uiSchemaNodes
+ * @param pointer
+ */
+export const getNodeIndexByPointer = (
+  uiSchemaNodes: UiSchemaNodes,
+  pointer: string,
+): number | undefined => {
+  const index = uiSchemaNodes.findIndex((node) => node.pointer === pointer);
+  return index > -1 ? index : undefined;
+};
+
+export const getChildNodesByPointer = (
+  uiNodeMap: UiSchemaNodes,
+  pointer: string,
+): UiSchemaNode[] => {
   const parentNode = getNodeByPointer(uiNodeMap, pointer);
   return parentNode.children.map((childPointer) => getNodeByPointer(uiNodeMap, childPointer));
 };

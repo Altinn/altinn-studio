@@ -31,7 +31,7 @@ export interface JsonSchemaNode {
   [key: string]: any;
 }
 
-export type UiSchemaMap = Map<string, UiSchemaNode>;
+export type UiSchemaNodes = UiSchemaNode[];
 
 export interface UiSchemaNode {
   objectKind: ObjectKind;

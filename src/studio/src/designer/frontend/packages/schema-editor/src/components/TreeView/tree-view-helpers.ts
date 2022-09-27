@@ -1,4 +1,3 @@
-import { ISchemaState } from '../../types';
 import { FieldType, ObjectKind, UiSchemaNode } from '@altinn/schema-model';
 
 export const getIconStr = (item: UiSchemaNode) => {
@@ -15,6 +14,3 @@ export const getIconStr = (item: UiSchemaNode) => {
     return fieldType ? `fa-datamodel-${fieldType}` : 'fa-datamodel-object';
   }
 };
-
-export const createRefSelector = (refPointer?: string) => (state: ISchemaState) =>
-  state.uiSchema.get(refPointer ?? '');

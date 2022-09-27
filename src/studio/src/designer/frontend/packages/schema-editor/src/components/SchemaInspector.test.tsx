@@ -14,8 +14,8 @@ import {
   getNodeByPointer,
   Keywords,
   ROOT_POINTER,
-  UiSchemaMap,
   UiSchemaNode,
+  UiSchemaNodes,
 } from '@altinn/schema-model';
 
 // workaround for https://jestjs.io/docs/26.x/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
@@ -36,7 +36,7 @@ const mockUiSchema = buildUiSchema(dataMock);
 const getMockSchemaByPath = (selectedId: string): UiSchemaNode =>
   getNodeByPointer(mockUiSchema, selectedId);
 
-const renderSchemaInspector = (uiSchemaMap: UiSchemaMap, selectedItem?: UiSchemaNode) => {
+const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSchemaNode) => {
   const store = configureStore()({
     uiSchema: uiSchemaMap,
   });
@@ -115,9 +115,9 @@ test('Adds new object field when pressing the enter key', async () => {
   const parentNode = createNodeBase(ROOT_POINTER, Keywords.Properties, 'test');
   parentNode.fieldType = FieldType.Object;
   parentNode.children = ['#/properties/test/properties/abc'];
-  testUiSchema.set(parentNode.pointer, parentNode);
+  testUiSchema.push(parentNode);
   const childNode = createChildNode(parentNode, 'abc', false);
-  testUiSchema.set(childNode.pointer, childNode);
+  testUiSchema.push(childNode);
   const { store, user } = renderSchemaInspector(testUiSchema, parentNode);
   await user.click(screen.queryAllByRole('tab')[1]);
   await user.click(screen.getByDisplayValue('abc'));
@@ -130,7 +130,7 @@ test('Adds new valid value field when pressing the enter key', async () => {
   const item = createNodeBase(ROOT_POINTER, Keywords.Properties, 'test');
   item.fieldType = FieldType.String;
   item.enum = ['valid value'];
-  testUiSchema.set(item.pointer, item);
+  testUiSchema.push(item);
   const { store, user } = renderSchemaInspector(testUiSchema, item);
   await user.click(screen.queryAllByRole('tab')[1]);
   await user.click(screen.getByDisplayValue('valid value'));

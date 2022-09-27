@@ -50,12 +50,12 @@ module.exports = (middlewares, devServer) => {
     res.status(201);
     res.send(createDatamodel(modelName));
   });
-  app.put('/designer/api/my-org/my-app/datamodels', (req, res) => {
+  app.put('/designer/api/:owner/:repo/datamodels', (req, res) => {
     const { modelPath } = req.query;
     res.status(200);
     res.send(putDatamodel(modelPath, req.body));
   });
-  app.del('/designer/api/my-org/my-app/datamodels', (req, res) => {
+  app.del('/designer/api/:owner/:repo/datamodels', (req, res) => {
     const { modelPath } = req.query;
     res.status(200);
     res.send(delDatamodel(modelPath));

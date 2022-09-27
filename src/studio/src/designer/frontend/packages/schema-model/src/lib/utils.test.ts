@@ -8,16 +8,16 @@ test('creatNodeBase', () => {
   expect(nodeBase.objectKind).toBeDefined();
   expect(nodeBase.isRequired).toBeFalsy();
   expect(nodeBase.isNillable).toBeFalsy();
-  expect(nodeBase.implicitType).toBeFalsy();
+  expect(nodeBase.implicitType).toBeTruthy();
   expect(nodeBase.pointer.split('/')).toHaveLength(3);
 });
 
 test('that we get parent node', () => {
   // Just grab a random schema to test with.
   const testSchema = getGeneralJsonSchemaForTest('ComplexSchema');
-  const map = buildUiSchema(testSchema);
-  map.forEach((uiNode) => {
-    const parentNode = getParentNodeByPointer(map, uiNode.pointer);
+  const uiSchemaNodes = buildUiSchema(testSchema);
+  uiSchemaNodes.forEach((uiNode) => {
+    const parentNode = getParentNodeByPointer(uiSchemaNodes, uiNode.pointer);
     if (parentNode) {
       expect(parentNode.children).toContain(uiNode.pointer);
     } else {

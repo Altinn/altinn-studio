@@ -1,5 +1,5 @@
 /** Interfaces */
-import type { UiSchemaMap } from '@altinn/schema-model';
+import type { UiSchemaNodes } from '@altinn/schema-model';
 
 export interface ILanguage {
   [key: string]: string | ILanguage;
@@ -15,7 +15,7 @@ export interface IJsonSchema {
 
 export interface ISchemaState {
   schema: IJsonSchema;
-  uiSchema: UiSchemaMap;
+  uiSchema: UiSchemaNodes;
   name: string;
   saveSchemaUrl: string;
   selectedDefinitionNodeId: string;

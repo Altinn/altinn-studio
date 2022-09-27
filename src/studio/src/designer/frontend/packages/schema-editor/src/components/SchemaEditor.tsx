@@ -21,13 +21,14 @@ import { TopToolbar } from './TopToolbar';
 import { getSchemaSettings } from '../settings';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { SchemaTreeView } from './TreeView/SchemaTreeView';
-import { createRefSelector } from './TreeView/tree-view-helpers';
 import {
   CombinationKind,
   FieldType,
+  getNodeByPointer,
+  getNodeIndexByPointer,
   getRootNodes,
-  isPointerInUse,
   ObjectKind,
+  pointerExists,
   UiSchemaNode,
 } from '@altinn/schema-model';
 
@@ -217,12 +218,15 @@ export const SchemaEditor = ({
   );
 
   const selectedItem = useSelector((state: ISchemaState) =>
-    selectedId ? state.uiSchema.get(selectedId) : null,
+    selectedId ? getNodeByPointer(state.uiSchema, selectedId) : null,
   );
   const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
   // if item is a reference, we want to show the properties of the reference.
-  const referredItem = useSelector(createRefSelector(selectedItem?.ref));
-  const checkIsNameInUse = (name: string) => isPointerInUse(uiSchema, name);
+  const referredItem = useSelector((state: ISchemaState) => {
+    const index = getNodeIndexByPointer(state.uiSchema, selectedItem?.ref ?? '');
+    return index !== undefined ? state.uiSchema[index] : undefined;
+  });
+  const checkIsNameInUse = (name: string) => pointerExists(uiSchema, name);
   const t = (key: string) => getTranslation(key, language);
   return (
     <div className={classes.root}>

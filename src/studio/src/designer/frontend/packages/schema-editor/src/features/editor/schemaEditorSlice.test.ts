@@ -30,13 +30,13 @@ import {
 import { dataMock } from '../../mockData';
 import { ISchemaState } from '../../types';
 import {
-  buildJsonSchema,
   CombinationKind,
   FieldType,
   getChildNodesByPointer,
   getNodeByPointer,
   Keywords,
   ObjectKind,
+  pointerExists,
   UiSchemaNode,
 } from '@altinn/schema-model';
 
@@ -56,7 +56,7 @@ describe('SchemaEditorSlice', () => {
     };
     const nextState = reducer(state, setRestriction(payload));
     const item = getNodeByPointer(nextState.uiSchema, '#/$defs/Kommentar2000Restriksjon');
-    if (!item || !item.restrictions) {
+    if (!item.restrictions) {
       fail('item not found');
     }
     const field = item.restrictions.minLength;
@@ -119,9 +119,6 @@ describe('SchemaEditorSlice', () => {
       nextState.uiSchema,
       '#/$defs/Kontaktperson/properties/navn',
     );
-    if (!item) {
-      fail('item not found');
-    }
     expect(item.ref).toEqual('#/$defs/Tekst_25');
   });
 
@@ -177,7 +174,7 @@ describe('SchemaEditorSlice', () => {
     };
     const nextState = reducer(state, deleteField(payload));
     const item = getNodeByPointer(nextState.uiSchema, '#/$defs/Kommentar2000Restriksjon');
-    if (!item || !item.restrictions) {
+    if (!item.restrictions) {
       fail('item not found');
     }
 
@@ -190,10 +187,6 @@ describe('SchemaEditorSlice', () => {
     };
     const nextState = reducer(state, deleteProperty(payload));
     const item = getNodeByPointer(nextState.uiSchema, '#/$defs/Kontaktperson');
-    if (!item || !item) {
-      fail('item not found');
-    }
-
     expect(item.children).not.toContainEqual({
       path: '#/$defs/Kontaktperson/properties/navn',
     });
@@ -237,7 +230,8 @@ describe('SchemaEditorSlice', () => {
     expect(() => {
       getNodeByPointer(nextState.uiSchema, '#/$defs/Kontaktperson');
     }).toThrowError();
-    expect(nextState.uiSchema.has('#/$defs/Kontaktperson')).toBeFalsy();
+
+    expect(pointerExists(nextState.uiSchema, '#/$defs/Kontaktperson')).toBeFalsy();
   });
 
   it('handles addProperty', () => {
@@ -326,7 +320,7 @@ describe('SchemaEditorSlice', () => {
     };
     const nextState = reducer(state, setTitle(payload));
     const item = getNodeByPointer(nextState.uiSchema, '#/$defs/Kontaktperson');
-    expect(item?.title).toBe('test12312');
+    expect(item.title).toBe('test12312');
   });
 
   it('handles setDescription', () => {
@@ -337,7 +331,7 @@ describe('SchemaEditorSlice', () => {
     const nextState = reducer(state, setDescription(payload));
 
     const item = getNodeByPointer(nextState.uiSchema, '#/$defs/Kontaktperson');
-    expect(item?.description).toBe('descriptionasdsfsa');
+    expect(item.description).toBe('descriptionasdsfsa');
   });
 
   it('handles setType', () => {
@@ -413,17 +407,9 @@ describe('SchemaEditorSlice', () => {
     nextState = reducer(nextState, promoteProperty(payload2));
     const item2 = getNodeByPointer(nextState.uiSchema, '#/properties/melding');
     expect(item2.ref).toBe('#/$defs/melding');
-    console.log(JSON.stringify(buildJsonSchema(nextState.uiSchema)));
   });
 
   it('handles setting combination type', () => {
-    const combinationItemChild = {
-      $ref: '#/$defs/Tekst_50',
-      displayName: 'ref',
-      path: '#/$defs/allOfTest/allOf/0',
-      combinationItem: true,
-    };
-
     // verify initial state => type is allOf
     let item = getNodeByPointer(state.uiSchema, '#/$defs/allOfTest');
     let childNodes = getChildNodesByPointer(state.uiSchema, '#/$defs/allOfTest');

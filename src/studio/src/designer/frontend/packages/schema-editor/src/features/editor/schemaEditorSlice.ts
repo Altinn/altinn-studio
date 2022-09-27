@@ -8,6 +8,7 @@ import {
   CombinationKind,
   FieldType,
   getNodeByPointer,
+  getNodeIndexByPointer,
   getUniqueNodePath,
   Keywords,
   ObjectKind,
@@ -23,7 +24,7 @@ enableMapSet();
 
 export const initialState: ISchemaState = {
   schema: {},
-  uiSchema: new Map(),
+  uiSchema: [],
   name: '/',
   saveSchemaUrl: '',
   selectedPropertyNodeId: '',
@@ -75,7 +76,7 @@ const schemaEditorSlice = createSlice({
         pointer: newPointer,
       };
       // @ts-ignore
-      state.uiSchema.set(newPointer, newItem);
+      state.uiSchema.push(newItem);
       if (location === schemaSettings.definitionsPath) {
         state.selectedDefinitionNodeId = newPointer;
       } else {
@@ -95,11 +96,11 @@ const schemaEditorSlice = createSlice({
       }>,
     ) {
       const { path, keepSelection, props } = action.payload;
-      const addToItem = getNodeByPointer(state.uiSchema, path);
       const newNodePointer = getUniqueNodePath(
         state.uiSchema,
         [path, Keywords.Properties, 'name'].join('/'),
       );
+      const addToItem = getNodeByPointer(state.uiSchema, path);
       addToItem.children.push(newNodePointer);
       if (!keepSelection) {
         if (state.selectedEditorTab === 'definitions') {
@@ -115,7 +116,7 @@ const schemaEditorSlice = createSlice({
         ...props,
         pointer: newNodePointer,
       };
-      state.uiSchema.set(newNodePointer, item);
+      state.uiSchema.push(item);
     },
     deleteField(state, action: PayloadAction<{ path: string; key: string }>) {
       const { path, key } = action.payload;
@@ -165,34 +166,40 @@ const schemaEditorSlice = createSlice({
       state,
       action: PayloadAction<{
         path: string;
-        items: { fieldType?: string; $ref?: string };
+        items: Partial<UiSchemaNode>;
       }>,
     ) {
       const { path, items } = action.payload;
+      const itemPointer = [path, Keywords.Items].join('/');
+      items.pointer = itemPointer;
       const uiSchemaNode = getNodeByPointer(state.uiSchema, path);
-      const itemPointer = [path, Keywords.Items].join();
-
       if (!uiSchemaNode.children.includes(itemPointer)) {
         uiSchemaNode.children.push(itemPointer); // Ensure that the parent is refered
       }
-      // @ts-ignore
-      state.uiSchema.set(itemPointer, items);
+      const itemsIndex = getNodeIndexByPointer(state.uiSchema, itemPointer);
+      if (itemsIndex) {
+        // @ts-ignore
+        state.uiSchema[itemsIndex] = items;
+      } else {
+        // @ts-ignore
+        state.uiSchema.push(items);
+      }
     },
     setRef(state, action: PayloadAction<{ path: string; ref: string }>) {
       const { path, ref } = action.payload;
       const referedNode = getNodeByPointer(state.uiSchema, ref);
-      const schemaItem = getNodeByPointer(state.uiSchema, path);
-      schemaItem.ref = ref;
-      schemaItem.objectKind = ObjectKind.Reference;
-      schemaItem.fieldType = referedNode.fieldType;
-      schemaItem.implicitType = true;
+      const uiSchemaNode = getNodeByPointer(state.uiSchema, path);
+      uiSchemaNode.ref = ref;
+      uiSchemaNode.objectKind = ObjectKind.Reference;
+      uiSchemaNode.fieldType = referedNode.fieldType;
+      uiSchemaNode.implicitType = true;
     },
     setType(state, action: PayloadAction<{ path: string; type: FieldType }>) {
       const { path, type } = action.payload;
-      const schemaNode = getNodeByPointer(state.uiSchema, path);
-      schemaNode.ref = undefined;
-      schemaNode.children = [];
-      schemaNode.fieldType = type;
+      const uiSchemaNode = getNodeByPointer(state.uiSchema, path);
+      uiSchemaNode.ref = undefined;
+      uiSchemaNode.children = [];
+      uiSchemaNode.fieldType = type;
     },
     setTitle(state, action: PayloadAction<{ path: string; title: string }>) {
       const { path, title } = action.payload;
@@ -228,7 +235,7 @@ const schemaEditorSlice = createSlice({
         objectKind: ObjectKind.Combination,
       };
       addToNode.children.push(pointer);
-      state.uiSchema.set(pointer, item);
+      state.uiSchema.push(item);
     },
     setJsonSchema(state, action) {
       const { schema } = action.payload;

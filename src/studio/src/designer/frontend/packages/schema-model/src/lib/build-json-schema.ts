@@ -3,32 +3,35 @@ import {
   Keywords,
   ObjectKind,
   ROOT_POINTER,
-  UiSchemaMap,
   UiSchemaNode,
+  UiSchemaNodes,
 } from './types';
 import JSONPointer from 'jsonpointer';
 import { findRequiredProps } from './handlers/required';
 import { getJsonFieldType } from './handlers/field-type';
 import { getNodeByPointer } from './selectors';
 
-export const buildJsonSchema = (uiNodeMap: UiSchemaMap): JsonSchemaNode => {
+export const buildJsonSchema = (uiSchemaNodes: UiSchemaNodes): JsonSchemaNode => {
   const allPointers: string[] = [];
   const out: JsonSchemaNode = {};
 
   // First iterate to crate the basic
-  uiNodeMap.forEach((uiSchemaNode, uiNodePointer) => {
-    if (uiNodePointer === ROOT_POINTER) {
+  uiSchemaNodes.forEach((uiSchemaNode) => {
+    if (uiSchemaNode.pointer === ROOT_POINTER) {
       Object.assign(out, uiSchemaNode.custom);
       JSONPointer.set(out, '/' + Keywords.Type, uiSchemaNode.fieldType);
-      JSONPointer.set(out, '/' + Keywords.Required, findRequiredProps(uiNodeMap, uiNodePointer));
+      JSONPointer.set(
+        out,
+        '/' + Keywords.Required,
+        findRequiredProps(uiSchemaNodes, uiSchemaNode.pointer),
+      );
     } else {
-      allPointers.push(uiNodePointer);
+      allPointers.push(uiSchemaNode.pointer);
     }
   });
 
-  allPointers.sort();
   allPointers.forEach((sortedPointer: string) => {
-    const uiSchemaNode = getNodeByPointer(uiNodeMap, sortedPointer);
+    const uiSchemaNode = getNodeByPointer(uiSchemaNodes, sortedPointer);
     const jsonPointer = uiSchemaNode.pointer.replace(ROOT_POINTER, '');
     const startValue = Object.assign({}, uiSchemaNode.custom);
     if (uiSchemaNode.objectKind === ObjectKind.Combination) {
@@ -39,7 +42,8 @@ export const buildJsonSchema = (uiNodeMap: UiSchemaMap): JsonSchemaNode => {
 
     // Resolving and setting reference
     if (typeof uiSchemaNode.ref === 'string') {
-      if (!uiNodeMap.has(uiSchemaNode.ref)) {
+      const referedNode = getNodeByPointer(uiSchemaNodes, uiSchemaNode.ref);
+      if (!referedNode) {
         throw Error(`Refered uiNode was not found ${uiSchemaNode.ref}`);
       }
       JSONPointer.set(out, [jsonPointer, Keywords.Reference].join('/'), uiSchemaNode.ref);
@@ -73,7 +77,7 @@ export const buildJsonSchema = (uiNodeMap: UiSchemaMap): JsonSchemaNode => {
       JSONPointer.set(
         out,
         [jsonPointer, Keywords.Required].join('/'),
-        findRequiredProps(uiNodeMap, uiSchemaNode.pointer),
+        findRequiredProps(uiSchemaNodes, uiSchemaNode.pointer),
       );
     }
   });
