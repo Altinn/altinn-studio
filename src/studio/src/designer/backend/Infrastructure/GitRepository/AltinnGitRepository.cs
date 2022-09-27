@@ -118,7 +118,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         public IList<string> GetLanguageFiles()
         {
-            var languageFiles = FindFiles(new string[] { TEXT_FILES_PATTERN_JSON });
+            IEnumerable<string> languageFiles = FindFiles(new string[] { TEXT_FILES_PATTERN_JSON });
 
             return languageFiles.ToList();
         }
