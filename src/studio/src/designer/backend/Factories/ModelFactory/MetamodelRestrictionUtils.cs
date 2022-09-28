@@ -74,22 +74,19 @@ public static class MetamodelRestrictionUtils
             return;
         }
 
-        if (allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<MaxLengthKeyword>())
-                ?.TryGetKeyword(out MaxLengthKeyword maxLengthKeyword) ?? false)
+        if (allOfKeyword.TryGetKeywordFromAllOfKeyword(out MaxLengthKeyword maxLengthKeyword))
         {
-            restrictions.Add(maxLengthKeyword.Keyword(), new Restriction() { Value = maxLengthKeyword.Value.ToString() });
+            restrictions.Add(maxLengthKeyword.Keyword(), new Restriction { Value = maxLengthKeyword.Value.ToString() });
         }
 
-        if (allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<PatternKeyword>())
-                ?.TryGetKeyword(out PatternKeyword patternKeyword) ?? false)
+        if (allOfKeyword.TryGetKeywordFromAllOfKeyword(out PatternKeyword patternKeyword))
         {
-            restrictions.Add(patternKeyword.Keyword(), new Restriction() { Value = patternKeyword.Value.ToString() });
+            restrictions.Add(patternKeyword.Keyword(), new Restriction { Value = patternKeyword.Value.ToString() });
         }
 
-        if (allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<MinLengthKeyword>())
-                ?.TryGetKeyword(out MinLengthKeyword minLengthKeyword) ?? false)
+        if (allOfKeyword.TryGetKeywordFromAllOfKeyword(out MinLengthKeyword minLengthKeyword))
         {
-            restrictions.Add(minLengthKeyword.Keyword(), new Restriction() { Value = minLengthKeyword.Value.ToString() });
+            restrictions.Add(minLengthKeyword.Keyword(), new Restriction { Value = minLengthKeyword.Value.ToString() });
         }
     }
 
@@ -124,28 +121,32 @@ public static class MetamodelRestrictionUtils
             return;
         }
 
-        if (allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<MaximumKeyword>())
-                ?.TryGetKeyword(out MaximumKeyword maxKeyword) ?? false)
+        if (allOfKeyword.TryGetKeywordFromAllOfKeyword(out MaximumKeyword maximumKeyword))
         {
-            restrictions.Add(maxKeyword.Keyword(), new Restriction() { Value = maxKeyword.Value.ToString(CultureInfo.InvariantCulture) });
+            restrictions.Add(maximumKeyword.Keyword(), new Restriction { Value = maximumKeyword.Value.ToString(CultureInfo.InvariantCulture) });
         }
 
-        if (allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<MinimumKeyword>())
-                ?.TryGetKeyword(out MinimumKeyword minKeyword) ?? false)
+        if (allOfKeyword.TryGetKeywordFromAllOfKeyword(out MinimumKeyword minimumKeyword))
         {
-            restrictions.Add(minKeyword.Keyword(), new Restriction() { Value = minKeyword.Value.ToString(CultureInfo.InvariantCulture) });
+            restrictions.Add(minimumKeyword.Keyword(), new Restriction { Value = minimumKeyword.Value.ToString(CultureInfo.InvariantCulture) });
         }
 
-        if (allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<ExclusiveMaximumKeyword>())
-                ?.TryGetKeyword(out ExclusiveMaximumKeyword exclusiveMaxKeyword) ?? false)
+        if (allOfKeyword.TryGetKeywordFromAllOfKeyword(out ExclusiveMaximumKeyword exclusiveMaximum))
         {
-            restrictions.Add(exclusiveMaxKeyword.Keyword(), new Restriction() { Value = exclusiveMaxKeyword.Value.ToString(CultureInfo.InvariantCulture) });
+            restrictions.Add(exclusiveMaximum.Keyword(), new Restriction { Value = exclusiveMaximum.Value.ToString(CultureInfo.InvariantCulture) });
         }
 
-        if (allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<ExclusiveMinimumKeyword>())
-                ?.TryGetKeyword(out ExclusiveMinimumKeyword exclusiveMinKeyword) ?? false)
+        if (allOfKeyword.TryGetKeywordFromAllOfKeyword(out ExclusiveMinimumKeyword exclusiveMinimum))
         {
-            restrictions.Add(exclusiveMinKeyword.Keyword(), new Restriction() { Value = exclusiveMinKeyword.Value.ToString(CultureInfo.InvariantCulture) });
+            restrictions.Add(exclusiveMinimum.Keyword(), new Restriction { Value = exclusiveMinimum.Value.ToString(CultureInfo.InvariantCulture) });
         }
+    }
+
+    private static bool TryGetKeywordFromAllOfKeyword<T>(this AllOfKeyword allOfKeyword, out T keyword)
+        where T : IJsonSchemaKeyword
+    {
+        keyword = default;
+        return allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<T>())
+            ?.TryGetKeyword(out keyword) ?? false;
     }
 }
