@@ -1,0 +1,148 @@
+﻿<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <xsd:element name="XML2Ephorte" type="DataModel" />
+  <xsd:complexType name="DataModel">
+    <xsd:sequence>
+      <xsd:element name="FORMID" type="Text" />
+      <xsd:element name="AVSMOT" type="AVSMOT" />
+      <xsd:element name="DOKLINK" maxOccurs="20" type="DOKLINK" />
+      <xsd:element name="DOKBESKRIV" maxOccurs="20" type="DOKBESKRIV" />
+      <xsd:element name="DOKVERSJON" maxOccurs="20" type="DOKVERSJON" />
+      <xsd:element name="FlatData" type="FlatData" />
+      <xsd:element name="AppLogikk" type="AppLogikk" />
+    </xsd:sequence>
+    <xsd:anyAttribute />
+  </xsd:complexType>
+  <xsd:complexType name="AVSMOT">
+    <xsd:sequence>
+      <xsd:element name="AM_ID" type="Text" />
+      <xsd:element name="AM_JPID" type="Text" />
+      <xsd:element name="AM_IHTYPE" type="Text" />
+      <xsd:element name="AM_KOPIMOT" type="Text" />
+      <xsd:element name="AM_BEHANSV" type="Text" />
+      <xsd:element name="AM_NAVN" type="Text" />
+      <xsd:element name="AM_GRUPPEMOT" type="Text" />
+      <xsd:element name="AM_ADRESSE" type="Text" />
+      <xsd:element name="AM_POSTNR_PO" type="Text" />
+      <xsd:element name="AM_POSTSTED" type="Text" />
+      <xsd:element name="AM_EPOSTADR" type="Text" />
+      <xsd:element name="AM_ADMID_AI" type="Text" />
+      <xsd:element name="AM_NASJONALIDENTIFIKATOR_G" type="Text" />
+      <xsd:element name="AM_TLF_G" type="Text" />
+      <xsd:element name="AM_IFKODE_IF" type="Text" />
+      <xsd:element name="AM_PERSON_G" type="Text" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="DOKLINK">
+    <xsd:sequence>
+      <xsd:element name="DL_DOKID_DB" type="Text" />
+      <xsd:element name="DL_TYPE_DT" type="Text" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="DOKBESKRIV">
+    <xsd:sequence>
+      <xsd:element name="DB_DOKID" type="Text" />
+      <xsd:element name="DB_TITTEL" type="Text" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="DOKVERSJON">
+    <xsd:sequence>
+      <xsd:element name="VE_DOKID_DB" type="Text" />
+      <xsd:element name="VE_DOKFORMAT_LF" type="Text" />
+      <xsd:element name="VE_FILREF" type="Text" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Soker">
+    <xsd:sequence>
+      <xsd:element name="navn" type="Text" />
+      <xsd:element name="fodselsnummer" type="Text" />
+      <xsd:element name="adresse" type="Text" />
+      <xsd:element name="postnummer" type="Text" />
+      <xsd:element name="poststed" type="Text" />
+      <xsd:element name="medSokerNavn" type="Text" />
+      <xsd:element name="medSokerFodselsnummer" type="Text" />
+      <xsd:element name="medSokerSammeAdresseSomSoker" type="Text" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Barn">
+    <xsd:sequence>
+      <xsd:element name="navn" type="Text" />
+      <xsd:element name="fodselsnummer" type="Text" />
+      <xsd:element name="navnBhgSfo" type="Text" />
+      <xsd:element name="sokerOm" type="Text" />
+      <xsd:element name="bhgEllerSfo" type="Text" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="FlatData">
+    <xsd:sequence>
+      <xsd:element name="kommune" type="Text" />
+      <xsd:element name="soker" type="Soker" />
+      <xsd:element name="barn" maxOccurs="20" type="Barn" />
+      <xsd:element name="girSamtykke" type="Text" />
+      <xsd:element name="sokerSkattegrunnlag" maxOccurs="200" type="Skattegrunnlag" />
+      <xsd:element name="partnerSkattegrunnlag" maxOccurs="200" type="Skattegrunnlag" />
+      <xsd:element name="skattegrunnlagSummert" type="Int" />
+      <xsd:element name="nedgangInntekt" type="Text" />
+      <xsd:element name="upload_vedlegg" type="xsd:string" />
+      <xsd:element name="riktigInntekt" type="Text" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Skattegrunnlag">
+    <xsd:sequence>
+      <xsd:element name="grunnlagNavn" type="Text" />
+      <xsd:element name="beloep" type="Int" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="AppLogikk">
+    <xsd:sequence>
+      <xsd:element name="testFelt" type="Text" />
+      <xsd:element name="sokerForBarn" type="Text" />
+      <xsd:element name="prefillBarn" maxOccurs="20" type="Barn" />
+      <xsd:element name="prefillBarnNavn" type="Text" />
+      <xsd:element name="skjulSkatteinfo" type="Text" />
+      <xsd:element name="folkeregPartner" type="Text" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="Int">
+    <xsd:restriction base="xsd:integer" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Text">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="PhoneNumber">
+    <xsd:restriction base="xsd:integer">
+      <xsd:totalDigits value="8" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="OrgNumber">
+    <xsd:restriction base="xsd:integer">
+      <xsd:totalDigits value="9" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="PostalCode">
+    <xsd:restriction base="xsd:integer">
+      <xsd:totalDigits value="4" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="BirthNumber">
+    <xsd:restriction base="xsd:integer">
+      <xsd:totalDigits value="11" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Boolean">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Radio">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Checkbox">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Combobox">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Time">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="^[0-2][0-3]:[0-5][0-9]$" />
+    </xsd:restriction>
+  </xsd:simpleType>
+</xsd:schema>

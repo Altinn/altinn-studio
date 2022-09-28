@@ -1,0 +1,18 @@
+﻿<xs:schema targetNamespace="https://aip.stami.no/order.xsd" xmlns="https://aip.stami.no/order.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <xs:element name="MuOrder">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="organisasjonsnummer" type="xs:string" />
+        <xs:element name="organisasjonsnavn" type="xs:string" />
+        <xs:element name="epost" type="emailAddress" />
+        <xs:element name="modulvalg" type="xs:string" />
+        <xs:element name="moduldef" type="xs:string" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:simpleType name="emailAddress">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[^@]+@[^\.]+\..+" />
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>

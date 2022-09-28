@@ -1,0 +1,117 @@
+﻿<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="Skjema">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="1" maxOccurs="1" name="Avsender" type="AvsenderAvSøknad" />
+        <xs:element minOccurs="1" maxOccurs="1" name="Virksomhet" type="Virksomhet" />
+        <xs:element minOccurs="1" maxOccurs="1" name="Innhold" type="InnholdSkjema" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:complexType name="InnholdSkjema">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="Innkvarteringsadresse" type="Adresse" />
+      <xs:element minOccurs="0" maxOccurs="1" name="ErBrakkerigg" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="0" maxOccurs="1" name="MobilBoenhet" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="0" maxOccurs="1" name="AntallEnerom" type="BegrensetTallMinumum1" />
+      <xs:element minOccurs="0" maxOccurs="1" name="AlleRomHarBadOgToalett" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="0" maxOccurs="1" name="TvEllerInternett" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="0" maxOccurs="1" name="AntallRomMedKjokken" type="BegrensetTall" />
+      <xs:element minOccurs="0" maxOccurs="1" name="TilbysMatservering" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="0" maxOccurs="1" name="SoknadForelagtTillitsvalgt" type="BegrensetTekst50" />
+      <xs:element minOccurs="0" maxOccurs="1" name="KontaktpersonNavn" type="BegrensetTekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="KontaktpersonTelefon" type="BegrensetTekst50" />
+      <xs:element minOccurs="0" maxOccurs="1" name="KontaktpersonEpost" type="BegrensetTekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Samfunnskritisk" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="0" maxOccurs="1" name="SamfunnskritiskBransje" type="BegrensetTekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="BenyttesFraDato" nillable="true" type="xs:date" />
+      <xs:element minOccurs="0" maxOccurs="1" name="BekreftetRiktig" type="xs:boolean" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Innsender" type="BegrensetTekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="SoknadGjelderFor" type="BegrensetTekst50" />
+      <xs:element minOccurs="0" maxOccurs="1" name="HarNorskBostedsadresse" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="0" maxOccurs="1" name="HarJobbetIUtlandet" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="0" maxOccurs="1" name="PersonerUtenKaranteneIBoligen" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="0" maxOccurs="1" name="HarBoligenKjokken" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="0" maxOccurs="1" name="HarBoligenBadOgToalett" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="0" maxOccurs="1" name="InnkvarteringMerknad" type="BegrensetTekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="OppdragUtlandTilbysMatservering" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="0" maxOccurs="1" name="OppdragUtlandTvOgInternett" nillable="true" type="xs:boolean" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="AvsenderAvSøknad">
+    <xs:sequence>
+      <xs:element minOccurs="1" maxOccurs="1" name="Organisasjonsnummer" type="BegrensetTekst50" />
+      <xs:element minOccurs="1" maxOccurs="1" name="Navn" type="BegrensetTekst" />
+      <xs:element minOccurs="1" maxOccurs="1" name="Oppdragsfullmakt" nillable="false" type="xs:boolean" />
+      <xs:element minOccurs="1" maxOccurs="1" name="Adresse" type="Adresse" />
+      <xs:element minOccurs="1" maxOccurs="1" name="InnloggetBruker" type="BegrensetTekst" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="Adresse">
+    <xs:sequence>
+      <xs:element minOccurs="1" maxOccurs="1" name="Gateadresse" type="BegrensetTekst" />
+      <xs:element minOccurs="1" maxOccurs="1" name="Postnr" type="BegrensetTekst" />
+      <xs:element minOccurs="1" maxOccurs="1" name="Poststed" type="BegrensetTekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Land" type="BegrensetTekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Landkode" type="BegrensetTekst50" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Gardsnummer" type="BegrensetTekst50" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Bruksnummer" type="BegrensetTekst50" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Bygningsnummer" type="BegrensetTekst50" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Bruksenhetsnummer" type="BegrensetTekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Kommunenummer" type="BegrensetTekst50" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Kommune" type="BegrensetTekst" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="Virksomhet">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="Organisasjonsnummer" type="BegrensetTekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Navn" type="BegrensetTekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Adresse" type="Adresse" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Organisasjonsform" type="BegrensetTekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Underenheter" type="ArrayOfUnderenhet" />
+      <xs:element minOccurs="0" maxOccurs="1" name="NorskRepresentant" type="NorskRepresentant" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ArrayOfUnderenhet">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Underenhet" nillable="true" type="Underenhet" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="Underenhet">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="Organisasjonsnummer" type="BegrensetTekst50" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Navn" type="BegrensetTekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Adresse" type="Adresse" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="NorskRepresentant">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="Navn" type="BegrensetTekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Adresse" type="Adresse" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:simpleType name="BegrensetTall">
+    <xs:restriction base="xs:integer">
+      <xs:minInclusive value="0" />
+      <xs:maxInclusive value="999" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="BegrensetTallMinumum1">
+    <xs:restriction base="xs:integer">
+      <xs:minInclusive value="1" />
+      <xs:maxInclusive value="999" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="BegrensetTekst">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="0" />
+      <xs:maxLength value="255" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="BegrensetTekst50">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="0" />
+      <xs:maxLength value="50" />
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>
