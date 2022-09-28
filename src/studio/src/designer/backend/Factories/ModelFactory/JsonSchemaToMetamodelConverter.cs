@@ -150,6 +150,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 case DefsKeyword:
                 case MinItemsKeyword:
                 case MaxItemsKeyword:
+                case CommentKeyword:
                     break;
 
                 case RefKeyword k:
