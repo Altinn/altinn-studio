@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -61,7 +62,7 @@ public static class MetamodelRestrictionUtils
     /// <summary>
     /// Adding restrictions for string type.
     /// </summary>
-    private static void AddStringRestrictions(JsonSchema subSchema, Dictionary<string, Restriction> restrictions)
+    private static void AddStringRestrictions(JsonSchema subSchema, IDictionary<string, Restriction> restrictions)
     {
         var enumKeyword = subSchema.GetKeyword<EnumKeyword>();
         if (enumKeyword != null)
@@ -74,23 +75,23 @@ public static class MetamodelRestrictionUtils
             return;
         }
 
-        if (allOfKeyword.TryGetKeywordFromAllOfKeyword(out MaxLengthKeyword maxLengthKeyword))
+        if (allOfKeyword.TryGetKeywordFromSubSchemas(out MaxLengthKeyword maxLengthKeyword))
         {
-            restrictions.Add(maxLengthKeyword.Keyword(), new Restriction { Value = maxLengthKeyword.Value.ToString() });
+            restrictions.AddRestrictionFromKeyword(maxLengthKeyword);
         }
 
-        if (allOfKeyword.TryGetKeywordFromAllOfKeyword(out PatternKeyword patternKeyword))
+        if (allOfKeyword.TryGetKeywordFromSubSchemas(out PatternKeyword patternKeyword))
         {
-            restrictions.Add(patternKeyword.Keyword(), new Restriction { Value = patternKeyword.Value.ToString() });
+            restrictions.AddRestrictionFromKeyword(patternKeyword);
         }
 
-        if (allOfKeyword.TryGetKeywordFromAllOfKeyword(out MinLengthKeyword minLengthKeyword))
+        if (allOfKeyword.TryGetKeywordFromSubSchemas(out MinLengthKeyword minLengthKeyword))
         {
-            restrictions.Add(minLengthKeyword.Keyword(), new Restriction { Value = minLengthKeyword.Value.ToString() });
+            restrictions.AddRestrictionFromKeyword(minLengthKeyword);
         }
     }
 
-    private static void AddEnumRestrictions(EnumKeyword enumKeyword, Dictionary<string, Restriction> restrictions)
+    private static void AddEnumRestrictions(EnumKeyword enumKeyword, IDictionary<string, Restriction> restrictions)
     {
         if (enumKeyword == null)
         {
@@ -121,32 +122,60 @@ public static class MetamodelRestrictionUtils
             return;
         }
 
-        if (allOfKeyword.TryGetKeywordFromAllOfKeyword(out MaximumKeyword maximumKeyword))
+        if (allOfKeyword.TryGetKeywordFromSubSchemas(out MaximumKeyword maximumKeyword))
         {
-            restrictions.Add(maximumKeyword.Keyword(), new Restriction { Value = maximumKeyword.Value.ToString(CultureInfo.InvariantCulture) });
+            restrictions.AddRestrictionFromKeyword(maximumKeyword);
         }
 
-        if (allOfKeyword.TryGetKeywordFromAllOfKeyword(out MinimumKeyword minimumKeyword))
+        if (allOfKeyword.TryGetKeywordFromSubSchemas(out MinimumKeyword minimumKeyword))
         {
-            restrictions.Add(minimumKeyword.Keyword(), new Restriction { Value = minimumKeyword.Value.ToString(CultureInfo.InvariantCulture) });
+            restrictions.AddRestrictionFromKeyword(minimumKeyword);
         }
 
-        if (allOfKeyword.TryGetKeywordFromAllOfKeyword(out ExclusiveMaximumKeyword exclusiveMaximum))
+        if (allOfKeyword.TryGetKeywordFromSubSchemas(out ExclusiveMaximumKeyword exclusiveMaximum))
         {
-            restrictions.Add(exclusiveMaximum.Keyword(), new Restriction { Value = exclusiveMaximum.Value.ToString(CultureInfo.InvariantCulture) });
+            restrictions.AddRestrictionFromKeyword(exclusiveMaximum);
         }
 
-        if (allOfKeyword.TryGetKeywordFromAllOfKeyword(out ExclusiveMinimumKeyword exclusiveMinimum))
+        if (allOfKeyword.TryGetKeywordFromSubSchemas(out ExclusiveMinimumKeyword exclusiveMinimum))
         {
-            restrictions.Add(exclusiveMinimum.Keyword(), new Restriction { Value = exclusiveMinimum.Value.ToString(CultureInfo.InvariantCulture) });
+            restrictions.AddRestrictionFromKeyword(exclusiveMinimum);
         }
     }
 
-    private static bool TryGetKeywordFromAllOfKeyword<T>(this AllOfKeyword allOfKeyword, out T keyword)
+    private static bool TryGetKeywordFromSubSchemas<T>(this IJsonSchemaKeyword allOfKeyword, out T keyword)
         where T : IJsonSchemaKeyword
     {
         keyword = default;
         return allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<T>())
             ?.TryGetKeyword(out keyword) ?? false;
+    }
+
+    /// <summary>
+    /// Supported types for keywords are:
+    /// <see cref="MaxLengthKeyword"/>,
+    /// <see cref="PatternKeyword"/>,
+    /// <see cref="MinLengthKeyword"/>,
+    /// <see cref="MaximumKeyword"/>,
+    /// <see cref="MinimumKeyword"/>,
+    /// <see cref="ExclusiveMaximumKeyword"/>,
+    /// <see cref="ExclusiveMinimumKeyword"/>
+    /// </summary>
+    private static void AddRestrictionFromKeyword<T>(this IDictionary<string, Restriction> restrictions, T keyword)
+        where T : IJsonSchemaKeyword
+    {
+        var valueString = keyword switch
+        {
+            MaxLengthKeyword kw => kw.Value.ToString(),
+            PatternKeyword kw => kw.Value.ToString(),
+            MinLengthKeyword kw => kw.Value.ToString(),
+            MaximumKeyword kw => kw.Value.ToString(CultureInfo.CurrentCulture),
+            MinimumKeyword kw => kw.Value.ToString(CultureInfo.CurrentCulture),
+            ExclusiveMaximumKeyword kw => kw.Value.ToString(CultureInfo.CurrentCulture),
+            ExclusiveMinimumKeyword kw => kw.Value.ToString(CultureInfo.CurrentCulture),
+            _ => throw new Exception("Not supported keyword type")
+
+        };
+        restrictions.Add(keyword.Keyword(), new Restriction { Value = valueString });
     }
 }
