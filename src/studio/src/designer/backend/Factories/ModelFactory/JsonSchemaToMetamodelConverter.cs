@@ -709,20 +709,20 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 return;
             }
 
-            var maxLengthKeyword = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<MaxLengthKeyword>())?.GetKeyword<MaxLengthKeyword>();
-            if (maxLengthKeyword is not null)
+            if (allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<MaxLengthKeyword>())
+                    ?.TryGetKeyword(out MaxLengthKeyword maxLengthKeyword) ?? false)
             {
                 restrictions.Add(maxLengthKeyword.Keyword(), new Restriction() { Value = maxLengthKeyword.Value.ToString() });
             }
 
-            var patternKeyword = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<PatternKeyword>())?.GetKeyword<PatternKeyword>();
-            if (patternKeyword is not null)
+            if (allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<PatternKeyword>())
+                    ?.TryGetKeyword(out PatternKeyword patternKeyword) ?? false)
             {
                 restrictions.Add(patternKeyword.Keyword(), new Restriction() { Value = patternKeyword.Value.ToString() });
             }
 
-            var minLengthKeyword = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<MinLengthKeyword>())?.GetKeyword<MinLengthKeyword>();
-            if (minLengthKeyword is not null)
+            if (allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<MinLengthKeyword>())
+                    ?.TryGetKeyword(out MinLengthKeyword minLengthKeyword) ?? false)
             {
                 restrictions.Add(minLengthKeyword.Keyword(), new Restriction() { Value = minLengthKeyword.Value.ToString() });
             }
