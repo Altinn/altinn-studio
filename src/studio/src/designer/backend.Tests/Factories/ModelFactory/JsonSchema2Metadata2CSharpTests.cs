@@ -126,7 +126,8 @@ namespace Designer.Tests.Factories.ModelFactory
 
         [Theory]
         [InlineData("Designer.Tests._TestData.Model.Xsd.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd", "Altinn.App.Models.HvemErHvem_M", "{\"dataFormatProvider\":\"SERES\",\"dataFormatId\":\"5742\",\"dataFormatVersion\":\"34627\",\"Innrapportoer\":{\"geek\":{\"navn\":\"Ronny\",\"foedselsdato\":\"1971-11-02\",\"epost\":\"ronny.birkeli@gmail.com\"}},\"InnrapporterteData\":{\"geekType\":\"backend\",\"altinnErfaringAAr\":0}}", "<?xml version=\"1.0\"?><melding xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\" dataFormatProvider=\"SERES\" dataFormatId=\"5742\" dataFormatVersion=\"34627\"><Innrapportoer><geek><navn>Ronny</navn><foedselsdato>1971-11-02</foedselsdato><epost>ronny.birkeli@gmail.com</epost></geek></Innrapportoer><InnrapporterteData><geekType>backend</geekType><altinnErfaringAAr>0</altinnErfaringAAr></InnrapporterteData></melding>")]
-        public void XSD_ConvertToCSharp_NewAndOldShouldResultInSameCSharp(string xsdResource, string modelName, string jsonModel, string xmlModel)
+        [InlineData("Designer.Tests._TestData.Model.Xsd.ReferenceArray.xsd", "Altinn.App.Models.Skjema", "{\"melding\":{\"name\":\"testName\",\"tags \":\"testTags\",\"simple_list\":{\"simple_keyvalues\":[{\"key\":\"test\",\"doubleValue\":2.1,\"intValue\":2},{\"key\":\"test2\",\"doubleValue\":3.1,\"intValue\":3}]},\"toggle\":true}}", "<?xml version=\"1.0\"?><Skjema xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema\"><melding><name>testName</name><simple_list><simple_keyvalues><key>test</key><doubleValue>2.1</doubleValue><intValue>2</intValue></simple_keyvalues><simple_keyvalues><key>test2</key><doubleValue>3.1</doubleValue><intValue>3</intValue></simple_keyvalues></simple_list><toggle>true</toggle></melding></Skjema>", "Skjema")]
+        public void XSD_ConvertToCSharp_NewAndOldShouldResultInSameCSharp(string xsdResource, string modelName, string jsonModel, string xmlModel, string newModelName = "melding")
         {
             // Preparing objects using old classes and metadata.
             Given.That.JsonSchemaKeywordsRegistered()
@@ -145,7 +146,8 @@ namespace Designer.Tests.Factories.ModelFactory
                     xsdResource,
                     modelName,
                     jsonModel,
-                    xmlModel)
+                    xmlModel,
+                    newModelName)
                 .Then.JsonObjectShouldBeEquivalentToExpected()
                 .And.XmlObjectShouldBeEquivalentToExpected()
                 .And.ExpectedJsonObjectShouldBeEquivalentToExpectedXmlObject();
@@ -153,7 +155,7 @@ namespace Designer.Tests.Factories.ModelFactory
 
         private static Assembly CreateCSharpInstanceNewWay(string xsdResource, string org, string app, string modelName)
         {
-            var modelMetadataNew = CreateMetamodelNewWay(xsdResource, org, app);
+            var modelMetadataNew = CreateMetamodelNewWay(xsdResource, org, app, modelName);
             var classesNewWay = GenerateCSharpClasses(modelMetadataNew);
             var assembly = Compiler.CompileToAssembly(classesNewWay);
 
@@ -181,7 +183,7 @@ namespace Designer.Tests.Factories.ModelFactory
         /// Parses the XSD, generates Json Schema and generates the meta model using
         /// the new classes.
         /// </summary>
-        private static ModelMetadata CreateMetamodelNewWay(string xsdResource, string org, string app)
+        private static ModelMetadata CreateMetamodelNewWay(string xsdResource, string org, string app, string modelName = "melding")
         {
             Stream xsdStream = TestDataHelper.LoadDataFromEmbeddedResource(xsdResource);
             XmlReader xmlReader = XmlReader.Create(xsdStream, new XmlReaderSettings { IgnoreWhitespace = true });
@@ -196,7 +198,7 @@ namespace Designer.Tests.Factories.ModelFactory
 
             var metamodelConverter = new JsonSchemaToMetamodelConverter(new SeresJsonSchemaAnalyzer());
 
-            ModelMetadata actualMetamodel = metamodelConverter.Convert("melding", convertedJsonSchemaString);
+            ModelMetadata actualMetamodel = metamodelConverter.Convert(modelName, convertedJsonSchemaString);
             return actualMetamodel;
         }
 
@@ -327,9 +329,9 @@ namespace Designer.Tests.Factories.ModelFactory
             return this;
         }
 
-        private JsonSchema2Metadata2CSharpTests ExpectedJsonAndXmlObjectCreatedNewWay(string org, string app, string xsdResource, string modelName, string jsonModel, string xmlModel)
+        private JsonSchema2Metadata2CSharpTests ExpectedJsonAndXmlObjectCreatedNewWay(string org, string app, string xsdResource, string modelName, string jsonModel, string xmlModel, string newModelName)
         {
-            var assemblyNew = CreateCSharpInstanceNewWay(xsdResource, org, app, modelName);
+            var assemblyNew = CreateCSharpInstanceNewWay(xsdResource, org, app, newModelName);
             var newType = assemblyNew.GetType(modelName);
             _expectedJsonObject = JsonSerializer.Deserialize(jsonModel, newType);
             _expectedXmlObject = SerializationHelper.Deserialize(xmlModel, newType);

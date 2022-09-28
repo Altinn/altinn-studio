@@ -304,6 +304,12 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             var singleSchema = itemsKeyword.SingleSchema;
             context.SchemaValueType = SchemaValueType.Array;
 
+            if (IsRefType(singleSchema))
+            {
+                ProcessRefType(singleSchema, context);
+                return;
+            }
+
             foreach (var keyword in singleSchema.Keywords)
             {
                 var keywordPath = path.Combine(JsonPointer.Parse($"/{keyword.Keyword()}"));
