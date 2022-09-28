@@ -720,6 +720,12 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             {
                 restrictions.Add(patternKeyword.Keyword(), new Restriction() { Value = patternKeyword.Value.ToString() });
             }
+
+            var minLengthKeyword = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<MinLengthKeyword>())?.GetKeyword<MinLengthKeyword>();
+            if (minLengthKeyword is not null)
+            {
+                restrictions.Add(minLengthKeyword.Keyword(), new Restriction() { Value = minLengthKeyword.Value.ToString() });
+            }
         }
 
         private static void AddEnumRestrictions(EnumKeyword enumKeyword, Dictionary<string, Restriction> restrictions)
