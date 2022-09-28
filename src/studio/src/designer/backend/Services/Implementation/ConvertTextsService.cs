@@ -53,7 +53,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     newTexts[text.Id] = newText;
                 }
 
-                await altinnAppGitRepository.SaveTextV2(languageCode, newTexts);
+                await altinnAppGitRepository.SaveTextsV2(languageCode, newTexts);
                 altinnAppGitRepository.DeleteFileByAbsolutePath(languageFile);
             }
         }
