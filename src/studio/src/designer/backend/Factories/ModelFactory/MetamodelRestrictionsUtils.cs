@@ -11,7 +11,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory;
 /// <summary>
 /// Metamodel restrictions helper
 /// </summary>
-public static class MetamodelRestrictionsHelper
+public static class MetamodelRestrictionsUtils
 {
     /// <summary>
     /// Getting restriction for given type from provided json Subschema.
