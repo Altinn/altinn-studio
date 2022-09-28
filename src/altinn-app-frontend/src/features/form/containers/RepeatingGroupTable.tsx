@@ -149,6 +149,9 @@ const useStyles = makeStyles({
     '&:hover': {
       background: 'unset !important',
     },
+    '& td': {
+      whiteSpace: 'normal',
+    },
   },
   editingRow: {
     backgroundColor: 'rgba(227, 247, 255, 0.5)',
@@ -503,11 +506,15 @@ export function RepeatingGroupTable({
                       {editIndex === index && (
                         <TableRow
                           key={`edit-container-${index}`}
-                          className={cn([classes.editContainerRow])}
+                          className={classes.editContainerRow}
                         >
                           <TableCell
                             style={{ padding: 0, borderBottom: 0 }}
-                            colSpan={componentTitles.length + 2}
+                            colSpan={
+                              hideDeleteButton
+                                ? componentTitles.length + 1
+                                : componentTitles.length + 2
+                            }
                           >
                             {renderRepeatingGroupsEditContainer()}
                           </TableCell>
