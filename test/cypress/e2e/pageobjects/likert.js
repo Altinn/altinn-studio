@@ -1,41 +1,51 @@
 export class Likert {
   constructor() {
-    this.requiredQuestion1 = /Hører skolen på elevenes forslag/i;
-    this.requiredQuestion2 = /Er dere elever med på å lage regler for hvordan dere skal ha det i klassen/i;
-    this.requiredQuestion3 = /De voksne på skolen synes det er viktig at vi elever er greie med hverandre/i;
+    this.requiredQuestions = [
+      'Hører skolen på elevenes forslag?',
+      'Er dere elever med på å lage regler for hvordan dere skal ha det i klassen/gruppa?',
+      'De voksne på skolen synes det er viktig at vi elever er greie med hverandre.',
+    ];
 
-    this.option1 = /Alltid/;
-    this.option2 = /nesten alltid/i;
-    this.option3 = /ofte/i;
+    this.optionalQuestions = ['Gjør du leksene dine?', 'Fungerer kalkulatoren din?', 'Er pulten din ryddig?'];
+
+    this.optionalTableTitle = 'Skolearbeid (Frivillig)';
+    this.requiredTableTitle = 'Medvirkning';
+
+    this.options = ['Alltid', 'Nesten alltid', 'Ofte', 'Noen ganger', 'Sjelden'];
   }
 
   selectRequiredRadios() {
-    cy.findByRole('table', { name: 'Medvirkning' }).within(() => {
-      cy.findByRole('radiogroup', { name: this.requiredQuestion1 }).within(() => {
-        cy.findByRole('radio', { name: this.option1 }).click();
-      });
-      cy.findByRole('radiogroup', {
-        name: this.requiredQuestion2,
-      }).within(() => {
-        cy.findByRole('radio', { name: this.option2 }).click();
-      });
-      cy.findByRole('radiogroup', {
-        name: this.requiredQuestion3,
-      }).within(() => {
-        cy.findByRole('radio', { name: this.option3 }).click();
+    cy.findByRole('table', { name: this.requiredTableTitle }).within(() => {
+      this.requiredQuestions.forEach((question, index) => {
+        this.selectRadio(question + '*', this.options[index]);
       });
     });
   }
 
   selectRequiredRadiosInMobile() {
-    cy.findByRole('radiogroup', { name: this.requiredQuestion1 }).within(() => {
-      cy.findByRole('radio', { name: this.option1 }).click();
+    this.requiredQuestions.forEach((question, index) => {
+      this.selectRadioInMobile(question + '*', this.options[index]);
     });
-    cy.findByRole('radiogroup', { name: this.requiredQuestion2 }).within(() => {
-      cy.findByRole('radio', { name: this.option2 }).click();
+  }
+
+  selectRadio(question, option) {
+    cy.findByRole('row', { name: question }).within(() => {
+      cy.findByRole('radio', { name: new RegExp(option) }).click();
     });
-    cy.findByRole('radiogroup', { name: this.requiredQuestion3 }).within(() => {
-      cy.findByRole('radio', { name: this.option3 }).click();
+  }
+
+  selectRadioInMobile(question, option) {
+    cy.findByRole('radiogroup', { name: question }).within(() => {
+      cy.findByRole('radio', { name: new RegExp(option) }).click();
+    });
+  }
+
+  assertOptionalLikertColumnHeaders() {
+    cy.findByRole('table', { name: this.optionalTableTitle }).within(() => {
+      cy.findByRole('columnheader', { name: 'Spørsmål' });
+      this.options.forEach((option) => {
+        cy.findByRole('columnheader', { name: option });
+      });
     });
   }
 }

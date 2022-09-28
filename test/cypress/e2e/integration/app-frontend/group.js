@@ -202,11 +202,16 @@ describe('Group', () => {
 
     cy.get(appFrontend.group.showGroupToContinue).find('input').check();
     cy.get(appFrontend.group.addNewItem).click();
+
     cy.get(appFrontend.group.saveMainGroup).click();
 
     cy.get(appFrontend.fieldValidationError.replace('field', 'currentValue-0'))
       .should('be.visible')
       .should('have.text', texts.requiredFieldFromValue);
+
+    cy.findByLabelText(/1\. Endre fra/i).type('123');
+    cy.get(appFrontend.group.saveMainGroup).click();
+
     cy.get(appFrontend.fieldValidationError.replace('field', 'newValue-0'))
       .should('be.visible')
       .should('have.text', texts.requiredFieldToValue);

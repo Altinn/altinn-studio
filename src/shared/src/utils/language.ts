@@ -108,10 +108,19 @@ export function getTextResourceByKey(
   if (!textResources) {
     return key;
   }
+
   const textResource = textResources.find(
     (resource: ITextResource) => resource.id === key,
   );
-  return textResource ? textResource.value : key;
+  if (!textResource) {
+    return key;
+  }
+  // Checks if this text resource is a reference to another text resource.
+  // This is a common case when using likert component
+  const resource =
+    textResources.find((resource) => resource.id === textResource.value) ||
+    textResource;
+  return resource.value;
 }
 
 /**

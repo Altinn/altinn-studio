@@ -45,10 +45,7 @@ const RadioGroupTableRow = ({
   const RenderLegend = legend;
   const rowLabelId = `row-label-${id}`;
   return (
-    <TableRow
-      role={'radiogroup'}
-      aria-labelledby={rowLabelId}
-    >
+    <TableRow aria-labelledby={rowLabelId}>
       <TableCell
         scope='row'
         id={rowLabelId}

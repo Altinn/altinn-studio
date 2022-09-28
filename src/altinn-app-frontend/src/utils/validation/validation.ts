@@ -23,10 +23,10 @@ import {
 import {
   createRepeatingGroupComponents,
   getRepeatingGroupStartStopIndex,
+  getVariableTextKeysForRepeatingGroupComponent,
   splitDashedKey,
 } from 'src/utils/formLayout';
 import { matchLayoutComponent, setupGroupComponents } from 'src/utils/layout';
-import { getTextResourceByKey } from 'src/utils/textResource';
 import type { IFormData } from 'src/features/form/data';
 import type {
   ILayout,
@@ -57,6 +57,7 @@ import type {
 import {
   getLanguageFromKey,
   getParsedLanguageFromKey,
+  getTextResourceByKey,
 } from 'altinn-shared/utils';
 import type { ILanguage } from 'altinn-shared/types';
 
@@ -438,8 +439,16 @@ export function validateEmptyField(
         warnings: [],
       };
 
+      const textResourceBindingsOrTextKeysForRepeatingGroups = groupDataBinding
+        ? getVariableTextKeysForRepeatingGroupComponent(
+            textResources,
+            textResourceBindings,
+            index,
+          )
+        : textResourceBindings;
+
       const fieldName = getFieldName(
-        textResourceBindings,
+        textResourceBindingsOrTextKeysForRepeatingGroups,
         textResources,
         language,
         fieldKey !== 'simpleBinding' ? fieldKey : undefined,

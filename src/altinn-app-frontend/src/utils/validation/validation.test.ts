@@ -6,7 +6,6 @@ import { getMockValidationState } from '__mocks__/validationStateMock';
 
 import { Severity } from 'src/types';
 import { createRepeatingGroupComponents } from 'src/utils/formLayout';
-import { getTextResourceByKey } from 'src/utils/textResource';
 import * as validation from 'src/utils/validation/validation';
 import type { ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
 import type {
@@ -20,7 +19,10 @@ import type {
   IValidations,
 } from 'src/types';
 
-import { getParsedLanguageFromKey } from 'altinn-shared/index';
+import {
+  getParsedLanguageFromKey,
+  getTextResourceByKey,
+} from 'altinn-shared/index';
 
 describe('utils > validation', () => {
   let mockLayout: any;

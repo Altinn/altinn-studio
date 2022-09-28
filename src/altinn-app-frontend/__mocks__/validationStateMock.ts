@@ -1,5 +1,5 @@
 import type { IValidations } from '../src/types';
-import { getTextResourceByKey } from '../src/utils/textResource';
+import { getTextResourceByKey } from 'altinn-shared/utils';
 
 export function getMockValidationState(withFixed = false): IValidations {
   const fixed = withFixed ? [] : undefined;

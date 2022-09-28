@@ -24,6 +24,26 @@ describe('GroupContainer', () => {
       validateTableLayout(defaultMockQuestions);
     });
 
+    it('should render title, description and left column header', () => {
+      render({
+        likertContainerProps: {
+          textResourceBindings: {
+            title: 'Test title',
+            description: 'Test description',
+            leftColumnHeader: 'Test left column header',
+          },
+        },
+      });
+      expect(screen.getByText('Test title')).toBeInTheDocument();
+      expect(
+        screen.getByRole('table', { name: 'Test title' }),
+      ).toBeInTheDocument();
+      expect(screen.getByText('Test description')).toBeInTheDocument();
+      expect(
+        screen.getByRole('columnheader', { name: 'Test left column header' }),
+      ).toBeInTheDocument();
+    });
+
     it('should render table with one selected row', () => {
       const questions = questionsWithAnswers({
         questions: defaultMockQuestions,
@@ -101,14 +121,14 @@ describe('GroupContainer', () => {
       const { mockStoreDispatch } = render();
       validateTableLayout(defaultMockQuestions);
 
-      const rad1 = screen.getByRole('radiogroup', {
+      const rad1 = screen.getByRole('row', {
         name: /Hvordan trives du på skolen/i,
       });
       const btn1 = within(rad1).getByRole('radio', {
         name: /Bra/i,
       });
 
-      const rad2 = screen.getByRole('radiogroup', {
+      const rad2 = screen.getByRole('row', {
         name: /Har du det bra/i,
       });
 
@@ -201,7 +221,7 @@ describe('GroupContainer', () => {
 
     it('should render mobile view and click radiobuttons', async () => {
       const { mockStoreDispatch } = render({ mobileView: true });
-      validateRadioLayout(defaultMockQuestions);
+      validateRadioLayout(defaultMockQuestions, true);
       const rad1 = screen.getByRole('radiogroup', {
         name: /Hvordan trives du på skolen/i,
       });
@@ -238,7 +258,7 @@ describe('GroupContainer', () => {
       });
 
       render({ mockQuestions: questions, mobileView: true });
-      validateRadioLayout(questions);
+      validateRadioLayout(questions, true);
 
       // Validate that radio is selected
       const selectedRow = screen.getByRole('radiogroup', {
@@ -273,7 +293,7 @@ describe('GroupContainer', () => {
         },
       });
 
-      validateRadioLayout(defaultMockQuestions.slice(1, 3));
+      validateRadioLayout(defaultMockQuestions.slice(1, 3), true);
     });
   });
 });
