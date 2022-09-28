@@ -1,14 +1,9 @@
-import React from 'react';
+import React, { ChangeEvent, MouseEvent, SyntheticEvent, useEffect, useState } from 'react';
 import { makeStyles } from '@material-ui/core/styles';
-import { ArrowDropDown, ArrowRight } from '@material-ui/icons';
-import { TabContext, TabList, TabPanel, TreeView } from '@material-ui/lab';
+import { TabContext, TabList, TabPanel } from '@material-ui/lab';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppBar, Button, Typography } from '@material-ui/core';
-import {
-  AltinnMenu,
-  AltinnMenuItem,
-  AltinnSpinner,
-} from 'app-shared/components';
+import { AltinnMenu, AltinnMenuItem, AltinnSpinner } from 'app-shared/components';
 import type { ILanguage, ISchema, ISchemaState, UiSchemaItem } from '../types';
 import { CombinationKind, FieldType } from '../types';
 import { ObjectKind } from '../types/enums';
@@ -20,20 +15,16 @@ import {
   setUiSchema,
   updateJsonSchema,
 } from '../features/editor/schemaEditorSlice';
-import { SchemaItem } from './SchemaItem';
 import { getTranslation } from '../utils/language';
-import {
-  getDomFriendlyID,
-  getSchemaFromPath,
-  getUiSchemaItem,
-  splitParentPathAndName,
-} from '../utils/schema';
+import { getSchemaFromPath, getUiSchemaItem, splitParentPathAndName } from '../utils/schema';
 import { SchemaInspector } from './SchemaInspector';
-import { SchemaTab } from './SchemaTab';
+import { SchemaTab } from './common/SchemaTab';
 import { TopToolbar } from './TopToolbar';
 import { getSchemaSettings } from '../settings';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { isNameInUse } from '../utils/checks';
+import { SchemaTreeView } from './TreeView/SchemaTreeView';
+import { createRefSelector } from './TreeView/tree-view-helpers';
 
 const useStyles = makeStyles({
   root: {
@@ -47,7 +38,7 @@ const useStyles = makeStyles({
       flexDirection: 'row',
       flexGrow: 1,
       alignItems: 'stretch',
-      minHeight: 0
+      minHeight: 0,
     },
   },
   editor: {
@@ -56,13 +47,14 @@ const useStyles = makeStyles({
     flexGrow: 1,
     height: '100%',
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
   },
   appBar: {
     borderBottom: '1px solid #C9C9C9',
     boxShadow: 'none',
     backgroundColor: '#fff',
     color: '#000',
+    paddingLeft: 12,
     '& .Mui-Selected': {
       color: '#6A6A6A',
     },
@@ -70,35 +62,14 @@ const useStyles = makeStyles({
       backgroundColor: '#006BD8',
     },
   },
-  tab: {
-    minWidth: 70,
-  },
   tabPanel: {
     overflowY: 'scroll',
-    flexGrow: 1
-  },
-  treeItem: {
-    marginLeft: 8,
-    '&.Mui-selected': {
-      background: '#E3F7FF',
-      border: '1px solid #006BD8',
-      boxSizing: 'border-box',
-      borderRadius: '5px',
-    },
-    '&.Mui-selected > .MuiTreeItem-content .MuiTreeItem-label, .MuiTreeItem-root.Mui-selected:focus > .MuiTreeItem-content .MuiTreeItem-label':
-      {
-        backgroundColor: 'transparent',
-      },
-  },
-  treeView: {
     flexGrow: 1,
-    overflow: 'auto',
   },
   inspector: {
-    background: 'white',
-    borderLeft: '1px solid #C9C9C9',
     overflowX: 'clip',
     overflowY: 'auto',
+    backgroundColor: '#F7F7F7'
   },
   addButton: {
     border: '1px dashed rgba(0, 0, 0, 1)',
@@ -112,7 +83,6 @@ const useStyles = makeStyles({
       fontSize: '24px',
     },
     marginBottom: '12px',
-    marginLeft: '8px',
   },
   startIcon: {
     marginRight: '0px',
@@ -121,6 +91,7 @@ const useStyles = makeStyles({
 
 export interface IEditorProps {
   Toolbar: JSX.Element;
+  LandingPagePanel: JSX.Element;
   language: ILanguage;
   loading?: boolean;
   name?: string;
@@ -129,73 +100,65 @@ export interface IEditorProps {
 }
 
 export const SchemaEditor = (props: IEditorProps) => {
-  const { Toolbar, loading, schema, onSaveSchema, name, language } = props;
+  const { Toolbar, LandingPagePanel, loading, schema, onSaveSchema, name, language } = props;
 
   const classes = useStyles();
   const dispatch = useDispatch();
+
   const jsonSchema = useSelector((state: ISchemaState) => state.schema);
-  const selectedPropertyNode = useSelector(
-    (state: ISchemaState) => state.selectedPropertyNodeId,
-  );
-  const selectedDefinitionNode = useSelector(
-    (state: ISchemaState) => state.selectedDefinitionNodeId,
-  );
+  const selectedPropertyNode = useSelector((state: ISchemaState) => state.selectedPropertyNodeId);
+  const selectedDefinitionNode = useSelector((state: ISchemaState) => state.selectedDefinitionNodeId);
 
   const schemaSettings = getSchemaSettings({ schemaUrl: jsonSchema?.$schema });
   const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
-  const definitions = uiSchema.filter((d: UiSchemaItem) =>
-    d.path.startsWith(`${schemaSettings.definitionsPath}/`),
-  );
+  const definitions = uiSchema.filter((d: UiSchemaItem) => d.path.startsWith(`${schemaSettings.definitionsPath}/`));
   const modelView = uiSchema.filter((d: UiSchemaItem) => {
+    if (d.path.startsWith(schemaSettings.propertiesPath)) {
+      return true;
+    }
+
     if (schemaSettings.rootNodePath !== '#/oneOf') {
       return d.path.startsWith(schemaSettings.rootNodePath);
     }
-    const modelsArray = getSchemaFromPath(
-      schemaSettings.rootNodePath.slice(1),
-      jsonSchema,
-    );
+    const modelsArray = getSchemaFromPath(schemaSettings.rootNodePath.slice(1), jsonSchema);
     if (modelsArray && Array.isArray(modelsArray)) {
       return modelsArray.find((m) => m.$ref === d.path);
     }
     return false;
   });
 
-  const selectedTab: string = useSelector(
-    (state: ISchemaState) => state.selectedEditorTab,
-  );
-  const [expandedPropertiesNodes, setExpandedPropertiesNodes] = React.useState<
-    string[]
-  >([]);
-  const [expandedDefinitionsNodes, setExpandedDefinitionsNodes] =
-    React.useState<string[]>([]);
-  const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | Element>(null);
+  const selectedTab: string = useSelector((state: ISchemaState) => state.selectedEditorTab);
+  const [expandedPropertiesNodes, setExpandedPropertiesNodes] = useState<string[]>([]);
+  const [expandedDefinitionsNodes, setExpandedDefinitionsNodes] = useState<string[]>([]);
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | Element>(null);
+  const [editMode, setEditMode] = useState(false);
 
   const saveSchema = () => {
     dispatch(updateJsonSchema({ onSaveSchema }));
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (name) {
       dispatch(setSchemaName({ name }));
     }
   }, [dispatch, name]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (jsonSchema && name) {
       dispatch(setUiSchema({ name }));
     }
   }, [dispatch, jsonSchema, name]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     dispatch(setJsonSchema({ schema }));
   }, [dispatch, schema]);
 
-  const openMenu = (e: React.MouseEvent) => {
+  const openMenu = (e: MouseEvent) => {
     e.stopPropagation();
     setMenuAnchorEl(e.currentTarget);
   };
 
-  const closeMenu = (e: React.SyntheticEvent) => {
+  const closeMenu = (e: SyntheticEvent) => {
     e.stopPropagation();
     setMenuAnchorEl(null);
   };
@@ -204,25 +167,26 @@ export const SchemaEditor = (props: IEditorProps) => {
     dispatch(
       addRootItem({
         name: 'name',
-        location: 'properties',
+        location: schemaSettings.propertiesPath,
         props: {
           type: type === ObjectKind.Field ? FieldType.Object : undefined,
           $ref: type === ObjectKind.Reference ? '' : undefined,
           combination: type === ObjectKind.Combination ? [] : undefined,
-          combinationKind:
-            type === ObjectKind.Combination ? CombinationKind.AllOf : undefined,
+          combinationKind: type === ObjectKind.Combination ? CombinationKind.AllOf : undefined,
         },
       }),
     );
     setMenuAnchorEl(null);
   };
 
-  const handleAddDefinition = (e: React.MouseEvent) => {
+  const toggleEditMode = () => setEditMode((prevState) => !prevState);
+
+  const handleAddDefinition = (e: MouseEvent) => {
     e.stopPropagation();
     dispatch(
       addRootItem({
         name: 'name',
-        location: 'definitions',
+        location: schemaSettings.definitionsPath,
         props: {
           type: FieldType.Object,
         },
@@ -230,36 +194,23 @@ export const SchemaEditor = (props: IEditorProps) => {
     );
   };
 
-  const handlePropertiesNodeExpanded = (
-    _x: React.ChangeEvent<unknown>,
-    nodeIds: string[],
-  ) => {
+  const handlePropertiesNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) => {
     setExpandedPropertiesNodes(nodeIds);
   };
 
-  const handleDefinitionsNodeExpanded = (
-    _x: React.ChangeEvent<unknown>,
-    nodeIds: string[],
-  ) => {
+  const handleDefinitionsNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) => {
     setExpandedDefinitionsNodes(nodeIds);
   };
 
-  const handleTabChanged = (
-    _x: React.ChangeEvent<unknown>,
-    value: 'definitions' | 'properties',
-  ) => {
+  const handleTabChanged = (_x: ChangeEvent<unknown>, value: 'definitions' | 'properties') => {
     dispatch(setSelectedTab({ selectedTab: value }));
   };
   const loadingIndicator = loading ? (
-    <AltinnSpinner
-      spinnerText={getLanguageFromKey('general.loading', language)}
-    />
+    <AltinnSpinner spinnerText={getLanguageFromKey('general.loading', language)} />
   ) : null;
 
   const selectedId = useSelector((state: ISchemaState) =>
-    state.selectedEditorTab === 'properties'
-      ? state.selectedPropertyNodeId
-      : state.selectedDefinitionNodeId,
+    state.selectedEditorTab === 'properties' ? state.selectedPropertyNodeId : state.selectedDefinitionNodeId,
   );
 
   const selectedItem = useSelector((state: ISchemaState) =>
@@ -267,11 +218,7 @@ export const SchemaEditor = (props: IEditorProps) => {
   );
 
   // if item is a reference, we want to show the properties of the reference.
-  const referredItem = useSelector((state: ISchemaState) =>
-    selectedItem?.$ref
-      ? state.uiSchema.find((i: UiSchemaItem) => i.path === selectedItem.$ref)
-      : null,
-  );
+  const referredItem = useSelector(createRefSelector(selectedItem?.$ref));
 
   const parentItem = useSelector((state: ISchemaState) => {
     if (selectedId) {
@@ -290,112 +237,73 @@ export const SchemaEditor = (props: IEditorProps) => {
       path: selectedId,
       name,
     });
+  const t = (key: string) => getTranslation(key, language);
   return (
     <div className={classes.root}>
       <TopToolbar
         Toolbar={Toolbar}
         language={language}
         saveAction={name ? saveSchema : undefined}
+        toggleEditMode={name ? toggleEditMode : undefined}
+        editMode={editMode}
       />
       <main>
+        {LandingPagePanel}
         {name && schema ? (
-          <div
-            data-testid='schema-editor'
-            id='schema-editor'
-            className={classes.editor}
-          >
+          <div data-testid='schema-editor' id='schema-editor' className={classes.editor}>
             <TabContext value={selectedTab}>
-              <AppBar
-                position='static'
-                color='default'
-                className={classes.appBar}
-              >
+              <AppBar position='static' color='default' className={classes.appBar}>
                 <TabList onChange={handleTabChanged} aria-label='model-tabs'>
-                  <SchemaTab
-                    label='model'
-                    language={language}
-                    value='properties'
-                  />
-                  <SchemaTab
-                    label='types'
-                    language={language}
-                    value='definitions'
-                  />
+                  <SchemaTab label={t('model')} value='properties' />
+                  <SchemaTab label={t('types')} value='definitions' />
                 </TabList>
               </AppBar>
               <TabPanel className={classes.tabPanel} value='properties'>
-                <Button
-                  endIcon={<i className='fa fa-drop-down' />}
-                  onClick={openMenu}
-                  className={classes.addButton}
-                  id='add-button'
-                >
-                  <Typography variant='body1'>
-                    {getTranslation('add', language)}
-                  </Typography>
-                </Button>
-                <TreeView
-                  className={classes.treeView}
-                  multiSelect={false}
-                  selected={getDomFriendlyID(selectedPropertyNode)}
-                  defaultCollapseIcon={<ArrowDropDown />}
-                  defaultExpandIcon={<ArrowRight />}
+                {editMode && (
+                  <Button
+                    endIcon={<i className='fa fa-drop-down' />}
+                    onClick={openMenu}
+                    className={classes.addButton}
+                    id='add-button'
+                  >
+                    <Typography variant='body1'>{t('add')}</Typography>
+                  </Button>
+                )}
+                <SchemaTreeView
+                  editMode={editMode}
                   expanded={expandedPropertiesNodes}
+                  items={modelView}
+                  translate={t}
                   onNodeToggle={handlePropertiesNodeExpanded}
-                >
-                  {modelView?.map((item: UiSchemaItem) => (
-                    <SchemaItem
-                      keyPrefix='properties'
-                      key={item.path}
-                      item={item}
-                      nodeId={getDomFriendlyID(item.path)}
-                      id={getDomFriendlyID(item.path)}
-                      language={language}
-                      isPropertiesView={true}
-                    />
-                  ))}
-                </TreeView>
+                  selectedNode={selectedPropertyNode}
+                />
               </TabPanel>
               <TabPanel className={classes.tabPanel} value='definitions'>
-                <Button
-                  startIcon={<i className='fa fa-plus' />}
-                  onClick={handleAddDefinition}
-                  className={classes.addButton}
-                  classes={{
-                    startIcon: classes.startIcon,
-                  }}
-                >
-                  <Typography variant='body1'>
-                    {getTranslation('add_element', language)}
-                  </Typography>
-                </Button>
-                <TreeView
-                  className={classes.treeView}
-                  multiSelect={false}
-                  selected={getDomFriendlyID(selectedDefinitionNode)}
-                  defaultCollapseIcon={<ArrowDropDown />}
-                  defaultExpandIcon={<ArrowRight />}
+                {editMode && (
+                  <Button
+                    startIcon={<i className='fa fa-plus' />}
+                    onClick={handleAddDefinition}
+                    className={classes.addButton}
+                    classes={{ startIcon: classes.startIcon }}
+                  >
+                    <Typography variant='body1'>{t('add_element')}</Typography>
+                  </Button>
+                )}
+                <SchemaTreeView
+                  editMode={editMode}
                   expanded={expandedDefinitionsNodes}
+                  items={definitions}
+                  translate={t}
                   onNodeToggle={handleDefinitionsNodeExpanded}
-                >
-                  {definitions.map((def) => (
-                    <SchemaItem
-                      keyPrefix='definitions'
-                      item={def}
-                      key={def.path}
-                      nodeId={getDomFriendlyID(def.path)}
-                      id={getDomFriendlyID(def.path)}
-                      language={language}
-                    />
-                  ))}
-                </TreeView>
+                  selectedNode={selectedDefinitionNode}
+                />
               </TabPanel>
             </TabContext>
           </div>
         ) : (
           loadingIndicator
         )}
-        {schema && (
+        {schema && editMode && (
           <aside className={classes.inspector}>
             <SchemaInspector
               language={language}
@@ -406,26 +314,22 @@ export const SchemaEditor = (props: IEditorProps) => {
           </aside>
         )}
       </main>
-      <AltinnMenu
-        anchorEl={menuAnchorEl}
-        open={Boolean(menuAnchorEl)}
-        onClose={closeMenu}
-      >
+      <AltinnMenu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={closeMenu}>
         <AltinnMenuItem
           onClick={() => handleAddProperty(ObjectKind.Field)}
-          text={getTranslation('field', language)}
+          text={t('field')}
           iconClass='fa fa-datamodel-properties'
           id='add-field-button'
         />
         <AltinnMenuItem
           onClick={() => handleAddProperty(ObjectKind.Reference)}
-          text={getTranslation('reference', language)}
+          text={t('reference')}
           iconClass='fa fa-datamodel-ref'
           id='add-reference-button'
         />
         <AltinnMenuItem
           onClick={() => handleAddProperty(ObjectKind.Combination)}
-          text={getTranslation('combination', language)}
+          text={t('combination')}
           iconClass='fa fa-group'
           id='add-combination-button'
         />

@@ -3,7 +3,6 @@ import { ClassNameMap } from '@material-ui/core/styles/withStyles';
 import { FieldType, UiSchemaItem } from '../../types';
 import { ObjectKind } from '../../types/enums';
 import { RefSelect } from './RefSelect';
-import { Label } from './Label';
 
 export interface IReferenceSelectionProps {
   arrayType: string | FieldType | undefined;
@@ -34,7 +33,7 @@ export function ReferenceSelectionComponent({
 
   return (
     <div>
-      <Label>{label}</Label>
+      <label htmlFor={selectedItem.path}>{label}</label>
       {selectedItem.type === FieldType.Array ? (
         <RefSelect id={selectedItem.path} value={arrayType ?? ''} onChange={onChangeArrayType} fullWidth={true} />
       ) : (

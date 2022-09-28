@@ -122,6 +122,7 @@ __metadata:
     del: 6.1.1
     gulp: 4.0.2
     gulp-run-command: 0.0.10
+    gulp-string-replace: ^1.1.2
     jquery: 3.6.1
     jquery-ui-dist: 1.13.2
     jquery-validation: 1.19.5
@@ -168,6 +169,15 @@ __metadata:
   version: 5.0.1
   resolution: "ansi-regex@npm:5.0.1"
   checksum: 2aa4bb54caf2d622f1afdad09441695af2a83aa3fe8b8afa581d205e57ed4261c183c4d3877cee25794443fde5876417d859c108078ab788d6af7e4fe52eb66b
+  languageName: node
+  linkType: hard
+
+"ansi-styles@npm:^3.2.1":
+  version: 3.2.1
+  resolution: "ansi-styles@npm:3.2.1"
+  dependencies:
+    color-convert: ^1.9.0
+  checksum: d85ade01c10e5dd77b6c89f34ed7531da5830d2cb5882c645f330079975b716438cd7ebb81d0d6e6b4f9c577f19ae41ab55f07f19786b02f9dfd9e0377395665
   languageName: node
   linkType: hard
 
@@ -602,6 +612,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"chalk@npm:^2.4.1":
+  version: 2.4.2
+  resolution: "chalk@npm:2.4.2"
+  dependencies:
+    ansi-styles: ^3.2.1
+    escape-string-regexp: ^1.0.5
+    supports-color: ^5.3.0
+  checksum: ec3661d38fe77f681200f878edbd9448821924e0f93a9cefc0e26a33b145f1027a2084bf19967160d11e1f03bfe4eaffcabf5493b89098b2782c3fe0b03d80c2
+  languageName: node
+  linkType: hard
+
 "chokidar@npm:3.5.3":
   version: 3.5.3
   resolution: "chokidar@npm:3.5.3"
@@ -738,6 +759,22 @@ __metadata:
     map-visit: ^1.0.0
     object-visit: ^1.0.0
   checksum: 15d9658fe6eb23594728346adad5433b86bb7a04fd51bbab337755158722f9313a5376ef479de5b35fbc54140764d0d39de89c339f5d25b959ed221466981da9
+  languageName: node
+  linkType: hard
+
+"color-convert@npm:^1.9.0":
+  version: 1.9.3
+  resolution: "color-convert@npm:1.9.3"
+  dependencies:
+    color-name: 1.1.3
+  checksum: fd7a64a17cde98fb923b1dd05c5f2e6f7aefda1b60d67e8d449f9328b4e53b228a428fd38bfeaeb2db2ff6b6503a776a996150b80cdf224062af08a5c8a3a203
+  languageName: node
+  linkType: hard
+
+"color-name@npm:1.1.3":
+  version: 1.1.3
+  resolution: "color-name@npm:1.1.3"
+  checksum: 09c5d3e33d2105850153b14466501f2bfb30324a2f76568a408763a3b7433b0e50e5b4ab1947868e65cb101bb7cb75029553f2c333b6d4b8138a73fcc133d69d
   languageName: node
   linkType: hard
 
@@ -1145,6 +1182,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"escape-string-regexp@npm:^1.0.3, escape-string-regexp@npm:^1.0.5":
+  version: 1.0.5
+  resolution: "escape-string-regexp@npm:1.0.5"
+  checksum: 6092fda75c63b110c706b6a9bfde8a612ad595b628f0bd2147eea1d3406723020810e591effc7db1da91d80a71a737a313567c5abb3813e8d9c71f4aa595b410
+  languageName: node
+  linkType: hard
+
 "expand-brackets@npm:^2.1.4":
   version: 2.1.4
   resolution: "expand-brackets@npm:2.1.4"
@@ -1197,7 +1241,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"extend@npm:^3.0.0":
+"extend@npm:^3.0.0, extend@npm:^3.0.1":
   version: 3.0.2
   resolution: "extend@npm:3.0.2"
   checksum: a50a8309ca65ea5d426382ff09f33586527882cf532931cb08ca786ea3146c0553310bda688710ff61d7668eba9f96b923fe1420cdf56a2c3eaf30fcab87b515
@@ -1666,6 +1710,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"gulp-string-replace@npm:^1.1.2":
+  version: 1.1.2
+  resolution: "gulp-string-replace@npm:1.1.2"
+  dependencies:
+    chalk: ^2.4.1
+    extend: ^3.0.1
+    fancy-log: ^1.3.2
+    plugin-error: ^1.0.1
+    replacestream: ^4.0.3
+    through2: ^2.0.3
+  checksum: 2b301a73b443385f65b420e0ae2789f9a06f0da1ecc95ffac56170e24b8a992c255ad5618641b063b5ec1e4637a8efd0e1644301a9f05c2f2b9b8a8edab64861
+  languageName: node
+  linkType: hard
+
 "gulp@npm:4.0.2":
   version: 4.0.2
   resolution: "gulp@npm:4.0.2"
@@ -1686,6 +1744,13 @@ __metadata:
   dependencies:
     glogg: ^1.0.0
   checksum: 6732ae5440857e34b9ae910dc4389d6c16b3f0166277d03ac04a6c6239a138ce4f1c0e0534bdfed077e67d6c3fe3ea05bfd20f09ca0ed97ef138edbe0840afa7
+  languageName: node
+  linkType: hard
+
+"has-flag@npm:^3.0.0":
+  version: 3.0.0
+  resolution: "has-flag@npm:3.0.0"
+  checksum: 4a15638b454bf086c8148979aae044dd6e39d63904cd452d970374fa6a87623423da485dfb814e7be882e05c096a7ccf1ebd48e7e7501d0208d8384ff4dea73b
   languageName: node
   linkType: hard
 
@@ -2774,6 +2839,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"object-assign@npm:^4.0.1":
+  version: 4.1.1
+  resolution: "object-assign@npm:4.1.1"
+  checksum: fcc6e4ea8c7fe48abfbb552578b1c53e0d194086e2e6bbbf59e0a536381a292f39943c6e9628af05b5528aa5e3318bb30d6b2e53cadaf5b8fe9e12c4b69af23f
+  languageName: node
+  linkType: hard
+
 "object-copy@npm:^0.1.0":
   version: 0.1.0
   resolution: "object-copy@npm:0.1.0"
@@ -3032,6 +3104,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"plugin-error@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "plugin-error@npm:1.0.1"
+  dependencies:
+    ansi-colors: ^1.0.1
+    arr-diff: ^4.0.0
+    arr-union: ^3.1.0
+    extend-shallow: ^3.0.2
+  checksum: 5cacd34372b909f07125829c2876707f4add64dcdf0dd8bd23d7ceac70eeb961c038a9707a998cc498bf8d478cc81f8d85b82584313926fe61a8fa294f79f3e4
+  languageName: node
+  linkType: hard
+
 "popper.js@npm:1.16.1":
   version: 1.16.1
   resolution: "popper.js@npm:1.16.1"
@@ -3269,6 +3353,17 @@ __metadata:
     is-absolute: ^1.0.0
     remove-trailing-separator: ^1.1.0
   checksum: a330e7c4fda2ba7978472dcaf9ee9129755ca0d704f903b4fc5f0384170f74fdaf1b3f10977ec3fc910cb992f90896c17c8e44d0de327cb9f01ee9bb7eed8d24
+  languageName: node
+  linkType: hard
+
+"replacestream@npm:^4.0.3":
+  version: 4.0.3
+  resolution: "replacestream@npm:4.0.3"
+  dependencies:
+    escape-string-regexp: ^1.0.3
+    object-assign: ^4.0.1
+    readable-stream: ^2.0.2
+  checksum: ab9a48193eed4f30e24a659ed59235d96b0244b0b9e1dda0765483ea4d02f942172323ddb74395e82c1d03d2cbff983c6f72283d9d7184d0568943f8722411f1
   languageName: node
   linkType: hard
 
@@ -3780,6 +3875,15 @@ __metadata:
   dependencies:
     is-utf8: ^0.2.0
   checksum: 08efb746bc67b10814cd03d79eb31bac633393a782e3f35efbc1b61b5165d3806d03332a97f362822cf0d4dd14ba2e12707fcff44fe1c870c48a063a0c9e4944
+  languageName: node
+  linkType: hard
+
+"supports-color@npm:^5.3.0":
+  version: 5.5.0
+  resolution: "supports-color@npm:5.5.0"
+  dependencies:
+    has-flag: ^3.0.0
+  checksum: 95f6f4ba5afdf92f495b5a912d4abee8dcba766ae719b975c56c084f5004845f6f5a5f7769f52d53f40e21952a6d87411bafe34af4a01e65f9926002e38e1dac
   languageName: node
   linkType: hard
 

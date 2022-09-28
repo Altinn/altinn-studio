@@ -14,6 +14,7 @@ COPY ./src/designer/frontend/app-development/package.json ./app-development/
 COPY ./src/designer/frontend/ux-editor/package.json ./ux-editor/
 COPY ./src/designer/frontend/dashboard/package.json ./dashboard/
 COPY ./src/designer/frontend/packages/schema-editor/package.json ./packages/schema-editor/
+COPY ./src/designer/frontend/packages/schema-model/package.json ./packages/schema-model/
 
 RUN corepack enable
 RUN yarn --immutable
@@ -24,6 +25,7 @@ COPY ./src/designer/frontend/app-development/ ./app-development/
 COPY ./src/designer/frontend/ux-editor ./ux-editor/
 COPY ./src/designer/frontend/dashboard/ ./dashboard/
 COPY ./src/designer/frontend/packages/schema-editor/ ./packages/schema-editor/
+COPY ./src/designer/frontend/packages/schema-model/ ./packages/schema-model/
 
 # Build app-development
 RUN yarn workspace app-development run build
@@ -58,7 +60,7 @@ RUN yarn --immutable
 COPY src/designer/backend .
 RUN yarn run gulp build
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0.400-1-alpine3.16 AS build
+FROM mcr.microsoft.com/dotnet/sdk:6.0.401-alpine3.16 AS build
 WORKDIR /build
 COPY src/designer/Designer.sln ./
 COPY src/designer/backend ./designer/
@@ -70,7 +72,7 @@ RUN dotnet publish designer/Designer.csproj -c Release -o /app_output
 RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
 
 
-FROM mcr.microsoft.com/dotnet/aspnet:6.0.8-alpine3.16 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:6.0.9-alpine3.16 AS final
 EXPOSE 80
 WORKDIR /app
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \

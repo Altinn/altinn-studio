@@ -188,19 +188,19 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Overwrite a V2 text file with an updated V2 text file
+        /// Overwrite a V2 texts file with an updated V2 texts file
         /// </summary>
         /// <param name="languageCode">Language identifier</param>
-        /// <param name="jsonText">Text file for language as string</param>
-        public async Task SaveTextV2(string languageCode, Dictionary<string, string> jsonText)
+        /// <param name="jsonTexts">Text file for language as string</param>
+        public async Task SaveTextsV2(string languageCode, Dictionary<string, string> jsonTexts)
         {
-            string fileName = $"text.{languageCode}.json";
+            string fileName = $"{languageCode}.texts.json";
 
-            var textFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
+            var textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
 
-            string text = System.Text.Json.JsonSerializer.Serialize(jsonText);
+            string texts = System.Text.Json.JsonSerializer.Serialize(jsonTexts);
 
-            await WriteTextByRelativePathAsync(textFileRelativeFilePath, text);
+            await WriteTextByRelativePathAsync(textsFileRelativeFilePath, texts);
         }
 
         /// <summary>
@@ -267,16 +267,31 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// identified by the languageCode in filename.
         /// </summary>
         /// <param name="languageCode">Language identifier</param>
-        /// <returns>Text as a string</returns>
-        public async Task<string> GetTextV2(string languageCode)
+        /// <returns>Texts as a string</returns>
+        public async Task<Dictionary<string, string>> GetTextsV2(string languageCode)
         {
-            string fileName = $"text.{languageCode}.json";
+            string fileName = $"{languageCode}.texts.json";
 
-            var textFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
+            var textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
 
-            string text = await ReadTextByRelativePathAsync(textFileRelativeFilePath);
+            string texts = await ReadTextByRelativePathAsync(textsFileRelativeFilePath);
 
-            return text;
+            Dictionary<string, string> jsonTexts = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(texts);
+
+            return jsonTexts;
+        }
+
+        /// <summary>
+        /// Deletes the texts file for a specific languageCode.
+        /// </summary>
+        /// <param name="languageCode">Language identifier</param>
+        public void DeleteTexts(string languageCode)
+        {
+            string fileName = $"{languageCode}.texts.json";
+
+            var textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
+
+            DeleteFileByRelativePath(textsFileRelativeFilePath);
         }
 
         /// <summary>

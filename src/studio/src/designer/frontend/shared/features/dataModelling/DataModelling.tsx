@@ -1,5 +1,6 @@
 import React from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
+import { Button, ButtonVariant, Panel } from '@altinn/altinn-design-system';
 import { SchemaEditorApp } from '@altinn/schema-editor/index';
 import type { ILanguage } from '@altinn/schema-editor/types';
 import {
@@ -14,51 +15,9 @@ import findPreferredMetadataOption from './functions/findPreferredMetadataOption
 import schemaPathIsSame from './functions/schemaPathIsSame';
 import { DataModelsMetadataActions, LoadingState } from './sagas/metadata';
 import type { IMetadataOption } from './functions/types';
-import { Dialog, makeStyles } from "@material-ui/core";
-import { AltinnButton } from "app-shared/components";
-import { getLanguageFromKey } from "app-shared/utils/language";
-
-const useStyles = makeStyles({
-  landingDialog: {
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    '& [role="dialog"]': {
-      backgroundColor: '#E3F7FF',
-      borderRadius: 0,
-      boxShadow: '1px 1px 3px 2px rgb(0 0 0 / 25%)',
-      padding: '3rem'
-    },
-    '& h1': {
-      fontSize: 18,
-      fontWeight: 'bold'
-    }
-  },
-  buttons: {
-    display: 'flex',
-    '& > :first-child button': {
-      marginRight: '2rem',
-      overflow: 'hidden', // Without this, the :before symbol makes the focus outline look weird
-      '&:before': {
-        content: '"\\f02f"',
-        fontFamily: 'AltinnStudio',
-        fontSize: '4rem',
-        marginRight: '1rem'
-      }
-    },
-    '& > :last-child': {
-      backgroundColor: "#FFF",
-      border: '2px solid #50ABDD',
-      color: '#50ABDD',
-      transition: 'none',
-      '& .MuiButton-label span': {
-        borderBottomWidth: 0
-      },
-      '&:hover': {
-        borderColor: '#0062BA',
-        color: '#0062BA'
-      }
-    }
-  }
-});
+import { LandingPagePanel } from './components/LandingPagePanel';
+import { Dialog, makeStyles, createStyles } from '@material-ui/core';
+import { getLanguageFromKey } from 'app-shared/utils/language';
 
 interface IDataModellingContainerProps extends React.PropsWithChildren<any> {
   language: ILanguage;
@@ -91,15 +50,21 @@ export const shouldSelectFirstEntry = ({
   );
 };
 
+const useStyles = makeStyles(
+  createStyles({
+    button: {
+      marginRight: 16,
+    }
+  }),
+);
+
 function DataModelling({
   language,
   org,
   repo,
   createPathOption,
 }: IDataModellingContainerProps): JSX.Element {
-
   const classes = useStyles();
-
   const dispatch = useDispatch();
   const jsonSchema = useSelector((state: any) => state.dataModelling.schema);
   const metadataOptions = useSelector(
@@ -110,6 +75,7 @@ function DataModelling({
     (state: any) => state.dataModelsMetadataState.loadState,
   );
   const [selectedOption, setSelectedOption] = React.useState(undefined);
+  const [createNewOpen, setCreateNewOpen] = React.useState(false);
 
   const uploadedOrCreatedFileName = React.useRef(null);
   const prevFetchedOption = React.useRef(null);
@@ -152,7 +118,7 @@ function DataModelling({
   const [landingDialogState, setLandingDialogState] =
     React.useState<LandingDialogState>(LandingDialogState.DatamodelsNotLoaded);
 
-  const closeLandingpage = () => setLandingDialogState(LandingDialogState.DialogShouldNotBeShown);
+  const closeLandingPage = () => setLandingDialogState(LandingDialogState.DialogShouldNotBeShown);
 
   React.useEffect(
     () => {
@@ -192,63 +158,85 @@ function DataModelling({
     dispatch(DataModelsMetadataActions.getDataModelsMetadata());
   };
 
+  const handleCreateNewFromLandingPage = () => {
+    setCreateNewOpen(true);
+  }
+
+  const shouldDisplayLandingPage = landingDialogState === LandingDialogState.DialogIsVisible;
+  const [hideIntroPage, setHideIntroPage] =React.useState(() => {
+    const datamodelLocalStorage = (JSON.parse(localStorage.getItem('datamodelLocalStorage')) as any);
+    if (datamodelLocalStorage) return datamodelLocalStorage.hideIntroPage;
+    return false;
+  }
+
+  );
+  const handleHideIntroPageButtonClick = () => {
+    localStorage.setItem('datamodelLocalStorage', JSON.stringify({ hideIntroPage: true }));
+    setHideIntroPage(true);
+  }
+
+  const t = (key: string) => getLanguageFromKey(key, language);
+
   return (
     <>
-      {landingDialogState === LandingDialogState.DialogIsVisible && (
-        <Dialog
-          open={true}
-          className={classes.landingDialog}
-          hideBackdrop={true}
+      <Dialog open={!hideIntroPage}>
+        <Panel
+          forceMobileLayout={true}
+          title={t('schema_editor.info_dialog_title')}
         >
-          <h1>{getLanguageFromKey('app_data_modelling.landing_dialog_header', language)}</h1>
-          <p>{getLanguageFromKey('app_data_modelling.landing_dialog_paragraph', language)}</p>
-          <div className={classes.buttons}>
-            <XSDUpload
-              language={language}
-              onXSDUploaded={(filename) => {
-                handleXSDUploaded(filename);
-                closeLandingpage();
-              }}
-              org={org}
-              repo={repo}
-              submitButtonRenderer={(fileInputClickHandler) => (
-                <AltinnButton
-                  onClickFunction={fileInputClickHandler}
-                  btnText={getLanguageFromKey('app_data_modelling.landing_dialog_upload', language)}
-                />
-              )}
-            />
-            <AltinnButton
-              btnText={getLanguageFromKey('app_data_modelling.landing_dialog_create', language)}
-              secondaryButton
-              onClickFunction={closeLandingpage}
-            />
+          <div>
+            <p>{t('schema_editor.info_dialog_1')}</p>
+            <p>{t('schema_editor.info_dialog_2')}</p>
+            <p>{t('schema_editor.info_dialog_3')} <a href='https://docs.altinn.studio/app/development/data/data-model/'>{t('schema_editor.info_dialog_docs_link')}</a></p>
           </div>
-        </Dialog>
-      )}
+          <span className={classes.button}><Button onClick={() => setHideIntroPage(true)}>Lukk</Button></span>
+          <span className={classes.button}>
+            <Button
+              onClick={handleHideIntroPageButtonClick}
+              variant={ButtonVariant.Secondary}
+            >
+              Ikke vis igjen
+            </Button>
+          </span>
+        </Panel>
+      </Dialog>
       <SchemaEditorApp
         language={language}
         schema={jsonSchema}
         onSaveSchema={handleSaveSchema}
         name={selectedOption?.label}
         loading={metadataLoadingState === LoadingState.LoadingModels}
+        LandingPagePanel={shouldDisplayLandingPage && (
+          <LandingPagePanel
+            language={language}
+            org={org}
+            repo={repo}
+            handleXSDUploaded={handleXSDUploaded}
+            handleCreateModelClick={handleCreateNewFromLandingPage}
+            closeLandingPage={closeLandingPage}
+          />
+        )}
       >
         <Create
           language={language}
           createAction={handleCreateSchema}
           dataModelNames={modelNames}
           createPathOption={createPathOption}
+          disabled={shouldDisplayLandingPage}
+          openByDefault={createNewOpen}
         />
         <XSDUpload
           language={language}
           onXSDUploaded={handleXSDUploaded}
           org={org}
           repo={repo}
+          disabled={shouldDisplayLandingPage}
         />
         <SchemaSelect
           selectedOption={selectedOption}
           onChange={setSelectedOption}
           options={metadataOptions}
+          disabled={shouldDisplayLandingPage}
         />
         <Delete
           schemaName={selectedOption?.value && selectedOption?.label}

@@ -11,7 +11,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
     public interface ITextsService
     {
         /// <summary>
-        /// Gets text file in app repository according to
+        /// Gets texts file in app repository according to
         /// specified languageCode.
         /// </summary>
         /// <param name="org">Organisation</param>
@@ -22,13 +22,22 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         public Task<Dictionary<string, string>> GetTexts(string org, string repo, string developer, string languageCode);
 
         /// <summary>
-        /// Edit text file for specific language by overwriting old text file.
+        /// Edit texts file for specific language by overwriting old text file.
         /// </summary>
         /// <param name="org">Organisation</param>
         /// <param name="repo">Repository</param>
         /// <param name="developer">Username of developer</param>
         /// <param name="languageCode">LanguageCode</param>
-        /// <param name="jsonText">Text to be added to new text file</param>
-        public Task UpdateTexts(string org, string repo, string developer, string languageCode, Dictionary<string, string> jsonText);
+        /// <param name="jsonTexts">Text to be added to new text file</param>
+        public Task UpdateTexts(string org, string repo, string developer, string languageCode, Dictionary<string, string> jsonTexts);
+
+        /// <summary>
+        /// Deletes texts file for a specific language.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repo">Repository identifier which is unique within an organisation.</param>
+        /// <param name="developer">Username of developer currently working in the repo.</param>
+        /// <param name="languageCode">LanguageCode to identify the specific text file.</param>
+        public void DeleteTexts(string org, string repo, string developer, string languageCode);
     }
 }

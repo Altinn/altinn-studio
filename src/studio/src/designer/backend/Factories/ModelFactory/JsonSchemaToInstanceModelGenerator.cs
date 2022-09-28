@@ -15,6 +15,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
     /// <summary>
     ///     Utility class for converting JSON Schema to a Json Instance model
     /// </summary>
+    [Obsolete("Use Altinn.Studio.Designer.Factories.ModelFactory.JsonSchemaToMetamodelConverter instead")]
     public class JsonSchemaToInstanceModelGenerator
     {
         private const string XmlSchemaNamespace = "http://www.w3.org/2001/XMLSchema";
@@ -255,7 +256,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 }
             }
             else if (currentJsonSchemaType != null && currentJsonSchemaType.Value == JsonSchemaType.Object)
-            {   
+            {
                 if (alreadyVisitedTypes.Contains(sanitizedPropertyName))
                 {
                     return;
@@ -269,7 +270,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     {
                         TraverseModel(path, sanitizedPropertyName, def.Key, def.Value, IsRequired(def.Key, currentJsonSchema), currentlyVisitedTypes, currentJsonSchema, xPath);
                     }
-                }                
+                }
             }
             else
             {

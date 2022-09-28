@@ -1,0 +1,65 @@
+.lengthFields {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  justify-content: space-between;
+}
+
+.lengthField {
+  flex: 1;
+}
+
+.regexTestContainer {
+  position: relative;
+}
+
+.regexTestLabel {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.regexTestMatchIndicatorTrue, .regexTestMatchIndicatorFalse {
+  margin-top: 2rem;
+}
+
+.regexTestMatchIndicatorTrue::before, .regexTestMatchIndicatorFalse::before {
+  font-family: AltinnNo, sans-serif;
+  margin-right: .5rem;
+}
+
+.regexTestMatchIndicatorTrue::before {
+  color: #17C96B;
+  content: '\f052';
+}
+
+.regexTestMatchIndicatorFalse::before {
+  color: #E23B53;
+  content: '\f040';
+}
+
+.regexTestContainer input {
+  background-color: transparent;
+  z-index: 1;
+}
+
+.regexTestStyleField {
+  color: transparent;
+  left: 14px;
+  position: absolute;
+  top: 6px;
+  z-index: 0;
+}
+
+.regexTestMatch {
+  background-color: #D4F9E4;
+  outline: 1px solid #17C96B;
+}
+
+.regexTestTextFieldMatch {
+  border-color: #17C96B;
+}
+
+.regexTestTextFieldNoMatch {
+  border-color: #E23B53;
+}

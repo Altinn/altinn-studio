@@ -1,0 +1,45 @@
+{
+  "name": "@altinn/schema-model",
+  "version": "0.1.0",
+  "private": true,
+  "description": "JSON schema internal model",
+  "main": "src/index.ts",
+  "peerDependencies": {
+    "jsonpointer": "5.0.1"
+  },
+  "devDependencies": {
+    "jest": "^29.0.3",
+    "jest-junit": "14.0.1",
+    "webpack": "5.74.0"
+  },
+  "scripts": {
+    "build": "webpack --config webpack.config.js --progress",
+    "test": "jest"
+  },
+  "jest": {
+    "transform": {
+      ".(ts|tsx)": "ts-jest"
+    },
+    "reporters": [
+      "default",
+      "jest-junit"
+    ],
+    "testRegex": "(test/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

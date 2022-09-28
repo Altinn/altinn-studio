@@ -1,10 +1,10 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { StringRestrictions } from './StringRestrictions';
-import { getRestrictions } from '../../../utils/restrictions';
+import { getRestrictions } from '@altinn/schema-model';
 import { FieldType } from '../../../types';
 
-test('StringRestrictions should redner correctly', async () => {
+test('StringRestrictions should render correctly', async () => {
   const onChangeRestrictionValue = jest.fn();
   const path = '#/properties/xxsfds';
   render(

@@ -1,28 +1,15 @@
 import React, { ReactNode } from 'react';
-import { makeStyles } from '@material-ui/core';
-
-export const useStyles = makeStyles({
-  label: {
-    padding: 0,
-    fontWeight: 400,
-    fontSize: 16,
-    marginTop: 24,
-    marginBottom: 6,
-    '& .Mui-focusVisible': {
-      background: 'gray',
-    },
-  },
-});
+import classes from './Label.module.css';
 
 interface InspectorHeaderProps {
   children: ReactNode;
+  htmlFor?: string;
 }
 
-export const Label = ({ children }: InspectorHeaderProps) => {
-  const classes = useStyles();
+export const Label = ({ children, htmlFor }: InspectorHeaderProps) => {
   return (
-    <p className={classes.label} aria-roledescription='label'>
+    <label className={classes.root} htmlFor={htmlFor}>
       {children}
-    </p>
+    </label>
   );
 };

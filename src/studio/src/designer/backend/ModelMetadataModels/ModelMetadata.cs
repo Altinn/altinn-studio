@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using JetBrains.Annotations;
 using Newtonsoft.Json;
 
 namespace Altinn.Studio.Designer.ModelMetadatalModels
@@ -31,6 +32,11 @@ namespace Altinn.Studio.Designer.ModelMetadatalModels
         /// Gets or sets the service id
         /// </summary>
         public string ServiceId { get; set; }
+
+        /// <summary>
+        /// Gets or sets the target namespace provided in xsd file.
+        /// </summary>
+        public string TargetNamespace { get; set; }
 
         /// <summary>
         /// Gets or sets all elements for the service (<see cref="ElementMetadata"/>)

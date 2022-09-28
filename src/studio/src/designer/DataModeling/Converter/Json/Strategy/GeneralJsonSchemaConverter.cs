@@ -153,6 +153,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                         case "FinalDefault":
                             _xsd.FinalDefault = Enum.TryParse(value, true, out XmlSchemaDerivationMethod xmlSchemaDerivationFinal) ? xmlSchemaDerivationFinal : XmlSchemaDerivationMethod.None;
                             break;
+                        case nameof(XmlSchema.TargetNamespace):
+                            _xsd.TargetNamespace = value;
+                            break;
                     }
                 }
             }
@@ -602,6 +605,11 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 {
                     // Inline base types support can be added in this if/else chain (base type may also be an inline SimpleTypeRestriction)
                     throw new JsonSchemaConvertException($"Invalid base type for SimpleType restriction {path.Combine(JsonPointer.Parse($"/allOf/[{baseTypeSchemaIndex}]"))}");
+                }
+
+                if (baseTypeSchema.HasKeyword<XsdUnhandledAttributesKeyword>())
+                {
+                    AddUnhandledAttributes(restriction, baseTypeSchema.Keywords.GetKeyword<XsdUnhandledAttributesKeyword>());
                 }
 
                 restrictionsKeywordsList.AddRange(restrictionSchemas.Select(restrictionSchema => restrictionSchema.AsWorkList()));
@@ -1236,9 +1244,17 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             {
                 return GetTypeNameFromTypeKeyword(typeKeyword, keywords);
             }
-            else if (schema.TryGetKeyword<RefKeyword>(out RefKeyword refKeyword))
+
+            if (schema.TryGetKeyword<RefKeyword>(out RefKeyword refKeyword))
             {
                 return GetTypeNameFromReference(refKeyword.Reference);
+            }
+
+            // Nillable array
+            if (schema.TryGetKeyword<OneOfKeyword>(out var oneOfKeyword))
+            {
+                var refKeywordSubSchema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
+                return GetTypeNameFromReference(refKeywordSubSchema.GetKeyword<RefKeyword>().Reference);
             }
 
             return new XmlQualifiedName();

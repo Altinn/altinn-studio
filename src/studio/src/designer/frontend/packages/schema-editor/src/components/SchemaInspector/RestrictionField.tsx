@@ -1,28 +1,10 @@
 import React, { BaseSyntheticEvent } from 'react';
-import { Grid, Input, makeStyles } from '@material-ui/core';
 import { getDomFriendlyID } from '../../utils/schema';
-import { Label } from './Label';
+import { TextField } from "@altinn/altinn-design-system";
+import { Label } from "./Label";
 
-const useStyles = makeStyles({
-  delete: {
-    marginLeft: '8px',
-    padding: '12px',
-  },
-  field: {
-    background: 'white',
-    color: 'black',
-    border: '1px solid #006BD8',
-    boxSsizing: 'border-box',
-    padding: 4,
-    '&.Mui-disabled': {
-      background: '#f4f4f4',
-      color: 'black',
-      border: '1px solid #6A6A6A',
-      boxSizing: 'border-box',
-    },
-  },
-});
 export interface IRestrictionFieldProps {
+  className?: string;
   keyName: string;
   label: string;
   onChangeValue: (id: string, key: string, value: string) => void;
@@ -32,26 +14,28 @@ export interface IRestrictionFieldProps {
   value?: string;
 }
 
-export const RestrictionField = ({ keyName, label, onChangeValue, path, readOnly, value }: IRestrictionFieldProps) => {
-  const classes = useStyles();
+export const RestrictionField = ({
+  className,
+  keyName,
+  label,
+  onChangeValue,
+  path,
+  readOnly,
+  value
+}: IRestrictionFieldProps) => {
 
-  const baseId = getDomFriendlyID(path);
+  const fieldId = `${getDomFriendlyID(path)}-${keyName}-value`;
 
   return (
-    <>
-      <Grid item xs={12}>
-        <Label>{label}</Label>
-        <Input
-          inputProps={{ 'aria-label': label }}
-          fullWidth={true}
-          id={`${baseId}-${keyName}-value`}
-          disabled={readOnly}
-          className={classes.field}
-          value={value ?? ''}
-          disableUnderline={true}
-          onChange={(e) => onChangeValue(path, e.target.value, keyName)}
-        />
-      </Grid>
-    </>
+    <div className={className}>
+      <Label htmlFor={fieldId}>{label}</Label>
+      <TextField
+        id={fieldId}
+        value={value ?? ''}
+        onChange={(e) => onChangeValue(path, e.target.value, keyName)}
+        aria-label={label}
+        readOnly={readOnly}
+      />
+    </div>
   );
 };

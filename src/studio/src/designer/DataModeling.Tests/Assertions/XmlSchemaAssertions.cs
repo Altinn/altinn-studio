@@ -22,6 +22,7 @@ namespace DataModeling.Tests.Assertions
             Assert.Equal(expected.BlockDefault, actual.BlockDefault);
             Assert.Equal(expected.FinalDefault, actual.FinalDefault);
             Assert.Equal(expected.Id, actual.Id);
+            Assert.Equal(expected.TargetNamespace, actual.TargetNamespace);
 
             IsEquivalentTo(expected.Namespaces, actual.Namespaces);
             XmlAttributesIsEquivalentTo(expected.UnhandledAttributes, actual.UnhandledAttributes);

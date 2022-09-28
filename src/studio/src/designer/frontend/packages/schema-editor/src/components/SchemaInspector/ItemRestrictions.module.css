@@ -1,0 +1,22 @@
+.emptyEnumMessage {
+  margin-top: 1rem;
+  margin-bottom: 0;
+}
+
+.addEnumButton {
+  align-items: center;
+  background-color: #FFF;
+  border: 1px dashed #000;
+  display: inline-flex;
+  flex-direction: row;
+  margin-top: 1rem;
+  padding: 3px 8px;
+}
+
+.addEnumButton i::before {
+  content: '\f035';
+  font-family: AltinnStudio, sans-serif;
+  font-style: normal;
+  font-size: 2rem;
+  margin-right: 1rem;
+}

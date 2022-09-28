@@ -1,0 +1,35 @@
+.field {
+  background: white;
+  border: 2px solid #008FD6 !important;
+  box-sizing: border-box;
+  color: black;
+  margin-top: 2px !important;
+  padding: 4px !important;
+} /* The !important properties are there to overwrite Material UI properties. */
+
+.field:global(.Mui-disabled) {
+  background: #f4f4f4;
+  border: 1px solid #6A6A6A;
+  box-sizing: border-box;
+  color: black;
+}
+
+.header {
+  font-size: 16px;
+  font-weight: 400;
+  margin-bottom: 6px;
+  margin-top: 24px;
+  padding: 0;
+}
+
+.header :global(.Mui-focusVisible) {
+  background: gray;
+}
+
+.navButton {
+  background: none;
+  border: none;
+  color: #006BD8;
+  cursor: pointer;
+  text-decoration: underline;
+}

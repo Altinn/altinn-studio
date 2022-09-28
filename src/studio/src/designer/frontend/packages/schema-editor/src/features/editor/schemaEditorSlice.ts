@@ -92,13 +92,14 @@ const schemaEditorSlice = createSlice({
       ) {
         displayName += getUniqueNumber();
       }
-      const path = `#/${location}/${displayName}`;
+      const path = `${location}/${displayName}`;
+      const schemaSettings = getSchemaSettings({ schemaUrl: state.schema.$schema });
       state.uiSchema.push({
         ...props,
         path,
         displayName,
       });
-      if (location === 'definitions') {
+      if (location === schemaSettings.definitionsPath) {
         state.selectedDefinitionNodeId = path;
       } else {
         state.selectedPropertyNodeId = path;

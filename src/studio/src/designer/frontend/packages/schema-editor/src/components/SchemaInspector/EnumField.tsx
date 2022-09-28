@@ -1,9 +1,11 @@
 import React, { KeyboardEvent, useEffect, useState } from 'react';
-import { Grid, IconButton, makeStyles, TextField } from '@material-ui/core';
+import { IconButton } from '@material-ui/core';
 import { DeleteOutline } from '@material-ui/icons';
 import { getTranslation } from '../../utils/language';
 import { getDomFriendlyID } from '../../utils/schema';
 import type { ILanguage } from '../../types';
+import { TextField } from "@altinn/altinn-design-system";
+import classes from './EnumField.module.css';
 
 export interface IEnumFieldProps {
   path: string;
@@ -16,28 +18,7 @@ export interface IEnumFieldProps {
   onEnterKeyPress?: () => void;
 }
 
-const useStyles = makeStyles({
-  delete: {
-    marginLeft: '8px',
-    padding: '12px',
-  },
-  field: {
-    background: 'white',
-    color: 'black',
-    border: '1px solid #006BD8',
-    boxSsizing: 'border-box',
-    padding: 4,
-    '&.Mui-disabled': {
-      background: '#f4f4f4',
-      color: 'black',
-      border: '1px solid #6A6A6A',
-      boxSizing: 'border-box',
-    },
-  },
-});
-
 export const EnumField = (props: IEnumFieldProps) => {
-  const classes = useStyles();
   const [val, setVal] = useState(props.value);
   useEffect(() => {
     setVal(props.value);
@@ -57,36 +38,26 @@ export const EnumField = (props: IEnumFieldProps) => {
 
   const baseId = getDomFriendlyID(props.path);
   return (
-    <>
-      <Grid item xs={8}>
-        <TextField
-          id={`${baseId}-enum-${props.value}`}
-          className={classes.field}
-          fullWidth={true}
-          disabled={props.readOnly}
-          value={val}
-          onChange={onChange}
-          onBlur={onBlur}
-          InputProps={{
-            disableUnderline: true,
-          }}
-          onKeyDown={onKeyDown}
-          autoFocus
-        />
-      </Grid>
-      <Grid item xs={1} />
+    <div className={classes.root}>
+      <TextField
+        id={`${baseId}-enum-${props.value}`}
+        disabled={props.readOnly}
+        value={val}
+        onChange={onChange}
+        onBlur={onBlur}
+        onKeyDown={onKeyDown}
+        autoFocus
+      />
       {props.onDelete && (
-        <Grid item xs={3}>
-          <IconButton
-            id={`${baseId}-delete-${props.value}`}
-            aria-label={getTranslation('delete_field', props.language)}
-            onClick={() => props.onDelete?.(props.path, props.value)}
-            className={classes.delete}
-          >
-            <DeleteOutline />
-          </IconButton>
-        </Grid>
+        <IconButton
+          id={`${baseId}-delete-${props.value}`}
+          aria-label={getTranslation('delete_field', props.language)}
+          onClick={() => props.onDelete?.(props.path, props.value)}
+          className={classes.delete}
+        >
+          <DeleteOutline />
+        </IconButton>
       )}
-    </>
+    </div>
   );
 };
