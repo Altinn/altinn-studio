@@ -2,18 +2,19 @@ import {
   CombinationKind,
   FieldType,
   JsonSchemaNode,
+  Keywords,
   ObjectKind,
+  ROOT_POINTER,
   UiSchemaNode,
   UiSchemaNodes,
 } from './types';
 import { getNodeIndexByPointer } from './selectors';
 
 export const createNodeBase = (...args: string[]): UiSchemaNode => {
-  const pointer = args.join('/');
   return {
     objectKind: ObjectKind.Field,
     fieldType: FieldType.Object,
-    pointer,
+    pointer: makePointer(...args),
     isRequired: false,
     isNillable: false,
     isCombinationItem: false,
@@ -25,7 +26,12 @@ export const createNodeBase = (...args: string[]): UiSchemaNode => {
     enum: [],
   };
 };
-
+export const makePointer = (...args: any[]) => {
+  if (!args[0].startsWith(ROOT_POINTER)) {
+    args.unshift(ROOT_POINTER);
+  }
+  return args.join('/');
+};
 export const getCombinationKind = (schemaNode: JsonSchemaNode): CombinationKind => {
   const kinds = Object.values(CombinationKind).filter((k) => Object.keys(schemaNode).includes(k));
   return kinds[0];
@@ -88,3 +94,6 @@ export const splitPointerInBaseAndName = (pointer: string) => {
 };
 
 export const isNumeric = (str: string) => parseInt(str).toString() === str;
+
+export const pointerIsDefinition = (pointer: string) =>
+  pointer.startsWith(makePointer(Keywords.Definitions));

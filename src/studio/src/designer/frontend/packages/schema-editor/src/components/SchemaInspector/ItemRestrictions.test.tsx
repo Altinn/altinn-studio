@@ -3,10 +3,10 @@ import { screen } from '@testing-library/react';
 import { renderWithRedux } from '../../../test/renderWithRedux';
 import { ItemRestrictions } from './ItemRestrictions';
 
-import { createNodeBase, FieldType, Keywords, ROOT_POINTER } from '@altinn/schema-model';
+import { createNodeBase, FieldType, Keywords } from '@altinn/schema-model';
 
 test('item restrictions require checkbox to work', async () => {
-  const item = Object.assign(createNodeBase(ROOT_POINTER, Keywords.Properties, 'test'), {
+  const item = Object.assign(createNodeBase(Keywords.Properties, 'test'), {
     fieldType: FieldType.String,
   });
   const { user, store } = renderWithRedux(<ItemRestrictions language={{}} item={item} />);
@@ -17,7 +17,7 @@ test('item restrictions require checkbox to work', async () => {
 });
 
 test('item restrictions tab require checkbox to decheck', async () => {
-  const item = Object.assign(createNodeBase(ROOT_POINTER, Keywords.Properties, 'test'), {
+  const item = Object.assign(createNodeBase(Keywords.Properties, 'test'), {
     fieldType: FieldType.String,
     isRequired: true,
   });

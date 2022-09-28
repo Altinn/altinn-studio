@@ -9,14 +9,13 @@ import {
   FieldType,
   Keywords,
   ObjectKind,
-  ROOT_POINTER,
   UiSchemaNodes,
 } from '@altinn/schema-model';
 
 test('item property tab renders combinations', async () => {
   const checkIsNameInUse = jest.fn();
   const uiSchemaNodes: UiSchemaNodes = [];
-  const selectedNode = createNodeBase(ROOT_POINTER, Keywords.Properties, 'test');
+  const selectedNode = createNodeBase(Keywords.Properties, 'test');
   selectedNode.objectKind = ObjectKind.Combination;
   selectedNode.fieldType = CombinationKind.AnyOf;
   uiSchemaNodes.push(selectedNode);

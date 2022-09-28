@@ -1,10 +1,11 @@
 import { FieldType, Keywords, ROOT_POINTER, UiSchemaNode, UiSchemaNodes } from './types';
+import { makePointer } from './utils';
 
 export const getRootNodes = (uiSchemaMap: UiSchemaNodes, defs: boolean): UiSchemaNode[] => {
   const parentNodeIndex = getNodeIndexByPointer(uiSchemaMap, ROOT_POINTER);
   if (parentNodeIndex !== undefined) {
     const childPointers = uiSchemaMap[parentNodeIndex].children.filter(
-      (p) => p.startsWith([ROOT_POINTER, Keywords.Definitions].join('/')) === defs,
+      (p) => p.startsWith(makePointer(Keywords.Definitions)) === defs,
     );
     return uiSchemaMap.filter((uiSchemaNode) => childPointers.includes(uiSchemaNode.pointer));
   } else {

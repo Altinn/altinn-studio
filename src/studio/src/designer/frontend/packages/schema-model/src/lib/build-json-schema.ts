@@ -19,7 +19,9 @@ export const buildJsonSchema = (uiSchemaNodes: UiSchemaNodes): JsonSchemaNode =>
   uiSchemaNodes.forEach((uiSchemaNode) => {
     if (uiSchemaNode.pointer === ROOT_POINTER) {
       Object.assign(out, uiSchemaNode.custom);
-      JSONPointer.set(out, '/' + Keywords.Type, uiSchemaNode.fieldType);
+      if (!uiSchemaNode.implicitType) {
+        JSONPointer.set(out, '/' + Keywords.Type, uiSchemaNode.fieldType);
+      }
       JSONPointer.set(
         out,
         '/' + Keywords.Required,

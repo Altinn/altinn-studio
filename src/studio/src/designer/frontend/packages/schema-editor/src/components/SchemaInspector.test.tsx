@@ -13,7 +13,6 @@ import {
   FieldType,
   getNodeByPointer,
   Keywords,
-  ROOT_POINTER,
   UiSchemaNode,
   UiSchemaNodes,
 } from '@altinn/schema-model';
@@ -112,7 +111,7 @@ test('dispatches correctly when changing restriction value', async () => {
 
 test('Adds new object field when pressing the enter key', async () => {
   const testUiSchema = buildUiSchema({});
-  const parentNode = createNodeBase(ROOT_POINTER, Keywords.Properties, 'test');
+  const parentNode = createNodeBase(Keywords.Properties, 'test');
   parentNode.fieldType = FieldType.Object;
   parentNode.children = ['#/properties/test/properties/abc'];
   testUiSchema.push(parentNode);
@@ -127,7 +126,7 @@ test('Adds new object field when pressing the enter key', async () => {
 
 test('Adds new valid value field when pressing the enter key', async () => {
   const testUiSchema = buildUiSchema({});
-  const item = createNodeBase(ROOT_POINTER, Keywords.Properties, 'test');
+  const item = createNodeBase(Keywords.Properties, 'test');
   item.fieldType = FieldType.String;
   item.enum = ['valid value'];
   testUiSchema.push(item);

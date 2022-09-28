@@ -17,9 +17,8 @@ afterEach(() => {
 });
 
 test('renders schema editor app', () => {
-  let wrapper: any = null;
   act(() => {
-    wrapper = render(
+    render(
       <SchemaEditorApp
         schema={dataMock}
         language={{}}

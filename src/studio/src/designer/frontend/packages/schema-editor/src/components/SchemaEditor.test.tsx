@@ -13,8 +13,8 @@ import {
   FieldType,
   getNodeByPointer,
   Keywords,
+  makePointer,
   ObjectKind,
-  ROOT_POINTER,
 } from '@altinn/schema-model';
 
 const mockLanguage = {
@@ -187,7 +187,7 @@ test('should not show add property or add reference buttons on a reference node'
   const jsonSchema = {
     [Keywords.Properties]: {
       mockItem: {
-        [Keywords.Reference]: [ROOT_POINTER, Keywords.Definitions, 'mockDefinition'].join('/'),
+        [Keywords.Reference]: makePointer(Keywords.Definitions, 'mockDefinition'),
       },
     },
     [Keywords.Definitions]: {
@@ -239,7 +239,7 @@ test('should not show add property or add reference buttons on a field that is n
   const jsonSchema = {
     [Keywords.Properties]: {
       mockItem: {
-        [Keywords.Reference]: [ROOT_POINTER, Keywords.Definitions, 'mockDefinition'].join('/'),
+        [Keywords.Reference]: makePointer(Keywords.Definitions, 'mockDefinition'),
       },
     },
     [Keywords.Definitions]: {

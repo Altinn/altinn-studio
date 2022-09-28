@@ -3,11 +3,16 @@ import {
   FieldType,
   Keywords,
   ObjectKind,
-  ROOT_POINTER,
   UiSchemaNode,
   UiSchemaNodes,
 } from './types';
-import { createNodeBase, getParentNodeByPointer, splitPointerInBaseAndName } from './utils';
+import {
+  createNodeBase,
+  getParentNodeByPointer,
+  makePointer,
+  pointerIsDefinition,
+  splitPointerInBaseAndName,
+} from './utils';
 import {
   getNodeByPointer,
   getNodeIndexByPointer,
@@ -137,14 +142,18 @@ export const createChildNode = (
 };
 
 export const promotePropertyToType = (uiSchemaNodes: UiSchemaNodes, pointer: string) => {
+  if (pointerIsDefinition(pointer)) {
+    throw new Error(`Pointer ${pointer}, is already a definition.`);
+  }
   const uiNode = getNodeByPointer(uiSchemaNodes, pointer);
   if (uiNode.objectKind === ObjectKind.Reference) {
     throw new Error(`Pointer ${pointer}, is already a reference.`);
   }
+
   const displayName = pointer.split('/').pop();
   const newPointer = getUniqueNodePath(
     uiSchemaNodes,
-    [ROOT_POINTER, Keywords.Definitions, displayName].join('/'),
+    makePointer(Keywords.Definitions, displayName),
   );
   const updatedUiNodeMap = renameItemPointer(uiSchemaNodes, pointer, newPointer);
   const simpleRefNode = createNodeBase(pointer);

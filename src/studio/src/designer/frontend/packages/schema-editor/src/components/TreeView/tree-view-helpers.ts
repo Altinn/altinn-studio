@@ -13,6 +13,6 @@ export const getIconStr = (item: UiSchemaNode) => {
   } else if (fieldType === undefined) {
     return 'fa-help-circle';
   } else {
-    return fieldType ? `fa-datamodel-${fieldType}` : 'fa-datamodel-object';
+    return fieldType ? `fa-datamodel-${fieldType}` : 'fa-help-circle';
   }
 };
