@@ -1,5 +1,5 @@
-import { makeStyles } from '@material-ui/core';
 import React from 'react';
+import { makeStyles } from '@material-ui/core';
 import { ToggleButton, ToggleButtonGroup } from '@altinn/altinn-design-system';
 import type { ILanguage } from '../types';
 import { getTranslation } from '../utils/language';

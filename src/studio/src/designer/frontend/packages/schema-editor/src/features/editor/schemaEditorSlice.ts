@@ -1,5 +1,4 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { enableMapSet } from 'immer';
 import { IJsonSchema, ISchemaState } from '../../types';
 import { getSchemaSettings } from '../../settings';
 import {
@@ -20,8 +19,6 @@ import {
   ROOT_POINTER,
   UiSchemaNode,
 } from '@altinn/schema-model';
-
-enableMapSet();
 
 export const initialState: ISchemaState = {
   schema: {},
