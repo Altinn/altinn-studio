@@ -14,6 +14,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// <summary>
     /// Service for converting texts files into new format.
     /// </summary>
+    ///<remarks>Might consider moving this logic to the TextsService</remarks>
     public class ConvertTextsService : IConvertTextsService
     {
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;

@@ -13,6 +13,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// Temporary controller containing a single endpoint for converting texts files
     /// in old format to texts files in new format; *.text.json with key:value pairs.
     /// </summary>
+    /// <remarks>Might consider moving this logic to the TextsController</remarks>
     [Authorize]
     [AutoValidateAntiforgeryToken]
     [Route("designer/api/v1/{org}/{repo}/convertTexts")]
