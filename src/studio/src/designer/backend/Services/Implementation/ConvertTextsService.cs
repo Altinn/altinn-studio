@@ -14,7 +14,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
     /// <summary>
     /// Service for converting texts files into new format.
     /// </summary>
-    ///<remarks>Might consider moving this logic to the TextsService</remarks>
+    /// <remarks>Might consider moving this logic to the TextsService</remarks>
     public class ConvertTextsService : IConvertTextsService
     {
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
@@ -64,7 +64,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// </summary>
         /// <param name="filePath">Path to language file</param>
         /// <returns>A two letter language code</returns>
-        private string GetLanguageCodeFromFilePath(string filePath)
+        private static string GetLanguageCodeFromFilePath(string filePath)
         {
             string fileName = Path.GetFileName(filePath);
             string languageCode = fileName.Split(".")[1];
