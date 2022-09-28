@@ -188,6 +188,7 @@ const schemaEditorSlice = createSlice({
       uiSchemaNode.ref = undefined;
       uiSchemaNode.children = [];
       uiSchemaNode.fieldType = type;
+      uiSchemaNode.implicitType = false;
     },
     setTitle(state, action: PayloadAction<{ path: string; title: string }>) {
       const { path, title } = action.payload;
@@ -217,9 +218,12 @@ const schemaEditorSlice = createSlice({
       const addToNode = getNodeByPointer(state.uiSchema, path);
       const pointer = [path, addToNode.fieldType, addToNode.children.length].join('/');
       const item = Object.assign(createNodeBase(pointer), props);
-      item.objectKind = ObjectKind.Combination;
+      item.isCombinationItem = true;
       addToNode.children.push(pointer);
       state.uiSchema.push(item);
+      state.selectedEditorTab === 'definitions'
+        ? (state.selectedDefinitionNodeId = pointer)
+        : (state.selectedPropertyNodeId = pointer);
     },
     setJsonSchema(state, action) {
       const { schema } = action.payload;

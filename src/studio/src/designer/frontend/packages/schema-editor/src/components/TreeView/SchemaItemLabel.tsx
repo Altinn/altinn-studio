@@ -5,7 +5,7 @@ import { ObjectKind } from '@altinn/schema-model';
 
 export interface SchemaItemLabelProps {
   icon: string;
-  label: string;
+  label: JSX.Element;
   translate: (key: string) => string;
   limitedItem?: boolean;
   editMode: boolean;

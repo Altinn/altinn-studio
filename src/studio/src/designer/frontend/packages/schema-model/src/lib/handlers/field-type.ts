@@ -10,7 +10,7 @@ import {
 export const isCompundFieldType = (schemaNodeType: string | string[]) =>
   Array.isArray(schemaNodeType) && schemaNodeType.length === 2;
 
-export const getUiFieldType = (schemaNode: JsonSchemaNode) => {
+export const findUiFieldType = (schemaNode: JsonSchemaNode) => {
   const objectKind = getObjectKind(schemaNode);
   const keys = Object.keys(schemaNode);
   if (typeof schemaNode.properties === 'object') {
@@ -34,12 +34,12 @@ export const getUiFieldType = (schemaNode: JsonSchemaNode) => {
   } else if (arrayIntersection(keys, Object.values(ObjRestrictionKeys)).length) {
     return FieldType.Object;
   } else if (Array.isArray(schemaNode.enum) && schemaNode.enum.length) {
-    return getEnumFieldType(schemaNode.enum);
+    return findEnumFieldType(schemaNode.enum);
   } else {
     return undefined;
   }
 };
-export const getEnumFieldType = (nodeEnum: any[]) => {
+export const findEnumFieldType = (nodeEnum: any[]) => {
   const checks = arrayUnique(nodeEnum.map((x: any) => typeof x));
   if (checks.length === 1 && checks[0] === 'string') {
     return FieldType.String;
@@ -53,7 +53,7 @@ export const getEnumFieldType = (nodeEnum: any[]) => {
   return undefined;
 };
 
-export const getJsonFieldType = (uiNode: UiSchemaNode) => {
+export const findJsonFieldType = (uiNode: UiSchemaNode) => {
   const { objectKind, isNillable, implicitType } = uiNode;
   let jsonFieldType;
   if (implicitType) {

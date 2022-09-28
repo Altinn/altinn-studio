@@ -10,7 +10,7 @@ import {
 } from '../../features/editor/schemaEditorSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { getTranslation } from '../../utils/language';
-import { getChildNodesByPointer, getNodeDisplayName, UiSchemaNode } from '@altinn/schema-model';
+import { getChildNodesByNode, getNodeDisplayName, UiSchemaNode } from '@altinn/schema-model';
 
 interface ItemFieldsTabProps {
   classes: any;
@@ -46,10 +46,11 @@ export const ItemFieldsTab = ({ classes, selectedItem, language }: ItemFieldsTab
     dispatchAddProperty();
   };
   const childNodes = useSelector((state: ISchemaState) =>
-    getChildNodesByPointer(state.uiSchema, selectedItem.pointer),
+    getChildNodesByNode(state.uiSchema, selectedItem),
   );
   return (
     <>
+      <div style={{ height: 32 }}></div>
       <Grid container spacing={3} className={classes.gridContainer}>
         {childNodes.map((childNode) => (
           <PropertyItem

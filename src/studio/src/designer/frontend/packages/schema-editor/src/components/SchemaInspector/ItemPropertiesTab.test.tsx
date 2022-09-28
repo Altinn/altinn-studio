@@ -10,26 +10,32 @@ import {
   Keywords,
   ObjectKind,
   ROOT_POINTER,
+  UiSchemaNodes,
 } from '@altinn/schema-model';
 
 test('item property tab renders combinations', async () => {
   const checkIsNameInUse = jest.fn();
+  const uiSchemaNodes: UiSchemaNodes = [];
   const selectedNode = createNodeBase(ROOT_POINTER, Keywords.Properties, 'test');
   selectedNode.objectKind = ObjectKind.Combination;
   selectedNode.fieldType = CombinationKind.AnyOf;
-
+  uiSchemaNodes.push(selectedNode);
   ['donald', 'dolly'].forEach((childNodeName) => {
     const childNode = createChildNode(selectedNode, childNodeName, false);
     childNode.fieldType = FieldType.String;
     selectedNode.children.push(childNode.pointer);
+    uiSchemaNodes.push(childNode);
   });
 
   renderWithRedux(
     <ItemPropertiesTab
       language={{}}
-      selectedItem={selectedNode}
+      selectedItem={uiSchemaNodes[1]}
       checkIsNameInUse={checkIsNameInUse}
     />,
+    {
+      uiSchema: uiSchemaNodes,
+    },
   );
   expect(screen.getByText('combination_inline_object_disclaimer')).toBeDefined();
 });

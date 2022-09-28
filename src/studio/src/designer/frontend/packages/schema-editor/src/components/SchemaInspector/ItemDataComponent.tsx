@@ -28,7 +28,7 @@ import {
   combinationIsNullable,
   CombinationKind,
   FieldType,
-  getChildNodesByPointer,
+  getChildNodesByNode,
   getNodeDisplayName,
   Keywords,
   ObjectKind,
@@ -57,11 +57,11 @@ export function ItemDataComponent({
   const [arrayType, setArrayType] = useState<FieldType | string | undefined>(undefined);
 
   useEffect(() => {
-    setNodeName(selectedItem ? getNodeDisplayName(selectedItem) : '');
+    setNodeName(getNodeDisplayName(selectedItem));
     setNameError(NameError.NoError);
-    setItemTitle(selectedItem?.title ?? '');
-    setItemDescription(selectedItem?.description ?? '');
-    setFieldType(selectedItem?.fieldType);
+    setItemTitle(selectedItem.title ?? '');
+    setItemDescription(selectedItem.description ?? '');
+    setFieldType(selectedItem.fieldType);
   }, [selectedItem]);
 
   const onNameChange = (e: any) => {
@@ -79,7 +79,7 @@ export function ItemDataComponent({
     }
   };
   const childNodes = useSelector((state: ISchemaState) =>
-    getChildNodesByPointer(state.uiSchema, selectedItem.pointer),
+    getChildNodesByNode(state.uiSchema, selectedItem),
   );
 
   const onChangeNullable = (_x: any, isNullable: boolean) => {
@@ -159,26 +159,24 @@ export function ItemDataComponent({
   const t = (key: string) => getTranslation(key, language);
   const titleId = getDomFriendlyID(selectedNodePointer ?? '', 'title');
   const descriptionId = getDomFriendlyID(selectedNodePointer ?? '', 'description');
-
   return (
     <div>
-      {!selectedItem.isCombinationItem ||
-        (selectedItem.objectKind === ObjectKind.Reference && (
-          <>
-            <Label htmlFor='selectedItemName'>{t('name')}</Label>
-            <TextField
-              aria-describedby='Selected Item Name'
-              id='selectedItemName'
-              onBlur={handleChangeNodeName}
-              onChange={onNameChange}
-              placeholder='Name'
-              value={nodeName}
-              aria-errormessage={t(nameError)}
-              aria-placeholder='Name'
-            />
-            {nameError && <ErrorMessage>{t(nameError)}</ErrorMessage>}
-          </>
-        ))}
+      {!selectedItem.isCombinationItem && (
+        <>
+          <Label htmlFor='selectedItemName'>{t('name')}</Label>
+          <TextField
+            aria-describedby='Selected Item Name'
+            id='selectedItemName'
+            onBlur={handleChangeNodeName}
+            onChange={onNameChange}
+            placeholder='Name'
+            value={nodeName}
+            aria-errormessage={t(nameError)}
+            aria-placeholder='Name'
+          />
+          {nameError && <ErrorMessage>{t(nameError)}</ErrorMessage>}
+        </>
+      )}
       {selectedItem.objectKind === ObjectKind.Field && (
         <TypeSelect
           id={getDomFriendlyID(selectedItem.pointer, 'type-select')}
@@ -209,13 +207,14 @@ export function ItemDataComponent({
           className={classes.header}
           control={
             <Checkbox
+              disabled
               color='primary'
               checked={selectedItem?.fieldType === FieldType.Array}
               onChange={handleArrayPropertyToggle}
               name='checkedMultipleAnswers'
             />
           }
-          label={t('multiple_answers')}
+          label={t('multiple_answers') + ' (skrudd av)'}
         />
       )}
       {selectedItem.objectKind === ObjectKind.Combination && (
@@ -228,19 +227,22 @@ export function ItemDataComponent({
         />
       )}
       {selectedItem.objectKind === ObjectKind.Combination && (
-        <FormControlLabel
-          id='multiple-answers-checkbox'
-          className={classes.header}
-          control={
-            <Checkbox
-              color='primary'
-              checked={combinationIsNullable(childNodes)}
-              onChange={onChangeNullable}
-              name='checkedNullable'
-            />
-          }
-          label={t('nullable')}
-        />
+        <>
+          <FormControlLabel
+            id='multiple-answers-checkbox'
+            className={classes.header}
+            control={
+              <Checkbox
+                disabled
+                color='primary'
+                checked={combinationIsNullable(childNodes)}
+                onChange={onChangeNullable}
+                name='checkedNullable'
+              />
+            }
+            label={t('nullable')}
+          />
+        </>
       )}
       <ItemRestrictions item={selectedItem} language={language} />
       <Divider />

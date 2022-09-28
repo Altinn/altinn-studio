@@ -8,7 +8,7 @@ const specialAttributes = [
 ] as string[];
 
 // Deals with custom properties... or really what properties that we not know about.
-export const handleCustomProperties = (schemaNode: JsonSchemaNode) => {
+export const findCustomAttributes = (schemaNode: JsonSchemaNode) => {
   const outout: JsonSchemaNode = {};
   Object.keys(schemaNode).forEach((key) => {
     if (!specialAttributes.includes(key)) {

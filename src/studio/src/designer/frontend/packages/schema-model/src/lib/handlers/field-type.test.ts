@@ -1,4 +1,4 @@
-import { getEnumFieldType, getJsonFieldType, getUiFieldType } from './field-type';
+import { findEnumFieldType, findJsonFieldType, findUiFieldType } from './field-type';
 import { CombinationKind, FieldType, JsonSchemaNode, ObjectKind, UiSchemaNode } from '../types';
 
 test.each([
@@ -19,7 +19,7 @@ test.each([
   [{ pattern: '' }, FieldType.String],
   [{ enum: ['h'] }, FieldType.String],
 ])('correct ui type for %p', (schemaNode: JsonSchemaNode, expected) => {
-  expect(getUiFieldType(schemaNode)).toBe(expected);
+  expect(findUiFieldType(schemaNode)).toBe(expected);
 });
 
 test.each([
@@ -34,7 +34,7 @@ test.each([
     FieldType.Object,
   ],
 ])('correct enum type for %p', (nodeEnum: any[], expected) =>
-  expect(getEnumFieldType(nodeEnum)).toBe(expected),
+  expect(findEnumFieldType(nodeEnum)).toBe(expected),
 );
 
 test.each([
@@ -47,5 +47,5 @@ test.each([
   ],
   [{ objectKind: ObjectKind.Field, fieldType: FieldType.Null, isNillable: true }, FieldType.Null],
 ])('correct json type for %p', (uiNode: Partial<UiSchemaNode>, expected) => {
-  expect(getJsonFieldType(uiNode as UiSchemaNode)).toStrictEqual(expected);
+  expect(findJsonFieldType(uiNode as UiSchemaNode)).toStrictEqual(expected);
 });

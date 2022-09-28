@@ -16,7 +16,7 @@ import { getIconStr } from './tree-view-helpers';
 import {
   CombinationKind,
   FieldType,
-  getNodeByPointer,
+  getChildNodesByNode,
   getNodeDisplayName,
   ObjectKind,
   UiSchemaNode,
@@ -38,6 +38,11 @@ SchemaItem.defaultProps = {
 
 const useStyles = (isRef: boolean) =>
   makeStyles({
+    referenceLabel: {
+      fontSize: 10,
+      marginLeft: 8,
+      color: 'gray',
+    },
     treeItem: {
       marginLeft: 8,
       '&.Mui-selected': {
@@ -56,7 +61,7 @@ const useStyles = (isRef: boolean) =>
 export function SchemaItem({ item, isPropertiesView, editMode, translate }: SchemaItemProps) {
   const dispatch = useDispatch();
   const keyPrefix = isPropertiesView ? 'properties' : 'definitions';
-  const classes = useStyles(item.ref !== undefined)();
+  const classes = useStyles(item.objectKind !== ObjectKind.Reference)();
 
   const onItemClick = (e: any, schemaItem: UiSchemaNode) => {
     e.preventDefault();
@@ -95,14 +100,9 @@ export function SchemaItem({ item, isPropertiesView, editMode, translate }: Sche
     }
   };
 
-  const childItems = useSelector((state: ISchemaState) => {
-    const children: UiSchemaNode[] = [];
-    item.children.forEach((childPointer) =>
-      children.push(getNodeByPointer(state.uiSchema, childPointer)),
-    );
-    return children;
-  });
-
+  const childNodes = useSelector((state: ISchemaState) =>
+    getChildNodesByNode(state.uiSchema, item),
+  );
   return (
     <TreeItem
       nodeId={getDomFriendlyID(item.pointer)}
@@ -112,7 +112,14 @@ export function SchemaItem({ item, isPropertiesView, editMode, translate }: Sche
           editMode={editMode}
           icon={getIconStr(item)}
           key={`${item.pointer}-label`}
-          label={getNodeDisplayName(item)}
+          label={
+            <>
+              <span>{getNodeDisplayName(item)}</span>
+              {item.objectKind === ObjectKind.Reference && (
+                <span className={classes.referenceLabel}>{item.ref}</span>
+              )}
+            </>
+          }
           translate={translate}
           limitedItem={item.objectKind === ObjectKind.Combination}
           onAddProperty={
@@ -141,14 +148,14 @@ export function SchemaItem({ item, isPropertiesView, editMode, translate }: Sche
       }
       onLabelClick={(e) => onItemClick(e, item)}
     >
-      {childItems.map((property: UiSchemaNode) => (
+      {childNodes.map((childNode: UiSchemaNode) => (
         <SchemaItem
           editMode={editMode}
           isPropertiesView={isPropertiesView}
-          item={property}
-          key={`${keyPrefix}-${property.pointer}`}
+          item={childNode}
+          key={`${keyPrefix}-${childNode.pointer}`}
           translate={translate}
-          onLabelClick={(e: any) => onItemClick(e, property)}
+          onLabelClick={(e: any) => onItemClick(e, childNode)}
         />
       ))}
     </TreeItem>

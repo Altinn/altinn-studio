@@ -72,9 +72,6 @@ export const arrayUnique = (arr: any[]) => {
   return Object.keys(j).map((v) => j[v]);
 };
 
-export const cloneMap = (map: Map<any, any>): Map<any, any> =>
-  new Map(JSON.parse(JSON.stringify(Array.from(map))));
-
 export const replaceLastPointerSegment = (pointer: string, newLastSegment: string): string => {
   const parts = pointer.split('/');
   parts.pop();

@@ -8,7 +8,7 @@ import {
 } from './types';
 import JSONPointer from 'jsonpointer';
 import { findRequiredProps } from './handlers/required';
-import { getJsonFieldType } from './handlers/field-type';
+import { findJsonFieldType } from './handlers/field-type';
 import { getNodeByPointer } from './selectors';
 
 export const buildJsonSchema = (uiSchemaNodes: UiSchemaNodes): JsonSchemaNode => {
@@ -50,7 +50,7 @@ export const buildJsonSchema = (uiSchemaNodes: UiSchemaNodes): JsonSchemaNode =>
     }
 
     // Setting Type for fields
-    JSONPointer.set(out, [jsonPointer, Keywords.Type].join('/'), getJsonFieldType(uiSchemaNode));
+    JSONPointer.set(out, [jsonPointer, Keywords.Type].join('/'), findJsonFieldType(uiSchemaNode));
 
     // Adding generics back
     [Keywords.Default, Keywords.Const, Keywords.Title, Keywords.Description].forEach((keyword) => {

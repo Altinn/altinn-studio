@@ -122,7 +122,9 @@ export const createChildNode = (
   } else if (objectKind === ObjectKind.Reference && fieldType !== FieldType.Object) {
     throw new Error("Can't create a new node under a reference.");
   } else if (objectKind === ObjectKind.Combination) {
-    return createNodeBase(pointer, fieldType, children.length.toString());
+    return Object.assign(createNodeBase(pointer, fieldType, children.length.toString()), {
+      isCombinationItem: true,
+    });
   } else if (fieldType === FieldType.Object && isDefinition) {
     return createNodeBase(pointer, Keywords.Definitions, displayName);
   } else if (fieldType === FieldType.Object && !isDefinition) {
