@@ -59,7 +59,7 @@ public static class MetamodelRestrictionsUtils
     }
 
     /// <summary>
-    /// Adding restrictions for string for string type.
+    /// Adding restrictions for string type.
     /// </summary>
     private static void AddStringRestrictions(JsonSchema subSchema, Dictionary<string, Restriction> restrictions)
     {
@@ -115,7 +115,7 @@ public static class MetamodelRestrictionsUtils
     }
 
     /// <summary>
-    /// Adding restrictions for string for number types.
+    /// Adding restrictions for number types.
     /// </summary>
     private static void AddNumberRestrictions(JsonSchema subSchema, Dictionary<string, Restriction> restrictions)
     {
