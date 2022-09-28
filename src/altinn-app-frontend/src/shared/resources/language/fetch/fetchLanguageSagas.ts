@@ -32,7 +32,9 @@ export function* watchFetchLanguageSaga(): SagaIterator {
 
   const allowAnonymous = yield select(makeGetAllowAnonymousSelector());
   if (!allowAnonymous) {
-    yield waitFor((state) => !!state.profile.profile);
+    // The currently selected language in the profile is preset to 'nb' when this state is initialized, so we
+    // cannot trust it until the profile is properly fetched (having a userId when not anonymous)
+    yield waitFor((state) => state.profile.profile?.userId !== undefined);
   }
 
   yield call(fetchLanguageSaga);
