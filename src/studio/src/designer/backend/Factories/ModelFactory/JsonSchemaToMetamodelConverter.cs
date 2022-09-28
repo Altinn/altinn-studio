@@ -704,10 +704,21 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 AddEnumRestrictions(enumKeyword, restrictions);
             }
 
-            if (subSchema.TryGetKeyword(out AllOfKeyword allOfKeyword))
+            if (!subSchema.TryGetKeyword(out AllOfKeyword allOfKeyword))
             {
-                var maxLengthKeyword = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<MaxLengthKeyword>()).GetKeyword<MaxLengthKeyword>();
+                return;
+            }
+
+            var maxLengthKeyword = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<MaxLengthKeyword>())?.GetKeyword<MaxLengthKeyword>();
+            if (maxLengthKeyword is not null)
+            {
                 restrictions.Add(maxLengthKeyword.Keyword(), new Restriction() { Value = maxLengthKeyword.Value.ToString() });
+            }
+
+            var patternKeyword = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<PatternKeyword>())?.GetKeyword<PatternKeyword>();
+            if (patternKeyword is not null)
+            {
+                restrictions.Add(patternKeyword.Keyword(), new Restriction() { Value = patternKeyword.Value.ToString() });
             }
         }
 
