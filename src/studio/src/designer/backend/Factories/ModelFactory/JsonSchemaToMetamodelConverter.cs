@@ -9,7 +9,7 @@ using Altinn.Studio.DataModeling.Utils;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using Json.Pointer;
 using Json.Schema;
-using static Altinn.Studio.Designer.Factories.ModelFactory.MetamodelRestrictionsUtils;
+using static Altinn.Studio.Designer.Factories.ModelFactory.MetamodelRestrictionUtils;
 
 namespace Altinn.Studio.Designer.Factories.ModelFactory
 {
