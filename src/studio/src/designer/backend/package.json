@@ -38,7 +38,7 @@
     "rivets": "0.9.6",
     "select2": "4.1.0-rc.0",
     "sightglass": "0.2.6",
-    "underscore": "1.13.4"
+    "underscore": "1.13.6"
   },
   "packageManager": "yarn@3.2.3"
 }
