@@ -5,7 +5,7 @@ Together with **Altinn Apps** and **Altinn Platform** (also part of this repo), 
 
 Altinn Studio is available at <https://altinn.studio>.
 
-Read [the Altinn Studio documentation](https://docs.altinn.studio/) to get started.
+Read [the Altinn Studio documentation](https://docs.altinn.studio/) to [get started](https://docs.altinn.studio/app/getting-started/).
 
 ![Altinn 3 concept](https://docs.altinn.studio/community/about/concept3.svg 'Altinn 3 - Concept')
 
