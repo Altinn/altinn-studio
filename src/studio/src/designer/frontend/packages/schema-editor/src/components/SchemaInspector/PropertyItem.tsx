@@ -1,5 +1,5 @@
 import React, { KeyboardEvent, useEffect, useState } from 'react';
-import { FormControl, IconButton } from '@material-ui/core';
+import { IconButton } from '@material-ui/core';
 import { useDispatch } from 'react-redux';
 import { DeleteOutline } from '@material-ui/icons';
 import type { ILanguage } from '../../types';
@@ -51,7 +51,7 @@ export function PropertyItem(props: IPropertyItemProps) {
   const baseId = getDomFriendlyID(props.fullPath, '-key-');
   return (
     <div className={classes.root}>
-      <FormControl className={classes.nameInputCell}>
+      <span className={classes.nameInputCell}>
         <TextField
           id={`${baseId}-key-${getUniqueNumber()}`}
           value={value}
@@ -61,15 +61,13 @@ export function PropertyItem(props: IPropertyItemProps) {
           onBlur={onBlur}
           onKeyDown={onKeyDown}
         />
-      </FormControl>
-      <FormControl>
-        <Checkbox
-          checked={props.required ?? false}
-          onChange={onChangeRequired}
-          name='checkedArray'
-          label={getTranslation('required', props.language)}
-        />
-      </FormControl>
+      </span>
+      <Checkbox
+        checked={props.required ?? false}
+        onChange={onChangeRequired}
+        name='checkedArray'
+        label={getTranslation('required', props.language)}
+      />
       {props.onDeleteField && (
         <IconButton
           id={`${baseId}-delete-${getUniqueNumber()}`}
