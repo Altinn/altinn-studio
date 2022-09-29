@@ -1,3 +1,1 @@
-import DataModelling from './DataModelling';
-
-export default DataModelling;
+export { DataModelling } from './DataModelling';

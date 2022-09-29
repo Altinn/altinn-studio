@@ -1,7 +1,7 @@
 import axios from 'axios';
 import React from 'react';
-import XSDUpload from './XSDUpload';
 import type { IXSDUploadProps } from './XSDUpload';
+import { XSDUpload } from './XSDUpload';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -14,7 +14,7 @@ describe('XSDUpload', () => {
   it('should show file picker button', () => {
     render();
 
-    const button = screen.getByText("app_data_modelling.upload_xsd");
+    const button = screen.getByText('app_data_modelling.upload_xsd');
     expect(button).toBeInTheDocument();
 
     const fileInput = screen.queryByTestId('FileSelector-input');
@@ -22,25 +22,19 @@ describe('XSDUpload', () => {
   });
 
   it('should show error text when file upload results in error', async () => {
-    mockedAxios.post.mockImplementation(() =>
-      Promise.reject(new Error('mocked error')),
-    );
+    mockedAxios.post.mockImplementation(() => Promise.reject(new Error('mocked error')));
     const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
     render();
 
     await clickUploadButton();
 
-    expect(
-      screen.queryByText(/form_filler\.file_uploader_validation_error_upload/i),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/form_filler\.file_uploader_validation_error_upload/i)).not.toBeInTheDocument();
 
     const fileInput = screen.getByTestId('FileSelector-input');
 
     await user.upload(fileInput, file);
 
-    expect(
-      screen.queryByText(/form_filler\.file_uploader_validation_error_upload/i),
-    ).toBeInTheDocument();
+    expect(screen.queryByText(/form_filler\.file_uploader_validation_error_upload/i)).toBeInTheDocument();
   });
 
   it('should call onXSDUploaded callback when upload is successful', async () => {
@@ -60,7 +54,7 @@ describe('XSDUpload', () => {
 });
 
 const clickUploadButton = async () => {
-  const btn = screen.getByText("app_data_modelling.upload_xsd");
+  const btn = screen.getByText('app_data_modelling.upload_xsd');
   await user.click(btn);
 };
 

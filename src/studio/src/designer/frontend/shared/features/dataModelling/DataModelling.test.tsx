@@ -1,14 +1,15 @@
 import React from 'react';
 import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import DataModelling, { shouldSelectFirstEntry } from './DataModelling';
+import { DataModelling, shouldSelectFirstEntry } from './DataModelling';
 import { LoadingState } from './sagas/metadata';
 import { render as rtlRender, screen } from '@testing-library/react';
+import { LOCAL_STORAGE_KEY, setLocalStorageItem } from 'app-shared/features/dataModelling/functions/localStorage';
 
 // workaround for https://jestjs.io/docs/26.x/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
+  value: jest.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,
@@ -139,7 +140,7 @@ describe('DataModelling', () => {
 
   it('Should show info dialog by default when loading the page', () => {
     // make sure setting to turn off info dialog is cleared
-    localStorage.removeItem('datamodelLocalStorage');
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
     render();
     const dialogHeader = screen.queryByText('schema_editor.info_dialog_title');
     expect(dialogHeader).toBeInTheDocument();
@@ -147,7 +148,7 @@ describe('DataModelling', () => {
 
   it('Should not show info dialog when loading the page if user has asked to not show it again', () => {
     // make sure setting to turn off info dialog is set
-    localStorage.setItem('datamodelLocalStorage', JSON.stringify({ hideIntroPage: true}));
+    setLocalStorageItem('hideIntroPage', true);
     render();
     const dialogHeader = screen.queryByText('schema_editor.info_dialog_title');
     expect(dialogHeader).not.toBeInTheDocument();
@@ -155,51 +156,50 @@ describe('DataModelling', () => {
 
   it('Should show start dialog when no models are present and intro page is closed', () => {
     // make sure setting to turn off info dialog is set
-    localStorage.setItem('datamodelLocalStorage', JSON.stringify({ hideIntroPage: true}));
+    setLocalStorageItem('hideIntroPage', true);
     render();
     expect(screen.queryByText('Dialog header')).toBeInTheDocument();
   });
 
   it('Should not show start dialog when the models have not been loaded yet', () => {
     // make sure setting to turn off info dialog is set
-    localStorage.setItem('datamodelLocalStorage', JSON.stringify({ hideIntroPage: true}));
+    setLocalStorageItem('hideIntroPage', true);
     render({ dataModelsMetadataState: { loadState: LoadingState.LoadingModels } });
     expect(screen.queryByText('Dialog header')).not.toBeInTheDocument();
   });
 
   it('Should not show start dialog when the models have not been loaded yet', () => {
     // make sure setting to turn off info dialog is set
-    localStorage.setItem('datamodelLocalStorage', JSON.stringify({ hideIntroPage: true}));
+    setLocalStorageItem('hideIntroPage', true);
     render({ dataModelsMetadataState: { loadState: LoadingState.LoadingModels } });
     expect(screen.queryByText('Dialog header')).not.toBeInTheDocument();
   });
 
   it('Should not show start dialog when there are models present', () => {
     // make sure setting to turn off info dialog is set
-    localStorage.setItem('datamodelLocalStorage', JSON.stringify({ hideIntroPage: true}));
+    setLocalStorageItem('hideIntroPage', true);
     const schema = {
       properties: { SomeSchema: { $ref: '#/definitions/Something' } },
-      definitions: { Something: { type: 'string' } }
+      definitions: { Something: { type: 'string' } },
     };
     render({ dataModelling: { schema } });
     expect(screen.queryByText('Dialog header')).not.toBeInTheDocument();
   });
 });
 
-const render = (state: {[K in keyof typeof defaultInitialState]?: Partial<typeof defaultInitialState[K]>} = {}) => {
-
+const render = (state: { [K in keyof typeof defaultInitialState]?: Partial<typeof defaultInitialState[K]> } = {}) => {
   const dataModelsMetadataState = state?.dataModelsMetadataState;
   const dataModelling = state?.dataModelling;
 
   const initialState = {
     dataModelsMetadataState: {
       ...defaultInitialState.dataModelsMetadataState,
-      ...dataModelsMetadataState
+      ...dataModelsMetadataState,
     },
     dataModelling: {
       ...defaultInitialState.dataModelling,
-      ...dataModelling
-    }
+      ...dataModelling,
+    },
   };
 
   const store = configureStore()(initialState);
@@ -214,8 +214,8 @@ const render = (state: {[K in keyof typeof defaultInitialState]?: Partial<typeof
             second: 'other text',
           },
           app_data_modelling: {
-            landing_dialog_header: 'Dialog header'
-          }
+            landing_dialog_header: 'Dialog header',
+          },
         }}
         org='test-org'
         repo='test-repo'

@@ -103,6 +103,8 @@ export interface IEditorProps {
   name?: string;
   onSaveSchema: (payload: any) => void;
   schema: IJsonSchema;
+  editMode: boolean;
+  toggleEditMode: () => void;
 }
 
 export const SchemaEditor = ({
@@ -113,6 +115,8 @@ export const SchemaEditor = ({
   onSaveSchema,
   name,
   language,
+  editMode,
+  toggleEditMode,
 }: IEditorProps) => {
   const classes = useStyles();
   const dispatch = useDispatch();
@@ -131,7 +135,6 @@ export const SchemaEditor = ({
   const [expandedPropNodes, setExpandedPropNodes] = useState<string[]>([]);
   const [expandedDefNodes, setExpandedDefNodes] = useState<string[]>([]);
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | Element>(null);
-  const [editMode, setEditMode] = useState(false);
 
   const saveSchema = () => dispatch(updateJsonSchema({ onSaveSchema }));
 
@@ -162,9 +165,7 @@ export const SchemaEditor = ({
   };
 
   const handleAddProperty = (objectKind: ObjectKind) => {
-    const newNode: Partial<UiSchemaNode> = {
-      objectKind,
-    };
+    const newNode: Partial<UiSchemaNode> = { objectKind };
     if (objectKind === ObjectKind.Field) {
       newNode.fieldType = FieldType.Object;
     }
@@ -182,8 +183,6 @@ export const SchemaEditor = ({
 
     setMenuAnchorEl(null);
   };
-
-  const toggleEditMode = () => setEditMode((prevState) => !prevState);
 
   const handleAddDefinition = (e: MouseEvent) => {
     e.stopPropagation();
