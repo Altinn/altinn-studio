@@ -1,5 +1,6 @@
+import type { JsonSchemaNode, UiSchemaNode } from '../types';
+import { CombinationKind, FieldType, ObjectKind } from '../types';
 import { findEnumFieldType, findJsonFieldType, findUiFieldType } from './field-type';
-import { CombinationKind, FieldType, JsonSchemaNode, ObjectKind, UiSchemaNode } from '../types';
 
 test.each([
   [{}, undefined],

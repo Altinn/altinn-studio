@@ -1,4 +1,5 @@
-import { JsonSchemaNode, Keywords, ObjectKind, ROOT_POINTER, UiSchemaNode, UiSchemaNodes } from './types';
+import type { JsonSchemaNode, UiSchemaNode, UiSchemaNodes } from './types';
+import { Keywords, ObjectKind, ROOT_POINTER } from './types';
 import { createNodeBase, getCombinationKind, getObjectKind, schemaTypeIsNillable } from './utils';
 import { findCustomAttributes } from './handlers/custom-properties';
 import { findRestrictionsOnNode } from './restrictions';

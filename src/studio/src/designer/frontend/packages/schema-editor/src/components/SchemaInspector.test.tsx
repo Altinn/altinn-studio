@@ -6,6 +6,7 @@ import { SchemaInspector } from './SchemaInspector';
 import { dataMock } from '../mockData';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import {
   buildUiSchema,
   createChildNode,
@@ -13,8 +14,6 @@ import {
   FieldType,
   getNodeByPointer,
   Keywords,
-  UiSchemaNode,
-  UiSchemaNodes,
 } from '@altinn/schema-model';
 
 // workaround for https://jestjs.io/docs/26.x/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom

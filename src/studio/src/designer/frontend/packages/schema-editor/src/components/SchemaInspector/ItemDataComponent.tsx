@@ -1,7 +1,8 @@
 import { Checkbox, FormControlLabel, TextField as MaterialTextField } from '@material-ui/core';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { ILanguage, ISchemaState, NameError } from '../../types';
+import type { ILanguage, ISchemaState } from '../../types';
+import { NameError } from '../../types';
 import { getTranslation } from '../../utils/language';
 import {
   addCombinationItem,
@@ -24,6 +25,7 @@ import { ItemRestrictions } from './ItemRestrictions';
 import { Divider } from './Divider';
 import { Label } from './Label';
 import { Fieldset } from './Fieldset';
+import type { UiSchemaNode } from '@altinn/schema-model';
 import {
   combinationIsNullable,
   CombinationKind,
@@ -32,7 +34,6 @@ import {
   getNodeDisplayName,
   Keywords,
   ObjectKind,
-  UiSchemaNode,
 } from '@altinn/schema-model';
 import { getDomFriendlyID, isValidName } from '../../utils/ui-schema-utils';
 

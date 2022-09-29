@@ -1,13 +1,5 @@
-import {
-  CombinationKind,
-  FieldType,
-  JsonSchemaNode,
-  Keywords,
-  ObjectKind,
-  ROOT_POINTER,
-  UiSchemaNode,
-  UiSchemaNodes,
-} from './types';
+import type { JsonSchemaNode, UiSchemaNode, UiSchemaNodes } from './types';
+import { CombinationKind, FieldType, Keywords, ObjectKind, ROOT_POINTER } from './types';
 import { getNodeIndexByPointer } from './selectors';
 
 export const createNodeBase = (...args: string[]): UiSchemaNode => {

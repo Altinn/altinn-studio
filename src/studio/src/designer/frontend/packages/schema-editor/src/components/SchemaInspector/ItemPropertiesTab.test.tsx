@@ -2,6 +2,7 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { ItemPropertiesTab } from './ItemPropertiesTab';
 import { renderWithRedux } from '../../../test/renderWithRedux';
+import type { UiSchemaNodes } from '@altinn/schema-model';
 import {
   CombinationKind,
   createChildNode,
@@ -9,7 +10,6 @@ import {
   FieldType,
   Keywords,
   ObjectKind,
-  UiSchemaNodes,
 } from '@altinn/schema-model';
 
 test('item property tab renders combinations', async () => {

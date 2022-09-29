@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import Ajv2020 from 'ajv/dist/2020';
-import { JsonSchemaNode } from '../src';
+import type { JsonSchemaNode } from '../src';
 
 /**
  * Some schemas might not be valid

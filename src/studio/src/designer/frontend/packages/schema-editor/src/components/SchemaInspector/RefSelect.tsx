@@ -3,8 +3,8 @@ import { makeStyles, TextField } from '@material-ui/core';
 import { useSelector } from 'react-redux';
 import { Autocomplete } from '@material-ui/lab';
 import type { ISchemaState } from '../../types';
-
-import { getRootNodes, UiSchemaNode } from '@altinn/schema-model';
+import type { UiSchemaNode } from '@altinn/schema-model';
+import { getRootNodes } from '@altinn/schema-model';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 
 export interface IRefSelectProps {

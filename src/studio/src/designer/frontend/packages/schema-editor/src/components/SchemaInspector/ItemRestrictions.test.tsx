@@ -2,7 +2,6 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { renderWithRedux } from '../../../test/renderWithRedux';
 import { ItemRestrictions } from './ItemRestrictions';
-
 import { createNodeBase, FieldType, Keywords } from '@altinn/schema-model';
 
 test('item restrictions require checkbox to work', async () => {

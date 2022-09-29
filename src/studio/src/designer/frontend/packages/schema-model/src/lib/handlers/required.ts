@@ -1,4 +1,4 @@
-import { UiSchemaNodes } from '../types';
+import type { UiSchemaNodes } from '../types';
 import { getChildNodesByPointer } from '../selectors';
 
 export const findRequiredProps = (uiSchemaNodes: UiSchemaNodes, parentPointer: string): string[] | undefined => {

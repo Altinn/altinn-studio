@@ -1,8 +1,9 @@
 import React from 'react';
-import { ILanguage } from '../../types';
+import type { ILanguage } from '../../types';
+import type { UiSchemaNode } from '@altinn/schema-model';
+import { ObjectKind, ROOT_POINTER } from '@altinn/schema-model';
 import { InlineObject } from './InlineObject';
 import { ItemDataComponent } from './ItemDataComponent';
-import { ObjectKind, ROOT_POINTER, UiSchemaNode } from '@altinn/schema-model';
 
 interface ItemPropertiesTabProps {
   language: ILanguage;

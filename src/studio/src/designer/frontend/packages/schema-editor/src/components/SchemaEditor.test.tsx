@@ -146,7 +146,7 @@ test('should show context menu and trigger correct dispatch when adding field on
   expect(lastAction.type).toBe('schemaEditor/addProperty');
   expect(lastAction.payload.path).toBe('#/properties/mockItem');
   expect(lastAction.payload.props.objectKind).toBe(ObjectKind.Field);
-  expect(lastAction.payload.props.fieldType).toBe(FieldType.Object);
+  expect(lastAction.payload.props.fieldType).toBe(FieldType.String);
 });
 
 test('should show context menu and trigger correct dispatch when adding reference on a specific node', async () => {

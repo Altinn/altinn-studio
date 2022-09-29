@@ -13,15 +13,9 @@ import {
 } from '../../features/editor/schemaEditorSlice';
 import { SchemaItemLabel } from './SchemaItemLabel';
 import { getIconStr } from './tree-view-helpers';
-import {
-  CombinationKind,
-  FieldType,
-  getChildNodesByNode,
-  getNodeDisplayName,
-  ObjectKind,
-  UiSchemaNode,
-} from '@altinn/schema-model';
-import { ISchemaState } from '../../types';
+import type { UiSchemaNode } from '@altinn/schema-model';
+import { CombinationKind, FieldType, getChildNodesByNode, getNodeDisplayName, ObjectKind } from '@altinn/schema-model';
+import type { ISchemaState } from '../../types';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 
 type SchemaItemProps = {
@@ -78,7 +72,7 @@ export function SchemaItem({ item, isPropertiesView, editMode, translate }: Sche
   const handleAddProperty = (objectKind: ObjectKind) => {
     const { pointer } = item;
     const defaultFieldType: any = {
-      [ObjectKind.Field]: FieldType.Object,
+      [ObjectKind.Field]: FieldType.String,
       [ObjectKind.Combination]: CombinationKind.AllOf,
       [ObjectKind.Array]: FieldType.Array,
       [ObjectKind.Reference]: undefined,

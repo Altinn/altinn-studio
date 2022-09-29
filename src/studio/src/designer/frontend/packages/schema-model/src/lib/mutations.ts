@@ -1,4 +1,5 @@
-import { CombinationKind, FieldType, Keywords, ObjectKind, UiSchemaNode, UiSchemaNodes } from './types';
+import type { UiSchemaNode, UiSchemaNodes } from './types';
+import { CombinationKind, FieldType, Keywords, ObjectKind } from './types';
 import {
   createNodeBase,
   getParentNodeByPointer,

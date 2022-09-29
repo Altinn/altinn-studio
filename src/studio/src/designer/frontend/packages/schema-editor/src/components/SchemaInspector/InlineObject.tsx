@@ -2,7 +2,7 @@ import { createStyles, Grid, makeStyles, Paper } from '@material-ui/core';
 import React from 'react';
 import type { ILanguage } from '../../types';
 import { getTranslation } from '../../utils/language';
-import { UiSchemaNode } from '@altinn/schema-model';
+import type { UiSchemaNode } from '@altinn/schema-model';
 
 export interface IInlineObjectProps {
   item: UiSchemaNode;

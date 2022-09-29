@@ -1,12 +1,13 @@
 import React, { BaseSyntheticEvent } from 'react';
 import { Grid } from '@material-ui/core';
 import { AddPropertyButton } from './AddPropertyButton';
-import { ILanguage, ISchemaState } from '../../types';
+import type { ILanguage, ISchemaState } from '../../types';
 import { PropertyItem } from './PropertyItem';
 import { addProperty, deleteProperty, setPropertyName } from '../../features/editor/schemaEditorSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { getTranslation } from '../../utils/language';
-import { getChildNodesByNode, getNodeDisplayName, UiSchemaNode } from '@altinn/schema-model';
+import type { UiSchemaNode } from '@altinn/schema-model';
+import { getChildNodesByNode, getNodeDisplayName } from '@altinn/schema-model';
 
 interface ItemFieldsTabProps {
   classes: any;

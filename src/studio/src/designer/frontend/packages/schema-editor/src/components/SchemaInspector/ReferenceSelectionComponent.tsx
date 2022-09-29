@@ -1,7 +1,8 @@
 import React from 'react';
 import { ClassNameMap } from '@material-ui/core/styles/withStyles';
 import { RefSelect } from './RefSelect';
-import { FieldType, ObjectKind, UiSchemaNode } from '@altinn/schema-model';
+import type { UiSchemaNode } from '@altinn/schema-model';
+import { FieldType, ObjectKind } from '@altinn/schema-model';
 
 export interface IReferenceSelectionProps {
   arrayType: string | FieldType | undefined;

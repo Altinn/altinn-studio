@@ -1,4 +1,5 @@
-import { JsonSchemaNode, Keywords, ObjectKind, ROOT_POINTER, UiSchemaNode, UiSchemaNodes } from './types';
+import type { JsonSchemaNode, UiSchemaNode, UiSchemaNodes } from './types';
+import { Keywords, ObjectKind, ROOT_POINTER } from './types';
 import JSONPointer from 'jsonpointer';
 import { findRequiredProps } from './handlers/required';
 import { findJsonFieldType } from './handlers/field-type';

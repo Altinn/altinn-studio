@@ -1,4 +1,4 @@
-import { ILanguage } from '../types';
+import type { ILanguage } from '../types';
 
 export const getTranslation = (key: string, language: ILanguage) => {
   if (!key) {

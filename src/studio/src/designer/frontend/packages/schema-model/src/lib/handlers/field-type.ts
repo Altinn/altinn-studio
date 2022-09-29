@@ -1,4 +1,5 @@
-import { FieldType, JsonSchemaNode, ObjectKind, UiSchemaNode } from '../types';
+import type { JsonSchemaNode, UiSchemaNode } from '../types';
+import { FieldType, ObjectKind } from '../types';
 import { arrayIntersection, arrayUnique, getCombinationKind, getObjectKind } from '../utils';
 import { ArrRestrictionKeys, IntRestrictionKeys, ObjRestrictionKeys, StrRestrictionKeys } from '../restrictions';
 

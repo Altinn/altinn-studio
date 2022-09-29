@@ -1,6 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { IJsonSchema, ISchemaState } from '../../types';
+import type { IJsonSchema, ISchemaState } from '../../types';
 import { getSchemaSettings } from '../../settings';
+import type { UiSchemaNode } from '@altinn/schema-model';
 import {
   buildJsonSchema,
   buildUiSchema,
@@ -17,7 +18,6 @@ import {
   renameItemPointer,
   replaceLastPointerSegment,
   ROOT_POINTER,
-  UiSchemaNode,
 } from '@altinn/schema-model';
 
 export const initialState: ISchemaState = {
@@ -35,11 +35,6 @@ const schemaEditorSlice = createSlice({
   name: 'schemaEditor',
   initialState,
   reducers: {
-    addRestriction(state, action: PayloadAction<{ path: string; value: string; key: string }>) {
-      const { path, value, key } = action.payload;
-      const addToItem = getNodeByPointer(state.uiSchema, path);
-      addToItem.restrictions[key] = value;
-    },
     addEnum(state, action: PayloadAction<{ path: string; value: string; oldValue?: string }>) {
       const { path, value, oldValue } = action.payload;
       const addToItem = getNodeByPointer(state.uiSchema, path);
@@ -145,8 +140,11 @@ const schemaEditorSlice = createSlice({
     setRestriction(state, action: PayloadAction<{ path: string; value: string; key: string }>) {
       const { path, value, key } = action.payload;
       const schemaItem = getNodeByPointer(state.uiSchema, path);
-      schemaItem.restrictions = schemaItem.restrictions ?? {};
-      schemaItem.restrictions[key] = value;
+      const restrictions = schemaItem.restrictions ?? {};
+      schemaItem.restrictions = {
+        ...restrictions,
+        [key]: value,
+      };
     },
     setItems(
       state,
@@ -281,7 +279,6 @@ export const {
   addCombinationItem,
   addEnum,
   addProperty,
-  addRestriction,
   addRootItem,
   deleteCombinationItem,
   deleteEnum,

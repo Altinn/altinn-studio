@@ -1,7 +1,9 @@
 import React, { MouseEvent } from 'react';
 import { Checkbox, FormControlLabel } from '@material-ui/core';
 import { getTranslation } from '../../utils/language';
-import { ILanguage } from '../../types';
+import type { ILanguage } from '../../types';
+import type { UiSchemaNode } from '@altinn/schema-model';
+import { CombinationKind, FieldType } from '@altinn/schema-model';
 import { EnumField } from './EnumField';
 import { addEnum, deleteEnum, setRequired, setRestriction } from '../../features/editor/schemaEditorSlice';
 import { useDispatch } from 'react-redux';
@@ -13,7 +15,6 @@ import classes from './ItemRestrictions.module.css';
 import { Divider } from './Divider';
 import { Fieldset } from './Fieldset';
 import { Button } from '@altinn/altinn-design-system';
-import { CombinationKind, FieldType, UiSchemaNode } from '@altinn/schema-model';
 
 export interface RestrictionItemProps {
   restrictions: any;

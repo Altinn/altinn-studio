@@ -1,4 +1,5 @@
-import { FieldType, Keywords, ROOT_POINTER, UiSchemaNode, UiSchemaNodes } from './types';
+import type { UiSchemaNode, UiSchemaNodes } from './types';
+import { FieldType, Keywords, ROOT_POINTER } from './types';
 import { makePointer } from './utils';
 
 export const getRootNodes = (uiSchemaMap: UiSchemaNodes, defs: boolean): UiSchemaNode[] => {

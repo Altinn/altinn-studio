@@ -1,4 +1,5 @@
-import { JsonSchemaNode, Keywords } from '../types';
+import type { JsonSchemaNode } from '../types';
+import { Keywords } from '../types';
 
 export const genericKeywords = [Keywords.Default, Keywords.Enum, Keywords.Const, Keywords.Title, Keywords.Description];
 

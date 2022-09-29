@@ -2,7 +2,6 @@ import {
   addCombinationItem,
   addEnum,
   addProperty,
-  addRestriction,
   addRootItem,
   deleteCombinationItem,
   deleteEnum,
@@ -28,7 +27,7 @@ import {
   updateJsonSchema,
 } from './schemaEditorSlice';
 import { dataMock } from '../../mockData';
-import { ISchemaState } from '../../types';
+import type { ISchemaState } from '../../types';
 import {
   CombinationKind,
   FieldType,
@@ -277,17 +276,6 @@ describe('SchemaEditorSlice', () => {
     nextState = reducer(nextState, deleteEnum(payload));
     item = getNodeByPointer(nextState.uiSchema, '#/$defs/StatistiskeEnhetstyper');
     expect(item && item.enum).not.toContainEqual('test2');
-  });
-
-  it('handles addRestriction', () => {
-    const payload = {
-      path: '#/$defs/Kontaktperson',
-      key: 'pattern',
-      value: '',
-    };
-    let nextState = reducer(state, addRestriction(payload));
-    let item = getNodeByPointer(nextState.uiSchema, '#/$defs/Kontaktperson');
-    expect(item.restrictions['pattern']).toBe('');
   });
 
   it('handles updateJsonSchema', () => {

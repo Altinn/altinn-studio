@@ -2,13 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { Panel, PanelVariant } from '@altinn/altinn-design-system';
 import { AppBar, Divider } from '@material-ui/core';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
-import { ILanguage } from '../types';
+import type { UiSchemaNode } from '@altinn/schema-model';
+import { FieldType, ObjectKind } from '@altinn/schema-model';
 import { getTranslation } from '../utils/language';
 import { SchemaTab } from './common/SchemaTab';
 import { ItemPropertiesTab } from './SchemaInspector/ItemPropertiesTab';
 import { ItemFieldsTab } from './SchemaInspector/ItemFieldsTab';
+import type { ILanguage } from '../types';
 import classes from './SchemaInspector.module.css';
-import { FieldType, ObjectKind, UiSchemaNode } from '@altinn/schema-model';
 
 export interface ISchemaInspectorProps {
   language: ILanguage;
