@@ -76,7 +76,7 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
   const childNodes = useSelector((state: ISchemaState) => getChildNodesByNode(state.uiSchema, selectedItem));
 
   const onChangeNullable = (event: any) => {
-    if (event.target.isNullable) {
+    if (event.target.checked) {
       dispatch(addCombinationItem({ path: selectedItem.pointer, props: { fieldType: FieldType.Null } }));
     } else {
       childNodes.forEach((childNode: UiSchemaNode) => {
