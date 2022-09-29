@@ -1,5 +1,5 @@
 # studio frontend
-FROM node:16.17.0-alpine3.16 AS generate-studio-frontend
+FROM node:16.17.1-alpine3.16 AS generate-studio-frontend
 
 WORKDIR /build
 
@@ -47,7 +47,7 @@ COPY --from=generate-studio-frontend /build/dist/app-development/app-development
 COPY --from=generate-studio-frontend /build/dist/dashboard/dashboard.js .
 COPY --from=generate-studio-frontend /build/dist/dashboard/dashboard.css .
 
-FROM node:16.17.0-alpine3.16 AS generate-designer-js
+FROM node:16.17.1-alpine3.16 AS generate-designer-js
 WORKDIR /app
 COPY src/designer/backend/package.json .
 COPY src/designer/backend/yarn.lock .
