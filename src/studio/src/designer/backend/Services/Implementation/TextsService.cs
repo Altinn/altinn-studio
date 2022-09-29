@@ -71,13 +71,23 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private static List<string> ExtractMarkdownFileNames(Dictionary<string, string> texts)
         {
             List<string> markdownFileNames = new List<string>();
-            foreach (KeyValuePair<string, string> text in texts.Where(text => text.Value.StartsWith("${{") && text.Value.EndsWith(".md}}")))
+            foreach (KeyValuePair<string, string> text in texts.Where(text => IsFileReference(text.Value)))
             {
                 string fileName = text.Value.Substring(3, text.Value.Length - 5);
                 markdownFileNames.Add(fileName);
             }
 
             return markdownFileNames;
+        }
+
+        /// <summary>
+        /// Checks if value text from texts file is a reference to a filename.
+        /// </summary>
+        /// <param name="textValue">A value in the key:value pair from a texts file</param>
+        /// <returns>boolean value indicating if value is a filename reference or not</returns>
+        private static bool IsFileReference(string textValue)
+        {
+            return textValue.StartsWith("${{") && textValue.EndsWith(".md}}");
         }
 
         /// <summary>
