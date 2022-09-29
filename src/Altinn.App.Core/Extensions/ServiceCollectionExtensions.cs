@@ -120,6 +120,7 @@ namespace Altinn.App.Core.Extensions
 
         private static void AddPdfServices(IServiceCollection services)
         {
+            services.TryAddTransient<IPdfOptionsMapping, PdfOptionsMapping>();
             services.TryAddTransient<IPdfService, PdfService>();
 
             // In old versions of the app the PdfHandler did not have an interface and

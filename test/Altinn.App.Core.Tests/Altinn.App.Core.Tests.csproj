@@ -41,6 +41,12 @@
     <ProjectReference Include="..\..\src\Altinn.App.Core\Altinn.App.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="Internal\Pdf\TestData\**">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <CodeAnalysisRuleSet>..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
