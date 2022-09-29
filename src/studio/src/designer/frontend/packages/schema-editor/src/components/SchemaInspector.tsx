@@ -52,7 +52,7 @@ export const SchemaInspector = ({ language, selectedItem, checkIsNameInUse }: IS
           <ItemPropertiesTab checkIsNameInUse={checkIsNameInUse} selectedItem={selectedItem} language={language} />
         </TabPanel>
         <TabPanel className={classes.tabPanel} value='2'>
-          <ItemFieldsTab classes={classes} selectedItem={selectedItem} language={language} />
+          <ItemFieldsTab selectedItem={selectedItem} language={language} />
         </TabPanel>
       </TabContext>
     </div>
