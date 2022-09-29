@@ -91,8 +91,7 @@ docker-compose down
 
    - If you need to debug (or run locally) the app front-end, see details in [app-frontend-react repository](https://github.com/Altinn/app-frontend-react#developing-app-frontend)
 
-The app and local platform services are now running locally.
-If you have configured your hosts as [described in the prerequisites](/src/studio/README.md#prerequisites), the app can be accessed on altinn3local.no.
+The app and local platform services are now running locally, and the app can be accessed on local.altinn.cloud.
 
 Log in with a test user, using your app name and org name. This will redirect you to the app.
 
