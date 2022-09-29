@@ -44,6 +44,7 @@ const renderEditor = (customState?: Partial<ISchemaState>) => {
     ...customStateCopy,
   });
   const onSaveSchema = jest.fn();
+  const toggleEditMode = jest.fn();
   const user = userEvent.setup();
   render(
     <Provider store={store}>
@@ -54,6 +55,8 @@ const renderEditor = (customState?: Partial<ISchemaState>) => {
         language={mockLanguage}
         onSaveSchema={onSaveSchema}
         name='test'
+        editMode={false}
+        toggleEditMode={toggleEditMode}
       />
     </Provider>,
   );
