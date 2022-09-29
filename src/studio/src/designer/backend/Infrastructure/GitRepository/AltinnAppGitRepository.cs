@@ -6,7 +6,8 @@ using System.Xml;
 using System.Xml.Schema;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.ModelMetadatalModels;
-
+using JetBrains.Annotations;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using Formatting = Newtonsoft.Json.Formatting;
 
@@ -27,7 +28,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string MARKDOWN_TEXTS_FOLDER_NAME = "md/";
 
         private const string APP_METADATA_FILENAME = "applicationmetadata.json";
-        private const string MARKDOWN_TEXT_FILES_PATTERN = ".texts.*";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AltinnGitRepository"/> class.
@@ -110,7 +110,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="xsdMemoryStream">Stream representing the Xsd to be saved.</param>
         /// <param name="fileName">The filename of the file to be saved excluding path.</param>
-        /// <returns>A string containg the relative path to the file saved.</returns>
+        /// <returns>A string containing the relative path to the file saved.</returns>
         public async Task<string> SaveXsd(MemoryStream xsdMemoryStream, string fileName)
         {
             string filePath = Path.Combine(GetRelativeModelFolder(), fileName);
@@ -176,7 +176,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </remarks>
         public async Task<Designer.Models.TextResource> GetTextV1(string language)
         {
-            string resourcePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, $"resource.{language}.json");
+            string resourcePath = GetPathToJsonTextsFile($"resource.{language}.json");
 
             var fileContent = await ReadTextByRelativePathAsync(resourcePath);
             var textResource = JsonConvert.DeserializeObject<Designer.Models.TextResource>(fileContent);
@@ -193,7 +193,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             string fileName = $"{languageCode}.texts.json";
 
-            var textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
+            var textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
 
             string texts = System.Text.Json.JsonSerializer.Serialize(jsonTexts);
 
@@ -209,7 +209,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             string fileName = $"{text.Key}.{languageCode}.texts.md";
 
-            var textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, MARKDOWN_TEXTS_FOLDER_NAME, fileName);
+            var textsFileRelativeFilePath = GetPathToMarkdownTextFile(fileName);
 
             await WriteTextByRelativePathAsync(textsFileRelativeFilePath, text.Value, true);
         }
@@ -223,7 +223,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             var allResourceTexts = new Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>>();
 
-            string textResourcesDirectory = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME);
+            string textResourcesDirectory = GetPathToJsonTextsFile(null);
 
             if (!DirectoryExitsByRelativePath(textResourcesDirectory))
             {
@@ -283,7 +283,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             string fileName = $"{languageCode}.texts.json";
 
-            var textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
+            var textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
 
             string texts = await ReadTextByRelativePathAsync(textsFileRelativeFilePath);
 
@@ -299,7 +299,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <returns>Markdown text as a string</returns>
         public async Task<string> GetTextMarkdown(string markdownFileName)
         {
-            var textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, MARKDOWN_TEXTS_FOLDER_NAME, markdownFileName);
+            var textsFileRelativeFilePath = GetPathToMarkdownTextFile(markdownFileName);
 
             string text = await ReadTextByRelativePathAsync(textsFileRelativeFilePath);
 
@@ -313,14 +313,14 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public void DeleteTexts(string languageCode)
         {
             string textsFileName = $"{languageCode}.texts.json";
-            var textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, textsFileName);
+            var textsFileRelativeFilePath = GetPathToJsonTextsFile(textsFileName);
             DeleteFileByRelativePath(textsFileRelativeFilePath);
 
-            var fileNames = FindFiles(new[] { $"*.{languageCode}{MARKDOWN_TEXT_FILES_PATTERN}" });
+            var fileNames = FindFiles(new[] { $"*.{languageCode}.texts.md" });
             foreach (string fileNamePath in fileNames)
             {
                 string fileName = Path.GetFileName(fileNamePath);
-                textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, MARKDOWN_TEXTS_FOLDER_NAME, fileName);
+                textsFileRelativeFilePath = GetPathToMarkdownTextFile(fileName);
                 DeleteFileByRelativePath(textsFileRelativeFilePath);
             }
         }
@@ -353,7 +353,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 }
             }
 
-            string textResourcesDirectory = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME);
+            string textResourcesDirectory = GetPathToJsonTextsFile(null);
 
             // loop through each language set of text resources
             foreach (KeyValuePair<string, Dictionary<string, Designer.Models.TextResourceElement>> processedResource in resourceTexts)
@@ -398,6 +398,18 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             }
 
             return xsd;
+        }
+
+        private static string GetPathToJsonTextsFile([CanBeNull] string fileName)
+        {
+            string textsFileRelativeFilePath = fileName.IsNullOrEmpty() ? Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME) : Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
+            return textsFileRelativeFilePath;
+        }
+
+        private static string GetPathToMarkdownTextFile(string fileName)
+        {
+            string textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, MARKDOWN_TEXTS_FOLDER_NAME, fileName);
+            return textsFileRelativeFilePath;
         }
 
         /// <summary>
