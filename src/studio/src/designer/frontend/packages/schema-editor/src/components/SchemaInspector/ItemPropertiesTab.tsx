@@ -12,15 +12,11 @@ interface ItemPropertiesTabProps {
 }
 
 export const ItemPropertiesTab = ({ language, selectedItem, checkIsNameInUse }: ItemPropertiesTabProps) => {
-  return (
-    <>
-      {selectedItem.isCombinationItem && selectedItem.objectKind !== ObjectKind.Reference ? (
-        <InlineObject item={selectedItem} language={language} />
-      ) : selectedItem.pointer === ROOT_POINTER ? (
-        <>root</>
-      ) : (
-        <ItemDataComponent selectedItem={selectedItem} language={language} checkIsNameInUse={checkIsNameInUse} />
-      )}
-    </>
-  );
+  if (selectedItem.isCombinationItem && selectedItem.objectKind !== ObjectKind.Reference) {
+    return <InlineObject item={selectedItem} language={language} />;
+  } else if (selectedItem.pointer === ROOT_POINTER) {
+    return <>root</>;
+  } else {
+    return <ItemDataComponent selectedItem={selectedItem} language={language} checkIsNameInUse={checkIsNameInUse} />;
+  }
 };

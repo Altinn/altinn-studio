@@ -70,10 +70,8 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
   const onChangeRef = (path: string, ref: string) => dispatch(setRef({ path, ref }));
 
   const onChangeType = (pointer: string, type: FieldType) => {
-    if (selectedItem) {
-      dispatch(setType({ path: selectedItem.pointer, type }));
-      setFieldType(type);
-    }
+    dispatch(setType({ path: selectedItem.pointer, type }));
+    setFieldType(type);
   };
   const childNodes = useSelector((state: ISchemaState) => getChildNodesByNode(state.uiSchema, selectedItem));
 
@@ -109,9 +107,6 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
     dispatch(setCombinationType({ path: selectedItem.pointer, type: value }));
 
   const handleArrayPropertyToggle = (e: any, checked: boolean) => {
-    if (!selectedItem) {
-      return;
-    }
     if (checked) {
       const type = selectedItem.objectKind === ObjectKind.Reference ? selectedItem.ref : selectedItem.fieldType;
       // @ts-ignore
@@ -139,7 +134,7 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
         setPropertyName({
           path: selectedItem.pointer,
           name: nodeName,
-          navigate: selectedItem.pointer,
+          navigate: true,
         }),
       );
     }
@@ -216,22 +211,20 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
         />
       )}
       {selectedItem.objectKind === ObjectKind.Combination && (
-        <>
-          <FormControlLabel
-            id='multiple-answers-checkbox'
-            className={classes.header}
-            control={
-              <Checkbox
-                disabled
-                color='primary'
-                checked={combinationIsNullable(childNodes)}
-                onChange={onChangeNullable}
-                name='checkedNullable'
-              />
-            }
-            label={t('nullable')}
-          />
-        </>
+        <FormControlLabel
+          id='multiple-answers-checkbox'
+          className={classes.header}
+          control={
+            <Checkbox
+              disabled
+              color='primary'
+              checked={combinationIsNullable(childNodes)}
+              onChange={onChangeNullable}
+              name='checkedNullable'
+            />
+          }
+          label={t('nullable')}
+        />
       )}
       <ItemRestrictions item={selectedItem} language={language} />
       <Divider />

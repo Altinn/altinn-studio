@@ -161,7 +161,7 @@ const schemaEditorSlice = createSlice({
       }
       const newNode = Object.assign(createNodeBase(itemPointer), items);
       const itemsIndex = getNodeIndexByPointer(state.uiSchema, itemPointer);
-      itemsIndex !== undefined ? (state.uiSchema[itemsIndex] = newNode) : state.uiSchema.push(newNode);
+      state.uiSchema[itemsIndex !== undefined ? itemsIndex : 0] = newNode;
     },
     setRef(state, action: PayloadAction<{ path: string; ref: string }>) {
       const { path, ref } = action.payload;
@@ -216,7 +216,7 @@ const schemaEditorSlice = createSlice({
       const { schema } = action.payload;
       state.schema = schema;
     },
-    setPropertyName(state, action: PayloadAction<{ path: string; name: string; navigate?: string }>) {
+    setPropertyName(state, action: PayloadAction<{ path: string; name: string; navigate?: boolean }>) {
       const { path, navigate, name } = action.payload;
       if (!name || name.length === 0) {
         return;

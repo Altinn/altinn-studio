@@ -385,7 +385,7 @@ describe('SchemaEditorSlice', () => {
   it('handles setting combination type', () => {
     // verify initial state => type is allOf
     let item = getNodeByPointer(state.uiSchema, '#/$defs/allOfTest');
-    let childNodes = getChildNodesByPointer(state.uiSchema, '#/$defs/allOfTest');
+    const childNodes = getChildNodesByPointer(state.uiSchema, '#/$defs/allOfTest');
     expect(childNodes[0].ref).toBe('#/$defs/Tekst_50');
     expect(childNodes[0].pointer).toBe('#/$defs/allOfTest/allOf/0');
     expect(item.objectKind).toBe(ObjectKind.Combination);
