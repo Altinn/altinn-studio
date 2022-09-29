@@ -1,0 +1,95 @@
+﻿<xsd:schema xmlns:seres="http://seres.no/xsd/forvaltningsdata" xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <xsd:annotation>
+    <xsd:documentation>
+      <xsd:attribute name="XSLT-skriptnavn" fixed="SERES_XSD_GEN" />
+      <xsd:attribute name="XSD-generatorversjon" fixed="2.0.23" />
+      <xsd:attribute name="XSLT-prosessor" fixed="SAXON versjon 9.1.0.7" />
+      <xsd:attribute name="generert" fixed="2020-05-25T21:55:04.016+02:00" />
+      <xsd:attribute name="navneromprefix" fixed="http://seres.no/xsd" />
+      <xsd:attribute name="namespace" fixed="http://seres.no/xsd/Kursdomene/BliTjenesteeier_M/2020" />
+      <xsd:attribute name="meldingsnavn" fixed="melding" />
+      <xsd:attribute name="domenenavn" fixed="Kursdomene" />
+      <xsd:attribute name="modellnavn" fixed="BliTjenesteeier_M" />
+      <xsd:attribute name="metamodellversjon" fixed="1.2" />
+      <xsd:attribute name="guid" fixed="true" />
+      <xsd:attribute name="orid" fixed="false" />
+      <xsd:attribute name="nillable" fixed="true" />
+      <xsd:attribute name="tillat-gjenbruk" fixed="true" />
+      <xsd:attribute name="elementtype" fixed="true" />
+      <xsd:attribute name="forvaltningsdata" fixed="true" />
+      <xsd:attribute name="forvaltningsdata-navnerom" fixed="http://seres.no/xsd/forvaltningsdata" />
+      <xsd:attribute name="saernorske-bokstaver-i-navn" fixed="false" />
+      <xsd:attribute name="ft_guid_som_attributt" fixed="false" />
+      <xsd:attribute name="sem-ref" fixed="false" />
+      <xsd:attribute name="kodebibliotek" fixed="false" />
+      <xsd:attribute name="spraak" fixed="" />
+      <xsd:attribute name="XSD-variant" fixed="Altinn 1.3.2" />
+    </xsd:documentation>
+  </xsd:annotation>
+  <xsd:element name="melding" type="BliTjenesteeier_M" />
+  <xsd:complexType name="BliTjenesteeier_M" seres:elementtype="Meldingsmodell" seres:guid="http://seres.no/guid/Kursdomene/Meldingsmodell/BliTjenesteeier_M/776028">
+    <xsd:sequence>
+      <xsd:element name="Tjenesteeier" type="Tjenesteeier" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/Kursdomene/Meldingsdel/Tjenesteeier/776026" />
+      <xsd:element name="Kontaktperson" type="Kontaktperson" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/Kursdomene/Meldingsdel/Kontaktperson/776015" />
+      <xsd:element name="OEnsketBruk" type="OEnsketBruk" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/Kursdomene/Meldingsdel/ØnsketBruk/776011" />
+    </xsd:sequence>
+    <xsd:attribute name="dataFormatProvider" type="xsd:string" use="required" fixed="SERES" />
+    <xsd:attribute name="dataFormatId" type="xsd:string" use="required" fixed="5703" />
+    <xsd:attribute name="dataFormatVersion" type="xsd:string" use="required" fixed="34553" />
+    <xsd:anyAttribute />
+  </xsd:complexType>
+  <xsd:complexType name="Tjenesteeier" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/Kursdomene/Meldingsdel/Tjenesteeier/776026">
+    <xsd:sequence>
+      <xsd:element name="navnBokmaal" type="Navn" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Kursdomene/Dataegenskap/navnBokmål/776025" />
+      <xsd:element name="organisasjonsnummer" type="Organisasjonsnummer" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Kursdomene/Dataegenskap/organisasjonsnummer/776024" />
+      <xsd:element name="sektor" type="Tekst" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Kursdomene/Dataegenskap/sektor/776023" />
+      <xsd:element name="navnNynorsk" type="Navn" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Kursdomene/Dataegenskap/navnNynorsk/776022" />
+      <xsd:element name="navnEngelsk" type="Navn" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Kursdomene/Dataegenskap/navnEngelsk/776021" />
+      <xsd:element name="akronym" type="Tekst" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Kursdomene/Dataegenskap/akronym/776020" />
+      <xsd:element name="ipAdresse" type="Tekst" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Kursdomene/Dataegenskap/ipAdresse/776019" />
+      <xsd:element name="adminTEServicearkivFoedselsnr" type="Foedselsnummer" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Kursdomene/Dataegenskap/adminTEServicearkivFødselsnr/776018" />
+      <xsd:element name="adminTEServicearkivNavn" type="Navn" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Kursdomene/Dataegenskap/adminTEServicearkivNavn/776017" />
+      <xsd:element name="adminTEServicearkivTelefon" type="Telefonnummer" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Kursdomene/Dataegenskap/adminTEServicearkivTelefon/776016" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Kontaktperson" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/Kursdomene/Meldingsdel/Kontaktperson/776015">
+    <xsd:sequence>
+      <xsd:element name="navn" type="Navn" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Kursdomene/Dataegenskap/navn/776014" />
+      <xsd:element name="epost" type="EPost" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Kursdomene/Dataegenskap/epost/776013" />
+      <xsd:element name="telefonnummer" type="Telefonnummer" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Kursdomene/Dataegenskap/telefonnummer/776012" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="OEnsketBruk" seres:elementtype="Meldingsdel" seres:guid="http://seres.no/guid/Kursdomene/Meldingsdel/ØnsketBruk/776011">
+    <xsd:sequence>
+      <xsd:element name="hvaKanViBrukeAltinnTil" type="Tekst" seres:elementtype="Dataegenskap" seres:guid="http://seres.no/guid/Kursdomene/Dataegenskap/hvaKanViBrukeAltinnTil/776010" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="Navn" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Kursdomene/Dataenkeltype/Navn/4007">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Organisasjonsnummer" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Kursdomene/Dataenkeltype/Organisasjonsnummer/4005">
+    <xsd:restriction base="Organisasjonsnummer_RestriksjonOrganisasjonsnummer" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Organisasjonsnummer_RestriksjonOrganisasjonsnummer" seres:elementtype="Tegnrestriksjon" seres:guid="http://seres.no/guid/Kursdomene/Tegnrestriksjon/RestriksjonOrganisasjonsnummer/1185556">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="[0-9]{9}" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Tekst" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Kursdomene/Dataenkeltype/Tekst/4008">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Foedselsnummer" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Kursdomene/Dataenkeltype/Fødselsnummer/4009">
+    <xsd:restriction base="Foedselsnummer_RestriksjonFoedselsnummer" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Foedselsnummer_RestriksjonFoedselsnummer" seres:elementtype="Tegnrestriksjon" seres:guid="http://seres.no/guid/Kursdomene/Tegnrestriksjon/RestriksjonFødselsnummer/1185558">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="[0-9]{11}" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Telefonnummer" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Kursdomene/Dataenkeltype/Telefonnummer/4002">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="EPost" seres:elementtype="Dataenkeltype" seres:guid="http://seres.no/guid/Kursdomene/Dataenkeltype/EPost/4003">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+</xsd:schema>

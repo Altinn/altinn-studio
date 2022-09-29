@@ -1,0 +1,307 @@
+﻿<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified" xml:lang="nb">
+  <xsd:annotation>
+    <xsd:documentation>
+      <xsd:attribute name="opprettet" fixed="26.05.2022" />
+      <xsd:attribute name="oppdatert" fixed="" />
+      <xsd:attribute name="generert" fixed="manuelt" />
+      <xsd:attribute name="versjon" fixed="v1" />
+      <xsd:attribute name="skjemakode" fixed="S-019" />
+      <xsd:attribute name="skjemanavn" fixed="Fufinn - felles" />
+    </xsd:documentation>
+  </xsd:annotation>
+  <xsd:element name="skjema" type="Fufinn" />
+  <xsd:complexType name="Fufinn">
+    <xsd:sequence>
+      <xsd:element name="felles" type="Felles" minOccurs="1" maxOccurs="1" />
+      <xsd:element name="skjemaSpesifikt" type="SkjemaSpesifikt" minOccurs="1" maxOccurs="1" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <!-- Felles for alle skjemaer -->
+  <xsd:complexType name="Felles">
+    <xsd:sequence>
+      <xsd:element name="innsenderPerson" type="InnsenderPerson" nillable="true" minOccurs="0" />
+      <xsd:element name="innsenderOrganisasjon" type="InnsenderOrganisasjon" nillable="true" minOccurs="0" />
+      <xsd:element name="hvemGjelderHenvendelsen" type="HvemGjelderHenvendelsen" nillable="true" minOccurs="0" />
+      <xsd:element name="hvorSkalHenvendelsenSendes" type="HvorSkalHenvendelsenSendes" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="InnsenderPerson">
+    <xsd:sequence>
+      <xsd:element name="navn" type="Tekst" nillable="true" minOccurs="0" />
+      <xsd:element name="bostedsadresse" type="Adresse" nillable="true" minOccurs="0" />
+      <xsd:element name="postadresse" type="Adresse" nillable="true" minOccurs="0" />
+      <xsd:element name="epost" type="Epost" nillable="true" minOccurs="0" />
+      <xsd:element name="foedselsnummer" type="Foedselsnummer" nillable="true" minOccurs="0" />
+      <xsd:element name="telefonnummer" type="Telefonnummer" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="InnsenderOrganisasjon">
+    <xsd:sequence>
+      <xsd:element name="kontaktperson" type="Tekst" nillable="true" minOccurs="0" />
+      <xsd:element name="organisasjonsnavn" type="Tekst" nillable="true" minOccurs="0" />
+      <xsd:element name="organisasjonsnummer" type="Organisasjonsnummer" nillable="true" minOccurs="0" />
+      <xsd:element name="postadresse" type="Adresse" nillable="true" minOccurs="0" />
+      <xsd:element name="forretningsadresse" type="Adresse" nillable="true" minOccurs="0" />
+      <xsd:element name="epost" type="Epost" nillable="true" minOccurs="0" />
+      <xsd:element name="telefonnummer" type="Telefonnummer" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="HvemGjelderHenvendelsen">
+    <xsd:sequence>
+      <xsd:element name="navn" type="Tekst" nillable="true" minOccurs="0" />
+      <xsd:element name="foedselsnummer" type="Foedselsnummer" nillable="true" minOccurs="0" />
+      <xsd:element name="saksId" type="Saksid" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="HvorSkalHenvendelsenSendes">
+    <xsd:sequence>
+      <xsd:element name="fylke" type="Fylke" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Adresse">
+    <xsd:sequence>
+      <xsd:element name="adresse1" type="Tekst" nillable="true" minOccurs="0" />
+      <xsd:element name="adresse2" type="Tekst" nillable="true" minOccurs="0" />
+      <xsd:element name="postnummer" type="Postnummer" nillable="true" minOccurs="0" />
+      <xsd:element name="poststed" type="Poststed" nillable="true" minOccurs="0" />
+      <xsd:element name="land" type="Tekst" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="Tekst">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Postnummer">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Poststed">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Saksid">
+    <xsd:restriction base="saksId_Restriksjon" />
+  </xsd:simpleType>
+  <xsd:simpleType name="saksId_Restriksjon">
+    <xsd:restriction base="xsd:token">
+      <xsd:pattern value="[0-9]{5,7}" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Epost">
+    <xsd:restriction base="Epost_Restriksjon" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Epost_Restriksjon">
+    <xsd:restriction base="xsd:token">
+      <xsd:pattern value="^\S+@\S+\.[A-Za-z]{2,}$" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Foedselsnummer">
+    <xsd:restriction base="Foedselsnummer_Restriksjon" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Foedselsnummer_Restriksjon">
+    <xsd:restriction base="xsd:token">
+      <xsd:pattern value="[0-9]{11}" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Telefonnummer">
+    <xsd:restriction base="Telefonnummer_Restriksjon" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Telefonnummer_Restriksjon">
+    <xsd:restriction base="xsd:token">
+      <xsd:pattern value="^([+]?(\d{8,15}))$" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Organisasjonsnummer">
+    <xsd:restriction base="Organisasjonsnummer_Restriksjon" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Organisasjonsnummer_Restriksjon">
+    <xsd:restriction base="xsd:token">
+      <xsd:pattern value="[0-9]{9}" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Fylke">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="srf" />
+      <xsd:enumeration value="fmtf" />
+      <xsd:enumeration value="fmvt" />
+      <xsd:enumeration value="fmin" />
+      <xsd:enumeration value="fmov" />
+      <xsd:enumeration value="fmav" />
+      <xsd:enumeration value="fmro" />
+      <xsd:enumeration value="fmmr" />
+      <xsd:enumeration value="fmtl" />
+      <xsd:enumeration value="fmno" />
+      <xsd:enumeration value="fmvl" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <!-- Skjemaspesifikt -->
+  <xsd:complexType name="SkjemaSpesifikt">
+    <xsd:sequence>
+      <xsd:element name="andreBehov" type="Tekst" nillable="true" minOccurs="0" />
+      <xsd:element name="bank" type="Bank" nillable="true" minOccurs="0" />
+      <xsd:element name="forsikringsselskap" type="Forsikringsselskap" nillable="true" minOccurs="0" />
+      <xsd:element name="helfo" type="Helfo" nillable="true" minOccurs="0" />
+      <xsd:element name="husbanken" type="Husbanken" nillable="true" minOccurs="0" />
+      <xsd:element name="inkassoselskap" type="Inkassoselskap" nillable="true" minOccurs="0" />
+      <xsd:element name="innkreving" type="Innkreving" nillable="true" minOccurs="0" />
+      <xsd:element name="kartverket" type="Kartverket" nillable="true" minOccurs="0" />
+      <xsd:element name="kommune" type="Kommune" nillable="true" minOccurs="0" />
+      <xsd:element name="kredittvurderingsselskap" type="Kredittvurderingsselskap" nillable="true" minOccurs="0" />
+      <xsd:element name="namsmannen" type="Namsmannen" nillable="true" minOccurs="0" />
+      <xsd:element name="nav" type="Nav" nillable="true" minOccurs="0" />
+      <xsd:element name="pasientreiser" type="Pasientreiser" nillable="true" minOccurs="0" />
+      <xsd:element name="skatteetaten" type="Skatteetaten" nillable="true" minOccurs="0" />
+      <xsd:element name="tingretten" type="Tingretten" nillable="true" minOccurs="0" />
+      <xsd:element name="oevrige" type="OEvrige" nillable="true" minOccurs="0" />
+      <xsd:element name="statsforvalter" type="Statsforvalter" nillable="true" minOccurs="0" />
+      <xsd:element name="vergehaver" type="Vergehaver" nillable="true" minOccurs="0" />
+      <xsd:element name="hjelpeapparat" type="Hjelpeapparat" nillable="true" minOccurs="0" />
+      <xsd:element name="endringEllerNy" type="EndringEllerNy" nillable="true" minOccurs="0" />
+      <xsd:element name="innsenderRelasjon" type="Tekst" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Bank">
+    <xsd:sequence>
+      <xsd:element name="bankRepresentasjon" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="bankLaan" type="FullmaktValg" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Forsikringsselskap">
+    <xsd:sequence>
+      <xsd:element name="forsikringForvalte" type="FullmaktValg" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Helfo">
+    <xsd:sequence>
+      <xsd:element name="helfoRefusjon" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="helfoFastlege" type="FullmaktValg" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Husbanken">
+    <xsd:sequence>
+      <xsd:element name="husbankenBostoette" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="husbankenStartlaan" type="FullmaktValg" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Inkassoselskap">
+    <xsd:sequence>
+      <xsd:element name="inkasseForhandle" type="FullmaktValg" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Innkreving">
+    <xsd:sequence>
+      <xsd:element name="innkrevingGjeldsordning" type="FullmaktValg" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Kartverket">
+    <xsd:sequence>
+      <xsd:element name="kartSalgEiendom" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="kartKjoepEiendom" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="kartArv" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="kartEndreEiendom" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="kartAvtaler" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="kartSletting" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="kartLaaneopptak" type="FullmaktValg" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Kommune">
+    <xsd:sequence>
+      <xsd:element name="kommuneBygg" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="kommuneHelse" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="kommuneSosial" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="kommuneSkole" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="kommuneSkatt" type="FullmaktValg" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Kredittvurderingsselskap">
+    <xsd:sequence>
+      <xsd:element name="kredittKredittsperre" type="FullmaktValg" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Namsmannen">
+    <xsd:sequence>
+      <xsd:element name="namsmannenGjeldsordning" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="namsmannenTvangsfullbyrdelse" type="FullmaktValg" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Nav">
+    <xsd:sequence>
+      <xsd:element name="navArbeid" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="navFamilie" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="navHjelpemidler" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="navPensjon" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="navSosial" type="FullmaktValg" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Pasientreiser">
+    <xsd:sequence>
+      <xsd:element name="pasientRefusjon" type="FullmaktValg" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Skatteetaten">
+    <xsd:sequence>
+      <xsd:element name="skattInnkreving" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="skattPostadresse" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="skattFlytting" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="skattSkatt" type="FullmaktValg" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Tingretten">
+    <xsd:sequence>
+      <xsd:element name="tingrettUskifte" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="tingrettPrivatDoedsbo" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="tingrettBegjaereDoedsbo" type="FullmaktValg" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="OEvrige">
+    <xsd:sequence>
+      <xsd:element name="oevrigeKjoepVarer" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="oevrigeHusleiekontrakt" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="oevrigeLoesoere" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="oevrigeUtgifter" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="oevrigeAvslutteHusleie" type="FullmaktValg" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Statsforvalter">
+    <xsd:sequence>
+      <xsd:element name="statsforvalterTvangsvedtak" type="FullmaktValg" nillable="true" minOccurs="0" />
+      <xsd:element name="statsforvalterSamtykke" type="FullmaktValg" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Vergehaver">
+    <xsd:sequence>
+      <xsd:element name="telefonsamtaleMulig" type="JaNei" nillable="true" minOccurs="0" />
+      <xsd:element name="telefonsamtaleHvorfor" type="Tekst" nillable="true" minOccurs="0" />
+      <xsd:element name="borPaaInstitusjon" type="JaNei" nillable="true" minOccurs="0" />
+      <xsd:element name="hvilkenInstitusjon" type="Tekst" nillable="true" minOccurs="0" />
+      <xsd:element name="adresse" type="Adresse" nillable="true" minOccurs="0" />
+      <xsd:element name="telefonnummer" type="Telefonnummer" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Hjelpeapparat">
+    <xsd:sequence>
+      <xsd:element name="telefonnummer" type="Telefonnummer" nillable="true" minOccurs="0" />
+      <xsd:element name="navn" type="Tekst" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="FullmaktValg">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="leggTil" />
+      <xsd:enumeration value="fjern" />
+      <xsd:enumeration value="ikkeValgt" />
+      <xsd:enumeration value="ingenEndring" />
+      <xsd:enumeration value="ja" />
+      <xsd:enumeration value="nei" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="JaNei">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="ja" />
+      <xsd:enumeration value="nei" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="EndringEllerNy">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="endring" />
+      <xsd:enumeration value="ny" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <!-- Filavslutning -->
+</xsd:schema>

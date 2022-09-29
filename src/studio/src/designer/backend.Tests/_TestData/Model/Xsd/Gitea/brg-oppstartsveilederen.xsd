@@ -1,0 +1,66 @@
+﻿<xsd:schema xmlns:seres="http://seres.no/xsd/forvaltningsdata" xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <xsd:element name="oppstart" type="oppstart" />
+  <xsd:complexType name="oppstart" seres:elementtype="Meldingsmodell">
+    <xsd:sequence>
+      <xsd:element name="Utgifter" type="Utgifter" />
+      <xsd:element name="Finansiering" type="Finansiering" />
+      <xsd:element name="Resultat" type="xsd:double" />
+      <xsd:element name="utgifterMini" type="utgifterMini" />
+      <xsd:element name="inntekterMini" type="inntekterMini" />
+      <xsd:element name="overskuddMini" type="xsd:double" />
+      <xsd:element name="skattMini" type="xsd:double" />
+      <xsd:element name="etterSkattMini" type="xsd:double" />
+      <xsd:element name="diskutertOppstart" type="xsd:string" />
+      <xsd:element name="motivasjon" type="xsd:string" />
+      <xsd:element name="kjennerMarked" type="xsd:string" />
+      <xsd:element name="markedKonkurrentene" type="xsd:string" />
+      <xsd:element name="bransje" type="xsd:string" />
+      <xsd:element name="kommune" type="xsd:string" />
+      <xsd:element name="personligOkonomi" type="xsd:string" />
+      <xsd:element name="kommeIgangPenger" type="xsd:string" />
+      <xsd:element name="lagetBudsjett" type="xsd:string" />
+      <xsd:element name="mindreVarierendeInntekt" type="xsd:string" />
+      <xsd:element name="forpliktelserEnk" type="xsd:string" />
+      <xsd:element name="skattEnk" type="xsd:string" />
+      <xsd:element name="mva" type="xsd:string" />
+      <xsd:element name="erfaringRegnskap" type="xsd:string" />
+      <xsd:element name="rettigheterEnk" type="xsd:string" />
+      <xsd:element name="arbeidsgiver" type="xsd:string" />
+      <xsd:element name="summertRisiko" type="xsd:double" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Utgifter">
+    <xsd:sequence>
+      <xsd:element name="Lokaler" type="xsd:double" />
+      <xsd:element name="Innredning" type="xsd:double" />
+      <xsd:element name="Produksjonsutstyr" type="xsd:double" />
+      <xsd:element name="Transport" type="xsd:double" />
+      <xsd:element name="Kontorutstyr" type="xsd:double" />
+      <xsd:element name="Markedsforing" type="xsd:double" />
+      <xsd:element name="Varelager" type="xsd:double" />
+      <xsd:element name="andreOppstartsKostnader" type="xsd:double" />
+      <xsd:element name="Buffer" type="xsd:double" />
+      <xsd:element name="FasteUtgifter" type="xsd:double" />
+      <xsd:element name="Sum" type="xsd:double" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Finansiering">
+    <xsd:sequence>
+      <xsd:element name="OppsparteMidler" type="xsd:double" />
+      <xsd:element name="Laan" type="xsd:double" />
+      <xsd:element name="Kassekreditt" type="xsd:double" />
+      <xsd:element name="Annet" type="xsd:double" />
+      <xsd:element name="Sum" type="xsd:double" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="utgifterMini">
+    <xsd:sequence>
+      <xsd:element name="UtgifterSkatt" type="xsd:double" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="inntekterMini">
+    <xsd:sequence>
+      <xsd:element name="inntekter" type="xsd:double" />
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

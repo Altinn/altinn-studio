@@ -1,0 +1,80 @@
+﻿<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="Skjema">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="1" name="Avsender" type="AvsenderAvSøknad" />
+        <xs:element minOccurs="0" maxOccurs="1" name="Virksomhet" type="Virksomhet" />
+        <xs:element minOccurs="0" maxOccurs="1" name="Innhold" type="InnholdSkjema" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:complexType name="InnholdSkjema">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="AntallAnsatte" type="xs:integer" />
+      <xs:element minOccurs="0" maxOccurs="1" name="ASellerASAiHjemland" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="0" maxOccurs="1" name="BekreftRiktig" nillable="true" type="xs:boolean" />
+      <xs:element minOccurs="0" maxOccurs="1" name="AnsatteInnen" nillable="true" type="xs:date" />
+      <xs:element minOccurs="0" maxOccurs="1" name="FastRepresentant" type="FastRepresentant" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="AvsenderAvSøknad">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="Organisasjonsnummer" type="BegrensetTekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Navn" type="BegrensetTekst" />
+      <xs:element minOccurs="1" maxOccurs="1" name="Oppdragsfullmakt" type="xs:boolean" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Adresse" type="Adresse" />
+      <xs:element minOccurs="0" maxOccurs="1" name="InnloggetBruker" type="BegrensetTekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Spraak" type="BegrensetTekst" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="Adresse">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="Gateadresse" type="BegrensetTekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Postnr" type="BegrensetTekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Poststed" type="BegrensetTekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Land" type="BegrensetTekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Landkode" type="BegrensetTekst" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="Virksomhet">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="Organisasjonsnummer" type="BegrensetTekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Navn" type="BegrensetTekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Adresse" type="Adresse" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Organisasjonsform" type="BegrensetTekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Underenheter" type="ArrayOfUnderenhet" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="ArrayOfUnderenhet">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="unbounded" name="Underenhet" nillable="true" type="Underenhet" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="Underenhet">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="Organisasjonsnummer" type="BegrensetTekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Navn" type="BegrensetTekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Adresse" type="Adresse" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="FastRepresentant">
+    <xs:sequence>
+      <xs:element minOccurs="0" maxOccurs="1" name="Navn" type="BegrensetTekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Adresse" type="Adresse" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Telefonnummer" type="BegrensetTekst" />
+      <xs:element minOccurs="0" maxOccurs="1" name="Epost" type="Epost" />
+      <xs:element minOccurs="0" maxOccurs="1" name="ErInformert" nillable="true" type="xs:boolean" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:simpleType name="BegrensetTekst">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="0" />
+      <xs:maxLength value="255" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="Epost">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[^@]+@[^\.]+\..+" />
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Xml.Schema;
 using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
@@ -10,6 +9,7 @@ using Altinn.Studio.DataModeling.Utils;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using Json.Pointer;
 using Json.Schema;
+using static Altinn.Studio.Designer.Factories.ModelFactory.MetamodelRestrictionUtils;
 
 namespace Altinn.Studio.Designer.Factories.ModelFactory
 {
@@ -150,6 +150,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 case DefsKeyword:
                 case MinItemsKeyword:
                 case MaxItemsKeyword:
+                case CommentKeyword:
                     break;
 
                 case RefKeyword k:
@@ -676,60 +677,6 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
 
             return ElementType.Field;
-        }
-
-        private static Dictionary<string, Restriction> GetRestrictions(BaseValueType? xsdValueType, JsonSchema subSchema)
-        {
-            var restrictions = new Dictionary<string, Restriction>();
-            if (xsdValueType == null)
-            {
-                return restrictions;
-            }
-
-            switch (xsdValueType)
-            {
-                case BaseValueType.String:
-                    AddStringRestrictions(subSchema, restrictions);
-                    break;
-            }
-
-            return restrictions;
-        }
-
-        private static void AddStringRestrictions(JsonSchema subSchema, Dictionary<string, Restriction> restrictions)
-        {
-            var enumKeyword = subSchema.GetKeyword<EnumKeyword>();
-            if (enumKeyword != null)
-            {
-                AddEnumRestrictions(enumKeyword, restrictions);
-            }
-
-            if (subSchema.TryGetKeyword(out AllOfKeyword allOfKeyword))
-            {
-                var maxLengthKeyword = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<MaxLengthKeyword>()).GetKeyword<MaxLengthKeyword>();
-                restrictions.Add(maxLengthKeyword.Keyword(), new Restriction() { Value = maxLengthKeyword.Value.ToString() });
-            }
-        }
-
-        private static void AddEnumRestrictions(EnumKeyword enumKeyword, Dictionary<string, Restriction> restrictions)
-        {
-            if (enumKeyword == null)
-            {
-                return;
-            }
-
-            var valueBuilder = new StringBuilder();
-            foreach (var @enum in enumKeyword.Values)
-            {
-                if (valueBuilder.Length > 0)
-                {
-                    valueBuilder.Append(';');
-                }
-
-                valueBuilder.Append(@enum.GetString());
-            }
-
-            restrictions.Add("enumeration", new Restriction() { Value = valueBuilder.ToString() });
         }
 
         private static string GetDisplayString(string id, string typeName, int minOccurs, int maxOccurs)

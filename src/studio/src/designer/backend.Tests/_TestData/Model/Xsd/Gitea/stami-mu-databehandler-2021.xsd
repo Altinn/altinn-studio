@@ -1,0 +1,15 @@
+﻿<xs:schema targetNamespace="https://aip.stami.no/dataAgreement.xsd" xmlns="https://aip.stami.no/dataAgreement.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <xs:element name="DataBehandler">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="userId" type="xs:integer" />
+        <xs:element name="signatorNavn" type="xs:string" />
+        <xs:element name="organisasjonsnummer" type="xs:string" />
+        <xs:element name="organisasjonsnavn" type="xs:string" />
+        <xs:element name="agreementCheckbox" type="xs:string" />
+        <xs:element name="authorizedCheckbox" type="xs:string" />
+        <xs:element name="contactEmail" type="xs:string" minOccurs="0" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
