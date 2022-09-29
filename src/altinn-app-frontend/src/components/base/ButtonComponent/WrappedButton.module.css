@@ -1,0 +1,24 @@
+.wrapped-button {
+  display: inline-flex;
+  padding-bottom: 2.4rem;
+  margin-top: 2.8rem;
+}
+.wrapped-button > button {
+  position: relative;
+}
+@media (min-device-width: 834px) {
+  .wrapped-button:not(:last-child) {
+    margin-right: 1.2rem;
+  }
+}
+@media (min-device-width: 834px) {
+  .wrapped-button:not(:first-of-type) {
+    margin-left: 1.2rem;
+  }
+}
+.wrapped-button--loading > button > span {
+  opacity: 0.8;
+}
+.wrapped-button--busy > button > span {
+  opacity: 0.5;
+}

@@ -1,0 +1,23 @@
+.button-group {
+  margin-top: 3.6rem;
+  margin-bottom: 0;
+}
+.button-row {
+  margin-left: 0;
+}
+.button-row button {
+  padding-inline: calc(
+    var(--component-button-space-padding-x, inherit) + 0.2rem
+  ); /** cypress needs this **/
+}
+@media only screen and (max-width: 640px) {
+  .button-row {
+    margin-right: -1.2rem;
+  }
+  .button-row span {
+    width: 100%;
+  }
+  .button-row button {
+    width: 100%;
+  }
+}

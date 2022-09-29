@@ -7,13 +7,15 @@ export interface IAltinnLoaderProps {
   srContent: string;
   /** Optional style */
   style?: any;
+  /** className */
+  className?: string;
 }
 
 export default function AltinnLoader(props: IAltinnLoaderProps) {
   return (
     <div
       aria-live='polite'
-      className='a-loader float-left'
+      className={`a-loader ${props.className || ''}`}
       id={props.id || 'altinn-loader'}
       style={props.style}
     >

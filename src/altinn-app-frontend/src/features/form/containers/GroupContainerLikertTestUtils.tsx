@@ -231,9 +231,9 @@ export const render = ({
     formData: generateMockFormData(mockQuestions),
     error: null,
     hasSubmitted: false,
-    isSubmitting: false,
     ignoreWarnings: false,
-    isSaving: false,
+    submittingId: '',
+    savingId: '',
     responseInstance: null,
     unsavedChanges: false,
   };

@@ -4,14 +4,14 @@ import { getInitialStateMock } from '__mocks__/mocks';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from 'testUtils';
 
-import { ButtonComponent } from 'src/components/base/ButtonComponent';
-import type { IButtonProvidedProps } from 'src/components/base/ButtonComponent';
+import { ButtonComponent } from 'src/components/base/ButtonComponent/ButtonComponent';
+import type { IButtonProvidedProps } from 'src/components/base/ButtonComponent/ButtonComponent';
 
 const submitBtnText = 'Submit form';
 
 describe('ButtonComponent', () => {
-  it('should render button when isSubmitting is false', () => {
-    render({ isSubmitting: false });
+  it('should render button when submittingId is falsy', () => {
+    render({ submittingId: '' });
 
     expect(
       screen.getByRole('button', { name: submitBtnText }),
@@ -19,21 +19,21 @@ describe('ButtonComponent', () => {
     expect(screen.queryByText('general.loading')).not.toBeInTheDocument();
   });
 
-  it('should render loader when isSubmitting is true', () => {
-    render({ isSubmitting: true });
+  it('should render loader when submittingId is truthy', () => {
+    render({ submittingId: 'some-id' });
 
+    expect(screen.queryByRole('button')).toBeInTheDocument();
     expect(screen.getByText('general.loading')).toBeInTheDocument();
-    expect(screen.queryByRole('button')).not.toBeInTheDocument();
   });
 });
 
-const render = ({ isSubmitting }: { isSubmitting: boolean }) => {
+const render = ({ submittingId }: { submittingId: string }) => {
   const initialState = getInitialStateMock();
   const preloadedState = {
     ...initialState,
     formData: {
       ...initialState.formData,
-      isSubmitting,
+      submittingId,
     },
     formLayout: {
       ...initialState.formLayout,
@@ -46,6 +46,7 @@ const render = ({ isSubmitting }: { isSubmitting: boolean }) => {
 
   renderWithProviders(
     <ButtonComponent
+      id={'some-id'}
       text={submitBtnText}
       handleDataChange={jest.fn()}
       disabled={false}

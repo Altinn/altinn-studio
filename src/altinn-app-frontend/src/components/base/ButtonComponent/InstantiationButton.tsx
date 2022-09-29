@@ -2,40 +2,22 @@ import * as React from 'react';
 import { Navigate } from 'react-router-dom';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { WrappedButton } from 'src/components/base/ButtonComponent/WrappedButton';
 import { InstantiationActions } from 'src/features/instantiate/instantiation/instantiationSlice';
 import { useInstantiateWithPrefillMutation } from 'src/services/InstancesApi';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 import { mapFormData } from 'src/utils/databindings';
-import type { IComponentProps } from 'src/components';
-import type { ILayoutCompInstantiationButton } from 'src/features/form/layout';
+import type { IInstantiationButtonComponentProps } from 'src/components/base/ButtonComponent/InstantiationButtonComponent';
+import type { ButtonProps } from 'src/components/base/ButtonComponent/WrappedButton';
 
-import { AltinnLoader } from 'altinn-shared/components';
+export type InstantiationButtonProps = Omit<ButtonProps, 'onClick'> &
+  Omit<IInstantiationButtonComponentProps, 'text'>;
 
-const buttonStyle = {
-  marginBottom: '0',
-  width: '100%',
-};
-
-const btnGroupStyle = {
-  marginTop: '3.6rem',
-  marginBottom: '0',
-};
-
-const rowStyle = {
-  marginLeft: '0',
-};
-
-const altinnLoaderStyle = {
-  marginLeft: '40px',
-  marginTop: '2px',
-  height: '45px',
-};
-
-export type IInstantiationButtonProps = IComponentProps &
-  Omit<ILayoutCompInstantiationButton, 'type'>;
-
-export function InstantiationButtonComponent(props: IInstantiationButtonProps) {
+export const InstantiationButton = ({
+  children,
+  ...props
+}: InstantiationButtonProps) => {
   const dispatch = useAppDispatch();
   const [instantiateWithPrefill, { isSuccess, data, isLoading, isError }] =
     useInstantiateWithPrefillMutation();
@@ -51,6 +33,7 @@ export function InstantiationButtonComponent(props: IInstantiationButtonProps) {
       },
     });
   };
+  const busyWithId = props.busyWithId || isLoading ? props.id : '';
 
   React.useEffect(() => {
     if (isSuccess) {
@@ -73,38 +56,12 @@ export function InstantiationButtonComponent(props: IInstantiationButtonProps) {
   }
 
   return (
-    <div className='container pl-0'>
-      <div
-        className='a-btn-group'
-        style={btnGroupStyle}
-      >
-        <div
-          className='row'
-          style={rowStyle}
-        >
-          <div className='pl-0 a-btn-sm-fullwidth'>
-            {!isLoading ? (
-              <button
-                type='submit'
-                className='a-btn a-btn-success'
-                id={props.id}
-                style={buttonStyle}
-                disabled={isLoading}
-                onClick={instantiate}
-              >
-                {props.text}
-              </button>
-            ) : (
-              <AltinnLoader
-                srContent={'Laster'}
-                style={altinnLoaderStyle}
-              />
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+    <WrappedButton
+      {...props}
+      onClick={instantiate}
+      busyWithId={busyWithId}
+    >
+      {children}
+    </WrappedButton>
   );
-}
-
-export default InstantiationButtonComponent;
+};

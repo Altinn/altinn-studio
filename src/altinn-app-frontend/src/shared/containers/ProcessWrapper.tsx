@@ -6,7 +6,7 @@ import {
   useProcess,
 } from 'src/common/hooks';
 import { useApiErrorCheck } from 'src/common/hooks/useApiErrorCheck';
-import Confirm from 'src/features/confirm/containers/Confirm';
+import { Confirm } from 'src/features/confirm/containers/Confirm';
 import Feedback from 'src/features/feedback/Feedback';
 import { Form } from 'src/features/form/containers/Form';
 import UnknownError from 'src/features/instantiate/containers/UnknownError';

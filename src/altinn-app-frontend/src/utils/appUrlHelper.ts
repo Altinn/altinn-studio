@@ -11,67 +11,59 @@ export const profileApiUrl = `${appPath}/api/v1/profile/user`;
 export const oldTextResourcesUrl = `${origin}/${org}/${app}/api/textresources`;
 export const applicationMetadataApiUrl = `${appPath}/api/v1/applicationmetadata`;
 export const applicationSettingsApiUrl = `${appPath}/api/v1/applicationsettings`;
-export const updateCookieUrl = (partyId: string) =>
-  `${appPath}/api/v1/parties/${partyId}`;
 export const invalidateCookieUrl = `${appPath}/api/authentication/invalidatecookie`;
 export const validPartiesUrl = `${appPath}/api/v1/parties?allowedtoinstantiatefilter=true`;
 export const currentPartyUrl = `${appPath}/api/authorization/parties/current?returnPartyObject=true`;
 export const instancesControllerUrl = `${appPath}/instances`;
 export const refreshJwtTokenUrl = `${appPath}/api/authentication/keepAlive`;
 
-export function textResourcesUrl(language: string) {
-  return `${origin}/${org}/${app}/api/v1/texts/${language}`;
-}
+export const updateCookieUrl = (partyId: string) =>
+  `${appPath}/api/v1/parties/${partyId}`;
 
-export function fileUploadUrl(attachmentType: string) {
-  return (
-    `${appPath}/instances/` +
-    `${altinnWindow.instanceId}/data?dataType=${attachmentType}`
-  );
-}
+export const textResourcesUrl = (language: string) =>
+  `${origin}/${org}/${app}/api/v1/texts/${language}`;
 
-export function fileTagUrl(dataGuid: string) {
-  return (
-    `${appPath}/instances/` + `${altinnWindow.instanceId}/data/${dataGuid}/tags`
-  );
-}
+export const fileUploadUrl = (attachmentType: string) =>
+  `${appPath}/instances/${altinnWindow.instanceId}/data?dataType=${attachmentType}`;
 
-export function dataElementUrl(dataGuid: string) {
-  return `${appPath}/instances/${altinnWindow.instanceId}/data/${dataGuid}`;
-}
+export const fileTagUrl = (dataGuid: string) =>
+  `${appPath}/instances/${altinnWindow.instanceId}/data/${dataGuid}/tags`;
 
-export function getProcessStateUrl() {
-  return `${appPath}/instances/${altinnWindow.instanceId}/process`;
-}
+export const dataElementUrl = (dataGuid: string) =>
+  `${appPath}/instances/${altinnWindow.instanceId}/data/${dataGuid}`;
 
-export function getCreateInstancesUrl(partyId: string) {
-  return `${appPath}/instances?instanceOwnerPartyId=${partyId}`;
-}
+export const getProcessStateUrl = () =>
+  `${appPath}/instances/${altinnWindow.instanceId}/process`;
 
-export function getValidationUrl(instanceId: string) {
-  return `${appPath}/instances/${instanceId}/validate`;
-}
+export const getCreateInstancesUrl = (partyId: string) =>
+  `${appPath}/instances?instanceOwnerPartyId=${partyId}`;
 
-export function getDataValidationUrl(instanceId: string, dataGuid: string) {
-  return `${appPath}/instances/${instanceId}/data/${dataGuid}/validate`;
-}
+export const getValidationUrl = (instanceId: string) =>
+  `${appPath}/instances/${instanceId}/validate`;
 
-export function getCompleteProcessUrl() {
+export const getDataValidationUrl = (instanceId: string, dataGuid: string) =>
+  `${appPath}/instances/${instanceId}/data/${dataGuid}/validate`;
+
+export const getProcessNextUrl = (taskId?: string) => {
+  if (taskId) {
+    return `${appPath}/instances/${
+      altinnWindow.instanceId
+    }/process/next?elementId=${encodeURIComponent(taskId)}`;
+  }
   return `${appPath}/instances/${altinnWindow.instanceId}/process/next`;
-}
+};
 
-export function getRedirectUrl(returnUrl: string) {
-  return `${appPath}/api/v1/redirect?url=${encodeURIComponent(returnUrl)}`;
-}
+export const getRedirectUrl = (returnUrl: string) =>
+  `${appPath}/api/v1/redirect?url=${encodeURIComponent(returnUrl)}`;
 
-export function getUpgradeAuthLevelUrl(reqAuthLevel: string) {
+export const getUpgradeAuthLevelUrl = (reqAuthLevel: string) => {
   const redirect: string =
     `https://platform.${getHostname()}` +
     `/authentication/api/v1/authentication?goto=${appPath}`;
   return `https://${getHostname()}/ui/authentication/upgrade?goTo=${encodeURIComponent(
     redirect,
   )}&reqAuthLevel=${reqAuthLevel}`;
-}
+};
 
 export const getEnvironmentLoginUrl = (oidcprovider: string) => {
   // First split away the protocol 'https://' and take the last part. Then split on dots.
@@ -100,7 +92,7 @@ export const getEnvironmentLoginUrl = (oidcprovider: string) => {
   throw new Error('Unknown domain');
 };
 
-export const getHostname: () => string = () => {
+export const getHostname = () => {
   // First split away the protocol 'https://' and take the last part. Then split on dots.
   const domainSplitted: string[] = window.location.host.split('.');
   if (domainSplitted.length === 5) {
@@ -120,72 +112,69 @@ export const redirectToUpgrade = (reqAuthLevel: string) => {
   window.location.href = getUpgradeAuthLevelUrl(reqAuthLevel);
 };
 
-export function getJsonSchemaUrl() {
-  return `${appPath}/api/jsonschema/`;
-}
+export const getJsonSchemaUrl = () => `${appPath}/api/jsonschema/`;
 
-export function getLayoutSettingsUrl(layoutset: string) {
+export const getLayoutSettingsUrl = (layoutset: string) => {
   if (layoutset === null) {
     return `${appPath}/api/layoutsettings`;
   }
   return `${appPath}/api/layoutsettings/${layoutset}`;
-}
+};
 
-export function getLayoutSetsUrl() {
-  return `${appPath}/api/layoutsets`;
-}
+export const getLayoutSetsUrl = () => `${appPath}/api/layoutsets`;
 
-export function getFetchFormDataUrl(instanceId: string, dataElementId: string) {
-  return `${appPath}/instances/${instanceId}/data/${dataElementId}`;
-}
+export const getFetchFormDataUrl = (
+  instanceId: string,
+  dataElementId: string,
+) => `${appPath}/instances/${instanceId}/data/${dataElementId}`;
 
-export function getStatelessFormDataUrl(dataType: string, anonymous = false) {
+export const getStatelessFormDataUrl = (
+  dataType: string,
+  anonymous = false,
+) => {
   if (anonymous) {
     return `${appPath}/v1/data/anonymous?dataType=${dataType}`;
   }
   return `${appPath}/v1/data?dataType=${dataType}`;
-}
+};
 
-export function getFetchFormDynamicsUrl(layoutSetId?: string) {
+export const getFetchFormDynamicsUrl = (layoutSetId?: string) => {
   if (layoutSetId) {
     return `${appPath}/api/ruleconfiguration/${layoutSetId}`;
   }
   return `${appPath}/api/resource/RuleConfiguration.json`;
-}
+};
 
-export function getLayoutsUrl(layoutset: string) {
+export const getLayoutsUrl = (layoutset: string) => {
   if (layoutset === null) {
     return `${appPath}/api/resource/FormLayout.json`;
   }
   return `${appPath}/api/layouts/${layoutset}`;
-}
+};
 
-export function getRulehandlerUrl(layoutset: string) {
+export const getRulehandlerUrl = (layoutset: string) => {
   if (layoutset === null) {
     return `${appPath}/api/resource/RuleHandler.js`;
   }
   return `${appPath}/api/rulehandler/${layoutset}`;
-}
+};
 
-export function getCalculatePageOrderUrl(stateless: boolean) {
+export const getCalculatePageOrderUrl = (stateless: boolean) => {
   if (stateless) {
     return `${appPath}/v1/pages/order`;
   } else {
     return `${appPath}/instances/${altinnWindow.instanceId}/pages/order`;
   }
-}
+};
 
-export function getPartyValidationUrl(partyId: string) {
-  return `${appPath}/api/v1/parties/validateInstantiation?partyId=${partyId}`;
-}
+export const getPartyValidationUrl = (partyId: string) =>
+  `${appPath}/api/v1/parties/validateInstantiation?partyId=${partyId}`;
 
-export function getActiveInstancesUrl(partyId: string) {
-  return `${appPath}/instances/${partyId}/active`;
-}
+export const getActiveInstancesUrl = (partyId: string) =>
+  `${appPath}/instances/${partyId}/active`;
 
-export function getInstanceUiUrl(instanceId: string) {
-  return `${appPath}#/instance/${instanceId}`;
-}
+export const getInstanceUiUrl = (instanceId: string) =>
+  `${appPath}#/instance/${instanceId}`;
 
 export interface IGetOptionsUrlParams {
   optionsId: string;

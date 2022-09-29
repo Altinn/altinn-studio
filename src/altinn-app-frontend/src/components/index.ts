@@ -2,7 +2,10 @@ import { createContext } from 'react';
 
 import { AddressComponent as Address } from 'src/components/advanced/AddressComponent';
 import { AttachmentListComponent } from 'src/components/base/AttachmentListComponent';
-import { ButtonComponent } from 'src/components/base/ButtonComponent';
+import {
+  ButtonComponent,
+  InstantiationButtonComponent,
+} from 'src/components/base/ButtonComponent';
 import { CheckboxContainerComponent } from 'src/components/base/CheckboxesContainerComponent';
 import DatepickerComponent from 'src/components/base/DatepickerComponent';
 import DropdownComponent from 'src/components/base/DropdownComponent';
@@ -11,7 +14,6 @@ import { FileUploadWithTagComponent } from 'src/components/base/FileUpload/FileU
 import { HeaderComponent } from 'src/components/base/HeaderComponent';
 import { ImageComponent } from 'src/components/base/ImageComponent';
 import { InputComponent } from 'src/components/base/InputComponent';
-import { InstantiationButtonComponent } from 'src/components/base/InstantiationButtonComponent';
 import { LikertComponent } from 'src/components/base/LikertComponent';
 import { MapComponent } from 'src/components/base/MapComponent';
 import { NavigationBar as NavigationBarComponent } from 'src/components/base/NavigationBar';

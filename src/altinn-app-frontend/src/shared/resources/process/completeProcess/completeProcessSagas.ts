@@ -1,4 +1,5 @@
-import { call, put as sagaPut, select } from 'redux-saga/effects';
+import { call, put, select } from 'redux-saga/effects';
+import type { PayloadAction } from '@reduxjs/toolkit';
 import type { SagaIterator } from 'redux-saga';
 
 import { layoutSetsSelector } from 'src/selectors/simpleSelectors';
@@ -6,31 +7,39 @@ import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceD
 import { IsLoadingActions } from 'src/shared/resources/isLoading/isLoadingSlice';
 import { ProcessActions } from 'src/shared/resources/process/processSlice';
 import { ProcessTaskType } from 'src/types';
-import { getCompleteProcessUrl } from 'src/utils/appUrlHelper';
+import { getProcessNextUrl } from 'src/utils/appUrlHelper';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
 import type { IInstanceDataState } from 'src/shared/resources/instanceData';
+import type { ICompleteProcessFulfilled } from 'src/shared/resources/process';
 import type { IRuntimeState } from 'src/types';
 
-import { put } from 'altinn-shared/utils';
+import { put as httpPut } from 'altinn-shared/utils';
 import type { IProcess } from 'altinn-shared/types';
 
 const instanceDataSelector = (state: IRuntimeState) => state.instanceData;
 
-export function* completeProcessSaga(): SagaIterator {
+export function* completeProcessSaga(
+  action: PayloadAction<ICompleteProcessFulfilled>,
+): SagaIterator {
+  const taskId = action.payload?.taskId;
   try {
-    const result: IProcess = yield call(put, getCompleteProcessUrl(), null);
+    const result: IProcess = yield call(
+      httpPut,
+      getProcessNextUrl(taskId),
+      null,
+    );
     if (!result) {
       throw new Error('Error: no process returned.');
     }
     if (result.ended) {
-      yield sagaPut(
+      yield put(
         ProcessActions.completeFulfilled({
           processStep: ProcessTaskType.Archived,
           taskId: null,
         }),
       );
     } else {
-      yield sagaPut(
+      yield put(
         ProcessActions.completeFulfilled({
           processStep: result.currentTask.altinnTaskType as ProcessTaskType,
           taskId: result.currentTask.elementId,
@@ -41,15 +50,15 @@ export function* completeProcessSaga(): SagaIterator {
         result.currentTask.altinnTaskType === ProcessTaskType.Data ||
         behavesLikeDataTask(result.currentTask.elementId, layoutSets)
       ) {
-        yield sagaPut(IsLoadingActions.startDataTaskIsLoading());
+        yield put(IsLoadingActions.startDataTaskIsLoading());
         const instanceData: IInstanceDataState = yield select(
           instanceDataSelector,
         );
         const instanceId = instanceData.instance.id;
-        yield sagaPut(InstanceDataActions.get({ instanceId }));
+        yield put(InstanceDataActions.get({ instanceId }));
       }
     }
   } catch (error) {
-    yield sagaPut(ProcessActions.completeRejected({ error }));
+    yield put(ProcessActions.completeRejected({ error }));
   }
 }

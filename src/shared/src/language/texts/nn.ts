@@ -93,6 +93,7 @@ export function nn() {
       main: 'Appnavigasjon',
       form: 'Skjemanavigasjon',
       to_main_content: 'Hopp til hovedinnholdet',
+      go_to_task: 'Gå til {0}',
     },
     general: {
       action: 'Handling',

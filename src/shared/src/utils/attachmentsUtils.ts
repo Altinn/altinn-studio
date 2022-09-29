@@ -5,7 +5,7 @@ import type {
   IAttachmentGrouping,
   IDataType,
   IApplication,
-} from '../types/index';
+} from '../types';
 import { getTextResourceByKey } from './language';
 
 export const mapInstanceAttachments = (

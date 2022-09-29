@@ -93,6 +93,7 @@ export function en() {
       main: 'App navigation',
       form: 'Form navigation',
       to_main_content: 'Go to main content',
+      go_to_task: 'Navigate to {0}',
     },
     general: {
       action: 'Action',
