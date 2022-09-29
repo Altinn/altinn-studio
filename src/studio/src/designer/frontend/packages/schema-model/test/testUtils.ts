@@ -1,17 +1,14 @@
 import path from 'path';
 import fs from 'fs';
 import Ajv2020 from 'ajv/dist/2020';
-import { JsonSchemaNode } from '../src';
+import type { JsonSchemaNode } from '../src';
 
 /**
  * Some schemas might not be valid
  */
 export const ignoreTestSchemas: string[] = ['ComplexSchema-old'];
 
-const defaultPath = path.resolve(
-  __dirname,
-  '../../../../DataModeling.Tests/_TestData/Model/JsonSchema',
-);
+const defaultPath = path.resolve(__dirname, '../../../../DataModeling.Tests/_TestData/Model/JsonSchema');
 
 const cache = new Map();
 

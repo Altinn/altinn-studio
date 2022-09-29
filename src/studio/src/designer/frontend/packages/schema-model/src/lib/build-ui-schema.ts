@@ -1,22 +1,9 @@
-import {
-  JsonSchemaNode,
-  Keywords,
-  ObjectKind,
-  ROOT_POINTER,
-  UiSchemaMap,
-  UiSchemaNode,
-} from './types';
-import {
-  createNodeBase,
-  createPointerLookupTable,
-  getCombinationKind,
-  getObjectKind,
-  resetNodeIds,
-  schemaTypeIsNillable,
-} from './utils';
-import { handleCustomProperties } from './handlers/custom-properties';
+import type { JsonSchemaNode, UiSchemaNode, UiSchemaNodes } from './types';
+import { Keywords, ObjectKind, ROOT_POINTER } from './types';
+import { createNodeBase, getCombinationKind, getObjectKind, schemaTypeIsNillable } from './utils';
+import { findCustomAttributes } from './handlers/custom-properties';
 import { findRestrictionsOnNode } from './restrictions';
-import { getUiFieldType } from './handlers/field-type';
+import { findUiFieldType } from './handlers/field-type';
 import { findGenericKeywordsOnNode } from './handlers/generic';
 
 /**
@@ -25,70 +12,63 @@ import { findGenericKeywordsOnNode } from './handlers/generic';
  * @param schemaNode
  * @param uiNode
  */
-const createUiNode = (schemaNode: JsonSchemaNode, uiNode: UiSchemaNode): UiSchemaMap => {
+const createUiNode = (schemaNode: JsonSchemaNode, uiNode: UiSchemaNode): UiSchemaNodes => {
   uiNode.objectKind = getObjectKind(schemaNode);
-  uiNode.custom = handleCustomProperties(schemaNode);
+  uiNode.custom = findCustomAttributes(schemaNode);
   uiNode.restrictions = findRestrictionsOnNode(schemaNode);
-  uiNode.fieldType = getUiFieldType(schemaNode);
-  uiNode.implicitType = !schemaNode.type;
+  uiNode.fieldType = findUiFieldType(schemaNode);
+  uiNode.implicitType = !schemaNode[Keywords.Type];
   uiNode.ref = schemaNode[Keywords.Reference];
-  uiNode.isNillable = schemaTypeIsNillable(schemaNode.type);
-
+  uiNode.isNillable = schemaTypeIsNillable(schemaNode[Keywords.Type]);
   Object.assign(uiNode, findGenericKeywordsOnNode(schemaNode));
+  const uiSchemaNodes: UiSchemaNode[] = [uiNode];
 
-  const map: UiSchemaMap = new Map();
   // Combinations
   if (uiNode.objectKind === ObjectKind.Combination) {
     const kind = getCombinationKind(schemaNode);
     schemaNode[kind].forEach((childNode: JsonSchemaNode, index: number) => {
       const child = createNodeBase(uiNode.pointer, kind, index.toString());
-      uiNode.children.push(child.nodeId);
-      createUiNode(childNode, child).forEach((i, k) => map.set(k, i));
+      child.isCombinationItem = true;
+      uiNode.children.push(child.pointer);
+      uiSchemaNodes.push(...createUiNode(childNode, child));
     });
   }
 
   // Arrays
   if (uiNode.objectKind === ObjectKind.Array && schemaNode[Keywords.Items]) {
     const child = createNodeBase(uiNode.pointer, Keywords.Items);
-    uiNode.children.push(child.nodeId);
-    createUiNode(schemaNode[Keywords.Items], child).forEach((i, k) => map.set(k, i));
+    uiNode.children.push(child.pointer);
+    uiSchemaNodes.push(...createUiNode(schemaNode[Keywords.Items], child));
   }
 
   // Definitions
   Object.keys(schemaNode[Keywords.Definitions] ?? {}).forEach((key) => {
     const child = createNodeBase(uiNode.pointer, Keywords.Definitions, key);
-    uiNode.children.push(child.nodeId);
-    createUiNode(schemaNode[Keywords.Definitions][key], child).forEach((v, k) => map.set(k, v));
+    uiNode.children.push(child.pointer);
+    uiSchemaNodes.push(...createUiNode(schemaNode[Keywords.Definitions][key], child));
   });
 
   // Properties
   Object.keys(schemaNode[Keywords.Properties] ?? {}).forEach((key) => {
     const child = createNodeBase(uiNode.pointer, Keywords.Properties, key);
     child.isRequired = !!schemaNode.required?.includes(key);
-    uiNode.children.push(child.nodeId);
-    createUiNode(schemaNode[Keywords.Properties][key], child).forEach((v, k) => map.set(k, v));
+    uiNode.children.push(child.pointer);
+    uiSchemaNodes.push(...createUiNode(schemaNode[Keywords.Properties][key], child));
   });
-
-  return map.set(uiNode.nodeId, uiNode);
+  return uiSchemaNodes;
 };
 
-export const buildUiSchema = (jsonSchema: JsonSchemaNode): UiSchemaMap => {
-  resetNodeIds();
-  const map = createUiNode(jsonSchema, createNodeBase(ROOT_POINTER));
-
+export const buildUiSchema = (jsonSchema: JsonSchemaNode): UiSchemaNodes => {
+  const uiNodeMap = createUiNode(jsonSchema, createNodeBase(ROOT_POINTER));
   // Just resolve references when we are dealing with the root, all items is resolved at this point.
-  const lookup = createPointerLookupTable(map);
-  map.forEach((item) => {
-    if (typeof item.ref === 'string') {
-      // is a pointer
-      const refNodeId = lookup.get(item.ref) as number;
-      const refNode = map.get(refNodeId) as UiSchemaNode;
-      item.ref = refNodeId;
-      if (item.fieldType === undefined) {
-        // just inherit the field type
-        item.fieldType = refNode.fieldType;
-      }
+  const lookup = new Map();
+  uiNodeMap.forEach((item) => lookup.set(item.pointer, item.fieldType));
+  uiNodeMap.forEach((item) => {
+    if (typeof item.ref === 'string' && item.fieldType === undefined) {
+      // just inherit the field type
+      item.fieldType = lookup.get(item.ref);
     }
   });
-  return map;
+
+  return uiNodeMap;
 };

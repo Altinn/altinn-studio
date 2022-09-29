@@ -19,22 +19,24 @@
   justify-content: space-between;
 }
 
-.regexTestMatchIndicatorTrue, .regexTestMatchIndicatorFalse {
+.regexTestMatchIndicatorTrue,
+.regexTestMatchIndicatorFalse {
   margin-top: 2rem;
 }
 
-.regexTestMatchIndicatorTrue::before, .regexTestMatchIndicatorFalse::before {
+.regexTestMatchIndicatorTrue::before,
+.regexTestMatchIndicatorFalse::before {
   font-family: AltinnNo, sans-serif;
-  margin-right: .5rem;
+  margin-right: 0.5rem;
 }
 
 .regexTestMatchIndicatorTrue::before {
-  color: #17C96B;
+  color: #17c96b;
   content: '\f052';
 }
 
 .regexTestMatchIndicatorFalse::before {
-  color: #E23B53;
+  color: #e23b53;
   content: '\f040';
 }
 
@@ -52,14 +54,14 @@
 }
 
 .regexTestMatch {
-  background-color: #D4F9E4;
-  outline: 1px solid #17C96B;
+  background-color: #d4f9e4;
+  outline: 1px solid #17c96b;
 }
 
 .regexTestTextFieldMatch {
-  border-color: #17C96B;
+  border-color: #17c96b;
 }
 
 .regexTestTextFieldNoMatch {
-  border-color: #E23B53;
+  border-color: #e23b53;
 }

@@ -1,8 +1,8 @@
 import React from 'react';
 import { MenuItem } from '@material-ui/core';
-import type { CombinationKind } from '../../types';
 import { StyledSelect } from './StyledSelect';
 import { Option } from './helpers/options';
+import type { CombinationKind } from '@altinn/schema-model';
 
 export interface ICombinationSelectProps {
   value?: string;

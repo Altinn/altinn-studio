@@ -1,25 +1,18 @@
-import { FieldType, ISchemaState, UiSchemaItem } from '../../types';
+import { FieldType, ObjectKind, UiSchemaNode } from '@altinn/schema-model';
 
-export const getIconStr = (item: UiSchemaItem) => {
-  const { type } = item;
-  if (type !== FieldType.Array && item.$ref !== undefined) {
+export const getIconStr = (item: UiSchemaNode) => {
+  const { fieldType } = item;
+  if (fieldType !== FieldType.Array && item.ref !== undefined) {
     return 'fa-datamodel-ref';
-  } else if (item.combination) {
+  } else if (item.objectKind === ObjectKind.Combination) {
     return 'fa-group';
-  } else if (type === FieldType.Integer) {
+  } else if (fieldType === FieldType.Integer) {
     return 'fa-datamodel-number';
-  } else if (type === FieldType.Null) {
+  } else if (fieldType === FieldType.Null) {
     return 'fa-datamodel-object';
+  } else if (fieldType === undefined) {
+    return 'fa-help-circle';
   } else {
-    return type ? `fa-datamodel-${type}` : 'fa-datamodel-object';
+    return fieldType ? `fa-datamodel-${fieldType}` : 'fa-help-circle';
   }
-};
-
-export const createRefSelector = (refPointer?: string) => {
-  return (state: ISchemaState) => {
-    if (refPointer) {
-      return state.uiSchema.find((item) => item.path === refPointer);
-    }
-    return undefined;
-  };
 };

@@ -1,6 +1,6 @@
 import React, { ReactNode } from 'react';
 import { makeStyles, Select } from '@material-ui/core';
-import { Label } from "./Label";
+import { Label } from './Label';
 
 export interface IStyledSelectProps {
   id: string;

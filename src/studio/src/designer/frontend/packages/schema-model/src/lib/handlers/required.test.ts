@@ -14,5 +14,5 @@ test('that we find required props', () => {
   });
   const parentNode = getParentNodeByPointer(uiNodeMap, '#/properties/world');
 
-  expect(findRequiredProps(uiNodeMap, parentNode.nodeId)).toEqual(expected);
+  expect(findRequiredProps(uiNodeMap, parentNode.pointer)).toEqual(expected);
 });

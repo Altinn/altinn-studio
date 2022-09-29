@@ -3,7 +3,6 @@
   "name": "altinncore",
   "private": true,
   "scripts": {
-    "fix-for-local-development": "gulp fix-for-local-development",
     "gulp": "gulp",
     "gulp-clean": "gulp clean",
     "gulp-develop": "gulp develop",

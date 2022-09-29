@@ -31,18 +31,18 @@ export interface JsonSchemaNode {
   [key: string]: any;
 }
 
-export type UiSchemaMap = Map<number, UiSchemaNode>;
+export type UiSchemaNodes = UiSchemaNode[];
 
 export interface UiSchemaNode {
-  nodeId: number;
   objectKind: ObjectKind;
   fieldType: FieldType | CombinationKind;
   implicitType: boolean; // the
   isNillable: boolean;
+  isCombinationItem: boolean;
   pointer: string;
-  ref?: string | number;
+  ref?: string;
   custom: JsonSchemaNode;
-  children: number[];
+  children: string[];
   description?: string;
   enum?: string[];
   isRequired: boolean;

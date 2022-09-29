@@ -1,76 +1,71 @@
-import {
-  JsonSchemaNode,
-  Keywords,
-  ObjectKind,
-  ROOT_POINTER,
-  UiSchemaMap,
-  UiSchemaNode,
-} from './types';
-import { createPointerLookupTable } from './utils';
+import type { JsonSchemaNode, UiSchemaNode, UiSchemaNodes } from './types';
+import { Keywords, ObjectKind, ROOT_POINTER } from './types';
 import JSONPointer from 'jsonpointer';
 import { findRequiredProps } from './handlers/required';
-import { getJsonFieldType } from './handlers/field-type';
-import { genericKeywords } from './handlers/generic';
+import { findJsonFieldType } from './handlers/field-type';
+import { getNodeByPointer } from './selectors';
 
-export const buildJsonSchema = (uiNodeMap: UiSchemaMap): JsonSchemaNode => {
+export const buildJsonSchema = (uiSchemaNodes: UiSchemaNodes): JsonSchemaNode => {
   const allPointers: string[] = [];
   const out: JsonSchemaNode = {};
-  const lookup = createPointerLookupTable(uiNodeMap);
-  uiNodeMap.forEach((uiSchemaNode) => {
+
+  // First iterate to crate the basic
+  uiSchemaNodes.forEach((uiSchemaNode) => {
     if (uiSchemaNode.pointer === ROOT_POINTER) {
       Object.assign(out, uiSchemaNode.custom);
-      JSONPointer.set(out, '/' + Keywords.Type, uiSchemaNode.fieldType);
-      JSONPointer.set(
-        out,
-        '/' + Keywords.Required,
-        findRequiredProps(uiNodeMap, uiSchemaNode.nodeId),
-      );
+      if (!uiSchemaNode.implicitType) {
+        JSONPointer.set(out, '/' + Keywords.Type, uiSchemaNode.fieldType);
+      }
+      JSONPointer.set(out, '/' + Keywords.Required, findRequiredProps(uiSchemaNodes, uiSchemaNode.pointer));
     } else {
       allPointers.push(uiSchemaNode.pointer);
     }
   });
 
-  allPointers.sort();
   allPointers.forEach((sortedPointer: string) => {
-    const uiSchemaNode = uiNodeMap.get(lookup.get(sortedPointer) as number) as UiSchemaNode;
-    const pointer = uiSchemaNode.pointer.replace(ROOT_POINTER, '');
+    const uiSchemaNode = getNodeByPointer(uiSchemaNodes, sortedPointer);
+    const jsonPointer = uiSchemaNode.pointer.replace(ROOT_POINTER, '');
     const startValue = Object.assign({}, uiSchemaNode.custom);
     if (uiSchemaNode.objectKind === ObjectKind.Combination) {
       startValue[uiSchemaNode.fieldType] = [];
     }
 
-    JSONPointer.set(out, pointer, startValue);
+    JSONPointer.set(out, jsonPointer, startValue);
 
     // Resolving and setting reference
-    if (typeof uiSchemaNode.ref === 'number') {
-      const reference = uiNodeMap.get(uiSchemaNode.ref);
-      JSONPointer.set(out, [pointer, Keywords.Reference].join('/'), reference?.pointer);
+    if (typeof uiSchemaNode.ref === 'string') {
+      const referedNode = getNodeByPointer(uiSchemaNodes, uiSchemaNode.ref);
+      if (!referedNode) {
+        throw Error(`Refered uiNode was not found ${uiSchemaNode.ref}`);
+      }
+      JSONPointer.set(out, [jsonPointer, Keywords.Reference].join('/'), uiSchemaNode.ref);
     }
 
     // Setting Type for fields
-    JSONPointer.set(out, [pointer, Keywords.Type].join('/'), getJsonFieldType(uiSchemaNode));
+    JSONPointer.set(out, [jsonPointer, Keywords.Type].join('/'), findJsonFieldType(uiSchemaNode));
 
     // Adding generics back
-    genericKeywords.forEach((keyword) => {
-      JSONPointer.set(
-        out,
-        [pointer, keyword].join('/'),
-        uiSchemaNode[keyword as keyof UiSchemaNode],
-      );
+    [Keywords.Default, Keywords.Const, Keywords.Title, Keywords.Description].forEach((keyword) => {
+      JSONPointer.set(out, [jsonPointer, keyword].join('/'), uiSchemaNode[keyword as keyof UiSchemaNode]);
     });
+
+    // Adding enums
+    if (uiSchemaNode.enum && uiSchemaNode.enum.length > 0) {
+      JSONPointer.set(out, [jsonPointer, Keywords.Enum].join('/'), uiSchemaNode[Keywords.Enum]);
+    }
 
     // Restrictions
     Object.keys(uiSchemaNode.restrictions).forEach((key) =>
-      JSONPointer.set(out, [pointer, key].join('/'), uiSchemaNode.restrictions[key]),
+      JSONPointer.set(out, [jsonPointer, key].join('/'), uiSchemaNode.restrictions[key]),
     );
 
     if (uiSchemaNode.children.length > 0 && uiSchemaNode.objectKind === ObjectKind.Field) {
-      JSONPointer.set(out, [pointer, Keywords.Properties].join('/'), {});
+      JSONPointer.set(out, [jsonPointer, Keywords.Properties].join('/'), {});
       // Find required children
       JSONPointer.set(
         out,
-        [pointer, Keywords.Required].join('/'),
-        findRequiredProps(uiNodeMap, uiSchemaNode.nodeId),
+        [jsonPointer, Keywords.Required].join('/'),
+        findRequiredProps(uiSchemaNodes, uiSchemaNode.pointer),
       );
     }
   });

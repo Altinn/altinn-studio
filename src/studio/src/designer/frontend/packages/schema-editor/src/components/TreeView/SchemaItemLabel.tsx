@@ -1,17 +1,17 @@
 import React from 'react';
 import { Divider, IconButton, makeStyles } from '@material-ui/core';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
-import { ObjectKind } from '../../types/enums';
+import { ObjectKind } from '@altinn/schema-model';
 
 export interface SchemaItemLabelProps {
   icon: string;
-  label: string;
+  label: JSX.Element;
   translate: (key: string) => string;
   limitedItem?: boolean;
   editMode: boolean;
-  onAddProperty?: (type: ObjectKind) => void;
-  onAddReference?: (type: ObjectKind) => void;
-  onAddCombination?: (type: ObjectKind) => void;
+  onAddProperty?: (objectKind: ObjectKind) => void;
+  onAddReference?: (objectKind: ObjectKind) => void;
+  onAddCombination?: (objectKind: ObjectKind) => void;
   onDelete?: () => void;
   onImport?: () => void;
   onPromote?: () => void;
@@ -101,7 +101,6 @@ export const SchemaItemLabel = ({ translate, ...props }: SchemaItemLabelProps) =
         className={classes.contextButton}
         aria-controls='simple-menu'
         aria-haspopup='true'
-        id='open-context-menu-button'
         onClick={handleContextMenuClick}
       >
         <i className='fa fa-ellipsismenu' />
@@ -112,7 +111,7 @@ export const SchemaItemLabel = ({ translate, ...props }: SchemaItemLabelProps) =
         open={Boolean(contextAnchor)}
         onClose={handleCloseContextMenu}
       >
-        {props.onAddReference && !props.limitedItem && (
+        {props.onAddReference && (
           <AltinnMenuItem
             id='add-reference-to-node-button'
             key='add_reference'

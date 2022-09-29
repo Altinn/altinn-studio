@@ -27,21 +27,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export const SchemaTab = ({
-  label,
-  value,
-  hide,
-  ...other
-}: ISchemaTabProps) => {
+export const SchemaTab = ({ label, value, hide, ...other }: ISchemaTabProps) => {
   const classes = useStyles();
-  return (
-    <Tab
-      label={label}
-      classes={classes}
-      id={`inspector-tab-${value}`}
-      value={value}
-      hidden={hide}
-      {...other}
-    />
-  );
+  return <Tab label={label} classes={classes} id={`inspector-tab-${value}`} value={value} hidden={hide} {...other} />;
 };

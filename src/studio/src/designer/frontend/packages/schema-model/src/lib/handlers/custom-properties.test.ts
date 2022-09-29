@@ -1,10 +1,10 @@
-import { handleCustomProperties } from './custom-properties';
+import { findCustomAttributes } from './custom-properties';
 import { Keywords } from '../types';
 
 test('that we are handling custom properties ', () => {
   const customData = '';
   expect(
-    handleCustomProperties({
+    findCustomAttributes({
       [Keywords.Enum]: [],
       customData,
     }),

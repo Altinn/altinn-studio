@@ -1,7 +1,7 @@
 import React, { BaseSyntheticEvent } from 'react';
-import { getDomFriendlyID } from '../../utils/schema';
-import { TextField } from "@altinn/altinn-design-system";
-import { Label } from "./Label";
+import { TextField } from '@altinn/altinn-design-system';
+import { Label } from './Label';
+import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 
 export interface IRestrictionFieldProps {
   className?: string;
@@ -21,11 +21,9 @@ export const RestrictionField = ({
   onChangeValue,
   path,
   readOnly,
-  value
+  value,
 }: IRestrictionFieldProps) => {
-
-  const fieldId = `${getDomFriendlyID(path)}-${keyName}-value`;
-
+  const fieldId = getDomFriendlyID(path, keyName + '-value');
   return (
     <div className={className}>
       <Label htmlFor={fieldId}>{label}</Label>

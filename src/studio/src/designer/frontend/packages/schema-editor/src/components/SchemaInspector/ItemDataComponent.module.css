@@ -1,6 +1,6 @@
 .field {
   background: white;
-  border: 2px solid #008FD6 !important;
+  border: 2px solid #008fd6 !important;
   box-sizing: border-box;
   color: black;
   margin-top: 2px !important;
@@ -9,7 +9,7 @@
 
 .field:global(.Mui-disabled) {
   background: #f4f4f4;
-  border: 1px solid #6A6A6A;
+  border: 1px solid #6a6a6a;
   box-sizing: border-box;
   color: black;
 }
@@ -29,7 +29,7 @@
 .navButton {
   background: none;
   border: none;
-  color: #006BD8;
+  color: #006bd8;
   cursor: pointer;
   text-decoration: underline;
 }

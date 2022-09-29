@@ -1,19 +1,12 @@
 import React, { KeyboardEvent, useEffect, useState } from 'react';
-import {
-  Checkbox,
-  FormControl,
-  FormControlLabel,
-  Grid,
-  IconButton,
-  makeStyles,
-} from '@material-ui/core';
+import { Checkbox, FormControl, FormControlLabel, Grid, IconButton, makeStyles } from '@material-ui/core';
 import { useDispatch } from 'react-redux';
 import { DeleteOutline } from '@material-ui/icons';
 import type { ILanguage } from '../../types';
-import { getDomFriendlyID, getUniqueNumber } from '../../utils/schema';
 import { getTranslation } from '../../utils/language';
 import { setRequired } from '../../features/editor/schemaEditorSlice';
-import { TextField } from "@altinn/altinn-design-system";
+import { TextField } from '@altinn/altinn-design-system';
+import { getDomFriendlyID, getUniqueNumber } from '../../utils/ui-schema-utils';
 
 const useStyles = makeStyles({
   inline: {
@@ -48,13 +41,9 @@ export function PropertyItem(props: IPropertyItemProps) {
 
   const [value, setValue] = useState<string>(props.value || '');
   const dispatch = useDispatch();
-  useEffect(() => {
-    setValue(props.value);
-  }, [props.value]);
 
-  const onChangeValue = (e: any) => {
-    setValue(e.target.value);
-  };
+  useEffect(() => setValue(props.value), [props.value]);
+  const onChangeValue = (e: any) => setValue(e.target.value);
 
   const onBlur = (e: any) => {
     if (value !== props.value) {
@@ -62,23 +51,20 @@ export function PropertyItem(props: IPropertyItemProps) {
     }
   };
 
-  const onClickDelete = () => {
-    props.onDeleteField?.(props.fullPath, props.value);
-  };
-  const onChangeRequired = (e: any, checked: boolean) => {
+  const onClickDelete = () => props.onDeleteField?.(props.fullPath, props.value);
+
+  const onChangeRequired = (e: any, checked: boolean) =>
     dispatch(
       setRequired({
         path: props.fullPath,
-        key: props.value,
         required: checked,
       }),
     );
-  };
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
     e?.key === 'Enter' && props.onEnterKeyPress && props.onEnterKeyPress();
 
-  const baseId = getDomFriendlyID(props.fullPath);
+  const baseId = getDomFriendlyID(props.fullPath, '-key-');
   return (
     <>
       <Grid item xs={6}>

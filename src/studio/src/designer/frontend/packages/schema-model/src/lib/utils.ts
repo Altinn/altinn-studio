@@ -1,52 +1,34 @@
-import {
-  CombinationKind,
-  FieldType,
-  JsonSchemaNode,
-  ObjectKind,
-  UiSchemaMap,
-  UiSchemaNode,
-} from './types';
+import type { JsonSchemaNode, UiSchemaNode, UiSchemaNodes } from './types';
+import { CombinationKind, FieldType, Keywords, ObjectKind, ROOT_POINTER } from './types';
+import { getNodeIndexByPointer } from './selectors';
 
 export const createNodeBase = (...args: string[]): UiSchemaNode => {
-  const pointer = args.join('/');
   return {
     objectKind: ObjectKind.Field,
     fieldType: FieldType.Object,
-    nodeId: createNodeId(),
-    pointer,
+    pointer: makePointer(...args),
     isRequired: false,
     isNillable: false,
+    isCombinationItem: false,
     children: [],
     custom: {},
     restrictions: [],
-    implicitType: false,
+    implicitType: true,
     default: undefined,
     enum: [],
   };
 };
-let currentId = 0;
-export const createNodeId = (): number => {
-  currentId++;
-  return 1000 + currentId;
+export const makePointer = (...args: any[]) => {
+  if (!args[0].startsWith(ROOT_POINTER)) {
+    args.unshift(ROOT_POINTER);
+  }
+  return args.join('/');
 };
-export const resetNodeIds = () => {
-  currentId = 0;
-};
-
-export const createPointerLookupTable = (map: UiSchemaMap): Map<string, number> => {
-  const lookupTable = new Map();
-  map.forEach((item) => lookupTable.set(item.pointer, item.nodeId));
-  return lookupTable;
-};
-
-/**
- * Returns a combination kind or undefined.
- * @param schemaNode
- */
 export const getCombinationKind = (schemaNode: JsonSchemaNode): CombinationKind => {
   const kinds = Object.values(CombinationKind).filter((k) => Object.keys(schemaNode).includes(k));
   return kinds[0];
 };
+
 export const getObjectKind = (schemaNode: JsonSchemaNode): ObjectKind => {
   if (schemaNode.$ref) {
     return ObjectKind.Reference;
@@ -65,17 +47,13 @@ export const schemaTypeIncludes = (schemaNodeType: string | string[], type: Fiel
 export const schemaTypeIsNillable = (schemaNodeType: string | string[]) =>
   schemaNodeType !== FieldType.Null && schemaTypeIncludes(schemaNodeType, FieldType.Null);
 
-export const getParentNodeByPointer = (
-  map: UiSchemaMap,
-  pointer: string,
-): UiSchemaNode | undefined => {
-  const lookup = createPointerLookupTable(map);
+export const getParentNodeByPointer = (uiSchemaNodes: UiSchemaNodes, pointer: string): UiSchemaNode | undefined => {
   const pointerParts = pointer.split('/');
   while (pointerParts.length) {
     pointerParts.pop();
-    const parentNodePointer = pointerParts.join('/');
-    if (lookup.has(parentNodePointer)) {
-      return map.get(lookup.get(parentNodePointer) as number);
+    const parentNodeIndex = getNodeIndexByPointer(uiSchemaNodes, pointerParts.join('/'));
+    if (parentNodeIndex !== undefined) {
+      return uiSchemaNodes[parentNodeIndex];
     }
   }
   return undefined;
@@ -89,5 +67,21 @@ export const arrayUnique = (arr: any[]) => {
   return Object.keys(j).map((v) => j[v]);
 };
 
-export const cloneMap = (map: Map<any, any>): Map<any, any> =>
-  new Map(JSON.parse(JSON.stringify(Array.from(map))));
+export const replaceLastPointerSegment = (pointer: string, newLastSegment: string): string => {
+  const parts = pointer.split('/');
+  parts.pop();
+  parts.push(newLastSegment);
+  return parts.join('/');
+};
+
+export const splitPointerInBaseAndName = (pointer: string) => {
+  const parts = pointer.split('/');
+  return {
+    name: parts.pop(),
+    base: parts.join('/'),
+  };
+};
+
+export const isNumeric = (str: string) => parseInt(str).toString() === str;
+
+export const pointerIsDefinition = (pointer: string) => pointer.startsWith(makePointer(Keywords.Definitions));

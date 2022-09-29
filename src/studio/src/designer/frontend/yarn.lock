@@ -96,9 +96,8 @@ __metadata:
   dependencies:
     jest: 29.0.3
     jest-junit: 14.0.1
-    webpack: 5.74.0
-  peerDependencies:
     jsonpointer: 5.0.1
+    webpack: 5.74.0
   languageName: unknown
   linkType: soft
 

@@ -37,10 +37,6 @@ const restrictionMap: Map<string, string[]> = new Map([
 
 export const getRestrictions = (type: FieldType): string[] => restrictionMap.get(type) ?? [];
 
-/**
- * Handling restrictions
- * @param schemaNode
- */
 export const findRestrictionsOnNode = (schemaNode: JsonSchemaNode): JsonSchemaNode => {
   const restrictions: JsonSchemaNode = {};
   Object.values(AllRestrictions).forEach((key) => {

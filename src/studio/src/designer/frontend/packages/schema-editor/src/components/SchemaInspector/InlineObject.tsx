@@ -1,11 +1,11 @@
 import { createStyles, Grid, makeStyles, Paper } from '@material-ui/core';
 import React from 'react';
-import type { ILanguage, UiSchemaItem } from '../../types';
+import type { ILanguage } from '../../types';
 import { getTranslation } from '../../utils/language';
-import { createJsonSchemaItem } from '../../utils/schema';
+import type { UiSchemaNode } from '@altinn/schema-model';
 
 export interface IInlineObjectProps {
-  item: UiSchemaItem;
+  item: UiSchemaNode;
   language: ILanguage;
 }
 
@@ -25,13 +25,12 @@ const useStyles = makeStyles(
 
 export function InlineObject({ item, language }: IInlineObjectProps) {
   // present as plain json object, not with any meta fields used in UiSchemaItem
-  const jsonObject = createJsonSchemaItem(item);
   const classes = useStyles();
   return (
     <Grid container spacing={4}>
       <Grid item xs={12}>
         <Paper id='json-paper' classes={{ root: classes.jsonPaper }} square variant='outlined'>
-          {JSON.stringify(jsonObject, null, '    ')}
+          {JSON.stringify(item, null, '    ')}
         </Paper>
       </Grid>
       <Grid item xs={12}>

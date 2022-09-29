@@ -2,19 +2,13 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { renderWithRedux } from '../../../test/renderWithRedux';
 import { ItemRestrictions } from './ItemRestrictions';
-import { FieldType } from '../../types';
+import { createNodeBase, FieldType, Keywords } from '@altinn/schema-model';
 
 test('item restrictions require checkbox to work', async () => {
-  const { user, store } = renderWithRedux(
-    <ItemRestrictions
-      language={{}}
-      item={{
-        type: FieldType.String,
-        path: '#/properties/test',
-        displayName: 'test',
-      }}
-    />,
-  );
+  const item = Object.assign(createNodeBase(Keywords.Properties, 'test'), {
+    fieldType: FieldType.String,
+  });
+  const { user, store } = renderWithRedux(<ItemRestrictions language={{}} item={item} />);
   await user.click(screen.getByRole('checkbox'));
   const action = store.getActions().pop();
   expect(action.type).toBe('schemaEditor/setRequired');
@@ -22,17 +16,11 @@ test('item restrictions require checkbox to work', async () => {
 });
 
 test('item restrictions tab require checkbox to decheck', async () => {
-  const { user, store } = renderWithRedux(
-    <ItemRestrictions
-      language={{}}
-      item={{
-        type: FieldType.String,
-        path: '#/properties/test',
-        displayName: 'test',
-        isRequired: true,
-      }}
-    />,
-  );
+  const item = Object.assign(createNodeBase(Keywords.Properties, 'test'), {
+    fieldType: FieldType.String,
+    isRequired: true,
+  });
+  const { user, store } = renderWithRedux(<ItemRestrictions language={{}} item={item} />);
   await user.click(screen.getByRole('checkbox'));
   const action = store.getActions().pop();
   expect(action.type).toBe('schemaEditor/setRequired');

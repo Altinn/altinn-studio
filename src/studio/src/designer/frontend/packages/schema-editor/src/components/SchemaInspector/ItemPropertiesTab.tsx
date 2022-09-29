@@ -1,22 +1,22 @@
 import React from 'react';
-import { ILanguage, UiSchemaItem } from '../../types';
+import type { ILanguage } from '../../types';
+import type { UiSchemaNode } from '@altinn/schema-model';
+import { ObjectKind, ROOT_POINTER } from '@altinn/schema-model';
 import { InlineObject } from './InlineObject';
 import { ItemDataComponent } from './ItemDataComponent';
 
 interface ItemPropertiesTabProps {
   language: ILanguage;
-  selectedItem: UiSchemaItem;
+  selectedItem: UiSchemaNode;
   checkIsNameInUse: (name: string) => boolean;
 }
 
 export const ItemPropertiesTab = ({ language, selectedItem, checkIsNameInUse }: ItemPropertiesTabProps) => {
-  return (
-    <>
-      {selectedItem.combinationItem && selectedItem.$ref === undefined ? (
-        <InlineObject item={selectedItem} language={language} />
-      ) : (
-        <ItemDataComponent selectedItem={selectedItem} language={language} checkIsNameInUse={checkIsNameInUse} />
-      )}
-    </>
-  );
+  if (selectedItem.isCombinationItem && selectedItem.objectKind !== ObjectKind.Reference) {
+    return <InlineObject item={selectedItem} language={language} />;
+  } else if (selectedItem.pointer === ROOT_POINTER) {
+    return <>root</>;
+  } else {
+    return <ItemDataComponent selectedItem={selectedItem} language={language} checkIsNameInUse={checkIsNameInUse} />;
+  }
 };

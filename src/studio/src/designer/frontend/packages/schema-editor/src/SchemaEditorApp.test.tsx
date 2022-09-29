@@ -1,6 +1,6 @@
 import React from 'react';
 import { unmountComponentAtNode } from 'react-dom';
-import { screen, act, render } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import { SchemaEditorApp } from './SchemaEditorApp';
 import { dataMock } from './mockData';
 
@@ -17,9 +17,8 @@ afterEach(() => {
 });
 
 test('renders schema editor app', () => {
-  let wrapper: any = null;
   act(() => {
-    wrapper = render(
+    render(
       <SchemaEditorApp
         schema={dataMock}
         language={{}}

@@ -1,5 +1,6 @@
+import type { JsonSchemaNode } from '../types';
+import { CombinationKind, Keywords } from '../types';
 import { AllRestrictions } from '../restrictions';
-import { CombinationKind, JsonSchemaNode, Keywords } from '../types';
 
 const specialAttributes = [
   ...Object.values(Keywords),
@@ -8,7 +9,7 @@ const specialAttributes = [
 ] as string[];
 
 // Deals with custom properties... or really what properties that we not know about.
-export const handleCustomProperties = (schemaNode: JsonSchemaNode) => {
+export const findCustomAttributes = (schemaNode: JsonSchemaNode) => {
   const outout: JsonSchemaNode = {};
   Object.keys(schemaNode).forEach((key) => {
     if (!specialAttributes.includes(key)) {

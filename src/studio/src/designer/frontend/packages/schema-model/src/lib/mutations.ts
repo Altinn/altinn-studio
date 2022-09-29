@@ -1,84 +1,89 @@
-import { FieldType, Keywords, ObjectKind, UiSchemaMap, UiSchemaNode } from './types';
+import type { UiSchemaNode, UiSchemaNodes } from './types';
+import { CombinationKind, FieldType, Keywords, ObjectKind } from './types';
 import {
-  cloneMap,
   createNodeBase,
-  createPointerLookupTable,
   getParentNodeByPointer,
+  makePointer,
+  pointerIsDefinition,
+  splitPointerInBaseAndName,
 } from './utils';
+import { getNodeByPointer, getNodeIndexByPointer, getUniqueNodePath, pointerExists } from './selectors';
 
 // Changes to the uiNodeMap
-export const removeItemByPointer = (uiNodeMap: UiSchemaMap, pointer: string) => {
-  const mutatedUiNodeMap: UiSchemaMap = cloneMap(uiNodeMap) as UiSchemaMap;
-  const lookup = createPointerLookupTable(mutatedUiNodeMap);
-  if (!lookup.has(pointer)) {
+export const removeItemByPointer = (uiNodeMap: UiSchemaNodes, pointer: string) => {
+  let mutatedUiNodeMap: UiSchemaNodes = [...uiNodeMap];
+  // Remove the child node pointer from the parent
+  const uiSchemaNode = getNodeIndexByPointer(mutatedUiNodeMap, pointer);
+  if (!uiSchemaNode) {
     throw new Error(`Can't remove ${pointer}, doesn't exist`);
   }
-
-  // Remove the child node id from the parent
-  const childNodeId = lookup.get(pointer) as number;
   const parentNode = getParentNodeByPointer(mutatedUiNodeMap, pointer);
   if (parentNode) {
-    parentNode.children = parentNode.children.filter((nodeId) => nodeId !== childNodeId);
+    parentNode.children = parentNode.children.filter((childPointer) => pointer !== childPointer);
   } else {
     throw new Error(`Can't find ParentNode for pointer ${pointer}`);
   }
 
   // Remove itself decendants... just using the pointer
-  mutatedUiNodeMap.forEach((uiNode: UiSchemaNode, key: number) => {
-    if (uiNode.pointer.startsWith(pointer)) {
-      mutatedUiNodeMap.delete(key);
-    }
-  });
+  mutatedUiNodeMap = mutatedUiNodeMap.filter((uiNode: UiSchemaNode) => !uiNode.pointer.startsWith(pointer));
 
+  // dealing with combinations, updating their children is a little more tricky.
+  if (parentNode.objectKind === ObjectKind.Combination) {
+    parentNode.children.forEach((oldPointerBase, index) => {
+      const { base } = splitPointerInBaseAndName(oldPointerBase);
+      const newPointerBase = [base, index].join('/');
+      if (oldPointerBase !== newPointerBase) {
+        mutatedUiNodeMap.forEach((uiNode) => {
+          uiNode.pointer = uiNode.pointer.replace(oldPointerBase, newPointerBase);
+          uiNode.children = uiNode.children.map((p) => p.replace(oldPointerBase, newPointerBase));
+        });
+      }
+    });
+  }
   return mutatedUiNodeMap;
 };
 
-export const renameItemPointer = (
-  uiNodeMap: UiSchemaMap,
-  oldPointer: string,
-  newPointer: string,
-) => {
-  // some assertsions before.
+export const renameItemPointer = (uiSchemaNodes: UiSchemaNodes, oldPointer: string, newPointer: string) => {
   if (oldPointer === newPointer) {
     throw new Error('Old and new name is equal');
   }
-  const oldPointerParts = oldPointer.split('/');
-  const newPointerParts = newPointer.split('/');
-  if (oldPointerParts.length !== newPointerParts.length) {
-    throw new Error('Refuses to move node between');
-  }
-  let changeCount = 0;
-  oldPointerParts.forEach((part, index) => {
-    if (newPointerParts[index] !== part) {
-      changeCount++;
+
+  if (!pointerExists(uiSchemaNodes, oldPointer)) {
+    const { base, name } = splitPointerInBaseAndName(oldPointer);
+    if (Object.values(CombinationKind).includes(name as CombinationKind) && getNodeByPointer(uiSchemaNodes, base)) {
+      // Its a valid combo-item... just continue.
+    } else {
+      throw new Error(`Can't rename pointer ${oldPointer}, it doesn't exist`);
     }
-  });
-  if (changeCount !== 1) {
-    throw new Error('Refusing to change more than one part of the pointer');
   }
-  const mutatedUiNodeMap: UiSchemaMap = new Map();
-  uiNodeMap.forEach((uiNode: UiSchemaNode, key: number) => {
-    const nodeCopy = { ...uiNode };
-    if (nodeCopy.pointer.startsWith(oldPointer)) {
+  const mutatedNodeArray: UiSchemaNodes = [];
+  uiSchemaNodes.forEach((uiNode) => {
+    const nodeCopy = Object.assign({}, uiNode);
+    if (uiNode.pointer.startsWith(oldPointer)) {
       nodeCopy.pointer = nodeCopy.pointer.replace(oldPointer, newPointer);
     }
-    mutatedUiNodeMap.set(key, nodeCopy);
+    if (nodeCopy.ref && nodeCopy.ref.startsWith(oldPointer)) {
+      nodeCopy.ref = nodeCopy.ref.replace(oldPointer, newPointer);
+    }
+    nodeCopy.children = uiNode.children.map((p) => p.replace(oldPointer, newPointer));
+    mutatedNodeArray.push(nodeCopy);
   });
-  return mutatedUiNodeMap;
+  return mutatedNodeArray;
 };
 
-export const insertNodeToMap = (uiNodeMap: UiSchemaMap, newNode: UiSchemaNode) => {
-  const lookup = createPointerLookupTable(uiNodeMap);
-  if (lookup.has(newNode.pointer)) {
+export const insertSchemaNode = (uiSchemaNodes: UiSchemaNodes, newNode: UiSchemaNode): UiSchemaNodes => {
+  if (pointerExists(uiSchemaNodes, newNode.pointer)) {
     throw new Error(`Pointer ${newNode.pointer} exists allready`);
   }
-  const mutatedUiNodeMap: UiSchemaMap = cloneMap(uiNodeMap) as UiSchemaMap;
-  const parentNode = getParentNodeByPointer(mutatedUiNodeMap, newNode.pointer);
+  const mutatedNodeArray: UiSchemaNodes = JSON.parse(JSON.stringify(uiSchemaNodes));
+  const parentNode = getParentNodeByPointer(mutatedNodeArray, newNode.pointer);
   if (!parentNode) {
     throw new Error(`Can't find ParentNode for pointer ${newNode.pointer}`);
   }
-  parentNode.children.push(newNode.nodeId);
-  return mutatedUiNodeMap.set(newNode.nodeId, newNode);
+  parentNode.children.push(newNode.pointer);
+  newNode.implicitType = false;
+  mutatedNodeArray.push(newNode);
+  return mutatedNodeArray;
 };
 
 /**
@@ -88,18 +93,16 @@ export const insertNodeToMap = (uiNodeMap: UiSchemaMap, newNode: UiSchemaNode) =
  * @param displayName
  * @param isDefinition
  */
-export const createChildNode = (
-  parentNode: UiSchemaNode,
-  displayName: string,
-  isDefinition: boolean,
-): UiSchemaNode => {
+export const createChildNode = (parentNode: UiSchemaNode, displayName: string, isDefinition: boolean): UiSchemaNode => {
   const { pointer, objectKind, children, fieldType } = parentNode;
   if (objectKind === ObjectKind.Array) {
     throw new Error("This application doesn't support combined array types.");
   } else if (objectKind === ObjectKind.Reference && fieldType !== FieldType.Object) {
     throw new Error("Can't create a new node under a reference.");
   } else if (objectKind === ObjectKind.Combination) {
-    return createNodeBase(pointer, fieldType, children.length.toString());
+    return Object.assign(createNodeBase(pointer, fieldType, children.length.toString()), {
+      isCombinationItem: true,
+    });
   } else if (fieldType === FieldType.Object && isDefinition) {
     return createNodeBase(pointer, Keywords.Definitions, displayName);
   } else if (fieldType === FieldType.Object && !isDefinition) {
@@ -109,4 +112,23 @@ export const createChildNode = (
   } else {
     throw new Error('invalid parent node');
   }
+};
+
+export const promotePropertyToType = (uiSchemaNodes: UiSchemaNodes, pointer: string) => {
+  if (pointerIsDefinition(pointer)) {
+    throw new Error(`Pointer ${pointer}, is already a definition.`);
+  }
+  const uiNode = getNodeByPointer(uiSchemaNodes, pointer);
+  if (uiNode.objectKind === ObjectKind.Reference) {
+    throw new Error(`Pointer ${pointer}, is already a reference.`);
+  }
+
+  const displayName = pointer.split('/').pop();
+  const newPointer = getUniqueNodePath(uiSchemaNodes, makePointer(Keywords.Definitions, displayName));
+  const updatedUiNodeMap = renameItemPointer(uiSchemaNodes, pointer, newPointer);
+  const simpleRefNode = createNodeBase(pointer);
+  simpleRefNode.objectKind = ObjectKind.Reference;
+  simpleRefNode.ref = newPointer;
+  updatedUiNodeMap.push(simpleRefNode);
+  return updatedUiNodeMap;
 };

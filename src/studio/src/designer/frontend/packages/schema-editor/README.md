@@ -22,7 +22,6 @@ See the section about [running tests](https://facebook.github.io/create-react-ap
 
 Builds the app as a package for production to the `dist` folder.\
 
-
 ### Schema editor example
 
 ```tsx
@@ -55,9 +54,7 @@ const language = {
 </div>
 ```
 
-
 ### StyledSelect
-
 
 ```ts
 import { StyledSelect } from './TypeSelect';
@@ -65,10 +62,8 @@ function onChange(id, value) {
   alert(`Selected type ${value} for ${id}`);
 }
 
-<StyledSelect id='sometype' itemType='string' onChange={onChange}/>
+<StyledSelect id='sometype' itemType='string' onChange={onChange} />;
 ```
-
-
 
 ### Run against mock
 

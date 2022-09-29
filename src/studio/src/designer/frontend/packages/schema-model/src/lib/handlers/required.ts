@@ -1,15 +1,12 @@
-import { UiSchemaMap } from '../types';
+import type { UiSchemaNodes } from '../types';
+import { getChildNodesByPointer } from '../selectors';
 
-export const findRequiredProps = (
-  uiNodeMap: UiSchemaMap,
-  parentNodeId: number,
-): string[] | undefined => {
-  const uiSchemaNode = uiNodeMap.get(parentNodeId);
+export const findRequiredProps = (uiSchemaNodes: UiSchemaNodes, parentPointer: string): string[] | undefined => {
+  const childNodes = getChildNodesByPointer(uiSchemaNodes, parentPointer);
   const required: string[] = [];
-  uiSchemaNode?.children.forEach((nodeId) => {
-    const child = uiNodeMap.get(nodeId);
-    const childName = child?.pointer.split('/').pop();
-    if (child?.isRequired && childName) {
+  childNodes.forEach((child) => {
+    const childName = child.pointer.split('/').pop();
+    if (child.isRequired && childName) {
       required.push(childName);
     }
   });

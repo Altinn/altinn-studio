@@ -1,5 +1,5 @@
-import { makeStyles } from '@material-ui/core';
 import React from 'react';
+import { makeStyles } from '@material-ui/core';
 import { ToggleButton, ToggleButtonGroup } from '@altinn/altinn-design-system';
 import type { ILanguage } from '../types';
 import { getTranslation } from '../utils/language';
@@ -55,12 +55,12 @@ export function TopToolbar({ editMode, Toolbar, saveAction, toggleEditMode, lang
       >
         {t('save_data_model')}
       </TopToolbarButton>
-      {toggleEditMode &&
+      {toggleEditMode && (
         <ToggleButtonGroup selectedValue={editMode ? 'edit' : 'view'} onChange={toggleEditMode}>
           <ToggleButton value='view'>{t('view_mode')}</ToggleButton>
           <ToggleButton value='edit'>{t('edit_mode')}</ToggleButton>
         </ToggleButtonGroup>
-      }
+      )}
     </section>
   );
 }

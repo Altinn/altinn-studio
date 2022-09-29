@@ -2,7 +2,6 @@ import {
   addCombinationItem,
   addEnum,
   addProperty,
-  addRestriction,
   addRootItem,
   deleteCombinationItem,
   deleteEnum,
@@ -20,7 +19,6 @@ import {
   setRef,
   setRequired,
   setRestriction,
-  setRestrictionKey,
   setSelectedId,
   setSelectedTab,
   setTitle,
@@ -28,212 +26,139 @@ import {
   setUiSchema,
   updateJsonSchema,
 } from './schemaEditorSlice';
+import { dataMock } from '../../mockData';
+import type { ISchemaState } from '../../types';
 import {
   CombinationKind,
   FieldType,
-  ISchemaState,
-  UiSchemaItem,
-} from '../../types';
-import { dataMock } from '../../mockData';
-import { getUiSchemaItem, resetUniqueNumber } from '../../utils/schema';
+  getChildNodesByPointer,
+  getNodeByPointer,
+  Keywords,
+  ObjectKind,
+  pointerExists,
+  UiSchemaNode,
+} from '@altinn/schema-model';
 
 describe('SchemaEditorSlice', () => {
   let state: ISchemaState;
-
   beforeEach(() => {
     // setup state
-    const state1: ISchemaState = reducer(
-      initialState,
-      setJsonSchema({ schema: dataMock }),
-    );
-    state = reducer(state1, setUiSchema({ name: '#/definitions/RA-0678_M' }));
-    resetUniqueNumber();
-  });
-
-  it('handles setRestrictionKey', () => {
-    const payload = {
-      newKey: 'color',
-      oldKey: 'minLength',
-      path: '#/definitions/Kommentar2000Restriksjon',
-    };
-    let nextState = reducer(state, setRestrictionKey(payload));
-    let item = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/Kommentar2000Restriksjon',
-    );
-    if (!item || !item.restrictions) {
-      fail('item not found');
-    }
-    expect(item.restrictions).toContainEqual({ key: 'color', value: 1 });
-    payload.oldKey = 'maxLength';
-    nextState = reducer(nextState, setRestrictionKey(payload));
-    item = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/Kommentar2000Restriksjon',
-    );
-    expect(item && item.restrictions).toContainEqual({
-      key: 'color0',
-      value: 2000,
-    });
-
-    payload.oldKey = 'color';
-    nextState = reducer(nextState, setRestrictionKey(payload));
-    item = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/Kommentar2000Restriksjon',
-    );
-    expect(item && item.restrictions && item.restrictions.length).toBe(4);
+    const state1: ISchemaState = reducer(initialState, setJsonSchema({ schema: dataMock }));
+    state = reducer(state1, setUiSchema({ name: '#/$defs/RA-0678_M' }));
   });
 
   it('handles setFieldValue', () => {
     const payload = {
       key: 'minLength',
-      path: '#/definitions/Kommentar2000Restriksjon',
+      path: '#/$defs/Kommentar2000Restriksjon',
       value: '666',
     };
     const nextState = reducer(state, setRestriction(payload));
-    const item = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/Kommentar2000Restriksjon',
-    );
-    if (!item || !item.restrictions) {
+    const item = getNodeByPointer(nextState.uiSchema, '#/$defs/Kommentar2000Restriksjon');
+    if (!item.restrictions) {
       fail('item not found');
     }
-    const field = item.restrictions.find((f) => f.key === 'minLength');
+    const field = item.restrictions.minLength;
     if (!field) {
       fail('field not found');
     }
-    expect(field.value).toBe('666');
+    expect(field).toBe('666');
   });
 
   it('handles setPropertyName', () => {
-    const payload = {
-      name: 'navn_endret',
-      path: '#/definitions/Kontaktperson/properties/navn',
-    };
-    let nextState = reducer(state, setPropertyName(payload));
-    let item = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/Kontaktperson',
+    let nextState = reducer(
+      state,
+      setPropertyName({
+        path: '#/$defs/Kontaktperson/properties/navn',
+        name: 'navn_endret',
+      }),
     );
-    if (!item || !item.properties) {
+
+    let item = getNodeByPointer(nextState.uiSchema, '#/$defs/Kontaktperson/properties/navn_endret');
+    if (!item) {
       fail('item not found');
     }
-    expect(item.properties).toContainEqual({
-      path: '#/definitions/Kontaktperson/properties/navn_endret',
-      displayName: 'navn_endret',
-      $ref: '#/definitions/NavnSomToken',
-    });
+    expect(nextState.uiSchema).not.toHaveProperty('#/$defs/Kontaktperson/properties/navn');
 
     // test that child paths are also updated
-    payload.path = '#/definitions/Kontaktperson';
-    payload.name = 'batman';
-    nextState = reducer(nextState, setPropertyName(payload));
-    item = nextState.uiSchema.find((f) => f.path === '#/definitions/batman');
-    expect(item && item.properties).toContainEqual({
-      path: '#/definitions/batman/properties/navn_endret',
-      displayName: 'navn_endret',
-      $ref: '#/definitions/NavnSomToken',
-    });
+    nextState = reducer(
+      nextState,
+      setPropertyName({
+        path: '#/$defs/Kontaktperson',
+        name: 'batman',
+      }),
+    );
+    item = getNodeByPointer(nextState.uiSchema, '#/$defs/batman');
+    expect(item.children).toContain('#/$defs/batman/properties/navn_endret');
   });
 
   it('renames combination and children when renaming a combination', () => {
-    const anyOfItem = state.uiSchema.find(
-      (f) => f.path === '#/definitions/anyOfTestSeveralItems',
-    );
-    expect(anyOfItem?.combination?.[1].path).toBe(
-      '#/definitions/anyOfTestSeveralItems/anyOf/1',
-    );
+    const children = getChildNodesByPointer(state.uiSchema, '#/$defs/anyOfTestSeveralItems');
+    expect(children[1].pointer).toBe('#/$defs/anyOfTestSeveralItems/anyOf/1');
 
     const nextState = reducer(
       state,
       setPropertyName({
-        path: '#/definitions/anyOfTestSeveralItems',
+        path: '#/$defs/anyOfTestSeveralItems',
         name: 'tullballeee',
       }),
     );
-    const updatedAnyOfItem = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/tullballeee',
-    );
-    expect(updatedAnyOfItem?.combination?.[1].path).toBe(
-      '#/definitions/tullballeee/anyOf/1',
-    );
+
+    const updatedAnyOfChildren = getChildNodesByPointer(nextState.uiSchema, '#/$defs/tullballeee');
+    expect(updatedAnyOfChildren[1].pointer).toBe('#/$defs/tullballeee/anyOf/1');
   });
 
   it('handles setRef', () => {
     const payload = {
-      ref: '#/definitions/Adresse',
-      path: '#/definitions/Kontaktperson/properties/navn',
+      path: '#/$defs/Kontaktperson/properties/navn',
+      ref: '#/$defs/Tekst_25',
     };
     const nextState = reducer(state, setRef(payload));
-    const item: UiSchemaItem | undefined = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/Kontaktperson',
-    );
-    if (!item || !item.properties) {
-      fail('item not found');
-    }
-    expect(item.properties).toContainEqual({
-      path: '#/definitions/Kontaktperson/properties/navn',
-      displayName: 'navn',
-      $ref: '#/definitions/Adresse',
-    });
+    const item: UiSchemaNode = getNodeByPointer(nextState.uiSchema, '#/$defs/Kontaktperson/properties/navn');
+    expect(item.ref).toEqual('#/$defs/Tekst_25');
   });
 
   it('handles setSelectedId', () => {
     const payload = {
-      id: '#/definitions/Kommentar2000Restriksjon',
+      id: '#/$defs/Kommentar2000Restriksjon',
     };
-    const nextState = reducer(
-      { ...state, selectedEditorTab: 'definitions' },
-      setSelectedId(payload),
-    );
-    expect(nextState.selectedDefinitionNodeId).toEqual(
-      '#/definitions/Kommentar2000Restriksjon',
-    );
+    const nextState = reducer({ ...state, selectedEditorTab: 'definitions' }, setSelectedId(payload));
+    expect(nextState.selectedDefinitionNodeId).toEqual('#/$defs/Kommentar2000Restriksjon');
   });
 
   it('handles setSelectedId by properties tab', () => {
     const payload = {
       id: '#/properties/someField',
     };
-    const nextState = reducer(
-      { ...state, selectedEditorTab: 'properties' },
-      setSelectedId(payload),
-    );
+    const nextState = reducer({ ...state, selectedEditorTab: 'properties' }, setSelectedId(payload));
     expect(nextState.selectedPropertyNodeId).toEqual('#/properties/someField');
   });
 
   it('handles navigateToType', () => {
     const payload = {
-      id: '#/definitions/someField',
+      id: '#/$defs/someField',
     };
-    const nextState = reducer(
-      { ...state, selectedEditorTab: 'properties' },
-      navigateToType(payload),
-    );
+    const nextState = reducer({ ...state, selectedEditorTab: 'properties' }, navigateToType(payload));
     expect(nextState.selectedEditorTab).toEqual('definitions');
-    expect(nextState.selectedDefinitionNodeId).toEqual(
-      '#/definitions/someField',
-    );
+    expect(nextState.selectedDefinitionNodeId).toEqual('#/$defs/someField');
   });
 
   it('handles setSelectedTab', () => {
     const payload: { selectedTab: 'definitions' | 'properties' } = {
       selectedTab: 'definitions',
     };
-    const nextState = reducer(
-      { ...state, selectedEditorTab: 'properties' },
-      setSelectedTab(payload),
-    );
+    const nextState = reducer({ ...state, selectedEditorTab: 'properties' }, setSelectedTab(payload));
     expect(nextState.selectedEditorTab).toEqual('definitions');
   });
 
   it('handles deleteField', () => {
     const payload = {
-      path: '#/definitions/Kommentar2000Restriksjon',
+      path: '#/$defs/Kommentar2000Restriksjon',
       key: 'maxLength',
     };
     const nextState = reducer(state, deleteField(payload));
-
-    const item = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/Kommentar2000Restriksjon',
-    );
-    if (!item || !item.restrictions) {
+    const item = getNodeByPointer(nextState.uiSchema, '#/$defs/Kommentar2000Restriksjon');
+    if (!item.restrictions) {
       fail('item not found');
     }
 
@@ -242,156 +167,115 @@ describe('SchemaEditorSlice', () => {
 
   it('handles deleteProperty', () => {
     const payload = {
-      path: '#/definitions/Kontaktperson/properties/navn',
+      path: '#/$defs/Kontaktperson/properties/navn',
     };
     const nextState = reducer(state, deleteProperty(payload));
-
-    const item = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/Kontaktperson',
-    );
-    if (!item || !item.properties) {
-      fail('item not found');
-    }
-
-    expect(item.properties).not.toContainEqual({
-      path: '#/definitions/Kontaktperson/properties/navn',
+    const item = getNodeByPointer(nextState.uiSchema, '#/$defs/Kontaktperson');
+    expect(item.children).not.toContainEqual({
+      path: '#/$defs/Kontaktperson/properties/navn',
     });
   });
 
   it('resets selected id when deleting selected definition', () => {
-    const payload = {
-      path: '#/definitions/someField',
-    };
     const mockState = {
       ...state,
       selectedEditorTab: 'definitions',
-      selectedDefinitionNodeId: '#/definitions/someField',
+      selectedDefinitionNodeId: '#/$defs/Kommentar2000Restriksjon',
     } as ISchemaState;
-    const nextState = reducer(mockState, deleteProperty(payload));
+    const nextState = reducer(
+      mockState,
+      deleteProperty({
+        path: '#/$defs/Kommentar2000Restriksjon',
+      }),
+    );
     expect(nextState.selectedDefinitionNodeId).toEqual('');
   });
 
   it('resets selected id when deleting selected property', () => {
-    const payload = {
-      path: '#/properties/someField',
-    };
     const mockState = {
       ...state,
       selectedEditorTab: 'properties',
-      selectedPropertyNodeId: '#/properties/someField',
+      selectedPropertyNodeId: '#/properties/melding',
     } as ISchemaState;
-    const nextState = reducer(mockState, deleteProperty(payload));
+    const nextState = reducer(
+      mockState,
+      deleteProperty({
+        path: '#/properties/melding',
+      }),
+    );
     expect(nextState.selectedPropertyNodeId).toEqual('');
   });
 
   it('handles deleteProperty (root definition)', () => {
     const payload = {
-      path: '#/definitions/Kontaktperson',
+      path: '#/$defs/Kontaktperson',
     };
     const nextState = reducer(state, deleteProperty(payload));
+    expect(() => {
+      getNodeByPointer(nextState.uiSchema, '#/$defs/Kontaktperson');
+    }).toThrowError();
 
-    const item = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/Kontaktperson',
-    );
-    expect(item).toBeUndefined();
+    expect(pointerExists(nextState.uiSchema, '#/$defs/Kontaktperson')).toBeFalsy();
   });
 
   it('handles addProperty', () => {
     const payload = {
-      path: '#/definitions/Kontaktperson',
+      path: '#/$defs/Kontaktperson',
       props: {
-        type: FieldType.Object,
-      } as Partial<UiSchemaItem>,
+        fieldType: FieldType.Object,
+      } as Partial<UiSchemaNode>,
     };
     const nextState = reducer(state, addProperty(payload));
 
-    const item = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/Kontaktperson',
-    );
-    expect(item && item.properties).toContainEqual({
-      path: '#/definitions/Kontaktperson/properties/name',
-      displayName: 'name',
-      type: FieldType.Object,
-    });
+    const item = getNodeByPointer(nextState.uiSchema, '#/$defs/Kontaktperson');
+    expect(item.children).toContain('#/$defs/Kontaktperson/properties/name');
+
+    const itemChild = getNodeByPointer(nextState.uiSchema, '#/$defs/Kontaktperson/properties/name');
+    expect(itemChild.fieldType).toBe(FieldType.Object);
   });
 
   it('handles addRootItem', () => {
     const payload = {
       name: 'superman',
-      location: '#/definitions',
+      location: '#/$defs',
       props: {
-        type: FieldType.Object,
-      } as Partial<UiSchemaItem>,
+        fieldType: FieldType.Object,
+      } as Partial<UiSchemaNode>,
     };
+
     let nextState = reducer(state, addRootItem(payload));
-    expect(nextState.uiSchema).toContainEqual({
-      path: '#/definitions/superman',
-      displayName: 'superman',
-      type: FieldType.Object,
-    });
+    const newRootItem = getNodeByPointer(nextState.uiSchema, '#/$defs/superman');
+    expect(newRootItem.fieldType).toBe(FieldType.Object);
+
     nextState = reducer(nextState, addRootItem(payload));
-    expect(nextState.uiSchema).toContainEqual({
-      path: '#/definitions/superman0',
-      displayName: 'superman0',
-      type: FieldType.Object,
-    });
-    expect(nextState.selectedDefinitionNodeId).toBe('#/definitions/superman0');
+    const newRootItem0 = getNodeByPointer(nextState.uiSchema, '#/$defs/superman0');
+    expect(newRootItem0.fieldType).toBe(FieldType.Object);
+    expect(nextState.selectedDefinitionNodeId).toBe('#/$defs/superman0');
   });
 
   it('handles addEnum & deleteEnum', () => {
     const payload = {
-      path: '#/definitions/StatistiskeEnhetstyper',
+      path: '#/$defs/StatistiskeEnhetstyper',
       value: 'test',
       oldValue: '',
     };
 
     // add
     let nextState = reducer(state, addEnum(payload));
-    let item = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/StatistiskeEnhetstyper',
-    );
+    let item = getNodeByPointer(nextState.uiSchema, '#/$defs/StatistiskeEnhetstyper');
     expect(item && item.enum).toContainEqual('test');
     // rename
     payload.oldValue = 'test';
     payload.value = 'test2';
     nextState = reducer(nextState, addEnum(payload));
-    item = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/StatistiskeEnhetstyper',
-    );
+    item = getNodeByPointer(nextState.uiSchema, '#/$defs/StatistiskeEnhetstyper');
+
     expect(item && item.enum).not.toContainEqual('test');
     expect(item && item.enum).toContainEqual('test2');
     // delete
     nextState = reducer(nextState, deleteEnum(payload));
-    item = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/StatistiskeEnhetstyper',
-    );
+    item = getNodeByPointer(nextState.uiSchema, '#/$defs/StatistiskeEnhetstyper');
     expect(item && item.enum).not.toContainEqual('test2');
-  });
-
-  it('handles addRestriction', () => {
-    const payload = {
-      path: '#/definitions/Kontaktperson',
-      key: 'key',
-      value: '',
-    };
-    let nextState = reducer(state, addRestriction(payload));
-
-    let item = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/Kontaktperson',
-    );
-    expect(item && item.restrictions).toContainEqual({
-      key: 'key',
-      value: '',
-    });
-
-    nextState = reducer(nextState, addRestriction(payload));
-    item = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/Kontaktperson',
-    );
-    expect(item && item.restrictions).toContainEqual({
-      key: 'key0',
-      value: '',
-    });
   });
 
   it('handles updateJsonSchema', () => {
@@ -405,204 +289,164 @@ describe('SchemaEditorSlice', () => {
   it('handles setTitle', () => {
     const payload = {
       title: 'test12312',
-      path: '#/definitions/Kontaktperson',
+      path: '#/$defs/Kontaktperson',
     };
     const nextState = reducer(state, setTitle(payload));
-    const item: UiSchemaItem | undefined = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/Kontaktperson',
-    );
-    expect(item?.title).toBe('test12312');
+    const item = getNodeByPointer(nextState.uiSchema, '#/$defs/Kontaktperson');
+    expect(item.title).toBe('test12312');
   });
 
   it('handles setDescription', () => {
     const payload = {
       description: 'descriptionasdsfsa',
-      path: '#/definitions/Kontaktperson',
+      path: '#/$defs/Kontaktperson',
     };
     const nextState = reducer(state, setDescription(payload));
-    const item: UiSchemaItem | undefined = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/Kontaktperson',
-    );
-    expect(item?.description).toBe('descriptionasdsfsa');
+
+    const item = getNodeByPointer(nextState.uiSchema, '#/$defs/Kontaktperson');
+    expect(item.description).toBe('descriptionasdsfsa');
   });
 
   it('handles setType', () => {
     const payload = {
-      path: '#/definitions/Kontaktperson',
-      type: 'string' as FieldType,
+      path: '#/$defs/Kontaktperson',
+      type: FieldType.String,
     };
     const nextState = reducer(state, setType(payload));
-
-    const item = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/Kontaktperson',
-    );
-    expect(item?.type).toBe('string');
+    const item = getNodeByPointer(nextState.uiSchema, '#/$defs/Kontaktperson');
+    expect(item.fieldType).toBe(FieldType.String);
   });
 
   it('handles setItems', () => {
     const payload = {
-      path: '#/definitions/Kontaktperson',
-      items: { type: 'string' },
+      path: '#/properties/arrayForTest',
+      items: { fieldType: FieldType.String },
     };
     const nextState = reducer(state, setItems(payload));
+    const items = getChildNodesByPointer(nextState.uiSchema, payload.path);
 
-    const item = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/Kontaktperson',
-    );
-    expect(item?.items?.type).toBe('string');
+    expect(items[0].fieldType).toBe(FieldType.String);
   });
 
   it('handles setRequired', () => {
     const payload = {
-      path: '#/definitions/Kontaktperson/properties/navn',
+      path: '#/$defs/Kontaktperson/properties/navn',
       key: 'navn',
       required: true,
     };
     let nextState = reducer(state, setRequired(payload));
-    let item = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/Kontaktperson',
-    );
-    expect(item && item.required).toContainEqual('navn');
+    let item = getNodeByPointer(nextState.uiSchema, payload.path);
+    expect(item.isRequired).toBeTruthy();
 
     payload.required = false;
     nextState = reducer(state, setRequired(payload));
-    item = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/Kontaktperson',
-    );
-    expect(item && item.required).not.toContainEqual('navn');
+    item = getNodeByPointer(nextState.uiSchema, payload.path);
+    expect(item.isRequired).toBeFalsy();
   });
 
   it('handles promotion of root-level types', () => {
     const schema = {
-      properties: {
+      [Keywords.Properties]: {
         melding: {
-          properties: {
+          [Keywords.Properties]: {
             name: {
-              type: 'string',
+              [Keywords.Type]: FieldType.String,
             },
           },
         },
       },
-      definitions: {},
+      [Keywords.Definitions]: {},
     };
     let nextState = reducer(state, setJsonSchema({ schema }));
     nextState = reducer(nextState, setUiSchema({ name: 'test' }));
 
-    const prop = getUiSchemaItem(
-      nextState.uiSchema,
-      '#/properties/melding/properties/name',
-    );
-    getUiSchemaItem(nextState.uiSchema, '#/properties/melding/properties/name');
-    expect(prop && prop.type).toBe('string');
+    const prop = getNodeByPointer(nextState.uiSchema, '#/properties/melding/properties/name');
+
+    expect(prop.fieldType).toBe(FieldType.String);
 
     const payload = {
       path: '#/properties/melding/properties/name',
     };
     nextState = reducer(nextState, promoteProperty(payload));
-    const ref = getUiSchemaItem(
-      nextState.uiSchema,
-      '#/properties/melding/properties/name',
-    );
-    expect(ref && ref.$ref).toBe('#/definitions/name');
-    const item = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/name',
-    );
-    expect(item && item.type).toBe('string');
+    const ref = getNodeByPointer(nextState.uiSchema, '#/properties/melding/properties/name');
+    expect(ref.ref).toBe('#/$defs/name');
+    const item = getNodeByPointer(nextState.uiSchema, '#/$defs/name');
+    expect(item.fieldType).toBe(FieldType.String);
 
     // test promotion of root item.
     const payload2 = {
       path: '#/properties/melding',
     };
     nextState = reducer(nextState, promoteProperty(payload2));
-    const item2 = getUiSchemaItem(nextState.uiSchema, '#/properties/melding');
-    expect(item2 && item2.$ref).toBe('#/definitions/melding');
+    const item2 = getNodeByPointer(nextState.uiSchema, '#/properties/melding');
+    expect(item2.ref).toBe('#/$defs/melding');
   });
 
   it('handles setting combination type', () => {
-    const combinationItemChild = {
-      $ref: '#/definitions/Tekst_50',
-      displayName: 'ref',
-      path: '#/definitions/allOfTest/allOf/0',
-      combinationItem: true,
-    };
-
     // verify initial state => type is allOf
-    let item = state.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
-    expect(item?.combination).toEqual([
-      { ...combinationItemChild, path: '#/definitions/allOfTest/allOf/0' },
-    ]);
-    expect(item?.combinationKind).toEqual(CombinationKind.AllOf);
-
-    const payload = {
-      path: '#/definitions/allOfTest',
-      type: CombinationKind.OneOf,
-    };
+    let item = getNodeByPointer(state.uiSchema, '#/$defs/allOfTest');
+    const childNodes = getChildNodesByPointer(state.uiSchema, '#/$defs/allOfTest');
+    expect(childNodes[0].ref).toBe('#/$defs/Tekst_50');
+    expect(childNodes[0].pointer).toBe('#/$defs/allOfTest/allOf/0');
+    expect(item.objectKind).toBe(ObjectKind.Combination);
+    expect(item.fieldType).toEqual(CombinationKind.AllOf);
 
     // change to oneOf => verify changed state
-    let nextState = reducer(state, setCombinationType(payload));
-    item = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
-    expect(item?.combination).toEqual([
-      { ...combinationItemChild, path: '#/definitions/allOfTest/oneOf/0' },
-    ]);
-    expect(item?.combinationKind).toEqual('oneOf');
+    let nextState = reducer(
+      state,
+      setCombinationType({
+        path: '#/$defs/allOfTest',
+        type: CombinationKind.OneOf,
+      }),
+    );
+    item = getNodeByPointer(nextState.uiSchema, '#/$defs/allOfTest');
+
+    expect(item.children).toEqual(['#/$defs/allOfTest/oneOf/0']);
+    expect(item.fieldType).toEqual(CombinationKind.OneOf);
 
     // change to anyOf => verify changed state
     nextState = reducer(
       state,
       setCombinationType({
-        ...payload,
+        path: '#/$defs/allOfTest',
         type: CombinationKind.AnyOf,
       }),
     );
-    item = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
-    expect(item?.combination).toEqual([
-      { ...combinationItemChild, path: '#/definitions/allOfTest/anyOf/0' },
-    ]);
-    expect(item?.combinationKind).toEqual(CombinationKind.AnyOf);
+    item = getNodeByPointer(nextState.uiSchema, '#/$defs/allOfTest');
+    expect(item.children).toEqual(['#/$defs/allOfTest/anyOf/0']);
+    expect(item.fieldType).toEqual(CombinationKind.AnyOf);
 
     // change back to allOf => verify state
     nextState = reducer(
       nextState,
       setCombinationType({
-        ...payload,
+        path: '#/$defs/allOfTest',
         type: CombinationKind.AllOf,
       }),
     );
-    item = nextState.uiSchema.find((f) => f.path === '#/definitions/allOfTest');
-    expect(item?.combination).toEqual([
-      { ...combinationItemChild, path: '#/definitions/allOfTest/allOf/0' },
-    ]);
-    expect(item?.combinationKind).toEqual(CombinationKind.AllOf);
+    item = getNodeByPointer(nextState.uiSchema, '#/$defs/allOfTest');
+    expect(item.children).toEqual(['#/$defs/allOfTest/allOf/0']);
+    expect(item.fieldType).toEqual(CombinationKind.AllOf);
   });
 
   it('handles deleting a "combination" (anyOf, allOf, oneOf) child and shifting children paths', () => {
-    let item = state.uiSchema.find(
-      (f) => f.path === '#/definitions/anyOfTestSeveralItems',
-    );
-    expect(item?.combination?.length).toBe(4);
+    let item = getNodeByPointer(state.uiSchema, '#/$defs/anyOfTestSeveralItems');
+    expect(item.children).toHaveLength(4);
     const nextState = reducer(
       state,
       deleteCombinationItem({
-        path: '#/definitions/anyOfTestSeveralItems/anyOf/1',
+        path: '#/$defs/anyOfTestSeveralItems/anyOf/1',
       }),
     );
-    item = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/anyOfTestSeveralItems',
-    );
-    expect(item?.combination?.length).toBe(3);
-    expect(item?.combination?.[0].path).toBe(
-      '#/definitions/anyOfTestSeveralItems/anyOf/0',
-    );
-    expect(item?.combination?.[1].path).toBe(
-      '#/definitions/anyOfTestSeveralItems/anyOf/1',
-    );
-    expect(item?.combination?.[2].path).toBe(
-      '#/definitions/anyOfTestSeveralItems/anyOf/2',
-    );
+    item = getNodeByPointer(nextState.uiSchema, '#/$defs/anyOfTestSeveralItems');
+    expect(item.children).toHaveLength(3);
+    expect(item.children[0]).toBe('#/$defs/anyOfTestSeveralItems/anyOf/0');
+    expect(item.children[1]).toBe('#/$defs/anyOfTestSeveralItems/anyOf/1');
+    expect(item.children[2]).toBe('#/$defs/anyOfTestSeveralItems/anyOf/2');
   });
 
   it('resets selectedDefinitionNodeId when deleting a combination child that is currently selected', () => {
-    const path = '#/definitions/anyOfTestSeveralItems/anyOf/1';
+    const path = '#/$defs/anyOfTestSeveralItems/anyOf/1';
     const mockState: ISchemaState = {
       ...state,
       selectedDefinitionNodeId: path,
@@ -612,68 +456,61 @@ describe('SchemaEditorSlice', () => {
   });
 
   it('resets selectedPropertiesNodeId when deleting a combination child that is currently selected', () => {
-    const path = '#/definitions/anyOfTestSeveralItems/anyOf/1';
+    const path = '#/$defs/anyOfTestSeveralItems/anyOf/1';
     const mockState: ISchemaState = {
       ...state,
       selectedPropertyNodeId: path,
     };
     const nextState = reducer(mockState, deleteCombinationItem({ path }));
-    expect(nextState.selectedDefinitionNodeId).toBe('');
+    expect(nextState.selectedPropertyNodeId).toBe('');
   });
 
   it('handles adding child items to a combination', () => {
     // anyOf
-    const anyOfItem = state.uiSchema.find(
-      (f) => f.path === '#/definitions/anyOfTestSeveralItems',
-    );
-    expect(anyOfItem?.combination?.length).toBe(4);
+    const anyOfItem = getNodeByPointer(state.uiSchema, '#/$defs/anyOfTestSeveralItems');
+    expect(anyOfItem.children).toHaveLength(4);
     let nextState = reducer(
       state,
       addCombinationItem({
-        path: '#/definitions/anyOfTestSeveralItems',
-        props: { type: FieldType.String, displayName: '' },
+        path: '#/$defs/anyOfTestSeveralItems',
+        props: { fieldType: FieldType.String },
       }),
     );
-    const updatedAnyOfItem = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/anyOfTestSeveralItems',
-    );
-    expect(updatedAnyOfItem?.combination?.length).toBe(5);
-    expect(updatedAnyOfItem?.combination?.[4].type).toBe('string');
+    const updatedAnyOfItem = getNodeByPointer(nextState.uiSchema, '#/$defs/anyOfTestSeveralItems');
+    expect(updatedAnyOfItem.children).toHaveLength(5);
+
+    const updatedAnyOfItemChildren = getChildNodesByPointer(nextState.uiSchema, '#/$defs/anyOfTestSeveralItems');
+    expect(updatedAnyOfItemChildren[4].fieldType).toBe(FieldType.String);
 
     // allOf
-    const allOfItem = state.uiSchema.find(
-      (f) => f.path === '#/definitions/allOfTest',
-    );
-    expect(allOfItem?.combination?.length).toBe(1);
+    const allOfItem = getNodeByPointer(state.uiSchema, '#/$defs/allOfTest');
+    expect(allOfItem.children).toHaveLength(1);
     nextState = reducer(
       state,
       addCombinationItem({
-        path: '#/definitions/allOfTest',
-        props: { type: FieldType.String, displayName: '' },
+        path: '#/$defs/allOfTest',
+        props: { fieldType: FieldType.String },
       }),
     );
-    const updatedAllOfItem = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/allOfTest',
-    );
-    expect(updatedAllOfItem?.combination?.length).toBe(2);
-    expect(updatedAllOfItem?.combination?.[1].type).toBe(FieldType.String);
+    const updatedAllOfItem = getNodeByPointer(nextState.uiSchema, '#/$defs/allOfTest');
+    expect(updatedAllOfItem.children).toHaveLength(2);
+    const updatedAllOfItemChild = getNodeByPointer(nextState.uiSchema, updatedAllOfItem.children[1]);
+    expect(updatedAllOfItemChild.fieldType).toBe(FieldType.String);
 
     // oneOf
-    const oneOfItem = state.uiSchema.find(
-      (f) => f.path === '#/definitions/oneOfTestNullable',
-    );
-    expect(oneOfItem?.combination?.length).toBe(2);
+    const oneOfItem = getNodeByPointer(state.uiSchema, '#/$defs/oneOfTestNullable');
+    expect(oneOfItem.children).toHaveLength(2);
     nextState = reducer(
       state,
       addCombinationItem({
-        path: '#/definitions/oneOfTestNullable',
-        props: { type: FieldType.String, displayName: '' },
+        path: '#/$defs/oneOfTestNullable',
+        props: { fieldType: FieldType.String },
       }),
     );
-    const updatedOneOfItem = nextState.uiSchema.find(
-      (f) => f.path === '#/definitions/oneOfTestNullable',
-    );
-    expect(updatedOneOfItem?.combination?.length).toBe(3);
-    expect(updatedOneOfItem?.combination?.[2].type).toBe(FieldType.String);
+    const updatedOneOfItem = getNodeByPointer(nextState.uiSchema, '#/$defs/oneOfTestNullable');
+
+    expect(updatedOneOfItem.children).toHaveLength(3);
+    const updatedOneOfItemChild = getNodeByPointer(nextState.uiSchema, updatedOneOfItem.children[2]);
+    expect(updatedOneOfItemChild.fieldType).toBe(FieldType.String);
   });
 });
