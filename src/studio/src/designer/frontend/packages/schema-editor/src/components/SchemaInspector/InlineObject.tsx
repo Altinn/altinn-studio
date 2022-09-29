@@ -25,7 +25,6 @@ const useStyles = makeStyles(
 
 export function InlineObject({ item, language }: IInlineObjectProps) {
   // present as plain json object, not with any meta fields used in UiSchemaItem
-  // this need to be fixed
   const classes = useStyles();
   return (
     <Grid container spacing={4}>
