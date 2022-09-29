@@ -1,12 +1,6 @@
 import { JsonSchemaNode, Keywords } from '../types';
 
-export const genericKeywords = [
-  Keywords.Default,
-  Keywords.Enum,
-  Keywords.Const,
-  Keywords.Title,
-  Keywords.Description,
-];
+export const genericKeywords = [Keywords.Default, Keywords.Enum, Keywords.Const, Keywords.Title, Keywords.Description];
 
 export const findGenericKeywordsOnNode = (schemaNode: JsonSchemaNode) => {
   const out: { [key: string]: any } = {};

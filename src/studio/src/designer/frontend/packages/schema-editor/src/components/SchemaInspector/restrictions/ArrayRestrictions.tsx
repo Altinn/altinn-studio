@@ -5,12 +5,7 @@ import { RestrictionField } from '../RestrictionField';
 import { getTranslation } from '../../../utils/language';
 import { Divider } from '../Divider';
 
-export function ArrayRestrictions({
-  restrictions,
-  language,
-  path,
-  onChangeRestrictionValue,
-}: RestrictionItemProps) {
+export function ArrayRestrictions({ restrictions, language, path, onChangeRestrictionValue }: RestrictionItemProps) {
   const defaults = getRestrictions(FieldType.Array);
   return (
     <>

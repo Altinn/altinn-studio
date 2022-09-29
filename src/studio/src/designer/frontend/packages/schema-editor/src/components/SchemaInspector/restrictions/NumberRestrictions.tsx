@@ -5,12 +5,7 @@ import { RestrictionField } from '../RestrictionField';
 import { getTranslation } from '../../../utils/language';
 import { Divider } from '../Divider';
 
-export function NumberRestrictions({
-  restrictions,
-  path,
-  language,
-  onChangeRestrictionValue,
-}: RestrictionItemProps) {
+export function NumberRestrictions({ restrictions, path, language, onChangeRestrictionValue }: RestrictionItemProps) {
   const defaults = getRestrictions(FieldType.Number);
   return (
     <>

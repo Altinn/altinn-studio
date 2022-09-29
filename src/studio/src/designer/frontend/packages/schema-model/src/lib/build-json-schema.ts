@@ -1,11 +1,4 @@
-import {
-  JsonSchemaNode,
-  Keywords,
-  ObjectKind,
-  ROOT_POINTER,
-  UiSchemaNode,
-  UiSchemaNodes,
-} from './types';
+import { JsonSchemaNode, Keywords, ObjectKind, ROOT_POINTER, UiSchemaNode, UiSchemaNodes } from './types';
 import JSONPointer from 'jsonpointer';
 import { findRequiredProps } from './handlers/required';
 import { findJsonFieldType } from './handlers/field-type';
@@ -22,11 +15,7 @@ export const buildJsonSchema = (uiSchemaNodes: UiSchemaNodes): JsonSchemaNode =>
       if (!uiSchemaNode.implicitType) {
         JSONPointer.set(out, '/' + Keywords.Type, uiSchemaNode.fieldType);
       }
-      JSONPointer.set(
-        out,
-        '/' + Keywords.Required,
-        findRequiredProps(uiSchemaNodes, uiSchemaNode.pointer),
-      );
+      JSONPointer.set(out, '/' + Keywords.Required, findRequiredProps(uiSchemaNodes, uiSchemaNode.pointer));
     } else {
       allPointers.push(uiSchemaNode.pointer);
     }
@@ -56,11 +45,7 @@ export const buildJsonSchema = (uiSchemaNodes: UiSchemaNodes): JsonSchemaNode =>
 
     // Adding generics back
     [Keywords.Default, Keywords.Const, Keywords.Title, Keywords.Description].forEach((keyword) => {
-      JSONPointer.set(
-        out,
-        [jsonPointer, keyword].join('/'),
-        uiSchemaNode[keyword as keyof UiSchemaNode],
-      );
+      JSONPointer.set(out, [jsonPointer, keyword].join('/'), uiSchemaNode[keyword as keyof UiSchemaNode]);
     });
 
     // Adding enums

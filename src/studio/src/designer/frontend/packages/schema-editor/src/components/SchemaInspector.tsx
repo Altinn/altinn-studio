@@ -17,11 +17,7 @@ export interface ISchemaInspectorProps {
   checkIsNameInUse: (name: string) => boolean;
 }
 
-export const SchemaInspector = ({
-  language,
-  selectedItem,
-  checkIsNameInUse,
-}: ISchemaInspectorProps) => {
+export const SchemaInspector = ({ language, selectedItem, checkIsNameInUse }: ISchemaInspectorProps) => {
   const [tabIndex, setTabIndex] = useState('0');
   const t = (key: string) => getTranslation(key, language);
 
@@ -47,19 +43,12 @@ export const SchemaInspector = ({
             <SchemaTab
               label={t('fields')}
               value='2'
-              hide={
-                selectedItem.fieldType !== FieldType.Object ||
-                selectedItem.objectKind === ObjectKind.Combination
-              }
+              hide={selectedItem.fieldType !== FieldType.Object || selectedItem.objectKind === ObjectKind.Combination}
             />
           </TabList>
         </AppBar>
         <TabPanel className={classes.tabPanel} value='0'>
-          <ItemPropertiesTab
-            checkIsNameInUse={checkIsNameInUse}
-            selectedItem={selectedItem}
-            language={language}
-          />
+          <ItemPropertiesTab checkIsNameInUse={checkIsNameInUse} selectedItem={selectedItem} language={language} />
         </TabPanel>
         <TabPanel className={classes.tabPanel} value='2'>
           <ItemFieldsTab classes={classes} selectedItem={selectedItem} language={language} />

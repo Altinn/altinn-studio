@@ -115,10 +115,7 @@ describe('SchemaEditorSlice', () => {
       ref: '#/$defs/Tekst_25',
     };
     const nextState = reducer(state, setRef(payload));
-    const item: UiSchemaNode = getNodeByPointer(
-      nextState.uiSchema,
-      '#/$defs/Kontaktperson/properties/navn',
-    );
+    const item: UiSchemaNode = getNodeByPointer(nextState.uiSchema, '#/$defs/Kontaktperson/properties/navn');
     expect(item.ref).toEqual('#/$defs/Tekst_25');
   });
 
@@ -126,10 +123,7 @@ describe('SchemaEditorSlice', () => {
     const payload = {
       id: '#/$defs/Kommentar2000Restriksjon',
     };
-    const nextState = reducer(
-      { ...state, selectedEditorTab: 'definitions' },
-      setSelectedId(payload),
-    );
+    const nextState = reducer({ ...state, selectedEditorTab: 'definitions' }, setSelectedId(payload));
     expect(nextState.selectedDefinitionNodeId).toEqual('#/$defs/Kommentar2000Restriksjon');
   });
 
@@ -137,10 +131,7 @@ describe('SchemaEditorSlice', () => {
     const payload = {
       id: '#/properties/someField',
     };
-    const nextState = reducer(
-      { ...state, selectedEditorTab: 'properties' },
-      setSelectedId(payload),
-    );
+    const nextState = reducer({ ...state, selectedEditorTab: 'properties' }, setSelectedId(payload));
     expect(nextState.selectedPropertyNodeId).toEqual('#/properties/someField');
   });
 
@@ -148,10 +139,7 @@ describe('SchemaEditorSlice', () => {
     const payload = {
       id: '#/$defs/someField',
     };
-    const nextState = reducer(
-      { ...state, selectedEditorTab: 'properties' },
-      navigateToType(payload),
-    );
+    const nextState = reducer({ ...state, selectedEditorTab: 'properties' }, navigateToType(payload));
     expect(nextState.selectedEditorTab).toEqual('definitions');
     expect(nextState.selectedDefinitionNodeId).toEqual('#/$defs/someField');
   });
@@ -160,10 +148,7 @@ describe('SchemaEditorSlice', () => {
     const payload: { selectedTab: 'definitions' | 'properties' } = {
       selectedTab: 'definitions',
     };
-    const nextState = reducer(
-      { ...state, selectedEditorTab: 'properties' },
-      setSelectedTab(payload),
-    );
+    const nextState = reducer({ ...state, selectedEditorTab: 'properties' }, setSelectedTab(payload));
     expect(nextState.selectedEditorTab).toEqual('definitions');
   });
 
@@ -506,10 +491,7 @@ describe('SchemaEditorSlice', () => {
     const updatedAnyOfItem = getNodeByPointer(nextState.uiSchema, '#/$defs/anyOfTestSeveralItems');
     expect(updatedAnyOfItem.children).toHaveLength(5);
 
-    const updatedAnyOfItemChildren = getChildNodesByPointer(
-      nextState.uiSchema,
-      '#/$defs/anyOfTestSeveralItems',
-    );
+    const updatedAnyOfItemChildren = getChildNodesByPointer(nextState.uiSchema, '#/$defs/anyOfTestSeveralItems');
     expect(updatedAnyOfItemChildren[4].fieldType).toBe(FieldType.String);
 
     // allOf
@@ -524,10 +506,7 @@ describe('SchemaEditorSlice', () => {
     );
     const updatedAllOfItem = getNodeByPointer(nextState.uiSchema, '#/$defs/allOfTest');
     expect(updatedAllOfItem.children).toHaveLength(2);
-    const updatedAllOfItemChild = getNodeByPointer(
-      nextState.uiSchema,
-      updatedAllOfItem.children[1],
-    );
+    const updatedAllOfItemChild = getNodeByPointer(nextState.uiSchema, updatedAllOfItem.children[1]);
     expect(updatedAllOfItemChild.fieldType).toBe(FieldType.String);
 
     // oneOf
@@ -543,10 +522,7 @@ describe('SchemaEditorSlice', () => {
     const updatedOneOfItem = getNodeByPointer(nextState.uiSchema, '#/$defs/oneOfTestNullable');
 
     expect(updatedOneOfItem.children).toHaveLength(3);
-    const updatedOneOfItemChild = getNodeByPointer(
-      nextState.uiSchema,
-      updatedOneOfItem.children[2],
-    );
+    const updatedOneOfItemChild = getNodeByPointer(nextState.uiSchema, updatedOneOfItem.children[2]);
     expect(updatedOneOfItemChild.fieldType).toBe(FieldType.String);
   });
 });

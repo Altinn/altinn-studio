@@ -8,12 +8,7 @@ import { Divider } from '../Divider';
 import { Label } from '../Label';
 import { StrRestrictionKeys } from '@altinn/schema-model';
 
-export function StringRestrictions({
-  restrictions,
-  path,
-  language,
-  onChangeRestrictionValue,
-}: RestrictionItemProps) {
+export function StringRestrictions({ restrictions, path, language, onChangeRestrictionValue }: RestrictionItemProps) {
   const t = (key: string) => getTranslation(key, language);
   const [regexTestValue, setRegexTestValue] = useState<string>('');
   const pattern = restrictions[StrRestrictionKeys.pattern] || '';
@@ -54,18 +49,13 @@ export function StringRestrictions({
           (regexTestValueMatchesRegex ? (
             <span className={classes.regexTestMatchIndicatorTrue}>{t('pattern_matches')}</span>
           ) : (
-            <span className={classes.regexTestMatchIndicatorFalse}>
-              {t('pattern_does_not_match')}
-            </span>
+            <span className={classes.regexTestMatchIndicatorFalse}>{t('pattern_does_not_match')}</span>
           ))}
       </div>
       <div className={classes.regexTestContainer}>
         <div className={classes.regexTestStyleField}>
           {regexTestValueSplitByMatches.map((strPart, i) => (
-            <span
-              className={strPart.match ? classes.regexTestMatch : undefined}
-              key={`regexTestPart${i}`}
-            >
+            <span className={strPart.match ? classes.regexTestMatch : undefined} key={`regexTestPart${i}`}>
               {strPart.str}
             </span>
           ))}

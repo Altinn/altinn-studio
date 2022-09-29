@@ -16,14 +16,7 @@ export interface IRefSelectProps {
   onChange: (value: string) => void;
 }
 
-export const RefSelect = ({
-  nodePointer,
-  onChange,
-  value,
-  label,
-  fullWidth,
-  readOnly,
-}: IRefSelectProps) => {
+export const RefSelect = ({ nodePointer, onChange, value, label, fullWidth, readOnly }: IRefSelectProps) => {
   const classes = makeStyles({
     root: {
       background: 'white',
@@ -41,9 +34,7 @@ export const RefSelect = ({
     },
   })();
 
-  const definitions: UiSchemaNode[] = useSelector((state: ISchemaState) =>
-    getRootNodes(state.uiSchema, true),
-  );
+  const definitions: UiSchemaNode[] = useSelector((state: ISchemaState) => getRootNodes(state.uiSchema, true));
 
   const domElementId = getDomFriendlyID(nodePointer, 'ref-select');
   return (

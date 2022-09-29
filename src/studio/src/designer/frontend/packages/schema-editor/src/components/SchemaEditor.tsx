@@ -119,9 +119,7 @@ export const SchemaEditor = ({
 
   const jsonSchema = useSelector((state: ISchemaState) => state.schema);
   const selectedPropertyNode = useSelector((state: ISchemaState) => state.selectedPropertyNodeId);
-  const selectedDefinitionNode = useSelector(
-    (state: ISchemaState) => state.selectedDefinitionNodeId,
-  );
+  const selectedDefinitionNode = useSelector((state: ISchemaState) => state.selectedDefinitionNodeId);
 
   const schemaSettings = getSchemaSettings({ schemaUrl: jsonSchema?.$schema });
   const { definitions, modelView } = useSelector((state: ISchemaState) => ({
@@ -198,11 +196,9 @@ export const SchemaEditor = ({
     );
   };
 
-  const handlePropertiesNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) =>
-    setExpandedPropNodes(nodeIds);
+  const handlePropertiesNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) => setExpandedPropNodes(nodeIds);
 
-  const handleDefinitionsNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) =>
-    setExpandedDefNodes(nodeIds);
+  const handleDefinitionsNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) => setExpandedDefNodes(nodeIds);
 
   const handleTabChanged = (_x: ChangeEvent<unknown>, value: 'definitions' | 'properties') =>
     dispatch(setSelectedTab({ selectedTab: value }));
@@ -212,9 +208,7 @@ export const SchemaEditor = ({
   ) : null;
 
   const selectedId = useSelector((state: ISchemaState) =>
-    state.selectedEditorTab === 'properties'
-      ? state.selectedPropertyNodeId
-      : state.selectedDefinitionNodeId,
+    state.selectedEditorTab === 'properties' ? state.selectedPropertyNodeId : state.selectedDefinitionNodeId,
   );
 
   const selectedItem = useSelector((state: ISchemaState) =>

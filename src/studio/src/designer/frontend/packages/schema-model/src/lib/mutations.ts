@@ -1,11 +1,4 @@
-import {
-  CombinationKind,
-  FieldType,
-  Keywords,
-  ObjectKind,
-  UiSchemaNode,
-  UiSchemaNodes,
-} from './types';
+import { CombinationKind, FieldType, Keywords, ObjectKind, UiSchemaNode, UiSchemaNodes } from './types';
 import {
   createNodeBase,
   getParentNodeByPointer,
@@ -13,12 +6,7 @@ import {
   pointerIsDefinition,
   splitPointerInBaseAndName,
 } from './utils';
-import {
-  getNodeByPointer,
-  getNodeIndexByPointer,
-  getUniqueNodePath,
-  pointerExists,
-} from './selectors';
+import { getNodeByPointer, getNodeIndexByPointer, getUniqueNodePath, pointerExists } from './selectors';
 
 // Changes to the uiNodeMap
 export const removeItemByPointer = (uiNodeMap: UiSchemaNodes, pointer: string) => {
@@ -36,9 +24,7 @@ export const removeItemByPointer = (uiNodeMap: UiSchemaNodes, pointer: string) =
   }
 
   // Remove itself decendants... just using the pointer
-  mutatedUiNodeMap = mutatedUiNodeMap.filter(
-    (uiNode: UiSchemaNode) => !uiNode.pointer.startsWith(pointer),
-  );
+  mutatedUiNodeMap = mutatedUiNodeMap.filter((uiNode: UiSchemaNode) => !uiNode.pointer.startsWith(pointer));
 
   // dealing with combinations, updating their children is a little more tricky.
   if (parentNode.objectKind === ObjectKind.Combination) {
@@ -56,21 +42,14 @@ export const removeItemByPointer = (uiNodeMap: UiSchemaNodes, pointer: string) =
   return mutatedUiNodeMap;
 };
 
-export const renameItemPointer = (
-  uiSchemaNodes: UiSchemaNodes,
-  oldPointer: string,
-  newPointer: string,
-) => {
+export const renameItemPointer = (uiSchemaNodes: UiSchemaNodes, oldPointer: string, newPointer: string) => {
   if (oldPointer === newPointer) {
     throw new Error('Old and new name is equal');
   }
 
   if (!pointerExists(uiSchemaNodes, oldPointer)) {
     const { base, name } = splitPointerInBaseAndName(oldPointer);
-    if (
-      Object.values(CombinationKind).includes(name as CombinationKind) &&
-      getNodeByPointer(uiSchemaNodes, base)
-    ) {
+    if (Object.values(CombinationKind).includes(name as CombinationKind) && getNodeByPointer(uiSchemaNodes, base)) {
       // Its a valid combo-item... just continue.
     } else {
       throw new Error(`Can't rename pointer ${oldPointer}, it doesn't exist`);
@@ -91,10 +70,7 @@ export const renameItemPointer = (
   return mutatedNodeArray;
 };
 
-export const insertSchemaNode = (
-  uiSchemaNodes: UiSchemaNodes,
-  newNode: UiSchemaNode,
-): UiSchemaNodes => {
+export const insertSchemaNode = (uiSchemaNodes: UiSchemaNodes, newNode: UiSchemaNode): UiSchemaNodes => {
   if (pointerExists(uiSchemaNodes, newNode.pointer)) {
     throw new Error(`Pointer ${newNode.pointer} exists allready`);
   }
@@ -116,11 +92,7 @@ export const insertSchemaNode = (
  * @param displayName
  * @param isDefinition
  */
-export const createChildNode = (
-  parentNode: UiSchemaNode,
-  displayName: string,
-  isDefinition: boolean,
-): UiSchemaNode => {
+export const createChildNode = (parentNode: UiSchemaNode, displayName: string, isDefinition: boolean): UiSchemaNode => {
   const { pointer, objectKind, children, fieldType } = parentNode;
   if (objectKind === ObjectKind.Array) {
     throw new Error("This application doesn't support combined array types.");
@@ -151,10 +123,7 @@ export const promotePropertyToType = (uiSchemaNodes: UiSchemaNodes, pointer: str
   }
 
   const displayName = pointer.split('/').pop();
-  const newPointer = getUniqueNodePath(
-    uiSchemaNodes,
-    makePointer(Keywords.Definitions, displayName),
-  );
+  const newPointer = getUniqueNodePath(uiSchemaNodes, makePointer(Keywords.Definitions, displayName));
   const updatedUiNodeMap = renameItemPointer(uiSchemaNodes, pointer, newPointer);
   const simpleRefNode = createNodeBase(pointer);
   simpleRefNode.objectKind = ObjectKind.Reference;

@@ -91,10 +91,7 @@ const schemaEditorSlice = createSlice({
       }>,
     ) {
       const { path, keepSelection, props } = action.payload;
-      const newNodePointer = getUniqueNodePath(
-        state.uiSchema,
-        [path, Keywords.Properties, 'name'].join('/'),
-      );
+      const newNodePointer = getUniqueNodePath(state.uiSchema, [path, Keywords.Properties, 'name'].join('/'));
       const addToItem = getNodeByPointer(state.uiSchema, path);
       addToItem.children.push(newNodePointer);
       if (!keepSelection) {
@@ -166,9 +163,7 @@ const schemaEditorSlice = createSlice({
       }
       const newNode = Object.assign(createNodeBase(itemPointer), items);
       const itemsIndex = getNodeIndexByPointer(state.uiSchema, itemPointer);
-      itemsIndex !== undefined
-        ? (state.uiSchema[itemsIndex] = newNode)
-        : state.uiSchema.push(newNode);
+      itemsIndex !== undefined ? (state.uiSchema[itemsIndex] = newNode) : state.uiSchema.push(newNode);
     },
     setRef(state, action: PayloadAction<{ path: string; ref: string }>) {
       const { path, ref } = action.payload;
@@ -207,10 +202,7 @@ const schemaEditorSlice = createSlice({
       uiSchemaNode.fieldType = type;
       state.uiSchema = renameItemPointer(state.uiSchema, oldPointer, newPointer);
     },
-    addCombinationItem(
-      state,
-      action: PayloadAction<{ path: string; props: Partial<UiSchemaNode> }>,
-    ) {
+    addCombinationItem(state, action: PayloadAction<{ path: string; props: Partial<UiSchemaNode> }>) {
       const { path, props } = action.payload;
       const addToNode = getNodeByPointer(state.uiSchema, path);
       const pointer = [path, addToNode.fieldType, addToNode.children.length].join('/');
@@ -226,10 +218,7 @@ const schemaEditorSlice = createSlice({
       const { schema } = action.payload;
       state.schema = schema;
     },
-    setPropertyName(
-      state,
-      action: PayloadAction<{ path: string; name: string; navigate?: string }>,
-    ) {
+    setPropertyName(state, action: PayloadAction<{ path: string; name: string; navigate?: string }>) {
       const { path, navigate, name } = action.payload;
       if (!name || name.length === 0) {
         return;

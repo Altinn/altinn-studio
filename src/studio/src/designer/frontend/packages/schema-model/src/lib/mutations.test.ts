@@ -118,16 +118,10 @@ test('that we can remove an combination', () => {
     ],
   });
 
-  const nodesAfterMutation = removeItemByPointer(
-    uiSchemaNodes,
-    makePointer(CombinationKind.OneOf, 1),
-  );
+  const nodesAfterMutation = removeItemByPointer(uiSchemaNodes, makePointer(CombinationKind.OneOf, 1));
   const jsonSchema = buildJsonSchema(nodesAfterMutation);
   expect(jsonSchema).toEqual({
-    [CombinationKind.OneOf]: [
-      { [Keywords.Type]: FieldType.String },
-      { [Keywords.Type]: FieldType.Number },
-    ],
+    [CombinationKind.OneOf]: [{ [Keywords.Type]: FieldType.String }, { [Keywords.Type]: FieldType.Number }],
   });
 });
 test('that we can promote a node', () => {
@@ -153,9 +147,7 @@ test('that renameItemPointer throws error on unknown pointer', () => {
 
 test('that insertSchemaNode throws error on existing pointer', () => {
   const uiSchemaNodes = buildUiSchema(testSimpleSchema);
-  expect(() =>
-    insertSchemaNode(uiSchemaNodes, createNodeBase(Keywords.Properties, 'hello')),
-  ).toThrowError();
+  expect(() => insertSchemaNode(uiSchemaNodes, createNodeBase(Keywords.Properties, 'hello'))).toThrowError();
 });
 
 test('that promotePropertyToType throws errors', () => {

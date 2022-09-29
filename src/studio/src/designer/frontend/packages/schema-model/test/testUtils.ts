@@ -8,10 +8,7 @@ import { JsonSchemaNode } from '../src';
  */
 export const ignoreTestSchemas: string[] = ['ComplexSchema-old'];
 
-const defaultPath = path.resolve(
-  __dirname,
-  '../../../../DataModeling.Tests/_TestData/Model/JsonSchema',
-);
+const defaultPath = path.resolve(__dirname, '../../../../DataModeling.Tests/_TestData/Model/JsonSchema');
 
 const cache = new Map();
 

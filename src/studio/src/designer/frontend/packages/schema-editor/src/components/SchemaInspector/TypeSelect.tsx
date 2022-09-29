@@ -14,13 +14,7 @@ export interface IFieldTypeSelect {
 
 export function TypeSelect({ value, onChange, id, options, label }: IFieldTypeSelect) {
   return (
-    <StyledSelect
-      label={label}
-      fullWidth={true}
-      value={value}
-      id={id}
-      onChange={(type) => onChange(type as FieldType)}
-    >
+    <StyledSelect label={label} fullWidth={true} value={value} id={id} onChange={(type) => onChange(type as FieldType)}>
       {options.map(({ value, label }) => (
         <MenuItem value={value} key={'type-select-' + value}>
           {label}

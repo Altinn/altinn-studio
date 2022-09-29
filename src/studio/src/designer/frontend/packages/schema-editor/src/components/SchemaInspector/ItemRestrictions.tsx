@@ -3,12 +3,7 @@ import { Checkbox, FormControlLabel } from '@material-ui/core';
 import { getTranslation } from '../../utils/language';
 import { ILanguage } from '../../types';
 import { EnumField } from './EnumField';
-import {
-  addEnum,
-  deleteEnum,
-  setRequired,
-  setRestriction,
-} from '../../features/editor/schemaEditorSlice';
+import { addEnum, deleteEnum, setRequired, setRestriction } from '../../features/editor/schemaEditorSlice';
 import { useDispatch } from 'react-redux';
 import { ArrayRestrictions } from './restrictions/ArrayRestrictions';
 import { NumberRestrictions } from './restrictions/NumberRestrictions';
@@ -90,13 +85,7 @@ export const ItemRestrictions = ({ item, language }: Props) => {
   return (
     <div>
       <FormControlLabel
-        control={
-          <Checkbox
-            checked={item.isRequired}
-            onChange={handleRequiredChanged}
-            name='checkedRequired'
-          />
-        }
+        control={<Checkbox checked={item.isRequired} onChange={handleRequiredChanged} name='checkedRequired' />}
         label={t('required')}
       />
       {item.ref === undefined &&

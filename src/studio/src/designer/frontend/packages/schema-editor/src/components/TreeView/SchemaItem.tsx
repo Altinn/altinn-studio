@@ -100,9 +100,7 @@ export function SchemaItem({ item, isPropertiesView, editMode, translate }: Sche
     }
   };
 
-  const childNodes = useSelector((state: ISchemaState) =>
-    getChildNodesByNode(state.uiSchema, item),
-  );
+  const childNodes = useSelector((state: ISchemaState) => getChildNodesByNode(state.uiSchema, item));
   return (
     <TreeItem
       nodeId={getDomFriendlyID(item.pointer)}
@@ -115,17 +113,13 @@ export function SchemaItem({ item, isPropertiesView, editMode, translate }: Sche
           label={
             <>
               <span>{getNodeDisplayName(item)}</span>
-              {item.objectKind === ObjectKind.Reference && (
-                <span className={classes.referenceLabel}>{item.ref}</span>
-              )}
+              {item.objectKind === ObjectKind.Reference && <span className={classes.referenceLabel}>{item.ref}</span>}
             </>
           }
           translate={translate}
           limitedItem={item.objectKind === ObjectKind.Combination}
           onAddProperty={
-            item.objectKind === ObjectKind.Field && item.fieldType === FieldType.Object
-              ? handleAddProperty
-              : undefined
+            item.objectKind === ObjectKind.Field && item.fieldType === FieldType.Object ? handleAddProperty : undefined
           }
           onAddReference={
             item.objectKind === ObjectKind.Field || item.objectKind === ObjectKind.Combination
@@ -134,11 +128,7 @@ export function SchemaItem({ item, isPropertiesView, editMode, translate }: Sche
           }
           onAddCombination={item.fieldType === FieldType.Object ? handleAddProperty : undefined}
           onDelete={handleDeleteClick}
-          onGoToType={
-            item.objectKind === ObjectKind.Combination && isPropertiesView
-              ? handleGoToType
-              : undefined
-          }
+          onGoToType={item.objectKind === ObjectKind.Combination && isPropertiesView ? handleGoToType : undefined}
           onPromote={
             item.objectKind === ObjectKind.Combination || item.pointer.startsWith('#/$defs')
               ? undefined

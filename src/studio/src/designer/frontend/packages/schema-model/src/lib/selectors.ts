@@ -16,8 +16,7 @@ export const getRootNodes = (uiSchemaMap: UiSchemaNodes, defs: boolean): UiSchem
 export const pointerExists = (uiSchemaNodes: UiSchemaNodes, pointer: string): boolean =>
   getNodeIndexByPointer(uiSchemaNodes, pointer) !== undefined;
 
-export const getNodeDisplayName = (uiSchemaNode: UiSchemaNode) =>
-  uiSchemaNode.pointer.split('/').pop() ?? '';
+export const getNodeDisplayName = (uiSchemaNode: UiSchemaNode) => uiSchemaNode.pointer.split('/').pop() ?? '';
 
 export const getUniqueNodePath = (uiNodeMap: UiSchemaNodes, targetPointer: string): string => {
   let newPointer = targetPointer;
@@ -51,10 +50,7 @@ export const getNodeByPointer = (uiSchemaNodes: UiSchemaNodes, pointer: string):
  * @param uiSchemaNodes
  * @param pointer
  */
-export const getNodeIndexByPointer = (
-  uiSchemaNodes: UiSchemaNodes,
-  pointer: string,
-): number | undefined => {
+export const getNodeIndexByPointer = (uiSchemaNodes: UiSchemaNodes, pointer: string): number | undefined => {
   const index = uiSchemaNodes.findIndex((node) => node.pointer === pointer);
   return index > -1 ? index : undefined;
 };
@@ -62,10 +58,8 @@ export const getNodeIndexByPointer = (
 export const getChildNodesByPointer = (uiNodeMap: UiSchemaNodes, pointer: string): UiSchemaNode[] =>
   getChildNodesByNode(uiNodeMap, getNodeByPointer(uiNodeMap, pointer));
 
-export const getChildNodesByNode = (
-  uiNodeMap: UiSchemaNodes,
-  parentNode: UiSchemaNode,
-): UiSchemaNode[] => uiNodeMap.filter((node) => parentNode.children.includes(node.pointer));
+export const getChildNodesByNode = (uiNodeMap: UiSchemaNodes, parentNode: UiSchemaNode): UiSchemaNode[] =>
+  uiNodeMap.filter((node) => parentNode.children.includes(node.pointer));
 
 export const combinationIsNullable = (childNodes: UiSchemaNode[]): boolean => {
   const childrenWithNullType = childNodes.filter((child) => child.fieldType === FieldType.Null);

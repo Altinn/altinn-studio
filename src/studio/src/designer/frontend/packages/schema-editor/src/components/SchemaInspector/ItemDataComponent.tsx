@@ -42,11 +42,7 @@ export interface IItemDataComponentProps {
   checkIsNameInUse: (name: string) => boolean;
 }
 
-export function ItemDataComponent({
-  language,
-  selectedItem,
-  checkIsNameInUse,
-}: IItemDataComponentProps) {
+export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: IItemDataComponentProps) {
   const dispatch = useDispatch();
   const selectedNodePointer = selectedItem.pointer;
   const [nameError, setNameError] = useState('');
@@ -78,15 +74,11 @@ export function ItemDataComponent({
       setFieldType(type);
     }
   };
-  const childNodes = useSelector((state: ISchemaState) =>
-    getChildNodesByNode(state.uiSchema, selectedItem),
-  );
+  const childNodes = useSelector((state: ISchemaState) => getChildNodesByNode(state.uiSchema, selectedItem));
 
   const onChangeNullable = (_x: any, isNullable: boolean) => {
     if (isNullable) {
-      dispatch(
-        addCombinationItem({ path: selectedItem.pointer, props: { fieldType: FieldType.Null } }),
-      );
+      dispatch(addCombinationItem({ path: selectedItem.pointer, props: { fieldType: FieldType.Null } }));
     } else {
       childNodes.forEach((childNode: UiSchemaNode) => {
         if (childNode.fieldType === FieldType.Null) {
@@ -98,8 +90,7 @@ export function ItemDataComponent({
 
   const onChangeTitle = () => dispatch(setTitle({ path: selectedNodePointer, title }));
 
-  const onChangeDescription = () =>
-    dispatch(setDescription({ path: selectedNodePointer, description }));
+  const onChangeDescription = () => dispatch(setDescription({ path: selectedNodePointer, description }));
 
   const onGoToDefButtonClick = () => {
     if (selectedItem.ref === undefined) {
@@ -121,10 +112,7 @@ export function ItemDataComponent({
       return;
     }
     if (checked) {
-      const type =
-        selectedItem.objectKind === ObjectKind.Reference
-          ? selectedItem.ref
-          : selectedItem.fieldType;
+      const type = selectedItem.objectKind === ObjectKind.Reference ? selectedItem.ref : selectedItem.fieldType;
       // @ts-ignore
       onChangeArrayType(selectedItem.pointer, type);
       onChangeType(selectedItem.pointer, FieldType.Array);
@@ -248,12 +236,7 @@ export function ItemDataComponent({
       <Divider />
       <Fieldset legend={t('descriptive_fields')}>
         <Label htmlFor={titleId}>{t('title')}</Label>
-        <TextField
-          id={titleId}
-          onBlur={onChangeTitle}
-          onChange={(e) => setItemTitle(e.target.value)}
-          value={title}
-        />
+        <TextField id={titleId} onBlur={onChangeTitle} onChange={(e) => setItemTitle(e.target.value)} value={title} />
         <Label htmlFor={descriptionId}>{t('description')}</Label>
         <MaterialTextField
           InputProps={{ disableUnderline: true }}

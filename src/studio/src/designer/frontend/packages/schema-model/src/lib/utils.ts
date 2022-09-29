@@ -55,10 +55,7 @@ export const schemaTypeIncludes = (schemaNodeType: string | string[], type: Fiel
 export const schemaTypeIsNillable = (schemaNodeType: string | string[]) =>
   schemaNodeType !== FieldType.Null && schemaTypeIncludes(schemaNodeType, FieldType.Null);
 
-export const getParentNodeByPointer = (
-  uiSchemaNodes: UiSchemaNodes,
-  pointer: string,
-): UiSchemaNode | undefined => {
+export const getParentNodeByPointer = (uiSchemaNodes: UiSchemaNodes, pointer: string): UiSchemaNode | undefined => {
   const pointerParts = pointer.split('/');
   while (pointerParts.length) {
     pointerParts.pop();
@@ -95,5 +92,4 @@ export const splitPointerInBaseAndName = (pointer: string) => {
 
 export const isNumeric = (str: string) => parseInt(str).toString() === str;
 
-export const pointerIsDefinition = (pointer: string) =>
-  pointer.startsWith(makePointer(Keywords.Definitions));
+export const pointerIsDefinition = (pointer: string) => pointer.startsWith(makePointer(Keywords.Definitions));

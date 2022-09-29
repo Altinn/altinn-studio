@@ -35,12 +35,7 @@ export function InlineObject({ item, language }: IInlineObjectProps) {
         </Paper>
       </Grid>
       <Grid item xs={12}>
-        <Paper
-          id='information-paper'
-          classes={{ root: classes.informationPaper }}
-          square
-          variant='outlined'
-        >
+        <Paper id='information-paper' classes={{ root: classes.informationPaper }} square variant='outlined'>
           {getTranslation('combination_inline_object_disclaimer', language)}
         </Paper>
       </Grid>

@@ -1,11 +1,6 @@
 import { FieldType, JsonSchemaNode, ObjectKind, UiSchemaNode } from '../types';
 import { arrayIntersection, arrayUnique, getCombinationKind, getObjectKind } from '../utils';
-import {
-  ArrRestrictionKeys,
-  IntRestrictionKeys,
-  ObjRestrictionKeys,
-  StrRestrictionKeys,
-} from '../restrictions';
+import { ArrRestrictionKeys, IntRestrictionKeys, ObjRestrictionKeys, StrRestrictionKeys } from '../restrictions';
 
 export const isCompundFieldType = (schemaNodeType: string | string[]) =>
   Array.isArray(schemaNodeType) && schemaNodeType.length === 2;

@@ -27,11 +27,7 @@ test('item property tab renders combinations', async () => {
   });
 
   renderWithRedux(
-    <ItemPropertiesTab
-      language={{}}
-      selectedItem={uiSchemaNodes[1]}
-      checkIsNameInUse={checkIsNameInUse}
-    />,
+    <ItemPropertiesTab language={{}} selectedItem={uiSchemaNodes[1]} checkIsNameInUse={checkIsNameInUse} />,
     {
       uiSchema: uiSchemaNodes,
     },

@@ -12,13 +12,7 @@ export interface ICombinationSelectProps {
   options: Option[];
 }
 
-export function CombinationSelect({
-  value,
-  onChange,
-  id,
-  label,
-  options,
-}: ICombinationSelectProps) {
+export function CombinationSelect({ value, onChange, id, label, options }: ICombinationSelectProps) {
   return (
     <StyledSelect
       fullWidth={true}

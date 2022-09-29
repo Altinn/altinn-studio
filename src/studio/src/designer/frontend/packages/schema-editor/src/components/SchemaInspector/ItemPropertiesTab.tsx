@@ -10,11 +10,7 @@ interface ItemPropertiesTabProps {
   checkIsNameInUse: (name: string) => boolean;
 }
 
-export const ItemPropertiesTab = ({
-  language,
-  selectedItem,
-  checkIsNameInUse,
-}: ItemPropertiesTabProps) => {
+export const ItemPropertiesTab = ({ language, selectedItem, checkIsNameInUse }: ItemPropertiesTabProps) => {
   return (
     <>
       {selectedItem.isCombinationItem && selectedItem.objectKind !== ObjectKind.Reference ? (
@@ -22,11 +18,7 @@ export const ItemPropertiesTab = ({
       ) : selectedItem.pointer === ROOT_POINTER ? (
         <>root</>
       ) : (
-        <ItemDataComponent
-          selectedItem={selectedItem}
-          language={language}
-          checkIsNameInUse={checkIsNameInUse}
-        />
+        <ItemDataComponent selectedItem={selectedItem} language={language} checkIsNameInUse={checkIsNameInUse} />
       )}
     </>
   );
