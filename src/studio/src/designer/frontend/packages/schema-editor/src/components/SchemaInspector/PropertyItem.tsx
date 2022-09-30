@@ -15,7 +15,6 @@ export interface IPropertyItemProps {
   language: ILanguage;
   required?: boolean;
   onChangeValue: (path: string, value: string) => void;
-  onChangeRequired?: (path: string, required: boolean) => void;
   onDeleteField?: (path: string, key: string) => void;
   readOnly?: boolean;
   onEnterKeyPress?: () => void;
