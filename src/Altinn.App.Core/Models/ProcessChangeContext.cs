@@ -26,7 +26,7 @@ namespace Altinn.App.Core.Models
         /// <summary>
         /// The request process element Id
         /// </summary>
-        public string RequestedProcessElementId { get; set; }
+        public string? RequestedProcessElementId { get; set; }
 
         /// <summary>
         /// The process flow

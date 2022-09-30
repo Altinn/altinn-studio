@@ -67,7 +67,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 string instanceData = await response.Content.ReadAsStringAsync();
-                Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+                Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData)!;
                 return instance;
             }
             else
@@ -129,7 +129,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 string responseString = await response.Content.ReadAsStringAsync();
-                QueryResponse<Instance> queryResponse = JsonConvert.DeserializeObject<QueryResponse<Instance>>(responseString);
+                QueryResponse<Instance> queryResponse = JsonConvert.DeserializeObject<QueryResponse<Instance>>(responseString)!;
                 return queryResponse;
             }
             else
@@ -155,7 +155,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 string instanceData = await response.Content.ReadAsStringAsync();
-                Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(instanceData);
+                Instance updatedInstance = JsonConvert.DeserializeObject<Instance>(instanceData)!;
 
                 return updatedInstance;
             }
@@ -177,7 +177,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
 
             if (response.IsSuccessStatusCode)
             {
-                Instance createdInstance = JsonConvert.DeserializeObject<Instance>(await response.Content.ReadAsStringAsync());
+                Instance createdInstance = JsonConvert.DeserializeObject<Instance>(await response.Content.ReadAsStringAsync())!;
 
                 return createdInstance;
             }
@@ -197,7 +197,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 string instanceData = await response.Content.ReadAsStringAsync();
-                Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+                Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData)!;
                 return instance;
             }
 
@@ -215,7 +215,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 string instanceData = await response.Content.ReadAsStringAsync();
-                Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+                Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData)!;
                 return instance;
             }
 
@@ -234,7 +234,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 string instanceData = await response.Content.ReadAsStringAsync();
-                Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+                Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData)!;
                 return instance;
             }
 
@@ -252,7 +252,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 string instanceData = await response.Content.ReadAsStringAsync();
-                Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+                Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData)!;
                 return instance;
             }
 
@@ -270,7 +270,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 string instanceData = await response.Content.ReadAsStringAsync();
-                Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+                Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData)!;
                 return instance;
             }
 
@@ -288,7 +288,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 string instanceData = await response.Content.ReadAsStringAsync();
-                Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData);
+                Instance instance = JsonConvert.DeserializeObject<Instance>(instanceData)!;
                 return instance;
             }
 

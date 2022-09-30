@@ -91,7 +91,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             if (response.IsSuccessStatusCode)
             {
                 string instanceData = await response.Content.ReadAsStringAsync();
-                dataElement = JsonConvert.DeserializeObject<DataElement>(instanceData);
+                dataElement = JsonConvert.DeserializeObject<DataElement>(instanceData)!;
 
                 return dataElement;
             }
@@ -120,7 +120,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             if (response.IsSuccessStatusCode)
             {
                 string instanceData = await response.Content.ReadAsStringAsync();
-                DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(instanceData);
+                DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(instanceData)!;
                 return dataElement;
             }
 
@@ -175,9 +175,9 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             {
                 using Stream stream = await response.Content.ReadAsStreamAsync();
                 ModelDeserializer deserializer = new ModelDeserializer(_logger, type);
-                object model = await deserializer.DeserializeAsync(stream, "application/xml");
+                object? model = await deserializer.DeserializeAsync(stream, "application/xml");
 
-                if (deserializer.Error != null)
+                if (deserializer.Error != null || model is null)
                 {
                     _logger.LogError($"Cannot deserialize XML form data read from storage: {deserializer.Error}");
                     throw new ServiceException(HttpStatusCode.Conflict, $"Cannot deserialize XML form data from storage {deserializer.Error}");
@@ -203,7 +203,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             if (response.StatusCode == HttpStatusCode.OK)
             {
                 string instanceData = await response.Content.ReadAsStringAsync();
-                dataList = JsonConvert.DeserializeObject<DataElementList>(instanceData);
+                dataList = JsonConvert.DeserializeObject<DataElementList>(instanceData)!;
 
                 ExtractAttachments(dataList.DataElements, attachmentList);
 
@@ -217,7 +217,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
 
         private static void ExtractAttachments(List<DataElement> dataList, List<AttachmentList> attachmentList)
         {
-            List<Attachment> attachments = null;
+            List<Attachment>? attachments = null;
             IEnumerable<DataElement> attachmentTypes = dataList.GroupBy(m => m.DataType).Select(m => m.FirstOrDefault());
 
             foreach (DataElement attachmentType in attachmentTypes)
@@ -287,7 +287,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             if (response.IsSuccessStatusCode)
             {
                 string instancedata = await response.Content.ReadAsStringAsync();
-                dataElement = JsonConvert.DeserializeObject<DataElement>(instancedata);
+                dataElement = JsonConvert.DeserializeObject<DataElement>(instancedata)!;
 
                 return dataElement;
             }
@@ -319,7 +319,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             if (response.IsSuccessStatusCode)
             {
                 string instancedata = await response.Content.ReadAsStringAsync();
-                dataElement = JsonConvert.DeserializeObject<DataElement>(instancedata);
+                dataElement = JsonConvert.DeserializeObject<DataElement>(instancedata)!;
 
                 return dataElement;
             }
@@ -342,7 +342,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             if (response.IsSuccessStatusCode)
             {
                 string instancedata = await response.Content.ReadAsStringAsync();
-                DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(instancedata);
+                DataElement dataElement = JsonConvert.DeserializeObject<DataElement>(instancedata)!;
 
                 return dataElement;
             }
@@ -375,7 +375,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
 
             if (response.IsSuccessStatusCode)
             {
-                DataElement result = JsonConvert.DeserializeObject<DataElement>(await response.Content.ReadAsStringAsync());
+                DataElement result = JsonConvert.DeserializeObject<DataElement>(await response.Content.ReadAsStringAsync())!;
 
                 return result;
             }

@@ -56,26 +56,26 @@ namespace Altinn.App.Core.Internal.Process
         /// <param name="elementId">The id to get information about.</param>
         /// <returns>Information about an element.</returns>
         /// <exception cref="ArgumentNullException">The <paramref name="elementId"/> parameter is null.</exception>
-        public ElementInfo GetElementInfo(string elementId)
+        public ElementInfo? GetElementInfo(string elementId)
         {
             if (elementId == null)
             {
                 throw new ArgumentNullException(nameof(elementId));
             }
 
-            ProcessTask task = definitions.Process.Tasks.Find(t => t.Id == elementId);
+            ProcessTask? task = definitions.Process.Tasks.Find(t => t.Id == elementId);
             if (task != null)
             {
                 return new ElementInfo { Id = task.Id, ElementType = "Task", Name = task.Name, AltinnTaskType = task.TaskType };
             }
 
-            EndEvent endEvent = definitions.Process.EndEvents.Find(e => e.Id == elementId);
+            EndEvent? endEvent = definitions.Process.EndEvents.Find(e => e.Id == elementId);
             if (endEvent != null)
             {
                 return new ElementInfo { Id = endEvent.Id, ElementType = "EndEvent", Name = endEvent.Name };
             }
 
-            StartEvent startEvent = definitions.Process.StartEvents.Find(e => e.Id == elementId);
+            StartEvent? startEvent = definitions.Process.StartEvents.Find(e => e.Id == elementId);
             if (startEvent != null)
             {
                 return new ElementInfo { Id = startEvent.Id, ElementType = "StartEvent", Name = startEvent.Name };
@@ -99,8 +99,8 @@ namespace Altinn.App.Core.Internal.Process
 
             List<string> elementIds = new List<string>();
 
-            string currentStepId = null;
-            ProcessTask currentTask = definitions.Process.Tasks.Find(task => task.Id == elementId);
+            string? currentStepId = null;
+            ProcessTask? currentTask = definitions.Process.Tasks.Find(task => task.Id == elementId);
             if (currentTask != null)
             {
                 currentStepId = currentTask.Id;
@@ -108,7 +108,7 @@ namespace Altinn.App.Core.Internal.Process
 
             if (currentStepId == null)
             {
-                StartEvent startEvent = definitions.Process.StartEvents.Find(se => se.Id == elementId);
+                StartEvent? startEvent = definitions.Process.StartEvents.Find(se => se.Id == elementId);
                 if (startEvent != null)
                 {
                     currentStepId = startEvent.Id;
@@ -127,14 +127,14 @@ namespace Altinn.App.Core.Internal.Process
                     continue;
                 }
 
-                ProcessTask task = definitions.Process.Tasks.Find(t => t.Id == sequenceFlow.TargetRef);
+                ProcessTask? task = definitions.Process.Tasks.Find(t => t.Id == sequenceFlow.TargetRef);
                 if (task != null)
                 {
                     elementIds.Add(task.Id);
                     continue;
                 }
 
-                EndEvent endEvent = definitions.Process.EndEvents.Find(e => e.Id == sequenceFlow.TargetRef);
+                EndEvent? endEvent = definitions.Process.EndEvents.Find(e => e.Id == sequenceFlow.TargetRef);
                 if (endEvent != null)
                 {
                     elementIds.Add(endEvent.Id);
@@ -189,14 +189,14 @@ namespace Altinn.App.Core.Internal.Process
                     continue;
                 }
 
-                ProcessTask task = definitions.Process.Tasks.Find(t => t.Id == sequenceFlow.TargetRef);
+                ProcessTask? task = definitions.Process.Tasks.Find(t => t.Id == sequenceFlow.TargetRef);
                 if (task != null)
                 {
                     elementIds.Add(task.Id);
                     continue;
                 }
 
-                EndEvent endEvent = definitions.Process.EndEvents.Find(e => e.Id == sequenceFlow.TargetRef);
+                EndEvent? endEvent = definitions.Process.EndEvents.Find(e => e.Id == sequenceFlow.TargetRef);
                 if (endEvent != null)
                 {
                     elementIds.Add(endEvent.Id);
@@ -208,7 +208,7 @@ namespace Altinn.App.Core.Internal.Process
 
         private bool AddExclusiveGateways(bool ignoreGatewayDefaults, List<string> elementIds, SequenceFlow sequenceFlow)
         {
-            ExclusiveGateway exclusiveGateway = definitions.Process.ExclusiveGateway.Find(g => g.Id == sequenceFlow.TargetRef);
+            ExclusiveGateway? exclusiveGateway = definitions.Process.ExclusiveGateway.Find(g => g.Id == sequenceFlow.TargetRef);
             if (exclusiveGateway != null)
             {
                 List<string> gateWayElements = GetElementsFromGateway(exclusiveGateway.Id, exclusiveGateway.Default, ignoreGatewayDefaults);
@@ -233,10 +233,10 @@ namespace Altinn.App.Core.Internal.Process
                 throw new ProcessException("The number of start events are different from one. Unable to identify the correct start.");
             }
 
-            SequenceFlow currentSequenceFlow = definitions.Process.SequenceFlow.Find(seq => seq.Id == definitions.Process.StartEvents[0].Outgoing);
+            SequenceFlow? currentSequenceFlow = definitions.Process.SequenceFlow.Find(seq => seq.Id == definitions.Process.StartEvents[0].Outgoing);
             if (currentSequenceFlow != null)
             {
-                ProcessTask nextStepObj = definitions.Process.Tasks.Find(task => task.Id == currentSequenceFlow.TargetRef);
+                ProcessTask? nextStepObj = definitions.Process.Tasks.Find(task => task.Id == currentSequenceFlow.TargetRef);
                 if (nextStepObj != null)
                 {
                     return nextStepObj.Id;

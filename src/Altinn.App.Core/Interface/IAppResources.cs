@@ -33,7 +33,7 @@ namespace Altinn.App.Core.Interface
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="language">The two letter language code.</param>
         /// <returns>The text resources in the specified language if they exist. Otherwise null.</returns>
-        Task<TextResource> GetTexts(string org, string app, string language);
+        Task<TextResource?> GetTexts(string org, string app, string language);
 
         /// <summary>
         /// Returns the model metadata for an app.
@@ -56,7 +56,7 @@ namespace Altinn.App.Core.Interface
         /// </summary>
         /// <param name="resource">the resource</param>
         /// <returns>The filestream for the resource file</returns>
-        byte[] GetRuntimeResource(string resource);
+        byte[]? GetRuntimeResource(string resource);
 
         /// <summary>
         /// Returns the application metadata for an application.
@@ -68,20 +68,20 @@ namespace Altinn.App.Core.Interface
         /// Returns the application XACML policy for an application.
         /// </summary>
         /// <returns>The application  XACML policy for an application.</returns>
-        string GetApplicationXACMLPolicy();
+        string? GetApplicationXACMLPolicy();
 
         /// <summary>
         /// Returns the application BPMN process for an application.
         /// </summary>
         /// <returns>The application  BPMN process for an application.</returns>
-        string GetApplicationBPMNProcess();
+        string? GetApplicationBPMNProcess();
 
         /// <summary>
         /// Gets the prefill json file
         /// </summary>
         /// <param name="dataModelName">the data model name</param>
         /// <returns>The prefill json file as a string</returns>
-        string GetPrefillJson(string dataModelName = "ServiceModel");
+        string? GetPrefillJson(string dataModelName = "ServiceModel");
 
         /// <summary>
         /// Get the class ref based on data type
@@ -100,7 +100,7 @@ namespace Altinn.App.Core.Interface
         /// Gets the the layouts settings
         /// </summary>
         /// <returns>The layout settings as a JSON string</returns>
-        string GetLayoutSettingsString();
+        string? GetLayoutSettingsString();
 
         /// <summary>
         /// Gets the layout settings

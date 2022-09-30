@@ -53,7 +53,7 @@ namespace Altinn.App.Core.Implementation
             }
 
              // Find next valid element. Later this will be dynamic
-            processChange.RequestedProcessElementId = processHelper.GetValidNextElementOrError(currentElementId, processChange.RequestedProcessElementId, out ProcessError nextElementError);
+            processChange.RequestedProcessElementId = processHelper.GetValidNextElementOrError(currentElementId, processChange.RequestedProcessElementId, out ProcessError? nextElementError);
             if (nextElementError != null)
             {
                 processChange.ProcessMessages = new System.Collections.Generic.List<ProcessChangeInfo>();
@@ -93,7 +93,7 @@ namespace Altinn.App.Core.Implementation
                 return processChange;
             }
 
-            string validStartElement = processHelper.GetValidStartEventOrError(processChange.RequestedProcessElementId, out ProcessError startEventError);
+            string? validStartElement = processHelper.GetValidStartEventOrError(processChange.RequestedProcessElementId, out ProcessError? startEventError);
             if (startEventError != null)
             {
                 processChange.ProcessMessages = new System.Collections.Generic.List<ProcessChangeInfo>();
@@ -106,7 +106,7 @@ namespace Altinn.App.Core.Implementation
             processChange.ProcessFlowElements.Add(validStartElement);
 
             // find next task
-            string nextValidElement = processHelper.GetValidNextElementOrError(validStartElement, out ProcessError nextElementError);
+            string? nextValidElement = processHelper.GetValidNextElementOrError(validStartElement, out ProcessError? nextElementError);
             if (nextElementError != null)
             {
                 processChange.ProcessMessages = new System.Collections.Generic.List<ProcessChangeInfo>();

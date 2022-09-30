@@ -136,14 +136,14 @@ namespace Altinn.App.Core.Helpers
         /// <param name="partyList">The party list</param>
         /// <param name="partyId">The party id</param>
         /// <returns>party from the party list</returns>
-        public static Party GetPartyByPartyId(List<Party> partyList, int partyId)
+        public static Party? GetPartyByPartyId(List<Party> partyList, int partyId)
         {
             if (partyList == null)
             {
                 return null;
             }
 
-            Party validParty = null;
+            Party? validParty = null;
 
             foreach (Party party in partyList)
             {
@@ -153,7 +153,7 @@ namespace Altinn.App.Core.Helpers
                 }
                 else if (party.ChildParties != null && party.ChildParties.Count > 0)
                 {
-                    Party validChildParty = party.ChildParties.Find(cp => cp.PartyId == partyId);
+                    Party? validChildParty = party.ChildParties.Find(cp => cp.PartyId == partyId);
                     if (validChildParty != null)
                     {
                       validParty = validChildParty;

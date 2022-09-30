@@ -22,7 +22,7 @@ namespace Altinn.App.Core.Helpers.Serialization
         /// <summary>
         /// Gets the error message describing what it was that went wrong if there was an issue during deserialization.
         /// </summary>
-        public string Error { get; private set; }
+        public string? Error { get; private set; }
 
         /// <summary>
         /// Initialize a new instance of <see cref="ModelDeserializer"/> with a logger and the Type the deserializer should target.
@@ -41,7 +41,7 @@ namespace Altinn.App.Core.Helpers.Serialization
         /// <param name="stream">The data stream to deserialize.</param>
         /// <param name="contentType">The content type of the stream.</param>
         /// <returns>An instance of the initialized type if deserializing succeed.</returns>
-        public async Task<object> DeserializeAsync(Stream stream, string contentType)
+        public async Task<object?> DeserializeAsync(Stream stream, string contentType)
         {
             Error = null;
 
@@ -65,7 +65,7 @@ namespace Altinn.App.Core.Helpers.Serialization
             return null;
         }
 
-        private async Task<object> DeserializeJsonAsync(Stream stream)
+        private async Task<object?> DeserializeJsonAsync(Stream stream)
         {
             Error = null;
 
@@ -73,7 +73,7 @@ namespace Altinn.App.Core.Helpers.Serialization
             {
                 using StreamReader reader = new StreamReader(stream, Encoding.UTF8);
                 string content = await reader.ReadToEndAsync();
-                return JsonConvert.DeserializeObject(content, _modelType);
+                return JsonConvert.DeserializeObject(content, _modelType)!;
             }
             catch (JsonReaderException jsonReaderException)
             {
@@ -89,7 +89,7 @@ namespace Altinn.App.Core.Helpers.Serialization
             }
         }
 
-        private async Task<object> DeserializeXmlAsync(Stream stream)
+        private async Task<object?> DeserializeXmlAsync(Stream stream)
         {
             Error = null;
 

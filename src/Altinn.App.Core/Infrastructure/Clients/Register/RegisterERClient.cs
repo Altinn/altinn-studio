@@ -55,9 +55,9 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
         }
 
         /// <inheritdoc />
-        public async Task<Organization> GetOrganization(string OrgNr)
+        public async Task<Organization?> GetOrganization(string OrgNr)
         {
-            Organization organization = null;
+            Organization? organization = null;
 
             string endpointUrl = $"organizations/{OrgNr}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);

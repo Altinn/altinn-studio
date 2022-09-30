@@ -75,7 +75,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             if (response.IsSuccessStatusCode)
             {
                 string eventData = await response.Content.ReadAsStringAsync();
-                InstanceEventList instanceEvents = JsonConvert.DeserializeObject<InstanceEventList>(eventData);
+                InstanceEventList instanceEvents = JsonConvert.DeserializeObject<InstanceEventList>(eventData)!;
 
                 return instanceEvents.InstanceEvents;
             }
@@ -96,7 +96,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             if (response.IsSuccessStatusCode)
             {
                 string eventData = await response.Content.ReadAsStringAsync();
-                InstanceEvent result = JsonConvert.DeserializeObject<InstanceEvent>(eventData);
+                InstanceEvent result = JsonConvert.DeserializeObject<InstanceEvent>(eventData)!;
                 return result.Id.ToString();
             }
 

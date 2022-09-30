@@ -55,9 +55,9 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
         }
 
         /// <inheritdoc/>
-        public async Task<Person> GetPerson(string SSN)
+        public async Task<Person?> GetPerson(string SSN)
         {
-            Person person = null;
+            Person? person = null;
 
             string endpointUrl = $"persons/{SSN}";
 

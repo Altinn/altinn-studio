@@ -706,7 +706,7 @@ namespace Altinn.App.Core.Helpers
                 extension = "." + extension;
             }
 
-            return _mappings.Value.TryGetValue(extension, out string mime) ? mime : "application/octet-stream";
+            return _mappings.Value.TryGetValue(extension, out string? mime) ? mime : "application/octet-stream";
         }
 
         /// <summary>
@@ -726,7 +726,7 @@ namespace Altinn.App.Core.Helpers
                 throw new ArgumentException("Requested mime type is not valid: " + mimeType);
             }
 
-            if (_mappings.Value.TryGetValue(mimeType, out string extension))
+            if (_mappings.Value.TryGetValue(mimeType, out string? extension))
             {
                 return extension;
             }

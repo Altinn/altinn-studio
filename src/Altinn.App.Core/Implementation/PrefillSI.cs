@@ -54,7 +54,7 @@ namespace Altinn.App.Core.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task PrefillDataModel(string partyId, string dataModelName, object dataModel, Dictionary<string, string> externalPrefill)
+        public async Task PrefillDataModel(string partyId, string dataModelName, object dataModel, Dictionary<string, string>? externalPrefill = null)
         {
             // Prefill from external input. Only available during instansiation
             if (externalPrefill != null && externalPrefill.Count > 0)
@@ -62,14 +62,14 @@ namespace Altinn.App.Core.Implementation
                 PrefillDataModel(dataModel, externalPrefill, true);
             }
 
-            string jsonConfig = _appResourcesService.GetPrefillJson(dataModelName);
+            string? jsonConfig = _appResourcesService.GetPrefillJson(dataModelName);
             if (jsonConfig == null || jsonConfig == string.Empty)
             {
                 return;
             }
 
             JObject prefillConfiguration = JObject.Parse(jsonConfig);
-            JToken allowOverwriteToken = prefillConfiguration.SelectToken(ALLOW_OVERWRITE_KEY);
+            JToken? allowOverwriteToken = prefillConfiguration.SelectToken(ALLOW_OVERWRITE_KEY);
             if (allowOverwriteToken != null)
             {
                 allowOverwrite = allowOverwriteToken.ToObject<bool>();
@@ -84,15 +84,16 @@ namespace Altinn.App.Core.Implementation
             }
 
             // Prefill from user profile
-            JToken profilePrefill = prefillConfiguration.SelectToken(USER_PROFILE_KEY);
-            Dictionary<string, string> userProfileDict;
+            JToken? profilePrefill = prefillConfiguration.SelectToken(USER_PROFILE_KEY);
+
             if (profilePrefill != null)
             {
-                userProfileDict = profilePrefill.ToObject<Dictionary<string, string>>();
+                var userProfileDict = profilePrefill.ToObject<Dictionary<string, string>>();
+
                 if (userProfileDict.Count > 0)
                 {
                     int userId = AuthenticationHelper.GetUserId(_httpContextAccessor.HttpContext);
-                    UserProfile userProfile = userId != 0 ? await _profileClient.GetUserProfile(userId) : null;
+                    UserProfile? userProfile = userId != 0 ? await _profileClient.GetUserProfile(userId) : null;
                     if (userProfile != null)
                     {
                         JObject userProfileJsonObject = JObject.FromObject(userProfile);
@@ -108,11 +109,11 @@ namespace Altinn.App.Core.Implementation
             }
 
             // Prefill from ER (enhetsregisteret)
-            JToken enhetsregisteret = prefillConfiguration.SelectToken(ER_KEY);
-            Dictionary<string, string> enhetsregisterPrefill;
+            JToken? enhetsregisteret = prefillConfiguration.SelectToken(ER_KEY);
             if (enhetsregisteret != null)
             {
-                enhetsregisterPrefill = enhetsregisteret.ToObject<Dictionary<string, string>>();
+                var enhetsregisterPrefill = enhetsregisteret.ToObject<Dictionary<string, string>>();
+
                 if (enhetsregisterPrefill.Count > 0)
                 {
                     Organization org = party.Organization;
@@ -131,11 +132,11 @@ namespace Altinn.App.Core.Implementation
             }
 
             // Prefill from DSF (det sentrale folkeregisteret)
-            JToken folkeregisteret = prefillConfiguration.SelectToken(DSF_KEY);
-            Dictionary<string, string> folkeregisterPrefill;
+            JToken? folkeregisteret = prefillConfiguration.SelectToken(DSF_KEY);
             if (folkeregisteret != null)
             {
-                folkeregisterPrefill = folkeregisteret.ToObject<Dictionary<string, string>>();
+                var folkeregisterPrefill = folkeregisteret.ToObject<Dictionary<string, string>>();
+
                 if (folkeregisterPrefill.Count > 0)
                 {
                     Person person = party.Person;
@@ -162,7 +163,7 @@ namespace Altinn.App.Core.Implementation
             string key = keys[index];
             bool isLastKey = (keys.Length - 1) == index;
             Type current = currentObject.GetType();
-            PropertyInfo property = current.GetProperty(
+            PropertyInfo? property = current.GetProperty(
                 key,
                 BindingFlags.IgnoreCase | BindingFlags.Public | BindingFlags.Instance);
 
@@ -177,7 +178,7 @@ namespace Altinn.App.Core.Implementation
             }
             else
             {
-                object propertyValue = property.GetValue(currentObject, null);
+                object? propertyValue = property.GetValue(currentObject, null);
                 if (isLastKey)
                 {
                     if (propertyValue == null || allowOverwrite)
@@ -211,7 +212,7 @@ namespace Altinn.App.Core.Implementation
         /// <summary>
         /// Loops through the key-value dictionary and assigns each value to the datamodel target field
         /// </summary>
-        private void LoopThroughDictionaryAndAssignValuesToDataModel(Dictionary<string, string> dictionary, JObject sourceObject, object serviceModel, bool continueOnError = false)
+        private void LoopThroughDictionaryAndAssignValuesToDataModel(Dictionary<string, string> dictionary, JObject? sourceObject, object serviceModel, bool continueOnError = false)
         {
             foreach (KeyValuePair<string, string> keyValuePair in dictionary)
             {
@@ -231,7 +232,7 @@ namespace Altinn.App.Core.Implementation
                     throw new Exception(errorMessage);
                 }
 
-                JToken sourceValue = null;
+                JToken? sourceValue = null;
                 if (sourceObject != null)
                 {
                     sourceValue = sourceObject.SelectToken(source);

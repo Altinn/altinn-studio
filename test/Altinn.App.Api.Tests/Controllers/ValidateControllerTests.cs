@@ -153,8 +153,6 @@ public class ValidateControllerTests
         var result = await validateController.ValidateInstance(org, app, instanceOwnerPartyId, instanceId);
 
         // Assert
-        Assert.IsType<OkObjectResult>(result);
-        var okResult = result as OkObjectResult;
-        okResult.Value.Should().BeEquivalentTo(validationResult);
+        result.Should().BeOfType<OkObjectResult>().Which.Value.Should().BeEquivalentTo(validationResult);
     }
 }

@@ -13,7 +13,7 @@ namespace Altinn.App.Core.Helpers
         /// <param name="textParams">Parameters for text</param>
         /// <param name="languageId">The languageId</param>
         /// <returns>The given text</returns>
-        public static string GetAppText(string key, Dictionary<string, Dictionary<string, string>> serviceText, List<string> textParams, string languageId)
+        public static string GetAppText(string key, Dictionary<string, Dictionary<string, string>> serviceText, List<string>? textParams, string languageId)
         {
             string text = key;
             if (serviceText != null && serviceText.ContainsKey(key))

@@ -215,7 +215,7 @@ namespace Altinn.App.Core.Features.Validation
 
             foreach (string modelKey in modelState.Keys)
             {
-                modelState.TryGetValue(modelKey, out ModelStateEntry entry);
+                modelState.TryGetValue(modelKey, out ModelStateEntry? entry);
 
                 if (entry != null && entry.ValidationState == ModelValidationState.Invalid)
                 {
@@ -244,7 +244,7 @@ namespace Altinn.App.Core.Features.Validation
 
             foreach (string modelKey in modelState.Keys)
             {
-                modelState.TryGetValue(modelKey, out ModelStateEntry entry);
+                modelState.TryGetValue(modelKey, out ModelStateEntry? entry);
 
                 if (entry != null && entry.ValidationState == ModelValidationState.Invalid)
                 {

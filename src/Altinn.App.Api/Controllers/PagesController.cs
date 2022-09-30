@@ -29,7 +29,7 @@ namespace Altinn.App.Api.Controllers
         /// <summary>
         /// Initializes a new instance of the <see cref="PagesController"/> class.
         /// </summary>
-        /// <param name="altinnApp">The current App Core used to interface with custom logic</param>
+        /// <param name="appModel">The current App Core used to interface with custom logic</param>
         /// <param name="resources">The app resource service</param>
         /// <param name="logger">A logger provided by the logging framework.</param>
         /// <param name="pageOrder">The page order service</param>

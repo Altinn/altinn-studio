@@ -19,12 +19,12 @@ namespace Altinn.App.Core.EFormidling.Implementation;
 public class DefaultEFormidlingService : IEFormidlingService
 {
     private readonly ILogger<DefaultEFormidlingService> _logger;
-    private readonly IAccessTokenGenerator _tokenGenerator;
+    private readonly IAccessTokenGenerator? _tokenGenerator;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly AppSettings? _appSettings;
     private readonly PlatformSettings? _platformSettings;
-    private readonly IEFormidlingClient _eFormidlingClient;
-    private readonly IEFormidlingMetadata _eFormidlingMetadata;
+    private readonly IEFormidlingClient? _eFormidlingClient;
+    private readonly IEFormidlingMetadata? _eFormidlingMetadata;
     private readonly Application _appMetadata;
     private readonly IData _dataClient;
     private readonly IEFormidlingReceivers _eFormidlingReceivers;
@@ -52,9 +52,9 @@ public class DefaultEFormidlingService : IEFormidlingService
         IEFormidlingReceivers eFormidlingReceivers,
         IOptions<AppSettings>? appSettings = null,
         IOptions<PlatformSettings>? platformSettings = null,
-        IEFormidlingClient eFormidlingClient = null,
-        IAccessTokenGenerator tokenGenerator = null,
-        IEFormidlingMetadata eFormidlingMetadata = null)
+        IEFormidlingClient? eFormidlingClient = null,
+        IAccessTokenGenerator? tokenGenerator = null,
+        IEFormidlingMetadata? eFormidlingMetadata = null)
     {
         _logger = logger;
         _tokenGenerator = tokenGenerator;

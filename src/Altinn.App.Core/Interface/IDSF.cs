@@ -12,6 +12,6 @@ namespace Altinn.App.Core.Interface
         /// </summary>
         /// <param name="SSN">The social security number</param>
         /// <returns>The person for the given social security number</returns>
-        Task<Person> GetPerson(string SSN);
+        Task<Person?> GetPerson(string SSN);
     }
 }

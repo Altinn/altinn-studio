@@ -8,14 +8,14 @@ public class DummyModel
     /// <summary>
     /// Implement equals for this class
     /// </summary>
-    public override bool Equals(object obj)
+    public override bool Equals(object? obj)
     {
         if (obj == null)
         {
             return false;
         }
 
-        DummyModel dummy = obj as DummyModel;
+        DummyModel? dummy = obj as DummyModel;
         if (dummy == null)
         {
             return false;

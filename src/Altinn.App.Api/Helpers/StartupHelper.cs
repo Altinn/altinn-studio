@@ -29,7 +29,7 @@ public static class StartupHelper
             string fullFilePathApi = Path.Combine(AppContext.BaseDirectory, "Altinn.App.Api.xml");
             swaggerDelegate(fullFilePathApi, false);
         }
-        catch (Exception e)
+        catch (Exception)
         {
             // Swagger documentation not generated
         }

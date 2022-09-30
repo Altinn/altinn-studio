@@ -76,7 +76,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.KeyVault
             {
                 string jsonString = File.ReadAllText(path);
                 JObject keyVault = JObject.Parse(jsonString);
-                keyVault.TryGetValue(tokenId, out JToken token);
+                keyVault.TryGetValue(tokenId, out JToken? token);
                 return token != null ? token.ToString() : string.Empty;
             }
 

@@ -41,7 +41,7 @@ namespace Altinn.App.Core.Implementation
         /// <inheritdoc/>
         public byte[] GetAppResource(string org, string app, string resource)
         {
-            byte[] fileContent = null;
+            byte[] fileContent;
 
             if (resource == _settings.RuleHandlerFileName)
             {
@@ -75,7 +75,7 @@ namespace Altinn.App.Core.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<TextResource> GetTexts(string org, string app, string language)
+        public async Task<TextResource?> GetTexts(string org, string app, string language)
         {
             string pathTextsFolder = _settings.AppBasePath + _settings.ConfigurationFolder + _settings.TextFolder;
             string fullFileName = Path.Join(pathTextsFolder, $"resource.{language}.json");
@@ -90,7 +90,7 @@ namespace Altinn.App.Core.Implementation
             using (FileStream fileStream = new(fullFileName, FileMode.Open, FileAccess.Read))
             {
                 JsonSerializerOptions options = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-                TextResource textResource = await System.Text.Json.JsonSerializer.DeserializeAsync<TextResource>(fileStream, options);
+                TextResource textResource = (await System.Text.Json.JsonSerializer.DeserializeAsync<TextResource>(fileStream, options))!;
                 textResource.Id = $"{org}-{app}-{language}";
                 textResource.Org = org;
                 textResource.Language = language;
@@ -117,7 +117,7 @@ namespace Altinn.App.Core.Implementation
                     filedata = File.ReadAllText(filename, Encoding.UTF8);
                 }
 
-                _application = JsonConvert.DeserializeObject<Application>(filedata);
+                _application = JsonConvert.DeserializeObject<Application>(filedata)!;
                 return _application;
             }
             catch (Exception ex)
@@ -128,7 +128,7 @@ namespace Altinn.App.Core.Implementation
         }
 
         /// <inheritdoc/>
-        public string GetApplicationXACMLPolicy()
+        public string? GetApplicationXACMLPolicy()
         {
             string filename = _settings.AppBasePath + _settings.ConfigurationFolder + _settings.AuthorizationFolder + _settings.ApplicationXACMLPolicyFileName;
             try
@@ -147,7 +147,7 @@ namespace Altinn.App.Core.Implementation
         }
 
         /// <inheritdoc/>
-        public string GetApplicationBPMNProcess()
+        public string? GetApplicationBPMNProcess()
         {
             string filename = _settings.AppBasePath + _settings.ConfigurationFolder + _settings.ProcessFolder + _settings.ProcessFileName;
             try
@@ -198,9 +198,9 @@ namespace Altinn.App.Core.Implementation
         }
 
         /// <inheritdoc/>
-        public byte[] GetRuntimeResource(string resource)
+        public byte[]? GetRuntimeResource(string resource)
         {
-            byte[] fileContent = null;
+            byte[]? fileContent = null;
             string path;
             if (resource == _settings.RuntimeAppFileName)
             {
@@ -224,13 +224,13 @@ namespace Altinn.App.Core.Implementation
         }
 
         /// <inheritdoc />
-        public string GetPrefillJson(string dataModelName = "ServiceModel")
+        public string? GetPrefillJson(string dataModelName = "ServiceModel")
         {
             string legalPath = _settings.AppBasePath + _settings.ModelsFolder;
             string filename = legalPath + dataModelName + ".prefill.json";
             PathHelper.EnsureLegalPath(legalPath, filename);
 
-            string filedata = null;
+            string? filedata = null;
             if (File.Exists(filename))
             {
                 filedata = File.ReadAllText(filename, Encoding.UTF8);
@@ -240,10 +240,10 @@ namespace Altinn.App.Core.Implementation
         }
 
         /// <inheritdoc />
-        public string GetLayoutSettingsString()
+        public string? GetLayoutSettingsString()
         {
             string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, _settings.FormLayoutSettingsFileName);
-            string filedata = null;
+            string? filedata = null;
             if (File.Exists(filename))
             {
                 filedata = File.ReadAllText(filename, Encoding.UTF8);

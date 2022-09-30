@@ -50,9 +50,9 @@ namespace Altinn.App.Core.Infrastructure.Clients.Authorization
         }
 
         /// <inheritdoc />
-        public async Task<List<Party>> GetPartyList(int userId)
+        public async Task<List<Party>?> GetPartyList(int userId)
         {
-            List<Party> partyList = null;
+            List<Party>? partyList = null;
             string apiUrl = $"parties?userid={userId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);
             try

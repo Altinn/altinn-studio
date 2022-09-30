@@ -101,7 +101,7 @@ public class StatelessDataControllerTests
             new StringValues((new[] { "12345", "67890" }));
 
         // Act
-        appResourcesMock.Setup(x => x.GetClassRefForLogicDataType(dataType)).Returns(typeof(DummyModel).FullName);
+        appResourcesMock.Setup(x => x.GetClassRefForLogicDataType(dataType)).Returns(typeof(DummyModel).FullName!);
         var result = await statelessDataController.Get("ttd", "demo-app", dataType);
 
         // Assert
@@ -134,7 +134,7 @@ public class StatelessDataControllerTests
             new StringValues((new[] { string.Empty }));
 
         // Act
-        appResourcesMock.Setup(x => x.GetClassRefForLogicDataType(dataType)).Returns(typeof(DummyModel).FullName);
+        appResourcesMock.Setup(x => x.GetClassRefForLogicDataType(dataType)).Returns(typeof(DummyModel).FullName!);
         var result = await statelessDataController.Get("ttd", "demo-app", dataType);
 
         // Assert
@@ -174,7 +174,7 @@ public class StatelessDataControllerTests
         });
 
         // Act
-        appResourcesMock.Setup(x => x.GetClassRefForLogicDataType(dataType)).Returns(typeof(DummyModel).FullName);
+        appResourcesMock.Setup(x => x.GetClassRefForLogicDataType(dataType)).Returns(typeof(DummyModel).FullName!);
         var result = await statelessDataController.Get("ttd", "demo-app", dataType);
 
         // Assert
@@ -225,7 +225,7 @@ public class StatelessDataControllerTests
             });
 
         // Act
-        appResourcesMock.Setup(x => x.GetClassRefForLogicDataType(dataType)).Returns(typeof(DummyModel).FullName);
+        appResourcesMock.Setup(x => x.GetClassRefForLogicDataType(dataType)).Returns(typeof(DummyModel).FullName!);
         var result = await statelessDataController.Get("ttd", "demo-app", dataType);
 
         // Assert
@@ -250,7 +250,7 @@ public class StatelessDataControllerTests
         var registerMock = new Mock<IRegister>();
         var pdpMock = new Mock<IPDP>();
         var dataType = "some-value";
-        var classRef = typeof(DummyModel).FullName;
+        var classRef = typeof(DummyModel).FullName!;
         ILogger<DataController> logger = new NullLogger<DataController>();
         var statelessDataController = new StatelessDataController(logger, appModelMock.Object, appResourcesMock.Object,
             dataProcessorMock.Object, prefillMock.Object, registerMock.Object, pdpMock.Object);

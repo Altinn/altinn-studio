@@ -34,17 +34,16 @@ namespace Altinn.App.Core.Internal.Language
             var directoryInfo = new DirectoryInfo(pathTextsResourceFolder);
             var textResourceFilesInDirectory = directoryInfo.GetFiles();
             var applicationLanguages = new List<Models.ApplicationLanguage>();
+            JsonSerializerOptions options = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
 
             foreach (var fileInfo in textResourceFilesInDirectory)
             {
                 Models.ApplicationLanguage applicationLanguage;
                 await using (FileStream fileStream = new(fileInfo.FullName, FileMode.Open, FileAccess.Read))
                 {
-                    JsonSerializerOptions options = new() { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
-                    applicationLanguage = await JsonSerializer.DeserializeAsync<Models.ApplicationLanguage>(fileStream, options);
+                    applicationLanguage = (await JsonSerializer.DeserializeAsync<Models.ApplicationLanguage>(fileStream, options))!;
+                    applicationLanguages.Add(applicationLanguage);
                 }
-
-                applicationLanguages.Add(applicationLanguage);
             }
 
             return applicationLanguages;

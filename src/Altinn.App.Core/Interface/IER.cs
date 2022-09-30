@@ -12,6 +12,6 @@ namespace Altinn.App.Core.Interface
         /// </summary>
         /// <param name="OrgNr">the organization number</param>
         /// <returns>The organization for the given organization number</returns>
-        Task<Organization> GetOrganization(string OrgNr);
+        Task<Organization?> GetOrganization(string OrgNr);
     }
 }

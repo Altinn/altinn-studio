@@ -30,7 +30,7 @@ namespace Altinn.App.Core.Features.Options
             if (File.Exists(filename))
             {
                 string fileData = await File.ReadAllTextAsync(filename, Encoding.UTF8);
-                List<AppOption> options = JsonConvert.DeserializeObject<List<AppOption>>(fileData);
+                List<AppOption> options = JsonConvert.DeserializeObject<List<AppOption>>(fileData)!;
                 return options;
             }
 

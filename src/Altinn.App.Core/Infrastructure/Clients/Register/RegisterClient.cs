@@ -84,7 +84,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Register
         /// <inheritdoc/>
         public async Task<Party> GetParty(int partyId)
         {
-            Party party = null;
+            Party? party = null;
 
             string endpointUrl = $"parties/{partyId}";
             string token = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _settings.RuntimeCookieName);

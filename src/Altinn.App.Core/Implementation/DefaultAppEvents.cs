@@ -17,6 +17,9 @@ public class DefaultAppEvents: IAppEvents
     private readonly string _org;
     private readonly string _app;
     
+    /// <summary>
+    /// Constructor with services from DI
+    /// </summary>
     public DefaultAppEvents(
         ILogger<DefaultAppEvents> logger, 
         IAppResources resourceService, 

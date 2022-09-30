@@ -13,7 +13,7 @@ namespace Altinn.App.Core.Extensions
         /// </summary>
         /// <param name="builder">The <see cref="IConfigurationBuilder"/></param>
         /// <param name="args">The original command line arguments</param>
-        public static void LoadAppConfig(this IConfigurationBuilder builder, string[] args = null)
+        public static void LoadAppConfig(this IConfigurationBuilder builder, string[]? args = null)
         {
             try
             {

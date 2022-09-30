@@ -30,10 +30,10 @@ namespace Altinn.App.Core.Helpers
         /// <param name="currentElement">The current element name.</param>
         /// <param name="nextElementError">Any error preventing the logic to identify next element.</param>
         /// <returns>The name of the next element.</returns>
-        public string GetValidNextElementOrError(string currentElement, out ProcessError nextElementError)
+        public string? GetValidNextElementOrError(string currentElement, out ProcessError? nextElementError)
         {
             nextElementError = null;
-            string nextElementId = null;
+            string? nextElementId = null;
 
             List<string> nextElements = Process.NextElements(currentElement);
 
@@ -94,7 +94,7 @@ namespace Altinn.App.Core.Helpers
         /// <param name="proposedStartEvent">The name of the start event the process should start from.</param>
         /// <param name="startEventError">Any error preventing the process from starting.</param>
         /// <returns>The name of the start event or null if start event wasn't found.</returns>
-        public string GetValidStartEventOrError(string proposedStartEvent, out ProcessError startEventError)
+        public string? GetValidStartEventOrError(string proposedStartEvent, out ProcessError? startEventError)
         {
             startEventError = null;
 
@@ -136,7 +136,7 @@ namespace Altinn.App.Core.Helpers
         /// <param name="proposedElementId">The name of the proposed next element.</param>
         /// <param name="nextElementError">Any error preventing the logic to identify next element.</param>
         /// <returns>The name of the next element.</returns>
-        public string GetValidNextElementOrError(string currentElementId, string proposedElementId, out ProcessError nextElementError)
+        public string? GetValidNextElementOrError(string currentElementId, string proposedElementId, out ProcessError? nextElementError)
         {
             nextElementError = null;
             bool ignoreGatewayDefaults = false;

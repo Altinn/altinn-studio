@@ -12,6 +12,6 @@ namespace Altinn.App.Core.Interface
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        Task<Application> GetApplication(string org, string app);
+        Task<Application?> GetApplication(string org, string app);
     }
 }

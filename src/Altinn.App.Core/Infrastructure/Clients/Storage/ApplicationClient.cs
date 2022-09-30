@@ -40,11 +40,11 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         }
 
         /// <inheritdoc />
-        public async Task<Application> GetApplication(string org, string app)
+        public async Task<Application?> GetApplication(string org, string app)
         {
             string appId = $"{org}/{app}";
 
-            Application application = null;
+            Application? application = null;
             string getApplicationMetadataUrl = $"applications/{appId}";
 
             HttpResponseMessage response = await _client.GetAsync(getApplicationMetadataUrl);

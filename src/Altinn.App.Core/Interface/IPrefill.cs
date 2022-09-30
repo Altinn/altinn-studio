@@ -20,6 +20,6 @@ namespace Altinn.App.Core.Interface
         /// <param name="dataModelName">The data model name</param>
         /// <param name="dataModel">The data model object</param>
         /// <param name="externalPrefill">External given prefill</param>
-        Task PrefillDataModel(string partyId, string dataModelName, object dataModel, Dictionary<string, string> externalPrefill = null);
+        Task PrefillDataModel(string partyId, string dataModelName, object dataModel, Dictionary<string, string>? externalPrefill = null);
     }
 }

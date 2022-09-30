@@ -92,7 +92,7 @@ namespace Altinn.App.Core.Extensions
         public static XElement AddPropertyAsXElement(this XElement element, Expression<Func<object>> exp)
         {
             string name = string.Empty;
-            MemberExpression body = exp.Body as MemberExpression;
+            MemberExpression? body = exp.Body as MemberExpression;
             if (body == null)
             {
                 UnaryExpression ubody = (UnaryExpression)exp.Body;
@@ -131,7 +131,7 @@ namespace Altinn.App.Core.Extensions
         public static XElement AddRuleAsXElement(this XElement element, Expression<Func<object>> exp)
         {
             string name = string.Empty;
-            MemberExpression body = exp.Body as MemberExpression;
+            MemberExpression? body = exp.Body as MemberExpression;
             if (body == null)
             {
                 UnaryExpression ubody = (UnaryExpression)exp.Body;
@@ -174,7 +174,7 @@ namespace Altinn.App.Core.Extensions
                 return string.Empty;
             }
 
-            XAttribute attribute = element.Attribute(xName);
+            XAttribute? attribute = element.Attribute(xName);
             return attribute == null ? string.Empty : attribute.Value;
         }
 
@@ -214,7 +214,7 @@ namespace Altinn.App.Core.Extensions
                 return string.Empty;
             }
 
-            XElement item = element.Element(xName);
+            XElement? item = element.Element(xName);
             return item == null ? string.Empty : item.Value;
         }
 
@@ -235,7 +235,7 @@ namespace Altinn.App.Core.Extensions
         /// </returns>
         public static bool GetRestrictionValue(this XElement restrictionElement, XName searchElement, out int value)
         {
-            XElement element = restrictionElement.Descendants(searchElement).FirstOrDefault();
+            XElement? element = restrictionElement.Descendants(searchElement).FirstOrDefault();
             string stringValue = element != null ? element.AttributeValue("value") : string.Empty;
             return int.TryParse(stringValue, out value);
         }
@@ -262,7 +262,7 @@ namespace Altinn.App.Core.Extensions
                 return false;
             }
 
-            XAttribute thisAttributeValue = element.Attribute(sourceAttribute);
+            XAttribute? thisAttributeValue = element.Attribute(sourceAttribute);
             if (thisAttributeValue == null)
             {
                 return false;
