@@ -277,5 +277,9 @@ export function nn() {
       selectedLocation: 'Valt lokasjon: {0}° nord, {1}° øst',
       noSelectedLocation: 'Ingen lokasjon valt',
     },
+    multiple_select_component: {
+      no_options: 'Ingen valg tilgjengelig',
+      placeholder: 'Velg...',
+    },
   };
 }

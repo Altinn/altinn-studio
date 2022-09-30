@@ -209,7 +209,10 @@ export const getDisplayFormData = (
 
       return getTextResourceByKey(label, textResources) || formDataValue;
     }
-    if (component.type === 'Checkboxes') {
+    if (
+      component.type === 'Checkboxes' ||
+      component.type === 'MultipleSelect'
+    ) {
       const selectionComponent = component as ISelectionComponentProps;
       let label = '';
       const data: string = formData[dataModelBinding];
