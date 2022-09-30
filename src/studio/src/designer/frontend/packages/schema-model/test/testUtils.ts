@@ -1,7 +1,8 @@
 import path from 'path';
 import fs from 'fs';
 import Ajv2020 from 'ajv/dist/2020';
-import type { JsonSchemaNode } from '../src';
+import type { JsonSchemaNode } from '../src/lib/types';
+import { FieldType, Keywords } from '../src';
 
 /**
  * Some schemas might not be valid
@@ -70,4 +71,19 @@ export const dumpToDebug = (dirname: string, basename: string, data: any) => {
 
 export const validateSchema = (schema: JsonSchemaNode) => {
   return new Ajv2020().validateSchema(schema);
+};
+
+export const simpleTestJsonSchema = {
+  [Keywords.Properties]: {
+    hello: {
+      [Keywords.Type]: FieldType.String,
+    },
+    world: {
+      [Keywords.Properties]: {
+        hello: {
+          [Keywords.Type]: FieldType.Boolean,
+        },
+      },
+    },
+  },
 };

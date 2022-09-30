@@ -14,8 +14,8 @@ import {
   Keywords,
   ObjectKind,
   promotePropertyToType,
-  removeItemByPointer,
-  renameItemPointer,
+  removeNodeByPointer,
+  renameNodePointer,
   replaceLastPointerSegment,
   ROOT_POINTER,
 } from '@altinn/schema-model';
@@ -118,7 +118,7 @@ const schemaEditorSlice = createSlice({
     },
     deleteProperty(state, action: PayloadAction<{ path: string }>) {
       const { path } = action.payload;
-      state.uiSchema = removeItemByPointer(state.uiSchema, path);
+      state.uiSchema = removeNodeByPointer(state.uiSchema, path);
       if (state.selectedDefinitionNodeId === path) {
         state.selectedDefinitionNodeId = '';
       } else if (state.selectedPropertyNodeId === path) {
@@ -135,7 +135,7 @@ const schemaEditorSlice = createSlice({
       if (state.selectedPropertyNodeId === path) {
         state.selectedPropertyNodeId = '';
       }
-      state.uiSchema = removeItemByPointer(state.uiSchema, path);
+      state.uiSchema = removeNodeByPointer(state.uiSchema, path);
     },
     setRestriction(state, action: PayloadAction<{ path: string; value: string; key: string }>) {
       const { path, value, key } = action.payload;
@@ -198,7 +198,7 @@ const schemaEditorSlice = createSlice({
       const oldPointer = [path, uiSchemaNode.fieldType].join('/');
       const newPointer = [path, type].join('/');
       uiSchemaNode.fieldType = type;
-      state.uiSchema = renameItemPointer(state.uiSchema, oldPointer, newPointer);
+      state.uiSchema = renameNodePointer(state.uiSchema, oldPointer, newPointer);
     },
     addCombinationItem(state, action: PayloadAction<{ path: string; props: Partial<UiSchemaNode> }>) {
       const { path, props } = action.payload;
@@ -224,7 +224,7 @@ const schemaEditorSlice = createSlice({
       const nodeToRename = getNodeByPointer(state.uiSchema, path);
       const oldPointer = nodeToRename.pointer;
       const newPointer = replaceLastPointerSegment(oldPointer, name);
-      state.uiSchema = renameItemPointer(state.uiSchema, nodeToRename.pointer, newPointer);
+      state.uiSchema = renameNodePointer(state.uiSchema, nodeToRename.pointer, newPointer);
       if (navigate) {
         state.selectedEditorTab === 'definitions'
           ? (state.selectedDefinitionNodeId = newPointer)

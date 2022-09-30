@@ -25,6 +25,23 @@ export enum FieldType {
   Null = 'null',
 }
 
+/**
+ * These are the keywords that we actually support. The rest will be put into the `custom`-object at the ui-schema.
+ */
+export enum Keywords {
+  Const = 'const',
+  Default = 'default',
+  Definitions = '$defs',
+  Description = 'description',
+  Enum = 'enum',
+  Items = 'items',
+  Properties = 'properties',
+  Reference = '$ref',
+  Required = 'required',
+  Title = 'title',
+  Type = 'type',
+}
+
 export const ROOT_POINTER = '#';
 
 export interface JsonSchemaNode {
@@ -51,21 +68,4 @@ export interface UiSchemaNode {
   restrictions: JsonSchemaNode;
   default?: any;
   const?: any;
-}
-
-/**
- * These are the keywords that we actually support. The rest will be put into the `custom`-object at the ui-schema.
- */
-export enum Keywords {
-  Const = 'const',
-  Default = 'default',
-  Definitions = '$defs',
-  Description = 'description',
-  Enum = 'enum',
-  Items = 'items',
-  Properties = 'properties',
-  Reference = '$ref',
-  Required = 'required',
-  Title = 'title',
-  Type = 'type',
 }

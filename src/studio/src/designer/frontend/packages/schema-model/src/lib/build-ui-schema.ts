@@ -1,10 +1,10 @@
 import type { JsonSchemaNode, UiSchemaNode, UiSchemaNodes } from './types';
 import { Keywords, ObjectKind, ROOT_POINTER } from './types';
 import { createNodeBase, getCombinationKind, getObjectKind, schemaTypeIsNillable } from './utils';
-import { findCustomAttributes } from './handlers/custom-properties';
+import { findCustomAttributes } from './mappers/custom-properties';
 import { findRestrictionsOnNode } from './restrictions';
-import { findUiFieldType } from './handlers/field-type';
-import { findGenericKeywordsOnNode } from './handlers/generic';
+import { findUiFieldType } from './mappers/field-type';
+import { findGenericKeywordsOnNode } from './mappers/generic';
 
 /**
  * Recursive function that traverse the json schema tree. This should not be accessed directly but through `toUiSchema`
@@ -17,7 +17,7 @@ const createUiNode = (schemaNode: JsonSchemaNode, uiNode: UiSchemaNode): UiSchem
   uiNode.custom = findCustomAttributes(schemaNode);
   uiNode.restrictions = findRestrictionsOnNode(schemaNode);
   uiNode.fieldType = findUiFieldType(schemaNode);
-  uiNode.implicitType = !schemaNode[Keywords.Type];
+  uiNode.implicitType = schemaNode[Keywords.Type] === undefined;
   uiNode.ref = schemaNode[Keywords.Reference];
   uiNode.isNillable = schemaTypeIsNillable(schemaNode[Keywords.Type]);
   Object.assign(uiNode, findGenericKeywordsOnNode(schemaNode));
