@@ -1,5 +1,6 @@
 import { all, call, put as sagaPut, select } from 'redux-saga/effects';
 import type { PayloadAction } from '@reduxjs/toolkit';
+import type { AxiosRequestConfig } from 'axios';
 import type { SagaIterator } from 'redux-saga';
 
 import { FormDataActions } from 'src/features/form/data/formDataSlice';
@@ -71,7 +72,7 @@ export function* submitFormSaga({
       return yield sagaPut(FormDataActions.submitRejected({ error: null }));
     }
 
-    yield call(putFormData, state, model);
+    yield call(putFormData, { state, model });
     if (apiMode === 'Complete') {
       yield call(submitComplete, state, stopWithWarnings);
     }
@@ -116,7 +117,12 @@ function* submitComplete(state: IRuntimeState, stopWithWarnings: boolean) {
   return yield sagaPut(ProcessActions.complete());
 }
 
-export function* putFormData(state: IRuntimeState, model: any) {
+export function* putFormData({
+  state,
+  model,
+  field,
+  componentId,
+}: SaveDataParams) {
   // updates the default data element
   const defaultDataElementGuid = getCurrentTaskDataElementId(
     state.applicationMetadata.applicationMetadata,
@@ -124,7 +130,13 @@ export function* putFormData(state: IRuntimeState, model: any) {
     state.formLayout.layoutsets,
   );
   try {
-    yield call(put, dataElementUrl(defaultDataElementGuid), model);
+    const options: AxiosRequestConfig = {
+      headers: {
+        'X-DataField': field,
+        'X-ComponentId': componentId,
+      },
+    };
+    yield call(put, dataElementUrl(defaultDataElementGuid), model, options);
   } catch (error) {
     if (error.response && error.response.status === 303) {
       // 303 means that data has been changed by calculation on server. Try to update from response.
@@ -164,7 +176,9 @@ function* handleCalculationUpdate(changedFields) {
   );
 }
 
-export function* saveFormDataSaga(): SagaIterator {
+export function* saveFormDataSaga({
+  payload: { field, componentId },
+}: PayloadAction<IUpdateFormDataFulfilled>): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
     // updates the default data element
@@ -177,10 +191,10 @@ export function* saveFormDataSaga(): SagaIterator {
     );
 
     if (isStatelessApp(application)) {
-      yield call(saveStatelessData, state, model);
+      yield call(saveStatelessData, { state, model, field, componentId });
     } else {
       // app with instance
-      yield call(putFormData, state, model);
+      yield call(putFormData, { state, model, field, componentId });
     }
 
     if (state.formValidations.currentSingleFieldValidation?.dataModelBinding) {
@@ -194,13 +208,31 @@ export function* saveFormDataSaga(): SagaIterator {
   }
 }
 
-export function* saveStatelessData(state: IRuntimeState, model: any) {
+interface SaveDataParams {
+  state: IRuntimeState;
+  model: any;
+  field?: string;
+  componentId?: string;
+}
+
+export function* saveStatelessData({
+  state,
+  model,
+  field,
+  componentId,
+}: SaveDataParams) {
   const allowAnonymous = yield select(makeGetAllowAnonymousSelector());
-  let options;
+  let options: AxiosRequestConfig = {
+    headers: {
+      'X-DataField': field,
+      'X-ComponentId': componentId,
+    },
+  };
   if (!allowAnonymous) {
     const selectedPartyId = state.party.selectedParty.partyId;
     options = {
       headers: {
+        ...options.headers,
         party: `partyid:${selectedPartyId}`,
       },
     };
@@ -223,7 +255,7 @@ export function* saveStatelessData(state: IRuntimeState, model: any) {
 }
 
 export function* autoSaveSaga({
-  payload: { skipAutoSave },
+  payload: { skipAutoSave, field, componentId },
 }: PayloadAction<IUpdateFormDataFulfilled>): SagaIterator {
   if (skipAutoSave) {
     return;
@@ -232,6 +264,6 @@ export function* autoSaveSaga({
   const uiConfig: IUiConfig = yield select(UIConfigSelector);
   if (uiConfig.autoSave !== false) {
     // undefined should default to auto save
-    yield sagaPut(FormDataActions.save());
+    yield sagaPut(FormDataActions.save({ field, componentId }));
   }
 }

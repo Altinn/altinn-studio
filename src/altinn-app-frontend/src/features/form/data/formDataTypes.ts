@@ -19,6 +19,11 @@ export interface ISubmitDataAction {
   componentId: string;
 }
 
+export interface ISaveAction {
+  field?: string;
+  componentId?: string;
+}
+
 export interface IUpdateFormDataProps {
   skipValidation?: boolean;
   skipAutoSave?: boolean;
@@ -33,6 +38,7 @@ export interface IUpdateFormData extends IUpdateFormDataProps {
 
 export interface IUpdateFormDataFulfilled extends IUpdateFormDataProps {
   field: string;
+  componentId: string;
   data: any;
 }
 

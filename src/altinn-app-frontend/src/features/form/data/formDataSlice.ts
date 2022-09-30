@@ -24,6 +24,7 @@ import type {
   IFetchFormData,
   IFetchFormDataFulfilled,
   IFormDataRejected,
+  ISaveAction,
   ISubmitDataAction,
   IUpdateFormData,
   IUpdateFormDataFulfilled,
@@ -130,7 +131,7 @@ const formDataSlice = createSagaSlice(
           state.error = error;
         },
       }),
-      save: mkAction<void>({
+      save: mkAction<ISaveAction>({
         takeLatest: saveFormDataSaga,
       }),
       deleteAttachmentReference: mkAction<IDeleteAttachmentReference>({

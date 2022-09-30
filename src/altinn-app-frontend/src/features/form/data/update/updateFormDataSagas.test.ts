@@ -61,7 +61,7 @@ describe('updateFormDataSagas', () => {
             formData: expectedUpdatedFormData,
           }),
         )
-        .put(FormDataActions.save())
+        .put(FormDataActions.save({ componentId }))
         .run();
     };
 

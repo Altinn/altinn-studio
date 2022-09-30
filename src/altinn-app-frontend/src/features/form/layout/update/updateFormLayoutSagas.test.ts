@@ -153,7 +153,7 @@ describe('updateLayoutSagas', () => {
           }),
         )
         .put(FormDataActions.setFulfilled({ formData: initialFormData }))
-        .put(FormDataActions.save())
+        .put(FormDataActions.save({}))
         .run();
     });
   });

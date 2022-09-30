@@ -81,12 +81,27 @@ describe('submitFormDataSagas', () => {
       state.instanceData.instance,
       state.formLayout.layoutsets,
     );
-    return expectSaga(saveFormDataSaga)
+    const field = 'someField';
+    const componentId = 'someComponent';
+    const data = 'someData';
+
+    return expectSaga(saveFormDataSaga, {
+      payload: { componentId, field, data },
+      type: '',
+    })
       .provide([
         [select(), state],
-        [call(put, dataElementUrl(defaultDataElementGuid), model), {}],
+        [
+          call(put, dataElementUrl(defaultDataElementGuid), model, {
+            headers: {
+              'X-DataField': field,
+              'X-ComponentId': componentId,
+            },
+          }),
+          {},
+        ],
       ])
-      .call(putFormData, state, model)
+      .call(putFormData, { state, model, field, componentId })
       .put(FormDataActions.submitFulfilled())
       .run();
   });
@@ -130,7 +145,18 @@ describe('submitFormDataSagas', () => {
       layoutSets: state.formLayout.layoutsets,
     });
 
-    return expectSaga(saveFormDataSaga)
+    const field = 'someField';
+    const componentId = 'someComponent';
+    const data = 'someData';
+
+    return expectSaga(saveFormDataSaga, {
+      payload: {
+        field,
+        componentId,
+        data,
+      },
+      type: '',
+    })
       .provide([
         [select(), state],
         [select(makeGetAllowAnonymousSelector()), false],
@@ -141,6 +167,8 @@ describe('submitFormDataSagas', () => {
             {
               headers: {
                 party: `partyid:${stateMock.party.selectedParty.partyId}`,
+                'X-DataField': field,
+                'X-ComponentId': componentId,
               },
             },
             model,
@@ -155,7 +183,7 @@ describe('submitFormDataSagas', () => {
           },
         ],
       ])
-      .call(saveStatelessData, state, model)
+      .call(saveStatelessData, { state, model, field, componentId })
       .put(
         FormDataActions.fetchFulfilled({
           formData: {
@@ -208,7 +236,18 @@ describe('submitFormDataSagas', () => {
       layoutSets: state.formLayout.layoutsets,
     });
 
-    return expectSaga(saveFormDataSaga)
+    const field = 'someField';
+    const componentId = 'someComponent';
+    const data = 'someData';
+
+    return expectSaga(saveFormDataSaga, {
+      payload: {
+        field,
+        componentId,
+        data,
+      },
+      type: '',
+    })
       .provide([
         [select(), state],
         [select(makeGetAllowAnonymousSelector()), true],
@@ -216,7 +255,12 @@ describe('submitFormDataSagas', () => {
           call(
             post,
             getStatelessFormDataUrl(currentDataType, true),
-            undefined,
+            {
+              headers: {
+                'X-DataField': field,
+                'X-ComponentId': componentId,
+              },
+            },
             model,
           ),
           {
@@ -229,7 +273,7 @@ describe('submitFormDataSagas', () => {
           },
         ],
       ])
-      .call(saveStatelessData, state, model)
+      .call(saveStatelessData, { state, model, field, componentId })
       .put(
         FormDataActions.fetchFulfilled({
           formData: {

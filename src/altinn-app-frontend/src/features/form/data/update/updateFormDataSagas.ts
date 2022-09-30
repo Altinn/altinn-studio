@@ -49,6 +49,7 @@ export function* updateFormDataSaga({
       yield put(
         FormDataActions.updateFulfilled({
           field,
+          componentId,
           data,
           skipValidation,
           skipAutoSave,
@@ -167,7 +168,7 @@ export function* deleteAttachmentReferenceSaga({
     );
 
     yield put(FormDataActions.setFulfilled({ formData: updatedFormData }));
-    yield put(FormDataActions.save());
+    yield put(FormDataActions.save({ componentId }));
   } catch (err) {
     console.error(err);
   }

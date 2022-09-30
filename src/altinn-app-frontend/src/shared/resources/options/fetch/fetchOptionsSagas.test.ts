@@ -28,6 +28,7 @@ describe('fetchOptionsSagas', () => {
     const action = {
       payload: {
         field: 'some_field',
+        componentId: 'some_component',
         data: '',
       },
       type: '',

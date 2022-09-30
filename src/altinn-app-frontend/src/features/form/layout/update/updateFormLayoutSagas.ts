@@ -288,7 +288,7 @@ export function* updateRepeatingGroupsSaga({
             attachments: updatedAttachments,
           }),
         );
-        yield put(FormDataActions.save());
+        yield put(FormDataActions.save({}));
       } else {
         yield put(
           FormLayoutActions.updateRepeatingGroupsRemoveCancelled({
