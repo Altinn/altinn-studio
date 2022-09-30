@@ -1,10 +1,8 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
-import userEvent, {
-  PointerEventsCheckLevel,
-} from '@testing-library/user-event';
-import DeleteWrapper from './DeleteWrapper';
+import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
 import type { IDeleteWrapper } from './DeleteWrapper';
+import { DeleteWrapper } from './DeleteWrapper';
 
 const user = userEvent.setup();
 

@@ -1,10 +1,8 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
-import userEvent, {
-  PointerEventsCheckLevel,
-} from '@testing-library/user-event';
-import CreateNewWrapper from './CreateNewWrapper';
+import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
 import type { ICreateNewWrapper } from './CreateNewWrapper';
+import { CreateNewWrapper } from './CreateNewWrapper';
 
 const user = userEvent.setup();
 
@@ -104,8 +102,7 @@ describe('CreateNewWrapper', () => {
     it('should not call createAction callback and show error message when trying to create a new model with the same name as an existing one when ok button is clicked', async () => {
       const handleChange = jest.fn();
       const modelName = 'existing-model-name';
-      const errMessage =
-        /a model with name existing-model-name already exists\./i;
+      const errMessage = /a model with name existing-model-name already exists\./i;
       render({ createAction: handleChange, dataModelNames: [modelName] });
 
       const newButton = screen.getByRole('button', {

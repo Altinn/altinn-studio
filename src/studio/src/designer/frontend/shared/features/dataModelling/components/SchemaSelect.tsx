@@ -19,7 +19,7 @@ const useStyles = makeStyles({
   },
   select: {
     minWidth: 147,
-    zIndex: 1101
+    zIndex: 1101,
   },
   chevron: {
     margin: 12,
@@ -30,7 +30,7 @@ const useStyles = makeStyles({
     },
   },
 });
-const SchemaSelect = (props: ISchemaSelectProps) => {
+export const SchemaSelect = (props: ISchemaSelectProps) => {
   const { onChange, disabled, selectedOption, options } = props;
 
   const classes = useStyles();
@@ -38,21 +38,17 @@ const SchemaSelect = (props: ISchemaSelectProps) => {
     control: (base: any, state: any) => {
       const opacity = state.isDisabled ? 0.5 : 1;
       return {
-      ...base,
-      opacity,
-      height: 36,
-      minHeight: 36,
-      borderRadius: 0,
-      border: '2px solid #008FD6',
-    }},
+        ...base,
+        opacity,
+        height: 36,
+        minHeight: 36,
+        borderRadius: 0,
+        border: '2px solid #008FD6',
+      };
+    },
   };
   const IndicatorSeparator = () => <></>;
-  const DropdownIndicator = () => (
-    <i
-      className={classNames(['fa fa-nedtrekk', classes.chevron])}
-      aria-hidden
-    />
-  );
+  const DropdownIndicator = () => <i className={classNames(['fa fa-nedtrekk', classes.chevron])} aria-hidden />;
   return (
     <Grid item xs={4}>
       <Select
@@ -68,4 +64,3 @@ const SchemaSelect = (props: ISchemaSelectProps) => {
     </Grid>
   );
 };
-export default SchemaSelect;

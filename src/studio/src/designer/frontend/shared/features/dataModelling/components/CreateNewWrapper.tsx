@@ -1,25 +1,19 @@
 import { TopToolbarButton } from '@altinn/schema-editor/index';
 import React, { useEffect, useState } from 'react';
-import {Button, ErrorMessage, TextField} from '@altinn/altinn-design-system';
+import { Button, ErrorMessage, TextField } from '@altinn/altinn-design-system';
 import AltinnPopoverSimple from '../../../components/molecules/AltinnPopoverSimple';
 import { getLanguageFromKey } from '../../../utils/language';
 
 export interface ICreateNewWrapper {
   language: any;
-  createAction: ({
-    name,
-    relativePath,
-  }: {
-    name: string;
-    relativePath: string | undefined;
-  }) => void;
+  createAction: ({ name, relativePath }: { name: string; relativePath: string | undefined }) => void;
   dataModelNames: string[];
   createPathOption?: boolean;
   disabled: boolean;
   openByDefault?: boolean;
 }
 
-export default function CreateNewWrapper(props: ICreateNewWrapper) {
+export function CreateNewWrapper(props: ICreateNewWrapper) {
   const t = (key: string) => getLanguageFromKey(key, props.language);
   const [createButtonAnchor, setCreateButtonAnchor] = useState(null);
   const [newModelName, setNewModelName] = useState('');
@@ -30,14 +24,13 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
     if (props.openByDefault) {
       setCreateButtonAnchor(document.getElementById('create-new-datamodel-button'));
     }
-  }, [props.openByDefault])
+  }, [props.openByDefault]);
 
   const relativePath = props.createPathOption ? '' : undefined;
   const onCreateClick = (event: any) => {
     setCreateButtonAnchor(event.currentTarget);
   };
-  const nameIsValid = () =>
-    newModelName.match(/^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/);
+  const nameIsValid = () => newModelName.match(/^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/);
   const validateName = () => {
     setNameError(!nameIsValid() ? 'Invalid name' : '');
   };
@@ -80,7 +73,7 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
     if (e.key === 'Enter') {
       handleReturnButtonConfirm();
     }
-  }
+  };
 
   const onCancelCreate = () => {
     setCreateButtonAnchor(null);
@@ -117,10 +110,7 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
             onKeyUp={onKeyUp}
           />
           {nameError && <ErrorMessage>{t(nameError)}</ErrorMessage>}
-          <Button
-            onClick={onCreateConfirmClick}
-            style={{marginTop: 22}}
-          >
+          <Button onClick={onCreateConfirmClick} style={{ marginTop: 22 }}>
             {t('schema_editor.create_model_confirm_button')}
           </Button>
         </AltinnPopoverSimple>

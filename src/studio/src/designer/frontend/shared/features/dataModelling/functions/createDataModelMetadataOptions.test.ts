@@ -1,4 +1,4 @@
-import createDataModelMetadataOptions from './createDataModelMetadataOptions';
+import { createDataModelMetadataOptions } from './createDataModelMetadataOptions';
 import type { IDataModelsMetadataState } from '../sagas/metadata';
 import { LoadingState } from '../sagas/metadata';
 

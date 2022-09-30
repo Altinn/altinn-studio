@@ -28,7 +28,7 @@ const mockLanguage = {
     reference: 'Referanse',
   },
 };
-const renderEditor = (customState?: Partial<ISchemaState>) => {
+const renderEditor = (customState?: Partial<ISchemaState>, editMode?: boolean) => {
   const mockInitialState = {
     name: 'test',
     saveSchemaUrl: '',
@@ -44,6 +44,7 @@ const renderEditor = (customState?: Partial<ISchemaState>) => {
     ...customStateCopy,
   });
   const onSaveSchema = jest.fn();
+  const toggleEditMode = () => jest.fn();
   const user = userEvent.setup();
   render(
     <Provider store={store}>
@@ -54,6 +55,8 @@ const renderEditor = (customState?: Partial<ISchemaState>) => {
         language={mockLanguage}
         onSaveSchema={onSaveSchema}
         name='test'
+        editMode={editMode === undefined ? true : editMode}
+        toggleEditMode={toggleEditMode}
       />
     </Provider>,
   );
@@ -71,10 +74,8 @@ const clickAddMenuItem = (user: UserEvent, name: string) => user.click(screen.ge
 const clickOpenContextMenuButton = (user: UserEvent) =>
   user.click(screen.getAllByTestId('open-context-menu-button')[0]);
 
-const toggleEditMode = (user: UserEvent) => user.click(screen.getByText('edit_mode'));
-
-test('renders schema editor with populated schema in view mode', () => {
-  renderEditor();
+test('renders schema editor with populated schema in view mode', async () => {
+  renderEditor({}, false);
   const editor = screen.getByTestId('schema-editor');
   expect(editor).toBeDefined();
   const saveButton = screen.getByRole('button', {
@@ -87,10 +88,9 @@ test('renders schema editor with populated schema in view mode', () => {
 });
 
 test('renders schema editor with populated schema in edit mode', async () => {
-  const { user } = renderEditor();
+  renderEditor();
   const editor = screen.getByTestId('schema-editor');
   expect(editor).toBeDefined();
-  await toggleEditMode(user);
   const saveButton = screen.getByRole('button', {
     name: 'save_data_model',
   });
@@ -102,7 +102,6 @@ test('renders schema editor with populated schema in edit mode', async () => {
 
 test('should show context menu and trigger correct dispatch when adding a field on root', async () => {
   const { store, user } = renderEditor();
-  await toggleEditMode(user);
   await clickOpenAddMenuButton(user);
   await clickAddMenuItem(user, mockLanguage.schema_editor.field);
   const actions = store.getActions();
@@ -116,7 +115,6 @@ test('should show context menu and trigger correct dispatch when adding a field 
 
 test('should show context menu and trigger correct dispatch when adding a reference on root', async () => {
   const { store, user } = renderEditor();
-  await toggleEditMode(user);
   await clickOpenAddMenuButton(user);
   await clickAddMenuItem(user, mockLanguage.schema_editor.reference);
 
@@ -138,7 +136,6 @@ test('should show context menu and trigger correct dispatch when adding field on
     schema: jsonSchema,
     uiSchema: buildUiSchema(jsonSchema),
   });
-  await toggleEditMode(user);
   await clickOpenContextMenuButton(user);
   await clickAddMenuItem(user, 'add_field');
   const actions = store.getActions();
@@ -158,7 +155,6 @@ test('should show context menu and trigger correct dispatch when adding referenc
     schema: jsonSchema,
     uiSchema: buildUiSchema(jsonSchema),
   });
-  await toggleEditMode(user);
   await clickOpenContextMenuButton(user);
   await clickAddMenuItem(user, 'Legg til referanse');
   const actions = store.getActions();
@@ -171,7 +167,6 @@ test('should show context menu and trigger correct dispatch when adding referenc
 
 test('should show context menu and trigger correct dispatch when deleting a specific node', async () => {
   const { store, user } = renderEditor();
-  await toggleEditMode(user);
   await clickOpenContextMenuButton(user);
   await clickAddMenuItem(user, 'Slett');
   const actions = store.getActions();
@@ -258,7 +253,6 @@ test('should not show add property or add reference buttons on a field that is n
 
 test('should show menu with option field, reference, and combination when pressing add', async () => {
   const { user } = renderEditor();
-  await toggleEditMode(user);
   await clickOpenAddMenuButton(user);
   expect(screen.getAllByRole('menuitem', { name: mockLanguage.schema_editor.field })).toHaveLength(1);
   expect(
@@ -271,7 +265,6 @@ test('should show menu with option field, reference, and combination when pressi
 
 test('should trigger correct dispatch when adding combination to root', async () => {
   const { store, user } = renderEditor();
-  await toggleEditMode(user);
   await clickOpenAddMenuButton(user);
   await clickAddMenuItem(user, 'combination');
   const actions = store.getActions();
@@ -291,7 +284,6 @@ test('should show context menu and trigger correct dispatch when adding a combin
     schema: jsonSchema,
     uiSchema: buildUiSchema(jsonSchema),
   });
-  await toggleEditMode(user);
   await clickOpenContextMenuButton(user);
   await clickAddMenuItem(user, 'add_combination');
   const actions = store.getActions();
@@ -321,7 +313,6 @@ test('should only be possible to add a reference to a combination type', async (
     schema: jsonSchema,
     uiSchema,
   });
-  await toggleEditMode(user);
   await clickOpenContextMenuButton(user);
   const menuitems = screen.getAllByRole('menuitem');
   const menuItemIds: string[] = menuitems.map((menuitem) => menuitem.id);

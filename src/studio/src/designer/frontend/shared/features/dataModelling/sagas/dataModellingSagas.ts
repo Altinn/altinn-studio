@@ -54,11 +54,7 @@ function* createDataModelSaga(action: IDataModelAction) {
   const { name, relativePath } = action.payload;
   const body = { modelName: name, relativeDirectory: relativePath };
   try {
-    const schema: IJsonSchema = yield call(
-      post,
-      sharedUrls().createDataModelUrl,
-      body,
-    );
+    const schema: IJsonSchema = yield call(post, sharedUrls().createDataModelUrl, body);
     yield put(DataModelsMetadataActions.getDataModelsMetadata());
     yield put(createDataModelFulfilled({ schema }));
   } catch (err) {

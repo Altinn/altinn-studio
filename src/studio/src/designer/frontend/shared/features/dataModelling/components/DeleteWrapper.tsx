@@ -1,16 +1,16 @@
-import { TopToolbarButton } from '@altinn/schema-editor/index';
 import React from 'react';
+import { TopToolbarButton } from '@altinn/schema-editor/index';
 import { getLanguageFromKey } from '../../../utils/language';
-import DeleteDialog from './DeleteDialog';
-import {makeStyles} from "@material-ui/core";
-import theme from "app-shared/theme/altinnStudioTheme";
+import { DeleteDialog } from './DeleteDialog';
+import { makeStyles } from '@material-ui/core';
+import theme from 'app-shared/theme/altinnStudioTheme';
 
 const useStyles = makeStyles({
   root: {
     '&:not(:hover):not(:disabled)': {
-      color: theme.altinnPalette.primary.red + ' !important'
-    }
-  }
+      color: theme.altinnPalette.primary.red + ' !important',
+    },
+  },
 });
 
 export interface IDeleteWrapper {
@@ -19,7 +19,7 @@ export interface IDeleteWrapper {
   schemaName: string;
 }
 
-export default function DeleteWrapper(props: IDeleteWrapper) {
+export function DeleteWrapper(props: IDeleteWrapper) {
   const [deleteButtonAnchor, setDeleteButtonAnchor] = React.useState(null);
   const onDeleteClick = (event: any) => {
     setDeleteButtonAnchor(event.currentTarget);

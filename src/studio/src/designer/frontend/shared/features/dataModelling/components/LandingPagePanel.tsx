@@ -1,9 +1,8 @@
-// import Dialog from '@material-ui/core/Dialog';
+import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import { AltinnButton } from 'app-shared/components';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import React from 'react';
-import XSDUpload from './XSDUpload';
+import { XSDUpload } from './XSDUpload';
 
 const useStyles = makeStyles({
   landingDialog: {
@@ -19,8 +18,8 @@ const useStyles = makeStyles({
     width: 783,
     '& h1': {
       fontSize: 18,
-      fontWeight: 'bold'
-    }
+      fontWeight: 'bold',
+    },
   },
   background: {
     backgroundColor: '#F7F7F7',
@@ -34,23 +33,23 @@ const useStyles = makeStyles({
         content: '"\\f02f"',
         fontFamily: 'AltinnStudio',
         fontSize: '4rem',
-        marginRight: '1rem'
-      }
+        marginRight: '1rem',
+      },
     },
     '& > :last-child': {
-      backgroundColor: "#FFF",
+      backgroundColor: '#FFF',
       border: '2px solid #50ABDD',
       color: '#50ABDD',
       transition: 'none',
       '& .MuiButton-label span': {
-        borderBottomWidth: 0
+        borderBottomWidth: 0,
       },
       '&:hover': {
         borderColor: '#0062BA',
-        color: '#0062BA'
-      }
-    }
-  }
+        color: '#0062BA',
+      },
+    },
+  },
 });
 
 export interface LandingPageProps {
@@ -75,33 +74,33 @@ export function LandingPagePanel({
 
   return (
     <div className={classes.landingDialog}>
-        <h1>{t('app_data_modelling.landing_dialog_header')}</h1>
-        <p>{t('app_data_modelling.landing_dialog_paragraph')}</p>
-        <div className={classes.buttons}>
-          <XSDUpload
-            language={language}
-            onXSDUploaded={(filename) => {
-              handleXSDUploaded(filename);
-              closeLandingPage();
-            }}
-            org={org}
-            repo={repo}
-            submitButtonRenderer={(fileInputClickHandler) => (
-              <AltinnButton
-                onClickFunction={fileInputClickHandler}
-                btnText={t('app_data_modelling.landing_dialog_upload')}
-              />
-            )}
-          />
-          <AltinnButton
-            btnText={t('app_data_modelling.landing_dialog_create')}
-            secondaryButton
-            onClickFunction={() => {
-              handleCreateModelClick();
-              closeLandingPage();
-            }}
-          />
-        </div>
+      <h1>{t('app_data_modelling.landing_dialog_header')}</h1>
+      <p>{t('app_data_modelling.landing_dialog_paragraph')}</p>
+      <div className={classes.buttons}>
+        <XSDUpload
+          language={language}
+          onXSDUploaded={(filename) => {
+            handleXSDUploaded(filename);
+            closeLandingPage();
+          }}
+          org={org}
+          repo={repo}
+          submitButtonRenderer={(fileInputClickHandler) => (
+            <AltinnButton
+              onClickFunction={fileInputClickHandler}
+              btnText={t('app_data_modelling.landing_dialog_upload')}
+            />
+          )}
+        />
+        <AltinnButton
+          btnText={t('app_data_modelling.landing_dialog_create')}
+          secondaryButton
+          onClickFunction={() => {
+            handleCreateModelClick();
+            closeLandingPage();
+          }}
+        />
       </div>
-  )
+    </div>
+  );
 }

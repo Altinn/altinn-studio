@@ -1,1 +1,1 @@
-export { default as DataModelling } from './dataModelling';
+export { DataModelling } from './dataModelling';

@@ -90,10 +90,7 @@ const dataModellingSlice = createSlice({
       state.schema = undefined;
       state.saving = false;
     },
-    deleteDataModelRejected(
-      state,
-      action: PayloadAction<IDeleteDataModelRejected>,
-    ) {
+    deleteDataModelRejected(state, action: PayloadAction<IDeleteDataModelRejected>) {
       state.error = action.payload.error;
       state.saving = false;
     },

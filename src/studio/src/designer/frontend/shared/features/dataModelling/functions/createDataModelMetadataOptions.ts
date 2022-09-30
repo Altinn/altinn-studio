@@ -1,10 +1,7 @@
-import type {
-  IDataModelsMetadataState,
-  IDataModelMetadataItem,
-} from '../sagas/metadata';
+import type { IDataModelMetadataItem, IDataModelsMetadataState } from '../sagas/metadata';
 import type { IMetadataOption } from './types';
 
-function createDataModelMetadataOptions({
+export function createDataModelMetadataOptions({
   dataModelsMetadataState,
 }: {
   dataModelsMetadataState: IDataModelsMetadataState;
@@ -17,5 +14,3 @@ function createDataModelMetadataOptions({
       })
     : [];
 }
-
-export default createDataModelMetadataOptions;
