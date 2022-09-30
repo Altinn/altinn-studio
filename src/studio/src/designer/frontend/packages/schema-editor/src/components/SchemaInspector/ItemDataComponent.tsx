@@ -189,7 +189,6 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
         <div className={classes.checkboxWrapper}>
           <Checkbox
             checked={selectedItem?.fieldType === FieldType.Array}
-            disabled
             label={t('multiple_answers') + ' (skrudd av)'}
             name='checkedMultipleAnswers'
             onChange={handleArrayPropertyToggle}
@@ -208,7 +207,6 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
       {selectedItem.objectKind === ObjectKind.Combination && (
         <div className={classes.checkboxWrapper}>
           <Checkbox
-            disabled
             checked={combinationIsNullable(childNodes)}
             onChange={onChangeNullable}
             name='checkedNullable'
