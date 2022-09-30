@@ -205,6 +205,13 @@ describe('Frontend urlHelper.ts', () => {
         expect(getHostname()).toEqual('altinn3local.no');
       });
 
+      it('should return correct hostname for new local test url', () => {
+        resetWindow({
+          host: 'local.altinn.cloud',
+        });
+        expect(getHostname()).toEqual('local.altinn.cloud');
+      });
+
       it('should throw error when hostname has 3 parts', () => {
         resetWindow({
           host: 'apps.altinn.no',

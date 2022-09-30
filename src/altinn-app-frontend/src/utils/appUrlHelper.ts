@@ -101,8 +101,8 @@ export const getHostname = () => {
   if (domainSplitted.length === 4) {
     return `${domainSplitted[2]}.${domainSplitted[3]}`;
   }
-  if (domainSplitted.length === 2 && domainSplitted[0] === 'altinn3local') {
-    // Local test
+  if (domainSplitted[0] === 'altinn3local' || domainSplitted[0] === 'local') {
+    // Local test, needs to be backward compat with users who uses old local test
     return window.location.host;
   }
   throw new Error('Unknown domain');
