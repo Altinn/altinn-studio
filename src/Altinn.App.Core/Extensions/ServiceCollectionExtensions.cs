@@ -4,7 +4,6 @@ using Altinn.App.Core.Features.DataProcessing;
 using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Features.PageOrder;
 using Altinn.App.Core.Features.Pdf;
-using Altinn.App.Core.Features.Process;
 using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Implementation;
 using Altinn.App.Core.Infrastructure.Clients.Authentication;
@@ -98,7 +97,6 @@ namespace Altinn.App.Core.Extensions
             services.TryAddTransient<IInstantiationValidator, NullInstantiationValidator>();
             services.TryAddTransient<IInstanceValidator, NullInstanceValidator>();
             services.TryAddTransient<IDataProcessor, NullDataProcessor>();
-            services.TryAddTransient<ITaskProcessor, NullTaskProcessor>();
             services.TryAddTransient<IAppModel, DefaultAppModel>();
             services.Configure<Altinn.Common.PEP.Configuration.PepSettings>(configuration.GetSection("PEPSettings"));
             services.Configure<Altinn.Common.PEP.Configuration.PlatformSettings>(configuration.GetSection("PlatformSettings"));

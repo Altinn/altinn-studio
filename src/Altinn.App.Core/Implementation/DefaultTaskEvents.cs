@@ -23,7 +23,8 @@ public class DefaultTaskEvents : ITaskEvents
     private readonly IAppModel _appModel;
     private readonly IInstantiationProcessor _instantiationProcessor;
     private readonly IInstance _instanceClient;
-    private readonly ITaskProcessor _taskProcessor;
+    private readonly IEnumerable<IProcessTaskEnd> _taskEnds;
+    private readonly IEnumerable<IProcessTaskAbandon> _taskAbandons;
     private readonly IPdfService _pdfService;
     private readonly IEFormidlingService? _eFormidlingService;
     private readonly AppSettings? _appSettings;
@@ -36,7 +37,8 @@ public class DefaultTaskEvents : ITaskEvents
         IAppModel appModel,
         IInstantiationProcessor instantiationProcessor,
         IInstance instanceClient,
-        ITaskProcessor taskProcessor,
+        IEnumerable<IProcessTaskEnd> taskEnds,
+        IEnumerable<IProcessTaskAbandon> taskAbandons,
         IPdfService pdfService,
         IOptions<AppSettings>? appSettings = null,
         IEFormidlingService? eFormidlingService = null)
@@ -48,7 +50,8 @@ public class DefaultTaskEvents : ITaskEvents
         _appModel = appModel;
         _instantiationProcessor = instantiationProcessor;
         _instanceClient = instanceClient;
-        _taskProcessor = taskProcessor;
+        _taskEnds = taskEnds;
+        _taskAbandons = taskAbandons;
         _pdfService = pdfService;
         _eFormidlingService = eFormidlingService;
         _appSettings = appSettings?.Value;
@@ -104,8 +107,10 @@ public class DefaultTaskEvents : ITaskEvents
     /// <inheritdoc />
     public async Task OnEndProcessTask(string endEvent, Instance instance)
     {
-        
-        await _taskProcessor.ProcessTaskEnd(endEvent, instance);
+        foreach (var taskEnd in _taskEnds)
+        {
+            await taskEnd.End(endEvent, instance);
+        }
 
         _logger.LogInformation($"OnEndProcessTask for {instance.Id}. Locking data elements connected to {endEvent} ===========");
 
@@ -151,7 +156,10 @@ public class DefaultTaskEvents : ITaskEvents
     /// <inheritdoc />
     public async Task OnAbandonProcessTask(string taskId, Instance instance)
     {
-        await _taskProcessor.ProcessTaskEnd(taskId, instance);
+        foreach (var taskAbandon in _taskAbandons)
+        {
+            await taskAbandon.Abandon(taskId, instance);
+        }
         
         _logger.LogInformation(
             $"OnAbandonProcessTask for {instance.Id}. Locking data elements connected to {taskId}");

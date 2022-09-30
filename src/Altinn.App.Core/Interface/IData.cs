@@ -85,7 +85,7 @@ namespace Altinn.App.Core.Interface
         /// <param name="instanceOwnerPartyId">The instance owner id</param>
         /// <param name="instanceGuid">The instance id</param>
         /// <param name="dataGuid">The attachment id</param>
-        [Obsolete("Use method DeleteData with delayed=false instead.")]
+        [Obsolete("Use method DeleteData with delayed=false instead.", error: true)]
         Task<bool> DeleteBinaryData(string org, string app, int instanceOwnerPartyId, Guid instanceGuid, Guid dataGuid);
 
         /// <summary>
