@@ -1,3 +1,9 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  margin-top: 2rem;
+}
+
 .emptyEnumMessage {
   margin-top: 1rem;
   margin-bottom: 0;

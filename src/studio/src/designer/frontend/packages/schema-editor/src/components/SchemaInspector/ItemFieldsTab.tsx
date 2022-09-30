@@ -1,5 +1,4 @@
 import React, { BaseSyntheticEvent } from 'react';
-import { Grid } from '@material-ui/core';
 import { AddPropertyButton } from './AddPropertyButton';
 import type { ILanguage, ISchemaState } from '../../types';
 import { PropertyItem } from './PropertyItem';
@@ -8,13 +7,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { getTranslation } from '../../utils/language';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import { getChildNodesByNode, getNodeDisplayName } from '@altinn/schema-model';
+import classes from './ItemFieldsTab.module.css';
 
 interface ItemFieldsTabProps {
-  classes: any;
   selectedItem: UiSchemaNode;
   language: ILanguage;
 }
-export const ItemFieldsTab = ({ classes, selectedItem, language }: ItemFieldsTabProps) => {
+export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) => {
   const readonly = selectedItem.ref !== undefined;
   const dispatch = useDispatch();
   const onChangePropertyName = (path: string, value: string) =>
@@ -44,26 +43,28 @@ export const ItemFieldsTab = ({ classes, selectedItem, language }: ItemFieldsTab
   };
   const childNodes = useSelector((state: ISchemaState) => getChildNodesByNode(state.uiSchema, selectedItem));
   return (
-    <>
-      <div style={{ height: 32 }}></div>
-      <Grid container spacing={3} className={classes.gridContainer}>
-        {childNodes.map((childNode) => (
-          <PropertyItem
-            language={language}
-            key={childNode.pointer}
-            required={childNode.isRequired}
-            readOnly={readonly}
-            value={getNodeDisplayName(childNode)}
-            fullPath={childNode.pointer}
-            onChangeValue={onChangePropertyName}
-            onDeleteField={onDeleteObjectClick}
-            onEnterKeyPress={dispatchAddProperty}
-          />
-        ))}
-      </Grid>
+    <div className={classes.root}>
+      {childNodes.map((childNode) => (
+        <PropertyItem
+          language={language}
+          key={childNode.pointer}
+          required={childNode.isRequired}
+          readOnly={readonly}
+          value={getNodeDisplayName(childNode)}
+          fullPath={childNode.pointer}
+          onChangeValue={onChangePropertyName}
+          onDeleteField={onDeleteObjectClick}
+          onEnterKeyPress={dispatchAddProperty}
+        />
+      ))}
       {!readonly && (
-        <AddPropertyButton onAddPropertyClick={onAddPropertyClicked} label={getTranslation('add_property', language)} />
+        <div>
+          <AddPropertyButton
+            label={getTranslation('add_property', language)}
+            onAddPropertyClick={onAddPropertyClicked}
+          />
+        </div>
       )}
-    </>
+    </div>
   );
 };

@@ -62,7 +62,5 @@ export const getChildNodesByPointer = (uiNodeMap: UiSchemaNodes, pointer: string
 export const getChildNodesByNode = (uiNodeMap: UiSchemaNodes, parentNode: UiSchemaNode): UiSchemaNode[] =>
   uiNodeMap.filter((node) => parentNode.children.includes(node.pointer));
 
-export const combinationIsNullable = (childNodes: UiSchemaNode[]): boolean => {
-  const childrenWithNullType = childNodes.filter((child) => child.fieldType === FieldType.Null);
-  return childrenWithNullType.length > 0;
-};
+export const combinationIsNullable = (childNodes: UiSchemaNode[]): boolean =>
+  childNodes.some((child) => child.fieldType === FieldType.Null);

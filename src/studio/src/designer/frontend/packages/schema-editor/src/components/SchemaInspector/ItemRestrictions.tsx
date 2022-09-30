@@ -1,5 +1,4 @@
 import React, { MouseEvent } from 'react';
-import { Checkbox, FormControlLabel } from '@material-ui/core';
 import { getTranslation } from '../../utils/language';
 import type { ILanguage } from '../../types';
 import type { UiSchemaNode } from '@altinn/schema-model';
@@ -14,7 +13,7 @@ import { StringRestrictions } from './restrictions/StringRestrictions';
 import classes from './ItemRestrictions.module.css';
 import { Divider } from './Divider';
 import { Fieldset } from './Fieldset';
-import { Button } from '@altinn/altinn-design-system';
+import { Button, Checkbox } from '@altinn/altinn-design-system';
 
 export interface RestrictionItemProps {
   restrictions: any;
@@ -29,7 +28,8 @@ interface Props {
 }
 export const ItemRestrictions = ({ item, language }: Props) => {
   const dispatch = useDispatch();
-  const handleRequiredChanged = (e: any, checked: boolean) => {
+  const handleRequiredChanged = (e: any) => {
+    const {checked} = e.target;
     if (checked !== item.isRequired) {
       dispatch(
         setRequired({
@@ -84,10 +84,12 @@ export const ItemRestrictions = ({ item, language }: Props) => {
     language,
   };
   return (
-    <div>
-      <FormControlLabel
-        control={<Checkbox checked={item.isRequired} onChange={handleRequiredChanged} name='checkedRequired' />}
+    <div className={classes.root}>
+      <Checkbox
+        checked={item.isRequired}
         label={t('required')}
+        name='checkedRequired'
+        onChange={handleRequiredChanged}
       />
       {item.ref === undefined &&
         {

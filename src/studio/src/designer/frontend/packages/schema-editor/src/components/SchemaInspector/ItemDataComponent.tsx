@@ -1,4 +1,4 @@
-import { Checkbox, FormControlLabel, TextField as MaterialTextField } from '@material-ui/core';
+import { TextField as MaterialTextField } from '@material-ui/core';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import type { ILanguage, ISchemaState } from '../../types';
@@ -19,7 +19,7 @@ import { TypeSelect } from './TypeSelect';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { CombinationSelect } from './CombinationSelect';
 import { getCombinationOptions, getTypeOptions } from './helpers/options';
-import { ErrorMessage, TextField } from '@altinn/altinn-design-system';
+import { ErrorMessage, TextField, Checkbox } from '@altinn/altinn-design-system';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
 import { Divider } from './Divider';
@@ -75,8 +75,8 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
   };
   const childNodes = useSelector((state: ISchemaState) => getChildNodesByNode(state.uiSchema, selectedItem));
 
-  const onChangeNullable = (_x: any, isNullable: boolean) => {
-    if (isNullable) {
+  const onChangeNullable = (event: any) => {
+    if (event.target.checked) {
       dispatch(addCombinationItem({ path: selectedItem.pointer, props: { fieldType: FieldType.Null } }));
     } else {
       childNodes.forEach((childNode: UiSchemaNode) => {
@@ -106,8 +106,8 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
   const onChangeCombinationType = (value: CombinationKind) =>
     dispatch(setCombinationType({ path: selectedItem.pointer, type: value }));
 
-  const handleArrayPropertyToggle = (e: any, checked: boolean) => {
-    if (checked) {
+  const handleArrayPropertyToggle = (e: any) => {
+    if (e.target.checked) {
       const type = selectedItem.objectKind === ObjectKind.Reference ? selectedItem.ref : selectedItem.fieldType;
       // @ts-ignore
       onChangeArrayType(selectedItem.pointer, type);
@@ -186,20 +186,14 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
         selectedItem={selectedItem}
       />
       {[ObjectKind.Reference, ObjectKind.Field].includes(selectedItem.objectKind) && (
-        <FormControlLabel
-          id='multiple-answers-checkbox'
-          className={classes.header}
-          control={
-            <Checkbox
-              disabled
-              color='primary'
-              checked={selectedItem?.fieldType === FieldType.Array}
-              onChange={handleArrayPropertyToggle}
-              name='checkedMultipleAnswers'
-            />
-          }
-          label={t('multiple_answers') + ' (skrudd av)'}
-        />
+        <div className={classes.checkboxWrapper}>
+          <Checkbox
+            checked={selectedItem?.fieldType === FieldType.Array}
+            label={t('multiple_answers') + ' (skrudd av)'}
+            name='checkedMultipleAnswers'
+            onChange={handleArrayPropertyToggle}
+          />
+        </div>
       )}
       {selectedItem.objectKind === ObjectKind.Combination && (
         <CombinationSelect
@@ -211,20 +205,15 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
         />
       )}
       {selectedItem.objectKind === ObjectKind.Combination && (
-        <FormControlLabel
-          id='multiple-answers-checkbox'
-          className={classes.header}
-          control={
-            <Checkbox
-              disabled
-              color='primary'
-              checked={combinationIsNullable(childNodes)}
-              onChange={onChangeNullable}
-              name='checkedNullable'
-            />
-          }
-          label={t('nullable')}
-        />
+        <div className={classes.checkboxWrapper}>
+          <Checkbox
+            checked={combinationIsNullable(childNodes)}
+            onChange={onChangeNullable}
+            name='checkedNullable'
+            checkboxId='multiple-answers-checkbox'
+            label={t('nullable')}
+          />
+        </div>
       )}
       <ItemRestrictions item={selectedItem} language={language} />
       <Divider />
