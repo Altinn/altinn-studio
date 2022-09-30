@@ -1,0 +1,28 @@
+.contextButton {
+  border-radius: 60px;
+  display: none;
+  margin: 0;
+  padding: 10px;
+}
+
+.contextButton :global(.MuiTreeItem-root) :hover * {
+  display: block;
+}
+
+.propertiesLabel {
+  align-items: center;
+  display: flex;
+  padding: 8px;
+}
+
+.label {
+  flex: 1;
+}
+
+.iconContainer {
+  background: #022f51;
+  font-size: 10px;
+  margin-right: 4px;
+  padding: 5px 0;
+  text-align: center;
+}

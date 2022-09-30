@@ -1,0 +1,25 @@
+.referenceLabel {
+  font-size: 10px;
+  margin-left: 8px;
+  color: gray;
+}
+
+.treeItem {
+  margin-left: 8px;
+}
+
+.treeItem:global(.Mui-selected) {
+  background: #e3f7ff;
+  border: 1px solid #006bd8;
+  box-sizing: border-box;
+  border-radius: 5px;
+}
+
+.treeItem:global(.Mui-selected) > :global(.MuiTreeItem-content) :global(.MuiTreeItem-label),
+.treeItem :global(.MuiTreeItem-root.Mui-selected):focus > :global(.MuiTreeItem-content) :global(.MuiTreeItem-label) {
+  background-color: transparent;
+}
+
+.isRef:global(.Mui-selected) {
+  border-style: dashed;
+}

@@ -1,6 +1,7 @@
 import React from 'react';
-import { Button, IconButton, makeStyles } from '@material-ui/core';
+import { Button, IconButton } from '@material-ui/core';
 import classNames from 'classnames';
+import classes from './TopToolbarButton.module.css';
 
 interface TopToolbarButtonProps extends React.PropsWithChildren<any> {
   onClick: (event: any) => void;
@@ -13,41 +14,6 @@ interface TopToolbarButtonProps extends React.PropsWithChildren<any> {
   id: string;
 }
 
-const useStyles = makeStyles({
-  toolbarButton: {
-    margin: 0,
-    border: 0,
-    height: 36,
-    borderRadius: 0,
-    fontFamily: 'Roboto',
-    fontSize: '1em',
-    padding: '4px 8px',
-    fontWeight: 'normal',
-    textTransform: 'none',
-    '&:hover': {
-      background: '#006BD8',
-      color: '#fff',
-    },
-    '&.warn:hover': {
-      background: '#D02F4C',
-    },
-    '& .MuiButton-startIcon': {
-      marginRight: 4,
-    },
-    '& .fa': {
-      width: 'auto',
-      margin: 4,
-    },
-    '& .fa-plus:before': {
-      content: '"\\f068"',
-    },
-  },
-  iconButton: {
-    width: 36,
-    padding: 0,
-  },
-});
-
 export function TopToolbarButton({
   onClick,
   disabled,
@@ -59,7 +25,6 @@ export function TopToolbarButton({
   className,
   id,
 }: TopToolbarButtonProps) {
-  const classes = useStyles();
   const computedClasses = classNames([
     classes.toolbarButton,
     hideText && classes.iconButton,
