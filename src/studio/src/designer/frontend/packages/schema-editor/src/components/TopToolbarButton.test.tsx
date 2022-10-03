@@ -4,6 +4,8 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { TopToolbarButton } from './TopToolbarButton';
 
+jest.mock('./TopToolbarButton.module.css', () => ({iconButton: 'iconButton'}));
+
 const renderButton = (text: string, style = 'text', disabled = false) => {
   const handleClick = jest.fn();
   const user = userEvent.setup();
@@ -31,13 +33,13 @@ test('renders a text button', () => {
   expect(button.textContent).toBe('delete');
 });
 
-test('renders a icon only button with aria-label', () => {
+test('renders an icon only button with aria-label', () => {
   renderButton('delete', 'icon');
   const button = screen.getByRole('button');
   expect(button).toBeDefined();
   expect(button.textContent).not.toBe('delete');
   expect(button.getAttribute('aria-label')).toBe('delete');
-  expect(button.getAttribute('class')).toContain('makeStyles-iconButton');
+  expect(button.getAttribute('class')).toContain('iconButton');
 });
 
 test('renders a warning button', () => {
@@ -53,7 +55,7 @@ test('reacts to being clicked', async () => {
   expect(handleClick).toBeCalledTimes(1);
 });
 
-test('rects to being clicked (icon button)', async () => {
+test('reacts to being clicked (icon button)', async () => {
   const { handleClick, user } = renderButton('delete', 'icon');
   await user.click(screen.getByRole('button'));
   expect(handleClick).toBeCalledTimes(1);

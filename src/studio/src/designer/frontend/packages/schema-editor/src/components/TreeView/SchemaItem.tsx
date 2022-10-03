@@ -77,7 +77,7 @@ export function SchemaItem({ item, isPropertiesView, editMode, translate }: Sche
   return (
     <TreeItem
       nodeId={getDomFriendlyID(item.pointer)}
-      classes={{ root: classNames(classes.treeItem, isRef ? classes.isRef : undefined) }}
+      classes={{ root: classNames(classes.treeItem, isRef && classes.isRef) }}
       label={
         <SchemaItemLabel
           editMode={editMode}
