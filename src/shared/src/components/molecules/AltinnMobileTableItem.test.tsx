@@ -53,7 +53,6 @@ describe('AltinnMobileTableItem', () => {
       deleteIconNode: ' i ',
       onDeleteClick: onDeleteClick,
     });
-    screen.debug();
 
     await user.click(
       screen.queryByRole('button', {

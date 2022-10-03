@@ -93,13 +93,13 @@ describe('DatepickerComponent', () => {
     render({ handleDataChange });
 
     await userEvent.click(getOpenCalendarButton());
-    await userEvent.click(getCalendarDayButton('25'));
+    await userEvent.click(getCalendarDayButton('15'));
 
     expect(handleDataChange).toHaveBeenCalledWith(
       // Ignore TZ part of timestamp to avoid test failing when this changes
       // Calendar opens up on current year/month by default, so we need to cater for this in the expected output
       expect.stringContaining(
-        `${currentYearNumeric}-${currentMonthNumeric}-25T12:00:00.000+`,
+        `${currentYearNumeric}-${currentMonthNumeric}-15T12:00:00.000+`,
       ),
       undefined,
       false,
