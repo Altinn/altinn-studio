@@ -21,7 +21,6 @@ export interface IPropertyItemProps {
 }
 
 export function PropertyItem(props: IPropertyItemProps) {
-
   const [value, setValue] = useState<string>(props.value || '');
   const dispatch = useDispatch();
 
@@ -47,7 +46,7 @@ export function PropertyItem(props: IPropertyItemProps) {
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
     e?.key === 'Enter' && props.onEnterKeyPress && props.onEnterKeyPress();
 
-  const baseId = getDomFriendlyID(props.fullPath, '-key-');
+  const baseId = getDomFriendlyID(props.fullPath, 'key-');
   return (
     <div className={classes.root}>
       <span className={classes.nameInputCell}>

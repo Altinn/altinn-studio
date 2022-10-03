@@ -1,9 +1,9 @@
 // Changes to the uiNodeMap
-import { ObjectKind, UiSchemaNode, UiSchemaNodes } from '../types';
+import { ObjectKind, ROOT_POINTER, UiSchemaNode, UiSchemaNodes } from '../types';
 import { getNodeIndexByPointer } from '../selectors';
 import { getParentNodeByPointer, splitPointerInBaseAndName } from '../utils';
 
-export const removeNodeByPointer = (uiNodeMap: UiSchemaNodes, pointer: string) => {
+export const removeNodeByPointer = (uiNodeMap: UiSchemaNodes, pointer: string, justChildren?: boolean) => {
   let mutatedUiNodeMap: UiSchemaNodes = [...uiNodeMap];
   // Remove the child node pointer from the parent
   const uiSchemaNode = getNodeIndexByPointer(mutatedUiNodeMap, pointer);
@@ -18,10 +18,12 @@ export const removeNodeByPointer = (uiNodeMap: UiSchemaNodes, pointer: string) =
   }
 
   // Remove itself decendants... just using the pointer
-  mutatedUiNodeMap = mutatedUiNodeMap.filter((uiNode: UiSchemaNode) => !uiNode.pointer.startsWith(pointer));
+  mutatedUiNodeMap = mutatedUiNodeMap.filter(
+    (uiNode: UiSchemaNode) => !uiNode.pointer.startsWith(justChildren ? pointer + '/' : pointer),
+  );
 
   // dealing with combinations, updating their children is a little more tricky.
-  if (parentNode.objectKind === ObjectKind.Combination) {
+  if (parentNode.objectKind === ObjectKind.Combination && parentNode.pointer !== ROOT_POINTER) {
     parentNode.children.forEach((oldPointerBase, index) => {
       const { base } = splitPointerInBaseAndName(oldPointerBase);
       const newPointerBase = [base, index].join('/');

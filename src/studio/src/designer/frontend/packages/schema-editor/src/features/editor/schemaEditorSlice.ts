@@ -18,6 +18,7 @@ import {
   renameNodePointer,
   replaceLastPointerSegment,
   ROOT_POINTER,
+  toggleArrayAndField,
 } from '@altinn/schema-model';
 
 export const initialState: ISchemaState = {
@@ -270,6 +271,10 @@ const schemaEditorSlice = createSlice({
       state.selectedEditorTab = 'definitions';
       state.selectedDefinitionNodeId = id;
     },
+    toggleArrayField(state, action: PayloadAction<{ pointer: string }>) {
+      const { pointer } = action.payload;
+      state.uiSchema = toggleArrayAndField(state.uiSchema, pointer);
+    },
   },
 });
 
@@ -300,5 +305,6 @@ export const {
   setTitle,
   setType,
   setUiSchema,
+  toggleArrayField,
   updateJsonSchema,
 } = schemaEditorSlice.actions;

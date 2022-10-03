@@ -31,26 +31,22 @@ export const toggleArrayAndField = (uiSchemaNodes: UiSchemaNodes, pointer: strin
     throw new Error(`Can't toggle ${pointer} between array and field, can't find pointer.`);
   }
   const uiSchemaNode = uiSchemaNodes[nodeIndex];
-  const nodePointer = uiSchemaNode.pointer;
-  const itemsPointer = makePointer(nodePointer, Keywords.Items);
+
+  const itemsPointer = makePointer(pointer, Keywords.Items);
   if (uiSchemaNode.objectKind === ObjectKind.Array) {
     // First remove the items pointer and all its children
     const mutatedNodeArray = removeNodeByPointer(uiSchemaNodes, itemsPointer);
     // Replace the Array with
-    mutatedNodeArray[nodeIndex] = pointerReplacer(
-      getNodeByPointer(uiSchemaNodes, itemsPointer),
-      itemsPointer,
-      nodePointer,
-    );
+    mutatedNodeArray[nodeIndex] = pointerReplacer(getNodeByPointer(uiSchemaNodes, itemsPointer), itemsPointer, pointer);
     uiSchemaNodes.forEach((node) => {
       if (node.pointer.startsWith(itemsPointer) && node.pointer !== itemsPointer) {
-        mutatedNodeArray.push(pointerReplacer(node, itemsPointer, nodePointer));
+        mutatedNodeArray.push(pointerReplacer(node, itemsPointer, pointer));
       }
     });
     return mutatedNodeArray;
   } else {
     const arrayNode: UiSchemaNode = deepCopy(uiSchemaNode);
-    const itemsNode: UiSchemaNode = pointerReplacer(uiSchemaNode, nodePointer, itemsPointer);
+    const itemsNode: UiSchemaNode = pointerReplacer(uiSchemaNode, pointer, itemsPointer);
     arrayNode.objectKind = ObjectKind.Array;
     arrayNode.fieldType = FieldType.Array;
     arrayNode.implicitType = false;
@@ -61,18 +57,19 @@ export const toggleArrayAndField = (uiSchemaNodes: UiSchemaNodes, pointer: strin
     arrayNode.restrictions = {};
     itemsNode.title = undefined;
     itemsNode.description = undefined;
+    itemsNode.isRequired = false;
 
-    const mutatedNodeArray = removeNodeByPointer(uiSchemaNodes, nodePointer);
-    const parentNode = getParentNodeByPointer(mutatedNodeArray, nodePointer);
+    const mutatedNodeArray = removeNodeByPointer(uiSchemaNodes, pointer, true);
+    const parentNode = getParentNodeByPointer(mutatedNodeArray, pointer);
     if (parentNode) {
-      parentNode.children.push(nodePointer);
+      parentNode.children.push(pointer);
     }
-    mutatedNodeArray.push(arrayNode);
+    mutatedNodeArray[nodeIndex] = arrayNode;
     mutatedNodeArray.push(itemsNode);
     // updating children of the items node
     uiSchemaNodes.forEach((node) => {
-      if (node.pointer.startsWith(nodePointer) && node.pointer !== nodePointer) {
-        mutatedNodeArray.push(pointerReplacer(node, nodePointer, itemsPointer));
+      if (node.pointer.startsWith(pointer + '/')) {
+        mutatedNodeArray.push(pointerReplacer(node, pointer, itemsPointer));
       }
     });
 

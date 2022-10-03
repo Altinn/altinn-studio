@@ -14,12 +14,13 @@ import {
   setRef,
   setTitle,
   setType,
+  toggleArrayField,
 } from '../../features/editor/schemaEditorSlice';
 import { TypeSelect } from './TypeSelect';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { CombinationSelect } from './CombinationSelect';
 import { getCombinationOptions, getTypeOptions } from './helpers/options';
-import { ErrorMessage, TextField, Checkbox } from '@altinn/altinn-design-system';
+import { Checkbox, ErrorMessage, TextField } from '@altinn/altinn-design-system';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
 import { Divider } from './Divider';
@@ -33,6 +34,7 @@ import {
   getChildNodesByNode,
   getNodeDisplayName,
   Keywords,
+  makePointer,
   ObjectKind,
 } from '@altinn/schema-model';
 import { getDomFriendlyID, isValidName } from '../../utils/ui-schema-utils';
@@ -69,10 +71,16 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
 
   const onChangeRef = (path: string, ref: string) => dispatch(setRef({ path, ref }));
 
-  const onChangeType = (pointer: string, type: FieldType) => {
+  const onChangeFieldType = (pointer: string, type: FieldType) => {
     dispatch(setType({ path: selectedItem.pointer, type }));
     setFieldType(type);
   };
+
+  const onChangeArrayType = (pointer: string, fieldType: FieldType) => {
+    dispatch(setType({ path: makePointer(pointer, Keywords.Items), type: fieldType }));
+    setArrayType(fieldType ?? '');
+  };
+
   const childNodes = useSelector((state: ISchemaState) => getChildNodesByNode(state.uiSchema, selectedItem));
 
   const onChangeNullable = (event: any) => {
@@ -98,31 +106,10 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
     dispatch(navigateToType({ id: selectedItem.ref }));
   };
 
-  const onChangeArrayType = (pointer: string, fieldType: FieldType) => {
-    setArrayType(fieldType ?? '');
-    dispatch(setType({ path: [pointer, Keywords.Items].join('/'), type: fieldType }));
-  };
-
   const onChangeCombinationType = (value: CombinationKind) =>
     dispatch(setCombinationType({ path: selectedItem.pointer, type: value }));
 
-  const handleArrayPropertyToggle = (e: any) => {
-    if (e.target.checked) {
-      const type = selectedItem.objectKind === ObjectKind.Reference ? selectedItem.ref : selectedItem.fieldType;
-      // @ts-ignore
-      onChangeArrayType(selectedItem.pointer, type);
-      onChangeType(selectedItem.pointer, FieldType.Array);
-    } else {
-      if (selectedItem.objectKind === ObjectKind.Reference) {
-        onChangeRef(selectedItem.pointer, arrayType || '');
-      } else {
-        onChangeType(selectedItem.pointer, arrayType as FieldType);
-      }
-      // @ts-ignore
-      onChangeArrayType(selectedItem.pointer, undefined);
-    }
-  };
-
+  const handleArrayPropertyToggle = () => dispatch(toggleArrayField({ pointer: selectedItem.pointer }));
   const handleChangeNodeName = () => {
     if (checkIsNameInUse(nodeName)) {
       setNameError(NameError.AlreadyInUse);
@@ -161,14 +148,14 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
           {nameError && <ErrorMessage>{t(nameError)}</ErrorMessage>}
         </>
       )}
-      {selectedItem.objectKind === ObjectKind.Field && (
+      {[ObjectKind.Array, ObjectKind.Field].includes(selectedItem.objectKind) && (
         <TypeSelect
           id={getDomFriendlyID(selectedItem.pointer, 'type-select')}
           label={t('type')}
           onChange={(fieldType) => {
-            selectedItem.fieldType === FieldType.Array
+            selectedItem.objectKind === ObjectKind.Array
               ? onChangeArrayType(selectedItem.pointer, fieldType)
-              : onChangeType(selectedItem.pointer, fieldType);
+              : onChangeFieldType(selectedItem.pointer, fieldType);
           }}
           options={getTypeOptions(t)}
           value={selectedItem.fieldType === FieldType.Array ? arrayType : fieldType}
@@ -185,11 +172,11 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
         onGoToDefButtonClick={onGoToDefButtonClick}
         selectedItem={selectedItem}
       />
-      {[ObjectKind.Reference, ObjectKind.Field].includes(selectedItem.objectKind) && (
+      {selectedItem.objectKind !== ObjectKind.Combination && (
         <div className={classes.checkboxWrapper}>
           <Checkbox
-            checked={selectedItem?.fieldType === FieldType.Array}
-            label={t('multiple_answers') + ' (skrudd av)'}
+            checked={selectedItem.fieldType === FieldType.Array}
+            label={t('multiple_answers')}
             name='checkedMultipleAnswers'
             onChange={handleArrayPropertyToggle}
           />
@@ -197,7 +184,7 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
       )}
       {selectedItem.objectKind === ObjectKind.Combination && (
         <CombinationSelect
-          id={`${getDomFriendlyID(selectedItem.pointer)}-combi-sel`}
+          id={getDomFriendlyID(selectedItem.pointer, 'combi-sel')}
           label={t('type')}
           onChange={onChangeCombinationType}
           options={getCombinationOptions(t)}
