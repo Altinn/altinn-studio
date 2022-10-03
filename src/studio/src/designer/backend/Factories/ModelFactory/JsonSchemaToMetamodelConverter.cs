@@ -113,9 +113,15 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             SetTargetNamespace(schema);
 
             var propertiesKeyword = schema.GetKeyword<PropertiesKeyword>();
+            var requiredKeyword = schema.GetKeyword<RequiredKeyword>();
             if (propertiesKeyword != null)
             {
                 AddElement(rootPath, schema, context);
+            }
+
+            if (requiredKeyword is not null)
+            {
+                CheckForRequiredPropertiesKeyword(schema, context);
             }
 
             foreach (var keyword in schema.Keywords)
