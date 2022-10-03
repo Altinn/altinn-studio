@@ -16,6 +16,20 @@
       </simple_keyvalues>
     </simple_list>
     <nested_list>
+      <key>1</key>
+      <values>
+        <key>cowboy</key>
+        <doubleValue>0</doubleValue>
+        <intValue>1</intValue>
+      </values>
+      <values>
+        <key>operator</key>
+        <doubleValue>0</doubleValue>
+        <intValue>4</intValue>
+      </values>
+    </nested_list>
+    <nested_list>
+      <key>2</key>
       <values>
         <key>cowboy</key>
         <doubleValue>0</doubleValue>

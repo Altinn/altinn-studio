@@ -1,5 +1,6 @@
 using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Models;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Linq;
 
 namespace Altinn.App.Core.Internal.Pdf;
@@ -7,7 +8,7 @@ namespace Altinn.App.Core.Internal.Pdf;
 /// <summary>
 /// Default implementation of IPdfOptionsMapping
 /// </summary>
-public class PdfOptionsMapping: IPdfOptionsMapping
+public class PdfOptionsMapping : IPdfOptionsMapping
 {
     private readonly IAppOptionsService _appOptionsService;
 
@@ -19,160 +20,163 @@ public class PdfOptionsMapping: IPdfOptionsMapping
     {
         _appOptionsService = appOptionsService;
     }
-    
-    
+
+
     /// <inheritdoc />
     public async Task<Dictionary<string, Dictionary<string, string>>> GetOptionsDictionary(string formLayout, string language, object data, string instanceId)
+    {
+        IEnumerable<JToken> componentsWithOptionsDefined = GetFormComponentsWithOptionsDefined(formLayout);
+
+        Dictionary<string, Dictionary<string, string>> dictionary = new Dictionary<string, Dictionary<string, string>>();
+
+        foreach (JToken component in componentsWithOptionsDefined)
         {
-            IEnumerable<JToken> componentsWithOptionsDefined = GetFormComponentsWithOptionsDefined(formLayout);
+            string? optionsId = component.SelectToken("optionsId")?.Value<string>();
+            if (optionsId == null)
+                continue;
+            bool hasMappings = component.SelectToken("mapping") != null;
+            var secureToken = component.SelectToken("secure");
+            bool isSecureOptions = secureToken != null && secureToken.Value<bool>();
+            Dictionary<string, List<string>> keyValues = hasMappings ? GetComponentKeyValuePairs(component, data) : new Dictionary<string, List<string>>();
 
-            Dictionary<string, Dictionary<string, string>> dictionary = new Dictionary<string, Dictionary<string, string>>();
-
-            foreach (JToken component in componentsWithOptionsDefined)
-            {
-                string optionsId = component.SelectToken("optionsId").Value<string>();
-                bool hasMappings = component.SelectToken("mapping") != null;
-                var secureToken = component.SelectToken("secure");
-                bool isSecureOptions = secureToken != null && secureToken.Value<bool>();
-                Dictionary<string, List<string>> keyValues = new Dictionary<string, List<string>>();
-                keyValues = hasMappings
-                    ? GetComponentKeyValuePairs(component, data)
-                    : new Dictionary<string, List<string>>();
-
-                await GetMappingsForComponent(language, instanceId, keyValues, isSecureOptions, optionsId, dictionary);
-            }
-
-            return dictionary;
+            await GetMappingsForComponent(language, instanceId, keyValues, isSecureOptions, optionsId, dictionary);
         }
 
-    private async Task GetMappingsForComponent(string language, string instanceId, Dictionary<string, List<string>> keyValues,
-        bool isSecureOptions, string? optionsId, Dictionary<string, Dictionary<string, string>> dictionary)
+        return dictionary;
+    }
+
+    private async Task GetMappingsForComponent(string language, string instanceId, Dictionary<string, List<string>> mappings, bool isSecureOptions, string optionsId, Dictionary<string, Dictionary<string, string>> dictionary)
     {
+        if (!dictionary.ContainsKey(optionsId))
+        {
+            dictionary.Add(optionsId, new Dictionary<string, string>());
+        }
+
         var instanceIdentifier = new InstanceIdentifier(instanceId);
-        foreach (var pair in keyValues)
+        if (mappings.IsNullOrEmpty())
+        {
+            AppOptions appOptions = await GetOptions(isSecureOptions, instanceIdentifier, optionsId, language, new Dictionary<string, string>());
+            AppendOptionsToDictionary(dictionary[optionsId], appOptions.Options);
+            return;
+        }
+
+        foreach (var pair in mappings)
         {
             foreach (var value in pair.Value)
             {
-                AppOptions appOptions;
-                if (isSecureOptions)
-                {
-                    appOptions = await _appOptionsService.GetOptionsAsync(instanceIdentifier, optionsId,
-                        language,
-                        new Dictionary<string, string>() { { pair.Key, value } });
-                }
-                else
-                {
-                    appOptions = await _appOptionsService.GetOptionsAsync(optionsId,
-                        language,
-                        new Dictionary<string, string>() { { pair.Key, value } });
-                }
-
-                if (!dictionary.ContainsKey(optionsId))
-                {
-                    dictionary.Add(optionsId, new Dictionary<string, string>());
-                }
+                AppOptions appOptions = await GetOptions(isSecureOptions, instanceIdentifier, optionsId, language, new Dictionary<string, string>() { { pair.Key, value } });
 
                 AppendOptionsToDictionary(dictionary[optionsId], appOptions.Options);
             }
         }
     }
 
+    private async Task<AppOptions> GetOptions(bool isSecure, InstanceIdentifier instanceIdentifier, string optionsId, string language, Dictionary<string, string> mappings)
+    {
+        if (isSecure)
+        {
+            return await _appOptionsService.GetOptionsAsync(instanceIdentifier, optionsId, language, mappings);
+        }
+        else
+        {
+            return await _appOptionsService.GetOptionsAsync(optionsId, language, mappings);
+        }
+    }
+
     private static IEnumerable<JToken> GetFormComponentsWithOptionsDefined(string formLayout)
-        {
-            JObject formLayoutObject = JObject.Parse(formLayout);
+    {
+        JObject formLayoutObject = JObject.Parse(formLayout);
 
-            // @ = Current object, ?(expression) = Filter, the rest is just dot notation ref. https://goessner.net/articles/JsonPath/
-            return formLayoutObject.SelectTokens("*.data.layout[?(@.optionsId)]");
+        // @ = Current object, ?(expression) = Filter, the rest is just dot notation ref. https://goessner.net/articles/JsonPath/
+        return formLayoutObject.SelectTokens("*.data.layout[?(@.optionsId)]");
+    }
+
+    private static Dictionary<string, List<string>> GetComponentKeyValuePairs(JToken component, object data)
+    {
+        var componentKeyValuePairs = new Dictionary<string, List<string>>();
+        JObject jsonData = JObject.FromObject(data);
+
+        Dictionary<string, string> mappings = GetMappingsForComponent(component);
+        foreach (var map in mappings)
+        {
+            var selectedDatas = GetMappingValues(jsonData, map);
+
+            componentKeyValuePairs.Add(map.Value, selectedDatas);
         }
 
-        private static Dictionary<string, List<string>> GetComponentKeyValuePairs(JToken component, object data)
-        {
-            var componentKeyValuePairs = new Dictionary<string, List<string>>();
-            JObject jsonData = JObject.FromObject(data);
+        return componentKeyValuePairs;
+    }
 
-            Dictionary<string, string> mappings = GetMappingsForComponent(component);
-            foreach (var map in mappings)
+    private static Dictionary<string, string> GetMappingsForComponent(JToken component)
+    {
+        var maps = new Dictionary<string, string>();
+        foreach (var jToken in component.SelectToken("mapping")?.Children()!)
+        {
+            var map = (JProperty)jToken;
+            maps.Add(map.Name, map.Value.ToString());
+        }
+
+        return maps;
+    }
+
+    private static void AppendOptionsToDictionary(Dictionary<string, string> dictionary, List<AppOption> options)
+    {
+        foreach (AppOption item in options)
+        {
+            if (!dictionary.ContainsKey(item.Label))
             {
-                var selectedDatas = GetMappingValues(jsonData, map);
-
-                componentKeyValuePairs.Add(map.Value, selectedDatas);
+                dictionary.Add(item.Label, item.Value);
             }
+        }
+    }
 
-            return componentKeyValuePairs;
+
+    private static List<string> GetMappingValues(JObject jsonData, KeyValuePair<string, string> map, int depth = 0)
+    {
+        int count = 1;
+        if (MappingHasRepeatingGroup(map.Key))
+        {
+            var mappingUntilFirstGroup = GetMappingUntilFirstGroup(map.Key);
+            JToken repeatingGroup = jsonData.SelectToken(mappingUntilFirstGroup);
+            count = repeatingGroup.Children().Count();
         }
 
-        private static Dictionary<string, string> GetMappingsForComponent(JToken component)
+        List<string> selectedDatas = new List<string>();
+        for (var i = 0; i < count; i++)
         {
-            var maps = new Dictionary<string, string>();
-            foreach (var jToken in component.SelectToken("mapping")?.Children()!)
+            string replaceText = "{" + depth + "}";
+
+            string select = map.Key.Replace(replaceText, i.ToString());
+            if (MappingHasRepeatingGroup(select))
             {
-                var map = (JProperty)jToken;
-                maps.Add(map.Name, map.Value.ToString());
+                selectedDatas.AddRange(GetMappingValues(jsonData, new KeyValuePair<string, string>(select, map.Value), depth + 1));
             }
-
-            return maps;
-        }
-
-        private static void AppendOptionsToDictionary(Dictionary<string, string> dictionary, List<AppOption> options)
-        {
-            foreach (AppOption item in options)
+            else
             {
-                if (!dictionary.ContainsKey(item.Label))
-                {
-                    dictionary.Add(item.Label, item.Value);
-                }
+                selectedDatas.Add(jsonData.SelectToken(select).ToString());
             }
         }
 
+        return selectedDatas;
+    }
 
-        
-        private static List<string> GetMappingValues(JObject jsonData, KeyValuePair<string, string> map, int depth = 0)
-        {
-            int count = 1;
-            if (MappingHasRepeatingGroup(map.Key))
-            {
-                var mappingUntilFirstGroup = GetMappingUntilFirstGroup(map.Key);
-                JToken repeatingGroup = jsonData.SelectToken(mappingUntilFirstGroup);
-                count = repeatingGroup.Children().Count();
-            }
+    /// <summary>
+    /// Return true if mapping contains a array replacement start "[{"
+    /// </summary>
+    /// <param name="mapping">Field mapping</param>
+    /// <returns></returns>
+    private static bool MappingHasRepeatingGroup(string mapping)
+    {
+        return mapping.Contains("[{");
+    }
 
-            List<string> selectedDatas = new List<string>();
-            for (var i = 0; i < count; i++)
-            {
-                string replaceText = "{" + depth + "}";
-
-                string select = map.Key.Replace(replaceText, i.ToString());
-                if (MappingHasRepeatingGroup(select))
-                {
-                    selectedDatas.AddRange(GetMappingValues(jsonData,
-                        new KeyValuePair<string, string>(select, map.Value), ++depth));
-                }
-                else
-                {
-                    selectedDatas.Add(jsonData.SelectToken(select).ToString());
-                }
-            }
-
-            return selectedDatas;
-        }
-
-        /// <summary>
-        /// Return true if mapping contains a array replacement start "[{"
-        /// </summary>
-        /// <param name="mapping">Field mapping</param>
-        /// <returns></returns>
-        private static bool MappingHasRepeatingGroup(string mapping)
-        {
-            return mapping.Contains("[{");
-        }
-
-        /// <summary>
-        /// Returns mapping of first element in mapping that is a list with replacement string.
-        /// </summary>
-        /// <param name="mapping"></param>
-        /// <returns></returns>
-        private static string GetMappingUntilFirstGroup(string mapping)
-        {
-            return mapping.Substring(0, mapping.IndexOf("[{"));
-        }
+    /// <summary>
+    /// Returns mapping of first element in mapping that is a list with replacement string.
+    /// </summary>
+    /// <param name="mapping"></param>
+    /// <returns></returns>
+    private static string GetMappingUntilFirstGroup(string mapping)
+    {
+        return mapping.Substring(0, mapping.IndexOf("[{"));
+    }
 }
