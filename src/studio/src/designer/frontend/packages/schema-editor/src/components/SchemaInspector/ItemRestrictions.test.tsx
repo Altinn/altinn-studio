@@ -8,7 +8,7 @@ test('item restrictions require checkbox to work', async () => {
   const item = Object.assign(createNodeBase(Keywords.Properties, 'test'), {
     fieldType: FieldType.String,
   });
-  const { user, store } = renderWithRedux(<ItemRestrictions language={{}} item={item} />);
+  const { user, store } = renderWithRedux(<ItemRestrictions language={{}} selectedNode={item} />);
   await user.click(screen.getByRole('checkbox'));
   const action = store.getActions().pop();
   expect(action.type).toBe('schemaEditor/setRequired');
@@ -20,7 +20,7 @@ test('item restrictions tab require checkbox to decheck', async () => {
     fieldType: FieldType.String,
     isRequired: true,
   });
-  const { user, store } = renderWithRedux(<ItemRestrictions language={{}} item={item} />);
+  const { user, store } = renderWithRedux(<ItemRestrictions language={{}} selectedNode={item} />);
   await user.click(screen.getByRole('checkbox'));
   const action = store.getActions().pop();
   expect(action.type).toBe('schemaEditor/setRequired');

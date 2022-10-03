@@ -28,6 +28,7 @@ import { Label } from './Label';
 import { Fieldset } from './Fieldset';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import {
+  canToggleArrayAndField,
   combinationIsNullable,
   CombinationKind,
   FieldType,
@@ -55,12 +56,17 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
   const [fieldType, setFieldType] = useState<FieldType | CombinationKind | undefined>(undefined);
   const [arrayType, setArrayType] = useState<FieldType | string | undefined>(undefined);
 
+  const childNodes = useSelector((state: ISchemaState) => getChildNodesByNode(state.uiSchema, selectedItem));
+  const itemsNode = selectedItem.objectKind === ObjectKind.Array ? childNodes[0] : undefined;
   useEffect(() => {
     setNodeName(getNodeDisplayName(selectedItem));
     setNameError(NameError.NoError);
     setItemTitle(selectedItem.title ?? '');
     setItemDescription(selectedItem.description ?? '');
     setFieldType(selectedItem.fieldType);
+    if (selectedItem.objectKind === ObjectKind.Array) {
+      setArrayType(childNodes[0].fieldType);
+    }
   }, [selectedItem]);
 
   const onNameChange = (e: any) => {
@@ -81,8 +87,6 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
     setArrayType(fieldType ?? '');
   };
 
-  const childNodes = useSelector((state: ISchemaState) => getChildNodesByNode(state.uiSchema, selectedItem));
-
   const onChangeNullable = (event: any) => {
     if (event.target.checked) {
       dispatch(addCombinationItem({ path: selectedItem.pointer, props: { fieldType: FieldType.Null } }));
@@ -100,10 +104,9 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
   const onChangeDescription = () => dispatch(setDescription({ path: selectedNodePointer, description }));
 
   const onGoToDefButtonClick = () => {
-    if (selectedItem.ref === undefined) {
-      return;
+    if (selectedItem.ref !== undefined) {
+      dispatch(navigateToType({ id: selectedItem.ref }));
     }
-    dispatch(navigateToType({ id: selectedItem.ref }));
   };
 
   const onChangeCombinationType = (value: CombinationKind) =>
@@ -128,8 +131,11 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
   };
 
   const t = (key: string) => getTranslation(key, language);
-  const titleId = getDomFriendlyID(selectedNodePointer ?? '', 'title');
-  const descriptionId = getDomFriendlyID(selectedNodePointer ?? '', 'description');
+  const titleId = getDomFriendlyID(selectedNodePointer, 'title');
+  const descriptionId = getDomFriendlyID(selectedNodePointer, 'description');
+  const canToggleBetweenArrayAndField = useSelector((state: ISchemaState) =>
+    canToggleArrayAndField(state.uiSchema, selectedNodePointer),
+  );
   return (
     <div>
       {!selectedItem.isCombinationItem && (
@@ -176,6 +182,7 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
         <div className={classes.checkboxWrapper}>
           <Checkbox
             checked={selectedItem.fieldType === FieldType.Array}
+            disabled={!canToggleBetweenArrayAndField}
             label={t('multiple_answers')}
             name='checkedMultipleAnswers'
             onChange={handleArrayPropertyToggle}
@@ -202,7 +209,7 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
           />
         </div>
       )}
-      <ItemRestrictions item={selectedItem} language={language} />
+      <ItemRestrictions selectedNode={selectedItem} language={language} itemsNode={itemsNode} />
       <Divider />
       <Fieldset legend={t('descriptive_fields')}>
         <Label htmlFor={titleId}>{t('title')}</Label>
