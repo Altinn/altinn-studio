@@ -122,7 +122,11 @@ export const getCurrentDataTypeId = (
   instance: IInstance,
   layoutSets: ILayoutSets,
 ) => {
-  const currentTaskId = instance.process.currentTask.elementId;
+  const currentTaskId = instance.process.currentTask?.elementId;
+  if (currentTaskId === null || currentTaskId === undefined) {
+    return undefined;
+  }
+
   return (
     layoutSets?.sets.find((set) => set.tasks?.includes(currentTaskId))
       ?.dataType ||

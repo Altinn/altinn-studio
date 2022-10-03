@@ -190,7 +190,7 @@ export interface IPerson {
 export interface IProcess {
   started: string;
   startEvent: string;
-  currentTask: ITask;
+  currentTask?: ITask;
   ended: string;
   endEvent: string;
 }
