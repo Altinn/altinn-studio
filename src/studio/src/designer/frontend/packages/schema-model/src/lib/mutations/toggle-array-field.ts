@@ -55,6 +55,7 @@ export const toggleArrayAndField = (uiSchemaNodes: UiSchemaNodes, pointer: strin
     arrayNode.custom = {};
     arrayNode.enum = undefined;
     arrayNode.restrictions = {};
+    arrayNode.ref = undefined;
     itemsNode.title = undefined;
     itemsNode.description = undefined;
     itemsNode.isRequired = false;

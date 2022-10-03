@@ -154,30 +154,30 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
           {nameError && <ErrorMessage>{t(nameError)}</ErrorMessage>}
         </>
       )}
-      {[ObjectKind.Array, ObjectKind.Field].includes(selectedItem.objectKind) && (
-        <TypeSelect
-          id={getDomFriendlyID(selectedItem.pointer, 'type-select')}
-          label={t('type')}
-          onChange={(fieldType) => {
-            selectedItem.objectKind === ObjectKind.Array
-              ? onChangeArrayType(selectedItem.pointer, fieldType)
-              : onChangeFieldType(selectedItem.pointer, fieldType);
-          }}
-          options={getTypeOptions(t)}
-          value={selectedItem.fieldType === FieldType.Array ? arrayType : fieldType}
+      {[ObjectKind.Array, ObjectKind.Field].includes(selectedItem.objectKind) &&
+        itemsNode?.objectKind !== ObjectKind.Reference && (
+          <TypeSelect
+            id={getDomFriendlyID(selectedItem.pointer, 'type-select')}
+            label={t('type')}
+            onChange={(fieldType) => {
+              selectedItem.objectKind === ObjectKind.Array
+                ? onChangeArrayType(selectedItem.pointer, fieldType)
+                : onChangeFieldType(selectedItem.pointer, fieldType);
+            }}
+            options={getTypeOptions(t)}
+            value={selectedItem.fieldType === FieldType.Array ? arrayType : fieldType}
+          />
+        )}
+      {(selectedItem.objectKind === ObjectKind.Reference || itemsNode?.objectKind === ObjectKind.Reference) && (
+        <ReferenceSelectionComponent
+          buttonText={t('go_to_type')}
+          classes={classes}
+          label={t('reference_to')}
+          onChangeRef={onChangeRef}
+          onGoToDefButtonClick={onGoToDefButtonClick}
+          selectedNode={itemsNode ?? selectedItem}
         />
       )}
-      <ReferenceSelectionComponent
-        arrayType={arrayType}
-        buttonText={t('go_to_type')}
-        classes={classes}
-        label={t('reference_to')}
-        objectKind={selectedItem.objectKind}
-        onChangeArrayType={(type) => onChangeArrayType(selectedItem.pointer, type as FieldType)}
-        onChangeRef={(refPointer) => onChangeRef(selectedItem.pointer, refPointer)}
-        onGoToDefButtonClick={onGoToDefButtonClick}
-        selectedItem={selectedItem}
-      />
       {selectedItem.objectKind !== ObjectKind.Combination && (
         <div className={classes.checkboxWrapper}>
           <Checkbox

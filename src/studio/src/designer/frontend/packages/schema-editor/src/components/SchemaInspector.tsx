@@ -3,18 +3,18 @@ import { Panel, PanelVariant } from '@altinn/altinn-design-system';
 import { AppBar, Divider } from '@material-ui/core';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
 import type { UiSchemaNode } from '@altinn/schema-model';
-import { FieldType, ObjectKind } from '@altinn/schema-model';
+import { FieldType, getNodeIndexByPointer, Keywords, makePointer, ObjectKind } from '@altinn/schema-model';
 import { getTranslation } from '../utils/language';
 import { SchemaTab } from './common/SchemaTab';
 import { ItemPropertiesTab } from './SchemaInspector/ItemPropertiesTab';
 import { ItemFieldsTab } from './SchemaInspector/ItemFieldsTab';
-import type { ILanguage } from '../types';
+import type { ILanguage, ISchemaState } from '../types';
 import classes from './SchemaInspector.module.css';
+import { useSelector } from 'react-redux';
 
 export interface ISchemaInspectorProps {
   language: ILanguage;
   selectedItem?: UiSchemaNode;
-  referredItem?: UiSchemaNode;
   checkIsNameInUse: (name: string) => boolean;
 }
 
@@ -22,15 +22,22 @@ export const SchemaInspector = ({ language, selectedItem, checkIsNameInUse }: IS
   const [tabIndex, setTabIndex] = useState('0');
   const t = (key: string) => getTranslation(key, language);
 
+  const itemsNode = useSelector((state: ISchemaState) => {
+    const nodeIndex = selectedItem
+      ? getNodeIndexByPointer(state.uiSchema, makePointer(selectedItem.pointer, Keywords.Items))
+      : undefined;
+    return nodeIndex ? state.uiSchema[nodeIndex] : undefined;
+  });
+  const focusedNode = itemsNode ?? selectedItem;
   useEffect(() => {
-    if (selectedItem) {
-      if (tabIndex === '2' && selectedItem?.fieldType !== FieldType.Object) {
+    if (focusedNode) {
+      if (tabIndex === '2' && focusedNode?.fieldType !== FieldType.Object) {
         setTabIndex('0');
       }
     } else {
       setTabIndex('0');
     }
-  }, [tabIndex, selectedItem]);
+  }, [tabIndex, focusedNode]);
 
   return selectedItem ? (
     <div className={classes.root} data-testid='schema-inspector'>
@@ -44,7 +51,11 @@ export const SchemaInspector = ({ language, selectedItem, checkIsNameInUse }: IS
             <SchemaTab
               label={t('fields')}
               value='2'
-              hide={selectedItem.fieldType !== FieldType.Object || selectedItem.objectKind === ObjectKind.Combination}
+              hide={
+                focusedNode?.fieldType !== FieldType.Object ||
+                focusedNode.objectKind === ObjectKind.Combination ||
+                focusedNode.objectKind === ObjectKind.Reference
+              }
             />
           </TabList>
         </AppBar>
@@ -52,7 +63,7 @@ export const SchemaInspector = ({ language, selectedItem, checkIsNameInUse }: IS
           <ItemPropertiesTab checkIsNameInUse={checkIsNameInUse} selectedItem={selectedItem} language={language} />
         </TabPanel>
         <TabPanel className={classes.tabPanel} value='2'>
-          <ItemFieldsTab selectedItem={selectedItem} language={language} />
+          <ItemFieldsTab selectedItem={itemsNode ?? selectedItem} language={language} />
         </TabPanel>
       </TabContext>
     </div>

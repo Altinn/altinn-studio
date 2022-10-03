@@ -25,7 +25,6 @@ import {
   CombinationKind,
   FieldType,
   getNodeByPointer,
-  getNodeIndexByPointer,
   getRootNodes,
   ObjectKind,
   pointerExists,
@@ -116,7 +115,6 @@ export const SchemaEditor = ({
         props: newNode,
       }),
     );
-
     setMenuAnchorEl(null);
   };
 
@@ -147,14 +145,10 @@ export const SchemaEditor = ({
   );
 
   const selectedItem = useSelector((state: ISchemaState) =>
-    selectedId ? getNodeByPointer(state.uiSchema, selectedId) : null,
+    selectedId ? getNodeByPointer(state.uiSchema, selectedId) : undefined,
   );
   const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
-  // if item is a reference, we want to show the properties of the reference.
-  const referredItem = useSelector((state: ISchemaState) => {
-    const index = getNodeIndexByPointer(state.uiSchema, selectedItem?.ref ?? '');
-    return index !== undefined ? state.uiSchema[index] : undefined;
-  });
+
   const checkIsNameInUse = (name: string) => pointerExists(uiSchema, name);
   const t = (key: string) => getTranslation(key, language);
   return (
@@ -224,12 +218,7 @@ export const SchemaEditor = ({
         )}
         {schema && editMode && (
           <aside className={classes.inspector}>
-            <SchemaInspector
-              language={language}
-              referredItem={referredItem ?? undefined}
-              selectedItem={selectedItem ?? undefined}
-              checkIsNameInUse={checkIsNameInUse}
-            />
+            <SchemaInspector language={language} selectedItem={selectedItem} checkIsNameInUse={checkIsNameInUse} />
           </aside>
         )}
       </main>
