@@ -6,7 +6,7 @@
   width: 100%;
 }
 
-.root > main {
+.main {
   align-items: stretch;
   display: flex;
   flex-direction: row;

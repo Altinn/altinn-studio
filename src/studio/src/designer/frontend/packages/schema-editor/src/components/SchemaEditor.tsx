@@ -166,7 +166,7 @@ export const SchemaEditor = ({
         toggleEditMode={name ? toggleEditMode : undefined}
         editMode={editMode}
       />
-      <main>
+      <main className={classes.main}>
         {LandingPagePanel}
         {name && schema ? (
           <div data-testid='schema-editor' id='schema-editor' className={classes.editor}>
