@@ -1,6 +1,7 @@
 import React, { ReactNode } from 'react';
-import { makeStyles, Select } from '@material-ui/core';
+import { Select } from '@material-ui/core';
 import { Label } from './Label';
+import classes from './StyledSelect.module.css';
 
 export interface IStyledSelectProps {
   id: string;
@@ -12,26 +13,7 @@ export interface IStyledSelectProps {
   children: ReactNode;
 }
 
-const useStyles = makeStyles({
-  root: {
-    background: 'white',
-    color: 'black',
-    border: '2px solid #008fd6',
-    boxSizing: 'border-box',
-    fontSize: '1.6rem',
-    paddingLeft: 12,
-    marginTop: 4,
-    '&.Mui-disabled': {
-      background: '#f4f4f4',
-      color: 'black',
-      border: '1px solid #6A6A6A',
-      boxSizing: 'border-box',
-    },
-  },
-});
-
 export function StyledSelect({ id, label, value, onChange, readOnly, fullWidth, children }: IStyledSelectProps) {
-  const classes = useStyles();
 
   const onValueChange = (event: any) => {
     onChange(event.target.value);

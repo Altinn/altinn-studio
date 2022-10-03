@@ -1,10 +1,10 @@
 import React, { ChangeEvent, MouseEvent, SyntheticEvent, useEffect, useState } from 'react';
-import { makeStyles } from '@material-ui/core/styles';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppBar, Button, Typography } from '@material-ui/core';
 import { AltinnMenu, AltinnMenuItem, AltinnSpinner } from 'app-shared/components';
 import type { IJsonSchema, ILanguage, ISchemaState } from '../types';
+import classes from './SchemaEditor.module.css';
 
 import {
   addRootItem,
@@ -32,69 +32,6 @@ import {
   UiSchemaNode,
 } from '@altinn/schema-model';
 
-const useStyles = makeStyles({
-  root: {
-    height: 'calc(100vh - 111px)',
-    width: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-    overflow: 'hidden',
-    '& > main': {
-      display: 'flex',
-      flexDirection: 'row',
-      flexGrow: 1,
-      alignItems: 'stretch',
-      minHeight: 0,
-    },
-  },
-  editor: {
-    backgroundColor: 'white',
-    minHeight: 200,
-    flexGrow: 1,
-    height: '100%',
-    display: 'flex',
-    flexDirection: 'column',
-  },
-  appBar: {
-    borderBottom: '1px solid #C9C9C9',
-    boxShadow: 'none',
-    backgroundColor: '#fff',
-    color: '#000',
-    paddingLeft: 12,
-    '& .Mui-Selected': {
-      color: '#6A6A6A',
-    },
-    '& .MuiTabs-indicator': {
-      backgroundColor: '#006BD8',
-    },
-  },
-  tabPanel: {
-    overflowY: 'scroll',
-    flexGrow: 1,
-  },
-  inspector: {
-    overflowX: 'clip',
-    overflowY: 'auto',
-    backgroundColor: '#F7F7F7',
-  },
-  addButton: {
-    border: '1px dashed rgba(0, 0, 0, 1)',
-    borderRadius: '0px',
-    '&:hover': {
-      border: '1px solid rgba(0, 0, 0, 1)',
-    },
-    textTransform: 'none',
-    color: 'black',
-    '& > i': {
-      fontSize: '24px',
-    },
-    marginBottom: '12px',
-  },
-  startIcon: {
-    marginRight: '0px',
-  },
-});
-
 export interface IEditorProps {
   Toolbar: JSX.Element;
   LandingPagePanel: JSX.Element;
@@ -118,7 +55,6 @@ export const SchemaEditor = ({
   editMode,
   toggleEditMode,
 }: IEditorProps) => {
-  const classes = useStyles();
   const dispatch = useDispatch();
 
   const jsonSchema = useSelector((state: ISchemaState) => state.schema);
@@ -230,7 +166,7 @@ export const SchemaEditor = ({
         toggleEditMode={name ? toggleEditMode : undefined}
         editMode={editMode}
       />
-      <main>
+      <main className={classes.main}>
         {LandingPagePanel}
         {name && schema ? (
           <div data-testid='schema-editor' id='schema-editor' className={classes.editor}>

@@ -2,9 +2,9 @@ import React from 'react';
 import { TreeView } from '@material-ui/lab';
 import { ArrowDropDown, ArrowRight } from '@material-ui/icons';
 import { SchemaItem } from './SchemaItem';
-import { makeStyles } from '@material-ui/core/styles';
 import { UiSchemaNode } from '@altinn/schema-model';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
+import classes from './SchemaTreeView.module.css';
 
 export interface SchemaTreeViewProps {
   editMode: boolean;
@@ -14,12 +14,7 @@ export interface SchemaTreeViewProps {
   onNodeToggle: any;
   selectedPointer: string;
 }
-const useStyles = makeStyles({
-  treeView: {
-    flexGrow: 1,
-    overflow: 'auto',
-  },
-});
+
 export const SchemaTreeView = ({
   items,
   editMode,
@@ -28,7 +23,6 @@ export const SchemaTreeView = ({
   selectedPointer,
   onNodeToggle,
 }: SchemaTreeViewProps) => {
-  const classes = useStyles();
   return (
     <TreeView
       className={classes.treeView}

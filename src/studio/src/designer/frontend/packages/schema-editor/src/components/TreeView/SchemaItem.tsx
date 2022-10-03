@@ -1,5 +1,4 @@
 import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
 import TreeItem from '@material-ui/lab/TreeItem';
 import { useDispatch, useSelector } from 'react-redux';
 import {
@@ -17,6 +16,8 @@ import type { UiSchemaNode } from '@altinn/schema-model';
 import { CombinationKind, FieldType, getChildNodesByNode, getNodeDisplayName, ObjectKind } from '@altinn/schema-model';
 import type { ISchemaState } from '../../types';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
+import classes from './SchemaItem.module.css';
+import classNames from "classnames";
 
 type SchemaItemProps = {
   item: UiSchemaNode;
@@ -30,32 +31,10 @@ SchemaItem.defaultProps = {
   isPropertiesView: false,
 };
 
-const useStyles = (isRef: boolean) =>
-  makeStyles({
-    referenceLabel: {
-      fontSize: 10,
-      marginLeft: 8,
-      color: 'gray',
-    },
-    treeItem: {
-      marginLeft: 8,
-      '&.Mui-selected': {
-        background: '#E3F7FF',
-        border: isRef ? '1px dashed #006BD8' : '1px solid #006BD8',
-        boxSizing: 'border-box',
-        borderRadius: '5px',
-      },
-      '&.Mui-selected > .MuiTreeItem-content .MuiTreeItem-label, .MuiTreeItem-root.Mui-selected:focus > .MuiTreeItem-content .MuiTreeItem-label':
-        {
-          backgroundColor: 'transparent',
-        },
-    },
-  });
-
 export function SchemaItem({ item, isPropertiesView, editMode, translate }: SchemaItemProps) {
   const dispatch = useDispatch();
   const keyPrefix = isPropertiesView ? 'properties' : 'definitions';
-  const classes = useStyles(item.objectKind !== ObjectKind.Reference)();
+  const isRef = item.objectKind == ObjectKind.Reference;
 
   const onItemClick = (e: any, schemaItem: UiSchemaNode) => {
     e.preventDefault();
@@ -98,7 +77,7 @@ export function SchemaItem({ item, isPropertiesView, editMode, translate }: Sche
   return (
     <TreeItem
       nodeId={getDomFriendlyID(item.pointer)}
-      classes={{ root: classes.treeItem }}
+      classes={{ root: classNames(classes.treeItem, isRef && classes.isRef) }}
       label={
         <SchemaItemLabel
           editMode={editMode}
@@ -107,7 +86,7 @@ export function SchemaItem({ item, isPropertiesView, editMode, translate }: Sche
           label={
             <>
               <span>{getNodeDisplayName(item)}</span>
-              {item.objectKind === ObjectKind.Reference && <span className={classes.referenceLabel}>{item.ref}</span>}
+              {isRef && <span className={classes.referenceLabel}>{item.ref}</span>}
             </>
           }
           translate={translate}

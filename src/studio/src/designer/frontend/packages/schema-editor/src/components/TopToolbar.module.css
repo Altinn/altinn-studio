@@ -1,0 +1,29 @@
+.toolbar {
+  background: #fff;
+  border-bottom: 1px solid #c9c9c9;
+  display: flex;
+  padding: 8px;
+}
+
+.toolbar > *, .toolbar > :global(.MuiGrid-item) {
+  margin-right: 1rem;
+}
+
+.toolbar button {
+  color: #0062ba;
+  transition: none;
+}
+
+.toolbar button[class*="selected"] {
+  color: #fff;
+}
+
+.toolbar button[class*="toggle"] {
+  font-size: 1em;
+  padding-top: 4px;
+}
+
+.saveButton:global(.MuiButton-root) {
+  margin-left: auto;
+  margin-right: 10px;
+}

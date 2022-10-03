@@ -1,7 +1,8 @@
 import React from 'react';
-import { Divider, IconButton, makeStyles } from '@material-ui/core';
+import { Divider, IconButton } from '@material-ui/core';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
 import { ObjectKind } from '@altinn/schema-model';
+import classes from './SchemaItemLabel.module.css';
 
 export interface SchemaItemLabelProps {
   icon: string;
@@ -18,36 +19,8 @@ export interface SchemaItemLabelProps {
   onGoToType?: () => void;
 }
 
-const useStyles = makeStyles({
-  contextButton: {
-    borderRadius: 60,
-    margin: 0,
-    padding: 10,
-    display: 'none',
-    '.MuiTreeItem-root :hover > &': {
-      display: 'block',
-    },
-  },
-  propertiesLabel: {
-    display: 'flex',
-    alignItems: 'center',
-    padding: 8,
-  },
-  label: {
-    flexGrow: 1,
-  },
-  iconContainer: {
-    background: '#022f51',
-    textAlign: 'center',
-    padding: '5px 0px 5px 0px',
-    marginRight: 4,
-    fontSize: '10px',
-  },
-});
-
 export const SchemaItemLabel = ({ translate, ...props }: SchemaItemLabelProps) => {
   const [contextAnchor, setContextAnchor] = React.useState<any>(null);
-  const classes = useStyles();
   const handleContextMenuClick = (e: React.SyntheticEvent) => {
     e.stopPropagation();
     setContextAnchor(e.currentTarget);

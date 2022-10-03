@@ -1,34 +1,9 @@
 import React from 'react';
-import { makeStyles } from '@material-ui/core';
 import { ToggleButton, ToggleButtonGroup } from '@altinn/altinn-design-system';
 import type { ILanguage } from '../types';
 import { getTranslation } from '../utils/language';
 import { TopToolbarButton } from './TopToolbarButton';
-
-const useStyles = makeStyles({
-  toolbar: {
-    display: 'flex',
-    background: '#fff',
-    padding: 8,
-    borderBottom: '1px solid #C9C9C9',
-    '& > *': { marginRight: '1rem' },
-    '& button': {
-      color: '#0062BA',
-      transition: 'none',
-    },
-    '& button[class*="selected"]': {
-      color: '#FFF',
-    },
-    '& button[class*="toggle"]': {
-      fontSize: '1em',
-      paddingTop: 4,
-    },
-  },
-  saveButton: {
-    marginLeft: 'auto',
-    marginRight: 10,
-  },
-});
+import classes from './TopToolbar.module.css';
 
 interface TopToolbarProps {
   Toolbar: JSX.Element;
@@ -39,7 +14,6 @@ interface TopToolbarProps {
 }
 
 export function TopToolbar({ editMode, Toolbar, saveAction, toggleEditMode, language }: TopToolbarProps) {
-  const classes = useStyles();
   const t = (key: string) => getTranslation(key, language);
 
   return (
