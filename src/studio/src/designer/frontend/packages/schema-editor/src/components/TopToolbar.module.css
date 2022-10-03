@@ -5,7 +5,7 @@
   padding: 8px;
 }
 
-.toolbar > * {
+.toolbar > *, .toolbar > :global(.MuiGrid-item) {
   margin-right: 1rem;
 }
 
