@@ -1,5 +1,5 @@
 // Changes to the uiNodeMap
-import { ObjectKind, ROOT_POINTER, UiSchemaNode, UiSchemaNodes } from '../types';
+import { ObjectKind, UiSchemaNode, UiSchemaNodes } from '../types';
 import { getNodeIndexByPointer } from '../selectors';
 import { getParentNodeByPointer, splitPointerInBaseAndName } from '../utils';
 
@@ -23,11 +23,11 @@ export const removeNodeByPointer = (uiNodeMap: UiSchemaNodes, pointer: string, j
   );
 
   // dealing with combinations, updating their children is a little more tricky.
-  if (parentNode.objectKind === ObjectKind.Combination && parentNode.pointer !== ROOT_POINTER) {
+  if (parentNode.objectKind === ObjectKind.Combination) {
     parentNode.children.forEach((oldPointerBase, index) => {
-      const { base } = splitPointerInBaseAndName(oldPointerBase);
+      const { base, name } = splitPointerInBaseAndName(oldPointerBase);
       const newPointerBase = [base, index].join('/');
-      if (oldPointerBase !== newPointerBase) {
+      if (oldPointerBase !== newPointerBase && !isNaN(Number(name))) {
         mutatedUiNodeMap.forEach((uiNode) => {
           uiNode.pointer = uiNode.pointer.replace(oldPointerBase, newPointerBase);
           uiNode.children = uiNode.children.map((p) => p.replace(oldPointerBase, newPointerBase));
