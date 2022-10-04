@@ -19,7 +19,7 @@ export interface IControlledRadioGroupProps
   extends IRadioButtonsContainerProps {
   fetchingOptions: boolean;
   selected: string;
-  handleBlur: () => void;
+  handleBlur: (event: React.FocusEvent<HTMLInputElement>) => void;
   handleChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
   calculatedOptions: IOption[];
 }
@@ -65,6 +65,7 @@ export const ControlledRadioGroup = ({
           {calculatedOptions.map((option: any, index: number) => (
             <React.Fragment key={index}>
               <FormControlLabel
+                tabIndex={-1}
                 control={<StyledRadio />}
                 label={getTextResource(option.label)}
                 value={option.value}

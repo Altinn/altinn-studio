@@ -9,6 +9,7 @@ import type { CheckboxProps } from '@material-ui/core/Checkbox';
 
 import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { useGetOptions } from 'src/components/hooks';
+import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
 import { shouldUseRowLayout } from 'src/utils/layout';
 import { getOptionLookupKey } from 'src/utils/options';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
@@ -105,9 +106,14 @@ export const CheckboxContainerComponent = ({
         ?.loading,
   );
 
-  const selected = formData?.simpleBinding
-    ? formData.simpleBinding.split(',')
-    : defaultSelectedOptions;
+  const { value, setValue, saveValue } = useDelayedSavedState(
+    handleDataChange,
+    formData?.simpleBinding ?? '',
+    200,
+  );
+
+  const selected =
+    value && value.length > 0 ? value.split(',') : defaultSelectedOptions;
 
   React.useEffect(() => {
     const shouldSelectOptionAutomatically =
@@ -118,37 +124,39 @@ export const CheckboxContainerComponent = ({
       hasSelectedInitial.current === false;
 
     if (shouldSelectOptionAutomatically) {
-      handleDataChange(calculatedOptions[preselectedOptionIndex].value);
+      setValue(calculatedOptions[preselectedOptionIndex].value, true);
       hasSelectedInitial.current = true;
     }
   }, [
     formData?.simpleBinding,
     calculatedOptions,
-    handleDataChange,
+    setValue,
     preselectedOptionIndex,
   ]);
 
   React.useEffect(() => {
     if (optionsHasChanged && formData.simpleBinding) {
       // New options have been loaded, we have to reset form data.
-      // We also skip any required validations
-      handleDataChange(undefined, 'simpleBinding', true);
+      setValue(undefined, true);
     }
-  }, [handleDataChange, optionsHasChanged, formData]);
+  }, [setValue, optionsHasChanged, formData]);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const clickedItem = event.target.name;
     const isSelected = isOptionSelected(clickedItem);
 
     if (isSelected) {
-      handleDataChange(selected.filter((x) => x !== clickedItem).join(','));
+      setValue(selected.filter((x) => x !== clickedItem).join(','));
     } else {
-      handleDataChange(selected.concat(clickedItem).join(','));
+      setValue(selected.concat(clickedItem).join(','));
     }
   };
 
-  const handleBlur = () => {
-    handleDataChange(formData?.simpleBinding ?? '');
+  const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+    // Only set value instantly if moving focus outside of the checkbox group
+    if (!event.currentTarget.contains(event.relatedTarget)) {
+      saveValue();
+    }
   };
 
   const isOptionSelected = (option: string) => selected.includes(option);
@@ -173,6 +181,7 @@ export const CheckboxContainerComponent = ({
         })}
         id={id}
         key={`checkboxes_group_${id}`}
+        onBlur={handleBlur}
       >
         {fetchingOptions ? (
           <AltinnSpinner />
@@ -181,13 +190,13 @@ export const CheckboxContainerComponent = ({
             {calculatedOptions.map((option, index) => (
               <React.Fragment key={option.value}>
                 <FormControlLabel
+                  tabIndex={-1}
                   key={option.value}
                   classes={{ root: cn(classes.margin) }}
                   control={
                     <StyledCheckbox
                       checked={isOptionSelected(option.value)}
                       onChange={handleChange}
-                      onBlur={handleBlur}
                       value={index}
                       key={option.value}
                       name={option.value}

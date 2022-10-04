@@ -1,6 +1,7 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
+import { mockDelayBeforeSaving } from 'src/components/hooks/useDelayedSavedState';
 import {
   createFormDataUpdateAction,
   createFormError,
@@ -135,29 +136,45 @@ describe('GroupContainer', () => {
       const btn2 = within(rad2).getByRole('radio', {
         name: /Dårlig/i,
       });
+
+      mockDelayBeforeSaving(25);
+
       mockStoreDispatch.mockClear();
       expect(btn1).not.toBeChecked();
       await userEvent.click(btn1);
+      expect(mockStoreDispatch).not.toHaveBeenCalled();
+      await new Promise((r) => setTimeout(r, 25));
       expect(mockStoreDispatch).toHaveBeenCalledWith(
         createFormDataUpdateAction(0, '1'),
       );
+
       mockStoreDispatch.mockClear();
       expect(btn2).not.toBeChecked();
       await userEvent.click(btn2);
-
+      expect(mockStoreDispatch).not.toHaveBeenCalledTimes(2);
+      await new Promise((r) => setTimeout(r, 25));
       expect(mockStoreDispatch).toHaveBeenCalledWith(
         createFormDataUpdateAction(1, '3'),
       );
+
+      mockDelayBeforeSaving(undefined);
     });
 
     it('should render standard view and use keyboard to navigate', async () => {
       const { mockStoreDispatch } = render();
       validateTableLayout(defaultMockQuestions);
+
+      mockDelayBeforeSaving(25);
+
       await userEvent.tab();
       await userEvent.keyboard('[Space]');
+      expect(mockStoreDispatch).not.toHaveBeenCalled();
+      await new Promise((r) => setTimeout(r, 25));
       expect(mockStoreDispatch).toHaveBeenCalledWith(
         createFormDataUpdateAction(0, '1'),
       );
+
+      mockDelayBeforeSaving(undefined);
     });
 
     it('should support nested binding for question text in data model', async () => {
@@ -229,8 +246,12 @@ describe('GroupContainer', () => {
         name: /Bra/i,
       });
 
+      mockDelayBeforeSaving(25);
+
       expect(btn1).not.toBeChecked();
       await userEvent.click(btn1);
+      expect(mockStoreDispatch).not.toHaveBeenCalled();
+      await new Promise((r) => setTimeout(r, 25));
       expect(mockStoreDispatch).toHaveBeenCalledWith(
         createFormDataUpdateAction(0, '1'),
       );
@@ -246,9 +267,13 @@ describe('GroupContainer', () => {
 
       expect(btn2).not.toBeChecked();
       await userEvent.click(btn2);
+      expect(mockStoreDispatch).not.toHaveBeenCalledTimes(2);
+      await new Promise((r) => setTimeout(r, 25));
       expect(mockStoreDispatch).toHaveBeenCalledWith(
         createFormDataUpdateAction(1, '3'),
       );
+
+      mockDelayBeforeSaving(undefined);
     });
 
     it('should render mobile view with selected values', () => {

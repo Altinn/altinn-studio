@@ -2,6 +2,7 @@ import React from 'react';
 
 import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { useGetOptions } from 'src/components/hooks';
+import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
 import { getOptionLookupKey } from 'src/utils/options';
 import type { IComponentProps } from 'src/components';
 import type { ILayoutCompDropdown } from 'src/features/form/layout';
@@ -32,6 +33,12 @@ function DropdownComponent({
   const hasSelectedInitial = React.useRef(false);
   const optionsHasChanged = useHasChangedIgnoreUndefined(options);
 
+  const { value, setValue, saveValue } = useDelayedSavedState(
+    handleDataChange,
+    formData?.simpleBinding,
+    200,
+  );
+
   React.useEffect(() => {
     const shouldSelectOptionAutomatically =
       !formData?.simpleBinding &&
@@ -41,25 +48,21 @@ function DropdownComponent({
       hasSelectedInitial.current === false;
 
     if (shouldSelectOptionAutomatically) {
-      handleDataChange(options[preselectedOptionIndex].value);
+      setValue(options[preselectedOptionIndex].value, true);
       hasSelectedInitial.current = true;
     }
-  }, [options, formData, preselectedOptionIndex, handleDataChange]);
+  }, [options, formData, preselectedOptionIndex, setValue]);
 
   React.useEffect(() => {
     if (optionsHasChanged && formData.simpleBinding) {
       // New options have been loaded, we have to reset form data.
       // We also skip any required validations
-      handleDataChange(undefined, 'simpleBinding', true);
+      setValue(undefined, true);
     }
-  }, [handleDataChange, optionsHasChanged, formData]);
+  }, [optionsHasChanged, formData, setValue]);
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    handleDataChange(event.target.value);
-  };
-
-  const handleBlur = (event: React.FocusEvent<HTMLSelectElement>) => {
-    handleDataChange(event.target.value);
+    setValue(event.target.value);
   };
 
   return (
@@ -70,8 +73,8 @@ function DropdownComponent({
         <Select
           id={id}
           onChange={handleChange}
-          onBlur={handleBlur}
-          value={formData?.simpleBinding}
+          onBlur={saveValue}
+          value={value}
           disabled={readOnly}
           error={!isValid}
           options={

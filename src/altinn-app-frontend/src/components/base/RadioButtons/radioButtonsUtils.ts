@@ -4,6 +4,7 @@ import { makeStyles } from '@material-ui/core/styles';
 
 import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { useGetOptions } from 'src/components/hooks';
+import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
 import { getOptionLookupKey } from 'src/utils/options';
 import type { IRadioButtonsContainerProps } from 'src/components/base/RadioButtons/RadioButtonsContainerComponent';
 
@@ -62,7 +63,6 @@ export const useRadioButtons = ({
   mapping,
   source,
 }: IRadioButtonsContainerProps) => {
-  const selected = formData?.simpleBinding ?? '';
   const apiOptions = useGetOptions({ optionsId, mapping, source });
   const calculatedOptions = useMemo(
     () => apiOptions || options || [],
@@ -74,6 +74,15 @@ export const useRadioButtons = ({
       state.optionState.options[getOptionLookupKey({ id: optionsId, mapping })]
         ?.loading,
   );
+  const {
+    value: selected,
+    setValue,
+    saveValue,
+  } = useDelayedSavedState(
+    handleDataChange,
+    formData?.simpleBinding ?? '',
+    200,
+  );
 
   React.useEffect(() => {
     const shouldPreselectItem =
@@ -83,29 +92,31 @@ export const useRadioButtons = ({
       preselectedOptionIndex < calculatedOptions.length;
     if (shouldPreselectItem) {
       const preSelectedValue = calculatedOptions[preselectedOptionIndex].value;
-      handleDataChange(preSelectedValue);
+      setValue(preSelectedValue, true);
     }
   }, [
     formData?.simpleBinding,
     calculatedOptions,
-    handleDataChange,
+    setValue,
     preselectedOptionIndex,
   ]);
 
   React.useEffect(() => {
     if (optionsHasChanged && formData.simpleBinding) {
       // New options have been loaded, we have to reset form data.
-      // We also skip any required validations
-      handleDataChange(undefined, 'simpleBinding', true);
+      setValue(undefined, true);
     }
-  }, [handleDataChange, optionsHasChanged, formData]);
+  }, [setValue, optionsHasChanged, formData]);
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    handleDataChange(event.target.value);
+    setValue(event.target.value);
   };
 
-  const handleBlur = () => {
-    handleDataChange(formData?.simpleBinding ?? '');
+  const handleBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+    // Only set value instantly if moving focus outside of the radio group
+    if (!event.currentTarget.contains(event.relatedTarget)) {
+      saveValue();
+    }
   };
   return {
     handleChange,

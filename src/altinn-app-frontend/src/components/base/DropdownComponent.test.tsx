@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { defaultHandleDataChangeProps } from '__mocks__/constants';
 import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -7,6 +8,7 @@ import { renderWithProviders } from 'testUtils';
 import type { PreloadedState } from 'redux';
 
 import DropdownComponent from 'src/components/base/DropdownComponent';
+import { mockDelayBeforeSaving } from 'src/components/hooks/useDelayedSavedState';
 import type { IComponentProps } from 'src/components';
 import type { IDropdownProps } from 'src/components/base/DropdownComponent';
 import type { RootState } from 'src/store';
@@ -19,7 +21,6 @@ const render = (
     id: 'component-id',
     optionsId: 'countries',
     formData: {},
-    preselectedOptionIndex: 1,
     handleDataChange: jest.fn(),
     getTextResourceAsString: (value) => value,
     readOnly: false,
@@ -75,11 +76,22 @@ describe('DropdownComponent', () => {
       handleDataChange,
     });
 
+    mockDelayBeforeSaving(25);
+
     await userEvent.selectOptions(screen.getByRole('combobox'), [
       screen.getByText('Sweden'),
     ]);
 
-    expect(handleDataChange).toHaveBeenCalledWith('sweden');
+    expect(handleDataChange).not.toHaveBeenCalled();
+
+    await new Promise((r) => setTimeout(r, 25));
+
+    expect(handleDataChange).toHaveBeenCalledWith(
+      'sweden',
+      ...defaultHandleDataChangeProps,
+    );
+
+    mockDelayBeforeSaving(undefined);
   });
 
   it('should show as disabled when readOnly is true', () => {
@@ -109,24 +121,36 @@ describe('DropdownComponent', () => {
       handleDataChange,
     });
 
-    expect(handleDataChange).toHaveBeenCalledWith('denmark');
+    expect(handleDataChange).toHaveBeenCalledWith(
+      'denmark',
+      ...defaultHandleDataChangeProps,
+    );
     expect(handleDataChange).toHaveBeenCalledTimes(1);
   });
 
-  it('should trigger handleDataChange on blur', async () => {
+  it('should trigger handleDataChange instantly on blur', async () => {
     const handleDataChange = jest.fn();
     render({
       preselectedOptionIndex: 2,
       handleDataChange,
     });
 
-    expect(handleDataChange).toHaveBeenCalledWith('denmark');
+    expect(handleDataChange).toHaveBeenCalledWith(
+      'denmark',
+      ...defaultHandleDataChangeProps,
+    );
     const select = screen.getByRole('combobox');
 
     await userEvent.click(select);
+
+    expect(handleDataChange).toHaveBeenCalledTimes(1);
+
     fireEvent.blur(select);
 
-    expect(handleDataChange).toHaveBeenCalledWith('denmark');
+    expect(handleDataChange).toHaveBeenCalledWith(
+      'denmark',
+      ...defaultHandleDataChangeProps,
+    );
     expect(handleDataChange).toHaveBeenCalledTimes(2);
   });
 
@@ -157,16 +181,35 @@ describe('DropdownComponent', () => {
       },
     });
 
+    mockDelayBeforeSaving(25);
+
     await userEvent.selectOptions(screen.getByRole('combobox'), [
       screen.getByText('The value from the group is: Label for first'),
     ]);
 
-    expect(handleDataChange).toHaveBeenCalledWith('Value for first');
+    expect(handleDataChange).not.toHaveBeenCalled();
+
+    await new Promise((r) => setTimeout(r, 25));
+
+    expect(handleDataChange).toHaveBeenCalledWith(
+      'Value for first',
+      ...defaultHandleDataChangeProps,
+    );
 
     await userEvent.selectOptions(screen.getByRole('combobox'), [
       screen.getByText('The value from the group is: Label for second'),
     ]);
 
-    expect(handleDataChange).toHaveBeenCalledWith('Value for second');
+    expect(handleDataChange).toHaveBeenCalledTimes(1);
+
+    await new Promise((r) => setTimeout(r, 25));
+
+    expect(handleDataChange).toHaveBeenCalledWith(
+      'Value for second',
+      ...defaultHandleDataChangeProps,
+    );
+    expect(handleDataChange).toHaveBeenCalledTimes(2);
+
+    mockDelayBeforeSaving(undefined);
   });
 });

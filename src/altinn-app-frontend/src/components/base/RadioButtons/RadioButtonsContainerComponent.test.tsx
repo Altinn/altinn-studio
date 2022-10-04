@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { defaultHandleDataChangeProps } from '__mocks__/constants';
 import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -7,6 +8,7 @@ import { renderWithProviders } from 'testUtils';
 import type { PreloadedState } from 'redux';
 
 import { RadioButtonContainerComponent } from 'src/components/base/RadioButtons/RadioButtonsContainerComponent';
+import { mockDelayBeforeSaving } from 'src/components/hooks/useDelayedSavedState';
 import { LayoutStyle } from 'src/types';
 import type { IComponentProps } from 'src/components';
 import type { IRadioButtonsContainerProps } from 'src/components/base/RadioButtons/RadioButtonsContainerComponent';
@@ -94,7 +96,10 @@ describe('RadioButtonsContainerComponent', () => {
       },
     });
 
-    expect(handleChange).toHaveBeenCalledWith('sweden');
+    expect(handleChange).toHaveBeenCalledWith(
+      'sweden',
+      ...defaultHandleDataChangeProps,
+    );
   });
 
   it('should not call handleDataChange when simpleBinding is set and preselectedOptionIndex', () => {
@@ -138,12 +143,22 @@ describe('RadioButtonsContainerComponent', () => {
     expect(getRadio({ name: 'Sweden' })).toBeInTheDocument();
     expect(getRadio({ name: 'Denmark' })).toBeInTheDocument();
 
+    mockDelayBeforeSaving(25);
     await userEvent.click(getRadio({ name: 'Denmark' }));
 
-    expect(handleChange).toHaveBeenCalledWith('denmark');
+    expect(handleChange).not.toHaveBeenCalled();
+
+    await new Promise((r) => setTimeout(r, 25));
+
+    expect(handleChange).toHaveBeenCalledWith(
+      'denmark',
+      ...defaultHandleDataChangeProps,
+    );
+
+    mockDelayBeforeSaving(undefined);
   });
 
-  it('should call handleDataChange on blur with already selected value', () => {
+  it('should call handleDataChange instantly on blur when the value has changed', async () => {
     const handleChange = jest.fn();
     render({
       handleDataChange: handleChange,
@@ -152,15 +167,23 @@ describe('RadioButtonsContainerComponent', () => {
       },
     });
 
-    expect(getRadio({ name: 'Denmark' })).toBeInTheDocument();
+    const denmark = getRadio({ name: 'Denmark' });
 
-    fireEvent.focus(getRadio({ name: 'Denmark' }));
-    fireEvent.blur(getRadio({ name: 'Denmark' }));
+    expect(denmark).toBeInTheDocument();
 
-    expect(handleChange).toHaveBeenCalledWith('norway');
+    await userEvent.click(denmark);
+
+    expect(handleChange).not.toHaveBeenCalled();
+
+    fireEvent.blur(denmark);
+
+    expect(handleChange).toHaveBeenCalledWith(
+      'denmark',
+      ...defaultHandleDataChangeProps,
+    );
   });
 
-  it('should call handleDataChange on blur with empty value when no item is selected', () => {
+  it('should not call handleDataChange on blur when the value is unchanged', () => {
     const handleChange = jest.fn();
     render({
       handleDataChange: handleChange,
@@ -171,7 +194,7 @@ describe('RadioButtonsContainerComponent', () => {
     fireEvent.focus(getRadio({ name: 'Denmark' }));
     fireEvent.blur(getRadio({ name: 'Denmark' }));
 
-    expect(handleChange).toHaveBeenCalledWith('');
+    expect(handleChange).not.toHaveBeenCalled();
   });
 
   it('should show spinner while waiting for options', () => {
@@ -283,10 +306,20 @@ describe('RadioButtonsContainerComponent', () => {
       getRadio({ name: 'The value from the group is: Label for second' }),
     ).toBeInTheDocument();
 
+    mockDelayBeforeSaving(25);
     await userEvent.click(
       getRadio({ name: 'The value from the group is: Label for first' }),
     );
 
-    expect(handleDataChange).toHaveBeenCalledWith('Value for first');
+    expect(handleDataChange).not.toHaveBeenCalled();
+
+    await new Promise((r) => setTimeout(r, 25));
+
+    expect(handleDataChange).toHaveBeenCalledWith(
+      'Value for first',
+      ...defaultHandleDataChangeProps,
+    );
+
+    mockDelayBeforeSaving(undefined);
   });
 });
