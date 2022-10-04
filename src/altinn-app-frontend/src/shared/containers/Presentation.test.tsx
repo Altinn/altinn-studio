@@ -72,7 +72,7 @@ describe('Presentation', () => {
   });
 
   it('should change window.location.href to default messagebox url if query parameter returnUrl is not valid', async () => {
-    const origin = 'https://altinn3local.no';
+    const origin = 'https://local.altinn.cloud';
     const returnUrl = 'https://altinn.cloud.no';
     (axios.get as jest.Mock).mockRejectedValue({
       data: 'Error',
@@ -106,7 +106,7 @@ describe('Presentation', () => {
   });
 
   it('should change window.location.href to default messagebox url if query parameter returnUrl is not found', async () => {
-    const origin = 'https://altinn3local.no';
+    const origin = 'https://local.altinn.cloud';
     Object.defineProperty(window, 'location', {
       value: {
         ...window,

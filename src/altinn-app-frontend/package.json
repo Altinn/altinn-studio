@@ -128,7 +128,7 @@
       "src/**/*.{ts,tsx}"
     ],
     "testEnvironmentOptions": {
-      "url": "https://altinn3local.no/ttd/test"
+      "url": "https://local.altinn.cloud/ttd/test"
     },
     "testEnvironment": "jsdom",
     "transformIgnorePatterns": [

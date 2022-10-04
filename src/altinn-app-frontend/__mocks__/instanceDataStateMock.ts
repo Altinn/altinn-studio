@@ -39,9 +39,9 @@ export function getInstanceDataStateMock(
           blobStoragePath:
             'mockOrg/mockApp/b174e1f8-135c-4419-bd1c-fd171a0af1fe/data/917e7e06-2665-4307-8c05-b0accd8964c6',
           selfLinks: {
-            apps: 'https://altinn3local.no/mockOrg/mockApp/instances/501337/b174e1f8-135c-4419-bd1c-fd171a0af1fe/data/917e7e06-2665-4307-8c05-b0accd8964c6',
+            apps: 'https://local.altinn.cloud/mockOrg/mockApp/instances/501337/b174e1f8-135c-4419-bd1c-fd171a0af1fe/data/917e7e06-2665-4307-8c05-b0accd8964c6',
             platform:
-              'https://platform.altinn3local.no/storage/api/v1/instances/501337/b174e1f8-135c-4419-bd1c-fd171a0af1fe/data/917e7e06-2665-4307-8c05-b0accd8964c6',
+              'https://platform.local.altinn.cloud/storage/api/v1/instances/501337/b174e1f8-135c-4419-bd1c-fd171a0af1fe/data/917e7e06-2665-4307-8c05-b0accd8964c6',
           },
           size: 3537,
           locked: false,

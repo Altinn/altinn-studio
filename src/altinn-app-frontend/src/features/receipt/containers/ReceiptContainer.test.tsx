@@ -59,8 +59,8 @@ function getMockState({ autoDeleteOnProcessEnd = false, hasPdf = true }) {
           contentType: 'application/pdf',
           blobStoragePath: `ttd/ui-components/${exampleGuid}/data/${exampleDataGuid}`,
           selfLinks: {
-            apps: `https://altinn3local.no/ttd/ui-components/instances/${exampleInstanceId}/data/${exampleDataGuid}`,
-            platform: `https://platform.altinn3local.no/storage/api/v1/instances/${exampleInstanceId}/data/${exampleDataGuid}`,
+            apps: `https://local.altinn.cloud/ttd/ui-components/instances/${exampleInstanceId}/data/${exampleDataGuid}`,
+            platform: `https://platform.local.altinn.cloud/storage/api/v1/instances/${exampleInstanceId}/data/${exampleDataGuid}`,
           },
           size: 15366,
           locked: false,
@@ -121,8 +121,8 @@ function getMockState({ autoDeleteOnProcessEnd = false, hasPdf = true }) {
             contentType: 'application/xml',
             blobStoragePath: `ttd/ui-components/${exampleGuid}/data/${exampleDataGuid2}`,
             selfLinks: {
-              apps: `https://altinn3local.no/ttd/ui-components/instances/${exampleInstanceId}/data/${exampleDataGuid2}`,
-              platform: `https://platform.altinn3local.no/storage/api/v1/instances/${exampleInstanceId}/data/${exampleDataGuid2}`,
+              apps: `https://local.altinn.cloud/ttd/ui-components/instances/${exampleInstanceId}/data/${exampleDataGuid2}`,
+              platform: `https://platform.local.altinn.cloud/storage/api/v1/instances/${exampleInstanceId}/data/${exampleDataGuid2}`,
             },
             size: 1254,
             locked: true,
