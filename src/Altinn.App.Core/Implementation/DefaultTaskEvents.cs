@@ -23,6 +23,7 @@ public class DefaultTaskEvents : ITaskEvents
     private readonly IAppModel _appModel;
     private readonly IInstantiationProcessor _instantiationProcessor;
     private readonly IInstance _instanceClient;
+    private readonly IEnumerable<IProcessTaskStart> _taskStarts;
     private readonly IEnumerable<IProcessTaskEnd> _taskEnds;
     private readonly IEnumerable<IProcessTaskAbandon> _taskAbandons;
     private readonly IPdfService _pdfService;
@@ -40,6 +41,7 @@ public class DefaultTaskEvents : ITaskEvents
         IAppModel appModel,
         IInstantiationProcessor instantiationProcessor,
         IInstance instanceClient,
+        IEnumerable<IProcessTaskStart> taskStarts,
         IEnumerable<IProcessTaskEnd> taskEnds,
         IEnumerable<IProcessTaskAbandon> taskAbandons,
         IPdfService pdfService,
@@ -53,6 +55,7 @@ public class DefaultTaskEvents : ITaskEvents
         _appModel = appModel;
         _instantiationProcessor = instantiationProcessor;
         _instanceClient = instanceClient;
+        _taskStarts = taskStarts;
         _taskEnds = taskEnds;
         _taskAbandons = taskAbandons;
         _pdfService = pdfService;
@@ -64,6 +67,11 @@ public class DefaultTaskEvents : ITaskEvents
     public async Task OnStartProcessTask(string taskId, Instance instance, Dictionary<string, string> prefill)
     {
         _logger.LogInformation($"OnStartProcessTask for {instance.Id}");
+
+        foreach (var taskStart in _taskStarts)
+        {
+            await taskStart.Start(taskId, instance, prefill);
+        }
 
         // If this is a revisit to a previous task we need to unlock data
         foreach (DataType dataType in _appMetadata.DataTypes.Where(dt => dt.TaskId == taskId))

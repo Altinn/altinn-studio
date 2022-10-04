@@ -23,6 +23,7 @@ public class DefaultTaskEventsTests: IDisposable
     private readonly IAppModel _appModel;
     private readonly Mock<IInstantiationProcessor> _instantiationMock;
     private readonly Mock<IInstance> _instanceMock;
+    private IEnumerable<IProcessTaskStart> _taskStarts;
     private IEnumerable<IProcessTaskEnd> _taskEnds;
     private IEnumerable<IProcessTaskAbandon> _taskAbandons;
     private readonly Mock<IPdfService> _pdfMock;
@@ -36,6 +37,7 @@ public class DefaultTaskEventsTests: IDisposable
         _appModel = new DefaultAppModel(NullLogger<DefaultAppModel>.Instance);
         _instantiationMock = new Mock<IInstantiationProcessor>();
         _instanceMock = new Mock<IInstance>();
+        _taskStarts = new List<IProcessTaskStart>();
         _taskEnds = new List<IProcessTaskEnd>();
         _taskAbandons = new List<IProcessTaskAbandon>();
         _pdfMock = new Mock<IPdfService>();
@@ -53,6 +55,7 @@ public class DefaultTaskEventsTests: IDisposable
             _appModel,
             _instantiationMock.Object,
             _instanceMock.Object,
+            _taskStarts,
             _taskEnds,
             _taskAbandons,
             _pdfMock.Object);
@@ -74,6 +77,7 @@ public class DefaultTaskEventsTests: IDisposable
             _appModel,
             _instantiationMock.Object,
             _instanceMock.Object,
+            _taskStarts,
             _taskEnds,
             _taskAbandons,
             _pdfMock.Object);
@@ -101,6 +105,7 @@ public class DefaultTaskEventsTests: IDisposable
             _appModel,
             _instantiationMock.Object,
             _instanceMock.Object,
+            _taskStarts,
             _taskEnds,
             _taskAbandons,
             _pdfMock.Object);
@@ -113,6 +118,44 @@ public class DefaultTaskEventsTests: IDisposable
         endTwo.Verify(a => a.End("Task_1", instance));
         endOne.VerifyNoOtherCalls();
         endTwo.VerifyNoOtherCalls();
+    }
+    
+    [Fact]
+    public async void OnEndProcessTask_calls_all_added_implementations_of_IProcessTaskStart()
+    {
+        _application.DataTypes = new List<DataType>();
+        _resMock.Setup(r => r.GetApplication()).Returns(_application);
+        Mock<IProcessTaskStart> startOne = new Mock<IProcessTaskStart>();
+        Mock<IProcessTaskStart> startTwo = new Mock<IProcessTaskStart>();
+        _taskStarts = new List<IProcessTaskStart>() { startOne.Object, startTwo.Object };
+        DefaultTaskEvents te = new DefaultTaskEvents(
+            _logger,
+            _resMock.Object,
+            _dataMock.Object,
+            _prefillMock.Object,
+            _appModel,
+            _instantiationMock.Object,
+            _instanceMock.Object,
+            _taskStarts,
+            _taskEnds,
+            _taskAbandons,
+            _pdfMock.Object);
+        var instance = new Instance()
+        {
+            Id = "1337/fa0678ad-960d-4307-aba2-ba29c9804c9d"
+        };
+        var prefill = new Dictionary<string, string>()
+        {
+            {
+                "aa",
+                "bb"
+            }
+        };
+        await te.OnStartProcessTask("Task_1", instance, prefill);
+        startOne.Verify(a => a.Start("Task_1", instance, prefill));
+        startTwo.Verify(a => a.Start("Task_1", instance, prefill));
+        startOne.VerifyNoOtherCalls();
+        startTwo.VerifyNoOtherCalls();
     }
 
     public void Dispose()
