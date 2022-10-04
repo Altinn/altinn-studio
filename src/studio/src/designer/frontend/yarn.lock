@@ -12,9 +12,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@altinn/altinn-design-system@npm:0.10.0":
-  version: 0.10.0
-  resolution: "@altinn/altinn-design-system@npm:0.10.0"
+"@altinn/altinn-design-system@npm:0.11.1":
+  version: 0.11.1
+  resolution: "@altinn/altinn-design-system@npm:0.11.1"
   dependencies:
     "@altinn/figma-design-tokens": ^3.1.0
     "@radix-ui/react-popover": ^1.0.0
@@ -25,7 +25,7 @@ __metadata:
   peerDependencies:
     react: ^18.0.0
     react-dom: ^18.0.0
-  checksum: 402606a16d55d5aa27fc7a04c318e735374497fc753bc647bec6682617789fd7d286c001366571014cf5eec6ada91b48db294385f00205e71dffc95ee0abca3e
+  checksum: 3a8f6ab78e1e821d1d6c044389300e058fc236f9de70a517433c48ac937f7d4a646c2c61aee216bf0c5932223150bc4ac3c5be502aae1f70e3f9b5646bd94306
   languageName: node
   linkType: hard
 
@@ -76,7 +76,7 @@ __metadata:
     webpack-cli: 4.10.0
     webpack-dev-server: 4.11.1
   peerDependencies:
-    "@altinn/altinn-design-system": ^0.10.0
+    "@altinn/altinn-design-system": ^0.11.1
     "@altinn/schema-model": "*"
     "@material-ui/core": ^4.12.4
     "@material-ui/icons": ^4.11.3
@@ -8575,7 +8575,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-development@workspace:app-development"
   dependencies:
-    "@altinn/altinn-design-system": 0.10.0
+    "@altinn/altinn-design-system": 0.11.1
     "@babel/core": 7.19.1
     "@babel/polyfill": 7.12.1
     "@babel/preset-env": 7.19.1

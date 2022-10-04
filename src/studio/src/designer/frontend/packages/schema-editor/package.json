@@ -8,7 +8,7 @@
   "jsnext:main": "dist/index.es.js",
   "types": "dist/index.d.ts",
   "peerDependencies": {
-    "@altinn/altinn-design-system": "^0.10.0",
+    "@altinn/altinn-design-system": "^0.11.1",
     "@altinn/schema-model": "*",
     "@material-ui/core": "^4.12.4",
     "@material-ui/icons": "^4.11.3",
