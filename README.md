@@ -4,6 +4,14 @@ React SPA used by applications developed in [altinn-studio](https://github.com/A
 
 ## Prerequisites
 
+### Docker
+If you can't/won't install node on your computer, you can also run frontend in docker using the command.
+
+```bash
+docker compose up
+```
+This is really slow to start and rebuild, but sometimes better than getting someone to install node if you just want to test if a new branch fixes an issue.
+
 ### Node and Corepack
 
 - Latest [Node LTS release](https://nodejs.org/en/)
@@ -24,11 +32,20 @@ git clone https://github.com/Altinn/app-frontend-react
 cd app-frontend-react
 ```
 
+The development server can be started by following these steps:
+
+- Navigate to `./src/altinn-app-frontend`
+- `yarn --immutable` (only needed when `package.json` has changed)
+- `yarn start` (to start the development server)
+
 ### Developing app-frontend
 
-You need an Altinn app to effectively make changes to the app-frontend codebase. To serve the development version of app-frontend code, you need to make some changes to `views/Home/Index.cshtml` in the app repo you are using:
+You need an Altinn app to effectively make changes to the app-frontend codebase.
 
-Change
+Localtest now includes a way to avoid editing your app to use different frontends [see docs](https://docs.altinn.studio/app/testing/local/debug/#using-other-frontend-versions)
+
+
+If you want to test in `tt02` or other places, you need to make some changes to `views/Home/Index.cshtml` in the app repo you are using:
 
 ```html
 <link
@@ -52,11 +69,7 @@ to
 <script src="http://localhost:8080/altinn-app-frontend.js"></script>
 ```
 
-This will make the browser request the files from the local development server. The development server can be started by following these steps:
-
-- Navigate to `./src/altinn-app-frontend`
-- `yarn --immutable` (only needed when `package.json` has changed)
-- `yarn start` (to start the development server)
+This will make the browser request the files from the local development server.
 
 In addition, you need to serve the app from somewhere. There are two ways of doing this, either deploy the application via Altinn Studio, or run the app locally on your machine.
 

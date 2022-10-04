@@ -6,6 +6,7 @@
   "scripts": {
     "start": "cross-env NODE_ENV=development webpack-dev-server --config webpack.config.development.js --mode development --progress",
     "build": "cross-env NODE_ENV=production webpack --config webpack.config.production.js --progress",
+    "docker": "cross-env NODE_ENV=development webpack-dev-server --config webpack.config.docker.js --mode development --progress",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:watchall": "jest --watchAll",
