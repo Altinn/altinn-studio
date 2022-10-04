@@ -97,7 +97,7 @@ test('dispatches correctly when changing restriction value', async () => {
   actions.forEach((action) => {
     expect(action.type).toContain('schemaEditor');
     expect(['minLength', 'maxLength']).toContain(action.payload.key);
-    expect([100, 666]).toContain(action.payload.value);
+    expect(['100', '666']).toContain(action.payload.value);
   });
 });
 

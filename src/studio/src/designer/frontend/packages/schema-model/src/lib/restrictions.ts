@@ -46,3 +46,25 @@ export const findRestrictionsOnNode = (schemaNode: JsonSchemaNode): JsonSchemaNo
   });
   return restrictions;
 };
+
+export const castRestrictionType = (key: string, value: string) => {
+  if (value === '') {
+    return undefined;
+  } else if (
+    [
+      ArrRestrictionKeys.maxItems,
+      ArrRestrictionKeys.minItems,
+      IntRestrictionKeys.maximum,
+      IntRestrictionKeys.minimum,
+      IntRestrictionKeys.multipleOf,
+      StrRestrictionKeys.maxLength,
+      StrRestrictionKeys.minLength,
+    ].includes(key as ArrRestrictionKeys & StrRestrictionKeys & StrRestrictionKeys)
+  ) {
+    return parseInt(value);
+  } else if ([ArrRestrictionKeys.uniqueItems].includes(key as ArrRestrictionKeys)) {
+    return value;
+  } else {
+    return value;
+  }
+};

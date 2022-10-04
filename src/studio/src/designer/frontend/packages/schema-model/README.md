@@ -39,4 +39,13 @@ when restrictions are added or not?
 #### Performance issues on large models
 
 Since we changed from a map to an array to hold the internal model performance is actually an issue.
-We need to create some sort of index to improve this.
+We need to create some sort of index to improve this. This problem will however just hit VERY large models
+with thousands of nodes. Mainly created by converting old SERES models to JSON-schemas without any form for
+simplification.
+
+#### Limit exposed exports from this package
+
+Not a big issue, but at some point we should just expose what is actually used and try to limit this for a cleaner
+surface between these very interconnected models.
+
+

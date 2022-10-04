@@ -13,7 +13,17 @@ import {
 import { SchemaItemLabel } from './SchemaItemLabel';
 import { getIconStr } from './tree-view-helpers';
 import type { UiSchemaNode } from '@altinn/schema-model';
-import { CombinationKind, FieldType, getChildNodesByNode, getNodeDisplayName, ObjectKind } from '@altinn/schema-model';
+import {
+  CombinationKind,
+  FieldType,
+  getChildNodesByNode,
+  getChildNodesByPointer,
+  getNodeDisplayName,
+  getNodeIndexByPointer,
+  Keywords,
+  makePointer,
+  ObjectKind,
+} from '@altinn/schema-model';
 import type { ISchemaState } from '../../types';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 import classes from './SchemaItem.module.css';
@@ -72,8 +82,20 @@ export function SchemaItem({ item, isPropertiesView, editMode, translate }: Sche
       dispatch(navigateToType({ id: item.ref }));
     }
   };
+  const itemsPointer = makePointer(item.pointer, Keywords.Items);
 
-  const childNodes = useSelector((state: ISchemaState) => getChildNodesByNode(state.uiSchema, item));
+  const childNodes = useSelector((state: ISchemaState) => {
+    if (item.objectKind === ObjectKind.Array) {
+      const itemsIndex = getNodeIndexByPointer(state.uiSchema, itemsPointer);
+      return itemsIndex ? getChildNodesByPointer(state.uiSchema, itemsPointer) : [];
+    } else {
+      return getChildNodesByNode(state.uiSchema, item);
+    }
+  });
+  const itemNode = useSelector((state: ISchemaState) => {
+    const itemsIndex = getNodeIndexByPointer(state.uiSchema, itemsPointer);
+    return itemsIndex ? state.uiSchema[itemsIndex] : undefined;
+  });
   return (
     <TreeItem
       nodeId={getDomFriendlyID(item.pointer)}
@@ -87,6 +109,9 @@ export function SchemaItem({ item, isPropertiesView, editMode, translate }: Sche
             <>
               <span>{getNodeDisplayName(item)}</span>
               {isRef && <span className={classes.referenceLabel}>{item.ref}</span>}
+              {item.objectKind === ObjectKind.Array && (
+                <span className={classes.referenceLabel}>{itemNode?.fieldType}</span>
+              )}
             </>
           }
           translate={translate}

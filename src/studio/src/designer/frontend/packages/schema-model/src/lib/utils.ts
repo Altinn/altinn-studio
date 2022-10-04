@@ -85,3 +85,13 @@ export const splitPointerInBaseAndName = (pointer: string) => {
 export const isNumeric = (str: string) => parseInt(str).toString() === str;
 
 export const pointerIsDefinition = (pointer: string) => pointer.startsWith(makePointer(Keywords.Definitions));
+
+export const deepCopy = (value: any) => JSON.parse(JSON.stringify(value));
+
+export const pointerReplacer = (node: UiSchemaNode, oldPointer: string, newPointer: string): UiSchemaNode => {
+  const nodeCopy: UiSchemaNode = deepCopy(node);
+  nodeCopy.pointer = nodeCopy.pointer.replace(oldPointer, newPointer);
+  nodeCopy.ref = nodeCopy.ref !== undefined ? nodeCopy.ref.replace(oldPointer, newPointer) : undefined;
+  nodeCopy.children = nodeCopy.children.map((p) => p.replace(oldPointer, newPointer));
+  return nodeCopy;
+};

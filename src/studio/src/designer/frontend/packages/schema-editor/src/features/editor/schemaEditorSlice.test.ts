@@ -62,7 +62,7 @@ describe('SchemaEditorSlice', () => {
     if (!field) {
       fail('field not found');
     }
-    expect(field).toBe('666');
+    expect(field).toBe(666);
   });
 
   it('handles setPropertyName', () => {
