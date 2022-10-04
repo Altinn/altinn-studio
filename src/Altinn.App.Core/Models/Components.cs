@@ -8,6 +8,6 @@ namespace Altinn.App.Core.Models
         /// <summary>
         /// Exclude from pdf
         /// </summary>
-        public List<string> ExcludeFromPdf { get; set; }
+        public List<string>? ExcludeFromPdf { get; set; }
     }
 }

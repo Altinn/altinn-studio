@@ -38,10 +38,9 @@ namespace Altinn.App.Core.Internal.Language
 
             foreach (var fileInfo in textResourceFilesInDirectory)
             {
-                Models.ApplicationLanguage applicationLanguage;
                 await using (FileStream fileStream = new(fileInfo.FullName, FileMode.Open, FileAccess.Read))
                 {
-                    applicationLanguage = (await JsonSerializer.DeserializeAsync<Models.ApplicationLanguage>(fileStream, options))!;
+                    var applicationLanguage = (await JsonSerializer.DeserializeAsync<Models.ApplicationLanguage>(fileStream, options))!;
                     applicationLanguages.Add(applicationLanguage);
                 }
             }

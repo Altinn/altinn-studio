@@ -8,11 +8,11 @@ namespace Altinn.App.Core.Models
         /// <summary>
         /// Pages
         /// </summary>
-        public Pages Pages { get; set; }
+        public Pages? Pages { get; set; }
 
         /// <summary>
         /// Components
         /// </summary>
-        public Components Components { get; set; }
+        public Components? Components { get; set; }
     }
 }

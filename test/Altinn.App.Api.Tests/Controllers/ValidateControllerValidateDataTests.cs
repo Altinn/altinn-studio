@@ -20,24 +20,21 @@ public class TestScenariosData : IEnumerable<object[]>
     // Add new test data in this list
     private readonly List<ValidateDataTestScenario> _data = new List<ValidateDataTestScenario>
     {
-        new ValidateDataTestScenario
+        new ("returns_NotFound_when_GetInstance_returns_null")
         {
-            TestScenarioName = "returns_NotFound_when_GetInstance_returns_null",
             ReceivedInstance = null,
             ExpectedResult = typeof(NotFoundResult)
         },
-        new ValidateDataTestScenario()
+        new ("thows_ValidationException_when_instance_process_is_null")
         {
-            TestScenarioName = "thows_ValidationException_when_instance_process_is_null",
             ReceivedInstance = new Instance
             {
                 Process = null
             },
             ExpectedExceptionMessage = "Unable to validate instance without a started process."
         },
-        new ValidateDataTestScenario()
+        new ("thows_ValidationException_when_Instance_Process_CurrentTask_is_null")
         {
-            TestScenarioName = "thows_ValidationException_when_Instance_Process_CurrentTask_is_null",
             ReceivedInstance = new Instance
             {
                 Process = new ProcessState
@@ -47,9 +44,8 @@ public class TestScenariosData : IEnumerable<object[]>
             },
             ExpectedExceptionMessage = "Unable to validate instance without a started process."
         },
-        new ValidateDataTestScenario
+        new ("thows_ValidationException_when_Instance_Data_is_empty")
         {
-            TestScenarioName = "thows_ValidationException_when_Instance_Data_is_empty",
             ReceivedInstance = new Instance
             {
                 Process = new ProcessState
@@ -63,9 +59,8 @@ public class TestScenariosData : IEnumerable<object[]>
             },
             ExpectedExceptionMessage = "Unable to validate data element."
         },
-        new ValidateDataTestScenario
+        new ("thows_ValidationException_when_Application_DataTypes_is_empty")
         {
-            TestScenarioName = "thows_ValidationException_when_Application_DataTypes_is_empty",
             DataGuid = Guid.ParseExact("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd", "D"),
             ReceivedInstance = new Instance
             {
@@ -90,9 +85,8 @@ public class TestScenariosData : IEnumerable<object[]>
             },
             ExpectedExceptionMessage = "Unknown element type."
         },
-        new ValidateDataTestScenario
+        new ("adds_ValidationIssue_when_DataType_TaskId_does_not_match_CurrentTask_ElementId")
         {
-            TestScenarioName = "adds_ValidationIssue_when_DataType_TaskId_does_not_match_CurrentTask_ElementId",
             InstanceId = Guid.ParseExact("0fc98a23-fe31-4ef5-8fb9-dd3f479354ef", "D"),
             DataGuid = Guid.ParseExact("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd", "D"),
             ReceivedInstance = new Instance
@@ -140,9 +134,8 @@ public class TestScenariosData : IEnumerable<object[]>
             },
             ExpectedResult = typeof(OkObjectResult)
         },
-        new ValidateDataTestScenario
+        new ("returns_ValidationIssues_from_ValidationService")
         {
-            TestScenarioName = "returns_ValidationIssues_from_ValidationService",
             InstanceId = Guid.ParseExact("0fc98a23-fe31-4ef5-8fb9-dd3f479354ef", "D"),
             DataGuid = Guid.ParseExact("0fc98a23-fe31-4ef5-8fb9-dd3f479354cd", "D"),
             ReceivedInstance = new Instance
@@ -255,17 +248,23 @@ public class ValidationControllerValidateDataTests
         var instanceMock = new Mock<IInstance>();
         var appResourceMock = new Mock<IAppResources>();
         var validationMock = new Mock<IValidation>();
-        instanceMock.Setup(i => i.GetInstance(app, org, instanceOwnerId, testScenario.InstanceId))
-            .Returns(Task.FromResult<Instance>(testScenario.ReceivedInstance));
-        appResourceMock.Setup(a => a.GetApplication())
-            .Returns(testScenario.ReceivedApplication);
+        if (testScenario.ReceivedInstance != null)
+        {
+            instanceMock.Setup(i => i.GetInstance(app, org, instanceOwnerId, testScenario.InstanceId))
+                .Returns(Task.FromResult<Instance>(testScenario.ReceivedInstance));
+        }
+        if (testScenario.ReceivedApplication != null)
+        {
+            appResourceMock.Setup(a => a.GetApplication())
+                .Returns(testScenario.ReceivedApplication);
+        }
 
-        if (testScenario.ReceivedInstance != null && testScenario.ReceivedApplication != null)
+        if (testScenario.ReceivedInstance != null && testScenario.ReceivedApplication != null && testScenario.ReceivedValidationIssues != null)
         {
             validationMock.Setup(v => v.ValidateDataElement(
                     testScenario.ReceivedInstance,
-                    testScenario.ReceivedApplication.DataTypes.FirstOrDefault(),
-                    testScenario.ReceivedInstance.Data.FirstOrDefault()))
+                    testScenario.ReceivedApplication.DataTypes.First(),
+                    testScenario.ReceivedInstance.Data.First()))
                 .Returns(Task.FromResult<List<ValidationIssue>>(testScenario.ReceivedValidationIssues));
         }
 
@@ -275,6 +274,10 @@ public class ValidationControllerValidateDataTests
 
 public class ValidateDataTestScenario
 {
+    public ValidateDataTestScenario(string testScenarioName)
+    {
+        TestScenarioName = testScenarioName;
+    }
     public string TestScenarioName { get; init; }
     public Guid InstanceId { get; init; } = Guid.NewGuid();
     public Guid DataGuid { get; init; } = Guid.NewGuid();

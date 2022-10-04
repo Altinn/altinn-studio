@@ -8,6 +8,6 @@ namespace Altinn.App.Core.Models
         /// <summary>
         /// Sets
         /// </summary>
-        public List<LayoutSet> Sets { get; set; }
+        public List<LayoutSet>? Sets { get; set; }
     }
 }

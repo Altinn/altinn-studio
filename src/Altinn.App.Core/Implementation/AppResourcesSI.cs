@@ -20,7 +20,7 @@ namespace Altinn.App.Core.Implementation
         private readonly AppSettings _settings;
         private readonly IWebHostEnvironment _hostingEnvironment;
         private readonly ILogger _logger;
-        private Application _application;
+        private Application? _application;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AppResourcesSI"/> class.
@@ -256,14 +256,14 @@ namespace Altinn.App.Core.Implementation
         public LayoutSettings GetLayoutSettings()
         {
             string filename = Path.Join(_settings.AppBasePath, _settings.UiFolder, _settings.FormLayoutSettingsFileName);
-            string filedata = null;
             if (File.Exists(filename))
             {
-                filedata = File.ReadAllText(filename, Encoding.UTF8);
+                var filedata = File.ReadAllText(filename, Encoding.UTF8);
+                LayoutSettings layoutSettings = JsonConvert.DeserializeObject<LayoutSettings>(filedata)!;
+                return layoutSettings;
             }
 
-            LayoutSettings layoutSettings = JsonConvert.DeserializeObject<LayoutSettings>(filedata);
-            return layoutSettings;
+            throw new FileNotFoundException($"Could not find layoutsettings file: {filename}");
         }
 
         /// <inheritdoc />
@@ -272,7 +272,7 @@ namespace Altinn.App.Core.Implementation
             Application application = GetApplication();
             string classRef = string.Empty;
 
-            DataType element = application.DataTypes.SingleOrDefault(d => d.Id.Equals(dataType));
+            DataType? element = application.DataTypes.SingleOrDefault(d => d.Id.Equals(dataType));
 
             if (element != null)
             {
@@ -292,7 +292,7 @@ namespace Altinn.App.Core.Implementation
           if (File.Exists(fileName))
           {
             string fileData = File.ReadAllText(fileName, Encoding.UTF8);
-            layouts.Add("FormLayout", JsonConvert.DeserializeObject<object>(fileData));
+            layouts.Add("FormLayout", JsonConvert.DeserializeObject<object>(fileData)!);
             return JsonConvert.SerializeObject(layouts);
           }
 
@@ -303,7 +303,7 @@ namespace Altinn.App.Core.Implementation
             {
               string data = File.ReadAllText(file, Encoding.UTF8);
               string name = file.Replace(layoutsPath, string.Empty).Replace(".json", string.Empty);
-              layouts.Add(name, JsonConvert.DeserializeObject<object>(data));
+              layouts.Add(name, JsonConvert.DeserializeObject<object>(data)!);
             }
           }
 
@@ -335,7 +335,7 @@ namespace Altinn.App.Core.Implementation
                 {
                     string data = File.ReadAllText(file, Encoding.UTF8);
                     string name = file.Replace(layoutsPath, string.Empty).Replace(".json", string.Empty);
-                    layouts.Add(name, JsonConvert.DeserializeObject<object>(data));
+                    layouts.Add(name, JsonConvert.DeserializeObject<object>(data)!);
                 }
             }
 

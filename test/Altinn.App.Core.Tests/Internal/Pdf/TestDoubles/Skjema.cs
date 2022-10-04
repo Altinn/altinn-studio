@@ -67,7 +67,7 @@ public class Skjema
     [JsonPropertyName("doubleValue")]
     public decimal DoubleValue { get; set; }
 
-    [Range(int.MinValue,int.MaxValue)]
+    [Range(int.MinValue, int.MaxValue)]
     [XmlElement("intValue", Order = 3)]
     [JsonProperty("intValue")]
     [JsonPropertyName("intValue")]

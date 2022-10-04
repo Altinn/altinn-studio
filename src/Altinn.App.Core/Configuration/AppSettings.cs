@@ -164,9 +164,7 @@ namespace Altinn.App.Core.Configuration
         public string GetStylesConfig()
         {
             StylesConfig stylesConfig = new StylesConfig();
-            stylesConfig.InternalStyles = new List<string>();
             stylesConfig.InternalStyles.Add(RuntimeCssFileName);
-            stylesConfig.ExternalStyles = new List<string>();
             stylesConfig.ExternalStyles.Add(DefaultBootstrapUrl);
 
             return JsonConvert.SerializeObject(stylesConfig);
