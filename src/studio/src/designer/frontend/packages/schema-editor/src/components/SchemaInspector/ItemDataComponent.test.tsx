@@ -1,14 +1,14 @@
-import {renderWithRedux} from "../../../test/renderWithRedux";
-import {IItemDataComponentProps, ItemDataComponent} from "./ItemDataComponent";
+import { renderWithRedux } from '../../../test/renderWithRedux';
+import { IItemDataComponentProps, ItemDataComponent } from './ItemDataComponent';
 import {
   CombinationKind,
   createChildNode,
   createNodeBase,
   FieldType,
   Keywords,
-  ObjectKind
-} from "@altinn/schema-model";
-import React from "react";
+  ObjectKind,
+} from '@altinn/schema-model';
+import React from 'react';
 
 const mockLanguage = {
   schema_editor: {
@@ -20,8 +20,8 @@ const mockLanguage = {
     nullable: 'Nullable',
     reference_to: 'Reference to',
     title: 'Title',
-    type: 'Type'
-  }
+    type: 'Type',
+  },
 };
 
 const parentNode = createNodeBase(Keywords.Properties, 'test');
@@ -34,16 +34,19 @@ const uiSchemaNodes = [parentNode];
   parentNode.children.push(childNode.pointer);
   uiSchemaNodes.push(childNode);
 });
-
-const renderItemDataComponent = (props?: Partial<IItemDataComponentProps>, selectedItemIndex: number = 0) => {
+const anotherNode = createNodeBase(Keywords.Properties, 'can be toggled');
+anotherNode.objectKind = ObjectKind.Field;
+anotherNode.fieldType = FieldType.String;
+uiSchemaNodes.push(anotherNode);
+const renderItemDataComponent = (props?: Partial<IItemDataComponentProps>, selectedItemIndex?: number) => {
   return renderWithRedux(
     <ItemDataComponent
       checkIsNameInUse={jest.fn()}
       language={mockLanguage}
-      selectedItem={uiSchemaNodes[selectedItemIndex]}
+      selectedItem={uiSchemaNodes[selectedItemIndex ?? 0]}
       {...props}
     />,
-    {uiSchema: uiSchemaNodes}
+    { uiSchema: uiSchemaNodes },
   );
 };
 
@@ -58,11 +61,11 @@ test('"Multiple answers" checkbox should not appear if selected item is combinat
 });
 
 test('setType is called when "multiple answers" checkbox is checked', async () => {
-  const { store, user, renderResult } = renderItemDataComponent({}, 1);
+  const { store, user, renderResult } = renderItemDataComponent({}, 3);
   const checkbox = renderResult.container.querySelector('input[name="checkedMultipleAnswers"]');
   if (checkbox === null) fail();
   await user.click(checkbox);
-  expect(store.getActions().some(({type}) => type === 'schemaEditor/setType')).toBeTruthy();
+  expect(store.getActions().some(({ type }) => type === 'schemaEditor/toggleArrayField')).toBeTruthy();
 });
 
 test('"Nullable" checkbox should appear if selected item is combination', () => {
@@ -80,6 +83,5 @@ test('addCombinationItem is called when "nullable" checkbox is checked', async (
   const checkbox = renderResult.container.querySelector('input[name="checkedNullable"]');
   if (checkbox === null) fail();
   await user.click(checkbox);
-  expect(store.getActions().some(({type}) => type === 'schemaEditor/addCombinationItem')).toBeTruthy();
+  expect(store.getActions().some(({ type }) => type === 'schemaEditor/addCombinationItem')).toBeTruthy();
 });
-

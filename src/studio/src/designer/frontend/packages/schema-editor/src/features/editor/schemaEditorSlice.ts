@@ -5,6 +5,7 @@ import type { UiSchemaNode } from '@altinn/schema-model';
 import {
   buildJsonSchema,
   buildUiSchema,
+  castRestrictionType,
   CombinationKind,
   createNodeBase,
   FieldType,
@@ -142,10 +143,10 @@ const schemaEditorSlice = createSlice({
       const { path, value, key } = action.payload;
       const schemaItem = getNodeByPointer(state.uiSchema, path);
       const restrictions = Object.assign(schemaItem.restrictions ?? {}, {
-        [key]: value === '' ? undefined : value,
+        [key]: castRestrictionType(key, value),
       });
       Object.keys(restrictions).forEach((k) => {
-        if (!restrictions[k]) {
+        if (restrictions[k] === undefined) {
           delete restrictions[k];
         }
       });

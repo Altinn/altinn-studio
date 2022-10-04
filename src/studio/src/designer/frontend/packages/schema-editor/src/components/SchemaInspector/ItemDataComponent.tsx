@@ -53,8 +53,7 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
   const [nodeName, setNodeName] = useState('');
   const [description, setItemDescription] = useState<string>('');
   const [title, setItemTitle] = useState<string>('');
-  const [fieldType, setFieldType] = useState<FieldType | CombinationKind | undefined>(undefined);
-  const [arrayType, setArrayType] = useState<FieldType | string | undefined>(undefined);
+  const { fieldType } = selectedItem;
 
   const childNodes = useSelector((state: ISchemaState) => getChildNodesByNode(state.uiSchema, selectedItem));
   const itemsNode = selectedItem.objectKind === ObjectKind.Array ? childNodes[0] : undefined;
@@ -63,12 +62,9 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
     setNameError(NameError.NoError);
     setItemTitle(selectedItem.title ?? '');
     setItemDescription(selectedItem.description ?? '');
-    setFieldType(selectedItem.fieldType);
-    if (selectedItem.objectKind === ObjectKind.Array) {
-      setArrayType(childNodes[0].fieldType);
-    }
   }, [selectedItem]);
 
+  const arrayType = selectedItem.objectKind === ObjectKind.Array ? childNodes[0].fieldType : undefined;
   const onNameChange = (e: any) => {
     const name: string = e.target.value;
     setNodeName(name);
@@ -77,15 +73,11 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
 
   const onChangeRef = (path: string, ref: string) => dispatch(setRef({ path, ref }));
 
-  const onChangeFieldType = (pointer: string, type: FieldType) => {
+  const onChangeFieldType = (pointer: string, type: FieldType) =>
     dispatch(setType({ path: selectedItem.pointer, type }));
-    setFieldType(type);
-  };
 
-  const onChangeArrayType = (pointer: string, fieldType: FieldType) => {
+  const onChangeArrayType = (pointer: string, fieldType: FieldType) =>
     dispatch(setType({ path: makePointer(pointer, Keywords.Items), type: fieldType }));
-    setArrayType(fieldType ?? '');
-  };
 
   const onChangeNullable = (event: any) => {
     if (event.target.checked) {
@@ -104,8 +96,9 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
   const onChangeDescription = () => dispatch(setDescription({ path: selectedNodePointer, description }));
 
   const onGoToDefButtonClick = () => {
-    if (selectedItem.ref !== undefined) {
-      dispatch(navigateToType({ id: selectedItem.ref }));
+    const ref = selectedItem.objectKind === ObjectKind.Array ? childNodes[0].ref : selectedItem.ref;
+    if (ref !== undefined) {
+      dispatch(navigateToType({ id: ref }));
     }
   };
 
@@ -136,6 +129,7 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
   const canToggleBetweenArrayAndField = useSelector((state: ISchemaState) =>
     canToggleArrayAndField(state.uiSchema, selectedNodePointer),
   );
+
   return (
     <div>
       {!selectedItem.isCombinationItem && (
@@ -165,7 +159,7 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
                 : onChangeFieldType(selectedItem.pointer, fieldType);
             }}
             options={getTypeOptions(t)}
-            value={selectedItem.fieldType === FieldType.Array ? arrayType : fieldType}
+            value={selectedItem.objectKind === ObjectKind.Array ? arrayType : fieldType}
           />
         )}
       {(selectedItem.objectKind === ObjectKind.Reference || itemsNode?.objectKind === ObjectKind.Reference) && (

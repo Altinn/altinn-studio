@@ -1,6 +1,6 @@
 export { buildJsonSchema } from './lib/build-json-schema';
 export { buildUiSchema } from './lib/build-ui-schema';
-export { getRestrictions, StrRestrictionKeys } from './lib/restrictions';
+export { getRestrictions, StrRestrictionKeys, castRestrictionType } from './lib/restrictions';
 export type { UiSchemaNode, UiSchemaNodes } from './lib/types';
 export { ROOT_POINTER, ObjectKind, Keywords, FieldType, CombinationKind } from './lib/types';
 export { createNodeBase, replaceLastPointerSegment, makePointer } from './lib/utils';
