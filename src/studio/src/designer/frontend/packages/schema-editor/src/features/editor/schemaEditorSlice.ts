@@ -142,9 +142,8 @@ const schemaEditorSlice = createSlice({
     setRestriction(state, action: PayloadAction<{ path: string; value: string; key: string }>) {
       const { path, value, key } = action.payload;
       const schemaItem = getNodeByPointer(state.uiSchema, path);
-      const restrictions = Object.assign(schemaItem.restrictions ?? {}, {
-        [key]: castRestrictionType(key, value),
-      });
+      const restrictions = { ...schemaItem.restrictions };
+      restrictions[key] = castRestrictionType(key, value);
       Object.keys(restrictions).forEach((k) => {
         if (restrictions[k] === undefined) {
           delete restrictions[k];
