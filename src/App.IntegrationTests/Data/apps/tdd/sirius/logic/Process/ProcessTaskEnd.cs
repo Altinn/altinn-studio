@@ -11,18 +11,18 @@ using App.IntegrationTestsRef.Data.apps.tdd.sirius.services;
 namespace App.IntegrationTests.Mocks.Apps.tdd.sirius
 #pragma warning restore SA1300 // Element should begin with upper-case letter
 {
-    public class TaskProcessor: ITaskProcessor
+    public class ProcessTaskEnd: IProcessTaskEnd
     {
         private readonly IData _dataService;
         private readonly ISiriusApi _siriusApi;
         
-        public TaskProcessor(IData dataService, ISiriusApi siriusApi)
+        public ProcessTaskEnd(IData dataService, ISiriusApi siriusApi)
         {
             _dataService = dataService;
             _siriusApi = siriusApi;    
         }
         
-        public async Task ProcessTaskEnd(string taskId, Instance instance)
+        public async Task End(string taskId, Instance instance)
         {
             // Transfer from Task_1 to Task_2, need to download the PDF from tax.
             if (taskId.Equals("Task_1"))

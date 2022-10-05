@@ -178,6 +178,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Data\apps\ttd\abandon-task" />
     <Folder Include="Data\apps\ttd\externalprefil\config\texts\" />
     <Folder Include="Data\apps\ttd\externalprefil\ui\layouts\" />
     <Folder Include="Data\apps\tdd\dynamic-options-pdf\" />

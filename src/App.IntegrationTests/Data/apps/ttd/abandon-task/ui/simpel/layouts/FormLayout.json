@@ -1,0 +1,39 @@
+﻿{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "name",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "name.label"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Felt1"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "lastname",
+        "type": "Input",
+        "textResourceBindings": {
+          "title": "lastName.label"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Felt2"
+        },
+        "required": true,
+        "readOnly": false
+      },
+      {
+        "id": "submit",
+        "type": "Button",
+        "textResourceBindings": {
+          "title": "submit"
+        },
+        "dataModelBindings": {}
+      }
+    ]
+  }
+}

@@ -11,6 +11,7 @@ using Altinn.App.Core.Features.Pdf;
 using Altinn.App.Core.Implementation;
 using Altinn.App.Core.Infrastructure.Clients.Pdf;
 using Altinn.App.Core.Interface;
+using Altinn.App.Core.Internal.Pdf;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Register.Enums;
 using App.IntegrationTests.Mocks.Apps.Ttd.DynamicOptions2.Options;
@@ -147,8 +148,9 @@ namespace App.IntegrationTestsRef.Implementation.PdfService
             Mock<IProfile> profileClient = MockProfileClient();
             var registerClient = new Mock<IRegister>();
             var customPdfHandler = new NullPdfFormatter();
+            var pdfOptionsMapping = new PdfOptionsMapping(appOptionsService);
 
-            var pdfService = new Altinn.App.Core.Internal.Pdf.PdfService(pdfClient, appResources, appOptionsService, dataClient.Object, httpContextAccessor.Object, profileClient.Object, registerClient.Object, customPdfHandler);
+            var pdfService = new Altinn.App.Core.Internal.Pdf.PdfService(pdfClient, appResources, pdfOptionsMapping, dataClient.Object, httpContextAccessor.Object, profileClient.Object, registerClient.Object, customPdfHandler);
 
             return pdfService;
         }

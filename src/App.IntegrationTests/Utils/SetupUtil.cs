@@ -136,7 +136,7 @@ namespace App.IntegrationTests.Utils
                         case "sirius":
                             services.AddSingleton<ISiriusApi, SiriusAPI>();
                             services.AddTransient<IAppModel, Mocks.Apps.tdd.sirius.App>();
-                            services.AddTransient<ITaskProcessor, Mocks.Apps.tdd.sirius.TaskProcessor>();
+                            services.AddTransient<IProcessTaskEnd, Mocks.Apps.tdd.sirius.ProcessTaskEnd>();
                             services
                                 .AddTransient<IInstanceValidator, Mocks.Apps.tdd.sirius.AppLogic.Validation.ValidationHandler>();
                             break;
@@ -178,7 +178,7 @@ namespace App.IntegrationTests.Utils
                             break;
                         case "datafields-app":
                             services.AddTransient<IAppModel, Mocks.Apps.Ttd.DataFieldsApp.App>();
-                            services.AddTransient<ITaskProcessor, Mocks.Apps.Ttd.DataFieldsApp.TaskProcessor>();
+                            services.AddTransient<IProcessTaskEnd, Mocks.Apps.Ttd.DataFieldsApp.ProcessTaskEnd>();
                             break;
                         case "model-validation":
                             services.AddTransient<IAppModel, Mocks.Apps.ttd.model_validation.AltinnApp>();
@@ -201,10 +201,14 @@ namespace App.IntegrationTests.Utils
                             services.AddTransient<IAppModel, Mocks.Apps.Ttd.AnonymousStateless.App>();
                             services.AddTransient<IDataProcessor, Mocks.Apps.Ttd.AnonymousStateless.DataProcessingHandler>();
                             break;
+                        case "abandon-task":
+                            services.AddTransient<IAppModel, Mocks.Apps.Ttd.Abandon.App>();
+                            services.AddTransient<IProcessTaskAbandon, Mocks.Apps.Ttd.Abandon.ProcessTaskAbandon>();
+                            break;
                         case "autodelete-data":
                         case "confirm-autodelete-data":
                             services.AddTransient<IAppModel, Mocks.Apps.Ttd.AutoDeleteData.App>();
-                            services.AddTransient<ITaskProcessor, Mocks.Apps.Ttd.AutoDeleteData.TaskProcessor>();
+                            services.AddTransient<IProcessTaskEnd, Mocks.Apps.Ttd.AutoDeleteData.ProcessTaskEnd>();
                             break;
                         default:
                             services.AddTransient<IAppModel, Mocks.Apps.tdd.endring_av_navn.AltinnApp>();
