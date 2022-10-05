@@ -179,8 +179,8 @@ describe('DataModelling', () => {
     // make sure setting to turn off info dialog is set
     setLocalStorageItem('hideIntroPage', true);
     const schema = {
-      properties: { SomeSchema: { $ref: '#/definitions/Something' } },
-      definitions: { Something: { type: 'string' } },
+      properties: { SomeSchema: { $ref: '#/$defs/Something' } },
+      $defs: { Something: { type: 'string' } },
     };
     render({ dataModelling: { schema } });
     expect(screen.queryByText('Dialog header')).not.toBeInTheDocument();

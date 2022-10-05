@@ -24,7 +24,13 @@ export const promotePropertyToType = (uiSchemaNodes: UiSchemaNodes, pointer: str
   const updatedUiNodeMap = renameNodePointer(uiSchemaNodes, pointer, promotedNodePointer);
 
   // Need to add the pointer back to the parent node
-  getParentNodeByPointer(updatedUiNodeMap, pointer).children.push(pointer);
+  const parentNode = getParentNodeByPointer(updatedUiNodeMap, pointer);
+
+  if (parentNode) {
+    parentNode.children.push(pointer);
+  } else {
+    throw new Error(`Can't find the parent of ${pointer}`);
+  }
 
   // Add the promoted node back to the bottom of the stack.
   updatedUiNodeMap.push(
