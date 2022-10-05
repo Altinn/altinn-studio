@@ -49,6 +49,7 @@
     "tokenWithLangAndNote": {
       "properties": {
         "value": {
+          "@xsdText": true,
           "type": "string",
           "@xsdType": "token"
         },

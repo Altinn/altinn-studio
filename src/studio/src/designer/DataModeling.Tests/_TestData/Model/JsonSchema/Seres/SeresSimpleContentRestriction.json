@@ -80,6 +80,7 @@
     "person": {
       "properties": {
         "value": {
+          "@xsdText": true,
           "type": "string",
           "@xsdType": "string"
         },
