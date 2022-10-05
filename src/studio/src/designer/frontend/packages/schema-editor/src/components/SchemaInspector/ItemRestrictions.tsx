@@ -11,9 +11,9 @@ import { NumberRestrictions } from './restrictions/NumberRestrictions';
 import { ObjectRestrictions } from './restrictions/ObjectRestrictions';
 import { StringRestrictions } from './restrictions/StringRestrictions';
 import classes from './ItemRestrictions.module.css';
-import { Divider } from './Divider';
-import { Fieldset } from './Fieldset';
 import { Button, Checkbox } from '@altinn/altinn-design-system';
+import { Divider } from '../common/Divider';
+import { Fieldset } from '../common/Fieldset';
 
 export interface RestrictionItemProps {
   restrictions: any;

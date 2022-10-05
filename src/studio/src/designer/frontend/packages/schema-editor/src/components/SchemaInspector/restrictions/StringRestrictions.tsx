@@ -4,9 +4,9 @@ import { RestrictionField } from '../RestrictionField';
 import { getTranslation } from '../../../utils/language';
 import classes from './StringRestrictions.module.css';
 import { TextField } from '@altinn/altinn-design-system';
-import { Divider } from '../Divider';
-import { Label } from '../Label';
 import { StrRestrictionKeys } from '@altinn/schema-model';
+import { Divider } from '../../common/Divider';
+import { Label } from '../../common/Label';
 
 export function StringRestrictions({ restrictions, path, language, onChangeRestrictionValue }: RestrictionItemProps) {
   const t = (key: string) => getTranslation(key, language);

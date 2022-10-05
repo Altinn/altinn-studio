@@ -3,7 +3,7 @@ import { RestrictionItemProps } from '../ItemRestrictions';
 import { FieldType, getRestrictions } from '@altinn/schema-model';
 import { RestrictionField } from '../RestrictionField';
 import { getTranslation } from '../../../utils/language';
-import { Divider } from '../Divider';
+import { Divider } from '../../common/Divider';
 
 export function ArrayRestrictions({ restrictions, language, path, onChangeRestrictionValue }: RestrictionItemProps) {
   const defaults = getRestrictions(FieldType.Array);

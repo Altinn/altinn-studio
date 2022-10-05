@@ -4,26 +4,23 @@ import JSONPointer from 'jsonpointer';
 import { findRequiredProps } from './mappers/required';
 import { findJsonFieldType } from './mappers/field-type';
 import { getNodeByPointer } from './selectors';
+import { sortNodesByChildren } from './utils';
 
 export const buildJsonSchema = (uiSchemaNodes: UiSchemaNodes): JsonSchemaNode => {
-  const allPointers: string[] = [];
   const out: JsonSchemaNode = {};
+  const rootNode = getNodeByPointer(uiSchemaNodes, ROOT_POINTER);
+  Object.assign(out, rootNode.custom);
+  if (!rootNode.implicitType) {
+    JSONPointer.set(out, '/' + Keywords.Type, rootNode.fieldType);
+  }
+  JSONPointer.set(out, '/' + Keywords.Required, findRequiredProps(uiSchemaNodes, rootNode.pointer));
 
-  // First iterate to crate the basic
-  uiSchemaNodes.forEach((uiSchemaNode) => {
+  const sortedUiSchemaNodes = sortNodesByChildren(uiSchemaNodes);
+
+  sortedUiSchemaNodes.forEach((uiSchemaNode: UiSchemaNode) => {
     if (uiSchemaNode.pointer === ROOT_POINTER) {
-      Object.assign(out, uiSchemaNode.custom);
-      if (!uiSchemaNode.implicitType) {
-        JSONPointer.set(out, '/' + Keywords.Type, uiSchemaNode.fieldType);
-      }
-      JSONPointer.set(out, '/' + Keywords.Required, findRequiredProps(uiSchemaNodes, uiSchemaNode.pointer));
-    } else {
-      allPointers.push(uiSchemaNode.pointer);
+      return;
     }
-  });
-
-  allPointers.forEach((sortedPointer: string) => {
-    const uiSchemaNode = getNodeByPointer(uiSchemaNodes, sortedPointer);
     const jsonPointer = uiSchemaNode.pointer.replace(ROOT_POINTER, '');
     const startValue = Object.assign({}, uiSchemaNode.custom);
     if (uiSchemaNode.objectKind === ObjectKind.Combination) {

@@ -1,14 +1,18 @@
 import React from 'react';
-import { Divider, IconButton } from '@material-ui/core';
+import { IconButton } from '@material-ui/core';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
 import { ObjectKind } from '@altinn/schema-model';
 import classes from './SchemaItemLabel.module.css';
+import { Divider } from '../common/Divider';
+import classNames from 'classnames';
 
 export interface SchemaItemLabelProps {
   icon: string;
   label: JSX.Element;
   translate: (key: string) => string;
   limitedItem?: boolean;
+  isArray: boolean;
+  isRef: boolean;
   editMode: boolean;
   onAddProperty?: (objectKind: ObjectKind) => void;
   onAddReference?: (objectKind: ObjectKind) => void;
@@ -19,7 +23,7 @@ export interface SchemaItemLabelProps {
   onGoToType?: () => void;
 }
 
-export const SchemaItemLabel = ({ translate, ...props }: SchemaItemLabelProps) => {
+export const SchemaItemLabel = ({ translate, isArray, isRef, ...props }: SchemaItemLabelProps) => {
   const [contextAnchor, setContextAnchor] = React.useState<any>(null);
   const handleContextMenuClick = (e: React.SyntheticEvent) => {
     e.stopPropagation();
@@ -62,7 +66,7 @@ export const SchemaItemLabel = ({ translate, ...props }: SchemaItemLabelProps) =
   };
 
   return (
-    <div className={classes.propertiesLabel}>
+    <div className={classNames(classes.propertiesLabel, { [classes.isArray]: isArray, [classes.isRef]: isRef })}>
       <div className={classes.label}>
         <span className={classes.iconContainer}>
           <i className={`fa ${props.icon}`} style={{ color: 'white', textAlign: 'center' }} />
@@ -134,7 +138,7 @@ export const SchemaItemLabel = ({ translate, ...props }: SchemaItemLabelProps) =
           />
         )}
         {props.onDelete && [
-          <Divider key='delete-divider' />,
+          <Divider key='delete-divider' inMenu />,
           <AltinnMenuItem
             id='delete-node-button'
             key='delete'
