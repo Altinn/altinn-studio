@@ -62,7 +62,10 @@
           "@xsdType": "string",
           "@xsdAttribute": true
         }
-      }
+      },
+      "required": [
+        "value"
+      ]
     }
   }
 }

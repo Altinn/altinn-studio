@@ -93,7 +93,10 @@
           "@xsdType": "int",
           "@xsdAttribute": true
         }
-      }
+      },
+      "required": [
+        "value"
+      ]
     },
     "limitedPerson": {
       "allOf": [

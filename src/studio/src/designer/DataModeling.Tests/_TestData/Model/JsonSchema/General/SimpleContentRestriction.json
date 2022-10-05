@@ -63,7 +63,10 @@
           "@xsdType": "token",
           "@xsdAttribute": true
         }
-      }
+      },
+      "required": [
+        "value"
+      ]
     }
   }
 }
