@@ -8,6 +8,9 @@ React SPA used by applications developed in [altinn-studio](https://github.com/A
 If you can't/won't install node on your computer, you can also run frontend in docker using the command.
 
 ```bash
+git clone https://github.com/Altinn/app-frontend-react
+cd app-frontend-react
+# git checkout pr-branch
 docker compose up
 ```
 This is really slow to start and rebuild, but sometimes better than getting someone to install node if you just want to test if a new branch fixes an issue.
