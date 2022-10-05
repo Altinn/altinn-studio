@@ -18,14 +18,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
     public class ConvertTextsService : IConvertTextsService
     {
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
+        private readonly ITextsService _textsService;
 
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="altinnGitRepositoryFactory">IAltinnGitRepository</param>
-        public ConvertTextsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
+        public ConvertTextsService(IAltinnGitRepositoryFactory altinnGitRepositoryFactory, ITextsService textsService)
         {
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
+            _textsService = textsService;
         }
 
         /// <inheritdoc />
@@ -54,7 +56,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     newTexts[text.Id] = newText;
                 }
 
-                await altinnAppGitRepository.SaveTextsV2(languageCode, newTexts);
+                (Dictionary<string, string>, Dictionary<string, string>) textsExtractedMd = _textsService.ExtractMarkdown(languageCode, newTexts);
+
+                foreach (KeyValuePair<string, string> text in textsExtractedMd.Item1)
+                {
+                    await altinnAppGitRepository.SaveTextMarkdown(languageCode, text);
+                }
+
+                await _textsService.UpdateTexts(org, repo, developer, languageCode, textsExtractedMd.Item2);
+
+                //await altinnAppGitRepository.SaveTextsV2(languageCode, newTexts);
                 altinnAppGitRepository.DeleteFileByAbsolutePath(languageFile);
             }
         }

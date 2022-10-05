@@ -39,5 +39,18 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="developer">Username of developer currently working in the repo.</param>
         /// <param name="languageCode">LanguageCode to identify the specific text file.</param>
         public void DeleteTexts(string org, string repo, string developer, string languageCode);
+
+        /// <summary>
+        /// Replacing inline markdown from text-values in texts object
+        /// with a reference to a .md file and stores content in that file.
+        /// </summary>
+        /// <param name="languageCode">Language identifier</param>
+        /// <param name="texts">Texts object with inline markdown</param>
+        /// <returns>Tuple of dictionary with keys and texts that
+        /// should be stored as markdown and the original texts objects
+        /// where inline markdown is replaced with the filename.</returns>
+        /// <remarks>Autosave in FE results in old md files that never
+        /// will be overwritten when client change ID.</remarks>
+        public (Dictionary<string, string> TtextsWithMd, Dictionary<string, string> Ttexts) ExtractMarkdown(string languageCode, Dictionary<string, string> texts);
     }
 }

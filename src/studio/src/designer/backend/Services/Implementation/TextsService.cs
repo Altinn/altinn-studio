@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -101,7 +102,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// where inline markdown is replaced with the filename.</returns>
         /// <remarks>Autosave in FE results in old md files that never
         /// will be overwritten when client change ID.</remarks>
-        private static (Dictionary<string, string> TtextsWithMd, Dictionary<string, string> Ttexts) ExtractMarkdown(string languageCode, Dictionary<string, string> texts)
+        public (Dictionary<string, string> TtextsWithMd, Dictionary<string, string> Ttexts) ExtractMarkdown(string languageCode, Dictionary<string, string> texts)
         {
             Dictionary<string, string> textsWithMd = new Dictionary<string, string>();
             foreach (KeyValuePair<string, string> text in texts.Where(text => text.Value.Contains('\n')))
