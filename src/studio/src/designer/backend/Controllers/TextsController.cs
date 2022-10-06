@@ -21,8 +21,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// which interacts with the text files in the old format.
     /// </remarks>
     [Authorize]
-
-    //[AutoValidateAntiforgeryToken]
+    [AutoValidateAntiforgeryToken]
     [Route("designer/api/v2/{org}/{repo}/texts")]
     public class TextsController : ControllerBase
     {
