@@ -25,13 +25,18 @@ export function MultipleSelect({
   mapping,
   source,
   handleDataChange,
+  getTextResourceAsString,
   formData,
   id,
   readOnly,
   isValid,
 }: IMultipleSelectProps) {
   const apiOptions = useGetOptions({ optionsId, mapping, source });
-  const calculatedOptions = apiOptions || options;
+  const calculatedOptions =
+    (apiOptions || options)?.map((option) => ({
+      label: getTextResourceAsString(option.label),
+      value: option.value,
+    })) || [];
   const language = useAppSelector((state) => state.language.language);
 
   const handleChange = (newValue: MultiValue<IOption>) => {

@@ -20,7 +20,7 @@ const render = (
     id: 'id',
     formData: { simpleBinding: '' },
     handleDataChange: jest.fn(),
-    getTextResource: (key: string) => key,
+    getTextResourceAsString: (key: string) => key,
     isValid: true,
     dataModelBindings: { simpleBinding: 'some.field' },
     componentValidations: {},
