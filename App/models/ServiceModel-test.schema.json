@@ -414,7 +414,7 @@
 								},
 								"Adresse" : {
 									"properties" : {
-											"Gateadresse" : {
+											"Gateadresse_æøå" : {
 													"type" : "string"
 												},
 											"Postnr" : {
@@ -425,7 +425,7 @@
 												}
 										},
 									"required" : [
-											"Gateadresse",
+											"Gateadresse_æøå",
 											"Postnr",
 											"Poststed"
 										]

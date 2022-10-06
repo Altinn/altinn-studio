@@ -31,7 +31,7 @@
       {
         "id": "summary-2",
         "type": "Summary",
-        "componentRef": "changeNameTo",
+        "componentRef": "changeNameTo_æøå",
         "pageRef": "form"
       },
       {

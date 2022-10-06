@@ -1544,9 +1544,9 @@ public string value { get; set; }
 
   public class Adresse
   {
-    [XmlElement("Gateadresse", Order = 1)]
-    [JsonProperty("Gateadresse")]
-    [JsonPropertyName("Gateadresse")]
+    [XmlElement("Gateadresse_æøå", Order = 1)]
+    [JsonProperty("Gateadresse_æøå")]
+    [JsonPropertyName("Gateadresse_æøå")]
     public string Gateadresse { get; set; }
 
     [XmlElement("Postnr", Order = 2)]

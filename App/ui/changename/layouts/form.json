@@ -109,7 +109,7 @@
         }
       },
       {
-        "id": "changeNameTo",
+        "id": "changeNameTo_æøå",
         "type": "Input",
         "textResourceBindings": {
           "title": "EndreNavnTil"
@@ -402,7 +402,7 @@
           "title": "Adresse"
         },
         "dataModelBindings": {
-          "address": "Adresse.Gateadresse",
+          "address": "Adresse.Gateadresse_æøå",
           "zipCode": "Adresse.Postnr",
           "postPlace": "Adresse.Poststed"
         },
