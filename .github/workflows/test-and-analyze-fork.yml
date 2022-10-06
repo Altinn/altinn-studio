@@ -48,7 +48,7 @@ jobs:
           name: code-coverage-report
           path: dist/
       - name: Create Coverage Summary Report
-        uses: irongut/CodeCoverageSummary@v1.2.0
+        uses: irongut/CodeCoverageSummary@v1.3.0
         with:
           filename: dist/Cobertura.xml
           badge: true
