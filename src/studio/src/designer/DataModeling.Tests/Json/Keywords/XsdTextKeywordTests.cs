@@ -9,7 +9,7 @@ public class XsdTextKeywordTests: FluentTestsBase<XsdTextKeywordTests>
     private XsdTextKeyword XsdTextKeyword { get; set; }
 
     [Fact]
-    public void DefaultValue_ShouldBe_True()
+    public void DefaultValue_ShouldBe_False()
     {
         XsdTextKeyword = new XsdTextKeyword();
         XsdTextKeyword.Value.Should().Be(false);
