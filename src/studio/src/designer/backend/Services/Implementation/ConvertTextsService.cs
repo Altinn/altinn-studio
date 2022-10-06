@@ -56,14 +56,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
                     newTexts[text.Id] = newText;
                 }
 
-                (Dictionary<string, string>, Dictionary<string, string>) textsExtractedMd = _textsService.ExtractMarkdown(languageCode, newTexts);
+                (Dictionary<string, string>, Dictionary<string, string>) extractMarkdown = _textsService.ExtractMarkdown(languageCode, newTexts);
 
-                foreach (KeyValuePair<string, string> text in textsExtractedMd.Item1)
+                foreach (KeyValuePair<string, string> text in extractMarkdown.Item1)
                 {
                     await altinnAppGitRepository.SaveTextMarkdown(languageCode, text);
                 }
 
-                await _textsService.UpdateTexts(org, repo, developer, languageCode, textsExtractedMd.Item2);
+                await _textsService.UpdateTexts(org, repo, developer, languageCode, extractMarkdown.Item2);
 
                 altinnAppGitRepository.DeleteFileByAbsolutePath(languageFile);
             }

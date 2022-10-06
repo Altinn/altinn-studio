@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -46,14 +45,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-            (Dictionary<string, string>, Dictionary<string, string>) textsExtractedMd = ExtractMarkdown(languageCode, jsonTexts);
+            (Dictionary<string, string>, Dictionary<string, string>) extractMarkdown = ExtractMarkdown(languageCode, jsonTexts);
 
-            foreach (KeyValuePair<string, string> text in textsExtractedMd.Item1)
+            foreach (KeyValuePair<string, string> text in extractMarkdown.Item1)
             {
                 await altinnAppGitRepository.SaveTextMarkdown(languageCode, text);
             }
 
-            await altinnAppGitRepository.SaveTextsV2(languageCode, textsExtractedMd.Item2);
+            await altinnAppGitRepository.SaveTextsV2(languageCode, extractMarkdown.Item2);
         }
 
         /// <inheritdoc />
