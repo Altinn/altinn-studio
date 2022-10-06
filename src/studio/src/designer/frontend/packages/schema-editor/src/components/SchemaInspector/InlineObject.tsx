@@ -13,15 +13,11 @@ export function InlineObject({ item, language }: IInlineObjectProps) {
   // present as plain json object, not with any meta fields used in UiSchemaItem
   return (
     <div>
-      <div>
-        <pre id='json-paper' className={classes.jsonPaper}>
-          {JSON.stringify(item, null, '    ')}
-        </pre>
-      </div>
-      <div>
-        <div id='information-paper' className={classes.informationPaper}>
-          {getTranslation('combination_inline_object_disclaimer', language)}
-        </div>
+      <pre id='json-paper' className={classes.jsonPaper}>
+        {JSON.stringify(item, null, '    ')}
+      </pre>
+      <div id='information-paper' className={classes.informationPaper}>
+        {getTranslation('combination_inline_object_disclaimer', language)}
       </div>
     </div>
   );
