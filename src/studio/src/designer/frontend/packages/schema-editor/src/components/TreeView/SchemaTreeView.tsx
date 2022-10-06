@@ -33,7 +33,7 @@ export const SchemaTreeView = ({
       expanded={expanded}
       onNodeToggle={onNodeToggle}
     >
-      {items?.map((item: UiSchemaNode) => (
+      {items.map((item: UiSchemaNode) => (
         <SchemaItem
           editMode={editMode}
           isPropertiesView={true}

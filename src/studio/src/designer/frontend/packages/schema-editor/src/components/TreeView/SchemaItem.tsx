@@ -1,24 +1,13 @@
 import React from 'react';
 import TreeItem from '@material-ui/lab/TreeItem';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  addCombinationItem,
-  addProperty,
-  deleteCombinationItem,
-  deleteProperty,
-  navigateToType,
-  promoteProperty,
-  setSelectedId,
-} from '../../features/editor/schemaEditorSlice';
+import { setSelectedId } from '../../features/editor/schemaEditorSlice';
 import { SchemaItemLabel } from './SchemaItemLabel';
 import { getIconStr } from './tree-view-helpers';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import {
-  CombinationKind,
-  FieldType,
   getChildNodesByNode,
   getNodeByPointer,
-  getNodeDisplayName,
   getNodeIndexByPointer,
   Keywords,
   makePointer,
@@ -45,42 +34,11 @@ export function SchemaItem({ selectedNode, isPropertiesView, editMode, translate
   const dispatch = useDispatch();
   const keyPrefix = isPropertiesView ? 'properties' : 'definitions';
 
-  const onItemClick = (e: any, schemaItem: UiSchemaNode) => {
+  const onLabelClick = (e: any, schemaItem: UiSchemaNode) => {
     e.preventDefault();
     dispatch(setSelectedId({ id: schemaItem.pointer }));
   };
 
-  const handlePromoteClick = () => dispatch(promoteProperty({ path: selectedNode.pointer }));
-
-  const handleDeleteClick = () =>
-    selectedNode.objectKind === ObjectKind.Combination
-      ? dispatch(deleteCombinationItem({ path: selectedNode.pointer }))
-      : dispatch(deleteProperty({ path: selectedNode.pointer }));
-
-  const handleAddProperty = (objectKind: ObjectKind) => {
-    const { pointer } = selectedNode;
-    const defaultFieldType: any = {
-      [ObjectKind.Field]: FieldType.String,
-      [ObjectKind.Combination]: CombinationKind.AllOf,
-      [ObjectKind.Array]: FieldType.Array,
-      [ObjectKind.Reference]: undefined,
-    };
-    const propertyProps = {
-      objectKind,
-      fieldType: defaultFieldType[objectKind],
-      ref: objectKind === ObjectKind.Reference ? '' : undefined,
-    };
-
-    selectedNode.objectKind === ObjectKind.Combination
-      ? dispatch(addCombinationItem({ path: pointer, props: propertyProps }))
-      : dispatch(addProperty({ path: pointer, props: propertyProps }));
-  };
-
-  const handleGoToType = () => {
-    if (selectedNode.ref) {
-      dispatch(navigateToType({ id: selectedNode.ref }));
-    }
-  };
   const itemsPointer = makePointer(selectedNode.pointer, Keywords.Items);
 
   const itemsNode = useSelector((state: ISchemaState) => {
@@ -117,44 +75,14 @@ export function SchemaItem({ selectedNode, isPropertiesView, editMode, translate
       label={
         <SchemaItemLabel
           editMode={editMode}
-          isArray={selectedNode.objectKind === ObjectKind.Array || refNode?.objectKind === ObjectKind.Array}
-          isRef={
-            !!((isPropertiesView && selectedNode.pointer.startsWith(makePointer(Keywords.Definitions))) || refNode)
-          }
           icon={getIconStr(refNode ?? itemsNode ?? selectedNode)}
           key={`${selectedNode.pointer}-label`}
-          label={
-            <>
-              <span>{getNodeDisplayName(selectedNode)}</span>
-              {selectedNode.isRequired && <span> *</span>}
-              {refNode && <span className={classes.referenceLabel}>{refNode.pointer}</span>}
-            </>
-          }
+          selectedNode={selectedNode}
+          refNode={refNode}
           translate={translate}
-          limitedItem={selectedNode.objectKind === ObjectKind.Combination}
-          onAddProperty={
-            selectedNode.objectKind === ObjectKind.Field && selectedNode.fieldType === FieldType.Object
-              ? handleAddProperty
-              : undefined
-          }
-          onAddReference={
-            selectedNode.objectKind === ObjectKind.Field || selectedNode.objectKind === ObjectKind.Combination
-              ? handleAddProperty
-              : undefined
-          }
-          onAddCombination={selectedNode.fieldType === FieldType.Object ? handleAddProperty : undefined}
-          onDelete={handleDeleteClick}
-          onGoToType={
-            selectedNode.objectKind === ObjectKind.Combination && isPropertiesView ? handleGoToType : undefined
-          }
-          onPromote={
-            selectedNode.objectKind === ObjectKind.Combination || selectedNode.pointer.startsWith('#/$defs')
-              ? undefined
-              : handlePromoteClick
-          }
         />
       }
-      onLabelClick={(e) => onItemClick(e, selectedNode)}
+      onLabelClick={(e) => onLabelClick(e, selectedNode)}
     >
       {childNodes.map((childNode: UiSchemaNode) => (
         <SchemaItem
@@ -163,7 +91,7 @@ export function SchemaItem({ selectedNode, isPropertiesView, editMode, translate
           selectedNode={childNode}
           key={`${keyPrefix}-${childNode.pointer}`}
           translate={translate}
-          onLabelClick={(e: any) => onItemClick(e, childNode)}
+          onLabelClick={(e: any) => onLabelClick(e, childNode)}
         />
       ))}
     </TreeItem>

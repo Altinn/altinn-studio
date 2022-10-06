@@ -1,84 +1,122 @@
-import React from 'react';
+import React, { SyntheticEvent, useState } from 'react';
 import { IconButton } from '@material-ui/core';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
-import { ObjectKind } from '@altinn/schema-model';
+import {
+  CombinationKind,
+  FieldType,
+  getNodeDisplayName,
+  Keywords,
+  makePointer,
+  ObjectKind,
+  UiSchemaNode,
+} from '@altinn/schema-model';
 import classes from './SchemaItemLabel.module.css';
 import { Divider } from '../common/Divider';
 import classNames from 'classnames';
+import {
+  addCombinationItem,
+  addProperty,
+  deleteCombinationItem,
+  deleteProperty,
+  navigateToType,
+  promoteProperty,
+} from '../../features/editor/schemaEditorSlice';
+import { useDispatch } from 'react-redux';
 
 export interface SchemaItemLabelProps {
-  icon: string;
-  label: JSX.Element;
-  translate: (key: string) => string;
-  limitedItem?: boolean;
-  isArray: boolean;
-  isRef: boolean;
   editMode: boolean;
-  onAddProperty?: (objectKind: ObjectKind) => void;
-  onAddReference?: (objectKind: ObjectKind) => void;
-  onAddCombination?: (objectKind: ObjectKind) => void;
-  onDelete?: () => void;
-  onImport?: () => void;
-  onPromote?: () => void;
-  onGoToType?: () => void;
+  icon: string;
+  refNode?: UiSchemaNode;
+  selectedNode: UiSchemaNode;
+  translate: (key: string) => string;
 }
 
-export const SchemaItemLabel = ({ translate, isArray, isRef, ...props }: SchemaItemLabelProps) => {
-  const [contextAnchor, setContextAnchor] = React.useState<any>(null);
-  const handleContextMenuClick = (e: React.SyntheticEvent) => {
+export const SchemaItemLabel = ({ editMode, icon, refNode, selectedNode, translate }: SchemaItemLabelProps) => {
+  const dispatch = useDispatch();
+  const [contextAnchor, setContextAnchor] = useState<any>(null);
+
+  const handleGoToType = () => {
+    if (selectedNode.ref) {
+      dispatch(navigateToType({ id: selectedNode.ref }));
+    }
+  };
+  const handleToggleContextMenuClick = (e: SyntheticEvent) => {
     e.stopPropagation();
     setContextAnchor(e.currentTarget);
   };
-  const handleAddNode = (e: React.SyntheticEvent, objectKind: ObjectKind) => {
+
+  const handleAddNode = (e: SyntheticEvent, objectKind: ObjectKind) => {
     e.stopPropagation();
     setContextAnchor(null);
-    switch (objectKind) {
-      case ObjectKind.Combination:
-        props?.onAddCombination?.(objectKind);
-        break;
-      case ObjectKind.Reference:
-        props?.onAddReference?.(objectKind);
-        break;
-      case ObjectKind.Field:
-      default:
-        props?.onAddProperty?.(objectKind);
-    }
+    const { pointer } = selectedNode;
+    const defaultFieldType: any = {
+      [ObjectKind.Field]: FieldType.String,
+      [ObjectKind.Combination]: CombinationKind.AllOf,
+      [ObjectKind.Array]: FieldType.Array,
+      [ObjectKind.Reference]: undefined,
+    };
+    const propertyProps = {
+      objectKind,
+      fieldType: defaultFieldType[objectKind],
+      ref: objectKind === ObjectKind.Reference ? '' : undefined,
+    };
+
+    selectedNode.objectKind === ObjectKind.Combination
+      ? dispatch(addCombinationItem({ path: pointer, props: propertyProps }))
+      : dispatch(addProperty({ path: pointer, props: propertyProps }));
   };
-  const handlePromoteClick = (e: React.SyntheticEvent) => {
+  const handlePromoteClick = (e: SyntheticEvent) => {
     e.stopPropagation();
     setContextAnchor(null);
-    props.onPromote?.();
+    dispatch(promoteProperty({ path: selectedNode.pointer }));
   };
-  const handleDeleteClick = (e: React.SyntheticEvent) => {
+  const handleDeleteClick = (e: SyntheticEvent) => {
     e.stopPropagation();
     setContextAnchor(null);
-    props.onDelete?.();
-  };
-  const handleGoToType = (e: React.SyntheticEvent) => {
-    e.stopPropagation();
-    setContextAnchor(null);
-    props.onGoToType?.();
+    selectedNode.objectKind === ObjectKind.Combination
+      ? dispatch(deleteCombinationItem({ path: selectedNode.pointer }))
+      : dispatch(deleteProperty({ path: selectedNode.pointer }));
   };
 
-  const handleCloseContextMenu = (e: React.SyntheticEvent) => {
+  const handleCloseContextMenu = (e: SyntheticEvent) => {
     e.stopPropagation();
     setContextAnchor(null);
   };
 
+  const canAddReferenceToNode = true;
+  const canAddFieldToNode = true;
+  const canAddCombinationToNode = true;
+  const canPromoteNodeToType = true;
+  const canDeleteNode = true;
+
+  const isArray = selectedNode.objectKind === ObjectKind.Array || refNode?.objectKind === ObjectKind.Array;
+  const isRef = refNode || selectedNode.pointer.startsWith(makePointer(Keywords.Definitions));
   return (
     <div className={classNames(classes.propertiesLabel, { [classes.isArray]: isArray, [classes.isRef]: isRef })}>
       <div className={classes.label}>
         <span className={classes.iconContainer}>
-          <i className={`fa ${props.icon}`} style={{ color: 'white', textAlign: 'center' }} />
+          <i className={`fa ${icon}`} />
         </span>{' '}
-        {props.label}
+        <span>{getNodeDisplayName(selectedNode)}</span>
+        {selectedNode.isRequired && <span> *</span>}
+        {refNode && (
+          <span
+            className={classes.referenceLabel}
+            onClick={handleGoToType}
+            onKeyUp={handleGoToType}
+            role={'link'}
+            tabIndex={-1}
+          >
+            {refNode.pointer}
+          </span>
+        )}
       </div>
       <IconButton
-        data-testid={'open-context-menu-button'}
+        data-testid='open-context-menu-button'
         className={classes.contextButton}
         aria-controls='simple-menu'
         aria-haspopup='true'
-        onClick={handleContextMenuClick}
+        onClick={handleToggleContextMenuClick}
       >
         <i className='fa fa-ellipsismenu' />
       </IconButton>
@@ -88,56 +126,47 @@ export const SchemaItemLabel = ({ translate, isArray, isRef, ...props }: SchemaI
         open={Boolean(contextAnchor)}
         onClose={handleCloseContextMenu}
       >
-        {props.onAddReference && (
+        {canAddReferenceToNode && (
           <AltinnMenuItem
             id='add-reference-to-node-button'
             key='add_reference'
             onClick={(event) => handleAddNode(event, ObjectKind.Reference)}
             text={translate('add_reference')}
             iconClass='fa fa-datamodel-ref'
-            disabled={!props.editMode}
+            disabled={!editMode}
           />
         )}
-        {props.onAddProperty && !props.limitedItem && (
+        {canAddFieldToNode && (
           <AltinnMenuItem
             id='add-field-to-node-button'
             key='add_field'
             onClick={(event) => handleAddNode(event, ObjectKind.Field)}
             text={translate('add_field')}
             iconClass='fa fa-datamodel-properties'
-            disabled={!props.editMode}
+            disabled={!editMode}
           />
         )}
-        {props.onAddCombination && !props.limitedItem && (
+        {canAddCombinationToNode && (
           <AltinnMenuItem
             id='add-combination-to-node-button'
             key='add_combination'
             onClick={(event) => handleAddNode(event, ObjectKind.Combination)}
             text={translate('add_combination')}
             iconClass='fa fa-group'
-            disabled={!props.editMode}
+            disabled={!editMode}
           />
         )}
-        {props.onPromote && !props.limitedItem && (
+        {canPromoteNodeToType && (
           <AltinnMenuItem
             id='promote-item-button'
             key='promote'
             onClick={handlePromoteClick}
             text={translate('promote')}
             iconClass='fa fa-arrowup'
-            disabled={!props.editMode}
+            disabled={!editMode}
           />
         )}
-        {props.onGoToType && (
-          <AltinnMenuItem
-            id='go-to-type-button'
-            key='go_to_type'
-            onClick={handleGoToType}
-            text={translate('go_to_type')}
-            iconClass='fa fa-datamodel-ref'
-          />
-        )}
-        {props.onDelete && [
+        {canDeleteNode && [
           <Divider key='delete-divider' inMenu />,
           <AltinnMenuItem
             id='delete-node-button'
@@ -145,7 +174,7 @@ export const SchemaItemLabel = ({ translate, isArray, isRef, ...props }: SchemaI
             onClick={handleDeleteClick}
             text={translate('delete')}
             iconClass='fa fa-trash'
-            disabled={!props.editMode}
+            disabled={!editMode}
           />,
         ]}
       </AltinnMenu>
