@@ -87,8 +87,7 @@ namespace DataModeling.Tests.Json.Keywords
 
         private XsdTextKeywordJsonConverterTests XsdTextKeywordReadFromSchema()
         {
-            JsonSchema.TryGetKeyword(out XsdTextKeyword keyword);
-            XsdTextKeyword = keyword;
+            XsdTextKeyword = JsonSchema.GetKeyword<XsdTextKeyword>();
             return this;
         }
     }
