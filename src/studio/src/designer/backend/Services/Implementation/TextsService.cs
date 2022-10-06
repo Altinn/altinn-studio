@@ -73,7 +73,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             List<string> markdownFileNames = new List<string>();
             foreach (KeyValuePair<string, string> text in texts.Where(text => IsFileReference(text.Value)))
             {
-                string fileName = text.Value.Substring(3, text.Value.Length - 5);
+                int fileNameStart = 7;
+                int fileNameEnd = text.Value.Length - 9;
+                string fileName = text.Value.Substring(fileNameStart, fileNameEnd);
                 markdownFileNames.Add(fileName);
             }
 
@@ -87,7 +89,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>boolean value indicating if value is a filename reference or not</returns>
         private static bool IsFileReference(string textValue)
         {
-            return textValue.StartsWith("${{") && textValue.EndsWith(".md}}");
+            return textValue.StartsWith("${{md::") && textValue.EndsWith(".md}}");
         }
 
         /// <summary>
@@ -108,7 +110,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 textsWithMd[text.Key] = text.Value;
                 string fileName = $"{text.Key}.{languageCode}.texts.md";
-                texts[text.Key] = "${{" + fileName + "}}";
+                texts[text.Key] = "${{md::" + fileName + "}}";
             }
 
             return (textsWithMd, texts);
