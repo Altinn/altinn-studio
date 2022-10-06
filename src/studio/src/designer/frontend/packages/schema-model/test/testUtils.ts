@@ -1,17 +1,15 @@
 import path from 'path';
 import fs from 'fs';
 import Ajv2020 from 'ajv/dist/2020';
-import { JsonSchemaNode } from '../src';
+import type { JsonSchemaNode } from '../src/lib/types';
+import { FieldType, Keywords } from '../src';
 
 /**
  * Some schemas might not be valid
  */
 export const ignoreTestSchemas: string[] = ['ComplexSchema-old'];
 
-const defaultPath = path.resolve(
-  __dirname,
-  '../../../../DataModeling.Tests/_TestData/Model/JsonSchema',
-);
+const defaultPath = path.resolve(__dirname, '../../../../DataModeling.Tests/_TestData/Model/JsonSchema');
 
 const cache = new Map();
 
@@ -73,4 +71,19 @@ export const dumpToDebug = (dirname: string, basename: string, data: any) => {
 
 export const validateSchema = (schema: JsonSchemaNode) => {
   return new Ajv2020().validateSchema(schema);
+};
+
+export const simpleTestJsonSchema = {
+  [Keywords.Properties]: {
+    hello: {
+      [Keywords.Type]: FieldType.String,
+    },
+    world: {
+      [Keywords.Properties]: {
+        hello: {
+          [Keywords.Type]: FieldType.Boolean,
+        },
+      },
+    },
+  },
 };

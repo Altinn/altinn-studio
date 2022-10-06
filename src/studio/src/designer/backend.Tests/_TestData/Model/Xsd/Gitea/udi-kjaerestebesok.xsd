@@ -1,0 +1,99 @@
+﻿<xsd:schema xmlns:seres="http://seres.no/xsd/forvaltningsdata" xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <xsd:element name="soknad" type="Soknad" />
+  <xsd:complexType name="Soknad">
+    <xsd:sequence>
+      <xsd:element name="kjaeresteINorge" type="PersonopplysningerInnland" />
+      <xsd:element name="kjaeresteIUtland" type="PersonopplysningerUtland" />
+      <xsd:element name="omRelasjonen" type="OmRelasjonen" />
+      <xsd:element name="applogic" type="Applogic" />
+    </xsd:sequence>
+    <xsd:anyAttribute />
+  </xsd:complexType>
+  <xsd:complexType name="PersonopplysningerUtland">
+    <xsd:sequence>
+      <xsd:element name="fornavn" type="Navn" />
+      <xsd:element name="mellomnavn" type="Navn" minOccurs="0" />
+      <xsd:element name="etternavn" type="Navn" />
+      <xsd:element name="fodselsdato" type="Dato" />
+      <xsd:element name="nummerPaaReisedokument" type="NummerPaaReisedokument" />
+      <xsd:element name="land" type="Tekst" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="PersonopplysningerInnland">
+    <xsd:sequence>
+      <xsd:element name="fornavn" type="Navn" />
+      <xsd:element name="mellomnavn" type="Navn" minOccurs="0" />
+      <xsd:element name="etternavn" type="Navn" />
+      <xsd:element name="personnummer" minOccurs="0" type="Personnummer" />
+      <xsd:element name="fodselsdato" type="Dato" />
+      <xsd:element name="adresse" type="Tekst" />
+      <xsd:element name="postnummer" type="PostNr" />
+      <xsd:element name="poststed" type="Tekst" />
+      <xsd:element name="telefonnummer" type="Telefonnummer" />
+      <xsd:element name="epost" type="EPost" />
+      <xsd:element name="oppholdsrett" type="xsd:boolean" minOccurs="0" />
+      <xsd:element name="eierEllerLeier" type="xsd:boolean" minOccurs="0" />
+      <xsd:element name="registertBosatt" type="xsd:boolean" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="OmRelasjonen">
+    <xsd:sequence>
+      <xsd:element name="kjaeresterMerEnn9mnd" type="xsd:boolean" />
+      <xsd:element name="mottesMinstEnGang" type="xsd:boolean" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Applogic">
+    <xsd:sequence>
+      <xsd:element name="avsender" type="Tekst" />
+      <xsd:element name="altinnRef" type="Tekst" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="Navn">
+    <xsd:restriction base="xsd:string">
+      <xsd:minLength value="1" />
+      <xsd:maxLength value="175" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Dato">
+    <xsd:restriction base="xsd:date" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Land">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="NummerPaaReisedokument">
+    <xsd:restriction base="xsd:string">
+      <xsd:minLength value="1" />
+      <xsd:maxLength value="15" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="PostNr">
+    <xsd:restriction base="xsd:string">
+      <xsd:length value="4" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Personnummer">
+    <xsd:restriction base="Personnummer_RestriksjonPersonnummer" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Personnummer_RestriksjonPersonnummer">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="[0-9]{11}" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Telefonnummer">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="^(\+|00)\d{4,}$" />
+      <xsd:minLength value="1" />
+      <xsd:maxLength value="25" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="EPost">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="[^@]+@[^\.]+\..+" />
+      <xsd:minLength value="1" />
+      <xsd:maxLength value="175" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Tekst">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+</xsd:schema>

@@ -1,0 +1,202 @@
+﻿<xsd:schema version="1.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xsd:element name="Garantist" type="Garantist" />
+  <xsd:complexType name="Garantist">
+    <xsd:sequence>
+      <xsd:element name="soknad" type="Soknad" />
+      <xsd:element name="konsesjonsjekk" type="Konsesjonsjekk" />
+      <xsd:element name="orgNoGarantist" type="OrgNummer" />
+      <xsd:element name="navnGarantist" type="xsd:string" />
+      <xsd:element name="transportor" type="Transportor" />
+      <xsd:element name="loyveoversikt" type="Loyveoversikt" />
+      <xsd:element name="properties" type="Properties" />
+      <xsd:element name="optionsProperties" type="OptionsProperties" />
+      <xsd:element name="feilmeldinger" type="Feilmeldinger" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="OptionsProperties">
+    <xsd:sequence>
+      <xsd:element name="egneGodsloyveGarantier" type="xsd:integer" />
+      <xsd:element name="egneTurvognloyveGarantier" type="xsd:integer" />
+      <xsd:element name="harAndreGodsloyveGarantier" type="xsd:boolean" />
+      <xsd:element name="harAndreTurvognloyveGarantier" type="xsd:boolean" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Properties">
+    <xsd:sequence>
+      <xsd:element name="erstattEgenGarantiKey" type="xsd:string" fixed="erstattEgenGaranti" />
+      <xsd:element name="erstattAnnenGarantiKey" type="xsd:string" fixed="erstattAnnenGaranti" />
+      <xsd:element name="endreGarantiKey" type="xsd:string" fixed="endreGaranti" />
+      <xsd:element name="nyGarantiKey" type="xsd:string" fixed="nyGaranti" />
+      <xsd:element name="allPayedIsChecked" type="xsd:boolean" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Konsesjonsjekk">
+    <xsd:sequence>
+      <xsd:element name="userAuthorized" type="xsd:boolean" />
+      <xsd:element name="errorMessage" type="xsd:string" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Soknad">
+    <xsd:sequence>
+      <xsd:element name="transportorOrgnummer" type="OrgNummer" />
+      <xsd:element name="soknadtype" type="xsd:string" />
+      <xsd:element name="nyGaranti" type="NyGaranti" />
+      <xsd:element name="endreGaranti" type="EndreGaranti" />
+      <xsd:element name="erstattGaranti" type="ErstattGaranti" minOccurs="1" maxOccurs="1" />
+      <xsd:element name="erstattAndreGarantister" type="ErstattAndreGarantister" minOccurs="1" maxOccurs="1" />
+      <xsd:element name="skjemaBekreft" type="xsd:string" />
+      <xsd:element name="loyvedekning" type="xsd:string" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ErstattAndreGarantister">
+    <xsd:sequence>
+      <xsd:element name="orgnummer" type="xsd:string" />
+      <xsd:element name="garantistId" type="xsd:long" />
+      <xsd:element name="garantinummer" type="xsd:string" />
+      <xsd:element name="garantiType" type="xsd:string" />
+      <xsd:element name="belop" type="xsd:string" />
+      <xsd:element name="loyvedekning" type="xsd:integer" />
+      <xsd:element name="skjemaBekreft" type="xsd:string" />
+      <xsd:element name="gyldigFraDato" type="xsd:dateTime" nillable="true" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="NyGaranti">
+    <xsd:sequence>
+      <xsd:element name="garantinummer" type="xsd:string" />
+      <xsd:element name="garantiType" type="xsd:string" />
+      <xsd:element name="belop" type="xsd:string" />
+      <xsd:element name="gyldigFraDato" type="xsd:dateTime" nillable="true" />
+      <xsd:element name="loyvedekning" type="xsd:integer" />
+      <xsd:element name="skjemaBekreft" type="xsd:string" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="EndreGaranti">
+    <xsd:sequence>
+      <xsd:element name="garanti" type="Garanti" minOccurs="1" maxOccurs="1" />
+      <xsd:element name="endringstype" type="xsd:string" />
+      <xsd:element name="belop" type="xsd:string" />
+      <xsd:element name="loyvedekning" type="xsd:string" />
+      <xsd:element name="resterendeBelop" type="xsd:string" />
+      <xsd:element name="utbetaltISinHelhet" type="xsd:string" />
+      <xsd:element name="oppsigelsedato" type="xsd:dateTime" nillable="true" />
+      <xsd:element name="oppsigelseaarsak" type="OppsigelseAarsak" />
+      <xsd:element name="justerBelopCheck" type="xsd:string" />
+      <xsd:element name="justerUtbetaltCheck" type="xsd:string" />
+      <xsd:element name="justerOppsigelseCheck" type="xsd:string" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ErstattGaranti">
+    <xsd:sequence>
+      <xsd:element name="navn" type="xsd:string" />
+      <xsd:element name="garantinummer" type="xsd:string" />
+      <xsd:element name="gammelGarantinummer" type="xsd:string" />
+      <xsd:element name="belop" type="xsd:string" />
+      <xsd:element name="garantiType" type="Garantitype" />
+      <xsd:element name="status" type="Garantistatus" />
+      <xsd:element name="skjemaBekreft" type="xsd:string" />
+      <xsd:element name="valgteGarantier" type="ValgtGaranti" minOccurs="0" maxOccurs="unbounded" />
+      <xsd:element name="gyldigFraDato" type="xsd:dateTime" nillable="true" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ValgtGaranti">
+    <xsd:sequence>
+      <xsd:element name="garantinummer" type="xsd:string" />
+      <xsd:element name="garantiType" type="Garantitype" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Loyveoversikt">
+    <xsd:sequence>
+      <xsd:element name="GODSLOYVE" type="xsd:integer" />
+      <xsd:element name="TURVOGNLOYVE" type="xsd:integer" />
+      <xsd:element name="LETTGODSLOYVE" type="xsd:integer" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="GarantiInformasjon">
+    <xsd:sequence>
+      <xsd:element name="transportorOrgnummer" type="OrgNummer" />
+      <xsd:element name="transportorNavn" type="xsd:string" />
+      <xsd:element name="garantistOrgummer" type="OrgNummer" />
+      <xsd:element name="loyveoversikt" type="Loyveoversikt" />
+      <xsd:element name="egneGarantier" type="Garanti" minOccurs="0" maxOccurs="unbounded" />
+      <xsd:element name="andreGarantister" type="AnnenGarantist" minOccurs="0" maxOccurs="unbounded" />
+      <xsd:element name="egneGodsloyveGarantier" type="xsd:integer" />
+      <xsd:element name="egneTurvognloyveGarantier" type="xsd:integer" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Garanti">
+    <xsd:sequence>
+      <xsd:element name="garantiBelop" type="xsd:decimal" />
+      <xsd:element name="garantiType" type="Garantitype" />
+      <xsd:element name="garantiNummer" type="xsd:string" />
+      <xsd:element name="status" type="Garantistatus" />
+      <xsd:element name="gyldigFra" type="xsd:dateTime" nillable="true" />
+      <xsd:element name="gyldigTil" type="xsd:dateTime" nillable="true" />
+      <xsd:element name="opprettetDato" type="xsd:dateTime" nillable="true" />
+      <xsd:element name="endretDato" type="xsd:dateTime" nillable="true" />
+      <xsd:element name="belopGarantiRest" type="xsd:string" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="AnnenGarantist">
+    <xsd:sequence>
+      <xsd:element name="navn" type="xsd:string" />
+      <xsd:element name="orgnummer" type="OrgNummer" />
+      <xsd:element name="garantiType" type="Garantitype" />
+      <xsd:element name="status" type="Garantistatus" />
+      <xsd:element name="garantistId" type="xsd:long" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Transportor">
+    <xsd:sequence>
+      <xsd:element name="orgnoTransportforetak" type="OrgNummer" />
+      <xsd:element name="navnTransportforetak" type="xsd:string" />
+      <xsd:element name="antallAktiveLoyver" type="xsd:integer" />
+      <xsd:element name="aktivtLoyve" type="AktivtLoyve" minOccurs="0" maxOccurs="unbounded" />
+      <xsd:element name="garantiInformasjon" type="GarantiInformasjon" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="AktivtLoyve">
+    <xsd:sequence>
+      <xsd:element name="garantiType" type="Garantitype" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="Garantitype">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="GODSLOYVE" />
+      <xsd:enumeration value="TURVOGNLOYVE" />
+      <xsd:enumeration value="LETTGODSLOYVE" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="OppsigelseAarsak">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="AVSLUTTET_AV_GARANTIST" />
+      <xsd:enumeration value="AVSLUTTET_AV_TRANSPORTOR" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Garantistatus">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="OPPSAGT" />
+      <xsd:enumeration value="AKTIV" />
+      <xsd:enumeration value="INAKTIV" />
+      <xsd:enumeration value="UTGAATT" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="OrgNummer">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="[0-9]{9}" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Status">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="OK" />
+      <xsd:enumeration value="FAILED" />
+      <xsd:enumeration value="REJECTED_FEIL_GAMMEL_GARANTI" />
+      <xsd:enumeration value="REJECTED_BELOP_FOR_LAVT" />
+      <xsd:enumeration value="REJECTED" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="Feilmeldinger">
+    <xsd:sequence>
+      <xsd:element name="orgSokFeilmelding" type="xsd:string" />
+    </xsd:sequence>
+  </xsd:complexType>
+</xsd:schema>

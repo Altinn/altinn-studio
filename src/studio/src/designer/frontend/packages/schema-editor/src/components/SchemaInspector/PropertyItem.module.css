@@ -1,0 +1,21 @@
+.root {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  width: 100%;
+}
+
+.nameInputCell {
+  display: inline-block;
+  flex: 1;
+}
+
+.nameInputCell > div {
+  width: 100%;
+}
+
+.delete {
+  margin-left: 8px;
+  padding: 12px;
+}

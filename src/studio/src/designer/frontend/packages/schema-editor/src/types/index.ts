@@ -1,23 +1,21 @@
 /** Interfaces */
+import type { UiSchemaNodes } from '@altinn/schema-model';
+
 export interface ILanguage {
   [key: string]: string | ILanguage;
 }
 
-import { CombinationKind, FieldType } from '@altinn/schema-model';
-
-export { CombinationKind, FieldType };
-
-export interface ISchema {
+export interface IJsonSchema {
   properties?: { [key: string]: { [key: string]: any } };
-  definitions?: { [key: string]: { [key: string]: any } };
+  $defs?: { [key: string]: { [key: string]: any } };
   $schema?: string;
   $id?: string;
   [key: string]: any;
 }
 
 export interface ISchemaState {
-  schema: ISchema;
-  uiSchema: UiSchemaItem[];
+  schema: IJsonSchema;
+  uiSchema: UiSchemaNodes;
   name: string;
   saveSchemaUrl: string;
   selectedDefinitionNodeId: string;
@@ -27,39 +25,8 @@ export interface ISchemaState {
   selectedEditorTab: 'definitions' | 'properties';
 }
 
-/**
- * @deprecated
- */
-export interface UiSchemaItem {
-  path: string;
-  type?: FieldType;
-  $ref?: string;
-  restrictions?: Restriction[];
-  properties?: UiSchemaItem[];
-  value?: any;
-  displayName: string;
-  required?: string[];
-  title?: string;
-  description?: string;
-  items?: { type?: string; $ref?: string };
-  enum?: string[];
-  combination?: UiSchemaItem[];
-  combinationKind?: CombinationKind;
-  combinationItem?: boolean;
-  isRequired?: boolean;
+export enum NameError {
+  InvalidCharacter = 'nameError_invalidCharacter',
+  AlreadyInUse = 'nameError_alreadyInUse',
+  NoError = '',
 }
-
-export type NameInUseProps = {
-  uiSchemaItems: UiSchemaItem[];
-  parentSchema: UiSchemaItem | null;
-  path: string;
-  name: string;
-};
-
-/**
- * @deprecated
- */
-export type Restriction = {
-  key: string;
-  value: any;
-};

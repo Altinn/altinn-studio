@@ -1,0 +1,63 @@
+﻿<xs:schema version="1.0" targetNamespace="http://aal.kartverket.no/v1/modell" xmlns:aal="http://aal.kartverket.no/v1/modell" xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:simpleType name="Personidtype">
+    <xs:annotation>
+      <xs:documentation>
+                Lovlige person-IDer.
+            </xs:documentation>
+    </xs:annotation>
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="FOEDSELS_D_NUMMER" />
+      <!-- Norsk fødselsnummer eller D-nummer -->
+      <xs:enumeration value="INTERNASJONAL" />
+      <!-- Annen internasjonal ID -->
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="Navn">
+    <xs:sequence>
+      <xs:element name="fornavn" type="xs:string" />
+      <xs:element name="mellomnavn" type="xs:string" minOccurs="0" />
+      <xs:element name="etternavn" type="xs:string" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="vedlegg">
+    <xs:annotation>
+      <xs:documentation>
+                Vedlegg til søknad om autorisering av landmålere.
+            </xs:documentation>
+    </xs:annotation>
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="personid" type="xs:string">
+          <xs:annotation>
+            <xs:documentation>Et godkjent internasjonalt ID-nummer.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name="personidtype" type="aal:Personidtype">
+          <xs:annotation>
+            <xs:documentation>Type ID-nummer.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name="navn" type="aal:Navn">
+          <xs:annotation>
+            <xs:documentation>Fullt navn på søker.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name="soeknadsreferense" type="xs:string">
+          <xs:annotation>
+            <xs:documentation>Referanse til søknad.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name="vedleggsbeskrivelse" type="xs:string">
+          <xs:annotation>
+            <xs:documentation>Beskrivelse av de innsendte vedleggene.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element name="innsendingsbekreftelse" type="xs:string">
+          <xs:annotation>
+            <xs:documentation>Bekreftelse på at kravene for innsending er godtatte</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

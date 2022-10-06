@@ -1,0 +1,14 @@
+﻿<xs:schema xmlns:brreg="http://www.brreg.no/or" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="valgkort">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="correspondence" type="xs:string">
+          <xs:annotation></xs:annotation>
+        </xs:element>
+        <xs:element name="name" type="xs:string">
+          <xs:annotation></xs:annotation>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

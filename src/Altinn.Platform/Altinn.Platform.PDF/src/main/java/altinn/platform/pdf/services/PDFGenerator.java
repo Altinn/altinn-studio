@@ -523,7 +523,7 @@ public class PDFGenerator {
   private String getDisplayValueFromOptions(FormLayoutElement element) {
     String value = FormUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData);
     List<String> splitFormData;
-    if (element.getType().equalsIgnoreCase("Checkboxes")) {
+    if (element.getType().equalsIgnoreCase("Checkboxes") || element.getType().equalsIgnoreCase("MultipleSelect")) {
       // checkboxes can have multiple values, need to fetch label for each one
       splitFormData = Arrays.asList(value.split((",")));
     } else {

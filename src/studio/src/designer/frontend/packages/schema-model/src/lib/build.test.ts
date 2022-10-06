@@ -1,8 +1,4 @@
-import {
-  dumpToDebug,
-  getGeneralJsonSchemasForTest,
-  getSeresJsonSchemasForTest,
-} from '../../test/testUtils';
+import { dumpToDebug, getGeneralJsonSchemasForTest, getSeresJsonSchemasForTest } from '../../test/testUtils';
 import { JsonSchemaNode, ObjectKind, ROOT_POINTER } from './types';
 import { buildUiSchema } from './build-ui-schema';
 import { buildJsonSchema } from './build-json-schema';
@@ -26,12 +22,9 @@ test.each(getSeresJsonSchemasForTest())(
   },
 );
 
-test.each(getGeneralJsonSchemasForTest())(
-  'General model %p can be converted',
-  (name: string, testSchema: object) => {
-    const map = buildUiSchema(testSchema);
-    dumpToDebug(__dirname, name, map);
-    const jsonSchema = buildJsonSchema(map);
-    expect(jsonSchema).toEqual(testSchema);
-  },
-);
+test.each(getGeneralJsonSchemasForTest())('General model %p can be converted', (name: string, testSchema: object) => {
+  const map = buildUiSchema(testSchema);
+  dumpToDebug(__dirname, name, map);
+  const jsonSchema = buildJsonSchema(map);
+  expect(jsonSchema).toEqual(testSchema);
+});

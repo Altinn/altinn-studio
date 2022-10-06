@@ -1,4 +1,4 @@
-import { ILanguage } from "../types";
+import type { ILanguage } from '../types';
 
 export const getTranslation = (key: string, language: ILanguage) => {
   if (!key) {
@@ -9,5 +9,5 @@ export const getTranslation = (key: string, language: ILanguage) => {
 };
 
 const getNestedObject = (nestedObj: any, pathArr: string[]) => {
-  return pathArr.reduce((obj, key) => ((obj && obj[key] !== 'undefined') ? obj[key] : undefined), nestedObj);
+  return pathArr.reduce((obj, key) => (obj && obj[key] !== 'undefined' ? obj[key] : undefined), nestedObj);
 };

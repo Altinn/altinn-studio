@@ -1,9 +1,9 @@
 {
   "iisSettings": {
-    "windowsAuthentication": false, 
-    "anonymousAuthentication": true, 
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
     "iisExpress": {
-      "applicationUrl": "http://localhost:5101",
+      "applicationUrl": "http://local.altinn.cloud",
       "sslPort": 0
     }
   },
@@ -11,8 +11,8 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      "launchUrl": "http://altinn3local.no/",
-      "applicationUrl": "http://localhost:5101",
+      "launchUrl": "http://local.altinn.cloud/",
+      "applicationUrl": "http://local.altinn.cloud",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
@@ -20,8 +20,8 @@
     "LocalTest": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "http://altinn3local.no/",
-      "applicationUrl": "http://localhost:5101",
+      "launchUrl": "http://local.altinn.cloud/",
+      "applicationUrl": "http://local.altinn.cloud",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ASPNETCORE_URLS": "http://localhost:5101/"

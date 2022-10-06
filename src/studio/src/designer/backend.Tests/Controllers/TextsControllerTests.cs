@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -9,23 +8,18 @@ using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Controllers;
-using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 
-using LibGit2Sharp;
-
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
-using Xunit.Sdk;
 
 using IRepository = Altinn.Studio.Designer.Services.Interfaces.IRepository;
 
@@ -59,6 +53,28 @@ namespace Designer.Tests.Controllers
             Dictionary<string, string> expectedDictionary = new Dictionary<string, string> { { "nb_key1", "nb_value1" }, { "nb_key2", "nb_value2" } };
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
             Assert.Equal(expectedDictionary, responseDictionary);
+        }
+
+        [Fact]
+        public async Task Get_Markdown_200Ok()
+        {
+            var targetRepository = Guid.NewGuid().ToString();
+            await TestDataHelper.CopyRepositoryForTest("ttd", "markdown-files", "testUser", targetRepository);
+            HttpClient client = GetTestClient();
+            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            try
+            {
+                Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
+            }
         }
 
         [Fact]
@@ -118,6 +134,29 @@ namespace Designer.Tests.Controllers
         }
 
         [Fact]
+        public async Task Put_Markdown_204NoContent()
+        {
+            var targetRepository = Guid.NewGuid().ToString();
+            await TestDataHelper.CopyRepositoryForTest("ttd", "markdown-files", "testUser", targetRepository);
+            HttpClient client = GetTestClient();
+            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
+            httpRequestMessage.Content = JsonContent.Create(new { markdown_key = "## This is a markdown text \n\n Here is a list \n - Item1 \n - Item2 \n - Item3 \n\n # HERE IS SOME IMPORTANT CODE \n `print(Hello world)`" });
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            try
+            {
+                Assert.Equal(StatusCodes.Status204NoContent, (int)response.StatusCode);
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
+            }
+        }
+
+        [Fact]
         public async Task Put_UpdateInvalidFormat_400BadRequest()
         {
             var targetRepository = Guid.NewGuid().ToString();
@@ -148,6 +187,31 @@ namespace Designer.Tests.Controllers
         {
             var targetRepository = Guid.NewGuid().ToString();
             await TestDataHelper.CopyRepositoryForTest("ttd", "new-texts-format", "testUser", targetRepository);
+            HttpClient client = GetTestClient();
+            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, dataPathWithData);
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+            string responseBody = await response.Content.ReadAsStringAsync();
+            JsonDocument responseDocument = JsonDocument.Parse(responseBody);
+
+            try
+            {
+                Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+                Assert.Equal("Texts file, nb.texts.json, was successfully deleted.", responseDocument.RootElement.ToString());
+            }
+            finally
+            {
+                TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
+            }
+        }
+
+        [Fact]
+        public async Task Delete_Markdown_200Ok()
+        {
+            var targetRepository = Guid.NewGuid().ToString();
+            await TestDataHelper.CopyRepositoryForTest("ttd", "markdown-files", "testUser", targetRepository);
             HttpClient client = GetTestClient();
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, dataPathWithData);

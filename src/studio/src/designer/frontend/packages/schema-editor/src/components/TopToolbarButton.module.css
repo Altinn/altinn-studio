@@ -1,0 +1,38 @@
+.toolbarButton:global(.MuiButton-root) {
+  border-radius: 0;
+  border: 0;
+  font-family: Roboto, sans-serif;
+  font-size: 1em;
+  font-weight: normal;
+  height: 36px;
+  margin: 0;
+  padding: 4px 8px;
+  text-transform: none;
+}
+
+.toolbarButton:global(.MuiButton-root):hover {
+  background: #006bd8;
+  color: #fff;
+}
+
+.toolbarButton:global(.MuiButton-root).warn:hover {
+  background: #d02f4c;
+}
+
+.toolbarButton:global(.MuiButton-root) :global(.MuiButton-startIcon) {
+  margin-right: 4px;
+}
+
+.toolbarButton:global(.MuiButton-root) :global(.fa) {
+  margin: 4px;
+  width: auto;
+}
+
+.toolbarButton:global(.MuiButton-root) :global(.fa-plus):before {
+  content: "\f068";
+}
+
+.iconButton {
+  padding: 0;
+  width: 36px;
+}

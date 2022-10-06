@@ -9,7 +9,9 @@ const templatePath = path.resolve(
 const template = fs.readFileSync(templatePath, 'utf-8');
 
 module.exports = (hostname, owner, reponame) =>
-  template
-    .replaceAll('__hostname__', hostname)
-    .replaceAll('__owner__', owner)
-    .replaceAll('__repo__', reponame);
+  JSON.parse(
+    template
+      .replaceAll('__hostname__', hostname)
+      .replaceAll('__owner__', owner)
+      .replaceAll('__repo__', reponame),
+  );

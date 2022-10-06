@@ -1,27 +1,19 @@
-# Altinn 3
+# Altinn Studio
 
-**Altinn Studio** is the next generation Altinn application development solution.
-Together with **Altinn Apps** and **Altinn Platform** (also part of this repo), this is a complete application development and hosting platform.
+Altinn Studio is the next generation Altinn application development solution.
+Together with **Altinn Apps** and **Altinn Platform**, this is a complete application development and hosting platform (Altinn 3).
 
 Altinn Studio is available at <https://altinn.studio>.
 
-Read [the Altinn Studio documentation](https://docs.altinn.studio/) to get started.
+Read the [Altinn Studio documentation](https://docs.altinn.studio/) to [get started](https://docs.altinn.studio/app/getting-started/).
+We've also created a [into course for app development](https://docs.altinn.studio/app/app-dev-course/) that you can follow at your own pace.
 
 ![Altinn 3 concept](https://docs.altinn.studio/community/about/concept3.svg 'Altinn 3 - Concept')
 
 ## Build status
 
-### Apps
-
-[![KubernetesWrapper build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-apps/altinn-kuberneteswrapper-build-master?label=apps/kuberneteswrapper)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=88)
-
-### Studio
-
 [![Designer build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-studio/designer-master?label=studio/designer)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=18)
 [![Repos build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-studio/repositories-master?label=studio/repos)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=28)
-
-### Platform
-[![PDF build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-platform/pdf-master?label=platform/pdf)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=66)
 
 ## Developing apps?
 
@@ -99,8 +91,7 @@ docker-compose down
 
    - If you need to debug (or run locally) the app front-end, see details in [app-frontend-react repository](https://github.com/Altinn/app-frontend-react#developing-app-frontend)
 
-The app and local platform services are now running locally.
-If you have configured your hosts as [described in the prerequisites](/src/studio/README.md#prerequisites), the app can be accessed on altinn3local.no.
+The app and local platform services are now running locally, and the app can be accessed on local.altinn.cloud.
 
 Log in with a test user, using your app name and org name. This will redirect you to the app.
 

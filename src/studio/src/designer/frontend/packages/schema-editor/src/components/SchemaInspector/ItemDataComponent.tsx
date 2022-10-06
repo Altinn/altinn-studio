@@ -1,9 +1,8 @@
-import { Checkbox, FormControlLabel, TextField as MaterialTextField } from '@material-ui/core';
+import { TextField as MaterialTextField } from '@material-ui/core';
 import React, { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
-import { CombinationKind, FieldType, ILanguage, UiSchemaItem } from '../../types';
-import { NameError, ObjectKind } from '../../types/enums';
-import { isValidName } from '../../utils/checks';
+import { useDispatch, useSelector } from 'react-redux';
+import type { ILanguage, ISchemaState } from '../../types';
+import { NameError } from '../../types';
 import { getTranslation } from '../../utils/language';
 import {
   addCombinationItem,
@@ -11,188 +10,129 @@ import {
   navigateToType,
   setCombinationType,
   setDescription,
-  setItems,
   setPropertyName,
   setRef,
   setTitle,
   setType,
+  toggleArrayField,
 } from '../../features/editor/schemaEditorSlice';
-import { combinationIsNullable, getDomFriendlyID, nullableType } from '../../utils/schema';
 import { TypeSelect } from './TypeSelect';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { CombinationSelect } from './CombinationSelect';
-import { getObjectKind } from '../../utils/ui-schema-utils';
 import { getCombinationOptions, getTypeOptions } from './helpers/options';
-import { ErrorMessage, TextField } from '@altinn/altinn-design-system';
+import { Checkbox, ErrorMessage, TextField } from '@altinn/altinn-design-system';
 import classes from './ItemDataComponent.module.css';
-import { ItemRestrictions } from "./ItemRestrictions";
-import { Divider } from "./Divider";
-import { Label } from "./Label";
-import { Fieldset } from "./Fieldset";
+import { ItemRestrictions } from './ItemRestrictions';
+import { Divider } from './Divider';
+import { Label } from './Label';
+import { Fieldset } from './Fieldset';
+import type { UiSchemaNode } from '@altinn/schema-model';
+import {
+  canToggleArrayAndField,
+  combinationIsNullable,
+  CombinationKind,
+  FieldType,
+  getChildNodesByNode,
+  getNodeDisplayName,
+  Keywords,
+  makePointer,
+  ObjectKind,
+} from '@altinn/schema-model';
+import { getDomFriendlyID, isValidName } from '../../utils/ui-schema-utils';
 
 export interface IItemDataComponentProps {
-  selectedItem: UiSchemaItem | null;
+  selectedItem: UiSchemaNode;
   language: ILanguage;
   checkIsNameInUse: (name: string) => boolean;
 }
 
 export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: IItemDataComponentProps) {
   const dispatch = useDispatch();
-  const objectKind = getObjectKind(selectedItem ?? undefined);
-  const selectedId = selectedItem?.path ?? '';
+  const selectedNodePointer = selectedItem.pointer;
   const [nameError, setNameError] = useState('');
   const [nodeName, setNodeName] = useState('');
   const [description, setItemDescription] = useState<string>('');
   const [title, setItemTitle] = useState<string>('');
-  const [fieldType, setFieldType] = useState<FieldType | undefined>(undefined);
-  const [arrayType, setArrayType] = useState<FieldType | string | undefined>(undefined);
+  const { fieldType } = selectedItem;
 
+  const childNodes = useSelector((state: ISchemaState) => getChildNodesByNode(state.uiSchema, selectedItem));
+  const itemsNode = selectedItem.objectKind === ObjectKind.Array ? childNodes[0] : undefined;
   useEffect(() => {
-    setNodeName(selectedItem?.displayName ?? '');
+    setNodeName(getNodeDisplayName(selectedItem));
     setNameError(NameError.NoError);
-    setItemTitle(selectedItem?.title ?? '');
-    setItemDescription(selectedItem?.description ?? '');
-    setFieldType(selectedItem?.type);
-    setArrayType(selectedItem?.items?.$ref ?? selectedItem?.items?.type ?? '');
+    setItemTitle(selectedItem.title ?? '');
+    setItemDescription(selectedItem.description ?? '');
   }, [selectedItem]);
 
+  const arrayType = selectedItem.objectKind === ObjectKind.Array ? childNodes[0].fieldType : undefined;
   const onNameChange = (e: any) => {
     const name: string = e.target.value;
     setNodeName(name);
-    if (!isValidName(name)) {
-      setNameError(NameError.InvalidCharacter);
+    !isValidName(name) ? setNameError(NameError.InvalidCharacter) : setNameError(NameError.NoError);
+  };
+
+  const onChangeRef = (path: string, ref: string) => dispatch(setRef({ path, ref }));
+
+  const onChangeFieldType = (pointer: string, type: FieldType) =>
+    dispatch(setType({ path: selectedItem.pointer, type }));
+
+  const onChangeArrayType = (pointer: string, fieldType: FieldType) =>
+    dispatch(setType({ path: makePointer(pointer, Keywords.Items), type: fieldType }));
+
+  const onChangeNullable = (event: any) => {
+    if (event.target.checked) {
+      dispatch(addCombinationItem({ path: selectedItem.pointer, props: { fieldType: FieldType.Null } }));
     } else {
-      setNameError(NameError.NoError);
+      childNodes.forEach((childNode: UiSchemaNode) => {
+        if (childNode.fieldType === FieldType.Null) {
+          dispatch(deleteCombinationItem({ path: childNode.pointer }));
+        }
+      });
     }
   };
 
-  const onChangeRef = (path: string, ref: string) => {
-    const data = {
-      path,
-      ref,
-    };
-    dispatch(setRef(data));
-  };
+  const onChangeTitle = () => dispatch(setTitle({ path: selectedNodePointer, title }));
 
-  const onChangeType = (type: FieldType) => {
-    if (selectedItem) {
-      dispatch(
-        setType({
-          path: selectedItem.path,
-          type,
-        }),
-      );
-      setFieldType(type);
-    }
-  };
-
-  const onChangeNullable = (_x: any, nullable: boolean) => {
-    if (nullable && selectedItem) {
-      dispatch(
-        addCombinationItem({
-          path: selectedItem.path,
-          props: { type: FieldType.Null },
-        }),
-      );
-    } else {
-      const itemToRemove = selectedItem?.combination?.find(nullableType);
-      if (itemToRemove) {
-        dispatch(deleteCombinationItem({ path: itemToRemove.path }));
-      }
-    }
-  };
-
-  const onChangeTitle = () => {
-    dispatch(setTitle({ path: selectedId, title }));
-  };
-
-  const onChangeDescription = () => {
-    dispatch(setDescription({ path: selectedId, description }));
-  };
+  const onChangeDescription = () => dispatch(setDescription({ path: selectedNodePointer, description }));
 
   const onGoToDefButtonClick = () => {
-    if (!selectedItem?.$ref) {
-      return;
-    }
-    dispatch(
-      navigateToType({
-        id: selectedItem?.$ref,
-      }),
-    );
-  };
-
-  const onChangeArrayType = (type: string | FieldType | undefined) => {
-    if (selectedItem) {
-      setArrayType(type ?? '');
-      let items;
-      if (type === undefined) {
-        items = undefined;
-      } else {
-        items = objectKind === ObjectKind.Field ? { type } : { $ref: type };
-      }
-      dispatch(
-        setItems({
-          path: selectedItem.path,
-          items,
-        }),
-      );
+    const ref = selectedItem.objectKind === ObjectKind.Array ? childNodes[0].ref : selectedItem.ref;
+    if (ref !== undefined) {
+      dispatch(navigateToType({ id: ref }));
     }
   };
 
-  const onChangeCombinationType = (value: CombinationKind) => {
-    if (selectedItem?.path) {
-      dispatch(
-        setCombinationType({
-          path: selectedItem.path,
-          type: value,
-        }),
-      );
-    }
-  };
+  const onChangeCombinationType = (value: CombinationKind) =>
+    dispatch(setCombinationType({ path: selectedItem.pointer, type: value }));
 
-  const handleIsArrayChanged = (e: any, checked: boolean) => {
-    if (!selectedItem) {
-      return;
-    }
-
-    if (checked) {
-      const type = objectKind === ObjectKind.Reference ? selectedItem.$ref : selectedItem.type;
-      onChangeArrayType(type);
-      onChangeType(FieldType.Array);
-    } else {
-      if (objectKind === ObjectKind.Reference) {
-        onChangeRef(selectedItem.path, arrayType || '');
-      } else {
-        onChangeType(arrayType as FieldType);
-      }
-      onChangeArrayType(undefined);
-    }
-  };
-
+  const handleArrayPropertyToggle = () => dispatch(toggleArrayField({ pointer: selectedItem.pointer }));
   const handleChangeNodeName = () => {
     if (checkIsNameInUse(nodeName)) {
       setNameError(NameError.AlreadyInUse);
       return;
     }
-
-    if (!nameError && selectedItem && selectedItem.displayName !== nodeName) {
+    const displayName = getNodeDisplayName(selectedItem);
+    if (!nameError && displayName !== nodeName) {
       dispatch(
         setPropertyName({
-          path: selectedItem.path,
+          path: selectedItem.pointer,
           name: nodeName,
-          navigate: selectedItem.path,
+          navigate: true,
         }),
       );
     }
   };
 
   const t = (key: string) => getTranslation(key, language);
-  const titleId = `${getDomFriendlyID(selectedId ?? '')}-title`;
-  const descriptionId = `${getDomFriendlyID(selectedId ?? '')}-description`;
+  const titleId = getDomFriendlyID(selectedNodePointer, 'title');
+  const descriptionId = getDomFriendlyID(selectedNodePointer, 'description');
+  const canToggleBetweenArrayAndField = useSelector((state: ISchemaState) =>
+    canToggleArrayAndField(state.uiSchema, selectedNodePointer),
+  );
 
   return (
     <div>
-      {!selectedItem?.combinationItem && (
+      {!selectedItem.isCombinationItem && (
         <>
           <Label htmlFor='selectedItemName'>{t('name')}</Label>
           <TextField
@@ -208,78 +148,69 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
           {nameError && <ErrorMessage>{t(nameError)}</ErrorMessage>}
         </>
       )}
-      {selectedItem && objectKind === ObjectKind.Field && (
-        <TypeSelect
-          id={`${getDomFriendlyID(selectedItem.path)}-type-select`}
-          label={t('type')}
-          onChange={selectedItem.type === FieldType.Array ? onChangeArrayType : onChangeType}
-          options={getTypeOptions(t)}
-          value={selectedItem.type === FieldType.Array ? arrayType : fieldType}
+      {[ObjectKind.Array, ObjectKind.Field].includes(selectedItem.objectKind) &&
+        itemsNode?.objectKind !== ObjectKind.Reference && (
+          <TypeSelect
+            id={getDomFriendlyID(selectedItem.pointer, 'type-select')}
+            label={t('type')}
+            onChange={(fieldType) => {
+              selectedItem.objectKind === ObjectKind.Array
+                ? onChangeArrayType(selectedItem.pointer, fieldType)
+                : onChangeFieldType(selectedItem.pointer, fieldType);
+            }}
+            options={getTypeOptions(t)}
+            value={selectedItem.objectKind === ObjectKind.Array ? arrayType : fieldType}
+          />
+        )}
+      {(selectedItem.objectKind === ObjectKind.Reference || itemsNode?.objectKind === ObjectKind.Reference) && (
+        <ReferenceSelectionComponent
+          buttonText={t('go_to_type')}
+          classes={classes}
+          label={t('reference_to')}
+          onChangeRef={onChangeRef}
+          onGoToDefButtonClick={onGoToDefButtonClick}
+          selectedNode={itemsNode ?? selectedItem}
         />
       )}
-      <ReferenceSelectionComponent
-        arrayType={arrayType}
-        buttonText={t('go_to_type')}
-        classes={classes}
-        label={t('reference_to')}
-        objectKind={objectKind}
-        onChangeArrayType={onChangeArrayType}
-        onChangeRef={onChangeRef}
-        onGoToDefButtonClick={onGoToDefButtonClick}
-        selectedItem={selectedItem}
-      />
-      {[ObjectKind.Reference, ObjectKind.Field].includes(objectKind) && (
-        <FormControlLabel
-          id='multiple-answers-checkbox'
-          className={classes.header}
-          control={
-            <Checkbox
-              color='primary'
-              checked={selectedItem?.type === FieldType.Array}
-              onChange={handleIsArrayChanged}
-              name='checkedMultipleAnswers'
-            />
-          }
-          label={t('multiple_answers')}
-        />
+      {selectedItem.objectKind !== ObjectKind.Combination && (
+        <div className={classes.checkboxWrapper}>
+          <Checkbox
+            checked={selectedItem.fieldType === FieldType.Array}
+            disabled={!canToggleBetweenArrayAndField}
+            label={t('multiple_answers')}
+            name='checkedMultipleAnswers'
+            onChange={handleArrayPropertyToggle}
+          />
+        </div>
       )}
-      {objectKind === ObjectKind.Combination && (
+      {selectedItem.objectKind === ObjectKind.Combination && (
         <CombinationSelect
-          id={`${getDomFriendlyID(selectedItem?.path || '')}-combi-sel`}
+          id={getDomFriendlyID(selectedItem.pointer, 'combi-sel')}
           label={t('type')}
           onChange={onChangeCombinationType}
           options={getCombinationOptions(t)}
-          value={selectedItem?.combinationKind}
+          value={selectedItem.fieldType}
         />
       )}
-      {objectKind === ObjectKind.Combination && (
-        <FormControlLabel
-          id='multiple-answers-checkbox'
-          className={classes.header}
-          control={
-            <Checkbox
-              color='primary'
-              checked={combinationIsNullable(selectedItem)}
-              onChange={onChangeNullable}
-              name='checkedNullable'
-            />
-          }
-          label={t('nullable')}
-        />
+      {selectedItem.objectKind === ObjectKind.Combination && (
+        <div className={classes.checkboxWrapper}>
+          <Checkbox
+            checked={combinationIsNullable(childNodes)}
+            onChange={onChangeNullable}
+            name='checkedNullable'
+            checkboxId='multiple-answers-checkbox'
+            label={t('nullable')}
+          />
+        </div>
       )}
-      {selectedItem && <ItemRestrictions item={selectedItem} language={language}/>}
+      <ItemRestrictions selectedNode={selectedItem} language={language} itemsNode={itemsNode} />
       <Divider />
       <Fieldset legend={t('descriptive_fields')}>
         <Label htmlFor={titleId}>{t('title')}</Label>
-        <TextField
-          id={titleId}
-          onBlur={onChangeTitle}
-          onChange={(e) => setItemTitle(e.target.value)}
-          value={title}
-        />
+        <TextField id={titleId} onBlur={onChangeTitle} onChange={(e) => setItemTitle(e.target.value)} value={title} />
         <Label htmlFor={descriptionId}>{t('description')}</Label>
         <MaterialTextField
-          InputProps={{disableUnderline: true}}
+          InputProps={{ disableUnderline: true }}
           className={classes.field}
           fullWidth
           id={descriptionId}

@@ -1,4 +1,4 @@
-import schemaPathIsSame from './schemaPathIsSame';
+import { schemaPathIsSame } from './schemaPathIsSame';
 
 describe('schemaPathIsSame', () => {
   const something = {

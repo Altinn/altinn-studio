@@ -1,7 +1,4 @@
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Text.Json;
 
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Services.Interfaces;

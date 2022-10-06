@@ -1,7 +1,8 @@
 import React, { MouseEvent } from 'react';
-import { Checkbox, FormControlLabel } from '@material-ui/core';
 import { getTranslation } from '../../utils/language';
-import { FieldType, ILanguage, Restriction, UiSchemaItem } from '../../types';
+import type { ILanguage } from '../../types';
+import type { UiSchemaNode } from '@altinn/schema-model';
+import { CombinationKind, FieldType, ObjectKind } from '@altinn/schema-model';
 import { EnumField } from './EnumField';
 import { addEnum, deleteEnum, setRequired, setRestriction } from '../../features/editor/schemaEditorSlice';
 import { useDispatch } from 'react-redux';
@@ -12,38 +13,39 @@ import { StringRestrictions } from './restrictions/StringRestrictions';
 import classes from './ItemRestrictions.module.css';
 import { Divider } from './Divider';
 import { Fieldset } from './Fieldset';
-import { Button } from '@altinn/altinn-design-system';
+import { Button, Checkbox } from '@altinn/altinn-design-system';
 
 export interface RestrictionItemProps {
-  restrictions: Restriction[];
+  restrictions: any;
   readonly: boolean;
   path: string;
   language: ILanguage;
   onChangeRestrictionValue: (id: string, key: string, value: string) => void;
 }
 interface Props {
-  item: UiSchemaItem;
+  selectedNode: UiSchemaNode;
+  itemsNode?: UiSchemaNode;
   language: ILanguage;
 }
-export const ItemRestrictions = ({ item, language }: Props) => {
+export const ItemRestrictions = ({ selectedNode, itemsNode, language }: Props) => {
   const dispatch = useDispatch();
-  const handleRequiredChanged = (e: any, checked: boolean) => {
-    if (checked !== item.isRequired) {
+  const handleRequiredChanged = (e: any) => {
+    const { checked } = e.target;
+    if (checked !== selectedNode.isRequired) {
       dispatch(
         setRequired({
-          path: item.path,
-          key: item.displayName,
+          path: selectedNode.pointer,
           required: checked,
         }),
       );
     }
   };
 
-  const onChangeRestrictionValue = (path: string, value: any, key: string) =>
+  const onChangeRestrictionValue = (path: string, value: string, key: string) =>
     dispatch(
       setRestriction({
         path,
-        value: isNaN(value) ? value : +value,
+        value,
         key,
       }),
     );
@@ -51,7 +53,7 @@ export const ItemRestrictions = ({ item, language }: Props) => {
   const onChangeEnumValue = (value: string, oldValue?: string) =>
     dispatch(
       addEnum({
-        path: item.path,
+        path: selectedNode.pointer,
         value,
         oldValue,
       }),
@@ -59,53 +61,65 @@ export const ItemRestrictions = ({ item, language }: Props) => {
 
   const onDeleteEnumClick = (path: string, value: string) => dispatch(deleteEnum({ path, value }));
 
-  const dispatchAddEnum = () => {
-    if (item) {
-      dispatch(
-        addEnum({
-          path: item.path,
-          value: 'value',
-        }),
-      );
-    }
-  };
+  const dispatchAddEnum = () =>
+    dispatch(
+      addEnum({
+        path: selectedNode.pointer,
+        value: 'value',
+      }),
+    );
+
   const onAddEnumButtonClick = (event: MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();
     dispatchAddEnum();
   };
 
   const t = (key: string) => getTranslation(key, language);
-  const restrictionProps: RestrictionItemProps = {
-    restrictions: item.restrictions ?? [],
-    readonly: item.$ref !== undefined,
-    path: item.path,
+  const selectedRestrictionProps: RestrictionItemProps = {
+    restrictions: selectedNode.restrictions ?? {},
+    readonly: selectedNode.ref !== undefined,
+    path: selectedNode.pointer,
     onChangeRestrictionValue,
     language,
   };
+  const itemsRestrictionProps: RestrictionItemProps = {
+    restrictions: itemsNode?.restrictions ?? {},
+    readonly: itemsNode?.ref !== undefined,
+    path: itemsNode?.pointer ?? '',
+    onChangeRestrictionValue,
+    language,
+  };
+  const restrictionNode = itemsNode ?? selectedNode;
+  const restrictionProps =
+    selectedNode.objectKind === ObjectKind.Array ? itemsRestrictionProps : selectedRestrictionProps;
   return (
-    <div>
-      <FormControlLabel
-        control={<Checkbox checked={item.isRequired} onChange={handleRequiredChanged} name='checkedRequired' />}
+    <div className={classes.root}>
+      <Checkbox
+        checked={selectedNode.isRequired}
         label={t('required')}
+        name='checkedRequired'
+        onChange={handleRequiredChanged}
       />
-      {item.$ref === undefined && (
+      {restrictionNode.ref === undefined &&
         {
           [FieldType.Array]: <ArrayRestrictions {...restrictionProps} />,
-          [FieldType.Boolean]: null,
+          [FieldType.Boolean]: undefined,
           [FieldType.Integer]: <NumberRestrictions {...restrictionProps} />,
           [FieldType.Number]: <NumberRestrictions {...restrictionProps} />,
           [FieldType.Object]: <ObjectRestrictions {...restrictionProps} />,
           [FieldType.String]: <StringRestrictions {...restrictionProps} />,
           [FieldType.Null]: undefined,
-          default: undefined,
-        }[item.type ?? 'default']
-      )}
-      {item.type !== FieldType.Object && (
+          [CombinationKind.AllOf]: undefined,
+          [CombinationKind.AnyOf]: undefined,
+          [CombinationKind.OneOf]: undefined,
+        }[restrictionNode.fieldType]}
+      {selectedNode.objectKind === ObjectKind.Array && <ArrayRestrictions {...selectedRestrictionProps} />}
+      {selectedNode.fieldType !== FieldType.Object && (
         <>
           <Divider />
           <Fieldset legend={t('enum_legend')}>
-            {!item.enum?.length && <p className={classes.emptyEnumMessage}>{t('enum_empty')}</p>}
-            {item.enum?.map((value: string, index) => (
+            {!selectedNode.enum?.length && <p className={classes.emptyEnumMessage}>{t('enum_empty')}</p>}
+            {selectedNode.enum?.map((value: string, index) => (
               <EnumField
                 fullWidth={true}
                 key={'add-enum-field-' + index}
@@ -113,7 +127,7 @@ export const ItemRestrictions = ({ item, language }: Props) => {
                 onChange={onChangeEnumValue}
                 onDelete={onDeleteEnumClick}
                 onEnterKeyPress={dispatchAddEnum}
-                path={item.path}
+                path={selectedNode.pointer}
                 value={value}
               />
             ))}
@@ -123,7 +137,7 @@ export const ItemRestrictions = ({ item, language }: Props) => {
               id='add-enum-button'
               onClick={onAddEnumButtonClick}
             >
-              <i/>
+              <i />
               <span>{t('add_enum')}</span>
             </Button>
           </Fieldset>

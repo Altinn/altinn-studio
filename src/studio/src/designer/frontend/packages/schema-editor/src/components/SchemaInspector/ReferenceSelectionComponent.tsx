@@ -1,44 +1,37 @@
 import React from 'react';
 import { ClassNameMap } from '@material-ui/core/styles/withStyles';
-import { FieldType, UiSchemaItem } from '../../types';
-import { ObjectKind } from '../../types/enums';
 import { RefSelect } from './RefSelect';
+import type { UiSchemaNode } from '@altinn/schema-model';
 
 export interface IReferenceSelectionProps {
-  arrayType: string | FieldType | undefined;
   buttonText: string;
   classes: ClassNameMap;
   label: string;
-  objectKind: ObjectKind;
-  onChangeArrayType: (type: string | FieldType | undefined) => void;
-  onChangeRef: (path: string, ref: string) => void;
+  onChangeRef: (refPointer: string, value: string) => void;
   onGoToDefButtonClick: () => void;
-  selectedItem: UiSchemaItem | null;
+  selectedNode: UiSchemaNode;
 }
 
 export function ReferenceSelectionComponent({
-  arrayType,
   classes,
-  selectedItem,
-  objectKind,
+  selectedNode,
   label,
   buttonText,
-  onChangeArrayType,
   onChangeRef,
   onGoToDefButtonClick,
 }: IReferenceSelectionProps) {
-  if (!(selectedItem && objectKind === ObjectKind.Reference)) {
-    return null;
-  }
-
+  const common = {
+    label,
+    nodePointer: selectedNode.pointer,
+    fullWidth: true,
+  };
   return (
     <div>
-      <label htmlFor={selectedItem.path}>{label}</label>
-      {selectedItem.type === FieldType.Array ? (
-        <RefSelect id={selectedItem.path} value={arrayType ?? ''} onChange={onChangeArrayType} fullWidth={true} />
-      ) : (
-        <RefSelect id={selectedItem.path} value={selectedItem.$ref ?? ''} onChange={onChangeRef} fullWidth={true} />
-      )}
+      <RefSelect
+        {...common}
+        value={selectedNode.ref ?? ''}
+        onChange={(value) => onChangeRef(selectedNode.pointer, value)}
+      />
       <button type='button' className={classes.navButton} onClick={onGoToDefButtonClick}>
         {buttonText}
       </button>

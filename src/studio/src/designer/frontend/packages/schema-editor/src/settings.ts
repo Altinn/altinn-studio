@@ -14,15 +14,11 @@ export interface SchemaInfo {
 }
 
 export interface SchemaSettingsProps {
-  schemaUrl?: string,
-  schemaInfo?: SchemaInfo
-
+  schemaUrl?: string;
+  schemaInfo?: SchemaInfo;
 }
 
-
-export function getSchemaSettings({
-  schemaUrl}
-: SchemaSettingsProps): SchemaSettings {
+export function getSchemaSettings({ schemaUrl }: SchemaSettingsProps): SchemaSettings {
   const settings: SchemaSettings = {
     definitionsPath: '#/definitions',
     propertiesPath: '#/properties',

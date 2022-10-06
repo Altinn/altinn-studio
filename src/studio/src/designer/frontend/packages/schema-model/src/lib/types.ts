@@ -25,34 +25,6 @@ export enum FieldType {
   Null = 'null',
 }
 
-export const ROOT_POINTER = '#';
-
-export interface JsonSchemaNode {
-  [key: string]: any;
-}
-
-export type UiSchemaMap = Map<number, UiSchemaNode>;
-
-export interface UiSchemaNode {
-  nodeId: number;
-  objectKind: ObjectKind;
-  fieldType: FieldType | CombinationKind;
-  implicitType: boolean; // the
-  isNillable: boolean;
-  pointer: string;
-  ref?: string | number;
-  custom: JsonSchemaNode;
-  children: number[];
-  description?: string;
-  enum?: string[];
-  isRequired: boolean;
-  title?: string;
-  value?: any;
-  restrictions: JsonSchemaNode;
-  default?: any;
-  const?: any;
-}
-
 /**
  * These are the keywords that we actually support. The rest will be put into the `custom`-object at the ui-schema.
  */
@@ -68,4 +40,32 @@ export enum Keywords {
   Required = 'required',
   Title = 'title',
   Type = 'type',
+}
+
+export const ROOT_POINTER = '#';
+
+export interface JsonSchemaNode {
+  [key: string]: any;
+}
+
+export type UiSchemaNodes = UiSchemaNode[];
+
+export interface UiSchemaNode {
+  objectKind: ObjectKind;
+  fieldType: FieldType | CombinationKind;
+  implicitType: boolean; // the
+  isNillable: boolean;
+  isCombinationItem: boolean;
+  pointer: string;
+  ref?: string;
+  custom: JsonSchemaNode;
+  children: string[];
+  description?: string;
+  enum?: string[];
+  isRequired: boolean;
+  title?: string;
+  value?: any;
+  restrictions: JsonSchemaNode;
+  default?: any;
+  const?: any;
 }

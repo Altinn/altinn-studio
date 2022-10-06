@@ -1,12 +1,8 @@
-import { UiSchemaItem } from '../types';
-import { ObjectKind } from '@altinn/schema-model';
+export const getDomFriendlyID = (input: string, postfix?: string): string =>
+  input.replace(/\//g, '').replace('#', '') + (postfix ? '-' + postfix : '');
 
-export function getObjectKind(item?: UiSchemaItem): ObjectKind {
-  if (item?.$ref !== undefined || item?.items?.$ref !== undefined) {
-    return ObjectKind.Reference;
-  } else if (item?.combination) {
-    return ObjectKind.Combination;
-  } else {
-    return ObjectKind.Field;
-  }
-}
+export const isValidName = (name: string) => Boolean(name.match(/^[a-zA-ZæÆøØåÅ][a-zA-Z0-9_.\-æÆøØåÅ ]*$/));
+
+let unusedNumber = 0;
+
+export const getUniqueNumber = () => unusedNumber++;

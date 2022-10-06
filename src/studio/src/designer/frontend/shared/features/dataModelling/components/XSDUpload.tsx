@@ -1,8 +1,8 @@
 import React from 'react';
-import { FileSelector, AltinnSpinner } from 'app-shared/components';
+import { AltinnSpinner, FileSelector } from 'app-shared/components';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import axios from 'axios';
-import ErrorPopover from "app-shared/components/ErrorPopover";
+import ErrorPopover from 'app-shared/components/ErrorPopover';
 
 export interface IXSDUploadProps {
   disabled?: boolean;
@@ -10,17 +10,10 @@ export interface IXSDUploadProps {
   onXSDUploaded: (filename: string) => void;
   org: string;
   repo: string;
-  submitButtonRenderer?: ((fileInputClickHandler: (event: any) => void) => JSX.Element);
+  submitButtonRenderer?: (fileInputClickHandler: (event: any) => void) => JSX.Element;
 }
 
-const XSDUpload = ({
-  disabled,
-  language,
-  onXSDUploaded,
-  org,
-  repo,
-  submitButtonRenderer
-}: IXSDUploadProps) => {
+export const XSDUpload = ({ disabled, language, onXSDUploaded, org, repo, submitButtonRenderer }: IXSDUploadProps) => {
   const [uploading, setUploading] = React.useState(false);
   const [errorText, setErrorText] = React.useState(null);
 
@@ -43,12 +36,7 @@ const XSDUpload = ({
       })
       .catch((error) => {
         if (error) {
-          setErrorText(
-            getLanguageFromKey(
-              'form_filler.file_uploader_validation_error_upload',
-              language,
-            ),
-          );
+          setErrorText(getLanguageFromKey('form_filler.file_uploader_validation_error_upload', language));
         }
       })
       .finally(() => setUploading(false));
@@ -58,12 +46,7 @@ const XSDUpload = ({
     <>
       <span ref={uploadButton}>
         {uploading ? (
-          <AltinnSpinner
-            spinnerText={getLanguageFromKey(
-              'app_data_modelling.uploading_xsd',
-              language,
-            )}
-          />
+          <AltinnSpinner spinnerText={getLanguageFromKey('app_data_modelling.uploading_xsd', language)} />
         ) : (
           <FileSelector
             busy={false}
@@ -77,14 +60,8 @@ const XSDUpload = ({
         )}
       </span>
       {errorText && (
-        <ErrorPopover
-          anchorEl={uploadButton.current}
-          onClose={() => setErrorText(null)}
-          errorMessage={errorText}
-        />
+        <ErrorPopover anchorEl={uploadButton.current} onClose={() => setErrorText(null)} errorMessage={errorText} />
       )}
     </>
   );
 };
-
-export default XSDUpload;

@@ -2,10 +2,11 @@ import React, { KeyboardEvent, useEffect, useState } from 'react';
 import { IconButton } from '@material-ui/core';
 import { DeleteOutline } from '@material-ui/icons';
 import { getTranslation } from '../../utils/language';
-import { getDomFriendlyID } from '../../utils/schema';
+
 import type { ILanguage } from '../../types';
-import { TextField } from "@altinn/altinn-design-system";
+import { TextField } from '@altinn/altinn-design-system';
 import classes from './EnumField.module.css';
+import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 
 export interface IEnumFieldProps {
   path: string;

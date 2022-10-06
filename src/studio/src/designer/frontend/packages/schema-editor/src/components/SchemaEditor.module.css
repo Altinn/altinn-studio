@@ -1,0 +1,71 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 111px);
+  overflow: hidden;
+  width: 100%;
+}
+
+.main {
+  align-items: stretch;
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  min-height: 0;
+}
+
+.editor {
+  background-color: white;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+  min-height: 200px;
+}
+
+.appBar:global(.MuiPaper-root) {
+  border-bottom: 1px solid #c9c9c9;
+  box-shadow: none;
+  background-color: #fff;
+  color: #000;
+  padding-left: 12px;
+}
+
+.appBar:global(.MuiPaper-root) :global(.Mui-selected) {
+  color: #6a6a6a;
+}
+
+.appBar:global(.MuiPaper-root) :global(.MuiTabs-indicator) {
+  background-color: #006bd8;
+}
+
+.tabPanel {
+  flex: 1;
+  overflow-y: scroll;
+}
+
+.inspector {
+  background-color: #f7f7f7;
+  overflow-x: clip;
+  overflow-y: auto;
+}
+
+.addButton:global(.MuiButton-root) {
+  border-radius: 0;
+  border: 1px dashed rgba(0, 0, 0, 1);
+  color: black;
+  margin-bottom: 12px;
+  text-transform: none;
+}
+
+.addButton:global(.MuiButton-root):hover {
+  border: 1px solid rgba(0, 0, 0, 1);
+}
+
+.addButton:global(.MuiButton-root) > i {
+  font-size: 24px;
+}
+
+.startIcon {
+  margin-right: 0;
+}

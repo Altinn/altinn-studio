@@ -1,0 +1,49 @@
+﻿<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <xsd:element name="GruppeInvitasjon" type="InvitasjonsInnhold" />
+  <xsd:complexType name="InvitasjonsInnhold">
+    <xsd:sequence>
+      <xsd:element name="VurderingsType" type="Tekst" />
+      <xsd:element name="BrukerID" type="Tekst" />
+      <xsd:element name="BrukerEpost" type="Tekst" />
+      <xsd:element name="Læremiddel" type="Tekst" />
+      <xsd:element name="LæremiddelLeverandør" type="Tekst" />
+      <xsd:element name="Læreplan" type="Tekst" />
+      <xsd:element name="Skolenivå" type="Tekst" />
+      <xsd:element name="Utdanningsprogram" type="Tekst" />
+      <xsd:element name="Programområde" type="Tekst" />
+      <xsd:element name="gruppeVurderingsID" type="Tekst" />
+      <xsd:element name="VurderingsFrist" type="Dato" />
+      <xsd:element name="MottakerEposter" type="Tekst" />
+      <xsd:element name="Navn" type="Tekst" />
+      <xsd:element name="BortvalgteSpørsmål" type="Tekst" />
+      <xsd:element name="BortvalgteSpørsmålDel1" type="Tekst" />
+      <xsd:element name="BortvalgteSpørsmålDel2" type="Tekst" />
+      <xsd:element name="BortvalgteSpørsmålDel3" type="Tekst" />
+      <xsd:element name="AppLogikk" type="AppLogikk" />
+    </xsd:sequence>
+    <xsd:anyAttribute />
+  </xsd:complexType>
+  <xsd:complexType name="AppLogikk">
+    <xsd:sequence>
+      <xsd:element name="samledeEposter" type="Tekst" />
+      <xsd:element name="feilendeEposter" type="Tekst" />
+      <xsd:element name="velgBortSpørsmål" type="Tekst" />
+      <xsd:element name="godtarVilkaar" type="Tekst" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="Dato">
+    <xsd:restriction base="xsd:date" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Avkrysningssvar">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Heltall">
+    <xsd:restriction base="xsd:integer" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Tekst">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Boolean">
+    <xsd:restriction base="xsd:boolean" />
+  </xsd:simpleType>
+</xsd:schema>

@@ -1,6 +1,6 @@
 import React from 'react';
-import DeleteDialog from './DeleteDialog';
 import type { IDeleteDialogProps } from './DeleteDialog';
+import { DeleteDialog } from './DeleteDialog';
 import { render as rtlRender } from '@testing-library/react';
 
 describe('DeleteDialog', () => {

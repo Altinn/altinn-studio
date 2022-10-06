@@ -24,7 +24,6 @@ These instructions will get you a copy of Altinn Studio up and running on your l
    ```txt
    localhost altinn3.no
    127.0.0.1 altinn3.no
-   127.0.0.1 altinn3local.no
    ```
    _On MacOS add the same values to values `/private/etc/hosts` with `sudo nano /private/etc/hosts` in treminal._
 7. If you are running Docker Desktop in Hyper-V mode you need to make sure your C drive is shared with Docker, Docker Settings -> Shared Drives

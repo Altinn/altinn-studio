@@ -22,18 +22,18 @@
 }
 
 .appBar {
-  border-bottom: 1px solid #C9C9C9;
+  border-bottom: 1px solid #c9c9c9;
   box-shadow: none !important;
   color: #000;
   padding-left: 12px;
 }
 
 .appBar :global(.Mui-Selected) {
- color: #6A6A6A;
+  color: #6a6a6a;
 }
 
 .appBar :global(.MuiTabs-indicator) {
-  background-color: #006BD8;
+  background-color: #006bd8;
 }
 
 .appBar button {
