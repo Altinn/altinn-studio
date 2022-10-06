@@ -65,7 +65,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 await _textsService.UpdateTexts(org, repo, developer, languageCode, textsExtractedMd.Item2);
 
-                //await altinnAppGitRepository.SaveTextsV2(languageCode, newTexts);
                 altinnAppGitRepository.DeleteFileByAbsolutePath(languageFile);
             }
         }
