@@ -59,7 +59,7 @@ export const castRestrictionType = (key: string, value: string) => {
       IntRestrictionKeys.multipleOf,
       StrRestrictionKeys.maxLength,
       StrRestrictionKeys.minLength,
-    ].includes(key as ArrRestrictionKeys & StrRestrictionKeys & StrRestrictionKeys)
+    ].includes(key as ArrRestrictionKeys & StrRestrictionKeys & IntRestrictionKeys)
   ) {
     return parseInt(value);
   } else if ([ArrRestrictionKeys.uniqueItems].includes(key as ArrRestrictionKeys)) {

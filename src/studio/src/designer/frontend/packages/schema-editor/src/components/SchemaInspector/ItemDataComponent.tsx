@@ -23,9 +23,6 @@ import { getCombinationOptions, getTypeOptions } from './helpers/options';
 import { Checkbox, ErrorMessage, TextField } from '@altinn/altinn-design-system';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
-import { Divider } from './Divider';
-import { Label } from './Label';
-import { Fieldset } from './Fieldset';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import {
   canToggleArrayAndField,
@@ -39,6 +36,9 @@ import {
   ObjectKind,
 } from '@altinn/schema-model';
 import { getDomFriendlyID, isValidName } from '../../utils/ui-schema-utils';
+import { Divider } from '../common/Divider';
+import { Fieldset } from '../common/Fieldset';
+import { Label } from '../common/Label';
 
 export interface IItemDataComponentProps {
   selectedItem: UiSchemaNode;
@@ -64,20 +64,17 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
     setItemDescription(selectedItem.description ?? '');
   }, [selectedItem]);
 
-  const arrayType = selectedItem.objectKind === ObjectKind.Array ? childNodes[0].fieldType : undefined;
+  const arrayType = selectedItem.objectKind === ObjectKind.Array ? itemsNode?.fieldType : undefined;
   const onNameChange = (e: any) => {
-    const name: string = e.target.value;
-    setNodeName(name);
-    !isValidName(name) ? setNameError(NameError.InvalidCharacter) : setNameError(NameError.NoError);
+    const { value } = e.target;
+    setNodeName(value);
+    !isValidName(value) ? setNameError(NameError.InvalidCharacter) : setNameError(NameError.NoError);
   };
 
   const onChangeRef = (path: string, ref: string) => dispatch(setRef({ path, ref }));
 
   const onChangeFieldType = (pointer: string, type: FieldType) =>
     dispatch(setType({ path: selectedItem.pointer, type }));
-
-  const onChangeArrayType = (pointer: string, fieldType: FieldType) =>
-    dispatch(setType({ path: makePointer(pointer, Keywords.Items), type: fieldType }));
 
   const onChangeNullable = (event: any) => {
     if (event.target.checked) {
@@ -96,7 +93,7 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
   const onChangeDescription = () => dispatch(setDescription({ path: selectedNodePointer, description }));
 
   const onGoToDefButtonClick = () => {
-    const ref = selectedItem.objectKind === ObjectKind.Array ? childNodes[0].ref : selectedItem.ref;
+    const ref = selectedItem.objectKind === ObjectKind.Array ? itemsNode?.ref : selectedItem.ref;
     if (ref !== undefined) {
       dispatch(navigateToType({ id: ref }));
     }
@@ -153,10 +150,10 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
           <TypeSelect
             id={getDomFriendlyID(selectedItem.pointer, 'type-select')}
             label={t('type')}
-            onChange={(fieldType) => {
+            onChange={(type) => {
               selectedItem.objectKind === ObjectKind.Array
-                ? onChangeArrayType(selectedItem.pointer, fieldType)
-                : onChangeFieldType(selectedItem.pointer, fieldType);
+                ? onChangeFieldType(makePointer(selectedItem.pointer, Keywords.Items), type)
+                : onChangeFieldType(selectedItem.pointer, type);
             }}
             options={getTypeOptions(t)}
             value={selectedItem.objectKind === ObjectKind.Array ? arrayType : fieldType}

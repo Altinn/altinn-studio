@@ -1,7 +1,7 @@
 import React, { BaseSyntheticEvent } from 'react';
 import { TextField } from '@altinn/altinn-design-system';
-import { Label } from './Label';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
+import { Label } from '../common/Label';
 
 export interface IRestrictionFieldProps {
   className?: string;

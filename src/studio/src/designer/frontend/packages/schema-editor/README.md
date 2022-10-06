@@ -68,3 +68,28 @@ function onChange(id, value) {
 ### Run against mock
 
 `http://localhost:8080/designer/my-org/my-app#/datamodelling`
+
+
+
+### Context menu logic
+
+For each node type we need to establish which actions that should be
+availiable:
+
+* Field (String, Int, Boolean)
+  * Convert to type ✅
+  * Delete 🗑
+* Reference
+  * Convert to field ❓
+  * Go to reference
+  * Delete 🗑
+* Object
+  * Convert to type ✅
+  * Add Field ✅
+  * Add Combination ✅
+  * Add Reference ✅
+  * Delete 🗑
+* Combination
+  * Add Field ❌
+  * Add Reference
+  * Delete 🗑
