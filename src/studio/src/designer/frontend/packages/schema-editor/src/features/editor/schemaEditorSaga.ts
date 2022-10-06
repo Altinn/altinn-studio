@@ -1,14 +1,17 @@
 import {SagaIterator} from 'redux-saga';
-import { call, put, select, takeLatest } from 'redux-saga/effects'
-import { put as apiPut } from 'app-shared/utils/networking';
+import { call, select, takeLatest } from 'redux-saga/effects'
+import { put } from 'app-shared/utils/networking';
 import { SchemaEditorActions } from './schemaEditorSlice';
 import { ISchemaState } from '../../types';
+import { buildJsonSchema } from '@altinn/schema-model';
 
 export function* AutosaveModelSaga(): SagaIterator {
-  const saveUrl = yield select((state: ISchemaState) => state.saveSchemaUrl);
-  yield put(SchemaEditorActions.updateJsonSchema({}));
-  const schema = yield select((state: ISchemaState) => state.schema);
-  yield call(apiPut, `${saveUrl}&saveOnly=true`, schema);
+  const {uiSchema, saveUrl} = yield select((state: ISchemaState) => {
+    return { uiSchema: state.uiSchema, saveUrl: state.saveSchemaUrl}
+  });
+
+  const schema = buildJsonSchema(uiSchema);
+  yield call(put, `${saveUrl}&saveOnly=true`, schema);
 }
 
 export function* watchAutosaveModelSaga(): SagaIterator {
