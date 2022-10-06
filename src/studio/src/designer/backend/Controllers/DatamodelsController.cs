@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
+using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json;
 using Altinn.Studio.Designer.Helpers;
@@ -20,6 +21,7 @@ using Manatee.Json.Schema;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 
@@ -34,20 +36,23 @@ namespace Altinn.Studio.Designer.Controllers
     {
         private readonly IRepository _repository;
         private readonly ISchemaModelService _schemaModelService;
+        private readonly ServiceRepositorySettings _serviceRepositorySettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DatamodelsController"/> class.
         /// </summary>
         /// <param name="repository">The repository implementation</param>
         /// <param name="schemaModelService">Interface for working with models.</param>
-        public DatamodelsController(IRepository repository, ISchemaModelService schemaModelService)
+        /// <param name="serviceRepositorySettings">Service repository settings.</param>
+        public DatamodelsController(IRepository repository, ISchemaModelService schemaModelService, IOptions<ServiceRepositorySettings> serviceRepositorySettings)
         {
             _repository = repository;
             _schemaModelService = schemaModelService;
+            _serviceRepositorySettings = serviceRepositorySettings.Value;
         }
 
         /// <summary>
-        /// Method that 
+        /// Method that
         /// </summary>
         /// <param name="org">the org owning the models repo</param>
         /// <param name="repository">the model repos</param>
@@ -212,14 +217,22 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">The org owning the repository.</param>
         /// <param name="repository">The repository name</param>
-        /// <param name="modelPath">The path to the file to be updated.</param>        
+        /// <param name="modelPath">The path to the file to be updated.</param>
+        /// <param name="saveOnly">Flag indicating if the model should ONLY be saved (no conversion) </param>
         [Authorize]
         [HttpPut]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public async Task<IActionResult> PutDatamodel(string org, string repository, [FromQuery] string modelPath)
+        public async Task<IActionResult> PutDatamodel(string org, string repository, [FromQuery] string modelPath, [FromQuery] bool saveOnly = false)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var content = await ReadRequestBodyContentAsync();
+
+            if (saveOnly)
+            {
+                string path = _serviceRepositorySettings.GetOrgPath(org, developer) + modelPath.Substring(1);
+                _repository.SaveFile(org, repository, modelPath, content);
+                return Ok();
+            }
 
             await _schemaModelService.UpdateModelFilesFromJsonSchema(org, repository, developer, modelPath, content);
 
@@ -231,7 +244,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">The org owning the repository.</param>
         /// <param name="repository">The repository</param>
-        /// <param name="modelPath">The path to the file to be deleted.</param>        
+        /// <param name="modelPath">The path to the file to be deleted.</param>
         [Authorize]
         [HttpDelete]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -265,7 +278,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">the org owning the models repo</param>
         /// <param name="repository">the model repos</param>
-        /// <param name="modelPath">The path to the file to get.</param>        
+        /// <param name="modelPath">The path to the file to get.</param>
         [Authorize]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]

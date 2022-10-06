@@ -9,6 +9,7 @@ import classes from './SchemaEditor.module.css';
 import {
   addRootItem,
   setJsonSchema,
+  setSaveSchemaUrl,
   setSchemaName,
   setSelectedTab,
   setUiSchema,
@@ -38,6 +39,7 @@ export interface IEditorProps {
   loading?: boolean;
   name?: string;
   onSaveSchema: (payload: any) => void;
+  saveUrl: string,
   schema: IJsonSchema;
   editMode: boolean;
   toggleEditMode: () => void;
@@ -49,6 +51,7 @@ export const SchemaEditor = ({
   loading,
   schema,
   onSaveSchema,
+  saveUrl,
   name,
   language,
   editMode,
@@ -78,6 +81,10 @@ export const SchemaEditor = ({
       dispatch(setSchemaName({ name }));
     }
   }, [dispatch, name]);
+
+  useEffect(() => {
+    dispatch(setSaveSchemaUrl({ saveUrl }));
+  }, [dispatch, saveUrl]);
 
   useEffect(() => {
     if (jsonSchema && name) {

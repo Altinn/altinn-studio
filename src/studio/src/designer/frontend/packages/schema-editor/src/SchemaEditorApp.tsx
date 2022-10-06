@@ -4,6 +4,9 @@ import './App.css';
 import { IEditorProps, SchemaEditor } from './components/SchemaEditor';
 
 import { store } from './store';
+import { run } from './sagas';
+
+run();
 
 export function SchemaEditorApp({ children, ...other }: React.PropsWithChildren<any> & IEditorProps) {
   return (
