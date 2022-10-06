@@ -49,44 +49,6 @@ namespace DataModeling.Tests.Json.Keywords
                 .Then.SerializedKeywordShouldBe($@"{{""@xsdText"":{value.ToString().ToLower()}}}");
         }
 
-        [Fact]
-        public void DefaultValue_ShouldBe_True()
-        {
-            XsdTextKeyword = new XsdTextKeyword();
-            XsdTextKeyword.Value.Should().Be(false);
-        }
-
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void SameKeywords_Should_BeEqual(bool value)
-        {
-            Given.That.XsdTextKeywordCreatedWithValue(value);
-            var expectedKeyword = new XsdTextKeyword(value);
-
-            Assert.True(XsdTextKeyword.Equals(expectedKeyword));
-        }
-
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void SameKeywords_Should_BeEqual_WhenComparingWithObject(bool value)
-        {
-            Given.That.XsdTextKeywordCreatedWithValue(value);
-            object expectedKeyword = new XsdTextKeyword(value);
-
-            Assert.True(XsdTextKeyword.Equals(expectedKeyword));
-        }
-
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public void KeywordShouldNotEqual_null(bool value)
-        {
-            Given.That.XsdTextKeywordCreatedWithValue(value);
-            Assert.False(XsdTextKeyword.Equals(null));
-        }
-
         private XsdTextKeywordJsonConverterTests XsdTextKeywordCreatedWithValue(bool value)
         {
             XsdTextKeyword = new XsdTextKeyword(value);
