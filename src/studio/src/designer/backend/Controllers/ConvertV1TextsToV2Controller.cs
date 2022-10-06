@@ -15,8 +15,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// </summary>
     /// <remarks>Might consider moving this logic to the TextsController</remarks>
     [Authorize]
-
-    //[AutoValidateAntiforgeryToken]
+    [AutoValidateAntiforgeryToken]
     [Route("designer/api/v1/{org}/{repo}/convertTexts")]
     public class ConvertV1TextsToV2Controller : ControllerBase
     {
