@@ -21,7 +21,8 @@ namespace Altinn.Studio.Designer.Controllers
     /// which interacts with the text files in the old format.
     /// </remarks>
     [Authorize]
-    [AutoValidateAntiforgeryToken]
+
+    //[AutoValidateAntiforgeryToken]
     [Route("designer/api/v2/{org}/{repo}/texts")]
     public class TextsController : ControllerBase
     {
@@ -96,6 +97,24 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             await _textsService.UpdateTexts(org, repo, developer, languageCode, jsonTexts);
+
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Endpoint for converting all texts files to the new flat
+        /// format in a specific repository for a specific organisation.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repo">Application identifier which is unique within an organisation.</param>
+        [HttpPut]
+        [Produces("application/json")]
+        [Route("convert")]
+        public ActionResult Put(string org, string repo)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+            _textsService.ConvertV1TextsToV2(org, repo, developer);
 
             return NoContent();
         }
