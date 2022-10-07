@@ -2,11 +2,9 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
-using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
@@ -16,13 +14,11 @@ using Altinn.Studio.DataModeling.Json.Formats;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.ModelMetadatalModels;
+using Designer.Tests.Assertions;
 using Designer.Tests.Utils;
 using FluentAssertions;
-using FluentAssertions.Types;
 using Json.Schema;
-using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Xunit;
-using TypeAssertions = Designer.Tests.Assertions.TypeAssertions;
 
 namespace Designer.Tests.Factories.ModelFactory;
 
@@ -51,6 +47,7 @@ public class CsharpEnd2EndGenerationTests : FluentTestsBase<CsharpEnd2EndGenerat
     }
 
     [Theory]
+    [InlineData("Model/Xsd/Gitea/nsm-klareringsportalen.xsd", "ePOB_M")]
     [InlineData("Model/Xsd/Gitea/stami-mu-bestilling-2021.xsd", "MuOrder")]
     [InlineData("Model/Xsd/Gitea/udi-kjaerestebesok.xsd", "soknad")]
     [InlineData("Model/Xsd/Gitea/krt-krt-1226a-1.xsd", "melding")]
