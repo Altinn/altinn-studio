@@ -324,6 +324,12 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 return;
             }
 
+            if (IsSchemaExclusivePrimitiveType(singleSchema))
+            {
+                AddElement(path, subSchema, context);
+                return;
+            }
+
             foreach (var keyword in singleSchema.Keywords)
             {
                 var keywordPath = path.Combine(JsonPointer.Parse($"/{keyword.Keyword()}"));
