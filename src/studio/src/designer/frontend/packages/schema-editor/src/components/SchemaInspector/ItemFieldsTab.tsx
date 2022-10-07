@@ -26,17 +26,15 @@ export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) =>
 
   const onDeleteObjectClick = (path: string) => dispatch(deleteProperty({ path }));
 
-  const dispatchAddProperty = () => {
-    const path = selectedItem.pointer;
-    if (path) {
-      dispatch(
-        addProperty({
-          path,
-          keepSelection: true,
-        }),
-      );
-    }
-  };
+  const dispatchAddProperty = () =>
+    dispatch(
+      addProperty({
+        path: selectedItem.pointer,
+        keepSelection: true,
+        props: {},
+      }),
+    );
+
   const onAddPropertyClicked = (event: BaseSyntheticEvent) => {
     event.preventDefault();
     dispatchAddProperty();

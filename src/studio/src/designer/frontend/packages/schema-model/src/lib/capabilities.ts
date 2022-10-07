@@ -2,32 +2,37 @@ import { Capabilites, FieldType, ObjectKind, ROOT_POINTER, UiSchemaNode } from '
 
 export const getCapabilities = (node: UiSchemaNode): Capabilites[] => {
   const { objectKind, fieldType } = node;
-  const capabilities = [];
+  const output = [];
   const isRootNode = node.pointer === ROOT_POINTER;
   const hasRestrictions = Object.keys(node.restrictions).length > 0;
   const hasChildren = node.children.length > 0;
+
   if (objectKind === ObjectKind.Field || objectKind === ObjectKind.Reference) {
-    capabilities.push(Capabilites.CanBeConvertedToArray);
+    output.push(Capabilites.CanBeConvertedToArray);
   }
-
   if (
-    objectKind === ObjectKind.Reference ||
+    (objectKind === ObjectKind.Reference && node.ref) ||
     (objectKind === ObjectKind.Array && !hasRestrictions) ||
-    (fieldType === FieldType.Object && !hasRestrictions && !hasChildren)
+    (objectKind === ObjectKind.Combination && !hasChildren)
   ) {
-    capabilities.push(Capabilites.CanBeConvertedToField);
+    output.push(Capabilites.CanBeConvertedToField);
   }
 
-  if (fieldType === FieldType.Object || ObjectKind.Combination) {
-    capabilities.push(Capabilites.CanHaveFieldAdded, Capabilites.CanHaveReferenceAdded);
+  if (objectKind === ObjectKind.Array || objectKind === ObjectKind.Field) {
+    output.push(Capabilites.CanBeConvertedToReference);
   }
-  if (fieldType === FieldType.Object) {
-    capabilities.push(Capabilites.CanHaveCombinationAdded);
+
+  if ((objectKind === ObjectKind.Field && fieldType === FieldType.Object) || objectKind === ObjectKind.Combination) {
+    output.push(Capabilites.CanHaveFieldAdded, Capabilites.CanHaveReferenceAdded);
+  }
+
+  if (objectKind !== ObjectKind.Reference && fieldType === FieldType.Object) {
+    output.push(Capabilites.CanHaveCombinationAdded);
   }
 
   if (!isRootNode) {
-    capabilities.push(Capabilites.CanBeDeleted);
+    output.push(Capabilites.CanBeDeleted);
   }
 
-  return capabilities;
+  return output;
 };

@@ -1,12 +1,10 @@
 import { Keywords, ObjectKind, UiSchemaNodes } from '../types';
-import { createNodeBase, deepCopy, getParentNodeByPointer, makePointer, pointerIsDefinition } from '../utils';
+import { createNodeBase, deepCopy, getParentNodeByPointer, makePointer } from '../utils';
 import { getNodeIndexByPointer, getUniqueNodePath } from '../selectors';
 import { renameNodePointer } from './rename-node';
+import { insertSchemaNode } from './create-node';
 
 export const promotePropertyToType = (uiSchemaNodes: UiSchemaNodes, pointer: string) => {
-  if (pointerIsDefinition(pointer)) {
-    throw new Error(`Pointer ${pointer}, is already a definition.`);
-  }
   const uiNodeIndex = getNodeIndexByPointer(uiSchemaNodes, pointer);
   if (uiNodeIndex === undefined) {
     throw new Error(`Pointer ${pointer}, can't be found.`);
@@ -27,22 +25,25 @@ export const promotePropertyToType = (uiSchemaNodes: UiSchemaNodes, pointer: str
   const parentNode = getParentNodeByPointer(updatedUiNodeMap, pointer);
 
   if (parentNode) {
-    parentNode.children.push(pointer);
+    parentNode.children[parentNode.children.indexOf(promotedNodePointer)] = pointer;
   } else {
     throw new Error(`Can't find the parent of ${pointer}`);
   }
 
-  // Add the promoted node back to the bottom of the stack.
-  updatedUiNodeMap.push(
-    Object.assign(deepCopy(uiNode), {
-      pointer: promotedNodePointer,
-      children: updatedUiNodeMap[uiNodeIndex].children,
-    }),
-  );
   // Get the reference node in the same position as the previous node
   updatedUiNodeMap[uiNodeIndex] = Object.assign(createNodeBase(pointer), {
     objectKind: ObjectKind.Reference,
     ref: promotedNodePointer,
+    isRequired: uiNode.isRequired,
   });
-  return updatedUiNodeMap;
+
+  // Add the promoted node back to the bottom of the stack.
+  return insertSchemaNode(
+    updatedUiNodeMap,
+    Object.assign(deepCopy(uiNode), {
+      pointer: promotedNodePointer,
+      children: updatedUiNodeMap[uiNodeIndex].children,
+      isRequired: false,
+    }),
+  );
 };

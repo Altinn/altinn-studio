@@ -34,11 +34,6 @@ export function SchemaItem({ selectedNode, isPropertiesView, editMode, translate
   const dispatch = useDispatch();
   const keyPrefix = isPropertiesView ? 'properties' : 'definitions';
 
-  const onLabelClick = (e: any, schemaItem: UiSchemaNode) => {
-    e.preventDefault();
-    dispatch(setSelectedId({ id: schemaItem.pointer }));
-  };
-
   const itemsPointer = makePointer(selectedNode.pointer, Keywords.Items);
 
   const itemsNode = useSelector((state: ISchemaState) => {
@@ -46,11 +41,7 @@ export function SchemaItem({ selectedNode, isPropertiesView, editMode, translate
     return itemsIndex ? state.uiSchema[itemsIndex] : undefined;
   });
   const refNode = useSelector((state: ISchemaState) => {
-    if (
-      selectedNode.objectKind === ObjectKind.Array &&
-      itemsNode?.ref &&
-      itemsNode.objectKind === ObjectKind.Reference
-    ) {
+    if (selectedNode.objectKind === ObjectKind.Array && itemsNode?.ref) {
       return getNodeByPointer(state.uiSchema, itemsNode.ref);
     } else if (selectedNode.objectKind === ObjectKind.Reference && selectedNode.ref) {
       return getNodeByPointer(state.uiSchema, selectedNode.ref);
@@ -67,6 +58,10 @@ export function SchemaItem({ selectedNode, isPropertiesView, editMode, translate
       return getChildNodesByNode(state.uiSchema, selectedNode);
     }
   });
+  const onLabelClick = (e: any, schemaItem: UiSchemaNode) => {
+    e.preventDefault();
+    dispatch(setSelectedId({ id: schemaItem.pointer }));
+  };
   const isRef = selectedNode.objectKind === ObjectKind.Reference || itemsNode?.objectKind === ObjectKind.Reference;
   return (
     <TreeItem

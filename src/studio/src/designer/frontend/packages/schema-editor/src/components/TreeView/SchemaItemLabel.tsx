@@ -2,12 +2,13 @@ import React, { SyntheticEvent, useState } from 'react';
 import { IconButton } from '@material-ui/core';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
 import {
+  Capabilites,
   CombinationKind,
   FieldType,
+  getCapabilities,
   getNodeDisplayName,
-  Keywords,
-  makePointer,
   ObjectKind,
+  pointerIsDefinition,
   UiSchemaNode,
 } from '@altinn/schema-model';
 import classes from './SchemaItemLabel.module.css';
@@ -22,6 +23,7 @@ import {
   promoteProperty,
 } from '../../features/editor/schemaEditorSlice';
 import { useDispatch } from 'react-redux';
+import { Warning } from '@material-ui/icons';
 
 export interface SchemaItemLabelProps {
   editMode: boolean;
@@ -35,65 +37,55 @@ export const SchemaItemLabel = ({ editMode, icon, refNode, selectedNode, transla
   const dispatch = useDispatch();
   const [contextAnchor, setContextAnchor] = useState<any>(null);
 
-  const handleGoToType = () => {
-    if (selectedNode.ref) {
-      dispatch(navigateToType({ id: selectedNode.ref }));
-    }
+  // Simple wrapper to avoid repeating ourself...
+  const wrapper = (callback: (arg: any) => void) => {
+    return (e: SyntheticEvent, arg?: any) => {
+      e.stopPropagation();
+      setContextAnchor(null);
+      callback(arg);
+    };
   };
+
+  const handleGoToType = () => dispatch(navigateToType({ id: selectedNode.ref }));
+  const handleConvertToReference = wrapper(() => dispatch(promoteProperty({ path: selectedNode.pointer })));
+  const handleConvertToField = wrapper(() => dispatch(promoteProperty({ path: selectedNode.pointer })));
+  const handleCloseContextMenu = wrapper(() => undefined);
+
   const handleToggleContextMenuClick = (e: SyntheticEvent) => {
     e.stopPropagation();
     setContextAnchor(e.currentTarget);
   };
 
-  const handleAddNode = (e: SyntheticEvent, objectKind: ObjectKind) => {
-    e.stopPropagation();
-    setContextAnchor(null);
-    const { pointer } = selectedNode;
-    const defaultFieldType: any = {
-      [ObjectKind.Field]: FieldType.String,
-      [ObjectKind.Combination]: CombinationKind.AllOf,
-      [ObjectKind.Array]: FieldType.Array,
-      [ObjectKind.Reference]: undefined,
-    };
+  const handleAddNode = wrapper((objectKind: ObjectKind) => {
     const propertyProps = {
       objectKind,
-      fieldType: defaultFieldType[objectKind],
+      fieldType: {
+        [ObjectKind.Field]: FieldType.String,
+        [ObjectKind.Combination]: CombinationKind.AllOf,
+        [ObjectKind.Array]: FieldType.Array,
+        [ObjectKind.Reference]: undefined,
+      }[objectKind],
       ref: objectKind === ObjectKind.Reference ? '' : undefined,
     };
-
     selectedNode.objectKind === ObjectKind.Combination
-      ? dispatch(addCombinationItem({ path: pointer, props: propertyProps }))
-      : dispatch(addProperty({ path: pointer, props: propertyProps }));
-  };
-  const handlePromoteClick = (e: SyntheticEvent) => {
-    e.stopPropagation();
-    setContextAnchor(null);
-    dispatch(promoteProperty({ path: selectedNode.pointer }));
-  };
-  const handleDeleteClick = (e: SyntheticEvent) => {
-    e.stopPropagation();
-    setContextAnchor(null);
+      ? dispatch(addCombinationItem({ path: selectedNode.pointer, props: propertyProps }))
+      : dispatch(addProperty({ path: selectedNode.pointer, props: propertyProps }));
+  });
+
+  const handleDeleteClick = wrapper(() =>
     selectedNode.objectKind === ObjectKind.Combination
       ? dispatch(deleteCombinationItem({ path: selectedNode.pointer }))
-      : dispatch(deleteProperty({ path: selectedNode.pointer }));
-  };
-
-  const handleCloseContextMenu = (e: SyntheticEvent) => {
-    e.stopPropagation();
-    setContextAnchor(null);
-  };
-
-  const canAddReferenceToNode = true;
-  const canAddFieldToNode = true;
-  const canAddCombinationToNode = true;
-  const canPromoteNodeToType = true;
-  const canDeleteNode = true;
+      : dispatch(deleteProperty({ path: selectedNode.pointer })),
+  );
 
   const isArray = selectedNode.objectKind === ObjectKind.Array || refNode?.objectKind === ObjectKind.Array;
-  const isRef = refNode || selectedNode.pointer.startsWith(makePointer(Keywords.Definitions));
+
+  const isRef = refNode || pointerIsDefinition(selectedNode.pointer);
+  const capabilties = getCapabilities(selectedNode);
+  console.log(selectedNode, capabilties);
   return (
     <div className={classNames(classes.propertiesLabel, { [classes.isArray]: isArray, [classes.isRef]: isRef })}>
-      <div className={classes.label}>
+      <div className={classes.label} title={selectedNode.pointer}>
         <span className={classes.iconContainer}>
           <i className={`fa ${icon}`} />
         </span>{' '}
@@ -108,6 +100,12 @@ export const SchemaItemLabel = ({ editMode, icon, refNode, selectedNode, transla
             tabIndex={-1}
           >
             {refNode.pointer}
+          </span>
+        )}
+        {selectedNode.objectKind === ObjectKind.Reference && !refNode && (
+          <span className={classes.warning}>
+            <Warning />
+            Kan ikke lagre modellen uten at type er satt.
           </span>
         )}
       </div>
@@ -126,7 +124,7 @@ export const SchemaItemLabel = ({ editMode, icon, refNode, selectedNode, transla
         open={Boolean(contextAnchor)}
         onClose={handleCloseContextMenu}
       >
-        {canAddReferenceToNode && (
+        {capabilties.includes(Capabilites.CanHaveReferenceAdded) && (
           <AltinnMenuItem
             id='add-reference-to-node-button'
             key='add_reference'
@@ -136,7 +134,7 @@ export const SchemaItemLabel = ({ editMode, icon, refNode, selectedNode, transla
             disabled={!editMode}
           />
         )}
-        {canAddFieldToNode && (
+        {capabilties.includes(Capabilites.CanHaveFieldAdded) && (
           <AltinnMenuItem
             id='add-field-to-node-button'
             key='add_field'
@@ -146,7 +144,7 @@ export const SchemaItemLabel = ({ editMode, icon, refNode, selectedNode, transla
             disabled={!editMode}
           />
         )}
-        {canAddCombinationToNode && (
+        {capabilties.includes(Capabilites.CanHaveCombinationAdded) && (
           <AltinnMenuItem
             id='add-combination-to-node-button'
             key='add_combination'
@@ -156,17 +154,27 @@ export const SchemaItemLabel = ({ editMode, icon, refNode, selectedNode, transla
             disabled={!editMode}
           />
         )}
-        {canPromoteNodeToType && (
+        {capabilties.includes(Capabilites.CanBeConvertedToReference) && (
           <AltinnMenuItem
-            id='promote-item-button'
-            key='promote'
-            onClick={handlePromoteClick}
+            id='convert-node-to-reference-button'
+            key='convert-node-to-reference'
+            onClick={handleConvertToReference}
             text={translate('promote')}
             iconClass='fa fa-arrowup'
             disabled={!editMode}
           />
         )}
-        {canDeleteNode && [
+        {capabilties.includes(Capabilites.CanBeConvertedToField) && (
+          <AltinnMenuItem
+            id='convert-node-to-field-buttonn'
+            key='convert-node-to-field'
+            onClick={handleConvertToField}
+            text={translate('convert-to-field')}
+            iconClass='fa fa-arrowdown'
+            disabled={true}
+          />
+        )}
+        {capabilties.includes(Capabilites.CanBeDeleted) && [
           <Divider key='delete-divider' inMenu />,
           <AltinnMenuItem
             id='delete-node-button'

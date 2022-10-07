@@ -47,9 +47,18 @@
   color: gray;
   border-radius: 3px;
   border: solid 1px darkgrey;
-  padding:3px 6px;
+  padding: 3px 6px;
 }
 .referenceLabel:hover {
   color: white;
   background-color: darkgrey;
+}
+
+.warning {
+  margin-left: 10px;
+  color: darkred;
+  font-size: 10px;
+}
+.warning svg {
+  margin-right: 10px;
 }
