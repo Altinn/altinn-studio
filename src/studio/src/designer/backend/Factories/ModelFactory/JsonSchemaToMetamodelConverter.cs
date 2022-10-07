@@ -151,6 +151,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 case XsdTypeKeyword:
                 case XsdAttributeKeyword:
                 case XsdAnyAttributeKeyword:
+                case XsdTextKeyword:
                 case InfoKeyword:
                 case RequiredKeyword:
                 case EnumKeyword:
