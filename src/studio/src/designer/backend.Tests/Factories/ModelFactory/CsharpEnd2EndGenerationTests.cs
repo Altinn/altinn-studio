@@ -14,11 +14,11 @@ using Altinn.Studio.DataModeling.Json.Formats;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.ModelMetadatalModels;
-using Designer.Tests.Assertions;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Json.Schema;
 using Xunit;
+using static Designer.Tests.Assertions.TypeAssertions;
 
 namespace Designer.Tests.Factories.ModelFactory;
 
@@ -171,7 +171,7 @@ public class CsharpEnd2EndGenerationTests : FluentTestsBase<CsharpEnd2EndGenerat
         var newType = CompiledAssembly.Types().Single(type => type.CustomAttributes.Any(att => att.AttributeType == typeof(XmlRootAttribute)));
         var oldType = oldAssembly.GetType(newType.FullName);
         oldType.Should().NotBeNull();
-        TypeAssertions.IsEquivalentTo(oldType, newType);
+        IsEquivalentTo(oldType, newType);
         return this;
     }
 }
