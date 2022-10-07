@@ -668,6 +668,28 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
     }
     yield put(ValidationActions.updateValidations({ validations }));
   }
+
+  // Open by default
+  const newGroupKeys = Object.keys(newGroups || {});
+  const groupContainers = Object.values(state.formLayout.layouts)
+    .flatMap((e) => e)
+    .filter((e) => e.type === 'Group');
+
+  newGroupKeys.forEach((key) => {
+    const group = newGroups[key];
+    const container = groupContainers.find(
+      (element) => element.id === key,
+    ) as ILayoutGroup;
+
+    if (container && group.index >= 0) {
+      if (container.edit.openByDefault === 'first') {
+        group.editIndex = 0;
+      } else if (container.edit.openByDefault === 'last') {
+        group.editIndex = group.index;
+      }
+    }
+  });
+
   // preserve current edit index if still valid
   currentGroupKeys
     .filter((key) => !groupsToRemoveValidations.includes(key))

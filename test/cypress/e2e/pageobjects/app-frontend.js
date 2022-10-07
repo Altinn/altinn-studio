@@ -174,6 +174,7 @@ export default class AppFrontend {
       next: 'button[aria-label="Neste"]',
       back: 'button[aria-label="Tilbake"]',
       mainGroupSummary: '[id^="mainGroup-"][id$="-summary"]',
+      mainGroupTableBody: '#group-mainGroup-table-body',
       options: '#reduxOptions',
       tableErrors: '[data-testid=group-table-errors]',
       rows: [0, 1].map((idx) => ({

@@ -223,7 +223,7 @@ export function GroupContainer({
         layoutElementId: id,
         remove: true,
         index: groupIndex,
-        leaveOpen: container.edit?.openByDefault,
+        leaveOpen: !!container.edit?.openByDefault,
       }),
     );
   };

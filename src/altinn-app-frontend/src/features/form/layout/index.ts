@@ -325,7 +325,7 @@ export interface IGroupEditProperties {
   saveButton?: boolean;
   deleteButton?: boolean;
   multiPage?: boolean;
-  openByDefault?: boolean;
+  openByDefault?: boolean | 'first' | 'last';
 }
 
 export interface IGroupFilter {
