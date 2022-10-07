@@ -94,8 +94,8 @@ describe('submitFormDataSagas', () => {
         [
           call(put, dataElementUrl(defaultDataElementGuid), model, {
             headers: {
-              'X-DataField': field,
-              'X-ComponentId': componentId,
+              'X-DataField': encodeURIComponent(field),
+              'X-ComponentId': encodeURIComponent(componentId),
             },
           }),
           {},
@@ -167,8 +167,8 @@ describe('submitFormDataSagas', () => {
             {
               headers: {
                 party: `partyid:${stateMock.party.selectedParty.partyId}`,
-                'X-DataField': field,
-                'X-ComponentId': componentId,
+                'X-DataField': encodeURIComponent(field),
+                'X-ComponentId': encodeURIComponent(componentId),
               },
             },
             model,
@@ -257,8 +257,8 @@ describe('submitFormDataSagas', () => {
             getStatelessFormDataUrl(currentDataType, true),
             {
               headers: {
-                'X-DataField': field,
-                'X-ComponentId': componentId,
+                'X-DataField': encodeURIComponent(field),
+                'X-ComponentId': encodeURIComponent(componentId),
               },
             },
             model,
