@@ -80,7 +80,7 @@ export const simpleTestJsonSchema = {
     },
     world: {
       [Keywords.Properties]: {
-        hello: {
+        hola: {
           [Keywords.Type]: FieldType.Boolean,
         },
       },

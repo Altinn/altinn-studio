@@ -1,12 +1,10 @@
-import { Keywords, ObjectKind, UiSchemaNodes } from '../types';
+import { Keywords, ObjectKind, ROOT_POINTER, UiSchemaNodes } from '../types';
 import { createNodeBase, deepCopy, getParentNodeByPointer, makePointer, pointerIsDefinition } from '../utils';
 import { getNodeIndexByPointer, getUniqueNodePath } from '../selectors';
 import { renameNodePointer } from './rename-node';
+import { insertSchemaNode } from './create-node';
 
-export const promotePropertyToType = (uiSchemaNodes: UiSchemaNodes, pointer: string) => {
-  if (pointerIsDefinition(pointer)) {
-    throw new Error(`Pointer ${pointer}, is already a definition.`);
-  }
+export const convertPropToType = (uiSchemaNodes: UiSchemaNodes, pointer: string) => {
   const uiNodeIndex = getNodeIndexByPointer(uiSchemaNodes, pointer);
   if (uiNodeIndex === undefined) {
     throw new Error(`Pointer ${pointer}, can't be found.`);
@@ -21,28 +19,36 @@ export const promotePropertyToType = (uiSchemaNodes: UiSchemaNodes, pointer: str
     makePointer(Keywords.Definitions, pointer.split('/').pop()),
   );
 
-  const updatedUiNodeMap = renameNodePointer(uiSchemaNodes, pointer, promotedNodePointer);
+  const updatedUiSchemaNodes = renameNodePointer(uiSchemaNodes, pointer, promotedNodePointer);
 
   // Need to add the pointer back to the parent node
-  const parentNode = getParentNodeByPointer(updatedUiNodeMap, pointer);
+  const parentNode = getParentNodeByPointer(updatedUiSchemaNodes, pointer);
 
   if (parentNode) {
-    parentNode.children.push(pointer);
+    parentNode.children[parentNode.children.indexOf(promotedNodePointer)] = pointer;
   } else {
     throw new Error(`Can't find the parent of ${pointer}`);
   }
+  if (parentNode.pointer === ROOT_POINTER && pointerIsDefinition(pointer)) {
+    throw new Error(`Pointer ${pointer}, is already a definition.`);
+  }
 
-  // Add the promoted node back to the bottom of the stack.
-  updatedUiNodeMap.push(
-    Object.assign(deepCopy(uiNode), {
-      pointer: promotedNodePointer,
-      children: updatedUiNodeMap[uiNodeIndex].children,
-    }),
-  );
+  // Save the children of the original node.
+  const { children } = updatedUiSchemaNodes[uiNodeIndex];
+
   // Get the reference node in the same position as the previous node
-  updatedUiNodeMap[uiNodeIndex] = Object.assign(createNodeBase(pointer), {
+  updatedUiSchemaNodes[uiNodeIndex] = Object.assign(createNodeBase(pointer), {
     objectKind: ObjectKind.Reference,
     ref: promotedNodePointer,
+    isRequired: uiNode.isRequired,
   });
-  return updatedUiNodeMap;
+  // Add the promoted node back to the bottom of the stack.
+  return insertSchemaNode(
+    updatedUiSchemaNodes,
+    Object.assign(deepCopy(uiNode), {
+      pointer: promotedNodePointer,
+      children,
+      isRequired: false,
+    }),
+  );
 };
