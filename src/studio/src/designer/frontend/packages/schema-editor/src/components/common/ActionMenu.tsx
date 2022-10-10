@@ -4,34 +4,33 @@ import classes from './ActionMenu.module.css';
 import cn from 'classnames';
 
 export interface IActionMenuProps {
-  openButtonText: string;
   className?: string;
-  lists: IActionMenuItemProps[][]
+  items: IActionMenuItemProps[]
+  openButtonText: string;
 }
 
 export interface IActionMenuItemProps {
   action: () => void;
+  className?: string;
   icon: IconImage;
   text: string;
 }
 
-export const ActionMenu = ({openButtonText, className, lists}: IActionMenuProps) => (
+export const ActionMenu = ({openButtonText, className, items}: IActionMenuProps) => (
   <div className={cn(classes.root, className)}>
     <div className={classes.menu}>
       <button className={classes.openButton}>
         {openButtonText}
       </button>
-      {lists.map((items) => (
-        <ul className={classes.list} key={items.map(({text}) => text).toString()}>
-          {items.map((item) => <ActionMenuItem key={item.text} {...item}/>)}
-        </ul>
-      ))}
+      <ul className={classes.list}>
+        {items.map((item) => <ActionMenuItem key={item.text} {...item}/>)}
+      </ul>
     </div>
   </div>
 );
 
-const ActionMenuItem = ({action, icon, text}: IActionMenuItemProps) => (
-  <li className={classes.item}>
+const ActionMenuItem = ({action, className, icon, text}: IActionMenuItemProps) => (
+  <li className={cn(classes.item, className)}>
     <button
       className={classes.itemButton}
       name={text}

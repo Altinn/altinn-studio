@@ -67,7 +67,6 @@
 .itemButton {
   align-items: center;
   background: none;
-  border-radius: 2px;
   border: none;
   color: #0062ba;
   cursor: pointer;
@@ -92,6 +91,7 @@
 }
 
 .openButton:focus-visible, .itemButton:focus-visible {
+  border-radius: 2px;
   outline: 2px solid #98177e;
 }
 

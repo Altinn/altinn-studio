@@ -9,17 +9,12 @@ const user = userEvent.setup();
 // Test data:
 const openButtonText = 'Open';
 const icon = IconImage.Element;
-const lists = [
-  [
-    { action: jest.fn(), icon, text: 'Item 1A' },
-    { action: jest.fn(), icon, text: 'Item 1B' }
-  ],
-  [
-    { action: jest.fn(), icon, text: 'Item 2A' },
-    { action: jest.fn(), icon, text: 'Item 2B' }
-  ]
+const items = [
+  { action: jest.fn(), className: 'item-class', icon, text: 'Item 1' },
+  { action: jest.fn(), icon, text: 'Item 2' }
 ];
-const defaultProps: IActionMenuProps = { openButtonText, lists };
+const className = 'root-class-name';
+const defaultProps: IActionMenuProps = { className, items, openButtonText };
 
 const renderActionMenu = () => render(<ActionMenu {...defaultProps}/>);
 
@@ -30,24 +25,30 @@ test('Renders open button', () => {
 
 test('All items are present', () => {
   renderActionMenu();
-  lists.forEach((items) => items.forEach(({text}) => {
-    expect(screen.getByText(text)).toBeDefined();
-  }));
+  items.forEach(({text}) => expect(screen.getByText(text)).toBeDefined());
 });
 
 test('All menu item buttons call their respective action on click', async () => {
   renderActionMenu();
-  for (const list of lists) {
-    for (const { action, text } of list) {
-      await user.click(screen.getByText(text));
-      expect(action).toHaveBeenCalledTimes(1);
-    }
+  for (const { action, text } of items) {
+    await user.click(screen.getByText(text));
+    expect(action).toHaveBeenCalledTimes(1);
   }
 });
 
 test('Menu item button loses focus when clicked', async () => {
   renderActionMenu();
-  const { text } = lists[0][0];
+  const { text } = items[0];
   await user.click(screen.getByText(text));
   expect(screen.getByText(text)).not.toHaveFocus();
+});
+
+test('Menu item has given class name', () => {
+  const { container } = renderActionMenu();
+  expect(container.querySelector(`.${items[0].className}`)).toBeDefined();
+});
+
+test('Root element has given class name', () => {
+  const { container } = renderActionMenu();
+  expect(container.querySelector(`.${className}`)).toBeDefined();
 });
