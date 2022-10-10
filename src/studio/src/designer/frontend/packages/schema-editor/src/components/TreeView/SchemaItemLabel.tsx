@@ -82,7 +82,6 @@ export const SchemaItemLabel = ({ editMode, icon, refNode, selectedNode, transla
 
   const isRef = refNode || pointerIsDefinition(selectedNode.pointer);
   const capabilties = getCapabilities(selectedNode);
-  console.log(selectedNode, capabilties);
   return (
     <div className={classNames(classes.propertiesLabel, { [classes.isArray]: isArray, [classes.isRef]: isRef })}>
       <div className={classes.label} title={selectedNode.pointer}>
@@ -169,7 +168,7 @@ export const SchemaItemLabel = ({ editMode, icon, refNode, selectedNode, transla
             id='convert-node-to-field-buttonn'
             key='convert-node-to-field'
             onClick={handleConvertToField}
-            text={translate('convert-to-field')}
+            text={translate('convert_to_field')}
             iconClass='fa fa-arrowdown'
             disabled={true}
           />

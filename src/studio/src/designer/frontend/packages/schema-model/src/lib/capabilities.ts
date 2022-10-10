@@ -22,8 +22,12 @@ export const getCapabilities = (node: UiSchemaNode): Capabilites[] => {
     output.push(Capabilites.CanBeConvertedToReference);
   }
 
-  if ((objectKind === ObjectKind.Field && fieldType === FieldType.Object) || objectKind === ObjectKind.Combination) {
+  if (objectKind === ObjectKind.Field && fieldType === FieldType.Object) {
     output.push(Capabilites.CanHaveFieldAdded, Capabilites.CanHaveReferenceAdded);
+  }
+
+  if (objectKind === ObjectKind.Combination) {
+    output.push(Capabilites.CanHaveReferenceAdded);
   }
 
   if (objectKind !== ObjectKind.Reference && fieldType === FieldType.Object) {
