@@ -37,6 +37,7 @@ export function setup() {
   var data = setUpData.getUserData(altinnStudioRuntimeCookie, appOwner, level2App);
   data.RuntimeToken = altinnStudioRuntimeCookie;
   setUpData.clearCookies();
+  console.log('getting  dataok');
   var attachmentDataType = apps.getAppByName(altinnStudioRuntimeCookie, appOwner, level2App);
   attachmentDataType = apps.findAttachmentDataType(attachmentDataType.body);
   data.attachmentDataType = attachmentDataType;
