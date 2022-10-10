@@ -89,8 +89,6 @@ export default function (data) {
   //tests
   getPolicyOfAnApp();
   addReadAccessToUserThenDeleteIt();
-  deletingNonExistingRuleFails();
-  addingRuleWithInvalidValuesFails();
   addGetDeleteRuleAndCheckDecisions();
   delegateTwoRulesInOneRequest();
   delegateTwoRulesPartialSuccess();
@@ -110,7 +108,7 @@ export function getPolicyOfAnApp() {
     'GET app policy - status is 200': (r) => r.status === 200,
   });
   addErrorCount(success);
-  if(showResults == 1) { console.log('getPolicyOfAnApp: ' + success); }
+  if(showResults == 1) { console.log('getPolicyOfAnApp: ' + success) }
 }
 
 /** Add read access to a user for app in a particular task */
@@ -149,7 +147,7 @@ export function addReadAccessToUserThenDeleteIt() {
     'Delete delegated rule - status is 200': (r) => r.status === 200,
   });
   addErrorCount(success);
-  if(showResults == 1) { console.log('addReadAccessToUserThenDeleteIt: ' + success); }
+  if(showResults == 1) { console.log('addReadAccessToUserThenDeleteIt: ' + success) }
 }
 
 /** Deleting a non existing rules fails */
@@ -164,7 +162,7 @@ export function deletingNonExistingRuleFails() {
     'Delete a not existing rule - status is 400': (r) => r.status === 400,
   });
   addErrorCount(success);
-  if(showResults == 1) { console.log('deletingNonExistingRuleFails: ' + success); }
+  if(showResults == 1) { console.log('deletingNonExistingRuleFails: ' + success) }
 }
 
 /** Rules cannot be delegated with invalid app details */
@@ -179,7 +177,7 @@ export function addingRuleWithInvalidValuesFails() {
     'Add delegation rule for an invalid app - failed': (r) => r.body == 'Delegation could not be completed',
   });
   addErrorCount(success);
-  if(showResults == 1) { console.log('addRuleWithInvalidValuesFails: ' + success); }
+  if(showResults == 1) { console.log('addRuleWithInvalidValuesFails: ' + success) }
 }
 
 export function addGetDeleteRuleAndCheckDecisions() {
@@ -249,7 +247,7 @@ export function addGetDeleteRuleAndCheckDecisions() {
     'Get PDP Decision for deleted rule - decision is notapplicable': (r) => r.json('response.0.decision') === 'NotApplicable',
   });
   addErrorCount(success);
-  if(showResults == 1) { console.log('addGetDeleteRuleAndCheckDecisions: ' + success); }
+  if(showResults == 1) { console.log('addGetDeleteRuleAndCheckDecisions: ' + success) }
 }
 
 export function delegateTwoRulesInOneRequest() {
@@ -278,7 +276,7 @@ export function delegateTwoRulesInOneRequest() {
   helper.deleteAllRules(altinnToken, performedByUserId, offeredByPartyId, coveredByUserId, 'userid', appOwner, appName);
   helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'NotApplicable', showResults, appOwner, appName);
   helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'write', 'NotApplicable', showResults, appOwner, appName);
-  if(showResults == 1) {console.log('delegateTwoRulesInOneRequest:' + success);}
+  if(showResults == 1) {console.log('delegateTwoRulesInOneRequest:' + success)}
   sleep(3);
 
 }
@@ -311,7 +309,7 @@ export function delegateTwoRulesPartialSuccess() {
   helper.deleteAllRules(altinnToken, performedByUserId, offeredByPartyId, coveredByUserId, 'userid', appOwner, appName);
   helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'NotApplicable', showResults, appOwner, appName);
   helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'write', 'NotApplicable', showResults, appOwner, appName);
-  if(showResults == 1) {console.log('delegateTwoRulesPartialSuccess:' + success);}
+  if(showResults == 1) {console.log('delegateTwoRulesPartialSuccess:' + success)}
   sleep(3);
 
 }
@@ -345,7 +343,7 @@ export function delegateRuleToAUserAndOrg() {
   helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'Permit', showResults, appOwner, appName);
   helper.deleteAllRules(altinnToken, performedByUserId, offeredByPartyId, coveredByPartyId, 'partyid', appOwner, appName);
   helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'NotApplicable', showResults, appOwner, appName);
-  if(showResults == 1) {console.log('delegateRuleToAUserAndOrg:' + success);}
+  if(showResults == 1) {console.log('delegateRuleToAUserAndOrg:' + success)}
   sleep(3);
 
 }
