@@ -12,7 +12,6 @@ import {
   UiSchemaNode,
 } from '@altinn/schema-model';
 import classes from './SchemaItemLabel.module.css';
-import { Divider } from '../common/Divider';
 import classNames from 'classnames';
 import {
   addCombinationItem,
@@ -182,17 +181,17 @@ export const SchemaItemLabel = ({
             disabled={true}
           />
         )}
-        {capabilties.includes(Capabilites.CanBeDeleted) && [
-          <Divider key='delete-divider' inMenu />,
+        {capabilties.includes(Capabilites.CanBeDeleted) && (
           <AltinnMenuItem
             id='delete-node-button'
             key='delete'
+            className={classes.contextMenuLastItem}
             onClick={handleDeleteClick}
             text={translate('delete')}
             iconClass='fa fa-trash'
             disabled={!editMode}
-          />,
-        ]}
+          />
+        )}
       </AltinnMenu>
     </div>
   );

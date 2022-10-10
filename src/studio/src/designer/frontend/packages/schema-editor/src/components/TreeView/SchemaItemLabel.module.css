@@ -62,3 +62,7 @@
 .warning svg {
   margin-right: 10px;
 }
+
+.contextMenuLastItem {
+  border-top: 1px #d3d4d5 solid !important;
+}
