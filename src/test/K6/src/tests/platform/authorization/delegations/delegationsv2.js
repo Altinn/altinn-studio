@@ -89,8 +89,6 @@ export default function (data) {
   //tests
   getPolicyOfAnApp();
   addReadAccessToUserThenDeleteIt();
-  deletingNonExistingRuleFails();
-  addingRuleWithInvalidValuesFails();
   addGetDeleteRuleAndCheckDecisions();
   delegateTwoRulesInOneRequest();
   delegateTwoRulesPartialSuccess();
@@ -104,82 +102,82 @@ export function CleanupBeforeTests() {
 
 /** Retrieve policy of an app */
 export function getPolicyOfAnApp() { 
-    var resources = [{ appOwner: appOwner, appName: appName }];
-    var res = delegation.getPolicies(resources);
-    var success = check(res, {
-      'GET app policy - status is 200': (r) => r.status === 200,
-    });
-    addErrorCount(success);
-    if(showResults == 1) { console.log('getPolicyOfAnApp: ' + success); }
+  var resources = [{ appOwner: appOwner, appName: appName }];
+  var res = delegation.getPolicies(resources);
+  var success = check(res, {
+    'GET app policy - status is 200': (r) => r.status === 200,
+  });
+  addErrorCount(success);
+  if(showResults == 1) { console.log('getPolicyOfAnApp: ' + success) }
 }
 
 /** Add read access to a user for app in a particular task */
 export function addReadAccessToUserThenDeleteIt() {
-    // Arrange
-    const performedByUserId = user1_userId;
-    const offeredByPartyId = org1_partyId;
-    const coveredByUserId = user2_userId;
+  // Arrange
+  const performedByUserId = user1_userId;
+  const offeredByPartyId = org1_partyId;
+  const coveredByUserId = user2_userId;
 
-    var policyMatchKeys = {
-        coveredBy: 'urn:altinn:userid',
-        resource: ['urn:altinn:app', 'urn:altinn:org', 'urn:altinn:task'],
-      };
+  var policyMatchKeys = {
+    coveredBy: 'urn:altinn:userid',
+    resource: ['urn:altinn:app', 'urn:altinn:org', 'urn:altinn:task'],
+  };
 
-    // Act
-      var res = delegation.addRules(altinnToken, policyMatchKeys, performedByUserId, offeredByPartyId, coveredByUserId, appOwner, appName, 'Task_1', 'read');
-      var success = check(res, {
-        'Add delegation rule - status is 201': (r) => r.status === 201,
-        'Add delegation rule - rule id is not empty': (r) => r.json('0.ruleId') != null,
-        'Add delegation rule - createdSuccessfully is true': (r) => r.json('0.createdSuccessfully') === true,
-        'Add delegation rule - offeredByPartyId matches': (r) => r.json('0.offeredByPartyId') === offeredByPartyId,
-        'Add delegation rule - coveredBy matches': (r) => r.json('0.coveredBy.0.value') === coveredByUserId.toString(),
-      });
+  // Act
+  var res = delegation.addRules(altinnToken, policyMatchKeys, performedByUserId, offeredByPartyId, coveredByUserId, appOwner, appName, 'Task_1', 'read');
+  var success = check(res, {
+    'Add delegation rule - status is 201': (r) => r.status === 201,
+    'Add delegation rule - rule id is not empty': (r) => r.json('0.ruleId') != null,
+    'Add delegation rule - createdSuccessfully is true': (r) => r.json('0.createdSuccessfully') === true,
+    'Add delegation rule - offeredByPartyId matches': (r) => r.json('0.offeredByPartyId') === offeredByPartyId,
+    'Add delegation rule - coveredBy matches': (r) => r.json('0.coveredBy.0.value') === coveredByUserId.toString(),
+  });
 
-    // Assert
-      addErrorCount(success);
-      stopIterationOnFail('Add delegation rule Failed', success, res);
-      var ruleId = res.json('0.ruleId');
-      sleep(3);
+  // Assert
+  addErrorCount(success);
+  stopIterationOnFail('Add delegation rule Failed', success, res);
+  var ruleId = res.json('0.ruleId');
+  sleep(3);
 
-      // Act (deletion)
-      res = delegation.deleteRules(altinnToken, policyMatchKeys, [ruleId], performedByUserId, offeredByPartyId, coveredByUserId, appOwner, appName, 'Task_1', 'read');
+  // Act (deletion)
+  res = delegation.deleteRules(altinnToken, policyMatchKeys, [ruleId], performedByUserId, offeredByPartyId, coveredByUserId, appOwner, appName, 'Task_1', 'read');
       
-      // Assert (deletion)
-      success = check(res, {
-        'Delete delegated rule - status is 200': (r) => r.status === 200,
-      });
-      addErrorCount(success);
-      if(showResults == 1) { console.log('addReadAccessToUserThenDeleteIt: ' + success); }
+  // Assert (deletion)
+  success = check(res, {
+    'Delete delegated rule - status is 200': (r) => r.status === 200,
+  });
+  addErrorCount(success);
+  if(showResults == 1) { console.log('addReadAccessToUserThenDeleteIt: ' + success) }
 }
 
 /** Deleting a non existing rules fails */
 export function deletingNonExistingRuleFails() {
-    var policyMatchKeys = {
-        coveredBy: 'urn:altinn:userid',
-        resource: ['urn:altinn:app', 'urn:altinn:org', 'urn:altinn:task'],
-    };
+  var policyMatchKeys = {
+    coveredBy: 'urn:altinn:userid',
+    resource: ['urn:altinn:app', 'urn:altinn:org', 'urn:altinn:task'],
+  };
 
-    var res = delegation.deleteRules(altinnToken, policyMatchKeys, ['12345678-a1b2-1234-1a23-1234a56b78c9'], user1_userId, org1_partyId, user2_userId, appOwner, appName, 'Task_1', 'read');
-        var success = check(res, {
-          'Delete a not existing rule - status is 400': (r) => r.status === 400,
-        });
-        addErrorCount(success);
-        if(showResults == 1) { console.log('deletingNonExistingRuleFails: ' + success); }
+  var res = delegation.deleteRules(altinnToken, policyMatchKeys, ['12345678-a1b2-1234-1a23-1234a56b78c9'], user1_userId, org1_partyId, user2_userId, appOwner, appName, 'Task_1', 'read');
+  var success = check(res, {
+    'Delete a not existing rule - status is 400': (r) => r.status === 400,
+  });
+  addErrorCount(success);
+  if(showResults == 1) { console.log('deletingNonExistingRuleFails: ' + success) }
 }
 
 /** Rules cannot be delegated with invalid app details */
 export function addingRuleWithInvalidValuesFails() {
-    var policyMatchKeys = {
-        coveredBy: 'urn:altinn:userid',
-        resource: ['urn:altinn:app', 'urn:altinn:org', 'urn:altinn:task'],
-    };
-    var res = delegation.addRules(altinnToken, policyMatchKeys, user1_userId, org1_partyId, user2_userId, appOwner, appName, 'test', 'Task_1', 'read');
-    var success = check(res, {
-      'Add delegation rule for an invalid app - status is 400': (r) => r.status === 400,
-      'Add delegation rule for an invalid app - failed': (r) => r.body == 'Delegation could not be completed',
-    });
-    addErrorCount(success);
-    if(showResults == 1) { console.log('addRuleWithInvalidValuesFails: ' + success); }
+  var policyMatchKeys = {
+    coveredBy: 'urn:altinn:userid',
+    resource: ['urn:altinn:app', 'urn:altinn:org', 'urn:altinn:task'],
+  };
+  var res = delegation.addRules(altinnToken, policyMatchKeys, user1_userId, org1_partyId, user2_userId, appOwner, appName, 'test', 'Task_1', 'read');
+  var success = check(res, {
+    'Add delegation rule for an invalid app - status is 400': (r) => r.status === 400,
+    'Add delegation rule for an invalid app - failed': (r) => r.body == 'Delegation could not be completed',
+  });
+  addErrorCount(success);
+  if(showResults == 1) { console.log('addRuleWithInvalidValuesFails: ' + success) }
 }
 
 export function addGetDeleteRuleAndCheckDecisions() {
@@ -193,63 +191,63 @@ export function addGetDeleteRuleAndCheckDecisions() {
     resource: ['urn:altinn:app', 'urn:altinn:org', 'urn:altinn:task'],
   };
     //add a rule to give write access
-    var res = delegation.addRules(altinnToken, policyMatchKeys, performedByUserId, offeredByPartyId, coveredByUserId, appOwner, appName, 'Task_1', 'write');
-    var ruleId = res.json('0.ruleId');
-    sleep(3);
+  var res = delegation.addRules(altinnToken, policyMatchKeys, performedByUserId, offeredByPartyId, coveredByUserId, appOwner, appName, 'Task_1', 'write');
+  var ruleId = res.json('0.ruleId');
+  sleep(3);
   
-    //Retrieve all the rules that are delegated to an user from a party
-    policyMatchKeys = {
-      coveredBy: 'urn:altinn:userid',
-      resource: ['urn:altinn:app', 'urn:altinn:org'],
-    };
-    var res = delegation.getRules(altinnToken, policyMatchKeys, offeredByPartyId, coveredByUserId, resources, null, null);
-    var success = check(res, {
-      'Get delegated rule - status is 200': (r) => r.status === 200,
-      'Get delegated rule - rule id matches': (r) => r.json('0.ruleId') === ruleId,
-      'Get delegated rule - createdSuccessfully is false': (r) => r.json('0.createdSuccessfully') === false,
-      'Get delegated rule - offeredByPartyId matches': (r) => r.json('0.offeredByPartyId') === offeredByPartyId,
-      'Get delegated rule - coveredBy matches': (r) => r.json('0.coveredBy.0.value') === coveredByUserId.toString(),
-      'Get delegated rule - type is 1': (r) => r.json('0.type') === 1,
-    });
-    addErrorCount(success);
+  //Retrieve all the rules that are delegated to an user from a party
+  policyMatchKeys = {
+    coveredBy: 'urn:altinn:userid',
+    resource: ['urn:altinn:app', 'urn:altinn:org'],
+  };
+  var res = delegation.getRules(altinnToken, policyMatchKeys, offeredByPartyId, coveredByUserId, resources, null, null);
+  var success = check(res, {
+    'Get delegated rule - status is 200': (r) => r.status === 200,
+    'Get delegated rule - rule id matches': (r) => r.json('0.ruleId') === ruleId,
+    'Get delegated rule - createdSuccessfully is false': (r) => r.json('0.createdSuccessfully') === false,
+    'Get delegated rule - offeredByPartyId matches': (r) => r.json('0.offeredByPartyId') === offeredByPartyId,
+    'Get delegated rule - coveredBy matches': (r) => r.json('0.coveredBy.0.value') === coveredByUserId.toString(),
+    'Get delegated rule - type is 1': (r) => r.json('0.type') === 1,
+  });
+  addErrorCount(success);
   
-    //Decision to write is permit based on the delegated rule
-    var jsonPermitData = {
-      AccessSubject: ['urn:altinn:userid'],
-      Action: ['write'],
-      Resource: ['urn:altinn:app', 'urn:altinn:org', 'urn:altinn:partyid', 'urn:altinn:task'],
-    };
-    res = authorization.postGetDecision(pdpInputJson, jsonPermitData, appOwner, appName, coveredByUserId, offeredByPartyId, 'Task_1');
-    success = check(res, {
-      'Get PDP Decision for delegated rule Status is 200': (r) => r.status === 200,
-      'Get PDP Decision for delegated rule - decision is permit': (r) => r.json('response.0.decision') === 'Permit',
-    });
-    addErrorCount(success);
+  //Decision to write is permit based on the delegated rule
+  var jsonPermitData = {
+    AccessSubject: ['urn:altinn:userid'],
+    Action: ['write'],
+    Resource: ['urn:altinn:app', 'urn:altinn:org', 'urn:altinn:partyid', 'urn:altinn:task'],
+  };
+  res = authorization.postGetDecision(pdpInputJson, jsonPermitData, appOwner, appName, coveredByUserId, offeredByPartyId, 'Task_1');
+  success = check(res, {
+    'Get PDP Decision for delegated rule Status is 200': (r) => r.status === 200,
+    'Get PDP Decision for delegated rule - decision is permit': (r) => r.json('response.0.decision') === 'Permit',
+  });
+  addErrorCount(success);
   
-    //Delete all the delegated rules from an user by a party
-    res = delegation.deletePolicy(altinnToken, policyMatchKeys, performedByUserId, offeredByPartyId, coveredByUserId, appOwner, appName, null);
-    success = check(res, {
-      'Delete delegated policy with all rules - status is 200': (r) => r.status === 200,
-    });
-    addErrorCount(success);
-    sleep(3);
+  //Delete all the delegated rules from an user by a party
+  res = delegation.deletePolicy(altinnToken, policyMatchKeys, performedByUserId, offeredByPartyId, coveredByUserId, appOwner, appName, null);
+  success = check(res, {
+    'Delete delegated policy with all rules - status is 200': (r) => r.status === 200,
+  });
+  addErrorCount(success);
+  sleep(3);
   
-    //Get rules that are deleted where response should be an empty array
-    res = delegation.getRules(altinnToken, policyMatchKeys, offeredByPartyId, coveredByUserId, resources, null, null);
-    success = check(res, {
-      'Get deleted rules - status is 200': (r) => r.status === 200,
-      'Get deleted rules - response is empty': (r) => r.json().length === 0,
-    });
-    addErrorCount(success);
+  //Get rules that are deleted where response should be an empty array
+  res = delegation.getRules(altinnToken, policyMatchKeys, offeredByPartyId, coveredByUserId, resources, null, null);
+  success = check(res, {
+    'Get deleted rules - status is 200': (r) => r.status === 200,
+    'Get deleted rules - response is empty': (r) => r.json().length === 0,
+  });
+  addErrorCount(success);
   
-    //User can no longer write to app instance after delegate policy is deleted
-    res = authorization.postGetDecision(pdpInputJson, jsonPermitData, appOwner, appName, coveredByUserId, offeredByPartyId, 'Task_1');
-    success = check(res, {
-      'Get PDP Decision for deleted rule - Status is 200': (r) => r.status === 200,
-      'Get PDP Decision for deleted rule - decision is notapplicable': (r) => r.json('response.0.decision') === 'NotApplicable',
-    });
-    addErrorCount(success);
-    if(showResults == 1) { console.log('addGetDeleteRuleAndCheckDecisions: ' + success); }
+  //User can no longer write to app instance after delegate policy is deleted
+  res = authorization.postGetDecision(pdpInputJson, jsonPermitData, appOwner, appName, coveredByUserId, offeredByPartyId, 'Task_1');
+  success = check(res, {
+    'Get PDP Decision for deleted rule - Status is 200': (r) => r.status === 200,
+    'Get PDP Decision for deleted rule - decision is notapplicable': (r) => r.json('response.0.decision') === 'NotApplicable',
+  });
+  addErrorCount(success);
+  if(showResults == 1) { console.log('addGetDeleteRuleAndCheckDecisions: ' + success) }
 }
 
 export function delegateTwoRulesInOneRequest() {
@@ -258,8 +256,8 @@ export function delegateTwoRulesInOneRequest() {
   const offeredByPartyId = org1_partyId;
   const coveredByUserId = user2_userId;
   var rulesList = [];
-  rulesList.push(helper.generateDataForAddMultipleRules(performedByUserId, offeredByPartyId, coveredByUserId, 'userid', 'Task_1', 'read'));
-  rulesList.push(helper.generateDataForAddMultipleRules(performedByUserId, offeredByPartyId, coveredByUserId, 'userid', 'Task_1', 'write'));
+  rulesList.push(helper.generateDataForAddMultipleRules(performedByUserId, offeredByPartyId, coveredByUserId, 'userid', 'Task_1', 'read', appOwner, appName));
+  rulesList.push(helper.generateDataForAddMultipleRules(performedByUserId, offeredByPartyId, coveredByUserId, 'userid', 'Task_1', 'write', appOwner, appName));
   
   // Act
   var res = delegation.addMultipleRules(altinnToken, rulesList);
@@ -271,14 +269,14 @@ export function delegateTwoRulesInOneRequest() {
     'Add multiple rules - rule 2 created successfully is true': (r) => r.json('1.createdSuccessfully') === true
   });
   addErrorCount(success);
-  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'Permit', showResults);
-  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'write', 'Permit', showResults);
+  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'Permit', showResults, appOwner, appName);
+  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'write', 'Permit', showResults, appOwner, appName);
 
   // Cleanup
   helper.deleteAllRules(altinnToken, performedByUserId, offeredByPartyId, coveredByUserId, 'userid', appOwner, appName);
-  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'NotApplicable', showResults);
-  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'write', 'NotApplicable', showResults);
-  if(showResults == 1) {console.log('delegateTwoRulesInOneRequest:' + success);}
+  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'NotApplicable', showResults, appOwner, appName);
+  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'write', 'NotApplicable', showResults, appOwner, appName);
+  if(showResults == 1) {console.log('delegateTwoRulesInOneRequest:' + success)}
   sleep(3);
 
 }
@@ -290,8 +288,8 @@ export function delegateTwoRulesPartialSuccess() {
   const offeredByPartyId = org1_partyId;
   const coveredByUserId = user2_userId;
   var rulesList = [];
-  rulesList.push(helper.generateDataForAddMultipleRules(performedByUserId, offeredByPartyId, coveredByUserId, 'userid', 'Task_1', 'read','ttd','nonExistentApp'));
-  rulesList.push(helper.generateDataForAddMultipleRules(performedByUserId, offeredByPartyId, coveredByUserId, 'userid', 'Task_1', 'write'));
+  rulesList.push(helper.generateDataForAddMultipleRules(performedByUserId, offeredByPartyId, coveredByUserId, 'userid', 'Task_1', 'read','ttd','nonExistentApp', appOwner, appName));
+  rulesList.push(helper.generateDataForAddMultipleRules(performedByUserId, offeredByPartyId, coveredByUserId, 'userid', 'Task_1', 'write', appOwner, appName));
   
   // Act
   var res = delegation.addMultipleRules(altinnToken, rulesList);
@@ -304,14 +302,14 @@ export function delegateTwoRulesPartialSuccess() {
   });
   
   addErrorCount(success);
-  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'NotApplicable', showResults);
-  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'write', 'Permit', showResults);
+  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'NotApplicable', showResults, appOwner, appName);
+  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'write', 'Permit', showResults, appOwner, appName);
 
   // Cleanup
   helper.deleteAllRules(altinnToken, performedByUserId, offeredByPartyId, coveredByUserId, 'userid', appOwner, appName);
-  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'NotApplicable', showResults);
-  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'write', 'NotApplicable', showResults);
-  if(showResults == 1) {console.log('delegateTwoRulesPartialSuccess:' + success);}
+  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'NotApplicable', showResults, appOwner, appName);
+  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'write', 'NotApplicable', showResults, appOwner, appName);
+  if(showResults == 1) {console.log('delegateTwoRulesPartialSuccess:' + success)}
   sleep(3);
 
 }
@@ -324,8 +322,8 @@ export function delegateRuleToAUserAndOrg() {
   const coveredByUserId = user2_userId;
   const coveredByPartyId =org2_partyId;
   var rulesList = [];
-  rulesList.push(helper.generateDataForAddMultipleRules(performedByUserId, offeredByPartyId, coveredByUserId, 'userid', 'Task_1', 'read'));
-  rulesList.push(helper.generateDataForAddMultipleRules(performedByUserId, offeredByPartyId, coveredByPartyId, 'partyid', 'Task_1', 'read'));
+  rulesList.push(helper.generateDataForAddMultipleRules(performedByUserId, offeredByPartyId, coveredByUserId, 'userid', 'Task_1', 'read', appOwner, appName));
+  rulesList.push(helper.generateDataForAddMultipleRules(performedByUserId, offeredByPartyId, coveredByPartyId, 'partyid', 'Task_1', 'read', appOwner, appName));
   
   // Act
   var res = delegation.addMultipleRules(altinnToken, rulesList);
@@ -338,14 +336,14 @@ export function delegateRuleToAUserAndOrg() {
   });
   
   addErrorCount(success);
-  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'Permit', showResults);
+  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'Permit', showResults, appOwner, appName);
 
   // Cleanup
   helper.deleteAllRules(altinnToken, performedByUserId, offeredByPartyId, coveredByUserId, 'userid', appOwner, appName);
-  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'Permit', showResults);
+  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'Permit', showResults, appOwner, appName);
   helper.deleteAllRules(altinnToken, performedByUserId, offeredByPartyId, coveredByPartyId, 'partyid', appOwner, appName);
-  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'NotApplicable', showResults);
-  if(showResults == 1) {console.log('delegateRuleToAUserAndOrg:' + success);}
+  helper.checkPDPDecision(offeredByPartyId, coveredByUserId, 'Task_1', 'read', 'NotApplicable', showResults, appOwner, appName);
+  if(showResults == 1) {console.log('delegateRuleToAUserAndOrg:' + success)}
   sleep(3);
 
 }
