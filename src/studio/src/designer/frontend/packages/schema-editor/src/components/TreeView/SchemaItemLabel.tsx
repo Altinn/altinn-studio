@@ -29,11 +29,19 @@ export interface SchemaItemLabelProps {
   editMode: boolean;
   icon: string;
   refNode?: UiSchemaNode;
+  itemsNode?: UiSchemaNode;
   selectedNode: UiSchemaNode;
   translate: (key: string) => string;
 }
 
-export const SchemaItemLabel = ({ editMode, icon, refNode, selectedNode, translate }: SchemaItemLabelProps) => {
+export const SchemaItemLabel = ({
+  editMode,
+  icon,
+  refNode,
+  itemsNode,
+  selectedNode,
+  translate,
+}: SchemaItemLabelProps) => {
   const dispatch = useDispatch();
   const [contextAnchor, setContextAnchor] = useState<any>(null);
 
@@ -57,7 +65,7 @@ export const SchemaItemLabel = ({ editMode, icon, refNode, selectedNode, transla
   };
 
   const handleAddNode = wrapper((objectKind: ObjectKind) => {
-    const propertyProps = {
+    const props = {
       objectKind,
       fieldType: {
         [ObjectKind.Field]: FieldType.String,
@@ -67,9 +75,10 @@ export const SchemaItemLabel = ({ editMode, icon, refNode, selectedNode, transla
       }[objectKind],
       ref: objectKind === ObjectKind.Reference ? '' : undefined,
     };
+    const path = itemsNode?.pointer ?? selectedNode.pointer;
     selectedNode.objectKind === ObjectKind.Combination
-      ? dispatch(addCombinationItem({ path: selectedNode.pointer, props: propertyProps }))
-      : dispatch(addProperty({ path: selectedNode.pointer, props: propertyProps }));
+      ? dispatch(addCombinationItem({ path, props }))
+      : dispatch(addProperty({ path, props }));
   });
 
   const handleDeleteClick = wrapper(() =>
@@ -81,7 +90,7 @@ export const SchemaItemLabel = ({ editMode, icon, refNode, selectedNode, transla
   const isArray = selectedNode.objectKind === ObjectKind.Array || refNode?.objectKind === ObjectKind.Array;
 
   const isRef = refNode || pointerIsDefinition(selectedNode.pointer);
-  const capabilties = getCapabilities(selectedNode);
+  const capabilties = getCapabilities(itemsNode ?? selectedNode);
   return (
     <div className={classNames(classes.propertiesLabel, { [classes.isArray]: isArray, [classes.isRef]: isRef })}>
       <div className={classes.label} title={selectedNode.pointer}>

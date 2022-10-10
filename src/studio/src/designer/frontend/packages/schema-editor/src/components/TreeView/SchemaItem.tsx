@@ -74,6 +74,7 @@ export function SchemaItem({ selectedNode, isPropertiesView, editMode, translate
           key={`${selectedNode.pointer}-label`}
           selectedNode={selectedNode}
           refNode={refNode}
+          itemsNode={itemsNode}
           translate={translate}
         />
       }
