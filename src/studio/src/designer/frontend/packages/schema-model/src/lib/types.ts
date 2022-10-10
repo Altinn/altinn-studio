@@ -41,16 +41,6 @@ export enum Keywords {
   Title = 'title',
   Type = 'type',
 }
-export enum Capabilites {
-  CanBeConvertedToArray = 'CAN_BE_CONVERTED_TO_ARRAY', // no restrictions, not combination
-  CanBeConvertedToCombination = 'CAN_BE_CONVERTED_TO_COMBINATION',
-  CanBeConvertedToField = 'CAN_BE_CONVERTED_TO_FIELD', // reference or array with no restrictions
-  CanBeConvertedToReference = 'CAN_BE_CONVERTED_TO_REFERENCE',
-  CanBeDeleted = 'CAN_BE_DELETED', // not root node
-  CanHaveCombinationAdded = 'CAN_HAVE_COMBINATION_ADDED', // object or root node
-  CanHaveFieldAdded = 'CAN_HAVE_FIELD_ADDED', // object or combination
-  CanHaveReferenceAdded = 'CAN_HAVE_REFERENCE_ADDED', // object or combination
-}
 
 export const ROOT_POINTER = '#';
 

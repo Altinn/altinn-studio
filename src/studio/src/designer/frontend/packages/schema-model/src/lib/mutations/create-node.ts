@@ -1,6 +1,5 @@
 import { FieldType, Keywords, ObjectKind, UiSchemaNode, UiSchemaNodes } from '../types';
-import { pointerExists } from '../selectors';
-import { createNodeBase, getParentNodeByPointer } from '../utils';
+import { createNodeBase, getParentNodeByPointer, pointerExists } from '../utils';
 
 export const insertSchemaNode = (uiSchemaNodes: UiSchemaNodes, newNode: UiSchemaNode): UiSchemaNodes => {
   if (pointerExists(uiSchemaNodes, newNode.pointer)) {
@@ -12,7 +11,6 @@ export const insertSchemaNode = (uiSchemaNodes: UiSchemaNodes, newNode: UiSchema
     throw new Error(`Can't find ParentNode for pointer ${newNode.pointer}`);
   }
   parentNode.children.push(newNode.pointer);
-  newNode.implicitType = false;
   mutatedNodeArray.push(newNode);
   return mutatedNodeArray;
 };

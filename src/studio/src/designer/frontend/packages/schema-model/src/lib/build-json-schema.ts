@@ -4,7 +4,7 @@ import JSONPointer from 'jsonpointer';
 import { findRequiredProps } from './mappers/required';
 import { findJsonFieldType } from './mappers/field-type';
 import { getNodeByPointer } from './selectors';
-import { sortNodesByChildren } from './utils';
+import { sortNodesByChildren } from './mutations/sort-nodes';
 
 export const buildJsonSchema = (uiSchemaNodes: UiSchemaNodes): JsonSchemaNode => {
   const out: JsonSchemaNode = {};

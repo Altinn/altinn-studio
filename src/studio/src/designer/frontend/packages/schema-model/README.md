@@ -39,16 +39,4 @@ simplification.
 ### Node capabilities
 
 When performing mutations on the model there are some rules that will
-keep logic in the models.
-
-```
-CAN_BE_CONVERTED_TO_ARRAY - no restrictions, not combination
-CAN_BE_CONVERTED_TO_FIELD - reference or array with no restrictions
-CAN_BE_CONVERTED_TO_OBJECT - no restrictions
-CAN_BE_CONVERTED_TO_REFERENCE
-CAN_BE_DELETED - not root node
-CAN_HAVE_COMBINATION_ADDED - object or root node
-CAN_HAVE_FIELD_ADDED - object or combination
-CAN_HAVE_OBJECT_ADDED - object or combination
-CAN_HAVE_REFERENCE_ADDED - object or combination
-```
+keep logic in the models, strict.

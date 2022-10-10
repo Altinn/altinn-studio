@@ -1,6 +1,6 @@
 import { CombinationKind, UiSchemaNodes } from '../types';
-import { getNodeByPointer, pointerExists } from '../selectors';
-import { splitPointerInBaseAndName } from '../utils';
+import { getNodeByPointer } from '../selectors';
+import { pointerExists, splitPointerInBaseAndName } from '../utils';
 
 export const renameNodePointer = (uiSchemaNodes: UiSchemaNodes, oldPointer: string, newPointer: string) => {
   if (oldPointer === newPointer) {

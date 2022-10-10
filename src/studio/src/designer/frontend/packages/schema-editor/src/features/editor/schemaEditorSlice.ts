@@ -7,6 +7,7 @@ import {
   buildUiSchema,
   castRestrictionType,
   CombinationKind,
+  convertPropToType,
   createNodeBase,
   FieldType,
   getNodeByPointer,
@@ -15,7 +16,6 @@ import {
   Keywords,
   makePointer,
   ObjectKind,
-  promotePropertyToType,
   removeNodeByPointer,
   renameNodePointer,
   replaceLastPointerSegment,
@@ -118,7 +118,7 @@ const schemaEditorSlice = createSlice({
     },
     promoteProperty(state, action: PayloadAction<{ path: string }>) {
       const { path } = action.payload;
-      state.uiSchema = promotePropertyToType(state.uiSchema, path);
+      state.uiSchema = convertPropToType(state.uiSchema, path);
     },
     deleteProperty(state, action: PayloadAction<{ path: string }>) {
       const { path } = action.payload;
