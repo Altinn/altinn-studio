@@ -203,11 +203,11 @@ function DatepickerComponent({
           timeStamp === true
             ? dateValue?.toISOString(true)
             : dateValue.format(DatePickerSaveFormatNoTimestamp);
-        handleDataChange(dateString, undefined, false, false);
+        handleDataChange(dateString);
       }
     } else if (!dateValue) {
       setDate(null);
-      handleDataChange('', undefined, false, false);
+      handleDataChange('');
     } else if (
       dateValue.parsingFlags().charsLeftOver == 0 &&
       !dateValue.isValid()
@@ -242,10 +242,10 @@ function DatepickerComponent({
           ? date?.format(DatePickerSaveFormatNoTimestamp)
           : date?.toISOString(true);
       const saveDate = isDateEmpty() ? '' : dateString;
-      handleDataChange(saveDate, undefined, false, false);
+      handleDataChange(saveDate);
     } else {
       if (formData?.simpleBinding) {
-        handleDataChange('', undefined, false, false);
+        handleDataChange('');
       }
     }
   };

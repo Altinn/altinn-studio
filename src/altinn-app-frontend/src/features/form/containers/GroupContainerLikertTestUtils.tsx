@@ -113,7 +113,6 @@ export const createFormDataUpdateAction = (
       data: optionValue,
       field: `Questions[${index}].Answer`,
       skipValidation: false,
-      checkIfRequired: false,
     },
     type: FormDataActions.update.type,
   };

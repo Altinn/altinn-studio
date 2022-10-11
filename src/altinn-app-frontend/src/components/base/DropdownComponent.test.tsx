@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { defaultHandleDataChangeProps } from '__mocks__/constants';
 import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -86,10 +85,7 @@ describe('DropdownComponent', () => {
 
     await new Promise((r) => setTimeout(r, 25));
 
-    expect(handleDataChange).toHaveBeenCalledWith(
-      'sweden',
-      ...defaultHandleDataChangeProps,
-    );
+    expect(handleDataChange).toHaveBeenCalledWith('sweden');
 
     mockDelayBeforeSaving(undefined);
   });
@@ -121,10 +117,7 @@ describe('DropdownComponent', () => {
       handleDataChange,
     });
 
-    expect(handleDataChange).toHaveBeenCalledWith(
-      'denmark',
-      ...defaultHandleDataChangeProps,
-    );
+    expect(handleDataChange).toHaveBeenCalledWith('denmark');
     expect(handleDataChange).toHaveBeenCalledTimes(1);
   });
 
@@ -135,10 +128,7 @@ describe('DropdownComponent', () => {
       handleDataChange,
     });
 
-    expect(handleDataChange).toHaveBeenCalledWith(
-      'denmark',
-      ...defaultHandleDataChangeProps,
-    );
+    expect(handleDataChange).toHaveBeenCalledWith('denmark');
     const select = screen.getByRole('combobox');
 
     await userEvent.click(select);
@@ -147,10 +137,7 @@ describe('DropdownComponent', () => {
 
     fireEvent.blur(select);
 
-    expect(handleDataChange).toHaveBeenCalledWith(
-      'denmark',
-      ...defaultHandleDataChangeProps,
-    );
+    expect(handleDataChange).toHaveBeenCalledWith('denmark');
     expect(handleDataChange).toHaveBeenCalledTimes(2);
   });
 
@@ -191,10 +178,7 @@ describe('DropdownComponent', () => {
 
     await new Promise((r) => setTimeout(r, 25));
 
-    expect(handleDataChange).toHaveBeenCalledWith(
-      'Value for first',
-      ...defaultHandleDataChangeProps,
-    );
+    expect(handleDataChange).toHaveBeenCalledWith('Value for first');
 
     await userEvent.selectOptions(screen.getByRole('combobox'), [
       screen.getByText('The value from the group is: Label for second'),
@@ -204,10 +188,7 @@ describe('DropdownComponent', () => {
 
     await new Promise((r) => setTimeout(r, 25));
 
-    expect(handleDataChange).toHaveBeenCalledWith(
-      'Value for second',
-      ...defaultHandleDataChangeProps,
-    );
+    expect(handleDataChange).toHaveBeenCalledWith('Value for second');
     expect(handleDataChange).toHaveBeenCalledTimes(2);
 
     mockDelayBeforeSaving(undefined);

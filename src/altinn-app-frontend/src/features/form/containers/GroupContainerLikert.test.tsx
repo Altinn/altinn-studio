@@ -13,7 +13,7 @@ import {
   validateTableLayout,
 } from 'src/features/form/containers/GroupContainerLikertTestUtils';
 
-describe('GroupContainer', () => {
+describe('GroupContainerLikert', () => {
   describe('Desktop', () => {
     it('should render table using options and not optionsId', () => {
       render({

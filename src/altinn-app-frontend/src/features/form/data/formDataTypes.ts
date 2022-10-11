@@ -27,7 +27,6 @@ export interface ISaveAction {
 export interface IUpdateFormDataProps {
   skipValidation?: boolean;
   skipAutoSave?: boolean;
-  checkIfRequired?: boolean;
 }
 
 export interface IUpdateFormData extends IUpdateFormDataProps {

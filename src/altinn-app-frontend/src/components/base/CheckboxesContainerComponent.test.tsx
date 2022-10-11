@@ -1,6 +1,5 @@
 import React from 'react';
 
-import { defaultHandleDataChangeProps } from '__mocks__/constants';
 import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -98,10 +97,7 @@ describe('CheckboxContainerComponent', () => {
       },
     });
 
-    expect(handleChange).toHaveBeenCalledWith(
-      'sweden',
-      ...defaultHandleDataChangeProps,
-    );
+    expect(handleChange).toHaveBeenCalledWith('sweden');
   });
 
   it('should not call handleDataChange when simpleBinding is set and preselectedOptionIndex', () => {
@@ -176,10 +172,7 @@ describe('CheckboxContainerComponent', () => {
 
     await new Promise((r) => setTimeout(r, 25));
 
-    expect(handleChange).toHaveBeenCalledWith(
-      'norway,denmark',
-      ...defaultHandleDataChangeProps,
-    );
+    expect(handleChange).toHaveBeenCalledWith('norway,denmark');
 
     mockDelayBeforeSaving(undefined);
   });
@@ -208,10 +201,7 @@ describe('CheckboxContainerComponent', () => {
 
     await new Promise((r) => setTimeout(r, 25));
 
-    expect(handleChange).toHaveBeenCalledWith(
-      'norway',
-      ...defaultHandleDataChangeProps,
-    );
+    expect(handleChange).toHaveBeenCalledWith('norway');
 
     mockDelayBeforeSaving(undefined);
   });
@@ -235,10 +225,7 @@ describe('CheckboxContainerComponent', () => {
 
     fireEvent.blur(denmark);
 
-    expect(handleChange).toHaveBeenCalledWith(
-      'norway,denmark',
-      ...defaultHandleDataChangeProps,
-    );
+    expect(handleChange).toHaveBeenCalledWith('norway,denmark');
   });
 
   it('should not call handleDataChange on blur when the value is unchanged', () => {
@@ -275,10 +262,7 @@ describe('CheckboxContainerComponent', () => {
 
     await new Promise((r) => setTimeout(r, 25));
 
-    expect(handleChange).toHaveBeenCalledWith(
-      'denmark',
-      ...defaultHandleDataChangeProps,
-    );
+    expect(handleChange).toHaveBeenCalledWith('denmark');
 
     mockDelayBeforeSaving(undefined);
   });
@@ -393,10 +377,7 @@ describe('CheckboxContainerComponent', () => {
 
     await new Promise((r) => setTimeout(r, 25));
 
-    expect(handleDataChange).toHaveBeenCalledWith(
-      'Value for second',
-      ...defaultHandleDataChangeProps,
-    );
+    expect(handleDataChange).toHaveBeenCalledWith('Value for second');
 
     mockDelayBeforeSaving(undefined);
   });

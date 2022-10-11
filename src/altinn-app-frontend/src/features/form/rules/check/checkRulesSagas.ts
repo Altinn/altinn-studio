@@ -25,7 +25,7 @@ export interface IResponse {
 }
 
 export function* checkIfRuleShouldRunSaga({
-  payload: { field, checkIfRequired, skipAutoSave, skipValidation },
+  payload: { field, skipAutoSave, skipValidation },
 }: PayloadAction<IUpdateFormDataFulfilled>): SagaIterator {
   try {
     const ruleConnectionState: IRuleConnections = yield select(
@@ -60,7 +60,6 @@ export function* checkIfRuleShouldRunSaga({
               data: rule.result,
               field: rule.dataBindingName,
               skipValidation,
-              checkIfRequired,
               skipAutoSave,
             }),
           );

@@ -105,5 +105,3 @@ export const userProfile = {
     doNotPromptForParty: false,
   },
 };
-
-export const defaultHandleDataChangeProps = [undefined, false, false];

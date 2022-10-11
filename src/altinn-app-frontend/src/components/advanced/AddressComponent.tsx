@@ -129,7 +129,7 @@ export function AddressComponent({
       const validationErrors: IAddressValidationErrors = validate();
       setValidations(validationErrors);
       if (!validationErrors[key]) {
-        handleDataChange(value, key, false, false);
+        handleDataChange(value, { key });
         if (key === AddressKeys.zipCode && !value) {
           // if we are removing a zip code, also remove post place from form data
           setPostPlace('', true);

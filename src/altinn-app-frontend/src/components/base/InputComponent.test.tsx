@@ -65,12 +65,7 @@ describe('InputComponent', () => {
     await user.type(inputComponent, typedValue);
     await user.tab();
     expect(inputComponent).toHaveValue(typedValue);
-    expect(handleDataChange).toHaveBeenCalledWith(
-      typedValue,
-      undefined,
-      false,
-      false,
-    );
+    expect(handleDataChange).toHaveBeenCalledWith(typedValue);
   });
 
   it('should render input with formatted number when this is specified', async () => {
@@ -100,12 +95,7 @@ describe('InputComponent', () => {
 
     expect(inputComponent).toHaveValue(finalValueFormatted);
     expect(handleDataChange).toHaveBeenCalledTimes(1);
-    expect(handleDataChange).toHaveBeenCalledWith(
-      finalValuePlainText,
-      undefined,
-      false,
-      false,
-    );
+    expect(handleDataChange).toHaveBeenCalledWith(finalValuePlainText);
   });
 
   it('should show aria-describedby if textResourceBindings.description is present', () => {

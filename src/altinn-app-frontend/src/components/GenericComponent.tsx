@@ -175,10 +175,10 @@ export function GenericComponent<Type extends ComponentExceptGroup>(
 
   const handleDataChange: IComponentProps['handleDataChange'] = (
     value,
-    key = 'simpleBinding',
-    skipValidation = false,
-    checkIfRequired = true,
+    options = {},
   ) => {
+    const { key = 'simpleBinding', validate = true } = options;
+
     if (!props.dataModelBindings || !props.dataModelBindings[key]) {
       return;
     }
@@ -208,8 +208,7 @@ export function GenericComponent<Type extends ComponentExceptGroup>(
         field: dataModelBinding,
         data: value,
         componentId: props.id,
-        skipValidation,
-        checkIfRequired,
+        skipValidation: !validate,
       }),
     );
   };

@@ -22,27 +22,13 @@ import type { IAttachments } from 'src/shared/resources/attachments';
 import type { IRuntimeState, IValidationResult } from 'src/types';
 
 export function* updateFormDataSaga({
-  payload: {
-    field,
-    data,
-    componentId,
-    skipValidation,
-    skipAutoSave,
-    checkIfRequired,
-  },
+  payload: { field, data, componentId, skipValidation, skipAutoSave },
 }: PayloadAction<IUpdateFormData>): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
 
     if (!skipValidation) {
-      yield call(
-        runValidations,
-        field,
-        data,
-        componentId,
-        state,
-        checkIfRequired,
-      );
+      yield call(runValidations, field, data, componentId, state);
     }
 
     if (shouldUpdateFormData(state.formData.formData[field], data)) {
@@ -53,7 +39,6 @@ export function* updateFormDataSaga({
           data,
           skipValidation,
           skipAutoSave,
-          checkIfRequired,
         }),
       );
     }
@@ -72,7 +57,6 @@ function* runValidations(
   data: any,
   componentId: string,
   state: IRuntimeState,
-  checkIfRequired: boolean,
 ) {
   if (!componentId) {
     yield put(
@@ -110,7 +94,6 @@ function* runValidations(
     validator,
     state.formValidations.validations[componentId],
     componentId !== component.id ? componentId : null,
-    checkIfRequired,
   );
 
   const componentValidations =

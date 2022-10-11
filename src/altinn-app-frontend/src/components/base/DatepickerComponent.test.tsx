@@ -101,9 +101,6 @@ describe('DatepickerComponent', () => {
       expect.stringContaining(
         `${currentYearNumeric}-${currentMonthNumeric}-15T12:00:00.000+`,
       ),
-      undefined,
-      false,
-      false,
     );
   });
 
@@ -118,9 +115,6 @@ describe('DatepickerComponent', () => {
     expect(handleDataChange).toHaveBeenCalledWith(
       // Ignore TZ part of timestamp to avoid test failing when this changes
       expect.stringContaining('2022-12-26T12:00:00.000+'),
-      undefined,
-      false,
-      false,
     );
   });
 
@@ -135,9 +129,6 @@ describe('DatepickerComponent', () => {
     expect(handleDataChange).toHaveBeenCalledWith(
       // Ignore TZ part of timestamp to avoid test failing when this changes
       expect.stringContaining('2022-12-26T12:00:00.000+'),
-      undefined,
-      false,
-      false,
     );
   });
 
@@ -149,12 +140,7 @@ describe('DatepickerComponent', () => {
 
     await userEvent.type(inputField, '12.26.2022');
 
-    expect(handleDataChange).toHaveBeenCalledWith(
-      '2022-12-26',
-      undefined,
-      false,
-      false,
-    );
+    expect(handleDataChange).toHaveBeenCalledWith('2022-12-26');
   });
 
   it('should not call handleDataChange when field is changed with a invalid date', async () => {
@@ -260,7 +246,7 @@ describe('DatepickerComponent', () => {
       screen.getByText('date_picker.invalid_date_message'),
     ).toBeInTheDocument();
 
-    expect(handleDataChange).toHaveBeenCalledWith('', undefined, false, false);
+    expect(handleDataChange).toHaveBeenCalledWith('');
   });
 
   it('should have aria-describedby if textResourceBindings.description is present', () => {

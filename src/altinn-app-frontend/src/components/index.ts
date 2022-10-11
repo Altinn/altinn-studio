@@ -65,9 +65,10 @@ const components: {
 export interface IComponentProps extends IGenericComponentProps {
   handleDataChange: (
     value: string,
-    key?: string,
-    skipValidation?: boolean,
-    checkIfRequired?: boolean,
+    options?: {
+      key?: string; // Defaults to simpleBinding
+      validate?: boolean; // Defaults to true
+    },
   ) => void;
   getTextResource: (key: string) => React.ReactNode;
   getTextResourceAsString: (key: string) => string;
