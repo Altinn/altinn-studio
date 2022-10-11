@@ -1,8 +1,9 @@
 import { combinationIsNullable, createNodeBase, getParentNodeByPointer, makePointer } from './utils';
-import { FieldType, ROOT_POINTER } from './types';
+import { FieldType } from './types';
 import { getGeneralJsonSchemaForTest } from '../../test/testUtils';
 import { buildUiSchema } from './build-ui-schema';
 import { expect } from '@jest/globals';
+import { ROOT_POINTER } from './constants';
 
 test('that we can creatNodeBase', () => {
   const nodeBase = createNodeBase('world', 'ish');

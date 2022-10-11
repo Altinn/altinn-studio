@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import type { IJsonSchema, ISchemaState } from '../../types';
-import { getSchemaSettings } from '../../settings';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import {
   buildJsonSchema,
@@ -16,6 +15,7 @@ import {
   Keywords,
   makePointer,
   ObjectKind,
+  pointerIsDefinition,
   removeNodeByPointer,
   renameNodePointer,
   replaceLastPointerSegment,
@@ -64,13 +64,11 @@ const schemaEditorSlice = createSlice({
     ) {
       const { location, name, props } = action.payload;
       const newPointer = getUniqueNodePath(state.uiSchema, [location, name].join('/'));
-      const schemaSettings = getSchemaSettings({ schemaUrl: state.schema.$schema });
       const newNode = createNodeBase(newPointer);
       newNode.implicitType = false;
       state.uiSchema.push(Object.assign(newNode, props));
       getNodeByPointer(state.uiSchema, ROOT_POINTER).children.push(newPointer);
-
-      if (location === schemaSettings.definitionsPath) {
+      if (pointerIsDefinition(newPointer)) {
         state.selectedDefinitionNodeId = newPointer;
       } else {
         state.selectedPropertyNodeId = newPointer;

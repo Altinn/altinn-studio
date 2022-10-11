@@ -32,6 +32,7 @@ export enum Keywords {
   Const = 'const',
   Default = 'default',
   Definitions = '$defs',
+  DeprecatedDefinitions = 'definitions',
   Description = 'description',
   Enum = 'enum',
   Items = 'items',
@@ -41,8 +42,6 @@ export enum Keywords {
   Title = 'title',
   Type = 'type',
 }
-
-export const ROOT_POINTER = '#';
 
 export interface JsonSchemaNode {
   [key: string]: any;

@@ -13,6 +13,7 @@
     "noImplicitThis": true,
     "strictNullChecks": false,
     "noUnusedLocals": true,
+    "resolveJsonModule": true,
     "esModuleInterop": true
   },
   "include": ["**/*.ts", "**/*.tsx"],

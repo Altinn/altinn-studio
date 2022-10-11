@@ -1,8 +1,8 @@
 import { buildUiSchema } from '../build-ui-schema';
-import { ROOT_POINTER } from '../types';
 import { buildJsonSchema } from '../build-json-schema';
 import { simpleTestJsonSchema, validateSchema } from '../../../test/testUtils';
 import { renameNodePointer } from './rename-node';
+import { ROOT_POINTER } from '../constants';
 
 test('that we can rename nodes', () => {
   const uiSchemaNodes = buildUiSchema(simpleTestJsonSchema);

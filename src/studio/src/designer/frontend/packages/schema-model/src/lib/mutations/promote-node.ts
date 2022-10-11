@@ -1,8 +1,9 @@
-import { Keywords, ObjectKind, ROOT_POINTER, UiSchemaNodes } from '../types';
+import { Keywords, ObjectKind, UiSchemaNodes } from '../types';
 import { createNodeBase, deepCopy, getParentNodeByPointer, makePointer, pointerIsDefinition } from '../utils';
 import { getNodeIndexByPointer, getUniqueNodePath } from '../selectors';
 import { renameNodePointer } from './rename-node';
 import { insertSchemaNode } from './create-node';
+import { ROOT_POINTER } from '../constants';
 
 export const convertPropToType = (uiSchemaNodes: UiSchemaNodes, pointer: string) => {
   const uiNodeIndex = getNodeIndexByPointer(uiSchemaNodes, pointer);
