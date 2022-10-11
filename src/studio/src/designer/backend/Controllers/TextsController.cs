@@ -101,6 +101,24 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Endpoint for converting all texts files to the new flat
+        /// format in a specific repository for a specific organisation.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repo">Application identifier which is unique within an organisation.</param>
+        [HttpPut]
+        [Produces("application/json")]
+        [Route("convert")]
+        public ActionResult Put(string org, string repo)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+            _textsService.ConvertV1TextsToV2(org, repo, developer);
+
+            return NoContent();
+        }
+
+        /// <summary>
         /// Endpoint for deleting a specific language in the application.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>

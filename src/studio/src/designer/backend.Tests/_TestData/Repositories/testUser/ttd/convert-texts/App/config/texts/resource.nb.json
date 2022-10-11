@@ -213,7 +213,7 @@
     },
     {
       "id": "optionsFromRepeatingGroup",
-      "value": "Endre fra: {0}, Endre til: {1}",
+      "value": "Endre fra: \n {0}, Endre til: {1}",
       "variables": [
         {
           "key": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value",

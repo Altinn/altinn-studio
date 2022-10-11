@@ -1,0 +1,58 @@
+.icon {
+  background-repeat: no-repeat;
+  background-size: 100% 100%;
+  display: inline-block;
+  height: 36px;
+  width: 36px;
+}
+
+.icon--array {
+  composes: icon;
+  background-color: red;
+  background-image: url("../icons/array.svg");
+}
+
+.icon--boolean {
+  composes: icon;
+  background-image: url("../icons/boolean.svg");
+}
+
+.icon--combination {
+  composes: icon;
+  background-image: url("../icons/combination.svg");
+}
+
+.icon--definition {
+  composes: icon;
+  background-image: url("../icons/definition.svg");
+}
+
+.icon--element {
+  composes: icon;
+  background-image: url("../icons/element.svg");
+}
+
+.icon--number {
+  composes: icon;
+  background-image: url("../icons/number.svg");
+}
+
+.icon--object {
+  composes: icon;
+  background-image: url("../icons/object.svg");
+}
+
+.icon--property {
+  composes: icon;
+  background-image: url("../icons/property.svg");
+}
+
+.icon--reference {
+  composes: icon;
+  background-image: url("../icons/reference.svg");
+}
+
+.icon--string {
+  composes: icon;
+  background-image: url("../icons/string.svg");
+}

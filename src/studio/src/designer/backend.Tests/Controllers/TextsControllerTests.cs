@@ -157,6 +157,29 @@ namespace Designer.Tests.Controllers
         }
 
         [Fact]
+        public async Task Put_ConvertTexts_204NoContent()
+        {
+            var targetRepository = Guid.NewGuid().ToString();
+            await TestDataHelper.CopyRepositoryForTest("ttd", "convert-texts", "testUser", targetRepository);
+            HttpClient client = GetTestClient();
+            string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/convert";
+            HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+
+            HttpResponseMessage response = await client.SendAsync(httpRequestMessage);
+
+            try
+            {
+                Assert.Equal(StatusCodes.Status204NoContent, (int)response.StatusCode);
+            }
+            finally
+            {
+                System.Threading.Thread.Sleep(100);
+                TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
+            }
+        }
+
+        [Fact]
         public async Task Put_UpdateInvalidFormat_400BadRequest()
         {
             var targetRepository = Guid.NewGuid().ToString();

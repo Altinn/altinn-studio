@@ -80,6 +80,7 @@
     "person": {
       "properties": {
         "value": {
+          "@xsdText": true,
           "type": "string",
           "@xsdType": "string"
         },
@@ -92,7 +93,10 @@
           "@xsdType": "int",
           "@xsdAttribute": true
         }
-      }
+      },
+      "required": [
+        "value"
+      ]
     },
     "limitedPerson": {
       "allOf": [

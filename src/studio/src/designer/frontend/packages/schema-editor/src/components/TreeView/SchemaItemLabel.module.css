@@ -26,6 +26,10 @@
   padding: 5px 0;
   text-align: center;
 }
+.iconContainer {
+  text-align: center;
+  color: white;
+}
 
 .isArray .iconContainer {
   box-shadow: -3px -3px 0 0 darkgrey;
@@ -35,4 +39,30 @@
 }
 .isRef .label {
   color: darkslateblue;
+}
+
+.referenceLabel {
+  font-size: 10px;
+  margin-left: 12px;
+  color: gray;
+  border-radius: 3px;
+  border: solid 1px darkgrey;
+  padding: 3px 6px;
+}
+.referenceLabel:hover {
+  color: white;
+  background-color: darkgrey;
+}
+
+.warning {
+  margin-left: 10px;
+  color: darkred;
+  font-size: 10px;
+}
+.warning svg {
+  margin-right: 10px;
+}
+
+.contextMenuLastItem {
+  border-top: 1px #d3d4d5 solid !important;
 }

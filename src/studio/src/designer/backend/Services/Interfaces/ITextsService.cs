@@ -39,5 +39,13 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="developer">Username of developer currently working in the repo.</param>
         /// <param name="languageCode">LanguageCode to identify the specific text file.</param>
         public void DeleteTexts(string org, string repo, string developer, string languageCode);
+
+        /// <summary>
+        /// Converts all texts files in a specific repository for a specific organisation.
+        /// </summary>
+        /// <param name="org">Organisation</param>
+        /// <param name="repo">Repository</param>
+        /// <param name="developer">Username of developer</param>
+        public void ConvertV1TextsToV2(string org, string repo, string developer);
     }
 }

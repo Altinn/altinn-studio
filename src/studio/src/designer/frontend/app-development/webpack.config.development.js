@@ -16,6 +16,7 @@ module.exports = {
         use: {
           loader: 'svg-inline-loader',
         },
+        exclude: /schema-editor/
       },
       {
         enforce: 'pre',

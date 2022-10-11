@@ -50,22 +50,16 @@
   overflow-y: auto;
 }
 
-.addButton:global(.MuiButton-root) {
-  border-radius: 0;
-  border: 1px dashed rgba(0, 0, 0, 1);
-  color: black;
-  margin-bottom: 12px;
-  text-transform: none;
-}
-
-.addButton:global(.MuiButton-root):hover {
-  border: 1px solid rgba(0, 0, 0, 1);
-}
-
-.addButton:global(.MuiButton-root) > i {
-  font-size: 24px;
-}
-
 .startIcon {
   margin-right: 0;
+}
+
+.addMenu {
+  margin-bottom: 2rem;
+}
+
+.dividerAbove {
+  border-top: 1px solid #c9c9c9;
+  margin-top: 4px;
+  padding-top: 4px;
 }

@@ -141,6 +141,7 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
             value={nodeName}
             aria-errormessage={t(nameError)}
             aria-placeholder='Name'
+            autoFocus
           />
           {nameError && <ErrorMessage>{t(nameError)}</ErrorMessage>}
         </>
