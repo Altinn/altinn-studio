@@ -151,6 +151,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 case XsdTypeKeyword:
                 case XsdAttributeKeyword:
                 case XsdAnyAttributeKeyword:
+                case XsdTextKeyword:
                 case InfoKeyword:
                 case RequiredKeyword:
                 case EnumKeyword:
@@ -321,6 +322,12 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             if (IsRefType(singleSchema))
             {
                 ProcessRefType(singleSchema, context);
+                return;
+            }
+
+            if (IsSchemaExclusivePrimitiveType(singleSchema))
+            {
+                AddElement(path, subSchema, context);
                 return;
             }
 
