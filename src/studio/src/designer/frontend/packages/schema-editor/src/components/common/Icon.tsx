@@ -21,5 +21,5 @@ export interface IconProps {
 }
 
 export const Icon = ({className, image}: IconProps) => {
-  return <span className={cn(classes[`icon--${image}`], className)}/>;
+  return <span className={cn(classes[image], className)}/>;
 }
