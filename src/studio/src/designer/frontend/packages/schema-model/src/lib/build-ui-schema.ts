@@ -1,10 +1,11 @@
 import type { JsonSchemaNode, UiSchemaNode, UiSchemaNodes } from './types';
-import { Keywords, ObjectKind, ROOT_POINTER } from './types';
+import { Keywords, ObjectKind } from './types';
 import { createNodeBase, getCombinationKind, getObjectKind, schemaTypeIsNillable } from './utils';
 import { findCustomAttributes } from './mappers/custom-properties';
 import { findRestrictionsOnNode } from './restrictions';
 import { findUiFieldType } from './mappers/field-type';
-import { findGenericKeywordsOnNode } from './mappers/generic';
+import { findGenericKeywordsOnNode, findReference } from './mappers/generic';
+import { ROOT_POINTER } from './constants';
 
 /**
  * Recursive function that traverse the json schema tree. This should not be accessed directly but through `toUiSchema`
@@ -18,7 +19,7 @@ const createUiNode = (schemaNode: JsonSchemaNode, uiNode: UiSchemaNode): UiSchem
   uiNode.restrictions = findRestrictionsOnNode(schemaNode);
   uiNode.fieldType = findUiFieldType(schemaNode);
   uiNode.implicitType = schemaNode[Keywords.Type] === undefined;
-  uiNode.ref = schemaNode[Keywords.Reference];
+  uiNode.ref = findReference(schemaNode[Keywords.Reference]);
   uiNode.isNillable = schemaTypeIsNillable(schemaNode[Keywords.Type]);
   Object.assign(uiNode, findGenericKeywordsOnNode(schemaNode));
   const uiSchemaNodes: UiSchemaNode[] = [uiNode];
@@ -42,10 +43,11 @@ const createUiNode = (schemaNode: JsonSchemaNode, uiNode: UiSchemaNode): UiSchem
   }
 
   // Definitions
-  Object.keys(schemaNode[Keywords.Definitions] ?? {}).forEach((key) => {
+  const definitionsNodes = schemaNode[Keywords.Definitions] ?? schemaNode[Keywords.DeprecatedDefinitions] ?? {};
+  Object.keys(definitionsNodes).forEach((key) => {
     const child = createNodeBase(uiNode.pointer, Keywords.Definitions, key);
     uiNode.children.push(child.pointer);
-    uiSchemaNodes.push(...createUiNode(schemaNode[Keywords.Definitions][key], child));
+    uiSchemaNodes.push(...createUiNode(definitionsNodes[key], child));
   });
 
   // Properties

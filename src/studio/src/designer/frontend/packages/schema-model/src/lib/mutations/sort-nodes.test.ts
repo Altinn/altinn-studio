@@ -1,7 +1,7 @@
 import { createNodeBase } from '../utils';
-import { ROOT_POINTER } from '../types';
 import { expect } from '@jest/globals';
 import { sortNodesByChildren } from './sort-nodes';
+import { ROOT_POINTER } from '../constants';
 
 test('that we can sortNodes', () => {
   const rootNode = createNodeBase(ROOT_POINTER);

@@ -18,7 +18,6 @@ import { getTranslation } from '../utils/language';
 import { SchemaInspector } from './SchemaInspector';
 import { SchemaTab } from './common/SchemaTab';
 import { TopToolbar } from './TopToolbar';
-import { getSchemaSettings } from '../settings';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { SchemaTreeView } from './TreeView/SchemaTreeView';
 import {
@@ -26,6 +25,8 @@ import {
   FieldType,
   getNodeByPointer,
   getRootNodes,
+  Keywords,
+  makePointer,
   ObjectKind,
   pointerExists,
   UiSchemaNode,
@@ -62,7 +63,6 @@ export const SchemaEditor = ({
   const selectedPropertyNode = useSelector((state: ISchemaState) => state.selectedPropertyNodeId);
   const selectedDefinitionNode = useSelector((state: ISchemaState) => state.selectedDefinitionNodeId);
 
-  const schemaSettings = getSchemaSettings({ schemaUrl: jsonSchema?.$schema });
   const { definitions, modelView } = useSelector((state: ISchemaState) => ({
     definitions: getRootNodes(state.uiSchema, true),
     modelView: getRootNodes(state.uiSchema, false),
@@ -102,7 +102,7 @@ export const SchemaEditor = ({
     dispatch(
       addRootItem({
         name: 'name',
-        location: schemaSettings.propertiesPath,
+        location: makePointer(Keywords.Properties),
         props: newNode,
       }),
     );
@@ -113,7 +113,7 @@ export const SchemaEditor = ({
     dispatch(
       addRootItem({
         name: 'name',
-        location: schemaSettings.definitionsPath,
+        location: makePointer(Keywords.Definitions),
         props: { fieldType: FieldType.Object },
       }),
     );
@@ -169,39 +169,39 @@ export const SchemaEditor = ({
                       {
                         action: () => handleAddProperty(ObjectKind.Field),
                         icon: IconImage.Object,
-                        text: t('field')
+                        text: t('field'),
                       },
                       {
                         action: () => handleAddProperty(ObjectKind.Reference),
                         icon: IconImage.Reference,
-                        text: t('reference')
+                        text: t('reference'),
                       },
                       {
                         action: () => handleAddProperty(ObjectKind.Combination),
                         icon: IconImage.Combination,
-                        text: t('combination')
+                        text: t('combination'),
                       },
                       {
                         action: () => handleAddProperty(ObjectKind.Field, FieldType.String),
                         className: classes.dividerAbove,
                         icon: IconImage.String,
-                        text: t('string')
+                        text: t('string'),
                       },
                       {
                         action: () => handleAddProperty(ObjectKind.Field, FieldType.Integer),
                         icon: IconImage.Number,
-                        text: t('integer')
+                        text: t('integer'),
                       },
                       {
                         action: () => handleAddProperty(ObjectKind.Field, FieldType.Number),
                         icon: IconImage.Number,
-                        text: t('number')
+                        text: t('number'),
                       },
                       {
                         action: () => handleAddProperty(ObjectKind.Field, FieldType.Boolean),
                         icon: IconImage.Boolean,
-                        text: t('boolean')
-                      }
+                        text: t('boolean'),
+                      },
                     ]}
                     openButtonText={t('add')}
                   />

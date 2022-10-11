@@ -1,6 +1,7 @@
 import type { JsonSchemaNode } from '../types';
 import { CombinationKind, Keywords } from '../types';
 import { AllRestrictions } from '../restrictions';
+import { META_SCHEMA_ID } from '../constants';
 
 const specialAttributes = [
   ...Object.values(Keywords),
@@ -14,6 +15,9 @@ export const findCustomAttributes = (schemaNode: JsonSchemaNode) => {
   Object.keys(schemaNode).forEach((key) => {
     if (!specialAttributes.includes(key)) {
       outout[key] = schemaNode[key];
+    }
+    if (key === '$schema') {
+      outout[key] = META_SCHEMA_ID;
     }
   });
   return outout;

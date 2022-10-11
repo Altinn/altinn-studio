@@ -1,4 +1,5 @@
-import { ROOT_POINTER, UiSchemaNode, UiSchemaNodes } from '../types';
+import { UiSchemaNode, UiSchemaNodes } from '../types';
+import { ROOT_POINTER } from '../constants';
 
 export const sortNodesByChildren = (uiSchemaNodes: UiSchemaNodes): UiSchemaNodes => {
   const tempMap = new Map();
