@@ -66,7 +66,6 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
 
     [Theory]
     [InlineData("testModel.schema.json")]
-    [InlineData("App/testModel.schema.json")]
     [InlineData("App/models/testModel.schema.json")]
     [InlineData("/App/models/testModel.schema.json")]
     [InlineData("App%2Fmodels%2FtestModel.schema.json")]

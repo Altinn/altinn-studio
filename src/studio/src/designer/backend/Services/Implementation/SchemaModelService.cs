@@ -105,15 +105,15 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<string> UpdateModelFilesFromJsonSchema(string org, string repository, string developer, string relativeFilePath, string jsonContent)
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repository, developer);
+            var schemaName = altinnAppGitRepository.GetSchemaName(relativeFilePath);
 
-            await altinnAppGitRepository.WriteTextByRelativePathAsync(relativeFilePath, jsonContent, true);
+            await altinnAppGitRepository.SaveJsonSchema(jsonContent, schemaName);
             var jsonSchema = Json.Schema.JsonSchema.FromText(jsonContent);
             var jsonSchemaConverterStrategy = JsonSchemaConverterStrategyFactory.SelectStrategy(jsonSchema);
 
             var converter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
             XmlSchema xsd = converter.Convert(jsonSchema);
 
-            var schemaName = altinnAppGitRepository.GetSchemaName(relativeFilePath);
             await altinnAppGitRepository.SaveXsd(xsd,  Path.ChangeExtension(schemaName, "xsd"));
 
             var metamodelConverter = new JsonSchemaToMetamodelConverter(jsonSchemaConverterStrategy.GetAnalyzer());
