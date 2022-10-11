@@ -229,7 +229,6 @@ namespace Altinn.Studio.Designer.Controllers
 
             if (saveOnly)
             {
-                string path = _serviceRepositorySettings.GetOrgPath(org, developer) + modelPath.Substring(1);
                 _repository.SaveFile(org, repository, modelPath, content);
                 return Ok();
             }
