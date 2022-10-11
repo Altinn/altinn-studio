@@ -6,12 +6,16 @@ import { ISchemaState } from '../../types';
 import { buildJsonSchema } from '@altinn/schema-model';
 
 export function* AutosaveModelSaga(): SagaIterator {
-  const {uiSchema, saveUrl} = yield select((state: ISchemaState) => {
-    return { uiSchema: state.uiSchema, saveUrl: state.saveSchemaUrl}
-  });
+  try{
+    const {uiSchema, saveUrl} = yield select((state: ISchemaState) => {
+      return { uiSchema: state.uiSchema, saveUrl: state.saveSchemaUrl}
+    });
 
-  const schema = buildJsonSchema(uiSchema);
-  yield call(put, `${saveUrl}&saveOnly=true`, schema);
+    const schema = buildJsonSchema(uiSchema);
+    yield call(put, `${saveUrl}&saveOnly=true`, schema);
+  } catch (error) {
+    console.error('Failed to save JSON Schema model. ', error);
+  }
 }
 
 export function* watchAutosaveModelSaga(): SagaIterator {
