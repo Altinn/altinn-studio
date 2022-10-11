@@ -6,14 +6,22 @@ using System.Net.Mime;
 using System.Text;
 using System.Threading.Tasks;
 using System.Web;
+using System.Xml;
+using System.Xml.Schema;
+using Altinn.Studio.DataModeling.Converter.Json;
+using Altinn.Studio.DataModeling.Converter.Json.Strategy;
+using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Controllers;
+using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
 using FluentAssertions;
+using Json.Schema;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json;
 using Xunit;
 using static Designer.Tests.Utils.TestDataHelper;
 
@@ -82,7 +90,7 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
 
         await When.HttpRequestSent();
         Then.HttpResponseMessage.StatusCode.Should().Be(HttpStatusCode.NoContent);
-        And.FilesWithCorrectNamesShouldBeCreated(modelName);
+        await And.FilesWithCorrectNameAndContentShouldBeCreated(modelName);
     }
 
     private async Task RepositoryCopiedForTest(string org, string repository, string developer, string targetRepository)
@@ -105,9 +113,9 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
         HttpResponseMessage = await HttpClient.Value.SendAsync(HttpRequestMessage);
     }
 
-    private PutDatamodelTests FilesWithCorrectNamesShouldBeCreated(string modelName)
+    private async Task FilesWithCorrectNameAndContentShouldBeCreated(string modelName)
     {
-        var location = Path.GetFullPath(Path.Combine(TestRepositoryLocation, TestDeveloper,TestOrg, TargetTestRepository, "App", "models"));
+        var location = Path.GetFullPath(Path.Combine(TestRepositoryLocation, TestDeveloper, TestOrg, TargetTestRepository, "App", "models"));
         var jsonSchemaLocation = Path.Combine(location, $"{modelName}.schema.json");
         var xsdSchemaLocation = Path.Combine(location, $"{modelName}.xsd");
         var metamodelLocation = Path.Combine(location, $"{modelName}.metadata.json");
@@ -115,6 +123,46 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
         Assert.True(File.Exists(xsdSchemaLocation));
         Assert.True(File.Exists(metamodelLocation));
         Assert.True(File.Exists(jsonSchemaLocation));
-        return this;
+
+        await VerifyXsdFileContent(xsdSchemaLocation);
+        VerifyFileContent(jsonSchemaLocation, MinimumValidJsonSchema);
+        VerifyMetadataContent(metamodelLocation, modelName);
+    }
+
+    private async Task VerifyXsdFileContent(string path)
+    {
+        async Task<string> SerializeXml(XmlSchema schema)
+        {
+            await using var sw = new Utf8StringWriter();
+            await using var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true });
+            schema.Write(xw);
+            return sw.ToString();
+        }
+
+        var jsonSchema = JsonSchema.FromText(MinimumValidJsonSchema);
+        var converter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
+        var xsd = converter.Convert(jsonSchema);
+        var xsdContent = await SerializeXml(xsd);
+        VerifyFileContent(path, xsdContent);
+    }
+
+    private void VerifyMetadataContent(string path, string modelName)
+    {
+        var jsonSchemaConverterStrategy = JsonSchemaConverterStrategyFactory.SelectStrategy(JsonSchema.FromText(MinimumValidJsonSchema));
+        var metamodelConverter = new JsonSchemaToMetamodelConverter(jsonSchemaConverterStrategy.GetAnalyzer());
+        var modelMetadata = metamodelConverter.Convert(modelName, MinimumValidJsonSchema);
+        VerifyFileContent(path,  JsonConvert.SerializeObject(modelMetadata));
+    }
+
+    private void VerifyFileContent(string path, string expectedContent)
+    {
+        var fileContent = File.ReadAllText(path);
+        expectedContent.Should().Be(fileContent);
+    }
+
+    private class Utf8StringWriter : StringWriter
+    {
+        /// <inheritdoc/>
+        public override Encoding Encoding => Encoding.UTF8;
     }
 }
