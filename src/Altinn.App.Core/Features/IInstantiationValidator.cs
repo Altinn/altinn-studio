@@ -20,5 +20,5 @@ public interface IInstantiationValidator
     /// </example>
     /// <param name="instance">The instance being validated</param>
     /// <returns>The validation result object (null if no errors) </returns>
-    public Task<InstantiationValidationResult> Validate(Instance instance);
+    public Task<InstantiationValidationResult?> Validate(Instance instance);
 }

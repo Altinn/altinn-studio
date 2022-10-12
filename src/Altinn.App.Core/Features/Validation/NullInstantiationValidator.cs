@@ -10,8 +10,8 @@ namespace Altinn.App.Core.Features.Validation;
 public class NullInstantiationValidator: IInstantiationValidator
 {
     /// <inheritdoc />
-    public async Task<InstantiationValidationResult> Validate(Instance instance)
+    public async Task<InstantiationValidationResult?> Validate(Instance instance)
     {
-        return await Task.FromResult((InstantiationValidationResult)null);
+        return await Task.FromResult((InstantiationValidationResult?)null);
     }
 }

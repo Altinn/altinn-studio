@@ -267,7 +267,7 @@ namespace Altinn.App.Api.Controllers
             }
 
             // Run custom app logic to validate instantiation
-            InstantiationValidationResult validationResult = await _instantiationValidator.Validate(instanceTemplate);
+            InstantiationValidationResult? validationResult = await _instantiationValidator.Validate(instanceTemplate);
             if (validationResult != null && !validationResult.Valid)
             {
                 return StatusCode((int)HttpStatusCode.Forbidden, validationResult);
@@ -417,7 +417,7 @@ namespace Altinn.App.Api.Controllers
             };
 
             // Run custom app logic to validate instantiation
-            InstantiationValidationResult validationResult = await _instantiationValidator.Validate(instanceTemplate);
+            InstantiationValidationResult? validationResult = await _instantiationValidator.Validate(instanceTemplate);
             if (validationResult != null && !validationResult.Valid)
             {
                 return StatusCode((int)HttpStatusCode.Forbidden, validationResult);
