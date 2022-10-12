@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
-using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json;
 using Altinn.Studio.Designer.Helpers;
@@ -21,7 +20,6 @@ using Manatee.Json.Schema;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 
@@ -36,7 +34,6 @@ namespace Altinn.Studio.Designer.Controllers
     {
         private readonly IRepository _repository;
         private readonly ISchemaModelService _schemaModelService;
-        private readonly ServiceRepositorySettings _serviceRepositorySettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="DatamodelsController"/> class.
@@ -44,11 +41,10 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="repository">The repository implementation</param>
         /// <param name="schemaModelService">Interface for working with models.</param>
         /// <param name="serviceRepositorySettings">Service repository settings.</param>
-        public DatamodelsController(IRepository repository, ISchemaModelService schemaModelService, IOptions<ServiceRepositorySettings> serviceRepositorySettings)
+        public DatamodelsController(IRepository repository, ISchemaModelService schemaModelService)
         {
             _repository = repository;
             _schemaModelService = schemaModelService;
-            _serviceRepositorySettings = serviceRepositorySettings.Value;
         }
 
         /// <summary>
@@ -229,7 +225,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             if (saveOnly)
             {
-                _repository.SaveFile(org, repository, modelPath, content);
+                await _schemaModelService.UpdateSchema(org, repository, developer, modelPath, content, saveOnly);
                 return Ok();
             }
 

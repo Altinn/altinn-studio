@@ -87,11 +87,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public async Task UpdateSchema(string org, string repository, string developer, string relativeFilePath, string jsonContent)
+        public async Task UpdateSchema(string org, string repository, string developer, string relativeFilePath, string jsonContent, bool saveOnly=false)
         {
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
 
-            if (await altinnGitRepository.GetRepositoryType() == AltinnRepositoryType.App)
+            if (await altinnGitRepository.GetRepositoryType() == AltinnRepositoryType.App && !saveOnly)
             {
                 await UpdateAllAppModelFiles(org, repository, developer, relativeFilePath, jsonContent);
             }
@@ -112,7 +112,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             var converter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
             XmlSchema xsd = converter.Convert(jsonSchema);
-            
+
             await altinnAppGitRepository.SaveXsd(xsd, Path.GetFileName(relativeFilePath));
 
             var schemaName = altinnAppGitRepository.GetSchemaName(relativeFilePath);
@@ -163,7 +163,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             /* From here repository is assumed to be for an app. Validate with a Directory.Exist check? */
             await altinnAppGitRepository.SaveXsd(xsdMemoryStream, fileName);
-            
+
             jsonContent = await ProcessNewXsd(altinnAppGitRepository, xsdMemoryStream, fileName);
 
             return jsonContent;
