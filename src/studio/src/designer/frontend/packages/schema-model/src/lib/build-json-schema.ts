@@ -1,10 +1,11 @@
 import type { JsonSchemaNode, UiSchemaNode, UiSchemaNodes } from './types';
-import { Keywords, ObjectKind, ROOT_POINTER } from './types';
+import { Keywords, ObjectKind } from './types';
 import JSONPointer from 'jsonpointer';
 import { findRequiredProps } from './mappers/required';
 import { findJsonFieldType } from './mappers/field-type';
 import { getNodeByPointer } from './selectors';
 import { sortNodesByChildren } from './mutations/sort-nodes';
+import { ROOT_POINTER } from './constants';
 
 export const buildJsonSchema = (uiSchemaNodes: UiSchemaNodes): JsonSchemaNode => {
   const out: JsonSchemaNode = {};

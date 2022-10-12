@@ -1,5 +1,6 @@
 import type { UiSchemaNode } from './types';
-import { FieldType, ObjectKind, ROOT_POINTER } from './types';
+import { FieldType, ObjectKind } from './types';
+import { ROOT_POINTER } from './constants';
 
 export enum Capabilites {
   CanBeConvertedToArray = 'CAN_BE_CONVERTED_TO_ARRAY', // no restrictions, not combination

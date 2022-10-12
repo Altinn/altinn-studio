@@ -13,6 +13,7 @@ const defaultPath = path.resolve(__dirname, '../../../../DataModeling.Tests/_Tes
 
 const cache = new Map();
 
+const readJsonFile = (filepath): JsonSchemaNode => JSON.parse(fs.readFileSync(filepath, 'utf-8'));
 /**
  * Returns a map with json schemas.
  */
@@ -23,7 +24,7 @@ const getJsonSchemasForTest = (dirPath: string): Map<string, JsonSchemaNode> => 
       const filepath = path.resolve(dirPath, filename);
       const basename = path.basename(filepath, '.json');
       if (!ignoreTestSchemas.includes(basename)) {
-        output.set(basename, JSON.parse(fs.readFileSync(filepath, 'utf-8')));
+        output.set(basename, readJsonFile(filepath));
       }
     });
     cache.set(dirPath, output);
@@ -86,4 +87,9 @@ export const simpleTestJsonSchema = {
       },
     },
   },
+};
+
+export const getOldJsonSchemaForTest = () => {
+  const filepath = path.resolve(__dirname, 'old-schema.json');
+  return readJsonFile(filepath);
 };

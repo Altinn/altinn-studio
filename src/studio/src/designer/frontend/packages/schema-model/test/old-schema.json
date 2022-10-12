@@ -1,0 +1,116 @@
+{
+  "$schema" : "http://json-schema.org/schema#",
+  "$id" : "schema.json",
+  "type" : "object",
+  "properties" : {
+    "InnflytterSkjema" : {
+      "$ref" : "#/definitions/Skjema"
+    }
+  },
+  "definitions" : {
+    "Skjema" : {
+      "properties" : {
+        "Innflytter" : {
+          "$ref" : "#/definitions/Innflytter"
+        }
+      },
+      "required" : [
+        "Innflytter"
+      ]
+    },
+    "Innflytter" : {
+      "properties" : {
+        "Fornavn" : {
+          "type" : "string"
+        },
+        "Etternavn" : {
+          "type" : "string"
+        },
+        "Mellomnavn" : {
+          "type" : "string"
+        },
+        "Alder" : {
+          "type" : "integer"
+        },
+        "Arbeidsinformasjon" : {
+          "$ref" : "#/definitions/Arbeidsinformasjon"
+        },
+        "KanBrukeSkjema" : {
+          "type" : "boolean"
+        },
+        "TidligereBosteder" : {
+          "type" : "array",
+          "minItems" : 1,
+          "maxItems" : 10,
+          "items" : {
+            "$ref" : "#/definitions/Adresse"
+          }
+        },
+        "Adresse" : {
+          "$ref" : "#/definitions/Adresse"
+        },
+        "Kontaktinformasjon" : {
+          "$ref" : "#/definitions/Kontaktinformasjon"
+        }
+      },
+      "required" : [
+        "Fornavn",
+        "Etternavn",
+        "Arbeidsinformasjon",
+        "KanBrukeSkjema",
+        "TidligereBosteder",
+        "Adresse",
+        "Kontaktinformasjon"
+      ]
+    },
+    "Adresse" : {
+      "properties" : {
+        "Gateadresse" : {
+          "type" : "string"
+        },
+        "Postnr" : {
+          "type" : "string"
+        },
+        "Poststed" : {
+          "type" : "string"
+        }
+      },
+      "required" : [
+        "Gateadresse",
+        "Postnr",
+        "Poststed"
+      ]
+    },
+    "Kontaktinformasjon" : {
+      "properties" : {
+        "Telefonnummer" : {
+          "type" : "string"
+        },
+        "Epost" : {
+          "type" : "string"
+        }
+      },
+      "required" : [
+        "Telefonnummer",
+        "Epost"
+      ]
+    },
+    "Arbeidsinformasjon" : {
+      "properties" : {
+        "Sektor" : {
+          "type" : "string"
+        },
+        "Bransje" : {
+          "type" : "string"
+        },
+        "AarIArbeidslivet" : {
+          "type" : "string"
+        }
+      },
+      "required" : [
+        "Sektor",
+        "AarIArbeidslivet"
+      ]
+    }
+  }
+}

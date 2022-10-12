@@ -1,6 +1,7 @@
 import type { UiSchemaNode, UiSchemaNodes } from './types';
-import { Keywords, ROOT_POINTER } from './types';
+import { Keywords } from './types';
 import { makePointer, pointerExists } from './utils';
+import { ROOT_POINTER } from './constants';
 
 export const getRootNodes = (uiSchemaMap: UiSchemaNodes, defs: boolean): UiSchemaNode[] => {
   const parentNodeIndex = getNodeIndexByPointer(uiSchemaMap, ROOT_POINTER);
