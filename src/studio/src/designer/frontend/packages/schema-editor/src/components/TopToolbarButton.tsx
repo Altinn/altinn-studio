@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { PropsWithChildren } from 'react';
 import { Button, IconButton } from '@material-ui/core';
 import classNames from 'classnames';
 import classes from './TopToolbarButton.module.css';
 
-interface TopToolbarButtonProps extends React.PropsWithChildren<any> {
+interface TopToolbarButtonProps extends PropsWithChildren<any> {
   onClick: (event: any) => void;
   faIcon: string;
   iconSize?: number;

@@ -1,14 +1,8 @@
 import { FieldType, Keywords } from './types';
 import { buildUiSchema } from './build-ui-schema';
-import {
-  combinationIsNullable,
-  getNodeByPointer,
-  getNodeDisplayName,
-  getRootNodes,
-  getUniqueNodePath,
-} from './selectors';
+import { getNodeByPointer, getNodeDisplayName, getRootNodes, getUniqueNodePath } from './selectors';
 import { expect } from '@jest/globals';
-import { createNodeBase, makePointer } from './utils';
+import { makePointer } from './utils';
 
 const testShema = {
   [Keywords.Definitions]: {
@@ -44,12 +38,4 @@ test('that we can getUniqueNodePath', () => {
   expect(getUniqueNodePath(uiSchemaNodes, makePointer(Keywords.Properties, 'hello'))).toBe(
     makePointer(Keywords.Properties, 'hello0'),
   );
-});
-
-test('that we can check if combination is nullable', () => {
-  const regularChild = createNodeBase('regular child');
-  const nullableChild = createNodeBase('nullable child');
-  nullableChild.fieldType = FieldType.Null;
-  expect(combinationIsNullable([regularChild, regularChild])).toBeFalsy();
-  expect(combinationIsNullable([regularChild, nullableChild])).toBeTruthy();
 });

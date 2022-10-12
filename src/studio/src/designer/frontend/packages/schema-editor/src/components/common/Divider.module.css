@@ -2,5 +2,10 @@
   border-color: rgba(0, 0, 0, 0.12);
   border-style: solid;
   border-width: 1px 0 0 0;
+}
+.inMenu {
+  margin: 0;
+}
+.standalone {
   margin: 2rem 0;
 }

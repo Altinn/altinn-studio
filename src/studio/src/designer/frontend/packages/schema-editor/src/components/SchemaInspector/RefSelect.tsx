@@ -7,6 +7,7 @@ import type { UiSchemaNode } from '@altinn/schema-model';
 import { getRootNodes } from '@altinn/schema-model';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 import classes from './RefSelect.module.css';
+import { Label } from '../common/Label';
 
 export interface IRefSelectProps {
   nodePointer: string;
@@ -22,7 +23,7 @@ export const RefSelect = ({ nodePointer, onChange, value, label, fullWidth, read
   const domElementId = getDomFriendlyID(nodePointer, 'ref-select');
   return (
     <>
-      <label htmlFor={domElementId}>{label}</label>
+      <Label htmlFor={domElementId}>{label}</Label>
       <Autocomplete
         freeSolo={false}
         fullWidth={fullWidth}

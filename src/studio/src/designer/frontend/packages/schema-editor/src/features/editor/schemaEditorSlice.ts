@@ -1,20 +1,21 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import type { IJsonSchema, ISchemaState } from '../../types';
-import { getSchemaSettings } from '../../settings';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import {
   buildJsonSchema,
   buildUiSchema,
   castRestrictionType,
   CombinationKind,
+  convertPropToType,
   createNodeBase,
   FieldType,
   getNodeByPointer,
   getNodeIndexByPointer,
   getUniqueNodePath,
   Keywords,
+  makePointer,
   ObjectKind,
-  promotePropertyToType,
+  pointerIsDefinition,
   removeNodeByPointer,
   renameNodePointer,
   replaceLastPointerSegment,
@@ -63,13 +64,11 @@ const schemaEditorSlice = createSlice({
     ) {
       const { location, name, props } = action.payload;
       const newPointer = getUniqueNodePath(state.uiSchema, [location, name].join('/'));
-      const schemaSettings = getSchemaSettings({ schemaUrl: state.schema.$schema });
       const newNode = createNodeBase(newPointer);
       newNode.implicitType = false;
       state.uiSchema.push(Object.assign(newNode, props));
       getNodeByPointer(state.uiSchema, ROOT_POINTER).children.push(newPointer);
-
-      if (location === schemaSettings.definitionsPath) {
+      if (pointerIsDefinition(newPointer)) {
         state.selectedDefinitionNodeId = newPointer;
       } else {
         state.selectedPropertyNodeId = newPointer;
@@ -84,11 +83,11 @@ const schemaEditorSlice = createSlice({
       action: PayloadAction<{
         path: string;
         keepSelection?: boolean;
-        props?: Partial<UiSchemaNode>;
+        props: Partial<UiSchemaNode>;
       }>,
     ) {
       const { path, keepSelection, props } = action.payload;
-      const newNodePointer = getUniqueNodePath(state.uiSchema, [path, Keywords.Properties, 'name'].join('/'));
+      const newNodePointer = getUniqueNodePath(state.uiSchema, makePointer(path, Keywords.Properties, 'name'));
       const addToItem = getNodeByPointer(state.uiSchema, path);
       addToItem.children.push(newNodePointer);
       if (!keepSelection) {
@@ -99,6 +98,7 @@ const schemaEditorSlice = createSlice({
         }
         state.focusNameField = newNodePointer;
       }
+      props.implicitType = false;
       state.uiSchema.push(Object.assign(createNodeBase(newNodePointer), props));
     },
     deleteField(state, action: PayloadAction<{ path: string; key: string }>) {
@@ -116,7 +116,7 @@ const schemaEditorSlice = createSlice({
     },
     promoteProperty(state, action: PayloadAction<{ path: string }>) {
       const { path } = action.payload;
-      state.uiSchema = promotePropertyToType(state.uiSchema, path);
+      state.uiSchema = convertPropToType(state.uiSchema, path);
     },
     deleteProperty(state, action: PayloadAction<{ path: string }>) {
       const { path } = action.payload;
@@ -270,10 +270,12 @@ const schemaEditorSlice = createSlice({
       const { selectedTab } = action.payload;
       state.selectedEditorTab = selectedTab;
     },
-    navigateToType(state, action: PayloadAction<{ id: string }>) {
+    navigateToType(state, action: PayloadAction<{ id?: string }>) {
       const { id } = action.payload;
-      state.selectedEditorTab = 'definitions';
-      state.selectedDefinitionNodeId = id;
+      if (id) {
+        state.selectedEditorTab = 'definitions';
+        state.selectedDefinitionNodeId = id;
+      }
     },
     toggleArrayField(state, action: PayloadAction<{ pointer: string }>) {
       const { pointer } = action.payload;

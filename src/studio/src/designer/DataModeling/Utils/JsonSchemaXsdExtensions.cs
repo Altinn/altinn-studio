@@ -131,5 +131,17 @@ namespace Altinn.Studio.DataModeling.Utils
             builder.Add(new XsdNamespacesKeyword(namespaces));
             return builder;
         }
+
+        /// <summary>
+        /// Add <see cref="XsdTextKeyword"/> keyword to the builder
+        /// </summary>
+        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
+        /// <param name="attribute">True to set the xsdText keyword</param>
+        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
+        public static JsonSchemaBuilder XsdText(this JsonSchemaBuilder builder, bool attribute = false)
+        {
+            builder.Add(new XsdTextKeyword(attribute));
+            return builder;
+        }
     }
 }

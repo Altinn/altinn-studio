@@ -1,5 +1,5 @@
 import React from 'react';
-import { MenuProps, Menu, makeStyles } from '@material-ui/core';
+import { makeStyles, Menu, MenuProps } from '@material-ui/core';
 
 const useStyles = makeStyles(() => ({
   paper: {
@@ -10,14 +10,13 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-function AltinnMenu(props: MenuProps, ref: React.Ref<unknown>) {
+function AltinnMenu(props: MenuProps) {
   const classes = useStyles();
   return (
     <Menu
       classes={classes}
       elevation={0}
       getContentAnchorEl={null}
-      ref={ref}
       anchorOrigin={{
         vertical: 'bottom',
         horizontal: 'center',
@@ -34,4 +33,4 @@ function AltinnMenu(props: MenuProps, ref: React.Ref<unknown>) {
   );
 }
 
-export default React.forwardRef<unknown, MenuProps>(AltinnMenu);
+export default AltinnMenu;

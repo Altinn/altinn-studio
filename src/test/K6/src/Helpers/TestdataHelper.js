@@ -2,6 +2,7 @@ import { check, sleep } from 'k6';
 import { addErrorCount, stopIterationOnFail } from '../errorcounter.js';
 import * as delegation from '../api/platform/authorization/delegations.js';
 import * as authorization from '../api/platform/authorization/authorization.js';
+import * as setUpData from '../setup.js';
 
 let pdpInputJson = open('../data/pdpinput.json');
 
@@ -15,7 +16,7 @@ let pdpInputJson = open('../data/pdpinput.json');
  * @param {*} actionName 'read', 'write', 'sign'
  * @returns the ruleid for the newly added rule
  */
- export function addRulesForTest(performedByUserId, offeredByPartyId, coveredBy, coveredByType, taskName, actionName) {
+ export function addRulesForTest(altinnToken, performedByUserId, offeredByPartyId, coveredBy, coveredByType, taskName, actionName, appOwner, appName) {
   var policyMatchKeys = {
     coveredBy: 'urn:altinn:' + coveredByType,
     resource: ['urn:altinn:app', 'urn:altinn:org', 'urn:altinn:task'],
@@ -70,7 +71,7 @@ let pdpInputJson = open('../data/pdpinput.json');
  * @param {*} actionName 'read', 'write', 'sign'
  * @param {*} expectedDecision 'Permit', 'NotApplicable'
  */
-export function checkPDPDecision(offeredByPartyId, coveredBy, taskName, actionName, expectedDecision, showResults) {
+export function checkPDPDecision(offeredByPartyId, coveredBy, taskName, actionName, expectedDecision, showResults, appOwner, appName) {
   var jsonPermitData = {
     AccessSubject: ['urn:altinn:userid'],
     Action: [actionName],

@@ -1,6 +1,7 @@
 import type { JsonSchemaNode, UiSchemaNode, UiSchemaNodes } from './types';
-import { CombinationKind, FieldType, Keywords, ObjectKind, ROOT_POINTER } from './types';
+import { CombinationKind, FieldType, Keywords, ObjectKind } from './types';
 import { getNodeIndexByPointer } from './selectors';
+import { ROOT_POINTER } from './constants';
 
 export const createNodeBase = (...args: string[]): UiSchemaNode => {
   return {
@@ -41,10 +42,10 @@ export const getObjectKind = (schemaNode: JsonSchemaNode): ObjectKind => {
   }
 };
 
-export const schemaTypeIncludes = (schemaNodeType: string | string[], type: FieldType) =>
+export const schemaTypeIncludes = (schemaNodeType: string | string[], type: FieldType): boolean =>
   schemaNodeType === type || (Array.isArray(schemaNodeType) && schemaNodeType.includes(type));
 
-export const schemaTypeIsNillable = (schemaNodeType: string | string[]) =>
+export const schemaTypeIsNillable = (schemaNodeType: string | string[]): boolean =>
   schemaNodeType !== FieldType.Null && schemaTypeIncludes(schemaNodeType, FieldType.Null);
 
 export const getParentNodeByPointer = (uiSchemaNodes: UiSchemaNodes, pointer: string): UiSchemaNode | undefined => {
@@ -95,3 +96,9 @@ export const pointerReplacer = (node: UiSchemaNode, oldPointer: string, newPoint
   nodeCopy.children = nodeCopy.children.map((p) => p.replace(oldPointer, newPointer));
   return nodeCopy;
 };
+
+export const pointerExists = (uiSchemaNodes: UiSchemaNodes, pointer: string): boolean =>
+  getNodeIndexByPointer(uiSchemaNodes, pointer) !== undefined;
+
+export const combinationIsNullable = (childNodes: UiSchemaNode[]): boolean =>
+  childNodes.some((child) => child.fieldType === FieldType.Null);

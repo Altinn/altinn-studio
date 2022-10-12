@@ -1,0 +1,36 @@
+<svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path
+    fill-rule="evenodd"
+    clip-rule="evenodd"
+    d="
+      M 7.5 7.5
+      H 12
+      V 10.5
+      H 10.5
+      V 25.5
+      H 12
+      V 28.5
+      H 7.5
+      V 7.5
+      Z
+    "
+    fill="#0062BA"
+  />
+  <path
+    fill-rule="evenodd"
+    clip-rule="evenodd"
+    d="
+      M 28.5 28.5
+      H 24
+      V 25.5
+      H 25.5
+      L 25.5 10.5
+      H 24
+      V 7.5
+      H 28.5
+      L 28.5 28.5
+      Z
+    "
+    fill="#0062BA"
+  />
+</svg>

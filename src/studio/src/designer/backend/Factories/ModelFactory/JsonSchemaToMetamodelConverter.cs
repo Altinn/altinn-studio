@@ -33,6 +33,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             public SchemaValueType SchemaValueType { get; set; }
 
             public bool IsNillable { get; set; } = false;
+
+            public bool XmlText { get; set; }
         }
 
         /// <summary>
@@ -149,6 +151,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 case XsdTypeKeyword:
                 case XsdAttributeKeyword:
                 case XsdAnyAttributeKeyword:
+                case XsdTextKeyword:
                 case InfoKeyword:
                 case RequiredKeyword:
                 case EnumKeyword:
@@ -268,6 +271,11 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 var currentContext = new SchemaContext() { Id = CombineId(context.Id, name), Name = name, ParentId = context.Id, XPath = CombineXPath(context.XPath, context.Name) };
                 var subSchemaPath = path.Combine(JsonPointer.Parse($"/{name}"));
 
+                if (property.TryGetKeyword(out XsdTextKeyword xsdTextKeyword))
+                {
+                    currentContext.XmlText = xsdTextKeyword.Value;
+                }
+
                 ProcessSubSchema(subSchemaPath, property, currentContext);
             }
         }
@@ -314,6 +322,12 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             if (IsRefType(singleSchema))
             {
                 ProcessRefType(singleSchema, context);
+                return;
+            }
+
+            if (IsSchemaExclusivePrimitiveType(singleSchema))
+            {
+                AddElement(path, subSchema, context);
                 return;
             }
 
@@ -447,7 +461,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     Type = ElementType.Group,
                     Restrictions = GetRestrictions(MapToXsdValueType(context.SchemaValueType, subSchema), subSchema),
                     DataBindingName = GetDataBindingName(ElementType.Group, maxOccurs, id, null, xPath),
-                    DisplayString = GetDisplayString(id, typeName, minOccurs, maxOccurs)
+                    DisplayString = GetDisplayString(id, typeName, minOccurs, maxOccurs),
+                    IsTagContent = context.XmlText
                 });
         }
 
@@ -500,7 +515,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     Restrictions = GetRestrictions(xsdValueType, subSchema),
                     FixedValue = fixedValue,
                     DataBindingName = GetDataBindingName(@type, maxOccurs, id, fixedValue, xPath),
-                    DisplayString = GetDisplayString(id, context.SchemaValueType.ToString(), minOccurs, maxOccurs)
+                    DisplayString = GetDisplayString(id, context.SchemaValueType.ToString(), minOccurs, maxOccurs),
+                    IsTagContent = context.XmlText
                 });
         }
 

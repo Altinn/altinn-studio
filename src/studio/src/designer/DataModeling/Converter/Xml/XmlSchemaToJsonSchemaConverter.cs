@@ -724,8 +724,9 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             PropertiesBuilder properties = new PropertiesBuilder();
 
             JsonSchemaBuilder valueSchema = new JsonSchemaBuilder();
+            valueSchema.XsdText(true);
             HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, valueSchema);
-            properties.Add("value", valueSchema, false);
+            properties.Add("value", valueSchema, true);
 
             AddAttributes(item.Attributes, optional, array, steps, properties);
 

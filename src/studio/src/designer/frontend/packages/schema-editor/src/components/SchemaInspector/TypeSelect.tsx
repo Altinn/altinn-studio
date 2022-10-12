@@ -1,8 +1,8 @@
 import { MenuItem } from '@material-ui/core';
 import React from 'react';
-import { StyledSelect } from './StyledSelect';
 import { Option } from './helpers/options';
 import { FieldType } from '@altinn/schema-model';
+import { StyledSelect } from '../common/StyledSelect';
 
 export interface IFieldTypeSelect {
   value?: string;

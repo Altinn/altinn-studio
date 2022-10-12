@@ -9,7 +9,7 @@ export const getIconStr = (item: UiSchemaNode) => {
   } else if (fieldType === FieldType.Integer) {
     return 'fa-datamodel-number';
   } else if (fieldType === FieldType.Null) {
-    return 'fa-datamodel-object';
+    return 'fa-datamodel-null';
   } else if (fieldType === undefined) {
     return 'fa-help-circle';
   } else {

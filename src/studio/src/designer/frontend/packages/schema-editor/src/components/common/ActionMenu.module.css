@@ -1,0 +1,101 @@
+.root {
+  position: relative;
+  height: 4rem;
+}
+
+.menu {
+  all: initial;
+  background: white;
+  border-radius: 8px;
+  box-sizing: border-box;
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 328px;
+  z-index: 1;
+}
+
+.root:focus-within .menu {
+  border: 1px solid #c9c9c9;
+  box-shadow: 1px 1px 3px 1px #c9c9c9;
+}
+
+.openButton {
+  background: transparent;
+  border-radius: 8px;
+  border: 1px dashed #000;
+  color: black;
+  cursor: pointer;
+  height: 4rem;
+  padding: 4px 0;
+  text-transform: none;
+  width: 100%;
+}
+
+.root:focus-within .openButton {
+  border: none;
+}
+
+.openButton::after {
+  content: "\f023";
+  font-family: AltinnStudio, sans-serif;
+  margin-left: 1rem;
+}
+
+.openButton:hover {
+  border-style: solid;
+}
+
+.openButton > i {
+  font-size: 24px;
+}
+
+.root:not(:focus-within) .list {
+  display: none;
+}
+
+.list {
+  list-style-type: none;
+  border-top: 1px solid #c9c9c9;
+  padding-top: 4px;
+}
+
+.list:not(:last-child) {
+  padding-bottom: 4px;
+}
+
+.itemButton {
+  align-items: center;
+  background: none;
+  border: none;
+  color: #0062ba;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 16px;
+  padding: 4px 0 4px 16px;
+  width: 100%;
+}
+
+.itemButton:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+.list:last-child .item:last-child .itemButton {
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+}
+
+.openButton:focus, .itemButton:focus {
+  outline: none;
+  border: none;
+}
+
+.openButton:focus-visible, .itemButton:focus-visible {
+  border-radius: 2px;
+  outline: 2px solid #98177e;
+}
+
+.icon {
+  height: 24px;
+  width: 24px;
+}

@@ -1,23 +1,55 @@
 import { Keywords, ObjectKind, UiSchemaNodes } from '../types';
-import { createNodeBase, makePointer, pointerIsDefinition } from '../utils';
-import { getNodeByPointer, getUniqueNodePath } from '../selectors';
+import { createNodeBase, deepCopy, getParentNodeByPointer, makePointer, pointerIsDefinition } from '../utils';
+import { getNodeIndexByPointer, getUniqueNodePath } from '../selectors';
 import { renameNodePointer } from './rename-node';
+import { insertSchemaNode } from './create-node';
+import { ROOT_POINTER } from '../constants';
 
-export const promotePropertyToType = (uiSchemaNodes: UiSchemaNodes, pointer: string) => {
-  if (pointerIsDefinition(pointer)) {
-    throw new Error(`Pointer ${pointer}, is already a definition.`);
+export const convertPropToType = (uiSchemaNodes: UiSchemaNodes, pointer: string) => {
+  const uiNodeIndex = getNodeIndexByPointer(uiSchemaNodes, pointer);
+  if (uiNodeIndex === undefined) {
+    throw new Error(`Pointer ${pointer}, can't be found.`);
   }
-  const uiNode = getNodeByPointer(uiSchemaNodes, pointer);
+  const uiNode = uiSchemaNodes[uiNodeIndex];
   if (uiNode.objectKind === ObjectKind.Reference) {
     throw new Error(`Pointer ${pointer}, is already a reference.`);
   }
 
-  const displayName = pointer.split('/').pop();
-  const newPointer = getUniqueNodePath(uiSchemaNodes, makePointer(Keywords.Definitions, displayName));
-  const updatedUiNodeMap = renameNodePointer(uiSchemaNodes, pointer, newPointer);
-  const simpleRefNode = createNodeBase(pointer);
-  simpleRefNode.objectKind = ObjectKind.Reference;
-  simpleRefNode.ref = newPointer;
-  updatedUiNodeMap.push(simpleRefNode);
-  return updatedUiNodeMap;
+  const promotedNodePointer = getUniqueNodePath(
+    uiSchemaNodes,
+    makePointer(Keywords.Definitions, pointer.split('/').pop()),
+  );
+
+  const updatedUiSchemaNodes = renameNodePointer(uiSchemaNodes, pointer, promotedNodePointer);
+
+  // Need to add the pointer back to the parent node
+  const parentNode = getParentNodeByPointer(updatedUiSchemaNodes, pointer);
+
+  if (parentNode) {
+    parentNode.children[parentNode.children.indexOf(promotedNodePointer)] = pointer;
+  } else {
+    throw new Error(`Can't find the parent of ${pointer}`);
+  }
+  if (parentNode.pointer === ROOT_POINTER && pointerIsDefinition(pointer)) {
+    throw new Error(`Pointer ${pointer}, is already a definition.`);
+  }
+
+  // Save the children of the original node.
+  const { children } = updatedUiSchemaNodes[uiNodeIndex];
+
+  // Get the reference node in the same position as the previous node
+  updatedUiSchemaNodes[uiNodeIndex] = Object.assign(createNodeBase(pointer), {
+    objectKind: ObjectKind.Reference,
+    ref: promotedNodePointer,
+    isRequired: uiNode.isRequired,
+  });
+  // Add the promoted node back to the bottom of the stack.
+  return insertSchemaNode(
+    updatedUiSchemaNodes,
+    Object.assign(deepCopy(uiNode), {
+      pointer: promotedNodePointer,
+      children,
+      isRequired: false,
+    }),
+  );
 };

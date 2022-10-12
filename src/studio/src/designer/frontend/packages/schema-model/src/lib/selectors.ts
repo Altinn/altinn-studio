@@ -1,6 +1,7 @@
 import type { UiSchemaNode, UiSchemaNodes } from './types';
-import { FieldType, Keywords, ROOT_POINTER } from './types';
-import { makePointer } from './utils';
+import { Keywords } from './types';
+import { makePointer, pointerExists } from './utils';
+import { ROOT_POINTER } from './constants';
 
 export const getRootNodes = (uiSchemaMap: UiSchemaNodes, defs: boolean): UiSchemaNode[] => {
   const parentNodeIndex = getNodeIndexByPointer(uiSchemaMap, ROOT_POINTER);
@@ -13,9 +14,6 @@ export const getRootNodes = (uiSchemaMap: UiSchemaNodes, defs: boolean): UiSchem
     return [];
   }
 };
-
-export const pointerExists = (uiSchemaNodes: UiSchemaNodes, pointer: string): boolean =>
-  getNodeIndexByPointer(uiSchemaNodes, pointer) !== undefined;
 
 export const getNodeDisplayName = (uiSchemaNode: UiSchemaNode) => uiSchemaNode.pointer.split('/').pop() ?? '';
 
@@ -61,6 +59,3 @@ export const getChildNodesByPointer = (uiNodeMap: UiSchemaNodes, pointer: string
 
 export const getChildNodesByNode = (uiNodeMap: UiSchemaNodes, parentNode: UiSchemaNode): UiSchemaNode[] =>
   uiNodeMap.filter((node) => parentNode.children.includes(node.pointer));
-
-export const combinationIsNullable = (childNodes: UiSchemaNode[]): boolean =>
-  childNodes.some((child) => child.fieldType === FieldType.Null);

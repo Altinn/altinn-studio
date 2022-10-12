@@ -5,7 +5,6 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
@@ -18,7 +17,6 @@ using Designer.Tests.Utils;
 using Manatee.Json;
 using Manatee.Json.Schema;
 using Manatee.Json.Serialization;
-
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
@@ -26,7 +24,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
-namespace Designer.Tests.Controllers
+namespace Designer.Tests.Controllers.DataModelsController
 {
     public class DatamodelsControllerTests : IClassFixture<WebApplicationFactory<DatamodelsController>>
     {
@@ -341,43 +339,6 @@ namespace Designer.Tests.Controllers
             var response = await client.SendAsync(httpRequestMessage);
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        }
-
-        [Theory]
-        [InlineData("testModel.schema.json")]
-        [InlineData("App/testModel.schema.json")]
-        [InlineData("App/models/testModel.schema.json")]
-        [InlineData("/App/models/testModel.schema.json")]
-        [InlineData("App%2Fmodels%2FtestModel.schema.json")]
-        public async Task PutDatamodel_ValidInput_ShouldUpdateFile(string modelPath)
-        {
-            var org = "ttd";
-            var sourceRepository = "hvem-er-hvem";
-            var developer = "testUser";
-            var targetRepository = Guid.NewGuid().ToString();
-
-            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
-
-            var client = GetTestClient();
-            var url = $"{_versionPrefix}/{org}/{targetRepository}/Datamodels/?modelPath={modelPath}";
-            var minimumValidJsonSchema = @"{""properties"":{""root"":{""$ref"":""#/definitions/rootType""}},""definitions"":{""rootType"":{""properties"":{""keyword"":{""type"":""string""}}}}}";
-            string requestBody = minimumValidJsonSchema;
-            var httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, url)
-            {
-                Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
-            };
-            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
-
-            try
-            {
-                var response = await client.SendAsync(httpRequestMessage);
-
-                Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-            }
-            finally
-            {
-                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
-            }
         }
 
         [Fact]

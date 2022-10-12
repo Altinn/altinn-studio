@@ -1,7 +1,9 @@
-import { createNodeBase, getParentNodeByPointer, makePointer } from './utils';
-import { ROOT_POINTER } from './types';
+import { combinationIsNullable, createNodeBase, getParentNodeByPointer, makePointer } from './utils';
+import { FieldType } from './types';
 import { getGeneralJsonSchemaForTest } from '../../test/testUtils';
 import { buildUiSchema } from './build-ui-schema';
+import { expect } from '@jest/globals';
+import { ROOT_POINTER } from './constants';
 
 test('that we can creatNodeBase', () => {
   const nodeBase = createNodeBase('world', 'ish');
@@ -29,4 +31,12 @@ test('that we getParentNodeByPointer', () => {
 test('that we can makePointer', () => {
   expect(makePointer('properties', 'hello')).toBe('#/properties/hello');
   expect(makePointer('#/properties', 'hello')).toBe('#/properties/hello');
+});
+
+test('that we can check if combination is nullable', () => {
+  const regularChild = createNodeBase('regular child');
+  const nullableChild = createNodeBase('nullable child');
+  nullableChild.fieldType = FieldType.Null;
+  expect(combinationIsNullable([regularChild, regularChild])).toBeFalsy();
+  expect(combinationIsNullable([regularChild, nullableChild])).toBeTruthy();
 });

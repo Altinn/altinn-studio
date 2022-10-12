@@ -110,7 +110,7 @@ namespace Designer.Tests.Controllers
 
         private HttpClient GetTestClient()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.Location).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositorySettingsControllerTests).Assembly.Location).LocalPath);
             string projectDir = Directory.GetCurrentDirectory();
             string configPath = Path.Combine(projectDir, "appsettings.json");
 

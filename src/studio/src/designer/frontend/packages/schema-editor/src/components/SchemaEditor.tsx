@@ -1,8 +1,8 @@
-import React, { ChangeEvent, MouseEvent, SyntheticEvent, useEffect, useState } from 'react';
+import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
 import { TabContext, TabList, TabPanel } from '@material-ui/lab';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppBar, Button, Typography } from '@material-ui/core';
-import { AltinnMenu, AltinnMenuItem, AltinnSpinner } from 'app-shared/components';
+import { AltinnSpinner } from 'app-shared/components';
 import type { IJsonSchema, ILanguage, ISchemaState } from '../types';
 import classes from './SchemaEditor.module.css';
 
@@ -18,7 +18,6 @@ import { getTranslation } from '../utils/language';
 import { SchemaInspector } from './SchemaInspector';
 import { SchemaTab } from './common/SchemaTab';
 import { TopToolbar } from './TopToolbar';
-import { getSchemaSettings } from '../settings';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { SchemaTreeView } from './TreeView/SchemaTreeView';
 import {
@@ -26,10 +25,14 @@ import {
   FieldType,
   getNodeByPointer,
   getRootNodes,
+  Keywords,
+  makePointer,
   ObjectKind,
   pointerExists,
   UiSchemaNode,
 } from '@altinn/schema-model';
+import { IconImage } from './common/Icon';
+import { ActionMenu } from './common/ActionMenu';
 
 export interface IEditorProps {
   Toolbar: JSX.Element;
@@ -60,7 +63,6 @@ export const SchemaEditor = ({
   const selectedPropertyNode = useSelector((state: ISchemaState) => state.selectedPropertyNodeId);
   const selectedDefinitionNode = useSelector((state: ISchemaState) => state.selectedDefinitionNodeId);
 
-  const schemaSettings = getSchemaSettings({ schemaUrl: jsonSchema?.$schema });
   const { definitions, modelView } = useSelector((state: ISchemaState) => ({
     definitions: getRootNodes(state.uiSchema, true),
     modelView: getRootNodes(state.uiSchema, false),
@@ -69,7 +71,6 @@ export const SchemaEditor = ({
   const selectedTab: string = useSelector((state: ISchemaState) => state.selectedEditorTab);
   const [expandedPropNodes, setExpandedPropNodes] = useState<string[]>([]);
   const [expandedDefNodes, setExpandedDefNodes] = useState<string[]>([]);
-  const [menuAnchorEl, setMenuAnchorEl] = useState<null | Element>(null);
 
   const saveSchema = () => dispatch(updateJsonSchema({ onSaveSchema }));
 
@@ -89,20 +90,10 @@ export const SchemaEditor = ({
     dispatch(setJsonSchema({ schema }));
   }, [dispatch, schema]);
 
-  const openMenu = (e: MouseEvent) => {
-    e.stopPropagation();
-    setMenuAnchorEl(e.currentTarget);
-  };
-
-  const closeMenu = (e: SyntheticEvent) => {
-    e.stopPropagation();
-    setMenuAnchorEl(null);
-  };
-
-  const handleAddProperty = (objectKind: ObjectKind) => {
+  const handleAddProperty = (objectKind: ObjectKind, fieldType?: FieldType) => {
     const newNode: Partial<UiSchemaNode> = { objectKind };
     if (objectKind === ObjectKind.Field) {
-      newNode.fieldType = FieldType.Object;
+      newNode.fieldType = fieldType ?? FieldType.Object;
     }
     if (objectKind === ObjectKind.Combination) {
       newNode.fieldType = CombinationKind.AllOf;
@@ -111,11 +102,10 @@ export const SchemaEditor = ({
     dispatch(
       addRootItem({
         name: 'name',
-        location: schemaSettings.propertiesPath,
+        location: makePointer(Keywords.Properties),
         props: newNode,
       }),
     );
-    setMenuAnchorEl(null);
   };
 
   const handleAddDefinition = (e: MouseEvent) => {
@@ -123,7 +113,7 @@ export const SchemaEditor = ({
     dispatch(
       addRootItem({
         name: 'name',
-        location: schemaSettings.definitionsPath,
+        location: makePointer(Keywords.Definitions),
         props: { fieldType: FieldType.Object },
       }),
     );
@@ -173,14 +163,48 @@ export const SchemaEditor = ({
               </AppBar>
               <TabPanel className={classes.tabPanel} value='properties'>
                 {editMode && (
-                  <Button
-                    endIcon={<i className='fa fa-drop-down' />}
-                    onClick={openMenu}
-                    className={classes.addButton}
-                    id='add-button'
-                  >
-                    <Typography variant='body1'>{t('add')}</Typography>
-                  </Button>
+                  <ActionMenu
+                    className={classes.addMenu}
+                    items={[
+                      {
+                        action: () => handleAddProperty(ObjectKind.Field),
+                        icon: IconImage.Object,
+                        text: t('field'),
+                      },
+                      {
+                        action: () => handleAddProperty(ObjectKind.Reference),
+                        icon: IconImage.Reference,
+                        text: t('reference'),
+                      },
+                      {
+                        action: () => handleAddProperty(ObjectKind.Combination),
+                        icon: IconImage.Combination,
+                        text: t('combination'),
+                      },
+                      {
+                        action: () => handleAddProperty(ObjectKind.Field, FieldType.String),
+                        className: classes.dividerAbove,
+                        icon: IconImage.String,
+                        text: t('string'),
+                      },
+                      {
+                        action: () => handleAddProperty(ObjectKind.Field, FieldType.Integer),
+                        icon: IconImage.Number,
+                        text: t('integer'),
+                      },
+                      {
+                        action: () => handleAddProperty(ObjectKind.Field, FieldType.Number),
+                        icon: IconImage.Number,
+                        text: t('number'),
+                      },
+                      {
+                        action: () => handleAddProperty(ObjectKind.Field, FieldType.Boolean),
+                        icon: IconImage.Boolean,
+                        text: t('boolean'),
+                      },
+                    ]}
+                    openButtonText={t('add')}
+                  />
                 )}
                 <SchemaTreeView
                   editMode={editMode}
@@ -222,26 +246,6 @@ export const SchemaEditor = ({
           </aside>
         )}
       </main>
-      <AltinnMenu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={closeMenu}>
-        <AltinnMenuItem
-          onClick={() => handleAddProperty(ObjectKind.Field)}
-          text={t('field')}
-          iconClass='fa fa-datamodel-properties'
-          id='add-field-button'
-        />
-        <AltinnMenuItem
-          onClick={() => handleAddProperty(ObjectKind.Reference)}
-          text={t('reference')}
-          iconClass='fa fa-datamodel-ref'
-          id='add-reference-button'
-        />
-        <AltinnMenuItem
-          onClick={() => handleAddProperty(ObjectKind.Combination)}
-          text={t('combination')}
-          iconClass='fa fa-group'
-          id='add-combination-button'
-        />
-      </AltinnMenu>
     </div>
   );
 };

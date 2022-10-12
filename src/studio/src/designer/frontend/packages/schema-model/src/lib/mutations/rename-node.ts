@@ -1,6 +1,6 @@
 import { CombinationKind, UiSchemaNodes } from '../types';
-import { getNodeByPointer, pointerExists } from '../selectors';
-import { splitPointerInBaseAndName } from '../utils';
+import { getNodeByPointer } from '../selectors';
+import { pointerExists, splitPointerInBaseAndName } from '../utils';
 
 export const renameNodePointer = (uiSchemaNodes: UiSchemaNodes, oldPointer: string, newPointer: string) => {
   if (oldPointer === newPointer) {
@@ -18,14 +18,19 @@ export const renameNodePointer = (uiSchemaNodes: UiSchemaNodes, oldPointer: stri
   const mutatedNodeArray: UiSchemaNodes = [];
   uiSchemaNodes.forEach((uiNode) => {
     const nodeCopy = Object.assign({}, uiNode);
-    if (uiNode.pointer.startsWith(oldPointer)) {
+    if (pointerIsInBranch(uiNode.pointer, oldPointer)) {
       nodeCopy.pointer = nodeCopy.pointer.replace(oldPointer, newPointer);
     }
-    if (nodeCopy.ref && nodeCopy.ref.startsWith(oldPointer)) {
+    if (nodeCopy.ref === oldPointer) {
       nodeCopy.ref = nodeCopy.ref.replace(oldPointer, newPointer);
     }
-    nodeCopy.children = uiNode.children.map((p) => p.replace(oldPointer, newPointer));
+    nodeCopy.children = uiNode.children.map((childPointer) =>
+      pointerIsInBranch(childPointer, oldPointer) ? childPointer.replace(oldPointer, newPointer) : childPointer,
+    );
     mutatedNodeArray.push(nodeCopy);
   });
   return mutatedNodeArray;
 };
+
+const pointerIsInBranch = (pointer: string, pointer2: string) =>
+  pointer === pointer2 || pointer.startsWith(pointer2 + '/');

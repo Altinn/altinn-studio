@@ -1,7 +1,10 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
-
+using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -45,14 +48,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
-            (Dictionary<string, string>, Dictionary<string, string>) textsExtractedMd = ExtractMarkdown(languageCode, jsonTexts);
+            (Dictionary<string, string>, Dictionary<string, string>) extractMarkdown = ExtractMarkdown(languageCode, jsonTexts);
 
-            foreach (KeyValuePair<string, string> text in textsExtractedMd.Item1)
+            foreach (KeyValuePair<string, string> text in extractMarkdown.Item1)
             {
                 await altinnAppGitRepository.SaveTextMarkdown(languageCode, text);
             }
 
-            await altinnAppGitRepository.SaveTextsV2(languageCode, textsExtractedMd.Item2);
+            await altinnAppGitRepository.SaveTextsV2(languageCode, extractMarkdown.Item2);
         }
 
         /// <inheritdoc />
@@ -61,6 +64,105 @@ namespace Altinn.Studio.Designer.Services.Implementation
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
 
             altinnAppGitRepository.DeleteTexts(languageCode);
+        }
+
+        /// <inheritdoc />
+        public async void ConvertV1TextsToV2(string org, string repo, string developer)
+        {
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+
+            IEnumerable<string> languageFiles = altinnAppGitRepository.FindFiles(new string[] { "resource.*.json" });
+
+            foreach (string languageFile in languageFiles.ToList())
+            {
+                Dictionary<string, string> newTexts = new Dictionary<string, string>();
+
+                string languageCode = GetLanguageCodeFromFilePath(languageFile);
+                TextResource texts = await altinnAppGitRepository.GetTextV1(languageCode);
+
+                foreach (TextResourceElement text in texts.Resources)
+                {
+                    string newText = text.Value;
+
+                    if (text.Variables != null)
+                    {
+                        newText = ConvertText(text);
+                    }
+
+                    newTexts[text.Id] = newText;
+                }
+
+                (Dictionary<string, string> TextsWithMarkdown, Dictionary<string, string> Texts) extractMarkdown = ExtractMarkdown(languageCode, newTexts);
+
+                foreach (KeyValuePair<string, string> text in extractMarkdown.TextsWithMarkdown)
+                {
+                    await altinnAppGitRepository.SaveTextMarkdown(languageCode, text);
+                }
+
+                await UpdateTexts(org, repo, developer, languageCode, extractMarkdown.Texts);
+
+                altinnAppGitRepository.DeleteFileByAbsolutePath(languageFile);
+            }
+        }
+
+        /// <summary>
+        /// Extracts language code from path to language file.
+        /// </summary>
+        /// <param name="filePath">Path to language file</param>
+        /// <returns>A two letter language code</returns>
+        private static string GetLanguageCodeFromFilePath(string filePath)
+        {
+            string fileName = Path.GetFileName(filePath);
+            string languageCode = fileName.Split(".")[1];
+            return languageCode;
+        }
+
+        /// <summary>
+        /// Converts a single text resource element in the
+        /// old texts format to a key:value pair.
+        /// </summary>
+        /// <param name="text">The text resource element from the old texts format.</param>
+        /// <returns>The new string that will be the value in the new texts format.</returns>
+        private static string ConvertText(TextResourceElement text)
+        {
+            string newText = string.Empty;
+
+            StringBuilder builder = new StringBuilder(text.Value);
+
+            foreach (TextResourceVariable variable in text.Variables)
+            {
+                string variableNumber = text.Variables.IndexOf(variable).ToString();
+                string oldString = "{" + variableNumber + "}";
+                string newString = "${{" + GetDatasourceAlias(variable.DataSource) + "::" + variable.Key + "}}";
+                builder.Replace(oldString, newString);
+                newText = builder.ToString();
+            }
+
+            return newText;
+        }
+
+        /// <summary>
+        /// Converts the longer datasource values, applicationSettings,
+        /// instanceContext and dataModel to the short alias versions; as, ic and dm.
+        /// </summary>
+        /// <param name="datasource">The datasource value from a variable connected to a text</param>
+        /// <returns>The short version of the datasource.</returns>
+        private static string GetDatasourceAlias(string datasource)
+        {
+            if (datasource.ToLower() == "applicationsettings")
+            {
+                return "as";
+            }
+            else if (datasource.ToLower() == "instancecontext")
+            {
+                return "ic";
+            }
+            else if (datasource.ToLower().StartsWith("datamodel"))
+            {
+                return datasource.ToLower().Replace("datamodel", "dm");
+            }
+
+            throw new ArgumentOutOfRangeException(nameof(datasource), $"{datasource} is not an expected datasource value.");
         }
 
         /// <summary>
@@ -73,7 +175,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             List<string> markdownFileNames = new List<string>();
             foreach (KeyValuePair<string, string> text in texts.Where(text => IsFileReference(text.Value)))
             {
-                string fileName = text.Value.Substring(3, text.Value.Length - 5);
+                int fileNameStart = 7;
+                int fileNameEnd = text.Value.Length - 9;
+                string fileName = text.Value.Substring(fileNameStart, fileNameEnd);
                 markdownFileNames.Add(fileName);
             }
 
@@ -87,7 +191,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>boolean value indicating if value is a filename reference or not</returns>
         private static bool IsFileReference(string textValue)
         {
-            return textValue.StartsWith("${{") && textValue.EndsWith(".md}}");
+            return textValue.StartsWith("${{md::") && textValue.EndsWith(".md}}");
         }
 
         /// <summary>
@@ -101,17 +205,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// where inline markdown is replaced with the filename.</returns>
         /// <remarks>Autosave in FE results in old md files that never
         /// will be overwritten when client change ID.</remarks>
-        private static (Dictionary<string, string> TtextsWithMd, Dictionary<string, string> Ttexts) ExtractMarkdown(string languageCode, Dictionary<string, string> texts)
+        private static (Dictionary<string, string> TextsWithMd, Dictionary<string, string> Texts) ExtractMarkdown(string languageCode, Dictionary<string, string> texts)
         {
-            Dictionary<string, string> textsWithMd = new Dictionary<string, string>();
+            Dictionary<string, string> textsWithMarkdown = new Dictionary<string, string>();
             foreach (KeyValuePair<string, string> text in texts.Where(text => text.Value.Contains('\n')))
             {
-                textsWithMd[text.Key] = text.Value;
+                textsWithMarkdown[text.Key] = text.Value;
                 string fileName = $"{text.Key}.{languageCode}.texts.md";
-                texts[text.Key] = "${{" + fileName + "}}";
+                texts[text.Key] = "${{md::" + fileName + "}}";
             }
 
-            return (textsWithMd, texts);
+            return (textsWithMarkdown, texts);
         }
     }
 }
