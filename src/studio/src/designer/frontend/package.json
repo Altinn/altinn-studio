@@ -10,6 +10,7 @@
     "eslint-plugin-jsx-a11y": "6.6.1",
     "eslint-plugin-react": "7.31.10",
     "eslint-plugin-react-hooks": "4.6.0",
+    "syncpack": "8.2.4",
     "typescript": "4.8.4"
   },
   "packageManager": "yarn@3.2.3",
@@ -20,6 +21,7 @@
     "lint": "eslint \"./**/*.ts*\"",
     "start-app-development": "yarn workspace app-development start",
     "start-dashboard": "yarn workspace dashboard start",
+    "syncpack": "syncpack fix-mismatches && syncpack format && syncpack set-semver-ranges",
     "test": "yarn workspaces foreach run test"
   },
   "workspaces": [
