@@ -129,7 +129,7 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
         VerifyMetadataContent(metamodelLocation, modelName);
     }
 
-    private async Task VerifyXsdFileContent(string path)
+    private static async Task VerifyXsdFileContent(string path)
     {
         async Task<string> SerializeXml(XmlSchema schema)
         {
@@ -146,7 +146,7 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
         VerifyFileContent(path, xsdContent);
     }
 
-    private void VerifyMetadataContent(string path, string modelName)
+    private static void VerifyMetadataContent(string path, string modelName)
     {
         var jsonSchemaConverterStrategy = JsonSchemaConverterStrategyFactory.SelectStrategy(JsonSchema.FromText(MinimumValidJsonSchema));
         var metamodelConverter = new JsonSchemaToMetamodelConverter(jsonSchemaConverterStrategy.GetAnalyzer());
@@ -154,7 +154,7 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
         VerifyFileContent(path,  JsonConvert.SerializeObject(modelMetadata));
     }
 
-    private void VerifyFileContent(string path, string expectedContent)
+    private static void VerifyFileContent(string path, string expectedContent)
     {
         var fileContent = File.ReadAllText(path);
         expectedContent.Should().Be(fileContent);
