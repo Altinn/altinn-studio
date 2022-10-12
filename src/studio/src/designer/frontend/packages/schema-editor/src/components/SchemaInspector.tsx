@@ -15,10 +15,9 @@ import { useSelector } from 'react-redux';
 export interface ISchemaInspectorProps {
   language: ILanguage;
   selectedItem?: UiSchemaNode;
-  checkIsNameInUse: (name: string) => boolean;
 }
 
-export const SchemaInspector = ({ language, selectedItem, checkIsNameInUse }: ISchemaInspectorProps) => {
+export const SchemaInspector = ({ language, selectedItem }: ISchemaInspectorProps) => {
   const [tabIndex, setTabIndex] = useState('0');
   const t = (key: string) => getTranslation(key, language);
 
@@ -60,7 +59,7 @@ export const SchemaInspector = ({ language, selectedItem, checkIsNameInUse }: IS
           </TabList>
         </AppBar>
         <TabPanel className={classes.tabPanel} value='0'>
-          <ItemPropertiesTab checkIsNameInUse={checkIsNameInUse} selectedItem={selectedItem} language={language} />
+          <ItemPropertiesTab selectedItem={selectedItem} language={language} />
         </TabPanel>
         <TabPanel className={classes.tabPanel} value='2'>
           <ItemFieldsTab selectedItem={itemsNode ?? selectedItem} language={language} />

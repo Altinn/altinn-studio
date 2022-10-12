@@ -3,6 +3,7 @@ import {
   addEnum,
   addProperty,
   addRootItem,
+  changeChildrenOrder,
   deleteCombinationItem,
   deleteEnum,
   deleteField,
@@ -24,6 +25,7 @@ import {
   setTitle,
   setType,
   setUiSchema,
+  toggleArrayField,
   updateJsonSchema,
 } from './schemaEditorSlice';
 import { dataMock } from '../../mockData';
@@ -34,6 +36,7 @@ import {
   getChildNodesByPointer,
   getNodeByPointer,
   Keywords,
+  makePointer,
   ObjectKind,
   pointerExists,
   UiSchemaNode,
@@ -512,5 +515,38 @@ describe('SchemaEditorSlice', () => {
     expect(updatedOneOfItem.children).toHaveLength(3);
     const updatedOneOfItemChild = getNodeByPointer(nextState.uiSchema, updatedOneOfItem.children[2]);
     expect(updatedOneOfItemChild.fieldType).toBe(FieldType.String);
+  });
+  it('should handle to toggleArrayField', () => {
+    const pointer = makePointer(Keywords.Properties, 'melding');
+    const mockState: ISchemaState = {
+      ...state,
+      selectedPropertyNodeId: pointer,
+    };
+    const nextState = reducer(mockState, toggleArrayField({ pointer }));
+    const expectedArray = getNodeByPointer(nextState.uiSchema, pointer);
+    expect(expectedArray.objectKind).toBe(ObjectKind.Array);
+    expect(expectedArray.fieldType).toBe(FieldType.Array);
+    expect(expectedArray.children).toHaveLength(1);
+    const nextState2 = reducer(nextState, toggleArrayField({ pointer }));
+    const expectedField = getNodeByPointer(nextState2.uiSchema, pointer);
+    expect(expectedField.objectKind).toBe(ObjectKind.Reference);
+    expect(expectedField.children).toHaveLength(0);
+  });
+  it('should handle to changeChildrenOrder', () => {
+    const parentPointer = makePointer(Keywords.Definitions, 'RA-0678_M');
+    const parentNodeBefore = getNodeByPointer(state.uiSchema, parentPointer);
+    const pointerA = makePointer(parentPointer, Keywords.Properties, 'dataFormatId');
+    const pointerB = makePointer(parentPointer, Keywords.Properties, 'InternInformasjon');
+    const nextState = reducer(state, changeChildrenOrder({ pointerA, pointerB }));
+    const parentNode = getNodeByPointer(nextState.uiSchema, parentPointer);
+    expect(parentNode.children[1]).toBe(pointerB);
+    expect(parentNode.children[3]).toBe(pointerA);
+    expect(parentNode.children.length).toBe(parentNodeBefore.children.length);
+
+    const expectedUnchanged = reducer(
+      nextState,
+      changeChildrenOrder({ pointerA, pointerB: makePointer(Keywords.Properties, 'jibberish') }),
+    );
+    expect(nextState).toBe(expectedUnchanged);
   });
 });

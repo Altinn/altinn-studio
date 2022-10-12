@@ -67,7 +67,7 @@
   "jest": {
     "transform": {
       ".(ts|tsx)": "ts-jest",
-      "node_modules(\\\\|/)(@?react-leaflet)(\\\\|/).+\\.(j|t)sx?$": "ts-jest"
+      "node_modules(\\\\|/)(@?react-leaflet|react-dnd|dnd-core|@react-dnd|react-dnd-html5-backend)(\\\\|/).+\\.(j|t)sx?$": "ts-jest"
     },
     "reporters": [
       "default",
@@ -90,7 +90,7 @@
       "<rootDir>/test/setupTests.ts"
     ],
     "transformIgnorePatterns": [
-      "node_modules(\\\\|/)(?!@?react-leaflet)"
+      "node_modules(\\\\|/)(?!@?react-leaflet|react-dnd|dnd-core|@react-dnd|react-dnd-html5-backend)"
     ]
   },
   "browserslist": [

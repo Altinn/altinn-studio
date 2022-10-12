@@ -1,5 +1,6 @@
 import { FieldType, Keywords, ObjectKind, UiSchemaNode, UiSchemaNodes } from '../types';
-import { createNodeBase, getParentNodeByPointer, pointerExists } from '../utils';
+import { createNodeBase, pointerExists } from '../utils';
+import { getParentNodeByPointer } from '../selectors';
 
 export const insertSchemaNode = (uiSchemaNodes: UiSchemaNodes, newNode: UiSchemaNode): UiSchemaNodes => {
   if (pointerExists(uiSchemaNodes, newNode.pointer)) {

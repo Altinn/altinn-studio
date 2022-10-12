@@ -1,30 +1,26 @@
 import type { UiSchemaNode, UiSchemaNodes } from './types';
 import { Keywords } from './types';
-import { makePointer, pointerExists } from './utils';
+import { makePointer } from './utils';
 import { ROOT_POINTER } from './constants';
 
-export const getRootNodes = (uiSchemaMap: UiSchemaNodes, defs: boolean): UiSchemaNode[] => {
-  const parentNodeIndex = getNodeIndexByPointer(uiSchemaMap, ROOT_POINTER);
+export const getRootNodes = (uiSchemaNodes: UiSchemaNodes, defs: boolean): UiSchemaNode[] => {
+  const parentNodeIndex = getNodeIndexByPointer(uiSchemaNodes, ROOT_POINTER);
   if (parentNodeIndex !== undefined) {
-    const childPointers = uiSchemaMap[parentNodeIndex].children.filter(
+    const childPointers = uiSchemaNodes[parentNodeIndex].children.filter(
       (p) => p.startsWith(makePointer(Keywords.Definitions)) === defs,
     );
-    return uiSchemaMap.filter((uiSchemaNode) => childPointers.includes(uiSchemaNode.pointer));
+    return uiSchemaNodes.filter((uiSchemaNode) => childPointers.includes(uiSchemaNode.pointer));
   } else {
     return [];
   }
 };
-
-export const getNodeDisplayName = (uiSchemaNode: UiSchemaNode) => uiSchemaNode.pointer.split('/').pop() ?? '';
-
-export const getUniqueNodePath = (uiNodeMap: UiSchemaNodes, targetPointer: string): string => {
-  let newPointer = targetPointer;
-  let postfix = 0;
-  while (pointerExists(uiNodeMap, newPointer)) {
-    newPointer = targetPointer + postfix;
-    postfix++;
+export const getRootNode = (uiSchemaNodes: UiSchemaNodes): UiSchemaNode => {
+  const rootNode = uiSchemaNodes.find((node) => node.pointer === ROOT_POINTER);
+  if (rootNode) {
+    return rootNode;
+  } else {
+    throw new Error('Cant find root node');
   }
-  return newPointer;
 };
 
 /**
@@ -54,8 +50,20 @@ export const getNodeIndexByPointer = (uiSchemaNodes: UiSchemaNodes, pointer: str
   return index > -1 ? index : undefined;
 };
 
-export const getChildNodesByPointer = (uiNodeMap: UiSchemaNodes, pointer: string): UiSchemaNode[] =>
-  getChildNodesByNode(uiNodeMap, getNodeByPointer(uiNodeMap, pointer));
+export const getChildNodesByPointer = (uiSchemaNodes: UiSchemaNodes, pointer: string): UiSchemaNode[] =>
+  getChildNodesByNode(uiSchemaNodes, getNodeByPointer(uiSchemaNodes, pointer));
 
-export const getChildNodesByNode = (uiNodeMap: UiSchemaNodes, parentNode: UiSchemaNode): UiSchemaNode[] =>
-  uiNodeMap.filter((node) => parentNode.children.includes(node.pointer));
+export const getChildNodesByNode = (uiSchemaNodes: UiSchemaNodes, parentNode: UiSchemaNode): UiSchemaNode[] =>
+  uiSchemaNodes.filter((node) => parentNode.children.includes(node.pointer));
+
+export const getParentNodeByPointer = (uiSchemaNodes: UiSchemaNodes, pointer: string): UiSchemaNode | undefined => {
+  const pointerParts = pointer.split('/');
+  while (pointerParts.length) {
+    pointerParts.pop();
+    const parentNodeIndex = getNodeIndexByPointer(uiSchemaNodes, pointerParts.join('/'));
+    if (parentNodeIndex !== undefined) {
+      return uiSchemaNodes[parentNodeIndex];
+    }
+  }
+  return undefined;
+};

@@ -8,15 +8,14 @@ import { ItemDataComponent } from './ItemDataComponent';
 interface ItemPropertiesTabProps {
   language: ILanguage;
   selectedItem: UiSchemaNode;
-  checkIsNameInUse: (name: string) => boolean;
 }
 
-export const ItemPropertiesTab = ({ language, selectedItem, checkIsNameInUse }: ItemPropertiesTabProps) => {
+export const ItemPropertiesTab = ({ language, selectedItem }: ItemPropertiesTabProps) => {
   if (selectedItem.isCombinationItem && selectedItem.objectKind !== ObjectKind.Reference) {
     return <InlineObject item={selectedItem} language={language} />;
   } else if (selectedItem.pointer === ROOT_POINTER) {
     return <>root</>;
   } else {
-    return <ItemDataComponent selectedItem={selectedItem} language={language} checkIsNameInUse={checkIsNameInUse} />;
+    return <ItemDataComponent selectedItem={selectedItem} language={language} />;
   }
 };
