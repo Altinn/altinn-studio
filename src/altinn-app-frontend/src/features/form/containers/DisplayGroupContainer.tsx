@@ -68,19 +68,19 @@ export function DisplayGroupContainer(props: IDisplayGroupContainer) {
       alignItems='flex-start'
       data-testid='display-group-container'
     >
-      <Grid
-        item={true}
-        xs={12}
-      >
-        {title && (
+      {title && (
+        <Grid
+          item={true}
+          xs={12}
+        >
           <Typography
             className={classes.groupTitle}
             variant='body1'
           >
             {title}
           </Typography>
-        )}
-      </Grid>
+        </Grid>
+      )}
       {props.components.map((component) => {
         return props.renderLayoutComponent(component, layout);
       })}
