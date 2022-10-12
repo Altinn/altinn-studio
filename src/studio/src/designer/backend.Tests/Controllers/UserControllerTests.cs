@@ -90,7 +90,7 @@ namespace Designer.Tests.Controllers
 
         private HttpClient GetTestClient()
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DatamodelsControllerTests).Assembly.Location).LocalPath);
+            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(UserControllerTests).Assembly.Location).LocalPath);
             string projectDir = Directory.GetCurrentDirectory();
             string configPath = Path.Combine(projectDir, "appsettings.json");
 
@@ -110,7 +110,7 @@ namespace Designer.Tests.Controllers
                 IConfigurationSection serviceRepositorySettingSection = configuration.GetSection("ServiceRepositorySettings");
 
                 Mock<IRepository> repositoryMock = new Mock<IRepository>() { CallBase = true, };
-                
+
                 builder.ConfigureTestServices(services =>
                 {
                     services.Configure<ServiceRepositorySettings>(serviceRepositorySettingSection);
