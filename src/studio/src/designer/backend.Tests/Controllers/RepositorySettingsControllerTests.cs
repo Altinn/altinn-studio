@@ -1,35 +1,34 @@
 using System;
-using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
-using Altinn.Studio.Designer;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
 namespace Designer.Tests.Controllers
 {
-    public class RepositorySettingsControllerTests : IClassFixture<WebApplicationFactory<RepositorySettingsController>>
+    public class RepositorySettingsControllerTests : ApiTestsBase<RepositorySettingsController, RepositorySettingsControllerTests>
     {
-        private readonly WebApplicationFactory<RepositorySettingsController> _factory;
-
-        public RepositorySettingsControllerTests(WebApplicationFactory<RepositorySettingsController> factory)
+        public RepositorySettingsControllerTests(WebApplicationFactory<RepositorySettingsController> factory) : base(factory)
         {
-            _factory = factory;
-            TestSetupUtils.SetupDirtyHackIfLinux();
+        }
+
+        protected override void ConfigureTestServices(IServiceCollection services)
+        {
+            services.Configure<ServiceRepositorySettings>(c =>
+                c.RepositoryLocation = TestRepositoriesLocation);
+            services.AddSingleton<IGitea, IGiteaMock>();
         }
 
         [Fact]
@@ -41,14 +40,12 @@ namespace Designer.Tests.Controllers
             var targetRepository = $"{Guid.NewGuid()}-datamodels";
             await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
 
-            var httpClient = GetTestClient();
             string requestUrl = $"/designer/api/v1/{org}/{targetRepository}/repositorysettings";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(httpClient, httpRequestMessage);
 
             try
             {
-                HttpResponseMessage response = await httpClient.SendAsync(httpRequestMessage);
+                HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
                 var altinnStudioSettings = await response.Content.ReadAsAsync<AltinnStudioSettings>();
 
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -66,12 +63,10 @@ namespace Designer.Tests.Controllers
             var org = "ttd";
             var targetRepository = $"thisDoesNotExist-datamodels";
 
-            var httpClient = GetTestClient();
             string requestUrl = $"/designer/api/v1/{org}/{targetRepository}/repositorysettings";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(httpClient, httpRequestMessage);
 
-            HttpResponseMessage response = await httpClient.SendAsync(httpRequestMessage);
+            HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
 
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
@@ -85,18 +80,16 @@ namespace Designer.Tests.Controllers
             var targetRepository = $"{Guid.NewGuid()}-datamodels";
             await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
 
-            var httpClient = GetTestClient();
             string requestUrl = $"/designer/api/v1/{org}/{targetRepository}/repositorysettings";
             var requestBody = @"{""repoType"": ""Datamodels"", ""datamodelling.preference"": ""JsonSchema""}";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, requestUrl)
             {
                 Content = new StringContent(requestBody, Encoding.UTF8, "application/json")
             };
-            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(httpClient, httpRequestMessage);
 
             try
             {
-                HttpResponseMessage response = await httpClient.SendAsync(httpRequestMessage);
+                HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
                 var altinnStudioSettings = await response.Content.ReadAsAsync<AltinnStudioSettings>();
 
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -106,55 +99,6 @@ namespace Designer.Tests.Controllers
             {
                 TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
             }
-        }
-
-        private HttpClient GetTestClient()
-        {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositorySettingsControllerTests).Assembly.Location).LocalPath);
-            string projectDir = Directory.GetCurrentDirectory();
-            string configPath = Path.Combine(projectDir, "appsettings.json");
-
-            HttpClient client = _factory.WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureAppConfiguration((context, conf) =>
-                {
-                    conf.AddJsonFile(configPath);
-                });
-
-                var configuration = new ConfigurationBuilder()
-                    .AddJsonFile(configPath)
-                    .Build();
-
-                configuration.GetSection("ServiceRepositorySettings:RepositoryLocation").Value = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories");
-
-                IConfigurationSection serviceRepositorySettingSection = configuration.GetSection("ServiceRepositorySettings");
-
-                Mock<IRepository> repositoryMock = new Mock<IRepository>() { CallBase = true, };
-                repositoryMock
-                    .Setup(r => r.UpdateApplicationWithAppLogicModel(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-                    .Verifiable();
-
-                repositoryMock.
-                    Setup(r => r.ReadData(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).
-                    Returns<string, string, string>(async (org, repo, path) =>
-                    {
-                        string repopath = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories", "testUser", org, repo, path);
-
-                        Stream fs = File.OpenRead(repopath);
-                        return await Task.FromResult(fs);
-                    });
-                repositoryMock.Setup(r => r.DeleteData(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Verifiable();
-                repositoryMock.Setup(r => r.WriteData(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<Stream>())).Verifiable();
-                repositoryMock.Setup(r => r.DeleteMetadataForAttachment(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
-                builder.ConfigureTestServices(services =>
-                {
-                    services.Configure<ServiceRepositorySettings>(serviceRepositorySettingSection);
-                    services.AddSingleton<IGitea, IGiteaMock>();
-
-                    services.AddSingleton(repositoryMock.Object);
-                });
-            }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
-            return client;
         }
     }
 }

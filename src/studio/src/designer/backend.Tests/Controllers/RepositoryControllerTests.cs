@@ -1,41 +1,38 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
-
-using Altinn.Studio.Designer;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;
 using Altinn.Studio.Designer.Services.Interfaces;
-
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
-using Designer.Tests.Utils;
-
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
 using Moq;
-
 using Xunit;
 
 namespace Designer.Tests.Controllers
 {
-    public class RepositoryControllerTests : IClassFixture<WebApplicationFactory<RepositoryController>>
+    public class RepositoryControllerTests : ApiTestsBase<RepositoryController, RepositoryControllerTests>
     {
-        private readonly WebApplicationFactory<RepositoryController> _factory;
         private readonly string _versionPrefix = "/designer/api/v1";
+        private readonly Mock<IRepository> _repositoryMock;
 
-        public RepositoryControllerTests(WebApplicationFactory<RepositoryController> factory)
+        public RepositoryControllerTests(WebApplicationFactory<RepositoryController> factory) : base(factory)
         {
-            _factory = factory;
-            TestSetupUtils.SetupDirtyHackIfLinux();
+            _repositoryMock = new Mock<IRepository>();
+        }
+
+        protected override void ConfigureTestServices(IServiceCollection services)
+        {
+            services.Configure<ServiceRepositorySettings>(c =>
+                c.RepositoryLocation = TestRepositoriesLocation);
+            services.AddSingleton<IGitea, IGiteaMock>();
+            services.AddTransient(_ => _repositoryMock.Object);
         }
 
         [Fact]
@@ -44,8 +41,7 @@ namespace Designer.Tests.Controllers
             // Arrange
             string uri = $"{_versionPrefix}/repos/ttd/apps-test/contents";
 
-            Mock<IRepository> repositoryService = new Mock<IRepository>();
-            repositoryService
+            _repositoryMock
                 .Setup(r => r.GetContents(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(new List<FileSystemObject>
                 {
@@ -58,14 +54,12 @@ namespace Designer.Tests.Controllers
                     }
                 });
 
-            HttpClient client = GetTestClient(repositoryService.Object);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri)
             {
             };
-            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
 
             // Act
-            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
@@ -77,19 +71,16 @@ namespace Designer.Tests.Controllers
             // Arrange
             string uri = $"{_versionPrefix}/repos/acn-sbuad/apps-test/contents?path=App";
 
-            Mock<IRepository> repositoryService = new Mock<IRepository>();
-            repositoryService
+            _repositoryMock
                 .Setup(r => r.GetContents(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .Returns((List<FileSystemObject>)null);
 
-            HttpClient client = GetTestClient(repositoryService.Object);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri)
             {
             };
-            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
 
             // Act
-            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
@@ -101,21 +92,17 @@ namespace Designer.Tests.Controllers
             // Arrange
             string uri = $"/designer/api/v1/repos/copyapp?org=ttd&sourceRepository=apps-test&targetRepository=cloned-app";
 
-            Mock<IRepository> repositoryService = new Mock<IRepository>();
-            repositoryService
+            _repositoryMock
                 .Setup(r => r.CopyRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new Repository { RepositoryCreatedStatus = HttpStatusCode.Created, CloneUrl = "https://www.vg.no" });
 
-            HttpClient client = GetTestClient(repositoryService.Object);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
-            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
-
             // Act
-            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
 
             // Assert
-            repositoryService.VerifyAll();
+            _repositoryMock.VerifyAll();
             Assert.Equal(HttpStatusCode.Created, res.StatusCode);
         }
 
@@ -125,13 +112,10 @@ namespace Designer.Tests.Controllers
             // Arrange
             string uri = $"/designer/api/v1/repos/copyapp?org=ttd&sourceRepository=apps-test&targetRepository=existing-repo";
 
-            HttpClient client = GetTestClient(new Mock<IRepository>().Object);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
-            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
-
             // Act
-            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
 
             // Assert
             Assert.Equal(HttpStatusCode.Conflict, res.StatusCode);
@@ -143,24 +127,20 @@ namespace Designer.Tests.Controllers
             // Arrange
             string uri = $"/designer/api/v1/repos/copyapp?org=ttd&sourceRepository=apps-test&targetRepository=cloned-app";
 
-            Mock<IRepository> repositoryService = new Mock<IRepository>();
-            repositoryService
+            _repositoryMock
                 .Setup(r => r.CopyRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new Repository { RepositoryCreatedStatus = HttpStatusCode.GatewayTimeout });
 
-            repositoryService
+            _repositoryMock
                  .Setup(r => r.DeleteRepository(It.IsAny<string>(), It.IsAny<string>()));
 
-            HttpClient client = GetTestClient(repositoryService.Object);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
-            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
-
             // Act
-            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
 
             // Assert
-            repositoryService.VerifyAll();
+            _repositoryMock.VerifyAll();
             Assert.Equal(HttpStatusCode.GatewayTimeout, res.StatusCode);
         }
 
@@ -170,24 +150,20 @@ namespace Designer.Tests.Controllers
             // Arrange
             string uri = $"/designer/api/v1/repos/copyapp?org=ttd&sourceRepository=apps-test&targetRepository=cloned-app";
 
-            Mock<IRepository> repositoryService = new Mock<IRepository>();
-            repositoryService
+            _repositoryMock
                 .Setup(r => r.CopyRepository(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
                .Throws(new IOException());
 
-            repositoryService
+            _repositoryMock
                  .Setup(r => r.DeleteRepository(It.IsAny<string>(), It.IsAny<string>()));
 
-            HttpClient client = GetTestClient(repositoryService.Object);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
-            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
-
             // Act
-            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
 
             // Assert
-            repositoryService.VerifyAll();
+            _repositoryMock.VerifyAll();
             Assert.Equal(HttpStatusCode.InternalServerError, res.StatusCode);
         }
 
@@ -197,13 +173,10 @@ namespace Designer.Tests.Controllers
             // Arrange
             string uri = $"/designer/api/v1/repos/copyapp?org=ttd&sourceRepository=apps-test&targetRepository=2022-cloned-app";
 
-            HttpClient client = GetTestClient(new Mock<IRepository>().Object);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
-            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
-
             // Act
-            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
@@ -215,13 +188,10 @@ namespace Designer.Tests.Controllers
             // Arrange
             string uri = "/designer/api/v1/repos/copyapp?org=ttd&sourceRepository=ddd.git%3Furl%3D{herkanmannåfrittgjøreting}&targetRepository=cloned-target-app";
 
-            HttpClient client = GetTestClient(new Mock<IRepository>().Object);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
-            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
-
             // Act
-            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
             string actual = await res.Content.ReadAsStringAsync();
 
             // Assert
@@ -234,14 +204,10 @@ namespace Designer.Tests.Controllers
         {
             // Arrange
             string uri = $"/designer/api/v1/repos/ttd&repository=2021-application";
-
-            HttpClient client = GetTestClient(new Mock<IRepository>().Object);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
-            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
-
             // Act
-            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
 
             // Assert
             Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
@@ -253,52 +219,17 @@ namespace Designer.Tests.Controllers
             // Arrange
             string uri = $"/designer/api/v1/repos/CreateApp?org=ttd&repository=test";
 
-            Mock<IRepository> repositoryService = new Mock<IRepository>();
-            repositoryService
+            _repositoryMock
                 .Setup(r => r.CreateService(It.IsAny<string>(), It.IsAny<ServiceConfiguration>()))
                 .ReturnsAsync(new Repository() { RepositoryCreatedStatus = HttpStatusCode.Created, CloneUrl = "https://some.site/this/is/not/relevant" });
 
-            HttpClient client = GetTestClient(repositoryService.Object);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, uri);
 
-            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
-
             // Act
-            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
 
             // Assert
             Assert.Equal(HttpStatusCode.Created, res.StatusCode);
-        }
-
-        private HttpClient GetTestClient(IRepository repositoryService)
-        {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositoryControllerTests).Assembly.Location).LocalPath);
-            string projectDir = Directory.GetCurrentDirectory();
-            string configPath = Path.Combine(projectDir, "appsettings.json");
-
-            HttpClient client = _factory.WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureAppConfiguration((context, conf) =>
-                {
-                    conf.AddJsonFile(configPath);
-                });
-
-                var configuration = new ConfigurationBuilder()
-                    .AddJsonFile(configPath)
-                    .Build();
-
-                configuration.GetSection("ServiceRepositorySettings:RepositoryLocation").Value = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Repositories");
-
-                IConfigurationSection serviceRepositorySettingSection = configuration.GetSection("ServiceRepositorySettings");
-
-                builder.ConfigureTestServices(services =>
-                {
-                    services.AddSingleton(repositoryService);
-                    services.Configure<ServiceRepositorySettings>(serviceRepositorySettingSection);
-                    services.AddSingleton<IGitea, IGiteaMock>();
-                });
-            }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
-            return client;
         }
     }
 }
