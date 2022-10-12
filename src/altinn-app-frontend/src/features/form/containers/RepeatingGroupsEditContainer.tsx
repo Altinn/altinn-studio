@@ -27,12 +27,15 @@ export interface IRepeatingGroupsEditContainer {
   layout: ILayout;
   deleting?: boolean;
   editIndex: number;
+  setEditIndex?: (index: number, forceValidation?: boolean) => void;
+  repeatingGroupIndex: number;
   onClickRemove?: (groupIndex: number) => void;
   onClickSave: () => void;
   hideSaveButton?: boolean;
   hideDeleteButton?: boolean;
   multiPageIndex?: number;
   setMultiPageIndex?: (index: number) => void;
+  showSaveAndNextButton?: boolean;
 }
 
 const theme = createTheme(altinnAppTheme);
@@ -99,17 +102,27 @@ export function RepeatingGroupsEditContainer({
   layout,
   deleting,
   editIndex,
+  setEditIndex,
+  repeatingGroupIndex,
   onClickRemove,
   onClickSave,
   hideSaveButton,
   hideDeleteButton,
   multiPageIndex,
   setMultiPageIndex,
+  showSaveAndNextButton,
 }: IRepeatingGroupsEditContainer): JSX.Element {
   const classes = useStyles();
 
   const closeEditContainer = () => {
     onClickSave();
+    if (container.edit?.multiPage) {
+      setMultiPageIndex(0);
+    }
+  };
+
+  const nextClicked = () => {
+    setEditIndex(editIndex + 1, true);
     if (container.edit?.multiPage) {
       setMultiPageIndex(0);
     }
@@ -208,20 +221,46 @@ export function RepeatingGroupsEditContainer({
                 )}
             </div>
           )}
-          {!hideSaveButton && (
-            <Button
-              id={`add-button-grp-${id}`}
-              onClick={closeEditContainer}
-              variant={ButtonVariant.Secondary}
-            >
-              {container.textResourceBindings?.save_button
-                ? getTextResourceByKey(
-                    container.textResourceBindings.save_button,
-                    textResources,
-                  )
-                : getLanguageFromKey('general.save_and_close', language)}
-            </Button>
-          )}
+          <Grid
+            container={true}
+            direction='row'
+            spacing={2}
+          >
+            {!hideSaveButton &&
+              showSaveAndNextButton &&
+              editIndex < repeatingGroupIndex && (
+                <Grid item={true}>
+                  <Button
+                    id={`next-button-grp-${id}`}
+                    onClick={nextClicked}
+                    variant={ButtonVariant.Primary}
+                  >
+                    {container.textResourceBindings?.save_and_next_button
+                      ? getTextResourceByKey(
+                          container.textResourceBindings.save_and_next_button,
+                          textResources,
+                        )
+                      : getLanguageFromKey('general.save_and_next', language)}
+                  </Button>
+                </Grid>
+              )}
+            {!hideSaveButton && (
+              <Grid item={true}>
+                <Button
+                  id={`add-button-grp-${id}`}
+                  onClick={closeEditContainer}
+                  variant={ButtonVariant.Secondary}
+                >
+                  {container.textResourceBindings?.save_button
+                    ? getTextResourceByKey(
+                        container.textResourceBindings.save_button,
+                        textResources,
+                      )
+                    : getLanguageFromKey('general.save_and_close', language)}
+                </Button>
+              </Grid>
+            )}
+          </Grid>
         </Grid>
       </Grid>
     </div>

@@ -70,7 +70,7 @@ export interface IRepeatingGroupTableProps {
   layout: ILayout;
   validations: IValidations;
   editIndex: number;
-  setEditIndex: (index: number) => void;
+  setEditIndex: (index: number, forceValidation?: boolean) => void;
   onClickRemove: (groupIndex: number) => void;
   setMultiPageIndex?: (index: number) => void;
   multiPageIndex?: number;
@@ -210,7 +210,9 @@ function getEditButtonText(
     );
   }
 
-  return getLanguageFromKey('general.edit_alt', language);
+  return isEditing
+    ? getLanguageFromKey('general.save_and_close', language)
+    : getLanguageFromKey('general.edit_alt', language);
 }
 
 export function RepeatingGroupTable({
@@ -347,6 +349,8 @@ export function RepeatingGroupTable({
           className={classes.editContainerInTable}
           container={container}
           editIndex={editIndex}
+          setEditIndex={setEditIndex}
+          repeatingGroupIndex={repeatingGroupIndex}
           id={id}
           language={language}
           textResources={textResources}
@@ -356,6 +360,7 @@ export function RepeatingGroupTable({
           hideSaveButton={container.edit?.saveButton === false}
           multiPageIndex={multiPageIndex}
           setMultiPageIndex={setMultiPageIndex}
+          showSaveAndNextButton={container.edit?.saveAndNextButton === true}
         />
       )
     );
@@ -384,7 +389,9 @@ export function RepeatingGroupTable({
                     {getTextResource(title, textResources)}
                   </TableCell>
                 ))}
-                <TableCell style={{ width: '110px', padding: 0 }}>
+                <TableCell
+                  style={{ width: '150px', padding: 0, paddingRight: '10px' }}
+                >
                   <span className={classes.visuallyHidden}>
                     {getLanguageFromKey('general.edit', language)}
                   </span>
@@ -463,8 +470,12 @@ export function RepeatingGroupTable({
                           );
                         })}
                         <TableCell
-                          align='left'
-                          style={{ width: '110px', padding: 0 }}
+                          align='right'
+                          style={{
+                            width: '150px',
+                            padding: 0,
+                            paddingRight: '10px',
+                          }}
                           key={`edit-${index}`}
                         >
                           <IconButton

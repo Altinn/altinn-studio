@@ -133,6 +133,7 @@ export function nb() {
       required: 'Obligatorisk',
       save: 'Lagre',
       save_and_close: 'Lagre og lukk',
+      save_and_next: 'Lagre og åpne neste',
       search: 'Søk',
       select_field: 'Velg felt',
       service_description_header: 'Beskrivelse',

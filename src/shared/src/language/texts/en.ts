@@ -133,6 +133,7 @@ export function en() {
       required: 'Required',
       save: 'Save',
       save_and_close: 'Save and close',
+      save_and_next: 'Save and open next',
       search: 'Search',
       select_field: 'Select field',
       service_description_header: 'Description',

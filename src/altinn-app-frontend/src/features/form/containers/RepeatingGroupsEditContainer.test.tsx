@@ -27,6 +27,7 @@ describe('RepeatingGroupsEditContainer', () => {
       delete: 'Delete',
       edit_alt: 'Edit',
       save_and_close: 'Save and close',
+      save_and_next: 'Save and open next',
     },
   };
   const textResources: ITextResource[] = [
@@ -115,6 +116,19 @@ describe('RepeatingGroupsEditContainer', () => {
     expect(setMultiPageIndex).toHaveBeenCalledTimes(1);
   });
 
+  it('calls setEditIndex when save and open next is pressed when edit.saveAndNextButton is true', async () => {
+    const setEditIndex = jest.fn();
+    const setMultiPageIndex = jest.fn();
+    const onClickSave = jest.fn();
+    multiPageGroup.edit.saveAndNextButton = true;
+    render({ setEditIndex, setMultiPageIndex, onClickSave, editIndex: 0 });
+    await user.click(
+      screen.getByRole('button', { name: /save and open next/i }),
+    );
+    expect(onClickSave).not.toHaveBeenCalled();
+    expect(setEditIndex).toHaveBeenCalledWith(1, true);
+  });
+
   const render = (props: Partial<IRepeatingGroupsEditContainer> = {}) => {
     const allProps: IRepeatingGroupsEditContainer = {
       id: 'multipageGroup',
@@ -124,9 +138,11 @@ describe('RepeatingGroupsEditContainer', () => {
       textResources: textResources,
       layout: layout,
       editIndex: 1,
+      repeatingGroupIndex: repeatingGroupIndex,
       onClickSave: jest.fn(),
       onClickRemove: jest.fn(),
       hideDeleteButton: false,
+      showSaveAndNextButton: multiPageGroup.edit?.saveAndNextButton === true,
       ...props,
     };
 

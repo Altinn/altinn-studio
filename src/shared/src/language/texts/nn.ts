@@ -131,6 +131,7 @@ export function nn() {
       required: 'Obligatorisk',
       save: 'Lagre',
       save_and_close: 'Lagre og lukk',
+      save_and_next: 'Lagre og opne neste',
       search: 'Søk',
       select_field: 'Vel felt',
       service_description_header: 'Beskriving',

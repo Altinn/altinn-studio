@@ -239,10 +239,11 @@ export function GroupContainer({
     );
   };
 
-  const setEditIndex = (index: number) => {
+  const setEditIndex = (index: number, forceValidation?: boolean) => {
     // if edit button has been clicked while edit container is open, we trigger validations if present in triggers
     const validate: boolean =
-      index === -1 && !!container.triggers?.includes(Triggers.Validation);
+      (index === -1 || forceValidation) &&
+      !!container.triggers?.includes(Triggers.Validation);
     dispatch(
       FormLayoutActions.updateRepeatingGroupsEditIndex({
         group: id,
@@ -340,6 +341,8 @@ export function GroupContainer({
         <RepeatingGroupsEditContainer
           container={container}
           editIndex={editIndex}
+          setEditIndex={setEditIndex}
+          repeatingGroupIndex={repeatingGroupIndex}
           id={id}
           language={language}
           textResources={textResources}
@@ -349,6 +352,7 @@ export function GroupContainer({
           hideSaveButton={container.edit?.saveButton === false}
           multiPageIndex={multiPageIndex}
           setMultiPageIndex={setMultiPageIndex}
+          showSaveAndNextButton={container.edit?.saveAndNextButton === true}
         />
       )}
       {container.edit?.mode === 'showAll' &&
@@ -368,6 +372,7 @@ export function GroupContainer({
               <RepeatingGroupsEditContainer
                 key={index}
                 editIndex={index}
+                repeatingGroupIndex={repeatingGroupIndex}
                 container={container}
                 id={id}
                 language={language}
