@@ -5207,7 +5207,6 @@ __metadata:
     react-device-detect: 2.2.2
     react-dom: 18.2.0
     react-dropzone: 14.2.2
-    react-number-format: 4.9.4
     react-redux: 8.0.4
     react-refresh: 0.14.0
     react-refresh-typescript: 2.0.7
@@ -13061,18 +13060,6 @@ __metadata:
     react: ^18.0.0
     react-dom: ^18.0.0
   checksum: f5e94c0e3b49f8d7d3c464185f8624ab0ad6958a950dd153974183ed93be1b61216c1cddd09967a85e65762f6696a39dfac086ab770980689405e80b3c43a6c1
-  languageName: node
-  linkType: hard
-
-"react-number-format@npm:4.9.4":
-  version: 4.9.4
-  resolution: "react-number-format@npm:4.9.4"
-  dependencies:
-    prop-types: ^15.7.2
-  peerDependencies:
-    react: ^0.14 || ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
-    react-dom: ^0.14 || ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
-  checksum: 61df4ce5fecfcd3424309af65928327aebbe80094cda28941da324995e49152d71b28fedb4c6494ca2fdfb9be1879032da9077f4d33a41ecc999f251c604d5c9
   languageName: node
   linkType: hard
 

@@ -1,6 +1,8 @@
-import type { NumberFormatProps } from 'react-number-format';
-
-import type { Location, MapLayer } from '@altinn/altinn-design-system';
+import type {
+  Location,
+  MapLayer,
+  TextField,
+} from '@altinn/altinn-design-system';
 import type { GridJustification, GridSize } from '@material-ui/core';
 
 import type {
@@ -139,6 +141,10 @@ export interface ILayoutCompFileUploadWithTag
 export interface ILayoutCompHeader extends ILayoutCompBase<'Header'> {
   size: 'L' | 'M' | 'S' | 'h2' | 'h3' | 'h4';
 }
+
+type NumberFormatProps = Parameters<
+  typeof TextField
+>[0]['formatting']['number'];
 
 export interface IInputFormatting {
   number?: NumberFormatProps;
