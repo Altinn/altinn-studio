@@ -43,9 +43,6 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
     private const string TestSourceRepository = "hvem-er-hvem";
     private const string TestDeveloper = "testUser";
 
-    private static readonly string TestRepositoryLocation =
-        Path.Combine(UnitTestsFolder, "..", "..", "..", "_TestData", "Repositories");
-
     private const string MinimumValidJsonSchema =
         @"{""properties"":{""root"":{""$ref"":""#/definitions/rootType""}},""definitions"":{""rootType"":{""properties"":{""keyword"":{""type"":""string""}}}}}";
 
@@ -57,7 +54,7 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
     protected override void ConfigureTestServices(IServiceCollection services)
     {
         services.Configure<ServiceRepositorySettings>(c =>
-            c.RepositoryLocation = TestRepositoryLocation);
+            c.RepositoryLocation = TestRepositoriesLocation);
         services.AddSingleton<IGitea, IGiteaMock>();
     }
 
@@ -115,7 +112,7 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
 
     private async Task FilesWithCorrectNameAndContentShouldBeCreated(string modelName)
     {
-        var location = Path.GetFullPath(Path.Combine(TestRepositoryLocation, TestDeveloper, TestOrg, TargetTestRepository, "App", "models"));
+        var location = Path.GetFullPath(Path.Combine(TestRepositoriesLocation, TestDeveloper, TestOrg, TargetTestRepository, "App", "models"));
         var jsonSchemaLocation = Path.Combine(location, $"{modelName}.schema.json");
         var xsdSchemaLocation = Path.Combine(location, $"{modelName}.xsd");
         var metamodelLocation = Path.Combine(location, $"{modelName}.metadata.json");
