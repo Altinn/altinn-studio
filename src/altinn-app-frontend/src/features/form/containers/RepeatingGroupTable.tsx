@@ -215,6 +215,16 @@ function getEditButtonText(
     : getLanguageFromKey('general.edit_alt', language);
 }
 
+function getTableTitle(component: ILayoutComponent) {
+  if (component.textResourceBindings?.tableTitle) {
+    return component.textResourceBindings.tableTitle;
+  }
+  if (component.textResourceBindings?.title) {
+    return component.textResourceBindings.title;
+  }
+  return '';
+}
+
 export function RepeatingGroupTable({
   id,
   container,
@@ -242,21 +252,23 @@ export function RepeatingGroupTable({
 }: IRepeatingGroupTableProps): JSX.Element {
   const dispatch = useAppDispatch();
   const classes = useStyles();
-  const renderComponents: ILayoutComponent[] = JSON.parse(
+  const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
+
+  const tableHeaderComponentIds =
+    container.tableHeaders ||
+    components.map((c) => c.baseComponentId || c.id) ||
+    [];
+
+  const componentsDeepCopy: ILayoutComponent[] = JSON.parse(
     JSON.stringify(components),
   );
-  const tableHeaderComponents =
-    container.tableHeaders ||
-    components.map((c) => (c as any).baseComponentId || c.id) ||
-    [];
-  const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
-  const componentTitles: string[] = [];
-  renderComponents.forEach((component: ILayoutComponent) => {
-    const childId = (component as any).baseComponentId || component.id;
-    if (tableHeaderComponents.includes(childId)) {
-      componentTitles.push(component.textResourceBindings?.title || '');
-    }
-  });
+  const tableComponents = componentsDeepCopy.filter(
+    (component: ILayoutComponent) => {
+      const childId = component.baseComponentId || component.id;
+      return tableHeaderComponentIds.includes(childId);
+    },
+  );
+
   const showTableHeader =
     repeatingGroupIndex > -1 && !(repeatingGroupIndex == 0 && editIndex == 0);
 
@@ -381,12 +393,12 @@ export function RepeatingGroupTable({
               id={`group-${id}-table-header`}
             >
               <TableRow>
-                {componentTitles.map((title: string) => (
+                {tableComponents.map((component: ILayoutComponent) => (
                   <TableCell
                     align='left'
-                    key={title}
+                    key={component.id}
                   >
-                    {getTextResource(title, textResources)}
+                    {getTextResource(getTableTitle(component), textResources)}
                   </TableCell>
                 ))}
                 <TableCell
@@ -453,22 +465,15 @@ export function RepeatingGroupTable({
                           },
                         )}
                       >
-                        {components.map((component: ILayoutComponent) => {
-                          const childId =
-                            (component as any).baseComponentId || component.id;
-                          if (!tableHeaderComponents.includes(childId)) {
-                            return null;
-                          }
-                          return (
-                            <TableCell key={`${component.id}-${index}`}>
-                              <span>
-                                {index !== editIndex
-                                  ? getFormDataForComponent(component, index)
-                                  : null}
-                              </span>
-                            </TableCell>
-                          );
-                        })}
+                        {tableComponents.map((component: ILayoutComponent) => (
+                          <TableCell key={`${component.id}-${index}`}>
+                            <span>
+                              {index !== editIndex
+                                ? getFormDataForComponent(component, index)
+                                : null}
+                            </span>
+                          </TableCell>
+                        ))}
                         <TableCell
                           align='right'
                           style={{
@@ -523,8 +528,8 @@ export function RepeatingGroupTable({
                             style={{ padding: 0, borderBottom: 0 }}
                             colSpan={
                               hideDeleteButton
-                                ? componentTitles.length + 1
-                                : componentTitles.length + 2
+                                ? tableComponents.length + 1
+                                : tableComponents.length + 2
                             }
                           >
                             {renderRepeatingGroupsEditContainer()}
@@ -551,21 +556,16 @@ export function RepeatingGroupTable({
                 ].some((component: ILayoutComponent | ILayoutGroup) => {
                   return childElementHasErrors(component, index);
                 });
-                const items: IMobileTableItem[] = [];
-                components.forEach((component) => {
-                  const childId =
-                    (component as any).baseComponentId || component.id;
-                  if (tableHeaderComponents.includes(childId)) {
-                    items.push({
-                      key: component.id,
-                      label: getTextResource(
-                        component?.textResourceBindings?.title,
-                        textResources,
-                      ),
-                      value: getFormDataForComponent(component, index),
-                    });
-                  }
-                });
+                const items: IMobileTableItem[] = tableComponents.map(
+                  (component: ILayoutComponent) => ({
+                    key: component.id,
+                    label: getTextResource(
+                      getTableTitle(component),
+                      textResources,
+                    ),
+                    value: getFormDataForComponent(component, index),
+                  }),
+                );
                 return (
                   <React.Fragment key={index}>
                     <AltinnMobileTableItem
