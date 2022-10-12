@@ -23,3 +23,5 @@ const altinnWindow = window as Window as IAltinnWindow;
 altinnWindow.org = 'ttd';
 altinnWindow.app = 'test';
 jest.setTimeout(10000);
+
+jest.mock('axios');

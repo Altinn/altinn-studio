@@ -4,8 +4,8 @@ import { getFormLayoutStateMock } from '__mocks__/formLayoutStateMock';
 import { getUiConfigStateMock } from '__mocks__/uiConfigStateMock';
 import { screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { rest } from 'msw';
-import { renderWithProviders, setupServer } from 'testUtils';
+import mockAxios from 'jest-mock-axios';
+import { renderWithProviders } from 'testUtils';
 
 import NavBar from 'src/components/presentation/NavBar';
 import type { ITextResource } from 'src/types';
@@ -13,11 +13,7 @@ import type { ITextResource } from 'src/types';
 import { getLanguageFromCode } from 'altinn-shared/language';
 import type { IAppLanguage } from 'altinn-shared/types';
 
-const server = setupServer();
-
-beforeAll(() => server.listen({ onUnhandledRequest: 'error' }));
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+afterEach(() => mockAxios.reset());
 
 interface RenderNavBarProps {
   showBackArrow: boolean;
@@ -31,17 +27,13 @@ const renderNavBar = ({
   hideCloseButton,
   showBackArrow,
   showLanguageSelector,
-  languageResponse = [],
+  languageResponse,
   textResources = [],
 }: RenderNavBarProps) => {
   const mockClose = jest.fn();
   const mockBack = jest.fn();
   const mockAppLanguageChange = jest.fn();
-  server.use(
-    rest.get(/\/applicationlanguages/, (req, res, ctx) => {
-      return res(ctx.json(languageResponse));
-    }),
-  );
+
   renderWithProviders(
     <NavBar
       handleClose={mockClose}
@@ -69,6 +61,15 @@ const renderNavBar = ({
       },
     },
   );
+
+  if (languageResponse) {
+    mockAxios.mockResponseFor(
+      {
+        url: 'https://local.altinn.cloud/ttd/test/api/v1/applicationlanguages',
+      },
+      { data: languageResponse },
+    );
+  }
 
   return { mockClose, mockBack, mockAppLanguageChange };
 };

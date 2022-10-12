@@ -1,8 +1,6 @@
 import React from 'react';
 import { createTheme, MuiThemeProvider } from '@material-ui/core';
 import { Provider } from 'react-redux';
-import { rest } from 'msw';
-import { setupServer } from 'msw/node';
 import { render as rtlRender } from '@testing-library/react';
 import type { RenderOptions } from '@testing-library/react';
 import type { PreloadedState } from 'redux';
@@ -44,21 +42,6 @@ export const renderWithProviders = (
     }),
   };
 };
-
-export const handlers = [
-  rest.get(
-    'https://api.bring.com/shippingguide/api/postalCode.json',
-    (req, res, ctx) => {
-      const mockApiResponse = {
-        valid: true,
-        result: 'OSLO',
-      };
-      return res(ctx.json(mockApiResponse));
-    },
-  ),
-];
-
-export { setupServer, rest };
 
 export const mockMediaQuery = (maxWidth: number) => {
   const setScreenWidth = (width: number) => {

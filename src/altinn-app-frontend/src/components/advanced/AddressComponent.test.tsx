@@ -3,18 +3,12 @@ import { Provider } from 'react-redux';
 
 import { fireEvent, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import mockAxios from 'jest-mock-axios';
 import configureStore from 'redux-mock-store';
-import { handlers, setupServer } from 'testUtils';
 
 import { AddressComponent } from 'src/components/advanced/AddressComponent';
 import type { IComponentProps } from 'src/components';
 import type { IAddressComponentProps } from 'src/components/advanced/AddressComponent';
-
-const server = setupServer(...handlers);
-
-beforeAll(() => server.listen());
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
 
 const render = (props: Partial<IAddressComponentProps> = {}) => {
   const createStore = configureStore();
@@ -244,6 +238,16 @@ describe('AddressComponent', () => {
       simplified: false,
       handleDataChange,
     });
+
+    mockAxios.mockResponseFor(
+      { url: 'https://api.bring.com/shippingguide/api/postalCode.json' },
+      {
+        data: {
+          valid: true,
+          result: 'OSLO',
+        },
+      },
+    );
 
     await screen.findByDisplayValue('OSLO');
 

@@ -64,7 +64,7 @@ describe('ConfirmPage', () => {
   });
 
   it('should show loading when clicking submit', async () => {
-    renderWithProviders(
+    const { store } = renderWithProviders(
       <MemoryRouter>
         <ConfirmPage {...props} />
       </MemoryRouter>,
@@ -74,17 +74,20 @@ describe('ConfirmPage', () => {
         }),
       },
     );
+    const dispatch = jest.spyOn(store, 'dispatch');
 
     const submitBtnText = /send inn/i;
     const loadingText = /laster innhold/i;
 
     const submitBtn = screen.getByText(submitBtnText);
 
+    expect(dispatch).toHaveBeenCalledTimes(0);
     expect(screen.queryByText(loadingText)).not.toBeInTheDocument();
     expect(submitBtn).toBeInTheDocument();
     await userEvent.click(submitBtn);
 
     expect(screen.queryByText(submitBtnText)).toBeInTheDocument();
     expect(screen.getByText(loadingText)).toBeInTheDocument();
+    expect(dispatch).toHaveBeenCalledTimes(0);
   });
 });
