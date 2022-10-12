@@ -22,12 +22,12 @@ export interface RestrictionItemProps {
   language: ILanguage;
   onChangeRestrictionValue: (id: string, key: string, value: string) => void;
 }
-interface Props {
+export interface ItemRestrictionsProps {
   selectedNode: UiSchemaNode;
   itemsNode?: UiSchemaNode;
   language: ILanguage;
 }
-export const ItemRestrictions = ({ selectedNode, itemsNode, language }: Props) => {
+export const ItemRestrictions = ({ selectedNode, itemsNode, language }: ItemRestrictionsProps) => {
   const dispatch = useDispatch();
   const handleRequiredChanged = (e: any) => {
     const { checked } = e.target;
@@ -75,14 +75,8 @@ export const ItemRestrictions = ({ selectedNode, itemsNode, language }: Props) =
   };
 
   const t = (key: string) => getTranslation(key, language);
-  const selectedRestrictionProps: RestrictionItemProps = {
-    restrictions: selectedNode.restrictions ?? {},
-    readonly: selectedNode.ref !== undefined,
-    path: selectedNode.pointer,
-    onChangeRestrictionValue,
-    language,
-  };
-  const itemsRestrictionProps: RestrictionItemProps = {
+  const itemNode = selectedNode.objectKind === ObjectKind.Array ? itemsNode : selectedNode;
+  const restrictionProps: RestrictionItemProps = {
     restrictions: itemsNode?.restrictions ?? {},
     readonly: itemsNode?.ref !== undefined,
     path: itemsNode?.pointer ?? '',
@@ -90,8 +84,6 @@ export const ItemRestrictions = ({ selectedNode, itemsNode, language }: Props) =
     language,
   };
   const restrictionNode = itemsNode ?? selectedNode;
-  const restrictionProps =
-    selectedNode.objectKind === ObjectKind.Array ? itemsRestrictionProps : selectedRestrictionProps;
   return (
     <div className={classes.root}>
       <Checkbox
@@ -113,8 +105,8 @@ export const ItemRestrictions = ({ selectedNode, itemsNode, language }: Props) =
           [CombinationKind.AnyOf]: undefined,
           [CombinationKind.OneOf]: undefined,
         }[restrictionNode.fieldType]}
-      {selectedNode.objectKind === ObjectKind.Array && <ArrayRestrictions {...selectedRestrictionProps} />}
-      {selectedNode.fieldType !== FieldType.Object && (
+      {selectedNode.objectKind === ObjectKind.Array && <ArrayRestrictions {...restrictionProps} />}
+      {[FieldType.String, FieldType.Integer, FieldType.Number].includes(itemNode?.fieldType as FieldType) && (
         <>
           <Divider />
           <Fieldset legend={t('enum_legend')}>
