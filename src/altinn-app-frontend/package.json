@@ -10,7 +10,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:watchall": "jest --watchAll",
-    "compile-ts": "tsc",
+    "tsc": "tsc --noEmit --skipLibCheck",
+    "tsc:watch": "tsc --watch --noEmit --skipLibCheck",
     "clean": "rimraf dist compiled",
     "webpack-watch": "cross-env NODE_ENV=development webpack --mode=development --config webpack.config.development.js --watch --progress",
     "styleguidist:run": "yarn dlx styleguidist server",
@@ -96,8 +97,12 @@
   },
   "jest": {
     "transform": {
-      ".(ts|tsx)": "ts-jest",
-      "\\.js$": "ts-jest"
+      "\\.(js|ts|tsx)$": [
+        "ts-jest",
+        {
+          "isolatedModules": true
+        }
+      ]
     },
     "reporters": [
       "default",

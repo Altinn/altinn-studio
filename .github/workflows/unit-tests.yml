@@ -1,4 +1,4 @@
-name: Build and run unit tests
+name: Tests
 on:
   push:
     branches:
@@ -7,9 +7,9 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  build:
+  unit-tests:
     runs-on: ubuntu-latest
-    name: Build
+    name: Type-checks, eslint, unit tests and SonarCloud
     steps:
       - name: checkout
         uses: actions/checkout@v3
@@ -22,15 +22,28 @@ jobs:
         with:
           node-version: '16'
 
+      - name: Get yarn cache directory path
+        working-directory: app-frontend/src
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
+
+      - uses: actions/cache@v3
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
       - name: install dependencies
         working-directory: app-frontend/src
         env:
           GITHUB_PACKAGES_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: yarn --immutable
 
-      - name: run build
+      - name: type-check
         working-directory: app-frontend/src/altinn-app-frontend
-        run: yarn build
+        run: yarn tsc
 
       - name: run eslint
         working-directory: app-frontend/src
@@ -38,7 +51,7 @@ jobs:
 
       - name: run tests
         working-directory: app-frontend/src
-        run: yarn test --coverage
+        run: yarn test --coverage --runInBand
 
       - name: SonarCloud Scan
         if: |

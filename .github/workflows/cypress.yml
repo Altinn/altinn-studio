@@ -1,4 +1,4 @@
-name: Cypress altinn-app-frontend Test
+name: Cypress
 
 on:
   push:
@@ -30,6 +30,7 @@ jobs:
       fail-fast: false
       matrix:
         machines: [1, 2, 3]
+    name: Internal
 
     steps:
       - name: Checkout
@@ -42,13 +43,26 @@ jobs:
         with:
           node-version: '16'
 
-      - name: Install altinn-app-frontend dependencies
+      - name: Get yarn cache directory path
+        working-directory: test/cypress
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
+
+      - uses: actions/cache@v3
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-cypress
+
+      - name: Install frontend dependencies
         env:
           GITHUB_PACKAGES_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: yarn --immutable
         working-directory: src
 
-      - name: Install cypress and test dependencies
+      - name: Install cypress dependencies
         run: yarn --immutable
         working-directory: test/cypress
 
@@ -83,6 +97,7 @@ jobs:
      (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == true)
 
     runs-on: ubuntu-latest
+    name: External
 
     steps:
       - name: Checkout
@@ -95,13 +110,26 @@ jobs:
         with:
           node-version: '16'
 
-      - name: Install altinn-app-frontend dependencies
+      - name: Get yarn cache directory path
+        working-directory: test/cypress
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
+
+      - uses: actions/cache@v3
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-cypress
+
+      - name: Install frontend dependencies
         env:
           GITHUB_PACKAGES_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: yarn --immutable
         working-directory: src
 
-      - name: Install cypress and test dependencies
+      - name: Install cypress dependencies
         run: yarn --immutable
         working-directory: test/cypress
 
