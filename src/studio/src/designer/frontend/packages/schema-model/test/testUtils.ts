@@ -89,6 +89,24 @@ export const simpleTestJsonSchema = {
   },
 };
 
+export const selectorsTestSchema = {
+  [Keywords.Definitions]: {
+    waba: { [Keywords.Type]: FieldType.String },
+    duba: { [Keywords.Type]: FieldType.String },
+    dupp: { [Keywords.Type]: FieldType.String },
+    dapp: {
+      [Keywords.Properties]: {
+        name: { [Keywords.Type]: FieldType.String },
+        lame: { [Keywords.Type]: FieldType.String },
+      },
+    },
+  },
+  [Keywords.Properties]: {
+    hello: { [Keywords.Type]: FieldType.String },
+    world: { [Keywords.Type]: FieldType.String },
+  },
+};
+
 export const getOldJsonSchemaForTest = () => {
   const filepath = path.resolve(__dirname, 'old-schema.json');
   return readJsonFile(filepath);

@@ -5,7 +5,6 @@ import { AppBar, Button, Typography } from '@material-ui/core';
 import { AltinnSpinner } from 'app-shared/components';
 import type { IJsonSchema, ILanguage, ISchemaState } from '../types';
 import classes from './SchemaEditor.module.css';
-
 import {
   addRootItem,
   setJsonSchema,
@@ -23,16 +22,19 @@ import { SchemaTreeView } from './TreeView/SchemaTreeView';
 import {
   CombinationKind,
   FieldType,
+  getChildNodesByPointer,
   getNodeByPointer,
-  getRootNodes,
   Keywords,
   makePointer,
   ObjectKind,
-  pointerExists,
+  pointerIsDefinition,
+  ROOT_POINTER,
   UiSchemaNode,
+  UiSchemaNodes,
 } from '@altinn/schema-model';
 import { IconImage } from './common/Icon';
 import { ActionMenu } from './common/ActionMenu';
+import { createSelector } from '@reduxjs/toolkit';
 
 export interface IEditorProps {
   Toolbar: JSX.Element;
@@ -46,6 +48,30 @@ export interface IEditorProps {
   toggleEditMode: () => void;
 }
 
+const rootNodesSelector = createSelector(
+  (state: ISchemaState) => state.uiSchema,
+  (uiSchema) => {
+    const nodesmap = new Map();
+    if (uiSchema.length) {
+      getChildNodesByPointer(uiSchema, ROOT_POINTER).forEach((node) => {
+        nodesmap.set(node.pointer, node);
+      });
+    }
+    return nodesmap;
+  },
+);
+
+const rootChildrenSelector = createSelector(
+  (state: ISchemaState) => state.uiSchema,
+  (uiSchema) => {
+    if (uiSchema.length) {
+      return getNodeByPointer(uiSchema, ROOT_POINTER).children;
+    } else {
+      return undefined;
+    }
+  },
+);
+
 export const SchemaEditor = ({
   Toolbar,
   LandingPagePanel,
@@ -58,37 +84,29 @@ export const SchemaEditor = ({
   toggleEditMode,
 }: IEditorProps) => {
   const dispatch = useDispatch();
+  useEffect(() => {
+    if (name && schema) {
+      dispatch(setJsonSchema({ schema }));
+      dispatch(setUiSchema({ name }));
+      dispatch(setSchemaName({ name }));
+    }
+  }, [dispatch, schema, name]);
 
-  const jsonSchema = useSelector((state: ISchemaState) => state.schema);
   const selectedPropertyNode = useSelector((state: ISchemaState) => state.selectedPropertyNodeId);
   const selectedDefinitionNode = useSelector((state: ISchemaState) => state.selectedDefinitionNodeId);
+  const selectedTab = useSelector((state: ISchemaState) => state.selectedEditorTab);
 
-  const { definitions, modelView } = useSelector((state: ISchemaState) => ({
-    definitions: getRootNodes(state.uiSchema, true),
-    modelView: getRootNodes(state.uiSchema, false),
-  }));
-
-  const selectedTab: string = useSelector((state: ISchemaState) => state.selectedEditorTab);
   const [expandedPropNodes, setExpandedPropNodes] = useState<string[]>([]);
   const [expandedDefNodes, setExpandedDefNodes] = useState<string[]>([]);
 
-  const saveSchema = () => dispatch(updateJsonSchema({ onSaveSchema }));
+  const handlePropertiesNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) => setExpandedPropNodes(nodeIds);
 
-  useEffect(() => {
-    if (name) {
-      dispatch(setSchemaName({ name }));
-    }
-  }, [dispatch, name]);
+  const handleDefinitionsNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) => setExpandedDefNodes(nodeIds);
 
-  useEffect(() => {
-    if (jsonSchema && name) {
-      dispatch(setUiSchema({ name }));
-    }
-  }, [dispatch, jsonSchema, name]);
+  const handleSaveSchema = () => dispatch(updateJsonSchema({ onSaveSchema }));
 
-  useEffect(() => {
-    dispatch(setJsonSchema({ schema }));
-  }, [dispatch, schema]);
+  const handleTabChanged = (_x: ChangeEvent<unknown>, value: 'definitions' | 'properties') =>
+    dispatch(setSelectedTab({ selectedTab: value }));
 
   const handleAddProperty = (objectKind: ObjectKind, fieldType?: FieldType) => {
     const newNode: Partial<UiSchemaNode> = { objectKind };
@@ -119,34 +137,33 @@ export const SchemaEditor = ({
     );
   };
 
-  const handlePropertiesNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) => setExpandedPropNodes(nodeIds);
-
-  const handleDefinitionsNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) => setExpandedDefNodes(nodeIds);
-
-  const handleTabChanged = (_x: ChangeEvent<unknown>, value: 'definitions' | 'properties') =>
-    dispatch(setSelectedTab({ selectedTab: value }));
-
   const loadingIndicator = loading ? (
     <AltinnSpinner spinnerText={getLanguageFromKey('general.loading', language)} />
   ) : null;
 
+  const t = (key: string) => getTranslation(key, language);
+
   const selectedId = useSelector((state: ISchemaState) =>
     state.selectedEditorTab === 'properties' ? state.selectedPropertyNodeId : state.selectedDefinitionNodeId,
   );
-
   const selectedItem = useSelector((state: ISchemaState) =>
     selectedId ? getNodeByPointer(state.uiSchema, selectedId) : undefined,
   );
-  const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
-
-  const checkIsNameInUse = (name: string) => pointerExists(uiSchema, name);
-  const t = (key: string) => getTranslation(key, language);
+  const rootNodeMap = useSelector(rootNodesSelector);
+  const rootChildren = useSelector(rootChildrenSelector);
+  const properties: UiSchemaNodes = [];
+  const definitions: UiSchemaNodes = [];
+  rootChildren?.forEach((childPointer) =>
+    pointerIsDefinition(childPointer)
+      ? definitions.push(rootNodeMap.get(childPointer))
+      : properties.push(rootNodeMap.get(childPointer)),
+  );
   return (
     <div className={classes.root}>
       <TopToolbar
         Toolbar={Toolbar}
         language={language}
-        saveAction={name ? saveSchema : undefined}
+        saveAction={name ? handleSaveSchema : undefined}
         toggleEditMode={name ? toggleEditMode : undefined}
         editMode={editMode}
       />
@@ -209,7 +226,7 @@ export const SchemaEditor = ({
                 <SchemaTreeView
                   editMode={editMode}
                   expanded={expandedPropNodes}
-                  items={modelView}
+                  items={properties}
                   translate={t}
                   onNodeToggle={handlePropertiesNodeExpanded}
                   selectedPointer={selectedPropertyNode}
@@ -242,7 +259,7 @@ export const SchemaEditor = ({
         )}
         {schema && editMode && (
           <aside className={classes.inspector}>
-            <SchemaInspector language={language} selectedItem={selectedItem} checkIsNameInUse={checkIsNameInUse} />
+            <SchemaInspector language={language} selectedItem={selectedItem} />
           </aside>
         )}
       </main>

@@ -11,6 +11,9 @@ export {
   pointerIsDefinition,
   combinationIsNullable,
   pointerExists,
+  splitPointerInBaseAndName,
+  getNodeDisplayName,
+  getUniqueNodePath,
 } from './lib/utils';
 export { createChildNode } from './lib/mutations/create-node';
 export { removeNodeByPointer } from './lib/mutations/remove-node';
@@ -22,8 +25,8 @@ export {
   getChildNodesByNode,
   getChildNodesByPointer,
   getNodeByPointer,
-  getNodeDisplayName,
   getNodeIndexByPointer,
+  getParentNodeByPointer,
+  getRootNode,
   getRootNodes,
-  getUniqueNodePath,
 } from './lib/selectors';

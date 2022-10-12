@@ -1,7 +1,8 @@
 import { FieldType, Keywords, ObjectKind, UiSchemaNode, UiSchemaNodes } from '../types';
-import { getChildNodesByNode, getNodeByPointer, getNodeIndexByPointer } from '../selectors';
-import { deepCopy, getParentNodeByPointer, makePointer, pointerReplacer } from '../utils';
+import { getChildNodesByNode, getNodeByPointer, getNodeIndexByPointer, getParentNodeByPointer } from '../selectors';
+import { makePointer, pointerReplacer } from '../utils';
 import { removeNodeByPointer } from './remove-node';
+import { deepCopy } from 'app-shared/pure';
 
 export const canToggleArrayAndField = (uiSchemaNodes: UiSchemaNodes, pointer: string): boolean => {
   const uiSchemaNode = getNodeByPointer(uiSchemaNodes, pointer);

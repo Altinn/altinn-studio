@@ -40,12 +40,7 @@ anotherNode.fieldType = FieldType.String;
 uiSchemaNodes.push(anotherNode);
 const renderItemDataComponent = (props?: Partial<IItemDataComponentProps>, selectedItemIndex?: number) => {
   return renderWithRedux(
-    <ItemDataComponent
-      checkIsNameInUse={jest.fn()}
-      language={mockLanguage}
-      selectedItem={uiSchemaNodes[selectedItemIndex ?? 0]}
-      {...props}
-    />,
+    <ItemDataComponent language={mockLanguage} selectedItem={uiSchemaNodes[selectedItemIndex ?? 0]} {...props} />,
     { uiSchema: uiSchemaNodes },
   );
 };

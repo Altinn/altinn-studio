@@ -1,7 +1,7 @@
 import { buildUiSchema } from '../build-ui-schema';
 import { Keywords } from '../types';
 import { findRequiredProps } from './required';
-import { getParentNodeByPointer } from '../utils';
+import { getParentNodeByPointer } from '../selectors';
 
 test('that we find required props', () => {
   const expected = ['world'];
