@@ -75,15 +75,14 @@ export const ItemRestrictions = ({ selectedNode, itemsNode, language }: ItemRest
   };
 
   const t = (key: string) => getTranslation(key, language);
-  const itemNode = selectedNode.objectKind === ObjectKind.Array ? itemsNode : selectedNode;
+  const restrictionNode = itemsNode ?? selectedNode;
   const restrictionProps: RestrictionItemProps = {
-    restrictions: itemsNode?.restrictions ?? {},
-    readonly: itemsNode?.ref !== undefined,
-    path: itemsNode?.pointer ?? '',
+    restrictions: restrictionNode.restrictions ?? {},
+    readonly: restrictionNode.ref !== undefined,
+    path: restrictionNode.pointer ?? '',
     onChangeRestrictionValue,
     language,
   };
-  const restrictionNode = itemsNode ?? selectedNode;
   return (
     <div className={classes.root}>
       <Checkbox
@@ -106,7 +105,7 @@ export const ItemRestrictions = ({ selectedNode, itemsNode, language }: ItemRest
           [CombinationKind.OneOf]: undefined,
         }[restrictionNode.fieldType]}
       {selectedNode.objectKind === ObjectKind.Array && <ArrayRestrictions {...restrictionProps} />}
-      {[FieldType.String, FieldType.Integer, FieldType.Number].includes(itemNode?.fieldType as FieldType) && (
+      {[FieldType.String, FieldType.Integer, FieldType.Number].includes(restrictionNode.fieldType as FieldType) && (
         <>
           <Divider />
           <Fieldset legend={t('enum_legend')}>

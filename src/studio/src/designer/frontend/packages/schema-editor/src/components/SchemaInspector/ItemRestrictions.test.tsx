@@ -63,34 +63,6 @@ test('Enum list should only appear for strings and numbers, as well as arrays of
     });
 });
 
-test('Enum list should only appear for arrays of strings and numbers', () => {
-  const { enum_legend  } = mockLanguage.schema_editor;
-  (Object.values(FieldType) as (FieldType | CombinationKind)[])
-    .concat(Object.values(CombinationKind))
-    .filter((fieldType) => fieldType !== FieldType.Array)
-    .forEach((fieldType) => {
-      const { renderResult } = renderItemRestrictions({
-        selectedNode: createNode({
-          children: ['arraytest/item'],
-          fieldType: FieldType.Array,
-          objectKind: ObjectKind.Array,
-          pointer: 'arraytest'
-        }),
-        itemsNode: createNode({ fieldType, pointer: 'arraytest/item' })
-      });
-      switch (fieldType) {
-        case FieldType.String:
-        case FieldType.Number:
-        case FieldType.Integer:
-          expect(screen.getByText(enum_legend)).toBeDefined();
-          break;
-        default:
-          expect(screen.queryByText(enum_legend)).toBeFalsy();
-      }
-      renderResult.unmount();
-    });
-});
-
 const renderItemRestrictions = (props?: Partial<ItemRestrictionsProps>) =>
   renderWithRedux(<ItemRestrictions {...defaultProps} {...props}/>);
 
