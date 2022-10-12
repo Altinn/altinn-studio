@@ -6,9 +6,10 @@ import {
   IAccessControlContainerState,
   PartyTypes,
 } from './AccessControlContainer';
-import { render, screen } from '@testing-library/react';
+import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import * as networking from 'app-shared/utils/networking';
+
 const newApplicationMetadata: any = {
   // must be opposite of currentApplicationMetadata.partyTypesAllowed
   partyTypesAllowed: {
@@ -152,14 +153,16 @@ test('should correctly update partyTypesAllowed state when handlePartyTypesAllow
   });
 
   let partyTypeIndex = 0;
-  while (partyTypes[partyTypeIndex]) {
-    await user.click(
-      screen.getByRole('checkbox', {
-        name: 'access_control.' + partyTypes[partyTypeIndex],
-      }),
-    );
-    partyTypeIndex++;
-  }
+  await act(async () => {
+    while (partyTypes[partyTypeIndex]) {
+      await user.click(
+        screen.getByRole('checkbox', {
+          name: 'access_control.' + partyTypes[partyTypeIndex],
+        }),
+      );
+      partyTypeIndex++;
+    }
+  });
 
   const actions = store.getActions();
   const lastPartyTypesAllowed =
