@@ -54,18 +54,17 @@
                 "email": {
                   "type": "array",
                   "items": {
-                    "type": "string",
-                    "minItems": 1
+                    "@xsdType": "string",
+                    "type": "string"
                   },
-                  "@xsdType": "string",
                   "minItems": 1
                 },
                 "contacts": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/$defs/contact",
-                    "maxItems": 10
+                    "$ref": "#/$defs/contact"
                   },
+                  "maxItems": 10,
                   "minItems": 0
                 }
               },
@@ -162,8 +161,7 @@
         },
         "co": {
           "type": "string",
-          "@xsdType": "string",
-          "minItems": 0
+          "@xsdType": "string"
         },
         "zipCode": {
           "type": "string",
@@ -198,8 +196,7 @@
             },
             "co": {
               "type": "string",
-              "@xsdType": "string",
-              "minItems": 0
+              "@xsdType": "string"
             },
             "zipCode": {
               "allOf": [
@@ -243,8 +240,7 @@
             },
             "co": {
               "type": "string",
-              "@xsdType": "string",
-              "minItems": 0
+              "@xsdType": "string"
             },
             "zipCode": {
               "allOf": [

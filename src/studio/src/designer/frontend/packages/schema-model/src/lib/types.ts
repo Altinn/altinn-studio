@@ -52,9 +52,10 @@ export type UiSchemaNodes = UiSchemaNode[];
 export interface UiSchemaNode {
   objectKind: ObjectKind;
   fieldType: FieldType | CombinationKind;
-  implicitType: boolean; // the
+  implicitType: boolean;
   isNillable: boolean;
   isCombinationItem: boolean;
+  isArray: boolean;
   pointer: string;
   ref?: string;
   custom: JsonSchemaNode;

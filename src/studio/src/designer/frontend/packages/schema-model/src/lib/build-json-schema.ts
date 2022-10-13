@@ -1,11 +1,13 @@
 import type { JsonSchemaNode, UiSchemaNode, UiSchemaNodes } from './types';
-import { Keywords, ObjectKind } from './types';
+import { FieldType, Keywords, ObjectKind } from './types';
 import JSONPointer from 'jsonpointer';
 import { findRequiredProps } from './mappers/required';
 import { findJsonFieldType } from './mappers/field-type';
 import { getNodeByPointer } from './selectors';
 import { sortNodesByChildren } from './mutations/sort-nodes';
 import { ROOT_POINTER } from './constants';
+import { makePointer } from './utils';
+import { ArrRestrictionKeys } from './restrictions';
 
 export const buildJsonSchema = (uiSchemaNodes: UiSchemaNodes): JsonSchemaNode => {
   const out: JsonSchemaNode = {};
@@ -22,7 +24,21 @@ export const buildJsonSchema = (uiSchemaNodes: UiSchemaNodes): JsonSchemaNode =>
     if (uiSchemaNode.pointer === ROOT_POINTER) {
       return;
     }
-    const jsonPointer = uiSchemaNode.pointer.replace(ROOT_POINTER, '');
+
+    // Arrays need to be dealed with
+    const nodePointer = uiSchemaNode.pointer.replace(ROOT_POINTER, '');
+    const itemsPointer = makePointer(uiSchemaNode.pointer, Keywords.Items).replace(ROOT_POINTER, '');
+    if (uiSchemaNode.isArray) {
+      JSONPointer.set(out, nodePointer, {
+        type: uiSchemaNode.isNillable ? [FieldType.Array, FieldType.Null] : FieldType.Array,
+      });
+
+      Object.keys(ArrRestrictionKeys).forEach((key) =>
+        JSONPointer.set(out, [nodePointer, key].join('/'), uiSchemaNode.restrictions[key]),
+      );
+    }
+    const jsonPointer = uiSchemaNode.isArray ? itemsPointer : nodePointer;
+
     const startValue = Object.assign({}, uiSchemaNode.custom);
     if (uiSchemaNode.objectKind === ObjectKind.Combination) {
       startValue[uiSchemaNode.fieldType] = [];
@@ -53,9 +69,11 @@ export const buildJsonSchema = (uiSchemaNodes: UiSchemaNodes): JsonSchemaNode =>
     }
 
     // Restrictions
-    Object.keys(uiSchemaNode.restrictions).forEach((key) =>
-      JSONPointer.set(out, [jsonPointer, key].join('/'), uiSchemaNode.restrictions[key]),
-    );
+    Object.keys(uiSchemaNode.restrictions).forEach((key) => {
+      if (!Object.keys(ArrRestrictionKeys).includes(key)) {
+        JSONPointer.set(out, [jsonPointer, key].join('/'), uiSchemaNode.restrictions[key]);
+      }
+    });
 
     if (uiSchemaNode.children.length > 0 && uiSchemaNode.objectKind === ObjectKind.Field) {
       JSONPointer.set(out, [jsonPointer, Keywords.Properties].join('/'), {});

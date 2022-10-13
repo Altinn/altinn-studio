@@ -79,8 +79,7 @@
       "$ref": "#/$defs/numberRestrictionsFractional5"
     },
     "c0": {
-      "$ref": "#/$defs/complexStructure",
-      "minItems": 0
+      "$ref": "#/$defs/complexStructure"
     }
   },
   "required": [

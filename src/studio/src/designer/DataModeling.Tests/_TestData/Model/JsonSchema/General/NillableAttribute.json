@@ -26,8 +26,7 @@
         },
         "minzero": {
           "type": "integer",
-          "@xsdType": "int",
-          "minItems": 0
+          "@xsdType": "int"
         },
         "nilint": {
           "type": [
@@ -48,8 +47,7 @@
             "string",
             "null"
           ],
-          "@xsdType": "string",
-          "minItems": 0
+          "@xsdType": "string"
         },
         "refered": {
           "oneOf": [

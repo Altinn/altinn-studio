@@ -160,8 +160,7 @@
             "string",
             "null"
           ],
-          "@xsdType": "string",
-          "minItems": 0
+          "@xsdType": "string"
         }
       }
     },
@@ -172,16 +171,14 @@
             "string",
             "null"
           ],
-          "@xsdType": "string",
-          "minItems": 0
+          "@xsdType": "string"
         },
         "email": {
           "type": [
             "string",
             "null"
           ],
-          "@xsdType": "string",
-          "minItems": 0
+          "@xsdType": "string"
         }
       }
     }
