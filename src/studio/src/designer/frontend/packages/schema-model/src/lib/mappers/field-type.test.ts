@@ -30,8 +30,6 @@ test.each([[[1, 2], FieldType.Number, ['s', 'f'], FieldType.String, [1, 'f'], un
 
 test.each([
   [{}, undefined],
-  [{ objectKind: ObjectKind.Array }, FieldType.Array],
-  [{ objectKind: ObjectKind.Array, implicitType: true }, undefined],
   [{ objectKind: ObjectKind.Field, fieldType: FieldType.String, isNillable: true }, [FieldType.String, FieldType.Null]],
   [{ objectKind: ObjectKind.Field, fieldType: FieldType.Null, isNillable: true }, FieldType.Null],
 ])('correct json type for %p', (uiNode: Partial<UiSchemaNode>, expected) => {

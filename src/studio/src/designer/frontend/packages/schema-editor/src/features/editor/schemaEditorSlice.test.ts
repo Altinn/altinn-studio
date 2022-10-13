@@ -6,7 +6,6 @@ import {
   changeChildrenOrder,
   deleteCombinationItem,
   deleteEnum,
-  deleteField,
   deleteProperty,
   initialState,
   navigateToType,
@@ -152,20 +151,6 @@ describe('SchemaEditorSlice', () => {
     };
     const nextState = reducer({ ...state, selectedEditorTab: 'properties' }, setSelectedTab(payload));
     expect(nextState.selectedEditorTab).toEqual('definitions');
-  });
-
-  it('handles deleteField', () => {
-    const payload = {
-      path: '#/$defs/Kommentar2000Restriksjon',
-      key: 'maxLength',
-    };
-    const nextState = reducer(state, deleteField(payload));
-    const item = getNodeByPointer(nextState.uiSchema, '#/$defs/Kommentar2000Restriksjon');
-    if (!item.restrictions) {
-      fail('item not found');
-    }
-
-    expect(item.restrictions).not.toContainEqual({ key: 'maxLength' });
   });
 
   it('handles deleteProperty', () => {
@@ -524,13 +509,14 @@ describe('SchemaEditorSlice', () => {
     };
     const nextState = reducer(mockState, toggleArrayField({ pointer }));
     const expectedArray = getNodeByPointer(nextState.uiSchema, pointer);
-    expect(expectedArray.objectKind).toBe(ObjectKind.Array);
-    expect(expectedArray.fieldType).toBe(FieldType.Array);
-    expect(expectedArray.children).toHaveLength(1);
+    expect(expectedArray.children).toHaveLength(0);
+    expect(expectedArray.isArray).toBeTruthy();
+    expect(expectedArray.objectKind).toBe(ObjectKind.Reference);
     const nextState2 = reducer(nextState, toggleArrayField({ pointer }));
     const expectedField = getNodeByPointer(nextState2.uiSchema, pointer);
-    expect(expectedField.objectKind).toBe(ObjectKind.Reference);
     expect(expectedField.children).toHaveLength(0);
+    expect(expectedField.isArray).toBeFalsy();
+    expect(expectedField.objectKind).toBe(ObjectKind.Reference);
   });
   it('should handle to changeChildrenOrder', () => {
     const parentPointer = makePointer(Keywords.Definitions, 'RA-0678_M');

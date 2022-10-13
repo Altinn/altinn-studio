@@ -64,7 +64,7 @@ export const buildJsonSchema = (uiSchemaNodes: UiSchemaNodes): JsonSchemaNode =>
     });
 
     // Adding enums
-    if (uiSchemaNode.enum && uiSchemaNode.enum.length > 0) {
+    if (uiSchemaNode.enum && uiSchemaNode.enum.length) {
       JSONPointer.set(out, [jsonPointer, Keywords.Enum].join('/'), uiSchemaNode[Keywords.Enum]);
     }
 
@@ -75,7 +75,7 @@ export const buildJsonSchema = (uiSchemaNodes: UiSchemaNodes): JsonSchemaNode =>
       }
     });
 
-    if (uiSchemaNode.children.length > 0 && uiSchemaNode.objectKind === ObjectKind.Field) {
+    if (uiSchemaNode.children.length && uiSchemaNode.objectKind === ObjectKind.Field) {
       JSONPointer.set(out, [jsonPointer, Keywords.Properties].join('/'), {});
       // Find required children
       JSONPointer.set(
@@ -83,6 +83,15 @@ export const buildJsonSchema = (uiSchemaNodes: UiSchemaNodes): JsonSchemaNode =>
         [jsonPointer, Keywords.Required].join('/'),
         findRequiredProps(uiSchemaNodes, uiSchemaNode.pointer),
       );
+    }
+    const currentJsonNode = JSONPointer.get(out, jsonPointer);
+    if (
+      uiSchemaNode.isArray &&
+      typeof currentJsonNode === 'object' &&
+      Object.keys(currentJsonNode).length === 0 &&
+      uiSchemaNode.children.length === 0
+    ) {
+      JSONPointer.set(out, jsonPointer, undefined);
     }
   });
   return out;

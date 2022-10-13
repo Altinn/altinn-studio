@@ -22,7 +22,6 @@ import {
   replaceLastPointerSegment,
   ROOT_POINTER,
   splitPointerInBaseAndName,
-  toggleArrayAndField,
 } from '@altinn/schema-model';
 import { swapArrayElements } from 'app-shared/pure';
 
@@ -279,7 +278,8 @@ const schemaEditorSlice = createSlice({
     },
     toggleArrayField(state, action: PayloadAction<{ pointer: string }>) {
       const { pointer } = action.payload;
-      state.uiSchema = toggleArrayAndField(state.uiSchema, pointer);
+      const node = getNodeByPointer(state.uiSchema, pointer);
+      node.isArray = !node.isArray;
     },
     changeChildrenOrder(state, action: PayloadAction<{ pointerA: string; pointerB: string }>) {
       const { pointerA, pointerB } = action.payload;
@@ -305,7 +305,6 @@ export const {
   addRootItem,
   deleteCombinationItem,
   deleteEnum,
-  deleteField,
   deleteProperty,
   navigateToType,
   promoteProperty,

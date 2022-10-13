@@ -36,8 +36,6 @@ export const getObjectKind = (schemaNode: JsonSchemaNode): ObjectKind => {
     return ObjectKind.Reference;
   } else if (getCombinationKind(schemaNode)) {
     return ObjectKind.Combination;
-  } else if (schemaTypeIncludes(schemaNode.type, FieldType.Array)) {
-    return ObjectKind.Array;
   } else {
     return ObjectKind.Field;
   }

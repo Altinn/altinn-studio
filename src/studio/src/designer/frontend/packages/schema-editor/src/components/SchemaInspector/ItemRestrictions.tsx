@@ -2,7 +2,7 @@ import React, { MouseEvent } from 'react';
 import { getTranslation } from '../../utils/language';
 import type { ILanguage } from '../../types';
 import type { UiSchemaNode } from '@altinn/schema-model';
-import { CombinationKind, FieldType, ObjectKind } from '@altinn/schema-model';
+import { CombinationKind, FieldType } from '@altinn/schema-model';
 import { EnumField } from './EnumField';
 import { addEnum, deleteEnum, setRequired, setRestriction } from '../../features/editor/schemaEditorSlice';
 import { useDispatch } from 'react-redux';
@@ -24,10 +24,9 @@ export interface RestrictionItemProps {
 }
 export interface ItemRestrictionsProps {
   selectedNode: UiSchemaNode;
-  itemsNode?: UiSchemaNode;
   language: ILanguage;
 }
-export const ItemRestrictions = ({ selectedNode, itemsNode, language }: ItemRestrictionsProps) => {
+export const ItemRestrictions = ({ selectedNode, language }: ItemRestrictionsProps) => {
   const dispatch = useDispatch();
   const handleRequiredChanged = (e: any) => {
     const { checked } = e.target;
@@ -75,11 +74,10 @@ export const ItemRestrictions = ({ selectedNode, itemsNode, language }: ItemRest
   };
 
   const t = (key: string) => getTranslation(key, language);
-  const restrictionNode = itemsNode ?? selectedNode;
   const restrictionProps: RestrictionItemProps = {
-    restrictions: restrictionNode.restrictions ?? {},
-    readonly: restrictionNode.ref !== undefined,
-    path: restrictionNode.pointer ?? '',
+    restrictions: selectedNode.restrictions ?? {},
+    readonly: selectedNode.ref !== undefined,
+    path: selectedNode.pointer ?? '',
     onChangeRestrictionValue,
     language,
   };
@@ -91,9 +89,9 @@ export const ItemRestrictions = ({ selectedNode, itemsNode, language }: ItemRest
         name='checkedRequired'
         onChange={handleRequiredChanged}
       />
-      {restrictionNode.ref === undefined &&
+      {selectedNode.ref === undefined &&
         {
-          [FieldType.Array]: <ArrayRestrictions {...restrictionProps} />,
+          [FieldType.Array]: undefined,
           [FieldType.Boolean]: undefined,
           [FieldType.Integer]: <NumberRestrictions {...restrictionProps} />,
           [FieldType.Number]: <NumberRestrictions {...restrictionProps} />,
@@ -103,9 +101,9 @@ export const ItemRestrictions = ({ selectedNode, itemsNode, language }: ItemRest
           [CombinationKind.AllOf]: undefined,
           [CombinationKind.AnyOf]: undefined,
           [CombinationKind.OneOf]: undefined,
-        }[restrictionNode.fieldType]}
-      {selectedNode.objectKind === ObjectKind.Array && <ArrayRestrictions {...restrictionProps} />}
-      {[FieldType.String, FieldType.Integer, FieldType.Number].includes(restrictionNode.fieldType as FieldType) && (
+        }[selectedNode.fieldType]}
+      {selectedNode.isArray && <ArrayRestrictions {...restrictionProps} />}
+      {[FieldType.String, FieldType.Integer, FieldType.Number].includes(selectedNode.fieldType as FieldType) && (
         <>
           <Divider />
           <Fieldset legend={t('enum_legend')}>

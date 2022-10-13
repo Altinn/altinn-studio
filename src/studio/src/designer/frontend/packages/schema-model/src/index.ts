@@ -20,7 +20,6 @@ export { removeNodeByPointer } from './lib/mutations/remove-node';
 export { renameNodePointer } from './lib/mutations/rename-node';
 export { convertPropToType } from './lib/mutations/promote-node';
 export { getCapabilities, Capabilites } from './lib/capabilities';
-export { toggleArrayAndField, canToggleArrayAndField } from './lib/mutations/toggle-array-field';
 export {
   getChildNodesByNode,
   getChildNodesByPointer,

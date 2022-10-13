@@ -14,12 +14,12 @@ import { ROOT_POINTER } from './constants';
  * @param uiNode
  */
 const createUiNode = (schemaNode: JsonSchemaNode, uiNode: UiSchemaNode): UiSchemaNodes => {
-  if (schemaNode.type === 'array' || schemaNode[Keywords.Items]) {
+  if (schemaNode[Keywords.Type] === 'array' || schemaNode[Keywords.Items]) {
     // Arrays
     uiNode.isArray = true;
     uiNode.isNillable = schemaTypeIsNillable(schemaNode[Keywords.Type]);
     Object.assign(uiNode.restrictions, findRestrictionsOnNode(schemaNode));
-    return createUiNode(schemaNode[Keywords.Items], uiNode);
+    return schemaNode[Keywords.Items] ? createUiNode(schemaNode[Keywords.Items], uiNode) : [uiNode];
   } else {
     // Other fields
     uiNode.objectKind = getObjectKind(schemaNode);
