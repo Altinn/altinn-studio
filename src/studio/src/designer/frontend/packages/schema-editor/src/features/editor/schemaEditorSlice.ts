@@ -11,6 +11,7 @@ import {
   FieldType,
   getNodeByPointer,
   getNodeIndexByPointer,
+  getParentNodeByPointer,
   getUniqueNodePath,
   Keywords,
   makePointer,
@@ -20,8 +21,10 @@ import {
   renameNodePointer,
   replaceLastPointerSegment,
   ROOT_POINTER,
+  splitPointerInBaseAndName,
   toggleArrayAndField,
 } from '@altinn/schema-model';
+import { swapArrayElements } from 'app-shared/pure';
 
 export const initialState: ISchemaState = {
   schema: {},
@@ -247,9 +250,6 @@ const schemaEditorSlice = createSlice({
         ? (state.selectedDefinitionNodeId = id)
         : (state.selectedPropertyNodeId = id);
     },
-    setSaveSchemaUrl(state, action: PayloadAction<{ saveUrl: string }>) {
-      state.saveSchemaUrl = action.payload.saveUrl;
-    },
     setUiSchema(state, action: PayloadAction<{ name: string }>) {
       const { name } = action.payload;
       state.uiSchema = buildUiSchema(state.schema);
@@ -280,6 +280,18 @@ const schemaEditorSlice = createSlice({
     toggleArrayField(state, action: PayloadAction<{ pointer: string }>) {
       const { pointer } = action.payload;
       state.uiSchema = toggleArrayAndField(state.uiSchema, pointer);
+    },
+    changeChildrenOrder(state, action: PayloadAction<{ pointerA: string; pointerB: string }>) {
+      const { pointerA, pointerB } = action.payload;
+      const { base: baseA } = splitPointerInBaseAndName(pointerA);
+      const { base: baseB } = splitPointerInBaseAndName(pointerB);
+      if (baseA !== baseB) {
+        return;
+      }
+      const parentNode = getParentNodeByPointer(state.uiSchema, pointerA);
+      if (parentNode) {
+        parentNode.children = swapArrayElements(parentNode.children, pointerA, pointerB);
+      }
     },
   },
 });
@@ -313,4 +325,5 @@ export const {
   setUiSchema,
   toggleArrayField,
   updateJsonSchema,
+  changeChildrenOrder,
 } = schemaEditorSlice.actions;

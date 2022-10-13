@@ -34,6 +34,7 @@ import {
   Keywords,
   makePointer,
   ObjectKind,
+  pointerExists,
 } from '@altinn/schema-model';
 import { getDomFriendlyID, isValidName } from '../../utils/ui-schema-utils';
 import { Divider } from '../common/Divider';
@@ -43,10 +44,9 @@ import { Label } from '../common/Label';
 export interface IItemDataComponentProps {
   selectedItem: UiSchemaNode;
   language: ILanguage;
-  checkIsNameInUse: (name: string) => boolean;
 }
 
-export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: IItemDataComponentProps) {
+export function ItemDataComponent({ language, selectedItem }: IItemDataComponentProps) {
   const dispatch = useDispatch();
   const selectedNodePointer = selectedItem.pointer;
   const [nameError, setNameError] = useState('');
@@ -103,8 +103,10 @@ export function ItemDataComponent({ language, selectedItem, checkIsNameInUse }: 
     dispatch(setCombinationType({ path: selectedItem.pointer, type: value }));
 
   const handleArrayPropertyToggle = () => dispatch(toggleArrayField({ pointer: selectedItem.pointer }));
+
+  const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
   const handleChangeNodeName = () => {
-    if (checkIsNameInUse(nodeName)) {
+    if (pointerExists(uiSchema, nodeName)) {
       setNameError(NameError.AlreadyInUse);
       return;
     }

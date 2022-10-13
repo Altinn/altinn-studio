@@ -1,7 +1,7 @@
 // Changes to the uiNodeMap
 import { ObjectKind, UiSchemaNode, UiSchemaNodes } from '../types';
-import { getNodeIndexByPointer } from '../selectors';
-import { getParentNodeByPointer, splitPointerInBaseAndName } from '../utils';
+import { getNodeIndexByPointer, getParentNodeByPointer } from '../selectors';
+import { splitPointerInBaseAndName } from '../utils';
 
 export const removeNodeByPointer = (uiNodeMap: UiSchemaNodes, pointer: string, justChildren?: boolean) => {
   let mutatedUiNodeMap: UiSchemaNodes = [...uiNodeMap];

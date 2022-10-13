@@ -1,41 +1,52 @@
-import { FieldType, Keywords } from './types';
 import { buildUiSchema } from './build-ui-schema';
-import { getNodeByPointer, getNodeDisplayName, getRootNodes, getUniqueNodePath } from './selectors';
+import { getNodeByPointer, getParentNodeByPointer, getRootNode, getRootNodes } from './selectors';
 import { expect } from '@jest/globals';
+import { getGeneralJsonSchemaForTest, selectorsTestSchema } from '../../test/testUtils';
+import { ROOT_POINTER } from './constants';
 import { makePointer } from './utils';
 
-const testShema = {
-  [Keywords.Definitions]: {
-    waba: { [Keywords.Type]: FieldType.String },
-    duba: { [Keywords.Type]: FieldType.String },
-    dupp: { [Keywords.Type]: FieldType.String },
-    dapp: {
-      [Keywords.Properties]: {
-        name: { [Keywords.Type]: FieldType.String },
-        lame: { [Keywords.Type]: FieldType.String },
-      },
-    },
-  },
-  [Keywords.Properties]: {
-    hello: { [Keywords.Type]: FieldType.String },
-    world: { [Keywords.Type]: FieldType.String },
-  },
-};
 test('that we can getRootNodes', () => {
-  const uiSchemaNodes = buildUiSchema(testShema);
+  const uiSchemaNodes = buildUiSchema(selectorsTestSchema);
   expect(getRootNodes(uiSchemaNodes, true)).toHaveLength(4);
   expect(getRootNodes(uiSchemaNodes, false)).toHaveLength(2);
+  expect(getRootNodes(buildUiSchema({}), true)).toHaveLength(0);
+  expect(getRootNodes(buildUiSchema({}), false)).toHaveLength(0);
+  expect(getRootNodes([], true)).toHaveLength(0);
+  expect(getRootNodes([], false)).toHaveLength(0);
 });
 
-test('that we can getNodeDisplayName', () => {
-  const uiSchemaNodes = buildUiSchema(testShema);
-  const uiSchemaNode = getNodeByPointer(uiSchemaNodes, makePointer(Keywords.Properties, 'hello'));
-  expect(getNodeDisplayName(uiSchemaNode)).toBe('hello');
+test('that we getParentNodeByPointer', () => {
+  // Just grab a random schema to test with.
+  const testSchema = getGeneralJsonSchemaForTest('ComplexSchema');
+  const uiSchemaNodes = buildUiSchema(testSchema);
+  uiSchemaNodes.forEach((uiNode) => {
+    const parentNode = getParentNodeByPointer(uiSchemaNodes, uiNode.pointer);
+    if (parentNode) {
+      expect(parentNode.children).toContain(uiNode.pointer);
+    } else {
+      expect(uiNode.pointer).toEqual(ROOT_POINTER);
+    }
+  });
 });
 
-test('that we can getUniqueNodePath', () => {
-  const uiSchemaNodes = buildUiSchema(testShema);
-  expect(getUniqueNodePath(uiSchemaNodes, makePointer(Keywords.Properties, 'hello'))).toBe(
-    makePointer(Keywords.Properties, 'hello0'),
-  );
+test('that we can getRootNode', () => {
+  const testSchema = getGeneralJsonSchemaForTest('ComplexSchema');
+  const uiSchemaNodes = buildUiSchema(testSchema);
+  const rootNode = getRootNode(uiSchemaNodes);
+  expect(typeof rootNode).toBe('object');
+  expect(rootNode.pointer).toBe(ROOT_POINTER);
+});
+
+test('that getNodeByPointer throws at undefined pointer', () => {
+  const testSchema = getGeneralJsonSchemaForTest('ComplexSchema');
+  const uiSchemaNodes = buildUiSchema(testSchema);
+  expect(() => {
+    getNodeByPointer(uiSchemaNodes, makePointer('jibberish'));
+  }).toThrow();
+});
+
+test('that getRootNode throws at undefined pointer', () => {
+  expect(() => {
+    getRootNode([]);
+  }).toThrow();
 });

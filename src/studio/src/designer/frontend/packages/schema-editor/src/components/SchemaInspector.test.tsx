@@ -41,7 +41,7 @@ const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSche
   act(() => {
     render(
       <Provider store={store}>
-        <SchemaInspector language={{}} checkIsNameInUse={() => false} selectedItem={selectedItem} />
+        <SchemaInspector language={{}} selectedItem={selectedItem} />
       </Provider>,
     );
   });

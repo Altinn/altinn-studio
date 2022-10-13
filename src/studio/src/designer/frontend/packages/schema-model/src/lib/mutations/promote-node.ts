@@ -1,9 +1,10 @@
 import { Keywords, ObjectKind, UiSchemaNodes } from '../types';
-import { createNodeBase, deepCopy, getParentNodeByPointer, makePointer, pointerIsDefinition } from '../utils';
-import { getNodeIndexByPointer, getUniqueNodePath } from '../selectors';
+import { createNodeBase, getUniqueNodePath, makePointer, pointerIsDefinition } from '../utils';
+import { getNodeIndexByPointer, getParentNodeByPointer } from '../selectors';
 import { renameNodePointer } from './rename-node';
 import { insertSchemaNode } from './create-node';
 import { ROOT_POINTER } from '../constants';
+import { deepCopy } from 'app-shared/pure';
 
 export const convertPropToType = (uiSchemaNodes: UiSchemaNodes, pointer: string) => {
   const uiNodeIndex = getNodeIndexByPointer(uiSchemaNodes, pointer);

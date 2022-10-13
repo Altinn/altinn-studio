@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
@@ -192,10 +193,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         public async Task SaveTextsV2(string languageCode, Dictionary<string, string> jsonTexts)
         {
             string fileName = $"{languageCode}.texts.json";
-
             var textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
 
-            string texts = System.Text.Json.JsonSerializer.Serialize(jsonTexts);
+            var jsonOptions = new JsonSerializerOptions() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+            string texts = System.Text.Json.JsonSerializer.Serialize(jsonTexts, jsonOptions);
 
             await WriteTextByRelativePathAsync(textsFileRelativeFilePath, texts);
         }

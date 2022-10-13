@@ -14,9 +14,9 @@
     "@material-ui/icons": "^4.11.3",
     "@material-ui/lab": "^4.0.0-alpha.61",
     "@reduxjs/toolkit": "^1.8.3",
-    "axios": "^0.27.2",
-    "jsonpointer": "^4.1.0 || ^5.0.0",
     "react": "^18.2.0",
+    "react-dnd": "16.0.1",
+    "react-dnd-html5-backend": "16.0.1",
     "react-dom": "^18.2.0",
     "react-redux": "^8.0.2"
   },
@@ -67,7 +67,7 @@
   "jest": {
     "transform": {
       ".(ts|tsx)": "ts-jest",
-      "node_modules(\\\\|/)(@?react-leaflet)(\\\\|/).+\\.(j|t)sx?$": "ts-jest"
+      "node_modules(\\\\|/)(@?react-leaflet|react-dnd|dnd-core|@react-dnd|react-dnd-html5-backend)(\\\\|/).+\\.(j|t)sx?$": "ts-jest"
     },
     "reporters": [
       "default",
@@ -90,7 +90,7 @@
       "<rootDir>/test/setupTests.ts"
     ],
     "transformIgnorePatterns": [
-      "node_modules(\\\\|/)(?!@?react-leaflet)"
+      "node_modules(\\\\|/)(?!@?react-leaflet|react-dnd|dnd-core|@react-dnd|react-dnd-html5-backend)"
     ]
   },
   "browserslist": {

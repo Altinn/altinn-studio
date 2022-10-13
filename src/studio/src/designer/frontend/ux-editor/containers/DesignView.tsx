@@ -4,12 +4,13 @@ import { Container } from './Container';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import type { IFormLayoutOrder } from '../types/global';
 import { DroppableDraggableContainer } from './DroppableDraggableContainer';
+
+import { EditorDndEvents, EditorDndItem, ItemType } from './helpers/dnd-types';
 import {
   insertArrayElementAtPos,
   removeArrayElement,
   swapArrayElements,
-} from './helpers/array-functions';
-import { EditorDndEvents, EditorDndItem, ItemType } from './helpers/dnd-types';
+} from 'app-shared/pure/array-functions';
 
 export interface IDesignerPreviewState {
   layoutOrder: IFormLayoutOrder;

@@ -22,11 +22,7 @@ export const removeArrayElement = (arr: any[], item: any) => {
   return out;
 };
 
-export const insertArrayElementAtPos = (
-  arr: any[],
-  item: any,
-  targetPos: number,
-) => {
+export const insertArrayElementAtPos = (arr: any[], item: any, targetPos: number) => {
   if (targetPos < 0) {
     throw Error(`Cant insert element at array position ${targetPos}`);
   }
@@ -37,4 +33,12 @@ export const insertArrayElementAtPos = (
     out.splice(targetPos, 0, item);
   }
   return out;
+};
+
+export const arrayIntersection = (arrA: any[], arrB: any[]) => arrA.filter((x) => arrB.includes(x));
+
+export const arrayUnique = (arr: any[]) => {
+  const j: any = {};
+  arr.forEach((v) => (j[`${v}::${typeof v}`] = v));
+  return Object.keys(j).map((v) => j[v]);
 };
