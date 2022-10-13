@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import { ArrayRestrictions } from './ArrayRestrictions';
 import { FieldType, getRestrictions } from '@altinn/schema-model';
 
-test('ArrayRestrictions should redner correctly', async () => {
+test('ArrayRestrictions should render correctly', async () => {
   const onChangeRestrictionValue = jest.fn();
   const path = '#/properties/xxsfds';
   render(

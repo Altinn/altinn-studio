@@ -29,8 +29,6 @@ import {
   FieldType,
   getChildNodesByNode,
   getNodeDisplayName,
-  Keywords,
-  makePointer,
   ObjectKind,
   pointerExists,
 } from '@altinn/schema-model';
@@ -147,12 +145,7 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
         <Select
           id={getDomFriendlyID(selectedItem.pointer, 'type-select')}
           label={t('type')}
-          onChange={(type) => {
-              const selectedType = type as FieldType;
-            selectedItem.isArray
-              ? onChangeFieldType(makePointer(selectedItem.pointer, Keywords.Items), selectedType)
-              : onChangeFieldType(selectedItem.pointer, selectedType);
-          }}
+          onChange={(type) => onChangeFieldType(selectedItem.pointer, type)}
           options={getTypeOptions(t)}
           value={fieldType}
         />
@@ -170,7 +163,7 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
       {selectedItem.objectKind !== ObjectKind.Combination && (
         <div className={classes.checkboxWrapper}>
           <Checkbox
-            checked={selectedItem.fieldType === FieldType.Array}
+            checked={selectedItem.isArray}
             label={t('multiple_answers')}
             name='checkedMultipleAnswers'
             onChange={handleArrayPropertyToggle}

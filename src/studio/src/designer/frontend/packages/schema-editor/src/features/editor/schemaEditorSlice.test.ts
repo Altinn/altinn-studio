@@ -13,7 +13,6 @@ import {
   reducer,
   setCombinationType,
   setDescription,
-  setItems,
   setJsonSchema,
   setPropertyName,
   setRef,
@@ -303,17 +302,6 @@ describe('SchemaEditorSlice', () => {
     const nextState = reducer(state, setType(payload));
     const item = getNodeByPointer(nextState.uiSchema, '#/$defs/Kontaktperson');
     expect(item.fieldType).toBe(FieldType.String);
-  });
-
-  it('handles setItems', () => {
-    const payload = {
-      path: '#/properties/arrayForTest',
-      items: { fieldType: FieldType.String },
-    };
-    const nextState = reducer(state, setItems(payload));
-    const items = getChildNodesByPointer(nextState.uiSchema, payload.path);
-
-    expect(items[0].fieldType).toBe(FieldType.String);
   });
 
   it('handles setRequired', () => {

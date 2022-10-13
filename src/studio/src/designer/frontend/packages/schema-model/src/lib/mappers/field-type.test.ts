@@ -6,7 +6,6 @@ test.each([
   [{}, undefined],
   [{ properties: {} }, FieldType.Object],
   [{ type: FieldType.Number }, FieldType.Number],
-  [{ type: FieldType.Array }, FieldType.Array],
   [{ type: [FieldType.Null, FieldType.String] }, FieldType.String],
   [{ type: [FieldType.String, FieldType.Null] }, FieldType.String],
   [{ anyOf: [] }, CombinationKind.AnyOf],

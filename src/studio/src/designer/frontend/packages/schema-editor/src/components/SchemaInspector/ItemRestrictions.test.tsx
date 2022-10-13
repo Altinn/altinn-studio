@@ -35,7 +35,6 @@ test('Enum list should only appear for strings and numbers, as well as arrays of
   const { enum_legend } = mockLanguage.schema_editor;
   (Object.values(FieldType) as (FieldType | CombinationKind)[])
     .concat(Object.values(CombinationKind))
-    .filter((fieldType) => fieldType !== FieldType.Array)
     .forEach((fieldType) => {
       const primitiveProps = { selectedNode: createNode({ fieldType }) };
       const arrayProps = {
