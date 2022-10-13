@@ -5,7 +5,7 @@ import { getGeneralJsonSchemaForTest, simpleTestJsonSchema, validateSchema } fro
 import { createChildNode, insertSchemaNode } from './create-node';
 import { createNodeBase } from '../utils';
 
-const complexJsonTestSchema = getGeneralJsonSchemaForTest('ComplexSchema');
+const complexJsonTestSchema = getGeneralJsonSchemaForTest('ElementAnnotation');
 
 test('that we can create nodes', () => {
   const map = buildUiSchema(complexJsonTestSchema);

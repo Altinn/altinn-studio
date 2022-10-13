@@ -13,76 +13,79 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchemaNode => {
   const out: JsonSchemaNode = {};
   const rootNode = getNodeByPointer(nodes, ROOT_POINTER);
   Object.assign(out, rootNode.custom);
-  if (!rootNode.implicitType) {
-    JSONPointer.set(out, '/' + Keywords.Type, rootNode.fieldType);
-  }
+  JSONPointer.set(out, '/' + Keywords.Type, !rootNode.implicitType ? rootNode.fieldType : undefined);
   JSONPointer.set(out, '/' + Keywords.Required, findRequiredProps(nodes, rootNode.pointer));
 
   const sortedUiSchemaNodes = sortNodesByChildren(nodes);
 
-  sortedUiSchemaNodes.forEach((node: UiSchemaNode) => {
-    if (node.pointer === ROOT_POINTER) {
-      return;
-    }
+  sortedUiSchemaNodes
+    .filter((node) => node.pointer !== ROOT_POINTER)
+    .forEach((node: UiSchemaNode) => {
+      // Arrays need to be dealed with
+      const nodePointer = node.pointer.replace(ROOT_POINTER, '');
+      const itemsPointer = makePointer(node.pointer, Keywords.Items).replace(ROOT_POINTER, '');
+      const jsonPointer = node.isArray ? itemsPointer : nodePointer;
 
-    // Arrays need to be dealed with
-    const nodePointer = node.pointer.replace(ROOT_POINTER, '');
-    const itemsPointer = makePointer(node.pointer, Keywords.Items).replace(ROOT_POINTER, '');
-    if (node.isArray) {
-      JSONPointer.set(out, nodePointer, {
-        [Keywords.Type]: node.isNillable ? [FieldType.Array, FieldType.Null] : FieldType.Array,
+      if (node.isArray) {
+        JSONPointer.set(out, nodePointer, {
+          [Keywords.Type]: node.isNillable ? [FieldType.Array, FieldType.Null] : FieldType.Array,
+        });
+
+        Object.keys(ArrRestrictionKeys).forEach((key) =>
+          JSONPointer.set(out, [nodePointer, key].join('/'), node.restrictions[key]),
+        );
+      }
+
+      const startValue = Object.assign({}, node.custom);
+
+      // Adding combination root array to start
+      if (node.objectKind === ObjectKind.Combination) {
+        startValue[node.fieldType] = [];
+      }
+
+      JSONPointer.set(out, jsonPointer, startValue);
+
+      // Setting reference if existing.
+      JSONPointer.set(
+        out,
+        [jsonPointer, Keywords.Reference].join('/'),
+        typeof node.ref === 'string' ? node.ref : undefined,
+      );
+
+      // Setting Type for fields
+      JSONPointer.set(out, [jsonPointer, Keywords.Type].join('/'), findJsonFieldType(node));
+
+      // Adding generics back
+      [Keywords.Default, Keywords.Const, Keywords.Title, Keywords.Description].forEach((keyword) => {
+        JSONPointer.set(out, [jsonPointer, keyword].join('/'), node[keyword as keyof UiSchemaNode]);
       });
 
-      Object.keys(ArrRestrictionKeys).forEach((key) =>
-        JSONPointer.set(out, [nodePointer, key].join('/'), node.restrictions[key]),
+      // Adding enums
+      JSONPointer.set(
+        out,
+        [jsonPointer, Keywords.Enum].join('/'),
+        node[Keywords.Enum]?.length ? node[Keywords.Enum] : undefined,
       );
-    }
-    const jsonPointer = node.isArray ? itemsPointer : nodePointer;
 
-    const startValue = Object.assign({}, node.custom);
-    if (node.objectKind === ObjectKind.Combination) {
-      startValue[node.fieldType] = [];
-    }
+      // Restrictions
+      Object.keys(node.restrictions)
+        .filter((key) => !Object.keys(ArrRestrictionKeys).includes(key))
+        .forEach((key) => JSONPointer.set(out, [jsonPointer, key].join('/'), node.restrictions[key]));
 
-    JSONPointer.set(out, jsonPointer, startValue);
-
-    // Resolving and setting reference
-    if (typeof node.ref === 'string') {
-      JSONPointer.set(out, [jsonPointer, Keywords.Reference].join('/'), node.ref);
-    }
-
-    // Setting Type for fields
-    JSONPointer.set(out, [jsonPointer, Keywords.Type].join('/'), findJsonFieldType(node));
-
-    // Adding generics back
-    [Keywords.Default, Keywords.Const, Keywords.Title, Keywords.Description].forEach((keyword) => {
-      JSONPointer.set(out, [jsonPointer, keyword].join('/'), node[keyword as keyof UiSchemaNode]);
+      // We are dealing with an object prep the properties and required keywords.
+      if (node.children.length && node.objectKind === ObjectKind.Field) {
+        JSONPointer.set(out, [jsonPointer, Keywords.Properties].join('/'), {});
+        JSONPointer.set(out, [jsonPointer, Keywords.Required].join('/'), findRequiredProps(nodes, node.pointer));
+      }
+      const currentJsonNode = JSONPointer.get(out, jsonPointer);
+      if (
+        node.isArray &&
+        typeof currentJsonNode === 'object' &&
+        Object.keys(currentJsonNode).length === 0 &&
+        node.children.length === 0
+      ) {
+        JSONPointer.set(out, jsonPointer, undefined);
+      }
     });
-
-    // Adding enums
-    if (node.enum && node.enum.length) {
-      JSONPointer.set(out, [jsonPointer, Keywords.Enum].join('/'), node[Keywords.Enum]);
-    }
-
-    // Restrictions
-    Object.keys(node.restrictions)
-      .filter((key) => !Object.keys(ArrRestrictionKeys).includes(key))
-      .forEach((key) => JSONPointer.set(out, [jsonPointer, key].join('/'), node.restrictions[key]));
-
-    // We are dealing with an object prep the properties and required keywords.
-    if (node.children.length && node.objectKind === ObjectKind.Field) {
-      JSONPointer.set(out, [jsonPointer, Keywords.Properties].join('/'), {});
-      JSONPointer.set(out, [jsonPointer, Keywords.Required].join('/'), findRequiredProps(nodes, node.pointer));
-    }
-    const currentJsonNode = JSONPointer.get(out, jsonPointer);
-    if (
-      node.isArray &&
-      typeof currentJsonNode === 'object' &&
-      Object.keys(currentJsonNode).length === 0 &&
-      node.children.length === 0
-    ) {
-      JSONPointer.set(out, jsonPointer, undefined);
-    }
-  });
   return out;
 };

@@ -5,6 +5,8 @@ import { getGeneralJsonSchemaForTest, selectorsTestSchema } from '../../test/tes
 import { ROOT_POINTER } from './constants';
 import { makePointer } from './utils';
 
+const testSchema = getGeneralJsonSchemaForTest('ElementAnnotation');
+
 test('that we can getRootNodes', () => {
   const uiSchemaNodes = buildUiSchema(selectorsTestSchema);
   expect(getRootNodes(uiSchemaNodes, true)).toHaveLength(4);
@@ -17,7 +19,6 @@ test('that we can getRootNodes', () => {
 
 test('that we getParentNodeByPointer', () => {
   // Just grab a random schema to test with.
-  const testSchema = getGeneralJsonSchemaForTest('ComplexSchema');
   const uiSchemaNodes = buildUiSchema(testSchema);
   uiSchemaNodes.forEach((uiNode) => {
     const parentNode = getParentNodeByPointer(uiSchemaNodes, uiNode.pointer);
@@ -30,7 +31,6 @@ test('that we getParentNodeByPointer', () => {
 });
 
 test('that we can getRootNode', () => {
-  const testSchema = getGeneralJsonSchemaForTest('ComplexSchema');
   const uiSchemaNodes = buildUiSchema(testSchema);
   const rootNode = getRootNode(uiSchemaNodes);
   expect(typeof rootNode).toBe('object');
@@ -38,7 +38,6 @@ test('that we can getRootNode', () => {
 });
 
 test('that getNodeByPointer throws at undefined pointer', () => {
-  const testSchema = getGeneralJsonSchemaForTest('ComplexSchema');
   const uiSchemaNodes = buildUiSchema(testSchema);
   expect(() => {
     getNodeByPointer(uiSchemaNodes, makePointer('jibberish'));
