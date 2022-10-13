@@ -24,12 +24,12 @@
     "cypress": "10.9.0",
     "cypress-axe": "1.0.0",
     "cypress-plugin-tab": "1.0.5",
-    "eslint": "8.24.0",
+    "eslint": "8.25.0",
     "eslint-plugin-cypress": "2.12.1",
     "fs-extra": "10.1.0",
     "path": "0.12.7",
     "prettier": "2.7.1",
     "start-server-and-test": "1.14.0"
   },
-  "packageManager": "yarn@3.2.3"
+  "packageManager": "yarn@3.2.4"
 }
