@@ -98,18 +98,15 @@ export function createValidator(schema: any): ISchemaValidator {
     code: { es5: true },
   };
   let ajv: AjvCore.default;
-  let rootElementPath;
+  const rootElementPath = getRootElementPath(schema);
   if (schema.$schema?.includes('2020-12')) {
     // we have to use a different ajv-instance for 2020-12 draft
     // here we actually validate against the root json-schema object
     ajv = new Ajv2020(ajvOptions);
-    rootElementPath = '';
   } else {
     // leave existing schemas untouched. Here we actually validate against a sub schema with the name of the model
     // for instance "skjema"
     ajv = new Ajv(ajvOptions);
-    const rootKey: string = Object.keys(schema.properties)[0];
-    rootElementPath = schema.properties[rootKey].$ref;
   }
   addFormats(ajv);
   ajv.addFormat('year', /^\d{4}$/);
@@ -121,6 +118,21 @@ export function createValidator(schema: any): ISchemaValidator {
     rootElementPath,
   };
 }
+
+export const getRootElementPath = (schema: any) => {
+  if (![null, undefined].includes(schema.info?.rootNode)) {
+    // If rootNode is defined in the schema
+    return schema.info.rootNode;
+  } else if (schema.info?.meldingsnavn && schema.properties) {
+    // SERES workaround
+    return schema.properties[schema.info.meldingsnavn]?.$ref || '';
+  } else if (schema.properties) {
+    // Expect first property to contain $ref to schema
+    const rootKey: string = Object.keys(schema.properties)[0];
+    return schema.properties[rootKey].$ref;
+  }
+  return '';
+};
 
 export const errorMessageKeys = {
   minimum: {
@@ -776,7 +788,7 @@ export function getSchemaPartOldGenerator(
   // for old generators we can have a ref to a definition that is placed outside of the subSchema we validate against.
   // if we are looking for #/definitons/x we search in main schema
 
-  if (schemaPath.startsWith('#/definitions/')) {
+  if (/^#\/(definitions|\$defs)\//.test(schemaPath)) {
     return getSchemaPart(schemaPath, mainSchema);
   }
   // all other in sub schema

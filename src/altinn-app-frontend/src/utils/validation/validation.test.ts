@@ -3,6 +3,8 @@ import * as complexSchema from '__mocks__/json-schema/complex.json';
 import * as oneOfOnRootSchema from '__mocks__/json-schema/one-of-on-root.json';
 import * as refOnRootSchema from '__mocks__/json-schema/ref-on-root.json';
 import { getMockValidationState } from '__mocks__/validationStateMock';
+import Ajv from 'ajv';
+import Ajv2020 from 'ajv/dist/2020';
 
 import { Severity } from 'src/types';
 import { createRepeatingGroupComponents } from 'src/utils/formLayout';
@@ -539,6 +541,156 @@ describe('utils > validation', () => {
 
       oldConsoleWarn(...args);
     };
+  });
+
+  describe('createValidator', () => {
+    const schema = {
+      id: 'schema.json',
+      type: 'object',
+      properties: {
+        test: {
+          $ref: '#/$defs/Test',
+        },
+      },
+      $defs: {
+        Test: {
+          type: 'string',
+        },
+      },
+    };
+
+    describe('when receiving a 2020-12 draft schema', () => {
+      it('should create ajv2020 validator instance', () => {
+        const result = validation.createValidator({
+          $schema: 'https://json-schema.org/draft/2020-12/schema',
+          ...schema,
+        });
+        expect(result.validator).toBeInstanceOf(Ajv2020);
+      });
+    });
+
+    describe('when receiving anything but 2020-12 draft schema', () => {
+      it('should create ajv validator instance', () => {
+        const result = validation.createValidator({
+          $schema: 'http://json-schema.org/schema#',
+          ...schema,
+        });
+        expect(result.validator).toBeInstanceOf(Ajv);
+      });
+    });
+  });
+
+  describe('getRootElementPath', () => {
+    describe('when receiving a 2020-12 draft schema', () => {
+      const schema = {
+        $schema: 'https://json-schema.org/draft/2020-12/schema',
+        id: 'schema.json',
+        type: 'object',
+        oneOf: [
+          {
+            $ref: '#/$defs/Test',
+          },
+        ],
+        $defs: {
+          Test: {
+            type: 'string',
+          },
+        },
+      };
+      it('should return empty string as root element path when no properties node is present', () => {
+        const result = validation.getRootElementPath(schema);
+        expect(result).toEqual('');
+      });
+
+      it('should return path under properties.melding.$ref when info.meldingsnavn node is present', () => {
+        const useSchema = {
+          ...schema,
+          oneOf: undefined,
+          info: {
+            meldingsnavn: 'melding',
+          },
+          properties: {
+            melding: {
+              $ref: '#/$defs/Test',
+            },
+          },
+        };
+        const result = validation.getRootElementPath(useSchema);
+        expect(result).toEqual('#/$defs/Test');
+      });
+
+      it('should return path under first property when properties node is present with no info node', () => {
+        const useSchema = {
+          ...schema,
+          properties: {
+            melding: {
+              $ref: '#/$defs/Test',
+            },
+          },
+        };
+        const result = validation.getRootElementPath(useSchema);
+        expect(result).toEqual('#/$defs/Test');
+      });
+    });
+
+    describe('when receiving an older schema', () => {
+      const schema = {
+        $schema: 'http://json-schema.org/draft/#schema',
+        id: 'schema.json',
+        type: 'object',
+        properties: {
+          melding: {
+            $ref: '#/definitions/Test',
+          },
+        },
+        definitions: {
+          Test: {
+            type: 'string',
+          },
+        },
+      };
+
+      it('should return path under properties.melding.$ref when info.meldingsnavn node is present', () => {
+        const useSchema = {
+          ...schema,
+          info: {
+            meldingsnavn: 'melding',
+          },
+        };
+        const result = validation.getRootElementPath(useSchema);
+        expect(result).toEqual('#/definitions/Test');
+      });
+
+      it('should return path under first property when properties node is present with no info node', () => {
+        const result = validation.getRootElementPath(schema);
+        expect(result).toEqual('#/definitions/Test');
+      });
+    });
+
+    describe('when rootNode property is set', () => {
+      const schema = {
+        $schema: 'https://json-schema.org/draft/2020-12/schema',
+        id: 'schema.json',
+        type: 'object',
+        info: {
+          rootNode: '#/$defs/Test',
+        },
+        oneOf: [
+          {
+            $ref: '#/$defs/Test',
+          },
+        ],
+        $defs: {
+          Test: {
+            type: 'string',
+          },
+        },
+      };
+      it('should return the value set in root node', () => {
+        const result = validation.getRootElementPath(schema);
+        expect(result).toEqual('#/$defs/Test');
+      });
+    });
   });
 
   describe('getErrorCount', () => {
