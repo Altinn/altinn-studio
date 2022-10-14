@@ -160,7 +160,7 @@ test('should show context menu and trigger correct dispatch when adding referenc
   const actions = store.getActions();
   const lastAction = actions.at(-1);
   expect(lastAction.type).toBe('schemaEditor/addProperty');
-  expect(lastAction.payload.path).toBe('#/properties/mockItem');
+  expect(lastAction.payload.pointer).toBe('#/properties/mockItem');
   expect(lastAction.payload.props.objectKind).toBe(ObjectKind.Reference);
   expect(lastAction.payload.props.ref).toBe('');
 });
@@ -290,7 +290,7 @@ test('should show context menu and trigger correct dispatch when adding a combin
   const lastAction = actions.at(-1);
   expect(lastAction.type).toBe('schemaEditor/addProperty');
   expect(lastAction.payload).toEqual({
-    path: '#/properties/mockItem',
+    pointer: '#/properties/mockItem',
     props: {
       objectKind: ObjectKind.Combination,
       fieldType: CombinationKind.AllOf,
