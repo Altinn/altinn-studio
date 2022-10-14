@@ -17,7 +17,6 @@ import {
   toggleArrayField,
 } from '../../features/editor/schemaEditorSlice';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
-import { CombinationSelect } from './CombinationSelect';
 import { getCombinationOptions, getTypeOptions } from './helpers/options';
 import { Checkbox, ErrorMessage, TextField } from '@altinn/altinn-design-system';
 import classes from './ItemDataComponent.module.css';
@@ -171,10 +170,10 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
         </div>
       )}
       {selectedItem.objectKind === ObjectKind.Combination && (
-        <CombinationSelect
+        <Select
           id={getDomFriendlyID(selectedItem.pointer, 'combi-sel')}
           label={t('type')}
-          onChange={onChangeCombinationType}
+          onChange={(combination) => onChangeCombinationType(combination as CombinationKind)}
           options={getCombinationOptions(t)}
           value={selectedItem.fieldType}
         />
