@@ -1,5 +1,5 @@
-import type { JsonSchemaNode, UiSchemaNode, UiSchemaNodes } from './types';
-import { FieldType, Keywords, ObjectKind } from './types';
+import type { Dict, UiSchemaNode, UiSchemaNodes } from './types';
+import { FieldType, JsonSchemaType, Keywords, ObjectKind } from './types';
 import JSONPointer from 'jsonpointer';
 import { findRequiredProps } from './mappers/required';
 import { findJsonFieldType } from './mappers/field-type';
@@ -9,8 +9,8 @@ import { ROOT_POINTER } from './constants';
 import { makePointer } from './utils';
 import { ArrRestrictionKeys } from './restrictions';
 
-export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchemaNode => {
-  const out: JsonSchemaNode = {};
+export const buildJsonSchema = (nodes: UiSchemaNodes): Dict => {
+  const out: Dict = {};
   const rootNode = getNodeByPointer(nodes, ROOT_POINTER);
   Object.assign(out, rootNode.custom);
   JSONPointer.set(out, '/' + Keywords.Type, !rootNode.implicitType ? rootNode.fieldType : undefined);
@@ -28,7 +28,7 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): JsonSchemaNode => {
 
       if (node.isArray) {
         JSONPointer.set(out, nodePointer, {
-          [Keywords.Type]: node.isNillable ? [FieldType.Array, FieldType.Null] : FieldType.Array,
+          [Keywords.Type]: node.isNillable ? [JsonSchemaType.Array, FieldType.Null] : JsonSchemaType.Array,
         });
 
         Object.keys(ArrRestrictionKeys).forEach((key) =>

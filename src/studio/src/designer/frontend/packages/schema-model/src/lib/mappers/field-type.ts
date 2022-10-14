@@ -1,4 +1,4 @@
-import type { JsonSchemaNode, UiSchemaNode } from '../types';
+import type { Dict, UiSchemaNode } from '../types';
 import { FieldType, ObjectKind } from '../types';
 import { getCombinationKind, getObjectKind } from '../utils';
 import { ArrRestrictionKeys, IntRestrictionKeys, ObjRestrictionKeys, StrRestrictionKeys } from '../restrictions';
@@ -7,7 +7,7 @@ import { arrayIntersection, arrayUnique } from 'app-shared/pure';
 export const isCompundFieldType = (schemaNodeType: string | string[]) =>
   Array.isArray(schemaNodeType) && schemaNodeType.length === 2;
 
-export const findUiFieldType = (schemaNode: JsonSchemaNode) => {
+export const findUiFieldType = (schemaNode: Dict) => {
   const objectKind = getObjectKind(schemaNode);
   const keys = Object.keys(schemaNode);
   if (typeof schemaNode.properties === 'object') {

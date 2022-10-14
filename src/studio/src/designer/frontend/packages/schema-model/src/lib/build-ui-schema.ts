@@ -1,4 +1,4 @@
-import type { JsonSchemaNode, UiSchemaNode, UiSchemaNodes } from './types';
+import type { Dict, UiSchemaNode, UiSchemaNodes } from './types';
 import { Keywords, ObjectKind } from './types';
 import { createNodeBase, getCombinationKind, getObjectKind, makePointer, schemaTypeIsNillable } from './utils';
 import { findCustomAttributes } from './mappers/custom-properties';
@@ -13,7 +13,7 @@ import { ROOT_POINTER } from './constants';
  * @param schemaNode
  * @param uiNode
  */
-const createUiNode = (schemaNode: JsonSchemaNode, uiNode: UiSchemaNode): UiSchemaNodes => {
+const createUiNode = (schemaNode: Dict, uiNode: UiSchemaNode): UiSchemaNodes => {
   if (schemaNode[Keywords.Type] === 'array' || schemaNode[Keywords.Items]) {
     // Arrays
     uiNode.isArray = true;
@@ -39,7 +39,7 @@ const createUiNode = (schemaNode: JsonSchemaNode, uiNode: UiSchemaNode): UiSchem
     // Combinations
     if (uiNode.objectKind === ObjectKind.Combination) {
       const kind = getCombinationKind(schemaNode);
-      schemaNode[kind].forEach((childNode: JsonSchemaNode, index: number) => {
+      schemaNode[kind].forEach((childNode: Dict, index: number) => {
         const child = createNodeBase(pointerBase, kind, index.toString());
         child.isCombinationItem = true;
         uiNode.children.push(child.pointer);
@@ -66,7 +66,7 @@ const createUiNode = (schemaNode: JsonSchemaNode, uiNode: UiSchemaNode): UiSchem
   }
 };
 
-export const buildUiSchema = (jsonSchema: JsonSchemaNode): UiSchemaNodes => {
+export const buildUiSchema = (jsonSchema: Dict): UiSchemaNodes => {
   const uiNodeMap = createUiNode(jsonSchema, createNodeBase(ROOT_POINTER));
   // Just resolve references when we are dealing with the root, all items is resolved at this point.
   const lookup = new Map();

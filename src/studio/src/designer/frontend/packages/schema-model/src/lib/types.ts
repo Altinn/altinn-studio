@@ -20,8 +20,10 @@ export enum FieldType {
   Number = 'number',
   Boolean = 'boolean',
   Object = 'object',
-  Array = 'array',
   Null = 'null',
+}
+export enum JsonSchemaType {
+  Array = 'array',
 }
 
 /**
@@ -42,7 +44,7 @@ export enum Keywords {
   Type = 'type',
 }
 
-export interface JsonSchemaNode {
+export interface Dict {
   [key: string]: any;
 }
 
@@ -57,14 +59,14 @@ export interface UiSchemaNode {
   isArray: boolean;
   pointer: string;
   ref?: string;
-  custom: JsonSchemaNode;
+  custom: Dict;
   children: string[];
   description?: string;
   enum?: string[];
   isRequired: boolean;
   title?: string;
   value?: any;
-  restrictions: JsonSchemaNode;
+  restrictions: Dict;
   default?: any;
   const?: any;
 }

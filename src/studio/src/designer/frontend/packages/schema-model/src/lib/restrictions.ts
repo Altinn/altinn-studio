@@ -1,4 +1,4 @@
-import { FieldType, JsonSchemaNode } from './types';
+import { Dict } from './types';
 
 export enum IntRestrictionKeys {
   maximum = 'maximum',
@@ -27,18 +27,8 @@ export const AllRestrictions = {
   ...StrRestrictionKeys,
 };
 
-const restrictionMap: Map<string, string[]> = new Map([
-  [FieldType.String, [...Object.values(StrRestrictionKeys)]],
-  [FieldType.Integer, [...Object.values(IntRestrictionKeys)]],
-  [FieldType.Number, [...Object.values(IntRestrictionKeys)]],
-  [FieldType.Object, [...Object.values(ObjRestrictionKeys)]],
-  [FieldType.Array, [...Object.values(ArrRestrictionKeys)]],
-]);
-
-export const getRestrictions = (type: FieldType): string[] => restrictionMap.get(type) ?? [];
-
-export const findRestrictionsOnNode = (schemaNode: JsonSchemaNode): JsonSchemaNode => {
-  const restrictions: JsonSchemaNode = {};
+export const findRestrictionsOnNode = (schemaNode: Dict): Dict => {
+  const restrictions: Dict = {};
   Object.values(AllRestrictions).forEach((key) => {
     if (schemaNode[key] !== undefined) {
       restrictions[key] = schemaNode[key];
