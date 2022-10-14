@@ -16,7 +16,6 @@ import {
   setType,
   toggleArrayField,
 } from '../../features/editor/schemaEditorSlice';
-import { TypeSelect } from './TypeSelect';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { CombinationSelect } from './CombinationSelect';
 import { getCombinationOptions, getTypeOptions } from './helpers/options';
@@ -40,6 +39,7 @@ import { getDomFriendlyID, isValidName } from '../../utils/ui-schema-utils';
 import { Divider } from '../common/Divider';
 import { Fieldset } from '../common/Fieldset';
 import { Label } from '../common/Label';
+import { Select } from '../common/Select';
 
 export interface IItemDataComponentProps {
   selectedItem: UiSchemaNode;
@@ -150,13 +150,14 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
       )}
       {[ObjectKind.Array, ObjectKind.Field].includes(selectedItem.objectKind) &&
         itemsNode?.objectKind !== ObjectKind.Reference && (
-          <TypeSelect
+          <Select
             id={getDomFriendlyID(selectedItem.pointer, 'type-select')}
             label={t('type')}
             onChange={(type) => {
+              const selectedType = type as FieldType;
               selectedItem.objectKind === ObjectKind.Array
-                ? onChangeFieldType(makePointer(selectedItem.pointer, Keywords.Items), type)
-                : onChangeFieldType(selectedItem.pointer, type);
+                ? onChangeFieldType(makePointer(selectedItem.pointer, Keywords.Items), selectedType)
+                : onChangeFieldType(selectedItem.pointer, selectedType);
             }}
             options={getTypeOptions(t)}
             value={selectedItem.objectKind === ObjectKind.Array ? arrayType : fieldType}
