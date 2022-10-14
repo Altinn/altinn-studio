@@ -42,9 +42,7 @@ const schemaEditorSlice = createSlice({
     addEnum(state, action: PayloadAction<{ path: string; value: string; oldValue?: string }>) {
       const { path, value, oldValue } = action.payload;
       const addToItem = getNodeByPointer(state.uiSchema, path);
-      if (!addToItem.enum) {
-        addToItem.enum = [];
-      }
+      addToItem.enum = addToItem.enum ?? [];
       if (!oldValue) {
         addToItem.enum.push(value);
       }
@@ -76,9 +74,6 @@ const schemaEditorSlice = createSlice({
       }
       state.focusNameField = newPointer;
     },
-    clearNameFocus(state) {
-      state.focusNameField = undefined;
-    },
     addProperty(
       state,
       action: PayloadAction<{
@@ -102,11 +97,6 @@ const schemaEditorSlice = createSlice({
       }
       props.implicitType = false;
       state.uiSchema.push(Object.assign(createNodeBase(newNodePointer), props));
-    },
-    deleteField(state, action: PayloadAction<{ path: string; key: string }>) {
-      const { path, key } = action.payload;
-      const removeFromItem = getNodeByPointer(state.uiSchema, path);
-      delete removeFromItem.restrictions[key];
     },
     deleteEnum(state, action: PayloadAction<{ path: string; value: string }>) {
       const { path, value } = action.payload;

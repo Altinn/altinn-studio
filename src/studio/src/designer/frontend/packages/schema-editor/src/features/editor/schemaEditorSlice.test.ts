@@ -65,7 +65,16 @@ describe('SchemaEditorSlice', () => {
     }
     expect(field).toBe(666);
   });
-
+  it('handles that setPropertyName comes with empty string', () => {
+    const nextState = reducer(
+      state,
+      setPropertyName({
+        path: '#/$defs/Kontaktperson/properties/navn',
+        name: '',
+      }),
+    );
+    expect(nextState).toBe(state);
+  });
   it('handles setPropertyName', () => {
     let nextState = reducer(
       state,
@@ -74,11 +83,7 @@ describe('SchemaEditorSlice', () => {
         name: 'navn_endret',
       }),
     );
-
     let item = getNodeByPointer(nextState.uiSchema, '#/$defs/Kontaktperson/properties/navn_endret');
-    if (!item) {
-      fail('item not found');
-    }
     expect(nextState.uiSchema).not.toHaveProperty('#/$defs/Kontaktperson/properties/navn');
 
     // test that child paths are also updated
@@ -250,19 +255,19 @@ describe('SchemaEditorSlice', () => {
     // add
     let nextState = reducer(state, addEnum(payload));
     let item = getNodeByPointer(nextState.uiSchema, '#/$defs/StatistiskeEnhetstyper');
-    expect(item && item.enum).toContainEqual('test');
+    expect(item.enum).toContainEqual('test');
     // rename
     payload.oldValue = 'test';
     payload.value = 'test2';
     nextState = reducer(nextState, addEnum(payload));
     item = getNodeByPointer(nextState.uiSchema, '#/$defs/StatistiskeEnhetstyper');
 
-    expect(item && item.enum).not.toContainEqual('test');
-    expect(item && item.enum).toContainEqual('test2');
+    expect(item.enum).not.toContainEqual('test');
+    expect(item.enum).toContainEqual('test2');
     // delete
     nextState = reducer(nextState, deleteEnum(payload));
     item = getNodeByPointer(nextState.uiSchema, '#/$defs/StatistiskeEnhetstyper');
-    expect(item && item.enum).not.toContainEqual('test2');
+    expect(item.enum).not.toContainEqual('test2');
   });
 
   it('handles updateJsonSchema', () => {

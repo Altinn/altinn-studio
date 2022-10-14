@@ -106,7 +106,7 @@ export const SchemaEditor = ({
     if (selectedPropertyParent && !expandedPropNodes.includes(selectedPropertyParent.pointer)) {
       setExpandedPropNodes((prevState) => [...prevState, selectedPropertyParent.pointer]);
     }
-  }, [selectedPropertyParent]);
+  }, [selectedPropertyParent, expandedPropNodes]);
 
   const selectedDefinitionNodeId = useSelector((state: ISchemaState) => state.selectedDefinitionNodeId);
   const selectedDefinitionParent = useSelector((state: ISchemaState) =>
@@ -116,7 +116,7 @@ export const SchemaEditor = ({
     if (selectedDefinitionParent && !expandedDefNodes.includes(selectedDefinitionParent.pointer)) {
       setExpandedDefNodes((prevState) => [...prevState, selectedDefinitionParent.pointer]);
     }
-  }, [selectedPropertyParent]);
+  }, [selectedPropertyParent, expandedDefNodes]);
 
   const handlePropertiesNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) => setExpandedPropNodes(nodeIds);
 
