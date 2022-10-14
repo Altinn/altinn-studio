@@ -5,15 +5,7 @@ import { changeChildrenOrder, setSelectedId } from '../../features/editor/schema
 import { SchemaItemLabel } from './SchemaItemLabel';
 import { getIconStr } from './tree-view-helpers';
 import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
-import {
-  getChildNodesByNode,
-  getNodeByPointer,
-  getNodeIndexByPointer,
-  Keywords,
-  makePointer,
-  ObjectKind,
-  splitPointerInBaseAndName,
-} from '@altinn/schema-model';
+import { getChildNodesByNode, getNodeByPointer, ObjectKind, splitPointerInBaseAndName } from '@altinn/schema-model';
 import type { ISchemaState } from '../../types';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 import classes from './SchemaItem.module.css';
@@ -38,33 +30,17 @@ export function SchemaItem({ selectedNode, isPropertiesView, editMode, translate
   const dispatch = useDispatch();
   const keyPrefix = isPropertiesView ? 'properties' : 'definitions';
 
-  const itemsPointer = makePointer(selectedNode.pointer, Keywords.Items);
-
-  const itemsNode = useSelector((state: ISchemaState) => {
-    const itemsIndex = getNodeIndexByPointer(state.uiSchema, itemsPointer);
-    return itemsIndex ? state.uiSchema[itemsIndex] : undefined;
-  });
-  const refNode = useSelector((state: ISchemaState) => {
-    if (selectedNode.objectKind === ObjectKind.Array && itemsNode?.ref) {
-      return getNodeByPointer(state.uiSchema, itemsNode.ref);
-    } else if (selectedNode.objectKind === ObjectKind.Reference && selectedNode.ref) {
-      return getNodeByPointer(state.uiSchema, selectedNode.ref);
-    } else {
-      return undefined;
-    }
-  });
-  const childNodes = useSelector((state: ISchemaState) => {
-    if (refNode) {
-      return getChildNodesByNode(state.uiSchema, refNode);
-    } else if (itemsNode) {
-      return getChildNodesByNode(state.uiSchema, itemsNode);
-    } else {
-      return getChildNodesByNode(state.uiSchema, selectedNode);
-    }
-  });
-  const focused = refNode ?? itemsNode ?? selectedNode;
+  const refNode = useSelector((state: ISchemaState) =>
+    selectedNode.objectKind === ObjectKind.Reference && selectedNode.ref
+      ? getNodeByPointer(state.uiSchema, selectedNode.ref)
+      : undefined,
+  );
+  const childNodes = useSelector((state: ISchemaState) =>
+    refNode ? getChildNodesByNode(state.uiSchema, refNode) : getChildNodesByNode(state.uiSchema, selectedNode),
+  );
+  const focusedNode = refNode ?? selectedNode;
   const childNodesSorted: UiSchemaNodes = [];
-  focused.children.forEach((childPointer) => {
+  focusedNode.children.forEach((childPointer) => {
     const node = childNodes.find((node) => node.pointer === childPointer);
     node && childNodesSorted.push(node);
   });
@@ -72,7 +48,7 @@ export function SchemaItem({ selectedNode, isPropertiesView, editMode, translate
     e.preventDefault();
     dispatch(setSelectedId({ id: schemaItem.pointer }));
   };
-  const isRef = selectedNode.objectKind === ObjectKind.Reference || itemsNode?.objectKind === ObjectKind.Reference;
+  const isRef = selectedNode.objectKind === ObjectKind.Reference;
   const { base } = splitPointerInBaseAndName(selectedNode.pointer);
   const onMove = (from: DragItem, to: DragItem) =>
     dispatch(changeChildrenOrder({ pointerA: from.itemId, pointerB: to.itemId }));
@@ -84,11 +60,10 @@ export function SchemaItem({ selectedNode, isPropertiesView, editMode, translate
         label={
           <SchemaItemLabel
             editMode={editMode}
-            icon={getIconStr(refNode ?? itemsNode ?? selectedNode)}
+            icon={getIconStr(refNode ?? selectedNode)}
             key={`${selectedNode.pointer}-label`}
             selectedNode={selectedNode}
             refNode={refNode}
-            itemsNode={itemsNode}
             translate={translate}
           />
         }

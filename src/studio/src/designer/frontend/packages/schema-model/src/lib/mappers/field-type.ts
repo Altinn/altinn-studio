@@ -1,4 +1,4 @@
-import type { JsonSchemaNode, UiSchemaNode } from '../types';
+import type { Dict, UiSchemaNode } from '../types';
 import { FieldType, ObjectKind } from '../types';
 import { getCombinationKind, getObjectKind } from '../utils';
 import { ArrRestrictionKeys, IntRestrictionKeys, ObjRestrictionKeys, StrRestrictionKeys } from '../restrictions';
@@ -7,7 +7,7 @@ import { arrayIntersection, arrayUnique } from 'app-shared/pure';
 export const isCompundFieldType = (schemaNodeType: string | string[]) =>
   Array.isArray(schemaNodeType) && schemaNodeType.length === 2;
 
-export const findUiFieldType = (schemaNode: JsonSchemaNode) => {
+export const findUiFieldType = (schemaNode: Dict) => {
   const objectKind = getObjectKind(schemaNode);
   const keys = Object.keys(schemaNode);
   if (typeof schemaNode.properties === 'object') {
@@ -17,8 +17,6 @@ export const findUiFieldType = (schemaNode: JsonSchemaNode) => {
   } else if (objectKind === ObjectKind.Combination) {
     const kind = getCombinationKind(schemaNode);
     return schemaNode.type ?? kind; // For some weird reason some combination items might have a type set, and apparently that is ok.
-  } else if (objectKind === ObjectKind.Array) {
-    return FieldType.Array;
   } else if (isCompundFieldType(schemaNode.type)) {
     // @see SeresNillable.json, we need to support types where stuff can be null.
     return schemaNode.type.filter((t: FieldType) => t !== FieldType.Null).pop();
@@ -57,8 +55,6 @@ export const findJsonFieldType = (uiNode: UiSchemaNode) => {
     jsonFieldType = undefined;
   } else if (objectKind === ObjectKind.Field || objectKind === ObjectKind.Reference) {
     jsonFieldType = uiNode.fieldType;
-  } else if (objectKind === ObjectKind.Array) {
-    jsonFieldType = FieldType.Array;
   }
   if (typeof jsonFieldType === 'string' && isNillable && jsonFieldType !== FieldType.Null) {
     return [jsonFieldType, FieldType.Null];

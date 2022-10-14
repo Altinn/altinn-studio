@@ -14,7 +14,7 @@ export enum Capabilites {
 }
 
 export const getCapabilities = (node: UiSchemaNode): Capabilites[] => {
-  const { objectKind, fieldType } = node;
+  const { objectKind, fieldType, isArray } = node;
   const output = [];
   const isRootNode = node.pointer === ROOT_POINTER;
   const hasRestrictions = Object.keys(node.restrictions).length > 0;
@@ -25,13 +25,13 @@ export const getCapabilities = (node: UiSchemaNode): Capabilites[] => {
   }
   if (
     (objectKind === ObjectKind.Reference && node.ref) ||
-    (objectKind === ObjectKind.Array && !hasRestrictions) ||
+    (isArray && !hasRestrictions) ||
     (objectKind === ObjectKind.Combination && !hasChildren)
   ) {
     output.push(Capabilites.CanBeConvertedToField);
   }
 
-  if (objectKind === ObjectKind.Array || objectKind === ObjectKind.Field) {
+  if (isArray || objectKind === ObjectKind.Field) {
     output.push(Capabilites.CanBeConvertedToReference);
   }
 

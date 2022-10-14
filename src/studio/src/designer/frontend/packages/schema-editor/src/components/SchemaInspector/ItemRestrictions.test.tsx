@@ -7,8 +7,8 @@ import { CombinationKind, createNodeBase, FieldType, Keywords, ObjectKind, UiSch
 // Test data:
 const mockLanguage = {
   schema_editor: {
-    enum_legend: 'Liste med gyldige verdier'
-  }
+    enum_legend: 'Liste med gyldige verdier',
+  },
 };
 const mockSelectedNode = createNodeBase(Keywords.Properties, 'test');
 const defaultProps: ItemRestrictionsProps = { language: mockLanguage, selectedNode: mockSelectedNode };
@@ -32,20 +32,18 @@ test('item restrictions tab require checkbox to decheck', async () => {
 });
 
 test('Enum list should only appear for strings and numbers, as well as arrays of those', () => {
-  const { enum_legend  } = mockLanguage.schema_editor;
+  const { enum_legend } = mockLanguage.schema_editor;
   (Object.values(FieldType) as (FieldType | CombinationKind)[])
     .concat(Object.values(CombinationKind))
-    .filter((fieldType) => fieldType !== FieldType.Array)
     .forEach((fieldType) => {
       const primitiveProps = { selectedNode: createNode({ fieldType }) };
       const arrayProps = {
         selectedNode: createNode({
-          children: ['arraytest/item'],
-          fieldType: FieldType.Array,
-          objectKind: ObjectKind.Array,
-          pointer: 'arraytest'
+          isArray: true,
+          fieldType,
+          objectKind: ObjectKind.Field,
+          pointer: 'arraytest',
         }),
-        itemsNode: createNode({ fieldType, pointer: 'arraytest/item' })
       };
       for (const props of [primitiveProps, arrayProps]) {
         const { renderResult } = renderItemRestrictions(props);
@@ -64,6 +62,6 @@ test('Enum list should only appear for strings and numbers, as well as arrays of
 });
 
 const renderItemRestrictions = (props?: Partial<ItemRestrictionsProps>) =>
-  renderWithRedux(<ItemRestrictions {...defaultProps} {...props}/>);
+  renderWithRedux(<ItemRestrictions {...defaultProps} {...props} />);
 
-const createNode = (props: Partial<UiSchemaNode>): UiSchemaNode => ({...mockSelectedNode, ...props});
+const createNode = (props: Partial<UiSchemaNode>): UiSchemaNode => ({ ...mockSelectedNode, ...props });

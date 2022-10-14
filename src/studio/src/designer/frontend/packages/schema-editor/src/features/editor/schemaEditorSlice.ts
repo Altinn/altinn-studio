@@ -10,7 +10,6 @@ import {
   createNodeBase,
   FieldType,
   getNodeByPointer,
-  getNodeIndexByPointer,
   getParentNodeByPointer,
   getUniqueNodePath,
   Keywords,
@@ -22,7 +21,6 @@ import {
   replaceLastPointerSegment,
   ROOT_POINTER,
   splitPointerInBaseAndName,
-  toggleArrayAndField,
 } from '@altinn/schema-model';
 import { swapArrayElements } from 'app-shared/pure';
 
@@ -154,23 +152,6 @@ const schemaEditorSlice = createSlice({
       });
       schemaItem.restrictions = restrictions;
     },
-    setItems(
-      state,
-      action: PayloadAction<{
-        path: string;
-        items: Partial<UiSchemaNode>;
-      }>,
-    ) {
-      const { path, items } = action.payload;
-      const itemPointer = [path, Keywords.Items].join('/');
-      const uiSchemaNode = getNodeByPointer(state.uiSchema, path);
-      if (!uiSchemaNode.children.includes(itemPointer)) {
-        uiSchemaNode.children.push(itemPointer); // Ensure that the parent is refered
-      }
-      const newNode = Object.assign(createNodeBase(itemPointer), items);
-      const itemsIndex = getNodeIndexByPointer(state.uiSchema, itemPointer);
-      state.uiSchema[itemsIndex !== undefined ? itemsIndex : 0] = newNode;
-    },
     setRef(state, action: PayloadAction<{ path: string; ref: string }>) {
       const { path, ref } = action.payload;
       const referedNode = getNodeByPointer(state.uiSchema, ref);
@@ -279,7 +260,8 @@ const schemaEditorSlice = createSlice({
     },
     toggleArrayField(state, action: PayloadAction<{ pointer: string }>) {
       const { pointer } = action.payload;
-      state.uiSchema = toggleArrayAndField(state.uiSchema, pointer);
+      const node = getNodeByPointer(state.uiSchema, pointer);
+      node.isArray = !node.isArray;
     },
     changeChildrenOrder(state, action: PayloadAction<{ pointerA: string; pointerB: string }>) {
       const { pointerA, pointerB } = action.payload;
@@ -305,13 +287,12 @@ export const {
   addRootItem,
   deleteCombinationItem,
   deleteEnum,
-  deleteField,
   deleteProperty,
   navigateToType,
   promoteProperty,
   setCombinationType,
   setDescription,
-  setItems,
+
   setJsonSchema,
   setPropertyName,
   setRef,

@@ -5,7 +5,7 @@ import { getGeneralJsonSchemaForTest, simpleTestJsonSchema, validateSchema } fro
 import { createChildNode, insertSchemaNode } from './create-node';
 import { createNodeBase } from '../utils';
 
-const complexJsonTestSchema = getGeneralJsonSchemaForTest('ComplexSchema');
+const complexJsonTestSchema = getGeneralJsonSchemaForTest('ElementAnnotation');
 
 test('that we can create nodes', () => {
   const map = buildUiSchema(complexJsonTestSchema);
@@ -20,7 +20,7 @@ test('that we can create nodes', () => {
       const newNode = createChildNode(parentNode, 'hello', false);
       expect(newNode).toHaveProperty('objectKind');
     }
-    if (parentNode.objectKind === ObjectKind.Array) {
+    if (parentNode.isArray) {
       expect(() => {
         createChildNode(parentNode, 'hello', false);
       }).toThrow();
@@ -36,6 +36,7 @@ test('that we can insert nodes into the node array', () => {
     [true, false].forEach((isDefinition) => {
       if (objectKind === ObjectKind.Combination || fieldType === FieldType.Object) {
         const newNode = createChildNode(uiNode, 'hello', isDefinition);
+        newNode.implicitType = false;
         const newUiSchema = insertSchemaNode(uiSchemaNodes, newNode);
         const builtJsonSchema = buildJsonSchema(newUiSchema);
         expect(validateSchema(builtJsonSchema)).toBeTruthy();

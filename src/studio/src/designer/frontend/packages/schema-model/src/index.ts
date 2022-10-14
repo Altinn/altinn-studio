@@ -1,6 +1,12 @@
 export { buildJsonSchema } from './lib/build-json-schema';
 export { buildUiSchema } from './lib/build-ui-schema';
-export { getRestrictions, StrRestrictionKeys, castRestrictionType } from './lib/restrictions';
+export {
+  ArrRestrictionKeys,
+  StrRestrictionKeys,
+  IntRestrictionKeys,
+  ObjRestrictionKeys,
+  castRestrictionType,
+} from './lib/restrictions';
 export { ROOT_POINTER } from './lib/constants';
 export type { UiSchemaNode, UiSchemaNodes } from './lib/types';
 export { ObjectKind, Keywords, FieldType, CombinationKind } from './lib/types';
@@ -20,7 +26,6 @@ export { removeNodeByPointer } from './lib/mutations/remove-node';
 export { renameNodePointer } from './lib/mutations/rename-node';
 export { convertPropToType } from './lib/mutations/promote-node';
 export { getCapabilities, Capabilites } from './lib/capabilities';
-export { toggleArrayAndField, canToggleArrayAndField } from './lib/mutations/toggle-array-field';
 export {
   getChildNodesByNode,
   getChildNodesByPointer,

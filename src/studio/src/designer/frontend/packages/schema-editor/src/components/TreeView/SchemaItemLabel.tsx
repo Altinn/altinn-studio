@@ -28,19 +28,11 @@ export interface SchemaItemLabelProps {
   editMode: boolean;
   icon: string;
   refNode?: UiSchemaNode;
-  itemsNode?: UiSchemaNode;
   selectedNode: UiSchemaNode;
   translate: (key: string) => string;
 }
 
-export const SchemaItemLabel = ({
-  editMode,
-  icon,
-  refNode,
-  itemsNode,
-  selectedNode,
-  translate,
-}: SchemaItemLabelProps) => {
+export const SchemaItemLabel = ({ editMode, icon, refNode, selectedNode, translate }: SchemaItemLabelProps) => {
   const dispatch = useDispatch();
   const [contextAnchor, setContextAnchor] = useState<any>(null);
 
@@ -69,12 +61,11 @@ export const SchemaItemLabel = ({
       fieldType: {
         [ObjectKind.Field]: FieldType.String,
         [ObjectKind.Combination]: CombinationKind.AllOf,
-        [ObjectKind.Array]: FieldType.Array,
         [ObjectKind.Reference]: undefined,
       }[objectKind],
       ref: objectKind === ObjectKind.Reference ? '' : undefined,
     };
-    const path = itemsNode?.pointer ?? selectedNode.pointer;
+    const path = selectedNode.pointer;
     selectedNode.objectKind === ObjectKind.Combination
       ? dispatch(addCombinationItem({ path, props }))
       : dispatch(addProperty({ path, props }));
@@ -86,10 +77,10 @@ export const SchemaItemLabel = ({
       : dispatch(deleteProperty({ path: selectedNode.pointer })),
   );
 
-  const isArray = selectedNode.objectKind === ObjectKind.Array || refNode?.objectKind === ObjectKind.Array;
+  const isArray = selectedNode.isArray || refNode?.isArray;
 
   const isRef = refNode || pointerIsDefinition(selectedNode.pointer);
-  const capabilties = getCapabilities(itemsNode ?? selectedNode);
+  const capabilties = getCapabilities(selectedNode);
   return (
     <div className={classNames(classes.propertiesLabel, { [classes.isArray]: isArray, [classes.isRef]: isRef })}>
       <div className={classes.label} title={selectedNode.pointer}>

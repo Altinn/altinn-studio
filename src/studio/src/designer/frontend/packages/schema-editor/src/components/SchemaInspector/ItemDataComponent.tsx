@@ -24,14 +24,11 @@ import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import {
-  canToggleArrayAndField,
   combinationIsNullable,
   CombinationKind,
   FieldType,
   getChildNodesByNode,
   getNodeDisplayName,
-  Keywords,
-  makePointer,
   ObjectKind,
   pointerExists,
 } from '@altinn/schema-model';
@@ -56,7 +53,7 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
   const { fieldType } = selectedItem;
 
   const childNodes = useSelector((state: ISchemaState) => getChildNodesByNode(state.uiSchema, selectedItem));
-  const itemsNode = selectedItem.objectKind === ObjectKind.Array ? childNodes[0] : undefined;
+
   useEffect(() => {
     setNodeName(getNodeDisplayName(selectedItem));
     setNameError(NameError.NoError);
@@ -64,7 +61,6 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
     setItemDescription(selectedItem.description ?? '');
   }, [selectedItem]);
 
-  const arrayType = selectedItem.objectKind === ObjectKind.Array ? itemsNode?.fieldType : undefined;
   const onNameChange = (e: any) => {
     const { value } = e.target;
     setNodeName(value);
@@ -93,7 +89,7 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
   const onChangeDescription = () => dispatch(setDescription({ path: selectedNodePointer, description }));
 
   const onGoToDefButtonClick = () => {
-    const ref = selectedItem.objectKind === ObjectKind.Array ? itemsNode?.ref : selectedItem.ref;
+    const ref = selectedItem.ref;
     if (ref !== undefined) {
       dispatch(navigateToType({ id: ref }));
     }
@@ -125,9 +121,6 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
   const t = (key: string) => getTranslation(key, language);
   const titleId = getDomFriendlyID(selectedNodePointer, 'title');
   const descriptionId = getDomFriendlyID(selectedNodePointer, 'description');
-  const canToggleBetweenArrayAndField = useSelector((state: ISchemaState) =>
-    canToggleArrayAndField(state.uiSchema, selectedNodePointer),
-  );
 
   return (
     <div>
@@ -148,36 +141,29 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
           {nameError && <ErrorMessage>{t(nameError)}</ErrorMessage>}
         </>
       )}
-      {[ObjectKind.Array, ObjectKind.Field].includes(selectedItem.objectKind) &&
-        itemsNode?.objectKind !== ObjectKind.Reference && (
-          <Select
-            id={getDomFriendlyID(selectedItem.pointer, 'type-select')}
-            label={t('type')}
-            onChange={(type) => {
-              const selectedType = type as FieldType;
-              selectedItem.objectKind === ObjectKind.Array
-                ? onChangeFieldType(makePointer(selectedItem.pointer, Keywords.Items), selectedType)
-                : onChangeFieldType(selectedItem.pointer, selectedType);
-            }}
-            options={getTypeOptions(t)}
-            value={selectedItem.objectKind === ObjectKind.Array ? arrayType : fieldType}
-          />
-        )}
-      {(selectedItem.objectKind === ObjectKind.Reference || itemsNode?.objectKind === ObjectKind.Reference) && (
+      {selectedItem.objectKind === ObjectKind.Field && (
+        <Select
+          id={getDomFriendlyID(selectedItem.pointer, 'type-select')}
+          label={t('type')}
+          onChange={(type) => onChangeFieldType(selectedItem.pointer, type as FieldType)}
+          options={getTypeOptions(t)}
+          value={fieldType}
+        />
+      )}
+      {selectedItem.objectKind === ObjectKind.Reference && (
         <ReferenceSelectionComponent
           buttonText={t('go_to_type')}
           classes={classes}
           label={t('reference_to')}
           onChangeRef={onChangeRef}
           onGoToDefButtonClick={onGoToDefButtonClick}
-          selectedNode={itemsNode ?? selectedItem}
+          selectedNode={selectedItem}
         />
       )}
       {selectedItem.objectKind !== ObjectKind.Combination && (
         <div className={classes.checkboxWrapper}>
           <Checkbox
-            checked={selectedItem.fieldType === FieldType.Array}
-            disabled={!canToggleBetweenArrayAndField}
+            checked={selectedItem.isArray}
             label={t('multiple_answers')}
             name='checkedMultipleAnswers'
             onChange={handleArrayPropertyToggle}
@@ -204,7 +190,7 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
           />
         </div>
       )}
-      <ItemRestrictions selectedNode={selectedItem} language={language} itemsNode={itemsNode} />
+      <ItemRestrictions selectedNode={selectedItem} language={language} />
       <Divider />
       <Fieldset legend={t('descriptive_fields')}>
         <Label htmlFor={titleId}>{t('title')}</Label>

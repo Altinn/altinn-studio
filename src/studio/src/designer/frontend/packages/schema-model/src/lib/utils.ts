@@ -1,8 +1,7 @@
-import type { JsonSchemaNode, UiSchemaNode, UiSchemaNodes } from './types';
+import type { Dict, UiSchemaNode, UiSchemaNodes } from './types';
 import { CombinationKind, FieldType, Keywords, ObjectKind } from './types';
 import { getNodeIndexByPointer } from './selectors';
 import { ROOT_POINTER } from './constants';
-import { deepCopy } from 'app-shared/pure';
 
 export const createNodeBase = (...args: string[]): UiSchemaNode => ({
   objectKind: ObjectKind.Field,
@@ -11,6 +10,7 @@ export const createNodeBase = (...args: string[]): UiSchemaNode => ({
   isRequired: false,
   isNillable: false,
   isCombinationItem: false,
+  isArray: false,
   children: [],
   custom: {},
   restrictions: [],
@@ -25,18 +25,16 @@ export const makePointer = (...args: any[]) => {
   }
   return args.join('/');
 };
-export const getCombinationKind = (schemaNode: JsonSchemaNode): CombinationKind => {
+export const getCombinationKind = (schemaNode: Dict): CombinationKind => {
   const kinds = Object.values(CombinationKind).filter((k) => Object.keys(schemaNode).includes(k));
   return kinds[0];
 };
 
-export const getObjectKind = (schemaNode: JsonSchemaNode): ObjectKind => {
+export const getObjectKind = (schemaNode: Dict): ObjectKind => {
   if (schemaNode.$ref) {
     return ObjectKind.Reference;
   } else if (getCombinationKind(schemaNode)) {
     return ObjectKind.Combination;
-  } else if (schemaTypeIncludes(schemaNode.type, FieldType.Array)) {
-    return ObjectKind.Array;
   } else {
     return ObjectKind.Field;
   }
@@ -64,14 +62,6 @@ export const splitPointerInBaseAndName = (pointer: string) => {
 };
 
 export const pointerIsDefinition = (pointer: string) => pointer.startsWith(makePointer(Keywords.Definitions));
-
-export const pointerReplacer = (node: UiSchemaNode, oldPointer: string, newPointer: string): UiSchemaNode => {
-  const nodeCopy: UiSchemaNode = deepCopy(node);
-  nodeCopy.pointer = nodeCopy.pointer.replace(oldPointer, newPointer);
-  nodeCopy.ref = nodeCopy.ref !== undefined ? nodeCopy.ref.replace(oldPointer, newPointer) : undefined;
-  nodeCopy.children = nodeCopy.children.map((p) => p.replace(oldPointer, newPointer));
-  return nodeCopy;
-};
 
 export const pointerExists = (uiSchemaNodes: UiSchemaNodes, pointer: string): boolean =>
   getNodeIndexByPointer(uiSchemaNodes, pointer) !== undefined;
