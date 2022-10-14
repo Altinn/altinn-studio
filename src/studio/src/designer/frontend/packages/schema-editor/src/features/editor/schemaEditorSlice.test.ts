@@ -71,6 +71,7 @@ describe('SchemaEditorSlice', () => {
       setPropertyName({
         path: '#/$defs/Kontaktperson/properties/navn',
         name: '',
+        navigate: true,
       }),
     );
     expect(nextState).toBe(state);
