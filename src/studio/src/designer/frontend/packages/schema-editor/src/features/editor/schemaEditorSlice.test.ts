@@ -207,7 +207,7 @@ describe('SchemaEditorSlice', () => {
 
   it('handles addProperty', () => {
     const payload = {
-      path: '#/$defs/Kontaktperson',
+      pointer: '#/$defs/Kontaktperson',
       props: {
         fieldType: FieldType.Object,
       } as Partial<UiSchemaNode>,
