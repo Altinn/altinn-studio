@@ -145,7 +145,7 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
         <Select
           id={getDomFriendlyID(selectedItem.pointer, 'type-select')}
           label={t('type')}
-          onChange={(type) => onChangeFieldType(selectedItem.pointer, type)}
+          onChange={(type) => onChangeFieldType(selectedItem.pointer, type as FieldType)}
           options={getTypeOptions(t)}
           value={fieldType}
         />
