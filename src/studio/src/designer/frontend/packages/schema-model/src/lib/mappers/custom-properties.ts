@@ -1,5 +1,5 @@
 import type { Dict } from '../types';
-import { CombinationKind, Keywords } from '../types';
+import { CombinationKind, Keywords, UnhandledKeywords } from '../types';
 import { AllRestrictions } from '../restrictions';
 import { META_SCHEMA_ID } from '../constants';
 
@@ -16,7 +16,7 @@ export const findCustomAttributes = (schemaNode: Dict) => {
     if (!specialAttributes.includes(key)) {
       outout[key] = schemaNode[key];
     }
-    if (key === '$schema') {
+    if (key === UnhandledKeywords.Schema) {
       outout[key] = META_SCHEMA_ID;
     }
   });

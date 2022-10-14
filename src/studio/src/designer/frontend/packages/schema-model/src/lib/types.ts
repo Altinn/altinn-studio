@@ -4,16 +4,14 @@ export enum ObjectKind {
   Reference = 'reference',
 }
 
-/** Types */
 export enum CombinationKind {
   AllOf = 'allOf',
   AnyOf = 'anyOf',
   OneOf = 'oneOf',
 }
 
-/**
- * @link https://json-schema.org/understanding-json-schema/reference/type.html
- */
+// @link https://json-schema.org/understanding-json-schema/reference/type.html
+// These are the ones that is handled in the ui-model. `array`-keyword is just for json-schemas
 export enum FieldType {
   String = 'string',
   Integer = 'integer',
@@ -26,9 +24,7 @@ export enum JsonSchemaType {
   Array = 'array',
 }
 
-/**
- * These are the keywords that we actually support. The rest will be put into the `custom`-object at the ui-schema.
- */
+// These are the keywords that we actually support. The rest will be put into the `custom`-object at the ui-schema.
 export enum Keywords {
   Const = 'const',
   Default = 'default',
@@ -42,6 +38,11 @@ export enum Keywords {
   Required = 'required',
   Title = 'title',
   Type = 'type',
+}
+
+// Just to be able to track where this is used for future reference
+export enum UnhandledKeywords {
+  Schema = '$schema',
 }
 
 export interface Dict {

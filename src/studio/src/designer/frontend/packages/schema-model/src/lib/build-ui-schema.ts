@@ -1,5 +1,5 @@
 import type { Dict, UiSchemaNode, UiSchemaNodes } from './types';
-import { Keywords, ObjectKind } from './types';
+import { JsonSchemaType, Keywords, ObjectKind } from './types';
 import { createNodeBase, getCombinationKind, getObjectKind, makePointer, schemaTypeIsNillable } from './utils';
 import { findCustomAttributes } from './mappers/custom-properties';
 import { findRestrictionsOnNode } from './restrictions';
@@ -14,7 +14,7 @@ import { ROOT_POINTER } from './constants';
  * @param uiNode
  */
 const createUiNode = (schemaNode: Dict, uiNode: UiSchemaNode): UiSchemaNodes => {
-  if (schemaNode[Keywords.Type] === 'array' || schemaNode[Keywords.Items]) {
+  if (schemaNode[Keywords.Type] === JsonSchemaType.Array || schemaNode[Keywords.Items]) {
     // Arrays
     uiNode.isArray = true;
     uiNode.isNillable = schemaTypeIsNillable(schemaNode[Keywords.Type]);
