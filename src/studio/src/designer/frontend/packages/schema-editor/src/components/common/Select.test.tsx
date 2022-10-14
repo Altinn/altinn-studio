@@ -57,3 +57,9 @@ test('Select box should get focus when clicking on label', async () => {
   await user.click(screen.getByText(label));
   expect(screen.getByRole('combobox')).toHaveFocus();
 });
+
+test('Empty value option should appear with given label if set', async () => {
+  const emptyOptionLabel = 'Empty';
+  renderSelect({ emptyOptionLabel });
+  expect(screen.getByText(emptyOptionLabel)).toHaveValue('');
+});
