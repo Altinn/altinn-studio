@@ -154,10 +154,10 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
             id={getDomFriendlyID(selectedItem.pointer, 'type-select')}
             label={t('type')}
             onChange={(type) => {
-              const fieldType = type as FieldType;
+              const selectedType = type as FieldType;
               selectedItem.objectKind === ObjectKind.Array
-                ? onChangeFieldType(makePointer(selectedItem.pointer, Keywords.Items), fieldType)
-                : onChangeFieldType(selectedItem.pointer, fieldType);
+                ? onChangeFieldType(makePointer(selectedItem.pointer, Keywords.Items), selectedType)
+                : onChangeFieldType(selectedItem.pointer, selectedType);
             }}
             options={getTypeOptions(t)}
             value={selectedItem.objectKind === ObjectKind.Array ? arrayType : fieldType}
