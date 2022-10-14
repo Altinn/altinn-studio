@@ -82,15 +82,16 @@ const schemaEditorSlice = createSlice({
     addProperty(
       state,
       action: PayloadAction<{
-        path: string;
+        pointer: string;
         keepSelection?: boolean;
         props: Partial<UiSchemaNode>;
       }>,
     ) {
-      const { path, keepSelection, props } = action.payload;
-      const newNodePointer = getUniqueNodePath(state.uiSchema, makePointer(path, Keywords.Properties, 'name'));
-      const addToItem = getNodeByPointer(state.uiSchema, path);
-      addToItem.children.push(newNodePointer);
+      const { pointer, keepSelection, props } = action.payload;
+      const addToNode = getNodeByPointer(state.uiSchema, pointer);
+      const pointerBase = addToNode.isArray ? makePointer(addToNode.pointer, Keywords.Items) : addToNode.pointer;
+      const newNodePointer = getUniqueNodePath(state.uiSchema, makePointer(pointerBase, Keywords.Properties, 'name'));
+      addToNode.children.push(newNodePointer);
       if (!keepSelection) {
         if (state.selectedEditorTab === 'definitions') {
           state.selectedDefinitionNodeId = newNodePointer;
@@ -189,17 +190,19 @@ const schemaEditorSlice = createSlice({
       uiSchemaNode.fieldType = type;
       state.uiSchema = renameNodePointer(state.uiSchema, oldPointer, newPointer);
     },
-    addCombinationItem(state, action: PayloadAction<{ path: string; props: Partial<UiSchemaNode> }>) {
-      const { path, props } = action.payload;
-      const addToNode = getNodeByPointer(state.uiSchema, path);
-      const pointer = [path, addToNode.fieldType, addToNode.children.length].join('/');
-      const item = Object.assign(createNodeBase(pointer), props);
+    addCombinationItem(state, action: PayloadAction<{ pointer: string; props: Partial<UiSchemaNode> }>) {
+      const { pointer, props } = action.payload;
+      const addToNode = getNodeByPointer(state.uiSchema, pointer);
+      const item = Object.assign(
+        createNodeBase(pointer, addToNode.fieldType, addToNode.children.length.toString()),
+        props,
+      );
       item.isCombinationItem = true;
-      addToNode.children.push(pointer);
+      addToNode.children.push(item.pointer);
       state.uiSchema.push(item);
       state.selectedEditorTab === 'definitions'
-        ? (state.selectedDefinitionNodeId = pointer)
-        : (state.selectedPropertyNodeId = pointer);
+        ? (state.selectedDefinitionNodeId = item.pointer)
+        : (state.selectedPropertyNodeId = item.pointer);
     },
     setJsonSchema(state, action) {
       const { schema } = action.payload;
@@ -285,6 +288,7 @@ export const {
   addEnum,
   addProperty,
   addRootItem,
+  changeChildrenOrder,
   deleteCombinationItem,
   deleteEnum,
   deleteProperty,
@@ -292,7 +296,6 @@ export const {
   promoteProperty,
   setCombinationType,
   setDescription,
-
   setJsonSchema,
   setPropertyName,
   setRef,
@@ -306,5 +309,4 @@ export const {
   setUiSchema,
   toggleArrayField,
   updateJsonSchema,
-  changeChildrenOrder,
 } = schemaEditorSlice.actions;

@@ -448,7 +448,7 @@ describe('SchemaEditorSlice', () => {
     let nextState = reducer(
       state,
       addCombinationItem({
-        path: '#/$defs/anyOfTestSeveralItems',
+        pointer: '#/$defs/anyOfTestSeveralItems',
         props: { fieldType: FieldType.String },
       }),
     );
@@ -464,7 +464,7 @@ describe('SchemaEditorSlice', () => {
     nextState = reducer(
       state,
       addCombinationItem({
-        path: '#/$defs/allOfTest',
+        pointer: '#/$defs/allOfTest',
         props: { fieldType: FieldType.String },
       }),
     );
@@ -479,7 +479,7 @@ describe('SchemaEditorSlice', () => {
     nextState = reducer(
       state,
       addCombinationItem({
-        path: '#/$defs/oneOfTestNullable',
+        pointer: '#/$defs/oneOfTestNullable',
         props: { fieldType: FieldType.String },
       }),
     );

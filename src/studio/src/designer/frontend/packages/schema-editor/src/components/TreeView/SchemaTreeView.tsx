@@ -3,7 +3,6 @@ import { TreeView } from '@material-ui/lab';
 import { ArrowDropDown, ArrowRight } from '@material-ui/icons';
 import { SchemaItem } from './SchemaItem';
 import { UiSchemaNode } from '@altinn/schema-model';
-import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 import classes from './SchemaTreeView.module.css';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
@@ -30,7 +29,7 @@ export const SchemaTreeView = ({
       <TreeView
         className={classes.treeView}
         multiSelect={false}
-        selected={getDomFriendlyID(selectedPointer)}
+        selected={selectedPointer}
         defaultCollapseIcon={<ArrowDropDown />}
         defaultExpandIcon={<ArrowRight />}
         expanded={expanded}
