@@ -6,7 +6,7 @@ import {
   CombinationKind,
   FieldType,
   getCapabilities,
-  getNodeDisplayName,
+  getNodeDisplayName, Keywords,
   ObjectKind,
   pointerIsDefinition,
   UiSchemaNode,
@@ -65,10 +65,10 @@ export const SchemaItemLabel = ({ editMode, icon, refNode, selectedNode, transla
       }[objectKind],
       ref: objectKind === ObjectKind.Reference ? '' : undefined,
     };
-    const path = selectedNode.pointer;
+    const { pointer } = selectedNode;
     selectedNode.objectKind === ObjectKind.Combination
-      ? dispatch(addCombinationItem({ path, props }))
-      : dispatch(addProperty({ path, props }));
+      ? dispatch(addCombinationItem({ pointer, props }))
+      : dispatch(addProperty({ pointer, props }));
   });
 
   const handleDeleteClick = wrapper(() =>
@@ -97,7 +97,7 @@ export const SchemaItemLabel = ({ editMode, icon, refNode, selectedNode, transla
             role={'link'}
             tabIndex={-1}
           >
-            {refNode.pointer}
+            {refNode.pointer.replace(`#/${Keywords.Definitions}/`, '')}
           </span>
         )}
         {selectedNode.objectKind === ObjectKind.Reference && !refNode && (

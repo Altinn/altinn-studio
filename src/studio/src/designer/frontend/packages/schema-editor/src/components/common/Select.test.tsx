@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { ISelectProps, Select } from './Select';
+import { SelectProps, Select } from './Select';
 import { Option } from '../SchemaInspector/helpers/options';
 
 const user = userEvent.setup();
@@ -14,9 +14,9 @@ const options: Option[] = [
   {label: 'Option 1', value: 'option1'},
   {label: 'Option 2', value: 'option2'}
 ];
-const defaultProps: ISelectProps = { id, label, onChange, options, value: 'option1' };
+const defaultProps: SelectProps = { id, label, onChange, options, value: 'option1' };
 
-const renderSelect = (props?: Partial<ISelectProps>) => render(<Select {...defaultProps} {...props} />);
+const renderSelect = (props?: Partial<SelectProps>) => render(<Select {...defaultProps} {...props} />);
 
 test('Label appears', () => {
   renderSelect();
@@ -56,4 +56,10 @@ test('Select box should get focus when clicking on label', async () => {
   renderSelect();
   await user.click(screen.getByText(label));
   expect(screen.getByRole('combobox')).toHaveFocus();
+});
+
+test('Empty value option should appear with given label if set', async () => {
+  const emptyOptionLabel = 'Empty';
+  renderSelect({ emptyOptionLabel });
+  expect(screen.getByText(emptyOptionLabel)).toHaveValue('');
 });
