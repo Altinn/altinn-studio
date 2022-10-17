@@ -677,9 +677,9 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
     ) as ILayoutGroup;
 
     if (container && group.index >= 0) {
-      if (container.edit.openByDefault === 'first') {
+      if (container.edit?.openByDefault === 'first') {
         group.editIndex = 0;
-      } else if (container.edit.openByDefault === 'last') {
+      } else if (container.edit?.openByDefault === 'last') {
         group.editIndex = group.index;
       }
     }
