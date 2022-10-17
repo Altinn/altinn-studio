@@ -51,7 +51,7 @@ describe('get', () => {
         error = err;
       }
 
-      expect(mockedAxios.get).toHaveBeenCalledWith(testUrl, null);
+      expect(mockedAxios.get).toHaveBeenCalledWith(testUrl, undefined);
       expect(error.message).toEqual('Bad request');
       expect(error.code).toEqual('400');
     });
@@ -92,7 +92,7 @@ describe('del', () => {
         error = err;
       }
 
-      expect(mockedAxios.delete).toHaveBeenCalledWith(testUrl, null);
+      expect(mockedAxios.delete).toHaveBeenCalledWith(testUrl, undefined);
       expect(error.message).toEqual('Bad request');
       expect(error.code).toEqual('400');
     });
@@ -153,7 +153,7 @@ describe('post', () => {
         error = err;
       }
 
-      expect(mockedAxios.post).toHaveBeenCalledWith(testUrl, null, null);
+      expect(mockedAxios.post).toHaveBeenCalledWith(testUrl, null, undefined);
       expect(error.message).toEqual('Bad request');
       expect(error.code).toEqual('400');
     });
@@ -214,7 +214,7 @@ describe('put', () => {
         error = err;
       }
 
-      expect(mockedAxios.put).toHaveBeenCalledWith(testUrl, null, null);
+      expect(mockedAxios.put).toHaveBeenCalledWith(testUrl, null, undefined);
       expect(error.message).toEqual('Bad request');
       expect(error.code).toEqual('400');
     });
