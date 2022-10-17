@@ -234,6 +234,7 @@ describe('Group', () => {
     cy.get(appFrontend.group.showGroupToContinue).find('input').check();
     cy.wait('@updateInstance');
 
+    // Test whether new empty group is opened
     ['first', 'last', true, false].forEach((openByDefault) => {
       cy.interceptLayout('group', (component) => {
         if (component.edit && component.edit.openByDefault !== undefined) {
@@ -267,6 +268,7 @@ describe('Group', () => {
     cy.addItemToGroup(20, 30, 'item 2');
     cy.addItemToGroup(400, 600, 'item 3');
 
+    // Test whether existing item is opened
     ['first', 'last', true, false].forEach((openByDefault) => {
       cy.interceptLayout('group', (component) => {
         if (component.edit && component.edit.openByDefault !== undefined) {
@@ -292,5 +294,19 @@ describe('Group', () => {
         cy.get(appFrontend.group.mainGroupTableBody).find(appFrontend.group.saveMainGroup).should('not.exist');
       }
     });
+
+    cy.interceptLayout('group', (component) => {
+      if (component.edit && component.edit.openByDefault !== undefined) {
+        component.edit.openByDefault = true;
+      }
+      return component;
+    });
+
+    cy.reload();
+    cy.wait('@getLayoutGroup');
+
+    // Test that deleting an item does not cause another group to open if there are more elements in the group
+    cy.get(appFrontend.group.mainGroupTableBody).children().eq(0).find(appFrontend.group.delete).should('be.visible').click();
+    cy.get(appFrontend.group.mainGroupTableBody).find(appFrontend.group.saveMainGroup).should('not.exist');
   });
 });

@@ -402,7 +402,7 @@ export function RepeatingGroupTable({
                   </TableCell>
                 ))}
                 <TableCell
-                  style={{ width: '150px', padding: 0, paddingRight: '10px' }}
+                  style={{ width: '160px', padding: 0, paddingRight: '10px' }}
                 >
                   <span className={classes.visuallyHidden}>
                     {getLanguageFromKey('general.edit', language)}
@@ -477,7 +477,7 @@ export function RepeatingGroupTable({
                         <TableCell
                           align='right'
                           style={{
-                            width: '150px',
+                            width: '160px',
                             padding: 0,
                             paddingRight: '10px',
                           }}

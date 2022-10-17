@@ -105,7 +105,7 @@ export const selectOptions = (state: IRuntimeState): IOptions =>
   state.optionState.options;
 
 export function* updateRepeatingGroupsSaga({
-  payload: { layoutElementId, remove, index, leaveOpen },
+  payload: { layoutElementId, remove, index },
 }: PayloadAction<IUpdateRepeatingGroups>): SagaIterator {
   try {
     const formLayoutState: ILayoutState = yield select(selectFormLayoutState);
@@ -271,11 +271,6 @@ export function* updateRepeatingGroupsSaga({
             (value) => value !== index,
           );
         updatedRepeatingGroups[layoutElementId].editIndex = -1;
-
-        if (leaveOpen && index === 0) {
-          updatedRepeatingGroups[layoutElementId].index = 0;
-          updatedRepeatingGroups[layoutElementId].editIndex = 0;
-        }
 
         yield put(
           FormLayoutActions.updateRepeatingGroupsFulfilled({
