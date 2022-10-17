@@ -224,6 +224,10 @@ const schemaEditorSlice = createSlice({
       const { name } = action.payload;
       state.name = name;
     },
+    setSaveSchemaUrl(state, action: PayloadAction<{ saveUrl: string}>) {
+      const { saveUrl } = action.payload;
+      state.saveSchemaUrl = saveUrl;
+    },
     setSelectedId(state, action: PayloadAction<{ id: string; focusName?: string }>) {
       const { id, focusName } = action.payload;
       state.focusNameField = focusName;
@@ -292,7 +296,6 @@ export const {
   promoteProperty,
   setCombinationType,
   setDescription,
-
   setJsonSchema,
   setPropertyName,
   setRef,

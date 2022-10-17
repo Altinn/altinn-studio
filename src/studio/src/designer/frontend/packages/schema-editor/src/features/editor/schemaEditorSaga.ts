@@ -5,11 +5,13 @@ import { SchemaEditorActions } from './schemaEditorSlice';
 import { ISchemaState } from '../../types';
 import { buildJsonSchema } from '@altinn/schema-model';
 
-export function* AutosaveModelSaga(): SagaIterator {
+export const autoSavePropsSelector = (state: ISchemaState) => {
+  return { uiSchema: state.uiSchema, saveUrl: state.saveSchemaUrl}
+}
+
+export function* autosaveModelSaga(): SagaIterator {
   try{
-    const {uiSchema, saveUrl} = yield select((state: ISchemaState) => {
-      return { uiSchema: state.uiSchema, saveUrl: state.saveSchemaUrl}
-    });
+    const { uiSchema, saveUrl } = yield select(autoSavePropsSelector);
 
     const schema = buildJsonSchema(uiSchema);
     yield call(put, `${saveUrl}&saveOnly=true`, schema);
@@ -31,7 +33,6 @@ export function* watchAutosaveModelSaga(): SagaIterator {
     SchemaEditorActions.promoteProperty,
     SchemaEditorActions.setCombinationType,
     SchemaEditorActions.setDescription,
-    SchemaEditorActions.setItems,
     SchemaEditorActions.setPropertyName,
     SchemaEditorActions.setRef,
     SchemaEditorActions.setRequired,
@@ -39,5 +40,5 @@ export function* watchAutosaveModelSaga(): SagaIterator {
     SchemaEditorActions.setTitle,
     SchemaEditorActions.setType,
     SchemaEditorActions.toggleArrayField,
-  ], AutosaveModelSaga);
+  ], autosaveModelSaga);
 }
