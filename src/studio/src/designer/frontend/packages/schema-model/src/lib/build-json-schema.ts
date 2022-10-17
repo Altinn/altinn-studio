@@ -3,7 +3,7 @@ import { FieldType, JsonSchemaType, Keywords, ObjectKind } from './types';
 import JSONPointer from 'jsonpointer';
 import { findRequiredProps } from './mappers/required';
 import { findJsonFieldType } from './mappers/field-type';
-import { getNodeByPointer } from './selectors';
+import { getRootNode } from './selectors';
 import { sortNodesByChildren } from './mutations/sort-nodes';
 import { ROOT_POINTER } from './constants';
 import { makePointer } from './utils';
@@ -11,7 +11,7 @@ import { ArrRestrictionKeys } from './restrictions';
 
 export const buildJsonSchema = (nodes: UiSchemaNodes): Dict => {
   const out: Dict = {};
-  const rootNode = getNodeByPointer(nodes, ROOT_POINTER);
+  const rootNode = getRootNode(nodes);
   Object.assign(out, rootNode.custom);
   JSONPointer.set(out, '/' + Keywords.Type, !rootNode.implicitType ? rootNode.fieldType : undefined);
   JSONPointer.set(out, '/' + Keywords.Required, findRequiredProps(nodes, rootNode.pointer));

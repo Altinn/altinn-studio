@@ -6,7 +6,7 @@ import { addProperty, deleteProperty, setPropertyName } from '../../features/edi
 import { useDispatch, useSelector } from 'react-redux';
 import { getTranslation } from '../../utils/language';
 import type { UiSchemaNode } from '@altinn/schema-model';
-import { getChildNodesByNode, getNodeDisplayName } from '@altinn/schema-model';
+import { getChildNodesByPointer, getNodeDisplayName } from '@altinn/schema-model';
 import classes from './ItemFieldsTab.module.css';
 
 interface ItemFieldsTabProps {
@@ -39,7 +39,7 @@ export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) =>
     event.preventDefault();
     dispatchAddProperty();
   };
-  const childNodes = useSelector((state: ISchemaState) => getChildNodesByNode(state.uiSchema, selectedItem));
+  const childNodes = useSelector((state: ISchemaState) => getChildNodesByPointer(state.uiSchema, selectedItem.pointer));
   return (
     <div className={classes.root}>
       {childNodes.map((childNode) => (

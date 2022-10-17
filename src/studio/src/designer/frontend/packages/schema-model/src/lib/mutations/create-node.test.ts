@@ -31,19 +31,18 @@ test('that we can create nodes', () => {
 
 test('that we can insert nodes into the node array', () => {
   const uiSchemaNodes = buildUiSchema(complexJsonTestSchema);
-  uiSchemaNodes.forEach((uiNode) => {
-    const { objectKind, fieldType } = uiNode;
-    [true, false].forEach((isDefinition) => {
-      if (objectKind === ObjectKind.Combination || fieldType === FieldType.Object) {
+  uiSchemaNodes
+    .filter((uiNode) => uiNode.objectKind === ObjectKind.Combination || uiNode.fieldType === FieldType.Object)
+    .forEach((uiNode) => {
+      [true, false].forEach((isDefinition) => {
         const newNode = createChildNode(uiNode, 'hello', isDefinition);
         newNode.implicitType = false;
         const newUiSchema = insertSchemaNode(uiSchemaNodes, newNode);
         const builtJsonSchema = buildJsonSchema(newUiSchema);
         expect(validateSchema(builtJsonSchema)).toBeTruthy();
         expect(newUiSchema.length).toEqual(uiSchemaNodes.length + 1);
-      }
+      });
     });
-  });
 
   // Should not be mutated
   expect(uiSchemaNodes).toEqual(buildUiSchema(complexJsonTestSchema));

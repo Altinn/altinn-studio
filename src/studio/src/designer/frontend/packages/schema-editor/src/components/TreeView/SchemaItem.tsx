@@ -5,7 +5,7 @@ import { changeChildrenOrder, setSelectedId } from '../../features/editor/schema
 import { SchemaItemLabel } from './SchemaItemLabel';
 import { getIconStr } from './tree-view-helpers';
 import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
-import { getChildNodesByNode, getNodeByPointer, ObjectKind, splitPointerInBaseAndName } from '@altinn/schema-model';
+import { getChildNodesByPointer, getNodeByPointer, ObjectKind, splitPointerInBaseAndName } from '@altinn/schema-model';
 import type { ISchemaState } from '../../types';
 import classes from './SchemaItem.module.css';
 import classNames from 'classnames';
@@ -35,7 +35,9 @@ export function SchemaItem({ selectedNode, isPropertiesView, editMode, translate
       : undefined,
   );
   const childNodes = useSelector((state: ISchemaState) =>
-    refNode ? getChildNodesByNode(state.uiSchema, refNode) : getChildNodesByNode(state.uiSchema, selectedNode),
+    refNode
+      ? getChildNodesByPointer(state.uiSchema, refNode.pointer)
+      : getChildNodesByPointer(state.uiSchema, selectedNode.pointer),
   );
   const focusedNode = refNode ?? selectedNode;
   const childNodesSorted: UiSchemaNodes = [];

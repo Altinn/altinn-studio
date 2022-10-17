@@ -33,10 +33,10 @@ import {
   FieldType,
   getChildNodesByPointer,
   getNodeByPointer,
+  hasNodePointer,
   Keywords,
   makePointer,
   ObjectKind,
-  pointerExists,
   UiSchemaNode,
 } from '@altinn/schema-model';
 
@@ -208,7 +208,7 @@ describe('SchemaEditorSlice', () => {
       getNodeByPointer(nextState.uiSchema, '#/$defs/Kontaktperson');
     }).toThrowError();
 
-    expect(pointerExists(nextState.uiSchema, '#/$defs/Kontaktperson')).toBeFalsy();
+    expect(hasNodePointer(nextState.uiSchema, '#/$defs/Kontaktperson')).toBeFalsy();
   });
 
   it('handles addProperty', () => {
