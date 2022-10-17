@@ -1,15 +1,14 @@
 import React from 'react';
-import { ClassNameMap } from '@material-ui/core/styles/withStyles';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import { Select } from '../common/Select';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 import { useSelector } from 'react-redux';
 import { ISchemaState } from '../../types';
 import { getRootNodes } from '@altinn/schema-model';
+import classes from './ReferenceSelectionComponent.module.css';
 
 export interface IReferenceSelectionProps {
   buttonText: string;
-  classes: ClassNameMap;
   emptyOptionLabel: string;
   label: string;
   onChangeRef: (refPointer: string, value: string) => void;
@@ -18,7 +17,6 @@ export interface IReferenceSelectionProps {
 }
 
 export function ReferenceSelectionComponent({
-  classes,
   emptyOptionLabel,
   selectedNode,
   label,
@@ -34,7 +32,7 @@ export function ReferenceSelectionComponent({
         id={getDomFriendlyID(selectedNode.pointer, 'ref-select')}
         label={label}
         onChange={(value) => onChangeRef(selectedNode.pointer, value)}
-        options={definitions.map(({pointer}) => ({value: pointer, label: pointer}))}
+        options={definitions.map(({pointer}) => ({ value: pointer, label: pointer }))}
         value={selectedNode.ref?.replace('#/definitions/', '') || ''}
       />
       <button type='button' className={classes.navButton} onClick={onGoToDefButtonClick}>
