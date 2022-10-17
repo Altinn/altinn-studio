@@ -1,4 +1,4 @@
-import React, { KeyboardEvent, useEffect, useState } from 'react';
+import React, { ChangeEventHandler, FocusEventHandler, KeyboardEvent, useEffect, useState } from 'react';
 import { IconButton } from '@material-ui/core';
 import { useDispatch } from 'react-redux';
 import { DeleteOutline } from '@material-ui/icons';
@@ -6,18 +6,18 @@ import type { ILanguage } from '../../types';
 import { getTranslation } from '../../utils/language';
 import { setRequired } from '../../features/editor/schemaEditorSlice';
 import { Checkbox, TextField } from '@altinn/altinn-design-system';
-import { getDomFriendlyID, getUniqueNumber } from '../../utils/ui-schema-utils';
 import classes from './PropertyItem.module.css';
 
 export interface IPropertyItemProps {
-  value: string;
   fullPath: string;
+  inputId: string;
   language: ILanguage;
-  required?: boolean;
   onChangeValue: (path: string, value: string) => void;
-  onDeleteField?: (path: string, key: string) => void;
+  onDeleteField: (path: string, key: string) => void;
+  onEnterKeyPress: () => void;
   readOnly?: boolean;
-  onEnterKeyPress?: () => void;
+  required?: boolean;
+  value: string;
 }
 
 export function PropertyItem(props: IPropertyItemProps) {
@@ -25,9 +25,9 @@ export function PropertyItem(props: IPropertyItemProps) {
   const dispatch = useDispatch();
 
   useEffect(() => setValue(props.value), [props.value]);
-  const onChangeValue = (e: any) => setValue(e.target.value);
+  const onChangeValue: ChangeEventHandler<HTMLInputElement> = (e) => setValue(e.target.value);
 
-  const onBlur = (e: any) => {
+  const onBlur: FocusEventHandler<HTMLInputElement> = (e) => {
     if (value !== props.value) {
       props.onChangeValue(props.fullPath, e.target.value);
     }
@@ -35,7 +35,7 @@ export function PropertyItem(props: IPropertyItemProps) {
 
   const onClickDelete = () => props.onDeleteField?.(props.fullPath, props.value);
 
-  const onChangeRequired = (e: any) =>
+  const onChangeRequired: ChangeEventHandler<HTMLInputElement> = (e) =>
     dispatch(
       setRequired({
         path: props.fullPath,
@@ -46,14 +46,12 @@ export function PropertyItem(props: IPropertyItemProps) {
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
     e?.key === 'Enter' && props.onEnterKeyPress && props.onEnterKeyPress();
 
-  const baseId = getDomFriendlyID(props.fullPath, 'key-');
   return (
     <div className={classes.root}>
       <span className={classes.nameInputCell}>
         <TextField
-          id={`${baseId}-key-${getUniqueNumber()}`}
+          id={props.inputId}
           value={value}
-          autoFocus
           disabled={props.readOnly}
           onChange={onChangeValue}
           onBlur={onBlur}
@@ -62,20 +60,18 @@ export function PropertyItem(props: IPropertyItemProps) {
       </span>
       <Checkbox
         checked={props.required ?? false}
+        disabled={props.readOnly}
         onChange={onChangeRequired}
         name='checkedArray'
         label={getTranslation('required', props.language)}
       />
-      {props.onDeleteField && (
-        <IconButton
-          id={`${baseId}-delete-${getUniqueNumber()}`}
-          aria-label={getTranslation('delete_field', props.language)}
-          onClick={onClickDelete}
-          className={classes.delete}
-        >
-          <DeleteOutline />
-        </IconButton>
-      )}
+      <IconButton
+        aria-label={getTranslation('delete_field', props.language)}
+        onClick={onClickDelete}
+        className={classes.delete}
+      >
+        <DeleteOutline />
+      </IconButton>
     </div>
   );
 }
