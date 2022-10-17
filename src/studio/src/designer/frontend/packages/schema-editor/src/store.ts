@@ -1,5 +1,8 @@
 import { configureStore, EnhancedStore } from '@reduxjs/toolkit';
 import { reducer as schemaReducer } from './features/editor/schemaEditorSlice';
+import { sagaMiddleware } from './sagas';
+
+export const middlewares = [sagaMiddleware];
 
 export const store: EnhancedStore = configureStore({
   reducer: schemaReducer,
@@ -8,5 +11,5 @@ export const store: EnhancedStore = configureStore({
       serializableCheck: {
         ignoredActionPaths: ['payload.onSaveSchema'],
       },
-    }),
+    }).concat(sagaMiddleware),
 });

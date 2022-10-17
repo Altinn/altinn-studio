@@ -40,6 +40,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="repository">The repository implementation</param>
         /// <param name="schemaModelService">Interface for working with models.</param>
+        /// <param name="serviceRepositorySettings">Service repository settings.</param>
         public DatamodelsController(IRepository repository, ISchemaModelService schemaModelService)
         {
             _repository = repository;
@@ -47,7 +48,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Method that 
+        /// Method that
         /// </summary>
         /// <param name="org">the org owning the models repo</param>
         /// <param name="repository">the model repos</param>
@@ -212,14 +213,21 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">The org owning the repository.</param>
         /// <param name="repository">The repository name</param>
-        /// <param name="modelPath">The path to the file to be updated.</param>        
+        /// <param name="modelPath">The path to the file to be updated.</param>
+        /// <param name="saveOnly">Flag indicating if the model should ONLY be saved (no conversion) </param>
         [Authorize]
         [HttpPut]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public async Task<IActionResult> PutDatamodel(string org, string repository, [FromQuery] string modelPath)
+        public async Task<IActionResult> PutDatamodel(string org, string repository, [FromQuery] string modelPath, [FromQuery] bool saveOnly = false)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var content = await ReadRequestBodyContentAsync();
+
+            if (saveOnly)
+            {
+                await _schemaModelService.UpdateSchema(org, repository, developer, modelPath, content, saveOnly);
+                return Ok();
+            }
 
             await _schemaModelService.UpdateModelFilesFromJsonSchema(org, repository, developer, modelPath, content);
 
@@ -231,7 +239,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">The org owning the repository.</param>
         /// <param name="repository">The repository</param>
-        /// <param name="modelPath">The path to the file to be deleted.</param>        
+        /// <param name="modelPath">The path to the file to be deleted.</param>
         [Authorize]
         [HttpDelete]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -265,7 +273,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">the org owning the models repo</param>
         /// <param name="repository">the model repos</param>
-        /// <param name="modelPath">The path to the file to get.</param>        
+        /// <param name="modelPath">The path to the file to get.</param>
         [Authorize]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]

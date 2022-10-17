@@ -52,6 +52,7 @@ const renderEditor = (customState?: Partial<ISchemaState>, editMode?: boolean) =
         Toolbar={<div>toolbar goes here</div>}
         LandingPagePanel={<div>landing page panel goes here</div>}
         schema={dataMock}
+        saveUrl={""}
         language={mockLanguage}
         onSaveSchema={onSaveSchema}
         name='test'
