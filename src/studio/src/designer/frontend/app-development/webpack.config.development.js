@@ -42,7 +42,7 @@ module.exports = {
     allowedHosts: 'all',
     client: {
       overlay: {
-        errors: true,
+        errors: false,
         warnings: false,
       },
     },

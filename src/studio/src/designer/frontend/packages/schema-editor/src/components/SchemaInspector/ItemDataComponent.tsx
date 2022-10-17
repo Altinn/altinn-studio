@@ -152,7 +152,7 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
       {selectedItem.objectKind === ObjectKind.Reference && (
         <ReferenceSelectionComponent
           buttonText={t('go_to_type')}
-          classes={classes}
+          emptyOptionLabel={t('choose_type')}
           label={t('reference_to')}
           onChangeRef={onChangeRef}
           onGoToDefButtonClick={onGoToDefButtonClick}
