@@ -8643,7 +8643,8 @@ __metadata:
     jest-junit: 14.0.1
     mini-css-extract-plugin: 2.6.1
     moment: 2.29.4
-    monaco-editor-webpack-plugin: 4.2.0
+    monaco-editor: 0.34.0
+    monaco-editor-webpack-plugin: 7.0.1
     prettier: 2.7.1
     react: 18.2.0
     react-dom: 18.2.0
@@ -16835,7 +16836,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"loader-utils@npm:^2.0.0":
+"loader-utils@npm:^2.0.0, loader-utils@npm:^2.0.2":
   version: 2.0.2
   resolution: "loader-utils@npm:2.0.2"
   dependencies:
@@ -17531,22 +17532,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"monaco-editor-webpack-plugin@npm:4.2.0":
-  version: 4.2.0
-  resolution: "monaco-editor-webpack-plugin@npm:4.2.0"
+"monaco-editor-webpack-plugin@npm:7.0.1":
+  version: 7.0.1
+  resolution: "monaco-editor-webpack-plugin@npm:7.0.1"
   dependencies:
-    loader-utils: ^2.0.0
+    loader-utils: ^2.0.2
   peerDependencies:
-    monaco-editor: 0.25.x || 0.26.x || 0.27.x || 0.28.x
+    monaco-editor: ">= 0.31.0"
     webpack: ^4.5.0 || 5.x
-  checksum: 165da4085635e19f8dc7f9a30c6c473422ea54115d8051c99fb4c90eb94e6403ab9ddb99f5506016feb8065ec50a27d2c340f10cc90c2e500dc7258da659846e
+  checksum: 436814c724d5033254519ef8203f0df600d15c6bf0a3bf48a42ea678086becb56ed5685df2bca4cd4107855ecf8cea73722e52b63573edba5c020ff51b4f2d31
   languageName: node
   linkType: hard
 
-"monaco-editor@npm:^0.27.0":
-  version: 0.27.0
-  resolution: "monaco-editor@npm:0.27.0"
-  checksum: 766ce20ea6f5b5861ce3a05fa437d0755622520ce3e7d6af84a103ea5daa52fe7053cfa4ab470fa84eb42a27810c336b39764c984b9cd30bc32fd69b2eba233b
+"monaco-editor@npm:0.34.0":
+  version: 0.34.0
+  resolution: "monaco-editor@npm:0.34.0"
+  checksum: 10a28c1fe07268a23106ec9b743339af603e00c3ce646de72bf74f77e3d44065536f1a11f1a86ed459dfd9cb891261e6c7974377fc511eb65f354d6ddc89275b
   languageName: node
   linkType: hard
 
@@ -20157,16 +20158,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-monaco-editor@npm:0.45.0":
-  version: 0.45.0
-  resolution: "react-monaco-editor@npm:0.45.0"
+"react-monaco-editor@npm:0.50.1":
+  version: 0.50.1
+  resolution: "react-monaco-editor@npm:0.50.1"
   dependencies:
-    monaco-editor: ^0.27.0
-    prop-types: ^15.7.2
+    prop-types: ^15.8.1
   peerDependencies:
-    "@types/react": ^17.x
-    react: ^17.x
-  checksum: ac260730208fc2b852bdd8c2a7bf3e8c60d4d9b701bde87d4791f4a6469361c2475c5b3eb9c40dcb9ec547984bf0e8e8461cbf277827dcdc45afba379622f382
+    "@types/react": ">=17 <= 18"
+    monaco-editor: ^0.34.0
+    react: ">=17 <= 18"
+  checksum: 509a9675bc878adb515d93c4cbfac1b1818f5cf54505aa50a40d9e848e9c243a75257c1ab13b505a9d8cbdbb2b09f90117bcf618e2d1ec1ffe2bf22fd16a3a03
   languageName: node
   linkType: hard
 
@@ -21723,6 +21724,7 @@ __metadata:
     jest-junit: 14.0.1
     marked: 4.1.1
     moment: 2.29.4
+    monaco-editor: 0.34.0
     msw: 0.47.3
     parse5: 7.1.1
     react: 18.2.0
@@ -21730,7 +21732,7 @@ __metadata:
     react-docgen-typescript: 2.2.2
     react-dom: 18.2.0
     react-html-parser: 2.0.2
-    react-monaco-editor: 0.45.0
+    react-monaco-editor: 0.50.1
     react-redux: 8.0.4
     react-router-dom: 6.4.2
     react-styleguidist: 11.2.0
