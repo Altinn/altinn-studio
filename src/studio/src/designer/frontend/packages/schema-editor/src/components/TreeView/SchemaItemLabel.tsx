@@ -26,13 +26,21 @@ import { Warning } from '@material-ui/icons';
 
 export interface SchemaItemLabelProps {
   editMode: boolean;
+  hasReferredNodes: boolean;
   icon: string;
   refNode?: UiSchemaNode;
   selectedNode: UiSchemaNode;
   translate: (key: string) => string;
 }
 
-export const SchemaItemLabel = ({ editMode, icon, refNode, selectedNode, translate }: SchemaItemLabelProps) => {
+export const SchemaItemLabel = ({
+  editMode,
+  hasReferredNodes,
+  icon,
+  refNode,
+  selectedNode,
+  translate,
+}: SchemaItemLabelProps) => {
   const dispatch = useDispatch();
   const [contextAnchor, setContextAnchor] = useState<any>(null);
 
@@ -89,6 +97,7 @@ export const SchemaItemLabel = ({ editMode, icon, refNode, selectedNode, transla
         </span>{' '}
         <span>{getNodeDisplayName(selectedNode)}</span>
         {selectedNode.isRequired && <span> *</span>}
+        {hasReferredNodes && <span className={classes.greenDot}> ●</span>}
         {refNode && (
           <span
             className={classes.referenceLabel}
@@ -178,9 +187,9 @@ export const SchemaItemLabel = ({ editMode, icon, refNode, selectedNode, transla
             key='delete'
             className={classes.contextMenuLastItem}
             onClick={handleDeleteClick}
-            text={translate('delete')}
+            text={hasReferredNodes ? 'Kan ikke slettes, er i bruk.' : translate('delete')}
             iconClass='fa fa-trash'
-            disabled={!editMode}
+            disabled={!editMode || hasReferredNodes}
           />
         )}
       </AltinnMenu>

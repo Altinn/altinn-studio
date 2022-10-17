@@ -63,3 +63,7 @@
 .contextMenuLastItem {
   border-top: 1px #d3d4d5 solid !important;
 }
+
+.greenDot {
+  color: green;
+}

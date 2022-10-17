@@ -13,6 +13,7 @@ export interface SchemaTreeViewProps {
   items: UiSchemaNode[];
   onNodeToggle: any;
   selectedPointer: string;
+  isPropertiesView: boolean;
   translate: (key: string) => string;
 }
 
@@ -23,6 +24,7 @@ export const SchemaTreeView = ({
   onNodeToggle,
   selectedPointer,
   translate,
+  isPropertiesView,
 }: SchemaTreeViewProps) => {
   return (
     <DndProvider backend={HTML5Backend}>
@@ -39,7 +41,7 @@ export const SchemaTreeView = ({
           <SchemaItem
             index={index}
             editMode={editMode}
-            isPropertiesView={true}
+            isPropertiesView={isPropertiesView}
             selectedNode={item}
             key={item.pointer}
             translate={translate}

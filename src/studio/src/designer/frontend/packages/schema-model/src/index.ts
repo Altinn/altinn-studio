@@ -30,6 +30,7 @@ export {
   getNodeByPointer,
   getNodeIndexByPointer,
   getParentNodeByPointer,
+  getReferredNodes,
   getRootNode,
   getRootNodes,
   hasNodePointer,
