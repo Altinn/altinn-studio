@@ -6,7 +6,7 @@ import {
   CombinationKind,
   FieldType,
   getCapabilities,
-  getNodeDisplayName,
+  getNodeDisplayName, Keywords,
   ObjectKind,
   pointerIsDefinition,
   UiSchemaNode,
@@ -97,7 +97,7 @@ export const SchemaItemLabel = ({ editMode, icon, refNode, selectedNode, transla
             role={'link'}
             tabIndex={-1}
           >
-            {refNode.pointer}
+            {refNode.pointer.replace(`#/${Keywords.Definitions}/`, '')}
           </span>
         )}
         {selectedNode.objectKind === ObjectKind.Reference && !refNode && (

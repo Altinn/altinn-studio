@@ -4,7 +4,7 @@ import { Select } from '../common/Select';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 import { useSelector } from 'react-redux';
 import { ISchemaState } from '../../types';
-import { getRootNodes } from '@altinn/schema-model';
+import { getRootNodes, Keywords } from '@altinn/schema-model';
 import classes from './ReferenceSelectionComponent.module.css';
 
 export interface IReferenceSelectionProps {
@@ -32,8 +32,13 @@ export function ReferenceSelectionComponent({
         id={getDomFriendlyID(selectedNode.pointer, 'ref-select')}
         label={label}
         onChange={(value) => onChangeRef(selectedNode.pointer, value)}
-        options={definitions.map(({pointer}) => ({ value: pointer, label: pointer }))}
-        value={selectedNode.ref?.replace('#/definitions/', '') || ''}
+        options={definitions.map(({ pointer }) => (
+          {
+            value: pointer,
+            label: pointer.replace(`#/${Keywords.Definitions}/`, '')
+          }
+        ))}
+        value={selectedNode.ref || ''}
       />
       <button type='button' className={classes.navButton} onClick={onGoToDefButtonClick}>
         {buttonText}

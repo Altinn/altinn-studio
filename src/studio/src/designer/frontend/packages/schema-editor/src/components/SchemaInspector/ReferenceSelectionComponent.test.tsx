@@ -18,8 +18,10 @@ const selectedNode: UiSchemaNode = {
   objectKind: ObjectKind.Reference,
   ref: '',
 };
-const type1 = createNodeBase(Keywords.Definitions, 'type1');
-const type2 = createNodeBase(Keywords.Definitions, 'type2');
+const type1Name = 'type1';
+const type2Name = 'type2';
+const type1 = createNodeBase(Keywords.Definitions, type1Name);
+const type2 = createNodeBase(Keywords.Definitions, type2Name);
 const rootNode = {
   ...createNodeBase('#'),
   children: [selectedNode, type1, type2].map((node) => node.pointer),
@@ -60,9 +62,8 @@ test('All types should appear as options', () => {
 
 test('Type options should have correct values and labels', () => {
   renderReferenceSelectionComponent();
-  [type1, type2].forEach(({ pointer }) => {
-    expect(screen.getByRole('option', { name: pointer })).toHaveValue(pointer);
-  });
+  expect(screen.getByRole('option', { name: type1Name })).toHaveValue(type1.pointer);
+  expect(screen.getByRole('option', { name: type2Name })).toHaveValue(type2.pointer);
 });
 
 test('Empty option text appears', () => {
