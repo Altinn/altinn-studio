@@ -2,6 +2,7 @@ import React from 'react';
 import { DataModelling } from 'app-shared/features';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import { useAppSelector } from 'common/hooks';
+import classNames from 'classnames';
 import classes from './DataModellingContainer.module.css'
 
 interface IDataModellingContainerProps {
@@ -16,7 +17,7 @@ const DataModellingContainer = ({ language }: IDataModellingContainerProps) => {
 
   return (
     <div className={classes.root}>
-      <div className={classes.row}>
+      <div className={classNames(classes.row, classes.versionControlHeaderMargin)}>
         <VersionControlHeader language={language}/>
       </div>
       <div className={classes.row}>
