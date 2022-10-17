@@ -1,6 +1,7 @@
 import React from 'react';
 import { DataModelling } from 'app-shared/features';
-import { makeStyles, createStyles } from '@material-ui/core';
+import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
+import { makeStyles, createStyles, Grid } from '@material-ui/core';
 import { useAppSelector } from 'common/hooks';
 
 interface IDataModellingContainerProps {
@@ -12,7 +13,10 @@ const useStyles = makeStyles(
     root: {
       marginLeft: 80,
       width: 'calc(100% - 80px)',
-      display: 'inline-flex',
+      display: 'flex',
+    },
+    versionControlHeaderMargin: {
+      marginBottom: 12,
     },
   }),
 );
@@ -26,9 +30,14 @@ const DataModellingContainer = ({ language }: IDataModellingContainerProps) => {
   })
 
   return (
-    <div className={classes.root}>
-      <DataModelling language={language} org={org} repo={repo} />
-    </div>
+    <Grid container className={classes.root}>
+      <Grid item xs={12} className={classes.versionControlHeaderMargin}>
+        <VersionControlHeader language={language}/>
+      </Grid>
+      <Grid item xs={12}>
+        <DataModelling language={language} org={org} repo={repo} />
+      </Grid>
+    </Grid>
   );
 };
 
