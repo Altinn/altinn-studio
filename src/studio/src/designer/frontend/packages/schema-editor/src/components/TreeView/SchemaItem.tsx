@@ -7,7 +7,6 @@ import { getIconStr } from './tree-view-helpers';
 import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import { getChildNodesByNode, getNodeByPointer, ObjectKind, splitPointerInBaseAndName } from '@altinn/schema-model';
 import type { ISchemaState } from '../../types';
-import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 import classes from './SchemaItem.module.css';
 import classNames from 'classnames';
 import { DndItem } from './DnDWrapper';
@@ -55,7 +54,7 @@ export function SchemaItem({ selectedNode, isPropertiesView, editMode, translate
   return (
     <DndItem index={index} itemId={selectedNode.pointer} containerId={base} onMove={onMove}>
       <TreeItem
-        nodeId={getDomFriendlyID(selectedNode.pointer)}
+        nodeId={selectedNode.pointer}
         classes={{ root: classNames(classes.treeItem, isRef && classes.isRef) }}
         label={
           <SchemaItemLabel

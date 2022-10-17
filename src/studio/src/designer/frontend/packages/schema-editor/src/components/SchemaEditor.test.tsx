@@ -141,7 +141,7 @@ test('should show context menu and trigger correct dispatch when adding field on
   const actions = store.getActions();
   const lastAction = actions.at(-1);
   expect(lastAction.type).toBe('schemaEditor/addProperty');
-  expect(lastAction.payload.path).toBe('#/properties/mockItem');
+  expect(lastAction.payload.pointer).toBe('#/properties/mockItem');
   expect(lastAction.payload.props.objectKind).toBe(ObjectKind.Field);
   expect(lastAction.payload.props.fieldType).toBe(FieldType.String);
 });
@@ -160,7 +160,7 @@ test('should show context menu and trigger correct dispatch when adding referenc
   const actions = store.getActions();
   const lastAction = actions.at(-1);
   expect(lastAction.type).toBe('schemaEditor/addProperty');
-  expect(lastAction.payload.path).toBe('#/properties/mockItem');
+  expect(lastAction.payload.pointer).toBe('#/properties/mockItem');
   expect(lastAction.payload.props.objectKind).toBe(ObjectKind.Reference);
   expect(lastAction.payload.props.ref).toBe('');
 });
@@ -290,7 +290,7 @@ test('should show context menu and trigger correct dispatch when adding a combin
   const lastAction = actions.at(-1);
   expect(lastAction.type).toBe('schemaEditor/addProperty');
   expect(lastAction.payload).toEqual({
-    path: '#/properties/mockItem',
+    pointer: '#/properties/mockItem',
     props: {
       objectKind: ObjectKind.Combination,
       fieldType: CombinationKind.AllOf,
@@ -319,4 +319,13 @@ test('should only be possible to add a reference to a combination type', async (
   expect(menuItemIds).not.toContain('add-field-to-node-button');
   expect(menuItemIds).toContain('add-reference-to-node-button');
   expect(menuItemIds).not.toContain('add-combination-to-node-button');
+});
+
+test('should trigger correct dispatch when changing tab', async () => {
+  const { store, user } = renderEditor();
+  const tab = screen.getByRole('tab', { name: 'types' });
+  await user.click(tab);
+  const lastAction = store.getActions().at(-1);
+  expect(lastAction.type).toBe('schemaEditor/setSelectedTab');
+  expect(lastAction.payload).toStrictEqual({ selectedTab: 'definitions' });
 });

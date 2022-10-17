@@ -73,7 +73,7 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
 
   const onChangeNullable = (event: any) => {
     if (event.target.checked) {
-      dispatch(addCombinationItem({ path: selectedItem.pointer, props: { fieldType: FieldType.Null } }));
+      dispatch(addCombinationItem({ pointer: selectedItem.pointer, props: { fieldType: FieldType.Null } }));
     } else {
       childNodes.forEach((childNode: UiSchemaNode) => {
         if (childNode.fieldType === FieldType.Null) {

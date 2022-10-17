@@ -29,7 +29,7 @@ export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) =>
   const dispatchAddProperty = () =>
     dispatch(
       addProperty({
-        path: selectedItem.pointer,
+        pointer: selectedItem.pointer,
         keepSelection: true,
         props: {},
       }),

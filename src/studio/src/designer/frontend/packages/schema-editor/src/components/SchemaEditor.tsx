@@ -24,6 +24,7 @@ import {
   FieldType,
   getChildNodesByPointer,
   getNodeByPointer,
+  getParentNodeByPointer,
   Keywords,
   makePointer,
   ObjectKind,
@@ -92,12 +93,30 @@ export const SchemaEditor = ({
     }
   }, [dispatch, schema, name]);
 
-  const selectedPropertyNode = useSelector((state: ISchemaState) => state.selectedPropertyNodeId);
-  const selectedDefinitionNode = useSelector((state: ISchemaState) => state.selectedDefinitionNodeId);
-  const selectedTab = useSelector((state: ISchemaState) => state.selectedEditorTab);
-
   const [expandedPropNodes, setExpandedPropNodes] = useState<string[]>([]);
   const [expandedDefNodes, setExpandedDefNodes] = useState<string[]>([]);
+
+  const selectedEditorTab = useSelector((state: ISchemaState) => state.selectedEditorTab);
+
+  const selectedPropertyNodeId = useSelector((state: ISchemaState) => state.selectedPropertyNodeId);
+  const selectedPropertyParent = useSelector((state: ISchemaState) =>
+    getParentNodeByPointer(state.uiSchema, state.selectedPropertyNodeId),
+  );
+  useEffect(() => {
+    if (selectedPropertyParent && !expandedPropNodes.includes(selectedPropertyParent.pointer)) {
+      setExpandedPropNodes((prevState) => [...prevState, selectedPropertyParent.pointer]);
+    }
+  }, [selectedPropertyParent, expandedPropNodes]);
+
+  const selectedDefinitionNodeId = useSelector((state: ISchemaState) => state.selectedDefinitionNodeId);
+  const selectedDefinitionParent = useSelector((state: ISchemaState) =>
+    getParentNodeByPointer(state.uiSchema, state.selectedDefinitionNodeId),
+  );
+  useEffect(() => {
+    if (selectedDefinitionParent && !expandedDefNodes.includes(selectedDefinitionParent.pointer)) {
+      setExpandedDefNodes((prevState) => [...prevState, selectedDefinitionParent.pointer]);
+    }
+  }, [selectedPropertyParent, expandedDefNodes]);
 
   const handlePropertiesNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) => setExpandedPropNodes(nodeIds);
 
@@ -171,7 +190,7 @@ export const SchemaEditor = ({
         {LandingPagePanel}
         {name && schema ? (
           <div data-testid='schema-editor' id='schema-editor' className={classes.editor}>
-            <TabContext value={selectedTab}>
+            <TabContext value={selectedEditorTab}>
               <AppBar position='static' color='default' className={classes.appBar}>
                 <TabList onChange={handleTabChanged} aria-label='model-tabs'>
                   <SchemaTab label={t('model')} value='properties' />
@@ -229,7 +248,7 @@ export const SchemaEditor = ({
                   items={properties}
                   translate={t}
                   onNodeToggle={handlePropertiesNodeExpanded}
-                  selectedPointer={selectedPropertyNode}
+                  selectedPointer={selectedPropertyNodeId}
                 />
               </TabPanel>
               <TabPanel className={classes.tabPanel} value='definitions'>
@@ -249,7 +268,7 @@ export const SchemaEditor = ({
                   items={definitions}
                   translate={t}
                   onNodeToggle={handleDefinitionsNodeExpanded}
-                  selectedPointer={selectedDefinitionNode}
+                  selectedPointer={selectedDefinitionNodeId}
                 />
               </TabPanel>
             </TabContext>
