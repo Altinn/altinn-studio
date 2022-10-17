@@ -39,5 +39,5 @@
     "sightglass": "0.2.6",
     "underscore": "1.13.6"
   },
-  "packageManager": "yarn@3.2.3"
+  "packageManager": "yarn@3.2.4"
 }

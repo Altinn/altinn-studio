@@ -2,7 +2,7 @@ import React, { MouseEvent } from 'react';
 import { getTranslation } from '../../utils/language';
 import type { ILanguage } from '../../types';
 import type { UiSchemaNode } from '@altinn/schema-model';
-import { CombinationKind, FieldType, ObjectKind } from '@altinn/schema-model';
+import { FieldType } from '@altinn/schema-model';
 import { EnumField } from './EnumField';
 import { addEnum, deleteEnum, setRequired, setRestriction } from '../../features/editor/schemaEditorSlice';
 import { useDispatch } from 'react-redux';
@@ -22,12 +22,11 @@ export interface RestrictionItemProps {
   language: ILanguage;
   onChangeRestrictionValue: (id: string, key: string, value: string) => void;
 }
-interface Props {
+export interface ItemRestrictionsProps {
   selectedNode: UiSchemaNode;
-  itemsNode?: UiSchemaNode;
   language: ILanguage;
 }
-export const ItemRestrictions = ({ selectedNode, itemsNode, language }: Props) => {
+export const ItemRestrictions = ({ selectedNode, language }: ItemRestrictionsProps) => {
   const dispatch = useDispatch();
   const handleRequiredChanged = (e: any) => {
     const { checked } = e.target;
@@ -75,23 +74,13 @@ export const ItemRestrictions = ({ selectedNode, itemsNode, language }: Props) =
   };
 
   const t = (key: string) => getTranslation(key, language);
-  const selectedRestrictionProps: RestrictionItemProps = {
+  const restrictionProps: RestrictionItemProps = {
     restrictions: selectedNode.restrictions ?? {},
     readonly: selectedNode.ref !== undefined,
-    path: selectedNode.pointer,
+    path: selectedNode.pointer ?? '',
     onChangeRestrictionValue,
     language,
   };
-  const itemsRestrictionProps: RestrictionItemProps = {
-    restrictions: itemsNode?.restrictions ?? {},
-    readonly: itemsNode?.ref !== undefined,
-    path: itemsNode?.pointer ?? '',
-    onChangeRestrictionValue,
-    language,
-  };
-  const restrictionNode = itemsNode ?? selectedNode;
-  const restrictionProps =
-    selectedNode.objectKind === ObjectKind.Array ? itemsRestrictionProps : selectedRestrictionProps;
   return (
     <div className={classes.root}>
       <Checkbox
@@ -100,21 +89,15 @@ export const ItemRestrictions = ({ selectedNode, itemsNode, language }: Props) =
         name='checkedRequired'
         onChange={handleRequiredChanged}
       />
-      {restrictionNode.ref === undefined &&
+      {selectedNode.ref === undefined &&
         {
-          [FieldType.Array]: <ArrayRestrictions {...restrictionProps} />,
-          [FieldType.Boolean]: undefined,
           [FieldType.Integer]: <NumberRestrictions {...restrictionProps} />,
           [FieldType.Number]: <NumberRestrictions {...restrictionProps} />,
           [FieldType.Object]: <ObjectRestrictions {...restrictionProps} />,
           [FieldType.String]: <StringRestrictions {...restrictionProps} />,
-          [FieldType.Null]: undefined,
-          [CombinationKind.AllOf]: undefined,
-          [CombinationKind.AnyOf]: undefined,
-          [CombinationKind.OneOf]: undefined,
-        }[restrictionNode.fieldType]}
-      {selectedNode.objectKind === ObjectKind.Array && <ArrayRestrictions {...selectedRestrictionProps} />}
-      {selectedNode.fieldType !== FieldType.Object && (
+        }[selectedNode.fieldType as string]}
+      {selectedNode.isArray && <ArrayRestrictions {...restrictionProps} />}
+      {[FieldType.String, FieldType.Integer, FieldType.Number].includes(selectedNode.fieldType as FieldType) && (
         <>
           <Divider />
           <Fieldset legend={t('enum_legend')}>

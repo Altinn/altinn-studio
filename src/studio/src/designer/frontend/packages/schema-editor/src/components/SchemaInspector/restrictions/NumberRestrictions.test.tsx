@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { NumberRestrictions } from './NumberRestrictions';
-import { FieldType, getRestrictions } from '@altinn/schema-model';
+import { IntRestrictionKeys } from '@altinn/schema-model';
 
 test('NumberRestrictions should redner correctly', async () => {
   const onChangeRestrictionValue = jest.fn();
@@ -15,8 +15,7 @@ test('NumberRestrictions should redner correctly', async () => {
       restrictions={[]}
     />,
   );
-  const texts = getRestrictions(FieldType.Number);
-  texts?.forEach((text) => {
+  Object.values(IntRestrictionKeys).forEach((text) => {
     expect(screen.getByLabelText(text)).toBeDefined();
   });
 });

@@ -1,46 +1,48 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-
-using Altinn.Studio.Designer;
 using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
 using Designer.Tests.Utils;
-
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
 using Moq;
-
 using Xunit;
 
 namespace Designer.Tests.Controllers
 {
-    public class ReleasesControllerTests : IClassFixture<WebApplicationFactory<ReleasesController>>
+    public class ReleasesControllerTests : ApiTestsBase<ReleasesController, ReleasesControllerTests>
     {
-        private readonly WebApplicationFactory<ReleasesController> _factory;
         private readonly string _versionPrefix = "/designer/api/v1";
         private readonly JsonSerializerOptions _options;
 
-        public ReleasesControllerTests(WebApplicationFactory<ReleasesController> factory)
+        private readonly Mock<IReleaseService> _releaseServiceMock;
+        private readonly Mock<IPipelineService> _pipelineServiceMock;
+
+        public ReleasesControllerTests(WebApplicationFactory<ReleasesController> factory) : base(factory)
         {
-            _factory = factory;
             _options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
             _options.Converters.Add(new JsonStringEnumConverter());
-            TestSetupUtils.SetupDirtyHackIfLinux();
+            _releaseServiceMock = new Mock<IReleaseService>();
+            _pipelineServiceMock = new Mock<IPipelineService>();
+        }
+
+        protected override void ConfigureTestServices(IServiceCollection services)
+        {
+            services.AddSingleton<IGitea, IGiteaMock>();
+            services.AddSingleton(_releaseServiceMock.Object);
+            services.AddSingleton(_pipelineServiceMock.Object);
         }
 
         [Fact]
@@ -50,20 +52,16 @@ namespace Designer.Tests.Controllers
             string uri = $"{_versionPrefix}/udi/kjaerestebesok/releases?sortDirection=Descending";
             List<ReleaseEntity> completedReleases = GetReleasesList("completedReleases.json");
 
-            Mock<IPipelineService> pipelineService = new Mock<IPipelineService>();
-            Mock<IReleaseService> releaseService = new Mock<IReleaseService>();
-
-            releaseService
+            _releaseServiceMock
                 .Setup(rs => rs.GetAsync(It.IsAny<DocumentQueryModel>()))
                 .ReturnsAsync(new SearchResults<ReleaseEntity> { Results = completedReleases });
 
-            HttpClient client = GetTestClient(releaseService.Object, pipelineService.Object);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
-            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(HttpClient.Value, httpRequestMessage);
 
             // Act
-            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
             string responseString = await res.Content.ReadAsStringAsync();
             SearchResults<ReleaseEntity> searchResult = JsonSerializer.Deserialize<SearchResults<ReleaseEntity>>(responseString, _options);
             IEnumerable<ReleaseEntity> actual = searchResult.Results;
@@ -71,9 +69,9 @@ namespace Designer.Tests.Controllers
             // Assert
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
             Assert.Equal(5, actual.Count());
-            Assert.DoesNotContain(actual, r => r.Build.Status == Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums.BuildStatus.InProgress);
-            pipelineService.Verify(p => p.UpdateReleaseStatus(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-            releaseService.VerifyAll();
+            Assert.DoesNotContain(actual, r => r.Build.Status == BuildStatus.InProgress);
+            _pipelineServiceMock.Verify(p => p.UpdateReleaseStatus(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            _releaseServiceMock.VerifyAll();
         }
 
         [Fact]
@@ -83,24 +81,20 @@ namespace Designer.Tests.Controllers
             string uri = $"{_versionPrefix}/udi/kjaerestebesok/releases?sortDirection=Descending";
             List<ReleaseEntity> completedReleases = GetReleasesList("singleLaggingRelease.json");
 
-            Mock<IPipelineService> pipelineService = new Mock<IPipelineService>();
-            pipelineService
+            _pipelineServiceMock
                 .Setup(ps => ps.UpdateReleaseStatus(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(Task.CompletedTask);
 
-            Mock<IReleaseService> releaseService = new Mock<IReleaseService>();
-
-            releaseService
+            _releaseServiceMock
                 .Setup(rs => rs.GetAsync(It.IsAny<DocumentQueryModel>()))
                 .ReturnsAsync(new SearchResults<ReleaseEntity> { Results = completedReleases });
 
-            HttpClient client = GetTestClient(releaseService.Object, pipelineService.Object);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
-            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
+            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(HttpClient.Value, httpRequestMessage);
 
             // Act
-            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
             string responseString = await res.Content.ReadAsStringAsync();
             SearchResults<ReleaseEntity> searchResult = JsonSerializer.Deserialize<SearchResults<ReleaseEntity>>(responseString, _options);
             IEnumerable<ReleaseEntity> actual = searchResult.Results;
@@ -108,15 +102,14 @@ namespace Designer.Tests.Controllers
             // Assert
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
             Assert.Equal(5, actual.Count());
-            Assert.Contains(actual, r => r.Build.Status == Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums.BuildStatus.InProgress);
-            pipelineService.Verify(p => p.UpdateReleaseStatus(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-            releaseService.VerifyAll();
+            Assert.Contains(actual, r => r.Build.Status == BuildStatus.InProgress);
+            _pipelineServiceMock.Verify(p => p.UpdateReleaseStatus(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            _releaseServiceMock.VerifyAll();
         }
 
         private List<ReleaseEntity> GetReleasesList(string filename)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(ReleasesControllerTests).Assembly.Location).LocalPath);
-            string path = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "ReleasesCollection", filename);
+            string path = Path.Combine(UnitTestsFolder, "..", "..", "..", "_TestData", "ReleasesCollection", filename);
             if (File.Exists(path))
             {
                 string releases = File.ReadAllText(path);
@@ -124,33 +117,6 @@ namespace Designer.Tests.Controllers
             }
 
             return null;
-        }
-
-        private HttpClient GetTestClient(IReleaseService releasesService, IPipelineService pipelineService)
-        {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositoryControllerTests).Assembly.Location).LocalPath);
-            string projectDir = Directory.GetCurrentDirectory();
-            string configPath = Path.Combine(projectDir, "appsettings.json");
-
-            HttpClient client = _factory.WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureAppConfiguration((context, conf) =>
-                {
-                    conf.AddJsonFile(configPath);
-                });
-
-                var configuration = new ConfigurationBuilder()
-                    .AddJsonFile(configPath)
-                    .Build();
-
-                builder.ConfigureTestServices(services =>
-                {
-                    services.AddSingleton<IGitea, IGiteaMock>();
-                    services.AddSingleton(releasesService);
-                    services.AddSingleton(pipelineService);
-                });
-            }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
-            return client;
         }
     }
 }

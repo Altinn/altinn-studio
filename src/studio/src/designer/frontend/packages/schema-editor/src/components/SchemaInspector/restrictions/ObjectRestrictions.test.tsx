@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { ObjectRestrictions } from './ObjectRestrictions';
-import { FieldType, getRestrictions } from '@altinn/schema-model';
+import { ObjRestrictionKeys } from '@altinn/schema-model';
 
 test('ObjectRestrictions should redner correctly', async () => {
   const onChangeRestrictionValue = jest.fn();
@@ -15,8 +15,7 @@ test('ObjectRestrictions should redner correctly', async () => {
       restrictions={[]}
     />,
   );
-  const texts = getRestrictions(FieldType.Object);
-  texts.forEach((text) => {
+  Object.values(ObjRestrictionKeys).forEach((text) => {
     expect(screen.getByLabelText(text)).toBeDefined();
   });
 });

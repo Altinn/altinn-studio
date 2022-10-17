@@ -1,5 +1,5 @@
-import type { JsonSchemaNode } from '../types';
-import { CombinationKind, Keywords } from '../types';
+import type { Dict } from '../types';
+import { CombinationKind, Keywords, UnhandledKeywords } from '../types';
 import { AllRestrictions } from '../restrictions';
 import { META_SCHEMA_ID } from '../constants';
 
@@ -10,13 +10,13 @@ const specialAttributes = [
 ] as string[];
 
 // Deals with custom properties... or really what properties that we not know about.
-export const findCustomAttributes = (schemaNode: JsonSchemaNode) => {
-  const outout: JsonSchemaNode = {};
+export const findCustomAttributes = (schemaNode: Dict) => {
+  const outout: Dict = {};
   Object.keys(schemaNode).forEach((key) => {
     if (!specialAttributes.includes(key)) {
       outout[key] = schemaNode[key];
     }
-    if (key === '$schema') {
+    if (key === UnhandledKeywords.Schema) {
       outout[key] = META_SCHEMA_ID;
     }
   });

@@ -3,9 +3,9 @@ import {
   addEnum,
   addProperty,
   addRootItem,
+  changeChildrenOrder,
   deleteCombinationItem,
   deleteEnum,
-  deleteField,
   deleteProperty,
   initialState,
   navigateToType,
@@ -13,7 +13,6 @@ import {
   reducer,
   setCombinationType,
   setDescription,
-  setItems,
   setJsonSchema,
   setPropertyName,
   setRef,
@@ -24,6 +23,7 @@ import {
   setTitle,
   setType,
   setUiSchema,
+  toggleArrayField,
   updateJsonSchema,
 } from './schemaEditorSlice';
 import { dataMock } from '../../mockData';
@@ -34,6 +34,7 @@ import {
   getChildNodesByPointer,
   getNodeByPointer,
   Keywords,
+  makePointer,
   ObjectKind,
   pointerExists,
   UiSchemaNode,
@@ -149,20 +150,6 @@ describe('SchemaEditorSlice', () => {
     };
     const nextState = reducer({ ...state, selectedEditorTab: 'properties' }, setSelectedTab(payload));
     expect(nextState.selectedEditorTab).toEqual('definitions');
-  });
-
-  it('handles deleteField', () => {
-    const payload = {
-      path: '#/$defs/Kommentar2000Restriksjon',
-      key: 'maxLength',
-    };
-    const nextState = reducer(state, deleteField(payload));
-    const item = getNodeByPointer(nextState.uiSchema, '#/$defs/Kommentar2000Restriksjon');
-    if (!item.restrictions) {
-      fail('item not found');
-    }
-
-    expect(item.restrictions).not.toContainEqual({ key: 'maxLength' });
   });
 
   it('handles deleteProperty', () => {
@@ -315,17 +302,6 @@ describe('SchemaEditorSlice', () => {
     const nextState = reducer(state, setType(payload));
     const item = getNodeByPointer(nextState.uiSchema, '#/$defs/Kontaktperson');
     expect(item.fieldType).toBe(FieldType.String);
-  });
-
-  it('handles setItems', () => {
-    const payload = {
-      path: '#/properties/arrayForTest',
-      items: { fieldType: FieldType.String },
-    };
-    const nextState = reducer(state, setItems(payload));
-    const items = getChildNodesByPointer(nextState.uiSchema, payload.path);
-
-    expect(items[0].fieldType).toBe(FieldType.String);
   });
 
   it('handles setRequired', () => {
@@ -512,5 +488,39 @@ describe('SchemaEditorSlice', () => {
     expect(updatedOneOfItem.children).toHaveLength(3);
     const updatedOneOfItemChild = getNodeByPointer(nextState.uiSchema, updatedOneOfItem.children[2]);
     expect(updatedOneOfItemChild.fieldType).toBe(FieldType.String);
+  });
+  it('should handle to toggleArrayField', () => {
+    const pointer = makePointer(Keywords.Properties, 'melding');
+    const mockState: ISchemaState = {
+      ...state,
+      selectedPropertyNodeId: pointer,
+    };
+    const nextState = reducer(mockState, toggleArrayField({ pointer }));
+    const expectedArray = getNodeByPointer(nextState.uiSchema, pointer);
+    expect(expectedArray.children).toHaveLength(0);
+    expect(expectedArray.isArray).toBeTruthy();
+    expect(expectedArray.objectKind).toBe(ObjectKind.Reference);
+    const nextState2 = reducer(nextState, toggleArrayField({ pointer }));
+    const expectedField = getNodeByPointer(nextState2.uiSchema, pointer);
+    expect(expectedField.children).toHaveLength(0);
+    expect(expectedField.isArray).toBeFalsy();
+    expect(expectedField.objectKind).toBe(ObjectKind.Reference);
+  });
+  it('should handle to changeChildrenOrder', () => {
+    const parentPointer = makePointer(Keywords.Definitions, 'RA-0678_M');
+    const parentNodeBefore = getNodeByPointer(state.uiSchema, parentPointer);
+    const pointerA = makePointer(parentPointer, Keywords.Properties, 'dataFormatId');
+    const pointerB = makePointer(parentPointer, Keywords.Properties, 'InternInformasjon');
+    const nextState = reducer(state, changeChildrenOrder({ pointerA, pointerB }));
+    const parentNode = getNodeByPointer(nextState.uiSchema, parentPointer);
+    expect(parentNode.children[1]).toBe(pointerB);
+    expect(parentNode.children[3]).toBe(pointerA);
+    expect(parentNode.children.length).toBe(parentNodeBefore.children.length);
+
+    const expectedUnchanged = reducer(
+      nextState,
+      changeChildrenOrder({ pointerA, pointerB: makePointer(Keywords.Properties, 'jibberish') }),
+    );
+    expect(nextState).toBe(expectedUnchanged);
   });
 });

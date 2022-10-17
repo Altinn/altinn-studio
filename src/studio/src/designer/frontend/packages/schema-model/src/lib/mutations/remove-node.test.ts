@@ -6,7 +6,7 @@ import { CombinationKind, FieldType, Keywords } from '../types';
 import { makePointer } from '../utils';
 import { renameNodePointer } from './rename-node';
 
-const testComplexSchema = getGeneralJsonSchemaForTest('ComplexSchema');
+const testComplexSchema = getGeneralJsonSchemaForTest('ElementAnnotation');
 
 test('that we can remove a node by pointer', () => {
   const uiSchemaNodes = buildUiSchema(simpleTestJsonSchema);

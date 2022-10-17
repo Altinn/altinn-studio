@@ -13,7 +13,6 @@ import {
 } from '@altinn/schema-model';
 
 test('item property tab renders combinations', async () => {
-  const checkIsNameInUse = jest.fn();
   const uiSchemaNodes: UiSchemaNodes = [];
   const selectedNode = createNodeBase(Keywords.Properties, 'test');
   selectedNode.objectKind = ObjectKind.Combination;
@@ -26,11 +25,8 @@ test('item property tab renders combinations', async () => {
     uiSchemaNodes.push(childNode);
   });
 
-  renderWithRedux(
-    <ItemPropertiesTab language={{}} selectedItem={uiSchemaNodes[1]} checkIsNameInUse={checkIsNameInUse} />,
-    {
-      uiSchema: uiSchemaNodes,
-    },
-  );
+  renderWithRedux(<ItemPropertiesTab language={{}} selectedItem={uiSchemaNodes[1]} />, {
+    uiSchema: uiSchemaNodes,
+  });
   expect(screen.getByText('combination_inline_object_disclaimer')).toBeDefined();
 });

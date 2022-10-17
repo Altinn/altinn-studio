@@ -1,12 +1,12 @@
 import React, { ReactNode } from 'react';
 import classes from './Label.module.css';
 
-interface InspectorHeaderProps {
+interface ILabelProps {
   children: ReactNode;
   htmlFor?: string;
 }
 
-export const Label = ({ children, htmlFor }: InspectorHeaderProps) => {
+export const Label = ({ children, htmlFor }: ILabelProps) => {
   return (
     <label className={classes.root} htmlFor={htmlFor}>
       {children}

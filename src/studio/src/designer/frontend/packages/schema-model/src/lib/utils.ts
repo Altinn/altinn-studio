@@ -1,42 +1,40 @@
-import type { JsonSchemaNode, UiSchemaNode, UiSchemaNodes } from './types';
+import type { Dict, UiSchemaNode, UiSchemaNodes } from './types';
 import { CombinationKind, FieldType, Keywords, ObjectKind } from './types';
 import { getNodeIndexByPointer } from './selectors';
 import { ROOT_POINTER } from './constants';
 
-export const createNodeBase = (...args: string[]): UiSchemaNode => {
-  return {
-    objectKind: ObjectKind.Field,
-    fieldType: FieldType.Object,
-    pointer: makePointer(...args),
-    isRequired: false,
-    isNillable: false,
-    isCombinationItem: false,
-    children: [],
-    custom: {},
-    restrictions: [],
-    implicitType: true,
-    default: undefined,
-    enum: [],
-  };
-};
+export const createNodeBase = (...args: string[]): UiSchemaNode => ({
+  objectKind: ObjectKind.Field,
+  fieldType: FieldType.Object,
+  pointer: makePointer(...args),
+  isRequired: false,
+  isNillable: false,
+  isCombinationItem: false,
+  isArray: false,
+  children: [],
+  custom: {},
+  restrictions: [],
+  implicitType: true,
+  default: undefined,
+  enum: [],
+});
+
 export const makePointer = (...args: any[]) => {
   if (!args[0].startsWith(ROOT_POINTER)) {
     args.unshift(ROOT_POINTER);
   }
   return args.join('/');
 };
-export const getCombinationKind = (schemaNode: JsonSchemaNode): CombinationKind => {
+export const getCombinationKind = (schemaNode: Dict): CombinationKind => {
   const kinds = Object.values(CombinationKind).filter((k) => Object.keys(schemaNode).includes(k));
   return kinds[0];
 };
 
-export const getObjectKind = (schemaNode: JsonSchemaNode): ObjectKind => {
+export const getObjectKind = (schemaNode: Dict): ObjectKind => {
   if (schemaNode.$ref) {
     return ObjectKind.Reference;
   } else if (getCombinationKind(schemaNode)) {
     return ObjectKind.Combination;
-  } else if (schemaTypeIncludes(schemaNode.type, FieldType.Array)) {
-    return ObjectKind.Array;
   } else {
     return ObjectKind.Field;
   }
@@ -47,26 +45,6 @@ export const schemaTypeIncludes = (schemaNodeType: string | string[], type: Fiel
 
 export const schemaTypeIsNillable = (schemaNodeType: string | string[]): boolean =>
   schemaNodeType !== FieldType.Null && schemaTypeIncludes(schemaNodeType, FieldType.Null);
-
-export const getParentNodeByPointer = (uiSchemaNodes: UiSchemaNodes, pointer: string): UiSchemaNode | undefined => {
-  const pointerParts = pointer.split('/');
-  while (pointerParts.length) {
-    pointerParts.pop();
-    const parentNodeIndex = getNodeIndexByPointer(uiSchemaNodes, pointerParts.join('/'));
-    if (parentNodeIndex !== undefined) {
-      return uiSchemaNodes[parentNodeIndex];
-    }
-  }
-  return undefined;
-};
-
-export const arrayIntersection = (arrA: any[], arrB: any[]) => arrA.filter((x) => arrB.includes(x));
-
-export const arrayUnique = (arr: any[]) => {
-  const j: any = {};
-  arr.forEach((v) => (j[`${v}::${typeof v}`] = v));
-  return Object.keys(j).map((v) => j[v]);
-};
 
 export const replaceLastPointerSegment = (pointer: string, newLastSegment: string): string => {
   const parts = pointer.split('/');
@@ -83,22 +61,22 @@ export const splitPointerInBaseAndName = (pointer: string) => {
   };
 };
 
-export const isNumeric = (str: string) => parseInt(str).toString() === str;
-
 export const pointerIsDefinition = (pointer: string) => pointer.startsWith(makePointer(Keywords.Definitions));
-
-export const deepCopy = (value: any) => JSON.parse(JSON.stringify(value));
-
-export const pointerReplacer = (node: UiSchemaNode, oldPointer: string, newPointer: string): UiSchemaNode => {
-  const nodeCopy: UiSchemaNode = deepCopy(node);
-  nodeCopy.pointer = nodeCopy.pointer.replace(oldPointer, newPointer);
-  nodeCopy.ref = nodeCopy.ref !== undefined ? nodeCopy.ref.replace(oldPointer, newPointer) : undefined;
-  nodeCopy.children = nodeCopy.children.map((p) => p.replace(oldPointer, newPointer));
-  return nodeCopy;
-};
 
 export const pointerExists = (uiSchemaNodes: UiSchemaNodes, pointer: string): boolean =>
   getNodeIndexByPointer(uiSchemaNodes, pointer) !== undefined;
 
 export const combinationIsNullable = (childNodes: UiSchemaNode[]): boolean =>
   childNodes.some((child) => child.fieldType === FieldType.Null);
+
+export const getNodeDisplayName = (uiSchemaNode: UiSchemaNode) => uiSchemaNode.pointer.split('/').pop() ?? '';
+
+export const getUniqueNodePath = (uiNodeMap: UiSchemaNodes, targetPointer: string): string => {
+  let newPointer = targetPointer;
+  let postfix = 0;
+  while (pointerExists(uiNodeMap, newPointer)) {
+    newPointer = targetPointer + postfix;
+    postfix++;
+  }
+  return newPointer;
+};

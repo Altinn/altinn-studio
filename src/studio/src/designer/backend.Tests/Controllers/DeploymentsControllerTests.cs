@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -7,38 +6,41 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-
-using Altinn.Studio.Designer;
 using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Repository.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums;
 using Altinn.Studio.Designer.ViewModels.Request;
 using Altinn.Studio.Designer.ViewModels.Response;
+using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
-using Designer.Tests.Utils;
-
 using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
 using Moq;
-
 using Xunit;
 
 namespace Designer.Tests.Controllers
 {
-    public class DeploymentsControllerTests : IClassFixture<WebApplicationFactory<DeploymentsController>>
+    public class DeploymentsControllerTests : ApiTestsBase<DeploymentsController, DeploymentsControllerTests>
     {
-        private readonly WebApplicationFactory<DeploymentsController> _factory;
         private readonly string _versionPrefix = "/designer/api/v1";
         private readonly JsonSerializerOptions _options;
+        private readonly Mock<IDeploymentService> _deploymentServiceMock;
+        private readonly Mock<IPipelineService> _pipelineServiceMock;
 
-        public DeploymentsControllerTests(WebApplicationFactory<DeploymentsController> factory)
+        public DeploymentsControllerTests(WebApplicationFactory<DeploymentsController> factory) : base(factory)
         {
-            _factory = factory;
             _options = new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase };
             _options.Converters.Add(new JsonStringEnumConverter());
+            _deploymentServiceMock = new Mock<IDeploymentService>();
+            _pipelineServiceMock = new Mock<IPipelineService>();
+        }
+
+        protected override void ConfigureTestServices(IServiceCollection services)
+        {
+            services.AddSingleton<IGitea, IGiteaMock>();
+            services.AddSingleton(_deploymentServiceMock.Object);
+            services.AddSingleton(_pipelineServiceMock.Object);
         }
 
         [Fact]
@@ -48,20 +50,14 @@ namespace Designer.Tests.Controllers
             string uri = $"{_versionPrefix}/ttd/issue-6094/deployments?sortDirection=Descending";
             List<DeploymentEntity> completedDeployments = GetDeploymentsList("completedDeployments.json");
 
-            Mock<IPipelineService> pipelineService = new Mock<IPipelineService>();
-            Mock<IDeploymentService> deploymentService = new Mock<IDeploymentService>();
-
-            deploymentService
+            _deploymentServiceMock
                 .Setup(rs => rs.GetAsync(It.IsAny<DocumentQueryModel>()))
                 .ReturnsAsync(new SearchResults<DeploymentEntity> { Results = completedDeployments });
 
-            HttpClient client = GetTestClient(deploymentService.Object, pipelineService.Object);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
-            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
-
             // Act
-            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
             string responseString = await res.Content.ReadAsStringAsync();
             SearchResults<DeploymentEntity> searchResult = JsonSerializer.Deserialize<SearchResults<DeploymentEntity>>(responseString, _options);
             IEnumerable<DeploymentEntity> actual = searchResult.Results;
@@ -69,9 +65,9 @@ namespace Designer.Tests.Controllers
             // Assert
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
             Assert.Equal(8, actual.Count());
-            Assert.DoesNotContain(actual, r => r.Build.Status == Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums.BuildStatus.InProgress);
-            pipelineService.Verify(p => p.UpdateDeploymentStatus(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
-            deploymentService.Verify(r => r.GetAsync(It.IsAny<DocumentQueryModel>()), Times.Once);
+            Assert.DoesNotContain(actual, r => r.Build.Status == BuildStatus.InProgress);
+            _pipelineServiceMock.Verify(p => p.UpdateDeploymentStatus(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+            _deploymentServiceMock.Verify(r => r.GetAsync(It.IsAny<DocumentQueryModel>()), Times.Once);
         }
 
         [Fact]
@@ -81,24 +77,18 @@ namespace Designer.Tests.Controllers
             string uri = $"{_versionPrefix}/ttd/issue-6094/deployments?sortDirection=Descending";
             List<DeploymentEntity> completedDeployments = GetDeploymentsList("singleLaggingDeployment.json");
 
-            Mock<IPipelineService> pipelineService = new Mock<IPipelineService>();
-            pipelineService
+            _pipelineServiceMock
                 .Setup(ps => ps.UpdateDeploymentStatus(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(Task.CompletedTask);
 
-            Mock<IDeploymentService> deploymentService = new Mock<IDeploymentService>();
-
-            deploymentService
+            _deploymentServiceMock
                 .Setup(rs => rs.GetAsync(It.IsAny<DocumentQueryModel>()))
                 .ReturnsAsync(new SearchResults<DeploymentEntity> { Results = completedDeployments });
 
-            HttpClient client = GetTestClient(deploymentService.Object, pipelineService.Object);
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
-            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(client, httpRequestMessage);
-
             // Act
-            HttpResponseMessage res = await client.SendAsync(httpRequestMessage);
+            HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
             string responseString = await res.Content.ReadAsStringAsync();
             SearchResults<DeploymentEntity> searchResult = JsonSerializer.Deserialize<SearchResults<DeploymentEntity>>(responseString, _options);
             IEnumerable<DeploymentEntity> actual = searchResult.Results;
@@ -106,15 +96,14 @@ namespace Designer.Tests.Controllers
             // Assert
             Assert.Equal(HttpStatusCode.OK, res.StatusCode);
             Assert.Equal(8, actual.Count());
-            Assert.Contains(actual, r => r.Build.Status == Altinn.Studio.Designer.TypedHttpClients.AzureDevOps.Enums.BuildStatus.InProgress);
-            pipelineService.Verify(p => p.UpdateDeploymentStatus(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
-            deploymentService.Verify(r => r.GetAsync(It.IsAny<DocumentQueryModel>()), Times.Once);
+            Assert.Contains(actual, r => r.Build.Status == BuildStatus.InProgress);
+            _pipelineServiceMock.Verify(p => p.UpdateDeploymentStatus(It.IsAny<string>(), It.IsAny<string>()), Times.Once);
+            _deploymentServiceMock.Verify(r => r.GetAsync(It.IsAny<DocumentQueryModel>()), Times.Once);
         }
 
         private List<DeploymentEntity> GetDeploymentsList(string filename)
         {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(DeploymentsControllerTests).Assembly.Location).LocalPath);
-            string path = Path.Combine(unitTestFolder, "..", "..", "..", "_TestData", "Deployments", filename);
+            string path = Path.Combine(UnitTestsFolder, "..", "..", "..", "_TestData", "Deployments", filename);
             if (File.Exists(path))
             {
                 string deployments = File.ReadAllText(path);
@@ -122,33 +111,6 @@ namespace Designer.Tests.Controllers
             }
 
             return null;
-        }
-
-        private HttpClient GetTestClient(IDeploymentService deploymentService, IPipelineService pipelineService)
-        {
-            string unitTestFolder = Path.GetDirectoryName(new Uri(typeof(RepositoryControllerTests).Assembly.Location).LocalPath);
-            string projectDir = Directory.GetCurrentDirectory();
-            string configPath = Path.Combine(projectDir, "appsettings.json");
-
-            HttpClient client = _factory.WithWebHostBuilder(builder =>
-            {
-                builder.ConfigureAppConfiguration((context, conf) =>
-                {
-                    conf.AddJsonFile(configPath);
-                });
-
-                var configuration = new ConfigurationBuilder()
-                    .AddJsonFile(configPath)
-                    .Build();
-
-                builder.ConfigureTestServices(services =>
-                {
-                    services.AddSingleton<IGitea, IGiteaMock>();
-                    services.AddSingleton(deploymentService);
-                    services.AddSingleton(pipelineService);
-                });
-            }).CreateClient(new WebApplicationFactoryClientOptions { AllowAutoRedirect = false });
-            return client;
         }
     }
 }

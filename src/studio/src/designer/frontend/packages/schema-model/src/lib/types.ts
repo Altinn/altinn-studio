@@ -2,32 +2,29 @@ export enum ObjectKind {
   Combination = 'combination',
   Field = 'field',
   Reference = 'reference',
-  Array = 'array',
 }
 
-/** Types */
 export enum CombinationKind {
   AllOf = 'allOf',
   AnyOf = 'anyOf',
   OneOf = 'oneOf',
 }
 
-/**
- * @link https://json-schema.org/understanding-json-schema/reference/type.html
- */
+// @link https://json-schema.org/understanding-json-schema/reference/type.html
+// These are the ones that is handled in the ui-model. `array`-keyword is just for json-schemas
 export enum FieldType {
   String = 'string',
   Integer = 'integer',
   Number = 'number',
   Boolean = 'boolean',
   Object = 'object',
-  Array = 'array',
   Null = 'null',
 }
+export enum JsonSchemaType {
+  Array = 'array',
+}
 
-/**
- * These are the keywords that we actually support. The rest will be put into the `custom`-object at the ui-schema.
- */
+// These are the keywords that we actually support. The rest will be put into the `custom`-object at the ui-schema.
 export enum Keywords {
   Const = 'const',
   Default = 'default',
@@ -43,7 +40,12 @@ export enum Keywords {
   Type = 'type',
 }
 
-export interface JsonSchemaNode {
+// Just to be able to track where this is used for future reference
+export enum UnhandledKeywords {
+  Schema = '$schema',
+}
+
+export interface Dict {
   [key: string]: any;
 }
 
@@ -52,19 +54,20 @@ export type UiSchemaNodes = UiSchemaNode[];
 export interface UiSchemaNode {
   objectKind: ObjectKind;
   fieldType: FieldType | CombinationKind;
-  implicitType: boolean; // the
+  implicitType: boolean;
   isNillable: boolean;
   isCombinationItem: boolean;
+  isArray: boolean;
   pointer: string;
   ref?: string;
-  custom: JsonSchemaNode;
+  custom: Dict;
   children: string[];
   description?: string;
   enum?: string[];
   isRequired: boolean;
   title?: string;
   value?: any;
-  restrictions: JsonSchemaNode;
+  restrictions: Dict;
   default?: any;
   const?: any;
 }

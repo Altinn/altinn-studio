@@ -1,5 +1,6 @@
 import { FieldType, Keywords, ObjectKind, UiSchemaNode, UiSchemaNodes } from '../types';
-import { createNodeBase, getParentNodeByPointer, pointerExists } from '../utils';
+import { createNodeBase, pointerExists } from '../utils';
+import { getParentNodeByPointer } from '../selectors';
 
 export const insertSchemaNode = (uiSchemaNodes: UiSchemaNodes, newNode: UiSchemaNode): UiSchemaNodes => {
   if (pointerExists(uiSchemaNodes, newNode.pointer)) {
@@ -23,8 +24,8 @@ export const insertSchemaNode = (uiSchemaNodes: UiSchemaNodes, newNode: UiSchema
  * @param isDefinition
  */
 export const createChildNode = (parentNode: UiSchemaNode, displayName: string, isDefinition: boolean): UiSchemaNode => {
-  const { pointer, objectKind, children, fieldType } = parentNode;
-  if (objectKind === ObjectKind.Array) {
+  const { pointer, objectKind, children, fieldType, isArray } = parentNode;
+  if (isArray) {
     throw new Error("This application doesn't support combined array types.");
   } else if (objectKind === ObjectKind.Reference && fieldType !== FieldType.Object) {
     throw new Error("Can't create a new node under a reference.");

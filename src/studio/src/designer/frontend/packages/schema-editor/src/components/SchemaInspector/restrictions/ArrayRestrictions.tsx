@@ -1,16 +1,15 @@
 import React from 'react';
 import { RestrictionItemProps } from '../ItemRestrictions';
-import { FieldType, getRestrictions } from '@altinn/schema-model';
+import { ArrRestrictionKeys } from '@altinn/schema-model';
 import { RestrictionField } from '../RestrictionField';
 import { getTranslation } from '../../../utils/language';
 import { Divider } from '../../common/Divider';
 
 export function ArrayRestrictions({ restrictions, language, path, onChangeRestrictionValue }: RestrictionItemProps) {
-  const defaults = getRestrictions(FieldType.Array);
   return (
     <>
       <Divider />
-      {defaults?.map((key: string) => (
+      {Object.values(ArrRestrictionKeys).map((key: string) => (
         <RestrictionField
           key={key}
           path={path}

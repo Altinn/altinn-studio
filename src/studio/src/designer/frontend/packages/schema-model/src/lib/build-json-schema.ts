@@ -1,71 +1,91 @@
-import type { JsonSchemaNode, UiSchemaNode, UiSchemaNodes } from './types';
-import { Keywords, ObjectKind } from './types';
+import type { Dict, UiSchemaNode, UiSchemaNodes } from './types';
+import { FieldType, JsonSchemaType, Keywords, ObjectKind } from './types';
 import JSONPointer from 'jsonpointer';
 import { findRequiredProps } from './mappers/required';
 import { findJsonFieldType } from './mappers/field-type';
 import { getNodeByPointer } from './selectors';
 import { sortNodesByChildren } from './mutations/sort-nodes';
 import { ROOT_POINTER } from './constants';
+import { makePointer } from './utils';
+import { ArrRestrictionKeys } from './restrictions';
 
-export const buildJsonSchema = (uiSchemaNodes: UiSchemaNodes): JsonSchemaNode => {
-  const out: JsonSchemaNode = {};
-  const rootNode = getNodeByPointer(uiSchemaNodes, ROOT_POINTER);
+export const buildJsonSchema = (nodes: UiSchemaNodes): Dict => {
+  const out: Dict = {};
+  const rootNode = getNodeByPointer(nodes, ROOT_POINTER);
   Object.assign(out, rootNode.custom);
-  if (!rootNode.implicitType) {
-    JSONPointer.set(out, '/' + Keywords.Type, rootNode.fieldType);
-  }
-  JSONPointer.set(out, '/' + Keywords.Required, findRequiredProps(uiSchemaNodes, rootNode.pointer));
+  JSONPointer.set(out, '/' + Keywords.Type, !rootNode.implicitType ? rootNode.fieldType : undefined);
+  JSONPointer.set(out, '/' + Keywords.Required, findRequiredProps(nodes, rootNode.pointer));
 
-  const sortedUiSchemaNodes = sortNodesByChildren(uiSchemaNodes);
+  const sortedUiSchemaNodes = sortNodesByChildren(nodes);
 
-  sortedUiSchemaNodes.forEach((uiSchemaNode: UiSchemaNode) => {
-    if (uiSchemaNode.pointer === ROOT_POINTER) {
-      return;
-    }
-    const jsonPointer = uiSchemaNode.pointer.replace(ROOT_POINTER, '');
-    const startValue = Object.assign({}, uiSchemaNode.custom);
-    if (uiSchemaNode.objectKind === ObjectKind.Combination) {
-      startValue[uiSchemaNode.fieldType] = [];
-    }
+  sortedUiSchemaNodes
+    .filter((node) => node.pointer !== ROOT_POINTER)
+    .forEach((node: UiSchemaNode) => {
+      // Arrays need to be dealed with
+      const nodePointer = node.pointer.replace(ROOT_POINTER, '');
+      const itemsPointer = makePointer(node.pointer, Keywords.Items).replace(ROOT_POINTER, '');
+      const jsonPointer = node.isArray ? itemsPointer : nodePointer;
 
-    JSONPointer.set(out, jsonPointer, startValue);
+      if (node.isArray) {
+        JSONPointer.set(out, nodePointer, {
+          [Keywords.Type]: node.isNillable ? [JsonSchemaType.Array, FieldType.Null] : JsonSchemaType.Array,
+        });
 
-    // Resolving and setting reference
-    if (typeof uiSchemaNode.ref === 'string') {
-      const referedNode = getNodeByPointer(uiSchemaNodes, uiSchemaNode.ref);
-      if (!referedNode) {
-        throw Error(`Refered uiNode was not found ${uiSchemaNode.ref}`);
+        Object.keys(ArrRestrictionKeys).forEach((key) =>
+          JSONPointer.set(out, [nodePointer, key].join('/'), node.restrictions[key]),
+        );
       }
-      JSONPointer.set(out, [jsonPointer, Keywords.Reference].join('/'), uiSchemaNode.ref);
-    }
 
-    // Setting Type for fields
-    JSONPointer.set(out, [jsonPointer, Keywords.Type].join('/'), findJsonFieldType(uiSchemaNode));
+      const startValue = Object.assign({}, node.custom);
 
-    // Adding generics back
-    [Keywords.Default, Keywords.Const, Keywords.Title, Keywords.Description].forEach((keyword) => {
-      JSONPointer.set(out, [jsonPointer, keyword].join('/'), uiSchemaNode[keyword as keyof UiSchemaNode]);
-    });
+      // Adding combination root array to start
+      if (node.objectKind === ObjectKind.Combination) {
+        startValue[node.fieldType] = [];
+      }
 
-    // Adding enums
-    if (uiSchemaNode.enum && uiSchemaNode.enum.length > 0) {
-      JSONPointer.set(out, [jsonPointer, Keywords.Enum].join('/'), uiSchemaNode[Keywords.Enum]);
-    }
+      JSONPointer.set(out, jsonPointer, startValue);
 
-    // Restrictions
-    Object.keys(uiSchemaNode.restrictions).forEach((key) =>
-      JSONPointer.set(out, [jsonPointer, key].join('/'), uiSchemaNode.restrictions[key]),
-    );
-
-    if (uiSchemaNode.children.length > 0 && uiSchemaNode.objectKind === ObjectKind.Field) {
-      JSONPointer.set(out, [jsonPointer, Keywords.Properties].join('/'), {});
-      // Find required children
+      // Setting reference if existing.
       JSONPointer.set(
         out,
-        [jsonPointer, Keywords.Required].join('/'),
-        findRequiredProps(uiSchemaNodes, uiSchemaNode.pointer),
+        [jsonPointer, Keywords.Reference].join('/'),
+        typeof node.ref === 'string' ? node.ref : undefined,
       );
-    }
-  });
+
+      // Setting Type for fields
+      JSONPointer.set(out, [jsonPointer, Keywords.Type].join('/'), findJsonFieldType(node));
+
+      // Adding generics back
+      [Keywords.Default, Keywords.Const, Keywords.Title, Keywords.Description].forEach((keyword) => {
+        JSONPointer.set(out, [jsonPointer, keyword].join('/'), node[keyword as keyof UiSchemaNode]);
+      });
+
+      // Adding enums
+      JSONPointer.set(
+        out,
+        [jsonPointer, Keywords.Enum].join('/'),
+        node[Keywords.Enum]?.length ? node[Keywords.Enum] : undefined,
+      );
+
+      // Restrictions
+      Object.keys(node.restrictions)
+        .filter((key) => !Object.keys(ArrRestrictionKeys).includes(key))
+        .forEach((key) => JSONPointer.set(out, [jsonPointer, key].join('/'), node.restrictions[key]));
+
+      // We are dealing with an object prep the properties and required keywords.
+      if (node.children.length && node.objectKind === ObjectKind.Field) {
+        JSONPointer.set(out, [jsonPointer, Keywords.Properties].join('/'), {});
+        JSONPointer.set(out, [jsonPointer, Keywords.Required].join('/'), findRequiredProps(nodes, node.pointer));
+      }
+      const currentJsonNode = JSONPointer.get(out, jsonPointer);
+      if (
+        node.isArray &&
+        typeof currentJsonNode === 'object' &&
+        Object.keys(currentJsonNode).length === 0 &&
+        node.children.length === 0
+      ) {
+        JSONPointer.set(out, jsonPointer, undefined);
+      }
+    });
   return out;
 };
