@@ -3,7 +3,7 @@ import { Option } from '../SchemaInspector/helpers/options';
 import { Label } from './Label';
 import classes from './Select.module.css';
 
-export interface ISelectProps {
+export interface SelectProps {
   emptyOptionLabel?: string;
   id: string;
   label: string;
@@ -12,7 +12,7 @@ export interface ISelectProps {
   value?: string;
 }
 
-export const Select = ({ emptyOptionLabel, id, label, onChange, options, value }: ISelectProps) => {
+export const Select = ({ emptyOptionLabel, id, label, onChange, options, value }: SelectProps) => {
   const allOptions = emptyOptionLabel === undefined ? options : [{value: '', label: emptyOptionLabel}, ...options];
   return (
     <>
