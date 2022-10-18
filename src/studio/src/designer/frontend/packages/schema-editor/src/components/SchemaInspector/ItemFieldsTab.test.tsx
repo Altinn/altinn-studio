@@ -114,7 +114,7 @@ test('Newly added field gets focus and its text becomes selected', async () => {
     fieldType: FieldType.String,
   };
   const newSelectedItem = { ...selectedItem, children: [...selectedItem.children, newChildNode.pointer] };
-  const newUiSchema = [...uiSchema, newChildNode];
+  const newUiSchema = [newSelectedItem, ...childNodes, newChildNode];
   rerenderWithRedux(
     <ItemFieldsTab {...defaultProps} selectedItem={newSelectedItem} />,
     { uiSchema: newUiSchema },
