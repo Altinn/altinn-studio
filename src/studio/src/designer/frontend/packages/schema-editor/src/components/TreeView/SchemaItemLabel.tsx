@@ -6,7 +6,8 @@ import {
   CombinationKind,
   FieldType,
   getCapabilities,
-  getNodeDisplayName, Keywords,
+  getNodeDisplayName,
+  Keywords,
   ObjectKind,
   pointerIsDefinition,
   UiSchemaNode,
@@ -53,7 +54,7 @@ export const SchemaItemLabel = ({
     };
   };
 
-  const handleGoToType = () => dispatch(navigateToType({ id: selectedNode.ref }));
+  const handleGoToType = wrapper(() => dispatch(navigateToType({ pointer: selectedNode.ref })));
   const handleConvertToReference = wrapper(() => dispatch(promoteProperty({ path: selectedNode.pointer })));
   const handleConvertToField = wrapper(() => dispatch(promoteProperty({ path: selectedNode.pointer })));
   const handleCloseContextMenu = wrapper(() => undefined);

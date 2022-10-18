@@ -85,7 +85,6 @@ describe('SchemaEditorSlice', () => {
         name: 'navn_endret',
       }),
     );
-    let item = getNodeByPointer(nextState.uiSchema, '#/$defs/Kontaktperson/properties/navn_endret');
     expect(nextState.uiSchema).not.toHaveProperty('#/$defs/Kontaktperson/properties/navn');
 
     // test that child paths are also updated
@@ -96,7 +95,7 @@ describe('SchemaEditorSlice', () => {
         name: 'batman',
       }),
     );
-    item = getNodeByPointer(nextState.uiSchema, '#/$defs/batman');
+    const item = getNodeByPointer(nextState.uiSchema, '#/$defs/batman');
     expect(item.children).toContain('#/$defs/batman/properties/navn_endret');
   });
 
@@ -127,26 +126,26 @@ describe('SchemaEditorSlice', () => {
   });
 
   it('handles setSelectedId', () => {
-    const payload = {
-      id: '#/$defs/Kommentar2000Restriksjon',
-    };
-    const nextState = reducer({ ...state, selectedEditorTab: 'definitions' }, setSelectedId(payload));
+    const nextState = reducer(
+      { ...state, selectedEditorTab: 'definitions' },
+      setSelectedId({ pointer: '#/$defs/Kommentar2000Restriksjon' }),
+    );
     expect(nextState.selectedDefinitionNodeId).toEqual('#/$defs/Kommentar2000Restriksjon');
   });
 
   it('handles setSelectedId by properties tab', () => {
-    const payload = {
-      id: '#/properties/someField',
-    };
-    const nextState = reducer({ ...state, selectedEditorTab: 'properties' }, setSelectedId(payload));
+    const nextState = reducer(
+      { ...state, selectedEditorTab: 'properties' },
+      setSelectedId({ pointer: '#/properties/someField' }),
+    );
     expect(nextState.selectedPropertyNodeId).toEqual('#/properties/someField');
   });
 
   it('handles navigateToType', () => {
-    const payload = {
-      id: '#/$defs/someField',
-    };
-    const nextState = reducer({ ...state, selectedEditorTab: 'properties' }, navigateToType(payload));
+    const nextState = reducer(
+      { ...state, selectedEditorTab: 'properties' },
+      navigateToType({ pointer: '#/$defs/someField' }),
+    );
     expect(nextState.selectedEditorTab).toEqual('definitions');
     expect(nextState.selectedDefinitionNodeId).toEqual('#/$defs/someField');
   });

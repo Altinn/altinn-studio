@@ -52,9 +52,14 @@ export function SchemaItem({ selectedNode, isPropertiesView, editMode, translate
     const node = childNodes.find((node) => node.pointer === childPointer);
     node && childNodesSorted.push(node);
   });
+  const selectedPointer = useSelector((state: ISchemaState) =>
+    state.selectedEditorTab === 'definitions' ? state.selectedDefinitionNodeId : state.selectedPropertyNodeId,
+  );
   const onLabelClick = (e: any, schemaItem: UiSchemaNode) => {
     e.preventDefault();
-    dispatch(setSelectedId({ id: schemaItem.pointer }));
+    if (selectedPointer !== schemaItem.pointer) {
+      dispatch(setSelectedId({ pointer: schemaItem.pointer }));
+    }
   };
   const isRef = selectedNode.objectKind === ObjectKind.Reference;
   const { base } = splitPointerInBaseAndName(selectedNode.pointer);
