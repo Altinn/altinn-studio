@@ -20,54 +20,64 @@ export interface IPropertyItemProps {
   value: string;
 }
 
-export function PropertyItem(props: IPropertyItemProps) {
-  const [value, setValue] = useState<string>(props.value || '');
+export function PropertyItem({
+  fullPath,
+  inputId,
+  language,
+  onChangeValue,
+  onDeleteField,
+  onEnterKeyPress,
+  readOnly,
+  required,
+  value,
+}: IPropertyItemProps) {
+  const [inputValue, setInputValue] = useState<string>(value || '');
   const dispatch = useDispatch();
 
-  useEffect(() => setValue(props.value), [props.value]);
-  const onChangeValue: ChangeEventHandler<HTMLInputElement> = (e) => setValue(e.target.value);
+  useEffect(() => setInputValue(value), [value]);
+  const changeValueHandler: ChangeEventHandler<HTMLInputElement> = (e) => setInputValue(e.target.value);
 
   const onBlur: FocusEventHandler<HTMLInputElement> = (e) => {
-    if (value !== props.value) {
-      props.onChangeValue(props.fullPath, e.target.value);
+    if (inputValue !== value) {
+      onChangeValue(fullPath, e.target.value);
     }
   };
 
-  const onClickDelete = () => props.onDeleteField?.(props.fullPath, props.value);
+  const deleteHandler = () => onDeleteField?.(fullPath, value);
 
-  const onChangeRequired: ChangeEventHandler<HTMLInputElement> = (e) =>
+  const changeRequiredHandler: ChangeEventHandler<HTMLInputElement> = (e) =>
     dispatch(
       setRequired({
-        path: props.fullPath,
+        path: fullPath,
         required: e.target.checked,
       }),
     );
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
-    e?.key === 'Enter' && props.onEnterKeyPress && props.onEnterKeyPress();
+    e?.key === 'Enter' && onEnterKeyPress && onEnterKeyPress();
 
   return (
     <div className={classes.root}>
       <span className={classes.nameInputCell}>
         <TextField
-          id={props.inputId}
-          value={value}
-          disabled={props.readOnly}
-          onChange={onChangeValue}
+          id={inputId}
+          value={inputValue}
+          disabled={readOnly}
+          onChange={changeValueHandler}
           onBlur={onBlur}
           onKeyDown={onKeyDown}
         />
       </span>
       <Checkbox
-        checked={props.required ?? false}
-        disabled={props.readOnly}
-        onChange={onChangeRequired}
+        checked={required ?? false}
+        disabled={readOnly}
+        onChange={changeRequiredHandler}
         name='checkedArray'
-        label={getTranslation('required', props.language)}
+        label={getTranslation('required', language)}
       />
       <IconButton
-        aria-label={getTranslation('delete_field', props.language)}
-        onClick={onClickDelete}
+        aria-label={getTranslation('delete_field', language)}
+        onClick={deleteHandler}
         className={classes.delete}
       >
         <DeleteOutline />

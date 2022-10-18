@@ -25,13 +25,14 @@ export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) =>
   const prevNumberOfChildNodes = usePrevious<number>(numberOfChildNodes) ?? 0;
 
   useEffect(() => {
+    // If the number of fields has increased, a new field has been added and should get focus
     if (numberOfChildNodes > prevNumberOfChildNodes) {
       const newNodeId = propertyInputIdFromNode(childNodes[childNodes.length - 1]);
       const newNodeInput = document.getElementById(newNodeId) as HTMLInputElement;
       newNodeInput?.focus();
       newNodeInput?.select();
     }
-  }, [numberOfChildNodes])
+  }, [numberOfChildNodes, prevNumberOfChildNodes, childNodes])
 
   const onChangePropertyName = (path: string, value: string) =>
     dispatch(
