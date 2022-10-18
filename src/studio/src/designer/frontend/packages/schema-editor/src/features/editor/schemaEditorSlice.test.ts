@@ -33,6 +33,7 @@ import {
   FieldType,
   getChildNodesByPointer,
   getNodeByPointer,
+  getReferredNodes,
   hasNodePointer,
   Keywords,
   makePointer,
@@ -204,13 +205,32 @@ describe('SchemaEditorSlice', () => {
     const payload = {
       path: '#/$defs/Kontaktperson',
     };
-    const nextState = reducer(state, deleteProperty(payload));
+    let nextState = state;
+    getReferredNodes(state.uiSchema, payload.path).forEach((refNode) => {
+      nextState = reducer(
+        nextState,
+        deleteProperty({
+          path: refNode.pointer,
+        }),
+      );
+    });
+    nextState = reducer(nextState, deleteProperty(payload));
     expect(() => {
       getNodeByPointer(nextState.uiSchema, '#/$defs/Kontaktperson');
     }).toThrowError();
 
     expect(hasNodePointer(nextState.uiSchema, '#/$defs/Kontaktperson')).toBeFalsy();
   });
+
+  it('should throw when using deleteProperty (root definition) when there is nodes', () =>
+    expect(() => {
+      reducer(
+        state,
+        deleteProperty({
+          path: '#/$defs/Kontaktperson',
+        }),
+      );
+    }).toThrowError());
 
   it('handles addProperty', () => {
     const payload = {
