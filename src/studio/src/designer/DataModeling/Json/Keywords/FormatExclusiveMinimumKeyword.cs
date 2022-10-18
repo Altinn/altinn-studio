@@ -36,6 +36,7 @@ public sealed class FormatExclusiveMinimumKeyword: IJsonSchemaKeyword, IEquatabl
     /// <inheritdoc />
     public void Validate(ValidationContext context)
     {
+        context.Ignore = true;
     }
 
     /// <inheritdoc />

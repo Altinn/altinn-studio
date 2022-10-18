@@ -35,6 +35,6 @@ public class FormatExclusiveMinimumKeywordTests: FormatRangeKeywordTestsBase<For
     {
         var expectedHashCode = value.GetHashCode();
         Given.That.KeywordCreatedWithValue(value);
-        expectedHashCode.GetHashCode().Should().Be(Keyword.Value.GetHashCode());
+        expectedHashCode.GetHashCode().Should().Be(Keyword.GetHashCode());
     }
 }

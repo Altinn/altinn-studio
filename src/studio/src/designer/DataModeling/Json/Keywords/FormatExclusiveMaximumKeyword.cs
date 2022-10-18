@@ -36,6 +36,7 @@ public sealed class FormatExclusiveMaximumKeyword: IJsonSchemaKeyword, IEquatabl
     /// <inheritdoc />
     public void Validate(ValidationContext context)
     {
+        context.Ignore = true;
     }
 
     /// <inheritdoc />

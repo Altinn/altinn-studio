@@ -1,4 +1,5 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using FluentAssertions;
 using Xunit;
@@ -39,5 +40,19 @@ public class FormatExclusiveMinimumKeywordJsonConverterConverterTests: FormatRan
             .Then.Keyword.Should().NotBeNull();
 
         And.Keyword.Value.Should().Be(value);
+    }
+
+    [Theory]
+    [InlineData("2022-10-17")]
+    public void Read_InvalidJson_ShouldThrow(string value)
+    {
+        var jsonSchema = @$"{{
+                    ""{KeywordPlaceholder}"": {{
+                        ""value"": ""{value}""
+                }}";
+
+        var ex = Assert.Throws<JsonException>(() =>
+            Given.That.JsonSchemaLoaded(jsonSchema));
+        ex.Message.Should().Be("Expected string");
     }
 }
