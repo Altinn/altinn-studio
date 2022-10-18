@@ -90,7 +90,7 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
   const onGoToDefButtonClick = () => {
     const ref = selectedItem.ref;
     if (ref !== undefined) {
-      dispatch(navigateToType({ id: ref }));
+      dispatch(navigateToType({ pointer: ref }));
     }
   };
 

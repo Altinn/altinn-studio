@@ -217,16 +217,17 @@ const schemaEditorSlice = createSlice({
       const { name } = action.payload;
       state.name = name;
     },
-    setSaveSchemaUrl(state, action: PayloadAction<{ saveUrl: string}>) {
+    setSaveSchemaUrl(state, action: PayloadAction<{ saveUrl: string }>) {
       const { saveUrl } = action.payload;
       state.saveSchemaUrl = saveUrl;
     },
-    setSelectedId(state, action: PayloadAction<{ id: string; focusName?: string }>) {
-      const { id, focusName } = action.payload;
+    setSelectedId(state, action: PayloadAction<{ pointer: string; focusName?: string }>) {
+      const { pointer, focusName } = action.payload;
       state.focusNameField = focusName;
-      state.selectedEditorTab === 'definitions'
-        ? (state.selectedDefinitionNodeId = id)
-        : (state.selectedPropertyNodeId = id);
+      const key = state.selectedEditorTab === 'definitions' ? 'selectedDefinitionNodeId' : 'selectedPropertyNodeId';
+      Object.assign(state, {
+        [key]: pointer,
+      });
     },
     setUiSchema(state, action: PayloadAction<{ name: string }>) {
       const { name } = action.payload;
@@ -248,11 +249,13 @@ const schemaEditorSlice = createSlice({
       const { selectedTab } = action.payload;
       state.selectedEditorTab = selectedTab;
     },
-    navigateToType(state, action: PayloadAction<{ id?: string }>) {
-      const { id } = action.payload;
-      if (id) {
-        state.selectedEditorTab = 'definitions';
-        state.selectedDefinitionNodeId = id;
+    navigateToType(state, action: PayloadAction<{ pointer?: string }>) {
+      const { pointer } = action.payload;
+      if (pointer) {
+        Object.assign(state, {
+          selectedEditorTab: 'definitions',
+          selectedDefinitionNodeId: pointer,
+        });
       }
     },
     toggleArrayField(state, action: PayloadAction<{ pointer: string }>) {
