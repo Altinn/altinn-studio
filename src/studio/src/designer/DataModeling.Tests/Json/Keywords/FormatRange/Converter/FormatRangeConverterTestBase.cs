@@ -7,7 +7,7 @@ using Altinn.Studio.DataModeling.Utils;
 using FluentAssertions;
 using Json.Schema;
 
-namespace DataModeling.Tests.Json.Keywords.FormatRange;
+namespace DataModeling.Tests.Json.Keywords.FormatRange.Converter;
 
 public abstract class FormatRangeConverterTestBase<TTestType, TKeywordType> : FluentTestsBase<TTestType>
 where TTestType : FormatRangeConverterTestBase<TTestType, TKeywordType>

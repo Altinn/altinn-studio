@@ -1,7 +1,7 @@
 ﻿using Json.Schema;
 using Xunit;
 
-namespace DataModeling.Tests.Json.Keywords.FormatRange;
+namespace DataModeling.Tests.Json.Keywords.FormatRange.Keyword;
 
 public abstract class FormatRangeKeywordTestsBase<TTestType, TKeywordType> : FluentTestsBase<TTestType>
     where TTestType : FormatRangeKeywordTestsBase<TTestType, TKeywordType>

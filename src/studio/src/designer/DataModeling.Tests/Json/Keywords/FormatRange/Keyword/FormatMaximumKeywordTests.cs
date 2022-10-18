@@ -2,7 +2,7 @@
 using FluentAssertions;
 using Xunit;
 
-namespace DataModeling.Tests.Json.Keywords.FormatRange;
+namespace DataModeling.Tests.Json.Keywords.FormatRange.Keyword;
 
 public class FormatMaximumKeywordTests: FormatRangeKeywordTestsBase<FormatMaximumKeywordTests, FormatMaximumKeyword>
 {

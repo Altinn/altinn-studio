@@ -3,7 +3,7 @@ using Altinn.Studio.DataModeling.Json.Keywords;
 using FluentAssertions;
 using Xunit;
 
-namespace DataModeling.Tests.Json.Keywords.FormatRange;
+namespace DataModeling.Tests.Json.Keywords.FormatRange.Converter;
 
 public class FormatExclusiveMaximumKeywordJsonConverterConverterTests : FormatRangeConverterTestBase<FormatExclusiveMaximumKeywordJsonConverterConverterTests, FormatExclusiveMaximumKeyword>
 {

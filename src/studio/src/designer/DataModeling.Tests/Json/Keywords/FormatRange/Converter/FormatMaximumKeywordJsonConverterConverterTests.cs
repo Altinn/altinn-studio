@@ -3,7 +3,7 @@ using Altinn.Studio.DataModeling.Json.Keywords;
 using FluentAssertions;
 using Xunit;
 
-namespace DataModeling.Tests.Json.Keywords.FormatRange;
+namespace DataModeling.Tests.Json.Keywords.FormatRange.Converter;
 
 public class FormatMaximumKeywordJsonConverterConverterTests : FormatRangeConverterTestBase<FormatMaximumKeywordJsonConverterConverterTests, FormatMaximumKeyword>
 {
@@ -12,10 +12,7 @@ public class FormatMaximumKeywordJsonConverterConverterTests : FormatRangeConver
     protected override JsonConverter<FormatMaximumKeyword> Converter
         => new FormatMaximumKeyword.FormatMaximumKeywordJsonConverter();
 
-    protected override FormatMaximumKeyword CreateKeywordWithValue(string value)
-    {
-        return new FormatMaximumKeyword(value);
-    }
+    protected override FormatMaximumKeyword CreateKeywordWithValue(string value) => new(value);
 
     [Theory]
     [InlineData("2022-10-17")]
