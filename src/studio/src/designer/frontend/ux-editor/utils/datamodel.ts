@@ -1,31 +1,6 @@
 import type { IDataModelFieldElement } from '../types/global';
 
 /* UTIL METHODS FOR HANDLING DATA MODEL */
-
-export function getParentGroup(
-  dataModelElements: any,
-  elementName: string,
-): string {
-  if (!dataModelElements) {
-    return undefined;
-  }
-
-  let repeatingParentGroup: string;
-  const parentElementPath = dataModelElements[elementName].parentElement;
-  const parentElement = dataModelElements[parentElementPath];
-  if (!parentElement.parentElement) {
-    return undefined;
-  }
-
-  if (parentElement.maxOccurs <= 1) {
-    repeatingParentGroup = getParentGroup(dataModelElements, parentElement.id);
-  } else {
-    repeatingParentGroup = parentElement.id;
-  }
-
-  return repeatingParentGroup;
-}
-
 export function filterDataModelForIntellisense(
   dataModelElements: IDataModelFieldElement[],
   filterText: string,
