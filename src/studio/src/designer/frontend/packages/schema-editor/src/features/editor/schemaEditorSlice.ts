@@ -225,7 +225,9 @@ const schemaEditorSlice = createSlice({
       const { pointer, focusName } = action.payload;
       state.focusNameField = focusName;
       const key = state.selectedEditorTab === 'definitions' ? 'selectedDefinitionNodeId' : 'selectedPropertyNodeId';
-      state[key] !== pointer ? (state[key] = pointer) : undefined;
+      Object.assign(state, {
+        [key]: pointer,
+      });
     },
     setUiSchema(state, action: PayloadAction<{ name: string }>) {
       const { name } = action.payload;
