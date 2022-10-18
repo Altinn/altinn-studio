@@ -169,19 +169,20 @@ describe('SchemaEditorSlice', () => {
     });
   });
 
-  it('resets selected id when deleting selected definition', () => {
+  it('throws error when deleting selected definition with referred nodes', () => {
     const mockState = {
       ...state,
       selectedEditorTab: 'definitions',
       selectedDefinitionNodeId: '#/$defs/Kommentar2000Restriksjon',
     } as ISchemaState;
-    const nextState = reducer(
-      mockState,
-      deleteProperty({
-        path: '#/$defs/Kommentar2000Restriksjon',
-      }),
-    );
-    expect(nextState.selectedDefinitionNodeId).toEqual('');
+    expect(() => {
+      reducer(
+        mockState,
+        deleteProperty({
+          path: '#/$defs/Kommentar2000Restriksjon',
+        }),
+      );
+    }).toThrow();
   });
 
   it('resets selected id when deleting selected property', () => {

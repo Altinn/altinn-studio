@@ -13,7 +13,7 @@ export const removeNodeByPointer = (uiNodeMap: UiSchemaNodes, pointer: string, j
 
   // Won't remove containers that have references
   if (getReferredNodes(mutatedUiNodeMap, pointer).length > 0) {
-    throw new Error(`Won't remove ${pointer}, it has reffered nodes.`);
+    throw new Error(`Won't remove ${pointer}, it has referred nodes.`);
   }
 
   const parentNode = getParentNodeByPointer(mutatedUiNodeMap, pointer);
