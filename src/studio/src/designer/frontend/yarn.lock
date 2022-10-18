@@ -69,6 +69,7 @@ __metadata:
     react-styleguidist: 11.2.0
     redux: 4.2.0
     redux-mock-store: 1.5.4
+    redux-saga-test-plan: 4.0.6
     ts-jest: 29.0.3
     ts-loader: 9.4.1
     typescript: 4.8.4
@@ -87,6 +88,7 @@ __metadata:
     react-dnd-html5-backend: 16.0.1
     react-dom: ^18.2.0
     react-redux: ^8.0.2
+    redux-saga: 1.2.1
   languageName: unknown
   linkType: soft
 
@@ -13415,6 +13417,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"fsm-iterator@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "fsm-iterator@npm:1.1.0"
+  checksum: ca35f89a6607df2542711faac62b4b9fdd1c90887bd7fbb0ed106d0d658a92376e996bdfc6db605665e25a63c510e5ea5986d054e3836becf95696ee928b0f6b
+  languageName: node
+  linkType: hard
+
 "function-bind@npm:^1.1.1":
   version: 1.1.1
   resolution: "function-bind@npm:1.1.1"
@@ -16903,6 +16912,20 @@ __metadata:
   version: 4.0.8
   resolution: "lodash.debounce@npm:4.0.8"
   checksum: a3f527d22c548f43ae31c861ada88b2637eb48ac6aa3eb56e82d44917971b8aa96fbb37aa60efea674dc4ee8c42074f90f7b1f772e9db375435f6c83a19b3bc6
+  languageName: node
+  linkType: hard
+
+"lodash.isequal@npm:^4.5.0":
+  version: 4.5.0
+  resolution: "lodash.isequal@npm:4.5.0"
+  checksum: da27515dc5230eb1140ba65ff8de3613649620e8656b19a6270afe4866b7bd461d9ba2ac8a48dcc57f7adac4ee80e1de9f965d89d4d81a0ad52bb3eec2609644
+  languageName: node
+  linkType: hard
+
+"lodash.ismatch@npm:^4.4.0":
+  version: 4.4.0
+  resolution: "lodash.ismatch@npm:4.4.0"
+  checksum: a393917578842705c7fc1a30fb80613d1ac42d20b67eb26a2a6004d6d61ee90b419f9eb320508ddcd608e328d91eeaa2651411727eaa9a12534ed6ccb02fc705
   languageName: node
   linkType: hard
 
@@ -20648,6 +20671,21 @@ __metadata:
   dependencies:
     lodash.isplainobject: ^4.0.6
   checksum: 571eab2cca3e46321969025af865ddd780804c811be9db277fddf772d86e3ea67b4ef1b19ea3866417d41eb1b73605103020321f68cf68f379a52679a6823d12
+  languageName: node
+  linkType: hard
+
+"redux-saga-test-plan@npm:4.0.6":
+  version: 4.0.6
+  resolution: "redux-saga-test-plan@npm:4.0.6"
+  dependencies:
+    fsm-iterator: ^1.1.0
+    lodash.isequal: ^4.5.0
+    lodash.ismatch: ^4.4.0
+  peerDependencies:
+    "@redux-saga/is": ^1.0.1
+    "@redux-saga/symbols": ^1.0.1
+    redux-saga: ^1.0.1
+  checksum: a3220210a42a51271c0dc8740ceaacf5cd0aa84cf46b986d5839a89133de00954940e5dde80145e1b4c69d7c0d61b9578d86da8776d2c0b5151dc498bc595685
   languageName: node
   linkType: hard
 

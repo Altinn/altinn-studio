@@ -217,6 +217,10 @@ const schemaEditorSlice = createSlice({
       const { name } = action.payload;
       state.name = name;
     },
+    setSaveSchemaUrl(state, action: PayloadAction<{ saveUrl: string}>) {
+      const { saveUrl } = action.payload;
+      state.saveSchemaUrl = saveUrl;
+    },
     setSelectedId(state, action: PayloadAction<{ id: string; focusName?: string }>) {
       const { id, focusName } = action.payload;
       state.focusNameField = focusName;
@@ -232,7 +236,7 @@ const schemaEditorSlice = createSlice({
       state.selectedDefinitionNodeId = ROOT_POINTER;
       state.selectedPropertyNodeId = ROOT_POINTER;
     },
-    updateJsonSchema(state, action: PayloadAction<{ onSaveSchema: (payload: any) => void }>) {
+    updateJsonSchema(state, action: PayloadAction<{ onSaveSchema?: (payload: any) => void }>) {
       const { onSaveSchema } = action.payload;
       const updatedSchema: IJsonSchema = buildJsonSchema(state.uiSchema);
       state.schema = updatedSchema;
@@ -297,6 +301,9 @@ export const {
   setTitle,
   setType,
   setUiSchema,
+  setSaveSchemaUrl,
   toggleArrayField,
   updateJsonSchema,
 } = schemaEditorSlice.actions;
+
+export const SchemaEditorActions = schemaEditorSlice.actions;

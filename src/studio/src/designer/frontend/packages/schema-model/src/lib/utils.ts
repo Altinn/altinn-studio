@@ -1,6 +1,6 @@
 import type { Dict, UiSchemaNode, UiSchemaNodes } from './types';
 import { CombinationKind, FieldType, Keywords, ObjectKind } from './types';
-import { getNodeIndexByPointer } from './selectors';
+import { hasNodePointer } from './selectors';
 import { ROOT_POINTER } from './constants';
 
 export const createNodeBase = (...args: string[]): UiSchemaNode => ({
@@ -63,9 +63,6 @@ export const splitPointerInBaseAndName = (pointer: string) => {
 
 export const pointerIsDefinition = (pointer: string) => pointer.startsWith(makePointer(Keywords.Definitions));
 
-export const pointerExists = (uiSchemaNodes: UiSchemaNodes, pointer: string): boolean =>
-  getNodeIndexByPointer(uiSchemaNodes, pointer) !== undefined;
-
 export const combinationIsNullable = (childNodes: UiSchemaNode[]): boolean =>
   childNodes.some((child) => child.fieldType === FieldType.Null);
 
@@ -74,7 +71,7 @@ export const getNodeDisplayName = (uiSchemaNode: UiSchemaNode) => uiSchemaNode.p
 export const getUniqueNodePath = (uiNodeMap: UiSchemaNodes, targetPointer: string): string => {
   let newPointer = targetPointer;
   let postfix = 0;
-  while (pointerExists(uiNodeMap, newPointer)) {
+  while (hasNodePointer(uiNodeMap, newPointer)) {
     newPointer = targetPointer + postfix;
     postfix++;
   }

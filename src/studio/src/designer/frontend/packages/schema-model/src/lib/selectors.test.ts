@@ -1,9 +1,10 @@
 import { buildUiSchema } from './build-ui-schema';
-import { getNodeByPointer, getParentNodeByPointer, getRootNode, getRootNodes } from './selectors';
+import { getNodeByPointer, getParentNodeByPointer, getReferredNodes, getRootNode, getRootNodes } from './selectors';
 import { expect } from '@jest/globals';
 import { getGeneralJsonSchemaForTest, selectorsTestSchema } from '../../test/testUtils';
 import { ROOT_POINTER } from './constants';
 import { makePointer } from './utils';
+import { dataMock } from '../../../schema-editor/src/mockData';
 
 const testSchema = getGeneralJsonSchemaForTest('ElementAnnotation');
 
@@ -48,4 +49,11 @@ test('that getRootNode throws at undefined pointer', () => {
   expect(() => {
     getRootNode([]);
   }).toThrow();
+});
+
+test('that we can get referred nodes', () => {
+  const uiSchemaNodes = buildUiSchema(dataMock);
+  const referedNodes = getReferredNodes(uiSchemaNodes, '#/$defs/RA-0678_M');
+  expect(referedNodes).toHaveLength(1);
+  expect(referedNodes[0].pointer).toBe('#/properties/melding');
 });

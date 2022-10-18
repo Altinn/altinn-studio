@@ -6,7 +6,7 @@ import { addProperty, deleteProperty, setPropertyName } from '../../features/edi
 import { useDispatch, useSelector } from 'react-redux';
 import { getTranslation } from '../../utils/language';
 import type { UiSchemaNode } from '@altinn/schema-model';
-import { getChildNodesByNode, getNodeDisplayName } from '@altinn/schema-model';
+import { getChildNodesByPointer, getNodeDisplayName } from '@altinn/schema-model';
 import classes from './ItemFieldsTab.module.css';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 import { usePrevious } from '../../hooks/usePrevious';
@@ -19,7 +19,7 @@ export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) =>
   const readonly = selectedItem.ref !== undefined;
   const dispatch = useDispatch();
 
-  const childNodes = useSelector((state: ISchemaState) => getChildNodesByNode(state.uiSchema, selectedItem));
+  const childNodes = useSelector((state: ISchemaState) => getChildNodesByPointer(state.uiSchema, selectedItem.pointer));
 
   const numberOfChildNodes = childNodes.length;
   const prevNumberOfChildNodes = usePrevious<number>(numberOfChildNodes) ?? 0;

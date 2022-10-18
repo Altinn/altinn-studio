@@ -1,20 +1,26 @@
 // Changes to the uiNodeMap
 import { ObjectKind, UiSchemaNode, UiSchemaNodes } from '../types';
-import { getNodeIndexByPointer, getParentNodeByPointer } from '../selectors';
+import { getParentNodeByPointer, getReferredNodes, hasNodePointer } from '../selectors';
 import { splitPointerInBaseAndName } from '../utils';
 
 export const removeNodeByPointer = (uiNodeMap: UiSchemaNodes, pointer: string, justChildren?: boolean) => {
   let mutatedUiNodeMap: UiSchemaNodes = [...uiNodeMap];
+
   // Remove the child node pointer from the parent
-  const uiSchemaNode = getNodeIndexByPointer(mutatedUiNodeMap, pointer);
-  if (!uiSchemaNode) {
+  if (!hasNodePointer(mutatedUiNodeMap, pointer)) {
     throw new Error(`Can't remove ${pointer}, doesn't exist`);
   }
+
+  // Won't remove containers that have references
+  if (getReferredNodes(mutatedUiNodeMap, pointer).length > 0) {
+    throw new Error(`Won't remove ${pointer}, it has referred nodes.`);
+  }
+
   const parentNode = getParentNodeByPointer(mutatedUiNodeMap, pointer);
   if (parentNode) {
     parentNode.children = parentNode.children.filter((childPointer) => pointer !== childPointer);
   } else {
-    throw new Error(`Can't find ParentNode for pointer ${pointer}`);
+    throw new Error(`Can't remove ${pointer}, can't find parent node.`);
   }
 
   // Remove itself decendants... just using the pointer

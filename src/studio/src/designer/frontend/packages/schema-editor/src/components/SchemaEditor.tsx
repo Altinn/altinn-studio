@@ -8,6 +8,7 @@ import classes from './SchemaEditor.module.css';
 import {
   addRootItem,
   setJsonSchema,
+  setSaveSchemaUrl,
   setSchemaName,
   setSelectedTab,
   setUiSchema,
@@ -44,6 +45,7 @@ export interface IEditorProps {
   loading?: boolean;
   name?: string;
   onSaveSchema: (payload: any) => void;
+  saveUrl: string,
   schema: IJsonSchema;
   editMode: boolean;
   toggleEditMode: () => void;
@@ -79,6 +81,7 @@ export const SchemaEditor = ({
   loading,
   schema,
   onSaveSchema,
+  saveUrl,
   name,
   language,
   editMode,
@@ -90,8 +93,9 @@ export const SchemaEditor = ({
       dispatch(setJsonSchema({ schema }));
       dispatch(setUiSchema({ name }));
       dispatch(setSchemaName({ name }));
+      dispatch(setSaveSchemaUrl({ saveUrl }));
     }
-  }, [dispatch, schema, name]);
+  }, [dispatch, schema, name, saveUrl]);
 
   const [expandedPropNodes, setExpandedPropNodes] = useState<string[]>([]);
   const [expandedDefNodes, setExpandedDefNodes] = useState<string[]>([]);
@@ -249,6 +253,7 @@ export const SchemaEditor = ({
                   translate={t}
                   onNodeToggle={handlePropertiesNodeExpanded}
                   selectedPointer={selectedPropertyNodeId}
+                  isPropertiesView={true}
                 />
               </TabPanel>
               <TabPanel className={classes.tabPanel} value='definitions'>
@@ -269,6 +274,7 @@ export const SchemaEditor = ({
                   translate={t}
                   onNodeToggle={handleDefinitionsNodeExpanded}
                   selectedPointer={selectedDefinitionNodeId}
+                  isPropertiesView={false}
                 />
               </TabPanel>
             </TabContext>

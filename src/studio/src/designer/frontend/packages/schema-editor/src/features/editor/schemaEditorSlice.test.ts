@@ -33,10 +33,11 @@ import {
   FieldType,
   getChildNodesByPointer,
   getNodeByPointer,
+  getReferredNodes,
+  hasNodePointer,
   Keywords,
   makePointer,
   ObjectKind,
-  pointerExists,
   UiSchemaNode,
 } from '@altinn/schema-model';
 
@@ -169,19 +170,20 @@ describe('SchemaEditorSlice', () => {
     });
   });
 
-  it('resets selected id when deleting selected definition', () => {
+  it('throws error when deleting selected definition with referred nodes', () => {
     const mockState = {
       ...state,
       selectedEditorTab: 'definitions',
       selectedDefinitionNodeId: '#/$defs/Kommentar2000Restriksjon',
     } as ISchemaState;
-    const nextState = reducer(
-      mockState,
-      deleteProperty({
-        path: '#/$defs/Kommentar2000Restriksjon',
-      }),
-    );
-    expect(nextState.selectedDefinitionNodeId).toEqual('');
+    expect(() => {
+      reducer(
+        mockState,
+        deleteProperty({
+          path: '#/$defs/Kommentar2000Restriksjon',
+        }),
+      );
+    }).toThrow();
   });
 
   it('resets selected id when deleting selected property', () => {
@@ -203,13 +205,32 @@ describe('SchemaEditorSlice', () => {
     const payload = {
       path: '#/$defs/Kontaktperson',
     };
-    const nextState = reducer(state, deleteProperty(payload));
+    let nextState = state;
+    getReferredNodes(state.uiSchema, payload.path).forEach((refNode) => {
+      nextState = reducer(
+        nextState,
+        deleteProperty({
+          path: refNode.pointer,
+        }),
+      );
+    });
+    nextState = reducer(nextState, deleteProperty(payload));
     expect(() => {
       getNodeByPointer(nextState.uiSchema, '#/$defs/Kontaktperson');
     }).toThrowError();
 
-    expect(pointerExists(nextState.uiSchema, '#/$defs/Kontaktperson')).toBeFalsy();
+    expect(hasNodePointer(nextState.uiSchema, '#/$defs/Kontaktperson')).toBeFalsy();
   });
+
+  it('should throw when using deleteProperty (root definition) when there is nodes', () =>
+    expect(() => {
+      reducer(
+        state,
+        deleteProperty({
+          path: '#/$defs/Kontaktperson',
+        }),
+      );
+    }).toThrowError());
 
   it('handles addProperty', () => {
     const payload = {

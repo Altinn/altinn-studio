@@ -3,35 +3,37 @@ import { Keywords } from './types';
 import { makePointer } from './utils';
 import { ROOT_POINTER } from './constants';
 
-export const getRootNodes = (uiSchemaNodes: UiSchemaNodes, defs: boolean): UiSchemaNode[] => {
-  const parentNodeIndex = getNodeIndexByPointer(uiSchemaNodes, ROOT_POINTER);
-  if (parentNodeIndex !== undefined) {
-    const childPointers = uiSchemaNodes[parentNodeIndex].children.filter(
-      (p) => p.startsWith(makePointer(Keywords.Definitions)) === defs,
-    );
-    return uiSchemaNodes.filter((uiSchemaNode) => childPointers.includes(uiSchemaNode.pointer));
-  } else {
-    return [];
+export const getRootNodes = (uiSchemaNodes: UiSchemaNodes, defs: boolean): UiSchemaNodes => {
+  const rootNodes: UiSchemaNodes = [];
+  if (hasNodePointer(uiSchemaNodes, ROOT_POINTER)) {
+    getRootNode(uiSchemaNodes)
+      .children.filter((p) => p.startsWith(makePointer(Keywords.Definitions)) === defs)
+      .forEach((childPointer) => rootNodes.push(getNodeByPointer(uiSchemaNodes, childPointer)));
   }
+  return rootNodes;
 };
-export const getRootNode = (uiSchemaNodes: UiSchemaNodes): UiSchemaNode => {
-  const rootNode = uiSchemaNodes.find((node) => node.pointer === ROOT_POINTER);
-  if (rootNode) {
-    return rootNode;
-  } else {
-    throw new Error('Cant find root node');
-  }
+export const getRootNode = (uiSchemaNodes: UiSchemaNodes): UiSchemaNode =>
+  getNodeByPointer(uiSchemaNodes, ROOT_POINTER);
+
+const nodePointers: { uiSchemaNodes: UiSchemaNodes; cache: Map<string, UiSchemaNode> } = {
+  uiSchemaNodes: [],
+  cache: new Map(),
 };
 
-/**
- * Return the node or throw an error. If you need to do a check of existance use getNodeIndexByPointer and
- * just access the item directly to avoid duplicate scans.
- *
- * @param uiSchemaNodes
- * @param pointer
- */
+const getNodePointerCache = (uiSchemaNodes: UiSchemaNodes): Map<string, UiSchemaNode> => {
+  if (nodePointers.uiSchemaNodes !== uiSchemaNodes || nodePointers.cache.size !== uiSchemaNodes.length) {
+    nodePointers.uiSchemaNodes = uiSchemaNodes;
+    nodePointers.cache = new Map();
+    uiSchemaNodes.forEach((node) => nodePointers.cache.set(node.pointer, node));
+  }
+  return nodePointers.cache;
+};
+
+export const hasNodePointer = (uiSchemaNodes: UiSchemaNodes, pointer: string): boolean =>
+  getNodePointerCache(uiSchemaNodes).has(pointer);
+
 export const getNodeByPointer = (uiSchemaNodes: UiSchemaNodes, pointer: string): UiSchemaNode => {
-  const uiSchemaNode = uiSchemaNodes.find((node) => node.pointer === pointer);
+  const uiSchemaNode = getNodePointerCache(uiSchemaNodes).get(pointer);
   if (uiSchemaNode) {
     return uiSchemaNode;
   } else {
@@ -50,20 +52,35 @@ export const getNodeIndexByPointer = (uiSchemaNodes: UiSchemaNodes, pointer: str
   return index > -1 ? index : undefined;
 };
 
-export const getChildNodesByPointer = (uiSchemaNodes: UiSchemaNodes, pointer: string): UiSchemaNode[] =>
-  getChildNodesByNode(uiSchemaNodes, getNodeByPointer(uiSchemaNodes, pointer));
-
-export const getChildNodesByNode = (uiSchemaNodes: UiSchemaNodes, parentNode: UiSchemaNode): UiSchemaNode[] =>
-  uiSchemaNodes.filter((node) => parentNode.children.includes(node.pointer));
+export const getChildNodesByPointer = (uiSchemaNodes: UiSchemaNodes, pointer: string): UiSchemaNode[] => {
+  const parentNode = getNodeByPointer(uiSchemaNodes, pointer);
+  return parentNode.children.map((childPointer) => getNodeByPointer(uiSchemaNodes, childPointer));
+};
 
 export const getParentNodeByPointer = (uiSchemaNodes: UiSchemaNodes, pointer: string): UiSchemaNode | undefined => {
   const pointerParts = pointer.split('/');
   while (pointerParts.length) {
     pointerParts.pop();
-    const parentNodeIndex = getNodeIndexByPointer(uiSchemaNodes, pointerParts.join('/'));
-    if (parentNodeIndex !== undefined) {
-      return uiSchemaNodes[parentNodeIndex];
+    const pointerCandidate = pointerParts.join('/');
+    if (hasNodePointer(uiSchemaNodes, pointerCandidate)) {
+      return getNodeByPointer(uiSchemaNodes, pointerCandidate);
     }
   }
   return undefined;
+};
+
+const referredNodes: { uiSchemaNodes: UiSchemaNodes; cache: Map<string, UiSchemaNodes> } = {
+  uiSchemaNodes: [],
+  cache: new Map(),
+};
+
+export const getReferredNodes = (uiSchemaNodes: UiSchemaNodes, ref: string) => {
+  if (referredNodes.uiSchemaNodes !== uiSchemaNodes || referredNodes.cache.size === 0) {
+    referredNodes.uiSchemaNodes = uiSchemaNodes;
+    referredNodes.cache = new Map();
+    uiSchemaNodes
+      .filter((node) => typeof node.ref === 'string')
+      .forEach((node) => referredNodes.cache.set(node.ref ?? '_', [...(referredNodes.cache.get(ref) ?? []), node]));
+  }
+  return referredNodes.cache.get(ref) ?? [];
 };
