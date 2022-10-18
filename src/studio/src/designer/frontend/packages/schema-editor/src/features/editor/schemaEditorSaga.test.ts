@@ -10,10 +10,6 @@ const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe('schemaEditorSaga', () => {
   let spy: any;
-  beforeAll(() => {
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    spy = jest.spyOn(console, 'error').mockImplementation(() => {});
-  })
   afterAll(() => {
     spy.mockRestore();
   })
@@ -38,16 +34,16 @@ describe('schemaEditorSaga', () => {
   });
   describe('AutosaveModeSaga', () => {
     test('failing autosave', () => {
-      console.error = jest.fn();
-      mockedAxios.put.mockRejectedValueOnce("error");
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      spy = jest.spyOn(console, 'error').mockImplementation(() => {});
+      mockedAxios.put.mockImplementationOnce(() => {throw new Error("error")});
       return expectSaga(autosaveModelSaga)
       .provide([
         [select(autoSavePropsSelector), { uiSchema, saveUrl: 'test' }],
       ])
       .call(put, `test&saveOnly=true`, {...jsonschema})
+      .call(console.error, 'Failed to save JSON Schema model. ', new Error('error'))
       .run();
-
-      expect(console.error).toHaveBeenCalledWith('Failed to save JSON Schema model. ', 'error');
     })
   });
-})
+});
