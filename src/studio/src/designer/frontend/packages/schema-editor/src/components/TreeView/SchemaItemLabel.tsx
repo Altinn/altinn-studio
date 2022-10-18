@@ -89,7 +89,6 @@ export const SchemaItemLabel = ({
 
   const isRef = refNode || pointerIsDefinition(selectedNode.pointer);
   const capabilties = getCapabilities(selectedNode);
-  console.log(selectedNode, capabilties);
   return (
     <div className={classNames(classes.propertiesLabel, { [classes.isArray]: isArray, [classes.isRef]: isRef })}>
       <div className={classes.label} title={selectedNode.pointer}>
