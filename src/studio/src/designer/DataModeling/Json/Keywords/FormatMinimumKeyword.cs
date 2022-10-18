@@ -8,12 +8,16 @@ namespace Altinn.Studio.DataModeling.Json.Keywords;
 /// <summary>
 /// Used to represent minimum on the date types
 /// </summary>
+[SchemaKeyword(Name)]
+[SchemaPriority(int.MinValue)]
+[SchemaDraft(Draft.Unspecified)]
+[JsonConverter(typeof(FormatMinimumKeywordJsonConverter))]
 public sealed class FormatMinimumKeyword: IJsonSchemaKeyword, IEquatable<FormatMinimumKeyword>
 {
     /// <summary>
     /// The name of the keyword
     /// </summary>
-    internal const string Name = "formatExclusiveMinimum";
+    internal const string Name = "formatMinimum";
 
     /// <summary>
     /// The value, format of minimum
@@ -60,7 +64,7 @@ public sealed class FormatMinimumKeyword: IJsonSchemaKeyword, IEquatable<FormatM
     /// <summary>
     /// Serializer for the FormatMinimumKeyword keyword
     /// </summary>
-    internal class FormatMinimumKeywordJsonConverter : JsonConverter<FormatMinimumKeyword>
+    public class FormatMinimumKeywordJsonConverter : JsonConverter<FormatMinimumKeyword>
     {
         /// <summary>
         /// Read @xsdType keyword from json schema

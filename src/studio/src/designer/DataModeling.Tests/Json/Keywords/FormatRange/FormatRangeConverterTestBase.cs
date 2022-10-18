@@ -9,8 +9,8 @@ using Json.Schema;
 
 namespace DataModeling.Tests.Json.Keywords.FormatRange;
 
-public abstract class FormatRangeTestBase<TTestType, TKeywordType> : FluentTestsBase<TTestType>
-where TTestType : FormatRangeTestBase<TTestType, TKeywordType>
+public abstract class FormatRangeConverterTestBase<TTestType, TKeywordType> : FluentTestsBase<TTestType>
+where TTestType : FormatRangeConverterTestBase<TTestType, TKeywordType>
 where TKeywordType : IJsonSchemaKeyword
 {
     protected JsonSchema JsonSchema { get; set; }
@@ -21,7 +21,7 @@ where TKeywordType : IJsonSchemaKeyword
 
     protected abstract JsonConverter<TKeywordType> Converter { get;  }
 
-    protected FormatRangeTestBase()
+    protected FormatRangeConverterTestBase()
     {
         JsonSchemaKeywords.RegisterXsdKeywords();
     }
@@ -68,5 +68,4 @@ where TKeywordType : IJsonSchemaKeyword
         jsonText.Should().Be(json);
         return this as TTestType;
     }
-
 }

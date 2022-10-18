@@ -5,16 +5,16 @@ using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords.FormatRange;
 
-public class FormatExclusiveMaximumKeywordJsonConverterTests : FormatRangeTestBase<FormatExclusiveMaximumKeywordJsonConverterTests, FormatExclusiveMaximumKeyword>
+public class FormatExclusiveMinimumKeywordJsonConverterConverterTests: FormatRangeConverterTestBase<FormatExclusiveMinimumKeywordJsonConverterConverterTests, FormatExclusiveMinimumKeyword>
 {
-    private const string KeywordPlaceholder = "formatExclusiveMaximum";
+    private const string KeywordPlaceholder = "formatExclusiveMinimum";
 
-    protected override JsonConverter<FormatExclusiveMaximumKeyword> Converter
-        => new FormatExclusiveMaximumKeyword.FormatExclusiveMaximumKeywordJsonConverter();
+    protected override JsonConverter<FormatExclusiveMinimumKeyword> Converter
+    => new FormatExclusiveMinimumKeyword.FormatExclusiveMinimumKeywordJsonConverter();
 
-    protected override FormatExclusiveMaximumKeyword CreateKeywordWithValue(string value)
+    protected override FormatExclusiveMinimumKeyword CreateKeywordWithValue(string value)
     {
-        return new FormatExclusiveMaximumKeyword(value);
+        return new FormatExclusiveMinimumKeyword(value);
     }
 
     [Theory]
