@@ -1,13 +1,13 @@
 import { CombinationKind, UiSchemaNodes } from '../types';
-import { getNodeByPointer } from '../selectors';
-import { pointerExists, splitPointerInBaseAndName } from '../utils';
+import { getNodeByPointer, hasNodePointer } from '../selectors';
+import { splitPointerInBaseAndName } from '../utils';
 
 export const renameNodePointer = (uiSchemaNodes: UiSchemaNodes, oldPointer: string, newPointer: string) => {
   if (oldPointer === newPointer) {
     throw new Error('Old and new name is equal');
   }
 
-  if (!pointerExists(uiSchemaNodes, oldPointer)) {
+  if (!hasNodePointer(uiSchemaNodes, oldPointer)) {
     const { base, name } = splitPointerInBaseAndName(oldPointer);
     if (Object.values(CombinationKind).includes(name as CombinationKind) && getNodeByPointer(uiSchemaNodes, base)) {
       // Its a valid combo-item... just continue.

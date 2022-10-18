@@ -1,12 +1,14 @@
 import { FieldType, Keywords, ObjectKind, UiSchemaNode, UiSchemaNodes } from '../types';
-import { createNodeBase, pointerExists } from '../utils';
-import { getParentNodeByPointer } from '../selectors';
+import { createNodeBase } from '../utils';
+import { getParentNodeByPointer, hasNodePointer } from '../selectors';
+import { deepCopy } from 'app-shared/pure';
 
 export const insertSchemaNode = (uiSchemaNodes: UiSchemaNodes, newNode: UiSchemaNode): UiSchemaNodes => {
-  if (pointerExists(uiSchemaNodes, newNode.pointer)) {
+  if (hasNodePointer(uiSchemaNodes, newNode.pointer)) {
     throw new Error(`Pointer ${newNode.pointer} exists allready`);
   }
-  const mutatedNodeArray: UiSchemaNodes = JSON.parse(JSON.stringify(uiSchemaNodes));
+
+  const mutatedNodeArray: UiSchemaNodes = deepCopy(uiSchemaNodes);
   const parentNode = getParentNodeByPointer(mutatedNodeArray, newNode.pointer);
   if (!parentNode) {
     throw new Error(`Can't find ParentNode for pointer ${newNode.pointer}`);

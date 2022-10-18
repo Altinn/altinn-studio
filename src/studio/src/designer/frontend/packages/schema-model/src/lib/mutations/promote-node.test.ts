@@ -5,9 +5,9 @@ import { makePointer } from '../utils';
 import { convertPropToType } from './promote-node';
 import { simpleTestJsonSchema } from '../../../test/testUtils';
 
-test('that we can promote a node', () => {
-  const originalNodeMap = buildUiSchema(simpleTestJsonSchema);
-  const promotedNodeMap = convertPropToType(originalNodeMap, makePointer(Keywords.Properties, 'world'));
+test('that we can convertPropToType', () => {
+  const uiSchemaNodes = buildUiSchema(simpleTestJsonSchema);
+  const promotedNodeMap = convertPropToType(uiSchemaNodes, makePointer(Keywords.Properties, 'world'));
   expect(buildJsonSchema(promotedNodeMap)).toEqual({
     [Keywords.Properties]: {
       hello: { [Keywords.Type]: FieldType.String },

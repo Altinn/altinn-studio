@@ -16,7 +16,6 @@ export {
   makePointer,
   pointerIsDefinition,
   combinationIsNullable,
-  pointerExists,
   splitPointerInBaseAndName,
   getNodeDisplayName,
   getUniqueNodePath,
@@ -27,11 +26,12 @@ export { renameNodePointer } from './lib/mutations/rename-node';
 export { convertPropToType } from './lib/mutations/promote-node';
 export { getCapabilities, Capabilites } from './lib/capabilities';
 export {
-  getChildNodesByNode,
   getChildNodesByPointer,
   getNodeByPointer,
   getNodeIndexByPointer,
   getParentNodeByPointer,
+  getReferredNodes,
   getRootNode,
   getRootNodes,
+  hasNodePointer,
 } from './lib/selectors';

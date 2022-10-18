@@ -5,7 +5,13 @@ import { changeChildrenOrder, setSelectedId } from '../../features/editor/schema
 import { SchemaItemLabel } from './SchemaItemLabel';
 import { getIconStr } from './tree-view-helpers';
 import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
-import { getChildNodesByNode, getNodeByPointer, ObjectKind, splitPointerInBaseAndName } from '@altinn/schema-model';
+import {
+  getChildNodesByPointer,
+  getNodeByPointer,
+  getReferredNodes,
+  ObjectKind,
+  splitPointerInBaseAndName,
+} from '@altinn/schema-model';
 import type { ISchemaState } from '../../types';
 import classes from './SchemaItem.module.css';
 import classNames from 'classnames';
@@ -15,7 +21,7 @@ import { DragItem } from './dnd-helpers';
 type SchemaItemProps = {
   selectedNode: UiSchemaNode;
   translate: (key: string) => string;
-  isPropertiesView?: boolean;
+  isPropertiesView: boolean;
   editMode: boolean;
   onLabelClick?: (e: any) => void;
   index: number;
@@ -35,8 +41,11 @@ export function SchemaItem({ selectedNode, isPropertiesView, editMode, translate
       : undefined,
   );
   const childNodes = useSelector((state: ISchemaState) =>
-    refNode ? getChildNodesByNode(state.uiSchema, refNode) : getChildNodesByNode(state.uiSchema, selectedNode),
+    refNode
+      ? getChildNodesByPointer(state.uiSchema, refNode.pointer)
+      : getChildNodesByPointer(state.uiSchema, selectedNode.pointer),
   );
+  const referredNodes = useSelector((state: ISchemaState) => getReferredNodes(state.uiSchema, selectedNode.pointer));
   const focusedNode = refNode ?? selectedNode;
   const childNodesSorted: UiSchemaNodes = [];
   focusedNode.children.forEach((childPointer) => {
@@ -64,6 +73,7 @@ export function SchemaItem({ selectedNode, isPropertiesView, editMode, translate
             selectedNode={selectedNode}
             refNode={refNode}
             translate={translate}
+            hasReferredNodes={isPropertiesView ? false : referredNodes.length > 0}
           />
         }
         onLabelClick={(e) => onLabelClick(e, selectedNode)}

@@ -46,7 +46,7 @@ export const convertPropToType = (uiSchemaNodes: UiSchemaNodes, pointer: string)
   });
   // Add the promoted node back to the bottom of the stack.
   return insertSchemaNode(
-    updatedUiSchemaNodes,
+    [...updatedUiSchemaNodes],
     Object.assign(deepCopy(uiNode), {
       pointer: promotedNodePointer,
       children,

@@ -253,6 +253,7 @@ export const SchemaEditor = ({
                   translate={t}
                   onNodeToggle={handlePropertiesNodeExpanded}
                   selectedPointer={selectedPropertyNodeId}
+                  isPropertiesView={true}
                 />
               </TabPanel>
               <TabPanel className={classes.tabPanel} value='definitions'>
@@ -273,6 +274,7 @@ export const SchemaEditor = ({
                   translate={t}
                   onNodeToggle={handleDefinitionsNodeExpanded}
                   selectedPointer={selectedDefinitionNodeId}
+                  isPropertiesView={false}
                 />
               </TabPanel>
             </TabContext>

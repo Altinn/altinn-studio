@@ -26,10 +26,10 @@ import {
   combinationIsNullable,
   CombinationKind,
   FieldType,
-  getChildNodesByNode,
+  getChildNodesByPointer,
   getNodeDisplayName,
+  hasNodePointer,
   ObjectKind,
-  pointerExists,
 } from '@altinn/schema-model';
 import { getDomFriendlyID, isValidName } from '../../utils/ui-schema-utils';
 import { Divider } from '../common/Divider';
@@ -51,7 +51,7 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
   const [title, setItemTitle] = useState<string>('');
   const { fieldType } = selectedItem;
 
-  const childNodes = useSelector((state: ISchemaState) => getChildNodesByNode(state.uiSchema, selectedItem));
+  const childNodes = useSelector((state: ISchemaState) => getChildNodesByPointer(state.uiSchema, selectedItem.pointer));
 
   useEffect(() => {
     setNodeName(getNodeDisplayName(selectedItem));
@@ -101,7 +101,7 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
 
   const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
   const handleChangeNodeName = () => {
-    if (pointerExists(uiSchema, nodeName)) {
+    if (hasNodePointer(uiSchema, nodeName)) {
       setNameError(NameError.AlreadyInUse);
       return;
     }
