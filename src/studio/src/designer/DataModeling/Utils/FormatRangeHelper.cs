@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Xml.Schema;
 
 namespace Altinn.Studio.DataModeling.Utils;
@@ -8,7 +9,7 @@ namespace Altinn.Studio.DataModeling.Utils;
 /// </summary>
 public static class FormatRangeHelper
 {
-    private static readonly IList<string> DateTypes = new List<string>()
+    private static readonly IReadOnlyCollection<string> DateTypes = new List<string>
     {
         "date",
         "dateTime",
