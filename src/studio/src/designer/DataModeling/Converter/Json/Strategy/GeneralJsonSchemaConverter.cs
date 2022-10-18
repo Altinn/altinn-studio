@@ -762,6 +762,22 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                         }
 
                         break;
+                    case FormatExclusiveMinimumKeyword formatMinimum:
+                        keywords.MarkAsHandled<FormatExclusiveMinimumKeyword>();
+                        facets.Add(new XmlSchemaMinExclusiveFacet() { Value = formatMinimum.Value.ToString(NumberFormatInfo.InvariantInfo) });
+                        break;
+                    case FormatMinimumKeyword formatMinimum:
+                        keywords.MarkAsHandled<FormatMinimumKeyword>();
+                        facets.Add(new XmlSchemaMinInclusiveFacet() { Value = formatMinimum.Value.ToString(NumberFormatInfo.InvariantInfo) });
+                        break;
+                    case FormatExclusiveMaximumKeyword formatMaximum:
+                        keywords.MarkAsHandled<FormatExclusiveMaximumKeyword>();
+                        facets.Add(new XmlSchemaMaxExclusiveFacet() { Value = formatMaximum.Value.ToString(NumberFormatInfo.InvariantInfo) });
+                        break;
+                    case FormatMaximumKeyword formatMaximum:
+                        keywords.MarkAsHandled<FormatMaximumKeyword>();
+                        facets.Add(new XmlSchemaMaxInclusiveFacet() { Value = formatMaximum.Value.ToString(NumberFormatInfo.InvariantInfo) });
+                        break;
                     default:
                         continue;
                 }

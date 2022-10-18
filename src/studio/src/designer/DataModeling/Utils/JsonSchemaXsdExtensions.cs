@@ -136,11 +136,59 @@ namespace Altinn.Studio.DataModeling.Utils
         /// Add <see cref="XsdTextKeyword"/> keyword to the builder
         /// </summary>
         /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
-        /// <param name="attribute">True to set the xsdText keyword</param>
+        /// <param name="value">True to set the xsdText keyword</param>
         /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
-        public static JsonSchemaBuilder XsdText(this JsonSchemaBuilder builder, bool attribute = false)
+        public static JsonSchemaBuilder XsdText(this JsonSchemaBuilder builder, bool value = false)
         {
-            builder.Add(new XsdTextKeyword(attribute));
+            builder.Add(new XsdTextKeyword(value));
+            return builder;
+        }
+
+        /// <summary>
+        /// Add <see cref="FormatExclusiveMinimumKeyword"/> keyword to the builder
+        /// </summary>
+        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
+        /// <param name="value">True to set the <see cref="FormatExclusiveMinimumKeyword"/> keyword</param>
+        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
+        public static JsonSchemaBuilder FormatExclusiveMinimum(this JsonSchemaBuilder builder, string value)
+        {
+            builder.Add(new FormatExclusiveMinimumKeyword(value));
+            return builder;
+        }
+
+        /// <summary>
+        /// Add <see cref="FormatMinimumKeyword"/> keyword to the builder
+        /// </summary>
+        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
+        /// <param name="value">True to set the <see cref="FormatMinimumKeyword"/> keyword</param>
+        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
+        public static JsonSchemaBuilder FormatMinimum(this JsonSchemaBuilder builder, string value)
+        {
+            builder.Add(new FormatMinimumKeyword(value));
+            return builder;
+        }
+
+        /// <summary>
+        /// Add <see cref="FormatExclusiveMaximumKeyword"/> keyword to the builder
+        /// </summary>
+        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
+        /// <param name="value">True to set the <see cref="FormatExclusiveMaximumKeyword"/> keyword</param>
+        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
+        public static JsonSchemaBuilder FormatExclusiveMaximum(this JsonSchemaBuilder builder, string value)
+        {
+            builder.Add(new FormatExclusiveMaximumKeyword(value));
+            return builder;
+        }
+
+        /// <summary>
+        /// Add <see cref="FormatMaximumKeyword"/> keyword to the builder
+        /// </summary>
+        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
+        /// <param name="value">True to set the <see cref="FormatMaximumKeyword"/> keyword</param>
+        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
+        public static JsonSchemaBuilder FormatMaximum(this JsonSchemaBuilder builder, string value)
+        {
+            builder.Add(new FormatMaximumKeyword(value));
             return builder;
         }
     }
