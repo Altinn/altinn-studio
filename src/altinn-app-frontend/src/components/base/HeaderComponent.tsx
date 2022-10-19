@@ -3,10 +3,9 @@ import * as React from 'react';
 import { Grid } from '@material-ui/core';
 
 import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
-import type { IComponentProps } from 'src/components';
-import type { ILayoutCompHeader } from 'src/features/form/layout';
+import type { PropsFromGenericComponent } from 'src/components';
 
-export type IHeaderProps = IComponentProps & Omit<ILayoutCompHeader, 'type'>;
+export type IHeaderProps = PropsFromGenericComponent<'Header'>;
 
 const marginStyling = {
   marginTop: '0',

@@ -4,11 +4,10 @@ import { Grid, makeStyles } from '@material-ui/core';
 
 import { useAppSelector } from 'src/common/hooks';
 import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
-import type { IComponentProps } from 'src/components';
-import type { ILayoutCompImage } from 'src/features/form/layout';
+import type { PropsFromGenericComponent } from 'src/components';
 import type { IAltinnWindow } from 'src/types';
 
-export type IImageProps = IComponentProps & Omit<ILayoutCompImage, 'type'>;
+export type IImageProps = PropsFromGenericComponent<'Image'>;
 
 const useStyles = makeStyles({
   spacing: {

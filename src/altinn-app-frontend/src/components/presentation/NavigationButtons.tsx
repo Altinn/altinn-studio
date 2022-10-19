@@ -2,20 +2,18 @@ import * as React from 'react';
 
 import { Grid } from '@material-ui/core';
 
-import type { IComponentProps } from '..';
+import type { PropsFromGenericComponent } from '..';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { Triggers } from 'src/types';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
-import type { ILayoutCompNavButtons } from 'src/features/form/layout';
 import type { IKeepComponentScrollPos } from 'src/features/form/layout/formLayoutTypes';
 import type { ILayoutNavigation, INavigationConfig } from 'src/types';
 
 import { AltinnButton } from 'altinn-shared/components';
 
-export type INavigationButtons = IComponentProps &
-  Omit<ILayoutCompNavButtons, 'type'>;
+export type INavigationButtons = PropsFromGenericComponent<'NavigationButtons'>;
 
 export function NavigationButtons(props: INavigationButtons) {
   const dispatch = useAppDispatch();

@@ -9,7 +9,6 @@ import type { PreloadedState } from 'redux';
 import { RadioButtonContainerComponent } from 'src/components/base/RadioButtons/RadioButtonsContainerComponent';
 import { mockDelayBeforeSaving } from 'src/components/hooks/useDelayedSavedState';
 import { LayoutStyle } from 'src/types';
-import type { IComponentProps } from 'src/components';
 import type { IRadioButtonsContainerProps } from 'src/components/base/RadioButtons/RadioButtonsContainerComponent';
 import type { IOptionsState } from 'src/shared/resources/options';
 import type { RootState } from 'src/store';
@@ -36,14 +35,13 @@ const render = (
   customState: PreloadedState<RootState> = {},
 ) => {
   const allProps: IRadioButtonsContainerProps = {
-    type: 'RadioButtons',
     options: [],
     optionsId: 'countries',
     preselectedOptionIndex: undefined,
     legend: 'legend',
     handleDataChange: jest.fn(),
     getTextResource: (value) => value,
-    ...({} as IComponentProps),
+    ...({} as IRadioButtonsContainerProps),
     ...props,
   };
 

@@ -1,11 +1,10 @@
 import * as React from 'react';
 
 import { InstantiationButton } from 'src/components/base/ButtonComponent/InstantiationButton';
-import type { IComponentProps } from 'src/components';
-import type { ILayoutCompInstantiationButton } from 'src/features/form/layout';
+import type { PropsFromGenericComponent } from 'src/components';
 
-export type IInstantiationButtonComponentProps = IComponentProps &
-  Omit<ILayoutCompInstantiationButton, 'type'>;
+export type IInstantiationButtonComponentProps =
+  PropsFromGenericComponent<'InstantiationButton'>;
 
 const btnGroupStyle = {
   marginTop: '3.6rem',

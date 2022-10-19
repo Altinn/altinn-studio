@@ -7,7 +7,7 @@ import { useAppDispatch } from 'src/common/hooks';
 import { FileName } from 'src/components/base/FileUpload/shared/render';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import { renderValidationMessages } from 'src/utils/render';
-import type { IComponentProps } from 'src/components';
+import type { PropsFromGenericComponent } from 'src/components';
 import type { IAttachment } from 'src/shared/resources/attachments';
 import type { IOption } from 'src/types';
 
@@ -46,7 +46,8 @@ const useStyles = makeStyles({
   },
 });
 
-export interface EditWindowProps extends IComponentProps {
+export interface EditWindowProps
+  extends PropsFromGenericComponent<'FileUploadWithTag'> {
   attachment: IAttachment;
   mobileView: boolean;
   options: IOption[];

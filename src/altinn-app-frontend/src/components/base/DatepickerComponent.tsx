@@ -23,8 +23,7 @@ import {
   DatePickerSaveFormatNoTimestamp,
   validateDatepickerFormData,
 } from 'src/utils/validation';
-import type { IComponentProps } from 'src/components';
-import type { ILayoutCompDatePicker } from 'src/features/form/layout';
+import type { PropsFromGenericComponent } from 'src/components';
 import type { DateFlags, IComponentBindingValidation } from 'src/types';
 
 import { getLanguageFromKey } from 'altinn-shared/utils';
@@ -32,8 +31,7 @@ import { getLanguageFromKey } from 'altinn-shared/utils';
 import 'src/components/base/DatepickerComponent.css';
 import 'src/styles/shared.css';
 
-export type IDatePickerProps = IComponentProps &
-  Omit<ILayoutCompDatePicker, 'type'>;
+export type IDatePickerProps = PropsFromGenericComponent<'DatePicker'>;
 
 const iconSize = '30px';
 

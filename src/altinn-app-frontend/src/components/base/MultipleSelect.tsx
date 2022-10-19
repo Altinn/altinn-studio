@@ -2,11 +2,10 @@ import React from 'react';
 import Select from 'react-select';
 import type { MultiValue } from 'react-select';
 
-import type { IComponentProps } from '..';
+import type { PropsFromGenericComponent } from '..';
 
 import { useAppSelector } from 'src/common/hooks';
 import { useGetOptions } from 'src/components/hooks';
-import type { ILayoutCompMultipleSelect } from 'src/features/form/layout';
 import type { IOption } from 'src/types';
 
 import { getLanguageFromKey } from 'altinn-shared/utils';
@@ -16,8 +15,7 @@ import 'src/components/base/MultipleSelect.css';
 const multipleSelectCssPrefix = 'multipleSelect';
 const invalidBorderColor = '#D5203B !important';
 
-export type IMultipleSelectProps = IComponentProps &
-  Omit<ILayoutCompMultipleSelect, 'type'>;
+export type IMultipleSelectProps = PropsFromGenericComponent<'MultipleSelect'>;
 
 export function MultipleSelect({
   options,

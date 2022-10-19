@@ -6,7 +6,6 @@ import { screen } from '@testing-library/react';
 import { renderWithProviders } from 'testUtils';
 
 import { FileUploadComponent } from 'src/components/base/FileUpload/FileUploadComponent';
-import type { IComponentProps } from 'src/components';
 import type { IFileUploadProps } from 'src/components/base/FileUpload/FileUploadComponent';
 import type { IAttachment } from 'src/shared/resources/attachments';
 
@@ -155,7 +154,7 @@ const render = ({
     minNumberOfAttachments: 1,
     isValid: true,
     readOnly: false,
-    ...({} as IComponentProps),
+    ...({} as IFileUploadProps),
     ...props,
   };
 

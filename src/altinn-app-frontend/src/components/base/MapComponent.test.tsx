@@ -3,7 +3,6 @@ import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
 
 import { MapComponent } from 'src/components/base/MapComponent';
-import type { IComponentProps } from 'src/components';
 import type { IMapComponentProps } from 'src/components/base/MapComponent';
 
 const render = (props: Partial<IMapComponentProps> = {}) => {
@@ -28,7 +27,7 @@ const render = (props: Partial<IMapComponentProps> = {}) => {
     readOnly: false,
     required: false,
     textResourceBindings: {},
-    ...({} as IComponentProps),
+    ...({} as IMapComponentProps),
     ...props,
   };
 

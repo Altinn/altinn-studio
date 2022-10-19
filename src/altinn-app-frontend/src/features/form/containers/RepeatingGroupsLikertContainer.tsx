@@ -35,7 +35,7 @@ export const RepeatingGroupsLikertContainer = ({
   container,
 }: RepeatingGroupsLikertContainerProps) => {
   const { optionsId, mapping, source, options } =
-    repeatingGroupDeepCopyComponents[0] as IRadioButtonsContainerProps;
+    repeatingGroupDeepCopyComponents[0] as unknown as IRadioButtonsContainerProps;
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
   const apiOptions = useGetOptions({ optionsId, mapping, source });
   const calculatedOptions = apiOptions || options || [];
@@ -100,7 +100,7 @@ export const RepeatingGroupsLikertContainer = ({
             return (
               <GenericComponent
                 key={comp.id}
-                {...comp}
+                {...(comp as ILayoutComponent)}
               />
             );
           })}

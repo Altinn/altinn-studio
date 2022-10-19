@@ -3,11 +3,9 @@ import React from 'react';
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 
 import { HelpTextContainer } from 'src/features/form/components/HelpTextContainer';
-import type { IComponentProps } from 'src/components';
-import type { ILayoutCompParagraph } from 'src/features/form/layout';
+import type { PropsFromGenericComponent } from 'src/components';
 
-export type IParagraphProps = IComponentProps &
-  Omit<ILayoutCompParagraph, 'type'>;
+export type IParagraphProps = PropsFromGenericComponent<'Paragraph'>;
 
 const useStyles = makeStyles({
   spacing: {

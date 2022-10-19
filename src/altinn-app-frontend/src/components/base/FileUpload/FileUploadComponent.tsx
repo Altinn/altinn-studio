@@ -16,8 +16,7 @@ import {
 } from 'src/components/base/FileUpload/shared/render';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
-import type { IComponentProps } from 'src/components';
-import type { ILayoutCompFileUpload } from 'src/features/form/layout';
+import type { PropsFromGenericComponent } from 'src/components';
 import type { IAttachment } from 'src/shared/resources/attachments';
 import type { IComponentValidations } from 'src/types';
 
@@ -27,8 +26,7 @@ import { getLanguageFromKey } from 'altinn-shared/utils';
 
 import 'src/components/base/FileUpload/FileUploadComponent.css';
 
-export type IFileUploadProps = IComponentProps &
-  Omit<ILayoutCompFileUpload, 'type'>;
+export type IFileUploadProps = PropsFromGenericComponent<'FileUpload'>;
 
 export const bytesInOneMB = 1048576;
 export const emptyArray = [];

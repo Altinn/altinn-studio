@@ -4,13 +4,11 @@ import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { useGetOptions } from 'src/components/hooks';
 import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
 import { getOptionLookupKey } from 'src/utils/options';
-import type { IComponentProps } from 'src/components';
-import type { ILayoutCompDropdown } from 'src/features/form/layout';
+import type { PropsFromGenericComponent } from 'src/components';
 
 import { AltinnSpinner, Select } from 'altinn-shared/components';
 
-export type IDropdownProps = IComponentProps &
-  Omit<ILayoutCompDropdown, 'type'>;
+export type IDropdownProps = PropsFromGenericComponent<'Dropdown'>;
 
 function DropdownComponent({
   optionsId,

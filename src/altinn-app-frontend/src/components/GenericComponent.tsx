@@ -24,31 +24,35 @@ import {
   selectComponentTexts,
 } from 'src/utils/formComponentUtils';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
-import type { IComponentProps, IFormComponentContext } from 'src/components';
+import type {
+  IComponentProps,
+  IFormComponentContext,
+  PropsFromGenericComponent,
+} from 'src/components';
 import type {
   ComponentExceptGroup,
   ComponentTypes,
   IGridStyling,
   ILayoutCompBase,
-  ILayoutComponent,
 } from 'src/features/form/layout';
 import type { IComponentValidations, ILabelSettings } from 'src/types';
 
 import { getTextResourceByKey } from 'altinn-shared/utils';
 import type { ILanguage } from 'altinn-shared/types';
 
-export interface IGenericComponentProps extends Omit<ILayoutCompBase, 'type'> {
+export interface IGenericComponentProps {
   componentValidations?: IComponentValidations;
   labelSettings?: ILabelSettings;
-  hidden?: boolean;
   layout?: LayoutStyle;
   groupContainerId?: string;
 }
 
-export interface IActualGenericComponentProps<Type extends ComponentTypes>
-  extends IGenericComponentProps {
-  type: Type;
-}
+/**
+ * The IGenericComponentProps type above defines which properties a GenericComponent gets, but it always also gets the
+ * component definition from the layout file as well. Blending these two here.
+ */
+export type IActualGenericComponentProps<Type extends ComponentTypes> =
+  IGenericComponentProps & ILayoutCompBase<Type>;
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -133,9 +137,7 @@ export function GenericComponent<Type extends ComponentExceptGroup>(
     ),
   );
 
-  const hidden = useAppSelector(
-    (state) => props.hidden || GetHiddenSelector(state, props),
-  );
+  const hidden = useAppSelector((state) => GetHiddenSelector(state, props));
   const shouldFocus = useAppSelector((state) => GetFocusSelector(state, props));
   const componentValidations = useAppSelector(
     (state) => state.formValidations.validations[currentView]?.[props.id],
@@ -145,9 +147,10 @@ export function GenericComponent<Type extends ComponentExceptGroup>(
   const formComponentContext = useMemo<IFormComponentContext>(() => {
     return {
       grid: props.grid,
+      id: props.id,
       baseComponentId: props.baseComponentId,
     };
-  }, [props.baseComponentId, props.grid]);
+  }, [props.baseComponentId, props.grid, props.id]);
 
   React.useEffect(() => {
     setHasValidationMessages(
@@ -304,7 +307,7 @@ export function GenericComponent<Type extends ComponentExceptGroup>(
     label: RenderLabel,
     legend: RenderLegend,
     ...passThroughProps,
-  } as IComponentProps & ILayoutComponent<Type>;
+  } as unknown as PropsFromGenericComponent<Type>;
 
   const noLabelComponents: ComponentTypes[] = [
     'Header',

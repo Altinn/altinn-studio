@@ -1,13 +1,11 @@
 import * as React from 'react';
 
 import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
-import type { IComponentProps } from 'src/components';
-import type { ILayoutCompTextArea } from 'src/features/form/layout';
+import type { PropsFromGenericComponent } from 'src/components';
 
 import 'src/styles/shared.css';
 
-export type ITextAreaProps = IComponentProps &
-  Omit<ILayoutCompTextArea, 'type'>;
+export type ITextAreaProps = PropsFromGenericComponent<'TextArea'>;
 
 export function TextAreaComponent({
   id,

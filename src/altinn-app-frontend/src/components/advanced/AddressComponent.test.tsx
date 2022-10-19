@@ -7,7 +7,6 @@ import mockAxios from 'jest-mock-axios';
 import configureStore from 'redux-mock-store';
 
 import { AddressComponent } from 'src/components/advanced/AddressComponent';
-import type { IComponentProps } from 'src/components';
 import type { IAddressComponentProps } from 'src/components/advanced/AddressComponent';
 
 const render = (props: Partial<IAddressComponentProps> = {}) => {
@@ -47,7 +46,7 @@ const render = (props: Partial<IAddressComponentProps> = {}) => {
     readOnly: false,
     required: false,
     textResourceBindings: {},
-    ...({} as IComponentProps),
+    ...({} as IAddressComponentProps),
     ...props,
   };
 

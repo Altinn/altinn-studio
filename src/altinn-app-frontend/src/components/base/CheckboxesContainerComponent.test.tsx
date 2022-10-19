@@ -9,7 +9,6 @@ import type { PreloadedState } from 'redux';
 import { CheckboxContainerComponent } from 'src/components/base/CheckboxesContainerComponent';
 import { mockDelayBeforeSaving } from 'src/components/hooks/useDelayedSavedState';
 import { LayoutStyle } from 'src/types';
-import type { IComponentProps } from 'src/components';
 import type { ICheckboxContainerProps } from 'src/components/base/CheckboxesContainerComponent';
 import type { IOptionsState } from 'src/shared/resources/options';
 import type { RootState } from 'src/store';
@@ -36,7 +35,6 @@ const render = (
   customState: PreloadedState<RootState> = {},
 ) => {
   const allProps: ICheckboxContainerProps = {
-    type: 'Checkboxes',
     options: [],
     optionsId: 'countries',
     preselectedOptionIndex: undefined,
@@ -45,7 +43,7 @@ const render = (
     handleDataChange: jest.fn(),
     getTextResource: (value) => value,
     getTextResourceAsString: (value) => value,
-    ...({} as IComponentProps),
+    ...({} as ICheckboxContainerProps),
     ...props,
   };
 

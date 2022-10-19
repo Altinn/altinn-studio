@@ -22,15 +22,14 @@ import {
 } from 'src/utils/formComponentUtils';
 import { getOptionLookupKey } from 'src/utils/options';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
-import type { IComponentProps } from 'src/components';
-import type { ILayoutCompFileUploadWithTag } from 'src/features/form/layout';
+import type { PropsFromGenericComponent } from 'src/components';
 import type { IAttachment } from 'src/shared/resources/attachments';
 import type { IRuntimeState } from 'src/types';
 
 import { getLanguageFromKey } from 'altinn-shared/utils';
 
-export type IFileUploadWithTagProps = IComponentProps &
-  Omit<ILayoutCompFileUploadWithTag, 'type'>;
+export type IFileUploadWithTagProps =
+  PropsFromGenericComponent<'FileUploadWithTag'>;
 
 export function FileUploadWithTagComponent({
   id,
@@ -291,7 +290,7 @@ export function FileUploadWithTagComponent({
         setEditIndex={setEditIndex}
         textResourceBindings={textResourceBindings}
         dataModelBindings={dataModelBindings}
-        {...({} as IComponentProps)}
+        {...({} as PropsFromGenericComponent<'FileUploadWithTag'>)}
       />
 
       {!shouldShowFileUpload() &&

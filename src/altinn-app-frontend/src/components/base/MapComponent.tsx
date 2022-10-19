@@ -2,20 +2,16 @@ import React from 'react';
 
 import { Map } from '@altinn/altinn-design-system';
 import { makeStyles, Typography } from '@material-ui/core';
-import type { Location, MapLayer } from '@altinn/altinn-design-system';
+import type { Location } from '@altinn/altinn-design-system';
 
-import type { IComponentProps } from '..';
+import type { PropsFromGenericComponent } from 'src/components';
 
 import {
   getLanguageFromKey,
   getParsedLanguageFromKey,
 } from 'altinn-shared/utils';
 
-export interface IMapComponentProps extends IComponentProps {
-  layers?: MapLayer[];
-  centerLocation?: Location;
-  zoom?: number;
-}
+export type IMapComponentProps = PropsFromGenericComponent<'Map'>;
 
 export const useStyles = makeStyles(() => ({
   footer: {

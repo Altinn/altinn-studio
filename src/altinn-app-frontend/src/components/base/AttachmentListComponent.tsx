@@ -3,14 +3,12 @@ import * as React from 'react';
 import { Grid, Typography } from '@material-ui/core';
 
 import { useAppSelector } from 'src/common/hooks';
-import type { IComponentProps } from 'src/components';
-import type { ILayoutCompAttachmentList } from 'src/features/form/layout';
+import type { PropsFromGenericComponent } from 'src/components';
 
 import { AltinnAttachment } from 'altinn-shared/components';
 import { mapInstanceAttachments } from 'altinn-shared/utils';
 
-export type IAttachmentListProps = IComponentProps &
-  Omit<ILayoutCompAttachmentList, 'type'>;
+export type IAttachmentListProps = PropsFromGenericComponent<'AttachmentList'>;
 
 export function AttachmentListComponent(props: IAttachmentListProps) {
   const currentTaskId = useAppSelector(

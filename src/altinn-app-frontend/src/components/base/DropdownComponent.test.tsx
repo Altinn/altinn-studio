@@ -8,7 +8,6 @@ import type { PreloadedState } from 'redux';
 
 import DropdownComponent from 'src/components/base/DropdownComponent';
 import { mockDelayBeforeSaving } from 'src/components/hooks/useDelayedSavedState';
-import type { IComponentProps } from 'src/components';
 import type { IDropdownProps } from 'src/components/base/DropdownComponent';
 import type { RootState } from 'src/store';
 
@@ -24,7 +23,7 @@ const render = (
     getTextResourceAsString: (value) => value,
     readOnly: false,
     isValid: true,
-    ...({} as IComponentProps),
+    ...({} as IDropdownProps),
     ...props,
   };
 

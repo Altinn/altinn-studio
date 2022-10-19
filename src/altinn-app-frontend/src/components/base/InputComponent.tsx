@@ -3,10 +3,9 @@ import React from 'react';
 import { TextField } from '@altinn/altinn-design-system';
 import type { ReadOnlyVariant } from '@altinn/altinn-design-system';
 
-import type { IComponentProps } from '..';
-
 import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
-import type { ILayoutCompInput } from 'src/features/form/layout';
+import type { PropsFromGenericComponent } from 'src/components/index';
+import type { IInputFormatting } from 'src/features/form/layout';
 
 export interface IInputBaseProps {
   id: string;
@@ -16,7 +15,7 @@ export interface IInputBaseProps {
   inputRef?: ((el: HTMLInputElement) => void) | React.Ref<any>;
 }
 
-export type IInputProps = IComponentProps & Omit<ILayoutCompInput, 'type'>;
+export type IInputProps = PropsFromGenericComponent<'Input'>;
 
 export function InputComponent({
   id,
@@ -50,7 +49,7 @@ export function InputComponent({
       aria-describedby={
         textResourceBindings?.description ? `description-${id}` : undefined
       }
-      formatting={formatting}
+      formatting={formatting as IInputFormatting}
     />
   );
 }

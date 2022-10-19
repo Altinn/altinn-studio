@@ -9,7 +9,6 @@ import { renderWithProviders } from 'testUtils';
 
 import { FileUploadWithTagComponent } from 'src/components/base/FileUpload/FileUploadWithTag/FileUploadWithTagComponent';
 import { AsciiUnitSeparator } from 'src/utils/attachment';
-import type { IComponentProps } from 'src/components';
 import type { IFileUploadWithTagProps } from 'src/components/base/FileUpload/FileUploadWithTag/FileUploadWithTagComponent';
 import type { IAttachment } from 'src/shared/resources/attachments';
 
@@ -275,7 +274,7 @@ const render = ({
     getTextResource: jest.fn(),
     getTextResourceAsString: jest.fn(),
     textResourceBindings: textResourceBindings,
-    ...({} as IComponentProps),
+    ...({} as IFileUploadWithTagProps),
     ...props,
   };
 

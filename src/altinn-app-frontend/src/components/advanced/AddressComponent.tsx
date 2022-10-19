@@ -6,16 +6,15 @@ import axios from 'axios';
 import { AddressLabel } from 'src/components/advanced/AddressLabel';
 import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
-import type { IComponentProps } from 'src/components';
-import type { ILayoutCompAddress } from 'src/features/form/layout';
+import type { PropsFromGenericComponent } from 'src/components';
 import type { IComponentValidations } from 'src/types';
 
 import { get, getLanguageFromKey } from 'altinn-shared/utils';
 
 import 'src/components/advanced/AddressComponent.css';
 
-export type IAddressComponentProps = IComponentProps &
-  Omit<ILayoutCompAddress, 'type'>;
+export type IAddressComponentProps =
+  PropsFromGenericComponent<'AddressComponent'>;
 
 interface IAddressValidationErrors {
   address?: string;

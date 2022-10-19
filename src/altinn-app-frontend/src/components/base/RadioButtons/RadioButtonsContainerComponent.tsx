@@ -2,12 +2,10 @@ import React from 'react';
 
 import { ControlledRadioGroup } from 'src/components/base/RadioButtons/ControlledRadioGroup';
 import { useRadioButtons } from 'src/components/base/RadioButtons/radioButtonsUtils';
-import type { IComponentProps } from 'src/components';
-import type { ILayoutCompRadioButtons } from 'src/features/form/layout';
+import type { PropsFromGenericComponent } from 'src/components';
 
 export interface IRadioButtonsContainerProps
-  extends IComponentProps,
-    ILayoutCompRadioButtons {
+  extends PropsFromGenericComponent<'RadioButtons'> {
   validationMessages?: any;
 }
 

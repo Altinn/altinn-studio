@@ -15,7 +15,7 @@ import {
 import { EditWindowComponent } from 'src/components/base/FileUpload/FileUploadWithTag/EditWindowComponent';
 import { FileName } from 'src/components/base/FileUpload/shared/render';
 import { atleastOneTagExists } from 'src/utils/formComponentUtils';
-import type { IComponentProps } from 'src/components';
+import type { PropsFromGenericComponent } from 'src/components';
 import type { IAttachment } from 'src/shared/resources/attachments';
 import type { IDataModelBindings, IOption } from 'src/types';
 
@@ -126,7 +126,8 @@ const useStyles = makeStyles({
   },
 });
 
-export interface FileListProps extends IComponentProps {
+export interface FileListProps
+  extends PropsFromGenericComponent<'FileUploadWithTag'> {
   attachments: IAttachment[];
   editIndex: number;
   mobileView: boolean;
@@ -356,7 +357,7 @@ export function FileList(props: FileListProps): JSX.Element {
                       onDropdownDataChange={props.onDropdownDataChange}
                       setEditIndex={props.setEditIndex}
                       textResourceBindings={props.textResourceBindings}
-                      {...({} as IComponentProps)}
+                      {...({} as PropsFromGenericComponent<'FileUploadWithTag'>)}
                     />
                   </TableCell>
                 </TableRow>

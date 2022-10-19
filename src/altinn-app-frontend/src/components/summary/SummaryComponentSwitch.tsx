@@ -97,7 +97,7 @@ export default function SummaryComponentSwitch({
         label={label}
         hasValidationMessages={hasValidationMessages}
         formData={formData}
-        readOnlyComponent={(formComponent as ILayoutComponent).readOnly}
+        readOnlyComponent={formComponent.readOnly}
       />
     );
   }
@@ -125,7 +125,7 @@ export default function SummaryComponentSwitch({
       label={label}
       hasValidationMessages={hasValidationMessages}
       formData={formData}
-      readOnlyComponent={(formComponent as ILayoutComponent).readOnly}
+      readOnlyComponent={formComponent.readOnly}
       display={display}
     />
   );

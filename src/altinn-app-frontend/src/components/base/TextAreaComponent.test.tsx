@@ -4,7 +4,6 @@ import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { TextAreaComponent } from 'src/components/base/TextAreaComponent';
-import type { IComponentProps } from 'src/components';
 import type { ITextAreaProps } from 'src/components/base/TextAreaComponent';
 
 describe('TextAreaComponent.tsx', () => {
@@ -78,7 +77,7 @@ describe('TextAreaComponent.tsx', () => {
   });
 });
 
-const render = (props: Partial<IComponentProps> = {}) => {
+const render = (props: Partial<ITextAreaProps> = {}) => {
   const allProps = {
     id: 'id',
     type: 'TextArea',

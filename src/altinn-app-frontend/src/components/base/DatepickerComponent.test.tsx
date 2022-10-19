@@ -6,7 +6,6 @@ import { mockMediaQuery, renderWithProviders } from 'testUtils';
 import type { PreloadedState } from 'redux';
 
 import DatepickerComponent from 'src/components/base/DatepickerComponent';
-import type { IComponentProps } from 'src/components';
 import type { IDatePickerProps } from 'src/components/base/DatepickerComponent';
 import type { RootState } from 'src/store';
 
@@ -19,7 +18,7 @@ const render = (
     minDate: '1900-01-01T12:00:00.000Z',
     maxDate: '2100-01-01T12:00:00.000Z',
     handleDataChange: jest.fn(),
-    ...({} as IComponentProps),
+    ...({} as IDatePickerProps),
     ...props,
   };
 
