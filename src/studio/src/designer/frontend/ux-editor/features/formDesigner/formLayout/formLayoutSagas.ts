@@ -7,7 +7,7 @@ import {
   takeEvery,
   takeLatest,
 } from 'redux-saga/effects';
-import * as SharedNetwork from 'app-shared/utils/networking';
+import { del, get, post } from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
 import { ILayoutSettings } from 'app-shared/types/global';
 import Axios from 'axios';
@@ -17,18 +17,18 @@ import {
   convertFromLayoutToInternalFormat,
   convertInternalToLayoutFormat,
 } from '../../../utils/formLayout';
-import { deleteCall, get, post } from '../../../utils/networking';
+
 import {
   getAddApplicationMetadataUrl,
   getDeleteApplicationMetadataUrl,
   getDeleteForLayoutUrl,
-  getSaveFormLayoutUrl,
-  getLayoutSettingsUrl,
-  getUpdateApplicationMetadataUrl,
-  getSaveLayoutSettingsUrl,
-  getUpdateFormLayoutNameUrl,
-  getLayoutSchemaUrl,
   getFetchFormLayoutUrl,
+  getLayoutSchemaUrl,
+  getLayoutSettingsUrl,
+  getSaveFormLayoutUrl,
+  getSaveLayoutSettingsUrl,
+  getUpdateApplicationMetadataUrl,
+  getUpdateFormLayoutNameUrl,
 } from '../../../utils/urlHelper';
 import { ComponentTypes } from '../../../components';
 import {
@@ -47,9 +47,9 @@ import {
 import { FormLayoutActions } from './formLayoutSlice';
 import type {
   IAppState,
-  IFormLayouts,
-  IFormLayout,
   IFormFileUploaderComponent,
+  IFormLayout,
+  IFormLayouts,
 } from '../../../types/global';
 
 const selectCurrentLayout = (state: IAppState): IFormLayout =>
@@ -361,7 +361,7 @@ export function* addApplicationMetadata({
     const addApplicationMetadataUrl: string = yield call(
       getAddApplicationMetadataUrl,
     );
-    yield call(SharedNetwork.post, addApplicationMetadataUrl, {
+    yield call(post, addApplicationMetadataUrl, {
       id,
       maxCount: maxFiles,
       minCount: minFiles,
@@ -389,7 +389,7 @@ export function* deleteApplicationMetadata({
     const deleteApplicationMetadataUrl: string = yield call(
       getDeleteApplicationMetadataUrl,
     );
-    yield call(SharedNetwork.post, deleteApplicationMetadataUrl + id, {
+    yield call(post, deleteApplicationMetadataUrl + id, {
       id,
     });
     yield put(FormLayoutActions.deleteApplicationMetadataFulfilled());
@@ -413,7 +413,7 @@ export function* updateApplicationMetadata({
     const updateApplicationMetadataUrl: string = yield call(
       getUpdateApplicationMetadataUrl,
     );
-    yield call(SharedNetwork.post, updateApplicationMetadataUrl, {
+    yield call(post, updateApplicationMetadataUrl, {
       id,
       maxCount: maxFiles,
       minCount: minFiles,
@@ -589,7 +589,7 @@ export function* deleteLayoutSaga({
     const { layout } = payload;
     yield put(FormLayoutActions.deleteLayoutFulfilled({ layout }));
     const deleteLayoutUrl: string = yield call(getDeleteForLayoutUrl, layout);
-    yield call(deleteCall, deleteLayoutUrl);
+    yield call(del, deleteLayoutUrl);
   } catch (error) {
     yield put(FormLayoutActions.deleteLayoutRejected({ error }));
   }

@@ -16,7 +16,7 @@ import {
   setRuleConnections,
 } from '../serviceConfigurationSlice';
 import type { IServiceConfigurationState } from '../serviceConfigurationTypes';
-import { get, post } from '../../../utils/networking';
+import { get, post } from 'app-shared/utils/networking';
 import {
   getFetchRuleConfigurationUrl,
   getSaveServiceConfigurationUrl,

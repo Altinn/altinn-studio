@@ -1,7 +1,7 @@
 import { SagaIterator } from 'redux-saga';
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { fetchDeployPermissionsUrl } from '../../../utils/urlHelper';
-import { get } from '../../../utils/networking';
+import { get } from 'app-shared/utils/networking';
 import {
   fetchDeployPermissions,
   fetchDeployPermissionsFulfilled,
