@@ -17,7 +17,7 @@ jobs:
         os: [macos-latest,windows-latest,ubuntu-latest] # TODO: Fix test to run on ubuntu-latest also
     name: Run dotnet build and test
     runs-on: ${{ matrix.os}}
-    env: 
+    env:
       DOTNET_HOSTBUILDER__RELOADCONFIGONCHANGE: false
     steps:
       - name: Setup .NET
@@ -33,4 +33,4 @@ jobs:
            dotnet build src/studio/src/designer/Designer.sln -v m
       - name: Test
         run: |
-           dotnet build src/studio/src/designer/Designer.sln -v m
+           dotnet test src/studio/src/designer/Designer.sln -v m
