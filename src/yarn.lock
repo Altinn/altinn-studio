@@ -12,11 +12,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@altinn/altinn-design-system@npm:0.7.1":
-  version: 0.7.1
-  resolution: "@altinn/altinn-design-system@npm:0.7.1"
+"@altinn/altinn-design-system@npm:0.14.1":
+  version: 0.14.1
+  resolution: "@altinn/altinn-design-system@npm:0.14.1"
   dependencies:
-    "@altinn/figma-design-tokens": ^2.0.2
+    "@altinn/figma-design-tokens": ^4.1.0
     "@radix-ui/react-popover": ^1.0.0
     "@react-hookz/web": ^15.0.1
     leaflet: ^1.8.0
@@ -25,14 +25,14 @@ __metadata:
   peerDependencies:
     react: ^18.0.0
     react-dom: ^18.0.0
-  checksum: 90f4a8a7d353e1ea5cb0d2cacf1c636000342c64bf694120e62dadfb9767461efe2bbd8b0c048fd9f961fcd3244f081d8029e399e9d4a8b13101e0e97b431407
+  checksum: c971d3e63ccf9ebf84c1a32ade8e5f315e92e881c6b721150cd2b724dfbb2fedcd883ed3b7c1651e520ab7ab5d35aff318b92bc5f4163ade82d44e15c83edc80
   languageName: node
   linkType: hard
 
-"@altinn/figma-design-tokens@npm:^2.0.2":
-  version: 2.0.2
-  resolution: "@altinn/figma-design-tokens@npm:2.0.2"
-  checksum: 60cc5076962e94743a083ff00180a8315c8e4469ffd0776af3f438b434f49e46045498fa95bc073e340191c4f0f9e156643275a860c466fa64505c8c82fb278d
+"@altinn/figma-design-tokens@npm:^4.1.0":
+  version: 4.1.0
+  resolution: "@altinn/figma-design-tokens@npm:4.1.0"
+  checksum: 9f256692d77dcf944da2572e4763c7355566e175a0fe35a93617cea0c313c7f147d6fb5efcaa02283f431b11f2c8496e2b20ef62d44d5d04d61093c9ff0007e3
   languageName: node
   linkType: hard
 
@@ -5158,7 +5158,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "altinn-app-frontend@workspace:altinn-app-frontend"
   dependencies:
-    "@altinn/altinn-design-system": 0.7.1
+    "@altinn/altinn-design-system": 0.14.1
     "@babel/core": 7.19.3
     "@babel/polyfill": 7.12.1
     "@babel/preset-env": 7.19.3
