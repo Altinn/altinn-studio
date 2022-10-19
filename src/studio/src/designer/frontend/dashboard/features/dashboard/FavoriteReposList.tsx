@@ -23,6 +23,7 @@ export const FavoriteReposList = () => {
         repos={userStarredRepos}
         isLoading={isLoadingUserStarredRepos}
         pageSize={5}
+        rowCount={userStarredRepos?.length ?? 0}
       />
     </div>
   );

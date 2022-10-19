@@ -26,15 +26,20 @@ const handlers = [
     },
   ),
 ];
-const server = setupServer(...handlers);
+const versionControlHeaderMockServer = setupServer(...handlers);
 
-beforeAll(() => {
+export const versionControlHeaderBeforeAll = () => {
   (window as Window as IAltinnWindow).org = 'test-org';
   (window as Window as IAltinnWindow).app = 'test-app';
-  server.listen();
-});
-afterEach(() => server.resetHandlers());
-afterAll(() => server.close());
+  versionControlHeaderMockServer.listen();
+};
+export const versionControlHeaderafterEach = () =>
+  versionControlHeaderMockServer.resetHandlers();
+export const versionControlHeaderafterAll = () =>
+  versionControlHeaderMockServer.resetHandlers();
+beforeAll(versionControlHeaderBeforeAll);
+afterEach(versionControlHeaderafterEach);
+afterAll(versionControlHeaderafterAll);
 
 describe('Shared > Version Control > VersionControlHeader', () => {
   it('should render header when type is not defined', async () => {

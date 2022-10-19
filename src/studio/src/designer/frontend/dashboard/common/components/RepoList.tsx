@@ -1,15 +1,15 @@
 import React from 'react';
 import {
   DataGrid,
-  GridSortModel,
-  GridActionsColDef,
-  GridRowParams,
   GridActionsCellItem,
-  GridValueGetterParams,
-  GridValueFormatterParams,
-  GridRenderCellParams,
+  GridActionsColDef,
   GridColDef,
   GridOverlay,
+  GridRenderCellParams,
+  GridRowParams,
+  GridSortModel,
+  GridValueFormatterParams,
+  GridValueGetterParams,
 } from '@mui/x-data-grid';
 import { makeStyles } from '@material-ui/core';
 import { IconButton } from '@mui/material';
@@ -33,7 +33,7 @@ export interface IRepoListProps {
   repos?: IRepository[];
   isServerSort?: boolean;
   pageSize?: number;
-  rowCount?: number;
+  rowCount: number;
   onPageChange?: (page: number) => void;
   onSortModelChange?: (newSortModel: GridSortModel) => void;
   onPageSizeChange?: (newPageSize: number) => void;
@@ -247,7 +247,7 @@ export const RepoList = ({
             <a
               key={params.row.id}
               href={params.row.html_url}
-              data-testid="gitea-repo-link"
+              data-testid='gitea-repo-link'
               className={cn(classes.actionLink, classes.repoLink)}
             >
               <span>
@@ -258,7 +258,7 @@ export const RepoList = ({
             <a
               key={params.row.id}
               href={editUrl}
-              data-testid="edit-repo-link"
+              data-testid='edit-repo-link'
               className={cn(classes.actionLink, classes.editLink)}
             >
               <span>{getLanguageFromKey('dashboard.edit_app', language)}</span>
