@@ -6,19 +6,28 @@ import { renderWithRedux } from '../../../test/renderWithRedux';
 // Test data:
 const textRequired = 'Required';
 const textDelete = 'Delete';
+const fullPath = 'test';
+const inputId = 'some-random-id';
+const value = '';
 const mockLanguage = {
   schema_editor: {
+    delete_field: textDelete,
     required: textRequired,
-    delete_field: textDelete
   }
+};
+const defaultProps: IPropertyItemProps = {
+  fullPath,
+  inputId,
+  language: mockLanguage,
+  onChangeValue: jest.fn(),
+  onDeleteField: jest.fn(),
+  onEnterKeyPress: jest.fn(),
+  value,
 };
 
 const renderPropertyItem = (props?: Partial<IPropertyItemProps>) => renderWithRedux(
   <PropertyItem
-    fullPath='test'
-    language={mockLanguage}
-    onChangeValue={jest.fn}
-    value=''
+    {...defaultProps}
     {...props}
   />
 );
@@ -54,7 +63,7 @@ test('onChangeValue is called on blur when text changes', async () => {
   const {user} = renderPropertyItem({onChangeValue});
   await user.type(screen.getByRole('textbox'), 'test');
   await user.tab();
-  expect(onChangeValue).toHaveBeenCalled();
+  expect(onChangeValue).toHaveBeenCalledTimes(1);
 });
 
 test('onChangeValue is not called when there is no change', async () => {
@@ -83,6 +92,11 @@ test('onEnterKeyPress is not called when another key but Enter is pressed in the
   expect(onEnterKeyPress).not.toHaveBeenCalled();
 });
 
+test('Name input field has given id', async () => {
+  const { container } = renderPropertyItem().renderResult;
+  expect(container.querySelector(`#${inputId}`)).toBeDefined();
+});
+
 test('"Required" checkbox appears', () => {
   renderPropertyItem();
   expect(screen.getByRole('checkbox')).toBeDefined();
@@ -108,13 +122,23 @@ test('"Required" label appears on screen', () => {
   expect(screen.getByText(textRequired)).toBeDefined();
 });
 
-test('Delete button does not appear by default', () => {
+test('"Required" checkbox is enabled by default', () => {
   renderPropertyItem();
-  expect(screen.queryAllByRole('button')).toHaveLength(0);
+  expect(screen.getByRole('checkbox')).toBeEnabled();
 });
 
-test('Delete button appears if onDeleteField is defined', () => {
-  renderPropertyItem({onDeleteField: jest.fn});
+test('"Required" checkbox is disabled if the "readOnly" prop is true', () => {
+  renderPropertyItem({ readOnly: true });
+  expect(screen.getByRole('textbox')).toBeDisabled();
+});
+
+test('"Required" checkbox is enabled if the "readOnly" prop is false', () => {
+  renderPropertyItem({ readOnly: false });
+  expect(screen.getByRole('checkbox')).toBeEnabled();
+});
+
+test('Delete button appears', () => {
+  renderPropertyItem();
   expect(screen.getByRole('button')).toBeDefined();
 });
 
@@ -122,10 +146,10 @@ test('onDeleteField is called when the delete button is clicked', async () => {
   const onDeleteField = jest.fn();
   const {user} = renderPropertyItem({onDeleteField});
   await user.click(screen.getByRole('button'));
-  expect(onDeleteField).toHaveBeenCalled();
+  expect(onDeleteField).toHaveBeenCalledTimes(1);
 });
 
 test('Delete button is labelled with the delete text', async () => {
-  renderPropertyItem({onDeleteField: jest.fn});
+  renderPropertyItem();
   expect(screen.getByRole('button')).toHaveAccessibleName(textDelete);
 });

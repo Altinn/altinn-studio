@@ -1,5 +1,5 @@
-export const getDomFriendlyID = (input: string, postfix?: string): string =>
-  input.replace(/\//g, '').replace('#', '') + (postfix ? '-' + postfix : '');
+export const getDomFriendlyID = (input: string, suffix?: string): string =>
+  input.replace(/\//g, '').replace('#', '') + (suffix ? '-' + suffix : '');
 
 export const isValidName = (name: string) => Boolean(name.match(/^[a-zA-ZæÆøØåÅ][a-zA-Z0-9_.\-æÆøØåÅ ]*$/));
 

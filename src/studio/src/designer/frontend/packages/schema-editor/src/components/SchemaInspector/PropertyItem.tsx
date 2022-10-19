@@ -1,4 +1,4 @@
-import React, { KeyboardEvent, useEffect, useState } from 'react';
+import React, { ChangeEventHandler, FocusEventHandler, KeyboardEvent, useEffect, useState } from 'react';
 import { IconButton } from '@material-ui/core';
 import { useDispatch } from 'react-redux';
 import { DeleteOutline } from '@material-ui/icons';
@@ -6,76 +6,82 @@ import type { ILanguage } from '../../types';
 import { getTranslation } from '../../utils/language';
 import { setRequired } from '../../features/editor/schemaEditorSlice';
 import { Checkbox, TextField } from '@altinn/altinn-design-system';
-import { getDomFriendlyID, getUniqueNumber } from '../../utils/ui-schema-utils';
 import classes from './PropertyItem.module.css';
 
 export interface IPropertyItemProps {
-  value: string;
   fullPath: string;
+  inputId: string;
   language: ILanguage;
-  required?: boolean;
   onChangeValue: (path: string, value: string) => void;
-  onDeleteField?: (path: string, key: string) => void;
+  onDeleteField: (path: string, key: string) => void;
+  onEnterKeyPress: () => void;
   readOnly?: boolean;
-  onEnterKeyPress?: () => void;
+  required?: boolean;
+  value: string;
 }
 
-export function PropertyItem(props: IPropertyItemProps) {
-  const [value, setValue] = useState<string>(props.value || '');
+export function PropertyItem({
+  fullPath,
+  inputId,
+  language,
+  onChangeValue,
+  onDeleteField,
+  onEnterKeyPress,
+  readOnly,
+  required,
+  value,
+}: IPropertyItemProps) {
+  const [inputValue, setInputValue] = useState<string>(value || '');
   const dispatch = useDispatch();
 
-  useEffect(() => setValue(props.value), [props.value]);
-  const onChangeValue = (e: any) => setValue(e.target.value);
+  useEffect(() => setInputValue(value), [value]);
+  const changeValueHandler: ChangeEventHandler<HTMLInputElement> = (e) => setInputValue(e.target.value);
 
-  const onBlur = (e: any) => {
-    if (value !== props.value) {
-      props.onChangeValue(props.fullPath, e.target.value);
+  const onBlur: FocusEventHandler<HTMLInputElement> = (e) => {
+    if (inputValue !== value) {
+      onChangeValue(fullPath, e.target.value);
     }
   };
 
-  const onClickDelete = () => props.onDeleteField?.(props.fullPath, props.value);
+  const deleteHandler = () => onDeleteField?.(fullPath, value);
 
-  const onChangeRequired = (e: any) =>
+  const changeRequiredHandler: ChangeEventHandler<HTMLInputElement> = (e) =>
     dispatch(
       setRequired({
-        path: props.fullPath,
+        path: fullPath,
         required: e.target.checked,
       }),
     );
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
-    e?.key === 'Enter' && props.onEnterKeyPress && props.onEnterKeyPress();
+    e?.key === 'Enter' && onEnterKeyPress && onEnterKeyPress();
 
-  const baseId = getDomFriendlyID(props.fullPath, 'key-');
   return (
     <div className={classes.root}>
       <span className={classes.nameInputCell}>
         <TextField
-          id={`${baseId}-key-${getUniqueNumber()}`}
-          value={value}
-          autoFocus
-          disabled={props.readOnly}
-          onChange={onChangeValue}
+          id={inputId}
+          value={inputValue}
+          disabled={readOnly}
+          onChange={changeValueHandler}
           onBlur={onBlur}
           onKeyDown={onKeyDown}
         />
       </span>
       <Checkbox
-        checked={props.required ?? false}
-        onChange={onChangeRequired}
+        checked={required ?? false}
+        disabled={readOnly}
+        onChange={changeRequiredHandler}
         name='checkedArray'
-        label={getTranslation('required', props.language)}
+        label={getTranslation('required', language)}
       />
-      {props.onDeleteField && (
-        <IconButton
-          id={`${baseId}-delete-${getUniqueNumber()}`}
-          aria-label={getTranslation('delete_field', props.language)}
-          onClick={onClickDelete}
-          className={classes.delete}
-        >
-          <DeleteOutline />
-        </IconButton>
-      )}
+      <IconButton
+        aria-label={getTranslation('delete_field', language)}
+        onClick={deleteHandler}
+        className={classes.delete}
+      >
+        <DeleteOutline />
+      </IconButton>
     </div>
   );
 }
