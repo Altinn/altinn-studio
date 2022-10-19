@@ -22,7 +22,11 @@ const render = ({ props = {}, dispatch = jest.fn() } = {}) => {
       error: null,
       layoutsets: null,
       uiConfig: {
-        layoutOrder: ['page1', 'page2', 'page3'],
+        tracks: {
+          order: ['page1', 'page2', 'page3'],
+          hiddenExpr: {},
+          hidden: [],
+        },
         currentView: 'page1',
         autoSave: false,
         focus: 'focus',

@@ -64,7 +64,11 @@ describe('NavigationButton', () => {
         focus: null,
         hiddenFields: [],
         repeatingGroups: null,
-        layoutOrder: ['layout1', 'layout2'],
+        tracks: {
+          order: ['layout1', 'layout2'],
+          hidden: [],
+          hiddenExpr: {},
+        },
         navigationConfig: {
           layout1: {
             next: 'layout2',

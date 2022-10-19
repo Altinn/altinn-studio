@@ -19,7 +19,7 @@ describe('layoutSlice', () => {
       );
 
       expect(nextState.layouts).toEqual(layouts);
-      expect(nextState.uiConfig.layoutOrder).toEqual(Object.keys(layouts));
+      expect(nextState.uiConfig.tracks.order).toEqual(Object.keys(layouts));
       expect(nextState.uiConfig.navigationConfig).toEqual(navigationConfig);
     });
 

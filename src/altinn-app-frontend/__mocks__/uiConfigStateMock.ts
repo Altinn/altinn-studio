@@ -6,6 +6,11 @@ export const getUiConfigStateMock = (
   return {
     autoSave: true,
     focus: null,
+    tracks: {
+      hidden: [],
+      hiddenExpr: {},
+      order: ['FormLayout'],
+    },
     hiddenFields: [],
     repeatingGroups: {
       group: {
@@ -24,7 +29,6 @@ export const getUiConfigStateMock = (
     fileUploadersWithTag: null,
     currentView: 'FormLayout',
     navigationConfig: {},
-    layoutOrder: ['FormLayout'],
     ...customStates,
   };
 };

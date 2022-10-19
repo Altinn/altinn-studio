@@ -1,3 +1,4 @@
+import { getLayoutOrderFromTracks } from 'src/selectors/getLayoutOrder';
 import { getCurrentDataTypeId } from 'src/utils/appMetadata';
 import { convertDataBindingToModel } from 'src/utils/databindings';
 import {
@@ -8,7 +9,8 @@ import {
 } from 'src/utils/validation/validation';
 import type { IRuntimeState } from 'src/types';
 
-/** Runs client side validations on state.
+/**
+ * Runs client side validations on state.
  * @param state
  */
 export function runClientSideValidation(state: IRuntimeState) {
@@ -18,11 +20,15 @@ export function runClientSideValidation(state: IRuntimeState) {
     state.formLayout.layoutsets,
   );
   const model = convertDataBindingToModel(state.formData.formData);
-  const layoutOrder: string[] = state.formLayout.uiConfig.layoutOrder;
   const validator = getValidator(
     currentDataTaskDataTypeId,
     state.formDataModel.schemas,
   );
+
+  const layoutOrder = getLayoutOrderFromTracks(
+    state.formLayout.uiConfig.tracks,
+  );
+
   const validationResult = validateFormData(
     model,
     state.formLayout.layouts,

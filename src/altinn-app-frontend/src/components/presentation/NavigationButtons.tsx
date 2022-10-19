@@ -6,6 +6,7 @@ import type { PropsFromGenericComponent } from '..';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { selectLayoutOrder } from 'src/selectors/getLayoutOrder';
 import { Triggers } from 'src/types';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { IKeepComponentScrollPos } from 'src/features/form/layout/formLayoutTypes';
@@ -30,9 +31,7 @@ export function NavigationButtons(props: INavigationButtons) {
   const currentView = useAppSelector(
     (state) => state.formLayout.uiConfig.currentView,
   );
-  const orderedLayoutKeys = useAppSelector(
-    (state) => state.formLayout.uiConfig.layoutOrder,
-  );
+  const orderedLayoutKeys = useAppSelector(selectLayoutOrder);
   const returnToView = useAppSelector(
     (state) => state.formLayout.uiConfig.returnToView,
   );
