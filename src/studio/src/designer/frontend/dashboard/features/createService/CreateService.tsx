@@ -1,5 +1,5 @@
-import { makeStyles } from '@material-ui/core/styles';
-import { Grid } from '@material-ui/core';
+import { makeStyles } from '@mui/styles';
+import { Grid } from '@mui/material';
 import React from 'react';
 
 import { useAppSelector } from 'common/hooks';
@@ -11,7 +11,7 @@ import { getLanguageFromKey } from 'app-shared/utils/language';
 import { ServiceOwnerSelector } from './ServiceOwnerSelector';
 import { RepoNameInput } from './RepoNameInput';
 // import { RepoTypeSelector } from './RepoTypeSelector';
-import { useAddRepoMutation, DataModellingFormat } from 'services/repoApi';
+import { DataModellingFormat, useAddRepoMutation } from 'services/repoApi';
 
 import { validateRepoName } from 'common/utils';
 import { applicationAboutPage } from 'common/utils/urlUtils';
@@ -171,7 +171,6 @@ export const CreateService = () => {
               selectedOrgOrUser={selectedOrgOrUser}
             />
           </div>
-
           <div className={classes.marginBottom_24}>
             <RepoNameInput
               onRepoNameChanged={handleRepoNameChanged}
@@ -179,14 +178,6 @@ export const CreateService = () => {
               errorMessage={repoErrorMessage}
             />
           </div>
-          {/*
-          <div className={classes.marginBottom_24}>
-            <RepoTypeSelector
-              selectedFormat={selectedFormat}
-              onFormatChange={setSelectedFormat}
-            />
-          </div> */}
-
           {pageState === PageState.Creating ? (
             <AltinnSpinner
               spinnerText={getLanguageFromKey(

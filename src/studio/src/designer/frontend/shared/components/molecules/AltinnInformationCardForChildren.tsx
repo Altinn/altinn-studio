@@ -1,8 +1,7 @@
-import { createTheme } from '@material-ui/core';
-import Grid from '@material-ui/core/Grid';
-import { withStyles } from '@material-ui/core/styles';
-import classNames from 'classnames';
 import React from 'react';
+import { createTheme, Grid } from '@mui/material';
+import { withStyles } from '@mui/styles';
+import classNames from 'classnames';
 import altinnTheme from '../../theme/altinnStudioTheme';
 import createInformationCardStyles from '../styles/createInformationCardStyles';
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import Modal from 'react-modal';
-import { Typography } from '@material-ui/core';
+import { Typography } from '@mui/material';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { useDispatch, useSelector } from 'react-redux';
 import { RuleComponent } from '../config/RuleComponent';

@@ -1,11 +1,11 @@
+import React from 'react';
 import {
   ListItemIcon,
   ListItemText,
-  makeStyles,
   MenuItem,
   Typography,
-} from '@material-ui/core';
-import React from 'react';
+} from '@mui/material';
+import { makeStyles } from '@mui/styles';
 
 export interface IAltinnMenuItemProps {
   text: string;

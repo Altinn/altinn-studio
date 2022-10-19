@@ -1,7 +1,7 @@
-import { createTheme, createStyles, Popper } from '@material-ui/core';
-import { withStyles } from '@material-ui/core/styles';
-import classNames from 'classnames';
 import React from 'react';
+import { createTheme, Popper } from '@mui/material';
+import { createStyles, withStyles } from '@mui/styles';
+import classNames from 'classnames';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnPopperComponentProvidedProps {
@@ -22,7 +22,6 @@ const styles = createStyles({
     fontSize: 16,
     padding: '12px 24px 12px 24px',
     maxWidth: '550px',
-    marginTop: 10,
   },
 });
 

@@ -1,7 +1,6 @@
 import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
-import { Typography } from '@material-ui/core';
-
+import { Typography } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 import AltinnInformationPaper from 'app-shared/components/AltinnInformationPaper';
 import { AltinnRadioGroup } from 'app-shared/components/AltinnRadioGroup';
 import { AltinnRadio } from 'app-shared/components/AltinnRadio';

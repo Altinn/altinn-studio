@@ -5,8 +5,9 @@ import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import * as networking from 'app-shared/utils/networking';
-import { MakeCopyModal } from 'common/components/MakeCopyModal';
 import type { IMakeCopyModalProps } from 'common/components/MakeCopyModal';
+import { MakeCopyModal } from 'common/components/MakeCopyModal';
+import { MemoryRouter } from 'react-router-dom';
 
 const user = userEvent.setup();
 const org = 'org';
@@ -104,8 +105,10 @@ const render = (props: Partial<IMakeCopyModalProps> = {}) => {
   };
 
   return rtlRender(
-    <Provider store={store}>
-      <MakeCopyModal {...allProps} />
-    </Provider>,
+    <MemoryRouter>
+      <Provider store={store}>
+        <MakeCopyModal {...allProps} />
+      </Provider>
+    </MemoryRouter>,
   );
 };

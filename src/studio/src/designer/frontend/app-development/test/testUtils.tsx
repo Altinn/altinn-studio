@@ -1,13 +1,12 @@
 import React from 'react';
-import { render as rtlRender } from '@testing-library/react';
-import { Provider } from 'react-redux';
 import type { RenderOptions } from '@testing-library/react';
+import { render } from '@testing-library/react';
+import { Provider } from 'react-redux';
 import type { PreloadedState } from '@reduxjs/toolkit';
 import { Router } from 'react-router-dom';
-import { setupStore } from '../store';
 import type { AppStore, RootState } from '../store';
-import { createMemoryHistory} from "history";
-
+import { setupStore } from '../store';
+import { createMemoryHistory } from 'history';
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   preloadedState?: PreloadedState<RootState>;
@@ -26,14 +25,16 @@ export const renderWithProviders = (
     const history = createMemoryHistory();
     return (
       <Provider store={store}>
-        <Router location={history.location} navigator={history}>{children}</Router>
+        <Router location={history.location} navigator={history}>
+          {children}
+        </Router>
       </Provider>
     );
   }
 
   return {
     store,
-    ...rtlRender(component, {
+    ...render(component, {
       wrapper: Wrapper,
       ...renderOptions,
     }),

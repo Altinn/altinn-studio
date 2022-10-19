@@ -1,14 +1,13 @@
-import { createTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import React from 'react';
+import { createTheme, ThemeProvider } from '@mui/material';
 import { MemoryRouter } from 'react-router-dom';
+import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import { render as rtlRender, screen } from '@testing-library/react';
-import { AppBar } from './AppBar';
 import type { IAppBarProps } from './AppBar';
+import { AppBar } from './AppBar';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
-
 import { menu } from './appBarConfig';
-import { Provider } from 'react-redux';
 
 describe('AppBar', () => {
   describe('When using AppBarConfig menu entries', () => {
@@ -37,16 +36,9 @@ describe('AppBar', () => {
 });
 
 const render = (props: Partial<IAppBarProps> = {}) => {
-  const theme = createTheme({
-    ...altinnTheme,
-    props: {
-      ...altinnTheme.props,
-      MuiWithWidth: {
-        initialWidth: 'md', // set initialWidth to md to test with desktop viewport
-      },
-    },
-  });
-
+  const themeCopy = { ...altinnTheme };
+  themeCopy.props.MuiWithWidth = { initialWidth: 'md' };
+  const theme = createTheme(themeCopy);
   const allProps = {
     org: 'jest-test-org',
     app: 'jest-test-app',
@@ -56,19 +48,19 @@ const render = (props: Partial<IAppBarProps> = {}) => {
   } as IAppBarProps;
 
   const createStore = configureStore();
-    const initialState = {
-      languageState: {
-        language: {}
-      }
-    };
+  const initialState = {
+    languageState: {
+      language: {},
+    },
+  };
   const store = createStore(initialState);
 
   return rtlRender(
     <MemoryRouter>
       <Provider store={store}>
-      <MuiThemeProvider theme={theme}>
-        <AppBar {...allProps} />
-      </MuiThemeProvider>
+        <ThemeProvider theme={theme}>
+          <AppBar {...allProps} />
+        </ThemeProvider>
       </Provider>
     </MemoryRouter>,
   );

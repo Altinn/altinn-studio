@@ -1,5 +1,6 @@
 import React from 'react';
-import { makeStyles, Menu, MenuProps } from '@material-ui/core';
+import { Menu, MenuProps } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 
 const useStyles = makeStyles(() => ({
   paper: {
@@ -16,7 +17,7 @@ function AltinnMenu(props: MenuProps) {
     <Menu
       classes={classes}
       elevation={0}
-      getContentAnchorEl={null}
+      anchorEl={null}
       anchorOrigin={{
         vertical: 'bottom',
         horizontal: 'center',

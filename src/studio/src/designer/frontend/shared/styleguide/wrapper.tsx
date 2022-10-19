@@ -1,5 +1,5 @@
-import { createTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import React from 'react';
+import { createTheme, ThemeProvider } from '@mui/material';
 
 import altinnTheme from '../theme/altinnStudioTheme';
 
@@ -7,9 +7,9 @@ const theme = createTheme(altinnTheme);
 
 const Wrapper = (props: any) => {
   return (
-    <MuiThemeProvider theme={theme}>
+    <ThemeProvider theme={theme}>
       <div>{props.children}</div>
-    </MuiThemeProvider>
+    </ThemeProvider>
   );
 };
 

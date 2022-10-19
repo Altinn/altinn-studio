@@ -1,19 +1,14 @@
-import {
-  Grid,
-  IconButton,
-  makeStyles,
-  createTheme,
-  Typography,
-} from '@material-ui/core';
 import React from 'react';
+import { createTheme, Grid, IconButton, Typography } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 import { useDispatch, useSelector } from 'react-redux';
 import altinnTheme from '../../../shared/theme/altinnStudioTheme';
 import RuleModal from '../toolbar/RuleModal';
 import ConditionalRenderingModal from '../toolbar/ConditionalRenderingModal';
-import { getLanguageFromKey } from '../../../shared/utils/language';
+import { getLanguageFromKey } from 'app-shared/utils/language';
 import PagesContainer from './pages/PagesContainer';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
-import type { LogicMode, IAppState } from '../../types/global';
+import type { IAppState, LogicMode } from '../../types/global';
 
 const theme = createTheme(altinnTheme);
 

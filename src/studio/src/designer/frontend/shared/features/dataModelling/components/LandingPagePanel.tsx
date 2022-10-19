@@ -1,5 +1,5 @@
 import React from 'react';
-import { makeStyles } from '@material-ui/core/styles';
+import { makeStyles } from '@mui/styles';
 import { AltinnButton } from 'app-shared/components';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { XSDUpload } from './XSDUpload';

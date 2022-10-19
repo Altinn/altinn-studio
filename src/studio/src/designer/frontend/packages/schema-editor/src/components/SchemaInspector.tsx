@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Panel, PanelVariant } from '@altinn/altinn-design-system';
-import { AppBar, Divider } from '@material-ui/core';
-import { TabContext, TabList, TabPanel } from '@material-ui/lab';
+import { AppBar, Divider } from '@mui/material';
+import { TabContext, TabList, TabPanel } from '@mui/lab';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import { FieldType, ObjectKind } from '@altinn/schema-model';
 import { getTranslation } from '../utils/language';

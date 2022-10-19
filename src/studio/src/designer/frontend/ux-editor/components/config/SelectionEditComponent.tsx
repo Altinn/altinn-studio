@@ -1,12 +1,6 @@
-import {
-  createStyles,
-  Grid,
-  IconButton,
-  Input,
-  Typography,
-  withStyles,
-} from '@material-ui/core';
 import React from 'react';
+import { Grid, IconButton, Input, Typography } from '@mui/material';
+import { createStyles, withStyles } from '@mui/styles';
 import { connect } from 'react-redux';
 import AltinnRadio from 'app-shared/components/AltinnRadio';
 import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
@@ -19,11 +13,11 @@ import {
   renderSelectTextFromResources,
 } from '../../utils/render';
 import type {
-  IFormComponent,
-  IFormCheckboxComponent,
-  IFormRadioButtonComponent,
   IAppState,
   ICodeListListElement,
+  IFormCheckboxComponent,
+  IFormComponent,
+  IFormRadioButtonComponent,
   ITextResource,
 } from '../../types/global';
 
@@ -313,7 +307,12 @@ export class SelectionEditComponent extends React.Component<
                         />
                       </Grid>
                     </Grid>
-                    <Grid xs={1} container={true} direction='column' item={true}>
+                    <Grid
+                      xs={1}
+                      container={true}
+                      direction='column'
+                      item={true}
+                    >
                       <IconButton
                         type='button'
                         className={`${this.props.classes.formComponentsBtn} ${this.props.classes.specialBtn}`}

@@ -1,4 +1,4 @@
-declare module '@material-ui/core/styles/createTheme' {
+declare module '@mui/material/styles/createTheme' {
   interface Theme {
     accessibility: {
       focusVisible: {

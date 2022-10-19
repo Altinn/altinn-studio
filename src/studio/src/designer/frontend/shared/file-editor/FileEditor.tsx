@@ -1,12 +1,8 @@
-import { Grid, IconButton, MenuItem, Select } from '@material-ui/core';
-import {
-  createTheme,
-  createStyles,
-  withStyles,
-} from '@material-ui/core/styles';
+import React from 'react';
+import { createTheme, Grid, IconButton, MenuItem, Select } from '@mui/material';
+import { createStyles, withStyles } from '@mui/styles';
 import classNames from 'classnames';
 import { diffChars } from 'diff';
-import React from 'react';
 import MonacoEditorComponent from './MonacoEditorComponent';
 import altinnTheme from '../theme/altinnStudioTheme';
 import AltinnButton from '../components/AltinnButton';
@@ -309,12 +305,12 @@ class FileEditor extends React.Component<
             this.props.classes.specialBtn
           }
           onClick={this.props.closeFileEditor}
+          tabIndex={0}
         >
           <i
             className='fa fa-circlecancel'
             ref={this.state.fileEditorCancelRef}
             id='fileEditorCancel'
-            tabIndex={0}
           />
         </IconButton>
         <IconButton
@@ -325,8 +321,9 @@ class FileEditor extends React.Component<
             this.props.classes.specialBtn
           }
           onClick={this.saveFile}
+          tabIndex={0}
         >
-          <i className='fa fa-circlecheck' id='fileEditorCheck' tabIndex={0} />
+          <i className='fa fa-circlecheck' id='fileEditorCheck' />
         </IconButton>
       </Grid>
     );
@@ -342,7 +339,7 @@ class FileEditor extends React.Component<
         alignItems='center'
       >
         <Grid item={true}>
-          <div ref={this.state.fileEditorSaveRef} tabIndex={0}>
+          <div ref={this.state.fileEditorSaveRef}>
             <AltinnButton
               btnText='Lagre fil'
               disabled={!this.state.valueDiff}
@@ -360,11 +357,7 @@ class FileEditor extends React.Component<
       value.indexOf('<<<<<<<') > -1 ||
       value.indexOf('=======') > -1 ||
       value.indexOf('>>>>>>>') > -1;
-    if (match) {
-      return false;
-    } else {
-      return true;
-    }
+    return !match;
   };
 
   public render() {
@@ -436,9 +429,13 @@ class FileEditor extends React.Component<
                   <Select
                     value={this.state.selectedFile}
                     classes={{
-                      root: classNames(classes.selectFile),
+                      select: classNames(classes.selectFile),
                       icon: classNames(classes.hideIcon),
-                      selectMenu: classNames(classes.selectMenu),
+                    }}
+                    MenuProps={{
+                      classes: {
+                        root: classNames(classes.selectMenu),
+                      },
                     }}
                     onChange={this.switchFile}
                   >

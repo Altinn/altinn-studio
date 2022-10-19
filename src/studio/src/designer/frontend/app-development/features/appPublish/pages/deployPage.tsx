@@ -1,5 +1,6 @@
-import { Grid, Typography, makeStyles } from '@material-ui/core';
 import React from 'react';
+import { Grid, Typography } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 import AltinnContentLoader from 'app-shared/components/molecules/AltinnContentLoader';
 import AltinnInformationCardForChildren from 'app-shared/components/molecules/AltinnInformationCardForChildren';
 import { getParsedLanguageFromKey } from 'app-shared/utils/language';
@@ -7,7 +8,7 @@ import { ConfigurationActions } from '../../../sharedResources/configuration/con
 import DeployContainerComponent from '../containers/deployContainer';
 import ReleaseContainer from '../containers/releaseContainer';
 import { fetchDeployPermissions } from '../../../sharedResources/user/userSlice';
-import { useAppSelector, useAppDispatch } from 'common/hooks';
+import { useAppDispatch, useAppSelector } from 'common/hooks';
 import type { IAltinnWindow } from '../../../types/global';
 
 const useStyles = makeStyles({

@@ -1,16 +1,16 @@
+import React from 'react';
 import {
   Button,
   CircularProgress,
   createTheme,
-  createStyles,
   Grid,
-  makeStyles,
   Popover,
   TextField,
   Typography,
-} from '@material-ui/core';
+} from '@mui/material';
+import { createStyles, makeStyles } from '@mui/styles';
 import classNames from 'classnames';
-import React from 'react';
+
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnPopoverProvidedProps {

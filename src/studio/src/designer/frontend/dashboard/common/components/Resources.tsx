@@ -1,6 +1,6 @@
 import React from 'react';
 import { Divider, Grid } from '@mui/material';
-import { Typography } from '@material-ui/core';
+import { Typography } from '@mui/material';
 
 import { ResourceItem } from './ResourceItem';
 import { useAppSelector } from 'common/hooks';

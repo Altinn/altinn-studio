@@ -12,7 +12,7 @@ const DataModellingContainer = ({ language }: IDataModellingContainerProps) => {
   const [org, repo] = useAppSelector((state) => {
     const id = state.applicationMetadataState.applicationMetadata.id;
     return id?.split('/') || [];
-  })
+  });
 
   return (
     <div className={classes.root}>

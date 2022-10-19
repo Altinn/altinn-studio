@@ -1,11 +1,11 @@
 import {
   Button,
   createTheme,
-  createStyles,
   Grid,
-  makeStyles,
-} from '@material-ui/core';
-import Popover, { PopoverOrigin } from '@material-ui/core/Popover';
+  Popover,
+  PopoverOrigin,
+} from '@mui/material';
+import { createStyles, makeStyles } from '@mui/styles';
 import React from 'react';
 import altinnTheme from '../../theme/altinnStudioTheme';
 
@@ -125,6 +125,7 @@ const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
                   color='primary'
                   className={classes.buttonConfirm}
                   onClick={btnClickedHandler}
+                  disableTouchRipple={true}
                 >
                   {props.btnConfirmText}
                 </Button>
@@ -135,6 +136,7 @@ const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
                   color='primary'
                   className={classes.buttonCancel}
                   onClick={handleButtonClose}
+                  disableTouchRipple={true}
                 >
                   <span className={classes.borderBottom}>
                     {props.btnCancelText}

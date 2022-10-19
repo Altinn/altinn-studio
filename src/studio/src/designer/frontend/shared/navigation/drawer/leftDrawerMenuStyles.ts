@@ -1,4 +1,5 @@
-import { createStyles, Theme } from '@material-ui/core/styles';
+import { Theme } from '@mui/material';
+import { createStyles } from '@mui/styles';
 import altinnTheme from '../../theme/altinnStudioTheme';
 
 const drawerWidth = 240;

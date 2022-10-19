@@ -1,11 +1,6 @@
-import {
-  Grid,
-  Typography,
-  createTheme,
-  makeStyles,
-  createStyles,
-} from '@material-ui/core';
 import React from 'react';
+import { createTheme, Grid, Typography } from '@mui/material';
+import { createStyles, makeStyles } from '@mui/styles';
 import AltinnPopover from './molecules/AltinnPopoverSimple';
 import altinnTheme from '../theme/altinnStudioTheme';
 

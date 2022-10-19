@@ -1,9 +1,5 @@
-import {
-  createTheme,
-  createStyles,
-  Typography,
-  withStyles,
-} from '@material-ui/core';
+import { createTheme, Typography } from '@mui/material';
+import { createStyles, withStyles } from '@mui/styles';
 import React from 'react';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';

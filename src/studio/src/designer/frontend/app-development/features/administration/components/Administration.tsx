@@ -1,4 +1,5 @@
-import { createTheme, Grid, makeStyles } from '@material-ui/core';
+import { createTheme, Grid } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 import React from 'react';
 import AltinnColumnLayout from 'app-shared/components/AltinnColumnLayout';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';

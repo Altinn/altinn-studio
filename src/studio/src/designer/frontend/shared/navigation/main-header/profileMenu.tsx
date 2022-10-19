@@ -1,12 +1,10 @@
-import IconButton from '@material-ui/core/IconButton';
-import Menu from '@material-ui/core/Menu';
-import MenuItem from '@material-ui/core/MenuItem';
-import { withStyles } from '@material-ui/core/styles';
-import AccountCircle from '@material-ui/icons/AccountCircle';
 import React from 'react';
+import { IconButton, Menu, MenuItem } from '@mui/material';
+import { withStyles } from '@mui/styles';
 import type { IAltinnWindow } from '../../types/global';
 import { altinnDocsUrl, sharedUrls } from '../../utils/urlHelper';
 import { post } from '../../utils/networking';
+import { AccountCircle } from '@mui/icons-material';
 
 export interface IProfileMenuComponentProps {
   showlogout?: boolean;
@@ -65,14 +63,6 @@ class ProfileMenuComponent extends React.Component<
       }
     }
     return false;
-  };
-
-  public handleGiteaRepository = () => {
-    this.setState({ anchorEl: null });
-    if (window) {
-      window.open(sharedUrls().repositoryUrl, '_blank');
-      window.focus();
-    }
   };
 
   public render() {

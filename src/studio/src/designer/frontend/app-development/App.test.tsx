@@ -4,15 +4,6 @@ import { renderWithProviders } from 'test/testUtils';
 import type { IUserState } from './sharedResources/user/userSlice';
 import { screen } from '@testing-library/react';
 
-jest.mock('react', () => {
-  return {
-    ...jest.requireActual<typeof React>('react'),
-    useRef: jest.fn().mockImplementation(() => {
-      return { current: document.createElement('div') };
-    }),
-  };
-});
-
 afterAll(() => {
   jest.clearAllMocks();
 });

@@ -1,5 +1,6 @@
 import React from 'react';
-import { makeStyles, Tab } from '@material-ui/core';
+import { Tab } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 
 export interface ISchemaTabProps {
   label: string;
@@ -7,7 +8,7 @@ export interface ISchemaTabProps {
   hide?: boolean;
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
   root: {
     textTransform: 'none',
     fontSize: 16,
@@ -19,7 +20,7 @@ const useStyles = makeStyles((theme) => ({
     },
     '&:selected': {
       color: '#1890ff',
-      fontWeight: theme.typography.fontWeightMedium,
+      fontWeight: 500,
     },
     '&:focus': {
       color: '#40a9ff',

@@ -1,16 +1,15 @@
+import React from 'react';
 import {
   Button,
   CircularProgress,
   createTheme,
-  createStyles,
   Grid,
   Popover,
   TextField,
   Typography,
-  withStyles,
-} from '@material-ui/core';
+} from '@mui/material';
+import { createStyles, withStyles } from '@mui/styles';
 import classNames from 'classnames';
-import React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface ISyncModalComponentProps {

@@ -1,11 +1,11 @@
 import React from 'react';
-import { TreeView } from '@material-ui/lab';
-import { ArrowDropDown, ArrowRight } from '@material-ui/icons';
+import { TreeView } from '@mui/lab';
+import { ArrowDropDown, ArrowRight } from '@mui/icons-material';
 import { SchemaItem } from './SchemaItem';
 import { UiSchemaNode } from '@altinn/schema-model';
-import classes from './SchemaTreeView.module.css';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
+import classes from './SchemaTreeView.module.css';
 
 export interface SchemaTreeViewProps {
   editMode: boolean;

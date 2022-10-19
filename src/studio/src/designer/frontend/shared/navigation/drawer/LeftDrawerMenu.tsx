@@ -1,16 +1,18 @@
-import Divider from '@material-ui/core/Divider';
-import Drawer from '@material-ui/core/Drawer';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import { makeStyles } from '@material-ui/core/styles';
-import classNames from 'classnames';
 import React from 'react';
+import { makeStyles } from '@mui/styles';
+import {
+  Divider,
+  Drawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+} from '@mui/material';
+import classNames from 'classnames';
 import { Link } from 'react-router-dom';
 import AltinnIcon from '../../components/AltinnIcon';
-import { createLeftDrawerMenuSettings } from './drawerMenuSettings';
 import type { IMenuItem } from './drawerMenuSettings';
+import { createLeftDrawerMenuSettings } from './drawerMenuSettings';
 import { styles } from './leftDrawerMenuStyles';
 
 import altinnTheme from '../../theme/altinnStudioTheme';

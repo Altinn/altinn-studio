@@ -1,7 +1,7 @@
 import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
-import { TabContext, TabList, TabPanel } from '@material-ui/lab';
+import { TabContext, TabList, TabPanel } from '@mui/lab';
 import { useDispatch, useSelector } from 'react-redux';
-import { AppBar, Button, Typography } from '@material-ui/core';
+import { AppBar, Button, Typography } from '@mui/material';
 import { AltinnSpinner } from 'app-shared/components';
 import type { IJsonSchema, ILanguage, ISchemaState } from '../types';
 import classes from './SchemaEditor.module.css';
@@ -45,7 +45,7 @@ export interface IEditorProps {
   loading?: boolean;
   name?: string;
   onSaveSchema: (payload: any) => void;
-  saveUrl: string,
+  saveUrl: string;
   schema: IJsonSchema;
   editMode: boolean;
   toggleEditMode: () => void;

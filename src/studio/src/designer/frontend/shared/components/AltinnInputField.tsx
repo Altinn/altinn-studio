@@ -1,13 +1,7 @@
-import {
-  createTheme,
-  createStyles,
-  FormControl,
-  TextField,
-  Typography,
-  withStyles,
-} from '@material-ui/core';
-import classNames from 'classnames';
 import React from 'react';
+import { createTheme, FormControl, TextField, Typography } from '@mui/material';
+import { createStyles, withStyles } from '@mui/styles';
+import classNames from 'classnames';
 import altinnTheme from '../theme/altinnStudioTheme';
 import AltinnButton from './AltinnButton';
 import ErrorPopover from './ErrorPopover';
@@ -61,6 +55,14 @@ const styles = createStyles({
     fontSize: '16px',
     color: `${theme.altinnPalette.primary.black}!Important`,
     padding: '6px',
+    underline: {
+      '&&&:before': {
+        borderBottom: 'none',
+      },
+      '&&:after': {
+        borderBottom: 'none',
+      },
+    },
   },
   disabled: {
     border: `1px solid ${theme.altinnPalette.primary.greyMedium}`,
@@ -146,7 +148,6 @@ class AltinnInputFieldComponent extends React.Component<IAltinnInputFieldCompone
             multiline={!!this.props.textAreaRows}
             minRows={this.props.textAreaRows || null}
             InputProps={{
-              disableUnderline: true,
               classes: { root: classNames(classes.inputFieldText) },
             }}
             type={this.props.type}

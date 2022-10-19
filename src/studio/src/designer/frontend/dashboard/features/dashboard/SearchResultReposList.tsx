@@ -1,6 +1,6 @@
 import React from 'react';
 import { GridSortModel } from '@mui/x-data-grid';
-import { Typography } from '@material-ui/core';
+import { Typography } from '@mui/material';
 
 import { getLanguageFromKey } from 'app-shared/utils/language';
 

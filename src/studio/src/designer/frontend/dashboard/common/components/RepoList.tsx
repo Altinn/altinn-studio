@@ -11,7 +11,7 @@ import {
   GridValueFormatterParams,
   GridValueGetterParams,
 } from '@mui/x-data-grid';
-import { makeStyles } from '@material-ui/core';
+import { makeStyles } from '@mui/styles';
 import { IconButton } from '@mui/material';
 import cn from 'classnames';
 
@@ -152,7 +152,6 @@ export const RepoList = ({
       width: 50,
       getActions: (params: GridRowParams) => {
         const repo = params.row as IRepository;
-
         const handleToggleFav = () => {
           if (repo.user_has_starred) {
             unsetStarredRepo(repo);
@@ -266,17 +265,19 @@ export const RepoList = ({
             </a>,
             <GridActionsCellItem
               icon={<i className={cn('fa fa-copy', classes.dropdownIcon)} />}
-              key={params.row.id}
+              key={'dashboard.make_copy' + params.row.id}
               onClick={handleDuplicateClick}
-              showInMenu={true}
+              showInMenu={false}
               label={getLanguageFromKey('dashboard.make_copy', language)}
+              disableTouchRipple
             />,
             <GridActionsCellItem
               icon={<i className={cn('fa fa-newtab', classes.dropdownIcon)} />}
-              key={params.row.id}
+              key={'dashboard.open_in_new' + params.row.id}
               onClick={handleOpenInNewClick}
-              showInMenu={true}
+              showInMenu
               label={getLanguageFromKey('dashboard.open_in_new', language)}
+              disableTouchRipple
             />,
           ];
 
@@ -339,7 +340,7 @@ export const RepoList = ({
           sortingMode='server'
           onSortModelChange={onSortModelChange}
           onPageSizeChange={onPageSizeChange}
-          rowCount={rowCount}
+          rowCount={rowCount ?? 0}
           rowsPerPageOptions={rowsPerPageOptions}
           onPageChange={onPageChange}
           sx={gridStyleOverride}

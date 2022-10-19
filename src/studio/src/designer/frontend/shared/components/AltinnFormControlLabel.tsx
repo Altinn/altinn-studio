@@ -1,10 +1,6 @@
 import React from 'react';
-import {
-  createStyles,
-  FormControlLabel,
-  WithStyles,
-  withStyles,
-} from '@material-ui/core';
+import { FormControlLabel } from '@mui/material';
+import { createStyles, WithStyles, withStyles } from '@mui/styles';
 
 export interface IAltinnFormControlLabelProvidedProps
   extends WithStyles<typeof styles> {

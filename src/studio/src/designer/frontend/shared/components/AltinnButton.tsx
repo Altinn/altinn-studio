@@ -1,5 +1,5 @@
-import { Button, createTheme } from '@material-ui/core';
-import { createStyles, makeStyles } from '@material-ui/core/styles';
+import { Button, createTheme } from '@mui/material';
+import { createStyles, makeStyles } from '@mui/styles';
 import classNames from 'classnames';
 import React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';

@@ -1,8 +1,7 @@
 import React, { KeyboardEvent, useEffect, useState } from 'react';
-import { IconButton } from '@material-ui/core';
-import { DeleteOutline } from '@material-ui/icons';
+import { IconButton } from '@mui/material';
+import { DeleteOutline } from '@mui/icons-material';
 import { getTranslation } from '../../utils/language';
-
 import type { ILanguage } from '../../types';
 import { TextField } from '@altinn/altinn-design-system';
 import classes from './EnumField.module.css';

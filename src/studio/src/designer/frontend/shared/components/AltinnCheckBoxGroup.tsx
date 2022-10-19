@@ -1,4 +1,4 @@
-import { FormGroup } from '@material-ui/core';
+import { FormGroup } from '@mui/material';
 import React from 'react';
 
 export interface IAltinnCheckBoxGroupProvidedProps {

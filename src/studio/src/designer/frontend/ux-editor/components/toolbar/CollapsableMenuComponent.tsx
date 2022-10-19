@@ -1,9 +1,5 @@
-import {
-  createStyles,
-  ListItem,
-  ListItemText,
-  withStyles,
-} from '@material-ui/core';
+import { ListItem, ListItemText } from '@mui/material';
+import { createStyles, withStyles } from '@mui/styles';
 import classNames from 'classnames';
 import React from 'react';
 import { connect } from 'react-redux';

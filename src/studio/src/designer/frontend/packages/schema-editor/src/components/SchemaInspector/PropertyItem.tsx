@@ -1,7 +1,7 @@
 import React, { ChangeEventHandler, FocusEventHandler, KeyboardEvent, useEffect, useState } from 'react';
-import { IconButton } from '@material-ui/core';
+import { IconButton } from '@mui/material';
 import { useDispatch } from 'react-redux';
-import { DeleteOutline } from '@material-ui/icons';
+import { DeleteOutline } from '@mui/icons-material';
 import type { ILanguage } from '../../types';
 import { getTranslation } from '../../utils/language';
 import { setRequired } from '../../features/editor/schemaEditorSlice';
@@ -53,8 +53,7 @@ export function PropertyItem({
       }),
     );
 
-  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
-    e?.key === 'Enter' && onEnterKeyPress && onEnterKeyPress();
+  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => e?.key === 'Enter' && onEnterKeyPress && onEnterKeyPress();
 
   return (
     <div className={classes.root}>

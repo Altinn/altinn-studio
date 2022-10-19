@@ -1,4 +1,4 @@
-declare module '@material-ui/core/styles/createTheme' {
+declare module '@mui/material/styles/createTheme' {
   interface Theme {
     accessibility: {
       focusVisible: {
@@ -117,6 +117,7 @@ const theme = {
       disableRipple: true,
       disableTouchRipple: true,
     },
+    MuiWithWidth: {},
   },
   sharedStyles: {
     boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.25)',

@@ -1,5 +1,5 @@
-import classNames from 'classnames';
 import React, { useState } from 'react';
+import classNames from 'classnames';
 import { Link } from 'react-router-dom';
 import type { IMenuItem } from './drawerMenuSettings';
 import {
@@ -89,6 +89,7 @@ function TabletDrawerMenu({
             root: classes.drawerMenuPaper,
           },
         }}
+        SlideProps={{ appear: false }}
       >
         <List>
           <ListItem button={true} onClick={handleLogout}>

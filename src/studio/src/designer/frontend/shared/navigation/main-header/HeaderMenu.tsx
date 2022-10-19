@@ -1,16 +1,16 @@
+import React from 'react';
 import {
-  Grid,
-  Typography,
   Avatar,
-  makeStyles,
-  MenuItem,
-  IconButton,
   Divider,
-} from '@material-ui/core';
+  Grid,
+  IconButton,
+  MenuItem,
+  Typography,
+} from '@mui/material';
+import { makeStyles } from '@mui/styles';
 import { AltinnMenu } from 'app-shared/components';
 import { post } from 'app-shared/utils/networking';
 import { sharedUrls } from 'app-shared/utils/urlHelper';
-import React from 'react';
 import { getOrgNameById, HeaderContext, SelectedContextType } from './Header';
 import { getLanguageFromKey } from '../../utils/language';
 

@@ -1,5 +1,5 @@
 import React, { SyntheticEvent, useState } from 'react';
-import { IconButton } from '@material-ui/core';
+import { IconButton } from '@mui/material';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
 import {
   Capabilites,
@@ -23,7 +23,7 @@ import {
   promoteProperty,
 } from '../../features/editor/schemaEditorSlice';
 import { useDispatch } from 'react-redux';
-import { Warning } from '@material-ui/icons';
+import { Warning } from '@mui/icons-material';
 
 export interface SchemaItemLabelProps {
   editMode: boolean;

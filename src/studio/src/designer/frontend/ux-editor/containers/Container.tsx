@@ -2,14 +2,8 @@ import React, { Component, createRef, RefObject } from 'react';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
-import {
-  createStyles,
-  Grid,
-  IconButton,
-  WithStyles,
-  withStyles,
-} from '@material-ui/core';
-
+import { Grid, IconButton } from '@mui/material';
+import { createStyles, WithStyles, withStyles } from '@mui/styles';
 import '../styles/index.css';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
 import { getLanguageFromKey } from 'app-shared/utils/language';

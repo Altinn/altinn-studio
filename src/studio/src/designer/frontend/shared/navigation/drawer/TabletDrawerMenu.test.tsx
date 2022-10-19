@@ -1,7 +1,7 @@
-import { createTheme, MuiThemeProvider } from '@material-ui/core/styles';
 import React from 'react';
-import TabletDrawerMenu from './TabletDrawerMenu';
+import { createTheme, ThemeProvider } from '@mui/material';
 import type { ITabletDrawerMenuProps } from './TabletDrawerMenu';
+import TabletDrawerMenu from './TabletDrawerMenu';
 import altinnTheme from '../../theme/altinnStudioTheme';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -43,8 +43,8 @@ const render = (props: Partial<ITabletDrawerMenuProps> = {}) => {
   } as ITabletDrawerMenuProps;
 
   return rtlRender(
-    <MuiThemeProvider theme={theme}>
+    <ThemeProvider theme={theme}>
       <TabletDrawerMenu {...allProps} />
-    </MuiThemeProvider>,
+    </ThemeProvider>,
   );
 };

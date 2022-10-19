@@ -2,7 +2,7 @@ import React from 'react';
 import { TopToolbarButton } from '@altinn/schema-editor/index';
 import { getLanguageFromKey } from '../../../utils/language';
 import { DeleteDialog } from './DeleteDialog';
-import { makeStyles } from '@material-ui/core';
+import { makeStyles } from '@mui/styles';
 import theme from 'app-shared/theme/altinnStudioTheme';
 
 const useStyles = makeStyles({

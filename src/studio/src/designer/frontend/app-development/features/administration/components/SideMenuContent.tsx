@@ -1,6 +1,7 @@
 import React from 'react';
+import { Typography } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { makeStyles, Typography } from '@material-ui/core';
 import { formatNameAndDate } from 'app-shared/utils/formatDate';
 import AltinnButton from 'app-shared/components/AltinnButton';
 import classNames from 'classnames';
