@@ -19,7 +19,7 @@ export interface RestrictionItemProps {
   readonly: boolean;
   path: string;
   language: ILanguage;
-  onChangeRestrictionValue: (id: string, key: string, value: string) => void;
+  onChangeRestrictionValue: (id: string, key: string, value?: string) => void;
 }
 export interface ItemRestrictionsProps {
   selectedNode: UiSchemaNode;
@@ -39,12 +39,12 @@ export const ItemRestrictions = ({ selectedNode, language }: ItemRestrictionsPro
     }
   };
 
-  const onChangeRestrictionValue = (path: string, value: string, key: string) =>
+  const onChangeRestrictionValue = (path: string, key: string, value?: string) =>
     dispatch(
       setRestriction({
         path,
-        value,
         key,
+        value,
       }),
     );
 
@@ -81,7 +81,7 @@ export const ItemRestrictions = ({ selectedNode, language }: ItemRestrictionsPro
     language,
   };
   return (
-    <div className={classes.root}>
+    <>
       <Checkbox
         checked={selectedNode.isRequired}
         label={t('required')}
@@ -98,7 +98,7 @@ export const ItemRestrictions = ({ selectedNode, language }: ItemRestrictionsPro
       {selectedNode.isArray && <ArrayRestrictions {...restrictionProps} />}
       {[FieldType.String, FieldType.Integer, FieldType.Number].includes(selectedNode.fieldType as FieldType) && (
         <>
-          <Divider />
+          <Divider inMenu />
           <FieldSet legend={t('enum_legend')}>
             {!selectedNode.enum?.length && <p className={classes.emptyEnumMessage}>{t('enum_empty')}</p>}
             {selectedNode.enum?.map((value: string, index) => (
@@ -125,6 +125,6 @@ export const ItemRestrictions = ({ selectedNode, language }: ItemRestrictionsPro
           </FieldSet>
         </>
       )}
-    </div>
+    </>
   );
 };

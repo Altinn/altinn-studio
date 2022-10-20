@@ -70,4 +70,27 @@ export interface UiSchemaNode {
   restrictions: Dict;
   default?: any;
   const?: any;
+  format?: StringFormat;
+}
+
+export enum StringFormat {
+  Date = 'date',
+  DateTime = 'date-time',
+  Time = 'time',
+  Duration = 'duration',
+  Email = 'email',
+  IdnEmail = 'idn-email',
+  Hostname = 'hostname',
+  IdnHostname = 'idn-hostname',
+  Ipv4 = 'ipv4',
+  Ipv6 = 'ipv6',
+  Uuid = 'uuid',
+  Uri = 'uri',
+  UriReference = 'uri-reference',
+  Iri = 'iri',
+  IriReference = 'iri-reference',
+  UriTemplate = 'uri-template',
+  JsonPointer = 'json-pointer',
+  RelativeJsonPointer = 'relative-json-pointer',
+  Regex = 'regex',
 }

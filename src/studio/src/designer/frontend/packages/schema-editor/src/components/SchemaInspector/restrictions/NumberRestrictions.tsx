@@ -8,7 +8,7 @@ import { Divider } from '../../common/Divider';
 export function NumberRestrictions({ restrictions, path, language, onChangeRestrictionValue }: RestrictionItemProps) {
   return (
     <>
-      <Divider />
+      <Divider inMenu />
       {Object.values(IntRestrictionKeys).map((key) => (
         <RestrictionField
           key={key}

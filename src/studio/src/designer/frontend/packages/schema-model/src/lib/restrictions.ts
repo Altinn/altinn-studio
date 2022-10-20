@@ -7,6 +7,7 @@ export enum IntRestrictionKeys {
 }
 
 export enum StrRestrictionKeys {
+  format = 'format',
   maxLength = 'maxLength',
   minLength = 'minLength',
   pattern = 'pattern',
@@ -37,8 +38,8 @@ export const findRestrictionsOnNode = (schemaNode: Dict): Dict => {
   return restrictions;
 };
 
-export const castRestrictionType = (key: string, value: string) => {
-  if (value === '') {
+export const castRestrictionType = (key: string, value?: string) => {
+  if (!value) {
     return undefined;
   } else if (
     [

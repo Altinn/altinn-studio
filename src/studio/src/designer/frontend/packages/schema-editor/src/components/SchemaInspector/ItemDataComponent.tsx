@@ -121,23 +121,23 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
   const descriptionId = getDomFriendlyID(selectedNodePointer, 'description');
 
   return (
-    <div>
+    <div className={classes.root}>
       {!selectedItem.isCombinationItem && (
-        <>
+        <div>
           <Label htmlFor='selectedItemName'>{t('name')}</Label>
           <TextField
             aria-describedby='Selected Item Name'
+            aria-errormessage={t(nameError)}
+            aria-placeholder='Name'
+            autoFocus
             id='selectedItemName'
             onBlur={handleChangeNodeName}
             onChange={onNameChange}
             placeholder='Name'
             value={nodeName}
-            aria-errormessage={t(nameError)}
-            aria-placeholder='Name'
-            autoFocus
           />
           {nameError && <ErrorMessage>{t(nameError)}</ErrorMessage>}
-        </>
+        </div>
       )}
       {selectedItem.objectKind === ObjectKind.Field && (
         <Select
@@ -159,14 +159,12 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
         />
       )}
       {selectedItem.objectKind !== ObjectKind.Combination && (
-        <div className={classes.checkboxWrapper}>
-          <Checkbox
-            checked={selectedItem.isArray}
-            label={t('multiple_answers')}
-            name='checkedMultipleAnswers'
-            onChange={handleArrayPropertyToggle}
-          />
-        </div>
+        <Checkbox
+          checked={selectedItem.isArray}
+          label={t('multiple_answers')}
+          name='checkedMultipleAnswers'
+          onChange={handleArrayPropertyToggle}
+        />
       )}
       {selectedItem.objectKind === ObjectKind.Combination && (
         <Select
@@ -178,34 +176,36 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
         />
       )}
       {selectedItem.objectKind === ObjectKind.Combination && (
-        <div className={classes.checkboxWrapper}>
-          <Checkbox
-            checked={combinationIsNullable(childNodes)}
-            onChange={onChangeNullable}
-            name='checkedNullable'
-            checkboxId='multiple-answers-checkbox'
-            label={t('nullable')}
-          />
-        </div>
+        <Checkbox
+          checkboxId='multiple-answers-checkbox'
+          checked={combinationIsNullable(childNodes)}
+          label={t('nullable')}
+          name='checkedNullable'
+          onChange={onChangeNullable}
+        />
       )}
       <ItemRestrictions selectedNode={selectedItem} language={language} />
-      <Divider />
-      <FieldSet legend={t('descriptive_fields')}>
-        <Label htmlFor={titleId}>{t('title')}</Label>
-        <TextField id={titleId} onBlur={onChangeTitle} onChange={(e) => setItemTitle(e.target.value)} value={title} />
-        <Label htmlFor={descriptionId}>{t('description')}</Label>
-        <MaterialTextField
-          InputProps={{ disableUnderline: true }}
-          className={classes.field}
-          fullWidth
-          id={descriptionId}
-          margin='normal'
-          multiline={true}
-          onBlur={onChangeDescription}
-          onChange={(e) => setItemDescription(e.target.value)}
-          style={{ height: 100 }}
-          value={description}
-        />
+      <Divider inMenu />
+      <FieldSet legend={t('descriptive_fields')} className={classes.fieldSet}>
+        <div>
+          <Label htmlFor={titleId}>{t('title')}</Label>
+          <TextField id={titleId} onBlur={onChangeTitle} onChange={(e) => setItemTitle(e.target.value)} value={title} />
+        </div>
+        <div>
+          <Label htmlFor={descriptionId}>{t('description')}</Label>
+          <MaterialTextField
+            InputProps={{ disableUnderline: true }}
+            className={classes.field}
+            fullWidth
+            id={descriptionId}
+            margin='normal'
+            multiline={true}
+            onBlur={onChangeDescription}
+            onChange={(e) => setItemDescription(e.target.value)}
+            style={{ height: 100 }}
+            value={description}
+          />
+        </div>
       </FieldSet>
     </div>
   );

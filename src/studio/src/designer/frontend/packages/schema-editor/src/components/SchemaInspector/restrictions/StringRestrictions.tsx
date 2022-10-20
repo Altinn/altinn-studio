@@ -3,12 +3,19 @@ import { RestrictionItemProps } from '../ItemRestrictions';
 import { RestrictionField } from '../RestrictionField';
 import { getTranslation } from '../../../utils/language';
 import classes from './StringRestrictions.module.css';
-import { TextField } from '@altinn/altinn-design-system';
+import { FieldSet, TextField } from '@altinn/altinn-design-system';
 import { StrRestrictionKeys } from '@altinn/schema-model';
 import { Divider } from '../../common/Divider';
 import { Label } from '../../common/Label';
+import { StringFormat } from '@altinn/schema-model/src/lib/types';
+import { Select } from '../../common/Select';
 
-export function StringRestrictions({ restrictions, path, language, onChangeRestrictionValue }: RestrictionItemProps) {
+export function StringRestrictions({
+  language,
+  onChangeRestrictionValue,
+  path,
+  restrictions,
+}: RestrictionItemProps) {
   const t = (key: string) => getTranslation(key, language);
   const [regexTestValue, setRegexTestValue] = useState<string>('');
   const pattern = restrictions[StrRestrictionKeys.pattern] || '';
@@ -16,7 +23,20 @@ export function StringRestrictions({ restrictions, path, language, onChangeRestr
   const regexTestValueMatchesRegex = regexTestValueSplitByMatches.some(({ match }) => match);
 
   return (
-    <div>
+    <>
+      <Divider inMenu />
+      <Select
+        emptyOptionLabel={t('format_none')}
+        id='format-select-input'
+        label={t('format')}
+        onChange={(val) => onChangeRestrictionValue(path, StrRestrictionKeys.format, val || undefined)}
+        options={Object.values(StringFormat).map((f) => ({
+          key: f,
+          label: t(`format_${f}`),
+          value: f
+        }))}
+        value={restrictions[StrRestrictionKeys.format] || ''}
+      />
       <div className={classes.lengthFields}>
         <RestrictionField
           className={classes.lengthField}
@@ -35,38 +55,42 @@ export function StringRestrictions({ restrictions, path, language, onChangeRestr
           value={restrictions[StrRestrictionKeys.maxLength] || ''}
         />
       </div>
-      <Divider />
-      <RestrictionField
-        keyName={StrRestrictionKeys.pattern}
-        label={t(StrRestrictionKeys.pattern)}
-        onChangeValue={onChangeRestrictionValue}
-        path={path}
-        value={pattern}
-      />
-      <div className={classes.regexTestLabel}>
-        <Label htmlFor='regextestfield'>{t('pattern_test_field')}</Label>
-        {pattern &&
-          (regexTestValueMatchesRegex ? (
-            <span className={classes.regexTestMatchIndicatorTrue}>{t('pattern_matches')}</span>
-          ) : (
-            <span className={classes.regexTestMatchIndicatorFalse}>{t('pattern_does_not_match')}</span>
-          ))}
-      </div>
-      <div className={classes.regexTestContainer}>
-        <div className={classes.regexTestStyleField}>
-          {regexTestValueSplitByMatches.map((strPart, i) => (
-            <span className={strPart.match ? classes.regexTestMatch : undefined} key={`regexTestPart${i}`}>
-              {strPart.str}
-            </span>
-          ))}
-        </div>
-        <TextField
-          id='regextestfield'
-          onChange={(event) => setRegexTestValue(event.target.value)}
-          value={regexTestValue}
+      <Divider inMenu />
+      <FieldSet className={classes.fieldSet} legend={t('regex')}>
+        <RestrictionField
+          keyName={StrRestrictionKeys.pattern}
+          label={t(StrRestrictionKeys.pattern)}
+          onChangeValue={onChangeRestrictionValue}
+          path={path}
+          value={pattern}
         />
-      </div>
-    </div>
+        <div className={classes.regexTest}>
+          <div className={classes.regexTestLabel}>
+            <Label htmlFor='regextestfield'>{t('pattern_test_field')}</Label>
+            {pattern &&
+              (regexTestValueMatchesRegex ? (
+                <span className={classes.regexTestMatchIndicatorTrue}>{t('pattern_matches')}</span>
+              ) : (
+                <span className={classes.regexTestMatchIndicatorFalse}>{t('pattern_does_not_match')}</span>
+              ))}
+          </div>
+          <div className={classes.regexTestFieldContainer}>
+            <div className={classes.regexTestStyleField}>
+              {regexTestValueSplitByMatches.map((strPart, i) => (
+                <span className={strPart.match ? classes.regexTestMatch : undefined} key={`regexTestPart${i}`}>
+                  {strPart.str}
+                </span>
+              ))}
+            </div>
+            <TextField
+              id='regextestfield'
+              onChange={(event) => setRegexTestValue(event.target.value)}
+              value={regexTestValue}
+            />
+          </div>
+        </div>
+      </FieldSet>
+    </>
   );
 }
 
