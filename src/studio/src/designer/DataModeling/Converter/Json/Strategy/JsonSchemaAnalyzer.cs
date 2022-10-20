@@ -18,7 +18,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         {
             Metadata = new JsonSchemaXsdMetadata();
         }
-        
+
         /// <summary>
         /// Json Schema to be analyzed
         /// </summary>
@@ -247,7 +247,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 itemsSchema = itemsKeyword.SingleSchema;
                 return true;
             }
-            
+
             itemsSchema = null;
             return false;
         }
@@ -831,6 +831,13 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     case DescriptionKeyword:
                     case ExamplesKeyword:
                     case XsdUnhandledEnumAttributesKeyword:
+                        continue;
+
+                    // Add format range restrictions
+                    case FormatMinimumKeyword:
+                    case FormatExclusiveMinimumKeyword:
+                    case FormatMaximumKeyword:
+                    case FormatExclusiveMaximumKeyword:
                         continue;
 
                     default:

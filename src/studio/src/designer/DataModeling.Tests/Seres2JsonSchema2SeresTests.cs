@@ -48,6 +48,20 @@ namespace DataModeling.Tests
         [InlineData("Seres/schema_4660_1_forms_2500_2500.xsd", "")]
         [InlineData("Seres/schema_4108-41505.xsd", "")]
         [InlineData("Seres/schema_4388-39288.xsd", "")]
+        [InlineData("Seres/schema_RR-0200 Mellombalanse_M_2020-05-18_6301_45717_SERES.xsd", "")]
+        [InlineData("Seres/schema_1266-42897.xsd", "")]
+        [InlineData("Seres/schema_1266-43710.xsd", "")]
+        [InlineData("Seres/schema_1266-44775.xsd", "")]
+        [InlineData("Seres/schema_3106-39629.xsd", "")]
+        [InlineData("Seres/schema_3124-39627.xsd", "")]
+        [InlineData("Seres/schema_3228-39613.xsd", "")]
+        [InlineData("Seres/schema_3238-39623.xsd", "")]
+        [InlineData("Seres/schema_3373-36491.xsd", "")]
+        [InlineData("Seres/schema_3428-39614.xsd", "")]
+        [InlineData("Seres/schema_3430-39615.xsd", "")]
+        [InlineData("Seres/schema_4213-39628.xsd", "")]
+        [InlineData("Seres/schema_6199-44481.xsd", "")]
+        [InlineData("Seres/schema_6301-45717.xsd", "")]
         public void ConvertSeresXsd_SeresGeneratedXsd_ShouldConvertToJsonSchemaAndBackToXsd(string xsdSchemaPath, string xmlPath)
         {
             Given.That.XsdSchemaLoaded(xsdSchemaPath)

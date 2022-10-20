@@ -363,14 +363,22 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
                     break;
                 case XmlSchemaMaxExclusiveFacet:
-                    if (TryParseDecimal(facet.Value, out dLength))
+                    if (FormatRangeHelper.IsRestrictionOnDateType(facet))
+                    {
+                        builder.FormatExclusiveMaximum(facet.Value);
+                    }
+                    else if (TryParseDecimal(facet.Value, out dLength))
                     {
                         builder.ExclusiveMaximum(dLength);
                     }
 
                     break;
                 case XmlSchemaMaxInclusiveFacet:
-                    if (TryParseDecimal(facet.Value, out dLength))
+                    if (FormatRangeHelper.IsRestrictionOnDateType(facet))
+                    {
+                        builder.FormatMaximum(facet.Value);
+                    }
+                    else if (TryParseDecimal(facet.Value, out dLength))
                     {
                         builder.Maximum(dLength);
                     }
@@ -384,14 +392,22 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
                     break;
                 case XmlSchemaMinExclusiveFacet:
-                    if (TryParseDecimal(facet.Value, out dLength))
+                    if (FormatRangeHelper.IsRestrictionOnDateType(facet))
+                    {
+                        builder.FormatExclusiveMinimum(facet.Value);
+                    }
+                    else if (TryParseDecimal(facet.Value, out dLength))
                     {
                         builder.ExclusiveMinimum(dLength);
                     }
 
                     break;
                 case XmlSchemaMinInclusiveFacet:
-                    if (TryParseDecimal(facet.Value, out dLength))
+                    if (FormatRangeHelper.IsRestrictionOnDateType(facet))
+                    {
+                        builder.FormatMinimum(facet.Value);
+                    }
+                    else if (TryParseDecimal(facet.Value, out dLength))
                     {
                         builder.Minimum(dLength);
                     }
