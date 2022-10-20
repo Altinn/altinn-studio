@@ -11,9 +11,8 @@ import { NumberRestrictions } from './restrictions/NumberRestrictions';
 import { ObjectRestrictions } from './restrictions/ObjectRestrictions';
 import { StringRestrictions } from './restrictions/StringRestrictions';
 import classes from './ItemRestrictions.module.css';
-import { Button, Checkbox } from '@altinn/altinn-design-system';
+import { Button, Checkbox, FieldSet } from '@altinn/altinn-design-system';
 import { Divider } from '../common/Divider';
-import { Fieldset } from '../common/Fieldset';
 
 export interface RestrictionItemProps {
   restrictions: any;
@@ -100,7 +99,7 @@ export const ItemRestrictions = ({ selectedNode, language }: ItemRestrictionsPro
       {[FieldType.String, FieldType.Integer, FieldType.Number].includes(selectedNode.fieldType as FieldType) && (
         <>
           <Divider />
-          <Fieldset legend={t('enum_legend')}>
+          <FieldSet legend={t('enum_legend')}>
             {!selectedNode.enum?.length && <p className={classes.emptyEnumMessage}>{t('enum_empty')}</p>}
             {selectedNode.enum?.map((value: string, index) => (
               <EnumField
@@ -123,7 +122,7 @@ export const ItemRestrictions = ({ selectedNode, language }: ItemRestrictionsPro
               <i />
               <span>{t('add_enum')}</span>
             </Button>
-          </Fieldset>
+          </FieldSet>
         </>
       )}
     </div>

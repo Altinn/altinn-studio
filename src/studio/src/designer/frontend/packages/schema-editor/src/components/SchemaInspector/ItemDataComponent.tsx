@@ -18,7 +18,7 @@ import {
 } from '../../features/editor/schemaEditorSlice';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions, getTypeOptions } from './helpers/options';
-import { Checkbox, ErrorMessage, TextField } from '@altinn/altinn-design-system';
+import { Checkbox, ErrorMessage, FieldSet, TextField } from '@altinn/altinn-design-system';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
 import type { UiSchemaNode } from '@altinn/schema-model';
@@ -33,7 +33,6 @@ import {
 } from '@altinn/schema-model';
 import { getDomFriendlyID, isValidName } from '../../utils/ui-schema-utils';
 import { Divider } from '../common/Divider';
-import { Fieldset } from '../common/Fieldset';
 import { Label } from '../common/Label';
 import { Select } from '../common/Select';
 
@@ -191,7 +190,7 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
       )}
       <ItemRestrictions selectedNode={selectedItem} language={language} />
       <Divider />
-      <Fieldset legend={t('descriptive_fields')}>
+      <FieldSet legend={t('descriptive_fields')}>
         <Label htmlFor={titleId}>{t('title')}</Label>
         <TextField id={titleId} onBlur={onChangeTitle} onChange={(e) => setItemTitle(e.target.value)} value={title} />
         <Label htmlFor={descriptionId}>{t('description')}</Label>
@@ -207,7 +206,7 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
           style={{ height: 100 }}
           value={description}
         />
-      </Fieldset>
+      </FieldSet>
     </div>
   );
 }
