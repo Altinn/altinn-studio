@@ -1,0 +1,101 @@
+{
+  "name": "Direct lookup inside repeating group (not respecting the second group)",
+  "expression": ["dataModel", "Bedrifter[0].Ansatte.Alder"],
+  "context": {
+    "component": "myndig",
+    "rowIndices": [1, 1],
+    "currentLayout": "Page2"
+  },
+  "expects": null,
+  "layouts": {
+    "Page1": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": []
+      }
+    },
+    "Page2": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "bedrifter",
+            "type": "Group",
+            "maxCount": 99,
+            "dataModelBindings": {
+              "group": "Bedrifter"
+            },
+            "children": ["bedriftsNavn", "ansatte"]
+          },
+          {
+            "id": "bedriftsNavn",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Bedrifter.Navn"
+            }
+          },
+          {
+            "id": "ansatte",
+            "type": "Group",
+            "maxCount": 99,
+            "dataModelBindings": {
+              "group": "Bedrifter.Ansatte"
+            },
+            "children": ["navn", "alder", "myndig"]
+          },
+          {
+            "id": "navn",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Bedrifter.Ansatte.Navn"
+            }
+          },
+          {
+            "id": "alder",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Bedrifter.Ansatte.Alder"
+            }
+          },
+          {
+            "id": "myndig",
+            "type": "Paragraph",
+            "textResourceBindings": {
+              "title": "Hurra, den ansatte er myndig!"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "Bedrifter": [
+      {
+        "Navn": "Hell og lykke AS",
+        "Ansatte": [
+          {
+            "Navn": "Kaare",
+            "Alder": 24
+          },
+          {
+            "Navn": "Per",
+            "Alder": 25
+          }
+        ]
+      },
+      {
+        "Navn": "Nedtur og motgang AS",
+        "Ansatte": [
+          {
+            "Navn": "Arne",
+            "Alder": 26
+          },
+          {
+            "Navn": "Vidar",
+            "Alder": 14
+          }
+        ]
+      }
+    ]
+  }
+}

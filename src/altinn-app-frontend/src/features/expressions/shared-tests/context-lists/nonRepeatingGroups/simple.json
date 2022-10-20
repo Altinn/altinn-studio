@@ -1,0 +1,95 @@
+{
+  "name": "Non-repeating group with no maxCount",
+  "layouts": {
+    "Page1": {
+      "data": {
+        "layout": [
+          {
+            "id": "comp1",
+            "type": "Heading"
+          },
+          {
+            "id": "group1",
+            "type": "Group",
+            "children": ["comp3", "comp4"]
+          },
+          {
+            "id": "comp3",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "asdf"
+            }
+          },
+          {
+            "id": "comp4",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "asdf"
+            }
+          }
+        ]
+      }
+    },
+    "Page2": {
+      "data": {
+        "layout": [
+          {
+            "id": "comp5",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "asdf"
+            }
+          },
+          {
+            "id": "comp6",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "asdf"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "expectedContexts": [
+    {
+      "component": "Page1",
+      "currentLayout": "Page1",
+      "children": [
+        {
+          "component": "comp1",
+          "currentLayout": "Page1"
+        },
+        {
+          "component": "group1",
+          "currentLayout": "Page1",
+          "children": [
+            {
+              "component": "comp3",
+              "currentLayout": "Page1"
+            },
+            {
+              "component": "comp4",
+              "currentLayout": "Page1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "component": "Page2",
+      "currentLayout": "Page2",
+      "children": [
+        {
+          "component": "comp5",
+          "currentLayout": "Page2"
+        },
+        {
+          "component": "comp6",
+          "currentLayout": "Page2"
+        }
+      ]
+    }
+  ],
+  "dataModel": {}
+}

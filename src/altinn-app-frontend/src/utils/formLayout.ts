@@ -278,10 +278,16 @@ export const getRepeatingGroupStartStopIndex = (
   repeatingGroupIndex: number,
   edit: IGroupEditProperties | undefined,
 ) => {
+  if (typeof repeatingGroupIndex === 'undefined') {
+    return { startIndex: 0, stopIndex: -1 };
+  }
+
   const start = edit?.filter?.find(({ key }) => key === 'start')?.value;
   const stop = edit?.filter?.find(({ key }) => key === 'stop')?.value;
   const startIndex = start ? parseInt(start) : 0;
-  const stopIndex = stop ? parseInt(stop) - 1 : repeatingGroupIndex;
+  const stopIndex = stop
+    ? Math.min(parseInt(stop) - 1, repeatingGroupIndex)
+    : repeatingGroupIndex;
   return { startIndex, stopIndex };
 };
 

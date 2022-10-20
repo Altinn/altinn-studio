@@ -1,0 +1,5 @@
+{
+  "name": "Should fail with [string with no decimals, integer]",
+  "expression": ["greaterThan", "55.", -57],
+  "expectsFailure": "Expected number, got value \"55.\""
+}

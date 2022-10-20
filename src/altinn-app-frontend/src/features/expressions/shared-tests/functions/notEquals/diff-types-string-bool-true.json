@@ -1,0 +1,5 @@
+{
+  "name": "Should work with [string, boolean] (true)",
+  "expression": ["notEquals", "0", false],
+  "expects": true
+}

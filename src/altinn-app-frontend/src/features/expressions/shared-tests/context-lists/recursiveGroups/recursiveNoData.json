@@ -1,0 +1,98 @@
+{
+  "name": "Recursive group Layout with no data",
+  "layouts": {
+    "Page1": {
+      "data": {
+        "layout": [
+          {
+            "id": "comp1",
+            "type": "Heading"
+          },
+          {
+            "id": "group0",
+            "type": "Group",
+            "children": ["group1"],
+            "maxCount": 99,
+            "dataModelBindings": {
+              "group": "group"
+            }
+          },
+          {
+            "id": "group1",
+            "type": "Group",
+            "children": ["comp3", "comp4"],
+            "maxCount": 99,
+            "dataModelBindings": {
+              "group": "group.subgroup"
+            }
+          },
+          {
+            "id": "comp3",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "group.subgroup.asdf"
+            }
+          },
+          {
+            "id": "comp4",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "group.subgroup.asdf"
+            }
+          }
+        ]
+      }
+    },
+    "Page2": {
+      "data": {
+        "layout": [
+          {
+            "id": "comp5",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "asdf"
+            }
+          },
+          {
+            "id": "comp6",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "asdf"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "expectedContexts": [
+    {
+      "component": "Page1",
+      "currentLayout": "Page1",
+      "children": [
+        {
+          "component": "comp1",
+          "currentLayout": "Page1"
+        },
+        {
+          "component": "group0",
+          "currentLayout": "Page1"
+        }
+      ]
+    },
+    {
+      "component": "Page2",
+      "currentLayout": "Page2",
+      "children": [
+        {
+          "component": "comp5",
+          "currentLayout": "Page2"
+        },
+        {
+          "component": "comp6",
+          "currentLayout": "Page2"
+        }
+      ]
+    }
+  ],
+  "dataModel": {}
+}

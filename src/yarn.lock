@@ -5225,6 +5225,7 @@ __metadata:
     ts-jest: 29.0.3
     ts-loader: 9.4.1
     typescript: 4.8.4
+    utility-types: ^3.10.0
     uuid: 9.0.0
     webpack: 5.74.0
     webpack-cli: 4.10.0
@@ -15489,6 +15490,13 @@ __metadata:
   dependencies:
     inherits: 2.0.1
   checksum: bd800f5d237a82caddb61723a6cbe45297d25dd258651a31335a4d5d981fd033cb4771f82db3d5d59b582b187cb69cfe727dc6f4d8d7826f686ee6c07ce611e0
+  languageName: node
+  linkType: hard
+
+"utility-types@npm:^3.10.0":
+  version: 3.10.0
+  resolution: "utility-types@npm:3.10.0"
+  checksum: 8f274415c6196ab62883b8bd98c9d2f8829b58016e4269aaa1ebd84184ac5dda7dc2ca45800c0d5e0e0650966ba063bf9a412aaeaea6850ca4440a391283d5c8
   languageName: node
   linkType: hard
 

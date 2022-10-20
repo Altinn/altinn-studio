@@ -63,6 +63,7 @@ export interface ILayoutCompBase<Type extends ComponentTypes = ComponentTypes>
   dataModelBindings?: IDataModelBindings;
   readOnly?: boolean;
   required?: boolean;
+  hidden?: any; // Temporary while merging expressions PRs
   textResourceBindings?: ITextResourceBindings;
   grid?: IGrid;
   triggers?: Triggers[];
