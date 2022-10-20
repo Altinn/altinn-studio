@@ -148,6 +148,8 @@ export function en() {
     group: {
       row_error:
         'One of the rows is incorrectly filled out. This has to bee fixed before the schema can be submitted.',
+      row_popover_delete_message: 'Are you sure you want to delete this row?',
+      row_popover_delete_button_confirm: 'Yes, delete the row',
     },
     instance_selection: {
       changed_by: 'Changed by',

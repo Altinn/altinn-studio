@@ -18,6 +18,7 @@ export default class AppFrontend {
     this.profileIconButton = '#profile-icon-button';
     this.logOut = '#logout-menu-item';
     this.logOutLink = 'a[href$="/ui/authentication/LogOut"]';
+    this.designSystemPanel = '[data-testid="panel-content-wrapper"]';
 
     this.helpText = {
       open: '.reg-help-outline',
@@ -177,6 +178,8 @@ export default class AppFrontend {
       mainGroupTableBody: '#group-mainGroup-table-body',
       options: '#reduxOptions',
       tableErrors: '[data-testid=group-table-errors]',
+      popOverDeleteButton: '[data-testid="warning-popover-delete-button"]',
+      popOverCancelButton: '[data-testid="warning-popover-cancel-button"]',
       rows: [0, 1].map((idx) => ({
         uploadSingle: makeUploaderSelectors('mainUploaderSingle', idx, 3),
         uploadMulti: makeUploaderSelectors('mainUploaderMulti', idx, 4),

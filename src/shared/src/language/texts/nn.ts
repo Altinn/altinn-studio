@@ -146,6 +146,9 @@ export function nn() {
     group: {
       row_error:
         'Ei av radene er ikkje fylt ut riktig. Dette må bli retta før skjema kan sendast inn.',
+      row_popover_delete_message:
+        'Er du sikker på at du vil sletta denne rada?',
+      row_popover_delete_button_confirm: 'Ja, slett rada',
     },
     instance_selection: {
       changed_by: 'Endra av',

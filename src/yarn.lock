@@ -5218,6 +5218,7 @@ __metadata:
     redux-saga: 1.2.1
     redux-saga-test-plan: 4.0.6
     reselect: 4.1.6
+    resize-observer-polyfill: 1.5.1
     rimraf: 3.0.2
     source-map-loader: 4.0.0
     style-loader: 3.3.1
@@ -13709,6 +13710,13 @@ __metadata:
   version: 4.1.5
   resolution: "reselect@npm:4.1.5"
   checksum: 54c13c1e795b2ea70cba8384138aebe78adda00cbea303cc94b64da0a70d74c896cc9a03115ae38b8bff990e7a60dcd6452ab68cbec01b0b38c1afda70714cf0
+  languageName: node
+  linkType: hard
+
+"resize-observer-polyfill@npm:1.5.1":
+  version: 1.5.1
+  resolution: "resize-observer-polyfill@npm:1.5.1"
+  checksum: 57e7f79489867b00ba43c9c051524a5c8f162a61d5547e99333549afc23e15c44fd43f2f318ea0261ea98c0eb3158cca261e6f48d66e1ed1cd1f340a43977094
   languageName: node
   linkType: hard
 

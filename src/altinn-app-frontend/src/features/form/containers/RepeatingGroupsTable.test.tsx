@@ -3,6 +3,7 @@ import * as React from 'react';
 import { getFormLayoutGroupMock } from '__mocks__/mocks';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import * as ResizeObserverModule from 'resize-observer-polyfill';
 import { mockMediaQuery, renderWithProviders } from 'testUtils';
 
 import { RepeatingGroupTable } from 'src/features/form/containers/RepeatingGroupTable';
@@ -20,7 +21,37 @@ import type { IOption, ITextResource } from 'src/types';
 
 import type { ILanguage } from 'altinn-shared/types';
 
+(global as any).ResizeObserver = ResizeObserverModule.default;
+
 const user = userEvent.setup();
+
+const getLayout = (group: ILayoutGroup, components: ILayoutComponent[]) => {
+  const layout: ILayoutState = {
+    layouts: {
+      FormLayout: [].concat(group).concat(components),
+    },
+    uiConfig: {
+      hiddenFields: [],
+      repeatingGroups: {
+        'mock-container-id': {
+          index: 3,
+        },
+      },
+      autoSave: false,
+      currentView: 'FormLayout',
+      focus: undefined,
+      tracks: {
+        order: ['FormLayout'],
+        hidden: [],
+        hiddenExpr: {},
+      },
+    },
+    error: null,
+    layoutsets: null,
+  };
+
+  return layout;
+};
 
 describe('RepeatingGroupTable', () => {
   const group: ILayoutGroup = getFormLayoutGroupMock({});
@@ -28,6 +59,11 @@ describe('RepeatingGroupTable', () => {
     general: {
       delete: 'Delete',
       edit_alt: 'Edit',
+      cancel: 'Cancel',
+    },
+    group: {
+      row_popover_delete_message: 'Are you sure you want to delete this row?',
+      row_popover_delete_button_confirm: 'Yes, delete the row',
     },
   };
   const textResources: ITextResource[] = [
@@ -90,29 +126,7 @@ describe('RepeatingGroupTable', () => {
       options: options,
     } as ISelectionComponentProps,
   ];
-  const layout: ILayoutState = {
-    layouts: {
-      FormLayout: [].concat(group).concat(components),
-    },
-    uiConfig: {
-      hiddenFields: [],
-      repeatingGroups: {
-        'mock-container-id': {
-          index: 3,
-        },
-      },
-      autoSave: false,
-      currentView: 'FormLayout',
-      focus: undefined,
-      tracks: {
-        order: ['FormLayout'],
-        hidden: [],
-        hiddenExpr: {},
-      },
-    },
-    error: null,
-    layoutsets: null,
-  };
+  const layout: ILayoutState = getLayout(group, components);
   const currentView = 'FormLayout';
   const data: IFormData = {
     'some-group[1].checkboxBinding': 'option.value',
@@ -144,6 +158,43 @@ describe('RepeatingGroupTable', () => {
       `#group-${group.id}-table-header`,
     );
     expect(tableHeader).not.toBeInTheDocument();
+  });
+
+  describe('popOver warning', () => {
+    beforeEach(() => {
+      const group: ILayoutGroup = getFormLayoutGroupMock({
+        edit: { alertOnDelete: true },
+      });
+      const layout: ILayoutState = getLayout(group, components);
+      const repeatingGroupDeepCopyComponents: Array<
+        Array<ILayoutComponent | ILayoutGroup>
+      > = createRepeatingGroupComponents(
+        group,
+        components,
+        repeatingGroupIndex,
+        textResources,
+      );
+
+      render({
+        container: group,
+        repeatingGroupDeepCopyComponents: repeatingGroupDeepCopyComponents,
+        layout: layout.layouts[currentView],
+      });
+    });
+
+    it('should open and close delete-warning on delete click when alertOnDelete is active', async () => {
+      await user.click(screen.getAllByRole('button', { name: /delete/i })[0]);
+
+      expect(
+        screen.queryByText('Are you sure you want to delete this row?'),
+      ).toBeInTheDocument();
+
+      await user.click(screen.getAllByRole('button', { name: /delete/i })[0]);
+
+      expect(
+        screen.queryByText('Are you sure you want to delete this row?'),
+      ).not.toBeInTheDocument();
+    });
   });
 
   describe('desktop view', () => {

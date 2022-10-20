@@ -40,7 +40,8 @@
   },
   "jest": {
     "transform": {
-      ".(ts|tsx)": "ts-jest"
+      ".(ts|tsx)": "ts-jest",
+      "\\.js$": "ts-jest"
     },
     "reporters": [
       "default",
@@ -64,7 +65,10 @@
       "!__tests__/**/*",
       "src/**/*.{ts,tsx}"
     ],
-    "testEnvironment": "jsdom"
+    "testEnvironment": "jsdom",
+    "transformIgnorePatterns": [
+      "node_modules/(?!react-leaflet)/"
+    ]
   },
   "browserslist": {
     "production": [

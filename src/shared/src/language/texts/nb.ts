@@ -148,6 +148,9 @@ export function nb() {
     group: {
       row_error:
         'En av radene er ikke fylt ut riktig, dette må fikses før skjema kan sendes inn',
+      row_popover_delete_message:
+        'Er du sikker på at du vil slette denne raden?',
+      row_popover_delete_button_confirm: 'Ja, slett raden',
     },
     instance_selection: {
       changed_by: 'Endret av',
