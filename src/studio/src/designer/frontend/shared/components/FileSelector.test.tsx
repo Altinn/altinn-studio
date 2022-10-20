@@ -1,8 +1,8 @@
+import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
-import FileSelector from './FileSelector';
 import type { IFileSelectorProps } from './FileSelector';
+import FileSelector from './FileSelector';
 import { Button } from '@mui/material';
 
 const user = userEvent.setup();

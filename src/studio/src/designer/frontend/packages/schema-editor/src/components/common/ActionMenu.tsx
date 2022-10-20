@@ -1,11 +1,11 @@
 import React from 'react';
-import {Icon, IconImage} from './Icon';
+import { Icon, IconImage } from './Icon';
 import classes from './ActionMenu.module.css';
 import cn from 'classnames';
 
 export interface IActionMenuProps {
   className?: string;
-  items: IActionMenuItemProps[]
+  items: IActionMenuItemProps[];
   openButtonText: string;
 }
 
@@ -16,20 +16,20 @@ export interface IActionMenuItemProps {
   text: string;
 }
 
-export const ActionMenu = ({openButtonText, className, items}: IActionMenuProps) => (
+export const ActionMenu = ({ openButtonText, className, items }: IActionMenuProps) => (
   <div className={cn(classes.root, className)}>
     <div className={classes.menu}>
-      <button className={classes.openButton}>
-        {openButtonText}
-      </button>
+      <button className={classes.openButton}>{openButtonText}</button>
       <ul className={classes.list}>
-        {items.map((item) => <ActionMenuItem key={item.text} {...item}/>)}
+        {items.map((item) => (
+          <ActionMenuItem key={item.text} {...item} />
+        ))}
       </ul>
     </div>
   </div>
 );
 
-const ActionMenuItem = ({action, className, icon, text}: IActionMenuItemProps) => (
+const ActionMenuItem = ({ action, className, icon, text }: IActionMenuItemProps) => (
   <li className={cn(classes.item, className)}>
     <button
       className={classes.itemButton}
@@ -40,7 +40,7 @@ const ActionMenuItem = ({action, className, icon, text}: IActionMenuItemProps) =
       }}
       role='menuitem'
     >
-      <Icon image={icon} className={classes.icon}/>
+      <Icon image={icon} className={classes.icon} />
       {text}
     </button>
   </li>

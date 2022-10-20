@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   Button,
   createTheme,
@@ -6,7 +7,6 @@ import {
   PopoverOrigin,
 } from '@mui/material';
 import { createStyles, makeStyles } from '@mui/styles';
-import React from 'react';
 import altinnTheme from '../../theme/altinnStudioTheme';
 
 export interface IAltinnPopoverProps {

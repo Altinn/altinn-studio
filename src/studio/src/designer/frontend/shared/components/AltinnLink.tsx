@@ -1,6 +1,6 @@
+import React from 'react';
 import { createTheme } from '@mui/material';
 import { withStyles } from '@mui/styles';
-import React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 import AltinnIcon from './AltinnIcon';
 

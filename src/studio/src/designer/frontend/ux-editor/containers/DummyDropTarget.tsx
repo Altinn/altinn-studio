@@ -1,5 +1,5 @@
-import { DropTargetHookSpec, DropTargetMonitor, useDrop } from 'react-dnd';
 import React from 'react';
+import { DropTargetHookSpec, DropTargetMonitor, useDrop } from 'react-dnd';
 import { EditorDndEvents, EditorDndItem, ItemType } from './helpers/dnd-types';
 import { handleDrop, hoverShouldBeIgnored } from './helpers/dnd-helpers';
 

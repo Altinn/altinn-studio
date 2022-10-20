@@ -1,6 +1,6 @@
+import React from 'react';
 import { createTheme } from '@mui/material';
 import { createStyles, withStyles } from '@mui/styles';
-import React from 'react';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import type { IAltinnWindow } from '../../types/global';
 

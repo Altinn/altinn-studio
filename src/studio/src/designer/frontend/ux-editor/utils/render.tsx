@@ -1,5 +1,5 @@
-import { Typography } from '@mui/material';
 import React from 'react';
+import { Typography } from '@mui/material';
 import Select from 'react-select';
 import { SelectDataModelComponent } from '../components/config/SelectDataModelComponent';
 import { getTextResource, truncate } from './language';

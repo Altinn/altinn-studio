@@ -1,9 +1,8 @@
-import { Grid, StyledComponentProps } from '@mui/material';
+import React from 'react';
 import type { Theme } from '@mui/material';
-import useMediaQuery from '@mui/material/useMediaQuery';
+import { Grid, StyledComponentProps, useMediaQuery } from '@mui/material';
 import LeftDrawerMenu from 'app-shared/navigation/drawer/LeftDrawerMenu';
 import classNames from 'classnames';
-import React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import type { IShareChangesComponentProps } from 'app-shared/version-control/shareChanges';
 import routes from '../config/routes';

@@ -1,5 +1,5 @@
-import Select from 'react-select';
 import React from 'react';
+import Select from 'react-select';
 import { Grid } from '@mui/material';
 import {
   PropertyLabel,

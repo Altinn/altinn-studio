@@ -1,5 +1,5 @@
-import { AppBar } from './AppBar';
 import React from 'react';
+import { AppBar } from './AppBar';
 import { Route, Routes } from 'react-router-dom';
 import routes from '../config/routes';
 import appDevelopmentLeftDrawerSettings from '../config/subPathSettings';

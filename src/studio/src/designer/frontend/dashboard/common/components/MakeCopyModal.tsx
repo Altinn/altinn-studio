@@ -1,3 +1,4 @@
+import React from 'react';
 import { Typography } from '@mui/material';
 import { AltinnSpinner } from 'app-shared/components';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
@@ -7,7 +8,6 @@ import {
   getParsedLanguageFromKey,
 } from 'app-shared/utils/language';
 import { post } from 'app-shared/utils/networking';
-import React from 'react';
 import { DashboardActions } from '../../resources/fetchDashboardResources/dashboardSlice';
 import { PopoverOrigin } from '@mui/material/Popover';
 import { useAppDispatch, useAppSelector } from 'common/hooks';

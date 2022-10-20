@@ -1,5 +1,5 @@
-import { App } from './App';
 import React from 'react';
+import { App } from './App';
 import { renderWithProviders } from 'test/testUtils';
 import type { IUserState } from './sharedResources/user/userSlice';
 import { screen } from '@testing-library/react';

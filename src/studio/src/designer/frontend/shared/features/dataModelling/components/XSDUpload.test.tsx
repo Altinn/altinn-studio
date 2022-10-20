@@ -1,5 +1,5 @@
-import axios from 'axios';
 import React from 'react';
+import axios from 'axios';
 import type { IXSDUploadProps } from './XSDUpload';
 import { XSDUpload } from './XSDUpload';
 import { render as rtlRender, screen } from '@testing-library/react';

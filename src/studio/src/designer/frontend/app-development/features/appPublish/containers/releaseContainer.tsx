@@ -1,3 +1,4 @@
+import React from 'react';
 import type { Theme } from '@mui/material';
 import {
   CircularProgress,
@@ -8,7 +9,6 @@ import {
   useMediaQuery,
 } from '@mui/material';
 import { createStyles, WithStyles, withStyles } from '@mui/styles';
-import React from 'react';
 import AltinnIcon from 'app-shared/components/AltinnIcon';
 import AltinnStudioTheme from 'app-shared/theme/altinnStudioTheme';
 import {

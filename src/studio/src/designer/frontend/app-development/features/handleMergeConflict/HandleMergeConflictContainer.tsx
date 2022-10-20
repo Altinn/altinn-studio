@@ -1,6 +1,7 @@
-import { createTheme, Grid, ThemeProvider, Typography } from '@mui/material';
-import classNames from 'classnames';
 import React from 'react';
+import { createTheme, Grid, ThemeProvider, Typography } from '@mui/material';
+import { createStyles, withStyles, WithStyles } from '@mui/styles';
+import classNames from 'classnames';
 import { connect } from 'react-redux';
 import FileEditor from 'app-shared/file-editor/FileEditor';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
@@ -11,7 +12,6 @@ import HandleMergeConflictAbortComponent from './components/HandleMergeConflictA
 import HandleMergeConflictDiscardChangesComponent from './components/HandleMergeConflictDiscardChanges';
 import HandleMergeConflictFileListComponent from './components/HandleMergeConflictFileList';
 import type { RootState } from 'store';
-import { createStyles, withStyles, WithStyles } from '@mui/styles';
 
 const theme = createTheme(altinnTheme);
 

@@ -1,9 +1,7 @@
+import React from 'react';
 import { makeStyles } from '@mui/styles';
 import { Grid } from '@mui/material';
-import React from 'react';
-
 import { useAppSelector } from 'common/hooks';
-
 import AltinnButton from 'app-shared/components/AltinnButton';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import { getLanguageFromKey } from 'app-shared/utils/language';
