@@ -1,4 +1,4 @@
-import React, { createRef, useCallback, useEffect, useRef } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { createTheme, Grid, ThemeProvider, Typography } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
@@ -61,7 +61,7 @@ export function App() {
   const dispatch = useAppDispatch();
   const classes = useStyles();
   const lastKeepAliveTimestamp = useRef<number>(0);
-  const sessionExpiredPopoverRef = createRef<HTMLDivElement>();
+  const sessionExpiredPopoverRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const { org, app } = window as Window as IAltinnWindow;
