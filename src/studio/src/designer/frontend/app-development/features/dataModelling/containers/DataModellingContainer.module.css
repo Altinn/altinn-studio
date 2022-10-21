@@ -1,0 +1,15 @@
+.root {
+  margin-left: 80px;
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  box-sizing: border-box;
+}
+.row {
+  flex-grow: 0;
+  max-width: 100%;
+  flex-basis: 100%;
+}
+.versionControlHeaderMargin {
+  margin-bottom: 12px;
+}

@@ -16,7 +16,7 @@ export function* autosaveModelSaga(): SagaIterator {
     const schema = buildJsonSchema(uiSchema);
     yield call(put, `${saveUrl}&saveOnly=true`, schema);
   } catch (error) {
-    console.error('Failed to save JSON Schema model. ', error);
+    yield call(console.error, 'Failed to save JSON Schema model. ', error);
   }
 }
 
