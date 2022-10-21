@@ -28,9 +28,9 @@ type HeaderProps = {
   language: any;
 };
 
-const useStyles = makeStyles((theme: any) => ({
+const useStyles = makeStyles(() => ({
   appBar: {
-    backgroundColor: theme.altinnPalette.primary.blueDarker,
+    backgroundColor: '#022F51',
     boxShadow: 'none',
   },
   toolbar: {

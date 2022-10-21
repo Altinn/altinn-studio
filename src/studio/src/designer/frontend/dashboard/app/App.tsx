@@ -18,7 +18,7 @@ import Header, {
 } from 'app-shared/navigation/main-header/Header';
 
 import { userHasAccessToSelectedContext } from 'common/utils';
-import { generateClassName, themeV4 } from 'common/utils/muiUtils';
+import { generateClassName, theme } from 'common/utils/muiUtils';
 import { useAppDispatch, useAppSelector } from 'common/hooks';
 import { CenterContainer } from 'common/components/CenterContainer';
 import { Footer } from 'common/components/Footer';
@@ -103,7 +103,7 @@ export const App = () => {
 
   return (
     <StylesProvider generateClassName={generateClassName}>
-      <ThemeProvider theme={themeV4}>
+      <ThemeProvider theme={theme}>
         {user && !isLoadingOrganizations ? (
           <Root>
             <HeaderContext.Provider value={headerContextValue}>

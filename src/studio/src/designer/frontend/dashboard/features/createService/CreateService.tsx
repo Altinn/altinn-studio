@@ -8,7 +8,6 @@ import { getLanguageFromKey } from 'app-shared/utils/language';
 
 import { ServiceOwnerSelector } from './ServiceOwnerSelector';
 import { RepoNameInput } from './RepoNameInput';
-// import { RepoTypeSelector } from './RepoTypeSelector';
 import { DataModellingFormat, useAddRepoMutation } from 'services/repoApi';
 
 import { validateRepoName } from 'common/utils';
@@ -90,11 +89,7 @@ const validateInputs = ({
 export const CreateService = () => {
   const language = useAppSelector((state) => state.language.language);
   const classes = useStyles();
-
   const selectedFormat = DataModellingFormat.XSD;
-  // const [selectedFormat, setSelectedFormat] = React.useState(
-  //   DataModellingFormat.JSON,
-  // );
   const [selectedOrgOrUser, setSelectedOrgOrUser] = React.useState('');
   const [orgErrorMessage, setOrgErrorMessage] = React.useState(null);
   const [repoErrorMessage, setRepoErrorMessage] = React.useState(null);

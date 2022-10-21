@@ -113,7 +113,7 @@ class Rule extends React.Component<IRuleComponentProps, any> {
     const selectedMethod = this.state.ruleConnection.selectedFunction;
     const selectedMethodNr = this.state.selectedFunctionNr;
     return (
-      <div className='modal-content' style={{ zIndex: 300 }}>
+      <div className='modal-content'>
         <div className='modal-header a-modal-header'>
           <div className='a-iconText a-iconText-background a-iconText-large'>
             <div className='a-iconText-icon'>

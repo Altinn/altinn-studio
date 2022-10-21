@@ -13,36 +13,47 @@
   display: flex;
   flex-direction: row;
 }
-/*
-.paper-xl {
-  padding-left: 99px;
-  padding-top: 92px;
-  padding-bottom: 87px;
-  max-width: 1088px;
-  height: 446px;
+
+@media only screen and (min-width: 1920px) {
+  .paper {
+    padding-left: 99px;
+    padding-top: 92px;
+    padding-bottom: 87px;
+    max-width: 1088px;
+    height: 446px;
+  }
 }
-.paper-lg {
-  padding-left: 101px;
-  padding-top: 82px;
-  padding-bottom: 97px;
-  max-width: 1088px;
-  height: 446px;
+
+@media only screen and (min-width: 1440px) {
+  .paper {
+    padding-left: 101px;
+    padding-top: 82px;
+    padding-bottom: 97px;
+    max-width: 1088px;
+    height: 446px;
+  }
 }
-.paper-md {
-  padding-left: 45px;
-  padding-top: 78px;
-  padding-bottom: 100px;
-  max-width: 944px;
-  height: 446px;
+
+@media only screen and (min-width: 1025px) {
+  .paper {
+    padding-left: 45px;
+    padding-top: 78px;
+    padding-bottom: 100px;
+    max-width: 944px;
+    height: 446px;
+  }
 }
-.paper-sm {
-  padding-left: 56px;
-  padding-top: 68px;
-  padding-bottom: 97px;
-  max-width: 554px;
-  height: 623px;
+
+@media only screen and (max-width: 1024px) {
+  .paper {
+    padding-left: 56px;
+    padding-top: 68px;
+    padding-bottom: 97px;
+    max-width: 554px;
+    height: 623px;
+  }
 }
-*/
+
 .shadowBox {
   box-shadow: 0 4px 7px rgba(0, 0, 0, 0.14);
 }

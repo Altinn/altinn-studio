@@ -11,5 +11,4 @@ export const generateClassName = createGenerateClassName({
   seed: 'mui-jss',
 });
 
-export const themeV4 = createTheme(altinnTheme);
-export const themeV5 = createTheme(altinnTheme);
+export const theme = createTheme(altinnTheme);
