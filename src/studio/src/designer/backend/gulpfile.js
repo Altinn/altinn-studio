@@ -367,7 +367,8 @@ gulp.task(
     },
     function (cb) {
       exec(
-        'git update-index --assume-unchanged Views/Home/Index.cshtml',
+        'git update-index --assume-unchanged ' +
+          path.join(__dirname, 'Views/Home/Index.cshtml'),
         function (err, stdout, stderr) {
           cb(err);
         },
@@ -375,7 +376,8 @@ gulp.task(
     },
     function (cb) {
       exec(
-        'git update-index --assume-unchanged Views/ServiceDevelopment/index.cshtml',
+        'git update-index --assume-unchanged ' +
+          path.join(__dirname, 'Views/ServiceDevelopment/index.cshtml'),
         function (err, stdout, stderr) {
           cb(err);
         },
