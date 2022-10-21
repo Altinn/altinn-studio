@@ -131,7 +131,7 @@ const schemaEditorSlice = createSlice({
       }
       state.uiSchema = removeNodeByPointer(state.uiSchema, path);
     },
-    setRestriction(state, action: PayloadAction<{ path: string; value: string; key: string }>) {
+    setRestriction(state, action: PayloadAction<{ path: string; key: string; value?: string }>) {
       const { path, value, key } = action.payload;
       const schemaItem = getNodeByPointer(state.uiSchema, path);
       const restrictions = { ...schemaItem.restrictions };
@@ -298,13 +298,13 @@ export const {
   setRef,
   setRequired,
   setRestriction,
+  setSaveSchemaUrl,
   setSchemaName,
   setSelectedId,
   setSelectedTab,
   setTitle,
   setType,
   setUiSchema,
-  setSaveSchemaUrl,
   toggleArrayField,
   updateJsonSchema,
 } = schemaEditorSlice.actions;

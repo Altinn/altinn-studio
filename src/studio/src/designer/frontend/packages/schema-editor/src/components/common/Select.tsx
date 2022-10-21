@@ -15,7 +15,7 @@ export interface SelectProps {
 export const Select = ({ emptyOptionLabel, id, label, onChange, options, value }: SelectProps) => {
   const allOptions = emptyOptionLabel === undefined ? options : [{value: '', label: emptyOptionLabel}, ...options];
   return (
-    <>
+    <span>
       <Label htmlFor={id}>{label}</Label>
       <select
         className={classes.select}
@@ -25,6 +25,6 @@ export const Select = ({ emptyOptionLabel, id, label, onChange, options, value }
       >
         {allOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
       </select>
-    </>
+    </span>
   );
 };

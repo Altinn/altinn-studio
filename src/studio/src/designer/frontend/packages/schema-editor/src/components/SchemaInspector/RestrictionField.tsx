@@ -30,7 +30,7 @@ export const RestrictionField = ({
       <TextField
         id={fieldId}
         value={value ?? ''}
-        onChange={(e) => onChangeValue(path, e.target.value, keyName)}
+        onChange={(e) => onChangeValue(path, keyName, e.target.value)}
         aria-label={label}
         readOnly={readOnly}
       />

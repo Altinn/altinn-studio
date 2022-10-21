@@ -1,3 +1,9 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
 .field {
   background: white;
   border: 2px solid #008fd6 !important;
@@ -26,7 +32,8 @@
   background: gray;
 }
 
-.checkboxWrapper {
+.fieldSet > div {
   display: flex;
-  margin-top: 2rem;
+  flex-direction: column;
+  gap: 2rem;
 }

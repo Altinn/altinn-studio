@@ -38,8 +38,10 @@ import {
   Keywords,
   makePointer,
   ObjectKind,
+  StrRestrictionKeys,
   UiSchemaNode,
 } from '@altinn/schema-model';
+import { StringFormat } from '@altinn/schema-model/src/lib/types';
 
 describe('SchemaEditorSlice', () => {
   let state: ISchemaState;
@@ -548,5 +550,18 @@ describe('SchemaEditorSlice', () => {
       changeChildrenOrder({ pointerA, pointerB: makePointer(Keywords.Properties, 'jibberish') }),
     );
     expect(nextState).toBe(expectedUnchanged);
+  });
+
+  it('Handles format change', () => {
+    const checkSetFormat = (path: string, format?: StringFormat) => {
+      const key = StrRestrictionKeys.format;
+      const value = format as string;
+      const nextState = reducer(state, setRestriction({ path, key, value }));
+      const node = getNodeByPointer(nextState.uiSchema, path);
+      expect(node.restrictions[key]).toEqual(format);
+    }
+    checkSetFormat('#/$defs/Dato', StringFormat.DateTime);
+    checkSetFormat('#/$defs/Dato');
+    checkSetFormat('#/$defs/Tekst', StringFormat.Date);
   });
 });
