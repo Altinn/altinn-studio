@@ -4,6 +4,7 @@ const replace = require('gulp-string-replace');
 const chokidar = require('chokidar');
 const del = require('del');
 const fs = require('fs');
+const exec = require('child_process').exec;
 
 // When specifying options, you need to add all options to avoid lint errors.
 // This can be removed if/when https://github.com/Klathmon/gulp-run-command/pull/11 is released
@@ -347,8 +348,8 @@ gulp.task(
 );
 
 gulp.task(
-  'fix-for-local-development',
-  gulp.parallel(
+  'local-dev-fix',
+  gulp.series(
     function () {
       return gulp
         .src(['./Views/ServiceDevelopment/index.cshtml'])
@@ -363,5 +364,39 @@ gulp.task(
         .pipe(replace('~/designer/css/react', 'http://localhost:8082'))
         .pipe(gulp.dest('./Views/Home'));
     },
+    function (cb) {
+      exec(
+        'git update-index --assume-unchanged Views/Home/Index.cshtml',
+        function (err, stdout, stderr) {
+          cb(err);
+        },
+      );
+    },
+    function (cb) {
+      exec(
+        'git update-index --assume-unchanged Views/ServiceDevelopment/index.cshtml',
+        function (err, stdout, stderr) {
+          cb(err);
+        },
+      );
+    },
   ),
+);
+
+gulp.task(
+  'local-dev-rollback',
+  gulp.series([
+    function (cb) {
+      exec(
+        'git checkout origin/master -- Views/Home/Index.cshtml',
+        (err, stdout, stderr) => cb(err),
+      );
+    },
+    function (cb) {
+      exec(
+        'git checkout origin/master -- Views/ServiceDevelopment/index.cshtml',
+        (err, stdout, stderr) => cb(err),
+      );
+    },
+  ]),
 );
