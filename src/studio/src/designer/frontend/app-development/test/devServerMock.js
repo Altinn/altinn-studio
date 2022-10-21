@@ -19,7 +19,7 @@ module.exports = (middlewares, devServer) => {
   app.use(bodyParser.json());
 
   app.get('/', (req, res) => res.redirect('/designer/someorg/someapp'));
-  app.get('/designer/api/v1/session/remaining', (req, res) => res.send('5'));
+  app.get('/designer/api/v1/session/remaining', (req, res) => res.send('9999'));
   app.get('/designerapi/Language/GetLanguageAsJSON', (req, res) =>
     res.json(getLanguage),
   );
