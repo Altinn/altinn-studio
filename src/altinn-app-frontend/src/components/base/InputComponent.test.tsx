@@ -4,12 +4,14 @@ import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { InputComponent } from 'src/components/base/InputComponent';
-import { mockDelayBeforeSaving } from 'src/components/hooks/useDelayedSavedState';
 import type { IInputProps } from 'src/components/base/InputComponent';
 
-const user = userEvent.setup();
-
 describe('InputComponent', () => {
+  jest.useFakeTimers();
+  const user = userEvent.setup({
+    advanceTimers: jest.advanceTimersByTime,
+  });
+
   it('should correct value with no form data provided', () => {
     render();
     const inputComponent = screen.getByRole('textbox');
@@ -45,15 +47,12 @@ describe('InputComponent', () => {
     render({ handleDataChange });
     const inputComponent = screen.getByRole('textbox');
 
-    mockDelayBeforeSaving(25);
     await user.type(inputComponent, typedValue);
 
     expect(inputComponent).toHaveValue(typedValue);
     expect(handleDataChange).not.toHaveBeenCalled();
-
-    await new Promise((r) => setTimeout(r, 25));
+    jest.runOnlyPendingTimers();
     expect(handleDataChange).toHaveBeenCalled();
-    mockDelayBeforeSaving(undefined);
   });
 
   it('should call supplied dataChanged function immediately after onBlur', async () => {

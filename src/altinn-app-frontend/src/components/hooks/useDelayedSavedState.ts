@@ -2,12 +2,6 @@ import * as React from 'react';
 
 import type { IComponentProps } from 'src/components';
 
-let mockDelay: number | undefined = undefined;
-
-export const mockDelayBeforeSaving = (newDelay: number) => {
-  mockDelay = newDelay;
-};
-
 export interface DelayedSavedStateRetVal {
   value: string;
   setValue: (newValue: string, saveImmediately?: boolean) => void;
@@ -33,9 +27,7 @@ export function useDelayedSavedState(
       return;
     }
 
-    const timeout =
-      mockDelay ||
-      ((typeof saveAfter === 'number' ? saveAfter : 400) as number);
+    const timeout = typeof saveAfter === 'number' ? saveAfter : 400;
     const timeoutId = setTimeout(() => {
       if (immediateState !== formValue) {
         handleDataChange(immediateState);

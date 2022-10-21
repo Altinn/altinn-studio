@@ -1,7 +1,6 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { mockDelayBeforeSaving } from 'src/components/hooks/useDelayedSavedState';
 import {
   createFormDataUpdateAction,
   createFormError,
@@ -14,6 +13,11 @@ import {
 } from 'src/features/form/containers/GroupContainerLikertTestUtils';
 
 describe('GroupContainerLikert', () => {
+  jest.useFakeTimers();
+  const user = userEvent.setup({
+    advanceTimers: jest.advanceTimersByTime,
+  });
+
   describe('Desktop', () => {
     it('should render table using options and not optionsId', () => {
       render({
@@ -137,44 +141,36 @@ describe('GroupContainerLikert', () => {
         name: /Dårlig/i,
       });
 
-      mockDelayBeforeSaving(25);
-
       mockStoreDispatch.mockClear();
       expect(btn1).not.toBeChecked();
-      await userEvent.click(btn1);
+      await user.click(btn1);
       expect(mockStoreDispatch).not.toHaveBeenCalled();
-      await new Promise((r) => setTimeout(r, 25));
+      jest.runOnlyPendingTimers();
       expect(mockStoreDispatch).toHaveBeenCalledWith(
         createFormDataUpdateAction(0, '1'),
       );
 
       mockStoreDispatch.mockClear();
       expect(btn2).not.toBeChecked();
-      await userEvent.click(btn2);
+      await user.click(btn2);
       expect(mockStoreDispatch).not.toHaveBeenCalledTimes(2);
-      await new Promise((r) => setTimeout(r, 25));
+      jest.runOnlyPendingTimers();
       expect(mockStoreDispatch).toHaveBeenCalledWith(
         createFormDataUpdateAction(1, '3'),
       );
-
-      mockDelayBeforeSaving(undefined);
     });
 
     it('should render standard view and use keyboard to navigate', async () => {
       const { mockStoreDispatch } = render();
       validateTableLayout(defaultMockQuestions);
 
-      mockDelayBeforeSaving(25);
-
-      await userEvent.tab();
-      await userEvent.keyboard('[Space]');
+      await user.tab();
+      await user.keyboard('[Space]');
       expect(mockStoreDispatch).not.toHaveBeenCalled();
-      await new Promise((r) => setTimeout(r, 25));
+      jest.runOnlyPendingTimers();
       expect(mockStoreDispatch).toHaveBeenCalledWith(
         createFormDataUpdateAction(0, '1'),
       );
-
-      mockDelayBeforeSaving(undefined);
     });
 
     it('should support nested binding for question text in data model', async () => {
@@ -246,12 +242,10 @@ describe('GroupContainerLikert', () => {
         name: /Bra/i,
       });
 
-      mockDelayBeforeSaving(25);
-
       expect(btn1).not.toBeChecked();
-      await userEvent.click(btn1);
+      await user.click(btn1);
       expect(mockStoreDispatch).not.toHaveBeenCalled();
-      await new Promise((r) => setTimeout(r, 25));
+      jest.runOnlyPendingTimers();
       expect(mockStoreDispatch).toHaveBeenCalledWith(
         createFormDataUpdateAction(0, '1'),
       );
@@ -266,14 +260,12 @@ describe('GroupContainerLikert', () => {
       });
 
       expect(btn2).not.toBeChecked();
-      await userEvent.click(btn2);
+      await user.click(btn2);
       expect(mockStoreDispatch).not.toHaveBeenCalledTimes(2);
-      await new Promise((r) => setTimeout(r, 25));
+      jest.runOnlyPendingTimers();
       expect(mockStoreDispatch).toHaveBeenCalledWith(
         createFormDataUpdateAction(1, '3'),
       );
-
-      mockDelayBeforeSaving(undefined);
     });
 
     it('should render mobile view with selected values', () => {
