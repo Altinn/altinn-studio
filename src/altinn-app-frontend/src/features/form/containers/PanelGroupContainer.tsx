@@ -91,9 +91,8 @@ export function PanelGroupContainer({
       state.textResources.resources,
     ),
   );
-  const repeatingGroups = useAppSelector(
-    (state) => state.formLayout.uiConfig.repeatingGroups,
-  );
+  const repeatingGroups =
+    useAppSelector((state) => state.formLayout.uiConfig.repeatingGroups) || {};
   const { iconUrl, iconAlt } = container.panel;
   const fullWidth = !container.baseComponentId;
   const repGroupReference = container.panel?.groupReference;

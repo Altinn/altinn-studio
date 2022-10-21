@@ -10,7 +10,7 @@ import {
   watchFetchLanguageSaga,
 } from 'src/shared/resources/language/fetch/fetchLanguageSagas';
 import { LanguageActions } from 'src/shared/resources/language/languageSlice';
-import { waitForFunc } from 'src/utils/sagas';
+import { waitFor } from 'src/utils/sagas';
 
 import { getLanguageFromCode } from 'altinn-shared/language';
 import * as language from 'altinn-shared/language';
@@ -60,9 +60,7 @@ describe('fetchLanguageSagas', () => {
     expect(generator.next().value).toEqual(
       select(makeGetAllowAnonymousSelector()),
     );
-    expect(generator.next().value).toEqual(
-      call(waitForFunc, expect.anything()),
-    );
+    expect(generator.next().value).toEqual(waitFor(expect.anything()));
     expect(generator.next().value).toEqual(call(fetchLanguageSaga));
     expect(generator.next().value).toEqual(
       takeLatest(LanguageActions.updateSelectedAppLanguage, fetchLanguageSaga),

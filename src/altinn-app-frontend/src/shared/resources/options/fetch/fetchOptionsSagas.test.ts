@@ -13,6 +13,7 @@ import {
   optionsWithIndexIndicatorsSelector,
   repeatingGroupsSelector,
 } from 'src/shared/resources/options/fetch/fetchOptionsSagas';
+import { selectNotNull } from 'src/utils/sagas';
 import type {
   ILayouts,
   ISelectionComponentProps,
@@ -136,8 +137,8 @@ describe('fetchOptionsSagas', () => {
 
       return expectSaga(fetchOptionsSaga)
         .provide([
-          [select(formLayoutSelector), formLayoutWithTwoSharedOptionIds],
-          [select(repeatingGroupsSelector), {}],
+          [selectNotNull(formLayoutSelector), formLayoutWithTwoSharedOptionIds],
+          [selectNotNull(repeatingGroupsSelector), {}],
           [select(instanceIdSelector), 'someId'],
         ])
         .fork(fetchSpecificOptionSaga, {
@@ -195,10 +196,10 @@ describe('fetchOptionsSagas', () => {
       return expectSaga(fetchOptionsSaga)
         .provide([
           [
-            select(formLayoutSelector),
+            selectNotNull(formLayoutSelector),
             formLayoutWithSameOptionIdButDifferentMapping,
           ],
-          [select(repeatingGroupsSelector), {}],
+          [selectNotNull(repeatingGroupsSelector), {}],
           [select(instanceIdSelector), 'someId'],
         ])
         .fork(fetchSpecificOptionSaga, {

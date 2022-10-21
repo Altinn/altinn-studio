@@ -630,7 +630,7 @@ export function* updateRepeatingGroupEditIndexSaga({
 export function* initRepeatingGroupsSaga(): SagaIterator {
   const formDataState: IFormDataState = yield select(selectFormData);
   const state: IRuntimeState = yield select();
-  const currentGroups = state.formLayout.uiConfig.repeatingGroups;
+  const currentGroups = state.formLayout.uiConfig.repeatingGroups || {};
   const layouts = yield select(selectFormLayouts);
   let newGroups: IRepeatingGroups = {};
   Object.keys(layouts).forEach((layoutKey: string) => {
@@ -640,7 +640,7 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
     };
   });
   // if any groups have been removed as part of calculation we delete the associated validations
-  const currentGroupKeys = Object.keys(currentGroups || {});
+  const currentGroupKeys = Object.keys(currentGroups);
   const groupsToRemoveValidations = currentGroupKeys.filter((key) => {
     return (
       currentGroups[key].index > -1 &&

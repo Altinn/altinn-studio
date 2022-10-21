@@ -1,4 +1,4 @@
-import { watchFetchOptionsSaga } from 'src/shared/resources/options/fetch/fetchOptionsSagas';
+import { fetchOptionsSaga } from 'src/shared/resources/options/fetch/fetchOptionsSagas';
 import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
 import type {
   IFetchingOptionsAction,
@@ -22,7 +22,7 @@ const optionsSlice = createSagaSlice(
     initialState,
     actions: {
       fetch: mkAction<void>({
-        saga: () => watchFetchOptionsSaga,
+        takeEvery: fetchOptionsSaga,
       }),
       fetchFulfilled: mkAction<IFetchOptionsFulfilledAction>({
         reducer: (state, action) => {

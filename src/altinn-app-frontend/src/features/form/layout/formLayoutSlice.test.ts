@@ -43,7 +43,7 @@ describe('layoutSlice', () => {
         }),
       );
 
-      expect(nextState.uiConfig.repeatingGroups).toEqual({});
+      expect(nextState.uiConfig.repeatingGroups).toBeNull();
     });
 
     it('should reset error if set', () => {

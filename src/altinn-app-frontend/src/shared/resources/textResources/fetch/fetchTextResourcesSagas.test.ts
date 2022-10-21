@@ -14,7 +14,7 @@ import {
 import { TextResourcesActions } from 'src/shared/resources/textResources/textResourcesSlice';
 import { textResourcesUrl } from 'src/utils/appUrlHelper';
 import { get } from 'src/utils/networking';
-import { waitForFunc } from 'src/utils/sagas';
+import { waitFor } from 'src/utils/sagas';
 
 import type { IProfile } from 'altinn-shared/types';
 
@@ -31,9 +31,7 @@ describe('fetchTextResourcesSagas', () => {
     expect(generator.next().value).toEqual(
       select(makeGetAllowAnonymousSelector()),
     );
-    expect(generator.next().value).toEqual(
-      call(waitForFunc, expect.anything()),
-    );
+    expect(generator.next().value).toEqual(waitFor(expect.anything()));
     expect(generator.next().value).toEqual(call(fetchTextResources));
     expect(generator.next().value).toEqual(
       takeLatest(TextResourcesActions.fetch, fetchTextResources),
