@@ -36,6 +36,7 @@ export interface IRepeatingGroupsEditContainer {
   multiPageIndex?: number;
   setMultiPageIndex?: (index: number) => void;
   showSaveAndNextButton?: boolean;
+  filteredIndexes?: number[];
 }
 
 const theme = createTheme(altinnAppTheme);
@@ -111,6 +112,7 @@ export function RepeatingGroupsEditContainer({
   multiPageIndex,
   setMultiPageIndex,
   showSaveAndNextButton,
+  filteredIndexes,
 }: IRepeatingGroupsEditContainer): JSX.Element {
   const classes = useStyles();
 
@@ -121,10 +123,23 @@ export function RepeatingGroupsEditContainer({
     }
   };
 
+  let nextIndex: number | null = null;
+  if (filteredIndexes) {
+    const filteredIndex = filteredIndexes.indexOf(editIndex);
+    nextIndex =
+      filteredIndexes.slice(filteredIndex).length > 1
+        ? filteredIndexes[filteredIndex + 1]
+        : null;
+  } else {
+    nextIndex = editIndex < repeatingGroupIndex ? editIndex + 1 : null;
+  }
+
   const nextClicked = () => {
-    setEditIndex(editIndex + 1, true);
-    if (container.edit?.multiPage) {
-      setMultiPageIndex(0);
+    if (nextIndex !== null) {
+      setEditIndex(nextIndex, true);
+      if (container.edit?.multiPage) {
+        setMultiPageIndex(0);
+      }
     }
   };
 
@@ -226,25 +241,24 @@ export function RepeatingGroupsEditContainer({
             direction='row'
             spacing={2}
           >
-            {!hideSaveButton &&
-              showSaveAndNextButton &&
-              editIndex < repeatingGroupIndex && (
-                <Grid item={true}>
-                  <Button
-                    id={`next-button-grp-${id}`}
-                    onClick={nextClicked}
-                    variant={ButtonVariant.Primary}
-                  >
-                    {container.textResourceBindings?.save_and_next_button
-                      ? getTextResourceByKey(
-                          container.textResourceBindings.save_and_next_button,
-                          textResources,
-                        )
-                      : getLanguageFromKey('general.save_and_next', language)}
-                  </Button>
-                </Grid>
-              )}
-            {!hideSaveButton && (
+            {showSaveAndNextButton && nextIndex !== null && (
+              <Grid item={true}>
+                <Button
+                  id={`next-button-grp-${id}`}
+                  onClick={nextClicked}
+                  variant={ButtonVariant.Primary}
+                >
+                  {container.textResourceBindings?.save_and_next_button
+                    ? getTextResourceByKey(
+                        container.textResourceBindings.save_and_next_button,
+                        textResources,
+                      )
+                    : getLanguageFromKey('general.save_and_next', language)}
+                </Button>
+              </Grid>
+            )}
+            {(!hideSaveButton ||
+              (showSaveAndNextButton && nextIndex === null)) && (
               <Grid item={true}>
                 <Button
                   id={`add-button-grp-${id}`}

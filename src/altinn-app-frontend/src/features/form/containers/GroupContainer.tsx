@@ -345,6 +345,7 @@ export function GroupContainer({
           multiPageIndex={multiPageIndex}
           setMultiPageIndex={setMultiPageIndex}
           showSaveAndNextButton={container.edit?.saveAndNextButton === true}
+          filteredIndexes={filteredIndexList}
         />
       )}
       {container.edit?.mode === 'showAll' &&
