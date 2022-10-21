@@ -5,7 +5,7 @@ const chokidar = require('chokidar');
 const del = require('del');
 const fs = require('fs');
 const path = require('path');
-const exec = require('child_process').exec;
+const spawnSync = require('child_process').spawnSync;
 
 // When specifying options, you need to add all options to avoid lint errors.
 // This can be removed if/when https://github.com/Klathmon/gulp-run-command/pull/11 is released
@@ -366,22 +366,16 @@ gulp.task(
         .pipe(gulp.dest('./Views/Home'));
     },
     function (cb) {
-      exec(
-        'git update-index --assume-unchanged ' +
-          path.join(__dirname, 'Views/Home/Index.cshtml'),
-        function (err, stdout, stderr) {
-          cb(err);
-        },
+      const { status } = spawnSync(
+        'git update-index --assume-unchanged Views/Home/Index.cshtml',
       );
+      cb(status);
     },
     function (cb) {
-      exec(
-        'git update-index --assume-unchanged ' +
-          path.join(__dirname, 'Views/ServiceDevelopment/index.cshtml'),
-        function (err, stdout, stderr) {
-          cb(err);
-        },
+      const { status } = spawnSync(
+        'git update-index --assume-unchanged Views/ServiceDevelopment/index.cshtml',
       );
+      cb(status);
     },
   ),
 );
@@ -390,18 +384,16 @@ gulp.task(
   'local-dev-rollback',
   gulp.series([
     function (cb) {
-      exec(
-        'git checkout origin/master -- ' +
-          path.join(__dirname, 'Views/Home/Index.cshtml'),
-        (err, stdout, stderr) => cb(err),
+      const { status } = spawnSync(
+        'git checkout origin/master -- Views/Home/Index.cshtml',
       );
+      cb(status);
     },
     function (cb) {
-      exec(
-        'git checkout origin/master -- ' +
-          path.join(__dirname, 'Views/ServiceDevelopment/index.cshtml'),
-        (err, stdout, stderr) => cb(err),
+      const { status } = spawnSync(
+        'git checkout origin/master -- Views/ServiceDevelopment/index.cshtml',
       );
+      cb(status);
     },
   ]),
 );
