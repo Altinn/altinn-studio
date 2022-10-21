@@ -1,21 +1,19 @@
 using System.Security.Claims;
 using Altinn.App.Core.Configuration;
-using Altinn.App.Core.Features.Validation;
-using Altinn.App.Core.Interface;
-using Altinn.App.Core.Models;
 using Altinn.App.Core.Extensions;
+using Altinn.App.Core.Features.Validation;
 using Altinn.App.Core.Helpers;
-using Altinn.App.Core.Internal.Process;
+using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.Process.Elements;
+using Altinn.App.Core.Models;
 using Altinn.App.Core.Models.Validation;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Enums;
 using Altinn.Platform.Storage.Interface.Models;
-
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
-namespace Altinn.App.Core.Implementation
+namespace Altinn.App.Core.Internal.Process
 {
     /// <summary>
     /// Handler that implements needed logic related to different process changes. Identifies the correct types of tasks and trigger the different task and event
@@ -26,7 +24,7 @@ namespace Altinn.App.Core.Implementation
     {
         private readonly IInstance _instanceClient;
         private readonly IProcess _processService;
-        private readonly ProcessHelper _processHelper;
+        private readonly IProcessReader _processReader;
         private readonly ILogger<ProcessChangeHandler> _logger;
         private readonly IValidation _validationService;
         private readonly IEvents _eventsService;
@@ -41,6 +39,7 @@ namespace Altinn.App.Core.Implementation
         public ProcessChangeHandler(
             ILogger<ProcessChangeHandler> logger,
             IProcess processService,
+            IProcessReader processReader,
             IInstance instanceClient,
             IValidation validationService,
             IEvents eventsService,
@@ -52,8 +51,7 @@ namespace Altinn.App.Core.Implementation
             _logger = logger;
             _processService = processService;
             _instanceClient = instanceClient;
-            using Stream bpmnStream = _processService.GetProcessDefinition();
-            _processHelper = new ProcessHelper(bpmnStream);
+            _processReader = processReader;
             _validationService = validationService;
             _eventsService = eventsService;
             _profileClient = profileClient;
@@ -120,11 +118,11 @@ namespace Altinn.App.Core.Implementation
             {
                 validationIssues = await _validationService.ValidateAndUpdateProcess(processChange.Instance, processChange.Instance.Process.CurrentTask?.ElementId);
 
-                canEndTask = await ProcessHelper.CanEndProcessTask(processChange.Instance.Process.CurrentTask?.ElementId, processChange.Instance, validationIssues);
+                canEndTask = await ProcessHelper.CanEndProcessTask(processChange.Instance, validationIssues);
             }
             else
             {
-                canEndTask = await ProcessHelper.CanEndProcessTask(processChange.Instance.Process.CurrentTask?.ElementId, processChange.Instance, validationIssues);
+                canEndTask = await ProcessHelper.CanEndProcessTask(processChange.Instance, validationIssues);
             }
 
             return canEndTask;
@@ -134,11 +132,11 @@ namespace Altinn.App.Core.Implementation
         /// Identify the correct task implementation
         /// </summary>
         /// <returns></returns>
-        private ITask GetProcessTask(string altinnTaskType)
+        private ITask GetProcessTask(string? altinnTaskType)
         {
             if (string.IsNullOrEmpty(altinnTaskType))
             {
-                return null;
+                return new NullTask();
             }
 
             ITask task = new DataTask(_taskEvents);
@@ -232,7 +230,7 @@ namespace Altinn.App.Core.Implementation
 
                 return new ProcessStateChange
                 {
-                    OldProcessState = null,
+                    OldProcessState = null!,
                     NewProcessState = startState,
                     Events = events,
                 };
@@ -312,7 +310,7 @@ namespace Altinn.App.Core.Implementation
         /// <summary>
         /// Moves instance's process to nextElement id. Returns the instance together with process events.
         /// </summary>
-        public async Task<ProcessStateChange> ProcessNext(Instance instance, string nextElementId, ClaimsPrincipal userContext)
+        public async Task<ProcessStateChange> ProcessNext(Instance instance, string? nextElementId, ClaimsPrincipal userContext)
         {
             if (instance.Process != null)
             {
@@ -339,27 +337,28 @@ namespace Altinn.App.Core.Implementation
         /// </summary>
         private async Task<List<InstanceEvent>> MoveProcessToNext(
             Instance instance,
-            string nextElementId,
+            string? nextElementId,
             ClaimsPrincipal user)
         {
             List<InstanceEvent> events = new List<InstanceEvent>();
 
             ProcessState previousState = Copy(instance.Process);
             ProcessState currentState = instance.Process;
-            string previousElementId = currentState.CurrentTask?.ElementId;
+            string? previousElementId = currentState.CurrentTask?.ElementId;
 
-            ElementInfo nextElementInfo = _processHelper.Process.GetElementInfo(nextElementId);
-            ProcessSequenceFlowType sequenceFlowType = _processHelper.GetSequenceFlowType(previousElementId, nextElementId);
+            ElementInfo? nextElementInfo = _processReader.GetElementInfo(nextElementId);
+            List<SequenceFlow> flows = _processReader.GetSequenceFlowsBetween(previousElementId, nextElementId);
+            ProcessSequenceFlowType sequenceFlowType = ProcessHelper.GetSequenceFlowType(flows);
             DateTime now = DateTime.UtcNow;
-
+            bool previousIsProcessTask = _processReader.IsProcessTask(previousElementId);
             // ending previous element if task
-            if (_processHelper.IsTask(previousElementId) && sequenceFlowType.Equals(ProcessSequenceFlowType.CompleteCurrentMoveToNext))
+            if (previousIsProcessTask && sequenceFlowType.Equals(ProcessSequenceFlowType.CompleteCurrentMoveToNext))
             {
                 instance.Process = previousState;
                 events.Add(await GenerateProcessChangeEvent(InstanceEventType.process_EndTask.ToString(), instance, now, user));
                 instance.Process = currentState;
             }
-            else if (_processHelper.IsTask(previousElementId))
+            else if (previousIsProcessTask)
             {
                 instance.Process = previousState;
                 events.Add(await GenerateProcessChangeEvent(InstanceEventType.process_AbandonTask.ToString(), instance, now, user));
@@ -367,7 +366,7 @@ namespace Altinn.App.Core.Implementation
             }
 
             // ending process if next element is end event
-            if (_processHelper.IsEndEvent(nextElementId))
+            if (_processReader.IsEndEvent(nextElementId))
             {
                 currentState.CurrentTask = null;
                 currentState.Ended = now;
@@ -378,15 +377,15 @@ namespace Altinn.App.Core.Implementation
                 // add submit event (to support Altinn2 SBL)
                 events.Add(await GenerateProcessChangeEvent(InstanceEventType.Submited.ToString(), instance, now, user));
             }
-            else if (_processHelper.IsTask(nextElementId))
+            else if (_processReader.IsProcessTask(nextElementId))
             {
                 currentState.CurrentTask = new ProcessElementInfo
                 {
                     Flow = currentState.CurrentTask.Flow + 1,
                     ElementId = nextElementId,
-                    Name = nextElementInfo.Name,
+                    Name = nextElementInfo?.Name,
                     Started = now,
-                    AltinnTaskType = nextElementInfo.AltinnTaskType,
+                    AltinnTaskType = nextElementInfo?.AltinnTaskType,
                     Validated = null,
                     FlowType = sequenceFlowType.ToString(),
                 };
@@ -417,7 +416,7 @@ namespace Altinn.App.Core.Implementation
                 }
                 catch (Exception exception)
                 {
-                    _logger.LogWarning(exception, "Exception when sending event with the Events component.");
+                    _logger.LogWarning(exception, "Exception when sending event with the Events component");
                 }
             }
         }

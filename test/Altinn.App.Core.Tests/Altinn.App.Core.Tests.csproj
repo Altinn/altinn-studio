@@ -42,7 +42,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Helpers\TestData\simple-gateway.bpmn">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="Internal\Pdf\TestData\**">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Internal\Process\TestData\**">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

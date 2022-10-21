@@ -25,11 +25,6 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         /// <summary>
-        /// Gets the internal ProcessHelper instance
-        /// </summary>
-        public ProcessHelper ProcessHelper { get; }
-
-        /// <summary>
         /// Initializes a new instance of the <see cref="ProcessClient"/> class.
         /// </summary>
         public ProcessClient(
@@ -44,7 +39,6 @@ namespace Altinn.App.Core.Infrastructure.Clients.Storage
             _instanceEventClient = instanceEventClient;
             _httpContextAccessor = httpContextAccessor;
             _logger = logger;
-            ProcessHelper = new ProcessHelper(GetProcessDefinition());
             httpClient.BaseAddress = new Uri(platformSettings.Value.ApiStorageEndpoint);
             httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, platformSettings.Value.SubscriptionKey);
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));

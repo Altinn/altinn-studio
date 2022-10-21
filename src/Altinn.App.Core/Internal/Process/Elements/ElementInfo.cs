@@ -23,6 +23,6 @@ namespace Altinn.App.Core.Internal.Process.Elements
         /// <summary>
         /// The altinn specific task type
         /// </summary>
-        public string AltinnTaskType { get; set; }
+        public string? AltinnTaskType { get; set; }
     }
 }
