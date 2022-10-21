@@ -1,7 +1,9 @@
 import { INDEX_KEY_INDICATOR_REGEX } from 'src/utils/databindings';
+import type { IFormData } from 'src/features/form/data';
 import type {
   ComponentTypes,
   IGroupEditProperties,
+  IGroupFilter,
   ILayout,
   ILayoutComponent,
   ILayoutGroup,
@@ -554,4 +556,36 @@ export function behavesLikeDataTask(
   layoutSets: ILayoutSets,
 ): boolean {
   return layoutSets?.sets.some((set) => set.tasks?.includes(task));
+}
+
+/**
+ * (Deprecate this function) Returns the filtered indices of a repeating group.
+ * This is a buggy implementation, but is used for backward compatibility until a new major version is released.
+ * @see https://github.com/Altinn/app-frontend-react/issues/339#issuecomment-1286624933
+ * @param formData IFormData
+ * @param filter IGroupEditProperties.filter or undefined.
+ * @returns a list of indices for repeating group elements after applying filters, or null if no filters are provided or if no elements match.
+ */
+export function getRepeatingGroupFilteredIndices(
+  formData: IFormData,
+  filter?: IGroupFilter[],
+): number[] | null {
+  if (filter && filter.length > 0) {
+    const rule = filter.at(-1);
+    const formDataKeys: string[] = Object.keys(formData).filter((key) => {
+      const keyWithoutIndex = key.replaceAll(/\[\d*\]/g, '');
+      return keyWithoutIndex === rule.key && formData[key] === rule.value;
+    });
+    if (formDataKeys && formDataKeys.length > 0) {
+      return formDataKeys.map((key) => {
+        const match = key.match(/\[(\d*)\]/g);
+        const currentIndex = match[match.length - 1];
+        return parseInt(
+          currentIndex.substring(1, currentIndex.indexOf(']')),
+          10,
+        );
+      });
+    }
+  }
+  return null;
 }

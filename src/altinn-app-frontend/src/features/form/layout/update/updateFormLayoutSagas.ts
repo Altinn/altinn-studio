@@ -38,6 +38,7 @@ import {
 } from 'src/utils/databindings';
 import {
   findChildren,
+  getRepeatingGroupFilteredIndices,
   getRepeatingGroups,
   mapFileUploadersWithTag,
   removeRepeatingGroupFromUIConfig,
@@ -675,12 +676,18 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
     const container = groupContainers.find(
       (element) => element.id === key,
     ) as ILayoutGroup;
-
     if (container && group.index >= 0) {
+      const filteredIndexList = getRepeatingGroupFilteredIndices(
+        formDataState.formData,
+        container.edit?.filter,
+      );
+
       if (container.edit?.openByDefault === 'first') {
-        group.editIndex = 0;
+        group.editIndex = filteredIndexList ? filteredIndexList[0] : 0;
       } else if (container.edit?.openByDefault === 'last') {
-        group.editIndex = group.index;
+        group.editIndex = filteredIndexList
+          ? filteredIndexList.at(-1)
+          : group.index;
       }
     }
   });

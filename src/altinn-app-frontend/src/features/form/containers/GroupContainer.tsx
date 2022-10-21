@@ -11,7 +11,10 @@ import { RepeatingGroupTable } from 'src/features/form/containers/RepeatingGroup
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { makeGetHidden } from 'src/selectors/getLayoutData';
 import { Triggers } from 'src/types';
-import { createRepeatingGroupComponents } from 'src/utils/formLayout';
+import {
+  createRepeatingGroupComponents,
+  getRepeatingGroupFilteredIndices,
+} from 'src/utils/formLayout';
 import { getHiddenFieldsForGroup } from 'src/utils/layout';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
 import { repeatingGroupHasValidations } from 'src/utils/validation';
@@ -152,24 +155,12 @@ export function GroupContainer({
   );
 
   React.useEffect(() => {
-    if (container.edit?.filter && container.edit.filter.length > 0) {
-      container.edit.filter.forEach((rule) => {
-        const formDataKeys: string[] = Object.keys(formData).filter((key) => {
-          const keyWithoutIndex = key.replaceAll(/\[\d*\]/g, '');
-          return keyWithoutIndex === rule.key && formData[key] === rule.value;
-        });
-        if (formDataKeys && formDataKeys.length > 0) {
-          const filtered = formDataKeys.map((key) => {
-            const match = key.match(/\[(\d*)\]/g);
-            const currentIndex = match[match.length - 1];
-            return parseInt(
-              currentIndex.substring(1, currentIndex.indexOf(']')),
-              10,
-            );
-          });
-          setFilteredIndexList(filtered);
-        }
-      });
+    const filteredIndexList = getRepeatingGroupFilteredIndices(
+      formData,
+      container.edit?.filter,
+    );
+    if (filteredIndexList) {
+      setFilteredIndexList(filteredIndexList);
     }
   }, [formData, container]);
 
