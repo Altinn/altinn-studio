@@ -18,25 +18,28 @@ export function useProcess() {
   const process = useAppSelector((state) => state.process);
   const layoutSets = useAppSelector((state) => state.formLayout.layoutsets);
 
+  const taskType = process?.taskType;
+  const taskId = process?.taskId;
+
   React.useEffect(() => {
     if (!applicationMetadata || !instanceData) {
       return;
     }
 
-    if (!process?.taskType) {
+    if (!taskType) {
       dispatch(ProcessActions.get());
       return;
     }
 
     if (
-      process.taskType === ProcessTaskType.Data ||
-      behavesLikeDataTask(process.taskId, layoutSets)
+      taskType === ProcessTaskType.Data ||
+      behavesLikeDataTask(taskId, layoutSets)
     ) {
       dispatch(QueueActions.startInitialDataTaskQueue());
       return;
     }
 
-    switch (process.taskType) {
+    switch (taskType) {
       case ProcessTaskType.Confirm:
       case ProcessTaskType.Feedback:
         dispatch(QueueActions.startInitialInfoTaskQueue());
@@ -48,7 +51,14 @@ export function useProcess() {
       default:
         break;
     }
-  }, [process, applicationMetadata, instanceData, dispatch, layoutSets]);
+  }, [
+    taskType,
+    taskId,
+    applicationMetadata,
+    instanceData,
+    dispatch,
+    layoutSets,
+  ]);
 
   const appName = useAppSelector(selectAppName);
   const appOwner = useAppSelector(selectAppOwner);
