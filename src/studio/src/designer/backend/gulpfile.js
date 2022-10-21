@@ -1,11 +1,8 @@
 const gulp = require('gulp');
 const run = require('gulp-run-command').default;
-const replace = require('gulp-string-replace');
 const chokidar = require('chokidar');
 const del = require('del');
 const fs = require('fs');
-const path = require('path');
-const spawnSync = require('child_process').spawnSync;
 
 // When specifying options, you need to add all options to avoid lint errors.
 // This can be removed if/when https://github.com/Klathmon/gulp-run-command/pull/11 is released
@@ -345,55 +342,5 @@ gulp.task(
       cwd: '../frontend/dashboard',
     }),
     'copy-files',
-  ]),
-);
-
-gulp.task(
-  'local-dev-fix',
-  gulp.series(
-    function () {
-      return gulp
-        .src(['./Views/ServiceDevelopment/index.cshtml'])
-        .pipe(replace('~/designer/js/react', 'http://localhost:8080'))
-        .pipe(replace('~/designer/css/react', 'http://localhost:8080'))
-        .pipe(gulp.dest('./Views/ServiceDevelopment'));
-    },
-    function () {
-      return gulp
-        .src(['./Views/Home/index.cshtml'])
-        .pipe(replace('~/designer/js/react', 'http://localhost:8082'))
-        .pipe(replace('~/designer/css/react', 'http://localhost:8082'))
-        .pipe(gulp.dest('./Views/Home'));
-    },
-    function (cb) {
-      const { status } = spawnSync(
-        'git update-index --assume-unchanged Views/Home/Index.cshtml',
-      );
-      cb(status);
-    },
-    function (cb) {
-      const { status } = spawnSync(
-        'git update-index --assume-unchanged Views/ServiceDevelopment/index.cshtml',
-      );
-      cb(status);
-    },
-  ),
-);
-
-gulp.task(
-  'local-dev-rollback',
-  gulp.series([
-    function (cb) {
-      const { status } = spawnSync(
-        'git checkout origin/master -- Views/Home/Index.cshtml',
-      );
-      cb(status);
-    },
-    function (cb) {
-      const { status } = spawnSync(
-        'git checkout origin/master -- Views/ServiceDevelopment/index.cshtml',
-      );
-      cb(status);
-    },
   ]),
 );
