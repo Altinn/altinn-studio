@@ -80,6 +80,7 @@ function TabletDrawerMenu({
   return !logoutButton ? (
     <>
       <Drawer
+        data-test-id='tablet-drawer-menu'
         variant='persistent'
         anchor='right'
         className={classNames(classes.drawer)}

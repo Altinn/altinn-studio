@@ -93,6 +93,7 @@ export function CreateNewWrapper(props: ICreateNewWrapper) {
       </TopToolbarButton>
       {createButtonAnchor && (
         <AltinnPopoverSimple
+          open={!!createButtonAnchor}
           anchorEl={createButtonAnchor}
           handleClose={onCancelCreate}
           anchorOrigin={{

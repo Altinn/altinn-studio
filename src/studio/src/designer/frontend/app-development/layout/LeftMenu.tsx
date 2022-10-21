@@ -24,23 +24,21 @@ const SideBar = () => {
   }
 
   return (
-    <div style={{ top: 50 }}>
-      <Routes>
-        {routes.map((route) => (
-          <Route
-            key={route.path}
-            path={route.path}
-            element={
-              <LeftDrawerMenu
-                menuType={route.menu}
-                activeLeftMenuSelection={route.activeLeftMenuSelection}
-                leftMenuItems={appDevelopmentLeftDrawerSettings}
-              />
-            }
-          />
-        ))}
-      </Routes>
-    </div>
+    <Routes>
+      {routes.map((route) => (
+        <Route
+          key={route.path}
+          path={route.path}
+          element={
+            <LeftDrawerMenu
+              menuType={route.menu}
+              activeLeftMenuSelection={route.activeLeftMenuSelection}
+              leftMenuItems={appDevelopmentLeftDrawerSettings}
+            />
+          }
+        />
+      ))}
+    </Routes>
   );
 };
 

@@ -346,10 +346,22 @@ gulp.task(
   ]),
 );
 
-gulp.task('fix-for-local-development', function () {
-  gulp
-    .src(['./Views/ServiceDevelopment/index.cshtml'])
-    .pipe(replace('~/designer/js/react', 'http://localhost:8080'))
-    .pipe(replace('~/designer/css/react', 'http://localhost:8080'))
-    .pipe(gulp.dest('./Views/ServiceDevelopment'));
-});
+gulp.task(
+  'fix-for-local-development',
+  gulp.parallel(
+    function () {
+      return gulp
+        .src(['./Views/ServiceDevelopment/index.cshtml'])
+        .pipe(replace('~/designer/js/react', 'http://localhost:8080'))
+        .pipe(replace('~/designer/css/react', 'http://localhost:8080'))
+        .pipe(gulp.dest('./Views/ServiceDevelopment'));
+    },
+    function () {
+      return gulp
+        .src(['./Views/Home/index.cshtml'])
+        .pipe(replace('~/designer/js/react', 'http://localhost:8082'))
+        .pipe(replace('~/designer/css/react', 'http://localhost:8082'))
+        .pipe(gulp.dest('./Views/Home'));
+    },
+  ),
+);

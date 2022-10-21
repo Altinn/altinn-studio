@@ -195,7 +195,11 @@ export default function PageElement({ name }: IPageElementProps) {
   return (
     <div className={classes.buttonWrapper}>
       <div className={classes.grid}>
-        <Button onClick={onPageClick} className={classes.mainButton}>
+        <Button
+          onClick={onPageClick}
+          className={classes.mainButton}
+          sx={{ fontSize: '1.4rem' }}
+        >
           <Grid item={true} xs={1}>
             {selectedLayout === name && (
               <i

@@ -13,7 +13,6 @@ const styles = createStyles({
     width: '100%',
   },
   headerStyle: {
-    fontSize: 36,
     marginBottom: 30,
   },
   sidebar: {
@@ -96,6 +95,7 @@ export class AltinnColumnLayout extends React.Component<IAltinnColumnLayoutProps
               <Grid item={true} md={12} className={classes.mainStyle}>
                 <Typography
                   id={'altinn-column-layout-header'}
+                  variant={'h1'}
                   className={classes.headerStyle}
                 >
                   {this.props.header}

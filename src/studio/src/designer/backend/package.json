@@ -10,7 +10,8 @@
     "gulp-copy-files": "gulp copy-files",
     "gulp-build-ux-editor": "gulp build-ux-editor",
     "gulp-develop-dashboard": "gulp develop-dashboard",
-    "gulp-develop-designer-frontend": "gulp develop-designer-frontend"
+    "gulp-develop-designer-frontend": "gulp develop-designer-frontend",
+    "gulp-fix-for-local-dev": "gulp fix-for-local-development"
   },
   "devDependencies": {
     "chokidar": "3.5.3",

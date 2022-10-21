@@ -6,7 +6,7 @@ import AltinnButton from 'app-shared/components/AltinnButton';
 import AltinnInput from 'app-shared/components/AltinnInput';
 import AltinnTextArea from 'app-shared/components/AltinnTextArea';
 import AltinnPopover from 'app-shared/components/molecules/AltinnPopoverSimple';
-import theme from 'app-shared/theme/altinnAppTheme';
+import theme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import type { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
 import { AppReleaseActions } from '../../../sharedResources/appRelease/appReleaseSlice';
@@ -200,11 +200,8 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
         </Grid>
       </Grid>
       <AltinnPopover
-        anchorEl={
-          createReleaseErrorCode !== null && openErrorPopover
-            ? ref.current
-            : null
-        }
+        open={createReleaseErrorCode !== null && openErrorPopover}
+        anchorEl={ref.current}
         handleClose={handlePopoverClose}
         anchorOrigin={{
           vertical: 'bottom',

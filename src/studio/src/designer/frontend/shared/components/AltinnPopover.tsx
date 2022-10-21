@@ -172,11 +172,7 @@ const AltinnPopoverComponent = (props: any) => {
         PaperProps={{ square: true, ...props.paperProps }}
       >
         <Grid container={true} direction='column' className={classes.popover}>
-          {props.header && (
-            <Typography variant='h3' className={classNames(classes.header)}>
-              {props.header}
-            </Typography>
-          )}
+          {props.header && <Typography variant='h3'>{props.header}</Typography>}
 
           {props.descriptionText && (
             <Typography className={classNames(classes.subHeader)}>

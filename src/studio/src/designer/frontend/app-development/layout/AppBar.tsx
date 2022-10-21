@@ -28,12 +28,8 @@ export interface IAppBarProps {
   mainMenuItems?: IMenuItem[];
   subMenuItems?: { [key: string]: IMenuItem[] };
 }
-export interface IAppBarComponentState {
-  anchorEl?: any;
-  tabletDrawerOpen: boolean;
-}
 
-const styles = (theme: Theme) =>
+const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
       flexGrow: 1,
@@ -100,9 +96,8 @@ const styles = (theme: Theme) =>
         borderBottom: 'none',
       },
     },
-  });
-
-const useStyles = makeStyles(styles);
+  }),
+);
 
 export const AppBar = ({
   activeLeftMenuSelection,
@@ -130,16 +125,20 @@ export const AppBar = ({
   const handleDrawerMenuClick = () => {
     setIsMenuOpen((prev) => !prev);
   };
-
   return (
     <div className={classes.root}>
       <MuiAppBar
-        position='static'
+        position='fixed'
         className={classNames([
-          classes.appBar,
           !app ? classes.appBarDashboard : classes.appBarEditor,
+          classes.appBar,
         ])}
-        elevation={0}
+        elevation={5}
+        sx={{
+          backgroundColor: '#EFEFEF',
+          boxShadow: 'none',
+          color: 'black',
+        }}
       >
         <Toolbar>
           <Grid

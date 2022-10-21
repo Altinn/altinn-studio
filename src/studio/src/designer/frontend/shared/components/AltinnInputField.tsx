@@ -45,11 +45,12 @@ const styles = createStyles({
     fontSize: '16px',
     marginTop: '10px',
   },
-  inputField: {
+  inputElement: {
     border: `1px solid ${theme.altinnPalette.primary.blueDark}`,
     marginTop: '10px',
     background: 'none',
     width: '386px',
+    height: '19px',
   },
   inputFieldText: {
     fontSize: '16px',
@@ -148,7 +149,23 @@ class AltinnInputFieldComponent extends React.Component<IAltinnInputFieldCompone
             multiline={!!this.props.textAreaRows}
             minRows={this.props.textAreaRows || null}
             InputProps={{
-              classes: { root: classNames(classes.inputFieldText) },
+              classes: {
+                root: classes.inputFieldText,
+              },
+            }}
+            inputProps={{
+              sx: {
+                border: `1px solid ${theme.altinnPalette.primary.blueDark}`,
+                marginTop: '10px',
+                background: 'none',
+                width: '386px',
+                height: '19px',
+              },
+            }}
+            sx={{
+              '& fieldset': {
+                border: 'none',
+              },
             }}
             type={this.props.type}
             id={this.props.textFieldId}

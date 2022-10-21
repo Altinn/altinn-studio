@@ -11,8 +11,6 @@ export interface ISchemaTabProps {
 const useStyles = makeStyles(() => ({
   root: {
     textTransform: 'none',
-    fontSize: 16,
-    fontWeight: 500,
     minWidth: 70,
     '&:hover': {
       color: '#40a9ff',
@@ -30,5 +28,18 @@ const useStyles = makeStyles(() => ({
 
 export const SchemaTab = ({ label, value, hide, ...other }: ISchemaTabProps) => {
   const classes = useStyles();
-  return <Tab label={label} classes={classes} id={`inspector-tab-${value}`} value={value} hidden={hide} {...other} />;
+  return (
+    <Tab
+      sx={{
+        fontSize: 16,
+        fontWeight: 500,
+      }}
+      label={label}
+      classes={classes}
+      id={`inspector-tab-${value}`}
+      value={value}
+      hidden={hide}
+      {...other}
+    />
+  );
 };

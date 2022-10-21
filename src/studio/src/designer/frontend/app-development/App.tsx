@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from 'react';
+import React, { createRef, useCallback, useEffect, useRef } from 'react';
 import { createTheme, Grid, ThemeProvider, Typography } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
@@ -61,7 +61,7 @@ export function App() {
   const dispatch = useAppDispatch();
   const classes = useStyles();
   const lastKeepAliveTimestamp = useRef<number>(0);
-  const sessionExpiredPopoverRef = useRef<HTMLDivElement>(null);
+  const sessionExpiredPopoverRef = createRef<HTMLDivElement>();
 
   useEffect(() => {
     const { org, app } = window as Window as IAltinnWindow;
@@ -159,11 +159,9 @@ export function App() {
     <ThemeProvider theme={theme}>
       <div className={classes.container} ref={sessionExpiredPopoverRef}>
         <AltinnPopoverSimple
-          anchorEl={
-            remainingSessionMinutes < 11
-              ? sessionExpiredPopoverRef.current
-              : null
-          }
+          testId='logout-warning'
+          anchorEl={sessionExpiredPopoverRef.current}
+          open={remainingSessionMinutes < 11}
           anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
           transformOrigin={{ vertical: 'top', horizontal: 'center' }}
           handleClose={(event: string) => handleSessionExpiresClose(event)}

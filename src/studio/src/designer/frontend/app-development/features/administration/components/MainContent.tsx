@@ -54,7 +54,7 @@ const MainContent = (props: IMainContentProps): JSX.Element => {
             style={{ maxWidth: '750px' }}
           >
             <AltinnInformationPaper>
-              <Typography variant='h2' style={{ marginBottom: '12px' }}>
+              <Typography variant='h2' sx={{ marginBottom: '12px' }}>
                 {getParsedLanguageFromKey(
                   'administration.copied_app_header',
                   language,

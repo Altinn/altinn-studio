@@ -88,7 +88,6 @@ const AltinnButton = React.forwardRef(
         id={id}
         disabled={disabled}
         variant={secondaryButton === true ? 'text' : 'contained'}
-        color='primary'
         className={classNames(className, {
           [classes.button]: secondaryButton !== true,
           [classes.secondaryButton]: secondaryButton === true,
@@ -96,6 +95,9 @@ const AltinnButton = React.forwardRef(
         onClick={onClickFunction}
         style={fontSize}
         ref={ref}
+        sx={{
+          background: secondaryButton ? 'transparent' : '#0062BA',
+        }}
       >
         <span
           className={classNames({

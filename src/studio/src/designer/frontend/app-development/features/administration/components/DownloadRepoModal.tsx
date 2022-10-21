@@ -11,22 +11,6 @@ import {
 const theme = createTheme(studioTheme);
 
 const setupClasses = makeStyles({
-  sidebarHeader: {
-    marginBottom: 20,
-    fontSize: 20,
-    fontWeight: 500,
-  },
-  sidebarHeaderSecond: {
-    marginTop: 36,
-  },
-  sidebarInfoText: {
-    fontSize: 16,
-    marginBottom: 12,
-  },
-  modalContainer: {
-    padding: 24,
-    width: '471px',
-  },
   itemSeparator: {
     paddingBottom: 12,
   },
@@ -75,10 +59,13 @@ function DownloadRepoModal(props: IDownloadRepoModalProps) {
         <Grid
           container={true}
           direction='column'
-          className={classes.modalContainer}
+          sx={{
+            padding: '24px',
+            width: '471px',
+          }}
         >
           <Grid item={true} className={classes.itemSeparator}>
-            <Typography className={classes.sidebarHeader}>
+            <Typography variant={'h2'} sx={{ marginBottom: '20px' }}>
               {getLanguageFromKey(
                 'administration.download_repo_heading',
                 props.language,

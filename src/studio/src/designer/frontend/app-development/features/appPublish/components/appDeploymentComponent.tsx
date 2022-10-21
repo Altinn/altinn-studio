@@ -415,6 +415,7 @@ const AppDeploymentComponent = ({
           id={`deploy-button-${envName.toLowerCase()}`}
         />
         <AltinnPopoverSimple
+          open={!!anchorEl}
           anchorEl={anchorEl}
           anchorOrigin={popoverState.anchorOrigin}
           btnCancelText={popoverState.btnCancelText}

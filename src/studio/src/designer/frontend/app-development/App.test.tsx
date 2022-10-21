@@ -20,9 +20,7 @@ describe('App', () => {
       },
     });
 
-    expect(screen.getByText('general.sign_out')).toBeInTheDocument();
-    expect(screen.getByText('general.continue')).toBeInTheDocument();
-    expect(screen.getByText('session.inactive')).toBeInTheDocument();
+    expect(screen.getByTestId('logout-warning')).toBeInTheDocument();
   });
 
   it('should not present popover if session is over 10min', () => {
@@ -35,9 +33,6 @@ describe('App', () => {
         } as IUserState,
       },
     });
-
-    expect(screen.queryByText('general.sign_out')).not.toBeInTheDocument();
-    expect(screen.queryByText('general.continue')).not.toBeInTheDocument();
-    expect(screen.queryByText('session.inactive')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('logout-warning')).not.toBeInTheDocument();
   });
 });

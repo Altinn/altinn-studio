@@ -63,13 +63,6 @@ export const styles = (theme: Theme) =>
       flexGrow: 1,
       padding: 8 * 3,
     },
-    paper: {
-      position: 'absolute',
-      background: altinnTheme.altinnPalette.primary.greyLight,
-      top: 110,
-      height: `calc(100vh - 110px)`,
-      overflow: 'hidden',
-    },
     listItemText: {
       paddingLeft: 0,
     },

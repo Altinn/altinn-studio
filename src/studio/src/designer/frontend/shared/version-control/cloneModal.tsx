@@ -5,12 +5,12 @@ import axios from 'axios';
 import AltinnButton from '../components/AltinnButton';
 import AltinnIcon from '../components/AltinnIcon';
 import AltinnInputField from '../components/AltinnInputField';
-import AltinnAppTheme from '../theme/altinnAppTheme';
+import altinnStudioTheme from '../theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../utils/language';
 import { get } from '../utils/networking';
 import { altinnDocsUrl, sharedUrls } from '../utils/urlHelper';
 
-const theme = createTheme(AltinnAppTheme);
+const theme = createTheme(altinnStudioTheme);
 
 const styles = createStyles({
   modalContainer: {

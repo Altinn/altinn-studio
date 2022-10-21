@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   DataGrid,
   GridActionsCellItem,
@@ -138,12 +138,12 @@ export const RepoList = ({
 }: IRepoListProps) => {
   const classes = useStyles();
   const language = useAppSelector((state) => state.language.language);
-  const [copyCurrentRepoName, setCopyCurrentRepoName] = React.useState('');
+  const [copyCurrentRepoName, setCopyCurrentRepoName] = useState('');
   const [setStarredRepo] = useSetStarredRepoMutation();
   const [unsetStarredRepo] = useUnsetStarredRepoMutation();
-  const copyModalAnchorRef = React.useRef(null);
+  const copyModalAnchorRef = useRef(null);
 
-  const cols = React.useMemo(() => {
+  const cols = useMemo(() => {
     const favouriteActionCol: GridActionsColDef = {
       field: '',
       renderHeader: (): null => null,
@@ -218,7 +218,6 @@ export const RepoList = ({
         renderCell: TextWithTooltip,
       },
     ];
-
     const actionsCol: GridActionsColDef[] = [
       {
         field: 'links',
@@ -229,55 +228,39 @@ export const RepoList = ({
         getActions: (params: GridRowParams) => {
           const repoFullName = params.row.full_name as string;
           const isDatamodelling = repoFullName.endsWith('-datamodels');
-
-          const editUrl = getRepoEditUrl({
-            repoFullName,
-          });
-
-          const handleDuplicateClick = () => {
-            setCopyCurrentRepoName(repoFullName);
-          };
-
-          const handleOpenInNewClick = () => {
-            window.open(editUrl, '_blank');
-          };
-
+          const editUrl = getRepoEditUrl({ repoFullName });
           const colItems = [
-            <a
-              key={params.row.id}
-              href={params.row.html_url}
-              data-testid='gitea-repo-link'
+            <GridActionsCellItem
               className={cn(classes.actionLink, classes.repoLink)}
-            >
-              <span>
-                {getLanguageFromKey('dashboard.repository', language)}
-              </span>
-              <i className={cn('fa fa-gitea', classes.linkIcon)} />
-            </a>,
-            <a
-              key={params.row.id}
-              href={editUrl}
+              data-testid='gitea-repo-link'
+              icon={<i className={cn('fa fa-gitea', classes.linkIcon)} />}
+              key={'dashboard.repository' + params.row.id}
+              label={getLanguageFromKey('dashboard.repository', language)}
+              onClick={() => (window.location.href = params.row.html_url)}
+              showInMenu={false}
+            />,
+            <GridActionsCellItem
               data-testid='edit-repo-link'
               className={cn(classes.actionLink, classes.editLink)}
-            >
-              <span>{getLanguageFromKey('dashboard.edit_app', language)}</span>
-              <i className={cn('fa fa-edit', classes.linkIcon)} />
-            </a>,
+              icon={<i className={cn('fa fa-edit', classes.linkIcon)} />}
+              key={'dashboard.edit_app' + params.row.id}
+              label={getLanguageFromKey('dashboard.edit_app', language)}
+              onClick={() => (window.location.href = editUrl)}
+              showInMenu={false}
+            />,
             <GridActionsCellItem
               icon={<i className={cn('fa fa-copy', classes.dropdownIcon)} />}
               key={'dashboard.make_copy' + params.row.id}
-              onClick={handleDuplicateClick}
-              showInMenu={false}
               label={getLanguageFromKey('dashboard.make_copy', language)}
-              disableTouchRipple
+              onClick={() => setCopyCurrentRepoName(repoFullName)}
+              showInMenu
             />,
             <GridActionsCellItem
               icon={<i className={cn('fa fa-newtab', classes.dropdownIcon)} />}
               key={'dashboard.open_in_new' + params.row.id}
-              onClick={handleOpenInNewClick}
-              showInMenu
               label={getLanguageFromKey('dashboard.open_in_new', language)}
-              disableTouchRipple
+              onClick={() => window.open(editUrl, '_blank')}
+              showInMenu
             />,
           ];
 
@@ -309,7 +292,7 @@ export const RepoList = ({
     setCopyCurrentRepoName(null);
   };
 
-  const componentPropsLabelOverrides = React.useMemo(() => {
+  const componentPropsLabelOverrides = useMemo(() => {
     return {
       pagination: {
         labelRowsPerPage: getLanguageFromKey(

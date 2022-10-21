@@ -39,6 +39,7 @@ export default function ErrorPopover({
 
   return (
     <AltinnPopover
+      open={!!anchorEl}
       anchorEl={anchorEl}
       handleClose={onClose}
       anchorOrigin={{

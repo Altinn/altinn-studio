@@ -133,6 +133,7 @@ export const MakeCopyModal = ({
 
   return (
     <AltinnPopoverSimple
+      open={!!anchorEl}
       anchorEl={anchorEl}
       anchorOrigin={transformAnchorOrigin}
       transformOrigin={transformAnchorOrigin}
