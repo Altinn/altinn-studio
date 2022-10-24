@@ -9,7 +9,7 @@ namespace DataModeling.Tests.Utils;
 public class JsonSchemaNavigationExtensionsTests
 {
     [Fact]
-    public void Issue220_DeeplyNestedReferences()
+    public void Navigation_Should_Resolve_DeeplyNestedReferences()
     {
         JsonSchema schema = new JsonSchemaBuilder()
             .Schema(MetaSchemas.Draft201909Id)
