@@ -1,16 +1,13 @@
 import React from 'react';
-import { createRoot } from 'react-dom/client';
-import { Provider } from 'react-redux';
-import { HashRouter as Router } from 'react-router-dom';
+import {createRoot} from 'react-dom/client';
+import {Provider} from 'react-redux';
+import {HashRouter as Router} from 'react-router-dom';
 import throttle from 'lodash-es/throttle';
 
-import { App } from './app/App';
-import { run } from './app/rootSaga';
-import { setupStore } from './app/store';
-import {
-  saveToLocalStorage,
-  loadFromLocalStorage,
-} from 'common/utils/localStorage';
+import {App} from './app/App';
+import {run} from './app/rootSaga';
+import {setupStore} from './app/store';
+import {loadFromLocalStorage, saveToLocalStorage,} from './common/utils/localStorage';
 
 const store = setupStore(loadFromLocalStorage());
 store.subscribe(

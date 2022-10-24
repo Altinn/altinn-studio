@@ -4,7 +4,7 @@ import { Provider } from 'react-redux';
 import { DataModelling, shouldSelectFirstEntry } from './DataModelling';
 import { LoadingState } from './sagas/metadata';
 import { render as rtlRender, screen } from '@testing-library/react';
-import { LOCAL_STORAGE_KEY, setLocalStorageItem } from 'app-shared/features/dataModelling/functions/localStorage';
+import { LOCAL_STORAGE_KEY, setLocalStorageItem } from './functions/localStorage';
 
 // workaround for https://jestjs.io/docs/26.x/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(window, 'matchMedia', {

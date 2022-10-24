@@ -1,9 +1,9 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import ProfileMenuComponent from './profileMenu';
 import type { IProfileMenuComponentProps } from './profileMenu';
-import { IAltinnWindow } from 'app-shared/types/global';
+import ProfileMenuComponent from './profileMenu';
+import { IAltinnWindow } from '../../types/global';
 
 const user = userEvent.setup();
 

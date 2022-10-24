@@ -3,12 +3,11 @@ import { TopToolbarButton } from '@altinn/schema-editor/index';
 import { getLanguageFromKey } from '../../../utils/language';
 import { DeleteDialog } from './DeleteDialog';
 import { makeStyles } from '@mui/styles';
-import theme from 'app-shared/theme/altinnStudioTheme';
 
 const useStyles = makeStyles({
   root: {
     '&:not(:hover):not(:disabled)': {
-      color: theme.altinnPalette.primary.red + ' !important',
+      color: '#E23B53 !important',
     },
   },
 });

@@ -8,9 +8,9 @@ import {
   Typography,
 } from '@mui/material';
 import { makeStyles } from '@mui/styles';
-import { AltinnMenu } from 'app-shared/components';
-import { post } from 'app-shared/utils/networking';
-import { sharedUrls } from 'app-shared/utils/urlHelper';
+import { AltinnMenu } from '../../components';
+import { post } from '../../utils/networking';
+import { sharedUrls } from '../../utils/urlHelper';
 import { getOrgNameById, HeaderContext, SelectedContextType } from './Header';
 import { getLanguageFromKey } from '../../utils/language';
 

@@ -12,13 +12,13 @@ import type { IMetadataOption } from './functions/types';
 import { LandingPagePanel } from './components/LandingPagePanel';
 import { Dialog } from '@mui/material';
 import { createStyles, makeStyles } from '@mui/styles';
-import { getLanguageFromKey } from 'app-shared/utils/language';
-import { getLocalStorageItem, setLocalStorageItem } from 'app-shared/features/dataModelling/functions/localStorage';
+import { getLanguageFromKey } from '../../utils/language';
+import { getLocalStorageItem, setLocalStorageItem } from './functions/localStorage';
 import { CreateNewWrapper } from './components/CreateNewWrapper';
-import { DeleteWrapper } from 'app-shared/features/dataModelling/components/DeleteWrapper';
-import { SchemaSelect } from 'app-shared/features/dataModelling/components/SchemaSelect';
-import { XSDUpload } from 'app-shared/features/dataModelling/components/XSDUpload';
-import { sharedUrls } from 'app-shared/utils/urlHelper';
+import { DeleteWrapper } from './components/DeleteWrapper';
+import { SchemaSelect } from './components/SchemaSelect';
+import { XSDUpload } from './components/XSDUpload';
+import { sharedUrls } from '../../utils/urlHelper';
 
 interface IDataModellingContainerProps extends React.PropsWithChildren<any> {
   language: ILanguage;
