@@ -151,7 +151,10 @@ export function RepeatingGroupsEditContainer({
   };
 
   return (
-    <div className={cn([classes.editContainer], className)}>
+    <div
+      className={cn([classes.editContainer], className)}
+      data-testid='group-edit-container'
+    >
       <Grid
         container={true}
         item={true}

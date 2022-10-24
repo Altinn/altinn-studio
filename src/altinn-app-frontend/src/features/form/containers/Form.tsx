@@ -134,7 +134,7 @@ export function Form() {
 
   return (
     <>
-      {hasRequiredFields(layout) && (
+      {layout && hasRequiredFields(layout) && (
         <MessageBanner
           language={language}
           error={requiredFieldsMissing}

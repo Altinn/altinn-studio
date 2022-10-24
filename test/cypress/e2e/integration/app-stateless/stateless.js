@@ -9,7 +9,7 @@ const appFrontend = new AppFrontend();
 describe('Stateless', () => {
   beforeEach(() => {
     cy.intercept('**/api/layoutsettings/stateless').as('getLayoutStateless');
-    cy.startAppInstance(Cypress.env('stateless'));
+    cy.startAppInstance(appFrontend.apps.stateless);
     cy.wait('@getLayoutStateless');
     cy.get(appFrontend.stateless.name).should('exist').and('be.visible');
   });
@@ -21,7 +21,7 @@ describe('Stateless', () => {
     cy.get(appFrontend.stateless.number).should('have.value', '1364');
     cy.get(appFrontend.stateless.name).clear().type('test').blur();
     cy.get(appFrontend.stateless.name).should('have.value', 'automation');
-    cy.get(appFrontend.header).should('contain.text', Cypress.env('stateless')).and('contain.text', texts.ttd);
+    cy.get(appFrontend.header).should('contain.text', appFrontend.apps.stateless).and('contain.text', texts.ttd);
   });
 
   it('Dynamics in stateless app', () => {

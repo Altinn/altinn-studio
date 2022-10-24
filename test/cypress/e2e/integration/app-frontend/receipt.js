@@ -24,7 +24,7 @@ describe('Receipt', () => {
       .find('a')
       .should('have.length', 4)
       .first()
-      .should('contain.text', `${Cypress.env('multiData2Stage')}.pdf`);
+      .should('contain.text', `${appFrontend.apps.frontendTest}.pdf`);
 
     cy.get(appFrontend.receipt.uploadedAttachments)
       .last()

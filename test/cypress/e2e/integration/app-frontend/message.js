@@ -13,7 +13,7 @@ describe('Message', () => {
   before(() => {
     cy.intercept('POST', `**/instances?instanceOwnerPartyId*`).as('createdInstance');
     cy.intercept('**/active', []).as('noActiveInstances');
-    cy.startAppInstance(Cypress.env('multiData2Stage'));
+    cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.closeButton).should('be.visible');
   });
 
@@ -44,7 +44,7 @@ describe('Message', () => {
           ? 'http://altinn3local.no/ttd/frontend-test'
           : 'https://ttd.apps.tt02.altinn.no/ttd/frontend-test/';
       const instanceId = instanceIdExpr.exec(url)[1];
-      cy.get(appFrontend.startAgain).contains(instanceId).and('contain.text', Cypress.env('multiData2Stage'));
+      cy.get(appFrontend.startAgain).contains(instanceId).and('contain.text', appFrontend.apps.frontendTest);
       cy.get(appFrontend.startAgain).find('a').should('have.attr', 'href', instantiateUrl);
     });
     cy.get(appFrontend.sendinButton)

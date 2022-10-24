@@ -7,7 +7,7 @@ const appFrontend = new AppFrontend();
 
 describe('WCAG', () => {
   it('WCAG test in stateless app', () => {
-    cy.startAppInstance(Cypress.env('stateless'));
+    cy.startAppInstance(appFrontend.apps.stateless);
     cy.get(appFrontend.stateless.name).should('exist').and('be.visible');
     cy.testWcag();
   });

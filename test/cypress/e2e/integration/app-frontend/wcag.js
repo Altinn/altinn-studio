@@ -8,15 +8,11 @@ const appFrontend = new AppFrontend();
 describe('WCAG', () => {
   it('WCAG test in data app', () => {
     cy.intercept('**/active', []).as('noActiveInstances');
-    cy.startAppInstance(Cypress.env('multiData2Stage'));
+    cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.closeButton).should('be.visible');
     cy.get(appFrontend.message['header']).should('exist');
     cy.testWcag();
-    cy.intercept('**/api/layoutsettings/changename').as('getLayoutChangeName');
-    cy.get(appFrontend.sendinButton).then((button) => {
-      cy.get(button).should('be.visible').click();
-      cy.wait('@getLayoutChangeName');
-    });
+    cy.get(appFrontend.sendinButton).click();
     cy.get(appFrontend.changeOfName.newFirstName).should('be.visible').type('a').blur();
     cy.get(appFrontend.changeOfName.newLastName).should('be.visible').type('a').blur();
     cy.get(appFrontend.changeOfName.confirmChangeName).should('be.visible').find('input').check();

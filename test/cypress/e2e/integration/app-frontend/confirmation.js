@@ -17,7 +17,7 @@ describe('Confirm', () => {
       .find('a')
       .should('have.length', 4)
       .first()
-      .should('contain.text', `${Cypress.env('multiData2Stage')}.pdf`);
+      .should('contain.text', `${appFrontend.apps.frontendTest}.pdf`);
 
     cy.get(appFrontend.confirm.uploadedAttachments)
       .last()
@@ -32,7 +32,7 @@ describe('Confirm', () => {
     cy.get(appFrontend.confirm.sendIn).should('be.visible');
     cy.url().then((url) => {
       const instanceId = instanceIdExp().exec(url)[1];
-      cy.get(appFrontend.confirm.body).contains(instanceId).and('contain.text', Cypress.env('multiData2Stage'));
+      cy.get(appFrontend.confirm.body).contains(instanceId).and('contain.text', appFrontend.apps.frontendTest);
     });
   });
 });

@@ -22,7 +22,7 @@ describe('Validation', () => {
       .blur()
       .focus()
       .clear()
-      .blur()
+      .blur();
     cy.get(appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newFirstName.substring(1)))
       .should('exist')
       .should('be.visible')
@@ -195,7 +195,7 @@ describe('Validation', () => {
 
   it('Task validation', () => {
     cy.intercept('**/active', []).as('noActiveInstances');
-    cy.startAppInstance(Cypress.env('multiData2Stage'));
+    cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.closeButton).should('be.visible');
     cy.intercept('GET', '**/validate', [
       {

@@ -1,5 +1,16 @@
 export default class AppFrontend {
   constructor() {
+    this.apps = {
+      /** @see https://dev.altinn.studio/repos/ttd/frontend-test */
+      frontendTest: 'frontend-test',
+
+      /** @see https://dev.altinn.studio/repos/ttd/stateless-app */
+      stateless: 'stateless-app',
+
+      /** @see https://dev.altinn.studio/repos/ttd/anonymous-stateless-app */
+      anonymousStateless: 'anonymous-stateless-app',
+    };
+
     //Start app instance page
     this.userId = '#UserId';
     this.appSelection = '#AppPathSelection';
@@ -169,7 +180,7 @@ export default class AppFrontend {
       delete: 'button[class*="makeStyles-deleteButton"]',
       saveSubGroup: 'button[id*="add-button-grp-subGroup"]',
       saveMainGroup: '#add-button-grp-mainGroup',
-      editContainer: '[class^="makeStyles-editContainer"]',
+      editContainer: '[data-testid=group-edit-container]',
       sendersName: '#sendersName',
       summaryText: '#send-in-text',
       next: 'button[aria-label="Neste"]',

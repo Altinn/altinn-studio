@@ -14,14 +14,10 @@ const mui = new Common();
 Cypress.Commands.add('navigateToChangeName', () => {
   cy.intercept('**/active', []).as('noActiveInstances');
   cy.intercept('POST', `**/instances?instanceOwnerPartyId*`).as('createInstace');
-  cy.startAppInstance(Cypress.env('multiData2Stage'));
+  cy.startAppInstance(appFrontend.apps.frontendTest);
   cy.wait('@createInstace');
   cy.get(appFrontend.closeButton).should('be.visible');
-  cy.intercept('**/api/layoutsettings/changename').as('getLayoutChangeName');
-  cy.get(appFrontend.sendinButton).then((button) => {
-    cy.get(button).should('be.visible').click();
-    cy.wait('@getLayoutChangeName');
-  });
+  cy.get(appFrontend.sendinButton).click();
 });
 
 /**

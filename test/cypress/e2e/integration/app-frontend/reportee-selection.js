@@ -23,7 +23,7 @@ describe('Reportee selection', () => {
   });
 
   it('Reportee selection in data app', () => {
-    cy.startAppInstance(Cypress.env('multiData2Stage'));
+    cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.reporteeSelection.appHeader).should('be.visible');
     cy.get(appFrontend.reporteeSelection.error).should('be.visible').contains(texts.selectNewReportee);
     cy.get(appFrontend.reporteeSelection.seeSubUnits).should('be.visible').click();

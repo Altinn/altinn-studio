@@ -17,7 +17,7 @@ describe('Redirect', () => {
     cy.intercept('POST', `**/instances?instanceOwnerPartyId*`, {
       statusCode: 403,
     });
-    cy.startAppInstance(Cypress.env('multiData2Stage'));
+    cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(mui.caption).should('have.text', 'Feil 403');
     cy.get(appFrontend.altinnError).should('contain.text', texts.missingRights);
   });
@@ -26,7 +26,7 @@ describe('Redirect', () => {
     cy.intercept('GET', `**/applicationmetadata`, {
       statusCode: 401,
     });
-    cy.startAppInstance(Cypress.env('multiData2Stage'));
+    cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(mui.caption).should('have.text', 'Ukjent feil');
     cy.get(appFrontend.altinnError).should('contain.text', texts.tryAgain);
   });

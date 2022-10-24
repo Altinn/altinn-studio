@@ -19,7 +19,7 @@ describe('On Entry', () => {
   });
 
   it('is possible to select an existing instance', () => {
-    cy.startAppInstance(Cypress.env('multiData2Stage'));
+    cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.closeButton).should('be.visible');
     cy.get(appFrontend.selectInstance.container).should('be.visible');
     cy.get(appFrontend.selectInstance.header).should('be.visible').should('contain.text', texts.alreadyStartedForm);
@@ -42,7 +42,7 @@ describe('On Entry', () => {
   });
 
   it('is possible to create a new instance', () => {
-    cy.startAppInstance(Cypress.env('multiData2Stage'));
+    cy.startAppInstance(appFrontend.apps.frontendTest);
     cy.get(appFrontend.closeButton).should('be.visible');
     cy.get(appFrontend.selectInstance.container).should('be.visible');
     cy.intercept('POST', `/ttd/frontend-test/instances?instanceOwnerPartyId*`).as('createdInstance');

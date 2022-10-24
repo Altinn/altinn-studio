@@ -3,11 +3,6 @@ const path = require('node:path');
 const fs = require('node:fs/promises');
 
 module.exports = defineConfig({
-  env: {
-    multiData2Stage: 'frontend-test',
-    stateless: 'stateless-app',
-    anonymous: 'anonymous-stateless-app',
-  },
   e2e: {
     setupNodeEvents(on, config) {
       const validEnvironments = ['local', 'at21', 'at22', 'tt02'];
