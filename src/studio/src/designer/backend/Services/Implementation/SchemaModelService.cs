@@ -11,6 +11,7 @@ using System.Xml.Linq;
 using System.Xml.Schema;
 
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Studio.DataModeling.Converter.Interfaces;
 using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Converter.Xml;
@@ -46,6 +47,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
         private readonly ILoggerFactory _loggerFactory;
         private readonly IOptions<ServiceRepositorySettings> _serviceRepositorySettings;
+        private readonly IXmlSchemaToJsonSchemaConverter _xmlSchemaToJsonSchemaConverter;
+        private readonly IJsonSchemaToXmlSchemaConverter _jsonSchemaToXmlSchemaConverter;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="SchemaModelService"/> class.
@@ -60,14 +63,22 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// Settings for the ServiceRepository. Service is the old name on Apps. This settings class contains
         /// alot, only use the parts related to SchemaModels to make it easier to separate out later.
         /// </param>
+        /// <param name="xmlSchemaToJsonSchemaConverter">
+        /// Class for converting Xml schemas to Json schemas.</param>
+        /// <param name="jsonSchemaToXmlSchemaConverter">
+        /// Class for converting Json schemas to Xml schemas.</param>
         public SchemaModelService(
             IAltinnGitRepositoryFactory altinnGitRepositoryFactory,
             ILoggerFactory loggerFactory,
-            IOptions<ServiceRepositorySettings> serviceRepositorySettings)
+            IOptions<ServiceRepositorySettings> serviceRepositorySettings,
+            IXmlSchemaToJsonSchemaConverter xmlSchemaToJsonSchemaConverter,
+            IJsonSchemaToXmlSchemaConverter jsonSchemaToXmlSchemaConverter)
         {
             _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
             _loggerFactory = loggerFactory;
             _serviceRepositorySettings = serviceRepositorySettings;
+            _xmlSchemaToJsonSchemaConverter = xmlSchemaToJsonSchemaConverter;
+            _jsonSchemaToXmlSchemaConverter = jsonSchemaToXmlSchemaConverter;
         }
 
         /// <inheritdoc/>
@@ -111,8 +122,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             var jsonSchema = Json.Schema.JsonSchema.FromText(jsonContent);
             var jsonSchemaConverterStrategy = JsonSchemaConverterStrategyFactory.SelectStrategy(jsonSchema);
 
-            var converter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
-            XmlSchema xsd = converter.Convert(jsonSchema);
+            XmlSchema xsd = _jsonSchemaToXmlSchemaConverter.Convert(jsonSchema);
 
             await altinnAppGitRepository.SaveXsd(xsd,  Path.ChangeExtension(schemaName, "xsd"));
 
@@ -333,8 +343,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             XmlSchema originalXsd = XmlSchema.Read(xsdStream, (_, _) => { });
 
-            var xsdToJsonConverter = new XmlSchemaToJsonSchemaConverter();
-            Json.Schema.JsonSchema convertedJsonSchema = xsdToJsonConverter.Convert(originalXsd);
+            Json.Schema.JsonSchema convertedJsonSchema = _xmlSchemaToJsonSchemaConverter.Convert(originalXsd);
 
             return convertedJsonSchema;
         }

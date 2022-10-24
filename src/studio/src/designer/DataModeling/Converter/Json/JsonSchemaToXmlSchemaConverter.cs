@@ -1,5 +1,6 @@
 using System;
 using System.Xml.Schema;
+using Altinn.Studio.DataModeling.Converter.Interfaces;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Json;
 using Json.Schema;
@@ -9,7 +10,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json
     /// <summary>
     /// Class for converting Json schema to Xml Schema
     /// </summary>
-    public class JsonSchemaToXmlSchemaConverter
+    public class JsonSchemaToXmlSchemaConverter : IJsonSchemaToXmlSchemaConverter
     {
         private readonly IJsonSchemaNormalizer _normalizer;
 
@@ -27,22 +28,14 @@ namespace Altinn.Studio.DataModeling.Converter.Json
             _normalizer = normalizer;
         }
 
-        /// <summary>
-        /// Converts a <see cref="JsonSchema"/> to a matching <see cref="XmlSchema"/>
-        /// </summary>
-        /// <param name="schema">The schema to convert</param>
+        /// <inheritdoc/>
         public XmlSchema Convert(JsonSchema schema)
         {
             var uri = new Uri("schema.json", UriKind.Relative);
             return Convert(schema, uri);
         }
 
-        /// <summary>
-        /// Converts a <see cref="JsonSchema"/> to a matching <see cref="XmlSchema"/>
-        /// </summary>
-        /// <param name="schema">The schema to convert</param>
-        /// <param name = "schemaUri" > Uri that represents the unique id of the Json Schema.</param>
-        /// <returns>XmlSchema genrated based on the Json Schema.</returns>
+        /// <inheritdoc/>
         public XmlSchema Convert(JsonSchema schema, Uri schemaUri)
         {
             _jsonSchema = _normalizer.Normalize(schema);
@@ -51,7 +44,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json
             ConvertUsingStrategy();
             return _xmlSchema;
         }
-        
+
         /// <summary>
         /// Use the selected strategy to convert the Json Schema to Xml Schema
         /// </summary>
