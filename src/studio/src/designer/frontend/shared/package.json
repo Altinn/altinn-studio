@@ -10,7 +10,7 @@
   ],
   "dependencies": {
     "@altinn/altinn-design-system": "0.15.0",
-    "@altinn/schema-editor": "*",
+    "@altinn/schema-editor": "0.1.0",
     "@mui/icons-material": "5.10.9",
     "@mui/material": "5.10.10",
     "@mui/styles": "5.10.10",

@@ -15,7 +15,7 @@
     ]
   },
   "dependencies": {
-    "app-shared": "*",
+    "app-shared": "0.1.0",
     "jsonpointer": "5.0.1"
   },
   "devDependencies": {
