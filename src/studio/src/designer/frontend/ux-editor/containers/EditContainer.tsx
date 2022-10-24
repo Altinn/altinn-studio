@@ -1,5 +1,6 @@
-import { Grid, IconButton, ListItem, makeStyles } from '@material-ui/core';
 import React, { useState } from 'react';
+import { Grid, IconButton, ListItem } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 import { useDispatch, useSelector } from 'react-redux';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { EditModalContent } from '../components/config/EditModalContent';

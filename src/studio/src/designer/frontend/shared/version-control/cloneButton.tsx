@@ -1,13 +1,6 @@
-import {
-  Button,
-  createTheme,
-  createStyles,
-  Grid,
-  Typography,
-  WithStyles,
-  withStyles,
-} from '@material-ui/core';
 import React from 'react';
+import { Button, createTheme, Grid, Typography } from '@mui/material';
+import { createStyles, WithStyles, withStyles } from '@mui/styles';
 import AltinnIcon from '../components/AltinnIcon';
 import altinnTheme from '../theme/altinnStudioTheme';
 

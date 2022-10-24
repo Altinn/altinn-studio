@@ -1,11 +1,10 @@
-import {Grid, StyledComponentProps} from '@material-ui/core';
-import type {Theme} from '@material-ui/core';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
+import React from 'react';
+import type { Theme } from '@mui/material';
+import { Grid, StyledComponentProps, useMediaQuery } from '@mui/material';
 import LeftDrawerMenu from 'app-shared/navigation/drawer/LeftDrawerMenu';
 import classNames from 'classnames';
-import React from 'react';
-import {Navigate, Route, Routes} from 'react-router-dom';
-import type {IShareChangesComponentProps} from 'app-shared/version-control/shareChanges';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import type { IShareChangesComponentProps } from 'app-shared/version-control/shareChanges';
 import routes from '../config/routes';
 import appDevelopmentLeftDrawerSettings from '../config/subPathSettings';
 import HandleMergeConflict from '../features/handleMergeConflict/HandleMergeConflictContainer';
@@ -25,34 +24,41 @@ const SideBar = () => {
   }
 
   return (
-    <div style={{top: 50}}>
-      <Routes>
-        {routes.map((route) => (
-          <Route key={route.path} path={route.path} element={
+    <Routes>
+      {routes.map((route) => (
+        <Route
+          key={route.path}
+          path={route.path}
+          element={
             <LeftDrawerMenu
               menuType={route.menu}
               activeLeftMenuSelection={route.activeLeftMenuSelection}
               leftMenuItems={appDevelopmentLeftDrawerSettings}
             />
-          }/>
-        ))}
-      </Routes>
-    </div>
+          }
+        />
+      ))}
+    </Routes>
   );
 };
 
-const LeftMenu = ({repoStatus, classes, language}: ILeftMenuProps) => {
+const LeftMenu = ({ repoStatus, classes, language }: ILeftMenuProps) => {
   return (
     <Grid item xs={12}>
       {!repoStatus.hasMergeConflict ? (
         <>
-          <SideBar/>
+          <SideBar />
           <div className={classes.subApp}>
             <Routes>
-              {routes.map((route) =>
-                <Route key={route.path} path={route.path} element={
-                  <route.subapp {...route.props} language={language}/>
-                }/>)}
+              {routes.map((route) => (
+                <Route
+                  key={route.path}
+                  path={route.path}
+                  element={
+                    <route.subapp {...route.props} language={language} />
+                  }
+                />
+              ))}
             </Routes>
           </div>
         </>
@@ -64,12 +70,11 @@ const LeftMenu = ({repoStatus, classes, language}: ILeftMenuProps) => {
           })}
         >
           <Routes>
-            <Route path={'/'} element={
-              <Navigate to='/mergeconflict' replace/>
-            }/>
-            <Route path='/mergeconflict' element={
-              <HandleMergeConflict/>
-            }/>
+            <Route
+              path={'/'}
+              element={<Navigate to='/mergeconflict' replace />}
+            />
+            <Route path='/mergeconflict' element={<HandleMergeConflict />} />
           </Routes>
         </div>
       )}

@@ -1,5 +1,5 @@
 import React from 'react';
-import TreeItem from '@material-ui/lab/TreeItem';
+import { TreeItem } from '@mui/lab';
 import { useDispatch, useSelector } from 'react-redux';
 import { changeChildrenOrder, setSelectedId } from '../../features/editor/schemaEditorSlice';
 import { SchemaItemLabel } from './SchemaItemLabel';
@@ -70,6 +70,7 @@ export function SchemaItem({ selectedNode, isPropertiesView, editMode, translate
       <TreeItem
         nodeId={selectedNode.pointer}
         classes={{ root: classNames(classes.treeItem, isRef && classes.isRef) }}
+        onClick={(e: any) => onLabelClick(e, selectedNode)}
         label={
           <SchemaItemLabel
             editMode={editMode}
@@ -81,7 +82,6 @@ export function SchemaItem({ selectedNode, isPropertiesView, editMode, translate
             hasReferredNodes={isPropertiesView ? false : referredNodes.length > 0}
           />
         }
-        onLabelClick={(e) => onLabelClick(e, selectedNode)}
       >
         {childNodesSorted.map((childNode: UiSchemaNode, index: number) => (
           <SchemaItem

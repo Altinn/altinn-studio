@@ -1,42 +1,13 @@
 import React from 'react';
+import { Typography } from '@mui/material';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { makeStyles, Typography } from '@material-ui/core';
 import { formatNameAndDate } from 'app-shared/utils/formatDate';
 import AltinnButton from 'app-shared/components/AltinnButton';
-import classNames from 'classnames';
 import type { ICommit, IRepository } from '../../../types/global';
 import ResetRepoModal from './ResetRepoModal';
 import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import DownloadRepoModal from './DownloadRepoModal';
 import { useAppDispatch, useAppSelector } from 'common/hooks';
-
-const setupClasses = makeStyles({
-  avatar: {
-    maxHeight: '2em',
-  },
-  sidebarHeader: {
-    marginBottom: 20,
-    fontSize: 20,
-    fontWeight: 500,
-  },
-  sidebarHeaderSecond: {
-    marginTop: 36,
-  },
-  sidebarInfoText: {
-    fontSize: 16,
-    marginBottom: 12,
-  },
-  sidebarInfoTextList: {
-    paddingLeft: 18,
-  },
-  sidebarServiceOwner: {
-    marginTop: 10,
-  },
-  sidebarCreatedBy: {
-    fontSize: 16,
-    marginTop: 10,
-  },
-});
 
 interface ISideMenuContent {
   language: any;
@@ -45,7 +16,6 @@ interface ISideMenuContent {
 }
 
 const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
-  const classes = setupClasses();
   const dispatch = useAppDispatch();
 
   const [resetRepoModalOpen, setResetRepoModalOpen] =
@@ -94,27 +64,22 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
   return (
     <>
       {/* App owner info */}
-      <Typography className={classes.sidebarHeader}>
+      <Typography variant={'h2'} sx={{ marginBottom: '20px' }}>
         {getLanguageFromKey('general.service_owner', props.language)}
       </Typography>
-      <Typography className={classes.sidebarInfoText}>
+      <Typography sx={{ marginBottom: '12px' }}>
         {getLanguageFromKey('administration.service_owner_is', props.language)}
       </Typography>
-      <Typography
-        className={classNames(
-          classes.sidebarServiceOwner,
-          classes.sidebarInfoText,
-        )}
-      >
+      <Typography sx={{ marginBottom: '12px', marginTop: '12px' }}>
         <img
           src={props.service.owner.avatar_url}
-          className={classNames(classes.avatar)}
+          style={{ maxHeight: '2em' }}
           alt=''
         />{' '}
         {props.service.owner.full_name || props.service.owner.login}
       </Typography>
       {props.initialCommit && (
-        <Typography className={classNames(classes.sidebarCreatedBy)}>
+        <Typography sx={{ marginTop: '12px' }}>
           {getLanguageFromKey('administration.created_by', props.language)}{' '}
           {formatNameAndDate(
             props.initialCommit.author.name,
@@ -123,22 +88,14 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
         </Typography>
       )}
       {/* Reset local repository */}
-      <Typography
-        className={classNames(
-          classes.sidebarHeader,
-          classes.sidebarHeaderSecond,
-        )}
-      >
+      <Typography variant={'h2'} sx={{ marginBottom: '20px' }}>
         {getLanguageFromKey(
           'administration.reset_repo_heading',
           props.language,
         )}
       </Typography>
       <Typography
-        className={classNames(
-          classes.sidebarInfoText,
-          classes.sidebarInfoTextList,
-        )}
+        sx={{ marginBottom: '12px', paddingLeft: '18px' }}
         component='div'
       >
         <ul>
@@ -180,10 +137,8 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
       />
       {/* Download local repository */}
       <Typography
-        className={classNames(
-          classes.sidebarHeader,
-          classes.sidebarHeaderSecond,
-        )}
+        variant={'h2'}
+        sx={{ marginBottom: '20px', marginTop: '36px' }}
       >
         {getLanguageFromKey('administration.download_repo', props.language)}
       </Typography>

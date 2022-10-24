@@ -7,12 +7,14 @@
   "module": "dist/index.es.js",
   "jsnext:main": "dist/index.es.js",
   "types": "dist/index.d.ts",
+  "dependencies": {
+    "@mui/lab": "5.0.0-alpha.104"
+  },
   "peerDependencies": {
     "@altinn/altinn-design-system": "^0.11.1 || ^0.12.0",
     "@altinn/schema-model": "*",
-    "@material-ui/core": "^4.12.4",
-    "@material-ui/icons": "^4.11.3",
-    "@material-ui/lab": "^4.0.0-alpha.61",
+    "@mui/icons-material": "5.10.9",
+    "@mui/material": "5.10.10",
     "@reduxjs/toolkit": "^1.8.3",
     "react": "^18.2.0",
     "react-dnd": "16.0.1",
@@ -22,9 +24,6 @@
     "redux-saga": "1.2.1"
   },
   "devDependencies": {
-    "@material-ui/core": "4.12.4",
-    "@material-ui/icons": "4.11.3",
-    "@material-ui/lab": "4.0.0-alpha.61",
     "@reduxjs/toolkit": "1.8.6",
     "@testing-library/jest-dom": "5.16.5",
     "@testing-library/react": "13.4.0",

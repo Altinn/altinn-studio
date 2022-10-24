@@ -1,23 +1,16 @@
-import {
-  createTheme,
-  createStyles,
-  Grid,
-  Popover,
-  Typography,
-  WithStyles,
-  withStyles,
-} from '@material-ui/core';
-import axios from 'axios';
 import React from 'react';
+import { createTheme, Grid, Popover, Typography } from '@mui/material';
+import { createStyles, WithStyles, withStyles } from '@mui/styles';
+import axios from 'axios';
 import AltinnButton from '../components/AltinnButton';
 import AltinnIcon from '../components/AltinnIcon';
 import AltinnInputField from '../components/AltinnInputField';
-import AltinnAppTheme from '../theme/altinnAppTheme';
+import altinnStudioTheme from '../theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../utils/language';
 import { get } from '../utils/networking';
-import { sharedUrls, altinnDocsUrl } from '../utils/urlHelper';
+import { altinnDocsUrl, sharedUrls } from '../utils/urlHelper';
 
-const theme = createTheme(AltinnAppTheme);
+const theme = createTheme(altinnStudioTheme);
 
 const styles = createStyles({
   modalContainer: {

@@ -25,11 +25,11 @@ describe('schemaEditorSaga', () => {
     test('successful autosave', () => {
       mockedAxios.put.mockResolvedValueOnce("test");
       return expectSaga(autosaveModelSaga)
-      .provide([
-        [select(autoSavePropsSelector), { uiSchema, saveUrl: 'test' }],
-      ])
-      .call(put, `test&saveOnly=true`, {...jsonschema})
-      .run();
+          .provide([
+            [select(autoSavePropsSelector), { uiSchema, saveUrl: 'test' }],
+          ])
+          .call(put, `test&saveOnly=true`, {...jsonschema})
+          .run();
     })
   });
   describe('AutosaveModeSaga', () => {
@@ -38,12 +38,12 @@ describe('schemaEditorSaga', () => {
       spy = jest.spyOn(console, 'error').mockImplementation(() => {});
       mockedAxios.put.mockImplementationOnce(() => {throw new Error("error")});
       return expectSaga(autosaveModelSaga)
-      .provide([
-        [select(autoSavePropsSelector), { uiSchema, saveUrl: 'test' }],
-      ])
-      .call(put, `test&saveOnly=true`, {...jsonschema})
-      .call(console.error, 'Failed to save JSON Schema model. ', new Error('error'))
-      .run();
+          .provide([
+            [select(autoSavePropsSelector), { uiSchema, saveUrl: 'test' }],
+          ])
+          .call(put, `test&saveOnly=true`, {...jsonschema})
+          .call(console.error, 'Failed to save JSON Schema model. ', new Error('error'))
+          .run();
     })
   });
 });

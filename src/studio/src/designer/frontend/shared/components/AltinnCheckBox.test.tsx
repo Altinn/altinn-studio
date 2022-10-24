@@ -1,8 +1,8 @@
+import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
-import AltinnCheckBoxComponent from './AltinnCheckBox';
 import type { IAltinnCheckBoxComponentProvidedProps } from './AltinnCheckBox';
+import AltinnCheckBoxComponent from './AltinnCheckBox';
 
 const user = userEvent.setup();
 

@@ -1,9 +1,9 @@
-import { Typography } from '@material-ui/core';
 import React from 'react';
+import { Typography } from '@mui/material';
 import Select from 'react-select';
 import { SelectDataModelComponent } from '../components/config/SelectDataModelComponent';
 import { getTextResource, truncate } from './language';
-import type { ITextResource, IDataModelBindings } from '../types/global';
+import type { IDataModelBindings, ITextResource } from '../types/global';
 
 export const styles = {
   inputHelper: {

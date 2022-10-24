@@ -1,6 +1,6 @@
-import { createTheme } from '@material-ui/core';
-import { withStyles } from '@material-ui/core/styles';
 import React from 'react';
+import { createTheme } from '@mui/material';
+import { withStyles } from '@mui/styles';
 import altinnTheme from '../theme/altinnStudioTheme';
 import AltinnIcon from './AltinnIcon';
 
@@ -31,11 +31,13 @@ const AltinnLink = (props: IAltinnLinkComponentProvidedProps) => {
   const { classes, openInNewTab } = props;
   return (
     <a
-      href={props.url} className={classes.link}
-      target={openInNewTab ? '_blank' : ''} rel='noreferrer'
+      href={props.url}
+      className={classes.link}
+      target={openInNewTab ? '_blank' : ''}
+      rel='noreferrer'
     >
       {props.linkTxt}
-      {props.shouldShowIcon &&
+      {props.shouldShowIcon && (
         <AltinnIcon
           isActive={false}
           iconClass='ai ai-arrowrightup'
@@ -43,7 +45,7 @@ const AltinnLink = (props: IAltinnLinkComponentProvidedProps) => {
           iconSize={20}
           margin='5px'
         />
-      }
+      )}
     </a>
   );
 };

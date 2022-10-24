@@ -1,9 +1,8 @@
+import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import React from 'react';
-
-import { AltinnDropdown } from './AltinnDropdown';
 import type { IAltinnDropdownComponentProvidedProps } from './AltinnDropdown';
+import { AltinnDropdown } from './AltinnDropdown';
 
 const user = userEvent.setup();
 

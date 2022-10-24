@@ -1,13 +1,13 @@
-import { createStyles, withStyles } from '@material-ui/core';
 import React from 'react';
+import { createStyles, withStyles } from '@mui/styles';
 import { connect, useDispatch } from 'react-redux';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { EditContainer } from '../containers/EditContainer';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import type {
   FormComponentType,
-  IDataModelFieldElement,
   IAppState,
+  IDataModelFieldElement,
 } from '../types/global';
 
 const styles = createStyles({});

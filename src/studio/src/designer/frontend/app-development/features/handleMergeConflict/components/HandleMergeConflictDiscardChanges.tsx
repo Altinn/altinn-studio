@@ -1,10 +1,6 @@
-import {
-  createTheme,
-  createStyles,
-  withStyles,
-  WithStyles,
-} from '@material-ui/core/styles';
 import React from 'react';
+import { createTheme } from '@mui/material';
+import { createStyles, withStyles, WithStyles } from '@mui/styles';
 import AltinnButton from 'app-shared/components/AltinnButton';
 import AltinnPopover from 'app-shared/components/AltinnPopover';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
@@ -48,7 +44,7 @@ const initialPopoverState = {
   btnCancelText: '',
 };
 
-export class HandleMergeConflictDiscardChanges extends React.Component<
+class HandleMergeConflictDiscardChanges extends React.Component<
   IHandleMergeConflictDiscardChangesProps,
   IHandleMergeConflictDiscardChangesState
 > {

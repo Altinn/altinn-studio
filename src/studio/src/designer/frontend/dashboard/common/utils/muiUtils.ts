@@ -1,9 +1,5 @@
-import {
-  createTheme as createThemeV4,
-  createGenerateClassName,
-} from '@material-ui/core/styles';
-import { createTheme as createThemeV5 } from '@mui/material/styles';
-
+import { createTheme } from '@mui/material';
+import { createGenerateClassName } from '@mui/styles';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 
 export const generateClassName = createGenerateClassName({
@@ -15,5 +11,4 @@ export const generateClassName = createGenerateClassName({
   seed: 'mui-jss',
 });
 
-export const themeV4 = createThemeV4(altinnTheme);
-export const themeV5 = createThemeV5(altinnTheme);
+export const theme = createTheme(altinnTheme);

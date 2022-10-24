@@ -1,5 +1,5 @@
-import { screen } from '@testing-library/react';
 import React from 'react';
+import { screen } from '@testing-library/react';
 import { renderWithRedux } from '../../../test/renderWithRedux';
 import { IReferenceSelectionProps, ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { createNodeBase, Keywords, ObjectKind, UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
@@ -38,7 +38,7 @@ const defaultProps: IReferenceSelectionProps = {
 };
 
 const renderReferenceSelectionComponent = (props?: Partial<IReferenceSelectionProps>) =>
-  renderWithRedux(<ReferenceSelectionComponent { ...defaultProps } { ...props } />, { uiSchema });
+  renderWithRedux(<ReferenceSelectionComponent {...defaultProps} {...props} />, { uiSchema });
 
 test('Select box appears', () => {
   renderReferenceSelectionComponent();

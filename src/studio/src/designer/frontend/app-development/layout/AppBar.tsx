@@ -1,11 +1,13 @@
-import MuiAppBar from '@material-ui/core/AppBar';
-import Grid from '@material-ui/core/Grid';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
-import { createStyles, makeStyles } from '@material-ui/core/styles';
-import type { Theme } from '@material-ui/core/styles';
-import Toolbar from '@material-ui/core/Toolbar';
-import classNames from 'classnames';
 import React, { useState } from 'react';
+import type { Theme } from '@mui/material';
+import {
+  AppBar as MuiAppBar,
+  Grid,
+  Toolbar,
+  useMediaQuery,
+} from '@mui/material';
+import { createStyles, makeStyles } from '@mui/styles';
+import classNames from 'classnames';
 import { Link } from 'react-router-dom';
 import { altinnImgLogoHeaderUrl } from 'app-shared/utils/urlHelper';
 import type { IMenuItem } from 'app-shared/navigation/drawer/drawerMenuSettings';
@@ -26,12 +28,8 @@ export interface IAppBarProps {
   mainMenuItems?: IMenuItem[];
   subMenuItems?: { [key: string]: IMenuItem[] };
 }
-export interface IAppBarComponentState {
-  anchorEl?: any;
-  tabletDrawerOpen: boolean;
-}
 
-const styles = (theme: Theme) =>
+const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
       flexGrow: 1,
@@ -98,9 +96,8 @@ const styles = (theme: Theme) =>
         borderBottom: 'none',
       },
     },
-  });
-
-const useStyles = makeStyles(styles);
+  }),
+);
 
 export const AppBar = ({
   activeLeftMenuSelection,
@@ -122,22 +119,26 @@ export const AppBar = ({
     theme.breakpoints.down('sm'),
   );
 
-  const language = useAppSelector(state => state.languageState.language);
+  const language = useAppSelector((state) => state.languageState.language);
   const t = (key: string) => getLanguageFromKey(key, language);
 
   const handleDrawerMenuClick = () => {
     setIsMenuOpen((prev) => !prev);
   };
-
   return (
     <div className={classes.root}>
       <MuiAppBar
-        position='static'
+        position='fixed'
         className={classNames([
-          classes.appBar,
           !app ? classes.appBarDashboard : classes.appBarEditor,
+          classes.appBar,
         ])}
-        elevation={0}
+        elevation={5}
+        sx={{
+          backgroundColor: '#EFEFEF',
+          boxShadow: 'none',
+          color: 'black',
+        }}
       >
         <Toolbar>
           <Grid
@@ -154,7 +155,8 @@ export const AppBar = ({
               </Grid>
               {hiddenMdUp ? null : (
                 <Grid item className={classes.breadCrumb}>
-                  {activeSubHeaderSelection && `/ ${t(activeSubHeaderSelection)}`}{' '}
+                  {activeSubHeaderSelection &&
+                    `/ ${t(activeSubHeaderSelection)}`}{' '}
                   /
                   <span className={classes.breadCrumbSubApp}>
                     {' '}
@@ -218,8 +220,7 @@ export const AppBar = ({
                         to={item.link}
                         className={classNames(classes.subHeaderLink, {
                           [classes.subHeaderLinkActive]:
-                            activeSubHeaderSelection ===
-                            item.key,
+                            activeSubHeaderSelection === item.key,
                         })}
                       >
                         {t(item.key)}

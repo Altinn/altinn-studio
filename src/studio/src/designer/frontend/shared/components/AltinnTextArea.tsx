@@ -1,12 +1,6 @@
-import {
-  createTheme,
-  createStyles,
-  Grid,
-  InputLabel,
-  withStyles,
-  WithStyles,
-} from '@material-ui/core';
 import React from 'react';
+import { createTheme, Grid, InputLabel } from '@mui/material';
+import { createStyles, withStyles, WithStyles } from '@mui/styles';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 const theme = createTheme(altinnTheme);

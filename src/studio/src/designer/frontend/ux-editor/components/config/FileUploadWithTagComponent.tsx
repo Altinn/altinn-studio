@@ -1,13 +1,13 @@
-import { Grid, Typography } from '@material-ui/core';
 import React from 'react';
+import { Grid, Typography } from '@mui/material';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { renderSelectTextFromResources } from '../../utils/render';
 import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
 import AltinnRadio from 'app-shared/components/AltinnRadio';
 import type {
-  IFormFileUploaderWithTagComponent,
   FormComponentType,
+  IFormFileUploaderWithTagComponent,
 } from '../../types/global';
 
 type FileUploadWithTagComponentProps = {

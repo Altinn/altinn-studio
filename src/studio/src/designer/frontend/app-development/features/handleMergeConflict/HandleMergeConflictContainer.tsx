@@ -1,14 +1,7 @@
-import { Typography } from '@material-ui/core';
-import Grid from '@material-ui/core/Grid';
-import {
-  createTheme,
-  createStyles,
-  MuiThemeProvider,
-  withStyles,
-  WithStyles,
-} from '@material-ui/core/styles';
-import classNames from 'classnames';
 import React from 'react';
+import { createTheme, Grid, ThemeProvider, Typography } from '@mui/material';
+import { createStyles, withStyles, WithStyles } from '@mui/styles';
+import classNames from 'classnames';
 import { connect } from 'react-redux';
 import FileEditor from 'app-shared/file-editor/FileEditor';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
@@ -113,7 +106,7 @@ export class HandleMergeConflictContainer extends React.Component<
 
     return (
       <React.Fragment>
-        <MuiThemeProvider theme={theme}>
+        <ThemeProvider theme={theme}>
           <div className={classes.root} id='handleMergeConflictContainer'>
             <Grid
               container={true}
@@ -241,7 +234,7 @@ export class HandleMergeConflictContainer extends React.Component<
               </Grid>
             </Grid>
           </div>
-        </MuiThemeProvider>
+        </ThemeProvider>
       </React.Fragment>
     );
   }

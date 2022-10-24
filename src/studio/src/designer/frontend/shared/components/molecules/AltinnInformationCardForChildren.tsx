@@ -1,83 +1,33 @@
-import { createTheme } from '@material-ui/core';
-import Grid from '@material-ui/core/Grid';
-import { withStyles } from '@material-ui/core/styles';
-import classNames from 'classnames';
 import React from 'react';
-import altinnTheme from '../../theme/altinnStudioTheme';
-import createInformationCardStyles from '../styles/createInformationCardStyles';
+import classNames from 'classnames';
+import classes from './AltinnInformationCardForChildren.module.css';
 
 export interface IAltinnInformationCardComponentProvidedProps {
   headerText: string;
   imageSource: string;
   shadow: boolean;
-  classes: any;
 }
 
-const theme = createTheme(altinnTheme);
-
-const styles = () =>
-  createInformationCardStyles(theme, {
-    breadText: {
-      paddingTop: 15,
-      fontSize: 16,
-      paddingBottom: 39,
-    },
-  });
-
-const AltinnInformationCardForChildren = (
+export const AltinnInformationCardForChildren = (
   props: React.PropsWithChildren<IAltinnInformationCardComponentProvidedProps>,
 ) => {
-  const { classes } = props;
-
   return (
-    <Grid
-      container={true}
-      direction='column'
-      className={classes.root}
-      spacing={0}
-      justifyContent='center'
-      alignContent='center'
-    >
-      <Grid
-        container={true}
-        item={true}
-        spacing={0}
-        justifyContent='center'
-        alignContent='center'
-        className={classNames(classes.scrollable)}
-      >
-        <Grid
+    <div className={classes.container}>
+      <div className={classNames(classes.scrollable)}>
+        <div
           className={classNames(classes.paper, {
             [classes.shadowBox]: props.shadow,
           })}
-          container={true}
-          item={true}
         >
-          <Grid container={true} item={true}>
-            <Grid sm={12} md={7} item={true} container={true}>
-              <Grid item={true}>
-                <div>
-                  <h1 className={classes.header}>{props.headerText}</h1>
-                  <p className={classes.breadText}>{props.children}</p>
-                </div>
-              </Grid>
-            </Grid>
-            <Grid
-              container={true}
-              sm={12}
-              md={5}
-              item={true}
-              spacing={0}
-              justifyContent='center'
-              alignContent='center'
-            >
-              <img alt='information' src={props.imageSource} />
-            </Grid>
-          </Grid>
-        </Grid>
-      </Grid>
-    </Grid>
+          <div className={classes.textContainer}>
+            <h1 className={classes.header}>{props.headerText}</h1>
+            <p className={classes.breadText}>{props.children}</p>
+          </div>
+          <div className={classes.imageContainer}>
+            <img alt='information' src={props.imageSource} />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
-
-export default withStyles(styles)(AltinnInformationCardForChildren);

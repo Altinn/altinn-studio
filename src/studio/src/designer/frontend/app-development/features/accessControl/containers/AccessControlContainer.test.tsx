@@ -8,7 +8,12 @@ import {
 } from './AccessControlContainer';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import * as networking from 'app-shared/utils/networking';
+import {
+  versionControlHeaderafterAll,
+  versionControlHeaderafterEach,
+  versionControlHeaderBeforeAll,
+} from 'app-shared/version-control/versionControlHeader.test';
+
 const newApplicationMetadata: any = {
   // must be opposite of currentApplicationMetadata.partyTypesAllowed
   partyTypesAllowed: {
@@ -45,17 +50,6 @@ const currentAccessContainerProps: IAccessControlContainerProps = {
 const renderAccessControlContainerClass = (applicationMetadata?: any) => {
   const mockLanguage = {};
 
-  // VersioncontrolHeader is doing a get request... apparently components keep on fireing http request.
-  jest.spyOn(networking, 'get').mockImplementation((url: any) => {
-    const value = url.endsWith('GetXsd')
-      ? null
-      : {
-          permissions: {
-            push: true,
-          },
-        };
-    return Promise.resolve(value);
-  });
   const initialState: any = {
     language: {
       language: mockLanguage,
@@ -108,6 +102,10 @@ const renderAccessControlContainerClass = (applicationMetadata?: any) => {
 
   return { store, user };
 };
+
+beforeAll(versionControlHeaderBeforeAll);
+afterEach(versionControlHeaderafterEach);
+afterAll(versionControlHeaderafterAll);
 
 test('getDerivedStateFromProps should only return object on changed state', () => {
   const shouldUpdateOnEqualProps =

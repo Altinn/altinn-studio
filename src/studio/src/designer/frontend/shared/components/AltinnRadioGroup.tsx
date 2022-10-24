@@ -1,6 +1,6 @@
 import React from 'react';
-
-import { RadioGroup, Typography, makeStyles } from '@material-ui/core';
+import { RadioGroup, Typography } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 
 export interface IAltinnRadioGroupProps {
   id?: any;

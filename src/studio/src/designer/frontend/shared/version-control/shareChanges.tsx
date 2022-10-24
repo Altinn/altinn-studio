@@ -1,13 +1,7 @@
-import {
-  Button,
-  createTheme,
-  createStyles,
-  Grid,
-  Typography,
-  withStyles,
-} from '@material-ui/core';
-import classNames from 'classnames';
 import React from 'react';
+import { Button, createTheme, Grid, Typography } from '@mui/material';
+import { createStyles, withStyles } from '@mui/styles';
+import classNames from 'classnames';
 import AltinnIcon from '../components/AltinnIcon';
 import altinnTheme from '../theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../utils/language';

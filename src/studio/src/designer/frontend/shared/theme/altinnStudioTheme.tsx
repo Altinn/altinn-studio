@@ -1,4 +1,4 @@
-declare module '@material-ui/core/styles/createTheme' {
+declare module '@mui/material/styles/createTheme' {
   interface Theme {
     accessibility: {
       focusVisible: {
@@ -78,30 +78,6 @@ const theme = {
       xl: 1920,
     },
   },
-  overrides: {
-    MuiToolbar: {
-      regular: {
-        '@media (min-width: 600px)': {
-          minHeight: 55,
-        },
-      },
-    },
-    MuiTypography: {
-      h1: {
-        fontSize: 36,
-      },
-      h2: {
-        fontSize: 20,
-        fontWeight: 500,
-      },
-      body1: {
-        fontSize: 16,
-      },
-      caption: {
-        fontSize: 14,
-      },
-    },
-  },
   palette: {
     primary: {
       main: '#000',
@@ -117,6 +93,7 @@ const theme = {
       disableRipple: true,
       disableTouchRipple: true,
     },
+    MuiWithWidth: {},
   },
   sharedStyles: {
     boxShadow: '0px 0px 4px rgba(0, 0, 0, 0.25)',
@@ -127,6 +104,42 @@ const theme = {
   typography: {
     htmlFontSize: 16,
     useNextVariants: true,
+    h1: {
+      fontSize: 36,
+    },
+    h2: {
+      fontSize: 20,
+      fontWeight: 500,
+    },
+    h3: {
+      fontSize: 16,
+      fontWeight: 500,
+    },
+    body1: {
+      fontSize: 16,
+    },
+    caption: {
+      fontSize: 14,
+    },
+  },
+  components: {
+    MuiAppBar: {
+      styleOverrides: {
+        root: {
+          backgroundColor: '#022F51',
+          boxShadow: 'none',
+        },
+      },
+    },
+    MuiToolbar: {
+      styleOverrides: {
+        regular: {
+          '@media (min-width: 600px)': {
+            minHeight: 55,
+          },
+        },
+      },
+    },
   },
 };
 

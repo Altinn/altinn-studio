@@ -1,17 +1,17 @@
 import React from 'react';
-import { makeStyles, createTheme } from '@material-ui/core';
-import TextField from '@mui/material/TextField';
-import InputAdornment from '@mui/material/InputAdornment';
-import IconButton from '@mui/material/IconButton';
+import {
+  createTheme,
+  IconButton,
+  InputAdornment,
+  TextField,
+} from '@mui/material';
+import { makeStyles } from '@mui/styles';
 import { useDebounce } from 'react-use';
 import cn from 'classnames';
 import { Link } from 'react-router-dom';
-
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-
 import { useAppSelector } from 'common/hooks';
-
 import { FavoriteReposList } from './FavoriteReposList';
 import { OrgReposList } from './OrgReposList';
 import { SearchResultReposList } from './SearchResultReposList';

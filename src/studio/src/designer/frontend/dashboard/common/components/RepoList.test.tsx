@@ -159,6 +159,7 @@ const render = (props: Partial<IRepoListProps> = {}) => {
   const allProps = {
     isLoading: false,
     disableVirtualization: true, // https://github.com/mui-org/material-ui-x/issues/1151
+    rowCount: repos.length,
     repos,
     ...props,
   };

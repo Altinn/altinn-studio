@@ -17,8 +17,7 @@
     "cross-env": "7.0.3",
     "del": "6.1.1",
     "gulp": "4.0.2",
-    "gulp-run-command": "0.0.10",
-    "gulp-string-replace": "1.1.2"
+    "gulp-run-command": "0.0.10"
   },
   "dependencies": {
     "altinn-designsystem": "2.7.12",

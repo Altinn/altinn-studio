@@ -1,13 +1,7 @@
-import {
-  createTheme,
-  createStyles,
-  FormControl,
-  TextField,
-  Typography,
-  withStyles,
-} from '@material-ui/core';
-import classNames from 'classnames';
 import React from 'react';
+import { createTheme, FormControl, TextField, Typography } from '@mui/material';
+import { createStyles, withStyles } from '@mui/styles';
+import classNames from 'classnames';
 import altinnTheme from '../theme/altinnStudioTheme';
 import AltinnButton from './AltinnButton';
 import ErrorPopover from './ErrorPopover';
@@ -51,16 +45,25 @@ const styles = createStyles({
     fontSize: '16px',
     marginTop: '10px',
   },
-  inputField: {
+  inputElement: {
     border: `1px solid ${theme.altinnPalette.primary.blueDark}`,
     marginTop: '10px',
     background: 'none',
     width: '386px',
+    height: '19px',
   },
   inputFieldText: {
     fontSize: '16px',
     color: `${theme.altinnPalette.primary.black}!Important`,
     padding: '6px',
+    underline: {
+      '&&&:before': {
+        borderBottom: 'none',
+      },
+      '&&:after': {
+        borderBottom: 'none',
+      },
+    },
   },
   disabled: {
     border: `1px solid ${theme.altinnPalette.primary.greyMedium}`,
@@ -146,8 +149,23 @@ class AltinnInputFieldComponent extends React.Component<IAltinnInputFieldCompone
             multiline={!!this.props.textAreaRows}
             minRows={this.props.textAreaRows || null}
             InputProps={{
-              disableUnderline: true,
-              classes: { root: classNames(classes.inputFieldText) },
+              classes: {
+                root: classes.inputFieldText,
+              },
+            }}
+            inputProps={{
+              sx: {
+                border: `1px solid ${theme.altinnPalette.primary.blueDark}`,
+                marginTop: '10px',
+                background: 'none',
+                width: '386px',
+                height: '19px',
+              },
+            }}
+            sx={{
+              '& fieldset': {
+                border: 'none',
+              },
             }}
             type={this.props.type}
             id={this.props.textFieldId}

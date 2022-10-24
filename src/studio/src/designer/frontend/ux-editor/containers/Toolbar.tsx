@@ -1,5 +1,5 @@
-import List from '@material-ui/core/List';
 import React, { useState } from 'react';
+import { List } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import {
   mapComponentToToolbarElement,

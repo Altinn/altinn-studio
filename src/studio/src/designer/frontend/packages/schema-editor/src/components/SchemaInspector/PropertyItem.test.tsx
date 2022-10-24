@@ -1,5 +1,5 @@
-import { screen } from '@testing-library/react';
 import React from 'react';
+import { screen } from '@testing-library/react';
 import { IPropertyItemProps, PropertyItem } from './PropertyItem';
 import { renderWithRedux } from '../../../test/renderWithRedux';
 
@@ -13,7 +13,7 @@ const mockLanguage = {
   schema_editor: {
     delete_field: textDelete,
     required: textRequired,
-  }
+  },
 };
 const defaultProps: IPropertyItemProps = {
   fullPath,
@@ -25,12 +25,8 @@ const defaultProps: IPropertyItemProps = {
   value,
 };
 
-const renderPropertyItem = (props?: Partial<IPropertyItemProps>) => renderWithRedux(
-  <PropertyItem
-    {...defaultProps}
-    {...props}
-  />
-);
+const renderPropertyItem = (props?: Partial<IPropertyItemProps>) =>
+  renderWithRedux(<PropertyItem {...defaultProps} {...props} />);
 
 test('Text input field appears', () => {
   renderPropertyItem();
@@ -39,7 +35,7 @@ test('Text input field appears', () => {
 
 test('Text input field has the value given in the "value" prop', () => {
   const value = 'Lorem ipsum';
-  renderPropertyItem({value});
+  renderPropertyItem({ value });
   expect(screen.getByRole('textbox')).toHaveValue(value);
 });
 
@@ -49,18 +45,18 @@ test('Text input field is not disabled by default', () => {
 });
 
 test('Text input field is disabled when the "readOnly" prop is true', () => {
-  renderPropertyItem({readOnly: true});
+  renderPropertyItem({ readOnly: true });
   expect(screen.getByRole('textbox')).toBeDisabled();
 });
 
 test('Text input field is not disabled when the "readOnly" prop is false', () => {
-  renderPropertyItem({readOnly: false});
+  renderPropertyItem({ readOnly: false });
   expect(screen.getByRole('textbox')).not.toBeDisabled();
 });
 
 test('onChangeValue is called on blur when text changes', async () => {
   const onChangeValue = jest.fn();
-  const {user} = renderPropertyItem({onChangeValue});
+  const { user } = renderPropertyItem({ onChangeValue });
   await user.type(screen.getByRole('textbox'), 'test');
   await user.tab();
   expect(onChangeValue).toHaveBeenCalledTimes(1);
@@ -68,7 +64,7 @@ test('onChangeValue is called on blur when text changes', async () => {
 
 test('onChangeValue is not called when there is no change', async () => {
   const onChangeValue = jest.fn();
-  const {user} = renderPropertyItem({onChangeValue});
+  const { user } = renderPropertyItem({ onChangeValue });
   await user.click(screen.getByRole('textbox'));
   await user.tab();
   expect(onChangeValue).not.toHaveBeenCalled();
@@ -76,7 +72,7 @@ test('onChangeValue is not called when there is no change', async () => {
 
 test('onEnterKeyPress is called when the Enter key is pressed in the input field', async () => {
   const onEnterKeyPress = jest.fn();
-  const {user} = renderPropertyItem({onEnterKeyPress});
+  const { user } = renderPropertyItem({ onEnterKeyPress });
   const textbox = screen.getByRole('textbox');
   await user.click(textbox);
   await user.keyboard('{Enter}');
@@ -85,7 +81,7 @@ test('onEnterKeyPress is called when the Enter key is pressed in the input field
 
 test('onEnterKeyPress is not called when another key but Enter is pressed in the input field', async () => {
   const onEnterKeyPress = jest.fn();
-  const {user} = renderPropertyItem({onEnterKeyPress});
+  const { user } = renderPropertyItem({ onEnterKeyPress });
   const textbox = screen.getByRole('textbox');
   await user.click(textbox);
   await user.keyboard('a');
@@ -108,12 +104,12 @@ test('"Required" checkbox is not checked by default', () => {
 });
 
 test('"Required" checkbox is checked when "required" prop is true', () => {
-  renderPropertyItem({required: true});
+  renderPropertyItem({ required: true });
   expect(screen.getByRole('checkbox')).toBeChecked();
 });
 
 test('"Required" checkbox is not checked when "required" prop is false', () => {
-  renderPropertyItem({required: false});
+  renderPropertyItem({ required: false });
   expect(screen.getByRole('checkbox')).not.toBeChecked();
 });
 
@@ -144,7 +140,7 @@ test('Delete button appears', () => {
 
 test('onDeleteField is called when the delete button is clicked', async () => {
   const onDeleteField = jest.fn();
-  const {user} = renderPropertyItem({onDeleteField});
+  const { user } = renderPropertyItem({ onDeleteField });
   await user.click(screen.getByRole('button'));
   expect(onDeleteField).toHaveBeenCalledTimes(1);
 });

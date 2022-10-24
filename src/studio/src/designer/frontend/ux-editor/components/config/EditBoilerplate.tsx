@@ -1,10 +1,11 @@
-import { Grid } from '@material-ui/core';
 import React from 'react';
+import { Grid } from '@mui/material';
 import {
   renderSelectDataModelBinding,
   renderSelectTextFromResources,
 } from '../../utils/render';
 import type { FormComponentType } from '../../types/global';
+
 export interface EditBoilerplateProps {
   component: FormComponentType;
   textResources: any;

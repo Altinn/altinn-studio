@@ -1,5 +1,5 @@
-import { Grid } from '@material-ui/core';
 import React from 'react';
+import { Grid } from '@mui/material';
 import { useSelector } from 'react-redux';
 import PageElement from './PageElement';
 import type { IAppState } from '../../../types/global';

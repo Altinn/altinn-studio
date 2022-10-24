@@ -1,11 +1,8 @@
 import React from 'react';
 import { GridSortModel } from '@mui/x-data-grid';
-import { Typography } from '@material-ui/core';
-
+import { Typography } from '@mui/material';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-
 import { useGetUserStarredReposQuery } from 'services/userApi';
-
 import { useAppSelector } from 'common/hooks';
 import { RepoList } from 'common/components/RepoList';
 import { useGetSearchQuery } from 'services/repoApi';

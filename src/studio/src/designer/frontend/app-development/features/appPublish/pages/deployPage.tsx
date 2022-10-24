@@ -1,33 +1,23 @@
-import { Grid, Typography, makeStyles } from '@material-ui/core';
-import React from 'react';
+import React, { useEffect } from 'react';
+import { Grid, Typography } from '@mui/material';
 import AltinnContentLoader from 'app-shared/components/molecules/AltinnContentLoader';
-import AltinnInformationCardForChildren from 'app-shared/components/molecules/AltinnInformationCardForChildren';
+import { AltinnInformationCardForChildren } from 'app-shared/components/molecules/AltinnInformationCardForChildren';
 import { getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { ConfigurationActions } from '../../../sharedResources/configuration/configurationSlice';
 import DeployContainerComponent from '../containers/deployContainer';
 import ReleaseContainer from '../containers/releaseContainer';
 import { fetchDeployPermissions } from '../../../sharedResources/user/userSlice';
-import { useAppSelector, useAppDispatch } from 'common/hooks';
+import { useAppDispatch, useAppSelector } from 'common/hooks';
 import type { IAltinnWindow } from '../../../types/global';
 
-const useStyles = makeStyles({
-  deployPaper: {
-    height: 'calc(100% - 111px)',
-  },
-  lastNoEnvironmentTextSection: {
-    paddingTop: '2.4rem',
-  },
-});
-
 function DeployPage() {
-  const classes = useStyles();
   const { org } = window as Window as IAltinnWindow;
   const dispatch = useAppDispatch();
 
   const orgs: any = useAppSelector((state) => state.configuration.orgs);
   const language: any = useAppSelector((state) => state.languageState.language);
 
-  React.useEffect(() => {
+  useEffect(() => {
     dispatch(ConfigurationActions.getOrgs());
     dispatch(fetchDeployPermissions());
   }, [dispatch]);
@@ -38,7 +28,7 @@ function DeployPage() {
 
   if (isLoading()) {
     return (
-      <Grid item={true} className={classes.deployPaper}>
+      <Grid item={true} sx={{ height: 'calc(100% - 111px)' }}>
         <Grid container={true} direction='row' justifyContent='space-between'>
           <Grid item={true} xs={12}>
             <AltinnContentLoader width={1200} height={600}>
@@ -59,7 +49,7 @@ function DeployPage() {
     !orgs.allOrgs[org].environments.length
   ) {
     return (
-      <Grid item={true} className={classes.deployPaper}>
+      <Grid item={true} sx={{ height: 'calc(100% - 111px)' }}>
         <Grid container={true} direction='row' justifyContent='space-between'>
           <Grid item={true} xs={12}>
             <AltinnInformationCardForChildren
@@ -74,7 +64,7 @@ function DeployPage() {
               <Typography>
                 {getParsedLanguageFromKey('app_publish.no_env_1', language, [])}
               </Typography>
-              <Typography className={classes.lastNoEnvironmentTextSection}>
+              <Typography sx={{ paddingTop: '2.4rem' }}>
                 {getParsedLanguageFromKey('app_publish.no_env_2', language, [])}
               </Typography>
             </AltinnInformationCardForChildren>
@@ -85,7 +75,7 @@ function DeployPage() {
   }
 
   return (
-    <Grid item={true} className={classes.deployPaper}>
+    <Grid item={true} sx={{ height: 'calc(100% - 111px)' }}>
       <Grid container={true} direction='row' justifyContent='space-between'>
         <Grid item={true} xs={9}>
           <DeployContainerComponent />

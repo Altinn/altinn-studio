@@ -1,13 +1,7 @@
-import {
-  createTheme,
-  Drawer,
-  Grid,
-  makeStyles,
-  Theme,
-  Typography,
-} from '@material-ui/core';
-import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
+import { createTheme, Drawer, Grid, Theme, Typography } from '@mui/material';
+import { makeStyles } from '@mui/styles';
+import classNames from 'classnames';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDispatch, useSelector } from 'react-redux';

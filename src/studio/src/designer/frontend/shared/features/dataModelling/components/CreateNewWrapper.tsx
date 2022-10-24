@@ -1,5 +1,5 @@
-import { TopToolbarButton } from '@altinn/schema-editor/index';
 import React, { useEffect, useState } from 'react';
+import { TopToolbarButton } from '@altinn/schema-editor/index';
 import { Button, ErrorMessage, TextField } from '@altinn/altinn-design-system';
 import AltinnPopoverSimple from '../../../components/molecules/AltinnPopoverSimple';
 import { getLanguageFromKey } from '../../../utils/language';
@@ -93,6 +93,7 @@ export function CreateNewWrapper(props: ICreateNewWrapper) {
       </TopToolbarButton>
       {createButtonAnchor && (
         <AltinnPopoverSimple
+          open={!!createButtonAnchor}
           anchorEl={createButtonAnchor}
           handleClose={onCancelCreate}
           anchorOrigin={{

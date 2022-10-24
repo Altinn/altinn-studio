@@ -1,6 +1,7 @@
-import { FormControlLabel, Radio, makeStyles } from '@material-ui/core';
-import { createTheme } from '@material-ui/core/styles';
 import React from 'react';
+import { createTheme, FormControlLabel, Radio } from '@mui/material';
+import { makeStyles } from '@mui/styles';
+
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnRadioProps {

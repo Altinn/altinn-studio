@@ -1,10 +1,6 @@
-import { CircularProgress, Grid } from '@material-ui/core';
-import {
-  createTheme,
-  createStyles,
-  withStyles,
-} from '@material-ui/core/styles';
 import React from 'react';
+import { CircularProgress, createTheme, Grid } from '@mui/material';
+import { createStyles, withStyles } from '@mui/styles';
 import MonacoEditor from 'react-monaco-editor';
 import altinnTheme from '../theme/altinnStudioTheme';
 
@@ -132,7 +128,12 @@ class MonacoEditorComponent extends React.Component<
           width: this.props.widthPx ? this.props.heightPx : '100%',
         }}
       >
-        <Grid container={true} item={true} alignItems='center' justifyContent='center'>
+        <Grid
+          container={true}
+          item={true}
+          alignItems='center'
+          justifyContent='center'
+        >
           <Grid id='spinnerGridItem' item={true}>
             <CircularProgress className={classes.spinner} />
           </Grid>

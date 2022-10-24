@@ -1,12 +1,13 @@
-import { List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
+import React from 'react';
 import {
   createTheme,
-  createStyles,
-  withStyles,
-  WithStyles,
-} from '@material-ui/core/styles';
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+} from '@mui/material';
+import { createStyles, WithStyles, withStyles } from '@mui/styles';
 import classNames from 'classnames';
-import React from 'react';
 import AltinnIcon from 'app-shared/components/AltinnIcon';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 
