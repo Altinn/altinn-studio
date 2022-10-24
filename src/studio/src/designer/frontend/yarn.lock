@@ -60,12 +60,12 @@ __metadata:
     jest-junit: 14.0.1
     jsonpointer: 5.0.1
     mini-css-extract-plugin: 2.6.1
-    react: 18.2.0
-    react-dom: 18.2.0
+    react: ^18.2.0
+    react-dom: ^18.2.0
     react-redux: 8.0.4
     react-scripts: 5.0.1
     react-styleguidist: 11.2.0
-    redux: 4.2.0
+    redux: ^4.2.0
     redux-mock-store: 1.5.4
     redux-saga-test-plan: 4.0.6
     ts-jest: 29.0.3
@@ -75,16 +75,16 @@ __metadata:
     webpack-cli: 4.10.0
     webpack-dev-server: 4.11.1
   peerDependencies:
-    "@altinn/altinn-design-system": ^0.11.1 || ^0.12.0
-    "@altinn/schema-model": "*"
+    "@altinn/altinn-design-system": 0.15.0
+    "@altinn/schema-model": 0.1.0
     "@mui/icons-material": 5.10.9
     "@mui/material": 5.10.10
-    "@reduxjs/toolkit": ^1.8.3
+    "@reduxjs/toolkit": 1.8.6
     react: ^18.2.0
     react-dnd: 16.0.1
     react-dnd-html5-backend: 16.0.1
     react-dom: ^18.2.0
-    react-redux: ^8.0.2
+    react-redux: 8.0.4
     redux-saga: 1.2.1
   languageName: unknown
   linkType: soft
@@ -8572,15 +8572,15 @@ __metadata:
     monaco-editor: 0.34.0
     monaco-editor-webpack-plugin: 7.0.1
     prettier: 2.7.1
-    react: 18.2.0
-    react-dom: 18.2.0
+    react: ^18.2.0
+    react-dom: ^18.2.0
     react-modal: 3.16.1
     react-redux: 8.0.4
     react-router-dom: 6.4.2
     react-select: 5.5.4
     react-truncate-markup: 5.1.2
     react-use: 17.4.0
-    redux: 4.2.0
+    redux: ^4.2.0
     redux-mock-store: 1.5.4
     redux-saga: 1.2.1
     reselect: 4.1.6
@@ -11014,15 +11014,15 @@ __metadata:
     moment: 2.29.4
     msw: 0.47.3
     prettier: 2.7.1
-    react: 18.2.0
-    react-dom: 18.2.0
+    react: ^18.2.0
+    react-dom: ^18.2.0
     react-html-parser: 2.0.2
     react-modal: 3.16.1
     react-redux: 8.0.4
     react-router-dom: 6.4.2
     react-truncate-markup: 5.1.2
     react-use: 17.4.0
-    redux: 4.2.0
+    redux: ^4.2.0
     redux-mock-store: 1.5.4
     redux-saga: 1.2.1
     reselect: 4.1.6
@@ -20041,7 +20041,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dom@npm:18.2.0":
+"react-dom@npm:^18.2.0":
   version: 18.2.0
   resolution: "react-dom@npm:18.2.0"
   dependencies:
@@ -20554,7 +20554,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react@npm:18.2.0":
+"react@npm:^18.2.0":
   version: 18.2.0
   resolution: "react@npm:18.2.0"
   dependencies:
@@ -20691,21 +20691,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"redux@npm:4.2.0, redux@npm:^4.2.0":
-  version: 4.2.0
-  resolution: "redux@npm:4.2.0"
-  dependencies:
-    "@babel/runtime": ^7.9.2
-  checksum: 75f3955c89b3f18edf5411e5fb482aa2e4f41a416183e8802a6bf6472c4fc3d47675b8b321d147f8af8e0f616436ac507bf5a25f1c4d6180e797b549c7db2c1d
-  languageName: node
-  linkType: hard
-
 "redux@npm:^4.0.0, redux@npm:^4.0.4, redux@npm:^4.0.5, redux@npm:^4.1.2":
   version: 4.1.2
   resolution: "redux@npm:4.1.2"
   dependencies:
     "@babel/runtime": ^7.9.2
   checksum: 6a839cee5bd580c5298d968e9e2302150e961318253819bcd97f9d945a5a409559eacddf6026f4118bb68b681c593d90e8a2c5bbf278f014aff9bf0d2d8fa084
+  languageName: node
+  linkType: hard
+
+"redux@npm:^4.2.0":
+  version: 4.2.0
+  resolution: "redux@npm:4.2.0"
+  dependencies:
+    "@babel/runtime": ^7.9.2
+  checksum: 75f3955c89b3f18edf5411e5fb482aa2e4f41a416183e8802a6bf6472c4fc3d47675b8b321d147f8af8e0f616436ac507bf5a25f1c4d6180e797b549c7db2c1d
   languageName: node
   linkType: hard
 
@@ -21750,10 +21750,10 @@ __metadata:
     monaco-editor: 0.34.0
     msw: 0.47.3
     parse5: 7.1.1
-    react: 18.2.0
+    react: ^18.2.0
     react-content-loader: 6.2.0
     react-docgen-typescript: 2.2.2
-    react-dom: 18.2.0
+    react-dom: ^18.2.0
     react-html-parser: 2.0.2
     react-monaco-editor: 0.50.1
     react-redux: 8.0.4
@@ -23763,14 +23763,14 @@ __metadata:
     jest-junit: 14.0.1
     mini-css-extract-plugin: 2.6.1
     prettier: 2.7.1
-    react: 18.2.0
+    react: ^18.2.0
     react-dnd: 16.0.1
     react-dnd-html5-backend: 16.0.1
-    react-dom: 18.2.0
+    react-dom: ^18.2.0
     react-modal: 3.16.1
     react-redux: 8.0.4
     react-select: 5.5.4
-    redux: 4.2.0
+    redux: ^4.2.0
     redux-mock-store: 1.5.4
     redux-saga: 1.2.1
     reselect: 4.1.6

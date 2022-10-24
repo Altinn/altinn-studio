@@ -29,5 +29,8 @@
     "ux-editor",
     "packages/schema-editor",
     "packages/schema-model"
-  ]
+  ],
+  "syncpack": {
+    "semverRange": ""
+  }
 }
