@@ -1,19 +1,8 @@
 {
   "name": "ux-editor",
-  "version": "1.0.1",
   "description": "",
-  "main": "index.js",
-  "scripts": {
-    "start": "cross-env NODE_ENV=development webpack-dev-server --config webpack.config.development.js --mode development",
-    "build": "cross-env NODE_ENV=production webpack --config webpack.config.production.js --progress",
-    "build-develop": "cross-env NODE_ENV=development webpack --config webpack.config.development --progress --watch",
-    "test": "jest",
-    "compile-ts": "tsc",
-    "clean": "rimraf dist compiled",
-    "webpack-watch": "cross-env NODE_ENV=development webpack --config webpack.config.development.js --watch --progress"
-  },
+  "version": "1.0.1",
   "author": "Altinn",
-  "license": "3-Clause BSD",
   "dependencies": {
     "@mui/material": "5.10.10",
     "@mui/styles": "5.10.10",
@@ -91,5 +80,16 @@
     "setupFilesAfterEnv": [
       "<rootDir>/test/setupTests.ts"
     ]
+  },
+  "license": "3-Clause BSD",
+  "main": "index.js",
+  "scripts": {
+    "build": "cross-env NODE_ENV=production webpack --config webpack.config.production.js --progress",
+    "build-develop": "cross-env NODE_ENV=development webpack --config webpack.config.development --progress --watch",
+    "clean": "rimraf dist compiled",
+    "compile-ts": "tsc",
+    "start": "cross-env NODE_ENV=development webpack-dev-server --config webpack.config.development.js --mode development",
+    "test": "jest",
+    "webpack-watch": "cross-env NODE_ENV=development webpack --config webpack.config.development.js --watch --progress"
   }
 }

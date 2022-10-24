@@ -1,33 +1,21 @@
 {
   "name": "@altinn/schema-editor",
-  "version": "0.1.0",
-  "private": true,
   "description": "JSON schema editor",
-  "main": "dist/index.js",
-  "module": "dist/index.es.js",
-  "jsnext:main": "dist/index.es.js",
-  "types": "dist/index.d.ts",
+  "version": "0.1.0",
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
   "dependencies": {
     "@mui/lab": "5.0.0-alpha.104"
-  },
-  "peerDependencies": {
-    "@altinn/altinn-design-system": "0.15.0",
-    "@altinn/schema-model": "0.1.0",
-    "@mui/icons-material": "5.10.9",
-    "@mui/material": "5.10.10",
-    "@mui/styles": "5.10.10",
-    "@reduxjs/toolkit": "1.8.6",
-    "app-shared": "*",
-    "axios": "0.27.2",
-    "classnames": "2.3.2",
-    "jsonpointer": "5.0.1",
-    "react": "18.2.0",
-    "react-dnd": "16.0.1",
-    "react-dnd-html5-backend": "16.0.1",
-    "react-dom": "18.2.0",
-    "react-redux": "8.0.4",
-    "redux": "4.2.0",
-    "redux-saga": "1.2.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "5.16.5",
@@ -49,12 +37,6 @@
     "ts-loader": "9.4.1",
     "webpack": "5.74.0",
     "webpack-dev-server": "4.11.1"
-  },
-  "scripts": {
-    "start": "cross-env NODE_ENV=development webpack-dev-server --config webpack.config.development.js --mode development",
-    "build": "cross-env NODE_ENV=production webpack --config webpack.config.production.js --progress",
-    "build-develop": "cross-env NODE_ENV=development webpack --config webpack.config.development.js --progress --watch",
-    "test": "jest"
   },
   "jest": {
     "transform": {
@@ -85,16 +67,34 @@
       "node_modules(\\\\|/)(?!@?react-leaflet|react-dnd|dnd-core|@react-dnd|react-dnd-html5-backend)"
     ]
   },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  }
+  "jsnext:main": "dist/index.es.js",
+  "main": "dist/index.js",
+  "module": "dist/index.es.js",
+  "peerDependencies": {
+    "@altinn/altinn-design-system": "0.15.0",
+    "@altinn/schema-model": "0.1.0",
+    "@mui/icons-material": "5.10.9",
+    "@mui/material": "5.10.10",
+    "@mui/styles": "5.10.10",
+    "@reduxjs/toolkit": "1.8.6",
+    "app-shared": "*",
+    "axios": "0.27.2",
+    "classnames": "2.3.2",
+    "jsonpointer": "5.0.1",
+    "react": "18.2.0",
+    "react-dnd": "16.0.1",
+    "react-dnd-html5-backend": "16.0.1",
+    "react-dom": "18.2.0",
+    "react-redux": "8.0.4",
+    "redux": "4.2.0",
+    "redux-saga": "1.2.1"
+  },
+  "private": true,
+  "scripts": {
+    "build": "cross-env NODE_ENV=production webpack --config webpack.config.production.js --progress",
+    "build-develop": "cross-env NODE_ENV=development webpack --config webpack.config.development.js --progress --watch",
+    "start": "cross-env NODE_ENV=development webpack-dev-server --config webpack.config.development.js --mode development",
+    "test": "jest"
+  },
+  "types": "dist/index.d.ts"
 }

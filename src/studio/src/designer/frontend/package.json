@@ -1,18 +1,9 @@
 {
   "name": "altinn-studio-frontend",
-  "private": true,
-  "scripts": {
-    "test": "yarn workspaces foreach run test",
-    "lint": "eslint \"./**/*.ts*\"",
-    "build-dashboard": "yarn workspace dashboard run build",
-    "build-app-development": "yarn workspace app-development run build",
-    "start-dashboard": "yarn workspace dashboard start",
-    "start-app-development": "yarn workspace app-development start"
-  },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "5.40.1",
     "@typescript-eslint/parser": "5.40.1",
-    "eslint": "8.25.0",
+    "eslint": "8.26.0",
     "eslint-config-prettier": "8.5.0",
     "eslint-plugin-import": "2.26.0",
     "eslint-plugin-jsx-a11y": "6.6.1",
@@ -20,6 +11,18 @@
     "eslint-plugin-react-hooks": "4.6.0"
   },
   "packageManager": "yarn@3.2.4",
+  "private": true,
+  "scripts": {
+    "build-app-development": "yarn workspace app-development run build",
+    "build-dashboard": "yarn workspace dashboard run build",
+    "lint": "eslint \"./**/*.ts*\"",
+    "start-app-development": "yarn workspace app-development start",
+    "start-dashboard": "yarn workspace dashboard start",
+    "test": "yarn workspaces foreach run test"
+  },
+  "syncpack": {
+    "semverRange": ""
+  },
   "workspaces": [
     "dashboard",
     "app-development",
@@ -27,8 +30,5 @@
     "ux-editor",
     "packages/schema-editor",
     "packages/schema-model"
-  ],
-  "syncpack": {
-    "semverRange": ""
-  }
+  ]
 }

@@ -1,18 +1,13 @@
 {
   "name": "dashboard",
   "version": "0.1.0",
-  "private": true,
-  "scripts": {
-    "start": "cross-env NODE_ENV=development webpack-dev-server --config webpack.config.development.js --mode development",
-    "build": "cross-env NODE_ENV=production webpack --config webpack.config.production.js --progress",
-    "build-develop": "cross-env NODE_ENV=development webpack --config webpack.config.development --progress --watch",
-    "test": "jest",
-    "compile-ts": "tsc",
-    "clean": "rimraf dist compiled",
-    "webpack-watch": "cross-env NODE_ENV=development webpack --config webpack.config.development.js --watch --progress"
-  },
   "author": "Altinn",
-  "license": "3-Clause BSD",
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 10",
+    "not op_mini all"
+  ],
   "dependencies": {
     "@emotion/styled": "11.10.4",
     "@mui/material": "5.10.10",
@@ -49,7 +44,7 @@
     "jest": "29.2.1",
     "jest-junit": "14.0.1",
     "mini-css-extract-plugin": "2.6.1",
-    "msw": "0.47.3",
+    "msw": "0.47.4",
     "redux-mock-store": "1.5.4",
     "rimraf": "3.0.2",
     "terser-webpack-plugin": "5.3.6",
@@ -93,10 +88,15 @@
       "node_modules(\\\\|/)(?!@?react-leaflet|react-dnd|dnd-core|@react-dnd|react-dnd-html5-backend)"
     ]
   },
-  "browserslist": [
-    ">0.2%",
-    "not dead",
-    "not ie <= 10",
-    "not op_mini all"
-  ]
+  "license": "3-Clause BSD",
+  "private": true,
+  "scripts": {
+    "build": "cross-env NODE_ENV=production webpack --config webpack.config.production.js --progress",
+    "build-develop": "cross-env NODE_ENV=development webpack --config webpack.config.development --progress --watch",
+    "clean": "rimraf dist compiled",
+    "compile-ts": "tsc",
+    "start": "cross-env NODE_ENV=development webpack-dev-server --config webpack.config.development.js --mode development",
+    "test": "jest",
+    "webpack-watch": "cross-env NODE_ENV=development webpack --config webpack.config.development.js --watch --progress"
+  }
 }
