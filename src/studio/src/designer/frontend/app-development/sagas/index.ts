@@ -1,7 +1,6 @@
 import createSagaMiddleware, { SagaIterator } from 'redux-saga';
 import { fork } from 'redux-saga/effects';
 import { dataModellingSagas } from 'app-shared/features/dataModelling/sagas';
-
 import {
   watchHandleFetchInitialCommitSaga,
   watchHandleFetchServiceConfigSaga,

@@ -7,6 +7,7 @@
     "@mui/material": "5.10.10",
     "@mui/styles": "5.10.10",
     "@reduxjs/toolkit": "1.8.6",
+    "altinn-designsystem": "4.1.0",
     "app-shared": "0.1.0",
     "axios": "0.27.2",
     "classnames": "2.3.2",
