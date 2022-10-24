@@ -8,16 +8,6 @@ export interface IAltinnInformationCardComponentProvidedProps {
   shadow: boolean;
 }
 
-/**
- *     breadText: {
- *       paddingTop: 15,
- *       fontSize: 16,
- *       paddingBottom: 39,
- *     },
- *
- * @param props
- * @constructor
- */
 export const AltinnInformationCardForChildren = (
   props: React.PropsWithChildren<IAltinnInformationCardComponentProvidedProps>,
 ) => {

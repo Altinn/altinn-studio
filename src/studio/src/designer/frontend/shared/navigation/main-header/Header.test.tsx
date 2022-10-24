@@ -12,7 +12,7 @@ import {
 } from './Header';
 import altinnTheme from '../../theme/altinnStudioTheme';
 
-const themeV4 = createTheme(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const orgId = 1;
 const orgFullName = 'Organization 1';
@@ -112,7 +112,7 @@ const render = ({
   };
 
   return rtlRender(
-    <ThemeProvider theme={themeV4}>
+    <ThemeProvider theme={theme}>
       <HeaderContext.Provider value={headerContextValue}>
         <Header language={{}} />
       </HeaderContext.Provider>

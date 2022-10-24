@@ -30,6 +30,7 @@ export const SchemaTab = ({ label, value, hide, ...other }: ISchemaTabProps) => 
   const classes = useStyles();
   return (
     <Tab
+      {...other}
       sx={{
         fontSize: 16,
         fontWeight: 500,
@@ -39,7 +40,6 @@ export const SchemaTab = ({ label, value, hide, ...other }: ISchemaTabProps) => 
       id={`inspector-tab-${value}`}
       value={value}
       hidden={hide}
-      {...other}
     />
   );
 };
