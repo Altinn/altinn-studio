@@ -1,5 +1,4 @@
-import { TextField as MaterialTextField } from '@material-ui/core';
-import React, { useEffect, useState } from 'react';
+import React, { ChangeEvent, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import type { ILanguage, ISchemaState } from '../../types';
 import { NameError } from '../../types';
@@ -18,7 +17,7 @@ import {
 } from '../../features/editor/schemaEditorSlice';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions, getTypeOptions } from './helpers/options';
-import { Checkbox, ErrorMessage, FieldSet, TextField } from '@altinn/altinn-design-system';
+import { Checkbox, ErrorMessage, FieldSet, TextArea, TextField } from '@altinn/altinn-design-system';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
 import type { UiSchemaNode } from '@altinn/schema-model';
@@ -193,15 +192,10 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
         </div>
         <div>
           <Label htmlFor={descriptionId}>{t('description')}</Label>
-          <MaterialTextField
-            InputProps={{ disableUnderline: true }}
-            className={classes.field}
-            fullWidth
+          <TextArea
             id={descriptionId}
-            margin='normal'
-            multiline={true}
             onBlur={onChangeDescription}
-            onChange={(e) => setItemDescription(e.target.value)}
+            onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setItemDescription(event.target.value)}
             style={{ height: 100 }}
             value={description}
           />
