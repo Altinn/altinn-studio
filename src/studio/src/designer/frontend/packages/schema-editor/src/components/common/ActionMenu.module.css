@@ -17,7 +17,7 @@
 
 .root:focus-within .menu {
   border: 1px solid #c9c9c9;
-  box-shadow: 1px 1px 3px 1px #c9c9c9;
+  box-shadow: 1px 1px 3px 1px #0003;
 }
 
 .openButton {
