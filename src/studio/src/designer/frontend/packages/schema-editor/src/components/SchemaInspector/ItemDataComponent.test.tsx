@@ -9,6 +9,7 @@ import {
   ObjectKind,
 } from '@altinn/schema-model';
 import React from 'react';
+import { screen } from '@testing-library/react';
 
 const mockLanguage = {
   schema_editor: {
@@ -79,4 +80,34 @@ test('addCombinationItem is called when "nullable" checkbox is checked', async (
   if (checkbox === null) fail();
   await user.click(checkbox);
   expect(store.getActions().some(({ type }) => type === 'schemaEditor/addCombinationItem')).toBeTruthy();
+});
+
+test('"Title" field appears', () => {
+  renderItemDataComponent();
+  expect(screen.getByLabelText(mockLanguage.schema_editor.title)).toBeDefined();
+});
+
+test('setTitle action is called with correct payload when the "title" field loses focus', async () => {
+  const { store, user } = renderItemDataComponent();
+  const inputField = screen.getByLabelText(mockLanguage.schema_editor.title);
+  await user.type(inputField, 'Lorem ipsum');
+  await user.tab();
+  const setTitleActions = store.getActions().filter(({ type }) => type === 'schemaEditor/setTitle');
+  expect(setTitleActions).toHaveLength(1);
+  expect(setTitleActions[0].payload.title).toEqual('Lorem ipsum');
+});
+
+test('"Description" text area appears', () => {
+  renderItemDataComponent();
+  expect(screen.getByLabelText(mockLanguage.schema_editor.description)).toBeDefined();
+});
+
+test('setDescription action is called with correct payload when the "description" text area loses focus', async () => {
+  const { store, user } = renderItemDataComponent();
+  const textArea = screen.getByLabelText(mockLanguage.schema_editor.description);
+  await user.type(textArea, 'Lorem ipsum dolor sit amet.');
+  await user.tab();
+  const setDescriptionActions = store.getActions().filter(({ type }) => type === 'schemaEditor/setDescription');
+  expect(setDescriptionActions).toHaveLength(1);
+  expect(setDescriptionActions[0].payload.description).toEqual('Lorem ipsum dolor sit amet.');
 });
