@@ -1,5 +1,4 @@
 import React, { BaseSyntheticEvent, useEffect } from 'react';
-import { AddPropertyButton } from './AddPropertyButton';
 import type { ILanguage, ISchemaState } from '../../types';
 import { PropertyItem } from './PropertyItem';
 import { addProperty, deleteProperty, setPropertyName } from '../../features/editor/schemaEditorSlice';
@@ -10,6 +9,7 @@ import { getChildNodesByPointer, getNodeDisplayName } from '@altinn/schema-model
 import classes from './ItemFieldsTab.module.css';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 import { usePrevious } from '../../hooks/usePrevious';
+import { Button, ButtonVariant } from '@altinn/altinn-design-system';
 
 export interface ItemFieldsTabProps {
   selectedItem: UiSchemaNode;
@@ -75,12 +75,9 @@ export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) =>
         />
       ))}
       {!readonly && (
-        <div>
-          <AddPropertyButton
-            label={getTranslation('add_property', language)}
-            onAddPropertyClick={onAddPropertyClicked}
-          />
-        </div>
+        <Button onClick={onAddPropertyClicked} variant={ButtonVariant.Secondary}>
+          {getTranslation('add_property', language)}
+        </Button>
       )}
     </div>
   );

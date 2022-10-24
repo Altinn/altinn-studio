@@ -76,7 +76,7 @@ test('setPropertyName action is called with correct payload when a name is chang
   });
 });
 
-test('addProperty action is called with correct payload when the "Add property" button is clicked', async () => {
+test('addProperty action is called with correct payload when the "Add field" button is clicked', async () => {
   const { user, store } = renderItemFieldsTab();
   await user.click(screen.getByText(textAdd));
   const addPropertyActions = store.getActions().filter(action => action.type === 'schemaEditor/addProperty');
