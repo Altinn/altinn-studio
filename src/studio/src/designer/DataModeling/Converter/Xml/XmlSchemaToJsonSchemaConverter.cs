@@ -265,12 +265,12 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
             if (item.DefaultValue != null)
             {
-                builder.Default(item.DefaultValue.AsJsonElement());
+                builder.Default(item.DefaultValue);
             }
 
             if (item.FixedValue != null)
             {
-                builder.Const(item.FixedValue.AsJsonElement());
+                builder.Const(item.FixedValue);
             }
 
             builder.XsdAttribute();
@@ -324,7 +324,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                     if (enumValues.Count > 0)
                     {
                         AddUnhandledEnumAttributes(item, b);
-                        b.Enum(enumValues.Select(val => val.AsJsonElement()));
+                        b.Enum(enumValues);
                     }
                 });
             }
@@ -680,7 +680,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
                 if (enumValues.Count > 0)
                 {
-                    builder.Enum(enumValues.Select(val => val.AsJsonElement()));
+                    builder.Enum(enumValues);
                 }
             }
         }

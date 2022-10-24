@@ -125,5 +125,5 @@ namespace DataModeling.Tests
         {
             public override Encoding Encoding => Encoding.UTF8;
         }
-    }   
+    }
 }

@@ -1,3 +1,4 @@
+using System.Linq;
 using Json.Pointer;
 using Json.Schema;
 
@@ -17,17 +18,64 @@ namespace Altinn.Studio.DataModeling.Utils
         /// <returns>The JSON Schema found by following the pointer</returns>
         public static JsonSchema FollowReference(this JsonSchema schema, JsonPointer path)
         {
-            IRefResolvable schemaSegment = schema;
-            foreach (var segment in path.Segments)
+            return schema.FindSubschema(path);
+        }
+
+        /// <summary>
+        /// Library currently does not support finding schema by default.
+        /// Concept for finding schema is porter from internal method that library is using for finding subschemas.
+        /// https://github.com/gregsdennis/json-everything/blob/master/JsonSchema/JsonSchema.cs
+        /// </summary>
+        private static JsonSchema FindSubschema(this JsonSchema jsonSchema, JsonPointer pointer)
+        {
+            object resolvable = jsonSchema;
+            for (var i = 0; i < pointer.Segments.Length; i++)
             {
-                schemaSegment = schemaSegment.ResolvePointerSegment(segment.Value);
-                if (schemaSegment == null)
+                var segment = pointer.Segments[i];
+                object? newResolvable = null;
+
+                int index;
+                switch (resolvable)
                 {
+                    case ISchemaContainer container:
+                        newResolvable = container.Schema;
+
+                        // need to reprocess the segment
+                        i--;
+                        break;
+                    case ISchemaCollector collector:
+                        if (int.TryParse(segment.Value, out index) &&
+                            index >= 0 && index < collector.Schemas.Count)
+                        {
+                            newResolvable = collector.Schemas[index];
+                        }
+
+                        break;
+                    case IKeyedSchemaCollector keyedCollector:
+                        if (keyedCollector.Schemas.TryGetValue(segment.Value, out var subschema))
+                        {
+                            newResolvable = subschema;
+                        }
+
+                        break;
+                    case JsonSchema schema:
+
+                        newResolvable = schema.Keywords?.FirstOrDefault(k => k.Keyword() == segment.Value);
+                        break;
+                }
+
+                if (newResolvable is UnrecognizedKeyword unrecognized)
+                {
+                    var newPointer = JsonPointer.Create(pointer.Segments.Skip(i + 1), true);
+                    newPointer.TryEvaluate(unrecognized.Value, out var value);
+                    var asSchema = JsonSchema.FromText(value?.ToString() ?? "null");
                     return null;
                 }
+
+                resolvable = newResolvable!;
             }
 
-            return schemaSegment as JsonSchema;
+            return resolvable as JsonSchema;
         }
     }
 }
