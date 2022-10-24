@@ -88,6 +88,7 @@
   },
   "private": true,
   "scripts": {
+    "depcheck": "echo Checking $npm_package_name && npx depcheck && echo ",
     "test": "jest"
   }
 }
