@@ -87,9 +87,9 @@
   "scripts": {
     "build": "cross-env NODE_ENV=production webpack --config webpack.config.production.js --progress",
     "build-develop": "cross-env NODE_ENV=development webpack --config webpack.config.development --progress --watch",
-    "depcheck": "echo Checking $npm_package_name && npx depcheck && echo ",
     "clean": "rimraf dist compiled",
     "compile-ts": "tsc",
+    "depcheck": "echo Checking $npm_package_name && npx depcheck && echo ",
     "start": "cross-env NODE_ENV=development webpack-dev-server --config webpack.config.development.js --mode development",
     "test": "jest",
     "webpack-watch": "cross-env NODE_ENV=development webpack --config webpack.config.development.js --watch --progress"
