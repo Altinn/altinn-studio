@@ -1,7 +1,7 @@
 import Select from 'react-select';
 import React from 'react';
-import { Grid } from '@material-ui/core';
-import { renderPropertyLabel, selectStyles } from '../../utils/render';
+import { Grid } from '@mui/material';
+import { PropertyLabel, selectStyles } from '../../utils/render';
 import { IGenericEditComponent } from './componentConfig';
 import { useSelector } from 'react-redux';
 import { IAppState } from '../../types/global';
@@ -40,8 +40,9 @@ export const EditHeaderSize = ({
   return (
     <Grid container={true} spacing={0} direction='column'>
       <Grid item={true} xs={12} data-testid='header-size-select-wrapper'>
-        {renderPropertyLabel(language.ux_editor.modal_header_type_helper)}
+        <PropertyLabel textKey='language.ux_editor.modal_header_type_helper' />
         <Select
+          id={`edit-header-size-select-${component.id}`}
           styles={selectStyles}
           defaultValue={selectedValue}
           onChange={onSizeChange}
