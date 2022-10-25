@@ -5212,7 +5212,7 @@ __metadata:
     react-refresh-typescript: 2.0.7
     react-router-dom: 6.4.1
     react-select: 5.4.0
-    react-styleguidist: 12.0.0
+    react-styleguidist: 13.0.0
     redux: 4.2.0
     redux-mock-store: 1.5.4
     redux-saga: 1.2.1
@@ -13210,13 +13210,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-simple-code-editor@npm:^0.10.0":
-  version: 0.10.0
-  resolution: "react-simple-code-editor@npm:0.10.0"
+"react-simple-code-editor@npm:^0.13.1":
+  version: 0.13.1
+  resolution: "react-simple-code-editor@npm:0.13.1"
   peerDependencies:
-    react: ^16.0.0
-    react-dom: ^16.0.0
-  checksum: d9f448c5d1ba1b630ad6d9d775b5fa651ad1144eb5850fed3831b97d9da6da1daced37301c09946ff3a586f1f0f488f314cc81b744a1b60a343f30517c0767e9
+    react: "*"
+    react-dom: "*"
+  checksum: 1d223e34ccac5d7f91318f28d5edab6ccb13c51b1afb502094b8475214321263bb44258d355978e1714e9360c9081fb9f38d3ae89071a06628407627c362cc45
   languageName: node
   linkType: hard
 
@@ -13237,9 +13237,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-styleguidist@npm:12.0.0":
-  version: 12.0.0
-  resolution: "react-styleguidist@npm:12.0.0"
+"react-styleguidist@npm:13.0.0":
+  version: 13.0.0
+  resolution: "react-styleguidist@npm:13.0.0"
   dependencies:
     "@tippyjs/react": 4.1.0
     "@vxna/mini-html-webpack-template": ^2.0.0
@@ -13292,7 +13292,7 @@ __metadata:
     react-docgen-displayname-handler: ^3.0.0
     react-group: ^3.0.2
     react-icons: ^3.8.0
-    react-simple-code-editor: ^0.10.0
+    react-simple-code-editor: ^0.13.1
     recast: ~0.18.5
     remark: ^13.0.0
     strip-html-comments: ^1.0.0
@@ -13307,7 +13307,7 @@ __metadata:
     react-dom: ">=16.8"
   bin:
     styleguidist: lib/bin/styleguidist.js
-  checksum: 7a04aea84df99ec6d18c46836b1d4a43a74faa13ed81b2f5ea5e0f00bae5196985d3e714cea603e5d09904a4322ae032de2d3db09b05a2b467daeb55f9ceb400
+  checksum: 08e90646bffd2086be19920e200206ce91bd4272c46667a142f8446acc4cec9e649fb749c64df85aa5d900d5ca20edb4ed49beb577ada14ecd7222a8f140090a
   languageName: node
   linkType: hard
 
@@ -14185,7 +14185,7 @@ __metadata:
     react-content-loader: 6.2.0
     react-docgen-typescript: 1.22.0
     react-dom: 18.2.0
-    react-styleguidist: 12.0.0
+    react-styleguidist: 13.0.0
     ts-jest: 29.0.3
     typescript: 4.8.4
   languageName: unknown
