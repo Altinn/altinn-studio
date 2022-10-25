@@ -44,7 +44,6 @@ namespace Altinn.Studio.DataModeling.Json.Formats
             }
 
             return DateTimeOffset.TryParseExact(element.GetString(), formats, CultureInfo.InvariantCulture, DateTimeStyles.None, out _);
-
         }
     }
 }

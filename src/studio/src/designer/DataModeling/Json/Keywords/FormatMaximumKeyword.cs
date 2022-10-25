@@ -39,6 +39,7 @@ public sealed class FormatMaximumKeyword: IJsonSchemaKeyword, IEquatable<FormatM
     /// <inheritdoc />
     public void Validate(ValidationContext context)
     {
+        // No validation for keyword.
     }
 
     /// <inheritdoc />

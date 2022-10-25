@@ -43,6 +43,7 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
         /// </summary>
         public void Validate(ValidationContext context)
         {
+            // No validation for keyword.
         }
 
         /// <summary>Indicates whether the current object is equal to another object of the same type.</summary>

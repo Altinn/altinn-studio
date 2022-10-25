@@ -46,6 +46,7 @@ public sealed class XsdTextKeyword: IJsonSchemaKeyword, IEquatable<XsdTextKeywor
     /// </summary>
     public void Validate(ValidationContext context)
     {
+        // No validation for keyword.
     }
 
     /// <inheritdoc/>

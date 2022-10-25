@@ -1,3 +1,4 @@
+#nullable enable
 using System.Linq;
 using Json.Pointer;
 using Json.Schema;
@@ -68,8 +69,7 @@ namespace Altinn.Studio.DataModeling.Utils
                 {
                     var newPointer = JsonPointer.Create(pointer.Segments.Skip(i + 1), true);
                     newPointer.TryEvaluate(unrecognized.Value, out var value);
-                    var asSchema = JsonSchema.FromText(value?.ToString() ?? "null");
-                    return null;
+                    return JsonSchema.FromText(value?.ToString() ?? "null");
                 }
 
                 resolvable = newResolvable!;
