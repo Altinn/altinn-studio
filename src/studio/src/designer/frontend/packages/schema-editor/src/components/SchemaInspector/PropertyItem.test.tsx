@@ -2,26 +2,34 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 import { IPropertyItemProps, PropertyItem } from './PropertyItem';
 import { renderWithRedux } from '../../../test/renderWithRedux';
+import { FieldType } from '@altinn/schema-model';
 
 // Test data:
-const textRequired = 'Required';
-const textDelete = 'Delete';
+const textDeleteField = 'Slett felt';
+const textFieldName = 'Navn på felt';
+const textRequired = 'Påkrevd';
+const textType = 'Type';
 const fullPath = 'test';
 const inputId = 'some-random-id';
+const type = FieldType.String;
 const value = '';
 const mockLanguage = {
   schema_editor: {
-    delete_field: textDelete,
+    delete_field: textDeleteField,
+    field_name: textFieldName,
     required: textRequired,
+    type: textType,
   },
 };
 const defaultProps: IPropertyItemProps = {
   fullPath,
   inputId,
   language: mockLanguage,
+  onChangeType: jest.fn(),
   onChangeValue: jest.fn(),
   onDeleteField: jest.fn(),
   onEnterKeyPress: jest.fn(),
+  type,
   value,
 };
 
@@ -52,6 +60,11 @@ test('Text input field is disabled when the "readOnly" prop is true', () => {
 test('Text input field is not disabled when the "readOnly" prop is false', () => {
   renderPropertyItem({ readOnly: false });
   expect(screen.getByRole('textbox')).not.toBeDisabled();
+});
+
+test('Text input field is correctly labelled', () => {
+  renderPropertyItem();
+  expect(screen.getByRole('textbox')).toHaveAccessibleName(textFieldName);
 });
 
 test('onChangeValue is called on blur when text changes', async () => {
@@ -93,6 +106,24 @@ test('Name input field has given id', async () => {
   expect(container.querySelector(`#${inputId}`)).toBeDefined();
 });
 
+test('Given type is selected', async () => {
+  renderPropertyItem();
+  expect(screen.getByRole('combobox')).toHaveValue(type);
+});
+
+test('onChangeType is called with correct parameters when type changes', async () => {
+  const onChangeType = jest.fn();
+  const { user } = renderPropertyItem({ onChangeType });
+  await user.selectOptions(screen.getByRole('combobox'), FieldType.Integer);
+  expect(onChangeType).toHaveBeenCalledTimes(1);
+  expect(onChangeType).toHaveBeenCalledWith(fullPath, FieldType.Integer);
+});
+
+test('"Type" select box is correctly labelled', async () => {
+  renderPropertyItem();
+  expect(screen.getByRole('combobox')).toHaveAccessibleName(textType);
+});
+
 test('"Required" checkbox appears', () => {
   renderPropertyItem();
   expect(screen.getByRole('checkbox')).toBeDefined();
@@ -111,11 +142,6 @@ test('"Required" checkbox is checked when "required" prop is true', () => {
 test('"Required" checkbox is not checked when "required" prop is false', () => {
   renderPropertyItem({ required: false });
   expect(screen.getByRole('checkbox')).not.toBeChecked();
-});
-
-test('"Required" label appears on screen', () => {
-  renderPropertyItem();
-  expect(screen.getByText(textRequired)).toBeDefined();
 });
 
 test('"Required" checkbox is enabled by default', () => {
@@ -147,5 +173,5 @@ test('onDeleteField is called when the delete button is clicked', async () => {
 
 test('Delete button is labelled with the delete text', async () => {
   renderPropertyItem();
-  expect(screen.getByRole('button')).toHaveAccessibleName(textDelete);
+  expect(screen.getByRole('button')).toHaveAccessibleName(textDeleteField);
 });
