@@ -8,7 +8,6 @@ import AltinnRadio from 'app-shared/components/AltinnRadio';
 import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import Select from 'react-select';
-import ErrorPopover from 'app-shared/components/ErrorPopover';
 import {
   makeGetLayoutComponentsSelector,
   makeGetLayoutContainersSelector,
@@ -26,9 +25,7 @@ import { idExists, validComponentId } from '../../utils/formLayout';
 import type { ICodeListOption } from './SelectionEditComponent';
 import { SelectionEdit } from './SelectionEditComponent';
 import { ImageComponent } from './ImageComponent';
-import EditBoilerplate from './EditBoilerplate';
-import HeaderSizeSelectComponent from './HeaderSizeSelect';
-import { ComponentTypes } from '../index';
+import { ComponentTypes, EditSettings } from '../index';
 import { FileUploadWithTagComponent } from './FileUploadWithTagComponent';
 import {
   FormComponentType,
@@ -46,7 +43,11 @@ import {
   IFormImageComponent,
   IFormRadioButtonComponent,
   ITextResource,
+  IThirdPartyComponent,
 } from '../../types/global';
+import { EditComponentId } from './EditComponentId';
+import { componentSpecificEditConfig, configComponents, editBoilerPlate, IComponentEditConfig } from './componentConfig';
+import { getMinOccursFromDataModel, getXsdDataTypeFromDataModel } from '../../utils/datamodel';
 
 const styles = {
   gridItem: {
@@ -76,6 +77,7 @@ export interface IEditModalContentProps {
   classes: any;
   components?: IFormDesignerComponents;
   containers?: IFormDesignerContainers;
+  thirdPartyComponentConfig?: IComponentEditConfig;
 }
 
 export interface IEditModalContentState {
@@ -240,28 +242,6 @@ export class EditModalContentComponent extends React.Component<
     this.props.handleComponentUpdate(updatedComponent);
   };
 
-  public getMinOccursFromDataModel = (dataBindingName: string): number => {
-    const parentComponent = dataBindingName
-      .replace('.value', '')
-      .replace(/\./, '/');
-    const element: IDataModelFieldElement = this.props.dataModel.find(
-      (e: IDataModelFieldElement) => {
-        return e.xPath === `/${parentComponent}`;
-      },
-    );
-    return element?.minOccurs;
-  };
-
-  public getXsdDataTypeFromDataModel = (dataBindingName: string): string => {
-    const element: IDataModelFieldElement = this.props.dataModel.find(
-      (e: IDataModelFieldElement) => {
-        return e.dataBindingName === dataBindingName;
-      },
-    );
-
-    return element?.xsdValueType;
-  };
-
   public handleValidFileEndingsChange = (event: any) => {
     const component = this.props.component as
       | IFormFileUploaderComponent
@@ -397,11 +377,11 @@ export class EditModalContentComponent extends React.Component<
     dataModelBinding[key] = selectedDataModelElement;
     const modifiedProperties: any = {
       dataModelBindings: dataModelBinding,
-      required: this.getMinOccursFromDataModel(selectedDataModelElement) !== 0,
+      required: getMinOccursFromDataModel(selectedDataModelElement, this.props.dataModel) !== 0,
     };
     if (this.props.component.type === 'Datepicker') {
       modifiedProperties.timeStamp =
-        this.getXsdDataTypeFromDataModel(selectedDataModelElement) ===
+        getXsdDataTypeFromDataModel(selectedDataModelElement, this.props.dataModel) ===
         'DateTime';
     }
 
@@ -439,10 +419,10 @@ export class EditModalContentComponent extends React.Component<
     });
   };
 
-  public handleNewId = () => {
+  public handleNewId = (newId: string) => {
     if (
       idExists(
-        this.state.tmpId,
+        newId,
         this.props.components,
         this.props.containers,
       ) &&
@@ -454,7 +434,7 @@ export class EditModalContentComponent extends React.Component<
           this.props.language,
         ),
       }));
-    } else if (!this.state.tmpId || !validComponentId.test(this.state.tmpId)) {
+    } else if (!newId || !validComponentId.test(newId)) {
       this.setState(() => ({
         error: getLanguageFromKey(
           'ux_editor.modal_properties_component_id_not_valid',
@@ -468,7 +448,7 @@ export class EditModalContentComponent extends React.Component<
             error: null,
             component: {
               ...prevState.component,
-              id: prevState.tmpId,
+              id: newId,
             } as IFormAddressComponent,
           };
         },
@@ -479,101 +459,62 @@ export class EditModalContentComponent extends React.Component<
     }
   };
 
+  handleComponentChange = (modifiedProperties: Partial<FormComponentType>) => {
+    this.setState(
+      (prevState: IEditModalContentState) => {
+        const updatedComponent = {
+          ...prevState.component,
+          ...modifiedProperties,
+        };
+        return {
+          component: updatedComponent,
+        };
+      },
+      () => this.props.handleComponentUpdate(this.state.component),
+    );
+  };
+
+  public renderFromComponentSpecificDefinition(configDef: EditSettings[]) {
+    if (!configDef) return null;
+
+    return configDef.map((configType) => {
+      const Tag = configComponents[configType];
+      if (!Tag) return null;
+      return (
+      <Tag
+        key={configType}
+        handleComponentChange={this.handleComponentChange}
+        component={this.state.component}
+      />)
+    })
+  }
+
   public renderComponentSpecificContent(): JSX.Element {
     switch (this.props.component.type) {
-      case ComponentTypes.Header: {
-        return (
-          <HeaderSizeSelectComponent
-            renderChangeId={this.renderChangeId}
-            component={this.state.component}
-            language={this.props.language}
-            textResources={this.props.textResources}
-            handleTitleChange={this.handleTitleChange}
-            handleUpdateHeaderSize={this.handleUpdateHeaderSize}
-          />
-        );
-      }
-      case ComponentTypes.Datepicker:
-      case ComponentTypes.TextArea:
-      case ComponentTypes.Input: {
-        return (
-          <>
-            {this.renderChangeId()}
-            <EditBoilerplate
-              component={this.props.component}
-              textResources={this.props.textResources}
-              handleDataModelChange={this.handleDataModelChange}
-              handleTitleChange={this.handleTitleChange}
-              handleDescriptionChange={this.handleDescriptionChange}
-              language={this.props.language}
-            />
-            <Grid item={true} xs={12} style={styles.gridItem}>
-              <AltinnCheckBox
-                checked={this.state.component.readOnly}
-                onChangeFunction={this.handleReadOnlyChange}
-              />
-              {this.props.language.ux_editor.modal_configure_read_only}
-            </Grid>
-            <Grid item={true} xs={12}>
-              <AltinnCheckBox
-                checked={this.state.component.required}
-                onChangeFunction={this.handleRequiredChange}
-              />
-              {this.props.language.ux_editor.modal_configure_required}
-            </Grid>
-          </>
-        );
-      }
-      case ComponentTypes.AttachmentList: {
-        return (
-          <Grid>
-            {this.renderChangeId()}
-            {renderSelectTextFromResources(
-              'modal_properties_label_helper',
-              this.handleTitleChange,
-              this.props.textResources,
-              this.props.language,
-              this.state.component.textResourceBindings?.title,
-              this.props.component.textResourceBindings?.title,
-            )}
-          </Grid>
-        );
-      }
-      case ComponentTypes.Paragraph: {
-        return (
-          <Grid>
-            {this.renderChangeId()}
-            {renderSelectTextFromResources(
-              'modal_properties_paragraph_helper',
-              this.handleTitleChange,
-              this.props.textResources,
-              this.props.language,
-              this.state.component.textResourceBindings?.title,
-              this.props.component.textResourceBindings?.title,
-            )}
-          </Grid>
-        );
-      }
       case ComponentTypes.Checkboxes:
       case ComponentTypes.RadioButtons: {
         return (
           <>
-            {this.renderChangeId()}
+           {editBoilerPlate.map((configType) => {
+              const Tag = configComponents[configType];
+              if (!Tag) return null;
+              return (
+              <Tag
+                key={configType}
+                handleComponentChange={this.handleComponentChange}
+                component={this.state.component}
+              />)
+            })}
             <SelectionEdit
               type={this.props.component.type}
               component={this.state.component}
               key={this.state.component.id}
               handleAddOption={this.handleAddOption}
               handleOptionsIdChange={this.handleOptionsIdChange}
-              handleDescriptionChange={this.handleDescriptionChange}
               handlePreselectedOptionChange={this.handlePreselectedOptionChange}
               handleRemoveOption={this.handleRemoveOption}
-              handleTitleChange={this.handleTitleChange}
               handleUpdateOptionLabel={this.handleUpdateOptionLabel}
               handleUpdateOptionValue={this.handleUpdateOptionValue}
-              handleDataModelChange={this.handleDataModelChange}
-              handleRequiredChange={this.handleRequiredChange}
-              handleReadOnlyChange={this.handleReadOnlyChange}
             />
           </>
         );
@@ -583,29 +524,16 @@ export class EditModalContentComponent extends React.Component<
           .component as IFormDropdownComponent;
         return (
           <Grid container={true}>
-            {this.renderChangeId()}
-            <EditBoilerplate
-              component={this.props.component}
-              textResources={this.props.textResources}
-              handleDataModelChange={this.handleDataModelChange}
-              handleTitleChange={this.handleTitleChange}
-              handleDescriptionChange={this.handleDescriptionChange}
-              language={this.props.language}
-            />
-            <Grid item={true} xs={12} style={styles.gridItem}>
-              <AltinnCheckBox
-                checked={this.state.component.readOnly}
-                onChangeFunction={this.handleReadOnlyChange}
-              />
-              {this.props.language.ux_editor.modal_configure_read_only}
-            </Grid>
-            <Grid item={true} xs={12}>
-              <AltinnCheckBox
-                checked={this.state.component.required}
-                onChangeFunction={this.handleRequiredChange}
-              />
-              {this.props.language.ux_editor.modal_configure_required}
-            </Grid>
+            {editBoilerPlate.map((configType) => {
+              const Tag = configComponents[configType];
+              if (!Tag) return null;
+              return (
+              <Tag
+                key={configType}
+                handleComponentChange={this.handleComponentChange}
+                component={this.state.component}
+              />)
+            })}
             <Grid item={true} xs={12}>
               <AltinnInputField
                 id='modal-properties-code-list-id'
@@ -654,7 +582,6 @@ export class EditModalContentComponent extends React.Component<
         ];
         return (
           <>
-            {this.renderChangeId()}
             <Grid item={true} xs={12}>
               <Typography style={styles.inputHelper}>
                 {getLanguageFromKey(
@@ -693,7 +620,6 @@ export class EditModalContentComponent extends React.Component<
       case ComponentTypes.AddressComponent: {
         return (
           <Grid container={true} spacing={0} direction='column'>
-            {this.renderChangeId()}
             <Grid item={true} xs={12} style={{ marginTop: '2.4rem' }}>
               <AltinnCheckBox
                 checked={
@@ -743,7 +669,6 @@ export class EditModalContentComponent extends React.Component<
         const component = this.props.component as IFormFileUploaderComponent;
         return (
           <Grid>
-            {this.renderChangeId()}
             <Grid item={true} xs={12}>
               <AltinnRadioGroup
                 row={true}
@@ -886,7 +811,18 @@ export class EditModalContentComponent extends React.Component<
       case ComponentTypes.FileUploadWithTag: {
         return (
           <Grid>
-            {this.renderChangeId()}
+            <Grid item={true} xs={12}>
+             {[EditSettings.Title, EditSettings.Description].map((configType) => {
+              const Tag = configComponents[configType];
+              if (!Tag) return null;
+              return (
+              <Tag
+                key={configType}
+                handleComponentChange={this.handleComponentChange}
+                component={this.state.component}
+              />)
+            })}
+            </Grid>
             <FileUploadWithTagComponent
               component={
                 this.props.component as IFormFileUploaderWithTagComponent
@@ -895,8 +831,6 @@ export class EditModalContentComponent extends React.Component<
               language={this.props.language}
               textResources={this.props.textResources}
               handleComponentUpdate={this.props.handleComponentUpdate}
-              handleTitleChange={this.handleTitleChange}
-              handleDescriptionChange={this.handleDescriptionChange}
               handleOptionsIdChange={this.handleOptionsIdChange}
               handleNumberOfAttachmentsChange={
                 this.handleNumberOfAttachmentsChange
@@ -914,7 +848,6 @@ export class EditModalContentComponent extends React.Component<
       case ComponentTypes.Image: {
         return (
           <Grid>
-            {this.renderChangeId()}
             <ImageComponent
               component={this.props.component as IFormImageComponent}
               handleComponentUpdate={this.props.handleComponentUpdate}
@@ -926,7 +859,7 @@ export class EditModalContentComponent extends React.Component<
       }
 
       default: {
-        return <>{this.renderChangeId()}</>;
+        return null;
       }
     }
   }
@@ -946,36 +879,28 @@ export class EditModalContentComponent extends React.Component<
     });
   };
 
-  public renderChangeId = (): JSX.Element => {
-    return (
-      <Grid item={true} xs={12}>
-        <AltinnInputField
-          id='component-id'
-          textFieldId={`component-id-input${this.props.component.id}`}
-          onChangeFunction={this.handleIdChange}
-          onBlurFunction={this.handleNewId}
-          inputValue={this.state.tmpId}
-          inputDescription={getLanguageFromKey(
-            'ux_editor.modal_properties_component_change_id',
-            this.props.language,
-          )}
-          inputFieldStyling={{ width: '100%' }}
-          inputDescriptionStyling={{ marginTop: '24px' }}
-        />
-        <div ref={this.state.errorMessageRef} />
-        <ErrorPopover
-          anchorEl={
-            this.state.error ? this.state.errorMessageRef.current : null
-          }
-          onClose={this.handleClosePopup}
-          errorMessage={this.state.error}
-        />
-      </Grid>
-    );
-  };
+  public getConfigDefinitionForComponent() {
+    if (this.state.component.type === ComponentTypes.ThirdParty) {
+      return this.props.thirdPartyComponentConfig[(this.state.component as IThirdPartyComponent).tagName];
+    }
+
+    return componentSpecificEditConfig[this.state.component.type]
+  }
 
   public render(): JSX.Element {
-    return <>{this.renderComponentSpecificContent()}</>;
+    const configDef = this.getConfigDefinitionForComponent();
+    return(
+    <>
+      <EditComponentId
+        error={this.state.error}
+        handleClosePopup={this.handleClosePopup}
+        handleNewId={this.handleNewId}
+        id={this.props.component.id}
+        language={this.props.language}
+      />
+      {this.renderFromComponentSpecificDefinition(configDef)}
+      {this.renderComponentSpecificContent()}
+    </>);
   }
 }
 
@@ -991,9 +916,21 @@ const mapStateToProps = (
     dataModel: state.appData.dataModel.model,
     components: GetLayoutComponentsSelector(state),
     containers: GetLayoutContainersSelector(state),
+    thirdPartyComponentConfig: getThirdPartyConfig(state.uiEditor.queries['getJSON("GetThirdPartyComponents")']),
     ...props,
   };
 };
+
+const getThirdPartyConfig = (queryResult: any) => {
+  const result: IComponentEditConfig = {};
+  if (queryResult && queryResult.data?.components) {
+    queryResult.data.components.forEach((component: any) => {
+      result[component.componentDefinition.tagName] = component.editSettings;
+    });
+  }
+
+  return result;
+}
 
 export const EditModalContent = withStyles(styles)(
   connect(mapStateToProps)(EditModalContentComponent),

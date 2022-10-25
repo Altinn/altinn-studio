@@ -4,19 +4,21 @@ import { IErrorState } from '../features/error/errorSlice';
 import { IFormDesignerState } from '../features/formDesigner/formDesignerReducer';
 import { IServiceConfigurationState } from '../features/serviceConfigurations/serviceConfigurationTypes';
 
-export interface IFormDesignerNameSpace<T1, T2, T3, T4, T5> {
+export interface IFormDesignerNameSpace<T1, T2, T3, T4, T5, T6> {
   formDesigner: T1;
   serviceConfigurations: T2;
   appData: T3;
   errors: T4;
   widgets: T5;
+  uiEditor: T6;
 }
 export type IAppState = IFormDesignerNameSpace<
   IFormDesignerState,
   IServiceConfigurationState,
   IAppDataState,
   IErrorState,
-  IWidgetState
+  IWidgetState,
+  any
 >;
 
 export interface IAltinnEditableComponent {
@@ -80,6 +82,7 @@ export interface IFormComponent extends ICreateFormComponent {
   required?: boolean;
   hidden?: boolean;
   readOnly?: boolean;
+  [id: string]: any;
 }
 
 export interface IFormHeaderComponent extends IFormComponent {
@@ -162,6 +165,16 @@ export interface IFormGroupComponent extends IFormComponent {
   children: string[];
 }
 
+export interface IFormDatepickerComponent extends IFormComponent {
+  timeStamp: boolean;
+}
+
+export interface IThirdPartyComponent extends IFormComponent {
+  tagName: string;
+  framework: string;
+  [id: string]: any;
+}
+
 export type FormComponentType =
   | IFormComponent
   | IFormHeaderComponent
@@ -173,7 +186,9 @@ export type FormComponentType =
   | IFormFileUploaderComponent
   | IFormFileUploaderWithTagComponent
   | IFormAddressComponent
-  | IFormImageComponent;
+  | IFormImageComponent
+  | IFormDatepickerComponent
+  | IThirdPartyComponent;
 
 export interface IFormDesignerComponents {
   [id: string]: IFormComponent;

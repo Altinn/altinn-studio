@@ -6,7 +6,7 @@ import {
   fireEvent,
 } from '@testing-library/react';
 
-import { HeaderSizeSelect } from './HeaderSizeSelect';
+import { EditHeaderSize } from './EditHeaderSize';
 
 const h4Text = 'Undertittel (H4)';
 const h3Text = 'Undertittel (H3)';
@@ -18,7 +18,7 @@ const render = ({
   handleTitleChange = jest.fn(),
 } = {}) => {
   rtlRender(
-    <HeaderSizeSelect
+    <EditHeaderSize
       renderChangeId={() => <div>id</div>}
       handleTitleChange={handleTitleChange}
       handleUpdateHeaderSize={handleUpdateHeaderSize}

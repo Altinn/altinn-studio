@@ -100,7 +100,7 @@ export function getComponentTitleByComponentType(
 export function getCollapsableMenuTitleByType(
   menu: CollapsableMenus,
   language: any,
-): string {
+): string {;
   switch (menu) {
     case CollapsableMenus.Components: {
       return language.ux_editor.collapsable_schema_components;
@@ -113,6 +113,9 @@ export function getCollapsableMenuTitleByType(
     }
     case CollapsableMenus.Widgets: {
       return language.ux_editor.collapsable_text_widgets;
+    }
+    case CollapsableMenus.ThirdParty: {
+      return language.ux_editor.collapsable_text_thirdparty_components;
     }
     default: {
       return '';

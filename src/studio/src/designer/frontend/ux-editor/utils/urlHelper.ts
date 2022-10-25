@@ -78,3 +78,11 @@ export const getFetchRuleModelUrl = () => {
 export const getFetchRuleConfigurationUrl = () => {
   return `${basePath}/UIEditor/GetJsonFile?fileName=RuleConfiguration.json`;
 };
+
+export const getFetchExternalComponentsUrl = () => {
+  return `${basePath}/UIEditor/GetThirdPartyComponents`;
+}
+
+export const getFetchUIEditorBaseUrl = () => {
+  return `${basePath}/UIEditor/`;
+}

@@ -7,9 +7,7 @@ import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import AltinnCheckBox from 'app-shared/components/AltinnCheckBox';
 import {
-  renderSelectDataModelBinding,
   renderSelectTextFromResources,
 } from '../../utils/render';
 import type {
@@ -78,16 +76,11 @@ export interface ISelectionEditComponentProvidedProps {
   component: IFormComponent;
   type: 'Checkboxes' | 'RadioButtons';
   handleOptionsIdChange: (e: any) => void;
-  handleTitleChange: (updatedTitle: string) => void;
-  handleDescriptionChange: (updatedDescription: string) => void;
   handleUpdateOptionLabel: (index: number, event: any) => void;
   handleUpdateOptionValue: (index: number, event: any) => void;
   handleRemoveOption: (index: number | string) => void;
   handleAddOption: () => void;
   handlePreselectedOptionChange: (event: any) => void;
-  handleDataModelChange: (selectedDataModelElement: any) => void;
-  handleRequiredChange: (event: any, checked: boolean) => void;
-  handleReadOnlyChange: (event: any, checked: boolean) => void;
 }
 
 export interface ISelectionEditComponentProps
@@ -143,41 +136,6 @@ export class SelectionEditComponent extends React.Component<
     return (
       <div>
         <Grid item={true} xs={12}>
-          {renderSelectDataModelBinding(
-            this.props.component.dataModelBindings,
-            this.props.handleDataModelChange,
-            this.props.language,
-          )}
-          {renderSelectTextFromResources(
-            'modal_properties_label_helper',
-            this.props.handleTitleChange,
-            this.props.textResources,
-            this.props.language,
-            this.props.component.textResourceBindings.title,
-            this.props.component.textResourceBindings.title,
-          )}
-          {renderSelectTextFromResources(
-            'modal_properties_description_helper',
-            this.props.handleDescriptionChange,
-            this.props.textResources,
-            this.props.language,
-            this.props.component.textResourceBindings.description,
-            this.props.component.textResourceBindings.description,
-          )}
-          <Grid item={true} xs={12} style={{ marginTop: '18px' }}>
-            <AltinnCheckBox
-              checked={this.props.component.readOnly}
-              onChangeFunction={this.props.handleReadOnlyChange}
-            />
-            {this.props.language.ux_editor.modal_configure_read_only}
-          </Grid>
-          <Grid item={true} xs={12}>
-            <AltinnCheckBox
-              checked={this.props.component.required}
-              onChangeFunction={this.props.handleRequiredChange}
-            />
-            {this.props.language.ux_editor.modal_configure_required}
-          </Grid>
           <AltinnRadioGroup
             onChange={this.handleRadioButtonChange}
             value={this.state.radioButtonSelection}

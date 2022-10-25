@@ -16,8 +16,6 @@ type FileUploadWithTagComponentProps = {
   handleComponentUpdate: (updatedComponent: FormComponentType) => void;
   language: any;
   textResources: any;
-  handleTitleChange: (e: any) => void;
-  handleDescriptionChange: (e: any) => void;
   handleOptionsIdChange: (e: any) => void;
   handleNumberOfAttachmentsChange: (e: any) => void;
   handleMaxFileSizeInMBChange: (e: any) => void;
@@ -31,8 +29,6 @@ export const FileUploadWithTagComponent = ({
   language,
   textResources,
   handleComponentUpdate,
-  handleTitleChange,
-  handleDescriptionChange,
   handleOptionsIdChange,
   handleNumberOfAttachmentsChange,
   handleMaxFileSizeInMBChange,
@@ -48,22 +44,6 @@ export const FileUploadWithTagComponent = ({
   return (
     <Grid container={true}>
       <Grid item={true} xs={12}>
-        {renderSelectTextFromResources(
-          'modal_properties_label_helper',
-          handleTitleChange,
-          textResources,
-          language,
-          stateComponent.textResourceBindings?.title,
-          component.textResourceBindings?.title,
-        )}
-        {renderSelectTextFromResources(
-          'modal_properties_description_helper',
-          handleDescriptionChange,
-          textResources,
-          language,
-          stateComponent.textResourceBindings?.description,
-          component.textResourceBindings?.description,
-        )}
         {renderSelectTextFromResources(
           'modal_properties_tag_helper',
           handleTagTitleChange,
