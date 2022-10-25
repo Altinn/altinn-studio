@@ -1,0 +1,9 @@
+{
+  "ignores": [
+    "ts-loader",
+    "webpack-cli",
+    "css-loader",
+    "style-loader",
+    "source-map-loader"
+  ]
+}

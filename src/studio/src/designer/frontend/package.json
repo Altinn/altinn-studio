@@ -1,27 +1,35 @@
 {
   "name": "altinn-studio-frontend",
-  "private": true,
-  "scripts": {
-    "test": "yarn workspaces foreach run test",
-    "lint": "eslint \"./**/*.ts*\"",
-    "build-dashboard": "yarn workspace dashboard run build",
-    "build-app-development": "yarn workspace app-development run build",
-    "start-dashboard": "yarn workspace dashboard start",
-    "start-app-development": "yarn workspace app-development start"
-  },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "5.40.1",
     "@typescript-eslint/parser": "5.40.1",
-    "eslint": "8.25.0",
+    "css-loader": "6.7.1",
+    "eslint": "8.26.0",
     "eslint-config-prettier": "8.5.0",
-    "eslint-import-resolver-typescript": "3.5.2",
     "eslint-plugin-import": "2.26.0",
     "eslint-plugin-jsx-a11y": "6.6.1",
     "eslint-plugin-react": "7.31.10",
     "eslint-plugin-react-hooks": "4.6.0",
-    "typescript": "4.8.4"
+    "source-map-loader": "4.0.1",
+    "style-loader": "3.3.1",
+    "ts-loader": "9.4.1",
+    "webpack-cli": "4.10.0"
   },
   "packageManager": "yarn@3.2.4",
+  "private": true,
+  "scripts": {
+    "build-app-development": "yarn workspace app-development run build",
+    "build-dashboard": "yarn workspace dashboard run build",
+    "depcheck": "npx depcheck && yarn workspaces foreach run depcheck",
+    "lint": "eslint \"./**/*.ts*\"",
+    "start-app-development": "yarn workspace app-development start",
+    "start-dashboard": "yarn workspace dashboard start",
+    "syncpack": "npx syncpack fix-mismatches && npx syncpack format",
+    "test": "yarn workspaces foreach run test"
+  },
+  "syncpack": {
+    "semverRange": ""
+  },
   "workspaces": [
     "dashboard",
     "app-development",
