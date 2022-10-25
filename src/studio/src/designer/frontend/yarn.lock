@@ -4096,6 +4096,7 @@ __metadata:
     eslint-plugin-react-hooks: 4.6.0
     source-map-loader: 4.0.1
     style-loader: 3.3.1
+    svg-inline-loader: 0.8.2
     ts-loader: 9.4.1
     webpack-cli: 4.10.0
   languageName: unknown
@@ -9187,6 +9188,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"loader-utils@npm:^1.1.0":
+  version: 1.4.0
+  resolution: "loader-utils@npm:1.4.0"
+  dependencies:
+    big.js: ^5.2.2
+    emojis-list: ^3.0.0
+    json5: ^1.0.1
+  checksum: d150b15e7a42ac47d935c8b484b79e44ff6ab4c75df7cc4cb9093350cf014ec0b17bdb60c5d6f91a37b8b218bd63b973e263c65944f58ca2573e402b9a27e717
+  languageName: node
+  linkType: hard
+
 "loader-utils@npm:^2.0.2":
   version: 2.0.3
   resolution: "loader-utils@npm:2.0.3"
@@ -11852,6 +11864,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"simple-html-tokenizer@npm:^0.1.1":
+  version: 0.1.1
+  resolution: "simple-html-tokenizer@npm:0.1.1"
+  checksum: 20978069be4830d3d986227c48243c14495359ec65f6ddc97affdf462d249d43522163d2747728f8d15534464aa0dc0ed61f322112b5d229b8f1506f9660a951
+  languageName: node
+  linkType: hard
+
 "sisteransi@npm:^1.0.5":
   version: 1.0.5
   resolution: "sisteransi@npm:1.0.5"
@@ -12294,6 +12313,17 @@ __metadata:
   version: 1.0.0
   resolution: "supports-preserve-symlinks-flag@npm:1.0.0"
   checksum: 53b1e247e68e05db7b3808b99b892bd36fb096e6fba213a06da7fab22045e97597db425c724f2bbd6c99a3c295e1e73f3e4de78592289f38431049e1277ca0ae
+  languageName: node
+  linkType: hard
+
+"svg-inline-loader@npm:0.8.2":
+  version: 0.8.2
+  resolution: "svg-inline-loader@npm:0.8.2"
+  dependencies:
+    loader-utils: ^1.1.0
+    object-assign: ^4.0.1
+    simple-html-tokenizer: ^0.1.1
+  checksum: 7cf165cd55149ae48197eac543909e72327c26a406e3068657cce796ad70f8f893f9a83e06707bbffd96a9ccd2e36f9a3cca6cc00dd40fdd0cab47b785df413e
   languageName: node
   linkType: hard
 

@@ -1,9 +1,10 @@
 {
   "ignores": [
-    "ts-loader",
-    "webpack-cli",
     "css-loader",
+    "source-map-loader",
     "style-loader",
-    "source-map-loader"
+    "svg-inline-loader",
+    "ts-loader",
+    "webpack-cli"
   ]
 }
