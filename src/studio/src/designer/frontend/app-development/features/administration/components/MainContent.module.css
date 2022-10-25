@@ -1,0 +1,19 @@
+.mainContentContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 750px;
+}
+.mainContentContainer h2 {
+  margin-top: 20px;
+}
+.mainContentContainer p {
+  margin: 0;
+}
+.sideBySide {
+  display: flex;
+  flex-direction: row;
+}
+.sideBySide :first-child {
+  flex: 1;
+}

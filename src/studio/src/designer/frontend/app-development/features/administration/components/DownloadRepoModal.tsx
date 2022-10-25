@@ -1,34 +1,11 @@
 import React from 'react';
-import { createTheme, Grid, Popover, Typography } from '@mui/material';
-import { makeStyles } from '@mui/styles';
-import AltinnButton from 'app-shared/components/AltinnButton';
-import studioTheme from 'app-shared/theme/altinnStudioTheme';
+import { Popover, Typography } from '@mui/material';
+import { Button, ButtonVariant } from '@altinn/altinn-design-system';
 import {
   getLanguageFromKey,
   getParsedLanguageFromKey,
 } from 'app-shared/utils/language';
-
-const theme = createTheme(studioTheme);
-
-const setupClasses = makeStyles({
-  itemSeparator: {
-    paddingBottom: 12,
-  },
-  sectionSeparator: {
-    paddingBottom: 32,
-  },
-  blackText: {
-    color: 'black',
-  },
-  confirmButton: {
-    backgroundColor: theme.altinnPalette.primary.red,
-    color: theme.altinnPalette.primary.white,
-    marginTop: 30,
-  },
-  cancelButton: {
-    marginTop: 30,
-  },
-});
+import classes from './RepoModal.module.css';
 
 interface IDownloadRepoModalProps {
   anchorRef: React.MutableRefObject<Element>;
@@ -37,9 +14,7 @@ interface IDownloadRepoModalProps {
   language: any;
 }
 
-function DownloadRepoModal(props: IDownloadRepoModalProps) {
-  const classes = setupClasses();
-
+export function DownloadRepoModal(props: IDownloadRepoModalProps) {
   return (
     <div data-testid='download-repo-container'>
       <Popover
@@ -56,73 +31,48 @@ function DownloadRepoModal(props: IDownloadRepoModalProps) {
         }}
         data-testid='download-repo-popover'
       >
-        <Grid
-          container={true}
-          direction='column'
-          sx={{
-            padding: '24px',
-            width: '471px',
-          }}
-        >
-          <Grid item={true} className={classes.itemSeparator}>
-            <Typography variant={'h2'} sx={{ marginBottom: '20px' }}>
+        <div className={classes.modalContainer}>
+          <Typography variant={'h2'}>
+            {getLanguageFromKey(
+              'administration.download_repo_heading',
+              props.language,
+            )}
+          </Typography>
+          <Typography variant='body1'>
+            {getParsedLanguageFromKey(
+              'administration.download_repo_info',
+              props.language,
+            )}
+          </Typography>
+          <Typography variant='body1'>
+            <a
+              href={`/designer/api/v1/repos/${(window as any).org}/${
+                (window as any).app
+              }/contents.zip`}
+            >
               {getLanguageFromKey(
-                'administration.download_repo_heading',
+                'administration.download_repo_changes',
                 props.language,
               )}
-            </Typography>
-          </Grid>
-          <Grid item={true} className={classes.sectionSeparator}>
-            <Typography variant='body1'>
-              {getParsedLanguageFromKey(
-                'administration.download_repo_info',
+            </a>
+          </Typography>
+          <Typography variant='body1'>
+            <a
+              href={`/designer/api/v1/repos/${(window as any).org}/${
+                (window as any).app
+              }/contents.zip?full=true`}
+            >
+              {getLanguageFromKey(
+                'administration.download_repo_full',
                 props.language,
               )}
-            </Typography>
-          </Grid>
-          <Grid item={true} className={classes.itemSeparator}>
-            <Typography variant='body1' className={classes.blackText}>
-              <a
-                href={`/designer/api/v1/repos/${(window as any).org}/${
-                  (window as any).app
-                }/contents.zip`}
-              >
-                {getLanguageFromKey(
-                  'administration.download_repo_changes',
-                  props.language,
-                )}
-              </a>
-            </Typography>
-          </Grid>
-          <Grid item={true}>
-            <Typography variant='body1' className={classes.blackText}>
-              <a
-                href={`/designer/api/v1/repos/${(window as any).org}/${
-                  (window as any).app
-                }/contents.zip?full=true`}
-              >
-                {getLanguageFromKey(
-                  'administration.download_repo_full',
-                  props.language,
-                )}
-              </a>
-            </Typography>
-          </Grid>
-          <Grid container={true}>
-            <Grid item={true} xs={6} />
-            <Grid item={true} xs={6}>
-              <AltinnButton
-                onClickFunction={props.onClose}
-                btnText={getLanguageFromKey('general.cancel', props.language)}
-                secondaryButton={true}
-                className={classes.cancelButton}
-              />
-            </Grid>
-          </Grid>
-        </Grid>
+            </a>
+          </Typography>
+          <Button onClick={props.onClose} variant={ButtonVariant.Secondary}>
+            {getLanguageFromKey('general.cancel', props.language)}
+          </Button>
+        </div>
       </Popover>
     </div>
   );
 }
-
-export default DownloadRepoModal;

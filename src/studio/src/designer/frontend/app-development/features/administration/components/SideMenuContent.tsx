@@ -1,12 +1,12 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Typography } from '@mui/material';
+import { Button } from '@altinn/altinn-design-system';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { formatNameAndDate } from 'app-shared/utils/formatDate';
-import AltinnButton from 'app-shared/components/AltinnButton';
 import type { ICommit, IRepository } from '../../../types/global';
-import ResetRepoModal from './ResetRepoModal';
+import { ResetRepoModal } from './ResetRepoModal';
 import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
-import DownloadRepoModal from './DownloadRepoModal';
+import { DownloadRepoModal } from './DownloadRepoModal';
 import { useAppDispatch, useAppSelector } from 'common/hooks';
 
 interface ISideMenuContent {
@@ -17,39 +17,25 @@ interface ISideMenuContent {
 
 const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
   const dispatch = useAppDispatch();
-
-  const [resetRepoModalOpen, setResetRepoModalOpen] =
-    React.useState<boolean>(false);
-  const [resetRepoModalAnchorEl, setResetRepoModalAnchorEl] =
-    React.useState<any>(null);
-  const [downloadModalOpen, setDownloadModalOpen] =
-    React.useState<boolean>(false);
-  const downloadModalRef = React.useRef<HTMLElement>();
+  const [resetRepoModalOpen, setResetRepoModalOpen] = useState<boolean>(false);
+  const [downloadModalOpen, setDownloadModalOpen] = useState<boolean>(false);
 
   const repoStatus = useAppSelector(
     (state) => state.handleMergeConflict.repoStatus,
   );
 
-  const toggleDownloadModal = () => {
-    setDownloadModalOpen(!downloadModalOpen);
-  };
+  const toggleDownloadModal = () => setDownloadModalOpen(!downloadModalOpen);
 
-  const onCloseModal = () => {
-    setResetRepoModalOpen(false);
-  };
+  const onCloseModal = () => setResetRepoModalOpen(false);
 
-  const onClickResetRepo = () => {
-    setResetRepoModalAnchorEl(document.getElementById('reset-repo-button'));
-    setResetRepoModalOpen(true);
-  };
+  const onClickResetRepo = () => setResetRepoModalOpen(true);
 
   const handleResetRepoClick = () => {
     const altinnWindow: any = window;
     const { org, app } = altinnWindow;
     dispatch(RepoStatusActions.resetLocalRepo({ org, repo: app }));
   };
-
-  React.useEffect(() => {
+  useEffect(() => {
     if (
       repoStatus &&
       !(
@@ -61,6 +47,8 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
     }
   }, [repoStatus]);
 
+  const downloadModalAnchor = useRef<HTMLDivElement>();
+  const resetRepoModalAnchor = useRef<HTMLDivElement>();
   return (
     <>
       {/* App owner info */}
@@ -119,16 +107,12 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
           </li>
         </ul>
       </Typography>
-      <AltinnButton
-        id='reset-repo-button'
-        btnText={getLanguageFromKey(
-          'administration.reset_repo_button',
-          props.language,
-        )}
-        onClickFunction={onClickResetRepo}
-      />
+      <Button id='reset-repo-button' onClick={onClickResetRepo}>
+        {getLanguageFromKey('administration.reset_repo_button', props.language)}
+      </Button>
+      <div ref={resetRepoModalAnchor} />
       <ResetRepoModal
-        anchorEl={resetRepoModalAnchorEl}
+        anchorRef={resetRepoModalAnchor}
         handleClickResetRepo={handleResetRepoClick}
         language={props.language}
         onClose={onCloseModal}
@@ -142,16 +126,12 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
       >
         {getLanguageFromKey('administration.download_repo', props.language)}
       </Typography>
-      <AltinnButton
-        btnText={getLanguageFromKey(
-          'administration.download_repo',
-          props.language,
-        )}
-        onClickFunction={toggleDownloadModal}
-        ref={downloadModalRef}
-      />
+      <Button onClick={toggleDownloadModal}>
+        {getLanguageFromKey('administration.download_repo', props.language)}
+      </Button>
+      <div ref={downloadModalAnchor} />
       <DownloadRepoModal
-        anchorRef={downloadModalRef}
+        anchorRef={downloadModalAnchor}
         language={props.language}
         onClose={toggleDownloadModal}
         open={downloadModalOpen}

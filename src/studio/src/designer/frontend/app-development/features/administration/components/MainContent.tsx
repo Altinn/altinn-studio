@@ -1,16 +1,15 @@
 import React from 'react';
-import { createTheme, Typography } from '@mui/material';
-import { makeStyles } from '@mui/styles';
+import { Typography } from '@mui/material';
+import { Button, TextArea, TextField } from '@altinn/altinn-design-system';
 import {
   getLanguageFromKey,
   getParsedLanguageFromKey,
 } from 'app-shared/utils/language';
-import AltinnInputField from 'app-shared/components/AltinnInputField';
-import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import AltinnPopper from 'app-shared/components/AltinnPopper';
 import AltinnInformationPaper from 'app-shared/components/AltinnInformationPaper';
 import type { IRepository } from '../../../types/global';
 import { useAppSelector } from 'common/hooks';
+import classes from './MainContent.module.css';
 
 interface IMainContentProps {
   repository: IRepository;
@@ -29,16 +28,7 @@ interface IMainContentProps {
   appNameAnchorEl: any;
 }
 
-const theme = createTheme(altinnTheme);
-
-const setupClasses = makeStyles({
-  marginBottom_24: {
-    marginBottom: 24,
-  },
-});
-
 const MainContent = (props: IMainContentProps): JSX.Element => {
-  const classes = setupClasses();
   const urlParams = new URLSearchParams(
     `?${window.location.hash.split('?')[1]}`,
   );
@@ -46,57 +36,50 @@ const MainContent = (props: IMainContentProps): JSX.Element => {
   const language = useAppSelector((state) => state.languageState.language);
 
   return (
-    <>
-      <div className={classes.marginBottom_24}>
-        {copiedApp && (
-          <div
-            className={classes.marginBottom_24}
-            style={{ maxWidth: '750px' }}
-          >
-            <AltinnInformationPaper>
-              <Typography variant='h2' sx={{ marginBottom: '12px' }}>
-                {getParsedLanguageFromKey(
-                  'administration.copied_app_header',
-                  language,
-                  [],
-                )}
-              </Typography>
-              <Typography variant='body1'>
-                {getParsedLanguageFromKey(
-                  'administration.copied_app_information',
-                  language,
-                  [],
-                )}
-              </Typography>
-            </AltinnInformationPaper>
-          </div>
+    <div className={classes.mainContentContainer}>
+      {copiedApp && (
+        <>
+          <AltinnInformationPaper>
+            <Typography variant='h2' sx={{ marginBottom: '12px' }}>
+              {getParsedLanguageFromKey(
+                'administration.copied_app_header',
+                language,
+                [],
+              )}
+            </Typography>
+            <Typography variant='body1'>
+              {getParsedLanguageFromKey(
+                'administration.copied_app_information',
+                language,
+                [],
+              )}
+            </Typography>
+          </AltinnInformationPaper>
+        </>
+      )}
+      <Typography variant={'h2'}>
+        {getLanguageFromKey('general.service_name', props.language)}
+      </Typography>
+      <p>
+        {getLanguageFromKey(
+          'administration.service_name_administration_description',
+          props.language,
         )}
-        <AltinnInputField
-          id='administrationInputAppName'
-          textFieldId='administrationInputAppName_textField'
-          onChangeFunction={props.onAppNameChange}
-          inputHeader={getLanguageFromKey(
-            'general.service_name',
-            props.language,
-          )}
-          inputDescription={getLanguageFromKey(
-            'administration.service_name_administration_description',
-            props.language,
-          )}
-          inputValue={props.appName}
-          onBlurFunction={props.onAppNameBlur}
-          btnText={getLanguageFromKey('general.edit', props.language)}
-          onBtnClickFunction={props.onEditAppNameClick}
-          isDisabled={!props.editAppName}
-          focusOnComponentDidUpdate={props.editAppName}
-          inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
-          inputFieldStyling={
-            props.editAppName
-              ? { background: theme.altinnPalette.primary.white }
-              : null
-          }
+      </p>
+
+      <div className={classes.sideBySide}>
+        <TextField
+          id='administrationInputAppName_textField'
+          onValueChange={props.onAppNameChange}
+          value={props.appName}
+          onBlur={props.onAppNameBlur}
+          disabled={!props.editAppName}
         />
+        <Button onClick={props.onEditAppNameClick}>
+          {getLanguageFromKey('general.edit', props.language)}
+        </Button>
       </div>
+
       <AltinnPopper
         anchorEl={props.appNameAnchorEl}
         message={getLanguageFromKey(
@@ -104,60 +87,55 @@ const MainContent = (props: IMainContentProps): JSX.Element => {
           props.language,
         )}
       />
-      <div className={classes.marginBottom_24}>
-        <AltinnInputField
-          id='administrationInputAppId'
-          textFieldId='administrationInputAppId_textField'
-          onChangeFunction={props.onAppIdChange}
-          inputHeader={getLanguageFromKey(
-            'administration.service_id',
-            props.language,
-          )}
-          inputDescription={getLanguageFromKey(
-            'administration.service_id_description',
-            props.language,
-          )}
-          inputValue={props.appId}
-          onBlurFunction={props.onAppIdBlur}
-          inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
-        />
-      </div>
-      <div className={classes.marginBottom_24}>
-        <AltinnInputField
-          id='administrationInputReponame'
-          inputHeader={getLanguageFromKey(
-            'general.service_saved_name',
-            props.language,
-          )}
-          inputDescription={getLanguageFromKey(
-            'administration.service_saved_name_administration_description',
-            props.language,
-          )}
-          inputValue={props.repository ? props.repository.name : ''}
-          isDisabled={true}
-          inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
-        />
-      </div>
-      <div className={classes.marginBottom_24}>
-        <AltinnInputField
-          id='administrationInputDescription'
-          textFieldId='administrationInputDescription_textField'
-          onChangeFunction={props.onAppDescriptionChange}
-          inputHeader={getLanguageFromKey(
-            'administration.service_comment',
-            props.language,
-          )}
-          inputDescription={getLanguageFromKey(
-            'administration.service_comment_description',
-            props.language,
-          )}
-          textAreaRows={7}
-          inputValue={props.appDescription}
-          onBlurFunction={props.onAppDescriptionBlur}
-          inputHeaderStyling={{ fontSize: 20, fontWeight: 500 }}
-        />
-      </div>
-    </>
+
+      <Typography variant={'h2'}>
+        {getLanguageFromKey('administration.service_id', props.language)}
+      </Typography>
+      <p>
+        {getLanguageFromKey(
+          'administration.service_id_description',
+          props.language,
+        )}
+      </p>
+      <TextField
+        id='administrationInputAppId_textField'
+        onValueChange={props.onAppIdChange}
+        value={props.appId}
+        onBlur={props.onAppIdBlur}
+      />
+
+      <Typography variant={'h2'}>
+        {getLanguageFromKey('general.service_saved_name', props.language)}
+      </Typography>
+      <p>
+        {getLanguageFromKey(
+          'administration.service_saved_name_administration_description',
+          props.language,
+        )}
+      </p>
+      <TextField
+        id='administrationInputReponame'
+        value={props.repository ? props.repository.name : ''}
+        disabled={true}
+      />
+
+      <Typography variant={'h2'}>
+        {getLanguageFromKey('administration.service_comment', props.language)}
+      </Typography>
+      <p>
+        {getLanguageFromKey(
+          'administration.service_comment_description',
+          props.language,
+        )}
+      </p>
+      <TextArea
+        id='administrationInputDescription_textField'
+        onChange={props.onAppDescriptionChange}
+        rows={7}
+        value={props.appDescription}
+        onBlur={props.onAppDescriptionBlur}
+      />
+    </div>
   );
 };
 
