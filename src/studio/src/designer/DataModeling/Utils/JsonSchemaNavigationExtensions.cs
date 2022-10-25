@@ -23,8 +23,8 @@ namespace Altinn.Studio.DataModeling.Utils
         }
 
         /// <summary>
-        /// Library currently does not support finding schema by default.
-        /// Concept for finding schema is porter from internal method that library is using for finding subschemas.
+        /// JsonSchema.Net library currently does not support finding subschema by default.
+        /// Concept for finding schema is ported from internal method that library is using for finding subschemas.
         /// https://github.com/gregsdennis/json-everything/blob/master/JsonSchema/JsonSchema.cs
         /// </summary>
         private static JsonSchema FindSubschema(this JsonSchema jsonSchema, JsonPointer pointer)
