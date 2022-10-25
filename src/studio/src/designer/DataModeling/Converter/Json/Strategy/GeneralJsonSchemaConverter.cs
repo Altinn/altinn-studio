@@ -725,7 +725,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
                         foreach (var value in enumKeyword.Values)
                         {
-                            facets.Add(new XmlSchemaEnumerationFacet { Value = value.GetString() });
+                            facets.Add(new XmlSchemaEnumerationFacet { Value = value.ToString() });
                         }
 
                         break;

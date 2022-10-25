@@ -10,7 +10,10 @@ namespace Altinn.Studio.DataModeling.Json.Keywords;
 /// </summary>
 [SchemaKeyword(Name)]
 [SchemaPriority(int.MinValue)]
-[SchemaDraft(Draft.Unspecified)]
+[SchemaDraft(Draft.Draft6)]
+[SchemaDraft(Draft.Draft7)]
+[SchemaDraft(Draft.Draft201909)]
+[SchemaDraft(Draft.Draft202012)]
 [JsonConverter(typeof(FormatExclusiveMaximumKeywordJsonConverter))]
 public sealed class FormatExclusiveMaximumKeyword: IJsonSchemaKeyword, IEquatable<FormatExclusiveMaximumKeyword>
 {
@@ -36,7 +39,7 @@ public sealed class FormatExclusiveMaximumKeyword: IJsonSchemaKeyword, IEquatabl
     /// <inheritdoc />
     public void Validate(ValidationContext context)
     {
-        context.Ignore = true;
+        // No validation for keyword.
     }
 
     /// <inheritdoc />

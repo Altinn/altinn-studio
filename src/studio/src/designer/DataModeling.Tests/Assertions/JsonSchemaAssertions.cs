@@ -83,9 +83,6 @@ namespace DataModeling.Tests.Assertions
                 case ContainsKeyword expectedKeyword:
                     KeywordEqual(expectedKeyword, (ContainsKeyword)actual);
                     break;
-                case ContentMediaEncodingKeyword expectedKeyword:
-                    KeywordEqual(expectedKeyword, (ContentMediaEncodingKeyword)actual);
-                    break;
                 case ContentMediaTypeKeyword expectedKeyword:
                     KeywordEqual(expectedKeyword, (ContentMediaTypeKeyword)actual);
                     break;
@@ -335,11 +332,6 @@ namespace DataModeling.Tests.Assertions
             throw new NotImplementedException();
         }
 
-        private static void KeywordEqual(ContentMediaEncodingKeyword expected, ContentMediaEncodingKeyword actual)
-        {
-            throw new NotImplementedException();
-        }
-
         private static void KeywordEqual(ContentMediaTypeKeyword expected, ContentMediaTypeKeyword actual)
         {
             throw new NotImplementedException();
@@ -443,7 +435,7 @@ namespace DataModeling.Tests.Assertions
 
             for (int i = 0; i < expected.Values.Count; i++)
             {
-                Assert.True(expected.Values[i].IsEquivalentTo(actual.Values[i]));
+                Assert.True(expected.Values.ElementAt(i).IsEquivalentTo(actual.Values.ElementAt(i)));
             }
         }
 

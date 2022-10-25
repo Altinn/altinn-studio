@@ -9,7 +9,10 @@ namespace Altinn.Studio.DataModeling.Json.Keywords;
 /// Adds @XsdText keyword to schema indicating if member should be treated as XML text when serialized or deserialized.
 /// </summary>
 [SchemaKeyword(Name)]
-[SchemaDraft(Draft.Unspecified)]
+[SchemaDraft(Draft.Draft6)]
+[SchemaDraft(Draft.Draft7)]
+[SchemaDraft(Draft.Draft201909)]
+[SchemaDraft(Draft.Draft202012)]
 [JsonConverter(typeof(XsdTextKeywordJsonConverter))]
 public sealed class XsdTextKeyword: IJsonSchemaKeyword, IEquatable<XsdTextKeyword>
 {
@@ -43,7 +46,7 @@ public sealed class XsdTextKeyword: IJsonSchemaKeyword, IEquatable<XsdTextKeywor
     /// </summary>
     public void Validate(ValidationContext context)
     {
-        context.Ignore = true;
+        // No validation for keyword.
     }
 
     /// <inheritdoc/>
