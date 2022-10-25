@@ -7,10 +7,10 @@ using Altinn.Studio.DataModeling.Utils;
 using FluentAssertions;
 using Json.Schema;
 
-namespace DataModeling.Tests.Json.Keywords.FormatRange.Converter;
+namespace DataModeling.Tests.Json.Keywords.BaseClasses;
 
-public abstract class FormatRangeConverterTestBase<TTestType, TKeywordType> : FluentTestsBase<TTestType>
-where TTestType : FormatRangeConverterTestBase<TTestType, TKeywordType>
+public abstract class ConverterTestBase<TTestType, TKeywordType> : FluentTestsBase<TTestType>
+where TTestType : ConverterTestBase<TTestType, TKeywordType>
 where TKeywordType : IJsonSchemaKeyword
 {
     protected JsonSchema JsonSchema { get; set; }
@@ -21,20 +21,12 @@ where TKeywordType : IJsonSchemaKeyword
 
     protected abstract JsonConverter<TKeywordType> Converter { get;  }
 
-    protected FormatRangeConverterTestBase()
+    protected ConverterTestBase()
     {
         JsonSchemaKeywords.RegisterXsdKeywords();
     }
 
-    protected abstract TKeywordType CreateKeywordWithValue(string value);
-
-    protected TTestType KeywordCreatedWithValue(string value)
-    {
-        Keyword = CreateKeywordWithValue(value);
-        return this as TTestType;
-    }
-
-    protected TTestType XsdTextKeywordWrittenToStream()
+    protected TTestType KeywordWrittenToStream()
     {
         SerializedKeyword = new MemoryStream();
         var jsonWriter = new Utf8JsonWriter(SerializedKeyword);
@@ -53,7 +45,7 @@ where TKeywordType : IJsonSchemaKeyword
         return this as TTestType;
     }
 
-    protected TTestType XsdTextKeywordReadFromSchema()
+    protected TTestType KeywordReadFromSchema()
     {
         Keyword = JsonSchema.GetKeyword<TKeywordType>();
         return this as TTestType;

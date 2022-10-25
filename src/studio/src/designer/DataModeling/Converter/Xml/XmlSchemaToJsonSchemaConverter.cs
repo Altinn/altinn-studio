@@ -972,12 +972,12 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
                     if (item.MinOccurs != 0)
                     {
-                        itemsBuilder.MinItems((uint)item.MinOccurs);
+                        builder.MinItems((uint)item.MinOccurs);
                     }
 
                     if (item.MaxOccursString != "unbounded")
                     {
-                        itemsBuilder.MaxItems((uint)item.MaxOccurs);
+                        builder.MaxItems((uint)item.MaxOccurs);
                     }
 
                     builder.Items(itemsBuilder);
@@ -985,7 +985,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
 
             AddUnhandledAttributes(item, builder);
-            CarryMinOccursProperty(item, builder);
+            CarryOccursProperties(item, builder);
 
             return builder;
         }
@@ -1004,7 +1004,6 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             JsonSchemaBuilder builder = new JsonSchemaBuilder();
 
             HandleSequence(item, optional, array, builder);
-            CarryMinOccursProperty(item, builder);
 
             return builder;
         }
@@ -1026,15 +1025,12 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             {
                 case XmlSchemaChoice x:
                     HandleChoice(x, optional, array, builder);
-                    CarryMinOccursProperty(x, builder);
                     break;
                 case XmlSchemaAll x:
                     HandleAll(x, optional, array, builder);
-                    CarryMinOccursProperty(x, builder);
                     break;
                 case XmlSchemaSequence x:
                     HandleSequence(x, optional, array, builder);
-                    CarryMinOccursProperty(x, builder);
                     break;
             }
         }
@@ -1145,12 +1141,12 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                 {
                     if (minOccurs > 0)
                     {
-                        typeBuilder.MinItems((uint)minOccurs);
+                        builder.MinItems((uint)minOccurs);
                     }
 
                     if (maxOccurs > 1 && maxOccurs < decimal.MaxValue)
                     {
-                        typeBuilder.MaxItems((uint)maxOccurs);
+                        builder.MaxItems((uint)maxOccurs);
                     }
 
                     JsonSchema itemsSchema = typeBuilder;
@@ -1297,11 +1293,16 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             return decimal.TryParse(facetValue, NumberStyles.Float, CultureInfo.InvariantCulture, out dLength);
         }
 
-        private static void CarryMinOccursProperty(XmlSchemaParticle item, JsonSchemaBuilder builder)
+        private static void CarryOccursProperties(XmlSchemaParticle item, JsonSchemaBuilder builder)
         {
             if (!string.IsNullOrWhiteSpace(item.MinOccursString))
             {
-                builder.MinItems((uint)item.MinOccurs);
+                builder.XsdMinOccurs((int)item.MinOccurs);
+            }
+
+            if (!string.IsNullOrWhiteSpace(item.MaxOccursString))
+            {
+                builder.XsdMaxOccurs(item.MaxOccursString);
             }
         }
     }

@@ -1,12 +1,13 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.Studio.DataModeling.Json.Keywords;
+using DataModeling.Tests.Json.Keywords.BaseClasses;
 using FluentAssertions;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords.FormatRange.Converter;
 
-public class FormatMaximumKeywordJsonConverterConverterTests : FormatRangeConverterTestBase<FormatMaximumKeywordJsonConverterConverterTests, FormatMaximumKeyword>
+public class FormatMaximumKeywordJsonConverterConverterTests : ValueKeywordConverterTestBase<FormatMaximumKeywordJsonConverterConverterTests, FormatMaximumKeyword, string>
 {
     private const string KeywordPlaceholder = "formatMaximum";
 
@@ -20,7 +21,7 @@ public class FormatMaximumKeywordJsonConverterConverterTests : FormatRangeConver
     public void Write_ValidStructure_ShouldWriteToJson(string value)
     {
         Given.That.KeywordCreatedWithValue(value)
-            .When.XsdTextKeywordWrittenToStream()
+            .When.KeywordWrittenToStream()
             .Then.SerializedKeywordShouldBe($@"{{""{KeywordPlaceholder}"":""{value}""}}");
     }
 
@@ -33,7 +34,7 @@ public class FormatMaximumKeywordJsonConverterConverterTests : FormatRangeConver
             }}";
 
         Given.That.JsonSchemaLoaded(jsonSchema)
-            .When.XsdTextKeywordReadFromSchema()
+            .When.KeywordReadFromSchema()
             .Then.Keyword.Should().NotBeNull();
 
         And.Keyword.Value.Should().Be(value);

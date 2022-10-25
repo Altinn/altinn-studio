@@ -1,18 +1,19 @@
 ﻿using Altinn.Studio.DataModeling.Json.Keywords;
+using DataModeling.Tests.Json.Keywords.BaseClasses;
 using FluentAssertions;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords;
 
-public class XsdTextKeywordTests: FluentTestsBase<XsdTextKeywordTests>
+public class XsdTextKeywordTests: ValueKeywordTestsBase<XsdTextKeywordTests, XsdTextKeyword, bool>
 {
-    private XsdTextKeyword XsdTextKeyword { get; set; }
+    protected override XsdTextKeyword CreateKeywordWithValue(bool value) => new(value);
 
     [Fact]
     public void DefaultValue_ShouldBe_False()
     {
-        XsdTextKeyword = new XsdTextKeyword();
-        XsdTextKeyword.Value.Should().Be(false);
+        Keyword = new XsdTextKeyword();
+        Keyword.Value.Should().Be(false);
     }
 
     [Theory]
@@ -22,33 +23,9 @@ public class XsdTextKeywordTests: FluentTestsBase<XsdTextKeywordTests>
     {
         var expectedKeyword = new XsdTextKeyword(value);
         object expectedKeywordObject = new XsdTextKeyword(value);
-        Given.That.XsdTextKeywordCreatedWithValue(value)
-            .Then.XsdTextKeywordShouldEqual(expectedKeyword)
-            .And.XsdTextKeywordShouldEqualObject(expectedKeywordObject)
-            .But.XsdTextKeywordShouldNotEqual(null);
-    }
-
-    private XsdTextKeywordTests XsdTextKeywordCreatedWithValue(bool value)
-    {
-        XsdTextKeyword = new XsdTextKeyword(value);
-        return this;
-    }
-
-    private XsdTextKeywordTests XsdTextKeywordShouldEqual(XsdTextKeyword expectedKeyword)
-    {
-        Assert.True(XsdTextKeyword.Equals(expectedKeyword));
-        return this;
-    }
-
-    private XsdTextKeywordTests XsdTextKeywordShouldEqualObject(object obj)
-    {
-        Assert.True(XsdTextKeyword.Equals(obj));
-        return this;
-    }
-
-    private XsdTextKeywordTests XsdTextKeywordShouldNotEqual(XsdTextKeyword expectedKeyword)
-    {
-        Assert.False(XsdTextKeyword.Equals(expectedKeyword));
-        return this;
+        Given.That.KeywordCreatedWithValue(value)
+            .Then.KeywordShouldEqual(expectedKeyword)
+            .And.KeywordShouldEqualObject(expectedKeywordObject)
+            .But.KeywordShouldNotEqual(null);
     }
 }

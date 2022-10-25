@@ -153,7 +153,8 @@
               "ProcessContent": "None"
             }
           },
-          "minItems": 0
+          "@xsdMinOccurs": 0,
+          "@xsdMaxOccurs": "unbounded"
         },
         "code": {
           "type": [
@@ -161,7 +162,7 @@
             "null"
           ],
           "@xsdType": "string",
-          "minItems": 0
+          "@xsdMinOccurs": 0
         }
       }
     },
@@ -173,7 +174,7 @@
             "null"
           ],
           "@xsdType": "string",
-          "minItems": 0
+          "@xsdMinOccurs": 0
         },
         "email": {
           "type": [
@@ -181,7 +182,7 @@
             "null"
           ],
           "@xsdType": "string",
-          "minItems": 0
+          "@xsdMinOccurs": 0
         }
       }
     }

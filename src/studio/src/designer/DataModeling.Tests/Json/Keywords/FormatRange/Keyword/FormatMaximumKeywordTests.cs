@@ -1,10 +1,11 @@
 ﻿using Altinn.Studio.DataModeling.Json.Keywords;
+using DataModeling.Tests.Json.Keywords.BaseClasses;
 using FluentAssertions;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords.FormatRange.Keyword;
 
-public class FormatMaximumKeywordTests: FormatRangeKeywordTestsBase<FormatMaximumKeywordTests, FormatMaximumKeyword>
+public class FormatMaximumKeywordTests: ValueKeywordTestsBase<FormatMaximumKeywordTests, FormatMaximumKeyword, string>
 {
     protected override FormatMaximumKeyword CreateKeywordWithValue(string value) => new(value);
 

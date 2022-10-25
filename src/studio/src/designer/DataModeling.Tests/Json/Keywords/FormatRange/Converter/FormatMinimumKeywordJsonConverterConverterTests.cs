@@ -1,29 +1,27 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Serialization;
 using Altinn.Studio.DataModeling.Json.Keywords;
+using DataModeling.Tests.Json.Keywords.BaseClasses;
 using FluentAssertions;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords.FormatRange.Converter;
 
-public class FormatMinimumKeywordJsonConverterConverterTests : FormatRangeConverterTestBase<FormatMinimumKeywordJsonConverterConverterTests, FormatMinimumKeyword>
+public class FormatMinimumKeywordJsonConverterConverterTests : ValueKeywordConverterTestBase<FormatMinimumKeywordJsonConverterConverterTests, FormatMinimumKeyword, string>
 {
     private const string KeywordPlaceholder = "formatMinimum";
 
     protected override JsonConverter<FormatMinimumKeyword> Converter
         => new FormatMinimumKeyword.FormatMinimumKeywordJsonConverter();
 
-    protected override FormatMinimumKeyword CreateKeywordWithValue(string value)
-    {
-        return new FormatMinimumKeyword(value);
-    }
+    protected override FormatMinimumKeyword CreateKeywordWithValue(string value) => new(value);
 
     [Theory]
     [InlineData("2022-10-17")]
     public void Write_ValidStructure_ShouldWriteToJson(string value)
     {
         Given.That.KeywordCreatedWithValue(value)
-            .When.XsdTextKeywordWrittenToStream()
+            .When.KeywordWrittenToStream()
             .Then.SerializedKeywordShouldBe($@"{{""{KeywordPlaceholder}"":""{value}""}}");
     }
 
@@ -36,7 +34,7 @@ public class FormatMinimumKeywordJsonConverterConverterTests : FormatRangeConver
             }}";
 
         Given.That.JsonSchemaLoaded(jsonSchema)
-            .When.XsdTextKeywordReadFromSchema()
+            .When.KeywordReadFromSchema()
             .Then.Keyword.Should().NotBeNull();
 
         And.Keyword.Value.Should().Be(value);

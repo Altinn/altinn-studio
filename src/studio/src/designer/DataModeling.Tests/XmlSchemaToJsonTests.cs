@@ -4,17 +4,12 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Xml.Schema;
-using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Xml;
-using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Json.Formats;
 using Altinn.Studio.DataModeling.Json.Keywords;
-
 using DataModeling.Tests.Assertions;
-
 using Json.More;
 using Json.Schema;
-
 using Xunit;
 using Xunit.Abstractions;
 

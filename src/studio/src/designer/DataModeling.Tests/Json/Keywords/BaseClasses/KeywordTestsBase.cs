@@ -1,21 +1,13 @@
 ﻿using Json.Schema;
 using Xunit;
 
-namespace DataModeling.Tests.Json.Keywords.FormatRange.Keyword;
+namespace DataModeling.Tests.Json.Keywords.BaseClasses;
 
-public abstract class FormatRangeKeywordTestsBase<TTestType, TKeywordType> : FluentTestsBase<TTestType>
-    where TTestType : FormatRangeKeywordTestsBase<TTestType, TKeywordType>
+public abstract class KeywordTestsBase<TTestType, TKeywordType> : FluentTestsBase<TTestType>
+    where TTestType : KeywordTestsBase<TTestType, TKeywordType>
     where TKeywordType : IJsonSchemaKeyword
 {
     protected TKeywordType Keyword { get; set; }
-
-    protected abstract TKeywordType CreateKeywordWithValue(string value);
-
-    protected TTestType KeywordCreatedWithValue(string value)
-    {
-        Keyword = CreateKeywordWithValue(value);
-        return this as TTestType;
-    }
 
     protected TTestType KeywordShouldEqual(TKeywordType expectedKeyword)
     {
