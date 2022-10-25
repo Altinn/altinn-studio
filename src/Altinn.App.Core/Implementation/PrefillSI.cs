@@ -88,11 +88,11 @@ namespace Altinn.App.Core.Implementation
 
             if (profilePrefill != null)
             {
-                var userProfileDict = profilePrefill.ToObject<Dictionary<string, string>>();
+                var userProfileDict = profilePrefill.ToObject<Dictionary<string, string>>()!;
 
                 if (userProfileDict.Count > 0)
                 {
-                    int userId = AuthenticationHelper.GetUserId(_httpContextAccessor.HttpContext);
+                    int userId = AuthenticationHelper.GetUserId(_httpContextAccessor.HttpContext!);
                     UserProfile? userProfile = userId != 0 ? await _profileClient.GetUserProfile(userId) : null;
                     if (userProfile != null)
                     {
@@ -112,7 +112,7 @@ namespace Altinn.App.Core.Implementation
             JToken? enhetsregisteret = prefillConfiguration.SelectToken(ER_KEY);
             if (enhetsregisteret != null)
             {
-                var enhetsregisterPrefill = enhetsregisteret.ToObject<Dictionary<string, string>>();
+                var enhetsregisterPrefill = enhetsregisteret.ToObject<Dictionary<string, string>>()!;
 
                 if (enhetsregisterPrefill.Count > 0)
                 {
@@ -135,7 +135,7 @@ namespace Altinn.App.Core.Implementation
             JToken? folkeregisteret = prefillConfiguration.SelectToken(DSF_KEY);
             if (folkeregisteret != null)
             {
-                var folkeregisterPrefill = folkeregisteret.ToObject<Dictionary<string, string>>();
+                var folkeregisterPrefill = folkeregisteret.ToObject<Dictionary<string, string>>()!;
 
                 if (folkeregisterPrefill.Count > 0)
                 {
@@ -199,12 +199,12 @@ namespace Altinn.App.Core.Implementation
                     if (propertyValue == null)
                     {
                         // the object does not exsist, create a new one with the property type
-                        var instance = Activator.CreateInstance(property.PropertyType);
-                        property.SetValue(currentObject, instance, null);
+                        propertyValue = Activator.CreateInstance(property.PropertyType)!;
+                        property.SetValue(currentObject, propertyValue, null);
                     }
 
                     // recurivly assign values
-                    AssignValueToDataModel(keys, value, property.GetValue(currentObject, null), index + 1, continueOnError);
+                    AssignValueToDataModel(keys, value, propertyValue, index + 1, continueOnError);
                 }
             }
         }
@@ -243,7 +243,7 @@ namespace Altinn.App.Core.Implementation
                 }
 
                 _logger.LogInformation($"Source: {source}, target: {target}");
-                _logger.LogInformation($"Value read from source object: {sourceValue.ToString()}");
+                _logger.LogInformation($"Value read from source object: {sourceValue?.ToString()}");
                 string[] keys = target.Split(".");
                 AssignValueToDataModel(keys, sourceValue, serviceModel, 0, continueOnError);
             }

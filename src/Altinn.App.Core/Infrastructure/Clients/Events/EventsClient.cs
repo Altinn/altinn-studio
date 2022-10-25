@@ -61,7 +61,7 @@ namespace Altinn.App.Core.Infrastructure.Clients.Events
         /// <inheritdoc/>
         public async Task<string> AddEvent(string eventType, Instance instance)
         {
-            string alternativeSubject = null;
+            string? alternativeSubject = null;
             if (!string.IsNullOrWhiteSpace(instance.InstanceOwner.OrganisationNumber))
             {
                 alternativeSubject = $"/org/{instance.InstanceOwner.OrganisationNumber}";

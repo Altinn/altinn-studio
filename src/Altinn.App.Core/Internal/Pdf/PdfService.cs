@@ -65,7 +65,7 @@ namespace Altinn.App.Core.Internal.Pdf
             if (!string.IsNullOrEmpty(layoutSetsString))
             {
                 layoutSets = JsonConvert.DeserializeObject<LayoutSets>(layoutSetsString)!;
-                layoutSet = layoutSets.Sets.FirstOrDefault(t => t.DataType.Equals(dataElement.DataType) && t.Tasks.Contains(taskId));
+                layoutSet = layoutSets.Sets?.FirstOrDefault(t => t.DataType.Equals(dataElement.DataType) && t.Tasks.Contains(taskId));
             }
 
             string? layoutSettingsFileContent = layoutSet == null ? _resourceService.GetLayoutSettingsString() : _resourceService.GetLayoutSettingsStringForSet(layoutSet.Id);
