@@ -1,12 +1,12 @@
 import React, { ChangeEventHandler, FocusEventHandler, KeyboardEvent, useEffect, useState } from 'react';
-import { IconButton } from '@mui/material';
 import { useDispatch } from 'react-redux';
-import { DeleteOutline } from '@mui/icons-material';
 import type { ILanguage } from '../../types';
 import { getTranslation } from '../../utils/language';
 import { setRequired } from '../../features/editor/schemaEditorSlice';
 import { Checkbox, TextField } from '@altinn/altinn-design-system';
 import classes from './PropertyItem.module.css';
+import { IconButton } from '../common/IconButton';
+import { IconImage } from '../common/Icon';
 
 export interface IPropertyItemProps {
   fullPath: string;
@@ -55,6 +55,8 @@ export function PropertyItem({
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => e?.key === 'Enter' && onEnterKeyPress && onEnterKeyPress();
 
+  const t = (key: string) => getTranslation(key, language);
+
   return (
     <div className={classes.root}>
       <span className={classes.nameInputCell}>
@@ -72,15 +74,9 @@ export function PropertyItem({
         disabled={readOnly}
         onChange={changeRequiredHandler}
         name='checkedArray'
-        label={getTranslation('required', language)}
+        label={t('required')}
       />
-      <IconButton
-        aria-label={getTranslation('delete_field', language)}
-        onClick={deleteHandler}
-        className={classes.delete}
-      >
-        <DeleteOutline />
-      </IconButton>
+      <IconButton ariaLabel={t('delete_field')} icon={IconImage.Wastebucket} onClick={deleteHandler} />
     </div>
   );
 }

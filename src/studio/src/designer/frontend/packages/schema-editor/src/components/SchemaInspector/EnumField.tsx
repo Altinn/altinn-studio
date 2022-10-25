@@ -1,11 +1,11 @@
 import React, { KeyboardEvent, useEffect, useState } from 'react';
-import { IconButton } from '@mui/material';
-import { DeleteOutline } from '@mui/icons-material';
+import { IconButton } from '../common/IconButton';
 import { getTranslation } from '../../utils/language';
 import type { ILanguage } from '../../types';
 import { TextField } from '@altinn/altinn-design-system';
 import classes from './EnumField.module.css';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
+import { IconImage } from '../common/Icon';
 
 export interface IEnumFieldProps {
   path: string;
@@ -50,13 +50,12 @@ export const EnumField = (props: IEnumFieldProps) => {
       />
       {props.onDelete && (
         <IconButton
-          id={`${baseId}-delete-${props.value}`}
-          aria-label={getTranslation('delete_field', props.language)}
-          onClick={() => props.onDelete?.(props.path, props.value)}
+          ariaLabel={getTranslation('delete_field', props.language)}
           className={classes.delete}
-        >
-          <DeleteOutline />
-        </IconButton>
+          icon={IconImage.Wastebucket}
+          id={`${baseId}-delete-${props.value}`}
+          onClick={() => props.onDelete?.(props.path, props.value)}
+        />
       )}
     </div>
   );
