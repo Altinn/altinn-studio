@@ -10,7 +10,7 @@ import { Link } from 'react-router-dom';
 import { altinnImgLogoHeaderUrl } from 'app-shared/utils/urlHelper';
 import type { IMenuItem } from 'app-shared/navigation/drawer/drawerMenuSettings';
 import TabletDrawerMenu from 'app-shared/navigation/drawer/TabletDrawerMenu';
-import { menu } from './appBarConfig';
+import { getTopBarMenu } from './appBarConfig';
 import ProfileMenu from 'app-shared/navigation/main-header/profileMenu';
 import { useAppSelector } from 'common/hooks';
 import { getLanguageFromKey } from 'app-shared/utils/language';
@@ -114,6 +114,7 @@ export const AppBar = ({
   showSubMenu,
 }: IAppBarProps) => {
   const classes = useStyles();
+  const isDatamodelsRepo = app.endsWith('-datamodels');
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const hiddenMdUp = useMediaQuery((theme: Theme) =>
     theme.breakpoints.up('md'),
@@ -128,6 +129,8 @@ export const AppBar = ({
   const handleDrawerMenuClick = () => {
     setIsMenuOpen((prev) => !prev);
   };
+
+  const menu = getTopBarMenu(isDatamodelsRepo);
 
   return (
     <div className={classes.root}>

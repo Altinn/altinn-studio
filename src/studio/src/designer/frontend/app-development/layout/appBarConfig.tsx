@@ -34,3 +34,16 @@ export const menu: TopBarMenuItem[] = [
     link: '/deploy',
   },
 ];
+
+export const getTopBarMenu = (isDatamodellingRepo: boolean) => {
+  if (isDatamodellingRepo) {
+    return [
+      {
+        key: TopBarMenu.Datamodel,
+        link: '/datamodel'
+      },
+    ];
+  }
+
+  return menu;
+}

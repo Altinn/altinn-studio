@@ -68,7 +68,7 @@ export const OrgReposList = () => {
         {getReposLabel({ selectedContext, orgs, language })}
       </Typography>
       <RepoList
-        repos={reposWithStarred}
+        repos={reposWithStarred.filter((repo) => !repo.name.endsWith('-datamodels'))}
         isLoading={isLoadingOrgRepos || isLoadingStarred}
         onPageSizeChange={handlePageSizeChange}
         isServerSort={true}

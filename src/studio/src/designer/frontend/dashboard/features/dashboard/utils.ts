@@ -14,6 +14,7 @@ type GetReposLabel = {
   selectedContext: SelectedContext;
   orgs: Organizations;
   language: any;
+  isDatamodelsRepo?: boolean;
 };
 
 export type MergeReposProps = {
@@ -37,13 +38,15 @@ export const getReposLabel = ({
   selectedContext,
   orgs,
   language,
+  isDatamodelsRepo = false
 }: GetReposLabel) => {
+  const repoTypeKey = isDatamodelsRepo ? 'datamodels' : 'apps';
   if (selectedContext === SelectedContextType.All) {
-    return getLanguageFromKey('dashboard.all_apps', language);
+    return getLanguageFromKey(`dashboard.all_${repoTypeKey}`, language);
   }
 
   if (selectedContext === SelectedContextType.Self) {
-    return getLanguageFromKey('dashboard.my_apps', language);
+    return getLanguageFromKey(`dashboard.my_${repoTypeKey}`, language);
   }
 
   const orgName =
@@ -51,7 +54,7 @@ export const getReposLabel = ({
       ? `${orgs.find((org) => org.id === selectedContext).full_name} `
       : '';
 
-  return `${orgName}${getLanguageFromKey('dashboard.apps', language)}`;
+  return `${orgName}${getLanguageFromKey(`dashboard.${repoTypeKey}`, language)}`;
 };
 
 export const mergeRepos = ({ repos, starredRepos }: MergeReposProps) => {

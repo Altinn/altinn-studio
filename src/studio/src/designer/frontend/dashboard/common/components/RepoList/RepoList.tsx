@@ -11,14 +11,15 @@ import {
   GridColDef,
   GridOverlay,
 } from '@mui/x-data-grid';
-import { makeStyles } from '@material-ui/core';
 import { IconButton } from '@mui/material';
 import cn from 'classnames';
+
+import classes from './RepoList.module.css';
 
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import type { IRepository } from 'app-shared/types/global';
 
-import { User } from '../../resources/fetchDashboardResources/dashboardSlice';
+import { User } from '../../../resources/fetchDashboardResources/dashboardSlice';
 import { MakeCopyModal } from 'common/components/MakeCopyModal';
 import { useAppSelector } from 'common/hooks';
 import {
@@ -49,50 +50,6 @@ const isRowSelectable = () => false;
 
 const defaultArray: IRepository[] = [];
 
-const useStyles = makeStyles({
-  repoLink: {
-    color: '#57823D',
-    '&:hover': {
-      color: '#57823D',
-    },
-  },
-  editLink: {
-    color: '#165db8',
-
-    '&:hover': {
-      color: '#165db8',
-    },
-  },
-  actionLink: {
-    marginRight: '1rem',
-    display: 'flex',
-    alignItems: 'center',
-
-    '&:hover': {
-      'text-decoration': 'none',
-    },
-
-    '&:hover span': {
-      'text-decoration': 'underline',
-    },
-  },
-  linkIcon: {
-    fontSize: '2rem',
-    marginLeft: '0.5rem',
-  },
-  dropdownIcon: {
-    fontSize: '2rem',
-  },
-  favoriteIcon: {
-    fontSize: 26,
-    color: '#000000',
-  },
-  textWithTooltip: {
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-});
-
 const gridStyleOverride = {
   border: 'none',
   '.MuiDataGrid-iconSeparator': {
@@ -114,7 +71,6 @@ export const NoResults = () => {
 };
 
 const TextWithTooltip = (params: GridRenderCellParams) => {
-  const classes = useStyles();
 
   return (
     <div className={classes.textWithTooltip} title={params.value}>
@@ -136,7 +92,6 @@ export const RepoList = ({
   sortModel,
   disableVirtualization = false,
 }: IRepoListProps) => {
-  const classes = useStyles();
   const language = useAppSelector((state) => state.language.language);
   const [copyCurrentRepoName, setCopyCurrentRepoName] = React.useState('');
   const [setStarredRepo] = useSetStarredRepoMutation();
@@ -186,7 +141,7 @@ export const RepoList = ({
     const columns: GridColDef[] = [
       {
         field: 'name',
-        headerName: getLanguageFromKey('dashboard.application', language),
+        headerName: getLanguageFromKey('dashboard.name', language),
         width: 200,
         renderCell: TextWithTooltip,
       },
@@ -223,7 +178,7 @@ export const RepoList = ({
     const actionsCol: GridActionsColDef[] = [
       {
         field: 'links',
-        width: 320,
+        width: 400,
         renderHeader: (): null => null,
         type: 'actions',
         align: 'right',
@@ -233,6 +188,7 @@ export const RepoList = ({
 
           const editUrl = getRepoEditUrl({
             repoFullName,
+            isDatamodelling,
           });
 
           const handleDuplicateClick = () => {
@@ -242,6 +198,8 @@ export const RepoList = ({
           const handleOpenInNewClick = () => {
             window.open(editUrl, '_blank');
           };
+
+          const editTextKey = isDatamodelling ? 'dashboard.edit_datamodels' : 'dashboard.edit_app';
 
           const colItems = [
             <a
@@ -261,7 +219,7 @@ export const RepoList = ({
               data-testid="edit-repo-link"
               className={cn(classes.actionLink, classes.editLink)}
             >
-              <span>{getLanguageFromKey('dashboard.edit_app', language)}</span>
+              <span>{getLanguageFromKey(editTextKey, language)}</span>
               <i className={cn('fa fa-edit', classes.linkIcon)} />
             </a>,
             <GridActionsCellItem
@@ -280,11 +238,11 @@ export const RepoList = ({
             />,
           ];
 
-          if (isDatamodelling) {
-            // TODO: remove this weird logic once standalone datamodelling is OK
-            // hides context menu and edit app as neither is applicable just yet
-            return colItems.splice(0, 1);
-          }
+          // if (isDatamodelling) {
+          //   // TODO: remove this weird logic once standalone datamodelling is OK
+          //   // hides context menu and edit app as neither is applicable just yet
+          //   return colItems.splice(0, 1);
+          // }
 
           return colItems;
         },
@@ -293,12 +251,6 @@ export const RepoList = ({
 
     return [favouriteActionCol, ...columns, ...actionsCol];
   }, [
-    classes.actionLink,
-    classes.editLink,
-    classes.repoLink,
-    classes.dropdownIcon,
-    classes.linkIcon,
-    classes.favoriteIcon,
     language,
     setStarredRepo,
     unsetStarredRepo,

@@ -15,6 +15,7 @@ import { useAppSelector } from 'common/hooks';
 import { FavoriteReposList } from './FavoriteReposList';
 import { OrgReposList } from './OrgReposList';
 import { SearchResultReposList } from './SearchResultReposList';
+import { DatamodelsReposList } from './DatamodelsRepoList';
 
 const theme = createTheme(altinnTheme);
 
@@ -153,6 +154,8 @@ export const Dashboard = () => {
           <div className={classes.marginTop}>
             <OrgReposList />
           </div>
+
+          <DatamodelsReposList />
         </>
       )}
     </div>

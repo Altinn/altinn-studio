@@ -10,12 +10,12 @@ export const applicationAboutPage = ({
 
 interface IGetRepoUrl {
   repoFullName: string;
+  isDatamodelling?: boolean;
 }
 
-export const getRepoEditUrl = ({ repoFullName }: IGetRepoUrl) => {
-  if (repoFullName.endsWith('-datamodels')) {
-    return `#/datamodelling/${repoFullName}`;
+export const getRepoEditUrl = ({ repoFullName, isDatamodelling }: IGetRepoUrl) => {
+  if (isDatamodelling) {
+    return `/designer/${repoFullName}#/datamodel`;
   }
-
   return `/designer/${repoFullName}`;
 };
