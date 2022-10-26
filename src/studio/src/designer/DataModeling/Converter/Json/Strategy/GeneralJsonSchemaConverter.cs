@@ -1073,8 +1073,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             if (compatibleTypes.Contains(CompatibleXsdType.Array))
             {
-                var itemSchema = schema.GetKeyword<ItemsKeyword>().SingleSchema;
-
                 if (schema.TryGetKeyword(out MinItemsKeyword minItemsKeyword))
                 {
                     arrayMinOccurs = minItemsKeyword.Value.ToString();
