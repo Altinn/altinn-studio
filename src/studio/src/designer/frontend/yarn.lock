@@ -4261,6 +4261,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-development@workspace:app-development"
   dependencies:
+    "@altinn/altinn-design-system": 0.15.0
     "@babel/core": 7.19.6
     "@babel/preset-env": 7.19.4
     "@babel/preset-react": 7.18.6

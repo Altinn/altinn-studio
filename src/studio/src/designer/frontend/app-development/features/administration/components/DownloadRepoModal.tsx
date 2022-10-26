@@ -68,9 +68,11 @@ export function DownloadRepoModal(props: IDownloadRepoModalProps) {
               )}
             </a>
           </Typography>
-          <Button onClick={props.onClose} variant={ButtonVariant.Secondary}>
-            {getLanguageFromKey('general.cancel', props.language)}
-          </Button>
+          <div className={classes.buttonContainer}>
+            <Button onClick={props.onClose} variant={ButtonVariant.Secondary}>
+              {getLanguageFromKey('general.cancel', props.language)}
+            </Button>
+          </div>
         </div>
       </Popover>
     </div>

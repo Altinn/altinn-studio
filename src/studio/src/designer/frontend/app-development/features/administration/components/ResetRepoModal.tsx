@@ -94,7 +94,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
                 onClick={onResetWrapper}
                 id='confirm-reset-repo-button'
                 disabled={!canDelete}
-                variant={ButtonVariant.Submit}
+                variant={ButtonVariant.Cancel}
                 data-testid='confirm-reset-repo-button'
               >
                 {getLanguageFromKey(
@@ -102,7 +102,10 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
                   props.language,
                 )}
               </Button>
-              <Button onClick={onCloseWrapper} variant={ButtonVariant.Cancel}>
+              <Button
+                onClick={onCloseWrapper}
+                variant={ButtonVariant.Secondary}
+              >
                 {getLanguageFromKey('general.cancel', props.language)}
               </Button>
             </div>
