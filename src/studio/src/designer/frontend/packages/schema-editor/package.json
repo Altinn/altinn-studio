@@ -69,7 +69,7 @@
   "main": "dist/index.js",
   "module": "dist/index.es.js",
   "peerDependencies": {
-    "@altinn/altinn-design-system": "0.15.0",
+    "@altinn/altinn-design-system": "0.17.0",
     "@altinn/schema-model": "0.1.0",
     "@mui/icons-material": "5.10.9",
     "@mui/material": "5.10.10",

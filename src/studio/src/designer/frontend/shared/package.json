@@ -9,7 +9,7 @@
     "not op_mini all"
   ],
   "dependencies": {
-    "@altinn/altinn-design-system": "0.15.0",
+    "@altinn/altinn-design-system": "0.17.0",
     "@altinn/schema-editor": "0.1.0",
     "@mui/icons-material": "5.10.9",
     "@mui/material": "5.10.10",
