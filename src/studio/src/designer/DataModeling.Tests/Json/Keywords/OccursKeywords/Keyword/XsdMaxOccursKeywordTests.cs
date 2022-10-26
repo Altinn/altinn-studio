@@ -3,26 +3,32 @@ using DataModeling.Tests.Json.Keywords.BaseClasses;
 using FluentAssertions;
 using Xunit;
 
-namespace DataModeling.Tests.Json.Keywords.FormatRange.Keyword;
+namespace DataModeling.Tests.Json.Keywords.OccursKeywords.Keyword;
 
-public class FormatMinimumKeywordTests: ValueKeywordTestsBase<FormatMinimumKeywordTests, FormatMinimumKeyword, string>
+public class XsdMaxOccursKeywordTests: ValueKeywordTestsBase<XsdMaxOccursKeywordTests, XsdMaxOccursKeyword, string>
 {
-    protected override FormatMinimumKeyword CreateKeywordWithValue(string value) => new(value);
+    protected override XsdMaxOccursKeyword CreateKeywordWithValue(string value) => new(value);
 
     [Theory]
-    [InlineData("2022-10-18")]
+    [InlineData("0")]
+    [InlineData("1")]
+    [InlineData("100")]
+    [InlineData("unbounded")]
     public void CreatedKeyword_ShouldHaveValue(string value)
     {
-        Keyword = new FormatMinimumKeyword(value);
+        Keyword = new XsdMaxOccursKeyword(value);
         Keyword.Value.Should().Be(value);
     }
 
     [Theory]
-    [InlineData("2022-10-18")]
+    [InlineData("0")]
+    [InlineData("1")]
+    [InlineData("100")]
+    [InlineData("unbounded")]
     public void SameKeywords_Should_BeEqual(string value)
     {
-        var expectedKeyword = new FormatMinimumKeyword(value);
-        object expectedKeywordObject = new FormatMinimumKeyword(value);
+        var expectedKeyword = new XsdMaxOccursKeyword(value);
+        object expectedKeywordObject = new XsdMaxOccursKeyword(value);
 
         Given.That.KeywordCreatedWithValue(value)
             .Then.KeywordShouldEqual(expectedKeyword)
@@ -31,7 +37,10 @@ public class FormatMinimumKeywordTests: ValueKeywordTestsBase<FormatMinimumKeywo
     }
 
     [Theory]
-    [InlineData("2022-10-18")]
+    [InlineData("0")]
+    [InlineData("1")]
+    [InlineData("100")]
+    [InlineData("unbounded")]
     public void GetHashCode_ShouldBe_As_Value(string value)
     {
         var expectedHashCode = value.GetHashCode();

@@ -191,5 +191,29 @@ namespace Altinn.Studio.DataModeling.Utils
             builder.Add(new FormatMaximumKeyword(value));
             return builder;
         }
+
+        /// <summary>
+        /// Adds <see cref="XsdMinOccursKeyword"/> keyword to builder
+        /// </summary>
+        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
+        /// <param name="value">MinOccurs value</param>
+        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
+        public static JsonSchemaBuilder XsdMinOccurs(this JsonSchemaBuilder builder, int value)
+        {
+            builder.Add(new XsdMinOccursKeyword(value));
+            return builder;
+        }
+
+        /// <summary>
+        /// Adds <see cref="XsdMaxOccursKeyword"/> keyword to builder
+        /// </summary>
+        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
+        /// <param name="value">MaxOccurs value</param>
+        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
+        public static JsonSchemaBuilder XsdMaxOccurs(this JsonSchemaBuilder builder, string value)
+        {
+            builder.Add(new XsdMaxOccursKeyword(value));
+            return builder;
+        }
     }
 }

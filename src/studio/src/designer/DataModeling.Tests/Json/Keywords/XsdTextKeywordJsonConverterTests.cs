@@ -1,26 +1,18 @@
-using System.IO;
-using System.Text.Encodings.Web;
-using System.Text.Json;
+using System.Text.Json.Serialization;
 using Altinn.Studio.DataModeling.Json.Keywords;
-using Altinn.Studio.DataModeling.Utils;
+using DataModeling.Tests.Json.Keywords.BaseClasses;
 using FluentAssertions;
-using Json.Schema;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords
 {
-    public class XsdTextKeywordJsonConverterTests : FluentTestsBase<XsdTextKeywordJsonConverterTests>
+    public class XsdTextKeywordJsonConverterTests : ValueKeywordConverterTestBase<XsdTextKeywordJsonConverterTests, XsdTextKeyword, bool>
     {
-        private JsonSchema JsonSchema { get; set; }
+        private const string KeywordPlaceholder = "@xsdText";
 
-        private XsdTextKeyword XsdTextKeyword { get; set; }
+        protected override JsonConverter<XsdTextKeyword> Converter => new XsdTextKeyword.XsdTextKeywordJsonConverter();
 
-        private Stream SerializedKeyword { get; set; }
-
-        public XsdTextKeywordJsonConverterTests()
-        {
-            JsonSchemaKeywords.RegisterXsdKeywords();
-        }
+        protected override XsdTextKeyword CreateKeywordWithValue(bool value) => new(value);
 
         [Theory]
         [InlineData(true)]
@@ -28,15 +20,14 @@ namespace DataModeling.Tests.Json.Keywords
         public void Read_ValidJson_FromSchema(bool value)
         {
             var jsonSchema = @$"{{
-                ""@xsdText"": {value.ToString().ToLower()},
-                ""$ref"": ""#/$defs/SomeDef""
+                ""{KeywordPlaceholder}"": {value.ToString().ToLower()}
             }}";
 
             Given.That.JsonSchemaLoaded(jsonSchema)
-                .When.XsdTextKeywordReadFromSchema()
-                .Then.XsdTextKeyword.Should().NotBeNull();
+                .When.KeywordReadFromSchema()
+                .Then.Keyword.Should().NotBeNull();
 
-            And.XsdTextKeyword.Value.Should().Be(value);
+            And.Keyword.Value.Should().Be(value);
         }
 
         [Theory]
@@ -44,51 +35,9 @@ namespace DataModeling.Tests.Json.Keywords
         [InlineData(false)]
         public void Write_ValidStructure_ShouldWriteToJson(bool value)
         {
-            Given.That.XsdTextKeywordCreatedWithValue(value)
-                .When.XsdTextKeywordWrittenToStream()
-                .Then.SerializedKeywordShouldBe($@"{{""@xsdText"":{value.ToString().ToLower()}}}");
-        }
-
-        private XsdTextKeywordJsonConverterTests XsdTextKeywordCreatedWithValue(bool value)
-        {
-            XsdTextKeyword = new XsdTextKeyword(value);
-            return this;
-        }
-
-        private XsdTextKeywordJsonConverterTests XsdTextKeywordWrittenToStream()
-        {
-            var keywordConverter = new XsdTextKeyword.XsdTextKeywordJsonConverter();
-            SerializedKeyword = new MemoryStream();
-            var jsonWriter = new Utf8JsonWriter(SerializedKeyword);
-            jsonWriter.WriteStartObject();
-            keywordConverter.Write(jsonWriter, XsdTextKeyword, new JsonSerializerOptions());
-            jsonWriter.WriteEndObject();
-            jsonWriter.Flush();
-            return this;
-        }
-
-        private XsdTextKeywordJsonConverterTests SerializedKeywordShouldBe(string json)
-        {
-            SerializedKeyword.Seek(0, SeekOrigin.Begin);
-            var streamReader = new StreamReader(SerializedKeyword);
-            var jsonText = streamReader.ReadToEnd();
-
-            jsonText.Should().Be(json);
-            return this;
-        }
-
-        private XsdTextKeywordJsonConverterTests JsonSchemaLoaded(string json)
-        {
-            JsonSchema = JsonSerializer.Deserialize<JsonSchema>(
-                json,
-                new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
-            return this;
-        }
-
-        private XsdTextKeywordJsonConverterTests XsdTextKeywordReadFromSchema()
-        {
-            XsdTextKeyword = JsonSchema.GetKeyword<XsdTextKeyword>();
-            return this;
+            Given.That.KeywordCreatedWithValue(value)
+                .When.KeywordWrittenToStream()
+                .Then.SerializedKeywordShouldBe($@"{{""{KeywordPlaceholder}"":{value.ToString().ToLower()}}}");
         }
     }
 }

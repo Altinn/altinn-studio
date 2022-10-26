@@ -1028,15 +1028,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 SetRequired(subItem, required.Contains(name));
                 SetFixed(subItem, property.Keywords.GetKeyword<ConstKeyword>());
                 SetDefault(subItem, property.Keywords.GetKeyword<DefaultKeyword>());
-
-                if (subItem is XmlSchemaParticle particle)
-                {
-                    var minItemsKeyword = property.Keywords.GetKeyword<MinItemsKeyword>();
-                    if (minItemsKeyword != null)
-                    {
-                        particle.MinOccurs = minItemsKeyword.Value;
-                    }
-                }
+                CarryOccurs(subItem, property);
 
                 switch (subItem)
                 {
@@ -1055,6 +1047,24 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
         }
 
+        private static void CarryOccurs(XmlSchemaObject subItem, JsonSchema property)
+        {
+            if (subItem is not XmlSchemaParticle particle)
+            {
+                return;
+            }
+
+            if (property.Keywords.TryGetKeyword(out XsdMinOccursKeyword minOccursKeyword))
+            {
+                particle.MinOccurs = minOccursKeyword.Value;
+            }
+
+            if (property.Keywords.TryGetKeyword(out XsdMaxOccursKeyword maxOccursKeyword))
+            {
+                particle.MaxOccursString = maxOccursKeyword.Value;
+            }
+        }
+
         private XmlSchemaObject ConvertSubschema(JsonPointer path, JsonSchema schema)
         {
             var compatibleTypes = _metadata.GetCompatibleTypes(path);
@@ -1063,14 +1073,12 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             if (compatibleTypes.Contains(CompatibleXsdType.Array))
             {
-                var itemSchema = schema.GetKeyword<ItemsKeyword>().SingleSchema;
-
-                if (itemSchema.TryGetKeyword(out MinItemsKeyword minItemsKeyword))
+                if (schema.TryGetKeyword(out MinItemsKeyword minItemsKeyword))
                 {
                     arrayMinOccurs = minItemsKeyword.Value.ToString();
                 }
 
-                arrayMaxOccurs = itemSchema.TryGetKeyword(out MaxItemsKeyword maxItemsKeyword) ? maxItemsKeyword.Value.ToString() : "unbounded";
+                arrayMaxOccurs = schema.TryGetKeyword(out MaxItemsKeyword maxItemsKeyword) ? maxItemsKeyword.Value.ToString() : "unbounded";
             }
 
             if (compatibleTypes.Contains(CompatibleXsdType.SimpleType))
