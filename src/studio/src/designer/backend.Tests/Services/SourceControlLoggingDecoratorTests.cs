@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Altinn.Studio.DataModeling.Converter.Interfaces;
+using Altinn.Studio.DataModeling.Converter.Json;
+using Altinn.Studio.DataModeling.Converter.Xml;
 using Altinn.Studio.Designer;
 using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
@@ -50,13 +53,13 @@ namespace Designer.Tests.Services
         public void DecoratedISourceControlService_Status_LogsErrorWithAdditionalInfo()
         {
             (ISourceControl service, Mock<ILogger<SourceControlLoggingDecorator>> loggerMock) = GetService();
-                        
+
             try
             {
                 service.Status("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {                
+            {
             }
 
             loggerMock.Verify();
@@ -72,7 +75,7 @@ namespace Designer.Tests.Services
                 service.CloneRemoteRepository("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {                
+            {
             }
 
             loggerMock.Verify();
@@ -88,7 +91,7 @@ namespace Designer.Tests.Services
                 service.CloneRemoteRepository("org_should_not_exists", "repo_should_not_exists", "destination_path_should_not_exists", "branch_name_should_not_exists");
             }
             catch
-            {                
+            {
             }
 
             loggerMock.Verify();
@@ -104,7 +107,7 @@ namespace Designer.Tests.Services
                 service.DeleteRepository("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {                
+            {
             }
 
             loggerMock.Verify();
@@ -120,7 +123,7 @@ namespace Designer.Tests.Services
                 service.StageChange("org_should_not_exists", "repo_should_not_exists", "file_should_not_exists");
             }
             catch
-            {                
+            {
             }
 
             loggerMock.Verify();
@@ -136,7 +139,7 @@ namespace Designer.Tests.Services
                 service.AbortMerge("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {                
+            {
             }
 
             loggerMock.Verify();
@@ -152,7 +155,7 @@ namespace Designer.Tests.Services
                 service.CheckoutLatestCommitForSpecificFile("org_should_not_exists", "repo_should_not_exists", "file_should_not_exists");
             }
             catch
-            {                
+            {
             }
 
             loggerMock.Verify();
@@ -168,7 +171,7 @@ namespace Designer.Tests.Services
                 service.CheckRemoteUpdates("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {                
+            {
             }
 
             loggerMock.Verify();
@@ -184,7 +187,7 @@ namespace Designer.Tests.Services
                 service.Commit(new CommitInfo() { Org = "org_should_not_exists", Repository = "repo_should_not_exists", Message = "should_not_be_commited" });
             }
             catch
-            {                
+            {
             }
 
             loggerMock.Verify();
@@ -248,7 +251,7 @@ namespace Designer.Tests.Services
                 service.FetchRemoteChanges("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {                
+            {
             }
 
             loggerMock.Verify();
@@ -264,7 +267,7 @@ namespace Designer.Tests.Services
                 service.GetInitialCommit("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {                
+            {
             }
 
             loggerMock.Verify();
@@ -280,7 +283,7 @@ namespace Designer.Tests.Services
                 service.GetLatestCommitForCurrentUser("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {                
+            {
             }
 
             loggerMock.Verify();
@@ -296,7 +299,7 @@ namespace Designer.Tests.Services
                 service.IsLocalRepo("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {             
+            {
             }
 
             loggerMock.Verify();
@@ -312,7 +315,7 @@ namespace Designer.Tests.Services
                 service.Log("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {                
+            {
             }
 
             loggerMock.Verify();
@@ -328,7 +331,7 @@ namespace Designer.Tests.Services
                 service.PullRemoteChanges("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {                
+            {
             }
 
             loggerMock.Verify();
@@ -344,7 +347,7 @@ namespace Designer.Tests.Services
                 service.Push("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {                
+            {
             }
 
             loggerMock.Verify();
@@ -360,7 +363,7 @@ namespace Designer.Tests.Services
                 service.PushChangesForRepository(new CommitInfo() { Org = "org_should_not_exists", Repository = "repo_should_not_exists", Message = "should_not_be_commited" });
             }
             catch
-            {                
+            {
             }
 
             loggerMock.Verify();
@@ -376,7 +379,7 @@ namespace Designer.Tests.Services
                 service.RepositoryStatus("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {                
+            {
             }
 
             loggerMock.Verify();
@@ -392,7 +395,7 @@ namespace Designer.Tests.Services
                 service.ResetCommit("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {                
+            {
             }
 
             loggerMock.Verify();
@@ -408,7 +411,7 @@ namespace Designer.Tests.Services
                 service.VerifyCloneExists("org_should_not_exists", "repo_should_not_exists");
             }
             catch
-            {                
+            {
             }
 
             loggerMock.Verify();
