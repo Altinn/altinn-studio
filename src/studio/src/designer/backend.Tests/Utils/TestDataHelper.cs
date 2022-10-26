@@ -327,16 +327,9 @@ namespace Designer.Tests.Utils
 
         public static IOptions<ServiceRepositorySettings> ServiceRepositorySettings { get; } = GetServiceRepositorySettings();
 
-        public static (IXmlSchemaToJsonSchemaConverter XmlSchemaToJsonSchemaConverter, IJsonSchemaToXmlSchemaConverter JsonSchemaToXmlSchemaConverter) GetXmlAndJsonConverters()
-        {
-            IXmlSchemaToJsonSchemaConverter xmlSchemaToJsonSchemaConverter = new XmlSchemaToJsonSchemaConverter();
-            IJsonSchemaToXmlSchemaConverter jsonSchemaToXmlSchemaConverter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
-            return (xmlSchemaToJsonSchemaConverter, jsonSchemaToXmlSchemaConverter);
-        }
+        public static IXmlSchemaToJsonSchemaConverter XmlSchemaToJsonSchemaConverter => new XmlSchemaToJsonSchemaConverter();
 
-        public static IXmlSchemaToJsonSchemaConverter XmlSchemaToJsonSchemaConverter { get; } = GetXmlAndJsonConverters().XmlSchemaToJsonSchemaConverter;
-
-        public static IJsonSchemaToXmlSchemaConverter JsonSchemaToXmlSchemaConverter { get; } = GetXmlAndJsonConverters().JsonSchemaToXmlSchemaConverter;
+        public static IJsonSchemaToXmlSchemaConverter JsonSchemaToXmlSchemaConverter => new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
 
         /// <summary>
         /// File.ReadAllBytes alternative to avoid read and/or write locking
