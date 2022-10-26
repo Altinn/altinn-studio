@@ -79,6 +79,8 @@ services:
       - "gitea-avatars-data:/var/lib/gitea/avatars"
       - "gitea-attachments-data:/var/lib/gitea/attachments"
     environment:
+      - USER_UID=1000
+      - USER_GID=1000
       - GITEA____RUN_MODE=prod
       - GITEA__server__SSH_DOMAIN=altinn3.no
       - GITEA__server__DOMAIN=altinn3.no
