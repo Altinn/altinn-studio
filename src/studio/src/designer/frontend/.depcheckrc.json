@@ -1,6 +1,7 @@
 {
   "ignores": [
     "css-loader",
+    "jest-environment-jsdom",
     "source-map-loader",
     "style-loader",
     "svg-inline-loader",

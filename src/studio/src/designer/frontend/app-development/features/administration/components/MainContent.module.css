@@ -5,9 +5,10 @@
   max-width: 750px;
 }
 .mainContentContainer h2 {
+  font-size: 20px;
   margin-top: 20px;
 }
-.mainContentContainer p {
+.mainContentContainer > * {
   margin: 0;
 }
 .sideBySide {

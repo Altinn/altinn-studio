@@ -1,10 +1,7 @@
 import React from 'react';
-import { Popover, Typography } from '@mui/material';
+import { Popover } from '@mui/material';
 import { Button, ButtonVariant } from '@altinn/altinn-design-system';
-import {
-  getLanguageFromKey,
-  getParsedLanguageFromKey,
-} from 'app-shared/utils/language';
+import { getLanguageFromKey } from 'app-shared/utils/language';
 import classes from './RepoModal.module.css';
 
 interface IDownloadRepoModalProps {
@@ -15,6 +12,7 @@ interface IDownloadRepoModalProps {
 }
 
 export function DownloadRepoModal(props: IDownloadRepoModalProps) {
+  const t = (key: string) => getLanguageFromKey(key, props.language);
   return (
     <div data-testid='download-repo-container'>
       <Popover
@@ -32,45 +30,29 @@ export function DownloadRepoModal(props: IDownloadRepoModalProps) {
         data-testid='download-repo-popover'
       >
         <div className={classes.modalContainer}>
-          <Typography variant={'h2'}>
-            {getLanguageFromKey(
-              'administration.download_repo_heading',
-              props.language,
-            )}
-          </Typography>
-          <Typography variant='body1'>
-            {getParsedLanguageFromKey(
-              'administration.download_repo_info',
-              props.language,
-            )}
-          </Typography>
-          <Typography variant='body1'>
+          <h2>{t('administration.download_repo_heading')}</h2>
+          <p>{t('administration.download_repo_info')}</p>
+          <p>
             <a
               href={`/designer/api/v1/repos/${(window as any).org}/${
                 (window as any).app
               }/contents.zip`}
             >
-              {getLanguageFromKey(
-                'administration.download_repo_changes',
-                props.language,
-              )}
+              {t('administration.download_repo_changes')}
             </a>
-          </Typography>
-          <Typography variant='body1'>
+          </p>
+          <p>
             <a
               href={`/designer/api/v1/repos/${(window as any).org}/${
                 (window as any).app
               }/contents.zip?full=true`}
             >
-              {getLanguageFromKey(
-                'administration.download_repo_full',
-                props.language,
-              )}
+              {t('administration.download_repo_full')}
             </a>
-          </Typography>
+          </p>
           <div className={classes.buttonContainer}>
             <Button onClick={props.onClose} variant={ButtonVariant.Secondary}>
-              {getLanguageFromKey('general.cancel', props.language)}
+              {t('general.cancel')}
             </Button>
           </div>
         </div>

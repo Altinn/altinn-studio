@@ -1,10 +1,6 @@
 import React from 'react';
-import { Typography } from '@mui/material';
 import { Button, TextArea, TextField } from '@altinn/altinn-design-system';
-import {
-  getLanguageFromKey,
-  getParsedLanguageFromKey,
-} from 'app-shared/utils/language';
+import { getLanguageFromKey } from 'app-shared/utils/language';
 import AltinnPopper from 'app-shared/components/AltinnPopper';
 import AltinnInformationPaper from 'app-shared/components/AltinnInformationPaper';
 import type { IRepository } from '../../../types/global';
@@ -28,106 +24,54 @@ interface IMainContentProps {
   appNameAnchorEl: any;
 }
 
-const MainContent = (props: IMainContentProps): JSX.Element => {
+export const MainContent = (props: IMainContentProps): JSX.Element => {
   const urlParams = new URLSearchParams(
     `?${window.location.hash.split('?')[1]}`,
   );
   const copiedApp = Boolean(urlParams.get('copiedApp'));
   const language = useAppSelector((state) => state.languageState.language);
-
+  const t = (key: string) => getLanguageFromKey(key, language);
   return (
     <div className={classes.mainContentContainer}>
       {copiedApp && (
-        <>
-          <AltinnInformationPaper>
-            <Typography variant='h2' sx={{ marginBottom: '12px' }}>
-              {getParsedLanguageFromKey(
-                'administration.copied_app_header',
-                language,
-                [],
-              )}
-            </Typography>
-            <Typography variant='body1'>
-              {getParsedLanguageFromKey(
-                'administration.copied_app_information',
-                language,
-                [],
-              )}
-            </Typography>
-          </AltinnInformationPaper>
-        </>
+        <AltinnInformationPaper>
+          <h2>{t('administration.copied_app_header')}</h2>
+          <p>{t('administration.copied_app_information')}</p>
+        </AltinnInformationPaper>
       )}
-      <Typography variant={'h2'}>
-        {getLanguageFromKey('general.service_name', props.language)}
-      </Typography>
-      <p>
-        {getLanguageFromKey(
-          'administration.service_name_administration_description',
-          props.language,
-        )}
-      </p>
-
+      <h2>{t('general.service_name')}</h2>
+      <p>{t('administration.service_name_administration_description')}</p>
       <div className={classes.sideBySide}>
         <TextField
           id='administrationInputAppName_textField'
-          onValueChange={props.onAppNameChange}
+          onChange={props.onAppNameChange}
           value={props.appName}
           onBlur={props.onAppNameBlur}
           disabled={!props.editAppName}
         />
-        <Button onClick={props.onEditAppNameClick}>
-          {getLanguageFromKey('general.edit', props.language)}
-        </Button>
+        <Button onClick={props.onEditAppNameClick}>{t('general.edit')}</Button>
       </div>
-
       <AltinnPopper
         anchorEl={props.appNameAnchorEl}
-        message={getLanguageFromKey(
-          'administration.service_name_empty_message',
-          props.language,
-        )}
+        message={t('administration.service_name_empty_message')}
       />
-
-      <Typography variant={'h2'}>
-        {getLanguageFromKey('administration.service_id', props.language)}
-      </Typography>
-      <p>
-        {getLanguageFromKey(
-          'administration.service_id_description',
-          props.language,
-        )}
-      </p>
+      <h2>{t('administration.service_id')}</h2>
+      <p>{t('administration.service_id_description')}</p>
       <TextField
         id='administrationInputAppId_textField'
-        onValueChange={props.onAppIdChange}
+        onChange={props.onAppIdChange}
         value={props.appId}
         onBlur={props.onAppIdBlur}
       />
-
-      <Typography variant={'h2'}>
-        {getLanguageFromKey('general.service_saved_name', props.language)}
-      </Typography>
-      <p>
-        {getLanguageFromKey(
-          'administration.service_saved_name_administration_description',
-          props.language,
-        )}
-      </p>
+      <h2>{t('general.service_saved_name')}</h2>
+      <p>{t('administration.service_saved_name_administration_description')}</p>
       <TextField
         id='administrationInputReponame'
         value={props.repository ? props.repository.name : ''}
         disabled={true}
       />
-
-      <Typography variant={'h2'}>
-        {getLanguageFromKey('administration.service_comment', props.language)}
-      </Typography>
-      <p>
-        {getLanguageFromKey(
-          'administration.service_comment_description',
-          props.language,
-        )}
-      </p>
+      <h2>{t('administration.service_comment')}</h2>
+      <p>{t('administration.service_comment_description')}</p>
       <TextArea
         id='administrationInputDescription_textField'
         onChange={props.onAppDescriptionChange}
@@ -138,5 +82,3 @@ const MainContent = (props: IMainContentProps): JSX.Element => {
     </div>
   );
 };
-
-export default MainContent;

@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Typography } from '@mui/material';
 import { Button } from '@altinn/altinn-design-system';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { formatNameAndDate } from 'app-shared/utils/formatDate';
@@ -8,6 +7,7 @@ import { ResetRepoModal } from './ResetRepoModal';
 import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import { DownloadRepoModal } from './DownloadRepoModal';
 import { useAppDispatch, useAppSelector } from 'common/hooks';
+import classes from './SideMenuContent.module.css';
 
 interface ISideMenuContent {
   language: any;
@@ -15,7 +15,7 @@ interface ISideMenuContent {
   initialCommit: ICommit;
 }
 
-const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
+export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
   const dispatch = useAppDispatch();
   const [resetRepoModalOpen, setResetRepoModalOpen] = useState<boolean>(false);
   const [downloadModalOpen, setDownloadModalOpen] = useState<boolean>(false);
@@ -25,9 +25,7 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
   );
 
   const toggleDownloadModal = () => setDownloadModalOpen(!downloadModalOpen);
-
   const onCloseModal = () => setResetRepoModalOpen(false);
-
   const onClickResetRepo = () => setResetRepoModalOpen(true);
 
   const handleResetRepoClick = () => {
@@ -49,66 +47,40 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
 
   const downloadModalAnchor = useRef<HTMLDivElement>();
   const resetRepoModalAnchor = useRef<HTMLDivElement>();
+  const t = (key: string) => getLanguageFromKey(key, props.language);
   return (
-    <>
+    <div className={classes.container}>
       {/* App owner info */}
-      <Typography variant={'h2'} sx={{ marginBottom: '20px' }}>
-        {getLanguageFromKey('general.service_owner', props.language)}
-      </Typography>
-      <Typography sx={{ marginBottom: '12px' }}>
-        {getLanguageFromKey('administration.service_owner_is', props.language)}
-      </Typography>
-      <Typography sx={{ marginBottom: '12px', marginTop: '12px' }}>
+      <h3>{t('general.service_owner')}</h3>
+      <div>{t('administration.service_owner_is')}</div>
+      <div>
         <img
           src={props.service.owner.avatar_url}
           style={{ maxHeight: '2em' }}
           alt=''
         />{' '}
         {props.service.owner.full_name || props.service.owner.login}
-      </Typography>
+      </div>
       {props.initialCommit && (
-        <Typography sx={{ marginTop: '12px' }}>
-          {getLanguageFromKey('administration.created_by', props.language)}{' '}
+        <div>
+          {t('administration.created_by')}{' '}
           {formatNameAndDate(
             props.initialCommit.author.name,
             props.service.created_at,
           )}
-        </Typography>
+        </div>
       )}
       {/* Reset local repository */}
-      <Typography variant={'h2'} sx={{ marginBottom: '20px' }}>
-        {getLanguageFromKey(
-          'administration.reset_repo_heading',
-          props.language,
-        )}
-      </Typography>
-      <Typography
-        sx={{ marginBottom: '12px', paddingLeft: '18px' }}
-        component='div'
-      >
+      <h3>{t('administration.reset_repo_heading')}</h3>
+      <div style={{ paddingLeft: '18px' }}>
         <ul>
-          <li>
-            {getLanguageFromKey(
-              'administration.reset_repo_info_i1',
-              props.language,
-            )}
-          </li>
-          <li>
-            {getLanguageFromKey(
-              'administration.reset_repo_info_i2',
-              props.language,
-            )}
-          </li>
-          <li>
-            {getLanguageFromKey(
-              'administration.reset_repo_info_i3',
-              props.language,
-            )}
-          </li>
+          <li>{t('administration.reset_repo_info_i1')}</li>
+          <li>{t('administration.reset_repo_info_i2')}</li>
+          <li>{t('administration.reset_repo_info_i3')}</li>
         </ul>
-      </Typography>
+      </div>
       <Button id='reset-repo-button' onClick={onClickResetRepo}>
-        {getLanguageFromKey('administration.reset_repo_button', props.language)}
+        {t('administration.reset_repo_button')}
       </Button>
       <div ref={resetRepoModalAnchor} />
       <ResetRepoModal
@@ -120,14 +92,9 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
         repositoryName={props.service.name}
       />
       {/* Download local repository */}
-      <Typography
-        variant={'h2'}
-        sx={{ marginBottom: '20px', marginTop: '36px' }}
-      >
-        {getLanguageFromKey('administration.download_repo', props.language)}
-      </Typography>
+      <h3>{t('administration.download_repo')}</h3>
       <Button onClick={toggleDownloadModal}>
-        {getLanguageFromKey('administration.download_repo', props.language)}
+        {t('administration.download_repo')}
       </Button>
       <div ref={downloadModalAnchor} />
       <DownloadRepoModal
@@ -136,8 +103,6 @@ const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
         onClose={toggleDownloadModal}
         open={downloadModalOpen}
       />
-    </>
+    </div>
   );
 };
-
-export default SideMenuContent;

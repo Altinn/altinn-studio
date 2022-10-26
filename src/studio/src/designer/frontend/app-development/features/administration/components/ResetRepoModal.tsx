@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Button, ButtonVariant, TextField } from '@altinn/altinn-design-system';
-import { Popover, Typography } from '@mui/material';
+import { Popover } from '@mui/material';
 import {
   getLanguageFromKey,
   getParsedLanguageFromKey,
@@ -46,6 +46,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
     setDeleteRepoName('');
     props.onClose();
   };
+  const t = (key: string) => getLanguageFromKey(key, props.language);
   return (
     <div data-testid='reset-repo-container'>
       <Popover
@@ -63,27 +64,17 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
         data-testid='reset-repo-popover'
       >
         <div className={classes.modalContainer}>
-          <Typography variant='h2'>
-            {getLanguageFromKey(
-              'administration.reset_repo_confirm_heading',
-              props.language,
-            )}
-          </Typography>
-          <Typography variant='body1'>
+          <h2>{t('administration.reset_repo_confirm_heading')}</h2>
+          <div>
             {getParsedLanguageFromKey(
               'administration.reset_repo_confirm_info',
               props.language,
               [props.repositoryName],
               true,
             )}
-          </Typography>
+          </div>
           <label htmlFor='delete-repo-name'>
-            <Typography variant='body1'>
-              {getLanguageFromKey(
-                'administration.reset_repo_confirm_repo_name',
-                props.language,
-              )}
-            </Typography>
+            <div>{t('administration.reset_repo_confirm_repo_name')}</div>
           </label>
           <TextField id='delete-repo-name' onChange={onDeleteRepoNameChange} />
           {resetting ? (
@@ -97,16 +88,13 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
                 variant={ButtonVariant.Cancel}
                 data-testid='confirm-reset-repo-button'
               >
-                {getLanguageFromKey(
-                  'administration.reset_repo_button',
-                  props.language,
-                )}
+                {t('administration.reset_repo_button')}
               </Button>
               <Button
                 onClick={onCloseWrapper}
                 variant={ButtonVariant.Secondary}
               >
-                {getLanguageFromKey('general.cancel', props.language)}
+                {t('general.cancel')}
               </Button>
             </div>
           )}

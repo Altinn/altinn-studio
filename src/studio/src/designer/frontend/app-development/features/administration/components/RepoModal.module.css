@@ -1,5 +1,5 @@
 .modalContainer {
-  padding: 24px;
+  padding: 30px;
   width: 471px;
   display: flex;
   gap: 18px;
@@ -8,7 +8,11 @@
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
 }
-
+.modalContainer p,
+.modalContainer h2 {
+  margin: 0;
+  padding: 0;
+}
 .buttonContainer {
   display: flex;
   gap: 24px;
