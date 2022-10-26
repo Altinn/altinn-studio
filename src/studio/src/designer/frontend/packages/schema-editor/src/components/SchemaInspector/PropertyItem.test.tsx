@@ -151,12 +151,18 @@ test('"Required" checkbox is enabled by default', () => {
 
 test('"Required" checkbox is disabled if the "readOnly" prop is true', () => {
   renderPropertyItem({ readOnly: true });
-  expect(screen.getByRole('textbox')).toBeDisabled();
+  expect(screen.getByRole('checkbox')).toBeDisabled();
 });
 
 test('"Required" checkbox is enabled if the "readOnly" prop is false', () => {
   renderPropertyItem({ readOnly: false });
   expect(screen.getByRole('checkbox')).toBeEnabled();
+});
+
+test('"Required" checkbox is correctly labelled', async () => {
+  renderPropertyItem();
+  expect(screen.queryByText(textRequired)).toBeFalsy();
+  expect(screen.getByRole('checkbox')).toHaveAccessibleName(textRequired);
 });
 
 test('Delete button appears', () => {

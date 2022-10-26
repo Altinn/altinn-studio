@@ -90,8 +90,10 @@ export function PropertyItem({
         <Checkbox
           checked={required ?? false}
           disabled={readOnly}
-          onChange={changeRequiredHandler}
+          hideLabel
+          label={t('required')}
           name='checkedArray'
+          onChange={changeRequiredHandler}
         />
       </span>
       <IconButton ariaLabel={t('delete_field')} icon={IconImage.Wastebucket} onClick={deleteHandler} />
