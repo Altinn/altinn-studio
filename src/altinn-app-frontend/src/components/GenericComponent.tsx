@@ -6,6 +6,7 @@ import classNames from 'classnames';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import components, { FormComponentContext } from 'src/components';
+import { useExpressionsForComponent } from 'src/features/expressions/useExpressions';
 import Description from 'src/features/form/components/Description';
 import Label from 'src/features/form/components/Label';
 import Legend from 'src/features/form/components/Legend';
@@ -29,11 +30,13 @@ import type {
   IFormComponentContext,
   PropsFromGenericComponent,
 } from 'src/components';
+import type { ExprResolved } from 'src/features/expressions/types';
 import type {
   ComponentExceptGroup,
   ComponentTypes,
   IGridStyling,
   ILayoutCompBase,
+  ILayoutComponent,
 } from 'src/features/form/layout';
 import type { IComponentValidations, ILabelSettings } from 'src/types';
 
@@ -101,8 +104,14 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export function GenericComponent<Type extends ComponentExceptGroup>(
-  props: IActualGenericComponentProps<Type>,
+  _props: IActualGenericComponentProps<Type>,
 ) {
+  const props = useExpressionsForComponent(
+    _props as ILayoutComponent,
+  ) as ExprResolved<IActualGenericComponentProps<Type>> & {
+    type: Type;
+  };
+
   const { id, ...passThroughProps } = props;
   const dispatch = useAppDispatch();
   const classes = useStyles(props);

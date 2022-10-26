@@ -8,6 +8,7 @@ describe('layoutSlice', () => {
   describe('fetchLayoutFulfilled', () => {
     const layouts = {};
     const navigationConfig = {};
+    const hiddenLayoutsExpressions = {};
 
     it('should set layout state accordingly', () => {
       const nextState = slice.reducer(
@@ -15,6 +16,7 @@ describe('layoutSlice', () => {
         FormLayoutActions.fetchFulfilled({
           layouts,
           navigationConfig,
+          hiddenLayoutsExpressions,
         }),
       );
 
@@ -40,6 +42,7 @@ describe('layoutSlice', () => {
         FormLayoutActions.fetchFulfilled({
           layouts,
           navigationConfig,
+          hiddenLayoutsExpressions,
         }),
       );
 
@@ -56,6 +59,7 @@ describe('layoutSlice', () => {
         FormLayoutActions.fetchFulfilled({
           layouts,
           navigationConfig,
+          hiddenLayoutsExpressions,
         }),
       );
 

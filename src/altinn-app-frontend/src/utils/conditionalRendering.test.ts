@@ -78,7 +78,7 @@ describe('conditionalRendering', () => {
       mockHideRules,
       mockValidFormData,
     );
-    expect(result.findIndex((e) => e === 'layoutElement_2') >= 0).toBe(true);
+    expect(result.has('layoutElement_2')).toBe(true);
   });
 
   it('should SHOW element when rule is set to HIDE and condition is FALSE', () => {
@@ -86,7 +86,7 @@ describe('conditionalRendering', () => {
       mockHideRules,
       mockInvalidFormData,
     );
-    expect(result.findIndex((e) => e === 'layoutElement_2') >= 0).toBe(false);
+    expect(result.has('layoutElement_2')).toBe(false);
   });
 
   it('should SHOW element when rule is set to SHOW and condition is TRUE', () => {
@@ -94,7 +94,7 @@ describe('conditionalRendering', () => {
       mockShowRules,
       mockValidFormData,
     );
-    expect(result.findIndex((e) => e === 'layoutElement_1') >= 0).toBe(false);
+    expect(result.has('layoutElement_1')).toBe(false);
   });
 
   it('should HIDE element when rule is set to SHOW and condition is FALSE', () => {
@@ -102,7 +102,7 @@ describe('conditionalRendering', () => {
       mockShowRules,
       mockInvalidFormData,
     );
-    expect(result.findIndex((e) => e === 'layoutElement_1') >= 0).toBe(true);
+    expect(result.has('layoutElement_1')).toBe(true);
   });
 
   it('conditional rendering rules should only return elements to hide', () => {
@@ -110,7 +110,7 @@ describe('conditionalRendering', () => {
       mockShowRules,
       mockValidFormData,
     );
-    expect(result.length).toBe(0);
+    expect(result.size).toBe(0);
   });
 
   it('conditional rendering rules with several targets should be applied to all connected elements', () => {
@@ -118,14 +118,14 @@ describe('conditionalRendering', () => {
       mockHideRules,
       mockValidFormData,
     );
-    expect(result.length).toBe(2);
-    expect(result[0]).toBe('layoutElement_2');
-    expect(result[1]).toBe('layoutElement_3');
+    expect(result.size).toBe(2);
+    expect(result.has('layoutElement_2')).toBe(true);
+    expect(result.has('layoutElement_3')).toBe(true);
   });
 
   it('should run and return empty result array on null values', () => {
     const result = runConditionalRenderingRules(null, null);
-    expect(result.length).toBe(0);
+    expect(result.size).toBe(0);
   });
 
   it('conditional rendering rules should run as expected for repeating groups', () => {
@@ -160,7 +160,10 @@ describe('conditionalRendering', () => {
       formData,
       repeatingGroups,
     );
-    expect(result).toEqual(['layoutElement_2-0', 'layoutElement_3-0']);
+    expect([...result.values()]).toEqual([
+      'layoutElement_2-0',
+      'layoutElement_3-0',
+    ]);
   });
 
   it('conditional rendering rules should run as expected for nested repeating groups', () => {
@@ -208,7 +211,7 @@ describe('conditionalRendering', () => {
       repeatingGroups,
     );
 
-    expect(result).toEqual([
+    expect([...result.values()]).toEqual([
       'someField-0-0',
       'someOtherField-0-0',
       'someField-1-2',

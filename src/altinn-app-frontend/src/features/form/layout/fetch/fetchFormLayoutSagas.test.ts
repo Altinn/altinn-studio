@@ -15,6 +15,7 @@ import type {
   ILayoutCompSummary,
   ILayoutGroup,
 } from 'src/features/form/layout';
+import type { IHiddenLayoutsExpressions } from 'src/types';
 
 import type { IApplication, IInstance } from 'altinn-shared/types';
 
@@ -47,6 +48,7 @@ describe('fetchFormLayoutSagas', () => {
     const mockResponse = {
       page1: {
         data: {
+          hidden: ['equals', true, false],
           layout: [],
         },
       },
@@ -55,9 +57,26 @@ describe('fetchFormLayoutSagas', () => {
       ...mockResponse,
       page2: {
         data: {
+          hidden: ['equals', 1, 2],
           layout: [],
         },
       },
+    };
+    const mockResponseTwoLayoutsNoHidden = {
+      ...mockResponse,
+      page2: {
+        data: {
+          layout: [],
+        },
+      },
+    };
+
+    const hiddenExprPage1: IHiddenLayoutsExpressions = {
+      page1: ['equals', true, false],
+    };
+
+    const hiddenExprPage2: IHiddenLayoutsExpressions = {
+      page2: ['equals', 1, 2],
     };
 
     it('should call relevant actions when layout is fetched successfully', () => {
@@ -74,12 +93,39 @@ describe('fetchFormLayoutSagas', () => {
           FormLayoutActions.fetchFulfilled({
             layouts: { page1: [] },
             navigationConfig: { page1: undefined },
+            hiddenLayoutsExpressions: { ...hiddenExprPage1 },
           }),
         )
         .put(FormLayoutActions.updateAutoSave({ autoSave: undefined }))
         .put(
           FormLayoutActions.updateCurrentView({
             newView: 'page1',
+            skipPageCaching: true,
+          }),
+        )
+        .run();
+    });
+
+    it('should work when a single layout is returned', () => {
+      jest.spyOn(networking, 'get').mockResolvedValue(mockResponse.page1);
+
+      return expectSaga(fetchLayoutSaga)
+        .provide([
+          [select(layoutSetsSelector), undefined],
+          [select(instanceSelector), instance],
+          [select(applicationMetadataSelector), application],
+        ])
+        .put(
+          FormLayoutActions.fetchFulfilled({
+            layouts: { FormLayout: [] },
+            navigationConfig: {},
+            hiddenLayoutsExpressions: { FormLayout: hiddenExprPage1['page1'] },
+          }),
+        )
+        .put(FormLayoutActions.updateAutoSave({ autoSave: undefined }))
+        .put(
+          FormLayoutActions.updateCurrentView({
+            newView: 'FormLayout',
             skipPageCaching: true,
           }),
         )
@@ -104,7 +150,9 @@ describe('fetchFormLayoutSagas', () => {
     });
 
     it('should set current view to cached key if key exists in fetched layout', () => {
-      jest.spyOn(networking, 'get').mockResolvedValue(mockResponseTwoLayouts);
+      jest
+        .spyOn(networking, 'get')
+        .mockResolvedValue(mockResponseTwoLayoutsNoHidden);
       jest.spyOn(window.localStorage.__proto__, 'getItem');
       window.localStorage.__proto__.getItem = jest
         .fn()
@@ -121,6 +169,10 @@ describe('fetchFormLayoutSagas', () => {
           FormLayoutActions.fetchFulfilled({
             layouts: { page1: [], page2: [] },
             navigationConfig: { page1: undefined, page2: undefined },
+            hiddenLayoutsExpressions: {
+              ...hiddenExprPage1,
+              page2: undefined,
+            },
           }),
         )
         .put(FormLayoutActions.updateAutoSave({ autoSave: undefined }))
@@ -151,6 +203,10 @@ describe('fetchFormLayoutSagas', () => {
           FormLayoutActions.fetchFulfilled({
             layouts: { page1: [], page2: [] },
             navigationConfig: { page1: undefined, page2: undefined },
+            hiddenLayoutsExpressions: {
+              ...hiddenExprPage1,
+              ...hiddenExprPage2,
+            },
           }),
         )
         .put(FormLayoutActions.updateAutoSave({ autoSave: undefined }))
@@ -176,6 +232,7 @@ describe('fetchFormLayoutSagas', () => {
           FormLayoutActions.fetchFulfilled({
             layouts: { page1: [] },
             navigationConfig: { page1: undefined },
+            hiddenLayoutsExpressions: { ...hiddenExprPage1 },
           }),
         )
         .put(FormLayoutActions.updateAutoSave({ autoSave: undefined }))
@@ -201,6 +258,7 @@ describe('fetchFormLayoutSagas', () => {
           FormLayoutActions.fetchFulfilled({
             layouts: { page1: [] },
             navigationConfig: { page1: undefined },
+            hiddenLayoutsExpressions: { ...hiddenExprPage1 },
           }),
         )
         .put(FormLayoutActions.updateAutoSave({ autoSave: undefined }))

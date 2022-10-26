@@ -34,12 +34,17 @@ export interface RepeatingGroupExtensions {
 export type RepeatingGroupLayoutComponent<NT extends NodeType = 'unresolved'> =
   RepeatingGroupExtensions & ComponentOf<NT>;
 
+export type RepeatingGroupHierarchyRow<NT extends NodeType = 'unresolved'> = {
+  index: number;
+  items: HierarchyWithRowsChildren<NT>[];
+};
+
 export type RepeatingGroupHierarchy<NT extends NodeType = 'unresolved'> = Omit<
   LayoutGroupHierarchy<NT>,
   'childComponents' | 'children'
 > &
   RepeatingGroupExtensions & {
-    rows: HierarchyWithRowsChildren<NT>[][];
+    rows: RepeatingGroupHierarchyRow<NT>[];
   };
 
 /**

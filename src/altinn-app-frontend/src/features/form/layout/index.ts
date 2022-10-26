@@ -5,6 +5,7 @@ import type {
 } from '@altinn/altinn-design-system';
 import type { GridJustification, GridSize } from '@material-ui/core';
 
+import type { ExpressionOr } from 'src/features/expressions/types';
 import type {
   ILabelSettings,
   IMapping,
@@ -61,9 +62,9 @@ export interface IGroupReference {
 export interface ILayoutCompBase<Type extends ComponentTypes = ComponentTypes>
   extends ILayoutEntry<Type> {
   dataModelBindings?: IDataModelBindings;
-  readOnly?: boolean;
-  required?: boolean;
-  hidden?: any; // Temporary while merging expressions PRs
+  readOnly?: ExpressionOr<'boolean'>;
+  required?: ExpressionOr<'boolean'>;
+  hidden?: ExpressionOr<'boolean'>;
   textResourceBindings?: ITextResourceBindings;
   grid?: IGrid;
   triggers?: Triggers[];
@@ -328,13 +329,13 @@ export interface IGridStyling {
 export interface IGroupEditProperties {
   mode?: 'hideTable' | 'showTable' | 'showAll' | 'likert';
   filter?: IGroupFilter[];
-  addButton?: boolean;
-  saveButton?: boolean;
-  deleteButton?: boolean;
+  addButton?: ExpressionOr<'boolean'>;
+  saveButton?: ExpressionOr<'boolean'>;
+  deleteButton?: ExpressionOr<'boolean'>; // TODO: Make expressions resolve per-row
   multiPage?: boolean;
   openByDefault?: boolean | 'first' | 'last';
-  alertOnDelete?: boolean;
-  saveAndNextButton?: boolean;
+  alertOnDelete?: ExpressionOr<'boolean'>; // TODO: Make expressions resolve per-row
+  saveAndNextButton?: ExpressionOr<'boolean'>;
 }
 
 export interface IGroupFilter {

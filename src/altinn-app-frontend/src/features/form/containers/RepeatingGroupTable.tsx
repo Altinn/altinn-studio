@@ -12,6 +12,8 @@ import {
 import cn from 'classnames';
 
 import { useAppDispatch } from 'src/common/hooks';
+import { ExprDefaultsForGroup } from 'src/features/expressions';
+import { useExpressions } from 'src/features/expressions/useExpressions';
 import { RepeatingGroupsEditContainer } from 'src/features/form/containers/RepeatingGroupsEditContainer';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { Triggers } from 'src/types';
@@ -259,6 +261,11 @@ export function RepeatingGroupTable({
   const classes = useStyles();
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
 
+  const edit = useExpressions(container.edit, {
+    forComponentId: id,
+    defaults: ExprDefaultsForGroup.edit,
+  });
+
   const tableHeaderComponentIds =
     container.tableHeaders ||
     components.map((c) => c.baseComponentId || c.id) ||
@@ -312,7 +319,7 @@ export function RepeatingGroupTable({
   };
 
   const handleDeleteClick = (index: number) => {
-    if (container.edit?.alertOnDelete) {
+    if (edit?.alertOnDelete) {
       onOpenChange(index);
     } else {
       onClickRemove(index);
@@ -391,10 +398,10 @@ export function RepeatingGroupTable({
           layout={layout}
           onClickSave={handleSaveClick}
           repeatingGroupDeepCopyComponents={repeatingGroupDeepCopyComponents}
-          hideSaveButton={container.edit?.saveButton === false}
+          hideSaveButton={edit?.saveButton === false}
           multiPageIndex={multiPageIndex}
           setMultiPageIndex={setMultiPageIndex}
-          showSaveAndNextButton={container.edit?.saveAndNextButton === true}
+          showSaveAndNextButton={edit?.saveAndNextButton === true}
           filteredIndexes={filteredIndexes}
         />
       )

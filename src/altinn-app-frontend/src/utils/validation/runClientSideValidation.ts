@@ -1,6 +1,7 @@
 import { getLayoutOrderFromTracks } from 'src/selectors/getLayoutOrder';
 import { getCurrentDataTypeId } from 'src/utils/appMetadata';
 import { convertDataBindingToModel } from 'src/utils/databindings';
+import { resolvedLayoutsFromState } from 'src/utils/layout/hierarchy';
 import {
   getValidator,
   validateEmptyFields,
@@ -25,13 +26,15 @@ export function runClientSideValidation(state: IRuntimeState) {
     state.formDataModel.schemas,
   );
 
+  const hiddenFields = new Set(state.formLayout.uiConfig.hiddenFields);
   const layoutOrder = getLayoutOrderFromTracks(
     state.formLayout.uiConfig.tracks,
   );
 
+  const layouts = resolvedLayoutsFromState(state);
   const validationResult = validateFormData(
     model,
-    state.formLayout.layouts,
+    layouts,
     layoutOrder,
     validator,
     state.language.language,
@@ -39,20 +42,18 @@ export function runClientSideValidation(state: IRuntimeState) {
   );
   const componentSpecificValidations = validateFormComponents(
     state.attachments.attachments,
-    state.formLayout.layouts,
+    layouts,
     layoutOrder,
     state.formData.formData,
     state.language.language,
-    state.formLayout.uiConfig.hiddenFields,
-    state.formLayout.uiConfig.repeatingGroups,
+    hiddenFields,
   );
   const emptyFieldsValidations = validateEmptyFields(
     state.formData.formData,
-    state.formLayout.layouts,
+    layouts,
     layoutOrder,
     state.language.language,
-    state.formLayout.uiConfig.hiddenFields,
-    state.formLayout.uiConfig.repeatingGroups,
+    hiddenFields,
     state.textResources.resources,
   );
   return {

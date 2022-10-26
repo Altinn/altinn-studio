@@ -833,7 +833,7 @@ describe('findChildren', () => {
     ];
 
     const result1 = findChildren(layout, {
-      matching: (c) => c.required,
+      matching: (c) => c.required === true,
       rootGroupId: 'group1',
     });
 
@@ -884,7 +884,7 @@ describe('findChildren', () => {
     ];
 
     const result1 = findChildren(layout, {
-      matching: (c) => c.required,
+      matching: (c) => c.required === true,
     });
 
     expect(result1).toHaveLength(2);

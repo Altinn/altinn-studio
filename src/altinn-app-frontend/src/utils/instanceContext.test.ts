@@ -1,5 +1,6 @@
-import type { IInstanceContext, IInstance } from '../../src/types';
-import { buildInstanceContext } from './instanceContext';
+import { buildInstanceContext } from 'src/utils/instanceContext';
+
+import type { IInstance, IInstanceContext } from 'altinn-shared/types';
 
 describe('instanceContext', () => {
   it('should build a valid instance context', () => {

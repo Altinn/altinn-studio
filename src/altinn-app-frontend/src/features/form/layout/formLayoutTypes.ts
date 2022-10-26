@@ -1,6 +1,7 @@
 import type { ILayouts } from 'src/features/form/layout';
 import type {
   IFileUploadersWithTag,
+  IHiddenLayoutsExpressions,
   ILayoutSets,
   ILayoutSettings,
   INavigationConfig,
@@ -14,6 +15,7 @@ export interface IFormLayoutActionRejected {
 export interface IFetchLayoutFulfilled {
   layouts: ILayouts;
   navigationConfig?: INavigationConfig;
+  hiddenLayoutsExpressions: IHiddenLayoutsExpressions;
 }
 
 export interface IFetchLayoutSetsFulfilled {

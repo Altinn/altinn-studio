@@ -67,10 +67,12 @@ const formLayoutSlice = createSagaSlice(
       }),
       fetchFulfilled: mkAction<LayoutTypes.IFetchLayoutFulfilled>({
         reducer: (state, action) => {
-          const { layouts, navigationConfig } = action.payload;
+          const { layouts, navigationConfig, hiddenLayoutsExpressions } =
+            action.payload;
           state.layouts = layouts;
           state.uiConfig.navigationConfig = navigationConfig;
           state.uiConfig.tracks.order = Object.keys(layouts);
+          state.uiConfig.tracks.hiddenExpr = hiddenLayoutsExpressions;
           state.error = null;
           state.uiConfig.repeatingGroups = null;
         },

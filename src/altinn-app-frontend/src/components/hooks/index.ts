@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { shallowEqual } from 'react-redux';
 
 import { useAppSelector } from 'src/common/hooks';
+import { buildInstanceContext } from 'src/utils/instanceContext';
 import {
   getOptionLookupKey,
   getRelevantFormDataForOptionSource,
@@ -9,7 +10,6 @@ import {
 } from 'src/utils/options';
 import type { IMapping, IOption, IOptionSource } from 'src/types';
 
-import { buildInstanceContext } from 'altinn-shared/utils/instanceContext';
 import type { IDataSources, IInstanceContext } from 'altinn-shared/types';
 
 interface IUseGetOptionsParams {

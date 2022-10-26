@@ -7,6 +7,7 @@ import cn from 'classnames';
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import ErrorPaper from 'src/components/message/ErrorPaper';
 import SummaryComponentSwitch from 'src/components/summary/SummaryComponentSwitch';
+import { useExpressionsForComponent } from 'src/features/expressions/useExpressions';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { makeGetHidden } from 'src/selectors/getLayoutData';
 import {
@@ -80,9 +81,11 @@ export function SummaryComponent({
   const attachments = useAppSelector(
     (state: IRuntimeState) => state.attachments.attachments,
   );
-  const formComponent = useAppSelector((state) => {
+  const _formComponent = useAppSelector((state) => {
     return state.formLayout.layouts[pageRef].find((c) => c.id === componentRef);
   });
+  const formComponent = useExpressionsForComponent(_formComponent);
+
   const goToCorrectPageLinkText = useAppSelector((state) => {
     return getTextFromAppOrDefault(
       'form_filler.summary_go_to_correct_page',

@@ -8,6 +8,7 @@ import {
   ExprDefaultsForComponent,
   ExprDefaultsForGroup,
 } from 'src/features/expressions/index';
+import { getInstanceContextSelector } from 'src/utils/instanceContext';
 import { useLayoutsAsNodes } from 'src/utils/layout/useLayoutsAsNodes';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
 import type { EvalExprInObjArgs } from 'src/features/expressions/index';
@@ -17,7 +18,7 @@ import type {
 } from 'src/features/expressions/types';
 import type { ILayoutComponentOrGroup } from 'src/features/form/layout';
 
-import { buildInstanceContext } from 'altinn-shared/utils/instanceContext';
+import type { IInstanceContext } from 'altinn-shared/types';
 
 export interface UseExpressionsOptions<T> {
   /**
@@ -42,20 +43,28 @@ export interface UseExpressionsOptions<T> {
  * @param input Any input, object, value from the layout definitions, possibly containing expressions somewhere.
  *  This hook will look through the input (and recurse through objects), looking for expressions and resolve
  *  them to provide you with the base out value for the current component context.
- * @param options Optional options (see their own docs)
+ * @param _options Optional options (see their own docs)
  */
 export function useExpressions<T>(
   input: T,
-  options?: UseExpressionsOptions<T>,
+  _options?: UseExpressionsOptions<T>,
 ): ExprResolved<T> {
+  // The options argument is an object, so it's natural to create a new one each time this function is called. As
+  // the equality function in React will assume a new object reference is an entirely new object, we'll memoize this
+  // argument as to prevent infinite looping when given a new (but identical) options argument.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const options = useMemo(() => _options, [JSON.stringify(_options)]);
+
   const component = useContext(FormComponentContext);
   const nodes = useLayoutsAsNodes();
   const formData = useAppSelector((state) => state.formData?.formData);
   const applicationSettings = useAppSelector(
     (state) => state.applicationSettings?.applicationSettings,
   );
-  const instance = useAppSelector((state) => state.instanceData?.instance);
-  const instanceContext = buildInstanceContext(instance);
+  const instanceContextSelector = getInstanceContextSelector();
+  const instanceContext: IInstanceContext = useAppSelector(
+    instanceContextSelector,
+  );
   const id = (options && options.forComponentId) || component.id;
 
   const node = useMemo(() => {
@@ -93,16 +102,9 @@ const componentDefaults: any = {
 
 export function useExpressionsForComponent<T extends ILayoutComponentOrGroup>(
   input: T,
-  options?: Omit<UseExpressionsOptions<T>, 'defaults'>,
 ): ExprResolved<T> {
-  const newOptions = useMemo(
-    () => ({
-      ...options,
-      defaults: componentDefaults,
-    }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    Object.values(options),
-  );
-
-  return useExpressions(input, newOptions);
+  return useExpressions(input, {
+    forComponentId: input.id,
+    defaults: componentDefaults,
+  });
 }

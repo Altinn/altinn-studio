@@ -549,6 +549,7 @@ export const ExprDefaultsForGroup: ExprDefaultValues<ILayoutGroup> = {
     addButton: true,
     deleteButton: true,
     saveButton: true,
+    alertOnDelete: false,
     saveAndNextButton: false,
   },
 };

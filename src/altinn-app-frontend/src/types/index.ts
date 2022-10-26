@@ -1,5 +1,6 @@
 import type Ajv from 'ajv/dist/core';
 
+import type { ExpressionOr } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/form/data';
 import type { IKeepComponentScrollPos } from 'src/features/form/layout/formLayoutTypes';
 import type { RootState } from 'src/store';
@@ -151,7 +152,7 @@ export interface IValidationIssue {
 }
 
 export interface IHiddenLayoutsExpressions {
-  [layoutKey: string]: never; // Will be set in a later PR
+  [layoutKey: string]: ExpressionOr<'boolean'>;
 }
 
 export interface IUiConfig {

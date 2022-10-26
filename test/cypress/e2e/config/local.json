@@ -1,6 +1,6 @@
 {
   "$schema": "https://on.cypress.io/cypress.schema.json",
-  "baseUrl": "http://altinn3local.no",
+  "baseUrl": "http://local.altinn.cloud",
   "env": {
     "userFullName": "Ola Nordmann",
     "firstName": "Ola"

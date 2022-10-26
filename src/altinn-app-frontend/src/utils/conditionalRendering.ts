@@ -18,8 +18,8 @@ export function runConditionalRenderingRules(
   rules: IConditionalRenderingRules,
   formData: IFormData,
   repeatingGroups?: IRepeatingGroups,
-): any[] {
-  let componentsToHide: string[] = [];
+): Set<string> {
+  const componentsToHide = new Set<string>();
   if (!(window as Window as IAltinnWindow).conditionalRuleHandlerHelper) {
     // rules have not been initialized
     return componentsToHide;
@@ -80,19 +80,17 @@ export function runConditionalRenderingRules(
               index: childIndex,
               nested: true,
             });
-            componentsToHide = componentsToHide.concat(
-              runConditionalRenderingRule(connectionNestedCopy, formData),
+            runConditionalRenderingRule(
+              connectionNestedCopy,
+              formData,
+              componentsToHide,
             );
           }
         }
-        componentsToHide = componentsToHide.concat(
-          runConditionalRenderingRule(connectionCopy, formData),
-        );
+        runConditionalRenderingRule(connectionCopy, formData, componentsToHide);
       }
     } else {
-      componentsToHide = componentsToHide.concat(
-        runConditionalRenderingRule(connection, formData),
-      );
+      runConditionalRenderingRule(connection, formData, componentsToHide);
     }
   });
 
@@ -126,9 +124,9 @@ function mapRepeatingGroupIndex({
 function runConditionalRenderingRule(
   rule: IConditionalRenderingRule,
   formData: IFormData,
+  hiddenFields: Set<string>,
 ) {
   const functionToRun = rule.selectedFunction;
-  const componentsToHide: string[] = [];
   const objectToUpdate = (
     window as Window as IAltinnWindow
   ).conditionalRuleHandlerHelper[functionToRun]();
@@ -148,15 +146,7 @@ function runConditionalRenderingRule(
   Object.keys(rule.selectedFields).forEach((elementToPerformActionOn) => {
     if (elementToPerformActionOn && hide) {
       const elementId = rule.selectedFields[elementToPerformActionOn];
-      addElementToList(componentsToHide, elementId);
+      hiddenFields.add(elementId);
     }
   });
-
-  return componentsToHide;
-}
-
-function addElementToList(list: string[], elementToAdd: string) {
-  if (list.findIndex((element) => element === elementToAdd) === -1) {
-    list.push(elementToAdd);
-  }
 }

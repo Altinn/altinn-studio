@@ -1,3 +1,4 @@
+import { getRepeatingGroups } from 'src/utils/formLayout';
 import {
   layoutAsHierarchy,
   layoutAsHierarchyWithRows,
@@ -267,28 +268,48 @@ describe('Hierarchical layout tools', () => {
         {
           ...components.group2,
           rows: [
-            [
-              ...commonComponents(0),
-              {
-                ...components.group2n,
-                id: `${components.group2n.id}-0`,
-                baseComponentId: components.group2n.id,
-                baseDataModelBindings: components.group2n.dataModelBindings,
-                dataModelBindings: { group: 'MyModel.Group2[0].Nested' },
-                rows: [nestedComponents(0, 0), nestedComponents(0, 1)],
-              },
-            ],
-            [
-              ...commonComponents(1),
-              {
-                ...components.group2n,
-                id: `${components.group2n.id}-1`,
-                baseComponentId: components.group2n.id,
-                baseDataModelBindings: components.group2n.dataModelBindings,
-                dataModelBindings: { group: 'MyModel.Group2[1].Nested' },
-                rows: [nestedComponents(1, 0)],
-              },
-            ],
+            {
+              index: 0,
+              items: [
+                ...commonComponents(0),
+                {
+                  ...components.group2n,
+                  id: `${components.group2n.id}-0`,
+                  baseComponentId: components.group2n.id,
+                  baseDataModelBindings: components.group2n.dataModelBindings,
+                  dataModelBindings: { group: 'MyModel.Group2[0].Nested' },
+                  rows: [
+                    {
+                      index: 0,
+                      items: nestedComponents(0, 0),
+                    },
+                    {
+                      index: 1,
+                      items: nestedComponents(0, 1),
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              index: 1,
+              items: [
+                ...commonComponents(1),
+                {
+                  ...components.group2n,
+                  id: `${components.group2n.id}-1`,
+                  baseComponentId: components.group2n.id,
+                  baseDataModelBindings: components.group2n.dataModelBindings,
+                  dataModelBindings: { group: 'MyModel.Group2[1].Nested' },
+                  rows: [
+                    {
+                      index: 0,
+                      items: nestedComponents(1, 0),
+                    },
+                  ],
+                },
+              ],
+            },
           ],
         },
         { ...components.group3, rows: [] },
@@ -299,8 +320,8 @@ describe('Hierarchical layout tools', () => {
   describe('nodesInLayout', () => {
     it('should resolve a very simple layout', () => {
       const root = new LayoutRootNode();
-      const top1 = new LayoutNode(components.top1, root);
-      const top2 = new LayoutNode(components.top2, root);
+      const top1 = new LayoutNode(components.top1, root, root);
+      const top2 = new LayoutNode(components.top2, root, root);
       root._addChild(top1);
       root._addChild(top2);
 
@@ -460,6 +481,68 @@ describe('Hierarchical layout tools', () => {
         otherDeepComponent.closest((c) => c.id === 'not-found'),
       ).toBeUndefined();
     });
+
+    it('should support indexes when using start/stop in groups', () => {
+      const dataModel = {
+        'Group[0].Title': 'title0',
+        'Group[1].Title': 'title1',
+        'Group[2].Title': 'title2',
+        'Group[3].Title': 'title3',
+        'Group[4].Title': 'title4',
+        'Group[5].Title': 'title5',
+        'Group[6].Title': 'title6',
+        'Group[7].Title': 'title7',
+        'Group[8].Title': 'title8',
+      };
+      const layout: ILayout = [
+        {
+          id: 'g1',
+          type: 'Group',
+          maxCount: 99,
+          children: ['g1c'],
+          dataModelBindings: { group: 'Group' },
+          edit: {
+            filter: [
+              { key: 'start', value: '0' },
+              { key: 'stop', value: '3' },
+            ],
+          },
+        },
+        {
+          id: 'g1c',
+          type: 'Input',
+          dataModelBindings: { simpleBinding: 'Group.Title' },
+        },
+        {
+          id: 'g2',
+          type: 'Group',
+          maxCount: 99,
+          children: ['g2c'],
+          dataModelBindings: { group: 'Group' },
+          edit: {
+            filter: [
+              { key: 'start', value: '3' },
+              { key: 'stop', value: '6' },
+            ],
+          },
+        },
+        {
+          id: 'g2c',
+          type: 'Input',
+          dataModelBindings: { simpleBinding: 'Group.Title' },
+        },
+      ];
+      const nodes = nodesInLayout(
+        layout,
+        getRepeatingGroups(layout, dataModel),
+      );
+
+      expect(nodes.findAllById('g1c').length).toEqual(3);
+      expect(nodes.findAllById('g2c').length).toEqual(3);
+
+      expect(nodes.findById('g1c-0').rowIndex).toEqual(0);
+      expect(nodes.findById('g2c-3').rowIndex).toEqual(3);
+    });
   });
 
   describe('resolvedNodesInLayout', () => {
@@ -504,11 +587,11 @@ describe('Hierarchical layout tools', () => {
     expect(uniqueHidden(nodes.children())).toEqual(plain);
 
     if (group2.item.type === 'Group' && 'rows' in group2.item) {
-      expect(group2.item.rows[0][1].hidden).toEqual(true);
-      expect(group2.item.rows[0][2].hidden).toEqual(true);
-      const group2n = group2.item.rows[0][2];
+      expect(group2.item.rows[0].items[1].hidden).toEqual(true);
+      expect(group2.item.rows[0].items[2].hidden).toEqual(true);
+      const group2n = group2.item.rows[0].items[2];
       if (group2n.type === 'Group' && 'rows' in group2n) {
-        expect(group2n.rows[0][1].hidden).toEqual(true);
+        expect(group2n.rows[0].items[1].hidden).toEqual(true);
       } else {
         expect(false).toEqual(true);
       }

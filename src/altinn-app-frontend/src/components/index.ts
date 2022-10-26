@@ -26,6 +26,7 @@ import { TextAreaComponent } from 'src/components/base/TextAreaComponent';
 import CustomComponent from 'src/components/custom/CustomWebComponent';
 import { NavigationButtons as NavigationButtonsComponent } from 'src/components/presentation/NavigationButtons';
 import type { IGenericComponentProps } from 'src/components/GenericComponent';
+import type { ExprResolved } from 'src/features/expressions/types';
 import type {
   ComponentExceptGroup,
   ComponentExceptGroupAndSummary,
@@ -84,7 +85,7 @@ export interface IComponentProps extends IGenericComponentProps {
 }
 
 export type PropsFromGenericComponent<T extends ComponentExceptGroup> =
-  IComponentProps & Omit<ILayoutComponent<T>, 'type'>;
+  IComponentProps & ExprResolved<Omit<ILayoutComponent<T>, 'type'>>;
 
 export interface IFormComponentContext {
   grid?: IGrid;

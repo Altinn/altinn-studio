@@ -438,8 +438,14 @@ export function getVariableTextKeysForRepeatingGroupComponent(
   return copyTextResourceBindings;
 }
 
-export function hasRequiredFields(layout: ILayout) {
-  return layout.find((c: ILayoutComponent) => c.required);
+/**
+ * Checks if there are required fields in this layout (or fields that potentially can be marked as required if some
+ * dynamic behaviour dictates it).
+ */
+export function hasRequiredFields(layout: ILayout): boolean {
+  return !!layout.find(
+    (c: ILayoutComponent) => c.required === true || Array.isArray(c.required),
+  );
 }
 
 /**
@@ -450,6 +456,7 @@ export function hasRequiredFields(layout: ILayout) {
  * @param options.matching Function which should return true for every component to be included in the returned list.
  *    If not provided, all components are returned.
  * @param options.rootGroupId Component id for a group to use as root, instead of iterating the entire layout.
+ * @deprecated Use nodesInLayout() instead. TODO: Rewrite usages
  */
 export function findChildren(
   layout: ILayout,

@@ -43,9 +43,7 @@ export function* updateFormDataSaga({
       );
     }
 
-    if (state.formDynamics.conditionalRendering) {
-      yield put(FormDynamicsActions.checkIfConditionalRulesShouldRun({}));
-    }
+    yield put(FormDynamicsActions.checkIfConditionalRulesShouldRun({}));
   } catch (error) {
     console.error(error);
     yield put(FormDataActions.updateRejected({ error }));

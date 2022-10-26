@@ -5,6 +5,7 @@ import {
 } from 'src/features/expressions';
 import { DataBinding } from 'src/utils/databindings/DataBinding';
 import { getRepeatingGroupStartStopIndex } from 'src/utils/formLayout';
+import { buildInstanceContext } from 'src/utils/instanceContext';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
 import type {
   ILayout,
@@ -27,8 +28,6 @@ import type {
   RepeatingGroupHierarchy,
   RepeatingGroupLayoutComponent,
 } from 'src/utils/layout/hierarchy.types';
-
-import { buildInstanceContext } from 'altinn-shared/utils/instanceContext';
 
 export const childrenWithoutMultiPagePrefix = (group: ILayoutGroup) =>
   group.edit?.multiPage
@@ -130,7 +129,7 @@ interface HierarchyParent {
  */
 export function layoutAsHierarchyWithRows(
   formLayout: ILayout,
-  repeatingGroups: IRepeatingGroups,
+  repeatingGroups: IRepeatingGroups | null,
 ): HierarchyWithRows[] {
   const rewriteBindings = (
     main: LayoutGroupHierarchy,
@@ -164,11 +163,11 @@ export function layoutAsHierarchyWithRows(
     if (main.type === 'Group' && main.maxCount > 1) {
       const rows: RepeatingGroupHierarchy['rows'] = [];
       const { startIndex, stopIndex } = getRepeatingGroupStartStopIndex(
-        repeatingGroups[main.id]?.index,
+        (repeatingGroups || {})[main.id]?.index,
         main.edit,
       );
       for (let index = startIndex; index <= stopIndex; index++) {
-        const row = main.childComponents.map((child) => {
+        const items = main.childComponents.map((child) => {
           const suffix = parent ? `-${parent.index}-${index}` : `-${index}`;
           const newId = `${child.id}${suffix}`;
           const newChild: RepeatingGroupLayoutComponent = {
@@ -186,7 +185,7 @@ export function layoutAsHierarchyWithRows(
             binding: main.dataModelBindings?.group,
           });
         });
-        rows.push(row);
+        rows.push({ items, index });
       }
 
       const out: RepeatingGroupHierarchy = { ...main, rows };
@@ -343,6 +342,7 @@ export class LayoutNode<
   public constructor(
     public item: Item,
     public parent: AnyParentNode<NT>,
+    public top: LayoutRootNode<NT>,
     public readonly rowIndex?: number,
   ) {}
 
@@ -388,20 +388,22 @@ export class LayoutNode<
     return parents;
   }
 
-  private childrenAsList(onlyInRowIndex?: number) {
-    let list: AnyItem<NT>[];
+  private childrenIdsAsList(onlyInRowIndex?: number) {
+    let list: AnyItem<NT>[] = [];
     if (this.item.type === 'Group' && 'rows' in this.item) {
       if (typeof onlyInRowIndex === 'number') {
-        list = this.item.rows[onlyInRowIndex];
+        list = this.item.rows.find((r) => r.index === onlyInRowIndex).items;
       } else {
         // Beware: In most cases this will just match the first row.
-        list = this.item.rows.flat();
+        list = Object.values(this.item.rows)
+          .map((r) => r.items)
+          .flat();
       }
     } else if (this.item.type === 'Group' && 'childComponents' in this.item) {
       list = this.item.childComponents;
     }
 
-    return list;
+    return list.map((item) => item.id);
   }
 
   /**
@@ -418,19 +420,20 @@ export class LayoutNode<
     matching?: (item: AnyItem<NT>) => boolean,
     onlyInRowIndex?: number,
   ): any {
-    const list = this.childrenAsList(onlyInRowIndex);
+    const list = this.childrenIdsAsList(onlyInRowIndex);
 
     if (!matching) {
       if (!list) {
         return [];
       }
-      return list.map((item) => new LayoutNode(item, this));
+      return list.map((id) => this.top.findById(id));
     }
 
     if (typeof list !== 'undefined') {
-      for (const item of list) {
-        if (matching(item)) {
-          return new LayoutNode(item, this);
+      for (const id of list) {
+        const node = this.top.findById(id);
+        if (matching(node.item)) {
+          return node;
         }
       }
     }
@@ -586,7 +589,7 @@ export class LayoutNode<
  */
 export function nodesInLayout(
   formLayout: ILayout,
-  repeatingGroups: IRepeatingGroups,
+  repeatingGroups: IRepeatingGroups | null,
 ): LayoutRootNode {
   const root = new LayoutRootNode();
 
@@ -600,18 +603,17 @@ export function nodesInLayout(
         const group: AnyParentNode = new LayoutNode(
           component,
           parent,
+          root,
           rowIndex,
         );
-        component.rows.forEach((row, rowIndex) =>
-          recurse(row, group, rowIndex),
-        );
+        component.rows.forEach((row) => recurse(row.items, group, row.index));
         root._addChild(group);
       } else if (component.type === 'Group' && 'childComponents' in component) {
-        const group = new LayoutNode(component, parent, rowIndex);
+        const group = new LayoutNode(component, parent, root, rowIndex);
         recurse(component.childComponents, group);
         root._addChild(group);
       } else {
-        const node = new LayoutNode(component, parent, rowIndex);
+        const node = new LayoutNode(component, parent, root, rowIndex);
         root._addChild(node);
       }
     }
@@ -630,7 +632,7 @@ export function nodesInLayout(
  */
 export function resolvedNodesInLayout(
   formLayout: ILayout,
-  repeatingGroups: IRepeatingGroups,
+  repeatingGroups: IRepeatingGroups | null,
   dataSources: ContextDataSources,
 ): LayoutRootNode<'resolved'> {
   // A full copy is needed here because formLayout comes from the redux store, and in production code (not the

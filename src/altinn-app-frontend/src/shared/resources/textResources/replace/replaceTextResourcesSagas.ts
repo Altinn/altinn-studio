@@ -4,11 +4,11 @@ import type { SagaIterator } from 'redux-saga';
 import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { TextResourcesActions } from 'src/shared/resources/textResources/textResourcesSlice';
+import { buildInstanceContext } from 'src/utils/instanceContext';
 import type { IFormData } from 'src/features/form/data';
 import type { ITextResourcesState } from 'src/shared/resources/textResources';
 import type { IRepeatingGroups, IRuntimeState } from 'src/types';
 
-import { buildInstanceContext } from 'altinn-shared/utils/instanceContext';
 import { replaceTextResourceParams } from 'altinn-shared/utils/language';
 import type {
   IApplicationSettings,
