@@ -61,7 +61,6 @@ namespace Altinn.Studio.Designer.RepositoryClient.Client
         public ApiClient(Configuration config)
         {
             Configuration = config ?? Altinn.Studio.Designer.RepositoryClient.Client.Configuration.Default;
-
             RestClient = new RestClient(Configuration.BasePath);
         }
 
@@ -187,13 +186,13 @@ namespace Altinn.Studio.Designer.RepositoryClient.Client
                 contentType);
 
             // set timeout
-            RestClient.Timeout = Configuration.Timeout;
+            RestClient.Options.MaxTimeout = Configuration.Timeout;
 
             // set user agent
-            RestClient.UserAgent = Configuration.UserAgent;
+            RestClient.Options.UserAgent = Configuration.UserAgent;
 
             InterceptRequest(request);
-            IRestResponse response = RestClient.Execute(request);
+            RestResponse response = RestClient.Execute(request);
             InterceptResponse(request, response);
 
             return (object)response;

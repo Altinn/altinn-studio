@@ -267,7 +267,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Client
                 _basePath = value;
                 if (_apiClient != null)
                 {
-                    _apiClient.RestClient.BaseUrl = new Uri(_basePath);
+                    _apiClient.RestClient.Options.BaseUrl = new Uri(_basePath);
                 }
             }
         }
@@ -282,8 +282,8 @@ namespace Altinn.Studio.Designer.RepositoryClient.Client
         /// </summary>
         public virtual int Timeout
         {
-            get { return ApiClient.RestClient.Timeout; }
-            set { ApiClient.RestClient.Timeout = value; }
+            get { return ApiClient.RestClient.Options.MaxTimeout; }
+            set { ApiClient.RestClient.Options.MaxTimeout = value; }
         }
 
         /// <summary>
