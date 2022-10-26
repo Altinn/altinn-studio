@@ -34,14 +34,14 @@ namespace Altinn.Studio.Designer.RepositoryClient.Client
         /// Allows for extending request processing for <see cref="ApiClient"/> generated code.
         /// </summary>
         /// <param name="request">The RestSharp request object</param>
-        partial void InterceptRequest(IRestRequest request);
+        partial void InterceptRequest(RestRequest request);
 
         /// <summary>
         /// Allows for extending response processing for <see cref="ApiClient"/> generated code.
         /// </summary>
         /// <param name="request">The RestSharp request object</param>
         /// <param name="response">The RestSharp response object</param>
-        partial void InterceptResponse(IRestRequest request, IRestResponse response);
+        partial void InterceptResponse(RestRequest request, RestResponse response);
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ApiClient" /> class
@@ -61,7 +61,6 @@ namespace Altinn.Studio.Designer.RepositoryClient.Client
         public ApiClient(Configuration config)
         {
             Configuration = config ?? Altinn.Studio.Designer.RepositoryClient.Client.Configuration.Default;
-
             RestClient = new RestClient(Configuration.BasePath);
         }
 
@@ -187,13 +186,13 @@ namespace Altinn.Studio.Designer.RepositoryClient.Client
                 contentType);
 
             // set timeout
-            RestClient.Timeout = Configuration.Timeout;
+            RestClient.Options.MaxTimeout = Configuration.Timeout;
 
             // set user agent
-            RestClient.UserAgent = Configuration.UserAgent;
+            RestClient.Options.UserAgent = Configuration.UserAgent;
 
             InterceptRequest(request);
-            IRestResponse response = RestClient.Execute(request);
+            RestResponse response = RestClient.Execute(request);
             InterceptResponse(request, response);
 
             return (object)response;
@@ -319,7 +318,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Client
         /// <param name="response">The HTTP response.</param>
         /// <param name="type">Object type.</param>
         /// <returns>Object representation of the JSON string.</returns>
-        public object Deserialize(IRestResponse response, Type type)
+        public object Deserialize(RestResponse response, Type type)
         {
             var headers = response.Headers;
 
