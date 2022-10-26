@@ -7,10 +7,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 
-void RegisterCustomAppServices(IServiceCollection services, IConfiguration config)
+void RegisterCustomAppServices(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
 {
     // Register your apps custom service implementations here.
-    // TODO: Link to documentation
 }
 
 // ###########################################################################
@@ -34,7 +33,7 @@ void ConfigureServices(IServiceCollection services, IConfiguration config)
     services.AddAltinnAppControllersWithViews();
 
     // Register custom implementations for this application
-    RegisterCustomAppServices(services, config);
+    RegisterCustomAppServices(services, config, builder.Environment);
 
     // Register services required to run this as an Altinn application
     services.AddAltinnAppServices(config, builder.Environment);
