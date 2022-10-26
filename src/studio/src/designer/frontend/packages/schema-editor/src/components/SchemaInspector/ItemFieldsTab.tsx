@@ -1,11 +1,11 @@
 import React, { BaseSyntheticEvent, useEffect } from 'react';
 import type { ILanguage, ISchemaState } from '../../types';
 import { PropertyItem } from './PropertyItem';
-import { addProperty, deleteProperty, setPropertyName } from '../../features/editor/schemaEditorSlice';
+import { addProperty, deleteProperty, setPropertyName, setType } from '../../features/editor/schemaEditorSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { getTranslation } from '../../utils/language';
 import type { UiSchemaNode } from '@altinn/schema-model';
-import { getChildNodesByPointer, getNodeDisplayName } from '@altinn/schema-model';
+import { FieldType, getChildNodesByPointer, getNodeDisplayName } from '@altinn/schema-model';
 import classes from './ItemFieldsTab.module.css';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 import { usePrevious } from '../../hooks/usePrevious';
@@ -42,6 +42,8 @@ export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) =>
       }),
     );
 
+  const onChangeType = (path: string, type: FieldType) => dispatch(setType({ path, type }));
+
   const onDeleteObjectClick = (path: string) => dispatch(deleteProperty({ path }));
 
   const dispatchAddProperty = () =>
@@ -58,26 +60,40 @@ export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) =>
     dispatchAddProperty();
   };
 
+  const t = (key: string) => getTranslation(key, language);
+
   return (
     <div className={classes.root}>
+      {childNodes.length && (
+        <>
+          <div>{t('field_name')}</div>
+          <div>{t('type')}</div>
+          <div>{t('required')}</div>
+          <div>{t('delete')}</div>
+        </>
+      )}
       {childNodes.map((childNode) => (
         <PropertyItem
           fullPath={childNode.pointer}
           inputId={propertyInputIdFromNode(childNode)}
           key={childNode.pointer}
           language={language}
+          onChangeType={onChangeType}
           onChangeValue={onChangePropertyName}
           onDeleteField={onDeleteObjectClick}
           onEnterKeyPress={dispatchAddProperty}
           readOnly={readonly}
           required={childNode.isRequired}
+          type={childNode.fieldType as FieldType}
           value={getNodeDisplayName(childNode)}
         />
       ))}
       {!readonly && (
-        <Button onClick={onAddPropertyClicked} variant={ButtonVariant.Secondary}>
-          {getTranslation('add_property', language)}
-        </Button>
+        <div className={classes.addButtonCell}>
+          <Button onClick={onAddPropertyClicked} variant={ButtonVariant.Secondary}>
+            {t('add_property')}
+          </Button>
+        </div>
       )}
     </div>
   );

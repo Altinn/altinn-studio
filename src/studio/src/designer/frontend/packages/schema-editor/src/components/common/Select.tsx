@@ -4,7 +4,9 @@ import { Label } from './Label';
 import classes from './Select.module.css';
 
 export interface SelectProps {
+  className?: string;
   emptyOptionLabel?: string;
+  hideLabel?: boolean;
   id: string;
   label: string;
   onChange: (value: string) => void;
@@ -12,12 +14,22 @@ export interface SelectProps {
   value?: string;
 }
 
-export const Select = ({ emptyOptionLabel, id, label, onChange, options, value }: SelectProps) => {
+export const Select = ({
+  className,
+  emptyOptionLabel,
+  hideLabel,
+  id,
+  label,
+  onChange,
+  options,
+  value,
+}: SelectProps) => {
   const allOptions = emptyOptionLabel === undefined ? options : [{value: '', label: emptyOptionLabel}, ...options];
   return (
-    <span>
-      <Label htmlFor={id}>{label}</Label>
+    <span className={className}>
+      {!hideLabel && <Label htmlFor={id}>{label}</Label>}
       <select
+        aria-label={hideLabel ? label : undefined}
         className={classes.select}
         id={id}
         onChange={(event) => onChange(event.target.value)}

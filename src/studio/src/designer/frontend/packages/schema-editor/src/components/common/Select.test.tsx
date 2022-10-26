@@ -63,3 +63,15 @@ test('Empty value option should appear with given label if set', async () => {
   renderSelect({ emptyOptionLabel });
   expect(screen.getByText(emptyOptionLabel)).toHaveValue('');
 });
+
+test('If hideLabel is true, the label should not be visible, but still accessible', () => {
+  renderSelect({ hideLabel: true });
+  expect(screen.queryByText(label)).toBeFalsy();
+  expect(screen.getByRole('combobox')).toHaveAccessibleName(label);
+});
+
+test('Select box should have given class', () => {
+  const className = 'test';
+  const { container } = renderSelect({ className });
+  expect(container.querySelector(`.${className}`)).toBeDefined();
+});
