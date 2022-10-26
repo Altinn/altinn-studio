@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { createTheme, Grid } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import AltinnColumnLayout from 'app-shared/components/AltinnColumnLayout';
@@ -7,8 +7,8 @@ import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import { HandleServiceInformationActions } from '../handleServiceInformationSlice';
-import MainContent from './MainContent';
-import SideMenuContent from './SideMenuContent';
+import { MainContent } from './MainContent';
+import { SideMenuContent } from './SideMenuContent';
 import { useAppDispatch, useAppSelector } from 'common/hooks';
 import type { IAltinnWindow } from '../../../types/global';
 
@@ -76,24 +76,23 @@ export function AdministrationComponent() {
   const classes = useStyles();
   const dispatch = useAppDispatch();
 
-  const [newName, setNewName] = React.useState<string>(name);
-  const [newDescription, setNewDescription] =
-    React.useState<string>(description);
-  const [newId, setNewId] = React.useState<string>(id);
-  const [editAppName, setEditAppName] = React.useState<boolean>();
-  const [editAppDescription, setEditAppDescription] = React.useState<boolean>();
-  const [editAppId, setEditAppId] = React.useState<boolean>();
-  const [appNameAnchorEl, setAppNameAnchorEl] = React.useState<HTMLElement>();
+  const [newName, setNewName] = useState<string>(name);
+  const [newDescription, setNewDescription] = useState<string>(description);
+  const [newId, setNewId] = useState<string>(id);
+  const [editAppName, setEditAppName] = useState<boolean>();
+  const [editAppDescription, setEditAppDescription] = useState<boolean>();
+  const [editAppId, setEditAppId] = useState<boolean>();
+  const [appNameAnchorEl, setAppNameAnchorEl] = useState<HTMLElement>();
 
-  React.useEffect(() => {
+  useEffect(() => {
     setNewName(name);
   }, [name]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setNewDescription(description);
   }, [description]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     setNewId(id);
   }, [id]);
 

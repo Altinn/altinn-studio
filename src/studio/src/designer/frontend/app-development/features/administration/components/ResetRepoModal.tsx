@@ -1,56 +1,16 @@
-import React from 'react';
-import { createTheme, Grid, Popover, Typography } from '@mui/material';
-import { makeStyles } from '@mui/styles';
-import AltinnButton from 'app-shared/components/AltinnButton';
-import AltinnInputField from 'app-shared/components/AltinnInputField';
-import studioTheme from 'app-shared/theme/altinnStudioTheme';
+import React, { useEffect, useState } from 'react';
+import { Button, ButtonVariant, TextField } from '@altinn/altinn-design-system';
+import { Popover } from '@mui/material';
 import {
   getLanguageFromKey,
   getParsedLanguageFromKey,
 } from 'app-shared/utils/language';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import { useAppSelector } from 'common/hooks';
-
-const theme = createTheme(studioTheme);
-
-const setupClasses = makeStyles({
-  sidebarHeader: {
-    marginBottom: 20,
-    fontSize: 20,
-    fontWeight: 500,
-  },
-  sidebarHeaderSecond: {
-    marginTop: 36,
-  },
-  sidebarInfoText: {
-    fontSize: 16,
-    marginBottom: 12,
-  },
-  modalContainer: {
-    padding: 24,
-    width: '471px',
-  },
-  itemSeparator: {
-    paddingBottom: 12,
-  },
-  sectionSeparator: {
-    paddingBottom: 32,
-  },
-  blackText: {
-    color: 'black',
-  },
-  confirmButton: {
-    backgroundColor: theme.altinnPalette.primary.red,
-    color: theme.altinnPalette.primary.white,
-    marginTop: 30,
-  },
-  cancelButton: {
-    marginTop: 30,
-  },
-});
+import classes from './RepoModal.module.css';
 
 export interface IResetRepoModalProps {
-  anchorEl: null | Element | ((element: Element) => Element);
+  anchorRef: React.MutableRefObject<Element>;
   onClose: any;
   open: boolean;
   language: any;
@@ -58,17 +18,15 @@ export interface IResetRepoModalProps {
   handleClickResetRepo: () => void;
 }
 
-function ResetRepoModal(props: IResetRepoModalProps) {
-  const classes = setupClasses();
-
-  const [canDelete, setCanDelete] = React.useState<boolean>(false);
-  const [deleteRepoName, setDeleteRepoName] = React.useState<string>('');
+export function ResetRepoModal(props: IResetRepoModalProps) {
+  const [canDelete, setCanDelete] = useState<boolean>(false);
+  const [deleteRepoName, setDeleteRepoName] = useState<string>('');
 
   const resetting: boolean = useAppSelector(
     (state) => state.repoStatus.resettingLocalRepo,
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (deleteRepoName === props.repositoryName) {
       setCanDelete(true);
     } else {
@@ -76,9 +34,8 @@ function ResetRepoModal(props: IResetRepoModalProps) {
     }
   }, [deleteRepoName, props.repositoryName]);
 
-  const onDeleteRepoNameChange = (event: any) => {
+  const onDeleteRepoNameChange = (event: any) =>
     setDeleteRepoName(event.target.value);
-  };
 
   const onResetWrapper = () => {
     setCanDelete(false);
@@ -89,12 +46,12 @@ function ResetRepoModal(props: IResetRepoModalProps) {
     setDeleteRepoName('');
     props.onClose();
   };
-
+  const t = (key: string) => getLanguageFromKey(key, props.language);
   return (
     <div data-testid='reset-repo-container'>
       <Popover
         open={props.open}
-        anchorEl={props.anchorEl}
+        anchorEl={props.anchorRef.current}
         onClose={onCloseWrapper}
         anchorOrigin={{
           vertical: 'center',
@@ -106,85 +63,43 @@ function ResetRepoModal(props: IResetRepoModalProps) {
         }}
         data-testid='reset-repo-popover'
       >
-        <Grid
-          container={true}
-          direction='column'
-          className={classes.modalContainer}
-        >
-          <Grid item={true} className={classes.itemSeparator}>
-            <Typography className={classes.sidebarHeader}>
-              {getLanguageFromKey(
-                'administration.reset_repo_confirm_heading',
-                props.language,
-              )}
-            </Typography>
-          </Grid>
-          <Grid item={true} className={classes.sectionSeparator}>
-            <Typography variant='body1'>
-              {getParsedLanguageFromKey(
-                'administration.reset_repo_confirm_info',
-                props.language,
-                [props.repositoryName],
-                true,
-              )}
-            </Typography>
-          </Grid>
-          <Grid item={true}>
-            <label htmlFor='delete-repo-name'>
-              <Typography variant='body1' className={classes.blackText}>
-                {getLanguageFromKey(
-                  'administration.reset_repo_confirm_repo_name',
-                  props.language,
-                )}
-              </Typography>
-            </label>
-          </Grid>
-          <Grid item={true} className={classes.itemSeparator}>
-            <AltinnInputField
-              id='delete-repo-name-input'
-              textFieldId='delete-repo-name'
-              fullWidth={true}
-              onChangeFunction={onDeleteRepoNameChange}
-            />
-          </Grid>
-          <Grid container={true}>
-            {resetting ? (
-              <Grid item={true} xs={6}>
-                <AltinnSpinner />
-              </Grid>
-            ) : (
-              <>
-                <Grid item={true} xs={6}>
-                  <AltinnButton
-                    onClickFunction={onResetWrapper}
-                    btnText={getLanguageFromKey(
-                      'administration.reset_repo_button',
-                      props.language,
-                    )}
-                    id='confirm-reset-repo-button'
-                    disabled={!canDelete}
-                    className={classes.confirmButton}
-                    data-testid='confirm-reset-repo-button'
-                  />
-                </Grid>
-                <Grid item={true} xs={6}>
-                  <AltinnButton
-                    onClickFunction={onCloseWrapper}
-                    btnText={getLanguageFromKey(
-                      'general.cancel',
-                      props.language,
-                    )}
-                    secondaryButton={true}
-                    className={classes.cancelButton}
-                  />
-                </Grid>
-              </>
+        <div className={classes.modalContainer}>
+          <h2>{t('administration.reset_repo_confirm_heading')}</h2>
+          <div>
+            {getParsedLanguageFromKey(
+              'administration.reset_repo_confirm_info',
+              props.language,
+              [props.repositoryName],
+              true,
             )}
-          </Grid>
-        </Grid>
+          </div>
+          <label htmlFor='delete-repo-name'>
+            <div>{t('administration.reset_repo_confirm_repo_name')}</div>
+          </label>
+          <TextField id='delete-repo-name' onChange={onDeleteRepoNameChange} />
+          {resetting ? (
+            <AltinnSpinner />
+          ) : (
+            <div className={classes.buttonContainer}>
+              <Button
+                onClick={onResetWrapper}
+                id='confirm-reset-repo-button'
+                disabled={!canDelete}
+                variant={ButtonVariant.Cancel}
+                data-testid='confirm-reset-repo-button'
+              >
+                {t('administration.reset_repo_button')}
+              </Button>
+              <Button
+                onClick={onCloseWrapper}
+                variant={ButtonVariant.Secondary}
+              >
+                {t('general.cancel')}
+              </Button>
+            </div>
+          )}
+        </div>
       </Popover>
     </div>
   );
 }
-
-export default ResetRepoModal;
