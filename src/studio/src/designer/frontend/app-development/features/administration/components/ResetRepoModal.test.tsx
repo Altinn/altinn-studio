@@ -26,7 +26,9 @@ describe('ResetRepoModal', () => {
         reset_repo_confirm_repo_name: 'Skriv inn repo-navn',
       },
     };
-    mockAnchorEl = document.querySelector('body');
+    mockAnchorEl = {
+      current: document.querySelector('body'),
+    };
   });
 
   const RenderResetRepoModal = (
