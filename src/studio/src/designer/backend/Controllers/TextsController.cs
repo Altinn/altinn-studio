@@ -96,8 +96,9 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             await _textsService.UpdateTexts(org, repo, developer, languageCode, jsonTexts);
+            Dictionary<string, string> savedTexts = await _textsService.GetTexts(org, repo, developer, languageCode);
 
-            return NoContent();
+            return Ok(savedTexts);
         }
 
         /// <summary>
