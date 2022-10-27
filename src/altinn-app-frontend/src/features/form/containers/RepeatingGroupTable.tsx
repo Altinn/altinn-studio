@@ -30,6 +30,7 @@ import {
 import type { IFormData } from 'src/features/form/data';
 import type {
   ILayout,
+  ILayoutCompInput,
   ILayoutComponent,
   ILayoutGroup,
 } from 'src/features/form/layout';
@@ -230,6 +231,19 @@ function getTableTitle(component: ILayoutComponent) {
     return component.textResourceBindings.title;
   }
   return '';
+}
+
+function getTextAlignment(
+  component: ILayoutComponent,
+): 'left' | 'center' | 'right' {
+  const formatting = (component as ILayoutCompInput).formatting;
+  if (formatting && formatting.align) {
+    return formatting.align;
+  }
+  if (formatting && formatting.number) {
+    return 'right';
+  }
+  return 'left';
 }
 
 export function RepeatingGroupTable({
@@ -496,7 +510,12 @@ export function RepeatingGroupTable({
                         )}
                       >
                         {tableComponents.map((component: ILayoutComponent) => (
-                          <TableCell key={`${component.id}-${index}`}>
+                          <TableCell
+                            key={`${component.id}-${index}`}
+                            style={{
+                              textAlign: getTextAlignment(component),
+                            }}
+                          >
                             <span>
                               {index !== editIndex
                                 ? getFormDataForComponent(component, index)

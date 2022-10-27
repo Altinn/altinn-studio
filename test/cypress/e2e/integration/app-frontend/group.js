@@ -37,8 +37,8 @@ describe('Group', () => {
       cy.get(appFrontend.group.mainGroup)
         .find(mui.tableBody)
         .then((table) => {
-          cy.get(table).find(mui.tableElement).first().invoke('text').should('equal', '1');
-          cy.get(table).find(mui.tableElement).eq(1).invoke('text').should('equal', '2');
+          cy.get(table).find(mui.tableElement).first().invoke('text').should('equal', 'NOK 1');
+          cy.get(table).find(mui.tableElement).eq(1).invoke('text').should('equal', 'NOK 2');
           cy.get(table).find(mui.tableElement).find(mui.buttonIcon).first().should('be.visible').click();
         });
       cy.get(appFrontend.group.mainGroup)
@@ -169,25 +169,25 @@ describe('Group', () => {
     cy.contains(mui.button, texts.prev).click();
     cy.get(appFrontend.group.prefill.liten).click();
     cy.contains(mui.button, texts.next).click();
-    expectRows([1, 5]);
+    expectRows(['NOK 1', 'NOK 5']);
 
     cy.contains(mui.button, texts.prev).click();
     cy.get(appFrontend.group.prefill.middels).click();
     cy.get(appFrontend.group.prefill.svaer).click();
     cy.contains(mui.button, texts.next).click();
-    expectRows([1, 5], [120, 350], [80323, 123455]);
+    expectRows(['NOK 1', 'NOK 5'], ['NOK 120', 'NOK 350'], ['NOK 80 323', 'NOK 123 455']);
 
     cy.contains(mui.button, texts.prev).click();
     cy.get(appFrontend.group.prefill.middels).click();
     cy.get(appFrontend.group.prefill.svaer).click();
     cy.contains(mui.button, texts.next).click();
-    expectRows([1, 5]);
+    expectRows(['NOK 1', 'NOK 5']);
 
     cy.contains(mui.button, texts.prev).click();
     cy.get(appFrontend.group.prefill.enorm).click();
     cy.get(appFrontend.group.prefill.liten).click();
     cy.contains(mui.button, texts.next).click();
-    expectRows([9872345, 18872345]);
+    expectRows(['NOK 9 872 345', 'NOK 18 872 345']);
   });
 
   it('Delete group row after validation', () => {
@@ -325,8 +325,8 @@ describe('Group', () => {
     cy.get(appFrontend.group.mainGroup)
       .find(mui.tableBody)
       .then((table) => {
-        cy.get(table).find(mui.tableElement).first().invoke('text').should('equal', '1');
-        cy.get(table).find(mui.tableElement).eq(1).invoke('text').should('equal', '2');
+        cy.get(table).find(mui.tableElement).first().invoke('text').should('equal', 'NOK 1');
+        cy.get(table).find(mui.tableElement).eq(1).invoke('text').should('equal', 'NOK 2');
         cy.get(table).find(mui.tableElement).find(mui.buttonIcon).first().should('be.visible').click();
       });
 
