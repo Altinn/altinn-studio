@@ -113,10 +113,7 @@ describe('EditModalContent', () => {
   });
 });
 
-const render = ({
-  componentProps = undefined,
-  handleComponentUpdate = jest.fn,
-} = {}) => {
+const render = ({ componentProps = undefined, handleComponentUpdate = jest.fn } = {}) => {
   const createStore = configureStore();
   const mockLanguage = {
     general: {
@@ -184,11 +181,7 @@ const render = ({
   return {
     rendered: rtlRender(
       <Provider store={store}>
-        <EditModalContent
-          component={allComponentProps}
-          language={mockLanguage}
-          handleComponentUpdate={handleComponentUpdate}
-        />
+        <EditModalContent component={allComponentProps} handleComponentUpdate={handleComponentUpdate} />
       </Provider>,
     ),
     allComponentProps,

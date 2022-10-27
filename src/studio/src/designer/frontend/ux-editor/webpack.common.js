@@ -1,39 +1,52 @@
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const path = require('path');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
-  entry: './index.tsx',
+  entry: './src/index.ts',
   output: {
     filename: 'ui-editor.js',
   },
   resolve: {
-    extensions: ['.ts', '.tsx', '.js', '.jsx', '.css', '.scss'],
+    extensions: ['.tsx', '.ts', '.js'],
     alias: {
-      'app-shared': path.resolve(__dirname, '../shared/'),
-    },
-    fallback: {
-      'react/jsx-runtime': 'react/jsx-runtime.js',
-      'react/jsx-dev-runtime': 'react/jsx-dev-runtime.js',
+      'app-shared': path.resolve(__dirname, '../../shared/'),
     },
   },
   module: {
     rules: [
       {
-        test: /\.jsx?/,
+        test: /\.tsx?$/,
+        use: 'ts-loader',
         exclude: /node_modules/,
-        use: {
-          loader: 'babel-loader',
-        },
       },
       {
-        test: /\.scss$/,
-        use: ['style-loader', 'css-loader'],
+        test: /\.module\.css$/,
+        use: [
+          'style-loader',
+          {
+            loader: 'css-loader',
+            options: { modules: true },
+          },
+        ],
+      },
+      {
+        test: /(?<!\.module)\.css$/,
+        use: [
+          {
+            loader: MiniCssExtractPlugin.loader,
+          },
+          {
+            loader: 'css-loader',
+            options: {
+              importLoaders: 1,
+              modules: true,
+            },
+          },
+        ],
       },
     ],
   },
   plugins: [
-    new ForkTsCheckerWebpackPlugin(),
     new MiniCssExtractPlugin({
       filename: 'ui-editor.css',
     }),

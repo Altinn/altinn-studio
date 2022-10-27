@@ -1,54 +1,11 @@
-const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
-const common = require('./webpack.common');
+const commonConfig = require('./webpack.common');
 
 module.exports = {
-  ...common,
+  ...commonConfig,
   mode: 'development',
-  devtool: 'eval',
-  performance: {
-    hints: 'warning',
-  },
-  module: {
-    rules: [
-      ...common.module.rules,
-      {
-        test: /\.svg$/,
-        use: {
-          loader: 'svg-inline-loader',
-        },
-      },
-      {
-        test: /\.css$/,
-        use: [
-          {
-            loader: MiniCssExtractPlugin.loader,
-          },
-          {
-            loader: 'css-loader',
-            options: {
-              url: false,
-            },
-          },
-        ],
-      },
-      {
-        test: /\.tsx?/,
-        loader: 'ts-loader',
-        options: {
-          transpileOnly: true,
-        },
-      },
-      {
-        enforce: 'pre',
-        test: /\.js$/,
-        loader: 'source-map-loader',
-      },
-    ],
-  },
-  plugins: [...common.plugins, new ForkTsCheckerNotifierWebpackPlugin()],
+  devtool: 'inline-source-map',
   devServer: {
-    historyApiFallback: true,
+    hot: true,
     client: {
       overlay: {
         errors: true,
