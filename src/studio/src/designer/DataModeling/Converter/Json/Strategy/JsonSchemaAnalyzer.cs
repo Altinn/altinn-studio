@@ -840,6 +840,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     case FormatExclusiveMaximumKeyword:
                         continue;
 
+                    // Add totalDigits restriction
+                    case XsdTotalDigitsKeyword:
+                        continue;
+
                     default:
                         return false;
                 }

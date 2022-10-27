@@ -7,7 +7,7 @@ namespace Altinn.Studio.DataModeling.Utils;
 /// <summary>
 /// Utilities for
 /// </summary>
-public static class FormatRangeHelper
+public static class RestrictionsHelper
 {
     private static readonly IReadOnlyCollection<string> DateTypes = new List<string>
     {
@@ -34,4 +34,12 @@ public static class FormatRangeHelper
 
         return DateTypes.Contains(parent?.BaseTypeName?.Name);
     }
+
+    /// <summary>
+    /// Gets the regex for total digits restriction. Note that for decimal data type total digits is
+    /// number of digits both after and before the decimal point, not counting the decimal point itself.
+    /// </summary>
+    /// <param name="value">Total digits value</param>
+    /// <returns>Regex string for total digits</returns>
+    public static string TotalDigitsRegexString(uint value) => $@"^(([0-9]){{1}}(\.)?){{{value}}}$";
 }

@@ -71,7 +71,7 @@ public sealed class FormatExclusiveMinimumKeyword: IJsonSchemaKeyword, IEquatabl
     public class FormatExclusiveMinimumKeywordJsonConverter : JsonConverter<FormatExclusiveMinimumKeyword>
     {
         /// <summary>
-        /// Read @xsdType keyword from json schema
+        /// Read formatExclusiveMaximum keyword from json schema
         /// </summary>
         public override FormatExclusiveMinimumKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
