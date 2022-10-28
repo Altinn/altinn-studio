@@ -61,7 +61,7 @@ public sealed class XsdTotalDigitsKeyword: IJsonSchemaKeyword, IEquatable<XsdTot
             return;
         }
 
-        if (!new Regex(TotalDigitsRegexString(Value)).IsMatch(number.Value.ToString("G", NumberFormatInfo.InvariantInfo)))
+        if (!new Regex(TotalDigitsDecimalRegexString(Value)).IsMatch(number.Value.ToString("G", NumberFormatInfo.InvariantInfo)))
         {
             context.LocalResult.Fail();
         }

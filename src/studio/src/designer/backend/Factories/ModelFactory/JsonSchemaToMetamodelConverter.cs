@@ -593,6 +593,15 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             {
                 parseSuccess = Enum.TryParse(xsdTypeKeyword.Value, true, out parsedBaseValueType);
             }
+            else if (subSchema.TryGetKeyword(out AllOfKeyword allOfKeyword))
+            {
+                xsdTypeKeyword = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<TypeKeyword>())
+                    ?.GetKeyword<XsdTypeKeyword>();
+                if (xsdTypeKeyword is not null)
+                {
+                    parseSuccess = Enum.TryParse(xsdTypeKeyword.Value, true, out parsedBaseValueType);
+                }
+            }
 
             baseValueType = parsedBaseValueType;
             return parseSuccess;

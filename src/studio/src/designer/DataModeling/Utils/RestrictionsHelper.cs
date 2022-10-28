@@ -36,10 +36,16 @@ public static class RestrictionsHelper
     }
 
     /// <summary>
-    /// Gets the regex for total digits restriction. Note that for decimal data type total digits is
-    /// number of digits both after and before the decimal point, not counting the decimal point itself.
+    /// Gets the regex for total digits restriction for integers.
     /// </summary>
     /// <param name="value">Total digits value</param>
     /// <returns>Regex string for total digits</returns>
-    public static string TotalDigitsRegexString(uint value) => $@"^(([0-9]){{1}}(\.)?){{{value}}}$";
+    public static string TotalDigitsIntegerRegexString(uint value) => $@"^[0-9]{{0,{value}}}$";
+
+    /// <summary>
+    /// Gets the regex for total digits restriction for decimal data type.
+    /// </summary>
+    /// <param name="value">Total digits value</param>
+    /// <returns>Regex string for total digits</returns>
+    public static string TotalDigitsDecimalRegexString(uint value) => $@"^(([0-9]){{1}}(\.)?){{0,{value}}}$";
 }

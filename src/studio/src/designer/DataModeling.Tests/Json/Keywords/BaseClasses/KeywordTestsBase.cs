@@ -1,4 +1,5 @@
-﻿using Json.Schema;
+﻿using Altinn.Studio.DataModeling.Json.Keywords;
+using Json.Schema;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords.BaseClasses;
@@ -8,6 +9,11 @@ public abstract class KeywordTestsBase<TTestType, TKeywordType> : FluentTestsBas
     where TKeywordType : IJsonSchemaKeyword
 {
     protected TKeywordType Keyword { get; set; }
+
+    protected KeywordTestsBase()
+    {
+        JsonSchemaKeywords.RegisterXsdKeywords();
+    }
 
     protected TTestType KeywordShouldEqual(TKeywordType expectedKeyword)
     {
