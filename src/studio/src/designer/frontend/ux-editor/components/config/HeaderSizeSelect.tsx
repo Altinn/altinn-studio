@@ -1,6 +1,6 @@
-import Select from 'react-select';
 import React from 'react';
-import { Grid } from '@material-ui/core';
+import Select from 'react-select';
+import { Grid } from '@mui/material';
 import {
   PropertyLabel,
   renderSelectTextFromResources,

@@ -100,7 +100,7 @@ namespace Designer.Tests.Controllers
         }
 
         [Fact]
-        public async Task Put_UpdateNbTexts_204NoContent()
+        public async Task Put_UpdateNbTexts_200OK()
         {
             var targetRepository = Guid.NewGuid().ToString();
             await TestDataHelper.CopyRepositoryForTest("ttd", "new-texts-format", "testUser", targetRepository);
@@ -112,7 +112,7 @@ namespace Designer.Tests.Controllers
 
             try
             {
-                Assert.Equal(StatusCodes.Status204NoContent, (int)response.StatusCode);
+                Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
             }
             finally
             {
@@ -121,7 +121,7 @@ namespace Designer.Tests.Controllers
         }
 
         [Fact]
-        public async Task Put_Markdown_204NoContent()
+        public async Task Put_Markdown_200OK()
         {
             var targetRepository = Guid.NewGuid().ToString();
             await TestDataHelper.CopyRepositoryForTest("ttd", "markdown-files", "testUser", targetRepository);
@@ -133,7 +133,7 @@ namespace Designer.Tests.Controllers
 
             try
             {
-                Assert.Equal(StatusCodes.Status204NoContent, (int)response.StatusCode);
+                Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
             }
             finally
             {

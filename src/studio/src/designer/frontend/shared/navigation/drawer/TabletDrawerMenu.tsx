@@ -1,20 +1,22 @@
-import Button from '@material-ui/core/Button';
-import Collapse from '@material-ui/core/Collapse';
-import Divider from '@material-ui/core/Divider';
-import Drawer from '@material-ui/core/Drawer';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
+import React, { useState } from 'react';
 import classNames from 'classnames';
-import React, {useState} from 'react';
-import {Link} from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import type { IMenuItem } from './drawerMenuSettings';
 import {
   createLeftDrawerMenuSettings,
   createMainMenuSettings,
 } from './drawerMenuSettings';
-import type {IMenuItem} from './drawerMenuSettings';
-import {post} from '../../utils/networking';
-import {useDrawerStyles} from './tabletDrawerMenustyle';
+import { post } from '../../utils/networking';
+import { useDrawerStyles } from './tabletDrawerMenustyle';
+import {
+  Button,
+  Collapse,
+  Divider,
+  Drawer,
+  List,
+  ListItem,
+  ListItemText,
+} from '@mui/material';
 
 export interface ITabletDrawerMenuProps {
   handleTabletDrawerMenu: () => void;
@@ -26,17 +28,19 @@ export interface ITabletDrawerMenuProps {
   leftDrawerMenuItems?: { [key: string]: IMenuItem[] };
 }
 
-
-function TabletDrawerMenu(
-  {
-    logoutButton,
-    tabletDrawerOpen,
-    leftDrawerMenuItems,
-    activeLeftMenuSelection,
-    mainMenuItems, activeSubHeaderSelection, handleTabletDrawerMenu
-  }: ITabletDrawerMenuProps) {
+function TabletDrawerMenu({
+  logoutButton,
+  tabletDrawerOpen,
+  leftDrawerMenuItems,
+  activeLeftMenuSelection,
+  mainMenuItems,
+  activeSubHeaderSelection,
+  handleTabletDrawerMenu,
+}: ITabletDrawerMenuProps) {
   const [openSubMenus, setOpenSubMenus] = useState([]);
-  const [selectedMenuItem, setSelectedMenuItem] = useState(activeSubHeaderSelection);
+  const [selectedMenuItem, setSelectedMenuItem] = useState(
+    activeSubHeaderSelection,
+  );
 
   const handleLogout = () => {
     const altinnWindow: Window = window;
@@ -57,12 +61,12 @@ function TabletDrawerMenu(
   const handleSubmenuClicked = (id: number) => {
     const openIdIndex = openSubMenus.indexOf(id);
     if (openIdIndex > -1) {
-      setOpenSubMenus(openSubMenus.splice(openIdIndex, 1))
+      setOpenSubMenus(openSubMenus.splice(openIdIndex, 1));
     } else {
-      setOpenSubMenus([...openSubMenus, id])
+      setOpenSubMenus([...openSubMenus, id]);
     }
     return {
-      openSubMenus
+      openSubMenus,
     };
   };
 
@@ -76,22 +80,20 @@ function TabletDrawerMenu(
   return !logoutButton ? (
     <>
       <Drawer
+        data-test-id='tablet-drawer-menu'
         variant='persistent'
         anchor='right'
         className={classNames(classes.drawer)}
         open={tabletDrawerOpen}
         PaperProps={{
           classes: {
-            root: classes.drawerMenuPaper
-          }
+            root: classes.drawerMenuPaper,
+          },
         }}
+        SlideProps={{ appear: false }}
       >
-        <List
-        >
-          <ListItem
-            button={true}
-            onClick={handleLogout}
-          >
+        <List>
+          <ListItem button={true} onClick={handleLogout}>
             <ListItemText
               classes={{
                 primary: classNames(classes.menuItemText),
@@ -100,7 +102,7 @@ function TabletDrawerMenu(
             />
           </ListItem>
         </List>
-        <Divider classes={{root: classNames(classes.divider)}}/>
+        <Divider classes={{ root: classNames(classes.divider) }} />
         <List>
           {createMainMenuSettings(mainMenuItems).menuItems.map(
             (menuItem: IMenuItem, index: number) => (
@@ -111,18 +113,17 @@ function TabletDrawerMenu(
                   onClick={() => handleMenuItemClicked(menuItem, index)}
                   className={classNames(classes.mainMenuItem, {
                     [classes.activeListItem]:
-                    activeSubHeaderSelection ===
-                    menuItem.activeSubHeaderSelection,
+                      activeSubHeaderSelection ===
+                      menuItem.activeSubHeaderSelection,
                   })}
                 >
                   <ListItemText
                     disableTypography={true}
-                    classes={{root: classNames(classes.mainMenuItem)}}
+                    classes={{ root: classNames(classes.mainMenuItem) }}
                     primary={menuItem.activeSubHeaderSelection}
                   />
                 </ListItem>
-                {leftDrawerMenu &&
-                leftDrawerMenu[menuItem.menuType].length ? (
+                {leftDrawerMenu && leftDrawerMenu[menuItem.menuType].length ? (
                   <Collapse
                     in={selectedMenuItem === menuItem.displayText}
                     timeout='auto'
@@ -133,7 +134,7 @@ function TabletDrawerMenu(
                         (item: IMenuItem) => (
                           <Link
                             to={item.navLink}
-                            style={{borderBottom: 0}}
+                            style={{ borderBottom: 0 }}
                             key={item.navLink}
                           >
                             <ListItem
@@ -150,8 +151,8 @@ function TabletDrawerMenu(
                                 }}
                                 className={classNames({
                                   [classes.activeListItem]:
-                                  activeLeftMenuSelection ===
-                                  item.activeLeftMenuSelection,
+                                    activeLeftMenuSelection ===
+                                    item.activeLeftMenuSelection,
                                 })}
                               />
                             </ListItem>
@@ -161,7 +162,7 @@ function TabletDrawerMenu(
                     </List>
                   </Collapse>
                 ) : null}
-                <Divider classes={{root: classNames(classes.divider)}}/>
+                <Divider classes={{ root: classNames(classes.divider) }} />
               </div>
             ),
           )}

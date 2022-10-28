@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Xml;
 using System.Xml.Schema;
-
+using Altinn.Studio.DataModeling.Converter.Interfaces;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Json.Formats;
 using Altinn.Studio.DataModeling.Json.Keywords;
@@ -20,25 +20,18 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
     /// <summary>
     /// Visitor class for converting XML schema to Json Schema, this will produce a Json Schema with custom keywords to preserve XML schema information
     /// </summary>
-    public class XmlSchemaToJsonSchemaConverter
+    public class XmlSchemaToJsonSchemaConverter : IXmlSchemaToJsonSchemaConverter
     {
         private const string XmlSchemaNamespace = "http://www.w3.org/2001/XMLSchema";
 
-        /// <summary>
-        /// Convert a schema into the give type
-        /// </summary>
-        /// <param name="schema">The object to visit</param>
+        /// <inheritdoc/>
         public JsonSchema Convert(XmlSchema schema)
         {
             var uri = new Uri("schema.json", UriKind.Relative);
             return Convert(schema, uri);
         }
 
-        /// <summary>
-        /// Convert a schema into the give type
-        /// </summary>
-        /// <param name="schema">The object to visit</param>
-        /// <param name="schemaUri">Uri that represents the unique id of the Json Schema.</param>
+        /// <inheritdoc/>
         public JsonSchema Convert(XmlSchema schema, Uri schemaUri)
         {
             var schemaSet = new XmlSchemaSet();
@@ -265,12 +258,12 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
             if (item.DefaultValue != null)
             {
-                builder.Default(item.DefaultValue.AsJsonElement());
+                builder.Default(item.DefaultValue);
             }
 
             if (item.FixedValue != null)
             {
-                builder.Const(item.FixedValue.AsJsonElement());
+                builder.Const(item.FixedValue);
             }
 
             builder.XsdAttribute();
@@ -324,7 +317,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                     if (enumValues.Count > 0)
                     {
                         AddUnhandledEnumAttributes(item, b);
-                        b.Enum(enumValues.Select(val => val.AsJsonElement()));
+                        b.Enum(enumValues);
                     }
                 });
             }
@@ -680,7 +673,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
                 if (enumValues.Count > 0)
                 {
-                    builder.Enum(enumValues.Select(val => val.AsJsonElement()));
+                    builder.Enum(enumValues);
                 }
             }
         }
@@ -972,12 +965,12 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
                     if (item.MinOccurs != 0)
                     {
-                        itemsBuilder.MinItems((uint)item.MinOccurs);
+                        builder.MinItems((uint)item.MinOccurs);
                     }
 
                     if (item.MaxOccursString != "unbounded")
                     {
-                        itemsBuilder.MaxItems((uint)item.MaxOccurs);
+                        builder.MaxItems((uint)item.MaxOccurs);
                     }
 
                     builder.Items(itemsBuilder);
@@ -985,7 +978,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
 
             AddUnhandledAttributes(item, builder);
-            CarryMinOccursProperty(item, builder);
+            CarryOccursProperties(item, builder);
 
             return builder;
         }
@@ -1004,7 +997,6 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             JsonSchemaBuilder builder = new JsonSchemaBuilder();
 
             HandleSequence(item, optional, array, builder);
-            CarryMinOccursProperty(item, builder);
 
             return builder;
         }
@@ -1026,15 +1018,12 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             {
                 case XmlSchemaChoice x:
                     HandleChoice(x, optional, array, builder);
-                    CarryMinOccursProperty(x, builder);
                     break;
                 case XmlSchemaAll x:
                     HandleAll(x, optional, array, builder);
-                    CarryMinOccursProperty(x, builder);
                     break;
                 case XmlSchemaSequence x:
                     HandleSequence(x, optional, array, builder);
-                    CarryMinOccursProperty(x, builder);
                     break;
             }
         }
@@ -1145,12 +1134,12 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                 {
                     if (minOccurs > 0)
                     {
-                        typeBuilder.MinItems((uint)minOccurs);
+                        builder.MinItems((uint)minOccurs);
                     }
 
                     if (maxOccurs > 1 && maxOccurs < decimal.MaxValue)
                     {
-                        typeBuilder.MaxItems((uint)maxOccurs);
+                        builder.MaxItems((uint)maxOccurs);
                     }
 
                     JsonSchema itemsSchema = typeBuilder;
@@ -1297,11 +1286,16 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             return decimal.TryParse(facetValue, NumberStyles.Float, CultureInfo.InvariantCulture, out dLength);
         }
 
-        private static void CarryMinOccursProperty(XmlSchemaParticle item, JsonSchemaBuilder builder)
+        private static void CarryOccursProperties(XmlSchemaParticle item, JsonSchemaBuilder builder)
         {
             if (!string.IsNullOrWhiteSpace(item.MinOccursString))
             {
-                builder.MinItems((uint)item.MinOccurs);
+                builder.XsdMinOccurs((int)item.MinOccurs);
+            }
+
+            if (!string.IsNullOrWhiteSpace(item.MaxOccursString))
+            {
+                builder.XsdMaxOccurs(item.MaxOccursString);
             }
         }
     }

@@ -1,28 +1,30 @@
+import React from 'react';
 import {
   Button,
   createTheme,
-  createStyles,
   Grid,
-  makeStyles,
-} from '@material-ui/core';
-import Popover, { PopoverOrigin } from '@material-ui/core/Popover';
-import React from 'react';
+  Popover,
+  PopoverOrigin,
+} from '@mui/material';
+import { createStyles, makeStyles } from '@mui/styles';
 import altinnTheme from '../../theme/altinnStudioTheme';
 
 export interface IAltinnPopoverProps {
   anchorEl: any;
   anchorOrigin: PopoverOrigin;
+  ariaLabel?: string;
+  backgroundColor?: string;
+  btnCancelText?: string;
   btnClick?: any;
   btnConfirmText?: string;
-  btnCancelText?: string;
   btnPrimaryId?: string;
   btnSecondaryId?: string;
+  children: React.ReactNode;
   handleClose: any;
   paperProps?: any;
+  testId?: string;
   transformOrigin?: PopoverOrigin;
-  backgroundColor?: string;
-  children: React.ReactNode;
-  ariaLabel?: string;
+  open: boolean;
 }
 
 const theme = createTheme(altinnTheme);
@@ -65,10 +67,6 @@ const useStyles = makeStyles(() =>
         color: theme.altinnPalette.primary.white,
       },
     },
-    popover: {
-      width: '445px',
-      margin: '24px',
-    },
   }),
 );
 
@@ -103,16 +101,21 @@ const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
   return (
     <>
       <Popover
-        open={!!props.anchorEl}
+        open={props.open}
         anchorEl={props.anchorEl}
         onClose={props.handleClose}
         anchorOrigin={anchorOrigin}
         transformOrigin={transformOrigin}
-        anchorReference='anchorEl'
+        anchorReference={props.anchorEl ? 'anchorEl' : 'none'}
         PaperProps={{ square: true, ...props.paperProps }}
         aria-label={props.ariaLabel ? props.ariaLabel : ''}
+        data-testid={props.testId}
       >
-        <Grid container={true} direction='column' className={classes.popover}>
+        <Grid
+          container={true}
+          direction='column'
+          sx={{ width: '445px', margin: '24px' }}
+        >
           <Grid item={true}>
             <div>{props.children}</div>
           </Grid>
@@ -125,6 +128,7 @@ const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
                   color='primary'
                   className={classes.buttonConfirm}
                   onClick={btnClickedHandler}
+                  disableTouchRipple={true}
                 >
                   {props.btnConfirmText}
                 </Button>
@@ -135,6 +139,7 @@ const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
                   color='primary'
                   className={classes.buttonCancel}
                   onClick={handleButtonClose}
+                  disableTouchRipple={true}
                 >
                   <span className={classes.borderBottom}>
                     {props.btnCancelText}

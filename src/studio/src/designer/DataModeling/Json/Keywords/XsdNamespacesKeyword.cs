@@ -12,7 +12,10 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
     /// Handles `@xsdNamespaces`.
     /// </summary>
     [SchemaKeyword(Name)]
-    [SchemaDraft(Draft.Unspecified)]
+    [SchemaDraft(Draft.Draft6)]
+    [SchemaDraft(Draft.Draft7)]
+    [SchemaDraft(Draft.Draft201909)]
+    [SchemaDraft(Draft.Draft202012)]
     [JsonConverter(typeof(XsdNamespacesKeywordJsonConverter))]
     public sealed class XsdNamespacesKeyword : IJsonSchemaKeyword, IEquatable<XsdNamespacesKeyword>
     {
@@ -41,7 +44,7 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
         /// <param name="context">Contextual details for the validation process.</param>
         public void Validate(ValidationContext context)
         {
-            context.Ignore = true;
+            // No validation for keyword.
         }
 
         /// <summary>Indicates whether the current object is equal to another object of the same type.</summary>

@@ -1,5 +1,6 @@
-import { Button, Grid, makeStyles, Popover, Typography } from '@material-ui/core';
 import React from 'react';
+import { Button, Grid, Popover, Typography } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 import { getLanguageFromKey, getParsedLanguageFromKey } from '../../../utils/language';
 import altinnTheme from '../../../theme/altinnStudioTheme';
 

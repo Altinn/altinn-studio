@@ -1,13 +1,13 @@
+import React from 'react';
 import {
   createTheme,
   FormControl,
   MenuItem,
   TextField,
   Typography,
-  makeStyles,
-} from '@material-ui/core';
+} from '@mui/material';
+import { makeStyles } from '@mui/styles';
 import classNames from 'classnames';
-import React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnDropdownComponentProvidedProps {
@@ -47,6 +47,14 @@ const useStyles = makeStyles({
     fontSize: '16px',
     color: `${theme.altinnPalette.primary.black} !Important`,
     padding: '6px',
+    underline: {
+      '&&&:before': {
+        borderBottom: 'none',
+      },
+      '&&:after': {
+        borderBottom: 'none',
+      },
+    },
   },
   fullWidth: {
     width: '100% !important',
@@ -82,7 +90,6 @@ export const AltinnDropdown = ({
 
   const inputPropsClasses = React.useMemo(() => {
     return {
-      disableUnderline: true,
       classes: { root: classNames(classes.inputFieldText) },
     };
   }, [classes]);

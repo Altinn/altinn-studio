@@ -1,28 +1,24 @@
-import {
-  createTheme,
-  createStyles,
-  Grid,
-  WithStyles,
-  withStyles,
-} from '@material-ui/core';
-import moment from 'moment';
 import React from 'react';
+import { createTheme, Grid } from '@mui/material';
+import { createStyles, WithStyles, withStyles } from '@mui/styles';
+import moment from 'moment';
+
 import AltinnContentLoader from 'app-shared/components/molecules/AltinnContentLoader';
 import StudioTheme from 'app-shared/theme/altinnStudioTheme';
+import type { IAppClusterState } from '../../../sharedResources/appCluster/appClusterSlice';
 import {
   getDeploymentsStartInterval,
   getDeploymentsStopInterval,
 } from '../../../sharedResources/appCluster/appClusterSlice';
-import { AppDeploymentActions } from '../../../sharedResources/appDeployment/appDeploymentSlice';
-import type { IAppClusterState } from '../../../sharedResources/appCluster/appClusterSlice';
 import type { IAppDeploymentState } from '../../../sharedResources/appDeployment/appDeploymentSlice';
+import { AppDeploymentActions } from '../../../sharedResources/appDeployment/appDeploymentSlice';
 import type { ICreateAppDeploymentErrors } from '../../../sharedResources/appDeployment/types';
 import type { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
 import { BuildResult } from '../../../sharedResources/appRelease/types';
-import { ConfigurationActions } from '../../../sharedResources/configuration/configurationSlice';
 import type { IConfigurationState } from '../../../sharedResources/configuration/configurationSlice';
+import { ConfigurationActions } from '../../../sharedResources/configuration/configurationSlice';
 import AppDeploymentComponent from '../components/appDeploymentComponent';
-import { useAppSelector, useAppDispatch } from 'common/hooks';
+import { useAppDispatch, useAppSelector } from 'common/hooks';
 import type { IAltinnWindow } from '../../../types/global';
 
 const theme = createTheme(StudioTheme);

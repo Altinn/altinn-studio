@@ -1,4 +1,5 @@
-import { Typography } from '@material-ui/core';
+import React from 'react';
+import { Typography } from '@mui/material';
 import { AltinnSpinner } from 'app-shared/components';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
 import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
@@ -7,11 +8,11 @@ import {
   getParsedLanguageFromKey,
 } from 'app-shared/utils/language';
 import { post } from 'app-shared/utils/networking';
-import React from 'react';
 import { DashboardActions } from '../../resources/fetchDashboardResources/dashboardSlice';
-import { PopoverOrigin } from '@material-ui/core/Popover';
-import { useAppSelector, useAppDispatch } from 'common/hooks';
+import { PopoverOrigin } from '@mui/material/Popover';
+import { useAppDispatch, useAppSelector } from 'common/hooks';
 import { validateRepoName } from 'common/utils';
+import { useNavigate } from 'react-router-dom';
 
 export interface IMakeCopyModalProps {
   anchorEl: HTMLElement;
@@ -45,6 +46,7 @@ export const MakeCopyModal = ({
   serviceFullName,
 }: IMakeCopyModalProps) => {
   const language = useAppSelector((state) => state.language.language);
+  const navigate = useNavigate();
   const [repoName, setRepoName] = React.useState<string>('');
   const [errorMessage, setErrorMessage] = React.useState<string>(null);
   const [isLoading, setIsLoading] = React.useState<boolean>(false);
@@ -63,7 +65,9 @@ export const MakeCopyModal = ({
             url: `${window.location.origin}/designer/api/v1/user/repos`,
           }),
         );
-        window.location.href = `${window.location.origin}/designer/${org}/${repoName}#/?copiedApp=true`;
+        navigate(
+          `${window.location.origin}/designer/${org}/${repoName}#/?copiedApp=true`,
+        );
       } catch (error) {
         if (error?.response?.status === 409) {
           setErrorMessage(
@@ -129,6 +133,7 @@ export const MakeCopyModal = ({
 
   return (
     <AltinnPopoverSimple
+      open={!!anchorEl}
       anchorEl={anchorEl}
       anchorOrigin={transformAnchorOrigin}
       transformOrigin={transformAnchorOrigin}
@@ -171,5 +176,3 @@ export const MakeCopyModal = ({
     </AltinnPopoverSimple>
   );
 };
-
-export default MakeCopyModal;

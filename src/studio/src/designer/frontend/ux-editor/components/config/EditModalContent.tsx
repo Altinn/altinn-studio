@@ -1,5 +1,6 @@
-import { Grid, Typography, withStyles } from '@material-ui/core';
 import React from 'react';
+import { Grid, Typography } from '@mui/material';
+import { withStyles } from '@mui/styles';
 import { connect } from 'react-redux';
 import AltinnCheckBox from 'app-shared/components/AltinnCheckBox';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
@@ -18,33 +19,33 @@ import {
   renderSelectTextFromResources,
 } from '../../utils/render';
 import {
-  getTextResourceByAddressKey,
   AddressKeys,
+  getTextResourceByAddressKey,
 } from '../../utils/component';
 import { idExists, validComponentId } from '../../utils/formLayout';
-import { SelectionEdit } from './SelectionEditComponent';
 import type { ICodeListOption } from './SelectionEditComponent';
+import { SelectionEdit } from './SelectionEditComponent';
 import { ImageComponent } from './ImageComponent';
 import EditBoilerplate from './EditBoilerplate';
 import HeaderSizeSelectComponent from './HeaderSizeSelect';
 import { ComponentTypes } from '../index';
 import { FileUploadWithTagComponent } from './FileUploadWithTagComponent';
 import {
-  IFormFileUploaderWithTagComponent,
   FormComponentType,
+  IAppState,
   IDataModelFieldElement,
-  ITextResource,
+  IFormAddressComponent,
+  IFormCheckboxComponent,
+  IFormComponent,
   IFormDesignerComponents,
   IFormDesignerContainers,
-  IFormComponent,
-  IFormHeaderComponent,
-  IFormFileUploaderComponent,
   IFormDropdownComponent,
-  IFormCheckboxComponent,
-  IFormRadioButtonComponent,
-  IFormAddressComponent,
+  IFormFileUploaderComponent,
+  IFormFileUploaderWithTagComponent,
+  IFormHeaderComponent,
   IFormImageComponent,
-  IAppState,
+  IFormRadioButtonComponent,
+  ITextResource,
 } from '../../types/global';
 
 const styles = {

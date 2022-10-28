@@ -1,5 +1,5 @@
-import { FormGroup } from '@material-ui/core';
 import React from 'react';
+import { FormGroup } from '@mui/material';
 
 export interface IAltinnCheckBoxGroupProvidedProps {
   row: boolean;

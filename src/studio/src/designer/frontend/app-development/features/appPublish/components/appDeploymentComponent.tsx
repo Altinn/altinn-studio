@@ -1,20 +1,19 @@
+import React from 'react';
+import type { Theme } from '@mui/material';
 import {
   createTheme,
-  createStyles,
   Grid,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
   Typography,
-} from '@material-ui/core';
-import { makeStyles } from '@material-ui/core/styles';
-import type { Theme } from '@material-ui/core';
-import Table from '@material-ui/core/Table';
-import TableBody from '@material-ui/core/TableBody';
-import TableCell from '@material-ui/core/TableCell';
-import TableHead from '@material-ui/core/TableHead';
-import TableRow from '@material-ui/core/TableRow';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
+  useMediaQuery,
+} from '@mui/material';
+import { createStyles, makeStyles } from '@mui/styles';
 import classNames from 'classnames';
 import moment from 'moment';
-import React from 'react';
 import Select from 'react-select';
 import { AltinnButton, AltinnIcon, AltinnLink } from 'app-shared/components';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
@@ -416,6 +415,7 @@ const AppDeploymentComponent = ({
           id={`deploy-button-${envName.toLowerCase()}`}
         />
         <AltinnPopoverSimple
+          open={!!anchorEl}
           anchorEl={anchorEl}
           anchorOrigin={popoverState.anchorOrigin}
           btnCancelText={popoverState.btnCancelText}

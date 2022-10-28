@@ -1,4 +1,8 @@
 using Altinn.Common.AccessTokenClient.Services;
+using Altinn.Studio.DataModeling.Converter.Interfaces;
+using Altinn.Studio.DataModeling.Converter.Json;
+using Altinn.Studio.DataModeling.Converter.Xml;
+using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Factories;
 using Altinn.Studio.Designer.Repository;
@@ -6,6 +10,7 @@ using Altinn.Studio.Designer.Services.Implementation;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using static Altinn.Studio.DataModeling.Json.Keywords.JsonSchemaKeywords;
 
 namespace Altinn.Studio.Designer.Infrastructure
 {
@@ -44,6 +49,10 @@ namespace Altinn.Studio.Designer.Infrastructure
             services.AddTransient<ISigningCredentialsResolver, SigningCredentialsResolver>();
             services.AddTransient<ILanguagesService, LanguagesService>();
             services.AddTransient<ITextsService, TextsService>();
+            services.AddTransient<IXmlSchemaToJsonSchemaConverter, XmlSchemaToJsonSchemaConverter>();
+            services.AddTransient<IJsonSchemaToXmlSchemaConverter, JsonSchemaToXmlSchemaConverter>();
+            services.AddTransient<IJsonSchemaNormalizer, JsonSchemaNormalizer>();
+            RegisterXsdKeywords();
 
             return services;
         }

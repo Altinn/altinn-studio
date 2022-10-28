@@ -1,42 +1,40 @@
+import React from 'react';
+import type { Theme } from '@mui/material';
 import {
   CircularProgress,
   createTheme,
-  createStyles,
   Grid,
   Popover,
   Typography,
-  withStyles,
-  WithStyles,
-} from '@material-ui/core';
-import React from 'react';
-import type { Theme } from '@material-ui/core';
-import useMediaQuery from '@material-ui/core/useMediaQuery';
+  useMediaQuery,
+} from '@mui/material';
+import { createStyles, WithStyles, withStyles } from '@mui/styles';
 import AltinnIcon from 'app-shared/components/AltinnIcon';
 import AltinnStudioTheme from 'app-shared/theme/altinnStudioTheme';
 import {
   getLanguageFromKey,
   getParsedLanguageFromKey,
 } from 'app-shared/utils/language';
-import { AppReleaseActions } from '../../../sharedResources/appRelease/appReleaseSlice';
 import type { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
+import { AppReleaseActions } from '../../../sharedResources/appRelease/appReleaseSlice';
+import type { IRelease } from '../../../sharedResources/appRelease/types';
 import {
   BuildResult,
   BuildStatus,
 } from '../../../sharedResources/appRelease/types';
-import type { IRelease } from '../../../sharedResources/appRelease/types';
 import type { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import { fetchLanguage } from '../../../utils/fetchLanguage/languageSlice';
 import {
   getGitCommitLink,
-  repoStatusUrl,
   languageUrl,
+  repoStatusUrl,
 } from '../../../utils/urlHelper';
-import { fetchRepoStatus } from '../../handleMergeConflict/handleMergeConflictSlice';
 import type { IHandleMergeConflictState } from '../../handleMergeConflict/handleMergeConflictSlice';
+import { fetchRepoStatus } from '../../handleMergeConflict/handleMergeConflictSlice';
 import ReleaseComponent from '../components/appReleaseComponent';
 import CreateReleaseComponent from '../components/createAppReleaseComponent';
-import { useAppSelector, useAppDispatch } from 'common/hooks';
+import { useAppDispatch, useAppSelector } from 'common/hooks';
 import type { IAltinnWindow } from '../../../types/global';
 
 const theme = createTheme(AltinnStudioTheme);
@@ -117,7 +115,7 @@ const styles = createStyles({
     display: 'inline-block',
     fontWeight: 500,
     marginBottom: '-2px',
-  }
+  },
 });
 
 type IAppReleaseContainer = WithStyles<typeof styles>;

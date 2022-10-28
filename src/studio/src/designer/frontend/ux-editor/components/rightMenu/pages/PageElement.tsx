@@ -1,22 +1,23 @@
 import React from 'react';
 import {
-  getLanguageFromKey,
-  getParsedLanguageFromKey,
-} from 'app-shared/utils/language';
-import { useDispatch, useSelector } from 'react-redux';
-import {
   Button,
   Divider,
   Grid,
   IconButton,
-  makeStyles,
   TextField,
   TextFieldProps,
-} from '@material-ui/core';
+} from '@mui/material';
+import { makeStyles } from '@mui/styles';
+import {
+  getLanguageFromKey,
+  getParsedLanguageFromKey,
+} from 'app-shared/utils/language';
+import { useDispatch, useSelector } from 'react-redux';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components/';
 import ConfirmModal from '../ConfirmModal';
 import { FormLayoutActions } from '../../../features/formDesigner/formLayout/formLayoutSlice';
 import type { IAppState } from '../../../types/global';
+
 export interface IPageElementProps {
   name: string;
 }
@@ -194,7 +195,11 @@ export default function PageElement({ name }: IPageElementProps) {
   return (
     <div className={classes.buttonWrapper}>
       <div className={classes.grid}>
-        <Button onClick={onPageClick} className={classes.mainButton}>
+        <Button
+          onClick={onPageClick}
+          className={classes.mainButton}
+          sx={{ fontSize: '1.4rem' }}
+        >
           <Grid item={true} xs={1}>
             {selectedLayout === name && (
               <i

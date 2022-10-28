@@ -1,6 +1,5 @@
 const gulp = require('gulp');
 const run = require('gulp-run-command').default;
-const replace = require('gulp-string-replace');
 const chokidar = require('chokidar');
 const del = require('del');
 const fs = require('fs');
@@ -345,11 +344,3 @@ gulp.task(
     'copy-files',
   ]),
 );
-
-gulp.task('fix-for-local-development', function () {
-  gulp
-    .src(['./Views/ServiceDevelopment/index.cshtml'])
-    .pipe(replace('~/designer/js/react', 'http://localhost:8080'))
-    .pipe(replace('~/designer/css/react', 'http://localhost:8080'))
-    .pipe(gulp.dest('./Views/ServiceDevelopment'));
-});

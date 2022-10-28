@@ -6,6 +6,7 @@ using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
+using Altinn.Studio.Designer.Extensions;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using Json.Pointer;
 using Json.Schema;
@@ -684,7 +685,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             var constKeyword = subSchema.GetKeyword<ConstKeyword>();
             if (constKeyword != null)
             {
-                return constKeyword.Value.GetString();
+                return constKeyword.Value?.AsString();
             }
 
             return null;

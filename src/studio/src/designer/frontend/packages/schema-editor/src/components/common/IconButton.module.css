@@ -1,0 +1,20 @@
+.iconButton {
+  cursor: pointer;
+  padding: 0;
+  border: 0;
+  background: none;
+  height: 36px;
+  width: 36px;
+}
+
+.iconButton:hover {
+  background-color: #E23B53;
+}
+
+.iconButton:hover .icon {
+  background-color: white;
+}
+
+.iconButton:focus-visible {
+  outline: 2px auto #98177e;
+}

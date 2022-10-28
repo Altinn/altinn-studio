@@ -12,7 +12,8 @@ export enum IconImage {
   Object = 'object',
   Property = 'property',
   Reference = 'reference',
-  String = 'string'
+  String = 'string',
+  Wastebucket = 'wastebucket'
 }
 
 export interface IconProps {

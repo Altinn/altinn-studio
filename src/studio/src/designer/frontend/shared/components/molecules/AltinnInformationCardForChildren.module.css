@@ -1,0 +1,87 @@
+.container {
+  height: 80vh;
+  justify-content: center;
+  align-content: center;
+  flex-direction: column;
+  display: flex;
+}
+.paper {
+  background: white;
+  padding: 78px 45px 100px;
+  max-width: 944px;
+  height: 446px;
+  display: flex;
+  flex-direction: row;
+}
+
+@media only screen and (min-width: 1920px) {
+  .paper {
+    padding-left: 99px;
+    padding-top: 92px;
+    padding-bottom: 87px;
+    max-width: 1088px;
+    height: 446px;
+  }
+}
+
+@media only screen and (min-width: 1440px) {
+  .paper {
+    padding-left: 101px;
+    padding-top: 82px;
+    padding-bottom: 97px;
+    max-width: 1088px;
+    height: 446px;
+  }
+}
+
+@media only screen and (min-width: 1025px) {
+  .paper {
+    padding-left: 45px;
+    padding-top: 78px;
+    padding-bottom: 100px;
+    max-width: 944px;
+    height: 446px;
+  }
+}
+
+@media only screen and (max-width: 1024px) {
+  .paper {
+    padding-left: 56px;
+    padding-top: 68px;
+    padding-bottom: 97px;
+    max-width: 554px;
+    height: 623px;
+  }
+}
+
+.shadowBox {
+  box-shadow: 0 4px 7px rgba(0, 0, 0, 0.14);
+}
+.header {
+  font-size: 36px;
+}
+.link {
+  font-size: 16px;
+}
+.smSpacing-only-sm {
+  padding-bottom: 53px;
+}
+.scrollable {
+  display: flex;
+  overflow-y: auto;
+  align-content: center;
+  justify-content: center;
+}
+.scrollable-up-md {
+  margin-bottom: 40px;
+}
+.scrollable-up-sm {
+  margin-bottom: -15px;
+}
+.textContainer {
+  width: 60%;
+}
+.imageContainer {
+  width: 40%;
+  padding: 45px;
+}

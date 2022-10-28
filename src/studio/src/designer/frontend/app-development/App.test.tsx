@@ -1,17 +1,8 @@
-import { App } from './App';
 import React from 'react';
+import { App } from './App';
 import { renderWithProviders } from 'test/testUtils';
 import type { IUserState } from './sharedResources/user/userSlice';
 import { screen } from '@testing-library/react';
-
-jest.mock('react', () => {
-  return {
-    ...jest.requireActual<typeof React>('react'),
-    useRef: jest.fn().mockImplementation(() => {
-      return { current: document.createElement('div') };
-    }),
-  };
-});
 
 afterAll(() => {
   jest.clearAllMocks();
@@ -29,9 +20,7 @@ describe('App', () => {
       },
     });
 
-    expect(screen.getByText('general.sign_out')).toBeInTheDocument();
-    expect(screen.getByText('general.continue')).toBeInTheDocument();
-    expect(screen.getByText('session.inactive')).toBeInTheDocument();
+    expect(screen.getByTestId('logout-warning')).toBeInTheDocument();
   });
 
   it('should not present popover if session is over 10min', () => {
@@ -44,9 +33,6 @@ describe('App', () => {
         } as IUserState,
       },
     });
-
-    expect(screen.queryByText('general.sign_out')).not.toBeInTheDocument();
-    expect(screen.queryByText('general.continue')).not.toBeInTheDocument();
-    expect(screen.queryByText('session.inactive')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('logout-warning')).not.toBeInTheDocument();
   });
 });

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Grid, makeStyles } from '@material-ui/core';
+import { Grid } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 import Select from 'react-select';
 import classNames from 'classnames';
 import type { IMetadataOption } from '../functions/types';

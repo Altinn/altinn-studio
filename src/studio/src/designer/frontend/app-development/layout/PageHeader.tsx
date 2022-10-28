@@ -1,23 +1,24 @@
-import {Grid} from '@material-ui/core';
-import {AppBar} from './AppBar';
 import React from 'react';
-import {Route, Routes} from 'react-router-dom';
+import { AppBar } from './AppBar';
+import { Route, Routes } from 'react-router-dom';
 import routes from '../config/routes';
 import appDevelopmentLeftDrawerSettings from '../config/subPathSettings';
-import type {IAltinnWindow} from '../types/global';
+import type { IAltinnWindow } from '../types/global';
 
 interface IPageHeaderProps {
   repoStatus: any;
 }
 
 const PageHeader = (ownProps: IPageHeaderProps) => {
-  const {repoStatus} = ownProps;
-  const {app, org} = window as Window as IAltinnWindow;
+  const { repoStatus } = ownProps;
+  const { app, org } = window as Window as IAltinnWindow;
   return (
     <Routes>
       {routes.map((route) => (
-        <Route key={route.path} path={route.path} element={
-          <Grid item xs={12}>
+        <Route
+          key={route.path}
+          path={route.path}
+          element={
             <AppBar
               activeLeftMenuSelection={route.activeLeftMenuSelection}
               activeSubHeaderSelection={route.activeSubHeaderSelection}
@@ -41,8 +42,8 @@ const PageHeader = (ownProps: IPageHeaderProps) => {
               ]}
               subMenuItems={appDevelopmentLeftDrawerSettings}
             />
-          </Grid>
-        }/>
+          }
+        />
       ))}
     </Routes>
   );

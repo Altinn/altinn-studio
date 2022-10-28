@@ -1,13 +1,7 @@
-import {
-  createStyles,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Paper,
-  withStyles,
-} from '@material-ui/core';
-import classNames from 'classnames';
 import React from 'react';
+import { ListItem, ListItemIcon, ListItemText, Paper } from '@mui/material';
+import { createStyles, withStyles } from '@mui/styles';
+import classNames from 'classnames';
 import { connect } from 'react-redux';
 import { getComponentTitleByComponentType } from '../../utils/language';
 import type { IAppState } from '../../types/global';

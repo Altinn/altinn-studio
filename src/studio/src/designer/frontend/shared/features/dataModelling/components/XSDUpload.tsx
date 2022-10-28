@@ -1,8 +1,8 @@
 import React from 'react';
-import { AltinnSpinner, FileSelector } from 'app-shared/components';
-import { getLanguageFromKey } from 'app-shared/utils/language';
+import { AltinnSpinner, FileSelector } from '../../../components';
+import { getLanguageFromKey } from '../../../utils/language';
 import axios from 'axios';
-import ErrorPopover from 'app-shared/components/ErrorPopover';
+import ErrorPopover from '../../../components/ErrorPopover';
 
 export interface IXSDUploadProps {
   disabled?: boolean;

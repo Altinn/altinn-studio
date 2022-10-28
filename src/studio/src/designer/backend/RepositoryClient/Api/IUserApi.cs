@@ -1264,7 +1264,7 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
         /// <returns>the base path</returns>
         public string GetBasePath()
         {
-            return this.Configuration.ApiClient.RestClient.BaseUrl.ToString();
+            return this.Configuration.ApiClient.RestClient.Options.BaseUrl.ToString();
         }
 
         /// <summary>
@@ -1407,9 +1407,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.POST,
+                Method.Post,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -1516,9 +1516,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.POST,
+                Method.Post,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -1626,9 +1626,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.POST,
+                Method.Post,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -1736,9 +1736,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.POST,
+                Method.Post,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -1860,9 +1860,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -1985,9 +1985,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -2088,9 +2088,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.POST,
+                Method.Post,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -2192,9 +2192,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.POST,
+                Method.Post,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -2303,9 +2303,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -2415,9 +2415,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -2539,9 +2539,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -2664,9 +2664,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -2775,9 +2775,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.DELETE,
+                Method.Delete,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -2887,9 +2887,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.DELETE,
+                Method.Delete,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -2997,9 +2997,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.DELETE,
+                Method.Delete,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -3108,9 +3108,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.DELETE,
+                Method.Delete,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -3218,9 +3218,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.DELETE,
+                Method.Delete,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -3329,9 +3329,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.DELETE,
+                Method.Delete,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -3453,9 +3453,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.DELETE,
+                Method.Delete,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -3578,9 +3578,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.DELETE,
+                Method.Delete,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -3690,9 +3690,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -3802,9 +3802,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -3914,9 +3914,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -4026,9 +4026,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -4125,9 +4125,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -4224,9 +4224,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -4323,9 +4323,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -4422,9 +4422,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -4521,9 +4521,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -4620,9 +4620,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -4719,9 +4719,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -4818,9 +4818,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -4917,9 +4917,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -5016,9 +5016,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -5115,9 +5115,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -5214,9 +5214,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -5313,9 +5313,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -5412,9 +5412,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -5521,9 +5521,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.POST,
+                Method.Post,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -5630,9 +5630,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.POST,
+                Method.Post,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -5739,9 +5739,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.POST,
+                Method.Post,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -5848,9 +5848,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.POST,
+                Method.Post,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -5959,9 +5959,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.PUT,
+                Method.Put,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -6071,9 +6071,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.PUT,
+                Method.Put,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -6195,9 +6195,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.PUT,
+                Method.Put,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -6320,9 +6320,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.PUT,
+                Method.Put,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -6419,9 +6419,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -6518,9 +6518,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -6626,9 +6626,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.DELETE,
+                Method.Delete,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -6735,9 +6735,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.DELETE,
+                Method.Delete,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -6847,9 +6847,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -6959,9 +6959,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -7058,9 +7058,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -7157,9 +7157,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -7254,9 +7254,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -7352,9 +7352,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -7451,9 +7451,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -7550,9 +7550,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -7662,9 +7662,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -7774,9 +7774,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -7886,9 +7886,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -7998,9 +7998,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -8110,9 +8110,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -8222,9 +8222,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -8334,9 +8334,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -8446,9 +8446,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -8558,9 +8558,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -8670,9 +8670,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -8782,9 +8782,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -8894,9 +8894,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -9006,9 +9006,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -9118,9 +9118,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -9231,9 +9231,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -9344,9 +9344,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -9482,9 +9482,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)Configuration.ApiClient.CallApi(
+            RestResponse localVarResponse = (RestResponse)Configuration.ApiClient.CallApi(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,
@@ -9620,9 +9620,9 @@ namespace Altinn.Studio.Designer.RepositoryClient.Api
             }
 
             // make the HTTP request
-            IRestResponse localVarResponse = (IRestResponse)await Configuration.ApiClient.CallApiAsync(
+            RestResponse localVarResponse = (RestResponse)await Configuration.ApiClient.CallApiAsync(
                 localVarPath,
-                Method.GET,
+                Method.Get,
                 localVarQueryParams,
                 localVarPostBody,
                 localVarHeaderParams,

@@ -4,7 +4,9 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using Altinn.Studio.DataModeling.Utils;
+using Altinn.Studio.Designer.Extensions;
 using Altinn.Studio.Designer.ModelMetadatalModels;
+using Json.More;
 using Json.Schema;
 
 namespace Altinn.Studio.Designer.Factories.ModelFactory;
@@ -106,7 +108,7 @@ public static class MetamodelRestrictionUtils
                 valueBuilder.Append(';');
             }
 
-            valueBuilder.Append(@enum.GetString());
+            valueBuilder.Append(@enum.AsString());
         }
 
         restrictions.Add("enumeration", new Restriction() { Value = valueBuilder.ToString() });

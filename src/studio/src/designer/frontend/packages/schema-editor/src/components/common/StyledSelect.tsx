@@ -1,5 +1,5 @@
 import React, { ReactNode } from 'react';
-import { Select } from '@material-ui/core';
+import { Select } from '@mui/material';
 import { Label } from './Label';
 import classes from './StyledSelect.module.css';
 
@@ -14,7 +14,6 @@ export interface IStyledSelectProps {
 }
 
 export function StyledSelect({ id, label, value, onChange, readOnly, fullWidth, children }: IStyledSelectProps) {
-
   const onValueChange = (event: any) => {
     onChange(event.target.value);
   };

@@ -1,40 +1,35 @@
-import React from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   DataGrid,
-  GridSortModel,
-  GridActionsColDef,
-  GridRowParams,
   GridActionsCellItem,
-  GridValueGetterParams,
-  GridValueFormatterParams,
-  GridRenderCellParams,
+  GridActionsColDef,
   GridColDef,
   GridOverlay,
+  GridRenderCellParams,
+  GridRowParams,
+  GridSortModel,
+  GridValueFormatterParams,
+  GridValueGetterParams,
 } from '@mui/x-data-grid';
 import { IconButton } from '@mui/material';
 import cn from 'classnames';
-
-import classes from './RepoList.module.css';
-
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import type { IRepository } from 'app-shared/types/global';
-
 import { User } from '../../../resources/fetchDashboardResources/dashboardSlice';
 import { MakeCopyModal } from 'common/components/MakeCopyModal';
 import { useAppSelector } from 'common/hooks';
-import {
-  useSetStarredRepoMutation,
-  useUnsetStarredRepoMutation,
-} from 'services/userApi';
+import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from 'services/userApi';
 
 import { getRepoEditUrl } from 'common/utils/urlUtils';
+
+import classes from './RepoList.module.css';
 
 export interface IRepoListProps {
   isLoading: boolean;
   repos?: IRepository[];
   isServerSort?: boolean;
   pageSize?: number;
-  rowCount?: number;
+  rowCount: number;
   onPageChange?: (page: number) => void;
   onSortModelChange?: (newSortModel: GridSortModel) => void;
   onPageSizeChange?: (newPageSize: number) => void;
@@ -93,12 +88,12 @@ export const RepoList = ({
   disableVirtualization = false,
 }: IRepoListProps) => {
   const language = useAppSelector((state) => state.language.language);
-  const [copyCurrentRepoName, setCopyCurrentRepoName] = React.useState('');
+  const [copyCurrentRepoName, setCopyCurrentRepoName] = useState('');
   const [setStarredRepo] = useSetStarredRepoMutation();
   const [unsetStarredRepo] = useUnsetStarredRepoMutation();
-  const copyModalAnchorRef = React.useRef(null);
+  const copyModalAnchorRef = useRef(null);
 
-  const cols = React.useMemo(() => {
+  const cols = useMemo(() => {
     const favouriteActionCol: GridActionsColDef = {
       field: '',
       renderHeader: (): null => null,
@@ -107,7 +102,6 @@ export const RepoList = ({
       width: 50,
       getActions: (params: GridRowParams) => {
         const repo = params.row as IRepository;
-
         const handleToggleFav = () => {
           if (repo.user_has_starred) {
             unsetStarredRepo(repo);
@@ -174,7 +168,6 @@ export const RepoList = ({
         renderCell: TextWithTooltip,
       },
     ];
-
     const actionsCol: GridActionsColDef[] = [
       {
         field: 'links',
@@ -191,50 +184,46 @@ export const RepoList = ({
             isDatamodelling,
           });
 
-          const handleDuplicateClick = () => {
-            setCopyCurrentRepoName(repoFullName);
-          };
-
-          const handleOpenInNewClick = () => {
-            window.open(editUrl, '_blank');
-          };
-
           const editTextKey = isDatamodelling ? 'dashboard.edit_datamodels' : 'dashboard.edit_app';
 
           const colItems = [
-            <a
-              key={params.row.id}
-              href={params.row.html_url}
-              data-testid="gitea-repo-link"
+            <GridActionsCellItem
               className={cn(classes.actionLink, classes.repoLink)}
-            >
-              <span>
-                {getLanguageFromKey('dashboard.repository', language)}
-              </span>
-              <i className={cn('fa fa-gitea', classes.linkIcon)} />
-            </a>,
-            <a
-              key={params.row.id}
-              href={editUrl}
-              data-testid="edit-repo-link"
+              data-testid='gitea-repo-link'
+              icon={<i className={cn('fa fa-gitea', classes.linkIcon, classes.repoLink)} />}
+              key={'dashboard.repository' + params.row.id}
+              label={getLanguageFromKey('dashboard.repository', language)}
+              onClick={() => (window.location.href = params.row.html_url)}
+              showInMenu={false}
+              edge='end'
+            />,
+            <GridActionsCellItem
+              data-testid='edit-repo-link'
               className={cn(classes.actionLink, classes.editLink)}
+              icon={<i className={cn('fa fa-edit', classes.linkIcon, classes.editLink)} />}
+              key={'dashboard.edit_app' + params.row.id}
+              label={getLanguageFromKey('dashboard.edit_app', language)}
+              onClick={() => (window.location.href = editUrl)}
+              showInMenu={false}
             >
-              <span>{getLanguageFromKey(editTextKey, language)}</span>
-              <i className={cn('fa fa-edit', classes.linkIcon)} />
-            </a>,
+              <a>
+                <span>{getLanguageFromKey(editTextKey, language)}</span>
+                <i className={cn('fa fa-edit', classes.linkIcon)} />
+              </a>,
+            </GridActionsCellItem>,
             <GridActionsCellItem
               icon={<i className={cn('fa fa-copy', classes.dropdownIcon)} />}
-              key={params.row.id}
-              onClick={handleDuplicateClick}
-              showInMenu={true}
+              key={'dashboard.make_copy' + params.row.id}
               label={getLanguageFromKey('dashboard.make_copy', language)}
+              onClick={() => setCopyCurrentRepoName(repoFullName)}
+              showInMenu
             />,
             <GridActionsCellItem
               icon={<i className={cn('fa fa-newtab', classes.dropdownIcon)} />}
-              key={params.row.id}
-              onClick={handleOpenInNewClick}
-              showInMenu={true}
+              key={'dashboard.open_in_new' + params.row.id}
               label={getLanguageFromKey('dashboard.open_in_new', language)}
+              onClick={() => window.open(editUrl, '_blank')}
+              showInMenu
             />,
           ];
 
@@ -260,13 +249,10 @@ export const RepoList = ({
     setCopyCurrentRepoName(null);
   };
 
-  const componentPropsLabelOverrides = React.useMemo(() => {
+  const componentPropsLabelOverrides = useMemo(() => {
     return {
       pagination: {
-        labelRowsPerPage: getLanguageFromKey(
-          'dashboard.rows_per_page',
-          language,
-        ),
+        labelRowsPerPage: getLanguageFromKey('dashboard.rows_per_page', language),
       },
     };
   }, [language]);
@@ -291,7 +277,7 @@ export const RepoList = ({
           sortingMode='server'
           onSortModelChange={onSortModelChange}
           onPageSizeChange={onPageSizeChange}
-          rowCount={rowCount}
+          rowCount={rowCount ?? 0}
           rowsPerPageOptions={rowsPerPageOptions}
           onPageChange={onPageChange}
           sx={gridStyleOverride}

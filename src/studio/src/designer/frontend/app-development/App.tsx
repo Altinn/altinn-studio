@@ -1,32 +1,28 @@
-import {Grid, Typography} from '@material-ui/core';
-import {
-  createTheme,
-  MuiThemeProvider,
-  makeStyles,
-} from '@material-ui/core/styles';
-import React from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { createTheme, Grid, ThemeProvider, Typography } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import postMessages from 'app-shared/utils/postMessages';
 import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
-import {getLanguageFromKey} from 'app-shared/utils/language';
-import {DataModelsMetadataActions} from 'app-shared/features/dataModelling/sagas/metadata';
-import {HandleServiceInformationActions} from './features/administration/handleServiceInformationSlice';
-import {fetchRepoStatus} from './features/handleMergeConflict/handleMergeConflictSlice';
-import {makeGetRepoStatusSelector} from './features/handleMergeConflict/handleMergeConflictSelectors';
-import {ApplicationMetadataActions} from './sharedResources/applicationMetadata/applicationMetadataSlice';
-import {fetchLanguage} from './utils/fetchLanguage/languageSlice';
-import {repoStatusUrl} from './utils/urlHelper';
+import { getLanguageFromKey } from 'app-shared/utils/language';
+import { DataModelsMetadataActions } from 'app-shared/features/dataModelling/sagas/metadata';
+import { HandleServiceInformationActions } from './features/administration/handleServiceInformationSlice';
+import { fetchRepoStatus } from './features/handleMergeConflict/handleMergeConflictSlice';
+import { makeGetRepoStatusSelector } from './features/handleMergeConflict/handleMergeConflictSelectors';
+import { ApplicationMetadataActions } from './sharedResources/applicationMetadata/applicationMetadataSlice';
+import { fetchLanguage } from './utils/fetchLanguage/languageSlice';
+import { repoStatusUrl } from './utils/urlHelper';
 import {
   fetchRemainingSession,
   keepAliveSession,
   signOutUser,
 } from './sharedResources/user/userSlice';
-import LeftMenu from './layout/LeftMenu';
 import PageHeader from './layout/PageHeader';
-import {useAppDispatch, useAppSelector} from 'common/hooks';
-import type {IAltinnWindow} from './types/global';
+import { useAppDispatch, useAppSelector } from 'common/hooks';
+import type { IAltinnWindow } from './types/global';
 
 import './App.css';
+import LeftMenu from './layout/LeftMenu';
 
 const theme = createTheme(altinnTheme);
 
@@ -64,11 +60,11 @@ export function App() {
   );
   const dispatch = useAppDispatch();
   const classes = useStyles();
-  const lastKeepAliveTimestamp = React.useRef<number>(0);
-  const sessionExpiredPopoverRef = React.useRef<HTMLDivElement>(null);
+  const lastKeepAliveTimestamp = useRef<number>(0);
+  const sessionExpiredPopoverRef = useRef<HTMLDivElement>(null);
 
-  React.useEffect(() => {
-    const {org, app} = window as Window as IAltinnWindow;
+  useEffect(() => {
+    const { org, app } = window as Window as IAltinnWindow;
     dispatch(
       fetchLanguage({
         url: `${window.location.origin}/designerapi/Language/GetLanguageAsJSON`,
@@ -100,7 +96,7 @@ export function App() {
     );
   }, [dispatch]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const setEventListeners = (subscribe: boolean) => {
       const keepAliveListeners = ['mousemove', 'scroll', 'onfocus', 'keydown'];
       keepAliveListeners.forEach((listener) =>
@@ -117,7 +113,6 @@ export function App() {
     };
     const keepAliveSessionState = () => {
       const timeNow = Date.now();
-
       if (
         remainingSessionMinutes > 10 &&
         remainingSessionMinutes <= 30 &&
@@ -128,7 +123,7 @@ export function App() {
       }
     };
     const checkForMergeConflict = () => {
-      const {org, app} = window as Window as IAltinnWindow;
+      const { org, app } = window as Window as IAltinnWindow;
       dispatch(
         fetchRepoStatus({
           url: repoStatusUrl,
@@ -146,7 +141,7 @@ export function App() {
     };
   }, [dispatch, lastKeepAliveTimestamp, remainingSessionMinutes]);
 
-  const handleSessionExpiresClose = React.useCallback(
+  const handleSessionExpiresClose = useCallback(
     (action: string) => {
       if (action === 'close') {
         // user clicked close button, sign user out
@@ -161,31 +156,29 @@ export function App() {
   );
 
   return (
-    <MuiThemeProvider theme={theme}>
+    <ThemeProvider theme={theme}>
       <div className={classes.container} ref={sessionExpiredPopoverRef}>
         <AltinnPopoverSimple
-          anchorEl={
-            remainingSessionMinutes < 11
-              ? sessionExpiredPopoverRef.current
-              : null
-          }
-          anchorOrigin={{vertical: 'top', horizontal: 'center'}}
-          transformOrigin={{vertical: 'top', horizontal: 'center'}}
+          testId='logout-warning'
+          anchorEl={sessionExpiredPopoverRef.current}
+          open={remainingSessionMinutes < 11}
+          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'center' }}
           handleClose={(event: string) => handleSessionExpiresClose(event)}
           btnCancelText={getLanguageFromKey('general.sign_out', language)}
           btnConfirmText={getLanguageFromKey('general.continue', language)}
           btnClick={handleSessionExpiresClose}
-          paperProps={{style: {margin: '2.4rem'}}}
+          paperProps={{ style: { margin: '2.4rem' } }}
         >
           <Typography variant='h2'>
             {getLanguageFromKey('session.expires', language)}
           </Typography>
-          <Typography variant='body1' style={{marginTop: '1.6rem'}}>
+          <Typography variant='body1' style={{ marginTop: '1.6rem' }}>
             {getLanguageFromKey('session.inactive', language)}
           </Typography>
         </AltinnPopoverSimple>
         <Grid container={true} direction='row'>
-          <PageHeader repoStatus={repoStatus}/>
+          <PageHeader repoStatus={repoStatus} />
           <LeftMenu
             repoStatus={repoStatus}
             classes={classes}
@@ -193,7 +186,7 @@ export function App() {
           />
         </Grid>
       </div>
-    </MuiThemeProvider>
+    </ThemeProvider>
   );
 }
 

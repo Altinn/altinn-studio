@@ -1,12 +1,7 @@
-import {
-  AppBar,
-  Grid,
-  makeStyles,
-  Toolbar,
-  Typography,
-} from '@material-ui/core';
-import type { IGiteaOrganisation, IUser } from '../../types/global';
 import React from 'react';
+import { AppBar, Grid, Toolbar, Typography } from '@mui/material';
+import { makeStyles } from '@mui/styles';
+import type { IGiteaOrganisation, IUser } from '../../types/global';
 import AltinnStudioLogo from './AltinnStudioLogo';
 import { HeaderMenu } from './HeaderMenu';
 
@@ -33,18 +28,15 @@ type HeaderProps = {
   language: any;
 };
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
   appBar: {
-    backgroundColor: theme.altinnPalette.primary.blueDarker,
+    backgroundColor: '#022F51',
     boxShadow: 'none',
   },
   toolbar: {
     height: 96,
     paddingLeft: 48,
     paddingRight: 48,
-  },
-  typography: {
-    fontSize: '1.75rem',
   },
   divider: {
     fontSize: '2rem',
@@ -79,8 +71,8 @@ export function Header({ language }: HeaderProps) {
             </Grid>
             {selectedContext !== SelectedContextType.All &&
               selectedContext !== SelectedContextType.Self && (
-                <Grid data-testid="Header-org-name">
-                  <Typography className={classes.typography}>
+                <Grid data-testid='Header-org-name'>
+                  <Typography sx={{ fontSize: '1.75rem' }}>
                     <span className={classes.divider}>/</span>
                     {getOrgNameById(selectedContext as number, selectableOrgs)}
                   </Typography>

@@ -1,25 +1,21 @@
-import {
-  createStyles,
-  Grid,
-  Typography,
-  withStyles,
-  WithStyles,
-} from '@material-ui/core';
 import React from 'react';
+import { Grid, Typography } from '@mui/material';
+import { createStyles, WithStyles, withStyles } from '@mui/styles';
+
 import AltinnButton from 'app-shared/components/AltinnButton';
 import AltinnInput from 'app-shared/components/AltinnInput';
 import AltinnTextArea from 'app-shared/components/AltinnTextArea';
 import AltinnPopover from 'app-shared/components/molecules/AltinnPopoverSimple';
-import theme from 'app-shared/theme/altinnAppTheme';
+import theme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { AppReleaseActions } from '../../../sharedResources/appRelease/appReleaseSlice';
 import type { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
+import { AppReleaseActions } from '../../../sharedResources/appRelease/appReleaseSlice';
 import {
   BuildResult,
   BuildStatus,
 } from '../../../sharedResources/appRelease/types';
 import type { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusSlice';
-import { useAppSelector, useAppDispatch } from 'common/hooks';
+import { useAppDispatch, useAppSelector } from 'common/hooks';
 
 const styles = createStyles({
   createReleaseFormItem: {
@@ -141,7 +137,11 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
           direction='column'
           className={classes.createReleaseFormItem}
         >
-          <Grid container={true} direction='column-reverse' justifyContent='flex-end'>
+          <Grid
+            container={true}
+            direction='column-reverse'
+            justifyContent='flex-end'
+          >
             {!versionNameValid() ? (
               <Grid
                 className={classes.createReleaseInvalidTagNameWrapper}
@@ -200,11 +200,8 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
         </Grid>
       </Grid>
       <AltinnPopover
-        anchorEl={
-          createReleaseErrorCode !== null && openErrorPopover
-            ? ref.current
-            : null
-        }
+        open={createReleaseErrorCode !== null && openErrorPopover}
+        anchorEl={ref.current}
         handleClose={handlePopoverClose}
         anchorOrigin={{
           vertical: 'bottom',

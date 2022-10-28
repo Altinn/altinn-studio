@@ -1,18 +1,13 @@
-import {
-  createTheme,
-  createStyles,
-  Grid,
-  WithStyles,
-  withStyles,
-} from '@material-ui/core';
-import axios from 'axios';
 import React from 'react';
+import { createTheme, Grid } from '@mui/material';
+import { createStyles, withStyles, WithStyles } from '@mui/styles';
+import axios from 'axios';
 import { get, post } from '../utils/networking';
 import altinnTheme from '../theme/altinnStudioTheme';
 import type {
   IAltinnWindow,
-  IGitStatus,
   IContentStatus,
+  IGitStatus,
 } from '../types/global';
 import { getLanguageFromKey } from '../utils/language';
 import postMessages from '../utils/postMessages';

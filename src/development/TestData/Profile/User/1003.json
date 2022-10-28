@@ -1,0 +1,14 @@
+{
+    "UserId": 1003,
+    "UserName": "RikForelder",
+    "PhoneNumber": "12345678",
+    "Email": "test@test.com",
+    "PartyId": 510003,
+    "Party": {
+  
+    },
+    "UserType": 0,
+    "ProfileSettingPreference": {
+      "Language": "nb"
+    }
+  }

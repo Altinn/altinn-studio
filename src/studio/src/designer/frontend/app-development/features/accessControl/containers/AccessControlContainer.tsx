@@ -1,10 +1,6 @@
-import {
-  createTheme,
-  createStyles,
-  Typography,
-  withStyles,
-} from '@material-ui/core';
 import React from 'react';
+import { createTheme, Typography } from '@mui/material';
+import { createStyles, withStyles } from '@mui/styles';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
 import AltinnCheckBox from 'app-shared/components/AltinnCheckBox';

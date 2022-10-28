@@ -1,7 +1,7 @@
-import { createTheme } from '@material-ui/core';
-import { withStyles } from '@material-ui/core/styles';
-import classNames from 'classnames';
 import React from 'react';
+import { createTheme } from '@mui/material';
+import { withStyles } from '@mui/styles';
+import classNames from 'classnames';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnIconComponentProvidedProps {

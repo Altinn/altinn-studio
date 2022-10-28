@@ -1,20 +1,18 @@
 import React from 'react';
-import {
-  createTheme as createThemeV4,
-  ThemeProvider as ThemeProviderV4,
-} from '@material-ui/core/styles';
+import { createTheme, ThemeProvider } from '@mui/material';
+
 import { render as rtlRender, screen } from '@testing-library/react';
 
+import type { IHeaderContext } from './Header';
 import {
+  getOrgNameById,
   Header,
   HeaderContext,
-  getOrgNameById,
   SelectedContextType,
 } from './Header';
-import type { IHeaderContext } from './Header';
 import altinnTheme from '../../theme/altinnStudioTheme';
 
-const themeV4 = createThemeV4(altinnTheme);
+const theme = createTheme(altinnTheme);
 
 const orgId = 1;
 const orgFullName = 'Organization 1';
@@ -114,10 +112,10 @@ const render = ({
   };
 
   return rtlRender(
-    <ThemeProviderV4 theme={themeV4}>
+    <ThemeProvider theme={theme}>
       <HeaderContext.Provider value={headerContextValue}>
         <Header language={{}} />
       </HeaderContext.Provider>
-    </ThemeProviderV4>,
+    </ThemeProvider>,
   );
 };

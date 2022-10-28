@@ -1,7 +1,7 @@
-import { render as rtlRender, screen } from '@testing-library/react';
 import React from 'react';
-import AltinnColumnLayoutComponent from './AltinnColumnLayout';
+import { render as rtlRender, screen } from '@testing-library/react';
 import type { IAltinnColumnLayoutProps } from './AltinnColumnLayout';
+import AltinnColumnLayoutComponent from './AltinnColumnLayout';
 
 describe('AltinnColumnLayout', () => {
   it('should render title and all children', () => {

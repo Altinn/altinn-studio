@@ -1,16 +1,16 @@
-import { Grid, Typography } from '@material-ui/core';
 import React from 'react';
+import { Grid, Typography } from '@mui/material';
 import Select from 'react-select';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import {
   PropertyLabel,
-  SelectTextFromRecources,
   selectStyles,
+  SelectTextFromRecources,
 } from '../../utils/render';
 import type {
-  IFormImageComponent,
   FormComponentType,
+  IFormImageComponent,
 } from '../../types/global';
 
 export interface IImageComponentProps {
@@ -78,7 +78,7 @@ export const ImageComponent = ({
   const altTextSelectId = `image_alt-input-${component.id}`;
 
   return (
-    <Grid spacing={2} container={true} data-testid="ImageComponent">
+    <Grid spacing={2} container={true} data-testid='ImageComponent'>
       <Grid item={true} xs={12}>
         <AltinnInputField
           id={`image_nb_src-${component.id}`}

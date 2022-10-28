@@ -1,0 +1,17 @@
+.modalContainer {
+  padding: 30px;
+  width: 471px;
+  display: flex;
+  gap: 18px;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+.modalContainer p,
+.modalContainer h2 {
+  margin: 0;
+  padding: 0;
+}
+.buttonContainer {
+  display: flex;
+  gap: 24px;
+}

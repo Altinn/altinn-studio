@@ -80,7 +80,7 @@
     },
     "c0": {
       "$ref": "#/$defs/complexStructure",
-      "minItems": 0
+      "@xsdMinOccurs": 0
     }
   },
   "required": [

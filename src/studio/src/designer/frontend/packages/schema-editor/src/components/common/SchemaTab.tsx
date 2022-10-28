@@ -1,5 +1,6 @@
 import React from 'react';
-import { makeStyles, Tab } from '@material-ui/core';
+import { Tab } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 
 export interface ISchemaTabProps {
   label: string;
@@ -7,11 +8,9 @@ export interface ISchemaTabProps {
   hide?: boolean;
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
   root: {
     textTransform: 'none',
-    fontSize: 16,
-    fontWeight: 500,
     minWidth: 70,
     '&:hover': {
       color: '#40a9ff',
@@ -19,7 +18,7 @@ const useStyles = makeStyles((theme) => ({
     },
     '&:selected': {
       color: '#1890ff',
-      fontWeight: theme.typography.fontWeightMedium,
+      fontWeight: 500,
     },
     '&:focus': {
       color: '#40a9ff',
@@ -29,5 +28,18 @@ const useStyles = makeStyles((theme) => ({
 
 export const SchemaTab = ({ label, value, hide, ...other }: ISchemaTabProps) => {
   const classes = useStyles();
-  return <Tab label={label} classes={classes} id={`inspector-tab-${value}`} value={value} hidden={hide} {...other} />;
+  return (
+    <Tab
+      {...other}
+      sx={{
+        fontSize: 16,
+        fontWeight: 500,
+      }}
+      label={label}
+      classes={classes}
+      id={`inspector-tab-${value}`}
+      value={value}
+      hidden={hide}
+    />
+  );
 };

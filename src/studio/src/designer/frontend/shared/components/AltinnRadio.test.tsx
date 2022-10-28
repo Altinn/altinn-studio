@@ -1,7 +1,7 @@
-import { render as rtlRender, screen } from '@testing-library/react';
 import React from 'react';
-import { AltinnRadio } from './AltinnRadio';
+import { render as rtlRender, screen } from '@testing-library/react';
 import type { IAltinnRadioProps } from './AltinnRadio';
+import { AltinnRadio } from './AltinnRadio';
 
 describe('AltinnRadioButton', () => {
   it('should render FormControlLabel wrapper when label is supplied', () => {

@@ -1,12 +1,8 @@
-import {
-  Checkbox,
-  createTheme,
-  createStyles,
-  WithStyles,
-  withStyles,
-} from '@material-ui/core';
 import React from 'react';
+import { Checkbox, createTheme } from '@mui/material';
+import { createStyles, WithStyles, withStyles } from '@mui/styles';
 import altinnTheme from '../theme/altinnStudioTheme';
+
 export interface IAltinnCheckBoxComponentProvidedProps
   extends WithStyles<typeof styles> {
   /** If the component is checked */

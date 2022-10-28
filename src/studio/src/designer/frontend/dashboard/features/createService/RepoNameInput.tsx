@@ -1,6 +1,5 @@
 import React from 'react';
-
-import { makeStyles } from '@material-ui/core';
+import { makeStyles } from '@mui/styles';
 import AltinnInformationPaper from 'app-shared/components/AltinnInformationPaper';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
 import AltinnPopper from 'app-shared/components/AltinnPopper';

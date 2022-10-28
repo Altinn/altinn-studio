@@ -49,29 +49,31 @@
         "e1": {
           "type": "array",
           "items": {
-            "type": "string",
-            "minItems": 1
+            "type": "string"
           },
-          "@xsdType": "string"
+          "minItems": 1,
+          "@xsdType": "string",
+          "@xsdMaxOccurs": "unbounded"
         },
         "e2": {
           "type": "array",
           "items": {
             "$ref": "#/$defs/simpleType"
           },
-          "minItems": 0
+          "@xsdMinOccurs": 0,
+          "@xsdMaxOccurs": "unbounded"
         },
         "e4": {
           "type": "array",
           "items": {
-            "$ref": "#/$defs/complexType",
-            "minItems": 1
-          }
+            "$ref": "#/$defs/complexType"
+          },
+          "minItems": 1,
+          "@xsdMaxOccurs": "unbounded"
         },
         "e5": {
           "type": "array",
           "items": {
-            "minItems": 1,
             "properties": {
               "fish": {
                 "type": "string",
@@ -86,7 +88,9 @@
               "fish",
               "stew"
             ]
-          }
+          },
+          "minItems": 1,
+          "@xsdMaxOccurs": "unbounded"
         }
       },
       "required": [

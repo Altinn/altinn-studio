@@ -1,6 +1,6 @@
-import { createTheme, Paper } from '@material-ui/core';
-import { withStyles } from '@material-ui/core/styles';
 import React from 'react';
+import { createTheme, Paper } from '@mui/material';
+import { withStyles } from '@mui/styles';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnInformationPaperCompontentProvidedProps {

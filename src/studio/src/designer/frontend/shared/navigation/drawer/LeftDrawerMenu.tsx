@@ -1,16 +1,17 @@
-import Divider from '@material-ui/core/Divider';
-import Drawer from '@material-ui/core/Drawer';
-import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemIcon from '@material-ui/core/ListItemIcon';
-import ListItemText from '@material-ui/core/ListItemText';
-import { makeStyles } from '@material-ui/core/styles';
-import classNames from 'classnames';
 import React from 'react';
+import { makeStyles } from '@mui/styles';
+import {
+  Drawer,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+} from '@mui/material';
+import classNames from 'classnames';
 import { Link } from 'react-router-dom';
 import AltinnIcon from '../../components/AltinnIcon';
-import { createLeftDrawerMenuSettings } from './drawerMenuSettings';
 import type { IMenuItem } from './drawerMenuSettings';
+import { createLeftDrawerMenuSettings } from './drawerMenuSettings';
 import { styles } from './leftDrawerMenuStyles';
 
 import altinnTheme from '../../theme/altinnStudioTheme';
@@ -65,70 +66,70 @@ export default function LeftDrawerMenu({
   }
 
   return (
-    <div>
-      <Drawer
-        variant='permanent'
-        onMouseOver={handleDrawerOpen}
-        onMouseLeave={handleDrawerClose}
-        className={classNames(classes.drawer, {
+    <Drawer
+      data-test-id='left-drawer-menu'
+      variant='permanent'
+      onMouseOver={handleDrawerOpen}
+      onMouseLeave={handleDrawerClose}
+      PaperProps={{
+        sx: {
+          position: 'absolute',
+          background: altinnTheme.altinnPalette.primary.greyLight,
+          top: 111,
+          height: `calc(100vh - 110px)`,
+          overflow: 'hidden',
+        },
+      }}
+      classes={{
+        paper: classNames({
           [classes.drawerOpen]: open,
           [classes.drawerClose]: !open,
-        })}
-        classes={{
-          paper: classNames(classes.paper, {
-            [classes.drawerOpen]: open,
-            [classes.drawerClose]: !open,
-          }),
-        }}
-        open={open}
-      >
-        <Divider />
-        <List component='nav'>
-          {menuToRender.map((menuItem: IMenuItem, index: number) => (
-            <Link
-              to={menuItem.navLink}
-              style={{ borderBottom: 0 }}
-              key={menuItem.displayText}
+        }),
+      }}
+      open={open}
+    >
+      <List component='nav'>
+        {menuToRender.map((menuItem: IMenuItem, index: number) => (
+          <Link
+            to={menuItem.navLink}
+            style={{ borderBottom: 0 }}
+            key={menuItem.displayText}
+          >
+            <ListItem
+              classes={{
+                root: classNames(classes.listItem, {
+                  [classes.activeListItem]:
+                    activeLeftMenuSelection ===
+                    menuItem.activeLeftMenuSelection,
+                }),
+              }}
+              onMouseEnter={onMouseEnterListItem(index)}
+              onMouseLeave={onMouseLeaveListItem(index)}
+              component='div'
             >
-              <ListItem
-                classes={{
-                  root: classNames(classes.listItem, {
-                    [classes.activeListItem]:
-                      activeLeftMenuSelection ===
-                      menuItem.activeLeftMenuSelection,
-                  }),
-                }}
-                onMouseEnter={onMouseEnterListItem(index)}
-                onMouseLeave={onMouseLeaveListItem(index)}
-                component='div'
-              >
-                <ListItemIcon>
-                  <AltinnIcon
-                    isActive={
-                      activeLeftMenuSelection ===
-                      menuItem.activeLeftMenuSelection
-                    }
-                    isActiveIconColor={
-                      altinnTheme.altinnPalette.primary.blueDark
-                    }
-                    iconClass={menuItem.iconClass}
-                    iconColor={
-                      iconColor[index] === undefined
-                        ? 'rgba(0, 0, 0, 0.54)'
-                        : iconColor[index]
-                    }
-                  />
-                </ListItemIcon>
-                <ListItemText
-                  disableTypography={true}
-                  primary={menuItem.displayText}
-                  classes={{ root: classNames(classes.listItemText) }}
+              <ListItemIcon>
+                <AltinnIcon
+                  isActive={
+                    activeLeftMenuSelection === menuItem.activeLeftMenuSelection
+                  }
+                  isActiveIconColor={altinnTheme.altinnPalette.primary.blueDark}
+                  iconClass={menuItem.iconClass}
+                  iconColor={
+                    iconColor[index] === undefined
+                      ? 'rgba(0, 0, 0, 0.54)'
+                      : iconColor[index]
+                  }
                 />
-              </ListItem>
-            </Link>
-          ))}
-        </List>
-      </Drawer>
-    </div>
+              </ListItemIcon>
+              <ListItemText
+                disableTypography={true}
+                primary={menuItem.displayText}
+                classes={{ root: classNames(classes.listItemText) }}
+              />
+            </ListItem>
+          </Link>
+        ))}
+      </List>
+    </Drawer>
   );
 }
