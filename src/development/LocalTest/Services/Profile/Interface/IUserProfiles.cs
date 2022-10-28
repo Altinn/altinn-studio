@@ -1,5 +1,5 @@
+#nullable enable
 using Altinn.Platform.Profile.Models;
-using System.Threading.Tasks;
 
 namespace LocalTest.Services.Profile.Interface
 {
@@ -13,6 +13,6 @@ namespace LocalTest.Services.Profile.Interface
         /// </summary>
         /// <param name="userId">The user id</param>
         /// <returns></returns>
-        Task<UserProfile> GetUser(int userId);
+        Task<UserProfile?> GetUser(int userId);
     }
 }

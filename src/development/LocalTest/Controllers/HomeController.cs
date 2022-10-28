@@ -1,11 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
 using System.Text.Json;
-using System.Threading.Tasks;
 using System.Security.Claims;
 using System.Xml;
 
@@ -27,8 +21,8 @@ using LocalTest.Services.Authentication.Interface;
 using LocalTest.Services.Profile.Interface;
 using LocalTest.Services.LocalApp.Interface;
 
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using LocalTest.Services.TestData;
 
 namespace LocalTest.Controllers
 {
@@ -41,6 +35,7 @@ namespace LocalTest.Controllers
         private readonly IApplicationRepository _applicationRepository;
         private readonly IClaims _claimsService;
         private readonly ILocalApp _localApp;
+        private readonly TestDataService _testDataService;
 
         public HomeController(
             IOptions<GeneralSettings> generalSettings,
@@ -49,7 +44,8 @@ namespace LocalTest.Controllers
             IAuthentication authenticationService,
             IApplicationRepository applicationRepository,
             IClaims claimsService,
-            ILocalApp localApp)
+            ILocalApp localApp,
+            TestDataService testDataService)
         {
             _generalSettings = generalSettings.Value;
             _localPlatformSettings = localPlatformSettings.Value;
@@ -58,6 +54,7 @@ namespace LocalTest.Controllers
             _applicationRepository = applicationRepository;
             _claimsService = claimsService;
             _localApp = localApp;
+            _testDataService = testDataService;
         }
 
         [AllowAnonymous]
@@ -270,42 +267,18 @@ namespace LocalTest.Controllers
             return RedirectToAction("Index");
         }
 
-
-        private async Task<List<UserProfile>> GetTestUsers()
-        {
-            List<UserProfile> users = new List<UserProfile>();
-            string path = this._localPlatformSettings.LocalTestingStaticTestDataPath + "Profile/User/";
-
-            if (!Directory.Exists(path))
-            {
-                return users;
-            }
-
-            string[] files = Directory.GetFiles(path, "*.json");
-
-            foreach (string file in files)
-            {
-                if (int.TryParse(Path.GetFileNameWithoutExtension(file), out int userId))
-                {
-                    users.Add(await _userProfileService.GetUser(userId));
-                }
-            }
-
-            return users;
-        }
-
         private async Task<IEnumerable<SelectListItem>> GetTestUsersForList()
         {
-            List<UserProfile> users = await GetTestUsers();
-
+            var data = await _testDataService.GetTestData();
             List<SelectListItem> userItems = new List<SelectListItem>();
 
-            foreach (UserProfile profile in users)
+            foreach (UserProfile profile in data.Profile.User.Values)
             {
+                var properProfile = await _userProfileService.GetUser(profile.UserId);
                 SelectListItem item = new SelectListItem()
                 {
-                    Value = profile.UserId.ToString(),
-                    Text = profile.Party.Person.Name
+                    Value = properProfile.UserId.ToString(),
+                    Text = properProfile.Party.Person.Name
                 };
 
                 userItems.Add(item);
@@ -313,6 +286,7 @@ namespace LocalTest.Controllers
 
             return userItems;
         }
+
         private async Task<int> GetAppAuthLevel(IEnumerable<SelectListItem> testApps)
         {
             try

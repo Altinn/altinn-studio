@@ -1,6 +1,5 @@
+#nullable enable
 using Altinn.Platform.Register.Models;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Altinn.Platform.Authorization.Services.Interface
 {
@@ -14,7 +13,7 @@ namespace Altinn.Platform.Authorization.Services.Interface
         /// </summary>
         /// <param name="userId">The user id</param>
         /// <returns>list of parties that the logged in user can represent</returns>
-        Task<List<Party>> GetParties(int userId);
+        Task<List<Party>?> GetParties(int userId);
 
         /// <summary>
         /// Verifies that the selected party is contained in the user's party list

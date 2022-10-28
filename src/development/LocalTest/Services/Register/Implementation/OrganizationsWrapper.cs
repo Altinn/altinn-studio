@@ -1,10 +1,7 @@
-using System.IO;
-using System.Threading.Tasks;
+#nullable enable
 using Altinn.Platform.Register.Models;
-using LocalTest.Configuration;
 using LocalTest.Services.Register.Interface;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
+using LocalTest.Services.TestData;
 
 namespace LocalTest.Services.Register.Implementation
 {
@@ -13,25 +10,18 @@ namespace LocalTest.Services.Register.Implementation
     /// </summary>
     public class OrganizationsWrapper : IOrganizations
     {
-        private readonly LocalPlatformSettings _localPlatformSettings;
+        private readonly TestDataService _testDataService;
 
-        public OrganizationsWrapper(IOptions<LocalPlatformSettings> localPlatformSettings)
+        public OrganizationsWrapper(TestDataService testDataService)
         {
-            _localPlatformSettings = localPlatformSettings.Value;
+            _testDataService = testDataService;
         }
 
         /// <inheritdoc />
-        public async Task<Organization> GetOrganization(string orgNr)
+        public async Task<Organization?> GetOrganization(string orgNr)
         {
-            Organization org = null;
-            string path = this._localPlatformSettings.LocalTestingStaticTestDataPath + "Register/Org/" + orgNr + ".json";
-            if (File.Exists(path)) // lgtm [cs/path-injection]
-            {
-                string content = File.ReadAllText(path); // lgtm [cs/path-injection]
-                org = (Organization)JsonConvert.DeserializeObject(content, typeof(Organization));
-            }
-
-            return await Task.FromResult(org);
+            var data = await _testDataService.GetTestData();
+            return data.Register.Org.TryGetValue(orgNr, out var value) ? value : null;
         }
     }
 }
