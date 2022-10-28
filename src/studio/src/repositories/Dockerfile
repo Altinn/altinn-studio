@@ -1,6 +1,8 @@
 FROM gitea/gitea:1.17.3-rootless
 USER 0:0
-RUN apk --no-cache upgrade expat
+RUN apk --no-cache upgrade expat && \
+    apk update && \
+    apk upgrade git
 USER 1000:1000
 RUN mkdir -p /var/lib/gitea/git && mkdir -p /var/lib/gitea/db && mkdir -p /var/lib/gitea/avatars && mkdir -p /var/lib/gitea/attachments
 
