@@ -206,7 +206,12 @@ export const RepoList = ({
               onClick={() => (window.location.href = editUrl)}
               showInMenu={false}
             >
-              <a>
+              <a
+                key={params.row.id}
+                href={params.row.html_url}
+                data-testid="gitea-repo-link"
+                className={cn(classes.actionLink, classes.repoLink)}
+              >
                 <span>{getLanguageFromKey(editTextKey, language)}</span>
                 <i className={cn('fa fa-edit', classes.linkIcon)} />
               </a>,
