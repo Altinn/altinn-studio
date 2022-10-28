@@ -439,7 +439,7 @@ export function RepeatingGroupTable({
               <TableRow>
                 {tableComponents.map((component: ILayoutComponent) => (
                   <TableCell
-                    align='left'
+                    align={getTextAlignment(component)}
                     key={component.id}
                   >
                     {getTextResource(getTableTitle(component), textResources)}
@@ -512,9 +512,7 @@ export function RepeatingGroupTable({
                         {tableComponents.map((component: ILayoutComponent) => (
                           <TableCell
                             key={`${component.id}-${index}`}
-                            style={{
-                              textAlign: getTextAlignment(component),
-                            }}
+                            align={getTextAlignment(component)}
                           >
                             <span>
                               {index !== editIndex
