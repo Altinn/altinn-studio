@@ -1,0 +1,14 @@
+[
+    {
+      "partyId": "1002",
+      "partyTypeName": 1,
+      "ssn": "17858296439",
+      "name": "Gjentagende Forelder",
+      "isDeleted": false,
+      "onlyHierarchyElementWithNoAccess": false,
+      "person": null,
+      "organisation": null,
+      "childParties": null
+    }
+  ]
+  

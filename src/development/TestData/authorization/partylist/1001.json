@@ -1,0 +1,14 @@
+[
+    {
+      "partyId": "1001",
+      "partyTypeName": 1,
+      "ssn": "01899699552",
+      "name": "Pengelens Partner",
+      "isDeleted": false,
+      "onlyHierarchyElementWithNoAccess": false,
+      "person": null,
+      "organisation": null,
+      "childParties": null
+    }
+  ]
+  
