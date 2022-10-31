@@ -3,7 +3,6 @@ import React, { useCallback, useMemo } from 'react';
 import { Grid, makeStyles } from '@material-ui/core';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
-import ErrorPaper from 'src/components/message/ErrorPaper';
 import { ExprDefaultsForGroup } from 'src/features/expressions';
 import { useExpressions } from 'src/features/expressions/useExpressions';
 import { RepeatingGroupAddButton } from 'src/features/form/components/RepeatingGroupAddButton';
@@ -19,22 +18,14 @@ import {
 } from 'src/utils/formLayout';
 import { getHiddenFieldsForGroup } from 'src/utils/layout';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
-import { repeatingGroupHasValidations } from 'src/utils/validation';
 import type { ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
 import type { IRuntimeState } from 'src/types';
-
-import { getLanguageFromKey } from 'altinn-shared/utils';
-
 export interface IGroupProps {
   id: string;
   container: ILayoutGroup;
   components: (ILayoutComponent | ILayoutGroup)[];
   triggers?: Triggers[];
 }
-
-const gridStyle = {
-  paddingTop: '12px',
-};
 
 const useStyles = makeStyles({
   minusMargin: {
@@ -87,7 +78,10 @@ export function GroupContainer({
   );
   const [filteredIndexList, setFilteredIndexList] =
     React.useState<number[]>(null);
-  const [multiPageIndex, setMultiPageIndex] = React.useState<number>(-1);
+  const multiPageIndex = useAppSelector(
+    (state: IRuntimeState) =>
+      state.formLayout.uiConfig.repeatingGroups[id]?.multiPageIndex ?? -1,
+  );
 
   const attachments = useAppSelector(
     (state: IRuntimeState) => state.attachments.attachments,
@@ -136,26 +130,6 @@ export function GroupContainer({
     ],
   );
 
-  const tableHasErrors = useMemo(
-    () =>
-      repeatingGroupHasValidations(
-        container,
-        repeatingGroupDeepCopyComponents,
-        validations,
-        currentView,
-        repeatingGroups,
-        layout,
-      ),
-    [
-      container,
-      repeatingGroupDeepCopyComponents,
-      validations,
-      currentView,
-      repeatingGroups,
-      layout,
-    ],
-  );
-
   React.useEffect(() => {
     const filteredIndexList = getRepeatingGroupFilteredIndices(
       formData,
@@ -166,6 +140,18 @@ export function GroupContainer({
     }
   }, [formData, edit]);
 
+  const setMultiPageIndex = useCallback(
+    (index: number) => {
+      dispatch(
+        FormLayoutActions.updateRepeatingGroupsMultiPageIndex({
+          group: id,
+          index,
+        }),
+      );
+    },
+    [dispatch, id],
+  );
+
   const onClickAdd = useCallback(() => {
     dispatch(FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }));
     if (edit?.mode !== 'showAll') {
@@ -175,8 +161,9 @@ export function GroupContainer({
           index: repeatingGroupIndex + 1,
         }),
       );
+      setMultiPageIndex(0);
     }
-  }, [edit?.mode, dispatch, id, repeatingGroupIndex]);
+  }, [dispatch, id, edit?.mode, repeatingGroupIndex, setMultiPageIndex]);
 
   React.useEffect(() => {
     const { edit } = container;
@@ -184,14 +171,16 @@ export function GroupContainer({
       return;
     }
 
-    if (edit.multiPage) {
-      setMultiPageIndex(0);
-    }
-
     if (edit.openByDefault && repeatingGroupIndex === -1) {
       onClickAdd();
     }
   }, [container, onClickAdd, repeatingGroupIndex]);
+
+  React.useEffect(() => {
+    if (edit?.multiPage && multiPageIndex < 0) {
+      setMultiPageIndex(0);
+    }
+  }, [edit?.multiPage, multiPageIndex, setMultiPageIndex]);
 
   const onKeypressAdd = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (
@@ -213,17 +202,6 @@ export function GroupContainer({
     );
   };
 
-  const onClickSave = () => {
-    const validate = !!container.triggers?.includes(Triggers.Validation);
-    dispatch(
-      FormLayoutActions.updateRepeatingGroupsEditIndex({
-        group: id,
-        index: -1,
-        validate,
-      }),
-    );
-  };
-
   const setEditIndex = (index: number, forceValidation?: boolean) => {
     // if edit button has been clicked while edit container is open, we trigger validations if present in triggers
     const validate: boolean =
@@ -236,6 +214,9 @@ export function GroupContainer({
         validate,
       }),
     );
+    if (edit?.multiPage && index > -1) {
+      setMultiPageIndex(0);
+    }
   };
 
   const classes = useStyles();
@@ -255,17 +236,6 @@ export function GroupContainer({
           textResources={textResources}
           container={container}
         />
-        {tableHasErrors && (
-          <Grid
-            container={true}
-            style={gridStyle}
-            direction='column'
-          >
-            <ErrorPaper
-              message={getLanguageFromKey('group.row_error', language)}
-            />
-          </Grid>
-        )}
       </>
     );
   }
@@ -332,7 +302,6 @@ export function GroupContainer({
           language={language}
           textResources={textResources}
           layout={layout}
-          onClickSave={onClickSave}
           repeatingGroupDeepCopyComponents={repeatingGroupDeepCopyComponents}
           hideSaveButton={edit?.saveButton === false}
           multiPageIndex={multiPageIndex}
@@ -365,7 +334,7 @@ export function GroupContainer({
                 deleting={deletingIndexes.includes(index)}
                 textResources={textResources}
                 layout={layout}
-                onClickSave={onClickSave}
+                setEditIndex={setEditIndex}
                 onClickRemove={onClickRemove}
                 repeatingGroupDeepCopyComponents={
                   repeatingGroupDeepCopyComponents
@@ -387,18 +356,6 @@ export function GroupContainer({
             textResources={textResources}
           />
         )}
-      {tableHasErrors && (
-        <Grid
-          container={true}
-          style={gridStyle}
-          direction='column'
-          data-testid={'group-table-errors'}
-        >
-          <ErrorPaper
-            message={getLanguageFromKey('group.row_error', language)}
-          />
-        </Grid>
-      )}
       <Grid
         item={true}
         xs={12}

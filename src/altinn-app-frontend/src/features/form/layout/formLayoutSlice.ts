@@ -226,6 +226,13 @@ const formLayoutSlice = createSagaSlice(
             state.error = error;
           },
         }),
+      updateRepeatingGroupsMultiPageIndex:
+        mkAction<LayoutTypes.IUpdateRepeatingGroupsMultiPageIndex>({
+          reducer: (state, action) => {
+            const { group, index } = action.payload;
+            state.uiConfig.repeatingGroups[group].multiPageIndex = index;
+          },
+        }),
       updateRepeatingGroupsEditIndex:
         mkAction<LayoutTypes.IUpdateRepeatingGroupsEditIndex>({
           takeLatest: updateRepeatingGroupEditIndexSaga,

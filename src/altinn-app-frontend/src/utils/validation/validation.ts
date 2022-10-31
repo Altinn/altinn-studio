@@ -288,7 +288,9 @@ export function getGroupChildren(
     (element) => element.id === groupId,
   ) as ILayoutGroup;
   return layout.filter((element) =>
-    layoutGroup?.children?.includes(element.id),
+    layoutGroup?.children
+      ?.map((id) => (layoutGroup.edit?.multiPage ? id.split(':')[1] : id))
+      .includes(element.id),
   );
 }
 

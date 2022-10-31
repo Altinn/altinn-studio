@@ -76,6 +76,11 @@ export interface IUpdateRepeatingGroupsRemoveCancelled {
   index: number;
 }
 
+export interface IUpdateRepeatingGroupsMultiPageIndex {
+  group: string;
+  index: number;
+}
+
 export interface IUpdateRepeatingGroupsEditIndex {
   group: string;
   index: number;

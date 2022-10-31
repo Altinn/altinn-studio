@@ -101,31 +101,14 @@ describe('RepeatingGroupsEditContainer', () => {
     textResources,
   );
 
-  it('calls setMultiPageIndex when save-and-close is pressed for multipage edit-container', async () => {
-    const setMultiPageIndex = jest.fn();
-    render({ setMultiPageIndex: setMultiPageIndex });
-    await user.click(screen.getByRole('button', { name: /save and close/i }));
-    expect(setMultiPageIndex).toHaveBeenCalledTimes(1);
-  });
-
-  it('calls setMultiPageIndex when delete is pressed for multipage edit-container with edit.mode showAll', async () => {
-    const setMultiPageIndex = jest.fn();
-    multiPageGroup.edit.mode = 'showAll';
-    render({ setMultiPageIndex: setMultiPageIndex });
-    await user.click(screen.getByRole('button', { name: /delete/i }));
-    expect(setMultiPageIndex).toHaveBeenCalledTimes(1);
-  });
-
   it('calls setEditIndex when save and open next is pressed when edit.saveAndNextButton is true', async () => {
     const setEditIndex = jest.fn();
     const setMultiPageIndex = jest.fn();
-    const onClickSave = jest.fn();
     multiPageGroup.edit.saveAndNextButton = true;
-    render({ setEditIndex, setMultiPageIndex, onClickSave, editIndex: 0 });
+    render({ setEditIndex, setMultiPageIndex, editIndex: 0 });
     await user.click(
       screen.getByRole('button', { name: /save and open next/i }),
     );
-    expect(onClickSave).not.toHaveBeenCalled();
     expect(setEditIndex).toHaveBeenCalledWith(1, true);
   });
 
@@ -139,7 +122,7 @@ describe('RepeatingGroupsEditContainer', () => {
       layout: layout,
       editIndex: 1,
       repeatingGroupIndex: repeatingGroupIndex,
-      onClickSave: jest.fn(),
+      setEditIndex: jest.fn(),
       onClickRemove: jest.fn(),
       hideDeleteButton: false,
       showSaveAndNextButton: multiPageGroup.edit?.saveAndNextButton === true,

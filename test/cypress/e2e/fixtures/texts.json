@@ -7,7 +7,6 @@
   "continueOrStartNew": "Velg om du vil fortsette på et skjema du har begynt på, eller om du vil starte på ny.",
   "dateOfEffect": "Når vil du at navnendringen skal skje?",
   "downloadAttachment": "last ned",
-  "errorInGroup": "En av radene er ikke fylt ut riktig, dette må fikses før skjema kan sendes inn",
   "errorReport": "Du må rette disse feilene før du kan gå videre",
   "feedback": "Du må flytte instansen til neste prosess med et API kall til process/next",
   "goToRightPage": "Gå til riktig side i skjema",

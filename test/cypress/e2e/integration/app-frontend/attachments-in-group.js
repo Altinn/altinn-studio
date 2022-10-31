@@ -56,7 +56,7 @@ describe('Repeating group attachments', () => {
     }
   };
 
-  const uploadFile = ({ item, idx, fileName, verifyTableRow, tableRow, isTaggedUploader }) => {
+  const uploadFile = ({ item, idx, fileName, verifyTableRow, tableRow, isTaggedUploader, secondPage = false }) => {
     cy.get(item.dropZoneContainer).should('be.visible');
     cy.get(item.dropZone).selectFile(makeTestFile(fileName), { force: true });
 
@@ -74,6 +74,9 @@ describe('Repeating group attachments', () => {
       cy.get(tableRow.editBtn).click();
       verifyTableRowPreview(item, fileName);
       cy.get(tableRow.editBtn).click();
+      if (secondPage) {
+        gotoSecondPage();
+      }
     }
   };
 
@@ -182,13 +185,14 @@ describe('Repeating group attachments', () => {
       fileName: filenames[0].single,
       verifyTableRow: true,
       tableRow: appFrontend.group.rows[0],
+      secondPage: true
     });
     getState().should('deep.equal', {
       [appFrontend.group.rows[0].uploadSingle.stateKey]: [filenames[0].single],
     });
 
     filenames[0].multi.forEach((fileName, idx) => {
-      uploadFile({ item: appFrontend.group.rows[0].uploadMulti, idx, fileName, verifyTableRow: true, tableRow: appFrontend.group.rows[0], });
+      uploadFile({ item: appFrontend.group.rows[0].uploadMulti, idx, fileName, verifyTableRow: true, tableRow: appFrontend.group.rows[0], secondPage: true });
       if (idx !== filenames[0].multi.length - 1) {
         cy.get(appFrontend.group.rows[0].uploadMulti.addMoreBtn).click();
       }
@@ -205,6 +209,7 @@ describe('Repeating group attachments', () => {
       fileName: filenames[1].single,
       verifyTableRow: true,
       tableRow: appFrontend.group.rows[1],
+      secondPage: true
     });
     filenames[1].multi.forEach((fileName, idx) => {
       uploadFile({
@@ -213,6 +218,7 @@ describe('Repeating group attachments', () => {
         fileName,
         verifyTableRow: true,
         tableRow: appFrontend.group.rows[1],
+        secondPage: true
       });
       if (idx !== filenames[1].multi.length - 1) {
         cy.get(appFrontend.group.rows[1].uploadMulti.addMoreBtn).click();

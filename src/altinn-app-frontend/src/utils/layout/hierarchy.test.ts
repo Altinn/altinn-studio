@@ -151,11 +151,18 @@ describe('Hierarchical layout tools', () => {
         {
           ...components.group3,
           childComponents: [
-            components.group3h,
-            components.group3i,
+            {
+              ...components.group3h,
+              multiPageIndex: 0,
+            },
+            {
+              ...components.group3i,
+              multiPageIndex: 1,
+            },
             {
               ...components.group3n,
               childComponents: [components.group3nh, components.group3ni],
+              multiPageIndex: 2,
             },
           ],
         },

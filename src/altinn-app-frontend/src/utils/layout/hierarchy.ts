@@ -10,6 +10,7 @@ import type { ContextDataSources } from 'src/features/expressions/ExprContext';
 import type {
   ILayout,
   ILayoutComponent,
+  ILayoutComponentOrGroup,
   ILayoutGroup,
 } from 'src/features/form/layout';
 import type { IRepeatingGroups, IRuntimeState } from 'src/types';
@@ -29,6 +30,26 @@ import type {
   RepeatingGroupLayoutComponent,
 } from 'src/utils/layout/hierarchy.types';
 
+const componentInGroupChildren = (
+  group: ILayoutGroup,
+  componentId: string,
+): { found: boolean; multiPageIndex?: number } => {
+  if (group.edit?.multiPage) {
+    const split = group.children.map((id) => id.split(':'));
+    const found = split.find(([, id]) => id === componentId);
+    if (found) {
+      return {
+        found: true,
+        multiPageIndex: parseInt(found[0]),
+      };
+    }
+
+    return { found: false };
+  }
+
+  return { found: group.children.includes(componentId) };
+};
+
 export const childrenWithoutMultiPagePrefix = (group: ILayoutGroup) =>
   group.edit?.multiPage
     ? group.children.map((componentId) => componentId.replace(/^\d+:/g, ''))
@@ -36,9 +57,13 @@ export const childrenWithoutMultiPagePrefix = (group: ILayoutGroup) =>
 
 function componentsAndGroupsInGroup(
   layout: ILayout,
-  filter: (component: ILayoutComponent | ILayoutGroup) => boolean,
+  filter: (
+    component: ILayoutComponent | ILayoutGroup,
+  ) => false | ILayoutComponentOrGroup,
 ): (ILayoutComponent | LayoutGroupHierarchy)[] {
-  const all = layout.filter(filter);
+  const all = layout
+    .map(filter)
+    .filter((c) => c !== false) as ILayoutComponentOrGroup[];
   const groups = all.filter(
     (component) => component.type === 'Group',
   ) as ILayoutGroup[];
@@ -51,9 +76,14 @@ function componentsAndGroupsInGroup(
     ...groups.map((group) => {
       const out: LayoutGroupHierarchy = {
         ...group,
-        childComponents: componentsAndGroupsInGroup(layout, (component) =>
-          childrenWithoutMultiPagePrefix(group).includes(component.id),
-        ),
+        childComponents: componentsAndGroupsInGroup(layout, (component) => {
+          const result = componentInGroupChildren(group, component.id);
+          if (result.found && typeof result.multiPageIndex === 'number') {
+            return { ...component, multiPageIndex: result.multiPageIndex };
+          }
+
+          return result.found ? component : false;
+        }),
       };
       delete out['children'];
 
@@ -99,8 +129,9 @@ export function layoutAsHierarchy(
   return componentsAndGroupsInGroup(
     layout,
     (component) =>
-      topLevelFields.includes(component.id) ||
-      topLevelGroups.includes(component.id),
+      (topLevelFields.includes(component.id) ||
+        topLevelGroups.includes(component.id)) &&
+      component,
   );
 }
 

@@ -155,6 +155,7 @@ export function* updateRepeatingGroupsSaga({
           baseGroupId: group.id,
           dataModelBinding: group.dataModelBindings?.group,
           editIndex: -1,
+          multiPageIndex: -1,
         };
       }
     });

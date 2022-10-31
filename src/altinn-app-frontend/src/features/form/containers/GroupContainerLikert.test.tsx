@@ -191,7 +191,6 @@ describe('GroupContainerLikert', () => {
         validations: createFormError(1),
       });
       expect(screen.getByRole('alert')).toHaveTextContent('Feltet er påkrevd');
-      screen.getByText(/En av radene er ikke fylt ut riktig/i);
     });
 
     it('should render 2 alerts', async () => {
@@ -199,7 +198,6 @@ describe('GroupContainerLikert', () => {
         validations: { ...createFormError(1), ...createFormError(2) },
       });
       expect(screen.getAllByRole('alert')).toHaveLength(2);
-      screen.getByText(/En av radene er ikke fylt ut riktig/i);
     });
 
     it('should display title and description', async () => {

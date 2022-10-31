@@ -7,8 +7,10 @@ import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import { FullWidthWrapper } from 'src/features/form/components/FullWidthWrapper';
 import { renderLayoutComponent } from 'src/features/form/containers/Form';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { nodesInLayout } from 'src/utils/layout/hierarchy';
 import { getMappedErrors, getUnmappedErrors } from 'src/utils/validation';
 import type { ILayout } from 'src/features/form/layout';
+import type { AnyChildNode } from 'src/utils/layout/hierarchy.types';
 import type { FlatError } from 'src/utils/validation';
 
 import {
@@ -60,6 +62,10 @@ const ErrorReport = ({ components }: IErrorReportProps) => {
   const currentView = useAppSelector(
     (state) => state.formLayout.uiConfig.currentView,
   );
+  const layouts = useAppSelector((state) => state.formLayout.layouts);
+  const repeatingGroups = useAppSelector(
+    (state) => state.formLayout.uiConfig.repeatingGroups,
+  );
   const [errorsMapped, errorsUnmapped] = useAppSelector((state) => [
     getMappedErrors(state.formValidations.validations),
     getUnmappedErrors(state.formValidations.validations),
@@ -80,22 +86,59 @@ const ErrorReport = ({ components }: IErrorReportProps) => {
         return;
       }
       ev.preventDefault();
-      if (currentView === error.layout) {
-        dispatch(
-          FormLayoutActions.updateFocus({
-            focusComponentId: error.componentId,
-          }),
-        );
-      } else {
+      if (currentView !== error.layout) {
         dispatch(
           FormLayoutActions.updateCurrentView({
             newView: error.layout,
             runValidations: null,
             returnToView: currentView,
-            focusComponentId: error.componentId,
           }),
         );
       }
+
+      const nodes = nodesInLayout(layouts[error.layout], repeatingGroups);
+      const componentNode = nodes.findById(error.componentId);
+
+      // Iterate over parent repeating groups
+      componentNode.parents().forEach((parentNode, i, allParents) => {
+        const parent = parentNode.item;
+        if (
+          parent?.type == 'Group' &&
+          parent.edit?.mode !== 'likert' &&
+          parent.maxCount > 1
+        ) {
+          const childNode =
+            i == 0
+              ? componentNode
+              : (allParents[i - 1] as AnyChildNode<'unresolved'>);
+
+          // Go to correct multiPage page if necessary
+          if (parent.edit?.multiPage && 'multiPageIndex' in childNode.item) {
+            const multiPageIndex = childNode.item.multiPageIndex;
+            dispatch(
+              FormLayoutActions.updateRepeatingGroupsMultiPageIndex({
+                group: parent.id,
+                index: multiPageIndex,
+              }),
+            );
+          }
+
+          // Set editIndex to rowIndex
+          dispatch(
+            FormLayoutActions.updateRepeatingGroupsEditIndex({
+              group: parent.id,
+              index: childNode.rowIndex,
+            }),
+          );
+        }
+      });
+
+      // Set focus
+      dispatch(
+        FormLayoutActions.updateFocus({
+          focusComponentId: error.componentId,
+        }),
+      );
     };
 
   return (

@@ -29,6 +29,7 @@ export type LayoutGroupHierarchy<NT extends NodeType = 'unresolved'> = Omit<
 
 export interface RepeatingGroupExtensions {
   baseDataModelBindings?: IDataModelBindings;
+  multiPageIndex?: number;
 }
 
 export type RepeatingGroupLayoutComponent<NT extends NodeType = 'unresolved'> =

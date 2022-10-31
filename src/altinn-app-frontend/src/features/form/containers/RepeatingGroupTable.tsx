@@ -11,12 +11,9 @@ import {
 } from '@material-ui/core';
 import cn from 'classnames';
 
-import { useAppDispatch } from 'src/common/hooks';
 import { ExprDefaultsForGroup } from 'src/features/expressions';
 import { useExpressions } from 'src/features/expressions/useExpressions';
 import { RepeatingGroupsEditContainer } from 'src/features/form/containers/RepeatingGroupsEditContainer';
-import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
-import { Triggers } from 'src/types';
 import {
   getFormDataForComponentInRepeatingGroup,
   getTextResource,
@@ -271,7 +268,6 @@ export function RepeatingGroupTable({
   deleting,
   filteredIndexes,
 }: IRepeatingGroupTableProps): JSX.Element {
-  const dispatch = useAppDispatch();
   const classes = useStyles();
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
 
@@ -348,17 +344,6 @@ export function RepeatingGroupTable({
     }
   };
 
-  const handleSaveClick = () => {
-    const validate = !!container.triggers?.includes(Triggers.Validation);
-    dispatch(
-      FormLayoutActions.updateRepeatingGroupsEditIndex({
-        group: id,
-        index: -1,
-        validate,
-      }),
-    );
-  };
-
   const childElementHasErrors = (
     element: ILayoutGroup | ILayoutComponent,
     index: number,
@@ -410,7 +395,6 @@ export function RepeatingGroupTable({
           language={language}
           textResources={textResources}
           layout={layout}
-          onClickSave={handleSaveClick}
           repeatingGroupDeepCopyComponents={repeatingGroupDeepCopyComponents}
           hideSaveButton={edit?.saveButton === false}
           multiPageIndex={multiPageIndex}

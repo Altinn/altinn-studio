@@ -129,6 +129,7 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
             index,
             dataModelBinding: groupElement.dataModelBindings?.group,
             editIndex: -1,
+            multiPageIndex: -1,
           };
           const groupElementChildGroups = [];
           groupElement.children?.forEach((id) => {
@@ -157,6 +158,7 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
                   ),
                   baseGroupId: childGroup.id,
                   editIndex: -1,
+                  multiPageIndex: -1,
                   dataModelBinding: childGroup.dataModelBindings?.group,
                 };
               },
@@ -168,6 +170,7 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
           index: -1,
           dataModelBinding: groupElement.dataModelBindings?.group,
           editIndex: -1,
+          multiPageIndex: -1,
         };
       }
     }

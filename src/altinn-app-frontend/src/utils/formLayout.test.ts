@@ -126,24 +126,28 @@ describe('getRepeatingGroups', () => {
         index: 2,
         dataModelBinding: 'Group1',
         editIndex: -1,
+        multiPageIndex: -1,
       },
       'Group2-0': {
         index: 0,
         baseGroupId: 'Group2',
         dataModelBinding: 'Group1.Group2',
         editIndex: -1,
+        multiPageIndex: -1,
       },
       'Group2-1': {
         index: 4,
         baseGroupId: 'Group2',
         dataModelBinding: 'Group1.Group2',
         editIndex: -1,
+        multiPageIndex: -1,
       },
       'Group2-2': {
         index: 1,
         baseGroupId: 'Group2',
         dataModelBinding: 'Group1.Group2',
         editIndex: -1,
+        multiPageIndex: -1,
       },
     };
     const result = getRepeatingGroups(testLayout, formData);
@@ -175,24 +179,28 @@ describe('getRepeatingGroups', () => {
         index: 2,
         dataModelBinding: 'Group1',
         editIndex: -1,
+        multiPageIndex: -1,
       },
       'Group2-0': {
         index: 0,
         baseGroupId: 'Group2',
         dataModelBinding: 'Group1.Group2',
         editIndex: -1,
+        multiPageIndex: -1,
       },
       'Group2-1': {
         index: 10,
         baseGroupId: 'Group2',
         dataModelBinding: 'Group1.Group2',
         editIndex: -1,
+        multiPageIndex: -1,
       },
       'Group2-2': {
         index: 1,
         baseGroupId: 'Group2',
         dataModelBinding: 'Group1.Group2',
         editIndex: -1,
+        multiPageIndex: -1,
       },
     };
 
@@ -219,24 +227,28 @@ describe('getRepeatingGroups', () => {
         index: 2,
         dataModelBinding: 'Group1',
         editIndex: -1,
+        multiPageIndex: -1,
       },
       'Group2-0': {
         index: 0,
         baseGroupId: 'Group2',
         dataModelBinding: 'Group1.Group2',
         editIndex: -1,
+        multiPageIndex: -1,
       },
       'Group2-1': {
         index: 4,
         baseGroupId: 'Group2',
         dataModelBinding: 'Group1.Group2',
         editIndex: -1,
+        multiPageIndex: -1,
       },
       'Group2-2': {
         index: 1,
         baseGroupId: 'Group2',
         dataModelBinding: 'Group1.Group2',
         editIndex: -1,
+        multiPageIndex: -1,
       },
     };
     const result = getRepeatingGroups(testLayout, formData);
@@ -304,11 +316,13 @@ describe('getRepeatingGroups', () => {
         index: 3,
         dataModelBinding: 'Group1',
         editIndex: -1,
+        multiPageIndex: -1,
       },
       Group2: {
         index: 2,
         dataModelBinding: 'Group2',
         editIndex: -1,
+        multiPageIndex: -1,
       },
     };
     const result = getRepeatingGroups(testLayout, formData);
@@ -354,6 +368,7 @@ describe('getRepeatingGroups', () => {
         index: 12,
         dataModelBinding: 'Group1',
         editIndex: -1,
+        multiPageIndex: -1,
       },
     };
     const result = getRepeatingGroups(testLayout, formData);
