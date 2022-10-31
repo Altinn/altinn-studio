@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
-import { RestrictionItemProps } from '../ItemRestrictions';
-import { RestrictionField } from '../RestrictionField';
-import { getTranslation } from '../../../utils/language';
+import React, {ChangeEvent, useState} from 'react';
+import {RestrictionItemProps} from '../ItemRestrictions';
+import {RestrictionField} from '../RestrictionField';
+import {getTranslation} from '../../../utils/language';
 import classes from './StringRestrictions.module.css';
-import { FieldSet, TextField } from '@altinn/altinn-design-system';
-import { StrRestrictionKeys } from '@altinn/schema-model';
-import { Divider } from '../../common/Divider';
-import { Label } from '../../common/Label';
-import { StringFormat } from '@altinn/schema-model/src/lib/types';
-import { Select } from '../../common/Select';
+import {FieldSet, TextField} from '@altinn/altinn-design-system';
+import {StrRestrictionKeys} from '@altinn/schema-model';
+import {Divider} from '../../common/Divider';
+import {Label} from '../../common/Label';
+import {StringFormat} from '@altinn/schema-model/src/lib/types';
+import {Select} from '../../common/Select';
+import {getDomFriendlyID} from "../../../utils/ui-schema-utils";
 
 export function StringRestrictions({
   language,
@@ -20,11 +21,17 @@ export function StringRestrictions({
   const [regexTestValue, setRegexTestValue] = useState<string>('');
   const pattern = restrictions[StrRestrictionKeys.pattern] || '';
   const regexTestValueSplitByMatches = splitStringByMatches(pattern, regexTestValue);
-  const regexTestValueMatchesRegex = regexTestValueSplitByMatches.some(({ match }) => match);
-
+  const regexTestValueMatchesRegex = regexTestValueSplitByMatches.some(({match}) => match);
+  const htmlId = getDomFriendlyID('regextestfield');
+  const handleValueChange = (event: ChangeEvent) => {
+    const value = (event.target as HTMLInputElement)?.value || '';
+    if (regexTestValue !== value) {
+      setRegexTestValue(value)
+    }
+  }
   return (
     <>
-      <Divider inMenu />
+      <Divider inMenu/>
       <Select
         emptyOptionLabel={t('format_none')}
         id='format-select-input'
@@ -55,7 +62,7 @@ export function StringRestrictions({
           value={restrictions[StrRestrictionKeys.maxLength] || ''}
         />
       </div>
-      <Divider inMenu />
+      <Divider inMenu/>
       <FieldSet className={classes.fieldSet} legend={t('regex')}>
         <RestrictionField
           keyName={StrRestrictionKeys.pattern}
@@ -66,7 +73,7 @@ export function StringRestrictions({
         />
         <div className={classes.regexTest}>
           <div className={classes.regexTestLabel}>
-            <Label htmlFor='regextestfield'>{t('pattern_test_field')}</Label>
+            <Label htmlFor={htmlId}>{t('pattern_test_field')}</Label>
             {pattern &&
               (regexTestValueMatchesRegex ? (
                 <span className={classes.regexTestMatchIndicatorTrue}>{t('pattern_matches')}</span>
@@ -83,8 +90,8 @@ export function StringRestrictions({
               ))}
             </div>
             <TextField
-              id='regextestfield'
-              onChange={(event) => setRegexTestValue(event.target.value)}
+              id={htmlId}
+              onChange={handleValueChange}
               value={regexTestValue}
             />
           </div>
@@ -100,7 +107,7 @@ interface StrPart {
 }
 
 function splitStringByMatches(pattern: string, value: string): StrPart[] {
-  const defaultResult = [{ str: value, match: false }];
+  const defaultResult = [{str: value, match: false}];
   if (!pattern) return defaultResult;
   try {
     const patternRegex = new RegExp(pattern, 'g');
@@ -109,9 +116,9 @@ function splitStringByMatches(pattern: string, value: string): StrPart[] {
     let lastIndex = 0;
     while (value && (match = patternRegex.exec(value)) !== null) {
       if (match.index > lastIndex) {
-        strParts.push({ str: value.substring(lastIndex, match.index), match: false });
+        strParts.push({str: value.substring(lastIndex, match.index), match: false});
       }
-      strParts.push({ str: value.substring(match.index, patternRegex.lastIndex), match: true });
+      strParts.push({str: value.substring(match.index, patternRegex.lastIndex), match: true});
       lastIndex = patternRegex.lastIndex;
       if (patternRegex.lastIndex === match.index) {
         // This is to avoid an infinite loop if the regex matches zero-length characters
@@ -119,7 +126,7 @@ function splitStringByMatches(pattern: string, value: string): StrPart[] {
       }
     }
     if (lastIndex < value.length) {
-      strParts.push({ str: value.substring(lastIndex), match: false });
+      strParts.push({str: value.substring(lastIndex), match: false});
     }
     return strParts;
   } catch (e) {
