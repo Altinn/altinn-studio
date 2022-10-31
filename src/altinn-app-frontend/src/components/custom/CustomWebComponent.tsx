@@ -17,6 +17,7 @@ function CustomWebComponent({
   textResourceBindings,
   dataModelBindings,
   language,
+  hidden,
   handleDataChange,
   ...passThroughProps
 }: ICustomComponentProps) {
@@ -62,7 +63,7 @@ function CustomWebComponent({
     }
   }, [formData, componentValidations]);
 
-  if (!Tag || !textResources) {
+  if (hidden || !Tag || !textResources) {
     return null;
   }
 
