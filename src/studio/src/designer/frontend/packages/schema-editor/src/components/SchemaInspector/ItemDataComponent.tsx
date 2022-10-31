@@ -118,7 +118,8 @@ export function ItemDataComponent({language, selectedItem}: IItemDataComponentPr
   const t = (key: string) => getTranslation(key, language);
   const titleId = getDomFriendlyID(selectedNodePointer, {suffix: 'title'});
   const descriptionId = getDomFriendlyID(selectedNodePointer, {suffix: 'description'});
-
+  const selectId = getDomFriendlyID(selectedItem.pointer, {suffix: 'combi-sel'});
+  const typeId = getDomFriendlyID(selectedItem.pointer, {suffix:'type-select'});
   return (
     <div className={classes.root}>
       {!selectedItem.isCombinationItem && (
@@ -140,7 +141,7 @@ export function ItemDataComponent({language, selectedItem}: IItemDataComponentPr
       )}
       {selectedItem.objectKind === ObjectKind.Field && (
         <Select
-          id={getDomFriendlyID(selectedItem.pointer, {suffix:'type-select'})}
+          id={typeId}
           label={t('type')}
           onChange={(type) => onChangeFieldType(selectedItem.pointer, type as FieldType)}
           options={getTypeOptions(t)}
@@ -167,7 +168,7 @@ export function ItemDataComponent({language, selectedItem}: IItemDataComponentPr
       )}
       {selectedItem.objectKind === ObjectKind.Combination && (
         <Select
-          id={getDomFriendlyID(selectedItem.pointer, {suffix: 'combi-sel'})}
+          id={selectId}
           label={t('type')}
           onChange={(combination) => onChangeCombinationType(combination as CombinationKind)}
           options={getCombinationOptions(t)}

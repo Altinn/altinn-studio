@@ -25,11 +25,12 @@ export function ReferenceSelectionComponent({
   onGoToDefButtonClick,
 }: IReferenceSelectionProps) {
   const definitions: UiSchemaNode[] = useSelector((state: ISchemaState) => getRootNodes(state.uiSchema, true));
+  const selectId = getDomFriendlyID(selectedNode.pointer, {suffix:'ref-select'});
   return (
     <div>
       <Select
         emptyOptionLabel={emptyOptionLabel}
-        id={getDomFriendlyID(selectedNode.pointer, {suffix:'ref-select'})}
+        id={selectId}
         label={label}
         onChange={(value) => onChangeRef(selectedNode.pointer, value)}
         options={definitions.map(({ pointer }) => (
