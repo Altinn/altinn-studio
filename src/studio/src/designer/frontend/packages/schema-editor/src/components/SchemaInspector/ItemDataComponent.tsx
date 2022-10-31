@@ -116,8 +116,8 @@ export function ItemDataComponent({language, selectedItem}: IItemDataComponentPr
   };
 
   const t = (key: string) => getTranslation(key, language);
-  const titleId = getDomFriendlyID(selectedNodePointer, 'title');
-  const descriptionId = getDomFriendlyID(selectedNodePointer, 'description');
+  const titleId = getDomFriendlyID(selectedNodePointer, {suffix: 'title'});
+  const descriptionId = getDomFriendlyID(selectedNodePointer, {suffix: 'description'});
 
   return (
     <div className={classes.root}>
@@ -140,7 +140,7 @@ export function ItemDataComponent({language, selectedItem}: IItemDataComponentPr
       )}
       {selectedItem.objectKind === ObjectKind.Field && (
         <Select
-          id={getDomFriendlyID(selectedItem.pointer, 'type-select')}
+          id={getDomFriendlyID(selectedItem.pointer, {suffix:'type-select'})}
           label={t('type')}
           onChange={(type) => onChangeFieldType(selectedItem.pointer, type as FieldType)}
           options={getTypeOptions(t)}
@@ -167,7 +167,7 @@ export function ItemDataComponent({language, selectedItem}: IItemDataComponentPr
       )}
       {selectedItem.objectKind === ObjectKind.Combination && (
         <Select
-          id={getDomFriendlyID(selectedItem.pointer, 'combi-sel')}
+          id={getDomFriendlyID(selectedItem.pointer, {suffix: 'combi-sel'})}
           label={t('type')}
           onChange={(combination) => onChangeCombinationType(combination as CombinationKind)}
           options={getCombinationOptions(t)}

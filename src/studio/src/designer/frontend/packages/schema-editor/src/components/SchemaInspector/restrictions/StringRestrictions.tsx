@@ -22,7 +22,7 @@ export function StringRestrictions({
   const pattern = restrictions[StrRestrictionKeys.pattern] || '';
   const regexTestValueSplitByMatches = splitStringByMatches(pattern, regexTestValue);
   const regexTestValueMatchesRegex = regexTestValueSplitByMatches.some(({match}) => match);
-  const htmlId = getDomFriendlyID('regextestfield');
+  const fieldId = getDomFriendlyID('regextestfield');
   const handleValueChange = (event: ChangeEvent) => {
     const value = (event.target as HTMLInputElement)?.value || '';
     if (regexTestValue !== value) {
@@ -73,7 +73,7 @@ export function StringRestrictions({
         />
         <div className={classes.regexTest}>
           <div className={classes.regexTestLabel}>
-            <Label htmlFor={htmlId}>{t('pattern_test_field')}</Label>
+            <Label htmlFor={fieldId}>{t('pattern_test_field')}</Label>
             {pattern &&
               (regexTestValueMatchesRegex ? (
                 <span className={classes.regexTestMatchIndicatorTrue}>{t('pattern_matches')}</span>
@@ -90,7 +90,7 @@ export function StringRestrictions({
               ))}
             </div>
             <TextField
-              id={htmlId}
+              id={fieldId}
               onChange={handleValueChange}
               value={regexTestValue}
             />

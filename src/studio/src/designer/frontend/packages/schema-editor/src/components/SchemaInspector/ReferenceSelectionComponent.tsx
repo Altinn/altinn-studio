@@ -29,7 +29,7 @@ export function ReferenceSelectionComponent({
     <div>
       <Select
         emptyOptionLabel={emptyOptionLabel}
-        id={getDomFriendlyID(selectedNode.pointer, 'ref-select')}
+        id={getDomFriendlyID(selectedNode.pointer, {suffix:'ref-select'})}
         label={label}
         onChange={(value) => onChangeRef(selectedNode.pointer, value)}
         options={definitions.map(({ pointer }) => (

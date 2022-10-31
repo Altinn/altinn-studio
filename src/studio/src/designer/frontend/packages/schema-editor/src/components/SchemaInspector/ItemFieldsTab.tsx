@@ -99,4 +99,4 @@ export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) =>
   );
 };
 
-const propertyInputIdFromNode = (node: UiSchemaNode) => getDomFriendlyID(node.pointer, 'input');
+const propertyInputIdFromNode = (node: UiSchemaNode) => getDomFriendlyID(node.pointer, {suffix:'input'});

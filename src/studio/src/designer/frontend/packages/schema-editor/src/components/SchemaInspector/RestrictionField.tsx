@@ -23,7 +23,7 @@ export const RestrictionField = ({
   readOnly,
   value,
 }: IRestrictionFieldProps) => {
-  const fieldId = getDomFriendlyID(path, `${keyName}-value`);
+  const fieldId = getDomFriendlyID(path, {suffix: `${keyName}-value`});
   const handleChange = ({target}: ChangeEvent) => {
     const element = target as HTMLInputElement;
     if(element.value !== value) {
@@ -42,4 +42,4 @@ export const RestrictionField = ({
       />
     </div>
   );
-};
+}
