@@ -36,6 +36,8 @@ const Header = ({ type, header, appOwner }: IHeaderProps) => {
           container
           direction='row'
           justifyContent='space-between'
+          wrap='nowrap'
+          spacing={2}
         >
           <Grid item>
             <Grid item>
