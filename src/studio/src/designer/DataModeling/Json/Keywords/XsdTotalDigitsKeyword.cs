@@ -24,7 +24,7 @@ public sealed class XsdTotalDigitsKeyword: IJsonSchemaKeyword, IEquatable<XsdTot
     /// <summary>
     /// The name of the keyword
     /// </summary>
-    private const string Name = "@xsdTotalDigits";
+    private const string Name = "totalDigits";
 
     /// <summary>
     /// Content

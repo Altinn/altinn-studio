@@ -9,7 +9,7 @@ namespace DataModeling.Tests.Json.Keywords
 {
     public class XsdTotalDigitsKeywordJsonConverterTests : ValueKeywordConverterTestBase<XsdTotalDigitsKeywordJsonConverterTests, XsdTotalDigitsKeyword, uint>
     {
-        private const string KeywordPlaceholder = "@xsdTotalDigits";
+        private const string KeywordPlaceholder = "totalDigits";
 
         protected override JsonConverter<XsdTotalDigitsKeyword> Converter => new XsdTotalDigitsKeyword.XsdTotalDigitsKeywordJsonConverter();
 

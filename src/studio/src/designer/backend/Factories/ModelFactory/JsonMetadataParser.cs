@@ -236,9 +236,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     classBuilder.AppendLine("    [RegularExpression(@\"" + element.Restrictions["pattern"].Value + "\"" + errorMessage + ")]");
                 }
 
-                if (element.Restrictions.ContainsKey("@xsdTotalDigits"))
+                if (element.Restrictions.ContainsKey("totalDigits"))
                 {
-                    var totalDigitsValue = uint.Parse(element.Restrictions["@xsdTotalDigits"].Value);
+                    var totalDigitsValue = uint.Parse(element.Restrictions["totalDigits"].Value);
                     var regexString = element.XsdValueType == BaseValueType.Decimal
                         ? TotalDigitsDecimalRegexString(totalDigitsValue)
                         : TotalDigitsIntegerRegexString(totalDigitsValue);
