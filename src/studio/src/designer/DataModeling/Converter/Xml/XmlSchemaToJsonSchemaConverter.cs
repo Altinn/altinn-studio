@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Xml;
 using System.Xml.Schema;
-
+using Altinn.Studio.DataModeling.Converter.Interfaces;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Json.Formats;
 using Altinn.Studio.DataModeling.Json.Keywords;
@@ -20,25 +20,18 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
     /// <summary>
     /// Visitor class for converting XML schema to Json Schema, this will produce a Json Schema with custom keywords to preserve XML schema information
     /// </summary>
-    public class XmlSchemaToJsonSchemaConverter
+    public class XmlSchemaToJsonSchemaConverter : IXmlSchemaToJsonSchemaConverter
     {
         private const string XmlSchemaNamespace = "http://www.w3.org/2001/XMLSchema";
 
-        /// <summary>
-        /// Convert a schema into the give type
-        /// </summary>
-        /// <param name="schema">The object to visit</param>
+        /// <inheritdoc/>
         public JsonSchema Convert(XmlSchema schema)
         {
             var uri = new Uri("schema.json", UriKind.Relative);
             return Convert(schema, uri);
         }
 
-        /// <summary>
-        /// Convert a schema into the give type
-        /// </summary>
-        /// <param name="schema">The object to visit</param>
-        /// <param name="schemaUri">Uri that represents the unique id of the Json Schema.</param>
+        /// <inheritdoc/>
         public JsonSchema Convert(XmlSchema schema, Uri schemaUri)
         {
             var schemaSet = new XmlSchemaSet();
@@ -53,11 +46,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                     schema.Namespaces
                        .ToArray()
                        .Select(ns => (ns.Name, ns.Namespace)))
-               .XsdSchemaAttributes(
-                    (nameof(XmlSchema.AttributeFormDefault), schema.AttributeFormDefault.ToString()),
-                    (nameof(XmlSchema.ElementFormDefault), schema.ElementFormDefault.ToString()),
-                    (nameof(XmlSchema.BlockDefault), schema.BlockDefault.ToString()),
-                    (nameof(XmlSchema.FinalDefault), schema.FinalDefault.ToString()));
+               .XsdSchemaAttributes(schema.XsdAttributes().ToArray());
 
             if (schema.UnhandledAttributes is not null)
             {
@@ -269,12 +258,12 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
             if (item.DefaultValue != null)
             {
-                builder.Default(item.DefaultValue.AsJsonElement());
+                builder.Default(item.DefaultValue);
             }
 
             if (item.FixedValue != null)
             {
-                builder.Const(item.FixedValue.AsJsonElement());
+                builder.Const(item.FixedValue);
             }
 
             builder.XsdAttribute();
@@ -306,7 +295,11 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
             else if (!item.BaseTypeName.IsEmpty)
             {
-                steps.Add(b => HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, b));
+                steps.Add(b =>
+                {
+                    HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, b);
+                    AddUnhandledAttributes(item, b);
+                });
             }
 
             if (item.Facets.Count > 0)
@@ -324,7 +317,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                     if (enumValues.Count > 0)
                     {
                         AddUnhandledEnumAttributes(item, b);
-                        b.Enum(enumValues.Select(val => val.AsJsonElement()));
+                        b.Enum(enumValues);
                     }
                 });
             }
@@ -363,14 +356,22 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
                     break;
                 case XmlSchemaMaxExclusiveFacet:
-                    if (TryParseDecimal(facet.Value, out dLength))
+                    if (FormatRangeHelper.IsRestrictionOnDateType(facet))
+                    {
+                        builder.FormatExclusiveMaximum(facet.Value);
+                    }
+                    else if (TryParseDecimal(facet.Value, out dLength))
                     {
                         builder.ExclusiveMaximum(dLength);
                     }
 
                     break;
                 case XmlSchemaMaxInclusiveFacet:
-                    if (TryParseDecimal(facet.Value, out dLength))
+                    if (FormatRangeHelper.IsRestrictionOnDateType(facet))
+                    {
+                        builder.FormatMaximum(facet.Value);
+                    }
+                    else if (TryParseDecimal(facet.Value, out dLength))
                     {
                         builder.Maximum(dLength);
                     }
@@ -384,14 +385,22 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
                     break;
                 case XmlSchemaMinExclusiveFacet:
-                    if (TryParseDecimal(facet.Value, out dLength))
+                    if (FormatRangeHelper.IsRestrictionOnDateType(facet))
+                    {
+                        builder.FormatExclusiveMinimum(facet.Value);
+                    }
+                    else if (TryParseDecimal(facet.Value, out dLength))
                     {
                         builder.ExclusiveMinimum(dLength);
                     }
 
                     break;
                 case XmlSchemaMinInclusiveFacet:
-                    if (TryParseDecimal(facet.Value, out dLength))
+                    if (FormatRangeHelper.IsRestrictionOnDateType(facet))
+                    {
+                        builder.FormatMinimum(facet.Value);
+                    }
+                    else if (TryParseDecimal(facet.Value, out dLength))
                     {
                         builder.Minimum(dLength);
                     }
@@ -492,7 +501,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                     case XmlSchemaChoice x:
                         steps.Add(b => HandleChoice(x, optional, array, b));
                         break;
-                    case XmlSchemaAll x:                        
+                    case XmlSchemaAll x:
                         steps.Add(b => HandleAll(x, optional, array, b));
                         break;
                     case XmlSchemaSequence x:
@@ -664,7 +673,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
                 if (enumValues.Count > 0)
                 {
-                    builder.Enum(enumValues.Select(val => val.AsJsonElement()));
+                    builder.Enum(enumValues);
                 }
             }
         }
@@ -724,8 +733,9 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             PropertiesBuilder properties = new PropertiesBuilder();
 
             JsonSchemaBuilder valueSchema = new JsonSchemaBuilder();
+            valueSchema.XsdText(true);
             HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, valueSchema);
-            properties.Add("value", valueSchema, false);
+            properties.Add("value", valueSchema, true);
 
             AddAttributes(item.Attributes, optional, array, steps, properties);
 
@@ -782,7 +792,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             HandleParticle(complexConentExtension.Particle, optional, array, steps);
 
             AddAttributes(complexConentExtension.Attributes, optional, array, steps, properties);
-            
+
             properties.AddCurrentPropertiesToStep(steps);
 
             steps.BuildWithAllOf(builder);
@@ -926,7 +936,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
             else
             {
-                var itemsBuilder = builder; 
+                var itemsBuilder = builder;
                 if (item.MaxOccurs > 1)
                 {
                     itemsBuilder = new JsonSchemaBuilder();
@@ -943,7 +953,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                 }
 
                 if (item.MaxOccurs > 1)
-                {                    
+                {
                     if (item.IsNillable)
                     {
                         builder.Type(SchemaValueType.Array, SchemaValueType.Null);
@@ -955,12 +965,12 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
                     if (item.MinOccurs != 0)
                     {
-                        itemsBuilder.MinItems((uint)item.MinOccurs);
+                        builder.MinItems((uint)item.MinOccurs);
                     }
 
                     if (item.MaxOccursString != "unbounded")
                     {
-                        itemsBuilder.MaxItems((uint)item.MaxOccurs);
+                        builder.MaxItems((uint)item.MaxOccurs);
                     }
 
                     builder.Items(itemsBuilder);
@@ -968,6 +978,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
 
             AddUnhandledAttributes(item, builder);
+            CarryOccursProperties(item, builder);
 
             return builder;
         }
@@ -1092,7 +1103,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                         typeBuilder.Type(new SchemaValueType[] { type.Value, SchemaValueType.Null });
                     }
                     else
-                    { 
+                    {
                         typeBuilder.Type(type.Value);
                     }
                 }
@@ -1123,12 +1134,12 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                 {
                     if (minOccurs > 0)
                     {
-                        typeBuilder.MinItems((uint)minOccurs);
+                        builder.MinItems((uint)minOccurs);
                     }
 
                     if (maxOccurs > 1 && maxOccurs < decimal.MaxValue)
                     {
-                        typeBuilder.MaxItems((uint)maxOccurs);
+                        builder.MaxItems((uint)maxOccurs);
                     }
 
                     JsonSchema itemsSchema = typeBuilder;
@@ -1254,71 +1265,6 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             return true;
         }
 
-        private class PropertiesBuilder
-        {
-            private readonly List<(string Name, JsonSchema Schema, bool Required)> _properties = new List<(string Name, JsonSchema Schema, bool Required)>();
-
-            public void Add(string name, JsonSchema schema, bool required)
-            {
-                _properties.Add((name, schema, required));
-            }
-
-            public void AddCurrentPropertiesToStep(StepsBuilder steps)
-            {
-                if (_properties.Count > 0)
-                {
-                    (string Name, JsonSchema Schema)[] currentProperties = _properties.Select(prop => (prop.Name, prop.Schema)).ToArray();
-                    string[] required = _properties.Where(prop => prop.Required).Select(prop => prop.Name).ToArray();
-                    steps.Add(b =>
-                    {
-                        b.Properties(currentProperties);
-                        if (required.Length > 0)
-                        {
-                            b.Required(required);
-                        }
-                    });
-                    _properties.Clear();
-                }
-            }
-
-            public void Build(JsonSchemaBuilder builder)
-            {
-                if (_properties.Count > 0)
-                {
-                    (string Name, JsonSchema Schema)[] properties = _properties.Select(prop => (prop.Name, prop.Schema)).ToArray();
-                    string[] required = _properties.Where(prop => prop.Required).Select(prop => prop.Name).ToArray();
-
-                    builder.Properties(properties);
-                    if (required.Length > 0)
-                    {
-                        builder.Required(required);
-                    }
-
-                    _properties.Clear();
-                }
-            }
-        }
-
-        private class StepsBuilder
-        {
-            private readonly List<Action<JsonSchemaBuilder>> _steps = new List<Action<JsonSchemaBuilder>>();
-
-            public void Add(Action<JsonSchemaBuilder> step)
-            {
-                _steps.Add(step);
-            }
-
-            public void BuildWithAllOf(JsonSchemaBuilder builder)
-            {
-                builder.AllOf(_steps.Select(step =>
-                {
-                    JsonSchemaBuilder stepBuilder = new JsonSchemaBuilder();
-                    step(stepBuilder);
-                    return stepBuilder.Build();
-                }));
-            }
-        }
-
         private static bool TryParseDecimal(string facetValue, out decimal dLength)
         {
             if (string.IsNullOrWhiteSpace(facetValue))
@@ -1330,14 +1276,27 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             /*
              * The XML schema spec specifies that floating point numbers are represented using a period and
              * not using a comma. The locale doesn't have any affect on what is valid XML.
-             * 
+             *
              * Default behaviour of TryParse is to use CurrentCulture. This must be overridden.
-             * 
+             *
              * We assumed that XSD do not allow the use of group separators. This is why we have not
              * made a similar override for parsing of whole numbers like integer.
              */
 
             return decimal.TryParse(facetValue, NumberStyles.Float, CultureInfo.InvariantCulture, out dLength);
+        }
+
+        private static void CarryOccursProperties(XmlSchemaParticle item, JsonSchemaBuilder builder)
+        {
+            if (!string.IsNullOrWhiteSpace(item.MinOccursString))
+            {
+                builder.XsdMinOccurs((int)item.MinOccurs);
+            }
+
+            if (!string.IsNullOrWhiteSpace(item.MaxOccursString))
+            {
+                builder.XsdMaxOccurs(item.MaxOccursString);
+            }
         }
     }
 }

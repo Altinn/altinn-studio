@@ -1,46 +1,26 @@
-import {
-  createStyles,
-  Grid,
-  Typography,
-  withStyles,
-  WithStyles,
-} from '@material-ui/core';
-import React from 'react';
-import { RouteComponentProps, withRouter } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Grid, Typography } from '@mui/material';
 import AltinnContentLoader from 'app-shared/components/molecules/AltinnContentLoader';
-import AltinnInformationCardForChildren from 'app-shared/components/molecules/AltinnInformationCardForChildren';
+import { AltinnInformationCardForChildren } from 'app-shared/components/molecules/AltinnInformationCardForChildren';
 import { getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { ConfigurationActions } from '../../../sharedResources/configuration/configurationSlice';
 import DeployContainerComponent from '../containers/deployContainer';
 import ReleaseContainer from '../containers/releaseContainer';
 import { fetchDeployPermissions } from '../../../sharedResources/user/userSlice';
-import { useAppSelector, useAppDispatch } from 'common/hooks';
+import { useAppDispatch, useAppSelector } from 'common/hooks';
 import type { IAltinnWindow } from '../../../types/global';
 
-const styles = createStyles({
-  deployPaper: {
-    height: 'calc(100% - 111px)',
-  },
-  lastNoEnvironmentTextSection: {
-    paddingTop: '2.4rem',
-  },
-});
-interface IDeployPaperProps
-  extends WithStyles<typeof styles>,
-    RouteComponentProps {}
-
-function DeployPage(props: IDeployPaperProps) {
+function DeployPage() {
   const { org } = window as Window as IAltinnWindow;
-  const { classes } = props;
   const dispatch = useAppDispatch();
 
   const orgs: any = useAppSelector((state) => state.configuration.orgs);
   const language: any = useAppSelector((state) => state.languageState.language);
 
-  React.useEffect(() => {
+  useEffect(() => {
     dispatch(ConfigurationActions.getOrgs());
     dispatch(fetchDeployPermissions());
-  }, []);
+  }, [dispatch]);
 
   const isLoading = (): boolean => {
     return !orgs.allOrgs || !language;
@@ -48,8 +28,8 @@ function DeployPage(props: IDeployPaperProps) {
 
   if (isLoading()) {
     return (
-      <Grid item={true} className={classes.deployPaper}>
-        <Grid container={true} direction='row' justify='space-between'>
+      <Grid item={true} sx={{ height: 'calc(100% - 111px)' }}>
+        <Grid container={true} direction='row' justifyContent='space-between'>
           <Grid item={true} xs={12}>
             <AltinnContentLoader width={1200} height={600}>
               <rect x='862' y='3' rx='0' ry='0' width='300' height='600' />
@@ -69,8 +49,8 @@ function DeployPage(props: IDeployPaperProps) {
     !orgs.allOrgs[org].environments.length
   ) {
     return (
-      <Grid item={true} className={classes.deployPaper}>
-        <Grid container={true} direction='row' justify='space-between'>
+      <Grid item={true} sx={{ height: 'calc(100% - 111px)' }}>
+        <Grid container={true} direction='row' justifyContent='space-between'>
           <Grid item={true} xs={12}>
             <AltinnInformationCardForChildren
               headerText={getParsedLanguageFromKey(
@@ -84,7 +64,7 @@ function DeployPage(props: IDeployPaperProps) {
               <Typography>
                 {getParsedLanguageFromKey('app_publish.no_env_1', language, [])}
               </Typography>
-              <Typography className={classes.lastNoEnvironmentTextSection}>
+              <Typography sx={{ paddingTop: '2.4rem' }}>
                 {getParsedLanguageFromKey('app_publish.no_env_2', language, [])}
               </Typography>
             </AltinnInformationCardForChildren>
@@ -95,8 +75,8 @@ function DeployPage(props: IDeployPaperProps) {
   }
 
   return (
-    <Grid item={true} className={classes.deployPaper}>
-      <Grid container={true} direction='row' justify='space-between'>
+    <Grid item={true} sx={{ height: 'calc(100% - 111px)' }}>
+      <Grid container={true} direction='row' justifyContent='space-between'>
         <Grid item={true} xs={9}>
           <DeployContainerComponent />
         </Grid>
@@ -107,4 +87,4 @@ function DeployPage(props: IDeployPaperProps) {
     </Grid>
   );
 }
-export default withStyles(styles)(withRouter(DeployPage));
+export default DeployPage;

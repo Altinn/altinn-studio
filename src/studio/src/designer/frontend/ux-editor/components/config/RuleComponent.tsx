@@ -3,9 +3,9 @@ import { connect } from 'react-redux';
 import { v1 as uuidv1 } from 'uuid';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
 import type {
-  IRuleModelFieldElement,
-  IDataModelFieldElement,
   IAppState,
+  IDataModelFieldElement,
+  IRuleModelFieldElement,
 } from '../../types/global';
 
 export interface IRuleComponentProps {

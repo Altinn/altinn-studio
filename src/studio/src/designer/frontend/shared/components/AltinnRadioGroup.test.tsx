@@ -1,73 +1,36 @@
-import { Typography } from '@material-ui/core';
-import { mount } from 'enzyme';
 import React from 'react';
-import * as renderer from 'react-test-renderer';
+import { render as rtlRender, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { AltinnRadio } from './AltinnRadio';
 import { AltinnRadioGroup } from './AltinnRadioGroup';
+import type { IAltinnRadioGroupProps } from './AltinnRadioGroup';
 
-describe('AltinnRadioButtonGroup', () => {
-  let mockValue: string;
-  let mockId: string;
-  let mockDescription: string;
-  let mockOnChange: any;
-  let mockRow: boolean;
-  let mockClassName: any;
+const user = userEvent.setup();
 
-  beforeEach(() => {
-    mockValue = 'mock-value';
-    mockId = 'mock-id';
-    mockDescription = 'mock-description';
-    mockRow = true;
-    mockClassName = 'mock-classname';
-    mockOnChange = jest.fn();
+describe('AltinnRadioGroup', () => {
+  it('should render description when description is supplied', () => {
+    render({ description: 'some-description' });
+
+    expect(screen.getByText('some-description')).toBeInTheDocument();
   });
 
-  it('Should match snapshot with the least amount of params', () => {
-    const rendered = renderer.create(
-      <AltinnRadioGroup value={mockValue} name='radioGroup'>
-        <AltinnRadio />
-      </AltinnRadioGroup>,
-    );
-    expect(rendered).toMatchSnapshot();
-  });
+  it('should fire onChange callback when clicking radio', async () => {
+    const handleChange = jest.fn();
+    render({ onChange: handleChange });
 
-  it('Should match snapshot with all params ', () => {
-    const rendered = renderer.create(
-      <AltinnRadioGroup
-        value={mockValue}
-        onChange={mockOnChange}
-        id={mockId}
-        description={mockDescription}
-        row={mockRow}
-        className={mockClassName}
-        name='radioGroup'
-      >
-        <AltinnRadio />
-      </AltinnRadioGroup>,
-    );
-    expect(rendered).toMatchSnapshot();
-  });
+    const radio = screen.getByRole('radio');
+    await user.click(radio);
 
-  it('Should render children', () => {
-    const wrapper = mount(
-      <AltinnRadioGroup value={mockValue} name='radioGroup'>
-        <AltinnRadio />
-        <AltinnRadio />
-      </AltinnRadioGroup>,
-    );
-    expect(wrapper.find(AltinnRadio)).toHaveLength(2);
-  });
-
-  it('Should render description typography if description is supplied', () => {
-    const wrapper = mount(
-      <AltinnRadioGroup
-        value={mockValue}
-        description={mockDescription}
-        name='radioGroup'
-      >
-        <AltinnRadio />
-      </AltinnRadioGroup>,
-    );
-    expect(wrapper.find(Typography)).toHaveLength(1);
+    expect(handleChange).toHaveBeenCalled();
   });
 });
+
+const render = (props: Partial<IAltinnRadioGroupProps> = {}) => {
+  const allProps = {
+    value: 'mock-value',
+    children: <AltinnRadio />,
+    ...props,
+  };
+
+  rtlRender(<AltinnRadioGroup {...allProps} />);
+};

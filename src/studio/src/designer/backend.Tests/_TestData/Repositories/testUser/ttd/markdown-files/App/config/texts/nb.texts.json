@@ -1,0 +1,5 @@
+{
+  "text-with-markdown": "${{text-with-markdown.nb.texts.md}}",
+  "Some-normal-text": "Just me saying hello world",
+  "more-markdown": "${{more-markdown.nb.texts.md}}"
+}

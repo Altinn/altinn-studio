@@ -40,6 +40,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="repository">The repository implementation</param>
         /// <param name="schemaModelService">Interface for working with models.</param>
+        /// <param name="serviceRepositorySettings">Service repository settings.</param>
         public DatamodelsController(IRepository repository, ISchemaModelService schemaModelService)
         {
             _repository = repository;
@@ -47,7 +48,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Method that 
+        /// Method that
         /// </summary>
         /// <param name="org">the org owning the models repo</param>
         /// <param name="repository">the model repos</param>
@@ -123,21 +124,21 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Post action that is used when uploading a XSD and secondary XSD
+        /// Post action that is used when uploading a XSD and secondary XSD. TODO: To be removed?
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="repository">Application identifier which is unique within an organisation.</param>
-        /// <param name="thefile">The main XSD</param>
+        /// <param name="xsdFile">The main XSD</param>
         /// <returns>Return JSON of the generated model</returns>
         [HttpPost]
-        public async Task<ActionResult<string>> Upload(string org, string repository, [FromForm(Name = "file")] IFormFile thefile)
+        public async Task<ActionResult<string>> Upload(string org, string repository, [FromForm(Name = "file")] IFormFile xsdFile)
         {
-            Guard.AssertArgumentNotNull(thefile, nameof(thefile));
+            Guard.AssertArgumentNotNull(xsdFile, nameof(xsdFile));
 
-            string mainFileName = GetFileNameFromUploadedFile(thefile);
+            string mainFileName = GetFileNameFromUploadedFile(xsdFile);
             Guard.AssertFileExtensionIsOfType(mainFileName, ".xsd");
 
-            MemoryStream fileMemoryStream = CopyFileStream(thefile);
+            MemoryStream fileMemoryStream = CopyFileStream(xsdFile);
 
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
@@ -158,8 +159,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="thefile">The XSD file being uploaded.</param>
         [Authorize]
         [HttpPost("upload")]
-        public async Task<IActionResult> AddXsd(
-            string org, string repository, [FromForm(Name = "file")] IFormFile thefile)
+        public async Task<IActionResult> AddXsd(string org, string repository, [FromForm(Name = "file")] IFormFile thefile)
         {
             Guard.AssertArgumentNotNull(thefile, nameof(thefile));
 
@@ -168,8 +168,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            var jsonSchema = await _schemaModelService.BuildSchemaFromXsd(
-                org, repository, developer, fileName, thefile.OpenReadStream());
+            var jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, fileName, thefile.OpenReadStream());
 
             return Created(fileName, jsonSchema);
         }
@@ -214,16 +213,23 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">The org owning the repository.</param>
         /// <param name="repository">The repository name</param>
-        /// <param name="modelPath">The path to the file to be updated.</param>        
+        /// <param name="modelPath">The path to the file to be updated.</param>
+        /// <param name="saveOnly">Flag indicating if the model should ONLY be saved (no conversion) </param>
         [Authorize]
         [HttpPut]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public async Task<IActionResult> PutDatamodel(string org, string repository, [FromQuery] string modelPath)
+        public async Task<IActionResult> PutDatamodel(string org, string repository, [FromQuery] string modelPath, [FromQuery] bool saveOnly = false)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var content = await ReadRequestBodyContentAsync();
 
-            await _schemaModelService.UpdateSchema(org, repository, developer, modelPath, content);
+            if (saveOnly)
+            {
+                await _schemaModelService.UpdateSchema(org, repository, developer, modelPath, content, saveOnly);
+                return Ok();
+            }
+
+            await _schemaModelService.UpdateModelFilesFromJsonSchema(org, repository, developer, modelPath, content);
 
             return NoContent();
         }
@@ -233,7 +239,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">The org owning the repository.</param>
         /// <param name="repository">The repository</param>
-        /// <param name="modelPath">The path to the file to be deleted.</param>        
+        /// <param name="modelPath">The path to the file to be deleted.</param>
         [Authorize]
         [HttpDelete]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -267,7 +273,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">the org owning the models repo</param>
         /// <param name="repository">the model repos</param>
-        /// <param name="modelPath">The path to the file to get.</param>        
+        /// <param name="modelPath">The path to the file to get.</param>
         [Authorize]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]

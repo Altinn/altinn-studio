@@ -1,12 +1,13 @@
-import { List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
+import React from 'react';
 import {
   createTheme,
-  createStyles,
-  withStyles,
-  WithStyles,
-} from '@material-ui/core/styles';
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+} from '@mui/material';
+import { createStyles, WithStyles, withStyles } from '@mui/styles';
 import classNames from 'classnames';
-import React from 'react';
 import AltinnIcon from 'app-shared/components/AltinnIcon';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 
@@ -103,6 +104,7 @@ export class HandleMergeConflictFileList extends React.Component<
               ? repoStatus.contentStatus.map((item: any, index: any) => {
                   return (
                     <ListItem
+                      role='listitem'
                       id={`handleMergeConflictFileListItem${index}`}
                       button={true}
                       // eslint-disable-next-line react/no-array-index-key

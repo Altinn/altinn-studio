@@ -1,15 +1,14 @@
+import React from 'react';
 import {
-  createStyles,
   Divider,
   FormControl,
   InputAdornment,
   Popover,
   TextField,
   Typography,
-  withStyles,
-} from '@material-ui/core';
+} from '@mui/material';
+import { createStyles, withStyles } from '@mui/styles';
 import classNames from 'classnames';
-import React from 'react';
 import { connect } from 'react-redux';
 import { ComponentTypes } from '..';
 import {

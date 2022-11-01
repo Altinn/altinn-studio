@@ -1,0 +1,161 @@
+﻿<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified" xml:lang="nb">
+  <xsd:annotation>
+    <xsd:documentation>
+      <xsd:attribute name="opprettet" fixed="23.05.2022" />
+      <xsd:attribute name="oppdatert" fixed="26.05.2022" />
+      <xsd:attribute name="generert" fixed="manuelt" />
+      <xsd:attribute name="versjon" fixed="v2" />
+      <xsd:attribute name="skjemakode" fixed="S-016" />
+      <xsd:attribute name="skjemanavn" fixed="Melding til Statsforvalteren" />
+    </xsd:documentation>
+  </xsd:annotation>
+  <xsd:element name="skjema" type="MeldingTilStatsforvalteren" />
+  <xsd:complexType name="MeldingTilStatsforvalteren">
+    <xsd:sequence>
+      <xsd:element name="felles" type="Felles" minOccurs="1" maxOccurs="1" />
+      <xsd:element name="skjemaSpesifikt" type="SkjemaSpesifikt" minOccurs="1" maxOccurs="1" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <!-- Felles for alle skjemaer -->
+  <xsd:complexType name="Felles">
+    <xsd:sequence>
+      <xsd:element name="innsenderPerson" type="InnsenderPerson" nillable="true" minOccurs="0" />
+      <xsd:element name="innsenderOrganisasjon" type="InnsenderOrganisasjon" nillable="true" minOccurs="0" />
+      <xsd:element name="hvemGjelderHenvendelsen" type="HvemGjelderHenvendelsen" nillable="true" minOccurs="0" />
+      <xsd:element name="hvorSkalHenvendelsenSendes" type="HvorSkalHenvendelsenSendes" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="InnsenderPerson">
+    <xsd:sequence>
+      <xsd:element name="navn" type="Tekst" nillable="true" minOccurs="0" />
+      <xsd:element name="bostedsadresse" type="Adresse" nillable="true" minOccurs="0" />
+      <xsd:element name="postadresse" type="Adresse" nillable="true" minOccurs="0" />
+      <xsd:element name="epost" type="Epost" nillable="true" minOccurs="0" />
+      <xsd:element name="foedselsnummer" type="Foedselsnummer" nillable="true" minOccurs="0" />
+      <xsd:element name="telefonnummer" type="Telefonnummer" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="InnsenderOrganisasjon">
+    <xsd:sequence>
+      <xsd:element name="kontaktperson" type="Tekst" nillable="true" minOccurs="0" />
+      <xsd:element name="organisasjonsnavn" type="Tekst" nillable="true" minOccurs="0" />
+      <xsd:element name="organisasjonsnummer" type="Organisasjonsnummer" nillable="true" minOccurs="0" />
+      <xsd:element name="postadresse" type="Adresse" nillable="true" minOccurs="0" />
+      <xsd:element name="forretningsadresse" type="Adresse" nillable="true" minOccurs="0" />
+      <xsd:element name="epost" type="Epost" nillable="true" minOccurs="0" />
+      <xsd:element name="telefonnummer" type="Telefonnummer" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="HvemGjelderHenvendelsen">
+    <xsd:sequence>
+      <xsd:element name="navn" type="Tekst" nillable="true" minOccurs="0" />
+      <xsd:element name="foedselsnummer" type="Foedselsnummer" nillable="true" minOccurs="0" />
+      <xsd:element name="saksId" type="Saksid" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="HvorSkalHenvendelsenSendes">
+    <xsd:sequence>
+      <xsd:element name="fylke" type="Fylke" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Adresse">
+    <xsd:sequence>
+      <xsd:element name="adresse1" type="Tekst" nillable="true" minOccurs="0" />
+      <xsd:element name="adresse2" type="Tekst" nillable="true" minOccurs="0" />
+      <xsd:element name="postnummer" type="Postnummer" nillable="true" minOccurs="0" />
+      <xsd:element name="poststed" type="Poststed" nillable="true" minOccurs="0" />
+      <xsd:element name="land" type="Tekst" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="Tekst">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Postnummer">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Poststed">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Saksid">
+    <xsd:restriction base="saksId_Restriksjon" />
+  </xsd:simpleType>
+  <xsd:simpleType name="saksId_Restriksjon">
+    <xsd:restriction base="xsd:token">
+      <xsd:pattern value="[0-9]{5,7}" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Epost">
+    <xsd:restriction base="Epost_Restriksjon" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Epost_Restriksjon">
+    <xsd:restriction base="xsd:token">
+      <xsd:pattern value="^\S+@\S+\.[A-Za-z]{2,}$" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Foedselsnummer">
+    <xsd:restriction base="Foedselsnummer_Restriksjon" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Foedselsnummer_Restriksjon">
+    <xsd:restriction base="xsd:token">
+      <xsd:pattern value="[0-9]{11}" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Telefonnummer">
+    <xsd:restriction base="Telefonnummer_Restriksjon" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Telefonnummer_Restriksjon">
+    <xsd:restriction base="xsd:token">
+      <xsd:pattern value="^([+]?(\d{8,15}))$" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Organisasjonsnummer">
+    <xsd:restriction base="Organisasjonsnummer_Restriksjon" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Organisasjonsnummer_Restriksjon">
+    <xsd:restriction base="xsd:token">
+      <xsd:pattern value="[0-9]{9}" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Fylke">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="srf" />
+      <xsd:enumeration value="fmtf" />
+      <xsd:enumeration value="fmvt" />
+      <xsd:enumeration value="fmin" />
+      <xsd:enumeration value="fmov" />
+      <xsd:enumeration value="fmav" />
+      <xsd:enumeration value="fmro" />
+      <xsd:enumeration value="fmmr" />
+      <xsd:enumeration value="fmtl" />
+      <xsd:enumeration value="fmno" />
+      <xsd:enumeration value="fmvl" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <!-- Skjemaspesifikt -->
+  <xsd:complexType name="SkjemaSpesifikt">
+    <xsd:sequence>
+      <xsd:element name="hvaGjelderHenvendelsen" type="HvaGjelderHenvendelsen" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="HvaGjelderHenvendelsen">
+    <xsd:sequence>
+      <xsd:element name="melding" type="Tekst" nillable="true" minOccurs="0" />
+      <xsd:element name="emne" type="Tekst" nillable="true" minOccurs="0" />
+      <xsd:element name="tema" type="Tema" nillable="true" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="Tema">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="tema01" />
+      <xsd:enumeration value="tema02" />
+      <xsd:enumeration value="tema03" />
+      <xsd:enumeration value="tema04" />
+      <xsd:enumeration value="tema05" />
+      <xsd:enumeration value="tema06" />
+      <xsd:enumeration value="tema07" />
+      <xsd:enumeration value="tema08" />
+      <xsd:enumeration value="tema09" />
+      <xsd:enumeration value="tema10" />
+    </xsd:restriction>
+  </xsd:simpleType>
+</xsd:schema>

@@ -14,7 +14,7 @@ import * as header from '../../buildrequestheaders.js';
  */
 export function getDataTags(altinnToken, partyId, instaceId, dataId, appOwner, appName) {
   var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instaceId, dataId, 'datatags');
-  var params = header.buildHearderWithRuntime(altinnToken, 'app');
+  var params = header.buildHeaderWithRuntime(altinnToken, 'app');
   return http.get(endpoint, params);
 }
 
@@ -31,7 +31,7 @@ export function getDataTags(altinnToken, partyId, instaceId, dataId, appOwner, a
  */
 export function deleteDataTags(altinnToken, partyId, instaceId, dataId, appOwner, appName, tag) {
   var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instaceId, dataId, 'datatags') + `/${tag}`;
-  var params = header.buildHearderWithRuntime(altinnToken, 'app');
+  var params = header.buildHeaderWithRuntime(altinnToken, 'app');
   return http.del(endpoint, null, params);
 }
 
@@ -48,7 +48,7 @@ export function deleteDataTags(altinnToken, partyId, instaceId, dataId, appOwner
  */
 export function createDataTags(altinnToken, partyId, instaceId, dataId, appOwner, appName, tag) {
   var endpoint = config.appApiBaseUrl(appOwner, appName) + config.buildAppApiUrls(partyId, instaceId, dataId, 'datatags');
-  var params = header.buildHearderWithRuntimeandJson(altinnToken, 'app');
+  var params = header.buildHeaderWithRuntimeandJson(altinnToken, 'app');
   var requestBody = JSON.stringify(tag);
   return http.post(endpoint, requestBody, params);
 }

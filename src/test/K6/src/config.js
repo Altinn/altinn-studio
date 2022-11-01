@@ -87,6 +87,15 @@ export var eFormidling = {
   capabilities: 'https://platform.' + baseUrl + '/eformidling/api/capabilities',
 };
 
+//sblBridge
+export var sblBridge = {
+  enterpriseUser: 'https://' + baseUrl + '/sblbridge/authentication/api/enterpriseuser'
+};
+
+export var sbl = {
+  altinnBuildVersion: `https://${baseUrl}/pages/logout/AltinnBuildVersion.txt` 
+}
+
 //Function to build endpoints in storage with instanceOwnerId, instanceId, dataId, type
 //and returns the endpoint
 export function buildStorageUrls(instanceOwnerId, instanceId, dataId, type) {

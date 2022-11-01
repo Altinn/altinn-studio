@@ -40,18 +40,12 @@ const dataModelsMetadataSlice = createSlice({
     getDataModelsMetadata: (state) => {
       state.loadState = LoadingState.LoadingModels;
     },
-    getDataModelsMetadataFulfilled: (
-      state,
-      action: PayloadAction<IGetDataModelsMetadataFulfilled>,
-    ) => {
+    getDataModelsMetadataFulfilled: (state, action: PayloadAction<IGetDataModelsMetadataFulfilled>) => {
       const { dataModelsMetadata } = action.payload;
       state.dataModelsMetadata = dataModelsMetadata;
       state.loadState = LoadingState.ModelsLoaded;
     },
-    getDataModelsMetadataRejected: (
-      state,
-      action: PayloadAction<IDataModelsMetadataActionRejected>,
-    ) => {
+    getDataModelsMetadataRejected: (state, action: PayloadAction<IDataModelsMetadataActionRejected>) => {
       const { error } = action.payload;
       state.loadState = LoadingState.Error;
       state.error = error;

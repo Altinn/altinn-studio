@@ -1,43 +1,40 @@
-import { makeStyles } from '@material-ui/core';
 import React from 'react';
+import { ToggleButton, ToggleButtonGroup } from '@altinn/altinn-design-system';
 import type { ILanguage } from '../types';
-import { getTranslation } from '../utils';
-import TopToolbarButton from './TopToolbarButton';
-
-const useStyles = makeStyles({
-  toolbar: {
-    display: 'flex',
-    background: '#fff',
-    padding: 8,
-    boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.25)',
-    '& > button:last-child': {
-      marginLeft: 'auto',
-    },
-  },
-});
+import { getTranslation } from '../utils/language';
+import { TopToolbarButton } from './TopToolbarButton';
+import classes from './TopToolbar.module.css';
 
 interface TopToolbarProps {
   Toolbar: JSX.Element;
+  editMode: boolean;
   saveAction?: (payload: any) => void;
+  toggleEditMode?: (e: any) => void;
   language: ILanguage;
 }
-export default function TopToolbar({
-  Toolbar,
-  saveAction,
-  language,
-}: TopToolbarProps) {
-  const classes = useStyles();
+
+export function TopToolbar({ editMode, Toolbar, saveAction, toggleEditMode, language }: TopToolbarProps) {
+  const t = (key: string) => getTranslation(key, language);
+
   return (
-    <section className={classes.toolbar}>
+    <section className={classes.toolbar} role={'toolbar'}>
       {Toolbar}
       <TopToolbarButton
+        id='save-model-button'
         onClick={saveAction || (() => undefined)}
-        disabled={!saveAction}
+        disabled={!editMode || !saveAction}
         faIcon='fa fa-floppy'
         iconSize={24}
+        className={classes.saveButton}
       >
-        {getTranslation('save_data_model', language)}
+        {t('save_data_model')}
       </TopToolbarButton>
+      {toggleEditMode && (
+        <ToggleButtonGroup selectedValue={editMode ? 'edit' : 'view'} onChange={toggleEditMode}>
+          <ToggleButton value='view'>{t('view_mode')}</ToggleButton>
+          <ToggleButton value='edit'>{t('edit_mode')}</ToggleButton>
+        </ToggleButtonGroup>
+      )}
     </section>
   );
 }

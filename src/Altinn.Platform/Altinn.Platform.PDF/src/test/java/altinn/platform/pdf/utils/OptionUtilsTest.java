@@ -2,9 +2,7 @@ package altinn.platform.pdf.utils;
 
 import altinn.platform.pdf.models.*;
 import io.micrometer.core.instrument.util.IOUtils;
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.jupiter.api.Test;
 import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
@@ -17,19 +15,14 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.*;
 
-public class OptionUtilsTest extends TestCase {
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-  public OptionUtilsTest(String testName) {
-    super(testName);
-  }
+class OptionUtilsTest {
 
   private Document formData;
 
-  public static Test suite() {
-    return new TestSuite(altinn.platform.pdf.utils.OptionUtilsTest.class);
-  }
-
-  public void testGetOptionsFromOptionSource() throws IOException, SAXException, ParserConfigurationException {
+  @Test
+  void testGetOptionsFromOptionSource() throws IOException, SAXException, ParserConfigurationException {
     // Arrange
     Document formData = readAndParseFormData();
 

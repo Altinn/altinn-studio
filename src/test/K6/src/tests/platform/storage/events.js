@@ -3,7 +3,7 @@
     Command: docker-compose run k6 run src/tests/platform/storage/events.js -e env=*** -e org=*** -e username=*** -e userpwd=*** -e level2app=***
 */
 
-import { check } from 'k6';
+import { check, sleep } from 'k6';
 import * as instances from '../../../api/platform/storage/instances.js';
 import * as appInstances from '../../../api/app/instances.js';
 import * as events from '../../../api/platform/storage/events.js';
@@ -55,6 +55,7 @@ export default function (data) {
   });
   addErrorCount(success);
   eventId = res.json('id');
+  sleep(1);
 
   //Test to get an instance event by id from an instance with storage api and validate the response
   res = events.getEvent(runtimeToken, partyId, instanceId, eventId);

@@ -2,7 +2,7 @@ package altinn.platform.pdf.utils;
 
 import altinn.platform.pdf.models.*;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
-import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.w3c.dom.Document;
 
 import java.io.IOException;
@@ -29,7 +29,7 @@ public class LayoutUtils {
    * @return
    * @throws IOException
    */
-  public static float getElementHeight(FormLayoutElement element, PDFont font, float fontSize, float width, float leading, float textMargin, TextResources textResources, Document formData, Instance instance) throws IOException {
+  public static float getElementHeight(FormLayoutElement element, PDType0Font font, float fontSize, float width, float leading, float textMargin, TextResources textResources, Document formData, Instance instance) throws IOException {
     float height = 0;
     TextResourceBindings textResourceBindings = element.getTextResourceBindings();
     if (textResourceBindings.getTitle() != null && !textResourceBindings.getTitle().isEmpty()) {
@@ -44,7 +44,13 @@ public class LayoutUtils {
       height += textMargin;
     }
 
-    if (element.getType().equalsIgnoreCase("paragraph") || element.getType().equalsIgnoreCase("header")) {
+    if (textResourceBindings.getBody() != null && !textResourceBindings.getBody().isEmpty()) {
+      String body = TextUtils.getTextResourceByKey(textResourceBindings.getBody(), textResources);
+      height += TextUtils.getHeightNeededForText(body, font, fontSize, width);
+      height += textMargin;
+    }
+
+    if (element.getType().equalsIgnoreCase("paragraph") || element.getType().equalsIgnoreCase("header") || element.getType().equalsIgnoreCase("panel")) {
       // have no content, return height
       return height;
     }

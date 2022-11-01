@@ -1,16 +1,16 @@
-import {
-  Grid,
-  Typography,
-  Avatar,
-  makeStyles,
-  MenuItem,
-  IconButton,
-  Divider,
-} from '@material-ui/core';
-import { AltinnMenu } from 'app-shared/components';
-import { post } from 'app-shared/utils/networking';
-import { sharedUrls } from 'app-shared/utils/urlHelper';
 import React from 'react';
+import {
+  Avatar,
+  Divider,
+  Grid,
+  IconButton,
+  MenuItem,
+  Typography,
+} from '@mui/material';
+import { makeStyles } from '@mui/styles';
+import { AltinnMenu } from '../../components';
+import { post } from '../../utils/networking';
+import { sharedUrls } from '../../utils/urlHelper';
 import { getOrgNameById, HeaderContext, SelectedContextType } from './Header';
 import { getLanguageFromKey } from '../../utils/language';
 
@@ -32,7 +32,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-type HeaderMenuProps = {
+export type HeaderMenuProps = {
   language: any;
 };
 

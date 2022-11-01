@@ -1,5 +1,6 @@
-import { Grid, Typography, withStyles } from '@material-ui/core';
 import React from 'react';
+import { Grid, Typography } from '@mui/material';
+import { withStyles } from '@mui/styles';
 import { connect } from 'react-redux';
 import AltinnCheckBox from 'app-shared/components/AltinnCheckBox';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
@@ -18,33 +19,33 @@ import {
   renderSelectTextFromResources,
 } from '../../utils/render';
 import {
-  getTextResourceByAddressKey,
   AddressKeys,
+  getTextResourceByAddressKey,
 } from '../../utils/component';
 import { idExists, validComponentId } from '../../utils/formLayout';
-import { SelectionEdit } from './SelectionEditComponent';
 import type { ICodeListOption } from './SelectionEditComponent';
+import { SelectionEdit } from './SelectionEditComponent';
 import { ImageComponent } from './ImageComponent';
 import EditBoilerplate from './EditBoilerplate';
 import HeaderSizeSelectComponent from './HeaderSizeSelect';
 import { ComponentTypes } from '../index';
 import { FileUploadWithTagComponent } from './FileUploadWithTagComponent';
 import {
-  IFormFileUploaderWithTagComponent,
   FormComponentType,
+  IAppState,
   IDataModelFieldElement,
-  ITextResource,
+  IFormAddressComponent,
+  IFormCheckboxComponent,
+  IFormComponent,
   IFormDesignerComponents,
   IFormDesignerContainers,
-  IFormComponent,
-  IFormHeaderComponent,
-  IFormFileUploaderComponent,
   IFormDropdownComponent,
-  IFormCheckboxComponent,
-  IFormRadioButtonComponent,
-  IFormAddressComponent,
+  IFormFileUploaderComponent,
+  IFormFileUploaderWithTagComponent,
+  IFormHeaderComponent,
   IFormImageComponent,
-  IAppState,
+  IFormRadioButtonComponent,
+  ITextResource,
 } from '../../types/global';
 
 const styles = {
@@ -667,7 +668,6 @@ export class EditModalContentComponent extends React.Component<
                   (element) => element.value === this.state.component.type,
                 )}
                 onChange={this.handleButtonTypeChange}
-                selectedElement={this.state.component.type}
                 placeholder={getLanguageFromKey(
                   'ux_editor.modal_properties_button_type_submit',
                   this.props.language,
@@ -825,6 +825,7 @@ export class EditModalContentComponent extends React.Component<
             <Grid item={true} xs={12}>
               <AltinnInputField
                 id='modal-properties-minimum-files'
+                textFieldId={`modal-properties-minimum-files-input-${component.id}`}
                 onChangeFunction={this.handleNumberOfAttachmentsChange('min')}
                 inputValue={component.minNumberOfAttachments || 0}
                 inputDescription={getLanguageFromKey(
@@ -839,6 +840,7 @@ export class EditModalContentComponent extends React.Component<
             <Grid item={true} xs={12}>
               <AltinnInputField
                 id='modal-properties-maximum-files'
+                textFieldId={`modal-properties-maximum-files-input-${component.id}`}
                 onChangeFunction={this.handleNumberOfAttachmentsChange('max')}
                 inputValue={component.maxNumberOfAttachments || 1}
                 inputDescription={getLanguageFromKey(
@@ -949,6 +951,7 @@ export class EditModalContentComponent extends React.Component<
       <Grid item={true} xs={12}>
         <AltinnInputField
           id='component-id'
+          textFieldId={`component-id-input${this.props.component.id}`}
           onChangeFunction={this.handleIdChange}
           onBlurFunction={this.handleNewId}
           inputValue={this.state.tmpId}

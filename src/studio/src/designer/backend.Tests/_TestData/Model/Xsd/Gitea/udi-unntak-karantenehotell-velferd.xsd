@@ -1,0 +1,122 @@
+﻿<xsd:schema xmlns:seres="http://seres.no/xsd/forvaltningsdata" xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <xsd:element name="melding" type="SoknadUnntakKaranteneHotellVelferd" />
+  <xsd:complexType name="SoknadUnntakKaranteneHotellVelferd">
+    <xsd:sequence>
+      <xsd:element name="soker" type="Soker" />
+      <xsd:element name="personopplysninger" type="Personopplysninger" />
+      <xsd:element name="fullmaktsperson" type="Fullmaktsperson" minOccurs="0" />
+      <xsd:element name="omReisen" type="OmReisenTilNorge" minOccurs="0" />
+      <xsd:element name="velferdsgrunner" type="Velferdsgrunner" />
+      <xsd:element name="applogic" type="Applogic" />
+    </xsd:sequence>
+    <xsd:anyAttribute />
+  </xsd:complexType>
+  <xsd:complexType name="OmReisenTilNorge">
+    <xsd:sequence>
+      <xsd:element name="ankomstdato" type="Dato" />
+      <xsd:element name="landOppholdtI" type="Tekst" minOccurs="0" />
+      <xsd:element name="antallIReisefolget" type="Tekst" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Soker">
+    <xsd:sequence>
+      <xsd:element name="hvemSokesDetFor" type="Tekst" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Applogic">
+    <xsd:sequence>
+      <xsd:element name="ikkeForsteAvkrysning" type="xsd:boolean" />
+      <xsd:element name="avsender" type="Tekst" />
+      <xsd:element name="altinnRef" type="Tekst" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Personopplysninger">
+    <xsd:sequence>
+      <xsd:element name="fornavn" type="Navn" />
+      <xsd:element name="mellomnavn" type="Navn" minOccurs="0" />
+      <xsd:element name="etternavn" type="Navn" />
+      <xsd:element name="fodselsdato" type="Dato" />
+      <xsd:element name="personnummer" minOccurs="0" type="Personnummer" />
+      <xsd:element name="nummerPaaReisedokument" type="NummerPaaReisedokument" />
+      <xsd:element name="Adresse" type="Tekst" />
+      <xsd:element name="Postnummer" type="Tekst" />
+      <xsd:element name="Poststed" type="Tekst" />
+      <xsd:element name="Land" type="Tekst" />
+      <xsd:element name="telefonnummer" type="Telefonnummer" />
+      <xsd:element name="epost" type="EPost" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Fullmaktsperson">
+    <xsd:sequence>
+      <xsd:element name="fornavn" type="Navn" />
+      <xsd:element name="mellomnavn" type="Navn" minOccurs="0" />
+      <xsd:element name="etternavn" type="Navn" />
+      <xsd:element name="personnummer" minOccurs="0" type="Personnummer" />
+      <xsd:element name="Adresse" type="Tekst" />
+      <xsd:element name="Postnummer" type="Tekst" />
+      <xsd:element name="Poststed" type="Tekst" />
+      <xsd:element name="Land" type="Tekst" />
+      <xsd:element name="telefonnummer" minOccurs="0" type="Telefonnummer" />
+      <xsd:element name="epost" type="EPost" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Velferdsgrunner">
+    <xsd:sequence>
+      <xsd:element name="sammenstilling" type="Tekst" />
+      <xsd:element name="helseproblemer" type="xsd:boolean" />
+      <xsd:element name="barnefodsel" type="xsd:boolean" />
+      <xsd:element name="begravelse" type="xsd:boolean" />
+      <xsd:element name="naerstaaende" type="xsd:boolean" />
+      <xsd:element name="adopsjon" type="xsd:boolean" />
+      <xsd:element name="sarligeOmsorg" type="xsd:boolean" />
+      <xsd:element name="barnAlene" type="xsd:boolean" />
+      <xsd:element name="hjemmeeksamen" type="xsd:boolean" />
+      <xsd:element name="arbeidunntak" type="xsd:boolean" />
+      <xsd:element name="andreVelferdshensyn" type="xsd:boolean" />
+      <xsd:element name="andreVelferdshensynBeskrivelse" type="Tekst" minOccurs="0" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="Navn">
+    <xsd:restriction base="xsd:string">
+      <xsd:minLength value="1" />
+      <xsd:maxLength value="175" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Dato">
+    <xsd:restriction base="xsd:date" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Land">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="NummerPaaReisedokument">
+    <xsd:restriction base="xsd:string">
+      <xsd:minLength value="1" />
+      <xsd:maxLength value="15" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Personnummer">
+    <xsd:restriction base="Personnummer_RestriksjonPersonnummer" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Personnummer_RestriksjonPersonnummer">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="[0-9]{11}" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Telefonnummer">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="^(\+|00)\d{4,}$" />
+      <xsd:minLength value="1" />
+      <xsd:maxLength value="25" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="EPost">
+    <xsd:restriction base="xsd:string">
+      <xsd:pattern value="[^@]+@[^\.]+\..+" />
+      <xsd:minLength value="1" />
+      <xsd:maxLength value="175" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Tekst">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+</xsd:schema>

@@ -1,0 +1,41 @@
+{
+  "$schema" : "http://json-schema.org/schema#",
+  "$id" : "schema.json",
+  "type" : "object",
+  "properties" : {
+    "TestSkjema" : {
+      "$ref" : "#/definitions/Skjema"
+    }
+  },
+  "definitions" : {
+    "Skjema" : {
+      "properties" : {
+        "Hovedskjema" : {
+          "$ref" : "#/definitions/Hovedskjema"
+        }
+      },
+      "required" : [
+        "Hovedskjema"
+      ]
+    },
+    "Hovedskjema" : {
+      "properties" : {
+        "Beskrivelse" : {
+          "type" : "string"
+        },
+        "FlereStrenger" : {
+          "type" : "array",
+          "minItems" : 1,
+          "maxItems" : 5,
+          "items" : {
+            "type" : "string"
+          }
+        }
+      },
+      "required" : [
+        "Beskrivelse",
+        "FlereStrenger"
+      ]
+    }
+  }
+}

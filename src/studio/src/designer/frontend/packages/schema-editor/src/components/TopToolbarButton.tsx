@@ -1,45 +1,20 @@
-import { Button, IconButton, makeStyles } from '@material-ui/core';
-import React from 'react';
+import React, { PropsWithChildren } from 'react';
+import { Button, IconButton } from '@mui/material';
 import classNames from 'classnames';
+import classes from './TopToolbarButton.module.css';
 
-interface TopToolbarButtonProps extends React.PropsWithChildren<any> {
+interface TopToolbarButtonProps extends PropsWithChildren<any> {
   onClick: (event: any) => void;
   faIcon: string;
   iconSize?: number;
   disabled?: boolean;
   hideText?: boolean;
   warning?: boolean;
+  className?: string;
+  id: string;
 }
 
-const useStyles = makeStyles({
-  toolbarButton: {
-    margin: 0,
-    border: 0,
-    height: 36,
-    borderRadius: 0,
-    fontFamily: 'Roboto',
-    fontSize: '1em',
-    padding: '4px 8px',
-    fontWeight: 'normal',
-    textTransform: 'none',
-    '&:hover': {
-      background: '#006BD8',
-      color: '#fff',
-    },
-    '&.warn:hover': {
-      background: '#D02F4C',
-    },
-    '& .MuiButton-startIcon': {
-      marginRight: 4,
-    },
-  },
-  iconButton: {
-    width: 36,
-    padding: 0,
-  },
-});
-
-export default function TopToolbarButton({
+export function TopToolbarButton({
   onClick,
   disabled,
   faIcon,
@@ -47,20 +22,16 @@ export default function TopToolbarButton({
   hideText,
   warning,
   iconSize,
+  className,
+  id,
 }: TopToolbarButtonProps) {
-  const classes = useStyles();
   const computedClasses = classNames([
     classes.toolbarButton,
     hideText && classes.iconButton,
     warning && 'warn',
+    className,
   ]);
-  const icon = (
-    <i
-      className={faIcon}
-      style={{ ...(iconSize && { fontSize: iconSize }) }}
-      aria-hidden
-    />
-  );
+  const icon = <i className={faIcon} style={{ ...(iconSize && { fontSize: iconSize }) }} aria-hidden />;
   if (hideText) {
     return (
       <IconButton
@@ -75,13 +46,7 @@ export default function TopToolbarButton({
     );
   }
   return (
-    <Button
-      className={computedClasses}
-      onClick={onClick}
-      variant='text'
-      disabled={disabled}
-      startIcon={icon}
-    >
+    <Button id={id} className={computedClasses} onClick={onClick} variant='text' disabled={disabled} startIcon={icon}>
       {children}
     </Button>
   );

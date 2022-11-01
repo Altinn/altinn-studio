@@ -1,26 +1,32 @@
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
-
+using System.Xml;
+using System.Xml.Schema;
 using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Studio.Designer.ModelMetadatalModels;
-
+using JetBrains.Annotations;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
+using Formatting = Newtonsoft.Json.Formatting;
 
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 {
     /// <summary>
-    /// Class representing a application specific git repository.
+    /// Class representing an application specific git repository.
     /// </summary>
     /// <remarks>This class knows that the repository is an Altinn application and hence knows
     /// about folders and file names and can map them to their respective models.
-    /// It shoud however, not have any business logic. The <see cref="GetTextResourcesForAllLanguages"/> method is borderline
+    /// It should however, not have any business logic. The <see cref="GetTextResourcesForAllLanguages"/> method is borderline
     /// as it merges multiple on-disk models into another structure.</remarks>
     public class AltinnAppGitRepository : AltinnGitRepository
     {
         private const string MODEL_FOLDER_PATH = "App/models/";
         private const string CONFIG_FOLDER_PATH = "App/config/";
         private const string LANGUAGE_RESOURCE_FOLDER_NAME = "texts/";
+        private const string MARKDOWN_TEXTS_FOLDER_NAME = "md/";
 
         private const string APP_METADATA_FILENAME = "applicationmetadata.json";
 
@@ -30,7 +36,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="org">Organization owning the repository identified by it's short name.</param>
         /// <param name="repository">Repository name to search for schema files.</param>
         /// <param name="developer">Developer that is working on the repository.</param>
-        /// <param name="repositoriesRootDirectory">Base path (full) for where the repository recides on-disk.</param>
+        /// <param name="repositoriesRootDirectory">Base path (full) for where the repository resides on-disk.</param>
         /// <param name="repositoryDirectory">Full path to the root directory of this repository on-disk.</param>
         public AltinnAppGitRepository(string org, string repository, string developer, string repositoriesRootDirectory, string repositoryDirectory) : base(org, repository, developer, repositoriesRootDirectory, repositoryDirectory)
         {
@@ -38,34 +44,34 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         /// <summary>
         /// Gets the application metadata.
-        /// </summary>    
+        /// </summary>
         public async Task<Application> GetApplicationMetadata()
         {
-            var appMetadataRealtiveFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
-            var fileContent = await ReadTextByRelativePathAsync(appMetadataRealtiveFilePath);
+            var appMetadataRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
+            var fileContent = await ReadTextByRelativePathAsync(appMetadataRelativeFilePath);
 
             return JsonConvert.DeserializeObject<Application>(fileContent);
         }
 
         /// <summary>
-        /// Updates the application metadata file.
+        /// Saves the application metadata file to disk.
         /// </summary>
         /// <param name="applicationMetadata">The updated application metadata to persist.</param>
-        public async Task UpdateApplicationMetadata(Application applicationMetadata)
+        public async Task SaveApplicationMetadata(Application applicationMetadata)
         {
             string metadataAsJson = JsonConvert.SerializeObject(applicationMetadata, Formatting.Indented);
-            var appMetadataRealtiveFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
+            var appMetadataRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, APP_METADATA_FILENAME);
 
-            await WriteTextByRelativePathAsync(appMetadataRealtiveFilePath, metadataAsJson, true);
+            await WriteTextByRelativePathAsync(appMetadataRelativeFilePath, metadataAsJson, true);
         }
 
         /// <summary>
-        /// Updates the model metadata model for the application (a JSON where the model hierarchy is flatten,
-        /// in order to easier generate the C# class).
+        /// Saves the model metadata model for the application (a JSON where the model hierarchy is flatten,
+        /// in order to easier generate the C# class) to disk.
         /// </summary>
         /// <param name="modelMetadata">Model metadata to persist.</param>
         /// <param name="modelName">The name of the model. </param>
-        public async Task UpdateModelMetadata(ModelMetadata modelMetadata, string modelName)
+        public async Task SaveModelMetadata(ModelMetadata modelMetadata, string modelName)
         {
             string metadataAsJson = JsonConvert.SerializeObject(modelMetadata);
             string modelMetadataRelativeFilePath = Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.metadata.json");
@@ -74,11 +80,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Updates the generated C# classes for the application model.
+        /// Saves the generated C# classes for the application model to disk.
         /// </summary>
-        /// <param name="csharpClasses">All C# classes that should be percisted (in one file).</param>
+        /// <param name="csharpClasses">All C# classes that should be persisted (in one file).</param>
         /// <param name="modelName">The name of the model, will be used as filename.</param>
-        public async Task UpdateCSharpClasses(string csharpClasses, string modelName)
+        public async Task SaveCSharpClasses(string csharpClasses, string modelName)
         {
             string modelMetadataRelativeFilePath = Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.cs");
 
@@ -86,11 +92,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Updates the Json Schema file representing the application model.
+        /// Saves the Json Schema file representing the application model to disk.
         /// </summary>
         /// <param name="jsonSchema">The Json Schema that should be persisted</param>
         /// <param name="modelName">The name of the model without extensions. This will be used as filename.</param>
-        /// <returns>A string containging the relative path to the file saved.</returns>
+        /// <returns>A string containing the relative path to the file saved.</returns>
         public async Task<string> SaveJsonSchema(string jsonSchema, string modelName)
         {
             string relativeFilePath = GetRelativeModelFilePath(modelName);
@@ -98,6 +104,49 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             await WriteTextByRelativePathAsync(relativeFilePath, jsonSchema, true);
 
             return relativeFilePath;
+        }
+
+        /// <summary>
+        /// Saves the Xsd to the disk.
+        /// </summary>
+        /// <param name="xsdMemoryStream">Stream representing the Xsd to be saved.</param>
+        /// <param name="fileName">The filename of the file to be saved excluding path.</param>
+        /// <returns>A string containing the relative path to the file saved.</returns>
+        public async Task<string> SaveXsd(MemoryStream xsdMemoryStream, string fileName)
+        {
+            string filePath = Path.Combine(GetRelativeModelFolder(), fileName);
+            xsdMemoryStream.Position = 0;
+            await WriteStreamByRelativePathAsync(filePath, xsdMemoryStream, true);
+            xsdMemoryStream.Position = 0;
+
+            return filePath;
+        }
+
+        /// <summary>
+        /// Saves the Xsd to the disk.
+        /// </summary>
+        /// <param name="xsd">String representing the Xsd to be saved.</param>
+        /// <param name="fileName">The filename of the file to be saved excluding path.</param>
+        /// <returns>A string containg the relative path to the file saved.</returns>
+        public async Task<string> SaveXsd(string xsd, string fileName)
+        {
+            string filePath = Path.Combine(GetRelativeModelFolder(), fileName);
+            await WriteTextByRelativePathAsync(filePath, xsd, true);
+
+            return filePath;
+        }
+
+        /// <summary>
+        /// Saves the Xsd to the disk.
+        /// </summary>
+        /// <param name="xmlSchema">Xml schema to be saved.</param>
+        /// <param name="fileName">The filename of the file to be saved excluding path.</param>
+        /// <returns>A string containg the relative path to the file saved.</returns>
+        public async Task<string> SaveXsd(XmlSchema xmlSchema, string fileName)
+        {
+            string xsd = await SerializeXsdToString(xmlSchema);
+
+            return await SaveXsd(xsd, fileName);
         }
 
         /// <summary>
@@ -111,7 +160,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Gets the folder where the datamodels are stored.
+        /// Gets the folder where the data models are stored.
         /// </summary>
         /// <returns>A string with the relative path to the model folder within the app.</returns>
         public string GetRelativeModelFolder()
@@ -120,19 +169,50 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Returns a specific text resource based on language code from the application.
+        /// Returns a specific text resource written in the old text format
+        /// based on language code from the application.
         /// </summary>
         /// <remarks>
         /// Format of the dictionary is: &lt;textResourceElementId &lt;language, textResourceElement&gt;&gt;
         /// </remarks>
-        public async Task<Designer.Models.TextResource> GetTextResources(string language)
+        public async Task<Designer.Models.TextResource> GetTextV1(string language)
         {
-            string resourcePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, $"resource.{language}.json");
+            string resourcePath = GetPathToJsonTextsFile($"resource.{language}.json");
 
             var fileContent = await ReadTextByRelativePathAsync(resourcePath);
             var textResource = JsonConvert.DeserializeObject<Designer.Models.TextResource>(fileContent);
 
             return textResource;
+        }
+
+        /// <summary>
+        /// Overwrite a V2 texts file with an updated V2 texts file
+        /// </summary>
+        /// <param name="languageCode">Language identifier</param>
+        /// <param name="jsonTexts">Text file for language as string</param>
+        public async Task SaveTextsV2(string languageCode, Dictionary<string, string> jsonTexts)
+        {
+            string fileName = $"{languageCode}.texts.json";
+            var textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
+
+            var jsonOptions = new JsonSerializerOptions() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+            string texts = System.Text.Json.JsonSerializer.Serialize(jsonTexts, jsonOptions);
+
+            await WriteTextByRelativePathAsync(textsFileRelativeFilePath, texts);
+        }
+
+        /// <summary>
+        /// Overwrite or creates a markdown file for a specific text for a specific language.
+        /// </summary>
+        /// <param name="languageCode">Language identifier</param>
+        /// <param name="text">Keyvaluepair containing markdown text</param>
+        public async Task SaveTextMarkdown(string languageCode, KeyValuePair<string, string> text)
+        {
+            string fileName = $"{text.Key}.{languageCode}.texts.md";
+
+            var textsFileRelativeFilePath = GetPathToMarkdownTextFile(fileName);
+
+            await WriteTextByRelativePathAsync(textsFileRelativeFilePath, text.Value, true);
         }
 
         /// <summary>
@@ -144,7 +224,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             var allResourceTexts = new Dictionary<string, Dictionary<string, Designer.Models.TextResourceElement>>();
 
-            string textResourcesDirectory = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME);
+            string textResourcesDirectory = GetPathToJsonTextsFile(null);
 
             if (!DirectoryExitsByRelativePath(textResourcesDirectory))
             {
@@ -195,6 +275,58 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+        /// Reads text file from disk written in the new text format
+        /// identified by the languageCode in filename.
+        /// </summary>
+        /// <param name="languageCode">Language identifier</param>
+        /// <returns>Texts as a string</returns>
+        public async Task<Dictionary<string, string>> GetTextsV2(string languageCode)
+        {
+            string fileName = $"{languageCode}.texts.json";
+
+            var textsFileRelativeFilePath = GetPathToJsonTextsFile(fileName);
+
+            string texts = await ReadTextByRelativePathAsync(textsFileRelativeFilePath);
+
+            Dictionary<string, string> jsonTexts = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(texts);
+
+            return jsonTexts;
+        }
+
+        /// <summary>
+        /// Get the markdown text specific for a key identified in the filename.
+        /// </summary>
+        /// <param name="markdownFileName">Filename for file with markdown text for a key</param>
+        /// <returns>Markdown text as a string</returns>
+        public async Task<string> GetTextMarkdown(string markdownFileName)
+        {
+            var textsFileRelativeFilePath = GetPathToMarkdownTextFile(markdownFileName);
+
+            string text = await ReadTextByRelativePathAsync(textsFileRelativeFilePath);
+
+            return text;
+        }
+
+        /// <summary>
+        /// Deletes the texts file for a specific languageCode.
+        /// </summary>
+        /// <param name="languageCode">Language identifier</param>
+        public void DeleteTexts(string languageCode)
+        {
+            string textsFileName = $"{languageCode}.texts.json";
+            var textsFileRelativeFilePath = GetPathToJsonTextsFile(textsFileName);
+            DeleteFileByRelativePath(textsFileRelativeFilePath);
+
+            var fileNames = FindFiles(new[] { $"*.{languageCode}.texts.md" });
+            foreach (string fileNamePath in fileNames)
+            {
+                string fileName = Path.GetFileName(fileNamePath);
+                textsFileRelativeFilePath = GetPathToMarkdownTextFile(fileName);
+                DeleteFileByRelativePath(textsFileRelativeFilePath);
+            }
+        }
+
+        /// <summary>
         /// Save app texts to resource files
         /// </summary>
         /// <param name="allResourceTexts">The texts to be saved</param>
@@ -222,7 +354,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
                 }
             }
 
-            string textResourcesDirectory = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME);
+            string textResourcesDirectory = GetPathToJsonTextsFile(null);
 
             // loop through each language set of text resources
             foreach (KeyValuePair<string, Dictionary<string, Designer.Models.TextResourceElement>> processedResource in resourceTexts)
@@ -254,6 +386,40 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             }
 
             return false;
+        }
+
+        private static async Task<string> SerializeXsdToString(XmlSchema xmlSchema)
+        {
+            string xsd;
+            await using (var sw = new Utf8StringWriter())
+            await using (var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true }))
+            {
+                xmlSchema.Write(xw);
+                xsd = sw.ToString();
+            }
+
+            return xsd;
+        }
+
+        private static string GetPathToJsonTextsFile([CanBeNull] string fileName)
+        {
+            string textsFileRelativeFilePath = fileName.IsNullOrEmpty() ? Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME) : Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, fileName);
+            return textsFileRelativeFilePath;
+        }
+
+        private static string GetPathToMarkdownTextFile(string fileName)
+        {
+            string textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, MARKDOWN_TEXTS_FOLDER_NAME, fileName);
+            return textsFileRelativeFilePath;
+        }
+
+        /// <summary>
+        /// Stringwriter that ensures UTF8 is used.
+        /// </summary>
+        internal class Utf8StringWriter : StringWriter
+        {
+            /// <inheritdoc/>
+            public override Encoding Encoding => Encoding.UTF8;
         }
     }
 }

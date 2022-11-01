@@ -1,0 +1,17 @@
+.select {
+  background-color: white;
+  border: 2px solid #008fd6;
+  cursor: pointer;
+  line-height: 1.5;
+  padding: 6px 8px;
+  width: 100%;
+}
+
+.select:hover {
+  border-color: #0062ba;
+}
+
+.select:focus {
+  outline: 2px auto #98177e;
+  outline-offset: 3px;
+}

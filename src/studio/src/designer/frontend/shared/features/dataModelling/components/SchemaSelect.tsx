@@ -1,10 +1,12 @@
 import React from 'react';
-import { Grid, makeStyles } from '@material-ui/core';
+import { Grid } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 import Select from 'react-select';
 import classNames from 'classnames';
 import type { IMetadataOption } from '../functions/types';
 
 interface ISchemaSelectProps {
+  disabled: boolean;
   selectedOption: IMetadataOption | null;
   onChange: (optionWithMetadata: { value: any; label: string }) => void;
   options: IMetadataOption[];
@@ -18,6 +20,7 @@ const useStyles = makeStyles({
   },
   select: {
     minWidth: 147,
+    zIndex: 1101,
   },
   chevron: {
     margin: 12,
@@ -28,26 +31,25 @@ const useStyles = makeStyles({
     },
   },
 });
-const SchemaSelect = (props: ISchemaSelectProps) => {
-  const { onChange, selectedOption, options } = props;
+export const SchemaSelect = (props: ISchemaSelectProps) => {
+  const { onChange, disabled, selectedOption, options } = props;
 
   const classes = useStyles();
   const customStyles = {
-    control: (base: any) => ({
-      ...base,
-      height: 36,
-      minHeight: 36,
-      borderRadius: 0,
-      border: '1px solid #006BD8',
-    }),
+    control: (base: any, state: any) => {
+      const opacity = state.isDisabled ? 0.5 : 1;
+      return {
+        ...base,
+        opacity,
+        height: 36,
+        minHeight: 36,
+        borderRadius: 0,
+        border: '2px solid #008FD6',
+      };
+    },
   };
   const IndicatorSeparator = () => <></>;
-  const DropdownIndicator = () => (
-    <i
-      className={classNames(['fa fa-nedtrekk', classes.chevron])}
-      aria-hidden
-    />
-  );
+  const DropdownIndicator = () => <i className={classNames(['fa fa-nedtrekk', classes.chevron])} aria-hidden />;
   return (
     <Grid item xs={4}>
       <Select
@@ -56,11 +58,10 @@ const SchemaSelect = (props: ISchemaSelectProps) => {
         components={{ IndicatorSeparator, DropdownIndicator }}
         onChange={onChange}
         className={classes.select}
-        fullWidth={true}
         options={options}
         value={selectedOption}
+        isDisabled={disabled}
       />
     </Grid>
   );
 };
-export default SchemaSelect;

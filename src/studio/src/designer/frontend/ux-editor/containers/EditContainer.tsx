@@ -1,5 +1,6 @@
-import { Grid, IconButton, ListItem, makeStyles } from '@material-ui/core';
-import React from 'react';
+import React, { useState } from 'react';
+import { Grid, IconButton, ListItem } from '@mui/material';
+import { makeStyles } from '@mui/styles';
 import { useDispatch, useSelector } from 'react-redux';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { EditModalContent } from '../components/config/EditModalContent';
@@ -15,8 +16,8 @@ import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayou
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import type {
   FormComponentType,
-  IFormComponent,
   IAppState,
+  IFormComponent,
 } from '../types/global';
 
 const useStyles = makeStyles({
@@ -41,7 +42,6 @@ const useStyles = makeStyles({
     border: `0.15rem dotted ${altinnTheme.altinnPalette.primary.grey}`,
     color: `${altinnTheme.altinnPalette.primary.blueDarker}!important`,
     padding: '0.45rem 1.05rem 1.05rem 1.05rem',
-    marginBottom: '1.2rem',
     '&:hover': {
       backgroundColor: '#fff',
       boxShadow: '0rem 0rem 0.4rem rgba(0, 0, 0, 0.25)',
@@ -168,12 +168,12 @@ export function EditContainer(props: IEditContainerProvidedProps) {
   const classes = useStyles();
   const dispatch = useDispatch();
 
-  const [component, setComponent] = React.useState<any>({
+  const [component, setComponent] = useState<any>({
     id: props.id,
     ...props.component,
   });
-  const [isEditMode, setIsEditMode] = React.useState<boolean>(false);
-  const [listItem, setListItem] = React.useState<any>({
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
+  const [listItem, setListItem] = useState<any>({
     id: props.id,
     firstInActiveList: props.firstInActiveList,
     lastInActiveList: props.lastInActiveList,
@@ -303,7 +303,6 @@ export function EditContainer(props: IEditContainerProvidedProps) {
   const activeListIndex = activeList.findIndex(
     (item: any) => item.id === props.id,
   );
-
   return (
     <>
       <Grid container={true}>
@@ -403,6 +402,7 @@ export function EditContainer(props: IEditContainerProvidedProps) {
                   {(activeList.length < 1 ||
                     (activeList.length === 1 && activeListIndex === 0)) && (
                     <IconButton
+                      data-testid='EditContainer-edit-button'
                       type='button'
                       className={classes.formComponentsBtn}
                       onClick={handleOpenEdit}
@@ -420,7 +420,6 @@ export function EditContainer(props: IEditContainerProvidedProps) {
               <Grid
                 container={true}
                 direction='row'
-                // eslint-disable-next-line max-len
                 className={
                   props.partOfGroup
                     ? classes.gridForBtnSingleActiveGroup

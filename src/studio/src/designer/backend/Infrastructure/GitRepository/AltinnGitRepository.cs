@@ -1,6 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -17,12 +17,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
     /// </summary>
     /// <remarks>This class knows that the repository is an Altinn Repository and hence knows
     /// about folders and file names and can map them to their respective models.
-    /// It shoud hovever only have methods that are shared between the different types of Altinn Repositories
+    /// It should however only have methods that are shared between the different types of Altinn Repositories
     /// and not any methods that are specific to App or Datamodels repositories.</remarks>
     public class AltinnGitRepository : GitRepository, IAltinnGitRepository
     {
         private const string SCHEMA_FILES_PATTERN_JSON = "*.schema.json";
         private const string STUDIO_SETTINGS_FILEPATH = ".altinnstudio/settings.json";
+        private const string TEXT_FILES_PATTERN_JSON = "*.texts.json";
 
         private AltinnStudioSettings _altinnStudioSettings;
 
@@ -70,15 +71,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// <inheritdoc/>
-        /// </summary>
-        public async Task<DatamodellingPreference> GetDatamodellingPreference()
-        {
-            var settings = await GetAltinnStudioSettings();
-            return settings.DatamodellingPreference;
-        }
-
-        /// <summary>
         /// Saves the AltinnStudioSettings to disk.
         /// </summary>
         /// <param name="altinnStudioSettings">The <see cref="AltinnStudioSettings"/> object to save. This will overwrite the existing file.</param>
@@ -89,14 +81,45 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         /// <summary>
         /// Finds all schema files regardless of location in repository.
-        /// </summary>        
+        /// </summary>
         public IList<AltinnCoreFile> GetSchemaFiles()
         {
-            var schemaFiles = FindFiles(new string[] { SCHEMA_FILES_PATTERN_JSON });
+            var schemaFiles = FindFiles(new[] { SCHEMA_FILES_PATTERN_JSON });
 
             var altinnCoreSchemaFiles = MapFilesToAltinnCoreFiles(schemaFiles);
 
             return altinnCoreSchemaFiles;
+        }
+
+        /// <summary>
+        /// Parses the filename and extracts the logical schema name.
+        /// </summary>
+        /// <param name="filePath">Filepath to the model - either Json Schema or Xsd.</param>
+        /// <returns>The logical schema name</returns>
+        public string GetSchemaName(string filePath)
+        {
+            var fileInfo = new FileInfo(filePath);
+
+            if (fileInfo.Extension.ToLower() == ".json" && fileInfo.Name.EndsWith(".schema.json"))
+            {
+                return fileInfo.Name.Remove(fileInfo.Name.ToLower().IndexOf(".schema.json"));
+            }
+            else if (fileInfo.Extension.ToLower() == ".xsd")
+            {
+                return fileInfo.Name.Remove(fileInfo.Name.ToLower().IndexOf(".xsd"));
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// Finds all texts files regardless of location in repository.
+        /// </summary>
+        public IList<string> GetLanguageFiles()
+        {
+            IEnumerable<string> languageFiles = FindFiles(new string[] { TEXT_FILES_PATTERN_JSON });
+
+            return languageFiles.ToList();
         }
 
         /// <summary>
@@ -143,19 +166,19 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 
         private async Task<AltinnStudioSettings> CreateNewAltinnStudioSettings()
         {
-            AltinnStudioSettings newAltinnStudioSettings;
+            AltinnStudioSettings settings;
             if (IsDatamodelsRepo())
             {
-                newAltinnStudioSettings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.Datamodels, DatamodellingPreference = DatamodellingPreference.JsonSchema };
+                settings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.Datamodels };
             }
             else
             {
-                newAltinnStudioSettings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.App, DatamodellingPreference = DatamodellingPreference.Xsd };
+                settings = new AltinnStudioSettings() { RepoType = AltinnRepositoryType.App };
             }
 
-            await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, newAltinnStudioSettings, true);
+            await WriteObjectByRelativePathAsync(STUDIO_SETTINGS_FILEPATH, settings, true);
 
-            return newAltinnStudioSettings;
+            return settings;
         }
 
         private async Task<(AltinnStudioSettings AltinnStudioSettinngs, bool NeedsSaving)> MigrateExistingAltinnStudioSettings()
@@ -168,12 +191,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             if (altinnStudioSettings.RepoType == AltinnRepositoryType.Unknown)
             {
                 altinnStudioSettings.RepoType = IsDatamodelsRepo() ? AltinnRepositoryType.Datamodels : AltinnRepositoryType.App;
-                needsSaving = true;
-            }
-
-            if (altinnStudioSettings.DatamodellingPreference == DatamodellingPreference.Unknown)
-            {
-                altinnStudioSettings.DatamodellingPreference = IsDatamodelsRepo() ? DatamodellingPreference.JsonSchema : DatamodellingPreference.Xsd;
                 needsSaving = true;
             }
 

@@ -1,16 +1,14 @@
 import React from 'react';
 import { GridSortModel } from '@mui/x-data-grid';
-import { Typography } from '@material-ui/core';
-
+import { Typography } from '@mui/material';
 import { RepoList } from 'common/components/RepoList';
 import { useGetSearchQuery } from 'services/repoApi';
 import { useGetOrganizationsQuery } from 'services/organizationApi';
-import { useAppSelector, useAppDispatch } from 'common/hooks';
+import { useAppDispatch, useAppSelector } from 'common/hooks';
 import { useGetUserStarredReposQuery } from 'services/userApi';
 import { DashboardActions } from '../../resources/fetchDashboardResources/dashboardSlice';
-
 import { useAugmentReposWithStarred } from './hooks';
-import { getUidFilter, getReposLabel } from './utils';
+import { getReposLabel, getUidFilter } from './utils';
 
 const rowsPerPageOptions = [5, 10, 20, 50, 100];
 
@@ -22,7 +20,7 @@ export const OrgReposList = () => {
     (state) => state.dashboard.selectedContext,
   );
   const userId = useAppSelector((state) => state.dashboard.user.id);
-  const { data: orgs = [] } = useGetOrganizationsQuery()
+  const { data: orgs = [] } = useGetOrganizationsQuery();
   const [page, setPage] = React.useState(0);
   const uid = getUidFilter({ selectedContext, userId });
 
@@ -72,7 +70,7 @@ export const OrgReposList = () => {
         isLoading={isLoadingOrgRepos || isLoadingStarred}
         onPageSizeChange={handlePageSizeChange}
         isServerSort={true}
-        rowCount={repos?.totalCount}
+        rowCount={repos?.totalCount ?? 0}
         onPageChange={handlePageChange}
         onSortModelChange={handleSortModelChange}
         sortModel={sortModel}

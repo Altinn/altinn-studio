@@ -1,0 +1,13 @@
+.root {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr auto auto auto;
+}
+
+.addButtonCell {
+  grid-column: 1 / 5;
+}
+
+.addButtonCell > * {
+  width: 100%;
+}

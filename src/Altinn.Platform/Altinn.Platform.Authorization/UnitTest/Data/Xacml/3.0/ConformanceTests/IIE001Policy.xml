@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<PolicySet xmlns="urn:oasis:names:tc:xacml:3.0:core:schema:wd-17" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" PolicyCombiningAlgId="urn:oasis:names:tc:xacml:3.0:policy-combining-algorithm:deny-overrides" PolicySetId="urn:oasis:names:tc:xacml:2.0:conformance-test:IIE001:policyset" Version="1.0" xsi:schemaLocation="urn:oasis:names:tc:xacml:3.0:policy:schema:os access_control-xacml-2.0-policy-schema-os.xsd">
-    <Description>
-        PolicySet for Conformance Test IIE001.
-    </Description>
-    <Target/>
-    <PolicyIdReference>urn:oasis:names:tc:xacml:2.0:conformance-test:IIE001:policy1</PolicyIdReference>
-    <PolicySetIdReference>urn:oasis:names:tc:xacml:2.0:conformance-test:IIE001:policyset1</PolicySetIdReference>
-</PolicySet>

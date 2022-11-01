@@ -1,23 +1,17 @@
-import {
-  CircularProgress,
-  createStyles,
-  Grid,
-  Typography,
-  withStyles,
-  WithStyles,
-} from '@material-ui/core';
-import Moment from 'moment';
 import React from 'react';
+import { CircularProgress, Grid, Typography } from '@mui/material';
+import { createStyles, WithStyles, withStyles } from '@mui/styles';
+import Moment from 'moment';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import {
-  BuildResult,
-  BuildStatus,
-} from '../../../sharedResources/appRelease/types';
 import type {
   IAppReleaseErrors,
   IBuild,
   IRelease,
+} from '../../../sharedResources/appRelease/types';
+import {
+  BuildResult,
+  BuildStatus,
 } from '../../../sharedResources/appRelease/types';
 import {
   getGitCommitLink,
@@ -113,7 +107,7 @@ function ReleaseComponent(props: IAppReleaseComponent) {
 
   return (
     <Grid container={true} direction='row' className={classes.releaseWrapper}>
-      <Grid container={true} direction='row' justify='space-between'>
+      <Grid container={true} direction='row' justifyContent='space-between'>
         <Grid item={true} className={classes.releaseRow}>
           <Typography className={classes.releaseText}>
             {getLanguageFromKey('app_release.release_version', language)}{' '}
@@ -129,7 +123,7 @@ function ReleaseComponent(props: IAppReleaseComponent) {
       <Grid
         container={true}
         direction='row'
-        justify='space-between'
+        justifyContent='space-between'
         className={classes.releaseRow}
       >
         <Grid item={true}>

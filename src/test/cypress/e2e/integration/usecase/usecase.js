@@ -3,7 +3,6 @@
 /// <reference types="../../support" />
 
 import { designer } from '../../pageobjects/designer';
-import { dashboard } from '../../pageobjects/dashboard';
 
 context(
   'Bruksmønster',
@@ -28,7 +27,6 @@ context(
 
     it('Navigation', () => {
       cy.get(designer.aboutApp.repoName)
-        .find('input')
         .invoke('val')
         .should('contain', Cypress.env('deployApp').split('/')[1]);
       cy.get(designer.appMenu.edit).should('be.visible').click();

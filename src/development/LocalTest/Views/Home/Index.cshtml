@@ -7,7 +7,7 @@
   if (Model.HttpException != null)
   {
     <div class="alert alert-dark" role="alert">
-      An exception occured while fetching aplicationData
+      An exception occured while fetching applicationData
       @if (Model.HttpException.StatusCode == System.Net.HttpStatusCode.Unauthorized) {
         <pre>401(Unauthorized) Could not access @(Model.LocalAppUrl)</pre>
         <p>
@@ -80,12 +80,25 @@
         <label for="exampleInputEmail1">Select your authentication level</label>
         @Html.DropDownListFor(model => model.AuthenticationLevel, Model.AuthenticationLevels, new { Class = "form-control" })
       </div>
-      <button type="submit" class="btn btn-primary">Sign in</button>
+      <button type="submit" class="btn btn-primary">Proceed to app</button>
     }
 
     <div class="alert alert-light" role="alert">
       To access attachments XML and other data, visit <a href="/LocalPlatformStorage/">/LocalPlatformStorage</a>
     </div>
+
+    @if(string.IsNullOrWhiteSpace(Model.LocalFrontendUrl))
+    {
+      <div class="alert alert-light" role="alert">
+        @Html.ActionLink("Use a different frontend version", "FrontendVersion", "Home")
+      </div>
+    }
+    else
+    {
+      <div class="alert alert-primary" role="alert">
+        You are using frontend js and css from @(Model.LocalFrontendUrl). @Html.ActionLink("Use a different frontend version", "FrontendVersion", "Home")
+      </div>
+    }
   </div>
   }
 }

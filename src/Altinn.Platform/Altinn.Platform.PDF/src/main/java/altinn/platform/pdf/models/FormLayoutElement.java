@@ -15,7 +15,7 @@ import org.apache.commons.lang3.SerializationUtils;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class FormLayoutElement implements Cloneable{
+public class FormLayoutElement implements Cloneable {
   private String type;
   private String id;
   private HashMap<String, String> dataModelBindings;
@@ -54,6 +54,6 @@ public class FormLayoutElement implements Cloneable{
 
     fle.dataModelBindings = SerializationUtils.clone(dataModelBindings);
     return fle;
-}
+  }
 }
 

@@ -7,7 +7,7 @@ import { stopIterationOnFail } from '../../errorcounter.js';
 export function convertMaskinPortenToken(maskinportentoken, isTest) {
   if (!maskinportentoken) stopIterationOnFail('maskinporten token is undefined', false, null);
   var endpoint = config.platformAuthentication['maskinporten'] + '?test=' + isTest;
-  var params = header.buildHearderWithRuntime(maskinportentoken);
+  var params = header.buildHeaderWithRuntime(maskinportentoken);
   var token = http.get(endpoint, params);
   token = token.body;
   return token;

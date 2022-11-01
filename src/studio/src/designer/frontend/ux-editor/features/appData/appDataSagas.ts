@@ -1,16 +1,15 @@
-import { post } from 'app-shared/utils/networking';
+import { get, post } from 'app-shared/utils/networking';
 import { SagaIterator } from 'redux-saga';
 import { call, fork, put, takeLatest } from 'redux-saga/effects';
 import { PayloadAction } from '@reduxjs/toolkit';
-import { get } from '../../utils/networking';
 import {
+  addTextResources,
+  addTextResourcesFulfilled,
+  addTextResourcesRejected,
   ILoadTextResourcesAction,
   loadTextResources,
   loadTextResourcesFulfilled,
   loadTextResourcesRejected,
-  addTextResources,
-  addTextResourcesFulfilled,
-  addTextResourcesRejected,
 } from './textResources/textResourcesSlice';
 import {
   getAddTextResourcesUrl,

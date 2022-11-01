@@ -21,3 +21,71 @@ See the section about [running tests](https://facebook.github.io/create-react-ap
 ### `yarn run build-rollup`
 
 Builds the app as a package for production to the `dist` folder.\
+
+### Schema editor example
+
+```tsx
+import { Provider } from 'react-redux';
+import '../App.css';
+import { SchemaEditor } from './SchemaEditor';
+import { store } from '../redux/store';
+import { dataMock } from '../mockData';
+
+function saveSchema(schema) {
+    alert('Saved schema');
+};
+
+const language = {
+    schema_editor: {
+        add_property: 'Legg til egenskap',
+        create_reference: 'Lag referanse',
+        properties: 'Egenskaper',
+        ...
+    }
+}
+
+<div style={{
+    minHeight: 1350,
+    flex: '1 1 auto'
+}}>
+    <Provider store={store}>
+        <SchemaEditor schema={dataMock} onSaveSchema={saveSchema} name='melding' language={language}/>
+    </Provider>
+</div>
+```
+
+### StyledSelect
+
+```ts
+import { StyledSelect } from './TypeSelect';
+function onChange(id, value) {
+  alert(`Selected type ${value} for ${id}`);
+}
+
+<StyledSelect id='sometype' itemType='string' onChange={onChange} />;
+```
+
+### Run against mock
+
+`http://localhost:8080/designer/my-org/my-app#/datamodelling`
+
+### Context menu logic
+
+For each node type we need to establish which actions that should be
+availiable:
+
+- Field (String, Int, Boolean)
+  - Convert to type ✅
+  - Delete 🗑
+- Reference
+  - Convert to field ❓
+  - Delete 🗑
+- Object
+  - Convert to type ✅
+  - Add Field ✅
+  - Add Combination ✅
+  - Add Reference ✅
+  - Delete 🗑
+- Combination
+  - Add Reference
+  - Delete 🗑

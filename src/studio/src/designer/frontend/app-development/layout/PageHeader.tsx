@@ -1,10 +1,8 @@
-import { Grid } from '@material-ui/core';
-import AppBarComponent from 'app-shared/navigation/main-header/appBar';
 import React from 'react';
-import { Redirect, Route } from 'react-router-dom';
+import { AppBar } from './AppBar';
+import { Route, Routes } from 'react-router-dom';
 import routes from '../config/routes';
 import appDevelopmentLeftDrawerSettings from '../config/subPathSettings';
-import { redirects } from '../config/redirects';
 import type { IAltinnWindow } from '../types/global';
 
 interface IPageHeaderProps {
@@ -15,35 +13,23 @@ const PageHeader = (ownProps: IPageHeaderProps) => {
   const { repoStatus } = ownProps;
   const { app, org } = window as Window as IAltinnWindow;
   return (
-    <Grid item xs={12}>
-      {!repoStatus.hasMergeConflict &&
-        redirects.map((route) => (
-          <Route
-            key={route.to}
-            exact={true}
-            path={route.from}
-            render={() => <Redirect to={route.to} />}
-          />
-        ))}
+    <Routes>
       {routes.map((route) => (
         <Route
           key={route.path}
           path={route.path}
-          exact={route.exact}
-          render={(props) => (
-            <AppBarComponent
-              {...props}
+          element={
+            <AppBar
               activeLeftMenuSelection={route.activeLeftMenuSelection}
               activeSubHeaderSelection={route.activeSubHeaderSelection}
               logoutButton={repoStatus.hasMergeConflict}
               org={org}
               app={app}
-              showBreadcrumbOnTablet={true}
               showSubMenu={!repoStatus.hasMergeConflict}
               mainMenuItems={[
                 {
                   displayText: 'Om',
-                  navLink: '/about',
+                  navLink: '/',
                   menuType: 'about',
                   activeSubHeaderSelection: 'Om',
                 },
@@ -56,10 +42,10 @@ const PageHeader = (ownProps: IPageHeaderProps) => {
               ]}
               subMenuItems={appDevelopmentLeftDrawerSettings}
             />
-          )}
+          }
         />
       ))}
-    </Grid>
+    </Routes>
   );
 };
 

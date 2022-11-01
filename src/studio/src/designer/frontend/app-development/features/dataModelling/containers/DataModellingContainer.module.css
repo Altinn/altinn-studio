@@ -1,0 +1,16 @@
+.root {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: calc(100vh - 111px);
+  width: 100%;
+}
+
+.versionControlHeaderWrapper {
+  padding-left: 1rem;
+}
+
+.dataModellingWrapper {
+  flex: 1;
+}

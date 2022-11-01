@@ -1,27 +1,39 @@
+import React, { useEffect, useState } from 'react';
 import { TopToolbarButton } from '@altinn/schema-editor/index';
-import React from 'react';
-import AltinnInputField from '../../../components/AltinnInputField';
+import { Button, ErrorMessage, TextField } from '@altinn/altinn-design-system';
 import AltinnPopoverSimple from '../../../components/molecules/AltinnPopoverSimple';
 import { getLanguageFromKey } from '../../../utils/language';
 
-interface ICreateNewWrapper {
-  language: any,
-  createAction: ({ name, relativePath }: { name: string, relativePath: string | undefined }) => void,
-  dataModelNames: string[],
+export interface ICreateNewWrapper {
+  language: any;
+  createAction: ({ name, relativePath }: { name: string; relativePath: string | undefined }) => void;
+  dataModelNames: string[];
   createPathOption?: boolean;
+  disabled: boolean;
+  openByDefault?: boolean;
 }
 
-export default function CreateNewWrapper(props: ICreateNewWrapper) {
-  const [createButtonAnchor, setCreateButtonAnchor] = React.useState(null);
-  const [newModelName, setNewModelName] = React.useState('');
-  const [nameError, setNameError] = React.useState('');
-  const [confirmedWithReturn, setConfirmedWithReturn] = React.useState(false);
+export function CreateNewWrapper(props: ICreateNewWrapper) {
+  const t = (key: string) => getLanguageFromKey(key, props.language);
+  const [createButtonAnchor, setCreateButtonAnchor] = useState(null);
+  const [newModelName, setNewModelName] = useState('');
+  const [nameError, setNameError] = useState('');
+  const [confirmedWithReturn, setConfirmedWithReturn] = useState(false);
+
+  useEffect(() => {
+    if (props.openByDefault) {
+      setCreateButtonAnchor(document.getElementById('create-new-datamodel-button'));
+    }
+  }, [props.openByDefault]);
+
   const relativePath = props.createPathOption ? '' : undefined;
   const onCreateClick = (event: any) => {
     setCreateButtonAnchor(event.currentTarget);
   };
   const nameIsValid = () => newModelName.match(/^[a-zA-Z][a-zA-Z0-9_.\-æÆøØåÅ ]*$/);
-  const validateName = () => { setNameError(!nameIsValid() ? 'Invalid name' : ''); };
+  const validateName = () => {
+    setNameError(!nameIsValid() ? 'Invalid name' : '');
+  };
   const onInputBlur = () => {
     if (confirmedWithReturn) {
       setConfirmedWithReturn(false);
@@ -52,11 +64,17 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
     setNewModelName('');
     setNameError('');
   };
-  const onReturnButtonConfirm = () => {
+  const handleReturnButtonConfirm = () => {
     validateName();
     onCreateConfirmClick();
     setConfirmedWithReturn(true);
   };
+  const onKeyUp = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleReturnButtonConfirm();
+    }
+  };
+
   const onCancelCreate = () => {
     setCreateButtonAnchor(null);
     setNewModelName('');
@@ -65,14 +83,17 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
   return (
     <>
       <TopToolbarButton
+        id='create-new-datamodel-button'
         faIcon='fa fa-plus'
         onClick={onCreateClick}
-        hideText={true}
+        hideText={false}
+        disabled={props.disabled}
       >
-        {getLanguageFromKey('general.create_new', props.language)}
+        {t('general.create_new')}
       </TopToolbarButton>
-      {createButtonAnchor &&
+      {createButtonAnchor && (
         <AltinnPopoverSimple
+          open={!!createButtonAnchor}
           anchorEl={createButtonAnchor}
           handleClose={onCancelCreate}
           anchorOrigin={{
@@ -80,19 +101,21 @@ export default function CreateNewWrapper(props: ICreateNewWrapper) {
             horizontal: 'left',
           }}
         >
-          <AltinnInputField
+          <label>{t('schema_editor.create_model_description')}</label>
+          <TextField
             id='newModelInput'
-            placeholder='Name'
-            btnText='Ok'
-            error={nameError}
-            clearError={() => setNameError('')}
-            inputFieldStyling={{ width: '250px' }}
-            onChangeFunction={onNameChange}
-            onBlurFunction={onInputBlur}
-            onBtnClickFunction={onCreateConfirmClick}
-            onReturn={onReturnButtonConfirm}
+            placeholder={t('schema_editor.name')}
+            isValid={!nameError}
+            onChange={onNameChange}
+            onBlur={onInputBlur}
+            onKeyUp={onKeyUp}
           />
-        </AltinnPopoverSimple>}
+          {nameError && <ErrorMessage>{t(nameError)}</ErrorMessage>}
+          <Button onClick={onCreateConfirmClick} style={{ marginTop: 22 }}>
+            {t('schema_editor.create_model_confirm_button')}
+          </Button>
+        </AltinnPopoverSimple>
+      )}
     </>
   );
 }

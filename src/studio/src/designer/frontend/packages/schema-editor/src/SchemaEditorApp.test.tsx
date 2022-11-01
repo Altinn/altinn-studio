@@ -1,8 +1,7 @@
 import React from 'react';
 import { unmountComponentAtNode } from 'react-dom';
-import { act } from 'react-dom/test-utils';
-import { mount } from 'enzyme';
-import SchemaEditorApp from './SchemaEditorApp';
+import { act, render, screen } from '@testing-library/react';
+import { SchemaEditorApp } from './SchemaEditorApp';
 import { dataMock } from './mockData';
 
 let container: any = null;
@@ -18,16 +17,16 @@ afterEach(() => {
 });
 
 test('renders schema editor app', () => {
-  let wrapper: any = null;
   act(() => {
-    wrapper = mount(
+    render(
       <SchemaEditorApp
         schema={dataMock}
         language={{}}
         onSaveSchema={jest.fn()}
         name='test'
+        LandingPagePanel={<div>landing page panel goes here</div>}
       />,
     );
   });
-  expect(wrapper.find('SchemaEditorApp')).toHaveLength(1);
+  expect(screen.getByTestId('schema-editor')).toBeDefined();
 });

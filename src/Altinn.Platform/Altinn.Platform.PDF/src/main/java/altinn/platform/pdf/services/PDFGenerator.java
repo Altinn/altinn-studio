@@ -13,19 +13,21 @@ import org.apache.pdfbox.pdmodel.documentinterchange.logicalstructure.*;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDMarkedContent;
 import org.apache.pdfbox.pdmodel.documentinterchange.markedcontent.PDPropertyList;
 import org.apache.pdfbox.pdmodel.documentinterchange.taggedpdf.StandardStructureTypes;
-import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageFitWidthDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
 import org.apache.pdfbox.pdmodel.interactive.form.PDAcroForm;
 import org.apache.pdfbox.pdmodel.interactive.viewerpreferences.PDViewerPreferences;
+import org.apache.tomcat.util.codec.binary.Base64;
 import org.w3c.dom.Document;
 
 import java.awt.*;
 import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.time.ZonedDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -46,9 +48,10 @@ public class PDFGenerator {
   private float headerFontSize = 14;
   private float leading = 1.2f * fontSize;
   private float margin = 50;
-  private PDFont font;
-  private PDFont fontBold;
+  private PDType0Font font;
+  private PDType0Font fontBold;
   private TextResources textResources;
+  private String data;
   private Instance instance;
   private Document formData;
   private FormLayout originalFormLayout;
@@ -70,13 +73,13 @@ public class PDFGenerator {
   private PDStructureElement currentPart;
   private PDStructureElement currentSection;
   private List<String> componentsIgnoredFromGeneration = Arrays.asList(
+    "PrintButton",
     "Button",
     "Image",
     "NavigationBar",
     "NavigationButtons",
     "Summary"
   );
-
 
   /**
    * Constructor for the AltinnPDFGenerator object
@@ -89,6 +92,7 @@ public class PDFGenerator {
     this.originalFormLayout = pdfContext.getFormLayout();
     this.formLayouts = pdfContext.getFormLayouts();
     this.optionsDictionary = pdfContext.getOptionsDictionary();
+    this.data = pdfContext.getData();
     this.textResources = pdfContext.getTextResources();
     this.instance = pdfContext.getInstance();
     this.output = new ByteArrayOutputStream();
@@ -97,12 +101,6 @@ public class PDFGenerator {
     this.language = pdfContext.getLanguage();
     this.userProfile = pdfContext.getUserProfile();
     this.layoutSettings = pdfContext.getLayoutSettings();
-    try {
-      this.formData = FormUtils.parseXml(pdfContext.getData());
-      this.textResources.setResources(parseAndCleanTextResources(this.textResources.getResources(), this.formData));
-    } catch (Exception e) {
-      BasicLogger.log(Level.SEVERE, e.toString());
-    }
   }
 
   /**
@@ -122,11 +120,23 @@ public class PDFGenerator {
     PDDocumentCatalog catalog = document.getDocumentCatalog();
     catalog.setDocumentOutline((outline));
     PDResources resources = new PDResources();
-    font = PDType1Font.HELVETICA;
-    fontBold = PDType1Font.HELVETICA_BOLD;
-    resources.put(COSName.getPDFName("Helv"), font);
+
+    font = PDType0Font.load(document, new FileInputStream("./classes/font/inter/Inter-Medium.ttf"), true);
+    fontBold = PDType0Font.load(document, new FileInputStream("./classes/font/inter/Inter-Bold.ttf"), true);
+    COSName fontCOSName = resources.add(font);
+
+    data = new String(Base64.decodeBase64(data), StandardCharsets.UTF_8);
+    data = TextUtils.removeIllegalChars(data, font);
+
+    try {
+      formData = FormUtils.parseXml(data);
+      textResources.setResources(parseAndCleanTextResources(textResources.getResources(), formData, font));
+    } catch (Exception e) {
+      BasicLogger.log(Level.SEVERE, e.toString());
+    }
+
     form.setDefaultResources(resources);
-    String defaultAppearance = "/Helv 10 Tf 0 0 0 rg";
+    String defaultAppearance = "/" + fontCOSName.getName() + " 10 Tf 0 0 0 rg";
     form.setDefaultAppearance(defaultAppearance);
     catalog.setAcroForm(form);
     catalog.setLanguage(getLanguage());
@@ -368,11 +378,21 @@ public class PDFGenerator {
       renderAttachmentListContent(element);
     } else if (elementType.equalsIgnoreCase("AddressComponent")) {
       renderAddressComponent(element);
+    } else if (elementType.equalsIgnoreCase("Panel")) {
+      renderPanelComponent(element);
     } else {
       // all other components rendered equally
       renderLayoutElementContent(element);
     }
     yPoint -= componentMargin;
+  }
+
+  private void renderPanelComponent(FormLayoutElement element) throws IOException {
+    String bodyKey = element.getTextResourceBindings().getBody();
+    if (bodyKey != null && !bodyKey.isEmpty()) {
+      String description = TextUtils.getTextResourceByKey(bodyKey, textResources);
+      renderText(description, font, fontSize, StandardStructureTypes.P);
+    }
   }
 
   private void renderHeader() throws IOException {
@@ -384,8 +404,7 @@ public class PDFGenerator {
     currentContent.beginText();
     currentContent.newLineAtOffset(xPoint, yPoint);
     currentContent.setFont(fontBold, headerFontSize);
-    String unparsedHeader = TextUtils.getAppOwnerName(instance.getOrg(), getLanguage(), textResources) + " - " + TextUtils.getAppName(textResources);
-    String header = TextUtils.removeIllegalChars(unparsedHeader);
+    String header = TextUtils.getAppOwnerName(instance.getOrg(), getLanguage(), textResources) + " - " + TextUtils.getAppName(textResources);
     List<String> lines = TextUtils.splitTextToLines(header, fontBold, headerFontSize, width);
     for (String line : lines) {
       currentContent.showText(line);
@@ -445,7 +464,7 @@ public class PDFGenerator {
     currentContent = new PDPageContentStream(document, currentPage);
   }
 
-  private void renderText(String text, PDFont font, float fontSize, String type) throws IOException {
+  private void renderText(String text, PDType0Font font, float fontSize, String type) throws IOException {
     addSection(currentPart);
     beginMarkedContent(COSName.P);
     addContentToCurrentSection(COSName.P, type);
@@ -504,7 +523,7 @@ public class PDFGenerator {
   private String getDisplayValueFromOptions(FormLayoutElement element) {
     String value = FormUtils.getFormDataByKey(element.getDataModelBindings().get("simpleBinding"), formData);
     List<String> splitFormData;
-    if (element.getType().equalsIgnoreCase("Checkboxes")) {
+    if (element.getType().equalsIgnoreCase("Checkboxes") || element.getType().equalsIgnoreCase("MultipleSelect")) {
       // checkboxes can have multiple values, need to fetch label for each one
       splitFormData = Arrays.asList(value.split((",")));
     } else {
@@ -621,7 +640,7 @@ public class PDFGenerator {
     float indent = 10;
     currentContent.newLineAtOffset(xPoint + indent, yPoint);
     for (String file : files) {
-      currentContent.showText("- " + file);
+      currentContent.showText("- " + TextUtils.removeIllegalChars(file, font));
       currentContent.newLineAtOffset(0, -leading);
       yPoint -= leading;
     }
@@ -640,7 +659,7 @@ public class PDFGenerator {
     for (String name : files.keySet()) {
       List<String> tags = files.get(name);
 
-      currentContent.showText("- " + name + " - ");
+      currentContent.showText("- " + TextUtils.removeIllegalChars(name, font) + " - ");
       for (String tag : tags) {
         if (tag != tags.get(tags.size() - 1))
           currentContent.showText(tag + ", ");
@@ -707,11 +726,11 @@ public class PDFGenerator {
     currentContent.beginMarkedContent(name, PDPropertyList.create(currentMarkedContentDictionary));
   }
 
-  private List<TextResourceElement> parseAndCleanTextResources(List<TextResourceElement> resources, Document formData) {
+  private List<TextResourceElement> parseAndCleanTextResources(List<TextResourceElement> resources, Document formData, PDType0Font font) {
     List<String> replaceValues = new ArrayList<>();
 
     for (TextResourceElement res : resources) {
-      res.setValue(TextUtils.removeIllegalChars(res.getValue()));
+      res.setValue(TextUtils.removeIllegalChars(res.getValue(), font));
       replaceValues.clear();
       if (res.getVariables() != null) {
         for (TextResourceVariableElement variable : res.getVariables()) {

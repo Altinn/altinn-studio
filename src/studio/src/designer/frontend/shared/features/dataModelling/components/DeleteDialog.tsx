@@ -1,18 +1,10 @@
-import {
-  Button,
-  Grid,
-  makeStyles,
-  Popover,
-  Typography,
-} from '@material-ui/core';
 import React from 'react';
-import {
-  getLanguageFromKey,
-  getParsedLanguageFromKey,
-} from '../../../utils/language';
+import { Button, Grid, Popover, Typography } from '@mui/material';
+import { makeStyles } from '@mui/styles';
+import { getLanguageFromKey, getParsedLanguageFromKey } from '../../../utils/language';
 import altinnTheme from '../../../theme/altinnStudioTheme';
 
-interface IDeleteDialogProps {
+export interface IDeleteDialogProps {
   anchor: Element;
   language: any;
   schemaName: string;
@@ -47,7 +39,7 @@ const useStyles = makeStyles({
   },
 });
 
-export default function DeleteDialog(props: IDeleteDialogProps) {
+export function DeleteDialog(props: IDeleteDialogProps) {
   const description = getParsedLanguageFromKey(
     'administration.delete_model_confirm',
     props.language,
@@ -82,14 +74,8 @@ export default function DeleteDialog(props: IDeleteDialogProps) {
             {getLanguageFromKey('general.continue', props.language)}
           </Button>
 
-          <Button
-            id='cancel-delete-button'
-            color='primary'
-            onClick={props.onCancel}
-          >
-            <span className={classes.borderBottom}>
-              {getLanguageFromKey('general.cancel', props.language)}
-            </span>
+          <Button id='cancel-delete-button' color='primary' onClick={props.onCancel}>
+            <span className={classes.borderBottom}>{getLanguageFromKey('general.cancel', props.language)}</span>
           </Button>
         </Grid>
       </Grid>

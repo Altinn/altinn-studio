@@ -7,6 +7,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Web;
 
 using Altinn.Common.EFormidlingClient.Configuration;
 using Altinn.Common.EFormidlingClient.Models;
@@ -237,8 +238,10 @@ namespace Altinn.Common.EFormidlingClient
             streamContent.Headers.ContentDisposition = new ContentDispositionHeaderValue("attachment")
             {
                 Name = "attachment",
-                FileName = filename
+                FileName = filename,
+                FileNameStar = filename,
             };
+
             streamContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
 
             HttpResponseMessage response = await _client.PutAsync($"messages/out/{id}?title={filename}", streamContent, requestHeaders);
@@ -329,7 +332,7 @@ namespace Altinn.Common.EFormidlingClient
         /// <inheritdoc/>
         public async Task<bool> UnSubscribeeFormidling(int id, Dictionary<string, string> requestHeaders)
         {
-            AssertNotNull(id, nameof(id));
+            AssertAboveZero(id, nameof(id));
 
             string responseBody;
 
@@ -357,7 +360,7 @@ namespace Altinn.Common.EFormidlingClient
         {
             if (string.IsNullOrEmpty(paramValue))
             {
-                throw new ArgumentException($"'{paramName}' cannot be null or empty.", nameof(paramName));
+                throw new ArgumentNullException($"'{paramName}' cannot be null or empty.", nameof(paramName));
             }
         }
 
@@ -365,7 +368,15 @@ namespace Altinn.Common.EFormidlingClient
         {
             if (paramValue == null)
             {
-                throw new ArgumentException($"'{paramName}' cannot be null or empty.", nameof(paramName));
+                throw new ArgumentNullException($"'{paramName}' cannot be null or empty.", nameof(paramName));
+            }
+        }
+
+        private static void AssertAboveZero(int paramValue, string paramName)
+        {
+            if (paramValue <= 0)
+            {
+                throw new ArgumentNullException($"'{paramName}' cannot be null or empty.", nameof(paramName));
             }
         }
     }

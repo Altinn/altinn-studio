@@ -1,11 +1,11 @@
-import {
-  ListItemText,
-  Typography,
-  ListItemIcon,
-  MenuItem,
-  makeStyles,
-} from '@material-ui/core';
 import React from 'react';
+import {
+  ListItemIcon,
+  ListItemText,
+  MenuItem,
+  Typography,
+} from '@mui/material';
+import { makeStyles } from '@mui/styles';
 
 export interface IAltinnMenuItemProps {
   text: string;
@@ -13,6 +13,7 @@ export interface IAltinnMenuItemProps {
   onClick: (event: React.SyntheticEvent) => void;
   disabled?: boolean;
   id: string;
+  className?: string;
 }
 
 const useStyles = makeStyles(() => ({
@@ -30,9 +31,10 @@ function AltinnMenuItem(
   ref: React.Ref<HTMLLIElement>,
 ) {
   const classes = useStyles();
-  const { text, iconClass, onClick, disabled, id } = props;
+  const { text, iconClass, onClick, disabled, id, className } = props;
   return (
     <MenuItem
+      className={className}
       onClick={onClick}
       disabled={disabled}
       id={id}

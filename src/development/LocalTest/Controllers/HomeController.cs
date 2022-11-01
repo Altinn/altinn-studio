@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Security.Claims;
 using System.Xml;
@@ -15,8 +16,10 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.Options;
 
 using AltinnCore.Authentication.Constants;
+using Altinn.Platform.Authorization.Services.Interface;
 using Altinn.Platform.Profile.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using Altinn.Platform.Storage.Repository;
 
 using LocalTest.Configuration;
 using LocalTest.Models;
@@ -35,6 +38,8 @@ namespace LocalTest.Controllers
         private readonly LocalPlatformSettings _localPlatformSettings;
         private readonly IUserProfiles _userProfileService;
         private readonly IAuthentication _authenticationService;
+        private readonly IApplicationRepository _applicationRepository;
+        private readonly IClaims _claimsService;
         private readonly ILocalApp _localApp;
 
         public HomeController(
@@ -42,12 +47,16 @@ namespace LocalTest.Controllers
             IOptions<LocalPlatformSettings> localPlatformSettings,
             IUserProfiles userProfileService,
             IAuthentication authenticationService,
+            IApplicationRepository applicationRepository,
+            IClaims claimsService,
             ILocalApp localApp)
         {
             _generalSettings = generalSettings.Value;
             _localPlatformSettings = localPlatformSettings.Value;
             _userProfileService = userProfileService;
             _authenticationService = authenticationService;
+            _applicationRepository = applicationRepository;
+            _claimsService = claimsService;
             _localApp = localApp;
         }
 
@@ -70,6 +79,7 @@ namespace LocalTest.Controllers
             model.LocalAppUrl = _localPlatformSettings.LocalAppUrl;
             var defaultAuthLevel = _localPlatformSettings.LocalAppMode == "http" ? await GetAppAuthLevel(model.TestApps) : 2;
             model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
+            model.LocalFrontendUrl = HttpContext.Request.Cookies[FRONTEND_URL_COOKIE_NAME];
 
             if (!model.TestApps?.Any() ?? true)
             {
@@ -82,11 +92,6 @@ namespace LocalTest.Controllers
             }
 
             return View(model);
-        }
-
-        public IActionResult Privacy()
-        {
-            return View();
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
@@ -103,24 +108,31 @@ namespace LocalTest.Controllers
         [HttpPost]
         public async Task<ActionResult> LogInTestUser(StartAppModel startAppModel)
         {
-            UserProfile profile = await _userProfileService.GetUser(startAppModel.UserId);
+            if (startAppModel.AuthenticationLevel != "-1")
+            {
+                UserProfile profile = await _userProfileService.GetUser(startAppModel.UserId);
 
-            List<Claim> claims = new List<Claim>();
-            string issuer = _generalSettings.Hostname;
-            claims.Add(new Claim(ClaimTypes.NameIdentifier, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.UserId, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.UserName, profile.UserName, ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, profile.PartyId.ToString(), ClaimValueTypes.Integer32, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, startAppModel.AuthenticationLevel, ClaimValueTypes.Integer32, issuer));
+                List<Claim> claims = new List<Claim>();
+                string issuer = _generalSettings.Hostname;
+                claims.Add(new Claim(ClaimTypes.NameIdentifier, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
+                claims.Add(new Claim(AltinnCoreClaimTypes.UserId, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
+                claims.Add(new Claim(AltinnCoreClaimTypes.UserName, profile.UserName, ClaimValueTypes.String, issuer));
+                claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, profile.PartyId.ToString(), ClaimValueTypes.Integer32, issuer));
+                claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, startAppModel.AuthenticationLevel, ClaimValueTypes.Integer32, issuer));
+                claims.AddRange(await _claimsService.GetCustomClaims(profile.UserId, issuer));
 
-            ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
-            identity.AddClaims(claims);
-            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
+                ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
+                identity.AddClaims(claims);
+                ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
-            string token = _authenticationService.GenerateToken(principal, int.Parse(_generalSettings.GetJwtCookieValidityTime));
-            CreateJwtCookieAndAppendToResponse(token);
+                string token = _authenticationService.GenerateToken(principal, int.Parse(_generalSettings.GetJwtCookieValidityTime));
+                CreateJwtCookieAndAppendToResponse(token);
+            }
 
             Application app = await _localApp.GetApplicationMetadata(startAppModel.AppPathSelection);
+
+            // Ensure that the documentstorage in LocalTestingStorageBasePath is updated with the most recent app data
+            await _applicationRepository.Update(app);
 
             return Redirect($"{_generalSettings.GetBaseUrl}/{app.Id}/");
         }
@@ -182,6 +194,77 @@ namespace LocalTest.Controllers
             return await Task.FromResult(Ok(token));
         }
 
+        /// <summary>
+        ///  See src\development\loadbalancer\nginx.conf
+        /// </summary>
+        public static readonly string FRONTEND_URL_COOKIE_NAME = "frontendVersion";
+
+        [HttpGet]
+        public async Task<ActionResult> FrontendVersion([FromServices]HttpClient client)
+        {
+            var versionFromCookie = HttpContext.Request.Cookies[FRONTEND_URL_COOKIE_NAME];
+
+
+
+            var frontendVersion = new FrontendVersion()
+            {
+                Version = versionFromCookie,
+                Versions = new List<SelectListItem>()
+                {
+                    new ()
+                    {
+                        Text = "Keep as is",
+                        Value = "",
+                    },
+                    new ()
+                    {
+                        Text = "localhost:8080 (local dev)",
+                        Value = "http://localhost:8080/"
+                    }
+                }
+            };
+            var cdnVersionsString = await client.GetStringAsync("https://altinncdn.no/toolkits/altinn-app-frontend/index.json");
+            var groupCdnVersions = new SelectListGroup() { Name = "Specific version from cdn" };
+            var versions = JsonSerializer.Deserialize<List<string>>(cdnVersionsString);
+            versions.Reverse();
+            versions.ForEach(version =>
+            {
+                frontendVersion.Versions.Add(new()
+                {
+                    Text = version,
+                    Value = $"https://altinncdn.no/toolkits/altinn-app-frontend/{version}/",
+                    Group = groupCdnVersions
+                });
+            });
+
+            return View(frontendVersion);
+        }
+        public ActionResult FrontendVersion(FrontendVersion frontendVersion)
+        {
+            var options = new CookieOptions
+            {
+                Expires = DateTime.MaxValue,
+                HttpOnly = true,
+            };
+            ICookieManager cookieManager = new ChunkingCookieManager();
+            if (string.IsNullOrWhiteSpace(frontendVersion.Version))
+            {
+                cookieManager.DeleteCookie(HttpContext, FRONTEND_URL_COOKIE_NAME, options);
+            }
+            else
+            {
+                cookieManager.AppendResponseCookie(
+                    HttpContext,
+                    FRONTEND_URL_COOKIE_NAME,
+                    frontendVersion.Version,
+                    options
+                    );
+            }
+
+            return RedirectToAction("Index");
+        }
+
+
         private async Task<List<UserProfile>> GetTestUsers()
         {
             List<UserProfile> users = new List<UserProfile>();
@@ -226,7 +309,8 @@ namespace LocalTest.Controllers
         }
         private async Task<int> GetAppAuthLevel(IEnumerable<SelectListItem> testApps)
         {
-            try {
+            try
+            {
                 var appId = testApps.Single().Value;
                 var policyString = await _localApp.GetXACMLPolicy(appId);
                 var document = new XmlDocument();
@@ -236,7 +320,7 @@ namespace LocalTest.Controllers
                 var authLevelNode = document.SelectSingleNode("/xacml:Policy/xacml:ObligationExpressions/xacml:ObligationExpression[@ObligationId='urn:altinn:obligation:authenticationLevel1']/xacml:AttributeAssignmentExpression[@Category='urn:altinn:minimum-authenticationlevel']/xacml:AttributeValue", nsMngr);
                 return int.Parse(authLevelNode.InnerText);
             }
-            catch(Exception)
+            catch (Exception)
             {
                 // Return default auth level if Single app auth level can't be found.
                 return 2;
@@ -247,6 +331,12 @@ namespace LocalTest.Controllers
         {
             return new()
             {
+                new()
+                {
+                    Value = "-1",
+                    Text = "Ikke autentisert",
+                    Selected = defaultAuthLevel == -1
+                },
                 new()
                 {
                     Value = "0",

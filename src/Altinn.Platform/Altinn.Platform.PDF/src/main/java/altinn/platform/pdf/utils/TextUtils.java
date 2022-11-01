@@ -3,8 +3,7 @@ package altinn.platform.pdf.utils;
 import altinn.platform.pdf.models.TextResourceElement;
 import altinn.platform.pdf.models.TextResources;
 import com.google.gson.Gson;
-import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.font.encoding.WinAnsiEncoding;
+import org.apache.pdfbox.pdmodel.font.PDType0Font;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
@@ -25,6 +24,8 @@ public class TextUtils {
   private static String appOwnerKey = "appOwner";
   private static String appNameKey = "appName";
   private static String oldAppNameKey = "ServiceName";
+  private static final List<Byte> ILLEGAL_CHAR_TYPES = List.of(Character.CONTROL, Character.FORMAT, Character.PRIVATE_USE, Character.SURROGATE, Character.UNASSIGNED);
+
 
   private TextUtils() {}
 
@@ -79,19 +80,48 @@ public class TextUtils {
   /**
    * Removes illegal chars that pdf-generation does not handle
    * @param raw the unfiltered string
+   * @param font the font used for checking glyphs
    * @return the filtered string
    */
-  public static String removeIllegalChars(String raw) {
-    if (raw == null) {
+  public static String removeIllegalChars(String raw, PDType0Font font) {
+    if (raw == null || raw.length() == 0) {
       return "";
     }
-    StringBuilder builder = new StringBuilder();
-    for (int i = 0; i < raw.length(); i++) {
-        if (WinAnsiEncoding.INSTANCE.contains(raw.charAt(i)) ) {
-            builder.append(raw.charAt(i));
+
+    var builder = new StringBuilder(raw.length());
+    int codePoint;
+    for (int offset = 0; offset < raw.length(); offset += Character.charCount(codePoint))
+    {
+        codePoint = raw.codePointAt(offset);
+        int characterType = Character.getType(codePoint);
+
+        if (ILLEGAL_CHAR_TYPES.contains((byte)characterType)) {
+          if (codePoint == 13 || codePoint == 10) { // newline characters are allowed
+            builder.append(Character.toChars(codePoint));
+          }
+        } else { // not illegal character, append if font can render glyph
+          builder.append(filterUsingFont(font, codePoint));
         }
     }
-    return builder.toString().replaceAll("\\p{Cntrl}", "");
+
+    return builder.toString();
+  }
+
+  /**
+   * Returns string for codePoint if supported by font, else returns empty string
+   * @param font the font used for checking glyphs
+   * @param codePoint the codePoint for the character to check
+   * @return the filtered string
+   */
+  private static String filterUsingFont(PDType0Font font, int codePoint) {
+    try {
+        String text = new String(Character.toChars(codePoint));
+        // Ugly hack for checking if text can be handled by font. Throws if glyph is missing.
+        float width = font.getStringWidth(text);
+        return (width > 0) ? text : "";
+    } catch (final Exception e) {
+        return "";
+    }
   }
 
   /**
@@ -99,7 +129,7 @@ public class TextUtils {
    * @param text the text
    * @return the the height needed to fit the text
    */
-  public static float getHeightNeededForText(String text, PDFont font, float fontSize, float width) throws IOException {
+  public static float getHeightNeededForText(String text, PDType0Font font, float fontSize, float width) throws IOException {
     float fontHeight = getFontHeight(font, fontSize);
     if (text == null || text.length() == 0) {
       return fontHeight;
@@ -112,7 +142,7 @@ public class TextUtils {
       heightNeeded += ((numberOfLines - 1) * fontHeight * 0.865);
     }
     return heightNeeded;
-}
+  }
 
   /**
    * Gets the height needed for a multi line text box
@@ -124,7 +154,7 @@ public class TextUtils {
    * @return the height need in pixels
    * @throws IOException
    */
-  public static float getHeightNeededForTextBox(String text, PDFont font, float fontSize, float width, float leading) throws IOException {
+  public static float getHeightNeededForTextBox(String text, PDType0Font font, float fontSize, float width, float leading) throws IOException {
     float textHeight = getHeightNeededForText(text, font, fontSize, width);
     float leadingDiff = (leading - fontSize);
     return textHeight + leadingDiff*2;
@@ -139,7 +169,7 @@ public class TextUtils {
    * @param width the width of the page
    * @return a list of lines
    */
-  public static List<String> splitTextToLines(String text, PDFont font, float fontSize, float width) throws IOException {
+  public static List<String> splitTextToLines(String text, PDType0Font font, float fontSize, float width) throws IOException {
     List<String> lines = new ArrayList<>();
     if (text == null || text.length() == 0) {
       return lines;
@@ -191,7 +221,7 @@ public class TextUtils {
    * @param fontSize the font size
    * @return the height
    */
-  public static float getFontHeight(PDFont font, float fontSize) {
+  public static float getFontHeight(PDType0Font font, float fontSize) {
     return (font.getFontDescriptor().getCapHeight() / 1000 * fontSize);
   }
 
@@ -203,8 +233,8 @@ public class TextUtils {
    * @param width the width
    * @return a list of lines needed to fit word
    */
-  public static List<String> splitWordToFitWidth(String word, PDFont font, float fontSize, float width) throws IOException {
-    List<String> lines = new ArrayList();
+  public static List<String> splitWordToFitWidth(String word, PDType0Font font, float fontSize, float width) throws IOException {
+    List<String> lines = new ArrayList<>();
     if (word == null || font == null) {
       return lines;
     }
@@ -238,7 +268,7 @@ public class TextUtils {
    * @return the width in pixels
    * @throws IOException
    */
-  public static float getStringWidth(String word, PDFont font, float fontSize) throws IOException {
+  public static float getStringWidth(String word, PDType0Font font, float fontSize) throws IOException {
     return fontSize * font.getStringWidth(word) / 1000;
   }
 

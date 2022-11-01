@@ -19,7 +19,7 @@ namespace Altinn.Studio.Designer.Factories
         /// </summary>
         /// <param name="serviceRepositorySettings">Settings controlling the where to find the repositories (using the value <see cref="ServiceRepositorySettings.RepositoryLocation"/>.</param>
         public AltinnGitRepositoryFactory(IOptions<ServiceRepositorySettings> serviceRepositorySettings) : this(serviceRepositorySettings.Value.RepositoryLocation)
-        {            
+        {
         }
 
         /// <summary>
@@ -33,7 +33,7 @@ namespace Altinn.Studio.Designer.Factories
 
         /// <summary>
         /// Creates an instance of <see cref="AltinnGitRepository"/>
-        /// </summary>        
+        /// </summary>
         /// <returns><see cref="AltinnGitRepository"/></returns>
         public AltinnGitRepository GetAltinnGitRepository(string org, string repository, string developer)
         {
@@ -43,7 +43,7 @@ namespace Altinn.Studio.Designer.Factories
 
         /// <summary>
         /// Creates an instance of <see cref="AltinnAppGitRepository"/>
-        /// </summary>        
+        /// </summary>
         /// <returns><see cref="AltinnAppGitRepository"/></returns>
         public AltinnAppGitRepository GetAltinnAppGitRepository(string org, string repository, string developer)
         {

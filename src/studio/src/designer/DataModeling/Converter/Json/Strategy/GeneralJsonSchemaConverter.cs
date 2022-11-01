@@ -35,7 +35,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             _xsd = new XmlSchema();
             _namespaces = new Dictionary<string, string>();
 
-            HandleSchemaAttributes();   
+            HandleSchemaAttributes();
             HandleNamespaces();
             HandleSchemaUnhandledAttributes();
 
@@ -152,6 +152,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                             break;
                         case "FinalDefault":
                             _xsd.FinalDefault = Enum.TryParse(value, true, out XmlSchemaDerivationMethod xmlSchemaDerivationFinal) ? xmlSchemaDerivationFinal : XmlSchemaDerivationMethod.None;
+                            break;
+                        case nameof(XmlSchema.TargetNamespace):
+                            _xsd.TargetNamespace = value;
                             break;
                     }
                 }
@@ -604,6 +607,11 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     throw new JsonSchemaConvertException($"Invalid base type for SimpleType restriction {path.Combine(JsonPointer.Parse($"/allOf/[{baseTypeSchemaIndex}]"))}");
                 }
 
+                if (baseTypeSchema.HasKeyword<XsdUnhandledAttributesKeyword>())
+                {
+                    AddUnhandledAttributes(restriction, baseTypeSchema.Keywords.GetKeyword<XsdUnhandledAttributesKeyword>());
+                }
+
                 restrictionsKeywordsList.AddRange(restrictionSchemas.Select(restrictionSchema => restrictionSchema.AsWorkList()));
             }
             else
@@ -717,7 +725,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
                         foreach (var value in enumKeyword.Values)
                         {
-                            facets.Add(new XmlSchemaEnumerationFacet { Value = value.GetString() });
+                            facets.Add(new XmlSchemaEnumerationFacet { Value = value.ToString() });
                         }
 
                         break;
@@ -754,6 +762,22 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                         }
 
                         break;
+                    case FormatExclusiveMinimumKeyword formatExclusiveMinimum:
+                        keywords.MarkAsHandled<FormatExclusiveMinimumKeyword>();
+                        facets.Add(new XmlSchemaMinExclusiveFacet() { Value = formatExclusiveMinimum.Value.ToString(NumberFormatInfo.InvariantInfo) });
+                        break;
+                    case FormatMinimumKeyword formatMinimum:
+                        keywords.MarkAsHandled<FormatMinimumKeyword>();
+                        facets.Add(new XmlSchemaMinInclusiveFacet() { Value = formatMinimum.Value.ToString(NumberFormatInfo.InvariantInfo) });
+                        break;
+                    case FormatExclusiveMaximumKeyword formatExclusiveMaximum:
+                        keywords.MarkAsHandled<FormatExclusiveMaximumKeyword>();
+                        facets.Add(new XmlSchemaMaxExclusiveFacet() { Value = formatExclusiveMaximum.Value.ToString(NumberFormatInfo.InvariantInfo) });
+                        break;
+                    case FormatMaximumKeyword formatMaximum:
+                        keywords.MarkAsHandled<FormatMaximumKeyword>();
+                        facets.Add(new XmlSchemaMaxInclusiveFacet() { Value = formatMaximum.Value.ToString(NumberFormatInfo.InvariantInfo) });
+                        break;
                     default:
                         continue;
                 }
@@ -761,7 +785,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             return facets;
         }
-        
+
         private static XmlQualifiedName GetTypeNameFromTypeKeyword(TypeKeyword typeKeyword, WorkList<IJsonSchemaKeyword> keywords)
         {
             // This is the case of nillable, so we remove the Null type to be left with the actual type.
@@ -1004,6 +1028,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 SetRequired(subItem, required.Contains(name));
                 SetFixed(subItem, property.Keywords.GetKeyword<ConstKeyword>());
                 SetDefault(subItem, property.Keywords.GetKeyword<DefaultKeyword>());
+                CarryOccurs(subItem, property);
 
                 switch (subItem)
                 {
@@ -1014,12 +1039,29 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     case XmlSchemaElement element:
                         element.Parent = sequence;
                         sequence.Items.Add(element);
-
                         AddUnhandledAttributes(element, property.Keywords.GetKeyword<XsdUnhandledAttributesKeyword>());
                         break;
                     default:
                         throw new NotImplementedException();
                 }
+            }
+        }
+
+        private static void CarryOccurs(XmlSchemaObject subItem, JsonSchema property)
+        {
+            if (subItem is not XmlSchemaParticle particle)
+            {
+                return;
+            }
+
+            if (property.Keywords.TryGetKeyword(out XsdMinOccursKeyword minOccursKeyword))
+            {
+                particle.MinOccurs = minOccursKeyword.Value;
+            }
+
+            if (property.Keywords.TryGetKeyword(out XsdMaxOccursKeyword maxOccursKeyword))
+            {
+                particle.MaxOccursString = maxOccursKeyword.Value;
             }
         }
 
@@ -1031,14 +1073,12 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             if (compatibleTypes.Contains(CompatibleXsdType.Array))
             {
-                var itemSchema = schema.GetKeyword<ItemsKeyword>().SingleSchema;
-
-                if (itemSchema.TryGetKeyword(out MinItemsKeyword minItemsKeyword))
+                if (schema.TryGetKeyword(out MinItemsKeyword minItemsKeyword))
                 {
                     arrayMinOccurs = minItemsKeyword.Value.ToString();
                 }
 
-                arrayMaxOccurs = itemSchema.TryGetKeyword(out MaxItemsKeyword maxItemsKeyword) ? maxItemsKeyword.Value.ToString() : "unbounded";
+                arrayMaxOccurs = schema.TryGetKeyword(out MaxItemsKeyword maxItemsKeyword) ? maxItemsKeyword.Value.ToString() : "unbounded";
             }
 
             if (compatibleTypes.Contains(CompatibleXsdType.SimpleType))
@@ -1152,7 +1192,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 return;
             }
 
-            var unhandledAttributes = new List<XmlAttribute>();            
+            var unhandledAttributes = new List<XmlAttribute>();
             foreach (var (name, value) in xsdUnhandledAttributesKeyword.Properties)
             {
                 XmlAttribute attribute = CreateAttribute(name, value);
@@ -1228,9 +1268,17 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             {
                 return GetTypeNameFromTypeKeyword(typeKeyword, keywords);
             }
-            else if (schema.TryGetKeyword<RefKeyword>(out RefKeyword refKeyword))
+
+            if (schema.TryGetKeyword<RefKeyword>(out RefKeyword refKeyword))
             {
                 return GetTypeNameFromReference(refKeyword.Reference);
+            }
+
+            // Nillable array
+            if (schema.TryGetKeyword<OneOfKeyword>(out var oneOfKeyword))
+            {
+                var refKeywordSubSchema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
+                return GetTypeNameFromReference(refKeywordSubSchema.GetKeyword<RefKeyword>().Reference);
             }
 
             return new XmlQualifiedName();
@@ -1355,7 +1403,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
 
             // Fallback to open string value
-            return "string"; 
+            return "string";
         }
 
         private static int GetKeywordSubSchemaIndex<T>(IReadOnlyList<JsonSchema> schemas)

@@ -1,13 +1,6 @@
-import {
-  createTheme,
-  createStyles,
-  Grid,
-  Input,
-  InputLabel,
-  WithStyles,
-} from '@material-ui/core';
-import { withStyles } from '@material-ui/core/styles';
 import React from 'react';
+import { createTheme, Grid, Input, InputLabel } from '@mui/material';
+import { createStyles, WithStyles, withStyles } from '@mui/styles';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 const theme = createTheme(altinnTheme);
@@ -49,9 +42,9 @@ const styles = createStyles({
   },
 });
 
-export interface IAltinnInputProps extends
-  React.InputHTMLAttributes<any>,
-  WithStyles<typeof styles> {
+export interface IAltinnInputProps
+  extends React.InputHTMLAttributes<any>,
+    WithStyles<typeof styles> {
   iconString?: string;
   widthPercentage?: number;
   showLabel?: boolean;
@@ -61,7 +54,15 @@ export interface IAltinnInputProps extends
 
 function AltinnInput(props: IAltinnInputProps) {
   const inputRef = React.createRef<HTMLInputElement>();
-  const { classes, iconString, label, widthPercentage, showLabel, validationError, ...rest } = props;
+  const {
+    classes,
+    iconString,
+    label,
+    widthPercentage,
+    showLabel,
+    validationError,
+    ...rest
+  } = props;
 
   function focusInput() {
     inputRef.current.focus();
@@ -78,28 +79,29 @@ function AltinnInput(props: IAltinnInputProps) {
         width: !!widthPercentage ? `${widthPercentage}%` : '100%',
       }}
     >
-      {showLabel ?
-        <InputLabel
-          className={classes.altinnInputLabel}
-        >
-          {label}
-        </InputLabel>
-        : null
-      }
+      {showLabel ? (
+        <InputLabel className={classes.altinnInputLabel}>{label}</InputLabel>
+      ) : null}
       <Grid
         container={true}
         direction={'row'}
-        className={validationError ? classes.altinnInputValidationError : classes.altinnInput}
+        className={
+          validationError
+            ? classes.altinnInputValidationError
+            : classes.altinnInput
+        }
       >
-      {!!iconString ?
-        <i className={`${classes.altinnInputIcon} ${iconString}`} onClick={focusInput}/> :
-        null
-      }
+        {!!iconString ? (
+          <i
+            className={`${classes.altinnInputIcon} ${iconString}`}
+            onClick={focusInput}
+          />
+        ) : null}
         <Input
           inputProps={{
             'aria-label': `${label}`,
             'aria-required': 'true',
-            ...rest
+            ...rest,
           }}
           className={classes.altinnInputField}
           disableUnderline={true}

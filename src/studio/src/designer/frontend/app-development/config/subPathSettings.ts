@@ -2,18 +2,12 @@ const subPathSettings = {
   about: [
     {
       displayText: 'Om appen',
-      navLink: '/about',
+      navLink: '/',
       activeLeftMenuSelection: 'Om appen',
       iconClass: 'fa fa-info-circle',
     },
   ],
   create: [
-    {
-      displayText: 'Datamodellering',
-      navLink: '/datamodel',
-      activeLeftMenuSelection: 'Data-Modelling',
-      iconClass: 'fa fa-archive',
-    },
     {
       displayText: 'UI-Editor',
       navLink: '/ui-editor',

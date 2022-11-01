@@ -1,0 +1,24 @@
+﻿<xsd:schema xmlns="urn:no:skatteetaten:fastsetting:formueinntekt:skattemeldingsapp:v2" xmlns:skatt="http://www.skatteetaten.no/xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="urn:no:skatteetaten:fastsetting:formueinntekt:skattemeldingsapp:v2">
+  <xsd:annotation>
+    <xsd:documentation>
+      <xsd:attribute fixed="2021-09-01T14:45:31.437+0200" name="generertDato" />
+      <xsd:attribute fixed="v2" name="versjon" />
+      <xsd:attribute fixed="" name="beskrivelse" />
+      <xsd:attribute fixed="v2" name="modellnavn" />
+      <xsd:attribute fixed="urn:no:skatteetaten:fastsetting:formueinntekt:skattemeldingsapp:v2" name="navnerom" />
+      <xsd:attribute fixed="false" name="begrepsreferanse" />
+      <xsd:attribute fixed="false" name="dokumentasjon" />
+      <xsd:attribute fixed="false" name="nillable" />
+      <xsd:attribute fixed="false" name="modellelement" />
+    </xsd:documentation>
+  </xsd:annotation>
+  <xsd:element name="skattemeldingApp" type="SkattemeldingApp" />
+  <xsd:complexType name="SkattemeldingApp">
+    <xsd:sequence>
+      <xsd:element name="inntektsaar" type="Aarstall" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="Aarstall">
+    <xsd:restriction base="xsd:gYear" />
+  </xsd:simpleType>
+</xsd:schema>

@@ -3,7 +3,6 @@ using Altinn.Platform.Storage.Interface.Models;
 using Altinn.Platform.Storage.Repository;
 
 using LocalTest.Configuration;
-using LocalTest.Services.Localtest.Interface;
 
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -64,9 +63,10 @@ namespace LocalTest.Services.Storage.Implementation
             throw new NotImplementedException();
         }
 
-        public async Task<Instance> GetOne(string instanceId, int instanceOwnerPartyId)
+        public async Task<Instance> GetOne(int instanceOwnerPartyId, Guid instanceGuid)
         {
-            string path = GetInstancePath(instanceId.Replace("/", "_"));
+            string instanceIdForPath = $"{instanceOwnerPartyId}_{instanceGuid}";
+            string path = GetInstancePath(instanceIdForPath);
             if (File.Exists(path))
             {
                 string content = File.ReadAllText(path);

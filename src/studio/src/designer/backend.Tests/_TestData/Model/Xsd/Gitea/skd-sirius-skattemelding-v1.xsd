@@ -1,0 +1,74 @@
+﻿<xsd:schema xmlns="urn:no:skatteetaten:fastsetting:formueinntekt:skattemeldingsapp:v1" xmlns:skatt="http://www.skatteetaten.no/xsd" xmlns:xsd="http://www.w3.org/2001/XMLSchema" attributeFormDefault="unqualified" elementFormDefault="qualified" targetNamespace="urn:no:skatteetaten:fastsetting:formueinntekt:skattemeldingsapp:v1">
+  <xsd:annotation>
+    <xsd:documentation>
+      <xsd:attribute fixed="2020-03-26T10:03:06.586+0100" name="generertDato" />
+      <xsd:attribute fixed="v1" name="versjon" />
+      <xsd:attribute fixed="" name="beskrivelse" />
+      <xsd:attribute fixed="Skattemelding - app" name="modellnavn" />
+      <xsd:attribute fixed="urn:no:skatteetaten:fastsetting:formueinntekt:skattemeldingsapp:v1" name="navnerom" />
+      <xsd:attribute fixed="false" name="begrepsreferanse" />
+      <xsd:attribute fixed="false" name="dokumentasjon" />
+      <xsd:attribute fixed="false" name="nillable" />
+      <xsd:attribute fixed="false" name="modellelement" />
+    </xsd:documentation>
+  </xsd:annotation>
+  <xsd:element name="SkattemeldingApp" type="SkattemeldingApp" />
+  <xsd:complexType name="SkattemeldingApp">
+    <xsd:sequence>
+      <xsd:element name="partsreferanse" type="Tekst" />
+      <xsd:element name="inntektsaar" type="Aarstall" />
+      <xsd:element name="innsendingstype" type="Innsendingstype" />
+      <xsd:element name="opprettetAv" type="Tekst" />
+      <xsd:element name="opprettingstidspunkt" type="DatoKlokkeslett" />
+      <xsd:element minOccurs="0" name="endringstidspunkt" type="DatoKlokkeslett" />
+      <xsd:element maxOccurs="unbounded" minOccurs="0" name="vedlegg" type="Vedlegg" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Vedlegg">
+    <xsd:sequence>
+      <xsd:element name="vedleggstype" type="Vedleggstype" />
+      <xsd:element name="kildegruppe" type="Kildegruppe" />
+      <xsd:element name="opprettetAv" type="Tekst" />
+      <xsd:element name="opprettingstidspunkt" type="DatoKlokkeslett" />
+      <xsd:element name="vedleggsfil" type="Vedleggsfil" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Vedleggsfil">
+    <xsd:sequence>
+      <xsd:element name="filnavn" type="Tekst" />
+      <xsd:element name="filextension" type="Tekst" />
+      <xsd:element name="filinnhold" type="xsd:string" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="Tekst">
+    <xsd:restriction base="xsd:string">
+      <xsd:maxLength value="4000" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Aarstall">
+    <xsd:restriction base="xsd:gYear" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Innsendingstype">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="komplett" />
+      <xsd:enumeration value="ikkeKomplett" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="DatoKlokkeslett">
+    <xsd:restriction base="xsd:dateTime" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Vedleggstype">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="skattemelding" />
+      <xsd:enumeration value="naeringsopplysning" />
+      <xsd:enumeration value="binaerVedlegg" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Kildegruppe">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="etat" />
+      <xsd:enumeration value="sluttbrukersystem" />
+      <xsd:enumeration value="sluttbruker" />
+    </xsd:restriction>
+  </xsd:simpleType>
+</xsd:schema>

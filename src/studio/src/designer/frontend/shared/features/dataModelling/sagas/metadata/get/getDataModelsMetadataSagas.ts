@@ -14,15 +14,10 @@ function* getDataModelsMetadataSaga(): SagaIterator {
       }),
     );
   } catch (error) {
-    yield put(
-      DataModelsMetadataActions.getDataModelsMetadataRejected({ error }),
-    );
+    yield put(DataModelsMetadataActions.getDataModelsMetadataRejected({ error }));
   }
 }
 
 export function* watchGetDataModelsMetadataSaga(): SagaIterator {
-  yield takeLatest(
-    DataModelsMetadataActions.getDataModelsMetadata,
-    getDataModelsMetadataSaga,
-  );
+  yield takeLatest(DataModelsMetadataActions.getDataModelsMetadata, getDataModelsMetadataSaga);
 }

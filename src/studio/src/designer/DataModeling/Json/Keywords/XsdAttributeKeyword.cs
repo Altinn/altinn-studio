@@ -10,7 +10,10 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
     /// </summary>
     [SchemaKeyword(Name)]
     [SchemaPriority(int.MinValue)]
-    [SchemaDraft(Draft.Unspecified)]
+    [SchemaDraft(Draft.Draft6)]
+    [SchemaDraft(Draft.Draft7)]
+    [SchemaDraft(Draft.Draft201909)]
+    [SchemaDraft(Draft.Draft202012)]
     [JsonConverter(typeof(XsdAttributeKeywordJsonConverter))]
     public sealed class XsdAttributeKeyword : IJsonSchemaKeyword, IEquatable<XsdAttributeKeyword>
     {
@@ -46,7 +49,7 @@ namespace Altinn.Studio.DataModeling.Json.Keywords
         /// </summary>
         public void Validate(ValidationContext context)
         {
-            context.Ignore = true;
+            // No validation for keyword.
         }
 
         /// <summary>Indicates whether the current object is equal to another object of the same type.</summary>

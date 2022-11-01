@@ -1,27 +1,23 @@
 import React from 'react';
-import { TopToolbarButton } from '@altinn/schema-editor/index';
-import { PopoverOrigin } from '@material-ui/core/Popover';
-import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
-import { FileSelector, AltinnSpinner } from 'app-shared/components';
-import { getLanguageFromKey } from 'app-shared/utils/language';
+import { AltinnSpinner, FileSelector } from '../../../components';
+import { getLanguageFromKey } from '../../../utils/language';
 import axios from 'axios';
+import ErrorPopover from '../../../components/ErrorPopover';
 
 export interface IXSDUploadProps {
+  disabled?: boolean;
   language: any;
   onXSDUploaded: (filename: string) => void;
   org: string;
   repo: string;
+  submitButtonRenderer?: (fileInputClickHandler: (event: any) => void) => JSX.Element;
 }
 
-const anchorOrigin: PopoverOrigin = {
-  vertical: 'bottom',
-  horizontal: 'left',
-};
-
-const XSDUpload = ({ language, onXSDUploaded, org, repo }: IXSDUploadProps) => {
-  const [uploadButtonAnchor, setUploadButtonAnchor] = React.useState(null);
+export const XSDUpload = ({ disabled, language, onXSDUploaded, org, repo, submitButtonRenderer }: IXSDUploadProps) => {
   const [uploading, setUploading] = React.useState(false);
   const [errorText, setErrorText] = React.useState(null);
+
+  const uploadButton = React.useRef(null);
 
   const handleUpload = (formData: FormData, fileName: string) => {
     const XSDUploadUrl = `${window.location.origin}/designer/api/${org}/${repo}/datamodels/upload`;
@@ -35,68 +31,37 @@ const XSDUpload = ({ language, onXSDUploaded, org, repo }: IXSDUploadProps) => {
       .then((response) => {
         if (response) {
           onXSDUploaded(fileName);
-          setUploadButtonAnchor(null);
+          setErrorText(null);
         }
       })
       .catch((error) => {
         if (error) {
-          setErrorText(
-            getLanguageFromKey(
-              'form_filler.file_uploader_validation_error_upload',
-              language,
-            ),
-          );
+          setErrorText(getLanguageFromKey('form_filler.file_uploader_validation_error_upload', language));
         }
       })
       .finally(() => setUploading(false));
   };
 
-  const handleUploadCancel = () => {
-    setUploadButtonAnchor(null);
-  };
-
-  const handleUploadClick = (event: any) => {
-    setUploadButtonAnchor(event.currentTarget);
-  };
-
   return (
     <>
-      <TopToolbarButton
-        faIcon='fa fa-upload'
-        iconSize={38}
-        onClick={handleUploadClick}
-        hideText={true}
-      >
-        {getLanguageFromKey('app_data_modelling.upload_xsd', language)}
-      </TopToolbarButton>
-      {uploadButtonAnchor && (
-        <AltinnPopoverSimple
-          anchorEl={uploadButtonAnchor}
-          handleClose={handleUploadCancel}
-          anchorOrigin={anchorOrigin}
-        >
-          {uploading ? (
-            <AltinnSpinner
-              spinnerText={getLanguageFromKey(
-                'app_data_modelling.uploading_xsd',
-                language,
-              )}
-            />
-          ) : (
-            <FileSelector
-              busy={uploading}
-              language={language}
-              submitHandler={handleUpload}
-              accept='.xsd'
-              labelTextResource='app_data_modelling.select_xsd'
-              formFileName='file'
-            />
-          )}
-          {errorText && <p data-test-id='errorText'>{errorText}</p>}
-        </AltinnPopoverSimple>
+      <span ref={uploadButton}>
+        {uploading ? (
+          <AltinnSpinner spinnerText={getLanguageFromKey('app_data_modelling.uploading_xsd', language)} />
+        ) : (
+          <FileSelector
+            busy={false}
+            language={language}
+            submitHandler={handleUpload}
+            accept='.xsd'
+            formFileName='file'
+            submitButtonRenderer={submitButtonRenderer}
+            disabled={disabled}
+          />
+        )}
+      </span>
+      {errorText && (
+        <ErrorPopover anchorEl={uploadButton.current} onClose={() => setErrorText(null)} errorMessage={errorText} />
       )}
     </>
   );
 };
-
-export default XSDUpload;

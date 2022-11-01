@@ -1,152 +1,67 @@
-import { mount } from 'enzyme';
 import React from 'react';
-import { act } from 'react-dom/test-utils';
 import configureStore from 'redux-mock-store';
 import { Provider } from 'react-redux';
-import DataModelling, { shouldSelectFirstEntry } from './DataModelling';
-import { SchemaSelect, XSDUpload, Create, Delete } from './components';
+import { DataModelling, shouldSelectFirstEntry } from './DataModelling';
 import { LoadingState } from './sagas/metadata';
+import { render as rtlRender, screen } from '@testing-library/react';
+import { LOCAL_STORAGE_KEY, setLocalStorageItem } from './functions/localStorage';
 
-describe('Shared > DataModelling', () => {
-  const language = {
-    administration: Object({ first: 'some text', second: 'other text' }),
-  };
-  let wrapper: any = null;
-  let store: any;
-  const modelName = 'some-existing-model';
-  const modelName2 = 'some-other-model';
-  const initialState = {
-    dataModelsMetadataState: {
-      dataModelsMetadata: [
-        {
-          repositoryRelativeUrl: `/App/models/${modelName}.schema.json`,
-          fileName: `${modelName}.schema.json`,
-          fileType: '.json',
-        },
-        {
-          repositoryRelativeUrl: `/App/models/${modelName2}.schema.json`,
-          fileName: `${modelName2}.schema.json`,
-          fileType: '.json',
-        },
-      ],
-      loadState: LoadingState.ModelsLoaded,
-    },
-    dataModelling: {
-      schema: {},
-      saving: false,
-    },
-  };
-  const dispatchMock = () => Promise.resolve({});
-  const initialStoreCall = {
-    type: 'dataModelling/fetchDataModel',
-    payload: {
-      metadata: {
-        label: modelName,
-        value: initialState.dataModelsMetadataState.dataModelsMetadata[0],
+// workaround for https://jestjs.io/docs/26.x/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation((query) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(), // deprecated
+    removeListener: jest.fn(), // deprecated
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })),
+});
+
+const modelName = 'some-existing-model';
+const modelName2 = 'some-other-model';
+const defaultInitialState = {
+  dataModelsMetadataState: {
+    dataModelsMetadata: [
+      {
+        repositoryRelativeUrl: `/App/models/${modelName}.schema.json`,
+        fileName: `${modelName}.schema.json`,
+        fileType: '.json',
       },
+      {
+        repositoryRelativeUrl: `/App/models/${modelName2}.schema.json`,
+        fileName: `${modelName2}.schema.json`,
+        fileType: '.json',
+      },
+    ],
+    loadState: LoadingState.ModelsLoaded,
+  },
+  dataModelling: {
+    schema: {},
+    saving: false,
+  },
+};
+const initialStoreCall = {
+  type: 'dataModelling/fetchDataModel',
+  payload: {
+    metadata: {
+      label: modelName,
+      value: defaultInitialState.dataModelsMetadataState.dataModelsMetadata[0],
     },
-  };
+  },
+};
 
-  beforeEach(() => {
-    wrapper = null;
-    store = configureStore()(initialState);
-    store.dispatch = jest.fn(dispatchMock);
-  });
-
-  const mountComponent = (props?: any) =>
-    mount(
-      React.createElement(
-        () => (
-          <Provider store={store}>
-            <DataModelling
-              language={language}
-              org='test-org'
-              repo='test-repo'
-            />
-          </Provider>
-        ),
-        props,
-      ),
-    );
-
+describe('DataModelling', () => {
   it('should fetch models on mount', () => {
-    act(() => {
-      mountComponent();
-    });
+    const { store } = render();
 
     expect(store.dispatch).toHaveBeenCalledWith(initialStoreCall);
   });
 
-  it('should show all items in the toolbar', () => {
-    act(() => {
-      wrapper = mountComponent();
-    });
-
-    expect(wrapper.find(XSDUpload).exists()).toBe(true);
-    expect(wrapper.find(Create).exists()).toBe(true);
-    expect(wrapper.find(SchemaSelect).exists()).toBe(true);
-    expect(wrapper.find(Delete).exists()).toBe(true);
-  });
-
-  it('should dispatch dataModelsMetadata/getDataModelsMetadata when file is uploaded', () => {
-    const uploadedFilename = 'uploaded.xsd';
-
-    act(() => {
-      wrapper = mountComponent();
-    });
-
-    wrapper.update();
-
-    act(() => {
-      wrapper.find(XSDUpload).props().onXSDUploaded(uploadedFilename);
-    });
-
-    wrapper.update();
-
-    expect(store.dispatch).toHaveBeenLastCalledWith({
-      type: 'dataModelsMetadata/getDataModelsMetadata',
-      payload: undefined,
-    });
-  });
-
-  it('should dispatch dataModelling/createDataModel when running createAction', () => {
-    const newModel = { name: 'test' };
-
-    act(() => {
-      wrapper = mountComponent();
-    });
-
-    wrapper.update();
-
-    act(() => {
-      wrapper.find(Create).props().createAction(newModel);
-    });
-
-    expect(store.dispatch).toHaveBeenCalledTimes(2);
-    expect(store.dispatch).toHaveBeenCalledWith({
-      type: 'dataModelling/createDataModel',
-      payload: newModel,
-    });
-  });
-
-  it('should dispatch dataModelsMetadata/getDataModelsMetadata when delete is called', () => {
-    act(() => {
-      wrapper = mountComponent();
-    });
-
-    wrapper.update();
-
-    act(() => {
-      wrapper.find(Delete).props().deleteAction();
-    });
-
-    expect(store.dispatch).toHaveBeenCalledWith({
-      type: 'dataModelling/deleteDataModel',
-      payload: initialStoreCall.payload,
-    });
-  });
-
-  describe('Shared > DataModelling > shouldSelectFirstEntry', () => {
+  describe('shouldSelectFirstEntry', () => {
     it('should return true when metadataOptions.length is greater than 0, selectedOption is undefined and metadataLoadingState is ModelsLoaded', () => {
       expect(
         shouldSelectFirstEntry({
@@ -222,4 +137,91 @@ describe('Shared > DataModelling', () => {
       ).toBe(false);
     });
   });
+
+  it('Should show info dialog by default when loading the page', () => {
+    // make sure setting to turn off info dialog is cleared
+    localStorage.removeItem(LOCAL_STORAGE_KEY);
+    render();
+    const dialogHeader = screen.queryByText('schema_editor.info_dialog_title');
+    expect(dialogHeader).toBeInTheDocument();
+  });
+
+  it('Should not show info dialog when loading the page if user has asked to not show it again', () => {
+    // make sure setting to turn off info dialog is set
+    setLocalStorageItem('hideIntroPage', true);
+    render();
+    const dialogHeader = screen.queryByText('schema_editor.info_dialog_title');
+    expect(dialogHeader).not.toBeInTheDocument();
+  });
+
+  it('Should show start dialog when no models are present and intro page is closed', () => {
+    // make sure setting to turn off info dialog is set
+    setLocalStorageItem('hideIntroPage', true);
+    render();
+    expect(screen.queryByText('Dialog header')).toBeInTheDocument();
+  });
+
+  it('Should not show start dialog when the models have not been loaded yet', () => {
+    // make sure setting to turn off info dialog is set
+    setLocalStorageItem('hideIntroPage', true);
+    render({ dataModelsMetadataState: { loadState: LoadingState.LoadingModels } });
+    expect(screen.queryByText('Dialog header')).not.toBeInTheDocument();
+  });
+
+  it('Should not show start dialog when the models have not been loaded yet', () => {
+    // make sure setting to turn off info dialog is set
+    setLocalStorageItem('hideIntroPage', true);
+    render({ dataModelsMetadataState: { loadState: LoadingState.LoadingModels } });
+    expect(screen.queryByText('Dialog header')).not.toBeInTheDocument();
+  });
+
+  it('Should not show start dialog when there are models present', () => {
+    // make sure setting to turn off info dialog is set
+    setLocalStorageItem('hideIntroPage', true);
+    const schema = {
+      properties: { SomeSchema: { $ref: '#/$defs/Something' } },
+      $defs: { Something: { type: 'string' } },
+    };
+    render({ dataModelling: { schema } });
+    expect(screen.queryByText('Dialog header')).not.toBeInTheDocument();
+  });
 });
+
+const render = (state: { [K in keyof typeof defaultInitialState]?: Partial<typeof defaultInitialState[K]> } = {}) => {
+  const dataModelsMetadataState = state?.dataModelsMetadataState;
+  const dataModelling = state?.dataModelling;
+
+  const initialState = {
+    dataModelsMetadataState: {
+      ...defaultInitialState.dataModelsMetadataState,
+      ...dataModelsMetadataState,
+    },
+    dataModelling: {
+      ...defaultInitialState.dataModelling,
+      ...dataModelling,
+    },
+  };
+
+  const store = configureStore()(initialState);
+  store.dispatch = jest.fn();
+
+  rtlRender(
+    <Provider store={store}>
+      <DataModelling
+        language={{
+          administration: {
+            first: 'some text',
+            second: 'other text',
+          },
+          app_data_modelling: {
+            landing_dialog_header: 'Dialog header',
+          },
+        }}
+        org='test-org'
+        repo='test-repo'
+      />
+    </Provider>,
+  );
+
+  return { store };
+};

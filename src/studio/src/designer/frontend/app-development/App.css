@@ -31,3 +31,7 @@
     transform: rotate(360deg);
   }
 }
+
+.ReactModalPortal {
+  z-index: 9999;
+}

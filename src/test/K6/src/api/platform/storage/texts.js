@@ -5,14 +5,14 @@ import * as header from '../../../buildrequestheaders.js';
 //Api call to Storage:Applications to get an app texts of a specific language and returns response
 export function getAppTexts(altinnStudioRuntimeCookie, appOwner, appName, language) {
   var endpoint = config.platformStorage['applications'] + '/' + appOwner + '/' + appName + '/texts/' + language;
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntime(altinnStudioRuntimeCookie, 'platform');
   return http.get(endpoint, params);
 }
 
 //Api call to Storage:Applications to POST upload app texts of a specific language and returns response
 export function postAppTexts(altinnStudioRuntimeCookie, appOwner, appName, language) {
   var endpoint = config.platformStorage['applications'] + '/' + appOwner + '/' + appName + '/texts';
-  var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntimeAndJson(altinnStudioRuntimeCookie, 'platform');
   var requestBody = JSON.stringify(buildTextResourcesJson(appOwner, appName, language));
   return http.post(endpoint, requestBody, params);
 }
@@ -20,7 +20,7 @@ export function postAppTexts(altinnStudioRuntimeCookie, appOwner, appName, langu
 //Api call to Storage:Applications to PUT Edit application texts and returns response code
 export function putEditAppTexts(altinnStudioRuntimeCookie, appOwner, appName, language) {
   var endpoint = config.platformStorage['applications'] + '/' + appOwner + '/' + appName + '/texts/' + language;
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntime(altinnStudioRuntimeCookie, 'platform');
   var requestBody = JSON.stringify(buildTextResourcesJson(appOwner, appName, language));
   return http.put(endpoint, requestBody, params);
 }
@@ -28,7 +28,7 @@ export function putEditAppTexts(altinnStudioRuntimeCookie, appOwner, appName, la
 //Api call to Storage:Applications to delete application texts and returns response code
 export function deleteAppTexts(altinnStudioRuntimeCookie, appOwner, appName, language) {
   var endpoint = config.platformStorage['applications'] + '/' + appOwner + '/' + appName + '/texts/' + language;
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntime(altinnStudioRuntimeCookie, 'platform');
   return http.del(endpoint, null, params);
 }
 

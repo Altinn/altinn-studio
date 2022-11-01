@@ -5,9 +5,7 @@ import {
   waitForElementToBeRemoved,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-
-import { renderWithProviders, setupServer, handlers } from 'test/testUtils';
-
+import { handlers, renderWithProviders, setupServer } from 'test/testUtils';
 import { Dashboard } from 'features/dashboard';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 

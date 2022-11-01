@@ -1,6 +1,6 @@
 const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
 const commonConfig = require('./webpack.common');
-
+const setupMiddlewares = require('./test/devServerMock');
 module.exports = {
   ...commonConfig,
   mode: 'development',
@@ -16,6 +16,7 @@ module.exports = {
         use: {
           loader: 'svg-inline-loader',
         },
+        exclude: /schema-editor/
       },
       {
         enforce: 'pre',
@@ -33,19 +34,23 @@ module.exports = {
       },
     ],
   },
-  plugins: [
-    ...commonConfig.plugins,
-    new ForkTsCheckerNotifierWebpackPlugin(),
-  ],
+  plugins: [...commonConfig.plugins, new ForkTsCheckerNotifierWebpackPlugin()],
   devServer: {
+    setupMiddlewares,
     hot: true,
     historyApiFallback: true,
     allowedHosts: 'all',
     client: {
       overlay: {
-        errors: true,
+        errors: false,
         warnings: false,
       },
+    },
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+      'Access-Control-Allow-Headers':
+        'X-Requested-With, content-type, Authorization',
     },
   },
 };

@@ -16,11 +16,13 @@ services:
     environment:
       - NGINX_HOST=localhost
       - NGINX_PORT=80
-      - SUB_FILTER=${SUB_FILTER:-}
-      - TEST_DOMAIN=${TEST_DOMAIN:-altinn3local.no}
+      - TEST_DOMAIN=${TEST_DOMAIN:-local.altinn.cloud}
+      - ALTINN3LOCAL_PORT=${ALTINN3LOCAL_PORT:-80}
       - NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx
     build:
       context: ./loadbalancer
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   altinn_platform_pdf:
     container_name: altinn-pdf
     image: altinn-pdf:latest
@@ -31,6 +33,8 @@ services:
      - "5070:5070"
     build:
       context: ./../Altinn.Platform/Altinn.Platform.PDF/
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
   altinn_localtest:
     container_name: localtest
     image: localtest:latest
@@ -47,10 +51,12 @@ services:
     environment:
       - DOTNET_ENVIRONMENT=Docker
       - ASPNETCORE_URLS=http://*:5101/
-      - GeneralSettings__BaseUrl=http://${TEST_DOMAIN:-altinn3local.no}:${ALTINN3LOCAL_PORT:-80}
-      - GeneralSettings__HostName=${TEST_DOMAIN:-altinn3local.no}
+      - GeneralSettings__BaseUrl=http://${TEST_DOMAIN:-local.altinn.cloud}:${ALTINN3LOCAL_PORT:-80}
+      - GeneralSettings__HostName=${TEST_DOMAIN:-local.altinn.cloud}
     volumes:
+      - ./TestData:/TestData
       - ${ALTINN3LOCALSTORAGE_PATH:-AltinnPlatformLocal}:/AltinnPlatformLocal
-
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 volumes:
   AltinnPlatformLocal:

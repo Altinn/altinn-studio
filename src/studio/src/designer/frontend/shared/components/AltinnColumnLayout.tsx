@@ -1,13 +1,7 @@
-import {
-  createTheme,
-  createStyles,
-  Grid,
-  Typography,
-  withStyles,
-  WithStyles,
-} from '@material-ui/core';
-import classNames from 'classnames';
 import React from 'react';
+import { createTheme, Grid, Typography } from '@mui/material';
+import { createStyles, withStyles, WithStyles } from '@mui/styles';
+import classNames from 'classnames';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 const theme = createTheme(altinnTheme);
@@ -19,7 +13,6 @@ const styles = createStyles({
     width: '100%',
   },
   headerStyle: {
-    fontSize: 36,
     marginBottom: 30,
   },
   sidebar: {
@@ -102,6 +95,7 @@ export class AltinnColumnLayout extends React.Component<IAltinnColumnLayoutProps
               <Grid item={true} md={12} className={classes.mainStyle}>
                 <Typography
                   id={'altinn-column-layout-header'}
+                  variant={'h1'}
                   className={classes.headerStyle}
                 >
                   {this.props.header}

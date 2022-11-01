@@ -1,7 +1,5 @@
 import React from 'react';
-
 import { User } from '../../resources/fetchDashboardResources/dashboardSlice';
-
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import type { IGiteaOrganisation } from 'app-shared/types/global';
 import AltinnDropdown from 'app-shared/components/AltinnDropdown';
@@ -67,7 +65,7 @@ export const ServiceOwnerSelector = ({
 
   React.useEffect(() => {
     if (isLoadingOrganisations === false && selectableOrgsOrUser.length === 1) {
-      onServiceOwnerChanged(selectableOrgsOrUser[0].label); // auto-select the option when theres only 1 option
+      onServiceOwnerChanged(selectableOrgsOrUser[0].value); // auto-select the option when theres only 1 option
     }
   }, [selectableOrgsOrUser, onServiceOwnerChanged, isLoadingOrganisations]);
 

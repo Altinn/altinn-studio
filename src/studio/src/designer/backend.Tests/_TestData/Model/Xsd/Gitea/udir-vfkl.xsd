@@ -1,0 +1,226 @@
+﻿<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" attributeFormDefault="unqualified">
+  <xsd:element name="Vurdering" type="VurderingInnhold" />
+  <xsd:complexType name="VurderingInnhold">
+    <xsd:sequence>
+      <xsd:element name="VurderingsType" type="Tekst" />
+      <xsd:element name="brukerID" type="Tekst" />
+      <xsd:element name="Læremiddel" type="Tekst" />
+      <xsd:element name="LæremiddelLeverandør" type="Tekst" />
+      <xsd:element name="Læreplan" type="Tekst" />
+      <xsd:element name="LæreplanKode" type="Tekst" />
+      <xsd:element name="Skolenivå" type="Tekst" />
+      <xsd:element name="Utdanningsprogram" type="Tekst" />
+      <xsd:element name="Programområde" type="Tekst" />
+      <xsd:element name="VurderingsID" type="Tekst" />
+      <xsd:element name="VurderingsFrist" type="Tekst" />
+      <xsd:element name="GruppeVurderingsID" type="Tekst" />
+      <xsd:element name="Navn" type="Tekst" />
+      <xsd:element name="AlleFag" type="AlleFag" />
+      <xsd:element name="Engelsk" type="Engelsk" />
+      <xsd:element name="Matte" type="Matte" />
+      <xsd:element name="Norsk" type="Norsk" />
+      <xsd:element name="OppsummeringsKommentar" type="Tekst" />
+      <xsd:element name="AppLogikk" type="AppLogikk" />
+    </xsd:sequence>
+    <xsd:anyAttribute />
+  </xsd:complexType>
+  <xsd:complexType name="AlleFag">
+    <xsd:sequence>
+      <xsd:element name="del1" type="Del1_AF" />
+      <xsd:element name="del2" type="Del2_AF" />
+      <xsd:element name="del3" type="Del3_AF" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Del1_AF">
+    <xsd:sequence>
+      <xsd:element name="onskerIkkeSvare" type="Tekst" />
+      <xsd:element name="paastand1" type="Paastand" />
+      <xsd:element name="paastand2" type="Paastand" />
+      <xsd:element name="paastand3" type="Paastand" />
+      <xsd:element name="paastand4" type="Paastand" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Del2_AF">
+    <xsd:sequence>
+      <xsd:element name="onskerIkkeSvare" type="Tekst" />
+      <xsd:element name="paastand1" type="Paastand" />
+      <xsd:element name="paastand2" type="Paastand" />
+      <xsd:element name="paastand3" type="Paastand" />
+      <xsd:element name="paastand4" type="Paastand" />
+      <xsd:element name="paastand5" type="Paastand" />
+      <xsd:element name="paastand6" type="Paastand" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Del3_AF">
+    <xsd:sequence>
+      <xsd:element name="onskerIkkeSvare" type="Tekst" />
+      <xsd:element name="paastand1" type="Paastand" />
+      <xsd:element name="paastand2" type="Paastand" />
+      <xsd:element name="paastand3" type="Paastand" />
+      <xsd:element name="paastand4" type="Paastand" />
+      <xsd:element name="paastand5" type="Paastand" />
+      <xsd:element name="paastand6" type="Paastand" />
+      <xsd:element name="paastand7" type="Paastand" />
+      <xsd:element name="paastand8" type="Paastand" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Engelsk">
+    <xsd:sequence>
+      <xsd:element name="del1" type="Del1_En" />
+      <xsd:element name="del2" type="Del2_En" />
+      <xsd:element name="del3" type="Del3_En" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Del1_En">
+    <xsd:sequence>
+      <xsd:element name="paastand1" type="Paastand" />
+      <xsd:element name="paastand2" type="Paastand" />
+      <xsd:element name="paastand3" type="Paastand" />
+      <xsd:element name="paastand4" type="Paastand" />
+      <xsd:element name="paastand5" type="Paastand" />
+      <xsd:element name="paastand6" type="Paastand" />
+      <xsd:element name="paastand7" type="Paastand" />
+      <xsd:element name="paastand8" type="Paastand" />
+      <xsd:element name="paastand9" type="Paastand" />
+      <xsd:element name="paastand10" type="Paastand" />
+      <xsd:element name="paastand11" type="Paastand" />
+      <xsd:element name="paastand12" type="Paastand" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Del2_En">
+    <xsd:sequence>
+      <xsd:element name="paastand1" type="Paastand" />
+      <xsd:element name="paastand2" type="Paastand" />
+      <xsd:element name="paastand3" type="Paastand" />
+      <xsd:element name="paastand4" type="Paastand" />
+      <xsd:element name="paastand5" type="Paastand" />
+      <xsd:element name="paastand6" type="Paastand" />
+      <xsd:element name="paastand7" type="Paastand" />
+      <xsd:element name="paastand8" type="Paastand" />
+      <xsd:element name="paastand9" type="Paastand" />
+      <xsd:element name="paastand10" type="Paastand" />
+      <xsd:element name="paastand11" type="Paastand" />
+      <xsd:element name="paastand12" type="Paastand" />
+      <xsd:element name="paastand13" type="Paastand" />
+      <xsd:element name="paastand14" type="Paastand" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Del3_En">
+    <xsd:sequence>
+      <xsd:element name="paastand1" type="Paastand" />
+      <xsd:element name="paastand2" type="Paastand" />
+      <xsd:element name="paastand3" type="Paastand" />
+      <xsd:element name="paastand4" type="Paastand" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Matte">
+    <xsd:sequence>
+      <xsd:element name="del1" type="Del1_Ma" />
+      <xsd:element name="del2" type="Del2_Ma" />
+      <xsd:element name="del3" type="Del3_Ma" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Del1_Ma">
+    <xsd:sequence>
+      <xsd:element name="paastand1" type="Paastand" />
+      <xsd:element name="paastand2" type="Paastand" />
+      <xsd:element name="paastand3" type="Paastand" />
+      <xsd:element name="paastand4" type="Paastand" />
+      <xsd:element name="paastand5" type="Paastand" />
+      <xsd:element name="paastand6" type="Paastand" />
+      <xsd:element name="paastand7" type="Paastand" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Del2_Ma">
+    <xsd:sequence>
+      <xsd:element name="paastand1" type="Paastand" />
+      <xsd:element name="paastand2" type="Paastand" />
+      <xsd:element name="paastand3" type="Paastand" />
+      <xsd:element name="paastand4" type="Paastand" />
+      <xsd:element name="paastand5" type="Paastand" />
+      <xsd:element name="paastand6" type="Paastand" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Del3_Ma">
+    <xsd:sequence>
+      <xsd:element name="paastand1" type="Paastand" />
+      <xsd:element name="paastand2" type="Paastand" />
+      <xsd:element name="paastand3" type="Paastand" />
+      <xsd:element name="paastand4" type="Paastand" />
+      <xsd:element name="paastand5" type="Paastand" />
+      <xsd:element name="paastand6" type="Paastand" />
+      <xsd:element name="paastand7" type="Paastand" />
+      <xsd:element name="paastand8" type="Paastand" />
+      <xsd:element name="paastand9" type="Paastand" />
+      <xsd:element name="paastand10" type="Paastand" />
+      <xsd:element name="paastand11" type="Paastand" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Norsk">
+    <xsd:sequence>
+      <xsd:element name="del1" type="Del1_No" />
+      <xsd:element name="del2" type="Del2_No" />
+      <xsd:element name="del3" type="Del3_No" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Del1_No">
+    <xsd:sequence>
+      <xsd:element name="paastand1" type="Paastand" />
+      <xsd:element name="paastand2" type="Paastand" />
+      <xsd:element name="paastand3" type="Paastand" />
+      <xsd:element name="paastand4" type="Paastand" />
+      <xsd:element name="paastand5" type="Paastand" />
+      <xsd:element name="paastand6" type="Paastand" />
+      <xsd:element name="paastand7" type="Paastand" />
+      <xsd:element name="paastand8" type="Paastand" />
+      <xsd:element name="paastand9" type="Paastand" />
+      <xsd:element name="paastand10" type="Paastand" />
+      <xsd:element name="paastand11" type="Paastand" />
+      <xsd:element name="paastand12" type="Paastand" />
+      <xsd:element name="paastand13" type="Paastand" />
+      <xsd:element name="paastand14" type="Paastand" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Del2_No">
+    <xsd:sequence>
+      <xsd:element name="paastand1" type="Paastand" />
+      <xsd:element name="paastand2" type="Paastand" />
+      <xsd:element name="paastand3" type="Paastand" />
+      <xsd:element name="paastand4" type="Paastand" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Del3_No">
+    <xsd:sequence>
+      <xsd:element name="paastand1" type="Paastand" />
+      <xsd:element name="paastand2" type="Paastand" />
+      <xsd:element name="paastand3" type="Paastand" />
+      <xsd:element name="paastand4" type="Paastand" />
+      <xsd:element name="paastand5" type="Paastand" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Paastand">
+    <xsd:sequence>
+      <xsd:element name="svar" type="Heltall" />
+      <xsd:element name="kommentar" type="Tekst" />
+      <xsd:element name="valgtBortForGruppe" type="Tekst" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="AppLogikk">
+    <xsd:sequence>
+      <xsd:element name="godtarVilkaar" type="Tekst" />
+      <xsd:element name="valgtBortPaastandFlagg" type="Tekst" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:simpleType name="Avkrysningssvar">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Heltall">
+    <xsd:restriction base="xsd:integer" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Tekst">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="Boolean">
+    <xsd:restriction base="xsd:boolean" />
+  </xsd:simpleType>
+</xsd:schema>

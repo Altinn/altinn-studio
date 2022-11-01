@@ -41,8 +41,8 @@ namespace Designer.Tests.Infrastructure.GitRepository
         {
             string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
             string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory("ttd", "hvem-er-hvem", "testUser");
-            
-            Assert.Throws<ArgumentException>(() => new AltinnGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory));            
+
+            Assert.Throws<ArgumentException>(() => new AltinnGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory));
         }
 
         [Theory]
@@ -50,7 +50,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         public void Constructor_ValidParameters_ShouldInstantiate(string org, string repository, string developer)
         {
             string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, developer);            
+            string repositoryDirectory = TestDataHelper.GetTestDataRepositoryDirectory(org, repository, developer);
 
             var altinnGitRepository = new AltinnGitRepository(org, repository, developer, repositoriesRootDirectory, repositoryDirectory);
 
@@ -77,17 +77,17 @@ namespace Designer.Tests.Infrastructure.GitRepository
         {
             var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
             var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(repositoriesRootDirectory);
-            
+
             var altinnGitRepository = altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
             var files = altinnGitRepository.GetSchemaFiles();
 
             Assert.Equal(expectedSchemaFiles, files.Count);
         }
 
-        [Fact]        
+        [Fact]
         public void GetSchemaFiles_FilesExist_ShouldReturnFilesWithCorrectProperties()
-        {            
-            var altinnGitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testuser");
+        {
+            var altinnGitRepository = GetTestRepository("ttd", "hvem-er-hvem", "testUser");
             var file = altinnGitRepository.GetSchemaFiles().First(f => f.FileName == "HvemErHvem_ExternalTypes.schema.json");
 
             Assert.Equal(".json", file.FileType);
@@ -96,7 +96,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
 
         [Fact]
         public async Task RepositoryType_SettingsExists_ShouldUseThat()
-        {            
+        {
             var altinnGitRepository = GetTestRepository("ttd", "ttd-datamodels", "testUser");
 
             Assert.Equal(AltinnRepositoryType.Datamodels, await altinnGitRepository.GetRepositoryType());
@@ -117,35 +117,6 @@ namespace Designer.Tests.Infrastructure.GitRepository
                 var altinnGitRepository = GetTestRepository(org, targetRepository, developer);
                 Assert.Equal(AltinnRepositoryType.App, await altinnGitRepository.GetRepositoryType());
                 Assert.True(altinnGitRepository.FileExistsByRelativePath(Path.Combine(".altinnstudio", "settings.json")));
-            }
-            finally
-            {
-                TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
-            }
-        }
-
-        [Fact]
-        public async Task ModelPreference_SettingsExists_ShouldUseThat()
-        {
-            var altinnGitRepository = GetTestRepository("ttd", "ttd-datamodels", "testUser");
-
-            Assert.Equal(DatamodellingPreference.JsonSchema, await altinnGitRepository.GetDatamodellingPreference());
-        }
-
-        [Fact]
-        public async Task ModelPreference_SettingsFileExistsButNotDatamodellingPreference_ShouldUseCorrectDefault()
-        {
-            var org = "ttd";
-            var sourceRepository = "xyz-datamodels";
-            var developer = "testUser";
-            var targetRepository = $"{Guid.NewGuid()}-datamodels";
-
-            await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
-
-            try
-            {
-                var altinnGitRepository = GetTestRepository(org, targetRepository, developer);
-                Assert.Equal(DatamodellingPreference.JsonSchema, await altinnGitRepository.GetDatamodellingPreference());
             }
             finally
             {

@@ -1,57 +1,84 @@
-using System;
-using Altinn.App.PlatformServices.Extensions;
-using Microsoft.ApplicationInsights;
-using Microsoft.ApplicationInsights.Extensibility;
+using Altinn.App.Api.Extensions;
+using Altinn.App.Api.Helpers;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.OpenApi.Models;
 
-namespace Altinn.App
+void RegisterCustomAppServices(IServiceCollection services, IConfiguration config, IWebHostEnvironment env)
 {
-    /// <summary>
-    /// This class holds the entry point of the ASP.Net Core application.
-    /// </summary>
-    public class Program
+    // Register your apps custom service implementations here.
+}
+
+// ###########################################################################
+// # Unless you are sure what you are doing do not change the following code #
+// ###########################################################################
+
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+ConfigureServices(builder.Services, builder.Configuration);
+
+ConfigureWebHostBuilder(builder.WebHost);
+
+WebApplication app = builder.Build();
+
+Configure();
+
+app.Run();
+
+void ConfigureServices(IServiceCollection services, IConfiguration config)
+{
+    services.AddAltinnAppControllersWithViews();
+
+    // Register custom implementations for this application
+    RegisterCustomAppServices(services, config, builder.Environment);
+
+    // Register services required to run this as an Altinn application
+    services.AddAltinnAppServices(config, builder.Environment);
+
+    // Add Swagger support (Swashbuckle)
+    services.AddSwaggerGen(c =>
     {
-        /// <summary>
-        /// The entry point of the application. Called when the application is started.
-        /// </summary>
-        /// <param name="args">The command line arguments used when starting the application.</param>
-        public static void Main(string[] args)
-        {
-            TelemetryConfiguration telemetryConfiguration = TelemetryConfiguration.CreateDefault();
-            telemetryConfiguration.InstrumentationKey =
-                    System.Environment.GetEnvironmentVariable("ApplicationInsights__InstrumentationKey") ?? string.Empty;
+        c.SwaggerDoc("v1", new OpenApiInfo { Title = "Altinn App Api", Version = "v1" });
+        StartupHelper.IncludeXmlComments(c.IncludeXmlComments);
+    });
+}
 
-            TelemetryClient telemetryClient = new TelemetryClient(telemetryConfiguration);
+void ConfigureWebHostBuilder(IWebHostBuilder builder)
+{
+    builder.ConfigureAppWebHost(args);
+}
 
-            try
-            {
-                CreateHostBuilder(args).Build().Run();
-            }
-            catch (Exception ex)
-            {
-                telemetryClient.TrackException(ex);
-
-                telemetryClient.Flush();
-
-                throw;
-            }
-        }
-
-        /// <summary>
-        /// Create the actual web application host. Kestrel and or IIS.
-        /// </summary>
-        /// <param name="args">The command line arguments when starting the application.</param>
-        /// <returns>A new HostBuilder initialized through configuration and <see cref="Startup"/>.</returns>
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(webBuilder =>
-                {
-                    webBuilder.ConfigureAppConfiguration((hostingContext, configBuilder) =>
-                    {
-                        configBuilder.LoadAppConfig(args);
-                    });
-                    webBuilder.UseStartup<Startup>();
-                });
+void Configure()
+{
+    if (app.Environment.IsDevelopment())
+    {
+        app.UseDeveloperExceptionPage();
     }
+
+    string applicationId = StartupHelper.GetApplicationId();
+    if (!string.IsNullOrEmpty(applicationId))
+    {
+        app.UseSwagger(o => o.RouteTemplate = applicationId + "/swagger/{documentName}/swagger.json");
+
+        app.UseSwaggerUI(c =>
+        {
+            c.SwaggerEndpoint($"/{applicationId}/swagger/v1/swagger.json", "Altinn App API");
+            c.RoutePrefix = applicationId + "/swagger";
+        });
+    }
+
+    app.UseDefaultSecurityHeaders();
+    app.UseRouting();
+    app.UseStaticFiles('/' + applicationId);
+    app.UseAuthentication();
+    app.UseAuthorization();
+
+    app.UseEndpoints(endpoints =>
+    {
+        endpoints.MapControllers();
+    });
+    app.UseHealthChecks("/health");
 }

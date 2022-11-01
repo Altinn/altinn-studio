@@ -1,6 +1,7 @@
 using System;
 using System.Globalization;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Json.Schema;
 
 namespace Altinn.Studio.DataModeling.Json.Formats
@@ -20,13 +21,23 @@ namespace Altinn.Studio.DataModeling.Json.Formats
         /// </summary>
         public static readonly Format Year = new RegexFormat("year", @"^\d{4}$");
 
-        private static bool CheckDate(JsonElement element)
+        private static bool CheckDate(JsonNode element)
         {
             return CheckDateFormat(element, "yyyy-MM");
         }
 
-        private static bool CheckDateFormat(JsonElement element, params string[] formats)
+        private static bool CheckDateFormat(JsonNode node, params string[] formats)
         {
+            if (node is not JsonValue jsonValue)
+            {
+                return true;
+            }
+
+            if (!jsonValue.TryGetValue<JsonElement>(out var element))
+            {
+                return true;
+            }
+
             if (element.ValueKind != JsonValueKind.String)
             {
                 return true;

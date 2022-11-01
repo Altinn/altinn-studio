@@ -4,7 +4,6 @@
 
 [![Build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-platform/altinn-storage-master)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=30)
 
-[![Build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-platform/altinn-profile-master)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=38)
 
 An early test version of Altinn Platform is available at http://platform.altinn.cloud
 
@@ -26,95 +25,6 @@ This is documented in the sub section.
 #### Platform PDF
 1. [Java 17](https://jdk.java.net/17/)
 2. [Maven](https://maven.apache.org/download.cgi)
-
-
-### Running Altinn Platform Profile in container
-
-Clone [Altinn Studio repo](https://github.com/Altinn/altinn-studio) and navigate to the folder altinn-studio/src/Altinn.Platform/Altinn.Platform.Profile
-
-Run all parts of the solution in containers (Make sure docker is running)
-
-```cmd
-docker-compose up -d --build
-```
-
-#### Running Altinn Platform Profile locally
-
-The Profile components can be run locally when developing/debugging. Follow the install steps above if this has not already been done.
-
-Stop the container running Profile
-
-```cmd
-docker stop altinn-platform-profile
-```
-
-Navigate to the altinn-studio/src/Altinn.Platform/Altinn.Platform.Profile/Profile, and build and run the code from there, or run the solution using you selected code editor
-
-```cmd
-dotnet run
-```
-
-The profile solution is now available locally at http://localhost:5030/api/v1 and has endpoints:
-
-- users/{userId}
-  - works with 1083, 2772, 2882 and 1536 (testdata)
-
-### Running Altinn Platform Authentication in container
-
-Clone [Altinn Studio repo](https://github.com/Altinn/altinn-studio) and navigate to the folder altinn-studio/src/Altinn.Platform/Altinn.Platform.Authentication
-
-Run all parts of the solution in containers (Make sure docker is running)
-
-```cmd
-docker-compose up -d --build
-```
-
-#### Running Altinn Platform Authentication locally
-
-The Authentication components can be run locally when developing/debugging. Follow the install steps above if this has not already been done.
-
-Stop the container running Authentication
-
-```cmd
-docker stop altinn-platform-authentication
-```
-
-Navigate to the altinn-studio/src/Altinn.Platform/Altinn.Platform.Authentication/Authentication, and build and run the code from there, or run the solution using you selected code editor
-
-```cmd
-dotnet run
-```
-
-The profile solution is now available locally at http://localhost:5040.
-
-### Running Altinn Platform Authorization in container
-
-Clone [Altinn Studio repo](https://github.com/Altinn/altinn-studio) and navigate to the folder altinn-studio/src/Altinn.Platform/Altinn.Platform.Authorization
-
-Run all parts of the solution in containers (Make sure docker is running)
-
-```cmd
-docker-compose up -d --build
-```
-
-#### Running Altinn Platform Authorization locally
-
-The Authorization components can be run locally when developing/debugging. Follow the install steps above if this has not already been done.
-
-Stop the container running Authorization
-
-```cmd
-docker stop altinn-platform-authorization
-```
-
-Navigate to the altinn-studio/src/Altinn.Platform/Altinn.Platform.Authorization/Authorization, and build and run the code from there, or run the solution using you selected code editor
-
-```cmd
-dotnet run
-```
-
-The authorization solution is now available locally at http://localhost:5050.
-
 
 
 #### Running Altinn Platform PDF locally

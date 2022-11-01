@@ -16,7 +16,13 @@ export function shuffle(array) {
 export function buildQueryParametersForEndpoint(filterParameters) {
   var query = '?';
   Object.keys(filterParameters).forEach(function (key) {
-    query += key + '=' + filterParameters[key] + '&';
+    if (Array.isArray(filterParameters[key])) {
+      filterParameters[key].forEach((value) => {
+        query += key + '=' + value + '&';
+      });
+    } else {
+      query += key + '=' + filterParameters[key] + '&';
+    }
   });
   query = query.slice(0, -1);
   return query;

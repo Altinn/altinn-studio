@@ -115,6 +115,22 @@ namespace Designer.Tests.Factories.ModelFactory
             Assert.Equal("1", actual.Elements["RestrictedIntegersTests.RestrictedInteger1IncToMax"].Restrictions["minimum"].Value);
         }
 
+        [Fact]
+        public void GetModelMetadata_HandlePrimitiveArrayTypes()
+        {
+            // Arrange
+            JsonSchema testData = TestDataHelper.LoadDataFromEmbeddedResourceAsJsonSchema("Designer.Tests._TestData.Model.JsonSchema.SimpleStringArray.schema.json");
+
+            // Act
+            JsonSchemaToInstanceModelGenerator target =
+                new JsonSchemaToInstanceModelGenerator("parse", "test", testData);
+            ModelMetadata actual = target.GetModelMetadata();
+
+            // Assert
+            Assert.Equal(BaseValueType.String, actual.Elements["TestSkjema.Hovedskjema.FlereStrenger"].XsdValueType);
+            Assert.True(actual.Elements["TestSkjema.Hovedskjema.FlereStrenger"].Type == ElementType.Group);
+        }
+
         private JsonSchema LoadTestData(string resourceName)
         {
             Assembly assembly = typeof(JsonSchemaToInstanceModelGeneratorTests).GetTypeInfo().Assembly;

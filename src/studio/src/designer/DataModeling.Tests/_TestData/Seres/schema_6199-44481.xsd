@@ -1,0 +1,327 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<xsd:schema elementFormDefault="qualified" attributeFormDefault="unqualified" xmlns:seres="http://seres.no/xsd/forvaltningsdata" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <xsd:annotation>
+    <xsd:documentation>
+      <xsd:attribute name="XSLT-skriptnavn" fixed="SERES_XSD_GEN" />
+      <xsd:attribute name="XSD-generatorversjon" fixed="2.0.23" />
+      <xsd:attribute name="XSLT-prosessor" fixed="SAXON versjon 9.1.0.7" />
+      <xsd:attribute name="generert" fixed="2019-06-03T10:55:55.568+02:00" />
+      <xsd:attribute name="navneromprefix" fixed="http://seres.no/xsd" />
+      <xsd:attribute name="namespace" fixed="http://seres.no/xsd/Regnskapsregisteret/RR-0011AArsregnskapBegrensetRegnskapsplikt_M/2019" />
+      <xsd:attribute name="meldingsnavn" fixed="melding" />
+      <xsd:attribute name="domenenavn" fixed="Regnskapsregisteret" />
+      <xsd:attribute name="modellnavn" fixed="RR-0011AArsregnskapBegrensetRegnskapsplikt_M" />
+      <xsd:attribute name="metamodellversjon" fixed="1.2" />
+      <xsd:attribute name="guid" fixed="false" />
+      <xsd:attribute name="orid" fixed="true" />
+      <xsd:attribute name="nillable" fixed="true" />
+      <xsd:attribute name="tillat-gjenbruk" fixed="false" />
+      <xsd:attribute name="elementtype" fixed="true" />
+      <xsd:attribute name="forvaltningsdata" fixed="true" />
+      <xsd:attribute name="forvaltningsdata-navnerom" fixed="http://seres.no/xsd/forvaltningsdata" />
+      <xsd:attribute name="saernorske-bokstaver-i-navn" fixed="false" />
+      <xsd:attribute name="ft_guid_som_attributt" fixed="true" />
+      <xsd:attribute name="sem-ref" fixed="false" />
+      <xsd:attribute name="kodebibliotek" fixed="false" />
+      <xsd:attribute name="spraak" fixed="" />
+      <xsd:attribute name="XSD-variant" fixed="Altinn 1.3.2" />
+    </xsd:documentation>
+  </xsd:annotation>
+  <xsd:element name="melding" type="RR-0011AArsregnskapBegrensetRegnskapsplikt_M" />
+  <xsd:complexType name="RR-0011AArsregnskapBegrensetRegnskapsplikt_M" seres:elementtype="Meldingsmodell">
+    <xsd:sequence>
+      <xsd:element name="Innsender" type="Innsender" seres:elementtype="Meldingsdel" />
+      <xsd:element name="Skjemainnhold" type="Skjemainnhold" seres:elementtype="Meldingsdel" />
+    </xsd:sequence>
+    <xsd:attribute name="dataFormatProvider" type="xsd:string" use="required" fixed="SERES" />
+    <xsd:attribute name="dataFormatId" type="xsd:string" use="required" fixed="6199" />
+    <xsd:attribute name="dataFormatVersion" type="xsd:string" use="required" fixed="44481" />
+    <xsd:anyAttribute />
+  </xsd:complexType>
+  <xsd:complexType name="Innsender" seres:elementtype="Meldingsdel">
+    <xsd:sequence>
+      <xsd:element name="enhet" type="Enhet" nillable="true" minOccurs="0" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="kontaktperson" type="Kontaktperson" nillable="true" minOccurs="0" maxOccurs="10" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="opplysningerInnsending" type="OpplysningerInnsending" nillable="true" minOccurs="0" seres:elementtype="Relasjonsegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Enhet" seres:elementtype="Dataobjekttype">
+    <xsd:sequence>
+      <xsd:element name="organisasjonsnummer" type="EnhetOrganisasjonsnummer-18" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" />
+      <xsd:element name="organisasjonsform" type="EnhetOrganisasjonsform-756" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" />
+      <xsd:element name="navn" type="EnhetNavn-1" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="EnhetOrganisasjonsnummer-18" seres:elementtype="ORDataenkeltype" seres:orid="18">
+    <xsd:simpleContent>
+      <xsd:extension base="EnhetOrganisasjonsnummer-18_Tekst99Modulus11-repformat-1_3">
+        <xsd:attribute name="orid" type="xsd:string" use="required" fixed="18" />
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/ORDataenkeltype/EnhetOrganisasjonsnummer-18/400536" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="EnhetOrganisasjonsform-756" seres:elementtype="ORDataenkeltype" seres:orid="756">
+    <xsd:simpleContent>
+      <xsd:extension base="EnhetOrganisasjonsform-756_Tekst35-repformat-8">
+        <xsd:attribute name="orid" type="xsd:string" use="required" fixed="756" />
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/ORDataenkeltype/EnhetOrganisasjonsform-756/399934" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="EnhetNavn-1" seres:elementtype="ORDataenkeltype" seres:orid="1">
+    <xsd:simpleContent>
+      <xsd:extension base="EnhetNavn-1_Tekst175-repformat-8_2">
+        <xsd:attribute name="orid" type="xsd:string" use="required" fixed="1" />
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/ORDataenkeltype/EnhetNavn-1/400376" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="Kontaktperson" seres:elementtype="Dataobjekttype">
+    <xsd:sequence>
+      <xsd:element name="e-post" type="KontaktpersonEPost-19022" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="KontaktpersonEPost-19022" seres:elementtype="ORDataenkeltype" seres:orid="19022">
+    <xsd:simpleContent>
+      <xsd:extension base="KontaktpersonEPost-19022_Tekst70-repformat-7_1">
+        <xsd:attribute name="orid" type="xsd:string" use="required" fixed="19022" />
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/ORDataenkeltype/KontaktpersonEPost-19022/399576" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="OpplysningerInnsending" seres:elementtype="Dataobjekttype">
+    <xsd:sequence>
+      <xsd:element name="fraSluttbrukersystem" type="ArsregnskapSysteminnsending-35139" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" />
+      <xsd:element name="systemNavn" type="SystemNavn-39007" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="ArsregnskapSysteminnsending-35139" seres:elementtype="ORDataenkeltype" seres:orid="35139">
+    <xsd:simpleContent>
+      <xsd:extension base="ArsregnskapSysteminnsending-35139_Verdirestriksjon">
+        <xsd:attribute name="orid" type="xsd:string" use="required" fixed="35139" />
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/Regnskapsregisteret/ORDataenkeltype/ArsregnskapSysteminnsending-35139/555499" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="SystemNavn-39007" seres:elementtype="ORDataenkeltype" seres:orid="39007">
+    <xsd:simpleContent>
+      <xsd:extension base="SystemNavn-39007_Tekst50_1">
+        <xsd:attribute name="orid" type="xsd:string" use="required" fixed="39007" />
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/Regnskapsregisteret/ORDataenkeltype/SystemNavn-39007/663040" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="Skjemainnhold" seres:elementtype="Meldingsdel">
+    <xsd:sequence>
+      <xsd:element name="fastsettelse" type="Fastsettelse" nillable="true" minOccurs="0" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="konsern" type="Konsern" nillable="true" minOccurs="0" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="regnskapsperiode" type="Regnskapsperiode" nillable="true" minOccurs="0" seres:elementtype="Relasjonsegenskap" />
+      <xsd:element name="tilleggsopplysninger" type="Tilleggsopplysninger" nillable="true" minOccurs="0" seres:elementtype="Relasjonsegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="Fastsettelse" seres:elementtype="Dataobjekttype">
+    <xsd:sequence>
+      <xsd:element name="fastsettelsesdato" type="RegnskapFastsettelseDato-17105" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" />
+      <xsd:element name="bekreftendeSelskapsrepresentant" type="StyremedlemNavnSpesifisertStyremedlem-19023" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="RegnskapFastsettelseDato-17105" seres:elementtype="ORDataenkeltype" seres:orid="17105">
+    <xsd:simpleContent>
+      <xsd:extension base="RegnskapFastsettelseDato-17105_DatoMaxDagensDato-repformat-110">
+        <xsd:attribute name="orid" type="xsd:string" use="required" fixed="17105" />
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/ORDataenkeltype/RegnskapFastsettelseDato-17105/399637" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="StyremedlemNavnSpesifisertStyremedlem-19023" seres:elementtype="ORDataenkeltype" seres:orid="19023">
+    <xsd:simpleContent>
+      <xsd:extension base="StyremedlemNavnSpesifisertStyremedlem-19023_Tekst70-repformat-7">
+        <xsd:attribute name="orid" type="xsd:string" use="required" fixed="19023" />
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/ORDataenkeltype/StyremedlemNavnSpesifisertStyremedlem-19023/399857" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="Konsern" seres:elementtype="Dataobjekttype">
+    <xsd:sequence>
+      <xsd:element name="konsernregnskap" type="KonsernregnskapVedlegg-25943" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" />
+      <xsd:element name="morselskap" type="Morselskap-4168" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="KonsernregnskapVedlegg-25943" seres:elementtype="ORDatakodeliste" seres:orid="25943">
+    <xsd:simpleContent>
+      <xsd:extension base="KonsernregnskapVedlegg-25943_Verdirestriksjon">
+        <xsd:attribute name="orid" type="xsd:string" use="required" fixed="25943" />
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/ORDatakodeutvalg/KonsernregnskapVedlegg-25943/397353" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="Morselskap-4168" seres:elementtype="ORDatakodeliste" seres:orid="4168">
+    <xsd:simpleContent>
+      <xsd:extension base="Morselskap-4168_Verdirestriksjon">
+        <xsd:attribute name="orid" type="xsd:string" use="required" fixed="4168" />
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/ORDatakodeutvalg/Morselskap-4168/397351" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="Regnskapsperiode" seres:elementtype="Dataobjekttype">
+    <xsd:sequence>
+      <xsd:element name="regnskapsaar" type="RegnskapAr-17102" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" />
+      <xsd:element name="regnskapsstart" type="RegnskapStartdato-17103" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" />
+      <xsd:element name="regnskapsslutt" type="RegnskapAvslutningsdato-17104" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="RegnskapAr-17102" seres:elementtype="ORDataenkeltype" seres:orid="17102">
+    <xsd:simpleContent>
+      <xsd:extension base="RegnskapAr-17102_Ar1980AretsAr-repformat-107">
+        <xsd:attribute name="orid" type="xsd:string" use="required" fixed="17102" />
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/ORDataenkeltype/RegnskapAr-17102/400287" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="RegnskapStartdato-17103" seres:elementtype="ORDataenkeltype" seres:orid="17103">
+    <xsd:simpleContent>
+      <xsd:extension base="RegnskapStartdato-17103_Dato01011980DagensDato-repformat-108">
+        <xsd:attribute name="orid" type="xsd:string" use="required" fixed="17103" />
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/ORDataenkeltype/RegnskapStartdato-17103/399965" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="RegnskapAvslutningsdato-17104" seres:elementtype="ORDataenkeltype" seres:orid="17104">
+    <xsd:simpleContent>
+      <xsd:extension base="RegnskapAvslutningsdato-17104_Dato01011980DagensDatoKontroll18Mnd-repformat-109">
+        <xsd:attribute name="orid" type="xsd:string" use="required" fixed="17104" />
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/ORDataenkeltype/RegnskapAvslutningsdato-17104/399700" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="Tilleggsopplysninger" seres:elementtype="Dataobjekttype">
+    <xsd:sequence>
+      <xsd:element name="smaaForetak" type="RegnskapsreglerSmaForetak-8079" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" />
+      <xsd:element name="antallAarsverk-37467" type="AntallAarsverk-37467" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" />
+      <xsd:element name="usikkerhetDrift-37443" type="UsikkerhetDrift-37443" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" />
+      <xsd:element name="usikkerhetDriftFritekst-37444" type="UsikkerhetDriftFritekst-37444" nillable="true" minOccurs="0" seres:elementtype="Dataegenskap" />
+    </xsd:sequence>
+  </xsd:complexType>
+  <xsd:complexType name="RegnskapsreglerSmaForetak-8079" seres:elementtype="ORDatakodeliste" seres:orid="8079">
+    <xsd:simpleContent>
+      <xsd:extension base="RegnskapsreglerSmaForetak-8079_Verdirestriksjon">
+        <xsd:attribute name="orid" type="xsd:string" use="required" fixed="8079" />
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/ORDatakodeutvalg/RegnskapsreglerSmaForetak-8079/397350" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="AntallAarsverk-37467" seres:elementtype="ORDataenkeltype" seres:orid="37467">
+    <xsd:simpleContent>
+      <xsd:extension base="AntallAarsverk-37467_Desimal92_5">
+        <xsd:attribute name="orid" type="xsd:string" use="required" fixed="37467" />
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/Regnskapsregisteret/ORDataenkeltype/AntallAarsverk-37467/645884" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="UsikkerhetDrift-37443" seres:elementtype="ORDataenkeltype" seres:orid="37443">
+    <xsd:simpleContent>
+      <xsd:extension base="UsikkerhetDrift-37443_Verdirestriksjon">
+        <xsd:attribute name="orid" type="xsd:string" use="required" fixed="37443" />
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/Regnskapsregisteret/ORDataenkeltype/UsikkerhetDrift-37443/645908" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:complexType name="UsikkerhetDriftFritekst-37444" seres:elementtype="ORDataenkeltype" seres:orid="37444">
+    <xsd:simpleContent>
+      <xsd:extension base="UsikkerhetDriftFritekst-37444_Tekst70">
+        <xsd:attribute name="orid" type="xsd:string" use="required" fixed="37444" />
+        <xsd:attribute name="guid" type="xsd:string" use="required" fixed="http://seres.no/guid/Regnskapsregisteret/ORDataenkeltype/UsikkerhetDriftFritekst-37444/645907" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+  <xsd:simpleType name="EnhetOrganisasjonsnummer-18_Tekst99Modulus11-repformat-1_3" seres:elementtype="Tegnrestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:length value="9" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="EnhetOrganisasjonsform-756_Tekst35-repformat-8" seres:elementtype="Tegnrestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:minLength value="1" />
+      <xsd:maxLength value="35" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="EnhetNavn-1_Tekst175-repformat-8_2" seres:elementtype="Tegnrestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:minLength value="1" />
+      <xsd:maxLength value="175" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="KontaktpersonEPost-19022_Tekst70-repformat-7_1" seres:elementtype="Tegnrestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:minLength value="1" />
+      <xsd:maxLength value="70" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="ArsregnskapSysteminnsending-35139_Verdirestriksjon">
+    <xsd:restriction base="xsd:string" />
+  </xsd:simpleType>
+  <xsd:simpleType name="SystemNavn-39007_Tekst50_1" seres:elementtype="Tegnrestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:maxLength value="50" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="RegnskapFastsettelseDato-17105_DatoMaxDagensDato-repformat-110" seres:elementtype="Tallrestriksjon">
+    <xsd:restriction base="xsd:date" />
+  </xsd:simpleType>
+  <xsd:simpleType name="StyremedlemNavnSpesifisertStyremedlem-19023_Tekst70-repformat-7" seres:elementtype="Tegnrestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:minLength value="1" />
+      <xsd:maxLength value="70" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="KonsernregnskapVedlegg-25943_Verdirestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="ja" seres:elementtype="Datakodeelement" />
+      <xsd:enumeration value="nei" seres:elementtype="Datakodeelement" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="Morselskap-4168_Verdirestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="ja" seres:elementtype="Datakodeelement" />
+      <xsd:enumeration value="nei" seres:elementtype="Datakodeelement" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="RegnskapAr-17102_Ar1980AretsAr-repformat-107" seres:elementtype="Tallrestriksjon">
+    <xsd:restriction base="xsd:gYear">
+      <xsd:minInclusive value="1980" />
+      <xsd:maxInclusive value="9999" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="RegnskapStartdato-17103_Dato01011980DagensDato-repformat-108" seres:elementtype="Tallrestriksjon">
+    <xsd:restriction base="xsd:date">
+      <xsd:minInclusive value="1980-01-01" />
+      <xsd:maxInclusive value="9999-12-31" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="RegnskapAvslutningsdato-17104_Dato01011980DagensDatoKontroll18Mnd-repformat-109" seres:elementtype="Tallrestriksjon">
+    <xsd:restriction base="xsd:date">
+      <xsd:minInclusive value="1980-01-01" />
+      <xsd:maxInclusive value="9999-12-31" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="RegnskapsreglerSmaForetak-8079_Verdirestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:enumeration value="ja" seres:elementtype="Datakodeelement" />
+      <xsd:enumeration value="nei" seres:elementtype="Datakodeelement" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="AntallAarsverk-37467_Desimal92_5" seres:elementtype="Tallrestriksjon">
+    <xsd:restriction base="xsd:decimal">
+      <xsd:totalDigits value="9" />
+      <xsd:fractionDigits value="2" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="UsikkerhetDrift-37443_Verdirestriksjon">
+    <xsd:restriction base="xsd:boolean" />
+  </xsd:simpleType>
+  <xsd:simpleType name="UsikkerhetDriftFritekst-37444_Tekst70" seres:elementtype="Tegnrestriksjon">
+    <xsd:restriction base="xsd:string">
+      <xsd:maxLength value="70" />
+    </xsd:restriction>
+  </xsd:simpleType>
+</xsd:schema>

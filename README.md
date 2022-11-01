@@ -1,35 +1,19 @@
-# Altinn 3
+# Altinn Studio
 
-**Altinn Studio** is the next generation Altinn application development solution.
-Together with **Altinn Apps** and **Altinn Platform** (also part of this repo), this is a complete application development and hosting platform.
+Altinn Studio is the next generation Altinn application development solution.
+Together with **Altinn Apps** and **Altinn Platform**, this is a complete application development and hosting platform (Altinn 3).
 
 Altinn Studio is available at <https://altinn.studio>.
 
-Read [the Altinn Studio documentation](https://docs.altinn.studio/) to get started.
+Read the [Altinn Studio documentation](https://docs.altinn.studio/) to [get started](https://docs.altinn.studio/app/getting-started/).
+We've also created a [into course for app development](https://docs.altinn.studio/app/app-dev-course/) that you can follow at your own pace.
 
 ![Altinn 3 concept](https://docs.altinn.studio/community/about/concept3.svg 'Altinn 3 - Concept')
 
 ## Build status
 
-### Apps
-
-[![KubernetesWrapper build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-apps/altinn-kuberneteswrapper-build-master?label=apps/kuberneteswrapper)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=88)
-[![Front-end build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-apps/altinn-app-frontend-cdn-build-master?label=apps/frontend)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=74)
-
-### Studio
-
 [![Designer build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-studio/designer-master?label=studio/designer)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=18)
 [![Repos build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-studio/repositories-master?label=studio/repos)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=28)
-
-### Platform
-
-[![Authentication build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-platform/authentication-master?label=platform/authentication)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=41)
-[![Authorization build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-platform/authorization-master?label=platform/authorization)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=43)
-[![Events build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-platform/events-master?label=platform/events)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=136)
-[![PDF build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-platform/pdf-master?label=platform/pdf)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=66)
-[![Profile build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-platform/profile-master?label=platform/profile)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=38)
-[![Receipt build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-platform/receipt-master?label=platform/receipt)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=58)
-[![Storage build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-platform/storage-master?label=platform/storage)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=30)
 
 ## Developing apps?
 
@@ -56,7 +40,7 @@ To run Altinn Studio locally, follow the [Altinn Studio instructions](/src/studi
 #### Develop or run Apps
 
 First make sure to [follow the prerequisites for Altinn Studio](/src/studio/README.md#prerequisites).
-_If you only need to develop and debug App-Frontend, you can follow the description in **step #5** (only) and deploy the app to any test environment. The App-Frontend will be loaded from your local webpack-dev-server._
+_If you need to develop or debug App-Frontend, you can follow the description in **[app-frontend-react repository](https://github.com/Altinn/app-frontend-react#developing-app-frontend)**_
 
 It's possible to run an app locally in order to test and debug it. It needs a local version of the platform services to work.
 _NOTE: Currently, it is not possible to run Apps and Altinn Studio (designer) in parallel. To run Apps, make sure that none of the containers for Altinn Studio are running, f.ex. by navigating to the root of the altinn-studio repo, and running the command_
@@ -95,93 +79,31 @@ docker-compose down
    dotnet run
    ```
 
-5. Navigate to the app folder (specified in the step above)
+5. Navigate to the app folder (specified in the step above), and start the app
 
    ```bash
    cd /<path to app on disk>
    ```
 
-   - If you need to debug (or run locally) the app front-end:
+   ```bash
+   dotnet run -p App.csproj
+   ```
 
-     - Open the file `views/Home/Index.cshtml` in your app repo and change the lines (don't commit these changes)
+   - If you need to debug (or run locally) the app front-end, see details in [app-frontend-react repository](https://github.com/Altinn/app-frontend-react#developing-app-frontend)
 
-     ```html
-     <link
-       rel="stylesheet"
-       type="text/css"
-       href="https://altinncdn.no/toolkits/altinn-app-frontend/3/altinn-app-frontend.css"
-     />
-     ...
-     <script src="https://altinncdn.no/toolkits/altinn-app-frontend/2/altinn-app-frontend.js"></script>
-     ```
-
-     to
-
-     ```html
-     <link
-       rel="stylesheet"
-       type="text/css"
-       href="http://localhost:8080/altinn-app-frontend.css"
-     />
-     ....
-     <script src="http://localhost:8080/altinn-app-frontend.js"></script>
-     ```
-
-     - Build and run the runtime front-end project locally (`altinn-studio/src/Altinn.Apps/AppFrontend/react`):
-
-     ```bash
-     yarn --immutable # only needed first time, or when dependencies are updated
-     cd altinn-app-frontend
-     yarn start
-     ```
-
-6. Start the app locally
-
-```bash
-dotnet run -p App.csproj
-```
-
-The app and local platform services are now running locally.
-If you have configured your hosts as [described in the prerequisites](/src/studio/README.md#prerequisites), the app can be accessed on altinn3local.no.
+The app and local platform services are now running locally, and the app can be accessed on local.altinn.cloud.
 
 Log in with a test user, using your app name and org name. This will redirect you to the app.
 
 #### Building other react apps
 
-If you need to rebuild other react apps, for instance Dashboard or ServiceDevelopment, this can be done by navigating to their respective folders, example `src/studio/stc/designer/frontend/dashboard` and then run the following build script
+If you need to rebuild other react apps, for instance Dashboard or ServiceDevelopment, this can be done by navigating to their respective folders, example `src/studio/src/designer/frontend/dashboard` and then run the following build script
 
 ```bash
 yarn run build
 ```
 
 Some of the react projects also have various other predefined yarn tasks, which can be viewed in the `package.json` file which is located in the root folder of each react project, example `src/studio/stc/designer/frontend/dashboard/package.json`
-
-#### Platform Receipt
-
-The platform receipt component can run locally, both in docker and manually.
-
-##### Start localtest and app
-
-Receipt need localtest for backend services. Start this as explained under app settings.
-Also use an app for creating data that should be presented in receipt.
-
-##### Manual
-
-- Open a terminal in `src/Altinn.Platform/Altinn.Platform.Receipt`
-- run `yarn --immutable`
-- run `yarn run gulp-install-deps`
-- run `yarn run gulp` (if running for the first time, otherwise this can be skipped)
-- run `yarn run gulp-develop`
-
-This will build and run receipt back end, and build and copy the receipt frontend to the `wwwroot` folder.
-The application should now be available at `localhost:5060/receipt/{instanceOwnerId}/{instanceId}`
-The script wil also listen to changes in the receipt react app, rebuild and copy the new react app to the `wwwroot` folder.
-
-##### Docker
-
-- Open a terminal in `src/Altinn.Platform/Altinn.Platform.Receipt`
-- run `docker-compose up`
-- The application should now be available at `localhost:5060/receipt/{instanceOwnerId}/{instanceId}`
 
 ## Running the tests
 

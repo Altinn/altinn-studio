@@ -1,5 +1,9 @@
 import React from 'react';
-import { screen, waitForElementToBeRemoved } from '@testing-library/react';
+import {
+  screen,
+  waitForElementToBeRemoved,
+  waitFor,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import {
@@ -40,7 +44,7 @@ const render = () => {
   });
 };
 
-describe('Dashboard > CreateService', () => {
+describe('CreateService', () => {
   it('should show error messages when clicking create and no owner or name is filled in', async () => {
     const user = userEvent.setup();
     render();
@@ -73,7 +77,9 @@ describe('Dashboard > CreateService', () => {
       screen.getByText('dashboard.loading'),
     );
 
-    expect(screen.getByDisplayValue('user_full_name')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByDisplayValue('user_full_name')).toBeInTheDocument();
+    });
   });
 
   it('should show error message that app name is too long when it exceeds max length', async () => {

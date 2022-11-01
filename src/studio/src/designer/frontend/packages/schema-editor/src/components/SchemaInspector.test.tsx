@@ -1,667 +1,130 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import { mount } from 'enzyme';
 import { act } from 'react-dom/test-utils';
-import { Autocomplete } from '@material-ui/lab';
-import { MenuItem } from '@material-ui/core';
-import SchemaInspector, {
-  isValidName,
-  isNameInUse,
-  isPathOnPropertiesRoot,
-  isPathOnDefinitionsRoot,
-} from './SchemaInspector';
+import { SchemaInspector } from './SchemaInspector';
 import { dataMock } from '../mockData';
-import { buildUISchema, resetUniqueNumber } from '../utils';
-import type { ISchemaState, UiSchemaItem } from '../types';
+import { fireEvent, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
+import {
+  buildUiSchema,
+  createChildNode,
+  createNodeBase,
+  FieldType,
+  getNodeByPointer,
+  Keywords,
+} from '@altinn/schema-model';
 
-let mockStore: any = null;
-let mockInitialState: ISchemaState;
-let createStore: any;
-let mockUiSchema: UiSchemaItem[];
+// workaround for https://jestjs.io/docs/26.x/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: jest.fn().mockImplementation((query) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: jest.fn(), // deprecated
+    removeListener: jest.fn(), // deprecated
+    addEventListener: jest.fn(),
+    removeEventListener: jest.fn(),
+    dispatchEvent: jest.fn(),
+  })),
+});
+const mockUiSchema = buildUiSchema(dataMock);
+const getMockSchemaByPath = (selectedId: string): UiSchemaNode => getNodeByPointer(mockUiSchema, selectedId);
 
-const dispatchMock = () => Promise.resolve({});
-
-const mountWithId = (definitionId: string) => {
-  mockStore = createStore({
-    ...mockInitialState,
-    schema: dataMock,
-    uiSchema: mockUiSchema,
-    selectedDefinitionNodeId: definitionId,
-    selectedPropertyNodeId: definitionId,
-    selectedEditorTab: 'properties',
+const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSchemaNode) => {
+  const store = configureStore()({
+    uiSchema: uiSchemaMap,
   });
-  mockStore.dispatch = jest.fn(dispatchMock);
-  return mountComponent();
+  const user = userEvent.setup();
+  act(() => {
+    render(
+      <Provider store={store}>
+        <SchemaInspector language={{}} selectedItem={selectedItem} />
+      </Provider>,
+    );
+  });
+  return { store, user };
 };
-const mountComponent = () =>
-  mount(
-    <Provider store={mockStore}>
-      <SchemaInspector language={{}} />
-    </Provider>,
-  );
 
-beforeEach(() => {
-  mockUiSchema = buildUISchema(dataMock.definitions, '#/definitions');
-
-  mockInitialState = {
-    name: 'test',
-    saveSchemaUrl: '',
-    schema: { properties: {}, definitions: {} },
-    uiSchema: [],
-    selectedDefinitionNodeId: '#/definitions/Kommentar2000Restriksjon',
-    selectedPropertyNodeId: '#/definitions/Kommentar2000Restriksjon',
-    selectedEditorTab: 'properties',
-  };
-  createStore = configureStore();
-
-  mockStore = createStore({
-    ...mockInitialState,
-    schema: dataMock,
-    uiSchema: mockUiSchema,
-  });
-  mockStore.dispatch = jest.fn(dispatchMock);
-  resetUniqueNumber();
-});
-
-afterEach(() => {
-  mockStore = null;
-});
-
-test('Should match snapshot', () => {
-  act(() => {
-    const wrapper = mountComponent();
-    expect(wrapper.getDOMNode()).toMatchSnapshot();
-  });
-});
-
-test('Should match snapshot (enums)', () => {
-  act(() => {
-    const wrapper = mountWithId('#/definitions/StatistiskeEnhetstyper');
-    wrapper.find('.MuiTab-root').hostNodes().at(1).simulate('click');
-    expect(wrapper.getDOMNode()).toMatchSnapshot('enums');
-  });
-});
-
-test('Should match snapshot (restrictions)', () => {
-  act(() => {
-    const wrapper = mountWithId('#/definitions/Tekst_09Restriksjon');
-    wrapper.find('.MuiTab-root').hostNodes().at(1).simulate('click');
-    expect(wrapper.getDOMNode()).toMatchSnapshot('restrictions');
-  });
-});
-
-test('dispatches correctly when changing restriction key', () => {
-  let wrapper: any = null;
-  act(() => {
-    wrapper = mountComponent();
-    expect(wrapper).not.toBeNull();
-  });
-  wrapper.find('.MuiTab-root').hostNodes().at(1).simulate('click');
-  wrapper
-    .find('#definitionsKommentar2000Restriksjon-minLength-key')
-    .last()
-    .simulate('change', { target: { value: 'maxLength' } });
-  wrapper
-    .find('#definitionsKommentar2000Restriksjon-minLength-key')
-    .last()
-    .simulate('blur');
-  expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/setRestrictionKey',
-    payload: {
-      oldKey: 'minLength',
-      path: '#/definitions/Kommentar2000Restriksjon',
-      newKey: 'maxLength',
-    },
-  });
-});
-
-test('dispatches correctly when changing restriction value', () => {
-  let wrapper: any = null;
-  act(() => {
-    wrapper = mountComponent();
-  });
-  wrapper.find('.MuiTab-root').hostNodes().at(1).simulate('click');
-  wrapper
-    .find('#definitionsKommentar2000Restriksjon-minLength-value')
-    .last()
-    .simulate('change', { target: { value: '666' } });
-  wrapper
-    .find('#definitionsKommentar2000Restriksjon-minLength-value')
-    .last()
-    .simulate('blur');
-  expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/setRestriction',
-    payload: {
-      key: 'minLength',
-      path: '#/definitions/Kommentar2000Restriksjon',
-      value: 666,
-    },
-  });
-});
-
-test('dispatches correctly when changing node name', () => {
-  let wrapper: any = null;
-  act(() => {
-    wrapper = mountComponent();
-  });
-  wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
-  const input = wrapper.find('#selectedItemName').hostNodes().at(0);
-
-  input.simulate('change', { target: { value: '22test' } });
-  input.simulate('blur');
-  expect(mockStore.dispatch).not.toHaveBeenCalledWith({
-    type: 'schemaEditor/setPropertyName',
-  });
-
-  input.simulate('change', { target: { value: 'test' } });
-  input.simulate('blur');
-  expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/setPropertyName',
-    payload: {
-      name: 'test',
-      navigate: '#/definitions/Kommentar2000Restriksjon',
-      path: '#/definitions/Kommentar2000Restriksjon',
-    },
-  });
-
-  input.simulate('change', { target: { value: 'æåå' } });
-  input.simulate('blur');
-  expect(mockStore.dispatch).not.toHaveBeenCalledWith({
-    type: 'schemaEditor/setPropertyName',
-    name: 'æåå',
-  });
-});
-
-test('dispatches correctly when changing field key', () => {
-  let wrapper: any = null;
-  act(() => {
-    wrapper = mountWithId('#/definitions/RA-0678_M');
-  });
-  wrapper.find('.MuiTab-root').hostNodes().at(2).simulate('click');
-  const input = wrapper
-    .find('#definitionsRA-0678_MpropertiesInternInformasjon-key-6')
-    .hostNodes()
-    .at(0);
-  input.simulate('change', { target: { value: 'Test' } });
-  wrapper.update();
-  input.simulate('blur');
-
-  expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/setPropertyName',
-    payload: {
-      name: 'Test',
-      path: '#/definitions/RA-0678_M/properties/InternInformasjon',
-    },
-  });
-});
-
-test('dispatches correctly when changing ref', () => {
-  let wrapper: any = null;
-  act(() => {
-    wrapper = mountWithId(
-      '#/definitions/RA-0678_M/properties/InternInformasjon',
-    );
-    wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
-  });
-  wrapper.update();
-  wrapper.find(Autocomplete).first().props().onChange(null, 'Dato');
-  expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/setRef',
-    payload: {
-      ref: '#/definitions/Dato',
-      path: '#/definitions/RA-0678_M/properties/InternInformasjon',
-    },
-  });
-});
-
-test('supports switching a type into an array and back', () => {
-  let wrapper: any = null;
-  act(() => {
-    wrapper = mountWithId(
-      '#/definitions/RA-0678_M/properties/dataFormatVersion',
-    );
-    wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
-  });
-
-  wrapper
-    .find('input[type="checkbox"]')
-    .hostNodes()
-    .at(0)
-    .simulate('change', { target: { checked: true } });
-  wrapper.update();
-
-  expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/setType',
-    payload: {
-      path: '#/definitions/RA-0678_M/properties/dataFormatVersion',
-      type: 'array',
-    },
-  });
-  expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/setItems',
-    payload: {
-      path: '#/definitions/RA-0678_M/properties/dataFormatVersion',
-      items: {
-        type: 'string',
-      },
-    },
-  });
-  // switch back into string
-  wrapper
-    .find('input[type="checkbox"]')
-    .hostNodes()
-    .at(0)
-    .simulate('change', { target: { checked: false } });
-
-  expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/setType',
-    payload: {
-      path: '#/definitions/RA-0678_M/properties/dataFormatVersion',
-      type: 'string',
-    },
-  });
-  expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/setItems',
-    payload: {
-      path: '#/definitions/RA-0678_M/properties/dataFormatVersion',
-      items: undefined,
-    },
-  });
-});
-
-test('supports switching a reference into an array and back', () => {
-  let wrapper: any = null;
-  act(() => {
-    wrapper = mountWithId(
-      '#/definitions/RA-0678_M/properties/InternInformasjon',
-    );
-    wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
-  });
-
-  wrapper
-    .find('input[type="checkbox"]')
-    .hostNodes()
-    .at(0)
-    .simulate('change', { target: { checked: true } });
-  wrapper.update();
-
-  expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/setType',
-    payload: {
-      path: '#/definitions/RA-0678_M/properties/InternInformasjon',
-      type: 'array',
-    },
-  });
-  expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/setItems',
-    payload: {
-      path: '#/definitions/RA-0678_M/properties/InternInformasjon',
-      items: {
-        $ref: '#/definitions/InternInformasjon',
-      },
-    },
-  });
-  // switch back into reference
-  wrapper
-    .find('input[type="checkbox"]')
-    .hostNodes()
-    .at(0)
-    .simulate('change', { target: { checked: false } });
-
-  expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/setRef',
-    payload: {
-      path: '#/definitions/RA-0678_M/properties/InternInformasjon',
-      ref: '#/definitions/InternInformasjon',
-    },
-  });
-  expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/setItems',
-    payload: {
-      path: '#/definitions/RA-0678_M/properties/InternInformasjon',
-      items: undefined,
-    },
-  });
-});
-
-test('refSelect does not set invalid refs', () => {
-  let wrapper: any = null;
-  act(() => {
-    wrapper = mountWithId(
-      '#/definitions/RA-0678_M/properties/InternInformasjon',
-    );
-    wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
-  });
-  wrapper.update();
-  wrapper.find(Autocomplete).first().props().onChange(null, 'Tull');
-  expect(mockStore.dispatch).not.toHaveBeenCalledWith({
-    type: 'schemaEditor/setRef',
-  });
+test('dispatches correctly when entering text in textboxes', async () => {
+  const { store, user } = renderSchemaInspector(mockUiSchema, getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon'));
+  expect(screen.getByTestId('schema-inspector')).toBeDefined();
+  const tablist = screen.getByRole('tablist');
+  expect(tablist).toBeDefined();
+  const tabpanel = screen.getByRole('tabpanel');
+  expect(tabpanel).toBeDefined();
+  expect(screen.getAllByRole('tab')).toHaveLength(1);
+  const textboxes = screen.getAllByRole('textbox');
+  let textboxIndex = 0;
+  while (textboxes[textboxIndex]) {
+    await user.clear(textboxes[textboxIndex]);
+    await user.type(textboxes[textboxIndex], 'New value');
+    await user.tab();
+    textboxIndex++;
+  }
+  const actions = store.getActions();
+  expect(actions.length).toBeGreaterThanOrEqual(1);
+  const actionTypes = actions.map((a) => a.type);
+  expect(actionTypes).toContain('schemaEditor/setPropertyName');
+  expect(actionTypes).toContain('schemaEditor/setTitle');
+  expect(actionTypes).toContain('schemaEditor/setDescription');
 });
 
 test('renders no item if nothing is selected', () => {
-  mockStore = createStore({
-    ...mockInitialState,
-    schema: dataMock,
-    uiSchema: mockUiSchema,
-    selectedPropertyNodeId: '',
-    selectedDefinitionNodeId: '',
-    selectedEditorTab: 'properties',
-  });
-  act(() => {
-    const wrapper = mountComponent();
-    expect(wrapper).not.toBeNull();
+  renderSchemaInspector(mockUiSchema);
+  const textboxes = screen.queryAllByRole('textbox');
+  expect(textboxes).toHaveLength(0);
+});
 
-    expect(wrapper.find('#no-item-paragraph').last().text()).toBe(
-      'no_item_selected',
-    );
+test('dispatches correctly when changing restriction value', async () => {
+  const { store } = renderSchemaInspector(mockUiSchema, getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon'));
+
+  const textboxes = screen.getAllByRole('textbox');
+  textboxes.forEach((textbox) => {
+    if (textbox.id.includes('minLength-value')) {
+      fireEvent.change(textbox, { target: { value: '100' } });
+      fireEvent.blur(textbox);
+    }
+    if (textbox.id.includes('maxLength-value')) {
+      fireEvent.change(textbox, { target: { value: '666' } });
+      fireEvent.blur(textbox);
+    }
+  });
+  const actions = store.getActions();
+  expect(actions).toHaveLength(2);
+  actions.forEach((action) => {
+    expect(action.type).toContain('schemaEditor');
+    expect(['minLength', 'maxLength']).toContain(action.payload.key);
+    expect(['100', '666']).toContain(action.payload.value);
   });
 });
 
-test('dispatches correctly when deleting fields', () => {
-  let wrapper: any = null;
-  act(() => {
-    wrapper = mountWithId('#/definitions/RA-0678_M');
-  });
-  wrapper.find('.MuiTab-root').hostNodes().at(2).simulate('click');
-  wrapper.update();
-  wrapper
-    .find('#definitionsRA-0678_MpropertiesdataFormatProvider-delete-1')
-    .hostNodes()
-    .at(0)
-    .simulate('click');
-  expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/deleteProperty',
-    payload: {
-      path: '#/definitions/RA-0678_M/properties/dataFormatProvider',
-    },
-  });
+test('Adds new object field when pressing the enter key', async () => {
+  const testUiSchema = buildUiSchema({});
+  const parentNode = createNodeBase(Keywords.Properties, 'test');
+  parentNode.fieldType = FieldType.Object;
+  parentNode.children = ['#/properties/test/properties/abc'];
+  testUiSchema.push(parentNode);
+  const childNode = createChildNode(parentNode, 'abc', false);
+  testUiSchema.push(childNode);
+  const { store, user } = renderSchemaInspector(testUiSchema, parentNode);
+  await user.click(screen.queryAllByRole('tab')[1]);
+  await user.click(screen.getByDisplayValue('abc'));
+  await user.keyboard('{Enter}');
+  expect(store.getActions().map((a) => a.type)).toContain('schemaEditor/addProperty');
 });
 
-test('dispatches correctly when deleting restrictions', () => {
-  let wrapper: any = null;
-  act(() => {
-    wrapper = mountComponent();
-  });
-  wrapper.find('.MuiTab-root').hostNodes().at(1).simulate('click');
-  wrapper.update();
-  wrapper
-    .find('#definitionsKommentar2000Restriksjon-delete-maxLength')
-    .hostNodes()
-    .at(0)
-    .simulate('click');
-  expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/deleteField',
-    payload: {
-      key: 'maxLength',
-      path: '#/definitions/Kommentar2000Restriksjon',
-    },
-  });
-});
-
-test('dispatches correctly when adding enum', () => {
-  let wrapper: any = null;
-  act(() => {
-    wrapper = mountWithId('#/definitions/Kommentar2000Restriksjon');
-  });
-  wrapper.find('.MuiTab-root').hostNodes().at(1).simulate('click');
-  wrapper.update();
-  wrapper.find('#add-enum-button').hostNodes().at(0).simulate('click');
-  expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/addEnum',
-    payload: {
-      value: 'value',
-      path: '#/definitions/Kommentar2000Restriksjon',
-    },
-  });
-});
-
-test('dispatches correctly when deleting enum', () => {
-  let wrapper: any = null;
-  act(() => {
-    wrapper = mountWithId('#/definitions/DriftsstatusPeriode');
-  });
-  wrapper.find('.MuiTab-root').hostNodes().at(1).simulate('click');
-  wrapper.update();
-  wrapper
-    .find('#definitionsDriftsstatusPeriode-delete-jaDrift')
-    .hostNodes()
-    .at(0)
-    .simulate('click');
-  expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/deleteEnum',
-    payload: {
-      value: 'jaDrift',
-      path: '#/definitions/DriftsstatusPeriode',
-    },
-  });
-});
-
-test('dispatches correctly when adding restrictions', () => {
-  let wrapper: any = null;
-  act(() => {
-    wrapper = mountComponent();
-  });
-  wrapper.find('.MuiTab-root').hostNodes().at(1).simulate('click');
-  wrapper.update();
-  wrapper.find('#add-restriction-button').hostNodes().at(0).simulate('click');
-  expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/addRestriction',
-    payload: {
-      key: '',
-      path: '#/definitions/Kommentar2000Restriksjon',
-      value: '',
-    },
-  });
-});
-
-test('dispatches correctly when adding fields', () => {
-  let wrapper: any = null;
-  act(() => {
-    wrapper = mountWithId('#/definitions/RA-0678_M');
-  });
-
-  wrapper.find('.MuiTab-root').hostNodes().at(2).simulate('click');
-  wrapper.update();
-  wrapper.find('#add-property-button').hostNodes().at(0).simulate('click');
-  expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/addProperty',
-    payload: {
-      keepSelection: true,
-      path: '#/definitions/RA-0678_M',
-    },
-  });
-});
-
-test('should not be possible to have two properties with the same name', () => {
-  const uiSchemaItems: UiSchemaItem[] = [
-    {
-      path: '#/definitions/name',
-      type: 'object',
-      properties: [
-        {
-          path: '#/definitions/name/properties/child1',
-          type: 'string',
-          displayName: 'child1',
-        },
-        {
-          path: '#/definitions/name/properties/child2',
-          type: 'string',
-          displayName: 'child2',
-        },
-      ],
-      displayName: 'name',
-    },
-    {
-      path: '#/definitions/name2',
-      type: 'object',
-      properties: [
-        {
-          path: '#/definitions/name/properties/child1',
-          type: 'string',
-          displayName: 'child21',
-        },
-        {
-          path: '#/definitions/name/properties/child2',
-          type: 'string',
-          displayName: 'child22',
-        },
-      ],
-      displayName: 'name2',
-    },
-  ];
-
-  expect(
-    isNameInUse({
-      uiSchemaItems: uiSchemaItems,
-      parentSchema: uiSchemaItems[0],
-      path: '#/definitions/name',
-      name: 'name',
-    }),
-  ).toBe(false);
-  expect(
-    isNameInUse({
-      uiSchemaItems: uiSchemaItems,
-      parentSchema: uiSchemaItems[0],
-      path: '#/definitions/name/properties/child1',
-      name: 'child2',
-    }),
-  ).toBe(true);
-  expect(
-    isNameInUse({
-      uiSchemaItems: uiSchemaItems,
-      parentSchema: uiSchemaItems[0],
-      path: '#/definitions/name/properties/child2',
-      name: 'child3',
-    }),
-  ).toBe(false);
-  expect(
-    isNameInUse({
-      uiSchemaItems: uiSchemaItems,
-      parentSchema: null,
-      path: '#/properties/name',
-      name: 'name2',
-    }),
-  ).toBe(true);
-  expect(
-    isNameInUse({
-      uiSchemaItems: uiSchemaItems,
-      parentSchema: null,
-      path: '#/properties/name4',
-      name: 'name4',
-    }),
-  ).toBe(false);
-  expect(
-    isNameInUse({
-      uiSchemaItems: uiSchemaItems,
-      parentSchema: null,
-      path: '#/definitions/name',
-      name: 'name2',
-    }),
-  ).toBe(true);
-  expect(
-    isNameInUse({
-      uiSchemaItems: uiSchemaItems,
-      parentSchema: null,
-      path: '#/definitions/name4',
-      name: 'name4',
-    }),
-  ).toBe(false);
-});
-
-test('validates that the name only contains legal characters', () => {
-  expect(isValidName('Melding')).toBe(true);
-  expect(isValidName('melding')).toBe(true);
-  expect(isValidName('melding1')).toBe(true);
-  expect(isValidName('melding.1')).toBe(true);
-  expect(isValidName('melding_xyz')).toBe(true);
-  expect(isValidName('melding-xyz')).toBe(true);
-  expect(isValidName('1melding')).toBe(false);
-  expect(isValidName('_melding')).toBe(false);
-  expect(isValidName('.melding')).toBe(false);
-  expect(isValidName('melding%')).toBe(false);
-});
-
-test('should match if a properties based path is on root', () => {
-  expect(isPathOnPropertiesRoot('#/properties/prop1')).toBe(true);
-  expect(isPathOnPropertiesRoot('#/properties/prop1/properties/prop2')).toBe(
-    false,
-  );
-});
-
-test('should match if a definitions based path is on root', () => {
-  expect(isPathOnDefinitionsRoot('#/definitions/prop1')).toBe(true);
-  expect(isPathOnDefinitionsRoot('#/definitions/prop1/properties/prop2')).toBe(
-    false,
-  );
-  expect(isPathOnDefinitionsRoot('#/$defs/prop1')).toBe(true);
-  expect(isPathOnDefinitionsRoot('#/$defs/prop1/properties/prop2')).toBe(false);
-});
-
-test('dispatches correctly when changing type of combination', () => {
-  const wrapper = mountWithId('#/definitions/allOfTest');
-  wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
-  // https://github.com/mui-org/material-ui/issues/5259#issuecomment-783488623
-  wrapper
-    .find('#definitionsallOfTest-change-combination')
-    .hostNodes()
-    .at(0)
-    .simulate('mousedown', { button: 0 });
-  wrapper.find(MenuItem).at(2).simulate('click');
-  expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/setCombinationType',
-    payload: {
-      type: 'oneOf',
-      path: '#/definitions/allOfTest',
-    },
-  });
-});
-
-test('dispatches correctly when setting combination to nullable', () => {
-  const wrapper = mountWithId('#/definitions/allOfTest');
-  wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
-  wrapper
-    .find('input[type="checkbox"]')
-    .hostNodes()
-    .at(0)
-    .simulate('change', { target: { checked: true } });
-  expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/addCombinationItem',
-    payload: {
-      path: '#/definitions/allOfTest',
-      props: {
-        type: 'null',
-      },
-    },
-  });
-});
-
-test('dispatches correctly when removing nullable option on a combination', () => {
-  const wrapper = mountWithId('#/definitions/oneOfTestNullable');
-  wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
-  wrapper
-    .find('input[type="checkbox"]')
-    .hostNodes()
-    .at(0)
-    .simulate('change', { target: { checked: false } });
-  expect(mockStore.dispatch).toHaveBeenCalledWith({
-    type: 'schemaEditor/deleteCombinationItem',
-    payload: {
-      path: '#/definitions/oneOfTestNullable/oneOf/1',
-    },
-  });
-});
-
-test('a ref in a allOf/anyOf/oneOf should not display name', () => {
-  const wrapper = mountWithId('#/definitions/allOfTest/allOf/0');
-  wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
-  expect(wrapper.find('#selectedItemName').hostNodes()).toHaveLength(0);
-});
-
-test('an inline object in a allOf/anyOf/oneOf should present a textual visualization and information about inline objects', () => {
-  const wrapper = mountWithId('#/definitions/oneOfTestNullable/oneOf/1');
-  wrapper.find('.MuiTab-root').hostNodes().at(0).simulate('click');
-  expect(wrapper.find('#json-paper').hostNodes()).toHaveLength(1);
-  expect(wrapper.find('#information-paper').hostNodes()).toHaveLength(1);
+test('Adds new valid value field when pressing the enter key', async () => {
+  const testUiSchema = buildUiSchema({});
+  const item = createNodeBase(Keywords.Properties, 'test');
+  item.fieldType = FieldType.String;
+  item.enum = ['valid value'];
+  testUiSchema.push(item);
+  const { store, user } = renderSchemaInspector(testUiSchema, item);
+  await user.click(screen.queryAllByRole('tab')[1]);
+  await user.click(screen.getByDisplayValue('valid value'));
+  await user.keyboard('{Enter}');
+  expect(store.getActions().map((a) => a.type)).toContain('schemaEditor/addEnum');
 });

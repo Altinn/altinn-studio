@@ -24,6 +24,10 @@ module.exports = {
       services: path.resolve(__dirname, 'src/services/'),
       common: path.resolve(__dirname, 'common/'),
     },
+    fallback: {
+      'react/jsx-runtime': 'react/jsx-runtime.js',
+      'react/jsx-dev-runtime': 'react/jsx-dev-runtime.js',
+    },
   },
   module: {
     rules: [
@@ -39,7 +43,17 @@ module.exports = {
         use: ['style-loader', 'css-loader'],
       },
       {
-        test: /\.css$/,
+        test: /\.module\.css$/,
+        use: [
+          'style-loader',
+          {
+            loader: 'css-loader',
+            options: { modules: true }
+          }
+        ]
+      },
+      {
+        test: /(?<!\.module)\.css$/,
         use: [
           {
             loader: MiniCssExtractPlugin.loader,
@@ -52,6 +66,10 @@ module.exports = {
           },
         ],
       },
+      {
+        test: /\.png$/,
+        type: 'asset/resource'
+      }
     ],
   },
   plugins: [

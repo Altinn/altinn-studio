@@ -1,0 +1,58 @@
+﻿<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" version="1.0">
+  <xs:element name="schema" type="AltinnSchema" />
+  <xs:complexType name="AltinnSchema">
+    <xs:sequence>
+      <!-- page 1 locationinfo -->
+      <xs:element name="schematype" type="xs:string" nillable="false" minOccurs="0" />
+      <xs:element name="archiveidforupdate" type="xs:string" nillable="false" minOccurs="0" />
+      <!-- påkrevd dersom skjematype = existing-->
+      <xs:element name="stationtype" type="xs:string" nillable="false" />
+      <xs:element name="stationid" type="xs:string" nillable="false" />
+      <xs:element name="longitude" type="xs:decimal" nillable="false" minOccurs="0" />
+      <!-- ikke påkrevd -->
+      <xs:element name="latitude" type="xs:decimal" nillable="false" minOccurs="0" />
+      <!-- ikke påkrevd -->
+      <xs:element name="depth" type="xs:integer" nillable="false" minOccurs="0" />
+      <xs:element name="sampledate" type="xs:date" nillable="false" />
+      <xs:element name="hour" type="xs:integer" nillable="false" minOccurs="0" />
+      <xs:element name="minute" type="xs:integer" nillable="false" minOccurs="0" />
+      <xs:element name="productionarea" type="xs:string" nillable="false" minOccurs="0" />
+      <!-- page 2 analysiscompany/ownership-->
+      <xs:element name="testingcompany" type="xs:string" nillable="false" minOccurs="0" />
+      <xs:element name="organisationid" type="xs:string" nillable="false" minOccurs="0" />
+      <xs:element name="analysisresponsible" type="xs:string" nillable="false" minOccurs="0" />
+      <!-- page 3 algae sample -->
+      <xs:element name="harmfulalgae" type="xs:boolean" nillable="false" minOccurs="0" />
+      <!-- ikke påkrevd -->
+      <xs:element name="reportedmortality" type="xs:boolean" nillable="false" minOccurs="0" />
+      <!-- ikke påkrevd -->
+      <xs:element name="behaviourchanges" type="xs:boolean" nillable="false" minOccurs="0" />
+      <!-- ikke påkrevd -->
+      <xs:element name="diatomcount" type="xs:integer" nillable="false" minOccurs="0" />
+      <!-- ikke påkrevd -->
+      <xs:element name="dinoflagellatecount" type="xs:integer" nillable="false" minOccurs="0" />
+      <!-- ikke påkrevd -->
+      <xs:element name="flagellatecount" type="xs:integer" nillable="false" minOccurs="0" />
+      <!-- ikke påkrevd -->
+      <xs:element name="comments" type="xs:string" nillable="false" minOccurs="0" />
+      <!-- ikke påkrevd -->
+      <!-- page 4 algae -->
+      <xs:element name="algae" type="AltinnAlgae" nillable="false" minOccurs="0" maxOccurs="unbounded" />
+      <!-- påkrevd dersom skadelige alger er krysset av-->
+      <xs:element name="owner" type="AltinnOwner" nillable="false" minOccurs="0" maxOccurs="unbounded" />
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="AltinnOwner">
+    <xs:sequence>
+      <xs:element name="organisationid" type="xs:string" nillable="false" minOccurs="0" />
+      <xs:element name="organisationname" type="xs:string" nillable="false" minOccurs="0" />
+      <!-- ikke påkrevd -->
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="AltinnAlgae">
+    <xs:sequence>
+      <xs:element name="scientificname" type="xs:string" nillable="false" minOccurs="0" />
+      <xs:element name="density" type="xs:integer" nillable="false" minOccurs="0" />
+    </xs:sequence>
+  </xs:complexType>
+</xs:schema>

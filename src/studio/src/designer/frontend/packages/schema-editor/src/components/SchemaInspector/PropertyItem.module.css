@@ -1,0 +1,20 @@
+.gridItem {
+  place-self: center center;
+}
+
+.nameInputCell {
+  place-self: stretch stretch;
+}
+
+.nameInputCell > * {
+  width: 100%;
+  height: 100%;
+}
+
+.typeSelectCell {
+  justify-self: stretch;
+}
+
+.requiredCheckCell > * {
+  display: grid;
+}

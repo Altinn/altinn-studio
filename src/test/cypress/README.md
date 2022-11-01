@@ -1,6 +1,6 @@
 # Cypress Tests
 
-This project has the tests using [cypress](https://www.cypress.io/) for studio and app frontend that is running locally.
+This project has the tests using [cypress](https://www.cypress.io/) for studio both local and test environments.
 
 ## Getting Started
 
@@ -26,7 +26,12 @@ Start the solution by following the procedure [here](https://github.com/Altinn/a
 
 ### Test data prerequisite
 
-An admin user has to be created in local studio and an access token should be created in the user settings -> applications.
+You need login credentials for the first user created in local studio, since this user has automatically got admin rights.
+If you have issues logging in as this user, the simplest solution is to delete the `altinn-repositories` container and the Gitea volumes in Docker, and then rebuild the container.
+Then you can start all over and create a new, first user from http://altinn3.no.
+
+After logging in as the admin user, you need to create an access token.
+This is done under the applications pane in the Gitea user settings; http://altinn3.no/repos/user/settings/applications.
 
 Create a new file name `cypress.env.json` under `src\test\cypress` with the data created above.
 
@@ -34,9 +39,7 @@ Create a new file name `cypress.env.json` under `src\test\cypress` with the data
 {
   "adminUser": "",
   "adminPwd": "",
-  "accessToken": "",
-  "testUserName": "",
-  "testUserPwd": ""
+  "accessToken": ""
 }
 ```
 
@@ -55,7 +58,7 @@ The commands should be run in an order that makes sure the tests are intact on t
 2. Tests on different solutions of studio
 
 ```cmd
-    yarn run test:studio -e environment=local,component=studio
+    yarn run test:studio -e environment=local
 ```
 
 3. Cleanup: After all the tests
@@ -64,48 +67,10 @@ The commands should be run in an order that makes sure the tests are intact on t
     yarn run after:all
 ```
 
-### Run App Frontend tests
-
-Follow the steps below to start localtest, app frontend, app and the tests.
-
-**Note:** Use cmd or git bash to run the scripts.
-
-1. Create testfiles that are used by the tests as attachments in app instances.
+4. To run a single test case open cypress runner using
 
 ```cmd
-    yarn run create:testfiles # only needed first time, or when files are deleted from e2e/fixtures
-```
-
-2. Clone the app (frontend-test) to be tested and update config in `package.json` with the paths.
-
-3. Start localtest, app frontend, app. (Hop over to step 4 if the solutions are already running)
-
-```cmd
-    yarn run before:appfrontend
-```
-
-If one has the frontend dependencies installed from before, run the below command.
-
-```cmd
-    yarn run before:appfrontend-no-deps
-```
-
-4. Start the app frontend tests from a new git bash terminal.
-
-```cmd
-    yarn run test:appfrontend -e environment=local,component=appfrontend
-```
-
-To run the tests towards AT21, an altinn user credential has to be supplied [here](https://github.com/Altinn/altinn-studio/tree/master/src/test/cypress#test-data-prerequisite).
-
-```cmd
-    yarn run test:appfrontend -e environment=at21,component=appfrontend
-```
-
-5. To run a single test case open cypress runner using
-
-```cmd
-    yarn run cy:open -e environment=local,component=appfrontend
+    yarn run cy:open -e environment=local
 ```
 
 ### Format files with prettier

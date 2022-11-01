@@ -1,1 +1,0 @@
-urn:oasis:names:tc:xacml:1.0:subject-category:access-subject|urn:oasis:names:tc:xacml:1.0:example:attribute:role|http://www.w3.org/2001/XMLSchema#string|Physician

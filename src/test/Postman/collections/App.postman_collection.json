@@ -3004,7 +3004,7 @@
 							"query": [
 								{
 									"key": "url",
-									"value": "https://altinn3local.no",
+									"value": "https://local.altinn.cloud",
 									"disabled": true
 								},
 								{

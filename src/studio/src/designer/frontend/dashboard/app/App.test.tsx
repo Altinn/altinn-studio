@@ -1,9 +1,7 @@
 import React from 'react';
-import { screen, act, waitForElementToBeRemoved } from '@testing-library/react';
-
+import { act, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
-
-import { renderWithProviders, setupServer, handlers } from 'test/testUtils';
+import { handlers, renderWithProviders, setupServer } from 'test/testUtils';
 import { App } from 'app/App';
 
 const server = setupServer(...handlers);

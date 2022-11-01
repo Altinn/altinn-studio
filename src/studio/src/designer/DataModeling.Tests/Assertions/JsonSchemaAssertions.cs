@@ -83,9 +83,6 @@ namespace DataModeling.Tests.Assertions
                 case ContainsKeyword expectedKeyword:
                     KeywordEqual(expectedKeyword, (ContainsKeyword)actual);
                     break;
-                case ContentMediaEncodingKeyword expectedKeyword:
-                    KeywordEqual(expectedKeyword, (ContentMediaEncodingKeyword)actual);
-                    break;
                 case ContentMediaTypeKeyword expectedKeyword:
                     KeywordEqual(expectedKeyword, (ContentMediaTypeKeyword)actual);
                     break;
@@ -278,6 +275,15 @@ namespace DataModeling.Tests.Assertions
                 case XsdUnhandledEnumAttributesKeyword expectedKeyword:
                     KeywordEqual(expectedKeyword, (XsdUnhandledEnumAttributesKeyword)actual);
                     break;
+                case XsdTextKeyword expectedKeyword:
+                    KeywordEqual(expectedKeyword, (XsdTextKeyword)actual);
+                    break;
+                case XsdMinOccursKeyword expectedKeyword:
+                    KeywordEqual(expectedKeyword, (XsdMinOccursKeyword)actual);
+                    break;
+                case XsdMaxOccursKeyword expectedKeyword:
+                    KeywordEqual(expectedKeyword, (XsdMaxOccursKeyword)actual);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(expected.GetType().Name, "Unknown Json Schema Keyword");
             }
@@ -328,11 +334,6 @@ namespace DataModeling.Tests.Assertions
         }
 
         private static void KeywordEqual(ContainsKeyword expected, ContainsKeyword actual)
-        {
-            throw new NotImplementedException();
-        }
-
-        private static void KeywordEqual(ContentMediaEncodingKeyword expected, ContentMediaEncodingKeyword actual)
         {
             throw new NotImplementedException();
         }
@@ -440,7 +441,7 @@ namespace DataModeling.Tests.Assertions
 
             for (int i = 0; i < expected.Values.Count; i++)
             {
-                Assert.True(expected.Values[i].IsEquivalentTo(actual.Values[i]));
+                Assert.True(expected.Values.ElementAt(i).IsEquivalentTo(actual.Values.ElementAt(i)));
             }
         }
 
@@ -739,12 +740,27 @@ namespace DataModeling.Tests.Assertions
 
         private static void KeywordEqual(XsdSchemaAttributesKeyword expected, XsdSchemaAttributesKeyword actual)
         {
-            Assert.Equal(expected.Properties.Count, expected.Properties.Count);
+            Assert.Equal(expected.Properties.Count, actual.Properties.Count);
             for (int i = 0; i < expected.Properties.Count; i++)
             {
                 Assert.Equal(expected.Properties[i].Name,  actual.Properties[i].Name);
                 Assert.Equal(expected.Properties[i].Value, actual.Properties[i].Value);
             }
+        }
+
+        private static void KeywordEqual(XsdTextKeyword expected, XsdTextKeyword actual)
+        {
+            Assert.True(expected.Equals(actual));
+        }
+
+        private static void KeywordEqual(XsdMinOccursKeyword expected, XsdMinOccursKeyword actual)
+        {
+            Assert.True(expected.Equals(actual));
+        }
+
+        private static void KeywordEqual(XsdMaxOccursKeyword expected, XsdMaxOccursKeyword actual)
+        {
+            Assert.True(expected.Equals(actual));
         }
     }
 }

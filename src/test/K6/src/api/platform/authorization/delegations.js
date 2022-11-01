@@ -35,9 +35,25 @@ export function getPolicies(resources) {
  */
 export function addRules(altinnToken, policyMatchKeys, delegatedByUserId, offeredByPartyId, coveredById, appOwner, appName, altinnTask, altinnAction) {
   var endpoint = config.platformAuthorization.addRules;
-  var params = header.buildHearderWithRuntimeandJson(altinnToken, 'platform');
+  var params = header.buildHeaderWithRuntimeAndJson(altinnToken, 'platform');
   var body = [];
   body.push(generatePolicyMatch(policyMatchKeys, delegatedByUserId, offeredByPartyId, coveredById, appOwner, appName, altinnTask, altinnAction));
+  return http.post(endpoint, JSON.stringify(body), params);
+}
+
+/**
+ * POST api call to add a rule that delagates access to an user
+ * @param {*} altinnToken token for authorizing the request
+ * @param {*} rulesList list of rules to add to the request
+ * @returns response of the POST request
+ */
+ export function addMultipleRules(altinnToken, rulesList) {
+  var endpoint = config.platformAuthorization.addRules;
+  var params = header.buildHeaderWithRuntimeAndJson(altinnToken, 'platform');
+  var body = [];
+  rulesList.forEach(r => {
+    body.push(generatePolicyMatch(r.policyMatchKeys, r.delegatedByUserId, r.offeredByPartyId, r.coveredBy, r.appOwner, r.appName, r.altinnTask, r.altinnAction));
+  });
   return http.post(endpoint, JSON.stringify(body), params);
 }
 
@@ -54,7 +70,7 @@ export function addRules(altinnToken, policyMatchKeys, delegatedByUserId, offere
  */
 export function getRules(altinnToken, policyMatchKeys, offeredByPartyId, coveredById, resources, parentPartyId, keyRolePartyIds) {
   var endpoint = config.platformAuthorization.getRules;
-  var params = header.buildHearderWithRuntimeandJson(altinnToken, 'platform');
+  var params = header.buildHeaderWithRuntimeAndJson(altinnToken, 'platform');
 
   var body = { coveredBy: [], resources: [] };
 
@@ -112,7 +128,7 @@ export function deleteRules(
   altinnAction,
 ) {
   var endpoint = config.platformAuthorization.deleteRules;
-  var params = header.buildHearderWithRuntimeandJson(altinnToken, 'platform');
+  var params = header.buildHeaderWithRuntimeAndJson(altinnToken, 'platform');
   var body = [{}];
   body[0].policyMatch = generatePolicyMatch(policyMatchKeys, null, offeredByPartyId, coveredById, appOwner, appName, altinnTask, altinnAction);
   body[0].ruleIds = ruleIds;
@@ -134,7 +150,7 @@ export function deleteRules(
  */
 export function deletePolicy(altinnToken, policyMatchKeys, deletedByUserId, offeredByPartyId, coveredById, appOwner, appName, altinnTask) {
   var endpoint = config.platformAuthorization.deletePolicy;
-  var params = header.buildHearderWithRuntimeandJson(altinnToken, 'platform');
+  var params = header.buildHeaderWithRuntimeAndJson(altinnToken, 'platform');
   var body = [{}];
   body[0].policyMatch = generatePolicyMatch(policyMatchKeys, null, offeredByPartyId, coveredById, appOwner, appName, altinnTask, null);
   body[0].deletedByUserId = deletedByUserId;

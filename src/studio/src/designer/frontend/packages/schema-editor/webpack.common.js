@@ -8,10 +8,11 @@ module.exports = {
     path: path.resolve(__dirname, 'dist'),
   },
   resolve: {
-    extensions: [ '.tsx', '.ts', '.js' ],
+    extensions: ['.tsx', '.ts', '.js'],
     alias: {
-      "app-shared": path.resolve(__dirname, "../../shared/")
-    }
+      'app-shared': path.resolve(__dirname, '../../shared/'),
+      '@altinn/schema-model': path.resolve(__dirname, '../schema-model/'),
+    },
   },
   module: {
     rules: [
@@ -21,20 +22,35 @@ module.exports = {
         exclude: /node_modules/,
       },
       {
-        test: /\.css$/,
-        use: [{
+        test: /\.module\.css$/,
+        use: [
+          'style-loader',
+          {
+            loader: 'css-loader',
+            options: { modules: true },
+          },
+        ],
+      },
+      {
+        test: /(?<!\.module)\.css$/,
+        use: [
+          {
             loader: MiniCssExtractPlugin.loader,
           },
           {
-            loader: "css-loader",
+            loader: 'css-loader',
+            options: {
+              importLoaders: 1,
+              modules: true,
+            },
           },
-        ]
+        ],
       },
     ],
   },
   plugins: [
     new MiniCssExtractPlugin({
-      filename: "schemaEditor.css",
+      filename: 'schemaEditor.css',
     }),
-  ]
+  ],
 };

@@ -54,6 +54,7 @@
     "myBase": {
       "properties": {
         "value": {
+          "@xsdText": true,
           "$ref": "#/$defs/valueBase"
         },
         "a1": {
@@ -61,7 +62,10 @@
           "@xsdType": "string",
           "@xsdAttribute": true
         }
-      }
+      },
+      "required": [
+        "value"
+      ]
     }
   }
 }

@@ -1,0 +1,12 @@
+.root {
+  display: flex;
+  margin-top: 1rem;
+}
+
+.root > :first-child {
+  flex: 1;
+}
+
+.delete {
+  margin-left: 8px;
+}

@@ -26,7 +26,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
             Dictionary<string, string> classes = new Dictionary<string, string>();
 
-            CreateModelFromMetadataRecursive(classes, serviceMetadata.Elements.Values.First(el => el.ParentElement == null));
+            CreateModelFromMetadataRecursive(classes, serviceMetadata.Elements.Values.First(el => el.ParentElement == null), serviceMetadata.TargetNamespace);
 
             StringBuilder writer = new StringBuilder()
                 .AppendLine("using System;")
@@ -51,7 +51,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         /// </summary>
         /// <param name="classes">The classes</param>
         /// <param name="parentElement">The parent Element</param>
-        private void CreateModelFromMetadataRecursive(Dictionary<string, string> classes, ElementMetadata parentElement)
+        /// <param name="targetNamespace">Target namespace in xsd schema.</param>
+        private void CreateModelFromMetadataRecursive(Dictionary<string, string> classes, ElementMetadata parentElement, string targetNamespace = null)
         {
             List<ElementMetadata> referredTypes = new List<ElementMetadata>();
 
@@ -61,9 +62,14 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
 
             StringBuilder classBuilder = new StringBuilder();
-            if (parentElement.ParentElement == null)
+            if (parentElement.ParentElement == null && string.IsNullOrWhiteSpace(targetNamespace))
             {
                 classBuilder.AppendLine("  [XmlRoot(ElementName=\"" + parentElement.Name + "\")]");
+            }
+            else if (parentElement.ParentElement == null && !string.IsNullOrWhiteSpace(targetNamespace))
+            {
+                 classBuilder.AppendLine(
+                     $"  [XmlRoot(ElementName=\"{parentElement.Name}\", Namespace=\"{targetNamespace}\")]");
             }
             else
             {
@@ -78,7 +84,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             foreach (KeyValuePair<string, ElementMetadata> element in _serviceMetadata.Elements.Where(ele => ele.Value.ParentElement == parentElement.ID))
             {
                 string nullableString = element.Value.MinOccurs == 0 ? "?" : string.Empty;
-                
+
                 if (element.Value.Type == ElementType.Field)
                 {
                     string dataType = GetPropertyTypeFromXsdType(element.Value.XsdValueType);
@@ -92,7 +98,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     {
                         elementOrder = elementOrder + 1;
                         classBuilder.AppendLine("    [XmlElement(\"" + element.Value.XName + "\", Order = " + elementOrder + ")]");
-                        
+
                         // Temporary fix - as long as we use System.Text.Json for serialization and  Newtonsoft.Json for
                         // deserialization, we need both JsonProperty and JsonPropertyName annotations.
                         classBuilder.AppendLine("    [JsonProperty(\"" + element.Value.XName + "\")]");
@@ -113,22 +119,40 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     WriteRestrictionAnnotations(classBuilder, element.Value);
                     elementOrder = elementOrder + 1;
                     classBuilder.AppendLine("    [XmlElement(\"" + element.Value.XName + "\", Order = " + elementOrder + ")]");
-                   
+
                     // Temporary fix - as long as we use System.Text.Json for serialization and  Newtonsoft.Json for
                     // deserialization, we need both JsonProperty and JsonPropertyName annotations.
                     classBuilder.AppendLine("    [JsonProperty(\"" + element.Value.XName + "\")]");
                     classBuilder.AppendLine("    [JsonPropertyName(\"" + element.Value.XName + "\")]");
 
+                    bool primitiveType = false;
+                    string dataType = element.Value.TypeName;
+                    if (element.Value.XsdValueType != null)
+                    {
+                      try
+                      {
+                        dataType = GetPropertyTypeFromXsdType(element.Value.XsdValueType);
+                        primitiveType = true;
+                      }
+                      catch (NotImplementedException)
+                      {
+                        // No primitive type detected, assuming referred type
+                      }
+                    }
+
                     if (element.Value.MaxOccurs > 1)
                     {
-                        classBuilder.AppendLine("    public List<" + element.Value.TypeName + "> " + element.Value.Name + " { get; set; }\n");
+                        classBuilder.AppendLine("    public List<" + dataType + "> " + element.Value.Name + " { get; set; }\n");
                     }
                     else
                     {
-                        classBuilder.AppendLine("    public " + element.Value.TypeName + " " + element.Value.Name + " { get; set; }\n");
+                        classBuilder.AppendLine("    public " + dataType + " " + element.Value.Name + " { get; set; }\n");
                     }
 
-                    referredTypes.Add(element.Value);
+                    if (!primitiveType)
+                    {
+                      referredTypes.Add(element.Value);
+                    }
                 }
                 else if (element.Value.Type == ElementType.Attribute)
                 {
@@ -265,7 +289,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 case BaseValueType.Date:
                     classBuilder.AppendLine("    [RegularExpression(@\"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1,2][0-9]|3[0,1])$\"" + errorMessage + ")]");
                     break;
-            }   
+            }
         }
 
         private string GetPropertyTypeFromXsdType(BaseValueType? typeName)

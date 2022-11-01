@@ -22,9 +22,11 @@
         "e2": {
           "type": "array",
           "items": {
-            "type": "string",
-            "maxItems": 100
+            "type": "string"
           },
+          "maxItems": 100,
+          "@xsdMinOccurs": 0,
+          "@xsdMaxOccurs": "100",
           "@xsdType": "string"
         }
       },
@@ -48,6 +50,8 @@
               "items": {
                 "type": "string"
               },
+              "@xsdMinOccurs": 0,
+              "@xsdMaxOccurs": "unbounded",
               "@xsdType": "string"
             }
           }
@@ -66,6 +70,8 @@
               "items": {
                 "type": "string"
               },
+              "@xsdMinOccurs": 0,
+              "@xsdMaxOccurs": "unbounded",
               "@xsdType": "string"
             }
           }
@@ -84,6 +90,8 @@
               "items": {
                 "type": "string"
               },
+              "@xsdMinOccurs": 0,
+              "@xsdMaxOccurs": "unbounded",
               "@xsdType": "string"
             }
           }

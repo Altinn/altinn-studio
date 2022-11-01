@@ -152,14 +152,17 @@
               "Namespace": "##any",
               "ProcessContent": "None"
             }
-          }
+          },
+          "@xsdMinOccurs": 0,
+          "@xsdMaxOccurs": "unbounded"
         },
         "code": {
           "type": [
             "string",
             "null"
           ],
-          "@xsdType": "string"
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0
         }
       }
     },
@@ -170,14 +173,16 @@
             "string",
             "null"
           ],
-          "@xsdType": "string"
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0
         },
         "email": {
           "type": [
             "string",
             "null"
           ],
-          "@xsdType": "string"
+          "@xsdType": "string",
+          "@xsdMinOccurs": 0
         }
       }
     }

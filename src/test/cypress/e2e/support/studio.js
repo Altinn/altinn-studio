@@ -49,7 +49,7 @@ Cypress.Commands.add('deletecomponents', () => {
  */
 Cypress.Commands.add('deleteLocalChanges', (appId) => {
   cy.getCookie('AltinnStudioDesigner').should('exist');
-  cy.visit(`designer/${appId}#/about`);
+  cy.visit(`designer/${appId}#/`);
   cy.get(designer.aboutApp.repoName).should('be.visible');
   cy.get(designer.sideMenu)
     .find(designer.deleteChanges.reset)

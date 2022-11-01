@@ -2,10 +2,10 @@ import { SagaIterator } from 'redux-saga';
 import { fork } from 'redux-saga/effects';
 import { watchGetDataModelsMetadataSaga } from './metadata';
 import {
+  watchCreateDataModelSaga,
   watchDeleteDataModelSaga,
   watchFetchDataModelSaga,
   watchSaveDataModelSaga,
-  watchCreateDataModelSaga,
 } from './dataModellingSagas';
 
 export function* dataModellingSagas(): SagaIterator {

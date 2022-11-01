@@ -1,16 +1,16 @@
+import React from 'react';
 import {
   Button,
   CircularProgress,
   createTheme,
-  createStyles,
   Grid,
-  makeStyles,
   Popover,
   TextField,
   Typography,
-} from '@material-ui/core';
+} from '@mui/material';
+import { createStyles, makeStyles } from '@mui/styles';
 import classNames from 'classnames';
-import React from 'react';
+
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnPopoverProvidedProps {
@@ -129,7 +129,12 @@ const AltinnPopoverComponent = (props: any) => {
 
   const renderSpinnerOrDoneIcon = () => {
     if (props.isLoading) {
-      return <CircularProgress className={classNames(classes.spinner)} />;
+      return (
+        <CircularProgress
+          className={classNames(classes.spinner)}
+          role='progressbar'
+        />
+      );
     }
     if (props.shouldShowDoneIcon) {
       return (
@@ -167,11 +172,7 @@ const AltinnPopoverComponent = (props: any) => {
         PaperProps={{ square: true, ...props.paperProps }}
       >
         <Grid container={true} direction='column' className={classes.popover}>
-          {props.header && (
-            <Typography variant='h3' className={classNames(classes.header)}>
-              {props.header}
-            </Typography>
-          )}
+          {props.header && <Typography variant='h3'>{props.header}</Typography>}
 
           {props.descriptionText && (
             <Typography className={classNames(classes.subHeader)}>

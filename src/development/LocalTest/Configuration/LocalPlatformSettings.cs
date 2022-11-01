@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace LocalTest.Configuration
 {
     /// <summary>
@@ -5,6 +7,8 @@ namespace LocalTest.Configuration
     /// </summary>
     public class LocalPlatformSettings
     {
+        string _localTestDataPath = null;
+
         /// <summary>
         /// The endpoint for the bridge
         /// </summary>
@@ -20,7 +24,18 @@ namespace LocalTest.Configuration
         /// <summary>
         /// Folder where static test data like profile, authorization, and register data is available for local testing.
         /// </summary>
-        public string LocalTestingStaticTestDataPath { get; set; }
+        public string LocalTestingStaticTestDataPath {
+            get => _localTestDataPath;
+            set {
+                if (!value.EndsWith(Path.DirectorySeparatorChar) &&
+                    !value.EndsWith(Path.AltDirectorySeparatorChar))
+                {
+                    value += Path.DirectorySeparatorChar;
+                }
+
+                _localTestDataPath = value;
+            }
+        }
 
         /// <summary>
         /// Url for the local app when LocalAppMode == http
@@ -36,6 +51,8 @@ namespace LocalTest.Configuration
 
         public string InstanceCollectionFolder { get; set; } = "instances/";
 
+        public string ApplicationsDataFolder { get; set; } = "applications/";
+
         public string DataCollectionFolder { get; set; } = "data/";
 
         public string EventsCollectionFolder { get; set; } = "events/";
@@ -47,5 +64,7 @@ namespace LocalTest.Configuration
         public string PartyListFolder { get; set; } = "partylist/";
 
         public string RolesFolder { get; set; } = "roles/";
+
+        public string ClaimsFolder { get; set; } = "claims/";
     }
 }

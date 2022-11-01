@@ -5,7 +5,7 @@ import * as header from '../../buildrequestheaders.js';
 //Batch Api calls after instance creation to get app resources like Appmetadata, Formlayoust.json, rulehandler.js, ruleconfiguration.json
 export function batchGetAppResources(altinnStudioRuntimeCookie, appOwner, appName) {
   let req, res;
-  var requestParams = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'app');
+  var requestParams = header.buildHeaderWithRuntime(altinnStudioRuntimeCookie, 'app');
   req = [
     {
       method: 'get',
@@ -51,6 +51,6 @@ export function batchGetAppResources(altinnStudioRuntimeCookie, appOwner, appNam
  */
 export function getAppMetadata(altinnToken, appOwner, appName) {
   var endpoint = config.appApiBaseUrl(appOwner, appName) + config.appResources['applicationmetadata'];
-  var params = header.buildHearderWithRuntime(altinnToken, 'app');
+  var params = header.buildHeaderWithRuntime(altinnToken, 'app');
   return http.get(endpoint, params);
 }

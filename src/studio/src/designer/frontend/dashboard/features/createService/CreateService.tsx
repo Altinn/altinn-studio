@@ -1,17 +1,14 @@
-import { makeStyles } from '@material-ui/core/styles';
-import { Grid } from '@material-ui/core';
 import React from 'react';
-
+import { makeStyles } from '@mui/styles';
+import { Grid } from '@mui/material';
 import { useAppSelector } from 'common/hooks';
-
 import AltinnButton from 'app-shared/components/AltinnButton';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 
 import { ServiceOwnerSelector } from './ServiceOwnerSelector';
 import { RepoNameInput } from './RepoNameInput';
-// import { RepoTypeSelector } from './RepoTypeSelector';
-import { useAddRepoMutation, DataModellingFormat } from 'services/repoApi';
+import { DataModellingFormat, useAddRepoMutation } from 'services/repoApi';
 
 import { validateRepoName } from 'common/utils';
 import { applicationAboutPage } from 'common/utils/urlUtils';
@@ -92,11 +89,7 @@ const validateInputs = ({
 export const CreateService = () => {
   const language = useAppSelector((state) => state.language.language);
   const classes = useStyles();
-
   const selectedFormat = DataModellingFormat.XSD;
-  // const [selectedFormat, setSelectedFormat] = React.useState(
-  //   DataModellingFormat.JSON,
-  // );
   const [selectedOrgOrUser, setSelectedOrgOrUser] = React.useState('');
   const [orgErrorMessage, setOrgErrorMessage] = React.useState(null);
   const [repoErrorMessage, setRepoErrorMessage] = React.useState(null);
@@ -171,7 +164,6 @@ export const CreateService = () => {
               selectedOrgOrUser={selectedOrgOrUser}
             />
           </div>
-
           <div className={classes.marginBottom_24}>
             <RepoNameInput
               onRepoNameChanged={handleRepoNameChanged}
@@ -179,14 +171,6 @@ export const CreateService = () => {
               errorMessage={repoErrorMessage}
             />
           </div>
-          {/*
-          <div className={classes.marginBottom_24}>
-            <RepoTypeSelector
-              selectedFormat={selectedFormat}
-              onFormatChange={setSelectedFormat}
-            />
-          </div> */}
-
           {pageState === PageState.Creating ? (
             <AltinnSpinner
               spinnerText={getLanguageFromKey(

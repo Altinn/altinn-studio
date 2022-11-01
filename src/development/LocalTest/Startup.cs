@@ -13,6 +13,8 @@ using Altinn.Platform.Authorization.Repositories.Interface;
 using Altinn.Platform.Authorization.Services.Implementation;
 using Altinn.Platform.Authorization.Services.Interface;
 using Altinn.Platform.Events.Repository;
+using Altinn.Platform.Events.Services;
+using Altinn.Platform.Events.Services.Interfaces;
 using Altinn.Platform.Register.Core;
 using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Helpers;
@@ -28,8 +30,6 @@ using LocalTest.Services.Authorization.Interface;
 using LocalTest.Services.Events.Implementation;
 using LocalTest.Services.LocalApp.Implementation;
 using LocalTest.Services.LocalApp.Interface;
-using LocalTest.Services.Localtest.Implementation;
-using LocalTest.Services.Localtest.Interface;
 using LocalTest.Services.Profile.Implementation;
 using LocalTest.Services.Profile.Interface;
 using LocalTest.Services.Register.Implementation;
@@ -62,6 +62,8 @@ namespace LocalTest
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddAutoMapper(typeof(Program));
+
             services.AddControllers().AddJsonOptions(opt =>
             {
                 opt.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
@@ -78,16 +80,17 @@ namespace LocalTest
             services.Configure<CertificateSettings>(Configuration);
             services.Configure<CertificateSettings>(Configuration.GetSection("CertificateSettings"));
             services.Configure<PersonLookupSettings>(Configuration.GetSection("PersonLookupSettings"));
-            services.AddSingleton<ILocalTestAppSelection, LocalTestAppSelectionSI>();
             services.AddSingleton<IUserProfiles, UserProfilesWrapper>();
             services.AddSingleton<IOrganizations, OrganizationsWrapper>();
             services.AddSingleton<Services.Register.Interface.IParties, PartiesWrapper>();
             services.AddSingleton<IPersons, PersonsWrapper>();
             services.AddSingleton<Altinn.Platform.Authorization.Services.Interface.IParties, PartiesService>();
+            services.AddSingleton<IClaims, ClaimsService>();
             services.AddSingleton<IInstanceRepository, InstanceRepository>();
             services.AddSingleton<IDataRepository, DataRepository>();
             services.AddSingleton<IInstanceEventRepository, InstanceEventRepository>();
             services.AddSingleton<IEventsRepository, EventsRepository>();
+            services.AddTransient<ISubscriptionService, SubscriptionService>();
             services.AddSingleton<IApplicationRepository, ApplicationRepository>();
             services.AddSingleton<ITextRepository, TextRepository>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();

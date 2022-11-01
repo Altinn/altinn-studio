@@ -1,10 +1,7 @@
 import React from 'react';
-import { Typography } from '@material-ui/core';
-
+import { Typography } from '@mui/material';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-
 import { useAppSelector } from 'common/hooks';
-
 import { RepoList } from 'common/components/RepoList';
 import { useGetUserStarredReposQuery } from 'services/userApi';
 
@@ -23,6 +20,7 @@ export const FavoriteReposList = () => {
         repos={userStarredRepos}
         isLoading={isLoadingUserStarredRepos}
         pageSize={5}
+        rowCount={userStarredRepos?.length ?? 0}
       />
     </div>
   );

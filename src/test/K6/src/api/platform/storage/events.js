@@ -5,7 +5,7 @@ import * as header from '../../../buildrequestheaders.js';
 //Api call to Platform:Storage to add an event to an instance
 export function postAddEvent(altinnStudioRuntimeCookie, partyId, instanceId, eventData) {
   var endpoint = config.buildStorageUrls(partyId, instanceId, '', 'events');
-  var params = header.buildHearderWithRuntimeandJson(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntimeAndJson(altinnStudioRuntimeCookie, 'platform');
   eventData = JSON.parse(eventData);
   eventData.instanceOwnerId = partyId;
   eventData.instanceId = partyId + '/' + instanceId;
@@ -16,20 +16,20 @@ export function postAddEvent(altinnStudioRuntimeCookie, partyId, instanceId, eve
 //Api call to Platform:Storage to get all events from an instance
 export function getAllEvents(altinnStudioRuntimeCookie, partyId, instanceId) {
   var endpoint = config.buildStorageUrls(partyId, instanceId, '', 'events');
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntime(altinnStudioRuntimeCookie, 'platform');
   return http.get(endpoint, params);
 }
 
 //Api call to Platform:Storage to get events by type from an instance
 export function getEventByType(altinnStudioRuntimeCookie, partyId, instanceId, eventTypes) {
   var endpoint = config.buildStorageUrls(partyId, instanceId, '', 'events') + '?eventTypes=' + eventTypes;
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntime(altinnStudioRuntimeCookie, 'platform');
   return http.get(endpoint, params);
 }
 
 //Api call to Platform:Storage to get events by id from an instance
 export function getEvent(altinnStudioRuntimeCookie, partyId, instanceId, eventId) {
   var endpoint = config.buildStorageUrls(partyId, instanceId, '', 'events') + '/' + eventId;
-  var params = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'platform');
+  var params = header.buildHeaderWithRuntime(altinnStudioRuntimeCookie, 'platform');
   return http.get(endpoint, params);
 }

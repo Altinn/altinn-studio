@@ -54,18 +54,19 @@ export default function (data) {
   addErrorCount(success);
 
   //Test to get active instances based of a specific app from storage: SBL and validate the response
-  var filters = {
+  var queryModel = {
     language: 'nb',
     appId: appOwner + '/' + appName,
-    'instanceOwner.partyId': partyId,
+    instanceOwnerPartyIdList: [partyId],
     includeActive: 'true',
   };
-  res = sbl.searchSblInstances(runtimeToken, filters);
+  res = sbl.searchSblInstancesPost(runtimeToken, queryModel);
   success = check(res, {
     'Search instances by app id status is 200': (r) => r.status === 200,
     'Search instances by app id count is more than 0': (r) => JSON.parse(r.body).length > 0,
     'Search instances only active instances retrieved': (r) => {
       var responseInstances = r.json();
+
       return (
         responseInstances.every((instance) => instance.archivedDateTime === null) && responseInstances.every((instance) => instance.deletedDateTime === null)
       );
@@ -74,12 +75,12 @@ export default function (data) {
   addErrorCount(success);
 
   //Test to get instances based on filter parameters: created and lastChanged from storage: SBL and validate the response
-  filters = {
-    'instanceOwner.partyId': partyId,
-    created: 'gt:' + support.todayDateInISO(),
-    lastChanged: 'lte:' + new Date().toISOString(),
+  queryModel = {
+    instanceOwnerPartyIdList: [partyId],
+    fromCreated: support.todayDateInISO(),
+    toLastChanged: new Date().toISOString(),
   };
-  res = sbl.searchSblInstances(runtimeToken, filters);
+  res = sbl.searchSblInstancesPost(runtimeToken, queryModel);
   success = check(res, {
     'Search instances by date filters status is 200': (r) => r.status === 200,
     'Search instances Created date is greaten than today': (r) => {
@@ -89,13 +90,13 @@ export default function (data) {
   });
   addErrorCount(success);
 
-  //Test to get instances based on filter parameters: search string (app title) from storage: SBL and validate the response
-  filters = {
-    'instanceOwner.partyId': partyId,
+  //Test to search instances based on filter parameters: search string (app title) from storage: SBL and validate the response
+  queryModel = {
+    instanceOwnerPartyIdList: [partyId],
     searchString: 'app',
     language: 'nb',
   };
-  res = sbl.searchSblInstances(runtimeToken, filters);
+  res = sbl.searchSblInstancesPost(runtimeToken, queryModel);
   success = check(res, {
     'Search instances by app title status is 200': (r) => r.status === 200,
     'Search instances app title matches': (r) => {

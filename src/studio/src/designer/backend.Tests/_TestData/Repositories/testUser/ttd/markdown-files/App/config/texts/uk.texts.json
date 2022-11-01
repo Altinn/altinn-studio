@@ -1,0 +1,5 @@
+{
+  "markdown-text": "# HEADING \n Some text. \n\n _foo_ \n``` \n bar \n```",
+  "no-markdown-text": "No markdown here.",
+  "inline-markdown": "**bar**"
+}

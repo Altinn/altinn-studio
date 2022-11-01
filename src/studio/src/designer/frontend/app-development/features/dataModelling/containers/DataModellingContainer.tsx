@@ -1,34 +1,27 @@
 import React from 'react';
 import { DataModelling } from 'app-shared/features';
-import { makeStyles, createStyles } from '@material-ui/core';
+import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import { useAppSelector } from 'common/hooks';
+import classes from './DataModellingContainer.module.css'
 
 interface IDataModellingContainerProps {
   language: any;
 }
 
-const useStyles = makeStyles(
-  createStyles({
-    root: {
-      marginLeft: 80,
-      width: 'calc(100% - 80px)',
-      display: 'inline-flex',
-    },
-  }),
-);
-
 const DataModellingContainer = ({ language }: IDataModellingContainerProps) => {
-  const classes = useStyles();
-  const repo = useAppSelector(
-    (state) => state.serviceInformation.serviceNameObj.name,
-  );
-  const org = useAppSelector(
-    (state) => state.applicationMetadataState.applicationMetadata.org,
-  );
+  const [org, repo] = useAppSelector((state) => {
+    const id = state.applicationMetadataState.applicationMetadata.id;
+    return id?.split('/') || [];
+  });
 
   return (
     <div className={classes.root}>
-      <DataModelling language={language} org={org} repo={repo} />
+      <div className={classes.versionControlHeaderWrapper}>
+        <VersionControlHeader language={language}/>
+      </div>
+      <div className={classes.dataModellingWrapper}>
+        <DataModelling language={language} org={org} repo={repo} />
+      </div>
     </div>
   );
 };

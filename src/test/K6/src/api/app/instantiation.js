@@ -5,7 +5,7 @@ import * as header from '../../buildrequestheaders.js';
 //Batch Api calls before creating an app instance
 export function beforeInstanceCreation(altinnStudioRuntimeCookie, partyId, appOwner, appName) {
   let req, res;
-  var requestParams = header.buildHearderWithRuntime(altinnStudioRuntimeCookie, 'app');
+  var requestParams = header.buildHeaderWithRuntime(altinnStudioRuntimeCookie, 'app');
   req = [
     {
       method: 'get',

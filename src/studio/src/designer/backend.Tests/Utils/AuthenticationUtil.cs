@@ -36,7 +36,7 @@ namespace Designer.Tests.Utils
             SetAltinnStudiCookieFromResponseHeader(message, cookies, xsrfToken);
         }
 
-        private static string GetXsrfTokenFromCookie(IEnumerable<string> setCookieHeader)
+        internal static string GetXsrfTokenFromCookie(IEnumerable<string> setCookieHeader)
         {
             foreach (string singleCookieHeader in setCookieHeader)
             {
@@ -56,7 +56,7 @@ namespace Designer.Tests.Utils
             return null;
         }
 
-        private static void SetAltinnStudiCookieFromResponseHeader(HttpRequestMessage requestMessage, IEnumerable<string> setCookieHeader, string xsrfToken = null)
+        internal static void SetAltinnStudiCookieFromResponseHeader(HttpRequestMessage requestMessage, IEnumerable<string> setCookieHeader, string xsrfToken = null)
         {
             if (setCookieHeader != null)
             {

@@ -1,16 +1,15 @@
+import React from 'react';
 import {
   Button,
   CircularProgress,
   createTheme,
-  createStyles,
   Grid,
   Popover,
   TextField,
   Typography,
-  withStyles,
-} from '@material-ui/core';
+} from '@mui/material';
+import { createStyles, withStyles } from '@mui/styles';
 import classNames from 'classnames';
-import React from 'react';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface ISyncModalComponentProps {
@@ -53,7 +52,7 @@ const styles = createStyles({
   },
   popover: {
     width: '445px',
-    margin: '24px',
+    padding: '24px',
   },
   header: {
     fontSize: '16px',
@@ -155,7 +154,6 @@ class SyncModalComponent extends React.Component<
           {this.props.descriptionText && (
             <Typography className={classNames(classes.subHeader)}>
               {this.props.descriptionText.map((text: any, index: any) => {
-                // eslint-disable-next-line max-len
                 return this.props.descriptionText.length - 1 !== index ? (
                   <span key={index}> {`${text}\n\n`} </span>
                 ) : (
@@ -172,7 +170,7 @@ class SyncModalComponent extends React.Component<
               id='test'
               multiline={true}
               value={this.state.commitMessage}
-              rows={3}
+              minRows={3}
               onChange={this.handleChange}
               InputProps={{
                 disableUnderline: true,
