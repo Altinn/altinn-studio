@@ -66,6 +66,21 @@ type DropdownOption = {
   label: string;
 };
 
+const getDisplayValue = (selectedValue: string, options: (string | DropdownOption)[]) => {
+  const result = options.find((i: string | DropdownOption) => {
+    if (typeof i === 'object') {
+      return i.value === selectedValue;
+    }
+    return i === selectedValue;
+  });
+
+  if (typeof result === 'object') {
+    return result.label;
+  }
+
+  return result;
+}
+
 export const AltinnDropdown = ({
   inputHeader,
   inputDescription,
@@ -113,7 +128,7 @@ export const AltinnDropdown = ({
       <FormControl classes={formControlClasses} fullWidth={true} id={id}>
         <TextField
           select={!disabled}
-          value={selectedValue}
+          value={disabled ? getDisplayValue(selectedValue, dropdownItems) : selectedValue}
           onChange={handleChange}
           disabled={disabled}
           InputProps={inputPropsClasses}
