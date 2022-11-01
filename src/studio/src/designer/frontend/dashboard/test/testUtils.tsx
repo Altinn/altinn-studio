@@ -1,14 +1,14 @@
 import React from 'react';
+import type { RenderOptions } from '@testing-library/react';
 import { render as rtlRender } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import type { RenderOptions } from '@testing-library/react';
 import type { PreloadedState } from '@reduxjs/toolkit';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import { HashRouter as Router } from 'react-router-dom';
 
-import { setupStore } from 'app/store';
 import type { AppStore, RootState } from 'app/store';
+import { setupStore } from 'app/store';
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   preloadedState?: PreloadedState<RootState>;
@@ -17,11 +17,7 @@ interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
 
 export const renderWithProviders = (
   component: any,
-  {
-    preloadedState = {},
-    store = setupStore(preloadedState),
-    ...renderOptions
-  }: ExtendedRenderOptions = {},
+  { preloadedState = {}, store = setupStore(preloadedState), ...renderOptions }: ExtendedRenderOptions = {},
 ) => {
   function Wrapper({ children }: React.PropsWithChildren<unknown>) {
     return (

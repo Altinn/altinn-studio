@@ -15,7 +15,9 @@
     ]
   },
   "dependencies": {
-    "@mui/lab": "5.0.0-alpha.104"
+    "@mui/lab": "5.0.0-alpha.104",
+    "react-dnd": "16.0.1",
+    "react-dnd-html5-backend": "16.0.1"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "5.16.5",
@@ -80,8 +82,6 @@
     "classnames": "2.3.2",
     "jsonpointer": "5.0.1",
     "react": "18.2.0",
-    "react-dnd": "16.0.1",
-    "react-dnd-html5-backend": "16.0.1",
     "react-dom": "18.2.0",
     "react-redux": "8.0.4",
     "redux": "4.2.0",
