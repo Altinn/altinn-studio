@@ -1,6 +1,7 @@
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Constants;
 using Altinn.App.Core.EFormidling.Interface;
+using Altinn.App.Core.Infrastructure.Clients.Events;
 using Altinn.App.Core.Interface;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Common.EFormidlingClient;
@@ -28,28 +29,20 @@ public class DefaultEFormidlingService : IEFormidlingService
     private readonly Application _appMetadata;
     private readonly IData _dataClient;
     private readonly IEFormidlingReceivers _eFormidlingReceivers;
+    private readonly IEvents _eventClient;
     private readonly string _org;
     private readonly string _app;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DefaultEFormidlingService"/> class.
-    /// </summary>
-    /// <param name="logger"></param>
-    /// <param name="httpContextAccessor"></param>
-    /// <param name="appResources"></param>
-    /// <param name="dataClient"></param>
-    /// <param name="eFormidlingReceivers"></param>
-    /// <param name="appSettings"></param>
-    /// <param name="platformSettings"></param>
-    /// <param name="eFormidlingClient"></param>
-    /// <param name="tokenGenerator"></param>
-    /// <param name="eFormidlingMetadata"></param>
+    /// </summary>    
     public DefaultEFormidlingService(
         ILogger<DefaultEFormidlingService> logger,
         IHttpContextAccessor httpContextAccessor,
         IAppResources appResources,
         IData dataClient,
         IEFormidlingReceivers eFormidlingReceivers,
+        IEvents eventClient,
         IOptions<AppSettings>? appSettings = null,
         IOptions<PlatformSettings>? platformSettings = null,
         IEFormidlingClient? eFormidlingClient = null,
@@ -68,6 +61,7 @@ public class DefaultEFormidlingService : IEFormidlingService
         _eFormidlingReceivers = eFormidlingReceivers;
         _org = _appMetadata.Org;
         _app = _appMetadata.Id.Split("/")[1];
+        _eventClient = eventClient;
     }
 
     /// <inheritdoc />
@@ -82,8 +76,7 @@ public class DefaultEFormidlingService : IEFormidlingService
         }
 
         string accessToken = _tokenGenerator.GenerateAccessToken(_org, _app);
-        string authzToken =
-            JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _appSettings.RuntimeCookieName);
+        string authzToken = JwtTokenUtil.GetTokenFromContext(_httpContextAccessor.HttpContext, _appSettings.RuntimeCookieName);
 
         var requestHeaders = new Dictionary<string, string>
         {
@@ -109,11 +102,11 @@ public class DefaultEFormidlingService : IEFormidlingService
         try
         {
             await _eFormidlingClient.SendMessage(instanceGuid, requestHeaders);
+            _ = await _eventClient.AddEvent(EformidlingConstants.CheckInstanceStatusEventType, instance);
         }
         catch
         {
-            _logger.LogError("// AppBase // SendEFormidlingShipment // Shipment of instance {InstanceId} failed.",
-                instance.Id);
+            _logger.LogError("Shipment of instance {InstanceId} to Eformidling failed.", instance.Id);
             throw;
         }
     }
@@ -206,9 +199,7 @@ public class DefaultEFormidlingService : IEFormidlingService
             using Stream stream = await _dataClient.GetBinaryData(_org, _app, instanceOwnerPartyId, instanceGuid,
                 new Guid(dataElement.Id));
 
-            bool successful =
-                await _eFormidlingClient.UploadAttachment(stream, instanceGuid.ToString(), fileName,
-                    requestHeaders);
+            bool successful = await _eFormidlingClient!.UploadAttachment(stream, instanceGuid.ToString(), fileName, requestHeaders);            
 
             if (!successful)
             {

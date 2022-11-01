@@ -10,6 +10,7 @@ namespace Altinn.App.PlatformServices.Tests.Models
         [Theory]
         [InlineData("/yabbin/hvem-er-hvem/instances/512345/2539cacc-1f49-4852-907b-d184e7285a60/process/next", 512345, "2539cacc-1f49-4852-907b-d184e7285a60")]
         [InlineData(@"https://www.altinn.no/yabbin/hvem-er-hvem/instances/512345/2539cacc-1f49-4852-907b-d184e7285a60/process/next", 512345, "2539cacc-1f49-4852-907b-d184e7285a60")]
+        [InlineData("/yabbin/hvem-er-hvem/instance/512345/2539cacc-1f49-4852-907b-d184e7285a60/process/next", 512345, "2539cacc-1f49-4852-907b-d184e7285a60")]
         public void Url_CreateFromUrl_ShouldReturnOwnerIdAndInstaceGuid(string url, int expectedInstanceOwnerId, Guid expectedInstanceGuid)
         {
             var instanceIdentifier = InstanceIdentifier.CreateFromUrl(url);
@@ -18,6 +19,16 @@ namespace Altinn.App.PlatformServices.Tests.Models
             Assert.Equal(expectedInstanceGuid, instanceIdentifier.InstanceGuid);
             Assert.Equal($"{expectedInstanceOwnerId}/{expectedInstanceGuid}", instanceIdentifier.GetInstanceId());
             instanceIdentifier.IsNoInstance.Should().BeFalse();
+        }
+
+        [Fact]
+        public void Url_CreateFromUrl_ShouldThrowExceptionOnInvalidUrl()
+        {
+            var url = "/yabbin/hvem-er-hvem/512345/2539cacc-1f49-4852-907b-d184e7285a60/process/next";
+            
+            Action action = () => InstanceIdentifier.CreateFromUrl(url);
+
+            action.Should().Throw<ArgumentException>();
         }
 
         [Theory]

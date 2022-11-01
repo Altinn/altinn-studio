@@ -101,14 +101,30 @@ namespace Altinn.App.Core.Models
 
         /// <summary>
         /// Deconstructs an instance based url string into instanceOwnerId and InstanceGuid.
-        /// The url needs to conform to .../instances/{instanceOwerId}/{instanceOwnerGuid}/... pattern.
+        /// The url needs to conform to .../instances/{instanceOwerId}/{instanceOwnerGuid}/... or
+        /// .../instance/{instanceOwerId}/{instanceOwnerGuid}/... pattern.
         /// </summary>
         /// <param name="url">The url to parse</param>
         /// <returns>A 2-tuple with the partyId (int) and the instanceGuid (Guid).</returns>
         private static (int InstanceOwnerId, Guid InstanceOwnerGuid) DeconstructInstanceIdFromUrl(string url)
         {
-            var searchFor = "/instances/";
-            var instanceSubpath = url.Substring(url.IndexOf(searchFor) + searchFor.Length);
+            string searchForPlural = "/instances/";
+            string searchForSingular = "/instance/";
+            string instanceSubpath = string.Empty;
+
+            if (url.Contains(searchForPlural, StringComparison.InvariantCultureIgnoreCase))
+            {
+                instanceSubpath = url.Substring(url.IndexOf(searchForPlural) + searchForPlural.Length);
+            }
+            else if (url.Contains(searchForSingular, StringComparison.InvariantCultureIgnoreCase))
+            {
+                instanceSubpath = url.Substring(url.IndexOf(searchForSingular) + searchForSingular.Length);
+            }
+
+            if (string.IsNullOrEmpty(instanceSubpath))
+            {
+                throw new ArgumentException($"Parameter with value {url} is not recognised as a valid instance url.", nameof(url));
+            }
 
             return DeconstructInstanceId(instanceSubpath);
         }

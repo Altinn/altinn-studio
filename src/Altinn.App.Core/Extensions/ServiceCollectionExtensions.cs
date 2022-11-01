@@ -16,10 +16,12 @@ using Altinn.App.Core.Infrastructure.Clients.Register;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
 using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.AppModel;
+using Altinn.App.Core.Internal.Events;
 using Altinn.App.Core.Internal.Language;
 using Altinn.App.Core.Internal.Pdf;
 using Altinn.App.Core.Internal.Process;
 using Altinn.App.Core.Internal.Texts;
+using Altinn.App.Core.Models;
 using Altinn.Common.AccessTokenClient.Configuration;
 using Altinn.Common.AccessTokenClient.Services;
 using Altinn.Common.PEP.Implementation;
@@ -31,6 +33,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json.Linq;
 
 namespace Altinn.App.Core.Extensions
 {
@@ -52,6 +55,8 @@ namespace Altinn.App.Core.Extensions
             services.Configure<PlatformSettings>(configuration.GetSection("PlatformSettings"));
             services.Configure<CacheSettings>(configuration.GetSection("CacheSettings"));
 
+            AddApplicationIdentifier(services);
+
             services.AddHttpClient<IApplication, ApplicationClient>();
             services.AddHttpClient<IAuthentication, AuthenticationClient>();
             services.AddHttpClient<IAuthorization, AuthorizationClient>();
@@ -60,6 +65,7 @@ namespace Altinn.App.Core.Extensions
             services.AddHttpClient<IER, RegisterERClient>();
             services.AddHttpClient<IInstance, InstanceClient>();
             services.AddHttpClient<IInstanceEvent, InstanceEventClient>();
+            services.AddHttpClient<IEventsSubscription, EventsSubscriptionClient>();
             services.AddHttpClient<IEvents, EventsClient>();
             services.AddHttpClient<IPDF, PDFClient>();
             services.AddHttpClient<IProfile, ProfileClient>();
@@ -72,7 +78,31 @@ namespace Altinn.App.Core.Extensions
             services.TryAddTransient<IUserTokenProvider, UserTokenProvider>();
             services.TryAddTransient<IAccessTokenGenerator, AccessTokenGenerator>();
             services.TryAddTransient<IPersonLookup, PersonService>();
-            services.TryAddTransient<IApplicationLanguage, ApplicationLanguage>();
+            services.TryAddTransient<IApplicationLanguage, Internal.Language.ApplicationLanguage>();
+        }
+
+        private static void AddApplicationIdentifier(IServiceCollection services)
+        {
+            services.AddSingleton<AppIdentifier>(sp =>
+            {
+                var appIdentifier = GetApplicationId();
+                return new AppIdentifier(appIdentifier);
+            });
+        }
+
+        private static string GetApplicationId()
+        {
+            string appMetaDataString = File.ReadAllText("config/applicationmetadata.json");
+            JObject appMetadataJObject = JObject.Parse(appMetaDataString);
+            
+            var id = appMetadataJObject?.SelectToken("id")?.Value<string>();
+
+            if (id == null)
+            {
+                throw new KeyNotFoundException("Could not find id in applicationmetadata.json. Please ensure applicationmeta.json is well formed and contains a key for id.");
+            }
+
+            return id;
         }
 
         /// <summary>
@@ -103,6 +133,7 @@ namespace Altinn.App.Core.Extensions
             services.Configure<FrontEndSettings>(configuration.GetSection(nameof(FrontEndSettings)));
             AddAppOptions(services);
             AddPdfServices(services);
+            AddEventServices(services);
             AddProcessServices(services);
 
             if (!env.IsDevelopment())
@@ -113,7 +144,13 @@ namespace Altinn.App.Core.Extensions
             else
             {
                 services.TryAddSingleton<ISecrets, SecretsLocalClient>();
-            }
+            }            
+        }
+
+        private static void AddEventServices(IServiceCollection services)
+        {
+            services.AddTransient<IEventHandlerResolver, EventHandlerResolver>();
+            services.TryAddSingleton<IEventSecretCodeProvider, KeyVaultEventSecretCodeProvider>();
         }
 
         private static void AddPdfServices(IServiceCollection services)

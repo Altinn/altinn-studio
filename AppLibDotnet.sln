@@ -10,6 +10,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Altinn.App.Api.Tests", "test\Altinn.App.Api.Tests\Altinn.App.Api.Tests.csproj", "{2FD56505-1DB2-4AE1-8911-E076E535EAC6}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{6C8EB054-1747-4BAC-A637-754F304BCAFA}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{7AD5FADE-607F-4D5F-8511-6647D0C1AA1C}"
 EndProject
