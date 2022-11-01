@@ -32,19 +32,36 @@ Cypress.Commands.add('startAppInstance', (appName, anonymous=false) => {
   }
 
   cy.visit('/', visitOptions);
+
+  const appPath = `/ttd/${appName}/`;
+
+  // Rewrite all references to the app-frontend with a local URL
+  cy.intercept({ path: appPath }, (req) => {
+    req.on('response', (res) => {
+      if (typeof res.body !== 'string') {
+        res.send();
+        return;
+      }
+
+      const source = /https?:\/\/.*?\/altinn-app-frontend\./g;
+      const target = `${Cypress.config(`frontendUrl`)}/altinn-app-frontend.`;
+      const body = res.body.replace(source, target);
+      res.send({ body });
+    });
+  }).as('appIndex');
+
   if (Cypress.env('environment') === 'local') {
     if (anonymous) {
-      cy.visit(`${Cypress.config('baseUrl')}/ttd/${appName}`, visitOptions);
+      cy.visit(`${Cypress.config('baseUrl')}${appPath}`, visitOptions);
     } else {
       cy.get(appFrontend.appSelection).select(appName);
       cy.get(appFrontend.startButton).click();
     }
   } else {
-    if (!anonymous)
-    {
+    if (!anonymous) {
       authenticateAltinnII(Cypress.env('testUserName'), Cypress.env('testUserPwd'));
     }
-    cy.visit(`https://ttd.apps.${Cypress.config('baseUrl').slice(8)}/ttd/${appName}/`, visitOptions);
+    cy.visit(`https://ttd.apps.${Cypress.config('baseUrl').slice(8)}${appPath}`, visitOptions);
   }
 });
 

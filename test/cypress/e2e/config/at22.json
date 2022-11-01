@@ -1,8 +1,9 @@
 {
   "$schema": "https://on.cypress.io/cypress.schema.json",
   "baseUrl": "https://at22.altinn.cloud",
+  "frontendUrl": "http://localhost:8080",
   "env": {
     "userFullName": "ÅSLAND DAG",
-    "firstName": "DAG"  
+    "firstName": "DAG"
   }
 }

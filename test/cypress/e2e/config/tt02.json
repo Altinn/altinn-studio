@@ -1,6 +1,7 @@
 {
   "$schema": "https://on.cypress.io/cypress.schema.json",
   "baseUrl": "https://tt02.altinn.no",
+  "frontendUrl": "http://localhost:8080",
   "env": {
     "userFullName": "FAGERLAND MAIKEN",
     "firstName": "MAIKEN",
