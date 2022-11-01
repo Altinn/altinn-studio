@@ -1,4 +1,4 @@
-import React, { BaseSyntheticEvent } from 'react';
+import React, { BaseSyntheticEvent, ChangeEvent } from 'react';
 import { TextField } from '@altinn/altinn-design-system';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 import { Label } from '../common/Label';
@@ -23,17 +23,17 @@ export const RestrictionField = ({
   readOnly,
   value,
 }: IRestrictionFieldProps) => {
-  const fieldId = getDomFriendlyID(path, keyName + '-value');
+  const fieldId = getDomFriendlyID(path, { suffix: `${keyName}-value` });
+  const handleChange = ({ target }: ChangeEvent) => {
+    const element = target as HTMLInputElement;
+    if (element.value !== value) {
+      onChangeValue(path, keyName, element.value);
+    }
+  };
   return (
     <div className={className}>
       <Label htmlFor={fieldId}>{label}</Label>
-      <TextField
-        id={fieldId}
-        value={value ?? ''}
-        onChange={(e) => onChangeValue(path, keyName, e.target.value)}
-        aria-label={label}
-        readOnly={readOnly}
-      />
+      <TextField id={fieldId} value={value ?? ''} onChange={handleChange} aria-label={label} readOnly={readOnly} />
     </div>
   );
 };

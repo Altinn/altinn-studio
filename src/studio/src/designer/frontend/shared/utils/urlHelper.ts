@@ -1,7 +1,7 @@
 import getNamesFromLocation from './getNamesFromLocation';
+import conditionalPath from "app-shared/utils/conditionalPath";
 
 const cdn = 'https://altinncdn.no';
-export const orgsListUrl = `${cdn}/orgs/altinn-orgs.json`;
 export const altinnImgLogoHeaderUrl = `${cdn}/img/Altinn-logo-blue.svg`;
 export const altinnDocsUrl = 'https://docs.altinn.studio/';
 
@@ -9,14 +9,15 @@ export const sharedUrls = () => {
   const [org, repo] = getNamesFromLocation();
   const origin = window.location.origin;
   const designerApi = `${origin}/designer/api`;
-  const dataModelsApi = `${designerApi}/${org}/${repo}/datamodels`;
+  const orgRepoChunk = conditionalPath(org,repo);
+  const dataModelsApi = `${designerApi}/${orgRepoChunk}/datamodels`;
   return {
-    ensureCloneApi: `${origin}/designer/${org}/${repo}`,
+    ensureCloneApi: `${origin}/designer/${orgRepoChunk}`,
     dataModelsApi,
-    dataModelUploadPageUrl: `${origin}/designer/${org}/${repo}#/datamodel`,
-    dataModelXsdUrl: `${origin}/designer/${org}/${repo}/Model/GetXsd`,
-    repositoryGitUrl: `${origin}/repos/${org}/${repo}.git`,
-    repositoryUrl: `${origin}/repos/${org}/${repo}`,
+    dataModelUploadPageUrl: `${origin}/designer/${orgRepoChunk}#/datamodel`,
+    dataModelXsdUrl: `${origin}/designer/${orgRepoChunk}/Model/GetXsd`,
+    repositoryGitUrl: `${origin}/repos/${orgRepoChunk}.git`,
+    repositoryUrl: `${origin}/repos/${orgRepoChunk}`,
     createDataModelUrl: `${dataModelsApi}/post`,
     getDataModelUrl:
       (pathToModelFile: string) => `${dataModelsApi}${pathToModelFile}`,

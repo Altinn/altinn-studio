@@ -13,17 +13,21 @@
     "plugin:jsx-a11y/recommended",
     "plugin:react/recommended",
     "plugin:react-hooks/recommended",
-    "prettier"
+    "plugin:prettier/recommended",
+    "plugin:sonarjs/recommended"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "ecmaFeatures": {
       "jsx": true
     },
-    "sourceType": "module",
-    "project": "tsconfig.json"
+    "sourceType": "module"
   },
-  "plugins": ["@typescript-eslint", "import"],
+  "plugins": [
+    "@typescript-eslint",
+    "import",
+    "simple-import-sort"
+  ],
   "settings": {
     "import/extensions": [".js", ".jsx", ".ts", ".tsx"],
     "import/parsers": {
@@ -49,6 +53,85 @@
     ],
     "jsx-a11y/no-autofocus": ["off"],
     "@typescript-eslint/no-explicit-any": ["off"],
-    "import/no-unresolved": ["off"]
-  }
+    "import/no-unresolved": ["off"],
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      { "ignoreRestSiblings": true, "argsIgnorePattern": "^_" }
+    ],
+    "@typescript-eslint/consistent-type-imports": ["warn"],
+    "react-hooks/exhaustive-deps": ["error"],
+    "prefer-template": ["warn"],
+    "sonarjs/no-duplicate-string": ["off"],
+    "sonarjs/cognitive-complexity": ["warn", 15],
+    "sonarjs/no-collapsible-if": ["warn"],
+    "sonarjs/prefer-single-boolean-return": ["warn"],
+    "sonarjs/no-identical-functions": ["warn"],
+    "sonarjs/no-small-switch": ["warn"],
+    "sonarjs/no-nested-template-literals": ["warn"],
+    "react/prop-types": ["off"]
+  },
+  "overrides": [
+    {
+      "files": ["*.ts", "*.tsx"],
+      "parserOptions": {
+        "project": "tsconfig.json"
+      }
+    },
+    {
+      "files": ["*.js", "*.jsx"],
+      "rules": {
+        "@typescript-eslint/no-var-requires": ["off"]
+      }
+    },
+    {
+      "files": ["altinn-app-frontend/src/**"],
+      "rules": {
+        "simple-import-sort/imports": [
+          "error",
+          {
+            "groups": [
+              [
+                // React related packages come first.
+                "^react[^\\u0000]*$",
+                "^react.*\\u0000$"
+              ],
+              [
+                // Side effect imports (discouraged!)
+                "^\\u0000"
+              ],
+              [
+                // All imports from external packages in node_modules (with type-only imports last)
+                "^@?(?!src|altinn-)\\w+[^\\u0000]*$",
+                "^@?(?!src|altinn-)\\w+.*\\u0000$"
+              ],
+              [
+                // Relative/sibling imports
+                "^\\./?[^\\u0000]*$",
+                "^\\./?.*\\u0000$"
+              ],
+              [
+                // Our internal packages
+                "^src/[^\\u0000]+$",
+                "^src/.*\\u0000$"
+              ],
+              [
+                // Imports from altinn-app-frontend (mostly mocks and test utilities)
+                "^altinn-app-frontend/[^\\u0000]+$",
+                "^altinn-app-frontend/.*\\u0000$"
+              ],
+              [
+                // Imports from altinn-shared
+                "^altinn-shared/[^\\u0000]+$",
+                "^altinn-shared/.*\\u0000$"
+              ],
+              [
+                // Lastly, style imports
+                "^.+\\.(s?css|less)$"
+              ]
+            ]
+          }
+        ]
+      }
+    }
+  ]
 }
