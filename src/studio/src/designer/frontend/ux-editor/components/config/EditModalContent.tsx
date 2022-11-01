@@ -40,12 +40,7 @@ export interface IEditModalContentProps {
   saveEdit?: (updatedComponent: FormComponentType) => void;
 }
 
-export const EditModalContent = ({
-  component,
-  cancelEdit,
-  handleComponentUpdate,
-  saveEdit,
-}: IEditModalContentProps) => {
+export const EditModalContent = ({ component, handleComponentUpdate }: IEditModalContentProps) => {
   const language = useSelector((state: IAppState) => state.appData.languageState.language);
   const t = (key: string) => getLanguageFromKey(key, language);
   const textResources = useSelector((state: IAppState) => state.appData.textResources.resources);
