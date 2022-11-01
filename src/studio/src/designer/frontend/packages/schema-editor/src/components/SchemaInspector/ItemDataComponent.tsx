@@ -58,8 +58,8 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
     setItemDescription(selectedItem.description ?? '');
   }, [selectedItem]);
 
-  const onNameChange = (e: any) => {
-    const { value } = e.target;
+  const onNameChange = ({ target }: ChangeEvent) => {
+    const { value } = target as HTMLInputElement;
     setNodeName(value);
     !isValidName(value) ? setNameError(NameError.InvalidCharacter) : setNameError(NameError.NoError);
   };
@@ -69,8 +69,8 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
   const onChangeFieldType = (pointer: string, type: FieldType) =>
     dispatch(setType({ path: selectedItem.pointer, type }));
 
-  const onChangeNullable = (event: any) => {
-    if (event.target.checked) {
+  const onChangeNullable = (event: ChangeEvent) => {
+    if ((event.target as HTMLInputElement)?.checked) {
       dispatch(addCombinationItem({ pointer: selectedItem.pointer, props: { fieldType: FieldType.Null } }));
     } else {
       childNodes.forEach((childNode: UiSchemaNode) => {
@@ -116,9 +116,10 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
   };
 
   const t = (key: string) => getTranslation(key, language);
-  const titleId = getDomFriendlyID(selectedNodePointer, 'title');
-  const descriptionId = getDomFriendlyID(selectedNodePointer, 'description');
-
+  const titleId = getDomFriendlyID(selectedNodePointer, { suffix: 'title' });
+  const descriptionId = getDomFriendlyID(selectedNodePointer, { suffix: 'description' });
+  const selectId = getDomFriendlyID(selectedItem.pointer, { suffix: 'combi-sel' });
+  const typeId = getDomFriendlyID(selectedItem.pointer, { suffix: 'type-select' });
   return (
     <div className={classes.root}>
       {!selectedItem.isCombinationItem && (
@@ -140,7 +141,7 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
       )}
       {selectedItem.objectKind === ObjectKind.Field && (
         <Select
-          id={getDomFriendlyID(selectedItem.pointer, 'type-select')}
+          id={typeId}
           label={t('type')}
           onChange={(type) => onChangeFieldType(selectedItem.pointer, type as FieldType)}
           options={getTypeOptions(t)}
@@ -167,7 +168,7 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
       )}
       {selectedItem.objectKind === ObjectKind.Combination && (
         <Select
-          id={getDomFriendlyID(selectedItem.pointer, 'combi-sel')}
+          id={selectId}
           label={t('type')}
           onChange={(combination) => onChangeCombinationType(combination as CombinationKind)}
           options={getCombinationOptions(t)}
@@ -188,7 +189,12 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
       <FieldSet legend={t('descriptive_fields')} className={classes.fieldSet}>
         <div>
           <Label htmlFor={titleId}>{t('title')}</Label>
-          <TextField id={titleId} onBlur={onChangeTitle} onChange={(e) => setItemTitle(e.target.value)} value={title} />
+          <TextField
+            id={titleId}
+            onBlur={onChangeTitle}
+            onChange={(e: ChangeEvent) => setItemTitle((e.target as HTMLInputElement)?.value)}
+            value={title}
+          />
         </div>
         <div>
           <Label htmlFor={descriptionId}>{t('description')}</Label>

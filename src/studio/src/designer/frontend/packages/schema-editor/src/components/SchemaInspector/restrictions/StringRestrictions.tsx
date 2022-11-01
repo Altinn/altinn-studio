@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { ChangeEvent, useState } from 'react';
 import { RestrictionItemProps } from '../ItemRestrictions';
 import { RestrictionField } from '../RestrictionField';
 import { getTranslation } from '../../../utils/language';
@@ -9,19 +9,21 @@ import { Divider } from '../../common/Divider';
 import { Label } from '../../common/Label';
 import { StringFormat } from '@altinn/schema-model/src/lib/types';
 import { Select } from '../../common/Select';
+import { getDomFriendlyID } from '../../../utils/ui-schema-utils';
 
-export function StringRestrictions({
-  language,
-  onChangeRestrictionValue,
-  path,
-  restrictions,
-}: RestrictionItemProps) {
+export function StringRestrictions({ language, onChangeRestrictionValue, path, restrictions }: RestrictionItemProps) {
   const t = (key: string) => getTranslation(key, language);
   const [regexTestValue, setRegexTestValue] = useState<string>('');
   const pattern = restrictions[StrRestrictionKeys.pattern] || '';
   const regexTestValueSplitByMatches = splitStringByMatches(pattern, regexTestValue);
   const regexTestValueMatchesRegex = regexTestValueSplitByMatches.some(({ match }) => match);
-
+  const fieldId = getDomFriendlyID('regextestfield');
+  const handleValueChange = (event: ChangeEvent) => {
+    const value = (event.target as HTMLInputElement)?.value || '';
+    if (regexTestValue !== value) {
+      setRegexTestValue(value);
+    }
+  };
   return (
     <>
       <Divider inMenu />
@@ -33,7 +35,7 @@ export function StringRestrictions({
         options={Object.values(StringFormat).map((f) => ({
           key: f,
           label: t(`format_${f}`),
-          value: f
+          value: f,
         }))}
         value={restrictions[StrRestrictionKeys.format] || ''}
       />
@@ -66,7 +68,7 @@ export function StringRestrictions({
         />
         <div className={classes.regexTest}>
           <div className={classes.regexTestLabel}>
-            <Label htmlFor='regextestfield'>{t('pattern_test_field')}</Label>
+            <Label htmlFor={fieldId}>{t('pattern_test_field')}</Label>
             {pattern &&
               (regexTestValueMatchesRegex ? (
                 <span className={classes.regexTestMatchIndicatorTrue}>{t('pattern_matches')}</span>
@@ -82,11 +84,7 @@ export function StringRestrictions({
                 </span>
               ))}
             </div>
-            <TextField
-              id='regextestfield'
-              onChange={(event) => setRegexTestValue(event.target.value)}
-              value={regexTestValue}
-            />
+            <TextField id={fieldId} onChange={handleValueChange} value={regexTestValue} />
           </div>
         </div>
       </FieldSet>
