@@ -7,7 +7,16 @@ import { render as rtlRender, screen } from '@testing-library/react';
 import type { IAppBarProps } from './AppBar';
 import { AppBar } from './AppBar';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
-import { menu } from './appBarConfig';
+import { menu } from '../appBarConfig';
+import {
+  versionControlHeaderafterAll,
+  versionControlHeaderafterEach,
+  versionControlHeaderBeforeAll,
+} from 'app-shared/version-control/versionControlHeader.test';
+
+beforeAll(versionControlHeaderBeforeAll);
+afterEach(versionControlHeaderafterEach);
+afterAll(versionControlHeaderafterAll);
 
 describe('AppBar', () => {
   describe('When using AppBarConfig menu entries', () => {

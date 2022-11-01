@@ -5,7 +5,6 @@ import AltinnColumnLayout from 'app-shared/components/AltinnColumnLayout';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import { HandleServiceInformationActions } from '../handleServiceInformationSlice';
 import { MainContent } from './MainContent';
 import { SideMenuContent } from './SideMenuContent';
@@ -45,14 +44,6 @@ const useStyles = makeStyles({
   },
   marginBottom_24: {
     marginBottom: 24,
-  },
-  versionControlHeaderMargin: {
-    marginLeft: 60,
-  },
-  [theme.breakpoints.up('md')]: {
-    versionControlHeaderMargin: {
-      marginLeft: theme.sharedStyles.leftDrawerMenuClosedWidth + 60,
-    },
   },
 });
 
@@ -175,11 +166,6 @@ export function AdministrationComponent() {
     <div data-testid='administration-container'>
       {render ? (
         <AltinnColumnLayout
-          aboveColumnChildren={
-            <div className={classes.versionControlHeaderMargin}>
-              <VersionControlHeader language={language} />
-            </div>
-          }
           sideMenuChildren={
             <SideMenuContent
               initialCommit={initialCommit}

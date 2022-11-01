@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  Button,
   CircularProgress,
   createTheme,
   Grid,
@@ -11,6 +10,7 @@ import {
 import { createStyles, withStyles } from '@mui/styles';
 import classNames from 'classnames';
 import altinnTheme from '../theme/altinnStudioTheme';
+import { Button, ButtonVariant } from '@altinn/altinn-design-system';
 
 export interface ISyncModalComponentProps {
   classes: any;
@@ -36,6 +36,7 @@ const styles = createStyles({
     fontSize: '14px',
     color: theme.altinnPalette.primary.white,
     background: theme.altinnPalette.primary.blueDark,
+    border: 'none',
     maxWidth: '150px',
     textTransform: 'none',
     fontWeight: 400,
@@ -183,8 +184,6 @@ class SyncModalComponent extends React.Component<
 
           {this.props.btnText && (
             <Button
-              variant='contained'
-              color='primary'
               className={classes.button}
               onClick={this.btnClickedHandler}
               id='share_changes_modal_button'

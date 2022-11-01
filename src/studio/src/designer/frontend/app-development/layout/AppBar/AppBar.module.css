@@ -1,0 +1,76 @@
+.root {
+  flex-grow: 1;
+  z-index: 1;
+  color: #000;
+}
+
+.aImgStyling {
+  border-bottom: 'none';
+}
+.aImgStyling:hover {
+  border-bottom: 'none';
+}
+.aImgStyling:active {
+  border-bottom: 'none';
+}
+
+.appBar {
+  border-bottom: '1px solid';
+  border-bottom-color: '#C9C9C9';
+  color: #000;
+  position: 'fixed';
+}
+
+.appBarDashboard {
+  background-color: #FFF;
+}
+
+.appBarEditor {
+  background-color: #EFEFEF;
+}
+
+.breadCrumb {
+  padding-left: 30;
+  font-size: 20;
+}
+
+.breadCrumbSubApp {
+  color: '#0062BA';
+}
+
+.paper {
+  text-align: 'center';
+}
+
+.subHeader {
+  padding-left: 12;
+  padding-right: 12;
+  padding-bottom: 0;
+  font-size: 20;
+}
+
+.subHeaderLink {
+  border-bottom: '1px solid';
+  border-bottom-color: 'transparent';
+}
+.subHeaderLink:hover {
+  border-bottom: '1px solid';
+  border-bottom-color: #0062BA;
+  color: #0062BA;
+}
+
+.subHeaderLinkActive {
+  border-bottom: '1px solid';
+  border-bottom-color: #0062BA;
+  color: #0062BA;
+  font-weight: 500;
+}
+.subHeaderLinkActive:hover {
+  border-bottom: '1px solid';
+  border-bottom-color: #0062BA;
+  color: #0062BA;
+}
+
+.topRightService {
+  padding-right: 22;
+}

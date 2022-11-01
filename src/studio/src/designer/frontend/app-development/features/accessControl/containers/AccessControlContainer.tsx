@@ -9,7 +9,6 @@ import AltinnColumnLayout from 'app-shared/components/AltinnColumnLayout';
 import AltinnFormControlLabel from 'app-shared/components/AltinnFormControlLabel';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import { ApplicationMetadataActions } from '../../../sharedResources/applicationMetadata/applicationMetadataSlice';
 import { makeGetApplicationMetadata } from '../../../sharedResources/applicationMetadata/selectors/applicationMetadataSelector';
 import type { RootState } from 'store';
@@ -51,14 +50,6 @@ const styles = createStyles({
   },
   contentMargin: {
     marginBottom: 24,
-  },
-  versionControlHeaderMargin: {
-    marginLeft: 60,
-  },
-  [theme.breakpoints.up('md')]: {
-    versionControlHeaderMargin: {
-      marginLeft: theme.sharedStyles.leftDrawerMenuClosedWidth + 60,
-    },
   },
 });
 
@@ -256,11 +247,6 @@ export class AccessControlContainerClass extends React.Component<
   public render() {
     return (
       <AltinnColumnLayout
-        aboveColumnChildren={
-          <div className={this.props.classes.versionControlHeaderMargin}>
-            <VersionControlHeader language={this.props.language} />
-          </div>
-        }
         sideMenuChildren={this.renderSideMenu()}
         header={getLanguageFromKey(
           'access_control.header',

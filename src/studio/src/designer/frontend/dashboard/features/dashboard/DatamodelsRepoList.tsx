@@ -1,5 +1,5 @@
 import React from 'react';
-import { Typography } from '@material-ui/core';
+import { Typography } from '@mui/material';
 
 import { RepoList } from 'common/components/RepoList';
 import { useGetSearchQuery } from 'services/repoApi';
@@ -46,6 +46,7 @@ export const DatamodelsReposList = () => {
         repos={reposWithStarred}
         isLoading={isLoadingOrgRepos || isLoadingStarred}
         pageSize={5}
+        rowCount={2}
       />
     </div>
   );

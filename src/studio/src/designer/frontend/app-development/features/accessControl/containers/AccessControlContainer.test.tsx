@@ -8,11 +8,6 @@ import {
 } from './AccessControlContainer';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {
-  versionControlHeaderafterAll,
-  versionControlHeaderafterEach,
-  versionControlHeaderBeforeAll,
-} from 'app-shared/version-control/versionControlHeader.test';
 
 const newApplicationMetadata: any = {
   // must be opposite of currentApplicationMetadata.partyTypesAllowed
@@ -102,10 +97,6 @@ const renderAccessControlContainerClass = (applicationMetadata?: any) => {
 
   return { store, user };
 };
-
-beforeAll(versionControlHeaderBeforeAll);
-afterEach(versionControlHeaderafterEach);
-afterAll(versionControlHeaderafterAll);
 
 test('getDerivedStateFromProps should only return object on changed state', () => {
   const shouldUpdateOnEqualProps =

@@ -12,7 +12,8 @@ import { Link } from 'react-router-dom';
 import { altinnImgLogoHeaderUrl } from 'app-shared/utils/urlHelper';
 import type { IMenuItem } from 'app-shared/navigation/drawer/drawerMenuSettings';
 import TabletDrawerMenu from 'app-shared/navigation/drawer/TabletDrawerMenu';
-import { getTopBarMenu } from './appBarConfig';
+import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
+import { getTopBarMenu } from '../appBarConfig';
 import ProfileMenu from 'app-shared/navigation/main-header/profileMenu';
 import { useAppSelector } from 'common/hooks';
 import { getLanguageFromKey } from 'app-shared/utils/language';
@@ -214,6 +215,9 @@ export const AppBar = ({
                   justifyContent='center'
                   alignItems='center'
                 >
+                  <Grid xs item>
+                    <VersionControlHeader language={language}/>
+                  </Grid>
                   {menu.map((item) => (
                     <Grid
                       item
@@ -231,6 +235,7 @@ export const AppBar = ({
                       </Link>
                     </Grid>
                   ))}
+                  <Grid xs item /> {/** Used to keep menu centered */}
                 </Grid>
               </Toolbar>
             )}
