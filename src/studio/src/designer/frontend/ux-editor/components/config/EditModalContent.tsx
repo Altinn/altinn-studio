@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
 import { Grid, Typography } from '@mui/material';
 import AltinnCheckBox from 'app-shared/components/AltinnCheckBox';
 import AltinnInputField from 'app-shared/components/AltinnInputField';
@@ -52,19 +52,12 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
     (state: IAppState) => state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.containers,
   );
   const [error, setError] = useState<string | null>(null);
-  const [tmpId, setTmpId] = useState<string | undefined>();
+  const [tmpId, setTmpId] = useState<string>('');
   const errorMessageRef = useRef<HTMLDivElement>();
   useEffect(() => {
     setTmpId(component?.id);
   }, [component]);
 
-  /*
-  const handleDisabledChange = (e: any): void =>
-    handleComponentUpdate((prevState: FormComponentType) => ({
-      ...prevState,
-      disabled: e.target.checked,
-    }));
-*/
   const handleTitleChange = (e: any): void =>
     handleComponentUpdate({
       ...component,
@@ -96,7 +89,7 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
     handleComponentUpdate(updatedComponent);
   };
 
-  const handleUpdateOptionValue = (index: number, event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+  const handleUpdateOptionValue = (index: number, event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     event.persist();
     const updatedComponent: IFormComponent = { ...component };
     updatedComponent.options[index].value = event.target?.value;
@@ -297,7 +290,7 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
             handleDescriptionChange={handleDescriptionChange}
             language={language}
           />
-          <Grid item={true} xs={12} style={classes.gridItem}>
+          <Grid item={true} xs={12} className={classes.gridItem}>
             <AltinnCheckBox checked={component.readOnly} onChangeFunction={handleReadOnlyChange} />
             {language.ux_editor.modal_configure_read_only}
           </Grid>
@@ -374,7 +367,7 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
             handleDescriptionChange={handleDescriptionChange}
             language={language}
           />
-          <Grid item={true} xs={12} style={classes.gridItem}>
+          <Grid item={true} xs={12} className={classes.gridItem}>
             <AltinnCheckBox checked={component.readOnly} onChangeFunction={handleReadOnlyChange} />
             {language.ux_editor.modal_configure_read_only}
           </Grid>
@@ -420,7 +413,9 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
         <>
           {renderChangeId()}
           <Grid item={true} xs={12}>
-            <Typography style={classes.inputHelper}>{t('ux_editor.modal_properties_button_type_helper')}</Typography>
+            <Typography className={classes.inputHelper}>
+              {t('ux_editor.modal_properties_button_type_helper')}
+            </Typography>
             <Select
               options={types}
               value={types.find((element) => element.value === component.type)}
