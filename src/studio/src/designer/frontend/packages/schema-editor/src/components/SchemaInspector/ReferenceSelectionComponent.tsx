@@ -25,7 +25,7 @@ export function ReferenceSelectionComponent({
   onGoToDefButtonClick,
 }: IReferenceSelectionProps) {
   const definitions: UiSchemaNode[] = useSelector((state: ISchemaState) => getRootNodes(state.uiSchema, true));
-  const selectId = getDomFriendlyID(selectedNode.pointer, {suffix:'ref-select'});
+  const selectId = getDomFriendlyID(selectedNode.pointer, { suffix: 'ref-select' });
   return (
     <div>
       <Select
@@ -33,12 +33,10 @@ export function ReferenceSelectionComponent({
         id={selectId}
         label={label}
         onChange={(value) => onChangeRef(selectedNode.pointer, value)}
-        options={definitions.map(({ pointer }) => (
-          {
-            value: pointer,
-            label: pointer.replace(`#/${Keywords.Definitions}/`, '')
-          }
-        ))}
+        options={definitions.map(({ pointer }) => ({
+          value: pointer,
+          label: pointer.replace(`#/${Keywords.Definitions}/`, ''),
+        }))}
         value={selectedNode.ref || ''}
       />
       <button type='button' className={classes.navButton} onClick={onGoToDefButtonClick}>

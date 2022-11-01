@@ -1,29 +1,30 @@
-import React, {BaseSyntheticEvent, useEffect} from 'react';
-import type {ILanguage, ISchemaState} from '../../types';
-import {PropertyItem} from './PropertyItem';
-import {addProperty, deleteProperty, setPropertyName, setType} from '../../features/editor/schemaEditorSlice';
-import {useDispatch, useSelector} from 'react-redux';
-import {getTranslation} from '../../utils/language';
-import type {UiSchemaNode} from '@altinn/schema-model';
-import {FieldType, getChildNodesByPointer, getNodeDisplayName} from '@altinn/schema-model';
+import React, { BaseSyntheticEvent, useEffect } from 'react';
+import type { ILanguage, ISchemaState } from '../../types';
+import { PropertyItem } from './PropertyItem';
+import { addProperty, deleteProperty, setPropertyName, setType } from '../../features/editor/schemaEditorSlice';
+import { useDispatch, useSelector } from 'react-redux';
+import { getTranslation } from '../../utils/language';
+import type { UiSchemaNode } from '@altinn/schema-model';
+import { FieldType, getChildNodesByPointer, getNodeDisplayName } from '@altinn/schema-model';
 import classes from './ItemFieldsTab.module.css';
-import {usePrevious} from '../../hooks/usePrevious';
-import {Button, ButtonVariant} from '@altinn/altinn-design-system';
-import {getDomFriendlyID} from "../../utils/ui-schema-utils";
+import { usePrevious } from '../../hooks/usePrevious';
+import { Button, ButtonVariant } from '@altinn/altinn-design-system';
+import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 
 export interface ItemFieldsTabProps {
   selectedItem: UiSchemaNode;
   language: ILanguage;
 }
 
-export const ItemFieldsTab = ({selectedItem, language}: ItemFieldsTabProps) => {
+export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) => {
   const readonly = selectedItem.ref !== undefined;
   const dispatch = useDispatch();
 
   const childNodes = useSelector((state: ISchemaState) =>
-    getChildNodesByPointer(state.uiSchema, selectedItem.pointer).map((node) => (
-      {...node, domId: getDomFriendlyID(node.pointer)})
-    )
+    getChildNodesByPointer(state.uiSchema, selectedItem.pointer).map((node) => ({
+      ...node,
+      domId: getDomFriendlyID(node.pointer),
+    })),
   );
 
   const numberOfChildNodes = childNodes.length;
@@ -37,7 +38,7 @@ export const ItemFieldsTab = ({selectedItem, language}: ItemFieldsTabProps) => {
       newNodeInput?.focus();
       newNodeInput?.select();
     }
-  }, [numberOfChildNodes, prevNumberOfChildNodes, childNodes])
+  }, [numberOfChildNodes, prevNumberOfChildNodes, childNodes]);
 
   const onChangePropertyName = (path: string, value: string) =>
     dispatch(
@@ -47,9 +48,9 @@ export const ItemFieldsTab = ({selectedItem, language}: ItemFieldsTabProps) => {
       }),
     );
 
-  const onChangeType = (path: string, type: FieldType) => dispatch(setType({path, type}));
+  const onChangeType = (path: string, type: FieldType) => dispatch(setType({ path, type }));
 
-  const onDeleteObjectClick = (path: string) => dispatch(deleteProperty({path}));
+  const onDeleteObjectClick = (path: string) => dispatch(deleteProperty({ path }));
 
   const dispatchAddProperty = () =>
     dispatch(
@@ -103,4 +104,3 @@ export const ItemFieldsTab = ({selectedItem, language}: ItemFieldsTabProps) => {
     </div>
   );
 };
-

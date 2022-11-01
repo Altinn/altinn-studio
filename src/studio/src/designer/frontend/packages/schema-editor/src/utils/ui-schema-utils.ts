@@ -10,20 +10,21 @@ let uniqueIdNumber = 0;
 export const getDomFriendlyID = (
   baseId: string,
   options: {
-    suffix?: string, reset?: boolean
-  } = {}):
-string => {
-  const {reset, ...restOptions} = options;
+    suffix?: string;
+    reset?: boolean;
+  } = {},
+): string => {
+  const { reset, ...restOptions } = options;
   if (reset) {
     uniqueIdNumber = 0;
     return getDomFriendlyID(baseId, restOptions);
   }
-  const suffix = options?.suffix? `-${options.suffix}` : '';
+  const suffix = options?.suffix ? `-${options.suffix}` : '';
   const rawId = `${baseId}${suffix}-${uniqueIdNumber++}`.toLowerCase();
   return rawId
     .replace(/#/g, '')
     .replace(/[^a-z0-9/\s]/g, '-')
     .replace(/\s/g, '_');
-}
+};
 
 export const isValidName = (name: string) => Boolean(name.match(/^[a-zA-ZæÆøØåÅ][a-zA-Z0-9_.\-æÆøØåÅ ]*$/));
