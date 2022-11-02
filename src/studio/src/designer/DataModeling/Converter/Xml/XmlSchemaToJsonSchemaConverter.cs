@@ -356,7 +356,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
                     break;
                 case XmlSchemaMaxExclusiveFacet:
-                    if (FormatRangeHelper.IsRestrictionOnDateType(facet))
+                    if (RestrictionsHelper.IsRestrictionOnDateType(facet))
                     {
                         builder.FormatExclusiveMaximum(facet.Value);
                     }
@@ -367,7 +367,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
                     break;
                 case XmlSchemaMaxInclusiveFacet:
-                    if (FormatRangeHelper.IsRestrictionOnDateType(facet))
+                    if (RestrictionsHelper.IsRestrictionOnDateType(facet))
                     {
                         builder.FormatMaximum(facet.Value);
                     }
@@ -385,7 +385,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
                     break;
                 case XmlSchemaMinExclusiveFacet:
-                    if (FormatRangeHelper.IsRestrictionOnDateType(facet))
+                    if (RestrictionsHelper.IsRestrictionOnDateType(facet))
                     {
                         builder.FormatExclusiveMinimum(facet.Value);
                     }
@@ -396,7 +396,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
                     break;
                 case XmlSchemaMinInclusiveFacet:
-                    if (FormatRangeHelper.IsRestrictionOnDateType(facet))
+                    if (RestrictionsHelper.IsRestrictionOnDateType(facet))
                     {
                         builder.FormatMinimum(facet.Value);
                     }
@@ -416,7 +416,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
                 case XmlSchemaTotalDigitsFacet:
                     if (!string.IsNullOrWhiteSpace(facet.Value) && uint.TryParse(facet.Value, out uiLength))
                     {
-                        builder.MaxLength(uiLength);
+                        builder.XsdTotalDigits(uiLength);
                     }
 
                     break;

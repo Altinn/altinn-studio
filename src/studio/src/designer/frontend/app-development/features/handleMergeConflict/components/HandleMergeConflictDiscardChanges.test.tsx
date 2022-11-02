@@ -4,25 +4,22 @@ import HandleMergeConflictDiscardChanges from './HandleMergeConflictDiscardChang
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-const consoleError = jest
-  .spyOn(console, 'error')
-  .mockImplementation(() => 'error');
-
 const renderHandleMergeConflictDiscardChanges = () => {
   const user = userEvent.setup();
-
   const container = render(<HandleMergeConflictDiscardChanges language={{}} />);
   return { container, user };
 };
-
+afterEach(() => jest.restoreAllMocks());
+jest.mock('app-shared/utils/networking', () => ({
+  __esModule: true,
+  ...jest.requireActual('app-shared/utils/networking'),
+}));
 test('should handle successfully returned data from API', async () => {
   const { user } = renderHandleMergeConflictDiscardChanges();
 
-  // Mocks
   const mockGet = jest
     .spyOn(networking, 'get')
     .mockImplementationOnce(() => Promise.resolve());
-
   const discardMergeChangesBtn = screen.getByRole('button', {
     name: 'handle_merge_conflict.discard_changes_button',
   });
@@ -46,11 +43,12 @@ test('should handle successfully returned data from API', async () => {
 test('should handle unsuccessfully returned data from API', async () => {
   const { user } = renderHandleMergeConflictDiscardChanges();
 
-  // Mocks
   const mockGet = jest
     .spyOn(networking, 'get')
     .mockImplementationOnce(() => Promise.reject());
-
+  const consoleError = jest
+    .spyOn(console, 'error')
+    .mockImplementation(() => 'error');
   const discardMergeChangesBtn = screen.getByRole('button', {
     name: 'handle_merge_conflict.discard_changes_button',
   });

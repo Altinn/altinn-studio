@@ -284,6 +284,9 @@ namespace DataModeling.Tests.Assertions
                 case XsdMaxOccursKeyword expectedKeyword:
                     KeywordEqual(expectedKeyword, (XsdMaxOccursKeyword)actual);
                     break;
+                case XsdTotalDigitsKeyword expectedKeyword:
+                    KeywordEqual(expectedKeyword, (XsdTotalDigitsKeyword)actual);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(expected.GetType().Name, "Unknown Json Schema Keyword");
             }
@@ -759,6 +762,11 @@ namespace DataModeling.Tests.Assertions
         }
 
         private static void KeywordEqual(XsdMaxOccursKeyword expected, XsdMaxOccursKeyword actual)
+        {
+            Assert.True(expected.Equals(actual));
+        }
+
+        private static void KeywordEqual(XsdTotalDigitsKeyword expected, XsdTotalDigitsKeyword actual)
         {
             Assert.True(expected.Equals(actual));
         }

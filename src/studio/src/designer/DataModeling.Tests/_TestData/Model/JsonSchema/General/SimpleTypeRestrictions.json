@@ -121,7 +121,7 @@
           "@xsdType": "decimal"
         },
         {
-          "maxLength": 10,
+          "totalDigits": 10,
           "maximum": 100,
           "minimum": -100
         }
@@ -134,7 +134,7 @@
           "@xsdType": "decimal"
         },
         {
-          "maxLength": 10,
+          "totalDigits": 10,
           "exclusiveMaximum": 100,
           "exclusiveMinimum": -100
         }

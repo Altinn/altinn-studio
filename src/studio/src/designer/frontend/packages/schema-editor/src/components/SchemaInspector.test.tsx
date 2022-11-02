@@ -1,7 +1,6 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import { act } from 'react-dom/test-utils';
 import { SchemaInspector } from './SchemaInspector';
 import { dataMock } from '../mockData';
 import { fireEvent, render, screen } from '@testing-library/react';
@@ -31,25 +30,35 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 const mockUiSchema = buildUiSchema(dataMock);
-const getMockSchemaByPath = (selectedId: string): UiSchemaNode => getNodeByPointer(mockUiSchema, selectedId);
+const getMockSchemaByPath = (selectedId: string): UiSchemaNode =>
+  getNodeByPointer(mockUiSchema, selectedId);
 
-const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSchemaNode) => {
+const renderSchemaInspector = (
+  uiSchemaMap: UiSchemaNodes,
+  selectedItem?: UiSchemaNode,
+) => {
   const store = configureStore()({
     uiSchema: uiSchemaMap,
   });
   const user = userEvent.setup();
-  act(() => {
-    render(
-      <Provider store={store}>
-        <SchemaInspector language={{}} selectedItem={selectedItem} />
-      </Provider>,
-    );
-  });
+
+  render(
+    <Provider store={store}>
+      <SchemaInspector
+        language={{}}
+        selectedItem={selectedItem}
+      />
+    </Provider>,
+  );
+
   return { store, user };
 };
 
 test('dispatches correctly when entering text in textboxes', async () => {
-  const { store, user } = renderSchemaInspector(mockUiSchema, getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon'));
+  const { store, user } = renderSchemaInspector(
+    mockUiSchema,
+    getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon'),
+  );
   expect(screen.getByTestId('schema-inspector')).toBeDefined();
   const tablist = screen.getByRole('tablist');
   expect(tablist).toBeDefined();
@@ -79,15 +88,19 @@ test('renders no item if nothing is selected', () => {
 });
 
 test('dispatches correctly when changing restriction value', async () => {
-  const { store } = renderSchemaInspector(mockUiSchema, getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon'));
+  const { store } = renderSchemaInspector(
+    mockUiSchema,
+    getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon'),
+  );
 
   const textboxes = screen.getAllByRole('textbox');
+
   textboxes.forEach((textbox) => {
-    if (textbox.id.includes('minLength-value')) {
+    if (textbox.id.includes('minlength-value')) {
       fireEvent.change(textbox, { target: { value: '100' } });
       fireEvent.blur(textbox);
     }
-    if (textbox.id.includes('maxLength-value')) {
+    if (textbox.id.includes('maxlength-value')) {
       fireEvent.change(textbox, { target: { value: '666' } });
       fireEvent.blur(textbox);
     }
@@ -113,7 +126,9 @@ test('Adds new object field when pressing the enter key', async () => {
   await user.click(screen.queryAllByRole('tab')[1]);
   await user.click(screen.getByDisplayValue('abc'));
   await user.keyboard('{Enter}');
-  expect(store.getActions().map((a) => a.type)).toContain('schemaEditor/addProperty');
+  expect(store.getActions().map((a) => a.type)).toContain(
+    'schemaEditor/addProperty',
+  );
 });
 
 test('Adds new valid value field when pressing the enter key', async () => {
@@ -126,5 +141,7 @@ test('Adds new valid value field when pressing the enter key', async () => {
   await user.click(screen.queryAllByRole('tab')[1]);
   await user.click(screen.getByDisplayValue('valid value'));
   await user.keyboard('{Enter}');
-  expect(store.getActions().map((a) => a.type)).toContain('schemaEditor/addEnum');
+  expect(store.getActions().map((a) => a.type)).toContain(
+    'schemaEditor/addEnum',
+  );
 });
