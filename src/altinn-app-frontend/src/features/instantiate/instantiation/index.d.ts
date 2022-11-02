@@ -1,7 +1,7 @@
 export interface IInstantiationState {
   instantiating: boolean;
-  instanceId: string;
-  error: Error;
+  instanceId: string | null;
+  error: Error | null;
 }
 
 export interface IInstantiateFulfilled {
@@ -9,5 +9,5 @@ export interface IInstantiateFulfilled {
 }
 
 export interface IInstantiateRejected {
-  error: Error;
+  error: Error | null;
 }

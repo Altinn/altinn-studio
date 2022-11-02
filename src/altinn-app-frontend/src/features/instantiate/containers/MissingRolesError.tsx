@@ -22,23 +22,28 @@ function MissingRolesError() {
   function getErrorRights() {
     return getParsedLanguageFromKey(
       'instantiate.authorization_error_rights',
-      language,
-      [selectedParty.name],
+      language || {},
+      [selectedParty?.name],
     );
   }
 
   function getCustomerService() {
     return getParsedLanguageFromKey(
       'instantiate.authorization_error_info_customer_service',
-      language,
-      [getLanguageFromKey('general.customer_service_phone_number', language)],
+      language || {},
+      [
+        getLanguageFromKey(
+          'general.customer_service_phone_number',
+          language || {},
+        ),
+      ],
     );
   }
 
   function getCheckRights(hostName: string) {
     return getParsedLanguageFromKey(
       'instantiate.authorization_error_check_rights',
-      language,
+      language || {},
       [hostName],
     );
   }
@@ -46,7 +51,7 @@ function MissingRolesError() {
   function getErrorInfoRights(hostName: string) {
     return getParsedLanguageFromKey(
       'instantiate.authorization_error_info_rights',
-      language,
+      language || {},
       [hostName],
     );
   }
@@ -58,12 +63,12 @@ function MissingRolesError() {
     const errorChangeParty = (
       <Link to='/partyselection'>
         {getParsedLanguageFromText(
-          getLanguageFromKey('party_selection.change_party', language),
+          getLanguageFromKey('party_selection.change_party', language || {}),
         )}
       </Link>
     );
     const errorAsk = getParsedLanguageFromText(
-      getLanguageFromKey('instantiate.authorization_error_ask', language),
+      getLanguageFromKey('instantiate.authorization_error_ask', language || {}),
     );
     const errorCheckRights = getCheckRights(hostName);
     const errorMoreInfo = getErrorInfoRights(hostName);

@@ -2,9 +2,9 @@ import type { ProcessTaskType } from 'src/types';
 
 export interface IProcessState {
   availableNextTasks?: string[];
-  taskType: ProcessTaskType;
-  error: Error;
-  taskId: string;
+  taskType: ProcessTaskType | null;
+  error: Error | null;
+  taskId: string | null | undefined;
 }
 
 export interface IGetTasksFulfilled {
@@ -15,7 +15,7 @@ export interface IGetTasksFulfilled {
 
 export interface ICompleteProcessFulfilled {
   processStep: ProcessTaskType;
-  taskId: string;
+  taskId: string | null | undefined;
 }
 
 export type IGetProcessStateFulfilled = ICompleteProcessFulfilled;

@@ -58,6 +58,10 @@ export function SoftValidations({ variant, children }: ISoftValidationProps) {
     (state) => state.textResources.resources,
   );
 
+  if (!language) {
+    return null;
+  }
+
   return (
     <Panel
       variant={variant}

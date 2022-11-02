@@ -22,7 +22,7 @@ export function* getTasksSaga({
     return;
   }
   try {
-    const result: IProcess = yield call(get, getProcessNextUrl(), null);
+    const result: IProcess = yield call(get, getProcessNextUrl());
     if (!result) {
       put(
         ProcessActions.getTasksRejected({

@@ -136,7 +136,7 @@ function postProcessObjectLike(
   const newLines: RecursiveLines = [];
   for (const idx in results) {
     const result = results[idx];
-    let fixedErrorLength: number;
+    let fixedErrorLength: number | undefined;
     if (result.inline) {
       const lines = inline(result);
       fixedErrorLength = trimTrailingComma(lines[0] as string).length;

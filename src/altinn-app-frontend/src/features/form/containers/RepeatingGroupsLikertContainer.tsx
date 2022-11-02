@@ -39,10 +39,9 @@ export const RepeatingGroupsLikertContainer = ({
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
   const apiOptions = useGetOptions({ optionsId, mapping, source });
   const calculatedOptions = apiOptions || options || [];
+  const lookupKey = optionsId && getOptionLookupKey({ id: optionsId, mapping });
   const fetchingOptions = useAppSelector(
-    (state) =>
-      state.optionState.options[getOptionLookupKey({ id: optionsId, mapping })]
-        ?.loading,
+    (state) => lookupKey && state.optionState.options[lookupKey]?.loading,
   );
 
   const getText = (key: string | undefined) => {
@@ -93,8 +92,8 @@ export const RepeatingGroupsLikertContainer = ({
         {Header}
         <div
           role='group'
-          aria-labelledby={title && titleId}
-          aria-describedby={description && descriptionId}
+          aria-labelledby={(title && titleId) || undefined}
+          aria-describedby={(description && descriptionId) || undefined}
         >
           {repeatingGroupDeepCopyComponents.map((comp) => {
             return (
@@ -119,8 +118,8 @@ export const RepeatingGroupsLikertContainer = ({
           id={id}
           tableLayout='auto'
           wordBreak='normal'
-          aria-labelledby={title && titleId}
-          aria-describedby={description && descriptionId}
+          aria-labelledby={(title && titleId) || undefined}
+          aria-describedby={(description && descriptionId) || undefined}
         >
           <AltinnTableHeader
             id={`likert-table-header-${id}`}

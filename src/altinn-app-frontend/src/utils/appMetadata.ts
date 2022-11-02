@@ -5,8 +5,8 @@ import type { ILayoutSets } from 'src/types';
 import type { IApplication, IInstance } from 'altinn-shared/types';
 
 export function getDataTypeByLayoutSetId(
-  layoutSetId: string,
-  layoutSets: ILayoutSets,
+  layoutSetId: string | undefined,
+  layoutSets: ILayoutSets | undefined | null,
 ) {
   return layoutSets?.sets.find((set) => set.id === layoutSetId)?.dataType;
 }
@@ -29,10 +29,10 @@ export const onEntryValuesThatHaveState: string[] = [
  */
 export function getLayoutSetIdForApplication(
   application: IApplication,
-  instance?: IInstance,
-  layoutSets?: ILayoutSets,
-): string {
-  const showOnEntry: string = application?.onEntry?.show;
+  instance?: IInstance | null,
+  layoutSets?: ILayoutSets | null,
+): string | undefined {
+  const showOnEntry = application?.onEntry?.show;
   if (isStatelessApp(application)) {
     // we have a stateless app with a layout set
     return showOnEntry;
@@ -40,16 +40,17 @@ export function getLayoutSetIdForApplication(
 
   // instance - get layoutset based on current data task
   if (!layoutSets) {
-    return null;
+    return undefined;
   }
+
   const dataType = getCurrentDataTypeId(application, instance, layoutSets);
   return getLayoutsetForDataElement(instance, dataType, layoutSets);
 }
 
 interface IGetDataTypeForApplicationParams {
-  application: IApplication;
-  instance?: IInstance;
-  layoutSets?: ILayoutSets;
+  application: IApplication | null;
+  instance?: IInstance | null;
+  layoutSets?: ILayoutSets | null;
 }
 
 /**
@@ -63,8 +64,8 @@ export function getCurrentDataTypeForApplication({
   application,
   instance,
   layoutSets,
-}: IGetDataTypeForApplicationParams): string {
-  const showOnEntry: string = application?.onEntry?.show;
+}: IGetDataTypeForApplicationParams): string | undefined {
+  const showOnEntry: string | undefined = application?.onEntry?.show;
   if (isStatelessApp(application)) {
     // we have a stateless app with a layout set
     return getDataTypeByLayoutSetId(showOnEntry, layoutSets);
@@ -74,7 +75,7 @@ export function getCurrentDataTypeForApplication({
   return getCurrentDataTypeId(application, instance, layoutSets);
 }
 
-export function isStatelessApp(application: IApplication) {
+export function isStatelessApp(application: IApplication | null) {
   const url = window.location.href; // This should probably be reconsidered when changing router.
   const expr = getInstanceIdRegExp({ prefix: '/instance' });
   const match = url.match(expr);
@@ -83,20 +84,20 @@ export function isStatelessApp(application: IApplication) {
     return false;
   }
   const show = application?.onEntry?.show;
-  return show && !onEntryValuesThatHaveState.includes(show);
+  return typeof show === 'string' && !onEntryValuesThatHaveState.includes(show);
 }
 
 export const getCurrentTaskDataElementId = (
-  appMetaData: IApplication,
-  instance: IInstance,
-  layoutSets: ILayoutSets,
+  appMetaData: IApplication | null,
+  instance: IInstance | null,
+  layoutSets: ILayoutSets | null,
 ) => {
   const currentDataTypeId = getCurrentDataTypeId(
     appMetaData,
     instance,
     layoutSets,
   );
-  const currentTaskDataElement = instance.data.find(
+  const currentTaskDataElement = instance?.data.find(
     (element) => element.dataType === currentDataTypeId,
   );
   return currentTaskDataElement?.id;
@@ -118,11 +119,11 @@ export const getCurrentTaskData = (
 };
 
 export const getCurrentDataTypeId = (
-  appMetaData: IApplication,
-  instance: IInstance,
-  layoutSets: ILayoutSets,
+  appMetaData: IApplication | null,
+  instance?: IInstance | null,
+  layoutSets?: ILayoutSets | null,
 ) => {
-  const currentTaskId = instance.process.currentTask?.elementId;
+  const currentTaskId = instance?.process.currentTask?.elementId;
   if (currentTaskId === null || currentTaskId === undefined) {
     return undefined;
   }
@@ -130,7 +131,7 @@ export const getCurrentDataTypeId = (
   return (
     layoutSets?.sets.find((set) => set.tasks?.includes(currentTaskId))
       ?.dataType ||
-    appMetaData.dataTypes.find(
+    appMetaData?.dataTypes.find(
       (element) =>
         element.appLogic?.classRef && element.taskId === currentTaskId,
     )?.id

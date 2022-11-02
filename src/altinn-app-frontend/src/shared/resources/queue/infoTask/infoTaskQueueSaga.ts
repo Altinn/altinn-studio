@@ -36,7 +36,7 @@ export function* startInitialInfoTaskQueueSaga(): SagaIterator {
   if (textResourcesWithVariables && textResourcesWithVariables.length > 0) {
     const dataElements: string[] = [];
     textResourcesWithVariables.forEach((resource) => {
-      resource.variables.forEach((variable) => {
+      resource.variables?.forEach((variable) => {
         const modelName = variable.dataSource.replace('dataModel.', '');
         const dataType = appMetadata.dataTypes.find((d) => d.id === modelName);
         if (!dataType) return;

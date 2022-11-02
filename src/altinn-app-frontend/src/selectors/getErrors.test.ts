@@ -22,7 +22,7 @@ describe('selectors > getErrors', () => {
     const initialState = getInitialStateMock({
       applicationSettings: {
         error: new Error('404'),
-        applicationSettings: undefined,
+        applicationSettings: null,
       },
     });
     const getError = makeGetHasErrorsSelector();
@@ -34,7 +34,7 @@ describe('selectors > getErrors', () => {
     const initialState = getInitialStateMock({
       applicationSettings: {
         error: new Error('500'),
-        applicationSettings: undefined,
+        applicationSettings: null,
       },
     });
     const getError = makeGetHasErrorsSelector();

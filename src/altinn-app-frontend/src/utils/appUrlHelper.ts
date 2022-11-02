@@ -44,7 +44,7 @@ export const getValidationUrl = (instanceId: string) =>
 export const getDataValidationUrl = (instanceId: string, dataGuid: string) =>
   `${appPath}/instances/${instanceId}/data/${dataGuid}/validate`;
 
-export const getProcessNextUrl = (taskId?: string) => {
+export const getProcessNextUrl = (taskId?: string | null) => {
   if (taskId) {
     return `${appPath}/instances/${
       altinnWindow.instanceId
@@ -65,13 +65,13 @@ export const getUpgradeAuthLevelUrl = (reqAuthLevel: string) => {
   )}&reqAuthLevel=${reqAuthLevel}`;
 };
 
-export const getEnvironmentLoginUrl = (oidcprovider: string) => {
+export const getEnvironmentLoginUrl = (oidcProvider: string | null) => {
   // First split away the protocol 'https://' and take the last part. Then split on dots.
   const domainSplitted: string[] = window.location.host.split('.');
   const encodedGoToUrl = encodeURIComponent(window.location.href);
   let issParam = '';
-  if (oidcprovider != null && oidcprovider != '') {
-    issParam = `&iss=${oidcprovider}`;
+  if (oidcProvider != null && oidcProvider != '') {
+    issParam = `&iss=${oidcProvider}`;
   }
 
   if (domainSplitted.length === 5) {
@@ -114,8 +114,8 @@ export const redirectToUpgrade = (reqAuthLevel: string) => {
 
 export const getJsonSchemaUrl = () => `${appPath}/api/jsonschema/`;
 
-export const getLayoutSettingsUrl = (layoutset: string) => {
-  if (layoutset === null) {
+export const getLayoutSettingsUrl = (layoutset: string | null | undefined) => {
+  if (layoutset === null || layoutset === undefined) {
     return `${appPath}/api/layoutsettings`;
   }
   return `${appPath}/api/layoutsettings/${layoutset}`;
@@ -145,15 +145,15 @@ export const getFetchFormDynamicsUrl = (layoutSetId?: string) => {
   return `${appPath}/api/resource/RuleConfiguration.json`;
 };
 
-export const getLayoutsUrl = (layoutset: string) => {
+export const getLayoutsUrl = (layoutset: string | null) => {
   if (layoutset === null) {
     return `${appPath}/api/resource/FormLayout.json`;
   }
   return `${appPath}/api/layouts/${layoutset}`;
 };
 
-export const getRulehandlerUrl = (layoutset: string) => {
-  if (layoutset === null) {
+export const getRulehandlerUrl = (layoutset?: string) => {
+  if (!layoutset) {
     return `${appPath}/api/resource/RuleHandler.js`;
   }
   return `${appPath}/api/rulehandler/${layoutset}`;

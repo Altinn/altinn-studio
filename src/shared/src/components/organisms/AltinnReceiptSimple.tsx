@@ -2,7 +2,7 @@ import { Typography, makeStyles } from '@material-ui/core';
 import React from 'react';
 
 export interface IReceiptComponentProps {
-  body: string;
+  body: string | JSX.Element | JSX.Element[];
   title: string;
 }
 

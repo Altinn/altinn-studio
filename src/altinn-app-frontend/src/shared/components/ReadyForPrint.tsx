@@ -9,7 +9,7 @@ export function ReadyForPrint() {
   const [imagesLoaded, setImagesLoaded] = React.useState(false);
 
   React.useLayoutEffect(() => {
-    const promises = [];
+    const promises: Promise<unknown>[] = [];
 
     const imageLoadPromise = (img: HTMLImageElement) => {
       return new Promise((res) => {
@@ -36,7 +36,7 @@ export function ReadyForPrint() {
   }, []);
 
   if (!imagesLoaded) {
-    return;
+    return null;
   }
 
   return (

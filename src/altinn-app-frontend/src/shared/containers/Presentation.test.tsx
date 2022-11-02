@@ -34,7 +34,7 @@ const stateWithErrorsAndWarnings = getInitialStateMock({
         },
       },
     },
-    invalidDataTypes: null,
+    invalidDataTypes: [],
     error: null,
     currentSingleFieldValidation: null,
   },
@@ -165,7 +165,7 @@ describe('Presentation', () => {
 
 const render = (
   props: Partial<IPresentationProvidedProps> = {},
-  preloadedState = undefined,
+  preloadedState: any = undefined,
 ) => {
   const allProps = {
     header: 'Header text',

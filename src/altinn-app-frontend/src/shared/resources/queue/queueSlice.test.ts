@@ -54,7 +54,7 @@ describe('queueSlice', () => {
       QueueActions.appTaskQueueError({ error: new Error(errorMessage) }),
     );
     expect(nextState.appTask.error).toBeTruthy();
-    expect(nextState.appTask.error.message).toEqual(errorMessage);
+    expect(nextState.appTask.error?.message).toEqual(errorMessage);
   });
 
   it('handles error on data task queue', () => {
@@ -64,7 +64,7 @@ describe('queueSlice', () => {
       QueueActions.dataTaskQueueError({ error: new Error(errorMessage) }),
     );
     expect(nextState.dataTask.error).toBeTruthy();
-    expect(nextState.dataTask.error.message).toEqual(errorMessage);
+    expect(nextState.dataTask.error?.message).toEqual(errorMessage);
   });
 
   it('handles error on info task queue', () => {
@@ -74,7 +74,7 @@ describe('queueSlice', () => {
       QueueActions.infoTaskQueueError({ error: new Error(errorMessage) }),
     );
     expect(nextState.infoTask.error).toBeTruthy();
-    expect(nextState.infoTask.error.message).toEqual(errorMessage);
+    expect(nextState.infoTask.error?.message).toEqual(errorMessage);
   });
 
   it('handles error on user task queue', () => {
@@ -84,6 +84,6 @@ describe('queueSlice', () => {
       QueueActions.userTaskQueueError({ error: new Error(errorMessage) }),
     );
     expect(nextState.userTask.error).toBeTruthy();
-    expect(nextState.userTask.error.message).toEqual(errorMessage);
+    expect(nextState.userTask.error?.message).toEqual(errorMessage);
   });
 });

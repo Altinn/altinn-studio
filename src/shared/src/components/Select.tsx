@@ -24,7 +24,7 @@ interface ISelectProps {
   onChange: (event: React.ChangeEvent<HTMLSelectElement>) => void;
   onBlur?: (event: React.FocusEvent<HTMLSelectElement>) => void;
   options: { value: string; label: string }[];
-  value: string;
+  value: string | undefined;
   disabled?: boolean;
   error?: boolean;
   fullWidth?: boolean;

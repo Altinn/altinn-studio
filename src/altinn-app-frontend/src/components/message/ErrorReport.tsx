@@ -90,21 +90,24 @@ const ErrorReport = ({ components }: IErrorReportProps) => {
         dispatch(
           FormLayoutActions.updateCurrentView({
             newView: error.layout,
-            runValidations: null,
             returnToView: currentView,
           }),
         );
       }
 
-      const nodes = nodesInLayout(layouts[error.layout], repeatingGroups);
+      const nodes = nodesInLayout(
+        layouts && layouts[error.layout],
+        repeatingGroups,
+      );
       const componentNode = nodes.findById(error.componentId);
 
       // Iterate over parent repeating groups
-      componentNode.parents().forEach((parentNode, i, allParents) => {
+      componentNode?.parents().forEach((parentNode, i, allParents) => {
         const parent = parentNode.item;
         if (
           parent?.type == 'Group' &&
           parent.edit?.mode !== 'likert' &&
+          parent.maxCount &&
           parent.maxCount > 1
         ) {
           const childNode =
@@ -123,13 +126,15 @@ const ErrorReport = ({ components }: IErrorReportProps) => {
             );
           }
 
-          // Set editIndex to rowIndex
-          dispatch(
-            FormLayoutActions.updateRepeatingGroupsEditIndex({
-              group: parent.id,
-              index: childNode.rowIndex,
-            }),
-          );
+          if (childNode?.rowIndex !== undefined) {
+            // Set editIndex to rowIndex
+            dispatch(
+              FormLayoutActions.updateRepeatingGroupsEditIndex({
+                group: parent.id,
+                index: childNode.rowIndex,
+              }),
+            );
+          }
         }
       });
 
@@ -149,10 +154,10 @@ const ErrorReport = ({ components }: IErrorReportProps) => {
     >
       <FullWidthWrapper isOnBottom={true}>
         <Panel
-          title={getLanguageFromKey(
-            'form_filler.error_report_header',
-            language,
-          )}
+          title={
+            language &&
+            getLanguageFromKey('form_filler.error_report_header', language)
+          }
           showIcon={false}
           variant={PanelVariant.Error}
         >

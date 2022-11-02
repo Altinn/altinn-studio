@@ -50,7 +50,7 @@ export interface EditWindowProps
   extends PropsFromGenericComponent<'FileUploadWithTag'> {
   attachment: IAttachment;
   mobileView: boolean;
-  options: IOption[];
+  options?: IOption[];
   onSave: (attachment: IAttachment) => void;
   onDropdownDataChange: (id: string, value: string) => void;
   setEditIndex: (index: number) => void;
@@ -147,7 +147,9 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
         </Grid>
       </Grid>
       <Grid>
-        <h6>{props.getTextResource(props.textResourceBindings.tagTitle)}</h6>
+        {props.textResourceBindings?.tagTitle && (
+          <h6>{props.getTextResource(props.textResourceBindings?.tagTitle)}</h6>
+        )}
         <Grid
           container={true}
           spacing={1}
@@ -159,11 +161,7 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
             <select
               id={`attachment-tag-dropdown-${props.attachment.id}`}
               tabIndex={0}
-              defaultValue={
-                props.attachment.tags !== undefined
-                  ? props.attachment.tags[0]
-                  : null
-              }
+              defaultValue={props.attachment.tags && props.attachment.tags[0]}
               disabled={saveIsDisabled}
               className={classNames(
                 classes.select,

@@ -68,9 +68,11 @@ export function useExpressions<T>(
   const id = (options && options.forComponentId) || component.id;
 
   const node = useMemo(() => {
-    const foundNode = nodes.findComponentById(id);
-    if (foundNode) {
-      return foundNode;
+    if (id) {
+      const foundNode = nodes.findComponentById(id);
+      if (foundNode) {
+        return foundNode;
+      }
     }
 
     return new NodeNotFoundWithoutContext(id);
@@ -100,11 +102,12 @@ const componentDefaults: any = {
   ...ExprDefaultsForGroup,
 };
 
-export function useExpressionsForComponent<T extends ILayoutComponentOrGroup>(
-  input: T,
-): ExprResolved<T> {
+export function useExpressionsForComponent<
+  T extends ILayoutComponentOrGroup | undefined | null,
+>(input: T): ExprResolved<T> {
   return useExpressions(input, {
-    forComponentId: input.id,
+    forComponentId:
+      (typeof input === 'object' && input !== null && input.id) || undefined,
     defaults: componentDefaults,
   });
 }

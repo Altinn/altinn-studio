@@ -17,5 +17,5 @@ export interface IUpdateAttachmentActionRejected {
   attachment: IAttachment;
   componentId: string;
   baseComponentId: string;
-  tag: string;
+  tag: string | undefined;
 }

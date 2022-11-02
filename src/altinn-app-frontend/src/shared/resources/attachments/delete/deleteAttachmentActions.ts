@@ -5,7 +5,7 @@ export interface IDeleteAttachmentAction {
   attachment: IAttachment;
   attachmentType: string;
   componentId: string;
-  dataModelBindings: IDataModelBindings;
+  dataModelBindings: IDataModelBindings | undefined;
 }
 
 export interface IDeleteAttachmentActionFulfilled {

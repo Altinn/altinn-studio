@@ -9,8 +9,10 @@ describe('SummaryComponentSwitch', () => {
     const { container } = render(
       <SummaryComponentSwitch
         id='summary-comp-id'
-        change={null}
-        formComponent={null}
+        change={{
+          changeText: 'change',
+          onChangeClick: jest.fn(),
+        }}
       />,
     );
     expect(container.childElementCount).toBe(0);

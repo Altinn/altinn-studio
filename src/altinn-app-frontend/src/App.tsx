@@ -57,7 +57,9 @@ export const App = () => {
         get(refreshJwtTokenUrl).catch((err) => {
           // Most likely the user has an expired token, so we redirect to the login-page
           try {
-            window.location.href = getEnvironmentLoginUrl(appOidcProvider);
+            window.location.href = getEnvironmentLoginUrl(
+              appOidcProvider || null,
+            );
           } catch (error) {
             console.error(err, error);
           }

@@ -6,9 +6,9 @@ export const getCurrentTaskData = (
 ) => {
   const defaultDatatype = appMetaData.dataTypes.find(
     (element) =>
-      element.appLogic !== null && element.appLogic.classRef !== null,
+      element.appLogic !== null && element.appLogic?.classRef !== null,
   );
   return instance.data.find(
-    (element) => element.dataType === defaultDatatype.id,
+    (element) => element.dataType === defaultDatatype?.id,
   );
 };

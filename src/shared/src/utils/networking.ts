@@ -17,11 +17,7 @@ export async function post(
   data?: any,
   options?: AxiosRequestConfig,
 ): Promise<void> {
-  const response: AxiosResponse = await axios.post(
-    url,
-    data || null,
-    options || null,
-  );
+  const response: AxiosResponse = await axios.post(url, data || null, options);
   return response.data ? response.data : null;
 }
 
@@ -30,7 +26,7 @@ export async function put(
   data: any,
   config?: AxiosRequestConfig,
 ): Promise<void> {
-  const response = await axios.put(url, data, config || null);
+  const response = await axios.put(url, data, config);
   return response.data;
 }
 

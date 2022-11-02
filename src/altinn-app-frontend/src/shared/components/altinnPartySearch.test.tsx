@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from 'testUtils';
@@ -30,5 +31,14 @@ const render = (props: Partial<IAltinnPartySearchProps> = {}) => {
     ...props,
   };
 
-  renderWithProviders(<AltinnPartySearch {...allProps} />);
+  renderWithProviders(<AltinnPartySearch {...allProps} />, {
+    preloadedState: {
+      ...getInitialStateMock(),
+      language: {
+        language: {},
+        error: null,
+        selectedAppLanguage: 'nb',
+      },
+    },
+  });
 };

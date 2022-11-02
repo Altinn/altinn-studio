@@ -3,7 +3,7 @@ import React from 'react';
 import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders } from 'testUtils';
+import { mockComponentProps, renderWithProviders } from 'testUtils';
 import type { PreloadedState } from 'redux';
 
 import DropdownComponent from 'src/components/base/DropdownComponent';
@@ -15,14 +15,12 @@ const render = (
   customState: PreloadedState<RootState> = {},
 ) => {
   const allProps: IDropdownProps = {
-    id: 'component-id',
+    ...mockComponentProps,
     optionsId: 'countries',
-    formData: {},
+    readOnly: false,
     handleDataChange: jest.fn(),
     getTextResourceAsString: (value) => value,
-    readOnly: false,
     isValid: true,
-    ...({} as IDropdownProps),
     ...props,
   };
 

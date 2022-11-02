@@ -10,7 +10,12 @@ import {
 } from 'src/utils/appMetadata';
 import type { ILayoutSets } from 'src/types';
 
-import type { IApplication, IData, IInstance } from 'altinn-shared/types';
+import type {
+  IApplication,
+  IData,
+  IInstance,
+  ITask,
+} from 'altinn-shared/types';
 
 describe('appMetadata.ts', () => {
   const application: IApplication = {
@@ -69,7 +74,7 @@ describe('appMetadata.ts', () => {
     appId: 'ttd/stateless-app-demo',
     org: 'ttd',
     selfLinks: { apps: '', platform: '' },
-    dueBefore: null,
+    dueBefore: undefined,
     process: {
       startEvent: 'StartEvent_1',
       currentTask: {
@@ -86,7 +91,7 @@ describe('appMetadata.ts', () => {
         instanceGuid: 'c23f7e5e-9f04-424f-9ffc-0e9aa14ad907',
         dataType: 'Datamodel',
         filename: null,
-      } as IData,
+      } as unknown as IData,
     ],
     instanceState: undefined,
     lastChanged: undefined,
@@ -127,7 +132,7 @@ describe('appMetadata.ts', () => {
       };
       const result = getCurrentDataTypeForApplication({
         application: statelessApplication,
-        instance: null,
+        instance: undefined,
         layoutSets,
       });
       const expected = 'Stateless';
@@ -166,7 +171,7 @@ describe('appMetadata.ts', () => {
       };
       const result = getLayoutSetIdForApplication(
         statelessApplication,
-        null,
+        undefined,
         layoutSets,
       );
       const expected = 'stateless';
@@ -235,7 +240,7 @@ describe('appMetadata.ts', () => {
         process: {
           ...instance.process,
           currentTask: {
-            ...instance.process.currentTask,
+            ...(instance.process.currentTask as ITask),
             flow: 3,
             elementId: 'Task_2',
             name: 'Bekreftelse',

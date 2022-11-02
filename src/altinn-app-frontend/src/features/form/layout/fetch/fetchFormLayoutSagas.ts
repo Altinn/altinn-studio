@@ -38,8 +38,9 @@ export const instanceSelector = (state: IRuntimeState) =>
 export const applicationMetadataSelector = (state: IRuntimeState) =>
   state.applicationMetadata.applicationMetadata;
 
-let componentTypeCaseMapping: { [key: string]: ComponentTypes } = undefined;
-function getCaseMapping(): typeof componentTypeCaseMapping {
+type ComponentTypeCaseMapping = { [key: string]: ComponentTypes };
+let componentTypeCaseMapping: ComponentTypeCaseMapping | undefined = undefined;
+function getCaseMapping(): ComponentTypeCaseMapping {
   if (!componentTypeCaseMapping) {
     componentTypeCaseMapping = {
       group: 'Group',
@@ -68,8 +69,8 @@ export function cleanLayout(layout: ILayout): ILayout {
 
 export function* fetchLayoutSaga(): SagaIterator {
   try {
-    const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
-    const instance: IInstance = yield select(instanceSelector);
+    const layoutSets: ILayoutSets | null = yield select(layoutSetsSelector);
+    const instance: IInstance | null = yield select(instanceSelector);
     const applicationMetadata: IApplicationMetadata = yield select(
       applicationMetadataSelector,
     );
@@ -78,11 +79,14 @@ export function* fetchLayoutSaga(): SagaIterator {
       instance,
       layoutSets,
     );
-    const layoutResponse: any = yield call(get, getLayoutsUrl(layoutSetId));
+    const layoutResponse: any = yield call(
+      get,
+      getLayoutsUrl(layoutSetId || null),
+    );
     const layouts: ILayouts = {};
     const navigationConfig: any = {};
     const hiddenLayoutsExpressions: IHiddenLayoutsExpressions = {};
-    let autoSave: boolean;
+    let autoSave: boolean | undefined;
     let firstLayoutKey: string;
     if (layoutResponse.data?.layout) {
       layouts.FormLayout = layoutResponse.data.layout;

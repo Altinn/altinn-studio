@@ -27,8 +27,7 @@ export async function post(
   options?: AxiosRequestConfig,
   data?: any,
 ): Promise<AxiosResponse<any>> {
-  const response: AxiosResponse = await axios.post(url, data, options || null);
-  return response;
+  return await axios.post(url, data, options);
 }
 
 export async function put(
@@ -40,7 +39,7 @@ export async function put(
   const response: AxiosResponse = await axios.put(
     `${url}/${apiMode}`,
     data,
-    config || null,
+    config,
   );
   return response.data ? response.data : null;
 }
@@ -49,8 +48,7 @@ export async function httpDelete(
   url: string,
   options?: AxiosRequestConfig,
 ): Promise<AxiosResponse<any>> {
-  const response: AxiosResponse = await axios.delete(url, options || null);
-  return response;
+  return await axios.delete(url, options);
 }
 
 export async function putWithoutConfig<ReturnType>(
@@ -64,6 +62,6 @@ export async function putWithoutConfig<ReturnType>(
   }
 }
 
-export function checkIfAxiosError(error: Error): boolean {
+export function checkIfAxiosError(error: Error | null | undefined): boolean {
   return (error as AxiosError)?.config !== undefined;
 }

@@ -119,7 +119,7 @@ describe('InstantiateContainer', () => {
       instantiation: {
         error: null,
         instanceId: '123456/75154373-aed4-41f7-95b4-e5b5115c2edc',
-        instantiating: null,
+        instantiating: false,
       },
     });
 
@@ -146,7 +146,7 @@ describe('InstantiateContainer', () => {
       instantiation: {
         error,
         instanceId: null,
-        instantiating: null,
+        instantiating: false,
       },
     });
 
@@ -168,7 +168,7 @@ describe('InstantiateContainer', () => {
       instantiation: {
         error,
         instanceId: null,
-        instantiating: null,
+        instantiating: false,
       },
     });
 
@@ -196,7 +196,7 @@ describe('InstantiateContainer', () => {
       instantiation: {
         error,
         instanceId: null,
-        instantiating: null,
+        instantiating: false,
       },
     });
 

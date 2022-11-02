@@ -16,7 +16,7 @@ export function* getUpdatedProcess(): SagaIterator {
   const currentProcessState: IProcessState = yield select(processSelector);
   let delayBy = 1000;
   for (let i = 0; i < 20; i++) {
-    const result: IProcess = yield call(get, getProcessStateUrl(), null);
+    const result: IProcess = yield call(get, getProcessStateUrl());
     if (!result) {
       throw new Error('Error: no process returned.');
     }
@@ -28,7 +28,7 @@ export function* getUpdatedProcess(): SagaIterator {
       };
     }
 
-    if (result.currentTask.altinnTaskType !== currentProcessState.taskType) {
+    if (result.currentTask?.altinnTaskType !== currentProcessState.taskType) {
       return {
         state: currentProcessState.taskType,
         taskId: currentProcessState.taskId,

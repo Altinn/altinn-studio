@@ -16,7 +16,7 @@ import type {
 } from 'src/types';
 
 export interface ILayouts {
-  [id: string]: ILayout;
+  [id: string]: ILayout | undefined;
 }
 
 /**
@@ -144,9 +144,10 @@ export interface ILayoutCompHeader extends ILayoutCompBase<'Header'> {
   size: 'L' | 'M' | 'S' | 'h2' | 'h3' | 'h4';
 }
 
-type NumberFormatProps = Parameters<
-  typeof TextField
->[0]['formatting']['number'];
+type NumberFormatProps = Exclude<
+  Parameters<typeof TextField>[0]['formatting'],
+  undefined
+>['number'];
 
 export interface IInputFormatting {
   number?: NumberFormatProps;
@@ -181,7 +182,7 @@ export interface IImageSrc {
   nb?: string;
   nn?: string;
   en?: string;
-  [language: string]: string;
+  [language: string]: string | undefined;
 }
 
 export interface ILayoutCompImage extends ILayoutCompBase<'Image'> {
@@ -305,7 +306,7 @@ export interface ITextResourceBindings {
   [id: string]: string;
 }
 
-export type ILayout = Array<ILayoutComponentOrGroup>;
+export type ILayout = ILayoutComponentOrGroup[];
 
 export type ISelectionComponentProps =
   | ILayoutCompRadioButtons

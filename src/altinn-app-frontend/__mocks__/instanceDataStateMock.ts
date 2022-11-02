@@ -9,7 +9,6 @@ export function getInstanceDataStateMock(
       instanceOwner: {
         partyId: '12345',
         personNumber: '01017512345',
-        organisationNumber: null,
       },
       appId: 'mockOrg/mockApp',
       created: new Date('2020-01-01').toISOString(),
@@ -55,7 +54,7 @@ export function getInstanceDataStateMock(
         },
       ],
       id: '91cefc5e-c47b-40ff-a8a4-05971205f783',
-      instanceState: null,
+      instanceState: undefined,
       lastChanged: new Date('2020-01-01').toISOString(),
       org: 'mockOrg',
       process: {

@@ -22,7 +22,7 @@ import {
 } from 'altinn-shared/utils';
 
 export interface IPresentationProvidedProps {
-  header: string;
+  header?: string | JSX.Element | JSX.Element[];
   appOwner?: string;
   type: ProcessTaskType | PresentationType;
   children?: JSX.Element;
@@ -44,9 +44,10 @@ const PresentationComponent = (props: IPresentationProvidedProps) => {
 
   const previousFormPage: string = useAppSelector((state) =>
     getNextView(
-      state.formLayout.uiConfig.navigationConfig[
-        state.formLayout.uiConfig.currentView
-      ],
+      state.formLayout.uiConfig.navigationConfig &&
+        state.formLayout.uiConfig.navigationConfig[
+          state.formLayout.uiConfig.currentView
+        ],
       getLayoutOrderFromTracks(state.formLayout.uiConfig.tracks),
       state.formLayout.uiConfig.currentView,
       true,
@@ -80,17 +81,19 @@ const PresentationComponent = (props: IPresentationProvidedProps) => {
       window.location.origin,
       party?.partyId,
     );
-    if (!queryParameterReturnUrl) {
+    if (!queryParameterReturnUrl && messageBoxUrl) {
       window.location.href = messageBoxUrl;
       return;
     }
 
-    get(getRedirectUrl(queryParameterReturnUrl))
-      .then((response) => response)
-      .catch(() => messageBoxUrl)
-      .then((returnUrl) => {
-        window.location.href = returnUrl;
-      });
+    if (queryParameterReturnUrl) {
+      get(getRedirectUrl(queryParameterReturnUrl))
+        .then((response) => response)
+        .catch(() => messageBoxUrl)
+        .then((returnUrl) => {
+          window.location.href = returnUrl;
+        });
+    }
   };
 
   const isProcessStepsArchived = Boolean(
@@ -107,7 +110,7 @@ const PresentationComponent = (props: IPresentationProvidedProps) => {
       style={style}
     >
       <AltinnAppHeader
-        party={party}
+        party={party || undefined}
         userParty={userParty}
         logoColor={AltinnAppTheme.altinnPalette.primary.blueDarker}
         headerBackgroundColor={backgroundColor}

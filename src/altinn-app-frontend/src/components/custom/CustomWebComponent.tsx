@@ -7,7 +7,7 @@ import type { ITextResource, ITextResourceBindings } from 'src/types';
 import { getTextResourceByKey } from 'altinn-shared/utils';
 
 export type ICustomComponentProps = PropsFromGenericComponent<'Custom'> & {
-  [key: string]: string | number | boolean | object;
+  [key: string]: string | number | boolean | object | null | undefined;
 };
 
 function CustomWebComponent({
@@ -22,7 +22,7 @@ function CustomWebComponent({
   ...passThroughProps
 }: ICustomComponentProps) {
   const Tag = tagName;
-  const wcRef = React.useRef(null);
+  const wcRef = React.useRef<any>(null);
   const textResources = useAppSelector(
     (state) => state.textResources.resources,
   );
@@ -46,7 +46,7 @@ function CustomWebComponent({
     const { current } = wcRef;
     if (current) {
       current.texts = getTextsForComponent(
-        textResourceBindings,
+        textResourceBindings || {},
         textResources,
         false,
       );

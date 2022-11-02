@@ -8,9 +8,9 @@ import type { IComponentBindingValidation } from 'src/types';
 import { getParsedLanguageFromText } from 'altinn-shared/utils';
 
 export function renderValidationMessagesForComponent(
-  validationMessages: IComponentBindingValidation,
+  validationMessages: IComponentBindingValidation | undefined | null,
   id: string,
-): JSX.Element[] {
+): JSX.Element[] | null {
   if (!validationMessages) {
     return null;
   }

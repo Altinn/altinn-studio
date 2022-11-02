@@ -7,13 +7,16 @@ export const statelessAndAllowAnonymousMock = (
 ) => {
   const initialState = getInitialStateMock();
   const initialAppMetadata: IApplicationMetadata = {
-    ...initialState.applicationMetadata.applicationMetadata,
+    ...(initialState.applicationMetadata
+      .applicationMetadata as IApplicationMetadata),
     onEntry: {
       show: 'stateless',
     },
   };
-  initialAppMetadata.dataTypes[0].appLogic.allowAnonymousOnStateless =
-    allowAnonymous;
+  if (initialAppMetadata.dataTypes[0].appLogic) {
+    initialAppMetadata.dataTypes[0].appLogic.allowAnonymousOnStateless =
+      allowAnonymous;
+  }
   const mockInitialState: IRuntimeState = {
     ...initialState,
     applicationMetadata: {

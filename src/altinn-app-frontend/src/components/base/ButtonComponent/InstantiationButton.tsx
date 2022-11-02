@@ -29,14 +29,14 @@ export const InstantiationButton = ({
     instantiateWithPrefill({
       prefill,
       instanceOwner: {
-        partyId: party.partyId.toString(),
+        partyId: party?.partyId.toString(),
       },
     });
   };
   const busyWithId = props.busyWithId || isLoading ? props.id : '';
 
   React.useEffect(() => {
-    if (isSuccess) {
+    if (isSuccess && data) {
       dispatch(InstanceDataActions.getFulfilled({ instanceData: data }));
       dispatch(AttachmentActions.mapAttachments());
       dispatch(

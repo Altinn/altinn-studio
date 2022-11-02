@@ -6,7 +6,7 @@ export interface IUploadAttachmentAction {
   attachmentType: string;
   tmpAttachmentId: string;
   componentId: string;
-  dataModelBindings: IDataModelBindings;
+  dataModelBindings?: IDataModelBindings;
   index: number;
 }
 

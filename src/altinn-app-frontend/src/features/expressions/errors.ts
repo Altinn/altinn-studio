@@ -48,5 +48,5 @@ export class NodeNotFound extends ExprRuntimeError {
 }
 
 export class NodeNotFoundWithoutContext {
-  public constructor(public nodeId: string) {}
+  public constructor(public nodeId: string | undefined) {}
 }

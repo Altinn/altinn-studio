@@ -17,18 +17,21 @@ import type { ILayoutSets, IRuntimeState } from 'src/types';
 
 import type { IInstance } from 'altinn-shared/types';
 
-const AppMetadataSelector: (state: IRuntimeState) => IApplicationMetadata = (
+const AppMetadataSelector: (
   state: IRuntimeState,
-) => state.applicationMetadata.applicationMetadata;
+) => IApplicationMetadata | null = (state: IRuntimeState) =>
+  state.applicationMetadata.applicationMetadata;
 const InstanceDataSelector = (state: IRuntimeState) =>
   state.instanceData.instance;
 
 function* fetchJsonSchemaSaga(): SagaIterator {
   try {
     const url = getJsonSchemaUrl();
-    const appMetadata: IApplicationMetadata = yield select(AppMetadataSelector);
-    const instance: IInstance = yield select(InstanceDataSelector);
-    const layoutSets: ILayoutSets = yield select(
+    const appMetadata: IApplicationMetadata | null = yield select(
+      AppMetadataSelector,
+    );
+    const instance: IInstance | null = yield select(InstanceDataSelector);
+    const layoutSets: ILayoutSets | null = yield select(
       (state: IRuntimeState) => state.formLayout.layoutsets,
     );
 

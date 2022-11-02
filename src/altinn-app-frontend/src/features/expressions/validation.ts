@@ -85,9 +85,7 @@ function validateFunctionArg(
         expectedType,
         'null',
       );
-    }
-
-    if (!targetType.accepts.includes(actualType)) {
+    } else if (!targetType.accepts.includes(actualType)) {
       addError(
         ctx,
         [...path, `[${idx}]`],

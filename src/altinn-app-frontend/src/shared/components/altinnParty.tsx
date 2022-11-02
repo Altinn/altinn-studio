@@ -124,7 +124,13 @@ function AltinnParty({
   const [subUnitsExpanded, setSubUnitsExpanded] =
     React.useState<boolean>(false);
   const isOrg: boolean = party.orgNumber != null;
-  const language = useAppSelector((state) => state.language.language);
+  const _language = useAppSelector((state) => state.language.language);
+
+  if (_language === null) {
+    return null;
+  }
+
+  const language = _language;
 
   function onClickParty(
     selectedParty: IParty,

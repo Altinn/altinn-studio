@@ -22,7 +22,7 @@ describe('dateHelpers', () => {
   });
 
   describe('getISOString', () => {
-    test.each(['', undefined, null])(
+    test.each(['', undefined])(
       'should return undefined if input date is %p',
       (date) => {
         expect(getISOString(date)).toBeUndefined();

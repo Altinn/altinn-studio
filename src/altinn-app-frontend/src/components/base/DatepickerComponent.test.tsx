@@ -2,7 +2,11 @@ import React from 'react';
 
 import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { mockMediaQuery, renderWithProviders } from 'testUtils';
+import {
+  mockComponentProps,
+  mockMediaQuery,
+  renderWithProviders,
+} from 'testUtils';
 import type { PreloadedState } from 'redux';
 
 import DatepickerComponent from 'src/components/base/DatepickerComponent';
@@ -14,11 +18,10 @@ const render = (
   customState: PreloadedState<RootState> = {},
 ) => {
   const allProps: IDatePickerProps = {
+    ...mockComponentProps,
     format: 'DD.MM.YYYY',
     minDate: '1900-01-01T12:00:00.000Z',
     maxDate: '2100-01-01T12:00:00.000Z',
-    handleDataChange: jest.fn(),
-    ...({} as IDatePickerProps),
     ...props,
   };
 

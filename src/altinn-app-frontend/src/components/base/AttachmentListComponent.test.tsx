@@ -26,6 +26,10 @@ function render(props: Partial<IAttachmentListProps> = {}) {
 
   const mockApplicationMetadata = applicationMetadataMock;
   const instanceDataMock: IInstanceDataState = getInstanceDataStateMock();
+  if (!instanceDataMock.instance) {
+    throw new Error('Missing data in mock');
+  }
+
   const dataElement: IData = {
     id: 'test-data-element-1',
     instanceGuid: instanceDataMock.instance.id,
@@ -33,10 +37,6 @@ function render(props: Partial<IAttachmentListProps> = {}) {
     filename: 'testData1.pdf',
     contentType: 'application/pdf',
     blobStoragePath: '',
-    selfLinks: {
-      apps: null,
-      platform: null,
-    },
     size: 1234,
     locked: false,
     refs: [],
@@ -49,7 +49,9 @@ function render(props: Partial<IAttachmentListProps> = {}) {
     ...instanceDataMock,
   };
 
-  mockInstanceData.instance.data = [dataElement];
+  if (mockInstanceData.instance) {
+    mockInstanceData.instance.data = [dataElement];
+  }
 
   const mockInitialState = getInitialStateMock({
     applicationMetadata: {

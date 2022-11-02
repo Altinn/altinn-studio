@@ -19,7 +19,7 @@ import type {
 } from 'src/features/form/data/formDataTypes';
 import type { ILayoutComponent, ILayouts } from 'src/features/form/layout';
 import type { IAttachments } from 'src/shared/resources/attachments';
-import type { IRuntimeState, IValidationResult } from 'src/types';
+import type { IRuntimeState } from 'src/types';
 
 export function* updateFormDataSaga({
   payload: { field, data, componentId, skipValidation, skipAutoSave },
@@ -53,7 +53,7 @@ export function* updateFormDataSaga({
 function* runValidations(
   field: string,
   data: any,
-  componentId: string,
+  componentId: string | undefined,
   state: IRuntimeState,
 ) {
   if (!componentId) {
@@ -62,6 +62,20 @@ function* runValidations(
         error: new Error('Missing component ID!'),
       }),
     );
+    return;
+  }
+  if (!state.language.language) {
+    return;
+  }
+
+  const layoutId = getLayoutIdForComponent(
+    componentId,
+    state.formLayout.layouts || {},
+  );
+
+  if (!layoutId) {
+    console.error('Failed to find layout ID for component', componentId);
+    return;
   }
 
   const currentDataTypeId = getCurrentDataTypeForApplication({
@@ -77,12 +91,8 @@ function* runValidations(
     componentId,
     state.formLayout.layouts,
   ) as ILayoutComponent;
-  const layoutId = getLayoutIdForComponent(
-    componentId,
-    state.formLayout.layouts,
-  );
 
-  const validationResult: IValidationResult = validateComponentFormData(
+  const validationResult = validateComponentFormData(
     layoutId,
     data,
     field,
@@ -108,7 +118,7 @@ function* runValidations(
     ValidationActions.updateComponentValidations({
       componentId,
       layoutId,
-      validations: componentValidations,
+      validations: componentValidations || {},
       invalidDataTypes: updatedInvalidDataComponents,
     }),
   );
@@ -137,7 +147,7 @@ export function* deleteAttachmentReferenceSaga({
     const layouts: ILayouts = yield select(SelectLayouts);
     const attachments: IAttachments = yield select(SelectAttachments);
     const currentView: string = yield select(SelectCurrentView);
-    const layout = layouts[currentView];
+    const layout = layouts[currentView] || [];
 
     const updatedFormData = removeAttachmentReference(
       formData,

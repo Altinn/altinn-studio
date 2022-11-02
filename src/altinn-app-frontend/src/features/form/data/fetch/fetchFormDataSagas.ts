@@ -49,12 +49,16 @@ export function* fetchFormDataSaga(): SagaIterator {
       instance,
       layoutSets,
     );
-    const fetchedData: any = yield call(
-      get,
-      getFetchFormDataUrl(instance.id, currentTaskDataElementId),
-    );
-    const formData = convertModelToDataBinding(fetchedData);
-    yield put(FormDataActions.fetchFulfilled({ formData }));
+    if (currentTaskDataElementId) {
+      const fetchedData: any = yield call(
+        get,
+        getFetchFormDataUrl(instance.id, currentTaskDataElementId),
+      );
+      const formData = convertModelToDataBinding(fetchedData);
+      yield put(FormDataActions.fetchFulfilled({ formData }));
+    } else {
+      yield put(FormDataActions.fetchRejected({ error: null }));
+    }
   } catch (error) {
     yield put(FormDataActions.fetchRejected({ error }));
   }
@@ -79,10 +83,12 @@ export function* fetchFormDataInitialSaga(): SagaIterator {
         instance,
         layoutSets,
       );
-      fetchedData = yield call(
-        get,
-        getFetchFormDataUrl(instance.id, currentTaskDataId),
-      );
+      if (currentTaskDataId) {
+        fetchedData = yield call(
+          get,
+          getFetchFormDataUrl(instance.id, currentTaskDataId),
+        );
+      }
     }
 
     const formData = convertModelToDataBinding(fetchedData);
@@ -98,7 +104,7 @@ export function* fetchFormDataInitialSaga(): SagaIterator {
 function* fetchFormDataStateless(applicationMetadata: IApplicationMetadata) {
   const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
   const dataType = getDataTypeByLayoutSetId(
-    applicationMetadata.onEntry.show,
+    applicationMetadata.onEntry?.show,
     layoutSets,
   );
 
@@ -113,6 +119,10 @@ function* fetchFormDataStateless(applicationMetadata: IApplicationMetadata) {
         party: `partyid:${selectedPartyId}`,
       },
     };
+  }
+
+  if (!dataType) {
+    return;
   }
 
   try {
@@ -153,7 +163,7 @@ export function* watchFetchFormDataInitialSaga(): SagaIterator {
     } else if (
       !processState ||
       !instance ||
-      processState.taskId !== instance.process.currentTask.elementId
+      processState.taskId !== instance.process.currentTask?.elementId
     ) {
       yield all([
         take(InstanceDataActions.getFulfilled),

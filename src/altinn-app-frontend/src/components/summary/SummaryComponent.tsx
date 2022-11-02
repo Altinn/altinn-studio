@@ -65,43 +65,58 @@ export function SummaryComponent({
   const summaryPageName = useAppSelector(
     (state) => state.formLayout.uiConfig.currentView,
   );
-  const changeText = useAppSelector((state) =>
-    getTextFromAppOrDefault(
-      'form_filler.summary_item_change',
-      state.textResources.resources,
-      state.language.language,
-      null,
-      true,
-    ),
+  const changeText = useAppSelector(
+    (state) =>
+      state.language.language &&
+      getTextFromAppOrDefault(
+        'form_filler.summary_item_change',
+        state.textResources.resources,
+        state.language.language,
+        [],
+        true,
+      ),
   );
   const formValidations = useAppSelector(
     (state) => state.formValidations.validations,
   );
-  const layout = useAppSelector((state) => state.formLayout.layouts[pageRef]);
+  const layout = useAppSelector(
+    (state) =>
+      state.formLayout.layouts && pageRef && state.formLayout.layouts[pageRef],
+  );
   const attachments = useAppSelector(
     (state: IRuntimeState) => state.attachments.attachments,
   );
   const _formComponent = useAppSelector((state) => {
-    return state.formLayout.layouts[pageRef].find((c) => c.id === componentRef);
+    return (
+      (state.formLayout.layouts &&
+        pageRef &&
+        state.formLayout.layouts[pageRef]?.find(
+          (c) => c.id === componentRef,
+        )) ||
+      undefined
+    );
   });
   const formComponent = useExpressionsForComponent(_formComponent);
 
   const goToCorrectPageLinkText = useAppSelector((state) => {
-    return getTextFromAppOrDefault(
-      'form_filler.summary_go_to_correct_page',
-      state.textResources.resources,
-      state.language.language,
-      [],
-      true,
+    return (
+      state.language.language &&
+      getTextFromAppOrDefault(
+        'form_filler.summary_go_to_correct_page',
+        state.textResources.resources,
+        state.language.language,
+        [],
+        true,
+      )
     );
   });
   const formData = useAppSelector((state) => {
-    if (formComponent.type === 'Group') {
+    if (formComponent?.type === 'Group') {
       return undefined;
     }
     if (
-      (formComponent.type === 'FileUpload' ||
-        formComponent.type === 'FileUploadWithTag') &&
+      (formComponent?.type === 'FileUpload' ||
+        formComponent?.type === 'FileUploadWithTag') &&
       Object.keys(formComponent.dataModelBindings || {}).length === 0
     ) {
       return undefined;
@@ -120,24 +135,30 @@ export function SummaryComponent({
     );
   }, shallowEqual);
   const label = useAppSelector((state) => {
-    const titleKey = formComponent.textResourceBindings?.title;
+    const titleKey = formComponent?.textResourceBindings?.title;
     if (titleKey) {
-      return getTextFromAppOrDefault(
-        titleKey,
-        state.textResources.resources,
-        state.language.language,
-        [],
-        false,
+      return (
+        state.language.language &&
+        getTextFromAppOrDefault(
+          titleKey,
+          state.textResources.resources,
+          state.language.language,
+          [],
+          false,
+        )
       );
     }
     return undefined;
   });
 
   const onChangeClick = () => {
+    if (!pageRef) {
+      return;
+    }
+
     dispatch(
       FormLayoutActions.updateCurrentView({
         newView: pageRef,
-        runValidations: null,
         returnToView: summaryPageName,
         focusComponentId: componentRef,
       }),
@@ -147,13 +168,15 @@ export function SummaryComponent({
   React.useEffect(() => {
     if (formComponent && formComponent.type !== 'Group') {
       const componentId =
-        index >= 0 ? `${componentRef}-${index}` : componentRef;
-      const validations = getComponentValidations(
-        formValidations,
-        componentId,
-        pageRef,
-      );
-      setComponentValidations(validations);
+        typeof index === 'number' && index >= 0
+          ? `${componentRef}-${index}`
+          : componentRef;
+      const validations =
+        (componentId &&
+          pageRef &&
+          getComponentValidations(formValidations, componentId, pageRef)) ||
+        undefined;
+      setComponentValidations(validations || {});
       setHasValidationMessages(componentHasValidationMessages(validations));
     }
   }, [formValidations, layout, pageRef, formComponent, componentRef, index]);
@@ -167,7 +190,7 @@ export function SummaryComponent({
   };
 
   const displayGrid =
-    display && display.useComponentGrid ? formComponent.grid : grid;
+    display && display.useComponentGrid ? formComponent?.grid : grid;
   return (
     <Grid
       item={true}

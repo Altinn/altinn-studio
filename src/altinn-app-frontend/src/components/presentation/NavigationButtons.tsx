@@ -60,13 +60,15 @@ export function NavigationButtons(props: INavigationButtons) {
     setDisableNext(
       !returnToView &&
         !next &&
-        currentViewIndex === orderedLayoutKeys.length - 1,
+        currentViewIndex === (orderedLayoutKeys?.length || 0) - 1,
     );
   }, [currentView, orderedLayoutKeys, next, previous, returnToView]);
 
   const onClickPrevious = () => {
     const goToView =
-      previous || orderedLayoutKeys[orderedLayoutKeys.indexOf(currentView) - 1];
+      previous ||
+      (orderedLayoutKeys &&
+        orderedLayoutKeys[orderedLayoutKeys.indexOf(currentView) - 1]);
     if (goToView) {
       dispatch(FormLayoutActions.updateCurrentView({ newView: goToView }));
     }
@@ -84,7 +86,7 @@ export function NavigationButtons(props: INavigationButtons) {
     const runValidations =
       (runAllValidations && 'allPages') ||
       (runPageValidations && 'page') ||
-      null;
+      undefined;
     const keepScrollPosAction: IKeepComponentScrollPos = {
       componentId: props.id,
       offsetTop: getScrollPosition(),
@@ -101,7 +103,8 @@ export function NavigationButtons(props: INavigationButtons) {
       const goToView =
         returnToView ||
         next ||
-        orderedLayoutKeys[orderedLayoutKeys.indexOf(currentView) + 1];
+        (orderedLayoutKeys &&
+          orderedLayoutKeys[orderedLayoutKeys.indexOf(currentView) + 1]);
       if (goToView) {
         dispatch(
           FormLayoutActions.updateCurrentView({
@@ -132,6 +135,10 @@ export function NavigationButtons(props: INavigationButtons) {
     dispatch(FormLayoutActions.clearKeepScrollPos());
   }, [keepScrollPos, dispatch, props.id, getScrollPosition]);
 
+  if (!language) {
+    return null;
+  }
+
   return (
     <Grid
       data-testid='NavigationButtons'
@@ -146,7 +153,7 @@ export function NavigationButtons(props: INavigationButtons) {
               backTextKey,
               textResources,
               language,
-              null,
+              undefined,
               true,
             )}
             onClickFunction={onClickPrevious}
@@ -162,7 +169,7 @@ export function NavigationButtons(props: INavigationButtons) {
               nextTextKey,
               textResources,
               language,
-              null,
+              undefined,
               true,
             )}
             onClickFunction={OnClickNext}
@@ -175,11 +182,13 @@ export function NavigationButtons(props: INavigationButtons) {
 }
 
 function getNavigationConfigForCurrentView(
-  navigationConfig: INavigationConfig,
+  navigationConfig: INavigationConfig | undefined,
   currentView: string,
 ): ILayoutNavigation {
-  if (navigationConfig && navigationConfig[currentView]) {
-    return navigationConfig[currentView];
+  const out = navigationConfig && navigationConfig[currentView];
+  if (out) {
+    return out;
   }
+
   return {};
 }

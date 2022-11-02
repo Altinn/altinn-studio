@@ -1,26 +1,19 @@
 import { deleteGroupData, getKeyIndex } from 'src/utils/databindings';
 import { splitDashedKey } from 'src/utils/formLayout';
 import type { IFormData } from 'src/features/form/data';
-import type {
-  ILayoutComponent,
-  ILayoutGroup,
-  ILayouts,
-} from 'src/features/form/layout';
+import type { ILayoutComponent, ILayouts } from 'src/features/form/layout';
 import type { IAttachments } from 'src/shared/resources/attachments';
 
 import type { IData } from 'altinn-shared/types';
 
 export function mapAttachmentListToAttachments(
   data: IData[],
-  defaultElementId: string,
+  defaultElementId: string | undefined,
   formData: IFormData,
   layouts: ILayouts,
 ): IAttachments {
   const attachments: IAttachments = {};
-  const allComponents = [].concat(...Object.values(layouts)) as (
-    | ILayoutComponent
-    | ILayoutGroup
-  )[];
+  const allComponents = Object.values(layouts).flat();
 
   data.forEach((element: IData) => {
     const baseComponentId = element.dataType;
@@ -31,7 +24,7 @@ export function mapAttachmentListToAttachments(
       return;
     }
 
-    const component = allComponents.find((c) => c.id === baseComponentId);
+    const component = allComponents.find((c) => c?.id === baseComponentId);
     if (
       !component ||
       (component.type !== 'FileUpload' &&
@@ -105,7 +98,7 @@ function convertToDashedComponentId(
   return [componentId, index];
 }
 
-export function getFileEnding(filename: string): string {
+export function getFileEnding(filename: string | undefined): string {
   if (!filename) {
     return '';
   }
@@ -116,7 +109,7 @@ export function getFileEnding(filename: string): string {
   return `.${split[split.length - 1]}`;
 }
 
-export function removeFileEnding(filename: string): string {
+export function removeFileEnding(filename: string | undefined): string {
   if (!filename) {
     return '';
   }

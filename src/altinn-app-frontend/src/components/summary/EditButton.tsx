@@ -4,7 +4,7 @@ import { IconButton, makeStyles, Typography } from '@material-ui/core';
 
 export interface IEditButtonProps {
   onClick: () => void;
-  editText: string;
+  editText: string | null;
 }
 
 const useStyles = makeStyles({

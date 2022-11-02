@@ -18,20 +18,22 @@ import type {
   ITextResource,
 } from 'altinn-shared/types';
 
-export const InstanceSelector: (state: IRuntimeState) => IInstance = (state) =>
-  state.instanceData?.instance;
+export const InstanceSelector: (state: IRuntimeState) => IInstance | null = (
+  state,
+) => state.instanceData?.instance;
 export const FormDataSelector: (state: IRuntimeState) => IFormData = (state) =>
   state.formData?.formData;
 export const ApplicationSettingsSelector: (
   state: IRuntimeState,
-) => IApplicationSettings = (state) =>
+) => IApplicationSettings | null = (state) =>
   state.applicationSettings?.applicationSettings;
 export const TextResourcesSelector: (
   state: IRuntimeState,
 ) => ITextResourcesState = (state) => state.textResources;
 export const RepeatingGroupsSelector: (
   state: IRuntimeState,
-) => IRepeatingGroups = (state) => state.formLayout.uiConfig.repeatingGroups;
+) => IRepeatingGroups | null = (state) =>
+  state.formLayout.uiConfig.repeatingGroups;
 
 export function* replaceTextResourcesSaga(): SagaIterator {
   try {
@@ -47,7 +49,8 @@ export function* replaceTextResourcesSaga(): SagaIterator {
       RepeatingGroupsSelector,
     );
 
-    const instanceContext: IInstanceContext = buildInstanceContext(instance);
+    const instanceContext: IInstanceContext | null =
+      buildInstanceContext(instance);
 
     const dataSources: IDataSources = {
       dataModel: formData,

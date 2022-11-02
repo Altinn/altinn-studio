@@ -21,6 +21,7 @@ const defaultObj: IGetVariantProps = {
 
 export const getVariant = ({ variant }: IGetVariantProps = defaultObj) => {
   switch (variant) {
+    case undefined:
     case 'info':
       return PanelVariant.Info;
     case 'success':

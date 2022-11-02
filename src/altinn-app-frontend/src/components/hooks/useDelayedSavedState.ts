@@ -3,8 +3,8 @@ import * as React from 'react';
 import type { IComponentProps } from 'src/components';
 
 export interface DelayedSavedStateRetVal {
-  value: string;
-  setValue: (newValue: string, saveImmediately?: boolean) => void;
+  value: string | undefined;
+  setValue: (newValue: string | undefined, saveImmediately?: boolean) => void;
   saveValue: () => void;
   onPaste: () => void;
 }

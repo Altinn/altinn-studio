@@ -37,6 +37,10 @@ export function InstantiationContainer({
   const language = useAppSelector((state) => state.language.language);
   const profile = useAppSelector((state) => state.profile.profile);
 
+  if (!language) {
+    return null;
+  }
+
   return (
     <Grid
       container={true}

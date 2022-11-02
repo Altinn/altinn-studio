@@ -107,7 +107,7 @@ describe('Frontend urlHelper.ts', () => {
       },
     ) => {
       const oldWindowLocation = window.location;
-      delete window.location;
+      delete (window as any).location;
       window.location = {
         ...oldWindowLocation,
         ...location,
@@ -165,7 +165,7 @@ describe('Frontend urlHelper.ts', () => {
 
       it('should throw error when host has too many subdomains', () => {
         const oldWindowLocation = window.location;
-        delete window.location;
+        delete (window as any).location;
         window.location = {
           ...oldWindowLocation,
           origin: 'https://ttd.apps.altinn.no',
@@ -321,7 +321,7 @@ describe('Frontend urlHelper.ts', () => {
 
   describe('getRulehandlerUrl', () => {
     it('should return default when no parameter is passed', () => {
-      const result = getRulehandlerUrl(null);
+      const result = getRulehandlerUrl();
 
       expect(result).toBe(
         'https://local.altinn.cloud/ttd/test/api/resource/RuleHandler.js',
@@ -391,13 +391,11 @@ describe('Frontend urlHelper.ts', () => {
 
   describe('getFetchFormDynamicsUrl', () => {
     it('should return default when no parameter is passed', () => {
-      const nullResult = getFetchFormDynamicsUrl(null);
       const undefinedResult = getFetchFormDynamicsUrl();
 
       const expected =
         'https://local.altinn.cloud/ttd/test/api/resource/RuleConfiguration.json';
 
-      expect(nullResult).toBe(expected);
       expect(undefinedResult).toBe(expected);
     });
 
@@ -413,12 +411,10 @@ describe('Frontend urlHelper.ts', () => {
   describe('getStatelessFormDataUrl', () => {
     const dataType = 'someDataType';
     it('should return default when only dataType parameter is passed', () => {
-      const nullResult = getStatelessFormDataUrl(dataType, null);
       const undefinedResult = getStatelessFormDataUrl(dataType);
 
       const expected = `https://local.altinn.cloud/ttd/test/v1/data?dataType=${dataType}`;
 
-      expect(nullResult).toBe(expected);
       expect(undefinedResult).toBe(expected);
     });
 

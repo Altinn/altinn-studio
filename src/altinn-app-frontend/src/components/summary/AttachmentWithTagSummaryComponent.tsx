@@ -27,7 +27,7 @@ export function AttachmentWithTagSummaryComponent({
   component,
 }: IAttachmentWithTagSummaryComponent) {
   const classes = useStyles();
-  const attachments: IAttachment[] = useAppSelector(
+  const attachments: IAttachment[] | undefined = useAppSelector(
     (state) => state.attachments.attachments[componentRef],
   );
   const textResources = useAppSelector(
@@ -75,7 +75,9 @@ export function AttachmentWithTagSummaryComponent({
             key={`attachment-summary-tag-${attachment.id}`}
             variant='body1'
           >
-            {attachment.tags[0] && tryToGetTextResource(attachment)}
+            {attachment.tags &&
+              attachment.tags[0] &&
+              tryToGetTextResource(attachment)}
           </Typography>
         </Grid>
       ))}

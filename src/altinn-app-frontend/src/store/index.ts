@@ -9,7 +9,7 @@ import { appApi } from 'src/services/AppApi';
 
 export const sagaMiddleware: SagaMiddleware<any> = createSagaMiddleware();
 const middlewares = [sagaMiddleware, appApi.middleware];
-const actionLog = [];
+const actionLog: any[] = [];
 
 export const setupStore = (preloadedState?: PreloadedState<RootState>) => {
   const isDev = process.env.NODE_ENV !== 'production';

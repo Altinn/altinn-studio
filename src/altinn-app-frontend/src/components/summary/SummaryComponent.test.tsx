@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { getFormLayoutStateMock } from '__mocks__/mocks';
+import { getFormLayoutStateMock, getInitialStateMock } from '__mocks__/mocks';
 import { fireEvent, screen } from '@testing-library/react';
 import { renderWithProviders } from 'testUtils';
 
@@ -96,9 +96,18 @@ describe('SummaryComponent', () => {
     const otherLayout = {
       ...layoutMock(),
     };
-    otherLayout.layouts[pageId][0].textResourceBindings = {
-      title: 'default title',
-    };
+    const firstComponent =
+      otherLayout.layouts &&
+      pageId &&
+      otherLayout.layouts[pageId] &&
+      otherLayout.layouts[pageId][0];
+
+    if (firstComponent) {
+      firstComponent.textResourceBindings = {
+        title: 'default title',
+      };
+    }
+
     renderHelper({ componentRef: defaultId }, {}, otherLayout);
     expect(screen.getByText('default title')).toBeInTheDocument();
   });
@@ -116,10 +125,9 @@ describe('SummaryComponent', () => {
     );
     const button =
       theRender.container.querySelector<HTMLButtonElement>('button');
-    fireEvent.click(button);
+    button && fireEvent.click(button);
     expect(spy).toHaveBeenCalledWith({
       newView: pageId,
-      runValidations: null,
       returnToView: 'otherPage',
       focusComponentId: defaultId,
     });
@@ -138,6 +146,7 @@ describe('SummaryComponent', () => {
       />,
       {
         preloadedState: {
+          ...getInitialStateMock(),
           formLayout: mockLayout,
           formValidations: {
             validations,

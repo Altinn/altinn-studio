@@ -14,18 +14,22 @@ import type { IRuntimeState, IValidationIssue } from 'src/types';
 
 export function* runSingleFieldValidationSaga(): SagaIterator {
   const state: IRuntimeState = yield select();
-  const currentTaskDataId = getCurrentTaskDataElementId(
-    state.applicationMetadata.applicationMetadata,
-    state.instanceData.instance,
-    state.formLayout.layoutsets,
-  );
-  const url = getDataValidationUrl(
-    state.instanceData.instance.id,
-    currentTaskDataId,
-  );
+  const currentTaskDataId =
+    state.applicationMetadata.applicationMetadata &&
+    getCurrentTaskDataElementId(
+      state.applicationMetadata.applicationMetadata,
+      state.instanceData.instance,
+      state.formLayout.layoutsets,
+    );
+  const url =
+    state.instanceData.instance &&
+    currentTaskDataId &&
+    getDataValidationUrl(state.instanceData.instance.id, currentTaskDataId);
+
   const { currentSingleFieldValidation } = state.formValidations;
 
   if (
+    url &&
     currentSingleFieldValidation &&
     currentSingleFieldValidation.dataModelBinding
   ) {
@@ -46,7 +50,7 @@ export function* runSingleFieldValidationSaga(): SagaIterator {
       );
       const mappedValidations = mapDataElementValidationToRedux(
         serverValidation,
-        state.formLayout.layouts,
+        state.formLayout.layouts || {},
         state.textResources.resources,
       );
 
@@ -58,14 +62,20 @@ export function* runSingleFieldValidationSaga(): SagaIterator {
       // Replace/reset validations for field that triggered validation
       const { layoutId, componentId } = currentSingleFieldValidation;
       if (
+        layoutId &&
         serverValidation.length === 0 &&
+        componentId &&
         validations[layoutId]?.[componentId]
       ) {
         validations[layoutId][componentId].simpleBinding = {
           errors: [],
           warnings: [],
         };
-      } else if (mappedValidations[layoutId]?.[componentId]) {
+      } else if (
+        layoutId &&
+        componentId &&
+        mappedValidations[layoutId]?.[componentId]
+      ) {
         if (!validations[layoutId]) {
           validations[layoutId] = {};
         }

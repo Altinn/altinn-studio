@@ -10,7 +10,7 @@ import type { IRuleConnections } from 'src/features/form/dynamics';
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
 import type { IRuntimeState } from 'src/types';
 
-const selectRuleConnection = (state: IRuntimeState): IRuleConnections =>
+const selectRuleConnection = (state: IRuntimeState): IRuleConnections | null =>
   state.formDynamics.ruleConnection;
 const selectFormDataConnection = (state: IRuntimeState): IFormDataState =>
   state.formData;
@@ -28,7 +28,7 @@ export function* checkIfRuleShouldRunSaga({
   payload: { field, skipAutoSave, skipValidation },
 }: PayloadAction<IUpdateFormDataFulfilled>): SagaIterator {
   try {
-    const ruleConnectionState: IRuleConnections = yield select(
+    const ruleConnectionState: IRuleConnections | null = yield select(
       selectRuleConnection,
     );
     const formDataState: IFormDataState = yield select(
@@ -51,7 +51,7 @@ export function* checkIfRuleShouldRunSaga({
           const currentFormDataForField =
             formDataState.formData[rule.dataBindingName];
           if (currentFormDataForField === rule.result) {
-            return;
+            return undefined as any;
           }
 
           return put(
@@ -67,6 +67,6 @@ export function* checkIfRuleShouldRunSaga({
       );
     }
   } catch (err) {
-    yield call(console.error, 'Oh noes', err);
+    yield call(console.error, 'Unhandled error when running rule handler', err);
   }
 }

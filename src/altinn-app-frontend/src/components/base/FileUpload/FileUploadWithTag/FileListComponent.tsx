@@ -131,7 +131,7 @@ export interface FileListProps
   attachments: IAttachment[];
   editIndex: number;
   mobileView: boolean;
-  options: IOption[];
+  options?: IOption[];
   onEdit: (index: any) => void;
   onSave: (attachment: IAttachment) => void;
   onDropdownDataChange: (id: string, value: string) => void;
@@ -140,12 +140,12 @@ export interface FileListProps
     id: string;
     message: string;
   }[];
-  dataModelBindings: IDataModelBindings;
+  dataModelBindings?: IDataModelBindings;
 }
 
 export const bytesInOneMB = 1048576;
 
-export function FileList(props: FileListProps): JSX.Element {
+export function FileList(props: FileListProps): JSX.Element | null {
   const classes = useStyles();
   if (!props.attachments || props.attachments.length === 0) {
     return null;
@@ -174,7 +174,8 @@ export function FileList(props: FileListProps): JSX.Element {
                   )}
                 </TableCell>
                 <TableCell align='left'>
-                  {props.getTextResource(props.textResourceBindings.tagTitle)}
+                  {props.textResourceBindings?.tagTitle &&
+                    props.getTextResource(props.textResourceBindings.tagTitle)}
                 </TableCell>
                 {!props.mobileView ? (
                   <TableCell align='left'>
@@ -201,9 +202,14 @@ export function FileList(props: FileListProps): JSX.Element {
               // Check if filter is applied and includes specified index.
               if (
                 attachment.tags !== undefined &&
-                attachment.tags.length !== 0 &&
+                attachment.tags.length > 0 &&
                 props.editIndex !== index
               ) {
+                const firstTag = attachment.tags[0];
+                const label = props.options?.find(
+                  (option) => option.value === firstTag,
+                )?.label;
+
                 return (
                   <TableRow
                     key={`altinn-file-list-row-${attachment.id}`}
@@ -237,7 +243,7 @@ export function FileList(props: FileListProps): JSX.Element {
                                   style={
                                     props.mobileView
                                       ? { marginLeft: '10px' }
-                                      : null
+                                      : {}
                                   }
                                 />
                               </div>
@@ -262,11 +268,7 @@ export function FileList(props: FileListProps): JSX.Element {
                       key={`attachment-tag-${index}`}
                       className={classes.textContainer}
                     >
-                      {props.getTextResourceAsString(
-                        props.options?.find(
-                          (option) => option.value === attachment.tags[0],
-                        ).label,
-                      )}
+                      {label && props.getTextResourceAsString(label)}
                     </TableCell>
                     {!props.mobileView ? (
                       <TableCell
@@ -343,6 +345,7 @@ export function FileList(props: FileListProps): JSX.Element {
                     colSpan={!props.mobileView ? 5 : undefined}
                   >
                     <EditWindowComponent
+                      {...({} as PropsFromGenericComponent<'FileUploadWithTag'>)}
                       id={props.id}
                       dataModelBindings={props.dataModelBindings}
                       attachment={props.attachments[index]}
@@ -357,7 +360,6 @@ export function FileList(props: FileListProps): JSX.Element {
                       onDropdownDataChange={props.onDropdownDataChange}
                       setEditIndex={props.setEditIndex}
                       textResourceBindings={props.textResourceBindings}
-                      {...({} as PropsFromGenericComponent<'FileUploadWithTag'>)}
                     />
                   </TableCell>
                 </TableRow>

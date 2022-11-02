@@ -10,9 +10,9 @@ import AltinnAppHeaderMenu from './AltinnAppHeaderMenu';
 
 export interface IAltinnAppHeaderProps {
   /** The party of the instance owner */
-  party: IParty;
+  party: IParty | undefined;
   /** The party of the currently logged in user */
-  userParty: IParty;
+  userParty: IParty | undefined;
   /** The color used for the logos in the header */
   logoColor: string;
   /** The header background color */

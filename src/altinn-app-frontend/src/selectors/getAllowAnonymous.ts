@@ -31,7 +31,7 @@ const getAllowAnonymous = () => {
       }
 
       const dataTypeId = getDataTypeByLayoutSetId(
-        application.onEntry.show,
+        application.onEntry?.show,
         layoutsets,
       );
       const dataType = application.dataTypes.find((d) => d.id === dataTypeId);

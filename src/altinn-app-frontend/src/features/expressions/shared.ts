@@ -26,8 +26,8 @@ export interface SharedTest {
 }
 
 export interface SharedTestContext {
-  component?: string;
-  currentLayout?: string;
+  component: string;
+  currentLayout: string;
 }
 
 export interface SharedTestFunctionContext extends SharedTestContext {

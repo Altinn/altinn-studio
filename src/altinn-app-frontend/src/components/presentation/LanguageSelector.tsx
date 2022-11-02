@@ -42,7 +42,7 @@ export const LanguageSelector = () => {
               'language.selector.label',
               textResources,
               language,
-              null,
+              undefined,
               true,
             )}
           </label>
@@ -53,7 +53,7 @@ export const LanguageSelector = () => {
                 `language.full_name.${l.language}`,
                 textResources,
                 language,
-                null,
+                undefined,
                 true,
               ),
             }))}

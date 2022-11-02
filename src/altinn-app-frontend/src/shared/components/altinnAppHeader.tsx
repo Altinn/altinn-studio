@@ -105,7 +105,7 @@ const gridStyle = { flexGrow: 1 };
 const emptyObj = {};
 
 const AltinnAppHeader = ({ type, profile, language }: IHeaderProps) => {
-  const party = profile ? profile.party : null;
+  const party = profile?.party;
   const classes = useStyles();
 
   const blueClass = type ? classes.blueDark : classes.blueDarker;
@@ -145,25 +145,29 @@ const AltinnAppHeader = ({ type, profile, language }: IHeaderProps) => {
             <ul className={classes.headerLinkList}>
               <li className={classes.headerLink}>
                 <a
-                  href={returnUrlToMessagebox(
-                    window.location.origin,
-                    party?.partyId,
-                  )}
+                  href={
+                    returnUrlToMessagebox(
+                      window.location.origin,
+                      party?.partyId,
+                    ) || '#'
+                  }
                 >
                   {getLanguageFromKey('instantiate.inbox', language)}
                 </a>
               </li>
               <li className={classes.headerLink}>
-                <a href={returnUrlToAllSchemas(window.location.origin)}>
+                <a href={returnUrlToAllSchemas(window.location.origin) || '#'}>
                   {getLanguageFromKey('instantiate.all_forms', language)}
                 </a>
               </li>
               <li className={classes.headerLink}>
                 <a
-                  href={returnUrlToProfile(
-                    window.location.origin,
-                    party?.partyId,
-                  )}
+                  href={
+                    returnUrlToProfile(
+                      window.location.origin,
+                      party?.partyId,
+                    ) || '#'
+                  }
                 >
                   {getLanguageFromKey('instantiate.profile', language)}
                 </a>
@@ -173,7 +177,7 @@ const AltinnAppHeader = ({ type, profile, language }: IHeaderProps) => {
           {party && (
             <div
               className='a-personSwitcher'
-              title={renderParty(profile)}
+              title={renderParty(profile) || ''}
             >
               <span
                 className='a-personSwitcher-name'

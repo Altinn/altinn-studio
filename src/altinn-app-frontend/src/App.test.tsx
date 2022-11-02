@@ -27,7 +27,7 @@ describe('App', () => {
     anonymousSelector,
     'makeGetAllowAnonymousSelector',
   );
-  let allowAnonymous = undefined;
+  let allowAnonymous: boolean | undefined = undefined;
   const getAllowAnonymous = () => allowAnonymous;
   beforeEach(() => {
     allowAnonymous = undefined;

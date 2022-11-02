@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { render as rtlRender, screen } from '@testing-library/react';
+import { mockComponentProps } from 'testUtils';
 
 import { MapComponent } from 'src/components/base/MapComponent';
 import type { IMapComponentProps } from 'src/components/base/MapComponent';
@@ -14,20 +15,17 @@ const render = (props: Partial<IMapComponentProps> = {}) => {
   };
 
   const allProps: IMapComponentProps = {
+    ...mockComponentProps,
     id: 'id',
     formData: {
       simpleBinding: undefined,
     },
-    handleDataChange: () => '',
-    getTextResource: (key: string) => key,
     isValid: true,
     dataModelBindings: {},
-    componentValidations: {},
     language: mockLanguage,
     readOnly: false,
     required: false,
     textResourceBindings: {},
-    ...({} as IMapComponentProps),
     ...props,
   };
 

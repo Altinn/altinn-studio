@@ -34,7 +34,7 @@ export const InstantiateContainer = () => {
     const text = getTextFromAppOrDefault(
       titleKey,
       state.textResources.resources,
-      state.language.language,
+      state.language.language || {},
       [],
       true,
     );
@@ -59,8 +59,8 @@ export const InstantiateContainer = () => {
   ]);
   const { instanceId } = useInstanceIdParams();
   if (isAxiosError(instantiation.error)) {
-    const message = (instantiation.error.response.data as any)?.message;
-    if (instantiation.error.response.status === HttpStatusCodes.Forbidden) {
+    const message = (instantiation.error.response?.data as any)?.message;
+    if (instantiation.error.response?.status === HttpStatusCodes.Forbidden) {
       if (message) {
         return <InstantiateValidationError message={message} />;
       }

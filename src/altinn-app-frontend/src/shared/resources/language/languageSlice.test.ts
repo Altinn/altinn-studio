@@ -19,7 +19,7 @@ describe('languageSlice', () => {
         },
       }),
     );
-    expect(nextState.language.testKey).toEqual('test');
+    expect(nextState.language?.testKey).toEqual('test');
     expect(nextState.error).toBeNull();
   });
 
@@ -32,6 +32,6 @@ describe('languageSlice', () => {
       }),
     );
     expect(nextState.language).toBeNull();
-    expect(nextState.error.message).toEqual(errorMessage);
+    expect(nextState.error?.message).toEqual(errorMessage);
   });
 });

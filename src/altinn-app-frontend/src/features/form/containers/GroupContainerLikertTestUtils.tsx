@@ -67,7 +67,9 @@ export const questionsWithAnswers = ({ questions, selectedAnswers }) => {
   return questionsCopy;
 };
 
-const createLikertContainer = (props: Partial<ILayoutGroup>): ILayoutGroup => {
+const createLikertContainer = (
+  props: Partial<ILayoutGroup> | undefined,
+): ILayoutGroup => {
   return {
     id: 'likert-repeating-group-id',
     type: 'Group',
@@ -84,7 +86,7 @@ const createLikertContainer = (props: Partial<ILayoutGroup>): ILayoutGroup => {
 };
 
 const createRadioButton = (
-  props: Partial<ILayoutCompLikert>,
+  props: Partial<ILayoutCompLikert> | undefined,
 ): ILayoutCompLikert => {
   return {
     id: 'field1',

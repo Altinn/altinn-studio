@@ -16,12 +16,12 @@ import {
 import type { IInstance, ILanguage, IParty } from 'altinn-shared/types';
 
 export interface Props {
-  instance: IInstance;
-  parties: IParty[];
-  language: ILanguage;
-  appName: string;
+  instance: IInstance | null;
+  parties: IParty[] | null;
+  language: ILanguage | null;
+  appName?: string;
   textResources: ITextResource[];
-  applicationMetadata: IApplicationMetadata;
+  applicationMetadata: IApplicationMetadata | null;
 }
 
 export const ConfirmPage = ({
@@ -34,11 +34,11 @@ export const ConfirmPage = ({
 }: Props) => {
   const getInstanceMetaObject = () => {
     if (instance?.org && applicationMetadata) {
-      const instanceOwnerParty = parties.find((party: IParty) => {
+      const instanceOwnerParty = parties?.find((party: IParty) => {
         return party.partyId.toString() === instance.instanceOwner.partyId;
       });
       return returnConfirmSummaryObject({
-        languageData: language,
+        languageData: language || undefined,
         instanceOwnerParty,
         textResources,
       });
@@ -58,8 +58,14 @@ export const ConfirmPage = ({
       );
     }
   };
-  const getText = (id, params = null, stringOutput = true) =>
-    getTextFromAppOrDefault(id, textResources, language, params, stringOutput);
+
+  if (!language) {
+    return null;
+  }
+
+  const getText = (id, params = undefined) =>
+    getTextFromAppOrDefault(id, textResources, language, params, true);
+
   return (
     <>
       <AltinnReceipt
@@ -68,13 +74,18 @@ export const ConfirmPage = ({
           applicationMetadata,
           textResources,
         )}
-        body={getText('confirm.body', [appName], false)}
+        body={
+          appName &&
+          getTextFromAppOrDefault('confirm.body', textResources, language, [
+            appName,
+          ])
+        }
         collapsibleTitle={getText('confirm.attachments')}
         hideCollapsibleCount={true}
         instanceMetaDataObject={getInstanceMetaObject()}
         title={getText('confirm.title')}
         titleSubmitted={getText('confirm.answers')}
-        pdf={getInstancePdf(instance.data)}
+        pdf={getInstancePdf(instance?.data)}
       />
       <ProcessNavigation language={language} />
       <ReadyForPrint />

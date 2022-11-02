@@ -38,7 +38,12 @@ import type {
   IUpdateFormDataFulfilled,
 } from 'src/features/form/data/formDataTypes';
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
-import type { IRuntimeState, IRuntimeStore, IUiConfig } from 'src/types';
+import type {
+  IRuntimeState,
+  IRuntimeStore,
+  IUiConfig,
+  IValidationIssue,
+} from 'src/types';
 
 import { get, put } from 'altinn-shared/utils';
 
@@ -83,10 +88,16 @@ export function* submitFormSaga({
   }
 }
 
-function* submitComplete(state: IRuntimeState, stopWithWarnings: boolean) {
+function* submitComplete(
+  state: IRuntimeState,
+  stopWithWarnings: boolean | undefined,
+) {
   // run validations against the datamodel
-  const instanceId = state.instanceData.instance.id;
-  const serverValidation: any = yield call(get, getValidationUrl(instanceId));
+  const instanceId = state.instanceData.instance?.id;
+  const serverValidation: IValidationIssue[] | undefined = instanceId
+    ? yield call(get, getValidationUrl(instanceId))
+    : undefined;
+
   // update validation state
   const layoutState: ILayoutState = yield select(LayoutSelector);
   const mappedValidations = mapDataElementValidationToRedux(
@@ -110,7 +121,7 @@ function* submitComplete(state: IRuntimeState, stopWithWarnings: boolean) {
   if (layoutState.uiConfig.currentViewCacheKey) {
     // Reset cache for current page when ending process task
     localStorage.removeItem(layoutState.uiConfig.currentViewCacheKey);
-    yield sagaPut(FormLayoutActions.setCurrentViewCacheKey({ key: null }));
+    yield sagaPut(FormLayoutActions.setCurrentViewCacheKey({ key: undefined }));
   }
 
   // data has no validation errors, we complete the current step
@@ -132,18 +143,21 @@ export function* putFormData({
   try {
     const options: AxiosRequestConfig = {
       headers: {
-        'X-DataField': encodeURIComponent(field),
-        'X-ComponentId': encodeURIComponent(componentId),
+        'X-DataField': (field && encodeURIComponent(field)) || 'undefined',
+        'X-ComponentId':
+          (componentId && encodeURIComponent(componentId)) || 'undefined',
       },
     };
-    yield call(put, dataElementUrl(defaultDataElementGuid), model, options);
+    if (defaultDataElementGuid) {
+      yield call(put, dataElementUrl(defaultDataElementGuid), model, options);
+    }
   } catch (error) {
     if (error.response && error.response.status === 303) {
       // 303 means that data has been changed by calculation on server. Try to update from response.
       if (error.response.data?.changedFields) {
         yield call(handleCalculationUpdate, error.response.data?.changedFields);
         yield sagaPut(FormLayoutActions.initRepeatingGroups());
-      } else {
+      } else if (defaultDataElementGuid) {
         // No changedFields property returned, try to fetch
         yield sagaPut(
           FormDataActions.fetch({
@@ -224,12 +238,13 @@ export function* saveStatelessData({
   const allowAnonymous = yield select(makeGetAllowAnonymousSelector());
   let options: AxiosRequestConfig = {
     headers: {
-      'X-DataField': encodeURIComponent(field),
-      'X-ComponentId': encodeURIComponent(componentId),
+      'X-DataField': (field && encodeURIComponent(field)) || 'undefined',
+      'X-ComponentId':
+        (componentId && encodeURIComponent(componentId)) || 'undefined',
     },
   };
   if (!allowAnonymous) {
-    const selectedPartyId = state.party.selectedParty.partyId;
+    const selectedPartyId = state.party.selectedParty?.partyId;
     options = {
       headers: {
         ...options.headers,
@@ -243,15 +258,17 @@ export function* saveStatelessData({
     instance: state.instanceData.instance,
     layoutSets: state.formLayout.layoutsets,
   });
-  const response = yield call(
-    post,
-    getStatelessFormDataUrl(currentDataType, allowAnonymous),
-    options,
-    model,
-  );
-  const formData = convertModelToDataBinding(response?.data);
-  yield sagaPut(FormDataActions.fetchFulfilled({ formData }));
-  yield sagaPut(FormDynamicsActions.checkIfConditionalRulesShouldRun({}));
+  if (currentDataType) {
+    const response = yield call(
+      post,
+      getStatelessFormDataUrl(currentDataType, allowAnonymous),
+      options,
+      model,
+    );
+    const formData = convertModelToDataBinding(response?.data);
+    yield sagaPut(FormDataActions.fetchFulfilled({ formData }));
+    yield sagaPut(FormDynamicsActions.checkIfConditionalRulesShouldRun({}));
+  }
 }
 
 export function* autoSaveSaga({

@@ -5,11 +5,11 @@ import { useDisplayData } from 'src/components/hooks/useDisplayData';
 describe('useDisplayData', () => {
   test('should be empty string if formData is null or undefined', async () => {
     expect(
-      renderHook(() => useDisplayData({ formData: null })).result.current,
+      renderHook(() => useDisplayData({ formData: undefined })).result.current,
     ).toBe('');
 
     expect(
-      renderHook(() => useDisplayData({ formData: null })).result.current,
+      renderHook(() => useDisplayData({ formData: undefined })).result.current,
     ).toBe('');
   });
 

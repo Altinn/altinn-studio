@@ -284,7 +284,7 @@ describe('utils/databindings.ts', () => {
         const mapping: IMapping = {
           someSource: 'someTarget',
         };
-        expect(mapFormData(formData, mapping)).toEqual({});
+        expect(mapFormData(formData as any, mapping)).toEqual({});
       },
     );
 
@@ -295,7 +295,7 @@ describe('utils/databindings.ts', () => {
           someField: 'someValue',
           someOtherField: 'someOtherValue',
         };
-        expect(mapFormData(formData, mapping)).toEqual(formData);
+        expect(mapFormData(formData, mapping as any)).toEqual(formData);
       },
     );
   });
@@ -355,7 +355,7 @@ describe('utils/databindings.ts', () => {
 
         const result = filterOutInvalidData({
           data: formData,
-          invalidKeys: value,
+          invalidKeys: value as any,
         });
 
         expect(result).toEqual({
@@ -401,6 +401,8 @@ describe('utils/databindings.ts', () => {
       const result = getIndexCombinations(['Gruppe'], repeatingGroups);
 
       expect(result).toEqual(expected);
+
+      expect(getIndexCombinations(['NoeAnnet'], repeatingGroups)).toEqual([]);
     });
 
     it('should return correct combinations for nested repeating groups', () => {

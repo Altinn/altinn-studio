@@ -23,7 +23,7 @@ describe('LandmarkShortcuts.tsx', () => {
       shortcuts: [{ text: 'Hopp til hovedinnhold', id: 'other-content' }],
     });
     await userEvent.click(screen.getByRole('link'));
-    expect(document.getElementById('other-content').tabIndex).toBe(-2);
+    expect(document.getElementById('other-content')?.tabIndex).toBe(-2);
   });
 
   function renderMainContentNav(props: Partial<ILandmarkShortcutsProps> = {}) {

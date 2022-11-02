@@ -17,12 +17,12 @@ export function getInitialStateMock(
       error: null,
     },
     attachments: {
-      attachments: null,
+      attachments: {},
     },
     formData: getFormDataStateMock(),
     formDataModel: {
       error: null,
-      schemas: null,
+      schemas: {},
     },
     formDynamics: {
       apis: null,
@@ -35,7 +35,7 @@ export function getInitialStateMock(
       error: null,
       fetched: false,
       fetching: false,
-      model: null,
+      model: [],
     },
     formValidations: {
       validations: {},
@@ -47,7 +47,7 @@ export function getInitialStateMock(
     instantiation: {
       error: null,
       instanceId: null,
-      instantiating: null,
+      instantiating: false,
     },
     isLoading: {
       dataTask: false,
@@ -86,11 +86,11 @@ export function getInitialStateMock(
     },
     profile: getProfileStateMock(),
     queue: {
-      appTask: null,
-      dataTask: null,
-      infoTask: null,
-      stateless: null,
-      userTask: null,
+      appTask: { error: null, isDone: null },
+      dataTask: { error: null, isDone: null },
+      infoTask: { error: null, isDone: null },
+      stateless: { error: null, isDone: null },
+      userTask: { error: null, isDone: null },
     },
     textResources: {
       resources: [

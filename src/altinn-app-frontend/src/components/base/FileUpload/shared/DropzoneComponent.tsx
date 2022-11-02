@@ -20,7 +20,7 @@ export interface IDropzoneComponentProps {
   hasValidationMessages: boolean;
   hasCustomFileEndings?: boolean;
   validFileEndings?: ILayoutCompFileUpload['validFileEndings'];
-  textResourceBindings: ITextResourceBindings;
+  textResourceBindings?: ITextResourceBindings;
 }
 
 export const bytesInOneMB = 1048576;
@@ -77,9 +77,9 @@ export function DropzoneComponent({
         maxSize={maxFileSizeInMB * bytesInOneMB} // mb to bytes
         disabled={readOnly}
         accept={
-          hasCustomFileEndings
+          hasCustomFileEndings && validFileEndings !== undefined
             ? mapExtensionToAcceptMime({ extensionList: validFileEndings })
-            : null
+            : undefined
         }
       >
         {({ getRootProps, getInputProps, isDragActive, isDragReject }) => {

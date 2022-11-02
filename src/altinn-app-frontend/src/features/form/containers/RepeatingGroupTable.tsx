@@ -59,7 +59,7 @@ export interface IRepeatingGroupTableProps {
   container: ILayoutGroup;
   components: (ILayoutComponent | ILayoutGroup)[];
   repeatingGroupIndex: number;
-  repeatingGroups: IRepeatingGroups;
+  repeatingGroups: IRepeatingGroups | null;
   repeatingGroupDeepCopyComponents: (ILayoutComponent | ILayoutGroup)[][];
   hiddenFields: string[];
   formData: IFormData;
@@ -68,7 +68,7 @@ export interface IRepeatingGroupTableProps {
   textResources: ITextResource[];
   language: ILanguage;
   currentView: string;
-  layout: ILayout;
+  layout: ILayout | null;
   validations: IValidations;
   editIndex: number;
   setEditIndex: (index: number, forceValidation?: boolean) => void;
@@ -77,7 +77,7 @@ export interface IRepeatingGroupTableProps {
   multiPageIndex?: number;
   deleting: boolean;
   hideDeleteButton?: boolean;
-  filteredIndexes?: number[];
+  filteredIndexes?: number[] | null;
 }
 
 const theme = createTheme(altinnAppTheme);
@@ -305,7 +305,7 @@ export function RepeatingGroupTable({
       attachments,
       component,
       index,
-      container.dataModelBindings.group,
+      container.dataModelBindings?.group,
       textResources,
       options,
       repeatingGroups,
@@ -355,6 +355,10 @@ export function RepeatingGroupTable({
   };
 
   const childGroupHasErrors = (childGroup: ILayoutGroup, index: number) => {
+    if (!repeatingGroups || !layout) {
+      return;
+    }
+
     const childGroupIndex = repeatingGroups[childGroup.id]?.index;
     const childGroupComponents = layout.filter(
       (childElement) => childGroup.children?.indexOf(childElement.id) > -1,
@@ -630,7 +634,6 @@ export function RepeatingGroupTable({
                       valid={!rowHasErrors}
                       editIndex={editIndex}
                       onEditClick={() => handleEditClick(index)}
-                      onDeleteClick={() => handleDeleteClick(index)}
                       editButtonText={
                         rowHasErrors
                           ? getLanguageFromKey(
@@ -644,10 +647,6 @@ export function RepeatingGroupTable({
                               container.textResourceBindings,
                             )
                       }
-                      deleteButtonText={getLanguageFromKey(
-                        'general.delete',
-                        language,
-                      )}
                       editIconNode={
                         <i
                           className={
@@ -657,15 +656,24 @@ export function RepeatingGroupTable({
                           }
                         />
                       }
-                      deleteIconNode={
-                        !hideDeleteButton && <i className={'ai ai-trash'} />
+                      deleteFunctionality={
+                        hideDeleteButton
+                          ? undefined
+                          : {
+                              onDeleteClick: () => handleDeleteClick(index),
+                              deleteButtonText: getLanguageFromKey(
+                                'general.delete',
+                                language,
+                              ),
+                              deleteIconNode: <i className={'ai ai-trash'} />,
+                              popoverPanelIndex,
+                              popoverOpen,
+                              setPopoverOpen,
+                              onPopoverDeleteClick: handlePopoverDeleteClick,
+                              onOpenChange,
+                              language,
+                            }
                       }
-                      popoverPanelIndex={popoverPanelIndex}
-                      popoverOpen={popoverOpen}
-                      setPopoverOpen={setPopoverOpen}
-                      language={language}
-                      onPopoverDeleteClick={handlePopoverDeleteClick}
-                      onOpenChange={onOpenChange}
                     />
                     {editIndex === index &&
                       renderRepeatingGroupsEditContainer()}

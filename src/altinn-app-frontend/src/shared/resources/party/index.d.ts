@@ -1,9 +1,9 @@
 import type { IParty } from 'altinn-shared/types';
 
 export interface IPartyState {
-  parties: IParty[];
-  selectedParty: IParty;
-  error: Error;
+  parties: IParty[] | null;
+  selectedParty: IParty | null;
+  error: Error | null;
 }
 
 export interface IGetPartiesFulfilled {

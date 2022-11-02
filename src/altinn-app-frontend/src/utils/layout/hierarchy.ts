@@ -137,7 +137,7 @@ export function layoutAsHierarchy(
 
 interface HierarchyParent {
   index: number;
-  binding: string;
+  binding?: string;
 }
 
 /**
@@ -166,7 +166,7 @@ export function layoutAsHierarchyWithRows(
     main: LayoutGroupHierarchy,
     child: LayoutGroupHierarchy | ILayoutComponent,
     newChild: RepeatingGroupLayoutComponent,
-    parent: HierarchyParent,
+    parent: HierarchyParent | undefined,
     index: number,
   ) => {
     const baseGroupBinding =
@@ -174,16 +174,18 @@ export function layoutAsHierarchyWithRows(
       main.dataModelBindings?.group;
 
     let binding = main.dataModelBindings?.group;
-    if (binding && parent) {
+    if (binding && parent && baseGroupBinding) {
       binding = binding.replace(baseGroupBinding, `${parent.binding}`);
     }
 
     newChild.baseDataModelBindings = { ...child.dataModelBindings };
-    for (const key of Object.keys(child.dataModelBindings)) {
-      newChild.dataModelBindings[key] = child.dataModelBindings[key].replace(
-        baseGroupBinding,
-        `${binding}[${index}]`,
-      );
+    if (child.dataModelBindings && newChild.dataModelBindings) {
+      for (const key of Object.keys(child.dataModelBindings)) {
+        newChild.dataModelBindings[key] = child.dataModelBindings[key].replace(
+          baseGroupBinding,
+          `${binding}[${index}]`,
+        );
+      }
     }
   };
 
@@ -191,7 +193,7 @@ export function layoutAsHierarchyWithRows(
     main: ILayoutComponent | LayoutGroupHierarchy,
     parent?: HierarchyParent,
   ) => {
-    if (main.type === 'Group' && main.maxCount > 1) {
+    if (main.type === 'Group' && main.maxCount && main.maxCount > 1) {
       const rows: RepeatingGroupHierarchy['rows'] = [];
       const { startIndex, stopIndex } = getRepeatingGroupStartStopIndex(
         (repeatingGroups || {})[main.id]?.index,
@@ -269,7 +271,7 @@ export interface LayoutObject<
 export class LayoutRootNode<NT extends NodeType = 'unresolved'>
   implements LayoutObject<NT, AnyTopLevelItem<NT>, AnyTopLevelNode<NT>>
 {
-  public item: AnyItem<NT> | undefined;
+  public item: Record<string, undefined> = {};
   public parent: this;
 
   private directChildren: AnyTopLevelNode<NT>[] = [];
@@ -289,10 +291,10 @@ export class LayoutRootNode<NT extends NodeType = 'unresolved'>
     this.idMap[child.item.id] = this.idMap[child.item.id] || [];
     this.idMap[child.item.id].push(idx);
 
-    if (child.item.baseComponentId) {
-      this.idMap[child.item.baseComponentId] =
-        this.idMap[child.item.baseComponentId] || [];
-      this.idMap[child.item.baseComponentId].push(idx);
+    const baseComponentId: string | undefined = child.item.baseComponentId;
+    if (baseComponentId) {
+      this.idMap[baseComponentId] = this.idMap[baseComponentId] || [];
+      this.idMap[baseComponentId].push(idx);
     }
   }
 
@@ -344,7 +346,7 @@ export class LayoutRootNode<NT extends NodeType = 'unresolved'>
     return this.allChildren;
   }
 
-  public findById(id: string): AnyChildNode<NT> {
+  public findById(id: string): AnyChildNode<NT> | undefined {
     if (this.idMap[id] && this.idMap[id].length) {
       return this.allChildren[this.idMap[id][0]];
     }
@@ -396,7 +398,7 @@ export class LayoutNode<
     return this.parent.closest(matching);
   }
 
-  private recurseParents(callback: (item: AnyParentNode<NT>) => void) {
+  private recurseParents(callback: (node: AnyParentNode<NT>) => void) {
     callback(this.parent);
     if (!(this.parent instanceof LayoutRootNode)) {
       this.parent.recurseParents(callback);
@@ -409,8 +411,8 @@ export class LayoutNode<
   public parents(
     matching?: (item: AnyParentNode<NT>) => boolean,
   ): AnyParentNode<NT>[] {
-    const parents = [];
-    this.recurseParents((item) => parents.push(item));
+    const parents: AnyParentNode<NT>[] = [];
+    this.recurseParents((node) => parents.push(node));
 
     if (matching) {
       return parents.filter(matching);
@@ -423,7 +425,8 @@ export class LayoutNode<
     let list: AnyItem<NT>[] = [];
     if (this.item.type === 'Group' && 'rows' in this.item) {
       if (typeof onlyInRowIndex === 'number') {
-        list = this.item.rows.find((r) => r.index === onlyInRowIndex).items;
+        list =
+          this.item.rows.find((r) => r.index === onlyInRowIndex)?.items || [];
       } else {
         // Beware: In most cases this will just match the first row.
         list = Object.values(this.item.rows)
@@ -463,7 +466,7 @@ export class LayoutNode<
     if (typeof list !== 'undefined') {
       for (const id of list) {
         const node = this.top.findById(id);
-        if (matching(node.item)) {
+        if (node && matching(node.item)) {
           return node;
         }
       }
@@ -511,8 +514,8 @@ export class LayoutNode<
     }
 
     const parentGroups = this.parents(
-      (parent) => parent.item && parent.item.type === 'Group',
-    );
+      (parent) => parent instanceof LayoutNode && parent.item.type === 'Group',
+    ) as LayoutNode<NT>[];
 
     for (const parent of parentGroups) {
       if (parent.item.hidden === true || hiddenFieldIds.has(parent.item.id)) {
@@ -531,7 +534,7 @@ export class LayoutNode<
 
   private firstDataModelBinding() {
     const firstBinding = Object.keys(this.item.dataModelBindings || {}).shift();
-    if (firstBinding) {
+    if (firstBinding && this.item.dataModelBindings) {
       return this.item.dataModelBindings[firstBinding];
     }
 
@@ -570,7 +573,7 @@ export class LayoutNode<
     for (const ours of ourBinding.parts) {
       const theirs = theirBinding.at(ours.parentIndex);
 
-      if (ours.base !== theirs.base) {
+      if (ours.base !== theirs?.base) {
         break;
       }
 
@@ -619,14 +622,14 @@ export class LayoutNode<
  *  An alternative that also resolves expressions for all nodes in the layout
  */
 export function nodesInLayout(
-  formLayout: ILayout,
+  formLayout: ILayout | undefined | null,
   repeatingGroups: IRepeatingGroups | null,
 ): LayoutRootNode {
   const root = new LayoutRootNode();
 
   const recurse = (
     list: (ILayoutComponent | LayoutGroupHierarchy | RepeatingGroupHierarchy)[],
-    parent?: AnyParentNode,
+    parent: AnyParentNode,
     rowIndex?: number,
   ) => {
     for (const component of list) {
@@ -650,7 +653,9 @@ export function nodesInLayout(
     }
   };
 
-  recurse(layoutAsHierarchyWithRows(formLayout, repeatingGroups), root);
+  if (formLayout) {
+    recurse(layoutAsHierarchyWithRows(formLayout, repeatingGroups), root);
+  }
 
   return root;
 }
@@ -770,9 +775,10 @@ export function resolvedLayoutsFromState(
 ): LayoutRootNodeCollection<'resolved'> {
   const layoutsAsNodes = {};
   const dataSources = dataSourcesFromState(state);
-  for (const key of Object.keys(state.formLayout.layouts)) {
+  const layouts = state.formLayout.layouts || {};
+  for (const key of Object.keys(layouts)) {
     layoutsAsNodes[key] = resolvedNodesInLayout(
-      state.formLayout.layouts[key],
+      layouts[key] || [],
       state.formLayout.uiConfig.repeatingGroups,
       dataSources,
     );

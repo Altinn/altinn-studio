@@ -53,7 +53,7 @@ describe('ParagraphComponent', () => {
       ),
     });
 
-    expect(screen.queryByTestId(`paragraph-component-${id}`).tagName).toEqual(
+    expect(screen.getByTestId(`paragraph-component-${id}`).tagName).toEqual(
       'P',
     );
   });

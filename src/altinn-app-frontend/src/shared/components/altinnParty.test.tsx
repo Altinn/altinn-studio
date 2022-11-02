@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { getInitialStateMock } from '__mocks__/mocks';
 import { partyMock } from '__mocks__/partyMock';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -112,5 +113,14 @@ const render = (props: Partial<IAltinnPartyProps> = {}) => {
     showSubUnits: false,
     ...props,
   };
-  return renderWithProviders(<AltinnParty {...allProps} />);
+  return renderWithProviders(<AltinnParty {...allProps} />, {
+    preloadedState: {
+      ...getInitialStateMock(),
+      language: {
+        language: {},
+        error: null,
+        selectedAppLanguage: 'nb',
+      },
+    },
+  });
 };

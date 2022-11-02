@@ -4,9 +4,9 @@ import type { ILayouts } from 'src/features/form/layout';
 import type { IRuleModelFieldElement } from 'src/features/form/rules';
 
 export function checkIfRuleShouldRun(
-  ruleConnectionState: IRuleConnections,
+  ruleConnectionState: IRuleConnections | null,
   formDataState: Partial<IFormDataState>,
-  layouts: ILayouts,
+  layouts: ILayouts | null,
   lastUpdatedDataBinding: string,
 ) {
   const rules: any[] = [];
@@ -44,28 +44,31 @@ export function checkIfRuleShouldRun(
           (acc: any, elem: any) => {
             const inputParamBinding = connectionDef.inputParams[elem];
 
-            acc[elem] = formDataState.formData[inputParamBinding];
+            acc[elem] =
+              formDataState.formData &&
+              formDataState.formData[inputParamBinding];
             return acc;
           },
           {},
         );
         const result = (window as any).ruleHandlerObject[functionToRun](newObj);
         const updatedDataBinding = connectionDef.outParams.outParam0;
-        let updatedComponent: string;
-        Object.keys(layouts).forEach((id) => {
-          const layout = layouts[id];
+        let updatedComponent: string | undefined = undefined;
+        Object.keys(layouts || {}).forEach((id) => {
+          const layout = (layouts || {})[id] || [];
           layout.forEach((layoutElement) => {
             if (layoutElement.type === 'Group') {
               return;
             }
-            let ruleDataBindingKey = null;
+            let ruleDataBindingKey: string | undefined = undefined;
             if (layoutElement.dataModelBindings) {
               ruleDataBindingKey = Object.keys(
                 layoutElement.dataModelBindings,
               ).find((dataBindingKey) => {
                 return (
+                  layoutElement.dataModelBindings &&
                   layoutElement.dataModelBindings[dataBindingKey] ===
-                  connectionDef.outParams.outParam0
+                    connectionDef.outParams.outParam0
                 );
               });
             }

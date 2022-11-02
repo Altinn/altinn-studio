@@ -25,6 +25,7 @@ import {
   getDataTypeByLayoutSetId,
 } from 'src/utils/appMetadata';
 import * as appUrlHelper from 'src/utils/appUrlHelper';
+import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import type { ILayoutSets } from 'src/types';
 
 import * as networking from 'altinn-shared/utils/networking';
@@ -56,8 +57,8 @@ describe('fetchFormDataSagas', () => {
       appMetadata,
       instance,
       layoutSets,
-    );
-    const url = appUrlHelper.getFetchFormDataUrl(instance.id, taskId);
+    ) as string;
+    const url = appUrlHelper.getFetchFormDataUrl(instance?.id || '', taskId);
 
     expectSaga(fetchFormDataSaga)
       .provide([
@@ -116,8 +117,8 @@ describe('fetchFormDataSagas', () => {
       appMetadata,
       instance,
       layoutSets,
-    );
-    const url = appUrlHelper.getFetchFormDataUrl(instance.id, taskId);
+    ) as string;
+    const url = appUrlHelper.getFetchFormDataUrl(instance?.id || '', taskId);
 
     expectSaga(fetchFormDataInitialSaga)
       .provide([
@@ -171,7 +172,7 @@ describe('fetchFormDataSagas', () => {
 
   it('should fetch form data initial for stateless app', () => {
     const appMetadata: IApplication = {
-      ...appMetaDataSelector(mockInitialState),
+      ...(appMetaDataSelector(mockInitialState) as IApplicationMetadata),
       onEntry: {
         show: 'stateless',
       },
@@ -185,7 +186,10 @@ describe('fetchFormDataSagas', () => {
       ],
     };
 
-    const dataType = getDataTypeByLayoutSetId('stateless', mockLayoutSets);
+    const dataType = getDataTypeByLayoutSetId(
+      'stateless',
+      mockLayoutSets,
+    ) as string;
     const url = appUrlHelper.getStatelessFormDataUrl(dataType);
     const options = {
       headers: {
@@ -207,7 +211,7 @@ describe('fetchFormDataSagas', () => {
 
   it('should fetch form data initial for stateless app with allowAnonymousOnStateless', () => {
     const appMetadata: IApplication = {
-      ...appMetaDataSelector(mockInitialState),
+      ...(appMetaDataSelector(mockInitialState) as IApplicationMetadata),
       onEntry: {
         show: 'stateless',
       },
@@ -222,7 +226,10 @@ describe('fetchFormDataSagas', () => {
       ],
     };
 
-    const dataType = getDataTypeByLayoutSetId('stateless', mockLayoutSets);
+    const dataType = getDataTypeByLayoutSetId(
+      'stateless',
+      mockLayoutSets,
+    ) as string;
     const url = appUrlHelper.getStatelessFormDataUrl(dataType);
     const options = {};
 
@@ -239,7 +246,7 @@ describe('fetchFormDataSagas', () => {
 
   it('should handle error in fetchFormDataStateless', () => {
     const appMetadata: IApplication = {
-      ...appMetaDataSelector(mockInitialState),
+      ...(appMetaDataSelector(mockInitialState) as IApplicationMetadata),
       onEntry: {
         show: 'stateless',
       },
@@ -288,7 +295,7 @@ describe('fetchFormDataSagas', () => {
 
   it('should handle redirect to authentication in fetchFormDataStateless', () => {
     const appMetadata: IApplication = {
-      ...appMetaDataSelector(mockInitialState),
+      ...(appMetaDataSelector(mockInitialState) as IApplicationMetadata),
       onEntry: {
         show: 'stateless',
       },

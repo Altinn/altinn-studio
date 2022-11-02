@@ -12,7 +12,7 @@ import { getLanguageFromKey } from 'altinn-shared/utils';
 
 export interface IHeaderProps {
   type: ProcessTaskType | PresentationType;
-  header?: string;
+  header?: string | JSX.Element | JSX.Element[];
   appOwner?: string;
 }
 
@@ -24,6 +24,10 @@ const Header = ({ type, header, appOwner }: IHeaderProps) => {
 
   const showProgress =
     type !== ProcessTaskType.Archived && showProgressSettings;
+
+  if (!language) {
+    return null;
+  }
 
   return (
     <header

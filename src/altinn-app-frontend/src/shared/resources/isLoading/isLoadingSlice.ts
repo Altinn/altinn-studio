@@ -4,8 +4,8 @@ import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
 import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
 
 export interface IIsLoadingState {
-  dataTask: boolean;
-  stateless: boolean;
+  dataTask: boolean | null;
+  stateless: boolean | null;
 }
 
 export const initialState: IIsLoadingState = {

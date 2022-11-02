@@ -1,8 +1,8 @@
 import type { IAltinnOrgs } from 'altinn-shared/types';
 
 export interface IOrgsState {
-  allOrgs: IAltinnOrgs;
-  error: Error;
+  allOrgs: IAltinnOrgs | null;
+  error: Error | null;
 }
 
 export interface IFetchOrgsFulfilled {

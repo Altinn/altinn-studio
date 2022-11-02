@@ -26,7 +26,7 @@ export const getUiConfigStateMock = (
         dataModelBinding: 'Group',
       },
     },
-    fileUploadersWithTag: null,
+    fileUploadersWithTag: undefined,
     currentView: 'FormLayout',
     navigationConfig: {},
     ...customStates,

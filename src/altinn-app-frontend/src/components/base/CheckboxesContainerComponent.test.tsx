@@ -3,7 +3,7 @@ import React from 'react';
 import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders } from 'testUtils';
+import { mockComponentProps, renderWithProviders } from 'testUtils';
 import type { PreloadedState } from 'redux';
 
 import { CheckboxContainerComponent } from 'src/components/base/CheckboxesContainerComponent';
@@ -34,15 +34,15 @@ const render = (
   customState: PreloadedState<RootState> = {},
 ) => {
   const allProps: ICheckboxContainerProps = {
+    ...mockComponentProps,
     options: [],
     optionsId: 'countries',
     preselectedOptionIndex: undefined,
     validationMessages: {},
-    legend: 'legend',
+    legend: () => <span>legend</span>,
     handleDataChange: jest.fn(),
     getTextResource: (value) => value,
     getTextResourceAsString: (value) => value,
-    ...({} as ICheckboxContainerProps),
     ...props,
   };
 

@@ -5,7 +5,7 @@ import { getFormLayoutStateMock } from '__mocks__/formLayoutStateMock';
 import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { getUiConfigStateMock } from '__mocks__/uiConfigStateMock';
 import { screen } from '@testing-library/react';
-import { renderWithProviders } from 'testUtils';
+import { mockComponentProps, renderWithProviders } from 'testUtils';
 
 import { FileUploadWithTagComponent } from 'src/components/base/FileUpload/FileUploadWithTag/FileUploadWithTagComponent';
 import { AsciiUnitSeparator } from 'src/utils/attachment';
@@ -202,11 +202,9 @@ interface IRenderProps {
   };
 }
 
-const render = ({
-  props = {},
-  initialState: { attachments = getAttachments(), editIndex = -1 },
-}: IRenderProps = {}) => {
-  const initialState = {
+const render = ({ props = {}, initialState = {} }: IRenderProps = {}) => {
+  const { attachments = getAttachments(), editIndex = -1 } = initialState;
+  const _initialState = {
     ...getInitialStateMock(),
     attachments: {
       attachments: {
@@ -263,6 +261,7 @@ const render = ({
   };
 
   const allProps: IFileUploadWithTagProps = {
+    ...mockComponentProps,
     id: testId,
     displayMode: 'simple',
     isValid: true,
@@ -271,14 +270,13 @@ const render = ({
     minNumberOfAttachments: 1,
     readOnly: false,
     optionsId: 'test-options-id',
+    textResourceBindings: textResourceBindings,
     getTextResource: jest.fn(),
     getTextResourceAsString: jest.fn(),
-    textResourceBindings: textResourceBindings,
-    ...({} as IFileUploadWithTagProps),
     ...props,
   };
 
   renderWithProviders(<FileUploadWithTagComponent {...allProps} />, {
-    preloadedState: initialState,
+    preloadedState: _initialState,
   });
 };

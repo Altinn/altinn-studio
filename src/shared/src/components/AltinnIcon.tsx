@@ -27,10 +27,10 @@ export const AltinnIcon = ({
       className={classNames(iconClass)}
       style={{
         color: isActive ? isActiveIconColor : iconColor,
-        fontSize: iconSize ? iconSize : null,
-        fontWeight: weight ? weight : null,
-        margin: margin ? margin : null,
-        padding: padding ? padding : null,
+        fontSize: iconSize,
+        fontWeight: weight,
+        margin: margin,
+        padding: padding,
       }}
     />
   );

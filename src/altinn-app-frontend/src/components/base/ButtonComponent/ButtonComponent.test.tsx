@@ -46,12 +46,12 @@ const render = ({ submittingId }: { submittingId: string }) => {
 
   renderWithProviders(
     <ButtonComponent
+      {...({} as IButtonProvidedProps)}
       id={'some-id'}
       text={submitBtnText}
       handleDataChange={jest.fn()}
       disabled={false}
       language={{}}
-      {...({} as IButtonProvidedProps)}
     />,
     { preloadedState },
   );

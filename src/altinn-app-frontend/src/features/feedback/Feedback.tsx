@@ -25,6 +25,10 @@ export default function Feedback() {
     }
   }, [processState, dispatch]);
 
+  if (!language) {
+    return null;
+  }
+
   return (
     <div id='FeedbackContainer'>
       <MuiThemeProvider theme={theme}>

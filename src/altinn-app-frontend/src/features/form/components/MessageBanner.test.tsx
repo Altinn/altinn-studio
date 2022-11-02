@@ -56,6 +56,10 @@ describe('MessageBanner', () => {
 
 const convertToRgb = (hexValue: string): string => {
   const aRgbHex = hexValue.replace('#', '').match(/.{1,2}/g);
+  if (!aRgbHex) {
+    return '';
+  }
+
   const aRgb = [
     parseInt(aRgbHex[0], 16),
     parseInt(aRgbHex[1], 16),

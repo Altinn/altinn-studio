@@ -1,4 +1,5 @@
 import React from 'react';
+import type { ChangeEventHandler, FocusEventHandler } from 'react';
 
 import { FormLabel } from '@material-ui/core';
 import FormControl from '@material-ui/core/FormControl';
@@ -17,10 +18,12 @@ import { AltinnSpinner } from 'altinn-shared/components';
 
 export interface IControlledRadioGroupProps
   extends IRadioButtonsContainerProps {
-  fetchingOptions: boolean;
-  selected: string;
-  handleBlur: (event: React.FocusEvent<HTMLInputElement>) => void;
-  handleChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  fetchingOptions: boolean | undefined;
+  selected: string | undefined;
+  handleBlur: FocusEventHandler<
+    HTMLInputElement | HTMLButtonElement | HTMLDivElement
+  >;
+  handleChange: ChangeEventHandler<HTMLInputElement | HTMLButtonElement>;
   calculatedOptions: IOption[];
 }
 

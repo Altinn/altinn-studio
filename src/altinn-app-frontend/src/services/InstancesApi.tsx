@@ -7,7 +7,7 @@ export interface Prefill {
 }
 
 export interface InstanceOwner {
-  partyId: string;
+  partyId: string | undefined;
 }
 
 export interface Instantiation {

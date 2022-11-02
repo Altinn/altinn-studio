@@ -16,12 +16,13 @@ import {
 } from 'src/features/confirm/containers/ConfirmPage';
 
 import { nb } from 'altinn-shared/language/texts/nb';
+import type { IInstance } from 'altinn-shared/types';
 
 describe('ConfirmPage', () => {
   const state = getInstanceDataStateMock();
   const props: IConfirmPage = {
     appName: 'Irrelevant',
-    instance: state.instance,
+    instance: state.instance as IInstance,
     language: nb(),
     parties: [],
     textResources: [],

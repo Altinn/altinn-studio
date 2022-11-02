@@ -241,6 +241,10 @@ describe('utils > options', () => {
         dataSources,
       });
 
+      if (!options) {
+        throw new Error('Options not found');
+      }
+
       expect(options.length).toBe(3);
 
       expect(options[0].label).toBe('Label 1');

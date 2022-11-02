@@ -126,7 +126,7 @@ describe('attachment utils', () => {
       expect(getFileEnding('test.jpg')).toEqual('.jpg');
       expect(getFileEnding('navn.med.punktum.xml')).toEqual('.xml');
       expect(getFileEnding('navnutenfilendelse')).toEqual('');
-      expect(getFileEnding(null)).toEqual('');
+      expect(getFileEnding(undefined)).toEqual('');
     });
   });
 
@@ -139,7 +139,7 @@ describe('attachment utils', () => {
       expect(removeFileEnding('navnutenfilendelse')).toEqual(
         'navnutenfilendelse',
       );
-      expect(removeFileEnding(null)).toEqual('');
+      expect(removeFileEnding(undefined)).toEqual('');
     });
   });
 });

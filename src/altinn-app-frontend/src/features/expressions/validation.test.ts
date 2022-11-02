@@ -20,7 +20,12 @@ import type { IRepeatingGroups } from 'src/types';
 function isRepeatingGroup(
   component?: ILayoutComponentOrGroup,
 ): component is ILayoutGroup {
-  return component && component.type === 'Group' && component.maxCount > 1;
+  return !!(
+    component &&
+    component.type === 'Group' &&
+    component.maxCount &&
+    component.maxCount > 1
+  );
 }
 
 function generateRepeatingGroups(layout: ILayout) {
@@ -107,7 +112,7 @@ describe('Expression validation', () => {
       // test fail.
       evalAllExpressions(result);
 
-      const warningsFound = [];
+      const warningsFound: string[] = [];
       for (const call of logSpy.mock.calls) {
         for (const warning of warningsExpected) {
           if ((call[0] as string).includes(`%c${warning}%c`)) {

@@ -22,7 +22,7 @@ export function* deleteAttachmentSaga({
 
   try {
     // Sets validations to empty.
-    const newValidations = getFileUploadComponentValidations(null, null);
+    const newValidations = getFileUploadComponentValidations(null, {});
     yield put(
       ValidationActions.updateComponentValidations({
         componentId,

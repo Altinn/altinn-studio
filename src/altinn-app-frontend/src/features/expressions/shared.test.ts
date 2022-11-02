@@ -15,6 +15,7 @@ import type {
   SharedTestContext,
   SharedTestContextList,
 } from 'src/features/expressions/shared';
+import type { Expression } from 'src/features/expressions/types';
 import type { LayoutNode } from 'src/utils/layout/hierarchy';
 
 import type {
@@ -22,7 +23,10 @@ import type {
   IInstanceContext,
 } from 'altinn-shared/types';
 
-function toComponentId({ component, rowIndices }: FunctionTest['context']) {
+function toComponentId({
+  component,
+  rowIndices,
+}: Exclude<FunctionTest['context'], undefined>) {
   return (
     (component || 'no-component') +
     (rowIndices ? `-${rowIndices.join('-')}` : '')
@@ -52,13 +56,14 @@ describe('Expressions shared function tests', () => {
         };
 
         const asNodes = {};
-        for (const key of Object.keys(layouts || {})) {
+        const _layouts = layouts || {};
+        for (const key of Object.keys(_layouts)) {
           const repeatingGroups = getRepeatingGroups(
-            layouts[key].data.layout,
+            _layouts[key].data.layout,
             dataSources.formData,
           );
           asNodes[key] = nodesInLayout(
-            layouts[key].data.layout,
+            _layouts[key].data.layout,
             repeatingGroups,
           );
         }
@@ -76,7 +81,7 @@ describe('Expressions shared function tests', () => {
         if (expectsFailure) {
           expect(() => {
             const expr = asExpression(expression);
-            return evalExpr(expr, component, dataSources);
+            return evalExpr(expr as Expression, component, dataSources);
           }).toThrow(expectsFailure);
         } else {
           expect(evalExpr(expression, component, dataSources)).toEqual(expects);
@@ -134,13 +139,14 @@ describe('Expressions shared context tests', () => {
         };
 
         const foundContexts: SharedTestContextList[] = [];
-        for (const key of Object.keys(layouts || {})) {
+        const _layouts = layouts || {};
+        for (const key of Object.keys(_layouts)) {
           const repeatingGroups = getRepeatingGroups(
-            layouts[key].data.layout,
+            _layouts[key].data.layout,
             dataSources.formData,
           );
           const nodes = nodesInLayout(
-            layouts[key].data.layout,
+            _layouts[key].data.layout,
             repeatingGroups,
           );
 

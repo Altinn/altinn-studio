@@ -15,8 +15,8 @@ export interface IApplicationMetadata {
 }
 
 export interface IApplicationMetadataState {
-  applicationMetadata: IApplicationMetadata;
-  error: Error;
+  applicationMetadata: IApplicationMetadata | null;
+  error: Error | null;
 }
 
 export interface IOnEntry {

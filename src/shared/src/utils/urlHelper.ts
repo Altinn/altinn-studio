@@ -34,7 +34,7 @@ const localRegex = new RegExp(baseHostnameAltinnLocal);
 export const returnUrlToMessagebox = (
   url: string,
   partyId?: string | undefined,
-): string => {
+): string | null => {
   const baseUrl = returnBaseUrlToAltinn(url);
   if (!baseUrl) {
     return null;
@@ -47,12 +47,12 @@ export const returnUrlToMessagebox = (
   return `${baseUrl}ui/Reportee/ChangeReporteeAndRedirect?goTo=${baseUrl}${pathToMessageBox}&R=${partyId}`;
 };
 
-export const returnUrlFromQueryParameter = (): string => {
+export const returnUrlFromQueryParameter = (): string | null => {
   const params = new URLSearchParams(window.location.search);
   return params.get('returnUrl');
 };
 
-export const returnUrlToArchive = (url: string): string => {
+export const returnUrlToArchive = (url: string): string | null => {
   const baseUrl = returnBaseUrlToAltinn(url);
   if (!baseUrl) {
     return null;
@@ -64,7 +64,7 @@ export const returnUrlToArchive = (url: string): string => {
 export const returnUrlToProfile = (
   url: string,
   partyId?: string | undefined,
-): string => {
+): string | null => {
   const baseUrl = returnBaseUrlToAltinn(url);
   if (!baseUrl) {
     return null;
@@ -77,7 +77,7 @@ export const returnUrlToProfile = (
   return `${baseUrl}ui/Reportee/ChangeReporteeAndRedirect?goTo=${baseUrl}${pathToProfile}&R=${partyId}`;
 };
 
-export const returnUrlToAllSchemas = (url: string): string => {
+export const returnUrlToAllSchemas = (url: string): string | null => {
   const baseUrl = returnBaseUrlToAltinn(url);
   if (!baseUrl) {
     return null;
@@ -85,8 +85,8 @@ export const returnUrlToAllSchemas = (url: string): string => {
   return baseUrl + pathToAllSchemas;
 };
 
-export const returnBaseUrlToAltinn = (url: string): string => {
-  let result: string;
+export const returnBaseUrlToAltinn = (url: string): string | null => {
+  let result: string | null;
   if (url.search(prodRegex) >= 0) {
     const split = url.split('.');
     const env = split[split.length - 3];

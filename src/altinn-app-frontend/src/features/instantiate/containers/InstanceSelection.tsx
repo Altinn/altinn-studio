@@ -74,6 +74,10 @@ export default function InstanceSelection({
     window.location.href = getInstanceUiUrl(instanceId);
   };
 
+  if (!language) {
+    return null;
+  }
+
   const renderMobileTable = () => {
     return (
       <>
@@ -102,6 +106,8 @@ export default function InstanceSelection({
                     value: instance.lastChangedBy,
                   },
                 ]}
+                tableItemIndex={-2}
+                editIndex={-2}
                 onEditClick={() => openInstance(instance.id)}
                 key={instance.id}
                 editButtonText={getLanguageFromKey(

@@ -65,7 +65,7 @@ const processSlice = createSagaSlice(
           state.error = action.payload.error;
         },
       }),
-      complete: mkAction<ICompleteProcessFulfilled>({
+      complete: mkAction<ICompleteProcessFulfilled | undefined>({
         takeLatest: completeProcessSaga,
       }),
       completeFulfilled: mkAction<ICompleteProcessFulfilled>({

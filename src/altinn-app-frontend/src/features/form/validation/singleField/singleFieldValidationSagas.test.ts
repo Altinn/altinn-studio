@@ -26,10 +26,11 @@ describe('singleFieldValidationSagas', () => {
   });
 
   it('runSingleFieldValidationSaga, single field validation is triggered', () => {
-    const url = getDataValidationUrl(
-      mockState.instanceData.instance.id,
-      mockState.instanceData.instance.data[0].id,
-    );
+    const instance = mockState.instanceData.instance;
+    if (!instance) {
+      throw new Error('Invalid mockState');
+    }
+    const url = getDataValidationUrl(instance.id, instance.data[0].id);
     const options: AxiosRequestConfig = {
       headers: {
         ValidationTriggerField: mockTriggerField,
@@ -43,7 +44,7 @@ describe('singleFieldValidationSagas', () => {
         field: 'Group.prop1',
         scope: null,
         severity: Severity.Error,
-        targetId: null,
+        targetId: '',
       },
     ];
     const mappedValidations: IValidations = {
@@ -71,10 +72,11 @@ describe('singleFieldValidationSagas', () => {
   });
 
   it('runSingleFieldValidationSaga, single field validation error', () => {
-    const url = getDataValidationUrl(
-      mockState.instanceData.instance.id,
-      mockState.instanceData.instance.data[0].id,
-    );
+    const instance = mockState.instanceData.instance;
+    if (!instance) {
+      throw new Error('Invalid mockState');
+    }
+    const url = getDataValidationUrl(instance.id, instance.data[0].id);
     const options: AxiosRequestConfig = {
       headers: {
         ValidationTriggerField: mockTriggerField,

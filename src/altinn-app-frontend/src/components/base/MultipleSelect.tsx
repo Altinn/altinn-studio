@@ -37,6 +37,10 @@ export function MultipleSelect({
     })) || [];
   const language = useAppSelector((state) => state.language.language);
 
+  if (!language) {
+    return null;
+  }
+
   const handleChange = (newValue: MultiValue<IOption>) => {
     handleDataChange(newValue.map((option) => option.value).join(','));
   };

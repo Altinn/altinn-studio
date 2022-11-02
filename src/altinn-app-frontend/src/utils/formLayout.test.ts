@@ -635,7 +635,7 @@ describe('createRepeatingGroupComponents', () => {
       mockTextResources,
     );
 
-    const allBaseComponentIds = [];
+    const allBaseComponentIds: string[] = [];
     const findBaseComponentId = (obj: any) => {
       if (Array.isArray(obj)) {
         for (const item of obj) {
@@ -832,7 +832,7 @@ describe('findChildren', () => {
       {
         id: 'group1',
         type: 'Group',
-        children: ['0:field2', '1:field3:0'],
+        children: ['0:field2', '1:field3'],
         edit: { multiPage: true },
       } as ILayoutGroup,
       {
@@ -841,7 +841,7 @@ describe('findChildren', () => {
         type: 'Input',
       } as ILayoutComponent,
       {
-        id: 'field3:0',
+        id: 'field3',
         required: false,
         type: 'Input',
       } as ILayoutComponent,
@@ -860,7 +860,7 @@ describe('findChildren', () => {
     });
 
     expect(result2).toHaveLength(2);
-    expect(result2.map((c) => c.id)).toEqual(['field2', 'field3:0']);
+    expect(result2.map((c) => c.id)).toEqual(['field2', 'field3']);
   });
 
   it('should work with nested groups out-of-order', () => {

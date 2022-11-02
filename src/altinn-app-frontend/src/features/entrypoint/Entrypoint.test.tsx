@@ -12,6 +12,8 @@ import Entrypoint from 'src/features/entrypoint/Entrypoint';
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import type { IRuntimeState } from 'src/types';
 
+import type { IApplicationLogic } from 'altinn-shared/types';
+
 jest.mock('axios');
 
 describe('Entrypoint', () => {
@@ -77,7 +79,8 @@ describe('Entrypoint', () => {
 
   it('should show loader while fetching data then start statelessQueue if stateless app', async () => {
     const statelessApplication: IApplicationMetadata = {
-      ...mockInitialState.applicationMetadata.applicationMetadata,
+      ...(mockInitialState.applicationMetadata
+        .applicationMetadata as IApplicationMetadata),
       onEntry: {
         show: 'stateless',
       },
@@ -105,12 +108,15 @@ describe('Entrypoint', () => {
 
   it('should show loader while fetching data then start statelessQueue if stateless app with allowAnonymous', async () => {
     const statelessApplication: IApplicationMetadata = {
-      ...mockInitialState.applicationMetadata.applicationMetadata,
+      ...(mockInitialState.applicationMetadata
+        .applicationMetadata as IApplicationMetadata),
       onEntry: {
         show: 'stateless',
       },
     };
-    statelessApplication.dataTypes[0].appLogic.allowAnonymousOnStateless = true;
+    (
+      statelessApplication.dataTypes[0].appLogic as IApplicationLogic
+    ).allowAnonymousOnStateless = true;
     const mockStateWithStatelessApplication: IRuntimeState = {
       ...mockInitialState,
     };
@@ -134,7 +140,8 @@ describe('Entrypoint', () => {
 
   it('should fetch active instances and display InstanceSelection.tsx if select-instance is configured', async () => {
     const application: IApplicationMetadata = {
-      ...mockInitialState.applicationMetadata.applicationMetadata,
+      ...(mockInitialState.applicationMetadata
+        .applicationMetadata as IApplicationMetadata),
       onEntry: {
         show: 'select-instance',
       },

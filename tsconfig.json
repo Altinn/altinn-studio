@@ -10,8 +10,10 @@
     "jsx": "react",
     "moduleResolution": "node",
     "rootDir": "./",
+    "noEmit": true,
+    "skipLibCheck": true,
     "resolveJsonModule": true,
-    "strictNullChecks": false,
+    "strictNullChecks": true,
     "noUnusedLocals": true,
     "esModuleInterop": true,
     "baseUrl": "."

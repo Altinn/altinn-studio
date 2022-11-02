@@ -142,7 +142,6 @@ describe('formComponentUtils', () => {
         deleting: false,
         name: 'mockNameAttachment3',
         size: 12345,
-        tags: null,
         id: '123457',
       },
     ],
@@ -172,7 +171,6 @@ describe('formComponentUtils', () => {
       deleting: false,
       name: 'mockName',
       size: 12345,
-      tags: null,
       id: '123457',
     },
   ];
@@ -380,7 +378,7 @@ describe('formComponentUtils', () => {
         },
       } as ILayoutComponent;
       const result = getDisplayFormData(
-        component.dataModelBindings.simpleBinding,
+        component.dataModelBindings?.simpleBinding,
         component,
         component.id,
         mockAttachments,
@@ -401,7 +399,7 @@ describe('formComponentUtils', () => {
         },
       } as ILayoutComponent;
       const result = getDisplayFormData(
-        component.dataModelBindings.list,
+        component.dataModelBindings?.list,
         component,
         component.id,
         mockAttachments,

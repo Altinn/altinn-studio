@@ -26,6 +26,10 @@ function AltinnPartySearch({ onSearchUpdated }: IAltinnPartySearchProps) {
     onSearchUpdated(e.target.value);
   };
 
+  if (!language) {
+    return null;
+  }
+
   return (
     <Grid
       container={true}

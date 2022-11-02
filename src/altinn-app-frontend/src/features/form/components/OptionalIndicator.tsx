@@ -7,7 +7,7 @@ import type { ILanguage } from 'altinn-shared/types';
 
 interface IOptionalIndicatorProps {
   language: ILanguage;
-  required: boolean;
+  required?: boolean;
   readOnly?: boolean;
   labelSettings?: ILabelSettings;
 }

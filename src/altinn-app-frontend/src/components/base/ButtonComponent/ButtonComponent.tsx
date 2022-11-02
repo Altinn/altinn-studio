@@ -34,7 +34,7 @@ export const ButtonComponent = ({ mode, ...props }: IButtonProvidedProps) => {
     (state) => state.formData.ignoreWarnings,
   );
   const currentTaskType = useAppSelector(
-    (state) => state.instanceData.instance.process.currentTask.altinnTaskType,
+    (state) => state.instanceData.instance?.process.currentTask?.altinnTaskType,
   );
   if (mode && !(mode === 'save' || mode === 'submit')) {
     const GenericButton = getComponentFromMode(mode);

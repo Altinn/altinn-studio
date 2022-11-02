@@ -16,13 +16,14 @@ export const PrintButtonComponent = () => {
       variant={ButtonVariant.Secondary}
       onClick={window.print}
     >
-      {getTextFromAppOrDefault(
-        'general.print_button_text',
-        textResources,
-        language,
-        null,
-        true,
-      )}
+      {language &&
+        getTextFromAppOrDefault(
+          'general.print_button_text',
+          textResources,
+          language,
+          undefined,
+          true,
+        )}
     </Button>
   );
 };

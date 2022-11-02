@@ -8,12 +8,19 @@ import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type {
   ILayout,
   ILayoutComponent,
+  ILayoutComponentOrGroup,
   ILayoutGroup,
 } from 'src/features/form/layout';
 
+export type ComponentFromSummary = ILayoutComponentOrGroup & {
+  formData?: any;
+  index?: number;
+  parentGroup?: string;
+};
+
 export interface IDisplayGroupContainer {
   container: ILayoutGroup;
-  components: (ILayoutComponent | ILayoutGroup)[];
+  components: ComponentFromSummary[];
   renderLayoutComponent: (
     components: ILayoutComponent | ILayoutGroup,
     layout: ILayout,
@@ -39,7 +46,7 @@ export function DisplayGroupContainer(props: IDisplayGroupContainer) {
   const classes = useStyles();
   const title = useAppSelector((state) => {
     const titleKey = props.container.textResourceBindings?.title;
-    if (titleKey) {
+    if (titleKey && state.language.language) {
       return getTextFromAppOrDefault(
         titleKey,
         state.textResources.resources,
@@ -51,10 +58,12 @@ export function DisplayGroupContainer(props: IDisplayGroupContainer) {
     return undefined;
   });
   const layout = useAppSelector(
-    (state) => state.formLayout.layouts[state.formLayout.uiConfig.currentView],
+    (state) =>
+      state.formLayout.layouts &&
+      state.formLayout.layouts[state.formLayout.uiConfig.currentView],
   );
 
-  if (hidden) {
+  if (hidden || !layout) {
     return null;
   }
 

@@ -17,23 +17,29 @@ export const Progress = () => {
   );
 
   const currentPageIndex =
-    pageIds.findIndex((page) => page === currentPageId) + 1;
-  const numberOfPages = pageIds.length;
-  const labelText = `${currentPageIndex}/${numberOfPages}`;
-  const value = (currentPageIndex / numberOfPages) * 100;
+    pageIds?.findIndex((page) => page === currentPageId) || 0;
+  const currentPageNum = currentPageIndex + 1;
+
+  const numberOfPages = pageIds?.length || 0;
+  const labelText = `${currentPageNum}/${numberOfPages}`;
+  const value = numberOfPages ? (currentPageNum / numberOfPages) * 100 : 0;
 
   return (
     <CircularProgress
       value={value}
       id={'progress'}
       label={labelText}
-      ariaLabel={getTextFromAppOrDefault(
-        'general.progress',
-        textResources,
-        language,
-        [currentPageIndex.toString(), numberOfPages.toString()],
-        true,
-      )}
+      ariaLabel={
+        (language &&
+          getTextFromAppOrDefault(
+            'general.progress',
+            textResources,
+            language,
+            [currentPageNum.toString(), numberOfPages.toString()],
+            true,
+          )) ||
+        undefined
+      }
     />
   );
 };

@@ -5,7 +5,7 @@ import type { ILanguage } from 'altinn-shared/types';
 
 export interface IRequiredIndicatorProps {
   language: ILanguage;
-  required: boolean;
+  required?: boolean;
   readOnly?: boolean;
 }
 

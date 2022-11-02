@@ -1,9 +1,9 @@
 import type { ITextResource } from 'src/types';
 
 export interface ITextResourcesState {
-  language: string;
+  language: string | null;
   resources: ITextResource[];
-  error: Error;
+  error: Error | null;
 }
 
 export interface IFetchTextResourcesFulfilled {
@@ -16,7 +16,7 @@ export interface IFetchTextResourcesRejected {
 }
 
 export interface IReplaceTextResourcesFulfilled {
-  language: string;
+  language: string | null;
   resources: ITextResource[];
 }
 

@@ -5,12 +5,12 @@ import {
 } from '__mocks__/mocks';
 
 import { mapGroupComponents } from 'src/features/form/containers/formUtils';
-import type { ILayoutGroup } from 'src/features/form/layout';
+import type { ILayout, ILayoutGroup } from 'src/features/form/layout';
 
 describe('formUtils/mapGroupComponents', () => {
   const makeFormLayout = () => {
     const formLayoutState = getFormLayoutStateMock();
-    return formLayoutState.layouts.FormLayout;
+    return formLayoutState.layouts?.FormLayout as ILayout;
   };
   const oc = expect.objectContaining;
   it('should map multi-page groups', () => {

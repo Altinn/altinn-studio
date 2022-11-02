@@ -93,7 +93,6 @@ describe('fetchTextResourcesSagas', () => {
       userId: 1,
       userName: '',
       partyId: 1234,
-      party: null,
       userType: 1,
       profileSettingPreference: {
         doNotPromptForParty: false,

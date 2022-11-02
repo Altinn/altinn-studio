@@ -11,9 +11,9 @@ import type { IPanelGroupContainerProps } from 'src/features/form/containers/Pan
 import type { ILayout, ILayoutGroup } from 'src/features/form/layout';
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
 import type { RootState } from 'src/store';
-import type { IUiConfig } from 'src/types';
 
 describe('PanelGroupContainer', () => {
+  const initialState = getInitialStateMock();
   const container: ILayoutGroup = {
     id: 'group-id',
     type: 'Group',
@@ -52,18 +52,17 @@ describe('PanelGroupContainer', () => {
     },
   ];
 
-  const state: PreloadedState<RootState> = {
-    formLayout: {
-      layouts: {
-        FormLayout: [container, ...groupComponents],
-      },
-      uiConfig: {
-        hiddenFields: [],
-        currentView: 'FormLayout',
-      } as IUiConfig,
-      error: null,
-      layoutsets: null,
-    } as ILayoutState,
+  const state: ILayoutState = {
+    layouts: {
+      FormLayout: [container, ...groupComponents],
+    },
+    uiConfig: {
+      ...initialState.formLayout.uiConfig,
+      hiddenFields: [],
+      currentView: 'FormLayout',
+    },
+    error: null,
+    layoutsets: null,
   };
 
   it('should display panel with group children', async () => {
@@ -72,7 +71,7 @@ describe('PanelGroupContainer', () => {
         container,
         components: groupComponents,
       },
-      state,
+      { formLayout: state },
     );
 
     const customIcon = await screen.queryByTestId('panel-group-container');
@@ -121,7 +120,7 @@ describe('PanelGroupContainer', () => {
 
     const user = userEvent.setup();
 
-    const addNewButton = await screen.queryByText('Add new item');
+    const addNewButton = await screen.getByText('Add new item');
     await user.click(addNewButton);
 
     const inputFieldTitle = await screen.queryByText(
@@ -133,7 +132,6 @@ describe('PanelGroupContainer', () => {
   it('should display panel with referenced group children if no children is supplied', async () => {
     const containerWithNoChildrenWithGroupReference: ILayoutGroup = {
       ...container,
-      children: undefined,
       textResourceBindings: {
         add_label: 'Add new item',
       },
@@ -152,7 +150,7 @@ describe('PanelGroupContainer', () => {
 
     const user = userEvent.setup();
 
-    const addNewButton = await screen.queryByText('Add new item');
+    const addNewButton = await screen.getByText('Add new item');
     await user.click(addNewButton);
 
     const firstInputTitle = await screen.queryByText('Referenced Group Input');
@@ -162,7 +160,6 @@ describe('PanelGroupContainer', () => {
   it('should open panel when clicking add and close when clicking save,', async () => {
     const containerWithNoChildrenWithGroupReference: ILayoutGroup = {
       ...container,
-      children: undefined,
       textResourceBindings: {
         add_label: 'Add new item',
       },
@@ -185,11 +182,13 @@ describe('PanelGroupContainer', () => {
     let saveButton = await screen.queryByText('Lagre');
     expect(saveButton).not.toBeInTheDocument();
 
-    let addNewButton = await screen.queryByText('Add new item');
+    let addNewButton: HTMLElement | null = await screen.getByText(
+      'Add new item',
+    );
     await user.click(addNewButton);
 
     // save should appear and add should be hidden
-    saveButton = await screen.queryByText('Lagre');
+    saveButton = await screen.getByText('Lagre');
     expect(saveButton).toBeInTheDocument();
 
     addNewButton = await screen.queryByText('Add new item');
@@ -198,18 +197,18 @@ describe('PanelGroupContainer', () => {
     // pressing save should close panel and show add button again
     await user.click(saveButton);
 
-    addNewButton = await screen.queryByText('Add new item');
+    addNewButton = await screen.getByText('Add new item');
     expect(addNewButton).toBeInTheDocument();
   });
 
   it('should display nothing if group is hidden', async () => {
     const stateWithHidden: PreloadedState<RootState> = {
       formLayout: {
-        ...state.formLayout,
+        ...state,
         uiConfig: {
-          ...state.formLayout.uiConfig,
+          ...state.uiConfig,
           hiddenFields: ['group-id'],
-        } as IUiConfig,
+        },
       },
     };
 
@@ -240,7 +239,7 @@ describe('PanelGroupContainer', () => {
         container: containerWithCustomIcon,
         components: groupComponents,
       },
-      state,
+      { formLayout: state },
     );
 
     const customIcon = await screen.queryByTestId('custom-icon');

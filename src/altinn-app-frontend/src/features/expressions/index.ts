@@ -248,11 +248,11 @@ function isLikeNull(arg: any) {
  */
 function castValue<T extends BaseValue>(
   value: any,
-  toType: T,
+  toType: T | undefined,
   context: ExprContext,
-): BaseToActual<T> {
-  if (!(toType in ExprTypes)) {
-    throw new UnknownTargetType(this, toType);
+): BaseToActual<T> | null {
+  if (!toType || !(toType in ExprTypes)) {
+    throw new UnknownTargetType(this, toType ? toType : typeof toType);
   }
 
   const typeObj = ExprTypes[toType];
@@ -395,7 +395,7 @@ export const ExprFunctions = {
     castReturnValue: false,
   }),
   instanceContext: defineFunc({
-    impl: function (key) {
+    impl: function (key): string | null {
       if (instanceContextKeys[key] !== true) {
         throw new LookupNotFound(
           this,
@@ -403,31 +403,37 @@ export const ExprFunctions = {
         );
       }
 
-      return this.dataSources.instanceContext[key];
+      return (
+        (this.dataSources.instanceContext &&
+          this.dataSources.instanceContext[key]) ||
+        null
+      );
     },
     args: ['string'] as const,
     returns: 'string',
   }),
   frontendSettings: defineFunc({
-    impl: function (key) {
-      return this.dataSources.applicationSettings[key];
+    impl: function (key): string | null {
+      return (
+        (this.dataSources.applicationSettings &&
+          this.dataSources.applicationSettings[key]) ||
+        null
+      );
     },
     args: ['string'] as const,
     returns: 'string',
   }),
   component: defineFunc({
-    impl: function (id): string {
+    impl: function (id): string | null {
       const component = this.failWithoutNode().closest(
         (c) => c.id === id || c.baseComponentId === id,
       );
-      if (
-        component &&
-        component.item.dataModelBindings &&
-        component.item.dataModelBindings.simpleBinding
-      ) {
-        return this.dataSources.formData[
-          component.item.dataModelBindings.simpleBinding
-        ];
+      const binding = component?.item?.dataModelBindings?.simpleBinding;
+      if (binding) {
+        return (
+          (this.dataSources.formData && this.dataSources.formData[binding]) ||
+          null
+        );
       }
 
       throw new LookupNotFound(
@@ -439,11 +445,11 @@ export const ExprFunctions = {
     returns: 'string',
   }),
   dataModel: defineFunc({
-    impl: function (path): string {
+    impl: function (path): string | null {
       const maybeNode = this.failWithoutNode();
       if (maybeNode instanceof LayoutNode) {
-        const newPath = maybeNode.transposeDataModel(path);
-        return this.dataSources.formData[newPath] || null;
+        const newPath = maybeNode?.transposeDataModel(path);
+        return (newPath && this.dataSources.formData[newPath]) || null;
       }
 
       // No need to transpose the data model according to the location inside a repeating group when the context is
@@ -474,7 +480,7 @@ export const ExprTypes: {
   [Type in BaseValue]: {
     nullable: boolean;
     accepts: BaseValue[];
-    impl: (this: ExprContext, arg: any) => BaseToActual<Type>;
+    impl: (this: ExprContext, arg: any) => BaseToActual<Type> | null;
   };
 } = {
   boolean: {

@@ -1,6 +1,6 @@
 export interface IFormDataState {
   formData: IFormData;
-  error: Error;
+  error: Error | null;
   responseInstance: any;
   unsavedChanges: boolean;
   submittingId: string;

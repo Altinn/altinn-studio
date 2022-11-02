@@ -2,7 +2,7 @@ import type { IProfile } from 'altinn-shared/types';
 
 export interface IProfileState {
   profile: IProfile;
-  error: Error;
+  error: Error | null;
 }
 
 export interface IFetchProfile {
@@ -14,5 +14,5 @@ export interface IFetchProfileFulfilled {
 }
 
 export interface IFetchProfileRejected {
-  error: Error;
+  error: Error | null;
 }

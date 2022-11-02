@@ -18,22 +18,25 @@ function InstantiateValidationError(props: { message: string }) {
     return null;
   }
 
-  function getCustomerService() {
-    return getParsedLanguageFromKey(
+  function createErrorContent() {
+    if (!language) {
+      return null;
+    }
+
+    const errorCustomerService = getParsedLanguageFromKey(
       'instantiate.authorization_error_instantiate_validation_info_customer_service',
       language,
       [getLanguageFromKey('general.customer_service_phone_number', language)],
     );
-  }
-
-  function getCustomErrorMessage(message: string) {
-    if (!message) return null;
-    return getTextFromAppOrDefault(message, textResources, language, [], false);
-  }
-
-  function createErrorContent() {
-    const errorCustomerService = getCustomerService();
-    const customErrorMessage = getCustomErrorMessage(props.message);
+    const customErrorMessage =
+      props.message &&
+      getTextFromAppOrDefault(
+        props.message,
+        textResources,
+        language,
+        [],
+        false,
+      );
 
     return (
       <>

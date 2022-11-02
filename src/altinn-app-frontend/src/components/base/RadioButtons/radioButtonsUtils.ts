@@ -69,11 +69,11 @@ export const useRadioButtons = ({
     [apiOptions, options],
   );
   const optionsHasChanged = useHasChangedIgnoreUndefined(apiOptions);
-  const fetchingOptions = useAppSelector(
-    (state) =>
-      state.optionState.options[getOptionLookupKey({ id: optionsId, mapping })]
-        ?.loading,
-  );
+  const lookupKey = optionsId && getOptionLookupKey({ id: optionsId, mapping });
+  const fetchingOptions =
+    useAppSelector(
+      (state) => lookupKey && state.optionState.options[lookupKey]?.loading,
+    ) || undefined;
   const {
     value: selected,
     setValue,
@@ -87,6 +87,7 @@ export const useRadioButtons = ({
   React.useEffect(() => {
     const shouldPreselectItem =
       !formData?.simpleBinding &&
+      typeof preselectedOptionIndex !== 'undefined' &&
       preselectedOptionIndex >= 0 &&
       calculatedOptions &&
       preselectedOptionIndex < calculatedOptions.length;

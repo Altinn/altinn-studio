@@ -46,7 +46,7 @@ function toCollection(
   const asNodes = {};
   for (const key of Object.keys(mockLayout)) {
     asNodes[key] = nodesInLayout(
-      mockLayout[key],
+      mockLayout[key] || [],
       repeatingGroups,
     ) as unknown as LayoutRootNode<'resolved'>;
   }
@@ -61,10 +61,12 @@ function toCollectionFromData(mockLayout: ILayouts, formDataAsObject: any) {
   let repeatingGroups = {};
 
   for (const layout of Object.values(mockLayout)) {
-    repeatingGroups = {
-      ...repeatingGroups,
-      ...getRepeatingGroups(layout, formData),
-    };
+    if (layout) {
+      repeatingGroups = {
+        ...repeatingGroups,
+        ...getRepeatingGroups(layout, formData),
+      };
+    }
   }
 
   return toCollection(mockLayout, repeatingGroups);
@@ -1006,6 +1008,10 @@ describe('utils > validation', () => {
     it('should add error to validations if supplied field is required', () => {
       const collection = toCollection(mockLayout, repeatingGroups);
       const component = collection.findComponentById('componentId_3');
+      if (!component) {
+        throw new Error('Node not found');
+      }
+
       const validations = {};
       validations[component.item.id] = validation.validateEmptyField(
         mockFormData,
@@ -1029,6 +1035,10 @@ describe('utils > validation', () => {
     it('should find all errors in an AddressComponent', () => {
       const collection = toCollection(mockLayout, repeatingGroups);
       const component = collection.findComponentById('componentId_6');
+      if (!component) {
+        throw new Error('Node not found');
+      }
+
       const validations = {};
       validations[component.item.id] = validation.validateEmptyField(
         mockFormData,
@@ -1080,12 +1090,19 @@ describe('utils > validation', () => {
   });
 
   describe('validateEmptyFieldsForNodes', () => {
+    interface RenderWith {
+      formData: any;
+      formLayout: any;
+      hiddenFields: string[];
+      repeatingGroups: IRepeatingGroups;
+    }
+
     const _with = ({
       formData = {},
       formLayout = mockLayout.FormLayout,
       hiddenFields = [],
       repeatingGroups = {},
-    }) =>
+    }: Partial<RenderWith>) =>
       validation.validateEmptyFieldsForNodes(
         formData,
         toCollection({ FormLayout: formLayout }, repeatingGroups).current(),
@@ -1939,7 +1956,7 @@ describe('utils > validation', () => {
                 'Du må fylle ut component_4',
                 getParsedLanguageFromKey(
                   `validation_errors.pattern`,
-                  state.language.language,
+                  state.language.language || {},
                   [],
                   true,
                 ),
@@ -1951,7 +1968,7 @@ describe('utils > validation', () => {
               errors: [
                 getParsedLanguageFromKey(
                   `validation_errors.minLength`,
-                  state.language.language,
+                  state.language.language || {},
                   [10],
                   true,
                 ),
@@ -2030,7 +2047,7 @@ describe('utils > validation', () => {
               errors: [
                 getParsedLanguageFromKey(
                   `validation_errors.minLength`,
-                  state.language.language,
+                  state.language.language || {},
                   [10],
                   true,
                 ),
@@ -2370,7 +2387,7 @@ describe('utils > validation', () => {
 
   describe('mergeComponentBindingValidations', () => {
     it('should return merged validation object', () => {
-      const original: IComponentBindingValidation =
+      const original: IComponentBindingValidation | undefined =
         mockReduxFormat.FormLayout.componentId_1.simpleBinding;
       const newValidations: IComponentBindingValidation = {
         errors: ['newError'],
@@ -2382,7 +2399,7 @@ describe('utils > validation', () => {
         newValidations,
       );
       expect(merged).toEqual({
-        errors: original.errors.concat(newValidations.errors),
+        errors: original?.errors?.concat(newValidations.errors || []),
         warnings: newValidations.warnings,
       });
     });
@@ -2439,10 +2456,10 @@ describe('utils > validation', () => {
           componentId_1: {
             simpleBinding: {
               errors:
-                mockReduxFormat.FormLayout.componentId_1.simpleBinding.errors.concat(
-                  componentValidation.simpleBinding.errors,
+                mockReduxFormat.FormLayout.componentId_1.simpleBinding?.errors?.concat(
+                  componentValidation.simpleBinding?.errors || [],
                 ),
-              warnings: componentValidation.simpleBinding.warnings,
+              warnings: componentValidation.simpleBinding?.warnings,
             },
           },
           componentId_new: componentValidation,
@@ -2484,10 +2501,10 @@ describe('utils > validation', () => {
         source1,
         source2,
       );
-      expect(result.layout1.component1.binding.errors.length).toEqual(2);
-      expect(result.layout1.component1.binding.warnings.length).toEqual(2);
-      expect(result.layout2.component2.binding.errors.length).toEqual(1);
-      expect(result.layout2.component2.binding.warnings.length).toEqual(1);
+      expect(result.layout1.component1.binding?.errors?.length).toEqual(2);
+      expect(result.layout1.component1.binding?.warnings?.length).toEqual(2);
+      expect(result.layout2.component2.binding?.errors?.length).toEqual(1);
+      expect(result.layout2.component2.binding?.warnings?.length).toEqual(1);
     });
   });
 

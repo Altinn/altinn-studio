@@ -6,8 +6,8 @@ export const partyMock: IParty = {
   ssn: '01017512345',
   partyTypeName: null,
   orgNumber: null,
-  unitType: null,
+  unitType: undefined,
   isDeleted: false,
   onlyHierarchyElementWithNoAccess: false,
-  childParties: null,
+  childParties: undefined,
 };

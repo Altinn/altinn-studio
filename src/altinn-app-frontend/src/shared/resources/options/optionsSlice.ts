@@ -27,14 +27,20 @@ const optionsSlice = createSagaSlice(
       fetchFulfilled: mkAction<IFetchOptionsFulfilledAction>({
         reducer: (state, action) => {
           const { key, options } = action.payload;
-          state.options[key].loading = false;
-          state.options[key].options = options;
+          const option = state.options[key];
+          if (option) {
+            option.loading = false;
+            option.options = options;
+          }
         },
       }),
       fetchRejected: mkAction<IFetchOptionsRejectedAction>({
         reducer: (state, action) => {
           const { key, error } = action.payload;
-          state.options[key].loading = false;
+          const option = state.options[key];
+          if (option) {
+            option.loading = false;
+          }
           state.error = error;
         },
       }),

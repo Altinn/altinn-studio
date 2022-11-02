@@ -28,7 +28,7 @@ const user = userEvent.setup();
 const getLayout = (group: ILayoutGroup, components: ILayoutComponent[]) => {
   const layout: ILayoutState = {
     layouts: {
-      FormLayout: [].concat(group).concat(components),
+      FormLayout: [group, ...components],
     },
     uiConfig: {
       hiddenFields: [],
@@ -175,6 +175,10 @@ describe('RepeatingGroupTable', () => {
         textResources,
       );
 
+      if (!layout.layouts) {
+        return;
+      }
+
       render({
         container: group,
         repeatingGroupDeepCopyComponents: repeatingGroupDeepCopyComponents,
@@ -272,7 +276,7 @@ describe('RepeatingGroupTable', () => {
       formData: data,
       hiddenFields: [],
       id: group.id,
-      layout: layout.layouts[currentView],
+      layout: (layout.layouts && layout.layouts[currentView]) || null,
       options: {},
       repeatingGroupDeepCopyComponents: repeatingGroupDeepCopyComponents,
       repeatingGroupIndex: repeatingGroupIndex,

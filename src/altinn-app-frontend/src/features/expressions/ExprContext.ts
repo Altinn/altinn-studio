@@ -19,8 +19,8 @@ import type {
 } from 'altinn-shared/types';
 
 export interface ContextDataSources {
-  instanceContext: IInstanceContext;
-  applicationSettings: IApplicationSettings;
+  instanceContext: IInstanceContext | null;
+  applicationSettings: IApplicationSettings | null;
   formData: IFormData;
 }
 

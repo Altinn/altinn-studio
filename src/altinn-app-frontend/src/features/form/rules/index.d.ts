@@ -8,7 +8,7 @@ export interface IFormRuleState {
   model: IRuleModelFieldElement[];
   fetching: boolean;
   fetched: boolean;
-  error: Error;
+  error: Error | null;
 }
 
 export interface IFetchRuleModelFulfilled {

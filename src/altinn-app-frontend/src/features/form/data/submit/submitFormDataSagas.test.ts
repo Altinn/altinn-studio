@@ -24,11 +24,12 @@ import {
 } from 'src/utils/appUrlHelper';
 import { convertDataBindingToModel } from 'src/utils/databindings';
 import { post } from 'src/utils/networking';
+import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import type { IInstanceDataState } from 'src/shared/resources/instanceData';
 import type { IRuntimeState } from 'src/types';
 
 import { put } from 'altinn-shared/utils/networking';
-import type { IData } from 'altinn-shared/index';
+import type { IData, IInstance } from 'altinn-shared/index';
 
 describe('submitFormDataSagas', () => {
   let stateMock: IRuntimeState;
@@ -40,15 +41,11 @@ describe('submitFormDataSagas', () => {
     const instanceDataMock: IInstanceDataState = getInstanceDataStateMock();
     const dataElement: IData = {
       id: 'test-data-element-1',
-      instanceGuid: instanceDataMock.instance.id,
+      instanceGuid: instanceDataMock.instance?.id || '',
       dataType: 'test-data-model',
       filename: 'testData1.pdf',
       contentType: 'application/pdf',
       blobStoragePath: '',
-      selfLinks: {
-        apps: null,
-        platform: null,
-      },
       size: 1234,
       locked: false,
       refs: [],
@@ -60,7 +57,7 @@ describe('submitFormDataSagas', () => {
     const mockInstanceData: IInstanceDataState = {
       ...instanceDataMock,
       instance: {
-        ...instanceDataMock.instance,
+        ...(instanceDataMock.instance as IInstance),
         data: [dataElement],
       },
     };
@@ -80,7 +77,7 @@ describe('submitFormDataSagas', () => {
       state.applicationMetadata.applicationMetadata,
       state.instanceData.instance,
       state.formLayout.layoutsets,
-    );
+    ) as string;
     const field = 'someField';
     const componentId = 'someComponent';
     const data = 'someData';
@@ -116,7 +113,8 @@ describe('submitFormDataSagas', () => {
       applicationMetadata: {
         ...stateMock.applicationMetadata,
         applicationMetadata: {
-          ...stateMock.applicationMetadata.applicationMetadata,
+          ...(stateMock.applicationMetadata
+            .applicationMetadata as IApplicationMetadata),
           onEntry: { show: 'stateless' },
         },
       },
@@ -143,7 +141,7 @@ describe('submitFormDataSagas', () => {
       application: state.applicationMetadata.applicationMetadata,
       instance: state.instanceData.instance,
       layoutSets: state.formLayout.layoutsets,
-    });
+    }) as string;
 
     const field = 'someField';
     const componentId = 'someComponent';
@@ -166,7 +164,7 @@ describe('submitFormDataSagas', () => {
             getStatelessFormDataUrl(currentDataType),
             {
               headers: {
-                party: `partyid:${stateMock.party.selectedParty.partyId}`,
+                party: `partyid:${stateMock.party.selectedParty?.partyId}`,
                 'X-DataField': encodeURIComponent(field),
                 'X-ComponentId': encodeURIComponent(componentId),
               },
@@ -207,7 +205,8 @@ describe('submitFormDataSagas', () => {
       applicationMetadata: {
         ...stateMock.applicationMetadata,
         applicationMetadata: {
-          ...stateMock.applicationMetadata.applicationMetadata,
+          ...(stateMock.applicationMetadata
+            .applicationMetadata as IApplicationMetadata),
           onEntry: { show: 'stateless' },
         },
       },
@@ -234,7 +233,7 @@ describe('submitFormDataSagas', () => {
       application: state.applicationMetadata.applicationMetadata,
       instance: state.instanceData.instance,
       layoutSets: state.formLayout.layoutsets,
-    });
+    }) as string;
 
     const field = 'someField';
     const componentId = 'someComponent';

@@ -4,7 +4,7 @@ export interface IJsonSchemas {
 
 export interface IDataModelState {
   schemas: IJsonSchemas;
-  error: Error;
+  error: Error | null;
 }
 
 export interface IFetchJsonSchemaFulfilled {

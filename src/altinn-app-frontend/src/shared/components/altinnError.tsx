@@ -84,7 +84,7 @@ const AltinnError = ({
         <div className={classes.contentMargin}>
           <Typography
             classes={{ root: classes.articleText }}
-            className={styling ? styling.content : null}
+            className={styling ? styling.content : undefined}
           >
             {content}
           </Typography>

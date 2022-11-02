@@ -5,7 +5,7 @@ import type { IParty } from '../../types';
 import { logoutUrlAltinn } from '../../utils';
 
 export interface IAltinnAppHeaderMenuProps {
-  party: IParty;
+  party: IParty | undefined;
   logoColor: string;
   ariaLabel: string;
   logoutText: string;

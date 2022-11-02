@@ -26,14 +26,16 @@ function* waitForFunc(
 export const waitFor = (selector: (state: IRuntimeState) => boolean) =>
   call(waitForFunc, selector);
 
-function* selectNotNullFunc<T>(selector: (state: IRuntimeState) => T): any {
-  let result = null;
+function* selectNotNullFunc<T>(
+  selector: (state: IRuntimeState) => T,
+): SagaIterator<T> {
+  let result: T | null = null;
   yield waitFor((state) => {
     result = selector(state);
     return result !== null && result !== undefined;
   });
 
-  return result;
+  return result as unknown as T;
 }
 
 /**

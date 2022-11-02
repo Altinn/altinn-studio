@@ -89,7 +89,7 @@ describe('RepeatingGroupsEditContainer', () => {
       options: options,
     } as ISelectionComponentProps,
   ];
-  const layout: ILayout = [].concat(multiPageGroup).concat(components);
+  const layout: ILayout = [multiPageGroup, ...components];
 
   const repeatingGroupIndex = 3;
   const repeatingGroupDeepCopyComponents: Array<
@@ -104,7 +104,9 @@ describe('RepeatingGroupsEditContainer', () => {
   it('calls setEditIndex when save and open next is pressed when edit.saveAndNextButton is true', async () => {
     const setEditIndex = jest.fn();
     const setMultiPageIndex = jest.fn();
-    multiPageGroup.edit.saveAndNextButton = true;
+    if (multiPageGroup.edit) {
+      multiPageGroup.edit.saveAndNextButton = true;
+    }
     render({ setEditIndex, setMultiPageIndex, editIndex: 0 });
     await user.click(
       screen.getByRole('button', { name: /save and open next/i }),

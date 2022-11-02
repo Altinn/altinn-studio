@@ -19,7 +19,7 @@ import type { IProcess } from 'altinn-shared/types';
 const instanceDataSelector = (state: IRuntimeState) => state.instanceData;
 
 export function* completeProcessSaga(
-  action: PayloadAction<ICompleteProcessFulfilled>,
+  action: PayloadAction<ICompleteProcessFulfilled | undefined>,
 ): SagaIterator {
   const taskId = action.payload?.taskId;
   try {
@@ -41,20 +41,20 @@ export function* completeProcessSaga(
     } else {
       yield put(
         ProcessActions.completeFulfilled({
-          processStep: result.currentTask.altinnTaskType as ProcessTaskType,
-          taskId: result.currentTask.elementId,
+          processStep: result.currentTask?.altinnTaskType as ProcessTaskType,
+          taskId: result.currentTask?.elementId,
         }),
       );
       const layoutSets = yield select(layoutSetsSelector);
       if (
-        result.currentTask.altinnTaskType === ProcessTaskType.Data ||
-        behavesLikeDataTask(result.currentTask.elementId, layoutSets)
+        result.currentTask?.altinnTaskType === ProcessTaskType.Data ||
+        behavesLikeDataTask(result.currentTask?.elementId, layoutSets)
       ) {
         yield put(IsLoadingActions.startDataTaskIsLoading());
         const instanceData: IInstanceDataState = yield select(
           instanceDataSelector,
         );
-        const instanceId = instanceData.instance.id;
+        const instanceId = instanceData.instance?.id;
         yield put(InstanceDataActions.get({ instanceId }));
       }
     }

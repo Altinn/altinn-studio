@@ -133,7 +133,7 @@ describe('mapAttachments', () => {
       'Group[0].MultiAttachment[1]': mockedAttachments[4].id,
     };
 
-    state.instanceData.instance.data.push(
+    state.instanceData.instance?.data.push(
       mockInstanceData(mockedAttachments[0], basicUploader),
       mockInstanceData(mockedAttachments[1], basicUploaderWithBindings),
       mockInstanceData(mockedAttachments[2], uploaderInRepeatingGroup),

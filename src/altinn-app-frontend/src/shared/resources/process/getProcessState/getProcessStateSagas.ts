@@ -29,8 +29,8 @@ export function* getProcessStateSaga(): SagaIterator {
       yield put(
         ProcessActions.getFulfilled({
           processStep: processState.currentTask
-            .altinnTaskType as ProcessTaskType,
-          taskId: processState.currentTask.elementId,
+            ?.altinnTaskType as ProcessTaskType,
+          taskId: processState.currentTask?.elementId || null,
         }),
       );
     }

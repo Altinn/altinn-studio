@@ -18,9 +18,9 @@ export interface ISummaryComponentSwitch
   extends Omit<ILayoutCompSummary, 'type'> {
   change: {
     onChangeClick: () => void;
-    changeText: string;
+    changeText: string | null;
   };
-  formComponent: ExprResolved<ILayoutComponent | ILayoutGroup>;
+  formComponent?: ExprResolved<ILayoutComponent | ILayoutGroup>;
   hasValidationMessages?: boolean;
   label?: any;
   formData?: any;
@@ -49,7 +49,7 @@ export default function SummaryComponentSwitch({
   const hasDataBindings =
     Object.keys(formComponent.dataModelBindings || {}).length === 0;
 
-  if (hasDataBindings && formComponent.type === 'FileUpload') {
+  if (hasDataBindings && formComponent.type === 'FileUpload' && componentRef) {
     return (
       <>
         <SummaryBoilerplate
@@ -63,7 +63,11 @@ export default function SummaryComponentSwitch({
     );
   }
 
-  if (hasDataBindings && formComponent.type === 'FileUploadWithTag') {
+  if (
+    hasDataBindings &&
+    formComponent.type === 'FileUploadWithTag' &&
+    componentRef
+  ) {
     return (
       <>
         <SummaryBoilerplate
@@ -96,7 +100,7 @@ export default function SummaryComponentSwitch({
       <MultipleChoiceSummary
         {...change}
         label={label}
-        hasValidationMessages={hasValidationMessages}
+        hasValidationMessages={!!hasValidationMessages}
         formData={formData}
         readOnlyComponent={formComponent.readOnly}
       />
@@ -109,7 +113,7 @@ export default function SummaryComponentSwitch({
         <SummaryBoilerplate
           {...change}
           label={label}
-          hasValidationMessages={hasValidationMessages}
+          hasValidationMessages={!!hasValidationMessages}
           display={display}
         />
         <MapComponentSummary
@@ -124,7 +128,7 @@ export default function SummaryComponentSwitch({
     <SingleInputSummary
       {...change}
       label={label}
-      hasValidationMessages={hasValidationMessages}
+      hasValidationMessages={!!hasValidationMessages}
       formData={formData}
       readOnlyComponent={formComponent.readOnly}
       display={display}

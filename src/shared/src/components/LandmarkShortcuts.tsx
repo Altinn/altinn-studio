@@ -40,10 +40,12 @@ export function LandmarkShortcuts({ shortcuts }: ILandmarkShortcutsProps) {
     // workaround because we still use a hash-router (sigh...)
     // can be replaced by the more elegant solution <a href="#main-content></a> once this is no longer the case.
     const target = document.getElementById(id);
-    const currentTabIndex = target.tabIndex;
-    target.tabIndex = -1;
-    target.focus();
-    target.tabIndex = currentTabIndex;
+    if (target) {
+      const currentTabIndex = target.tabIndex;
+      target.tabIndex = -1;
+      target.focus();
+      target.tabIndex = currentTabIndex;
+    }
   };
 
   return (

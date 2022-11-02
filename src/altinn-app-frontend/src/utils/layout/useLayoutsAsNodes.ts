@@ -30,22 +30,23 @@ export function useLayoutsAsNodes(
   const repeatingGroups = useAppSelector(
     (state) => state.formLayout.uiConfig.repeatingGroups,
   );
-  const layouts = useAppSelector((state) => state.formLayout.layouts);
+  const _layouts = useAppSelector((state) => state.formLayout.layouts);
   const current = useAppSelector(
     (state) => state.formLayout.uiConfig.currentView,
   );
 
   return useMemo(() => {
     const asNodes = {};
-    for (const key of Object.keys(layouts || {})) {
+    const layouts = _layouts || {};
+    for (const key of Object.keys(layouts)) {
       if (dataSources) {
         asNodes[key] = resolvedNodesInLayout(
-          layouts[key],
+          layouts[key] || [],
           repeatingGroups,
           dataSources,
         );
       } else {
-        asNodes[key] = nodesInLayout(layouts[key], repeatingGroups);
+        asNodes[key] = nodesInLayout(layouts[key] || [], repeatingGroups);
       }
     }
 
@@ -53,5 +54,5 @@ export function useLayoutsAsNodes(
       current as keyof typeof asNodes,
       asNodes,
     );
-  }, [layouts, current, repeatingGroups, dataSources]);
+  }, [_layouts, current, repeatingGroups, dataSources]);
 }

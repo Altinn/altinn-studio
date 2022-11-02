@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Route } from 'react-router-dom';
 
 import { getFormLayoutStateMock } from '__mocks__/formLayoutStateMock';
+import { getInitialStateMock } from '__mocks__/mocks';
 import { screen, within } from '@testing-library/react';
 import {
   MemoryRouterWithRedirectingRoot,
@@ -249,6 +250,7 @@ describe('Form', () => {
       </MemoryRouterWithRedirectingRoot>,
       {
         preloadedState: {
+          ...getInitialStateMock(),
           ...customState,
           formLayout: getFormLayoutStateMock({
             layouts: {

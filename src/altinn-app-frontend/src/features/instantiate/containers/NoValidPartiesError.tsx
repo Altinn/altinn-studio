@@ -20,36 +20,42 @@ function NoValidPartiesError() {
   }
 
   function getAllowedParties(): string {
+    if (!language) {
+      return '';
+    }
+
     let returnString = '';
     const partyTypes: string[] = [];
 
-    const { partyTypesAllowed } = appMetadata;
+    if (appMetadata) {
+      const { partyTypesAllowed } = appMetadata;
 
-    if (partyTypesAllowed.person) {
-      partyTypes.push(
-        getLanguageFromKey(
-          'party_selection.unit_type_private_person',
-          language,
-        ),
-      );
-    }
-    if (partyTypesAllowed.organisation) {
-      partyTypes.push(
-        getLanguageFromKey('party_selection.unit_type_company', language),
-      );
-    }
-    if (partyTypesAllowed.subUnit) {
-      partyTypes.push(
-        getLanguageFromKey('party_selection.unit_type_subunit', language),
-      );
-    }
-    if (partyTypesAllowed.bankruptcyEstate) {
-      partyTypes.push(
-        getLanguageFromKey(
-          'party_selection.unit_type_bankruptcy_state',
-          language,
-        ),
-      );
+      if (partyTypesAllowed.person) {
+        partyTypes.push(
+          getLanguageFromKey(
+            'party_selection.unit_type_private_person',
+            language,
+          ),
+        );
+      }
+      if (partyTypesAllowed.organisation) {
+        partyTypes.push(
+          getLanguageFromKey('party_selection.unit_type_company', language),
+        );
+      }
+      if (partyTypesAllowed.subUnit) {
+        partyTypes.push(
+          getLanguageFromKey('party_selection.unit_type_subunit', language),
+        );
+      }
+      if (partyTypesAllowed.bankruptcyEstate) {
+        partyTypes.push(
+          getLanguageFromKey(
+            'party_selection.unit_type_bankruptcy_state',
+            language,
+          ),
+        );
+      }
     }
 
     for (let i = 0; i < partyTypes.length; i++) {
@@ -71,23 +77,28 @@ function NoValidPartiesError() {
   function getCustomerService() {
     return getParsedLanguageFromKey(
       'instantiate.authorization_error_info_customer_service',
-      language,
-      [getLanguageFromKey('general.customer_service_phone_number', language)],
+      language || {},
+      [
+        getLanguageFromKey(
+          'general.customer_service_phone_number',
+          language || {},
+        ),
+      ],
     );
   }
 
   function getNoAccessError() {
     return getParsedLanguageFromKey(
       'party_selection.no_valid_selection_second_part',
-      language,
-      [appMetadata.title.nb],
+      language || {},
+      [appMetadata?.title.nb],
     );
   }
 
   function getAllowedPartiesError() {
     return getParsedLanguageFromKey(
       'party_selection.no_valid_selection_third_part',
-      language,
+      language || {},
       [getAllowedParties()],
     );
   }
@@ -96,7 +107,7 @@ function NoValidPartiesError() {
     // Add party type
     return getParsedLanguageFromKey(
       'party_selection.no_valid_selection_first_part',
-      language,
+      language || {},
       [getAllowedParties()],
     );
   }
@@ -109,7 +120,7 @@ function NoValidPartiesError() {
     const hostName = getHostname();
     const errorMoreInfo = getParsedLanguageFromKey(
       'instantiate.authorization_error_info_rights',
-      language,
+      language || {},
       [hostName],
     );
     const errorCustomerService = getCustomerService();

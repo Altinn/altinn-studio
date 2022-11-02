@@ -81,6 +81,7 @@ const layout: ILayout = [
 
 const getState = (formData: IFormData = {}): IRuntimeState => {
   const state = getInitialStateMock();
+  state.formLayout.layouts = state.formLayout.layouts || {};
   state.formLayout.layouts['myLayout'] = layout;
   state.formLayout.uiConfig.currentView = 'myLayout';
   state.formData.formData = {
@@ -132,7 +133,7 @@ const thingWithoutExpressions = (
 function render<
   T extends ExampleThingWithExpressions | ExampleThingWithExpressions[],
 >(thing: T, options: UseExpressionsOptions<T>, state = getState()) {
-  let error: Error = undefined;
+  let error: Error | undefined = undefined;
   const store = setupStore(state);
   const rendered = renderHook(() => useExpressions(thing, options), {
     wrapper: class Wrapper extends React.Component<
@@ -165,7 +166,7 @@ function render<
   return {
     ...rendered,
     store,
-    error,
+    error: error as Error | undefined,
   };
 }
 
@@ -202,7 +203,7 @@ describe('useExpressions', () => {
   });
 
   it('should skip evaluating null value', () => {
-    const { result } = render(null as ExampleThingWithExpressions, {
+    const { result } = render(null as unknown as ExampleThingWithExpressions, {
       forComponentId: components.topLayer.id,
     });
 
@@ -250,7 +251,9 @@ describe('useExpressions', () => {
     });
 
     expect(result.current).toBeNull();
-    expect(error.message).toContain('Expected number, got value "hello world"');
+    expect(error?.message).toContain(
+      'Expected number, got value "hello world"',
+    );
     expect(consoleRef.error).toBeCalledTimes(3);
     expect((consoleRef.error.mock.calls[0][0] as Error).message).toContain(
       'Error: Evaluated expression:',

@@ -90,7 +90,9 @@ export function AltinnAttachment({
                 },
                 classes.a,
               )}
-              href={makeUrlRelativeIfSameDomain(attachment.url)}
+              href={
+                attachment.url && makeUrlRelativeIfSameDomain(attachment.url)
+              }
               key={index}
             >
               <ListItemIcon>

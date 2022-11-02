@@ -136,7 +136,7 @@ export const NavigationBar = ({ triggers }: INavigationBar) => {
     const runValidations =
       (runAllValidations && 'allPages') ||
       (runPageValidations && 'page') ||
-      null;
+      undefined;
 
     dispatch(
       FormLayoutActions.updateCurrentView({ newView: pageId, runValidations }),
@@ -152,9 +152,13 @@ export const NavigationBar = ({ triggers }: INavigationBar) => {
   React.useLayoutEffect(() => {
     const shouldFocusFirstItem = firstPageLink.current && showMenu === true;
     if (shouldFocusFirstItem) {
-      firstPageLink.current.focus();
+      firstPageLink.current?.focus();
     }
   }, [showMenu]);
+
+  if (!language || !pageIds) {
+    return null;
+  }
 
   return (
     <Grid container>

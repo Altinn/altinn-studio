@@ -16,8 +16,6 @@ import { TextResourcesActions } from 'src/shared/resources/textResources/textRes
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import type { ITextResource } from 'src/types';
 
-import type { IInstance } from 'altinn-shared/types';
-
 describe('infoTaskQueueSaga', () => {
   let textResources: ITextResource[];
 
@@ -69,7 +67,7 @@ describe('infoTaskQueueSaga', () => {
       ],
     };
 
-    const instanceData: IInstance = getInstanceDataStateMock().instance;
+    const instanceData = getInstanceDataStateMock().instance;
     return expectSaga(startInitialInfoTaskQueueSaga)
       .provide([
         [select(ApplicationMetadataSelector), applicationMetadata],

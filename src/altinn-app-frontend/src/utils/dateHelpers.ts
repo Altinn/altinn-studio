@@ -19,7 +19,9 @@ export function getFlagBasedDate(flag: DateFlags): string | undefined {
   return undefined;
 }
 
-export function getISOString(potentialDate: string): string | undefined {
+export function getISOString(
+  potentialDate: string | undefined,
+): string | undefined {
   if (!potentialDate) {
     return undefined;
   }

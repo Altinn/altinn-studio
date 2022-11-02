@@ -133,15 +133,15 @@ export function createSagaSlice<
       otherActions[key] = createAction(actionName);
     }
 
-    if ('saga' in action) {
+    if ('saga' in action && action.saga) {
       rootSagas.push(...asArray(action.saga(actionName)));
     }
 
-    if ('takeLatest' in action) {
+    if ('takeLatest' in action && action.takeLatest) {
       rootSagas.push(...asTake('takeLatest', actionName, action.takeLatest));
     }
 
-    if ('takeEvery' in action) {
+    if ('takeEvery' in action && action.takeEvery) {
       rootSagas.push(...asTake('takeEvery', actionName, action.takeEvery));
     }
   }

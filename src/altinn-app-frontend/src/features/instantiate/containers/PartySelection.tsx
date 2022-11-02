@@ -190,12 +190,12 @@ const PartySelection = () => {
       3. sub unit
       4. bankruptcy state
     */
-    const { partyTypesAllowed } = appMetadata;
+    const { partyTypesAllowed } = appMetadata || {};
     const partyTypes: string[] = [];
 
     let returnString = '';
 
-    if (partyTypesAllowed.person) {
+    if (partyTypesAllowed?.person) {
       partyTypes.push(
         getLanguageFromKey(
           'party_selection.unit_type_private_person',
@@ -203,17 +203,17 @@ const PartySelection = () => {
         ),
       );
     }
-    if (partyTypesAllowed.organisation) {
+    if (partyTypesAllowed?.organisation) {
       partyTypes.push(
         getLanguageFromKey('party_selection.unit_type_company', language),
       );
     }
-    if (partyTypesAllowed.subUnit) {
+    if (partyTypesAllowed?.subUnit) {
       partyTypes.push(
         getLanguageFromKey('party_selection.unit_type_subunit', language),
       );
     }
-    if (partyTypesAllowed.bankruptcyEstate) {
+    if (partyTypesAllowed?.bankruptcyEstate) {
       partyTypes.push(
         getLanguageFromKey(
           'party_selection.unit_type_bankruptcy_state',

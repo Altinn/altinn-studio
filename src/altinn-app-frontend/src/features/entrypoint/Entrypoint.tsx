@@ -34,10 +34,13 @@ import {
 } from 'altinn-shared/components';
 
 export default function Entrypoint({ allowAnonymous }: any) {
-  const [action, setAction] = React.useState<ShowTypes>(null);
-  const [partyValidation, setPartyValidation] = React.useState(null);
-  const [activeInstances, setActiveInstances] =
-    React.useState<ISimpleInstance[]>(null);
+  const [action, setAction] = React.useState<ShowTypes | null>(null);
+  const [partyValidation, setPartyValidation] = React.useState<any | null>(
+    null,
+  );
+  const [activeInstances, setActiveInstances] = React.useState<
+    ISimpleInstance[] | null
+  >(null);
   const applicationMetadata = useAppSelector(
     (state) => state.applicationMetadata?.applicationMetadata,
   );
@@ -53,7 +56,11 @@ export default function Entrypoint({ allowAnonymous }: any) {
   };
 
   React.useEffect(() => {
-    if (action === 'select-instance' && partyValidation?.valid) {
+    if (
+      action === 'select-instance' &&
+      partyValidation?.valid &&
+      selectedParty
+    ) {
       const fetchExistingInstances = async () => {
         try {
           const instances = await get(
@@ -117,7 +124,7 @@ export default function Entrypoint({ allowAnonymous }: any) {
   // error trying to fetch data, if missing rights we display relevant page
   if (checkIfAxiosError(formDataError)) {
     const axiosError = formDataError as AxiosError;
-    if (axiosError.response.status === HttpStatusCodes.Forbidden) {
+    if (axiosError.response?.status === HttpStatusCodes.Forbidden) {
       return <MissingRolesError />;
     }
   }
@@ -139,7 +146,7 @@ export default function Entrypoint({ allowAnonymous }: any) {
     return (
       // let user decide if continuing on existing or starting new
       <Presentation
-        header={appName}
+        header={appName || ''}
         appOwner={appOwner}
         type={ProcessTaskType.Unknown}
       >
@@ -162,7 +169,7 @@ export default function Entrypoint({ allowAnonymous }: any) {
     if (statelessLoading === false) {
       return (
         <Presentation
-          header={appName}
+          header={appName || ''}
           appOwner={appOwner}
           type={PresentationType.Stateless}
         >

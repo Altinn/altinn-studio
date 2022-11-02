@@ -7,6 +7,12 @@ type MapExtensionToAcceptMimeProps = {
 export const mapExtToMimeObject = (ext: string) => {
   const mimeType = mime.getType(ext);
 
+  if (!mimeType) {
+    return {
+      'application/octet-stream': [ext],
+    };
+  }
+
   return {
     [mimeType]: [ext],
   };

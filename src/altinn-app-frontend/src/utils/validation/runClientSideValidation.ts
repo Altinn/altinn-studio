@@ -8,19 +8,42 @@ import {
   validateFormComponents,
   validateFormData,
 } from 'src/utils/validation/validation';
-import type { IRuntimeState } from 'src/types';
+import type { IRuntimeState, IValidationResult, IValidations } from 'src/types';
+
+interface ValidationResult {
+  model: any;
+  validationResult: IValidationResult;
+  componentSpecificValidations: IValidations;
+  emptyFieldsValidations: IValidations;
+}
 
 /**
  * Runs client side validations on state.
  * @param state
  */
-export function runClientSideValidation(state: IRuntimeState) {
+export function runClientSideValidation(
+  state: IRuntimeState,
+): ValidationResult {
+  const out: ValidationResult = {
+    model: {},
+    validationResult: {
+      validations: {},
+      invalidDataTypes: false,
+    },
+    componentSpecificValidations: {},
+    emptyFieldsValidations: {},
+  };
+
+  if (!state.applicationMetadata.applicationMetadata) {
+    return out;
+  }
+
   const currentDataTaskDataTypeId = getCurrentDataTypeId(
     state.applicationMetadata.applicationMetadata,
     state.instanceData.instance,
     state.formLayout.layoutsets,
   );
-  const model = convertDataBindingToModel(state.formData.formData);
+  out.model = convertDataBindingToModel(state.formData.formData);
   const validator = getValidator(
     currentDataTaskDataTypeId,
     state.formDataModel.schemas,
@@ -31,16 +54,20 @@ export function runClientSideValidation(state: IRuntimeState) {
     state.formLayout.uiConfig.tracks,
   );
 
+  if (!layoutOrder || !state.language.language) {
+    return out;
+  }
+
   const layouts = resolvedLayoutsFromState(state);
-  const validationResult = validateFormData(
-    model,
+  out.validationResult = validateFormData(
+    out.model,
     layouts,
     layoutOrder,
     validator,
     state.language.language,
     state.textResources.resources,
   );
-  const componentSpecificValidations = validateFormComponents(
+  out.componentSpecificValidations = validateFormComponents(
     state.attachments.attachments,
     layouts,
     layoutOrder,
@@ -48,7 +75,7 @@ export function runClientSideValidation(state: IRuntimeState) {
     state.language.language,
     hiddenFields,
   );
-  const emptyFieldsValidations = validateEmptyFields(
+  out.emptyFieldsValidations = validateEmptyFields(
     state.formData.formData,
     layouts,
     layoutOrder,
@@ -56,10 +83,6 @@ export function runClientSideValidation(state: IRuntimeState) {
     hiddenFields,
     state.textResources.resources,
   );
-  return {
-    model,
-    validationResult,
-    componentSpecificValidations,
-    emptyFieldsValidations,
-  };
+
+  return out;
 }

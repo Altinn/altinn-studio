@@ -11,6 +11,10 @@ export const PanelComponent = ({
   variant,
   showIcon,
 }: IPanelProps) => {
+  if (!textResourceBindings) {
+    return null;
+  }
+
   return (
     <Panel
       title={getTextResource(textResourceBindings.title)}

@@ -403,14 +403,14 @@ describe('Hierarchical layout tools', () => {
       const deepComponent = flatWithGroups.find(
         (node) => node.item.id === `${components.group2nh.id}-2-2`,
       );
-      expect(deepComponent.item.id).toEqual(`${components.group2nh.id}-2-2`);
-      expect(deepComponent.parent?.item.id).toEqual(
+      expect(deepComponent?.item.id).toEqual(`${components.group2nh.id}-2-2`);
+      expect(deepComponent?.parent?.item?.id).toEqual(
         `${components.group2n.id}-2`,
       );
-      expect(deepComponent.parent?.item.type).toEqual(`Group`);
-      expect(deepComponent.closest((c) => c.type === 'Input').item.id).toEqual(
-        `${components.group2ni.id}-2-2`,
-      );
+      expect(deepComponent?.parent?.item.type).toEqual(`Group`);
+      expect(
+        deepComponent?.closest((c) => c.type === 'Input')?.item.id,
+      ).toEqual(`${components.group2ni.id}-2-2`);
 
       expect(
         nodes.findAllById(components.group2ni.id).map((c) => c.item.id),
@@ -443,10 +443,10 @@ describe('Hierarchical layout tools', () => {
         `${components.group3ni.id}-1-4`,
       ]);
 
-      expect(nodes.findById(components.group2ni.id).item.id).toEqual(
+      expect(nodes.findById(components.group2ni.id)?.item.id).toEqual(
         `${components.group2ni.id}-0-0`,
       );
-      expect(nodes.findById(`${components.group2ni.id}-1-1`).item.id).toEqual(
+      expect(nodes.findById(`${components.group2ni.id}-1-1`)?.item.id).toEqual(
         `${components.group2ni.id}-1-1`,
       );
 
@@ -454,38 +454,39 @@ describe('Hierarchical layout tools', () => {
         `${components.group2nh.id}-3-3`,
       );
       expect(
-        otherDeepComponent.closest((c) => c.type === 'Input').item.id,
+        otherDeepComponent?.closest((c) => c.type === 'Input')?.item.id,
       ).toEqual(`${components.group2ni.id}-3-3`);
       expect(
-        otherDeepComponent.closest((c) => c.type === 'Group').item.id,
+        otherDeepComponent?.closest((c) => c.type === 'Group')?.item.id,
       ).toEqual(`${components.group2n.id}-3`);
       expect(
-        otherDeepComponent.closest(
+        otherDeepComponent?.closest(
           (c) => c.baseComponentId === components.group2i.id,
-        ).item.id,
+        )?.item.id,
       ).toEqual(`${components.group2i.id}-3`);
       expect(
-        otherDeepComponent.closest((c) => c.id === components.top1.id).item.id,
+        otherDeepComponent?.closest((c) => c.id === components.top1.id)?.item
+          .id,
       ).toEqual(components.top1.id);
 
       const insideNonRepeatingGroup = nodes.findById(components.group1i.id);
       expect(
-        insideNonRepeatingGroup.closest((n) => n.id === components.group1h.id)
-          .item.id,
+        insideNonRepeatingGroup?.closest((n) => n.id === components.group1h.id)
+          ?.item.id,
       ).toEqual(components.group1h.id);
 
       const group2 = flatWithGroups.find(
         (node) => node.item.id === components.group2.id,
       );
-      expect(group2.children((n) => n.type === 'Input').item.id).toEqual(
+      expect(group2?.children((n) => n.type === 'Input')?.item.id).toEqual(
         `${components.group2i.id}-0`,
       );
-      expect(group2.children((n) => n.type === 'Input', 1).item.id).toEqual(
+      expect(group2?.children((n) => n.type === 'Input', 1)?.item.id).toEqual(
         `${components.group2i.id}-1`,
       );
 
       expect(
-        otherDeepComponent.closest((c) => c.id === 'not-found'),
+        otherDeepComponent?.closest((c) => c.id === 'not-found'),
       ).toBeUndefined();
     });
 
@@ -547,8 +548,8 @@ describe('Hierarchical layout tools', () => {
       expect(nodes.findAllById('g1c').length).toEqual(3);
       expect(nodes.findAllById('g2c').length).toEqual(3);
 
-      expect(nodes.findById('g1c-0').rowIndex).toEqual(0);
-      expect(nodes.findById('g2c-3').rowIndex).toEqual(3);
+      expect(nodes.findById('g1c-0')?.rowIndex).toEqual(0);
+      expect(nodes.findById('g2c-3')?.rowIndex).toEqual(3);
     });
   });
 
@@ -573,27 +574,33 @@ describe('Hierarchical layout tools', () => {
     const group2i = nodes.findById(`${components.group2i.id}-0`);
     const group2ni = nodes.findById(`${components.group2ni.id}-0-1`);
 
-    function uniqueHidden(nodes: AnyNode<any>[]): any[] {
+    function uniqueHidden(
+      nodes: AnyNode<any>[] | undefined,
+    ): any[] | undefined {
+      if (!nodes) {
+        return undefined;
+      }
+
       return [...new Set(nodes.map((n) => n.item.hidden))].sort();
     }
     const plain = [true, undefined];
 
     // Tests to make sure all children also have their expressions resolved
-    expect(topInput.item.hidden).toEqual(true);
-    expect(group2i.item.hidden).toEqual(true);
-    expect(group2ni.item.hidden).toEqual(true);
-    expect(group2i.parent.item.hidden).toEqual(true);
-    expect(group2ni.parent.parent.item.hidden).toEqual(true);
-    expect(uniqueHidden(group2.children())).toEqual(plain);
-    expect(uniqueHidden(group2i.parent.children())).toEqual(plain);
-    expect(uniqueHidden(group2ni.parent.children())).toEqual(plain);
-    expect(uniqueHidden(group2ni.parent.parent.children())).toEqual(plain);
-    expect(uniqueHidden(group2.flat(true))).toEqual(plain);
-    expect(uniqueHidden(group2.flat(false))).toEqual(plain);
+    expect(topInput?.item.hidden).toEqual(true);
+    expect(group2i?.item.hidden).toEqual(true);
+    expect(group2ni?.item.hidden).toEqual(true);
+    expect(group2i?.parent.item.hidden).toEqual(true);
+    expect(group2ni?.parent.parent.item.hidden).toEqual(true);
+    expect(uniqueHidden(group2?.children())).toEqual(plain);
+    expect(uniqueHidden(group2i?.parent.children())).toEqual(plain);
+    expect(uniqueHidden(group2ni?.parent.children())).toEqual(plain);
+    expect(uniqueHidden(group2ni?.parent.parent.children())).toEqual(plain);
+    expect(uniqueHidden(group2?.flat(true))).toEqual(plain);
+    expect(uniqueHidden(group2?.flat(false))).toEqual(plain);
     expect(uniqueHidden(nodes.flat(true))).toEqual(plain);
     expect(uniqueHidden(nodes.children())).toEqual(plain);
 
-    if (group2.item.type === 'Group' && 'rows' in group2.item) {
+    if (group2?.item.type === 'Group' && 'rows' in group2.item) {
       expect(group2.item.rows[0].items[1].hidden).toEqual(true);
       expect(group2.item.rows[0].items[2].hidden).toEqual(true);
       const group2n = group2.item.rows[0].items[2];
@@ -625,10 +632,10 @@ describe('Hierarchical layout tools', () => {
 
     it('should find the component in the current layout first', () => {
       expect(
-        collection1.findComponentById(components.top1.id).item.readOnly,
+        collection1?.findComponentById(components.top1.id)?.item.readOnly,
       ).toBeUndefined();
       expect(
-        collection2.findComponentById(components.top1.id).item.readOnly,
+        collection2?.findComponentById(components.top1.id)?.item.readOnly,
       ).toEqual(true);
     });
 
@@ -656,62 +663,62 @@ describe('Hierarchical layout tools', () => {
     const inputNode = nodes.findById(`${components.group2ni.id}-2-2`);
     const topHeaderNode = nodes.findById(components.top1.id);
 
-    expect(inputNode.transposeDataModel('MyModel.Group2.Nested.Age')).toEqual(
+    expect(inputNode?.transposeDataModel('MyModel.Group2.Nested.Age')).toEqual(
       'MyModel.Group2[2].Nested[2].Age',
     );
     expect(
-      inputNode.transposeDataModel('MyModel.Group2.Other.Parents'),
+      inputNode?.transposeDataModel('MyModel.Group2.Other.Parents'),
     ).toEqual('MyModel.Group2[2].Other.Parents');
 
     const headerNode = nodes.findById(`${components.group2nh.id}-2-2`);
 
     // Header component does not have any data binding, but its parent does
-    expect(headerNode.transposeDataModel('MyModel.Group2.Nested.Age')).toEqual(
+    expect(headerNode?.transposeDataModel('MyModel.Group2.Nested.Age')).toEqual(
       'MyModel.Group2[2].Nested[2].Age',
     );
 
     // Existing indexes are not removed:
     expect(
-      headerNode.transposeDataModel('MyModel.Group2[1].Nested[1].Age'),
+      headerNode?.transposeDataModel('MyModel.Group2[1].Nested[1].Age'),
     ).toEqual('MyModel.Group2[1].Nested[1].Age');
     expect(
-      headerNode.transposeDataModel('MyModel.Group2.Nested[1].Age'),
+      headerNode?.transposeDataModel('MyModel.Group2.Nested[1].Age'),
     ).toEqual('MyModel.Group2[2].Nested[1].Age');
 
     // This is a broken reference: We cannot know exactly which row in the nested
     // group you want to refer to, as you never specified:
     expect(
-      headerNode.transposeDataModel('MyModel.Group2[3].Nested.Age'),
+      headerNode?.transposeDataModel('MyModel.Group2[3].Nested.Age'),
     ).toEqual('MyModel.Group2[3].Nested.Age');
 
     // This still doesn't make sense. Even though we're on the same row now, we should behave the same all the time
     // and fail to resolve the nested row.
     expect(
-      headerNode.transposeDataModel('MyModel.Group2[2].Nested.Age'),
+      headerNode?.transposeDataModel('MyModel.Group2[2].Nested.Age'),
     ).toEqual('MyModel.Group2[2].Nested.Age');
 
     // Tricks to make sure we don't just compare using startsWith()
     expect(
-      inputNode.transposeDataModel('MyModel.Group22.NestedOtherValue.Key'),
+      inputNode?.transposeDataModel('MyModel.Group22.NestedOtherValue.Key'),
     ).toEqual('MyModel.Group22.NestedOtherValue.Key');
-    expect(inputNode.transposeDataModel('MyModel.Gro.Nes[1].Key')).toEqual(
+    expect(inputNode?.transposeDataModel('MyModel.Gro.Nes[1].Key')).toEqual(
       'MyModel.Gro.Nes[1].Key',
     );
-    expect(inputNode.transposeDataModel('MyModel.Gro[0].Nes.Key')).toEqual(
+    expect(inputNode?.transposeDataModel('MyModel.Gro[0].Nes.Key')).toEqual(
       'MyModel.Gro[0].Nes.Key',
     );
 
     // There are no data model bindings in group3, so this should not do anything
     expect(
       nodes
-        .findById(`${components.group3ni.id}-1-1`)
-        .transposeDataModel('Main.Parent[0].Child[1]'),
+        ?.findById(`${components.group3ni.id}-1-1`)
+        ?.transposeDataModel('Main.Parent[0].Child[1]'),
     ).toEqual('Main.Parent[0].Child[1]');
 
     // This component doesn't have any repeating group reference point, so it cannot
     // provide any insights (but it should not fail)
     expect(
-      topHeaderNode.transposeDataModel('MyModel.Group2.Nested.Age'),
+      topHeaderNode?.transposeDataModel('MyModel.Group2.Nested.Age'),
     ).toEqual('MyModel.Group2.Nested.Age');
   });
 });

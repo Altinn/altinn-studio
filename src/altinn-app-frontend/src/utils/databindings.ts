@@ -84,7 +84,9 @@ export function getKeyWithoutIndexIndicators(
 }
 
 export function keyHasIndexIndicators(key: string): boolean {
-  return key.match(GLOBAL_INDEX_KEY_INDICATOR_REGEX)?.length > 0;
+  const result = key.match(GLOBAL_INDEX_KEY_INDICATOR_REGEX)?.length;
+
+  return !!(result && result > 0);
 }
 
 /** Replaces index indicators with indexes
@@ -135,7 +137,11 @@ export function getIndexCombinations(
   const repeatingGroupValues = Object.values(repeatingGroups);
   const mainGroupMaxIndex = repeatingGroupValues.find(
     (group) => group.dataModelBinding === baseGroupBindings[0],
-  ).index;
+  )?.index;
+
+  if (mainGroupMaxIndex === undefined) {
+    return combinations;
+  }
 
   if (baseGroupBindings.length === 1) {
     return Array.from(Array(mainGroupMaxIndex + 1).keys()).map((x) => [x]);
@@ -248,10 +254,13 @@ export function getGroupDataModelBinding(
     const parentIndex = Number.parseInt(splitId[splitId.length - 1], 10);
     const parentDataBinding = parentGroup.dataModelBindings?.group;
     const indexedParentDataBinding = `${parentDataBinding}[${parentIndex}]`;
-    return repeatingGroup.dataModelBinding.replace(
-      parentDataBinding,
-      indexedParentDataBinding,
-    );
+    if (repeatingGroup.dataModelBinding && parentDataBinding) {
+      return repeatingGroup.dataModelBinding.replace(
+        parentDataBinding,
+        indexedParentDataBinding,
+      );
+    }
+    return undefined;
   }
 
   return repeatingGroup.dataModelBinding;
@@ -312,7 +321,10 @@ export function removeAttachmentReference(
         getKeyWithoutIndex(key).startsWith(dataModelWithoutIndex) &&
         result[key] === attachmentId
       ) {
-        index = getKeyIndex(key).pop();
+        const lastIndex = getKeyIndex(key).pop();
+        if (lastIndex !== undefined) {
+          index = lastIndex;
+        }
         break;
       }
     }
@@ -341,11 +353,15 @@ export function removeAttachmentReference(
 
 export function deleteGroupData(
   data: { [key: string]: any },
-  keyStart: string,
+  keyStart: string | undefined,
   index: number,
   isDataModelBinding: boolean,
   shiftData?: boolean,
 ) {
+  if (!keyStart) {
+    return;
+  }
+
   const prevData = { ...data };
   Object.keys(data)
     .filter((key) =>
@@ -409,7 +425,7 @@ export function findChildAttachments(
 
     if (component) {
       const groupKeys = getKeyIndex(key);
-      if (component.dataModelBindings.list) {
+      if (component.dataModelBindings?.list) {
         groupKeys.pop();
       }
 
@@ -433,7 +449,10 @@ export function findChildAttachments(
   return out;
 }
 
-export function mapFormData(formData: IFormData, mapping: IMapping) {
+export function mapFormData(
+  formData: IFormData,
+  mapping: IMapping | undefined,
+) {
   const mappedFormData = {};
   if (!formData) {
     return mappedFormData;
@@ -452,12 +471,12 @@ export function mapFormData(formData: IFormData, mapping: IMapping) {
 
 export function getFormDataFromFieldKey(
   fieldKey: string,
-  dataModelBindings: IDataModelBindings,
+  dataModelBindings: IDataModelBindings | undefined,
   formData: any,
   groupDataBinding?: string,
   index?: number,
 ) {
-  let dataModelBindingKey = dataModelBindings[fieldKey];
+  let dataModelBindingKey = dataModelBindings && dataModelBindings[fieldKey];
   if (groupDataBinding) {
     dataModelBindingKey = dataModelBindingKey.replace(
       groupDataBinding,
@@ -472,8 +491,10 @@ export function getFormDataFromFieldKey(
         key.startsWith(dataModelBindingKey) &&
         key.substring(dataModelBindingKey.length).match(/^\[\d+]$/)
       ) {
-        const indexes = getKeyIndex(key);
-        value[indexes.pop()] = formData[key];
+        const lastIndex = getKeyIndex(key).pop();
+        if (lastIndex !== undefined) {
+          value[lastIndex] = formData[key];
+        }
       }
     }
     if (!value.length) {

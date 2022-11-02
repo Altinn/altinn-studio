@@ -4,7 +4,7 @@ import { getFileEnding, removeFileEnding } from 'src/utils/attachment';
 
 import { getLanguageFromKey } from 'altinn-shared/utils';
 
-export const FileName = ({ children }: { children: string }) => {
+export const FileName = ({ children }: { children: string | undefined }) => {
   return (
     <div
       style={{

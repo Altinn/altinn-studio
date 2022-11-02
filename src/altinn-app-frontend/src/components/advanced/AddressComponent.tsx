@@ -93,16 +93,13 @@ export function AddressComponent({
     saveWhileTyping,
   );
 
-  const [validations, setValidations] = React.useState({} as any);
-  const prevZipCode = React.useRef(null);
-  const hasFetchedPostPlace = React.useRef(false);
+  const [validations, setValidations] =
+    React.useState<IAddressValidationErrors>({});
+  const prevZipCode = React.useRef<string | undefined>(undefined);
+  const hasFetchedPostPlace = React.useRef<boolean>(false);
 
   const validate = React.useCallback(() => {
-    const validationErrors: IAddressValidationErrors = {
-      zipCode: null,
-      houseNumber: null,
-      postPlace: null,
-    };
+    const validationErrors: IAddressValidationErrors = {};
     if (zipCode && !zipCode.match(/^\d{4}$/)) {
       validationErrors.zipCode = getLanguageFromKey(
         'address_component.validation_error_zipcode',
@@ -110,7 +107,7 @@ export function AddressComponent({
       );
       setPostPlace('');
     } else {
-      validationErrors.zipCode = null;
+      delete validationErrors.zipCode;
     }
     if (houseNumber && !houseNumber.match(/^[a-z,A-Z]{1}\d{4}$/)) {
       validationErrors.houseNumber = getLanguageFromKey(
@@ -118,7 +115,7 @@ export function AddressComponent({
         language,
       );
     } else {
-      validationErrors.houseNumber = null;
+      delete validationErrors.houseNumber;
     }
     return validationErrors;
   }, [houseNumber, language, zipCode, setPostPlace]);
@@ -170,7 +167,7 @@ export function AddressComponent({
         );
         if (response.valid) {
           setPostPlace(response.result);
-          setValidations({ ...validations, zipCode: null });
+          setValidations({ ...validations, zipCode: undefined });
           onSaveField(AddressKeys.postPlace, response.result);
         } else {
           const errorMessage = getLanguageFromKey(
@@ -238,10 +235,7 @@ export function AddressComponent({
   };
 
   const joinValidationMessages = (): IComponentValidations => {
-    let validationMessages = componentValidations;
-    if (!validationMessages) {
-      validationMessages = {};
-    }
+    let validationMessages = componentValidations || {};
 
     Object.keys(AddressKeys).forEach((fieldKey: string) => {
       if (!validationMessages[fieldKey]) {
@@ -256,13 +250,13 @@ export function AddressComponent({
     });
 
     Object.keys(validations).forEach((fieldKey: string) => {
-      if (validations[fieldKey]) {
-        if (validationMessages[fieldKey]) {
-          const validationMessage = validations[fieldKey];
-          const match =
-            validationMessages[fieldKey].errors.indexOf(validationMessage) > -1;
+      const source = validations[fieldKey];
+      if (source) {
+        const target = validationMessages[fieldKey];
+        if (target) {
+          const match = target.errors && target.errors.indexOf(source) > -1;
           if (!match) {
-            validationMessages[fieldKey].errors.push(validations[fieldKey]);
+            validationMessages[fieldKey]?.errors?.push(validations[fieldKey]);
           }
         } else {
           validationMessages = {
@@ -272,7 +266,7 @@ export function AddressComponent({
               warnings: [],
             },
           };
-          validationMessages[fieldKey].errors = [validations[fieldKey]];
+          (validationMessages[fieldKey] || {}).errors = [validations[fieldKey]];
         }
       }
     });
@@ -298,7 +292,7 @@ export function AddressComponent({
         />
         <TextField
           id={`address_address_${id}`}
-          isValid={allValidations.address.errors.length === 0}
+          isValid={allValidations.address?.errors?.length === 0}
           value={address}
           onChange={updateField.bind(null, AddressKeys.address, false)}
           onBlur={updateField.bind(null, AddressKeys.address, true)}
@@ -326,7 +320,7 @@ export function AddressComponent({
           />
           <TextField
             id={`address_care_of_${id}`}
-            isValid={allValidations.careOf.errors.length === 0}
+            isValid={allValidations.careOf?.errors?.length === 0}
             value={careOf}
             onChange={updateField.bind(null, AddressKeys.careOf, false)}
             onBlur={updateField.bind(null, AddressKeys.careOf, true)}
@@ -355,7 +349,7 @@ export function AddressComponent({
           <div className={'address-component-small-inputs'}>
             <TextField
               id={`address_zip_code_${id}`}
-              isValid={allValidations.zipCode.errors.length === 0}
+              isValid={allValidations.zipCode?.errors?.length === 0}
               value={zipCode}
               onChange={updateField.bind(null, AddressKeys.zipCode, false)}
               onBlur={updateField.bind(null, AddressKeys.zipCode, true)}
@@ -384,7 +378,7 @@ export function AddressComponent({
           />
           <TextField
             id={`address_post_place_${id}`}
-            isValid={allValidations.postPlace.errors.length === 0}
+            isValid={allValidations.postPlace?.errors?.length === 0}
             value={postPlace}
             readOnly={true}
             required={required}
@@ -417,7 +411,7 @@ export function AddressComponent({
           <div className={'address-component-small-inputs'}>
             <TextField
               id={`address_house_number_${id}`}
-              isValid={allValidations.houseNumber.errors.length === 0}
+              isValid={allValidations.houseNumber?.errors?.length === 0}
               value={houseNumber}
               onChange={updateField.bind(null, AddressKeys.houseNumber, false)}
               onBlur={updateField.bind(null, AddressKeys.houseNumber, true)}

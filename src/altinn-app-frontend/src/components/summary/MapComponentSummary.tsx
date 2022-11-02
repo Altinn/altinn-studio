@@ -22,6 +22,10 @@ function MapComponentSummary({ component, formData }: IMapComponentSummary) {
   const layers = component.layers;
   const location = formData ? parseLocation(formData) : undefined;
   const language = useAppSelector((state) => state.language.language);
+  if (!language) {
+    return null;
+  }
+
   const footerText = location
     ? getParsedLanguageFromKey('map_component.selectedLocation', language, [
         location.latitude,

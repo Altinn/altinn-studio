@@ -9,7 +9,7 @@ export interface IFetchFormDataFulfilled {
 }
 
 export interface IFormDataRejected {
-  error: Error;
+  error: Error | null;
 }
 
 export interface ISubmitDataAction {
@@ -37,7 +37,7 @@ export interface IUpdateFormData extends IUpdateFormDataProps {
 
 export interface IUpdateFormDataFulfilled extends IUpdateFormDataProps {
   field: string;
-  componentId: string;
+  componentId?: string;
   data: any;
 }
 

@@ -9,8 +9,8 @@ import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
 import type { IApplicationSettings } from 'altinn-shared/types';
 
 export interface IApplicationSettingsState {
-  applicationSettings: IApplicationSettings;
-  error: Error;
+  applicationSettings: IApplicationSettings | null;
+  error: Error | null;
 }
 
 export const initialState: IApplicationSettingsState = {

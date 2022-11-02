@@ -1,8 +1,8 @@
 export interface IFormDynamicState {
   apis: any;
-  ruleConnection: IRuleConnections;
-  conditionalRendering: IConditionalRenderingRules;
-  error: Error;
+  ruleConnection: IRuleConnections | null;
+  conditionalRendering: IConditionalRenderingRules | null;
+  error: Error | null;
 }
 
 export interface IRuleConnection {

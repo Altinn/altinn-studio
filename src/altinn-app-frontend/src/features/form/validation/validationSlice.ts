@@ -10,8 +10,8 @@ import type {
 export interface IValidationState {
   validations: IValidations;
   invalidDataTypes: string[];
-  error: Error;
-  currentSingleFieldValidation: ICurrentSingleFieldValidation;
+  error: Error | null;
+  currentSingleFieldValidation: ICurrentSingleFieldValidation | null;
 }
 
 export interface IUpdateComponentValidations {
@@ -83,7 +83,7 @@ const validationSlice = createSagaSlice(
           }
 
           state.validations[layoutId][componentId] = validations;
-          state.invalidDataTypes = invalidDataTypes;
+          state.invalidDataTypes = invalidDataTypes || [];
         },
       }),
       updateValidations: mkAction<IUpdateValidations>({

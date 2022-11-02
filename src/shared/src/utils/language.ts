@@ -18,7 +18,10 @@ DOMPurify.addHook('afterSanitizeAttributes', (node) => {
   }
 });
 
-export function getLanguageFromKey(key: string, language: ILanguage) {
+export function getLanguageFromKey(
+  key: string | undefined,
+  language: ILanguage,
+) {
   if (!key) {
     return key;
   }
@@ -37,12 +40,24 @@ export function getNestedObject(nestedObj: any, pathArr: string[]) {
 }
 
 // Example: {getParsedLanguageFromKey('marked.markdown', language, ['hei', 'sann'])}
-export const getParsedLanguageFromKey = (
+export function getParsedLanguageFromKey(
+  key: string,
+  language: ILanguage,
+  params?: any[],
+  stringOutput?: false,
+): JSX.Element;
+export function getParsedLanguageFromKey(
+  key: string,
+  language: ILanguage,
+  params?: any[],
+  stringOutput?: true,
+): string;
+export function getParsedLanguageFromKey(
   key: string,
   language: ILanguage,
   params?: any[],
   stringOutput?: boolean,
-) => {
+): any {
   const name = getLanguageFromKey(key, language);
   const paramParsed = params ? replaceParameters(name, params) : name;
 
@@ -50,7 +65,7 @@ export const getParsedLanguageFromKey = (
     return paramParsed;
   }
   return getParsedLanguageFromText(paramParsed);
-};
+}
 
 export const getParsedLanguageFromText = (
   text: string,
@@ -93,7 +108,13 @@ const replaceRootTag = (domNode: any) => {
   }
 };
 
-const replaceParameters = (nameString: string, params: string[]) => {
+const replaceParameters = (
+  nameString: string | undefined,
+  params: string[],
+) => {
+  if (nameString === undefined) {
+    return nameString;
+  }
   let mutatingString = nameString;
   params.forEach((param: string, index: number) => {
     mutatingString = mutatingString.replaceAll(`{${index}}`, param);
@@ -101,11 +122,11 @@ const replaceParameters = (nameString: string, params: string[]) => {
   return mutatingString;
 };
 
-export function getTextResourceByKey(
-  key: string,
-  textResources: ITextResource[],
-) {
-  if (!textResources) {
+export function getTextResourceByKey<T extends string | undefined>(
+  key: T,
+  textResources: ITextResource[] | null,
+): string | T {
+  if (!textResources || !key) {
     return key;
   }
 
@@ -136,7 +157,7 @@ export function replaceTextResourceParams(
   repeatingGroups?: any,
 ): ITextResource[] {
   const repeatingGroupResources: ITextResource[] = [];
-  const mappedResources = textResources.map((textResource: ITextResource) => {
+  const mappedResources = textResources.map((textResource) => {
     const textResourceCopy = { ...textResource };
     if (textResourceCopy.variables) {
       const variableForRepeatingGroup = textResourceCopy.variables.find(
@@ -149,7 +170,9 @@ export function replaceTextResourceParams(
             return repeatingGroups[groupId].dataModelBinding === id;
           },
         );
-        const repeatingGroupIndex = repeatingGroups[repeatingGroupId]?.index;
+        const repeatingGroupIndex =
+          repeatingGroupId !== undefined &&
+          repeatingGroups[repeatingGroupId]?.index;
 
         for (let i = 0; i <= repeatingGroupIndex; ++i) {
           const replaceValues: string[] = [];
@@ -157,9 +180,17 @@ export function replaceTextResourceParams(
             if (variable.dataSource.startsWith('dataModel')) {
               if (variable.key.indexOf('[{0}]') > -1) {
                 const keyWithIndex = variable.key.replace('{0}', `${i}`);
-                replaceValues.push(dataSources.dataModel[keyWithIndex] || '');
+                replaceValues.push(
+                  (dataSources.dataModel &&
+                    dataSources.dataModel[keyWithIndex]) ||
+                    '',
+                );
               } else {
-                replaceValues.push(dataSources.dataModel[variable.key] || '');
+                replaceValues.push(
+                  (dataSources.dataModel &&
+                    dataSources.dataModel[variable.key]) ||
+                    '',
+                );
               }
             }
           });
@@ -167,6 +198,10 @@ export function replaceTextResourceParams(
             textResourceCopy.unparsedValue,
             replaceValues,
           );
+
+          if (!newValue) {
+            continue;
+          }
 
           if (
             textResourceCopy.repeating &&
@@ -193,15 +228,20 @@ export function replaceTextResourceParams(
         textResourceCopy.variables.forEach((variable) => {
           if (variable.dataSource.startsWith('dataModel')) {
             replaceValues.push(
-              dataSources.dataModel[variable.key] || variable.key,
+              (dataSources.dataModel && dataSources.dataModel[variable.key]) ||
+                variable.key,
             );
           } else if (variable.dataSource === 'applicationSettings') {
             replaceValues.push(
-              dataSources.applicationSettings[variable.key] || variable.key,
+              (dataSources.applicationSettings &&
+                dataSources.applicationSettings[variable.key]) ||
+                variable.key,
             );
           } else if (variable.dataSource === 'instanceContext') {
             replaceValues.push(
-              dataSources.instanceContext[variable.key] || variable.key,
+              (dataSources.instanceContext &&
+                dataSources.instanceContext[variable.key]) ||
+                variable.key,
             );
           }
         });
@@ -210,7 +250,7 @@ export function replaceTextResourceParams(
           textResourceCopy.unparsedValue,
           replaceValues,
         );
-        if (textResourceCopy.value !== newValue) {
+        if (newValue && textResourceCopy.value !== newValue) {
           textResourceCopy.value = newValue;
         }
       }
@@ -223,8 +263,8 @@ export function replaceTextResourceParams(
 
 export function getAppOwner(
   textResources: ITextResource[],
-  orgs: IAltinnOrgs,
-  org: string,
+  orgs: IAltinnOrgs | null,
+  org: string | undefined,
   userLanguage: string,
 ) {
   const appOwner = getTextResourceByKey('appOwner', textResources);
@@ -233,7 +273,7 @@ export function getAppOwner(
   }
 
   // if no text resource key is set, fetch from orgs
-  if (orgs && orgs[org]) {
+  if (orgs && typeof org === 'string' && orgs[org]) {
     return orgs[org].name[userLanguage] || orgs[org].name.nb;
   }
 
@@ -245,7 +285,7 @@ const oldAppNameKey = 'ServiceName';
 
 export function getAppName(
   textResources: ITextResource[],
-  applicationMetadata: IApplication,
+  applicationMetadata: IApplication | null,
   userLanguage: string,
 ) {
   let appName = getTextResourceByKey(appNameKey, textResources);

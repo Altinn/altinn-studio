@@ -7,20 +7,39 @@ import {
 } from 'altinn-shared/utils';
 import type { ILanguage } from 'altinn-shared/types';
 
-export const getTextFromAppOrDefault = (
+export function getTextFromAppOrDefault(
+  key: string,
+  textResources: ITextResource[],
+  language: ILanguage,
+  params?: string[],
+  stringOutput?: false,
+): JSX.Element | JSX.Element[];
+export function getTextFromAppOrDefault(
+  key: string,
+  textResources: ITextResource[],
+  language: ILanguage,
+  params?: string[],
+  stringOutput?: true,
+): string;
+export function getTextFromAppOrDefault(
   key: string,
   textResources: ITextResource[],
   language: ILanguage,
   params?: string[],
   stringOutput?: boolean,
-) => {
-  const textResource: string = getTextResourceByKey(key, textResources);
-  if (textResource !== key) {
+): any {
+  const textResource: string | undefined = getTextResourceByKey(
+    key,
+    textResources,
+  );
+  if (textResource !== key && textResource !== undefined) {
     if (stringOutput) {
       return textResource;
     }
     return getParsedLanguageFromText(textResource);
   }
 
-  return getParsedLanguageFromKey(key, language, params, stringOutput);
-};
+  return stringOutput
+    ? getParsedLanguageFromKey(key, language, params, true)
+    : getParsedLanguageFromKey(key, language, params, false);
+}

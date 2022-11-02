@@ -23,10 +23,9 @@ function DropdownComponent({
   source,
 }: IDropdownProps) {
   const options = useGetOptions({ optionsId, mapping, source });
+  const lookupKey = optionsId && getOptionLookupKey({ id: optionsId, mapping });
   const fetchingOptions = useAppSelector(
-    (state) =>
-      state.optionState.options[getOptionLookupKey({ id: optionsId, mapping })]
-        ?.loading,
+    (state) => lookupKey && state.optionState.options[lookupKey]?.loading,
   );
   const hasSelectedInitial = React.useRef(false);
   const optionsHasChanged = useHasChangedIgnoreUndefined(options);
@@ -41,6 +40,7 @@ function DropdownComponent({
     const shouldSelectOptionAutomatically =
       !formData?.simpleBinding &&
       options &&
+      typeof preselectedOptionIndex !== 'undefined' &&
       preselectedOptionIndex >= 0 &&
       preselectedOptionIndex < options.length &&
       hasSelectedInitial.current === false;

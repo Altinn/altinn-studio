@@ -9,7 +9,7 @@ import type {
 import { getTextResourceByKey } from './language';
 
 export const mapInstanceAttachments = (
-  data: IData[],
+  data: IData[] | undefined,
   defaultElementIds: string[],
   platform?: boolean,
 ): IAttachment[] => {
@@ -28,8 +28,8 @@ export const mapInstanceAttachments = (
     tempAttachments.push({
       name: dataElement.filename,
       url: platform
-        ? dataElement.selfLinks.platform
-        : dataElement.selfLinks.apps,
+        ? dataElement.selfLinks?.platform
+        : dataElement.selfLinks?.apps,
       iconClass: 'reg reg-attachment',
       dataType: dataElement.dataType,
     });
@@ -38,11 +38,11 @@ export const mapInstanceAttachments = (
 };
 
 export const getInstancePdf = (
-  data: IData[],
+  data: IData[] | undefined,
   platform?: boolean,
-): IAttachment[] => {
+): IAttachment[] | undefined => {
   if (!data) {
-    return null;
+    return undefined;
   }
 
   const pdfElements = data.filter(
@@ -50,13 +50,13 @@ export const getInstancePdf = (
   );
 
   if (!pdfElements) {
-    return null;
+    return undefined;
   }
 
   return pdfElements.map((element) => {
     const pdfUrl = platform
-      ? element.selfLinks.platform
-      : element.selfLinks.apps;
+      ? element.selfLinks?.platform
+      : element.selfLinks?.apps;
     return {
       name: element.filename,
       url: pdfUrl,
@@ -73,8 +73,8 @@ export const getInstancePdf = (
  * @param textResources the application text resources
  */
 export const getAttachmentGroupings = (
-  attachments: IAttachment[],
-  applicationMetadata: IApplication,
+  attachments: IAttachment[] | undefined,
+  applicationMetadata: IApplication | null,
   textResources: ITextResource[],
 ): IAttachmentGrouping => {
   const attachmentGroupings: IAttachmentGrouping = {};
@@ -105,7 +105,7 @@ export const getGroupingForAttachment = (
   applicationMetadata: IApplication,
 ): string => {
   if (!applicationMetadata || !applicationMetadata.dataTypes || !attachment) {
-    return null;
+    return 'null';
   }
 
   const attachmentType = applicationMetadata.dataTypes.find(
@@ -113,7 +113,7 @@ export const getGroupingForAttachment = (
   );
 
   if (!attachmentType || !attachmentType.grouping) {
-    return null;
+    return 'null';
   }
 
   return attachmentType.grouping;

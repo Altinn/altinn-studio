@@ -115,7 +115,7 @@ export function GenericComponent<Type extends ComponentExceptGroup>(
   const { id, ...passThroughProps } = props;
   const dispatch = useAppDispatch();
   const classes = useStyles(props);
-  const gridRef = React.useRef<HTMLDivElement>();
+  const gridRef = React.useRef<HTMLDivElement>(null);
   const GetHiddenSelector = makeGetHidden();
   const GetFocusSelector = makeGetFocus();
   const [hasValidationMessages, setHasValidationMessages] =
@@ -181,7 +181,7 @@ export function GenericComponent<Type extends ComponentExceptGroup>(
     }
   }, [shouldFocus, hidden, dispatch]);
 
-  if (hidden) {
+  if (hidden || !language) {
     return null;
   }
 
@@ -414,15 +414,23 @@ const RenderLabelScoped = (props: IRenderLabelProps) => {
 };
 
 const gridToHiddenProps = (
-  labelGrid: IGridStyling,
+  labelGrid: IGridStyling | undefined,
   classes: ReturnType<typeof useStyles>,
 ) => {
-  if (!labelGrid) return undefined;
+  if (!labelGrid) {
+    return undefined;
+  }
+
   return {
-    [classes.xs]: labelGrid.xs > 0 && labelGrid.xs < 12,
-    [classes.sm]: labelGrid.sm > 0 && labelGrid.sm < 12,
-    [classes.md]: labelGrid.md > 0 && labelGrid.md < 12,
-    [classes.lg]: labelGrid.lg > 0 && labelGrid.lg < 12,
-    [classes.xl]: labelGrid.xl > 0 && labelGrid.xl < 12,
+    [classes.xs]:
+      labelGrid.xs !== undefined && labelGrid.xs > 0 && labelGrid.xs < 12,
+    [classes.sm]:
+      labelGrid.sm !== undefined && labelGrid.sm > 0 && labelGrid.sm < 12,
+    [classes.md]:
+      labelGrid.md !== undefined && labelGrid.md > 0 && labelGrid.md < 12,
+    [classes.lg]:
+      labelGrid.lg !== undefined && labelGrid.lg > 0 && labelGrid.lg < 12,
+    [classes.xl]:
+      labelGrid.xl !== undefined && labelGrid.xl > 0 && labelGrid.xl < 12,
   };
 };

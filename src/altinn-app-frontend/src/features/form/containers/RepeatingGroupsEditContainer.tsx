@@ -24,7 +24,7 @@ export interface IRepeatingGroupsEditContainer {
   repeatingGroupDeepCopyComponents: (ILayoutComponent | ILayoutGroup)[][];
   language: ILanguage;
   textResources: ITextResource[];
-  layout: ILayout;
+  layout: ILayout | null;
   deleting?: boolean;
   editIndex: number;
   setEditIndex: (index: number, forceValidation?: boolean) => void;
@@ -35,7 +35,7 @@ export interface IRepeatingGroupsEditContainer {
   multiPageIndex?: number;
   setMultiPageIndex?: (index: number) => void;
   showSaveAndNextButton?: boolean;
-  filteredIndexes?: number[];
+  filteredIndexes?: number[] | null;
 }
 
 const theme = createTheme(altinnAppTheme);
@@ -131,12 +131,18 @@ export function RepeatingGroupsEditContainer({
 
   const nextClicked = () => {
     if (nextIndex !== null) {
-      setEditIndex(nextIndex, true);
+      setEditIndex && setEditIndex(nextIndex, true);
+      if (container.edit?.multiPage) {
+        setMultiPageIndex && setMultiPageIndex(0);
+      }
     }
   };
 
   const removeClicked = () => {
-    onClickRemove(editIndex);
+    onClickRemove && onClickRemove(editIndex);
+    if (container.edit?.multiPage) {
+      setMultiPageIndex && setMultiPageIndex(0);
+    }
   };
 
   return (
@@ -181,6 +187,7 @@ export function RepeatingGroupsEditContainer({
             (component: ILayoutComponent) => {
               if (
                 container.edit?.multiPage &&
+                typeof multiPageIndex === 'number' &&
                 multiPageIndex > -1 &&
                 !container.children.includes(
                   `${multiPageIndex}:${component.id.substring(
@@ -202,7 +209,8 @@ export function RepeatingGroupsEditContainer({
         <Grid item={true}>
           {container.edit?.multiPage && (
             <div style={style}>
-              {multiPageIndex > -1 &&
+              {typeof multiPageIndex === 'number' &&
+                multiPageIndex > -1 &&
                 container.children.find((childId) =>
                   childId.startsWith(`${multiPageIndex + 1}:`),
                 ) && (
@@ -210,11 +218,12 @@ export function RepeatingGroupsEditContainer({
                     btnText={getLanguageFromKey('general.next', language)}
                     secondaryButton={true}
                     onClickFunction={() =>
-                      setMultiPageIndex(multiPageIndex + 1)
+                      setMultiPageIndex && setMultiPageIndex(multiPageIndex + 1)
                     }
                   />
                 )}
-              {multiPageIndex > 0 &&
+              {typeof multiPageIndex === 'number' &&
+                multiPageIndex > 0 &&
                 container.children.find((childId) =>
                   childId.startsWith(`${multiPageIndex - 1}:`),
                 ) && (
@@ -222,7 +231,7 @@ export function RepeatingGroupsEditContainer({
                     btnText={getLanguageFromKey('general.back', language)}
                     secondaryButton={true}
                     onClickFunction={() =>
-                      setMultiPageIndex(multiPageIndex - 1)
+                      setMultiPageIndex && setMultiPageIndex(multiPageIndex - 1)
                     }
                   />
                 )}

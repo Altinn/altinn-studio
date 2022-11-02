@@ -25,10 +25,10 @@ import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
 import type { ILayoutSets, IPagesSettings, IUiConfig } from 'src/types';
 
 export interface ILayoutState {
-  layouts: ILayouts;
-  error: Error;
+  layouts: ILayouts | null;
+  error: Error | null;
   uiConfig: IUiConfig;
-  layoutsets: ILayoutSets;
+  layoutsets: ILayoutSets | null;
 }
 
 export const initialState: ILayoutState = {
@@ -191,11 +191,13 @@ const formLayoutSlice = createSagaSlice(
         takeLatest: updateRepeatingGroupsSaga,
         reducer: (state, action) => {
           const { layoutElementId, remove, index } = action.payload;
-          if (remove) {
+          if (remove && typeof index !== 'undefined') {
+            state.uiConfig.repeatingGroups =
+              state.uiConfig.repeatingGroups || {};
             state.uiConfig.repeatingGroups[layoutElementId].deletingIndex =
               state.uiConfig.repeatingGroups[layoutElementId].deletingIndex ||
               [];
-            state.uiConfig.repeatingGroups[layoutElementId].deletingIndex.push(
+            state.uiConfig.repeatingGroups[layoutElementId].deletingIndex?.push(
               index,
             );
           }
@@ -213,6 +215,8 @@ const formLayoutSlice = createSagaSlice(
         mkAction<LayoutTypes.IUpdateRepeatingGroupsRemoveCancelled>({
           reducer: (state, action) => {
             const { layoutElementId, index } = action.payload;
+            state.uiConfig.repeatingGroups =
+              state.uiConfig.repeatingGroups || {};
             state.uiConfig.repeatingGroups[layoutElementId].deletingIndex = (
               state.uiConfig.repeatingGroups[layoutElementId].deletingIndex ||
               []
@@ -230,7 +234,12 @@ const formLayoutSlice = createSagaSlice(
         mkAction<LayoutTypes.IUpdateRepeatingGroupsMultiPageIndex>({
           reducer: (state, action) => {
             const { group, index } = action.payload;
-            state.uiConfig.repeatingGroups[group].multiPageIndex = index;
+            if (
+              state.uiConfig.repeatingGroups &&
+              typeof index !== 'undefined'
+            ) {
+              state.uiConfig.repeatingGroups[group].multiPageIndex = index;
+            }
           },
         }),
       updateRepeatingGroupsEditIndex:
@@ -241,6 +250,8 @@ const formLayoutSlice = createSagaSlice(
         mkAction<LayoutTypes.IUpdateRepeatingGroupsEditIndexFulfilled>({
           reducer: (state, action) => {
             const { group, index } = action.payload;
+            state.uiConfig.repeatingGroups =
+              state.uiConfig.repeatingGroups || {};
             state.uiConfig.repeatingGroups[group].editIndex = index;
           },
         }),
@@ -273,7 +284,12 @@ const formLayoutSlice = createSagaSlice(
         mkAction<LayoutTypes.IUpdateFileUploaderWithTagEditIndexFulfilled>({
           reducer: (state, action) => {
             const { componentId, index } = action.payload;
-            state.uiConfig.fileUploadersWithTag[componentId].editIndex = index;
+            state.uiConfig.fileUploadersWithTag =
+              state.uiConfig.fileUploadersWithTag || {};
+            const uploader = state.uiConfig.fileUploadersWithTag[componentId];
+            if (uploader) {
+              uploader.editIndex = index;
+            }
           },
         }),
       updateFileUploaderWithTagEditIndexRejected:
@@ -291,10 +307,11 @@ const formLayoutSlice = createSagaSlice(
         mkAction<LayoutTypes.IUpdateFileUploaderWithTagChosenOptionsFulfilled>({
           reducer: (state, action) => {
             const { componentId, id, option } = action.payload;
-            if (state.uiConfig.fileUploadersWithTag[componentId]) {
-              state.uiConfig.fileUploadersWithTag[componentId].chosenOptions[
-                id
-              ] = option.value;
+            state.uiConfig.fileUploadersWithTag =
+              state.uiConfig.fileUploadersWithTag || {};
+            const uploader = state.uiConfig.fileUploadersWithTag[componentId];
+            if (uploader) {
+              uploader.chosenOptions[id] = option.value;
             } else {
               state.uiConfig.fileUploadersWithTag[componentId] = {
                 editIndex: -1,

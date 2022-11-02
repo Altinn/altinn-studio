@@ -1,7 +1,7 @@
 import type { IOption, IOptions, IOptionsMetaData } from 'src/types';
 
 export interface IOptionsState {
-  error: Error;
+  error: Error | null;
   options: IOptions;
   optionsWithIndexIndicators?: IOptionsMetaData[];
 }

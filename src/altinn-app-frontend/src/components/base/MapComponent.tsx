@@ -65,7 +65,7 @@ export function MapComponent({
   );
 }
 
-export function parseLocation(locationString: string): Location {
+export function parseLocation(locationString: string): Location | undefined {
   const latLonArray = locationString.split(',');
   if (latLonArray.length != 2) {
     console.error(`Invalid location string: ${locationString}`);

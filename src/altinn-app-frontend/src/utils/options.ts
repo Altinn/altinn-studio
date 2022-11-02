@@ -49,7 +49,7 @@ export function getOptionLookupKeys({
     keyHasIndexIndicators(key),
   );
 
-  if (mappingsWithIndexIndicators.length) {
+  if (mappingsWithIndexIndicators.length && mapping) {
     // create lookup keys for each index of the relevant repeating group
     mappingsWithIndexIndicators.forEach((mappingKey) => {
       const baseGroupBindings =
@@ -116,7 +116,7 @@ interface ISetupSourceOptionsParams {
   source: IOptionSource;
   relevantTextResource: ITextResource;
   relevantFormData: IFormData;
-  repeatingGroups: IRepeatingGroups;
+  repeatingGroups: IRepeatingGroups | null;
   dataSources: IDataSources;
 }
 
@@ -133,9 +133,13 @@ export function setupSourceOptions({
     repeatingGroups,
   );
 
-  const repGroup = Object.values(repeatingGroups).find((group) => {
+  const repGroup = Object.values(repeatingGroups || {}).find((group) => {
     return group.dataModelBinding === source.group;
   });
+
+  if (!repGroup) {
+    return undefined;
+  }
 
   const options: IOption[] = [];
   for (let i = 0; i <= repGroup.index; i++) {
@@ -171,7 +175,11 @@ export function removeGroupOptionsByIndex({
   );
 
   Object.keys(options || {}).forEach((optionKey) => {
-    const { mapping, id } = options[optionKey];
+    const { mapping, id } = options[optionKey] || {};
+    if (id === undefined) {
+      return;
+    }
+
     if (!mapping) {
       newOptions[optionKey] = options[optionKey];
       return;
@@ -214,6 +222,7 @@ export function removeGroupOptionsByIndex({
 
     newOptions[newOptionsKey] = {
       ...options[optionKey],
+      id,
       mapping: newMapping,
     };
   });

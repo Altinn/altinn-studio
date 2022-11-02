@@ -25,21 +25,23 @@ export interface IMobileTableItem {
 
 export interface IAltinnMobileTableItemProps {
   items: IMobileTableItem[];
-  tableItemIndex?: number;
+  tableItemIndex: number;
   valid?: boolean;
-  editIndex?: number;
+  editIndex: number;
   onEditClick: () => void;
-  onDeleteClick?: () => void;
   editButtonText?: string;
-  deleteButtonText?: string;
-  deleteIconNode?: React.ReactNode;
   editIconNode: React.ReactNode;
-  popoverPanelIndex?: number;
-  popoverOpen?: boolean;
-  setPopoverOpen?: (open: boolean) => void;
-  onOpenChange?: (index: number) => void;
-  onPopoverDeleteClick?: (index: number) => () => void;
-  language?: ILanguage;
+  deleteFunctionality?: {
+    onDeleteClick: () => void;
+    deleteButtonText: string;
+    deleteIconNode: React.ReactNode;
+    popoverOpen: boolean;
+    popoverPanelIndex: number;
+    setPopoverOpen: (open: boolean) => void;
+    onOpenChange: (index: number) => void;
+    onPopoverDeleteClick: (index: number) => () => void;
+    language: ILanguage;
+  };
 }
 
 const useStyles = makeStyles({
@@ -185,20 +187,24 @@ export default function AltinnMobileTableItem({
   valid = true,
   editIndex,
   onEditClick,
-  onDeleteClick,
   editButtonText,
-  deleteButtonText,
   editIconNode,
-  deleteIconNode,
-  popoverPanelIndex,
-  popoverOpen,
-  setPopoverOpen,
-  onPopoverDeleteClick,
-  onOpenChange,
-  language,
+  deleteFunctionality,
 }: IAltinnMobileTableItemProps) {
   const classes = useStyles();
   const mobileViewSmall = useMediaQuery('(max-width:768px)');
+
+  const {
+    onDeleteClick,
+    deleteIconNode,
+    deleteButtonText,
+    popoverOpen,
+    popoverPanelIndex,
+    setPopoverOpen,
+    onPopoverDeleteClick,
+    onOpenChange,
+    language,
+  } = deleteFunctionality || {};
 
   return (
     <TableContainer
@@ -259,47 +265,52 @@ export default function AltinnMobileTableItem({
                     </IconButton>
                   </TableCell>
                 )}
-                {index == 0 && deleteIconNode && (
-                  <TableCell
-                    align='center'
-                    className={cn([classes.deleteButtonCell], {
-                      [classes.popoverCurrentCell]:
-                        tableItemIndex == popoverPanelIndex,
-                    })}
-                  >
-                    <DeleteWarningPopover
-                      trigger={
-                        <IconButton
-                          className={classes.deleteButton}
-                          onClick={onDeleteClick}
-                          data-testid='delete-button'
-                          aria-label={`${deleteButtonText}-${item.value}`}
-                        >
-                          {deleteIconNode}
-                          {!mobileViewSmall && deleteButtonText}
-                        </IconButton>
-                      }
-                      language={language}
-                      deleteButtonText={getLanguageFromKey(
-                        'group.row_popover_delete_button_confirm',
-                        language,
-                      )}
-                      messageText={getLanguageFromKey(
-                        'group.row_popover_delete_message',
-                        language,
-                      )}
-                      open={popoverPanelIndex == tableItemIndex && popoverOpen}
-                      setPopoverOpen={setPopoverOpen}
-                      onCancelClick={() =>
-                        onOpenChange && onOpenChange(tableItemIndex)
-                      }
-                      onPopoverDeleteClick={
-                        onPopoverDeleteClick &&
-                        onPopoverDeleteClick(tableItemIndex)
-                      }
-                    />
-                  </TableCell>
-                )}
+                {index == 0 &&
+                  deleteIconNode &&
+                  setPopoverOpen &&
+                  onOpenChange &&
+                  language &&
+                  onPopoverDeleteClick &&
+                  typeof popoverOpen === 'boolean' && (
+                    <TableCell
+                      align='center'
+                      className={cn([classes.deleteButtonCell], {
+                        [classes.popoverCurrentCell]:
+                          tableItemIndex == popoverPanelIndex,
+                      })}
+                    >
+                      <DeleteWarningPopover
+                        trigger={
+                          <IconButton
+                            className={classes.deleteButton}
+                            onClick={onDeleteClick}
+                            data-testid='delete-button'
+                            aria-label={`${deleteButtonText}-${item.value}`}
+                          >
+                            {deleteIconNode}
+                            {!mobileViewSmall && deleteButtonText}
+                          </IconButton>
+                        }
+                        language={language}
+                        deleteButtonText={getLanguageFromKey(
+                          'group.row_popover_delete_button_confirm',
+                          language,
+                        )}
+                        messageText={getLanguageFromKey(
+                          'group.row_popover_delete_message',
+                          language,
+                        )}
+                        open={
+                          popoverPanelIndex == tableItemIndex && popoverOpen
+                        }
+                        setPopoverOpen={setPopoverOpen}
+                        onCancelClick={() => onOpenChange(tableItemIndex)}
+                        onPopoverDeleteClick={onPopoverDeleteClick(
+                          tableItemIndex,
+                        )}
+                      />
+                    </TableCell>
+                  )}
               </TableRow>
             );
           })}

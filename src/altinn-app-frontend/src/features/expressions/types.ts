@@ -44,7 +44,10 @@ export interface FuncDef<
   Args extends readonly BaseValue[],
   Ret extends BaseValue,
 > {
-  impl: (this: ExprContext, ...params: ArgsToActual<Args>) => BaseToActual<Ret>;
+  impl: (
+    this: ExprContext,
+    ...params: ArgsToActual<Args>
+  ) => BaseToActual<Ret> | null;
   args: Args;
   minArguments?: number;
   returns: Ret;
@@ -202,8 +205,8 @@ export type ExprDefaultValues<
   Iterations extends Prev[number] = 1, // <-- Recursion depth limited to 2 levels by default
 > = [Iterations] extends [never]
   ? never
-  : Required<
-      OmitNeverKeys<{
-        [P in keyof T]: OmitNeverArrays<ReplaceDistributive<T[P], Iterations>>;
-      }>
-    >;
+  : OmitNeverKeys<{
+      [P in keyof Required<T>]: OmitNeverArrays<
+        ReplaceDistributive<Exclude<T[P], undefined>, Iterations>
+      >;
+    }>;

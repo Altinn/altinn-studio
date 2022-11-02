@@ -13,7 +13,9 @@ import { getLanguageFromCode } from 'altinn-shared/language';
 describe('AltinnAppHeader', () => {
   it('should show organisation name when profile has party, and party has organisation with name, and "type" is not set', () => {
     const profile = getProfileStateMock();
-    profile.profile.party.organisation = organisationMock;
+    if (profile.profile.party) {
+      profile.profile.party.organisation = organisationMock;
+    }
 
     render({
       profile: profile.profile,
@@ -27,7 +29,9 @@ describe('AltinnAppHeader', () => {
 
   it('should not show organisation name when profile has party, and party has organisation with name, and "type" is set', () => {
     const profile = getProfileStateMock();
-    profile.profile.party.organisation = organisationMock;
+    if (profile.profile.party) {
+      profile.profile.party.organisation = organisationMock;
+    }
 
     render({
       profile: profile.profile,

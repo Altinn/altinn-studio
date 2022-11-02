@@ -12,7 +12,7 @@ export interface SummaryBoilerplateProps
   extends Omit<ILayoutCompSummary, 'type' | 'id'> {
   hasValidationMessages?: boolean;
   onChangeClick: () => void;
-  changeText: string;
+  changeText: string | null;
   label: any;
   readOnlyComponent?: boolean;
 }

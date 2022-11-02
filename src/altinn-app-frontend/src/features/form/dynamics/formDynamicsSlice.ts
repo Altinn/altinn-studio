@@ -43,7 +43,7 @@ const slice = createSagaSlice((mkAction: MkActionType<IFormDynamicState>) => ({
             }
           },
       }),
-    fetch: mkAction<IFetchServiceConfigFulfilled>({
+    fetch: mkAction<IFetchServiceConfigFulfilled | undefined>({
       takeLatest: fetchDynamicsSaga,
     }),
     fetchFulfilled: mkAction<IFetchServiceConfigFulfilled>({

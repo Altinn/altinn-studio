@@ -65,7 +65,7 @@ function AltinnInput(props: IAltinnInputProps) {
   const classes = useStyles();
 
   function focusInput() {
-    inputRef.current.focus();
+    inputRef.current?.focus();
   }
   return (
     <Grid

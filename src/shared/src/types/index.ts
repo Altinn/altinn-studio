@@ -40,9 +40,9 @@ export interface IOnEntry {
 }
 
 export interface IAttachment {
-  name: string;
+  name?: string;
   iconClass: string;
-  url: string;
+  url?: string;
   dataType: string;
   tags?: string[];
 }
@@ -86,18 +86,18 @@ export interface IExtendedInstance {
 
 export interface IInstance {
   appId: string;
-  created: string;
+  created?: string;
   data: IData[];
   dueBefore?: string;
   id: string;
   instanceOwner: IInstanceOwner;
-  instanceState: IInstanceState;
-  lastChanged: string;
+  instanceState?: IInstanceState;
+  lastChanged?: string;
   org: string;
   process: IProcess;
-  selfLinks: ISelfLinks;
-  status: IInstanceStatus;
-  title: ITitle;
+  selfLinks?: ISelfLinks | null;
+  status?: IInstanceStatus | null;
+  title?: ITitle | null;
   visibleAfter?: string;
 }
 
@@ -113,7 +113,7 @@ export interface ISubstatus {
 export interface IInstanceOwner {
   partyId: string;
   personNumber?: string;
-  organisationNumber?: string;
+  organisationNumber?: string | null;
 }
 
 export interface IInstanceState {
@@ -148,16 +148,16 @@ export interface IOrganisation {
 
 export interface IParty {
   partyId: string;
-  partyTypeName: number;
-  orgNumber: number | string;
+  partyTypeName?: number | null;
+  orgNumber?: number | string | null;
   ssn: string;
-  unitType: string;
+  unitType?: string;
   name: string;
   isDeleted: boolean;
   onlyHierarchyElementWithNoAccess: boolean;
   person?: IPerson;
   organisation?: IOrganisation;
-  childParties: IParty[];
+  childParties?: IParty[];
 }
 
 export interface IPartyTypesAllowed {
@@ -189,10 +189,10 @@ export interface IPerson {
 
 export interface IProcess {
   started: string;
-  startEvent: string;
+  startEvent?: string | null;
   currentTask?: ITask;
-  ended: string;
-  endEvent: string;
+  ended?: string | null;
+  endEvent?: string | null;
 }
 
 export interface IProfile {
@@ -201,7 +201,7 @@ export interface IProfile {
   phoneNumber?: any;
   email?: any;
   partyId: number;
-  party: IParty;
+  party?: IParty;
   userType: number;
   profileSettingPreference: IProfileSettingPreference;
 }
@@ -223,8 +223,8 @@ export interface ITask {
   elementId: string;
   name: string;
   altinnTaskType: string;
-  ended: string;
-  validated: IValidated;
+  ended?: string | null;
+  validated?: IValidated | null;
 }
 
 export interface ITitle {
@@ -258,7 +258,7 @@ export interface IDataSource {
 }
 
 export interface IDataSources {
-  [key: string]: IDataSource;
+  [key: string]: IDataSource | null;
 }
 
 export interface IApplicationSettings {

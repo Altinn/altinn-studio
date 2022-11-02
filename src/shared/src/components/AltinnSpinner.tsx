@@ -46,7 +46,7 @@ const AltinnSpinner = (props: IAltinnSpinnerComponentProvidedProps) => {
     >
       <CircularProgress
         className={classNames(classes.spinner)}
-        id={props.id ? props.id : null}
+        id={props.id ? props.id : undefined}
       />
       {props.spinnerText && (
         <Typography className={classNames(classes.spinnerText)}>

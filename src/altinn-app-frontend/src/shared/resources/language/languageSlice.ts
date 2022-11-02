@@ -23,9 +23,9 @@ export interface IUpdateSelectedAppLanguage {
 }
 
 export interface ILanguageState {
-  language: ILanguage;
+  language: ILanguage | null;
   selectedAppLanguage: string;
-  error: Error;
+  error: Error | null;
 }
 
 const altinnWindow = window as Window as IAltinnWindow;

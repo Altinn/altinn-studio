@@ -97,11 +97,9 @@ export const CheckboxContainerComponent = ({
   const calculatedOptions = apiOptions || options || defaultOptions;
   const hasSelectedInitial = React.useRef(false);
   const optionsHasChanged = useHasChangedIgnoreUndefined(apiOptions);
-
+  const lookupKey = optionsId && getOptionLookupKey({ id: optionsId, mapping });
   const fetchingOptions = useAppSelector(
-    (state) =>
-      state.optionState.options[getOptionLookupKey({ id: optionsId, mapping })]
-        ?.loading,
+    (state) => lookupKey && state.optionState.options[lookupKey]?.loading,
   );
 
   const { value, setValue, saveValue } = useDelayedSavedState(
@@ -116,6 +114,7 @@ export const CheckboxContainerComponent = ({
   React.useEffect(() => {
     const shouldSelectOptionAutomatically =
       !formData?.simpleBinding &&
+      typeof preselectedOptionIndex !== 'undefined' &&
       preselectedOptionIndex >= 0 &&
       calculatedOptions &&
       preselectedOptionIndex < calculatedOptions.length &&
