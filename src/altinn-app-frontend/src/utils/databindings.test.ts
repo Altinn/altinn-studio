@@ -128,6 +128,27 @@ describe('utils/databindings.ts', () => {
       expect(result.aNumber).toBe('43');
     });
 
+    it('should skip null values', () => {
+      testObj.aNull = null;
+      const result = flattenObject(testObj);
+      expect(typeof result.aNull).toBe('undefined');
+      expect('aNull' in result).toBe(false);
+    });
+
+    it('should return boolean as a string', () => {
+      testObj.aBool = true;
+      const result = flattenObject(testObj);
+      expect(typeof result.aBool).toBe('string');
+      expect(result.aBool).toBe('true');
+    });
+
+    it('should return float as a string', () => {
+      testObj.aFloat = 3.14159265;
+      const result = flattenObject(testObj);
+      expect(typeof result.aFloat).toBe('string');
+      expect(result.aFloat).toBe('3.14159265');
+    });
+
     it('should return property of type number and value 0 as a string with character zero', () => {
       testObj.aNumber = 0;
       const result = flattenObject(testObj);

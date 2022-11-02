@@ -236,6 +236,7 @@ const formLayoutSlice = createSagaSlice(
             const { group, index } = action.payload;
             if (
               state.uiConfig.repeatingGroups &&
+              state.uiConfig.repeatingGroups[group] &&
               typeof index !== 'undefined'
             ) {
               state.uiConfig.repeatingGroups[group].multiPageIndex = index;

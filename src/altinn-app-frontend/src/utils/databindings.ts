@@ -1,4 +1,4 @@
-import { object } from 'dot-object';
+import { dot, object } from 'dot-object';
 
 import { getParentGroup } from 'src/utils/validation';
 import type { IFormData } from 'src/features/form/data';
@@ -48,12 +48,8 @@ export function filterOutInvalidData({
   return result;
 }
 
-export interface IData {
-  [key: string]: any;
-}
-
-export const INDEX_KEY_INDICATOR_REGEX = /\[{\d+\}]/;
-export const GLOBAL_INDEX_KEY_INDICATOR_REGEX = /\[{\d+\}]/g;
+export const INDEX_KEY_INDICATOR_REGEX = /\[{\d+}]/;
+export const GLOBAL_INDEX_KEY_INDICATOR_REGEX = /\[{\d+}]/g;
 
 /**
  * Converts JSON to the flat datamodel used in Redux data store
@@ -90,8 +86,8 @@ export function keyHasIndexIndicators(key: string): boolean {
 }
 
 /** Replaces index indicators with indexes
- * @param keyWithIndexIndicators The key with index indicators
- * @param index The indexes to replace the index indicators with
+ * @param key The key with index indicators
+ * @param indexes The indexes to replace the index indicators with
  * Example input:
  *  keyWithIndexIndicators: SomeField.Group[{0}].SubGroup[{1}].Field
  *  index: [0, 1]
@@ -213,31 +209,21 @@ export function getKeyIndex(keyWithIndex: string): number[] {
  * Converts JSON to the flat datamodel used in Redux data store
  * @param data The form data as JSON
  */
-export function flattenObject(data: any, index = false): any {
-  const toReturn: IData = {};
+export function flattenObject(data: any): any {
+  const flat = dot(data);
 
-  Object.keys(data).forEach((i) => {
-    if (!i || data[i] === undefined || data[i] === null) return;
-    if (Array.isArray(data[i]) || typeof data[i] === 'object') {
-      const flatObject = flattenObject(data[i], Array.isArray(data[i]));
-      Object.keys(flatObject).forEach((x) => {
-        if (!x || (!flatObject[x] && flatObject[x] !== 0)) return;
-        let key = '';
-        if (Array.isArray(data[i]) && x.match(/^\d+$/)) {
-          key = `${i}[${x}]`;
-        } else if (Array.isArray(data[i])) {
-          key = `${i}[${x}`;
-        } else {
-          key = index ? `${i}].${x}` : `${i}.${x}`;
-        }
-        toReturn[key] = flatObject[x];
-      });
+  for (const key of Object.keys(flat)) {
+    if (flat[key] === null) {
+      delete flat[key];
     } else {
-      toReturn[i] = data[i].toString();
+      // Cast all values to strings, for backwards compatibility. Lots of code already written in frontend
+      // expects data to be formatted as strings everywhere, and since this is a web application, even numeric
+      // inputs have their values stored as strings.
+      flat[key] = flat[key].toString();
     }
-  });
+  }
 
-  return toReturn;
+  return flat;
 }
 
 export function getGroupDataModelBinding(
