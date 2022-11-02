@@ -22,6 +22,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
     public class AltinnGitRepository : GitRepository, IAltinnGitRepository
     {
         private const string SCHEMA_FILES_PATTERN_JSON = "*.schema.json";
+        private const string SCHEMA_FILES_PATTERN_XSD = "*.xsd";
         private const string STUDIO_SETTINGS_FILEPATH = ".altinnstudio/settings.json";
         private const string TEXT_FILES_PATTERN_JSON = "*.texts.json";
 
@@ -82,9 +83,10 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <summary>
         /// Finds all schema files regardless of location in repository.
         /// </summary>
-        public IList<AltinnCoreFile> GetSchemaFiles()
+        public IList<AltinnCoreFile> GetSchemaFiles(bool xsd = false)
         {
-            var schemaFiles = FindFiles(new[] { SCHEMA_FILES_PATTERN_JSON });
+            string schemaFilesPattern = xsd ? SCHEMA_FILES_PATTERN_XSD : SCHEMA_FILES_PATTERN_JSON;
+            var schemaFiles = FindFiles(new[] { schemaFilesPattern });
 
             var altinnCoreSchemaFiles = MapFilesToAltinnCoreFiles(schemaFiles);
 

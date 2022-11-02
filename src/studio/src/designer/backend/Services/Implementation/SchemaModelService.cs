@@ -82,11 +82,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public IList<AltinnCoreFile> GetSchemaFiles(string org, string repository, string developer)
+        public IList<AltinnCoreFile> GetSchemaFiles(string org, string repository, string developer, bool xsd = false)
         {
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
 
-            return altinnGitRepository.GetSchemaFiles();
+            return altinnGitRepository.GetSchemaFiles(xsd);
         }
 
         /// <inheritdoc/>

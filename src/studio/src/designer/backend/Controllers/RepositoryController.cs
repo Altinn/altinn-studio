@@ -45,13 +45,21 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="sourceControl">the source control</param>
         /// <param name="repository">the repository control</param>
         /// <param name="httpContextAccessor">the http context accessor</param>
-        public RepositoryController(IGitea giteaWrapper, IOptions<ServiceRepositorySettings> repositorySettings, ISourceControl sourceControl, IRepository repository, IHttpContextAccessor httpContextAccessor)
+        /// <param name="altinnGitRepositoryFactory">the Altinn git repository factory</param>
+        public RepositoryController(
+            IGitea giteaWrapper,
+            IOptions<ServiceRepositorySettings> repositorySettings,
+            ISourceControl sourceControl,
+            IRepository repository,
+            IHttpContextAccessor httpContextAccessor,
+            IAltinnGitRepositoryFactory altinnGitRepositoryFactory)
         {
             _giteaApi = giteaWrapper;
             _settings = repositorySettings.Value;
             _sourceControl = sourceControl;
             _repository = repository;
             _httpContextAccessor = httpContextAccessor;
+            _altinnGitRepositoryFactory = altinnGitRepositoryFactory;
         }
 
         /// <summary>
@@ -576,7 +584,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Organization owning the repository identified by it's short name.</param>
         /// <param name="repository">Repository name to check.</param>
         [HttpGet]
-        [Route("{org}/{repository}/repositoryType")]
+        [Route("/designer/api/v1/{org}/{repository}/repos/repositoryType")]
         public async Task<ActionResult<AltinnRepositoryType>> GetRepositoryType(string org, string repository)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);

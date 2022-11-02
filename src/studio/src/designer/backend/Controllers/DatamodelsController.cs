@@ -173,6 +173,32 @@ namespace Altinn.Studio.Designer.Controllers
             return Created(fileName, jsonSchema);
         }
 
+                /// <summary>
+        /// Upload an XSD.
+        /// </summary>
+        /// <remarks>
+        /// This operation will use the new datamodelling library to convert the XSD into a JSON schema,
+        /// metadata model and C# class.
+        /// </remarks>
+        /// <param name="org">The short name of the application owner.</param>
+        /// <param name="repository">The name of the repository to which the file is being added.</param>
+        /// <param name="filePath">The path to the XSD to use</param>
+        [Authorize]
+        [HttpGet("addFromRepo")]
+        public async Task<IActionResult> AddXsdFromRepo(string org, string repository, string filePath)
+        {
+            Guard.AssertArgumentNotNull(filePath, nameof(filePath));
+            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            Guard.AssertFileExtensionIsOfType(filePath, ".xsd");
+
+            var xsd = await _schemaModelService.GetSchema(org, repository, developer, filePath);
+            var xsdStream = new MemoryStream(Encoding.UTF8.GetBytes(xsd ?? string.Empty));
+            var fileName = GetFileNameFromRelativeFilePath(filePath, ".xsd");
+            var jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, fileName, xsdStream);
+
+            return Created(fileName, jsonSchema);
+        }
+
         /// <summary>
         /// Creates a new model in the repository.
         /// </summary>
@@ -222,14 +248,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var content = await ReadRequestBodyContentAsync();
-
-            if (saveOnly)
-            {
-                await _schemaModelService.UpdateSchema(org, repository, developer, modelPath, content, saveOnly);
-                return Ok();
-            }
-
-            await _schemaModelService.UpdateModelFilesFromJsonSchema(org, repository, developer, modelPath, content);
+            await _schemaModelService.UpdateSchema(org, repository, developer, modelPath, content, saveOnly);
 
             return NoContent();
         }
@@ -252,7 +271,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Method that returns all datamodels within repository.
+        /// Method that returns all JSONSchema datamodels within repository.
         /// </summary>
         /// <param name="org">the org owning the models repo</param>
         /// <param name="repository">the model repos</param>
@@ -264,6 +283,24 @@ namespace Altinn.Studio.Designer.Controllers
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var schemaFiles = _schemaModelService.GetSchemaFiles(org, repository, developer);
+
+            return Ok(schemaFiles);
+        }
+
+        /// <summary>
+        /// Method that returns all xsd models within repository.
+        /// </summary>
+        /// <param name="org">the org owning the models repo</param>
+        /// <param name="repository">the model repos</param>
+        [Authorize]
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status302Found)]
+        [Route("xsd")]
+        public ActionResult<IEnumerable<AltinnCoreFile>> GetXSDDatamodels(string org, string repository)
+        {
+            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var schemaFiles = _schemaModelService.GetSchemaFiles(org, repository, developer, true);
 
             return Ok(schemaFiles);
         }
@@ -399,6 +436,13 @@ namespace Altinn.Studio.Designer.Controllers
         private static string GetFileNameFromUploadedFile(IFormFile thefile)
         {
             return ContentDispositionHeaderValue.Parse(new StringSegment(thefile.ContentDisposition)).FileName.ToString();
+        }
+
+        private static string GetFileNameFromRelativeFilePath(string filePath, string fileExtension)
+        {
+            var filePathArray = filePath.Split('/');
+            var fileName = filePathArray.Last();
+            return fileName.Replace(fileExtension, string.Empty);
         }
     }
 }
