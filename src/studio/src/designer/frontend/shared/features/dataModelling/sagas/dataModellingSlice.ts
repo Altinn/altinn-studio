@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Action, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import type { Action, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 import type { IJsonSchema } from '@altinn/schema-editor/types';
 import type { IDataModelsMetadataState } from './metadata';
+import type { IMetadataOption } from '../functions/types';
 
 export interface IDataModelAction {
   payload: IDataModelActionPayload;
@@ -12,7 +14,7 @@ export interface IDataModelActionPayload {
   name?: string;
   schema?: IJsonSchema;
   repoType?: string;
-  metadata?: any;
+  metadata?: IMetadataOption;
 }
 
 export interface IDataModelErrorActionPayload extends Action {
@@ -90,7 +92,10 @@ const dataModellingSlice = createSlice({
       state.schema = undefined;
       state.saving = false;
     },
-    deleteDataModelRejected(state, action: PayloadAction<IDeleteDataModelRejected>) {
+    deleteDataModelRejected(
+      state,
+      action: PayloadAction<IDeleteDataModelRejected>,
+    ) {
       state.error = action.payload.error;
       state.saving = false;
     },

@@ -1,11 +1,6 @@
 import React, { useState } from 'react';
 import type { Theme } from '@mui/material';
-import {
-  AppBar as MuiAppBar,
-  Grid,
-  Toolbar,
-  useMediaQuery,
-} from '@mui/material';
+import { AppBar as MuiAppBar, Grid, Toolbar, useMediaQuery } from '@mui/material';
 import { createStyles, makeStyles } from '@mui/styles';
 import classNames from 'classnames';
 import { Link } from 'react-router-dom';
@@ -17,6 +12,7 @@ import { getTopBarMenu } from '../appBarConfig';
 import ProfileMenu from 'app-shared/navigation/main-header/profileMenu';
 import { useAppSelector } from 'common/hooks';
 import { getLanguageFromKey } from 'app-shared/utils/language';
+import { useGetRepositoryTypeQuery } from '../../services/repositoryApi';
 
 export interface IAppBarProps {
   activeSubHeaderSelection?: string;
@@ -112,14 +108,10 @@ export const AppBar = ({
   showSubMenu,
 }: IAppBarProps) => {
   const classes = useStyles();
-  const isDatamodelsRepo = app.endsWith('-datamodels');
+  const { data: repositoryType } = useGetRepositoryTypeQuery();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const hiddenMdUp = useMediaQuery((theme: Theme) =>
-    theme.breakpoints.up('md'),
-  );
-  const hiddenSmDown = useMediaQuery((theme: Theme) =>
-    theme.breakpoints.down('sm'),
-  );
+  const hiddenMdUp = useMediaQuery((theme: Theme) => theme.breakpoints.up('md'));
+  const hiddenSmDown = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
 
   const language = useAppSelector((state) => state.languageState.language);
   const t = (key: string) => getLanguageFromKey(key, language);
@@ -128,16 +120,13 @@ export const AppBar = ({
     setIsMenuOpen((prev) => !prev);
   };
 
-  const menu = getTopBarMenu(isDatamodelsRepo);
+  const menu = getTopBarMenu(repositoryType);
 
   return (
     <div className={classes.root}>
       <MuiAppBar
         position='fixed'
-        className={classNames([
-          !app ? classes.appBarDashboard : classes.appBarEditor,
-          classes.appBar,
-        ])}
+        className={classNames([!app ? classes.appBarDashboard : classes.appBarEditor, classes.appBar])}
         elevation={5}
         sx={{
           backgroundColor: '#EFEFEF',
@@ -152,26 +141,38 @@ export const AppBar = ({
             alignItems='center'
             justifyContent='space-between'
           >
-            <Grid item xs container>
+            <Grid
+              item
+              xs
+              container
+            >
               <Grid item>
-                <a href='/' className={classes.aImgStyling}>
-                  <img src={altinnImgLogoHeaderUrl} alt='Altinn logo' />
+                <a
+                  href='/'
+                  className={classes.aImgStyling}
+                >
+                  <img
+                    src={altinnImgLogoHeaderUrl}
+                    alt='Altinn logo'
+                  />
                 </a>
               </Grid>
               {hiddenMdUp ? null : (
-                <Grid item className={classes.breadCrumb}>
-                  {activeSubHeaderSelection &&
-                    `/ ${t(activeSubHeaderSelection)}`}{' '}
-                  /
-                  <span className={classes.breadCrumbSubApp}>
-                    {' '}
-                    {activeLeftMenuSelection}{' '}
-                  </span>
+                <Grid
+                  item
+                  className={classes.breadCrumb}
+                >
+                  {activeSubHeaderSelection && `/ ${t(activeSubHeaderSelection)}`} /
+                  <span className={classes.breadCrumbSubApp}> {activeLeftMenuSelection} </span>
                 </Grid>
               )}
             </Grid>
             {hiddenSmDown ? null : (
-              <Grid xs item className={classes.paper}>
+              <Grid
+                xs
+                item
+                className={classes.paper}
+              >
                 {org && app ? `${org} / ${app}` : ''}
               </Grid>
             )}
@@ -215,8 +216,11 @@ export const AppBar = ({
                   justifyContent='center'
                   alignItems='center'
                 >
-                  <Grid xs item>
-                    <VersionControlHeader language={language}/>
+                  <Grid
+                    xs
+                    item
+                  >
+                    <VersionControlHeader language={language} />
                   </Grid>
                   {menu.map((item) => (
                     <Grid
@@ -227,15 +231,18 @@ export const AppBar = ({
                       <Link
                         to={item.link}
                         className={classNames(classes.subHeaderLink, {
-                          [classes.subHeaderLinkActive]:
-                            activeSubHeaderSelection === item.key,
+                          [classes.subHeaderLinkActive]: activeSubHeaderSelection === item.key,
                         })}
                       >
                         {t(item.key)}
                       </Link>
                     </Grid>
                   ))}
-                  <Grid xs item /> {/** Used to keep menu centered */}
+                  <Grid
+                    xs
+                    item
+                  />{' '}
+                  {/** Used to keep menu centered */}
                 </Grid>
               </Toolbar>
             )}

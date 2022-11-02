@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { createTheme, Grid } from '@mui/material';
+import { Grid } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import AltinnColumnLayout from 'app-shared/components/AltinnColumnLayout';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
-import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { HandleServiceInformationActions } from '../handleServiceInformationSlice';
 import { MainContent } from './MainContent';
@@ -11,7 +10,6 @@ import { SideMenuContent } from './SideMenuContent';
 import { useAppDispatch, useAppSelector } from 'common/hooks';
 import type { IAltinnWindow } from '../../../types/global';
 
-const theme = createTheme(altinnTheme);
 const useStyles = makeStyles({
   avatar: {
     maxHeight: '2em',

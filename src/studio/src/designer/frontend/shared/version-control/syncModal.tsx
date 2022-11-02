@@ -10,7 +10,7 @@ import {
 import { createStyles, withStyles } from '@mui/styles';
 import classNames from 'classnames';
 import altinnTheme from '../theme/altinnStudioTheme';
-import { Button, ButtonVariant } from '@altinn/altinn-design-system';
+import { Button } from '@altinn/altinn-design-system';
 
 export interface ISyncModalComponentProps {
   classes: any;
@@ -145,9 +145,16 @@ class SyncModalComponent extends React.Component<
         }}
         anchorReference='anchorEl'
       >
-        <Grid container={true} direction='column' className={classes.popover}>
+        <Grid
+          container={true}
+          direction='column'
+          className={classes.popover}
+        >
           {this.props.header && (
-            <Typography variant='h3' className={classNames(classes.header)}>
+            <Typography
+              variant='h3'
+              className={classNames(classes.header)}
+            >
               {this.props.header}
             </Typography>
           )}

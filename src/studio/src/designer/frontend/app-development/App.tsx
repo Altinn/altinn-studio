@@ -12,17 +12,14 @@ import { makeGetRepoStatusSelector } from './features/handleMergeConflict/handle
 import { ApplicationMetadataActions } from './sharedResources/applicationMetadata/applicationMetadataSlice';
 import { fetchLanguage } from './utils/fetchLanguage/languageSlice';
 import { repoStatusUrl } from './utils/urlHelper';
-import {
-  fetchRemainingSession,
-  keepAliveSession,
-  signOutUser,
-} from './sharedResources/user/userSlice';
+import { fetchRemainingSession, keepAliveSession, signOutUser } from './sharedResources/user/userSlice';
 import PageHeader from './layout/PageHeader';
 import { useAppDispatch, useAppSelector } from 'common/hooks';
 import type { IAltinnWindow } from './types/global';
 
 import './App.css';
 import LeftMenu from './layout/LeftMenu';
+import { RepositoryType, useGetRepositoryTypeQuery } from './services/repositoryApi';
 
 const theme = createTheme(altinnTheme);
 
@@ -55,15 +52,19 @@ const TEN_MINUTE_IN_MILLISECONDS = 60000 * 10;
 export function App() {
   const language = useAppSelector((state) => state.languageState.language);
   const repoStatus = useAppSelector(GetRepoStatusSelector);
-  const remainingSessionMinutes = useAppSelector(
-    (state) => state.userState.session.remainingMinutes,
-  );
+  const remainingSessionMinutes = useAppSelector((state) => state.userState.session.remainingMinutes);
   const dispatch = useAppDispatch();
   const classes = useStyles();
   const lastKeepAliveTimestamp = useRef<number>(0);
   const sessionExpiredPopoverRef = useRef<HTMLDivElement>(null);
 
+  const { data: repoType = RepositoryType.Unknown, isLoading: isLoadingRepoType } = useGetRepositoryTypeQuery();
+
   useEffect(() => {
+    if (isLoadingRepoType) {
+      return;
+    }
+
     const { org, app } = window as Window as IAltinnWindow;
     dispatch(
       fetchLanguage({
@@ -71,39 +72,39 @@ export function App() {
         languageCode: 'nb',
       }),
     );
-    dispatch(
-      HandleServiceInformationActions.fetchServiceName({
-        url: `${window.location.origin}/designer/${org}/${app}/Text/GetServiceName`,
-      }),
-    );
-    dispatch(ApplicationMetadataActions.getApplicationMetadata());
     dispatch(DataModelsMetadataActions.getDataModelsMetadata());
     dispatch(fetchRemainingSession());
-    dispatch(
-      HandleServiceInformationActions.fetchService({
-        url: `${window.location.origin}/designer/api/v1/repos/${org}/${app}`,
-      }),
-    );
     dispatch(
       HandleServiceInformationActions.fetchInitialCommit({
         url: `${window.location.origin}/designer/api/v1/repos/${org}/${app}/initialcommit`,
       }),
     );
-    dispatch(
-      HandleServiceInformationActions.fetchServiceConfig({
-        url: `${window.location.origin}/designer/${org}/${app}/Config/GetServiceConfig`,
-      }),
-    );
-  }, [dispatch]);
+
+    if (repoType !== RepositoryType.Datamodels) {
+      dispatch(
+        HandleServiceInformationActions.fetchServiceName({
+          url: `${window.location.origin}/designer/${org}/${app}/Text/GetServiceName`,
+        }),
+      );
+      dispatch(ApplicationMetadataActions.getApplicationMetadata());
+      dispatch(
+        HandleServiceInformationActions.fetchService({
+          url: `${window.location.origin}/designer/api/v1/repos/${org}/${app}`,
+        }),
+      );
+      dispatch(
+        HandleServiceInformationActions.fetchServiceConfig({
+          url: `${window.location.origin}/designer/${org}/${app}/Config/GetServiceConfig`,
+        }),
+      );
+    }
+  }, [dispatch, isLoadingRepoType, repoType]);
 
   useEffect(() => {
     const setEventListeners = (subscribe: boolean) => {
       const keepAliveListeners = ['mousemove', 'scroll', 'onfocus', 'keydown'];
       keepAliveListeners.forEach((listener) =>
-        (subscribe ? window.addEventListener : window.removeEventListener)(
-          listener,
-          keepAliveSessionState,
-        ),
+        (subscribe ? window.addEventListener : window.removeEventListener)(listener, keepAliveSessionState),
       );
     };
     const windowEventReceived = (event: any) => {
@@ -157,7 +158,10 @@ export function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      <div className={classes.container} ref={sessionExpiredPopoverRef}>
+      <div
+        className={classes.container}
+        ref={sessionExpiredPopoverRef}
+      >
         <AltinnPopoverSimple
           testId='logout-warning'
           anchorEl={sessionExpiredPopoverRef.current}
@@ -170,14 +174,18 @@ export function App() {
           btnClick={handleSessionExpiresClose}
           paperProps={{ style: { margin: '2.4rem' } }}
         >
-          <Typography variant='h2'>
-            {getLanguageFromKey('session.expires', language)}
-          </Typography>
-          <Typography variant='body1' style={{ marginTop: '1.6rem' }}>
+          <Typography variant='h2'>{getLanguageFromKey('session.expires', language)}</Typography>
+          <Typography
+            variant='body1'
+            style={{ marginTop: '1.6rem' }}
+          >
             {getLanguageFromKey('session.inactive', language)}
           </Typography>
         </AltinnPopoverSimple>
-        <Grid container={true} direction='row'>
+        <Grid
+          container={true}
+          direction='row'
+        >
           <PageHeader repoStatus={repoStatus} />
           <LeftMenu
             repoStatus={repoStatus}

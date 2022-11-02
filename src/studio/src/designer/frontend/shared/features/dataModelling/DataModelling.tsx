@@ -1,24 +1,31 @@
 import React, { useEffect, useState } from 'react';
-import { shallowEqual, useDispatch, useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Button, ButtonVariant, Panel } from '@altinn/altinn-design-system';
 import { SchemaEditorApp } from '@altinn/schema-editor/index';
 import type { ILanguage } from '@altinn/schema-editor/types';
-import { createDataModel, deleteDataModel, fetchDataModel, saveDataModel } from './sagas';
-import { createDataModelMetadataOptions } from './functions/createDataModelMetadataOptions';
+import { deleteDataModel, fetchDataModel, saveDataModel } from './sagas';
 import { findPreferredMetadataOption } from './functions/findPreferredMetadataOption';
 import { schemaPathIsSame } from './functions/schemaPathIsSame';
-import { DataModelsMetadataActions, LoadingState } from './sagas/metadata';
+import { DataModelsMetadataActions } from './sagas/metadata';
 import type { IMetadataOption } from './functions/types';
-import { LandingPagePanel } from './components/LandingPagePanel';
+import { LandingPagePanel } from './components/LandingPagePanel/LandingPagePanel';
 import { Dialog } from '@mui/material';
 import { createStyles, makeStyles } from '@mui/styles';
 import { getLanguageFromKey } from '../../utils/language';
-import { getLocalStorageItem, setLocalStorageItem } from './functions/localStorage';
+import {
+  getLocalStorageItem,
+  setLocalStorageItem,
+} from './functions/localStorage';
 import { CreateNewWrapper } from './components/CreateNewWrapper';
 import { DeleteWrapper } from './components/DeleteWrapper';
 import { SchemaSelect } from './components/SchemaSelect';
 import { XSDUpload } from './components/XSDUpload';
 import { sharedUrls } from '../../utils/urlHelper';
+import {
+  useCreateModelMutation,
+  useGetMetadataQuery,
+  useGetMetadataXsdQuery,
+} from './services/datamodelsApi';
 
 interface IDataModellingContainerProps extends React.PropsWithChildren<any> {
   language: ILanguage;
@@ -30,7 +37,7 @@ interface IDataModellingContainerProps extends React.PropsWithChildren<any> {
 type shouldSelectFirstEntryProps = {
   metadataOptions?: IMetadataOption[];
   selectedOption?: any;
-  metadataLoadingState: LoadingState;
+  metadataLoadingState: boolean;
 };
 
 enum LandingDialogState {
@@ -45,7 +52,9 @@ export const shouldSelectFirstEntry = ({
   metadataLoadingState,
 }: shouldSelectFirstEntryProps) => {
   return (
-    metadataOptions?.length > 0 && selectedOption === undefined && metadataLoadingState === LoadingState.ModelsLoaded
+    metadataOptions?.length > 0 &&
+    selectedOption === undefined &&
+    metadataLoadingState
   );
 };
 
@@ -57,39 +66,77 @@ const useStyles = makeStyles(
   }),
 );
 
-export function DataModelling({ language, org, repo, createPathOption }: IDataModellingContainerProps): JSX.Element {
+export function DataModelling({
+  language,
+  org,
+  repo,
+  createPathOption,
+}: IDataModellingContainerProps): JSX.Element {
   const classes = useStyles();
   const dispatch = useDispatch();
   const jsonSchema = useSelector((state: any) => state.dataModelling.schema);
-  const metadataOptions = useSelector(createDataModelMetadataOptions, shallowEqual);
-  const metadataLoadingState = useSelector((state: any) => state.dataModelsMetadataState.loadState);
   const [selectedOption, setSelectedOption] = React.useState(undefined);
   const [createNewOpen, setCreateNewOpen] = React.useState(false);
+  const [availableOptions, setAvailableOptions] = React.useState([]);
+
+  const { data: jsonMetadata, isLoading: isLoadingJsonMetadata } =
+    useGetMetadataQuery();
+  const { data: xsdMetadata, isLoading: isLoadingXsdMetadata } =
+    useGetMetadataXsdQuery();
 
   const uploadedOrCreatedFileName = React.useRef(null);
   const prevFetchedOption = React.useRef(null);
 
-  const modelNames = metadataOptions?.map(({ label }: { label: string }) => label.toLowerCase()) || [];
+  const modelNames = (
+    jsonMetadata?.map(({ label }: { label: string }) => label.toLowerCase()) ||
+    []
+  ).concat(
+    xsdMetadata?.map(({ label }: { label: string }) => label.toLowerCase()),
+  );
 
   useEffect(() => {
-    if (metadataLoadingState === LoadingState.LoadingModels) {
+    if (isLoadingJsonMetadata || isLoadingXsdMetadata) {
+      return;
+    }
+    const uniqueXsdOptions = xsdMetadata.filter((option) => {
+      const modelName = option.value.fileName.replace(
+        option.value.fileType,
+        '',
+      );
+      return !jsonMetadata.find(
+        (o) => o.value.fileName === `${modelName}.schema.json`,
+      );
+    });
+    setAvailableOptions(jsonMetadata.concat(uniqueXsdOptions));
+  }, [jsonMetadata, xsdMetadata, isLoadingJsonMetadata, isLoadingXsdMetadata]);
+
+  useEffect(() => {
+    if (isLoadingJsonMetadata || isLoadingXsdMetadata) {
       setSelectedOption(undefined);
     } else if (
       shouldSelectFirstEntry({
-        metadataOptions,
+        metadataOptions: jsonMetadata,
         selectedOption,
-        metadataLoadingState,
+        metadataLoadingState: !isLoadingJsonMetadata,
       })
     ) {
-      setSelectedOption(metadataOptions[0]);
+      setSelectedOption(jsonMetadata[0]);
     } else {
-      const option = findPreferredMetadataOption(metadataOptions, uploadedOrCreatedFileName.current);
+      const option = findPreferredMetadataOption(
+        jsonMetadata,
+        uploadedOrCreatedFileName.current,
+      );
       if (option) {
         setSelectedOption(option);
         uploadedOrCreatedFileName.current = null;
       }
     }
-  }, [metadataOptions, selectedOption, metadataLoadingState]);
+  }, [
+    jsonMetadata,
+    selectedOption,
+    isLoadingJsonMetadata,
+    isLoadingXsdMetadata,
+  ]);
 
   useEffect(() => {
     if (!schemaPathIsSame(prevFetchedOption?.current, selectedOption)) {
@@ -98,28 +145,37 @@ export function DataModelling({ language, org, repo, createPathOption }: IDataMo
     }
   }, [selectedOption, dispatch]);
 
-  const [landingDialogState, setLandingDialogState] = useState<LandingDialogState>(
-    LandingDialogState.DatamodelsNotLoaded,
-  );
+  const [landingDialogState, setLandingDialogState] =
+    useState<LandingDialogState>(LandingDialogState.DatamodelsNotLoaded);
 
-  const closeLandingPage = () => setLandingDialogState(LandingDialogState.DialogShouldNotBeShown);
+  const closeLandingPage = () =>
+    setLandingDialogState(LandingDialogState.DialogShouldNotBeShown);
 
   useEffect(() => {
-    if (metadataLoadingState === LoadingState.ModelsLoaded) {
-      if (jsonSchema && Object.keys(jsonSchema).length) {
+    if (!isLoadingJsonMetadata) {
+      if (jsonMetadata && Object.keys(jsonMetadata).length) {
         setLandingDialogState(LandingDialogState.DialogShouldNotBeShown);
-      } else if (landingDialogState === LandingDialogState.DatamodelsNotLoaded) {
+      } else if (
+        landingDialogState === LandingDialogState.DatamodelsNotLoaded
+      ) {
         setLandingDialogState(LandingDialogState.DialogIsVisible);
       }
     }
-  }, [jsonSchema, landingDialogState, metadataLoadingState]);
+  }, [jsonMetadata, landingDialogState, isLoadingJsonMetadata]);
 
-  const handleSaveSchema = (schema: any) => dispatch(saveDataModel({ schema, metadata: selectedOption }));
-  const handleDeleteSchema = () => dispatch(deleteDataModel({ metadata: selectedOption }));
+  const handleSaveSchema = (schema: any) =>
+    dispatch(saveDataModel({ schema, metadata: selectedOption }));
+  const handleDeleteSchema = () =>
+    dispatch(deleteDataModel({ metadata: selectedOption }));
   const handleCreateNewFromLandingPage = () => setCreateNewOpen(true);
 
-  const handleCreateSchema = (model: { name: string; relativeDirectory?: string }) => {
-    dispatch(createDataModel(model));
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [createModelTrigger] = useCreateModelMutation();
+  const handleCreateSchema = (model: {
+    name: string;
+    relativeDirectory?: string;
+  }) => {
+    createModelTrigger({ body: model });
     uploadedOrCreatedFileName.current = model.name;
   };
 
@@ -132,21 +188,33 @@ export function DataModelling({ language, org, repo, createPathOption }: IDataMo
     dispatch(DataModelsMetadataActions.getDataModelsMetadata());
   };
 
-  const shouldDisplayLandingPage = landingDialogState === LandingDialogState.DialogIsVisible;
+  const shouldDisplayLandingPage =
+    landingDialogState === LandingDialogState.DialogIsVisible;
 
-  const [hideIntroPage, setHideIntroPage] = useState(() => getLocalStorageItem('hideIntroPage') ?? false);
-  const handleHideIntroPageButtonClick = () => setHideIntroPage(setLocalStorageItem('hideIntroPage', true));
+  const [hideIntroPage, setHideIntroPage] = useState(
+    () => getLocalStorageItem('hideIntroPage') ?? false,
+  );
+  const handleHideIntroPageButtonClick = () =>
+    setHideIntroPage(setLocalStorageItem('hideIntroPage', true));
 
-  const [editMode, setEditMode] = useState(() => getLocalStorageItem('editMode'));
-  const toggleEditMode = () => setEditMode(setLocalStorageItem('editMode', !editMode));
+  const [editMode, setEditMode] = useState(() =>
+    getLocalStorageItem('editMode'),
+  );
+  const toggleEditMode = () =>
+    setEditMode(setLocalStorageItem('editMode', !editMode));
 
   const t = (key: string) => getLanguageFromKey(key, language);
-  const saveModelUrl = sharedUrls().saveDataModelUrl(selectedOption?.value?.repositoryRelativeUrl);
+  const saveModelUrl = sharedUrls().saveDataModelUrl(
+    selectedOption?.value?.repositoryRelativeUrl,
+  );
 
   return (
     <>
       <Dialog open={!hideIntroPage}>
-        <Panel forceMobileLayout={true} title={t('schema_editor.info_dialog_title')}>
+        <Panel
+          forceMobileLayout={true}
+          title={t('schema_editor.info_dialog_title')}
+        >
           <div>
             <p>{t('schema_editor.info_dialog_1')}</p>
             <p>{t('schema_editor.info_dialog_2')}</p>
@@ -161,7 +229,10 @@ export function DataModelling({ language, org, repo, createPathOption }: IDataMo
             <Button onClick={() => setHideIntroPage(true)}>Lukk</Button>
           </span>
           <span className={classes.button}>
-            <Button onClick={handleHideIntroPageButtonClick} variant={ButtonVariant.Secondary}>
+            <Button
+              onClick={handleHideIntroPageButtonClick}
+              variant={ButtonVariant.Secondary}
+            >
               Ikke vis igjen
             </Button>
           </span>
@@ -175,7 +246,7 @@ export function DataModelling({ language, org, repo, createPathOption }: IDataMo
         onSaveSchema={handleSaveSchema}
         saveUrl={saveModelUrl}
         name={selectedOption?.label}
-        loading={metadataLoadingState === LoadingState.LoadingModels}
+        loading={!(isLoadingJsonMetadata && isLoadingXsdMetadata)}
         LandingPagePanel={
           shouldDisplayLandingPage && (
             <LandingPagePanel
@@ -207,7 +278,7 @@ export function DataModelling({ language, org, repo, createPathOption }: IDataMo
         <SchemaSelect
           selectedOption={selectedOption}
           onChange={setSelectedOption}
-          options={metadataOptions}
+          options={availableOptions}
           disabled={shouldDisplayLandingPage}
         />
         <DeleteWrapper

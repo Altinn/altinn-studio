@@ -1,5 +1,5 @@
 import getNamesFromLocation from './getNamesFromLocation';
-import conditionalPath from "app-shared/utils/conditionalPath";
+import conditionalPath from 'app-shared/utils/conditionalPath';
 
 const cdn = 'https://altinncdn.no';
 export const altinnImgLogoHeaderUrl = `${cdn}/img/Altinn-logo-blue.svg`;
@@ -9,7 +9,7 @@ export const sharedUrls = () => {
   const [org, repo] = getNamesFromLocation();
   const origin = window.location.origin;
   const designerApi = `${origin}/designer/api`;
-  const orgRepoChunk = conditionalPath(org,repo);
+  const orgRepoChunk = conditionalPath(org, repo);
   const dataModelsApi = `${designerApi}/${orgRepoChunk}/datamodels`;
   return {
     ensureCloneApi: `${origin}/designer/${orgRepoChunk}`,
@@ -19,10 +19,12 @@ export const sharedUrls = () => {
     repositoryGitUrl: `${origin}/repos/${orgRepoChunk}.git`,
     repositoryUrl: `${origin}/repos/${orgRepoChunk}`,
     createDataModelUrl: `${dataModelsApi}/post`,
-    getDataModelUrl:
-      (pathToModelFile: string) => `${dataModelsApi}${pathToModelFile}`,
-    saveDataModelUrl:
-      (pathToModelFile: string) => `${dataModelsApi}?modelPath=${encodeURIComponent(pathToModelFile)}`,
+    getDataModelUrl: (pathToModelFile: string) =>
+      `${dataModelsApi}${pathToModelFile}`,
+    getAddXsdFromRepoUrl: (pathToModelFile: string) =>
+      `${dataModelsApi}/addFromRepo?filePath=${pathToModelFile}`,
+    saveDataModelUrl: (pathToModelFile: string) =>
+      `${dataModelsApi}?modelPath=${encodeURIComponent(pathToModelFile)}`,
   };
 };
 

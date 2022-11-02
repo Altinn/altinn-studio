@@ -1,8 +1,8 @@
 import React from 'react';
 import { makeStyles } from '@mui/styles';
-import { AltinnButton } from '../../../components';
-import { getLanguageFromKey } from '../../../utils/language';
-import { XSDUpload } from './XSDUpload';
+import { AltinnButton } from '../../../../components';
+import { getLanguageFromKey } from '../../../../utils/language';
+import { XSDUpload } from '../XSDUpload';
 
 const useStyles = makeStyles({
   landingDialog: {

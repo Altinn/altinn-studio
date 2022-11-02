@@ -1,8 +1,9 @@
-import { SagaIterator } from 'redux-saga';
+import type { SagaIterator } from 'redux-saga';
 import { call, put, takeLatest } from 'redux-saga/effects';
 import type { IJsonSchema } from '@altinn/schema-editor/types';
 import { del, get, post, put as networkPut } from '../../../utils/networking';
 import { sharedUrls } from '../../../utils/urlHelper';
+import type { IDataModelAction } from './dataModellingSlice';
 import {
   createDataModel,
   createDataModelFulfilled,
@@ -13,7 +14,6 @@ import {
   fetchDataModel,
   fetchDataModelFulfilled,
   fetchDataModelRejected,
-  IDataModelAction,
   saveDataModel,
   saveDataModelFulfilled,
   saveDataModelRejected,
@@ -24,7 +24,16 @@ export function* fetchDataModelSaga(action: IDataModelAction): SagaIterator {
   const { metadata } = action.payload;
   try {
     const modelPath = metadata?.value?.repositoryRelativeUrl;
-    const result = yield call(get, sharedUrls().getDataModelUrl(modelPath));
+    let result;
+    if (metadata?.value?.fileType === '.xsd') {
+      result = yield call(
+        get,
+        sharedUrls().getAddXsdFromRepoUrl(modelPath.slice(1)),
+      );
+    } else {
+      result = yield call(get, sharedUrls().getDataModelUrl(modelPath));
+    }
+
     yield put(fetchDataModelFulfilled({ schema: result }));
   } catch (err) {
     yield put(fetchDataModelRejected({ error: err }));
@@ -54,7 +63,11 @@ function* createDataModelSaga(action: IDataModelAction) {
   const { name, relativePath } = action.payload;
   const body = { modelName: name, relativeDirectory: relativePath };
   try {
-    const schema: IJsonSchema = yield call(post, sharedUrls().createDataModelUrl, body);
+    const schema: IJsonSchema = yield call(
+      post,
+      sharedUrls().createDataModelUrl,
+      body,
+    );
     yield put(DataModelsMetadataActions.getDataModelsMetadata());
     yield put(createDataModelFulfilled({ schema }));
   } catch (err) {

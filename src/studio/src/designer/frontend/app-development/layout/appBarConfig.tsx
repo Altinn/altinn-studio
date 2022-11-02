@@ -1,3 +1,5 @@
+import { RepositoryType } from '../services/repositoryApi';
+
 export interface TopBarMenuItem {
   key: TopBarMenu;
   link: string;
@@ -23,7 +25,7 @@ export const menu: TopBarMenuItem[] = [
   },
   {
     key: TopBarMenu.Datamodel,
-    link: '/datamodel'
+    link: '/datamodel',
   },
   {
     key: TopBarMenu.Text,
@@ -35,15 +37,15 @@ export const menu: TopBarMenuItem[] = [
   },
 ];
 
-export const getTopBarMenu = (isDatamodellingRepo: boolean) => {
-  if (isDatamodellingRepo) {
+export const getTopBarMenu = (repositoryType: RepositoryType) => {
+  if (repositoryType === RepositoryType.Datamodels) {
     return [
       {
         key: TopBarMenu.Datamodel,
-        link: '/datamodel'
+        link: '/datamodel',
       },
     ];
   }
 
   return menu;
-}
+};
