@@ -11,6 +11,7 @@ jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
 describe('XSDUpload', () => {
+  afterEach(() => jest.restoreAllMocks());
   it('should show file picker button', () => {
     render();
 

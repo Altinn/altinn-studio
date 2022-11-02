@@ -4,6 +4,7 @@ import { setupServer } from 'msw/node';
 import { render } from '@testing-library/react';
 import type { IAltinnWindow } from '../types/global';
 import { VersionControlContainer } from './versionControlHeader';
+import { sharedUrls } from 'app-shared/utils/urlHelper';
 
 const handlers = [
   rest.get(
@@ -19,12 +20,9 @@ const handlers = [
       );
     },
   ),
-  rest.get(
-    'http://localhost/designer/undefined//Model/GetXsd',
-    (req, res, ctx) => {
-      return res(ctx.status(200), ctx.json({}));
-    },
-  ),
+  rest.get(sharedUrls().dataModelXsdUrl, (req, res, ctx) => {
+    return res(ctx.status(200), ctx.json({}));
+  }),
 ];
 const versionControlHeaderMockServer = setupServer(...handlers);
 
