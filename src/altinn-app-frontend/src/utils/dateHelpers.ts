@@ -1,6 +1,7 @@
 import moment from 'moment';
 
 import { DateFlags } from 'src/types';
+import { DatePickerFormatDefault } from 'src/utils/validation';
 
 /*
   Creates a specific date based on different flags (DatepickerRestrictionFlags)
@@ -28,4 +29,14 @@ export function getISOString(
 
   const momentDate = moment(potentialDate);
   return momentDate.isValid() ? momentDate.toISOString() : undefined;
+}
+
+const locale =
+  window.navigator?.language || (window.navigator as any)?.userLanguage || 'nb';
+moment.locale(locale);
+
+export function getDateFormat(format?: string): string {
+  return (
+    moment.localeData().longDateFormat('L') || format || DatePickerFormatDefault
+  );
 }

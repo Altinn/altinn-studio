@@ -1,9 +1,9 @@
 import type React from 'react';
 
 import { formatNumericText } from '@altinn/altinn-design-system';
-import moment from 'moment';
 
 import { AsciiUnitSeparator } from 'src/utils/attachment';
+import { getDateFormat } from 'src/utils/dateHelpers';
 import { setMappingForRepeatingGroupComponent } from 'src/utils/formLayout';
 import {
   getOptionLookupKey,
@@ -11,7 +11,6 @@ import {
   setupSourceOptions,
 } from 'src/utils/options';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
-import { DatePickerFormatDefault } from 'src/utils/validation';
 import type { IFormData } from 'src/features/form/data';
 import type {
   IGridStyling,
@@ -318,10 +317,7 @@ export const getDisplayFormData = (
       return formatNumericText(formDataValue, component.formatting.number);
     }
     if (component.type === 'DatePicker') {
-      const dateFormat =
-        moment.localeData().longDateFormat('L') ||
-        component.format ||
-        DatePickerFormatDefault;
+      const dateFormat = getDateFormat(component.format);
       return formatISOString(formDataValue, dateFormat);
     }
   }

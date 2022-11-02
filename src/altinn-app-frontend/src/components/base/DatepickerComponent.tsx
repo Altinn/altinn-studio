@@ -14,10 +14,13 @@ import {
 } from '@material-ui/pickers';
 import moment from 'moment';
 
-import { getFlagBasedDate, getISOString } from 'src/utils/dateHelpers';
+import {
+  getDateFormat,
+  getFlagBasedDate,
+  getISOString,
+} from 'src/utils/dateHelpers';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
 import {
-  DatePickerFormatDefault,
   DatePickerMaxDateDefault,
   DatePickerMinDateDefault,
   DatePickerSaveFormatNoTimestamp,
@@ -106,11 +109,6 @@ function DatepickerComponent({
   const [validDate, setValidDate] = React.useState<boolean>(true);
   const [validationMessages, setValidationMessages] =
     React.useState<IComponentBindingValidation | null>(null);
-  const locale =
-    window.navigator?.language ||
-    (window.navigator as any)?.userLanguage ||
-    'nb';
-  moment.locale(locale);
 
   const calculatedMinDate =
     getFlagBasedDate(minDate as DateFlags) ||
@@ -121,10 +119,7 @@ function DatepickerComponent({
     getISOString(maxDate) ||
     DatePickerMaxDateDefault;
 
-  const calculatedFormat =
-    moment.localeData().longDateFormat('L') ||
-    format ||
-    DatePickerFormatDefault;
+  const calculatedFormat = getDateFormat(format);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
