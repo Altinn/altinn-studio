@@ -534,7 +534,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 // creating new API key
                 HttpResponseMessage response = await client.PostAsync(giteaUrl, content);
 
-                if (response.StatusCode == HttpStatusCode.Redirect)
+                if (response.StatusCode == HttpStatusCode.Redirect || response.StatusCode == HttpStatusCode.SeeOther)
                 {
                     Cookie cookie = StealMacaronCookie(response);
 
