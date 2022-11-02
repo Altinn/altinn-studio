@@ -199,7 +199,7 @@ export function en() {
       },
     },
     party_selection: {
-      caption_prefix: 'Feil',
+      error_caption_prefix: 'Error',
       invalid_selection_first_part: 'You started this app as',
       invalid_selection_second_part: 'This app is available for',
       invalid_selection_third_part: 'Choose another party below.',
