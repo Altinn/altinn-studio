@@ -25,9 +25,6 @@
     "uuid": "8.3.2"
   },
   "devDependencies": {
-    "@babel/core": "7.19.6",
-    "@babel/preset-env": "7.19.4",
-    "@babel/preset-react": "7.18.6",
     "@testing-library/jest-dom": "5.16.5",
     "@testing-library/react": "13.4.0",
     "@testing-library/user-event": "14.4.3",
@@ -39,14 +36,11 @@
     "@types/redux-mock-store": "1.0.3",
     "@types/uuid": "8.3.4",
     "cross-env": "7.0.3",
-    "fork-ts-checker-notifier-webpack-plugin": "6.0.0",
-    "fork-ts-checker-webpack-plugin": "7.2.13",
     "jest": "29.2.1",
     "jest-junit": "14.0.1",
     "mini-css-extract-plugin": "2.6.1",
     "redux-mock-store": "1.5.4",
     "rimraf": "3.0.2",
-    "terser-webpack-plugin": "5.3.6",
     "webpack": "5.74.0",
     "webpack-dev-server": "4.11.1"
   },

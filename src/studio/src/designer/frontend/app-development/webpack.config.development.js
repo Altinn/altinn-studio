@@ -1,6 +1,6 @@
 const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
 const commonConfig = require('./webpack.common');
-const setupMiddlewares = require('./test/devServerMock');
+const setupMiddlewares = require('../mockend/src');
 module.exports = {
   ...commonConfig,
   mode: 'development',
@@ -16,7 +16,7 @@ module.exports = {
         use: {
           loader: 'svg-inline-loader',
         },
-        exclude: /schema-editor/
+        exclude: /schema-editor/,
       },
       {
         enforce: 'pre',
@@ -38,6 +38,7 @@ module.exports = {
   devServer: {
     setupMiddlewares,
     hot: true,
+    port: 2004,
     historyApiFallback: true,
     allowedHosts: 'all',
     client: {

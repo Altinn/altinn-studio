@@ -1,11 +1,12 @@
+const { getLanguagePath } = require('../utils');
 let currentCategory;
 
 require('fs')
-  .readFileSync('../../backend/Languages/ini/nb.ini', 'utf8')
+  .readFileSync(getLanguagePath('nb.ini'), 'utf8')
   .split(/\n/)
-  .map(line => line.trim())
-  .filter(line => !line.startsWith('#') && !line.startsWith(';') && line.length)
-  .forEach(line => {
+  .map((line) => line.trim())
+  .filter((line) => !line.startsWith('#') && !line.startsWith(';') && line.length)
+  .forEach((line) => {
     if (/^\[.*]$/.test(line)) {
       currentCategory = line.replace(/(^\[)|(]$)/g, '');
       module.exports[currentCategory] = {};

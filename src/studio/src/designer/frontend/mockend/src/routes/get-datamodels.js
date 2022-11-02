@@ -1,10 +1,11 @@
 const fs = require('fs');
 const path = require('path');
+const { getStoragePath } = require('../utils');
 /**
  * Returns all datamodels
  */
 module.exports = () => {
-  const directory = path.resolve(__dirname, 'storage');
+  const directory = getStoragePath('.');
   const files = fs.readdirSync(directory);
   const out = [];
   files.forEach((fileName) => {

@@ -1,0 +1,6 @@
+{
+  "name": "@altinn-studio/mockend",
+  "devDependencies": {
+    "body-parser": "1.20.1"
+  }
+}

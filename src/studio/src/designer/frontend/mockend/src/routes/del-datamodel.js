@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
+const { getStoragePath } = require('../utils');
 module.exports = (modelpath) => {
-  const filename = modelpath.split('/').pop();
-  const filepath = path.resolve(__dirname, 'storage', filename);
+  const filepath = getStoragePath(modelpath.split('/').pop());
   return fs.unlinkSync(filepath);
 };
