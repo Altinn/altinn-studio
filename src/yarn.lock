@@ -12,27 +12,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@altinn/altinn-design-system@npm:0.16.0":
-  version: 0.16.0
-  resolution: "@altinn/altinn-design-system@npm:0.16.0"
+"@altinn/altinn-design-system@npm:0.17.1":
+  version: 0.17.1
+  resolution: "@altinn/altinn-design-system@npm:0.17.1"
   dependencies:
-    "@altinn/figma-design-tokens": ^4.1.0
+    "@altinn/figma-design-tokens": ^4.2.0
     "@radix-ui/react-popover": ^1.0.0
     "@react-hookz/web": ^16.0.0
     leaflet: ^1.8.0
     react-leaflet: ^4.0.1
-    react-number-format: ^5.0.1
+    react-number-format: ^5.1.1
   peerDependencies:
     react: ^18.0.0
     react-dom: ^18.0.0
-  checksum: 200562e615d724cfbd2802f48f24fe7d9a4fd969afbc6ba663f18ce3236378a287a4f9c65c5c77d94dababdb710015b1852264e5b9c1af8242a2ac9d62b647af
+  checksum: 6d6d5e724d64742183a1509b445b47a2ebe8137390be0f56b47bef627f7ae17a0281f2782c0fe58d07c5d538a2d876d7a94cc840fee925653f4dbbd2db09eebd
   languageName: node
   linkType: hard
 
-"@altinn/figma-design-tokens@npm:^4.1.0":
-  version: 4.1.0
-  resolution: "@altinn/figma-design-tokens@npm:4.1.0"
-  checksum: 9f256692d77dcf944da2572e4763c7355566e175a0fe35a93617cea0c313c7f147d6fb5efcaa02283f431b11f2c8496e2b20ef62d44d5d04d61093c9ff0007e3
+"@altinn/figma-design-tokens@npm:^4.2.0":
+  version: 4.2.0
+  resolution: "@altinn/figma-design-tokens@npm:4.2.0"
+  checksum: 9877d101c066e6da8c69ccb70c92e085df06d299a6d280e3a713d67b5c367a917ea4ce3f3bbd209efd57e2b66669131df5b3faa596724994f87c47235c5ef8bd
   languageName: node
   linkType: hard
 
@@ -5214,7 +5214,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "altinn-app-frontend@workspace:altinn-app-frontend"
   dependencies:
-    "@altinn/altinn-design-system": 0.16.0
+    "@altinn/altinn-design-system": 0.17.1
     "@babel/core": 7.19.6
     "@babel/polyfill": 7.12.1
     "@babel/preset-env": 7.19.4
@@ -13171,15 +13171,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-number-format@npm:^5.0.1":
-  version: 5.1.0
-  resolution: "react-number-format@npm:5.1.0"
+"react-number-format@npm:^5.1.1":
+  version: 5.1.1
+  resolution: "react-number-format@npm:5.1.1"
   dependencies:
     prop-types: ^15.7.2
   peerDependencies:
     react: ^0.14 || ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^18.0.0
     react-dom: ^0.14 || ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0 || ^18.0.0
-  checksum: 7217f53a912c8f6099f14c376e0f658b39ae9c8791f15531d212b7d77e523762a19451ce5efeba3c40badd32b94365aef7e0006248e537048f083df6f7a55d04
+  checksum: d8f95c3a61f3a017f70459b68de4f2762c6c32fcd3996c3cee2d6f8d5c23e7b3a17de111c54d555e1a4a2a2bd0f98b6e708140146ece3a1db051f561ad19909d
   languageName: node
   linkType: hard
 
