@@ -536,8 +536,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             var xsdFile = Path.Combine(directory, $"{schemaName}.xsd");
             var jsonSchemaFile = Path.Combine(directory, $"{schemaName}.schema.json");
+            var jsonMetadataFile = Path.Combine(directory, $"{schemaName}.metadata.json");
+            var csharpModelFile = Path.Combine(directory, $"{schemaName}.cs");
 
-            return new List<string>() { jsonSchemaFile, xsdFile };
+            return new List<string>() { jsonSchemaFile, xsdFile, jsonMetadataFile, csharpModelFile };
         }
 
         private static async Task DeleteDatatypeFromApplicationMetadata(AltinnAppGitRepository altinnAppGitRepository, string id)
