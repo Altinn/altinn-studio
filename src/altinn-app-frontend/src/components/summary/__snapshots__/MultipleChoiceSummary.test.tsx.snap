@@ -15,7 +15,7 @@ exports[`MultipleChoiceSummary MultipleChoiceSummary 1`] = `
     class="MuiGrid-root MuiGrid-item MuiGrid-grid-xs-2"
   >
     <button
-      class="MuiButtonBase-root MuiIconButton-root makeStyles-editButton-5"
+      class="MuiButtonBase-root MuiIconButton-root makeStyles-editButton-6"
       tabindex="0"
       type="button"
     >
@@ -23,13 +23,13 @@ exports[`MultipleChoiceSummary MultipleChoiceSummary 1`] = `
         class="MuiIconButton-label"
       >
         <p
-          class="MuiTypography-root makeStyles-change-7 MuiTypography-body1"
+          class="MuiTypography-root makeStyles-change-8 MuiTypography-body1"
         >
           <span>
             Endre
           </span>
           <i
-            class="fa fa-editing-file makeStyles-editIcon-6"
+            class="fa fa-editing-file makeStyles-editIcon-7"
           />
         </p>
       </span>
@@ -53,7 +53,7 @@ exports[`MultipleChoiceSummary MultipleChoiceSummary 1`] = `
           id="1"
         >
           <span
-            class="MuiTypography-root MuiListItemText-primary MuiTypography-body1 MuiTypography-displayBlock"
+            class="MuiTypography-root makeStyles-data-3 MuiListItemText-primary MuiTypography-body1 MuiTypography-displayBlock"
           >
             This is a text
           </span>
@@ -67,7 +67,7 @@ exports[`MultipleChoiceSummary MultipleChoiceSummary 1`] = `
           id="2"
         >
           <span
-            class="MuiTypography-root MuiListItemText-primary MuiTypography-body1 MuiTypography-displayBlock"
+            class="MuiTypography-root makeStyles-data-3 MuiListItemText-primary MuiTypography-body1 MuiTypography-displayBlock"
           >
             This is another text
           </span>
