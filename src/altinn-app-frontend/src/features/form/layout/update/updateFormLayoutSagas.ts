@@ -587,7 +587,19 @@ export function* updateRepeatingGroupEditIndexSaga({
       const state: IRuntimeState = yield select();
       const validations: IValidations = state.formValidations.validations;
       const currentView = state.formLayout.uiConfig.currentView;
-      const frontendValidations: IValidations = validateGroup(group, state);
+      const onlyInRowIndex =
+        validate === Triggers.ValidateRow
+          ? (state.formLayout.uiConfig.repeatingGroups &&
+              state.formLayout.uiConfig.repeatingGroups[group].editIndex) ??
+            undefined
+          : undefined;
+
+      const frontendValidations: IValidations = validateGroup(
+        group,
+        state,
+        onlyInRowIndex,
+      );
+
       const options: AxiosRequestConfig = {
         headers: {
           ComponentId: group,

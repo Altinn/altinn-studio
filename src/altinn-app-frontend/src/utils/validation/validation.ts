@@ -240,9 +240,10 @@ export function validateEmptyFieldsForNodes(
   language: ILanguage,
   hiddenFields: Set<string>,
   textResources: ITextResource[],
+  onlyInRowIndex?: number,
 ): ILayoutValidations {
   const validations: any = {};
-  for (const node of nodes.flat(false)) {
+  for (const node of nodes.flat(false, onlyInRowIndex)) {
     if (
       // These components have their own validation in validateFormComponents(). With data model bindings enabled for
       // attachments, the empty field validations would interfere.
@@ -387,10 +388,11 @@ function validateFormComponentsForNodes(
   formData: IFormData,
   language: ILanguage,
   hiddenFields: Set<string>,
+  onlyInRowIndex?: number,
 ): ILayoutValidations {
   const validations: ILayoutValidations = {};
   const fieldKey: keyof IDataModelBindings = 'simpleBinding';
-  const flatNodes = nodes.flat(false);
+  const flatNodes = nodes.flat(false, onlyInRowIndex);
 
   for (const node of flatNodes) {
     if (node.isHidden(hiddenFields)) {
@@ -726,6 +728,7 @@ function validateFormDataForLayout(
   schemaValidator: ISchemaValidator,
   language: ILanguage,
   textResources: ITextResource[],
+  onlyInRowIndex?: number,
 ): IValidationResult {
   const { validator, rootElementPath, schema } = schemaValidator;
   const valid = validator.validate(
@@ -783,6 +786,7 @@ function validateFormDataForLayout(
       dataBinding,
       errorMessage,
       result.validations,
+      onlyInRowIndex,
     );
   }
 
@@ -850,9 +854,10 @@ export function mapToComponentValidationsGivenNode(
   dataBinding: string,
   errorMessage: string,
   validations: ILayoutValidations,
+  onlyInRowIndex?: number,
 ) {
   let fieldKey: string | undefined = undefined;
-  const component = node.flat(true).find((item) => {
+  const component = node.flat(true, onlyInRowIndex).find((item) => {
     if (item.item.dataModelBindings) {
       fieldKey = Object.keys(item.item.dataModelBindings).find((key) => {
         return (
@@ -1503,11 +1508,13 @@ function removeFixedValidations(
  * Validates a specific group. Validates all rows, with all child components and child groups.
  * @param groupId the group to validate
  * @param state the current state
+ * @param onlyInRowIndex If set, it will only validate the children of that specific row.
  * @returns validations for a given group
  */
 export function validateGroup(
   groupId: string,
   state: IRuntimeState,
+  onlyInRowIndex?: number,
 ): IValidations {
   const language = state.language.language;
   const textResources = state.textResources.resources;
@@ -1551,6 +1558,7 @@ export function validateGroup(
     language,
     hiddenFields,
     textResources,
+    onlyInRowIndex,
   );
   const componentValidations = validateFormComponentsForNodes(
     attachments,
@@ -1558,6 +1566,7 @@ export function validateGroup(
     formData,
     language,
     hiddenFields,
+    onlyInRowIndex,
   );
   const formDataValidations = validateFormDataForLayout(
     jsonFormData,
@@ -1566,6 +1575,7 @@ export function validateGroup(
     validator,
     language,
     textResources,
+    onlyInRowIndex,
   ).validations;
 
   return mergeValidationObjects(

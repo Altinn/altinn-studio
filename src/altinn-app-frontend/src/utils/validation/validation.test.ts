@@ -85,6 +85,7 @@ describe('utils > validation', () => {
   let mockInvalidTypes: any;
   let mockFormData: any;
   let mockValidFormData: any;
+  let mockInvalidFormData: any;
   let mockFormValidationResult: any;
   let mockLanguage: any;
   let mockFormAttachments: any;
@@ -361,6 +362,29 @@ describe('utils > validation', () => {
           dataModelField_4: 'Not now!',
           group_2: [
             { dataModelField_5: 'This is long' },
+            { dataModelField_5: 'Something else that is long' },
+          ],
+        },
+      ],
+    };
+
+    mockInvalidFormData = {
+      dataModelField_1: '12',
+      dataModelField_2: 'Really quite long...',
+      dataModelField_3: 'Test 123',
+      dataModelField_custom: 'abc',
+      group_1: [
+        {
+          dataModelField_4: '',
+          group_2: [
+            { dataModelField_5: 'This is long' },
+            { dataModelField_5: '' },
+          ],
+        },
+        {
+          dataModelField_4: '',
+          group_2: [
+            { dataModelField_5: '' },
             { dataModelField_5: 'Something else that is long' },
           ],
         },
@@ -1964,6 +1988,147 @@ describe('utils > validation', () => {
             },
           },
           'componentId_5-0-1': {
+            simpleBinding: {
+              errors: [
+                getParsedLanguageFromKey(
+                  `validation_errors.minLength`,
+                  state.language.language || {},
+                  [10],
+                  true,
+                ),
+              ],
+            },
+          },
+        },
+      });
+    });
+
+    it('should only detect errors in one row when onlyInRowIndex is set', () => {
+      const state: IRuntimeState = getInitialStateMock({
+        formDataModel: {
+          schemas: {
+            default: mockJsonSchema,
+          },
+          error: null,
+        },
+        instanceData: {
+          instance: {
+            instanceOwner: {
+              partyId: 12345,
+            },
+            process: {
+              currentTask: {
+                elementId: 'default',
+              } as any,
+            } as any,
+          } as any,
+          error: null,
+        },
+        applicationMetadata: {
+          applicationMetadata: {
+            dataTypes: [
+              {
+                appLogic: {
+                  classRef: 'Altinn.App.Models.Skjema',
+                },
+                taskId: 'default',
+                maxCount: 0,
+                minCount: 0,
+                allowedContentTypes: [],
+                id: 'default',
+              },
+            ],
+          } as any,
+          error: null,
+        },
+        formLayout: {
+          layouts: mockLayout,
+          error: null,
+          uiConfig: {
+            currentView: 'FormLayout',
+            hiddenFields: [],
+            repeatingGroups: {
+              group1: {
+                index: 1,
+                editIndex: -1,
+              },
+              'group2-0': {
+                index: 1,
+                editIndex: -1,
+              },
+              'group2-1': {
+                index: 1,
+                editIndex: -1,
+              },
+            },
+          },
+        } as any,
+        formData: {
+          formData: mockInvalidFormData,
+        } as any,
+        textResources: {
+          error: null,
+          language: 'nb',
+          resources: mockTextResources,
+        },
+      });
+
+      const result0: IValidations = validation.validateGroup(
+        'group1',
+        state,
+        0,
+      );
+      expect(result0).toEqual({
+        FormLayout: {
+          'componentId_4-0': {
+            simpleBinding: {
+              errors: [
+                'Du må fylle ut component_4',
+                getParsedLanguageFromKey(
+                  `validation_errors.pattern`,
+                  state.language.language || {},
+                  [],
+                  true,
+                ),
+              ],
+            },
+          },
+          'componentId_5-0-1': {
+            simpleBinding: {
+              errors: [
+                getParsedLanguageFromKey(
+                  `validation_errors.minLength`,
+                  state.language.language || {},
+                  [10],
+                  true,
+                ),
+              ],
+            },
+          },
+        },
+      });
+
+      const result1: IValidations = validation.validateGroup(
+        'group1',
+        state,
+        1,
+      );
+      expect(result1).toEqual({
+        FormLayout: {
+          'componentId_4-1': {
+            simpleBinding: {
+              errors: [
+                'Du må fylle ut component_4',
+                getParsedLanguageFromKey(
+                  `validation_errors.pattern`,
+                  state.language.language || {},
+                  [],
+                  true,
+                ),
+              ],
+            },
+          },
+          'componentId_5-1-0': {
             simpleBinding: {
               errors: [
                 getParsedLanguageFromKey(

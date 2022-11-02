@@ -7,6 +7,7 @@ import type {
   INavigationConfig,
   IOption,
 } from 'src/types';
+import type { Triggers } from 'src/types/index';
 
 export interface IFormLayoutActionRejected {
   error: Error | null;
@@ -84,7 +85,7 @@ export interface IUpdateRepeatingGroupsMultiPageIndex {
 export interface IUpdateRepeatingGroupsEditIndex {
   group: string;
   index: number;
-  validate?: boolean;
+  validate?: Triggers.Validation | Triggers.ValidateRow;
 }
 
 export interface IUpdateRepeatingGroupsEditIndexFulfilled {

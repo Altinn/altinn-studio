@@ -258,10 +258,14 @@ export interface LayoutObject<
    * LayoutNode objects.
    *
    * @param includeGroups If true, also includes the group nodes
+   * @param onlyInRows
    */
-  flat(includeGroups: true): AnyChildNode<NT>[];
-  flat(includeGroups: false): LayoutNode<NT, ComponentOf<NT>>[];
-  flat(includeGroups: boolean): AnyChildNode<NT>[];
+  flat(includeGroups: true, onlyInRows?: number): AnyChildNode<NT>[];
+  flat(
+    includeGroups: false,
+    onlyInRows?: number,
+  ): LayoutNode<NT, ComponentOf<NT>>[];
+  flat(includeGroups: boolean, onlyInRows?: number): AnyChildNode<NT>[];
 }
 
 /**
@@ -450,6 +454,7 @@ export class LayoutNode<
     matching: (item: AnyItem<NT>) => boolean,
     onlyInRowIndex?: number,
   ): AnyNode<NT> | undefined;
+  public children(matching: undefined, onlyInRowIndex?: number): AnyNode<NT>[];
   public children(
     matching?: (item: AnyItem<NT>) => boolean,
     onlyInRowIndex?: number,
@@ -480,21 +485,29 @@ export class LayoutNode<
    * LayoutNode objects. Implemented here for parity with LayoutRootNode.
    *
    * @param includeGroups If true, also includes the group nodes (which also includes self, when this node is a group)
+   * @param onlyInRowIndex If set, it will only include children with the given row index. It will still include all
+   *        children of nested groups regardless of row-index.
    */
-  public flat(includeGroups: true): AnyChildNode<NT>[];
-  public flat(includeGroups: false): LayoutNode<NT, ComponentOf<NT>>[];
-  public flat(includeGroups: boolean): AnyChildNode<NT>[] {
+  public flat(includeGroups: true, onlyInRowIndex?: number): AnyChildNode<NT>[];
+  public flat(
+    includeGroups: false,
+    onlyInRowIndex?: number,
+  ): LayoutNode<NT, ComponentOf<NT>>[];
+  public flat(
+    includeGroups: boolean,
+    onlyInRowIndex?: number,
+  ): AnyChildNode<NT>[] {
     const out: AnyChildNode<NT>[] = [];
-    const recurse = (item: AnyChildNode<NT>) => {
+    const recurse = (item: AnyChildNode<NT>, rowIndex?: number) => {
       if (includeGroups || item.item.type !== 'Group') {
         out.push(item);
       }
-      for (const child of item.children()) {
+      for (const child of item.children(undefined, rowIndex)) {
         recurse(child);
       }
     };
 
-    recurse(this);
+    recurse(this, onlyInRowIndex);
     return out;
   }
 

@@ -57,6 +57,17 @@ const useStyles = makeStyles({
   },
 });
 
+const getValidationMethod = (container: ILayoutGroup) => {
+  // Validation for whole group takes precedent over single-row validation if both are present.
+  const triggers = container.triggers;
+  if (triggers && triggers.includes(Triggers.Validation)) {
+    return Triggers.Validation;
+  }
+  if (triggers && triggers.includes(Triggers.ValidateRow)) {
+    return Triggers.ValidateRow;
+  }
+};
+
 export function GroupContainer({
   id,
   container,
@@ -208,15 +219,14 @@ export function GroupContainer({
   };
 
   const setEditIndex = (index: number, forceValidation?: boolean) => {
-    // if edit button has been clicked while edit container is open, we trigger validations if present in triggers
-    const validate =
-      (index === -1 || forceValidation) &&
-      !!container.triggers?.includes(Triggers.Validation);
     dispatch(
       FormLayoutActions.updateRepeatingGroupsEditIndex({
         group: id,
         index,
-        validate,
+        validate:
+          index === -1 || forceValidation
+            ? getValidationMethod(container)
+            : undefined,
       }),
     );
     if (edit?.multiPage && index > -1) {

@@ -257,6 +257,7 @@ export enum Triggers {
   CalculatePageOrder = 'calculatePageOrder',
   ValidatePage = 'validatePage',
   ValidateAllPages = 'validateAllPages',
+  ValidateRow = 'validateRow',
 }
 
 export interface ILabelSettings {

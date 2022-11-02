@@ -125,6 +125,74 @@ describe('Group', () => {
     cy.get(appFrontend.group.saveMainGroup).should('be.visible').click().should('not.exist');
   });
 
+  ['validation', 'validateRow'].forEach((trigger) => {
+    it(`Validates group using triggers = ['${trigger}']`, () => {
+
+      cy.intercept('GET', '**/instances/*/*/data/*/validate').as('validate');
+
+      cy.interceptLayout('group', (component) => {
+        // Set trigger on main group
+        if (component.id === 'mainGroup') {
+          component.triggers = [trigger];
+        }
+        // Remove component triggers and set required
+        if (component.id === 'currentValue' || component.id === 'newValue') {
+          component.triggers = undefined;
+          component.required = true;
+        }
+        return component;
+      });
+      init();
+
+      cy.get(appFrontend.group.showGroupToContinue).find('input').check();
+
+      cy.get(appFrontend.group.addNewItem).should('exist').and('be.visible').focus().click();
+      cy.get(appFrontend.group.currentValue).should('be.visible').type('123').blur();
+      cy.get(appFrontend.group.newValue).should('be.visible').type('1').blur();
+      cy.get(appFrontend.group.saveMainGroup).focus().should('be.visible').click();
+
+      cy.get(appFrontend.group.addNewItem).should('exist').and('be.visible').focus().click();
+      cy.get(appFrontend.group.currentValue).should('be.visible').type('123').blur();
+
+      cy.get(appFrontend.group.rows[0].editBtn).should('exist').and('be.visible').focus().click();
+      cy.get(appFrontend.group.saveMainGroup).focus().should('be.visible').click();
+
+      cy.wait('@validate');
+
+      if (trigger === 'validation') {
+        cy.get(appFrontend.errorReport)
+          .should('exist')
+          .should('be.visible')
+          .should('contain.text', texts.requiredFieldToValue)
+          .should('not.contain.text', texts.requiredFieldFromValue);
+      } else {
+        cy.get(appFrontend.errorReport)
+          .should('not.exist');
+        cy.get(appFrontend.group.rows[0].editBtn).should('exist').and('be.visible').focus().click();
+      }
+
+      cy.get(appFrontend.group.currentValue).should('be.visible').clear().blur();
+      cy.get(appFrontend.group.saveMainGroup).focus().should('be.visible').click();
+
+      cy.wait('@validate');
+
+      if (trigger === 'validation') {
+        cy.get(appFrontend.errorReport)
+          .should('exist')
+          .should('be.visible')
+          .should('contain.text', texts.requiredFieldToValue)
+          .should('contain.text', texts.requiredFieldFromValue);
+      } else {
+        cy.get(appFrontend.errorReport)
+          .should('exist')
+          .should('be.visible')
+          .should('contain.text', texts.requiredFieldFromValue)
+          .should('not.contain.text', texts.requiredFieldToValue);
+      }
+
+    });
+  });
+
   it('should support panel group adding item to referenced group', () => {
     init();
     cy.get(appFrontend.group.showGroupToContinue).find('input').check();
