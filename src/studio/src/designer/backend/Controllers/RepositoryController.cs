@@ -35,6 +35,7 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly ISourceControl _sourceControl;
         private readonly IRepository _repository;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IAltinnGitRepositoryFactory _altinnGitRepositoryFactory;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RepositoryController"/> class.
@@ -271,7 +272,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("{org}/{repository}/branches")]
         public async Task<List<Branch>> Branches(string org, string repository)
             => await _giteaApi.GetBranches(org, repository);
- 
+
         /// <summary>
         /// Returns information about a given branch
         /// </summary>
@@ -534,7 +535,7 @@ namespace Altinn.Studio.Designer.Controllers
             try
             {
                 appRoot = _repository.GetAppPath(org, repository);
-            
+
                 if (!Directory.Exists(appRoot))
                 {
                     return BadRequest("User does not have a local clone of the repository.");
@@ -563,10 +564,25 @@ namespace Altinn.Studio.Designer.Controllers
                     archive.CreateEntryFromFile(Path.Join(appRoot, changedFile), changedFile);
                 }
             }
-            
+
             outStream.Seek(0, SeekOrigin.Begin);
 
             return File(outStream, "application/zip", $"{org}-{repository}.zip");
+        }
+
+        /// <summary>
+        /// Gets the repository type
+        /// </summary>
+        /// <param name="org">Organization owning the repository identified by it's short name.</param>
+        /// <param name="repository">Repository name to check.</param>
+        [HttpGet]
+        [Route("{org}/{repository}/repositoryType")]
+        public async Task<ActionResult<AltinnRepositoryType>> GetRepositoryType(string org, string repository)
+        {
+            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
+            var repoType = await altinnGitRepository.GetRepositoryType();
+            return repoType;
         }
 
         private List<string> GetFilesInDirectory(string appRoot, DirectoryInfo currentDir)
@@ -586,7 +602,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 ret.Add(file.FullName.Replace('\\', '/').Replace(appRoot, string.Empty));
             }
-            
+
             return ret;
         }
     }
