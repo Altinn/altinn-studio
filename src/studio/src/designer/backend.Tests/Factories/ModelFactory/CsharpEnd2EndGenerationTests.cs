@@ -19,6 +19,8 @@ using FluentAssertions;
 using Json.Schema;
 using Xunit;
 using static Designer.Tests.Assertions.TypeAssertions;
+using Formatting = Newtonsoft.Json.Formatting;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Designer.Tests.Factories.ModelFactory;
 
@@ -49,9 +51,6 @@ public class CsharpEnd2EndGenerationTests : FluentTestsBase<CsharpEnd2EndGenerat
     [Theory]
     [InlineData("Model/Xsd/Gitea/nsm-klareringsportalen.xsd", "ePOB_M")]
     [InlineData("Model/Xsd/Gitea/stami-mu-bestilling-2021.xsd", "MuOrder")]
-    [InlineData("Model/Xsd/Gitea/udi-kjaerestebesok.xsd", "soknad")]
-    [InlineData("Model/Xsd/Gitea/krt-krt-1226a-1.xsd", "melding")]
-    [InlineData("Model/Xsd/Gitea/krt-krt-1228a-1.xsd", "melding")]
     [InlineData("Model/Xsd/Gitea/dat-aarligmelding-bemanning.xsd", "Skjema")]
     [InlineData("Model/Xsd/Gitea/dihe-redusert-foreldrebetaling-bhg.xsd", "XML2Ephorte")]
     [InlineData("Model/Xsd/Gitea/hi-algeskjema.xsd", "schema")]
@@ -67,7 +66,6 @@ public class CsharpEnd2EndGenerationTests : FluentTestsBase<CsharpEnd2EndGenerat
     [InlineData("Model/Xsd/Gitea/srf-fufinn-behovskartleggin.xsd", "skjema")]
     [InlineData("Model/Xsd/Gitea/srf-melding-til-statsforvalteren.xsd", "skjema")]
     [InlineData("Model/Xsd/Gitea/udi-unntak-karantenehotell-velferd.xsd", "melding")]
-    [InlineData("Model/Xsd/Gitea/RA-0678_M.xsd", "melding")]
     [InlineData("Model/Xsd/Gitea/skjema.xsd", "Skjema")]
     [InlineData("Model/Xsd/Gitea/srf-fufinn-behovsendring.xsd", "skjema")]
     [InlineData("Model/Xsd/Gitea/stami-atid-databehandler-2022.xsd", "DataBehandler")]
@@ -90,6 +88,29 @@ public class CsharpEnd2EndGenerationTests : FluentTestsBase<CsharpEnd2EndGenerat
         And.GeneratedClassesShouldBeEquivalent();
     }
 
+    // enum, max/min exclusive, fractions are ignored in c# class.
+    [Theory]
+    [InlineData("Model/Xsd/SimpleTypeRestrictions.xsd", "Root", "t1", "string", "[MinLength(5)]")]
+    [InlineData("Model/Xsd/SimpleTypeRestrictions.xsd", "Root", "t1", "string", "[MaxLength(20)]")]
+    [InlineData("Model/Xsd/SimpleTypeRestrictions.xsd", "Root", "t2", "string", "[MinLength(10)]")]
+    [InlineData("Model/Xsd/SimpleTypeRestrictions.xsd", "Root", "t2", "string", "[MaxLength(10)]")]
+    [InlineData("Model/Xsd/SimpleTypeRestrictions.xsd", "Root", "t4", "string", @"[RegularExpression(@""^\d\.\d\.\d$"")]")]
+    [InlineData("Model/Xsd/SimpleTypeRestrictions.xsd", "Root", "n1", "decimal", @"[RegularExpression(@""^(([0-9]){1}(\.)?){0,10}$"")]")]
+    [InlineData("Model/Xsd/SimpleTypeRestrictions.xsd", "Root", "n1", "decimal", @"[Range(-100, 100)]")]
+    [InlineData("Model/Xsd/SimpleTypeRestrictions.xsd", "Root", "i1", "int", @"[RegularExpression(@""^[0-9]{0,10}$"")]")]
+    [InlineData("Model/Xsd/SimpleTypeRestrictions.xsd", "Root", "i2", "decimal", @"[RegularExpression(@""^[0-9]{0,10}$"")]")]
+    public void Convert_CSharpClass_ShouldContainRestriction(string xsdSchemaPath, string modelName, string propertyName, string expectedPropertyType, string restrictionString)
+    {
+        Given.That.XsdSchemaLoaded(xsdSchemaPath)
+            .When.XsdSchemaConverted2JsonSchema()
+            .And.JsonSchemaConverted2Metamodel(modelName)
+            .And.CSharpClassesCreatedFromMetamodel()
+            .And.CSharpClassesCompiledToAssembly()
+            .Then.CompiledAssembly.Should().NotBeNull();
+
+        And.PropertyShouldHaveDefinedTypeAndContainAnnotation(propertyName, expectedPropertyType, restrictionString);
+    }
+
     private CsharpEnd2EndGenerationTests XsdSchemaLoaded(string xsdSchemaPath)
     {
         XsdSchema = TestDataHelper.LoadXmlSchemaTestData(xsdSchemaPath);
@@ -100,6 +121,12 @@ public class CsharpEnd2EndGenerationTests : FluentTestsBase<CsharpEnd2EndGenerat
     {
         var xsdToJsonConverter = new XmlSchemaToJsonSchemaConverter();
         ConvertedJsonSchema = xsdToJsonConverter.Convert(XsdSchema);
+        var schema = JsonSerializer.Serialize(ConvertedJsonSchema, new JsonSerializerOptions()
+        {
+            Encoder =
+                JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement),
+            WriteIndented = true
+        });
         return this;
     }
 
@@ -173,5 +200,11 @@ public class CsharpEnd2EndGenerationTests : FluentTestsBase<CsharpEnd2EndGenerat
         oldType.Should().NotBeNull();
         IsEquivalentTo(oldType, newType);
         return this;
+    }
+
+    private void PropertyShouldHaveDefinedTypeAndContainAnnotation(string propertyName, string propertyType, string annotationString)
+    {
+        var type = CompiledAssembly.Types().Single(type => type.CustomAttributes.Any(att => att.AttributeType == typeof(XmlRootAttribute)));
+        PropertyShouldContainCustomAnnotationAndHaveTypeType(type, propertyName, propertyType, annotationString);
     }
 }

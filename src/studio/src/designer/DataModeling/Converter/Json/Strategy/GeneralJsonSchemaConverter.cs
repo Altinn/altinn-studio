@@ -778,6 +778,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                         keywords.MarkAsHandled<FormatMaximumKeyword>();
                         facets.Add(new XmlSchemaMaxInclusiveFacet() { Value = formatMaximum.Value.ToString(NumberFormatInfo.InvariantInfo) });
                         break;
+                    case XsdTotalDigitsKeyword totalDigitsKeyword:
+                        keywords.MarkAsHandled<XsdTotalDigitsKeyword>();
+                        facets.Add(new XmlSchemaTotalDigitsFacet() { Value = totalDigitsKeyword.Value.ToString(NumberFormatInfo.InvariantInfo) });
+                        break;
                     default:
                         continue;
                 }

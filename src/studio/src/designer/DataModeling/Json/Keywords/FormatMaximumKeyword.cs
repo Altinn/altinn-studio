@@ -71,7 +71,7 @@ public sealed class FormatMaximumKeyword: IJsonSchemaKeyword, IEquatable<FormatM
     public class FormatMaximumKeywordJsonConverter : JsonConverter<FormatMaximumKeyword>
     {
         /// <summary>
-        /// Read @xsdType keyword from json schema
+        /// Read formatMaximum keyword from json schema
         /// </summary>
         public override FormatMaximumKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {

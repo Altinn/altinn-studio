@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
+using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
 using Altinn.Studio.Designer.Extensions;
 using Altinn.Studio.Designer.ModelMetadatalModels;
@@ -143,6 +144,11 @@ public static class MetamodelRestrictionUtils
         {
             restrictions.AddRestrictionFromKeyword(exclusiveMinimum);
         }
+
+        if (allOfKeyword.TryGetKeywordFromSubSchemas(out XsdTotalDigitsKeyword totalDigitsKeyword))
+        {
+            restrictions.AddRestrictionFromKeyword(totalDigitsKeyword);
+        }
     }
 
     private static bool TryGetKeywordFromSubSchemas<T>(this IJsonSchemaKeyword allOfKeyword, out T keyword)
@@ -171,10 +177,11 @@ public static class MetamodelRestrictionUtils
             MaxLengthKeyword kw => kw.Value.ToString(),
             PatternKeyword kw => kw.Value.ToString(),
             MinLengthKeyword kw => kw.Value.ToString(),
-            MaximumKeyword kw => kw.Value.ToString(CultureInfo.CurrentCulture),
-            MinimumKeyword kw => kw.Value.ToString(CultureInfo.CurrentCulture),
-            ExclusiveMaximumKeyword kw => kw.Value.ToString(CultureInfo.CurrentCulture),
-            ExclusiveMinimumKeyword kw => kw.Value.ToString(CultureInfo.CurrentCulture),
+            MaximumKeyword kw => kw.Value.ToString(CultureInfo.InvariantCulture),
+            MinimumKeyword kw => kw.Value.ToString(CultureInfo.InvariantCulture),
+            ExclusiveMaximumKeyword kw => kw.Value.ToString(CultureInfo.InvariantCulture),
+            ExclusiveMinimumKeyword kw => kw.Value.ToString(CultureInfo.InvariantCulture),
+            XsdTotalDigitsKeyword kw => kw.Value.ToString(CultureInfo.InvariantCulture),
             _ => throw new Exception("Not supported keyword type")
 
         };
