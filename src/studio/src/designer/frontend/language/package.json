@@ -1,0 +1,17 @@
+{
+  "name": "@altinn-studio/language",
+  "scripts": {
+    "test": "jest",
+    "build": "node ./copy-files-to-dist.js"
+  },
+  "jest": {
+    "transform": {
+      ".(ts|tsx)": "@swc/jest"
+    },
+    "testRegex": "(test/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
+    "moduleFileExtensions": [
+      "ts",
+      "js"
+    ]
+  }
+}

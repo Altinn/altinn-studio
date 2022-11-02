@@ -4,7 +4,6 @@ const createDatamodel = require('./routes/create-model');
 const getDatamodel = require('./routes/get-datamodel');
 const getDatamodels = require('./routes/get-datamodels');
 const getIndexHtml = require('./routes/get-index-html');
-const getLanguage = require('./routes/get-language');
 const getRepoData = require('./routes/get-repo-data');
 const putDatamodel = require('./routes/put-datamodel');
 const delDatamodel = require('./routes/del-datamodel');
@@ -20,7 +19,7 @@ module.exports = (middlewares, devServer) => {
 
   app.get('/', (req, res) => res.redirect('/designer/someorg/someapp'));
   app.get('/designer/api/v1/session/remaining', (req, res) => res.send('9999'));
-  app.get('/designerapi/Language/GetLanguageAsJSON', (req, res) => res.json(getLanguage));
+  app.get('/designer/language/:file', (req, res) => res.json(require(`../../language/src/${req.params.file}`)));
   app.get('/designer/:owner/:repo/Text/GetServiceName', (req, res) => res.send(req.params.repo.toUpperCase()));
   app.get('/designer/:owner/:repo/Config/GetServiceConfig', (req, res) => res.sendStatus(204));
   app.get('/designer/:owner/:repo', (req, res) => res.send(getIndexHtml()));

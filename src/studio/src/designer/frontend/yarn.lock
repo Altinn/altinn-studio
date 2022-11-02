@@ -12,6 +12,12 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@altinn-studio/language@workspace:language":
+  version: 0.0.0-use.local
+  resolution: "@altinn-studio/language@workspace:language"
+  languageName: unknown
+  linkType: soft
+
 "@altinn-studio/mockend@workspace:mockend":
   version: 0.0.0-use.local
   resolution: "@altinn-studio/mockend@workspace:mockend"

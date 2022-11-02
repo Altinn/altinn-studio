@@ -68,7 +68,7 @@ export const getFetchDataModelUrl = () => {
 };
 
 export const getFetchLanguageUrl = (languageCode: string) => {
-  return `${window.location.origin}/designerapi/Language/GetLanguageAsJSON?languageCode=${languageCode}`;
+  return `${window.location.origin}/designer/language/${languageCode}.json`;
 };
 
 export const getFetchRuleModelUrl = () => {
