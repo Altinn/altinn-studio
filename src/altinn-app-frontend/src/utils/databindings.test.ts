@@ -121,6 +121,23 @@ describe('utils/databindings.ts', () => {
   });
 
   describe('flattenObject', () => {
+    it('should return empty string as undefined when inside an object', () => {
+      // Testing brokenness to make sure the re-implementation to simplify flattenObject() keeps the
+      // same behaviour as the older one. This should be fixed when releasing a breaking change to
+      // support more data types.
+      testObj.anEmptyString = '';
+      testObj.anObject = { withEmptyString: '' };
+      testObj.anOtherObject = { withEmptyString: '', withContent: 'content' };
+      testObj.anArray = [{ withEmptyString: '', withContent: 'content' }];
+      const result = flattenObject(testObj);
+      expect(typeof result.anEmptyString).toBe('string');
+      expect(typeof result['anObject.withEmptyString']).toBe('undefined');
+      expect(typeof result['anObject.withContent']).toBe('undefined');
+      expect(typeof result['anOtherObject.withContent']).toBe('string');
+      expect(typeof result['anArray[0].withEmptyString']).toBe('undefined');
+      expect(typeof result['anArray[0].withContent']).toBe('string');
+    });
+
     it('should return property of type number as a string', () => {
       testObj.aNumber = 43;
       const result = flattenObject(testObj);

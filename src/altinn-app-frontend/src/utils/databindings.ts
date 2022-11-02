@@ -215,6 +215,10 @@ export function flattenObject(data: any): any {
   for (const key of Object.keys(flat)) {
     if (flat[key] === null) {
       delete flat[key];
+    } else if (flat[key] === '' && key.indexOf('.') > 0) {
+      // For backwards compatibility, delete keys inside deeper object that are empty strings. This behaviour is
+      // not always consistent, as it is only a case for deeper object (not direct properties).
+      delete flat[key];
     } else {
       // Cast all values to strings, for backwards compatibility. Lots of code already written in frontend
       // expects data to be formatted as strings everywhere, and since this is a web application, even numeric
