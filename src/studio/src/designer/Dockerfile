@@ -9,12 +9,13 @@ COPY ./src/designer/frontend/.yarn/ ./.yarn/
 COPY ./src/designer/frontend/.yarnrc.yml .
 
 # Copy and install dependencies
-COPY ./src/designer/frontend/shared/package.json ./shared/
 COPY ./src/designer/frontend/app-development/package.json ./app-development/
-COPY ./src/designer/frontend/ux-editor/package.json ./ux-editor/
 COPY ./src/designer/frontend/dashboard/package.json ./dashboard/
+COPY ./src/designer/frontend/mockend/package.json ./mockend/
 COPY ./src/designer/frontend/packages/schema-editor/package.json ./packages/schema-editor/
 COPY ./src/designer/frontend/packages/schema-model/package.json ./packages/schema-model/
+COPY ./src/designer/frontend/shared/package.json ./shared/
+COPY ./src/designer/frontend/ux-editor/package.json ./ux-editor/
 
 RUN corepack enable
 RUN yarn --immutable
