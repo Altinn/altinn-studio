@@ -568,7 +568,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             await UpdateCSharpClasses(altinnAppGitRepository, modelMetadata, schemaName);
 
-            await UpdateApplicationMetadata(altinnAppGitRepository, schemaName, schemaName);
+            await UpdateApplicationMetadata(altinnAppGitRepository, schemaName, modelMetadata.Elements.Values.First(e => e.ParentElement == null).TypeName);
 
             return jsonContent;
         }
