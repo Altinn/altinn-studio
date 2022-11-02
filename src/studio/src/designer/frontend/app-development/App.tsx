@@ -12,14 +12,21 @@ import { makeGetRepoStatusSelector } from './features/handleMergeConflict/handle
 import { ApplicationMetadataActions } from './sharedResources/applicationMetadata/applicationMetadataSlice';
 import { fetchLanguage } from './utils/fetchLanguage/languageSlice';
 import { repoStatusUrl } from './utils/urlHelper';
-import { fetchRemainingSession, keepAliveSession, signOutUser } from './sharedResources/user/userSlice';
+import {
+  fetchRemainingSession,
+  keepAliveSession,
+  signOutUser,
+} from './sharedResources/user/userSlice';
 import PageHeader from './layout/PageHeader';
 import { useAppDispatch, useAppSelector } from 'common/hooks';
 import type { IAltinnWindow } from './types/global';
 
 import './App.css';
 import LeftMenu from './layout/LeftMenu';
-import { RepositoryType, useGetRepositoryTypeQuery } from './services/repositoryApi';
+import {
+  RepositoryType,
+  useGetRepositoryTypeQuery,
+} from './services/repositoryApi';
 
 const theme = createTheme(altinnTheme);
 
@@ -52,13 +59,18 @@ const TEN_MINUTE_IN_MILLISECONDS = 60000 * 10;
 export function App() {
   const language = useAppSelector((state) => state.languageState.language);
   const repoStatus = useAppSelector(GetRepoStatusSelector);
-  const remainingSessionMinutes = useAppSelector((state) => state.userState.session.remainingMinutes);
+  const remainingSessionMinutes = useAppSelector(
+    (state) => state.userState.session.remainingMinutes,
+  );
   const dispatch = useAppDispatch();
   const classes = useStyles();
   const lastKeepAliveTimestamp = useRef<number>(0);
   const sessionExpiredPopoverRef = useRef<HTMLDivElement>(null);
 
-  const { data: repoType = RepositoryType.Unknown, isLoading: isLoadingRepoType } = useGetRepositoryTypeQuery();
+  const {
+    data: repoType = RepositoryType.Unknown,
+    isLoading: isLoadingRepoType,
+  } = useGetRepositoryTypeQuery();
 
   useEffect(() => {
     if (isLoadingRepoType) {
@@ -104,7 +116,10 @@ export function App() {
     const setEventListeners = (subscribe: boolean) => {
       const keepAliveListeners = ['mousemove', 'scroll', 'onfocus', 'keydown'];
       keepAliveListeners.forEach((listener) =>
-        (subscribe ? window.addEventListener : window.removeEventListener)(listener, keepAliveSessionState),
+        (subscribe ? window.addEventListener : window.removeEventListener)(
+          listener,
+          keepAliveSessionState,
+        ),
       );
     };
     const windowEventReceived = (event: any) => {
@@ -174,7 +189,9 @@ export function App() {
           btnClick={handleSessionExpiresClose}
           paperProps={{ style: { margin: '2.4rem' } }}
         >
-          <Typography variant='h2'>{getLanguageFromKey('session.expires', language)}</Typography>
+          <Typography variant='h2'>
+            {getLanguageFromKey('session.expires', language)}
+          </Typography>
           <Typography
             variant='body1'
             style={{ marginTop: '1.6rem' }}
