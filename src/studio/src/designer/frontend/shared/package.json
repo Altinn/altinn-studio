@@ -30,11 +30,9 @@
     "react-redux": "8.0.4",
     "react-router-dom": "6.4.2",
     "react-select": "5.5.4",
-    "redux-saga": "1.2.1",
-    "typescript": "4.8.4"
+    "redux-saga": "1.2.1"
   },
   "devDependencies": {
-    "@babel/core": "7.19.6",
     "@testing-library/jest-dom": "5.16.5",
     "@testing-library/react": "13.4.0",
     "@testing-library/user-event": "14.4.3",

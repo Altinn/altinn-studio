@@ -5,7 +5,7 @@
 const path = require('path');
 const fs = require('fs');
 
-const filepath = path.resolve(__dirname, '..', '..', 'public', 'index.html');
+const filepath = path.resolve(__dirname, '..', '..', '..', 'app-development', 'public', 'index.html');
 const indexHtml = fs.readFileSync(filepath, 'utf-8');
 
 module.exports = () => indexHtml;

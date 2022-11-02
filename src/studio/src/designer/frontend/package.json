@@ -20,6 +20,7 @@
     "source-map-loader": "4.0.1",
     "style-loader": "3.3.1",
     "svg-inline-loader": "0.8.2",
+    "terser-webpack-plugin": "5.3.6",
     "ts-loader": "9.4.1",
     "webpack-cli": "4.10.0"
   },
@@ -40,11 +41,12 @@
     "semverRange": ""
   },
   "workspaces": [
-    "dashboard",
     "app-development",
-    "shared",
-    "ux-editor",
+    "dashboard",
+    "mockend",
     "packages/schema-editor",
-    "packages/schema-model"
+    "packages/schema-model",
+    "shared",
+    "ux-editor"
   ]
 }

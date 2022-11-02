@@ -26,9 +26,7 @@
           "@xsdType": "string"
         }
       },
-      "required": [
-        "e1"
-      ]
+      "required": ["e1"]
     }
   }
 }
