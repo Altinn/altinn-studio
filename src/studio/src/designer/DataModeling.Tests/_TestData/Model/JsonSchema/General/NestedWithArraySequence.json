@@ -18,15 +18,15 @@
         "i1": {
           "type": "array",
           "items": {
-            "@xsdType": "string",
-            "type": "string"
+            "type": "string",
+            "@xsdType": "string"
           }
         },
         "i2": {
           "type": "array",
           "items": {
-            "@xsdType": "string",
-            "type": "string"
+            "type": "string",
+            "@xsdType": "string"
           }
         }
       }

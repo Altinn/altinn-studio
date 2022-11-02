@@ -49,10 +49,10 @@
         "e1": {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "@xsdType": "string"
           },
           "minItems": 1,
-          "@xsdType": "string",
           "@xsdMaxOccurs": "unbounded"
         },
         "e2": {

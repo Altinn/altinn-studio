@@ -22,12 +22,12 @@
         "e2": {
           "type": "array",
           "items": {
-            "type": "string"
+            "type": "string",
+            "@xsdType": "string"
           },
-          "maxItems": 100,
           "@xsdMinOccurs": 0,
           "@xsdMaxOccurs": "100",
-          "@xsdType": "string"
+          "maxItems": 100
         }
       },
       "required": [
@@ -41,18 +41,18 @@
             "e3": {
               "type": "array",
               "items": {
-                "type": "string"
-              },
-              "@xsdType": "string"
+                "type": "string",
+                "@xsdType": "string"
+              }
             },
             "e4": {
               "type": "array",
               "items": {
-                "type": "string"
+                "type": "string",
+                "@xsdType": "string"
               },
               "@xsdMinOccurs": 0,
-              "@xsdMaxOccurs": "unbounded",
-              "@xsdType": "string"
+              "@xsdMaxOccurs": "unbounded"
             }
           }
         },
@@ -61,18 +61,18 @@
             "e5": {
               "type": "array",
               "items": {
-                "type": "string"
-              },
-              "@xsdType": "string"
+                "type": "string",
+                "@xsdType": "string"
+              }
             },
             "e6": {
               "type": "array",
               "items": {
-                "type": "string"
+                "type": "string",
+                "@xsdType": "string"
               },
               "@xsdMinOccurs": 0,
-              "@xsdMaxOccurs": "unbounded",
-              "@xsdType": "string"
+              "@xsdMaxOccurs": "unbounded"
             }
           }
         },
@@ -81,18 +81,18 @@
             "e7": {
               "type": "array",
               "items": {
-                "type": "string"
-              },
-              "@xsdType": "string"
+                "type": "string",
+                "@xsdType": "string"
+              }
             },
             "e8": {
               "type": "array",
               "items": {
-                "type": "string"
+                "type": "string",
+                "@xsdType": "string"
               },
               "@xsdMinOccurs": 0,
-              "@xsdMaxOccurs": "unbounded",
-              "@xsdType": "string"
+              "@xsdMaxOccurs": "unbounded"
             }
           }
         }

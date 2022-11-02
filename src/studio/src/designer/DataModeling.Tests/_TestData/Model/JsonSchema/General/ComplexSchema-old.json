@@ -104,10 +104,10 @@
     "tags": {
       "type": "array",
       "items": {
-        "type": "string"
-      },
-      "@xsdType": "string",
-      "@xsdStructure": "0.Schema/4.SimpleType"
+        "type": "string",
+        "@xsdType": "string",
+        "@xsdStructure": "0.Schema/4.SimpleType"
+      }
     },
     "priority": {
       "type": "string",

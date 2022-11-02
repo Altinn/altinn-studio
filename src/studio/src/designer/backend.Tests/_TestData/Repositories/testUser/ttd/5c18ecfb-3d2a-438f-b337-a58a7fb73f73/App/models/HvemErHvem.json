@@ -1,0 +1,13 @@
+{
+	"melding": {
+		"Innrapportoer": {
+			"navn": "Ronny Birkeli",
+			"foedselsdato": "1971-11-02",
+			"epost": "ronny.birkeli@gmail.com"
+		},
+		"InnraporterteData": {
+			"geekType": "backend",
+			"AltinnErfaringAAr": 0
+		}
+	}
+}
