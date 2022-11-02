@@ -1,7 +1,6 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import { act } from 'react-dom/test-utils';
 import { SchemaInspector } from './SchemaInspector';
 import { dataMock } from '../mockData';
 import { fireEvent, render, screen } from '@testing-library/react';
@@ -38,13 +37,13 @@ const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSche
     uiSchema: uiSchemaMap,
   });
   const user = userEvent.setup();
-  act(() => {
-    render(
-      <Provider store={store}>
-        <SchemaInspector language={{}} selectedItem={selectedItem} />
-      </Provider>,
-    );
-  });
+
+  render(
+    <Provider store={store}>
+      <SchemaInspector language={{}} selectedItem={selectedItem} />
+    </Provider>,
+  );
+
   return { store, user };
 };
 

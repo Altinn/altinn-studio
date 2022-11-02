@@ -26,7 +26,7 @@
   },
   "jest": {
     "transform": {
-      ".(ts|tsx)": "ts-jest"
+      ".(ts|tsx)": "@swc/jest"
     },
     "reporters": [
       "default",
@@ -45,6 +45,7 @@
   "private": true,
   "scripts": {
     "depcheck": "echo Checking $npm_package_name && npx depcheck && echo ",
-    "test": "jest"
+    "test": "jest --maxWorkers=50%",
+    "test:ci": "jest --runInBand"
   }
 }

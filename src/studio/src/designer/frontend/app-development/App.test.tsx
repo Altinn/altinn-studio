@@ -4,11 +4,9 @@ import { renderWithProviders } from 'test/testUtils';
 import type { IUserState } from './sharedResources/user/userSlice';
 import { screen } from '@testing-library/react';
 
-afterAll(() => {
-  jest.clearAllMocks();
-});
-
 describe('App', () => {
+  afterEach(() => jest.clearAllMocks());
+
   it('should present popover with options to log out or stay logged in when session about to expire ', () => {
     renderWithProviders(<App />, {
       preloadedState: {

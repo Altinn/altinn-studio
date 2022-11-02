@@ -9,20 +9,11 @@ import type { IRepoListProps } from './RepoList';
 
 const user = userEvent.setup();
 
-const useSetStarredRepoMutationSpy = jest.fn();
-const useUnsetStarredRepoMutationSpy = jest.fn();
-
-jest
-  .spyOn(userApi, 'useSetStarredRepoMutation')
-  .mockImplementation(
-    jest.fn().mockReturnValue([useSetStarredRepoMutationSpy]),
-  );
-
-jest
-  .spyOn(userApi, 'useUnsetStarredRepoMutation')
-  .mockImplementation(
-    jest.fn().mockReturnValue([useUnsetStarredRepoMutationSpy]),
-  );
+afterEach(() => jest.restoreAllMocks());
+jest.mock('services/userApi', () => ({
+  __esModule: true,
+  ...jest.requireActual('services/userApi'),
+}));
 
 const repos = [
   {
@@ -90,6 +81,10 @@ describe('RepoList', () => {
   });
 
   it('should call useSetStarredRepoMutation when adding a favorite', async () => {
+    const useSetStarredRepoMutationSpy = jest.fn();
+    jest
+      .spyOn(userApi, 'useSetStarredRepoMutation')
+      .mockImplementation(jest.fn().mockReturnValue([useSetStarredRepoMutationSpy]));
     render();
 
     const favoriteBtn = screen.getByRole('button', {
@@ -101,6 +96,10 @@ describe('RepoList', () => {
   });
 
   it('should call useUnsetStarredRepoMutation when removing a favorite', async () => {
+    const useUnsetStarredRepoMutationSpy = jest.fn();
+    jest
+      .spyOn(userApi, 'useUnsetStarredRepoMutation')
+      .mockImplementation(jest.fn().mockReturnValue([useUnsetStarredRepoMutationSpy]));
     render();
 
     const unFavoriteBtn = screen.getByRole('button', {

@@ -1,6 +1,8 @@
 {
   "name": "altinn-studio-frontend",
   "devDependencies": {
+    "@swc/core": "1.3.11",
+    "@swc/jest": "0.2.23",
     "@typescript-eslint/eslint-plugin": "5.40.1",
     "@typescript-eslint/parser": "5.40.1",
     "css-loader": "6.7.1",
@@ -31,7 +33,8 @@
     "start-app-development": "yarn workspace app-development start",
     "start-dashboard": "yarn workspace dashboard start",
     "syncpack": "npx syncpack fix-mismatches && npx syncpack format",
-    "test": "yarn workspaces foreach run test"
+    "test": "yarn workspaces foreach --parallel run test ",
+    "test:ci": "yarn workspaces foreach --parallel run test:ci"
   },
   "syncpack": {
     "semverRange": ""

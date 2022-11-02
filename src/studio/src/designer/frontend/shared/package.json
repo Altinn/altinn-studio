@@ -38,7 +38,6 @@
     "@testing-library/jest-dom": "5.16.5",
     "@testing-library/react": "13.4.0",
     "@testing-library/user-event": "14.4.3",
-    "@types/classnames": "2.3.1",
     "@types/diff": "5.0.2",
     "@types/dompurify": "2.3.4",
     "@types/jest": "29.2.0",
@@ -46,17 +45,15 @@
     "@types/react": "18.0.21",
     "@types/react-html-parser": "2.0.2",
     "@types/redux-mock-store": "1.0.3",
-    "babel-jest": "29.2.1",
     "jest": "29.2.1",
     "jest-junit": "14.0.1",
     "msw": "0.47.4",
-    "redux-mock-store": "1.5.4",
-    "ts-jest": "29.0.3"
+    "redux-mock-store": "1.5.4"
   },
   "jest": {
     "transform": {
-      ".(ts|tsx)": "ts-jest",
-      "node_modules(\\\\|/)(@?react-leaflet|react-dnd|dnd-core|@react-dnd|react-dnd-html5-backend)(\\\\|/).+\\.(j|t)sx?$": "ts-jest"
+      ".(ts|tsx)": "@swc/jest",
+      "node_modules(\\\\|/)(@?react-leaflet|react-dnd|dnd-core|@react-dnd|react-dnd-html5-backend)(\\\\|/).+\\.(j|t)sx?$": "@swc/jest"
     },
     "reporters": [
       "default",
@@ -89,6 +86,7 @@
   "private": true,
   "scripts": {
     "depcheck": "echo Checking $npm_package_name && npx depcheck && echo ",
-    "test": "jest"
+    "test": "jest --maxWorkers=50%",
+    "test:ci": "jest --runInBand"
   }
 }
