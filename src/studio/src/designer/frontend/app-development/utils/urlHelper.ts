@@ -7,7 +7,7 @@ const desingerApi = `${origin}/designer/api`;
 const dataModelsApi = `${desingerApi}/${org}/${app}/dataModels`;
 
 export const repoStatusUrl = `${origin}/designer/api/v1/repos/${org}/${app}/status`;
-export const languageUrl = `${origin}/designerapi/Language/GetLanguageAsJSON`;
+export const languageUrl = `${origin}/designer/frontend/lang`;
 export const giteaSignOutUrl = `${origin}/repos/user/logout`;
 export const studioSignOutUrl = `${origin}/Home/Logout`;
 export const appDeploymentsUrl = `${desingerApi}/v1/${org}/${app}/Deployments`;

@@ -2,94 +2,88 @@ import { CollapsableMenus } from '../containers/Toolbar';
 import { ComponentTypes } from '../components';
 import type { ITextResource } from '../types/global';
 
-export function getComponentHelperTextByComponentType(
-  type: string,
-  language: any,
-): string {
+export function getComponentHelperTextByComponentType(type: string, language: any): string {
   switch (type) {
     case ComponentTypes.Header: {
-      return language.ux_editor.helper_text_for_header;
+      return language['ux_editor.helper_text_for_header'];
     }
     case ComponentTypes.Input: {
-      return language.ux_editor.helper_text_for_input;
+      return language['ux_editor.helper_text_for_input'];
     }
     case ComponentTypes.Checkboxes: {
-      return language.ux_editor.helper_text_for_check_box;
+      return language['ux_editor.helper_text_for_check_box'];
     }
     case ComponentTypes.RadioButtons: {
-      return language.ux_editor.helper_text_for_radio_button;
+      return language['ux_editor.helper_text_for_radio_button'];
     }
     case ComponentTypes.Image: {
-      return language.ux_editor.helper_text_for_image;
+      return language['ux_editor.helper_text_for_image'];
     }
     case ComponentTypes.AttachmentList: {
-      return language.ux_editor.helper_text_for_attachment_list;
+      return language['ux_editor.helper_text_for_attachment_list'];
     }
     case ComponentTypes.NavigationBar: {
-      return language.ux_editor.helper_text_for_nav_bar;
+      return language['ux_editor.helper_text_for_nav_bar'];
     }
     default: {
       // Several components does not yet have a helper text, a default is shown.
-      return language.ux_editor.helper_text_default;
+      return language['ux_editor.helper_text_default'];
     }
   }
 }
 
-export function getComponentTitleByComponentType(
-  type: string,
-  language: any,
-): string {
+export function getComponentTitleByComponentType(type: string, language: any): string {
   switch (type) {
     case ComponentTypes.Checkboxes: {
-      return language.ux_editor.component_checkbox;
+      return language['ux_editor.component_checkbox'];
     }
     case ComponentTypes.Dropdown: {
-      return language.ux_editor.component_dropdown;
+      return language['ux_editor.component_dropdown'];
     }
     case ComponentTypes.FileUpload: {
-      return language.ux_editor.component_file_upload;
+      return language['ux_editor.component_file_upload'];
     }
     case ComponentTypes.FileUploadWithTag: {
-      return language.ux_editor.component_file_upload_with_tag;
+      return language['ux_editor.component_file_upload_with_tag'];
     }
     case ComponentTypes.Header: {
-      return language.ux_editor.component_header;
+      return language['ux_editor.component_header'];
     }
     case ComponentTypes.Input: {
-      return language.ux_editor.component_input;
+      return language['ux_editor.component_input'];
     }
     case ComponentTypes.Image: {
-      return language.ux_editor.component_image;
+      return language['ux_editor.component_image'];
     }
     case ComponentTypes.Datepicker: {
-      return language.ux_editor.component_datepicker;
+      return language['ux_editor.component_datepicker'];
     }
     case ComponentTypes.Button: {
-      return language.ux_editor.component_button;
+      return language['ux_editor.component_button'];
     }
     case ComponentTypes.TextArea: {
-      return language.ux_editor.component_text_area;
+      return language['ux_editor.component_text_area'];
     }
     case ComponentTypes.RadioButtons: {
-      return language.ux_editor.component_radio_button;
+      return language['ux_editor.component_radio_button'];
     }
     case ComponentTypes.Paragraph: {
-      return language.ux_editor.component_paragraph;
+      return language['ux_editor.component_paragraph'];
     }
     case ComponentTypes.AddressComponent: {
-      return language.ux_editor.component_advanced_address;
+      return language['ux_editor.component_advanced_address'];
     }
     case ComponentTypes.Group: {
-      return language.ux_editor.component_group;
+      return language['ux_editor.component_group'];
     }
     case ComponentTypes.NavigationButtons: {
-      return language.ux_editor.component_navigation_buttons;
+      return language['ux_editor.component_navigation_buttons'];
     }
     case ComponentTypes.AttachmentList: {
-      return language.ux_editor.component_attachment_list;
+      return language['ux_editor.component_attachment_list'];
     }
     case ComponentTypes.NavigationBar: {
-      return language.ux_editor.component_navigation_bar;
+      return language['ux_editor.component_navigation_bar'];
     }
     default: {
       return '';
@@ -97,22 +91,19 @@ export function getComponentTitleByComponentType(
   }
 }
 
-export function getCollapsableMenuTitleByType(
-  menu: CollapsableMenus,
-  language: any,
-): string {
+export function getCollapsableMenuTitleByType(menu: CollapsableMenus, language: any): string {
   switch (menu) {
     case CollapsableMenus.Components: {
-      return language.ux_editor.collapsable_schema_components;
+      return language['ux_editor.collapsable_schema_components'];
     }
     case CollapsableMenus.Texts: {
-      return language.ux_editor.collapsable_text_components;
+      return language['ux_editor.collapsable_text_components'];
     }
     case CollapsableMenus.AdvancedComponents: {
-      return language.ux_editor.collapsable_text_advanced_components;
+      return language['ux_editor.collapsable_text_advanced_components'];
     }
     case CollapsableMenus.Widgets: {
-      return language.ux_editor.collapsable_text_widgets;
+      return language['ux_editor.collapsable_text_widgets'];
     }
     default: {
       return '';
@@ -127,12 +118,7 @@ export function truncate(s: string, size: number) {
   return s;
 }
 
-export function getTextResource(
-  resourceKey: string,
-  textResources: ITextResource[],
-): string {
-  const textResource = textResources.find(
-    (resource) => resource.id === resourceKey,
-  );
+export function getTextResource(resourceKey: string, textResources: ITextResource[]): string {
+  const textResource = textResources.find((resource) => resource.id === resourceKey);
   return textResource ? textResource.value : resourceKey;
 }

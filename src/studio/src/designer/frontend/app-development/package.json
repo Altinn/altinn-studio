@@ -92,7 +92,7 @@
   "license": "3-Clause BSD",
   "private": true,
   "scripts": {
-    "build": "cross-env NODE_ENV=production webpack --config webpack.config.production.js --progress",
+    "build": "cross-env NODE_ENV=production webpack --config webpack.config.production.js",
     "build-develop": "cross-env NODE_ENV=development webpack --config webpack.config.development --progress --watch",
     "clean": "rimraf dist compiled",
     "compile-ts": "tsc",

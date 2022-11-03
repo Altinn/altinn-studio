@@ -7,6 +7,23 @@ import { Button } from '@mui/material';
 
 const user = userEvent.setup();
 
+const render = (props: Partial<IFileSelectorProps> = {}) => {
+  const allProps = {
+    language: {
+      'general.label': 'download',
+      'shared.submit_upload': 'upload',
+      'app_data_modelling.upload_xsd': 'Upload button text',
+    },
+    ...props,
+  } as IFileSelectorProps;
+
+  rtlRender(<FileSelector {...allProps} />);
+};
+
+const testCustomButtonRenderer = (
+  onClick: React.MouseEventHandler<HTMLButtonElement>,
+) => <Button onClick={onClick}>Lorem ipsum</Button>;
+
 describe('FileSelector', () => {
   it('should not call submitHandler when no files are selected', async () => {
     const handleSubmit = jest.fn();
@@ -60,20 +77,3 @@ describe('FileSelector', () => {
     expect(fileInput.onclick).toHaveBeenCalled();
   });
 });
-
-const render = (props: Partial<IFileSelectorProps> = {}) => {
-  const allProps = {
-    language: {
-      general: { label: 'download' },
-      shared: { submit_upload: 'upload' },
-      app_data_modelling: { upload_xsd: 'Upload button text' },
-    },
-    ...props,
-  } as IFileSelectorProps;
-
-  rtlRender(<FileSelector {...allProps} />);
-};
-
-const testCustomButtonRenderer = (
-  onClick: React.MouseEventHandler<HTMLButtonElement>,
-) => <Button onClick={onClick}>Lorem ipsum</Button>;

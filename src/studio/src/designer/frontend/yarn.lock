@@ -12,6 +12,12 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@altinn-studio/language@workspace:language":
+  version: 0.0.0-use.local
+  resolution: "@altinn-studio/language@workspace:language"
+  languageName: unknown
+  linkType: soft
+
 "@altinn-studio/mockend@workspace:mockend":
   version: 0.0.0-use.local
   resolution: "@altinn-studio/mockend@workspace:mockend"
@@ -4384,6 +4390,7 @@ __metadata:
     eslint-plugin-react-hooks: 4.6.0
     eslint-plugin-simple-import-sort: 8.0.0
     eslint-plugin-sonarjs: 0.16.0
+    jest: 29.2.2
     jest-environment-jsdom: 29.2.2
     prettier: 2.7.1
     source-map-loader: 4.0.1
@@ -8797,7 +8804,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-cli@npm:^29.2.1":
+"jest-cli@npm:^29.2.1, jest-cli@npm:^29.2.2":
   version: 29.2.2
   resolution: "jest-cli@npm:29.2.2"
   dependencies:
@@ -9243,6 +9250,25 @@ __metadata:
   bin:
     jest: bin/jest.js
   checksum: b19bf0b490b08c99ec221f9eb69302e02b8f220b080bde22032200b7638896a7d7ae2e559455859b7158e43d07454690b638dd4be5a35d33f00cc973da2da9aa
+  languageName: node
+  linkType: hard
+
+"jest@npm:29.2.2":
+  version: 29.2.2
+  resolution: "jest@npm:29.2.2"
+  dependencies:
+    "@jest/core": ^29.2.2
+    "@jest/types": ^29.2.1
+    import-local: ^3.0.2
+    jest-cli: ^29.2.2
+  peerDependencies:
+    node-notifier: ^8.0.1 || ^9.0.0 || ^10.0.0
+  peerDependenciesMeta:
+    node-notifier:
+      optional: true
+  bin:
+    jest: bin/jest.js
+  checksum: 6b4c0af3b5a0fddee46e26c9a539d70a3945700c20444ad3568e14faba27e89671f972dfaa8a02225c4e02b6d422171535660f5e167b1eb765a0922aea82533b
   languageName: node
   linkType: hard
 

@@ -296,7 +296,11 @@ class FileEditor extends React.Component<
 
   public renderCloseButton = (): JSX.Element => {
     return (
-      <Grid item={true} xs={1} className={this.props.classes.fileHeader}>
+      <Grid
+        item={true}
+        xs={1}
+        className={this.props.classes.fileHeader}
+      >
         <IconButton
           type='button'
           className={
@@ -323,7 +327,10 @@ class FileEditor extends React.Component<
           onClick={this.saveFile}
           tabIndex={0}
         >
-          <i className='fa fa-circlecheck' id='fileEditorCheck' />
+          <i
+            className='fa fa-circlecheck'
+            id='fileEditorCheck'
+          />
         </IconButton>
       </Grid>
     );
@@ -378,7 +385,10 @@ class FileEditor extends React.Component<
           alignItems='center'
           className={classes.fileHeader}
         >
-          <Grid item={true} xs={true}>
+          <Grid
+            item={true}
+            xs={true}
+          >
             <span>
               {/* If this.props.loadFile is present,
                * if loadFile contains directories then split and show,
@@ -461,12 +471,16 @@ class FileEditor extends React.Component<
           {/* Contains grid items */}
           {this.props.closeFileEditor ? this.renderCloseButton() : null}
         </Grid>
-        <Grid item={true} xs={12} className={classes.codeEditorContent}>
+        <Grid
+          item={true}
+          xs={12}
+          className={classes.codeEditorContent}
+        >
           <MonacoEditorComponent
             createCompletionSuggestions={this.createCompletionSuggestions}
             heightPx={`${this.props.editorHeight}px`}
             isLoading={this.state.isLoading}
-            language={language.name}
+            language={language['name']}
             onValueChange={this.onValueChange}
             value={this.state.value}
             escRef={
@@ -476,9 +490,17 @@ class FileEditor extends React.Component<
             }
           />
         </Grid>
-        <Grid className={classes.footerContent} item={true} xs={11} />
-        <Grid className={classes.footerContent} item={true} xs={1}>
-          <span>{language.displayName}</span>
+        <Grid
+          className={classes.footerContent}
+          item={true}
+          xs={11}
+        />
+        <Grid
+          className={classes.footerContent}
+          item={true}
+          xs={1}
+        >
+          <span>{language['displayName']}</span>
         </Grid>
       </Grid>
     );

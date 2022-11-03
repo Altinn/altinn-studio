@@ -15,10 +15,7 @@ import {
   makeGetLayoutContainerOrder,
   makeGetLayoutContainersSelector,
 } from '../selectors/getLayoutData';
-import {
-  renderOptionalSelectTextFromResources,
-  renderSelectGroupDataModelBinding,
-} from '../utils/render';
+import { renderOptionalSelectTextFromResources, renderSelectGroupDataModelBinding } from '../utils/render';
 import { FormComponentWrapper } from '../components/FormComponent';
 import { getTextResource } from '../utils/language';
 import { idExists, validComponentId } from '../utils/formLayout';
@@ -136,14 +133,8 @@ const styles = createStyles({
     border: '0.15rem solid #fff',
   },
 });
-export class ContainerComponent extends Component<
-  IContainerProps,
-  IContainerState
-> {
-  public static getDerivedStateFromProps(
-    nextProps: IContainerProps,
-    prevState: IContainerState,
-  ) {
+export class ContainerComponent extends Component<IContainerProps, IContainerState> {
+  public static getDerivedStateFromProps(nextProps: IContainerProps, prevState: IContainerState) {
     if (prevState.currentlyDragging) {
       return {
         ...prevState,
@@ -162,9 +153,7 @@ export class ContainerComponent extends Component<
       currentlyDragging: false,
       activeList: [],
       editMode: false,
-      tmpContainer: JSON.parse(
-        JSON.stringify(this.props.containers[this.props.id]),
-      ) as unknown as ICreateFormContainer,
+      tmpContainer: JSON.parse(JSON.stringify(this.props.containers[this.props.id])) as unknown as ICreateFormContainer,
       tmpId: this.props.id,
       expanded: true,
       groupIdError: null,
@@ -207,9 +196,7 @@ export class ContainerComponent extends Component<
     });
   };
 
-  public handleContainerDelete = (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-  ) => {
+  public handleContainerDelete = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     const { dispatch } = this.props;
     event.stopPropagation();
     dispatch(
@@ -220,42 +207,28 @@ export class ContainerComponent extends Component<
     );
   };
 
-  public handleDiscard = (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-  ) => {
+  public handleDiscard = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     event.stopPropagation();
     const { dispatch } = this.props;
     dispatch(FormLayoutActions.deleteActiveList());
     this.setState({
       editMode: false,
-      tmpContainer: JSON.parse(
-        JSON.stringify(this.props.containers[this.props.id]),
-      ) as unknown as ICreateFormContainer,
+      tmpContainer: JSON.parse(JSON.stringify(this.props.containers[this.props.id])) as unknown as ICreateFormContainer,
       tmpId: this.props.id,
     });
   };
 
-  public handleSave = (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-  ) => {
+  public handleSave = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     event.stopPropagation();
     const { dispatch } = this.props;
     if (this.state.tmpId && this.state.tmpId !== this.props.id) {
-      if (
-        idExists(this.state.tmpId, this.props.components, this.props.containers)
-      ) {
+      if (idExists(this.state.tmpId, this.props.components, this.props.containers)) {
         this.setState(() => ({
-          groupIdError: getLanguageFromKey(
-            'ux_editor.modal_properties_group_id_not_unique_error',
-            this.props.language,
-          ),
+          groupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_unique_error', this.props.language),
         }));
       } else if (!validComponentId.test(this.state.tmpId)) {
         this.setState(() => ({
-          groupIdError: getLanguageFromKey(
-            'ux_editor.modal_properties_group_id_not_valid',
-            this.props.language,
-          ),
+          groupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_valid', this.props.language),
         }));
       } else {
         dispatch(
@@ -299,25 +272,15 @@ export class ContainerComponent extends Component<
 
   public handleNewId = (event: any) => {
     if (
-      idExists(
-        event.target.value,
-        this.props.components,
-        this.props.containers,
-      ) &&
+      idExists(event.target.value, this.props.components, this.props.containers) &&
       event.target.value !== this.props.id
     ) {
       this.setState(() => ({
-        groupIdError: getLanguageFromKey(
-          'ux_editor.modal_properties_group_id_not_unique_error',
-          this.props.language,
-        ),
+        groupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_unique_error', this.props.language),
       }));
     } else if (!validComponentId.test(event.target.value)) {
       this.setState(() => ({
-        groupIdError: getLanguageFromKey(
-          'ux_editor.modal_properties_group_id_not_valid',
-          this.props.language,
-        ),
+        groupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_valid', this.props.language),
       }));
     } else {
       this.setState({
@@ -353,25 +316,17 @@ export class ContainerComponent extends Component<
         updatedContainer.tableHeaders = [...prevState.itemOrder];
       }
       if (updatedContainer.tableHeaders.includes(id)) {
-        updatedContainer.tableHeaders.splice(
-          updatedContainer.tableHeaders.indexOf(id),
-          1,
-        );
+        updatedContainer.tableHeaders.splice(updatedContainer.tableHeaders.indexOf(id), 1);
       } else {
         updatedContainer.tableHeaders.splice(index, 0, id);
       }
-      if (
-        updatedContainer.tableHeaders?.length === this.props.itemOrder.length
-      ) {
+      if (updatedContainer.tableHeaders?.length === this.props.itemOrder.length) {
         // table headers is the same as children. We ignore the table header prop
         updatedContainer.tableHeaders = undefined;
       }
       let errorMessage;
       if (updatedContainer.tableHeaders?.length === 0) {
-        errorMessage = getLanguageFromKey(
-          'ux_editor.modal_properties_group_table_headers_error',
-          this.props.language,
-        );
+        errorMessage = getLanguageFromKey('ux_editor.modal_properties_group_table_headers_error', this.props.language);
       }
       return {
         tmpContainer: updatedContainer,
@@ -380,21 +335,14 @@ export class ContainerComponent extends Component<
     });
   };
 
-  public getMaxOccursForGroupFromDataModel = (
-    dataBindingName: string,
-  ): number => {
-    const element: IDataModelFieldElement = this.props.dataModel.find(
-      (e: IDataModelFieldElement) => {
-        return e.dataBindingName === dataBindingName;
-      },
-    );
+  public getMaxOccursForGroupFromDataModel = (dataBindingName: string): number => {
+    const element: IDataModelFieldElement = this.props.dataModel.find((e: IDataModelFieldElement) => {
+      return e.dataBindingName === dataBindingName;
+    });
     return element?.maxOccurs;
   };
 
-  public handleDataModelGroupChange = (
-    dataBindingName: string,
-    key: string,
-  ) => {
+  public handleDataModelGroupChange = (dataBindingName: string, key: string) => {
     const maxOccurs = this.getMaxOccursForGroupFromDataModel(dataBindingName);
     this.setState((prevState: IContainerState) => {
       return {
@@ -423,9 +371,7 @@ export class ContainerComponent extends Component<
     });
   };
 
-  public handleEditMode = (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-  ) => {
+  public handleEditMode = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     event.stopPropagation();
     const { dispatch } = this.props;
     this.setState((prevState: IContainerState) => {
@@ -456,9 +402,7 @@ export class ContainerComponent extends Component<
     const className: string = this.props.isBaseContainer
       ? 'col-12'
       : `${this.props.classes.formGroup} ${this.props.classes.borderTop}`;
-    const hoverClass: string = this.props.isBaseContainer
-      ? ''
-      : this.props.classes.hoverStyle;
+    const hoverClass: string = this.props.isBaseContainer ? '' : this.props.classes.hoverStyle;
     if (this.state.editMode) {
       return this.renderEditMode();
     }
@@ -466,11 +410,7 @@ export class ContainerComponent extends Component<
     return (
       <Grid
         container={true}
-        style={
-          this.props.isBaseContainer
-            ? { paddingTop: '24px', paddingBottom: '24px' }
-            : undefined
-        }
+        style={this.props.isBaseContainer ? { paddingTop: '24px', paddingBottom: '24px' } : undefined}
       >
         <Grid
           container={true}
@@ -478,9 +418,16 @@ export class ContainerComponent extends Component<
           ref={ref}
           className={this.props.classes.wrapper}
         >
-          <Grid item={true} xs={11} className={className}>
+          <Grid
+            item={true}
+            xs={11}
+            className={className}
+          >
             {!this.props.isBaseContainer && (
-              <Grid item={true} style={{ paddingTop: '12px' }}>
+              <Grid
+                item={true}
+                style={{ paddingTop: '12px' }}
+              >
                 <IconButton
                   type='button'
                   className={`${this.props.classes.iconButton} ${this.props.classes.expandIcon}`}
@@ -502,14 +449,19 @@ export class ContainerComponent extends Component<
               className={this.props.classes.containerEdit}
               xs={1}
             >
-              {this.state.editMode
-                ? this.renderEditIcons()
-                : this.renderHoverIcons()}
+              {this.state.editMode ? this.renderEditIcons() : this.renderHoverIcons()}
             </Grid>
           )}
         </Grid>
-        <Grid container={true} direction='row' spacing={0}>
-          <Grid item={true} xs={12}>
+        <Grid
+          container={true}
+          direction='row'
+          spacing={0}
+        >
+          <Grid
+            item={true}
+            xs={12}
+          >
             {!this.props.itemOrder?.length && this.renderContainerPlaceholder()}
             {this.state.expanded &&
               this.props.itemOrder?.length > 0 &&
@@ -518,14 +470,16 @@ export class ContainerComponent extends Component<
                 if (component) {
                   return this.renderFormComponent(id, index);
                 }
-                return (
-                  this.props.containers[id] && this.renderContainer(id, index)
-                );
+                return this.props.containers[id] && this.renderContainer(id, index);
               })}
           </Grid>
         </Grid>
         {!this.props.isBaseContainer && (
-          <Grid container={true} direction='row' spacing={0}>
+          <Grid
+            container={true}
+            direction='row'
+            spacing={0}
+          >
             <Grid
               item={true}
               xs={11}
@@ -539,40 +493,45 @@ export class ContainerComponent extends Component<
 
   public renderEditSection = (): JSX.Element => {
     return (
-      <Grid direction='column' container={true}>
-        <Grid item={true} xs={12}>
+      <Grid
+        direction='column'
+        container={true}
+      >
+        <Grid
+          item={true}
+          xs={12}
+        >
           <AltinnInputField
             id='group-id'
             onChangeFunction={this.handleIdChange}
             onBlurFunction={this.handleNewId}
             inputValue={this.state.tmpId}
-            inputDescription={getLanguageFromKey(
-              'ux_editor.modal_properties_group_change_id',
-              this.props.language,
-            )}
+            inputDescription={getLanguageFromKey('ux_editor.modal_properties_group_change_id', this.props.language)}
             inputFieldStyling={{ width: '100%', marginBottom: '24px' }}
             inputDescriptionStyling={{ marginTop: '24px' }}
           />
           <div ref={this.state.groupIdPopoverRef} />
           <ErrorPopover
-            anchorEl={
-              this.state.groupIdError
-                ? this.state.groupIdPopoverRef.current
-                : null
-            }
+            anchorEl={this.state.groupIdError ? this.state.groupIdPopoverRef.current : null}
             onClose={this.handleClosePopup}
             errorMessage={this.state.groupIdError}
           />
         </Grid>
-        <Grid item={true} xs={12}>
+        <Grid
+          item={true}
+          xs={12}
+        >
           <AltinnCheckBox
             checked={this.state.tmpContainer.maxCount > 1}
             onChangeFunction={this.handleChangeRepeatingGroup}
           />
-          {this.props.language.ux_editor.modal_properties_group_repeating}
+          {this.props.language['ux_editor.modal_properties_group_repeating']}
         </Grid>
         {this.state.tmpContainer.maxCount > 1 && (
-          <Grid item={true} xs={12}>
+          <Grid
+            item={true}
+            xs={12}
+          >
             {renderSelectGroupDataModelBinding(
               this.state.tmpContainer.dataModelBindings,
               this.handleDataModelGroupChange,
@@ -583,10 +542,7 @@ export class ContainerComponent extends Component<
               id='modal-properties-maximum-files'
               onChangeFunction={this.handleMaxOccurChange}
               inputValue={this.state.tmpContainer.maxCount}
-              inputDescription={getLanguageFromKey(
-                'ux_editor.modal_properties_group_max_occur',
-                this.props.language,
-              )}
+              inputDescription={getLanguageFromKey('ux_editor.modal_properties_group_max_occur', this.props.language)}
               inputFieldStyling={{ width: '60px' }}
               inputDescriptionStyling={{ marginTop: '24px' }}
               type='number'
@@ -599,32 +555,29 @@ export class ContainerComponent extends Component<
               this.props.language,
               this.state.tmpContainer.textResourceBindings?.add_button,
               this.state.tmpContainer.textResourceBindings?.add_button,
-              getLanguageFromKey(
-                'ux_editor.modal_properties_group_add_button_description',
-                this.props.language,
-              ),
+              getLanguageFromKey('ux_editor.modal_properties_group_add_button_description', this.props.language),
             )}
             {this.props.itemOrder.length > 0 && (
-              <Grid item={true} style={{ marginTop: '24px' }}>
-                {
-                  this.props.language.ux_editor
-                    .modal_properties_group_table_headers
-                }
+              <Grid
+                item={true}
+                style={{ marginTop: '24px' }}
+              >
+                {this.props.language['ux_editor.modal_properties_group_table_headers']}
                 {this.props.itemOrder.map((id: string, index: number) => {
                   const componentLabel = getTextResource(
                     this.props.components[id].textResourceBindings?.title,
                     this.props.textResources,
                   );
-                  const tableHeaders =
-                    this.state.tmpContainer.tableHeaders ||
-                    this.props.itemOrder;
+                  const tableHeaders = this.state.tmpContainer.tableHeaders || this.props.itemOrder;
                   return (
-                    <Grid item={true} xs={12} key={id}>
+                    <Grid
+                      item={true}
+                      xs={12}
+                      key={id}
+                    >
                       <AltinnCheckBox
                         checked={tableHeaders.includes(id)}
-                        onChangeFunction={() =>
-                          this.handleTableHeadersChange(id, index)
-                        }
+                        onChangeFunction={() => this.handleTableHeadersChange(id, index)}
                       />
                       {componentLabel}
                     </Grid>
@@ -632,11 +585,7 @@ export class ContainerComponent extends Component<
                 })}
                 <div ref={this.state.tableHeadersPopoverRef} />
                 <ErrorPopover
-                  anchorEl={
-                    this.state.tableHeadersError
-                      ? this.state.tableHeadersPopoverRef.current
-                      : null
-                  }
+                  anchorEl={this.state.tableHeadersError ? this.state.tableHeadersPopoverRef.current : null}
                   onClose={this.handleClosePopup}
                   errorMessage={this.state.tableHeadersError}
                 />
@@ -657,7 +606,7 @@ export class ContainerComponent extends Component<
         index={0}
         containerId={this.props.id}
       >
-        {this.props.language.ux_editor.container_empty}
+        {this.props.language['ux_editor.container_empty']}
       </DroppableDraggableComponent>
     );
   };
@@ -665,11 +614,22 @@ export class ContainerComponent extends Component<
   public renderEditMode = (): JSX.Element => {
     return (
       <Grid container={true}>
-        <Grid container={true} className={this.props.classes.editWrapper}>
-          <Grid item={true} xs={11} className={this.props.classes.editSection}>
+        <Grid
+          container={true}
+          className={this.props.classes.editWrapper}
+        >
+          <Grid
+            item={true}
+            xs={11}
+            className={this.props.classes.editSection}
+          >
             {this.renderEditSection()}
           </Grid>
-          <Grid item={true} xs={1} className={this.props.classes.containerEdit}>
+          <Grid
+            item={true}
+            xs={1}
+            className={this.props.classes.containerEdit}
+          >
             {this.renderEditIcons()}
           </Grid>
         </Grid>
@@ -680,7 +640,10 @@ export class ContainerComponent extends Component<
   public renderHoverIcons = (): JSX.Element => {
     return (
       <>
-        <Grid item={true} xs={12}>
+        <Grid
+          item={true}
+          xs={12}
+        >
           <IconButton
             type='button'
             tabIndex={0}
@@ -690,7 +653,10 @@ export class ContainerComponent extends Component<
             <i className='fa fa-circletrash' />
           </IconButton>
         </Grid>
-        <Grid item={true} xs={12}>
+        <Grid
+          item={true}
+          xs={12}
+        >
           <IconButton
             type='button'
             onClick={this.handleEditMode}
@@ -706,7 +672,10 @@ export class ContainerComponent extends Component<
   public renderEditIcons = (): JSX.Element => {
     return (
       <>
-        <Grid item={true} xs={12}>
+        <Grid
+          item={true}
+          xs={12}
+        >
           <IconButton
             type='button'
             className={`${this.props.classes.iconButton}`}
@@ -715,7 +684,10 @@ export class ContainerComponent extends Component<
             <i className='fa fa-circlecancel' />
           </IconButton>
         </Grid>
-        <Grid item={true} xs={12}>
+        <Grid
+          item={true}
+          xs={12}
+        >
           <IconButton
             type='button'
             className={`${this.props.classes.iconButton}`}
@@ -729,9 +701,7 @@ export class ContainerComponent extends Component<
   };
 
   public renderContainer = (id: string, index: number): JSX.Element => {
-    const canDrag = !this.state.activeList.find(
-      (element: any) => element.id === id,
-    );
+    const canDrag = !this.state.activeList.find((element: any) => element.id === id);
     return (
       <DroppableDraggableContainer
         id={id}
@@ -763,9 +733,7 @@ export class ContainerComponent extends Component<
   };
 
   public renderFormComponent = (id: string, index: number): JSX.Element => {
-    const activeListIndex = this.props.activeList.findIndex(
-      (listItem: any) => listItem.id === id,
-    );
+    const activeListIndex = this.props.activeList.findIndex((listItem: any) => listItem.id === id);
     let canDrag = true;
     // eslint-disable-next-line no-restricted-syntax
     for (const activeItem of this.state.activeList) {
@@ -773,14 +741,8 @@ export class ContainerComponent extends Component<
         canDrag = false;
       }
     }
-    const firstInActiveList =
-      activeListIndex >= 0
-        ? this.props.activeList[activeListIndex].firstInActiveList
-        : true;
-    const lastInActiveList =
-      activeListIndex >= 0
-        ? this.props.activeList[activeListIndex].lastInActiveList
-        : true;
+    const firstInActiveList = activeListIndex >= 0 ? this.props.activeList[activeListIndex].firstInActiveList : true;
+    const lastInActiveList = activeListIndex >= 0 ? this.props.activeList[activeListIndex].lastInActiveList : true;
     return (
       <DroppableDraggableComponent
         canDrag={canDrag}
@@ -814,10 +776,7 @@ const makeMapStateToProps = () => {
   const GetActiveFormContainer = makeGetActiveFormContainer();
   const GetContainersSelector = makeGetLayoutContainersSelector();
   const GetLayoutContainerOrder = makeGetLayoutContainerOrder();
-  return (
-    state: IAppState,
-    props: IProvidedContainerProps,
-  ): IContainerProps => {
+  return (state: IAppState, props: IProvidedContainerProps): IContainerProps => {
     const containers = GetContainersSelector(state);
     const container = containers[props.id];
     const itemOrder = GetLayoutContainerOrder(state, props.id);
@@ -842,6 +801,4 @@ const makeMapStateToProps = () => {
   };
 };
 
-export const Container = withStyles(styles, { withTheme: true })(
-  connect(makeMapStateToProps)(ContainerComponent),
-);
+export const Container = withStyles(styles, { withTheme: true })(connect(makeMapStateToProps)(ContainerComponent));

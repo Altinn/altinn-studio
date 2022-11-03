@@ -10,7 +10,6 @@ const initialState: IFetchedLanguageState = {
 
 export interface IFetchLanguageAction {
   url: string;
-  languageCode: string;
 }
 export interface IFetchLanguageFulfilled {
   language: any;

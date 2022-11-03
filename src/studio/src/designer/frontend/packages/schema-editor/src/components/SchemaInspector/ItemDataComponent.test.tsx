@@ -12,17 +12,15 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 const mockLanguage = {
-  schema_editor: {
-    description: 'Description',
-    descriptive_fields: 'Descriptive fields',
-    go_to_type: 'Go to type',
-    multiple_answers: 'Multiple answers',
-    name: 'Name',
-    nullable: 'Nullable',
-    reference_to: 'Reference to',
-    title: 'Title',
-    type: 'Type',
-  },
+  'schema_editor.description': 'Description',
+  'schema_editor.descriptive_fields': 'Descriptive fields',
+  'schema_editor.go_to_type': 'Go to type',
+  'schema_editor.multiple_answers': 'Multiple answers',
+  'schema_editor.name': 'Name',
+  'schema_editor.nullable': 'Nullable',
+  'schema_editor.reference_to': 'Reference to',
+  'schema_editor.title': 'Title',
+  'schema_editor.type': 'Type',
 };
 
 const parentNode = createNodeBase(Keywords.Properties, 'test');
@@ -41,7 +39,11 @@ anotherNode.fieldType = FieldType.String;
 uiSchemaNodes.push(anotherNode);
 const renderItemDataComponent = (props?: Partial<IItemDataComponentProps>, selectedItemIndex?: number) => {
   return renderWithRedux(
-    <ItemDataComponent language={mockLanguage} selectedItem={uiSchemaNodes[selectedItemIndex ?? 0]} {...props} />,
+    <ItemDataComponent
+      language={mockLanguage}
+      selectedItem={uiSchemaNodes[selectedItemIndex ?? 0]}
+      {...props}
+    />,
     { uiSchema: uiSchemaNodes },
   );
 };
@@ -84,12 +86,12 @@ test('addCombinationItem is called when "nullable" checkbox is checked', async (
 
 test('"Title" field appears', () => {
   renderItemDataComponent();
-  expect(screen.getByLabelText(mockLanguage.schema_editor.title)).toBeDefined();
+  expect(screen.getByLabelText(mockLanguage['schema_editor.title'])).toBeDefined();
 });
 
 test('setTitle action is called with correct payload when the "title" field loses focus', async () => {
   const { store, user } = renderItemDataComponent();
-  const inputField = screen.getByLabelText(mockLanguage.schema_editor.title);
+  const inputField = screen.getByLabelText(mockLanguage['schema_editor.title']);
   await user.type(inputField, 'Lorem ipsum');
   await user.tab();
   const setTitleActions = store.getActions().filter(({ type }) => type === 'schemaEditor/setTitle');
@@ -99,12 +101,12 @@ test('setTitle action is called with correct payload when the "title" field lose
 
 test('"Description" text area appears', () => {
   renderItemDataComponent();
-  expect(screen.getByLabelText(mockLanguage.schema_editor.description)).toBeDefined();
+  expect(screen.getByLabelText(mockLanguage['schema_editor.description'])).toBeDefined();
 });
 
 test('setDescription action is called with correct payload when the "description" text area loses focus', async () => {
   const { store, user } = renderItemDataComponent();
-  const textArea = screen.getByLabelText(mockLanguage.schema_editor.description);
+  const textArea = screen.getByLabelText(mockLanguage['schema_editor.description']);
   await user.type(textArea, 'Lorem ipsum dolor sit amet.');
   await user.tab();
   const setDescriptionActions = store.getActions().filter(({ type }) => type === 'schemaEditor/setDescription');

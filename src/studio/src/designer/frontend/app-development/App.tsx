@@ -67,8 +67,7 @@ export function App() {
     const { org, app } = window as Window as IAltinnWindow;
     dispatch(
       fetchLanguage({
-        url: `${window.location.origin}/designerapi/Language/GetLanguageAsJSON`,
-        languageCode: 'nb',
+        url: `${window.location.origin}/designer/frontend/lang/nb.json`,
       }),
     );
     dispatch(
@@ -157,7 +156,10 @@ export function App() {
 
   return (
     <ThemeProvider theme={theme}>
-      <div className={classes.container} ref={sessionExpiredPopoverRef}>
+      <div
+        className={classes.container}
+        ref={sessionExpiredPopoverRef}
+      >
         <AltinnPopoverSimple
           testId='logout-warning'
           anchorEl={sessionExpiredPopoverRef.current}
@@ -173,11 +175,17 @@ export function App() {
           <Typography variant='h2'>
             {getLanguageFromKey('session.expires', language)}
           </Typography>
-          <Typography variant='body1' style={{ marginTop: '1.6rem' }}>
+          <Typography
+            variant='body1'
+            style={{ marginTop: '1.6rem' }}
+          >
             {getLanguageFromKey('session.inactive', language)}
           </Typography>
         </AltinnPopoverSimple>
-        <Grid container={true} direction='row'>
+        <Grid
+          container={true}
+          direction='row'
+        >
           <PageHeader repoStatus={repoStatus} />
           <LeftMenu
             repoStatus={repoStatus}

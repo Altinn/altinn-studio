@@ -1,13 +1,11 @@
 import type { ILanguage } from '../types';
+import { getLanguageFromKey } from 'app-shared/utils/language';
 
 export const getTranslation = (key: string, language: ILanguage) => {
   if (!key) {
     return key;
   }
-  const string = `schema_editor.${key}`;
-  return getNestedObject(language, string.split('.')) ?? key;
-};
-
-const getNestedObject = (nestedObj: any, pathArr: string[]) => {
-  return pathArr.reduce((obj, key) => (obj && obj[key] !== 'undefined' ? obj[key] : undefined), nestedObj);
+  const compoundKey = `schema_editor.${key}`;
+  const value = getLanguageFromKey(compoundKey, language);
+  return value !== compoundKey ? value : key;
 };

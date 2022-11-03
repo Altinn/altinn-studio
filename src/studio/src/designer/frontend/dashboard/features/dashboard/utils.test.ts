@@ -1,17 +1,15 @@
 import {
-  getUidFilter,
   getReposLabel,
+  getUidFilter,
   mergeRepos,
 } from 'features/dashboard/utils';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { Organizations } from 'services/organizationApi';
 
 const language = {
-  dashboard: {
-    all_apps: 'all apps',
-    my_apps: 'my apps',
-    apps: 'apps',
-  },
+  'dashboard.all_apps': 'all apps',
+  'dashboard.my_apps': 'my apps',
+  'dashboard.apps': 'apps',
 };
 
 const orgs: Organizations = [];

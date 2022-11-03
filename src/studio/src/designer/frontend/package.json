@@ -15,6 +15,7 @@
     "eslint-plugin-react-hooks": "4.6.0",
     "eslint-plugin-simple-import-sort": "8.0.0",
     "eslint-plugin-sonarjs": "0.16.0",
+    "jest": "29.2.2",
     "jest-environment-jsdom": "29.2.2",
     "prettier": "2.7.1",
     "source-map-loader": "4.0.1",
@@ -27,14 +28,13 @@
   "packageManager": "yarn@3.2.4",
   "private": true,
   "scripts": {
-    "build-app-development": "yarn workspace app-development run build",
-    "build-dashboard": "yarn workspace dashboard run build",
+    "build": "yarn workspaces foreach run build",
     "depcheck": "npx depcheck && yarn workspaces foreach run depcheck",
     "lint": "eslint \"./**/*.ts*\"",
     "start-app-development": "yarn workspace app-development start",
     "start-dashboard": "yarn workspace dashboard start",
     "syncpack": "npx syncpack fix-mismatches && npx syncpack format",
-    "test": "yarn workspaces foreach --parallel run test ",
+    "test": "yarn workspaces foreach --parallel run test",
     "test:ci": "yarn workspaces foreach --parallel run test:ci"
   },
   "syncpack": {
@@ -43,6 +43,7 @@
   "workspaces": [
     "app-development",
     "dashboard",
+    "language",
     "mockend",
     "packages/schema-editor",
     "packages/schema-model",
