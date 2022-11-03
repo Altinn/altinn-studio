@@ -76,7 +76,7 @@ export const App = () => {
 
     dispatch(
       fetchLanguage({
-        url: `${window.location.origin}/designer/language/nb.json`,
+        url: `${window.location.origin}/designer/frontend/lang/nb.json`,
       }),
     );
 

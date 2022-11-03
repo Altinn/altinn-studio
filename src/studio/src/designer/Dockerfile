@@ -1,13 +1,12 @@
-# building studio frontend
+# Building studio frontend
 FROM node:alpine AS generate-studio-frontend
-
 WORKDIR /build
 COPY ./src/designer/frontend .
 RUN corepack enable
 RUN yarn --immutable
 RUN yarn build
 
-# building studio frontend static served by the backend
+# Building studio frontend static served by the backend
 FROM node:alpine AS generate-designer-js
 WORKDIR /build
 COPY src/designer/backend .
@@ -21,7 +20,6 @@ WORKDIR /build
 COPY src/designer/Designer.sln ./
 COPY src/designer/backend ./designer/
 COPY src/designer/DataModeling ./DataModeling/
-
 RUN dotnet build designer/Designer.csproj -c Release -o /app_output
 RUN dotnet publish designer/Designer.csproj -c Release -o /app_output
 RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
@@ -38,7 +36,7 @@ COPY --from=generate-designer-js    /build/wwwroot ./wwwroot
 COPY --from=generate-studio-backend /app_output .
 COPY --from=generate-studio-frontend /build/dist/app-development ./wwwroot/designer/frontend
 COPY --from=generate-studio-frontend /build/dist/dashboard ./wwwroot/designer/frontend
-COPY --from=generate-studio-frontend /build/dist/language ./wwwroot/designer/language
+COPY --from=generate-studio-frontend /build/dist/language ./wwwroot/designer/frontend/lang
 
 ## Copying app template
 ## TODO: find out how to reference files outside docker context

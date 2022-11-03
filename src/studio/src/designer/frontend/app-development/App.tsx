@@ -67,7 +67,7 @@ export function App() {
     const { org, app } = window as Window as IAltinnWindow;
     dispatch(
       fetchLanguage({
-        url: `${window.location.origin}/designer/language/nb.json`,
+        url: `${window.location.origin}/designer/frontend/lang/nb.json`,
       }),
     );
     dispatch(

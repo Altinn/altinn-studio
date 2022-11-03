@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import Select from 'react-select';
-import type { IDataModelFieldElement, IAppState } from '../../types/global';
+import type { IAppState, IDataModelFieldElement } from '../../types/global';
 
 export interface ISelectDataModelProps extends IProvidedProps {
   dataModelElements: IDataModelFieldElement[];
@@ -27,10 +27,7 @@ const selectStyles = {
   }),
 };
 
-export class SelectDataModel extends React.Component<
-  ISelectDataModelProps,
-  ISelectDataModelState
-> {
+export class SelectDataModel extends React.Component<ISelectDataModelProps, ISelectDataModelState> {
   constructor(props: ISelectDataModelProps) {
     super(props);
 
@@ -51,28 +48,25 @@ export class SelectDataModel extends React.Component<
       return (
         <li className='a-dotted'>
           <div className='row'>
-            <div className='col-12'>
-              {this.props.language.ux_editor.modal_restrictions_helper}
-            </div>
+            <div className='col-12'>{this.props.language['ux_editor.modal_restrictions_helper']}</div>
           </div>
         </li>
       );
     }
-    const selected = this.props.dataModelElements.find(
-      (modelBinding) => modelBinding.dataBindingName === selectedId,
-    );
+    const selected = this.props.dataModelElements.find((modelBinding) => modelBinding.dataBindingName === selectedId);
     return Object.keys(selected.restrictions).length === 0 ? (
       <li className='a-dotted'>
         <div className='row'>
-          <div className='col-12'>
-            {this.props.language.ux_editor.modal_restrictions_empty}
-          </div>
+          <div className='col-12'>{this.props.language['ux_editor.modal_restrictions_empty']}</div>
         </div>
       </li>
     ) : (
       Object.keys(selected.restrictions).map(
         (key: string): React.ReactNode => (
-          <li key={key} className='a-dotted'>
+          <li
+            key={key}
+            className='a-dotted'
+          >
             <div className='row'>
               <div className='col-4'>{key}</div>
               <div className='col-8'>{selected.restrictions[key].Value}</div>
@@ -84,18 +78,12 @@ export class SelectDataModel extends React.Component<
   }
 
   public render() {
-    const {
-      dataModelElements,
-      selectGroup,
-      selectedElement,
-      noOptionsMessage,
-    } = this.props;
+    const { dataModelElements, selectGroup, selectedElement, noOptionsMessage } = this.props;
     const dataModelElementNames = dataModelElements
       .filter(
         (element) =>
           element.dataBindingName &&
-          ((!selectGroup && element.maxOccurs <= 1) ||
-            (selectGroup && element.maxOccurs > 1)),
+          ((!selectGroup && element.maxOccurs <= 1) || (selectGroup && element.maxOccurs > 1)),
       )
       .map((element) => ({
         value: element.dataBindingName,
@@ -113,10 +101,7 @@ export class SelectDataModel extends React.Component<
   }
 }
 
-const mapStateToProps = (
-  state: IAppState,
-  props: IProvidedProps,
-): ISelectDataModelProps => {
+const mapStateToProps = (state: IAppState, props: IProvidedProps): ISelectDataModelProps => {
   return {
     selectedElement: props.selectedElement,
     onDataModelChange: props.onDataModelChange,
@@ -126,5 +111,4 @@ const mapStateToProps = (
   };
 };
 
-export const SelectDataModelComponent =
-  connect(mapStateToProps)(SelectDataModel);
+export const SelectDataModelComponent = connect(mapStateToProps)(SelectDataModel);
