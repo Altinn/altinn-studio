@@ -241,7 +241,7 @@
           "type": "string",
           "title": "Maximum allowed date",
           "description": "Sets the maximum allowed date. Can also use keyword 'today' to disable all future dates dynamically based on the current date. Defaults to 2100-01-01T12:00:00.000Z.",
-          "default": "2100-01-01T12:00:00.000Z."
+          "default": "2100-01-01T12:00:00.000Z"
         },
         "timeStamp": {
           "type": "boolean",
@@ -402,6 +402,11 @@
           "description": "Boolean value indicating whether save button should be shown or not in edit mode of repeating group item.",
           "type": "boolean"
         },
+        "saveAndNextButton": {
+          "title": "Save and open next button",
+          "description": "Boolean value indicating whether save and go to next button should be shown or not in addition to save and close button in edit mode of repeating group item.",
+          "type": "boolean"
+        },
         "deleteButton": {
           "title": "Delete button",
           "description": "Boolean value indicating whether delete button should be shown or not in edit mode of repeating group item.",
@@ -419,8 +424,14 @@
         },
         "openByDefault": {
           "title": "Open by default",
-          "description": "Boolean value indicating if group should be opened to add a new item by default when no items exist.",
-          "type": "boolean"
+          "description": "Boolean or string indicating if group should be opened by default. If no items exist: 'first', 'last', and true adds a new item. If items exist already, true does not open anything, but 'first' opens the first item, and 'last' opens the last item in the group.",
+          "oneOf": [
+            { "type": "boolean" },
+            {
+              "type": "string",
+              "enum": ["first", "last"]
+            }
+          ]
         },
         "alertOnDelete": {
           "title": "Alert on delete",
