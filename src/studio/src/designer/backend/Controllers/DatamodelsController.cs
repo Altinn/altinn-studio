@@ -174,11 +174,10 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
                 /// <summary>
-        /// Upload an XSD.
+        /// Upload an XSD (for datamodelling repos).
         /// </summary>
         /// <remarks>
-        /// This operation will use the new datamodelling library to convert the XSD into a JSON schema,
-        /// metadata model and C# class.
+        /// This operation will use the new datamodelling library to convert the XSD into a JSON schema
         /// </remarks>
         /// <param name="org">The short name of the application owner.</param>
         /// <param name="repository">The name of the repository to which the file is being added.</param>
@@ -193,10 +192,9 @@ namespace Altinn.Studio.Designer.Controllers
 
             var xsd = await _schemaModelService.GetSchema(org, repository, developer, filePath);
             var xsdStream = new MemoryStream(Encoding.UTF8.GetBytes(xsd ?? string.Empty));
-            var fileName = GetFileNameFromRelativeFilePath(filePath, ".xsd");
-            var jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, fileName, xsdStream);
+            var jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, filePath, xsdStream);
 
-            return Created(fileName, jsonSchema);
+            return Created(filePath, jsonSchema);
         }
 
         /// <summary>
