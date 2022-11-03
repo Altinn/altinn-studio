@@ -72,7 +72,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="modelName">The name of the model. </param>
         public async Task SaveModelMetadata(string modelMetadata, string modelName)
         {
-            // string metadataAsJson = JsonConvert.SerializeObject(modelMetadata);
             string modelMetadataRelativeFilePath = Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.metadata.json");
 
             await WriteTextByRelativePathAsync(modelMetadataRelativeFilePath, modelMetadata, true);
