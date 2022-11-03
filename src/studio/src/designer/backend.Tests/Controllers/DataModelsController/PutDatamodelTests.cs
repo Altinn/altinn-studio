@@ -4,6 +4,9 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Unicode;
 using System.Threading.Tasks;
 using System.Web;
 using System.Xml;
@@ -14,6 +17,7 @@ using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Controllers;
 using Altinn.Studio.Designer.Factories.ModelFactory;
+using Altinn.Studio.Designer.ModelMetadatalModels;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
@@ -122,7 +126,8 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
         Assert.True(File.Exists(jsonSchemaLocation));
 
         await VerifyXsdFileContent(xsdSchemaLocation);
-        VerifyFileContent(jsonSchemaLocation, MinimumValidJsonSchema);
+        string serializedExpectedContent = FormatJsonString(MinimumValidJsonSchema);
+        VerifyFileContent(jsonSchemaLocation, serializedExpectedContent);
         VerifyMetadataContent(metamodelLocation, modelName);
     }
 
@@ -148,7 +153,8 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
         var jsonSchemaConverterStrategy = JsonSchemaConverterStrategyFactory.SelectStrategy(JsonSchema.FromText(MinimumValidJsonSchema));
         var metamodelConverter = new JsonSchemaToMetamodelConverter(jsonSchemaConverterStrategy.GetAnalyzer());
         var modelMetadata = metamodelConverter.Convert(modelName, MinimumValidJsonSchema);
-        VerifyFileContent(path,  JsonConvert.SerializeObject(modelMetadata));
+        string serializedModelMetadata = SerializeModelMetadata(modelMetadata);
+        VerifyFileContent(path, serializedModelMetadata);
     }
 
     private static void VerifyFileContent(string path, string expectedContent)
@@ -161,5 +167,17 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
     {
         /// <inheritdoc/>
         public override Encoding Encoding => Encoding.UTF8;
+    }
+
+    private static string FormatJsonString(string jsonContent)
+    {
+        var options = new JsonSerializerOptions { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement), WriteIndented = true };
+        return System.Text.Json.JsonSerializer.Serialize(Json.Schema.JsonSchema.FromText(jsonContent), options);
+    }
+
+    private static string SerializeModelMetadata(ModelMetadata modelMetadata)
+    {
+        var options = new JsonSerializerOptions { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement), WriteIndented = true };
+        return System.Text.Json.JsonSerializer.Serialize(modelMetadata, options);
     }
 }
