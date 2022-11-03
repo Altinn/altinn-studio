@@ -8,9 +8,7 @@ import { putWithoutConfig } from 'src/utils/networking';
 import type { ISelectParty } from 'src/shared/resources/party';
 import type { IAltinnWindow } from 'src/types';
 
-export function* selectPartySaga({
-  payload: { party, redirect },
-}: PayloadAction<ISelectParty>): SagaIterator {
+export function* selectPartySaga({ payload: { party, redirect } }: PayloadAction<ISelectParty>): SagaIterator {
   try {
     const url: string = updateCookieUrl(party.partyId);
     yield call(putWithoutConfig, url);

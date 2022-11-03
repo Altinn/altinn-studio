@@ -18,16 +18,10 @@ import type { IProcess } from 'altinn-shared/types';
 
 const instanceDataSelector = (state: IRuntimeState) => state.instanceData;
 
-export function* completeProcessSaga(
-  action: PayloadAction<ICompleteProcessFulfilled | undefined>,
-): SagaIterator {
+export function* completeProcessSaga(action: PayloadAction<ICompleteProcessFulfilled | undefined>): SagaIterator {
   const taskId = action.payload?.taskId;
   try {
-    const result: IProcess = yield call(
-      httpPut,
-      getProcessNextUrl(taskId),
-      null,
-    );
+    const result: IProcess = yield call(httpPut, getProcessNextUrl(taskId), null);
     if (!result) {
       throw new Error('Error: no process returned.');
     }
@@ -51,9 +45,7 @@ export function* completeProcessSaga(
         behavesLikeDataTask(result.currentTask?.elementId, layoutSets)
       ) {
         yield put(IsLoadingActions.startDataTaskIsLoading());
-        const instanceData: IInstanceDataState = yield select(
-          instanceDataSelector,
-        );
+        const instanceData: IInstanceDataState = yield select(instanceDataSelector);
         const instanceId = instanceData.instance?.id;
         yield put(InstanceDataActions.get({ instanceId }));
       }

@@ -11,12 +11,7 @@ export interface IAltinnCollapsableListProps {
   children: React.ReactNode;
 }
 
-const AltinnCollapsableList = ({
-  transition,
-  listHeader,
-  onClickExpand,
-  children,
-}: IAltinnCollapsableListProps) => {
+const AltinnCollapsableList = ({ transition, listHeader, onClickExpand, children }: IAltinnCollapsableListProps) => {
   function onKeyPress(event: React.KeyboardEvent) {
     event.stopPropagation();
     if (event.key === 'Enter' || event.key === ' ') {

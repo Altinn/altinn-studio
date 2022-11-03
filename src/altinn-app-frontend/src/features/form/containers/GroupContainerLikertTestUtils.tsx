@@ -10,11 +10,7 @@ import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import { setupStore } from 'src/store';
 import type { IFormDataState } from 'src/features/form/data';
 import type { IUpdateFormData } from 'src/features/form/data/formDataTypes';
-import type {
-  ILayoutCompLikert,
-  ILayoutComponent,
-  ILayoutGroup,
-} from 'src/features/form/layout';
+import type { ILayoutCompLikert, ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
 import type { IValidationState } from 'src/features/form/validation/validationSlice';
 import type { ITextResourcesState } from 'src/shared/resources/textResources';
@@ -30,9 +26,7 @@ const groupBinding = 'Questions';
 const answerBinding = 'Answer';
 const questionBinding = 'Question';
 
-export const generateMockFormData = (
-  likertQuestions: IQuestion[],
-): Record<string, string> => {
+export const generateMockFormData = (likertQuestions: IQuestion[]): Record<string, string> => {
   return likertQuestions.reduce((formData, likertQuestion, index) => {
     return {
       ...formData,
@@ -67,9 +61,7 @@ export const questionsWithAnswers = ({ questions, selectedAnswers }) => {
   return questionsCopy;
 };
 
-const createLikertContainer = (
-  props: Partial<ILayoutGroup> | undefined,
-): ILayoutGroup => {
+const createLikertContainer = (props: Partial<ILayoutGroup> | undefined): ILayoutGroup => {
   return {
     id: 'likert-repeating-group-id',
     type: 'Group',
@@ -85,9 +77,7 @@ const createLikertContainer = (
   };
 };
 
-const createRadioButton = (
-  props: Partial<ILayoutCompLikert> | undefined,
-): ILayoutCompLikert => {
+const createRadioButton = (props: Partial<ILayoutCompLikert> | undefined): ILayoutCompLikert => {
   return {
     id: 'field1',
     type: 'Likert',
@@ -105,10 +95,7 @@ const createRadioButton = (
   };
 };
 
-export const createFormDataUpdateAction = (
-  index: number,
-  optionValue: string,
-): PayloadAction<IUpdateFormData> => {
+export const createFormDataUpdateAction = (index: number, optionValue: string): PayloadAction<IUpdateFormData> => {
   return {
     payload: {
       componentId: `field1-${index}`,
@@ -120,11 +107,7 @@ export const createFormDataUpdateAction = (
   };
 };
 
-const createLayout = (
-  container: ILayoutGroup,
-  components: ILayoutComponent[],
-  groupIndex: number,
-): ILayoutState => {
+const createLayout = (container: ILayoutGroup, components: ILayoutComponent[], groupIndex: number): ILayoutState => {
   return {
     error: null,
     layoutsets: null,
@@ -165,9 +148,7 @@ export const createFormError = (index: number): ILayoutValidations => {
   };
 };
 
-const createFormValidationsForCurrentView = (
-  validations: ILayoutValidations = {},
-): IValidationState => {
+const createFormValidationsForCurrentView = (validations: ILayoutValidations = {}): IValidationState => {
   return {
     error: null,
     invalidDataTypes: [],
@@ -176,10 +157,7 @@ const createFormValidationsForCurrentView = (
   };
 };
 
-const createTextResource = (
-  questions: IQuestion[],
-  extraResources: ITextResource[],
-): ITextResourcesState => {
+const createTextResource = (questions: IQuestion[], extraResources: ITextResource[]): ITextResourcesState => {
   return {
     resources: [
       {
@@ -244,11 +222,7 @@ export const render = ({
   };
 
   const preloadedState = getInitialStateMock({
-    formLayout: createLayout(
-      mockLikertContainer,
-      components,
-      mockQuestions.length - 1,
-    ),
+    formLayout: createLayout(mockLikertContainer, components, mockQuestions.length - 1),
     formData: mockData,
     formValidations: createFormValidationsForCurrentView(validations),
     textResources: createTextResource(mockQuestions, extraTextResources),
@@ -295,10 +269,7 @@ export const validateTableLayout = (questions: IQuestion[]) => {
   validateRadioLayout(questions);
 };
 
-export const validateRadioLayout = (
-  questions: IQuestion[],
-  mobileView = false,
-) => {
+export const validateRadioLayout = (questions: IQuestion[], mobileView = false) => {
   if (mobileView) {
     expect(screen.getAllByRole('radiogroup')).toHaveLength(questions.length);
   } else {

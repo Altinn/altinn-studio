@@ -6,15 +6,11 @@ export const getApplicationMetadataUrl = (): string => {
   return `${origin}/designer/api/v1/${org}/${app}`;
 };
 
-export const altinnAppsIllustrationHelpCircleSvgUrl =
-  'https://altinncdn.no/img/illustration-help-circle.svg';
-export const altinnAppsImgLogoBlueSvgUrl =
-  'https://altinncdn.no/img/a-logo-blue.svg';
+export const altinnAppsIllustrationHelpCircleSvgUrl = 'https://altinncdn.no/img/illustration-help-circle.svg';
+export const altinnAppsImgLogoBlueSvgUrl = 'https://altinncdn.no/img/a-logo-blue.svg';
 export const altinnDocsUrl = 'https://docs.altinn.studio/';
-export const altinnStudioDocsUrl =
-  'https://altinn.github.io/docs/altinn-studio/';
-export const altinnImgLogoHeaderUrl =
-  'https://altinncdn.no/img/altinn_logo_header.png';
+export const altinnStudioDocsUrl = 'https://altinn.github.io/docs/altinn-studio/';
+export const altinnImgLogoHeaderUrl = 'https://altinncdn.no/img/altinn_logo_header.png';
 export const dataModelUploadPageUrl = `${origin}/designer/${org}/${app}#/datamodel`;
 export const dataModelXsdUrl = `${origin}/designer/${org}/${app}/Model/GetXsd`;
 export const orgsListUrl = 'https://altinncdn.no/orgs/altinn-orgs.json';
@@ -31,10 +27,7 @@ const prodRegex = new RegExp(baseHostnameAltinnProd);
 const testRegex = new RegExp(baseHostnameAltinnTest);
 const localRegex = new RegExp(baseHostnameAltinnLocal);
 
-export const returnUrlToMessagebox = (
-  url: string,
-  partyId?: string | undefined,
-): string | null => {
+export const returnUrlToMessagebox = (url: string, partyId?: string | undefined): string | null => {
   const baseUrl = returnBaseUrlToAltinn(url);
   if (!baseUrl) {
     return null;
@@ -61,10 +54,7 @@ export const returnUrlToArchive = (url: string): string | null => {
   return baseUrl + pathToArchive;
 };
 
-export const returnUrlToProfile = (
-  url: string,
-  partyId?: string | undefined,
-): string | null => {
+export const returnUrlToProfile = (url: string, partyId?: string | undefined): string | null => {
   const baseUrl = returnBaseUrlToAltinn(url);
   if (!baseUrl) {
     return null;
@@ -122,10 +112,7 @@ export const logoutUrlAltinn = (url: string): string => {
 // on localhost (without https) this is a problem, so we make links
 // to the same domain as window.location.host relative.
 // "https://domain.com/a/b" => "/a/b"
-export const makeUrlRelativeIfSameDomain = (
-  url: string,
-  location: Location = window.location,
-) => {
+export const makeUrlRelativeIfSameDomain = (url: string, location: Location = window.location) => {
   try {
     const parsed = new URL(url);
     if (parsed.hostname === location.hostname) {

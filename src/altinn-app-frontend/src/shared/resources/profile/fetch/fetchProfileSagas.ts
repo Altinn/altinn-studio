@@ -9,9 +9,7 @@ import type { IFetchProfile } from 'src/shared/resources/profile';
 
 import type { IProfile } from 'altinn-shared/types';
 
-export function* fetchProfileSaga({
-  payload: { url },
-}: PayloadAction<IFetchProfile>): SagaIterator {
+export function* fetchProfileSaga({ payload: { url } }: PayloadAction<IFetchProfile>): SagaIterator {
   try {
     const profile: IProfile = yield call(get, url);
     yield put(ProfileActions.fetchFulfilled({ profile }));

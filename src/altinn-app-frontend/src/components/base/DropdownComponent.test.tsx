@@ -10,10 +10,7 @@ import DropdownComponent from 'src/components/base/DropdownComponent';
 import type { IDropdownProps } from 'src/components/base/DropdownComponent';
 import type { RootState } from 'src/store';
 
-const render = (
-  props: Partial<IDropdownProps> = {},
-  customState: PreloadedState<RootState> = {},
-) => {
+const render = (props: Partial<IDropdownProps> = {}, customState: PreloadedState<RootState> = {}) => {
   const allProps: IDropdownProps = {
     ...mockComponentProps,
     optionsId: 'countries',
@@ -76,9 +73,7 @@ describe('DropdownComponent', () => {
       handleDataChange,
     });
 
-    await user.selectOptions(screen.getByRole('combobox'), [
-      screen.getByText('Sweden'),
-    ]);
+    await user.selectOptions(screen.getByRole('combobox'), [screen.getByText('Sweden')]);
 
     expect(handleDataChange).not.toHaveBeenCalled();
 

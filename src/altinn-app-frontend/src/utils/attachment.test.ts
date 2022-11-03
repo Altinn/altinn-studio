@@ -1,13 +1,6 @@
-import {
-  getFileEnding,
-  removeFileEnding,
-  shiftAttachmentRowInRepeatingGroup,
-} from 'src/utils/attachment';
+import { getFileEnding, removeFileEnding, shiftAttachmentRowInRepeatingGroup } from 'src/utils/attachment';
 import type { ILayoutComponent } from 'src/features/form/layout';
-import type {
-  IAttachment,
-  IAttachments,
-} from 'src/shared/resources/attachments';
+import type { IAttachment, IAttachments } from 'src/shared/resources/attachments';
 
 describe('attachment utils', () => {
   describe('shiftAttachmentRowInRepeatingGroup', () => {
@@ -59,9 +52,7 @@ describe('attachment utils', () => {
       } as ILayoutComponent,
     ];
 
-    const simplify = (
-      attachments: IAttachments,
-    ): { [key: string]: string[] } => {
+    const simplify = (attachments: IAttachments): { [key: string]: string[] } => {
       const out = {};
       for (const key of Object.keys(attachments)) {
         out[key] = [];
@@ -75,12 +66,7 @@ describe('attachment utils', () => {
 
     it('should work when deleting top-level repeating group rows', () => {
       // Simulate deleting the first row of a top-level repeating group
-      const result = shiftAttachmentRowInRepeatingGroup(
-        mockAttachments,
-        mockComponents,
-        'group',
-        0,
-      );
+      const result = shiftAttachmentRowInRepeatingGroup(mockAttachments, mockComponents, 'group', 0);
 
       expect(simplify(result)).toEqual(
         simplify({
@@ -96,12 +82,7 @@ describe('attachment utils', () => {
     });
 
     it('should work when deleting second-level repeating group rows', () => {
-      const result = shiftAttachmentRowInRepeatingGroup(
-        mockAttachments,
-        mockComponents,
-        'nestedGroup-1',
-        1,
-      );
+      const result = shiftAttachmentRowInRepeatingGroup(mockAttachments, mockComponents, 'nestedGroup-1', 1);
 
       expect(simplify(result)).toEqual(
         simplify({
@@ -133,12 +114,8 @@ describe('attachment utils', () => {
   describe('removeFileEnding', () => {
     it('should remove file ending correctly', () => {
       expect(removeFileEnding('test.jpg')).toEqual('test');
-      expect(removeFileEnding('navn.med.punktum.xml')).toEqual(
-        'navn.med.punktum',
-      );
-      expect(removeFileEnding('navnutenfilendelse')).toEqual(
-        'navnutenfilendelse',
-      );
+      expect(removeFileEnding('navn.med.punktum.xml')).toEqual('navn.med.punktum');
+      expect(removeFileEnding('navnutenfilendelse')).toEqual('navnutenfilendelse');
       expect(removeFileEnding(undefined)).toEqual('');
     });
   });

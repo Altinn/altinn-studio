@@ -1,10 +1,6 @@
 import React from 'react';
 
-import {
-  useAppSelector,
-  useInstanceIdParams,
-  useProcess,
-} from 'src/common/hooks';
+import { useAppSelector, useInstanceIdParams, useProcess } from 'src/common/hooks';
 import { useApiErrorCheck } from 'src/common/hooks/useApiErrorCheck';
 import { Confirm } from 'src/features/confirm/containers/Confirm';
 import Feedback from 'src/features/feedback/Feedback';
@@ -16,15 +12,10 @@ import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceD
 import { ProcessTaskType } from 'src/types';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
 
-import {
-  AltinnContentIconFormData,
-  AltinnContentLoader,
-} from 'altinn-shared/components';
+import { AltinnContentIconFormData, AltinnContentLoader } from 'altinn-shared/components';
 
 const ProcessWrapper = () => {
-  const instantiating = useAppSelector(
-    (state) => state.instantiation.instantiating,
-  );
+  const instantiating = useAppSelector((state) => state.instantiation.instantiating);
   const isLoading = useAppSelector((state) => state.isLoading.dataTask);
   const layoutSets = useAppSelector((state) => state.formLayout.layoutsets);
   const { hasApiErrors } = useApiErrorCheck();
@@ -62,11 +53,7 @@ const ProcessWrapper = () => {
           {taskType === ProcessTaskType.Data && <Form />}
           {taskType === ProcessTaskType.Archived && <Receipt />}
           {taskType === ProcessTaskType.Confirm &&
-            (behavesLikeDataTask(process.taskId, layoutSets) ? (
-              <Form />
-            ) : (
-              <Confirm />
-            ))}
+            (behavesLikeDataTask(process.taskId, layoutSets) ? <Form /> : <Confirm />)}
           {taskType === ProcessTaskType.Feedback && <Feedback />}
         </>
       ) : (

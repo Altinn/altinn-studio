@@ -27,11 +27,8 @@ describe('MessageBanner', () => {
     const messageBanner = getByTestId('MessageBanner-container');
     expect(messageBanner).toBeInTheDocument();
     expect(messageBanner.className).toContain('default');
-    const backgroundColor =
-      window.getComputedStyle(messageBanner).backgroundColor;
-    expect(backgroundColor).toEqual(
-      convertToRgb(AltinnAppTheme.altinnPalette.primary.greyLight),
-    );
+    const backgroundColor = window.getComputedStyle(messageBanner).backgroundColor;
+    expect(backgroundColor).toEqual(convertToRgb(AltinnAppTheme.altinnPalette.primary.greyLight));
   });
 
   it('should have red background when error==true', () => {
@@ -46,11 +43,8 @@ describe('MessageBanner', () => {
     const messageBanner: HTMLElement = getByTestId('MessageBanner-container');
     expect(messageBanner).toBeInTheDocument();
     expect(messageBanner.className).toContain('error');
-    const backgroundColor =
-      window.getComputedStyle(messageBanner).backgroundColor;
-    expect(backgroundColor).toEqual(
-      convertToRgb(AltinnAppTheme.altinnPalette.primary.redLight),
-    );
+    const backgroundColor = window.getComputedStyle(messageBanner).backgroundColor;
+    expect(backgroundColor).toEqual(convertToRgb(AltinnAppTheme.altinnPalette.primary.redLight));
   });
 });
 
@@ -60,10 +54,6 @@ const convertToRgb = (hexValue: string): string => {
     return '';
   }
 
-  const aRgb = [
-    parseInt(aRgbHex[0], 16),
-    parseInt(aRgbHex[1], 16),
-    parseInt(aRgbHex[2], 16),
-  ];
+  const aRgb = [parseInt(aRgbHex[0], 16), parseInt(aRgbHex[1], 16), parseInt(aRgbHex[2], 16)];
   return `rgb(${aRgb[0]}, ${aRgb[1]}, ${aRgb[2]})`;
 };

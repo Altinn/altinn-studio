@@ -19,27 +19,25 @@ const initialState: IProfileState = {
   error: null,
 };
 
-const profileSlice = createSagaSlice(
-  (mkAction: MkActionType<IProfileState>) => ({
-    name: 'profile',
-    initialState,
-    actions: {
-      fetch: mkAction<IFetchProfile>({
-        takeLatest: fetchProfileSaga,
-      }),
-      fetchFulfilled: mkAction<IFetchProfileFulfilled>({
-        reducer: (state, action) => {
-          state.profile = action.payload.profile;
-        },
-      }),
-      fetchRejected: mkAction<IFetchProfileRejected>({
-        reducer: (state, action) => {
-          state.error = action.payload.error;
-        },
-      }),
-    },
-  }),
-);
+const profileSlice = createSagaSlice((mkAction: MkActionType<IProfileState>) => ({
+  name: 'profile',
+  initialState,
+  actions: {
+    fetch: mkAction<IFetchProfile>({
+      takeLatest: fetchProfileSaga,
+    }),
+    fetchFulfilled: mkAction<IFetchProfileFulfilled>({
+      reducer: (state, action) => {
+        state.profile = action.payload.profile;
+      },
+    }),
+    fetchRejected: mkAction<IFetchProfileRejected>({
+      reducer: (state, action) => {
+        state.error = action.payload.error;
+      },
+    }),
+  },
+}));
 
 export const ProfileActions = profileSlice.actions;
 export default profileSlice;

@@ -40,14 +40,8 @@ type ArgsToActual<T extends readonly BaseValue[]> = {
   [Index in keyof T]: BaseToActual<T[Index]>;
 };
 
-export interface FuncDef<
-  Args extends readonly BaseValue[],
-  Ret extends BaseValue,
-> {
-  impl: (
-    this: ExprContext,
-    ...params: ArgsToActual<Args>
-  ) => BaseToActual<Ret> | null;
+export interface FuncDef<Args extends readonly BaseValue[], Ret extends BaseValue> {
+  impl: (this: ExprContext, ...params: ArgsToActual<Args>) => BaseToActual<Ret> | null;
   args: Args;
   minArguments?: number;
   returns: Ret;
@@ -75,18 +69,11 @@ export interface FuncDef<
   castReturnValue?: boolean;
 }
 
-type BaseValueArgsFor<F extends ExprFunction> = F extends ExprFunction
-  ? Functions[F]['args']
-  : never;
+type BaseValueArgsFor<F extends ExprFunction> = F extends ExprFunction ? Functions[F]['args'] : never;
 
-type FunctionsReturning<T extends BaseValue> = keyof PickByValue<
-  Functions,
-  { returns: T }
->;
+type FunctionsReturning<T extends BaseValue> = keyof PickByValue<Functions, { returns: T }>;
 
-export type ExprReturning<T extends BaseValue> = Expression<
-  FunctionsReturning<T>
->;
+export type ExprReturning<T extends BaseValue> = Expression<FunctionsReturning<T>>;
 
 /**
  * An expression definition is basically [functionName, ...arguments], but when we map arguments (using their
@@ -96,10 +83,7 @@ export type ExprReturning<T extends BaseValue> = Expression<
  *
  * @see https://github.com/microsoft/TypeScript/issues/29919
  */
-type IndexHack<F extends ExprFunction> = [
-  'Here goes the function name',
-  ...BaseValueArgsFor<F>,
-];
+type IndexHack<F extends ExprFunction> = ['Here goes the function name', ...BaseValueArgsFor<F>];
 
 type MaybeRecursive<
   F extends ExprFunction,
@@ -109,9 +93,7 @@ type MaybeRecursive<
   ? never
   : {
       [Index in keyof Args]: Args[Index] extends BaseValue
-        ?
-            | BaseToActual<Args[Index]>
-            | MaybeRecursive<FunctionsReturning<Args[Index]>, Prev[Iterations]>
+        ? BaseToActual<Args[Index]> | MaybeRecursive<FunctionsReturning<Args[Index]>, Prev[Iterations]>
         : F;
     };
 
@@ -121,25 +103,19 @@ type MaybeRecursive<
  *
  * @see ExpressionOr
  */
-export type Expression<F extends ExprFunction = ExprFunction> = MaybeRecursive<
-  F,
-  2
->;
+export type Expression<F extends ExprFunction = ExprFunction> = MaybeRecursive<F, 2>;
 
 /**
  * This type represents an expression for a function that returns the T type, or just the T type itself.
  */
-export type ExpressionOr<T extends BaseValue> =
-  | ExprReturning<T>
-  | BaseToActual<T>;
+export type ExpressionOr<T extends BaseValue> = ExprReturning<T> | BaseToActual<T>;
 
 /**
  * Type that lets you convert an expression function name to its return value type
  */
-export type ReturnValueFor<Func extends ExprFunction> =
-  Func extends keyof Functions
-    ? BaseToActual<Functions[Func]['returns']>
-    : never;
+export type ReturnValueFor<Func extends ExprFunction> = Func extends keyof Functions
+  ? BaseToActual<Functions[Func]['returns']>
+  : never;
 
 /**
  * This is the heavy lifter for ExprResolved that will recursively work through objects and remove
@@ -188,9 +164,7 @@ type OmitNeverArrays<T> = T extends never[] ? never : T;
 /**
  * This is the heavy lifter used by ExprDefaultValues to recursively iterate types
  */
-type ReplaceDistributive<T, Iterations extends Prev[number]> = [T] extends [
-  ExpressionOr<infer BT>,
-]
+type ReplaceDistributive<T, Iterations extends Prev[number]> = [T] extends [ExpressionOr<infer BT>]
   ? BaseToActualStrict<BT>
   : [T] extends [object]
   ? OmitEmptyObjects<ExprDefaultValues<T, Prev[Iterations]>>
@@ -206,7 +180,5 @@ export type ExprDefaultValues<
 > = [Iterations] extends [never]
   ? never
   : OmitNeverKeys<{
-      [P in keyof Required<T>]: OmitNeverArrays<
-        ReplaceDistributive<Exclude<T[P], undefined>, Iterations>
-      >;
+      [P in keyof Required<T>]: OmitNeverArrays<ReplaceDistributive<Exclude<T[P], undefined>, Iterations>>;
     }>;

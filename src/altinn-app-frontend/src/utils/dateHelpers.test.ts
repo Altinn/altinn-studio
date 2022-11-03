@@ -5,12 +5,9 @@ import type { DateFlags } from 'src/types';
 
 describe('dateHelpers', () => {
   describe('getFlagBasedDate(...)', () => {
-    test.each(['', undefined, null, 'abcdef'])(
-      'should return undefined if flag is %p',
-      (flag) => {
-        expect(getFlagBasedDate(flag as DateFlags)).toBeUndefined();
-      },
-    );
+    test.each(['', undefined, null, 'abcdef'])('should return undefined if flag is %p', (flag) => {
+      expect(getFlagBasedDate(flag as DateFlags)).toBeUndefined();
+    });
 
     test.each([[moment().set('hour', 12).set('minute', 0), 'today']])(
       'should return %p if flag is %p',
@@ -22,12 +19,9 @@ describe('dateHelpers', () => {
   });
 
   describe('getISOString', () => {
-    test.each(['', undefined])(
-      'should return undefined if input date is %p',
-      (date) => {
-        expect(getISOString(date)).toBeUndefined();
-      },
-    );
+    test.each(['', undefined])('should return undefined if input date is %p', (date) => {
+      expect(getISOString(date)).toBeUndefined();
+    });
 
     it('should return undefined if input date is "abcdef"', () => {
       jest.spyOn(console, 'warn').mockImplementation();

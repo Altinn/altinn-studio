@@ -8,11 +8,7 @@ export interface ISummaryData {
   textResources?: ITextResource[];
 }
 
-export const returnConfirmSummaryObject = ({
-  languageData,
-  instanceOwnerParty,
-  textResources,
-}: ISummaryData) => {
+export const returnConfirmSummaryObject = ({ languageData, instanceOwnerParty, textResources }: ISummaryData) => {
   let sender = '';
   if (instanceOwnerParty?.ssn) {
     sender = `${instanceOwnerParty.ssn}-${instanceOwnerParty.name}`;
@@ -20,13 +16,7 @@ export const returnConfirmSummaryObject = ({
     sender = `${instanceOwnerParty.orgNumber}-${instanceOwnerParty.name}`;
   }
 
-  const key = getTextFromAppOrDefault(
-    'confirm.sender',
-    textResources || [],
-    languageData || {},
-    undefined,
-    true,
-  );
+  const key = getTextFromAppOrDefault('confirm.sender', textResources || [], languageData || {}, undefined, true);
 
   return {
     [key]: sender,

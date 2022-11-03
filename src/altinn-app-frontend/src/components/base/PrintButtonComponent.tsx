@@ -6,9 +6,7 @@ import { useAppSelector } from 'src/common/hooks';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 
 export const PrintButtonComponent = () => {
-  const textResources = useAppSelector(
-    (state) => state.textResources.resources,
-  );
+  const textResources = useAppSelector((state) => state.textResources.resources);
   const language = useAppSelector((state) => state.language.language);
 
   return (
@@ -16,14 +14,7 @@ export const PrintButtonComponent = () => {
       variant={ButtonVariant.Secondary}
       onClick={window.print}
     >
-      {language &&
-        getTextFromAppOrDefault(
-          'general.print_button_text',
-          textResources,
-          language,
-          undefined,
-          true,
-        )}
+      {language && getTextFromAppOrDefault('general.print_button_text', textResources, language, undefined, true)}
     </Button>
   );
 };

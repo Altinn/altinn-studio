@@ -15,15 +15,11 @@ export interface INavBarProps {
 }
 
 const NavBar = (props: INavBarProps) => {
-  const hideCloseButton = useAppSelector(
-    (state) => state.formLayout.uiConfig.hideCloseButton,
-  );
+  const hideCloseButton = useAppSelector((state) => state.formLayout.uiConfig.hideCloseButton);
   const language = useAppSelector((state) => state.language.language || {});
   const theme = useTheme();
 
-  const showLanguageSelector = useAppSelector(
-    (state) => state.formLayout.uiConfig.showLanguageSelector,
-  );
+  const showLanguageSelector = useAppSelector((state) => state.formLayout.uiConfig.showLanguageSelector);
   return (
     <Box
       component={'nav'}
@@ -45,15 +41,11 @@ const NavBar = (props: INavBarProps) => {
           >
             <span className='ai-stack'>
               <i
-                className={`ai-stack-1x ai ${
-                  theme.direction === 'rtl' ? 'ai-arrowright' : 'ai-back'
-                }`}
+                className={`ai-stack-1x ai ${theme.direction === 'rtl' ? 'ai-arrowright' : 'ai-back'}`}
                 aria-hidden='true'
               />
             </span>
-            <span className='sr-only'>
-              {getLanguageFromKey('general.back', language)}
-            </span>
+            <span className='sr-only'>{getLanguageFromKey('general.back', language)}</span>
           </button>
         )}
       </div>

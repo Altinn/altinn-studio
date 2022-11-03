@@ -10,11 +10,7 @@ import { RepeatingGroupTable } from 'src/features/form/containers/RepeatingGroup
 import { createRepeatingGroupComponents } from 'src/utils/formLayout';
 import type { IRepeatingGroupTableProps } from 'src/features/form/containers/RepeatingGroupTable';
 import type { IFormData } from 'src/features/form/data';
-import type {
-  ILayoutComponent,
-  ILayoutGroup,
-  ISelectionComponentProps,
-} from 'src/features/form/layout';
+import type { ILayoutComponent, ILayoutGroup, ISelectionComponentProps } from 'src/features/form/layout';
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
 import type { IAttachments } from 'src/shared/resources/attachments';
 import type { IOption, ITextResource } from 'src/types';
@@ -66,9 +62,7 @@ describe('RepeatingGroupTable', () => {
       row_popover_delete_button_confirm: 'Yes, delete the row',
     },
   };
-  const textResources: ITextResource[] = [
-    { id: 'option.label', value: 'Value to be shown' },
-  ];
+  const textResources: ITextResource[] = [{ id: 'option.label', value: 'Value to be shown' }];
   const attachments: IAttachments = {};
   const options: IOption[] = [{ value: 'option.value', label: 'option.label' }];
   const components: ILayoutComponent[] = [
@@ -133,20 +127,12 @@ describe('RepeatingGroupTable', () => {
   };
 
   const repeatingGroupIndex = 3;
-  const repeatingGroupDeepCopyComponents: Array<
-    Array<ILayoutComponent | ILayoutGroup>
-  > = createRepeatingGroupComponents(
-    group,
-    components,
-    repeatingGroupIndex,
-    textResources,
-  );
+  const repeatingGroupDeepCopyComponents: Array<Array<ILayoutComponent | ILayoutGroup>> =
+    createRepeatingGroupComponents(group, components, repeatingGroupIndex, textResources);
 
   it('should render table header when table has entries', () => {
     const container = render();
-    const tableHeader = container.querySelector(
-      `#group-${group.id}-table-header`,
-    );
+    const tableHeader = container.querySelector(`#group-${group.id}-table-header`);
     expect(tableHeader).toBeInTheDocument();
   });
 
@@ -154,9 +140,7 @@ describe('RepeatingGroupTable', () => {
     const container = render({
       repeatingGroupIndex: -1,
     });
-    const tableHeader = container.querySelector(
-      `#group-${group.id}-table-header`,
-    );
+    const tableHeader = container.querySelector(`#group-${group.id}-table-header`);
     expect(tableHeader).not.toBeInTheDocument();
   });
 
@@ -166,14 +150,8 @@ describe('RepeatingGroupTable', () => {
         edit: { alertOnDelete: true },
       });
       const layout: ILayoutState = getLayout(group, components);
-      const repeatingGroupDeepCopyComponents: Array<
-        Array<ILayoutComponent | ILayoutGroup>
-      > = createRepeatingGroupComponents(
-        group,
-        components,
-        repeatingGroupIndex,
-        textResources,
-      );
+      const repeatingGroupDeepCopyComponents: Array<Array<ILayoutComponent | ILayoutGroup>> =
+        createRepeatingGroupComponents(group, components, repeatingGroupIndex, textResources);
 
       if (!layout.layouts) {
         return;
@@ -189,15 +167,11 @@ describe('RepeatingGroupTable', () => {
     it('should open and close delete-warning on delete click when alertOnDelete is active', async () => {
       await user.click(screen.getAllByRole('button', { name: /delete/i })[0]);
 
-      expect(
-        screen.queryByText('Are you sure you want to delete this row?'),
-      ).toBeInTheDocument();
+      expect(screen.queryByText('Are you sure you want to delete this row?')).toBeInTheDocument();
 
       await user.click(screen.getAllByRole('button', { name: /delete/i })[0]);
 
-      expect(
-        screen.queryByText('Are you sure you want to delete this row?'),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText('Are you sure you want to delete this row?')).not.toBeInTheDocument();
     });
   });
 
@@ -288,9 +262,7 @@ describe('RepeatingGroupTable', () => {
       ...props,
     };
 
-    const { container } = renderWithProviders(
-      <RepeatingGroupTable {...allProps} />,
-    );
+    const { container } = renderWithProviders(<RepeatingGroupTable {...allProps} />);
 
     return container;
   };

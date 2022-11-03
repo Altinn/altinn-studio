@@ -13,9 +13,7 @@ describe('LandmarkShortcuts.tsx', () => {
   it('should set active element to main when nav is clicked', async () => {
     renderMainContentNav();
     await userEvent.click(screen.getByRole('link'));
-    expect(document.activeElement).toBe(
-      document.getElementById('main-content'),
-    );
+    expect(document.activeElement).toBe(document.getElementById('main-content'));
   });
 
   it('should reset tab index if this is changed by nav', async () => {

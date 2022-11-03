@@ -56,10 +56,7 @@ const RadioGroupTableRow = ({
           pb={1}
         >
           <RenderLegend />
-          {renderValidationMessagesForComponent(
-            componentValidations?.simpleBinding,
-            id,
-          )}
+          {renderValidationMessagesForComponent(componentValidations?.simpleBinding, id)}
         </Box>
       </TableCell>
       {calculatedOptions?.map((option, colIndex) => {

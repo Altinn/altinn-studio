@@ -14,10 +14,7 @@ import {
   repeatingGroupsSelector,
 } from 'src/shared/resources/options/fetch/fetchOptionsSagas';
 import { selectNotNull } from 'src/utils/sagas';
-import type {
-  ILayouts,
-  ISelectionComponentProps,
-} from 'src/features/form/layout';
+import type { ILayouts, ISelectionComponentProps } from 'src/features/form/layout';
 import type { IOptions, IRuntimeState } from 'src/types';
 
 import * as networking from 'altinn-shared/utils/networking';
@@ -195,10 +192,7 @@ describe('fetchOptionsSagas', () => {
 
       return expectSaga(fetchOptionsSaga)
         .provide([
-          [
-            selectNotNull(formLayoutSelector),
-            formLayoutWithSameOptionIdButDifferentMapping,
-          ],
+          [selectNotNull(formLayoutSelector), formLayoutWithSameOptionIdButDifferentMapping],
           [selectNotNull(repeatingGroupsSelector), {}],
           [select(instanceIdSelector), 'someId'],
         ])

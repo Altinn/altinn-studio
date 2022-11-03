@@ -10,11 +10,7 @@ describe('appLanguageStateSelector', () => {
     selectedLanguage: string;
   }
 
-  const setupState = ({
-    allowAnonymous,
-    profileLanguage,
-    selectedLanguage,
-  }: ISetupProps) => {
+  const setupState = ({ allowAnonymous, profileLanguage, selectedLanguage }: ISetupProps) => {
     const mockInitialState = statelessAndAllowAnonymousMock(allowAnonymous);
     const mockProfile = getProfileStateMock();
     return {

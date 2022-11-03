@@ -12,28 +12,26 @@ const initialState: IApplicationMetadataState = {
   error: null,
 };
 
-const applicationMetadataSlice = createSagaSlice(
-  (mkAction: MkActionType<IApplicationMetadataState>) => ({
-    name: 'applicationMetadata',
-    initialState,
-    actions: {
-      get: mkAction<void>({
-        takeLatest: getApplicationMetadata,
-      }),
-      getFulfilled: mkAction<IGetApplicationMetadataFulfilled>({
-        reducer: (state, action) => {
-          state.applicationMetadata = action.payload.applicationMetadata;
-          state.error = null;
-        },
-      }),
-      getRejected: mkAction<IGetApplicationMetadataRejected>({
-        reducer: (state, action) => {
-          state.error = action.payload.error;
-        },
-      }),
-    },
-  }),
-);
+const applicationMetadataSlice = createSagaSlice((mkAction: MkActionType<IApplicationMetadataState>) => ({
+  name: 'applicationMetadata',
+  initialState,
+  actions: {
+    get: mkAction<void>({
+      takeLatest: getApplicationMetadata,
+    }),
+    getFulfilled: mkAction<IGetApplicationMetadataFulfilled>({
+      reducer: (state, action) => {
+        state.applicationMetadata = action.payload.applicationMetadata;
+        state.error = null;
+      },
+    }),
+    getRejected: mkAction<IGetApplicationMetadataRejected>({
+      reducer: (state, action) => {
+        state.error = action.payload.error;
+      },
+    }),
+  },
+}));
 
 export const ApplicationMetadataActions = applicationMetadataSlice.actions;
 export default applicationMetadataSlice;

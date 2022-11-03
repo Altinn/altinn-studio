@@ -10,11 +10,7 @@ import {
 } from 'src/features/form/layout/fetch/fetchFormLayoutSagas';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import * as networking from 'src/utils/networking';
-import type {
-  ILayoutCompFileUploadWithTag,
-  ILayoutCompSummary,
-  ILayoutGroup,
-} from 'src/features/form/layout';
+import type { ILayoutCompFileUploadWithTag, ILayoutCompSummary, ILayoutGroup } from 'src/features/form/layout';
 import type { IHiddenLayoutsExpressions } from 'src/types';
 
 import type { IApplication, IInstance } from 'altinn-shared/types';
@@ -150,13 +146,9 @@ describe('fetchFormLayoutSagas', () => {
     });
 
     it('should set current view to cached key if key exists in fetched layout', () => {
-      jest
-        .spyOn(networking, 'get')
-        .mockResolvedValue(mockResponseTwoLayoutsNoHidden);
+      jest.spyOn(networking, 'get').mockResolvedValue(mockResponseTwoLayoutsNoHidden);
       jest.spyOn(window.localStorage.__proto__, 'getItem');
-      window.localStorage.__proto__.getItem = jest
-        .fn()
-        .mockReturnValue('page2');
+      window.localStorage.__proto__.getItem = jest.fn().mockReturnValue('page2');
 
       return expectSaga(fetchLayoutSaga)
         .provide([
@@ -188,9 +180,7 @@ describe('fetchFormLayoutSagas', () => {
     it('should set current view to first page in layout if a cached key exists but no longer exists in layout order', () => {
       jest.spyOn(networking, 'get').mockResolvedValue(mockResponseTwoLayouts);
       jest.spyOn(window.localStorage.__proto__, 'getItem');
-      window.localStorage.__proto__.getItem = jest
-        .fn()
-        .mockReturnValue('page3');
+      window.localStorage.__proto__.getItem = jest.fn().mockReturnValue('page3');
 
       return expectSaga(fetchLayoutSaga)
         .provide([

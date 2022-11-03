@@ -4,21 +4,14 @@ import type { ILayoutSets } from 'src/types';
 
 import type { IApplication, IInstance } from 'altinn-shared/types';
 
-export function getDataTypeByLayoutSetId(
-  layoutSetId: string | undefined,
-  layoutSets: ILayoutSets | undefined | null,
-) {
+export function getDataTypeByLayoutSetId(layoutSetId: string | undefined, layoutSets: ILayoutSets | undefined | null) {
   return layoutSets?.sets.find((set) => set.id === layoutSetId)?.dataType;
 }
 
 /**
  * Application metadata onEntry.show values that have a state full application
  */
-export const onEntryValuesThatHaveState: string[] = [
-  'new-instance',
-  'select-instance',
-  'start-page',
-];
+export const onEntryValuesThatHaveState: string[] = ['new-instance', 'select-instance', 'start-page'];
 
 /**
  * Get the current layout set for application if it exists
@@ -92,30 +85,14 @@ export const getCurrentTaskDataElementId = (
   instance: IInstance | null,
   layoutSets: ILayoutSets | null,
 ) => {
-  const currentDataTypeId = getCurrentDataTypeId(
-    appMetaData,
-    instance,
-    layoutSets,
-  );
-  const currentTaskDataElement = instance?.data.find(
-    (element) => element.dataType === currentDataTypeId,
-  );
+  const currentDataTypeId = getCurrentDataTypeId(appMetaData, instance, layoutSets);
+  const currentTaskDataElement = instance?.data.find((element) => element.dataType === currentDataTypeId);
   return currentTaskDataElement?.id;
 };
 
-export const getCurrentTaskData = (
-  appMetaData: IApplication,
-  instance: IInstance,
-  layoutSets: ILayoutSets,
-) => {
-  const currentDataTypeId = getCurrentDataTypeId(
-    appMetaData,
-    instance,
-    layoutSets,
-  );
-  return instance.data.find(
-    (element) => element.dataType === currentDataTypeId,
-  );
+export const getCurrentTaskData = (appMetaData: IApplication, instance: IInstance, layoutSets: ILayoutSets) => {
+  const currentDataTypeId = getCurrentDataTypeId(appMetaData, instance, layoutSets);
+  return instance.data.find((element) => element.dataType === currentDataTypeId);
 };
 
 export const getCurrentDataTypeId = (
@@ -129,11 +106,7 @@ export const getCurrentDataTypeId = (
   }
 
   return (
-    layoutSets?.sets.find((set) => set.tasks?.includes(currentTaskId))
-      ?.dataType ||
-    appMetaData?.dataTypes.find(
-      (element) =>
-        element.appLogic?.classRef && element.taskId === currentTaskId,
-    )?.id
+    layoutSets?.sets.find((set) => set.tasks?.includes(currentTaskId))?.dataType ||
+    appMetaData?.dataTypes.find((element) => element.appLogic?.classRef && element.taskId === currentTaskId)?.id
   );
 };

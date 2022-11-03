@@ -3,19 +3,12 @@ import { useContext, useMemo } from 'react';
 import { useAppSelector } from 'src/common/hooks';
 import { FormComponentContext } from 'src/components';
 import { NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
-import {
-  evalExprInObj,
-  ExprDefaultsForComponent,
-  ExprDefaultsForGroup,
-} from 'src/features/expressions/index';
+import { evalExprInObj, ExprDefaultsForComponent, ExprDefaultsForGroup } from 'src/features/expressions/index';
 import { getInstanceContextSelector } from 'src/utils/instanceContext';
 import { useLayoutsAsNodes } from 'src/utils/layout/useLayoutsAsNodes';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
 import type { EvalExprInObjArgs } from 'src/features/expressions/index';
-import type {
-  ExprDefaultValues,
-  ExprResolved,
-} from 'src/features/expressions/types';
+import type { ExprDefaultValues, ExprResolved } from 'src/features/expressions/types';
 import type { ILayoutComponentOrGroup } from 'src/features/form/layout';
 
 import type { IInstanceContext } from 'altinn-shared/types';
@@ -45,10 +38,7 @@ export interface UseExpressionsOptions<T> {
  *  them to provide you with the base out value for the current component context.
  * @param _options Optional options (see their own docs)
  */
-export function useExpressions<T>(
-  input: T,
-  _options?: UseExpressionsOptions<T>,
-): ExprResolved<T> {
+export function useExpressions<T>(input: T, _options?: UseExpressionsOptions<T>): ExprResolved<T> {
   // The options argument is an object, so it's natural to create a new one each time this function is called. As
   // the equality function in React will assume a new object reference is an entirely new object, we'll memoize this
   // argument as to prevent infinite looping when given a new (but identical) options argument.
@@ -58,13 +48,9 @@ export function useExpressions<T>(
   const component = useContext(FormComponentContext);
   const nodes = useLayoutsAsNodes();
   const formData = useAppSelector((state) => state.formData?.formData);
-  const applicationSettings = useAppSelector(
-    (state) => state.applicationSettings?.applicationSettings,
-  );
+  const applicationSettings = useAppSelector((state) => state.applicationSettings?.applicationSettings);
   const instanceContextSelector = getInstanceContextSelector();
-  const instanceContext: IInstanceContext = useAppSelector(
-    instanceContextSelector,
-  );
+  const instanceContext: IInstanceContext = useAppSelector(instanceContextSelector);
   const id = (options && options.forComponentId) || component.id;
 
   const node = useMemo(() => {
@@ -102,12 +88,11 @@ const componentDefaults: any = {
   ...ExprDefaultsForGroup,
 };
 
-export function useExpressionsForComponent<
-  T extends ILayoutComponentOrGroup | undefined | null,
->(input: T): ExprResolved<T> {
+export function useExpressionsForComponent<T extends ILayoutComponentOrGroup | undefined | null>(
+  input: T,
+): ExprResolved<T> {
   return useExpressions(input, {
-    forComponentId:
-      (typeof input === 'object' && input !== null && input.id) || undefined,
+    forComponentId: (typeof input === 'object' && input !== null && input.id) || undefined,
     defaults: componentDefaults,
   });
 }

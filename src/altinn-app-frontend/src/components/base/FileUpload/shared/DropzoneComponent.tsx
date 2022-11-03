@@ -64,10 +64,7 @@ export function DropzoneComponent({
         className='file-upload-text-bold-small'
         id='max-size'
       >
-        {`${getLanguageFromKey(
-          'form_filler.file_uploader_max_size',
-          language,
-        )} ${maxFileSizeInMB} ${getLanguageFromKey(
+        {`${getLanguageFromKey('form_filler.file_uploader_max_size', language)} ${maxFileSizeInMB} ${getLanguageFromKey(
           'form_filler.file_uploader_mb',
           language,
         )}`}
@@ -86,15 +83,11 @@ export function DropzoneComponent({
           let styles = { ...baseStyle };
           styles = isDragActive ? { ...styles, ...activeStyle } : styles;
           styles = isDragReject ? { ...styles, ...rejectStyle } : styles;
-          styles = hasValidationMessages
-            ? { ...styles, ...validationErrorStyle }
-            : styles;
+          styles = hasValidationMessages ? { ...styles, ...validationErrorStyle } : styles;
 
           const ariaDescribedByDefault =
             'file-upload-description file-format-description max-size number-of-attachments';
-          const ariaDescribedByDescription = textResourceBindings?.description
-            ? `description-${id}`
-            : undefined;
+          const ariaDescribedByDescription = textResourceBindings?.description ? `description-${id}` : undefined;
           const ariaDescribedBy = ariaDescribedByDescription
             ? `${ariaDescribedByDefault} ${ariaDescribedByDescription}`
             : ariaDescribedByDefault;
@@ -107,9 +100,7 @@ export function DropzoneComponent({
               style={styles}
               id={`altinn-drop-zone-${id}`}
               data-testid={`altinn-drop-zone-${id}`}
-              className={`file-upload${
-                hasValidationMessages ? ' file-upload-invalid' : ''
-              }`}
+              className={`file-upload${hasValidationMessages ? ' file-upload-invalid' : ''}`}
               aria-describedby={ariaDescribedBy}
               aria-labelledby={`label-${id}`}
               role='button'
@@ -132,23 +123,12 @@ export function DropzoneComponent({
                     id='file-upload-description'
                   >
                     {isMobile ? (
-                      <>
-                        {getLanguageFromKey(
-                          'form_filler.file_uploader_upload',
-                          language,
-                        )}
-                      </>
+                      <>{getLanguageFromKey('form_filler.file_uploader_upload', language)}</>
                     ) : (
                       <>
-                        {getLanguageFromKey(
-                          'form_filler.file_uploader_drag',
-                          language,
-                        )}
+                        {getLanguageFromKey('form_filler.file_uploader_drag', language)}
                         <span className='file-upload-text-bold blue-underline'>
-                          {` ${getLanguageFromKey(
-                            'form_filler.file_uploader_find',
-                            language,
-                          )}`}
+                          {` ${getLanguageFromKey('form_filler.file_uploader_find', language)}`}
                         </span>
                       </>
                     )}
@@ -160,16 +140,10 @@ export function DropzoneComponent({
                     className='file-upload-text'
                     id='file-format-description'
                   >
-                    {getLanguageFromKey(
-                      'form_filler.file_uploader_valid_file_format',
-                      language,
-                    )}
+                    {getLanguageFromKey('form_filler.file_uploader_valid_file_format', language)}
                     {hasCustomFileEndings
                       ? ` ${validFileEndings}`
-                      : ` ${getLanguageFromKey(
-                          'form_filler.file_upload_valid_file_format_all',
-                          language,
-                        )}`}
+                      : ` ${getLanguageFromKey('form_filler.file_upload_valid_file_format_all', language)}`}
                   </label>
                 </div>
               </div>

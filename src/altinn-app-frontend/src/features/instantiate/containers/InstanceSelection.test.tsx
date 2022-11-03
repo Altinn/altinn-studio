@@ -11,10 +11,7 @@ import InstanceSelection from 'src/features/instantiate/containers/InstanceSelec
 import type { IInstanceSelectionProps } from 'src/features/instantiate/containers/InstanceSelection';
 import type { IRuntimeState, ISimpleInstance } from 'src/types';
 
-const renderInstanceSelection = (
-  store: Store,
-  props: IInstanceSelectionProps,
-) => {
+const renderInstanceSelection = (store: Store, props: IInstanceSelectionProps) => {
   return renderWithProviders(<InstanceSelection {...props} />, { store });
 };
 
@@ -53,9 +50,7 @@ describe('InstanceSelection', () => {
       instances: mockActiveInstances,
       onNewInstance: mockStartNewInstance,
     });
-    const altinnTable = rendered.container.querySelector(
-      '#instance-selection-table',
-    );
+    const altinnTable = rendered.container.querySelector('#instance-selection-table');
     expect(altinnTable).not.toBeNull();
   });
 
@@ -66,9 +61,7 @@ describe('InstanceSelection', () => {
       instances: mockActiveInstances,
       onNewInstance: mockStartNewInstance,
     });
-    const altinnMobileTable = rendered.container.querySelector(
-      '#instance-selection-mobile-table',
-    );
+    const altinnMobileTable = rendered.container.querySelector('#instance-selection-mobile-table');
     expect(altinnMobileTable).not.toBeNull();
   });
 
@@ -78,12 +71,8 @@ describe('InstanceSelection', () => {
       onNewInstance: mockStartNewInstance,
     });
 
-    const firstInstanceChangedBy = await rendered.findByText(
-      mockActiveInstances[0].lastChangedBy,
-    );
-    const secondInstanceChangedBy = await rendered.findByText(
-      mockActiveInstances[1].lastChangedBy,
-    );
+    const firstInstanceChangedBy = await rendered.findByText(mockActiveInstances[0].lastChangedBy);
+    const secondInstanceChangedBy = await rendered.findByText(mockActiveInstances[1].lastChangedBy);
 
     const firstInstanceLastChanged = await rendered.findByText('10/05/2021');
     const secondInstanceLastChanged = await rendered.findByText('05/13/2021');
@@ -120,9 +109,7 @@ describe('InstanceSelection', () => {
     });
 
     await user.click(button);
-    expect(window.location.href).toBe(
-      'https://local.altinn.cloud/ttd/test#/instance/some-id',
-    );
+    expect(window.location.href).toBe('https://local.altinn.cloud/ttd/test#/instance/some-id');
   });
 
   it('should trigger openInstance on editButton click during mobile view', async () => {
@@ -136,17 +123,13 @@ describe('InstanceSelection', () => {
     const row = screen.getByRole('row', {
       name: /sist endret 05\/13\/2021/i,
     });
-    expect(window.location.href).toBe(
-      'https://local.altinn.cloud/ttd/test#/instance/some-id',
-    );
+    expect(window.location.href).toBe('https://local.altinn.cloud/ttd/test#/instance/some-id');
 
     const button = within(row).getByRole('button', {
       name: /fortsett her-05\/13\/2021/i,
     });
 
     await user.click(button);
-    expect(window.location.href).toBe(
-      'https://local.altinn.cloud/ttd/test#/instance/some-other-id',
-    );
+    expect(window.location.href).toBe('https://local.altinn.cloud/ttd/test#/instance/some-other-id');
   });
 });

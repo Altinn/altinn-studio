@@ -35,11 +35,7 @@ module.exports = {
       },
     ],
   },
-  plugins: [
-    ...common.plugins,
-    new ForkTsCheckerNotifierWebpackPlugin(),
-    new ReactRefreshWebpackPlugin(),
-  ],
+  plugins: [...common.plugins, new ForkTsCheckerNotifierWebpackPlugin(), new ReactRefreshWebpackPlugin()],
   devServer: {
     historyApiFallback: true,
     allowedHosts: 'all',

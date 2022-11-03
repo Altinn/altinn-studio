@@ -16,44 +16,22 @@ export function renderValidationMessagesForComponent(
   }
   const validationMessageElements: JSX.Element[] = [];
   if (validationMessages.errors && validationMessages.errors.length > 0) {
-    validationMessageElements.push(
-      renderValidationMessages(
-        validationMessages.errors,
-        `error_${id}`,
-        'error',
-      ),
-    );
+    validationMessageElements.push(renderValidationMessages(validationMessages.errors, `error_${id}`, 'error'));
   }
 
   if (validationMessages.warnings && validationMessages.warnings.length > 0) {
-    validationMessageElements.push(
-      renderValidationMessages(
-        validationMessages.warnings,
-        `warning_${id}`,
-        'warning',
-      ),
-    );
+    validationMessageElements.push(renderValidationMessages(validationMessages.warnings, `warning_${id}`, 'warning'));
   }
 
   if (validationMessages.info && validationMessages.info.length > 0) {
-    validationMessageElements.push(
-      renderValidationMessages(validationMessages.info, `info_${id}`, 'info'),
-    );
+    validationMessageElements.push(renderValidationMessages(validationMessages.info, `info_${id}`, 'info'));
   }
 
   if (validationMessages.success && validationMessages.success.length > 0) {
-    validationMessageElements.push(
-      renderValidationMessages(
-        validationMessages.success,
-        `success_${id}`,
-        'success',
-      ),
-    );
+    validationMessageElements.push(renderValidationMessages(validationMessages.success, `success_${id}`, 'success'));
   }
 
-  return validationMessageElements.length > 0
-    ? validationMessageElements
-    : null;
+  return validationMessageElements.length > 0 ? validationMessageElements : null;
 }
 
 export function renderValidationMessages(

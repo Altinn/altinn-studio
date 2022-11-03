@@ -16,14 +16,7 @@ interface IAddressLabel {
   labelSettings?: ILabelSettings;
 }
 
-export const AddressLabel = ({
-  labelKey,
-  id,
-  language,
-  required,
-  readOnly,
-  labelSettings,
-}: IAddressLabel) => {
+export const AddressLabel = ({ labelKey, id, language, required, readOnly, labelSettings }: IAddressLabel) => {
   const label = getLanguageFromKey(labelKey, language);
   return (
     <label

@@ -35,9 +35,7 @@ describe('ParagraphComponent', () => {
     const id = 'mock-id';
     render({ id, text: <h3>Hello world</h3> });
 
-    expect(screen.getByTestId(`paragraph-component-${id}`).tagName).toEqual(
-      'DIV',
-    );
+    expect(screen.getByTestId(`paragraph-component-${id}`).tagName).toEqual('DIV');
   });
 
   it('should render in a <p> when regular text content is supplied', () => {
@@ -53,9 +51,7 @@ describe('ParagraphComponent', () => {
       ),
     });
 
-    expect(screen.getByTestId(`paragraph-component-${id}`).tagName).toEqual(
-      'P',
-    );
+    expect(screen.getByTestId(`paragraph-component-${id}`).tagName).toEqual('P');
   });
 });
 

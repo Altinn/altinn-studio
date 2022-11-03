@@ -18,13 +18,7 @@ describe('SummaryComponent', () => {
     getFormLayoutStateMock({
       layouts: {
         [pageId]: [
-          ...[
-            defaultId,
-            'Group',
-            'FileUpload',
-            'FileUploadWithTag',
-            'Checkboxes',
-          ].map(
+          ...[defaultId, 'Group', 'FileUpload', 'FileUploadWithTag', 'Checkboxes'].map(
             (t) =>
               ({
                 id: t,
@@ -44,15 +38,11 @@ describe('SummaryComponent', () => {
   });
   test('should render file upload', () => {
     renderHelper({ componentRef: 'FileUpload' });
-    expect(
-      screen.getByTestId('attachment-summary-component'),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId('attachment-summary-component')).toBeInTheDocument();
   });
   test('should render file upload with tag', () => {
     renderHelper({ componentRef: 'FileUploadWithTag' });
-    expect(
-      screen.getByTestId('attachment-with-tag-summary'),
-    ).toBeInTheDocument();
+    expect(screen.getByTestId('attachment-with-tag-summary')).toBeInTheDocument();
   });
   test('should render checkboxes', () => {
     renderHelper({ componentRef: 'Checkboxes' });
@@ -83,11 +73,7 @@ describe('SummaryComponent', () => {
       ...layoutMock(),
     };
     otherLayout.uiConfig.hiddenFields = [defaultId];
-    const { container } = renderHelper(
-      { componentRef: defaultId },
-      {},
-      otherLayout,
-    );
+    const { container } = renderHelper({ componentRef: defaultId }, {}, otherLayout);
     expect(container.firstChild).toBeNull();
     expect(container.childElementCount).toBe(0);
   });
@@ -97,10 +83,7 @@ describe('SummaryComponent', () => {
       ...layoutMock(),
     };
     const firstComponent =
-      otherLayout.layouts &&
-      pageId &&
-      otherLayout.layouts[pageId] &&
-      otherLayout.layouts[pageId][0];
+      otherLayout.layouts && pageId && otherLayout.layouts[pageId] && otherLayout.layouts[pageId][0];
 
     if (firstComponent) {
       firstComponent.textResourceBindings = {
@@ -118,13 +101,8 @@ describe('SummaryComponent', () => {
       ...layoutMock(),
     };
     otherLayout.uiConfig.currentView = 'otherPage';
-    const theRender = renderHelper(
-      { componentRef: defaultId },
-      {},
-      otherLayout,
-    );
-    const button =
-      theRender.container.querySelector<HTMLButtonElement>('button');
+    const theRender = renderHelper({ componentRef: defaultId }, {}, otherLayout);
+    const button = theRender.container.querySelector<HTMLButtonElement>('button');
     button && fireEvent.click(button);
     expect(spy).toHaveBeenCalledWith({
       newView: pageId,

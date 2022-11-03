@@ -45,14 +45,8 @@ interface ICollapsibleAttacments {
   hideCollapsibleCount?: boolean;
 }
 
-const CollapsibleAttachments = ({
-  attachments,
-  title,
-  hideCollapsibleCount,
-}: ICollapsibleAttacments) => {
-  const isPrint = useMediaQuery('print')
-    ? false
-    : Boolean(attachments.length > 4);
+const CollapsibleAttachments = ({ attachments, title, hideCollapsibleCount }: ICollapsibleAttacments) => {
+  const isPrint = useMediaQuery('print') ? false : Boolean(attachments.length > 4);
 
   return (
     <AltinnCollapsibleAttachmentsComponent

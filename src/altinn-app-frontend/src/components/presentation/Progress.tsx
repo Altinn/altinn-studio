@@ -7,17 +7,12 @@ import { selectLayoutOrder } from 'src/selectors/getLayoutOrder';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 
 export const Progress = () => {
-  const currentPageId = useAppSelector(
-    (state) => state.formLayout.uiConfig.currentView,
-  );
+  const currentPageId = useAppSelector((state) => state.formLayout.uiConfig.currentView);
   const pageIds = useAppSelector(selectLayoutOrder);
   const language = useAppSelector((state) => state.language.language);
-  const textResources = useAppSelector(
-    (state) => state.textResources.resources,
-  );
+  const textResources = useAppSelector((state) => state.textResources.resources);
 
-  const currentPageIndex =
-    pageIds?.findIndex((page) => page === currentPageId) || 0;
+  const currentPageIndex = pageIds?.findIndex((page) => page === currentPageId) || 0;
   const currentPageNum = currentPageIndex + 1;
 
   const numberOfPages = pageIds?.length || 0;

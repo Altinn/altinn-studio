@@ -44,17 +44,10 @@ export default function HelpTextIcon({
         onKeyPress={onPopoverKeypress}
         ref={helpIconRef}
         role='button'
-        aria-label={getLanguageFromKey(
-          'popover.popover_button_helptext',
-          language,
-        )}
+        aria-label={getLanguageFromKey('popover.popover_button_helptext', language)}
         aria-hidden={false}
       >
-        <i
-          className={`${classes.helpTextIcon} ${
-            openPopover ? 'reg reg-help-filled' : 'reg reg-help-outline'
-          }`}
-        />
+        <i className={`${classes.helpTextIcon} ${openPopover ? 'reg reg-help-filled' : 'reg reg-help-outline'}`} />
       </span>
     );
   }

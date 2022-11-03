@@ -9,10 +9,7 @@ import type { ITextResource } from 'src/types';
 
 import { AltinnReceipt } from 'altinn-shared/components';
 import { mapInstanceAttachments } from 'altinn-shared/utils';
-import {
-  getAttachmentGroupings,
-  getInstancePdf,
-} from 'altinn-shared/utils/attachmentsUtils';
+import { getAttachmentGroupings, getInstancePdf } from 'altinn-shared/utils/attachmentsUtils';
 import type { IInstance, ILanguage, IParty } from 'altinn-shared/types';
 
 export interface Props {
@@ -24,14 +21,7 @@ export interface Props {
   applicationMetadata: IApplicationMetadata | null;
 }
 
-export const ConfirmPage = ({
-  instance,
-  parties,
-  language,
-  appName,
-  textResources,
-  applicationMetadata,
-}: Props) => {
+export const ConfirmPage = ({ instance, parties, language, appName, textResources, applicationMetadata }: Props) => {
   const getInstanceMetaObject = () => {
     if (instance?.org && applicationMetadata) {
       const instanceOwnerParty = parties?.find((party: IParty) => {
@@ -48,9 +38,7 @@ export const ConfirmPage = ({
 
   const getAttachments = () => {
     if (instance?.data && applicationMetadata) {
-      const appLogicDataTypes = applicationMetadata.dataTypes.filter(
-        (dataType) => !!dataType.appLogic,
-      );
+      const appLogicDataTypes = applicationMetadata.dataTypes.filter((dataType) => !!dataType.appLogic);
 
       return mapInstanceAttachments(
         instance.data,
@@ -63,23 +51,13 @@ export const ConfirmPage = ({
     return null;
   }
 
-  const getText = (id, params = undefined) =>
-    getTextFromAppOrDefault(id, textResources, language, params, true);
+  const getText = (id, params = undefined) => getTextFromAppOrDefault(id, textResources, language, params, true);
 
   return (
     <>
       <AltinnReceipt
-        attachmentGroupings={getAttachmentGroupings(
-          getAttachments(),
-          applicationMetadata,
-          textResources,
-        )}
-        body={
-          appName &&
-          getTextFromAppOrDefault('confirm.body', textResources, language, [
-            appName,
-          ])
-        }
+        attachmentGroupings={getAttachmentGroupings(getAttachments(), applicationMetadata, textResources)}
+        body={appName && getTextFromAppOrDefault('confirm.body', textResources, language, [appName])}
         collapsibleTitle={getText('confirm.attachments')}
         hideCollapsibleCount={true}
         instanceMetaDataObject={getInstanceMetaObject()}

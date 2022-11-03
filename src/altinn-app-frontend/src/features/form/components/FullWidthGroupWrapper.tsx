@@ -17,9 +17,7 @@ const useStyles = makeStyles({
   },
 });
 
-export function FullWidthGroupWrapper({
-  children,
-}: IFulLWidthGroupWrapperProps) {
+export function FullWidthGroupWrapper({ children }: IFulLWidthGroupWrapperProps) {
   const classes = useStyles();
 
   return (

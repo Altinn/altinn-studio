@@ -1,10 +1,6 @@
 import React from 'react';
 
-import {
-  applicationMetadataMock,
-  getInitialStateMock,
-  getInstanceDataStateMock,
-} from '__mocks__/mocks';
+import { applicationMetadataMock, getInitialStateMock, getInstanceDataStateMock } from '__mocks__/mocks';
 import { screen } from '@testing-library/react';
 import { renderWithProviders } from 'testUtils';
 

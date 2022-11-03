@@ -12,11 +12,8 @@ export type Props = Omit<ButtonProps, 'onClick'> & { taskId: string };
 
 export const GoToTaskButton = ({ children, taskId, ...props }: Props) => {
   const dispatch = useAppDispatch();
-  const availableProcessTasks = useAppSelector(
-    (state) => state.process.availableNextTasks,
-  );
-  const canGoToTask =
-    availableProcessTasks && availableProcessTasks.includes(taskId);
+  const availableProcessTasks = useAppSelector((state) => state.process.availableNextTasks);
+  const canGoToTask = availableProcessTasks && availableProcessTasks.includes(taskId);
   const navigateToTask = () => {
     if (canGoToTask) {
       dispatch(

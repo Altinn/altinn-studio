@@ -1,22 +1,11 @@
 import React from 'react';
 import { Route, useLocation } from 'react-router-dom';
 
-import {
-  dataTypes,
-  instanceOwner,
-  partyMember,
-  partyTypesAllowed,
-  userProfile,
-} from '__mocks__/constants';
+import { dataTypes, instanceOwner, partyMember, partyTypesAllowed, userProfile } from '__mocks__/constants';
 import { screen } from '@testing-library/react';
-import {
-  MemoryRouterWithRedirectingRoot,
-  renderWithProviders,
-} from 'testUtils';
+import { MemoryRouterWithRedirectingRoot, renderWithProviders } from 'testUtils';
 
-import ReceiptContainer, {
-  returnInstanceMetaDataObject,
-} from 'src/features/receipt/containers/ReceiptContainer';
+import ReceiptContainer, { returnInstanceMetaDataObject } from 'src/features/receipt/containers/ReceiptContainer';
 
 interface IRender {
   populateStore?: boolean;
@@ -150,11 +139,7 @@ function getMockState({ autoDeleteOnProcessEnd = false, hasPdf = true }) {
   } as any;
 }
 
-const render = ({
-  populateStore = true,
-  autoDeleteOnProcessEnd = false,
-  hasPdf = true,
-}: IRender = {}) => {
+const render = ({ populateStore = true, autoDeleteOnProcessEnd = false, hasPdf = true }: IRender = {}) => {
   const mockState = getMockState({ hasPdf, autoDeleteOnProcessEnd });
   renderWithProviders(<DefinedRoutes />, {
     preloadedState: populateStore ? mockState : {},

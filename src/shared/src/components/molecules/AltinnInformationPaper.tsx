@@ -19,9 +19,7 @@ export interface IAltinnInformationPaperProps {
   children: JSX.Element[] | JSX.Element;
 }
 
-export default function AltinnInformationPaper({
-  children,
-}: IAltinnInformationPaperProps) {
+export default function AltinnInformationPaper({ children }: IAltinnInformationPaperProps) {
   const classes = useStyles();
   return (
     <Paper

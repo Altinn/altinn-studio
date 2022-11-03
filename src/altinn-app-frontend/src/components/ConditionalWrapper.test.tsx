@@ -6,25 +6,19 @@ import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 
 describe('ConditionalWrapper', () => {
   it('should pass children to wrapper callback when condition is true', () => {
-    const wrapperCb = jest.fn((children) => (
-      <div data-testid='conditional-wrapper'>{children}</div>
-    ));
+    const wrapperCb = jest.fn((children) => <div data-testid='conditional-wrapper'>{children}</div>);
     render({
       condition: true,
       wrapper: wrapperCb,
     });
 
-    expect(wrapperCb).toHaveBeenCalledWith(
-      <div data-testid='children'>Children</div>,
-    );
+    expect(wrapperCb).toHaveBeenCalledWith(<div data-testid='children'>Children</div>);
     expect(screen.getByTestId('conditional-wrapper')).toBeInTheDocument();
     expect(screen.getByTestId('children')).toBeInTheDocument();
   });
 
   it('should not pass children to wrapper callback when condition is false', () => {
-    const wrapperCb = jest.fn((children) => (
-      <div data-testid='conditional-wrapper'>{children}</div>
-    ));
+    const wrapperCb = jest.fn((children) => <div data-testid='conditional-wrapper'>{children}</div>);
     render({
       condition: false,
       wrapper: wrapperCb,
@@ -39,9 +33,7 @@ describe('ConditionalWrapper', () => {
 const render = (props) => {
   const allProps = {
     condition: false,
-    wrapper: (children) => (
-      <div data-testid='conditional-wrapper'>{children}</div>
-    ),
+    wrapper: (children) => <div data-testid='conditional-wrapper'>{children}</div>,
     ...props,
   };
 

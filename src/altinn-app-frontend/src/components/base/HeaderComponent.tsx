@@ -59,14 +59,7 @@ const HeaderSize = ({ id, size, text }: IHeaderSizeProps) => {
   }
 };
 
-export const HeaderComponent = ({
-  id,
-  size,
-  text,
-  textResourceBindings,
-  language,
-  getTextResource,
-}: IHeaderProps) => {
+export const HeaderComponent = ({ id, size, text, textResourceBindings, language, getTextResource }: IHeaderProps) => {
   return (
     <Grid
       container={true}

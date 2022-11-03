@@ -10,9 +10,7 @@ import type { IGetTasksFulfilled } from 'src/shared/resources/process';
 import { get } from 'altinn-shared/utils';
 import type { IProcess } from 'altinn-shared/types';
 
-export function* getTasksSaga({
-  payload: { processStep },
-}: PayloadAction<IGetTasksFulfilled>): SagaIterator {
+export function* getTasksSaga({ payload: { processStep } }: PayloadAction<IGetTasksFulfilled>): SagaIterator {
   if (processStep === ProcessTaskType.Archived) {
     yield put(
       ProcessActions.getTasksFulfilled({

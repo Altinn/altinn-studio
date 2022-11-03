@@ -64,25 +64,16 @@ export const useRadioButtons = ({
   source,
 }: IRadioButtonsContainerProps) => {
   const apiOptions = useGetOptions({ optionsId, mapping, source });
-  const calculatedOptions = useMemo(
-    () => apiOptions || options || [],
-    [apiOptions, options],
-  );
+  const calculatedOptions = useMemo(() => apiOptions || options || [], [apiOptions, options]);
   const optionsHasChanged = useHasChangedIgnoreUndefined(apiOptions);
   const lookupKey = optionsId && getOptionLookupKey({ id: optionsId, mapping });
   const fetchingOptions =
-    useAppSelector(
-      (state) => lookupKey && state.optionState.options[lookupKey]?.loading,
-    ) || undefined;
+    useAppSelector((state) => lookupKey && state.optionState.options[lookupKey]?.loading) || undefined;
   const {
     value: selected,
     setValue,
     saveValue,
-  } = useDelayedSavedState(
-    handleDataChange,
-    formData?.simpleBinding ?? '',
-    200,
-  );
+  } = useDelayedSavedState(handleDataChange, formData?.simpleBinding ?? '', 200);
 
   React.useEffect(() => {
     const shouldPreselectItem =
@@ -95,12 +86,7 @@ export const useRadioButtons = ({
       const preSelectedValue = calculatedOptions[preselectedOptionIndex].value;
       setValue(preSelectedValue, true);
     }
-  }, [
-    formData?.simpleBinding,
-    calculatedOptions,
-    setValue,
-    preselectedOptionIndex,
-  ]);
+  }, [formData?.simpleBinding, calculatedOptions, setValue, preselectedOptionIndex]);
 
   React.useEffect(() => {
     if (optionsHasChanged && formData.simpleBinding) {

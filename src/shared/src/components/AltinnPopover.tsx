@@ -1,11 +1,4 @@
-import {
-  createTheme,
-  createStyles,
-  Grid,
-  makeStyles,
-  Popover,
-  Typography,
-} from '@material-ui/core';
+import { createTheme, createStyles, Grid, makeStyles, Popover, Typography } from '@material-ui/core';
 import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnAppTheme';
@@ -85,20 +78,12 @@ const AltinnPopoverComponent = (props: any) => {
         onClose={handleClose}
         onBlur={handleClose}
         anchorOrigin={{
-          horizontal: props.anchorOrigin.horizontal
-            ? props.anchorOrigin.horizontal
-            : 'left',
-          vertical: props.anchorOrigin.vertical
-            ? props.anchorOrigin.vertical
-            : 'top',
+          horizontal: props.anchorOrigin.horizontal ? props.anchorOrigin.horizontal : 'left',
+          vertical: props.anchorOrigin.vertical ? props.anchorOrigin.vertical : 'top',
         }}
         transformOrigin={{
-          horizontal: props.transformOrigin.horizontal
-            ? props.transformOrigin.horizontal
-            : 'left',
-          vertical: props.transformOrigin.vertical
-            ? props.transformOrigin.vertical
-            : 'top',
+          horizontal: props.transformOrigin.horizontal ? props.transformOrigin.horizontal : 'left',
+          vertical: props.transformOrigin.vertical ? props.transformOrigin.vertical : 'top',
         }}
         PaperProps={{ square: true, ...props.paperProps }}
       >
@@ -119,11 +104,7 @@ const AltinnPopoverComponent = (props: any) => {
             </Typography>
           )}
 
-          {props.descriptionText && (
-            <div className={classNames(classes.textWrap)}>
-              {props.descriptionText}
-            </div>
-          )}
+          {props.descriptionText && <div className={classNames(classes.textWrap)}>{props.descriptionText}</div>}
           {props.children}
           {props.closeButton && (
             <div className={classNames(classes.button)}>

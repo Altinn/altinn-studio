@@ -23,9 +23,7 @@ describe('FileUploadComponent', () => {
         name: /form_filler\.file_uploader_add_attachment/i,
       }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText(/form_filler\.file_uploader_number_of_files 2\/3\./i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/form_filler\.file_uploader_number_of_files 2\/3\./i)).toBeInTheDocument();
   });
 
   it('should not show add attachment button, and should show file counter when number of attachments is same as max', () => {
@@ -39,9 +37,7 @@ describe('FileUploadComponent', () => {
         name: /form_filler\.file_uploader_add_attachment/i,
       }),
     ).not.toBeInTheDocument();
-    expect(
-      screen.getByText(/form_filler\.file_uploader_number_of_files 3\/3\./i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/form_filler\.file_uploader_number_of_files 3\/3\./i)).toBeInTheDocument();
   });
 
   describe('file status', () => {
@@ -97,9 +93,7 @@ describe('FileUploadComponent', () => {
         initialState: { attachments: getAttachments({ count: 3 }) },
       });
 
-      expect(
-        screen.queryByTestId(`altinn-drop-zone-${testId}`),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByTestId(`altinn-drop-zone-${testId}`)).not.toBeInTheDocument();
     });
 
     it('should display drop area when displayMode is not simple', () => {
@@ -108,9 +102,7 @@ describe('FileUploadComponent', () => {
         initialState: { attachments: getAttachments({ count: 3 }) },
       });
 
-      expect(
-        screen.getByTestId(`altinn-drop-zone-${testId}`),
-      ).toBeInTheDocument();
+      expect(screen.getByTestId(`altinn-drop-zone-${testId}`)).toBeInTheDocument();
     });
 
     it('should not display drop area when displayMode is not simple and max attachments is reached', () => {
@@ -119,9 +111,7 @@ describe('FileUploadComponent', () => {
         initialState: { attachments: getAttachments({ count: 3 }) },
       });
 
-      expect(
-        screen.queryByTestId(`altinn-drop-zone-${testId}`),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByTestId(`altinn-drop-zone-${testId}`)).not.toBeInTheDocument();
     });
   });
 });

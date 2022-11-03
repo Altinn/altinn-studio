@@ -1,7 +1,4 @@
-import {
-  getCurrentPartySaga,
-  getPartiesSaga,
-} from 'src/shared/resources/party/getParties/getPartiesSagas';
+import { getCurrentPartySaga, getPartiesSaga } from 'src/shared/resources/party/getParties/getPartiesSagas';
 import { selectPartySaga } from 'src/shared/resources/party/selectParty/selectPartySagas';
 import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
 import type {

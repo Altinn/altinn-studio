@@ -1,8 +1,6 @@
 import * as React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
-import userEvent, {
-  PointerEventsCheckLevel,
-} from '@testing-library/user-event';
+import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
 import { createTheme, MuiThemeProvider } from '@material-ui/core';
 
 import AltinnCheckBoxComponent from './AltinnCheckBox';

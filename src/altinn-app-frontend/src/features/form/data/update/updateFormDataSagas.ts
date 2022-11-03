@@ -7,16 +7,10 @@ import { FormDynamicsActions } from 'src/features/form/dynamics/formDynamicsSlic
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
 import { getCurrentDataTypeForApplication } from 'src/utils/appMetadata';
 import { removeAttachmentReference } from 'src/utils/databindings';
-import {
-  getLayoutComponentById,
-  getLayoutIdForComponent,
-} from 'src/utils/layout';
+import { getLayoutComponentById, getLayoutIdForComponent } from 'src/utils/layout';
 import { getValidator, validateComponentFormData } from 'src/utils/validation';
 import type { IFormData } from 'src/features/form/data';
-import type {
-  IDeleteAttachmentReference,
-  IUpdateFormData,
-} from 'src/features/form/data/formDataTypes';
+import type { IDeleteAttachmentReference, IUpdateFormData } from 'src/features/form/data/formDataTypes';
 import type { ILayoutComponent, ILayouts } from 'src/features/form/layout';
 import type { IAttachments } from 'src/shared/resources/attachments';
 import type { IRuntimeState } from 'src/types';
@@ -50,12 +44,7 @@ export function* updateFormDataSaga({
   }
 }
 
-function* runValidations(
-  field: string,
-  data: any,
-  componentId: string | undefined,
-  state: IRuntimeState,
-) {
+function* runValidations(field: string, data: any, componentId: string | undefined, state: IRuntimeState) {
   if (!componentId) {
     yield put(
       FormDataActions.updateRejected({
@@ -68,10 +57,7 @@ function* runValidations(
     return;
   }
 
-  const layoutId = getLayoutIdForComponent(
-    componentId,
-    state.formLayout.layouts || {},
-  );
+  const layoutId = getLayoutIdForComponent(componentId, state.formLayout.layouts || {});
 
   if (!layoutId) {
     console.error('Failed to find layout ID for component', componentId);
@@ -83,14 +69,8 @@ function* runValidations(
     instance: state.instanceData.instance,
     layoutSets: state.formLayout.layoutsets,
   });
-  const validator = getValidator(
-    currentDataTypeId,
-    state.formDataModel.schemas,
-  );
-  const component = getLayoutComponentById(
-    componentId,
-    state.formLayout.layouts,
-  ) as ILayoutComponent;
+  const validator = getValidator(currentDataTypeId, state.formDataModel.schemas);
+  const component = getLayoutComponentById(componentId, state.formLayout.layouts) as ILayoutComponent;
 
   const validationResult = validateComponentFormData(
     layoutId,
@@ -104,12 +84,9 @@ function* runValidations(
     componentId !== component.id ? componentId : null,
   );
 
-  const componentValidations =
-    validationResult?.validations[layoutId][componentId];
+  const componentValidations = validationResult?.validations[layoutId][componentId];
   const invalidDataComponents = state.formValidations.invalidDataTypes || [];
-  const updatedInvalidDataComponents = invalidDataComponents.filter(
-    (item) => item !== field,
-  );
+  const updatedInvalidDataComponents = invalidDataComponents.filter((item) => item !== field);
   if (validationResult?.invalidDataTypes) {
     updatedInvalidDataComponents.push(field);
   }
@@ -134,10 +111,8 @@ function shouldUpdateFormData(currentData: any, newData: any): boolean {
 
 export const SelectFormData = (s: IRuntimeState) => s.formData.formData;
 export const SelectLayouts = (s: IRuntimeState) => s.formLayout.layouts;
-export const SelectAttachments = (s: IRuntimeState) =>
-  s.attachments.attachments;
-export const SelectCurrentView = (s: IRuntimeState) =>
-  s.formLayout.uiConfig.currentView;
+export const SelectAttachments = (s: IRuntimeState) => s.attachments.attachments;
+export const SelectCurrentView = (s: IRuntimeState) => s.formLayout.uiConfig.currentView;
 
 export function* deleteAttachmentReferenceSaga({
   payload: { attachmentId, componentId, dataModelBindings },

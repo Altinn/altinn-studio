@@ -1,9 +1,6 @@
 import type { ILayoutGroup } from 'src/features/form/layout';
 
-export function getFormLayoutGroupMock(
-  customMock?: Partial<ILayoutGroup>,
-  children?: string[],
-): ILayoutGroup {
+export function getFormLayoutGroupMock(customMock?: Partial<ILayoutGroup>, children?: string[]): ILayoutGroup {
   const mockLayoutGroup: ILayoutGroup = {
     id: 'container-closed-id',
     type: 'Group',

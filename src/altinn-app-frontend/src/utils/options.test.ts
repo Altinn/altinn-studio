@@ -6,12 +6,7 @@ import {
 } from 'src/utils/options';
 import type { IFormData } from 'src/features/form/data';
 import type { ILayout } from 'src/features/form/layout';
-import type {
-  IMapping,
-  IOptions,
-  IOptionSource,
-  IRepeatingGroups,
-} from 'src/types';
+import type { IMapping, IOptions, IOptionSource, IRepeatingGroups } from 'src/types';
 
 import type { IDataSources, ITextResource } from 'altinn-shared/types';
 
@@ -30,8 +25,7 @@ describe('utils > options', () => {
           someDataField: 'someUrlParam',
         },
       });
-      const expected =
-        '{"id":"mockId","mapping":{"someDataField":"someUrlParam"}}';
+      const expected = '{"id":"mockId","mapping":{"someDataField":"someUrlParam"}}';
       expect(result).toEqual(expected);
     });
   });
@@ -274,25 +268,23 @@ describe('utils > options', () => {
           id: 'some',
           options: [],
         },
-        '{"id":"other","mapping":{"someOtherGroup[0].someField":"someParam"}}':
-          {
-            mapping: {
-              'someOtherGroup[0].someField': 'someParam',
-            },
-            id: 'other',
-            options: [],
+        '{"id":"other","mapping":{"someOtherGroup[0].someField":"someParam"}}': {
+          mapping: {
+            'someOtherGroup[0].someField': 'someParam',
           },
+          id: 'other',
+          options: [],
+        },
       };
 
       const expected: IOptions = {
-        '{"id":"other","mapping":{"someOtherGroup[0].someField":"someParam"}}':
-          {
-            mapping: {
-              'someOtherGroup[0].someField': 'someParam',
-            },
-            id: 'other',
-            options: [],
+        '{"id":"other","mapping":{"someOtherGroup[0].someField":"someParam"}}': {
+          mapping: {
+            'someOtherGroup[0].someField': 'someParam',
           },
+          id: 'other',
+          options: [],
+        },
       };
 
       const result = removeGroupOptionsByIndex({
@@ -328,14 +320,13 @@ describe('utils > options', () => {
           id: 'some',
           options: [{ label: 'shifted label', value: 'shifted value' }],
         },
-        '{"id":"other","mapping":{"someOtherGroup[0].someField":"someParam"}}':
-          {
-            mapping: {
-              'someOtherGroup[0].someField': 'someParam',
-            },
-            id: 'other',
-            options: [],
+        '{"id":"other","mapping":{"someOtherGroup[0].someField":"someParam"}}': {
+          mapping: {
+            'someOtherGroup[0].someField': 'someParam',
           },
+          id: 'other',
+          options: [],
+        },
       };
 
       const expected: IOptions = {
@@ -346,14 +337,13 @@ describe('utils > options', () => {
           id: 'some',
           options: [{ label: 'shifted label', value: 'shifted value' }],
         },
-        '{"id":"other","mapping":{"someOtherGroup[0].someField":"someParam"}}':
-          {
-            mapping: {
-              'someOtherGroup[0].someField': 'someParam',
-            },
-            id: 'other',
-            options: [],
+        '{"id":"other","mapping":{"someOtherGroup[0].someField":"someParam"}}': {
+          mapping: {
+            'someOtherGroup[0].someField': 'someParam',
           },
+          id: 'other',
+          options: [],
+        },
       };
 
       const result = removeGroupOptionsByIndex({
@@ -390,49 +380,44 @@ describe('utils > options', () => {
         },
       };
       const options: IOptions = {
-        '{"id":"some","mapping":{"someGroup[0].someSubGroup[0].someField":"someParam"}}':
-          {
-            mapping: {
-              'someGroup[0].someSubGroup[0].someField': 'someParam',
-            },
-            id: 'some',
-            options: [{ label: 'deleted label', value: 'deleted value' }],
+        '{"id":"some","mapping":{"someGroup[0].someSubGroup[0].someField":"someParam"}}': {
+          mapping: {
+            'someGroup[0].someSubGroup[0].someField': 'someParam',
           },
-        '{"id":"some","mapping":{"someGroup[0].someSubGroup[1].someField":"someParam"}}':
-          {
-            mapping: {
-              'someGroup[0].someSubGroup[1].someField': 'someParam',
-            },
-            id: 'some',
-            options: [{ label: 'shifted label', value: 'shifted value' }],
+          id: 'some',
+          options: [{ label: 'deleted label', value: 'deleted value' }],
+        },
+        '{"id":"some","mapping":{"someGroup[0].someSubGroup[1].someField":"someParam"}}': {
+          mapping: {
+            'someGroup[0].someSubGroup[1].someField': 'someParam',
           },
-        '{"id":"other","mapping":{"someOtherGroup[0].someField":"someParam"}}':
-          {
-            mapping: {
-              'someOtherGroup[0].someField': 'someParam',
-            },
-            id: 'other',
-            options: [],
+          id: 'some',
+          options: [{ label: 'shifted label', value: 'shifted value' }],
+        },
+        '{"id":"other","mapping":{"someOtherGroup[0].someField":"someParam"}}': {
+          mapping: {
+            'someOtherGroup[0].someField': 'someParam',
           },
+          id: 'other',
+          options: [],
+        },
       };
 
       const expected: IOptions = {
-        '{"id":"some","mapping":{"someGroup[0].someSubGroup[0].someField":"someParam"}}':
-          {
-            mapping: {
-              'someGroup[0].someSubGroup[0].someField': 'someParam',
-            },
-            id: 'some',
-            options: [{ label: 'shifted label', value: 'shifted value' }],
+        '{"id":"some","mapping":{"someGroup[0].someSubGroup[0].someField":"someParam"}}': {
+          mapping: {
+            'someGroup[0].someSubGroup[0].someField': 'someParam',
           },
-        '{"id":"other","mapping":{"someOtherGroup[0].someField":"someParam"}}':
-          {
-            mapping: {
-              'someOtherGroup[0].someField': 'someParam',
-            },
-            id: 'other',
-            options: [],
+          id: 'some',
+          options: [{ label: 'shifted label', value: 'shifted value' }],
+        },
+        '{"id":"other","mapping":{"someOtherGroup[0].someField":"someParam"}}': {
+          mapping: {
+            'someOtherGroup[0].someField': 'someParam',
           },
+          id: 'other',
+          options: [],
+        },
       };
 
       const result = removeGroupOptionsByIndex({

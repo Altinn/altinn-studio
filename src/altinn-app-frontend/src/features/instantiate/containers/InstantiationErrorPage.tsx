@@ -12,11 +12,7 @@ export type IInstantiationErrorPageProps = {
   statusCode: string;
 } & RouteProps;
 
-function InstantiationErrorPage({
-  content,
-  statusCode,
-  title,
-}: IInstantiationErrorPageProps) {
+function InstantiationErrorPage({ content, statusCode, title }: IInstantiationErrorPageProps) {
   return (
     <InstantiationContainer type='partyChoice'>
       <Grid

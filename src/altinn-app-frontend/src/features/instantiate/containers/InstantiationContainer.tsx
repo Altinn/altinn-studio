@@ -27,10 +27,7 @@ export interface IInstantiateContainerProps {
   type: 'normal' | 'partyChoice';
 }
 
-export function InstantiationContainer({
-  children,
-  type,
-}: IInstantiateContainerProps) {
+export function InstantiationContainer({ children, type }: IInstantiateContainerProps) {
   changeBodyBackground(AltinnAppTheme.altinnPalette.primary.white);
   const classes = useStyles();
 

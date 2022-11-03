@@ -11,21 +11,10 @@ import { mapGroupComponents } from 'src/features/form/containers/formUtils';
 import { GroupContainer } from 'src/features/form/containers/GroupContainer';
 import { PanelGroupContainer } from 'src/features/form/containers/PanelGroupContainer';
 import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
-import {
-  extractBottomButtons,
-  hasRequiredFields,
-  topLevelComponents,
-} from 'src/utils/formLayout';
+import { extractBottomButtons, hasRequiredFields, topLevelComponents } from 'src/utils/formLayout';
 import { renderGenericComponent } from 'src/utils/layout';
-import {
-  getFormHasErrors,
-  missingFieldsInLayoutValidations,
-} from 'src/utils/validation';
-import type {
-  ILayout,
-  ILayoutComponent,
-  ILayoutGroup,
-} from 'src/features/form/layout';
+import { getFormHasErrors, missingFieldsInLayoutValidations } from 'src/utils/validation';
+import type { ILayout, ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
 
 export function renderLayoutComponent(
   layoutComponent: ILayoutComponent | ILayoutGroup,
@@ -58,10 +47,7 @@ function GenericComponent(component: ILayoutComponent, layout: ILayout) {
   return renderGenericComponent({ component, layout });
 }
 
-function RenderLayoutGroup(
-  layoutGroup: ILayoutGroup,
-  layout: ILayout | undefined | null,
-): JSX.Element {
+function RenderLayoutGroup(layoutGroup: ILayoutGroup, layout: ILayout | undefined | null): JSX.Element {
   const groupComponents = mapGroupComponents(layoutGroup, layout);
 
   const isRepeatingGroup = layoutGroup.maxCount && layoutGroup.maxCount > 1;
@@ -99,28 +85,17 @@ function RenderLayoutGroup(
 }
 
 export function Form() {
-  const currentView = useAppSelector(
-    (state) => state.formLayout.uiConfig.currentView,
-  );
+  const currentView = useAppSelector((state) => state.formLayout.uiConfig.currentView);
   const layout = useAppSelector(
-    (state) =>
-      state.formLayout.layouts &&
-      state.formLayout.layouts[state.formLayout.uiConfig.currentView],
+    (state) => state.formLayout.layouts && state.formLayout.layouts[state.formLayout.uiConfig.currentView],
   );
   const language = useAppSelector((state) => state.language.language);
-  const validations = useAppSelector(
-    (state) => state.formValidations.validations,
-  );
-  const hasErrors = useAppSelector((state) =>
-    getFormHasErrors(state.formValidations.validations),
-  );
+  const validations = useAppSelector((state) => state.formValidations.validations);
+  const hasErrors = useAppSelector((state) => getFormHasErrors(state.formValidations.validations));
 
   const requiredFieldsMissing = React.useMemo(() => {
     if (validations && validations[currentView] && language) {
-      return missingFieldsInLayoutValidations(
-        validations[currentView],
-        language,
-      );
+      return missingFieldsInLayoutValidations(validations[currentView], language);
     }
 
     return false;
@@ -152,9 +127,7 @@ export function Form() {
         spacing={3}
         alignItems='flex-start'
       >
-        {mainComponents.map((component) =>
-          renderLayoutComponent(component, layout),
-        )}
+        {mainComponents.map((component) => renderLayoutComponent(component, layout))}
         <ErrorReport components={errorReportComponents} />
       </Grid>
       <ReadyForPrint />

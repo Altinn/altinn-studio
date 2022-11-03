@@ -1,13 +1,6 @@
-import type {
-  ILayout,
-  ILayoutComponentOrGroup,
-  ILayoutGroup,
-} from 'src/features/form/layout';
+import type { ILayout, ILayoutComponentOrGroup, ILayoutGroup } from 'src/features/form/layout';
 
-export const mapGroupComponents = (
-  { children, edit }: ILayoutGroup,
-  layout: ILayout | undefined | null,
-) =>
+export const mapGroupComponents = ({ children, edit }: ILayoutGroup, layout: ILayout | undefined | null) =>
   children
     .map((child) => {
       const childId = (edit?.multiPage && child.split(':')[1]) || child;

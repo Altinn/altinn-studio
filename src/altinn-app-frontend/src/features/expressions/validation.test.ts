@@ -1,31 +1,13 @@
-import {
-  evalExprInObj,
-  ExprDefaultsForComponent,
-  ExprDefaultsForGroup,
-} from 'src/features/expressions/index';
+import { evalExprInObj, ExprDefaultsForComponent, ExprDefaultsForGroup } from 'src/features/expressions/index';
 import { getSharedTests } from 'src/features/expressions/shared';
-import {
-  asExpression,
-  preProcessLayout,
-} from 'src/features/expressions/validation';
+import { asExpression, preProcessLayout } from 'src/features/expressions/validation';
 import { nodesInLayout } from 'src/utils/layout/hierarchy';
 import type { Layouts } from 'src/features/expressions/shared';
-import type {
-  ILayout,
-  ILayoutComponentOrGroup,
-  ILayoutGroup,
-} from 'src/features/form/layout';
+import type { ILayout, ILayoutComponentOrGroup, ILayoutGroup } from 'src/features/form/layout';
 import type { IRepeatingGroups } from 'src/types';
 
-function isRepeatingGroup(
-  component?: ILayoutComponentOrGroup,
-): component is ILayoutGroup {
-  return !!(
-    component &&
-    component.type === 'Group' &&
-    component.maxCount &&
-    component.maxCount > 1
-  );
+function isRepeatingGroup(component?: ILayoutComponentOrGroup): component is ILayoutGroup {
+  return !!(component && component.type === 'Group' && component.maxCount && component.maxCount > 1);
 }
 
 function generateRepeatingGroups(layout: ILayout) {
@@ -77,9 +59,7 @@ describe('Expression validation', () => {
   describe('Shared tests for invalid expressions', () => {
     const invalidSharedTests = getSharedTests('invalid');
     it.each(invalidSharedTests.content)('$name', (invalid) => {
-      expect(() => asExpression(invalid.expression)).toThrow(
-        invalid.expectsFailure,
-      );
+      expect(() => asExpression(invalid.expression)).toThrow(invalid.expectsFailure);
     });
   });
 
@@ -138,11 +118,8 @@ describe('Expression validation', () => {
       { hello: 'world' },
       { expr: 'hello world' },
       { expr: '5 == 5', and: 'other property' },
-    ])(
-      'should validate %p as an invalid expression (non-throwing)',
-      (maybeExpr) => {
-        expect(asExpression(maybeExpr)).toBeUndefined();
-      },
-    );
+    ])('should validate %p as an invalid expression (non-throwing)', (maybeExpr) => {
+      expect(asExpression(maybeExpr)).toBeUndefined();
+    });
   });
 });

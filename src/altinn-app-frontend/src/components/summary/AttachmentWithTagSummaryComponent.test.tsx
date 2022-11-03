@@ -20,9 +20,7 @@ describe('AttachmentWithTagSummaryComponent', () => {
     mapping: { a: 'b' },
   } as unknown as ILayoutCompFileUploadWithTag;
   const initialState = getInitialStateMock();
-  const mockState = (
-    formLayoutItem: ILayoutCompFileUploadWithTag,
-  ): Pick<RootState, 'formLayout'> => ({
+  const mockState = (formLayoutItem: ILayoutCompFileUploadWithTag): Pick<RootState, 'formLayout'> => ({
     formLayout: {
       layouts: {
         FormLayout: [formLayoutItem],
@@ -122,24 +120,15 @@ describe('AttachmentWithTagSummaryComponent', () => {
     expect(screen.getByText('da option value')).toBeInTheDocument();
   });
   test('should render the text resource', () => {
-    renderHelper(
-      { ...formLayoutItem, optionsId: 'b', mapping: undefined },
-      extendedState,
-    );
+    renderHelper({ ...formLayoutItem, optionsId: 'b', mapping: undefined }, extendedState);
     expect(screen.getByText('the result')).toBeInTheDocument();
   });
   test('should not render a text resource', () => {
-    renderHelper(
-      { ...formLayoutItem, optionsId: 'c', mapping: undefined },
-      extendedState,
-    );
+    renderHelper({ ...formLayoutItem, optionsId: 'c', mapping: undefined }, extendedState);
     expect(screen.getByText('ca option value')).toBeInTheDocument();
   });
 
-  const renderHelper = (
-    options: ILayoutCompFileUploadWithTag,
-    extendState?: Partial<RootState>,
-  ) => {
+  const renderHelper = (options: ILayoutCompFileUploadWithTag, extendState?: Partial<RootState>) => {
     renderWithProviders(
       <AttachmentWithTagSummaryComponent
         componentRef={typeName}

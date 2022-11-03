@@ -11,24 +11,16 @@ import type { ILayoutSets, IRuntimeState } from 'src/types';
 
 import type { IInstance } from 'altinn-shared/types';
 
-const layoutSetsSelector = (state: IRuntimeState) =>
-  state.formLayout.layoutsets;
+const layoutSetsSelector = (state: IRuntimeState) => state.formLayout.layoutsets;
 const instanceSelector = (state: IRuntimeState) => state.instanceData.instance;
-const applicationMetadataSelector = (state: IRuntimeState) =>
-  state.applicationMetadata.applicationMetadata;
+const applicationMetadataSelector = (state: IRuntimeState) => state.applicationMetadata.applicationMetadata;
 
 export function* fetchDynamicsSaga(): SagaIterator {
   try {
     const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
     const instance: IInstance = yield select(instanceSelector);
-    const application: IApplicationMetadata = yield select(
-      applicationMetadataSelector,
-    );
-    const layoutSetId = getLayoutSetIdForApplication(
-      application,
-      instance,
-      layoutSets,
-    );
+    const application: IApplicationMetadata = yield select(applicationMetadataSelector);
+    const layoutSetId = getLayoutSetIdForApplication(application, instance, layoutSets);
     const url = getFetchFormDynamicsUrl(layoutSetId);
 
     const result: any = yield call(get, url);

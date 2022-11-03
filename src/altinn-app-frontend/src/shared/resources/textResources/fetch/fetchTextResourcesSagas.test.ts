@@ -28,17 +28,11 @@ describe('fetchTextResourcesSagas', () => {
         take(TextResourcesActions.fetch),
       ]),
     );
-    expect(generator.next().value).toEqual(
-      select(makeGetAllowAnonymousSelector()),
-    );
+    expect(generator.next().value).toEqual(select(makeGetAllowAnonymousSelector()));
     expect(generator.next().value).toEqual(waitFor(expect.anything()));
     expect(generator.next().value).toEqual(call(fetchTextResources));
-    expect(generator.next().value).toEqual(
-      takeLatest(TextResourcesActions.fetch, fetchTextResources),
-    );
-    expect(generator.next().value).toEqual(
-      takeLatest(LanguageActions.updateSelectedAppLanguage, fetchTextResources),
-    );
+    expect(generator.next().value).toEqual(takeLatest(TextResourcesActions.fetch, fetchTextResources));
+    expect(generator.next().value).toEqual(takeLatest(LanguageActions.updateSelectedAppLanguage, fetchTextResources));
     expect(generator.next().done).toBeTruthy();
   });
   it('should fetch text resources using default language when allowAnonymous is true', () => {

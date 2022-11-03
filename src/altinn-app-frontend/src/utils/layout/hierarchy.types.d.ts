@@ -1,9 +1,5 @@
 import type { ExprResolved } from 'src/features/expressions/types';
-import type {
-  IDataModelBindings,
-  ILayoutComponent,
-  ILayoutGroup,
-} from 'src/features/form/layout';
+import type { IDataModelBindings, ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
 import type { LayoutNode, LayoutRootNode } from 'src/utils/layout/hierarchy';
 
 export type NodeType =
@@ -16,14 +12,9 @@ export type ComponentOf<NT extends NodeType> = NT extends 'unresolved'
   ? ILayoutComponent
   : ExprResolved<ILayoutComponent>;
 
-export type GroupOf<NT extends NodeType> = NT extends 'unresolved'
-  ? ILayoutGroup
-  : ExprResolved<ILayoutGroup>;
+export type GroupOf<NT extends NodeType> = NT extends 'unresolved' ? ILayoutGroup : ExprResolved<ILayoutGroup>;
 
-export type LayoutGroupHierarchy<NT extends NodeType = 'unresolved'> = Omit<
-  GroupOf<NT>,
-  'children'
-> & {
+export type LayoutGroupHierarchy<NT extends NodeType = 'unresolved'> = Omit<GroupOf<NT>, 'children'> & {
   childComponents: (ComponentOf<NT> | LayoutGroupHierarchy<NT>)[];
 };
 
@@ -32,8 +23,8 @@ export interface RepeatingGroupExtensions {
   multiPageIndex?: number;
 }
 
-export type RepeatingGroupLayoutComponent<NT extends NodeType = 'unresolved'> =
-  RepeatingGroupExtensions & ComponentOf<NT>;
+export type RepeatingGroupLayoutComponent<NT extends NodeType = 'unresolved'> = RepeatingGroupExtensions &
+  ComponentOf<NT>;
 
 export type RepeatingGroupHierarchyRow<NT extends NodeType = 'unresolved'> = {
   index: number;
@@ -72,28 +63,17 @@ export type AnyItem<NT extends NodeType = 'unresolved'> =
   | LayoutGroupHierarchy<NT>
   | RepeatingGroupHierarchy<NT>;
 
-export type AnyNode<NT extends NodeType = 'unresolved'> = LayoutNode<
-  NT,
-  AnyItem<NT>
->;
+export type AnyNode<NT extends NodeType = 'unresolved'> = LayoutNode<NT, AnyItem<NT>>;
 
 export type AnyParentItem<NT extends NodeType = 'unresolved'> = Exclude<
   AnyItem<NT>,
   ComponentOf<NT> | GroupOf<NT> | RepeatingGroupLayoutComponent<NT>
 >;
 
-export type AnyParentNode<NT extends NodeType = 'unresolved'> =
-  | LayoutNode<NT>
-  | LayoutRootNode<NT>;
+export type AnyParentNode<NT extends NodeType = 'unresolved'> = LayoutNode<NT> | LayoutRootNode<NT>;
 
-export type AnyTopLevelItem<NT extends NodeType> = Exclude<
-  AnyItem<NT>,
-  GroupOf<NT>
->;
+export type AnyTopLevelItem<NT extends NodeType> = Exclude<AnyItem<NT>, GroupOf<NT>>;
 
-export type AnyTopLevelNode<NT extends NodeType> = LayoutNode<
-  NT,
-  AnyTopLevelItem<NT>
->;
+export type AnyTopLevelNode<NT extends NodeType> = LayoutNode<NT, AnyTopLevelItem<NT>>;
 
 export type AnyChildNode<NT extends NodeType> = LayoutNode<NT, AnyItem<NT>>;

@@ -1,12 +1,6 @@
 import React from 'react';
 
-import {
-  Grid,
-  IconButton,
-  TableCell,
-  Typography,
-  useMediaQuery,
-} from '@material-ui/core';
+import { Grid, IconButton, TableCell, Typography, useMediaQuery } from '@material-ui/core';
 
 import { useAppSelector } from 'src/common/hooks';
 import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
@@ -33,10 +27,7 @@ function getDateDisplayString(timeStamp: string) {
   let date = new Date(timeStamp);
   const offset = date.getTimezoneOffset();
   date = new Date(date.getTime() - offset * 60 * 1000);
-  const locale =
-    window.navigator?.language ||
-    (window.navigator as any)?.userLanguage ||
-    'nb-NO';
+  const locale = window.navigator?.language || (window.navigator as any)?.userLanguage || 'nb-NO';
   return date.toLocaleDateString(locale, {
     year: 'numeric',
     month: '2-digit',
@@ -63,10 +54,7 @@ const marginTop26 = {
   marginTop: '26px',
 };
 
-export default function InstanceSelection({
-  instances,
-  onNewInstance,
-}: IInstanceSelectionProps) {
+export default function InstanceSelection({ instances, onNewInstance }: IInstanceSelectionProps) {
   const language = useAppSelector((state) => state.language.language);
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
 
@@ -81,9 +69,7 @@ export default function InstanceSelection({
   const renderMobileTable = () => {
     return (
       <>
-        <Typography variant='h3'>
-          {getLanguageFromKey('instance_selection.left_of', language)}
-        </Typography>
+        <Typography variant='h3'>{getLanguageFromKey('instance_selection.left_of', language)}</Typography>
         <AltinnMobileTable id='instance-selection-mobile-table'>
           {instances.map((instance) => {
             return (
@@ -91,18 +77,12 @@ export default function InstanceSelection({
                 items={[
                   {
                     key: 1,
-                    label: getLanguageFromKey(
-                      'instance_selection.last_changed',
-                      language,
-                    ),
+                    label: getLanguageFromKey('instance_selection.last_changed', language),
                     value: getDateDisplayString(instance.lastChanged),
                   },
                   {
                     key: 2,
-                    label: getLanguageFromKey(
-                      'instance_selection.changed_by',
-                      language,
-                    ),
+                    label: getLanguageFromKey('instance_selection.changed_by', language),
                     value: instance.lastChangedBy,
                   },
                 ]}
@@ -110,10 +90,7 @@ export default function InstanceSelection({
                 editIndex={-2}
                 onEditClick={() => openInstance(instance.id)}
                 key={instance.id}
-                editButtonText={getLanguageFromKey(
-                  'instance_selection.continue',
-                  language,
-                )}
+                editButtonText={getLanguageFromKey('instance_selection.continue', language)}
                 editIconNode={
                   <i
                     className='fa fa-edit'
@@ -133,21 +110,15 @@ export default function InstanceSelection({
       <AltinnTable id='instance-selection-table'>
         <AltinnTableHeader id='instance-selection-table-header'>
           <AltinnTableRow>
-            <TableCell>
-              {getLanguageFromKey('instance_selection.last_changed', language)}
-            </TableCell>
-            <TableCell>
-              {getLanguageFromKey('instance_selection.changed_by', language)}
-            </TableCell>
+            <TableCell>{getLanguageFromKey('instance_selection.last_changed', language)}</TableCell>
+            <TableCell>{getLanguageFromKey('instance_selection.changed_by', language)}</TableCell>
           </AltinnTableRow>
         </AltinnTableHeader>
         <AltinnTableBody id='instance-selection-table-body'>
           {instances.map((instance: ISimpleInstance) => {
             return (
               <AltinnTableRow key={instance.id}>
-                <TableCell>
-                  {getDateDisplayString(instance.lastChanged)}
-                </TableCell>
+                <TableCell>{getDateDisplayString(instance.lastChanged)}</TableCell>
                 <TableCell>{instance.lastChangedBy}</TableCell>
                 <TableCell align='right'>
                   <IconButton onClick={() => openInstance(instance.id)}>
@@ -155,10 +126,7 @@ export default function InstanceSelection({
                       variant='body1'
                       style={typographyStyle}
                     >
-                      {getLanguageFromKey(
-                        'instance_selection.continue',
-                        language,
-                      )}
+                      {getLanguageFromKey('instance_selection.continue', language)}
                     </Typography>
                     <i
                       className='fa fa-edit'
@@ -211,10 +179,7 @@ export default function InstanceSelection({
           style={marginTop12}
         >
           <AltinnButton
-            btnText={getLanguageFromKey(
-              'instance_selection.new_instance',
-              language,
-            )}
+            btnText={getLanguageFromKey('instance_selection.new_instance', language)}
             onClickFunction={onNewInstance}
             id='new-instance-button'
           />

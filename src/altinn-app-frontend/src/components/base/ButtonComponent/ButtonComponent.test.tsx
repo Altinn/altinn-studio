@@ -13,9 +13,7 @@ describe('ButtonComponent', () => {
   it('should render button when submittingId is falsy', () => {
     render({ submittingId: '' });
 
-    expect(
-      screen.getByRole('button', { name: submitBtnText }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: submitBtnText })).toBeInTheDocument();
     expect(screen.queryByText('general.loading')).not.toBeInTheDocument();
   });
 

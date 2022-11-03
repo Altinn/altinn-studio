@@ -1,8 +1,6 @@
 import type { IUiConfig } from 'src/types';
 
-export const getUiConfigStateMock = (
-  customStates?: Partial<IUiConfig>,
-): IUiConfig => {
+export const getUiConfigStateMock = (customStates?: Partial<IUiConfig>): IUiConfig => {
   return {
     autoSave: true,
     focus: null,

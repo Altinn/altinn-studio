@@ -47,11 +47,7 @@ describe('updateLayoutSagas', () => {
         .call(initRepeatingGroupsSaga)
         .next()
         .takeLatest(
-          [
-            FormDataActions.fetchFulfilled,
-            FormLayoutActions.initRepeatingGroups,
-            FormLayoutActions.fetchFulfilled,
-          ],
+          [FormDataActions.fetchFulfilled, FormLayoutActions.initRepeatingGroups, FormLayoutActions.fetchFulfilled],
           initRepeatingGroupsSaga,
         )
         .next()
@@ -258,8 +254,7 @@ describe('updateLayoutSagas', () => {
         applicationMetadata: {
           ...state.applicationMetadata,
           applicationMetadata: {
-            ...(state.applicationMetadata
-              .applicationMetadata as IApplicationMetadata),
+            ...(state.applicationMetadata.applicationMetadata as IApplicationMetadata),
             onEntry: {
               show: 'some-data-type',
             },
@@ -268,9 +263,7 @@ describe('updateLayoutSagas', () => {
         formLayout: {
           ...state.formLayout,
           layoutsets: {
-            sets: [
-              { id: 'some-data-type', dataType: 'some-data-type', tasks: [] },
-            ],
+            sets: [{ id: 'some-data-type', dataType: 'some-data-type', tasks: [] }],
           },
         },
       };

@@ -15,14 +15,10 @@ export const LanguageSelector = () => {
   const { isSuccess, data, isLoading } = useGetAppLanguageQuery();
   const selectedAppLanguage = useAppSelector(appLanguageStateSelector);
 
-  const textResources = useAppSelector(
-    (state) => state.textResources.resources,
-  );
+  const textResources = useAppSelector((state) => state.textResources.resources);
   const dispatch = useAppDispatch();
   const handleAppLanguageChange = (languageCode: string) => {
-    dispatch(
-      LanguageActions.updateSelectedAppLanguage({ selected: languageCode }),
-    );
+    dispatch(LanguageActions.updateSelectedAppLanguage({ selected: languageCode }));
   };
 
   return (
@@ -38,13 +34,7 @@ export const LanguageSelector = () => {
             className='a-form-label'
             htmlFor='app-language-select'
           >
-            {getTextFromAppOrDefault(
-              'language.selector.label',
-              textResources,
-              language,
-              undefined,
-              true,
-            )}
+            {getTextFromAppOrDefault('language.selector.label', textResources, language, undefined, true)}
           </label>
           <Select
             options={data.map((l) => ({

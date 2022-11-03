@@ -11,11 +11,7 @@ interface Args {
   maxFileSizeInMB: number;
 }
 
-export function handleRejectedFiles({
-  language,
-  rejectedFiles,
-  maxFileSizeInMB,
-}: Args) {
+export function handleRejectedFiles({ language, rejectedFiles, maxFileSizeInMB }: Args) {
   return rejectedFiles.length > 0
     ? rejectedFiles.map((fileRejection) => {
         if (fileRejection.file.size > maxFileSizeInMB * bytesInOneMB) {
@@ -24,13 +20,9 @@ export function handleRejectedFiles({
             language,
           )}`;
         } else {
-          return `${getLanguageFromKey(
-            'form_filler.file_uploader_validation_error_general_1',
-            language,
-          )} ${fileRejection.file.name} ${getLanguageFromKey(
-            'form_filler.file_uploader_validation_error_general_2',
-            language,
-          )}`;
+          return `${getLanguageFromKey('form_filler.file_uploader_validation_error_general_1', language)} ${
+            fileRejection.file.name
+          } ${getLanguageFromKey('form_filler.file_uploader_validation_error_general_2', language)}`;
         }
       })
     : [];

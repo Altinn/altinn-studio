@@ -25,17 +25,13 @@ describe('DropzoneComponent', () => {
       },
     });
     const dropzone = screen.getByTestId(`altinn-drop-zone-${id}`);
-    expect(dropzone.getAttribute('aria-describedby')).toContain(
-      `description-${id}`,
-    );
+    expect(dropzone.getAttribute('aria-describedby')).toContain(`description-${id}`);
   });
 
   it('should not include aria-describedby for description if textResourceBindings.description is not present', () => {
     renderDropzone();
     const dropzone = screen.getByTestId(`altinn-drop-zone-${id}`);
-    expect(dropzone.getAttribute('aria-describedby')).not.toContain(
-      `description-${id}`,
-    );
+    expect(dropzone.getAttribute('aria-describedby')).not.toContain(`description-${id}`);
   });
 
   function renderDropzone(props: Partial<IDropzoneComponentProps> = {}) {

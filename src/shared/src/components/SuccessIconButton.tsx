@@ -35,11 +35,7 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export function SuccessIconButton({
-  label,
-  onClick,
-  id,
-}: ISuccessIconButtonProps) {
+export function SuccessIconButton({ label, onClick, id }: ISuccessIconButtonProps) {
   const classes = useStyles();
   return (
     <IconButton

@@ -89,18 +89,14 @@ describe('Presentation', () => {
 
     render({ type: ProcessTaskType.Data }, stateWithErrorsAndWarnings);
 
-    expect(window.location.href).not.toEqual(
-      returnUrlToMessagebox(origin, partyMock.partyId),
-    );
+    expect(window.location.href).not.toEqual(returnUrlToMessagebox(origin, partyMock.partyId));
 
     const closeButton = screen.getByRole('button', {
       name: /lukk skjema/i,
     });
     await user.click(closeButton);
 
-    expect(window.location.href).toEqual(
-      returnUrlToMessagebox(origin, partyMock.partyId),
-    );
+    expect(window.location.href).toEqual(returnUrlToMessagebox(origin, partyMock.partyId));
 
     await flushPromises();
   });
@@ -117,18 +113,14 @@ describe('Presentation', () => {
 
     render({ type: ProcessTaskType.Data }, stateWithErrorsAndWarnings);
 
-    expect(window.location.href).not.toEqual(
-      returnUrlToMessagebox(origin, partyMock.partyId),
-    );
+    expect(window.location.href).not.toEqual(returnUrlToMessagebox(origin, partyMock.partyId));
 
     const closeButton = screen.getByRole('button', {
       name: /lukk skjema/i,
     });
     await user.click(closeButton);
 
-    expect(window.location.href).toEqual(
-      returnUrlToMessagebox(origin, partyMock.partyId),
-    );
+    expect(window.location.href).toEqual(returnUrlToMessagebox(origin, partyMock.partyId));
 
     await flushPromises();
   });
@@ -147,9 +139,7 @@ describe('Presentation', () => {
 
     const appHeader = screen.getByTestId('AltinnAppHeader');
 
-    expect(appHeader).toHaveStyle(
-      `background-color: ${AltinnAppTheme.altinnPalette.primary.greyLight}`,
-    );
+    expect(appHeader).toHaveStyle(`background-color: ${AltinnAppTheme.altinnPalette.primary.greyLight}`);
   });
 
   it('the background color should be lightGreen if type is "ProcessTaskType.Archived"', () => {
@@ -157,16 +147,11 @@ describe('Presentation', () => {
 
     const appHeader = screen.getByTestId('AltinnAppHeader');
 
-    expect(appHeader).toHaveStyle(
-      `background-color: ${AltinnAppTheme.altinnPalette.primary.greenLight}`,
-    );
+    expect(appHeader).toHaveStyle(`background-color: ${AltinnAppTheme.altinnPalette.primary.greenLight}`);
   });
 });
 
-const render = (
-  props: Partial<IPresentationProvidedProps> = {},
-  preloadedState: any = undefined,
-) => {
+const render = (props: Partial<IPresentationProvidedProps> = {}, preloadedState: any = undefined) => {
   const allProps = {
     header: 'Header text',
     type: ProcessTaskType.Unknown,

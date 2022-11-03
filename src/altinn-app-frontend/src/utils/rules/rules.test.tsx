@@ -292,10 +292,8 @@ describe('rules getRuleModelFields', () => {
     const scriptEle = (window as any).document.createElement('script');
     scriptEle.innerHTML = mockRuleScript;
     (window as any).ruleHandlerHelper = mockRuleHandlerHelper;
-    (window as any).conditionalRuleHandlerHelper =
-      mockConditionalRuleHandlerHelper;
-    (window as any).conditionalRuleHandlerObject =
-      mockConditionalRuleHandlerObject;
+    (window as any).conditionalRuleHandlerHelper = mockConditionalRuleHandlerHelper;
+    (window as any).conditionalRuleHandlerObject = mockConditionalRuleHandlerObject;
     (window as any).ruleHandlerObject = mockRuleHandlerObject;
   });
 

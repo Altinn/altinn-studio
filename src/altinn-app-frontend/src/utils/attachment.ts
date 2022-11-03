@@ -17,19 +17,12 @@ export function mapAttachmentListToAttachments(
 
   data.forEach((element: IData) => {
     const baseComponentId = element.dataType;
-    if (
-      element.id === defaultElementId ||
-      baseComponentId === 'ref-data-as-pdf'
-    ) {
+    if (element.id === defaultElementId || baseComponentId === 'ref-data-as-pdf') {
       return;
     }
 
     const component = allComponents.find((c) => c?.id === baseComponentId);
-    if (
-      !component ||
-      (component.type !== 'FileUpload' &&
-        component.type !== 'FileUploadWithTag')
-    ) {
+    if (!component || (component.type !== 'FileUpload' && component.type !== 'FileUploadWithTag')) {
       return;
     }
 
@@ -69,9 +62,7 @@ function convertToDashedComponentId(
   attachmentUuid: string,
   hasIndex: boolean,
 ): [string, number] {
-  const formDataKey = Object.keys(formData).find(
-    (key) => formData[key] === attachmentUuid,
-  );
+  const formDataKey = Object.keys(formData).find((key) => formData[key] === attachmentUuid);
 
   if (!formDataKey) {
     return ['', 0];
@@ -81,10 +72,7 @@ function convertToDashedComponentId(
   let componentId: string;
   let index: number;
   if (hasIndex) {
-    const groupSuffix =
-      groups.length > 1
-        ? `-${groups.slice(0, groups.length - 1).join('-')}`
-        : '';
+    const groupSuffix = groups.length > 1 ? `-${groups.slice(0, groups.length - 1).join('-')}` : '';
 
     componentId = `${baseComponentId}${groupSuffix}`;
     index = groups[groups.length - 1];
@@ -138,22 +126,13 @@ export function shiftAttachmentRowInRepeatingGroup(
   for (const key of Object.keys(attachments)) {
     const thisSplitId = splitDashedKey(key);
     if (lookForComponents.has(thisSplitId.baseComponentId)) {
-      lastIndex = Math.max(
-        lastIndex,
-        thisSplitId.depth[splitId.depth.length] || -1,
-      );
+      lastIndex = Math.max(lastIndex, thisSplitId.depth[splitId.depth.length] || -1);
     }
   }
 
   for (let laterIdx = index + 1; laterIdx <= lastIndex; laterIdx++) {
     for (const componentId of lookForComponents) {
-      deleteGroupData(
-        result,
-        componentId + splitId.stringDepthWithLeadingDash,
-        laterIdx,
-        false,
-        true,
-      );
+      deleteGroupData(result, componentId + splitId.stringDepthWithLeadingDash, laterIdx, false, true);
     }
   }
 

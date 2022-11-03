@@ -17,22 +17,17 @@ const useStyles = makeStyles({
 
 export function ImageComponent(props: IImageProps) {
   const classes = useStyles();
-  const language = useAppSelector(
-    (state) => state.profile.profile?.profileSettingPreference.language || 'nb',
-  );
+  const language = useAppSelector((state) => state.profile.profile?.profileSettingPreference.language || 'nb');
   const width = props.image?.width || '100%';
   const align = props.image?.align || 'center';
   const altText =
-    props.textResourceBindings?.altTextImg &&
-    props.getTextResourceAsString(props.textResourceBindings.altTextImg);
+    props.textResourceBindings?.altTextImg && props.getTextResourceAsString(props.textResourceBindings.altTextImg);
 
   let imgSrc = props.image?.src[language] || props.image?.src.nb || '';
   if (imgSrc.startsWith('wwwroot')) {
     imgSrc = imgSrc.replace(
       'wwwroot',
-      `/${(window as Window as IAltinnWindow).org}/${
-        (window as Window as IAltinnWindow).app
-      }`,
+      `/${(window as Window as IAltinnWindow).org}/${(window as Window as IAltinnWindow).app}`,
     );
   }
 

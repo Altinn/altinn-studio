@@ -5,12 +5,7 @@ import type { PropsFromGenericComponent } from 'src/components';
 
 type IPanelProps = PropsFromGenericComponent<'Panel'>;
 
-export const PanelComponent = ({
-  getTextResource,
-  textResourceBindings,
-  variant,
-  showIcon,
-}: IPanelProps) => {
+export const PanelComponent = ({ getTextResource, textResourceBindings, variant, showIcon }: IPanelProps) => {
   if (!textResourceBindings) {
     return null;
   }

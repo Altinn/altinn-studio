@@ -5,11 +5,7 @@ import { screen } from '@testing-library/react';
 import { renderWithProviders } from 'testUtils';
 
 import { FormComponentContext } from 'src/components';
-import {
-  getVariant,
-  Panel,
-  PanelVariant,
-} from 'src/features/form/components/Panel';
+import { getVariant, Panel, PanelVariant } from 'src/features/form/components/Panel';
 import type { IFormComponentContext } from 'src/components';
 import type { IPanelProps } from 'src/features/form/components/Panel';
 import type { IRuntimeState } from 'src/types';
@@ -37,9 +33,7 @@ describe('Panel', () => {
     });
 
     it('should return PanelVariant.Info when the wrong variant is passed', () => {
-      expect(getVariant({ variant: 'invalid' as 'warning' })).toBe(
-        PanelVariant.Info,
-      );
+      expect(getVariant({ variant: 'invalid' as 'warning' })).toBe(PanelVariant.Info);
     });
   });
 

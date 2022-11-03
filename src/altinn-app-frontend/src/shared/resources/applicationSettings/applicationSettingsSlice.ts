@@ -18,31 +18,27 @@ export const initialState: IApplicationSettingsState = {
   error: null,
 };
 
-const applicationSettingsSlice = createSagaSlice(
-  (mkAction: MkActionType<IApplicationSettingsState>) => ({
-    name: 'applicationSettings',
-    initialState,
-    actions: {
-      fetchApplicationSettings: mkAction<void>({
-        takeLatest: getApplicationSettings,
-      }),
-      fetchApplicationSettingsFulfilled:
-        mkAction<IFetchApplicationSettingsFulfilled>({
-          reducer: (state, action) => {
-            const { settings } = action.payload;
-            state.applicationSettings = settings;
-          },
-        }),
-      fetchApplicationSettingsRejected:
-        mkAction<IFetchApplicationSettingsRejected>({
-          reducer: (state, action) => {
-            const { error } = action.payload;
-            state.error = error;
-          },
-        }),
-    },
-  }),
-);
+const applicationSettingsSlice = createSagaSlice((mkAction: MkActionType<IApplicationSettingsState>) => ({
+  name: 'applicationSettings',
+  initialState,
+  actions: {
+    fetchApplicationSettings: mkAction<void>({
+      takeLatest: getApplicationSettings,
+    }),
+    fetchApplicationSettingsFulfilled: mkAction<IFetchApplicationSettingsFulfilled>({
+      reducer: (state, action) => {
+        const { settings } = action.payload;
+        state.applicationSettings = settings;
+      },
+    }),
+    fetchApplicationSettingsRejected: mkAction<IFetchApplicationSettingsRejected>({
+      reducer: (state, action) => {
+        const { error } = action.payload;
+        state.error = error;
+      },
+    }),
+  },
+}));
 
 export const ApplicationSettingsActions = applicationSettingsSlice.actions;
 export default applicationSettingsSlice;

@@ -42,13 +42,8 @@ export const AttachmentsCounter = ({
       className='file-upload-text-bold-small'
       id='number-of-attachments'
     >
-      {`${getLanguageFromKey(
-        'form_filler.file_uploader_number_of_files',
-        language,
-      )} ${
-        minNumberOfAttachments
-          ? `${currentNumberOfAttachments}/${maxNumberOfAttachments}`
-          : currentNumberOfAttachments
+      {`${getLanguageFromKey('form_filler.file_uploader_number_of_files', language)} ${
+        minNumberOfAttachments ? `${currentNumberOfAttachments}/${maxNumberOfAttachments}` : currentNumberOfAttachments
       }.`}
     </div>
   );

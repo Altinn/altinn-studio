@@ -1,27 +1,17 @@
 import { createAction, createSlice } from '@reduxjs/toolkit';
 import { takeEvery, takeLatest } from 'redux-saga/effects';
-import type {
-  CaseReducer,
-  CreateSliceOptions,
-  PayloadAction,
-  Slice,
-} from '@reduxjs/toolkit';
+import type { CaseReducer, CreateSliceOptions, PayloadAction, Slice } from '@reduxjs/toolkit';
 import type { WritableDraft } from 'immer/dist/types/types-external';
 import type { SagaIterator } from 'redux-saga';
 
 type Saga = () => SagaIterator | any;
-type PayloadSaga<Payload> = (
-  action: PayloadAction<Payload>,
-) => SagaIterator | any;
+type PayloadSaga<Payload> = (action: PayloadAction<Payload>) => SagaIterator | any;
 
 export interface SagaAction<Payload, State> {
   /**
    * Declare your action reducer here. If you don't have a reducer for a given action, omit this.
    */
-  reducer?: (
-    state: WritableDraft<State>,
-    action: PayloadAction<Payload>,
-  ) => any;
+  reducer?: (state: WritableDraft<State>, action: PayloadAction<Payload>) => any;
 
   /**
    * Declare any (or many) sagas tied to this action. These sagas will be registered automatically.
@@ -40,18 +30,10 @@ export interface SagaAction<Payload, State> {
   takeLatest?: PayloadSaga<Payload> | PayloadSaga<Payload>[];
 }
 
-export type ExtractPayload<Action> = Action extends SagaAction<
-  infer Payload,
-  any
->
-  ? Payload
-  : never;
+export type ExtractPayload<Action> = Action extends SagaAction<infer Payload, any> ? Payload : never;
 
 type TransformActions<State, Actions extends SagaActions<State>> = {
-  [ActionKey in keyof Actions]: CaseReducer<
-    State,
-    PayloadAction<ExtractPayload<Actions[ActionKey]>>
-  >;
+  [ActionKey in keyof Actions]: CaseReducer<State, PayloadAction<ExtractPayload<Actions[ActionKey]>>>;
 };
 
 export interface SagaActions<State> {
@@ -67,17 +49,10 @@ export type SagaSliceProps<
   initialState: State | (() => State);
   actions: Actions;
   extraSagas?: Saga[];
-  extraReducers?: CreateSliceOptions<
-    State,
-    TransformActions<State, Actions>,
-    Name
-  >['extraReducers'];
+  extraReducers?: CreateSliceOptions<State, TransformActions<State, Actions>, Name>['extraReducers'];
 };
 
-export type MkActionType<State> = <
-  Payload = void,
-  Out extends SagaAction<Payload, State> = SagaAction<Payload, State>,
->(
+export type MkActionType<State> = <Payload = void, Out extends SagaAction<Payload, State> = SagaAction<Payload, State>>(
   action: Out,
 ) => Out;
 
@@ -95,9 +70,7 @@ function asTake<Payload>(
   return asArray(saga).map(
     (target) =>
       function* (): SagaIterator {
-        yield method === 'takeLatest'
-          ? takeLatest(actionName, target)
-          : takeEvery(actionName, target);
+        yield method === 'takeLatest' ? takeLatest(actionName, target) : takeEvery(actionName, target);
       },
   );
 }

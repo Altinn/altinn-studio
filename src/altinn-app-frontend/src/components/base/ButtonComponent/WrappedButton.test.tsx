@@ -11,21 +11,15 @@ describe('WrappedButton', () => {
   it('should show loading indicator ', async () => {
     const func = jest.fn();
     render({ onClick: func, busyWithId: 'some-id' });
-    expect(
-      screen.getByRole('button', { name: /the button general\.loading/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /the button general\.loading/i })).toBeInTheDocument();
     expect(screen.getByText('general.loading')).toBeInTheDocument();
-    await userEvent.click(
-      screen.getByRole('button', { name: /the button general\.loading/i }),
-    );
+    await userEvent.click(screen.getByRole('button', { name: /the button general\.loading/i }));
     expect(func).not.toHaveBeenCalled();
   });
   it('should show not show loading indicator, but cant be clicked ', async () => {
     const func = jest.fn();
     render({ onClick: func, busyWithId: 'some-other-id' });
-    expect(
-      screen.getByRole('button', { name: /the button/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /the button/i })).toBeInTheDocument();
     expect(screen.queryByText('general.loading')).toBeNull();
     await userEvent.click(screen.getByRole('button', { name: /the button/i }));
     expect(func).not.toHaveBeenCalled();

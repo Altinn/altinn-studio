@@ -5,15 +5,9 @@ import { screen } from '@testing-library/react';
 import { renderWithProviders } from 'testUtils';
 
 import { FormComponentContext } from 'src/components';
-import {
-  getPanelTitle,
-  SoftValidations,
-} from 'src/features/form/components/SoftValidations';
+import { getPanelTitle, SoftValidations } from 'src/features/form/components/SoftValidations';
 import type { IFormComponentContext } from 'src/components';
-import type {
-  ISoftValidationProps,
-  SoftValidationVariant,
-} from 'src/features/form/components/SoftValidations';
+import type { ISoftValidationProps, SoftValidationVariant } from 'src/features/form/components/SoftValidations';
 import type { IRuntimeState, ITextResource } from 'src/types';
 
 import { nb } from 'altinn-shared/language/texts/nb';
@@ -55,9 +49,7 @@ describe('SoftValidations', () => {
       const message = screen.getByText('Some message');
       expect(message).toBeInTheDocument();
 
-      const title = screen.getByText(
-        getPanelTitle({ variant, textResources: [], language: nb() }),
-      );
+      const title = screen.getByText(getPanelTitle({ variant, textResources: [], language: nb() }));
       expect(title).toBeInTheDocument();
     },
   );

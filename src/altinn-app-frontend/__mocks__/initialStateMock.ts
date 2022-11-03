@@ -8,9 +8,7 @@ import { getInstanceDataStateMock } from './instanceDataStateMock';
 import { partyMock } from './partyMock';
 import { getProfileStateMock } from './profileStateMock';
 
-export function getInitialStateMock(
-  customStates?: Partial<IRuntimeState>,
-): IRuntimeState {
+export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRuntimeState {
   const initialState: IRuntimeState = {
     applicationMetadata: {
       applicationMetadata: applicationMetadataMock,

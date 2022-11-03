@@ -3,9 +3,7 @@ import type { SagaIterator } from 'redux-saga';
 
 import type { IRuntimeState } from 'src/types';
 
-function* waitForFunc(
-  selector: (state: IRuntimeState) => boolean,
-): SagaIterator {
+function* waitForFunc(selector: (state: IRuntimeState) => boolean): SagaIterator {
   if (yield select(selector)) {
     return;
   }
@@ -23,12 +21,9 @@ function* waitForFunc(
  * you wanted to wait for (as this will return immediately if the state already is as expected, instead of waiting
  * for the event in question).
  */
-export const waitFor = (selector: (state: IRuntimeState) => boolean) =>
-  call(waitForFunc, selector);
+export const waitFor = (selector: (state: IRuntimeState) => boolean) => call(waitForFunc, selector);
 
-function* selectNotNullFunc<T>(
-  selector: (state: IRuntimeState) => T,
-): SagaIterator<T> {
+function* selectNotNullFunc<T>(selector: (state: IRuntimeState) => T): SagaIterator<T> {
   let result: T | null = null;
   yield waitFor((state) => {
     result = selector(state);
@@ -43,5 +38,4 @@ function* selectNotNullFunc<T>(
  * This lets you easily select a state from redux without having to know which action needs to fulfill in order to
  * populate the data you need.
  */
-export const selectNotNull = <T>(selector: (state: IRuntimeState) => T) =>
-  call(selectNotNullFunc, selector);
+export const selectNotNull = <T>(selector: (state: IRuntimeState) => T) => call(selectNotNullFunc, selector);

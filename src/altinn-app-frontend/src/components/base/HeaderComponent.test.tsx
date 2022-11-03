@@ -1,11 +1,6 @@
 import * as React from 'react';
 
-import {
-  fireEvent,
-  render as rtlRender,
-  screen,
-  waitForElementToBeRemoved,
-} from '@testing-library/react';
+import { fireEvent, render as rtlRender, screen, waitForElementToBeRemoved } from '@testing-library/react';
 
 import { HeaderComponent } from 'src/components/base/HeaderComponent';
 import type { IHeaderProps } from 'src/components/base/HeaderComponent';

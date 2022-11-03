@@ -7,10 +7,7 @@ export interface IInformationPaperProps {
   description: string;
 }
 
-export default function AltinnSubstatusPaper({
-  label,
-  description,
-}: IInformationPaperProps) {
+export default function AltinnSubstatusPaper({ label, description }: IInformationPaperProps) {
   return (
     <AltinnInformationPaper>
       <Grid

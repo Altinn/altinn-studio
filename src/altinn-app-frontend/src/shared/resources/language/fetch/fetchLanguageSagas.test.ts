@@ -5,10 +5,7 @@ import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import { ApplicationMetadataActions } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
-import {
-  fetchLanguageSaga,
-  watchFetchLanguageSaga,
-} from 'src/shared/resources/language/fetch/fetchLanguageSagas';
+import { fetchLanguageSaga, watchFetchLanguageSaga } from 'src/shared/resources/language/fetch/fetchLanguageSagas';
 import { LanguageActions } from 'src/shared/resources/language/languageSlice';
 import { waitFor } from 'src/utils/sagas';
 
@@ -29,9 +26,7 @@ describe('languageActions', () => {
         language: {},
       },
     };
-    expect(LanguageActions.fetchLanguageFulfilled({ language: {} })).toEqual(
-      expectedAction,
-    );
+    expect(LanguageActions.fetchLanguageFulfilled({ language: {} })).toEqual(expectedAction);
   });
   it('should create an action with correct type: FETCH_LANGUAGE_REJECTED', () => {
     const mockError: Error = new Error();
@@ -41,9 +36,7 @@ describe('languageActions', () => {
         error: mockError,
       },
     };
-    expect(LanguageActions.fetchLanguageRejected({ error: mockError })).toEqual(
-      expectedAction,
-    );
+    expect(LanguageActions.fetchLanguageRejected({ error: mockError })).toEqual(expectedAction);
   });
 });
 
@@ -57,14 +50,10 @@ describe('fetchLanguageSagas', () => {
         take(LanguageActions.fetchLanguage),
       ]),
     );
-    expect(generator.next().value).toEqual(
-      select(makeGetAllowAnonymousSelector()),
-    );
+    expect(generator.next().value).toEqual(select(makeGetAllowAnonymousSelector()));
     expect(generator.next().value).toEqual(waitFor(expect.anything()));
     expect(generator.next().value).toEqual(call(fetchLanguageSaga));
-    expect(generator.next().value).toEqual(
-      takeLatest(LanguageActions.updateSelectedAppLanguage, fetchLanguageSaga),
-    );
+    expect(generator.next().value).toEqual(takeLatest(LanguageActions.updateSelectedAppLanguage, fetchLanguageSaga));
     expect(generator.next().done).toBeTruthy();
   });
 
@@ -95,8 +84,6 @@ describe('fetchLanguageSagas', () => {
     jest.spyOn(language, 'getLanguageFromCode').mockImplementation(() => {
       throw error;
     });
-    expectSaga(fetchLanguageSaga, true)
-      .put(LanguageActions.fetchLanguageRejected({ error }))
-      .run();
+    expectSaga(fetchLanguageSaga, true).put(LanguageActions.fetchLanguageRejected({ error })).run();
   });
 });

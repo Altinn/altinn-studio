@@ -13,8 +13,7 @@ import { getLanguageFromCode } from 'altinn-shared/language';
 
 export function* fetchLanguageSaga(defaultLanguage = false): SagaIterator {
   try {
-    const languageCode =
-      defaultLanguage === true ? 'nb' : yield select(appLanguageStateSelector);
+    const languageCode = defaultLanguage === true ? 'nb' : yield select(appLanguageStateSelector);
     const language = getLanguageFromCode(languageCode);
     yield put(LanguageActions.fetchLanguageFulfilled({ language }));
   } catch (error) {
@@ -38,8 +37,5 @@ export function* watchFetchLanguageSaga(): SagaIterator {
   }
 
   yield call(fetchLanguageSaga);
-  yield takeLatest(
-    LanguageActions.updateSelectedAppLanguage,
-    fetchLanguageSaga,
-  );
+  yield takeLatest(LanguageActions.updateSelectedAppLanguage, fetchLanguageSaga);
 }

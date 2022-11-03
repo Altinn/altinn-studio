@@ -33,14 +33,10 @@ describe('Frontend urlHelper.ts', () => {
       );
     });
     it('should return the expected url for updateCookieUrl', () => {
-      expect(updateCookieUrl('12345')).toBe(
-        'https://local.altinn.cloud/ttd/test/api/v1/parties/12345',
-      );
+      expect(updateCookieUrl('12345')).toBe('https://local.altinn.cloud/ttd/test/api/v1/parties/12345');
     });
     it('should return the expected url for textResourcesUrl', () => {
-      expect(textResourcesUrl('nb')).toBe(
-        'https://local.altinn.cloud/ttd/test/api/v1/texts/nb',
-      );
+      expect(textResourcesUrl('nb')).toBe('https://local.altinn.cloud/ttd/test/api/v1/texts/nb');
     });
     it('should return the expected url for fileUploadUrl', () => {
       expect(fileUploadUrl('dataGuid')).toBe(
@@ -58,9 +54,7 @@ describe('Frontend urlHelper.ts', () => {
       );
     });
     it('should return the expected url for getProcessStateUrl', () => {
-      expect(getProcessStateUrl()).toBe(
-        'https://local.altinn.cloud/ttd/test/instances/12345/instanceId-1234/process',
-      );
+      expect(getProcessStateUrl()).toBe('https://local.altinn.cloud/ttd/test/instances/12345/instanceId-1234/process');
     });
     it('should return the expected url for getCreateInstancesUrl', () => {
       expect(getCreateInstancesUrl('12345')).toBe(
@@ -122,9 +116,7 @@ describe('Frontend urlHelper.ts', () => {
       });
       it('changes the window location', () => {
         resetWindow();
-        expect(window.location.href).toBe(
-          'https://ttd.apps.altinn.no/ttd/test',
-        );
+        expect(window.location.href).toBe('https://ttd.apps.altinn.no/ttd/test');
         redirectToUpgrade('overlord');
         expect(window.location.href).toBe(
           'https://altinn.no/ui/authentication/upgrade?goTo=https%3A%2F%2Fplatform.altinn.no%2Fauthentication%2Fapi%2Fv1%2Fauthentication%3Fgoto%3Dhttps%3A%2F%2Flocal.altinn.cloud%2Fttd%2Ftest&reqAuthLevel=overlord',
@@ -176,9 +168,7 @@ describe('Frontend urlHelper.ts', () => {
         };
         const oidcProvider = '';
 
-        expect(() => getEnvironmentLoginUrl(oidcProvider)).toThrow(
-          'Unknown domain',
-        );
+        expect(() => getEnvironmentLoginUrl(oidcProvider)).toThrow('Unknown domain');
       });
     });
 
@@ -234,9 +224,7 @@ describe('Frontend urlHelper.ts', () => {
         optionsId: 'county',
       });
 
-      expect(result).toEqual(
-        'https://local.altinn.cloud/ttd/test/api/options/county',
-      );
+      expect(result).toEqual('https://local.altinn.cloud/ttd/test/api/options/county');
     });
 
     it('should return correct url when language is passed and no formData/dataMapping is provided', () => {
@@ -245,9 +233,7 @@ describe('Frontend urlHelper.ts', () => {
         language: 'en',
       });
 
-      expect(result).toEqual(
-        'https://local.altinn.cloud/ttd/test/api/options/county?language=en',
-      );
+      expect(result).toEqual('https://local.altinn.cloud/ttd/test/api/options/county?language=en');
     });
 
     it('should return correct url when no language is passed and formData/dataMapping is provided', () => {
@@ -261,9 +247,7 @@ describe('Frontend urlHelper.ts', () => {
         },
       });
 
-      expect(result).toEqual(
-        'https://local.altinn.cloud/ttd/test/api/options/country?selectedCountry=Norway',
-      );
+      expect(result).toEqual('https://local.altinn.cloud/ttd/test/api/options/country?selectedCountry=Norway');
     });
 
     it('should return correct url when both language is passed and formData/dataMapping is provided', () => {
@@ -313,9 +297,7 @@ describe('Frontend urlHelper.ts', () => {
         instanceId: 'someInstanceId',
       });
 
-      expect(result).toEqual(
-        'https://local.altinn.cloud/ttd/test/instances/someInstanceId/options/country',
-      );
+      expect(result).toEqual('https://local.altinn.cloud/ttd/test/instances/someInstanceId/options/country');
     });
   });
 
@@ -323,17 +305,13 @@ describe('Frontend urlHelper.ts', () => {
     it('should return default when no parameter is passed', () => {
       const result = getRulehandlerUrl();
 
-      expect(result).toBe(
-        'https://local.altinn.cloud/ttd/test/api/resource/RuleHandler.js',
-      );
+      expect(result).toBe('https://local.altinn.cloud/ttd/test/api/resource/RuleHandler.js');
     });
 
     it('should return rule handler as passed argument', () => {
       const result = getRulehandlerUrl('custom-handler.js');
 
-      expect(result).toBe(
-        'https://local.altinn.cloud/ttd/test/api/rulehandler/custom-handler.js',
-      );
+      expect(result).toBe('https://local.altinn.cloud/ttd/test/api/rulehandler/custom-handler.js');
     });
   });
 
@@ -341,9 +319,7 @@ describe('Frontend urlHelper.ts', () => {
     it('should return stateful url if stateless is false', () => {
       const result = getCalculatePageOrderUrl(false);
 
-      expect(result).toBe(
-        'https://local.altinn.cloud/ttd/test/instances/12345/instanceId-1234/pages/order',
-      );
+      expect(result).toBe('https://local.altinn.cloud/ttd/test/instances/12345/instanceId-1234/pages/order');
     });
 
     it('should return stateless url if stateless is true', () => {
@@ -357,17 +333,13 @@ describe('Frontend urlHelper.ts', () => {
     it('should return default when no parameter is passed', () => {
       const result = getLayoutsUrl(null);
 
-      expect(result).toBe(
-        'https://local.altinn.cloud/ttd/test/api/resource/FormLayout.json',
-      );
+      expect(result).toBe('https://local.altinn.cloud/ttd/test/api/resource/FormLayout.json');
     });
 
     it('should return layout as passed argument', () => {
       const result = getLayoutsUrl('custom-layout.json');
 
-      expect(result).toBe(
-        'https://local.altinn.cloud/ttd/test/api/layouts/custom-layout.json',
-      );
+      expect(result).toBe('https://local.altinn.cloud/ttd/test/api/layouts/custom-layout.json');
     });
   });
 
@@ -375,17 +347,13 @@ describe('Frontend urlHelper.ts', () => {
     it('should return default when no parameter is passed', () => {
       const result = getLayoutSettingsUrl(null);
 
-      expect(result).toBe(
-        'https://local.altinn.cloud/ttd/test/api/layoutsettings',
-      );
+      expect(result).toBe('https://local.altinn.cloud/ttd/test/api/layoutsettings');
     });
 
     it('should return layout as passed argument', () => {
       const result = getLayoutSettingsUrl('custom-layout.json');
 
-      expect(result).toBe(
-        'https://local.altinn.cloud/ttd/test/api/layoutsettings/custom-layout.json',
-      );
+      expect(result).toBe('https://local.altinn.cloud/ttd/test/api/layoutsettings/custom-layout.json');
     });
   });
 
@@ -393,8 +361,7 @@ describe('Frontend urlHelper.ts', () => {
     it('should return default when no parameter is passed', () => {
       const undefinedResult = getFetchFormDynamicsUrl();
 
-      const expected =
-        'https://local.altinn.cloud/ttd/test/api/resource/RuleConfiguration.json';
+      const expected = 'https://local.altinn.cloud/ttd/test/api/resource/RuleConfiguration.json';
 
       expect(undefinedResult).toBe(expected);
     });
@@ -402,9 +369,7 @@ describe('Frontend urlHelper.ts', () => {
     it('should return layout as passed argument', () => {
       const result = getFetchFormDynamicsUrl('custom-rule.json');
 
-      expect(result).toBe(
-        'https://local.altinn.cloud/ttd/test/api/ruleconfiguration/custom-rule.json',
-      );
+      expect(result).toBe('https://local.altinn.cloud/ttd/test/api/ruleconfiguration/custom-rule.json');
     });
   });
 

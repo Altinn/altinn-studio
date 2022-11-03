@@ -3,10 +3,7 @@ import fs from 'node:fs';
 import type { Expression } from 'src/features/expressions/types';
 import type { ILayout } from 'src/features/form/layout';
 
-import type {
-  IApplicationSettings,
-  IInstanceContext,
-} from 'altinn-shared/types';
+import type { IApplicationSettings, IInstanceContext } from 'altinn-shared/types';
 
 export interface Layouts {
   [key: string]: {
@@ -88,9 +85,7 @@ export function getSharedTests<Folder extends keyof TestFolders>(
   fs.readdirSync(fullPath).forEach((name) => {
     const isDir = fs.statSync(`${fullPath}/${name}`).isDirectory();
     if (isDir) {
-      out.content.push(
-        getSharedTests(name as keyof TestFolders, `${parentPath}/${subPath}`),
-      );
+      out.content.push(getSharedTests(name as keyof TestFolders, `${parentPath}/${subPath}`));
     } else if (name.endsWith('.json')) {
       const testJson = fs.readFileSync(`${fullPath}/${name}`);
       const test = JSON.parse(testJson.toString());

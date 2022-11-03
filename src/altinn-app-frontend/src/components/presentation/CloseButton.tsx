@@ -23,9 +23,7 @@ export const CloseButton = ({ handleClose }: CloseButtonProps) => {
           aria-hidden='true'
         />
       </span>
-      <span className='sr-only'>
-        {getLanguageFromKey('general.close_schema', language)}
-      </span>
+      <span className='sr-only'>{getLanguageFromKey('general.close_schema', language)}</span>
     </button>
   );
 };

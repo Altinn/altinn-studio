@@ -29,10 +29,7 @@ const useStyles = makeStyles({
   },
 });
 
-export function FullWidthWrapper({
-  children,
-  isOnBottom = false,
-}: IFullWidthWrapperProps) {
+export function FullWidthWrapper({ children, isOnBottom = false }: IFullWidthWrapperProps) {
   const classes = useStyles();
 
   return (

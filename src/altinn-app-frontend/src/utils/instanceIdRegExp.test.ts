@@ -3,8 +3,7 @@ import { instanceIdExample } from '__mocks__/mocks';
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 
 describe('instanceIdRegExp', () => {
-  const expr =
-    /(\d{1,10}\/[\da-f]{8}-[\da-f]{4}-[1-5][\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12})/i;
+  const expr = /(\d{1,10}\/[\da-f]{8}-[\da-f]{4}-[1-5][\da-f]{3}-[89ab][\da-f]{3}-[\da-f]{12})/i;
   const matchTests = (exp: RegExp) => {
     const match = `pre/${instanceIdExample}/post`.match(exp);
     expect(match && match[1]).toBe(instanceIdExample);
@@ -38,8 +37,6 @@ describe('instanceIdRegExp', () => {
     expect(exp.source).toBe(`${expr.source}$`);
     const match = `some/path/ending/with/${instanceIdExample}`.match(exp);
     expect(match && match[1]).toBe(instanceIdExample);
-    expect(
-      `some/path/containing/${instanceIdExample}/and/more`.match(exp),
-    ).toBeNull();
+    expect(`some/path/containing/${instanceIdExample}/and/more`.match(exp)).toBeNull();
   });
 });

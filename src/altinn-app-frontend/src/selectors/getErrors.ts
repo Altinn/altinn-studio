@@ -10,10 +10,7 @@ let lastLogged: Error | null = null;
  * @param state the redux state
  */
 const getHasErrorsSelector = (state: IRuntimeState) => {
-  const exceptIfIncludes = (
-    maybeError: Error | null,
-    lookFor: string,
-  ): Error | null => {
+  const exceptIfIncludes = (maybeError: Error | null, lookFor: string): Error | null => {
     if (maybeError && maybeError.message?.includes(lookFor)) {
       return null;
     }
@@ -54,10 +51,7 @@ const getHasErrorsSelector = (state: IRuntimeState) => {
 };
 
 const getHasErrors = () => {
-  return createSelector(
-    [getHasErrorsSelector],
-    (hasErrors: boolean) => hasErrors,
-  );
+  return createSelector([getHasErrorsSelector], (hasErrors: boolean) => hasErrors);
 };
 
 export const makeGetHasErrorsSelector = getHasErrors;

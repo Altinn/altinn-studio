@@ -15,10 +15,7 @@ import { getOptionLookupKey, getOptionLookupKeys } from 'src/utils/options';
 import { selectNotNull } from 'src/utils/sagas';
 import type { IFormData } from 'src/features/form/data';
 import type { IUpdateFormDataFulfilled } from 'src/features/form/data/formDataTypes';
-import type {
-  ILayouts,
-  ISelectionComponentProps,
-} from 'src/features/form/layout';
+import type { ILayouts, ISelectionComponentProps } from 'src/features/form/layout';
 import type {
   IFetchSpecificOptionSaga,
   IOption,
@@ -30,32 +27,24 @@ import type {
 
 import { get } from 'altinn-shared/utils';
 
-export const formLayoutSelector = (state: IRuntimeState): ILayouts | null =>
-  state.formLayout?.layouts;
-export const formDataSelector = (state: IRuntimeState) =>
-  state.formData.formData;
-export const optionsSelector = (state: IRuntimeState): IOptions =>
-  state.optionState.options;
+export const formLayoutSelector = (state: IRuntimeState): ILayouts | null => state.formLayout?.layouts;
+export const formDataSelector = (state: IRuntimeState) => state.formData.formData;
+export const optionsSelector = (state: IRuntimeState): IOptions => state.optionState.options;
 export const optionsWithIndexIndicatorsSelector = (state: IRuntimeState) =>
   state.optionState.optionsWithIndexIndicators;
-export const instanceIdSelector = (state: IRuntimeState): string | undefined =>
-  state.instanceData.instance?.id;
-export const repeatingGroupsSelector = (state: IRuntimeState) =>
-  state.formLayout?.uiConfig.repeatingGroups;
+export const instanceIdSelector = (state: IRuntimeState): string | undefined => state.instanceData.instance?.id;
+export const repeatingGroupsSelector = (state: IRuntimeState) => state.formLayout?.uiConfig.repeatingGroups;
 
 export function* fetchOptionsSaga(): SagaIterator {
   const layouts: ILayouts = yield selectNotNull(formLayoutSelector);
-  const repeatingGroups: IRepeatingGroups = yield selectNotNull(
-    repeatingGroupsSelector,
-  );
+  const repeatingGroups: IRepeatingGroups = yield selectNotNull(repeatingGroupsSelector);
 
   const fetchedOptions: string[] = [];
   const optionsWithIndexIndicators: IOptionsMetaData[] = [];
 
   for (const layoutId of Object.keys(layouts)) {
     for (const element of layouts[layoutId] || []) {
-      const { optionsId, mapping, secure } =
-        element as ISelectionComponentProps;
+      const { optionsId, mapping, secure } = element as ISelectionComponentProps;
 
       // if we have index indicators we get up the lookup keys for existing indexes
       const { keys, keyWithIndexIndicator } =
@@ -97,11 +86,7 @@ export function* fetchOptionsSaga(): SagaIterator {
   );
 }
 
-export function* fetchSpecificOptionSaga({
-  optionsId,
-  dataMapping,
-  secure,
-}: IFetchSpecificOptionSaga): SagaIterator {
+export function* fetchSpecificOptionSaga({ optionsId, dataMapping, secure }: IFetchSpecificOptionSaga): SagaIterator {
   const key = getOptionLookupKey({ id: optionsId, mapping: dataMapping });
   const instanceId = yield select(instanceIdSelector);
   try {
@@ -133,9 +118,7 @@ export function* checkIfOptionsShouldRefetchSaga({
   payload: { field },
 }: PayloadAction<IUpdateFormDataFulfilled>): SagaIterator {
   const options: IOptions = yield select(optionsSelector);
-  const optionsWithIndexIndicators = yield select(
-    optionsWithIndexIndicatorsSelector,
-  );
+  const optionsWithIndexIndicators = yield select(optionsWithIndexIndicatorsSelector);
 
   let foundInExistingOptions = false;
   for (const optionsKey of Object.keys(options)) {
@@ -171,8 +154,7 @@ export function* checkIfOptionsShouldRefetchSaga({
       const newDataMapping = {};
 
       for (const key of Object.keys(mapping)) {
-        newDataMapping[replaceIndexIndicatorsWithIndexes(key, keys)] =
-          mapping[key];
+        newDataMapping[replaceIndexIndicatorsWithIndexes(key, keys)] = mapping[key];
       }
       yield fork(fetchSpecificOptionSaga, {
         optionsId: id,

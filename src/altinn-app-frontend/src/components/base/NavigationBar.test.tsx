@@ -128,10 +128,7 @@ describe('NavigationBar', () => {
     it('should show navigation menu, and not show navigation menu toggle button', async () => {
       render();
 
-      expect(screen.getByTestId('navigation-menu')).toHaveProperty(
-        'hidden',
-        false,
-      );
+      expect(screen.getByTestId('navigation-menu')).toHaveProperty('hidden', false);
 
       expect(
         screen.queryByRole('button', {
@@ -179,10 +176,7 @@ describe('NavigationBar', () => {
     it('should hide navigation buttons and show a button to toggle the navigation menu', async () => {
       render();
 
-      expect(screen.getByTestId('navigation-menu')).toHaveProperty(
-        'hidden',
-        true,
-      );
+      expect(screen.getByTestId('navigation-menu')).toHaveProperty('hidden', true);
       expect(
         screen.getByRole('button', {
           name: /1\/3 page1/i,

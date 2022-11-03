@@ -1,22 +1,12 @@
 import dot from 'dot-object';
 
-import {
-  ExprRuntimeError,
-  NodeNotFound,
-  NodeNotFoundWithoutContext,
-} from 'src/features/expressions/errors';
-import {
-  prettyErrors,
-  prettyErrorsToConsole,
-} from 'src/features/expressions/prettyErrors';
+import { ExprRuntimeError, NodeNotFound, NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
+import { prettyErrors, prettyErrorsToConsole } from 'src/features/expressions/prettyErrors';
 import type { Expression } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/form/data';
 import type { LayoutNode, LayoutRootNode } from 'src/utils/layout/hierarchy';
 
-import type {
-  IApplicationSettings,
-  IInstanceContext,
-} from 'altinn-shared/types';
+import type { IApplicationSettings, IInstanceContext } from 'altinn-shared/types';
 
 export interface ContextDataSources {
   instanceContext: IInstanceContext | null;
@@ -38,10 +28,7 @@ export class ExprContext {
 
   private constructor(
     public expr: Expression,
-    public node:
-      | LayoutNode<any>
-      | LayoutRootNode<any>
-      | NodeNotFoundWithoutContext,
+    public node: LayoutNode<any> | LayoutRootNode<any> | NodeNotFoundWithoutContext,
     public dataSources: ContextDataSources,
   ) {}
 
@@ -61,11 +48,7 @@ export class ExprContext {
    * inner part of the expression)
    */
   public static withPath(prevInstance: ExprContext, newPath: string[]) {
-    const newInstance = new ExprContext(
-      prevInstance.expr,
-      prevInstance.node,
-      prevInstance.dataSources,
-    );
+    const newInstance = new ExprContext(prevInstance.expr, prevInstance.node, prevInstance.dataSources);
     newInstance.path = newPath;
 
     return newInstance;
@@ -91,8 +74,7 @@ export class ExprContext {
 
     // For some reason dot.pick wants to use the format '0[1][2]' for arrays instead of '[0][1][2]', so we'll rewrite
     const [firstKey, ...restKeys] = this.path;
-    const stringPath =
-      firstKey.replace('[', '').replace(']', '') + restKeys.join('');
+    const stringPath = firstKey.replace('[', '').replace(']', '') + restKeys.join('');
 
     return dot.pick(stringPath, this.expr, false);
   }
@@ -119,15 +101,10 @@ export class ExprContext {
         indentation: 1,
       });
 
-      const introText =
-        options && 'introText' in options
-          ? options.introText
-          : 'Evaluated expression';
+      const introText = options && 'introText' in options ? options.introText : 'Evaluated expression';
 
       const extra =
-        options && 'defaultValue' in options
-          ? ['Using default value instead:', `  ${options.defaultValue}`]
-          : [];
+        options && 'defaultValue' in options ? ['Using default value instead:', `  ${options.defaultValue}`] : [];
 
       return [`${introText}:`, prettyPrinted, ...extra].join('\n');
     }
@@ -135,10 +112,7 @@ export class ExprContext {
     return err.message;
   }
 
-  public prettyErrorConsole(
-    err: Error,
-    options?: PrettyErrorsOptions,
-  ): string[] {
+  public prettyErrorConsole(err: Error, options?: PrettyErrorsOptions): string[] {
     if (err instanceof ExprRuntimeError) {
       const prettyPrinted = prettyErrorsToConsole({
         input: this.expr,
@@ -147,23 +121,13 @@ export class ExprContext {
         defaultStyle: '',
       });
 
-      const introText =
-        options && 'introText' in options
-          ? options.introText
-          : 'Evaluated expression:';
+      const introText = options && 'introText' in options ? options.introText : 'Evaluated expression:';
 
       const extra =
-        options && 'defaultValue' in options
-          ? `\n%cUsing default value instead:\n  %c${options.defaultValue}%c`
-          : '';
-      const extraCss =
-        options && 'defaultValue' in options ? ['', 'color: red;', ''] : [];
+        options && 'defaultValue' in options ? `\n%cUsing default value instead:\n  %c${options.defaultValue}%c` : '';
+      const extraCss = options && 'defaultValue' in options ? ['', 'color: red;', ''] : [];
 
-      return [
-        `${introText}:\n${prettyPrinted.lines}${extra}`,
-        ...prettyPrinted.css,
-        ...extraCss,
-      ];
+      return [`${introText}:\n${prettyPrinted.lines}${extra}`, ...prettyPrinted.css, ...extraCss];
     }
 
     return [err.message];

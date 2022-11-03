@@ -34,21 +34,14 @@ interface IMessageBannerProps {
   messageKey: string;
 }
 
-export default function MessageBanner({
-  language,
-  error,
-  messageKey,
-}: IMessageBannerProps) {
+export default function MessageBanner({ language, error, messageKey }: IMessageBannerProps) {
   const classes = useStyles();
 
   return (
     <Grid
       id='MessageBanner-container'
       item={true}
-      className={classNames(
-        classes.banner,
-        error ? classes.error : classes.default,
-      )}
+      className={classNames(classes.banner, error ? classes.error : classes.default)}
       data-testid='MessageBanner-container'
     >
       <span>{getLanguageFromKey(messageKey, language)}</span>

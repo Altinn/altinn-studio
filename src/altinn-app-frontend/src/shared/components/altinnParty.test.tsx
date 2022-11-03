@@ -32,9 +32,7 @@ describe('altinnParty', () => {
     const handleSelectParty = jest.fn();
     render({ onSelectParty: handleSelectParty });
 
-    const party = screen.getByText(
-      /party_selection\.unit_personal_number 01017512345/i,
-    );
+    const party = screen.getByText(/party_selection\.unit_personal_number 01017512345/i);
 
     await user.click(party);
 
@@ -48,9 +46,7 @@ describe('altinnParty', () => {
         party: partyWithChildParties,
       });
 
-      expect(
-        screen.getByText(/2 party_selection\.unit_type_subunit_plural/i),
-      ).toBeInTheDocument();
+      expect(screen.getByText(/2 party_selection\.unit_type_subunit_plural/i)).toBeInTheDocument();
       expect(screen.getByText(/child party 1/i)).toBeInTheDocument();
       expect(screen.getByText(/child party 2/i)).toBeInTheDocument();
     });
@@ -61,9 +57,7 @@ describe('altinnParty', () => {
         party: partyWithChildParties,
       });
 
-      expect(
-        screen.queryByText(/2 party_selection\.unit_type_subunit_plural/i),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/2 party_selection\.unit_type_subunit_plural/i)).not.toBeInTheDocument();
       expect(screen.queryByText(/child party 1/i)).not.toBeInTheDocument();
       expect(screen.queryByText(/child party 2/i)).not.toBeInTheDocument();
     });
@@ -74,9 +68,7 @@ describe('altinnParty', () => {
         party: partyMock,
       });
 
-      expect(
-        screen.queryByText(/2 party_selection\.unit_type_subunit_plural/i),
-      ).not.toBeInTheDocument();
+      expect(screen.queryByText(/2 party_selection\.unit_type_subunit_plural/i)).not.toBeInTheDocument();
       expect(screen.queryByText(/child party 1/i)).not.toBeInTheDocument();
       expect(screen.queryByText(/child party 2/i)).not.toBeInTheDocument();
     });

@@ -20,12 +20,9 @@ const render = ({ props = {}, dispatch = jest.fn() } = {}) => {
 
   store.dispatch = dispatch;
 
-  renderWithProviders(
-    <GoToTaskButton {...allProps}>Go to task</GoToTaskButton>,
-    {
-      store,
-    },
-  );
+  renderWithProviders(<GoToTaskButton {...allProps}>Go to task</GoToTaskButton>, {
+    store,
+  });
 };
 
 describe('GoToTaskButton', () => {

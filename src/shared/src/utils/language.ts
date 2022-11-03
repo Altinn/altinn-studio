@@ -3,13 +3,7 @@ import type { HTMLReactParserOptions } from 'html-react-parser';
 import parseHtmlToReact from 'html-react-parser';
 import { marked } from 'marked';
 
-import type {
-  ITextResource,
-  IDataSources,
-  ILanguage,
-  IApplication,
-  IAltinnOrgs,
-} from '../types';
+import type { ITextResource, IDataSources, ILanguage, IApplication, IAltinnOrgs } from '../types';
 
 DOMPurify.addHook('afterSanitizeAttributes', (node) => {
   if (node.tagName === 'A') {
@@ -18,10 +12,7 @@ DOMPurify.addHook('afterSanitizeAttributes', (node) => {
   }
 });
 
-export function getLanguageFromKey(
-  key: string | undefined,
-  language: ILanguage,
-) {
+export function getLanguageFromKey(key: string | undefined, language: ILanguage) {
   if (!key) {
     return key;
   }
@@ -33,10 +24,7 @@ export function getLanguageFromKey(
 }
 
 export function getNestedObject(nestedObj: any, pathArr: string[]) {
-  return pathArr.reduce(
-    (obj, key) => (obj && obj[key] !== 'undefined' ? obj[key] : undefined),
-    nestedObj,
-  );
+  return pathArr.reduce((obj, key) => (obj && obj[key] !== 'undefined' ? obj[key] : undefined), nestedObj);
 }
 
 // Example: {getParsedLanguageFromKey('marked.markdown', language, ['hei', 'sann'])}
@@ -46,12 +34,7 @@ export function getParsedLanguageFromKey(
   params?: any[],
   stringOutput?: false,
 ): JSX.Element;
-export function getParsedLanguageFromKey(
-  key: string,
-  language: ILanguage,
-  params?: any[],
-  stringOutput?: true,
-): string;
+export function getParsedLanguageFromKey(key: string, language: ILanguage, params?: any[], stringOutput?: true): string;
 export function getParsedLanguageFromKey(
   key: string,
   language: ILanguage,
@@ -108,10 +91,7 @@ const replaceRootTag = (domNode: any) => {
   }
 };
 
-const replaceParameters = (
-  nameString: string | undefined,
-  params: string[],
-) => {
+const replaceParameters = (nameString: string | undefined, params: string[]) => {
   if (nameString === undefined) {
     return nameString;
   }
@@ -130,17 +110,13 @@ export function getTextResourceByKey<T extends string | undefined>(
     return key;
   }
 
-  const textResource = textResources.find(
-    (resource: ITextResource) => resource.id === key,
-  );
+  const textResource = textResources.find((resource: ITextResource) => resource.id === key);
   if (!textResource) {
     return key;
   }
   // Checks if this text resource is a reference to another text resource.
   // This is a common case when using likert component
-  const resource =
-    textResources.find((resource) => resource.id === textResource.value) ||
-    textResource;
+  const resource = textResources.find((resource) => resource.id === textResource.value) || textResource;
   return resource.value;
 }
 
@@ -164,15 +140,11 @@ export function replaceTextResourceParams(
         (variable) => variable.key.indexOf('[{0}]') > -1,
       );
       if (repeatingGroups && variableForRepeatingGroup) {
-        const repeatingGroupId = Object.keys(repeatingGroups).find(
-          (groupId) => {
-            const id = variableForRepeatingGroup.key.split('[{0}]')[0];
-            return repeatingGroups[groupId].dataModelBinding === id;
-          },
-        );
-        const repeatingGroupIndex =
-          repeatingGroupId !== undefined &&
-          repeatingGroups[repeatingGroupId]?.index;
+        const repeatingGroupId = Object.keys(repeatingGroups).find((groupId) => {
+          const id = variableForRepeatingGroup.key.split('[{0}]')[0];
+          return repeatingGroups[groupId].dataModelBinding === id;
+        });
+        const repeatingGroupIndex = repeatingGroupId !== undefined && repeatingGroups[repeatingGroupId]?.index;
 
         for (let i = 0; i <= repeatingGroupIndex; ++i) {
           const replaceValues: string[] = [];
@@ -180,39 +152,23 @@ export function replaceTextResourceParams(
             if (variable.dataSource.startsWith('dataModel')) {
               if (variable.key.indexOf('[{0}]') > -1) {
                 const keyWithIndex = variable.key.replace('{0}', `${i}`);
-                replaceValues.push(
-                  (dataSources.dataModel &&
-                    dataSources.dataModel[keyWithIndex]) ||
-                    '',
-                );
+                replaceValues.push((dataSources.dataModel && dataSources.dataModel[keyWithIndex]) || '');
               } else {
-                replaceValues.push(
-                  (dataSources.dataModel &&
-                    dataSources.dataModel[variable.key]) ||
-                    '',
-                );
+                replaceValues.push((dataSources.dataModel && dataSources.dataModel[variable.key]) || '');
               }
             }
           });
-          const newValue = replaceParameters(
-            textResourceCopy.unparsedValue,
-            replaceValues,
-          );
+          const newValue = replaceParameters(textResourceCopy.unparsedValue, replaceValues);
 
           if (!newValue) {
             continue;
           }
 
-          if (
-            textResourceCopy.repeating &&
-            textResourceCopy.id.endsWith(`-${i}`)
-          ) {
+          if (textResourceCopy.repeating && textResourceCopy.id.endsWith(`-${i}`)) {
             textResourceCopy.value = newValue;
           } else if (
             !textResourceCopy.repeating &&
-            textResources.findIndex(
-              (r) => r.id === `${textResourceCopy.id}-${i}`,
-            ) === -1
+            textResources.findIndex((r) => r.id === `${textResourceCopy.id}-${i}`) === -1
           ) {
             const newId = `${textResourceCopy.id}-${i}`;
             repeatingGroupResources.push({
@@ -227,29 +183,19 @@ export function replaceTextResourceParams(
         const replaceValues: string[] = [];
         textResourceCopy.variables.forEach((variable) => {
           if (variable.dataSource.startsWith('dataModel')) {
-            replaceValues.push(
-              (dataSources.dataModel && dataSources.dataModel[variable.key]) ||
-                variable.key,
-            );
+            replaceValues.push((dataSources.dataModel && dataSources.dataModel[variable.key]) || variable.key);
           } else if (variable.dataSource === 'applicationSettings') {
             replaceValues.push(
-              (dataSources.applicationSettings &&
-                dataSources.applicationSettings[variable.key]) ||
-                variable.key,
+              (dataSources.applicationSettings && dataSources.applicationSettings[variable.key]) || variable.key,
             );
           } else if (variable.dataSource === 'instanceContext') {
             replaceValues.push(
-              (dataSources.instanceContext &&
-                dataSources.instanceContext[variable.key]) ||
-                variable.key,
+              (dataSources.instanceContext && dataSources.instanceContext[variable.key]) || variable.key,
             );
           }
         });
 
-        const newValue = replaceParameters(
-          textResourceCopy.unparsedValue,
-          replaceValues,
-        );
+        const newValue = replaceParameters(textResourceCopy.unparsedValue, replaceValues);
         if (newValue && textResourceCopy.value !== newValue) {
           textResourceCopy.value = newValue;
         }
@@ -299,9 +245,7 @@ export function getAppName(
 
   // if no text resource key is set, fetch from app metadata
   if (applicationMetadata) {
-    return (
-      applicationMetadata.title[userLanguage] || applicationMetadata.title.nb
-    );
+    return applicationMetadata.title[userLanguage] || applicationMetadata.title.nb;
   }
 
   return undefined;

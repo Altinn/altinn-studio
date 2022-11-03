@@ -77,9 +77,7 @@ const PartySelection = () => {
   const dispatch = useAppDispatch();
   const language = useAppSelector((state) => state.language.language);
   const parties = useAppSelector((state) => state.party.parties);
-  const appMetadata = useAppSelector(
-    (state) => state.applicationMetadata.applicationMetadata,
-  );
+  const appMetadata = useAppSelector((state) => state.applicationMetadata.applicationMetadata);
   const selectedParty = useAppSelector((state) => state.party.selectedParty);
 
   const [filterString, setFilterString] = React.useState('');
@@ -130,8 +128,7 @@ const PartySelection = () => {
               : null
             : null,
         )}
-        {numberOfPartiesRendered === numberOfPartiesShown &&
-        numberOfPartiesRendered < parties.length ? (
+        {numberOfPartiesRendered === numberOfPartiesShown && numberOfPartiesRendered < parties.length ? (
           <Grid
             container={true}
             direction='row'
@@ -170,10 +167,7 @@ const PartySelection = () => {
               'party_selection.invalid_selection_second_part',
               language,
             )} ${templatePartyTypesString()}.
-            ${getLanguageFromKey(
-              'party_selection.invalid_selection_third_part',
-              language,
-            )}`}
+            ${getLanguageFromKey('party_selection.invalid_selection_third_part', language)}`}
         </Typography>
       );
     }
@@ -196,30 +190,16 @@ const PartySelection = () => {
     let returnString = '';
 
     if (partyTypesAllowed?.person) {
-      partyTypes.push(
-        getLanguageFromKey(
-          'party_selection.unit_type_private_person',
-          language,
-        ),
-      );
+      partyTypes.push(getLanguageFromKey('party_selection.unit_type_private_person', language));
     }
     if (partyTypesAllowed?.organisation) {
-      partyTypes.push(
-        getLanguageFromKey('party_selection.unit_type_company', language),
-      );
+      partyTypes.push(getLanguageFromKey('party_selection.unit_type_company', language));
     }
     if (partyTypesAllowed?.subUnit) {
-      partyTypes.push(
-        getLanguageFromKey('party_selection.unit_type_subunit', language),
-      );
+      partyTypes.push(getLanguageFromKey('party_selection.unit_type_subunit', language));
     }
     if (partyTypesAllowed?.bankruptcyEstate) {
-      partyTypes.push(
-        getLanguageFromKey(
-          'party_selection.unit_type_bankruptcy_state',
-          language,
-        ),
-      );
+      partyTypes.push(getLanguageFromKey('party_selection.unit_type_bankruptcy_state', language));
     }
 
     if (partyTypes.length === 1) {
@@ -230,10 +210,7 @@ const PartySelection = () => {
       if (i === 0) {
         returnString += partyTypes[i];
       } else if (i === partyTypes.length - 1) {
-        returnString += ` ${getLanguageFromKey(
-          'party_selection.binding_word',
-          language,
-        )} ${partyTypes[i]}`;
+        returnString += ` ${getLanguageFromKey('party_selection.binding_word', language)} ${partyTypes[i]}`;
       } else {
         returnString += `, ${partyTypes[i]} `;
       }
@@ -339,10 +316,7 @@ const PartySelection = () => {
                     onChangeFunction={toggleShowDeleted}
                   />
                   <Typography className={classes.checkboxLabes}>
-                    {getLanguageFromKey(
-                      'party_selection.show_deleted',
-                      language,
-                    )}
+                    {getLanguageFromKey('party_selection.show_deleted', language)}
                   </Typography>
                 </Grid>
               </Grid>
@@ -359,10 +333,7 @@ const PartySelection = () => {
                     onChangeFunction={toggleShowSubUnits}
                   />
                   <Typography className={classes.checkboxLabes}>
-                    {getLanguageFromKey(
-                      'party_selection.show_sub_unit',
-                      language,
-                    )}
+                    {getLanguageFromKey('party_selection.show_sub_unit', language)}
                   </Typography>
                 </Grid>
               </Grid>

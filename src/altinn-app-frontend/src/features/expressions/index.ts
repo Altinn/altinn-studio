@@ -10,11 +10,7 @@ import {
   UnknownTargetType,
 } from 'src/features/expressions/errors';
 import { ExprContext } from 'src/features/expressions/ExprContext';
-import {
-  addError,
-  asExpression,
-  canBeExpression,
-} from 'src/features/expressions/validation';
+import { addError, asExpression, canBeExpression } from 'src/features/expressions/validation';
 import { LayoutNode } from 'src/utils/layout/hierarchy';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
 import type {
@@ -53,21 +49,13 @@ export function evalExprInObj<T>(args: EvalExprInObjArgs<T>): ExprResolved<T> {
     return args.input as ExprResolved<T>;
   }
 
-  return evalExprInObjectRecursive(
-    args.input,
-    args as Omit<EvalExprInObjArgs<T>, 'input'>,
-    [],
-  );
+  return evalExprInObjectRecursive(args.input, args as Omit<EvalExprInObjArgs<T>, 'input'>, []);
 }
 
 /**
  * Recurse through an input object/array/any, finds expressions and evaluates them
  */
-function evalExprInObjectRecursive<T>(
-  input: any,
-  args: Omit<EvalExprInObjArgs<T>, 'input'>,
-  path: string[],
-) {
+function evalExprInObjectRecursive<T>(input: any, args: Omit<EvalExprInObjArgs<T>, 'input'>, path: string[]) {
   if (typeof input !== 'object') {
     return input;
   }
@@ -91,9 +79,7 @@ function evalExprInObjectRecursive<T>(
 
     const newPath = [...path];
     const lastLeg = newPath.pop() || '';
-    return input.map((item, idx) =>
-      evalExprInObjectRecursive(item, args, [...newPath, `${lastLeg}[${idx}]`]),
-    );
+    return input.map((item, idx) => evalExprInObjectRecursive(item, args, [...newPath, `${lastLeg}[${idx}]`]));
   }
 
   const out = {};
@@ -107,16 +93,9 @@ function evalExprInObjectRecursive<T>(
 /**
  * Extracted function for evaluating expressions in the context of a larger object
  */
-function evalExprInObjectCaller<T>(
-  expr: Expression,
-  args: Omit<EvalExprInObjArgs<T>, 'input'>,
-  path: string[],
-) {
+function evalExprInObjectCaller<T>(expr: Expression, args: Omit<EvalExprInObjArgs<T>, 'input'>, path: string[]) {
   const pathString = path.join('.');
-  const nodeId =
-    args.node instanceof NodeNotFoundWithoutContext
-      ? args.node.nodeId
-      : args.node.item.id;
+  const nodeId = args.node instanceof NodeNotFoundWithoutContext ? args.node.nodeId : args.node.item.id;
 
   const exprOptions: EvalExprOptions = {
     errorIntroText: `Evaluated expression for '${pathString}' in component '${nodeId}'`,
@@ -147,11 +126,7 @@ export function evalExpr(
   let ctx = ExprContext.withBlankPath(expr, node, dataSources);
   try {
     const result = innerEvalExpr(ctx);
-    if (
-      (result === null || result === undefined) &&
-      options &&
-      'defaultValue' in options
-    ) {
+    if ((result === null || result === undefined) && options && 'defaultValue' in options) {
       return options.defaultValue;
     }
 
@@ -166,9 +141,7 @@ export function evalExpr(
       // When we know of a default value, we can safely print it as an error to the console and safely recover
       ctx.trace(err, {
         defaultValue: options.defaultValue,
-        ...(options.errorIntroText
-          ? { introText: options.errorIntroText }
-          : {}),
+        ...(options.errorIntroText ? { introText: options.errorIntroText } : {}),
       });
       return options.defaultValue;
     } else {
@@ -179,10 +152,7 @@ export function evalExpr(
   }
 }
 
-export function argTypeAt(
-  func: ExprFunction,
-  argIndex: number,
-): BaseValue | undefined {
+export function argTypeAt(func: ExprFunction, argIndex: number): BaseValue | undefined {
   const funcDef = ExprFunctions[func];
   const possibleArgs = funcDef.args;
   const maybeReturn = possibleArgs[argIndex];
@@ -201,16 +171,11 @@ function innerEvalExpr(context: ExprContext) {
   const [func, ...args] = context.getExpr();
 
   const returnType = ExprFunctions[func].returns;
-  const neverCastIndexes = new Set(
-    ExprFunctions[func].neverCastArguments || [],
-  );
+  const neverCastIndexes = new Set(ExprFunctions[func].neverCastArguments || []);
 
   const computedArgs = args.map((arg, idx) => {
     const realIdx = idx + 1;
-    const argContext = ExprContext.withPath(context, [
-      ...context.path,
-      `[${realIdx}]`,
-    ]);
+    const argContext = ExprContext.withPath(context, [...context.path, `[${realIdx}]`]);
 
     const argValue = Array.isArray(arg) ? innerEvalExpr(argContext) : arg;
     if (neverCastIndexes.has(idx)) {
@@ -263,10 +228,7 @@ function castValue<T extends BaseValue>(
 
   const valueBaseType = valueToBaseValueType(value) as BaseValue;
   if (!typeObj.accepts.includes(valueBaseType)) {
-    const supported = [
-      ...typeObj.accepts,
-      ...(typeObj.nullable ? ['null'] : []),
-    ].join(', ');
+    const supported = [...typeObj.accepts, ...(typeObj.nullable ? ['null'] : [])].join(', ');
     throw new UnknownSourceType(this, typeof value, supported);
   }
 
@@ -381,12 +343,7 @@ export const ExprFunctions = {
       if (rawArgs.length === 4) {
         return;
       }
-      addError(
-        ctx,
-        path,
-        'Expected either 2 arguments (if) or 4 (if + else), got %s',
-        `${rawArgs.length}`,
-      );
+      addError(ctx, path, 'Expected either 2 arguments (if) or 4 (if + else), got %s', `${rawArgs.length}`);
     },
     args: ['string', 'string'],
     returns: 'string',
@@ -397,43 +354,27 @@ export const ExprFunctions = {
   instanceContext: defineFunc({
     impl: function (key): string | null {
       if (instanceContextKeys[key] !== true) {
-        throw new LookupNotFound(
-          this,
-          `Unknown Instance context property ${key}`,
-        );
+        throw new LookupNotFound(this, `Unknown Instance context property ${key}`);
       }
 
-      return (
-        (this.dataSources.instanceContext &&
-          this.dataSources.instanceContext[key]) ||
-        null
-      );
+      return (this.dataSources.instanceContext && this.dataSources.instanceContext[key]) || null;
     },
     args: ['string'] as const,
     returns: 'string',
   }),
   frontendSettings: defineFunc({
     impl: function (key): string | null {
-      return (
-        (this.dataSources.applicationSettings &&
-          this.dataSources.applicationSettings[key]) ||
-        null
-      );
+      return (this.dataSources.applicationSettings && this.dataSources.applicationSettings[key]) || null;
     },
     args: ['string'] as const,
     returns: 'string',
   }),
   component: defineFunc({
     impl: function (id): string | null {
-      const component = this.failWithoutNode().closest(
-        (c) => c.id === id || c.baseComponentId === id,
-      );
+      const component = this.failWithoutNode().closest((c) => c.id === id || c.baseComponentId === id);
       const binding = component?.item?.dataModelBindings?.simpleBinding;
       if (binding) {
-        return (
-          (this.dataSources.formData && this.dataSources.formData[binding]) ||
-          null
-        );
+        return (this.dataSources.formData && this.dataSources.formData[binding]) || null;
       }
 
       throw new LookupNotFound(
@@ -493,11 +434,7 @@ export const ExprTypes: {
       if (arg === 'true') return true;
       if (arg === 'false') return false;
 
-      if (
-        typeof arg === 'string' ||
-        typeof arg === 'number' ||
-        typeof arg === 'bigint'
-      ) {
+      if (typeof arg === 'string' || typeof arg === 'number' || typeof arg === 'bigint') {
         const num = typeof arg === 'string' ? asNumber(arg) : arg;
         if (num !== undefined) {
           if (num === 1) return true;

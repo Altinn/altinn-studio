@@ -4,18 +4,13 @@ import type { SagaIterator } from 'redux-saga';
 
 import { InstantiationActions } from 'src/features/instantiate/instantiation/instantiationSlice';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
-import {
-  getCreateInstancesUrl,
-  invalidateCookieUrl,
-  redirectToUpgrade,
-} from 'src/utils/appUrlHelper';
+import { getCreateInstancesUrl, invalidateCookieUrl, redirectToUpgrade } from 'src/utils/appUrlHelper';
 import { post, putWithoutConfig } from 'src/utils/networking';
 import type { IRuntimeState } from 'src/types';
 
 import type { IParty } from 'altinn-shared/types';
 
-const SelectedPartySelector = (state: IRuntimeState) =>
-  state.party.selectedParty;
+const SelectedPartySelector = (state: IRuntimeState) => state.party.selectedParty;
 
 export function* instantiationSaga(): SagaIterator {
   try {
@@ -24,16 +19,9 @@ export function* instantiationSaga(): SagaIterator {
     // Creates a new instance
     let instanceResponse: AxiosResponse;
     try {
-      instanceResponse = yield call(
-        post,
-        getCreateInstancesUrl(selectedParty.partyId),
-      );
+      instanceResponse = yield call(post, getCreateInstancesUrl(selectedParty.partyId));
     } catch (error) {
-      if (
-        error.response &&
-        error.response.status === 403 &&
-        error.response.data
-      ) {
+      if (error.response && error.response.status === 403 && error.response.data) {
         const reqAuthLevel = error.response.data.RequiredAuthenticationLevel;
         if (reqAuthLevel) {
           yield call(putWithoutConfig, invalidateCookieUrl);

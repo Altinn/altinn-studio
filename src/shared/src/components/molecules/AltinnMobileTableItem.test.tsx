@@ -1,9 +1,6 @@
 import React from 'react';
 import { render as renderRtl, screen } from '@testing-library/react';
-import type {
-  IAltinnMobileTableItemProps,
-  IMobileTableItem,
-} from './AltinnMobileTableItem';
+import type { IAltinnMobileTableItemProps, IMobileTableItem } from './AltinnMobileTableItem';
 import AltinnMobileTableItem from './AltinnMobileTableItem';
 import userEvent from '@testing-library/user-event';
 

@@ -2,18 +2,12 @@ import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
 import { getInitialStateMock } from '__mocks__/initialStateMock';
-import {
-  applicationMetadataMock,
-  getInstanceDataStateMock,
-} from '__mocks__/mocks';
+import { applicationMetadataMock, getInstanceDataStateMock } from '__mocks__/mocks';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderWithProviders } from 'testUtils';
 
-import {
-  type Props as IConfirmPage,
-  ConfirmPage,
-} from 'src/features/confirm/containers/ConfirmPage';
+import { type Props as IConfirmPage, ConfirmPage } from 'src/features/confirm/containers/ConfirmPage';
 
 import { nb } from 'altinn-shared/language/texts/nb';
 import type { IInstance } from 'altinn-shared/types';

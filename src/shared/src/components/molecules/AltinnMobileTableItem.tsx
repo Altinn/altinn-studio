@@ -253,8 +253,7 @@ export default function AltinnMobileTableItem({
                   >
                     <IconButton
                       className={cn(classes.tableEditButton, {
-                        [classes.editButtonActivated]:
-                          editIndex === tableItemIndex,
+                        [classes.editButtonActivated]: editIndex === tableItemIndex,
                       })}
                       onClick={onEditClick}
                       data-testid='edit-button'
@@ -275,8 +274,7 @@ export default function AltinnMobileTableItem({
                     <TableCell
                       align='center'
                       className={cn([classes.deleteButtonCell], {
-                        [classes.popoverCurrentCell]:
-                          tableItemIndex == popoverPanelIndex,
+                        [classes.popoverCurrentCell]: tableItemIndex == popoverPanelIndex,
                       })}
                     >
                       <DeleteWarningPopover
@@ -292,22 +290,12 @@ export default function AltinnMobileTableItem({
                           </IconButton>
                         }
                         language={language}
-                        deleteButtonText={getLanguageFromKey(
-                          'group.row_popover_delete_button_confirm',
-                          language,
-                        )}
-                        messageText={getLanguageFromKey(
-                          'group.row_popover_delete_message',
-                          language,
-                        )}
-                        open={
-                          popoverPanelIndex == tableItemIndex && popoverOpen
-                        }
+                        deleteButtonText={getLanguageFromKey('group.row_popover_delete_button_confirm', language)}
+                        messageText={getLanguageFromKey('group.row_popover_delete_message', language)}
+                        open={popoverPanelIndex == tableItemIndex && popoverOpen}
                         setPopoverOpen={setPopoverOpen}
                         onCancelClick={() => onOpenChange(tableItemIndex)}
-                        onPopoverDeleteClick={onPopoverDeleteClick(
-                          tableItemIndex,
-                        )}
+                        onPopoverDeleteClick={onPopoverDeleteClick(tableItemIndex)}
                       />
                     </TableCell>
                   )}

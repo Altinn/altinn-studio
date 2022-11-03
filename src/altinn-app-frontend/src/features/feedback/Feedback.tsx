@@ -14,9 +14,7 @@ const theme = createTheme(AltinnAppTheme);
 export default function Feedback() {
   const dispatch = useAppDispatch();
   const processState = useAppSelector((state) => state.process.taskType);
-  const textResources = useAppSelector(
-    (state) => state.textResources.resources,
-  );
+  const textResources = useAppSelector((state) => state.textResources.resources);
   const language = useAppSelector((state) => state.language.language);
 
   React.useEffect(() => {
@@ -32,12 +30,8 @@ export default function Feedback() {
   return (
     <div id='FeedbackContainer'>
       <MuiThemeProvider theme={theme}>
-        <Typography variant='body1'>
-          {getTextFromAppOrDefault('feedback.title', textResources, language)}
-        </Typography>
-        <Typography variant='body1'>
-          {getTextFromAppOrDefault('feedback.body', textResources, language)}
-        </Typography>
+        <Typography variant='body1'>{getTextFromAppOrDefault('feedback.title', textResources, language)}</Typography>
+        <Typography variant='body1'>{getTextFromAppOrDefault('feedback.body', textResources, language)}</Typography>
       </MuiThemeProvider>
       <ReadyForPrint />
     </div>

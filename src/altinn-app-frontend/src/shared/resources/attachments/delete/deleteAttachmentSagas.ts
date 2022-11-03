@@ -16,9 +16,7 @@ export function* deleteAttachmentSaga({
   payload: { attachment, attachmentType, componentId, dataModelBindings },
 }: PayloadAction<IDeleteAttachmentAction>): SagaIterator {
   const language = yield select((s: IRuntimeState) => s.language.language);
-  const currentView: string = yield select(
-    (s: IRuntimeState) => s.formLayout.uiConfig.currentView,
-  );
+  const currentView: string = yield select((s: IRuntimeState) => s.formLayout.uiConfig.currentView);
 
   try {
     // Sets validations to empty.
@@ -31,15 +29,9 @@ export function* deleteAttachmentSaga({
       }),
     );
 
-    const response: AxiosResponse = yield call(
-      httpDelete,
-      dataElementUrl(attachment.id),
-    );
+    const response: AxiosResponse = yield call(httpDelete, dataElementUrl(attachment.id));
     if (response.status === 200) {
-      if (
-        dataModelBindings &&
-        (dataModelBindings.simpleBinding || dataModelBindings.list)
-      ) {
+      if (dataModelBindings && (dataModelBindings.simpleBinding || dataModelBindings.list)) {
         yield put(
           FormDataActions.deleteAttachmentReference({
             attachmentId: attachment.id,
@@ -56,9 +48,7 @@ export function* deleteAttachmentSaga({
         }),
       );
     } else {
-      throw new Error(
-        `Got error response when deleting attachment: ${response.status}`,
-      );
+      throw new Error(`Got error response when deleting attachment: ${response.status}`);
     }
   } catch (err) {
     const validations = getFileUploadComponentValidations('delete', language);

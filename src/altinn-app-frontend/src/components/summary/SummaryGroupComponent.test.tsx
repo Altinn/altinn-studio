@@ -1,11 +1,7 @@
 import * as React from 'react';
 import { Provider } from 'react-redux';
 
-import {
-  getFormDataStateMock,
-  getFormLayoutStateMock,
-  getInitialStateMock,
-} from '__mocks__/mocks';
+import { getFormDataStateMock, getFormLayoutStateMock, getInitialStateMock } from '__mocks__/mocks';
 import { render } from '@testing-library/react';
 import configureStore from 'redux-mock-store';
 
@@ -126,9 +122,7 @@ describe('SummaryGroupComponent', () => {
     expect(asFragment()).toMatchSnapshot();
   });
 
-  function renderSummaryGroupComponent(
-    props: Partial<ISummaryGroupComponent> = {},
-  ) {
+  function renderSummaryGroupComponent(props: Partial<ISummaryGroupComponent> = {}) {
     const defaultProps: ISummaryGroupComponent = {
       pageRef: 'page1',
       componentRef: 'groupComponent',

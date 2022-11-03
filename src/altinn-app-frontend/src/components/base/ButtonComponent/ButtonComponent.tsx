@@ -14,9 +14,7 @@ import type { IAltinnWindow } from 'src/types';
 
 import { getLanguageFromKey } from 'altinn-shared/utils';
 
-export interface IButtonProvidedProps
-  extends IComponentProps,
-    ILayoutCompButton {
+export interface IButtonProvidedProps extends IComponentProps, ILayoutCompButton {
   disabled: boolean;
   id: string;
   mode?: ButtonMode;
@@ -25,17 +23,11 @@ export interface IButtonProvidedProps
 
 export const ButtonComponent = ({ mode, ...props }: IButtonProvidedProps) => {
   const dispatch = useAppDispatch();
-  const autoSave = useAppSelector(
-    (state) => state.formLayout.uiConfig.autoSave,
-  );
+  const autoSave = useAppSelector((state) => state.formLayout.uiConfig.autoSave);
   const submittingId = useAppSelector((state) => state.formData.submittingId);
   const savingId = useAppSelector((state) => state.formData.savingId);
-  const ignoreWarnings = useAppSelector(
-    (state) => state.formData.ignoreWarnings,
-  );
-  const currentTaskType = useAppSelector(
-    (state) => state.instanceData.instance?.process.currentTask?.altinnTaskType,
-  );
+  const ignoreWarnings = useAppSelector((state) => state.formData.ignoreWarnings);
+  const currentTaskType = useAppSelector((state) => state.instanceData.instance?.process.currentTask?.altinnTaskType);
   if (mode && !(mode === 'save' || mode === 'submit')) {
     const GenericButton = getComponentFromMode(mode);
     return (

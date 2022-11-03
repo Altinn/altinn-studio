@@ -19,11 +19,7 @@ interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
 
 export const renderWithProviders = (
   component: any,
-  {
-    preloadedState = {},
-    store = setupStore(preloadedState),
-    ...renderOptions
-  }: ExtendedRenderOptions = {},
+  { preloadedState = {}, store = setupStore(preloadedState), ...renderOptions }: ExtendedRenderOptions = {},
 ) => {
   function Wrapper({ children }: React.PropsWithChildren<unknown>) {
     const theme = createTheme(AltinnAppTheme);
@@ -115,9 +111,7 @@ export const mockComponentProps: IComponentProps & { id: string } = {
     throw new Error('Called mock getTextResource, override this yourself');
   },
   getTextResourceAsString: () => {
-    throw new Error(
-      'Called mock getTextResourceAsString, override this yourself',
-    );
+    throw new Error('Called mock getTextResourceAsString, override this yourself');
   },
   shouldFocus: false,
   isValid: undefined,

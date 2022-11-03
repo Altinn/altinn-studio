@@ -17,21 +17,10 @@ import { customEncodeURI } from 'altinn-shared/utils';
 import type { ILanguage } from 'altinn-shared/types';
 
 export function* uploadAttachmentSaga({
-  payload: {
-    file,
-    attachmentType,
-    tmpAttachmentId,
-    componentId,
-    dataModelBindings,
-    index,
-  },
+  payload: { file, attachmentType, tmpAttachmentId, componentId, dataModelBindings, index },
 }: PayloadAction<IUploadAttachmentAction>): SagaIterator {
-  const currentView: string = yield select(
-    (s: IRuntimeState) => s.formLayout.uiConfig.currentView,
-  );
-  const language: ILanguage = yield select(
-    (s: IRuntimeState) => s.language.language,
-  );
+  const currentView: string = yield select((s: IRuntimeState) => s.formLayout.uiConfig.currentView);
+  const language: ILanguage = yield select((s: IRuntimeState) => s.language.language);
 
   try {
     // Sets validations to empty.
@@ -58,9 +47,7 @@ export function* uploadAttachmentSaga({
     const config: AxiosRequestConfig = {
       headers: {
         'Content-Type': contentType,
-        'Content-Disposition': `attachment; filename=${customEncodeURI(
-          file.name,
-        )}`,
+        'Content-Disposition': `attachment; filename=${customEncodeURI(file.name)}`,
       },
     };
 
@@ -85,10 +72,7 @@ export function* uploadAttachmentSaga({
         }),
       );
 
-      if (
-        dataModelBindings &&
-        (dataModelBindings.simpleBinding || dataModelBindings.list)
-      ) {
+      if (dataModelBindings && (dataModelBindings.simpleBinding || dataModelBindings.list)) {
         yield put(
           FormDataActions.update({
             componentId: componentId,

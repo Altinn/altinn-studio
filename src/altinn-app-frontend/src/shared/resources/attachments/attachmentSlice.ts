@@ -56,9 +56,7 @@ const slice = createSagaSlice((mkAction: MkActionType<IAttachmentState>) => ({
     uploadAttachmentFulfilled: mkAction<IUploadAttachmentActionFulfilled>({
       reducer: (state, action) => {
         const { attachment, componentId, tmpAttachmentId } = action.payload;
-        const index = state.attachments[componentId].findIndex(
-          (item) => item.id === tmpAttachmentId,
-        );
+        const index = state.attachments[componentId].findIndex((item) => item.id === tmpAttachmentId);
         if (index < 0) {
           return;
         }
@@ -82,9 +80,7 @@ const slice = createSagaSlice((mkAction: MkActionType<IAttachmentState>) => ({
           state.attachments[componentId] = [];
         }
         const newAttachment = { ...attachment, updating: true };
-        const index = state.attachments[componentId].findIndex(
-          (item) => item.id === attachment.id,
-        );
+        const index = state.attachments[componentId].findIndex((item) => item.id === attachment.id);
 
         state.attachments[componentId][index] = newAttachment;
       },
@@ -93,9 +89,7 @@ const slice = createSagaSlice((mkAction: MkActionType<IAttachmentState>) => ({
       reducer: (state, action) => {
         const { attachment, componentId } = action.payload;
         const newAttachment = { ...attachment, updating: false };
-        const index = state.attachments[componentId].findIndex(
-          (item) => item.id === attachment.id,
-        );
+        const index = state.attachments[componentId].findIndex((item) => item.id === attachment.id);
         state.attachments[componentId][index] = newAttachment;
       },
     }),
@@ -107,9 +101,7 @@ const slice = createSagaSlice((mkAction: MkActionType<IAttachmentState>) => ({
           tag,
           updating: false,
         };
-        const index = state.attachments[componentId].findIndex(
-          (item) => item.id === attachment.id,
-        );
+        const index = state.attachments[componentId].findIndex((item) => item.id === attachment.id);
 
         state.attachments[componentId][index] = newAttachment;
       },
@@ -118,9 +110,7 @@ const slice = createSagaSlice((mkAction: MkActionType<IAttachmentState>) => ({
       takeEvery: deleteAttachmentSaga,
       reducer: (state, action) => {
         const { attachment, componentId } = action.payload;
-        const index = state.attachments[componentId].findIndex(
-          (element) => element.id === attachment.id,
-        );
+        const index = state.attachments[componentId].findIndex((element) => element.id === attachment.id);
         if (index < 0) {
           return;
         }
@@ -130,18 +120,14 @@ const slice = createSagaSlice((mkAction: MkActionType<IAttachmentState>) => ({
     deleteAttachmentFulfilled: mkAction<IDeleteAttachmentActionFulfilled>({
       reducer: (state, action) => {
         const { attachmentId: id, componentId } = action.payload;
-        state.attachments[componentId] = state.attachments[componentId].filter(
-          (attachment) => attachment.id !== id,
-        );
+        state.attachments[componentId] = state.attachments[componentId].filter((attachment) => attachment.id !== id);
       },
     }),
     deleteAttachmentRejected: mkAction<IDeleteAttachmentActionRejected>({
       reducer: (state, action) => {
         const { attachment, componentId } = action.payload;
         const newAttachment = { ...attachment, deleting: false };
-        const index = state.attachments[componentId].findIndex(
-          (element) => element.id === attachment.id,
-        );
+        const index = state.attachments[componentId].findIndex((element) => element.id === attachment.id);
         if (index < 0) {
           return;
         }

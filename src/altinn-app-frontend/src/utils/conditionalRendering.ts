@@ -5,11 +5,7 @@ import type {
   IParameters,
   ISelectedFields,
 } from 'src/features/form/dynamics';
-import type {
-  IAltinnWindow,
-  IRepeatingGroup,
-  IRepeatingGroups,
-} from 'src/types';
+import type { IAltinnWindow, IRepeatingGroup, IRepeatingGroups } from 'src/types';
 
 /*
  * Runs conditional rendering rules, returns array of affected layout elements
@@ -43,9 +39,7 @@ export function runConditionalRenderingRules(
       }
 
       for (let index = 0; index <= repeatingGroup.index; index++) {
-        const connectionCopy: IConditionalRenderingRule = JSON.parse(
-          JSON.stringify(connection),
-        );
+        const connectionCopy: IConditionalRenderingRule = JSON.parse(JSON.stringify(connection));
         connectionCopy.inputParams = mapRepeatingGroupIndex({
           ruleObject: connectionCopy.inputParams,
           index,
@@ -58,18 +52,10 @@ export function runConditionalRenderingRules(
 
         if (connection.repeatingGroup.childGroupId) {
           const childGroup: IRepeatingGroup | undefined =
-            repeatingGroups &&
-            repeatingGroups[
-              `${connection.repeatingGroup.childGroupId}-${index}`
-            ];
+            repeatingGroups && repeatingGroups[`${connection.repeatingGroup.childGroupId}-${index}`];
           if (childGroup) {
-            for (
-              let childIndex = 0;
-              childIndex <= childGroup?.index;
-              childIndex++
-            ) {
-              const connectionNestedCopy: IConditionalRenderingRule =
-                JSON.parse(JSON.stringify(connectionCopy));
+            for (let childIndex = 0; childIndex <= childGroup?.index; childIndex++) {
+              const connectionNestedCopy: IConditionalRenderingRule = JSON.parse(JSON.stringify(connectionCopy));
               connectionNestedCopy.inputParams = mapRepeatingGroupIndex({
                 ruleObject: connectionCopy.inputParams,
                 index: childIndex,
@@ -81,11 +67,7 @@ export function runConditionalRenderingRules(
                 index: childIndex,
                 nested: true,
               });
-              runConditionalRenderingRule(
-                connectionNestedCopy,
-                formData,
-                componentsToHide,
-              );
+              runConditionalRenderingRule(connectionNestedCopy, formData, componentsToHide);
             }
           }
         }
@@ -115,10 +97,7 @@ function mapRepeatingGroupIndex({
   const result: any = {};
   Object.keys(ruleObject).forEach((key) => {
     const field = ruleObject[key];
-    result[key] = field.replace(
-      nested ? '{1}' : '{0}',
-      dataModelField ? `[${index}]` : `-${index}`,
-    );
+    result[key] = field.replace(nested ? '{1}' : '{0}', dataModelField ? `[${index}]` : `-${index}`);
   });
   return result;
 }
@@ -129,9 +108,7 @@ function runConditionalRenderingRule(
   hiddenFields: Set<string>,
 ) {
   const functionToRun = rule.selectedFunction;
-  const objectToUpdate = (
-    window as Window as IAltinnWindow
-  ).conditionalRuleHandlerHelper[functionToRun]();
+  const objectToUpdate = (window as Window as IAltinnWindow).conditionalRuleHandlerHelper[functionToRun]();
 
   // Map input object structure to input object defined in the conditional rendering rule connection
   const newObj = Object.keys(objectToUpdate).reduce((acc: any, elem: any) => {
@@ -140,9 +117,7 @@ function runConditionalRenderingRule(
     return acc;
   }, {});
 
-  const result = (window as any).conditionalRuleHandlerObject[functionToRun](
-    newObj,
-  );
+  const result = (window as any).conditionalRuleHandlerObject[functionToRun](newObj);
   const action = rule.selectedAction;
   const hide = (action === 'Show' && !result) || (action === 'Hide' && result);
   Object.keys(rule.selectedFields).forEach((elementToPerformActionOn) => {

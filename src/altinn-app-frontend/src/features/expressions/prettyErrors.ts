@@ -59,10 +59,9 @@ function errorLines(input: In): string[] {
   const stringPath = input.path.join('.');
   if (input.errors[stringPath] && input.errors[stringPath].length) {
     return input.errors[stringPath].map((err) =>
-      [
-        style('→', 'color: red; font-weight: bold;', input),
-        style(err, 'color: red; font-style: italic;', input),
-      ].join(' '),
+      [style('→', 'color: red; font-weight: bold;', input), style(err, 'color: red; font-style: italic;', input)].join(
+        ' ',
+      ),
     );
   }
 
@@ -89,9 +88,7 @@ function inline(out: Out): RecursiveLines {
     if (out.lines.length === 1) {
       newLines.push(`${out.start}${out.lines[0]}${out.end}`);
     } else {
-      newLines.push(
-        `${out.start}${out.lines.map(trimTrailingComma).join(', ')}${out.end}`,
-      );
+      newLines.push(`${out.start}${out.lines.map(trimTrailingComma).join(', ')}${out.end}`);
     }
   } else {
     newLines.push(...out.lines);
@@ -100,39 +97,22 @@ function inline(out: Out): RecursiveLines {
   return newLines;
 }
 
-function appendErrors(
-  input: In,
-  out: Out,
-  lineLength?: number,
-): RecursiveLines {
+function appendErrors(input: In, out: Out, lineLength?: number): RecursiveLines {
   const lines: RecursiveLines = [];
   if (out.errors.length) {
     let lastLineLength = lineLength || 1;
     const lastLineIdx = out.lines.length - 1;
-    if (
-      lineLength === undefined &&
-      !out.end &&
-      typeof out.lines[lastLineIdx] === 'string'
-    ) {
-      lastLineLength =
-        trimTrailingComma(out.lines[lastLineIdx] as string).length +
-        (out.inline ? out.start.length : 0);
+    if (lineLength === undefined && !out.end && typeof out.lines[lastLineIdx] === 'string') {
+      lastLineLength = trimTrailingComma(out.lines[lastLineIdx] as string).length + (out.inline ? out.start.length : 0);
     }
 
-    lines.push(
-      style('~'.repeat(lastLineLength), 'color: red;', input),
-      ...out.errors,
-    );
+    lines.push(style('~'.repeat(lastLineLength), 'color: red;', input), ...out.errors);
   }
 
   return lines;
 }
 
-function postProcessObjectLike(
-  input: In,
-  results: Out[],
-  out: Omit<Out, 'lines' | 'errors'>,
-): Out {
+function postProcessObjectLike(input: In, results: Out[], out: Omit<Out, 'lines' | 'errors'>): Out {
   const newLines: RecursiveLines = [];
   for (const idx in results) {
     const result = results[idx];
@@ -242,12 +222,7 @@ function postProcessOuterObject(input: In, out: Out, level: number): string[] {
   const lines = out.inline
     ? [...inline(out), ...appendErrors(input, out)]
     : out.start
-    ? [
-        out.start,
-        out.lines,
-        trimTrailingComma(out.end),
-        ...appendErrors(input, out),
-      ]
+    ? [out.start, out.lines, trimTrailingComma(out.end), ...appendErrors(input, out)]
     : [...out.lines, ...appendErrors(input, out)];
 
   return indent(lines, level);
@@ -256,11 +231,7 @@ function postProcessOuterObject(input: In, out: Out, level: number): string[] {
 /**
  * Pretty-prints errors tied to some keys/values in any object
  */
-export function prettyErrors({
-  input,
-  errors,
-  indentation,
-}: PrettyErrorsOptions): string {
+export function prettyErrors({ input, errors, indentation }: PrettyErrorsOptions): string {
   const i: In = {
     obj: input,
     errors: errors || {},

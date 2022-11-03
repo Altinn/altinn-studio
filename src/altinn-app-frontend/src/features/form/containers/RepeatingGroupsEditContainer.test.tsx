@@ -8,12 +8,7 @@ import { renderWithProviders } from 'testUtils';
 import { RepeatingGroupsEditContainer } from 'src/features/form/containers/RepeatingGroupsEditContainer';
 import { createRepeatingGroupComponents } from 'src/utils/formLayout';
 import type { IRepeatingGroupsEditContainer } from 'src/features/form/containers/RepeatingGroupsEditContainer';
-import type {
-  ILayout,
-  ILayoutComponent,
-  ILayoutGroup,
-  ISelectionComponentProps,
-} from 'src/features/form/layout';
+import type { ILayout, ILayoutComponent, ILayoutGroup, ISelectionComponentProps } from 'src/features/form/layout';
 import type { IOption } from 'src/types';
 
 import type { ILanguage, ITextResource } from 'altinn-shared/types';
@@ -30,9 +25,7 @@ describe('RepeatingGroupsEditContainer', () => {
       save_and_next: 'Save and open next',
     },
   };
-  const textResources: ITextResource[] = [
-    { id: 'option.label', value: 'Value to be shown' },
-  ];
+  const textResources: ITextResource[] = [{ id: 'option.label', value: 'Value to be shown' }];
   const options: IOption[] = [{ value: 'option.value', label: 'option.label' }];
   const components: ILayoutComponent[] = [
     {
@@ -92,14 +85,8 @@ describe('RepeatingGroupsEditContainer', () => {
   const layout: ILayout = [multiPageGroup, ...components];
 
   const repeatingGroupIndex = 3;
-  const repeatingGroupDeepCopyComponents: Array<
-    Array<ILayoutComponent | ILayoutGroup>
-  > = createRepeatingGroupComponents(
-    multiPageGroup,
-    components,
-    repeatingGroupIndex,
-    textResources,
-  );
+  const repeatingGroupDeepCopyComponents: Array<Array<ILayoutComponent | ILayoutGroup>> =
+    createRepeatingGroupComponents(multiPageGroup, components, repeatingGroupIndex, textResources);
 
   it('calls setEditIndex when save and open next is pressed when edit.saveAndNextButton is true', async () => {
     const setEditIndex = jest.fn();
@@ -108,9 +95,7 @@ describe('RepeatingGroupsEditContainer', () => {
       multiPageGroup.edit.saveAndNextButton = true;
     }
     render({ setEditIndex, setMultiPageIndex, editIndex: 0 });
-    await user.click(
-      screen.getByRole('button', { name: /save and open next/i }),
-    );
+    await user.click(screen.getByRole('button', { name: /save and open next/i }));
     expect(setEditIndex).toHaveBeenCalledWith(1, true);
   });
 

@@ -33,16 +33,12 @@ export function TextAreaComponent({
         readOnly={readOnly}
         style={{ resize: 'none' }} // This is prone to change soon, implemented inline until then. See issue #1116
         className={
-          (isValid
-            ? 'form-control a-textarea '
-            : 'form-control a-textarea validation-error') +
+          (isValid ? 'form-control a-textarea ' : 'form-control a-textarea validation-error') +
           (readOnly ? ' disabled' : '')
         }
         value={value}
         data-testid={id}
-        aria-describedby={
-          textResourceBindings ? `description-${id}` : undefined
-        }
+        aria-describedby={textResourceBindings ? `description-${id}` : undefined}
       />
     </div>
   );

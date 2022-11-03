@@ -1,12 +1,6 @@
 import * as React from 'react';
 
-import {
-  Grid,
-  List,
-  ListItem,
-  ListItemText,
-  makeStyles,
-} from '@material-ui/core';
+import { Grid, List, ListItem, ListItemText, makeStyles } from '@material-ui/core';
 
 import SummaryBoilerplate from 'src/components/summary/SummaryBoilerplate';
 

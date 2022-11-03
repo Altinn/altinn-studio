@@ -15,10 +15,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-export function ReceiptComponentSimple({
-  title,
-  body,
-}: IReceiptComponentProps) {
+export function ReceiptComponentSimple({ title, body }: IReceiptComponentProps) {
   const classes = useStyles();
 
   return (

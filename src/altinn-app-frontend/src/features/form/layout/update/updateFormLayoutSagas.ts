@@ -1,13 +1,4 @@
-import {
-  actionChannel,
-  all,
-  call,
-  put,
-  race,
-  select,
-  take,
-  takeLatest,
-} from 'redux-saga/effects';
+import { actionChannel, all, call, put, race, select, take, takeLatest } from 'redux-saga/effects';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { AxiosRequestConfig } from 'axios';
 import type { SagaIterator } from 'redux-saga';
@@ -26,16 +17,9 @@ import {
   getCurrentTaskDataElementId,
   isStatelessApp,
 } from 'src/utils/appMetadata';
-import {
-  getCalculatePageOrderUrl,
-  getDataValidationUrl,
-} from 'src/utils/appUrlHelper';
+import { getCalculatePageOrderUrl, getDataValidationUrl } from 'src/utils/appUrlHelper';
 import { shiftAttachmentRowInRepeatingGroup } from 'src/utils/attachment';
-import {
-  convertDataBindingToModel,
-  findChildAttachments,
-  removeGroupData,
-} from 'src/utils/databindings';
+import { convertDataBindingToModel, findChildAttachments, removeGroupData } from 'src/utils/databindings';
 import {
   findChildren,
   getRepeatingGroupFilteredIndices,
@@ -45,10 +29,7 @@ import {
   splitDashedKey,
 } from 'src/utils/formLayout';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
-import {
-  getOptionLookupKey,
-  removeGroupOptionsByIndex,
-} from 'src/utils/options';
+import { getOptionLookupKey, removeGroupOptionsByIndex } from 'src/utils/options';
 import {
   canFormBeSaved,
   mapDataElementValidationToRedux,
@@ -90,20 +71,13 @@ import type {
 
 import { get, post } from 'altinn-shared/utils';
 
-export const selectFormLayoutState = (state: IRuntimeState): ILayoutState =>
-  state.formLayout;
-export const selectFormData = (state: IRuntimeState): IFormDataState =>
-  state.formData;
-export const selectFormLayouts = (state: IRuntimeState): ILayouts | null =>
-  state.formLayout.layouts;
-export const selectAttachmentState = (state: IRuntimeState): IAttachmentState =>
-  state.attachments;
-export const selectValidations = (state: IRuntimeState): IValidations =>
-  state.formValidations.validations;
-export const selectUnsavedChanges = (state: IRuntimeState): boolean =>
-  state.formData.unsavedChanges;
-export const selectOptions = (state: IRuntimeState): IOptions =>
-  state.optionState.options;
+export const selectFormLayoutState = (state: IRuntimeState): ILayoutState => state.formLayout;
+export const selectFormData = (state: IRuntimeState): IFormDataState => state.formData;
+export const selectFormLayouts = (state: IRuntimeState): ILayouts | null => state.formLayout.layouts;
+export const selectAttachmentState = (state: IRuntimeState): IAttachmentState => state.attachments;
+export const selectValidations = (state: IRuntimeState): IValidations => state.formValidations.validations;
+export const selectUnsavedChanges = (state: IRuntimeState): boolean => state.formData.unsavedChanges;
+export const selectOptions = (state: IRuntimeState): IOptions => state.optionState.options;
 
 export function* updateRepeatingGroupsSaga({
   payload: { layoutElementId, remove, index },
@@ -133,32 +107,24 @@ export function* updateRepeatingGroupsSaga({
       },
     };
 
-    const groupContainer = currentLayout.find(
-      (element) => element.id === layoutElementId,
-    ) as ILayoutGroup | undefined;
+    const groupContainer = currentLayout.find((element) => element.id === layoutElementId) as ILayoutGroup | undefined;
 
     const children = groupContainer?.children || [];
-    const childGroups: (ILayoutGroup | ILayoutComponent)[] =
-      currentLayout.filter((element) => {
-        if (element.type !== 'Group') {
-          return false;
-        }
+    const childGroups: (ILayoutGroup | ILayoutComponent)[] = currentLayout.filter((element) => {
+      if (element.type !== 'Group') {
+        return false;
+      }
 
-        if (groupContainer?.edit?.multiPage) {
-          return children.find((c) => c.split(':')[1] === element.id);
-        }
+      if (groupContainer?.edit?.multiPage) {
+        return children.find((c) => c.split(':')[1] === element.id);
+      }
 
-        return children?.indexOf(element.id) > -1;
-      });
+      return children?.indexOf(element.id) > -1;
+    });
 
     childGroups?.forEach((group: ILayoutGroup) => {
       if (remove && typeof index === 'number') {
-        updatedRepeatingGroups = removeRepeatingGroupFromUIConfig(
-          updatedRepeatingGroups,
-          group.id,
-          index,
-          true,
-        );
+        updatedRepeatingGroups = removeRepeatingGroupFromUIConfig(updatedRepeatingGroups, group.id, index, true);
       } else {
         const groupId = `${group.id}-${newIndex}`;
         updatedRepeatingGroups[groupId] = {
@@ -211,9 +177,7 @@ export function* updateRepeatingGroupsSaga({
             fulfilled: take(AttachmentActions.deleteAttachmentFulfilled),
             rejected: take(AttachmentActions.deleteAttachmentRejected),
           });
-          const attachmentId =
-            completion.fulfilled?.payload.attachmentId ||
-            completion.rejected?.payload.attachment.id;
+          const attachmentId = completion.fulfilled?.payload.attachmentId || completion.rejected?.payload.attachment.id;
           if (attachmentId !== attachment.id) {
             // Some other attachment elsewhere had its event complete, we'll ignore it
             continue;
@@ -226,13 +190,10 @@ export function* updateRepeatingGroupsSaga({
       }
 
       if (attachmentRemovalSuccessful) {
-        const attachments: IAttachmentState = yield select(
-          selectAttachmentState,
-        );
+        const attachments: IAttachmentState = yield select(selectAttachmentState);
         const splitLayoutElementId = splitDashedKey(layoutElementId);
         const childFileUploaders = findChildren(currentLayout, {
-          matching: (c) =>
-            c.type === 'FileUpload' || c.type === 'FileUploadWithTag',
+          matching: (c) => c.type === 'FileUpload' || c.type === 'FileUploadWithTag',
           rootGroupId: splitLayoutElementId.baseComponentId,
         });
         const updatedAttachments = shiftAttachmentRowInRepeatingGroup(
@@ -276,10 +237,9 @@ export function* updateRepeatingGroupsSaga({
         });
         yield put(OptionsActions.setOptions({ options: updatedOptions }));
 
-        updatedRepeatingGroups[layoutElementId].deletingIndex =
-          updatedRepeatingGroups[layoutElementId].deletingIndex?.filter(
-            (value) => value !== index,
-          );
+        updatedRepeatingGroups[layoutElementId].deletingIndex = updatedRepeatingGroups[
+          layoutElementId
+        ].deletingIndex?.filter((value) => value !== index);
         updatedRepeatingGroups[layoutElementId].editIndex = -1;
 
         yield put(
@@ -318,14 +278,7 @@ export function* updateRepeatingGroupsSaga({
 }
 
 export function* updateCurrentViewSaga({
-  payload: {
-    newView,
-    runValidations,
-    returnToView,
-    skipPageCaching,
-    keepScrollPos,
-    focusComponentId,
-  },
+  payload: { newView, runValidations, returnToView, skipPageCaching, keepScrollPos, focusComponentId },
 }: PayloadAction<IUpdateCurrentView>): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
@@ -347,11 +300,7 @@ export function* updateCurrentViewSaga({
         }),
       );
     } else {
-      const {
-        validationResult,
-        componentSpecificValidations,
-        emptyFieldsValidations,
-      } = runClientSideValidation(state);
+      const { validationResult, componentSpecificValidations, emptyFieldsValidations } = runClientSideValidation(state);
       const currentView = state.formLayout.uiConfig.currentView;
       const options: AxiosRequestConfig = {
         headers: {
@@ -370,11 +319,7 @@ export function* updateCurrentViewSaga({
       const validationOptions = runValidations === 'page' ? options : undefined;
       const serverValidation: IValidationIssue[] | undefined =
         instanceId && currentTaskDataId
-          ? yield call(
-              get,
-              getDataValidationUrl(instanceId, currentTaskDataId),
-              validationOptions,
-            )
+          ? yield call(get, getDataValidationUrl(instanceId, currentTaskDataId), validationOptions)
           : undefined;
 
       // update validation state
@@ -457,49 +402,33 @@ export function* calculatePageOrderAndMoveToNextPageSaga({
       return;
     }
 
-    const appIsStateless = isStatelessApp(
-      state.applicationMetadata.applicationMetadata,
-    );
+    const appIsStateless = isStatelessApp(state.applicationMetadata.applicationMetadata);
     if (appIsStateless) {
       dataTypeId =
         getCurrentDataTypeForApplication({
           application: state.applicationMetadata.applicationMetadata,
           layoutSets: state.formLayout.layoutsets || undefined,
         }) || null;
-      layoutSetId =
-        state.applicationMetadata.applicationMetadata.onEntry?.show || null;
+      layoutSetId = state.applicationMetadata.applicationMetadata.onEntry?.show || null;
     } else {
       const instance = state.instanceData.instance;
       dataTypeId =
-        getCurrentDataTypeId(
-          state.applicationMetadata.applicationMetadata,
-          instance,
-          state.formLayout.layoutsets,
-        ) || null;
+        getCurrentDataTypeId(state.applicationMetadata.applicationMetadata, instance, state.formLayout.layoutsets) ||
+        null;
       if (layoutSets != null) {
-        layoutSetId =
-          getLayoutsetForDataElement(
-            instance,
-            dataTypeId || undefined,
-            layoutSets,
-          ) || null;
+        layoutSetId = getLayoutsetForDataElement(instance, dataTypeId || undefined, layoutSets) || null;
       }
     }
-    const layoutOrder = yield call(
-      post,
-      getCalculatePageOrderUrl(appIsStateless),
-      formData,
-      {
-        params: {
-          currentPage: currentView,
-          layoutSetId,
-          dataTypeId,
-        },
-        headers: {
-          'Content-Type': 'application/json',
-        },
+    const layoutOrder = yield call(post, getCalculatePageOrderUrl(appIsStateless), formData, {
+      params: {
+        currentPage: currentView,
+        layoutSetId,
+        dataTypeId,
       },
-    );
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
     yield put(
       FormLayoutActions.calculatePageOrderAndMoveToNextPageFulfilled({
         order: layoutOrder,
@@ -509,8 +438,7 @@ export function* calculatePageOrderAndMoveToNextPageSaga({
       return;
     }
     const returnToView = state.formLayout.uiConfig.returnToView;
-    const newView =
-      returnToView || layoutOrder[layoutOrder.indexOf(currentView) + 1];
+    const newView = returnToView || layoutOrder[layoutOrder.indexOf(currentView) + 1];
     yield put(
       FormLayoutActions.updateCurrentView({
         newView,
@@ -547,9 +475,7 @@ export function* watchInitialCalculatePageOrderAndMoveToNextPageSaga(): SagaIter
         return layouts[layout]?.some((element: ILayoutComponentOrGroup) => {
           if (element.type === 'NavigationButtons') {
             const layoutComponent = element as ILayoutComponent;
-            if (
-              layoutComponent?.triggers?.includes(Triggers.CalculatePageOrder)
-            ) {
+            if (layoutComponent?.triggers?.includes(Triggers.CalculatePageOrder)) {
               return true;
             }
           }
@@ -589,16 +515,11 @@ export function* updateRepeatingGroupEditIndexSaga({
       const currentView = state.formLayout.uiConfig.currentView;
       const onlyInRowIndex =
         validate === Triggers.ValidateRow
-          ? (state.formLayout.uiConfig.repeatingGroups &&
-              state.formLayout.uiConfig.repeatingGroups[group].editIndex) ??
+          ? (state.formLayout.uiConfig.repeatingGroups && state.formLayout.uiConfig.repeatingGroups[group].editIndex) ??
             undefined
           : undefined;
 
-      const frontendValidations: IValidations = validateGroup(
-        group,
-        state,
-        onlyInRowIndex,
-      );
+      const frontendValidations: IValidations = validateGroup(group, state, onlyInRowIndex);
 
       const options: AxiosRequestConfig = {
         headers: {
@@ -606,11 +527,7 @@ export function* updateRepeatingGroupEditIndexSaga({
         },
       };
 
-      if (
-        !state.applicationMetadata.applicationMetadata ||
-        !state.instanceData.instance ||
-        !state.formLayout.layouts
-      ) {
+      if (!state.applicationMetadata.applicationMetadata || !state.instanceData.instance || !state.formLayout.layouts) {
         yield put(
           FormLayoutActions.updateRepeatingGroupsEditIndexRejected({
             error: null,
@@ -639,22 +556,13 @@ export function* updateRepeatingGroupEditIndexSaga({
         getDataValidationUrl(state.instanceData.instance.id, currentTaskDataId),
         options,
       );
-      const mappedServerValidations: IValidations =
-        mapDataElementValidationToRedux(
-          serverValidations,
-          state.formLayout.layouts,
-          state.textResources.resources,
-        );
-      const combinedValidations = mergeValidationObjects(
-        frontendValidations,
-        mappedServerValidations,
+      const mappedServerValidations: IValidations = mapDataElementValidationToRedux(
+        serverValidations,
+        state.formLayout.layouts,
+        state.textResources.resources,
       );
-      if (
-        canFormBeSaved(
-          { validations: combinedValidations, invalidDataTypes: false },
-          'Complete',
-        )
-      ) {
+      const combinedValidations = mergeValidationObjects(frontendValidations, mappedServerValidations);
+      if (canFormBeSaved({ validations: combinedValidations, invalidDataTypes: false }, 'Complete')) {
         yield put(
           FormLayoutActions.updateRepeatingGroupsEditIndexFulfilled({
             group,
@@ -675,9 +583,7 @@ export function* updateRepeatingGroupEditIndexSaga({
             ...combinedValidations[currentView],
           },
         };
-        yield put(
-          ValidationActions.updateValidations({ validations: newValidations }),
-        );
+        yield put(ValidationActions.updateValidations({ validations: newValidations }));
       }
     } else {
       yield put(
@@ -688,9 +594,7 @@ export function* updateRepeatingGroupEditIndexSaga({
       );
     }
   } catch (error) {
-    yield put(
-      FormLayoutActions.updateRepeatingGroupsEditIndexRejected({ error }),
-    );
+    yield put(FormLayoutActions.updateRepeatingGroupsEditIndexRejected({ error }));
   }
 }
 
@@ -709,10 +613,7 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
   // if any groups have been removed as part of calculation we delete the associated validations
   const currentGroupKeys = Object.keys(currentGroups);
   const groupsToRemoveValidations = currentGroupKeys.filter((key) => {
-    return (
-      currentGroups[key].index > -1 &&
-      (!newGroups[key] || newGroups[key].index === -1)
-    );
+    return currentGroups[key].index > -1 && (!newGroups[key] || newGroups[key].index === -1);
   });
   if (groupsToRemoveValidations.length > 0) {
     let validations = state.formValidations.validations;
@@ -740,21 +641,14 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
 
   newGroupKeys.forEach((key) => {
     const group = newGroups[key];
-    const container = groupContainers.find(
-      (element) => element.id === key,
-    ) as ILayoutGroup;
+    const container = groupContainers.find((element) => element.id === key) as ILayoutGroup;
     if (container && group.index >= 0) {
-      const filteredIndexList = getRepeatingGroupFilteredIndices(
-        formDataState.formData,
-        container.edit?.filter,
-      );
+      const filteredIndexList = getRepeatingGroupFilteredIndices(formDataState.formData, container.edit?.filter);
 
       if (container.edit?.openByDefault === 'first') {
         group.editIndex = filteredIndexList ? filteredIndexList[0] : 0;
       } else if (container.edit?.openByDefault === 'last') {
-        group.editIndex = filteredIndexList
-          ? filteredIndexList.at(-1)
-          : group.index;
+        group.editIndex = filteredIndexList ? filteredIndexList.at(-1) : group.index;
       }
     }
   });
@@ -764,10 +658,7 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
     .filter((key) => !groupsToRemoveValidations.includes(key))
     .forEach((key) => {
       const current = currentGroups[key];
-      if (
-        current.editIndex !== undefined &&
-        newGroups[key]?.index >= current.editIndex
-      ) {
+      if (current.editIndex !== undefined && newGroups[key]?.index >= current.editIndex) {
         newGroups[key].editIndex = currentGroups[key].editIndex;
       }
     });
@@ -782,11 +673,7 @@ export function* watchInitRepeatingGroupsSaga(): SagaIterator {
   yield take(FormLayoutActions.fetchFulfilled);
   yield call(initRepeatingGroupsSaga);
   yield takeLatest(
-    [
-      FormDataActions.fetchFulfilled,
-      FormLayoutActions.initRepeatingGroups,
-      FormLayoutActions.fetchFulfilled,
-    ],
+    [FormDataActions.fetchFulfilled, FormLayoutActions.initRepeatingGroups, FormLayoutActions.fetchFulfilled],
     initRepeatingGroupsSaga,
   );
 }
@@ -800,8 +687,7 @@ export function* updateFileUploaderWithTagEditIndexSaga({
       const state: IRuntimeState = yield select();
       const chosenOption =
         state.formLayout.uiConfig.fileUploadersWithTag &&
-        state.formLayout.uiConfig.fileUploadersWithTag[componentId]
-          ?.chosenOptions[attachmentId];
+        state.formLayout.uiConfig.fileUploadersWithTag[componentId]?.chosenOptions[attachmentId];
       if (chosenOption && chosenOption !== '') {
         yield put(
           FormLayoutActions.updateFileUploaderWithTagEditIndexFulfilled({
@@ -827,9 +713,7 @@ export function* updateFileUploaderWithTagEditIndexSaga({
       );
     }
   } catch (error) {
-    yield put(
-      FormLayoutActions.updateFileUploaderWithTagEditIndexRejected({ error }),
-    );
+    yield put(FormLayoutActions.updateFileUploaderWithTagEditIndexRejected({ error }));
   }
 }
 
@@ -842,22 +726,17 @@ export function* updateFileUploaderWithTagChosenOptionsSaga({
     const currentView = state.formLayout.uiConfig.currentView;
     const component =
       state.formLayout.layouts &&
-      (state.formLayout.layouts[currentView]?.find(
-        (component) => component.id === baseComponentId,
-      ) as ILayoutCompFileUploadWithTag | undefined);
+      (state.formLayout.layouts[currentView]?.find((component) => component.id === baseComponentId) as
+        | ILayoutCompFileUploadWithTag
+        | undefined);
     const lookupKey =
       component &&
       getOptionLookupKey({
         id: component?.optionsId,
         mapping: component?.mapping,
       });
-    const componentOptions =
-      typeof lookupKey === 'string' &&
-      state.optionState.options[lookupKey]?.options;
-    if (
-      componentOptions &&
-      componentOptions.find((op) => op.value === option.value)
-    ) {
+    const componentOptions = typeof lookupKey === 'string' && state.optionState.options[lookupKey]?.options;
+    if (componentOptions && componentOptions.find((op) => op.value === option.value)) {
       yield put(
         FormLayoutActions.updateFileUploaderWithTagChosenOptionsFulfilled({
           componentId,
@@ -900,17 +779,11 @@ export function* mapFileUploaderWithTagSaga(): SagaIterator {
 }
 
 export function* watchMapFileUploaderWithTagSaga(): SagaIterator {
-  yield all([
-    take(FormLayoutActions.fetchFulfilled),
-    take(AttachmentActions.mapAttachmentsFulfilled),
-  ]);
+  yield all([take(FormLayoutActions.fetchFulfilled), take(AttachmentActions.mapAttachmentsFulfilled)]);
   yield call(mapFileUploaderWithTagSaga);
 
   yield takeLatest(
-    [
-      AttachmentActions.mapAttachmentsFulfilled,
-      FormLayoutActions.fetchFulfilled,
-    ],
+    [AttachmentActions.mapAttachmentsFulfilled, FormLayoutActions.fetchFulfilled],
     mapFileUploaderWithTagSaga,
   );
 }

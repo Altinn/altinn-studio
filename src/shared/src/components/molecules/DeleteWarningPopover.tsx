@@ -1,11 +1,6 @@
 import * as React from 'react';
 
-import {
-  Button,
-  ButtonVariant,
-  PanelVariant,
-  PopoverPanel,
-} from '@altinn/altinn-design-system';
+import { Button, ButtonVariant, PanelVariant, PopoverPanel } from '@altinn/altinn-design-system';
 import { makeStyles } from '@material-ui/core';
 import type { ILanguage } from '../../types';
 import { getLanguageFromKey } from '../../utils/language';

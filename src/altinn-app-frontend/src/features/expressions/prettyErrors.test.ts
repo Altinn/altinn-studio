@@ -7,9 +7,7 @@ describe('prettyErrors', () => {
         input: 'hello world',
         errors: { '': ['Some error message'] },
       }),
-    ).toEqual(
-      ['"hello world"', '~~~~~~~~~~~~~', '→ Some error message'].join('\n'),
-    );
+    ).toEqual(['"hello world"', '~~~~~~~~~~~~~', '→ Some error message'].join('\n'));
   });
   it('should pretty-print multiple errors', () => {
     expect(
@@ -19,14 +17,7 @@ describe('prettyErrors', () => {
           '': ['Some error message', 'some other message'],
         },
       }),
-    ).toEqual(
-      [
-        '"hello world"',
-        '~~~~~~~~~~~~~',
-        '→ Some error message',
-        '→ some other message',
-      ].join('\n'),
-    );
+    ).toEqual(['"hello world"', '~~~~~~~~~~~~~', '→ Some error message', '→ some other message'].join('\n'));
   });
   it('should pretty-print errors inside a simple array', () => {
     expect(

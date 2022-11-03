@@ -20,10 +20,7 @@ import {
 } from 'src/selectors/simpleSelectors';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
-import {
-  getCurrentTaskDataElementId,
-  getDataTypeByLayoutSetId,
-} from 'src/utils/appMetadata';
+import { getCurrentTaskDataElementId, getDataTypeByLayoutSetId } from 'src/utils/appMetadata';
 import * as appUrlHelper from 'src/utils/appUrlHelper';
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import type { ILayoutSets } from 'src/types';
@@ -53,23 +50,13 @@ describe('fetchFormDataSagas', () => {
     const appMetadata = appMetaDataSelector(mockInitialState);
     const instance = instanceDataSelector(mockInitialState);
     const layoutSets: ILayoutSets = { sets: [] };
-    const taskId = getCurrentTaskDataElementId(
-      appMetadata,
-      instance,
-      layoutSets,
-    ) as string;
+    const taskId = getCurrentTaskDataElementId(appMetadata, instance, layoutSets) as string;
     const url = appUrlHelper.getFetchFormDataUrl(instance?.id || '', taskId);
 
     expectSaga(fetchFormDataSaga)
       .provide([
-        [
-          select(appMetaDataSelector),
-          { ...mockInitialState.applicationMetadata.applicationMetadata },
-        ],
-        [
-          select(instanceDataSelector),
-          { ...mockInitialState.instanceData.instance },
-        ],
+        [select(appMetaDataSelector), { ...mockInitialState.applicationMetadata.applicationMetadata }],
+        [select(instanceDataSelector), { ...mockInitialState.instanceData.instance }],
         [call(networking.get, url), mockFormData],
       ])
       .put(FormDataActions.fetchFulfilled({ formData: flattenedFormData }))
@@ -113,23 +100,13 @@ describe('fetchFormDataSagas', () => {
     const appMetadata = appMetaDataSelector(mockInitialState);
     const instance = instanceDataSelector(mockInitialState);
     const layoutSets: ILayoutSets = { sets: [] };
-    const taskId = getCurrentTaskDataElementId(
-      appMetadata,
-      instance,
-      layoutSets,
-    ) as string;
+    const taskId = getCurrentTaskDataElementId(appMetadata, instance, layoutSets) as string;
     const url = appUrlHelper.getFetchFormDataUrl(instance?.id || '', taskId);
 
     expectSaga(fetchFormDataInitialSaga)
       .provide([
-        [
-          select(appMetaDataSelector),
-          { ...mockInitialState.applicationMetadata.applicationMetadata },
-        ],
-        [
-          select(instanceDataSelector),
-          { ...mockInitialState.instanceData.instance },
-        ],
+        [select(appMetaDataSelector), { ...mockInitialState.applicationMetadata.applicationMetadata }],
+        [select(instanceDataSelector), { ...mockInitialState.instanceData.instance }],
         [call(networking.get, url), mockFormData],
       ])
       .put(FormDataActions.fetchFulfilled({ formData: flattenedFormData }))
@@ -186,10 +163,7 @@ describe('fetchFormDataSagas', () => {
       ],
     };
 
-    const dataType = getDataTypeByLayoutSetId(
-      'stateless',
-      mockLayoutSets,
-    ) as string;
+    const dataType = getDataTypeByLayoutSetId('stateless', mockLayoutSets) as string;
     const url = appUrlHelper.getStatelessFormDataUrl(dataType);
     const options = {
       headers: {
@@ -226,10 +200,7 @@ describe('fetchFormDataSagas', () => {
       ],
     };
 
-    const dataType = getDataTypeByLayoutSetId(
-      'stateless',
-      mockLayoutSets,
-    ) as string;
+    const dataType = getDataTypeByLayoutSetId('stateless', mockLayoutSets) as string;
     const url = appUrlHelper.getStatelessFormDataUrl(dataType);
     const options = {};
 

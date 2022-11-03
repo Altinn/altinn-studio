@@ -48,9 +48,7 @@ describe('MapComponent', () => {
     });
 
     expect(screen.queryByText('No selected location')).not.toBeInTheDocument();
-    expect(
-      screen.queryByText('Selected location: 59.2641592,10.4036248'),
-    ).toBeInTheDocument();
+    expect(screen.queryByText('Selected location: 59.2641592,10.4036248')).toBeInTheDocument();
   });
 
   it('should mark map component with validation error when validation fails', () => {

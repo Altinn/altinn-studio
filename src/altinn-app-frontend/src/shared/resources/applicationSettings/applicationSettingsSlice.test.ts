@@ -18,12 +18,7 @@ describe('applicationSettingsSlice', () => {
     const mockSettings: IFetchApplicationSettingsFulfilled = {
       settings: { appOidcProvider: 'test' },
     };
-    const nextState = slice.reducer(
-      state,
-      ApplicationSettingsActions.fetchApplicationSettingsFulfilled(
-        mockSettings,
-      ),
-    );
+    const nextState = slice.reducer(state, ApplicationSettingsActions.fetchApplicationSettingsFulfilled(mockSettings));
     expect(nextState.applicationSettings).toEqual(mockSettings.settings);
   });
 
@@ -31,10 +26,7 @@ describe('applicationSettingsSlice', () => {
     const mockError: IFetchApplicationSettingsRejected = {
       error: new Error('mock'),
     };
-    const nextState = slice.reducer(
-      state,
-      ApplicationSettingsActions.fetchApplicationSettingsRejected(mockError),
-    );
+    const nextState = slice.reducer(state, ApplicationSettingsActions.fetchApplicationSettingsRejected(mockError));
     expect(nextState.error).toEqual(mockError.error);
   });
 });

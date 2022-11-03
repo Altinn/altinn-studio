@@ -23,10 +23,7 @@ export default function AltinnTableRow(props: IAltinnTableRow & TableRowProps) {
   return (
     <TableRow
       {...tableProps}
-      className={cn(
-        { [classes.tableRowError]: valid === false },
-        tableProps.className,
-      )}
+      className={cn({ [classes.tableRowError]: valid === false }, tableProps.className)}
     >
       {children}
     </TableRow>

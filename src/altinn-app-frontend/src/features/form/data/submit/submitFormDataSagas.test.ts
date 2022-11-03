@@ -1,27 +1,13 @@
-import {
-  getFormDataStateMock,
-  getInitialStateMock,
-  getInstanceDataStateMock,
-} from '__mocks__/mocks';
+import { getFormDataStateMock, getInitialStateMock, getInstanceDataStateMock } from '__mocks__/mocks';
 import { call, select } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
 
 import { FormDataActions } from 'src/features/form/data/formDataSlice';
-import {
-  putFormData,
-  saveFormDataSaga,
-  saveStatelessData,
-} from 'src/features/form/data/submit/submitFormDataSagas';
+import { putFormData, saveFormDataSaga, saveStatelessData } from 'src/features/form/data/submit/submitFormDataSagas';
 import { FormDynamicsActions } from 'src/features/form/dynamics/formDynamicsSlice';
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
-import {
-  getCurrentDataTypeForApplication,
-  getCurrentTaskDataElementId,
-} from 'src/utils/appMetadata';
-import {
-  dataElementUrl,
-  getStatelessFormDataUrl,
-} from 'src/utils/appUrlHelper';
+import { getCurrentDataTypeForApplication, getCurrentTaskDataElementId } from 'src/utils/appMetadata';
+import { dataElementUrl, getStatelessFormDataUrl } from 'src/utils/appUrlHelper';
 import { convertDataBindingToModel } from 'src/utils/databindings';
 import { post } from 'src/utils/networking';
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
@@ -113,8 +99,7 @@ describe('submitFormDataSagas', () => {
       applicationMetadata: {
         ...stateMock.applicationMetadata,
         applicationMetadata: {
-          ...(stateMock.applicationMetadata
-            .applicationMetadata as IApplicationMetadata),
+          ...(stateMock.applicationMetadata.applicationMetadata as IApplicationMetadata),
           onEntry: { show: 'stateless' },
         },
       },
@@ -205,8 +190,7 @@ describe('submitFormDataSagas', () => {
       applicationMetadata: {
         ...stateMock.applicationMetadata,
         applicationMetadata: {
-          ...(stateMock.applicationMetadata
-            .applicationMetadata as IApplicationMetadata),
+          ...(stateMock.applicationMetadata.applicationMetadata as IApplicationMetadata),
           onEntry: { show: 'stateless' },
         },
       },

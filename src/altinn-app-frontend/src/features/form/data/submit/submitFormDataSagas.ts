@@ -10,21 +10,9 @@ import { ValidationActions } from 'src/features/form/validation/validationSlice'
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import { ProcessActions } from 'src/shared/resources/process/processSlice';
 import { Severity } from 'src/types';
-import {
-  getCurrentDataTypeForApplication,
-  getCurrentTaskDataElementId,
-  isStatelessApp,
-} from 'src/utils/appMetadata';
-import {
-  dataElementUrl,
-  getStatelessFormDataUrl,
-  getValidationUrl,
-} from 'src/utils/appUrlHelper';
-import {
-  convertDataBindingToModel,
-  convertModelToDataBinding,
-  filterOutInvalidData,
-} from 'src/utils/databindings';
+import { getCurrentDataTypeForApplication, getCurrentTaskDataElementId, isStatelessApp } from 'src/utils/appMetadata';
+import { dataElementUrl, getStatelessFormDataUrl, getValidationUrl } from 'src/utils/appUrlHelper';
+import { convertDataBindingToModel, convertModelToDataBinding, filterOutInvalidData } from 'src/utils/databindings';
 import { post } from 'src/utils/networking';
 import {
   canFormBeSaved,
@@ -33,38 +21,22 @@ import {
   mergeValidationObjects,
   runClientSideValidation,
 } from 'src/utils/validation';
-import type {
-  ISubmitDataAction,
-  IUpdateFormDataFulfilled,
-} from 'src/features/form/data/formDataTypes';
+import type { ISubmitDataAction, IUpdateFormDataFulfilled } from 'src/features/form/data/formDataTypes';
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
-import type {
-  IRuntimeState,
-  IRuntimeStore,
-  IUiConfig,
-  IValidationIssue,
-} from 'src/types';
+import type { IRuntimeState, IRuntimeStore, IUiConfig, IValidationIssue } from 'src/types';
 
 import { get, put } from 'altinn-shared/utils';
 
-const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (
-  store: IRuntimeStore,
-) => store.formLayout;
-const UIConfigSelector: (store: IRuntimeStore) => IUiConfig = (
-  store: IRuntimeStore,
-) => store.formLayout.uiConfig;
+const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (store: IRuntimeStore) => store.formLayout;
+const UIConfigSelector: (store: IRuntimeStore) => IUiConfig = (store: IRuntimeStore) => store.formLayout.uiConfig;
 
 export function* submitFormSaga({
   payload: { apiMode, stopWithWarnings },
 }: PayloadAction<ISubmitDataAction>): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
-    const {
-      model,
-      validationResult,
-      componentSpecificValidations,
-      emptyFieldsValidations,
-    } = runClientSideValidation(state);
+    const { model, validationResult, componentSpecificValidations, emptyFieldsValidations } =
+      runClientSideValidation(state);
 
     validationResult.validations = mergeValidationObjects(
       validationResult.validations,
@@ -88,10 +60,7 @@ export function* submitFormSaga({
   }
 }
 
-function* submitComplete(
-  state: IRuntimeState,
-  stopWithWarnings: boolean | undefined,
-) {
+function* submitComplete(state: IRuntimeState, stopWithWarnings: boolean | undefined) {
   // run validations against the datamodel
   const instanceId = state.instanceData.instance?.id;
   const serverValidation: IValidationIssue[] | undefined = instanceId
@@ -105,14 +74,9 @@ function* submitComplete(
     layoutState.layouts,
     state.textResources.resources,
   );
-  yield sagaPut(
-    ValidationActions.updateValidations({ validations: mappedValidations }),
-  );
+  yield sagaPut(ValidationActions.updateValidations({ validations: mappedValidations }));
   const hasErrors = hasValidationsOfSeverity(mappedValidations, Severity.Error);
-  const hasWarnings = hasValidationsOfSeverity(
-    mappedValidations,
-    Severity.Warning,
-  );
+  const hasWarnings = hasValidationsOfSeverity(mappedValidations, Severity.Warning);
   if (hasErrors || (stopWithWarnings && hasWarnings)) {
     // we have validation errors or warnings that should be shown, do not submit
     return yield sagaPut(FormDataActions.submitRejected({ error: null }));
@@ -128,12 +92,7 @@ function* submitComplete(
   return yield sagaPut(ProcessActions.complete());
 }
 
-export function* putFormData({
-  state,
-  model,
-  field,
-  componentId,
-}: SaveDataParams) {
+export function* putFormData({ state, model, field, componentId }: SaveDataParams) {
   // updates the default data element
   const defaultDataElementGuid = getCurrentTaskDataElementId(
     state.applicationMetadata.applicationMetadata,
@@ -144,8 +103,7 @@ export function* putFormData({
     const options: AxiosRequestConfig = {
       headers: {
         'X-DataField': (field && encodeURIComponent(field)) || 'undefined',
-        'X-ComponentId':
-          (componentId && encodeURIComponent(componentId)) || 'undefined',
+        'X-ComponentId': (componentId && encodeURIComponent(componentId)) || 'undefined',
       },
     };
     if (defaultDataElementGuid) {
@@ -229,18 +187,12 @@ interface SaveDataParams {
   componentId?: string;
 }
 
-export function* saveStatelessData({
-  state,
-  model,
-  field,
-  componentId,
-}: SaveDataParams) {
+export function* saveStatelessData({ state, model, field, componentId }: SaveDataParams) {
   const allowAnonymous = yield select(makeGetAllowAnonymousSelector());
   let options: AxiosRequestConfig = {
     headers: {
       'X-DataField': (field && encodeURIComponent(field)) || 'undefined',
-      'X-ComponentId':
-        (componentId && encodeURIComponent(componentId)) || 'undefined',
+      'X-ComponentId': (componentId && encodeURIComponent(componentId)) || 'undefined',
     },
   };
   if (!allowAnonymous) {
@@ -259,12 +211,7 @@ export function* saveStatelessData({
     layoutSets: state.formLayout.layoutsets,
   });
   if (currentDataType) {
-    const response = yield call(
-      post,
-      getStatelessFormDataUrl(currentDataType, allowAnonymous),
-      options,
-      model,
-    );
+    const response = yield call(post, getStatelessFormDataUrl(currentDataType, allowAnonymous), options, model);
     const formData = convertModelToDataBinding(response?.data);
     yield sagaPut(FormDataActions.fetchFulfilled({ formData }));
     yield sagaPut(FormDynamicsActions.checkIfConditionalRulesShouldRun({}));

@@ -1,10 +1,6 @@
 import type { ITextResource } from 'src/types';
 
-import {
-  getParsedLanguageFromKey,
-  getParsedLanguageFromText,
-  getTextResourceByKey,
-} from 'altinn-shared/utils';
+import { getParsedLanguageFromKey, getParsedLanguageFromText, getTextResourceByKey } from 'altinn-shared/utils';
 import type { ILanguage } from 'altinn-shared/types';
 
 export function getTextFromAppOrDefault(
@@ -28,10 +24,7 @@ export function getTextFromAppOrDefault(
   params?: string[],
   stringOutput?: boolean,
 ): any {
-  const textResource: string | undefined = getTextResourceByKey(
-    key,
-    textResources,
-  );
+  const textResource: string | undefined = getTextResourceByKey(key, textResources);
   if (textResource !== key && textResource !== undefined) {
     if (stringOutput) {
       return textResource;

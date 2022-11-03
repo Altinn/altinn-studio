@@ -95,10 +95,7 @@ export function RepeatingGroupAddButton({
             {`${getLanguageFromKey('general.add_new', language)}
             ${
               container.textResourceBindings?.add_button
-                ? getTextResourceByKey(
-                    container.textResourceBindings.add_button,
-                    textResources,
-                  )
+                ? getTextResourceByKey(container.textResourceBindings.add_button, textResources)
                 : ''
             }`}
           </span>

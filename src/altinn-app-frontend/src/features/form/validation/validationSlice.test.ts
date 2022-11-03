@@ -1,13 +1,6 @@
-import slice, {
-  initialState,
-  ValidationActions,
-} from 'src/features/form/validation/validationSlice';
+import slice, { initialState, ValidationActions } from 'src/features/form/validation/validationSlice';
 import type { IValidationState } from 'src/features/form/validation/validationSlice';
-import type {
-  IComponentValidations,
-  ICurrentSingleFieldValidation,
-  IValidations,
-} from 'src/types';
+import type { IComponentValidations, ICurrentSingleFieldValidation, IValidations } from 'src/types';
 
 describe('validationSlice', () => {
   let state: IValidationState;
@@ -46,10 +39,7 @@ describe('validationSlice', () => {
   });
 
   it('handles runSingleFieldValidationRejected action', () => {
-    const nextState = slice.reducer(
-      state,
-      ValidationActions.runSingleFieldValidationRejected({ error: mockError }),
-    );
+    const nextState = slice.reducer(state, ValidationActions.runSingleFieldValidationRejected({ error: mockError }));
     expect(nextState.error).toEqual(mockError);
   });
 
@@ -60,9 +50,7 @@ describe('validationSlice', () => {
         ...mockSingleFieldValidationField,
       }),
     );
-    expect(nextState.currentSingleFieldValidation).toEqual(
-      mockSingleFieldValidationField,
-    );
+    expect(nextState.currentSingleFieldValidation).toEqual(mockSingleFieldValidationField);
   });
 
   it('handles updateComponentValidations action', () => {

@@ -15,11 +15,7 @@ import {
 } from 'src/selectors/simpleSelectors';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
-import {
-  getCurrentTaskDataElementId,
-  getDataTypeByLayoutSetId,
-  isStatelessApp,
-} from 'src/utils/appMetadata';
+import { getCurrentTaskDataElementId, getDataTypeByLayoutSetId, isStatelessApp } from 'src/utils/appMetadata';
 import {
   getFetchFormDataUrl,
   getStatelessFormDataUrl,
@@ -39,21 +35,12 @@ import type { IInstance } from 'altinn-shared/types';
 export function* fetchFormDataSaga(): SagaIterator {
   try {
     // This is a temporary solution for the "one task - one datamodel - process"
-    const applicationMetadata: IApplicationMetadata = yield select(
-      appMetaDataSelector,
-    );
+    const applicationMetadata: IApplicationMetadata = yield select(appMetaDataSelector);
     const instance: IInstance = yield select(instanceDataSelector);
     const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
-    const currentTaskDataElementId = getCurrentTaskDataElementId(
-      applicationMetadata,
-      instance,
-      layoutSets,
-    );
+    const currentTaskDataElementId = getCurrentTaskDataElementId(applicationMetadata, instance, layoutSets);
     if (currentTaskDataElementId) {
-      const fetchedData: any = yield call(
-        get,
-        getFetchFormDataUrl(instance.id, currentTaskDataElementId),
-      );
+      const fetchedData: any = yield call(get, getFetchFormDataUrl(instance.id, currentTaskDataElementId));
       const formData = convertModelToDataBinding(fetchedData);
       yield put(FormDataActions.fetchFulfilled({ formData }));
     } else {
@@ -67,9 +54,7 @@ export function* fetchFormDataSaga(): SagaIterator {
 export function* fetchFormDataInitialSaga(): SagaIterator {
   try {
     // This is a temporary solution for the "one task - one datamodel - process"
-    const applicationMetadata: IApplicationMetadata = yield select(
-      appMetaDataSelector,
-    );
+    const applicationMetadata: IApplicationMetadata = yield select(appMetaDataSelector);
     let fetchedData: any;
     if (isStatelessApp(applicationMetadata)) {
       // stateless app
@@ -78,16 +63,9 @@ export function* fetchFormDataInitialSaga(): SagaIterator {
       // app with instance
       const instance: IInstance = yield select(instanceDataSelector);
       const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
-      const currentTaskDataId = getCurrentTaskDataElementId(
-        applicationMetadata,
-        instance,
-        layoutSets,
-      );
+      const currentTaskDataId = getCurrentTaskDataElementId(applicationMetadata, instance, layoutSets);
       if (currentTaskDataId) {
-        fetchedData = yield call(
-          get,
-          getFetchFormDataUrl(instance.id, currentTaskDataId),
-        );
+        fetchedData = yield call(get, getFetchFormDataUrl(instance.id, currentTaskDataId));
       }
     }
 
@@ -103,10 +81,7 @@ export function* fetchFormDataInitialSaga(): SagaIterator {
 
 function* fetchFormDataStateless(applicationMetadata: IApplicationMetadata) {
   const layoutSets: ILayoutSets = yield select(layoutSetsSelector);
-  const dataType = getDataTypeByLayoutSetId(
-    applicationMetadata.onEntry?.show,
-    layoutSets,
-  );
+  const dataType = getDataTypeByLayoutSetId(applicationMetadata.onEntry?.show, layoutSets);
 
   const allowAnonymous = yield select(makeGetAllowAnonymousSelector());
 
@@ -126,11 +101,7 @@ function* fetchFormDataStateless(applicationMetadata: IApplicationMetadata) {
   }
 
   try {
-    return yield call(
-      get,
-      getStatelessFormDataUrl(dataType, allowAnonymous),
-      options,
-    );
+    return yield call(get, getStatelessFormDataUrl(dataType, allowAnonymous), options);
   } catch (error) {
     if (error?.response?.status === 403 && error.response.data) {
       const reqAuthLevel = error.response.data.RequiredAuthenticationLevel;
@@ -156,19 +127,10 @@ export function* watchFetchFormDataInitialSaga(): SagaIterator {
       yield take(DataModelActions.fetchJsonSchemaFulfilled);
       const allowAnonymous = yield select(makeGetAllowAnonymousSelector());
       if (!allowAnonymous) {
-        yield waitFor(
-          (state) => currentSelectedPartyIdSelector(state) !== undefined,
-        );
+        yield waitFor((state) => currentSelectedPartyIdSelector(state) !== undefined);
       }
-    } else if (
-      !processState ||
-      !instance ||
-      processState.taskId !== instance.process.currentTask?.elementId
-    ) {
-      yield all([
-        take(InstanceDataActions.getFulfilled),
-        take(DataModelActions.fetchJsonSchemaFulfilled),
-      ]);
+    } else if (!processState || !instance || processState.taskId !== instance.process.currentTask?.elementId) {
+      yield all([take(InstanceDataActions.getFulfilled), take(DataModelActions.fetchJsonSchemaFulfilled)]);
     }
     yield call(fetchFormDataInitialSaga);
   }

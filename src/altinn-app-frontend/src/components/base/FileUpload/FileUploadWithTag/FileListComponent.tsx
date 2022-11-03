@@ -126,8 +126,7 @@ const useStyles = makeStyles({
   },
 });
 
-export interface FileListProps
-  extends PropsFromGenericComponent<'FileUploadWithTag'> {
+export interface FileListProps extends PropsFromGenericComponent<'FileUploadWithTag'> {
   attachments: IAttachment[];
   editIndex: number;
   mobileView: boolean;
@@ -159,38 +158,24 @@ export function FileList(props: FileListProps): JSX.Element | null {
       spacing={1}
     >
       <TableContainer component={Grid}>
-        <Table
-          className={!props.mobileView ? classes.table : classes.tableMobile}
-        >
+        <Table className={!props.mobileView ? classes.table : classes.tableMobile}>
           {atleastOneTagExists(props.attachments) && (
             <TableHead className={classes.tableHeader}>
-              <TableRow
-                className={props.mobileView ? classes.mobileTableRow : ''}
-              >
+              <TableRow className={props.mobileView ? classes.mobileTableRow : ''}>
                 <TableCell align='left'>
-                  {getLanguageFromKey(
-                    'form_filler.file_uploader_list_header_name',
-                    props.language,
-                  )}
+                  {getLanguageFromKey('form_filler.file_uploader_list_header_name', props.language)}
                 </TableCell>
                 <TableCell align='left'>
-                  {props.textResourceBindings?.tagTitle &&
-                    props.getTextResource(props.textResourceBindings.tagTitle)}
+                  {props.textResourceBindings?.tagTitle && props.getTextResource(props.textResourceBindings.tagTitle)}
                 </TableCell>
                 {!props.mobileView ? (
                   <TableCell align='left'>
-                    {getLanguageFromKey(
-                      'form_filler.file_uploader_list_header_file_size',
-                      props.language,
-                    )}
+                    {getLanguageFromKey('form_filler.file_uploader_list_header_file_size', props.language)}
                   </TableCell>
                 ) : null}
                 {!props.mobileView ? (
                   <TableCell align='left'>
-                    {getLanguageFromKey(
-                      'form_filler.file_uploader_list_header_status',
-                      props.language,
-                    )}
+                    {getLanguageFromKey('form_filler.file_uploader_list_header_status', props.language)}
                   </TableCell>
                 ) : null}
                 <TableCell />
@@ -200,15 +185,9 @@ export function FileList(props: FileListProps): JSX.Element | null {
           <TableBody className={classes.tableBody}>
             {props.attachments.map((attachment: IAttachment, index: number) => {
               // Check if filter is applied and includes specified index.
-              if (
-                attachment.tags !== undefined &&
-                attachment.tags.length > 0 &&
-                props.editIndex !== index
-              ) {
+              if (attachment.tags !== undefined && attachment.tags.length > 0 && props.editIndex !== index) {
                 const firstTag = attachment.tags[0];
-                const label = props.options?.find(
-                  (option) => option.value === firstTag,
-                )?.label;
+                const label = props.options?.find((option) => option.value === firstTag)?.label;
 
                 return (
                   <TableRow
@@ -230,21 +209,14 @@ export function FileList(props: FileListProps): JSX.Element | null {
                             {attachment.uploaded ? (
                               <div>
                                 {(attachment.size / bytesInOneMB).toFixed(2)}{' '}
-                                {getLanguageFromKey(
-                                  'form_filler.file_uploader_mb',
-                                  props.language,
-                                )}
+                                {getLanguageFromKey('form_filler.file_uploader_mb', props.language)}
                                 <i
                                   className='ai ai-check-circle'
                                   aria-label={getLanguageFromKey(
                                     'form_filler.file_uploader_list_status_done',
                                     props.language,
                                   )}
-                                  style={
-                                    props.mobileView
-                                      ? { marginLeft: '10px' }
-                                      : {}
-                                  }
+                                  style={props.mobileView ? { marginLeft: '10px' } : {}}
                                 />
                               </div>
                             ) : (
@@ -254,10 +226,7 @@ export function FileList(props: FileListProps): JSX.Element | null {
                                   marginBottom: '1.6rem',
                                   marginRight: '1.3rem',
                                 }}
-                                srContent={getLanguageFromKey(
-                                  'general.loading',
-                                  props.language,
-                                )}
+                                srContent={getLanguageFromKey('general.loading', props.language)}
                               />
                             )}
                           </div>
@@ -275,9 +244,7 @@ export function FileList(props: FileListProps): JSX.Element | null {
                         key={`attachment-size-${index}`}
                         className={classes.textContainer}
                       >
-                        {`${(attachment.size / bytesInOneMB).toFixed(
-                          2,
-                        )} ${getLanguageFromKey(
+                        {`${(attachment.size / bytesInOneMB).toFixed(2)} ${getLanguageFromKey(
                           'form_filler.file_uploader_mb',
                           props.language,
                         )}`}
@@ -290,10 +257,7 @@ export function FileList(props: FileListProps): JSX.Element | null {
                       >
                         {attachment.uploaded ? (
                           <div>
-                            {getLanguageFromKey(
-                              'form_filler.file_uploader_list_status_done',
-                              props.language,
-                            )}
+                            {getLanguageFromKey('form_filler.file_uploader_list_status_done', props.language)}
                             <i
                               className='ai ai-check-circle'
                               aria-label={getLanguageFromKey(
@@ -309,10 +273,7 @@ export function FileList(props: FileListProps): JSX.Element | null {
                               marginBottom: '1.6rem',
                               marginRight: '1.3rem',
                             }}
-                            srContent={getLanguageFromKey(
-                              'general.loading',
-                              props.language,
-                            )}
+                            srContent={getLanguageFromKey('general.loading', props.language)}
                           />
                         )}
                       </TableCell>
@@ -328,18 +289,14 @@ export function FileList(props: FileListProps): JSX.Element | null {
                         className={classes.editTextContainer}
                       >
                         {getLanguageFromKey('general.edit_alt', props.language)}
-                        <i
-                          className={`fa fa-editing-file ${classes.editIcon}`}
-                        />
+                        <i className={`fa fa-editing-file ${classes.editIcon}`} />
                       </IconButton>
                     </TableCell>
                   </TableRow>
                 );
               }
               return (
-                <TableRow
-                  key={`altinn-unchosen-option-attachment-row-${index}`}
-                >
+                <TableRow key={`altinn-unchosen-option-attachment-row-${index}`}>
                   <TableCell
                     className={props.mobileView ? classes.fullGrid : ''}
                     colSpan={!props.mobileView ? 5 : undefined}

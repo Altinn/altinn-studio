@@ -15,8 +15,7 @@ export function useDelayedSavedState(
   saveAfter?: number | boolean,
 ): DelayedSavedStateRetVal {
   const [immediateState, setImmediateState] = React.useState(formValue);
-  const [saveNextChangeImmediately, setSaveNextChangeImmediately] =
-    React.useState(false);
+  const [saveNextChangeImmediately, setSaveNextChangeImmediately] = React.useState(false);
 
   React.useEffect(() => {
     setImmediateState(formValue);

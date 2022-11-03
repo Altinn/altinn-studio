@@ -16,10 +16,7 @@ import {
   getDisplayFormDataForComponent,
 } from 'src/utils/formComponentUtils';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
-import type {
-  ILayoutComponent,
-  ILayoutCompSummary,
-} from 'src/features/form/layout';
+import type { ILayoutComponent, ILayoutCompSummary } from 'src/features/form/layout';
 import type { IComponentValidations, IRuntimeState } from 'src/types';
 
 export interface ISummaryComponent extends Omit<ILayoutCompSummary, 'type'> {
@@ -45,26 +42,16 @@ const useStyles = makeStyles({
   },
 });
 
-export function SummaryComponent({
-  id,
-  grid,
-  ...summaryProps
-}: ISummaryComponent) {
+export function SummaryComponent({ id, grid, ...summaryProps }: ISummaryComponent) {
   const { componentRef, display, ...groupProps } = summaryProps;
   const { pageRef, index } = groupProps;
   const classes = useStyles();
   const dispatch = useAppDispatch();
   const GetHiddenSelector = makeGetHidden();
-  const [componentValidations, setComponentValidations] =
-    React.useState<IComponentValidations>({});
-  const [hasValidationMessages, setHasValidationMessages] =
-    React.useState(false);
-  const hidden: boolean = useAppSelector((state) =>
-    GetHiddenSelector(state, { id }),
-  );
-  const summaryPageName = useAppSelector(
-    (state) => state.formLayout.uiConfig.currentView,
-  );
+  const [componentValidations, setComponentValidations] = React.useState<IComponentValidations>({});
+  const [hasValidationMessages, setHasValidationMessages] = React.useState(false);
+  const hidden: boolean = useAppSelector((state) => GetHiddenSelector(state, { id }));
+  const summaryPageName = useAppSelector((state) => state.formLayout.uiConfig.currentView);
   const changeText = useAppSelector(
     (state) =>
       state.language.language &&
@@ -76,23 +63,12 @@ export function SummaryComponent({
         true,
       ),
   );
-  const formValidations = useAppSelector(
-    (state) => state.formValidations.validations,
-  );
-  const layout = useAppSelector(
-    (state) =>
-      state.formLayout.layouts && pageRef && state.formLayout.layouts[pageRef],
-  );
-  const attachments = useAppSelector(
-    (state: IRuntimeState) => state.attachments.attachments,
-  );
+  const formValidations = useAppSelector((state) => state.formValidations.validations);
+  const layout = useAppSelector((state) => state.formLayout.layouts && pageRef && state.formLayout.layouts[pageRef]);
+  const attachments = useAppSelector((state: IRuntimeState) => state.attachments.attachments);
   const _formComponent = useAppSelector((state) => {
     return (
-      (state.formLayout.layouts &&
-        pageRef &&
-        state.formLayout.layouts[pageRef]?.find(
-          (c) => c.id === componentRef,
-        )) ||
+      (state.formLayout.layouts && pageRef && state.formLayout.layouts[pageRef]?.find((c) => c.id === componentRef)) ||
       undefined
     );
   });
@@ -115,8 +91,7 @@ export function SummaryComponent({
       return undefined;
     }
     if (
-      (formComponent?.type === 'FileUpload' ||
-        formComponent?.type === 'FileUploadWithTag') &&
+      (formComponent?.type === 'FileUpload' || formComponent?.type === 'FileUploadWithTag') &&
       Object.keys(formComponent.dataModelBindings || {}).length === 0
     ) {
       return undefined;
@@ -139,13 +114,7 @@ export function SummaryComponent({
     if (titleKey) {
       return (
         state.language.language &&
-        getTextFromAppOrDefault(
-          titleKey,
-          state.textResources.resources,
-          state.language.language,
-          [],
-          false,
-        )
+        getTextFromAppOrDefault(titleKey, state.textResources.resources, state.language.language, [], false)
       );
     }
     return undefined;
@@ -167,15 +136,9 @@ export function SummaryComponent({
 
   React.useEffect(() => {
     if (formComponent && formComponent.type !== 'Group') {
-      const componentId =
-        typeof index === 'number' && index >= 0
-          ? `${componentRef}-${index}`
-          : componentRef;
+      const componentId = typeof index === 'number' && index >= 0 ? `${componentRef}-${index}` : componentRef;
       const validations =
-        (componentId &&
-          pageRef &&
-          getComponentValidations(formValidations, componentId, pageRef)) ||
-        undefined;
+        (componentId && pageRef && getComponentValidations(formValidations, componentId, pageRef)) || undefined;
       setComponentValidations(validations || {});
       setHasValidationMessages(componentHasValidationMessages(validations));
     }
@@ -189,8 +152,7 @@ export function SummaryComponent({
     changeText,
   };
 
-  const displayGrid =
-    display && display.useComponentGrid ? formComponent?.grid : grid;
+  const displayGrid = display && display.useComponentGrid ? formComponent?.grid : grid;
   return (
     <Grid
       item={true}
@@ -225,14 +187,12 @@ export function SummaryComponent({
             spacing={2}
           >
             {Object.keys(componentValidations).map((binding: string) =>
-              componentValidations[binding]?.errors?.map(
-                (validationText: string) => (
-                  <ErrorPaper
-                    key={`key-${validationText}`}
-                    message={validationText}
-                  />
-                ),
-              ),
+              componentValidations[binding]?.errors?.map((validationText: string) => (
+                <ErrorPaper
+                  key={`key-${validationText}`}
+                  message={validationText}
+                />
+              )),
             )}
             <Grid
               item={true}

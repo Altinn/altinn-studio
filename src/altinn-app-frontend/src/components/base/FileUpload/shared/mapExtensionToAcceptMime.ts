@@ -18,9 +18,7 @@ export const mapExtToMimeObject = (ext: string) => {
   };
 };
 
-export const mapExtensionToAcceptMime = ({
-  extensionList,
-}: MapExtensionToAcceptMimeProps) => {
+export const mapExtensionToAcceptMime = ({ extensionList }: MapExtensionToAcceptMimeProps) => {
   if (extensionList.includes(',')) {
     extensionList = (extensionList as string).split(',');
   }

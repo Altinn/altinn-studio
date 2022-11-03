@@ -7,19 +7,13 @@ export function getMockValidationState(withFixed = false): IValidations {
     FormLayout: {
       componentId_1: {
         simpleBinding: {
-          errors: [
-            getTextResourceByKey('Error message 1', []),
-            getTextResourceByKey('Error message 2', []),
-          ],
+          errors: [getTextResourceByKey('Error message 1', []), getTextResourceByKey('Error message 2', [])],
           fixed,
         },
       },
       componentId_2: {
         customBinding: {
-          warnings: [
-            getTextResourceByKey('Warning message 1', []),
-            getTextResourceByKey('Warning message 2', []),
-          ],
+          warnings: [getTextResourceByKey('Warning message 1', []), getTextResourceByKey('Warning message 2', [])],
           fixed,
         },
       },

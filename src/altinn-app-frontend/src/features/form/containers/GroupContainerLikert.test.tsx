@@ -40,13 +40,9 @@ describe('GroupContainerLikert', () => {
         },
       });
       expect(screen.getByText('Test title')).toBeInTheDocument();
-      expect(
-        screen.getByRole('table', { name: 'Test title' }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole('table', { name: 'Test title' })).toBeInTheDocument();
       expect(screen.getByText('Test description')).toBeInTheDocument();
-      expect(
-        screen.getByRole('columnheader', { name: 'Test left column header' }),
-      ).toBeInTheDocument();
+      expect(screen.getByRole('columnheader', { name: 'Test left column header' })).toBeInTheDocument();
     });
 
     it('should render table with one selected row', () => {
@@ -146,18 +142,14 @@ describe('GroupContainerLikert', () => {
       await user.click(btn1);
       expect(mockStoreDispatch).not.toHaveBeenCalled();
       jest.runOnlyPendingTimers();
-      expect(mockStoreDispatch).toHaveBeenCalledWith(
-        createFormDataUpdateAction(0, '1'),
-      );
+      expect(mockStoreDispatch).toHaveBeenCalledWith(createFormDataUpdateAction(0, '1'));
 
       mockStoreDispatch.mockClear();
       expect(btn2).not.toBeChecked();
       await user.click(btn2);
       expect(mockStoreDispatch).not.toHaveBeenCalledTimes(2);
       jest.runOnlyPendingTimers();
-      expect(mockStoreDispatch).toHaveBeenCalledWith(
-        createFormDataUpdateAction(1, '3'),
-      );
+      expect(mockStoreDispatch).toHaveBeenCalledWith(createFormDataUpdateAction(1, '3'));
     });
 
     it('should render standard view and use keyboard to navigate', async () => {
@@ -168,9 +160,7 @@ describe('GroupContainerLikert', () => {
       await user.keyboard('[Space]');
       expect(mockStoreDispatch).not.toHaveBeenCalled();
       jest.runOnlyPendingTimers();
-      expect(mockStoreDispatch).toHaveBeenCalledWith(
-        createFormDataUpdateAction(0, '1'),
-      );
+      expect(mockStoreDispatch).toHaveBeenCalledWith(createFormDataUpdateAction(0, '1'));
     });
 
     it('should support nested binding for question text in data model', async () => {
@@ -209,9 +199,9 @@ describe('GroupContainerLikert', () => {
           },
         },
       });
-      expect(
-        screen.getByRole('table', { name: /Likert test title/i }),
-      ).toHaveAccessibleDescription('This is a test description');
+      expect(screen.getByRole('table', { name: /Likert test title/i })).toHaveAccessibleDescription(
+        'This is a test description',
+      );
     });
   });
   describe('Mobile', () => {
@@ -225,9 +215,9 @@ describe('GroupContainerLikert', () => {
         },
         mobileView: true,
       });
-      expect(
-        screen.getByRole('group', { name: /Likert test title/i }),
-      ).toHaveAccessibleDescription('This is a test description');
+      expect(screen.getByRole('group', { name: /Likert test title/i })).toHaveAccessibleDescription(
+        'This is a test description',
+      );
     });
 
     it('should render mobile view and click radiobuttons', async () => {
@@ -244,9 +234,7 @@ describe('GroupContainerLikert', () => {
       await user.click(btn1);
       expect(mockStoreDispatch).not.toHaveBeenCalled();
       jest.runOnlyPendingTimers();
-      expect(mockStoreDispatch).toHaveBeenCalledWith(
-        createFormDataUpdateAction(0, '1'),
-      );
+      expect(mockStoreDispatch).toHaveBeenCalledWith(createFormDataUpdateAction(0, '1'));
       mockStoreDispatch.mockClear();
 
       const rad2 = screen.getByRole('radiogroup', {
@@ -261,9 +249,7 @@ describe('GroupContainerLikert', () => {
       await user.click(btn2);
       expect(mockStoreDispatch).not.toHaveBeenCalledTimes(2);
       jest.runOnlyPendingTimers();
-      expect(mockStoreDispatch).toHaveBeenCalledWith(
-        createFormDataUpdateAction(1, '3'),
-      );
+      expect(mockStoreDispatch).toHaveBeenCalledWith(createFormDataUpdateAction(1, '3'));
     });
 
     it('should render mobile view with selected values', () => {

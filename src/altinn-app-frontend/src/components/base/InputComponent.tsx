@@ -46,9 +46,7 @@ export function InputComponent({
       isValid={isValid}
       required={required}
       value={value}
-      aria-describedby={
-        textResourceBindings?.description ? `description-${id}` : undefined
-      }
+      aria-describedby={textResourceBindings?.description ? `description-${id}` : undefined}
       formatting={formatting as IInputFormatting}
     />
   );

@@ -20,9 +20,7 @@ describe('CustomWebComponent', () => {
     const screen = render({ tagName: 'test-component' });
     const element = screen.getByTestId('test-component');
     expect(element.id).toEqual('test-component');
-    expect(element.getAttribute('data-CustomAttributeWithJson')).toEqual(
-      JSON.stringify(jsonAttributeValue),
-    );
+    expect(element.getAttribute('data-CustomAttributeWithJson')).toEqual(JSON.stringify(jsonAttributeValue));
   });
 
   it('should render the component with passed props as attributes', () => {

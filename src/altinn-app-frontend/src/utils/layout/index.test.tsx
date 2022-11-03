@@ -56,54 +56,33 @@ describe('shouldUseRowLayout', () => {
 describe('matchLayoutComponent', () => {
   it('should not match a component id that partially contains the tested id', () => {
     expect(
-      matchLayoutComponent(
-        'abc-183d0a1c-5313-45f9-9d02-4d1b0e50b1c8',
-        '183d0a1c-5313-45f9-9d02-4d1b0e50b1c8',
-      ),
+      matchLayoutComponent('abc-183d0a1c-5313-45f9-9d02-4d1b0e50b1c8', '183d0a1c-5313-45f9-9d02-4d1b0e50b1c8'),
     ).toBe(null);
 
     expect(
-      matchLayoutComponent(
-        '183d0a1c-5313-45f9-9d02-4d1b0e50b1c8-abc',
-        '183d0a1c-5313-45f9-9d02-4d1b0e50b1c8',
-      ),
+      matchLayoutComponent('183d0a1c-5313-45f9-9d02-4d1b0e50b1c8-abc', '183d0a1c-5313-45f9-9d02-4d1b0e50b1c8'),
     ).toBe(null);
 
     expect(
-      matchLayoutComponent(
-        '123-183d0a1c-5313-45f9-9d02-4d1b0e50b1c8',
-        '183d0a1c-5313-45f9-9d02-4d1b0e50b1c8',
-      ),
+      matchLayoutComponent('123-183d0a1c-5313-45f9-9d02-4d1b0e50b1c8', '183d0a1c-5313-45f9-9d02-4d1b0e50b1c8'),
     ).toBe(null);
 
-    expect(
-      matchLayoutComponent(
-        '-183d0a1c-5313-45f9-9d02-4d1b0e50b1c8',
-        '183d0a1c-5313-45f9-9d02-4d1b0e50b1c8',
-      ),
-    ).toBe(null);
+    expect(matchLayoutComponent('-183d0a1c-5313-45f9-9d02-4d1b0e50b1c8', '183d0a1c-5313-45f9-9d02-4d1b0e50b1c8')).toBe(
+      null,
+    );
 
-    expect(
-      matchLayoutComponent(
-        '183d0a1c-5313-45f9-9d02-4d1b0e50b1c8-',
-        '183d0a1c-5313-45f9-9d02-4d1b0e50b1c8',
-      ),
-    ).toBe(null);
+    expect(matchLayoutComponent('183d0a1c-5313-45f9-9d02-4d1b0e50b1c8-', '183d0a1c-5313-45f9-9d02-4d1b0e50b1c8')).toBe(
+      null,
+    );
   });
 
   it('should match a component id that contains a postfix with an index in a repeating group', () => {
     expect(
-      matchLayoutComponent(
-        '183d0a1c-5313-45f9-9d02-4d1b0e50b1c8-123',
-        '183d0a1c-5313-45f9-9d02-4d1b0e50b1c8',
-      ),
+      matchLayoutComponent('183d0a1c-5313-45f9-9d02-4d1b0e50b1c8-123', '183d0a1c-5313-45f9-9d02-4d1b0e50b1c8'),
     ).toContain('183d0a1c-5313-45f9-9d02-4d1b0e50b1c8');
 
     expect(
-      matchLayoutComponent(
-        '183d0a1c-5313-45f9-9d02-4d1b0e50b1c8-0',
-        '183d0a1c-5313-45f9-9d02-4d1b0e50b1c8',
-      ),
+      matchLayoutComponent('183d0a1c-5313-45f9-9d02-4d1b0e50b1c8-0', '183d0a1c-5313-45f9-9d02-4d1b0e50b1c8'),
     ).toContain('183d0a1c-5313-45f9-9d02-4d1b0e50b1c8');
   });
 });

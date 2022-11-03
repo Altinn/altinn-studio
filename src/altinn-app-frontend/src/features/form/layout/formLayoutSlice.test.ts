@@ -1,7 +1,4 @@
-import slice, {
-  FormLayoutActions,
-  initialState,
-} from 'src/features/form/layout/formLayoutSlice';
+import slice, { FormLayoutActions, initialState } from 'src/features/form/layout/formLayoutSlice';
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
 
 describe('layoutSlice', () => {
@@ -86,9 +83,7 @@ describe('layoutSlice', () => {
 
     it('should set currentView to cached key in localStorage if key exists in settings.pages.order', () => {
       jest.spyOn(window.localStorage.__proto__, 'getItem');
-      window.localStorage.__proto__.getItem = jest
-        .fn()
-        .mockReturnValue('page2');
+      window.localStorage.__proto__.getItem = jest.fn().mockReturnValue('page2');
 
       const settings = {
         pages: {
@@ -113,9 +108,7 @@ describe('layoutSlice', () => {
 
     it('should set currentView to first page in settings.pages.order if key is cached in localStorage but does not exist in order', () => {
       jest.spyOn(window.localStorage.__proto__, 'getItem');
-      window.localStorage.__proto__.getItem = jest
-        .fn()
-        .mockReturnValue('page3');
+      window.localStorage.__proto__.getItem = jest.fn().mockReturnValue('page3');
 
       const settings = {
         pages: {

@@ -1,10 +1,6 @@
 import React from 'react';
 
-import {
-  getFormDataStateMock,
-  getFormLayoutStateMock,
-  getInitialStateMock,
-} from '__mocks__/mocks';
+import { getFormDataStateMock, getFormLayoutStateMock, getInitialStateMock } from '__mocks__/mocks';
 import { screen } from '@testing-library/react';
 import { mockComponentProps, renderWithProviders } from 'testUtils';
 
@@ -80,9 +76,7 @@ describe('GenericComponent', () => {
     render({ type: 'Input' });
 
     expect(screen.getByRole('textbox')).toBeInTheDocument();
-    expect(
-      screen.queryByText(/unknown component type/i),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/unknown component type/i)).not.toBeInTheDocument();
   });
 
   it('should render description and label when textResourceBindings includes description and title', () => {

@@ -26,9 +26,7 @@ const render = ({ props = {} }) => {
       <Routes>
         <Route
           path={'/'}
-          element={
-            <InstantiationButton {...allProps}>Instantiate</InstantiationButton>
-          }
+          element={<InstantiationButton {...allProps}>Instantiate</InstantiationButton>}
         />
         <Route
           path='/instance/abc123'
@@ -66,8 +64,6 @@ describe('InstantiationButton', () => {
       mockAxios.mockResponse({ data: { id: 'abc123' } });
     });
 
-    expect(
-      screen.getByText('You are now looking at the instance'),
-    ).toBeInTheDocument();
+    expect(screen.getByText('You are now looking at the instance')).toBeInTheDocument();
   });
 });

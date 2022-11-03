@@ -6,9 +6,7 @@ export class DataBinding {
   public readonly parts: DataBindingPart[];
 
   public constructor(public readonly binding: string) {
-    this.parts = binding
-      .split('.')
-      .map((part, index) => new DataBindingPart(this, index, part));
+    this.parts = binding.split('.').map((part, index) => new DataBindingPart(this, index, part));
   }
 
   public at(index: number): DataBindingPart | undefined {
@@ -24,16 +22,10 @@ export class DataBindingPart {
   public readonly base: string;
   public arrayIndex: number | undefined = undefined;
 
-  public constructor(
-    public readonly parent: DataBinding,
-    public readonly parentIndex: number,
-    raw: string,
-  ) {
+  public constructor(public readonly parent: DataBinding, public readonly parentIndex: number, raw: string) {
     const arrayIndex = raw.match(/(\[\d+])?$/);
     if (arrayIndex && arrayIndex[1]) {
-      this.arrayIndex = parseInt(
-        arrayIndex[1].substring(1, arrayIndex[1].length - 1),
-      );
+      this.arrayIndex = parseInt(arrayIndex[1].substring(1, arrayIndex[1].length - 1));
       this.base = raw.substring(0, raw.length - arrayIndex[1].length);
     } else {
       this.base = raw;

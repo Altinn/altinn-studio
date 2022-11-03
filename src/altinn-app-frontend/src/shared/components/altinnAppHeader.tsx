@@ -9,10 +9,7 @@ import { AltinnLogo } from 'altinn-shared/components';
 import { LandmarkShortcuts } from 'altinn-shared/components/LandmarkShortcuts';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { getLanguageFromKey, returnUrlToMessagebox } from 'altinn-shared/utils';
-import {
-  returnUrlToAllSchemas,
-  returnUrlToProfile,
-} from 'altinn-shared/utils/urlHelper';
+import { returnUrlToAllSchemas, returnUrlToProfile } from 'altinn-shared/utils/urlHelper';
 import type { ILanguage, IProfile } from 'altinn-shared/types';
 
 export interface IHeaderProps {
@@ -144,14 +141,7 @@ const AltinnAppHeader = ({ type, profile, language }: IHeaderProps) => {
           {type && party && (
             <ul className={classes.headerLinkList}>
               <li className={classes.headerLink}>
-                <a
-                  href={
-                    returnUrlToMessagebox(
-                      window.location.origin,
-                      party?.partyId,
-                    ) || '#'
-                  }
-                >
+                <a href={returnUrlToMessagebox(window.location.origin, party?.partyId) || '#'}>
                   {getLanguageFromKey('instantiate.inbox', language)}
                 </a>
               </li>
@@ -161,14 +151,7 @@ const AltinnAppHeader = ({ type, profile, language }: IHeaderProps) => {
                 </a>
               </li>
               <li className={classes.headerLink}>
-                <a
-                  href={
-                    returnUrlToProfile(
-                      window.location.origin,
-                      party?.partyId,
-                    ) || '#'
-                  }
-                >
+                <a href={returnUrlToProfile(window.location.origin, party?.partyId) || '#'}>
                   {getLanguageFromKey('instantiate.profile', language)}
                 </a>
               </li>
@@ -185,16 +168,11 @@ const AltinnAppHeader = ({ type, profile, language }: IHeaderProps) => {
               >
                 {!type && (
                   <>
-                    <span className={`d-block ${blueClass}`}>
-                      {renderParty(profile)}
-                    </span>
+                    <span className={`d-block ${blueClass}`}>{renderParty(profile)}</span>
                     <span className={blueClass}>
                       {party &&
                         party.organisation &&
-                        `${getLanguageFromKey(
-                          'general.for',
-                          language,
-                        )} ${party.organisation.name.toUpperCase()}`}
+                        `${getLanguageFromKey('general.for', language)} ${party.organisation.name.toUpperCase()}`}
                     </span>
                   </>
                 )}

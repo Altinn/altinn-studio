@@ -40,17 +40,12 @@ export function checkIfRuleShouldRun(
     if (shouldRunFunction) {
       const objectToUpdate = (window as any).ruleHandlerHelper[functionToRun]();
       if (Object.keys(objectToUpdate).length >= 1) {
-        const newObj = Object.keys(objectToUpdate).reduce(
-          (acc: any, elem: any) => {
-            const inputParamBinding = connectionDef.inputParams[elem];
+        const newObj = Object.keys(objectToUpdate).reduce((acc: any, elem: any) => {
+          const inputParamBinding = connectionDef.inputParams[elem];
 
-            acc[elem] =
-              formDataState.formData &&
-              formDataState.formData[inputParamBinding];
-            return acc;
-          },
-          {},
-        );
+          acc[elem] = formDataState.formData && formDataState.formData[inputParamBinding];
+          return acc;
+        }, {});
         const result = (window as any).ruleHandlerObject[functionToRun](newObj);
         const updatedDataBinding = connectionDef.outParams.outParam0;
         let updatedComponent: string | undefined = undefined;
@@ -62,13 +57,10 @@ export function checkIfRuleShouldRun(
             }
             let ruleDataBindingKey: string | undefined = undefined;
             if (layoutElement.dataModelBindings) {
-              ruleDataBindingKey = Object.keys(
-                layoutElement.dataModelBindings,
-              ).find((dataBindingKey) => {
+              ruleDataBindingKey = Object.keys(layoutElement.dataModelBindings).find((dataBindingKey) => {
                 return (
                   layoutElement.dataModelBindings &&
-                  layoutElement.dataModelBindings[dataBindingKey] ===
-                    connectionDef.outParams.outParam0
+                  layoutElement.dataModelBindings[dataBindingKey] === connectionDef.outParams.outParam0
                 );
               });
             }
@@ -113,16 +105,14 @@ export function getRuleModelFields() {
     ruleModelFields.push(innerFuncObj);
   });
 
-  Object.keys(windowObj.conditionalRuleHandlerObject).forEach(
-    (functionName) => {
-      const innerFuncObj = {
-        name: functionName,
-        inputs: (window as any).conditionalRuleHandlerHelper[functionName](),
-        type: 'condition',
-      };
-      ruleModelFields.push(innerFuncObj);
-    },
-  );
+  Object.keys(windowObj.conditionalRuleHandlerObject).forEach((functionName) => {
+    const innerFuncObj = {
+      name: functionName,
+      inputs: (window as any).conditionalRuleHandlerHelper[functionName](),
+      type: 'condition',
+    };
+    ruleModelFields.push(innerFuncObj);
+  });
 
   return ruleModelFields;
 }

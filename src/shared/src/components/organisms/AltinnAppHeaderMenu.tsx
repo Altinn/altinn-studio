@@ -57,9 +57,7 @@ function AltinnAppHeaderMenu(props: IAltinnAppHeaderMenuProps) {
         id='profile-icon-button'
       >
         <AltinnIcon
-          iconClass={`fa ${
-            party.orgNumber ? 'fa-corp-circle-big' : 'fa-private-circle-big'
-          }`}
+          iconClass={`fa ${party.orgNumber ? 'fa-corp-circle-big' : 'fa-private-circle-big'}`}
           iconColor={logoColor}
           iconSize={31}
         />

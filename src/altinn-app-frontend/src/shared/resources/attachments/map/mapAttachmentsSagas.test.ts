@@ -13,15 +13,8 @@ import {
   SelectInstance,
   SelectInstanceData,
 } from 'src/shared/resources/attachments/map/mapAttachmentsSagas';
-import type {
-  ILayoutCompFileUpload,
-  ILayoutComponent,
-  ILayoutGroup,
-} from 'src/features/form/layout';
-import type {
-  IAttachment,
-  IAttachments,
-} from 'src/shared/resources/attachments';
+import type { ILayoutCompFileUpload, ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
+import type { IAttachment, IAttachments } from 'src/shared/resources/attachments';
 
 describe('mapAttachments', () => {
   const defaultAttachmentProps = {
@@ -112,18 +105,13 @@ describe('mapAttachments', () => {
       ],
     };
 
-    const mockedAttachments = [0, 1, 2, 3, 4].map((i) =>
-      mockAttachment(`attachment${i}`),
-    );
+    const mockedAttachments = [0, 1, 2, 3, 4].map((i) => mockAttachment(`attachment${i}`));
 
     const expected: IAttachments = {
       [basicUploader.id]: [mockedAttachments[0]],
       [basicUploaderWithBindings.id]: [mockedAttachments[1]],
       [`${uploaderInRepeatingGroup.id}-0`]: [mockedAttachments[2]],
-      [`${multiUploaderInRepeatingGroup.id}-0`]: [
-        mockedAttachments[3],
-        mockedAttachments[4],
-      ],
+      [`${multiUploaderInRepeatingGroup.id}-0`]: [mockedAttachments[3], mockedAttachments[4]],
     };
 
     state.formData.formData = {

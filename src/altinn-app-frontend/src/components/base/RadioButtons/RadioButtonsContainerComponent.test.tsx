@@ -29,10 +29,7 @@ const threeOptions = [
 
 const twoOptions = threeOptions.slice(1);
 
-const render = (
-  props: Partial<IRadioButtonsContainerProps> = {},
-  customState: PreloadedState<RootState> = {},
-) => {
+const render = (props: Partial<IRadioButtonsContainerProps> = {}, customState: PreloadedState<RootState> = {}) => {
   const allProps: IRadioButtonsContainerProps = {
     ...mockComponentProps,
     options: [],
@@ -44,32 +41,29 @@ const render = (
     ...props,
   };
 
-  const { container } = renderWithProviders(
-    <RadioButtonContainerComponent {...allProps} />,
-    {
-      preloadedState: {
-        ...getInitialStateMock(),
-        optionState: {
-          options: {
-            countries: {
-              id: 'countries',
-              options: threeOptions,
-            },
-            loadingOptions: {
-              id: 'loadingOptions',
-              options: undefined,
-              loading: true,
-            },
+  const { container } = renderWithProviders(<RadioButtonContainerComponent {...allProps} />, {
+    preloadedState: {
+      ...getInitialStateMock(),
+      optionState: {
+        options: {
+          countries: {
+            id: 'countries',
+            options: threeOptions,
           },
-          error: {
-            name: '',
-            message: '',
+          loadingOptions: {
+            id: 'loadingOptions',
+            options: undefined,
+            loading: true,
           },
         },
-        ...customState,
+        error: {
+          name: '',
+          message: '',
+        },
       },
+      ...customState,
     },
-  );
+  });
 
   return { container };
 };
@@ -208,9 +202,7 @@ describe('RadioButtonsContainerComponent', () => {
 
     expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
 
-    expect(
-      container.querySelectorAll('.MuiFormGroup-root.MuiFormGroup-row').length,
-    ).toBe(1);
+    expect(container.querySelectorAll('.MuiFormGroup-root.MuiFormGroup-row').length).toBe(1);
   });
 
   it('should show items in a row when layout is not defined, and options count is 2', () => {
@@ -232,9 +224,7 @@ describe('RadioButtonsContainerComponent', () => {
 
     expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
 
-    expect(
-      container.querySelectorAll('.MuiFormGroup-root.MuiFormGroup-row').length,
-    ).toBe(1);
+    expect(container.querySelectorAll('.MuiFormGroup-root.MuiFormGroup-row').length).toBe(1);
   });
 
   it('should show items in a column when layout is "column" and options count is 2 ', () => {
@@ -257,9 +247,7 @@ describe('RadioButtonsContainerComponent', () => {
 
     expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
 
-    expect(
-      container.querySelectorAll('.MuiFormGroup-root.MuiFormGroup-row').length,
-    ).toBe(0);
+    expect(container.querySelectorAll('.MuiFormGroup-root.MuiFormGroup-row').length).toBe(0);
   });
 
   it('should show items in a columns when layout is not defined, and options count is 3', () => {
@@ -269,9 +257,7 @@ describe('RadioButtonsContainerComponent', () => {
 
     expect(container.querySelectorAll('.MuiFormGroup-root').length).toBe(1);
 
-    expect(
-      container.querySelectorAll('.MuiFormGroup-root.MuiFormGroup-row').length,
-    ).toBe(0);
+    expect(container.querySelectorAll('.MuiFormGroup-root.MuiFormGroup-row').length).toBe(0);
   });
 
   it('should present replaced label if setup with values from repeating group in redux and trigger handleDataChanged with replaced values', async () => {
@@ -286,16 +272,10 @@ describe('RadioButtonsContainerComponent', () => {
       },
     });
 
-    expect(
-      getRadio({ name: 'The value from the group is: Label for first' }),
-    ).toBeInTheDocument();
-    expect(
-      getRadio({ name: 'The value from the group is: Label for second' }),
-    ).toBeInTheDocument();
+    expect(getRadio({ name: 'The value from the group is: Label for first' })).toBeInTheDocument();
+    expect(getRadio({ name: 'The value from the group is: Label for second' })).toBeInTheDocument();
 
-    await user.click(
-      getRadio({ name: 'The value from the group is: Label for first' }),
-    );
+    await user.click(getRadio({ name: 'The value from the group is: Label for first' }));
 
     expect(handleDataChange).not.toHaveBeenCalled();
     jest.runOnlyPendingTimers();

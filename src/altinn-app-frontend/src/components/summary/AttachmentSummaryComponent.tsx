@@ -9,12 +9,8 @@ export interface IAttachmentSummaryComponent {
   componentRef: string;
 }
 
-export function AttachmentSummaryComponent({
-  componentRef,
-}: IAttachmentSummaryComponent) {
-  const attachments: IAttachment[] | undefined = useAppSelector(
-    (state) => state.attachments.attachments[componentRef],
-  );
+export function AttachmentSummaryComponent({ componentRef }: IAttachmentSummaryComponent) {
+  const attachments: IAttachment[] | undefined = useAppSelector((state) => state.attachments.attachments[componentRef]);
   return (
     <Grid
       item

@@ -10,10 +10,7 @@ export interface IHelpTextContainerProps {
   helpText: React.ReactNode;
 }
 
-export function HelpTextContainer({
-  language,
-  helpText,
-}: IHelpTextContainerProps) {
+export function HelpTextContainer({ language, helpText }: IHelpTextContainerProps) {
   const helpIconRef = React.useRef();
   const [openPopover, setOpenPopover] = React.useState<boolean>(false);
 

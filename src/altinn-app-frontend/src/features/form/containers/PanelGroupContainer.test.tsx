@@ -123,9 +123,7 @@ describe('PanelGroupContainer', () => {
     const addNewButton = await screen.getByText('Add new item');
     await user.click(addNewButton);
 
-    const inputFieldTitle = await screen.queryByText(
-      'The value from the group is: Value from input field [2]',
-    );
+    const inputFieldTitle = await screen.queryByText('The value from the group is: Value from input field [2]');
     expect(inputFieldTitle).toBeInTheDocument();
   });
 
@@ -182,9 +180,7 @@ describe('PanelGroupContainer', () => {
     let saveButton = await screen.queryByText('Lagre');
     expect(saveButton).not.toBeInTheDocument();
 
-    let addNewButton: HTMLElement | null = await screen.getByText(
-      'Add new item',
-    );
+    let addNewButton: HTMLElement | null = await screen.getByText('Add new item');
     await user.click(addNewButton);
 
     // save should appear and add should be hidden
@@ -250,24 +246,18 @@ describe('PanelGroupContainer', () => {
   });
 });
 
-const render = (
-  props: Partial<IPanelGroupContainerProps> = {},
-  customState: PreloadedState<RootState> = {},
-) => {
+const render = (props: Partial<IPanelGroupContainerProps> = {}, customState: PreloadedState<RootState> = {}) => {
   const allProps: IPanelGroupContainerProps = {
     ...({} as IPanelGroupContainerProps),
     ...props,
   };
 
-  const { container } = renderWithProviders(
-    <PanelGroupContainer {...allProps} />,
-    {
-      preloadedState: {
-        ...getInitialStateMock(),
-        ...customState,
-      },
+  const { container } = renderWithProviders(<PanelGroupContainer {...allProps} />, {
+    preloadedState: {
+      ...getInitialStateMock(),
+      ...customState,
     },
-  );
+  });
 
   return container;
 };

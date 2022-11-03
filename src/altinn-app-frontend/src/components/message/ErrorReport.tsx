@@ -13,10 +13,7 @@ import type { ILayout } from 'src/features/form/layout';
 import type { AnyChildNode } from 'src/utils/layout/hierarchy.types';
 import type { FlatError } from 'src/utils/validation';
 
-import {
-  getLanguageFromKey,
-  getParsedLanguageFromText,
-} from 'altinn-shared/utils';
+import { getLanguageFromKey, getParsedLanguageFromText } from 'altinn-shared/utils';
 
 export interface IErrorReportProps {
   components: ILayout;
@@ -31,9 +28,7 @@ const useStyles = makeStyles((theme) => ({
   errorList: {
     listStylePosition: 'outside',
     marginLeft: iconSize + theme.spacing(1),
-    listStyleImage: `url("data:image/svg+xml,${encodeURIComponent(
-      ArrowForwardIcon,
-    )}")`,
+    listStyleImage: `url("data:image/svg+xml,${encodeURIComponent(ArrowForwardIcon)}")`,
     '& > li': {
       marginBottom: theme.spacing(1),
     },
@@ -59,13 +54,9 @@ const useStyles = makeStyles((theme) => ({
 const ErrorReport = ({ components }: IErrorReportProps) => {
   const classes = useStyles();
   const dispatch = useAppDispatch();
-  const currentView = useAppSelector(
-    (state) => state.formLayout.uiConfig.currentView,
-  );
+  const currentView = useAppSelector((state) => state.formLayout.uiConfig.currentView);
   const layouts = useAppSelector((state) => state.formLayout.layouts);
-  const repeatingGroups = useAppSelector(
-    (state) => state.formLayout.uiConfig.repeatingGroups,
-  );
+  const repeatingGroups = useAppSelector((state) => state.formLayout.uiConfig.repeatingGroups);
   const [errorsMapped, errorsUnmapped] = useAppSelector((state) => [
     getMappedErrors(state.formValidations.validations),
     getUnmappedErrors(state.formValidations.validations),
@@ -77,74 +68,59 @@ const ErrorReport = ({ components }: IErrorReportProps) => {
     return null;
   }
 
-  const handleErrorClick =
-    (error: FlatError) => (ev: React.KeyboardEvent | React.MouseEvent) => {
-      if (
-        ev.type === 'keydown' &&
-        (ev as React.KeyboardEvent).key !== 'Enter'
-      ) {
-        return;
-      }
-      ev.preventDefault();
-      if (currentView !== error.layout) {
-        dispatch(
-          FormLayoutActions.updateCurrentView({
-            newView: error.layout,
-            returnToView: currentView,
-          }),
-        );
-      }
-
-      const nodes = nodesInLayout(
-        layouts && layouts[error.layout],
-        repeatingGroups,
-      );
-      const componentNode = nodes.findById(error.componentId);
-
-      // Iterate over parent repeating groups
-      componentNode?.parents().forEach((parentNode, i, allParents) => {
-        const parent = parentNode.item;
-        if (
-          parent?.type == 'Group' &&
-          parent.edit?.mode !== 'likert' &&
-          parent.maxCount &&
-          parent.maxCount > 1
-        ) {
-          const childNode =
-            i == 0
-              ? componentNode
-              : (allParents[i - 1] as AnyChildNode<'unresolved'>);
-
-          // Go to correct multiPage page if necessary
-          if (parent.edit?.multiPage && 'multiPageIndex' in childNode.item) {
-            const multiPageIndex = childNode.item.multiPageIndex;
-            dispatch(
-              FormLayoutActions.updateRepeatingGroupsMultiPageIndex({
-                group: parent.id,
-                index: multiPageIndex,
-              }),
-            );
-          }
-
-          if (childNode?.rowIndex !== undefined) {
-            // Set editIndex to rowIndex
-            dispatch(
-              FormLayoutActions.updateRepeatingGroupsEditIndex({
-                group: parent.id,
-                index: childNode.rowIndex,
-              }),
-            );
-          }
-        }
-      });
-
-      // Set focus
+  const handleErrorClick = (error: FlatError) => (ev: React.KeyboardEvent | React.MouseEvent) => {
+    if (ev.type === 'keydown' && (ev as React.KeyboardEvent).key !== 'Enter') {
+      return;
+    }
+    ev.preventDefault();
+    if (currentView !== error.layout) {
       dispatch(
-        FormLayoutActions.updateFocus({
-          focusComponentId: error.componentId,
+        FormLayoutActions.updateCurrentView({
+          newView: error.layout,
+          returnToView: currentView,
         }),
       );
-    };
+    }
+
+    const nodes = nodesInLayout(layouts && layouts[error.layout], repeatingGroups);
+    const componentNode = nodes.findById(error.componentId);
+
+    // Iterate over parent repeating groups
+    componentNode?.parents().forEach((parentNode, i, allParents) => {
+      const parent = parentNode.item;
+      if (parent?.type == 'Group' && parent.edit?.mode !== 'likert' && parent.maxCount && parent.maxCount > 1) {
+        const childNode = i == 0 ? componentNode : (allParents[i - 1] as AnyChildNode<'unresolved'>);
+
+        // Go to correct multiPage page if necessary
+        if (parent.edit?.multiPage && 'multiPageIndex' in childNode.item) {
+          const multiPageIndex = childNode.item.multiPageIndex;
+          dispatch(
+            FormLayoutActions.updateRepeatingGroupsMultiPageIndex({
+              group: parent.id,
+              index: multiPageIndex,
+            }),
+          );
+        }
+
+        if (childNode?.rowIndex !== undefined) {
+          // Set editIndex to rowIndex
+          dispatch(
+            FormLayoutActions.updateRepeatingGroupsEditIndex({
+              group: parent.id,
+              index: childNode.rowIndex,
+            }),
+          );
+        }
+      }
+    });
+
+    // Set focus
+    dispatch(
+      FormLayoutActions.updateFocus({
+        focusComponentId: error.componentId,
+      }),
+    );
+  };
 
   return (
     <Grid
@@ -154,10 +130,7 @@ const ErrorReport = ({ components }: IErrorReportProps) => {
     >
       <FullWidthWrapper isOnBottom={true}>
         <Panel
-          title={
-            language &&
-            getLanguageFromKey('form_filler.error_report_header', language)
-          }
+          title={language && getLanguageFromKey('form_filler.error_report_header', language)}
           showIcon={false}
           variant={PanelVariant.Error}
         >

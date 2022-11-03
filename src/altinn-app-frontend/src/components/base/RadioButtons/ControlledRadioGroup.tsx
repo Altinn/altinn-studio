@@ -16,13 +16,10 @@ import type { IOption } from 'src/types';
 
 import { AltinnSpinner } from 'altinn-shared/components';
 
-export interface IControlledRadioGroupProps
-  extends IRadioButtonsContainerProps {
+export interface IControlledRadioGroupProps extends IRadioButtonsContainerProps {
   fetchingOptions: boolean | undefined;
   selected: string | undefined;
-  handleBlur: FocusEventHandler<
-    HTMLInputElement | HTMLButtonElement | HTMLDivElement
-  >;
+  handleBlur: FocusEventHandler<HTMLInputElement | HTMLButtonElement | HTMLDivElement>;
   handleChange: ChangeEventHandler<HTMLInputElement | HTMLButtonElement>;
   calculatedOptions: IOption[];
 }
@@ -76,10 +73,7 @@ export const ControlledRadioGroup = ({
               />
               {validationMessages &&
                 selected === option.value &&
-                renderValidationMessagesForComponent(
-                  validationMessages.simpleBinding,
-                  id,
-                )}
+                renderValidationMessagesForComponent(validationMessages.simpleBinding, id)}
             </React.Fragment>
           ))}
         </RadioGroup>

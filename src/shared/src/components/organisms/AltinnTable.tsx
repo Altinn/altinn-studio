@@ -10,10 +10,7 @@ export interface IAltinnTableProps {
 
 const useStyles = makeStyles(() => {
   return {
-    table: ({
-      tableLayout = 'fixed',
-      wordBreak = 'break-word',
-    }: IAltinnTableProps) => {
+    table: ({ tableLayout = 'fixed', wordBreak = 'break-word' }: IAltinnTableProps) => {
       return {
         tableLayout: tableLayout,
         marginBottom: '12px',
@@ -23,9 +20,7 @@ const useStyles = makeStyles(() => {
   };
 });
 
-export default function AltinnTable(
-  props: IAltinnTableProps & Omit<TableProps, 'id'>,
-) {
+export default function AltinnTable(props: IAltinnTableProps & Omit<TableProps, 'id'>) {
   const { tableLayout, wordBreak, ...tableProps } = props;
   const classes = useStyles(props);
   return (

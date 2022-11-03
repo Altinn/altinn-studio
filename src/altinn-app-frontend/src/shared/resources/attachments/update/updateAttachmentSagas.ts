@@ -20,9 +20,7 @@ export function* updateAttachmentSaga({
 }: PayloadAction<IUpdateAttachmentAction>): SagaIterator {
   const state: IRuntimeState = yield select();
   const currentView = state.formLayout.uiConfig.currentView;
-  const language: ILanguage = yield selectNotNull(
-    (state) => state.language.language,
-  );
+  const language: ILanguage = yield selectNotNull((state) => state.language.language);
 
   try {
     // Sets validations to empty.
@@ -37,21 +35,10 @@ export function* updateAttachmentSaga({
 
     const fileUpdateLink = fileTagUrl(attachment.id);
 
-    if (
-      attachment.tags !== undefined &&
-      attachment.tags.length > 0 &&
-      tag !== attachment.tags[0]
-    ) {
-      const deleteResponse: any = yield call(
-        httpDelete,
-        `${fileUpdateLink}/${attachment.tags[0]}`,
-      );
+    if (attachment.tags !== undefined && attachment.tags.length > 0 && tag !== attachment.tags[0]) {
+      const deleteResponse: any = yield call(httpDelete, `${fileUpdateLink}/${attachment.tags[0]}`);
       if (deleteResponse.status !== 204) {
-        const validations = getFileUploadComponentValidations(
-          'update',
-          language,
-          attachment.id,
-        );
+        const validations = getFileUploadComponentValidations('update', language, attachment.id);
         yield put(
           ValidationActions.updateComponentValidations({
             componentId,
@@ -92,11 +79,7 @@ export function* updateAttachmentSaga({
         }),
       );
     } else {
-      const validations = getFileUploadComponentValidations(
-        'update',
-        language,
-        attachment.id,
-      );
+      const validations = getFileUploadComponentValidations('update', language, attachment.id);
       yield put(
         ValidationActions.updateComponentValidations({
           componentId,
@@ -114,11 +97,7 @@ export function* updateAttachmentSaga({
       );
     }
   } catch (err) {
-    const validations = getFileUploadComponentValidations(
-      'update',
-      language,
-      attachment.id,
-    );
+    const validations = getFileUploadComponentValidations('update', language, attachment.id);
     yield put(
       ValidationActions.updateComponentValidations({
         componentId,

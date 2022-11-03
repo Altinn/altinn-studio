@@ -316,26 +316,20 @@ describe('utils/databindings.ts', () => {
       expect(result).toEqual(expectedResult);
     });
 
-    it.each([{}, undefined, null])(
-      'should return an empty object if form data is %p',
-      (formData) => {
-        const mapping: IMapping = {
-          someSource: 'someTarget',
-        };
-        expect(mapFormData(formData as any, mapping)).toEqual({});
-      },
-    );
+    it.each([{}, undefined, null])('should return an empty object if form data is %p', (formData) => {
+      const mapping: IMapping = {
+        someSource: 'someTarget',
+      };
+      expect(mapFormData(formData as any, mapping)).toEqual({});
+    });
 
-    it.each([undefined, null])(
-      'should return whole form data object if mapping is %p',
-      (mapping) => {
-        const formData: IFormData = {
-          someField: 'someValue',
-          someOtherField: 'someOtherValue',
-        };
-        expect(mapFormData(formData, mapping as any)).toEqual(formData);
-      },
-    );
+    it.each([undefined, null])('should return whole form data object if mapping is %p', (mapping) => {
+      const formData: IFormData = {
+        someField: 'someValue',
+        someOtherField: 'someOtherValue',
+      };
+      expect(mapFormData(formData, mapping as any)).toEqual(formData);
+    });
   });
 
   describe('getFormDataFromFieldKey', () => {
@@ -345,22 +339,12 @@ describe('utils/databindings.ts', () => {
       'group[1].field': 'another value',
     };
     it('should return correct form data for a field not in a group', () => {
-      const result = getFormDataFromFieldKey(
-        'simpleBinding',
-        { simpleBinding: 'field1' },
-        formData,
-      );
+      const result = getFormDataFromFieldKey('simpleBinding', { simpleBinding: 'field1' }, formData);
       expect(result).toEqual('value1');
     });
 
     it('should return correct form data for a field in a group', () => {
-      const result = getFormDataFromFieldKey(
-        'simpleBinding',
-        { simpleBinding: 'group.field' },
-        formData,
-        'group',
-        1,
-      );
+      const result = getFormDataFromFieldKey('simpleBinding', { simpleBinding: 'group.field' }, formData, 'group', 1);
       expect(result).toEqual('another value');
     });
   });
@@ -410,17 +394,11 @@ describe('utils/databindings.ts', () => {
       const result = getBaseGroupDataModelBindingFromKeyWithIndexIndicators(
         'someBaseProp.someGroup[{0}].someOtherGroup[{1}].someProp',
       );
-      expect(result).toEqual([
-        'someBaseProp.someGroup',
-        'someBaseProp.someGroup.someOtherGroup',
-      ]);
+      expect(result).toEqual(['someBaseProp.someGroup', 'someBaseProp.someGroup.someOtherGroup']);
     });
 
     it('should return an empty array if no groups are present', () => {
-      const result =
-        getBaseGroupDataModelBindingFromKeyWithIndexIndicators(
-          'someField.someProp',
-        );
+      const result = getBaseGroupDataModelBindingFromKeyWithIndexIndicators('someField.someProp');
       expect(result).toEqual([]);
     });
   });
@@ -471,10 +449,7 @@ describe('utils/databindings.ts', () => {
       };
 
       const expected = [[0], [1, 0], [1, 1], [2, 0], [2, 1], [2, 2]];
-      const result = getIndexCombinations(
-        ['Gruppe', 'Gruppe.UnderGruppe'],
-        repeatingGroups,
-      );
+      const result = getIndexCombinations(['Gruppe', 'Gruppe.UnderGruppe'], repeatingGroups);
       expect(result).toEqual(expected);
     });
 

@@ -8,28 +8,20 @@ describe('AltinnLoader', () => {
     render({});
     expect(screen.getByText('hidden text')).toBeInTheDocument();
     expect(screen.getByText('hidden text')).toHaveClass('sr-only');
-    expect(screen.getByText('hidden text').parentElement).toHaveAttribute(
-      'id',
-      'altinn-loader',
-    );
+    expect(screen.getByText('hidden text').parentElement).toHaveAttribute('id', 'altinn-loader');
   });
   it('should have the id assigned', () => {
     render({
       id: 'some-id',
     });
-    expect(screen.getByText('hidden text').parentElement).toHaveAttribute(
-      'id',
-      'some-id',
-    );
+    expect(screen.getByText('hidden text').parentElement).toHaveAttribute('id', 'some-id');
   });
 
   it('should append className', () => {
     render({
       className: 'some-class',
     });
-    expect(screen.getByText('hidden text').parentElement).toHaveClass(
-      'some-class',
-    );
+    expect(screen.getByText('hidden text').parentElement).toHaveClass('some-class');
   });
 
   const render = (props: Partial<IAltinnLoaderProps> = {}) => {

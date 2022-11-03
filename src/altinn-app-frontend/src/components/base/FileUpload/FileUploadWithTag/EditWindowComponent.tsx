@@ -46,8 +46,7 @@ const useStyles = makeStyles({
   },
 });
 
-export interface EditWindowProps
-  extends PropsFromGenericComponent<'FileUploadWithTag'> {
+export interface EditWindowProps extends PropsFromGenericComponent<'FileUploadWithTag'> {
   attachment: IAttachment;
   mobileView: boolean;
   options?: IOption[];
@@ -76,10 +75,7 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
     props.setEditIndex(-1);
   };
 
-  const saveIsDisabled =
-    props.attachment.updating === true ||
-    props.attachment.uploaded === false ||
-    props.readOnly;
+  const saveIsDisabled = props.attachment.updating === true || props.attachment.uploaded === false || props.readOnly;
 
   return (
     <div
@@ -107,17 +103,11 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
             {props.attachment.uploaded && (
               <div style={{ marginLeft: '1.5rem', marginRight: '1.5rem' }}>
                 {!props.mobileView
-                  ? getLanguageFromKey(
-                      'form_filler.file_uploader_list_status_done',
-                      props.language,
-                    )
+                  ? getLanguageFromKey('form_filler.file_uploader_list_status_done', props.language)
                   : undefined}
                 <i
                   className='ai ai-check-circle'
-                  aria-label={getLanguageFromKey(
-                    'form_filler.file_uploader_list_status_done',
-                    props.language,
-                  )}
+                  aria-label={getLanguageFromKey('form_filler.file_uploader_list_status_done', props.language)}
                 />
               </div>
             )}
@@ -127,10 +117,7 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
                 style={{
                   width: '80px',
                 }}
-                srContent={getLanguageFromKey(
-                  'general.loading',
-                  props.language,
-                )}
+                srContent={getLanguageFromKey('general.loading', props.language)}
               />
             )}
             <div>
@@ -147,9 +134,7 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
         </Grid>
       </Grid>
       <Grid>
-        {props.textResourceBindings?.tagTitle && (
-          <h6>{props.getTextResource(props.textResourceBindings?.tagTitle)}</h6>
-        )}
+        {props.textResourceBindings?.tagTitle && <h6>{props.getTextResource(props.textResourceBindings?.tagTitle)}</h6>}
         <Grid
           container={true}
           spacing={1}
@@ -163,25 +148,12 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
               tabIndex={0}
               defaultValue={props.attachment.tags && props.attachment.tags[0]}
               disabled={saveIsDisabled}
-              className={classNames(
-                classes.select,
-                'custom-select a-custom-select',
-                {
-                  'validation-error':
-                    props.attachmentValidations.filter(
-                      (i) => i.id === props.attachment.id,
-                    ).length > 0,
-                  'disabled !important': props.attachment.updating
-                    ? true
-                    : props.readOnly,
-                },
-              )}
-              onChange={(e) =>
-                props.onDropdownDataChange(props.attachment.id, e.target.value)
-              }
-              onBlur={(e) =>
-                props.onDropdownDataChange(props.attachment.id, e.target.value)
-              }
+              className={classNames(classes.select, 'custom-select a-custom-select', {
+                'validation-error': props.attachmentValidations.filter((i) => i.id === props.attachment.id).length > 0,
+                'disabled !important': props.attachment.updating ? true : props.readOnly,
+              })}
+              onChange={(e) => props.onDropdownDataChange(props.attachment.id, e.target.value)}
+              onBlur={(e) => props.onDropdownDataChange(props.attachment.id, e.target.value)}
             >
               <option style={{ display: 'none' }} />
               {props.options?.map((option) => (
@@ -201,10 +173,7 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
             {props.attachment.updating ? (
               <AltinnLoader
                 id={`attachment-loader-update-${props.attachment.id}`}
-                srContent={getLanguageFromKey(
-                  'general.loading',
-                  props.language,
-                )}
+                srContent={getLanguageFromKey('general.loading', props.language)}
                 style={{
                   height: '30px',
                   padding: '7px 34px 5px 28px',
@@ -227,8 +196,7 @@ export function EditWindowComponent(props: EditWindowProps): JSX.Element {
           </Grid>
         </Grid>
       </Grid>
-      {props.attachmentValidations.filter((i) => i.id === props.attachment.id)
-        .length > 0 ? (
+      {props.attachmentValidations.filter((i) => i.id === props.attachment.id).length > 0 ? (
         <div
           style={{
             whiteSpace: 'pre-wrap',

@@ -11,42 +11,23 @@ import { mapInstanceAttachments } from 'altinn-shared/utils';
 export type IAttachmentListProps = PropsFromGenericComponent<'AttachmentList'>;
 
 export function AttachmentListComponent(props: IAttachmentListProps) {
-  const currentTaskId = useAppSelector(
-    (state) => state.instanceData.instance?.process.currentTask?.elementId,
-  );
+  const currentTaskId = useAppSelector((state) => state.instanceData.instance?.process.currentTask?.elementId);
   const dataForTask = useAppSelector((state) => {
-    const dataTypes =
-      state.applicationMetadata.applicationMetadata?.dataTypes.filter(
-        (type) => {
-          return (
-            type.taskId ===
-            state.instanceData.instance?.process.currentTask?.elementId
-          );
-        },
-      );
+    const dataTypes = state.applicationMetadata.applicationMetadata?.dataTypes.filter((type) => {
+      return type.taskId === state.instanceData.instance?.process.currentTask?.elementId;
+    });
     return state.instanceData.instance?.data.filter((dataElement) => {
       if (props.dataTypeIds) {
-        return (
-          props.dataTypeIds.findIndex((id) => dataElement.dataType === id) > -1
-        );
+        return props.dataTypeIds.findIndex((id) => dataElement.dataType === id) > -1;
       }
-      return (
-        dataTypes &&
-        dataTypes.findIndex((type) => dataElement.dataType === type.id) > -1
-      );
+      return dataTypes && dataTypes.findIndex((type) => dataElement.dataType === type.id) > -1;
     });
   });
   const attachments = useAppSelector((state) => {
-    const appLogicDataTypes =
-      state.applicationMetadata.applicationMetadata?.dataTypes.filter(
-        (dataType) => {
-          return dataType.appLogic && dataType.taskId === currentTaskId;
-        },
-      );
-    return mapInstanceAttachments(
-      dataForTask,
-      appLogicDataTypes?.map((type) => type.id) || [],
-    );
+    const appLogicDataTypes = state.applicationMetadata.applicationMetadata?.dataTypes.filter((dataType) => {
+      return dataType.appLogic && dataType.taskId === currentTaskId;
+    });
+    return mapInstanceAttachments(dataForTask, appLogicDataTypes?.map((type) => type.id) || []);
   });
 
   return (

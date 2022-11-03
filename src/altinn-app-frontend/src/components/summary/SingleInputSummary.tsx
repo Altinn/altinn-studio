@@ -27,11 +27,7 @@ const useStyles = makeStyles({
   },
 });
 
-function SingleInputSummary({
-  formData,
-  display,
-  ...rest
-}: ISingleInputSummary) {
+function SingleInputSummary({ formData, display, ...rest }: ISingleInputSummary) {
   const classes = useStyles();
   const displayData = useDisplayData({ formData });
 

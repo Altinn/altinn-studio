@@ -14,12 +14,8 @@ import type { IAltinnWindow } from 'src/types';
 
 import type { ILanguage } from 'altinn-shared/types';
 
-export const ConfirmButton = (
-  props: Omit<BaseButtonProps, 'onClick'> & { id: string; language: ILanguage },
-) => {
-  const textResources = useAppSelector(
-    (state) => state.textResources.resources,
-  );
+export const ConfirmButton = (props: Omit<BaseButtonProps, 'onClick'> & { id: string; language: ILanguage }) => {
+  const textResources = useAppSelector((state) => state.textResources.resources);
   const dispatch = useAppDispatch();
   const { instanceId } = window as Window as IAltinnWindow;
   const [busyWithId, setBusyWithId] = useState('');
@@ -27,11 +23,7 @@ export const ConfirmButton = (
     setBusyWithId(props.id);
     get(getValidationUrl(instanceId))
       .then((data: any) => {
-        const mappedValidations = mapDataElementValidationToRedux(
-          data,
-          {},
-          textResources,
-        );
+        const mappedValidations = mapDataElementValidationToRedux(data, {}, textResources);
         dispatch(
           ValidationActions.updateValidations({
             validations: mappedValidations,
@@ -56,11 +48,7 @@ export const ConfirmButton = (
       busyWithId={busyWithId}
       onClick={handleConfirmClick}
     >
-      {getTextFromAppOrDefault(
-        'confirm.button_text',
-        textResources,
-        props.language,
-      )}
+      {getTextFromAppOrDefault('confirm.button_text', textResources, props.language)}
     </SubmitButton>
   );
 };

@@ -7,10 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import { FileList } from 'src/components/base/FileUpload/FileUploadWithTag/FileListComponent';
-import {
-  DropzoneComponent,
-  handleRejectedFiles,
-} from 'src/components/base/FileUpload/shared';
+import { DropzoneComponent, handleRejectedFiles } from 'src/components/base/FileUpload/shared';
 import { AttachmentsCounter } from 'src/components/base/FileUpload/shared/render';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
@@ -28,8 +25,7 @@ import type { IRuntimeState } from 'src/types';
 
 import { getLanguageFromKey } from 'altinn-shared/utils';
 
-export type IFileUploadWithTagProps =
-  PropsFromGenericComponent<'FileUploadWithTag'>;
+export type IFileUploadWithTagProps = PropsFromGenericComponent<'FileUploadWithTag'>;
 
 export function FileUploadWithTagComponent({
   id,
@@ -50,14 +46,10 @@ export function FileUploadWithTagComponent({
   dataModelBindings,
 }: IFileUploadWithTagProps): JSX.Element {
   const dataDispatch = useAppDispatch();
-  const [validations, setValidations] = React.useState<
-    Array<{ id: string; message: string }>
-  >([]);
+  const [validations, setValidations] = React.useState<Array<{ id: string; message: string }>>([]);
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
   const options = useAppSelector(
-    (state: IRuntimeState) =>
-      state.optionState.options[getOptionLookupKey({ id: optionsId, mapping })]
-        ?.options,
+    (state: IRuntimeState) => state.optionState.options[getOptionLookupKey({ id: optionsId, mapping })]?.options,
   );
   const editIndex = useAppSelector(
     (state: IRuntimeState) =>
@@ -72,14 +64,10 @@ export function FileUploadWithTagComponent({
       {},
   );
 
-  const attachments: IAttachment[] = useAppSelector(
-    (state: IRuntimeState) => state.attachments.attachments[id] || [],
-  );
+  const attachments: IAttachment[] = useAppSelector((state: IRuntimeState) => state.attachments.attachments[id] || []);
 
   const setValidationsFromArray = (validationArray: string[]) => {
-    setValidations(
-      parseFileUploadComponentWithTagValidationObject(validationArray),
-    );
+    setValidations(parseFileUploadComponentWithTagValidationObject(validationArray));
   };
 
   const setEditIndex = (index: number) => {
@@ -105,15 +93,9 @@ export function FileUploadWithTagComponent({
   };
 
   const handleSave = (attachment: IAttachment) => {
-    if (
-      chosenOptions[attachment.id] !== undefined &&
-      chosenOptions[attachment.id].length !== 0
-    ) {
+    if (chosenOptions[attachment.id] !== undefined && chosenOptions[attachment.id].length !== 0) {
       setEditIndex(-1);
-      if (
-        attachment.tags === undefined ||
-        chosenOptions[attachment.id] !== attachment.tags[0]
-      ) {
+      if (attachment.tags === undefined || chosenOptions[attachment.id] !== attachment.tags[0]) {
         setAttachmentTag(attachment, chosenOptions[attachment.id]);
       }
       setValidations(validations.filter((obj) => obj.id !== attachment.id)); // Remove old validation if exists
@@ -121,18 +103,13 @@ export function FileUploadWithTagComponent({
       const tmpValidations: { id: string; message: string }[] = [];
       tmpValidations.push({
         id: attachment.id,
-        message: `${getLanguageFromKey(
-          'form_filler.file_uploader_validation_error_no_chosen_tag',
-          language,
-        )} ${(getTextResource(textResourceBindings?.tagTitle || '') || '')
+        message: `${getLanguageFromKey('form_filler.file_uploader_validation_error_no_chosen_tag', language)} ${(
+          getTextResource(textResourceBindings?.tagTitle || '') || ''
+        )
           .toString()
           .toLowerCase()}.`,
       });
-      setValidations(
-        validations
-          .filter((obj) => obj.id !== tmpValidations[0].id)
-          .concat(tmpValidations),
-      );
+      setValidations(validations.filter((obj) => obj.id !== tmpValidations[0].id).concat(tmpValidations));
     }
   };
 
@@ -174,14 +151,10 @@ export function FileUploadWithTagComponent({
     return attachments.length < maxNumberOfAttachments;
   };
 
-  const handleDrop = (
-    acceptedFiles: File[],
-    rejectedFiles: FileRejection[],
-  ) => {
+  const handleDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
     const newFiles: IAttachment[] = [];
     const fileType = baseComponentId || id;
-    const totalAttachments =
-      acceptedFiles.length + rejectedFiles.length + attachments.length;
+    const totalAttachments = acceptedFiles.length + rejectedFiles.length + attachments.length;
 
     if (totalAttachments > maxNumberOfAttachments) {
       // if the user adds more attachments than max, all should be ignored
@@ -230,17 +203,11 @@ export function FileUploadWithTagComponent({
   };
 
   // Get validations and filter general from identified validations.
-  const tmpValidationMessages = getFileUploadWithTagComponentValidations(
-    componentValidations,
-    validations,
-  );
+  const tmpValidationMessages = getFileUploadWithTagComponentValidations(componentValidations, validations);
   const validationMessages = {
-    errors: tmpValidationMessages
-      .filter(isNotAttachmentError)
-      .map((el) => el.message),
+    errors: tmpValidationMessages.filter(isNotAttachmentError).map((el) => el.message),
   };
-  const attachmentValidationMessages =
-    tmpValidationMessages.filter(isAttachmentError);
+  const attachmentValidationMessages = tmpValidationMessages.filter(isAttachmentError);
   const hasValidationMessages: boolean = validationMessages.errors.length > 0;
 
   return (
@@ -273,9 +240,7 @@ export function FileUploadWithTagComponent({
           maxNumberOfAttachments: maxNumberOfAttachments,
         })}
 
-      {hasValidationMessages &&
-        shouldShowFileUpload() &&
-        renderValidationMessagesForComponent(validationMessages, id)}
+      {hasValidationMessages && shouldShowFileUpload() && renderValidationMessagesForComponent(validationMessages, id)}
 
       <FileList
         {...({} as PropsFromGenericComponent<'FileUploadWithTag'>)}
@@ -305,9 +270,7 @@ export function FileUploadWithTagComponent({
           maxNumberOfAttachments: maxNumberOfAttachments,
         })}
 
-      {hasValidationMessages &&
-        !shouldShowFileUpload() &&
-        renderValidationMessagesForComponent(validationMessages, id)}
+      {hasValidationMessages && !shouldShowFileUpload() && renderValidationMessagesForComponent(validationMessages, id)}
     </div>
   );
 }

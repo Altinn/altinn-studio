@@ -11,10 +11,7 @@ import type { RootState } from 'src/store';
 
 const dummyLabel = 'dummyLabel';
 
-const render = (
-  props: Partial<IMultipleSelectProps> = {},
-  customState: PreloadedState<RootState> = {},
-) => {
+const render = (props: Partial<IMultipleSelectProps> = {}, customState: PreloadedState<RootState> = {}) => {
   const allProps: IMultipleSelectProps = {
     ...mockComponentProps,
     formData: { simpleBinding: '' },

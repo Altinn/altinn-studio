@@ -13,8 +13,7 @@ import { get, getLanguageFromKey } from 'altinn-shared/utils';
 
 import 'src/components/advanced/AddressComponent.css';
 
-export type IAddressComponentProps =
-  PropsFromGenericComponent<'AddressComponent'>;
+export type IAddressComponentProps = PropsFromGenericComponent<'AddressComponent'>;
 
 interface IAddressValidationErrors {
   address?: string;
@@ -55,20 +54,12 @@ export function AddressComponent({
     value: address,
     setValue: setAddress,
     onPaste: onAddressPaste,
-  } = useDelayedSavedState(
-    handleDataChangeOverride(AddressKeys.address),
-    formData.address || '',
-    saveWhileTyping,
-  );
+  } = useDelayedSavedState(handleDataChangeOverride(AddressKeys.address), formData.address || '', saveWhileTyping);
   const {
     value: zipCode,
     setValue: setZipCode,
     onPaste: onZipCodePaste,
-  } = useDelayedSavedState(
-    handleDataChangeOverride(AddressKeys.zipCode),
-    formData.zipCode || '',
-    saveWhileTyping,
-  );
+  } = useDelayedSavedState(handleDataChangeOverride(AddressKeys.zipCode), formData.zipCode || '', saveWhileTyping);
   const { value: postPlace, setValue: setPostPlace } = useDelayedSavedState(
     handleDataChangeOverride(AddressKeys.postPlace),
     formData.postPlace || '',
@@ -78,11 +69,7 @@ export function AddressComponent({
     value: careOf,
     setValue: setCareOf,
     onPaste: onCareOfPaste,
-  } = useDelayedSavedState(
-    handleDataChangeOverride(AddressKeys.careOf),
-    formData.careOf || '',
-    saveWhileTyping,
-  );
+  } = useDelayedSavedState(handleDataChangeOverride(AddressKeys.careOf), formData.careOf || '', saveWhileTyping);
   const {
     value: houseNumber,
     setValue: setHouseNumber,
@@ -93,27 +80,20 @@ export function AddressComponent({
     saveWhileTyping,
   );
 
-  const [validations, setValidations] =
-    React.useState<IAddressValidationErrors>({});
+  const [validations, setValidations] = React.useState<IAddressValidationErrors>({});
   const prevZipCode = React.useRef<string | undefined>(undefined);
   const hasFetchedPostPlace = React.useRef<boolean>(false);
 
   const validate = React.useCallback(() => {
     const validationErrors: IAddressValidationErrors = {};
     if (zipCode && !zipCode.match(/^\d{4}$/)) {
-      validationErrors.zipCode = getLanguageFromKey(
-        'address_component.validation_error_zipcode',
-        language,
-      );
+      validationErrors.zipCode = getLanguageFromKey('address_component.validation_error_zipcode', language);
       setPostPlace('');
     } else {
       delete validationErrors.zipCode;
     }
     if (houseNumber && !houseNumber.match(/^[a-z,A-Z]{1}\d{4}$/)) {
-      validationErrors.houseNumber = getLanguageFromKey(
-        'address_component.validation_error_house_number',
-        language,
-      );
+      validationErrors.houseNumber = getLanguageFromKey('address_component.validation_error_house_number', language);
     } else {
       delete validationErrors.houseNumber;
     }
@@ -141,10 +121,7 @@ export function AddressComponent({
       return;
     }
 
-    if (
-      prevZipCode.current === formData.zipCode &&
-      hasFetchedPostPlace.current === true
-    ) {
+    if (prevZipCode.current === formData.zipCode && hasFetchedPostPlace.current === true) {
       return;
     }
 
@@ -152,28 +129,22 @@ export function AddressComponent({
       hasFetchedPostPlace.current = false;
       try {
         prevZipCode.current = formData.zipCode;
-        const response = await get(
-          'https://api.bring.com/shippingguide/api/postalCode.json',
-          {
-            params: {
-              clientUrl: window.location.href,
-              pnr,
-            },
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            cancelToken: cancellationToken,
+        const response = await get('https://api.bring.com/shippingguide/api/postalCode.json', {
+          params: {
+            clientUrl: window.location.href,
+            pnr,
           },
-        );
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          cancelToken: cancellationToken,
+        });
         if (response.valid) {
           setPostPlace(response.result);
           setValidations({ ...validations, zipCode: undefined });
           onSaveField(AddressKeys.postPlace, response.result);
         } else {
-          const errorMessage = getLanguageFromKey(
-            'address_component.validation_error_zipcode',
-            language,
-          );
+          const errorMessage = getLanguageFromKey('address_component.validation_error_zipcode', language);
           setPostPlace('');
           setValidations({ ...validations, zipCode: errorMessage });
         }
@@ -191,20 +162,9 @@ export function AddressComponent({
     return function cleanup() {
       source.cancel('ComponentWillUnmount');
     };
-  }, [
-    formData.zipCode,
-    language,
-    source,
-    onSaveField,
-    validations,
-    setPostPlace,
-  ]);
+  }, [formData.zipCode, language, source, onSaveField, validations, setPostPlace]);
 
-  const updateField = (
-    key: AddressKeys,
-    saveImmediately: boolean,
-    event: any,
-  ): void => {
+  const updateField = (key: AddressKeys, saveImmediately: boolean, event: any): void => {
     const changedFieldValue: string = event.target.value;
     const changedKey: string = AddressKeys[key];
 
@@ -301,10 +261,7 @@ export function AddressComponent({
           required={required}
         />
         {allValidations?.[AddressKeys.address]
-          ? renderValidationMessagesForComponent(
-              allValidations[AddressKeys.address],
-              `${id}_${AddressKeys.address}`,
-            )
+          ? renderValidationMessagesForComponent(allValidations[AddressKeys.address], `${id}_${AddressKeys.address}`)
           : null}
       </div>
 
@@ -328,10 +285,7 @@ export function AddressComponent({
             readOnly={readOnly}
           />
           {allValidations?.[AddressKeys.careOf]
-            ? renderValidationMessagesForComponent(
-                allValidations[AddressKeys.careOf],
-                `${id}_${AddressKeys.careOf}`,
-              )
+            ? renderValidationMessagesForComponent(allValidations[AddressKeys.careOf], `${id}_${AddressKeys.careOf}`)
             : null}
         </div>
       )}
@@ -360,10 +314,7 @@ export function AddressComponent({
             />
           </div>
           {allValidations?.[AddressKeys.careOf]
-            ? renderValidationMessagesForComponent(
-                allValidations[AddressKeys.zipCode],
-                `${id}_${AddressKeys.zipCode}`,
-              )
+            ? renderValidationMessagesForComponent(allValidations[AddressKeys.zipCode], `${id}_${AddressKeys.zipCode}`)
             : null}
         </div>
 
@@ -402,12 +353,7 @@ export function AddressComponent({
             readOnly={readOnly}
             labelSettings={labelSettings}
           />
-          <p>
-            {getLanguageFromKey(
-              'address_component.house_number_helper',
-              language,
-            )}
-          </p>
+          <p>{getLanguageFromKey('address_component.house_number_helper', language)}</p>
           <div className={'address-component-small-inputs'}>
             <TextField
               id={`address_house_number_${id}`}

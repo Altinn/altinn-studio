@@ -22,17 +22,10 @@ const useStyles = makeStyles({
   },
 });
 
-export function AttachmentWithTagSummaryComponent({
-  componentRef,
-  component,
-}: IAttachmentWithTagSummaryComponent) {
+export function AttachmentWithTagSummaryComponent({ componentRef, component }: IAttachmentWithTagSummaryComponent) {
   const classes = useStyles();
-  const attachments: IAttachment[] | undefined = useAppSelector(
-    (state) => state.attachments.attachments[componentRef],
-  );
-  const textResources = useAppSelector(
-    (state) => state.textResources.resources,
-  );
+  const attachments: IAttachment[] | undefined = useAppSelector((state) => state.attachments.attachments[componentRef]);
+  const textResources = useAppSelector((state) => state.textResources.resources);
   const options = useAppSelector(
     (state) =>
       state.optionState.options[
@@ -48,10 +41,7 @@ export function AttachmentWithTagSummaryComponent({
   };
   const tryToGetTextResource = (attachment) => {
     const optionsTagLabel = getOptionsTagLabel(attachment);
-    return (
-      textResources?.find(({ id }) => id === optionsTagLabel)?.value ||
-      optionsTagLabel
-    );
+    return textResources?.find(({ id }) => id === optionsTagLabel)?.value || optionsTagLabel;
   };
   return (
     <Grid
@@ -75,9 +65,7 @@ export function AttachmentWithTagSummaryComponent({
             key={`attachment-summary-tag-${attachment.id}`}
             variant='body1'
           >
-            {attachment.tags &&
-              attachment.tags[0] &&
-              tryToGetTextResource(attachment)}
+            {attachment.tags && attachment.tags[0] && tryToGetTextResource(attachment)}
           </Typography>
         </Grid>
       ))}

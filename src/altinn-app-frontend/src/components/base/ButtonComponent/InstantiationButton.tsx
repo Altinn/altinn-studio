@@ -11,16 +11,11 @@ import { mapFormData } from 'src/utils/databindings';
 import type { IInstantiationButtonComponentProps } from 'src/components/base/ButtonComponent/InstantiationButtonComponent';
 import type { ButtonProps } from 'src/components/base/ButtonComponent/WrappedButton';
 
-export type InstantiationButtonProps = Omit<ButtonProps, 'onClick'> &
-  Omit<IInstantiationButtonComponentProps, 'text'>;
+export type InstantiationButtonProps = Omit<ButtonProps, 'onClick'> & Omit<IInstantiationButtonComponentProps, 'text'>;
 
-export const InstantiationButton = ({
-  children,
-  ...props
-}: InstantiationButtonProps) => {
+export const InstantiationButton = ({ children, ...props }: InstantiationButtonProps) => {
   const dispatch = useAppDispatch();
-  const [instantiateWithPrefill, { isSuccess, data, isLoading, isError }] =
-    useInstantiateWithPrefillMutation();
+  const [instantiateWithPrefill, { isSuccess, data, isLoading, isError }] = useInstantiateWithPrefillMutation();
   const formData = useAppSelector((state) => state.formData.formData);
   const party = useAppSelector((state) => state.party.selectedParty);
 
@@ -39,9 +34,7 @@ export const InstantiationButton = ({
     if (isSuccess && data) {
       dispatch(InstanceDataActions.getFulfilled({ instanceData: data }));
       dispatch(AttachmentActions.mapAttachments());
-      dispatch(
-        InstantiationActions.instantiateFulfilled({ instanceId: data.id }),
-      );
+      dispatch(InstantiationActions.instantiateFulfilled({ instanceId: data.id }));
     }
   }, [isSuccess, data, dispatch]);
 

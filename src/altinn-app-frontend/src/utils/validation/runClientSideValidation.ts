@@ -21,9 +21,7 @@ interface ValidationResult {
  * Runs client side validations on state.
  * @param state
  */
-export function runClientSideValidation(
-  state: IRuntimeState,
-): ValidationResult {
+export function runClientSideValidation(state: IRuntimeState): ValidationResult {
   const out: ValidationResult = {
     model: {},
     validationResult: {
@@ -44,15 +42,10 @@ export function runClientSideValidation(
     state.formLayout.layoutsets,
   );
   out.model = convertDataBindingToModel(state.formData.formData);
-  const validator = getValidator(
-    currentDataTaskDataTypeId,
-    state.formDataModel.schemas,
-  );
+  const validator = getValidator(currentDataTaskDataTypeId, state.formDataModel.schemas);
 
   const hiddenFields = new Set(state.formLayout.uiConfig.hiddenFields);
-  const layoutOrder = getLayoutOrderFromTracks(
-    state.formLayout.uiConfig.tracks,
-  );
+  const layoutOrder = getLayoutOrderFromTracks(state.formLayout.uiConfig.tracks);
 
   if (!layoutOrder || !state.language.language) {
     return out;

@@ -1,8 +1,6 @@
 import type { IInstanceDataState } from 'src/shared/resources/instanceData';
 
-export function getInstanceDataStateMock(
-  customStates?: Partial<IInstanceDataState>,
-): IInstanceDataState {
+export function getInstanceDataStateMock(customStates?: Partial<IInstanceDataState>): IInstanceDataState {
   const mockInstanceDataState: IInstanceDataState = {
     error: null,
     instance: {

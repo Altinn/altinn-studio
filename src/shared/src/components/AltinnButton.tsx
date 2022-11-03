@@ -79,39 +79,35 @@ const useStyles = makeStyles(() =>
   }),
 );
 
-const _AltinnButton = React.forwardRef(
-  (props: IAltinnButtonComponentProvidedProps, ref: any) => {
-    const classes = useStyles(props);
+const _AltinnButton = React.forwardRef((props: IAltinnButtonComponentProvidedProps, ref: any) => {
+  const classes = useStyles(props);
 
-    return (
-      <Button
-        id={props.id}
-        disabled={props.disabled}
-        variant={props.secondaryButton === true ? 'text' : 'contained'}
-        color='primary'
-        className={classNames(props.className, {
-          [classes.button]: props.secondaryButton !== true,
-          [classes.secondaryButton]: props.secondaryButton === true,
+  return (
+    <Button
+      id={props.id}
+      disabled={props.disabled}
+      variant={props.secondaryButton === true ? 'text' : 'contained'}
+      color='primary'
+      className={classNames(props.className, {
+        [classes.button]: props.secondaryButton !== true,
+        [classes.secondaryButton]: props.secondaryButton === true,
+      })}
+      onClick={props.onClickFunction}
+      style={{ fontSize: 16 }}
+      ref={ref}
+      aria-label={props.btnText}
+    >
+      <span
+        className={classNames({
+          [classes.borderBottom]: props.secondaryButton === true && props.disabled !== true,
+          [classes.borderBottomDisabled]: props.secondaryButton === true && props.disabled === true,
         })}
-        onClick={props.onClickFunction}
-        style={{ fontSize: 16 }}
-        ref={ref}
-        aria-label={props.btnText}
       >
-        <span
-          className={classNames({
-            [classes.borderBottom]:
-              props.secondaryButton === true && props.disabled !== true,
-            [classes.borderBottomDisabled]:
-              props.secondaryButton === true && props.disabled === true,
-          })}
-        >
-          {props.btnText}
-        </span>
-      </Button>
-    );
-  },
-);
+        {props.btnText}
+      </span>
+    </Button>
+  );
+});
 
 _AltinnButton.displayName = 'AltinnButton';
 

@@ -17,13 +17,10 @@ export interface IHeaderProps {
 }
 
 const Header = ({ type, header, appOwner }: IHeaderProps) => {
-  const showProgressSettings = useAppSelector(
-    (state) => state.formLayout.uiConfig.showProgress,
-  );
+  const showProgressSettings = useAppSelector((state) => state.formLayout.uiConfig.showProgress);
   const language = useAppSelector((state) => state.language.language);
 
-  const showProgress =
-    type !== ProcessTaskType.Archived && showProgressSettings;
+  const showProgress = type !== ProcessTaskType.Archived && showProgressSettings;
 
   if (!language) {
     return null;
@@ -54,9 +51,7 @@ const Header = ({ type, header, appOwner }: IHeaderProps) => {
                   data-testid='presentation-heading'
                 >
                   {type === ProcessTaskType.Archived ? (
-                    <span>
-                      {getLanguageFromKey('receipt.receipt', language)}
-                    </span>
+                    <span>{getLanguageFromKey('receipt.receipt', language)}</span>
                   ) : (
                     header
                   )}

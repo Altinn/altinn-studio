@@ -3,10 +3,7 @@ import * as React from 'react';
 import { useAppSelector } from 'src/common/hooks';
 import InstantiationErrorPage from 'src/features/instantiate/containers/InstantiationErrorPage';
 
-import {
-  getLanguageFromKey,
-  getParsedLanguageFromKey,
-} from 'altinn-shared/utils';
+import { getLanguageFromKey, getParsedLanguageFromKey } from 'altinn-shared/utils';
 
 function UnknownError() {
   const language = useAppSelector((state) => state.language.language);
@@ -19,11 +16,9 @@ function UnknownError() {
       return null;
     }
 
-    const customerSupport = getParsedLanguageFromKey(
-      'instantiate.unknown_error_customer_support',
-      language,
-      [getLanguageFromKey('general.customer_service_phone_number', language)],
-    );
+    const customerSupport = getParsedLanguageFromKey('instantiate.unknown_error_customer_support', language, [
+      getLanguageFromKey('general.customer_service_phone_number', language),
+    ]);
 
     return (
       <>
@@ -39,10 +34,7 @@ function UnknownError() {
     <InstantiationErrorPage
       title={getLanguageFromKey('instantiate.unknown_error_title', language)}
       content={getUnknownErrorContent()}
-      statusCode={getLanguageFromKey(
-        'instantiate.unknown_error_status',
-        language,
-      )}
+      statusCode={getLanguageFromKey('instantiate.unknown_error_status', language)}
     />
   );
 }

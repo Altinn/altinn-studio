@@ -207,14 +207,13 @@ describe('GroupContainer', () => {
     })[0];
     await user.click(editButton);
 
-    const mockDispatchedAction: PayloadAction<IUpdateRepeatingGroupsMultiPageIndex> =
-      {
-        payload: {
-          group: 'container-closed-id',
-          index: 0,
-        },
-        type: FormLayoutActions.updateRepeatingGroupsMultiPageIndex.type,
-      };
+    const mockDispatchedAction: PayloadAction<IUpdateRepeatingGroupsMultiPageIndex> = {
+      payload: {
+        group: 'container-closed-id',
+        index: 0,
+      },
+      type: FormLayoutActions.updateRepeatingGroupsMultiPageIndex.type,
+    };
 
     expect(store.dispatch).toHaveBeenLastCalledWith(mockDispatchedAction);
   });
@@ -235,14 +234,13 @@ describe('GroupContainer', () => {
     })[0];
     await user.click(addButton);
 
-    const mockDispatchedAction: PayloadAction<IUpdateRepeatingGroupsMultiPageIndex> =
-      {
-        payload: {
-          group: 'container-closed-id',
-          index: 0,
-        },
-        type: FormLayoutActions.updateRepeatingGroupsMultiPageIndex.type,
-      };
+    const mockDispatchedAction: PayloadAction<IUpdateRepeatingGroupsMultiPageIndex> = {
+      payload: {
+        group: 'container-closed-id',
+        index: 0,
+      },
+      type: FormLayoutActions.updateRepeatingGroupsMultiPageIndex.type,
+    };
 
     expect(store.dispatch).toHaveBeenLastCalledWith(mockDispatchedAction);
   });
@@ -261,15 +259,14 @@ describe('GroupContainer', () => {
     })[0];
     await user.click(editButton);
 
-    const mockDispatchedAction: PayloadAction<IUpdateRepeatingGroupsEditIndex> =
-      {
-        payload: {
-          group: 'container-in-edit-mode-id',
-          index: -1,
-          validate: Triggers.Validation,
-        },
-        type: FormLayoutActions.updateRepeatingGroupsEditIndex.type,
-      };
+    const mockDispatchedAction: PayloadAction<IUpdateRepeatingGroupsEditIndex> = {
+      payload: {
+        group: 'container-in-edit-mode-id',
+        index: -1,
+        validate: Triggers.Validation,
+      },
+      type: FormLayoutActions.updateRepeatingGroupsEditIndex.type,
+    };
 
     expect(store.dispatch).toHaveBeenCalledTimes(1);
     expect(store.dispatch).toHaveBeenCalledWith(mockDispatchedAction);
@@ -288,14 +285,13 @@ describe('GroupContainer', () => {
     })[0];
     await user.click(editButton);
 
-    const mockDispatchedAction: PayloadAction<IUpdateRepeatingGroupsEditIndex> =
-      {
-        payload: {
-          group: 'container-in-edit-mode-id',
-          index: -1,
-        },
-        type: FormLayoutActions.updateRepeatingGroupsEditIndex.type,
-      };
+    const mockDispatchedAction: PayloadAction<IUpdateRepeatingGroupsEditIndex> = {
+      payload: {
+        group: 'container-in-edit-mode-id',
+        index: -1,
+      },
+      type: FormLayoutActions.updateRepeatingGroupsEditIndex.type,
+    };
 
     expect(store.dispatch).toHaveBeenCalledTimes(1);
     expect(store.dispatch).toHaveBeenCalledWith(mockDispatchedAction);
@@ -315,15 +311,14 @@ describe('GroupContainer', () => {
     })[1];
     await user.click(editButton);
 
-    const mockDispatchedAction: PayloadAction<IUpdateRepeatingGroupsEditIndex> =
-      {
-        payload: {
-          group: 'container-in-edit-mode-id',
-          index: -1,
-          validate: Triggers.Validation,
-        },
-        type: FormLayoutActions.updateRepeatingGroupsEditIndex.type,
-      };
+    const mockDispatchedAction: PayloadAction<IUpdateRepeatingGroupsEditIndex> = {
+      payload: {
+        group: 'container-in-edit-mode-id',
+        index: -1,
+        validate: Triggers.Validation,
+      },
+      type: FormLayoutActions.updateRepeatingGroupsEditIndex.type,
+    };
 
     expect(store.dispatch).toHaveBeenCalledTimes(1);
     expect(store.dispatch).toHaveBeenCalledWith(mockDispatchedAction);
@@ -343,15 +338,14 @@ describe('GroupContainer', () => {
     })[1];
     await user.click(editButton);
 
-    const mockDispatchedAction: PayloadAction<IUpdateRepeatingGroupsEditIndex> =
-      {
-        payload: {
-          group: 'container-in-edit-mode-id',
-          index: -1,
-          validate: Triggers.ValidateRow,
-        },
-        type: FormLayoutActions.updateRepeatingGroupsEditIndex.type,
-      };
+    const mockDispatchedAction: PayloadAction<IUpdateRepeatingGroupsEditIndex> = {
+      payload: {
+        group: 'container-in-edit-mode-id',
+        index: -1,
+        validate: Triggers.ValidateRow,
+      },
+      type: FormLayoutActions.updateRepeatingGroupsEditIndex.type,
+    };
 
     expect(store.dispatch).toHaveBeenCalledTimes(1);
     expect(store.dispatch).toHaveBeenCalledWith(mockDispatchedAction);
@@ -370,14 +364,13 @@ describe('GroupContainer', () => {
     })[1];
     await user.click(editButton);
 
-    const mockDispatchedAction: PayloadAction<IUpdateRepeatingGroupsEditIndex> =
-      {
-        payload: {
-          group: 'container-in-edit-mode-id',
-          index: -1,
-        },
-        type: FormLayoutActions.updateRepeatingGroupsEditIndex.type,
-      };
+    const mockDispatchedAction: PayloadAction<IUpdateRepeatingGroupsEditIndex> = {
+      payload: {
+        group: 'container-in-edit-mode-id',
+        index: -1,
+      },
+      type: FormLayoutActions.updateRepeatingGroupsEditIndex.type,
+    };
 
     expect(store.dispatch).toHaveBeenCalledTimes(1);
     expect(store.dispatch).toHaveBeenCalledWith(mockDispatchedAction);

@@ -112,9 +112,7 @@ describe('AltinnReceipt', () => {
     });
 
     expect(screen.getByText(/collapsibletitle/i)).toBeInTheDocument();
-    expect(
-      screen.queryByText(/collapsibletitle \(2\)/i),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/collapsibletitle \(2\)/i)).not.toBeInTheDocument();
   });
 
   it('should show attachments in defined groups', () => {

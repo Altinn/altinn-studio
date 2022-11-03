@@ -4,13 +4,9 @@ import { useDisplayData } from 'src/components/hooks/useDisplayData';
 
 describe('useDisplayData', () => {
   test('should be empty string if formData is null or undefined', async () => {
-    expect(
-      renderHook(() => useDisplayData({ formData: undefined })).result.current,
-    ).toBe('');
+    expect(renderHook(() => useDisplayData({ formData: undefined })).result.current).toBe('');
 
-    expect(
-      renderHook(() => useDisplayData({ formData: undefined })).result.current,
-    ).toBe('');
+    expect(renderHook(() => useDisplayData({ formData: undefined })).result.current).toBe('');
   });
 
   test('should handle formData as object', async () => {
@@ -25,16 +21,12 @@ describe('useDisplayData', () => {
     expect(result.current).toBe('some value in an object other value');
   });
   test('should handle formData as array', async () => {
-    const { result } = renderHook(() =>
-      useDisplayData({ formData: ['values', 'in', 'an', 'array'] }),
-    );
+    const { result } = renderHook(() => useDisplayData({ formData: ['values', 'in', 'an', 'array'] }));
     expect(result.current).toBe('values in an array');
   });
 
   test('should handle formData as single value', async () => {
-    const { result } = renderHook(() =>
-      useDisplayData({ formData: 'single value' }),
-    );
+    const { result } = renderHook(() => useDisplayData({ formData: 'single value' }));
     expect(result.current).toBe('single value');
   });
 });

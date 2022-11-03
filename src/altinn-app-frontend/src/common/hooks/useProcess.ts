@@ -12,9 +12,7 @@ export function useProcess() {
   const dispatch = useAppDispatch();
 
   const instanceData = useAppSelector((state) => state.instanceData.instance);
-  const applicationMetadata = useAppSelector(
-    (state) => state.applicationMetadata.applicationMetadata,
-  );
+  const applicationMetadata = useAppSelector((state) => state.applicationMetadata.applicationMetadata);
   const process = useAppSelector((state) => state.process);
   const layoutSets = useAppSelector((state) => state.formLayout.layoutsets);
 
@@ -31,10 +29,7 @@ export function useProcess() {
       return;
     }
 
-    if (
-      taskType === ProcessTaskType.Data ||
-      behavesLikeDataTask(taskId, layoutSets)
-    ) {
+    if (taskType === ProcessTaskType.Data || behavesLikeDataTask(taskId, layoutSets)) {
       dispatch(QueueActions.startInitialDataTaskQueue());
       return;
     }
@@ -51,14 +46,7 @@ export function useProcess() {
       default:
         break;
     }
-  }, [
-    taskType,
-    taskId,
-    applicationMetadata,
-    instanceData,
-    dispatch,
-    layoutSets,
-  ]);
+  }, [taskType, taskId, applicationMetadata, instanceData, dispatch, layoutSets]);
 
   const appName = useAppSelector(selectAppName);
   const appOwner = useAppSelector(selectAppOwner);

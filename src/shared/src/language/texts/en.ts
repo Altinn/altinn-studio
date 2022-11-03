@@ -56,26 +56,18 @@ export function en() {
       file_uploader_upload: 'Upload file',
       file_uploader_number_of_files: 'Number of files',
       file_uploader_valid_file_format: 'Valid file types are:',
-      file_uploader_validation_error_delete:
-        'Something went wrong trying to delete the file, please try again.',
-      file_uploader_validation_error_exceeds_max_files_1:
-        'You can not upload more than',
-      file_uploader_validation_error_exceeds_max_files_2:
-        'files. No files was uploaded.',
-      file_uploader_validation_error_file_ending:
-        'is not an allowed file type.',
+      file_uploader_validation_error_delete: 'Something went wrong trying to delete the file, please try again.',
+      file_uploader_validation_error_exceeds_max_files_1: 'You can not upload more than',
+      file_uploader_validation_error_exceeds_max_files_2: 'files. No files was uploaded.',
+      file_uploader_validation_error_file_ending: 'is not an allowed file type.',
       file_uploader_validation_error_file_number_1: 'You need to upload',
-      file_uploader_validation_error_file_number_2:
-        'attachement(s) to continue',
+      file_uploader_validation_error_file_number_2: 'attachement(s) to continue',
       file_uploader_validation_error_file_size: ' exeeds the valid file size.',
-      file_uploader_validation_error_general_1:
-        'There was a problem with the file',
+      file_uploader_validation_error_general_1: 'There was a problem with the file',
       file_uploader_validation_error_general_2:
         '. Make sure the file has correct file type and does not exeed the size limit.',
-      file_uploader_validation_error_upload:
-        'Something went wrong trying to upload the file, please try again.',
-      file_uploader_validation_error_update:
-        'Something went wrong trying to update the filetag, please try again.',
+      file_uploader_validation_error_upload: 'Something went wrong trying to upload the file, please try again.',
+      file_uploader_validation_error_update: 'Something went wrong trying to update the filetag, please try again.',
       file_uploader_validation_error_no_chosen_tag: 'You have to choose one',
       placeholder_receipt_header: 'The form has been submitted',
       placeholder_user: 'OLA PRIVATPERSON',
@@ -146,16 +138,14 @@ export function en() {
       version: 'Version',
     },
     group: {
-      row_error:
-        'One of the rows is incorrectly filled out. This has to bee fixed before the schema can be submitted.',
+      row_error: 'One of the rows is incorrectly filled out. This has to bee fixed before the schema can be submitted.',
       row_popover_delete_message: 'Are you sure you want to delete this row?',
       row_popover_delete_button_confirm: 'Yes, delete the row',
     },
     instance_selection: {
       changed_by: 'Changed by',
       continue: 'Continue here',
-      description:
-        'Choose if you want to continue on an existing form, or if you want to start on a new one.',
+      description: 'Choose if you want to continue on an existing form, or if you want to start on a new one.',
       header: 'You have already started filling out this form.',
       last_changed: 'Last changed',
       left_of: 'Continue where you left of',
@@ -168,22 +158,17 @@ export function en() {
       unknown_error_title: 'Unknow error',
       unknown_error_text: 'An unknown error occcurred, please try again later.',
       unknown_error_status: 'Unknow error',
-      unknown_error_customer_support:
-        'If the problem persists, contact us at customer service at {0}.',
-      authorization_error_main_title:
-        'You do not have permission to view this app.',
-      authorization_error_instantiate_validation_title:
-        'You cannot start this service',
-      authorization_error_rights:
-        'It looks like you do not have permission to start this service for {0}',
+      unknown_error_customer_support: 'If the problem persists, contact us at customer service at {0}.',
+      authorization_error_main_title: 'You do not have permission to view this app.',
+      authorization_error_instantiate_validation_title: 'You cannot start this service',
+      authorization_error_rights: 'It looks like you do not have permission to start this service for {0}',
       authorization_error_ask:
         'If you are representing a person it is the one you are representing that can give you the required rights to start this service. If you are you representing an organization you have to ask for the required rights from persons with access delegation rights within your organization.',
       authorization_error_check_rights:
         '<a href="https://{0}/ui/Profile/" target="_blank">See who has rights to delegate access under "Others with rights within the organization"</a>.',
       authorization_error_info_rights:
         '<a href="https://{0}/hjelp/profil/roller-og-rettigheter/" target="_blank">Learn more about roles and rights</a>.',
-      authorization_error_info_customer_service:
-        'You can also contact customer service at {0}.',
+      authorization_error_info_customer_service: 'You can also contact customer service at {0}.',
       authorization_error_instantiate_validation_info_customer_service:
         'If you need help, contact customer service at {0}.',
       starting: "Seatbelts on, it's time to launch!",
@@ -204,10 +189,8 @@ export function en() {
       invalid_selection_second_part: 'This app is available for',
       invalid_selection_third_part: 'Choose another party below.',
       no_valid_selection_first_part: 'This is a app for {0}',
-      no_valid_selection_second_part:
-        'It looks like you do not have access to a party who is allowed to start {0}.',
-      no_valid_selection_third_part:
-        'To start this app, you must have accesses associated with {0}.',
+      no_valid_selection_second_part: 'It looks like you do not have access to a party who is allowed to start {0}.',
+      no_valid_selection_third_part: 'To start this app, you must have accesses associated with {0}.',
       no_valid_selection_binding_word: 'and',
       change_party: 'change party here',
       read_more_roles_link: 'You can read more about roles and rights here.',

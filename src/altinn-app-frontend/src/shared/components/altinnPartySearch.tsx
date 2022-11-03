@@ -36,16 +36,10 @@ function AltinnPartySearch({ onSearchUpdated }: IAltinnPartySearchProps) {
       className={classes.partySearchContainer}
     >
       <AltinnInput
-        label={getLanguageFromKey(
-          'party_selection.search_placeholder',
-          language,
-        )}
+        label={getLanguageFromKey('party_selection.search_placeholder', language)}
         showLabel={false}
         onChange={handleChange}
-        placeholder={getLanguageFromKey(
-          'party_selection.search_placeholder',
-          language,
-        )}
+        placeholder={getLanguageFromKey('party_selection.search_placeholder', language)}
         iconString='fa fa-others'
       />
     </Grid>

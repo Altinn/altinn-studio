@@ -101,9 +101,7 @@ export function AltinnAppHeader({
         >
           <Grid item={true}>
             {party && userParty && party.partyId === userParty.partyId && (
-              <Typography className={classes.appHeaderText}>
-                {renderPartyName(userParty)}
-              </Typography>
+              <Typography className={classes.appHeaderText}>{renderPartyName(userParty)}</Typography>
             )}
             {party && userParty && party.partyId !== userParty.partyId && (
               <Grid
@@ -112,14 +110,10 @@ export function AltinnAppHeader({
                 alignItems='flex-end'
               >
                 <Grid item={true}>
-                  <Typography className={classes.appHeaderText}>
-                    {renderPartyName(userParty)}
-                  </Typography>
+                  <Typography className={classes.appHeaderText}>{renderPartyName(userParty)}</Typography>
                 </Grid>
                 <Grid item={true}>
-                  <Typography className={classes.appHeaderText}>
-                    for {renderPartyName(party)}
-                  </Typography>
+                  <Typography className={classes.appHeaderText}>for {renderPartyName(party)}</Typography>
                 </Grid>
               </Grid>
             )}
@@ -129,10 +123,7 @@ export function AltinnAppHeader({
               party={party}
               logoColor={logoColor}
               logoutText={getLanguageFromKey('general.log_out', language)}
-              ariaLabel={getLanguageFromKey(
-                'general.header_profile_icon_label',
-                language,
-              )}
+              ariaLabel={getLanguageFromKey('general.header_profile_icon_label', language)}
             />
           </Grid>
         </Grid>

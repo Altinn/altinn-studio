@@ -5,57 +5,34 @@ import { evalExpr } from 'src/features/expressions';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
 import { runConditionalRenderingRules } from 'src/utils/conditionalRendering';
-import {
-  dataSourcesFromState,
-  resolvedLayoutsFromState,
-} from 'src/utils/layout/hierarchy';
+import { dataSourcesFromState, resolvedLayoutsFromState } from 'src/utils/layout/hierarchy';
 import { selectNotNull } from 'src/utils/sagas';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
 import type { IFormData } from 'src/features/form/data';
 import type { IConditionalRenderingRules } from 'src/features/form/dynamics';
-import type {
-  IHiddenLayoutsExpressions,
-  IRuntimeState,
-  IUiConfig,
-  IValidations,
-} from 'src/types';
+import type { IHiddenLayoutsExpressions, IRuntimeState, IUiConfig, IValidations } from 'src/types';
 import type { LayoutRootNodeCollection } from 'src/utils/layout/hierarchy';
 
-export const ConditionalRenderingSelector = (store: IRuntimeState) =>
-  store.formDynamics.conditionalRendering;
-export const FormDataSelector = (state: IRuntimeState) =>
-  state.formData.formData;
-export const RepeatingGroupsSelector = (state: IRuntimeState) =>
-  state.formLayout.uiConfig.repeatingGroups;
-export const UiConfigSelector = (state: IRuntimeState) =>
-  state.formLayout.uiConfig;
-export const FormValidationSelector = (state: IRuntimeState) =>
-  state.formValidations.validations;
-export const ResolvedNodesSelector = (state: IRuntimeState) =>
-  resolvedLayoutsFromState(state);
-export const DataSourcesSelector = (state: IRuntimeState) =>
-  dataSourcesFromState(state);
+export const ConditionalRenderingSelector = (store: IRuntimeState) => store.formDynamics.conditionalRendering;
+export const FormDataSelector = (state: IRuntimeState) => state.formData.formData;
+export const RepeatingGroupsSelector = (state: IRuntimeState) => state.formLayout.uiConfig.repeatingGroups;
+export const UiConfigSelector = (state: IRuntimeState) => state.formLayout.uiConfig;
+export const FormValidationSelector = (state: IRuntimeState) => state.formValidations.validations;
+export const ResolvedNodesSelector = (state: IRuntimeState) => resolvedLayoutsFromState(state);
+export const DataSourcesSelector = (state: IRuntimeState) => dataSourcesFromState(state);
 
 export function* checkIfConditionalRulesShouldRunSaga(): SagaIterator {
   try {
-    const conditionalRenderingState: IConditionalRenderingRules = yield select(
-      ConditionalRenderingSelector,
-    );
+    const conditionalRenderingState: IConditionalRenderingRules = yield select(ConditionalRenderingSelector);
     const formData: IFormData = yield select(FormDataSelector);
     const formValidations: IValidations = yield select(FormValidationSelector);
     const repeatingGroups = yield selectNotNull(RepeatingGroupsSelector);
     const uiConfig: IUiConfig = yield select(UiConfigSelector);
-    const resolvedNodes: LayoutRootNodeCollection<'resolved'> = yield select(
-      ResolvedNodesSelector,
-    );
+    const resolvedNodes: LayoutRootNodeCollection<'resolved'> = yield select(ResolvedNodesSelector);
     const dataSources = yield select(DataSourcesSelector);
 
     const hiddenFields = new Set(uiConfig.hiddenFields);
-    const futureHiddenFields = runConditionalRenderingRules(
-      conditionalRenderingState,
-      formData,
-      repeatingGroups,
-    );
+    const futureHiddenFields = runConditionalRenderingRules(conditionalRenderingState, formData, repeatingGroups);
 
     runExpressionRules(resolvedNodes, hiddenFields, futureHiddenFields);
 
@@ -82,11 +59,7 @@ export function* checkIfConditionalRulesShouldRunSaga(): SagaIterator {
     }
 
     const hiddenLayouts = new Set(uiConfig.tracks.hidden);
-    const futureHiddenLayouts = runExpressionsForLayouts(
-      resolvedNodes,
-      uiConfig.tracks.hiddenExpr,
-      dataSources,
-    );
+    const futureHiddenLayouts = runExpressionsForLayouts(resolvedNodes, uiConfig.tracks.hiddenExpr, dataSources);
 
     if (shouldUpdate(hiddenLayouts, futureHiddenLayouts)) {
       yield put(
@@ -100,11 +73,7 @@ export function* checkIfConditionalRulesShouldRunSaga(): SagaIterator {
   }
 }
 
-function runExpressionRules(
-  layouts: LayoutRootNodeCollection<'resolved'>,
-  present: Set<string>,
-  future: Set<string>,
-) {
+function runExpressionRules(layouts: LayoutRootNodeCollection<'resolved'>, present: Set<string>, future: Set<string>) {
   for (const layout of Object.values(layouts.all())) {
     for (const node of layout.flat(true)) {
       if (node.item.hidden === true) {

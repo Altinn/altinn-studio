@@ -40,9 +40,7 @@ export const RepeatingGroupsLikertContainer = ({
   const apiOptions = useGetOptions({ optionsId, mapping, source });
   const calculatedOptions = apiOptions || options || [];
   const lookupKey = optionsId && getOptionLookupKey({ id: optionsId, mapping });
-  const fetchingOptions = useAppSelector(
-    (state) => lookupKey && state.optionState.options[lookupKey]?.loading,
-  );
+  const fetchingOptions = useAppSelector((state) => lookupKey && state.optionState.options[lookupKey]?.loading);
 
   const getText = (key: string | undefined) => {
     return key ? getTextResource(key, textResources) : undefined;
@@ -50,9 +48,7 @@ export const RepeatingGroupsLikertContainer = ({
 
   const title = getText(container.textResourceBindings?.title);
   const description = getText(container.textResourceBindings?.description);
-  const leftColumnHeader = getText(
-    container.textResourceBindings?.leftColumnHeader,
-  );
+  const leftColumnHeader = getText(container.textResourceBindings?.leftColumnHeader);
   const titleId = `likert-title-${id}`;
   const descriptionId = `likert-description-${id}`;
 

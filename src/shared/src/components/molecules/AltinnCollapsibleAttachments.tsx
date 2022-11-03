@@ -1,12 +1,4 @@
-import {
-  Typography,
-  makeStyles,
-  Collapse,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-} from '@material-ui/core';
+import { Typography, makeStyles, Collapse, List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
 import React from 'react';
 import cn from 'classnames';
 
@@ -56,9 +48,7 @@ export function AltinnCollapsibleAttachments({
     setOpen(!open);
   }
 
-  const attachmentCount = hideCount
-    ? ''
-    : `(${attachments && attachments.length})`;
+  const attachmentCount = hideCount ? '' : `(${attachments && attachments.length})`;
 
   return (
     <>
@@ -74,10 +64,7 @@ export function AltinnCollapsibleAttachments({
           >
             <ListItemIcon
               classes={{
-                root: cn(
-                  { [classes.transformArrowRight]: !open },
-                  classes.transition,
-                ),
+                root: cn({ [classes.transformArrowRight]: !open }, classes.transition),
               }}
             >
               <AltinnIcon

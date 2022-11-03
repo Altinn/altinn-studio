@@ -20,10 +20,7 @@ export class UnknownTargetType extends ExprRuntimeError {
 
 export class UnknownSourceType extends ExprRuntimeError {
   public constructor(context: ExprContext, type: string, supported: string) {
-    super(
-      context,
-      `Received unsupported type '${type}, only ${supported} are supported'`,
-    );
+    super(context, `Received unsupported type '${type}, only ${supported} are supported'`);
   }
 }
 
@@ -34,10 +31,7 @@ export class UnexpectedType extends ExprRuntimeError {
 }
 
 export class NodeNotFound extends ExprRuntimeError {
-  public constructor(
-    context: ExprContext,
-    original: NodeNotFoundWithoutContext,
-  ) {
+  public constructor(context: ExprContext, original: NodeNotFoundWithoutContext) {
     super(
       context,
       `Unable to evaluate expressions in context of the ${JSON.stringify(

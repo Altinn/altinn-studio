@@ -57,8 +57,5 @@ export function* watchFetchTextResourcesSaga(): SagaIterator {
 
   yield call(fetchTextResources);
   yield takeLatest(TextResourcesActions.fetch, fetchTextResources);
-  yield takeLatest(
-    LanguageActions.updateSelectedAppLanguage,
-    fetchTextResources,
-  );
+  yield takeLatest(LanguageActions.updateSelectedAppLanguage, fetchTextResources);
 }

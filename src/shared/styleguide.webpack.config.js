@@ -44,10 +44,7 @@ module.exports = {
       {
         test: /\.tsx?/,
         exclude: path.resolve(__dirname, 'node_modules'),
-        include: [
-          path.resolve(__dirname, './src'),
-          path.resolve(__dirname, './styleguide'),
-        ],
+        include: [path.resolve(__dirname, './src'), path.resolve(__dirname, './styleguide')],
         loader: 'awesome-typescript-loader',
       },
       {

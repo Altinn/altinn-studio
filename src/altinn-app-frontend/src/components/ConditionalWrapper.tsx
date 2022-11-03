@@ -6,11 +6,7 @@ interface IConditionalWrapperProps {
   children: JSX.Element;
 }
 
-export const ConditionalWrapper = ({
-  condition,
-  wrapper,
-  children,
-}: IConditionalWrapperProps) => {
+export const ConditionalWrapper = ({ condition, wrapper, children }: IConditionalWrapperProps) => {
   if (condition) {
     return wrapper(children);
   } else {

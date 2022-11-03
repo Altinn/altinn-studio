@@ -46,9 +46,7 @@ describe('useInstanceIdParams', () => {
     renderRoutes(pathname);
     const [a, b] = instanceIdExample.split('/');
     expect(screen.getByText(`Location: ${pathname}`)).toBeInTheDocument();
-    expect(
-      screen.getByText(`${instanceIdExample} ${a} ${b}`),
-    ).toBeInTheDocument();
+    expect(screen.getByText(`${instanceIdExample} ${a} ${b}`)).toBeInTheDocument();
   });
 
   it('should find params when "instance/" is in the url and it is valid and on a sub-page', () => {
@@ -56,8 +54,6 @@ describe('useInstanceIdParams', () => {
     renderRoutes(pathname);
     const [a, b] = instanceIdExample.split('/');
     expect(screen.getByText(`Location: ${pathname}`)).toBeInTheDocument();
-    expect(
-      screen.getByText(`${instanceIdExample} ${a} ${b}`),
-    ).toBeInTheDocument();
+    expect(screen.getByText(`${instanceIdExample} ${a} ${b}`)).toBeInTheDocument();
   });
 });

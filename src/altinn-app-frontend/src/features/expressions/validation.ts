@@ -7,16 +7,8 @@ import {
   ExprFunctions,
   ExprTypes,
 } from 'src/features/expressions';
-import {
-  prettyErrors,
-  prettyErrorsToConsole,
-} from 'src/features/expressions/prettyErrors';
-import type {
-  BaseValue,
-  Expression,
-  ExprFunction,
-  FuncDef,
-} from 'src/features/expressions/types';
+import { prettyErrors, prettyErrorsToConsole } from 'src/features/expressions/prettyErrors';
+import type { BaseValue, Expression, ExprFunction, FuncDef } from 'src/features/expressions/types';
 import type { ILayout } from 'src/features/form/layout';
 
 enum ValidationErrorMessage {
@@ -78,21 +70,9 @@ function validateFunctionArg(
       if (targetType.nullable) {
         return;
       }
-      addError(
-        ctx,
-        [...path, `[${idx}]`],
-        ValidationErrorMessage.ArgWrongType,
-        expectedType,
-        'null',
-      );
+      addError(ctx, [...path, `[${idx}]`], ValidationErrorMessage.ArgWrongType, expectedType, 'null');
     } else if (!targetType.accepts.includes(actualType)) {
-      addError(
-        ctx,
-        [...path, `[${idx}]`],
-        ValidationErrorMessage.ArgWrongType,
-        expectedType,
-        'null',
-      );
+      addError(ctx, [...path, `[${idx}]`], ValidationErrorMessage.ArgWrongType, expectedType, 'null');
     }
   }
 }
@@ -181,11 +161,7 @@ function validateExpr(expr: any[], ctx: ValidationContext, path: string[]) {
   return validateFunction(func, rawArgs, args, ctx, [...path, '[0]']);
 }
 
-function validateRecursively(
-  expr: any,
-  ctx: ValidationContext,
-  path: string[],
-): BaseValue | undefined {
+function validateRecursively(expr: any, ctx: ValidationContext, path: string[]): BaseValue | undefined {
   if (validBasicTypes[typeof expr]) {
     return validBasicTypes[typeof expr];
   }
@@ -282,12 +258,7 @@ export function preProcessItem(
 
   if (typeof input === 'object' && !Array.isArray(input) && input !== null) {
     for (const property of Object.keys(input)) {
-      input[property] = preProcessItem(
-        input[property],
-        defaults,
-        [...componentPath, property],
-        componentId,
-      );
+      input[property] = preProcessItem(input[property], defaults, [...componentPath, property], componentId);
     }
   }
 

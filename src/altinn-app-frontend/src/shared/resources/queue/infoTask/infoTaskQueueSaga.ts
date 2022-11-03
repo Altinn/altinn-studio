@@ -14,17 +14,12 @@ import type { IRuntimeState, ITextResource } from 'src/types';
 import { get } from 'altinn-shared/utils';
 import type { IInstance } from 'altinn-shared/types';
 
-export const ApplicationMetadataSelector = (state: IRuntimeState) =>
-  state.applicationMetadata.applicationMetadata;
-export const TextResourceSelector = (state: IRuntimeState) =>
-  state.textResources.resources;
-export const InstanceDataSelector = (state: IRuntimeState) =>
-  state.instanceData.instance;
+export const ApplicationMetadataSelector = (state: IRuntimeState) => state.applicationMetadata.applicationMetadata;
+export const TextResourceSelector = (state: IRuntimeState) => state.textResources.resources;
+export const InstanceDataSelector = (state: IRuntimeState) => state.instanceData.instance;
 
 export function* startInitialInfoTaskQueueSaga(): SagaIterator {
-  const appMetadata: IApplicationMetadata = yield select(
-    ApplicationMetadataSelector,
-  );
+  const appMetadata: IApplicationMetadata = yield select(ApplicationMetadataSelector);
   const textResources: ITextResource[] = yield select(TextResourceSelector);
   const instance: IInstance = yield select(InstanceDataSelector);
 
@@ -41,9 +36,7 @@ export function* startInitialInfoTaskQueueSaga(): SagaIterator {
         const dataType = appMetadata.dataTypes.find((d) => d.id === modelName);
         if (!dataType) return;
 
-        const dataElement = instance.data.find(
-          (e) => e.dataType === dataType.id,
-        );
+        const dataElement = instance.data.find((e) => e.dataType === dataType.id);
         if (!dataElement) return;
         dataElements.push(dataElement.id);
       });
@@ -51,10 +44,7 @@ export function* startInitialInfoTaskQueueSaga(): SagaIterator {
 
     let formData = {};
     for (const dataElementId of dataElements) {
-      const fetchedData = yield call(
-        get,
-        getFetchFormDataUrl(instance.id, dataElementId),
-      );
+      const fetchedData = yield call(get, getFetchFormDataUrl(instance.id, dataElementId));
       formData = {
         ...formData,
         ...convertModelToDataBinding(fetchedData),

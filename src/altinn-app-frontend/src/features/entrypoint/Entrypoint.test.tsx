@@ -71,16 +71,13 @@ describe('Entrypoint', () => {
     const contentLoader = await screen.findByText('Loading...');
     expect(contentLoader).not.toBeNull();
 
-    const instantiationText = await screen.findByText(
-      'Hold deg fast, nå starter vi!',
-    );
+    const instantiationText = await screen.findByText('Hold deg fast, nå starter vi!');
     expect(instantiationText).not.toBeNull();
   });
 
   it('should show loader while fetching data then start statelessQueue if stateless app', async () => {
     const statelessApplication: IApplicationMetadata = {
-      ...(mockInitialState.applicationMetadata
-        .applicationMetadata as IApplicationMetadata),
+      ...(mockInitialState.applicationMetadata.applicationMetadata as IApplicationMetadata),
       onEntry: {
         show: 'stateless',
       },
@@ -88,8 +85,7 @@ describe('Entrypoint', () => {
     const mockStateWithStatelessApplication: IRuntimeState = {
       ...mockInitialState,
     };
-    mockStateWithStatelessApplication.applicationMetadata.applicationMetadata =
-      statelessApplication;
+    mockStateWithStatelessApplication.applicationMetadata.applicationMetadata = statelessApplication;
     mockStore = createStore(mockReducer, mockStateWithStatelessApplication);
     mockStore.dispatch = jest.fn();
 
@@ -108,20 +104,16 @@ describe('Entrypoint', () => {
 
   it('should show loader while fetching data then start statelessQueue if stateless app with allowAnonymous', async () => {
     const statelessApplication: IApplicationMetadata = {
-      ...(mockInitialState.applicationMetadata
-        .applicationMetadata as IApplicationMetadata),
+      ...(mockInitialState.applicationMetadata.applicationMetadata as IApplicationMetadata),
       onEntry: {
         show: 'stateless',
       },
     };
-    (
-      statelessApplication.dataTypes[0].appLogic as IApplicationLogic
-    ).allowAnonymousOnStateless = true;
+    (statelessApplication.dataTypes[0].appLogic as IApplicationLogic).allowAnonymousOnStateless = true;
     const mockStateWithStatelessApplication: IRuntimeState = {
       ...mockInitialState,
     };
-    mockStateWithStatelessApplication.applicationMetadata.applicationMetadata =
-      statelessApplication;
+    mockStateWithStatelessApplication.applicationMetadata.applicationMetadata = statelessApplication;
     mockStore = createStore(mockReducer, mockStateWithStatelessApplication);
     mockStore.dispatch = jest.fn();
 
@@ -140,8 +132,7 @@ describe('Entrypoint', () => {
 
   it('should fetch active instances and display InstanceSelection.tsx if select-instance is configured', async () => {
     const application: IApplicationMetadata = {
-      ...(mockInitialState.applicationMetadata
-        .applicationMetadata as IApplicationMetadata),
+      ...(mockInitialState.applicationMetadata.applicationMetadata as IApplicationMetadata),
       onEntry: {
         show: 'select-instance',
       },
@@ -149,8 +140,7 @@ describe('Entrypoint', () => {
     const mockStateWithStatelessApplication: IRuntimeState = {
       ...mockInitialState,
     };
-    mockStateWithStatelessApplication.applicationMetadata.applicationMetadata =
-      application;
+    mockStateWithStatelessApplication.applicationMetadata.applicationMetadata = application;
     mockStore = createStore(mockReducer, mockStateWithStatelessApplication);
     mockStore.dispatch = jest.fn();
     (axios.post as jest.Mock).mockResolvedValue({
@@ -182,9 +172,7 @@ describe('Entrypoint', () => {
       expect(axios.get).toBeCalled();
     });
 
-    const selectInstanceText = await screen.findByText(
-      'Du har allerede startet å fylle ut dette skjemaet.',
-    );
+    const selectInstanceText = await screen.findByText('Du har allerede startet å fylle ut dette skjemaet.');
     expect(selectInstanceText).not.toBeNull();
   });
 
@@ -199,9 +187,7 @@ describe('Entrypoint', () => {
     mockStore = createStore(mockReducer, mockState);
     render({ store: mockStore });
     await act(async () => {
-      const missingRolesText = await screen.findByText(
-        'Du mangler rettigheter for å se denne tjenesten.',
-      );
+      const missingRolesText = await screen.findByText('Du mangler rettigheter for å se denne tjenesten.');
       expect(missingRolesText).not.toBeNull();
     });
   });

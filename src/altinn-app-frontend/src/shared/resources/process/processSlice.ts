@@ -31,58 +31,53 @@ const genericFulfilledReducer = (
   state.error = null;
 };
 
-const processSlice = createSagaSlice(
-  (mkAction: MkActionType<IProcessState>) => ({
-    name: 'process',
-    initialState,
-    actions: {
-      getTasks: mkAction<IGetTasksFulfilled>({
-        takeLatest: getTasksSaga,
-      }),
-      getTasksFulfilled: mkAction<IGetTasksFulfilled>({
-        reducer: (
-          state: WritableDraft<IProcessState>,
-          action: PayloadAction<IGetTasksFulfilled>,
-        ) => {
-          state.availableNextTasks = action.payload.tasks;
-          state.error = null;
-        },
-      }),
-      getTasksRejected: mkAction<IGetProcessStateRejected>({
-        reducer: (state, action) => {
-          state.error = action.payload.error;
-        },
-      }),
-      get: mkAction<void>({
-        takeLatest: getProcessStateSaga,
-      }),
-      getFulfilled: mkAction<IGetProcessStateFulfilled>({
-        takeLatest: getTasksSaga,
-        reducer: genericFulfilledReducer,
-      }),
-      getRejected: mkAction<IGetProcessStateRejected>({
-        reducer: (state, action) => {
-          state.error = action.payload.error;
-        },
-      }),
-      complete: mkAction<ICompleteProcessFulfilled | undefined>({
-        takeLatest: completeProcessSaga,
-      }),
-      completeFulfilled: mkAction<ICompleteProcessFulfilled>({
-        takeLatest: getTasksSaga,
-        reducer: genericFulfilledReducer,
-      }),
-      completeRejected: mkAction<ICompleteProcessRejected>({
-        reducer: (state, action) => {
-          state.error = action.payload.error;
-        },
-      }),
-      checkIfUpdated: mkAction<void>({
-        takeLatest: checkProcessUpdated,
-      }),
-    },
-  }),
-);
+const processSlice = createSagaSlice((mkAction: MkActionType<IProcessState>) => ({
+  name: 'process',
+  initialState,
+  actions: {
+    getTasks: mkAction<IGetTasksFulfilled>({
+      takeLatest: getTasksSaga,
+    }),
+    getTasksFulfilled: mkAction<IGetTasksFulfilled>({
+      reducer: (state: WritableDraft<IProcessState>, action: PayloadAction<IGetTasksFulfilled>) => {
+        state.availableNextTasks = action.payload.tasks;
+        state.error = null;
+      },
+    }),
+    getTasksRejected: mkAction<IGetProcessStateRejected>({
+      reducer: (state, action) => {
+        state.error = action.payload.error;
+      },
+    }),
+    get: mkAction<void>({
+      takeLatest: getProcessStateSaga,
+    }),
+    getFulfilled: mkAction<IGetProcessStateFulfilled>({
+      takeLatest: getTasksSaga,
+      reducer: genericFulfilledReducer,
+    }),
+    getRejected: mkAction<IGetProcessStateRejected>({
+      reducer: (state, action) => {
+        state.error = action.payload.error;
+      },
+    }),
+    complete: mkAction<ICompleteProcessFulfilled | undefined>({
+      takeLatest: completeProcessSaga,
+    }),
+    completeFulfilled: mkAction<ICompleteProcessFulfilled>({
+      takeLatest: getTasksSaga,
+      reducer: genericFulfilledReducer,
+    }),
+    completeRejected: mkAction<ICompleteProcessRejected>({
+      reducer: (state, action) => {
+        state.error = action.payload.error;
+      },
+    }),
+    checkIfUpdated: mkAction<void>({
+      takeLatest: checkProcessUpdated,
+    }),
+  },
+}));
 
 export const ProcessActions = processSlice.actions;
 export default processSlice;

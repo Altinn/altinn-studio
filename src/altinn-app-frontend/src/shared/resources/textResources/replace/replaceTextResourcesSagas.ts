@@ -18,39 +18,23 @@ import type {
   ITextResource,
 } from 'altinn-shared/types';
 
-export const InstanceSelector: (state: IRuntimeState) => IInstance | null = (
-  state,
-) => state.instanceData?.instance;
-export const FormDataSelector: (state: IRuntimeState) => IFormData = (state) =>
-  state.formData?.formData;
-export const ApplicationSettingsSelector: (
-  state: IRuntimeState,
-) => IApplicationSettings | null = (state) =>
+export const InstanceSelector: (state: IRuntimeState) => IInstance | null = (state) => state.instanceData?.instance;
+export const FormDataSelector: (state: IRuntimeState) => IFormData = (state) => state.formData?.formData;
+export const ApplicationSettingsSelector: (state: IRuntimeState) => IApplicationSettings | null = (state) =>
   state.applicationSettings?.applicationSettings;
-export const TextResourcesSelector: (
-  state: IRuntimeState,
-) => ITextResourcesState = (state) => state.textResources;
-export const RepeatingGroupsSelector: (
-  state: IRuntimeState,
-) => IRepeatingGroups | null = (state) =>
+export const TextResourcesSelector: (state: IRuntimeState) => ITextResourcesState = (state) => state.textResources;
+export const RepeatingGroupsSelector: (state: IRuntimeState) => IRepeatingGroups | null = (state) =>
   state.formLayout.uiConfig.repeatingGroups;
 
 export function* replaceTextResourcesSaga(): SagaIterator {
   try {
     const formData: IFormData = yield select(FormDataSelector);
     const instance: IInstance = yield select(InstanceSelector);
-    const applicationSettings: IApplicationSettings = yield select(
-      ApplicationSettingsSelector,
-    );
-    const textResources: ITextResourcesState = yield select(
-      TextResourcesSelector,
-    );
-    const repeatingGroups: IRepeatingGroups = yield select(
-      RepeatingGroupsSelector,
-    );
+    const applicationSettings: IApplicationSettings = yield select(ApplicationSettingsSelector);
+    const textResources: ITextResourcesState = yield select(TextResourcesSelector);
+    const repeatingGroups: IRepeatingGroups = yield select(RepeatingGroupsSelector);
 
-    const instanceContext: IInstanceContext | null =
-      buildInstanceContext(instance);
+    const instanceContext: IInstanceContext | null = buildInstanceContext(instance);
 
     const dataSources: IDataSources = {
       dataModel: formData,
@@ -63,9 +47,7 @@ export function* replaceTextResourcesSaga(): SagaIterator {
       dataSources,
       repeatingGroups,
     );
-    if (
-      JSON.stringify(textResources) !== JSON.stringify(updatedTextsResources)
-    ) {
+    if (JSON.stringify(textResources) !== JSON.stringify(updatedTextsResources)) {
       yield put(
         TextResourcesActions.replaceFulfilled({
           language: textResources.language,
@@ -88,8 +70,5 @@ export function* watchReplaceTextResourcesSaga(): SagaIterator {
   yield takeLatest(FormDataActions.fetchFulfilled, replaceTextResourcesSaga);
   yield takeLatest(FormDataActions.updateFulfilled, replaceTextResourcesSaga);
   yield takeLatest(FormDataActions.setFulfilled, replaceTextResourcesSaga);
-  yield takeLatest(
-    TextResourcesActions.fetchFulfilled,
-    replaceTextResourcesSaga,
-  );
+  yield takeLatest(TextResourcesActions.fetchFulfilled, replaceTextResourcesSaga);
 }

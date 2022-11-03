@@ -2,11 +2,7 @@
 // getValueByPath(obj, 'some.path.to.value', null)
 // does not work with arrays
 
-export const getValueByPath = (
-  value: string,
-  path: string,
-  defaultValue: any,
-) => {
+export const getValueByPath = (value: string, path: string, defaultValue: any) => {
   return String(path)
     .split('.')
     .reduce((accVal, currVal: any) => {

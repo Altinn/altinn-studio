@@ -13,16 +13,9 @@ interface IOptionalIndicatorProps {
 }
 
 export const OptionalIndicator = (props: IOptionalIndicatorProps) => {
-  const shouldShowOptionalMarking =
-    props.labelSettings?.optionalIndicator &&
-    !props.required &&
-    !props.readOnly;
+  const shouldShowOptionalMarking = props.labelSettings?.optionalIndicator && !props.required && !props.readOnly;
   if (shouldShowOptionalMarking) {
-    return (
-      <span className='label-optional'>
-        {` (${getLanguageFromKey('general.optional', props.language)})`}
-      </span>
-    );
+    return <span className='label-optional'>{` (${getLanguageFromKey('general.optional', props.language)})`}</span>;
   }
   return null;
 };

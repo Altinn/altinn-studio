@@ -10,12 +10,7 @@ import {
 } from 'src/utils/appMetadata';
 import type { ILayoutSets } from 'src/types';
 
-import type {
-  IApplication,
-  IData,
-  IInstance,
-  ITask,
-} from 'altinn-shared/types';
+import type { IApplication, IData, IInstance, ITask } from 'altinn-shared/types';
 
 describe('appMetadata.ts', () => {
   const application: IApplication = {
@@ -155,11 +150,7 @@ describe('appMetadata.ts', () => {
 
   describe('getLayoutSetIdForApplication', () => {
     it('should return correct layout set id if we have an instance', () => {
-      const result = getLayoutSetIdForApplication(
-        application,
-        instance,
-        layoutSets,
-      );
+      const result = getLayoutSetIdForApplication(application, instance, layoutSets);
       const expected = 'datamodel';
       expect(result).toEqual(expected);
     });
@@ -169,11 +160,7 @@ describe('appMetadata.ts', () => {
         ...application,
         onEntry: { show: 'stateless' },
       };
-      const result = getLayoutSetIdForApplication(
-        statelessApplication,
-        undefined,
-        layoutSets,
-      );
+      const result = getLayoutSetIdForApplication(statelessApplication, undefined, layoutSets);
       const expected = 'stateless';
       expect(result).toEqual(expected);
     });
@@ -195,9 +182,7 @@ describe('appMetadata.ts', () => {
     });
 
     it('should return false if routed to an instance', () => {
-      window.location.replace(
-        '#/instance/123456/75154373-aed4-41f7-95b4-e5b5115c2edc',
-      );
+      window.location.replace('#/instance/123456/75154373-aed4-41f7-95b4-e5b5115c2edc');
       const result = isStatelessApp(application);
       expect(result).toBeFalsy();
     });
@@ -206,11 +191,7 @@ describe('appMetadata.ts', () => {
   describe('getCurrentTaskDataElementId', () => {
     const layoutSets: ILayoutSets = { sets: [] };
     it('should return current task data element id', () => {
-      const result = getCurrentTaskDataElementId(
-        application,
-        instance,
-        layoutSets,
-      );
+      const result = getCurrentTaskDataElementId(application, instance, layoutSets);
       expect(result).toEqual('datamodel-data-guid');
     });
   });
@@ -219,9 +200,7 @@ describe('appMetadata.ts', () => {
     const layoutSets: ILayoutSets = { sets: [] };
     it('should return current task data', () => {
       const result = getCurrentTaskData(application, instance, layoutSets);
-      const expected = instance.data.find(
-        (e) => e.id === 'datamodel-data-guid',
-      );
+      const expected = instance.data.find((e) => e.id === 'datamodel-data-guid');
       expect(result).toEqual(expected);
     });
   });
@@ -259,11 +238,7 @@ describe('appMetadata.ts', () => {
         ],
       };
 
-      const result = getCurrentDataTypeId(
-        application,
-        instanceInConfirm,
-        layoutSets,
-      );
+      const result = getCurrentDataTypeId(application, instanceInConfirm, layoutSets);
       const expected = 'Datamodel-for-confirm';
       expect(result).toEqual(expected);
     });

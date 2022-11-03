@@ -17,6 +17,4 @@ export function getLayoutOrderFromTracks(tracks: ITracks): string[] | null {
 
 const selectTracks = (state: RootState) => state.formLayout.uiConfig.tracks;
 
-export const selectLayoutOrder = createSelector(selectTracks, (tracks) =>
-  getLayoutOrderFromTracks(tracks),
-);
+export const selectLayoutOrder = createSelector(selectTracks, (tracks) => getLayoutOrderFromTracks(tracks));

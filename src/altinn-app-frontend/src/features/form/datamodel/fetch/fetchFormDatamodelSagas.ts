@@ -6,10 +6,7 @@ import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { ApplicationMetadataActions } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
-import {
-  getCurrentDataTypeForApplication,
-  isStatelessApp,
-} from 'src/utils/appMetadata';
+import { getCurrentDataTypeForApplication, isStatelessApp } from 'src/utils/appMetadata';
 import { getJsonSchemaUrl } from 'src/utils/appUrlHelper';
 import { get } from 'src/utils/networking';
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
@@ -17,23 +14,16 @@ import type { ILayoutSets, IRuntimeState } from 'src/types';
 
 import type { IInstance } from 'altinn-shared/types';
 
-const AppMetadataSelector: (
-  state: IRuntimeState,
-) => IApplicationMetadata | null = (state: IRuntimeState) =>
+const AppMetadataSelector: (state: IRuntimeState) => IApplicationMetadata | null = (state: IRuntimeState) =>
   state.applicationMetadata.applicationMetadata;
-const InstanceDataSelector = (state: IRuntimeState) =>
-  state.instanceData.instance;
+const InstanceDataSelector = (state: IRuntimeState) => state.instanceData.instance;
 
 function* fetchJsonSchemaSaga(): SagaIterator {
   try {
     const url = getJsonSchemaUrl();
-    const appMetadata: IApplicationMetadata | null = yield select(
-      AppMetadataSelector,
-    );
+    const appMetadata: IApplicationMetadata | null = yield select(AppMetadataSelector);
     const instance: IInstance | null = yield select(InstanceDataSelector);
-    const layoutSets: ILayoutSets | null = yield select(
-      (state: IRuntimeState) => state.formLayout.layoutsets,
-    );
+    const layoutSets: ILayoutSets | null = yield select((state: IRuntimeState) => state.formLayout.layoutsets);
 
     const dataTypeId = getCurrentDataTypeForApplication({
       application: appMetadata,
@@ -43,9 +33,7 @@ function* fetchJsonSchemaSaga(): SagaIterator {
 
     if (dataTypeId) {
       const schema: any = yield call(get, url + dataTypeId);
-      yield put(
-        DataModelActions.fetchJsonSchemaFulfilled({ schema, id: dataTypeId }),
-      );
+      yield put(DataModelActions.fetchJsonSchemaFulfilled({ schema, id: dataTypeId }));
     }
   } catch (error) {
     yield put(DataModelActions.fetchJsonSchemaRejected({ error }));
@@ -71,10 +59,7 @@ export function* watchFetchJsonSchemaSaga(): SagaIterator {
   } else {
     yield call(fetchJsonSchemaSaga);
     while (true) {
-      yield all([
-        take(InstanceDataActions.getFulfilled),
-        take(DataModelActions.fetchJsonSchema),
-      ]);
+      yield all([take(InstanceDataActions.getFulfilled), take(DataModelActions.fetchJsonSchema)]);
       yield call(fetchJsonSchemaSaga);
     }
   }

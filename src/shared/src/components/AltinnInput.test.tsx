@@ -60,8 +60,6 @@ describe('AltinnInput', () => {
   it('should show icon when iconString is set', () => {
     render();
 
-    expect(
-      screen.queryByTestId('altinninput-iconString'),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId('altinninput-iconString')).not.toBeInTheDocument();
   });
 });

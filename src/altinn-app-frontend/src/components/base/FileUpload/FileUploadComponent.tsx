@@ -6,14 +6,8 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import { v4 as uuidv4 } from 'uuid';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
-import {
-  DropzoneComponent,
-  handleRejectedFiles,
-} from 'src/components/base/FileUpload/shared';
-import {
-  AttachmentsCounter,
-  FileName,
-} from 'src/components/base/FileUpload/shared/render';
+import { DropzoneComponent, handleRejectedFiles } from 'src/components/base/FileUpload/shared';
+import { AttachmentsCounter, FileName } from 'src/components/base/FileUpload/shared/render';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
 import type { PropsFromGenericComponent } from 'src/components';
@@ -50,9 +44,7 @@ export function FileUploadComponent({
   const [validations, setValidations] = React.useState<string[]>([]);
   const [showFileUpload, setShowFileUpload] = React.useState(false);
   const mobileView = useMediaQuery('(max-width:992px)'); // breakpoint on altinn-modal
-  const attachments = useAppSelector(
-    (state) => state.attachments.attachments[id] || emptyArray,
-  );
+  const attachments = useAppSelector((state) => state.attachments.attachments[id] || emptyArray);
 
   const getComponentValidations = (): IComponentValidations => {
     const validationMessages = {
@@ -71,14 +63,10 @@ export function FileUploadComponent({
     return validationMessages;
   };
 
-  const handleDrop = (
-    acceptedFiles: File[],
-    rejectedFiles: FileRejection[],
-  ) => {
+  const handleDrop = (acceptedFiles: File[], rejectedFiles: FileRejection[]) => {
     const newFiles: IAttachment[] = [];
     const fileType = baseComponentId || id;
-    const totalAttachments =
-      acceptedFiles.length + rejectedFiles.length + attachments.length;
+    const totalAttachments = acceptedFiles.length + rejectedFiles.length + attachments.length;
 
     if (totalAttachments > maxNumberOfAttachments) {
       // if the user adds more attachments than max, all should be ignored
@@ -119,11 +107,7 @@ export function FileUploadComponent({
       });
 
       if (acceptedFiles.length > 0) {
-        setShowFileUpload(
-          displayMode === 'simple'
-            ? false
-            : attachments.length < maxNumberOfAttachments,
-        );
+        setShowFileUpload(displayMode === 'simple' ? false : attachments.length < maxNumberOfAttachments);
       }
       const rejections = handleRejectedFiles({
         language,
@@ -153,22 +137,14 @@ export function FileUploadComponent({
   };
   const NonMobileColumnHeader = () => {
     return !mobileView ? (
-      <th scope='col'>
-        {getLanguageFromKey(
-          'form_filler.file_uploader_list_header_file_size',
-          language,
-        )}
-      </th>
+      <th scope='col'>{getLanguageFromKey('form_filler.file_uploader_list_header_file_size', language)}</th>
     ) : null;
   };
-  const NameCell = ({
-    attachment,
-  }: {
-    attachment: { name?: string; size: number };
-  }) => {
-    const readableSize = `${(attachment.size / bytesInOneMB).toFixed(
-      2,
-    )} ${getLanguageFromKey('form_filler.file_uploader_mb', language)}`;
+  const NameCell = ({ attachment }: { attachment: { name?: string; size: number } }) => {
+    const readableSize = `${(attachment.size / bytesInOneMB).toFixed(2)} ${getLanguageFromKey(
+      'form_filler.file_uploader_mb',
+      language,
+    )}`;
     return (
       <>
         <td>
@@ -187,17 +163,10 @@ export function FileUploadComponent({
       </>
     );
   };
-  const StatusCellContent = ({
-    attachment,
-  }: {
-    attachment: { uploaded: boolean };
-  }) => {
+  const StatusCellContent = ({ attachment }: { attachment: { uploaded: boolean } }) => {
     const { uploaded } = attachment;
     const status = attachment.uploaded
-      ? getLanguageFromKey(
-          'form_filler.file_uploader_list_status_done',
-          language,
-        )
+      ? getLanguageFromKey('form_filler.file_uploader_list_status_done', language)
       : getLanguageFromKey('general.loading', language);
 
     return uploaded ? (
@@ -220,13 +189,7 @@ export function FileUploadComponent({
       />
     );
   };
-  const DeleteCellContent = ({
-    attachment,
-    index,
-  }: {
-    attachment: { deleting: boolean };
-    index: number;
-  }) => {
+  const DeleteCellContent = ({ attachment, index }: { attachment: { deleting: boolean }; index: number }) => {
     return (
       <div
         onClick={handleDeleteFile.bind(this, index)}
@@ -248,10 +211,7 @@ export function FileUploadComponent({
           <>
             {mobileView
               ? getLanguageFromKey('general.delete', language)
-              : getLanguageFromKey(
-                  'form_filler.file_uploader_list_delete',
-                  language,
-                )}
+              : getLanguageFromKey('form_filler.file_uploader_list_delete', language)}
             <i
               className='ai ai-trash'
               aria-label={getLanguageFromKey('general.delete', language)}
@@ -280,24 +240,13 @@ export function FileUploadComponent({
                 scope='col'
                 style={mobileView ? { width: '65%' } : {}}
               >
-                {getLanguageFromKey(
-                  'form_filler.file_uploader_list_header_name',
-                  language,
-                )}
+                {getLanguageFromKey('form_filler.file_uploader_list_header_name', language)}
               </th>
               <NonMobileColumnHeader />
-              <th scope='col'>
-                {getLanguageFromKey(
-                  'form_filler.file_uploader_list_header_status',
-                  language,
-                )}
-              </th>
+              <th scope='col'>{getLanguageFromKey('form_filler.file_uploader_list_header_status', language)}</th>
               <th scope='col'>
                 <p className='sr-only'>
-                  {getLanguageFromKey(
-                    'form_filler.file_uploader_list_header_delete_sr',
-                    language,
-                  )}
+                  {getLanguageFromKey('form_filler.file_uploader_list_header_delete_sr', language)}
                 </p>
               </th>
             </tr>
@@ -338,11 +287,7 @@ export function FileUploadComponent({
     if (attachments.length >= maxNumberOfAttachments) {
       return false;
     }
-    return (
-      displayMode !== 'simple' ||
-      attachments.length === 0 ||
-      showFileUpload === true
-    );
+    return displayMode !== 'simple' || attachments.length === 0 || showFileUpload === true;
   };
 
   const renderAddMoreAttachmentsButton = (): JSX.Element | null => {
@@ -358,10 +303,7 @@ export function FileUploadComponent({
           onClick={updateShowFileUpload}
           type='button'
         >
-          {getLanguageFromKey(
-            'form_filler.file_uploader_add_attachment',
-            language,
-          )}
+          {getLanguageFromKey('form_filler.file_uploader_add_attachment', language)}
         </button>
       );
     }
@@ -374,8 +316,7 @@ export function FileUploadComponent({
 
   const validationMessages = getComponentValidations();
   const hasValidationMessages =
-    validationMessages.simpleBinding?.errors &&
-    validationMessages.simpleBinding.errors.length > 0;
+    validationMessages.simpleBinding?.errors && validationMessages.simpleBinding.errors.length > 0;
 
   return (
     <div
@@ -410,10 +351,7 @@ export function FileUploadComponent({
       {validationMessages.simpleBinding?.errors &&
         validationMessages.simpleBinding.errors.length > 0 &&
         showFileUpload &&
-        renderValidationMessagesForComponent(
-          validationMessages.simpleBinding,
-          id,
-        )}
+        renderValidationMessagesForComponent(validationMessages.simpleBinding, id)}
       <FileList />
       {!shouldShowFileUpload() &&
         AttachmentsCounter({
@@ -426,10 +364,7 @@ export function FileUploadComponent({
       {validationMessages.simpleBinding?.errors &&
         validationMessages.simpleBinding.errors.length > 0 &&
         !showFileUpload &&
-        renderValidationMessagesForComponent(
-          validationMessages.simpleBinding,
-          id,
-        )}
+        renderValidationMessagesForComponent(validationMessages.simpleBinding, id)}
 
       {renderAddMoreAttachmentsButton()}
     </div>

@@ -16,17 +16,12 @@ describe('App', () => {
   const get = jest.spyOn(axios, 'get');
   const actualUseAppSelector = appSelector.useAppSelector;
   const useAppSelector = jest.spyOn(appSelector, 'useAppSelector');
-  useAppSelector.mockImplementation(
-    (arg: ((state: IRuntimeState) => unknown) | 'allowAnonymousSelector') => {
-      if (arg === 'allowAnonymousSelector') {
-        return getAllowAnonymous();
-      } else return actualUseAppSelector(arg);
-    },
-  );
-  const makeGetAllowAnonymousSelector = jest.spyOn(
-    anonymousSelector,
-    'makeGetAllowAnonymousSelector',
-  );
+  useAppSelector.mockImplementation((arg: ((state: IRuntimeState) => unknown) | 'allowAnonymousSelector') => {
+    if (arg === 'allowAnonymousSelector') {
+      return getAllowAnonymous();
+    } else return actualUseAppSelector(arg);
+  });
+  const makeGetAllowAnonymousSelector = jest.spyOn(anonymousSelector, 'makeGetAllowAnonymousSelector');
   let allowAnonymous: boolean | undefined = undefined;
   const getAllowAnonymous = () => allowAnonymous;
   beforeEach(() => {
@@ -86,10 +81,9 @@ describe('App', () => {
     render({
       locationPath,
     });
-    expect(axios.get).toHaveBeenCalledWith(
-      expect.stringContaining('/api/authentication/keepAlive'),
-      { headers: { Pragma: 'no-cache' } },
-    );
+    expect(axios.get).toHaveBeenCalledWith(expect.stringContaining('/api/authentication/keepAlive'), {
+      headers: { Pragma: 'no-cache' },
+    });
     expect(screen.getByTestId('presentation-heading')).toBeInTheDocument();
   });
   it('should try to presentation component when anonymous', () => {

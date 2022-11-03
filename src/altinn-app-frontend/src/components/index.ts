@@ -2,10 +2,7 @@ import { createContext } from 'react';
 
 import { AddressComponent as Address } from 'src/components/advanced/AddressComponent';
 import { AttachmentListComponent } from 'src/components/base/AttachmentListComponent';
-import {
-  ButtonComponent,
-  InstantiationButtonComponent,
-} from 'src/components/base/ButtonComponent';
+import { ButtonComponent, InstantiationButtonComponent } from 'src/components/base/ButtonComponent';
 import { CheckboxContainerComponent } from 'src/components/base/CheckboxesContainerComponent';
 import DatepickerComponent from 'src/components/base/DatepickerComponent';
 import DropdownComponent from 'src/components/base/DropdownComponent';
@@ -84,8 +81,8 @@ export interface IComponentProps extends IGenericComponentProps {
   isValid?: boolean;
 }
 
-export type PropsFromGenericComponent<T extends ComponentExceptGroup> =
-  IComponentProps & ExprResolved<Omit<ILayoutComponent<T>, 'type'>>;
+export type PropsFromGenericComponent<T extends ComponentExceptGroup> = IComponentProps &
+  ExprResolved<Omit<ILayoutComponent<T>, 'type'>>;
 
 export interface IFormComponentContext {
   grid?: IGrid;
