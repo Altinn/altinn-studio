@@ -448,10 +448,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axe-core@npm:4.4.3":
-  version: 4.4.3
-  resolution: "axe-core@npm:4.4.3"
-  checksum: c3ea000d9ace3ba0bc747c8feafc24b0de62a0f7d93021d0f77b19c73fca15341843510f6170da563d51535d6cfb7a46c5fc0ea36170549dbb44b170208450a2
+"axe-core@npm:4.5.0":
+  version: 4.5.0
+  resolution: "axe-core@npm:4.5.0"
+  checksum: 05b5fa52a8ed8498215cec4a43253d115cc2b43616e840768e05b1b00d6789e7480e5b29159920a45a9504489423836b2fe65a49a67b54cbc5d53b1b37245750
   languageName: node
   linkType: hard
 
@@ -793,9 +793,9 @@ __metadata:
   resolution: "cypress-altinn-app-frontend@workspace:."
   dependencies:
     "@testing-library/cypress": 8.0.3
-    axe-core: 4.4.3
+    axe-core: 4.5.0
     concurrently: 7.5.0
-    cypress: 10.10.0
+    cypress: 10.11.0
     cypress-axe: 1.0.0
     cypress-plugin-tab: 1.0.5
     dotenv: 16.0.3
@@ -828,9 +828,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cypress@npm:10.10.0":
-  version: 10.10.0
-  resolution: "cypress@npm:10.10.0"
+"cypress@npm:10.11.0":
+  version: 10.11.0
+  resolution: "cypress@npm:10.11.0"
   dependencies:
     "@cypress/request": ^2.88.10
     "@cypress/xvfb": ^1.2.4
@@ -876,7 +876,7 @@ __metadata:
     yauzl: ^2.10.0
   bin:
     cypress: bin/cypress
-  checksum: 668a32534a527dba79754abbf98af176b80c539a12ec00058932ba2a19c794c7888323e59e738c30f726ad740c5451c31d02548a0cb7c1b1c8ad01c55a984ca2
+  checksum: 938cc6a20f7eeace5c8e850d234904ee1651cbb36d94666fe600cf17ce964e73d4f7d8d944aab677491702a57364e6aceeb4fe8bcbd96147ff5e2b575a956fb2
   languageName: node
   linkType: hard
 
