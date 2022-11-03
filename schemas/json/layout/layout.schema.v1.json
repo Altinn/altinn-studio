@@ -1,0 +1,735 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Altinn layout",
+  "description": "Schema that describes the layout configuration for Altinn applications.",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "data": {
+      "$ref": "#/definitions/data"
+    }
+  },
+  "definitions": {
+    "data": {
+      "title": "The layout data",
+      "description": "Contains data describing the layout configuration.",
+      "type": "object",
+      "properties": {
+        "layout": {
+          "$ref": "#/definitions/layout"
+        }
+      }
+    },
+    "layout": {
+      "title": "The layout",
+      "description": "Array of components to be presented in the layout.",
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/component"
+      }
+    },
+    "component": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "title": "id",
+          "pattern": "^[0-9a-zA-Z][0-9a-zA-Z-]*[0-9a-zA-Z]$",
+          "description": "The component ID. Must be unique within a given layout."
+        },
+        "type": {
+          "type": "string",
+          "title": "Type",
+          "description": "The component type.",
+          "enum": ["AddressComponent", "AttachmentList", "Button", "Checkboxes", "Datepicker", "Dropdown", "FileUpload", "FileUploadWithTag", "Group", "Header", "Image", "Input", "InstantiationButton", "Likert", "MultipleSelect", "NavigationButtons", "NavigationBar", "Panel", "Paragraph", "PrintButton", "RadioButtons", "Summary", "TextArea"]
+        },
+        "required": {
+          "type": "boolean",
+          "title": "Required",
+          "description": "Boolean value indicating if the component is required when filling in the form. Defaults to false.",
+          "default": false
+        },
+        "readOnly": {
+          "type": "boolean",
+          "title": "Read only",
+          "description": "Boolean value indicating if the component should be presented as read only. Defaults to false.",
+          "default": false
+        },
+        "textResourceBindings": {
+          "type": "object",
+          "title": "Text resource bindings",
+          "description": "Text resource bindings for a component.",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "examples": [
+            {
+              "title": "some.text.binding",
+              "help": "some.other.text.binding"
+            }
+          ]
+        },
+        "dataModelBindings": {
+          "type": "object",
+          "title": "Data model bindings",
+          "description": "Data model bindings for a component.",
+          "additionalProperties": {
+            "type": "string"
+          },
+          "examples": [
+            {
+              "simpleBinding": "some.data.binding"
+            }
+          ]
+        },
+        "triggers": {
+          "$ref": "#/definitions/triggers"
+        },
+        "labelSettings": {
+          "type": "object",
+          "title": "Label settings",
+          "description": "A collection of settings for how the component label should be rendered.",
+          "properties": {
+            "optionalIndicator": {
+              "type": "boolean",
+              "title": "Optional indicator",
+              "description": "Controls whether the text that is indicating that a field is optional should be displayed.",
+              "default": true
+            }
+          }
+        },
+        "grid": {
+          "type": "object",
+          "title": "Grid",
+          "description": "Settings for the components grid. Used for controlling horizontal alignment.",
+          "$ref": "#/definitions/gridSettings",
+          "examples": [
+            {
+              "xs": 12
+            }
+          ]
+        }
+      },
+      "required": ["id", "type"],
+      "allOf": [
+        { "if": {"properties": {"type": { "const": "AddressComponent"}}}, "then": { "$ref": "#/definitions/addressComponent"}},
+        { "if": {"properties": {"type": { "const": "AttachmentList"}}}, "then": { "$ref": "#/definitions/attachmentListComponent"}},
+        { "if": {"properties": {"type": { "const": "Checkboxes"}}}, "then": { "$ref": "#/definitions/radioAndCheckboxComponents"}},
+        { "if": {"properties": {"type": { "const": "Datepicker"}}}, "then": { "$ref": "#/definitions/datepickerComponent"}},
+        { "if": {"properties": {"type": { "const": "Dropdown"}}}, "then": { "$ref": "#/definitions/selectionComponents"}},
+        { "if": {"properties": {"type": { "const": "FileUpload"}}}, "then": { "$ref": "#/definitions/fileUploadComponent"}},
+        { "if": {"properties": {"type": { "const": "FileUploadWithTag"}}}, "then": { "$ref": "#/definitions/fileUploadWithTagComponent"}},
+        { "if": {"properties": {"type": { "const": "Group"}}}, "then": { "$ref": "#/definitions/groupComponent"}},
+        { "if": {"properties": {"type": { "const": "Image"}}}, "then": { "$ref": "#/definitions/imageComponent"}},
+        { "if": {"properties": {"type": { "const": "Input"}}}, "then": { "$ref": "#/definitions/inputComponent"}},
+        { "if": {"properties": {"type": { "const": "TextArea"}}}, "then": { "$ref": "#/definitions/textAreaComponent"}},
+        { "if": {"properties": {"type": { "const": "InstantiationButton"}}}, "then": { "$ref": "#/definitions/instantiationButtonComponent"}},
+        { "if": {"properties": {"type": { "const": "Likert"}}}, "then": { "$ref": "#/definitions/radioAndCheckboxComponents"}},
+        { "if": {"properties": {"type": { "const": "MultipleSelect"}}}, "then": { "$ref": "#/definitions/selectionComponents"}},
+        { "if": {"properties": {"type": { "const": "NavigationButtons"}}}, "then": { "$ref": "#/definitions/navigationButtonsComponent"}},
+        { "if": {"properties": {"type": { "const": "RadioButtons"}}}, "then": { "$ref": "#/definitions/radioAndCheckboxComponents"}},
+        { "if": {"properties": {"type": { "const": "Summary"}}}, "then": {"$ref": "#/definitions/summaryComponent"}},
+        { "if": {"properties": {"type": { "const": "Header"}}}, "then": {"$ref": "#/definitions/headerComponent"}},
+        { "if": {"properties": {"type": { "const": "Panel"}}}, "then": {"$ref": "#/definitions/panelComponent"}}
+      ]
+    },
+    "headerComponent": {
+      "properties": {
+        "size": {
+          "title": "Header size",
+          "description": "'L'=<h2>, 'M'=<h3>, 'S'=<h4>",
+          "type": "string",
+          "enum": ["L", "M", "S", "h2", "h3", "h4"]
+        }
+      },
+      "required": ["size"]
+    },
+    "panelComponent": {
+      "properties": {
+        "variant": {
+          "title": "Panel variant",
+          "description": "Change the look of the panel.",
+          "type": "string",
+          "enum": ["info", "warning", "success"],
+          "default": "info"
+        },
+        "showIcon": {
+          "title": "Show icon",
+          "description": "Boolean value indicating if the icon should be shown.",
+          "type": "boolean",
+          "default": true
+        }
+      }
+    },
+    "fileUploadComponent": {
+      "properties": {
+        "maxFileSizeInMB": {
+          "title": "Maximum file size in MB",
+          "description": "Sets the maximum file size allowed in megabytes.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "maxNumberOfAttachments": {
+          "title": "Maximum allowed attachments",
+          "description": "Sets the maximum number of attachments allowed to upload.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "minNumberOfAttachments": {
+          "title": "Minimum allowed attachments",
+          "description": "Sets the minimum number of attachments to upload",
+          "type": "integer",
+          "minimum": 0
+        },
+        "displayMode": {
+          "title": "Display mode",
+          "description": "Sets the display mode for the file upload component.",
+          "type": "string",
+          "enum": ["simple", "list"]
+        },
+        "hasCustomFileEndings": {
+          "title": "Has custom file endings",
+          "description": "Boolean value indicating if the component has valid file endings",
+          "type": "boolean"
+        },
+        "validFileEndings": {
+          "title": "Valid file endings",
+          "description": "A separated string of valid file endings to upload. If not set all endings are accepted.",
+          "examples": [".csv", ".doc", ".docx", ".gif", ".jpeg", ".pdf", ".txt"],
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        }
+      },
+      "required": ["displayMode", "maxFileSizeInMB", "maxNumberOfAttachments", "minNumberOfAttachments" ]
+    },
+    "fileUploadWithTagComponent": {
+      "allOf": [
+        { "$ref": "#/definitions/fileUploadComponent" }
+      ],
+      "properties": {
+        "optionsId": {
+          "type": "string",
+          "title": "Options ID",
+          "description": "Reference to connected options by id."
+        },
+        "mapping": {
+          "$ref": "#/definitions/mapping",
+          "description": "Optionally used to map options"
+        }
+      },
+      "required": ["optionsId"]
+    },
+    "datepickerComponent": {
+      "properties": {
+        "minDate": {
+          "type": "string",
+          "title": "Minimum allowed date",
+          "description": "Sets the minimum allowed date. Can also use keyword 'today' to disable all past dates dynamically based on the current date. Defaults to 1900-01-01T12:00:00.000Z.",
+          "default": "1900-01-01T12:00:00.000Z"
+        },
+        "maxDate": {
+          "type": "string",
+          "title": "Maximum allowed date",
+          "description": "Sets the maximum allowed date. Can also use keyword 'today' to disable all future dates dynamically based on the current date. Defaults to 2100-01-01T12:00:00.000Z.",
+          "default": "2100-01-01T12:00:00.000Z."
+        },
+        "timeStamp": {
+          "type": "boolean",
+          "title": "Time stamp",
+          "description": "Boolean value indicating if the date time should be stored as a timeStamp. Defaults to true.",
+          "default": true
+        },
+        "format": {
+          "type": "string",
+          "title": "Date format",
+          "description": "Long date format used when displaying the date to the user. The user date format from the locale will be prioritized over this setting.",
+          "examples": ["DD/MM/YYYY", "MM/DD/YYYY", "YYYY-MM-DD"],
+          "default": "DD.MM.YYYY"
+        }
+      },
+      "required": []
+    },
+    "navigationButtonsComponent": {
+      "properties": {
+        "showBackButton": {
+          "type": "boolean",
+          "title": "Show back button",
+          "description": "Shows two buttons (back/next) instead of just 'next'."
+        }
+      }
+    },
+    "instantiationButtonComponent": {
+      "properties": {
+        "mapping": {
+          "$ref": "#/definitions/mapping",
+          "description": "Creates a new app instance with data collected from a stateless part of the app."
+        }
+      }
+    },
+    "gridValue": {
+      "type": "integer",
+      "maximum": 12,
+      "minimum": 1,
+      "examples": [
+        12
+      ]
+    },
+    "gridSettings": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/gridProps"
+        }
+      ],
+      "properties": {
+        "labelGrid": {
+          "title": "labelGrid",
+          "description": "Optional grid for the component label. Used in combination with innerGrid to align labels on the side.",
+          "examples": [
+            {
+              "xs": 12
+            }
+          ],
+          "$ref": "#/definitions/gridProps"
+        },
+        "innerGrid": {
+          "title": "innerGrid",
+          "description": "Optional grid for inner component content like input field or dropdown. Used to avoid inner content filling the component width.",
+          "examples": [
+            {
+              "xs": 12
+            }
+          ],
+          "$ref": "#/definitions/gridProps"
+        }
+      }
+    },
+    "gridProps": {
+      "properties": {
+        "xs": {
+          "$ref": "#/definitions/gridValue",
+          "title": "xs",
+          "description": "Grid breakpoint at 0px"
+        },
+        "sm": {
+          "$ref": "#/definitions/gridValue",
+          "title": "sm",
+          "description": "Grid breakpoint at 600px"
+        },
+        "md": {
+          "$ref": "#/definitions/gridValue",
+          "title": "md",
+          "description": "Grid breakpoint at 960px"
+        },
+        "lg": {
+          "$ref": "#/definitions/gridValue",
+          "title": "lg",
+          "description": "Grid breakpoint at 1280px"
+        },
+        "xl": {
+          "$ref": "#/definitions/gridValue",
+          "title": "xl",
+          "description": "Grid breakpoint at 1920px"
+        }
+      }
+    },
+    "groupComponent": {
+      "properties": {
+        "children": {
+          "title": "Children",
+          "description": "An array of the \"id\" of child components belonging to the group.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "edit": {
+          "title": "Edit",
+          "description": "Alternatives for edit view of repeating group",
+          "$ref": "#/definitions/groupEditOptions"
+        },
+        "panel": {
+          "title": "Panel",
+          "description": "Alternatives for panel view of repeating group",
+          "$ref": "#/definitions/groupPanelOptions"
+        },
+        "maxCount": {
+          "type": "integer",
+          "title": "Maximum count",
+          "description": "The maximum number of iterations of a group. Only relevant if group is repeating.",
+          "minimum": 0
+        },
+        "tableHeaders": {
+          "title": "Table Headers",
+          "description": "An array of the id of child components that should be included as table headers. If not defined all components are shown.",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": ["children"]
+    },
+    "groupEditOptions": {
+      "properties": {
+        "mode": {
+          "title": "Edit mode",
+          "description": "Mode for how repeating group table is displayed in edit mode",
+          "type": "string",
+          "enum": ["hideTable", "likert", "showAll", "showTable"]
+        },
+        "filter": {
+          "title": "Filter",
+          "description": "Conditions for filtering visible items in repeating group",
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/groupFilterItem"
+          }
+        },
+        "saveButton": {
+          "title": "Save button",
+          "description": "Boolean value indicating whether save button should be shown or not in edit mode of repeating group item.",
+          "type": "boolean"
+        },
+        "deleteButton": {
+          "title": "Delete button",
+          "description": "Boolean value indicating whether delete button should be shown or not in edit mode of repeating group item.",
+          "type": "boolean"
+        },
+        "multiPage": {
+          "title": "Multi-page",
+          "description": "Boolean value indicating if form components in edit mode should be shown over multiple pages/views.",
+          "type": "boolean"
+        },
+        "addButton": {
+          "title": "Add button",
+          "description": "Boolean value indicating whether add new button should be shown or not under the table.",
+          "type": "boolean"
+        },
+        "openByDefault": {
+          "title": "Open by default",
+          "description": "Boolean value indicating if group should be opened to add a new item by default when no items exist.",
+          "type": "boolean"
+        },
+        "alertOnDelete": {
+          "title": "Alert on delete",
+          "description": "Boolean value indicating if warning popup should be displayed when attempting to delete a row",
+          "type": "boolean"
+        }
+      }
+    },
+    "groupPanelOptions": {
+      "additionalProperties": false,
+      "allOf": [{
+        "$ref": "#/definitions/panelComponent"
+      }],
+      "properties": {
+        "iconUrl": {
+          "title": "Icon url",
+          "description": "Url of the icon to be shown in panel. Can be relative if hosted by app or full if referencing a cdn or other hosting.",
+          "type": "string",
+          "examples": ["fancyIcon.svg", "https://cdn.example.com/fancyIcon.svg"]
+        },
+        "iconAlt": {
+          "title": "Icon alt",
+          "description": "Alternative text for the icon. Only applicable if iconUrl is provided. Can be plain text or a text resource reference.",
+          "type": "string"
+        },
+        "groupReference": {
+          "title": "Group reference",
+          "description": "Reference to the group that is being displayed in the panel. Used for referencing another repeating group context.",
+          "type": "object",
+          "properties": {
+            "group" : {
+              "type": "string",
+              "title": "Group",
+              "description": "Group reference. Can be either the group id or the group data model binding.",
+              "examples": ["the-group-id", "some.model.theGroup"]
+            }
+          }
+        }
+      }
+    },
+    "groupFilterItem": {
+      "properties": {
+        "key": {
+          "title": "Key",
+          "description": "Key representing field in data model to check.",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "description": "Value to check against.",
+          "type": "string"
+        }
+      }
+    },
+    "options": {
+      "properties": {
+        "label": {
+          "type": "string",
+          "title": "Label",
+          "description": "The option label. Can be plain text or a text resource binding."
+        },
+        "value": {
+          "type": "string",
+          "title": "Value",
+          "description": "The option value."
+        }
+      },
+      "required": ["label", "value"]
+    },
+    "triggers": {
+      "title": "Triggers",
+      "description": "An array of actions that should be triggered when data connected to this component changes.",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["validation", "validateRow", "validatePage", "validateAllPages", "calculatePageOrder"]
+      }
+    },
+    "selectionComponents": {
+      "properties": {
+        "optionsId": {
+          "type": "string",
+          "title": "Options ID",
+          "description": "Reference to connected options by id."
+        },
+        "options": {
+          "type": "array",
+          "title": "Options",
+          "description": "An array of options. Only relevant if no optionsId is set.",
+          "items": {
+            "$ref": "#/definitions/options"
+          }
+        },
+        "preselectedOptionIndex": {
+          "type": "integer",
+          "title": "Preselected option index",
+          "description": "Sets a preselected index.",
+          "minimum": 0
+        },
+        "secure": {
+          "type": "boolean",
+          "title": "Secure Options",
+          "description": "Boolean value indicating if the options should be instance aware. Defaults to false. See more on docs: https://docs.altinn.studio/app/development/data/options/"
+        },
+        "source": {
+          "type": "object",
+          "title": "Source",
+          "description": "Object to define a data model source to be used as basis for options. Can not be used if options or optionId is set. See more on docs: https://docs.altinn.studio/app/development/data/options/",
+          "properties": {
+            "group": {
+              "type": "string",
+              "title": "Group",
+              "description": "The repeating group to base options on.",
+              "examples": ["model.some.group"]
+            },
+            "label": {
+              "type": "string",
+              "title": "Label",
+              "description": "Reference to a text resource to be used as the option label.",
+              "examples": ["some.text.key"]
+            },
+            "value": {
+              "type": "string",
+              "title": "Label",
+              "description": "Field in the group that should be used as value",
+              "examples": ["model.some.group[{0}].someField"]
+            }
+          },
+          "required": ["group", "label", "value"]
+        },
+        "mapping": {
+          "$ref": "#/definitions/mapping",
+          "description": "Optionally used to map options"
+        }
+      }
+    },
+    "radioAndCheckboxComponents": {
+      "allOf": [{ "$ref": "#/definitions/selectionComponents" }],
+      "properties": {
+        "layout": {
+          "type": "string",
+          "enum": ["column", "row", "table"],
+          "title": "Layout",
+          "description": "Define the layout style for the options"
+        }
+      }
+    },
+    "addressComponent": {
+      "properties": {
+        "simplified": {
+          "type": "boolean",
+          "title": "Simplified",
+          "description": "Boolean value indicating if the address component should be shown in simple mode.",
+          "default": false
+        },
+        "saveWhileTyping": {
+          "$ref": "#/definitions/saveWhileTyping"
+        }
+      }
+    },
+    "summaryComponent": {
+      "properties": {
+        "componentRef": {
+          "type": "string",
+          "title": "Component reference",
+          "description": "String value indicating which layout component (by ID) the summary is for."
+        },
+        "pageRef": {
+          "type": "string",
+          "title": "Page reference",
+          "description": "String value indicating which layout page the referenced component is defined on."
+        },
+        "largeGroup": {
+          "type": "boolean",
+          "title": "Large group",
+          "description": "Boolean value indicating if summary of repeating group should be displayed in large format. Useful for displaying summary with nested groups."
+        },
+        "display": {
+          "type": "object",
+          "title": "Display properties",
+          "description": "Optional properties to configure how summary is displayed",
+          "properties": {
+            "hideChangeButton": {
+              "type": "boolean",
+              "title": "Hide change button",
+              "description": "Set to true if the change button should be hidden for the summary component. False by default."
+            },
+            "hideBottomBorder": {
+              "type": "boolean",
+              "title": "Hide bottom border",
+              "description": "Set to true to hide the blue dashed border below the summary component. False by default."
+            },
+            "useComponentGrid": {
+              "type": "boolean",
+              "title": "Use component grid",
+              "description": "Set to true to allow summary component to use the grid setup of the referenced component. For group summary, this will apply for all group child components."
+            }
+          }
+        }
+      }
+    },
+    "attachmentListComponent": {
+      "properties": {
+        "dataTypeIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Data type IDs",
+          "description": "List of data type IDs for the attachment list to show.",
+          "examples": [["SomeDataType", "SomeOtherDataType"]]
+        }
+      }
+    },
+    "imageComponent": {
+      "properties": {
+        "image": {
+          "type": "object",
+          "title": "Image properties",
+          "description": "Set of options for image field.",
+          "properties": {
+            "src": {
+              "title": "Image source",
+              "description": "",
+              "type": "object",
+              "properties": {
+                "nb" :{
+                  "type": "string",
+                  "title": "Bokmål"
+                },
+                "nn":{
+                  "type": "string",
+                  "title": "Nynorsk"
+                },
+                "en":{
+                  "type": "string",
+                  "title": "English"
+                }
+              },
+              "additionalProperties": true
+            },
+            "width": {
+              "type":"string",
+              "title": "Image width",
+              "examples": ["100%"]
+            },
+            "align": {
+              "type":"string",
+              "title": "Align image",
+              "enum": ["flex-start", "center", "flex-end", "space-between", "space-around", "space-evenly"]
+            }
+          },
+          "required": ["src", "width", "align"]
+        }
+      }
+    },
+    "inputComponent": {
+      "properties": {
+        "formatting": {
+          "title": "Input formatting",
+          "description": "Set of options for formatting input fields.",
+          "$ref": "#/definitions/inputFormatting"
+        },
+        "saveWhileTyping": {
+          "$ref": "#/definitions/saveWhileTyping"
+        }
+      }
+    },
+    "textAreaComponent": {
+      "properties": {
+        "saveWhileTyping": {
+          "$ref": "#/definitions/saveWhileTyping"
+        }
+      }
+    },
+    "saveWhileTyping": {
+      "title": "Automatic saving while typing",
+      "description": "Boolean or number. True = feature on (default), false = feature off (saves on focus blur), number = timeout in milliseconds (400 by default)",
+      "default": true,
+      "oneOf": [
+        { "type": "boolean" },
+        { "type": "number" }
+      ]
+    },
+    "inputFormatting": {
+      "properties": {
+        "number": {
+          "$ref": "https://altinncdn.no/schemas/json/component/number-format.schema.v1.json"
+        },
+        "align": {
+          "type": "string",
+          "title": "Align input",
+          "description": "The alignment for Input field (eg. right aligning a series of numbers)",
+          "enum": [ "left", "center", "right"]
+        }
+      }
+    },
+    "mapping": {
+      "type": "object",
+      "title": "Mapping",
+      "examples": [
+        {
+          "some.source.field": "key1",
+          "some.other.source": "key2"
+        }
+      ],
+      "additionalProperties": {
+        "type": "string"
+      }
+    }
+  }
+}

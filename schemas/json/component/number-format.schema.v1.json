@@ -1,0 +1,99 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/component/number-format.schema.v1.json",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Input number formatting",
+  "description": "Schema that describes the options that can be configured for number formatting on an `input` component, based on react-number-format package. For complete list of available options, see https://github.com/s-yadav/react-number-format#props",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "allowedDecimalSeparators": {
+      "title": "Allowed decimal separators",
+      "description": "Characters which when pressed result in a decimal separator. When missing, decimalSeparator and '.' are used",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 1
+      },
+      "examples": [[",", ".", "/"]]
+    },
+    "allowEmptyFormatting": {
+      "title": "Allow empty formatting",
+      "description": "Apply formatting to empty inputs",
+      "type": "boolean",
+      "default": false
+    },
+    "allowLeadingZeros": {
+      "title": "Allow leading zeros",
+      "description": "Allow leading zeros at beginning of number",
+      "type": "boolean",
+      "default": false
+    },
+    "allowNegative": {
+      "title": "Allow negative",
+      "description": "Allow negative numbers (Only when format option is not provided)",
+      "type": "boolean",
+      "default": true
+    },
+    "decimalScale": {
+      "title": "Decimal scale",
+      "description": "If defined it limits to given decimal scale.",
+      "type": "number",
+      "examples": [1, 2, 3]
+    },
+    "decimalSeparator": {
+      "title": "Decimal separator",
+      "description": "Support decimal point on a number. Single character string.",
+      "type": "string",
+      "maxLength": 1,
+      "default": "."
+    },
+    "fixedDecimalScale": {
+      "title": "Fixed decimal scale",
+      "description": "Used together with decimalScale. If true it adds 0s to match given decimal scale.",
+      "type": "boolean",
+      "default": false
+    },
+    "format": {
+      "title": "Format",
+      "description": "Format given as hash string, to allow number input in place of hash.",
+      "type": "string",
+      "examples": ["### ### ###", "+47 ### ## ###", "##-##-##-##"]
+    },
+    "mask": {
+      "title": "Mask",
+      "description": "Mask to show in place of non-entered values",
+      "type": "string",
+      "examples": ["_"],
+      "default": " "
+    },
+    "prefix": {
+      "title": "Prefix",
+      "description": "Add a prefix before the number",
+      "type": "string",
+      "examples": ["$", "kr", "-", "(+47) "]
+    },
+    "suffix": {
+      "title": "Suffix",
+      "description": "Add a suffix after the number",
+      "type": "string",
+      "examples": ["%", "kr", "kg"]
+    },
+    "thousandSeparator": {
+      "title": "Thousand separator",
+      "description": "Add thousand separators on number. Single character string or boolean true (true is default to ,)",
+      "type": ["string", "boolean"],
+      "maxLength": 1,
+      "examples": [true, ",", "."]
+    }
+  },
+  "allOf": [{
+    "if": {
+      "properties": { "fixedDecimalScale": { "const": true } },
+      "required": ["fixedDecimalScale"]
+      },
+      "then": { 
+        "required": ["decimalScale"]
+      }
+    }
+  ]
+}
