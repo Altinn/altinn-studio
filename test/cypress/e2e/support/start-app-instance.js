@@ -31,28 +31,21 @@ Cypress.Commands.add('startAppInstance', (appName, anonymous=false) => {
     cy.log(`Response fuzzing off, enable with --env responseFuzzing=on`);
   }
 
-  cy.visit('/', visitOptions);
-
-  const appPath = `/ttd/${appName}/`;
-
   // Rewrite all references to the app-frontend with a local URL
-  cy.intercept({ path: appPath }, (req) => {
-    req.on('response', (res) => {
-      if (typeof res.body !== 'string') {
-        res.send();
-        return;
-      }
+  cy.intercept(/\/altinn-app-frontend\.(css|js)$/, (req) => {
+    if (req.url.match(/localhost:8080/)) {
+      req.continue();
+    } else {
+      const extension = req.url.endsWith('.css') ? 'css' : 'js';
+      req.redirect(`http://localhost:8080/altinn-app-frontend.${extension}`);
+    }
+  }).as('frontend');
 
-      const source = /https?:\/\/.*?\/altinn-app-frontend\./g;
-      const target = `${Cypress.config(`frontendUrl`)}/altinn-app-frontend.`;
-      const body = res.body.replace(source, target);
-      res.send({ body });
-    });
-  }).as('appIndex');
+  cy.visit('/', visitOptions);
 
   if (Cypress.env('environment') === 'local') {
     if (anonymous) {
-      cy.visit(`${Cypress.config('baseUrl')}${appPath}`, visitOptions);
+      cy.visit(`${Cypress.config('baseUrl')}/ttd/${appName}/`, visitOptions);
     } else {
       cy.get(appFrontend.appSelection).select(appName);
       cy.get(appFrontend.startButton).click();
@@ -61,7 +54,7 @@ Cypress.Commands.add('startAppInstance', (appName, anonymous=false) => {
     if (!anonymous) {
       authenticateAltinnII(Cypress.env('testUserName'), Cypress.env('testUserPwd'));
     }
-    cy.visit(`https://ttd.apps.${Cypress.config('baseUrl').slice(8)}${appPath}`, visitOptions);
+    cy.visit(`https://ttd.apps.${Cypress.config('baseUrl').slice(8)}/ttd/${appName}/`, visitOptions);
   }
 });
 
