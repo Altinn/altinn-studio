@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  screen,
-  render as rtlRender,
-  within,
-  fireEvent,
-} from '@testing-library/react';
+import { fireEvent, render as rtlRender, screen, within } from '@testing-library/react';
 
 import { HeaderSizeSelect } from './HeaderSizeSelect';
 
@@ -12,22 +7,16 @@ const h4Text = 'Undertittel (H4)';
 const h3Text = 'Undertittel (H3)';
 const h2Text = 'Undertittel (H2)';
 
-const render = ({
-  size = undefined,
-  handleUpdateHeaderSize = jest.fn(),
-  handleTitleChange = jest.fn(),
-} = {}) => {
+const render = ({ size = undefined, handleUpdateHeaderSize = jest.fn(), handleTitleChange = jest.fn() } = {}) => {
   rtlRender(
     <HeaderSizeSelect
       renderChangeId={() => <div>id</div>}
       handleTitleChange={handleTitleChange}
       handleUpdateHeaderSize={handleUpdateHeaderSize}
       language={{
-        ux_editor: {
-          modal_header_type_h4: h4Text,
-          modal_header_type_h3: h3Text,
-          modal_header_type_h2: h2Text,
-        },
+        'ux_editor.modal_header_type_h4': h4Text,
+        'ux_editor.modal_header_type_h3': h3Text,
+        'ux_editor.modal_header_type_h2': h2Text,
       }}
       textResources={[{ id: 'title-1', value: 'Another title' }]}
       component={{

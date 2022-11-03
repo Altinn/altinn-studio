@@ -14,12 +14,10 @@ const inputId = 'some-random-id';
 const type = FieldType.String;
 const value = '';
 const mockLanguage = {
-  schema_editor: {
-    delete_field: textDeleteField,
-    field_name: textFieldName,
-    required: textRequired,
-    type: textType,
-  },
+  'schema_editor.delete_field': textDeleteField,
+  'schema_editor.field_name': textFieldName,
+  'schema_editor.required': textRequired,
+  'schema_editor.type': textType,
 };
 const defaultProps: IPropertyItemProps = {
   fullPath,
@@ -34,7 +32,12 @@ const defaultProps: IPropertyItemProps = {
 };
 
 const renderPropertyItem = (props?: Partial<IPropertyItemProps>) =>
-  renderWithRedux(<PropertyItem {...defaultProps} {...props} />);
+  renderWithRedux(
+    <PropertyItem
+      {...defaultProps}
+      {...props}
+    />,
+  );
 
 test('Text input field appears', () => {
   renderPropertyItem();

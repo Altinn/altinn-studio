@@ -3,6 +3,7 @@
     "@swc/core",
     "@swc/jest",
     "css-loader",
+    "jest",
     "jest-environment-jsdom",
     "source-map-loader",
     "style-loader",

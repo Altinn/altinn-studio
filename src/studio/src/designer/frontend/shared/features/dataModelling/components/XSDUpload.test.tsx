@@ -10,6 +10,25 @@ const user = userEvent.setup();
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
+const clickUploadButton = async () => {
+  const btn = screen.getByText('app_data_modelling.upload_xsd');
+  await user.click(btn);
+};
+
+const render = (props: Partial<IXSDUploadProps> = {}) => {
+  const allProps = {
+    language: {},
+    org: 'test-org',
+    repo: 'test-repo',
+    onXSDUploaded: jest.fn(),
+    labelTextResource: 'app_data_modelling.upload_xsd',
+    isInTopToolbar: true,
+    ...props,
+  } as IXSDUploadProps;
+
+  rtlRender(<XSDUpload {...allProps} />);
+};
+
 describe('XSDUpload', () => {
   afterEach(() => jest.restoreAllMocks());
   it('should show file picker button', () => {
@@ -23,19 +42,25 @@ describe('XSDUpload', () => {
   });
 
   it('should show error text when file upload results in error', async () => {
-    mockedAxios.post.mockImplementation(() => Promise.reject(new Error('mocked error')));
+    mockedAxios.post.mockImplementation(() =>
+      Promise.reject(new Error('mocked error')),
+    );
     const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
     render();
 
     await clickUploadButton();
 
-    expect(screen.queryByText(/form_filler\.file_uploader_validation_error_upload/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/form_filler\.file_uploader_validation_error_upload/i),
+    ).not.toBeInTheDocument();
 
     const fileInput = screen.getByTestId('FileSelector-input');
 
     await user.upload(fileInput, file);
 
-    expect(screen.queryByText(/form_filler\.file_uploader_validation_error_upload/i)).toBeInTheDocument();
+    expect(
+      screen.queryByText(/form_filler\.file_uploader_validation_error_upload/i),
+    ).toBeInTheDocument();
   });
 
   it('should call onXSDUploaded callback when upload is successful', async () => {
@@ -53,24 +78,3 @@ describe('XSDUpload', () => {
     expect(handleUpload).toHaveBeenCalledWith('hello.xsd');
   });
 });
-
-const clickUploadButton = async () => {
-  const btn = screen.getByText('app_data_modelling.upload_xsd');
-  await user.click(btn);
-};
-
-const render = (props: Partial<IXSDUploadProps> = {}) => {
-  const allProps = {
-    language: {
-      administration: {},
-    },
-    org: 'test-org',
-    repo: 'test-repo',
-    onXSDUploaded: jest.fn(),
-    labelTextResource: 'app_data_modelling.upload_xsd',
-    isInTopToolbar: true,
-    ...props,
-  } as IXSDUploadProps;
-
-  rtlRender(<XSDUpload {...allProps} />);
-};

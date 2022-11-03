@@ -33,14 +33,12 @@ const textFieldName = 'Navn på felt';
 const textRequired = 'Påkrevd';
 const textType = 'Type';
 const language = {
-  schema_editor: {
-    add_property: textAdd,
-    delete: textDelete,
-    delete_field: textDeleteField,
-    field_name: textFieldName,
-    required: textRequired,
-    type: textType,
-  },
+  'schema_editor.add_property': textAdd,
+  'schema_editor.delete': textDelete,
+  'schema_editor.delete_field': textDeleteField,
+  'schema_editor.field_name': textFieldName,
+  'schema_editor.required': textRequired,
+  'schema_editor.type': textType,
 };
 const defaultProps: ItemFieldsTabProps = {
   language,
@@ -49,7 +47,13 @@ const defaultProps: ItemFieldsTabProps = {
 const defaultState = { uiSchema };
 
 const renderItemFieldsTab = (props?: Partial<ItemFieldsTabProps>, state?: any) =>
-  renderWithRedux(<ItemFieldsTab {...defaultProps} {...props} />, { ...defaultState, ...state });
+  renderWithRedux(
+    <ItemFieldsTab
+      {...defaultProps}
+      {...props}
+    />,
+    { ...defaultState, ...state },
+  );
 
 test('Header texts appear', () => {
   renderItemFieldsTab();
@@ -138,7 +142,13 @@ test('Newly added field gets focus and its text becomes selected', async () => {
   };
   const newSelectedItem = { ...selectedItem, children: [...selectedItem.children, newChildNode.pointer] };
   const newUiSchema = [newSelectedItem, ...childNodes, newChildNode];
-  rerenderWithRedux(<ItemFieldsTab {...defaultProps} selectedItem={newSelectedItem} />, { uiSchema: newUiSchema });
+  rerenderWithRedux(
+    <ItemFieldsTab
+      {...defaultProps}
+      selectedItem={newSelectedItem}
+    />,
+    { uiSchema: newUiSchema },
+  );
   expect(screen.getByDisplayValue(newChildNodeName)).toHaveFocus();
   await user.keyboard('a'); // Should replace the current value since the text should be selected
   expect(screen.getByDisplayValue('a')).toBeDefined();
