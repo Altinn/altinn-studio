@@ -3,7 +3,7 @@
   "editor.tabSize": 2,
   "editor.insertSpaces": true,
   "editor.detectIndentation": false,
-  "editor.rulers": [80],
+  "editor.rulers": [120],
   "search.exclude": {
     "**/node_modules": true
   },
