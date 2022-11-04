@@ -36,9 +36,9 @@ namespace Altinn.App.Core.EFormidling
                 _logger.LogInformation("Successfully subscribed to event {eventType} for app {appIdentifier}. Subscription {subscriptionId} is being used.", eventType, _appIdentifier, subscription.Id);
             }
 
-            catch
+            catch (Exception ex)
             {
-                _logger.LogError("Unable to subscribe to event {eventType} for app {appIdentifier}", eventType, _appIdentifier);
+                _logger.LogError("Unable to subscribe to event {eventType} for app {appIdentifier}. Received exception {exceptionMessage} with {stackTrace}", eventType, _appIdentifier, ex.Message, ex.StackTrace);
                 throw;
             }
         }
