@@ -39,8 +39,9 @@ namespace DataModeling.Tests
                 .And.JsonSchemaKeywordsRegistered()
                 .When.LoadedXsdSchemaConvertedToJsonSchema()
                 .And.When.ConvertedJsonSchemaConvertedToXsdSchema()
-                .And.XmlShouldBeValidWithOriginalSchema(xmlPath)
-                .And.XmlShouldBeValidWithConvertedSchema(xmlPath);
+                .Then.OriginalAndConvertedXsdSchemasShouldBeEquivalent()
+                .And.XmlShouldBeValidAgainstOriginalSchema(xmlPath)
+                .And.XmlShouldBeValidAgainstConvertedSchema(xmlPath);
         }
 
         private bool ValidateXml(XmlSchema xmlSchema, string xml)
@@ -108,11 +109,10 @@ namespace DataModeling.Tests
             return this;
         }
 
-        private Seres2JsonSchema2SeresTests XmlShouldBeValidWithOriginalSchema(string xmlPath)
+        private Seres2JsonSchema2SeresTests XmlShouldBeValidAgainstOriginalSchema(string xmlPath)
         {
             if (!string.IsNullOrEmpty(xmlPath))
             {
-                // The XML should validate against both XSD's
                 var xml = ResourceHelpers.LoadTestDataAsString(xmlPath);
                 Assert.True(ValidateXml(OriginalXsdSchema, xml));
             }
@@ -120,11 +120,10 @@ namespace DataModeling.Tests
             return this;
         }
 
-        private Seres2JsonSchema2SeresTests XmlShouldBeValidWithConvertedSchema(string xmlPath)
+        private Seres2JsonSchema2SeresTests XmlShouldBeValidAgainstConvertedSchema(string xmlPath)
         {
             if (!string.IsNullOrEmpty(xmlPath))
             {
-                // The XML should validate against both XSD's
                 var xml = ResourceHelpers.LoadTestDataAsString(xmlPath);
                 Assert.True(ValidateXml(ConvertedXsdSchema, xml));
             }
