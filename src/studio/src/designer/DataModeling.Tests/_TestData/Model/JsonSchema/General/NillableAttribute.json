@@ -71,7 +71,8 @@
     },
     "referedtype": {
       "type": "integer",
-      "@xsdType": "integer"
+      "@xsdType": "integer",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     }
   }
 }

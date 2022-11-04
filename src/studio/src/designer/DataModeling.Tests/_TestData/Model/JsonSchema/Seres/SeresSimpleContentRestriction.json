@@ -46,7 +46,8 @@
   "$defs": {
     "ageType": {
       "type": "integer",
-      "@xsdType": "int"
+      "@xsdType": "int",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     },
     "limitedAgeType": {
       "allOf": [
@@ -57,11 +58,13 @@
           "minimum": 0,
           "maximum": 100
         }
-      ]
+      ],
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     },
     "genderType": {
       "type": "string",
-      "@xsdType": "string"
+      "@xsdType": "string",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     },
     "limitedGenderType": {
       "allOf": [
@@ -75,7 +78,8 @@
             "unknown"
           ]
         }
-      ]
+      ],
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     },
     "person": {
       "properties": {
@@ -128,15 +132,10 @@
         {
           "properties": {
             "value": {
-              "allOf": [
-                {
-                  "type": "string",
-                  "@xsdType": "token"
-                },
-                {
-                  "maxLength": 50
-                }
-              ]
+              "type": "string",
+              "@xsdType": "token",
+              "maxLength": 50,
+              "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
             },
             "gender": {
               "allOf": [
@@ -151,19 +150,15 @@
                   ]
                 }
               ],
+              "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
               "@xsdAttribute": true
             },
             "age": {
-              "allOf": [
-                {
-                  "type": "integer",
-                  "@xsdType": "int"
-                },
-                {
-                  "minimum": 0,
-                  "maximum": 100
-                }
-              ],
+              "type": "integer",
+              "@xsdType": "int",
+              "minimum": 0,
+              "maximum": 100,
+              "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
               "@xsdAttribute": true
             }
           }
@@ -181,7 +176,8 @@
               "allOf": [
                 {
                   "type": "string",
-                  "@xsdType": "token"
+                  "@xsdType": "token",
+                  "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
                 },
                 {
                   "maxLength": 50
@@ -201,19 +197,15 @@
                   ]
                 }
               ],
+              "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
               "@xsdAttribute": true
             },
             "age": {
-              "allOf": [
-                {
-                  "type": "integer",
-                  "@xsdType": "int"
-                },
-                {
-                  "minimum": 0,
-                  "maximum": 100
-                }
-              ],
+              "type": "integer",
+              "@xsdType": "int",
+              "minimum": 0,
+              "maximum": 100,
+              "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
               "@xsdAttribute": true
             }
           }

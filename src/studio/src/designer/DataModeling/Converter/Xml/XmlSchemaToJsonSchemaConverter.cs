@@ -11,8 +11,6 @@ using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Json.Formats;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
-
-using Json.More;
 using Json.Schema;
 
 namespace Altinn.Studio.DataModeling.Converter.Xml
@@ -287,42 +285,57 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
         private void HandleSimpleTypeRestriction(XmlSchemaSimpleTypeRestriction item, bool optional, bool array, JsonSchemaBuilder builder)
         {
-            StepsBuilder steps = new StepsBuilder();
+            var steps = new StepsBuilder();
+            var hasRestrictions = item.Facets.Count > 0;
+            var hasPrimitiveBase = !item.BaseTypeName.IsEmpty && XmlSchemaTypes.IsKnownXmlSchemaType(item.BaseTypeName);
 
+            // Only for non-primitive type with restrictions. Can't mix ref keyword with restrictions.
+            var shouldBuildWithAllOf = !hasPrimitiveBase && hasRestrictions;
             if (item.BaseType != null)
             {
-                steps.Add(b => HandleSimpleType(item.BaseType, optional, array, b));
+                HandleSimpleType(item.BaseType, optional, array, builder);
             }
-            else if (!item.BaseTypeName.IsEmpty)
+            else if (shouldBuildWithAllOf)
             {
-                steps.Add(b =>
-                {
-                    HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, b);
-                    AddUnhandledAttributes(item, b);
-                });
+                steps.Add(b => HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, b));
             }
-
-            if (item.Facets.Count > 0)
+            else
             {
-                steps.Add(b =>
-                {
-                    List<string> enumValues = new List<string>();
-                    List<string> xsdRestrictions = new List<string>();
-
-                    foreach (XmlSchemaFacet facet in item.Facets.Cast<XmlSchemaFacet>())
-                    {
-                        HandleRestrictionFacet(facet, b, ref enumValues, ref xsdRestrictions);
-                    }
-
-                    if (enumValues.Count > 0)
-                    {
-                        AddUnhandledEnumAttributes(item, b);
-                        b.Enum(enumValues);
-                    }
-                });
+                HandleType(item.BaseTypeName, optional ? 0 : 1, 1, array, false, builder);
             }
 
-            steps.BuildWithAllOf(builder);
+            builder.XsdStructure(nameof(XmlSchemaSimpleTypeRestriction));
+
+            if (shouldBuildWithAllOf)
+            {
+                steps.Add(b => AddSimpleTypeRestrictionFacets(item, b));
+                steps.BuildWithAllOf(builder);
+                return;
+            }
+
+            AddSimpleTypeRestrictionFacets(item, builder);
+        }
+
+        private static void AddSimpleTypeRestrictionFacets(XmlSchemaSimpleTypeRestriction item, JsonSchemaBuilder b)
+        {
+            if (item.Facets.Count == 0)
+            {
+                return;
+            }
+
+            var enumValues = new List<string>();
+            var xsdRestrictions = new List<string>();
+
+            foreach (var facet in item.Facets.Cast<XmlSchemaFacet>())
+            {
+                HandleRestrictionFacet(facet, b, ref enumValues, ref xsdRestrictions);
+            }
+
+            if (enumValues.Count > 0)
+            {
+                AddUnhandledEnumAttributes(item, b);
+                b.Enum(enumValues);
+            }
         }
 
         private static void HandleRestrictionFacet(XmlSchemaFacet facet, JsonSchemaBuilder builder, ref List<string> enumValues, ref List<string> xsdRestrictions)
@@ -1171,85 +1184,85 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
                 switch (typename.Name)
                 {
-                    case "boolean":
+                    case XmlSchemaTypes.Boolean:
                         type = SchemaValueType.Boolean;
                         format = null;
                         return true;
 
-                    case "integer":
-                    case "nonPositiveInteger":
-                    case "negativeInteger":
-                    case "nonNegativeInteger":
-                    case "positiveInteger":
-                    case "long":
-                    case "int":
-                    case "short":
-                    case "byte":
-                    case "unsignedLong":
-                    case "unsignedInt":
-                    case "unsignedShort":
-                    case "unsignedByte":
+                    case XmlSchemaTypes.Integer:
+                    case XmlSchemaTypes.NonPositiveInteger:
+                    case XmlSchemaTypes.NegativeInteger:
+                    case XmlSchemaTypes.NonNegativeInteger:
+                    case XmlSchemaTypes.PositiveInteger:
+                    case XmlSchemaTypes.Long:
+                    case XmlSchemaTypes.Int:
+                    case XmlSchemaTypes.Short:
+                    case XmlSchemaTypes.Byte:
+                    case XmlSchemaTypes.UnsignedLong:
+                    case XmlSchemaTypes.UnsignedInt:
+                    case XmlSchemaTypes.UnsignedShort:
+                    case XmlSchemaTypes.UnsignedByte:
                         type = SchemaValueType.Integer;
                         format = null;
                         return true;
 
-                    case "anyAtomicType":
-                    case "anySimpleType":
-                    case "string":
-                    case "gMonthDay":
-                    case "gDay":
-                    case "gMonth":
-                    case "hexBinary":
-                    case "base64Binary":
-                    case "QName":
-                    case "NOTATION":
-                    case "normalizedString":
-                    case "token":
-                    case "language":
-                    case "NMTOKEN":
-                    case "Name":
-                    case "NCName":
-                    case "ID":
-                    case "IDREF":
-                    case "ENTITY":
-                    case "yearMonthDuration":
-                    case "dayTimeDuration":
+                    case XmlSchemaTypes.AnyAtomicType:
+                    case XmlSchemaTypes.AnySimpleType:
+                    case XmlSchemaTypes.String:
+                    case XmlSchemaTypes.GMonthDay:
+                    case XmlSchemaTypes.GDay:
+                    case XmlSchemaTypes.GMonth:
+                    case XmlSchemaTypes.HexBinary:
+                    case XmlSchemaTypes.Base64Binary:
+                    case XmlSchemaTypes.QName:
+                    case XmlSchemaTypes.Notation:
+                    case XmlSchemaTypes.NormalizedString:
+                    case XmlSchemaTypes.Token:
+                    case XmlSchemaTypes.Language:
+                    case XmlSchemaTypes.NmToken:
+                    case XmlSchemaTypes.Name:
+                    case XmlSchemaTypes.NcName:
+                    case XmlSchemaTypes.Id:
+                    case XmlSchemaTypes.Idref:
+                    case XmlSchemaTypes.Entity:
+                    case XmlSchemaTypes.YearMonthDuration:
+                    case XmlSchemaTypes.DayTimeDuration:
                         type = SchemaValueType.String;
                         format = null;
                         return true;
 
-                    case "gYearMonth":
+                    case XmlSchemaTypes.GYearMonth:
                         type = SchemaValueType.String;
                         format = CustomFormats.YearMonth;
                         return true;
-                    case "gYear":
+                    case XmlSchemaTypes.GYear:
                         type = SchemaValueType.String;
                         format = CustomFormats.Year;
                         return true;
-                    case "dateTime":
+                    case XmlSchemaTypes.DateTime:
                         type = SchemaValueType.String;
                         format = Formats.DateTime;
                         return true;
-                    case "time":
+                    case XmlSchemaTypes.Time:
                         type = SchemaValueType.String;
                         format = Formats.Time;
                         return true;
-                    case "date":
+                    case XmlSchemaTypes.Date:
                         type = SchemaValueType.String;
                         format = Formats.Date;
                         return true;
-                    case "duration":
+                    case XmlSchemaTypes.Duration:
                         type = SchemaValueType.String;
                         format = Formats.Duration;
                         return true;
-                    case "anyURI":
+                    case XmlSchemaTypes.AnyUri:
                         type = SchemaValueType.String;
                         format = Formats.Uri;
                         return true;
 
-                    case "decimal":
-                    case "float":
-                    case "double":
+                    case XmlSchemaTypes.Decimal:
+                    case XmlSchemaTypes.Float:
+                    case XmlSchemaTypes.Double:
                         type = SchemaValueType.Number;
                         format = null;
                         return true;

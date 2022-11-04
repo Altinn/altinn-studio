@@ -45,7 +45,8 @@
     },
     "st1": {
       "type": "string",
-      "@xsdType": "string"
+      "@xsdType": "string",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     },
     "g1": {
       "properties": {
