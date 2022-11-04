@@ -65,7 +65,6 @@ namespace Altinn.App.Core.Extensions
             services.AddHttpClient<IER, RegisterERClient>();
             services.AddHttpClient<IInstance, InstanceClient>();
             services.AddHttpClient<IInstanceEvent, InstanceEventClient>();
-            services.AddHttpClient<IEventsSubscription, EventsSubscriptionClient>();
             services.AddHttpClient<IEvents, EventsClient>();
             services.AddHttpClient<IPDF, PDFClient>();
             services.AddHttpClient<IProfile, ProfileClient>();
