@@ -4,17 +4,15 @@ on:
   push:
     branches: [main]
     paths:
-      - 'src/altinn-app-frontend/**'
-      - 'src/shared/**'
+      - 'src/**'
       - 'test/cypress/**'
-      - '.github/workflows/cypress-altinn-app-frontend.yml'
+      - '.github/workflows/cypress.yml'
   pull_request:
     branches: [main]
     paths:
-      - 'src/altinn-app-frontend/**'
-      - 'src/shared/**'
+      - 'src/**'
       - 'test/cypress/**'
-      - '.github/workflows/cypress-altinn-app-frontend.yml'
+      - '.github/workflows/cypress.yml'
 
   workflow_dispatch:
 
