@@ -1,5 +1,5 @@
 import type { Dict, UiSchemaNode, UiSchemaNodes } from './types';
-import { FieldType, JsonSchemaType, Keywords, ObjectKind } from './types';
+import { FieldType, JsonSchemaType, Keywords, ObjectKind, SpecialArrayXsdFields } from './types';
 import JSONPointer from 'jsonpointer';
 import { findRequiredProps } from './mappers/required';
 import { findJsonFieldType } from './mappers/field-type';
@@ -25,18 +25,25 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): Dict => {
       const nodePointer = node.pointer.replace(ROOT_POINTER, '');
       const itemsPointer = makePointer(node.pointer, Keywords.Items).replace(ROOT_POINTER, '');
       const jsonPointer = node.isArray ? itemsPointer : nodePointer;
+      const customFields = { ...node.custom };
 
       if (node.isArray) {
         JSONPointer.set(out, nodePointer, {
           [Keywords.Type]: node.isNillable ? [JsonSchemaType.Array, FieldType.Null] : JsonSchemaType.Array,
         });
 
-        Object.keys(ArrRestrictionKeys).forEach((key) =>
+        Object.values(ArrRestrictionKeys).forEach((key) =>
           JSONPointer.set(out, [nodePointer, key].join('/'), node.restrictions[key]),
         );
+
+        // Putting the special fields back to items root.
+        Object.values(SpecialArrayXsdFields).forEach((key) => {
+          JSONPointer.set(out, [nodePointer, key].join('/'), customFields[key]);
+          delete customFields[key];
+        });
       }
 
-      const startValue = Object.assign({}, node.custom);
+      const startValue = Object.assign({}, customFields);
 
       // Adding combination root array to start
       if (node.objectKind === ObjectKind.Combination) {

@@ -54,9 +54,9 @@
                 "email": {
                   "type": "array",
                   "items": {
-                    "type": "string"
+                    "type": "string",
+                    "@xsdType": "string"
                   },
-                  "@xsdType": "string",
                   "minItems": 1,
                   "@xsdMinOccurs": 1,
                   "@xsdMaxOccurs": "unbounded"
@@ -66,9 +66,9 @@
                   "items": {
                     "$ref": "#/$defs/contact"
                   },
-                  "maxItems": 10,
                   "@xsdMinOccurs": 0,
-                  "@xsdMaxOccurs": "10"
+                  "@xsdMaxOccurs": "10",
+                  "maxItems": 10
                 }
               },
               "required": [

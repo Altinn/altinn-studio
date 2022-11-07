@@ -24,6 +24,11 @@ export enum JsonSchemaType {
   Array = 'array',
 }
 
+export enum SpecialArrayXsdFields {
+  minOccurs = '@xsdMinOccurs',
+  maxOccurs = '@xsdMaxOccurs',
+}
+
 // These are the keywords that we actually support. The rest will be put into the `custom`-object at the ui-schema.
 export enum Keywords {
   Const = 'const',
