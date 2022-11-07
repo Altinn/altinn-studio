@@ -6,9 +6,9 @@ import { diffChars } from 'diff';
 import MonacoEditorComponent from './MonacoEditorComponent';
 import altinnTheme from '../theme/altinnStudioTheme';
 import AltinnButton from '../components/AltinnButton';
-import type { IAltinnWindow } from '../types/global';
 import { get, post } from '../utils/networking';
 import postMessages from '../utils/postMessages';
+import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
 
 const theme = createTheme(altinnTheme);
 
@@ -148,10 +148,9 @@ class FileEditor extends React.Component<
 
   public componentDidMount() {
     if (!this.props.loadFile) {
-      const { org, app } = window as Window as IAltinnWindow;
-      const appId = `${org}/${app}`;
+      const { org, app } = _useParamsClassCompHack();
       get(
-        `${window.location.origin}/designer/${appId}/ServiceDevelopment` +
+        `${window.location.origin}/designer/${org}/${app}/ServiceDevelopment` +
           `/GetServiceFiles?fileEditorMode=${this.props.mode}`,
       ).then((response) => {
         const files = response.split(',');
@@ -180,10 +179,9 @@ class FileEditor extends React.Component<
     this.setState({
       isLoading: true,
     });
-    const { org, app } = window as Window as IAltinnWindow;
-    const appId = `${org}/${app}`;
+    const { org, app } = _useParamsClassCompHack();
     get(
-      `${window.location.origin}/designer/${appId}/ServiceDevelopment` +
+      `${window.location.origin}/designer/${org}/${app}/ServiceDevelopment` +
         `/GetServiceFile?fileEditorMode=${this.props.mode}&fileName=${fileName}`,
     ).then((logicFileContent) => {
       this.setState((prevState: IFileEditorState) => {
@@ -212,10 +210,9 @@ class FileEditor extends React.Component<
       stageFile = true;
     }
 
-    const { org, app } = window as Window as IAltinnWindow;
-    const appId = `${org}/${app}`;
+    const { org, app } = _useParamsClassCompHack();
     const postUrl =
-      `${window.location.origin}/designer/${appId}/ServiceDevelopment` +
+      `${window.location.origin}/designer/${org}/${app}/ServiceDevelopment` +
       `/SaveServiceFile?fileEditorMode=${this.props.mode}&fileName=${this.state.selectedFile}&stageFile=${stageFile}`;
 
     const saveRes: any = await post(postUrl, this.state.value, {

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import type { Theme } from '@mui/material';
 import {
   CircularProgress,
@@ -35,7 +35,7 @@ import { fetchRepoStatus } from '../../handleMergeConflict/handleMergeConflictSl
 import ReleaseComponent from '../components/appReleaseComponent';
 import CreateReleaseComponent from '../components/createAppReleaseComponent';
 import { useAppDispatch, useAppSelector } from 'common/hooks';
-import type { IAltinnWindow } from '../../../types/global';
+import { useParams } from 'react-router-dom';
 
 const theme = createTheme(AltinnStudioTheme);
 
@@ -144,9 +144,9 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     (state) => state.handleMergeConflict,
   );
   const language: any = useAppSelector((state) => state.languageState.language);
+  const { org, app } = useParams();
 
-  React.useEffect(() => {
-    const { org, app } = window as Window as IAltinnWindow;
+  useEffect(() => {
     dispatch(AppReleaseActions.getAppReleaseStartInterval());
     if (!language) {
       dispatch(fetchLanguage({ url: languageUrl }));

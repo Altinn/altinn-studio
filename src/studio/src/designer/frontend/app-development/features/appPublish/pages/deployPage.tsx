@@ -8,10 +8,10 @@ import DeployContainerComponent from '../containers/deployContainer';
 import ReleaseContainer from '../containers/releaseContainer';
 import { fetchDeployPermissions } from '../../../sharedResources/user/userSlice';
 import { useAppDispatch, useAppSelector } from 'common/hooks';
-import type { IAltinnWindow } from '../../../types/global';
+import { useParams } from 'react-router-dom';
 
 function DeployPage() {
-  const { org } = window as Window as IAltinnWindow;
+  const { org } = useParams();
   const dispatch = useAppDispatch();
 
   const orgs: any = useAppSelector((state) => state.configuration.orgs);
@@ -28,13 +28,47 @@ function DeployPage() {
 
   if (isLoading()) {
     return (
-      <Grid item={true} sx={{ height: 'calc(100% - 111px)' }}>
-        <Grid container={true} direction='row' justifyContent='space-between'>
-          <Grid item={true} xs={12}>
-            <AltinnContentLoader width={1200} height={600}>
-              <rect x='862' y='3' rx='0' ry='0' width='300' height='600' />
-              <rect x='1' y='1' rx='0' ry='0' width='800' height='200' />
-              <rect x='1' y='220' rx='0' ry='0' width='800' height='200' />
+      <Grid
+        item={true}
+        sx={{ height: 'calc(100% - 111px)' }}
+      >
+        <Grid
+          container={true}
+          direction='row'
+          justifyContent='space-between'
+        >
+          <Grid
+            item={true}
+            xs={12}
+          >
+            <AltinnContentLoader
+              width={1200}
+              height={600}
+            >
+              <rect
+                x='862'
+                y='3'
+                rx='0'
+                ry='0'
+                width='300'
+                height='600'
+              />
+              <rect
+                x='1'
+                y='1'
+                rx='0'
+                ry='0'
+                width='800'
+                height='200'
+              />
+              <rect
+                x='1'
+                y='220'
+                rx='0'
+                ry='0'
+                width='800'
+                height='200'
+              />
             </AltinnContentLoader>
           </Grid>
         </Grid>
@@ -49,9 +83,19 @@ function DeployPage() {
     !orgs.allOrgs[org].environments.length
   ) {
     return (
-      <Grid item={true} sx={{ height: 'calc(100% - 111px)' }}>
-        <Grid container={true} direction='row' justifyContent='space-between'>
-          <Grid item={true} xs={12}>
+      <Grid
+        item={true}
+        sx={{ height: 'calc(100% - 111px)' }}
+      >
+        <Grid
+          container={true}
+          direction='row'
+          justifyContent='space-between'
+        >
+          <Grid
+            item={true}
+            xs={12}
+          >
             <AltinnInformationCardForChildren
               headerText={getParsedLanguageFromKey(
                 'app_publish.no_env_title',
@@ -75,12 +119,25 @@ function DeployPage() {
   }
 
   return (
-    <Grid item={true} sx={{ height: 'calc(100% - 111px)' }}>
-      <Grid container={true} direction='row' justifyContent='space-between'>
-        <Grid item={true} xs={9}>
+    <Grid
+      item={true}
+      sx={{ height: 'calc(100% - 111px)' }}
+    >
+      <Grid
+        container={true}
+        direction='row'
+        justifyContent='space-between'
+      >
+        <Grid
+          item={true}
+          xs={9}
+        >
           <DeployContainerComponent />
         </Grid>
-        <Grid item={true} xs={3}>
+        <Grid
+          item={true}
+          xs={3}
+        >
           <ReleaseContainer />
         </Grid>
       </Grid>

@@ -310,7 +310,7 @@ void Configure(IConfiguration configuration)
 
         endpoints.MapControllerRoute(
                 name: "serviceDevelopmentRoute",
-                pattern: "designer/{org}/{app}",
+                pattern: "editor/{org}/{app}/{*AllValues}",
                 defaults: new { controller = "ServiceDevelopment", action = "index" },
                 constraints: new
                 {
@@ -344,7 +344,7 @@ void Configure(IConfiguration configuration)
         endpoints.MapControllerRoute(
                 name: "reposRoute",
                 pattern: "{controller}/{action}/",
-                defaults: new { controller = "RedirectController" });
+                defaults: new { controller = "Redirect" });
 
         // -------------------------- DEFAULT ------------------------- //
         endpoints.MapControllerRoute(
@@ -354,8 +354,8 @@ void Configure(IConfiguration configuration)
 
         endpoints.MapControllerRoute(
             name: "defaultRoute",
-            pattern: "{action=StartPage}/{id?}",
-            defaults: new { controller = "Home" });
+            pattern: "dashboard/{*AllValues}",
+            defaults: new { controller = "Home", action = "Index" });
 
         // ---------------------- MONITORING -------------------------- //
         endpoints.MapHealthChecks("/health");

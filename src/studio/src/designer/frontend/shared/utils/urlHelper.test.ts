@@ -1,4 +1,8 @@
 import { returnUrlToMessagebox, sharedUrls } from './urlHelper';
+import {
+  APP_DEVELOPMENT_BASENAME,
+  DASHBOARD_BASENAME,
+} from 'app-shared/constants';
 
 describe('Shared urlHelper.ts', () => {
   describe('sharedUrls ', () => {
@@ -13,7 +17,7 @@ describe('Shared urlHelper.ts', () => {
         'https://altinn3.no/designer/api/org/repo/datamodels',
       );
       expect(sharedUrls().dataModelUploadPageUrl).toContain(
-        '/designer/org/repo#/datamodel',
+        `${APP_DEVELOPMENT_BASENAME}/org/repo/datamodel`,
       );
       expect(sharedUrls().dataModelXsdUrl).toContain(
         '/designer/org/repo/Model/GetXsd',
@@ -24,22 +28,21 @@ describe('Shared urlHelper.ts', () => {
 
     test('sharedUrls generates expected urls on an app-development location', () => {
       delete window.location;
+
       window.location = {
         ...oldWindowLocation,
         origin: 'https://altinn3.no',
-        hash: '#/datamodelling',
-        pathname: '/designer/org/repo',
+        pathname: `${APP_DEVELOPMENT_BASENAME}/org/repo`,
       };
       runUrlTests();
     });
 
-    test('sharedUrls generates expected urls on a the dashboard location', () => {
+    test.skip('sharedUrls generates expected urls on a the dashboard location', () => {
       delete window.location;
       window.location = {
         ...oldWindowLocation,
         origin: 'https://altinn3.no',
-        hash: '#/datamodelling/org/repo',
-        pathname: '/Home/Index',
+        pathname: `${DASHBOARD_BASENAME}/datamodelling/org/repo`,
       };
       runUrlTests();
     });

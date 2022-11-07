@@ -1,10 +1,11 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
-import { HashRouter as Router } from 'react-router-dom';
-import App from './App';
 import { run } from './sagas';
 import { setupStore } from './store';
+import { BrowserRouter } from 'react-router-dom';
+import { App } from './App';
+import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 
 const store = setupStore();
 
@@ -18,8 +19,8 @@ const root = createRoot(container);
 
 root.render(
   <Provider store={store}>
-    <Router>
+    <BrowserRouter basename={APP_DEVELOPMENT_BASENAME}>
       <App />
-    </Router>
+    </BrowserRouter>
   </Provider>,
 );

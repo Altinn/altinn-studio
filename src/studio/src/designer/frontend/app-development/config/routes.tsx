@@ -32,7 +32,7 @@ interface IRoute {
 
 const routes: IRoute[] = [
   {
-    path: '/ui-editor',
+    path: '/:org/:app/ui-editor',
     exact: true,
     activeSubHeaderSelection: TopBarMenu.Create,
     activeLeftMenuSelection: 'UI-Editor',
@@ -40,7 +40,7 @@ const routes: IRoute[] = [
     subapp: uieditorApp,
   },
   {
-    path: '/texts',
+    path: '/:org/:app/texts',
     exact: true,
     activeSubHeaderSelection: TopBarMenu.Text,
     activeLeftMenuSelection: 'Tekster',
@@ -58,7 +58,7 @@ const routes: IRoute[] = [
     },
   },
   {
-    path: '/',
+    path: '/:org/:app',
     exact: true,
     activeSubHeaderSelection: TopBarMenu.About,
     activeLeftMenuSelection: 'Om appen',
@@ -66,7 +66,7 @@ const routes: IRoute[] = [
     subapp: Administration,
   },
   {
-    path: '/datamodel-old',
+    path: '/:org/:app/datamodel-old',
     exact: true,
     activeSubHeaderSelection: TopBarMenu.Datamodel,
     activeLeftMenuSelection: '',
@@ -84,7 +84,7 @@ const routes: IRoute[] = [
     },
   },
   {
-    path: '/datamodel',
+    path: '/:org/:app/datamodel',
     exact: true,
     activeSubHeaderSelection: TopBarMenu.Datamodel,
     activeLeftMenuSelection: '',
@@ -92,7 +92,7 @@ const routes: IRoute[] = [
     subapp: DataModellingContainer,
   },
   {
-    path: '/accesscontrol',
+    path: '/:org/:app/accesscontrol',
     exact: true,
     activeSubHeaderSelection: TopBarMenu.Create,
     activeLeftMenuSelection: 'Access-Controll',
@@ -103,7 +103,7 @@ const routes: IRoute[] = [
     },
   },
   {
-    path: '/deploy',
+    path: '/:org/:app/deploy',
     exact: true,
     activeSubHeaderSelection: TopBarMenu.Deploy,
     activeLeftMenuSelection: '',
@@ -111,7 +111,7 @@ const routes: IRoute[] = [
     subapp: DeployPage,
   },
   {
-    path: '/mergeconflict',
+    path: '/:org/:app/mergeconflict',
     exact: true,
     activeSubHeaderSelection: TopBarMenu.None,
     activeLeftMenuSelection: 'Mergekonflikt',
