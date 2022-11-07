@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, TextArea, TextField } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant, TextArea, TextField } from '@altinn/altinn-design-system';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import AltinnPopper from 'app-shared/components/AltinnPopper';
 import AltinnInformationPaper from 'app-shared/components/AltinnInformationPaper';
@@ -49,7 +49,13 @@ export const MainContent = (props: IMainContentProps): JSX.Element => {
           onBlur={props.onAppNameBlur}
           disabled={!props.editAppName}
         />
-        <Button onClick={props.onEditAppNameClick}>{t('general.edit')}</Button>
+        <Button
+          color={ButtonColor.Secondary}
+          onClick={props.onEditAppNameClick}
+          variant={ButtonVariant.Outline}
+        >
+          {t('general.edit')}
+        </Button>
       </div>
       <AltinnPopper
         anchorEl={props.appNameAnchorEl}

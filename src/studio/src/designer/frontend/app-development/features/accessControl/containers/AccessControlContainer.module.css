@@ -1,0 +1,28 @@
+.sectionHeader {
+  margin-bottom: 12px;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.sidebarHeader {
+  margin-bottom: 20px;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.sidebarSectionContainer:not(:last-child) {
+  margin-bottom: 24px;
+}
+
+.sidebarSectionHeader {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.infoText {
+  font-size: 16px;
+}
+
+.versionControlHeader {
+  margin-left: 60px;
+}

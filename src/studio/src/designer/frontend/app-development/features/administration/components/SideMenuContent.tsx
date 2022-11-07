@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Button } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { formatNameAndDate } from 'app-shared/utils/formatDate';
 import type { ICommit, IRepository } from '../../../types/global';
@@ -79,7 +79,12 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
           <li>{t('administration.reset_repo_info_i3')}</li>
         </ul>
       </div>
-      <Button id='reset-repo-button' onClick={onClickResetRepo}>
+      <Button
+        color={ButtonColor.Secondary}
+        id='reset-repo-button'
+        onClick={onClickResetRepo}
+        variant={ButtonVariant.Outline}
+      >
         {t('administration.reset_repo_button')}
       </Button>
       <div ref={resetRepoModalAnchor} />
@@ -93,7 +98,11 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
       />
       {/* Download local repository */}
       <h3>{t('administration.download_repo')}</h3>
-      <Button onClick={toggleDownloadModal}>
+      <Button
+        color={ButtonColor.Secondary}
+        onClick={toggleDownloadModal}
+        variant={ButtonVariant.Outline}
+      >
         {t('administration.download_repo')}
       </Button>
       <div ref={downloadModalAnchor} />

@@ -26,27 +26,28 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@altinn/altinn-design-system@npm:0.17.0":
-  version: 0.17.0
-  resolution: "@altinn/altinn-design-system@npm:0.17.0"
+"@altinn/altinn-design-system@npm:0.19.1":
+  version: 0.19.1
+  resolution: "@altinn/altinn-design-system@npm:0.19.1"
   dependencies:
-    "@altinn/figma-design-tokens": ^4.1.0
+    "@altinn/figma-design-tokens": ^4.2.0
+    "@navikt/ds-icons": ^1.3.38
     "@radix-ui/react-popover": ^1.0.0
     "@react-hookz/web": ^16.0.0
     leaflet: ^1.8.0
     react-leaflet: ^4.0.1
-    react-number-format: ^5.0.1
+    react-number-format: ^5.1.1
   peerDependencies:
     react: ^18.0.0
     react-dom: ^18.0.0
-  checksum: 18da10f930ba7af420e37d494c68fcf6e51c2f86479d868ff740af9575d579fd4e769610474990cbe5e3fef2da2fc667cf67e47d3b3fc4b6dacac92e6accc729
+  checksum: 33807342844f19065aac4cb542c8e99b4fe853096eafc69d0a179214e192dd446c2da7163be2206f9f486875159f276a94aa253f841121c6217385c85650230c
   languageName: node
   linkType: hard
 
-"@altinn/figma-design-tokens@npm:^4.1.0":
-  version: 4.2.0
-  resolution: "@altinn/figma-design-tokens@npm:4.2.0"
-  checksum: 9877d101c066e6da8c69ccb70c92e085df06d299a6d280e3a713d67b5c367a917ea4ce3f3bbd209efd57e2b66669131df5b3faa596724994f87c47235c5ef8bd
+"@altinn/figma-design-tokens@npm:^4.2.0":
+  version: 4.3.0
+  resolution: "@altinn/figma-design-tokens@npm:4.3.0"
+  checksum: dac7b1b98a354bafa0ce627ae9fdf34215101fb57669576795d7b40c48dd41761b301ba62ec9026a99a5f21838aee6c4d26c851572ea8f334eb421c94b659a4d
   languageName: node
   linkType: hard
 
@@ -72,7 +73,7 @@ __metadata:
     webpack: 5.74.0
     webpack-dev-server: 4.11.1
   peerDependencies:
-    "@altinn/altinn-design-system": 0.17.0
+    "@altinn/altinn-design-system": 0.19.1
     "@altinn/schema-model": 0.1.0
     "@mui/icons-material": 5.10.9
     "@mui/material": 5.10.10
@@ -2363,6 +2364,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@navikt/ds-icons@npm:^1.3.38":
+  version: 1.5.4
+  resolution: "@navikt/ds-icons@npm:1.5.4"
+  peerDependencies:
+    "@types/react": ^17.0.30 || ^18.0.0
+    react: ^17.0.0 || ^18.0.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: 7c2793ca98e49ce261898b05bfcdda5a0816935d8781e44ce001ad1d61a0c3be2bd8e9f97e4986e0563b36888270ceab60ebfcb8537900c4274c2d7fd8267297
+  languageName: node
+  linkType: hard
+
 "@nodelib/fs.scandir@npm:2.1.5":
   version: 2.1.5
   resolution: "@nodelib/fs.scandir@npm:2.1.5"
@@ -4491,7 +4505,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-development@workspace:app-development"
   dependencies:
-    "@altinn/altinn-design-system": 0.17.0
+    "@altinn/altinn-design-system": 0.19.1
     "@babel/core": 7.19.6
     "@babel/preset-env": 7.19.4
     "@babel/preset-react": 7.18.6
@@ -4539,7 +4553,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-shared@workspace:shared"
   dependencies:
-    "@altinn/altinn-design-system": 0.17.0
+    "@altinn/altinn-design-system": 0.19.1
     "@altinn/schema-editor": 0.1.0
     "@mui/icons-material": 5.10.9
     "@mui/material": 5.10.10
@@ -11462,7 +11476,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-number-format@npm:^5.0.1":
+"react-number-format@npm:^5.1.1":
   version: 5.1.1
   resolution: "react-number-format@npm:5.1.1"
   dependencies:

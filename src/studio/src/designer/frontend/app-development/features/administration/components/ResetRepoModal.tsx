@@ -1,10 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Button, ButtonVariant, TextField } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant, TextField } from '@altinn/altinn-design-system';
 import { Popover } from '@mui/material';
-import {
-  getLanguageFromKey,
-  getParsedLanguageFromKey,
-} from 'app-shared/utils/language';
+import { getLanguageFromKey, getParsedLanguageFromKey, } from 'app-shared/utils/language';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import { useAppSelector } from 'common/hooks';
 import classes from './RepoModal.module.css';
@@ -82,17 +79,19 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
           ) : (
             <div className={classes.buttonContainer}>
               <Button
-                onClick={onResetWrapper}
-                id='confirm-reset-repo-button'
-                disabled={!canDelete}
-                variant={ButtonVariant.Cancel}
+                color={ButtonColor.Danger}
                 data-testid='confirm-reset-repo-button'
+                disabled={!canDelete}
+                id='confirm-reset-repo-button'
+                onClick={onResetWrapper}
+                variant={ButtonVariant.Outline}
               >
                 {t('administration.reset_repo_button')}
               </Button>
               <Button
+                color={ButtonColor.Secondary}
                 onClick={onCloseWrapper}
-                variant={ButtonVariant.Secondary}
+                variant={ButtonVariant.Outline}
               >
                 {t('general.cancel')}
               </Button>
