@@ -135,5 +135,4 @@ public class Xsd2CsharpBaseClass<TTestType> : FluentTestsBase<TTestType>
         CompiledAssemblyOld = Compiler.CompileToAssembly(CSharpClassesOld);
         return this as TTestType;
     }
-
 }

@@ -107,7 +107,7 @@ public static class MetamodelRestrictionUtils
     {
         foreach (var restrictionKeywordType in SupportedStringRestrictions)
         {
-            if (allOfKeyword.TryGetKeywordFromSubSchemasByType(restrictionKeywordType, out var keyword))
+            if (allOfKeyword.TryGetKeywordFromSubSchemas(restrictionKeywordType, out var keyword))
             {
                 restrictions.AddRestrictionFromKeyword(keyword);
             }
@@ -159,22 +159,14 @@ public static class MetamodelRestrictionUtils
     {
         foreach (var restrictionKeywordType in SupportedNumberRestrictions)
         {
-            if (allOfKeyword.TryGetKeywordFromSubSchemasByType(restrictionKeywordType, out var keyword))
+            if (allOfKeyword.TryGetKeywordFromSubSchemas(restrictionKeywordType, out var keyword))
             {
                 restrictions.AddRestrictionFromKeyword(keyword);
             }
         }
     }
 
-    private static bool TryGetKeywordFromSubSchemas<T>(this IJsonSchemaKeyword allOfKeyword, out T keyword)
-        where T : IJsonSchemaKeyword
-    {
-        keyword = default;
-        return allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<T>())
-            ?.TryGetKeyword(out keyword) ?? false;
-    }
-
-    private static bool TryGetKeywordFromSubSchemasByType(this IJsonSchemaKeyword allOfKeyword, Type type, out IJsonSchemaKeyword keyword)
+    private static bool TryGetKeywordFromSubSchemas(this IJsonSchemaKeyword allOfKeyword, Type type, out IJsonSchemaKeyword keyword)
     {
         keyword = default;
         return allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword(type))
@@ -217,12 +209,6 @@ public static class MetamodelRestrictionUtils
         return keyword != null;
     }
 
-    /// <summary>
-    /// Determine if a keyword is present in the schema
-    /// </summary>
-    /// <typeparam name="T">The keyword type to search for</typeparam>
-    /// <param name="schema">Look for the keyword in this schema instance</param>
-    /// <returns><code>true</code> if found <code>false</code> otherwise</returns>
     private static bool HasKeyword(this JsonSchema schema, Type type)
     {
         if (schema?.Keywords == null)
