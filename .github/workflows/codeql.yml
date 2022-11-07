@@ -58,7 +58,8 @@ jobs:
     - name: Build
       run: |
        echo "Run, Build Application using script"
-       ./src/studio/src/designer/buildscript.sh
+        cd ${pwd}/src/studio/src/designer
+       ./buildscript.sh
 
 
     # ℹ️ Command-line programs to run using the OS shell.
