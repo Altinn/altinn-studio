@@ -62,9 +62,9 @@ public class XsdTotalDigitsKeywordTests: ValueKeywordTestsBase<XsdTotalDigitsKey
 
     private static string TotalDigitsSchema(uint value) => @$"
                 {{
-                  ""$id"": ""https://example.com/person.schema.json"",
+                  ""$id"": ""totaldigits.schema.json"",
                   ""$schema"": ""https://json-schema.org/draft/2020-12/schema"",
-                  ""title"": ""Person"",
+                  ""title"": ""TotalDigits"",
                   ""type"": ""object"",
                   ""properties"": {{
                     ""digitsExample"": {{
