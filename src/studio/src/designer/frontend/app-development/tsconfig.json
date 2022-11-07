@@ -20,10 +20,10 @@
     "paths": {
       "app-shared/*": ["../shared/*"],
       "@altinn/schema-editor/*": ["../packages/schema-editor/src/*"],
-      "services/*": ["./src/services/*"],
+      "services/*": ["./services/*"],
       "common/*": ["./common/*"]
     }
   },
-  "include": ["**/*.ts", "**/*.tsx"],
+  "include": ["**/*.ts", "**/*.tsx", "../shared/features/dataModelling/services/datamodelsApi.ts"],
   "exclude": ["node_modules"]
 }

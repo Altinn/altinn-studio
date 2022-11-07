@@ -1,51 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { Grid } from '@mui/material';
-import { makeStyles } from '@mui/styles';
-import AltinnColumnLayout from 'app-shared/components/AltinnColumnLayout';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
-import { getLanguageFromKey } from 'app-shared/utils/language';
-import { HandleServiceInformationActions } from '../handleServiceInformationSlice';
-import { MainContent } from './MainContent';
-import { SideMenuContent } from './SideMenuContent';
+import { HandleServiceInformationActions } from '../../handleServiceInformationSlice';
+import { MainContent } from '../MainContent';
 import { useAppDispatch, useAppSelector } from 'common/hooks';
-import type { IAltinnWindow } from '../../../types/global';
+import type { IAltinnWindow, IRepository } from '../../../../types/global';
+import classes from './Administration.module.css';
 
-const useStyles = makeStyles({
-  avatar: {
-    maxHeight: '2em',
-  },
-  sidebarHeader: {
-    marginBottom: 20,
-    fontSize: 20,
-    fontWeight: 500,
-  },
-  sidebarHeaderSecond: {
-    marginTop: 36,
-  },
-  sidebarInfoText: {
-    fontSize: 16,
-    marginBottom: 12,
-  },
-  iconStyling: {
-    fontSize: 35,
-    textAlign: 'right',
-  },
-  sidebarServiceOwner: {
-    marginTop: 10,
-  },
-  sidebarCreatedBy: {
-    fontSize: 16,
-    marginTop: 10,
-  },
-  spinnerLocation: {
-    margin: 'auto',
-  },
-  marginBottom_24: {
-    marginBottom: 24,
-  },
-});
+export interface ServiceAdministrationProps {
+  language: any;
+  repository: IRepository;
+}
 
-export function AdministrationComponent() {
+export function ServiceAdministration({
+  language,
+  repository,
+}: ServiceAdministrationProps) {
   const name = useAppSelector(
     (state) => state.serviceInformation.serviceNameObj.name,
   );
@@ -55,14 +25,7 @@ export function AdministrationComponent() {
   const id = useAppSelector(
     (state) => state.serviceInformation.serviceIdObj.serviceId,
   );
-  const language = useAppSelector((state) => state.languageState.language);
-  const repository = useAppSelector(
-    (state) => state.serviceInformation.repositoryInfo,
-  );
-  const initialCommit = useAppSelector(
-    (state) => state.serviceInformation.initialCommit,
-  );
-  const classes = useStyles();
+
   const dispatch = useAppDispatch();
 
   const [newName, setNewName] = useState<string>(name);
@@ -163,33 +126,22 @@ export function AdministrationComponent() {
   return (
     <div data-testid='administration-container'>
       {render ? (
-        <AltinnColumnLayout
-          sideMenuChildren={
-            <SideMenuContent
-              initialCommit={initialCommit}
-              language={language}
-              service={repository}
-            />
-          }
-          header={getLanguageFromKey('administration.administration', language)}
-        >
-          <MainContent
-            appDescription={newDescription}
-            appId={newId}
-            appName={newName}
-            appNameAnchorEl={appNameAnchorEl}
-            editAppName={editAppName}
-            language={language}
-            onAppDescriptionBlur={handleAppDescriptionBlur}
-            onAppDescriptionChange={handleAppDescriptionChange}
-            onAppIdBlur={handleAppIdBlur}
-            onAppIdChange={handleAppIdChange}
-            onAppNameBlur={handleAppNameBlur}
-            onAppNameChange={handleAppNameChange}
-            onEditAppNameClick={handleEditAppNameClick}
-            repository={repository}
-          />
-        </AltinnColumnLayout>
+        <MainContent
+          appDescription={newDescription}
+          appId={newId}
+          appName={newName}
+          appNameAnchorEl={appNameAnchorEl}
+          editAppName={editAppName}
+          language={language}
+          onAppDescriptionBlur={handleAppDescriptionBlur}
+          onAppDescriptionChange={handleAppDescriptionChange}
+          onAppIdBlur={handleAppIdBlur}
+          onAppIdChange={handleAppIdChange}
+          onAppNameBlur={handleAppNameBlur}
+          onAppNameChange={handleAppNameChange}
+          onEditAppNameClick={handleEditAppNameClick}
+          repositoryName={repository?.name || ''}
+        />
       ) : (
         <Grid container={true}>
           <AltinnSpinner
@@ -201,5 +153,3 @@ export function AdministrationComponent() {
     </div>
   );
 }
-
-export const Administration = AdministrationComponent;

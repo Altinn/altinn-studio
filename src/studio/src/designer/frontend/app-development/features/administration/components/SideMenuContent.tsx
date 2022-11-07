@@ -8,11 +8,13 @@ import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatu
 import { DownloadRepoModal } from './DownloadRepoModal';
 import { useAppDispatch, useAppSelector } from 'common/hooks';
 import classes from './SideMenuContent.module.css';
+import { RepositoryType } from 'services/repositoryApi';
 
 interface ISideMenuContent {
   language: any;
   service: IRepository;
   initialCommit: ICommit;
+  repoType: RepositoryType;
 }
 
 export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
@@ -52,7 +54,13 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
     <div className={classes.container}>
       {/* App owner info */}
       <h3>{t('general.service_owner')}</h3>
-      <div>{t('administration.service_owner_is')}</div>
+      <div>
+        {t(
+          props.repoType === RepositoryType.Datamodels
+            ? 'administration.repo_owner_is'
+            : 'administration.service_owner_is',
+        )}
+      </div>
       <div>
         <img
           src={props.service.owner.avatar_url}
@@ -79,7 +87,10 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
           <li>{t('administration.reset_repo_info_i3')}</li>
         </ul>
       </div>
-      <Button id='reset-repo-button' onClick={onClickResetRepo}>
+      <Button
+        id='reset-repo-button'
+        onClick={onClickResetRepo}
+      >
         {t('administration.reset_repo_button')}
       </Button>
       <div ref={resetRepoModalAnchor} />

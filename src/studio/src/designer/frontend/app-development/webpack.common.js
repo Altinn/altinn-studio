@@ -16,12 +16,9 @@ module.exports = {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.css', '.scss'],
     alias: {
       'app-shared': path.resolve(__dirname, '../shared/'),
-      '@altinn/schema-editor': path.resolve(
-        __dirname,
-        '../packages/schema-editor/src/',
-      ),
+      '@altinn/schema-editor': path.resolve(__dirname, '../packages/schema-editor/src/'),
       utils: path.resolve(__dirname, 'utils/'),
-      services: path.resolve(__dirname, 'src/services/'),
+      services: path.resolve(__dirname, 'services/'),
       common: path.resolve(__dirname, 'common/'),
     },
     fallback: {
@@ -48,9 +45,9 @@ module.exports = {
           'style-loader',
           {
             loader: 'css-loader',
-            options: { modules: true }
-          }
-        ]
+            options: { modules: true },
+          },
+        ],
       },
       {
         test: /(?<!\.module)\.css$/,
@@ -68,8 +65,8 @@ module.exports = {
       },
       {
         test: /\.png$/,
-        type: 'asset/resource'
-      }
+        type: 'asset/resource',
+      },
     ],
   },
   plugins: [

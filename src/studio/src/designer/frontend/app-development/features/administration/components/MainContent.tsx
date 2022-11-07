@@ -3,12 +3,11 @@ import { Button, TextArea, TextField } from '@altinn/altinn-design-system';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import AltinnPopper from 'app-shared/components/AltinnPopper';
 import AltinnInformationPaper from 'app-shared/components/AltinnInformationPaper';
-import type { IRepository } from '../../../types/global';
 import { useAppSelector } from 'common/hooks';
 import classes from './MainContent.module.css';
 
 interface IMainContentProps {
-  repository: IRepository;
+  repositoryName: string;
   appDescription: string;
   appId: string;
   appName: string;
@@ -67,7 +66,7 @@ export const MainContent = (props: IMainContentProps): JSX.Element => {
       <p>{t('administration.service_saved_name_administration_description')}</p>
       <TextField
         id='administrationInputReponame'
-        value={props.repository ? props.repository.name : ''}
+        value={props.repositoryName}
         disabled={true}
       />
       <h2>{t('administration.service_comment')}</h2>
