@@ -57,9 +57,10 @@ jobs:
     # If this step fails, then you should remove it and run the build manually (see below)
     - name: Build
       run: |
-       echo "Run, Build Application using script"
+        echo "Run, Build Application using script"
+        cat ${pwd}
         cd ${pwd}/src/studio/src/designer
-       ./buildscript.sh
+        ./buildscript.sh
 
 
     # ℹ️ Command-line programs to run using the OS shell.
