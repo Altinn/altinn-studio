@@ -25,10 +25,6 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.json$/,
-        type: 'json',
-      },
-      {
         test: /\.jsx?/,
         exclude: /node_modules/,
         use: {

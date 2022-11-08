@@ -1,7 +1,6 @@
 import React, { useEffect } from 'react';
 import { Grid, Typography } from '@mui/material';
 import AltinnContentLoader from 'app-shared/components/molecules/AltinnContentLoader';
-import { AltinnInformationCardForChildren } from 'app-shared/components/molecules/AltinnInformationCardForChildren';
 import { getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { ConfigurationActions } from '../../../sharedResources/configuration/configurationSlice';
 import DeployContainerComponent from '../containers/deployContainer';
@@ -9,6 +8,7 @@ import ReleaseContainer from '../containers/releaseContainer';
 import { fetchDeployPermissions } from '../../../sharedResources/user/userSlice';
 import { useAppDispatch, useAppSelector } from 'common/hooks';
 import { useParams } from 'react-router-dom';
+import { InfoCard } from './InfoCard';
 
 function DeployPage() {
   const { org } = useParams();
@@ -96,13 +96,12 @@ function DeployPage() {
             item={true}
             xs={12}
           >
-            <AltinnInformationCardForChildren
+            <InfoCard
               headerText={getParsedLanguageFromKey(
                 'app_publish.no_env_title',
                 language,
                 [],
               )}
-              imageSource='../../designer/img/illustration-help-2-circle.svg'
               shadow={true}
             >
               <Typography>
@@ -111,7 +110,7 @@ function DeployPage() {
               <Typography sx={{ paddingTop: '2.4rem' }}>
                 {getParsedLanguageFromKey('app_publish.no_env_2', language, [])}
               </Typography>
-            </AltinnInformationCardForChildren>
+            </InfoCard>
           </Grid>
         </Grid>
       </Grid>
