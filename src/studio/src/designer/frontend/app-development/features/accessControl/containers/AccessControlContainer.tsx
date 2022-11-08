@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
-import AltinnColumnLayout from 'app-shared/components/AltinnColumnLayout';
+import { AltinnColumnLayout } from 'app-shared/components/AltinnColumnLayout';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import { ApplicationMetadataActions } from '../../../sharedResources/applicationMetadata/applicationMetadataSlice';
@@ -171,20 +171,15 @@ export class AccessControlContainerClass extends React.Component<
 
   public render() {
     return (
-      <AltinnColumnLayout
-        aboveColumnChildren={
-          <div className={classes.versionControlHeader}>
-            <VersionControlHeader language={this.props.language} />
-          </div>
-        }
-        sideMenuChildren={this.renderSideMenu()}
-        header={getLanguageFromKey(
-          'access_control.header',
-          this.props.language,
-        )}
-      >
-        {this.renderMainContent()}
-      </AltinnColumnLayout>
+      <div>
+        <VersionControlHeader language={this.props.language} />
+        <AltinnColumnLayout
+          header={getLanguageFromKey('access_control.header', this.props.language)}
+          sideMenuChildren={this.renderSideMenu()}
+        >
+          {this.renderMainContent()}
+        </AltinnColumnLayout>
+      </div>
     );
   }
 }

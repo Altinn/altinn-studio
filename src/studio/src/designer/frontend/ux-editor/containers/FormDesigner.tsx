@@ -25,15 +25,11 @@ const useTheme = createTheme(altinnTheme);
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
-    [theme.breakpoints.up('md')]: {
-      paddingLeft: theme.sharedStyles.mainPaddingLeft,
-    },
     flexGrow: 1,
-    height: 'calc(100vh - 110px)',
     overflowY: 'hidden',
+    height: '100%',
   },
   drawerRoot: {
-    height: '100vh',
     overflow: 'hidden',
   },
   button: {
@@ -46,7 +42,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     },
   },
   container: {
-    height: 'calc(100vh - 69px)',
+    height: '100%',
     top: '69px',
     backgroundColor: altinnTheme.altinnPalette.primary.greyLight,
   },

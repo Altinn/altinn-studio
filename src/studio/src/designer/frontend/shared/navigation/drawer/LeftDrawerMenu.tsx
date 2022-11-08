@@ -1,22 +1,12 @@
 import React from 'react';
-import { makeStyles } from '@mui/styles';
-import {
-  Drawer,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-} from '@mui/material';
-import classNames from 'classnames';
+import cn from 'classnames';
 import { Link } from 'react-router-dom';
 import AltinnIcon from '../../components/AltinnIcon';
 import type { IMenuItem } from './drawerMenuSettings';
 import { createLeftDrawerMenuSettings } from './drawerMenuSettings';
-import { styles } from './leftDrawerMenuStyles';
 
 import altinnTheme from '../../theme/altinnStudioTheme';
-
-const useStyles = makeStyles(styles);
+import classes from './LeftDrawerMenu.module.css';
 
 export interface ILeftDrawerMenuProps {
   menuType: string;
@@ -29,7 +19,6 @@ export default function LeftDrawerMenu({
   activeLeftMenuSelection,
   leftMenuItems,
 }: ILeftDrawerMenuProps) {
-  const classes = useStyles();
 
   const [iconColor, setIconColor] = React.useState<any>({});
   const [open, setOpen] = React.useState<boolean>(false);
@@ -66,48 +55,30 @@ export default function LeftDrawerMenu({
   }
 
   return (
-    <Drawer
-      data-test-id='left-drawer-menu'
-      variant='permanent'
-      onMouseOver={handleDrawerOpen}
-      onMouseLeave={handleDrawerClose}
-      PaperProps={{
-        sx: {
-          position: 'absolute',
-          background: altinnTheme.altinnPalette.primary.greyLight,
-          top: 111,
-          height: `calc(100vh - 110px)`,
-          overflow: 'hidden',
-        },
-      }}
-      classes={{
-        paper: classNames({
-          [classes.drawerOpen]: open,
-          [classes.drawerClose]: !open,
-        }),
-      }}
-      open={open}
-    >
-      <List component='nav'>
+    <div className={classes.drawerWrapper}>
+      <ul
+        data-test-id='left-drawer-menu'
+        onMouseOver={handleDrawerOpen}
+        onMouseLeave={handleDrawerClose}
+        className={cn(
+          classes.drawer,
+          open ? classes.drawerOpen : classes.drawerClosed
+        )}
+      >
         {menuToRender.map((menuItem: IMenuItem, index: number) => (
-          <Link
-            to={menuItem.navLink}
-            style={{ borderBottom: 0 }}
-            key={menuItem.displayText}
-          >
-            <ListItem
-              classes={{
-                root: classNames(classes.listItem, {
-                  [classes.activeListItem]:
-                    activeLeftMenuSelection ===
-                    menuItem.activeLeftMenuSelection,
-                }),
-              }}
-              onMouseEnter={onMouseEnterListItem(index)}
-              onMouseLeave={onMouseLeaveListItem(index)}
-              component='div'
+          <li key={menuItem.displayText}>
+            <Link
+              className={classes.menuLink}
+              to={menuItem.navLink}
             >
-              <ListItemIcon>
+              <span
+                className={cn(
+                  classes.listItem,
+                  activeLeftMenuSelection === menuItem.activeLeftMenuSelection && classes.activeListItem,
+                )}
+                onMouseEnter={onMouseEnterListItem(index)}
+                onMouseLeave={onMouseLeaveListItem(index)}
+              >
                 <AltinnIcon
                   isActive={
                     activeLeftMenuSelection === menuItem.activeLeftMenuSelection
@@ -120,16 +91,14 @@ export default function LeftDrawerMenu({
                       : iconColor[index]
                   }
                 />
-              </ListItemIcon>
-              <ListItemText
-                disableTypography={true}
-                primary={menuItem.displayText}
-                classes={{ root: classNames(classes.listItemText) }}
-              />
-            </ListItem>
-          </Link>
+                <span className={classes.listItemText}>
+                  {menuItem.displayText}
+                </span>
+              </span>
+            </Link>
+          </li>
         ))}
-      </List>
-    </Drawer>
+      </ul>
+    </div>
   );
 }

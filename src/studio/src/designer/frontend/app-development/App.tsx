@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { createTheme, Grid, ThemeProvider, Typography } from '@mui/material';
-import { makeStyles } from '@mui/styles';
+import { createTheme, ThemeProvider } from '@mui/material';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import postMessages from 'app-shared/utils/postMessages';
 import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
@@ -24,42 +23,21 @@ import type { IAltinnWindow } from './types/global';
 import './App.css';
 import LeftMenu from './layout/LeftMenu';
 
+import classes from './App.module.css';
+
 const theme = createTheme(altinnTheme);
 
-const useStyles = makeStyles({
-  container: {
-    backgroundColor: theme.altinnPalette.primary.greyLight,
-    height: '100%',
-    width: '100%',
-  },
-  mergeConflictApp: {
-    height: '100%',
-    width: '100%',
-  },
-  subApp: {
-    [theme.breakpoints.up('xs')]: {
-      paddingTop: '55px',
-    },
-    [theme.breakpoints.up('md')]: {
-      paddingTop: '111px',
-    },
-    background: theme.altinnPalette.primary.greyLight,
-    height: '100%',
-    width: '100%',
-  },
-});
-
 const GetRepoStatusSelector = makeGetRepoStatusSelector();
-const TEN_MINUTE_IN_MILLISECONDS = 60000 * 10;
+const TEN_MINUTES_IN_MILLISECONDS = 600000;
 
 export function App() {
   const language = useAppSelector((state) => state.languageState.language);
+  const t = (key: string) => getLanguageFromKey(key, language);
   const repoStatus = useAppSelector(GetRepoStatusSelector);
   const remainingSessionMinutes = useAppSelector(
     (state) => state.userState.session.remainingMinutes,
   );
   const dispatch = useAppDispatch();
-  const classes = useStyles();
   const lastKeepAliveTimestamp = useRef<number>(0);
   const sessionExpiredPopoverRef = useRef<HTMLDivElement>(null);
 
@@ -115,7 +93,7 @@ export function App() {
       if (
         remainingSessionMinutes > 10 &&
         remainingSessionMinutes <= 30 &&
-        timeNow - lastKeepAliveTimestamp.current > TEN_MINUTE_IN_MILLISECONDS
+        timeNow - lastKeepAliveTimestamp.current > TEN_MINUTES_IN_MILLISECONDS
       ) {
         lastKeepAliveTimestamp.current = timeNow;
         dispatch(keepAliveSession());
@@ -167,32 +145,21 @@ export function App() {
           anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
           transformOrigin={{ vertical: 'top', horizontal: 'center' }}
           handleClose={(event: string) => handleSessionExpiresClose(event)}
-          btnCancelText={getLanguageFromKey('general.sign_out', language)}
-          btnConfirmText={getLanguageFromKey('general.continue', language)}
+          btnCancelText={t('general.sign_out')}
+          btnConfirmText={t('general.continue')}
           btnClick={handleSessionExpiresClose}
           paperProps={{ style: { margin: '2.4rem' } }}
         >
-          <Typography variant='h2'>
-            {getLanguageFromKey('session.expires', language)}
-          </Typography>
-          <Typography
-            variant='body1'
-            style={{ marginTop: '1.6rem' }}
-          >
-            {getLanguageFromKey('session.inactive', language)}
-          </Typography>
+          <h2>{t('session.expires')}</h2>
+          <p style={{ marginTop: '1.6rem' }}>{t('session.inactive')}</p>
         </AltinnPopoverSimple>
-        <Grid
-          container={true}
-          direction='row'
-        >
-          <PageHeader repoStatus={repoStatus} />
-          <LeftMenu
-            repoStatus={repoStatus}
-            classes={classes}
-            language={language}
-          />
-        </Grid>
+        <PageHeader repoStatus={repoStatus} />
+        <LeftMenu
+          className={classes.contentWrapper}
+          language={language}
+          repoStatus={repoStatus}
+          subAppClassName={repoStatus.hasMergeConflict ? classes.mergeConflictApp : classes.subApp}
+        />
       </div>
     </ThemeProvider>
   );
