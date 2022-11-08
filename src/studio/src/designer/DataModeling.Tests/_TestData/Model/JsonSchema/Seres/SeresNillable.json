@@ -117,7 +117,8 @@
     },
     "simpleType": {
       "type": "string",
-      "@xsdType": "string"
+      "@xsdType": "string",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     },
     "complexType": {
       "properties": {

@@ -1,78 +1,22 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
-using System.Xml;
-using System.Xml.Schema;
 using System.Xml.Serialization;
-using Altinn.Studio.DataModeling.Converter.Json.Strategy;
-using Altinn.Studio.DataModeling.Converter.Xml;
-using Altinn.Studio.DataModeling.Json.Formats;
-using Altinn.Studio.DataModeling.Json.Keywords;
-using Altinn.Studio.Designer.Factories.ModelFactory;
-using Altinn.Studio.Designer.ModelMetadatalModels;
+using Designer.Tests.Factories.ModelFactory.BaseClasses;
+using Designer.Tests.Factories.ModelFactory.DataClasses;
 using Designer.Tests.Utils;
 using FluentAssertions;
-using Json.Schema;
 using Xunit;
 using static Designer.Tests.Assertions.TypeAssertions;
-using Formatting = Newtonsoft.Json.Formatting;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Designer.Tests.Factories.ModelFactory;
 
-public class CsharpEnd2EndGenerationTests : FluentTestsBase<CsharpEnd2EndGenerationTests>
+public class CsharpEnd2EndGenerationTests : Xsd2CsharpBaseClass<CsharpEnd2EndGenerationTests>
 {
-    private XmlSchema XsdSchema { get; set; }
-
-    private JsonSchema ConvertedJsonSchema { get; set; }
-
-    private ModelMetadata ModelMetadata { get; set; }
-
-    private string CSharpClasses { get; set; }
-
-    private Assembly CompiledAssembly { get; set; }
-
-    private Manatee.Json.Schema.JsonSchema JsonSchemaOld { get; set; }
-
-    private ModelMetadata ModelMetadataOld { get; set; }
-
-    private string CSharpClassesOld { get; set; }
-
-    public CsharpEnd2EndGenerationTests()
-    {
-        JsonSchemaKeywords.RegisterXsdKeywords();
-        JsonSchemaFormats.RegisterFormats();
-    }
-
     [Theory]
-    [InlineData("Model/Xsd/Gitea/nsm-klareringsportalen.xsd", "ePOB_M")]
-    [InlineData("Model/Xsd/Gitea/stami-mu-bestilling-2021.xsd", "MuOrder")]
-    [InlineData("Model/Xsd/Gitea/dat-aarligmelding-bemanning.xsd", "Skjema")]
-    [InlineData("Model/Xsd/Gitea/dihe-redusert-foreldrebetaling-bhg.xsd", "XML2Ephorte")]
-    [InlineData("Model/Xsd/Gitea/hi-algeskjema.xsd", "schema")]
-    [InlineData("Model/Xsd/Gitea/Kursdomene_APINøkkel_M_2020-05-26_5702_34556_SERES.xsd", "melding")]
-    [InlineData("Model/Xsd/Gitea/nbib-melding.xsd", "Message")]
-    [InlineData("Model/Xsd/Gitea/udir-invitasjon-vfkl.xsd", "GruppeInvitasjon")]
-    [InlineData("Model/Xsd/Gitea/udir-vfkl.xsd", "Vurdering")]
-    [InlineData("Model/Xsd/Gitea/bokskjema.xsd", "publication")]
-    [InlineData("Model/Xsd/Gitea/dat-bilpleie-soknad.xsd", "Skjema")]
-    [InlineData("Model/Xsd/Gitea/dat-skjema.xsd", "Skjema")]
-    [InlineData("Model/Xsd/Gitea/Kursdomene_BliTjenesteeier_M_2020-05-25_5703_34553_SERES.xsd", "melding")]
-    [InlineData("Model/Xsd/Gitea/Kursdomene_BekrefteBruksvilkår_M_2020-05-25_5704_34554_SERES.xsd", "melding")]
-    [InlineData("Model/Xsd/Gitea/srf-fufinn-behovskartleggin.xsd", "skjema")]
-    [InlineData("Model/Xsd/Gitea/srf-melding-til-statsforvalteren.xsd", "skjema")]
-    [InlineData("Model/Xsd/Gitea/udi-unntak-karantenehotell-velferd.xsd", "melding")]
-    [InlineData("Model/Xsd/Gitea/skjema.xsd", "Skjema")]
-    [InlineData("Model/Xsd/Gitea/srf-fufinn-behovsendring.xsd", "skjema")]
-    [InlineData("Model/Xsd/Gitea/stami-atid-databehandler-2022.xsd", "DataBehandler")]
-    [InlineData("Model/Xsd/Gitea/stami-mu-databehandler-2021.xsd", "DataBehandler")]
-    [InlineData("Model/Xsd/Gitea/skd-formueinntekt-skattemelding-v2.xsd", "skattemeldingApp")]
-    [InlineData("Model/Xsd/Gitea/aal-vedlegg.xsd", "vedlegg")]
-    [InlineData("Model/Xsd/Gitea/aal.xsd", "autorisasjonssoeknad")]
+    [ClassData(typeof(CSharpEnd2EndTestData))]
     public void Convert_FromXsd_ShouldConvertToSameCSharp(string xsdSchemaPath, string modelName)
     {
         Given.That.XsdSchemaLoaded(xsdSchemaPath)
@@ -90,15 +34,7 @@ public class CsharpEnd2EndGenerationTests : FluentTestsBase<CsharpEnd2EndGenerat
 
     // enum, max/min exclusive, fractions are ignored in c# class.
     [Theory]
-    [InlineData("Model/Xsd/SimpleTypeRestrictions.xsd", "Root", "t1", "string", "[MinLength(5)]")]
-    [InlineData("Model/Xsd/SimpleTypeRestrictions.xsd", "Root", "t1", "string", "[MaxLength(20)]")]
-    [InlineData("Model/Xsd/SimpleTypeRestrictions.xsd", "Root", "t2", "string", "[MinLength(10)]")]
-    [InlineData("Model/Xsd/SimpleTypeRestrictions.xsd", "Root", "t2", "string", "[MaxLength(10)]")]
-    [InlineData("Model/Xsd/SimpleTypeRestrictions.xsd", "Root", "t4", "string", @"[RegularExpression(@""^\d\.\d\.\d$"")]")]
-    [InlineData("Model/Xsd/SimpleTypeRestrictions.xsd", "Root", "n1", "decimal", @"[RegularExpression(@""^(([0-9]){1}(\.)?){0,10}$"")]")]
-    [InlineData("Model/Xsd/SimpleTypeRestrictions.xsd", "Root", "n1", "decimal", @"[Range(-100, 100)]")]
-    [InlineData("Model/Xsd/SimpleTypeRestrictions.xsd", "Root", "i1", "int", @"[RegularExpression(@""^[0-9]{0,10}$"")]")]
-    [InlineData("Model/Xsd/SimpleTypeRestrictions.xsd", "Root", "i2", "decimal", @"[RegularExpression(@""^[0-9]{0,10}$"")]")]
+    [ClassData(typeof(CSharpE2ERestrictionsTestData))]
     public void Convert_CSharpClass_ShouldContainRestriction(string xsdSchemaPath, string modelName, string propertyName, string expectedPropertyType, string restrictionString)
     {
         Given.That.XsdSchemaLoaded(xsdSchemaPath)
@@ -108,77 +44,7 @@ public class CsharpEnd2EndGenerationTests : FluentTestsBase<CsharpEnd2EndGenerat
             .And.CSharpClassesCompiledToAssembly()
             .Then.CompiledAssembly.Should().NotBeNull();
 
-        And.PropertyShouldHaveDefinedTypeAndContainAnnotation(propertyName, expectedPropertyType, restrictionString);
-    }
-
-    private CsharpEnd2EndGenerationTests XsdSchemaLoaded(string xsdSchemaPath)
-    {
-        XsdSchema = TestDataHelper.LoadXmlSchemaTestData(xsdSchemaPath);
-        return this;
-    }
-
-    private CsharpEnd2EndGenerationTests XsdSchemaConverted2JsonSchema()
-    {
-        var xsdToJsonConverter = new XmlSchemaToJsonSchemaConverter();
-        ConvertedJsonSchema = xsdToJsonConverter.Convert(XsdSchema);
-        var schema = JsonSerializer.Serialize(ConvertedJsonSchema, new JsonSerializerOptions()
-        {
-            Encoder =
-                JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement),
-            WriteIndented = true
-        });
-        return this;
-    }
-
-    private CsharpEnd2EndGenerationTests JsonSchemaConverted2Metamodel(string modelName)
-    {
-        var strategy = JsonSchemaConverterStrategyFactory.SelectStrategy(ConvertedJsonSchema);
-        var metamodelConverter = new JsonSchemaToMetamodelConverter(strategy.GetAnalyzer());
-
-        var convertedJsonSchemaString = JsonSerializer.Serialize(ConvertedJsonSchema, new JsonSerializerOptions()
-        {
-            Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement),
-            WriteIndented = true
-        });
-
-        ModelMetadata = metamodelConverter.Convert(modelName, convertedJsonSchemaString);
-        return this;
-    }
-
-    private CsharpEnd2EndGenerationTests CSharpClassesCreatedFromMetamodel()
-    {
-        CSharpClasses = new JsonMetadataParser().CreateModelFromMetadata(ModelMetadata);
-        return this;
-    }
-
-    private CsharpEnd2EndGenerationTests XsdSchemaConvertedToJsonSchemaOld(string xsdResource)
-    {
-        Stream xsdStream = TestDataHelper.LoadTestData(xsdResource);
-        XmlReader xmlReader = XmlReader.Create(xsdStream, new XmlReaderSettings { IgnoreWhitespace = true });
-
-        // Compare generated JSON Schema
-        var xsdToJsonSchemaConverter = new XsdToJsonSchema(xmlReader);
-        JsonSchemaOld = xsdToJsonSchemaConverter.AsJsonSchema();
-        return this;
-    }
-
-    private CsharpEnd2EndGenerationTests OldJsonSchemaConvertedToMetamodelOld(string org = null, string app = null)
-    {
-        var converter = new JsonSchemaToInstanceModelGenerator(org, app, JsonSchemaOld);
-        ModelMetadataOld = converter.GetModelMetadata();
-        return this;
-    }
-
-    private CsharpEnd2EndGenerationTests CSharpClassesCreatedFromMetamodelOld()
-    {
-        CSharpClassesOld = new JsonMetadataParser().CreateModelFromMetadata(ModelMetadataOld);
-        return this;
-    }
-
-    private CsharpEnd2EndGenerationTests CSharpClassesCompiledToAssembly()
-    {
-        CompiledAssembly = Compiler.CompileToAssembly(CSharpClasses);
-        return this;
+        And.PropertyShouldHaveDefinedTypeAndContainAnnotation(modelName, propertyName, expectedPropertyType, restrictionString);
     }
 
     // Old classes are not maintained anymore, so Namespace feature that new classes have is added to old classes before comparison.
@@ -202,9 +68,9 @@ public class CsharpEnd2EndGenerationTests : FluentTestsBase<CsharpEnd2EndGenerat
         return this;
     }
 
-    private void PropertyShouldHaveDefinedTypeAndContainAnnotation(string propertyName, string propertyType, string annotationString)
+    private void PropertyShouldHaveDefinedTypeAndContainAnnotation(string className, string propertyName, string propertyType, string annotationString)
     {
-        var type = CompiledAssembly.Types().Single(type => type.CustomAttributes.Any(att => att.AttributeType == typeof(XmlRootAttribute)));
+        var type = CompiledAssembly.Types().Single(type => type.Name == className);
         PropertyShouldContainCustomAnnotationAndHaveTypeType(type, propertyName, propertyType, annotationString);
     }
 }

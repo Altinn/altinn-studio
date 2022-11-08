@@ -64,30 +64,22 @@
       ]
     },
     "Tekst": {
-      "allOf": [
-        {
-          "$ref": "#/$defs/RestriksjonTekst10000Tegn"
-        }
-      ],
+      "$ref": "#/$defs/RestriksjonTekst10000Tegn",
       "@xsdUnhandledAttributes": {
         "seres:elementtype": "Dataenkeltype",
         "seres:guid": "http://seres.no/guid/NKR/Dataenkeltype/Tekst/616185"
-      }
+      },
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     },
     "RestriksjonTekst10000Tegn": {
-      "allOf": [
-        {
-          "type": "string",
-          "@xsdType": "string"
-        },
-        {
-          "maxLength": 10000
-        }
-      ],
+      "type": "string",
+      "@xsdType": "string",
+      "maxLength": 10000,
       "@xsdUnhandledAttributes": {
         "seres:elementtype": "Tegnrestriksjon",
         "seres:guid": "http://seres.no/guid/NKR/Tegnrestriksjon/RestriksjonTekst400Tegn/621114"
-      }
+      },
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     }
   }
 }

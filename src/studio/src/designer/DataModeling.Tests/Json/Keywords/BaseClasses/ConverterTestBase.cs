@@ -39,9 +39,7 @@ where TKeywordType : IJsonSchemaKeyword
 
     protected TTestType JsonSchemaLoaded(string json)
     {
-        JsonSchema = JsonSerializer.Deserialize<JsonSchema>(
-            json,
-            new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
+        JsonSchema = JsonSchema.FromText(json);
         return this as TTestType;
     }
 

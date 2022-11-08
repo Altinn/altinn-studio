@@ -66,145 +66,85 @@
   ],
   "$defs": {
     "stringMinMaxLengthRestrictions": {
-      "allOf": [
-        {
-          "type": "string",
-          "@xsdType": "string"
-        },
-        {
-          "maxLength": 20,
-          "minLength": 5
-        }
-      ]
+      "type": "string",
+      "@xsdType": "string",
+      "maxLength": 20,
+      "minLength": 5,
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     },
     "stringLengthRestrictions": {
-      "allOf": [
-        {
-          "type": "string",
-          "@xsdType": "string"
-        },
-        {
-          "maxLength": 10,
-          "minLength": 10
-        }
-      ]
+      "type": "string",
+      "@xsdType": "string",
+      "maxLength": 10,
+      "minLength": 10,
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     },
     "stringEnumRestrictions": {
-      "allOf": [
-        {
-          "type": "string",
-          "@xsdType": "string"
-        },
-        {
-          "enum": [
-            "v1",
-            "v2"
-          ]
-        }
-      ]
+      "type": "string",
+      "@xsdType": "string",
+      "enum": [
+        "v1",
+        "v2"
+      ],
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     },
     "stringPatternRestrictions": {
-      "allOf": [
-        {
-          "type": "string",
-          "@xsdType": "string"
-        },
-        {
-          "pattern": "^\\d\\.\\d\\.\\d$"
-        }
-      ]
+      "type": "string",
+      "@xsdType": "string",
+      "pattern": "^\\d\\.\\d\\.\\d$",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     },
     "numberRestrictions": {
-      "allOf": [
-        {
-          "type": "number",
-          "@xsdType": "decimal"
-        },
-        {
-          "totalDigits": 10,
-          "maximum": 100,
-          "minimum": -100
-        }
-      ]
+      "type": "number",
+      "@xsdType": "decimal",
+      "totalDigits": 10,
+      "maximum": 100,
+      "minimum": -100,
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     },
     "numberRestrictions2": {
-      "allOf": [
-        {
-          "type": "number",
-          "@xsdType": "decimal"
-        },
-        {
-          "totalDigits": 10,
-          "exclusiveMaximum": 100,
-          "exclusiveMinimum": -100
-        }
-      ]
+      "type": "number",
+      "@xsdType": "decimal",
+      "totalDigits": 10,
+      "exclusiveMaximum": 100,
+      "exclusiveMinimum": -100,
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     },
     "numberRestrictionsFractional0": {
-      "allOf": [
-        {
-          "type": "number",
-          "@xsdType": "decimal"
-        },
-        {
-          "multipleOf": 1
-        }
-      ]
+      "type": "number",
+      "@xsdType": "decimal",
+      "multipleOf": 1,
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     },
     "numberRestrictionsFractional1": {
-      "allOf": [
-        {
-          "type": "number",
-          "@xsdType": "decimal"
-        },
-        {
-          "multipleOf": 0.1
-        }
-      ]
+      "type": "number",
+      "@xsdType": "decimal",
+      "multipleOf": 0.1,
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     },
     "numberRestrictionsFractional2": {
-      "allOf": [
-        {
-          "type": "number",
-          "@xsdType": "decimal"
-        },
-        {
-          "multipleOf": 0.01
-        }
-      ]
+      "type": "number",
+      "@xsdType": "decimal",
+      "multipleOf": 0.01,
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     },
     "numberRestrictionsFractional3": {
-      "allOf": [
-        {
-          "type": "number",
-          "@xsdType": "decimal"
-        },
-        {
-          "multipleOf": 0.001
-        }
-      ]
+      "type": "number",
+      "@xsdType": "decimal",
+      "multipleOf": 0.001,
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     },
     "numberRestrictionsFractional4": {
-      "allOf": [
-        {
-          "type": "number",
-          "@xsdType": "decimal"
-        },
-        {
-          "multipleOf": 0.0001
-        }
-      ]
+      "type": "number",
+      "@xsdType": "decimal",
+      "multipleOf": 0.0001,
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     },
     "numberRestrictionsFractional5": {
-      "allOf": [
-        {
-          "type": "number",
-          "@xsdType": "decimal"
-        },
-        {
-          "multipleOf": 0.00001
-        }
-      ]
+      "type": "number",
+      "@xsdType": "decimal",
+      "multipleOf": 0.00001,
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     }
   }
 }
