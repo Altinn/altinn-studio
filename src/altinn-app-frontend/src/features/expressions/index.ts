@@ -252,6 +252,11 @@ export const ExprFunctions = {
     args: ['string', 'string'] as const,
     returns: 'boolean',
   }),
+  not: defineFunc({
+    impl: (arg) => !arg,
+    args: ['boolean'] as const,
+    returns: 'boolean',
+  }),
   greaterThan: defineFunc({
     impl: (arg1, arg2) => {
       if (arg1 === null || arg2 === null) {
