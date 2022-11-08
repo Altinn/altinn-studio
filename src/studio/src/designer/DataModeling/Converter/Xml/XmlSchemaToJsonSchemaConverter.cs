@@ -1100,71 +1100,75 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
         {
             array = array || maxOccurs > 1;
 
-            JsonSchemaBuilder typeBuilder = builder;
+            var typeBuilder = builder;
 
-            if (GetTypeAndFormat(typeName, out SchemaValueType? type, out Format format, out string xsdType))
+            if (!GetTypeAndFormat(typeName, out SchemaValueType? type, out Format format, out string xsdType))
             {
-                if (array)
-                {
-                    typeBuilder = new JsonSchemaBuilder();
-                }
+                return;
+            }
 
-                if (type != null)
-                {
-                    if (nillable)
-                    {
-                        typeBuilder.Type(new SchemaValueType[] { type.Value, SchemaValueType.Null });
-                    }
-                    else
-                    {
-                        typeBuilder.Type(type.Value);
-                    }
-                }
-                else
-                {
-                    if (nillable)
-                    {
-                        var refSchemaBuilder = new JsonSchemaBuilder();
-                        refSchemaBuilder.Ref(GetReferenceFromTypename(typeName));
+            if (array)
+            {
+                // Sets new builder for items node in array.
+                typeBuilder = new JsonSchemaBuilder();
+            }
 
-                        var typeSchemaBuilder = new JsonSchemaBuilder();
-                        typeSchemaBuilder.Type(SchemaValueType.Null);
+            if (xsdType != null)
+            {
+                typeBuilder.XsdType(xsdType);
+            }
 
-                        typeBuilder.OneOf(refSchemaBuilder, typeSchemaBuilder);
-                    }
-                    else
-                    {
-                        typeBuilder.Ref(GetReferenceFromTypename(typeName));
-                    }
-                }
+            if (type != null)
+            {
+                typeBuilder.Type(type.Value, nillable);
+            }
+            else
+            {
+                BuildReferenceAndType(typeBuilder, typeName, nillable);
+            }
 
-                if (format != null)
-                {
-                    typeBuilder.Format(format);
-                }
+            if (format != null)
+            {
+                typeBuilder.Format(format);
+            }
 
-                if (array)
-                {
-                    if (minOccurs > 0)
-                    {
-                        builder.MinItems((uint)minOccurs);
-                    }
+            if (!array)
+            {
+                return;
+            }
 
-                    if (maxOccurs > 1 && maxOccurs < decimal.MaxValue)
-                    {
-                        builder.MaxItems((uint)maxOccurs);
-                    }
+            if (minOccurs > 0)
+            {
+                builder.MinItems((uint)minOccurs);
+            }
 
-                    JsonSchema itemsSchema = typeBuilder;
-                    typeBuilder = builder;
-                    builder.Type(SchemaValueType.Array);
-                    builder.Items(itemsSchema);
-                }
+            if (maxOccurs is > 1 and < decimal.MaxValue)
+            {
+                builder.MaxItems((uint)maxOccurs);
+            }
 
-                if (xsdType != null)
-                {
-                    typeBuilder.XsdType(xsdType);
-                }
+            builder.Type(SchemaValueType.Array);
+            builder.Items(typeBuilder);
+        }
+
+        /// <summary>
+        /// If nillable it builds reference using allOf composition with type and ref keywords.
+        /// </summary>
+        private static void BuildReferenceAndType(JsonSchemaBuilder typeBuilder, XmlQualifiedName typeName, bool nillable)
+        {
+            if (nillable)
+            {
+                var refSchemaBuilder = new JsonSchemaBuilder();
+                refSchemaBuilder.Ref(GetReferenceFromTypename(typeName));
+
+                var typeSchemaBuilder = new JsonSchemaBuilder();
+                typeSchemaBuilder.Type(SchemaValueType.Null);
+
+                typeBuilder.OneOf(refSchemaBuilder, typeSchemaBuilder);
+            }
+            else
+            {
+                typeBuilder.Ref(GetReferenceFromTypename(typeName));
             }
         }
 
