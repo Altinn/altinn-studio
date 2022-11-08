@@ -7,7 +7,7 @@ import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { get } from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
-import { useParams } from 'react-router-dom';
+import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
 
 const theme = createTheme(altinnTheme);
 
@@ -82,7 +82,7 @@ class HandleMergeConflictDiscardChanges extends React.Component<
 
   // TODO: Add a spinner
   public discardChangesConfirmed = async () => {
-    const { org, app } = useParams();
+    const { org, app } = _useParamsClassCompHack();
 
     try {
       this.setState({
