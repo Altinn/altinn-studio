@@ -314,9 +314,11 @@ export function createRepeatingGroupComponentsForIndex({
 }: ICreateRepeatingGroupCoomponentsForIndexProps) {
   return renderComponents.map((component: ILayoutComponent | ILayoutGroup) => {
     if (component.type === 'Group' && component.panel?.groupReference) {
-      // Do not treat as a regular group child as this is merely an option to add elements for another group from this group context
+      // Do not treat as a regular group child as this is merely an option
+      // to add elements for another group from this group context
       return {
         ...component,
+        id: `${component.id}-${index}`,
         baseComponentId: component.id, // used to indicate that it is a child group
       };
     }
