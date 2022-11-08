@@ -1,0 +1,278 @@
+{
+  "$id": "https://altinncdn.no/schemas/json/layout/expression.schema.v1.json",
+  "$schema": "https://json-schema.org/draft-07/schema",
+  "title": "Expression",
+  "description": "Multi-purpose expression mini-language used to declare dynamic behaviour in Altinn 3 apps",
+  "examples": [
+    ["equals", ["dataModel", "My.Model.Group.Field"], "string constant"],
+
+    ["greaterThanEq",
+      ["component", "my-component-id"],
+      ["dataModel", "My.Model.Other.Field"]
+    ],
+
+    ["or",
+      ["equals", "foo", "bar"],
+      ["equals", "foo", "baz"]
+    ],
+
+    ["if",
+      ["or",
+        ["equals", ["component", "my-component"], ""],
+        ["equals", ["component", "my-component"], null]
+      ],
+      "This will be the value if the condition above is true",
+    "else",
+      ["if",
+        ["notEquals", ["component", "my-other-component"], "illegal value"],
+        "This will be the value if the first condition is false, and the second is true",
+      "else",
+        "This will be the value if all the conditions above are false"
+      ]
+    ],
+
+    ["concat",
+      "Are you sure you want to delete ",
+      ["dataModel", "My.Model.Title"],
+      "?"
+    ]
+  ],
+  "$ref": "#/definitions/any",
+  "definitions": {
+    "any": {
+      "title": "Any expression",
+      "oneOf": [
+        { "type": "null", "title": "Null/missing value" },
+        { "$ref": "#/definitions/strict-string" },
+        { "$ref": "#/definitions/strict-boolean" },
+        { "$ref": "#/definitions/strict-number" },
+        { "$ref": "#/definitions/func-if" }
+      ]
+    },
+    "string": {
+      "title": "Any expression returning string",
+      "oneOf": [
+        { "type": "null", "title": "Null/missing value" },
+        { "$ref": "#/definitions/strict-string" },
+        { "$ref": "#/definitions/func-if" }
+      ]
+    },
+    "strict-string": {
+      "title": "Any expression returning string (strict)",
+      "oneOf": [
+        { "type": "string", "title": "String constant" },
+        { "$ref": "#/definitions/func-component" },
+        { "$ref": "#/definitions/func-dataModel" },
+        { "$ref": "#/definitions/func-instanceContext" },
+        { "$ref": "#/definitions/func-frontendSettings" },
+        { "$ref": "#/definitions/func-concat" }
+      ]
+    },
+    "boolean": {
+      "title": "Any expression returning boolean",
+      "oneOf": [
+        { "type": "null", "title": "Null/missing value" },
+        { "$ref": "#/definitions/strict-boolean" },
+        { "$ref": "#/definitions/func-if" }
+      ]
+    },
+    "strict-boolean": {
+      "title": "Any expression returning boolean (strict)",
+      "oneOf": [
+        { "type": "boolean", "title": "Boolean constant" },
+        { "$ref": "#/definitions/func-equals" },
+        { "$ref": "#/definitions/func-notEquals" },
+        { "$ref": "#/definitions/func-greaterThan" },
+        { "$ref": "#/definitions/func-greaterThanEq" },
+        { "$ref": "#/definitions/func-lessThan" },
+        { "$ref": "#/definitions/func-lessThanEq" },
+        { "$ref": "#/definitions/func-and" },
+        { "$ref": "#/definitions/func-or" }
+      ]
+    },
+    "number": {
+      "title": "Any expression returning a number",
+      "oneOf": [
+        { "type": "null", "title": "Null/missing value" },
+        { "$ref": "#/definitions/strict-number" },
+        { "$ref": "#/definitions/func-if" }
+      ]
+    },
+    "strict-number": {
+      "title": "Any expression returning a number (strict)",
+      "oneOf": [
+        { "type": "number", "title": "Numeric constant" }
+      ]
+    },
+    "string-or-number": {
+      "title": "Any expression returning a string or number",
+      "oneOf": [
+        { "$ref": "#/definitions/string" },
+        { "$ref": "#/definitions/number" }
+      ]
+    },
+    "func-if": {
+      "title": "If/else conditional expression",
+      "description": "This function will evaluate and return the result of either branch. If else is not given, null will be returned instead.",
+      "oneOf": [
+        { "$ref": "#/definitions/func-if-with-else" },
+        { "$ref": "#/definitions/func-if-without-else" }
+      ]
+    },
+    "func-if-without-else": {
+      "type": "array",
+      "items": [
+        { "const":  "if" },
+        { "$ref": "#/definitions/boolean" },
+        { "$ref": "#/definitions/any" }
+      ],
+      "additionalItems": false
+    },
+    "func-if-with-else": {
+      "type": "array",
+      "items": [
+        { "const":  "if" },
+        { "$ref": "#/definitions/boolean" },
+        { "$ref": "#/definitions/any" },
+        { "const":  "else" },
+        { "$ref": "#/definitions/any" }
+      ],
+      "additionalItems": false
+    },
+    "func-component": {
+      "title": "Component value lookup function",
+      "description": "This function will look up a nearby component and its value (only supports simpleBinding currently). Other components can be siblings, or siblings of parent groups.",
+      "type": "array",
+      "items": [
+        { "const":  "component" },
+        { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
+    },
+    "func-dataModel": {
+      "title": "Data model lookup function",
+      "description": "This function will look up a value in the data model, using the JSON dot notation for referencing the data model structure. Relative positioning inside repeating groups will be resolved automatically if no positional indexes are specified.",
+      "type": "array",
+      "items": [
+        { "const":  "dataModel" },
+        { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
+    },
+    "func-instanceContext": {
+      "title": "Instance context lookup function",
+      "description": "This function can be used to lookup a value from the instance context",
+      "type": "array",
+      "items": [
+        { "const":  "instanceContext" },
+        { "enum": ["appId", "instanceId", "instanceOwnerPartyId"] }
+      ],
+      "additionalItems": false
+    },
+    "func-frontendSettings": {
+      "title": "Frontend settings lookup function",
+      "description": "This function can be used to lookup a value from frontendSettings (only supports scalar values, no objects or arrays)",
+      "type": "array",
+      "items": [
+        { "const":  "frontendSettings" },
+        { "$ref": "#/definitions/string" }
+      ],
+      "additionalItems": false
+    },
+    "func-concat": {
+      "title": "String concatenation function",
+      "description": "This function will concatenate strings or numbers, producing a final string as a result",
+      "type": "array",
+      "items": [
+        { "const":  "concat" }
+      ],
+      "additionalItems": { "$ref": "#/definitions/string-or-number" }
+    },
+    "func-equals": {
+      "title": "Equals function",
+      "description": "This function compares two values (or expressions) for equality",
+      "type": "array",
+      "items": [
+        { "const":  "equals" },
+        { "$ref": "#/definitions/any" },
+        { "$ref": "#/definitions/any" }
+      ],
+      "additionalItems": false
+    },
+    "func-notEquals": {
+      "title": "Not equals function",
+      "description": "This function compares two values (or expressions) for inequality",
+      "type": "array",
+      "items": [
+        { "const":  "notEquals" },
+        { "$ref": "#/definitions/any" },
+        { "$ref": "#/definitions/any" }
+      ],
+      "additionalItems": false
+    },
+    "func-greaterThan": {
+      "title": "Greater than function",
+      "description": "This function compares two values (or expressions), returning true if the first argument is greater than the second",
+      "type": "array",
+      "items": [
+        { "const":  "greaterThan" },
+        { "$ref": "#/definitions/string-or-number" },
+        { "$ref": "#/definitions/string-or-number" }
+      ],
+      "additionalItems": false
+    },
+    "func-greaterThanEq": {
+      "title": "Greater than or equals function",
+      "description": "This function compares two values (or expressions), returning true if the first argument is greater than or equals the second",
+      "type": "array",
+      "items": [
+        { "const":  "greaterThanEq" },
+        { "$ref": "#/definitions/string-or-number" },
+        { "$ref": "#/definitions/string-or-number" }
+      ],
+      "additionalItems": false
+    },
+    "func-lessThan": {
+      "title": "Less than function",
+      "description": "This function compares two values (or expressions), returning true if the first argument is less than the second",
+      "type": "array",
+      "items": [
+        { "const":  "lessThan" },
+        { "$ref": "#/definitions/string-or-number" },
+        { "$ref": "#/definitions/string-or-number" }
+      ],
+      "additionalItems": false
+    },
+    "func-lessThanEq": {
+      "title": "Less than or equals function",
+      "description": "This function compares two values (or expressions), returning true if the first argument is less than or equals the second",
+      "type": "array",
+      "items": [
+        { "const":  "lessThanEq" },
+        { "$ref": "#/definitions/string-or-number" },
+        { "$ref": "#/definitions/string-or-number" }
+      ],
+      "additionalItems": false
+    },
+    "func-and": {
+      "title": "And combinator",
+      "description": "This function returns true if all the arguments (or expressions) are true",
+      "type": "array",
+      "items": [
+        { "const":  "and" },
+        { "$ref": "#/definitions/boolean" }
+      ],
+      "additionalItems": { "$ref": "#/definitions/boolean" }
+    },
+    "func-or": {
+      "title": "Or combinator",
+      "description": "This function returns true if any of the arguments (or expressions) are true",
+      "type": "array",
+      "items": [
+        { "const":  "or" },
+        { "$ref": "#/definitions/boolean" }
+      ],
+      "additionalItems": { "$ref": "#/definitions/boolean" }
+    }
+  }
+}

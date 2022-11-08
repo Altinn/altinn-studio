@@ -45,16 +45,22 @@
           "enum": ["AddressComponent", "AttachmentList", "Button", "Checkboxes", "Datepicker", "Dropdown", "FileUpload", "FileUploadWithTag", "Group", "Header", "Image", "Input", "InstantiationButton", "Likert", "MultipleSelect", "NavigationButtons", "NavigationBar", "Panel", "Paragraph", "PrintButton", "RadioButtons", "Summary", "TextArea"]
         },
         "required": {
-          "type": "boolean",
           "title": "Required",
-          "description": "Boolean value indicating if the component is required when filling in the form. Defaults to false.",
-          "default": false
+          "description": "Boolean or expression indicating if the component is required when filling in the form. Defaults to false.",
+          "default": false,
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
         },
         "readOnly": {
-          "type": "boolean",
           "title": "Read only",
-          "description": "Boolean value indicating if the component should be presented as read only. Defaults to false.",
-          "default": false
+          "description": "Boolean or expression indicating if the component should be presented as read only. Defaults to false.",
+          "default": false,
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
+        },
+        "hidden": {
+          "title": "Hidden",
+          "description": "Boolean value or expression indicating if the component should be hidden. Defaults to false.",
+          "default": false,
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
         },
         "textResourceBindings": {
           "type": "object",
@@ -399,18 +405,18 @@
         },
         "saveButton": {
           "title": "Save button",
-          "description": "Boolean value indicating whether save button should be shown or not in edit mode of repeating group item.",
-          "type": "boolean"
+          "description": "Boolean or expression indicating whether save button should be shown or not in edit mode of repeating group item.",
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
         },
         "saveAndNextButton": {
           "title": "Save and open next button",
-          "description": "Boolean value indicating whether save and go to next button should be shown or not in addition to save and close button in edit mode of repeating group item.",
-          "type": "boolean"
+          "description": "Boolean or expression indicating whether save and go to next button should be shown or not in addition to save and close button in edit mode of repeating group item.",
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
         },
         "deleteButton": {
           "title": "Delete button",
-          "description": "Boolean value indicating whether delete button should be shown or not in edit mode of repeating group item.",
-          "type": "boolean"
+          "description": "Boolean or expression indicating whether delete button should be shown or not in edit mode of repeating group item.",
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
         },
         "multiPage": {
           "title": "Multi-page",
@@ -419,8 +425,8 @@
         },
         "addButton": {
           "title": "Add button",
-          "description": "Boolean value indicating whether add new button should be shown or not under the table.",
-          "type": "boolean"
+          "description": "Boolean or expression indicating whether add new button should be shown or not under the table.",
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
         },
         "openByDefault": {
           "title": "Open by default",

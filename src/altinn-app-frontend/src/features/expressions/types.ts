@@ -36,12 +36,12 @@ export type BaseToActualStrict<T extends BaseValue> = [T] extends ['string']
   ? boolean
   : never;
 
-type ArgsToActual<T extends readonly BaseValue[]> = {
-  [Index in keyof T]: BaseToActual<T[Index]>;
+type ArgsToActualOrNull<T extends readonly BaseValue[]> = {
+  [Index in keyof T]: BaseToActual<T[Index]> | null;
 };
 
 export interface FuncDef<Args extends readonly BaseValue[], Ret extends BaseValue> {
-  impl: (this: ExprContext, ...params: ArgsToActual<Args>) => BaseToActual<Ret> | null;
+  impl: (this: ExprContext, ...params: ArgsToActualOrNull<Args>) => BaseToActual<Ret> | null;
   args: Args;
   minArguments?: number;
   returns: Ret;
