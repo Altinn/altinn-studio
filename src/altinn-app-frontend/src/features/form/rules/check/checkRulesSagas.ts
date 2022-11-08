@@ -22,13 +22,12 @@ export interface IResponse {
 }
 
 export function* checkIfRuleShouldRunSaga({
-  payload: { field, skipAutoSave, skipValidation },
+  payload: { field, skipAutoSave, skipValidation, singleFieldValidation },
 }: PayloadAction<IUpdateFormDataFulfilled>): SagaIterator {
   try {
     const ruleConnectionState: IRuleConnections | null = yield select(selectRuleConnection);
     const formDataState: IFormDataState = yield select(selectFormDataConnection);
     const formLayoutState: ILayoutState = yield select(selectFormLayoutConnection);
-
     const rules: IResponse[] = checkIfRuleShouldRun(ruleConnectionState, formDataState, formLayoutState.layouts, field);
 
     if (rules.length > 0) {
@@ -46,6 +45,7 @@ export function* checkIfRuleShouldRunSaga({
               field: rule.dataBindingName,
               skipValidation,
               skipAutoSave,
+              singleFieldValidation,
             }),
           );
         }),

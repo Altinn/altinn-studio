@@ -18,11 +18,6 @@ describe('singleFieldValidationSagas', () => {
 
   beforeEach(() => {
     mockState = getInitialStateMock();
-    mockState.formValidations.currentSingleFieldValidation = {
-      dataModelBinding: mockTriggerField,
-      componentId: 'mockId',
-      layoutId: 'formLayout',
-    };
   });
 
   it('runSingleFieldValidationSaga, single field validation is triggered', () => {
@@ -57,12 +52,18 @@ describe('singleFieldValidationSagas', () => {
       },
     };
 
-    return expectSaga(runSingleFieldValidationSaga)
+    return expectSaga(runSingleFieldValidationSaga, {
+      type: '',
+      payload: {
+        dataModelBinding: mockTriggerField,
+        layoutId: 'FormLayout',
+        componentId: 'field1',
+      },
+    })
       .provide([
         [select(), mockState],
         [call(get, url, options), validationIssues],
       ])
-      .put(ValidationActions.setCurrentSingleFieldValidation({}))
       .put(
         ValidationActions.runSingleFieldValidationFulfilled({
           validations: mappedValidations,
@@ -83,12 +84,18 @@ describe('singleFieldValidationSagas', () => {
       },
     };
     const error = new Error('Error');
-    return expectSaga(runSingleFieldValidationSaga)
+    return expectSaga(runSingleFieldValidationSaga, {
+      type: '',
+      payload: {
+        dataModelBinding: mockTriggerField,
+        layoutId: 'FormLayout',
+        componentId: 'field1',
+      },
+    })
       .provide([
         [select(), mockState],
         [call(get, url, options), throwError(error)],
       ])
-      .put(ValidationActions.setCurrentSingleFieldValidation({}))
       .put(ValidationActions.runSingleFieldValidationRejected({ error }))
       .run();
   });

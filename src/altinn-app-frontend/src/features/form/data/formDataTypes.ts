@@ -19,14 +19,21 @@ export interface ISubmitDataAction {
   componentId: string;
 }
 
+export interface ISingleFieldValidation {
+  layoutId: string;
+  dataModelBinding: string;
+}
+
 export interface ISaveAction {
   field?: string;
   componentId?: string;
+  singleFieldValidation?: ISingleFieldValidation;
 }
 
 export interface IUpdateFormDataProps {
   skipValidation?: boolean;
   skipAutoSave?: boolean;
+  singleFieldValidation?: ISingleFieldValidation;
 }
 
 export interface IUpdateFormData extends IUpdateFormDataProps {

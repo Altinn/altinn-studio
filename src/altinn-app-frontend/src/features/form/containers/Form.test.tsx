@@ -249,7 +249,6 @@ describe('Form', () => {
       formValidations: {
         error: null,
         invalidDataTypes: [],
-        currentSingleFieldValidation: {},
         validations: {
           page1: validations,
         },

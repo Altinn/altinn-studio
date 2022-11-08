@@ -1,12 +1,11 @@
 import slice, { initialState, ValidationActions } from 'src/features/form/validation/validationSlice';
 import type { IValidationState } from 'src/features/form/validation/validationSlice';
-import type { IComponentValidations, ICurrentSingleFieldValidation, IValidations } from 'src/types';
+import type { IComponentValidations, IValidations } from 'src/types';
 
 describe('validationSlice', () => {
   let state: IValidationState;
   let mockValidations: IValidations;
   let mockError: Error;
-  let mockSingleFieldValidationField: ICurrentSingleFieldValidation;
 
   beforeEach(() => {
     state = initialState;
@@ -21,11 +20,6 @@ describe('validationSlice', () => {
       },
     };
     mockError = new Error('Something went wrong');
-    mockSingleFieldValidationField = {
-      dataModelBinding: 'mockField',
-      componentId: 'mockComponent',
-      layoutId: 'formLayout',
-    };
   });
 
   it('handles runSingleFieldValidationFulfilled action', () => {
@@ -41,16 +35,6 @@ describe('validationSlice', () => {
   it('handles runSingleFieldValidationRejected action', () => {
     const nextState = slice.reducer(state, ValidationActions.runSingleFieldValidationRejected({ error: mockError }));
     expect(nextState.error).toEqual(mockError);
-  });
-
-  it('handles setCurrentSingleFieldValidation action', () => {
-    const nextState = slice.reducer(
-      state,
-      ValidationActions.setCurrentSingleFieldValidation({
-        ...mockSingleFieldValidationField,
-      }),
-    );
-    expect(nextState.currentSingleFieldValidation).toEqual(mockSingleFieldValidationField);
   });
 
   it('handles updateComponentValidations action', () => {

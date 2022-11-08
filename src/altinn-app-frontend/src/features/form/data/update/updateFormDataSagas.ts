@@ -16,7 +16,7 @@ import type { IAttachments } from 'src/shared/resources/attachments';
 import type { IRuntimeState } from 'src/types';
 
 export function* updateFormDataSaga({
-  payload: { field, data, componentId, skipValidation, skipAutoSave },
+  payload: { field, data, componentId, skipValidation, skipAutoSave, singleFieldValidation },
 }: PayloadAction<IUpdateFormData>): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
@@ -33,6 +33,7 @@ export function* updateFormDataSaga({
           data,
           skipValidation,
           skipAutoSave,
+          singleFieldValidation,
         }),
       );
     }

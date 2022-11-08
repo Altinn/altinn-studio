@@ -184,9 +184,11 @@ Cypress.Commands.add('getReduxState', (selector) => {
 Cypress.Commands.add('interceptLayout', (layoutName, mutator) => {
   cy.intercept(`**/api/layouts/${layoutName}`, (req) => {
     req.reply((res) => {
-      const modified = JSON.parse(res.body);
-      modified.repeating.data.layout = modified.repeating.data.layout.map(mutator);
-      res.send(JSON.stringify(modified));
+      const set = JSON.parse(res.body);
+      for (const layout of Object.values(set)) {
+        layout.data.layout = layout.data.layout.map(mutator);
+      }
+      res.send(JSON.stringify(set));
     });
   });
 });

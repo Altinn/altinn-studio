@@ -1,4 +1,5 @@
 import { call, put, select } from 'redux-saga/effects';
+import type { PayloadAction } from '@reduxjs/toolkit';
 import type { AxiosRequestConfig } from 'axios';
 import type { SagaIterator } from 'redux-saga';
 
@@ -7,9 +8,12 @@ import { getCurrentTaskDataElementId } from 'src/utils/appMetadata';
 import { getDataValidationUrl } from 'src/utils/appUrlHelper';
 import { get } from 'src/utils/networking';
 import { mapDataElementValidationToRedux, mergeValidationObjects } from 'src/utils/validation';
+import type { IRunSingleFieldValidation } from 'src/features/form/validation/validationSlice';
 import type { IRuntimeState, IValidationIssue } from 'src/types';
 
-export function* runSingleFieldValidationSaga(): SagaIterator {
+export function* runSingleFieldValidationSaga({
+  payload: { componentId, layoutId, dataModelBinding },
+}: PayloadAction<IRunSingleFieldValidation>): SagaIterator {
   const state: IRuntimeState = yield select();
   const currentTaskDataId =
     state.applicationMetadata.applicationMetadata &&
@@ -23,19 +27,14 @@ export function* runSingleFieldValidationSaga(): SagaIterator {
     currentTaskDataId &&
     getDataValidationUrl(state.instanceData.instance.id, currentTaskDataId);
 
-  const { currentSingleFieldValidation } = state.formValidations;
-
-  if (url && currentSingleFieldValidation && currentSingleFieldValidation.dataModelBinding) {
+  if (url && dataModelBinding) {
     const options: AxiosRequestConfig = {
       headers: {
-        ValidationTriggerField: currentSingleFieldValidation.dataModelBinding,
+        ValidationTriggerField: dataModelBinding,
       },
     };
 
     try {
-      // Reset current single field validation for next potential validation
-      yield put(ValidationActions.setCurrentSingleFieldValidation({}));
-
       const serverValidation: IValidationIssue[] = yield call(get, url, options);
       const mappedValidations = mapDataElementValidationToRedux(
         serverValidation,
@@ -46,13 +45,12 @@ export function* runSingleFieldValidationSaga(): SagaIterator {
       const validations = mergeValidationObjects(state.formValidations.validations, mappedValidations);
 
       // Replace/reset validations for field that triggered validation
-      const { layoutId, componentId } = currentSingleFieldValidation;
-      if (layoutId && serverValidation.length === 0 && componentId && validations[layoutId]?.[componentId]) {
+      if (serverValidation.length === 0 && validations[layoutId]?.[componentId]) {
         validations[layoutId][componentId].simpleBinding = {
           errors: [],
           warnings: [],
         };
-      } else if (layoutId && componentId && mappedValidations[layoutId]?.[componentId]) {
+      } else if (mappedValidations[layoutId]?.[componentId]) {
         if (!validations[layoutId]) {
           validations[layoutId] = {};
         }
@@ -62,7 +60,6 @@ export function* runSingleFieldValidationSaga(): SagaIterator {
       yield put(ValidationActions.runSingleFieldValidationFulfilled({ validations }));
     } catch (error) {
       yield put(ValidationActions.runSingleFieldValidationRejected({ error }));
-      yield put(ValidationActions.setCurrentSingleFieldValidation({}));
     }
   }
 }

@@ -152,7 +152,6 @@ const createFormValidationsForCurrentView = (validations: ILayoutValidations = {
   return {
     error: null,
     invalidDataTypes: [],
-    currentSingleFieldValidation: {},
     validations: { FormLayout: validations },
   };
 };

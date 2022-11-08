@@ -39,7 +39,6 @@ export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRun
       validations: {},
       error: null,
       invalidDataTypes: [],
-      currentSingleFieldValidation: null,
     },
     instanceData: getInstanceDataStateMock(),
     instantiation: {

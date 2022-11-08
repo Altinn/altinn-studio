@@ -36,7 +36,6 @@ const stateWithErrorsAndWarnings = getInitialStateMock({
     },
     invalidDataTypes: [],
     error: null,
-    currentSingleFieldValidation: null,
   },
 });
 

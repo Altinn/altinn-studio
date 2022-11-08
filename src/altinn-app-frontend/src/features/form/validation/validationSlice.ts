@@ -1,13 +1,12 @@
 import { runSingleFieldValidationSaga } from 'src/features/form/validation/singleField/singleFieldValidationSagas';
 import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
 import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
-import type { IComponentValidations, ICurrentSingleFieldValidation, IValidations } from 'src/types';
+import type { IComponentValidations, IValidations } from 'src/types';
 
 export interface IValidationState {
   validations: IValidations;
   invalidDataTypes: string[];
   error: Error | null;
-  currentSingleFieldValidation: ICurrentSingleFieldValidation | null;
 }
 
 export interface IUpdateComponentValidations {
@@ -21,28 +20,27 @@ export interface IUpdateValidations {
   validations: IValidations;
 }
 
-export interface IValidationActionRejected {
-  error: Error;
+export interface IRunSingleFieldValidation {
+  dataModelBinding: string;
+  componentId: string;
+  layoutId: string;
 }
 
-export interface ISetCurrentSingleFieldValidationAction {
-  dataModelBinding?: string;
-  componentId?: string;
-  layoutId?: string;
+export interface IValidationActionRejected {
+  error: Error;
 }
 
 export const initialState: IValidationState = {
   validations: {},
   error: null,
   invalidDataTypes: [],
-  currentSingleFieldValidation: {},
 };
 
 const validationSlice = createSagaSlice((mkAction: MkActionType<IValidationState>) => ({
   name: 'formValidations',
   initialState,
   actions: {
-    runSingleFieldValidation: mkAction<void>({
+    runSingleFieldValidation: mkAction<IRunSingleFieldValidation>({
       takeLatest: runSingleFieldValidationSaga,
     }),
     runSingleFieldValidationFulfilled: mkAction<IUpdateValidations>({
@@ -55,16 +53,6 @@ const validationSlice = createSagaSlice((mkAction: MkActionType<IValidationState
       reducer: (state, action) => {
         const { error } = action.payload;
         state.error = error;
-      },
-    }),
-    setCurrentSingleFieldValidation: mkAction<ISetCurrentSingleFieldValidationAction>({
-      reducer: (state, action) => {
-        const { dataModelBinding, componentId, layoutId } = action.payload;
-        state.currentSingleFieldValidation = {
-          dataModelBinding,
-          componentId,
-          layoutId,
-        };
       },
     }),
     updateComponentValidations: mkAction<IUpdateComponentValidations>({

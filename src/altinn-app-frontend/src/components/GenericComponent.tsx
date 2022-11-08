@@ -12,7 +12,6 @@ import Label from 'src/features/form/components/Label';
 import Legend from 'src/features/form/components/Legend';
 import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
-import { ValidationActions } from 'src/features/form/validation/validationSlice';
 import { makeGetFocus, makeGetHidden } from 'src/selectors/getLayoutData';
 import { LayoutStyle, Triggers } from 'src/types';
 import {
@@ -27,6 +26,7 @@ import {
 import { renderValidationMessagesForComponent } from 'src/utils/render';
 import type { IComponentProps, IFormComponentContext, PropsFromGenericComponent } from 'src/components';
 import type { ExprResolved } from 'src/features/expressions/types';
+import type { ISingleFieldValidation } from 'src/features/form/data/formDataTypes';
 import type {
   ComponentExceptGroup,
   ComponentTypes,
@@ -183,15 +183,13 @@ export function GenericComponent<Type extends ComponentExceptGroup>(_props: IAct
     }
 
     const dataModelBinding = props.dataModelBindings[key];
-    if (props.triggers && props.triggers.includes(Triggers.Validation)) {
-      dispatch(
-        ValidationActions.setCurrentSingleFieldValidation({
-          dataModelBinding,
-          componentId: props.id,
-          layoutId: currentView,
-        }),
-      );
-    }
+    const singleFieldValidation: ISingleFieldValidation | undefined =
+      props.triggers && props.triggers.includes(Triggers.Validation)
+        ? {
+            layoutId: currentView,
+            dataModelBinding,
+          }
+        : undefined;
 
     dispatch(
       FormDataActions.update({
@@ -199,6 +197,7 @@ export function GenericComponent<Type extends ComponentExceptGroup>(_props: IAct
         data: value,
         componentId: props.id,
         skipValidation: !validate,
+        singleFieldValidation,
       }),
     );
   };

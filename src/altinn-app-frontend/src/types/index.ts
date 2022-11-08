@@ -214,12 +214,6 @@ export interface ILayoutValidations {
   [id: string]: IComponentValidations;
 }
 
-export interface ICurrentSingleFieldValidation {
-  dataModelBinding?: string;
-  componentId?: string;
-  layoutId?: string;
-}
-
 export interface IVariable {
   dataSource: string;
   key: string;

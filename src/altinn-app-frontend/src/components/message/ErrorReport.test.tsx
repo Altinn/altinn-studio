@@ -15,7 +15,6 @@ describe('ErrorReport', () => {
         ...(validations as any),
       },
       invalidDataTypes: [],
-      currentSingleFieldValidation: null,
       error: null,
     };
     const initialState = getInitialStateMock({

@@ -130,7 +130,6 @@ describe('SummaryComponent', () => {
             validations,
             error: null,
             invalidDataTypes: [],
-            currentSingleFieldValidation: {},
           },
         },
       },

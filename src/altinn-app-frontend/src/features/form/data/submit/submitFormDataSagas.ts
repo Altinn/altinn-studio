@@ -149,7 +149,7 @@ function* handleCalculationUpdate(changedFields) {
 }
 
 export function* saveFormDataSaga({
-  payload: { field, componentId },
+  payload: { field, componentId, singleFieldValidation },
 }: PayloadAction<IUpdateFormDataFulfilled>): SagaIterator {
   try {
     const state: IRuntimeState = yield select();
@@ -169,8 +169,14 @@ export function* saveFormDataSaga({
       yield call(putFormData, { state, model, field, componentId });
     }
 
-    if (state.formValidations.currentSingleFieldValidation?.dataModelBinding) {
-      yield sagaPut(ValidationActions.runSingleFieldValidation());
+    if (singleFieldValidation && componentId) {
+      yield sagaPut(
+        ValidationActions.runSingleFieldValidation({
+          componentId,
+          dataModelBinding: singleFieldValidation.dataModelBinding,
+          layoutId: singleFieldValidation.layoutId,
+        }),
+      );
     }
 
     yield sagaPut(FormDataActions.submitFulfilled());
@@ -219,7 +225,7 @@ export function* saveStatelessData({ state, model, field, componentId }: SaveDat
 }
 
 export function* autoSaveSaga({
-  payload: { skipAutoSave, field, componentId },
+  payload: { skipAutoSave, field, componentId, singleFieldValidation },
 }: PayloadAction<IUpdateFormDataFulfilled>): SagaIterator {
   if (skipAutoSave) {
     return;
@@ -228,6 +234,6 @@ export function* autoSaveSaga({
   const uiConfig: IUiConfig = yield select(UIConfigSelector);
   if (uiConfig.autoSave !== false) {
     // undefined should default to auto save
-    yield sagaPut(FormDataActions.save({ field, componentId }));
+    yield sagaPut(FormDataActions.save({ field, componentId, singleFieldValidation }));
   }
 }
