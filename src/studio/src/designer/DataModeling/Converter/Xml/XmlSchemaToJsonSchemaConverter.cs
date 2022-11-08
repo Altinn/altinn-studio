@@ -1100,17 +1100,11 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
         {
             array = array || maxOccurs > 1;
 
-            var typeBuilder = builder;
+            var typeBuilder = array ? new JsonSchemaBuilder() : builder;
 
             if (!GetTypeAndFormat(typeName, out SchemaValueType? type, out Format format, out string xsdType))
             {
                 return;
-            }
-
-            if (array)
-            {
-                // Sets new builder for items node in array.
-                typeBuilder = new JsonSchemaBuilder();
             }
 
             if (xsdType != null)
