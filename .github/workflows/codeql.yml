@@ -58,8 +58,6 @@ jobs:
     - name: Build
       run: |
         echo "Run, Build Application using script"
-        cat ${pwd}
-        cd ${pwd}/src/studio/src/designer
         ./buildscript.sh
 
 
