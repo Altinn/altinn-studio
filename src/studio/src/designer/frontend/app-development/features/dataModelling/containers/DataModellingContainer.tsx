@@ -16,9 +16,7 @@ const DataModellingContainer = ({ language }: IDataModellingContainerProps) => {
 
   return (
     <div className={classes.root}>
-      <div className={classes.versionControlHeaderWrapper}>
-        <VersionControlHeader language={language}/>
-      </div>
+      <VersionControlHeader language={language}/>
       <div className={classes.dataModellingWrapper}>
         <DataModelling language={language} org={org} repo={repo} />
       </div>

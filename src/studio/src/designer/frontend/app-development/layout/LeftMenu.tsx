@@ -1,17 +1,18 @@
 import React from 'react';
 import type { Theme } from '@mui/material';
-import { Grid, StyledComponentProps, useMediaQuery } from '@mui/material';
+import { useMediaQuery } from '@mui/material';
 import LeftDrawerMenu from 'app-shared/navigation/drawer/LeftDrawerMenu';
-import classNames from 'classnames';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import type { IShareChangesComponentProps } from 'app-shared/version-control/shareChanges';
 import routes from '../config/routes';
 import appDevelopmentLeftDrawerSettings from '../config/subPathSettings';
 import HandleMergeConflict from '../features/handleMergeConflict/HandleMergeConflictContainer';
 
-interface ILeftMenuProps extends StyledComponentProps {
-  repoStatus: IShareChangesComponentProps;
+interface ILeftMenuProps {
+  className: string;
   language: any;
+  repoStatus: IShareChangesComponentProps;
+  subAppClassName?: string;
 }
 
 const SideBar = () => {
@@ -42,44 +43,37 @@ const SideBar = () => {
   );
 };
 
-const LeftMenu = ({ repoStatus, classes, language }: ILeftMenuProps) => {
-  return (
-    <Grid item xs={12}>
-      {!repoStatus.hasMergeConflict ? (
-        <>
-          <SideBar />
-          <div className={classes.subApp}>
-            <Routes>
-              {routes.map((route) => (
-                <Route
-                  key={route.path}
-                  path={route.path}
-                  element={
-                    <route.subapp {...route.props} language={language} />
-                  }
-                />
-              ))}
-            </Routes>
-          </div>
-        </>
-      ) : (
-        <div
-          className={classNames({
-            [classes.mergeConflictApp]: repoStatus.hasMergeConflict,
-            [classes.subApp]: !repoStatus.hasMergeConflict,
-          })}
-        >
+const LeftMenu = ({ repoStatus, language, className, subAppClassName }: ILeftMenuProps) => (
+  <div className={className}>
+    {!repoStatus.hasMergeConflict ? (
+      <>
+        <SideBar />
+        <div className={subAppClassName}>
           <Routes>
-            <Route
-              path={'/'}
-              element={<Navigate to='/mergeconflict' replace />}
-            />
-            <Route path='/mergeconflict' element={<HandleMergeConflict />} />
+            {routes.map((route) => (
+              <Route
+                key={route.path}
+                path={route.path}
+                element={
+                  <route.subapp {...route.props} language={language} />
+                }
+              />
+            ))}
           </Routes>
         </div>
-      )}
-    </Grid>
-  );
-};
+      </>
+    ) : (
+      <div className={subAppClassName}>
+        <Routes>
+          <Route
+            path={'/'}
+            element={<Navigate to='/mergeconflict' replace />}
+          />
+          <Route path='/mergeconflict' element={<HandleMergeConflict />} />
+        </Routes>
+      </div>
+    )}
+  </div>
+);
 
 export default LeftMenu;

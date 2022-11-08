@@ -1,0 +1,86 @@
+.drawerWrapper {
+  white-space: nowrap;
+  width: var(--left-menu-width);
+  flex-basis: var(--left-menu-width);
+  flex-grow: 0;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.drawer {
+  background-color: #efefef;
+  border-right: 1px solid #c9c9c9;
+  box-sizing: border-box;
+  height: 100%;
+  overflow-x: hidden;
+  padding-top: 1rem;
+  position: absolute;
+  z-index: 1;
+}
+
+.drawerOpen {
+  transition-duration: 225ms;
+  transition-property: width;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+  width: 240px;
+}
+
+.drawerClosed {
+  transition-duration: 195ms;
+  transition-property: width;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+  width: var(--left-menu-width);
+}
+
+.menuLink {
+  border: none;
+  display: inline-block;
+  padding: 8px 16px;
+  text-decoration: none;
+}
+
+.listItem {
+  color: #022f51;
+  font-size: 16px;
+  border: none;
+}
+
+.listItem:hover {
+  color: #0062ba;
+  font-weight: 500;
+}
+
+.activeListItem {
+  color: #0062ba;
+  font-weight: 500;
+}
+
+.menuButton {
+  margin-left: 12px;
+  margin-right: 36px;
+}
+
+.hide {
+  display: none;
+}
+
+.toolbar {
+  align-items: center;
+  display: flex;
+  justify-content: flex-end;
+  min-height: 56px;
+  padding: 0 8px;
+}
+
+.content {
+  flex-grow: 1;
+  padding: calc(8px * 3);
+}
+
+.listItemText {
+  padding-left: 0;
+}
+
+.drawerClosed .listItemText {
+  display: none;
+}

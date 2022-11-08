@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { createTheme, Grid } from '@mui/material';
-import { makeStyles } from '@mui/styles';
-import AltinnColumnLayout from 'app-shared/components/AltinnColumnLayout';
+import { Grid } from '@mui/material';
+import { AltinnColumnLayout } from 'app-shared/components/AltinnColumnLayout';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
-import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import { HandleServiceInformationActions } from '../handleServiceInformationSlice';
@@ -11,69 +9,16 @@ import { MainContent } from './MainContent';
 import { SideMenuContent } from './SideMenuContent';
 import { useAppDispatch, useAppSelector } from 'common/hooks';
 import type { IAltinnWindow } from '../../../types/global';
-
-const theme = createTheme(altinnTheme);
-const useStyles = makeStyles({
-  avatar: {
-    maxHeight: '2em',
-  },
-  sidebarHeader: {
-    marginBottom: 20,
-    fontSize: 20,
-    fontWeight: 500,
-  },
-  sidebarHeaderSecond: {
-    marginTop: 36,
-  },
-  sidebarInfoText: {
-    fontSize: 16,
-    marginBottom: 12,
-  },
-  iconStyling: {
-    fontSize: 35,
-    textAlign: 'right',
-  },
-  sidebarServiceOwner: {
-    marginTop: 10,
-  },
-  sidebarCreatedBy: {
-    fontSize: 16,
-    marginTop: 10,
-  },
-  spinnerLocation: {
-    margin: 'auto',
-  },
-  marginBottom_24: {
-    marginBottom: 24,
-  },
-  versionControlHeaderMargin: {
-    marginLeft: 60,
-  },
-  [theme.breakpoints.up('md')]: {
-    versionControlHeaderMargin: {
-      marginLeft: theme.sharedStyles.leftDrawerMenuClosedWidth + 60,
-    },
-  },
-});
+import classes from './Administration.module.css';
 
 export function AdministrationComponent() {
-  const name = useAppSelector(
-    (state) => state.serviceInformation.serviceNameObj.name,
-  );
-  const description = useAppSelector(
-    (state) => state.serviceInformation.serviceDescriptionObj.description,
-  );
-  const id = useAppSelector(
-    (state) => state.serviceInformation.serviceIdObj.serviceId,
-  );
+
+  const name = useAppSelector((state) => state.serviceInformation.serviceNameObj.name);
+  const description = useAppSelector((state) => state.serviceInformation.serviceDescriptionObj.description);
+  const id = useAppSelector((state) => state.serviceInformation.serviceIdObj.serviceId);
   const language = useAppSelector((state) => state.languageState.language);
-  const repository = useAppSelector(
-    (state) => state.serviceInformation.repositoryInfo,
-  );
-  const initialCommit = useAppSelector(
-    (state) => state.serviceInformation.initialCommit,
-  );
-  const classes = useStyles();
+  const repository = useAppSelector((state) => state.serviceInformation.repositoryInfo);
+  const initialCommit = useAppSelector((state) => state.serviceInformation.initialCommit);
   const dispatch = useAppDispatch();
 
   const [newName, setNewName] = useState<string>(name);
@@ -172,45 +117,43 @@ export function AdministrationComponent() {
     repository && newName !== null && newDescription !== null && newId !== null;
 
   return (
-    <div data-testid='administration-container'>
+    <div data-testid='administration-container' className={classes.root}>
       {render ? (
-        <AltinnColumnLayout
-          aboveColumnChildren={
-            <div className={classes.versionControlHeaderMargin}>
-              <VersionControlHeader language={language} />
-            </div>
-          }
-          sideMenuChildren={
-            <SideMenuContent
-              initialCommit={initialCommit}
+        <>
+          <VersionControlHeader language={language} />
+          <AltinnColumnLayout
+            sideMenuChildren={
+              <SideMenuContent
+                initialCommit={initialCommit}
+                language={language}
+                service={repository}
+              />
+            }
+            header={getLanguageFromKey('administration.administration', language)}
+          >
+            <MainContent
+              appDescription={newDescription}
+              appId={newId}
+              appName={newName}
+              appNameAnchorEl={appNameAnchorEl}
+              editAppName={editAppName}
               language={language}
-              service={repository}
+              onAppDescriptionBlur={handleAppDescriptionBlur}
+              onAppDescriptionChange={handleAppDescriptionChange}
+              onAppIdBlur={handleAppIdBlur}
+              onAppIdChange={handleAppIdChange}
+              onAppNameBlur={handleAppNameBlur}
+              onAppNameChange={handleAppNameChange}
+              onEditAppNameClick={handleEditAppNameClick}
+              repository={repository}
             />
-          }
-          header={getLanguageFromKey('administration.administration', language)}
-        >
-          <MainContent
-            appDescription={newDescription}
-            appId={newId}
-            appName={newName}
-            appNameAnchorEl={appNameAnchorEl}
-            editAppName={editAppName}
-            language={language}
-            onAppDescriptionBlur={handleAppDescriptionBlur}
-            onAppDescriptionChange={handleAppDescriptionChange}
-            onAppIdBlur={handleAppIdBlur}
-            onAppIdChange={handleAppIdChange}
-            onAppNameBlur={handleAppNameBlur}
-            onAppNameChange={handleAppNameChange}
-            onEditAppNameClick={handleEditAppNameClick}
-            repository={repository}
-          />
-        </AltinnColumnLayout>
+          </AltinnColumnLayout>
+        </>
       ) : (
         <Grid container={true}>
           <AltinnSpinner
             spinnerText='Laster siden'
-            styleObj={classes.spinnerLocation}
+            styleObj={classes.spinner}
           />
         </Grid>
       )}

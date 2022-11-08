@@ -1,0 +1,22 @@
+.root {
+  --padding: 2rem;
+
+  display: flex;
+  flex-direction: row;
+  padding: var(--padding) 0;
+}
+
+.header {
+  margin-bottom: 3rem;
+}
+
+.left {
+  flex-grow: 2;
+  padding: 0 var(--padding);
+}
+
+.right {
+  border-left: 1px solid #bcc7cc;
+  flex-grow: 1;
+  padding: 0 var(--padding);
+}
