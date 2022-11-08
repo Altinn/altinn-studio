@@ -1124,7 +1124,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             }
             else
             {
-                BuildReferenceAndType(typeBuilder, typeName, nillable);
+                BuildReference(typeBuilder, typeName, nillable);
             }
 
             if (format != null)
@@ -1154,7 +1154,7 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
         /// <summary>
         /// If nillable it builds reference using allOf composition with type and ref keywords.
         /// </summary>
-        private static void BuildReferenceAndType(JsonSchemaBuilder typeBuilder, XmlQualifiedName typeName, bool nillable)
+        private static void BuildReference(JsonSchemaBuilder typeBuilder, XmlQualifiedName typeName, bool nillable)
         {
             if (nillable)
             {
