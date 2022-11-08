@@ -2,6 +2,7 @@
   "ignores": [
     "@swc/core",
     "@swc/jest",
+    "babel-loader",
     "css-loader",
     "jest",
     "jest-environment-jsdom",

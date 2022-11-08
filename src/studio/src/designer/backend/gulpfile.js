@@ -24,20 +24,17 @@ const cleanGlobs = [
 ];
 
 const jsServDevFile = '../frontend/dist/app-development/app-development.js';
-const jsServDevModuleFile0 =
-  '../frontend/dist/app-development/1.app-development.js';
-const jsServDevModuleFile1 =
-  '../frontend/dist/app-development/2.app-development.js';
-const jsServDevModuleFile2 =
-  '../frontend/dist/app-development/3.app-development.js';
-const jsServDevModuleFile3 =
-  '../frontend/dist/app-development/4.app-development.js';
-const jsServDevMonacoWorker1 =
-  '../frontend/dist/app-development/editor.worker.js';
+const jsServDevModuleFile0 = '../frontend/dist/app-development/1.app-development.js';
+const jsServDevModuleFile1 = '../frontend/dist/app-development/2.app-development.js';
+const jsServDevModuleFile2 = '../frontend/dist/app-development/3.app-development.js';
+const jsServDevModuleFile3 = '../frontend/dist/app-development/4.app-development.js';
+const jsServDevMonacoWorker1 = '../frontend/dist/app-development/editor.worker.js';
 const jsServDevMonacoWorker2 = '../frontend/dist/app-development/ts.worker.js';
 const jsDashboardFile = '../frontend/dist/dashboard/dashboard.js';
 const cssServDevFile = '../frontend/dist/app-development/app-development.css';
 const cssDashboardFile = '../frontend/dist/dashboard/dashboard.css';
+const langNoFile = '../frontend/dist/language/nb.json';
+const langEnFile = '../frontend/dist/language/en.json';
 
 let jsWatcher = null;
 let cssWatcher = null;
@@ -119,9 +116,7 @@ const copyGlobs = [
 ];
 
 function copyNodeModulePackages(cb) {
-  copyGlobs.forEach((copyGlob) =>
-    gulp.src(copyGlob.src).pipe(gulp.dest(copyGlob.dest)),
-  );
+  copyGlobs.forEach((copyGlob) => gulp.src(copyGlob.src).pipe(gulp.dest(copyGlob.dest)));
   cb();
 }
 
@@ -145,112 +140,99 @@ function copyReactCss(cb) {
 
 function copyDashboardJs() {
   setTimeout(function () {
-    gulp.src(jsDashboardFile).pipe(gulp.dest('./wwwroot/designer/js/react'));
+    gulp.src(jsDashboardFile).pipe(gulp.dest('./wwwroot/designer/frontend'));
   }, 1000);
   return;
 }
 
 function copyServDevJs() {
   setTimeout(function () {
-    gulp.src(jsServDevFile).pipe(gulp.dest('./wwwroot/designer/js/react'));
-    gulp
-      .src(jsServDevModuleFile0)
-      .pipe(gulp.dest('./wwwroot/designer/js/react'));
-    gulp
-      .src(jsServDevModuleFile1)
-      .pipe(gulp.dest('./wwwroot/designer/js/react'));
-    gulp
-      .src(jsServDevModuleFile2)
-      .pipe(gulp.dest('./wwwroot/designer/js/react'));
-    gulp
-      .src(jsServDevModuleFile3)
-      .pipe(gulp.dest('./wwwroot/designer/js/react'));
-    gulp
-      .src(jsServDevMonacoWorker1)
-      .pipe(gulp.dest('./wwwroot/designer/js/react'));
-    gulp
-      .src(jsServDevMonacoWorker2)
-      .pipe(gulp.dest('./wwwroot/designer/js/react'));
+    gulp.src(jsServDevFile).pipe(gulp.dest('./wwwroot/designer/frontend'));
+    gulp.src(jsServDevModuleFile0).pipe(gulp.dest('./wwwroot/designer/frontend'));
+    gulp.src(jsServDevModuleFile1).pipe(gulp.dest('./wwwroot/designer/frontend'));
+    gulp.src(jsServDevModuleFile2).pipe(gulp.dest('./wwwroot/designer/frontend'));
+    gulp.src(jsServDevModuleFile3).pipe(gulp.dest('./wwwroot/designer/frontend'));
+    gulp.src(jsServDevMonacoWorker1).pipe(gulp.dest('./wwwroot/designer/frontend'));
+    gulp.src(jsServDevMonacoWorker2).pipe(gulp.dest('./wwwroot/designer/frontend'));
   }, 1000);
   return;
 }
 
 function copyDashboardCss() {
   setTimeout(function () {
-    gulp.src(cssDashboardFile).pipe(gulp.dest('./wwwroot/designer/css/react'));
+    gulp.src(cssDashboardFile).pipe(gulp.dest('./wwwroot/designer/frontend'));
   }, 1000);
   return;
 }
 
 function copyServDevCss() {
   setTimeout(function () {
-    gulp.src(cssServDevFile).pipe(gulp.dest('./wwwroot/designer/css/react'));
+    gulp.src(cssServDevFile).pipe(gulp.dest('./wwwroot/designer/frontend'));
   }, 1000);
   return;
 }
 
+function copyLangFiles(cb) {
+  gulp.src(langNoFile).pipe(gulp.dest('./wwwroot/designer/frontend/lang'));
+  gulp.src(langEnFile).pipe(gulp.dest('./wwwroot/designer/frontend/lang'));
+  setTimeout(cb, 1000);
+  return;
+}
+
 function deleteServDevJs() {
-  return del('wwwroot/designer/js/react/app-development.js');
+  return del('wwwroot/designer/frontend/app-development.js');
 }
 
 function deleteDashboardJs() {
-  return del('wwwroot/designer/js/react/dashboard.js');
+  return del('wwwroot/designer/frontend/dashboard.js');
 }
 
 function deleteServDevCss() {
-  return del('wwwroot/designer/css/react/app-development.css');
+  return del('wwwroot/designer/frontend/app-development.css');
 }
 
 function deleteDashboardCss() {
-  return del('wwwroot/designer/css/react/dashboard.css');
+  return del('wwwroot/designer/frontend/dashboard.css');
 }
 
 function setupWatchers(cb) {
-  var checkDashboardJsFile = setInterval(function () {
+  const checkDashboardJsFile = setInterval(function () {
     if (fs.existsSync(jsDashboardFile)) {
       jsWatcher = chokidar.watch(jsDashboardFile);
-      // jsWatcher.on('ready', copyReactJs);
       jsWatcher.on('change', copyDashboardJs);
       clearInterval(checkDashboardJsFile);
     }
   }, 1000);
 
-  var checkServDevJsFile = setInterval(function () {
+  const checkServDevJsFile = setInterval(function () {
     if (fs.existsSync(jsServDevFile)) {
       jsWatcher = chokidar.watch(jsServDevFile);
-      // jsWatcher.on('ready', copyReactJs);
       jsWatcher.on('change', copyServDevJs);
       clearInterval(checkServDevJsFile);
     }
   }, 1000);
 
-  var checkDashboardCssFile = setInterval(function () {
+  const checkDashboardCssFile = setInterval(function () {
     if (fs.existsSync(cssDashboardFile)) {
       cssWatcher = chokidar.watch(cssDashboardFile);
-      // cssWatcher.on('ready', copyReactCss);
       cssWatcher.on('change', copyDashboardCss);
       clearInterval(checkDashboardCssFile);
     }
   }, 1000);
 
-  var checkServDevCssFile = setInterval(function () {
+  const checkServDevCssFile = setInterval(function () {
     if (fs.existsSync(cssServDevFile)) {
       cssWatcher = chokidar.watch(cssServDevFile);
-      // cssWatcher.on('ready', copyReactCss);
       cssWatcher.on('change', copyServDevCss);
       clearInterval(checkServDevCssFile);
     }
   }, 1000);
-
   cb();
 }
 
 gulp.task('build', gulp.series([copyNodeModulePackages]));
 
-gulp.task(
-  'copy-files',
-  gulp.series(copyNodeModulePackages, copyReactJs, copyReactCss),
-);
+gulp.task('copy-files', gulp.series(copyNodeModulePackages, copyReactJs, copyReactCss, copyLangFiles));
 
 gulp.task(
   'clean',
@@ -272,7 +254,7 @@ gulp.task(
 );
 
 gulp.task(
-  'develop',
+  'develop-designer-backend',
   gulp.parallel(
     copyNodeModulePackages,
     setupWatchers,
@@ -310,17 +292,6 @@ gulp.task(
 );
 
 gulp.task(
-  'build-ux-editor',
-  gulp.series(
-    run('yarn run build', {
-      ...defaultGulpRunOptions,
-      cwd: '../frontend/ux-editor',
-    }),
-    'copy-files',
-  ),
-);
-
-gulp.task(
   'install-react-app-dependencies',
   gulp.series(
     run('yarn --immutable', {
@@ -335,11 +306,7 @@ gulp.task(
   gulp.series([
     run('yarn run build', {
       ...defaultGulpRunOptions,
-      cwd: '../frontend/app-development',
-    }),
-    run('yarn run build', {
-      ...defaultGulpRunOptions,
-      cwd: '../frontend/dashboard',
+      cwd: '../frontend',
     }),
     'copy-files',
   ]),
