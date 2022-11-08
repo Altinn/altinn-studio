@@ -48,7 +48,8 @@ describe('Expressions shared function tests', () => {
             return evalExpr(expr as Expression, component, dataSources);
           }).toThrow(expectsFailure);
         } else {
-          expect(evalExpr(expression, component, dataSources)).toEqual(expects);
+          const expr = asExpression(expression) as Expression;
+          expect(evalExpr(expr, component, dataSources)).toEqual(expects);
         }
       },
     );

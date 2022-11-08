@@ -62,7 +62,7 @@ function validateFunctionArg(
   const expectedType = argTypeAt(func, idx);
   const actualType = actual[idx];
   if (expectedType === undefined) {
-    addError(ctx, [...path, `[${idx}]`], ValidationErrorMessage.ArgUnexpected);
+    addError(ctx, [...path, `[${idx + 1}]`], ValidationErrorMessage.ArgUnexpected);
   } else {
     const targetType = ExprTypes[expectedType];
 
@@ -70,9 +70,9 @@ function validateFunctionArg(
       if (targetType.nullable) {
         return;
       }
-      addError(ctx, [...path, `[${idx}]`], ValidationErrorMessage.ArgWrongType, expectedType, 'null');
+      addError(ctx, [...path, `[${idx + 1}]`], ValidationErrorMessage.ArgWrongType, expectedType, 'null');
     } else if (!targetType.accepts.includes(actualType)) {
-      addError(ctx, [...path, `[${idx}]`], ValidationErrorMessage.ArgWrongType, expectedType, 'null');
+      addError(ctx, [...path, `[${idx + 1}]`], ValidationErrorMessage.ArgWrongType, expectedType, 'null');
     }
   }
 }
@@ -84,18 +84,26 @@ function validateFunctionArgs(
   path: string[],
 ) {
   const expected = ExprFunctions[func].args;
+  const maxIdx = Math.max(expected.length, actual.length);
+  for (let idx = 0; idx < maxIdx; idx++) {
+    validateFunctionArg(func, idx, actual, ctx, path);
+  }
+}
+
+function validateFunctionArgLength(
+  func: ExprFunction,
+  actual: (BaseValue | undefined)[],
+  ctx: ValidationContext,
+  path: string[],
+) {
+  const expected = ExprFunctions[func].args;
 
   let minExpected = ExprFunctions[func]?.minArguments;
   if (minExpected === undefined) {
     minExpected = expected.length;
   }
+
   const canSpread = ExprFunctions[func].lastArgSpreads;
-
-  const maxIdx = Math.max(expected.length, actual.length);
-  for (let idx = 0; idx < maxIdx; idx++) {
-    validateFunctionArg(func, idx, actual, ctx, path);
-  }
-
   if (canSpread && actual.length >= minExpected) {
     return;
   }
@@ -131,6 +139,8 @@ function validateFunction(
     const def = ExprFunctions[funcName] as FuncDef<any, any>;
     if (def.validator) {
       def.validator({ rawArgs, argTypes, ctx, path: pathArgs });
+    } else {
+      validateFunctionArgLength(funcName as ExprFunction, argTypes, ctx, pathArgs);
     }
 
     return def.returns;

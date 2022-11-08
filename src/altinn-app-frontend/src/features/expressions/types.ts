@@ -11,7 +11,7 @@ type Functions = typeof ExprFunctions;
  */
 export type ExprFunction = keyof Functions;
 
-export type BaseValue = 'string' | 'number' | 'boolean';
+export type BaseValue = 'string' | 'number' | 'boolean' | 'any';
 export type BaseToActual<T extends BaseValue> = T extends 'string'
   ? string
   : T extends 'number'
@@ -34,6 +34,8 @@ export type BaseToActualStrict<T extends BaseValue> = [T] extends ['string']
   ? number
   : [T] extends ['boolean']
   ? boolean
+  : [T] extends ['any']
+  ? any
   : never;
 
 type ArgsToActualOrNull<T extends readonly BaseValue[]> = {
@@ -59,19 +61,13 @@ export interface FuncDef<Args extends readonly BaseValue[], Ret extends BaseValu
     ctx: ValidationContext;
     path: string[];
   }) => void;
-
-  // Optional: Allows a function to specify that certain arguments (at the given indexes) should never be cast on the
-  // way in.
-  neverCastArguments?: number[];
-
-  // Optional: Cast return value to the one specified in the 'returns' property. Setting to false allows for functions
-  // passing through their arguments without knowing (or caring) about their specific types. Defaults to true.
-  castReturnValue?: boolean;
 }
 
 type BaseValueArgsFor<F extends ExprFunction> = F extends ExprFunction ? Functions[F]['args'] : never;
 
-type FunctionsReturning<T extends BaseValue> = keyof PickByValue<Functions, { returns: T }>;
+type FunctionsReturning<T extends BaseValue> =
+  | keyof PickByValue<Functions, { returns: T }>
+  | keyof PickByValue<Functions, { returns: 'any' }>;
 
 export type ExprReturning<T extends BaseValue> = Expression<FunctionsReturning<T>>;
 
