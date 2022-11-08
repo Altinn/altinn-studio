@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { Button, ButtonVariant, Panel } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant, Panel } from '@altinn/altinn-design-system';
 import { SchemaEditorApp } from '@altinn/schema-editor/index';
 import type { ILanguage } from '@altinn/schema-editor/types';
 import { createDataModel, deleteDataModel, fetchDataModel, saveDataModel } from './sagas';
@@ -158,10 +158,20 @@ export function DataModelling({ language, org, repo, createPathOption }: IDataMo
             </p>
           </div>
           <span className={classes.button}>
-            <Button onClick={() => setHideIntroPage(true)}>Lukk</Button>
+            <Button
+              color={ButtonColor.Primary}
+              onClick={() => setHideIntroPage(true)}
+              variant={ButtonVariant.Outline}
+            >
+              Lukk
+            </Button>
           </span>
           <span className={classes.button}>
-            <Button onClick={handleHideIntroPageButtonClick} variant={ButtonVariant.Secondary}>
+            <Button
+              color={ButtonColor.Secondary}
+              onClick={handleHideIntroPageButtonClick}
+              variant={ButtonVariant.Outline}
+            >
               Ikke vis igjen
             </Button>
           </span>

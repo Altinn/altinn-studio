@@ -11,7 +11,7 @@ import { NumberRestrictions } from './restrictions/NumberRestrictions';
 import { ObjectRestrictions } from './restrictions/ObjectRestrictions';
 import { StringRestrictions } from './restrictions/StringRestrictions';
 import classes from './ItemRestrictions.module.css';
-import { Button, Checkbox, FieldSet } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonSize, ButtonVariant, Checkbox, FieldSet } from '@altinn/altinn-design-system';
 import { Divider } from '../common/Divider';
 
 export interface RestrictionItemProps {
@@ -113,15 +113,20 @@ export const ItemRestrictions = ({ selectedNode, language }: ItemRestrictionsPro
                 value={value}
               />
             ))}
-            <Button
-              aria-label={t('add_enum')}
-              className={classes.addEnumButton}
-              id='add-enum-button'
-              onClick={onAddEnumButtonClick}
-            >
-              <i />
-              <span>{t('add_enum')}</span>
-            </Button>
+            <div className={classes.addEnumButton}>
+              <Button
+                aria-label={t('add_enum')}
+                color={ButtonColor.Secondary}
+                fullWidth
+                iconName={'Add'}
+                id='add-enum-button'
+                onClick={onAddEnumButtonClick}
+                size={ButtonSize.Small}
+                variant={ButtonVariant.Outline}
+              >
+                {t('add_enum')}
+              </Button>
+            </div>
           </FieldSet>
         </>
       )}

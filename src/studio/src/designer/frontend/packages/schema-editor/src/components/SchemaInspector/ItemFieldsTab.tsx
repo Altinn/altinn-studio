@@ -8,7 +8,7 @@ import type { UiSchemaNode } from '@altinn/schema-model';
 import { FieldType, getChildNodesByPointer, getNodeDisplayName } from '@altinn/schema-model';
 import classes from './ItemFieldsTab.module.css';
 import { usePrevious } from '../../hooks/usePrevious';
-import { Button, ButtonVariant } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 
 export interface ItemFieldsTabProps {
@@ -96,7 +96,12 @@ export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) =>
       ))}
       {!readonly && (
         <div className={classes.addButtonCell}>
-          <Button onClick={onAddPropertyClicked} variant={ButtonVariant.Secondary}>
+          <Button
+            color={ButtonColor.Secondary}
+            iconName={'Add'}
+            onClick={onAddPropertyClicked}
+            variant={ButtonVariant.Outline}
+          >
             {t('add_property')}
           </Button>
         </div>

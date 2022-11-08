@@ -1,6 +1,6 @@
 import React from 'react';
 import { Popover } from '@mui/material';
-import { Button, ButtonVariant } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import classes from './RepoModal.module.css';
 
@@ -51,7 +51,11 @@ export function DownloadRepoModal(props: IDownloadRepoModalProps) {
             </a>
           </p>
           <div className={classes.buttonContainer}>
-            <Button onClick={props.onClose} variant={ButtonVariant.Secondary}>
+            <Button
+              color={ButtonColor.Secondary}
+              onClick={props.onClose}
+              variant={ButtonVariant.Outline}
+            >
               {t('general.cancel')}
             </Button>
           </div>
