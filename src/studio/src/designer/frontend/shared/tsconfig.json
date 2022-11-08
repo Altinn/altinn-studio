@@ -15,6 +15,7 @@
     "strictNullChecks": false,
     "esModuleInterop": true,
     "noUnusedLocals": true,
+    "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
       "@altinn/schema-editor/*": ["../packages/schema-editor/src/*"],

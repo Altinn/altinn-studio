@@ -12,7 +12,7 @@ WORKDIR /build
 COPY src/designer/backend .
 RUN corepack enable
 RUN yarn --immutable
-RUN yarn run gulp build
+RUN yarn build
 
 # Building the backend
 FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine AS generate-studio-backend
@@ -25,7 +25,7 @@ RUN dotnet publish designer/Designer.csproj -c Release -o /app_output
 RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
 
 # Building the final image
-FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine AS final
+FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine AS final
 EXPOSE 80
 WORKDIR /app
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \

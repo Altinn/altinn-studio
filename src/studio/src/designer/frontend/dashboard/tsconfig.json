@@ -15,6 +15,7 @@
     "strictNullChecks": false,
     "esModuleInterop": true,
     "noUnusedLocals": true,
+    "resolveJsonModule": true,
     "baseUrl": ".",
     "paths": {
       "app-shared/*": ["../shared/*"],
