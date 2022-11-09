@@ -6,7 +6,7 @@ networks:
 
 services:
   influxdb:
-    image: influxdb:1.8
+    image: influxdb:2.5
     networks:
       - k6
       - grafana
