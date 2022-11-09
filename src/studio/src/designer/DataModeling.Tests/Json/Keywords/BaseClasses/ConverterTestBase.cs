@@ -2,6 +2,7 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Text.Unicode;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
 using FluentAssertions;
@@ -15,25 +16,25 @@ where TKeywordType : IJsonSchemaKeyword
 {
     protected JsonSchema JsonSchema { get; set; }
 
-    protected MemoryStream SerializedKeyword { get; set; }
-
     protected TKeywordType Keyword { get; set; }
 
-    protected abstract JsonConverter<TKeywordType> Converter { get;  }
+    protected string KeywordNodeJson { get; set; }
 
     protected ConverterTestBase()
     {
         JsonSchemaKeywords.RegisterXsdKeywords();
     }
 
-    protected TTestType KeywordWrittenToStream()
+    protected TTestType KeywordSerializedAsJson()
     {
-        SerializedKeyword = new MemoryStream();
-        var jsonWriter = new Utf8JsonWriter(SerializedKeyword);
-        jsonWriter.WriteStartObject();
-        Converter.Write(jsonWriter, Keyword, new JsonSerializerOptions());
-        jsonWriter.WriteEndObject();
-        jsonWriter.Flush();
+        var builder = new JsonSchemaBuilder();
+        builder.Add(Keyword);
+        var keywordNodeSchema = builder.Build();
+        KeywordNodeJson = JsonSerializer.Serialize(keywordNodeSchema, new JsonSerializerOptions()
+        {
+            Encoder =
+                JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement)
+        });
         return this as TTestType;
     }
 
@@ -51,11 +52,7 @@ where TKeywordType : IJsonSchemaKeyword
 
     protected TTestType SerializedKeywordShouldBe(string json)
     {
-        SerializedKeyword.Seek(0, SeekOrigin.Begin);
-        var streamReader = new StreamReader(SerializedKeyword);
-        var jsonText = streamReader.ReadToEnd();
-
-        jsonText.Should().Be(json);
+        KeywordNodeJson.Should().Be(json);
         return this as TTestType;
     }
 }

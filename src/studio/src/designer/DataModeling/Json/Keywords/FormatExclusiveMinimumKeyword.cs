@@ -68,7 +68,7 @@ public sealed class FormatExclusiveMinimumKeyword: IJsonSchemaKeyword, IEquatabl
     /// <summary>
     /// Serializer for the FormatExclusiveMinimumKeyword keyword
     /// </summary>
-    public class FormatExclusiveMinimumKeywordJsonConverter : JsonConverter<FormatExclusiveMinimumKeyword>
+    internal class FormatExclusiveMinimumKeywordJsonConverter : JsonConverter<FormatExclusiveMinimumKeyword>
     {
         /// <summary>
         /// Read formatExclusiveMaximum keyword from json schema

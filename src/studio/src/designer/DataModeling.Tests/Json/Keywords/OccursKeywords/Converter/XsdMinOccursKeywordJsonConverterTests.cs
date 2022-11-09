@@ -11,8 +11,6 @@ namespace DataModeling.Tests.Json.Keywords.OccursKeywords.Converter
     {
         private const string KeywordPlaceholder = "@xsdMinOccurs";
 
-        protected override JsonConverter<XsdMinOccursKeyword> Converter => new XsdMinOccursKeyword.XsdMinOccursKeywordJsonConverter();
-
         protected override XsdMinOccursKeyword CreateKeywordWithValue(int value) => new(value);
 
         [Theory]
@@ -39,7 +37,7 @@ namespace DataModeling.Tests.Json.Keywords.OccursKeywords.Converter
         public void Write_ValidStructure_ShouldWriteToJson(int value)
         {
             Given.That.KeywordCreatedWithValue(value)
-                .When.KeywordWrittenToStream()
+                .When.KeywordSerializedAsJson()
                 .Then.SerializedKeywordShouldBe($@"{{""{KeywordPlaceholder}"":{value}}}");
         }
 
