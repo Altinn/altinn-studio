@@ -57,15 +57,12 @@
     "jsx-a11y/no-autofocus": ["off"],
     "@typescript-eslint/no-explicit-any": ["off"],
     "import/no-unresolved": ["off"],
-    "@typescript-eslint/no-unused-vars": [
-      "error",
-      { "ignoreRestSiblings": true, "argsIgnorePattern": "^_" }
-    ],
+    "@typescript-eslint/no-unused-vars": ["error", { "ignoreRestSiblings": true, "argsIgnorePattern": "^_" }],
     "@typescript-eslint/consistent-type-imports": ["warn"],
     "react-hooks/exhaustive-deps": ["error"],
     "prefer-template": ["warn"],
     "sonarjs/no-duplicate-string": ["off"],
-    "sonarjs/cognitive-complexity": ["warn", 15],
+    "sonarjs/cognitive-complexity": ["off"],
     "sonarjs/no-collapsible-if": ["warn"],
     "sonarjs/prefer-single-boolean-return": ["warn"],
     "sonarjs/no-identical-functions": ["warn"],
@@ -89,10 +86,7 @@
     {
       "files": ["altinn-app-frontend/src/**"],
       "rules": {
-        "no-relative-import-paths/no-relative-import-paths": [
-          "warn",
-          { "allowSameFolder": false }
-        ],
+        "no-relative-import-paths/no-relative-import-paths": ["warn", { "allowSameFolder": false }],
         "preferred-import-path/preferred-import-path": [
           "warn",
           {
