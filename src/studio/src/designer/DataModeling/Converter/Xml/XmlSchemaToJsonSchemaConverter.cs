@@ -1102,12 +1102,15 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
             if (!array)
             {
-                BuildType(typeName, nillable, builder);
+                TryBuildType(typeName, nillable, builder);
                 return;
             }
 
             var itemsBuilder = new JsonSchemaBuilder();
-            BuildType(typeName, nillable, itemsBuilder);
+            if (!TryBuildType(typeName, nillable, itemsBuilder))
+            {
+                return;
+            }
 
             if (minOccurs > 0)
             {
@@ -1123,11 +1126,11 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             builder.Items(itemsBuilder);
         }
 
-        private static void BuildType(XmlQualifiedName typeName, bool nillable, JsonSchemaBuilder typeBuilder)
+        private static bool TryBuildType(XmlQualifiedName typeName, bool nillable, JsonSchemaBuilder typeBuilder)
         {
             if (!GetTypeAndFormat(typeName, out SchemaValueType? type, out Format format, out string xsdType))
             {
-                return;
+                return false;
             }
 
             if (xsdType != null)
@@ -1148,6 +1151,8 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             {
                 typeBuilder.Format(format);
             }
+
+            return true;
         }
 
         /// <summary>
