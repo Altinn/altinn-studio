@@ -1,7 +1,6 @@
 import React, { BaseSyntheticEvent, ChangeEvent } from 'react';
 import { TextField } from '@altinn/altinn-design-system';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
-import { Label } from '../common/Label';
 
 export interface IRestrictionFieldProps {
   className?: string;
@@ -32,8 +31,14 @@ export const RestrictionField = ({
   };
   return (
     <div className={className}>
-      <Label htmlFor={fieldId}>{label}</Label>
-      <TextField id={fieldId} value={value ?? ''} onChange={handleChange} aria-label={label} readOnly={readOnly} />
+      <TextField
+        aria-label={label}
+        id={fieldId}
+        label={label}
+        onChange={handleChange}
+        readOnly={readOnly}
+        value={value ?? ''}
+      />
     </div>
   );
 };

@@ -3,12 +3,11 @@ import { RestrictionItemProps } from '../ItemRestrictions';
 import { RestrictionField } from '../RestrictionField';
 import { getTranslation } from '../../../utils/language';
 import classes from './StringRestrictions.module.css';
-import { FieldSet, TextField } from '@altinn/altinn-design-system';
+import { FieldSet, Select, TextField } from '@altinn/altinn-design-system';
 import { StrRestrictionKeys } from '@altinn/schema-model';
 import { Divider } from '../../common/Divider';
 import { Label } from '../../common/Label';
 import { StringFormat } from '@altinn/schema-model/src/lib/types';
-import { Select } from '../../common/Select';
 import { getDomFriendlyID } from '../../../utils/ui-schema-utils';
 
 export function StringRestrictions({ language, onChangeRestrictionValue, path, restrictions }: RestrictionItemProps) {
@@ -24,19 +23,18 @@ export function StringRestrictions({ language, onChangeRestrictionValue, path, r
       setRegexTestValue(value);
     }
   };
+  const noFormatOption = { label: t('format_none'), value: '' };
   return (
     <>
       <Divider inMenu />
       <Select
-        emptyOptionLabel={t('format_none')}
-        id='format-select-input'
+        inputId='format-select-input'
         label={t('format')}
-        onChange={(val) => onChangeRestrictionValue(path, StrRestrictionKeys.format, val || undefined)}
-        options={Object.values(StringFormat).map((f) => ({
-          key: f,
+        onChange={(val: string) => onChangeRestrictionValue(path, StrRestrictionKeys.format, val || undefined)}
+        options={[noFormatOption, ...Object.values(StringFormat).map((f) => ({
           label: t(`format_${f}`),
-          value: f,
-        }))}
+          value: f as string,
+        }))]}
         value={restrictions[StrRestrictionKeys.format] || ''}
       />
       <div className={classes.lengthFields}>
