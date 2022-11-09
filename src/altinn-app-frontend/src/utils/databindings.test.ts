@@ -152,6 +152,13 @@ describe('utils/databindings.ts', () => {
       expect('aNull' in result).toBe(false);
     });
 
+    it('should skip empty arrays', () => {
+      testObj.anEmptyArray = [];
+      const result = flattenObject(testObj);
+      expect(typeof result.aNull).toBe('undefined');
+      expect('aNull' in result).toBe(false);
+    });
+
     it('should return boolean as a string', () => {
       testObj.aBool = true;
       const result = flattenObject(testObj);
@@ -223,6 +230,7 @@ describe('utils/databindings.ts', () => {
             ],
           },
         ],
+        EmptyGroup: [],
       };
       const result = flattenObject(testObj);
       expect(result).toEqual(testFormData);

@@ -169,7 +169,7 @@ export function flattenObject(data: any): any {
   const flat = dot(data);
 
   for (const key of Object.keys(flat)) {
-    if (flat[key] === null) {
+    if (flat[key] === null || (Array.isArray(flat[key]) && flat[key].length === 0)) {
       delete flat[key];
     } else if (flat[key] === '' && key.indexOf('.') > 0) {
       // For backwards compatibility, delete keys inside deeper object that are empty strings. This behaviour is

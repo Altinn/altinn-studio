@@ -106,7 +106,7 @@ export function getRepeatingGroups(formLayout: ILayout, formData: any) {
   });
 
   // filter away groups that should be rendered as child groups
-  const filteredGroups = formLayout.filter((group) => childGroups.indexOf(group.id) === -1);
+  const filteredGroups = groups.filter((group) => childGroups.indexOf(group.id) === -1);
 
   filteredGroups.forEach((groupElement: ILayoutGroup) => {
     if (groupElement.maxCount && groupElement.maxCount > 1) {
