@@ -17,7 +17,7 @@ namespace Altinn.Platform.Authorization.Services.Implementation
         /// <summary>
         /// Initializes a new instance of the <see cref="RolesWrapper"/> class
         /// </summary>
-        /// <param name="rolesClient">the client handler for roles api</param>
+        /// <param name="testDataService">Service to fetch test data</param>
         public RolesWrapper(TestDataService testDataService)
         {
             this._testDataService = testDataService;
