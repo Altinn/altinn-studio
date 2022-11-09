@@ -1100,8 +1100,31 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
         {
             array = array || maxOccurs > 1;
 
-            var typeBuilder = array ? new JsonSchemaBuilder() : builder;
+            if (!array)
+            {
+                BuildType(typeName, nillable, builder);
+                return;
+            }
 
+            var itemsBuilder = new JsonSchemaBuilder();
+            BuildType(typeName, nillable, itemsBuilder);
+
+            if (minOccurs > 0)
+            {
+                builder.MinItems((uint)minOccurs);
+            }
+
+            if (maxOccurs is > 1 and < decimal.MaxValue)
+            {
+                builder.MaxItems((uint)maxOccurs);
+            }
+
+            builder.Type(SchemaValueType.Array);
+            builder.Items(itemsBuilder);
+        }
+
+        private static void BuildType(XmlQualifiedName typeName, bool nillable, JsonSchemaBuilder typeBuilder)
+        {
             if (!GetTypeAndFormat(typeName, out SchemaValueType? type, out Format format, out string xsdType))
             {
                 return;
@@ -1125,24 +1148,6 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
             {
                 typeBuilder.Format(format);
             }
-
-            if (!array)
-            {
-                return;
-            }
-
-            if (minOccurs > 0)
-            {
-                builder.MinItems((uint)minOccurs);
-            }
-
-            if (maxOccurs is > 1 and < decimal.MaxValue)
-            {
-                builder.MaxItems((uint)maxOccurs);
-            }
-
-            builder.Type(SchemaValueType.Array);
-            builder.Items(typeBuilder);
         }
 
         /// <summary>
