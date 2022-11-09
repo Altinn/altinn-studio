@@ -16,7 +16,7 @@ namespace Designer.Tests.Factories.ModelFactory
 {
     public class XsdToCSharpTests
     {
-        [Fact]
+        [Fact(Skip = "No longer relevant with new conversion")]
         public async void ConvertXsdToJsonSchema_CorrectXmlParsed()
         {
             // Arrange
