@@ -6,8 +6,8 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { handlers, renderWithProviders, setupServer } from 'test/testUtils';
-import { Dashboard } from 'features/dashboard';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
+import { Dashboard } from './index';
 
 const server = setupServer(...handlers);
 

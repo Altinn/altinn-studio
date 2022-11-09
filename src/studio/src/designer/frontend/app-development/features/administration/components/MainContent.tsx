@@ -1,11 +1,17 @@
 import React from 'react';
-import { Button, ButtonColor, ButtonVariant, TextArea, TextField } from '@altinn/altinn-design-system';
+import {
+  Button,
+  ButtonColor,
+  ButtonVariant,
+  TextArea,
+  TextField,
+} from '@altinn/altinn-design-system';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import AltinnPopper from 'app-shared/components/AltinnPopper';
 import AltinnInformationPaper from 'app-shared/components/AltinnInformationPaper';
 import type { IRepository } from '../../../types/global';
-import { useAppSelector } from 'common/hooks';
 import classes from './MainContent.module.css';
+import { useAppSelector } from '../../../common/hooks';
 
 interface IMainContentProps {
   repository: IRepository;

@@ -14,8 +14,10 @@
     "strictNullChecks": false,
     "noUnusedLocals": true,
     "esModuleInterop": true,
-    "baseUrl": "."
+    "baseUrl": ".",
+    "paths": {
+      "app-shared/*": ["./shared/*"],
+      "@altinn/schema-editor/*": ["./packages/schema-editor/src/*"],
+    }
   },
-  "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"],
 }

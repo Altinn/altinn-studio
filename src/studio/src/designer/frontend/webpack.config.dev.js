@@ -1,10 +1,12 @@
 const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
 const commonConfig = require('./webpack.common');
+const setupMiddlewares = require('./mockend/src');
+const devServerConfig = require('./mockend/config.json');
 
 module.exports = {
   ...commonConfig,
   mode: 'development',
-  devtool: 'eval',
+  devtool: 'inline-source-map',
   performance: {
     hints: 'warning',
   },
@@ -35,14 +37,25 @@ module.exports = {
   },
   plugins: [...commonConfig.plugins, new ForkTsCheckerNotifierWebpackPlugin()],
   devServer: {
-    historyApiFallback: true,
+    setupMiddlewares,
+    hot: true,
     allowedHosts: 'all',
-    port: 2003,
+    port:
+      process.env.npm_package_name === 'dashboard'
+        ? devServerConfig.DASHBOARD_PORT
+        : devServerConfig.APP_DEVELOPMENT_PORT,
+    historyApiFallback: true,
     client: {
       overlay: {
-        errors: true,
+        errors: false,
         warnings: false,
       },
+    },
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+      // prettier-ignore
+      'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization',
     },
   },
 };

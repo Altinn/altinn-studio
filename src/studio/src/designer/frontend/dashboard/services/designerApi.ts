@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { getCookie } from 'common/utils/cookieUtils';
+import { getCookie } from '../common/utils/cookieUtils';
 
 export enum TagTypes {
   UserRepositories = 'UserRepositories',

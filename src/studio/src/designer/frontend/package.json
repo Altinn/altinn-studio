@@ -25,6 +25,8 @@
     "svg-inline-loader": "0.8.2",
     "terser-webpack-plugin": "5.3.6",
     "ts-loader": "9.4.1",
+    "monaco-editor-webpack-plugin": "7.0.1",
+    "fork-ts-checker-webpack-plugin": "7.2.13",
     "webpack-cli": "4.10.0"
   },
   "packageManager": "yarn@3.2.4",

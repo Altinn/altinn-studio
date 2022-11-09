@@ -15,7 +15,7 @@ import {
   BuildStatus,
 } from '../../../sharedResources/appRelease/types';
 import type { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusSlice';
-import { useAppDispatch, useAppSelector } from 'common/hooks';
+import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 
 const styles = createStyles({
   createReleaseFormItem: {
@@ -131,7 +131,10 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
 
   return (
     <>
-      <Grid container={true} direction='column'>
+      <Grid
+        container={true}
+        direction='column'
+      >
         <Grid
           container={true}
           direction='column'
@@ -213,7 +216,11 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
           },
         }}
       >
-        <Grid container={true} direction='row' spacing={3}>
+        <Grid
+          container={true}
+          direction='row'
+          spacing={3}
+        >
           <Grid
             item={true}
             xs={1}

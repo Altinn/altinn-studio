@@ -1,14 +1,14 @@
 import React from 'react';
 import { GridSortModel } from '@mui/x-data-grid';
 import { Typography } from '@mui/material';
-import { RepoList } from 'common/components/RepoList';
-import { useGetSearchQuery } from 'services/repoApi';
-import { useGetOrganizationsQuery } from 'services/organizationApi';
-import { useAppDispatch, useAppSelector } from 'common/hooks';
-import { useGetUserStarredReposQuery } from 'services/userApi';
 import { DashboardActions } from '../../resources/fetchDashboardResources/dashboardSlice';
 import { useAugmentReposWithStarred } from './hooks';
 import { getReposLabel, getUidFilter } from './utils';
+import { useAppDispatch, useAppSelector } from '../../common/hooks';
+import { useGetOrganizationsQuery } from '../../services/organizationApi';
+import { useGetUserStarredReposQuery } from '../../services/userApi';
+import { useGetSearchQuery } from '../../services/repoApi';
+import { RepoList } from '../../common/components/RepoList';
 
 const rowsPerPageOptions = [5, 10, 20, 50, 100];
 

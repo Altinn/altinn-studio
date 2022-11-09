@@ -7,8 +7,8 @@ import {
   getDeploymentsStartInterval,
   getDeploymentsStopInterval,
 } from '../appClusterSlice';
-import type { RootState } from 'store';
 import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
+import { RootState } from '../../../store';
 
 const SelectEnvironments = (store: RootState) =>
   store.configuration.environments.result;

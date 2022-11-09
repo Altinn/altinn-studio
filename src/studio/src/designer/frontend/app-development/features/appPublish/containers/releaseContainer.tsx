@@ -34,8 +34,8 @@ import type { IHandleMergeConflictState } from '../../handleMergeConflict/handle
 import { fetchRepoStatus } from '../../handleMergeConflict/handleMergeConflictSlice';
 import ReleaseComponent from '../components/appReleaseComponent';
 import CreateReleaseComponent from '../components/createAppReleaseComponent';
-import { useAppDispatch, useAppSelector } from 'common/hooks';
 import { useParams } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 
 const theme = createTheme(AltinnStudioTheme);
 

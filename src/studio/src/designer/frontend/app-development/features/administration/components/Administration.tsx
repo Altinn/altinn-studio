@@ -7,18 +7,27 @@ import VersionControlHeader from 'app-shared/version-control/versionControlHeade
 import { HandleServiceInformationActions } from '../handleServiceInformationSlice';
 import { MainContent } from './MainContent';
 import { SideMenuContent } from './SideMenuContent';
-import { useAppDispatch, useAppSelector } from 'common/hooks';
 import { useParams } from 'react-router-dom';
 import classes from './Administration.module.css';
+import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 
 export function AdministrationComponent() {
-
-  const name = useAppSelector((state) => state.serviceInformation.serviceNameObj.name);
-  const description = useAppSelector((state) => state.serviceInformation.serviceDescriptionObj.description);
-  const id = useAppSelector((state) => state.serviceInformation.serviceIdObj.serviceId);
+  const name = useAppSelector(
+    (state) => state.serviceInformation.serviceNameObj.name,
+  );
+  const description = useAppSelector(
+    (state) => state.serviceInformation.serviceDescriptionObj.description,
+  );
+  const id = useAppSelector(
+    (state) => state.serviceInformation.serviceIdObj.serviceId,
+  );
   const language = useAppSelector((state) => state.languageState.language);
-  const repository = useAppSelector((state) => state.serviceInformation.repositoryInfo);
-  const initialCommit = useAppSelector((state) => state.serviceInformation.initialCommit);
+  const repository = useAppSelector(
+    (state) => state.serviceInformation.repositoryInfo,
+  );
+  const initialCommit = useAppSelector(
+    (state) => state.serviceInformation.initialCommit,
+  );
   const dispatch = useAppDispatch();
 
   const [newName, setNewName] = useState<string>(name);
@@ -113,7 +122,10 @@ export function AdministrationComponent() {
     repository && newName !== null && newDescription !== null && newId !== null;
 
   return (
-    <div data-testid='administration-container' className={classes.root}>
+    <div
+      data-testid='administration-container'
+      className={classes.root}
+    >
       {render ? (
         <>
           <VersionControlHeader language={language} />
@@ -125,7 +137,10 @@ export function AdministrationComponent() {
                 service={repository}
               />
             }
-            header={getLanguageFromKey('administration.administration', language)}
+            header={getLanguageFromKey(
+              'administration.administration',
+              language,
+            )}
           >
             <MainContent
               appDescription={newDescription}

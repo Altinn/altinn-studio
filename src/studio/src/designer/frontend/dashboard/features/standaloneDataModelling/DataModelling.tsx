@@ -5,8 +5,8 @@ import { connect } from 'react-redux';
 import { DataModelsMetadataActions } from 'app-shared/features/dataModelling/sagas/metadata';
 import { Grid } from '@mui/material';
 import { createStyles, withStyles } from '@mui/styles';
-import { useAppDispatch } from 'common/hooks';
 import type { IDashboardAppState } from '../../types/global';
+import { useAppDispatch } from '../../common/hooks';
 
 interface IStandaloneDataModellingProps {
   language: any;
@@ -29,7 +29,10 @@ const DataModellingContainer = ({
   const { org, repoName } = useParams();
   if (org && repoName) {
     return (
-      <Grid item className={classes.containerGrid}>
+      <Grid
+        item
+        className={classes.containerGrid}
+      >
         <DataModelling
           language={language}
           org={org}
