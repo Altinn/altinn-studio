@@ -15,7 +15,7 @@
     ]
   },
   "dependencies": {
-    "@mui/lab": "5.0.0-alpha.104"
+    "@mui/lab": "5.0.0-alpha.106"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "5.16.5",
