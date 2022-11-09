@@ -298,6 +298,21 @@ void Configure(IConfiguration configuration)
 
     app.UseEndpoints(endpoints =>
     {
+        // ------------------------- FRONTEND ----------------------------- //
+        endpoints.MapControllerRoute(
+            name: "serviceDevelopmentRoute",
+            pattern: "editor/{org}/{app}/{*AllValues}",
+            defaults: new { controller = "ServiceDevelopment", action = "Index" },
+            constraints: new
+            {
+                app = "^[a-z]+[a-zA-Z0-9-]+[a-zA-Z0-9]$",
+            });
+
+        endpoints.MapControllerRoute(
+            name: "defaultRoute",
+            pattern: "dashboard/{*AllValues}",
+            defaults: new { controller = "Home", action = "Index" });
+
         // ------------------------- DEV ----------------------------- //
         endpoints.MapControllerRoute(
             name: "orgRoute",
@@ -307,15 +322,6 @@ void Configure(IConfiguration configuration)
             {
                 controller = "Config|Datamodels",
             });
-
-        endpoints.MapControllerRoute(
-                name: "serviceDevelopmentRoute",
-                pattern: "editor/{org}/{app}/{*AllValues}",
-                defaults: new { controller = "ServiceDevelopment", action = "index" },
-                constraints: new
-                {
-                    app = "^[a-z]+[a-zA-Z0-9-]+[a-zA-Z0-9]$",
-                });
 
         endpoints.MapControllerRoute(
                 name: "designerApiRoute",
@@ -354,8 +360,8 @@ void Configure(IConfiguration configuration)
 
         endpoints.MapControllerRoute(
             name: "defaultRoute",
-            pattern: "dashboard/{*AllValues}",
-            defaults: new { controller = "Home", action = "Index" });
+            pattern: "{action=StartPage}/{id?}",
+            defaults: new { controller = "Home" });
 
         // ---------------------- MONITORING -------------------------- //
         endpoints.MapHealthChecks("/health");
