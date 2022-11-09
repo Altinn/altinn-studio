@@ -25,13 +25,13 @@ const PageHeader = (ownProps: IPageHeaderProps) => {
               mainMenuItems={[
                 {
                   displayText: 'Om',
-                  navLink: '/',
+                  navLink: '/:org/:app/',
                   menuType: 'about',
                   activeSubHeaderSelection: 'Om',
                 },
                 {
                   displayText: 'Lage',
-                  navLink: '/ui-editor',
+                  navLink: '/:org/:app/ui-editor',
                   menuType: 'create',
                   activeSubHeaderSelection: 'Lage',
                 },

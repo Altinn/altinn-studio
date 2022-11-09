@@ -2,16 +2,20 @@
   ViewBag.Title = "Altinn Studio";
 }
 <html lang="no">
-
 <head>
   <title>@ViewBag.Title</title>
-  <link rel="shortcut icon" href="~/designer/img/favicon.ico" />
-  <link rel="stylesheet" href="~/designer/frontend/dashboard.css" />
+  <link rel="shortcut icon" href="~/designer/img/favicon.ico"/>
+
 </head>
-
 <body>
-  <div id="root" class="media-body flex-column d-flex"></div>
+<div id="root" class="media-body flex-column d-flex"></div>
+<environment names="Staging,Production">
+  <link rel="stylesheet" href="~/designer/frontend/dashboard.css"/>
   <script src="~/designer/frontend/dashboard.js" type="text/javascript"></script>
+</environment>
+<environment names="Development">
+  <link rel="stylesheet" href="http://localhost:2003/dashboard.css"/>
+  <script src="http://localhost:2003/dashboard.js" type="text/javascript"></script>
+</environment>
 </body>
-
 </html>
