@@ -18,10 +18,10 @@ import {
 } from './sharedResources/user/userSlice';
 import PageHeader from './layout/PageHeader';
 import { useAppDispatch, useAppSelector } from 'common/hooks';
-import type { IAltinnWindow } from './types/global';
 
 import './App.css';
 import LeftMenu from './layout/LeftMenu';
+import { matchPath, useLocation } from 'react-router-dom';
 
 import classes from './App.module.css';
 
@@ -31,6 +31,12 @@ const GetRepoStatusSelector = makeGetRepoStatusSelector();
 const TEN_MINUTES_IN_MILLISECONDS = 600000;
 
 export function App() {
+  const { pathname } = useLocation();
+  const match = matchPath(
+    { path: '/:org/:app', caseSensitive: true, end: false },
+    pathname,
+  );
+  const { org, app } = match.params;
   const language = useAppSelector((state) => state.languageState.language);
   const t = (key: string) => getLanguageFromKey(key, language);
   const repoStatus = useAppSelector(GetRepoStatusSelector);
@@ -42,36 +48,40 @@ export function App() {
   const sessionExpiredPopoverRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const { org, app } = window as Window as IAltinnWindow;
     dispatch(
       fetchLanguage({
         url: `${window.location.origin}/designer/frontend/lang/nb.json`,
       }),
     );
-    dispatch(
-      HandleServiceInformationActions.fetchServiceName({
-        url: `${window.location.origin}/designer/${org}/${app}/Text/GetServiceName`,
-      }),
-    );
     dispatch(ApplicationMetadataActions.getApplicationMetadata());
     dispatch(DataModelsMetadataActions.getDataModelsMetadata());
-    dispatch(fetchRemainingSession());
-    dispatch(
-      HandleServiceInformationActions.fetchService({
-        url: `${window.location.origin}/designer/api/v1/repos/${org}/${app}`,
-      }),
-    );
-    dispatch(
-      HandleServiceInformationActions.fetchInitialCommit({
-        url: `${window.location.origin}/designer/api/v1/repos/${org}/${app}/initialcommit`,
-      }),
-    );
-    dispatch(
-      HandleServiceInformationActions.fetchServiceConfig({
-        url: `${window.location.origin}/designer/${org}/${app}/Config/GetServiceConfig`,
-      }),
-    );
   }, [dispatch]);
+
+  useEffect(() => {
+    dispatch(fetchRemainingSession());
+    if (app && org) {
+      dispatch(
+        HandleServiceInformationActions.fetchServiceName({
+          url: `${window.location.origin}/designer/${org}/${app}/Text/GetServiceName`,
+        }),
+      );
+      dispatch(
+        HandleServiceInformationActions.fetchService({
+          url: `${window.location.origin}/designer/api/v1/repos/${org}/${app}`,
+        }),
+      );
+      dispatch(
+        HandleServiceInformationActions.fetchInitialCommit({
+          url: `${window.location.origin}/designer/api/v1/repos/${org}/${app}/initialcommit`,
+        }),
+      );
+      dispatch(
+        HandleServiceInformationActions.fetchServiceConfig({
+          url: `${window.location.origin}/designer/${org}/${app}/Config/GetServiceConfig`,
+        }),
+      );
+    }
+  }, [app, dispatch, org]);
 
   useEffect(() => {
     const setEventListeners = (subscribe: boolean) => {
@@ -85,7 +95,13 @@ export function App() {
     };
     const windowEventReceived = (event: any) => {
       if (event.data === postMessages.forceRepoStatusCheck) {
-        checkForMergeConflict();
+        dispatch(
+          fetchRepoStatus({
+            url: repoStatusUrl,
+            org,
+            repo: app,
+          }),
+        );
       }
     };
     const keepAliveSessionState = () => {
@@ -99,16 +115,6 @@ export function App() {
         dispatch(keepAliveSession());
       }
     };
-    const checkForMergeConflict = () => {
-      const { org, app } = window as Window as IAltinnWindow;
-      dispatch(
-        fetchRepoStatus({
-          url: repoStatusUrl,
-          org,
-          repo: app,
-        }),
-      );
-    };
 
     setEventListeners(true);
     window.addEventListener('message', windowEventReceived);
@@ -116,7 +122,7 @@ export function App() {
       window.removeEventListener('message', windowEventReceived);
       setEventListeners(false);
     };
-  }, [dispatch, lastKeepAliveTimestamp, remainingSessionMinutes]);
+  }, [app, dispatch, lastKeepAliveTimestamp, org, remainingSessionMinutes]);
 
   const handleSessionExpiresClose = useCallback(
     (action: string) => {
@@ -164,5 +170,3 @@ export function App() {
     </ThemeProvider>
   );
 }
-
-export default App;

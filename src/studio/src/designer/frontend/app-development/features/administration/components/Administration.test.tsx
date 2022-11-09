@@ -4,6 +4,7 @@ import { Administration } from './Administration';
 import { renderWithProviders } from 'test/testUtils';
 import type { ICommit, IRepository } from '../../../types/global';
 import type { IHandleServiceInformationState } from 'features/administration/handleServiceInformationSlice';
+import { APP_DEVELOPMENT_BASENAME } from '../../../../constants';
 
 describe('Administration', () => {
   const mockService: IRepository = {
@@ -81,13 +82,16 @@ describe('Administration', () => {
   };
 
   it('should show spinner when loading required data', () => {
-    renderWithProviders(<Administration />);
+    renderWithProviders(<Administration />, {
+      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
+    });
     const contentLoader = screen.queryByText('Laster siden');
     expect(contentLoader).not.toBeNull();
   });
 
   it('should handle sucessfully updating app name', async () => {
     const utils = renderWithProviders(<Administration />, {
+      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
       preloadedState: {
         serviceInformation: mockServiceInformation,
       },
@@ -132,6 +136,7 @@ describe('Administration', () => {
 
   it('should handle sucessfully updating app description', async () => {
     const utils = renderWithProviders(<Administration />, {
+      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
       preloadedState: {
         serviceInformation: mockServiceInformation,
       },
@@ -168,6 +173,7 @@ describe('Administration', () => {
 
   it('should handle sucessfully updating app id', async () => {
     const utils = renderWithProviders(<Administration />, {
+      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
       preloadedState: {
         serviceInformation: mockServiceInformation,
       },

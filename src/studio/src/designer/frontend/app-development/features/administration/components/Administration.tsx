@@ -8,7 +8,7 @@ import { HandleServiceInformationActions } from '../handleServiceInformationSlic
 import { MainContent } from './MainContent';
 import { SideMenuContent } from './SideMenuContent';
 import { useAppDispatch, useAppSelector } from 'common/hooks';
-import type { IAltinnWindow } from '../../../types/global';
+import { useParams } from 'react-router-dom';
 import classes from './Administration.module.css';
 
 export function AdministrationComponent() {
@@ -54,7 +54,6 @@ export function AdministrationComponent() {
     if (editAppName && !newName) {
       setAppNameAnchorEl(document.getElementById('administrationInputAppName'));
     } else {
-      const { org, app } = window as Window as IAltinnWindow;
       dispatch(
         HandleServiceInformationActions.saveServiceName({
           url: `${window.location.origin}/designer/${org}/${app}/Text/SetServiceName`,
@@ -77,10 +76,9 @@ export function AdministrationComponent() {
     setNewDescription(event.target.value);
     setEditAppDescription(true);
   };
-
+  const { org, app } = useParams();
   const handleAppDescriptionBlur = () => {
     if (editAppDescription) {
-      const { org, app } = window as Window as IAltinnWindow;
       dispatch(
         HandleServiceInformationActions.saveServiceConfig({
           url: `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
@@ -97,10 +95,8 @@ export function AdministrationComponent() {
     setNewId(event.target.value);
     setEditAppId(true);
   };
-
   const handleAppIdBlur = () => {
     if (editAppId) {
-      const { org, app } = window as Window as IAltinnWindow;
       dispatch(
         HandleServiceInformationActions.saveServiceConfig({
           url: `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,

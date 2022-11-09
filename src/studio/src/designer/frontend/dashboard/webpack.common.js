@@ -41,9 +41,9 @@ module.exports = {
           'style-loader',
           {
             loader: 'css-loader',
-            options: { modules: true }
-          }
-        ]
+            options: { modules: true },
+          },
+        ],
       },
       {
         test: /(?<!\.module)\.css$/,
@@ -61,8 +61,8 @@ module.exports = {
       },
       {
         test: /\.png$/,
-        type: 'asset/resource'
-      }
+        type: 'asset/resource',
+      },
     ],
   },
   plugins: [

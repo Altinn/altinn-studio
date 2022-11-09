@@ -1,4 +1,5 @@
 import { applicationAboutPage, getRepoEditUrl } from 'common/utils/urlUtils';
+import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 
 describe('urlUtils', () => {
   describe('applicationAboutPage', () => {
@@ -7,9 +8,7 @@ describe('urlUtils', () => {
         repoFullName: 'org-name/app-name',
       });
 
-      expect(result).toEqual(
-        'http://localhost/designer/org-name/app-name#/',
-      );
+      expect(result).toEqual('http://localhost/editor/org-name/app-name#/');
     });
   });
 
@@ -19,7 +18,7 @@ describe('urlUtils', () => {
         repoFullName: 'this-repo-has-datamodels',
       });
 
-      expect(result).not.toContain('/designer/');
+      expect(result).not.toContain(APP_DEVELOPMENT_BASENAME);
       expect(result).toContain('#/datamodelling/');
     });
 
@@ -29,7 +28,7 @@ describe('urlUtils', () => {
       });
 
       expect(result).not.toContain('#/datamodelling/');
-      expect(result).toContain('/designer/');
+      expect(result).toContain(APP_DEVELOPMENT_BASENAME);
     });
   });
 });

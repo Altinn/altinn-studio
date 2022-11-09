@@ -4,11 +4,7 @@ import { createStyles, withStyles, WithStyles } from '@mui/styles';
 import axios from 'axios';
 import { get, post } from '../utils/networking';
 import altinnTheme from '../theme/altinnStudioTheme';
-import type {
-  IAltinnWindow,
-  IContentStatus,
-  IGitStatus,
-} from '../types/global';
+import type { IContentStatus, IGitStatus } from '../types/global';
 import { getLanguageFromKey } from '../utils/language';
 import postMessages from '../utils/postMessages';
 import FetchChangesComponent from './fetchChanges';
@@ -16,6 +12,7 @@ import ShareChangesComponent from './shareChanges';
 import CloneButton from './cloneButton';
 import CloneModal from './cloneModal';
 import SyncModalComponent from './syncModal';
+import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
 
 export interface IVersionControlHeaderProps extends WithStyles<typeof styles> {
   language: any;
@@ -95,7 +92,7 @@ class VersionControlHeader extends React.Component<
   }
 
   public getRepoPermissions = async () => {
-    const { org, app } = window as Window as IAltinnWindow;
+    const { org, app } = _useParamsClassCompHack();
     const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}`;
 
     try {
@@ -116,7 +113,7 @@ class VersionControlHeader extends React.Component<
   };
 
   public getStatus(callbackFunc?: any) {
-    const { org, app } = window as Window as IAltinnWindow;
+    const { org, app } = _useParamsClassCompHack();
     const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/status`;
     get(url)
       .then((result: IGitStatus) => {
@@ -169,7 +166,7 @@ class VersionControlHeader extends React.Component<
       },
     });
 
-    const { org, app } = window as Window as IAltinnWindow;
+    const { org, app } = _useParamsClassCompHack();
     const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/pull`;
 
     get(url)
@@ -354,7 +351,7 @@ class VersionControlHeader extends React.Component<
       },
     });
 
-    const { org, app } = window as Window as IAltinnWindow;
+    const { org, app } = _useParamsClassCompHack();
     const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/push`;
 
     post(url)
@@ -407,7 +404,7 @@ class VersionControlHeader extends React.Component<
       },
     });
 
-    const { org, app } = window as Window as IAltinnWindow;
+    const { org, app } = _useParamsClassCompHack();
     const options = {
       headers: {
         Accept: 'application/json',
@@ -557,7 +554,10 @@ class VersionControlHeader extends React.Component<
             justifyContent='flex-start'
             data-testid='version-control-header'
           >
-            <Grid item={true} style={{ marginRight: '24px' }}>
+            <Grid
+              item={true}
+              style={{ marginRight: '24px' }}
+            >
               <CloneButton
                 onClick={this.openCloneModal}
                 buttonText={getLanguageFromKey(
@@ -566,7 +566,10 @@ class VersionControlHeader extends React.Component<
                 )}
               />
             </Grid>
-            <Grid item={true} style={{ marginRight: '24px' }}>
+            <Grid
+              item={true}
+              style={{ marginRight: '24px' }}
+            >
               <FetchChangesComponent
                 changesInMaster={this.state.changesInMaster}
                 fetchChanges={this.fetchChanges}

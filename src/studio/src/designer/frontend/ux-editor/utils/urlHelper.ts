@@ -1,80 +1,26 @@
-import type { IAltinnWindow } from '../types/global';
+import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
 
-const altinnWindow: IAltinnWindow = window as Window as IAltinnWindow;
-const basePath = `${altinnWindow.location.origin}/designer/${altinnWindow.org}/${altinnWindow.app}`;
+const { org, app } = _useParamsClassCompHack();
+const bp = `${window.location.origin}/designer`;
+const basePath = `${window.location.origin}/designer/${org}/${app}`;
+const cdnPath = 'https://altinncdn.no/schemas/json/layout';
 
-export const getFetchFormLayoutUrl = (): string => {
-  return `${basePath}/UIEditor/GetFormLayout`;
-};
-
-export const getSaveFormLayoutUrl = (layoutName: string): string => {
-  return `${basePath}/UIEditor/SaveFormLayout/${layoutName}`;
-};
-
-export const getUpdateFormLayoutNameUrl = (layoutName: string): string => {
-  return `${basePath}/UIEditor/UpdateFormLayoutName/${layoutName}`;
-};
-
-export const getDeleteForLayoutUrl = (layout: string): string => {
-  return `${basePath}/UIEditor/DeleteFormLayout/${layout}`;
-};
-
-export const getLayoutSettingsUrl = (): string => {
-  return `${basePath}/UIEditor/GetLayoutSettings`;
-};
-
-export const getSaveLayoutSettingsUrl = (): string => {
-  return `${basePath}/UIEditor/SaveLayoutSettings`;
-};
-
-export const getSaveServiceConfigurationUrl = (): string => {
-  return `${basePath}/UIEditor/SaveJsonFile?fileName=RuleConfiguration.json`;
-};
-
-export const getAddApplicationMetadataUrl = (): string => {
-  return `${basePath}/UIEditor/AddMetadataForAttachment`;
-};
-
-export const getDeleteApplicationMetadataUrl = (): string => {
-  return `${basePath}/UIEditor/DeleteMetadataForAttachment?id=`;
-};
-
-export const getUpdateApplicationMetadataUrl = (): string => {
-  return `${basePath}/UIEditor/UpdateMetadataForAttachment`;
-};
-
-export const getLayoutSettingsSchemaUrl = (): string => {
-  return 'https://altinncdn.no/schemas/json/layout/layoutSettings.schema.v1.json';
-};
-
-export const getLayoutSchemaUrl = (): string => {
-  return 'https://altinncdn.no/schemas/json/layout/layout.schema.v1.json';
-};
-
-export const getAddTextResourcesUrl = (): string => {
-  return `${basePath}/UIEditor/AddTextResources`;
-};
-
-export const getWidgetsSettingsUrl = (): string => {
-  return `${basePath}/UIEditor/GetWidgetSettings`;
-};
-
-export const getLoadTextResourcesUrl = (languageCode: string) => {
-  return `${basePath}/UIEditor/GetTextResources/${languageCode}`;
-};
-
-export const getFetchDataModelUrl = () => {
-  return `${basePath}/Model/GetJson`;
-};
-
-export const getFetchLanguageUrl = (languageCode: string) => {
-  return `${window.location.origin}/designer/frontend/lang/${languageCode}.json`;
-};
-
-export const getFetchRuleModelUrl = () => {
-  return `${basePath}/UIEditor/GetRuleHandler`;
-};
-
-export const getFetchRuleConfigurationUrl = () => {
-  return `${basePath}/UIEditor/GetJsonFile?fileName=RuleConfiguration.json`;
-};
+export const getAddApplicationMetadataUrl = (): string => `${basePath}/UIEditor/AddMetadataForAttachment`;
+export const getAddTextResourcesUrl = (): string => `${basePath}/UIEditor/AddTextResources`;
+export const getDeleteApplicationMetadataUrl = (): string => `${basePath}/UIEditor/DeleteMetadataForAttachment?id=`;
+export const getDeleteForLayoutUrl = (layout: string): string => `${basePath}/UIEditor/DeleteFormLayout/${layout}`;
+export const getFetchDataModelUrl = () => `${basePath}/Model/GetJson`;
+export const getFetchFormLayoutUrl = (): string => `${basePath}/UIEditor/GetFormLayout`;
+export const getFetchLanguageUrl = (languageCode: string) => `${bp}/frontend/lang/${languageCode}.json`;
+export const getFetchRuleConfigurationUrl = () => `${basePath}/UIEditor/GetJsonFile?fileName=RuleConfiguration.json`;
+export const getFetchRuleModelUrl = () => `${basePath}/UIEditor/GetRuleHandler`;
+export const getLayoutSchemaUrl = (): string => `${cdnPath}/layout.schema.v1.json`;
+export const getLayoutSettingsSchemaUrl = () => `${cdnPath}/layoutSettings.schema.v1.json`;
+export const getLayoutSettingsUrl = (): string => `${basePath}/UIEditor/GetLayoutSettings`;
+export const getSaveFormLayoutUrl = (layoutName: string): string => `${basePath}/UIEditor/SaveFormLayout/${layoutName}`;
+export const getSaveLayoutSettingsUrl = (): string => `${basePath}/UIEditor/SaveLayoutSettings`;
+export const getSveSerConfUrl = (): string => `${basePath}/UIEditor/SaveJsonFile?fileName=RuleConfiguration.json`;
+export const getTextResourcesUrl = (languageCode: string) => `${basePath}/UIEditor/GetTextResources/${languageCode}`;
+export const getUpLayNmeUrl = (layoutName: string) => `${basePath}/UIEditor/UpdateFormLayoutName/${layoutName}`;
+export const getUpdateApplicationMetadataUrl = (): string => `${basePath}/UIEditor/UpdateMetadataForAttachment`;
+export const getWidgetsSettingsUrl = (): string => `${basePath}/UIEditor/GetWidgetSettings`;

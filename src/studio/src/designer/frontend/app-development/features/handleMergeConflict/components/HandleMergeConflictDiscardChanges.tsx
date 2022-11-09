@@ -7,7 +7,7 @@ import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { get } from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
-import type { IAltinnWindow } from '../../../types/global';
+import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
 
 const theme = createTheme(altinnTheme);
 
@@ -82,7 +82,7 @@ class HandleMergeConflictDiscardChanges extends React.Component<
 
   // TODO: Add a spinner
   public discardChangesConfirmed = async () => {
-    const { org, app } = window as Window as IAltinnWindow;
+    const { org, app } = _useParamsClassCompHack();
 
     try {
       this.setState({

@@ -81,7 +81,7 @@
         </div>
     </div>
 
-    <div class="tab-pane fade in" id="json" role="tabpanel"> 
+    <div class="tab-pane fade in" id="json" role="tabpanel">
         <a title="Last ned JSON-modell" asp-action="GetJson" asp-controller="Model" asp-route-org="@org" asp-route-app="@app" download="@app-model.json">
             <i class="fa fa-download" aria-hidden="true"></i><span class="sr-only">Last ned JSON-modell</span>
         </a>
@@ -105,7 +105,7 @@
         <a title="Last ned XSD" asp-action="GetXsd" asp-controller="Model" asp-route-org="@org" asp-route-app="@app" download="@app-model.xsd">
             <i class="fa fa-download" aria-hidden="true"></i><span class="sr-only">Last ned XSD</span>
         </a>
-        <div id="xml-container" class="editor-frame">  
+        <div id="xml-container" class="editor-frame">
             <div id="xml-editor" class="editor" style="width:100%;min-height:600px;"></div>
         </div>
         <div id="xml-model" style="display: none;"></div>

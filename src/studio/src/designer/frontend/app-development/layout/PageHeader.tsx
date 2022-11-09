@@ -3,7 +3,6 @@ import { AppBar } from './AppBar';
 import { Route, Routes } from 'react-router-dom';
 import routes from '../config/routes';
 import appDevelopmentLeftDrawerSettings from '../config/subPathSettings';
-import type { IAltinnWindow } from '../types/global';
 
 interface IPageHeaderProps {
   repoStatus: any;
@@ -11,7 +10,6 @@ interface IPageHeaderProps {
 
 const PageHeader = (ownProps: IPageHeaderProps) => {
   const { repoStatus } = ownProps;
-  const { app, org } = window as Window as IAltinnWindow;
   return (
     <Routes>
       {routes.map((route) => (
@@ -23,8 +21,6 @@ const PageHeader = (ownProps: IPageHeaderProps) => {
               activeLeftMenuSelection={route.activeLeftMenuSelection}
               activeSubHeaderSelection={route.activeSubHeaderSelection}
               logoutButton={repoStatus.hasMergeConflict}
-              org={org}
-              app={app}
               showSubMenu={!repoStatus.hasMergeConflict}
               mainMenuItems={[
                 {
