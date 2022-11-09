@@ -8,7 +8,7 @@ import {
 } from '@mui/material';
 import { createStyles, makeStyles } from '@mui/styles';
 import classNames from 'classnames';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { altinnImgLogoHeaderUrl } from 'app-shared/utils/urlHelper';
 import type { IMenuItem } from 'app-shared/navigation/drawer/drawerMenuSettings';
 import TabletDrawerMenu from 'app-shared/navigation/drawer/TabletDrawerMenu';
@@ -21,8 +21,6 @@ export interface IAppBarProps {
   activeSubHeaderSelection?: string;
   activeLeftMenuSelection?: string;
   logoutButton?: boolean;
-  org?: string;
-  app?: string;
   user?: string;
   showSubMenu?: boolean;
   mainMenuItems?: IMenuItem[];
@@ -103,8 +101,6 @@ export const AppBar = ({
   activeLeftMenuSelection,
   activeSubHeaderSelection,
   logoutButton,
-  org,
-  app,
   user,
   mainMenuItems,
   subMenuItems,
@@ -125,6 +121,7 @@ export const AppBar = ({
   const handleDrawerMenuClick = () => {
     setIsMenuOpen((prev) => !prev);
   };
+  const { org, app } = useParams();
   return (
     <div className={classes.root}>
       <MuiAppBar
@@ -147,14 +144,27 @@ export const AppBar = ({
             alignItems='center'
             justifyContent='space-between'
           >
-            <Grid item xs container>
+            <Grid
+              item
+              xs
+              container
+            >
               <Grid item>
-                <a href='/' className={classes.aImgStyling}>
-                  <img src={altinnImgLogoHeaderUrl} alt='Altinn logo' />
+                <a
+                  href='/'
+                  className={classes.aImgStyling}
+                >
+                  <img
+                    src={altinnImgLogoHeaderUrl}
+                    alt='Altinn logo'
+                  />
                 </a>
               </Grid>
               {hiddenMdUp ? null : (
-                <Grid item className={classes.breadCrumb}>
+                <Grid
+                  item
+                  className={classes.breadCrumb}
+                >
                   {activeSubHeaderSelection &&
                     `/ ${t(activeSubHeaderSelection)}`}{' '}
                   /
@@ -166,7 +176,11 @@ export const AppBar = ({
               )}
             </Grid>
             {hiddenSmDown ? null : (
-              <Grid xs item className={classes.paper}>
+              <Grid
+                xs
+                item
+                className={classes.paper}
+              >
                 {org && app ? `${org} / ${app}` : ''}
               </Grid>
             )}
@@ -217,7 +231,7 @@ export const AppBar = ({
                       className={classNames(classes.subHeader)}
                     >
                       <Link
-                        to={item.link}
+                        to={item.link.replace(':org', org).replace(':app', app)}
                         className={classNames(classes.subHeaderLink, {
                           [classes.subHeaderLinkActive]:
                             activeSubHeaderSelection === item.key,

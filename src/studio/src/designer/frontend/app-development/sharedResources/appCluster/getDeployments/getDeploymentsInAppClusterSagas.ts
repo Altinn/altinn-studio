@@ -1,5 +1,5 @@
 import { SagaIterator } from 'redux-saga';
-import { call, fork, put, race, select, take, delay } from 'redux-saga/effects';
+import { call, delay, fork, put, race, select, take } from 'redux-saga/effects';
 import { get } from 'app-shared/utils/networking';
 import {
   getDeploymentsFulfilled,
@@ -7,17 +7,16 @@ import {
   getDeploymentsStartInterval,
   getDeploymentsStopInterval,
 } from '../appClusterSlice';
-import type { IAltinnWindow } from '../../../types/global';
 import type { RootState } from 'store';
+import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
 
 const SelectEnvironments = (store: RootState) =>
   store.configuration.environments.result;
-const OrgsSelector = (store: RootState) =>
-  store.configuration.orgs.allOrgs;
+const OrgsSelector = (store: RootState) => store.configuration.orgs.allOrgs;
 
 function* getDeploymentsIntervalSaga(): SagaIterator {
   while (true) {
-    const { org, app } = window as Window as IAltinnWindow;
+    const { org, app } = _useParamsClassCompHack();
     const environments: any = yield select(SelectEnvironments);
     const orgs: any = yield select(OrgsSelector);
 

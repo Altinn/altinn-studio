@@ -1,14 +1,14 @@
 import React from 'react';
 import classNames from 'classnames';
-import classes from './AltinnInformationCardForChildren.module.css';
+import classes from './InfoCard.module.css';
+import Illustration from './illustration-help-2-circle.svg';
 
 export interface IAltinnInformationCardComponentProvidedProps {
   headerText: string;
-  imageSource: string;
   shadow: boolean;
 }
 
-export const AltinnInformationCardForChildren = (
+export const InfoCard = (
   props: React.PropsWithChildren<IAltinnInformationCardComponentProvidedProps>,
 ) => {
   return (
@@ -24,7 +24,7 @@ export const AltinnInformationCardForChildren = (
             <p className={classes.breadText}>{props.children}</p>
           </div>
           <div className={classes.imageContainer}>
-            <img alt='information' src={props.imageSource} />
+            <Illustration />
           </div>
         </div>
       </div>

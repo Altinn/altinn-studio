@@ -7,6 +7,7 @@ const getIndexHtml = require('./routes/get-index-html');
 const getRepoData = require('./routes/get-repo-data');
 const putDatamodel = require('./routes/put-datamodel');
 const delDatamodel = require('./routes/del-datamodel');
+const { APP_DEVELOPMENT_BASENAME } = require('../../constants.js');
 /**
  * Request URL: http://localhost:8080/designer/api/my-org/my-app/datamodels?modelPath=App%2Fmodels%2Fny-modell.schema.json
  */
@@ -17,7 +18,7 @@ module.exports = (middlewares, devServer) => {
   const { app } = devServer;
   app.use(bodyParser.json());
 
-  app.get('/', (req, res) => res.redirect('/designer/someorg/someapp'));
+  app.get('/', (req, res) => res.redirect(APP_DEVELOPMENT_BASENAME + '/someorg/someapp'));
   app.get('/designer/:owner/:repo', (req, res) => res.send(getIndexHtml()));
   app.get('/designer/:owner/:repo/Config/GetServiceConfig', (req, res) => res.sendStatus(204));
   app.get('/designer/:owner/:repo/Text/GetServiceName', (req, res) => res.send(req.params.repo.toUpperCase()));

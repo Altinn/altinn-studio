@@ -12,13 +12,6 @@ module.exports = {
     rules: [
       ...commonConfig.module.rules,
       {
-        test: /\.svg$/,
-        use: {
-          loader: 'svg-inline-loader',
-        },
-        exclude: /schema-editor/,
-      },
-      {
         enforce: 'pre',
         test: /\.js$/,
         loader: 'source-map-loader',

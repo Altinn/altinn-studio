@@ -1,3 +1,5 @@
+import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
+
 interface IApplicationAboutPage {
   repoFullName: string;
 }
@@ -5,7 +7,7 @@ interface IApplicationAboutPage {
 export const applicationAboutPage = ({
   repoFullName,
 }: IApplicationAboutPage) => {
-  return `${window.location.origin}/designer/${repoFullName}#/`;
+  return `${window.location.origin}${APP_DEVELOPMENT_BASENAME}/${repoFullName}#/`;
 };
 
 interface IGetRepoUrl {
@@ -17,5 +19,5 @@ export const getRepoEditUrl = ({ repoFullName }: IGetRepoUrl) => {
     return `#/datamodelling/${repoFullName}`;
   }
 
-  return `/designer/${repoFullName}`;
+  return `${APP_DEVELOPMENT_BASENAME}/${repoFullName}`;
 };
