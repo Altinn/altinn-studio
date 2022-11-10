@@ -54,7 +54,7 @@
   "packageManager": "yarn@3.2.4",
   "private": true,
   "scripts": {
-    "build": "yarn workspaces foreach run build",
+    "build": "yarn workspaces foreach -p run build",
     "depcheck": "npx depcheck && yarn workspaces foreach run depcheck",
     "lint": "eslint \"./**/*.ts*\"",
     "start-app-development": "yarn workspace app-development start",
