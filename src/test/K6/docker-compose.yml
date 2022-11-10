@@ -5,16 +5,6 @@ networks:
   grafana:
 
 services:
-  influxdb:
-    image: influxdb:2.5
-    networks:
-      - k6
-      - grafana
-    ports:
-      - "8086:8086"
-    environment:
-      - INFLUXDB_DB=k6
-
   grafana:
     image: grafana/grafana:latest
     networks:
