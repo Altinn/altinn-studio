@@ -31,9 +31,9 @@
   "private": true,
   "scripts": {
     "build": "cross-env NODE_ENV=production webpack --config ../webpack.config.prod.js",
-    "typecheck": "tsc --noEmit",
     "depcheck": "echo Checking $npm_package_name && npx depcheck && echo ",
     "start": "cross-env NODE_ENV=development webpack-dev-server --config ../webpack.config.dev.js --mode development",
-    "test": "jest --maxWorkers=50%"
+    "test": "jest --maxWorkers=50%",
+    "typecheck": "tsc --noEmit"
   }
 }
