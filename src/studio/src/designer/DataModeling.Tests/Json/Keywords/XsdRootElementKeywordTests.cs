@@ -21,4 +21,14 @@ public class XsdRootElementKeywordTests: ValueKeywordTestsBase<XsdRootElementKey
             .And.KeywordShouldEqualObject(expectedKeywordObject)
             .But.KeywordShouldNotEqual(null);
     }
+
+    [Theory]
+    [InlineData("melding")]
+    [InlineData("root")]
+    public void GetHashCode_ShouldBe_As_Value(string value)
+    {
+        var expectedHashCode = value.GetHashCode();
+        Given.That.KeywordCreatedWithValue(value);
+        expectedHashCode.GetHashCode().Should().Be(Keyword.GetHashCode());
+    }
 }
