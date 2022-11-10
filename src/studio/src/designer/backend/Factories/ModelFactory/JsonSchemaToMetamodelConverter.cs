@@ -163,6 +163,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 case MinItemsKeyword:
                 case MaxItemsKeyword:
                 case CommentKeyword:
+                case XsdRootElementKeyword:
                     break;
 
                 case RefKeyword k:
