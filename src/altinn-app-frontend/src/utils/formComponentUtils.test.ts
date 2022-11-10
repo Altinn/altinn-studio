@@ -424,17 +424,17 @@ describe('formComponentUtils', () => {
   });
 
   describe('componentValidationsHandledByGenericComponent', () => {
-    it(' should return false when dataModelBinding is undefined', () => {
+    it('should return false when dataModelBinding is undefined', () => {
       const result = componentValidationsHandledByGenericComponent(undefined, 'FileUpload');
       expect(result).toEqual(false);
     });
 
-    it(' should return false when component type is Datepicker', () => {
+    it('should return true when component type is Datepicker', () => {
       const result = componentValidationsHandledByGenericComponent({ simpleBinding: 'group.superdate' }, 'DatePicker');
-      expect(result).toEqual(false);
+      expect(result).toEqual(true);
     });
 
-    it(' should return true when component type is Input', () => {
+    it('should return true when component type is Input', () => {
       const result = componentValidationsHandledByGenericComponent({ simpleBinding: 'group.secretnumber' }, 'Input');
       expect(result).toEqual(true);
     });

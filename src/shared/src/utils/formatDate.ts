@@ -9,6 +9,7 @@ export function returnDatestringFromDate(date: string, format: string) {
   return moment.utc(date, [format]).format();
 }
 
-export function formatISOString(isoString: string, format: string): string {
-  return moment(isoString, moment.ISO_8601).format(format);
+export function formatISOString(isoString: string, format: string): string | null {
+  const date = moment(isoString, moment.ISO_8601);
+  return date.isValid() ? date.format(format) : null;
 }

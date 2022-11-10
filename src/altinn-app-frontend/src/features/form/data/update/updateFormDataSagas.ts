@@ -9,6 +9,7 @@ import { getCurrentDataTypeForApplication } from 'src/utils/appMetadata';
 import { removeAttachmentReference } from 'src/utils/databindings';
 import { getLayoutComponentById, getLayoutIdForComponent } from 'src/utils/layout';
 import { getValidator, validateComponentFormData } from 'src/utils/validation';
+import { mergeComponentValidations, validateComponentSpecificValidations } from 'src/utils/validation/validation';
 import type { IFormData } from 'src/features/form/data';
 import type { IDeleteAttachmentReference, IUpdateFormData } from 'src/features/form/data/formDataTypes';
 import type { ILayoutComponent, ILayouts } from 'src/features/form/layout';
@@ -86,6 +87,9 @@ function* runValidations(field: string, data: any, componentId: string | undefin
   );
 
   const componentValidations = validationResult?.validations[layoutId][componentId];
+  const componentSpecificValidations = validateComponentSpecificValidations(data, component, state.language.language);
+  const mergedValidations = mergeComponentValidations(componentValidations ?? {}, componentSpecificValidations);
+
   const invalidDataComponents = state.formValidations.invalidDataTypes || [];
   const updatedInvalidDataComponents = invalidDataComponents.filter((item) => item !== field);
   if (validationResult?.invalidDataTypes) {
@@ -96,7 +100,7 @@ function* runValidations(field: string, data: any, componentId: string | undefin
     ValidationActions.updateComponentValidations({
       componentId,
       layoutId,
-      validations: componentValidations || {},
+      validations: mergedValidations ?? {},
       invalidDataTypes: updatedInvalidDataComponents,
     }),
   );

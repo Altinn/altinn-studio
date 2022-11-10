@@ -4,7 +4,7 @@ import type { IComponentProps } from 'src/components';
 
 export interface DelayedSavedStateRetVal {
   value: string | undefined;
-  setValue: (newValue: string | undefined, saveImmediately?: boolean) => void;
+  setValue: (newValue: string | undefined, saveImmediately?: boolean, skipValidation?: boolean) => void;
   saveValue: () => void;
   onPaste: () => void;
 }
@@ -16,6 +16,31 @@ export function useDelayedSavedState(
 ): DelayedSavedStateRetVal {
   const [immediateState, setImmediateState] = React.useState(formValue);
   const [saveNextChangeImmediately, setSaveNextChangeImmediately] = React.useState(false);
+  const [skipNextValidation, setSkipNextValidation] = React.useState(false);
+
+  const updateFormData = React.useCallback(
+    (value: string | undefined, skipValidation = false) => {
+      const validate = !skipNextValidation && !skipValidation;
+      if (value !== formValue) {
+        validate && handleDataChange(value);
+        !validate && handleDataChange(value, { validate: false });
+        if (skipNextValidation) {
+          setSkipNextValidation(false);
+        }
+        if (saveNextChangeImmediately) {
+          setSaveNextChangeImmediately(false);
+        }
+      }
+    },
+    [
+      handleDataChange,
+      formValue,
+      saveNextChangeImmediately,
+      setSaveNextChangeImmediately,
+      setSkipNextValidation,
+      skipNextValidation,
+    ],
+  );
 
   React.useEffect(() => {
     setImmediateState(formValue);
@@ -28,32 +53,23 @@ export function useDelayedSavedState(
 
     const timeout = typeof saveAfter === 'number' ? saveAfter : 400;
     const timeoutId = setTimeout(() => {
-      if (immediateState !== formValue) {
-        handleDataChange(immediateState);
-      }
+      updateFormData(immediateState);
     }, timeout);
 
     return () => clearTimeout(timeoutId);
-  }, [immediateState, handleDataChange, formValue, saveAfter]);
+  }, [immediateState, updateFormData, formValue, saveAfter]);
 
   return {
     value: immediateState,
-    setValue: (newValue, saveImmediately) => {
+    setValue: (newValue, saveImmediately = false, skipValidation = false) => {
       setImmediateState(newValue);
-      if (newValue !== formValue) {
-        if (saveImmediately) {
-          handleDataChange(newValue);
-        } else if (saveNextChangeImmediately) {
-          // Save immediately on the next change event after a paste
-          handleDataChange(newValue);
-          setSaveNextChangeImmediately(false);
-        }
+      setSkipNextValidation(skipValidation && !saveImmediately && !saveNextChangeImmediately);
+      if (saveImmediately || saveNextChangeImmediately) {
+        updateFormData(newValue, skipValidation);
       }
     },
     saveValue: () => {
-      if (immediateState !== formValue) {
-        handleDataChange(immediateState);
-      }
+      updateFormData(immediateState);
     },
     onPaste: () => {
       setSaveNextChangeImmediately(true);

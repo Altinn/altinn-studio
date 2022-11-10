@@ -4,17 +4,11 @@ import MomentUtils from '@date-io/moment';
 import { Grid, Icon, makeStyles, useMediaQuery, useTheme } from '@material-ui/core';
 import { KeyboardDatePicker, MuiPickersUtilsProvider } from '@material-ui/pickers';
 import moment from 'moment';
+import type { MaterialUiPickersDate } from '@material-ui/pickers/typings/date';
 
-import { getDateFormat, getFlagBasedDate, getISOString } from 'src/utils/dateHelpers';
-import { renderValidationMessagesForComponent } from 'src/utils/render';
-import {
-  DatePickerMaxDateDefault,
-  DatePickerMinDateDefault,
-  DatePickerSaveFormatNoTimestamp,
-  validateDatepickerFormData,
-} from 'src/utils/validation';
+import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
+import { getDateConstraint, getDateFormat, getDateString } from 'src/utils/dateHelpers';
 import type { PropsFromGenericComponent } from 'src/components';
-import type { DateFlags, IComponentBindingValidation } from 'src/types';
 
 import { getLanguageFromKey } from 'altinn-shared/utils';
 
@@ -81,7 +75,6 @@ function DatepickerComponent({
   maxDate,
   format,
   language,
-  componentValidations,
   formData,
   timeStamp = true,
   handleDataChange,
@@ -92,107 +85,30 @@ function DatepickerComponent({
   textResourceBindings,
 }: IDatePickerProps) {
   const classes = useStyles();
-  const [date, setDate] = React.useState<moment.Moment | null>(null);
-  const [validDate, setValidDate] = React.useState<boolean>(true);
-  const [validationMessages, setValidationMessages] = React.useState<IComponentBindingValidation | null>(null);
 
-  const calculatedMinDate = getFlagBasedDate(minDate as DateFlags) || getISOString(minDate) || DatePickerMinDateDefault;
-  const calculatedMaxDate = getFlagBasedDate(maxDate as DateFlags) || getISOString(maxDate) || DatePickerMaxDateDefault;
+  const calculatedMinDate = getDateConstraint(minDate, 'min');
+  const calculatedMaxDate = getDateConstraint(maxDate, 'max');
 
   const calculatedFormat = getDateFormat(format);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
-  const isDateEmpty = React.useCallback(() => {
-    return date && date.parsingFlags().parsedDateParts.length === 0;
-  }, [date]);
+  const { value, setValue, saveValue, onPaste } = useDelayedSavedState(handleDataChange, formData?.simpleBinding ?? '');
 
-  const getValidationMessages = React.useCallback(() => {
-    let checkDate: string | null = null;
-    if (!date || isDateEmpty()) {
-      checkDate = '';
-    } else if (date.isValid()) {
-      checkDate = date.toISOString();
-    }
+  const dateValue = moment(value, moment.ISO_8601);
+  const [date, input] = dateValue.isValid() ? [dateValue, undefined] : [null, value ?? ''];
 
-    const validations: IComponentBindingValidation = validateDatepickerFormData(
-      checkDate,
-      calculatedMinDate,
-      calculatedMaxDate,
-      calculatedFormat,
-      language,
-    );
-    const suppliedValidations = componentValidations?.simpleBinding;
-    if (suppliedValidations?.errors) {
-      suppliedValidations.errors.forEach((validation: string) => {
-        if (validations.errors?.indexOf(validation) === -1) {
-          validations.errors.push(validation);
-        }
-      });
-    }
-    if (suppliedValidations?.warnings) {
-      suppliedValidations.warnings.forEach((validation: string) => {
-        if (validations.warnings?.indexOf(validation) === -1) {
-          validations.warnings.push(validation);
-        }
-      });
-    }
-    return validations;
-  }, [calculatedFormat, calculatedMinDate, calculatedMaxDate, language, componentValidations, date, isDateEmpty]);
-
-  React.useEffect(() => {
-    const dateValue = formData?.simpleBinding ? moment(formData.simpleBinding) : null;
-    setDate(dateValue);
-  }, [formData?.simpleBinding]);
-
-  React.useEffect(() => {
-    setValidationMessages(getValidationMessages());
-  }, [getValidationMessages]);
-
-  const handleDateChange = (dateValue: moment.Moment) => {
-    dateValue?.set('hour', 12)?.set('minute', 0)?.set('second', 0)?.set('millisecond', 0);
-    setValidDate(true); // we reset valid date => show error onBlur or when user is done typing
-    setValidationMessages({});
-    if (dateValue && dateValue.isValid()) {
-      setDate(dateValue);
-      if (isValidDate(dateValue)) {
-        // the date can have a valid format but not pass min/max validation
-        const dateString =
-          timeStamp === true ? dateValue?.toISOString(true) : dateValue.format(DatePickerSaveFormatNoTimestamp);
-        handleDataChange(dateString);
-      }
-    } else if (!dateValue) {
-      setDate(null);
-      handleDataChange('');
-    } else if (dateValue.parsingFlags().charsLeftOver == 0 && !dateValue.isValid()) {
-      setDate(dateValue);
-    }
-  };
-
-  const isValidDate = (dateValue: moment.Moment | null): boolean => {
-    if (!dateValue) {
-      return true;
-    }
-    dateValue.set('hour', 12).set('minute', 0).set('second', 0).set('millisecond', 0);
-    return (
-      dateValue.isValid() && dateValue.isSameOrAfter(calculatedMinDate) && dateValue.isSameOrBefore(calculatedMaxDate)
-    );
-  };
-
-  const handleBlur = () => {
-    const dateIsValid = isValidDate(date);
-    setValidDate(dateIsValid);
-    setValidationMessages(getValidationMessages());
-    if (dateIsValid) {
-      const dateString = timeStamp === false ? date?.format(DatePickerSaveFormatNoTimestamp) : date?.toISOString(true);
-      const saveDate = isDateEmpty() ? '' : dateString;
-      if (saveDate !== undefined) {
-        handleDataChange(saveDate);
-      }
+  const handleDateValueChange = (
+    dateValue: MaterialUiPickersDate,
+    inputValue: string | undefined,
+    saveImmediately = false,
+  ) => {
+    if (dateValue?.isValid()) {
+      dateValue.set('hour', 12).set('minute', 0).set('second', 0).set('millisecond', 0);
+      setValue(getDateString(dateValue, timeStamp), saveImmediately);
     } else {
-      if (formData?.simpleBinding) {
-        handleDataChange('');
-      }
+      const skipValidation = (dateValue?.parsingFlags().charsLeftOver ?? 0) > 0;
+      setValue(inputValue ?? '', saveImmediately, skipValidation);
     }
   };
 
@@ -221,10 +137,13 @@ function DatepickerComponent({
             id={id}
             data-testid={id}
             value={date}
+            inputValue={input}
             placeholder={calculatedFormat}
             key={id}
-            onChange={handleDateChange}
-            onBlur={handleBlur}
+            onChange={handleDateValueChange}
+            onBlur={saveValue}
+            onAccept={(dateValue) => handleDateValueChange(dateValue, undefined, true)}
+            onPaste={onPaste}
             autoOk={true}
             invalidDateMessage={emptyString}
             maxDateMessage={emptyString}
@@ -233,13 +152,10 @@ function DatepickerComponent({
             maxDate={calculatedMaxDate}
             InputProps={{
               disableUnderline: true,
-              error: !isValid || !validDate,
+              error: !isValid,
               readOnly: readOnly,
               classes: {
-                root:
-                  classes.root +
-                  (validationMessages?.errors?.length || !validDate ? ` ${classes.invalid}` : '') +
-                  (readOnly ? ' disabled' : ''),
+                root: classes.root + (!isValid ? ` ${classes.invalid}` : '') + (readOnly ? ' disabled' : ''),
                 input: classes.input,
               },
               ...(textResourceBindings?.description && {
@@ -274,7 +190,6 @@ function DatepickerComponent({
           />
         </Grid>
       </MuiPickersUtilsProvider>
-      {renderValidationMessagesForComponent(validationMessages, `${id}_validations`)}
     </>
   );
 }
