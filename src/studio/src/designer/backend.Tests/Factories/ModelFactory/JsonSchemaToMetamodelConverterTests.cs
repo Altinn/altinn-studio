@@ -54,7 +54,7 @@ namespace Designer.Tests.Factories.ModelFactory
         {
             Given.That.XsdSchemaLoaded(xsdSchemaPath)
                 .When.XsdSchemaConverted2JsonSchema()
-                .And.JsonSchemaConverted2Metamodel("melding")
+                .And.JsonSchemaConverted2Metamodel()
                 .And.ExpectedMetamodelLoaded(expectedMetamodelPath)
                 .Then.MetamodelShouldBeEquivalentToExpected()
                 .And.When.CSharpClassesCreatedFromMetamodel()
@@ -86,7 +86,7 @@ namespace Designer.Tests.Factories.ModelFactory
             return this;
         }
 
-        private JsonSchemaToMetamodelConverterTests JsonSchemaConverted2Metamodel(string modelName)
+        private JsonSchemaToMetamodelConverterTests JsonSchemaConverted2Metamodel()
         {
             var metamodelConverter = new JsonSchemaToMetamodelConverter(new SeresJsonSchemaAnalyzer());
             metamodelConverter.KeywordProcessed += KeywordProcessedHandler;
@@ -94,7 +94,7 @@ namespace Designer.Tests.Factories.ModelFactory
 
             var convertedJsonSchemaString = JsonSerializer.Serialize(_convertedJsonSchema, new JsonSerializerOptions() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement), WriteIndented = true });
 
-            _modelMetadata = metamodelConverter.Convert(modelName, convertedJsonSchemaString);
+            _modelMetadata = metamodelConverter.Convert(convertedJsonSchemaString);
             return this;
         }
 

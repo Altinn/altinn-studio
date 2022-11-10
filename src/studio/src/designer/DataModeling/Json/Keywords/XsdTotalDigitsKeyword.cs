@@ -99,7 +99,7 @@ public sealed class XsdTotalDigitsKeyword: IJsonSchemaKeyword, IEquatable<XsdTot
     /// <summary>
     /// Serializer for the XsdTotalDigitsKeyword keyword
     /// </summary>
-    public class XsdTotalDigitsKeywordJsonConverter : JsonConverter<XsdTotalDigitsKeyword>
+    internal class XsdTotalDigitsKeywordJsonConverter : JsonConverter<XsdTotalDigitsKeyword>
     {
         /// <inheritdoc />
         public override XsdTotalDigitsKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

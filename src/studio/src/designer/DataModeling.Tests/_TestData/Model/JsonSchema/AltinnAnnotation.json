@@ -38,6 +38,7 @@
     "XSD-variant": "Altinn",
     "XSD-transformatorversjon": "1.2"
   },
+  "@xsdRootElement": "Root",
   "properties": {
     "e1": {
       "type": "string",

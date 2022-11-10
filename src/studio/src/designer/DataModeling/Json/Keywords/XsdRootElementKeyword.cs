@@ -13,37 +13,36 @@ namespace Altinn.Studio.DataModeling.Json.Keywords;
 [SchemaDraft(Draft.Draft7)]
 [SchemaDraft(Draft.Draft201909)]
 [SchemaDraft(Draft.Draft202012)]
-[JsonConverter(typeof(XsdMaxOccursKeywordJsonConverter))]
-public sealed class XsdMaxOccursKeyword: IJsonSchemaKeyword, IEquatable<XsdMaxOccursKeyword>
+[JsonConverter(typeof(XsdRootElementKeywordJsonConverter))]
+public sealed class XsdRootElementKeyword: IJsonSchemaKeyword, IEquatable<XsdRootElementKeyword>
 {
     /// <summary>
     /// The name of the keyword
     /// </summary>
-    private const string Name = "@xsdMaxOccurs";
+    internal const string Name = "@xsdRootElement";
 
     /// <summary>
-    /// Content
+    /// Keyword value
     /// </summary>
     public string Value { get; }
 
     /// <summary>
-    /// Create instance with defined value
+    /// Initializes a new instance of the <see cref="XsdRootElementKeyword"/> class.
     /// </summary>
-    public XsdMaxOccursKeyword(string value)
+    /// <param name="value">Provided value</param>
+    public XsdRootElementKeyword(string value)
     {
         Value = value;
     }
 
-    /// <summary>
-    /// Always validates as true
-    /// </summary>
+    /// <inheritdoc />
     public void Validate(ValidationContext context)
     {
-        // No validation defined for this keyword.
+        // No validation for keyword
     }
 
     /// <inheritdoc/>
-    public bool Equals(XsdMaxOccursKeyword other)
+    public bool Equals(XsdRootElementKeyword other)
     {
         if (other is null)
         {
@@ -56,7 +55,7 @@ public sealed class XsdMaxOccursKeyword: IJsonSchemaKeyword, IEquatable<XsdMaxOc
     /// <inheritdoc/>
     public override bool Equals(object obj)
     {
-        return Equals(obj as XsdMaxOccursKeyword);
+        return Equals(obj as XsdRootElementKeyword);
     }
 
     /// <inheritdoc/>
@@ -66,23 +65,23 @@ public sealed class XsdMaxOccursKeyword: IJsonSchemaKeyword, IEquatable<XsdMaxOc
     }
 
     /// <summary>
-    /// Serializer for the @xsdMaxOccurs keyword
+    /// Serializer for the @xsdRootElement keyword
     /// </summary>
-    internal class XsdMaxOccursKeywordJsonConverter : JsonConverter<XsdMaxOccursKeyword>
+    internal class XsdRootElementKeywordJsonConverter : JsonConverter<XsdRootElementKeyword>
     {
         /// <inheritdoc/>
-        public override XsdMaxOccursKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override XsdRootElementKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             if (reader.TokenType != JsonTokenType.String)
             {
                 throw new JsonException("Expected string");
             }
 
-            return new XsdMaxOccursKeyword(reader.GetString());
+            return new XsdRootElementKeyword(reader.GetString());
         }
 
         /// <inheritdoc/>
-        public override void Write(Utf8JsonWriter writer, XsdMaxOccursKeyword value, JsonSerializerOptions options)
+        public override void Write(Utf8JsonWriter writer, XsdRootElementKeyword value, JsonSerializerOptions options)
         {
             writer.WriteString(Name, value.Value);
         }

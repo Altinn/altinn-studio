@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using DataModeling.Tests.Json.Keywords.BaseClasses;
 using FluentAssertions;
@@ -7,19 +6,19 @@ using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords
 {
-    public class XsdTotalDigitsKeywordJsonConverterTests : ValueKeywordConverterTestBase<XsdTotalDigitsKeywordJsonConverterTests, XsdTotalDigitsKeyword, uint>
+    public class XsdRootElementKeywordJsonConverterTests : ValueKeywordConverterTestBase<XsdRootElementKeywordJsonConverterTests, XsdRootElementKeyword, string>
     {
-        private const string KeywordPlaceholder = "totalDigits";
+        private const string KeywordPlaceholder = "@xsdRootElement";
 
-        protected override XsdTotalDigitsKeyword CreateKeywordWithValue(uint value) => new(value);
+        protected override XsdRootElementKeyword CreateKeywordWithValue(string value) => new(value);
 
         [Theory]
-        [InlineData(1)]
-        [InlineData(100)]
-        public void Read_ValidJson_FromSchema(uint value)
+        [InlineData("melding")]
+        [InlineData("root")]
+        public void Read_ValidJson_FromSchema(string value)
         {
             var jsonSchema = @$"{{
-                ""{KeywordPlaceholder}"": {value}
+                ""{KeywordPlaceholder}"": ""{value}""
             }}";
 
             Given.That.JsonSchemaLoaded(jsonSchema)
@@ -30,18 +29,18 @@ namespace DataModeling.Tests.Json.Keywords
         }
 
         [Theory]
-        [InlineData(1)]
-        [InlineData(100)]
-        public void Write_ValidStructure_ShouldWriteToJson(uint value)
+        [InlineData("melding")]
+        [InlineData("root")]
+        public void Write_ValidStructure_ShouldWriteToJson(string value)
         {
             Given.That.KeywordCreatedWithValue(value)
                 .When.KeywordSerializedAsJson()
-                .Then.SerializedKeywordShouldBe($@"{{""{KeywordPlaceholder}"":{value}}}");
+                .Then.SerializedKeywordShouldBe($@"{{""{KeywordPlaceholder}"":""{value}""}}");
         }
 
         [Theory]
-        [InlineData(1)]
-        public void Read_InvalidJson_ShouldThrow(uint value)
+        [InlineData("test")]
+        public void Read_InvalidJson_ShouldThrow(string value)
         {
             var jsonSchema = @$"{{
                     ""{KeywordPlaceholder}"": {{
@@ -50,7 +49,7 @@ namespace DataModeling.Tests.Json.Keywords
 
             var ex = Assert.Throws<JsonException>(() =>
                 Given.That.JsonSchemaLoaded(jsonSchema));
-            ex.Message.Should().Be("Expected number");
+            ex.Message.Should().Be("Expected string");
         }
     }
 }
