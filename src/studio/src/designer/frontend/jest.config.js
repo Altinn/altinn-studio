@@ -27,4 +27,8 @@ const config = {
   setupFilesAfterEnv: [path.join(__dirname, 'testing/setupTests.ts')],
 };
 
+if (process.env.CI) {
+  config.reporters.push('github-actions');
+}
+
 module.exports = config;
