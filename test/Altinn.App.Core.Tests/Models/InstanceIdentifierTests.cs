@@ -51,6 +51,7 @@ namespace Altinn.App.PlatformServices.Tests.Models
             instanceIdentifier.InstanceOwnerPartyId.Should().Be(512345);
             instanceIdentifier.InstanceGuid.Should().Be("2539cacc-1f49-4852-907b-d184e7285a60");
             instanceIdentifier.GetInstanceId().Should().Be("512345/2539cacc-1f49-4852-907b-d184e7285a60");
+            instanceIdentifier.ToString().Should().Be("512345/2539cacc-1f49-4852-907b-d184e7285a60");
             instanceIdentifier.IsNoInstance.Should().BeFalse();
         }
 

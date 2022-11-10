@@ -78,6 +78,34 @@ namespace Altinn.App.PlatformServices.Tests.Models
             appIdentifier1.Should().BeEquivalentTo(appIdentifier2);
             appIdentifier1.GetHashCode().Should().Be(appIdentifier2.GetHashCode());
         }
+
+        [Theory]
+        [InlineData("https://dihe.apps.tt02.altinn.no/dihe/redusert-foreldrebetaling-bhg/api/v1/eventsreceiver?code=16eda4f0-653a-4fdc-b516-c4702392a4eb", "dihe", "redusert-foreldrebetaling-bhg")]
+        public void CreateFromUrl_ValidUrl_ShouldConstruct(string url, string expectedOrg, string expectedApp)
+        {
+            AppIdentifier appIdentifier = AppIdentifier.CreateFromUrl(url);
+
+            appIdentifier.Org.Should().Be(expectedOrg);
+            appIdentifier.App.Should().Be(expectedApp);
+        }
+
+        [Theory]
+        [InlineData("https://dihe.apps.tt02.altinn.no/dihe")]
+        [InlineData("dihe/redusert-foreldrebetaling-bhg")]
+        public void CreateFromUrl_InvalidUrl_ShouldThrowArgumentException(string url)
+        {
+            Action action = () => AppIdentifier.CreateFromUrl(url);
+
+            action.Should().Throw<ArgumentException>();
+        }
+
+        [Fact]
+        public void CreateFromUrl_Null_ShouldThrowArgumentNullException()
+        {
+            Action action = () => AppIdentifier.CreateFromUrl(null);
+
+            action.Should().Throw<ArgumentNullException>();
+        }
     }
 
     #pragma warning restore CA1806 // Do not ignore method results

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
@@ -50,6 +51,12 @@ namespace Altinn.App.Api.Controllers
                 return Unauthorized();
             }
 
+            if (cloudEvent.Type == null)
+            {
+                _logger.LogError("CloudEvent.Type is null, unable to process event! Data received: {data}", JsonSerializer.Serialize(cloudEvent));
+                return BadRequest();
+            }
+
             IEventHandler eventHandler = _eventHandlerResolver.ResolveEventHandler(cloudEvent.Type);
             try
             {
@@ -62,11 +69,11 @@ namespace Altinn.App.Api.Controllers
             }
             catch (NotImplementedException)
             {
-                return BadRequest();
+                return BadRequest($"No eventhandler found that supports {cloudEvent.Type}");
             }
             catch (Exception ex)
             {
-                _logger.LogError("Unable to process event {eventType}. An exception was raised while checking for delivery status of message {messageid}. Exception throw {exceptionMessage}", cloudEvent.Type, cloudEvent.Id, ex.Message);
+                _logger.LogError("Unable to process event {eventType}. An exception was raised while processing message {messageid}. Exception thrown {exceptionMessage}", cloudEvent.Type, cloudEvent.Id, ex.Message);
                 return new StatusCodeResult(500);
             }
         }

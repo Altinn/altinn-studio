@@ -146,10 +146,35 @@ namespace Altinn.App.Core.Extensions
             }            
         }
 
+        /// <summary>
+        /// Checks if a service is already added to the collection.
+        /// </summary>
+        /// <returns>true if the services allready exists in the collection, otherwise false</returns>
+        public static bool IsAdded(this IServiceCollection services, Type serviceType)
+        {
+            if (services.Any(x => x.ServiceType == serviceType))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         private static void AddEventServices(IServiceCollection services)
         {
+            services.AddTransient<IEventHandler, SubscriptionValidationHandler>();
             services.AddTransient<IEventHandlerResolver, EventHandlerResolver>();
             services.TryAddSingleton<IEventSecretCodeProvider, KeyVaultEventSecretCodeProvider>();
+
+            // The event subscription client depends uppon a maskinporten messagehandler beeing
+            // added to the client during setup. As of now this needs to be done in the apps
+            // if subscription is to be added. This registration is to prevent the DI container
+            // from failing for the apps not using event subscription. If you try to use
+            // event subscription with this client you will get a 401 Unauthorized.
+            if (!services.IsAdded(typeof(IEventsSubscription)))
+            {
+                services.AddHttpClient<IEventsSubscription, EventsSubscriptionClient>();
+            }
         }
 
         private static void AddPdfServices(IServiceCollection services)

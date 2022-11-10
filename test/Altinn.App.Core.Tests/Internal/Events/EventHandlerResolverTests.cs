@@ -39,5 +39,15 @@ namespace Altinn.App.PlatformServices.Tests.Internal.Events
             eventHandler.EventType.Should().Be("app.events.unhandled");
             action.Should().Throw<NotImplementedException>();
         }
+
+        [Fact]
+        public void ResolveEventHandler_Null_ShouldReturnUnhandledEventHandler()
+        {
+            var factory = new EventHandlerResolver(new List<IEventHandler>());
+
+            IEventHandler eventHandler = factory.ResolveEventHandler(null);
+
+            eventHandler.Should().BeOfType<UnhandledEventHandler>();
+        }
     }
 }

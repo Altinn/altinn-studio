@@ -23,6 +23,7 @@ namespace Altinn.App.Api.Tests.Controllers
             _factory = factory;
             _secretCodeProvider = _factory.Services.GetRequiredService<IEventSecretCodeProvider>();
         }
+
         [Fact]
         public async Task Post_ValidEventType_ShouldReturnOk()
         {

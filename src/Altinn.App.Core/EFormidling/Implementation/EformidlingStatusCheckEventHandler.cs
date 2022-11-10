@@ -2,19 +2,25 @@
 using Altinn.ApiClients.Maskinporten.Interfaces;
 using Altinn.ApiClients.Maskinporten.Models;
 using Altinn.App.Core.Configuration;
+using Altinn.App.Core.Constants;
 using Altinn.App.Core.Extensions;
 using Altinn.App.Core.Features;
 using Altinn.App.Core.Helpers;
 using Altinn.App.Core.Infrastructure.Clients.Maskinporten;
 using Altinn.App.Core.Infrastructure.Clients.Storage;
+using Altinn.App.Core.Interface;
 using Altinn.App.Core.Models;
 using Altinn.Common.EFormidlingClient;
 using Altinn.Common.EFormidlingClient.Models;
 using Altinn.Platform.Storage.Interface.Models;
+using AltinnCore.Authentication.Utils;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using System;
 using System.Net;
+using System.Net.Http.Headers;
+using System.Runtime;
 using System.Security.Cryptography.X509Certificates;
 
 namespace Altinn.App.Core.EFormidling.Implementation
@@ -26,32 +32,35 @@ namespace Altinn.App.Core.EFormidling.Implementation
     {
         private readonly IEFormidlingClient _eFormidlingClient;
         private readonly ILogger<EformidlingStatusCheckEventHandler> _logger;
-        private readonly HttpClient _httpClient;
+        private readonly IHttpClientFactory _httpClientFactory;
         private readonly IMaskinportenService _maskinportenService;
         private readonly MaskinportenSettings _maskinportenSettings;
         private readonly IX509CertificateProvider _x509CertificateProvider;
         private readonly PlatformSettings _platformSettings;
+        private readonly GeneralSettings _generalSettings;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="EformidlingStatusCheckEventHandler"/> class.
         /// </summary>
         public EformidlingStatusCheckEventHandler(
             IEFormidlingClient eFormidlingClient,
-            HttpClient httpClient,
+            IHttpClientFactory httpClientFactory,
             ILogger<EformidlingStatusCheckEventHandler> logger,
             IMaskinportenService maskinportenService,
             IOptions<MaskinportenSettings> maskinportenSettings,
             IX509CertificateProvider x509CertificateProvider,
-            IOptions<PlatformSettings> platformSettings
+            IOptions<PlatformSettings> platformSettings,
+            IOptions<GeneralSettings> generalSettings
             )
         {
             _eFormidlingClient = eFormidlingClient;
             _logger = logger;
-            _httpClient = httpClient;
+            _httpClientFactory = httpClientFactory;
             _maskinportenService = maskinportenService;
             _maskinportenSettings = maskinportenSettings.Value;
             _x509CertificateProvider = x509CertificateProvider;
             _platformSettings = platformSettings.Value;
+            _generalSettings = generalSettings.Value;
         }
 
         /// <inheritDoc/>
@@ -64,6 +73,7 @@ namespace Altinn.App.Core.EFormidling.Implementation
 
             _logger.LogInformation("Received reminder for subject {subject}", subject);
 
+            AppIdentifier appIdentifier = AppIdentifier.CreateFromUrl(cloudEvent.Source.ToString());
             InstanceIdentifier instanceIdentifier = InstanceIdentifier.CreateFromUrl(cloudEvent.Source.ToString());
 
             // Instance GUID is used as shipment identifier
@@ -76,7 +86,8 @@ namespace Altinn.App.Core.EFormidling.Implementation
                 // Moving forward sending to Eformidling should considered as a ServiceTask with auto advance in the process
                 // when the message is confirmed.                
 
-                _ = await AddCompleteConfirmation(instanceIdentifier.InstanceOwnerPartyId, instanceIdentifier.InstanceGuid);
+                await ProcessMoveNext(appIdentifier, instanceIdentifier);
+                _ = await AddCompleteConfirmation(instanceIdentifier);
 
                 return true;
             }
@@ -100,21 +111,44 @@ namespace Altinn.App.Core.EFormidling.Implementation
             // and be handled by the Platform team manually.
         }
 
+        private async Task ProcessMoveNext(AppIdentifier appIdentifier, InstanceIdentifier instanceIdentifier)
+        {
+            string url = $"https://{appIdentifier.Org}.apps.{_generalSettings.HostName}/{appIdentifier}/instances/{instanceIdentifier}/process/next";
+
+            TokenResponse altinnToken = await GetOrganizationToken();
+            HttpClient httpClient = _httpClientFactory.CreateClient();
+
+            HttpResponseMessage response = await httpClient.PutAsync(altinnToken.AccessToken, url, new StringContent(string.Empty));
+
+            if (response.IsSuccessStatusCode)
+            {
+                _logger.LogInformation("Moved instance {instanceId} to next step.", instanceIdentifier);
+            }
+            else
+            {
+                _logger.LogError("Failed moving instance {instanceId} to next step. Received error: {errorCode}. Received content: {content}", instanceIdentifier, response.StatusCode, await response.Content.ReadAsStringAsync());
+            }
+        }
+
         /// This is basically a duplicate of the method in <see cref="InstanceClient"/>
         /// Duplication is done since the original method requires an http context
         /// with a logged on user/org, while we would like to authenticate against maskinporten
         /// here and now and avoid calling out of the app and back into the app on the matching
-        /// endpoint in InstanceController. This method should be remove once we have a better
+        /// endpoint in InstanceController. This method should be removed once we have a better
         /// alernative for authenticating the app/org without having a http request context with
         /// a logged on user/org.
-        private async Task<Instance> AddCompleteConfirmation(int instanceOwnerPartyId, Guid instanceGuid)
+        private async Task<Instance> AddCompleteConfirmation(InstanceIdentifier instanceIdentifier)
         {
-            string apiUrl = $"instances/{instanceOwnerPartyId}/{instanceGuid}/complete";
+            string url = $"instances/{instanceIdentifier.InstanceOwnerPartyId}/{instanceIdentifier.InstanceGuid}/complete";            
 
             TokenResponse altinnToken = await GetOrganizationToken();
 
-            _httpClient.BaseAddress = new Uri(_platformSettings.ApiStorageEndpoint);
-            HttpResponseMessage response = await _httpClient.PostAsync(altinnToken.AccessToken, apiUrl, new StringContent(string.Empty));
+            HttpClient httpClient = _httpClientFactory.CreateClient();
+            httpClient.BaseAddress = new Uri(_platformSettings.ApiStorageEndpoint);
+            httpClient.DefaultRequestHeaders.Add(General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey);
+            httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+            HttpResponseMessage response = await httpClient.PostAsync(altinnToken.AccessToken, url, new StringContent(string.Empty));
 
             if (response.StatusCode == HttpStatusCode.OK)
             {
@@ -129,7 +163,7 @@ namespace Altinn.App.Core.EFormidling.Implementation
         private async Task<TokenResponse> GetOrganizationToken()
         {
             X509Certificate2 x509cert = await _x509CertificateProvider.GetCertificate();
-            var maskinportenToken = await _maskinportenService.GetToken(x509cert, _maskinportenSettings.Environment, _maskinportenSettings.ClientId, "altinn:serviceowner/instances.read", string.Empty);
+            var maskinportenToken = await _maskinportenService.GetToken(x509cert, _maskinportenSettings.Environment, _maskinportenSettings.ClientId, "altinn:serviceowner/instances.read altinn:serviceowner/instances.write", string.Empty);
             var altinnToken = await _maskinportenService.ExchangeToAltinnToken(maskinportenToken, _maskinportenSettings.Environment);
 
             return altinnToken;
@@ -156,7 +190,7 @@ namespace Altinn.App.Core.EFormidling.Implementation
 
         private static bool MessageDeliveredToKS(Statuses statuses)
         {
-            return statuses.Content.FirstOrDefault(s => s.Status.ToLower() == "levert") != null;
+            return statuses.Content.FirstOrDefault(s => s.Status.ToLower() == "levert" || s.Status.ToLower() == "lest") != null;
         }
 
         private static bool MessageTimedOutToKS(Statuses statuses, out string errorMessage)

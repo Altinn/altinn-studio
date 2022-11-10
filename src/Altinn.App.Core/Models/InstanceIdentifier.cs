@@ -71,9 +71,9 @@ namespace Altinn.App.Core.Models
 
         /// <summary>
         /// Gets the instance id to be used when looking up this instance in storage api.
-        /// The url needs to conform to .../instances/{instanceOwerId}/{instanceOwnerGuid}/... pattern.
+        /// The url needs to conform to .../instances/{instanceOwnerId}/{instanceGuid}/... pattern.
         /// </summary>
-        /// <returns>Instance id combinging instance owner and instance guid.</returns>
+        /// <returns>Instance id combining instance owner and instance guid.</returns>
         public string GetInstanceId()
         {
             if (IsNoInstance)
@@ -82,6 +82,14 @@ namespace Altinn.App.Core.Models
             }
             
             return $"{InstanceOwnerPartyId}/{InstanceGuid}";
+        }
+
+        /// <summary>
+        /// A string on the format {instanceOwnerId}/{instanceGuid} without leading or trailing slashes.
+        /// </summary>
+        public override string ToString()
+        {
+            return GetInstanceId();
         }
 
         /// <summary>

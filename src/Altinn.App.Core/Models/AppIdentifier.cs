@@ -97,5 +97,39 @@ namespace Altinn.App.Core.Models
         {
             return Org.GetHashCode() ^ App.GetHashCode();
         }
+
+        /// <summary>
+        /// A absolute url expected to point to an Altinn 3 app ie. the first two segments of the path
+        /// has to be the organization and the app name for example: https://org.apps.altinn.no/{org}/{app}/api/...
+        /// </summary>
+        /// <param name="url">The url to parse</param>
+        /// <returns>A new instance of <see cref="AppIdentifier"/></returns>
+        public static AppIdentifier CreateFromUrl(string url)
+        {
+            if (url == null)
+            {
+                throw new ArgumentNullException(nameof(url));
+            }
+
+            if (!Uri.IsWellFormedUriString(url, UriKind.Absolute))
+            {
+                throw new ArgumentException($"The provided url ({url}) is not well formed. Please check that it is an absolute url with at least two path segments.");
+            }
+
+            Uri uri = new(url, UriKind.Absolute);
+
+            // Remove the first slash as this will only result in an empty first segment when splitting.
+            string[] segments = uri.PathAndQuery[1..].Split("/"); 
+
+            if (segments.Length < 2)
+            {
+                throw new ArgumentException($"The provided url ({url} must contain at least two path segments.)");
+            }
+
+            var org = segments[0];
+            var app = segments[1];
+
+            return new AppIdentifier(org, app);
+        }
     }
 }

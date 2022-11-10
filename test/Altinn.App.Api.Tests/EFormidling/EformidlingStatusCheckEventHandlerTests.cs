@@ -47,7 +47,7 @@ namespace Altinn.App.Api.Tests.EFormidling
         private static EformidlingStatusCheckEventHandler GetMockedEventHandler()
         {
             var eFormidlingClientMock = new Mock<IEFormidlingClient>();
-            var httpClient = new Mock<HttpClient>();
+            var httpClientFactoryMock = new Mock<IHttpClientFactory>();
             var eFormidlingLoggerMock = new Mock<ILogger<EformidlingStatusCheckEventHandler>>();
             
             var httpClientMock = new Mock<HttpClient>();
@@ -58,15 +58,18 @@ namespace Altinn.App.Api.Tests.EFormidling
             var maskinportenSettingsMock = new Mock<IOptions<MaskinportenSettings>>();
             var x509CertificateProviderMock = new Mock<IX509CertificateProvider>();
             var platformSettingsMock = new Mock<IOptions<PlatformSettings>>();
+            var generalSettingsMock = new Mock<IOptions<GeneralSettings>>();
 
             EformidlingStatusCheckEventHandler eventHandler = new(
                 eFormidlingClientMock.Object,
-                httpClient.Object,
+                httpClientFactoryMock.Object,
                 eFormidlingLoggerMock.Object,
                 maskinportenServiceMock.Object,
                 maskinportenSettingsMock.Object,
                 x509CertificateProviderMock.Object,
-                platformSettingsMock.Object);
+                platformSettingsMock.Object,
+                generalSettingsMock.Object
+                );
             return eventHandler;
         }
     }
