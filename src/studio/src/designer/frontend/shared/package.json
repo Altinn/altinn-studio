@@ -2,12 +2,6 @@
   "name": "app-shared",
   "version": "0.1.0",
   "author": "Altinn",
-  "browserslist": [
-    ">0.2%",
-    "not dead",
-    "not ie <= 11",
-    "not op_mini all"
-  ],
   "dependencies": {
     "@altinn/altinn-design-system": "0.23.0",
     "@altinn/schema-editor": "0.1.0",
@@ -32,34 +26,10 @@
     "react-select": "5.6.0",
     "redux-saga": "1.2.1"
   },
-  "jest": {
-    "transform": {
-      ".(ts|tsx)": "@swc/jest",
-      "node_modules(\\\\|/)(@?react-leaflet|react-dnd|dnd-core|@react-dnd|react-dnd-html5-backend)(\\\\|/).+\\.(j|t)sx?$": "@swc/jest"
-    },
-    "reporters": [
-      "default",
-      "jest-junit"
-    ],
-    "moduleNameMapper": {
-      "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/test/__mocks__/fileMock.js",
-      "\\.(css|less)$": "<rootDir>/test/__mocks__/styleMock.js",
-      "^@altinn/schema-editor/(.*)": "<rootDir>/../packages/schema-editor/src/$1",
-      "^app-shared/(.*)": "<rootDir>/$1"
-    },
-    "testRegex": "(/test/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ],
-    "testEnvironment": "jsdom",
-    "setupFilesAfterEnv": [
-      "<rootDir>/test/setupTests.ts"
-    ],
-    "transformIgnorePatterns": [
-      "node_modules(\\\\|/)(?!@?react-leaflet|react-dnd|dnd-core|@react-dnd|react-dnd-html5-backend)"
-    ]
+  "devDependencies": {
+    "jest": "29.3.1",
+    "tsc": "2.0.4",
+    "typescript": "4.8.4"
   },
   "license": "3-Clause BSD",
   "peerDependencies": {
@@ -67,8 +37,8 @@
   },
   "private": true,
   "scripts": {
+    "compile-ts": "npx tsc",
     "depcheck": "echo Checking $npm_package_name && npx depcheck && echo ",
-    "test": "jest --maxWorkers=50%",
-    "test:ci": "jest --runInBand"
+    "test": "jest --maxWorkers=50%"
   }
 }

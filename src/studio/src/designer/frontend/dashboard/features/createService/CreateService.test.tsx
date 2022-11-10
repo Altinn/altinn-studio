@@ -11,7 +11,7 @@ import {
   renderWithProviders,
   rest,
   setupServer,
-} from 'test/testUtils';
+} from '../../dashboardTestUtils';
 
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { CreateService } from './CreateService';

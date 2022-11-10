@@ -1,16 +1,18 @@
 {
   "ignores": [
+    "@svgr/webpack",
     "@swc/core",
     "@swc/jest",
-    "babel-loader",
+    "@testing-library/react",
+    "@testing-library/user-event",
     "css-loader",
     "jest",
     "jest-environment-jsdom",
     "source-map-loader",
     "style-loader",
     "svg-inline-loader",
+    "swc-loader",
     "terser-webpack-plugin",
-    "ts-loader",
     "webpack-cli"
   ]
 }

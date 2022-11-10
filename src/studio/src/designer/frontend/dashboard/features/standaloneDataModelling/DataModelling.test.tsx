@@ -2,7 +2,7 @@ import React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import DataModelling from './DataModelling';
 import { LoadingState } from 'app-shared/features/dataModelling/sagas/metadata';
-import { renderWithProviders } from 'test/testUtils';
+import { renderWithProviders } from '../../dashboardTestUtils';
 import { setupStore } from '../../app/store';
 
 // workaround for https://jestjs.io/docs/26.x/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom

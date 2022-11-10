@@ -10,9 +10,9 @@ import { RepoList } from './RepoList';
 const user = userEvent.setup();
 
 afterEach(() => jest.restoreAllMocks());
-jest.mock('services/userApi', () => ({
+jest.mock('../../services/userApi', () => ({
   __esModule: true,
-  ...jest.requireActual('services/userApi'),
+  ...jest.requireActual('../../services/userApi'),
 }));
 
 const repos = [

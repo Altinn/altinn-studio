@@ -24,44 +24,14 @@
     "typescript": "4.8.4",
     "uuid": "8.3.2"
   },
-  "jest": {
-    "transform": {
-      ".(ts|tsx)": "@swc/jest",
-      "node_modules(\\\\|/)(react-dnd|dnd-core|@react-dnd|react-dnd-html5-backend)(\\\\|/).+\\.(j|t)sx?$": "@swc/jest"
-    },
-    "transformIgnorePatterns": [
-      "node_modules(\\\\|/)(?!react-dnd|dnd-core|@react-dnd|react-dnd-html5-backend)"
-    ],
-    "reporters": [
-      "default",
-      "jest-junit"
-    ],
-    "moduleNameMapper": {
-      "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/test/__mocks__/fileMock.js",
-      "\\.(css|less)$": "<rootDir>/test/__mocks__/styleMock.js",
-      "^app-shared/(.*)": "<rootDir>/../shared/$1",
-      "^uuid$": "<rootDir>/../node_modules/uuid/dist/index.js"
-    },
-    "testRegex": "(/test/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js"
-    ],
-    "testEnvironment": "jsdom",
-    "setupFilesAfterEnv": [
-      "<rootDir>/test/setupTests.ts"
-    ]
+  "devDependencies": {
+    "jest": "29.3.1"
   },
   "license": "3-Clause BSD",
   "main": "index.js",
   "scripts": {
-    "clean": "rimraf dist compiled",
     "compile-ts": "tsc",
     "depcheck": "echo Checking $npm_package_name && npx depcheck && echo ",
-    "start": "cross-env NODE_ENV=development webpack-dev-server --config webpack.config.development.js --mode development",
-    "test": "jest --maxWorkers=50%",
-    "test:ci": "jest --runInBand",
-    "webpack-watch": "cross-env NODE_ENV=development webpack --config webpack.config.development.js --watch --progress"
+    "test": "jest --maxWorkers=50%"
   }
 }

@@ -25,13 +25,9 @@ module.exports = {
         loader: 'source-map-loader',
       },
       {
-        test: /\.tsx?/,
-        use: [
-          {
-            loader: 'ts-loader',
-            options: { transpileOnly: true },
-          },
-        ],
+        test: /\.([jt]sx?)?$/,
+        use: 'swc-loader',
+        exclude: /node_modules/,
       },
     ],
   },

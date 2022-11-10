@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "compiled",
+    "outDir": "dist",
     "module": "commonjs",
     "target": "es6",
     "downlevelIteration": true,
@@ -17,7 +17,9 @@
     "baseUrl": ".",
     "paths": {
       "app-shared/*": ["./shared/*"],
-      "@altinn/schema-editor/*": ["./packages/schema-editor/src/*"],
+      "@altinn/schema-editor/*": ["./packages/schema-editor/src/*"]
     }
   },
+  "files": ["declaration.d.ts"],
+  "exclude": ["node_modules", "tmp"]
 }

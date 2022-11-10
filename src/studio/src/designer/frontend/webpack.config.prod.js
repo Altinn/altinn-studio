@@ -17,12 +17,8 @@ module.exports = {
       ...commonConfig.module.rules,
       {
         test: /\.tsx?/,
-        use: [
-          {
-            loader: 'ts-loader',
-            options: { transpileOnly: false },
-          },
-        ],
+        use: 'swc-loader',
+        exclude: /node_modules/,
       },
     ],
   },

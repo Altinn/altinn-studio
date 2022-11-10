@@ -1,7 +1,11 @@
 import React from 'react';
 import { act, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
-import { handlers, renderWithProviders, setupServer } from 'test/testUtils';
+import {
+  handlers,
+  renderWithProviders,
+  setupServer,
+} from '../dashboardTestUtils';
 import { App } from './App';
 
 const server = setupServer(...handlers);

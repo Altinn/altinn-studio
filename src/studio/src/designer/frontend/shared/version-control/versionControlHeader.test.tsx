@@ -3,8 +3,8 @@ import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import { render } from '@testing-library/react';
 import { VersionControlContainer } from './versionControlHeader';
-import { sharedUrls } from 'app-shared/utils/urlHelper';
-import { setWindowLocationForTests } from 'app-shared/test/testUtils';
+import { sharedUrls } from '../utils/urlHelper';
+import { setWindowLocationForTests } from '../test/testUtils';
 
 const handlers = [
   rest.get(
