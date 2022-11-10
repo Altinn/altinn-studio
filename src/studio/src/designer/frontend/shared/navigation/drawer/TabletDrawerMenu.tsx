@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import classNames from 'classnames';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import type { IMenuItem } from './drawerMenuSettings';
 import {
   createLeftDrawerMenuSettings,
@@ -77,6 +77,7 @@ function TabletDrawerMenu({
     : ['meny', classNames(classes.commonButton, classes.closeButton)];
   const leftDrawerMenu =
     mainMenuItems && createLeftDrawerMenuSettings(leftDrawerMenuItems);
+  const { org, app } = useParams();
   return !logoutButton ? (
     <>
       <Drawer
@@ -93,7 +94,10 @@ function TabletDrawerMenu({
         SlideProps={{ appear: false }}
       >
         <List>
-          <ListItem button={true} onClick={handleLogout}>
+          <ListItem
+            button={true}
+            onClick={handleLogout}
+          >
             <ListItemText
               classes={{
                 primary: classNames(classes.menuItemText),
@@ -129,11 +133,16 @@ function TabletDrawerMenu({
                     timeout='auto'
                     unmountOnExit={true}
                   >
-                    <List component='span' disablePadding={true}>
+                    <List
+                      component='span'
+                      disablePadding={true}
+                    >
                       {leftDrawerMenu[menuItem.menuType].map(
                         (item: IMenuItem) => (
                           <Link
-                            to={item.navLink}
+                            to={item.navLink
+                              .replace(':org', org)
+                              .replace(':app', app)}
                             style={{ borderBottom: 0 }}
                             key={item.navLink}
                           >

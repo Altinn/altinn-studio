@@ -31,7 +31,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         protected JsonSchemaXsdMetadata Metadata { get; set; }
 
         /// <inheritdoc/>
-        public abstract JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema, Uri uri);
+        public abstract JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema);
 
         /// <summary>
         /// Determines the type of root model the provided schema has.

@@ -13,7 +13,7 @@ module.exports = {
     chunkIds: 'natural',
   },
   resolve: {
-    extensions: ['.ts', '.tsx', '.js', '.jsx', '.css', '.scss'],
+    extensions: ['.ts', '.tsx', '.js', '.jsx', '.css', '.scss', '.svg'],
     alias: {
       'app-shared': path.resolve(__dirname, '../shared/'),
       '@altinn/schema-editor': path.resolve(
@@ -32,6 +32,11 @@ module.exports = {
   module: {
     rules: [
       {
+        test: /\.svg$/i,
+        issuer: /\.[jt]sx?$/,
+        use: ['@svgr/webpack'],
+      },
+      {
         test: /\.jsx?/,
         exclude: /node_modules/,
         use: {
@@ -48,9 +53,9 @@ module.exports = {
           'style-loader',
           {
             loader: 'css-loader',
-            options: { modules: true }
-          }
-        ]
+            options: { modules: true },
+          },
+        ],
       },
       {
         test: /(?<!\.module)\.css$/,
@@ -68,8 +73,8 @@ module.exports = {
       },
       {
         test: /\.png$/,
-        type: 'asset/resource'
-      }
+        type: 'asset/resource',
+      },
     ],
   },
   plugins: [

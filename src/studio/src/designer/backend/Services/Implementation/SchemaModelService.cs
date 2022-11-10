@@ -125,7 +125,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await altinnAppGitRepository.SaveXsd(xsd,  Path.ChangeExtension(schemaName, "xsd"));
 
             var metamodelConverter = new JsonSchemaToMetamodelConverter(jsonSchemaConverterStrategy.GetAnalyzer());
-            ModelMetadata modelMetadata = metamodelConverter.Convert(schemaName, jsonContent);
+            ModelMetadata modelMetadata = metamodelConverter.Convert(jsonContent);
             string serializedModelMetadata = SerializeModelMetadata(modelMetadata);
             await altinnAppGitRepository.SaveModelMetadata(serializedModelMetadata, schemaName);
 
@@ -574,7 +574,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             var jsonSchemaConverterStrategy = JsonSchemaConverterStrategyFactory.SelectStrategy(jsonSchema);
             var metamodelConverter = new JsonSchemaToMetamodelConverter(jsonSchemaConverterStrategy.GetAnalyzer());
-            var modelMetadata = metamodelConverter.Convert(schemaName, jsonContent);
+            var modelMetadata = metamodelConverter.Convert(jsonContent);
             var serializedModelMetadata = SerializeModelMetadata(modelMetadata);
 
             await altinnAppGitRepository.SaveModelMetadata(serializedModelMetadata, schemaName);

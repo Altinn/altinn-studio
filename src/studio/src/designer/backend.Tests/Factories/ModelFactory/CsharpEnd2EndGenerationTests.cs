@@ -17,11 +17,11 @@ public class CsharpEnd2EndGenerationTests : Xsd2CsharpBaseClass<CsharpEnd2EndGen
 {
     [Theory]
     [ClassData(typeof(CSharpEnd2EndTestData))]
-    public void Convert_FromXsd_ShouldConvertToSameCSharp(string xsdSchemaPath, string modelName)
+    public void Convert_FromXsd_ShouldConvertToSameCSharp(string xsdSchemaPath)
     {
         Given.That.XsdSchemaLoaded(xsdSchemaPath)
             .When.XsdSchemaConverted2JsonSchema()
-            .And.JsonSchemaConverted2Metamodel(modelName)
+            .And.JsonSchemaConverted2Metamodel()
             .And.CSharpClassesCreatedFromMetamodel()
             .And.When.XsdSchemaConvertedToJsonSchemaOld(xsdSchemaPath)
             .And.OldJsonSchemaConvertedToMetamodelOld()
@@ -35,16 +35,16 @@ public class CsharpEnd2EndGenerationTests : Xsd2CsharpBaseClass<CsharpEnd2EndGen
     // enum, max/min exclusive, fractions are ignored in c# class.
     [Theory]
     [ClassData(typeof(CSharpE2ERestrictionsTestData))]
-    public void Convert_CSharpClass_ShouldContainRestriction(string xsdSchemaPath, string modelName, string propertyName, string expectedPropertyType, string restrictionString)
+    public void Convert_CSharpClass_ShouldContainRestriction(string xsdSchemaPath, string propertyName, string expectedPropertyType, string restrictionString)
     {
         Given.That.XsdSchemaLoaded(xsdSchemaPath)
             .When.XsdSchemaConverted2JsonSchema()
-            .And.JsonSchemaConverted2Metamodel(modelName)
+            .And.JsonSchemaConverted2Metamodel()
             .And.CSharpClassesCreatedFromMetamodel()
             .And.CSharpClassesCompiledToAssembly()
             .Then.CompiledAssembly.Should().NotBeNull();
 
-        And.PropertyShouldHaveDefinedTypeAndContainAnnotation(modelName, propertyName, expectedPropertyType, restrictionString);
+        And.PropertyShouldHaveDefinedTypeAndContainAnnotation("Root", propertyName, expectedPropertyType, restrictionString);
     }
 
     // Old classes are not maintained anymore, so Namespace feature that new classes have is added to old classes before comparison.

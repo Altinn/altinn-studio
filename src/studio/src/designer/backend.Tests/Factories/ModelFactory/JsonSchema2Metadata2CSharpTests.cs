@@ -155,7 +155,7 @@ namespace Designer.Tests.Factories.ModelFactory
 
         private static Assembly CreateCSharpInstanceNewWay(string xsdResource, string org, string app, string modelName)
         {
-            var modelMetadataNew = CreateMetamodelNewWay(xsdResource, org, app, modelName);
+            var modelMetadataNew = CreateMetamodelNewWay(xsdResource, org, app);
             var classesNewWay = GenerateCSharpClasses(modelMetadataNew);
             var assembly = Compiler.CompileToAssembly(classesNewWay);
 
@@ -164,26 +164,9 @@ namespace Designer.Tests.Factories.ModelFactory
 
         /// <summary>
         /// Parses the XSD, generates Json Schema and generates the meta model using
-        /// the old classes.
-        /// </summary>
-        private static ModelMetadata CreateMetamodelOldWay(string xsdResource, string org, string app)
-        {
-            Stream xsdStream = TestDataHelper.LoadDataFromEmbeddedResource(xsdResource);
-            XmlReader xmlReader = XmlReader.Create(xsdStream, new XmlReaderSettings { IgnoreWhitespace = true });
-
-            XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(xmlReader);
-            JsonSchema jsonSchema = xsdToJsonSchemaConverter.AsJsonSchema();
-
-            ModelMetadata modelMetadata = GenerateModelMetadata(org, app, jsonSchema);
-
-            return modelMetadata;
-        }
-
-        /// <summary>
-        /// Parses the XSD, generates Json Schema and generates the meta model using
         /// the new classes.
         /// </summary>
-        private static ModelMetadata CreateMetamodelNewWay(string xsdResource, string org, string app, string modelName = "melding")
+        private static ModelMetadata CreateMetamodelNewWay(string xsdResource, string org, string app)
         {
             Stream xsdStream = TestDataHelper.LoadDataFromEmbeddedResource(xsdResource);
             XmlReader xmlReader = XmlReader.Create(xsdStream, new XmlReaderSettings { IgnoreWhitespace = true });
@@ -198,7 +181,7 @@ namespace Designer.Tests.Factories.ModelFactory
 
             var metamodelConverter = new JsonSchemaToMetamodelConverter(new SeresJsonSchemaAnalyzer());
 
-            ModelMetadata actualMetamodel = metamodelConverter.Convert(modelName, convertedJsonSchemaString);
+            ModelMetadata actualMetamodel = metamodelConverter.Convert(convertedJsonSchemaString);
             return actualMetamodel;
         }
 

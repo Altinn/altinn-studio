@@ -69,10 +69,3 @@ export interface IServiceId {
   serviceId: string;
   saving: boolean;
 }
-
-export interface IAltinnWindow extends Window {
-  org: string;
-  app: string;
-  instanceId: string;
-  reportee: string;
-}

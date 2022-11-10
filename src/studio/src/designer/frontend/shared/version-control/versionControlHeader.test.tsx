@@ -2,9 +2,9 @@ import React from 'react';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import { render } from '@testing-library/react';
-import type { IAltinnWindow } from '../types/global';
 import { VersionControlContainer } from './versionControlHeader';
 import { sharedUrls } from 'app-shared/utils/urlHelper';
+import { setWindowLocationForTests } from 'app-shared/test/testUtils';
 
 const handlers = [
   rest.get(
@@ -27,8 +27,7 @@ const handlers = [
 const versionControlHeaderMockServer = setupServer(...handlers);
 
 export const versionControlHeaderBeforeAll = () => {
-  (window as Window as IAltinnWindow).org = 'test-org';
-  (window as Window as IAltinnWindow).app = 'test-app';
+  setWindowLocationForTests('test-org', 'test-app');
   versionControlHeaderMockServer.listen();
 };
 export const versionControlHeaderafterEach = () =>
@@ -49,7 +48,10 @@ describe('Shared > Version Control > VersionControlHeader', () => {
 
   it('should render header when type is header', async () => {
     const { queryByTestId } = render(
-      <VersionControlContainer language={{}} type='header' />,
+      <VersionControlContainer
+        language={{}}
+        type='header'
+      />,
     );
     expect(queryByTestId('version-control-header')).not.toBeNull();
     expect(queryByTestId('version-control-fetch-button')).toBeNull();
@@ -58,7 +60,10 @@ describe('Shared > Version Control > VersionControlHeader', () => {
 
   it('should render fetch-button when type is fetch-button', async () => {
     const { queryByTestId } = render(
-      <VersionControlContainer language={{}} type='fetchButton' />,
+      <VersionControlContainer
+        language={{}}
+        type='fetchButton'
+      />,
     );
     expect(queryByTestId('version-control-header')).toBeNull();
     expect(queryByTestId('version-control-fetch-button')).not.toBeNull();
@@ -67,7 +72,10 @@ describe('Shared > Version Control > VersionControlHeader', () => {
 
   it('should render share-button when type is share-button', async () => {
     const component = render(
-      <VersionControlContainer language={{}} type='shareButton' />,
+      <VersionControlContainer
+        language={{}}
+        type='shareButton'
+      />,
     );
     expect(component.queryByTestId('version-control-header')).toBeNull();
     expect(component.queryByTestId('version-control-fetch-button')).toBeNull();

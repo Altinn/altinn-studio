@@ -1,7 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
-import { HashRouter as Router } from 'react-router-dom';
+import { BrowserRouter } from 'react-router-dom';
 import throttle from 'lodash-es/throttle';
 import { App } from './app/App';
 import { run } from './app/rootSaga';
@@ -10,6 +10,7 @@ import {
   loadFromLocalStorage,
   saveToLocalStorage,
 } from './common/utils/localStorage';
+import { DASHBOARD_BASENAME } from 'app-shared/constants';
 
 const store = setupStore(loadFromLocalStorage());
 store.subscribe(
@@ -28,8 +29,8 @@ const root = createRoot(container);
 
 root.render(
   <Provider store={store}>
-    <Router>
+    <BrowserRouter basename={DASHBOARD_BASENAME}>
       <App />
-    </Router>
+    </BrowserRouter>
   </Provider>,
 );

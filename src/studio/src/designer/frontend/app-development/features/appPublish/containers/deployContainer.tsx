@@ -19,7 +19,7 @@ import type { IConfigurationState } from '../../../sharedResources/configuration
 import { ConfigurationActions } from '../../../sharedResources/configuration/configurationSlice';
 import AppDeploymentComponent from '../components/appDeploymentComponent';
 import { useAppDispatch, useAppSelector } from 'common/hooks';
-import type { IAltinnWindow } from '../../../types/global';
+import { useParams } from 'react-router-dom';
 
 const theme = createTheme(StudioTheme);
 
@@ -38,7 +38,7 @@ const styles = createStyles({
 type IDeployContainer = WithStyles<typeof styles>;
 
 export const DeployContainer = (props: IDeployContainer) => {
-  const { org, app } = window as Window as IAltinnWindow;
+  const { org, app } = useParams();
   const { classes } = props;
   const dispatch = useAppDispatch();
 
@@ -144,18 +144,53 @@ export const DeployContainer = (props: IDeployContainer) => {
         direction='row'
         className={classes.deployContainer}
       >
-        <AltinnContentLoader width={900} height={320}>
-          <rect x='60' y='13' rx='0' ry='0' width='650' height='76' />
-          <rect x='60' y='110' rx='0' ry='0' width='333' height='44' />
-          <rect x='60' y='171' rx='0' ry='0' width='202' height='41' />
-          <rect x='487' y='111' rx='0' ry='0' width='220' height='42' />
+        <AltinnContentLoader
+          width={900}
+          height={320}
+        >
+          <rect
+            x='60'
+            y='13'
+            rx='0'
+            ry='0'
+            width='650'
+            height='76'
+          />
+          <rect
+            x='60'
+            y='110'
+            rx='0'
+            ry='0'
+            width='333'
+            height='44'
+          />
+          <rect
+            x='60'
+            y='171'
+            rx='0'
+            ry='0'
+            width='202'
+            height='41'
+          />
+          <rect
+            x='487'
+            y='111'
+            rx='0'
+            ry='0'
+            width='220'
+            height='42'
+          />
         </AltinnContentLoader>
       </Grid>
     );
   }
 
   return (
-    <Grid container={true} direction='row' className={classes.deployContainer}>
+    <Grid
+      container={true}
+      direction='row'
+      className={classes.deployContainer}
+    >
       {environments.map((env: any, index: number) => {
         return (
           <AppDeploymentComponent

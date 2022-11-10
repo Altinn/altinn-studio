@@ -68,7 +68,7 @@ public sealed class XsdMinOccursKeyword: IJsonSchemaKeyword, IEquatable<XsdMinOc
     /// <summary>
     /// Serializer for the @xsdMinOccurs keyword
     /// </summary>
-    public class XsdMinOccursKeywordJsonConverter : JsonConverter<XsdMinOccursKeyword>
+    internal class XsdMinOccursKeywordJsonConverter : JsonConverter<XsdMinOccursKeyword>
     {
         /// <inheritdoc/>
         public override XsdMinOccursKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

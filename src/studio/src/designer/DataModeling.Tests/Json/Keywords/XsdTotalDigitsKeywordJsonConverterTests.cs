@@ -11,8 +11,6 @@ namespace DataModeling.Tests.Json.Keywords
     {
         private const string KeywordPlaceholder = "totalDigits";
 
-        protected override JsonConverter<XsdTotalDigitsKeyword> Converter => new XsdTotalDigitsKeyword.XsdTotalDigitsKeywordJsonConverter();
-
         protected override XsdTotalDigitsKeyword CreateKeywordWithValue(uint value) => new(value);
 
         [Theory]
@@ -37,7 +35,7 @@ namespace DataModeling.Tests.Json.Keywords
         public void Write_ValidStructure_ShouldWriteToJson(uint value)
         {
             Given.That.KeywordCreatedWithValue(value)
-                .When.KeywordWrittenToStream()
+                .When.KeywordSerializedAsJson()
                 .Then.SerializedKeywordShouldBe($@"{{""{KeywordPlaceholder}"":{value}}}");
         }
 

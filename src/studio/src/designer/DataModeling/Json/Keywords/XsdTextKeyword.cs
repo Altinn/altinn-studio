@@ -75,7 +75,7 @@ public sealed class XsdTextKeyword: IJsonSchemaKeyword, IEquatable<XsdTextKeywor
     /// <summary>
     /// Serializer for the @xsdText keyword
     /// </summary>
-    public class XsdTextKeywordJsonConverter : JsonConverter<XsdTextKeyword>
+    internal class XsdTextKeywordJsonConverter : JsonConverter<XsdTextKeyword>
     {
         /// <inheritdoc/>
         public override XsdTextKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

@@ -13,6 +13,7 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
+  "@xsdRootElement": "Root",
   "properties": {
     "a1": {
       "type": "string",

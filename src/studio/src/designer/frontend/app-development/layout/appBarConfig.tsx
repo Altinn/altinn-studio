@@ -15,22 +15,22 @@ export enum TopBarMenu {
 export const menu: TopBarMenuItem[] = [
   {
     key: TopBarMenu.About,
-    link: '/',
+    link: '/:org/:app',
   },
   {
     key: TopBarMenu.Create,
-    link: '/ui-editor',
+    link: '/:org/:app/ui-editor',
   },
   {
     key: TopBarMenu.Datamodel,
-    link: '/datamodel'
+    link: '/:org/:app/datamodel',
   },
   {
     key: TopBarMenu.Text,
-    link: '/texts',
+    link: '/:org/:app/texts',
   },
   {
     key: TopBarMenu.Deploy,
-    link: '/deploy',
+    link: '/:org/:app/deploy',
   },
 ];
