@@ -105,12 +105,12 @@ namespace Altinn.Studio.Designer.Configuration
         /// <summary>
         /// Constant for the location of org level text resources
         /// </summary>
-        public const string TEXTRESOURCE_ORG_FOLDER_NAME = "/text/";
+        public const string TEXTRESOURCE_ORG_FOLDER_NAME = "text/";
 
         /// <summary>
         /// Constant for the location of org level text resources
         /// </summary>
-        public const string TEXTRESOURCE_COMMON_FOLDER_NAME = "/altinn/common/text/";
+        public const string TEXTRESOURCE_COMMON_FOLDER_NAME = "altinn/common/text/";
 
         /// <summary>
         /// Constant for the location of widgets
@@ -194,12 +194,12 @@ namespace Altinn.Studio.Designer.Configuration
         /// <summary>
         /// Gets or sets The name of the FormLayout json file Name
         /// </summary>
-        public string FormLayoutJSONFileName { get; set; } = UI_RESOURCE_FOLDER_NAME + "FormLayout.json";
+        public string FormLayoutJSONFileName { get; set; } = Path.Join(UI_RESOURCE_FOLDER_NAME, "FormLayout.json");
 
         /// <summary>
         /// Gets or sets The name of the ThirdPartyComponents json file Name
         /// </summary>
-        public string ThirdPartyComponentsJSONFileName { get; set; } = RESOURCE_FOLDER_NAME + "ThirdPartyComponents.json";
+        public string ThirdPartyComponentsJSONFileName { get; set; } = Path.Join(RESOURCE_FOLDER_NAME, "ThirdPartyComponents.json");
 
         /// <summary>
         /// Gets or sets The ServiceMetadata file name
@@ -367,13 +367,8 @@ namespace Altinn.Studio.Designer.Configuration
             app = app.AsFileName();
             developer = developer.AsFileName();
 
-            if (developer != null)
-            {
-                developer += $"/{org}/{app}/";
-            }
-
             string repositoryLocation = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? RepositoryLocation;
-            return developer != null ? $"{repositoryLocation}{developer}" : $"{repositoryLocation}";
+            return Path.Combine(repositoryLocation, developer ?? string.Empty, org ?? string.Empty, app ?? string.Empty);
         }
 
         /// <summary>
@@ -389,12 +384,7 @@ namespace Altinn.Studio.Designer.Configuration
             app = app.AsFileName();
             developer = developer.AsFileName();
 
-            if (developer != null)
-            {
-                developer += "/";
-            }
-
-            return $"{RepositoryLocation}{developer}{org}/{app}/{TESTDATA_FOR_PARTY_FOLDER_NAME}";
+            return Path.Combine(RepositoryLocation, developer, org, app, TESTDATA_FOR_PARTY_FOLDER_NAME);
         }
 
         /// <summary>
@@ -409,7 +399,7 @@ namespace Altinn.Studio.Designer.Configuration
             org = org.AsFileName();
             app = app.AsFileName();
             developer = developer.AsFileName();
-            return Path.Join(RepositoryLocation, developer, org, app, FormLayoutJSONFileName);
+            return Path.Combine(RepositoryLocation, developer, org, app, FormLayoutJSONFileName);
         }
 
         /// <summary>
@@ -426,7 +416,7 @@ namespace Altinn.Studio.Designer.Configuration
             app = app.AsFileName();
             developer = developer.AsFileName();
             formLayout = formLayout.AsFileName();
-            return Path.Join(RepositoryLocation, developer, org, app, UI_RESOURCE_FOLDER_NAME, FORMLAYOUTS_RESOURCE_FOLDER_NAME, formLayout + ".json");
+            return Path.Combine(RepositoryLocation, developer, org, app, UI_RESOURCE_FOLDER_NAME, FORMLAYOUTS_RESOURCE_FOLDER_NAME, $"{formLayout}.json");
         }
 
         /// <summary>
@@ -441,13 +431,7 @@ namespace Altinn.Studio.Designer.Configuration
             org = org.AsFileName();
             app = app.AsFileName();
             developer = developer.AsFileName();
-
-            if (developer != null)
-            {
-                developer += "/";
-            }
-
-            return $"{RepositoryLocation}/{developer}{org}/{app}/{UI_RESOURCE_FOLDER_NAME}/{FORMLAYOUTS_RESOURCE_FOLDER_NAME}/";
+            return Path.Combine( RepositoryLocation, developer ?? string.Empty, org, app, UI_RESOURCE_FOLDER_NAME, FORMLAYOUTS_RESOURCE_FOLDER_NAME);
         }
 
         /// <summary>
@@ -463,12 +447,7 @@ namespace Altinn.Studio.Designer.Configuration
             app = app.AsFileName();
             developer = developer.AsFileName();
 
-            if (developer != null)
-            {
-                developer += "/";
-            }
-
-            return $"{RepositoryLocation}/{developer}{org}/{app}/{ThirdPartyComponentsJSONFileName}";
+            return Path.Combine(GetServicePath(org, app, developer), UI_RESOURCE_FOLDER_NAME, RuleHandlerFileName);
         }
 
         /// <summary>
@@ -480,7 +459,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetRuleHandlerPath(string org, string app, string developer)
         {
-            return Path.Join(GetServicePath(org, app, developer), UI_RESOURCE_FOLDER_NAME, RuleHandlerFileName);
+            return Path.Combine(GetServicePath(org, app, developer), UI_RESOURCE_FOLDER_NAME, RuleHandlerFileName);
         }
 
         /// <summary>
@@ -492,9 +471,9 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The full path</returns>
         public string GetLayoutSettingPath(string org, string app, string developer)
         {
-            return Path.Join(GetServicePath(org, app, developer), UI_RESOURCE_FOLDER_NAME, LAYOUT_SETTING_FILE);
+            return Path.Combine(GetServicePath(org, app, developer), UI_RESOURCE_FOLDER_NAME, LAYOUT_SETTING_FILE);
         }
-        
+
         /// <summary>
         /// Get name of the rule configuration file.
         /// </summary>
@@ -513,7 +492,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetServicePackagesPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + PACKAGES_LOCATION;
+            return Path.Combine(GetServicePath(org, app, developer), PACKAGES_LOCATION);
         }
 
         /// <summary>
@@ -525,7 +504,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetTemporaryPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + TEMP_LOCATION;
+            return Path.Combine(GetServicePath(org, app, developer), TEMP_LOCATION);
         }
 
         /// <summary>
@@ -537,7 +516,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetResourcePath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + RESOURCE_FOLDER_NAME;
+            return Path.Combine(GetServicePath(org, app, developer), RESOURCE_FOLDER_NAME);
         }
 
         /// <summary>
@@ -549,7 +528,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetRuleConfigPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + UI_RESOURCE_FOLDER_NAME + RULE_CONFIG_FILE_NAME;
+            return Path.Combine(GetServicePath(org, app, developer), UI_RESOURCE_FOLDER_NAME, RULE_CONFIG_FILE_NAME);
         }
 
         /// <summary>
@@ -561,7 +540,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetLanguageResourcePath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + CONFIG_FOLDER_PATH + LANGUAGE_RESOURCE_FOLDER_NAME;
+            return Path.Combine(GetServicePath(org, app, developer), CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME);
         }
 
         /// <summary>
@@ -573,7 +552,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetAppMetadataFilePath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + CONFIG_FOLDER_PATH + ApplicationMetadataFileName;
+            return Path.Combine(GetServicePath(org, app, developer), CONFIG_FOLDER_PATH, ApplicationMetadataFileName);
         }
 
         /// <summary>
@@ -585,7 +564,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetDynamicsPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + RESOURCE_FOLDER_NAME + DYNAMICS_FOLDER_NAME;
+            return Path.Combine(GetServicePath(org, app, developer), RESOURCE_FOLDER_NAME, DYNAMICS_FOLDER_NAME);
         }
 
         /// <summary>
@@ -597,7 +576,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The full path to the calculation folder, ending with '/'</returns>
         public string GetCalculationPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + CALCULATION_FOLDER_NAME;
+            return Path.Combine(GetServicePath(org, app, developer), CALCULATION_FOLDER_NAME);
         }
 
         /// <summary>
@@ -609,7 +588,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The full path to the validation folder, ending with '/'</returns>
         public string GetValidationPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + VALIDATION_FOLDER_NAME;
+            return Path.Combine(GetServicePath(org, app, developer), VALIDATION_FOLDER_NAME);
         }
 
         /// <summary>
@@ -621,7 +600,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The full path to the validation folder, ending with '/'</returns>
         public string GetAppLogicPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + APPLOGIC_FOLDER_NAME;
+            return Path.Combine(GetServicePath(org, app, developer), APPLOGIC_FOLDER_NAME);
         }
 
         /// <summary>
@@ -633,7 +612,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetTestPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + TEST_FOLDER_NAME;
+            return Path.Combine(GetServicePath(org, app, developer), TEST_FOLDER_NAME);
         }
 
         /// <summary>
@@ -677,7 +656,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetTestDataPath(string org, string app, string developer)
         {
-            return GetTestPath(org, app, developer) + TESTDATA_FOLDER_NAME;
+            return Path.Combine(GetTestPath(org, app, developer), TESTDATA_FOLDER_NAME);
         }
 
         /// <summary>
@@ -689,7 +668,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetMetadataPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + MODEL_METADATA_FOLDER_PATH;
+            return Path.Combine(GetServicePath(org, app, developer), MODEL_METADATA_FOLDER_PATH);
         }
 
         /// <summary>
@@ -746,7 +725,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetModelPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + "App/models/";
+            return Path.Combine(GetServicePath(org, app, developer), "App/models/");
         }
 
         /// <summary>
@@ -758,7 +737,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetImplementationPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + "Implementation/";
+            return Path.Combine(GetServicePath(org, app, developer), "Implementation/");
         }
 
         /// <summary>
@@ -770,7 +749,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The full path to the Authorization directory, ending with "/"</returns>
         public string GetAuthorizationPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + "Authorization/";
+            return Path.Combine(GetServicePath(org, app, developer), "Authorization/");
         }
 
         /// <summary>
@@ -782,7 +761,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetRulesPath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + "Rules/";
+            return Path.Combine(GetServicePath(org, app, developer), "Rules/");
         }
 
         /// <summary>
@@ -794,7 +773,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The full path, ending with "/"</returns>
         public string GetDataSourcePath(string org, string app, string developer)
         {
-            return GetServicePath(org, app, developer) + "DataSource/";
+            return Path.Combine(GetServicePath(org, app, developer), "DataSource/");
         }
 
         /// <summary>
@@ -805,7 +784,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The path to text resources in organisation level, ending with "/"</returns>
         public string GetOrgTextResourcePath(string org, string developer)
         {
-            return GetOrgPath(org, developer) + TEXTRESOURCE_ORG_FOLDER_NAME;
+            return Path.Combine(GetOrgPath(org, developer), TEXTRESOURCE_ORG_FOLDER_NAME);
         }
 
         /// <summary>
@@ -816,7 +795,7 @@ namespace Altinn.Studio.Designer.Configuration
         public string GetCommonTextResourcePath(string developer)
         {
             developer = developer.AsFileName();
-            return $"{RepositoryLocation}{developer}{TEXTRESOURCE_COMMON_FOLDER_NAME}";
+            return Path.Combine(RepositoryLocation, developer, TEXTRESOURCE_COMMON_FOLDER_NAME);
         }
 
         /// <summary>
@@ -828,7 +807,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <returns>The path to widget settings in the app repo, ending with "/"</returns>
         public string GetWidgetSettingsPath(string org, string app, string developer)
         {
-            return $"{GetServicePath(org, app, developer)}{WIDGETS_FOLDER_NAME}{WidgetSettingsFileName}";
+            return Path.Combine(GetServicePath(org, app, developer), WIDGETS_FOLDER_NAME, WidgetSettingsFileName);
         }
     }
 }

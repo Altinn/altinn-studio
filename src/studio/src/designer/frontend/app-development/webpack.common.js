@@ -20,9 +20,9 @@ module.exports = {
         __dirname,
         '../packages/schema-editor/src/',
       ),
-      utils: path.resolve(__dirname, 'utils/'),
-      services: path.resolve(__dirname, 'src/services/'),
-      common: path.resolve(__dirname, 'common/'),
+      utils: path.resolve(__dirname, './utils/'),
+      services: path.resolve(__dirname, './services/'),
+      common: path.resolve(__dirname, './common/'),
     },
     fallback: {
       'react/jsx-runtime': 'react/jsx-runtime.js',

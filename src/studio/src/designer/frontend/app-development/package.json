@@ -74,6 +74,7 @@
       "^ux-editor/(.*)": "<rootDir>/../ux-editor/$1",
       "^@altinn/schema-editor/(.*)": "<rootDir>/../packages/schema-editor/src/$1",
       "^common/(.*)": "<rootDir>/common/$1",
+      "^services/(.*)": "<rootDir>/services/$1",
       "^test/(.*)": "<rootDir>/test/$1",
       "^store/(.*)": "<rootDir>/store/$1",
       "^uuid$": "<rootDir>/../node_modules/uuid/dist/index.js"

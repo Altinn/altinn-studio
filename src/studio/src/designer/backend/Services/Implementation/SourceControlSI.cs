@@ -436,10 +436,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
             CheckAndCreateDeveloperFolder();
 
             string userName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string path = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation");
-            path = (path != null)
-                ? $"{path}{userName}/AuthToken.txt"
-                : $"{_settings.RepositoryLocation}{userName}/AuthToken.txt";
+            string path = Path.Combine(
+                Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? _settings.RepositoryLocation,
+                $"{userName}/AuthToken.txt");
 
             File.WriteAllText(path, token);
         }
@@ -485,9 +484,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private void CheckAndCreateDeveloperFolder()
         {
             string userName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string path = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation");
-            path = (path != null) ? $"{path}{userName}/" : $"{_settings.RepositoryLocation}{userName}/";
-
+            string path = Path.Combine(
+                Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? _settings.RepositoryLocation,
+                $"{userName}/");
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
@@ -503,11 +502,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public string FindLocalRepoLocation(string org, string repository)
         {
             string userName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string envRepoLocation = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation");
 
-            return (envRepoLocation != null)
-                ? $"{envRepoLocation}{userName}/{org}/{repository}"
-                : $"{_settings.RepositoryLocation}{userName}/{org}/{repository}";
+            return Path.Combine(
+                Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? _settings.RepositoryLocation,
+                $"{userName}/{org}/{repository}");
         }
 
         /// <inheritdoc />
