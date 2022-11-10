@@ -2,6 +2,7 @@ const path = require('path');
 
 /** @type {import('jest').Config} */
 const config = {
+  // cacheDirectory: path.join(__dirname),
   transform: {
     '\\.(ts|tsx)': '@swc/jest',
     // prettier-ignore
@@ -30,5 +31,4 @@ const config = {
 if (process.env.CI) {
   config.reporters.push('github-actions');
 }
-
 module.exports = config;
