@@ -1,4 +1,5 @@
 using System;
+using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
 using Json.Pointer;
 using Json.Schema;
@@ -25,6 +26,11 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 MessageName = UrlHelper.GetName(uri.ToString()),
                 MessageTypeName = string.Empty
             };
+
+            if (JsonSchema.TryGetKeyword(out XsdRootElementKeyword rootElementKeyword))
+            {
+                Metadata.MessageName = rootElementKeyword.Value;
+            }
 
             DetermineRootModel(JsonSchema);
             AnalyzeSchema(JsonPointer.Parse("#"), JsonSchema);

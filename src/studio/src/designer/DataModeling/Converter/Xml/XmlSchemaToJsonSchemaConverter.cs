@@ -96,7 +96,13 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
             if (root.HasValue)
             {
-                var (_, rootSchema) = root.Value;
+                var (rootName, rootSchema) = root.Value;
+
+                if (!string.IsNullOrWhiteSpace(rootName))
+                {
+                    builder.XsdRootElement(rootName);
+                }
+
                 if (rootSchema.TryGetKeyword(out RefKeyword messageTypeReference))
                 {
                     var messageTypeReferenceBuilder = new JsonSchemaBuilder();

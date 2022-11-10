@@ -117,6 +117,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
                         HandleRootMessage(keywords);
                         break;
+                    case XsdRootElementKeyword:
+                        keywords.MarkAsHandled<XsdRootElementKeyword>();
+                        break;
                 }
             }
 
