@@ -1,6 +1,5 @@
 import {
   Grid,
-  IconButton,
   makeStyles,
   Table,
   TableBody,
@@ -16,6 +15,7 @@ import cn from 'classnames';
 import { getLanguageFromKey } from '../../utils/language';
 import type { ILanguage } from '../../types';
 import { DeleteWarningPopover } from './DeleteWarningPopover';
+import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
 
 export interface IMobileTableItem {
   key: React.Key;
@@ -30,11 +30,9 @@ export interface IAltinnMobileTableItemProps {
   editIndex: number;
   onEditClick: () => void;
   editButtonText?: string;
-  editIconNode: React.ReactNode;
   deleteFunctionality?: {
     onDeleteClick: () => void;
     deleteButtonText: string;
-    deleteIconNode: React.ReactNode;
     popoverOpen: boolean;
     popoverPanelIndex: number;
     setPopoverOpen: (open: boolean) => void;
@@ -73,90 +71,24 @@ const useStyles = makeStyles({
   labelText: {
     color: theme.altinnPalette.primary.grey,
   },
-  tableEditButton: {
-    color: theme.altinnPalette.primary.blueDark,
-    fontWeight: 700,
-    borderRadius: '5px',
-    padding: '6px 12px',
-    margin: '8px 2px 8px -12px',
-    '@media (max-width: 768px)': {
-      fontSize: '2.5rem',
-      height: '3rem',
-      width: '3rem',
-      margin: '0',
-      padding: '0',
-      borderRadius: '50%',
-      outlineOffset: '-2px',
-    },
-    '&:hover': {
-      background: 'none',
-      outline: `1px dotted ${theme.altinnPalette.primary.blueDark}`,
-    },
-    '&:focus': {
-      background: theme.altinnPalette.primary.blueLighter,
-      outline: `2px dotted ${theme.altinnPalette.primary.blueDark}`,
-    },
-  },
-  editButtonActivated: {
-    background: theme.altinnPalette.primary.blueLighter,
-    outline: `2px dotted ${theme.altinnPalette.primary.blueDark}`,
-    '@media (max-width: 768px)': {
-      fontSize: '2.5rem',
-      height: '3rem',
-      width: '3rem',
-      margin: '0',
-      padding: '0',
-      borderRadius: '50%',
-    },
-    '&:hover': {
-      background: 'none',
-      outline: `1px dotted ${theme.altinnPalette.primary.blueDark}`,
-    },
-  },
-  deleteButton: {
-    color: theme.altinnPalette.primary.red,
-    fontWeight: 700,
-    padding: '8px 12px 6px 6px',
-    borderRadius: '0',
-    marginRight: '-12px',
-    '& .ai': {
-      fontSize: '2em',
-      marginTop: '-3px',
-    },
-    '@media (max-width: 768px)': {
-      height: '3rem',
-      justifySelf: 'right',
-      width: '3rem',
-      margin: '0',
-      marginRight: '2rem',
-      padding: '0',
-      borderRadius: '50%',
-      '& .ai': {
-        fontSize: '2.7rem',
-        marginTop: '0',
-      },
-    },
-    '&:hover': {
-      background: theme.altinnPalette.primary.red,
-      color: theme.altinnPalette.primary.white,
-    },
-    '&:focus': {
-      outlineColor: theme.altinnPalette.primary.red,
-    },
-  },
   editButtonCell: {
-    width: '150px',
-    padding: '0 !important',
+    width: '185px',
+    padding: '4px !important',
     '@media (max-width: 768px)': {
       width: '50px',
     },
   },
   deleteButtonCell: {
-    width: '100px',
-    padding: '0 !important',
+    width: '120px',
+    padding: '4px !important',
     '@media (max-width: 768px)': {
       width: '50px',
     },
+  },
+  tableButtonWrapper: {
+    width: '100%',
+    display: 'flex',
+    justifyContent: 'right',
   },
   textContainer: {
     width: '100%',
@@ -166,11 +98,14 @@ const useStyles = makeStyles({
     textOverflow: 'ellipsis',
   },
   editingRow: {
-    backgroundColor: 'rgba(227, 247, 255, 0.5)',
+    backgroundColor: theme.palette.secondary.transparentBlue,
     borderTop: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
     marginTop: '-1px',
     borderBottom: 0,
     boxSizing: 'border-box',
+    '& tbody': {
+      backgroundColor: theme.palette.secondary.transparentBlue,
+    },
   },
   aboveEditingRow: {
     borderBottom: 0,
@@ -188,7 +123,6 @@ export default function AltinnMobileTableItem({
   editIndex,
   onEditClick,
   editButtonText,
-  editIconNode,
   deleteFunctionality,
 }: IAltinnMobileTableItemProps) {
   const classes = useStyles();
@@ -196,7 +130,6 @@ export default function AltinnMobileTableItem({
 
   const {
     onDeleteClick,
-    deleteIconNode,
     deleteButtonText,
     popoverOpen,
     popoverPanelIndex,
@@ -246,57 +179,63 @@ export default function AltinnMobileTableItem({
                     {item.value}
                   </Typography>
                 </TableCell>
-                {index == 0 && (
-                  <TableCell
-                    className={classes.editButtonCell}
-                    align='right'
-                  >
-                    <IconButton
-                      className={cn(classes.tableEditButton, {
-                        [classes.editButtonActivated]: editIndex === tableItemIndex,
-                      })}
-                      onClick={onEditClick}
-                      data-testid='edit-button'
-                      aria-label={`${editButtonText}-${item.value}`}
-                    >
-                      {editIconNode}
-                      {!mobileViewSmall && editButtonText}
-                    </IconButton>
-                  </TableCell>
-                )}
-                {index == 0 &&
-                  deleteIconNode &&
-                  setPopoverOpen &&
+                <TableCell
+                  className={classes.editButtonCell}
+                  align='right'
+                >
+                  {index == 0 && (
+                    <div className={classes.tableButtonWrapper}>
+                      <Button
+                        data-testid='edit-button'
+                        variant={ButtonVariant.Quiet}
+                        color={ButtonColor.Secondary}
+                        iconName={valid ? 'Edit' : 'Warning'}
+                        iconPlacement={!mobileViewSmall ? 'right' : 'left'}
+                        onClick={onEditClick}
+                        aria-label={`${editButtonText}-${item.value}`}
+                      >
+                        {!mobileViewSmall && editButtonText}
+                      </Button>
+                    </div>
+                  )}
+                </TableCell>
+                {setPopoverOpen &&
                   onOpenChange &&
                   language &&
                   onPopoverDeleteClick &&
                   typeof popoverOpen === 'boolean' && (
                     <TableCell
-                      align='center'
+                      align='right'
                       className={cn([classes.deleteButtonCell], {
                         [classes.popoverCurrentCell]: tableItemIndex == popoverPanelIndex,
                       })}
                     >
-                      <DeleteWarningPopover
-                        trigger={
-                          <IconButton
-                            className={classes.deleteButton}
-                            onClick={onDeleteClick}
-                            data-testid='delete-button'
-                            aria-label={`${deleteButtonText}-${item.value}`}
-                          >
-                            {deleteIconNode}
-                            {!mobileViewSmall && deleteButtonText}
-                          </IconButton>
-                        }
-                        language={language}
-                        deleteButtonText={getLanguageFromKey('group.row_popover_delete_button_confirm', language)}
-                        messageText={getLanguageFromKey('group.row_popover_delete_message', language)}
-                        open={popoverPanelIndex == tableItemIndex && popoverOpen}
-                        setPopoverOpen={setPopoverOpen}
-                        onCancelClick={() => onOpenChange(tableItemIndex)}
-                        onPopoverDeleteClick={onPopoverDeleteClick(tableItemIndex)}
-                      />
+                      {index == 0 && (
+                        <div className={classes.tableButtonWrapper}>
+                          <DeleteWarningPopover
+                            trigger={
+                              <Button
+                                data-testid='delete-button'
+                                variant={ButtonVariant.Quiet}
+                                color={ButtonColor.Danger}
+                                iconName='Delete'
+                                iconPlacement={!mobileViewSmall ? 'right' : 'left'}
+                                onClick={onDeleteClick}
+                                aria-label={`${deleteButtonText}-${item.value}`}
+                              >
+                                {!mobileViewSmall && deleteButtonText}
+                              </Button>
+                            }
+                            language={language}
+                            deleteButtonText={getLanguageFromKey('group.row_popover_delete_button_confirm', language)}
+                            messageText={getLanguageFromKey('group.row_popover_delete_message', language)}
+                            open={popoverPanelIndex == tableItemIndex && popoverOpen}
+                            setPopoverOpen={setPopoverOpen}
+                            onCancelClick={() => onOpenChange(tableItemIndex)}
+                            onPopoverDeleteClick={onPopoverDeleteClick(tableItemIndex)}
+                          />
+                        </div>
+                      )}
                     </TableCell>
                   )}
               </TableRow>

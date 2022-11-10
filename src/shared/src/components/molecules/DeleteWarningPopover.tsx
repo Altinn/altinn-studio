@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import { Button, ButtonVariant, PanelVariant, PopoverPanel } from '@altinn/altinn-design-system';
+import { Button, ButtonVariant, ButtonColor, PanelVariant, PopoverPanel } from '@altinn/altinn-design-system';
 import { makeStyles } from '@material-ui/core';
 import type { ILanguage } from '../../types';
 import { getLanguageFromKey } from '../../utils/language';
@@ -51,14 +51,16 @@ export function DeleteWarningPopover({
       <div className={classes.popoverButtonContainer}>
         <Button
           data-testid='warning-popover-delete-button'
-          variant={ButtonVariant.Cancel}
+          variant={ButtonVariant.Filled}
+          color={ButtonColor.Danger}
           onClick={onPopoverDeleteClick}
         >
           {deleteButtonText}
         </Button>
         <Button
           data-testid='warning-popover-cancel-button'
-          variant={ButtonVariant.Secondary}
+          variant={ButtonVariant.Quiet}
+          color={ButtonColor.Secondary}
           onClick={onCancelClick}
         >
           {getLanguageFromKey('general.cancel', language)}

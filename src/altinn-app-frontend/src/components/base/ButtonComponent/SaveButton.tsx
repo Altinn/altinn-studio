@@ -9,7 +9,7 @@ export const SaveButton = ({ children, ...props }: ButtonProps) => {
   return (
     <WrappedButton
       {...props}
-      variant={ButtonVariant.Secondary}
+      variant={ButtonVariant.Outline}
     >
       {children}
     </WrappedButton>

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 
-import { createTheme, Grid, IconButton, makeStyles, TableCell, TableRow, useMediaQuery } from '@material-ui/core';
+import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
+import { createTheme, Grid, makeStyles, TableCell, TableRow, useMediaQuery } from '@material-ui/core';
 import cn from 'classnames';
 
 import { ExprDefaultsForGroup } from 'src/features/expressions';
@@ -138,7 +139,7 @@ const useStyles = makeStyles({
         '&::before': {
           display: 'block',
           content: "' '",
-          marginTop: '-15px',
+          marginTop: '-12px',
           width: '100%',
           position: 'absolute',
           borderTop: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
@@ -169,6 +170,11 @@ const useStyles = makeStyles({
   popoverCurrentCell: {
     zIndex: 1,
     position: 'relative',
+  },
+  buttonInCellWrapper: {
+    display: 'inline-flex',
+    justifyContent: 'right',
+    width: '100%',
   },
 });
 
@@ -384,11 +390,11 @@ export function RepeatingGroupTable({
                     {getTextResource(getTableTitle(component), textResources)}
                   </TableCell>
                 ))}
-                <TableCell style={{ width: '160px', padding: 0, paddingRight: '10px' }}>
+                <TableCell style={{ width: '185px', padding: 0, paddingRight: '10px' }}>
                   <span className={classes.visuallyHidden}>{getLanguageFromKey('general.edit', language)}</span>
                 </TableCell>
                 {!hideDeleteButton && (
-                  <TableCell style={{ width: '80px', padding: 0 }}>
+                  <TableCell style={{ width: '120px', padding: 0 }}>
                     <span className={classes.visuallyHidden}>{getLanguageFromKey('general.delete', language)}</span>
                   </TableCell>
                 )}
@@ -439,61 +445,57 @@ export function RepeatingGroupTable({
                         </TableCell>
                       ))}
                       <TableCell
-                        align='right'
-                        style={{
-                          width: '160px',
-                          padding: 0,
-                          paddingRight: '10px',
-                        }}
+                        style={{ width: '185px', padding: '4px' }}
                         key={`edit-${index}`}
                       >
-                        <IconButton
-                          className={cn(classes.tableEditButton, {
-                            [classes.editButtonActivated]: editIndex === index,
-                          })}
-                          onClick={() => handleEditClick(index)}
-                          aria-label={`${editButtonText}-${firstCellData}`}
-                        >
-                          <i
-                            className={
-                              rowHasErrors
-                                ? `ai ai-circle-exclamation a-icon ${classes.errorIcon} ${classes.editIcon}`
-                                : `fa fa-edit ${classes.editIcon}`
-                            }
-                          />
-                          {editButtonText}
-                        </IconButton>
+                        <div className={classes.buttonInCellWrapper}>
+                          <Button
+                            variant={ButtonVariant.Quiet}
+                            color={ButtonColor.Secondary}
+                            iconName={rowHasErrors ? 'Warning' : 'Edit'}
+                            iconPlacement='right'
+                            onClick={() => handleEditClick(index)}
+                            aria-label={`${editButtonText}-${firstCellData}`}
+                            data-testid='edit-button'
+                          >
+                            {editButtonText}
+                          </Button>
+                        </div>
                       </TableCell>
                       {!hideDeleteButton && (
                         <TableCell
-                          align='center'
-                          style={{ width: '80px', padding: 0 }}
+                          style={{ width: '120px', padding: '4px' }}
                           key={`delete-${index}`}
                           className={cn({
                             [classes.popoverCurrentCell]: index == popoverPanelIndex,
                           })}
                         >
-                          <DeleteWarningPopover
-                            trigger={
-                              <IconButton
-                                className={classes.deleteButton}
-                                disabled={deleting}
-                                onClick={() => handleDeleteClick(index)}
-                                aria-label={`${deleteButtonText}-${firstCellData}`}
-                              >
-                                <i className='ai ai-trash' />
-                                {deleteButtonText}
-                              </IconButton>
-                            }
-                            side='left'
-                            language={language}
-                            deleteButtonText={getLanguageFromKey('group.row_popover_delete_button_confirm', language)}
-                            messageText={getLanguageFromKey('group.row_popover_delete_message', language)}
-                            open={popoverPanelIndex == index && popoverOpen}
-                            setPopoverOpen={setPopoverOpen}
-                            onCancelClick={() => onOpenChange(index)}
-                            onPopoverDeleteClick={handlePopoverDeleteClick(index)}
-                          />
+                          <div className={classes.buttonInCellWrapper}>
+                            <DeleteWarningPopover
+                              trigger={
+                                <Button
+                                  variant={ButtonVariant.Quiet}
+                                  color={ButtonColor.Danger}
+                                  iconName='Delete'
+                                  iconPlacement='right'
+                                  disabled={deleting}
+                                  onClick={() => handleDeleteClick(index)}
+                                  aria-label={`${deleteButtonText}-${firstCellData}`}
+                                  data-testid='delete-button'
+                                >
+                                  {deleteButtonText}
+                                </Button>
+                              }
+                              side='left'
+                              language={language}
+                              deleteButtonText={getLanguageFromKey('group.row_popover_delete_button_confirm', language)}
+                              messageText={getLanguageFromKey('group.row_popover_delete_message', language)}
+                              open={popoverPanelIndex == index && popoverOpen}
+                              setPopoverOpen={setPopoverOpen}
+                              onCancelClick={() => onOpenChange(index)}
+                              onPopoverDeleteClick={handlePopoverDeleteClick(index)}
+                            />
+                          </div>
                         </TableCell>
                       )}
                     </AltinnTableRow>
@@ -552,22 +554,12 @@ export function RepeatingGroupTable({
                             container.textResourceBindings,
                           )
                     }
-                    editIconNode={
-                      <i
-                        className={
-                          rowHasErrors
-                            ? `ai ai-circle-exclamation ${classes.errorIcon}`
-                            : `fa fa-edit ${classes.editIcon}`
-                        }
-                      />
-                    }
                     deleteFunctionality={
                       hideDeleteButton
                         ? undefined
                         : {
                             onDeleteClick: () => handleDeleteClick(index),
                             deleteButtonText: getLanguageFromKey('general.delete', language),
-                            deleteIconNode: <i className={'ai ai-trash'} />,
                             popoverPanelIndex,
                             popoverOpen,
                             setPopoverOpen,

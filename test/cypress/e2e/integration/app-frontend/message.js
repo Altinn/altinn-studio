@@ -52,7 +52,7 @@ describe('Message', () => {
       .invoke('outerWidth')
       .then((width) => {
         width = Math.round(width);
-        expect(width).to.equal(96);
+        expect(width).to.equal(98);
       });
   });
 });

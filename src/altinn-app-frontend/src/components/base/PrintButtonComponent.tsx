@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, ButtonVariant } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
 
 import { useAppSelector } from 'src/common/hooks';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
@@ -11,7 +11,8 @@ export const PrintButtonComponent = () => {
 
   return (
     <Button
-      variant={ButtonVariant.Secondary}
+      variant={ButtonVariant.Outline}
+      color={ButtonColor.Primary}
       onClick={window.print}
     >
       {language && getTextFromAppOrDefault('general.print_button_text', textResources, language, undefined, true)}

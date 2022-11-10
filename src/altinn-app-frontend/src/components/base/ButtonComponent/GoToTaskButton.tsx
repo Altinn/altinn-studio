@@ -29,7 +29,7 @@ export const GoToTaskButton = ({ children, taskId, ...props }: Props) => {
       disabled={!canGoToTask}
       onClick={navigateToTask}
       {...props}
-      variant={ButtonVariant.Secondary}
+      variant={ButtonVariant.Outline}
     >
       {children}
     </WrappedButton>

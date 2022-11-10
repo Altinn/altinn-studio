@@ -12,7 +12,6 @@ describe('AltinnMobileTableItem', () => {
       deleteFunctionality: {
         onDeleteClick: jest.fn(),
         deleteButtonText: 'Delete',
-        deleteIconNode: <i></i>,
         popoverOpen: false,
         popoverPanelIndex: -1,
         onPopoverDeleteClick: () => jest.fn(),
@@ -59,7 +58,6 @@ describe('AltinnMobileTableItem', () => {
       deleteFunctionality: {
         onDeleteClick: onDeleteClick,
         deleteButtonText: 'Delete',
-        deleteIconNode: <i></i>,
         popoverOpen: false,
         popoverPanelIndex: -1,
         onPopoverDeleteClick: () => jest.fn(),

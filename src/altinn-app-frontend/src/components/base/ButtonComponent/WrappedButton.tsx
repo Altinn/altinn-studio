@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Button, ButtonVariant } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
 import classNames from 'classnames';
 
 import { ButtonLoader } from 'src/components/base/ButtonComponent/ButtonLoader';
@@ -20,10 +20,12 @@ export interface ButtonProps extends ButtonLoaderProps, BaseButtonProps {
 
 interface Props extends ButtonProps {
   variant?: ButtonVariant;
+  color?: ButtonColor;
 }
 
 export const WrappedButton = ({
-  variant = ButtonVariant.Secondary,
+  variant = ButtonVariant.Outline,
+  color = ButtonColor.Primary,
   onClick,
   id,
   children,
@@ -48,6 +50,7 @@ export const WrappedButton = ({
     >
       <Button
         variant={variant}
+        color={color}
         onClick={handleClick}
         id={id}
         disabled={disabled}

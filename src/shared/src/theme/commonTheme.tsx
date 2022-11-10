@@ -94,6 +94,7 @@ export const commonTheme = {
     secondary: {
       main: '#000',
       dark: '#d2d2d2',
+      transparentBlue: 'rgba(227, 247, 255, 0.5)',
     },
   },
 };

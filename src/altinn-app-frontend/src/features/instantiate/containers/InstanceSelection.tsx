@@ -1,6 +1,7 @@
 import React from 'react';
 
-import { Grid, IconButton, TableCell, Typography, useMediaQuery } from '@material-ui/core';
+import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
+import { Grid, TableCell, Typography, useMediaQuery } from '@material-ui/core';
 
 import { useAppSelector } from 'src/common/hooks';
 import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
@@ -35,23 +36,21 @@ function getDateDisplayString(timeStamp: string) {
   });
 }
 
-const typographyStyle = {
-  color: '#0062BA',
-  marginRight: '4px',
-  fontWeight: 700,
-};
-
-const iconStyle = {
-  color: '#0062BA',
-  fontSize: '24px',
-};
-
 const marginTop12 = {
   marginTop: '12px',
 };
 
 const marginTop26 = {
   marginTop: '26px',
+};
+
+const tableButtonWrapper = {
+  display: 'flex',
+  justifyContent: 'right',
+};
+
+const buttonCell = {
+  padding: '4px 36px 4px 4px',
 };
 
 export default function InstanceSelection({ instances, onNewInstance }: IInstanceSelectionProps) {
@@ -91,12 +90,6 @@ export default function InstanceSelection({ instances, onNewInstance }: IInstanc
                 onEditClick={() => openInstance(instance.id)}
                 key={instance.id}
                 editButtonText={getLanguageFromKey('instance_selection.continue', language)}
-                editIconNode={
-                  <i
-                    className='fa fa-edit'
-                    style={iconStyle}
-                  />
-                }
               />
             );
           })}
@@ -120,19 +113,18 @@ export default function InstanceSelection({ instances, onNewInstance }: IInstanc
               <AltinnTableRow key={instance.id}>
                 <TableCell>{getDateDisplayString(instance.lastChanged)}</TableCell>
                 <TableCell>{instance.lastChangedBy}</TableCell>
-                <TableCell align='right'>
-                  <IconButton onClick={() => openInstance(instance.id)}>
-                    <Typography
-                      variant='body1'
-                      style={typographyStyle}
+                <TableCell style={buttonCell}>
+                  <div style={tableButtonWrapper}>
+                    <Button
+                      variant={ButtonVariant.Quiet}
+                      color={ButtonColor.Secondary}
+                      iconName='Edit'
+                      iconPlacement='right'
+                      onClick={() => openInstance(instance.id)}
                     >
                       {getLanguageFromKey('instance_selection.continue', language)}
-                    </Typography>
-                    <i
-                      className='fa fa-edit'
-                      style={iconStyle}
-                    />
-                  </IconButton>
+                    </Button>
+                  </div>
                 </TableCell>
               </AltinnTableRow>
             );

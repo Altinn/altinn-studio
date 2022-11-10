@@ -39,7 +39,7 @@ describe('Group', () => {
         .then((table) => {
           cy.get(table).find(mui.tableElement).first().invoke('text').should('equal', 'NOK 1');
           cy.get(table).find(mui.tableElement).eq(1).invoke('text').should('equal', 'NOK 2');
-          cy.get(table).find(mui.tableElement).find(mui.buttonIcon).first().should('be.visible').click();
+          cy.get(table).find(mui.tableElement).find(appFrontend.group.edit).should('be.visible').click();
         });
       cy.get(appFrontend.group.mainGroup)
         .find(appFrontend.group.editContainer)
@@ -50,7 +50,7 @@ describe('Group', () => {
         .find(mui.tableBody)
         .then((table) => {
           cy.get(table).find(mui.tableElement).first().invoke('text').should('equal', 'automation');
-          cy.get(table).find(mui.tableElement).find(mui.buttonIcon).first().should('be.visible').click();
+          cy.get(table).find(mui.tableElement).find(appFrontend.group.edit).should('be.visible').click();
           cy.get(table).find(mui.tableElement).find(appFrontend.group.delete).should('be.visible').click();
         });
 
@@ -388,7 +388,7 @@ describe('Group', () => {
       .then((table) => {
         cy.get(table).find(mui.tableElement).first().invoke('text').should('equal', 'NOK 1');
         cy.get(table).find(mui.tableElement).eq(1).invoke('text').should('equal', 'NOK 2');
-        cy.get(table).find(mui.tableElement).find(mui.buttonIcon).first().should('be.visible').click();
+        cy.get(table).find(mui.tableElement).find(appFrontend.group.edit).should('be.visible').click();
       });
 
     // Navigate to nested group and test delete warning popoup cancel and confirm
