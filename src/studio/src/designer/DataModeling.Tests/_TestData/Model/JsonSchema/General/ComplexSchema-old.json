@@ -12,6 +12,7 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
+  "@xsdRootElement": "Root",
   "properties": {
     "Root": {
       "$ref": "#/$defs/customer",
