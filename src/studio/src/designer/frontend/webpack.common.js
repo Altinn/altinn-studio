@@ -9,9 +9,7 @@ module.exports = {
     path: path.resolve(__dirname, 'dist', process.env.npm_package_name),
     filename: `${process.env.npm_package_name}.js`,
   },
-  optimization: {
-    chunkIds: 'natural',
-  },
+
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.css', '.scss', '.svg'],
     alias: {

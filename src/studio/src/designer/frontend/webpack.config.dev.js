@@ -10,6 +10,9 @@ module.exports = {
   performance: {
     hints: 'warning',
   },
+  optimization: {
+    chunkIds: 'natural',
+  },
   module: {
     rules: [
       ...commonConfig.module.rules,

@@ -9,8 +9,13 @@ module.exports = {
     hints: false,
   },
   optimization: {
+    chunkIds: 'natural',
     minimize: true,
-    minimizer: [new TerserPlugin()],
+    minimizer: [
+      new TerserPlugin({
+        extractComments: false,
+      }),
+    ],
   },
   module: {
     rules: [
