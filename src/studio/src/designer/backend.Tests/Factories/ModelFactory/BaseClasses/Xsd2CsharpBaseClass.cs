@@ -69,7 +69,7 @@ public class Xsd2CsharpBaseClass<TTestType> : FluentTestsBase<TTestType>
         return this as TTestType;
     }
 
-    protected TTestType JsonSchemaConverted2Metamodel(string modelName)
+    protected TTestType JsonSchemaConverted2Metamodel()
     {
         var strategy = JsonSchemaConverterStrategyFactory.SelectStrategy(ConvertedJsonSchema);
         var metamodelConverter = new JsonSchemaToMetamodelConverter(strategy.GetAnalyzer());
@@ -80,7 +80,7 @@ public class Xsd2CsharpBaseClass<TTestType> : FluentTestsBase<TTestType>
             WriteIndented = true
         });
 
-        ModelMetadata = metamodelConverter.Convert(modelName, convertedJsonSchemaString);
+        ModelMetadata = metamodelConverter.Convert(convertedJsonSchemaString);
         return this as TTestType;
     }
 

@@ -90,10 +90,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         /// <summary>
         /// Converts a Json Schema string to a <see cref="ModelMetadata"/>
         /// </summary>
-        /// <param name="modelName">The name of the model.</param>
         /// <param name="jsonSchema">The Json Schema to be converted</param>
         /// <returns>An flattened representation of the Json Schema in the form of <see cref="ModelMetadata"/></returns>
-        public ModelMetadata Convert(string modelName, string jsonSchema)
+        public ModelMetadata Convert(string jsonSchema)
         {
             _modelMetadata = new ModelMetadata();
             _schema = JsonSchema.FromText(jsonSchema);
@@ -103,7 +102,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 ? xsdRootElementKeyword.Value
                 : "root";
 
-            _schemaXsdMetadata = _schemaAnalyzer.AnalyzeSchema(_schema, idKeywordParsed ? idKeyword.Id : new Uri(modelName, UriKind.Relative));
+            _schemaXsdMetadata = _schemaAnalyzer.AnalyzeSchema(_schema, idKeywordParsed ? idKeyword.Id : new Uri(ModelName, UriKind.Relative));
 
             ProcessSchema(_schema);
 

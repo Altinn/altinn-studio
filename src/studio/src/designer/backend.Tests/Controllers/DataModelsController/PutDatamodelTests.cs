@@ -128,7 +128,7 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
         await VerifyXsdFileContent(xsdSchemaLocation);
         string serializedExpectedContent = FormatJsonString(MinimumValidJsonSchema);
         VerifyFileContent(jsonSchemaLocation, serializedExpectedContent);
-        VerifyMetadataContent(metamodelLocation, modelName);
+        VerifyMetadataContent(metamodelLocation);
     }
 
     private static async Task VerifyXsdFileContent(string path)
@@ -148,11 +148,11 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
         VerifyFileContent(path, xsdContent);
     }
 
-    private static void VerifyMetadataContent(string path, string modelName)
+    private static void VerifyMetadataContent(string path)
     {
         var jsonSchemaConverterStrategy = JsonSchemaConverterStrategyFactory.SelectStrategy(JsonSchema.FromText(MinimumValidJsonSchema));
         var metamodelConverter = new JsonSchemaToMetamodelConverter(jsonSchemaConverterStrategy.GetAnalyzer());
-        var modelMetadata = metamodelConverter.Convert(modelName, MinimumValidJsonSchema);
+        var modelMetadata = metamodelConverter.Convert(MinimumValidJsonSchema);
         string serializedModelMetadata = SerializeModelMetadata(modelMetadata);
         VerifyFileContent(path, serializedModelMetadata);
     }
