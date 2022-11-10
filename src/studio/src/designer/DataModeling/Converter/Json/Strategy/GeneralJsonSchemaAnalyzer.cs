@@ -17,20 +17,15 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         }
 
         /// <inheritdoc/>
-        public override JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema, Uri uri)
+        public override JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema)
         {
             JsonSchema = schema;
             Metadata = new JsonSchemaXsdMetadata
             {
                 SchemaOrigin = "Standard",
-                MessageName = UrlHelper.GetName(uri.ToString()),
+                MessageName = JsonSchema.TryGetKeyword(out XsdRootElementKeyword rootElementKeyword) ? rootElementKeyword.Value : "root",
                 MessageTypeName = string.Empty
             };
-
-            if (JsonSchema.TryGetKeyword(out XsdRootElementKeyword rootElementKeyword))
-            {
-                Metadata.MessageName = rootElementKeyword.Value;
-            }
 
             DetermineRootModel(JsonSchema);
             AnalyzeSchema(JsonPointer.Parse("#"), JsonSchema);

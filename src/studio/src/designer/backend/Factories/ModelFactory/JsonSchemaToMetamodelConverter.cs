@@ -96,13 +96,9 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         {
             _modelMetadata = new ModelMetadata();
             _schema = JsonSchema.FromText(jsonSchema);
-            IdKeyword idKeyword;
-            var idKeywordParsed = _schema.TryGetKeyword(out idKeyword);
-            ModelName = _schema.TryGetKeyword(out XsdRootElementKeyword xsdRootElementKeyword)
-                ? xsdRootElementKeyword.Value
-                : "root";
 
-            _schemaXsdMetadata = _schemaAnalyzer.AnalyzeSchema(_schema, idKeywordParsed ? idKeyword.Id : new Uri(ModelName, UriKind.Relative));
+            _schemaXsdMetadata = _schemaAnalyzer.AnalyzeSchema(_schema);
+            ModelName = _schemaXsdMetadata.MessageName;
 
             ProcessSchema(_schema);
 
