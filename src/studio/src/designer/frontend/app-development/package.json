@@ -3,7 +3,7 @@
   "version": "0.1.2",
   "author": "Altinn",
   "dependencies": {
-    "@altinn/altinn-design-system": "0.23.0",
+    "@altinn/altinn-design-system": "0.23.3",
     "@mui/material": "5.10.12",
     "@mui/styles": "5.10.10",
     "@reduxjs/toolkit": "1.9.0",

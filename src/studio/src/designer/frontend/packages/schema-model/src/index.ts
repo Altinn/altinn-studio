@@ -9,7 +9,7 @@ export {
 } from './lib/restrictions';
 export { ROOT_POINTER } from './lib/constants';
 export type { UiSchemaNode, UiSchemaNodes } from './lib/types';
-export { ObjectKind, Keywords, FieldType, CombinationKind } from './lib/types';
+export { ObjectKind, Keywords, FieldType, CombinationKind, StringFormat, Dict } from './lib/types';
 export {
   createNodeBase,
   replaceLastPointerSegment,

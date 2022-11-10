@@ -1,3 +1,13 @@
+.formatFieldsRowContent {
+  align-items: center;
+  display: flex;
+  gap: 1rem;
+}
+
+.formatFieldsRowContent :first-child {
+  flex: 1;
+}
+
 .lengthFields {
   display: flex;
   flex-direction: row;

@@ -2,9 +2,15 @@ import React, { MouseEvent } from 'react';
 import { getTranslation } from '../../utils/language';
 import type { ILanguage } from '../../types';
 import type { UiSchemaNode } from '@altinn/schema-model';
-import { FieldType } from '@altinn/schema-model';
+import { FieldType, Dict } from '@altinn/schema-model';
 import { EnumField } from './EnumField';
-import { addEnum, deleteEnum, setRequired, setRestriction } from '../../features/editor/schemaEditorSlice';
+import {
+  addEnum,
+  deleteEnum,
+  setRequired,
+  setRestriction,
+  setRestrictions
+} from '../../features/editor/schemaEditorSlice';
 import { useDispatch } from 'react-redux';
 import { ArrayRestrictions } from './restrictions/ArrayRestrictions';
 import { NumberRestrictions } from './restrictions/NumberRestrictions';
@@ -20,6 +26,7 @@ export interface RestrictionItemProps {
   path: string;
   language: ILanguage;
   onChangeRestrictionValue: (id: string, key: string, value?: string) => void;
+  onChangeRestrictions: (id: string, restrictions: Dict) => void;
 }
 export interface ItemRestrictionsProps {
   selectedNode: UiSchemaNode;
@@ -47,6 +54,9 @@ export const ItemRestrictions = ({ selectedNode, language }: ItemRestrictionsPro
         value,
       }),
     );
+
+  const onChangeRestrictions = (path: string, restrictions: Dict) =>
+    dispatch(setRestrictions({ path, restrictions }));
 
   const onChangeEnumValue = (value: string, oldValue?: string) =>
     dispatch(
@@ -78,6 +88,7 @@ export const ItemRestrictions = ({ selectedNode, language }: ItemRestrictionsPro
     readonly: selectedNode.ref !== undefined,
     path: selectedNode.pointer ?? '',
     onChangeRestrictionValue,
+    onChangeRestrictions,
     language,
   };
   return (
