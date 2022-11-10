@@ -23,7 +23,7 @@ const mainMenuSettings: IMainMenu = {
     {
       displayText: 'Språk',
       activeSubHeaderSelection: 'Språk',
-      navLink: '/texts',
+      navLink: '/:org/:app/texts',
       menuType: 'language',
     },
   ],
@@ -47,7 +47,7 @@ const leftDrawerMenuSettings: IDrawerMenu = {
   language: [
     {
       displayText: 'Tekster',
-      navLink: '/texts',
+      navLink: '/:org/:app/texts',
       activeLeftMenuSelection: 'Tekster',
       iconClass: 'fa fa-write',
     },

@@ -1,6 +1,6 @@
 import React from 'react';
 import cn from 'classnames';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import AltinnIcon from '../../components/AltinnIcon';
 import type { IMenuItem } from './drawerMenuSettings';
 import { createLeftDrawerMenuSettings } from './drawerMenuSettings';
@@ -19,10 +19,9 @@ export default function LeftDrawerMenu({
   activeLeftMenuSelection,
   leftMenuItems,
 }: ILeftDrawerMenuProps) {
-
   const [iconColor, setIconColor] = React.useState<any>({});
   const [open, setOpen] = React.useState<boolean>(false);
-
+  const { org, app } = useParams();
   const handleDrawerOpen = () => {
     setOpen(true);
   };
@@ -62,19 +61,20 @@ export default function LeftDrawerMenu({
         onMouseLeave={handleDrawerClose}
         className={cn(
           classes.drawer,
-          open ? classes.drawerOpen : classes.drawerClosed
+          open ? classes.drawerOpen : classes.drawerClosed,
         )}
       >
         {menuToRender.map((menuItem: IMenuItem, index: number) => (
           <li key={menuItem.displayText}>
             <Link
               className={classes.menuLink}
-              to={menuItem.navLink}
+              to={menuItem.navLink.replace(':org', org).replace(':app', app)}
             >
               <span
                 className={cn(
                   classes.listItem,
-                  activeLeftMenuSelection === menuItem.activeLeftMenuSelection && classes.activeListItem,
+                  activeLeftMenuSelection ===
+                    menuItem.activeLeftMenuSelection && classes.activeListItem,
                 )}
                 onMouseEnter={onMouseEnterListItem(index)}
                 onMouseLeave={onMouseLeaveListItem(index)}

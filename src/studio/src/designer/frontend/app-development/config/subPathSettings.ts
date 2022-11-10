@@ -2,7 +2,7 @@ const subPathSettings = {
   about: [
     {
       displayText: 'Om appen',
-      navLink: '/',
+      navLink: '/:org/:app/',
       activeLeftMenuSelection: 'Om appen',
       iconClass: 'fa fa-info-circle',
     },
@@ -10,13 +10,13 @@ const subPathSettings = {
   create: [
     {
       displayText: 'UI-Editor',
-      navLink: '/ui-editor',
+      navLink: '/:org/:app/ui-editor',
       activeLeftMenuSelection: 'UI-Editor',
       iconClass: 'fa fa-settings',
     },
     {
       displayText: 'Tilgangsstyring',
-      navLink: '/accesscontrol',
+      navLink: '/:org/:app/accesscontrol',
       activeLeftMenuSelection: 'Access-Controll',
       iconClass: 'fa fa-keyhole',
     },
