@@ -91,11 +91,12 @@ export class AccessControlContainerClass extends React.Component<
   public handlePartyTypesAllowedChange(partyTypes: string[]) {
     this.setState((prev) => {
       const partyTypesAllowed = { ...prev.partyTypesAllowed };
-      Object.keys(partyTypesAllowed).forEach(
-        (key: keyof IPartyTypesAllowed) => {
-          partyTypesAllowed[key] = partyTypes.includes(key as string);
-        },
-      );
+      Object
+          .keys(partyTypesAllowed)
+          .forEach((key: keyof IPartyTypesAllowed) => {
+            partyTypesAllowed[key] = partyTypes.includes(key as string);
+          });
+
       return {
         partyTypesAllowed,
         setStateCalled: true,
@@ -162,7 +163,9 @@ export class AccessControlContainerClass extends React.Component<
           <p className={classes.sidebarSectionHeader}>
             {t('access_control.test_what_header')}
           </p>
-          <p className={classes.infoText}>{t('access_control.test_what')}</p>
+          <p className={classes.infoText}>
+            {t('access_control.test_what')}
+          </p>
         </div>
       </>
     );
@@ -173,10 +176,7 @@ export class AccessControlContainerClass extends React.Component<
       <div>
         <VersionControlHeader language={this.props.language} />
         <AltinnColumnLayout
-          header={getLanguageFromKey(
-            'access_control.header',
-            this.props.language,
-          )}
+          header={getLanguageFromKey('access_control.header', this.props.language,)}
           sideMenuChildren={this.renderSideMenu()}
         >
           {this.renderMainContent()}

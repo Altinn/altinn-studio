@@ -131,10 +131,7 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
 
   return (
     <>
-      <Grid
-        container={true}
-        direction='column'
-      >
+      <Grid container={true} direction='column'>
         <Grid
           container={true}
           direction='column'
@@ -216,11 +213,7 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
           },
         }}
       >
-        <Grid
-          container={true}
-          direction='row'
-          spacing={3}
-        >
+        <Grid container={true} direction='row' spacing={3}>
           <Grid
             item={true}
             xs={1}

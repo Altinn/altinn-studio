@@ -12,22 +12,12 @@ import classes from './Administration.module.css';
 import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 
 export function AdministrationComponent() {
-  const name = useAppSelector(
-    (state) => state.serviceInformation.serviceNameObj.name,
-  );
-  const description = useAppSelector(
-    (state) => state.serviceInformation.serviceDescriptionObj.description,
-  );
-  const id = useAppSelector(
-    (state) => state.serviceInformation.serviceIdObj.serviceId,
-  );
+  const name = useAppSelector((state) => state.serviceInformation.serviceNameObj.name);
+  const description = useAppSelector((state) => state.serviceInformation.serviceDescriptionObj.description);
+  const id = useAppSelector((state) => state.serviceInformation.serviceIdObj.serviceId);
   const language = useAppSelector((state) => state.languageState.language);
-  const repository = useAppSelector(
-    (state) => state.serviceInformation.repositoryInfo,
-  );
-  const initialCommit = useAppSelector(
-    (state) => state.serviceInformation.initialCommit,
-  );
+  const repository = useAppSelector((state) => state.serviceInformation.repositoryInfo);
+  const initialCommit = useAppSelector((state) => state.serviceInformation.initialCommit);
   const dispatch = useAppDispatch();
 
   const [newName, setNewName] = useState<string>(name);
@@ -137,10 +127,7 @@ export function AdministrationComponent() {
                 service={repository}
               />
             }
-            header={getLanguageFromKey(
-              'administration.administration',
-              language,
-            )}
+            header={getLanguageFromKey('administration.administration', language)}
           >
             <MainContent
               appDescription={newDescription}

@@ -164,11 +164,7 @@ export function App() {
           className={classes.contentWrapper}
           language={language}
           repoStatus={repoStatus}
-          subAppClassName={
-            repoStatus.hasMergeConflict
-              ? classes.mergeConflictApp
-              : classes.subApp
-          }
+          subAppClassName={repoStatus.hasMergeConflict ? classes.mergeConflictApp : classes.subApp}
         />
       </div>
     </ThemeProvider>

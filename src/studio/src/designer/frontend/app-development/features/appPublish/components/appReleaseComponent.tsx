@@ -106,29 +106,15 @@ function ReleaseComponent(props: IAppReleaseComponent) {
   }
 
   return (
-    <Grid
-      container={true}
-      direction='row'
-      className={classes.releaseWrapper}
-    >
-      <Grid
-        container={true}
-        direction='row'
-        justifyContent='space-between'
-      >
-        <Grid
-          item={true}
-          className={classes.releaseRow}
-        >
+    <Grid container={true} direction='row' className={classes.releaseWrapper}>
+      <Grid container={true} direction='row' justifyContent='space-between'>
+        <Grid item={true} className={classes.releaseRow}>
           <Typography className={classes.releaseText}>
             {getLanguageFromKey('app_release.release_version', language)}{' '}
             {release.tagName}
           </Typography>
         </Grid>
-        <Grid
-          item={true}
-          className={classes.releaseRow}
-        >
+        <Grid item={true} className={classes.releaseRow}>
           <Typography className={classes.releaseText}>
             {Moment(release.created).format('DD.MM.YYYY HH:mm')}
           </Typography>
@@ -141,10 +127,7 @@ function ReleaseComponent(props: IAppReleaseComponent) {
         className={classes.releaseRow}
       >
         <Grid item={true}>
-          <Grid
-            container={true}
-            direction='row'
-          >
+          <Grid container={true} direction='row'>
             {renderStatusIcon(release.build)}
             <Typography className={classes.releaseText}>
               <a
@@ -169,11 +152,7 @@ function ReleaseComponent(props: IAppReleaseComponent) {
           </Typography>
         </Grid>
       </Grid>
-      <Grid
-        container={true}
-        direction='row'
-        className={classes.releaseRow}
-      >
+      <Grid container={true} direction='row' className={classes.releaseRow}>
         <Grid item={true}>
           <Typography className={classes.releaseText}>
             {RenderBodyInprogressOrErrorBody()}

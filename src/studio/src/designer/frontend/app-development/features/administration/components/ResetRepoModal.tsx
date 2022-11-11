@@ -81,10 +81,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
           <label htmlFor='delete-repo-name'>
             <div>{t('administration.reset_repo_confirm_repo_name')}</div>
           </label>
-          <TextField
-            id='delete-repo-name'
-            onChange={onDeleteRepoNameChange}
-          />
+          <TextField id='delete-repo-name' onChange={onDeleteRepoNameChange}/>
           {resetting ? (
             <AltinnSpinner />
           ) : (
