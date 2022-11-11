@@ -45,7 +45,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
             var org = "ttd";
             var sourceRepository = "hvem-er-hvem";
             var developer = "testUser";
-            var targetRepository = Guid.NewGuid().ToString();
+            var targetRepository = TestDataHelper.GenerateTestRepoName();
 
             string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
             var repositoryDirectory = await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);

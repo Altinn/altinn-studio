@@ -52,7 +52,7 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
 
     public PutDatamodelTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
     {
-        TargetTestRepository = Guid.NewGuid().ToString();
+        TargetTestRepository = GenerateTestRepoName();
     }
 
     protected override void ConfigureTestServices(IServiceCollection services)

@@ -135,6 +135,8 @@ namespace Designer.Tests.Utils
             return Path.Combine(remoteRepositoryRootDirectory, org, repository);
         }
 
+        public static string GenerateTestRepoName(string suffix = null) => $"test-repo_{Guid.NewGuid()}{suffix}";
+
         public async static Task<string> CopyRepositoryForTest(string org, string repository, string developer, string targetRepsository)
         {
             var sourceAppRepository = GetTestDataRepositoryDirectory(org, repository, developer);

@@ -109,7 +109,7 @@ namespace Designer.Tests.Services
         public async Task CreateRepository_DoesNotExists_ShouldCreate()
         {
             string org = "ttd";
-            string repositoryName = Guid.NewGuid().ToString();
+            string repositoryName = TestDataHelper.GenerateTestRepoName();
             string developer = "testUser";
 
             var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();

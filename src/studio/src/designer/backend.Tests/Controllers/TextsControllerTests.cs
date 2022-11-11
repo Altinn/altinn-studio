@@ -53,7 +53,7 @@ namespace Designer.Tests.Controllers
         [Fact]
         public async Task Get_Markdown_200Ok()
         {
-            var targetRepository = Guid.NewGuid().ToString();
+            var targetRepository = TestDataHelper.GenerateTestRepoName();
             await TestDataHelper.CopyRepositoryForTest("ttd", "markdown-files", "testUser", targetRepository);
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
@@ -102,7 +102,7 @@ namespace Designer.Tests.Controllers
         [Fact]
         public async Task Put_UpdateNbTexts_200OK()
         {
-            var targetRepository = Guid.NewGuid().ToString();
+            var targetRepository = TestDataHelper.GenerateTestRepoName();
             await TestDataHelper.CopyRepositoryForTest("ttd", "new-texts-format", "testUser", targetRepository);
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
@@ -123,7 +123,7 @@ namespace Designer.Tests.Controllers
         [Fact]
         public async Task Put_Markdown_200OK()
         {
-            var targetRepository = Guid.NewGuid().ToString();
+            var targetRepository = TestDataHelper.GenerateTestRepoName();
             await TestDataHelper.CopyRepositoryForTest("ttd", "markdown-files", "testUser", targetRepository);
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
@@ -144,7 +144,7 @@ namespace Designer.Tests.Controllers
         [Fact]
         public async Task Put_ConvertTexts_204NoContent()
         {
-            var targetRepository = Guid.NewGuid().ToString();
+            var targetRepository = TestDataHelper.GenerateTestRepoName();
             await TestDataHelper.CopyRepositoryForTest("ttd", "convert-texts", "testUser", targetRepository);
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/convert";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
@@ -165,7 +165,7 @@ namespace Designer.Tests.Controllers
         [Fact]
         public async Task Put_UpdateInvalidFormat_400BadRequest()
         {
-            var targetRepository = Guid.NewGuid().ToString();
+            var targetRepository = TestDataHelper.GenerateTestRepoName();
             await TestDataHelper.CopyRepositoryForTest("ttd", "new-texts-format", "testUser", targetRepository);
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
@@ -189,7 +189,7 @@ namespace Designer.Tests.Controllers
         [Fact]
         public async Task Delete_200Ok()
         {
-            var targetRepository = Guid.NewGuid().ToString();
+            var targetRepository = TestDataHelper.GenerateTestRepoName();
             await TestDataHelper.CopyRepositoryForTest("ttd", "new-texts-format", "testUser", targetRepository);
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, dataPathWithData);
@@ -212,7 +212,7 @@ namespace Designer.Tests.Controllers
         [Fact]
         public async Task Delete_Markdown_200Ok()
         {
-            var targetRepository = Guid.NewGuid().ToString();
+            var targetRepository = TestDataHelper.GenerateTestRepoName();
             await TestDataHelper.CopyRepositoryForTest("ttd", "markdown-files", "testUser", targetRepository);
             string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Delete, dataPathWithData);
