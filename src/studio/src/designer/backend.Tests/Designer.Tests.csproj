@@ -49,13 +49,16 @@
   <ItemGroup>
     <Content Remove="_TestData\**\*.*" />
     <Compile Remove="_TestData\Repositories\*\*\$(TestRepoPrefix)*\**" />
+    <Compile Remove="_TestData\Remote\*\$(TestRepoPrefix)*\**" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="_TestData\**\*.*" />
     <EmbeddedResource Remove="_TestData\Repositories\*\*\$(TestRepoPrefix)*\**" />
+    <EmbeddedResource Remove="_TestData\Remote\*\$(TestRepoPrefix)*\**" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="_TestData\Repositories\*\*\$(TestRepoPrefix)*\**" />
+    <None Remove="_TestData\Remote\*\$(TestRepoPrefix)*\**" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="_TestData\FileSystemObjects\ttd\apps-test\App\config\texts\3e1099738e0d15490390a01c74b2abc16282d85f\directoryList.json" />
