@@ -68,9 +68,10 @@ test('Format selection appears with all options', () => {
   expect(screen.getByText(language[`schema_editor.format`])).toBeDefined();
   expect(screen.getByLabelText(language[`schema_editor.format`])).toBeDefined();
   Object.values(StringFormat).forEach((format) => {
-    expect(screen.getByRole('option', { name: language[`schema_editor.format_${format}`] })).toHaveValue(format);
+    expect(screen.getByRole('option', { name: language[`schema_editor.format_${format}`] }))
+      .toHaveAttribute('value', format);
   });
-  expect(screen.getByRole('option', { name: language['schema_editor.format_none'] })).toHaveValue('');
+  expect(screen.getByRole('option', { name: language['schema_editor.format_none'] })).toHaveAttribute('value', '');
 });
 
 test('Empty format option is selected by default', () => {
@@ -86,12 +87,12 @@ test('Given format option is selected', () => {
 
 test('onChangeRestrictionValue is called with correct input when format is changed', async () => {
   const { rerender } = renderStringRestrictions();
-  await user.selectOptions(screen.getByLabelText(language[`schema_editor.format`]), StringFormat.Date);
+  await user.click(screen.getByRole('option', { name: language[`schema_editor.format_${StringFormat.Date}`] }));
   expect(onChangeRestrictionValue).toHaveBeenCalledTimes(1);
   expect(onChangeRestrictionValue).toHaveBeenCalledWith(path, StrRestrictionKeys.format, StringFormat.Date);
   onChangeRestrictionValue.mockReset();
   rerender(<StringRestrictions {...defaultProps} />);
-  await user.selectOptions(screen.getByLabelText(language[`schema_editor.format`]), '');
+  await user.click(screen.getByRole('option', { name: language[`schema_editor.format_none`] }));
   expect(onChangeRestrictionValue).toHaveBeenCalledTimes(1);
   expect(onChangeRestrictionValue).toHaveBeenCalledWith(path, StrRestrictionKeys.format, undefined);
 });
