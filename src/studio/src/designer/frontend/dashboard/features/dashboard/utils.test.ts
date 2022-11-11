@@ -1,10 +1,6 @@
-import {
-  getReposLabel,
-  getUidFilter,
-  mergeRepos,
-} from 'features/dashboard/utils';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
-import { Organizations } from 'services/organizationApi';
+import { Organizations } from '../../services/organizationApi';
+import { getReposLabel, getUidFilter, mergeRepos } from './utils';
 
 const language = {
   'dashboard.all_apps': 'all apps',

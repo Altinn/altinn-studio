@@ -1,5 +1,5 @@
-import { applicationAboutPage, getRepoEditUrl } from 'common/utils/urlUtils';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
+import { applicationAboutPage, getRepoEditUrl } from './urlUtils';
 
 describe('urlUtils', () => {
   describe('applicationAboutPage', () => {

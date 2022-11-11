@@ -17,11 +17,13 @@ import cn from 'classnames';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import type { IRepository } from 'app-shared/types/global';
 import { User } from '../../resources/fetchDashboardResources/dashboardSlice';
-import { MakeCopyModal } from 'common/components/MakeCopyModal';
-import { useAppSelector } from 'common/hooks';
-import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from 'services/userApi';
-
-import { getRepoEditUrl } from 'common/utils/urlUtils';
+import { MakeCopyModal } from './MakeCopyModal';
+import { getRepoEditUrl } from '../utils/urlUtils';
+import {
+  useSetStarredRepoMutation,
+  useUnsetStarredRepoMutation,
+} from '../../services/userApi';
+import { useAppSelector } from '../hooks';
 
 export interface IRepoListProps {
   isLoading: boolean;
@@ -228,7 +230,7 @@ export const RepoList = ({
             <GridActionsCellItem
               className={cn(classes.actionLink, classes.repoLink)}
               data-testid='gitea-repo-link'
-              icon={<i className={cn('fa fa-gitea', classes.linkIcon, classes.repoLink)} />}
+              icon={<i className={cn('fa fa-gitea', classes.linkIcon, classes.repoLink,)}/>}
               key={'dashboard.repository' + params.row.id}
               label={getLanguageFromKey('dashboard.repository', language)}
               onClick={() => (window.location.href = params.row.html_url)}
@@ -238,7 +240,7 @@ export const RepoList = ({
             <GridActionsCellItem
               data-testid='edit-repo-link'
               className={cn(classes.actionLink, classes.editLink)}
-              icon={<i className={cn('fa fa-edit', classes.linkIcon, classes.editLink)} />}
+              icon={<i className={cn('fa fa-edit', classes.linkIcon, classes.editLink,)}/>}
               key={'dashboard.edit_app' + params.row.id}
               label={getLanguageFromKey('dashboard.edit_app', language)}
               onClick={() => (window.location.href = editUrl)}

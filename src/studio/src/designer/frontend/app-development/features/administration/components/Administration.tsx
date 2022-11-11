@@ -7,12 +7,11 @@ import VersionControlHeader from 'app-shared/version-control/versionControlHeade
 import { HandleServiceInformationActions } from '../handleServiceInformationSlice';
 import { MainContent } from './MainContent';
 import { SideMenuContent } from './SideMenuContent';
-import { useAppDispatch, useAppSelector } from 'common/hooks';
 import { useParams } from 'react-router-dom';
 import classes from './Administration.module.css';
+import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 
 export function AdministrationComponent() {
-
   const name = useAppSelector((state) => state.serviceInformation.serviceNameObj.name);
   const description = useAppSelector((state) => state.serviceInformation.serviceDescriptionObj.description);
   const id = useAppSelector((state) => state.serviceInformation.serviceIdObj.serviceId);
@@ -113,7 +112,10 @@ export function AdministrationComponent() {
     repository && newName !== null && newDescription !== null && newId !== null;
 
   return (
-    <div data-testid='administration-container' className={classes.root}>
+    <div
+      data-testid='administration-container'
+      className={classes.root}
+    >
       {render ? (
         <>
           <VersionControlHeader language={language} />

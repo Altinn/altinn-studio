@@ -1,6 +1,8 @@
 const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
 const commonConfig = require('./webpack.common');
-const setupMiddlewares = require('../mockend/src');
+const setupMiddlewares = require('./mockend/src');
+const devServerConfig = require('./mockend/config.json');
+
 module.exports = {
   ...commonConfig,
   mode: 'development',
@@ -8,22 +10,27 @@ module.exports = {
   performance: {
     hints: 'warning',
   },
+  optimization: {
+    chunkIds: 'natural',
+  },
   module: {
     rules: [
       ...commonConfig.module.rules,
+      {
+        test: /\.svg$/,
+        use: {
+          loader: 'svg-inline-loader',
+        },
+      },
       {
         enforce: 'pre',
         test: /\.js$/,
         loader: 'source-map-loader',
       },
       {
-        test: /\.tsx?/,
-        use: [
-          {
-            loader: 'ts-loader',
-            options: { transpileOnly: true },
-          },
-        ],
+        test: /\.([jt]sx?)?$/,
+        use: 'swc-loader',
+        exclude: /node_modules/,
       },
     ],
   },
@@ -31,9 +38,12 @@ module.exports = {
   devServer: {
     setupMiddlewares,
     hot: true,
-    port: 2004,
-    historyApiFallback: true,
     allowedHosts: 'all',
+    port:
+      process.env.npm_package_name === 'dashboard'
+        ? devServerConfig.DASHBOARD_PORT
+        : devServerConfig.APP_DEVELOPMENT_PORT,
+    historyApiFallback: true,
     client: {
       overlay: {
         errors: false,
@@ -43,8 +53,8 @@ module.exports = {
     headers: {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
-      'Access-Control-Allow-Headers':
-        'X-Requested-With, content-type, Authorization',
+      // prettier-ignore
+      'Access-Control-Allow-Headers': 'X-Requested-With, content-type, Authorization',
     },
   },
 };

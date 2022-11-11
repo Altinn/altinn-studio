@@ -17,17 +17,16 @@ import Header, {
   SelectedContextType,
 } from 'app-shared/navigation/main-header/Header';
 
-import { userHasAccessToSelectedContext } from 'common/utils';
-import { generateClassName, theme } from 'common/utils/muiUtils';
-import { useAppDispatch, useAppSelector } from 'common/hooks';
-import { CenterContainer } from 'common/components/CenterContainer';
-import { Footer } from 'common/components/Footer';
-import StandaloneDataModelling from 'features/standaloneDataModelling/DataModelling';
-import { useGetOrganizationsQuery } from 'services/organizationApi';
-import { Dashboard } from 'features/dashboard';
-import { CreateService } from 'features/createService/CreateService';
-
+import { userHasAccessToSelectedContext } from '../common/utils';
+import { generateClassName, theme } from '../common/utils/muiUtils';
+import { useAppDispatch, useAppSelector } from '../common/hooks';
+import { CenterContainer } from '../common/components/CenterContainer';
+import { Footer } from '../common/components/Footer';
 import './App.css';
+import { useGetOrganizationsQuery } from '../services/organizationApi';
+import { Dashboard } from '../features/dashboard';
+import { default as StandaloneDataModelling } from '../features/standaloneDataModelling/DataModelling';
+import { CreateService } from '../features/createService/CreateService';
 
 const Root = styled('div')(() => ({
   height: '100vh',
@@ -155,5 +154,3 @@ export const App = () => {
     </StylesProvider>
   );
 };
-
-export default App;

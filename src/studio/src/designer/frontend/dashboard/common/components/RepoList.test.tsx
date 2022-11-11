@@ -1,18 +1,18 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import { RepoList } from 'common/components/RepoList';
-import * as userApi from 'services/userApi';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IRepoListProps } from './RepoList';
+import * as userApi from '../../services/userApi';
+import { RepoList } from './RepoList';
 
 const user = userEvent.setup();
 
 afterEach(() => jest.restoreAllMocks());
-jest.mock('services/userApi', () => ({
+jest.mock('../../services/userApi', () => ({
   __esModule: true,
-  ...jest.requireActual('services/userApi'),
+  ...jest.requireActual('../../services/userApi'),
 }));
 
 const repos = [
@@ -84,7 +84,9 @@ describe('RepoList', () => {
     const useSetStarredRepoMutationSpy = jest.fn();
     jest
       .spyOn(userApi, 'useSetStarredRepoMutation')
-      .mockImplementation(jest.fn().mockReturnValue([useSetStarredRepoMutationSpy]));
+      .mockImplementation(
+        jest.fn().mockReturnValue([useSetStarredRepoMutationSpy]),
+      );
     render();
 
     const favoriteBtn = screen.getByRole('button', {
@@ -99,7 +101,9 @@ describe('RepoList', () => {
     const useUnsetStarredRepoMutationSpy = jest.fn();
     jest
       .spyOn(userApi, 'useUnsetStarredRepoMutation')
-      .mockImplementation(jest.fn().mockReturnValue([useUnsetStarredRepoMutationSpy]));
+      .mockImplementation(
+        jest.fn().mockReturnValue([useUnsetStarredRepoMutationSpy]),
+      );
     render();
 
     const unFavoriteBtn = screen.getByRole('button', {

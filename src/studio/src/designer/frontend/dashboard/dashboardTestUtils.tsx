@@ -6,9 +6,7 @@ import type { PreloadedState } from '@reduxjs/toolkit';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import { HashRouter as Router } from 'react-router-dom';
-
-import { setupStore } from 'app/store';
-import type { AppStore, RootState } from 'app/store';
+import { AppStore, RootState, setupStore } from './app/store';
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   preloadedState?: PreloadedState<RootState>;

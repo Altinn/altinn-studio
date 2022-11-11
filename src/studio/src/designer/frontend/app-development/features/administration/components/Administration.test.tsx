@@ -1,10 +1,10 @@
 import React from 'react';
 import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { Administration } from './Administration';
-import { renderWithProviders } from 'test/testUtils';
 import type { ICommit, IRepository } from '../../../types/global';
-import type { IHandleServiceInformationState } from 'features/administration/handleServiceInformationSlice';
 import { APP_DEVELOPMENT_BASENAME } from '../../../../constants';
+import { IHandleServiceInformationState } from '../handleServiceInformationSlice';
+import { renderWithProviders } from '../../../test/testUtils';
 
 describe('Administration', () => {
   const mockService: IRepository = {

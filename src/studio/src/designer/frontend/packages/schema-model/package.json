@@ -2,50 +2,16 @@
   "name": "@altinn/schema-model",
   "description": "JSON schema internal model",
   "version": "0.1.0",
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
-  },
   "dependencies": {
-    "app-shared": "0.1.0",
     "jsonpointer": "5.0.1"
   },
   "devDependencies": {
-    "@jest/globals": "29.2.2",
-    "ajv": "8.11.0",
-    "jest": "29.2.2",
-    "jest-junit": "14.0.1"
-  },
-  "jest": {
-    "transform": {
-      ".(ts|tsx)": "@swc/jest"
-    },
-    "reporters": [
-      "default",
-      "jest-junit"
-    ],
-    "moduleNameMapper": {
-      "^app-shared/(.*)": "<rootDir>/../../shared/$1"
-    },
-    "testRegex": "(test/__tests__/.*|\\.(test|spec))\\.(ts|tsx|js)$",
-    "moduleFileExtensions": [
-      "ts",
-      "js"
-    ]
+    "jest": "29.3.1"
   },
   "main": "src/index.ts",
   "private": true,
   "scripts": {
     "depcheck": "echo Checking $npm_package_name && npx depcheck && echo ",
-    "test": "jest --maxWorkers=50%",
-    "test:ci": "jest --runInBand"
+    "test": "jest --maxWorkers=50%"
   }
 }

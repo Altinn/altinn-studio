@@ -17,7 +17,7 @@ import {
   getGitCommitLink,
   getReleaseBuildPipelineLink,
 } from '../../../utils/urlHelper';
-import { useAppSelector } from 'common/hooks';
+import { useAppSelector } from '../../../common/hooks';
 
 const styles = createStyles({
   releaseWrapper: {

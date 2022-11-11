@@ -17,13 +17,13 @@ import {
   signOutUser,
 } from './sharedResources/user/userSlice';
 import PageHeader from './layout/PageHeader';
-import { useAppDispatch, useAppSelector } from 'common/hooks';
 
 import './App.css';
 import LeftMenu from './layout/LeftMenu';
 import { matchPath, useLocation } from 'react-router-dom';
 
 import classes from './App.module.css';
+import { useAppDispatch, useAppSelector } from './common/hooks';
 
 const theme = createTheme(altinnTheme);
 

@@ -1,5 +1,5 @@
 import { initialState as dashboardInitialState } from '../../resources/fetchDashboardResources/dashboardSlice';
-import type { RootState } from 'app/store';
+import { RootState } from '../../app/store';
 
 export const saveToLocalStorage = (state: RootState) => {
   try {

@@ -11,10 +11,10 @@ import cn from 'classnames';
 import { Link } from 'react-router-dom';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { useAppSelector } from 'common/hooks';
 import { FavoriteReposList } from './FavoriteReposList';
 import { OrgReposList } from './OrgReposList';
 import { SearchResultReposList } from './SearchResultReposList';
+import { useAppSelector } from '../../common/hooks';
 
 const theme = createTheme(altinnTheme);
 

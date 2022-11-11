@@ -6,14 +6,13 @@ import { ConfigurationActions } from '../../../sharedResources/configuration/con
 import DeployContainerComponent from '../containers/deployContainer';
 import ReleaseContainer from '../containers/releaseContainer';
 import { fetchDeployPermissions } from '../../../sharedResources/user/userSlice';
-import { useAppDispatch, useAppSelector } from 'common/hooks';
 import { useParams } from 'react-router-dom';
 import { InfoCard } from './InfoCard';
+import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 
 function DeployPage() {
   const { org } = useParams();
   const dispatch = useAppDispatch();
-
   const orgs: any = useAppSelector((state) => state.configuration.orgs);
   const language: any = useAppSelector((state) => state.languageState.language);
 

@@ -1,17 +1,20 @@
 import React from 'react';
 import { makeStyles } from '@mui/styles';
 import { Grid } from '@mui/material';
-import { useAppSelector } from 'common/hooks';
+
 import AltinnButton from 'app-shared/components/AltinnButton';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 
 import { ServiceOwnerSelector } from './ServiceOwnerSelector';
 import { RepoNameInput } from './RepoNameInput';
-import { DataModellingFormat, useAddRepoMutation } from 'services/repoApi';
-
-import { validateRepoName } from 'common/utils';
-import { applicationAboutPage } from 'common/utils/urlUtils';
+import { validateRepoName } from '../../common/utils';
+import { useAppSelector } from '../../common/hooks';
+import {
+  DataModellingFormat,
+  useAddRepoMutation,
+} from '../../services/repoApi';
+import { applicationAboutPage } from '../../common/utils/urlUtils';
 
 const useStyles = makeStyles({
   button: {

@@ -18,8 +18,8 @@ import { BuildResult } from '../../../sharedResources/appRelease/types';
 import type { IConfigurationState } from '../../../sharedResources/configuration/configurationSlice';
 import { ConfigurationActions } from '../../../sharedResources/configuration/configurationSlice';
 import AppDeploymentComponent from '../components/appDeploymentComponent';
-import { useAppDispatch, useAppSelector } from 'common/hooks';
 import { useParams } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 
 const theme = createTheme(StudioTheme);
 
