@@ -5,7 +5,10 @@ import type { DropTargetMonitor } from 'react-dnd';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { randomUUID } from 'crypto';
-import { DroppableDraggableContainer, dropTargetSpec as createDropTargetSpec } from './DroppableDraggableContainer';
+import {
+  DroppableDraggableContainer,
+  dropTargetSpec as createDropTargetSpec,
+} from './DroppableDraggableContainer';
 import { ItemType } from './helpers/dnd-types';
 
 test.each([[true], [false]])(

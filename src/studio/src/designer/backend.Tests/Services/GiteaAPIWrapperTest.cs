@@ -207,7 +207,7 @@ namespace Designer.Tests.Services
         public async Task Get_StarredRepos_Ok()
         {
             IList<Repository> repositories = GetRepositories();
-            
+
             var handlerMock = new Mock<HttpMessageHandler>(MockBehavior.Strict);
             HttpResponseMessage httpResponseMessage = new HttpResponseMessage()
             {
@@ -321,7 +321,7 @@ namespace Designer.Tests.Services
                  "SendAsync",
                  ItExpr.IsAny<HttpRequestMessage>(),
                  ItExpr.IsAny<CancellationToken>())
-              .ReturnsAsync(httpRepositoryResponseMessage)              
+              .ReturnsAsync(httpRepositoryResponseMessage)
               .Verifiable();
 
             // Setting up the response message to get from Gitea for a organization request (which is done as part of getting the repository)

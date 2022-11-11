@@ -34,7 +34,8 @@ class Rule extends React.Component<IRuleComponentProps, any> {
       for (let i = 0; this.props.ruleModelElements.length - 1; i++) {
         // eslint-disable-next-line max-len
         if (
-          this.props.ruleModelElements[i].name === this.props.ruleConnection[this.props.connectionId].selectedFunction
+          this.props.ruleModelElements[i].name ===
+          this.props.ruleConnection[this.props.connectionId].selectedFunction
         ) {
           this.setState({
             selectedFunctionNr: i,
@@ -148,37 +149,43 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                 <h2 className='a-h4'>
                   {this.props.language['ux_editor.modal_configure_rules_configure_input_header']}
                 </h2>
-                {Object.keys(this.props.ruleModelElements[selectedMethodNr].inputs).map((key: any, index: any) => {
-                  const paramName = key;
-                  return (
-                    <div className='align-items-center mb-1 row' key={index}>
-                      <div className='col-3 col'>
-                        <div className='form-group a-form-group mt-1 disabled'>
-                          <label className='a-form-label' htmlFor={paramName}>
-                            {this.props.language['ux_editor.modal_configure_rules_configure_input_param_helper']}
-                          </label>
-                          <input
-                            id={paramName}
-                            name={paramName}
-                            type='text'
-                            className='form-control'
-                            value={this.props.ruleModelElements[selectedMethodNr].inputs[key]}
-                            width={10}
-                            disabled={true}
+                {Object.keys(this.props.ruleModelElements[selectedMethodNr].inputs).map(
+                  (key: any, index: any) => {
+                    const paramName = key;
+                    return (
+                      <div className='align-items-center mb-1 row' key={index}>
+                        <div className='col-3 col'>
+                          <div className='form-group a-form-group mt-1 disabled'>
+                            <label className='a-form-label' htmlFor={paramName}>
+                              {
+                                this.props.language[
+                                  'ux_editor.modal_configure_rules_configure_input_param_helper'
+                                ]
+                              }
+                            </label>
+                            <input
+                              id={paramName}
+                              name={paramName}
+                              type='text'
+                              className='form-control'
+                              value={this.props.ruleModelElements[selectedMethodNr].inputs[key]}
+                              width={10}
+                              disabled={true}
+                            />
+                          </div>
+                        </div>
+                        <div className='col-9 col'>
+                          <SelectDataModelComponent
+                            onDataModelChange={this.handleParamDataChange.bind(null, paramName)}
+                            selectedElement={this.state.ruleConnection.inputParams[paramName]}
+                            hideRestrictions={true}
+                            language={this.props.language}
                           />
                         </div>
                       </div>
-                      <div className='col-9 col'>
-                        <SelectDataModelComponent
-                          onDataModelChange={this.handleParamDataChange.bind(null, paramName)}
-                          selectedElement={this.state.ruleConnection.inputParams[paramName]}
-                          hideRestrictions={true}
-                          language={this.props.language}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  }
+                )}
               </div>
               <div className='form-group a-form-group mt-2'>
                 <h2 className='a-h4'>
@@ -189,7 +196,11 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                   <div className='col col-3'>
                     <div className='form-group a-form-group mt-1 disabled'>
                       <label className='a-form-label' htmlFor='outParam'>
-                        {this.props.language['ux_editor.modal_configure_rules_configure_output_param_helper']}
+                        {
+                          this.props.language[
+                            'ux_editor.modal_configure_rules_configure_output_param_helper'
+                          ]
+                        }
                       </label>
                       <input
                         id='outParam0'
@@ -217,12 +228,20 @@ class Rule extends React.Component<IRuleComponentProps, any> {
           <div className='row mt-3'>
             <div className='col'>
               {this.state.ruleConnection.selectedFunction ? (
-                <button onClick={this.handleSaveEdit} type='submit' className='a-btn a-btn-success mr-2'>
+                <button
+                  onClick={this.handleSaveEdit}
+                  type='submit'
+                  className='a-btn a-btn-success mr-2'
+                >
                   {this.props.language['general.save']}
                 </button>
               ) : null}
               {this.props.connectionId ? (
-                <button type='button' className='a-btn a-btn-danger mr-2' onClick={this.handleDeleteConnection}>
+                <button
+                  type='button'
+                  className='a-btn a-btn-danger mr-2'
+                  onClick={this.handleDeleteConnection}
+                >
                   {this.props.language['general.delete']}
                 </button>
               ) : null}

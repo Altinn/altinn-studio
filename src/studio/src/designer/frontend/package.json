@@ -78,6 +78,7 @@
     "packages/schema-editor",
     "packages/schema-model",
     "packages/shared",
+    "packages/text-editor",
     "packages/ux-editor"
   ]
 }

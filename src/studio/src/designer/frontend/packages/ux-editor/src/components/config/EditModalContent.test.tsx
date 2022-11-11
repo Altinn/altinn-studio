@@ -96,7 +96,9 @@ describe('EditModalContent', () => {
       },
     });
 
-    expect(screen.getByLabelText('ux_editor.modal_properties_image_src_value_label')).toBeInTheDocument();
+    expect(
+      screen.getByLabelText('ux_editor.modal_properties_image_src_value_label')
+    ).toBeInTheDocument();
   });
 
   it('should not render Image component when component type is not Image', () => {
@@ -106,7 +108,9 @@ describe('EditModalContent', () => {
       },
     });
 
-    expect(screen.queryByLabelText('ux_editor.modal_properties_image_src_value_label')).not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText('ux_editor.modal_properties_image_src_value_label')
+    ).not.toBeInTheDocument();
   });
 });
 
@@ -178,7 +182,10 @@ const render = ({ componentProps = undefined, handleComponentUpdate = jest.fn } 
   return {
     rendered: rtlRender(
       <Provider store={store}>
-        <EditModalContent component={allComponentProps} handleComponentUpdate={handleComponentUpdate} />
+        <EditModalContent
+          component={allComponentProps}
+          handleComponentUpdate={handleComponentUpdate}
+        />
       </Provider>
     ),
     allComponentProps,

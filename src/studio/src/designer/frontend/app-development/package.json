@@ -10,6 +10,7 @@
   ],
   "dependencies": {
     "@altinn/altinn-design-system": "0.23.3",
+    "@altinn/text-editor": "0.1.0",
     "@mui/material": "5.10.14",
     "@mui/styles": "5.10.14",
     "@reduxjs/toolkit": "1.9.0",

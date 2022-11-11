@@ -10,7 +10,8 @@ export enum TopBarMenu {
   About = 'top_menu.about',
   Create = 'top_menu.create',
   Datamodel = 'top_menu.datamodel',
-  Text = 'top_menu.texts',
+  Text = 'top_menu.texts_old',
+  Texts = 'top_menu.texts',
   Deploy = 'top_menu.deploy',
   None = '',
 }
@@ -34,6 +35,11 @@ export const menu: TopBarMenuItem[] = [
   {
     key: TopBarMenu.Text,
     link: '/:org/:app/texts',
+    repositoryTypes: [RepositoryType.App],
+  },
+  {
+    key: TopBarMenu.Texts,
+    link: '/:org/:app/text-editor',
     repositoryTypes: [RepositoryType.App],
   },
   {
