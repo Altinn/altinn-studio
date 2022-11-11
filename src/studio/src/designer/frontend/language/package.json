@@ -1,9 +1,5 @@
 {
   "name": "@altinn-studio/language",
-  "scripts": {
-    "test": "jest",
-    "build": "node ./copy-files-to-dist.js"
-  },
   "jest": {
     "transform": {
       ".(ts|tsx)": "@swc/jest"
@@ -13,5 +9,9 @@
       "ts",
       "js"
     ]
+  },
+  "scripts": {
+    "build": "node ./copy-files-to-dist.js",
+    "test": "jest"
   }
 }

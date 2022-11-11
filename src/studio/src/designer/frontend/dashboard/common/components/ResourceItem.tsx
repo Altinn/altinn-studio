@@ -1,7 +1,7 @@
 import React from 'react';
 import { Grid } from '@mui/material';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { useAppSelector } from 'common/hooks';
+import { useAppSelector } from '../hooks';
 
 export interface ResourceItemProps {
   link: string;
@@ -16,7 +16,7 @@ export function ResourceItem({
   description,
   icon,
 }: ResourceItemProps) {
-  const language = useAppSelector(state => state.language.language);
+  const language = useAppSelector((state) => state.language.language);
 
   return (
     <Grid
@@ -30,7 +30,7 @@ export function ResourceItem({
         {icon}
       </Grid>
       <Grid item xs>
-        <a href={link} target="_blank" rel="noopener noreferrer">
+        <a href={link} target='_blank' rel='noopener noreferrer'>
           <p style={{ fontWeight: 500, color: 'black', margin: 0 }}>
             {getLanguageFromKey(label, language)}{' '}
           </p>{' '}

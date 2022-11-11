@@ -1,39 +1,33 @@
 const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const MonacoPlugin = require('monaco-editor-webpack-plugin');
 const path = require('path');
 
 module.exports = {
-  entry: './index.tsx',
+  entry: path.resolve(__dirname, process.env.npm_package_name, 'index.tsx'),
   output: {
-    path: path.resolve(__dirname, '../dist/dashboard'),
-    filename: 'dashboard.js',
+    path: path.resolve(__dirname, 'dist', process.env.npm_package_name),
+    filename: `${process.env.npm_package_name}.js`,
   },
+
   resolve: {
-    extensions: ['.ts', '.tsx', '.js', '.jsx', '.css', '.scss'],
+    extensions: ['.ts', '.tsx', '.js', '.jsx', '.css', '.scss', '.svg'],
     alias: {
-      'app-shared': path.resolve(__dirname, '../shared/'),
-      app: path.resolve(__dirname, './app/'),
-      features: path.resolve(__dirname, './features/'),
-      common: path.resolve(__dirname, './common/'),
-      services: path.resolve(__dirname, './services/'),
-      '@altinn/schema-editor': path.resolve(
-        __dirname,
-        '../packages/schema-editor/src/',
-      ),
+      'app-shared': path.resolve(__dirname, 'shared'),
+      // prettier-ignore
+      '@altinn/schema-editor': path.resolve(__dirname, 'packages/schema-editor/src'),
+    },
+    fallback: {
+      'react/jsx-runtime': 'react/jsx-runtime.js',
+      'react/jsx-dev-runtime': 'react/jsx-dev-runtime.js',
     },
   },
   module: {
     rules: [
       {
-        test: /\.jsx?/,
-        exclude: /node_modules/,
-        use: {
-          loader: 'babel-loader',
-        },
-      },
-      {
-        test: /\.scss$/,
-        use: ['style-loader', 'css-loader'],
+        test: /\.svg$/i,
+        issuer: /\.[jt]sx?$/,
+        use: ['@svgr/webpack'],
       },
       {
         test: /\.module\.css$/,
@@ -68,7 +62,10 @@ module.exports = {
   plugins: [
     new ForkTsCheckerWebpackPlugin(),
     new MiniCssExtractPlugin({
-      filename: 'dashboard.css',
+      filename: `${process.env.npm_package_name}.css`,
+    }),
+    new MonacoPlugin({
+      languages: ['typescript', 'javascript', 'csharp'],
     }),
   ],
 };

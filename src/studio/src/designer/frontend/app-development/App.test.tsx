@@ -1,9 +1,9 @@
 import React from 'react';
 import { App } from './App';
-import { renderWithProviders } from 'test/testUtils';
 import type { IUserState } from './sharedResources/user/userSlice';
 import { screen } from '@testing-library/react';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
+import { renderWithProviders } from './test/testUtils';
 
 describe('App', () => {
   afterEach(() => jest.clearAllMocks());

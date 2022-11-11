@@ -10,10 +10,10 @@ import {
 import { post } from 'app-shared/utils/networking';
 import { DashboardActions } from '../../resources/fetchDashboardResources/dashboardSlice';
 import { PopoverOrigin } from '@mui/material/Popover';
-import { useAppDispatch, useAppSelector } from 'common/hooks';
-import { validateRepoName } from 'common/utils';
 import { useNavigate } from 'react-router-dom';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
+import { validateRepoName } from '../utils';
+import { useAppDispatch, useAppSelector } from '../hooks';
 
 export interface IMakeCopyModalProps {
   anchorEl: HTMLElement;

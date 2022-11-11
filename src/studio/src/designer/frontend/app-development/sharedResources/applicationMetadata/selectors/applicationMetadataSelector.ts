@@ -1,5 +1,5 @@
 import { createSelector } from 'reselect';
-import type { RootState } from 'store';
+import { RootState } from '../../../store';
 
 const applicationMetadataSelector = (state: RootState) => {
   return state.applicationMetadataState.applicationMetadata;

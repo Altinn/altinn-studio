@@ -1,5 +1,5 @@
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
-import { validateRepoName, userHasAccessToSelectedContext } from 'common/utils';
+import { userHasAccessToSelectedContext, validateRepoName } from './index';
 
 describe('validateRepoName', () => {
   it('should return true when repo name does not contain invalid characters', () => {

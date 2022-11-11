@@ -1,13 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
+import {
+  Button,
+  ButtonColor,
+  ButtonVariant,
+} from '@altinn/altinn-design-system';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { formatNameAndDate } from 'app-shared/utils/formatDate';
 import type { ICommit, IRepository } from '../../../types/global';
 import { ResetRepoModal } from './ResetRepoModal';
 import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import { DownloadRepoModal } from './DownloadRepoModal';
-import { useAppDispatch, useAppSelector } from 'common/hooks';
 import classes from './SideMenuContent.module.css';
+import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 
 interface ISideMenuContent {
   language: any;

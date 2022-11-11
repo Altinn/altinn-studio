@@ -5,12 +5,13 @@ import { AltinnColumnLayout } from 'app-shared/components/AltinnColumnLayout';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import { ApplicationMetadataActions } from '../../../sharedResources/applicationMetadata/applicationMetadataSlice';
+import { makeGetApplicationMetadata } from '../../../sharedResources/applicationMetadata/selectors/applicationMetadataSelector';
 import {
-  makeGetApplicationMetadata
-} from '../../../sharedResources/applicationMetadata/selectors/applicationMetadataSelector';
-import type { RootState } from 'store';
-import { CheckboxGroup, CheckboxGroupVariant } from '@altinn/altinn-design-system';
+  CheckboxGroup,
+  CheckboxGroupVariant,
+} from '@altinn/altinn-design-system';
 import classes from './AccessControlContainer.module.css';
+import { RootState } from '../../../store';
 
 interface IAccessControlContainerProvidedProps {
   classes: any;
@@ -91,10 +92,11 @@ export class AccessControlContainerClass extends React.Component<
     this.setState((prev) => {
       const partyTypesAllowed = { ...prev.partyTypesAllowed };
       Object
-        .keys(partyTypesAllowed)
-        .forEach((key: keyof IPartyTypesAllowed) => {
-          partyTypesAllowed[key] = partyTypes.includes(key as string);
-        });
+          .keys(partyTypesAllowed)
+          .forEach((key: keyof IPartyTypesAllowed) => {
+            partyTypesAllowed[key] = partyTypes.includes(key as string);
+          });
+
       return {
         partyTypesAllowed,
         setStateCalled: true,
@@ -174,7 +176,7 @@ export class AccessControlContainerClass extends React.Component<
       <div>
         <VersionControlHeader language={this.props.language} />
         <AltinnColumnLayout
-          header={getLanguageFromKey('access_control.header', this.props.language)}
+          header={getLanguageFromKey('access_control.header', this.props.language,)}
           sideMenuChildren={this.renderSideMenu()}
         >
           {this.renderMainContent()}

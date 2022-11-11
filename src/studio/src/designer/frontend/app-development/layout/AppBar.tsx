@@ -14,8 +14,8 @@ import type { IMenuItem } from 'app-shared/navigation/drawer/drawerMenuSettings'
 import TabletDrawerMenu from 'app-shared/navigation/drawer/TabletDrawerMenu';
 import { menu } from './appBarConfig';
 import ProfileMenu from 'app-shared/navigation/main-header/profileMenu';
-import { useAppSelector } from 'common/hooks';
 import { getLanguageFromKey } from 'app-shared/utils/language';
+import { useAppSelector } from '../common/hooks';
 
 export interface IAppBarProps {
   activeSubHeaderSelection?: string;
