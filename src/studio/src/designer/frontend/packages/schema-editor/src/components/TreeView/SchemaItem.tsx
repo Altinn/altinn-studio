@@ -71,6 +71,7 @@ export function SchemaItem({ selectedNode, isPropertiesView, editMode, translate
         nodeId={selectedNode.pointer}
         classes={{ root: classNames(classes.treeItem, isRef && classes.isRef) }}
         onClick={(e: any) => onLabelClick(e, selectedNode)}
+        onFocusCapture={(e: any) => e.stopPropagation()}
         label={
           <SchemaItemLabel
             editMode={editMode}
