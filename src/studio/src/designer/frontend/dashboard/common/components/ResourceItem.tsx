@@ -26,28 +26,16 @@ export function ResourceItem({
       justifyContent='flex-start'
       spacing={2}
     >
-      <Grid
-        item
-        xs='auto'
-      >
+      <Grid item xs='auto'>
         {icon}
       </Grid>
-      <Grid
-        item
-        xs
-      >
-        <a
-          href={link}
-          target='_blank'
-          rel='noopener noreferrer'
-        >
+      <Grid item xs>
+        <a href={link} target='_blank' rel='noopener noreferrer'>
           <p style={{ fontWeight: 500, color: 'black', margin: 0 }}>
             {getLanguageFromKey(label, language)}{' '}
           </p>{' '}
         </a>
-        <p style={{ marginTop: 0 }}>
-          {getLanguageFromKey(description, language)}
-        </p>
+        <p style={{ marginTop: 0 }}>{getLanguageFromKey(description, language)}</p>
       </Grid>
     </Grid>
   );

@@ -11,7 +11,7 @@ import { makeGetRepoStatusSelector } from './handleMergeConflictSelectors';
 import HandleMergeConflictAbortComponent from './components/HandleMergeConflictAbort';
 import HandleMergeConflictDiscardChangesComponent from './components/HandleMergeConflictDiscardChanges';
 import HandleMergeConflictFileListComponent from './components/HandleMergeConflictFileList';
-import { RootState } from '../../store';
+import type { RootState } from '../../store';
 
 const theme = createTheme(altinnTheme);
 
@@ -107,19 +107,13 @@ export class HandleMergeConflictContainer extends React.Component<
     return (
       <React.Fragment>
         <ThemeProvider theme={theme}>
-          <div
-            className={classes.root}
-            id='handleMergeConflictContainer'
-          >
+          <div className={classes.root} id='handleMergeConflictContainer'>
             <Grid
               container={true}
               justifyContent='flex-start'
               alignItems='stretch'
             >
-              <Grid
-                item={true}
-                xs={12}
-              >
+              <Grid item={true} xs={12}>
                 {repoStatus.hasMergeConflict ? null : (
                   <VersionControlHeader language={language} />
                 )}
