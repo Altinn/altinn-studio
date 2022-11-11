@@ -16,7 +16,7 @@ interface IUseGetOptionsParams {
 
 export const useGetOptions = ({ optionsId, mapping, source }: IUseGetOptionsParams) => {
   const relevantFormData = useAppSelector(
-    (state) => source && getRelevantFormDataForOptionSource(state.formData.formData, source),
+    (state) => (source && getRelevantFormDataForOptionSource(state.formData.formData, source)) || {},
     shallowEqual,
   );
   const instance = useAppSelector((state) => state.instanceData.instance);
