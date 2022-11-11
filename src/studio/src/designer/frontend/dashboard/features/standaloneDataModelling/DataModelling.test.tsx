@@ -65,15 +65,7 @@ describe('DataModelling', () => {
       .mockImplementation(jest.fn());
     renderWithProviders(
       <Routes>
-        <Route
-          path='/'
-          element={
-            <Navigate
-              to={'/org/repo'}
-              replace
-            />
-          }
-        />
+        <Route path='/' element={<Navigate to={'/org/repo'} replace/>}/>
         <Route
           path='/:org/:repoName'
           element={<DataModelling language={language} />}

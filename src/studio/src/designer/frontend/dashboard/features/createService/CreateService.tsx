@@ -158,15 +158,8 @@ export const CreateService = () => {
 
   return (
     <div className={classes.marginTop}>
-      <Grid
-        container={true}
-        justifyContent='center'
-        direction='row'
-      >
-        <Grid
-          item={true}
-          xs={6}
-        >
+      <Grid container={true} justifyContent='center' direction='row'>
+        <Grid item={true} xs={6}>
           <div className={classes.marginBottom_24}>
             <ServiceOwnerSelector
               onServiceOwnerChanged={handleServiceOwnerChanged}
