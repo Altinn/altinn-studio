@@ -21,19 +21,22 @@ const iconSize = '30px';
 
 const useStyles = makeStyles((theme) => ({
   root: {
+    backgroundColor: 'white',
     boxSizing: 'border-box',
     height: '36px',
     fontSize: '1.6rem',
+    fontFamily: 'Altinn-DIN',
     borderWidth: '2px',
     borderStyle: 'solid',
+    borderRadius: 'var(--interactive_components-border_radius-normal)',
     marginBottom: '0px',
     borderColor: theme.altinnPalette.primary.blueMedium,
     '&:hover': {
       borderColor: theme.altinnPalette.primary.blueDark,
     },
-    '&:focus-within': {
-      outlineOffset: '0px',
-      outline: `2px solid ${theme.altinnPalette.primary.blueDark}`,
+    '&:has(input:focus-visible)': {
+      outline: 'var(--component-input-color-outline-focus) auto var(--border_width-thin)',
+      outlineOffset: 'calc(var(--border_width-thin) + var(--border_width-standard))',
     },
   },
   input: {
@@ -47,6 +50,17 @@ const useStyles = makeStyles((theme) => ({
   icon: {
     fontSize: iconSize,
     lineHeight: iconSize,
+    color: 'var(--colors-blue-900)',
+  },
+  iconButton: {
+    padding: 3,
+    '&:focus': {
+      outline: 'none',
+    },
+    '&:focus-visible': {
+      outline: 'var(--interactive_components-colors-focus_outline) solid var(--border_width-standard)',
+      outlineOffset: 'var(--border_width-standard)',
+    },
   },
   formHelperText: {
     fontSize: '1.4rem',
@@ -56,12 +70,32 @@ const useStyles = makeStyles((theme) => ({
     marginBottom: '0px',
     marginTop: '0px',
   },
+  dialog: {
+    '& *': {
+      fontFamily: 'Altinn-DIN',
+    },
+    '& .MuiTypography-h4': {
+      fontSize: '2.4rem',
+    },
+    '& .MuiTypography-body1': {
+      fontSize: '1.8rem',
+    },
+    '& .MuiTypography-body2': {
+      fontSize: '1.6rem',
+    },
+    '& .MuiTypography-caption': {
+      fontSize: '1.6rem',
+    },
+    '& .MuiTypography-subtitle1': {
+      fontSize: '1.6rem',
+    },
+  },
 }));
 
 class AltinnMomentUtils extends MomentUtils {
   getDatePickerHeaderText(date: moment.Moment) {
     if (date && date.locale() === 'nb') {
-      return date.format('ddd, D MMM');
+      return date.format('dddd, D. MMMM');
     }
     return super.getDatePickerHeaderText(date);
   }
@@ -162,6 +196,8 @@ function DatepickerComponent({
                 'aria-describedby': `description-${id}`,
               }),
             }}
+            DialogProps={{ className: classes.dialog }}
+            PopoverProps={{ className: classes.dialog }}
             FormHelperTextProps={{
               classes: {
                 root: classes.formHelperText,
@@ -170,6 +206,9 @@ function DatepickerComponent({
             KeyboardButtonProps={{
               'aria-label': getLanguageFromKey('date_picker.aria_label_icon', language),
               id: 'date-icon-button',
+              classes: {
+                root: classes.iconButton,
+              },
             }}
             leftArrowButtonProps={{
               'aria-label': getLanguageFromKey('date_picker.aria_label_left_arrow', language),

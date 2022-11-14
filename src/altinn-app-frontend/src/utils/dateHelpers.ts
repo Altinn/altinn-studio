@@ -14,6 +14,7 @@ export function getISOString(potentialDate: string | undefined): string | undefi
   }
 
   const momentDate = moment(potentialDate);
+  momentDate.set('hour', 12).set('minute', 0).set('second', 0).set('millisecond', 0);
   return momentDate.isValid() ? momentDate.toISOString() : undefined;
 }
 
