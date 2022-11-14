@@ -15,6 +15,9 @@ changelog:
     - title: Other Changes
       labels:
         - "*"
+      exclude:
+        labels:
+          - kind/dependencies
     - title: Dependency Upgrades 📦
       labels:
         - kind/dependencies
