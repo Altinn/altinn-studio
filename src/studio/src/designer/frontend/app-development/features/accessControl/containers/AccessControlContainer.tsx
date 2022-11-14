@@ -1,9 +1,8 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { Dispatch } from 'redux';
+import type { Dispatch } from 'redux';
 import { AltinnColumnLayout } from 'app-shared/components/AltinnColumnLayout';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import { ApplicationMetadataActions } from '../../../sharedResources/applicationMetadata/applicationMetadataSlice';
 import { makeGetApplicationMetadata } from '../../../sharedResources/applicationMetadata/selectors/applicationMetadataSelector';
 import {
@@ -11,7 +10,7 @@ import {
   CheckboxGroupVariant,
 } from '@altinn/altinn-design-system';
 import classes from './AccessControlContainer.module.css';
-import { RootState } from '../../../store';
+import type { RootState } from '../../../store';
 
 interface IAccessControlContainerProvidedProps {
   classes: any;
@@ -174,7 +173,6 @@ export class AccessControlContainerClass extends React.Component<
   public render() {
     return (
       <div>
-        <VersionControlHeader language={this.props.language} />
         <AltinnColumnLayout
           header={getLanguageFromKey('access_control.header', this.props.language,)}
           sideMenuChildren={this.renderSideMenu()}

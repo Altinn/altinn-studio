@@ -2,18 +2,15 @@ import React from 'react';
 import configureStore from 'redux-mock-store';
 import {
   AccessControlContainerClass,
-  IAccessControlContainerProps,
-  IAccessControlContainerState,
   PartyTypes,
 } from './AccessControlContainer';
-import {render, screen, waitFor} from '@testing-library/react';
+
+import type {
+  IAccessControlContainerProps,
+  IAccessControlContainerState,
+} from './AccessControlContainer';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {
-  versionControlHeaderafterAll,
-  versionControlHeaderafterEach,
-  versionControlHeaderBeforeAll,
-    versionControllHeaderApiCalls,
-} from 'app-shared/version-control/versionControlHeader.test';
 
 const newApplicationMetadata: any = {
   // must be opposite of currentApplicationMetadata.partyTypesAllowed
@@ -103,10 +100,6 @@ const renderAccessControlContainerClass = (applicationMetadata?: any) => {
   return { store, user };
 };
 
-beforeAll(versionControlHeaderBeforeAll);
-afterEach(versionControlHeaderafterEach);
-afterAll(versionControlHeaderafterAll);
-
 test('getDerivedStateFromProps should only return object on changed state', () => {
   const shouldUpdateOnEqualProps =
     AccessControlContainerClass.getDerivedStateFromProps(
@@ -171,7 +164,6 @@ test('should correctly update partyTypesAllowed state when handlePartyTypesAllow
 
 test('constructor should initiate partyTypesAllowed with empty values if passed as null', async () => {
   renderAccessControlContainerClass({});
-  await waitFor(() => expect(versionControllHeaderApiCalls).toHaveBeenCalledTimes(2));
   Object.keys(PartyTypes).forEach((partyType) => {
     expect(
       screen.getByRole('checkbox', {

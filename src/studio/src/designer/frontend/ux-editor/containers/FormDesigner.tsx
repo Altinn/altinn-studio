@@ -7,7 +7,6 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDispatch, useSelector } from 'react-redux';
 import FileEditor from 'app-shared/file-editor/FileEditor';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
-import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import RightMenu from '../components/rightMenu/RightMenu';
 import { filterDataModelForIntellisense } from '../utils/datamodel';
 import { DesignView } from './DesignView';
@@ -103,9 +102,6 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
   rightDrawerWrapper: {
     position: 'relative',
-  },
-  versionControlHeaderMargin: {
-    marginLeft: 24,
   },
   pageHeader: {
     marginLeft: 24,
@@ -215,9 +211,6 @@ function FormDesigner() {
             className={classes.mainContent}
             classes={{ item: classNames(classes.item) }}
           >
-            <div className={classes.versionControlHeaderMargin}>
-              <VersionControlHeader language={language} />
-            </div>
             <div className={classes.pageHeader}>
               <Typography classes={{ root: classes.pageHeaderText }}>
                 {`Side - ${selectedLayout}`}

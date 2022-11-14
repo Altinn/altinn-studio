@@ -5,7 +5,7 @@ import DeployPage from '../features/appPublish/pages/deployPage';
 import HandleMergeConflictContainerComponent from '../features/handleMergeConflict/HandleMergeConflictContainer';
 import { IFrame } from '../features/iFrame/iFrameComponent';
 import DataModellingContainer from '../features/dataModelling/containers/DataModellingContainer';
-import { TopBarMenu } from '../layout/appBarConfig';
+import { TopBarMenu } from '../layout/AppBar/appBarConfig';
 
 interface IRouteProps {
   headerTextKey?: string;
