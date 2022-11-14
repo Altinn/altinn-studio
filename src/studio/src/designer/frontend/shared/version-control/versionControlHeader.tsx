@@ -17,6 +17,7 @@ import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHac
 export interface IVersionControlHeaderProps extends WithStyles<typeof styles> {
   language: any;
   type?: 'fetchButton' | 'shareButton' | 'header';
+  hasPushRight?: boolean;
 }
 
 export interface IVersionControlHeaderState {
@@ -73,7 +74,7 @@ class VersionControlHeader extends React.Component<
     this.state = {
       changesInMaster: false,
       changesInLocalRepo: false,
-      hasPushRight: null,
+      hasPushRight: _props.hasPushRight,
       anchorEl: null,
       mergeConflict: false,
       modalState: initialModalState,
@@ -82,9 +83,11 @@ class VersionControlHeader extends React.Component<
     };
   }
 
-  public componentDidMount() {
+  public async componentDidMount() {
     this.componentIsMounted = true;
-    this.getRepoPermissions();
+    if(this.state.hasPushRight === undefined){
+      await this.getRepoPermissions();
+    }
   }
 
   public componentWillUnmount() {
@@ -94,7 +97,6 @@ class VersionControlHeader extends React.Component<
   public getRepoPermissions = async () => {
     const { org, app } = _useParamsClassCompHack();
     const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}`;
-
     try {
       const currentRepo = await get(url, { cancelToken: this.source.token });
       this.setState({
@@ -522,17 +524,6 @@ class VersionControlHeader extends React.Component<
     });
   };
 
-  public renderCloneModal = () => {
-    return (
-      <CloneModal
-        anchorEl={this.state.cloneModalAnchor}
-        open={this.state.cloneModalOpen}
-        onClose={this.closeCloneModal}
-        language={this.props.language}
-      />
-    );
-  };
-
   public openCloneModal = (event: React.MouseEvent) => {
     this.setState({
       cloneModalOpen: true,
@@ -545,7 +536,7 @@ class VersionControlHeader extends React.Component<
     const type = this.props.type || 'header';
 
     return (
-      <React.Fragment>
+      <>
         {type === 'header' ? (
           <Grid
             container={true}
@@ -586,7 +577,12 @@ class VersionControlHeader extends React.Component<
               />
             </Grid>
             {this.renderSyncModalComponent()}
-            {this.renderCloneModal()}
+            <CloneModal
+                anchorEl={this.state.cloneModalAnchor}
+                open={this.state.cloneModalOpen}
+                onClose={this.closeCloneModal}
+                language={this.props.language}
+            />
           </Grid>
         ) : type === 'fetchButton' ? (
           <div data-testid='version-control-fetch-button'>
@@ -610,7 +606,7 @@ class VersionControlHeader extends React.Component<
             {this.renderSyncModalComponent()}
           </div>
         ) : null}
-      </React.Fragment>
+      </>
     );
   }
 }

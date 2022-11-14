@@ -4598,6 +4598,7 @@ __metadata:
     fork-ts-checker-webpack-plugin: 7.2.13
     jest: 29.3.1
     jest-environment-jsdom: 29.2.2
+    jest-fail-on-console: ^3.0.2
     jest-junit: 14.0.1
     mini-css-extract-plugin: 2.6.1
     monaco-editor: 0.34.1
@@ -9207,6 +9208,15 @@ __metadata:
     jest-mock: ^29.3.1
     jest-util: ^29.3.1
   checksum: 16d4854bd2d35501bd4862ca069baf27ce9f5fd7642fdcab9d2dab49acd28c082d0c8882bf2bb28ed7bbaada486da577c814c9688ddc62d1d9f74a954fde996a
+  languageName: node
+  linkType: hard
+
+"jest-fail-on-console@npm:^3.0.2":
+  version: 3.0.2
+  resolution: "jest-fail-on-console@npm:3.0.2"
+  dependencies:
+    chalk: ^4.1.0
+  checksum: 3d14a72f38028317a3dd1d1d7118bf045b71ce7c7d815fa0be2e4303ebaee314e83f640a155c34a42a2e8819259f994ac4341d0e6743d049880b81aee27e10a0
   languageName: node
   linkType: hard
 

@@ -6,8 +6,9 @@ import {
   IAccessControlContainerState,
   PartyTypes,
 } from './AccessControlContainer';
-import { render, screen } from '@testing-library/react';
+import {render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { versionControllHeaderApiCalls } from 'app-shared/version-control/versionControlHeader.test';
 
 const newApplicationMetadata: any = {
   // must be opposite of currentApplicationMetadata.partyTypesAllowed
@@ -94,7 +95,6 @@ const renderAccessControlContainerClass = (applicationMetadata?: any) => {
       dispatch={store.dispatch}
     />,
   );
-
   return { store, user };
 };
 
@@ -160,8 +160,9 @@ test('should correctly update partyTypesAllowed state when handlePartyTypesAllow
   );
 });
 
-test('constructor should initiate partyTypesAllowed with empty values if passed as null', () => {
+test('constructor should initiate partyTypesAllowed with empty values if passed as null', async () => {
   renderAccessControlContainerClass({});
+  await waitFor(() => expect(versionControllHeaderApiCalls).toHaveBeenCalledTimes(2));
   Object.keys(PartyTypes).forEach((partyType) => {
     expect(
       screen.getByRole('checkbox', {
