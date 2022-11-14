@@ -17,7 +17,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         public async Task WriteTextByRelativePathAsync_ValidText_ShouldReadBackEqual(string expectedContent)
         {
             string repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            string repositoryDirectory = TestDataHelper.CreateEmptyRepositoryForTest("ttd", Guid.NewGuid().ToString(), "testUser");
+            string repositoryDirectory = TestDataHelper.CreateEmptyRepositoryForTest("ttd", TestDataHelper.GenerateTestRepoName(), "testUser");
             var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(repositoriesRootDirectory, repositoryDirectory);
 
             var filename = $"{Guid.NewGuid()}.json";
@@ -89,7 +89,7 @@ namespace Designer.Tests.Infrastructure.GitRepository
         public async Task WriteTextByRelativePathAsync_PathDontExist_ShouldCreateDirectory()
         {
             var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
-            var repositoryDirectory = TestDataHelper.CreateEmptyRepositoryForTest("ttd", Guid.NewGuid().ToString(), "testUser");
+            var repositoryDirectory = TestDataHelper.CreateEmptyRepositoryForTest("ttd", TestDataHelper.GenerateTestRepoName(), "testUser");
             var gitRepository = new Altinn.Studio.Designer.Infrastructure.GitRepository.GitRepository(repositoriesRootDirectory, repositoryDirectory);
 
             var relativeFileUrl = "test_directory/should/be/created/deleteme.txt";
