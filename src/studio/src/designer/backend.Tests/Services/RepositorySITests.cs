@@ -226,7 +226,7 @@ namespace Designer.Tests.Services
             }
             finally
             {
-                string path = TestDataHelper.GetTestDataRepositoryDirectory("ttd", targetRepository, developer);
+                string path = TestDataHelper.GetTestDataRepositoryDirectory(org, targetRepository, developer);
                 TestDataHelper.CleanUpRemoteRepository(org, targetRepository);
                 if (Directory.Exists(path))
                 {
