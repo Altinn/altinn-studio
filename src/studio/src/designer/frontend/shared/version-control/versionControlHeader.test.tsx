@@ -1,15 +1,21 @@
 import React from 'react';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
-import { render } from '@testing-library/react';
+import { render, screen, waitFor} from '@testing-library/react';
 import { VersionControlContainer } from './versionControlHeader';
 import { sharedUrls } from '../utils/urlHelper';
-import { setWindowLocationForTests } from '../test/testUtils';
+import { setWindowLocationForTests, TEST_DOMAIN } from "../../testing/testUtils"
+
+
+setWindowLocationForTests('test-org', 'test-app');
+
+export const versionControllHeaderApiCalls = jest.fn();
 
 const handlers = [
   rest.get(
-    'http://localhost/designer/api/v1/repos/test-org/test-app',
+      `${TEST_DOMAIN}/designer/api/v1/repos/test-org/test-app`,
     (req, res, ctx) => {
+      versionControllHeaderApiCalls();
       return res(
         ctx.status(200),
         ctx.json({
@@ -21,29 +27,33 @@ const handlers = [
     },
   ),
   rest.get(sharedUrls().dataModelXsdUrl, (req, res, ctx) => {
+    versionControllHeaderApiCalls();
     return res(ctx.status(200), ctx.json({}));
   }),
 ];
 const versionControlHeaderMockServer = setupServer(...handlers);
 
 export const versionControlHeaderBeforeAll = () => {
-  setWindowLocationForTests('test-org', 'test-app');
   versionControlHeaderMockServer.listen();
 };
-export const versionControlHeaderafterEach = () =>
+export const versionControlHeaderafterEach = () => {
+  versionControllHeaderApiCalls.mockReset();
   versionControlHeaderMockServer.resetHandlers();
+}
 export const versionControlHeaderafterAll = () =>
   versionControlHeaderMockServer.resetHandlers();
+
 beforeAll(versionControlHeaderBeforeAll);
 afterEach(versionControlHeaderafterEach);
 afterAll(versionControlHeaderafterAll);
 
 describe('Shared > Version Control > VersionControlHeader', () => {
-  it('should render header when type is not defined', async () => {
-    const component = render(<VersionControlContainer language={{}} />);
-    expect(component.queryByTestId('version-control-header')).not.toBeNull();
-    expect(component.queryByTestId('version-control-fetch-button')).toBeNull();
-    expect(component.queryByTestId('version-control-share-button')).toBeNull();
+  it('should render header when type is not defined',  async () => {
+    render(<VersionControlContainer language={{}} hasPushRight={true}/>);
+    await waitFor(() => expect(versionControllHeaderApiCalls).toHaveBeenCalledTimes(1));
+    expect(await screen.findByTestId('version-control-header')).not.toBeNull();
+    expect(await screen.queryByTestId('version-control-fetch-button')).toBeNull();
+    expect(await screen.queryByTestId('version-control-share-button')).toBeNull();
   });
 
   it('should render header when type is header', async () => {
@@ -51,8 +61,10 @@ describe('Shared > Version Control > VersionControlHeader', () => {
       <VersionControlContainer
         language={{}}
         type='header'
+        hasPushRight={true}
       />,
     );
+    await waitFor(() => expect(versionControllHeaderApiCalls).toHaveBeenCalledTimes(1));
     expect(queryByTestId('version-control-header')).not.toBeNull();
     expect(queryByTestId('version-control-fetch-button')).toBeNull();
     expect(queryByTestId('version-control-share-button')).toBeNull();
@@ -62,6 +74,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
     const { queryByTestId } = render(
       <VersionControlContainer
         language={{}}
+        hasPushRight={true}
         type='fetchButton'
       />,
     );
@@ -73,6 +86,7 @@ describe('Shared > Version Control > VersionControlHeader', () => {
   it('should render share-button when type is share-button', async () => {
     const component = render(
       <VersionControlContainer
+          hasPushRight={true}
         language={{}}
         type='shareButton'
       />,
