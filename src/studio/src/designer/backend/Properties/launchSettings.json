@@ -22,6 +22,16 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
+    },
+    "AltinnStudioOsX": {
+      "commandName": "Project",
+      "launchBrowser": true,
+      "launchUrl": "http://altinn3.no/",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ServiceRepositorySettings__RepositoryLocation": "/tmp/altinn/repos/",
+        "ALTINN_KEYS_DIRECTORY": "/tmp/altinn/keys/"
+      }
     }
   }
 }

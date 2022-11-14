@@ -18,27 +18,27 @@ export enum TopBarMenu {
 export const menu: TopBarMenuItem[] = [
   {
     key: TopBarMenu.About,
-    link: '/',
+    link: '/:org/:app',
     repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
   },
   {
     key: TopBarMenu.Create,
-    link: '/ui-editor',
+    link: '/:org/:app/ui-editor',
     repositoryTypes: [RepositoryType.App],
   },
   {
     key: TopBarMenu.Datamodel,
-    link: '/datamodel',
+    link: '/:org/:app/datamodel',
     repositoryTypes: [RepositoryType.App, RepositoryType.Datamodels],
   },
   {
     key: TopBarMenu.Text,
-    link: '/texts',
+    link: '/:org/:app/texts',
     repositoryTypes: [RepositoryType.App],
   },
   {
     key: TopBarMenu.Deploy,
-    link: '/deploy',
+    link: '/:org/:app/deploy',
     repositoryTypes: [RepositoryType.App],
   },
 ];

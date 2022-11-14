@@ -6,22 +6,27 @@ import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import { AltinnButton } from 'app-shared/components';
 import { post } from 'app-shared/utils/networking';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { DashboardActions, SelectedContext } from '../resources/fetchDashboardResources/dashboardSlice';
+import {
+  DashboardActions,
+  SelectedContext,
+} from '../resources/fetchDashboardResources/dashboardSlice';
 import { fetchLanguage } from '../resources/fetchLanguage/languageSlice';
 import type { IHeaderContext } from 'app-shared/navigation/main-header/Header';
-import Header, { HeaderContext, SelectedContextType } from 'app-shared/navigation/main-header/Header';
+import Header, {
+  HeaderContext,
+  SelectedContextType,
+} from 'app-shared/navigation/main-header/Header';
 
-import { userHasAccessToSelectedContext } from 'common/utils';
-import { generateClassName, theme } from 'common/utils/muiUtils';
-import { useAppDispatch, useAppSelector } from 'common/hooks';
-import { CenterContainer } from 'common/components/CenterContainer';
-import { Footer } from 'common/components/Footer';
-import StandaloneDataModelling from 'features/standaloneDataModelling/DataModelling';
-import { useGetOrganizationsQuery } from 'services/organizationApi';
-import { Dashboard } from 'features/dashboard';
-import { CreateService } from 'features/createService/CreateService';
-
+import { userHasAccessToSelectedContext } from '../common/utils';
+import { generateClassName, theme } from '../common/utils/muiUtils';
+import { useAppDispatch, useAppSelector } from '../common/hooks';
+import { CenterContainer } from '../common/components/CenterContainer';
+import { Footer } from '../common/components/Footer';
 import './App.css';
+import { useGetOrganizationsQuery } from '../services/organizationApi';
+import { Dashboard } from '../features/dashboard';
+import { default as StandaloneDataModelling } from '../features/standaloneDataModelling/DataModelling';
+import { CreateService } from '../features/createService/CreateService';
 
 const Root = styled('div')(() => ({
   height: '100vh',
@@ -33,8 +38,11 @@ export const App = () => {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.dashboard.user);
   const language = useAppSelector((state) => state.language.language);
-  const selectedContext = useAppSelector((state) => state.dashboard.selectedContext);
-  const { data: orgs = [], isLoading: isLoadingOrganizations } = useGetOrganizationsQuery();
+  const selectedContext = useAppSelector(
+    (state) => state.dashboard.selectedContext,
+  );
+  const { data: orgs = [], isLoading: isLoadingOrganizations } =
+    useGetOrganizationsQuery();
 
   const setSelectedContext = (newSelectedContext: SelectedContext) => {
     dispatch(
@@ -44,7 +52,10 @@ export const App = () => {
     );
   };
 
-  if (!isLoadingOrganizations && !userHasAccessToSelectedContext({ selectedContext, orgs })) {
+  if (
+    !isLoadingOrganizations &&
+    !userHasAccessToSelectedContext({ selectedContext, orgs })
+  ) {
     setSelectedContext(SelectedContextType.Self);
   }
 
@@ -64,8 +75,7 @@ export const App = () => {
 
     dispatch(
       fetchLanguage({
-        url: `${window.location.origin}/designerapi/Language/GetLanguageAsJSON`,
-        languageCode: 'nb',
+        url: `${window.location.origin}/designer/frontend/lang/nb.json`,
       }),
     );
 
@@ -109,19 +119,31 @@ export const App = () => {
                   </>
                 }
               />
-              <Route path='/datamodelling/:org/:repoName' element={<StandaloneDataModelling language={language} />} />
-              <Route path='/new' element={<CreateService />} />
+              <Route
+                path='/datamodelling/:org/:repoName'
+                element={<StandaloneDataModelling language={language} />}
+              />
+              <Route
+                path='/new'
+                element={<CreateService />}
+              />
             </Routes>
           </Root>
         ) : (
           <CenterContainer>
-            <AltinnSpinner spinnerText={getLanguageFromKey('dashboard.loading', language)} />
+            <AltinnSpinner
+              spinnerText={getLanguageFromKey('dashboard.loading', language)}
+            />
             {showLogOutButton && (
               <AltinnButton
                 onClickFunction={() =>
-                  post(`${window.location.origin}/repos/user/logout`).then(() => {
-                    window.location.assign(`${window.location.origin}/Home/Logout`);
-                  })
+                  post(`${window.location.origin}/repos/user/logout`).then(
+                    () => {
+                      window.location.assign(
+                        `${window.location.origin}/Home/Logout`,
+                      );
+                    },
+                  )
                 }
                 btnText={getLanguageFromKey('dashboard.logout', language)}
               />
@@ -132,5 +154,3 @@ export const App = () => {
     </StylesProvider>
   );
 };
-
-export default App;

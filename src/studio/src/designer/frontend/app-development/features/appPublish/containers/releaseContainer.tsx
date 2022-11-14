@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import type { Theme } from '@mui/material';
 import {
   CircularProgress,
@@ -34,8 +34,8 @@ import type { IHandleMergeConflictState } from '../../handleMergeConflict/handle
 import { fetchRepoStatus } from '../../handleMergeConflict/handleMergeConflictSlice';
 import ReleaseComponent from '../components/appReleaseComponent';
 import CreateReleaseComponent from '../components/createAppReleaseComponent';
-import { useAppDispatch, useAppSelector } from 'common/hooks';
-import type { IAltinnWindow } from '../../../types/global';
+import { useParams } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 
 const theme = createTheme(AltinnStudioTheme);
 
@@ -144,12 +144,12 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     (state) => state.handleMergeConflict,
   );
   const language: any = useAppSelector((state) => state.languageState.language);
+  const { org, app } = useParams();
 
-  React.useEffect(() => {
-    const { org, app } = window as Window as IAltinnWindow;
+  useEffect(() => {
     dispatch(AppReleaseActions.getAppReleaseStartInterval());
     if (!language) {
-      dispatch(fetchLanguage({ url: languageUrl, languageCode: 'nb' }));
+      dispatch(fetchLanguage({ url: languageUrl }));
     }
     dispatch(RepoStatusActions.getMasterRepoStatus({ org, repo: app }));
     dispatch(
@@ -200,15 +200,25 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
         spacing={1}
       >
         {hiddenMdDown ? null : (
-          <Grid item={true} xs={1}>
+          <Grid
+            item={true}
+            xs={1}
+          >
             <AltinnIcon
               iconClass={`${classes.renderCannotCreateReleaseIcon} ai ai-circle-exclamation`}
               iconColor={theme.altinnPalette.primary.red}
             />
           </Grid>
         )}
-        <Grid item={true} xs={12} md={10}>
-          <Grid container={true} direction='column'>
+        <Grid
+          item={true}
+          xs={12}
+          md={10}
+        >
+          <Grid
+            container={true}
+            direction='column'
+          >
             <Typography className={classes.cannotCreateReleaseTitle}>
               {getParsedLanguageFromKey(
                 'app_create_release_errors.fetch_release_failed',
@@ -239,8 +249,16 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
       !handleMergeConflict.repoStatus.contentStatus
     ) {
       return (
-        <Grid container={true} direction='row' justifyContent='center'>
-          <Grid container={true} direction='row' justifyContent='center'>
+        <Grid
+          container={true}
+          direction='row'
+          justifyContent='center'
+        >
+          <Grid
+            container={true}
+            direction='row'
+            justifyContent='center'
+          >
             <Grid
               container={true}
               direction='column'
@@ -410,8 +428,14 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
         direction='row'
         className={classes.appReleaseWrapper}
       >
-        <Grid container={true} direction='column'>
-          <Grid item={true} className={classes.versionHeader}>
+        <Grid
+          container={true}
+          direction='column'
+        >
+          <Grid
+            item={true}
+            className={classes.versionHeader}
+          >
             <Typography className={classes.versionHeaderTitle}>
               {getLanguageFromKey('app_release.release_tab_versions', language)}
             </Typography>
@@ -427,7 +451,10 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
               direction='row'
               justifyContent='space-between'
             >
-              <Grid item={true} xs={10}>
+              <Grid
+                item={true}
+                xs={10}
+              >
                 <Typography className={classes.appCreateReleaseTitle}>
                   {renderCreateReleaseTitle()}
                 </Typography>
@@ -445,7 +472,10 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
                 {renderStatusIcon()}
               </Grid>
             </Grid>
-            <Grid item={true} className={classes.appReleaseCreateRelease}>
+            <Grid
+              item={true}
+              className={classes.appReleaseCreateRelease}
+            >
               {renderCreateRelease()}
             </Grid>
           </Grid>
@@ -454,10 +484,16 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
               {getLanguageFromKey('app_release.earlier_releases', language)}
             </Typography>
           </Grid>
-          <Grid container={true} className={classes.appReleaseHistory}>
+          <Grid
+            container={true}
+            className={classes.appReleaseHistory}
+          >
             {!!appReleases.releases.length &&
               appReleases.releases.map((release: IRelease, index: number) => (
-                <ReleaseComponent key={index} release={release} />
+                <ReleaseComponent
+                  key={index}
+                  release={release}
+                />
               ))}
           </Grid>
         </Grid>

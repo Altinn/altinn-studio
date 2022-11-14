@@ -164,5 +164,26 @@ namespace Altinn.Studio.DataModeling.Utils
         {
             return keywords.Where(keyword => !keywordTypesToFilterAway.Contains(keyword.GetType()));
         }
+
+        /// <summary>
+        /// Add a `type` keyword. if nillable isNillable is provided as true, it adds <see cref="SchemaValueType.Null"/> type. If not it build only type keyword with provided type.
+        /// </summary>
+        /// <param name="builder">The builder.</param>
+        /// <param name="type">The type.  Can be combined with the bit-wise OR operator `|`.</param>
+        /// <param name="isNillable">Indicating if type should be build in combination with <see cref="SchemaValueType.Null"/>/></param>
+        /// <returns>Builder.</returns>
+        public static JsonSchemaBuilder Type(this JsonSchemaBuilder builder, SchemaValueType type, bool isNillable)
+        {
+            if (isNillable)
+            {
+                builder.Type(type, SchemaValueType.Null);
+            }
+            else
+            {
+                builder.Type(type);
+            }
+
+            return builder;
+        }
     }
 }

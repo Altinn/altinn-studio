@@ -6,7 +6,7 @@ import { DataModelsMetadataActions } from '../dataModelsMetadataSlice';
 
 function* getDataModelsMetadataSaga(): SagaIterator {
   try {
-    yield call(get, sharedUrls().ensureCloneApi);
+    // yield call(get, sharedUrls().ensureCloneApi);
     const dataModelsMetadata = yield call(get, sharedUrls().dataModelsApi);
     yield put(
       DataModelsMetadataActions.getDataModelsMetadataFulfilled({
@@ -14,10 +14,15 @@ function* getDataModelsMetadataSaga(): SagaIterator {
       }),
     );
   } catch (error) {
-    yield put(DataModelsMetadataActions.getDataModelsMetadataRejected({ error }));
+    yield put(
+      DataModelsMetadataActions.getDataModelsMetadataRejected({ error }),
+    );
   }
 }
 
 export function* watchGetDataModelsMetadataSaga(): SagaIterator {
-  yield takeLatest(DataModelsMetadataActions.getDataModelsMetadata, getDataModelsMetadataSaga);
+  yield takeLatest(
+    DataModelsMetadataActions.getDataModelsMetadata,
+    getDataModelsMetadataSaga,
+  );
 }

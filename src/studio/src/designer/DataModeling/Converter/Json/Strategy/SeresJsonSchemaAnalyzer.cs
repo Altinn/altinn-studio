@@ -20,7 +20,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         }
 
         /// <inheritdoc />
-        public override JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema, Uri uri)
+        public override JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema)
         {
             JsonSchema = schema;
             Metadata = new JsonSchemaXsdMetadata()
@@ -28,7 +28,11 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 SchemaOrigin = "Seres"
             };
 
-            if (JsonSchema.TryGetKeyword(out InfoKeyword info))
+            if (JsonSchema.TryGetKeyword(out XsdRootElementKeyword rootElementKeyword))
+            {
+                Metadata.MessageName = rootElementKeyword.Value;
+            }
+            else if (JsonSchema.TryGetKeyword(out InfoKeyword info))
             {
                 var messageNameElement = info.Value.GetProperty("meldingsnavn");
                 var messageTypeNameElement = info.Value.GetProperty("modellnavn");

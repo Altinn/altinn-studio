@@ -9,19 +9,6 @@ namespace Altinn.Studio.DataModeling.Utils;
 /// </summary>
 public static class RestrictionsHelper
 {
-    private static readonly IReadOnlyCollection<string> DateTypes = new List<string>
-    {
-        "date",
-        "dateTime",
-        "duration",
-        "gDay",
-        "gMonth",
-        "gMonthDay",
-        "gYear",
-        "gYearMonth",
-        "time"
-    };
-
     /// <summary>
     /// UsedFo
     /// </summary>
@@ -32,7 +19,7 @@ public static class RestrictionsHelper
             return false;
         }
 
-        return DateTypes.Contains(parent?.BaseTypeName?.Name);
+        return XmlSchemaTypes.DateTypes.Contains(parent?.BaseTypeName?.Name);
     }
 
     /// <summary>

@@ -1,9 +1,9 @@
 import React from 'react';
 import { Typography } from '@mui/material';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { useAppSelector } from 'common/hooks';
-import { RepoList } from 'common/components/RepoList';
-import { useGetUserStarredReposQuery } from 'services/userApi';
+import { useAppSelector } from '../../common/hooks';
+import { useGetUserStarredReposQuery } from '../../services/userApi';
+import { RepoList } from '../../common/components/RepoList';
 
 export const FavoriteReposList = () => {
   const language = useAppSelector((state) => state.language.language);

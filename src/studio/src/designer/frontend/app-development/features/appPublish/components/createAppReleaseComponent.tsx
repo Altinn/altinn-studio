@@ -15,7 +15,7 @@ import {
   BuildStatus,
 } from '../../../sharedResources/appRelease/types';
 import type { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusSlice';
-import { useAppDispatch, useAppSelector } from 'common/hooks';
+import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 
 const styles = createStyles({
   createReleaseFormItem: {

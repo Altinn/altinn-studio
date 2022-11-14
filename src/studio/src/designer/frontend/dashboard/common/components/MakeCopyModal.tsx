@@ -10,9 +10,10 @@ import {
 import { post } from 'app-shared/utils/networking';
 import { DashboardActions } from '../../resources/fetchDashboardResources/dashboardSlice';
 import { PopoverOrigin } from '@mui/material/Popover';
-import { useAppDispatch, useAppSelector } from 'common/hooks';
-import { validateRepoName } from 'common/utils';
 import { useNavigate } from 'react-router-dom';
+import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
+import { validateRepoName } from '../utils';
+import { useAppDispatch, useAppSelector } from '../hooks';
 
 export interface IMakeCopyModalProps {
   anchorEl: HTMLElement;
@@ -66,7 +67,7 @@ export const MakeCopyModal = ({
           }),
         );
         navigate(
-          `${window.location.origin}/designer/${org}/${repoName}#/?copiedApp=true`,
+          `${window.location.origin}${APP_DEVELOPMENT_BASENAME}/${org}/${repoName}?copiedApp=true`,
         );
       } catch (error) {
         if (error?.response?.status === 409) {
@@ -152,7 +153,10 @@ export const MakeCopyModal = ({
       <Typography variant='h2'>
         {getLanguageFromKey('dashboard.copy_application', language)}
       </Typography>
-      <Typography variant='body1' style={typographyStyle}>
+      <Typography
+        variant='body1'
+        style={typographyStyle}
+      >
         {getLanguageFromKey('dashboard.copy_application_description', language)}
       </Typography>
       <AltinnInputField

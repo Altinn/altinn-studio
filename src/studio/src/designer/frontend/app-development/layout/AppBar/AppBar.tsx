@@ -3,23 +3,21 @@ import type { Theme } from '@mui/material';
 import { AppBar as MuiAppBar, Grid, Toolbar, useMediaQuery } from '@mui/material';
 import { createStyles, makeStyles } from '@mui/styles';
 import classNames from 'classnames';
-import { Link } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { altinnImgLogoHeaderUrl } from 'app-shared/utils/urlHelper';
 import type { IMenuItem } from 'app-shared/navigation/drawer/drawerMenuSettings';
 import TabletDrawerMenu from 'app-shared/navigation/drawer/TabletDrawerMenu';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import { getTopBarMenu } from '../appBarConfig';
 import ProfileMenu from 'app-shared/navigation/main-header/profileMenu';
-import { useAppSelector } from 'common/hooks';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { useGetRepositoryTypeQuery } from '../../services/repositoryApi';
+import { useAppSelector } from '../../common/hooks';
 
 export interface IAppBarProps {
   activeSubHeaderSelection?: string;
   activeLeftMenuSelection?: string;
   logoutButton?: boolean;
-  org?: string;
-  app?: string;
   user?: string;
   showSubMenu?: boolean;
   mainMenuItems?: IMenuItem[];
@@ -100,8 +98,6 @@ export const AppBar = ({
   activeLeftMenuSelection,
   activeSubHeaderSelection,
   logoutButton,
-  org,
-  app,
   user,
   mainMenuItems,
   subMenuItems,
@@ -121,7 +117,7 @@ export const AppBar = ({
   };
 
   const menu = getTopBarMenu(repositoryType);
-
+  const { org, app } = useParams();
   return (
     <div className={classes.root}>
       <MuiAppBar
@@ -162,8 +158,13 @@ export const AppBar = ({
                   item
                   className={classes.breadCrumb}
                 >
-                  {activeSubHeaderSelection && `/ ${t(activeSubHeaderSelection)}`} /
-                  <span className={classes.breadCrumbSubApp}> {activeLeftMenuSelection} </span>
+                  {activeSubHeaderSelection &&
+                    `/ ${t(activeSubHeaderSelection)}`}{' '}
+                  /
+                  <span className={classes.breadCrumbSubApp}>
+                    {' '}
+                    {activeLeftMenuSelection}{' '}
+                  </span>
                 </Grid>
               )}
             </Grid>
@@ -229,7 +230,7 @@ export const AppBar = ({
                       className={classNames(classes.subHeader)}
                     >
                       <Link
-                        to={item.link}
+                        to={item.link.replace(':org', org).replace(':app', app)}
                         className={classNames(classes.subHeaderLink, {
                           [classes.subHeaderLinkActive]: activeSubHeaderSelection === item.key,
                         })}

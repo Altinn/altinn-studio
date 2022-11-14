@@ -1,6 +1,8 @@
 import { Dict } from './types';
 
 export enum IntRestrictionKeys {
+  exclusiveMaximum = 'exclusiveMaximum',
+  exclusiveMinimum = 'exclusiveMinimum',
   maximum = 'maximum',
   minimum = 'minimum',
   multipleOf = 'multipleOf',
@@ -45,6 +47,8 @@ export const castRestrictionType = (key: string, value?: string) => {
     [
       ArrRestrictionKeys.maxItems,
       ArrRestrictionKeys.minItems,
+      IntRestrictionKeys.exclusiveMaximum,
+      IntRestrictionKeys.exclusiveMinimum,
       IntRestrictionKeys.maximum,
       IntRestrictionKeys.minimum,
       IntRestrictionKeys.multipleOf,

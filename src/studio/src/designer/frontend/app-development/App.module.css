@@ -1,0 +1,33 @@
+.container {
+  --header-height: 111px;
+  --left-menu-width: 68px;
+
+  background-color: lightgray;
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.contentWrapper {
+  height: calc(100vh - var(--header-height));
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  margin-top: var(--header-height);
+}
+
+.mergeConflictApp {
+  height: 100%;
+  width: 100%;
+}
+
+.subApp {
+  background: white;
+  height: calc(100vh - var(--header-height));
+  flex: 1 0 0;
+}
+
+.subApp > div {
+  height: 100%;
+}

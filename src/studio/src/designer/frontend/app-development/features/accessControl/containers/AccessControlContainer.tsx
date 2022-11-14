@@ -1,54 +1,16 @@
 import React from 'react';
-import { Typography } from '@mui/material';
-import { createStyles, withStyles } from '@mui/styles';
 import { connect } from 'react-redux';
 import type { Dispatch } from 'redux';
-import AltinnCheckBox from 'app-shared/components/AltinnCheckBox';
-import AltinnCheckBoxGroup from 'app-shared/components/AltinnCheckBoxGroup';
-import AltinnColumnLayout from 'app-shared/components/AltinnColumnLayout';
-import AltinnFormControlLabel from 'app-shared/components/AltinnFormControlLabel';
+import { AltinnColumnLayout } from 'app-shared/components/AltinnColumnLayout';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { ApplicationMetadataActions } from '../../../sharedResources/applicationMetadata/applicationMetadataSlice';
 import { makeGetApplicationMetadata } from '../../../sharedResources/applicationMetadata/selectors/applicationMetadataSelector';
-import type { RootState } from 'store';
-
-const styles = createStyles({
-  sectionHeader: {
-    marginBottom: 12,
-    fontSize: 20,
-    fontWeight: 500,
-  },
-  sectionContent: {
-    fontSize: 16,
-    marginBottom: 24,
-  },
-  sidebarHeader: {
-    marginBottom: 20,
-    fontSize: 20,
-    fontWeight: 500,
-  },
-  infoText: {
-    fontSize: 16,
-  },
-  informationPaperText: {
-    fontSize: 16,
-  },
-  informationPaper: {
-    padding: 12,
-  },
-  sidebarSectionHeader: {
-    fontSize: 16,
-    fontWeight: 500,
-  },
-  sidebarSectionContainer: {
-    '&:not(:last-child)': {
-      marginBottom: 24,
-    },
-  },
-  contentMargin: {
-    marginBottom: 24,
-  },
-});
+import {
+  CheckboxGroup,
+  CheckboxGroupVariant,
+} from '@altinn/altinn-design-system';
+import classes from './AccessControlContainer.module.css';
+import type { RootState } from '../../../store';
 
 interface IAccessControlContainerProvidedProps {
   classes: any;
@@ -121,10 +83,15 @@ export class AccessControlContainerClass extends React.Component<
     this.props.dispatch(ApplicationMetadataActions.getApplicationMetadata());
   }
 
-  public handlePartyTypesAllowedChange(partyType: PartyTypes) {
+  public handlePartyTypesAllowedChange(partyTypes: string[]) {
     this.setState((prev) => {
       const partyTypesAllowed = { ...prev.partyTypesAllowed };
-      partyTypesAllowed[partyType] = !partyTypesAllowed[partyType];
+      Object
+          .keys(partyTypesAllowed)
+          .forEach((key: keyof IPartyTypesAllowed) => {
+            partyTypesAllowed[key] = partyTypes.includes(key as string);
+          });
+
       return {
         partyTypesAllowed,
         setStateCalled: true,
@@ -150,60 +117,48 @@ export class AccessControlContainerClass extends React.Component<
 
   public renderPartySection = (): JSX.Element => {
     const partyTypeKeys = Object.keys(PartyTypes);
+    const t = (key: string) => getLanguageFromKey(key, this.props.language);
     return (
-      <div
-        className={this.props.classes.contentMargin}
+      <CheckboxGroup
         data-testid='access-control-container'
-      >
-        <Typography className={this.props.classes.sectionHeader}>
-          {getLanguageFromKey('access_control.party_type_header', this.props.language)}
-        </Typography>
-        <Typography className={this.props.classes.sectionContent}>
-          {getLanguageFromKey('access_control.party_type', this.props.language)}
-        </Typography>
-        <AltinnCheckBoxGroup row={true}>
-          {partyTypeKeys.map((partyTypeKey: string) => {
-            // value used for mapping internal state, key used for language reference
-            const partyTypeValue = PartyTypes[partyTypeKey as PartyTypes] as keyof IPartyTypesAllowed;
-            return (
-              <AltinnFormControlLabel
-                key={partyTypeKey}
-                control={
-                  <AltinnCheckBox
-                    checked={this.state.partyTypesAllowed[partyTypeValue]}
-                    onChangeFunction={this.handlePartyTypesAllowedChange.bind(this, partyTypeValue)}
-                  />
-                }
-                label={getLanguageFromKey(`access_control.${partyTypeKey}`, this.props.language)}
-              />
-            );
-          })}
-        </AltinnCheckBoxGroup>
-      </div>
+        description={t('access_control.party_type')}
+        items={partyTypeKeys.map((key: keyof IPartyTypesAllowed) => ({
+          checkboxId: undefined,
+          checked: !!this.state.partyTypesAllowed[key],
+          description: undefined,
+          disabled: false,
+          label: t(`access_control.${key}`) as string,
+          name: key,
+        }))}
+        legend={t('access_control.party_type_header')}
+        onChange={(values) => this.handlePartyTypesAllowedChange(values)}
+        variant={CheckboxGroupVariant.Horizontal}
+      />
     );
   };
 
   public renderSideMenu = (): JSX.Element => {
+    const t = (key: string) => getLanguageFromKey(key, this.props.language);
     return (
       <>
-        <Typography className={this.props.classes.sidebarHeader}>
-          {getLanguageFromKey('access_control.about_header', this.props.language)}
-        </Typography>
-        <div className={this.props.classes.sidebarSectionContainer}>
-          <Typography className={this.props.classes.sidebarSectionHeader}>
-            {getLanguageFromKey('access_control.test_initiation_header', this.props.language)}
-          </Typography>
-          <Typography className={this.props.classes.infoText}>
-            {getLanguageFromKey('access_control.test_initiation', this.props.language)}
-          </Typography>
+        <p className={classes.sidebarHeader}>
+          {t('access_control.about_header')}
+        </p>
+        <div className={classes.sidebarSectionContainer}>
+          <p className={classes.sidebarSectionHeader}>
+            {t('access_control.test_initiation_header')}
+          </p>
+          <p className={classes.infoText}>
+            {t('access_control.test_initiation')}
+          </p>
         </div>
-        <div className={this.props.classes.sidebarSectionContainer}>
-          <Typography className={this.props.classes.sidebarSectionHeader}>
-            {getLanguageFromKey('access_control.test_what_header', this.props.language)}
-          </Typography>
-          <Typography className={this.props.classes.infoText}>
-            {getLanguageFromKey('access_control.test_what', this.props.language)}
-          </Typography>
+        <div className={classes.sidebarSectionContainer}>
+          <p className={classes.sidebarSectionHeader}>
+            {t('access_control.test_what_header')}
+          </p>
+          <p className={classes.infoText}>
+            {t('access_control.test_what')}
+          </p>
         </div>
       </>
     );
@@ -211,12 +166,14 @@ export class AccessControlContainerClass extends React.Component<
 
   public render() {
     return (
-      <AltinnColumnLayout
-        sideMenuChildren={this.renderSideMenu()}
-        header={getLanguageFromKey('access_control.header', this.props.language)}
-      >
-        {this.renderMainContent()}
-      </AltinnColumnLayout>
+      <div>
+        <AltinnColumnLayout
+          header={getLanguageFromKey('access_control.header', this.props.language,)}
+          sideMenuChildren={this.renderSideMenu()}
+        >
+          {this.renderMainContent()}
+        </AltinnColumnLayout>
+      </div>
     );
   }
 }
@@ -231,4 +188,4 @@ const makeMapStateToProps = (): any => {
   });
 };
 
-export default withStyles(styles)(connect(makeMapStateToProps)(AccessControlContainerClass));
+export default connect(makeMapStateToProps)(AccessControlContainerClass);

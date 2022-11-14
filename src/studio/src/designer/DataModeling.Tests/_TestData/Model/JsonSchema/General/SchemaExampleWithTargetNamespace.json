@@ -30,31 +30,21 @@
       ]
     },
     "PriceType": {
-      "allOf": [
-        {
-          "type": "number",
-          "@xsdType": "decimal"
-        },
-        {
-          "multipleOf": 0.01
-        }
-      ]
+      "type": "number",
+      "@xsdType": "decimal",
+      "multipleOf": 0.01,
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     },
     "PaymentMethodType": {
-      "allOf": [
-        {
-          "type": "string",
-          "@xsdType": "string"
-        },
-        {
-          "enum": [
-            "VISA",
-            "MasterCard",
-            "Cash",
-            "AMEX"
-          ]
-        }
-      ]
+      "type": "string",
+      "@xsdType": "string",
+      "enum": [
+        "VISA",
+        "MasterCard",
+        "Cash",
+        "AMEX"
+      ],
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     }
   }
 }

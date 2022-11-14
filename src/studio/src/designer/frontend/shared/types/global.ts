@@ -1,9 +1,3 @@
-export interface IAltinnWindow extends Window {
-  org: string;
-  app?: string;
-  repo?: string;
-}
-
 export interface ISelfLinks {
   apps: string;
   platform: string;

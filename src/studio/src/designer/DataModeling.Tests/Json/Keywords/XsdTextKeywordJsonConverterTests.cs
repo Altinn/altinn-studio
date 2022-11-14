@@ -10,8 +10,6 @@ namespace DataModeling.Tests.Json.Keywords
     {
         private const string KeywordPlaceholder = "@xsdText";
 
-        protected override JsonConverter<XsdTextKeyword> Converter => new XsdTextKeyword.XsdTextKeywordJsonConverter();
-
         protected override XsdTextKeyword CreateKeywordWithValue(bool value) => new(value);
 
         [Theory]
@@ -36,7 +34,7 @@ namespace DataModeling.Tests.Json.Keywords
         public void Write_ValidStructure_ShouldWriteToJson(bool value)
         {
             Given.That.KeywordCreatedWithValue(value)
-                .When.KeywordWrittenToStream()
+                .When.KeywordSerializedAsJson()
                 .Then.SerializedKeywordShouldBe($@"{{""{KeywordPlaceholder}"":{value.ToString().ToLower()}}}");
         }
     }

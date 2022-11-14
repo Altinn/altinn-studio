@@ -12,6 +12,7 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
+  "@xsdRootElement": "Root",
   "oneOf": [
     {
       "$ref": "#/$defs/main"
@@ -45,7 +46,8 @@
     },
     "st1": {
       "type": "string",
-      "@xsdType": "string"
+      "@xsdType": "string",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     },
     "g1": {
       "properties": {

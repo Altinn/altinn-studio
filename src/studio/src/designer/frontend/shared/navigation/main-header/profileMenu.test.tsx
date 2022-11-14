@@ -3,7 +3,6 @@ import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IProfileMenuComponentProps } from './profileMenu';
 import ProfileMenuComponent from './profileMenu';
-import { IAltinnWindow } from '../../types/global';
 
 const user = userEvent.setup();
 
@@ -60,9 +59,10 @@ describe('ProfileMenu', () => {
   });
 
   it('should show menu with link to documentation, logout and open repository when showlogout is true, window object has org and repo properties, and clicking profile button', async () => {
-    const altinnWindow = window as Window as IAltinnWindow;
-    altinnWindow.org = 'org';
-    altinnWindow.app = 'app';
+    delete window.location;
+    window.location = new URL(
+      'https://www.example.com/editor/org/app',
+    ) as unknown as Location;
     render({ showlogout: true });
 
     expect(

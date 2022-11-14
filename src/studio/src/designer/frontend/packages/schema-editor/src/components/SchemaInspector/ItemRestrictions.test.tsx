@@ -6,9 +6,7 @@ import { CombinationKind, createNodeBase, FieldType, Keywords, ObjectKind, UiSch
 
 // Test data:
 const mockLanguage = {
-  schema_editor: {
-    enum_legend: 'Liste med gyldige verdier',
-  },
+  'schema_editor.enum_legend': 'Liste med gyldige verdier',
 };
 const mockSelectedNode = createNodeBase(Keywords.Properties, 'test');
 const defaultProps: ItemRestrictionsProps = { language: mockLanguage, selectedNode: mockSelectedNode };
@@ -32,7 +30,6 @@ test('item restrictions tab require checkbox to decheck', async () => {
 });
 
 test('Enum list should only appear for strings and numbers, as well as arrays of those', () => {
-  const { enum_legend } = mockLanguage.schema_editor;
   (Object.values(FieldType) as (FieldType | CombinationKind)[])
     .concat(Object.values(CombinationKind))
     .forEach((fieldType) => {
@@ -51,10 +48,10 @@ test('Enum list should only appear for strings and numbers, as well as arrays of
           case FieldType.String:
           case FieldType.Number:
           case FieldType.Integer:
-            expect(screen.getByText(enum_legend)).toBeDefined();
+            expect(screen.getByText(mockLanguage['schema_editor.enum_legend'])).toBeDefined();
             break;
           default:
-            expect(screen.queryByText(enum_legend)).toBeFalsy();
+            expect(screen.queryByText(mockLanguage['schema_editor.enum_legend'])).toBeFalsy();
         }
         renderResult.unmount();
       }
@@ -62,6 +59,11 @@ test('Enum list should only appear for strings and numbers, as well as arrays of
 });
 
 const renderItemRestrictions = (props?: Partial<ItemRestrictionsProps>) =>
-  renderWithRedux(<ItemRestrictions {...defaultProps} {...props} />);
+  renderWithRedux(
+    <ItemRestrictions
+      {...defaultProps}
+      {...props}
+    />,
+  );
 
 const createNode = (props: Partial<UiSchemaNode>): UiSchemaNode => ({ ...mockSelectedNode, ...props });

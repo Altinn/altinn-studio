@@ -7,7 +7,6 @@ using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
 using Altinn.Studio.Designer.Extensions;
 using Altinn.Studio.Designer.ModelMetadatalModels;
-using Json.More;
 using Json.Schema;
 
 namespace Altinn.Studio.Designer.Factories.ModelFactory;
@@ -17,6 +16,22 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory;
 /// </summary>
 public static class MetamodelRestrictionUtils
 {
+    private static IEnumerable<Type> SupportedStringRestrictions => new List<Type>
+    {
+        typeof(MaxLengthKeyword),
+        typeof(PatternKeyword),
+        typeof(MinLengthKeyword),
+    };
+
+    private static IEnumerable<Type> SupportedNumberRestrictions => new List<Type>
+    {
+        typeof(MaximumKeyword),
+        typeof(MinimumKeyword),
+        typeof(ExclusiveMaximumKeyword),
+        typeof(ExclusiveMinimumKeyword),
+        typeof(XsdTotalDigitsKeyword)
+    };
+
     /// <summary>
     /// Getting restriction for given type from provided json Subschema.
     /// Currently calculating Restrictions only for following types:
@@ -73,24 +88,29 @@ public static class MetamodelRestrictionUtils
             AddEnumRestrictions(enumKeyword, restrictions);
         }
 
-        if (!subSchema.TryGetKeyword(out AllOfKeyword allOfKeyword))
+        if (subSchema.TryGetKeyword(out AllOfKeyword allOfKeyword))
         {
+            AddNestedStringRestrictions(allOfKeyword, restrictions);
             return;
         }
 
-        if (allOfKeyword.TryGetKeywordFromSubSchemas(out MaxLengthKeyword maxLengthKeyword))
+        foreach (var restrictionKeywordType in SupportedStringRestrictions)
         {
-            restrictions.AddRestrictionFromKeyword(maxLengthKeyword);
+            if (subSchema.TryGetKeywordByType(restrictionKeywordType, out var keyword))
+            {
+                restrictions.AddRestrictionFromKeyword(keyword);
+            }
         }
+    }
 
-        if (allOfKeyword.TryGetKeywordFromSubSchemas(out PatternKeyword patternKeyword))
+    private static void AddNestedStringRestrictions(IJsonSchemaKeyword allOfKeyword, IDictionary<string, Restriction> restrictions)
+    {
+        foreach (var restrictionKeywordType in SupportedStringRestrictions)
         {
-            restrictions.AddRestrictionFromKeyword(patternKeyword);
-        }
-
-        if (allOfKeyword.TryGetKeywordFromSubSchemas(out MinLengthKeyword minLengthKeyword))
-        {
-            restrictions.AddRestrictionFromKeyword(minLengthKeyword);
+            if (allOfKeyword.TryGetKeywordFromSubSchemas(restrictionKeywordType, out var keyword))
+            {
+                restrictions.AddRestrictionFromKeyword(keyword);
+            }
         }
     }
 
@@ -120,42 +140,36 @@ public static class MetamodelRestrictionUtils
     /// </summary>
     private static void AddNumberRestrictions(JsonSchema subSchema, Dictionary<string, Restriction> restrictions)
     {
-        if (!subSchema.TryGetKeyword(out AllOfKeyword allOfKeyword))
+        if (subSchema.TryGetKeyword(out AllOfKeyword allOfKeyword))
         {
+            AddNestedNumberRestrictions(allOfKeyword, restrictions);
             return;
         }
 
-        if (allOfKeyword.TryGetKeywordFromSubSchemas(out MaximumKeyword maximumKeyword))
+        foreach (var restrictionKeywordType in SupportedNumberRestrictions)
         {
-            restrictions.AddRestrictionFromKeyword(maximumKeyword);
-        }
-
-        if (allOfKeyword.TryGetKeywordFromSubSchemas(out MinimumKeyword minimumKeyword))
-        {
-            restrictions.AddRestrictionFromKeyword(minimumKeyword);
-        }
-
-        if (allOfKeyword.TryGetKeywordFromSubSchemas(out ExclusiveMaximumKeyword exclusiveMaximum))
-        {
-            restrictions.AddRestrictionFromKeyword(exclusiveMaximum);
-        }
-
-        if (allOfKeyword.TryGetKeywordFromSubSchemas(out ExclusiveMinimumKeyword exclusiveMinimum))
-        {
-            restrictions.AddRestrictionFromKeyword(exclusiveMinimum);
-        }
-
-        if (allOfKeyword.TryGetKeywordFromSubSchemas(out XsdTotalDigitsKeyword totalDigitsKeyword))
-        {
-            restrictions.AddRestrictionFromKeyword(totalDigitsKeyword);
+            if (subSchema.TryGetKeywordByType(restrictionKeywordType, out var keyword))
+            {
+                restrictions.AddRestrictionFromKeyword(keyword);
+            }
         }
     }
 
-    private static bool TryGetKeywordFromSubSchemas<T>(this IJsonSchemaKeyword allOfKeyword, out T keyword)
-        where T : IJsonSchemaKeyword
+    private static void AddNestedNumberRestrictions(IJsonSchemaKeyword allOfKeyword, IDictionary<string, Restriction> restrictions)
+    {
+        foreach (var restrictionKeywordType in SupportedNumberRestrictions)
+        {
+            if (allOfKeyword.TryGetKeywordFromSubSchemas(restrictionKeywordType, out var keyword))
+            {
+                restrictions.AddRestrictionFromKeyword(keyword);
+            }
+        }
+    }
+
+    private static bool TryGetKeywordFromSubSchemas(this IJsonSchemaKeyword allOfKeyword, Type type, out IJsonSchemaKeyword keyword)
     {
         keyword = default;
-        return allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<T>())
+        return allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword(type))
             ?.TryGetKeyword(out keyword) ?? false;
     }
 
@@ -186,5 +200,22 @@ public static class MetamodelRestrictionUtils
 
         };
         restrictions.Add(keyword.Keyword(), new Restriction { Value = valueString });
+    }
+
+    private static bool TryGetKeywordByType(this JsonSchema schema, Type type, out IJsonSchemaKeyword keyword)
+    {
+        keyword = schema?.Keywords?.SingleOrDefault(k => k.GetType() == type);
+
+        return keyword != null;
+    }
+
+    private static bool HasKeyword(this JsonSchema schema, Type type)
+    {
+        if (schema?.Keywords == null)
+        {
+            return false;
+        }
+
+        return schema.Keywords.Any(keyword => keyword.GetType() == type);
     }
 }

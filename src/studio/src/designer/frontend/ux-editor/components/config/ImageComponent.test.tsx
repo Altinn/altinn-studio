@@ -2,8 +2,8 @@ import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import { ImageComponent } from './ImageComponent';
 import type { IImageComponentProps } from './ImageComponent';
+import { ImageComponent } from './ImageComponent';
 
 const user = userEvent.setup();
 
@@ -14,6 +14,29 @@ const componentData = {
   image: {
     src: {},
   },
+};
+const render = (props: Partial<IImageComponentProps> = {}) => {
+  const allProps = {
+    component: componentData,
+    language: {
+      'ux_editor.modal_properties_image_src_value_label': 'Source',
+      'ux_editor.modal_properties_image_placement_label': 'Placement',
+      'ux_editor.modal_properties_image_alt_text_label': 'Alt text',
+      'ux_editor.modal_properties_image_width_label': 'Width',
+      'ux_editor.modal_properties_image_placement_left': 'Left',
+      'ux_editor.modal_properties_image_placement_center': 'Center',
+      'ux_editor.modal_properties_image_placement_right': 'Right',
+    },
+    handleComponentUpdate: jest.fn(),
+    textResources: [
+      { id: 'altTextImg', value: 'Alternative text' },
+      { id: 'altTextImg2', value: 'Alternative text 2' },
+    ],
+
+    ...props,
+  } as IImageComponentProps;
+
+  return rtlRender(<ImageComponent {...allProps} />);
 };
 
 describe('ImageComponent', () => {
@@ -98,29 +121,3 @@ describe('ImageComponent', () => {
     });
   });
 });
-
-const render = (props: Partial<IImageComponentProps> = {}) => {
-  const allProps = {
-    component: componentData,
-    language: {
-      ux_editor: {
-        modal_properties_image_src_value_label: 'Source',
-        modal_properties_image_placement_label: 'Placement',
-        modal_properties_image_alt_text_label: 'Alt text',
-        modal_properties_image_width_label: 'Width',
-        modal_properties_image_placement_left: 'Left',
-        modal_properties_image_placement_center: 'Center',
-        modal_properties_image_placement_right: 'Right',
-      },
-    },
-    handleComponentUpdate: jest.fn(),
-    textResources: [
-      { id: 'altTextImg', value: 'Alternative text' },
-      { id: 'altTextImg2', value: 'Alternative text 2' },
-    ],
-
-    ...props,
-  } as IImageComponentProps;
-
-  return rtlRender(<ImageComponent {...allProps} />);
-};

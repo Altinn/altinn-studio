@@ -1,14 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Button } from '@altinn/altinn-design-system';
+import {
+  Button,
+  ButtonColor,
+  ButtonVariant,
+} from '@altinn/altinn-design-system';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { formatNameAndDate } from 'app-shared/utils/formatDate';
 import type { ICommit, IRepository } from '../../../types/global';
 import { ResetRepoModal } from './ResetRepoModal';
 import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import { DownloadRepoModal } from './DownloadRepoModal';
-import { useAppDispatch, useAppSelector } from 'common/hooks';
 import classes from './SideMenuContent.module.css';
-import { RepositoryType } from 'services/repositoryApi';
+import { RepositoryType } from '../../../services/repositoryApi';
+import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 
 interface ISideMenuContent {
   language: any;
@@ -88,8 +92,10 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
         </ul>
       </div>
       <Button
+        color={ButtonColor.Secondary}
         id='reset-repo-button'
         onClick={onClickResetRepo}
+        variant={ButtonVariant.Outline}
       >
         {t('administration.reset_repo_button')}
       </Button>
@@ -104,7 +110,11 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
       />
       {/* Download local repository */}
       <h3>{t('administration.download_repo')}</h3>
-      <Button onClick={toggleDownloadModal}>
+      <Button
+        color={ButtonColor.Secondary}
+        onClick={toggleDownloadModal}
+        variant={ButtonVariant.Outline}
+      >
         {t('administration.download_repo')}
       </Button>
       <div ref={downloadModalAnchor} />

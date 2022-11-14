@@ -3,8 +3,9 @@ import { Grid } from '@mui/material';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import { HandleServiceInformationActions } from '../../handleServiceInformationSlice';
 import { MainContent } from '../MainContent';
-import { useAppDispatch, useAppSelector } from 'common/hooks';
-import type { IAltinnWindow, IRepository } from '../../../../types/global';
+import { useParams } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../../../../common/hooks';
+import type { IRepository } from '../../../../types/global';
 import classes from './Administration.module.css';
 
 export interface ServiceAdministrationProps {
@@ -61,7 +62,6 @@ export function ServiceAdministration({
     if (editAppName && !newName) {
       setAppNameAnchorEl(document.getElementById('administrationInputAppName'));
     } else {
-      const { org, app } = window as Window as IAltinnWindow;
       dispatch(
         HandleServiceInformationActions.saveServiceName({
           url: `${window.location.origin}/designer/${org}/${app}/Text/SetServiceName`,
@@ -84,10 +84,9 @@ export function ServiceAdministration({
     setNewDescription(event.target.value);
     setEditAppDescription(true);
   };
-
+  const { org, app } = useParams();
   const handleAppDescriptionBlur = () => {
     if (editAppDescription) {
-      const { org, app } = window as Window as IAltinnWindow;
       dispatch(
         HandleServiceInformationActions.saveServiceConfig({
           url: `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
@@ -104,10 +103,8 @@ export function ServiceAdministration({
     setNewId(event.target.value);
     setEditAppId(true);
   };
-
   const handleAppIdBlur = () => {
     if (editAppId) {
-      const { org, app } = window as Window as IAltinnWindow;
       dispatch(
         HandleServiceInformationActions.saveServiceConfig({
           url: `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
@@ -124,7 +121,10 @@ export function ServiceAdministration({
     repository && newName !== null && newDescription !== null && newId !== null;
 
   return (
-    <div data-testid='administration-container'>
+    <div
+      data-testid='administration-container'
+      className={classes.root}
+    >
       {render ? (
         <MainContent
           appDescription={newDescription}
@@ -146,7 +146,7 @@ export function ServiceAdministration({
         <Grid container={true}>
           <AltinnSpinner
             spinnerText='Laster siden'
-            styleObj={classes.spinnerLocation}
+            styleObj={classes.spinner}
           />
         </Grid>
       )}

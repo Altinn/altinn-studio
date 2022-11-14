@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
+using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Unicode;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Xml.Schema;
@@ -110,7 +112,8 @@ namespace Designer.Tests.Services
                 var altinnGitRepository = altinnGitRepositoryFactory.GetAltinnGitRepository(org, targetRepository, developer);
 
                 var updatedSchema = await altinnGitRepository.ReadTextByRelativePathAsync("App/models/HvemErHvem_SERES.schema.json");
-                updatedSchema.Should().BeEquivalentTo(expectedSchemaUpdates);
+                string serializedExpectedSchemaUpdates = FormatJsonString(updatedSchema);
+                updatedSchema.Should().BeEquivalentTo(serializedExpectedSchemaUpdates);
 
                 var xsd = await altinnGitRepository.ReadTextByRelativePathAsync("App/models/HvemErHvem_SERES.xsd");
 
@@ -367,6 +370,12 @@ namespace Designer.Tests.Services
             {
                 TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
             }
+        }
+
+        private static string FormatJsonString(string jsonContent)
+        {
+            var options = new JsonSerializerOptions { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement), WriteIndented = true };
+            return System.Text.Json.JsonSerializer.Serialize(Json.Schema.JsonSchema.FromText(jsonContent), options);
         }
     }
 }

@@ -4,7 +4,7 @@ import AltinnPopover from 'app-shared/components/AltinnPopover';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { get } from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
-import type { IAltinnWindow } from '../../../types/global';
+import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
 
 interface IHandleMergeConflictAbortProps {
   language: any;
@@ -65,7 +65,7 @@ export class HandleMergeConflictAbort extends React.Component<
   };
 
   public AbortConfirmed = async () => {
-    const { org, app } = window as Window as IAltinnWindow;
+    const { org, app } = _useParamsClassCompHack();
 
     const abortUrl =
       `${window.location.origin}` +

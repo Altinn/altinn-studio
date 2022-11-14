@@ -17,7 +17,7 @@ import {
 } from '../../features/editor/schemaEditorSlice';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions, getTypeOptions } from './helpers/options';
-import { Checkbox, ErrorMessage, FieldSet, TextArea, TextField } from '@altinn/altinn-design-system';
+import { Checkbox, ErrorMessage, FieldSet, Select, TextArea, TextField } from '@altinn/altinn-design-system';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
 import type { UiSchemaNode } from '@altinn/schema-model';
@@ -32,8 +32,6 @@ import {
 } from '@altinn/schema-model';
 import { getDomFriendlyID, isValidName } from '../../utils/ui-schema-utils';
 import { Divider } from '../common/Divider';
-import { Label } from '../common/Label';
-import { Select } from '../common/Select';
 
 export interface IItemDataComponentProps {
   selectedItem: UiSchemaNode;
@@ -118,19 +116,17 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
   const t = (key: string) => getTranslation(key, language);
   const titleId = getDomFriendlyID(selectedNodePointer, { suffix: 'title' });
   const descriptionId = getDomFriendlyID(selectedNodePointer, { suffix: 'description' });
-  const selectId = getDomFriendlyID(selectedItem.pointer, { suffix: 'combi-sel' });
-  const typeId = getDomFriendlyID(selectedItem.pointer, { suffix: 'type-select' });
   return (
     <div className={classes.root}>
       {!selectedItem.isCombinationItem && (
         <div>
-          <Label htmlFor='selectedItemName'>{t('name')}</Label>
           <TextField
             aria-describedby='Selected Item Name'
             aria-errormessage={t(nameError)}
             aria-placeholder='Name'
             autoFocus
             id='selectedItemName'
+            label={t('name')}
             onBlur={handleChangeNodeName}
             onChange={onNameChange}
             placeholder='Name'
@@ -141,11 +137,10 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
       )}
       {selectedItem.objectKind === ObjectKind.Field && (
         <Select
-          id={typeId}
           label={t('type')}
-          onChange={(type) => onChangeFieldType(selectedItem.pointer, type as FieldType)}
+          onChange={(type: string) => onChangeFieldType(selectedItem.pointer, type as FieldType)}
           options={getTypeOptions(t)}
-          value={fieldType}
+          value={fieldType as string}
         />
       )}
       {selectedItem.objectKind === ObjectKind.Reference && (
@@ -168,9 +163,8 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
       )}
       {selectedItem.objectKind === ObjectKind.Combination && (
         <Select
-          id={selectId}
           label={t('type')}
-          onChange={(combination) => onChangeCombinationType(combination as CombinationKind)}
+          onChange={(combination: string) => onChangeCombinationType(combination as CombinationKind)}
           options={getCombinationOptions(t)}
           value={selectedItem.fieldType}
         />
@@ -188,18 +182,18 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
       <Divider inMenu />
       <FieldSet legend={t('descriptive_fields')} className={classes.fieldSet}>
         <div>
-          <Label htmlFor={titleId}>{t('title')}</Label>
           <TextField
             id={titleId}
+            label={t('title')}
             onBlur={onChangeTitle}
             onChange={(e: ChangeEvent) => setItemTitle((e.target as HTMLInputElement)?.value)}
             value={title}
           />
         </div>
         <div>
-          <Label htmlFor={descriptionId}>{t('description')}</Label>
           <TextArea
             id={descriptionId}
+            label={t('description')}
             onBlur={onChangeDescription}
             onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setItemDescription(event.target.value)}
             style={{ height: 100 }}

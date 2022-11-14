@@ -1,6 +1,6 @@
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { SelectedContext } from '../../resources/fetchDashboardResources/dashboardSlice';
-import { Organizations } from 'services/organizationApi';
+import { Organizations } from '../../services/organizationApi';
 
 export const appNameRegex = /^(?!datamodels$)[a-z][a-z0-9-]{1,28}[a-z0-9]$/;
 

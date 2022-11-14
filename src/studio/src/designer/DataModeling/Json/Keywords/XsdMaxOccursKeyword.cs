@@ -68,7 +68,7 @@ public sealed class XsdMaxOccursKeyword: IJsonSchemaKeyword, IEquatable<XsdMaxOc
     /// <summary>
     /// Serializer for the @xsdMaxOccurs keyword
     /// </summary>
-    public class XsdMaxOccursKeywordJsonConverter : JsonConverter<XsdMaxOccursKeyword>
+    internal class XsdMaxOccursKeywordJsonConverter : JsonConverter<XsdMaxOccursKeyword>
     {
         /// <inheritdoc/>
         public override XsdMaxOccursKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

@@ -1,6 +1,6 @@
 import React from 'react';
 import AltinnButton from 'app-shared/components/AltinnButton';
-import type { IAltinnWindow } from '../../types/global';
+import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
 
 interface IRedirectComponentProvidedProps {
   redirectUrl: string;
@@ -12,7 +12,7 @@ export class RedirectComponent extends React.Component<
   any
 > {
   public openManualTesting = () => {
-    const { org, app } = window as Window as IAltinnWindow;
+    const { org, app } = _useParamsClassCompHack();
     const url = `${window.location.origin}/${this.props.redirectUrl}?ReturnUrl=%2Fruntime%2F${org}%2F${app}%2FManualTesting`;
     window.open(url, '_newWindow');
   };

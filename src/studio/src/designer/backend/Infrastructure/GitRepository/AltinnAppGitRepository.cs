@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
 using Altinn.Platform.Storage.Interface.Models;
-using Altinn.Studio.Designer.ModelMetadatalModels;
 using JetBrains.Annotations;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
@@ -71,12 +70,11 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// </summary>
         /// <param name="modelMetadata">Model metadata to persist.</param>
         /// <param name="modelName">The name of the model. </param>
-        public async Task SaveModelMetadata(ModelMetadata modelMetadata, string modelName)
+        public async Task SaveModelMetadata(string modelMetadata, string modelName)
         {
-            string metadataAsJson = JsonConvert.SerializeObject(modelMetadata);
             string modelMetadataRelativeFilePath = Path.Combine(MODEL_FOLDER_PATH, $"{modelName}.metadata.json");
 
-            await WriteTextByRelativePathAsync(modelMetadataRelativeFilePath, metadataAsJson, true);
+            await WriteTextByRelativePathAsync(modelMetadataRelativeFilePath, modelMetadata, true);
         }
 
         /// <summary>

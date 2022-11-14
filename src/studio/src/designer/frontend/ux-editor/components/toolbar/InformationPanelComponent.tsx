@@ -1,20 +1,10 @@
 import React from 'react';
-import {
-  Divider,
-  FormControl,
-  InputAdornment,
-  Popover,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { Divider, FormControl, InputAdornment, Popover, TextField, Typography } from '@mui/material';
 import { createStyles, withStyles } from '@mui/styles';
 import classNames from 'classnames';
 import { connect } from 'react-redux';
 import { ComponentTypes } from '..';
-import {
-  getComponentHelperTextByComponentType,
-  getComponentTitleByComponentType,
-} from '../../utils/language';
+import { getComponentHelperTextByComponentType, getComponentTitleByComponentType } from '../../utils/language';
 import type { IAppState } from '../../types/global';
 
 export interface IInformationPanelProvidedProps {
@@ -75,20 +65,14 @@ class InformationPanel extends React.Component<IInformationPanelProps> {
             root: classNames(this.props.classes.informationPanelHeader),
           }}
         >
-          {getComponentTitleByComponentType(
-            this.props.selectedComponent,
-            this.props.language,
-          )}
+          {getComponentTitleByComponentType(this.props.selectedComponent, this.props.language)}
         </Typography>
         <Typography
           classes={{
             root: classNames(this.props.classes.informationPanelText),
           }}
         >
-          {getComponentHelperTextByComponentType(
-            this.props.selectedComponent,
-            this.props.language,
-          )}
+          {getComponentHelperTextByComponentType(this.props.selectedComponent, this.props.language)}
         </Typography>
         <Typography
           classes={{
@@ -114,8 +98,8 @@ class InformationPanel extends React.Component<IInformationPanelProps> {
             />
           </svg>
           {!this.props.thirdPartyLibrary
-            ? this.props.language.ux_editor.information_altinn_library
-            : this.props.language.ux_editor.information_third_party_library}
+            ? this.props.language['ux_editor.information_altinn_library']
+            : this.props.language['ux_editor.information_third_party_library']}
         </Typography>
         <Typography
           classes={{
@@ -127,7 +111,7 @@ class InformationPanel extends React.Component<IInformationPanelProps> {
             target='_blank'
             rel='noopener noreferrer'
           >
-            {this.props.language.ux_editor.information_more_info_link}
+            {this.props.language['ux_editor.information_more_info_link']}
           </a>
         </Typography>
       </Popover>
@@ -180,10 +164,7 @@ const styles = () =>
     },
   });
 
-const mapStateToProps: (
-  state: IAppState,
-  props: IInformationPanelProvidedProps,
-) => IInformationPanelProps = (
+const mapStateToProps: (state: IAppState, props: IInformationPanelProvidedProps) => IInformationPanelProps = (
   state: IAppState,
   props: IInformationPanelProvidedProps,
 ) => ({

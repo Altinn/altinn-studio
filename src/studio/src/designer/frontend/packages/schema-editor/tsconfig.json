@@ -1,28 +1,4 @@
 {
-  "compilerOptions": {
-    "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "skipLibCheck": true,
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true,
-    "module": "esnext",
-    "moduleResolution": "node",
-    "noEmit": false,
-    "jsx": "react",
-    "declaration": true,
-    "declarationDir": "dist",
-    "outDir": "./dist/",
-    "sourceMap": true,
-    "allowJs": true,
-    "rootDir": "../..",
-    "paths": {
-      "app-shared/*": ["../../shared/*"],
-      "@altinn/schema-model": ["../schema-model/src/index"]
-    }
-  },
-  "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
+  "extends": "../../tsconfig.base.json",
+  "include": ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"]
 }
