@@ -37,7 +37,7 @@ namespace Designer.Tests.Controllers
             var org = "ttd";
             var sourceRepository = "xyz-datamodels";
             var developer = "testUser";
-            var targetRepository = $"{Guid.NewGuid()}-datamodels";
+            var targetRepository = TestDataHelper.GenerateTestRepoName("-datamodels");
             await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
 
             string requestUrl = $"/designer/api/v1/{org}/{targetRepository}/repositorysettings";
@@ -77,7 +77,7 @@ namespace Designer.Tests.Controllers
             var org = "ttd";
             var sourceRepository = "xyz-datamodels";
             var developer = "testUser";
-            var targetRepository = $"{Guid.NewGuid()}-datamodels";
+            var targetRepository = TestDataHelper.GenerateTestRepoName("-datamodels");
             await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
 
             string requestUrl = $"/designer/api/v1/{org}/{targetRepository}/repositorysettings";

@@ -21,13 +21,12 @@ using Altinn.Studio.Designer.ModelMetadatalModels;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Designer.Tests.Controllers.ApiTests;
 using Designer.Tests.Mocks;
+using Designer.Tests.Utils;
 using FluentAssertions;
 using Json.Schema;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using Xunit;
-using static Designer.Tests.Utils.TestDataHelper;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
@@ -52,7 +51,7 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
 
     public PutDatamodelTests(WebApplicationFactory<DatamodelsController> factory) : base(factory)
     {
-        TargetTestRepository = Guid.NewGuid().ToString();
+        TargetTestRepository = TestDataHelper.GenerateTestRepoName();
     }
 
     protected override void ConfigureTestServices(IServiceCollection services)
@@ -69,7 +68,7 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
     {
         if (TestFilesCopied)
         {
-            DeleteAppRepository(TestOrg, TargetTestRepository, TestDeveloper);
+            TestDataHelper.DeleteAppRepository(TestOrg, TargetTestRepository, TestDeveloper);
         }
     }
 
@@ -96,7 +95,7 @@ public class PutDatamodelTests : ApiTestsBase<DatamodelsController, PutDatamodel
 
     private async Task RepositoryCopiedForTest(string org, string repository, string developer, string targetRepository)
     {
-        await CopyRepositoryForTest(org, repository, developer, targetRepository);
+        await TestDataHelper.CopyRepositoryForTest(org, repository, developer, targetRepository);
         TestFilesCopied = true;
     }
 

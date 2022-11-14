@@ -109,7 +109,7 @@ namespace Designer.Tests.Services
         public async Task CreateRepository_DoesNotExists_ShouldCreate()
         {
             string org = "ttd";
-            string repositoryName = Guid.NewGuid().ToString();
+            string repositoryName = TestDataHelper.GenerateTestRepoName();
             string developer = "testUser";
 
             var repositoriesRootDirectory = TestDataHelper.GetTestDataRepositoriesRootDirectory();
@@ -158,29 +158,37 @@ namespace Designer.Tests.Services
             // Arrange
             string developer = "testUser";
             string org = "ttd";
-            string sourceRepository = "apps-test";
-            string targetRepository = "apps-test-2021";
+            string origRemoteRepo = "apps-test";
+            string origRepo = "apps-test-2021";
+            string workingRemoteRepositoryName = TestDataHelper.GenerateTestRepoName(origRemoteRepo);
+            string targetRepositoryName = TestDataHelper.GenerateTestRepoName(origRepo);
+            var workingRemoteDirPath = string.Empty;
+            var createdTargetRepoPath = string.Empty;
             try
             {
-            PrepareRemoteTestData(org, sourceRepository);
-            TestDataHelper.CleanUpRemoteRepository("ttd", "apps-test-2021");
-            await TestDataHelper.CleanUpReplacedRepositories(org, targetRepository, developer);
+                workingRemoteDirPath = await TestDataHelper.CopyRemoteRepositoryForTest(org, origRemoteRepo, workingRemoteRepositoryName);
+                createdTargetRepoPath = await TestDataHelper.CopyRepositoryForTest(org, origRepo, developer, targetRepositoryName);
+                PrepareRemoteTestData(org, workingRemoteRepositoryName);
+                TestDataHelper.CleanUpRemoteRepository(org, targetRepositoryName);
+                await TestDataHelper.CleanUpReplacedRepositories(org, targetRepositoryName, developer);
 
-            RepositorySI sut = GetServiceForTest(developer);
+                RepositorySI sut = GetServiceForTest(developer);
 
-            // Act
-            await sut.CopyRepository(org, sourceRepository, targetRepository, developer);
+                // Act
+                await sut.CopyRepository(org, workingRemoteRepositoryName, targetRepositoryName, developer);
 
-            // Assert
-            string developerClonePath = Path.Combine(TestDataHelper.GetTestDataRepositoriesRootDirectory(), developer, org);
-            int actualCloneCount = Directory.GetDirectories(developerClonePath).Count(d => d.Contains("apps-test-2021"));
-            Assert.Equal(2, actualCloneCount);
+                // Assert
+                string developerClonePath = Path.Combine(TestDataHelper.GetTestDataRepositoriesRootDirectory(), developer, org);
+                int actualCloneCount = Directory.GetDirectories(developerClonePath).Count(d => d.Contains(targetRepositoryName));
+                Assert.Equal(2, actualCloneCount);
             }
             finally
             {
-                TestDataHelper.CleanUpRemoteRepository("ttd", "apps-test-2021");
-                await TestDataHelper.CleanUpReplacedRepositories(org, targetRepository, developer);
-                CleanUpRemoteTestData(org, sourceRepository);
+                TestDataHelper.CleanUpRemoteRepository(org, targetRepositoryName);
+                await TestDataHelper.CleanUpReplacedRepositories(org, targetRepositoryName, developer);
+                CleanUpRemoteTestData(org, workingRemoteRepositoryName);
+                TestDataHelper.DeleteDirectory(createdTargetRepoPath);
+                TestDataHelper.DeleteDirectory(workingRemoteDirPath);
             }
         }
 
@@ -190,18 +198,21 @@ namespace Designer.Tests.Services
             // Arrange
             string developer = "testUser";
             string org = "ttd";
-            string sourceRepository = "apps-test";
-            string targetRepository = "apps-test-clone";
+            string origRemoteRepo = "apps-test";
+            string workingSourceRepoName = TestDataHelper.GenerateTestRepoName(origRemoteRepo);
+            string targetRepository = TestDataHelper.GenerateTestRepoName("apps-test-clone");
             string expectedRepoPath = TestDataHelper.GetTestDataRepositoryDirectory(org, targetRepository, developer);
+            var workingRemoteDirPath = string.Empty;
 
             try
             {
-                PrepareRemoteTestData(org, sourceRepository);
+                workingRemoteDirPath = await TestDataHelper.CopyRemoteRepositoryForTest(org, origRemoteRepo, workingSourceRepoName);
+                PrepareRemoteTestData(org, workingSourceRepoName);
 
                 RepositorySI sut = GetServiceForTest(developer);
 
                 // Act
-                await sut.CopyRepository(org, sourceRepository, targetRepository, developer);
+                await sut.CopyRepository(org, workingSourceRepoName, targetRepository, developer);
 
                 // Assert
                 string appMetadataString = TestDataHelper.GetFileFromRepo(org, targetRepository, developer, "App/config/applicationmetadata.json");
@@ -209,20 +220,21 @@ namespace Designer.Tests.Services
                 string developerClonePath = Path.Combine(TestDataHelper.GetTestDataRepositoriesRootDirectory(), developer, org);
 
                 Assert.True(Directory.Exists(expectedRepoPath));
-                Assert.Contains("\"id\": \"ttd/apps-test-clone\"", appMetadataString);
-                Assert.Contains("https://dev.altinn.studio/repos/ttd/apps-test-clone.git", gitConfigString);
+                Assert.Contains($"\"id\": \"ttd/{targetRepository}\"", appMetadataString);
+                Assert.Contains($"https://dev.altinn.studio/repos/{org}/{origRemoteRepo}.git", gitConfigString);
                 Assert.DoesNotContain(Directory.GetDirectories(developerClonePath), a => a.Contains("_COPY_OF_ORIGIN_"));
             }
             finally
             {
-                string path = TestDataHelper.GetTestDataRepositoryDirectory("ttd", "apps-test-clone", "testUser");
+                string path = TestDataHelper.GetTestDataRepositoryDirectory(org, targetRepository, developer);
                 TestDataHelper.CleanUpRemoteRepository(org, targetRepository);
                 if (Directory.Exists(path))
                 {
                     Directory.Delete(path, true);
                 }
 
-                CleanUpRemoteTestData(org, sourceRepository);
+                CleanUpRemoteTestData(org, workingSourceRepoName);
+                TestDataHelper.DeleteDirectory(workingRemoteDirPath);
             }
         }
 

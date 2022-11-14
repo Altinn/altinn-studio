@@ -5,6 +5,10 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <TestRepoPrefix>test-repo_</TestRepoPrefix>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Basic.Reference.Assemblies" Version="1.2.4" />
     <PackageReference Include="FluentAssertions" Version="6.7.0" />
@@ -43,15 +47,18 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="_TestData\Repositories\testUser\ttd\3d59addc-09f0-429a-8a92-e85dbbcf27f6\**" />
     <Content Remove="_TestData\**\*.*" />
+    <Compile Remove="_TestData\Repositories\*\*\$(TestRepoPrefix)*\**" />
+    <Compile Remove="_TestData\Remote\*\$(TestRepoPrefix)*\**" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="_TestData\**\*.*" />
+    <EmbeddedResource Remove="_TestData\Repositories\*\*\$(TestRepoPrefix)*\**" />
+    <EmbeddedResource Remove="_TestData\Remote\*\$(TestRepoPrefix)*\**" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Remove="_TestData\Repositories\testUser\ttd\3d59addc-09f0-429a-8a92-e85dbbcf27f6\**" />
-    <None Remove="_TestData\Repositories\testUser\ttd\3d59addc-09f0-429a-8a92-e85dbbcf27f6\**" />
+    <None Remove="_TestData\Repositories\*\*\$(TestRepoPrefix)*\**" />
+    <None Remove="_TestData\Remote\*\$(TestRepoPrefix)*\**" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="_TestData\FileSystemObjects\ttd\apps-test\App\config\texts\3e1099738e0d15490390a01c74b2abc16282d85f\directoryList.json" />
