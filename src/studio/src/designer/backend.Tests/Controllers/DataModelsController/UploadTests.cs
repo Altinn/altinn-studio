@@ -37,7 +37,7 @@ public class UploadTests: ApiTestsBase<DatamodelsController, UploadTests>
         var org = "ttd";
         var sourceRepository = "empty-datamodels";
         var developer = "testUser";
-        var targetRepository = Guid.NewGuid().ToString();
+        var targetRepository = TestDataHelper.GenerateTestRepoName();
 
         await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
         var url = $"{VersionPrefix}/{org}/{targetRepository}/Datamodels";
