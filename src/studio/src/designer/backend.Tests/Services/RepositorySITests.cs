@@ -126,7 +126,7 @@ namespace Designer.Tests.Services
             }
             finally
             {
-                // We do a sleep here beacuse the creation process holds a lock on the files
+                // We do a sleep here because the creation process holds a lock on the files
                 // it modifies. 400ms is the magic number as a result by trial and error.
                 Thread.Sleep(400);
                 Directory.Delete(repositoryDirectory, true);

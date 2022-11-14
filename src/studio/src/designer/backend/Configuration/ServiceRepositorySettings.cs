@@ -194,12 +194,12 @@ namespace Altinn.Studio.Designer.Configuration
         /// <summary>
         /// Gets or sets The name of the FormLayout json file Name
         /// </summary>
-        public string FormLayoutJSONFileName { get; set; } = Path.Join(UI_RESOURCE_FOLDER_NAME, "FormLayout.json");
+        public string FormLayoutJSONFileName { get; set; } = Path.Combine(UI_RESOURCE_FOLDER_NAME, "FormLayout.json");
 
         /// <summary>
         /// Gets or sets The name of the ThirdPartyComponents json file Name
         /// </summary>
-        public string ThirdPartyComponentsJSONFileName { get; set; } = Path.Join(RESOURCE_FOLDER_NAME, "ThirdPartyComponents.json");
+        public string ThirdPartyComponentsJSONFileName { get; set; } = Path.Combine(RESOURCE_FOLDER_NAME, "ThirdPartyComponents.json");
 
         /// <summary>
         /// Gets or sets The ServiceMetadata file name

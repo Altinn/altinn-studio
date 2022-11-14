@@ -1164,7 +1164,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Directory.Move(targetRepositoryPath, backupPath);
             }
 
-            _sourceControl.CloneRemoteRepository(org, sourceRepository, _settings.GetServicePath(org, targetRepository, developer));
+            _sourceControl.CloneRemoteRepository(org, sourceRepository, targetRepositoryPath);
             var targetAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
 
             await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{org}/{targetRepository}.git");
@@ -1657,7 +1657,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private void CopyFolderToApp(string org, string app, string sourcePath, string path)
         {
-            string targetPath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + path;
+            string targetPath = Path.Combine(_settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)), path);
 
             // Create the app deployment folder
             Directory.CreateDirectory(targetPath);
@@ -1678,7 +1678,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private void CopyFileToApp(string org, string app, string fileName)
         {
             string appPath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            File.Copy($"{_generalSettings.TemplatePath}/{fileName}", appPath + fileName);
+            File.Copy($"{_generalSettings.TemplatePath}/{fileName}", Path.Combine(appPath, fileName));
         }
 
         /// <summary>
