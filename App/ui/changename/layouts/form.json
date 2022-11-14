@@ -453,6 +453,16 @@
         },
         "dataModelBindings": {},
         "triggers": ["validatePage"]
+      },
+      {
+        "id": "toNextTask",
+        "type": "Button",
+        "mode": "go-to-task",
+        "textResourceBindings": {
+          "title": "Hopp videre til gruppe (fyll ut riktig data først)"
+        },
+        "dataModelBindings": {},
+        "taskId": "Task_3"
       }
     ]
   }

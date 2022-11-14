@@ -48,6 +48,16 @@
           "back": "Forrige"
         },
         "dataModelBindings": {}
+      },
+      {
+        "id": "toNextTask",
+        "type": "Button",
+        "mode": "go-to-task",
+        "textResourceBindings": {
+          "title": "Hopp videre til Likert (fyll ut riktig data først)"
+        },
+        "dataModelBindings": {},
+        "taskId": "Task_4"
       }
     ]
   }
