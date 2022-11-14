@@ -78,7 +78,7 @@ const getDisplayValue = (selectedValue: string, options: (string | DropdownOptio
     return result.label;
   }
 
-  return result;
+  return result??"";
 }
 
 export const AltinnDropdown = ({
