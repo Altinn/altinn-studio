@@ -74,19 +74,19 @@ function render(options: RenderProps = {}) {
 describe('useLayoutsAsNodes', () => {
   it('should generate recursive layouts', () => {
     const { result } = render();
-    const component = result.current.findComponentById('duplicateComponent');
+    const component = result.current.findById('duplicateComponent');
     expect(component?.item.type === 'Header' && component.item.size === 'L').toEqual(true);
   });
 
   it("should understand which page it's on", () => {
     const { result } = render({ currentView: 'page2' });
-    const component = result.current.findComponentById('duplicateComponent');
+    const component = result.current.findById('duplicateComponent');
     expect(component?.item.type === 'Header' && component.item.size === 'M').toEqual(true);
   });
 
   it('should not try to resolve layout expressions when dataSources is undefined', () => {
     const { result } = render();
-    const component = result.current.findComponentById('child1');
+    const component = result.current.findById('child1');
     expect(typeof component?.item.hidden).toEqual('object');
   });
 
@@ -99,7 +99,7 @@ describe('useLayoutsAsNodes', () => {
         },
       } as unknown as ContextDataSources,
     });
-    expect(result.current.findComponentById('child1-0')?.item.hidden).toEqual(true);
-    expect(result.current.findComponentById('child1-1')?.item.hidden).toEqual(false);
+    expect(result.current.findById('child1-0')?.item.hidden).toEqual(true);
+    expect(result.current.findById('child1-1')?.item.hidden).toEqual(false);
   });
 });

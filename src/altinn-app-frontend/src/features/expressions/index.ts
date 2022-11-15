@@ -11,7 +11,7 @@ import {
 } from 'src/features/expressions/errors';
 import { ExprContext } from 'src/features/expressions/ExprContext';
 import { addError, asExpression, canBeExpression } from 'src/features/expressions/validation';
-import { LayoutNode } from 'src/utils/layout/hierarchy';
+import { LayoutNode, LayoutRootNode } from 'src/utils/layout/hierarchy';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
 import type {
   BaseToActual,
@@ -23,7 +23,6 @@ import type {
   FuncDef,
 } from 'src/features/expressions/types';
 import type { ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
-import type { LayoutRootNode } from 'src/utils/layout/hierarchy';
 
 import type { IInstanceContext } from 'altinn-shared/types';
 
@@ -376,15 +375,25 @@ export const ExprFunctions = {
         throw new LookupNotFound(this, `Cannot lookup component null`);
       }
 
-      const component = this.failWithoutNode().closest((c) => c.id === id || c.baseComponentId === id);
+      const node = this.failWithoutNode();
+      const component = node.closest((c) => c.id === id || c.baseComponentId === id);
       const binding = component?.item?.dataModelBindings?.simpleBinding;
-      if (binding) {
+      if (component && binding) {
+        if (component.isHidden(this.dataSources.hiddenFields)) {
+          return null;
+        }
+
         return (this.dataSources.formData && this.dataSources.formData[binding]) || null;
       }
 
+      // Expressions can technically be used without having all the layouts available, which might lead to unexpected
+      // results. We should note this in the error message, so we know the reason we couldn't find the component.
+      const hasAllLayouts = node instanceof LayoutRootNode ? !!node.top : !!node.top.top;
       throw new LookupNotFound(
         this,
-        `Unable to find component with identifier ${id} or it does not have a simpleBinding`,
+        hasAllLayouts
+          ? `Unable to find component with identifier ${id} or it does not have a simpleBinding`
+          : `Unable to find component with identifier ${id} in the current layout or it does not have a simpleBinding`,
       );
     },
     args: ['string'] as const,

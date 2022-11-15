@@ -7,7 +7,7 @@ import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import { FullWidthWrapper } from 'src/features/form/components/FullWidthWrapper';
 import { renderLayoutComponent } from 'src/features/form/containers/Form';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
-import { nodesInLayout } from 'src/utils/layout/hierarchy';
+import { nodesInLayouts } from 'src/utils/layout/hierarchy';
 import { getMappedErrors, getUnmappedErrors } from 'src/utils/validation';
 import type { ILayout } from 'src/features/form/layout';
 import type { AnyChildNode } from 'src/utils/layout/hierarchy.types';
@@ -82,7 +82,7 @@ const ErrorReport = ({ components }: IErrorReportProps) => {
       );
     }
 
-    const nodes = nodesInLayout(layouts && layouts[error.layout], repeatingGroups);
+    const nodes = nodesInLayouts(layouts, error.layout, repeatingGroups);
     const componentNode = nodes.findById(error.componentId);
 
     // Iterate over parent repeating groups

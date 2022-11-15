@@ -16,7 +16,7 @@ import { getFieldName, getFormDataForComponent } from 'src/utils/formComponentUt
 import { createRepeatingGroupComponents, getVariableTextKeysForRepeatingGroupComponent } from 'src/utils/formLayout';
 import { buildInstanceContext } from 'src/utils/instanceContext';
 import { matchLayoutComponent, setupGroupComponents } from 'src/utils/layout';
-import { resolvedNodesInLayout } from 'src/utils/layout/hierarchy';
+import { resolvedNodesInLayouts } from 'src/utils/layout/hierarchy';
 import type { IFormData } from 'src/features/form/data';
 import type { ILayout, ILayoutComponent, ILayoutGroup, ILayouts } from 'src/features/form/layout';
 import type { ILayoutCompDatePicker } from 'src/features/form/layout/index';
@@ -1251,20 +1251,17 @@ export function validateGroup(groupId: string, state: IRuntimeState, onlyInRowIn
   const formData = state.formData.formData;
   const jsonFormData = convertDataBindingToModel(formData);
   const currentView = state.formLayout.uiConfig.currentView;
-  const currentLayout = state.formLayout.layouts && state.formLayout.layouts[currentView];
-
-  if (!currentLayout) {
-    return {};
-  }
+  const layouts = state.formLayout.layouts;
 
   const instanceContext = buildInstanceContext(state.instanceData?.instance);
-  const resolvedLayout = resolvedNodesInLayout(currentLayout, repeatingGroups, {
+  const resolvedLayouts = resolvedNodesInLayouts(layouts, currentView, repeatingGroups, {
     formData,
     instanceContext,
     applicationSettings: state.applicationSettings?.applicationSettings,
+    hiddenFields: new Set(state.formLayout.uiConfig.hiddenFields),
   });
 
-  const node = resolvedLayout.findById(groupId);
+  const node = resolvedLayouts.findById(groupId);
   if (!node || !state.applicationMetadata.applicationMetadata || !language) {
     return {};
   }

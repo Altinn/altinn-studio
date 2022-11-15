@@ -12,6 +12,7 @@ export interface ContextDataSources {
   instanceContext: IInstanceContext | null;
   applicationSettings: IApplicationSettings | null;
   formData: IFormData;
+  hiddenFields: Set<string>;
 }
 
 export interface PrettyErrorsOptions {

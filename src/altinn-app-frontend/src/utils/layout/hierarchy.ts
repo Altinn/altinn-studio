@@ -1,9 +1,17 @@
+import type { $Values } from 'utility-types';
+
 import { evalExprInObj, ExprDefaultsForComponent, ExprDefaultsForGroup } from 'src/features/expressions';
 import { DataBinding } from 'src/utils/databindings/DataBinding';
 import { getRepeatingGroupStartStopIndex } from 'src/utils/formLayout';
 import { buildInstanceContext } from 'src/utils/instanceContext';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
-import type { ILayout, ILayoutComponent, ILayoutComponentOrGroup, ILayoutGroup } from 'src/features/form/layout';
+import type {
+  ILayout,
+  ILayoutComponent,
+  ILayoutComponentOrGroup,
+  ILayoutGroup,
+  ILayouts,
+} from 'src/features/form/layout';
 import type { IRepeatingGroups, IRuntimeState } from 'src/types';
 import type {
   AnyChildNode,
@@ -241,6 +249,7 @@ export class LayoutRootNode<NT extends NodeType = 'unresolved'>
 {
   public item: Record<string, undefined> = {};
   public parent: this;
+  public top: { myKey: string; collection: LayoutRootNodeCollection<NT> } | undefined;
 
   private directChildren: AnyTopLevelNode<NT>[] = [];
   private allChildren: AnyChildNode<NT>[] = [];
@@ -270,8 +279,26 @@ export class LayoutRootNode<NT extends NodeType = 'unresolved'>
    * Looks for a matching component upwards in the hierarchy, returning the first one (or undefined if
    * none can be found). Implemented here for parity with LayoutNode
    */
-  public closest(matching: (item: AnyTopLevelItem<NT>) => boolean): AnyTopLevelNode<NT> | undefined {
-    return this.children(matching);
+  public closest(
+    matching: (item: AnyTopLevelItem<NT>) => boolean,
+    traversePages = true,
+  ): AnyTopLevelNode<NT> | undefined {
+    const out = this.children(matching);
+    if (out) {
+      return out;
+    }
+
+    if (traversePages && this.top) {
+      const otherLayouts = this.top.collection.flat(this.top.myKey);
+      for (const page of otherLayouts) {
+        const found = page.closest(matching, false);
+        if (found) {
+          return found;
+        }
+      }
+    }
+
+    return undefined;
   }
 
   /**
@@ -310,20 +337,40 @@ export class LayoutRootNode<NT extends NodeType = 'unresolved'>
     return this.allChildren;
   }
 
-  public findById(id: string): AnyChildNode<NT> | undefined {
+  public findById(id: string, traversePages = true): AnyChildNode<NT> | undefined {
     if (this.idMap[id] && this.idMap[id].length) {
       return this.allChildren[this.idMap[id][0]];
+    }
+
+    if (traversePages && this.top) {
+      return this.top.collection.findById(id, this.top.myKey);
     }
 
     return undefined;
   }
 
-  public findAllById(id: string): AnyChildNode<NT>[] {
+  public findAllById(id: string, traversePages = true): AnyChildNode<NT>[] {
+    const out: AnyChildNode<NT>[] = [];
     if (this.idMap[id] && this.idMap[id].length) {
-      return this.idMap[id].map((idx) => this.allChildren[idx]);
+      for (const idx of this.idMap[id]) {
+        out.push(this.allChildren[idx]);
+      }
     }
 
-    return [];
+    if (traversePages && this.top) {
+      for (const item of this.top.collection.findAllById(id, this.top.myKey)) {
+        out.push(item);
+      }
+    }
+
+    return out;
+  }
+
+  public registerCollection(myKey: string, collection: LayoutRootNodeCollection<any, any>) {
+    this.top = {
+      myKey,
+      collection,
+    };
   }
 }
 
@@ -563,8 +610,8 @@ export class LayoutNode<NT extends NodeType = 'unresolved', Item extends AnyItem
  * Note: This strips away multiPage functionality and treats every component of a multiPage group
  * as if every component is on the same page.
  *
- * @see resolvedNodesInLayout
- *  An alternative that also resolves expressions for all nodes in the layout
+ * @see resolvedNodesInLayouts
+ *  An alternative that also resolves expressions for all nodes in all layouts
  */
 export function nodesInLayout(
   formLayout: ILayout | undefined | null,
@@ -601,45 +648,66 @@ export function nodesInLayout(
 }
 
 /**
+ * The same as the function above, but takes multiple layouts and returns a collection
+ */
+export function nodesInLayouts(
+  layouts: ILayouts | undefined | null,
+  currentView: string,
+  repeatingGroups: IRepeatingGroups | null,
+): LayoutRootNodeCollection {
+  const nodes = {};
+
+  const _layouts = layouts || {};
+  for (const key of Object.keys(_layouts)) {
+    nodes[key] = nodesInLayout(_layouts[key], repeatingGroups);
+  }
+
+  return new LayoutRootNodeCollection(currentView as keyof typeof nodes, nodes);
+}
+
+/**
  * This is the same tool as the one above, but additionally it will iterate each component/group in the layout
  * and resolve all expressions for it.
  *
- * @see nodesInLayout
+ * @see nodesInLayouts
  */
-export function resolvedNodesInLayout(
-  formLayout: ILayout,
+export function resolvedNodesInLayouts(
+  layouts: ILayouts | null,
+  currentLayout: string,
   repeatingGroups: IRepeatingGroups | null,
   dataSources: ContextDataSources,
-): LayoutRootNode<'resolved'> {
+) {
   // A full copy is needed here because formLayout comes from the redux store, and in production code (not the
   // development server!) the properties are not mutable (but we have to mutate them below).
-  const layoutCopy = JSON.parse(JSON.stringify(formLayout));
-  const unresolved = nodesInLayout(layoutCopy, repeatingGroups);
+  const layoutsCopy: ILayouts = JSON.parse(JSON.stringify(layouts || {}));
+  const unresolved = nodesInLayouts(layoutsCopy, currentLayout, repeatingGroups);
 
-  for (const node of unresolved.flat(true)) {
-    const input = { ...node.item };
-    delete input['children'];
-    delete input['rows'];
-    delete input['childComponents'];
+  for (const layout of Object.values(unresolved.all())) {
+    for (const node of layout.flat(true)) {
+      const input = { ...node.item };
+      delete input['children'];
+      delete input['rows'];
+      delete input['childComponents'];
 
-    const resolvedItem = evalExprInObj({
-      input,
-      node,
-      dataSources,
-      defaults: {
-        ...ExprDefaultsForComponent,
-        ...ExprDefaultsForGroup,
-      } as any,
-    }) as unknown as AnyItem<'resolved'>;
+      const resolvedItem = evalExprInObj({
+        input,
+        node,
+        dataSources,
+        defaults: {
+          ...ExprDefaultsForComponent,
+          ...ExprDefaultsForGroup,
+        } as any,
+      }) as unknown as AnyItem<'resolved'>;
 
-    for (const key of Object.keys(resolvedItem)) {
-      // Mutates node.item directly - this also mutates references to it and makes sure
-      // we resolve expressions deep inside recursive structures.
-      node.item[key] = resolvedItem[key];
+      for (const key of Object.keys(resolvedItem)) {
+        // Mutates node.item directly - this also mutates references to it and makes sure
+        // we resolve expressions deep inside recursive structures.
+        node.item[key] = resolvedItem[key];
+      }
     }
   }
 
-  return unresolved as unknown as LayoutRootNode<'resolved'>;
+  return unresolved as unknown as LayoutRootNodeCollection<'resolved'>;
 }
 
 /**
@@ -652,22 +720,27 @@ export class LayoutRootNodeCollection<
     [layoutKey: string]: LayoutRootNode<NT>;
   },
 > {
-  public constructor(private currentView: keyof Collection, private objects: Collection) {}
+  public constructor(private currentView: keyof Collection, private objects: Collection) {
+    for (const layoutKey of Object.keys(objects)) {
+      const layout = objects[layoutKey];
+      layout.registerCollection(layoutKey, this);
+    }
+  }
 
-  public findComponentById(id: string): LayoutNode<NT> | undefined {
+  public findById(id: string, exceptInPage?: string): LayoutNode<NT> | undefined {
     const current = this.current();
-    if (current) {
-      const inCurrent = this.current().findById(id);
+    if (current && this.currentView !== exceptInPage) {
+      const inCurrent = this.current().findById(id, false);
       if (inCurrent) {
         return inCurrent;
       }
     }
 
     for (const otherLayoutKey of Object.keys(this.objects)) {
-      if (otherLayoutKey === this.currentView) {
+      if (otherLayoutKey === this.currentView || otherLayoutKey === exceptInPage) {
         continue;
       }
-      const inOther = this.objects[otherLayoutKey].findById(id);
+      const inOther = this.objects[otherLayoutKey].findById(id, false);
       if (inOther) {
         return inOther;
       }
@@ -676,11 +749,13 @@ export class LayoutRootNodeCollection<
     return undefined;
   }
 
-  public findAllComponentsById(id: string): LayoutNode<NT>[] {
+  public findAllById(id: string, exceptInPage?: string): LayoutNode<NT>[] {
     const out: LayoutNode<NT>[] = [];
 
     for (const key of Object.keys(this.objects)) {
-      out.push(...this.objects[key].findAllById(id));
+      if (key !== exceptInPage) {
+        out.push(...this.objects[key].findAllById(id, false));
+      }
     }
 
     return out;
@@ -697,6 +772,15 @@ export class LayoutRootNodeCollection<
   public all(): Collection {
     return this.objects;
   }
+
+  public flat<L extends keyof Collection>(exceptLayout?: L) {
+    return [
+      ...Object.keys(this.objects)
+        .filter((key) => key !== exceptLayout)
+        .map((key) => this.objects[key])
+        .flat(),
+    ] as $Values<Omit<Collection, L>>[];
+  }
 }
 
 export function dataSourcesFromState(state: IRuntimeState): ContextDataSources {
@@ -704,23 +788,15 @@ export function dataSourcesFromState(state: IRuntimeState): ContextDataSources {
     formData: state.formData.formData,
     applicationSettings: state.applicationSettings.applicationSettings,
     instanceContext: buildInstanceContext(state.instanceData?.instance),
+    hiddenFields: new Set(state.formLayout.uiConfig.hiddenFields),
   };
 }
 
 export function resolvedLayoutsFromState(state: IRuntimeState): LayoutRootNodeCollection<'resolved'> {
-  const layoutsAsNodes = {};
-  const dataSources = dataSourcesFromState(state);
-  const layouts = state.formLayout.layouts || {};
-  for (const key of Object.keys(layouts)) {
-    layoutsAsNodes[key] = resolvedNodesInLayout(
-      layouts[key] || [],
-      state.formLayout.uiConfig.repeatingGroups,
-      dataSources,
-    );
-  }
-
-  return new LayoutRootNodeCollection(
-    state.formLayout.uiConfig.currentView as keyof typeof layoutsAsNodes,
-    layoutsAsNodes,
+  return resolvedNodesInLayouts(
+    state.formLayout.layouts,
+    state.formLayout.uiConfig.currentView,
+    state.formLayout.uiConfig.repeatingGroups,
+    dataSourcesFromState(state),
   );
 }

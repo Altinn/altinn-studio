@@ -1,7 +1,9 @@
 import { call, put, select } from 'redux-saga/effects';
+import type { PayloadAction } from '@reduxjs/toolkit';
 import type { SagaIterator } from 'redux-saga';
 
 import { evalExpr } from 'src/features/expressions';
+import { FormDynamicsActions } from 'src/features/form/dynamics/formDynamicsSlice';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
 import { Triggers } from 'src/types';
@@ -10,7 +12,7 @@ import { dataSourcesFromState, resolvedLayoutsFromState } from 'src/utils/layout
 import { selectNotNull } from 'src/utils/sagas';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
 import type { IFormData } from 'src/features/form/data';
-import type { IConditionalRenderingRules } from 'src/features/form/dynamics';
+import type { ICheckIfConditionalRulesShouldRun, IConditionalRenderingRules } from 'src/features/form/dynamics';
 import type { IHiddenLayoutsExpressions, IRuntimeState, IUiConfig, IValidations } from 'src/types';
 import type { LayoutRootNodeCollection } from 'src/utils/layout/hierarchy';
 
@@ -22,7 +24,9 @@ export const FormValidationSelector = (state: IRuntimeState) => state.formValida
 export const ResolvedNodesSelector = (state: IRuntimeState) => resolvedLayoutsFromState(state);
 export const DataSourcesSelector = (state: IRuntimeState) => dataSourcesFromState(state);
 
-export function* checkIfConditionalRulesShouldRunSaga(): SagaIterator {
+export function* checkIfConditionalRulesShouldRunSaga({
+  payload: { preventRecursion = false },
+}: PayloadAction<ICheckIfConditionalRulesShouldRun>): SagaIterator {
   try {
     const conditionalRenderingState: IConditionalRenderingRules = yield select(ConditionalRenderingSelector);
     const formData: IFormData = yield select(FormDataSelector);
@@ -36,6 +40,29 @@ export function* checkIfConditionalRulesShouldRunSaga(): SagaIterator {
     const futureHiddenFields = runConditionalRenderingRules(conditionalRenderingState, formData, repeatingGroups);
 
     runExpressionRules(resolvedNodes, hiddenFields, futureHiddenFields);
+
+    const hiddenLayouts = new Set(uiConfig.tracks.hidden);
+    const futureHiddenLayouts = runExpressionsForLayouts(resolvedNodes, uiConfig.tracks.hiddenExpr, dataSources);
+
+    let runTwice = false;
+    if (shouldUpdate(hiddenLayouts, futureHiddenLayouts)) {
+      yield put(
+        FormLayoutActions.updateHiddenLayouts({
+          hiddenLayouts: [...futureHiddenLayouts.values()],
+        }),
+      );
+      // Hide all fields in hidden layouts. If fields have been hidden because pages are hidden, we need to re-run
+      // these checks later, since component lookups that did not resolve back then might resolve now.
+      runTwice = true;
+    }
+
+    for (const layout of futureHiddenLayouts) {
+      for (const node of resolvedNodes.findLayout(layout).flat(true)) {
+        if (!futureHiddenFields.has(node.item.id)) {
+          futureHiddenFields.add(node.item.id);
+        }
+      }
+    }
 
     if (shouldUpdate(hiddenFields, futureHiddenFields)) {
       yield put(
@@ -86,13 +113,10 @@ export function* checkIfConditionalRulesShouldRunSaga(): SagaIterator {
       }
     }
 
-    const hiddenLayouts = new Set(uiConfig.tracks.hidden);
-    const futureHiddenLayouts = runExpressionsForLayouts(resolvedNodes, uiConfig.tracks.hiddenExpr, dataSources);
-
-    if (shouldUpdate(hiddenLayouts, futureHiddenLayouts)) {
+    if (runTwice && !preventRecursion) {
       yield put(
-        FormLayoutActions.updateHiddenLayouts({
-          hiddenLayouts: [...futureHiddenLayouts.values()],
+        FormDynamicsActions.checkIfConditionalRulesShouldRun({
+          preventRecursion: true,
         }),
       );
     }

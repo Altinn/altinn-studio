@@ -9,7 +9,7 @@ import dot from 'dot-object';
 
 import { Severity } from 'src/types';
 import { createRepeatingGroupComponents, getRepeatingGroups } from 'src/utils/formLayout';
-import { LayoutRootNodeCollection, nodesInLayout } from 'src/utils/layout/hierarchy';
+import { nodesInLayouts } from 'src/utils/layout/hierarchy';
 import * as validation from 'src/utils/validation/validation';
 import type { ILayoutCompDatePicker, ILayoutComponent, ILayoutGroup, ILayouts } from 'src/features/form/layout';
 import type {
@@ -22,16 +22,16 @@ import type {
   IValidationIssue,
   IValidations,
 } from 'src/types';
-import type { LayoutRootNode } from 'src/utils/layout/hierarchy';
+import type { LayoutRootNodeCollection } from 'src/utils/layout/hierarchy';
 
 import { getParsedLanguageFromKey, getTextResourceByKey } from 'altinn-shared/index';
 
-function toCollection(mockLayout: ILayouts, repeatingGroups: IRepeatingGroups = {}) {
-  const asNodes = {};
-  for (const key of Object.keys(mockLayout)) {
-    asNodes[key] = nodesInLayout(mockLayout[key] || [], repeatingGroups) as unknown as LayoutRootNode<'resolved'>;
-  }
-  return new LayoutRootNodeCollection<'resolved'>(Object.keys(mockLayout)[0] as keyof typeof asNodes, asNodes);
+function toCollection(mockLayouts: ILayouts, repeatingGroups: IRepeatingGroups = {}) {
+  return nodesInLayouts(
+    mockLayouts,
+    Object.keys(mockLayouts)[0],
+    repeatingGroups,
+  ) as unknown as LayoutRootNodeCollection<'resolved'>;
 }
 
 function toCollectionFromData(mockLayout: ILayouts, formDataAsObject: any) {
@@ -967,7 +967,7 @@ describe('utils > validation', () => {
 
     it('should add error to validations if supplied field is required', () => {
       const collection = toCollection(mockLayout, repeatingGroups);
-      const component = collection.findComponentById('componentId_3');
+      const component = collection.findById('componentId_3');
       if (!component) {
         throw new Error('Node not found');
       }
@@ -994,7 +994,7 @@ describe('utils > validation', () => {
 
     it('should find all errors in an AddressComponent', () => {
       const collection = toCollection(mockLayout, repeatingGroups);
-      const component = collection.findComponentById('componentId_6');
+      const component = collection.findById('componentId_6');
       if (!component) {
         throw new Error('Node not found');
       }

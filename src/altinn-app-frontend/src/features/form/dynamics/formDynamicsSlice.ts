@@ -38,7 +38,7 @@ const slice = createSagaSlice((mkAction: MkActionType<IFormDynamicState>) => ({
               take(FormRulesActions.fetchFulfilled),
               take(FormLayoutActions.updateRepeatingGroupsFulfilled),
             ]);
-            yield call(checkIfConditionalRulesShouldRunSaga);
+            yield call(checkIfConditionalRulesShouldRunSaga, { type: '', payload: {} });
           }
         },
     }),

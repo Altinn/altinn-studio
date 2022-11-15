@@ -1,7 +1,7 @@
 import { evalExprInObj, ExprDefaultsForComponent, ExprDefaultsForGroup } from 'src/features/expressions/index';
-import { getSharedTests } from 'src/features/expressions/shared';
+import { convertLayouts, getSharedTests } from 'src/features/expressions/shared';
 import { asExpression, preProcessLayout } from 'src/features/expressions/validation';
-import { nodesInLayout } from 'src/utils/layout/hierarchy';
+import { nodesInLayouts } from 'src/utils/layout/hierarchy';
 import type { Layouts } from 'src/features/expressions/shared';
 import type { ILayout, ILayoutComponentOrGroup, ILayoutGroup } from 'src/features/form/layout';
 import type { IRepeatingGroups } from 'src/types';
@@ -34,10 +34,16 @@ function generateRepeatingGroups(layout: ILayout) {
 }
 
 function evalAllExpressions(layouts: Layouts) {
+  let repeatingGroups: IRepeatingGroups = {};
   for (const page of Object.values(layouts)) {
-    const repeatingGroups = generateRepeatingGroups(page.data.layout);
-    const nodes = nodesInLayout(page.data.layout, repeatingGroups);
-    for (const node of nodes.flat(true)) {
+    repeatingGroups = {
+      ...repeatingGroups,
+      ...generateRepeatingGroups(page.data.layout),
+    };
+  }
+  const nodes = nodesInLayouts(convertLayouts(layouts), Object.keys(layouts)[0], repeatingGroups);
+  for (const page of Object.values(nodes.all())) {
+    for (const node of page.flat(true)) {
       evalExprInObj({
         input: node.item,
         node,
@@ -49,6 +55,7 @@ function evalAllExpressions(layouts: Layouts) {
           formData: {},
           applicationSettings: {} as any,
           instanceContext: {} as any,
+          hiddenFields: new Set(),
         },
       });
     }

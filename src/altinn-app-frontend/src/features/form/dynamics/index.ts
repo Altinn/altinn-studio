@@ -18,6 +18,7 @@ export interface IRuleConnections {
 }
 
 export interface ICheckIfConditionalRulesShouldRun {
+  preventRecursion?: boolean;
   repeatingContainerId?: string;
 }
 

@@ -1,3 +1,5 @@
+import { getInitialStateMock } from '__mocks__/mocks';
+
 import { getRepeatingGroups } from 'src/utils/formLayout';
 import {
   layoutAsHierarchy,
@@ -6,7 +8,8 @@ import {
   LayoutRootNode,
   LayoutRootNodeCollection,
   nodesInLayout,
-  resolvedNodesInLayout,
+  resolvedLayoutsFromState,
+  resolvedNodesInLayouts,
 } from 'src/utils/layout/hierarchy';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
 import type { ILayout, ILayoutCompHeader, ILayoutCompInput, ILayoutGroup } from 'src/features/form/layout';
@@ -113,6 +116,7 @@ describe('Hierarchical layout tools', () => {
     components.group3nh,
     components.group3ni,
   ];
+  const layouts = { FormLayout: layout };
 
   describe('layoutAsHierarchy', () => {
     it('should turn a layout into a hierarchy', () => {
@@ -515,9 +519,10 @@ describe('Hierarchical layout tools', () => {
         appId: 'test',
       },
       applicationSettings: {},
+      hiddenFields: new Set(),
     };
 
-    const nodes = resolvedNodesInLayout(layout, repeatingGroups, dataSources);
+    const nodes = resolvedNodesInLayouts(layouts, 'FormLayout', repeatingGroups, dataSources);
 
     const topInput = nodes.findById(components.top2.id);
     const group2 = nodes.findById(components.group2.id);
@@ -545,8 +550,8 @@ describe('Hierarchical layout tools', () => {
     expect(uniqueHidden(group2ni?.parent.parent.children())).toEqual(plain);
     expect(uniqueHidden(group2?.flat(true))).toEqual(plain);
     expect(uniqueHidden(group2?.flat(false))).toEqual(plain);
-    expect(uniqueHidden(nodes.flat(true))).toEqual(plain);
-    expect(uniqueHidden(nodes.children())).toEqual(plain);
+    expect(uniqueHidden(nodes.current().flat(true))).toEqual(plain);
+    expect(uniqueHidden(nodes.current().children())).toEqual(plain);
 
     if (group2?.item.type === 'Group' && 'rows' in group2.item) {
       expect(group2.item.rows[0].items[1].hidden).toEqual(true);
@@ -579,8 +584,8 @@ describe('Hierarchical layout tools', () => {
     const collection2 = new LayoutRootNodeCollection('l2', layouts);
 
     it('should find the component in the current layout first', () => {
-      expect(collection1?.findComponentById(components.top1.id)?.item.readOnly).toBeUndefined();
-      expect(collection2?.findComponentById(components.top1.id)?.item.readOnly).toEqual(true);
+      expect(collection1?.findById(components.top1.id)?.item.readOnly).toBeUndefined();
+      expect(collection2?.findById(components.top1.id)?.item.readOnly).toEqual(true);
     });
 
     it('should find the current layout', () => {
@@ -594,7 +599,7 @@ describe('Hierarchical layout tools', () => {
     });
 
     it('should find all components in multiple layouts', () => {
-      expect(collection1.findAllComponentsById(components.top1.id).map((c) => c.item.id)).toEqual([
+      expect(collection1.findAllById(components.top1.id).map((c) => c.item.id)).toEqual([
         components.top1.id,
         components.top1.id,
       ]);
@@ -643,5 +648,31 @@ describe('Hierarchical layout tools', () => {
     // This component doesn't have any repeating group reference point, so it cannot
     // provide any insights (but it should not fail)
     expect(topHeaderNode?.transposeDataModel('MyModel.Group2.Nested.Age')).toEqual('MyModel.Group2.Nested.Age');
+  });
+
+  describe('find functions', () => {
+    const state = getInitialStateMock();
+    (state.formLayout.layouts as any)['page2'] = layout;
+    state.formLayout.uiConfig.repeatingGroups = manyRepeatingGroups;
+    const resolved = resolvedLayoutsFromState(state);
+
+    const field3 = resolved.findById('field3');
+    expect(field3?.item.id).toEqual('field3');
+
+    const nested = resolved.findById(components.group2ni.id);
+    expect(nested?.item.id).toEqual('group2nested_input-0-0');
+    expect(nested?.closest((i) => i.id === components.top1.id)?.item.id).toEqual(components.top1.id);
+
+    // Using 'closest' across pages
+    expect(nested?.closest((i) => i.id === 'field3')?.item.id).toEqual('field3');
+
+    // Using 'findById' on the wrong page
+    expect(resolved.findLayout('page2').findById('field3')?.item.id).toEqual('field3');
+    expect(field3?.top.findAllById(components.group2i.id).map((i) => i.item.id)).toEqual([
+      'group2_input-0',
+      'group2_input-1',
+      'group2_input-2',
+      'group2_input-3',
+    ]);
   });
 });

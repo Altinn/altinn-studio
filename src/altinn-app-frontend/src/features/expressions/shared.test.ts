@@ -2,13 +2,14 @@ import dot from 'dot-object';
 
 import { evalExpr } from 'src/features/expressions';
 import { NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
-import { getSharedTests } from 'src/features/expressions/shared';
+import { convertLayouts, getSharedTests } from 'src/features/expressions/shared';
 import { asExpression } from 'src/features/expressions/validation';
 import { getRepeatingGroups, splitDashedKey } from 'src/utils/formLayout';
-import { LayoutRootNodeCollection, nodesInLayout } from 'src/utils/layout/hierarchy';
+import { nodesInLayouts, resolvedNodesInLayouts } from 'src/utils/layout/hierarchy';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
 import type { FunctionTest, SharedTestContext, SharedTestContextList } from 'src/features/expressions/shared';
 import type { Expression } from 'src/features/expressions/types';
+import type { IRepeatingGroups } from 'src/types';
 import type { LayoutNode } from 'src/utils/layout/hierarchy';
 
 import type { IApplicationSettings, IInstanceContext } from 'altinn-shared/types';
@@ -28,19 +29,24 @@ describe('Expressions shared function tests', () => {
           formData: dataModel ? dot.dot(dataModel) : {},
           instanceContext: instanceContext || ({} as IInstanceContext),
           applicationSettings: frontendSettings || ({} as IApplicationSettings),
+          hiddenFields: new Set<string>(),
         };
 
-        const asNodes = {};
-        const _layouts = layouts || {};
+        const _layouts = convertLayouts(layouts);
+        let repeatingGroups: IRepeatingGroups = {};
         for (const key of Object.keys(_layouts)) {
-          const repeatingGroups = getRepeatingGroups(_layouts[key].data.layout, dataSources.formData);
-          asNodes[key] = nodesInLayout(_layouts[key].data.layout, repeatingGroups);
+          repeatingGroups = {
+            ...repeatingGroups,
+            ...getRepeatingGroups(_layouts[key] || [], dataSources.formData),
+          };
         }
 
         const currentLayout = (context && context.currentLayout) || '';
-        const rootCollection = new LayoutRootNodeCollection(currentLayout as keyof typeof asNodes, asNodes);
+        const rootCollection = expectsFailure
+          ? nodesInLayouts(_layouts, currentLayout, repeatingGroups)
+          : resolvedNodesInLayouts(_layouts, currentLayout, repeatingGroups, dataSources);
         const componentId = context ? toComponentId(context) : 'no-component';
-        const component = rootCollection.findComponentById(componentId) || new NodeNotFoundWithoutContext(componentId);
+        const component = rootCollection.findById(componentId) || new NodeNotFoundWithoutContext(componentId);
 
         if (expectsFailure) {
           expect(() => {
@@ -48,8 +54,28 @@ describe('Expressions shared function tests', () => {
             return evalExpr(expr as Expression, component, dataSources);
           }).toThrow(expectsFailure);
         } else {
+          // Simulate what happens in checkIfConditionalRulesShouldRunSaga()
+          const newHiddenFields = new Set<string>();
+          for (const layoutKey of Object.keys(rootCollection.all())) {
+            const layout = rootCollection.findLayout(layoutKey);
+            for (const node of layout.flat(true)) {
+              if (node.isHidden(dataSources.hiddenFields)) {
+                newHiddenFields.add(node.item.id);
+              }
+            }
+            if (layouts && layouts[layoutKey].data.hidden) {
+              const hiddenExpr = asExpression(layouts[layoutKey].data.hidden) as Expression;
+              const isHidden = evalExpr(hiddenExpr, layout, dataSources);
+              if (isHidden) {
+                for (const hiddenComponent of layout.flat(true)) {
+                  newHiddenFields.add(hiddenComponent.item.id);
+                }
+              }
+            }
+          }
+
           const expr = asExpression(expression) as Expression;
-          expect(evalExpr(expr, component, dataSources)).toEqual(expects);
+          expect(evalExpr(expr, component, { ...dataSources, hiddenFields: newHiddenFields })).toEqual(expects);
         }
       },
     );
@@ -90,18 +116,22 @@ describe('Expressions shared context tests', () => {
         formData: dataModel ? dot.dot(dataModel) : {},
         instanceContext: instanceContext || ({} as IInstanceContext),
         applicationSettings: frontendSettings || ({} as IApplicationSettings),
+        hiddenFields: new Set(),
       };
 
       const foundContexts: SharedTestContextList[] = [];
       const _layouts = layouts || {};
       for (const key of Object.keys(_layouts)) {
         const repeatingGroups = getRepeatingGroups(_layouts[key].data.layout, dataSources.formData);
-        const nodes = nodesInLayout(_layouts[key].data.layout, repeatingGroups);
+        const nodes = nodesInLayouts({ FormLayout: _layouts[key].data.layout }, 'FormLayout', repeatingGroups);
 
         foundContexts.push({
           component: key,
           currentLayout: key,
-          children: nodes.children().map((child) => recurse(child, key)),
+          children: nodes
+            .current()
+            .children()
+            .map((child) => recurse(child, key)),
         });
       }
 
