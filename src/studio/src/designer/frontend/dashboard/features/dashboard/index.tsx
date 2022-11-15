@@ -132,6 +132,7 @@ export const Dashboard = () => {
             className={classes.newLink}
             onMouseEnter={handleNewLinkFocus}
             onMouseLeave={handleNewLinkFocusOut}
+            data-testid={'dashboard.new_app'}
           >
             <span>{getLanguageFromKey('dashboard.new_service', language)}</span>
             <i

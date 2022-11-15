@@ -1,6 +1,6 @@
 //Selectors in dashboard
 export const dashboard = {
-  newApp: 'a[href="#/new"]',
+  newApp: "[data-testid='dashboard.new_app']",
   appOwners: '#service-owner',
   appName: '#service-saved-name',
   button: 'button',
