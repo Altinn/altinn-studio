@@ -21,6 +21,7 @@ describe('CustomWebComponent', () => {
     const element = screen.getByTestId('test-component');
     expect(element.id).toEqual('test-component');
     expect(element.getAttribute('data-CustomAttributeWithJson')).toEqual(JSON.stringify(jsonAttributeValue));
+    expect(element.getAttribute('data-CustomAttributeWithReact')).toEqual('<span>Hello world</span>');
   });
 
   it('should render the component with passed props as attributes', () => {
@@ -58,6 +59,7 @@ describe('CustomWebComponent', () => {
         title: 'title',
       },
       'data-CustomAttributeWithJson': jsonAttributeValue,
+      'data-CustomAttributeWithReact': <span>Hello world</span>,
     };
 
     const resources = [

@@ -1,4 +1,5 @@
 import React from 'react';
+import ReactDOMServer from 'react-dom/server';
 
 import { useAppSelector } from 'src/common/hooks';
 import type { PropsFromGenericComponent } from 'src/components';
@@ -64,7 +65,9 @@ function CustomWebComponent({
   const propsAsAttributes: any = {};
   Object.keys(passThroughProps).forEach((key) => {
     let prop = passThroughProps[key];
-    if (['object', 'array'].includes(typeof prop)) {
+    if (React.isValidElement(prop)) {
+      prop = ReactDOMServer.renderToStaticMarkup(prop);
+    } else if (['object', 'array'].includes(typeof prop)) {
       prop = JSON.stringify(passThroughProps[key]);
     }
     propsAsAttributes[key] = prop;

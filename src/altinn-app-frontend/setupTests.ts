@@ -1,5 +1,6 @@
 import 'jest';
 import '@testing-library/jest-dom/extend-expect';
+import { TextEncoder, TextDecoder } from 'util';
 
 import type { IAltinnWindow } from 'src/types';
 
@@ -25,3 +26,6 @@ altinnWindow.app = 'test';
 jest.setTimeout(10000);
 
 jest.mock('axios');
+
+(global as any).TextEncoder = TextEncoder;
+(global as any).TextDecoder = TextDecoder;
