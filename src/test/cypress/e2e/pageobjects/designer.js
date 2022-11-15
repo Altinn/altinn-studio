@@ -3,7 +3,7 @@ export const designer = {
   appMenu: {
     about: "[data-testid='top_menu.about']",
     edit: "[data-testid='top_menu.create']",
-    texts: "[data-testid='top_menu.texts_old']",
+    texts: "[data-testid='top_menu.texts']",
     deploy: "[data-testid='top_menu.deploy']",
     datamodel: "[data-testid='top_menu.datamodel']"
   },
