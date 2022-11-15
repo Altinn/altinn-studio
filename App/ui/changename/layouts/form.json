@@ -66,7 +66,8 @@
         "type": "Input",
         "textResourceBindings": {
           "title": "PersonNyttMellomnavn",
-          "description": "HintMellomnavn"
+          "description": "HintMellomnavn",
+          "somethingThatIsVeryInvalid": null
         },
         "dataModelBindings": {
           "simpleBinding": "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value"
