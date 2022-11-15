@@ -6,8 +6,8 @@ import AppFrontend from '../../pageobjects/app-frontend';
 const appFrontend = new AppFrontend();
 
 describe('Tabbing', () => {
-  it('Tab through the fiels in change name form', () => {
-    cy.navigateToChangeName();
+  it('Tab through the fields in change name form', () => {
+    cy.goto('changeName');
     cy.get(appFrontend.changeOfName.newFirstName).focus().tab();
     cy.focused().should('have.attr', 'id').and('eq', appFrontend.changeOfName.newLastName.substring(1));
     cy.get(appFrontend.changeOfName.newLastName).type('a').blur().tab().tab().tab();

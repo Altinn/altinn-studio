@@ -10,7 +10,7 @@ const mui = new Common();
 
 describe('Calculate Page Order', () => {
   beforeEach(() => {
-    cy.navigateToTask3();
+    cy.goto('group');
     cy.contains(mui.button, texts.next).click();
     cy.get(appFrontend.group.showGroupToContinue).then((checkbox) => {
       cy.get(checkbox).should('be.visible').find('input').check();

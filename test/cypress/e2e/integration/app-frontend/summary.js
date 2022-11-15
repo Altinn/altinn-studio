@@ -10,8 +10,7 @@ const mui = new Common();
 
 describe('Summary', () => {
   it('Summary of change name form', () => {
-    cy.navigateToChangeName();
-    cy.completeChangeNameForm('a', 'a');
+    cy.gotoAndComplete('changeName');
     cy.get(appFrontend.backButton).should('be.visible');
 
     //Summary displays change button for editable fields and does not for readonly fields
@@ -92,7 +91,7 @@ describe('Summary', () => {
   });
 
   it('is possible to view summary of repeating group', () => {
-    cy.completeTask3Form();
+    cy.gotoAndComplete('group');
     cy.get(appFrontend.group.mainGroupSummary)
       .should('be.visible')
       .and('have.length', 1)

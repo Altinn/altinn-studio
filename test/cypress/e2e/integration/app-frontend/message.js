@@ -47,12 +47,6 @@ describe('Message', () => {
       cy.get(appFrontend.startAgain).contains(instanceId).and('contain.text', appFrontend.apps.frontendTest);
       cy.get(appFrontend.startAgain).find('a').should('have.attr', 'href', instantiateUrl);
     });
-    cy.get(appFrontend.sendinButton)
-      .should('be.visible')
-      .invoke('outerWidth')
-      .then((width) => {
-        width = Math.round(width);
-        expect(width).to.equal(98);
-      });
+    cy.get(appFrontend.sendinButton).should('be.visible');
   });
 });

@@ -10,7 +10,7 @@ const mui = new Common();
 
 describe('Formatting', () => {
   it('Number formatting', () => {
-    cy.navigateToChangeName();
+    cy.goto('changeName');
     cy.get('#form-content-newFirstName').siblings().should('have.class', 'MuiGrid-grid-md-6');
     cy.get('#form-content-newFirstName')
       .siblings()
@@ -20,7 +20,7 @@ describe('Formatting', () => {
       .should('be.visible')
       .type('44444444')
       .should('have.value', '+47 444 44 444');
-    cy.completeChangeNameForm('a', 'a');
+    cy.gotoAndComplete('changeName');
     cy.get(appFrontend.backButton).should('be.visible');
     cy.intercept('**/api/layoutsettings/group').as('getLayoutGroup');
     cy.get(appFrontend.sendinButton).should('be.visible').click();

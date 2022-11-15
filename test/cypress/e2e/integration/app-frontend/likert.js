@@ -9,7 +9,7 @@ const likertPage = new Likert();
 
 describe('Likert', () => {
   it('Should show validation message for required likert', () => {
-    cy.navigateToTask4();
+    cy.goto('likert');
     cy.get(appFrontend.sendinButton).click();
     cy.findAllByRole('alert').should(($alerts) => {
       expect($alerts).to.have.length(3);
@@ -19,7 +19,7 @@ describe('Likert', () => {
     });
   });
   it('Should fill out optional likert and see results in summary component', () => {
-    cy.navigateToTask4();
+    cy.goto('likert');
     likertPage.assertOptionalLikertColumnHeaders();
     likertPage.selectRadio(likertPage.optionalQuestions[0], likertPage.options[2]);
     likertPage.selectRadio(likertPage.optionalQuestions[1], likertPage.options[1]);

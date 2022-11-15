@@ -10,7 +10,7 @@ const appFrontend = new AppFrontend();
 
 describe('Receipt', () => {
   it('Receipt page displays links and attachments', () => {
-    cy.navigateToTask5();
+    cy.goto('confirm', 'with-data');
     cy.get(appFrontend.confirm.sendIn).should('be.visible').click();
     cy.get(appFrontend.receipt.container)
       .should('be.visible')

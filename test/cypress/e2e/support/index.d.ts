@@ -1,71 +1,44 @@
 /// <reference types="cypress" />
+
+export type FrontendTestTask = 'message' | 'changeName' | 'group' | 'likert' | 'confirm';
+export type GotoMode = 'fast' | 'with-data';
+
 declare namespace Cypress {
   interface Chainable {
     /**
-     * Custom command to get an altinnstudioruntime token for an app owner
-     * @example cy.getTokenForOrg(ttd)
+     * Go to a certain task in the app, using either the fast mode or a mode where data is properly filled out.
+     * Modes:
+     *  - 'fast' will jump to the given task by injecting a minimal set of valid data to complete each previous task
+     *  - 'with-data' will fill out proper/expected data, upload attachments, etc. Useful if you expect relatistic
+     *    and complete data in the instance at the end.
      */
-    getTokenForOrg(orgname: string): Chainable<Element>;
+    goto(target: FrontendTestTask, mode: GotoMode = 'fast'): Chainable<Element>;
 
     /**
-     * Custom command to navigate to change name layout in task_2 in app: frontend-test
-     * @example cy.navigateToChangeName()
+     * Go to a certain task and fill out the data in it. This behaves much like goto(), with key differences:
+     * - It will only use the 'mode' for an tasks preceding the target one (if any). This means, if you
+     *   gotoAndComplete('group', 'fast'), it will skip over the 'changeName' form using the fast mode (skipping
+     *   form filling), but it will use the slower form-filling mode to complete the 'group' form.
+     * - It won't send in the result, but stop on the last page in the task/layout set (usually a summary page). If
+     *   you want to do that, call cy.sendIn() afterwards
      */
-    navigateToChangeName(): Chainable<Element>;
+    gotoAndComplete(target: FrontendTestTask, mode: GotoMode = 'fast'): Chainable<Element>;
 
     /**
-     * Custom command to used in beforeeach that preserves cookies between tests
-     * @example cy.preserveCookies()
+     * Send in the form just completed by gotoAndComplete(), and wait for the next task to render
      */
-    preserveCookies(): Chainable<Element>;
+    sendIn(target?: FrontendTestTask): Chainable<Element>;
 
     /**
-     * Custom command to complete the change name form with supplied names and move to next page
-     * @example cy.completeChangeNameForm('abc', 'xyz')
+     * Reload the page and wait until the app has finished loading
      */
-    completeChangeNameForm(firstName: string, lastName: string): Chainable<Element>;
+    reloadAndWait(): Chainable<null>;
 
     /**
      * Start an app instance based on the environment selected
      * @example cy.startAppInstance('appName')
      */
     startAppInstance(appName: string, anonymous?: boolean): Chainable<Element>;
-
-    /**
-     * Navigate to the task3 of app ttd/frontend-test
-     * @example cy.navigateToTask3()
-     */
-    navigateToTask3(): Chainable<Element>;
-
-    /**
-     * navigate to task 3 and complete task 3 form
-     * @example cy.completeTask3Form()
-     */
-    completeTask3Form(): Chainable<Element>;
-
-    /**
-     * Navigate to the task4 of app ttd/frontend-test
-     * @example cy.navigateToTask3()
-     */
-    navigateToTask4(): Chainable<Element>;
-
-    /**
-     * navigate to task 3 and complete task 3 form
-     * @example cy.completeTask3Form()
-     */
-    completeTask4Form(): Chainable<Element>;
-
-    /**
-     * Navigate to the task4 of app ttd/frontend-test
-     * @example cy.navigateToTask3()
-     */
-    navigateToTask5(): Chainable<Element>;
-
-    /**
-     * Puts data and waits for confirmation container to render
-     * @example cy.sendAndWaitForConfirmation()
-     */
-    sendAndWaitForConfirmation(): Chainable<Element>;
 
     /**
      * Add an item to group component with an item in nested group
@@ -108,6 +81,10 @@ declare namespace Cypress {
      * the app you're testing, such as marking some components as required, etc.
      * Must be called in the beginning of your test.
      */
-    interceptLayout(layoutName: string, mutator: (component: any) => any): Chainable<Element>;
+    interceptLayout(
+      layoutName: string,
+      mutator: (component: any) => void,
+      wholeLayoutMutator?: (layoutSet: any) => void,
+    ): Chainable<null>;
   }
 }

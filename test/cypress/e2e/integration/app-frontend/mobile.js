@@ -16,9 +16,9 @@ describe('Mobile', () => {
   });
 
   it('is possible to submit app instance from mobile', () => {
-    cy.navigateToChangeName();
+    cy.goto('changeName');
     cy.get(appFrontend.changeOfName.oldFullName).parents().eq(2).should('have.css', 'max-width', '100%');
-    cy.completeChangeNameForm('a', 'a');
+    cy.gotoAndComplete('changeName');
     cy.intercept('**/api/layoutsettings/group').as('getLayoutGroup');
     cy.get(appFrontend.sendinButton)
       .should('be.visible')
@@ -48,7 +48,7 @@ describe('Mobile', () => {
     cy.get(appFrontend.navMenu).should('have.attr', 'hidden');
     cy.get(appFrontend.sendinButton).click();
     likertPage.selectRequiredRadiosInMobile();
-    cy.sendAndWaitForConfirmation();
+    cy.sendIn('likert');
     cy.get(appFrontend.confirm.sendIn).should('be.visible').click();
     cy.get(appFrontend.receipt.container).should('be.visible');
     cy.get(appFrontend.receipt.linkToArchive).should('be.visible');

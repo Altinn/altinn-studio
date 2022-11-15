@@ -8,7 +8,7 @@ const appFrontend = new AppFrontend();
 
 describe('Dynamics', () => {
   it('Show and hide confirm name change checkbox on changing firstname', () => {
-    cy.navigateToChangeName();
+    cy.goto('changeName');
     cy.get(appFrontend.changeOfName.newFirstName)
       .should('be.visible')
       .type('test')
@@ -25,7 +25,7 @@ describe('Dynamics', () => {
   });
 
   it('Show and hide name change reasons radio buttons', () => {
-    cy.navigateToChangeName();
+    cy.goto('changeName');
     cy.get(appFrontend.changeOfName.newFirstName).should('be.visible').type('test');
     cy.get(appFrontend.changeOfName.newLastName).should('be.visible').type('test');
     cy.get(appFrontend.changeOfName.confirmChangeName).should('be.visible').find('input').check();
@@ -41,9 +41,8 @@ describe('Dynamics', () => {
           ['component', 'newLastName'],
         ];
       }
-      return component;
     });
-    cy.navigateToChangeName();
+    cy.goto('changeName');
     cy.get(appFrontend.changeOfName.newFirstName).type('test');
     cy.get(appFrontend.errorReport)
       .should('exist')

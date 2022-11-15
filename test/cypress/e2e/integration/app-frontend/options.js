@@ -10,7 +10,7 @@ const mui = new Common();
 
 describe('Options', () => {
   it('is possible to retrieve options dynamically', () => {
-    cy.navigateToChangeName();
+    cy.goto('changeName');
     // Case: options are dynamically refetched based on what the user selects as source
     cy.get(appFrontend.changeOfName.sources).should('be.visible');
 
@@ -41,7 +41,7 @@ describe('Options', () => {
   });
 
   it('is possible to build options from repeating groups', () => {
-    cy.navigateToTask3();
+    cy.goto('group');
     cy.get(appFrontend.navMenu).should('be.visible');
     cy.contains(mui.button, texts.next).click();
     cy.get(appFrontend.group.showGroupToContinue).find('input').check();

@@ -10,7 +10,7 @@ const mui = new Common();
 
 describe('Group', () => {
   const init = () => {
-    cy.navigateToTask3();
+    cy.goto('group');
     cy.contains(mui.button, texts.next).click();
     cy.get(appFrontend.group.showGroupToContinue).should('be.visible');
   };
@@ -28,7 +28,6 @@ describe('Group', () => {
         if (component.edit && typeof component.edit.openByDefault !== 'undefined') {
           component.edit.openByDefault = openByDefault;
         }
-        return component;
       });
       init();
 
@@ -140,7 +139,6 @@ describe('Group', () => {
           component.triggers = undefined;
           component.required = true;
         }
-        return component;
       });
       init();
 
@@ -258,7 +256,6 @@ describe('Group', () => {
         // Sets these two components to required
         component.required = true;
       }
-      return component;
     });
     init();
 
@@ -301,11 +298,9 @@ describe('Group', () => {
         if (component.edit && component.edit.openByDefault !== undefined) {
           component.edit.openByDefault = openByDefault;
         }
-        return component;
       });
 
-      cy.reload();
-      cy.wait('@getLayoutGroup');
+      cy.reloadAndWait();
 
       if (openByDefault === 'first') {
         cy.get(appFrontend.group.mainGroupTableBody).children().should('have.length', 2);
@@ -321,9 +316,7 @@ describe('Group', () => {
       }
     });
 
-    cy.interceptLayout('group', (component) => component);
-    cy.reload();
-    cy.wait('@getLayoutGroup');
+    cy.reloadAndWait();
 
     cy.addItemToGroup(1, 2, 'item 1');
     cy.addItemToGroup(20, 30, 'item 2');
@@ -335,11 +328,9 @@ describe('Group', () => {
         if (component.edit && component.edit.openByDefault !== undefined) {
           component.edit.openByDefault = openByDefault;
         }
-        return component;
       });
 
-      cy.reload();
-      cy.wait('@getLayoutGroup');
+      cy.reloadAndWait();
 
       if (openByDefault === 'first') {
         cy.get(appFrontend.group.mainGroupTableBody).children().should('have.length', 4);
@@ -360,11 +351,9 @@ describe('Group', () => {
       if (component.edit && component.edit.openByDefault !== undefined) {
         component.edit.openByDefault = true;
       }
-      return component;
     });
 
-    cy.reload();
-    cy.wait('@getLayoutGroup');
+    cy.reloadAndWait();
 
     // Test that deleting an item does not cause another group to open if there are more elements in the group
     cy.get(appFrontend.group.mainGroupTableBody).children().eq(0).find(appFrontend.group.delete).should('be.visible').click();
@@ -376,7 +365,6 @@ describe('Group', () => {
       if (component.edit && typeof component.edit.openByDefault !== 'undefined') {
         component.edit.alertOnDelete = true;
       }
-      return component;
     });
     init();
 
