@@ -71,7 +71,6 @@
         "dataModelBindings": {
           "simpleBinding": "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value"
         },
-        "required": false,
         "readOnly": false,
         "triggers": ["validation"],
         "labelSettings": { "optionalIndicator": false },
