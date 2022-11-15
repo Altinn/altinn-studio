@@ -1,10 +1,11 @@
 //Selectors in designer
 export const designer = {
   appMenu: {
-    about: "a[href='#/']",
-    edit: "a[href='#/ui-editor']",
-    texts: "a[href='#/texts']",
-    deploy: "a[href='#/deploy']",
+    about: "[data-testid='top_menu.about']",
+    edit: "[data-testid='top_menu.create']",
+    texts: "[data-testid='top_menu.texts_old']",
+    deploy: "[data-testid='top_menu.deploy']",
+    datamodel: "[data-testid='top_menu.datamodel']"
   },
   olderBuilds: 'Tidligere bygg av applikasjonen',
   inprogressSpinner: "[role='progressbar']",
@@ -50,9 +51,9 @@ export const designer = {
   sideMenu: '#altinn-column-layout-side-menu',
   layOutContainer: '#altinn-column-layout-container',
   appEditorMenu: {
-    datamodel: "a[href='#/datamodel']",
-    uiEditor: "a[href='#/ui-editor']",
-    accessControl: "a[href='#/accesscontrol']",
+    datamodel: "[data-testid='leftMenu_datamodel']",
+    uiEditor: "[data-testid='leftMenu_ui-editor']",
+    accessControl: "a[data-testid='leftMenu_accesscontrol']",
   },
   dragToArea: '.col-12',
   draggable: "div[draggable='true']",
