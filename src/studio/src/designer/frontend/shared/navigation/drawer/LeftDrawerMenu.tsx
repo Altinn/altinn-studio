@@ -69,6 +69,7 @@ export default function LeftDrawerMenu({
             <Link
               className={classes.menuLink}
               to={menuItem.navLink.replace(':org', org).replace(':app', app)}
+              data-testid={`leftMenu_${menuItem.navLink.replace('/:org/:app/', '')}`}
             >
               <span
                 className={cn(
