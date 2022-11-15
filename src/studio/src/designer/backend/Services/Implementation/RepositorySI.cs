@@ -1647,7 +1647,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             // Read the authorization policy template (XACML file).
             string path = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            string policyPath = path + _generalSettings.AuthorizationPolicyTemplate;
+            string policyPath = Path.Combine(path, _generalSettings.AuthorizationPolicyTemplate);
             string authorizationPolicyData = File.ReadAllText(policyPath, Encoding.UTF8);
 
             // Replace "org" and "app" in the authorization policy file.
