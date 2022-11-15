@@ -1,19 +1,31 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Unicode;
+using System.Xml;
+using System.Xml.Schema;
 using System.Xml.Serialization;
 using Designer.Tests.Factories.ModelFactory.BaseClasses;
 using Designer.Tests.Factories.ModelFactory.DataClasses;
 using FluentAssertions;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Designer.Tests.Factories.ModelFactory;
 
 public class DataValidationTests: Xsd2CsharpBaseClass<DataValidationTests>
 {
+    private readonly ITestOutputHelper _testOutputHelper;
+
+    public DataValidationTests(ITestOutputHelper testOutputHelper)
+    {
+        _testOutputHelper = testOutputHelper;
+    }
+
     private Type RepresentingType { get; set; }
 
     private object RandomRepresentingObject { get; set; }
@@ -50,7 +62,34 @@ public class DataValidationTests: Xsd2CsharpBaseClass<DataValidationTests>
 
     private DataValidationTests RepresentingObject_ShouldValidateAgainstXsdSchema()
     {
-        // TODO: serialize to Xml and validate against loaded xsdSchema
+        static string SerializeXml(object o)
+        {
+            var xmlSerializer = new XmlSerializer(o.GetType());
+            using var textWriter = new StringWriter();
+            xmlSerializer.Serialize(textWriter, o);
+            return textWriter.ToString();
+        }
+
+        var isValid = false;
+        void ValidationEventHandler(object sender, ValidationEventArgs e)
+        {
+            if (e.Severity != XmlSeverityType.Error)
+            {
+                return;
+            }
+
+            _testOutputHelper.WriteLine(e.Message);
+            isValid = false;
+        }
+
+        var xml = SerializeXml(RandomRepresentingObject);
+        var document = new XmlDocument();
+        document.Load(new StringReader(xml));
+        document.Schemas.Add(XsdSchema);
+        ValidationEventHandler eventHandler = ValidationEventHandler;
+        document.Validate(eventHandler);
+        isValid.Should().BeTrue();
+
         return this;
     }
 
