@@ -239,6 +239,7 @@ export const AppBar = ({
                         className={classNames(classes.subHeaderLink, {
                           [classes.subHeaderLinkActive]: activeSubHeaderSelection === item.key,
                         })}
+                        data-testid={item.key}
                       >
                         {t(item.key)}
                       </Link>

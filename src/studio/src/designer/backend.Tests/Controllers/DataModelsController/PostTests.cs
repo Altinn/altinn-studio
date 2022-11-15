@@ -42,7 +42,7 @@ public class PostTests : ApiTestsBase<DatamodelsController, PostTests>
         // Arrange
         var org = "ttd";
         var developer = "testUser";
-        var targetRepository = Guid.NewGuid().ToString();
+        var targetRepository = TestDataHelper.GenerateTestRepoName();
 
         await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
         var url = $"{VersionPrefix}/{org}/{targetRepository}/Datamodels/Post";
