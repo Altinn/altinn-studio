@@ -215,6 +215,7 @@ export function validateEmptyFieldsForNodes(
       node.item.type === 'FileUpload' ||
       node.item.type === 'FileUploadWithTag' ||
       node.item.required === false ||
+      node.item.required === undefined ||
       node.isHidden(hiddenFields)
     ) {
       continue;
