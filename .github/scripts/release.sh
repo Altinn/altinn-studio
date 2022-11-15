@@ -141,7 +141,7 @@ git status --short
 
 if [[ "$COMMIT" == "yes" ]]; then
   echo " * Committing changes"
-  git commit --author="$AUTHOR_NAME <$AUTHOR_EMAIL>" -F "$COMMIT_FILE"
+  git -c user.email="$AUTHOR_EMAIL" -c user.name="$AUTHOR_NAME" commit -F "$COMMIT_FILE"
 else
     echo " * Skipping commit (toggle with --commit)"
 fi
