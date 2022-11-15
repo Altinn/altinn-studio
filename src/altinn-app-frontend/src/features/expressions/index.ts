@@ -55,7 +55,7 @@ export function evalExprInObj<T>(args: EvalExprInObjArgs<T>): ExprResolved<T> {
  * Recurse through an input object/array/any, finds expressions and evaluates them
  */
 function evalExprInObjectRecursive<T>(input: any, args: Omit<EvalExprInObjArgs<T>, 'input'>, path: string[]) {
-  if (typeof input !== 'object') {
+  if (typeof input !== 'object' || input === null) {
     return input;
   }
 
