@@ -15,14 +15,14 @@ import { IconButton } from '@mui/material';
 import cn from 'classnames';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import type { IRepository } from 'app-shared/types/global';
-import type { User } from '../../resources/fetchDashboardResources/dashboardSlice';
-import { MakeCopyModal } from './MakeCopyModal';
-import { getRepoEditUrl } from '../utils/urlUtils';
+import type { User } from '../../../resources/fetchDashboardResources/dashboardSlice';
+import { MakeCopyModal } from '../MakeCopyModal';
+import { getRepoEditUrl } from '../../utils/urlUtils';
 import {
   useSetStarredRepoMutation,
   useUnsetStarredRepoMutation,
-} from '../../services/userApi';
-import { useAppSelector } from '../hooks';
+} from '../../../services/userApi';
+import { useAppSelector } from '../../hooks';
 
 import classes from './RepoList.module.css';
 

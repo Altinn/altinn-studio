@@ -1,11 +1,11 @@
 import React from 'react';
 import { Typography } from '@mui/material';
 
-import { RepoList } from 'common/components/RepoList';
-import { useGetSearchQuery } from 'services/repoApi';
-import { useGetOrganizationsQuery } from 'services/organizationApi';
-import { useAppSelector } from 'common/hooks';
-import { useGetUserStarredReposQuery } from 'services/userApi';
+import { RepoList } from '../../common/components/RepoList';
+import { useGetSearchQuery } from '../../services/repoApi';
+import { useGetOrganizationsQuery } from '../../services/organizationApi';
+import { useAppSelector } from '../../common/hooks';
+import { useGetUserStarredReposQuery } from '../../services/userApi';
 
 import { useAugmentReposWithStarred } from './hooks';
 import { getUidFilter, getReposLabel } from './utils';

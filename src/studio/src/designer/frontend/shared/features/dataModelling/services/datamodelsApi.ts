@@ -2,8 +2,18 @@ import type { IJsonSchema } from '@altinn/schema-editor/types';
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { getCookie } from 'app-shared/utils/cookieUtils';
 import { sharedUrls } from 'app-shared/utils/urlHelper';
-import type { IAltinnWindow } from '../../../../app-development/types/global';
 import type { IMetadataOption } from '../functions/types';
+import { matchPath } from 'react-router-dom';
+
+const match = matchPath(
+  { path: 'editor/:org/:app', caseSensitive: true, end: false },
+  window.location.pathname,
+);
+const { org, app } = match?.params || {};
+
+export enum TagTypes {
+  RepositoryType = 'RepositoryType',
+}
 
 export interface IDataModelMetadataItem {
   repositoryRelativeUrl: string;
@@ -11,7 +21,6 @@ export interface IDataModelMetadataItem {
   select?: boolean;
 }
 
-const { org, app } = window as Window as IAltinnWindow;
 export enum TagTypes {
   Metadata = 'Metadata',
   JsonSchemaFiles = 'JsonSchema',

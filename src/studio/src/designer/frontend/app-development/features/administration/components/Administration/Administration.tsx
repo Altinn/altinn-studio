@@ -1,15 +1,15 @@
 import React from 'react';
 import { Grid } from '@mui/material';
-import AltinnColumnLayout from 'app-shared/components/AltinnColumnLayout';
+import { AltinnColumnLayout } from 'app-shared/components/AltinnColumnLayout';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { SideMenuContent } from '../SideMenuContent';
-import { useAppSelector } from 'common/hooks';
+import { useAppSelector } from '../../../../common/hooks';
 import classes from './Administration.module.css';
 import {
   RepositoryType,
   useGetRepositoryTypeQuery,
-} from 'services/repositoryApi';
+} from '../../../../services/repositoryApi';
 import { ServiceAdministration } from './ServiceAdministration';
 import { DatamodelsAdministration } from './DatamodelsAdministration';
 

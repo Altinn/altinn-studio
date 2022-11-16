@@ -1,11 +1,13 @@
 import type { PreloadedState } from '@reduxjs/toolkit';
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { setupListeners } from '@reduxjs/toolkit/query';
+import { designerApi } from 'app-development/services/designerApi';
+import { datamodelsApi } from 'app-shared/features/dataModelling/services/datamodelsApi';
 
 import { rootReducer } from '../reducers';
 import { sagaMiddleware } from '../sagas';
 
-export const middlewares = [sagaMiddleware];
+export const middlewares = [sagaMiddleware, designerApi.middleware, datamodelsApi.middleware];
 
 const reducer = combineReducers(rootReducer);
 

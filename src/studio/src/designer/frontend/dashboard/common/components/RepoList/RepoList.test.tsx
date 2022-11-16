@@ -4,7 +4,7 @@ import configureStore from 'redux-mock-store';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IRepoListProps } from './RepoList';
-import * as userApi from '../../services/userApi';
+import * as userApi from '../../../services/userApi';
 import { RepoList } from './RepoList';
 
 const user = userEvent.setup();

@@ -7,7 +7,7 @@ import { render as rtlRender, screen } from '@testing-library/react';
 import type { IAppBarProps } from './AppBar';
 import { AppBar } from './AppBar';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
-import { menu } from '../appBarConfig';
+import { menu } from './appBarConfig';
 import {
   versionControlHeaderafterAll,
   versionControlHeaderafterEach,

@@ -1,4 +1,4 @@
-import { RepositoryType } from '../services/repositoryApi';
+import { RepositoryType } from '../../services/repositoryApi';
 
 export interface TopBarMenuItem {
   key: TopBarMenu;

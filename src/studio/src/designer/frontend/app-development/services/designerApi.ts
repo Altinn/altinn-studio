@@ -1,8 +1,13 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import { getCookie } from 'app-shared/utils/cookieUtils';
-import type { IAltinnWindow } from '../types/global';
+import { matchPath } from 'react-router-dom';
 
-const { org, app } = window as Window as IAltinnWindow;
+const match = matchPath(
+  { path: '/editor/:org/:app', caseSensitive: true, end: false },
+  window.location.pathname,
+);
+const { org, app } = match?.params || {};
+
 export enum TagTypes {
   RepositoryType = 'RepositoryType',
 }

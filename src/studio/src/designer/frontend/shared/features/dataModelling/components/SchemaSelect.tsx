@@ -19,7 +19,7 @@ const useStyles = makeStyles({
     maxHeight: 36,
   },
   select: {
-    minWidth: 147,
+    minWidth: 400,
     zIndex: 1101,
   },
   chevron: {
