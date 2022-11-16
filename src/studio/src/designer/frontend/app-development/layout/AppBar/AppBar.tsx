@@ -8,7 +8,7 @@ import { altinnImgLogoHeaderUrl } from 'app-shared/utils/urlHelper';
 import type { IMenuItem } from 'app-shared/navigation/drawer/drawerMenuSettings';
 import TabletDrawerMenu from 'app-shared/navigation/drawer/TabletDrawerMenu';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
-import { getTopBarMenu } from '../appBarConfig';
+import { getTopBarMenu } from './appBarConfig';
 import ProfileMenu from 'app-shared/navigation/main-header/profileMenu';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { useGetRepositoryTypeQuery } from '../../services/repositoryApi';
@@ -234,6 +234,7 @@ export const AppBar = ({
                         className={classNames(classes.subHeaderLink, {
                           [classes.subHeaderLinkActive]: activeSubHeaderSelection === item.key,
                         })}
+                        data-testid={item.key}
                       >
                         {t(item.key)}
                       </Link>
