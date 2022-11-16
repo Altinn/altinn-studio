@@ -1,13 +1,13 @@
 import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
-import { Grid, Typography } from '@mui/material';
-import AltinnCheckBox from 'app-shared/components/AltinnCheckBox';
-import AltinnInputField from 'app-shared/components/AltinnInputField';
 import AltinnRadio from 'app-shared/components/AltinnRadio';
 import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import Select from 'react-select';
 import ErrorPopover from 'app-shared/components/ErrorPopover';
-import { renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
+import {
+  renderSelectDataModelBinding,
+  SelectTextFromRecources
+} from '../../utils/render';
 import { AddressKeys, getTextResourceByAddressKey } from '../../utils/component';
 import { idExists, validComponentId } from '../../utils/formLayout';
 import { SelectionEdit } from './SelectionEditComponent';
@@ -32,6 +32,7 @@ import {
 } from '../../types/global';
 import { useSelector } from 'react-redux';
 import classes from './EditModalContent.module.css';
+import { Checkbox, FieldSet, TextField } from '@altinn/altinn-design-system';
 
 export interface IEditModalContentProps {
   cancelEdit?: () => void;
@@ -243,19 +244,13 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
   };
   const renderChangeId = (): JSX.Element => {
     return (
-      <Grid
-        item={true}
-        xs={12}
-      >
-        <AltinnInputField
-          id='component-id'
-          textFieldId={`component-id-input${component.id}`}
-          onChangeFunction={handleIdChange}
-          onBlurFunction={handleNewId}
-          inputValue={tmpId??""}
-          inputDescription={t('ux_editor.modal_properties_component_change_id')}
-          inputFieldStyling={{ width: '100%' }}
-          inputDescriptionStyling={{ marginTop: '24px' }}
+      <div>
+        <TextField
+          id={`component-id-input${component.id}`}
+          label={t('ux_editor.modal_properties_component_change_id')}
+          onBlur={handleNewId}
+          onChange={handleIdChange}
+          value={tmpId ?? ""}
         />
         <div ref={errorMessageRef} />
         <ErrorPopover
@@ -263,27 +258,29 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
           onClose={handleClosePopup}
           errorMessage={error}
         />
-      </Grid>
+      </div>
     );
   };
   switch (component.type) {
     case ComponentTypes.Header: {
       return (
-        <HeaderSizeSelectComponent
-          renderChangeId={renderChangeId}
-          component={component}
-          language={language}
-          textResources={textResources}
-          handleTitleChange={handleTitleChange}
-          handleUpdateHeaderSize={handleUpdateHeaderSize}
-        />
+        <FieldSet className={classes.fieldset}>
+          <HeaderSizeSelectComponent
+            renderChangeId={renderChangeId}
+            component={component}
+            language={language}
+            textResources={textResources}
+            handleTitleChange={handleTitleChange}
+            handleUpdateHeaderSize={handleUpdateHeaderSize}
+          />
+        </FieldSet>
       );
     }
     case ComponentTypes.Datepicker:
     case ComponentTypes.TextArea:
     case ComponentTypes.Input: {
       return (
-        <>
+        <FieldSet className={classes.fieldset}>
           {renderChangeId()}
           <EditBoilerplate
             component={component}
@@ -293,64 +290,57 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
             handleDescriptionChange={handleDescriptionChange}
             language={language}
           />
-          <Grid
-            item={true}
-            xs={12}
-            className={classes.gridItem}
-          >
-            <AltinnCheckBox
+          <div className={classes.gridItem}>
+            <Checkbox
               checked={component.readOnly}
-              onChangeFunction={handleReadOnlyChange}
+              label={language['ux_editor.modal_configure_read_only']}
+              onChange={(e) => handleReadOnlyChange(e, e.target.checked)}
             />
-            {language['ux_editor.modal_configure_read_only']}
-          </Grid>
-          <Grid
-            item={true}
-            xs={12}
-          >
-            <AltinnCheckBox
+          </div>
+          <div>
+            <Checkbox
               checked={component.required}
-              onChangeFunction={handleRequiredChange}
+              label={language['ux_editor.modal_configure_required']}
+              onChange={(e) => handleRequiredChange(e, e.target.checked)}
             />
-            {language['ux_editor.modal_configure_required']}
-          </Grid>
-        </>
+          </div>
+        </FieldSet>
       );
     }
     case ComponentTypes.AttachmentList: {
       return (
-        <Grid>
+        <FieldSet className={classes.fieldset}>
           {renderChangeId()}
-          {renderSelectTextFromResources(
-            'modal_properties_label_helper',
-            handleTitleChange,
-            textResources,
-            language,
-            component.textResourceBindings?.title,
-            component.textResourceBindings?.title,
-          )}
-        </Grid>
+          <SelectTextFromRecources
+            description={component.textResourceBindings?.title}
+            labelText={'modal_properties_label_helper'}
+            language={language}
+            onChangeFunction={handleTitleChange}
+            placeholder={component.textResourceBindings?.title}
+            textResources={textResources}
+          />
+        </FieldSet>
       );
     }
     case ComponentTypes.Paragraph: {
       return (
-        <Grid>
+        <FieldSet className={classes.fieldset}>
           {renderChangeId()}
-          {renderSelectTextFromResources(
-            'modal_properties_paragraph_helper',
-            handleTitleChange,
-            textResources,
-            language,
-            component.textResourceBindings?.title,
-            component.textResourceBindings?.title,
-          )}
-        </Grid>
+          <SelectTextFromRecources
+            description={component.textResourceBindings?.title}
+            labelText={'modal_properties_paragraph_helper'}
+            language={language}
+            onChangeFunction={handleTitleChange}
+            placeholder={component.textResourceBindings?.title}
+            textResources={textResources}
+          />
+        </FieldSet>
       );
     }
     case ComponentTypes.Checkboxes:
     case ComponentTypes.RadioButtons: {
       return (
-        <>
+        <FieldSet className={classes.fieldset}>
           {renderChangeId()}
           <SelectionEdit
             type={component.type as 'Checkboxes' | 'RadioButtons'}
@@ -368,12 +358,12 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
             handleRequiredChange={handleRequiredChange}
             handleReadOnlyChange={handleReadOnlyChange}
           />
-        </>
+        </FieldSet>
       );
     }
     case ComponentTypes.Dropdown: {
       return (
-        <Grid container={true}>
+        <FieldSet className={classes.fieldset}>
           {renderChangeId()}
           <EditBoilerplate
             component={component}
@@ -383,41 +373,29 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
             handleDescriptionChange={handleDescriptionChange}
             language={language}
           />
-          <Grid
-            item={true}
-            xs={12}
-            className={classes.gridItem}
-          >
-            <AltinnCheckBox
+          <div className={classes.gridItem}>
+            <Checkbox
               checked={component.readOnly}
-              onChangeFunction={handleReadOnlyChange}
+              label={language['ux_editor.modal_configure_read_only']}
+              onChange={(e) => handleReadOnlyChange(e, e.target.checked)}
             />
-            {language['ux_editor.modal_configure_read_only']}
-          </Grid>
-          <Grid
-            item={true}
-            xs={12}
-          >
-            <AltinnCheckBox
+          </div>
+          <div>
+            <Checkbox
               checked={component.required}
-              onChangeFunction={handleRequiredChange}
+              label={language['ux_editor.modal_configure_required']}
+              onChange={(e) => handleRequiredChange(e, e.target.checked)}
             />
-            {language['ux_editor.modal_configure_required']}
-          </Grid>
-          <Grid
-            item={true}
-            xs={12}
-          >
-            <AltinnInputField
+          </div>
+          <div>
+            <TextField
               id='modal-properties-code-list-id'
-              onChangeFunction={handleOptionsIdChange}
-              inputValue={'optionsId' in component ? component.optionsId : ''}
-              inputDescription={t('ux_editor.modal_properties_code_list_id')}
-              inputFieldStyling={{ width: '100%', marginBottom: '24px' }}
-              inputDescriptionStyling={{ marginTop: '24px' }}
+              label={t('ux_editor.modal_properties_code_list_id')}
+              onChange={handleOptionsIdChange}
+              value={'optionsId' in component ? component.optionsId : ''}
             />
-          </Grid>
-          <Typography>
+          </div>
+          <p>
             <a
               target='_blank'
               rel='noopener noreferrer'
@@ -425,8 +403,8 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
             >
               {t('ux_editor.modal_properties_code_list_read_more')}
             </a>
-          </Typography>
-        </Grid>
+          </p>
+        </FieldSet>
       );
     }
     case ComponentTypes.NavigationButtons:
@@ -442,62 +420,52 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
         },
       ];
       return (
-        <>
+        <FieldSet className={classes.fieldset}>
           {renderChangeId()}
-          <Grid
-            item={true}
-            xs={12}
-          >
-            <Typography className={classes.inputHelper}>
+          <div>
+            <p className={classes.inputHelper}>
               {t('ux_editor.modal_properties_button_type_helper')}
-            </Typography>
+            </p>
             <Select
               options={types}
               value={types.find((element) => element.value === component.type)}
               onChange={handleButtonTypeChange}
               placeholder={t('ux_editor.modal_properties_button_type_submit')}
             />
-            {component.type === 'Button' &&
-              renderSelectTextFromResources(
-                'modal_properties_button_helper',
-                handleTitleChange,
-                textResources,
-                language,
-                component.textResourceBindings?.title,
-                t('ux_editor.modal_properties_button_type_submit'),
-              )}
-          </Grid>
-        </>
+          </div>
+          {component.type === 'Button' && (
+            <SelectTextFromRecources
+              description={t('ux_editor.modal_properties_button_type_submit')}
+              labelText={'modal_properties_button_helper'}
+              language={language}
+              onChangeFunction={handleTitleChange}
+              placeholder={component.textResourceBindings?.title}
+              textResources={textResources}
+            />
+          )}
+        </FieldSet>
       );
     }
 
     case ComponentTypes.AddressComponent: {
       return (
-        <Grid
-          container={true}
-          spacing={0}
-          direction='column'
-        >
+        <FieldSet className={classes.fieldset}>
           {renderChangeId()}
-          <Grid
-            item={true}
-            xs={12}
-            style={{ marginTop: '2.4rem' }}
-          >
-            <AltinnCheckBox
+          <div>
+            <Checkbox
               checked={(component as IFormAddressComponent).simplified}
-              onChangeFunction={handleToggleAddressSimple}
+              label={t('ux_editor.modal_configure_address_component_simplified')}
+              onChange={(e) => handleToggleAddressSimple(e, e.target.checked)}
             />
-            {t('ux_editor.modal_configure_address_component_simplified')}
-          </Grid>
-          {renderSelectTextFromResources(
-            'modal_properties_label_helper',
-            handleTitleChange,
-            textResources,
-            language,
-            component.textResourceBindings?.title,
-            component.textResourceBindings?.title,
-          )}
+          </div>
+          <SelectTextFromRecources
+            description={component.textResourceBindings?.title}
+            labelText={'modal_properties_label_helper'}
+            language={language}
+            onChangeFunction={handleTitleChange}
+            placeholder={component.textResourceBindings?.title}
+            textResources={textResources}
+          />
           {Object.keys(AddressKeys).map((value: AddressKeys, index) => {
             const simple: boolean = (component as IFormAddressComponent).simplified;
             if (simple && (value === AddressKeys.careOf || value === AddressKeys.houseNumber)) {
@@ -513,19 +481,16 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
               index,
             );
           })}
-        </Grid>
+        </FieldSet>
       );
     }
 
     case ComponentTypes.FileUpload: {
       const fileUploaderComponent = component as IFormFileUploaderComponent;
       return (
-        <Grid>
+        <FieldSet className={classes.fieldset}>
           {renderChangeId()}
-          <Grid
-            item={true}
-            xs={12}
-          >
+          <div>
             <AltinnRadioGroup
               row={true}
               value={fileUploaderComponent.displayMode}
@@ -540,32 +505,26 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
                 value='list'
               />
             </AltinnRadioGroup>
-          </Grid>
-          <Grid
-            item={true}
-            xs={12}
-          >
-            {renderSelectTextFromResources(
-              'modal_properties_label_helper',
-              handleTitleChange,
-              textResources,
-              language,
-              fileUploaderComponent.textResourceBindings?.title,
-              fileUploaderComponent.textResourceBindings?.title,
-            )}
-            {renderSelectTextFromResources(
-              'modal_properties_description_helper',
-              handleDescriptionChange,
-              textResources,
-              language,
-              fileUploaderComponent.textResourceBindings?.description,
-              fileUploaderComponent.textResourceBindings?.description,
-            )}
-          </Grid>
-          <Grid
-            item={true}
-            xs={12}
-          >
+          </div>
+          <FieldSet className={classes.fieldset}>
+            <SelectTextFromRecources
+              description={fileUploaderComponent.textResourceBindings?.title}
+              labelText={'modal_properties_label_helper'}
+              language={language}
+              onChangeFunction={handleTitleChange}
+              placeholder={fileUploaderComponent.textResourceBindings?.title}
+              textResources={textResources}
+            />
+            <SelectTextFromRecources
+              description={fileUploaderComponent.textResourceBindings?.description}
+              labelText={'modal_properties_description_helper'}
+              language={language}
+              onChangeFunction={handleDescriptionChange}
+              placeholder={fileUploaderComponent.textResourceBindings?.description}
+              textResources={textResources}
+            />
+          </FieldSet>
+          <div>
             <AltinnRadioGroup
               row={true}
               value={fileUploaderComponent.hasCustomFileEndings ? 'true' : 'false'}
@@ -580,84 +539,50 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
                 value='true'
               />
             </AltinnRadioGroup>
-          </Grid>
+          </div>
 
           {fileUploaderComponent.hasCustomFileEndings && (
-            <Grid
-              item={true}
-              xs={12}
-            >
-              <AltinnInputField
-                id='modal-properties-valid-file-endings'
-                onChangeFunction={handleValidFileEndingsChange}
-                inputValue={fileUploaderComponent.validFileEndings}
-                inputDescription={t('ux_editor.modal_properties_valid_file_endings_helper')}
-                inputFieldStyling={{ width: '100%' }}
-                inputDescriptionStyling={{ marginTop: '24px' }}
-              />
-            </Grid>
+            <TextField
+              id='modal-properties-valid-file-endings'
+              label={t('ux_editor.modal_properties_valid_file_endings_helper')}
+              onChange={handleValidFileEndingsChange}
+              value={fileUploaderComponent.validFileEndings}
+            />
           )}
-          <Grid
-            item={true}
-            xs={12}
-          >
-            <AltinnInputField
-              id='modal-properties-minimum-files'
-              textFieldId={`modal-properties-minimum-files-input-${fileUploaderComponent.id}`}
-              onChangeFunction={handleNumberOfAttachmentsChange('min')}
-              inputValue={fileUploaderComponent.minNumberOfAttachments || 0}
-              inputDescription={t('ux_editor.modal_properties_minimum_files')}
-              inputFieldStyling={{ width: '60px' }}
-              inputDescriptionStyling={{ marginTop: '24px' }}
-              type='number'
+          <div>
+            <TextField
+              formatting={{ number: {} }}
+              id={`modal-properties-minimum-files-input-${fileUploaderComponent.id}`}
+              label={t('ux_editor.modal_properties_minimum_files')}
+              onChange={handleNumberOfAttachmentsChange('min')}
+              value={(fileUploaderComponent.minNumberOfAttachments || 0).toString()}
             />
-          </Grid>
-          <Grid
-            item={true}
-            xs={12}
-          >
-            <AltinnInputField
-              id='modal-properties-maximum-files'
-              textFieldId={`modal-properties-maximum-files-input-${fileUploaderComponent.id}`}
-              onChangeFunction={handleNumberOfAttachmentsChange('max')}
-              inputValue={fileUploaderComponent.maxNumberOfAttachments || 1}
-              inputDescription={t('ux_editor.modal_properties_maximum_files')}
-              inputFieldStyling={{ width: '60px' }}
-              inputDescriptionStyling={{ marginTop: '24px' }}
-              type='number'
+          </div>
+          <div>
+            <TextField
+              formatting={{ number: {} }}
+              id={`modal-properties-maximum-files-input-${fileUploaderComponent.id}`}
+              label={t('ux_editor.modal_properties_maximum_files')}
+              onChange={handleNumberOfAttachmentsChange('max')}
+              value={(fileUploaderComponent.maxNumberOfAttachments || 1).toString()}
             />
-          </Grid>
-          <Grid
-            item={true}
-            xs={12}
-          >
-            <AltinnInputField
+          </div>
+          <div>
+            <TextField
+              formatting={{ number: {} }}
               id='modal-properties-file-size'
-              onChangeFunction={handleMaxFileSizeInMBChange}
-              inputValue={fileUploaderComponent.maxFileSizeInMB || 0}
-              inputDescription={t('ux_editor.modal_properties_maximum_file_size')}
-              inputFieldStyling={{ width: '60px' }}
-              inputDescriptionStyling={{ marginTop: '24px' }}
-              type='number'
+              label={`${t('ux_editor.modal_properties_maximum_file_size')} (${t('ux_editor.modal_properties_maximum_file_size_helper')})`}
+              onChange={handleMaxFileSizeInMBChange}
+              value={(fileUploaderComponent.maxFileSizeInMB || 0).toString()}
             />
-            <Typography
-              style={{
-                fontSize: '1.6rem',
-                display: 'inline-block',
-                marginTop: '23px',
-                marginLeft: '6px',
-              }}
-            >
-              {t('ux_editor.modal_properties_maximum_file_size_helper')}
-            </Typography>
-          </Grid>
-        </Grid>
+          </div>
+        </FieldSet>
       );
     }
 
     case ComponentTypes.FileUploadWithTag: {
       return (
-        <Grid>
+        <FieldSet className={classes.fieldset}>
           {renderChangeId()}
           <FileUploadWithTagComponent
             component={component as IFormFileUploaderWithTagComponent}
@@ -673,13 +598,13 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
             handleHasCustomFileEndingsChange={handleHasCustomFileEndingsChange}
             handleValidFileEndingsChange={handleValidFileEndingsChange}
           />
-        </Grid>
+        </FieldSet>
       );
     }
 
     case ComponentTypes.Image: {
       return (
-        <Grid>
+        <FieldSet className={classes.fieldset}>
           {renderChangeId()}
           <ImageComponent
             component={component as IFormImageComponent}
@@ -687,7 +612,7 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
             language={language}
             textResources={textResources}
           />
-        </Grid>
+        </FieldSet>
       );
     }
 

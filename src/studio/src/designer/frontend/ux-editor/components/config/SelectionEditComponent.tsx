@@ -1,77 +1,20 @@
 import React from 'react';
-import { Grid, IconButton, Input, Typography } from '@mui/material';
-import { createStyles, withStyles } from '@mui/styles';
 import { connect } from 'react-redux';
 import AltinnRadio from 'app-shared/components/AltinnRadio';
 import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
-import altinnTheme from 'app-shared/theme/altinnStudioTheme';
-import AltinnInputField from 'app-shared/components/AltinnInputField';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import AltinnCheckBox from 'app-shared/components/AltinnCheckBox';
-import { renderSelectDataModelBinding, renderSelectTextFromResources } from '../../utils/render';
+import { renderSelectDataModelBinding, SelectTextFromRecources } from '../../utils/render';
 import type {
   IAppState,
-  ICodeListListElement,
   IFormCheckboxComponent,
   IFormComponent,
   IFormRadioButtonComponent,
   ITextResource,
 } from '../../types/global';
-
-const styles = createStyles({
-  formComponentsBtn: {
-    fontSize: '0.85em',
-    fill: altinnTheme.altinnPalette.primary.blueDarker,
-    paddingLeft: '0',
-    marginTop: '0.1em',
-    outline: 'none !important',
-    '&:hover': {
-      background: 'none',
-    },
-  },
-  specialBtn: {
-    fontSize: '0.6em !important',
-  },
-  text: {
-    fontSize: '1.6rem',
-  },
-  textWithTopPadding: {
-    fontSize: '1.6rem',
-    paddingTop: '2.6rem',
-  },
-  textBold: {
-    fontSize: '1.6rem',
-    fontWeight: 'bold',
-  },
-  input: {
-    fontSize: '1.6rem',
-    border: '0.1rem solid #BCC7CC',
-    paddingLeft: '0.8rem',
-  },
-  inputFocused: {
-    borderColor: '#2684FF',
-    boxShadow: '0 0 0 0.1rem #2684FF',
-    borderRadius: '0 !important',
-    borderStyle: 'solid',
-    borderWidth: '0.1rem',
-  },
-  gridContentWrapper: {
-    border: '0.1rem solid #BCC7CC',
-    padding: '1.2rem',
-  },
-  gridContainer: {
-    marginBottom: '2.4rem',
-  },
-  gridItem: {
-    marginBottom: '1.2rem',
-  },
-  gridItemWithTopMargin: {
-    marginTop: '2.4rem',
-  },
-});
+import { Button, ButtonColor, ButtonVariant, Checkbox, FieldSet, TextField } from '@altinn/altinn-design-system';
+import classes from './SelectionEditComponent.module.css';
 
 export interface ISelectionEditComponentProvidedProps {
-  classes: any;
   component: IFormComponent;
   type: 'Checkboxes' | 'RadioButtons';
   handleOptionsIdChange: (e: any) => void;
@@ -94,11 +37,6 @@ export interface ISelectionEditComponentProps extends ISelectionEditComponentPro
 
 export interface ISelectionEditComponentState {
   radioButtonSelection: string;
-}
-
-export interface ICodeListOption {
-  label: string;
-  value: ICodeListListElement;
 }
 
 export class SelectionEditComponent extends React.Component<
@@ -136,215 +74,170 @@ export class SelectionEditComponent extends React.Component<
   };
 
   public render() {
+    const {
+      component,
+      handleAddOption,
+      handleDataModelChange,
+      handleDescriptionChange,
+      handleOptionsIdChange,
+      handlePreselectedOptionChange,
+      handleReadOnlyChange,
+      handleRemoveOption,
+      handleRequiredChange,
+      handleTitleChange,
+      handleUpdateOptionLabel,
+      handleUpdateOptionValue,
+      language,
+      textResources,
+      type,
+    } = this.props;
+    const t = (key: string) => getLanguageFromKey(key, language);
     return (
-      <div>
-        <Grid
-          item={true}
-          xs={12}
+      <>
+        {renderSelectDataModelBinding(
+          component.dataModelBindings,
+          handleDataModelChange,
+          language,
+        )}
+        <SelectTextFromRecources
+          description={component.textResourceBindings.title}
+          labelText={'modal_properties_label_helper'}
+          language={language}
+          onChangeFunction={handleTitleChange}
+          placeholder={component.textResourceBindings.title}
+          textResources={textResources}
+        />
+        <SelectTextFromRecources
+          description={component.textResourceBindings.description}
+          labelText={'modal_properties_description_helper'}
+          language={language}
+          onChangeFunction={handleDescriptionChange}
+          placeholder={component.textResourceBindings.description}
+          textResources={textResources}
+        />
+        <div>
+          <Checkbox
+            checked={component.readOnly}
+            label={t('ux_editor.modal_configure_read_only')}
+            onChange={(e) => handleReadOnlyChange(e, e.target.checked)}
+          />
+        </div>
+        <div>
+          <Checkbox
+            checked={component.required}
+            label={t('ux_editor.modal_configure_required')}
+            onChange={(e) => handleRequiredChange(e, e.target.checked)}
+          />
+        </div>
+        <AltinnRadioGroup
+          onChange={this.handleRadioButtonChange}
+          value={this.state.radioButtonSelection}
+          row={true}
+          description={
+            type === 'RadioButtons'
+              ? t('ux_editor.modal_properties_add_radio_button_options')
+              : t('ux_editor.modal_properties_add_check_box_options')
+          }
         >
-          {renderSelectDataModelBinding(
-            this.props.component.dataModelBindings,
-            this.props.handleDataModelChange,
-            this.props.language,
-          )}
-          {renderSelectTextFromResources(
-            'modal_properties_label_helper',
-            this.props.handleTitleChange,
-            this.props.textResources,
-            this.props.language,
-            this.props.component.textResourceBindings.title,
-            this.props.component.textResourceBindings.title,
-          )}
-          {renderSelectTextFromResources(
-            'modal_properties_description_helper',
-            this.props.handleDescriptionChange,
-            this.props.textResources,
-            this.props.language,
-            this.props.component.textResourceBindings.description,
-            this.props.component.textResourceBindings.description,
-          )}
-          <Grid
-            item={true}
-            xs={12}
-            style={{ marginTop: '18px' }}
-          >
-            <AltinnCheckBox
-              checked={this.props.component.readOnly}
-              onChangeFunction={this.props.handleReadOnlyChange}
+          <AltinnRadio
+            value='codelist'
+            label={t('ux_editor.modal_add_options_codelist')}
+          />
+          <AltinnRadio
+            value='manual'
+            label={t('ux_editor.modal_add_options_manual')}
+          />
+        </AltinnRadioGroup>
+        {this.state.radioButtonSelection === 'codelist' && (
+          <div>
+            <TextField
+              id='modal-properties-code-list-id'
+              label={t('ux_editor.modal_properties_code_list_id')}
+              onChange={handleOptionsIdChange}
+              value={(this.props.component as IFormRadioButtonComponent).optionsId}
             />
-            {this.props.language['ux_editor.modal_configure_read_only']}
-          </Grid>
-          <Grid
-            item={true}
-            xs={12}
-          >
-            <AltinnCheckBox
-              checked={this.props.component.required}
-              onChangeFunction={this.props.handleRequiredChange}
-            />
-            {this.props.language['ux_editor.modal_configure_required']}
-          </Grid>
-          <AltinnRadioGroup
-            onChange={this.handleRadioButtonChange}
-            value={this.state.radioButtonSelection}
-            row={true}
-            description={
-              this.props.type === 'RadioButtons'
-                ? this.props.language['ux_editor.modal_properties_add_radio_button_options']
-                : this.props.language['ux_editor.modal_properties_add_check_box_options']
-            }
-          >
-            <AltinnRadio
-              value='codelist'
-              label={this.props.language['ux_editor.modal_add_options_codelist']}
-            />
-            <AltinnRadio
-              value='manual'
-              label={this.props.language['ux_editor.modal_add_options_manual']}
-            />
-          </AltinnRadioGroup>
-          <Grid
-            item={true}
-            classes={{ item: this.props.classes.gridItemWithTopMargin }}
-          >
-            {this.state.radioButtonSelection === 'codelist' && (
-              <>
-                <AltinnInputField
-                  id='modal-properties-code-list-id'
-                  onChangeFunction={this.props.handleOptionsIdChange}
-                  inputValue={(this.props.component as IFormRadioButtonComponent).optionsId}
-                  inputDescription={getLanguageFromKey('ux_editor.modal_properties_code_list_id', this.props.language)}
-                  inputFieldStyling={{ width: '100%', marginBottom: '24px' }}
-                  inputDescriptionStyling={{ marginTop: '24px' }}
-                />
-                <Typography>
-                  <a
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    href='https://docs.altinn.studio/app/development/data/options/'
-                  >
-                    {getLanguageFromKey('ux_editor.modal_properties_code_list_read_more', this.props.language)}
-                  </a>
-                </Typography>
-              </>
-            )}
-            {this.state.radioButtonSelection === 'manual' &&
-              this.props.component.options?.map((option, index) => {
-                const updateLabel = (e: any) => this.props.handleUpdateOptionLabel(index, e);
-                const updateValue = (e: any) => this.props.handleUpdateOptionValue(index, e);
-                const removeItem = () => this.props.handleRemoveOption(index);
-                const key = `${option.label}-${index}`; // Figure out a way to remove index from key.
-                return (
-                  <Grid
-                    container={true}
-                    item={true}
-                    xs={12}
-                    key={key}
-                    classes={{ container: this.props.classes.gridContainer }}
-                  >
-                    <Grid
-                      xs={11}
-                      item={true}
-                      classes={{ item: this.props.classes.gridContentWrapper }}
-                    >
-                      <Grid
-                        item={true}
-                        classes={{ item: this.props.classes.gridItem }}
-                      >
-                        <Typography classes={{ root: this.props.classes.textBold }}>
-                          {`${
-                            this.props.type === 'RadioButtons'
-                              ? this.props.language['ux_editor.modal_radio_button_increment']
-                              : this.props.language['ux_editor.modal_check_box_increment']
-                          } ${index + 1}`}
-                        </Typography>
-                      </Grid>
-                      <Grid
-                        item={true}
-                        classes={{ item: this.props.classes.gridItem }}
-                      >
-                        {renderSelectTextFromResources(
-                          'modal_text',
-                          updateLabel,
-                          this.props.textResources,
-                          this.props.language,
-                          option.label, // Check if the component works as intended
-                          getLanguageFromKey('general.text', this.props.language),
-                        )}
-                      </Grid>
-                      <Grid item={true}>
-                        <Typography classes={{ root: this.props.classes.text }}>
-                          {this.props.language['general.value']}
-                        </Typography>
-                        <Input
-                          classes={{
-                            root: this.props.classes.input,
-                            focused: this.props.classes.inputFocused,
-                          }}
-                          disableUnderline={true}
-                          type='text'
-                          fullWidth={true}
+            <p>
+              <a
+                target='_blank'
+                rel='noopener noreferrer'
+                href='https://docs.altinn.studio/app/development/data/options/'
+              >
+                {t('ux_editor.modal_properties_code_list_read_more')}
+              </a>
+            </p>
+          </div>
+        )}
+        {this.state.radioButtonSelection === 'manual' &&
+          component.options?.map((option, index) => {
+            const updateLabel = (e: any) => handleUpdateOptionLabel(index, e);
+            const updateValue = (e: any) => handleUpdateOptionValue(index, e);
+            const removeItem = () => handleRemoveOption(index);
+            const key = `${option.label}-${index}`; // Figure out a way to remove index from key.
+            const optionTitle = `${
+              type === 'RadioButtons'
+                ? t('ux_editor.modal_radio_button_increment')
+                : t('ux_editor.modal_check_box_increment')
+            } ${index + 1}`;
+            return (
+              <div className={classes.optionContainer} key={key}>
+                <div className={classes.optionContentWrapper}>
+                  <FieldSet legend={optionTitle}>
+                    <div className={classes.optionContent}>
+                      <SelectTextFromRecources
+                        description={t('general.text')}
+                        labelText={'modal_text'}
+                        language={language}
+                        onChangeFunction={updateLabel}
+                        placeholder={option.label}
+                        textResources={textResources}
+                      />
+                      <div>
+                        <TextField
+                          label={t('general.value')}
                           onChange={updateValue}
+                          placeholder={t('general.value')}
                           value={option.value}
-                          placeholder={getLanguageFromKey('general.value', this.props.language)}
                         />
-                      </Grid>
-                    </Grid>
-                    <Grid
-                      xs={1}
-                      container={true}
-                      direction='column'
-                      item={true}
-                    >
-                      <IconButton
-                        type='button'
-                        className={`${this.props.classes.formComponentsBtn} ${this.props.classes.specialBtn}`}
-                        onClick={removeItem}
-                      >
-                        <i className='fa fa-circletrash' />
-                      </IconButton>
-                    </Grid>
-                  </Grid>
-                );
-              })}
-            {this.state.radioButtonSelection === 'manual' && (
-              <div style={{ display: 'flex', justifyContent: 'center' }}>
-                <button
-                  disabled={this.props.component.options?.some(({ label }) => !label)}
-                  type='button'
-                  className='a-btn'
-                  onClick={this.props.handleAddOption}
-                >
-                  {this.props.language['ux_editor.modal_new_option']}
-                </button>
+                      </div>
+                    </div>
+                  </FieldSet>
+                </div>
+                <div>
+                  <Button
+                    color={ButtonColor.Danger}
+                    iconName={'Delete'}
+                    onClick={removeItem}
+                    variant={ButtonVariant.Quiet}
+                  />
+                </div>
               </div>
-            )}
-            <Grid
-              item={true}
-              classes={{ item: this.props.classes.gridItemWithTopMargin }}
+            );
+          })}
+        {this.state.radioButtonSelection === 'manual' && (
+          <div style={{ display: 'flex', justifyContent: 'center' }}>
+            <Button
+              disabled={component.options?.some(({ label }) => !label)}
+              fullWidth
+              iconName={'Add'}
+              onClick={handleAddOption}
+              variant={ButtonVariant.Outline}
             >
-              <Typography classes={{ root: this.props.classes.text }}>
-                {this.props.type === 'Checkboxes'
-                  ? this.props.language['ux_editor.modal_check_box_set_preselected']
-                  : this.props.language['ux_editor.modal_radio_button_set_preselected']}
-              </Typography>
-              <Input
-                classes={{
-                  root: this.props.classes.input,
-                  focused: this.props.classes.inputFocused,
-                }}
-                disableUnderline={true}
-                inputProps={{ min: 0 }}
-                type='number'
-                placeholder={this.props.language['ux_editor.modal_selection_set_preselected_placeholder']}
-                fullWidth={true}
-                onChange={this.props.handlePreselectedOptionChange}
-                defaultValue={(this.props.component as IFormCheckboxComponent).preselectedOptionIndex}
-              />
-            </Grid>
-          </Grid>
-        </Grid>
-      </div>
+              {t('ux_editor.modal_new_option')}
+            </Button>
+          </div>
+        )}
+        <div>
+          <TextField
+            defaultValue={(component as IFormCheckboxComponent).preselectedOptionIndex}
+            formatting={{ number: {} }}
+            label={type === 'Checkboxes'
+              ? t('ux_editor.modal_check_box_set_preselected')
+              : t('ux_editor.modal_radio_button_set_preselected')}
+            onChange={handlePreselectedOptionChange}
+            placeholder={t('ux_editor.modal_selection_set_preselected_placeholder')}
+          />
+        </div>
+      </>
     );
   }
 }
@@ -360,4 +253,4 @@ const mapStateToProps = (
   };
 };
 
-export const SelectionEdit = withStyles(styles, { withTheme: true })(connect(mapStateToProps)(SelectionEditComponent));
+export const SelectionEdit = connect(mapStateToProps)(SelectionEditComponent);
