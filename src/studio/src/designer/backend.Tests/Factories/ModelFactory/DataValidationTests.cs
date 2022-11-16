@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.IO;
 using System.Linq;
 using System.Text.Encodings.Web;
@@ -11,6 +11,7 @@ using System.Xml.Schema;
 using System.Xml.Serialization;
 using Designer.Tests.Factories.ModelFactory.BaseClasses;
 using Designer.Tests.Factories.ModelFactory.DataClasses;
+using Designer.Tests.Utils;
 using FluentAssertions;
 using Xunit;
 using Xunit.Abstractions;
@@ -43,7 +44,8 @@ public class DataValidationTests: Xsd2CsharpBaseClass<DataValidationTests>
 
         When.RepresentingTypeFromLoadedFromAssembly()
             .And.RandomRepresentingObjectGenerated()
-            .Then.RepresentingObject_ShouldValidateAgainstXsdSchema()
+            .Then.RepresentingObject_ShouldBeValid()
+            .And.RepresentingObject_ShouldValidateAgainstXsdSchema()
             .And.RepresentingObject_ShouldValidateAgainstJsonSchema();
     }
 
@@ -55,8 +57,14 @@ public class DataValidationTests: Xsd2CsharpBaseClass<DataValidationTests>
 
     private DataValidationTests RandomRepresentingObjectGenerated()
     {
-        // TODO: Generate random object here
-        RandomRepresentingObject = Activator.CreateInstance(RepresentingType);
+        RandomRepresentingObject = RandomObjectModelGenerator.GenerateValidRandomObject(RepresentingType);
+        return this;
+    }
+
+    private DataValidationTests RepresentingObject_ShouldBeValid()
+    {
+        var isValid = Validator.TryValidateObject(RandomRepresentingObject, new ValidationContext(RandomRepresentingObject), null);
+        isValid.Should().BeTrue();
         return this;
     }
 
@@ -70,7 +78,7 @@ public class DataValidationTests: Xsd2CsharpBaseClass<DataValidationTests>
             return textWriter.ToString();
         }
 
-        var isValid = false;
+        var isValid = true;
         void ValidationEventHandler(object sender, ValidationEventArgs e)
         {
             if (e.Severity != XmlSeverityType.Error)
