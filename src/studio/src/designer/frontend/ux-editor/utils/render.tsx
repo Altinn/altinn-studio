@@ -7,7 +7,6 @@ import type { IDataModelBindings, ITextResource } from '../types/global';
 
 export const styles = {
   inputHelper: {
-    marginTop: '2.4rem',
     fontSize: '1.6rem',
     lineHeight: 'auto',
     color: '#000000',
@@ -186,31 +185,6 @@ export const SelectTextFromRecources = ({
     </div>
   );
 };
-
-/**
- * @deprecated use SelectTextFromRecources component directly instead
- */
-export function renderSelectTextFromResources(
-  labelText: string,
-  onChangeFunction: (e: any) => void,
-  textResources: ITextResource[],
-  language: any,
-  selected?: string,
-  placeholder?: string,
-  description?: string,
-) {
-  return (
-    <SelectTextFromRecources
-      labelText={labelText}
-      onChangeFunction={onChangeFunction}
-      textResources={textResources}
-      language={language}
-      selected={selected}
-      placeholder={placeholder}
-      description={description}
-    />
-  );
-}
 
 export function renderOptionalSelectTextFromResources(
   labelText: string,
