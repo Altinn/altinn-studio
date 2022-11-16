@@ -15,7 +15,8 @@ import TabletDrawerMenu from 'app-shared/navigation/drawer/TabletDrawerMenu';
 import { menu } from './appBarConfig';
 import ProfileMenu from 'app-shared/navigation/main-header/profileMenu';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { useAppSelector } from '../common/hooks';
+import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
+import { useAppSelector } from '../../common/hooks';
 
 export interface IAppBarProps {
   activeSubHeaderSelection?: string;
@@ -126,10 +127,7 @@ export const AppBar = ({
     <div className={classes.root}>
       <MuiAppBar
         position='fixed'
-        className={classNames([
-          !app ? classes.appBarDashboard : classes.appBarEditor,
-          classes.appBar,
-        ])}
+        className={classNames([!app ? classes.appBarDashboard : classes.appBarEditor, classes.appBar])}
         elevation={5}
         sx={{
           backgroundColor: '#EFEFEF',
@@ -224,6 +222,12 @@ export const AppBar = ({
                   justifyContent='center'
                   alignItems='center'
                 >
+                  <Grid
+                    xs
+                    item
+                  >
+                    <VersionControlHeader language={language} />
+                  </Grid>
                   {menu.map((item) => (
                     <Grid
                       item
@@ -233,8 +237,7 @@ export const AppBar = ({
                       <Link
                         to={item.link.replace(':org', org).replace(':app', app)}
                         className={classNames(classes.subHeaderLink, {
-                          [classes.subHeaderLinkActive]:
-                            activeSubHeaderSelection === item.key,
+                          [classes.subHeaderLinkActive]: activeSubHeaderSelection === item.key,
                         })}
                         data-testid={item.key}
                       >
@@ -242,6 +245,11 @@ export const AppBar = ({
                       </Link>
                     </Grid>
                   ))}
+                  <Grid
+                    xs
+                    item
+                  />{' '}
+                  {/** Used to keep menu centered */}
                 </Grid>
               </Toolbar>
             )}

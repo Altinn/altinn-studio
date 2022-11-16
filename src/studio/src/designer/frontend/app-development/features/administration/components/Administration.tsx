@@ -3,7 +3,6 @@ import { Grid } from '@mui/material';
 import { AltinnColumnLayout } from 'app-shared/components/AltinnColumnLayout';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import { HandleServiceInformationActions } from '../handleServiceInformationSlice';
 import { MainContent } from './MainContent';
 import { SideMenuContent } from './SideMenuContent';
@@ -117,8 +116,6 @@ export function AdministrationComponent() {
       className={classes.root}
     >
       {render ? (
-        <>
-          <VersionControlHeader language={language} />
           <AltinnColumnLayout
             sideMenuChildren={
               <SideMenuContent
@@ -146,7 +143,6 @@ export function AdministrationComponent() {
               repository={repository}
             />
           </AltinnColumnLayout>
-        </>
       ) : (
         <Grid container={true}>
           <AltinnSpinner

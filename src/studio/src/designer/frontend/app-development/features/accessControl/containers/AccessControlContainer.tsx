@@ -1,26 +1,17 @@
-import React from 'react';
-import { connect } from 'react-redux';
-import { Dispatch } from 'redux';
+import React, { useEffect, useState } from 'react';
+import { useDispatch } from 'react-redux';
 import { AltinnColumnLayout } from 'app-shared/components/AltinnColumnLayout';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import { ApplicationMetadataActions } from '../../../sharedResources/applicationMetadata/applicationMetadataSlice';
-import { makeGetApplicationMetadata } from '../../../sharedResources/applicationMetadata/selectors/applicationMetadataSelector';
 import {
   CheckboxGroup,
   CheckboxGroupVariant,
 } from '@altinn/altinn-design-system';
 import classes from './AccessControlContainer.module.css';
-import { RootState } from '../../../store';
+import type { RootState } from '../../../store';
+import { useAppSelector } from 'app-development/common/hooks';
 
-interface IAccessControlContainerProvidedProps {
-  classes: any;
-  applicationMetadata: any;
-  dispatch?: Dispatch;
-}
-
-export interface IAccessControlContainerProps
-  extends IAccessControlContainerProvidedProps {
+export interface IAccessControlContainerProps {
   language: any;
 }
 
@@ -43,109 +34,62 @@ export enum PartyTypes {
   subUnit = 'subUnit',
 }
 
-export class AccessControlContainerClass extends React.Component<
-  IAccessControlContainerProps,
-  IAccessControlContainerState
-> {
-  public static getDerivedStateFromProps(
-    nextProps: IAccessControlContainerProps,
-    state: IAccessControlContainerState,
-  ) {
-    if (state.setStateCalled) {
-      return {
-        ...state,
-        setStateCalled: false,
-      };
+export function AccessControlContainer({
+  language,
+}: IAccessControlContainerProps) {
+  const dispatch = useDispatch();
+  const t = (key: string) => getLanguageFromKey(key, language);
+
+  const [partyTypesAllowed, setPartyTypesAllowed] =
+    useState<IPartyTypesAllowed>({
+      bankruptcyEstate: false,
+      organisation: false,
+      person: false,
+      subUnit: false,
+    });
+
+  const applicationMetadata = useAppSelector((state: RootState) => state.applicationMetadataState.applicationMetadata);
+
+  useEffect(() => {
+    if (!applicationMetadata?.partyTypesAllowed) {
+      return;
     }
 
-    const { partyTypesAllowed } = nextProps.applicationMetadata;
-    if (!partyTypesAllowed) {
-      return null;
-    }
-    if (state.partyTypesAllowed !== partyTypesAllowed) {
-      return {
-        partyTypesAllowed,
-      };
-    }
-    return null;
-  }
-
-  constructor(props: IAccessControlContainerProps) {
-    super(props);
-    const { partyTypesAllowed } = props.applicationMetadata;
-    this.state = {
-      partyTypesAllowed: {
-        bankruptcyEstate: !!partyTypesAllowed?.bankruptcyEstate,
-        organisation: !!partyTypesAllowed?.organisation,
-        person: !!partyTypesAllowed?.person,
-        subUnit: !!partyTypesAllowed?.subUnit,
-      },
-      setStateCalled: false,
+    const usePartyTypesAllowed: IPartyTypesAllowed = {
+      bankruptcyEstate: !!applicationMetadata.partyTypesAllowed?.bankruptcyEstate,
+      organisation: !!applicationMetadata.partyTypesAllowed?.organisation,
+      person: !!applicationMetadata.partyTypesAllowed?.person,
+      subUnit: !!applicationMetadata.partyTypesAllowed?.subUnit,
     };
-  }
 
-  public componentDidMount() {
-    this.props.dispatch(ApplicationMetadataActions.getApplicationMetadata());
-  }
+    setPartyTypesAllowed(usePartyTypesAllowed);
+  }, [applicationMetadata]);
 
-  public handlePartyTypesAllowedChange(partyTypes: string[]) {
-    this.setState((prev) => {
-      const partyTypesAllowed = { ...prev.partyTypesAllowed };
-      Object
-          .keys(partyTypesAllowed)
-          .forEach((key: keyof IPartyTypesAllowed) => {
-            partyTypesAllowed[key] = partyTypes.includes(key as string);
-          });
+  useEffect(() => {
+    dispatch(ApplicationMetadataActions.getApplicationMetadata());
+  }, [dispatch]);
 
-      return {
-        partyTypesAllowed,
-        setStateCalled: true,
-      };
-    }, this.saveApplicationMetadata);
-  }
+  const handlePartyTypesAllowedChange = (partyTypes: string[]) => {
+    const newPartyTypesAllowed = { ...partyTypesAllowed };
+    Object.keys(partyTypesAllowed).forEach((key: keyof IPartyTypesAllowed) => {
+      newPartyTypesAllowed[key] = partyTypes.includes(key as string);
+    });
 
-  public saveApplicationMetadata() {
+    setPartyTypesAllowed(newPartyTypesAllowed);
     const newApplicationMetadata = JSON.parse(
-      JSON.stringify(
-        this.props.applicationMetadata ? this.props.applicationMetadata : {},
-      ),
+      JSON.stringify(applicationMetadata || {}),
     );
-    newApplicationMetadata.partyTypesAllowed = this.state.partyTypesAllowed;
-    this.props.dispatch(
+    newApplicationMetadata.partyTypesAllowed = newPartyTypesAllowed;
+    dispatch(
       ApplicationMetadataActions.putApplicationMetadata({
         applicationMetadata: newApplicationMetadata,
       }),
     );
-  }
-
-  public renderMainContent = (): JSX.Element => {
-    return <>{this.renderPartySection()}</>;
   };
 
-  public renderPartySection = (): JSX.Element => {
-    const partyTypeKeys = Object.keys(PartyTypes);
-    const t = (key: string) => getLanguageFromKey(key, this.props.language);
-    return (
-      <CheckboxGroup
-        data-testid='access-control-container'
-        description={t('access_control.party_type')}
-        items={partyTypeKeys.map((key: keyof IPartyTypesAllowed) => ({
-          checkboxId: undefined,
-          checked: !!this.state.partyTypesAllowed[key],
-          description: undefined,
-          disabled: false,
-          label: t(`access_control.${key}`) as string,
-          name: key,
-        }))}
-        legend={t('access_control.party_type_header')}
-        onChange={(values) => this.handlePartyTypesAllowedChange(values)}
-        variant={CheckboxGroupVariant.Horizontal}
-      />
-    );
-  };
+  const partyTypeKeys = Object.keys(PartyTypes);
 
-  public renderSideMenu = (): JSX.Element => {
-    const t = (key: string) => getLanguageFromKey(key, this.props.language);
+  const SideMenu = (): JSX.Element => {
     return (
       <>
         <p className={classes.sidebarHeader}>
@@ -163,40 +107,34 @@ export class AccessControlContainerClass extends React.Component<
           <p className={classes.sidebarSectionHeader}>
             {t('access_control.test_what_header')}
           </p>
-          <p className={classes.infoText}>
-            {t('access_control.test_what')}
-          </p>
+          <p className={classes.infoText}>{t('access_control.test_what')}</p>
         </div>
       </>
     );
   };
 
-  public render() {
-    return (
-      <div>
-        <VersionControlHeader language={this.props.language} />
-        <AltinnColumnLayout
-          header={getLanguageFromKey('access_control.header', this.props.language,)}
-          sideMenuChildren={this.renderSideMenu()}
-        >
-          {this.renderMainContent()}
-        </AltinnColumnLayout>
-      </div>
-    );
-  }
-}
-
-const makeMapStateToProps = () => {
-  const getApplicationMetadata = makeGetApplicationMetadata();
-
   return (
-    state: RootState,
-    props: IAccessControlContainerProvidedProps,
-  ): IAccessControlContainerProps => ({
-    language: state.languageState.language,
-    applicationMetadata: getApplicationMetadata(state),
-    ...props,
-  });
-};
-
-export default connect(makeMapStateToProps)(AccessControlContainerClass);
+    <div>
+      <AltinnColumnLayout
+        header={t('access_control.header')}
+        sideMenuChildren={<SideMenu />}
+      >
+        <CheckboxGroup
+          data-testid='access-control-container'
+          description={t('access_control.party_type')}
+          items={partyTypeKeys.map((key: keyof IPartyTypesAllowed) => ({
+            checkboxId: undefined,
+            checked: !!partyTypesAllowed[key],
+            description: undefined,
+            disabled: false,
+            label: t(`access_control.${key}`) as string,
+            name: key,
+          }))}
+          legend={t('access_control.party_type_header')}
+          onChange={(values) => handlePartyTypesAllowedChange(values)}
+          variant={CheckboxGroupVariant.Horizontal}
+        />
+      </AltinnColumnLayout>
+    </div>
+  );
+}
