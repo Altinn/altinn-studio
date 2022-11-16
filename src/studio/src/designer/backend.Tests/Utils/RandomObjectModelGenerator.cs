@@ -5,6 +5,9 @@ using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
+using Fare;
+using RandomTestValues;
 
 namespace Designer.Tests.Utils;
 
@@ -65,12 +68,12 @@ public static class RandomObjectModelGenerator
 
         if (type == typeof(DateTime))
         {
-            return 5.5d;
+            return RandomValue.DateTime();
         }
 
         if (type == typeof(bool))
         {
-            return 5.5d;
+            return RandomValue.Bool();
         }
 
         throw new Exception("Not primitive type");
@@ -78,18 +81,32 @@ public static class RandomObjectModelGenerator
 
     private static string GenerateString(IEnumerable<CustomAttributeData> restrictions = null)
     {
-        var minlength = (int?)restrictions?.FirstOrDefault(x => x.AttributeType == typeof(MinLengthAttribute))
-            ?.ConstructorArguments.FirstOrDefault().Value;
-        var maxlength = (int?)restrictions?.FirstOrDefault(x => x.AttributeType == typeof(MinLengthAttribute))
-            ?.ConstructorArguments.FirstOrDefault().Value;
-        var regex = (string)restrictions?.FirstOrDefault(x => x.AttributeType == typeof(RegularExpressionAttribute))
-            ?.ConstructorArguments.FirstOrDefault().Value;
-        return "test";
-        return "FOEDSELS_D_NUMMER";
+        var attributeData = restrictions?.ToArray();
+        var minlength = attributeData?.GetAttributeValue<int?, MinLengthAttribute>();
+        var maxlength = attributeData?.GetAttributeValue<int?, MaxLengthAttribute>();
+        var pattern = attributeData?.GetAttributeValue<string, RegularExpressionAttribute>();
+
+        if (!string.IsNullOrWhiteSpace(pattern))
+        {
+            return new Xeger(pattern).Generate();
+        }
+
+        return RandomValue.String(CalculateStringLength(minlength, maxlength));
     }
 
-    private static object GenerateNumberType(Type type, IEnumerable<CustomAttributeData> restrictions = null)
+    private static TValue GetAttributeValue<TValue, TAttributeType>(this IEnumerable<CustomAttributeData> restrictions)
     {
+        return (TValue)restrictions?.FirstOrDefault(x => x.AttributeType == typeof(TAttributeType))
+            ?.ConstructorArguments.FirstOrDefault().Value;
+    }
+
+    private static (object LowerLimit, object UpperLimit) GetRangeLimits(this IEnumerable<CustomAttributeData> restrictions)
+    {
+        if (restrictions is null)
+        {
+            return (null, null);
+        }
+
         var rangeAttribute = restrictions?.FirstOrDefault(x => x.AttributeType == typeof(RangeAttribute));
         object lowerLimit = null;
         object upperLimit = null;
@@ -99,33 +116,113 @@ public static class RandomObjectModelGenerator
             upperLimit = rangeAttribute.ConstructorArguments[1].Value;
         }
 
+        return (lowerLimit, upperLimit);
+    }
+
+    private static int CalculateStringLength(int? minLength, int? maxLength)
+    {
+        const int usualLength = 10;
+        if (minLength is not null && maxLength is not null)
+        {
+            return RandomValue.Int(minLength.Value, maxLength.Value);
+        }
+
+        if (minLength is not null)
+        {
+            return RandomValue.Int(minLength.Value, Math.Max(usualLength, minLength.Value + 1));
+        }
+
+        if (maxLength is not null)
+        {
+            return RandomValue.Int(0, maxLength.Value);
+        }
+
+        return usualLength;
+    }
+
+    private static object GenerateNumberType(Type type, IEnumerable<CustomAttributeData> restrictions = null)
+    {
+        var (lowerLimit, upperLimit) = restrictions.GetRangeLimits();
         var hasRange = lowerLimit is not null && upperLimit is not null;
-        var regex = (string)restrictions?.FirstOrDefault(x => x.AttributeType == typeof(RegularExpressionAttribute))
-            ?.ConstructorArguments.FirstOrDefault().Value;
+        var pattern = restrictions?.GetAttributeValue<string, RegularExpressionAttribute>();
+        var random = new Random();
 
         if (type == typeof(int))
         {
-            return 5;
+            if (hasRange)
+            {
+                return random.Next((int)lowerLimit, (int)upperLimit);
+            }
+
+            if (!string.IsNullOrWhiteSpace(pattern))
+            {
+                return int.Parse(new Xeger(pattern).Generate());
+            }
+
+            return random.Next();
         }
 
         if (type == typeof(short))
         {
-            return 5.5d;
+            if (hasRange)
+            {
+                return (short)random.Next((int)lowerLimit, (int)upperLimit);
+            }
+
+            if (!string.IsNullOrWhiteSpace(pattern))
+            {
+                return short.Parse(new Xeger(pattern).Generate());
+            }
+
+            return (short)random.Next(short.MinValue, short.MaxValue);
         }
 
         if (type == typeof(decimal))
         {
-            return (decimal)5.5;
+            if (hasRange)
+            {
+                var next = random.NextDouble();
+                var rnd = next + (next * (Convert.ToDouble(upperLimit) - Convert.ToDouble(lowerLimit)));
+                return new decimal(rnd);
+            }
+
+            if (!string.IsNullOrWhiteSpace(pattern))
+            {
+                return decimal.Parse(new Xeger(pattern).Generate());
+            }
+
+            return new decimal(random.NextDouble());
         }
 
         if (type == typeof(double))
         {
-            return 5.5d;
+            if (hasRange)
+            {
+                var next = random.NextDouble();
+                return next + (next * (Convert.ToDouble(upperLimit) - Convert.ToDouble(lowerLimit)));
+            }
+
+            if (!string.IsNullOrWhiteSpace(pattern))
+            {
+                return double.Parse(new Xeger(pattern).Generate());
+            }
+
+            return random.NextDouble();
         }
 
         if (type == typeof(long))
         {
-            return 5.5d;
+            if (hasRange)
+            {
+                return random.NextInt64((long)lowerLimit, (long)upperLimit);
+            }
+
+            if (!string.IsNullOrWhiteSpace(pattern))
+            {
+                return long.Parse(new Xeger(pattern).Generate());
+            }
+
+            return random.NextInt64();
         }
 
         throw new Exception("Non supported number type");
@@ -134,7 +231,7 @@ public static class RandomObjectModelGenerator
     private static void PopulateList(object obj, PropertyInfo property, int size = 5)
     {
         var argumentType = property.PropertyType.GetGenericArguments().First();
-        IList res = (IList)Activator.CreateInstance(property.PropertyType);
+        var list = (IList)Activator.CreateInstance(property.PropertyType);
 
         var isPrimitive = IsPrimitive(argumentType);
 
@@ -142,16 +239,16 @@ public static class RandomObjectModelGenerator
         {
             if (isPrimitive)
             {
-                res.Add(GeneratePrimitiveType(argumentType));
+                list.Add(GeneratePrimitiveType(argumentType));
                 continue;
             }
 
             var listItem = Activator.CreateInstance(argumentType);
             PopulateObjectWithRandomData(listItem);
-            res.Add(listItem);
+            list.Add(listItem);
         }
 
-        property.SetValue(obj, res);
+        property.SetValue(obj, list);
     }
 
     private static bool IsPrimitive(Type type)
