@@ -96,23 +96,27 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task UpdateSchema(string org, string repository, string developer, string relativeFilePath, string jsonContent, bool saveOnly = false)
         {
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
-            var repositoryType = await altinnGitRepository.GetRepositoryType();
             var jsonSchema = Json.Schema.JsonSchema.FromText(jsonContent);
             var serializedJsonContent = SerializeJson(jsonSchema);
             if (saveOnly)
             {
+                // Only save updated JSON schema - no model file generation
                 await altinnGitRepository.WriteTextByRelativePathAsync(relativeFilePath, serializedJsonContent, true);
+                return;
             }
-            else if (repositoryType == AltinnRepositoryType.App)
+
+            var repositoryType = await altinnGitRepository.GetRepositoryType();
+
+            if (repositoryType == AltinnRepositoryType.Datamodels)
             {
-                await UpdateAllAppModelFiles(org, repository, developer, relativeFilePath, serializedJsonContent);
-            }
-            else
-            {
-                // Datamodels repository
+                // Datamodels repository - save JSON and update XSD
                 await altinnGitRepository.WriteTextByRelativePathAsync(relativeFilePath, serializedJsonContent, true);
-                await UpdateXsd(altinnGitRepository, jsonSchema, relativeFilePath.Replace(".schema.json", ".xsd"));
+                XmlSchema xsd = _jsonSchemaToXmlSchemaConverter.Convert(jsonSchema);
+                await altinnGitRepository.SaveXsd(xsd, relativeFilePath.Replace(".schema.json", ".xsd"));
+                return;
             }
+
+            await UpdateModelFilesFromJsonSchema(org, repository, developer, relativeFilePath, serializedJsonContent);
         }
 
         /// <inheritdoc/>
@@ -475,15 +479,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             await using Stream xsdMemoryStream = ConvertJsonSchemaToXsd(jsonSchema);
             await altinnAppGitRepository.WriteStreamByRelativePathAsync($"App/models/{schemaName}.xsd", xsdMemoryStream, true);
-        }
-
-        private static async Task UpdateXsd(
-            AltinnGitRepository altinnGitRepository,
-            Manatee.Json.Schema.JsonSchema jsonSchema,
-            string relativeFilePath)
-        {
-            using Stream xsdMemoryStream = ConvertJsonSchemaToXsd(jsonSchema);
-            await altinnGitRepository.WriteStreamByRelativePathAsync(relativeFilePath, xsdMemoryStream, true);
         }
 
         private static async Task<ModelMetadata> UpdateModelMetadata(

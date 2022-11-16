@@ -40,7 +40,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="repository">The repository implementation</param>
         /// <param name="schemaModelService">Interface for working with models.</param>
-        /// <param name="serviceRepositorySettings">Service repository settings.</param>
         public DatamodelsController(IRepository repository, ISchemaModelService schemaModelService)
         {
             _repository = repository;
@@ -53,7 +52,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">the org owning the models repo</param>
         /// <param name="repository">the model repos</param>
         /// <param name="modelName">The name of the data model.</param>
-        /// <remarks>Deprecated use <see cref="PutDatamodel(string, string, string)"/> instead.</remarks>
+        /// <remarks>Deprecated use <see cref="PutDatamodel(string, string, string, bool)"/> instead.</remarks>
         [Authorize]
         [HttpPut]
         [Route("updatedatamodel")]

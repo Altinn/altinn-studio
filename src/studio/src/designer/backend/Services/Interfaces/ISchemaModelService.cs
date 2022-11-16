@@ -44,7 +44,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="relativeFilePath">Relative path to the file.</param>
         /// <param name="jsonContent">The JSON contents of the file.</param>
         /// <param name="saveOnly">Optional. If this flag is set to true, only json schema model is saved, no other model files are updated.</param>
-        Task UpdateSchema(string org, string repository, string developer, string relativeFilePath, string jsonContent, bool saveOnly=false);
+        Task UpdateSchema(string org, string repository, string developer, string relativeFilePath, string jsonContent, bool saveOnly = false);
 
         /// <summary>
         /// Updates a schema based on the relative path to the JSON Schema within the repository.

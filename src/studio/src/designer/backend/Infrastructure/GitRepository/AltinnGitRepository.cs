@@ -4,10 +4,13 @@ using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using System.Xml;
+using System.Xml.Schema;
 using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using static Altinn.Studio.Designer.Infrastructure.GitRepository.AltinnAppGitRepository;
 
 namespace Altinn.Studio.Designer.Infrastructure.GitRepository
 {
@@ -197,6 +200,56 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             }
 
             return (altinnStudioSettings, needsSaving);
+        }
+
+        /// <summary>
+        /// Saves the Json Schema file representing the application model to disk.
+        /// </summary>
+        /// <param name="jsonSchema">The Json Schema that should be persisted</param>
+        /// <param name="relativeFilePath">The relative file path of the json schema model</param>
+        /// <returns>A string containing the relative path to the file saved.</returns>
+        public virtual async Task<string> SaveJsonSchema(string jsonSchema, string relativeFilePath)
+        {
+            await WriteTextByRelativePathAsync(relativeFilePath, jsonSchema, true);
+
+            return relativeFilePath;
+        }
+
+        /// <summary>
+        /// Saves the Xsd to the disk.
+        /// </summary>
+        /// <param name="xsd">String representing the Xsd to be saved.</param>
+        /// <param name="filePath">The filename of the file to be saved excluding path.</param>
+        /// <returns>A string containg the relative path to the file saved.</returns>
+        public virtual async Task<string> SaveXsd(string xsd, string filePath)
+        {
+            await WriteTextByRelativePathAsync(filePath, xsd, true);
+            return filePath;
+        }
+
+        /// <summary>
+        /// Saves the Xsd to the disk.
+        /// </summary>
+        /// <param name="xmlSchema">Xml schema to be saved.</param>
+        /// <param name="fileName">The filename of the file to be saved excluding path.</param>
+        /// <returns>A string containg the relative path to the file saved.</returns>
+        public async Task<string> SaveXsd(XmlSchema xmlSchema, string fileName)
+        {
+            string xsd = await SerializeXsdToString(xmlSchema);
+            return await SaveXsd(xsd, fileName);
+        }
+
+        private static async Task<string> SerializeXsdToString(XmlSchema xmlSchema)
+        {
+            string xsd;
+            await using (var sw = new Utf8StringWriter())
+            await using (var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true }))
+            {
+                xmlSchema.Write(xw);
+                xsd = sw.ToString();
+            }
+
+            return xsd;
         }
 
         // Ideally this class should not know anything about app or datamodel differences.
