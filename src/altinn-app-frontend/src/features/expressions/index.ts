@@ -11,7 +11,7 @@ import {
 } from 'src/features/expressions/errors';
 import { ExprContext } from 'src/features/expressions/ExprContext';
 import { addError, asExpression, canBeExpression } from 'src/features/expressions/validation';
-import { LayoutNode, LayoutRootNode } from 'src/utils/layout/hierarchy';
+import { dataSourcesFromState, LayoutNode, LayoutRootNode, nodesInLayouts } from 'src/utils/layout/hierarchy';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
 import type {
   BaseToActual,
@@ -23,6 +23,7 @@ import type {
   FuncDef,
 } from 'src/features/expressions/types';
 import type { ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
+import type { IAltinnWindow } from 'src/types';
 
 import type { IInstanceContext } from 'altinn-shared/types';
 
@@ -501,6 +502,49 @@ export const ExprTypes: {
     accepts: ['boolean', 'string', 'number'],
     impl: (arg) => arg,
   },
+};
+
+/**
+ * This function is attached globally, to aid in expression development. An app developer can use this function
+ * to try out a given expression (even in the context of a given component ID), and see the result directly in
+ * the browser console window.
+ *
+ * @deprecated DO NOT use this directly, it is only meant for app developers to test out their expressions. It is not
+ * meant to be performant, and will never get optimized in any way. In addition, it will spit out nice errors in the
+ * console for app developers to understand. Use other alternatives in your code instead.
+ *
+ * @see useExpressions
+ * @see useExpressionsForComponent
+ * @see resolvedNodesInLayouts
+ */
+(window as unknown as IAltinnWindow).evalExpression = (maybeExpression: any, forComponentId?: string) => {
+  const expr = asExpression(maybeExpression, null);
+  if (!expr) {
+    return null;
+  }
+
+  const state = (window as unknown as IAltinnWindow).reduxStore.getState();
+  const nodes = nodesInLayouts(
+    state.formLayout.layouts,
+    state.formLayout.uiConfig.currentView,
+    state.formLayout.uiConfig.repeatingGroups,
+  );
+  let context: LayoutRootNode | LayoutNode = nodes.findLayout(state.formLayout.uiConfig.currentView);
+  if (forComponentId) {
+    const foundNode = nodes.findById(forComponentId);
+    if (!foundNode) {
+      console.error('Unable to find component with id', forComponentId);
+      console.error(
+        'Available components on the current page:',
+        context.flat(true).map((c) => c.item.id),
+      );
+      return;
+    }
+    context = foundNode;
+  }
+
+  const dataSources = dataSourcesFromState(state);
+  return evalExpr(expr as Expression, context, dataSources, { defaultValue: null });
 };
 
 export const ExprDefaultsForComponent: ExprDefaultValues<ILayoutComponent> = {

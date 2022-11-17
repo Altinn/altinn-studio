@@ -1,3 +1,4 @@
+import type { ToolkitStore } from '@reduxjs/toolkit/src/configureStore';
 import type Ajv from 'ajv/dist/core';
 
 import type { ExpressionOr } from 'src/features/expressions/types';
@@ -11,6 +12,8 @@ export interface IAltinnWindow extends Window {
   instanceId: string;
   org: string;
   reportee: string;
+  evalExpression: (maybeExpression: any, forComponentId?: string) => any;
+  reduxStore: ToolkitStore<IRuntimeState>;
 }
 
 export interface IComponentBindingValidation {

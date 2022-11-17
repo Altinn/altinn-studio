@@ -230,7 +230,7 @@ export function asExpression(
           `${errorText}:`,
           prettyPrinted.lines,
           '%cUsing default value instead:',
-          `  %c${defaultValue.toString()}%c`,
+          `  %c${defaultValue === null ? 'null' : defaultValue.toString()}%c`,
         ].join('\n'),
         ...prettyPrinted.css,
         ...['', 'color: red;', ''],

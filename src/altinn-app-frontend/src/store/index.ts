@@ -6,6 +6,7 @@ import type { SagaMiddleware } from 'redux-saga';
 
 import reducers from 'src/reducers';
 import { appApi } from 'src/services/AppApi';
+import type { IAltinnWindow } from 'src/types';
 
 export const sagaMiddleware: SagaMiddleware<any> = createSagaMiddleware();
 const middlewares = [sagaMiddleware, appApi.middleware];
@@ -37,12 +38,14 @@ export const setupStore = (preloadedState?: PreloadedState<RootState>) => {
 
 export const store = setupStore();
 
-if (process.env.NODE_ENV === 'development') {
-  // Expose store when running in Cypress. This allows for using cy.getReduxState() to run assertions against the redux
-  // state at various points in the tests. Testing the state directly might expose problems not easily/visibly testable
-  // in the app itself.
-  (window as any).reduxStore = store;
+// Expose store globally. This allows for
+// 1. Using cy.getReduxState() in Cypress to run assertions against the redux state at various points in the tests,
+//    and inject actions when we need to. Testing the state directly might expose problems not easily/visibly testable
+//    in the app itself.
+// 2. Allows the window.evalExpression() test-function to get the current state for testing expressions.
+(window as unknown as IAltinnWindow).reduxStore = store;
 
+if (process.env.NODE_ENV === 'development') {
   // Expose a log containing all dispatched actions. This is useful when Cypress tests fail, so that we can gather
   // the logged actions to re-construct the redux state history using the redux devtools.
   (window as any).reduxActionLog = actionLog;
