@@ -14,10 +14,10 @@ changelog:
         - kind/bug
     - title: Other Changes
       labels:
-        - "*"
-      exclude:
-        labels:
-          - kind/dependencies
+        - kind/other
     - title: Dependency Upgrades 📦
       labels:
         - kind/dependencies
+    - title: Uncategorized changes
+      labels:
+        - "*"
