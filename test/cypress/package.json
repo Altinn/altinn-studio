@@ -30,7 +30,7 @@
     "@testing-library/cypress": "8.0.3",
     "axe-core": "4.5.1",
     "concurrently": "7.5.0",
-    "cypress": "10.11.0",
+    "cypress": "11.0.1",
     "cypress-axe": "1.0.0",
     "cypress-plugin-tab": "1.0.5",
     "dotenv": "16.0.3",
