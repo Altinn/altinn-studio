@@ -1,8 +1,6 @@
 const gulp = require('gulp');
 const run = require('gulp-run-command').default;
-const chokidar = require('chokidar');
 const del = require('del');
-const fs = require('fs');
 
 // When specifying options, you need to add all options to avoid lint errors.
 // This can be removed if/when https://github.com/Klathmon/gulp-run-command/pull/11 is released
@@ -35,9 +33,6 @@ const cssServDevFile = '../frontend/dist/app-development/app-development.css';
 const cssDashboardFile = '../frontend/dist/dashboard/dashboard.css';
 const langNoFile = '../frontend/dist/language/nb.json';
 const langEnFile = '../frontend/dist/language/en.json';
-
-let jsWatcher = null;
-let cssWatcher = null;
 
 const jslibDest = 'wwwroot/designer/js/lib/';
 const copyGlobs = [
@@ -120,10 +115,6 @@ function copyNodeModulePackages(cb) {
   cb();
 }
 
-function cleanNodeModulePackages() {
-  return del(cleanGlobs);
-}
-
 function copyReactJs(cb) {
   copyDashboardJs();
   copyServDevJs();
@@ -179,57 +170,6 @@ function copyLangFiles(cb) {
   return;
 }
 
-function deleteServDevJs() {
-  return del('wwwroot/designer/frontend/app-development.js');
-}
-
-function deleteDashboardJs() {
-  return del('wwwroot/designer/frontend/dashboard.js');
-}
-
-function deleteServDevCss() {
-  return del('wwwroot/designer/frontend/app-development.css');
-}
-
-function deleteDashboardCss() {
-  return del('wwwroot/designer/frontend/dashboard.css');
-}
-
-function setupWatchers(cb) {
-  const checkDashboardJsFile = setInterval(function () {
-    if (fs.existsSync(jsDashboardFile)) {
-      jsWatcher = chokidar.watch(jsDashboardFile);
-      jsWatcher.on('change', copyDashboardJs);
-      clearInterval(checkDashboardJsFile);
-    }
-  }, 1000);
-
-  const checkServDevJsFile = setInterval(function () {
-    if (fs.existsSync(jsServDevFile)) {
-      jsWatcher = chokidar.watch(jsServDevFile);
-      jsWatcher.on('change', copyServDevJs);
-      clearInterval(checkServDevJsFile);
-    }
-  }, 1000);
-
-  const checkDashboardCssFile = setInterval(function () {
-    if (fs.existsSync(cssDashboardFile)) {
-      cssWatcher = chokidar.watch(cssDashboardFile);
-      cssWatcher.on('change', copyDashboardCss);
-      clearInterval(checkDashboardCssFile);
-    }
-  }, 1000);
-
-  const checkServDevCssFile = setInterval(function () {
-    if (fs.existsSync(cssServDevFile)) {
-      cssWatcher = chokidar.watch(cssServDevFile);
-      cssWatcher.on('change', copyServDevCss);
-      clearInterval(checkServDevCssFile);
-    }
-  }, 1000);
-  cb();
-}
-
 gulp.task('build', gulp.series([copyNodeModulePackages]));
 
 gulp.task('copy-files', gulp.series(copyNodeModulePackages, copyReactJs, copyReactCss, copyLangFiles));
@@ -237,11 +177,11 @@ gulp.task('copy-files', gulp.series(copyNodeModulePackages, copyReactJs, copyRea
 gulp.task(
   'clean',
   gulp.series(
-    deleteServDevCss,
-    deleteDashboardCss,
-    deleteServDevJs,
-    deleteDashboardJs,
-    cleanNodeModulePackages,
+    () => del('wwwroot/designer/frontend/app-development.css'),
+    () => del('wwwroot/designer/frontend/dashboard.css'),
+    () => del('wwwroot/designer/frontend/app-development.js'),
+    () => del('wwwroot/designer/frontend/dashboard.js'),
+    () => del(cleanGlobs),
     run('yarn run clean', {
       ...defaultGulpRunOptions,
       cwd: '../frontend/dashboard',
@@ -257,11 +197,14 @@ gulp.task(
   'develop-designer-backend',
   gulp.parallel(
     copyNodeModulePackages,
-    setupWatchers,
     run('dotnet run'),
-    run('yarn run webpack-watch', {
+    run('yarn run start', {
       ...defaultGulpRunOptions,
       cwd: '../frontend/app-development',
+    }),
+    run('yarn run start', {
+      ...defaultGulpRunOptions,
+      cwd: '../frontend/dashboard',
     }),
   ),
 );
@@ -270,10 +213,13 @@ gulp.task(
   'develop-designer-frontend',
   gulp.parallel(
     copyNodeModulePackages,
-    setupWatchers,
-    run('yarn run webpack-watch', {
+    run('yarn run start', {
       ...defaultGulpRunOptions,
       cwd: '../frontend/app-development',
+    }),
+    run('yarn run start', {
+      ...defaultGulpRunOptions,
+      cwd: '../frontend/dashboard',
     }),
   ),
 );
@@ -282,9 +228,8 @@ gulp.task(
   'develop-dashboard',
   gulp.parallel(
     copyNodeModulePackages,
-    setupWatchers,
     run('dotnet run'),
-    run('yarn run webpack-watch', {
+    run('yarn run start', {
       ...defaultGulpRunOptions,
       cwd: '../frontend/dashboard',
     }),
