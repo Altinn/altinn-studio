@@ -1,0 +1,8 @@
+{
+  "name": "FrontendSettings is not implemented",
+  "expression": ["FrontendSettings", "mySetting1"],
+  "expectsFailure": "Function \"FrontendSettings\" not implemented",
+  "frontendSettings": {
+    "mySetting1": "foo"
+  }
+}

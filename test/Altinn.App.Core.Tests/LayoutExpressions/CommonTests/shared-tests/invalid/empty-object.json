@@ -1,0 +1,5 @@
+{
+  "name": "Empty object inside expression parsed as other expression",
+  "expression": ["equals", true, {}],
+  "expectsFailure": "Invalid type \"object\""
+}

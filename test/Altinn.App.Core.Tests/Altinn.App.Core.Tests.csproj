@@ -6,10 +6,14 @@
     <IsPackable>false</IsPackable>
 
     <RootNamespace>Altinn.App.PlatformServices.Tests</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="Implementation\AppBaseTests.cs" />
+    <Content Include="LayoutExpressions/**/*.json" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
+    <Watch Include="LayoutExpressions/**/*.json"/>
+    <Watch Include="**/*.cs"/>
   </ItemGroup>
 
   <ItemGroup>

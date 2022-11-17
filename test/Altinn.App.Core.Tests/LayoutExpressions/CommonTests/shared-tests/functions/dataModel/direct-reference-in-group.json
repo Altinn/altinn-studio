@@ -1,0 +1,67 @@
+{
+  "name": "Direct lookup inside repeating group (not respecting the group)",
+  "expression": ["greaterThanEq", ["dataModel", "Mennesker[0].Alder"], 18],
+  "context": {
+    "component": "myndig",
+    "rowIndices": [1],
+    "currentLayout": "Page2"
+  },
+  "expects": true,
+  "layouts": {
+    "Page1": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": []
+      }
+    },
+    "Page2": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "myGroup",
+            "type": "Group",
+            "maxCount": 99,
+            "dataModelBindings": {
+              "group": "Mennesker"
+            },
+            "children": ["navn", "alder", "myndig"]
+          },
+          {
+            "id": "navn",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Mennesker.Navn"
+            }
+          },
+          {
+            "id": "alder",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Mennesker.Alder"
+            }
+          },
+          {
+            "id": "myndig",
+            "type": "Paragraph",
+            "textResourceBindings": {
+              "title": "Hurra, du er myndig!"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "Mennesker": [
+      {
+        "Navn": "Kåre",
+        "Alder": 24
+      },
+      {
+        "Navn": "Arild",
+        "Alder": 14
+      }
+    ]
+  }
+}

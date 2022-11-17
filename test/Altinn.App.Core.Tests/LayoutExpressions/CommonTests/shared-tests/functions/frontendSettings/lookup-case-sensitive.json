@@ -1,0 +1,8 @@
+{
+  "name": "frontendSettings is case sensitive",
+  "expression": ["frontendSettings", "MYSETTING1"],
+  "expects": null,
+  "frontendSettings": {
+    "mySetting1": "foo"
+  }
+}

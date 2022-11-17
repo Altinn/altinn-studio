@@ -1,0 +1,9 @@
+{
+  "name": "Simple lookup for non-existing key equals null",
+  "expression": ["equals", ["frontendSettings", "doesNotExist"], null],
+  "expects": true,
+  "frontendSettings": {
+    "mySetting1": "foo",
+    "mySetting2": "bar"
+  }
+}

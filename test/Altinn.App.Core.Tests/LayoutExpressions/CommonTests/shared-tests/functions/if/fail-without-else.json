@@ -1,0 +1,5 @@
+{
+  "name": "Should fail without \"else\" constant",
+  "expression": ["if", true, 123.456, false],
+  "expectsFailure": "Expected third argument to be \"else\""
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Booleans encode as literal strings",
+  "expression": ["concat", "foo", false, "bar", true],
+  "expects": "foofalsebartrue"
+}

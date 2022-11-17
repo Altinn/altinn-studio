@@ -1,0 +1,10 @@
+{
+  "name": "Simple lookup",
+  "expression": ["instanceContext", "appId"],
+  "expects": "org/app-name",
+  "instanceContext": {
+    "instanceId": "d00ce51c-800b-416a-a906-ccab55f597e9",
+    "appId": "org/app-name",
+    "instanceOwnerPartyId": "12345"
+  }
+}

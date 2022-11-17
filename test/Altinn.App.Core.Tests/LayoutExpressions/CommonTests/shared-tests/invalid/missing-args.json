@@ -1,0 +1,5 @@
+{
+  "name": "Missing arguments produces an error",
+  "expression": ["equals"],
+  "expectsFailure": "Expected 2 argument(s), got 0"
+}

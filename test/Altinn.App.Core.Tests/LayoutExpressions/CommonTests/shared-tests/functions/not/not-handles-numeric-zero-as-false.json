@@ -1,0 +1,5 @@
+{
+  "name": "Not handles numeric zero as true",
+  "expression": ["not", 0],
+  "expects": true
+}

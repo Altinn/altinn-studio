@@ -1,4 +1,5 @@
 using Altinn.App.Core.Models;
+using Altinn.App.Core.Models.Layout;
 using Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.App.Core.Interface
@@ -115,6 +116,16 @@ namespace Altinn.App.Core.Interface
         string GetLayoutSets();
 
         /// <summary>
+        /// Get the layout set definition. Return null if no layoutsets exists
+        /// </summary>
+        LayoutSets? GetLayoutSet();
+
+        /// <summary>
+        /// 
+        /// </summary>
+        LayoutSet? GetLayoutSetForTask(string taskId);
+
+        /// <summary>
         /// Gets the layouts for av given layoutset
         /// </summary>
         /// <param name="layoutSetId">The layot set id</param>
@@ -122,17 +133,22 @@ namespace Altinn.App.Core.Interface
         string GetLayoutsForSet(string layoutSetId);
 
         /// <summary>
+        /// Gets the full layout model for the optional set
+        /// </summary>
+        LayoutModel GetLayoutModel(string? layoutSetId = null);
+
+        /// <summary>
         /// Gets the the layouts settings for a layoutset
         /// </summary>
         /// <param name="layoutSetId">The layot set id</param>
         /// <returns>The layout settings as a JSON string</returns>
-        string GetLayoutSettingsStringForSet(string layoutSetId);
+        string? GetLayoutSettingsStringForSet(string layoutSetId);
 
         /// <summary>
         /// Gets the the layouts settings for a layoutset
         /// </summary>
         /// <returns>The layout settings</returns>
-        LayoutSettings GetLayoutSettingsForSet(string layoutSetId);
+        LayoutSettings? GetLayoutSettingsForSet(string? layoutSetId);
 
         /// <summary>
         /// Gets the ruleconfiguration for av given layoutset

@@ -1,0 +1,116 @@
+{
+  "name": "Group Layout with two rows",
+  "layouts": {
+    "Page1": {
+      "data": {
+        "layout": [
+          {
+            "id": "comp1",
+            "type": "Heading"
+          },
+          {
+            "id": "group1",
+            "type": "Group",
+            "dataModelBindings": {
+              "group": "gruppe1"
+            },
+            "maxCount": 99,
+            "children": ["comp3", "comp4"]
+          },
+          {
+            "id": "comp3",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "gruppe1.comp3binding"
+            }
+          },
+          {
+            "id": "comp4",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "gruppe1.comp4binding"
+            }
+          }
+        ]
+      }
+    },
+    "Page2": {
+      "data": {
+        "layout": [
+          {
+            "id": "comp5",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "asdf"
+            }
+          },
+          {
+            "id": "comp6",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "asdf"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "expectedContexts": [
+    {
+      "component": "Page1",
+      "currentLayout": "Page1",
+      "children": [
+        {
+          "component": "comp1",
+          "currentLayout": "Page1"
+        },
+        {
+          "component": "group1",
+          "currentLayout": "Page1",
+          "children": [
+            {
+              "component": "comp3",
+              "rowIndices": [0],
+              "currentLayout": "Page1"
+            },
+            {
+              "component": "comp4",
+              "rowIndices": [0],
+              "currentLayout": "Page1"
+            },
+            {
+              "component": "comp3",
+              "rowIndices": [1],
+              "currentLayout": "Page1"
+            },
+            {
+              "component": "comp4",
+              "rowIndices": [1],
+              "currentLayout": "Page1"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "component": "Page2",
+      "currentLayout": "Page2",
+      "children": [
+        {
+          "component": "comp5",
+          "currentLayout": "Page2"
+        },
+        {
+          "component": "comp6",
+          "currentLayout": "Page2"
+        }
+      ]
+    }
+  ],
+  "dataModel": {
+    "gruppe1": [
+      { "comp3binding": "123", "comp4binding": "dadda" },
+      { "comp3binding": "456", "comp4binding": "dodo" }
+    ]
+  }
+}

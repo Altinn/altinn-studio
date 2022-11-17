@@ -1,0 +1,5 @@
+{
+  "name": "Non-implemented function gives error",
+  "expression": ["non-existing-function", 1, 2],
+  "expectsFailure": "Function \"non-existing-function\" not implemented"
+}

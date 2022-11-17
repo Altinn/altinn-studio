@@ -1,0 +1,5 @@
+{
+  "name": "Should fail with [boolean, null]",
+  "expression": ["greaterThanEq", true, null],
+  "expectsFailure": "Expected number, got value true"
+}

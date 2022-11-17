@@ -1,0 +1,48 @@
+{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "single",
+        "type": "Checkboxes",
+        "dataModelBindings": {
+          "simpleBinding": "some.notRepeating"
+        },
+        "options": [
+          { "label": "Vis gruppe", "value": "showGroup" }
+        ]
+      },
+      {
+        "id": "gruppe1",
+        "type": "Group",
+        "children": ["comp","comp1", "comp2"],
+        "dataModelBindings": {
+          "group": "some.data"
+        },
+        "hidden": ["notEquals", ["dataModel", "some.notRepeating"], "showGroup"]
+      },
+      {
+        "id": "comp",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "some.data.binding"
+        }
+      },
+      {
+        "id": "comp1",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "some.data.binding2"
+        },
+        "hidden": ["equals", ["component", "comp2"], "hidden"]
+      },
+      {
+        "id": "comp2",
+        "type": "Input",
+        "dataModelBindings": {
+          "simpleBinding": "some.data.binding3"
+        }
+      }
+    ]
+  }
+}

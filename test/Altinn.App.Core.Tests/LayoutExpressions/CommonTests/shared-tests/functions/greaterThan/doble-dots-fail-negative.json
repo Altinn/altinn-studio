@@ -1,0 +1,5 @@
+{
+  "name": "Should fail with [-string with two periods, integer]",
+  "expression": ["greaterThan", "-55.88.66", -57],
+  "expectsFailure": "Expected number, got value \"-55.88.66\""
+}

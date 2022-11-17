@@ -207,5 +207,10 @@ namespace Altinn.App.Core.Configuration
         /// Gets or sets the version of the application. 
         /// </summary>
         public string AppVersion { get; set; }
+
+        /// <summary>
+        /// Enable the preview functionality to load layout in backend and remove data from hidden components before validation and task completion
+        /// </summary>
+        public bool RemoveHiddenDataPreview { get; set; } = false;
     }
 }

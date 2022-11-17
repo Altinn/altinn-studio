@@ -28,7 +28,7 @@ public class ValidateControllerTests
         const int instanceOwnerPartyId = 1337;
         Guid instanceId = new Guid();
         instanceMock.Setup(i => i.GetInstance(app, org, instanceOwnerPartyId, instanceId))
-            .Returns(Task.FromResult<Instance>(null));
+            .Returns(Task.FromResult<Instance>(null!));
 
         // Act
         var validateController =
