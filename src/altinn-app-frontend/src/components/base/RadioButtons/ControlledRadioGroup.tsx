@@ -69,7 +69,7 @@ export const ControlledRadioGroup = ({
                 control={<StyledRadio />}
                 label={getTextResource(option.label)}
                 value={option.value}
-                classes={{ root: cn(classes.margin) }}
+                classes={{ root: cn(classes.formControl) }}
               />
               {validationMessages &&
                 selected === option.value &&
