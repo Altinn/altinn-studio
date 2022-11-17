@@ -76,6 +76,11 @@ declare namespace Cypress {
     getReduxState(selector?: (state: any) => any): any;
 
     /**
+     * Dispatch a redux action directly
+     */
+    reduxDispatch(action: { type: string; payload?: Record<string, any> }): any;
+
+    /**
      * Allows you to intercept the fetched layout and make changes to it. This makes
      * it possible to add small adjustments to the layout not originally intended in
      * the app you're testing, such as marking some components as required, etc.
