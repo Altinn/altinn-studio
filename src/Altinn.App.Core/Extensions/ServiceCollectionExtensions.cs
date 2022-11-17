@@ -1,5 +1,6 @@
 using Altinn.App.Core.Configuration;
 using Altinn.App.Core.Features;
+using Altinn.App.Core.Features.DataLists;
 using Altinn.App.Core.Features.DataProcessing;
 using Altinn.App.Core.Features.Options;
 using Altinn.App.Core.Features.PageOrder;
@@ -126,6 +127,9 @@ namespace Altinn.App.Core.Extensions
             services.TryAddTransient<IInstanceValidator, NullInstanceValidator>();
             services.TryAddTransient<IDataProcessor, NullDataProcessor>();
             services.TryAddTransient<IAppModel, DefaultAppModel>();
+            services.TryAddTransient<DataListsFactory>();
+            services.TryAddTransient<InstanceDataListsFactory>();
+            services.TryAddTransient<IDataListsService, DataListsService>();
             services.Configure<Altinn.Common.PEP.Configuration.PepSettings>(configuration.GetSection("PEPSettings"));
             services.Configure<Altinn.Common.PEP.Configuration.PlatformSettings>(configuration.GetSection("PlatformSettings"));
             services.Configure<AccessTokenSettings>(configuration.GetSection("AccessTokenSettings"));
@@ -203,6 +207,7 @@ namespace Altinn.App.Core.Extensions
 
             // Services related to instance aware and secure app options
             services.TryAddTransient<InstanceAppOptionsFactory>();
+
         }
 
         private static void AddProcessServices(IServiceCollection services)
