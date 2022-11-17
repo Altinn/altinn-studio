@@ -19,10 +19,7 @@ import type { IRepository } from 'app-shared/types/global';
 import { User } from '../../resources/fetchDashboardResources/dashboardSlice';
 import { MakeCopyModal } from './MakeCopyModal';
 import { getRepoEditUrl } from '../utils/urlUtils';
-import {
-  useSetStarredRepoMutation,
-  useUnsetStarredRepoMutation,
-} from '../../services/userApi';
+import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from '../../services/userApi';
 import { useAppSelector } from '../hooks';
 
 export interface IRepoListProps {
@@ -105,7 +102,7 @@ export const NoResults = () => {
 
   return (
     <GridOverlay>
-      <p>{getLanguageFromKey('dashboard.no_repos_result', language)}</p>
+      <p>{t('dashboard.no_repos_result')}</p>
     </GridOverlay>
   );
 };
@@ -139,7 +136,7 @@ export const RepoList = ({
   const [setStarredRepo] = useSetStarredRepoMutation();
   const [unsetStarredRepo] = useUnsetStarredRepoMutation();
   const copyModalAnchorRef = useRef(null);
-
+  const t = (key: string) => getLanguageFromKey(key, language);
   const cols = useMemo(() => {
     const favouriteActionCol: GridActionsColDef = {
       field: '',
@@ -162,11 +159,7 @@ export const RepoList = ({
             key={repo.id}
             id={`fav-repo-${repo.id}`}
             onClick={handleToggleFav}
-            aria-label={
-              repo.user_has_starred
-                ? getLanguageFromKey('dashboard.unstar', language)
-                : getLanguageFromKey('dashboard.star', language)
-            }
+            aria-label={repo.user_has_starred ? t('dashboard.unstar') : t('dashboard.star')}
           >
             <i
               className={cn(classes.favoriteIcon, {
@@ -182,13 +175,13 @@ export const RepoList = ({
     const columns: GridColDef[] = [
       {
         field: 'name',
-        headerName: getLanguageFromKey('dashboard.application', language),
+        headerName: t('dashboard.application'),
         width: 200,
         renderCell: TextWithTooltip,
       },
       {
         field: 'owner.created_by',
-        headerName: getLanguageFromKey('dashboard.created_by', language),
+        headerName: t('dashboard.created_by'),
         sortable: false,
         width: 180,
         renderCell: TextWithTooltip,
@@ -199,7 +192,7 @@ export const RepoList = ({
       },
       {
         field: 'updated_at',
-        headerName: getLanguageFromKey('dashboard.last_modified', language),
+        headerName: t('dashboard.last_modified'),
         width: 120,
         type: 'date',
         valueFormatter: (params: GridValueFormatterParams) => {
@@ -209,7 +202,7 @@ export const RepoList = ({
       },
       {
         field: 'description',
-        headerName: getLanguageFromKey('dashboard.description', language),
+        headerName: t('dashboard.description'),
         flex: 1,
         minWidth: 120,
         renderCell: TextWithTooltip,
@@ -230,9 +223,9 @@ export const RepoList = ({
             <GridActionsCellItem
               className={cn(classes.actionLink, classes.repoLink)}
               data-testid='gitea-repo-link'
-              icon={<i className={cn('fa fa-gitea', classes.linkIcon, classes.repoLink,)}/>}
+              icon={<i className={cn('fa fa-gitea', classes.linkIcon, classes.repoLink)} />}
               key={'dashboard.repository' + params.row.id}
-              label={getLanguageFromKey('dashboard.repository', language)}
+              label={t('dashboard.repository')}
               onClick={() => (window.location.href = params.row.html_url)}
               showInMenu={false}
               edge='end'
@@ -240,23 +233,23 @@ export const RepoList = ({
             <GridActionsCellItem
               data-testid='edit-repo-link'
               className={cn(classes.actionLink, classes.editLink)}
-              icon={<i className={cn('fa fa-edit', classes.linkIcon, classes.editLink,)}/>}
+              icon={<i className={cn('fa fa-edit', classes.linkIcon, classes.editLink)} />}
               key={'dashboard.edit_app' + params.row.id}
-              label={getLanguageFromKey('dashboard.edit_app', language)}
+              label={t('dashboard.edit_app')}
               onClick={() => (window.location.href = editUrl)}
               showInMenu={false}
             />,
             <GridActionsCellItem
               icon={<i className={cn('fa fa-copy', classes.dropdownIcon)} />}
               key={'dashboard.make_copy' + params.row.id}
-              label={getLanguageFromKey('dashboard.make_copy', language)}
+              label={t('dashboard.make_copy')}
               onClick={() => setCopyCurrentRepoName(repoFullName)}
               showInMenu
             />,
             <GridActionsCellItem
               icon={<i className={cn('fa fa-newtab', classes.dropdownIcon)} />}
               key={'dashboard.open_in_new' + params.row.id}
-              label={getLanguageFromKey('dashboard.open_in_new', language)}
+              label={t('dashboard.open_in_new')}
               onClick={() => window.open(editUrl, '_blank')}
               showInMenu
             />,
@@ -290,13 +283,14 @@ export const RepoList = ({
     setCopyCurrentRepoName(null);
   };
 
-  const componentPropsLabelOverrides = useMemo(() => {
-    return {
+  const componentPropsLabelOverrides = useMemo(
+    () => ({
       pagination: {
-        labelRowsPerPage: getLanguageFromKey('dashboard.rows_per_page', language),
+        labelRowsPerPage: t('dashboard.rows_per_page'),
       },
-    };
-  }, [language]);
+    }),
+    [language]
+  );
 
   return (
     <div ref={copyModalAnchorRef}>
@@ -342,7 +336,6 @@ export const RepoList = ({
           disableVirtualization={disableVirtualization}
         />
       )}
-
       {copyCurrentRepoName && (
         <MakeCopyModal
           anchorEl={copyModalAnchorRef.current}
