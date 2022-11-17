@@ -38,6 +38,7 @@ import {
   runClientSideValidation,
   validateGroup,
 } from 'src/utils/validation';
+import { filterValidationsByRow } from 'src/utils/validation/validation';
 import type { IFormDataState } from 'src/features/form/data';
 import type {
   ILayoutCompFileUploadWithTag,
@@ -513,13 +514,13 @@ export function* updateRepeatingGroupEditIndexSaga({
       const state: IRuntimeState = yield select();
       const validations: IValidations = state.formValidations.validations;
       const currentView = state.formLayout.uiConfig.currentView;
-      const onlyInRowIndex =
-        validate === Triggers.ValidateRow
-          ? (state.formLayout.uiConfig.repeatingGroups && state.formLayout.uiConfig.repeatingGroups[group].editIndex) ??
-            undefined
-          : undefined;
+      const rowIndex = state.formLayout.uiConfig.repeatingGroups?.[group].editIndex;
 
-      const frontendValidations: IValidations = validateGroup(group, state, onlyInRowIndex);
+      const frontendValidations: IValidations = validateGroup(
+        group,
+        state,
+        validate === Triggers.ValidateRow ? rowIndex : undefined,
+      );
 
       const options: AxiosRequestConfig = {
         headers: {
@@ -561,8 +562,26 @@ export function* updateRepeatingGroupEditIndexSaga({
         state.formLayout.layouts,
         state.textResources.resources,
       );
-      const combinedValidations = mergeValidationObjects(frontendValidations, mappedServerValidations);
-      if (canFormBeSaved({ validations: combinedValidations, invalidDataTypes: false }, 'Complete')) {
+      const finalServerValidations: IValidations = filterValidationsByRow(
+        mappedServerValidations,
+        state.formLayout.layouts[currentView],
+        state.formLayout.uiConfig.repeatingGroups,
+        group,
+        validate === Triggers.ValidateRow ? rowIndex : undefined,
+      );
+
+      const combinedValidations = mergeValidationObjects(frontendValidations, finalServerValidations);
+
+      const rowValidations = filterValidationsByRow(
+        combinedValidations,
+        state.formLayout.layouts[currentView],
+        state.formLayout.uiConfig.repeatingGroups,
+        group,
+        // Only compute if not already filtered
+        validate === Triggers.Validation ? rowIndex : undefined,
+      );
+
+      if (canFormBeSaved({ validations: rowValidations, invalidDataTypes: false }, 'Complete')) {
         yield put(
           FormLayoutActions.updateRepeatingGroupsEditIndexFulfilled({
             group,
@@ -575,6 +594,8 @@ export function* updateRepeatingGroupEditIndexSaga({
             error: null,
           }),
         );
+      }
+      if (!canFormBeSaved({ validations: combinedValidations, invalidDataTypes: false }, 'Complete')) {
         // only overwrite validtions specific to the group - leave all other untouched
         const newValidations = {
           ...validations,

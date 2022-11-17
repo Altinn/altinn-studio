@@ -166,9 +166,9 @@ describe('Group', () => {
       } else {
         cy.get(appFrontend.errorReport)
           .should('not.exist');
-        cy.get(appFrontend.group.rows[0].editBtn).should('exist').and('be.visible').focus().click();
       }
 
+      cy.get(appFrontend.group.rows[0].editBtn).should('exist').and('be.visible').focus().click();
       cy.get(appFrontend.group.currentValue).should('be.visible').clear().blur();
       cy.get(appFrontend.group.saveMainGroup).focus().should('be.visible').click();
 
