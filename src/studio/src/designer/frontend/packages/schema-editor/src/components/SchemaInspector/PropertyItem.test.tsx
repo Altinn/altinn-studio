@@ -13,11 +13,23 @@ const fullPath = 'test';
 const inputId = 'some-random-id';
 const type = FieldType.String;
 const value = '';
+const fieldTypeNames = {
+  [FieldType.Boolean]: "Ja/nei",
+  [FieldType.Integer]: "Helt tall",
+  [FieldType.Number]: "Desimaltall",
+  [FieldType.Object]: "Objekt",
+  [FieldType.String]: "Tekst",
+};
 const mockLanguage = {
   'schema_editor.delete_field': textDeleteField,
   'schema_editor.field_name': textFieldName,
   'schema_editor.required': textRequired,
   'schema_editor.type': textType,
+  'schema.editor.number': fieldTypeNames[FieldType.Number],
+  'schema_editor.boolean': fieldTypeNames[FieldType.Boolean],
+  'schema_editor.integer': fieldTypeNames[FieldType.Integer],
+  'schema_editor.object': fieldTypeNames[FieldType.Object],
+  'schema_editor.string': fieldTypeNames[FieldType.String],
 };
 const defaultProps: IPropertyItemProps = {
   fullPath,
@@ -117,9 +129,11 @@ test('Given type is selected', async () => {
 test('onChangeType is called with correct parameters when type changes', async () => {
   const onChangeType = jest.fn();
   const { user } = renderPropertyItem({ onChangeType });
-  await user.selectOptions(screen.getByRole('combobox'), FieldType.Integer);
+  const newType = FieldType.Integer;
+  await user.click(screen.getByRole('combobox'));
+  await user.click(screen.getByRole('option', { name: fieldTypeNames[newType] }));
   expect(onChangeType).toHaveBeenCalledTimes(1);
-  expect(onChangeType).toHaveBeenCalledWith(fullPath, FieldType.Integer);
+  expect(onChangeType).toHaveBeenCalledWith(fullPath, newType);
 });
 
 test('"Type" select box is correctly labelled', async () => {

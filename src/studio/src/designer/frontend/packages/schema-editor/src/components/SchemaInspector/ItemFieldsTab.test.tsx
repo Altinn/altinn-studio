@@ -32,6 +32,13 @@ const textDeleteField = 'Slett felt';
 const textFieldName = 'Navn på felt';
 const textRequired = 'Påkrevd';
 const textType = 'Type';
+const fieldTypeNames = {
+  [FieldType.Boolean]: "Ja/nei",
+  [FieldType.Integer]: "Helt tall",
+  [FieldType.Number]: "Desimaltall",
+  [FieldType.Object]: "Objekt",
+  [FieldType.String]: "Tekst",
+};
 const language = {
   'schema_editor.add_property': textAdd,
   'schema_editor.delete': textDelete,
@@ -39,6 +46,11 @@ const language = {
   'schema_editor.field_name': textFieldName,
   'schema_editor.required': textRequired,
   'schema_editor.type': textType,
+  'schema.editor.number': fieldTypeNames[FieldType.Number],
+  'schema_editor.boolean': fieldTypeNames[FieldType.Boolean],
+  'schema_editor.integer': fieldTypeNames[FieldType.Integer],
+  'schema_editor.object': fieldTypeNames[FieldType.Object],
+  'schema_editor.string': fieldTypeNames[FieldType.String],
 };
 const defaultProps: ItemFieldsTabProps = {
   language,
@@ -96,7 +108,8 @@ test('setType action is called with correct payload when a type is changed', asy
   const { user, store } = renderItemFieldsTab();
   const newType = FieldType.Integer;
   for (const i in fieldNames) {
-    await user.selectOptions(screen.getAllByRole('combobox')[i], newType);
+    await user.click(screen.getAllByRole('combobox')[i]);
+    await user.click(screen.getAllByRole('option', { name: fieldTypeNames[newType] })[i])
   }
   const setPropertyNameActions = store.getActions().filter((action) => action.type === 'schemaEditor/setType');
   expect(setPropertyNameActions).toHaveLength(numberOfFields);
