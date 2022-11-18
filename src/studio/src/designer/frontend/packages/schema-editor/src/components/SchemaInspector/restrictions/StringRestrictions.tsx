@@ -4,11 +4,15 @@ import { RestrictionField } from '../RestrictionField';
 import { getTranslation } from '../../../utils/language';
 import classes from './StringRestrictions.module.css';
 import { Checkbox, FieldSet, Select, TextField } from '@altinn/altinn-design-system';
-import { StrRestrictionKeys, StringFormat, Dict } from '@altinn/schema-model';
+import { Dict, StringFormat, StrRestrictionKeys } from '@altinn/schema-model';
 import { Divider } from '../../common/Divider';
 import { Label } from '../../common/Label';
 import { getDomFriendlyID } from '../../../utils/ui-schema-utils';
-import { stringRestrictionsReducer, StringRestrictionsReducerAction } from './StringRestrictionsReducer';
+import {
+  stringRestrictionsReducer,
+  StringRestrictionsReducerAction,
+  StringRestrictionsReducerActionType
+} from './StringRestrictionsReducer';
 
 export function StringRestrictions({
   language,
@@ -43,9 +47,9 @@ export function StringRestrictions({
   };
 
   const setRestriction = (restriction: StrRestrictionKeys, value: string) =>
-    dispatch({ type: 'setRestriction', restriction, value, changeCallback });
+    dispatch({ type: StringRestrictionsReducerActionType.setRestriction, restriction, value, changeCallback });
 
-  const dispatchAction = (type: string, value: any) =>
+  const dispatchAction = (type: StringRestrictionsReducerActionType, value: any) =>
     dispatch({ type, value, changeCallback } as StringRestrictionsReducerAction);
 
   const noFormatOption = { label: t('format_none'), value: '' };
@@ -76,13 +80,13 @@ export function StringRestrictions({
             <div className={classes.formatFieldsRowContent}>
               <TextField
                 id='format-after-field'
-                onChange={e => dispatchAction('setEarliest', e.target.value)}
+                onChange={e => dispatchAction(StringRestrictionsReducerActionType.setEarliest, e.target.value)}
                 value={formatState.earliest}
               />
               <Checkbox
                 checked={formatState.earliestIsInclusive}
                 label={t('format_date_inclusive')}
-                onChange={e => dispatchAction('setMinIncl', e.target.checked)}
+                onChange={e => dispatchAction(StringRestrictionsReducerActionType.setMinIncl, e.target.checked)}
               />
             </div>
           </div>
@@ -91,13 +95,13 @@ export function StringRestrictions({
             <div className={classes.formatFieldsRowContent}>
               <TextField
                 id='format-before-field'
-                onChange={e => dispatchAction('setLatest', e.target.value)}
+                onChange={e => dispatchAction(StringRestrictionsReducerActionType.setLatest, e.target.value)}
                 value={formatState.latest}
               />
               <Checkbox
                 checked={formatState.latestIsInclusive}
                 label={t('format_date_inclusive')}
-                onChange={e => dispatchAction('setMaxIncl', e.target.checked)}
+                onChange={e => dispatchAction(StringRestrictionsReducerActionType.setMaxIncl, e.target.checked)}
               />
             </div>
           </div>

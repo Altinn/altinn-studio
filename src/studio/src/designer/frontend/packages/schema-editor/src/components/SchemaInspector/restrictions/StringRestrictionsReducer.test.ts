@@ -1,7 +1,6 @@
-import { StrRestrictionKeys } from '@altinn/schema-model';
-import { StringFormat } from '@altinn/schema-model';
-import { stringRestrictionsReducer } from './StringRestrictionsReducer';
+import { StringFormat, StrRestrictionKeys } from '@altinn/schema-model';
 import type { StringRestricionsReducerState, StringRestrictionsReducerAction } from './StringRestrictionsReducer';
+import { stringRestrictionsReducer, StringRestrictionsReducerActionType } from './StringRestrictionsReducer';
 
 // Test data
 const maxDate = '3000-01-01';
@@ -35,7 +34,7 @@ describe('stringRestrictionsReducer', () => {
   describe('setRestriction', () => {
     it('Updates state correctly', () => {
       const state = dispatchAction({
-        type: 'setRestriction',
+        type: StringRestrictionsReducerActionType.setRestriction,
         restriction: StrRestrictionKeys.format,
         value: StringFormat.DateTime,
         changeCallback
@@ -47,9 +46,11 @@ describe('stringRestrictionsReducer', () => {
   });
 
   describe('setMinIncl', () => {
+    const type = StringRestrictionsReducerActionType.setMinIncl;
+
     it('Updates state correctly on change from inclusive to exclusive', () => {
       const state = dispatchAction({
-        type: 'setMinIncl',
+        type,
         value: false,
         changeCallback
       });
@@ -75,7 +76,7 @@ describe('stringRestrictionsReducer', () => {
         formatExclusiveMinimum: minDate
       };
       const state = dispatchAction({
-        type: 'setMinIncl',
+        type,
         value: true,
         changeCallback
       }, { earliestIsInclusive: false, restrictions: initialRestrictions });
@@ -96,12 +97,10 @@ describe('stringRestrictionsReducer', () => {
   });
 
   describe('setMaxIncl', () => {
+    const type = StringRestrictionsReducerActionType.setMaxIncl;
+
     it('Updates state correctly on change from inclusive to exclusive', () => {
-      const state = dispatchAction({
-        type: 'setMaxIncl',
-        value: false,
-        changeCallback
-      });
+      const state = dispatchAction({ type, value: false, changeCallback });
       expect(state.latestIsInclusive).toBe(false);
       expect(state.latest).toBe(maxDate);
       expect(state.restrictions.formatMinimum).toBe(minDate);
@@ -123,11 +122,10 @@ describe('stringRestrictionsReducer', () => {
         formatMaximum: undefined,
         formatExclusiveMaximum: maxDate
       };
-      const state = dispatchAction({
-        type: 'setMaxIncl',
-        value: true,
-        changeCallback
-      }, { latestIsInclusive: false, restrictions: initialRestrictions });
+      const state = dispatchAction(
+        { type, value: true, changeCallback },
+        { latestIsInclusive: false, restrictions: initialRestrictions }
+      );
       expect(state.latestIsInclusive).toBe(true);
       expect(state.latest).toBe(maxDate);
       expect(state.restrictions.formatMinimum).toBe(minDate);
@@ -145,13 +143,11 @@ describe('stringRestrictionsReducer', () => {
   });
 
   describe('setEarliest', () => {
+    const type = StringRestrictionsReducerActionType.setEarliest;
+
     it('Updates state correctly when inclusive', () => {
       const value = '2020-02-02';
-      const state = dispatchAction({
-        type: 'setEarliest',
-        value,
-        changeCallback
-      });
+      const state = dispatchAction({ type, value, changeCallback });
       expect(state.earliestIsInclusive).toBe(true);
       expect(state.earliest).toBe(value);
       expect(state.restrictions.formatMinimum).toBe(value);
@@ -174,11 +170,10 @@ describe('stringRestrictionsReducer', () => {
         formatExclusiveMinimum: minDate
       };
       const value = '2020-02-02';
-      const state = dispatchAction({
-        type: 'setEarliest',
-        value,
-        changeCallback
-      }, { earliestIsInclusive: false, restrictions: initialRestrictions });
+      const state = dispatchAction(
+        { type, value, changeCallback },
+        { earliestIsInclusive: false, restrictions: initialRestrictions }
+      );
       expect(state.earliestIsInclusive).toBe(false);
       expect(state.earliest).toBe(value);
       expect(state.restrictions.formatMinimum).toBeUndefined();
@@ -196,13 +191,11 @@ describe('stringRestrictionsReducer', () => {
   });
 
   describe('setLatest', () => {
+    const type = StringRestrictionsReducerActionType.setLatest;
+
     it('Updates state correctly when inclusive', () => {
       const value = '2020-02-02';
-      const state = dispatchAction({
-        type: 'setLatest',
-        value,
-        changeCallback
-      });
+      const state = dispatchAction({ type, value, changeCallback });
       expect(state.latestIsInclusive).toBe(true);
       expect(state.latest).toBe(value);
       expect(state.restrictions.formatMinimum).toBe(minDate);
@@ -225,11 +218,10 @@ describe('stringRestrictionsReducer', () => {
         formatExclusiveMaximum: maxDate
       };
       const value = '2020-02-02';
-      const state = dispatchAction({
-        type: 'setLatest',
-        value,
-        changeCallback
-      }, { latestIsInclusive: false, restrictions: initialRestrictions });
+      const state = dispatchAction(
+        { type, value, changeCallback },
+        { latestIsInclusive: false, restrictions: initialRestrictions }
+      );
       expect(state.latestIsInclusive).toBe(false);
       expect(state.latest).toBe(value);
       expect(state.restrictions.formatMinimum).toBe(minDate);

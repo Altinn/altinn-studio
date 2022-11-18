@@ -99,8 +99,3 @@ export enum StringFormat {
   RelativeJsonPointer = 'relative-json-pointer',
   Regex = 'regex',
 }
-
-export interface Restriction {
-  key: string;
-  value?: string;
-}
