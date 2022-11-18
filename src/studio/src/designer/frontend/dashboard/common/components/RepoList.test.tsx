@@ -85,7 +85,7 @@ describe('RepoList', () => {
     jest
       .spyOn(userApi, 'useSetStarredRepoMutation')
       .mockImplementation(
-        jest.fn().mockReturnValue([useSetStarredRepoMutationSpy]),
+        jest.fn().mockReturnValue([useSetStarredRepoMutationSpy])
       );
     render();
 
@@ -102,7 +102,7 @@ describe('RepoList', () => {
     jest
       .spyOn(userApi, 'useUnsetStarredRepoMutation')
       .mockImplementation(
-        jest.fn().mockReturnValue([useUnsetStarredRepoMutationSpy]),
+        jest.fn().mockReturnValue([useUnsetStarredRepoMutationSpy])
       );
     render();
 
@@ -170,6 +170,6 @@ const render = (props: Partial<IRepoListProps> = {}) => {
   return rtlRender(
     <Provider store={store}>
       <RepoList {...allProps} />
-    </Provider>,
+    </Provider>
   );
 };

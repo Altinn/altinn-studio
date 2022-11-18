@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { User } from '../../resources/fetchDashboardResources/dashboardSlice';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import type { IGiteaOrganisation } from 'app-shared/types/global';
@@ -53,22 +53,22 @@ export const ServiceOwnerSelector = ({
   const user = useAppSelector((state) => state.dashboard.user);
   const language = useAppSelector((state) => state.language.language);
 
-  const serviceOwnerRef = React.useRef(null);
+  const serviceOwnerRef = useRef(null);
 
-  const selectableOrgsOrUser = React.useMemo(() => {
+  const selectableOrgsOrUser = useMemo(() => {
     return combineCurrentUserAndOrg({
       organisations,
       user,
     });
   }, [organisations, user]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isLoadingOrganisations === false && selectableOrgsOrUser.length === 1) {
       onServiceOwnerChanged(selectableOrgsOrUser[0].value); // auto-select the option when theres only 1 option
     }
   }, [selectableOrgsOrUser, onServiceOwnerChanged, isLoadingOrganisations]);
 
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     serviceOwnerRef.current = document.querySelector('#service-owner');
   });
 

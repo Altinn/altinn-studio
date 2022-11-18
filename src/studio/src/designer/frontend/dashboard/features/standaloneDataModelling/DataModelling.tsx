@@ -1,57 +1,25 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { DataModelling } from 'app-shared/features';
-import { connect } from 'react-redux';
 import { DataModelsMetadataActions } from 'app-shared/features/dataModelling/sagas/metadata';
-import { Grid } from '@mui/material';
-import { createStyles, withStyles } from '@mui/styles';
-import { useAppDispatch } from '../../common/hooks';
-import type { IDashboardAppState } from '../../types/global';
+import { useAppDispatch, useAppSelector } from '../../common/hooks';
 
-interface IStandaloneDataModellingProps {
-  language: any;
-  classes: any;
-}
-
-const styles = createStyles({
-  containerGrid: {
-    marginTop: 70,
-  },
-});
-
-const DataModellingContainer = ({
-  classes,
-  language,
-}: IStandaloneDataModellingProps) => {
+export const DataModellingContainer = () => {
+  const language = useAppSelector((state) => state.language.language);
   const dispatch = useAppDispatch();
   dispatch(DataModelsMetadataActions.getDataModelsMetadata());
-
   const { org, repoName } = useParams();
   if (org && repoName) {
     return (
-      <Grid item className={classes.containerGrid}>
+      <div>
         <DataModelling
           language={language}
           org={org}
           repo={repoName}
           createPathOption
         />
-      </Grid>
+      </div>
     );
   }
   return <p>Either organization/repository-name was undefined</p>;
 };
-
-const mapStateToProps = (
-  state: IDashboardAppState,
-  props: IStandaloneDataModellingProps,
-) => {
-  return {
-    classes: props.classes,
-    language: state.language.language,
-  };
-};
-const standaloneDataModelling = connect(mapStateToProps)(
-  DataModellingContainer,
-);
-export default withStyles(styles)(standaloneDataModelling);

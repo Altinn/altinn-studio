@@ -13,7 +13,8 @@ export const setupStore = (preloadedState?: PreloadedState<RootState>) => {
   const store = configureStore({
     reducer,
     devTools: process.env.NODE_ENV !== 'production',
-    middleware: (getDefaultMiddleware: () => any[]) => getDefaultMiddleware().concat(middlewares),
+    middleware: (getDefaultMiddleware: () => any[]) =>
+      getDefaultMiddleware().concat(middlewares),
     preloadedState,
   });
   setupListeners(store.dispatch);

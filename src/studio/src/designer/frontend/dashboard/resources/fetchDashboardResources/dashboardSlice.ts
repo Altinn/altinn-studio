@@ -54,14 +54,14 @@ const dashboardSlice = createSlice({
   reducers: {
     fetchCurrentUserFulfilled: (
       state,
-      action: PayloadAction<IFetchDashboardInfoActionFulfilled>,
+      action: PayloadAction<IFetchDashboardInfoActionFulfilled>
     ) => {
       const { info } = action.payload;
       state.user = info;
     },
     fetchServicesFulfilled: (
       state,
-      action: PayloadAction<IFetchDashboardInfoActionFulfilled>,
+      action: PayloadAction<IFetchDashboardInfoActionFulfilled>
     ) => {
       const { info } = action.payload;
       state.services = info;
@@ -72,7 +72,7 @@ const dashboardSlice = createSlice({
     },
     repoRowsPerPageChanged: (
       state,
-      action: PayloadAction<IRepoRowsPerPageChanged>,
+      action: PayloadAction<IRepoRowsPerPageChanged>
     ) => {
       const { repoRowsPerPage } = action.payload;
       state.repoRowsPerPage = repoRowsPerPage;
@@ -82,16 +82,16 @@ const dashboardSlice = createSlice({
 
 const actions = {
   fetchCurrentUser: createAction<IFetchDashboardInfoAction>(
-    `${moduleName}/fetchCurrentUser`,
+    `${moduleName}/fetchCurrentUser`
   ),
   fetchCurrentUserRejected: createAction<IFetchDashboardInfoActionRejected>(
-    `${moduleName}/fetchCurrentUserRejected`,
+    `${moduleName}/fetchCurrentUserRejected`
   ),
   fetchServices: createAction<IFetchDashboardInfoAction>(
-    `${moduleName}/fetchServices`,
+    `${moduleName}/fetchServices`
   ),
   fetchServicesRejected: createAction<IFetchDashboardInfoActionRejected>(
-    `${moduleName}/fetchServicesRejected`,
+    `${moduleName}/fetchServicesRejected`
   ),
 };
 

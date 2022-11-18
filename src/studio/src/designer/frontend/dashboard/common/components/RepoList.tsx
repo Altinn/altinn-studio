@@ -11,16 +11,24 @@ import {
   GridValueFormatterParams,
   GridValueGetterParams,
 } from '@mui/x-data-grid';
-import { makeStyles } from '@mui/styles';
-import { IconButton } from '@mui/material';
+import {
+  Button,
+  ButtonColor,
+  ButtonSize,
+  ButtonVariant,
+} from '@altinn/altinn-design-system';
 import cn from 'classnames';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import type { IRepository } from 'app-shared/types/global';
 import { User } from '../../resources/fetchDashboardResources/dashboardSlice';
 import { MakeCopyModal } from './MakeCopyModal';
 import { getRepoEditUrl } from '../utils/urlUtils';
-import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from '../../services/userApi';
+import {
+  useSetStarredRepoMutation,
+  useUnsetStarredRepoMutation,
+} from '../../services/userApi';
 import { useAppSelector } from '../hooks';
+import classes from './RepoList.module.css';
 
 export interface IRepoListProps {
   isLoading: boolean;
@@ -43,50 +51,6 @@ const isRowSelectable = () => false;
 
 const defaultArray: IRepository[] = [];
 
-const useStyles = makeStyles({
-  repoLink: {
-    color: '#57823D',
-    '&:hover': {
-      color: '#57823D',
-    },
-  },
-  editLink: {
-    color: '#165db8',
-
-    '&:hover': {
-      color: '#165db8',
-    },
-  },
-  actionLink: {
-    marginRight: '1rem',
-    display: 'flex',
-    alignItems: 'center',
-
-    '&:hover': {
-      'text-decoration': 'none',
-    },
-
-    '&:hover span': {
-      'text-decoration': 'underline',
-    },
-  },
-  linkIcon: {
-    fontSize: '2rem',
-    marginLeft: '0.5rem',
-  },
-  dropdownIcon: {
-    fontSize: '2rem',
-  },
-  favoriteIcon: {
-    fontSize: 26,
-    color: '#000000',
-  },
-  textWithTooltip: {
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-});
-
 const gridStyleOverride = {
   border: 'none',
   '.MuiDataGrid-iconSeparator': {
@@ -99,17 +63,14 @@ const gridStyleOverride = {
 
 export const NoResults = () => {
   const language = useAppSelector((state) => state.language.language);
-
   return (
     <GridOverlay>
-      <p>{t('dashboard.no_repos_result')}</p>
+      <p>{getLanguageFromKey('dashboard.no_repos_result', language)}</p>
     </GridOverlay>
   );
 };
 
 const TextWithTooltip = (params: GridRenderCellParams) => {
-  const classes = useStyles();
-
   return (
     <div className={classes.textWithTooltip} title={params.value}>
       {params.value}
@@ -130,7 +91,6 @@ export const RepoList = ({
   sortModel,
   disableVirtualization = false,
 }: IRepoListProps) => {
-  const classes = useStyles();
   const language = useAppSelector((state) => state.language.language);
   const [copyCurrentRepoName, setCopyCurrentRepoName] = useState('');
   const [setStarredRepo] = useSetStarredRepoMutation();
@@ -155,11 +115,19 @@ export const RepoList = ({
         };
 
         return [
-          <IconButton
+          <Button
             key={repo.id}
             id={`fav-repo-${repo.id}`}
             onClick={handleToggleFav}
-            aria-label={repo.user_has_starred ? t('dashboard.unstar') : t('dashboard.star')}
+            aria-label={
+              repo.user_has_starred
+                ? t('dashboard.unstar')
+                : t('dashboard.star')
+            }
+            variant={ButtonVariant.Quiet}
+            size={ButtonSize.Small}
+            color={ButtonColor.Secondary}
+            className={classes.favoriteButton}
           >
             <i
               className={cn(classes.favoriteIcon, {
@@ -167,7 +135,7 @@ export const RepoList = ({
                 'fa fa-fav-outline': !repo.user_has_starred,
               })}
             />
-          </IconButton>,
+          </Button>,
         ];
       },
     };
@@ -223,7 +191,15 @@ export const RepoList = ({
             <GridActionsCellItem
               className={cn(classes.actionLink, classes.repoLink)}
               data-testid='gitea-repo-link'
-              icon={<i className={cn('fa fa-gitea', classes.linkIcon, classes.repoLink)} />}
+              icon={
+                <i
+                  className={cn(
+                    'fa fa-gitea',
+                    classes.linkIcon,
+                    classes.repoLink
+                  )}
+                />
+              }
               key={'dashboard.repository' + params.row.id}
               label={t('dashboard.repository')}
               onClick={() => (window.location.href = params.row.html_url)}
@@ -233,7 +209,15 @@ export const RepoList = ({
             <GridActionsCellItem
               data-testid='edit-repo-link'
               className={cn(classes.actionLink, classes.editLink)}
-              icon={<i className={cn('fa fa-edit', classes.linkIcon, classes.editLink)} />}
+              icon={
+                <i
+                  className={cn(
+                    'fa fa-edit',
+                    classes.linkIcon,
+                    classes.editLink
+                  )}
+                />
+              }
               key={'dashboard.edit_app' + params.row.id}
               label={t('dashboard.edit_app')}
               onClick={() => (window.location.href = editUrl)}
@@ -279,9 +263,7 @@ export const RepoList = ({
     unsetStarredRepo,
   ]);
 
-  const handleCloseCopyModal = () => {
-    setCopyCurrentRepoName(null);
-  };
+  const handleCloseCopyModal = () => setCopyCurrentRepoName(null);
 
   const componentPropsLabelOverrides = useMemo(
     () => ({

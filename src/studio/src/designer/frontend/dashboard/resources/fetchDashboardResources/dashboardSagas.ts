@@ -13,10 +13,10 @@ export function* fetchServicesSaga({
   try {
     const services: IRepository[] = yield call(get, url);
     const filteredServices = services.filter(
-      (service) => service.name !== 'datamodels',
+      (service) => service.name !== 'datamodels'
     );
     yield put(
-      DashboardActions.fetchServicesFulfilled({ info: filteredServices }),
+      DashboardActions.fetchServicesFulfilled({ info: filteredServices })
     );
   } catch (error) {
     yield put(DashboardActions.fetchServicesFulfilled);

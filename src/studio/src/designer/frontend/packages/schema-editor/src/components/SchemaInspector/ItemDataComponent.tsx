@@ -31,7 +31,7 @@ import {
   ObjectKind,
 } from '@altinn/schema-model';
 import { getDomFriendlyID, isValidName } from '../../utils/ui-schema-utils';
-import { Divider } from '../common/Divider';
+import {Divider} from "app-shared/primitives";
 
 export interface IItemDataComponentProps {
   selectedItem: UiSchemaNode;

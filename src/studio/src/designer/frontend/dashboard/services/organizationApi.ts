@@ -1,7 +1,7 @@
 import type { IGiteaOrganisation } from 'app-shared/types/global';
 import { designerApi, TagTypes } from './designerApi';
 export type Organizations = Array<IGiteaOrganisation>;
-import {orgsListPath} from "app-shared/api-paths"
+import { orgsListPath } from 'app-shared/api-paths';
 
 export const organizationApi = designerApi.injectEndpoints({
   endpoints: (builder) => ({

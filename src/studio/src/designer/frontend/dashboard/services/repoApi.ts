@@ -1,6 +1,6 @@
 import { designerApi, TagTypes } from './designerApi';
 import type { IRepository } from 'app-shared/types/global';
-import {repoSearchPath, reposList} from "app-shared/api-paths"
+import { repoSearchPath, reposList } from 'app-shared/api-paths';
 
 type Filters = {
   uid?: number;

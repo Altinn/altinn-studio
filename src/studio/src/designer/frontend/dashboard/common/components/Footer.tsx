@@ -4,8 +4,10 @@ import classes from './Footer.module.css';
 
 export const Footer = () => {
   return (
-    <div className={classes.rootGrid}>
-      <Resources />
-    </div>
+    <footer className={classes.footer}>
+      <div className={classes.footerContent}>
+        <Resources />
+      </div>
+    </footer>
   );
 };

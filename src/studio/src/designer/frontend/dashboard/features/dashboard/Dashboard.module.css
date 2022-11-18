@@ -1,0 +1,38 @@
+.createServiceContainer {
+  margin-top: 55px;
+}
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  align-items: center;
+}
+
+.clearIcon {
+  font-size: 26px;
+  width: 26px;
+}
+
+.plusIcon {
+  font-size: 40px;
+  width: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.newLink {
+  color: #022f51;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 18px;
+  font-weight: 500;
+}
+.newLink:hover {
+  color: #022f51;
+  text-decoration: none;
+}
+.newLink:hover span {
+  text-decoration: underline;
+}

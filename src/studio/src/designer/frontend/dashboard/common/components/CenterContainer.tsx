@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import classes from './CenterContainer.module.css';
 
 type CenterContainerProps = {
-  children: React.ReactNode;
+  children: ReactNode;
 };
 
 export const CenterContainer = ({ children }: CenterContainerProps) => {

@@ -1,0 +1,14 @@
+.createServiceContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  margin: 100px auto 0;
+  width: 50%;
+  max-width: 600px;
+  min-width: 400px;
+}
+
+.buttonContainer {
+  display: inline-flex;
+  gap: 24px;
+}

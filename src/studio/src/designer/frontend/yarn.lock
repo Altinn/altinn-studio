@@ -59,7 +59,7 @@ __metadata:
     "@mui/lab": 5.0.0-alpha.106
     jest: 29.3.1
   peerDependencies:
-    "@altinn/altinn-design-system": 0.19.1
+    "@altinn/altinn-design-system": 0.23.3
     "@mui/icons-material": 5.10.9
     "@mui/material": 5.10.12
     "@mui/styles": 5.10.10
@@ -6133,6 +6133,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dashboard@workspace:dashboard"
   dependencies:
+    "@altinn/altinn-design-system": 0.23.3
     "@emotion/styled": 11.10.5
     "@mui/material": 5.10.12
     "@mui/styles": 5.10.10
