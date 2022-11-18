@@ -9,15 +9,8 @@ const appFrontend = new AppFrontend();
 const mui = new Common();
 
 describe('UI Components', () => {
-  beforeEach(() => {
-    cy.intercept('**/active', []).as('noActiveInstances');
-    cy.intercept('POST', `**/instances?instanceOwnerPartyId*`).as('createInstace');
-    cy.startAppInstance(appFrontend.apps.frontendTest);
-    cy.get(appFrontend.header).should('contain.text', texts.startingSoon);
-    cy.wait('@createInstace');
-  });
-
   it('Image component with help text', () => {
+    cy.gotoAndComplete('message');
     cy.get('body').should('have.css', 'background-color', 'rgb(239, 239, 239)');
     cy.get(appFrontend.loadingAnimation).should('be.visible');
     cy.get(appFrontend.closeButton).should('be.visible');
@@ -38,7 +31,7 @@ describe('UI Components', () => {
   });
 
   it('is possible to upload and delete attachments', () => {
-    cy.get(appFrontend.sendinButton).click();
+    cy.goto('changeName');
     cy.get(appFrontend.changeOfName.uploadDropZone).should('be.visible');
     cy.get(appFrontend.changeOfName.upload).selectFile('e2e/fixtures/test.pdf', { force: true });
     cy.get(appFrontend.changeOfName.uploadedTable).should('be.visible');
@@ -50,8 +43,8 @@ describe('UI Components', () => {
   });
 
   it('is possible to upload attachments with tags', () => {
+    cy.goto('changeName');
     cy.intercept('POST', '**/tags').as('saveTags');
-    cy.get(appFrontend.sendinButton).click();
     cy.get(appFrontend.changeOfName.uploadWithTag.uploadZone).selectFile('e2e/fixtures/test.pdf', { force: true });
     cy.get(appFrontend.changeOfName.uploadWithTag.editWindow).should('be.visible');
     cy.get(appFrontend.changeOfName.uploadWithTag.tagsDropDown).should('be.visible').select('address');
@@ -67,7 +60,7 @@ describe('UI Components', () => {
   });
 
   it('is possible to navigate between pages using navigation bar', () => {
-    cy.get(appFrontend.sendinButton).click();
+    cy.goto('changeName');
     cy.get(appFrontend.navMenu)
       .should('be.visible')
       .find('li > button')
@@ -94,9 +87,43 @@ describe('UI Components', () => {
   });
 
   it('address component fetches post place from zip code', () => {
-    cy.get(appFrontend.sendinButton).click();
+    cy.goto('changeName');
     cy.get(appFrontend.changeOfName.address.street_name).should('be.visible').type('Sesame Street 1A').blur();
     cy.get(appFrontend.changeOfName.address.zip_code).should('be.visible').type('0174').blur();
     cy.get(appFrontend.changeOfName.address.post_place).should('have.value', 'OSLO');
+  });
+
+  it('radios and checkboxes can be readOnly', () => {
+    cy.interceptLayout('changename', (component) => {
+      if (component.id === 'confirmChangeName' && component.type === 'Checkboxes') {
+        component.readOnly = ['equals', ['component', 'newMiddleName'], 'checkbox_readOnly'];
+      }
+      if (component.id === 'reason' && component.type === 'RadioButtons') {
+        component.readOnly = ['equals', ['component', 'newMiddleName'], 'radio_readOnly'];
+      }
+    });
+    cy.goto('changeName');
+    cy.get(appFrontend.changeOfName.newFirstName).type('Per');
+    cy.get(appFrontend.changeOfName.newLastName).type('Hansen');
+    cy.get(appFrontend.changeOfName.confirmChangeName).click();
+    cy.get(appFrontend.changeOfName.reasons).should('be.visible');
+
+    cy.get(appFrontend.changeOfName.newMiddleName).type('checkbox_readOnly');
+    cy.get(appFrontend.changeOfName.confirmChangeName).click(); // No effect
+
+    // Assert the last click had no effect
+    cy.get(appFrontend.changeOfName.reasons).should('be.visible');
+
+    cy.get(appFrontend.changeOfName.reasons).findByText('Gårdsbruk').should('be.visible').click();
+
+    cy.get(appFrontend.changeOfName.newMiddleName).clear().type('radio_readOnly');
+    cy.get(appFrontend.changeOfName.confirmChangeName).click();
+    cy.get(appFrontend.changeOfName.reasons).should('not.exist');
+    cy.get(appFrontend.changeOfName.confirmChangeName).click();
+    cy.get(appFrontend.changeOfName.reasons).should('be.visible');
+    cy.get(appFrontend.changeOfName.reasons).findByText('Slektskap').should('be.visible').click();  // No effect
+
+    // Assert the last click had no effect
+    cy.get('#form-content-reasonFarm3').should('be.visible');
   });
 });
