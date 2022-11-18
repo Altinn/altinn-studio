@@ -21,7 +21,8 @@ namespace Altinn.Studio.Designer.Controllers
     /// which interacts with the text files in the old format.
     /// </remarks>
     [Authorize]
-    [AutoValidateAntiforgeryToken]
+
+    // [AutoValidateAntiforgeryToken]
     [Route("designer/api/v2/{org}/{repo}/texts")]
     public class TextsController : ControllerBase
     {
@@ -136,6 +137,32 @@ namespace Altinn.Studio.Designer.Controllers
             _textsService.DeleteTexts(org, repo, developer, languageCode);
 
             return Ok($"Texts file, {languageCode}.texts.json, was successfully deleted.");
+        }
+
+        /// <summary>
+        /// Endpoint for adding a new key/textId to the keyGuidMapping file to be used across language files.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repo">Application identifier which is unique within an organisation.</param>
+        /// <param name="keyName">The new key, or text id, to add to the mapping file.</param>
+        /// <returns>A <see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
+        [HttpPost]
+        [Produces("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Route("newTextId/{keyName}")]
+        public async Task<ActionResult<Dictionary<string, string>>> PostKey(string org, string repo, [FromRoute] string keyName)
+        {
+            if (string.IsNullOrEmpty(keyName))
+            {
+                return BadRequest("Name of key/textId is missing from the request.");
+            }
+
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+            Dictionary<string, string> newKeyGuidMapping = await _textsService.AddKey(org, repo, developer, keyName);
+
+            return Ok(newKeyGuidMapping);
         }
     }
 }

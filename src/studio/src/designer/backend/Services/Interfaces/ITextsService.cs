@@ -47,5 +47,14 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="repo">Repository</param>
         /// <param name="developer">Username of developer</param>
         public void ConvertV1TextsToV2(string org, string repo, string developer);
+
+        /// <summary>
+        /// Adds a new key to the key-mapping file for text-ids.
+        /// </summary>
+        /// <param name="org">Organisation</param>
+        /// <param name="repo">Repository</param>
+        /// <param name="developer">Username of developer</param>
+        /// <param name="newKey">The new key to add to the file</param>
+        public Task<Dictionary<string, string>> AddKey(string org, string repo, string developer, string newKey);
     }
 }

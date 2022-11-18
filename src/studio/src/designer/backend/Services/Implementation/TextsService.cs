@@ -105,6 +105,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
         }
 
+        /// <inheritdoc />
+        public async Task<Dictionary<string, string>> AddKey(string org, string repo, string developer, string newKey)
+        {
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+
+            Dictionary<string, string> newKeyGuidMapping = await altinnAppGitRepository.AddKeyGuidMapping(newKey);
+
+            return newKeyGuidMapping;
+        }
+
         /// <summary>
         /// Extracts language code from path to language file.
         /// </summary>

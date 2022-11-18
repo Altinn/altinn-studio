@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -28,6 +30,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string MARKDOWN_TEXTS_FOLDER_NAME = "md/";
 
         private const string APP_METADATA_FILENAME = "applicationmetadata.json";
+        private const string KEY_GUID_MAPPER_FILENAME = "keyGuidMapper.json";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AltinnGitRepository"/> class.
@@ -312,6 +315,34 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
+        /// Creates a guid for the new key that is added to the keyGuidMappingFile. If such file does not yet
+        /// exist, it will be created and the guid and key is added.
+        /// </summary>
+        /// <param name="key">The new key, or text id, to add to the mapping file.</param>
+        /// <returns>The new keyGuidMapping pair as a dictionary.<see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
+        public async Task<Dictionary<string, string>> AddKeyGuidMapping(string key)
+        {
+            string keyGuidMappingFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, KEY_GUID_MAPPER_FILENAME);
+            string guid = Guid.NewGuid().ToString();
+            Dictionary<string, string> newKeyGuidMappingJson = new Dictionary<string, string>() { [guid] = key };
+
+            try
+            {
+                // ID MAY ALREADY EXIST IF USING POSTMAN ETC
+                string existingKeyGuidMapping = await ReadTextByRelativePathAsync(keyGuidMappingFileRelativeFilePath);
+                Dictionary<string, string> existingKeyGuidMappingJson = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(existingKeyGuidMapping);
+                existingKeyGuidMappingJson[guid] = key;
+                await WriteSerializedJsonByRelativePathAsync(keyGuidMappingFileRelativeFilePath, existingKeyGuidMappingJson);
+            }
+            catch (FileNotFoundException)
+            {
+                await WriteSerializedJsonByRelativePathAsync(keyGuidMappingFileRelativeFilePath, newKeyGuidMappingJson);
+            }
+
+            return newKeyGuidMappingJson;
+        }
+
+        /// <summary>
         /// Save app texts to resource files
         /// </summary>
         /// <param name="allResourceTexts">The texts to be saved</param>
@@ -396,6 +427,13 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             string textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, MARKDOWN_TEXTS_FOLDER_NAME, fileName);
             return textsFileRelativeFilePath;
+        }
+
+        private async Task WriteSerializedJsonByRelativePathAsync(string relativeFilePath, Dictionary<string, string> jsonTexts)
+        {
+            var jsonOptions = new JsonSerializerOptions() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+            string stringTexts = System.Text.Json.JsonSerializer.Serialize(jsonTexts, jsonOptions);
+            await WriteTextByRelativePathAsync(relativeFilePath, stringTexts);
         }
 
         /// <summary>
