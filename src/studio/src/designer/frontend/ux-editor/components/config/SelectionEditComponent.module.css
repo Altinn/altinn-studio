@@ -1,0 +1,17 @@
+.optionContainer {
+  margin-bottom: 2.4rem;
+  display: flex;
+  flex-direction: row;
+}
+
+.optionContentWrapper {
+  border: 0.1rem solid #BCC7CC;
+  padding: 1.2rem;
+  flex: 1;
+}
+
+.optionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}

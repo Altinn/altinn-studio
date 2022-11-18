@@ -1,10 +1,10 @@
 import React from 'react';
-import { Grid, Typography } from '@mui/material';
 import Select from 'react-select';
-import AltinnInputField from 'app-shared/components/AltinnInputField';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { PropertyLabel, selectStyles, SelectTextFromRecources } from '../../utils/render';
 import type { FormComponentType, IFormImageComponent } from '../../types/global';
+import { TextField } from '@altinn/altinn-design-system';
+import classes from './ImageComponent.module.css';
 
 export interface IImageComponentProps {
   component: IFormImageComponent;
@@ -14,18 +14,19 @@ export interface IImageComponentProps {
 }
 
 export const ImageComponent = ({ component, language, handleComponentUpdate, textResources }: IImageComponentProps) => {
+  const t = (key: string) => getLanguageFromKey(key, language);
   const alignOptions = [
     {
       value: 'flex-start',
-      label: language['ux_editor.modal_properties_image_placement_left'],
+      label: t('ux_editor.modal_properties_image_placement_left'),
     },
     {
       value: 'center',
-      label: language['ux_editor.modal_properties_image_placement_center'],
+      label: t('ux_editor.modal_properties_image_placement_center'),
     },
     {
       value: 'flex-end',
-      label: language['ux_editor.modal_properties_image_placement_right'],
+      label: t('ux_editor.modal_properties_image_placement_right'),
     },
   ];
 
@@ -64,29 +65,16 @@ export const ImageComponent = ({ component, language, handleComponentUpdate, tex
   const altTextSelectId = `image_alt-input-${component.id}`;
 
   return (
-    <Grid
-      spacing={2}
-      container={true}
-      data-testid='ImageComponent'
-    >
-      <Grid
-        item={true}
-        xs={12}
-      >
-        <AltinnInputField
-          id={`image_nb_src-${component.id}`}
-          textFieldId={`image_nb_src-input-${component.id}`}
-          inputValue={nbSrc}
-          inputDescription={language['ux_editor.modal_properties_image_src_value_label']}
-          inputFieldStyling={{ width: '100%' }}
-          onChangeFunction={handleSourceChange}
+    <>
+      <div>
+        <TextField
+          id={`image_nb_src-input-${component.id}`}
+          label={t('ux_editor.modal_properties_image_src_value_label')}
+          onChange={handleSourceChange}
+          value={nbSrc}
         />
-      </Grid>
-
-      <Grid
-        item={true}
-        xs={12}
-      >
+      </div>
+      <div>
         <SelectTextFromRecources
           labelText={'modal_properties_image_alt_text_label'}
           textResources={textResources}
@@ -96,55 +84,43 @@ export const ImageComponent = ({ component, language, handleComponentUpdate, tex
           placeholder={component.textResourceBindings?.altTextImg}
           inputId={altTextSelectId}
         />
-      </Grid>
-
-      <Grid
-        item={true}
-        xs={3}
-      >
-        <AltinnInputField
-          id={`image_width-${component.id}`}
-          textFieldId={`image_width-input-${component.id}`}
-          inputValue={component.image?.width}
-          inputDescription={language['ux_editor.modal_properties_image_width_label']}
-          inputFieldStyling={{ width: '100%' }}
-          onChangeFunction={handleWidthChange}
-        />
-      </Grid>
-
-      <Grid
-        item={true}
-        xs={9}
-      >
-        <PropertyLabel
-          textKey={language['ux_editor.modal_properties_image_placement_label']}
-          htmlFor={placementSelectId}
-        />
-        <Select
-          styles={selectStyles}
-          options={alignOptions}
-          onChange={handlePlacementChange}
-          defaultValue={selectedPlacement}
-          isClearable={true}
-          placeholder=''
-          inputId={placementSelectId}
-        />
-      </Grid>
-
-      <Grid
-        item={true}
-        xs={12}
-      >
-        <Typography>
+      </div>
+      <div className={classes.widthAndPlacement}>
+        <div className={classes.widthContainer}>
+          <TextField
+            id={`image_width-input-${component.id}`}
+            label={t('ux_editor.modal_properties_image_width_label')}
+            onChange={handleWidthChange}
+            value={component.image?.width}
+          />
+        </div>
+        <div className={classes.placementContainer}>
+          <PropertyLabel
+            textKey={t('ux_editor.modal_properties_image_placement_label')}
+            htmlFor={placementSelectId}
+          />
+          <Select
+            styles={selectStyles}
+            options={alignOptions}
+            onChange={handlePlacementChange}
+            defaultValue={selectedPlacement}
+            isClearable={true}
+            placeholder=''
+            inputId={placementSelectId}
+          />
+        </div>
+      </div>
+      <div>
+        <p>
           <a
             target='_blank'
             rel='noopener noreferrer'
             href='https://docs.altinn.studio/app/development/ux/images/'
           >
-            {getLanguageFromKey('ux_editor.modal_properties_image_read_more', language)}
+            {t('ux_editor.modal_properties_image_read_more')}
           </a>
-        </Typography>
-      </Grid>
-    </Grid>
+        </p>
+      </div>
+    </>
   );
 };

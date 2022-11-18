@@ -1,29 +1,8 @@
 import React from 'react';
-import configureStore from 'redux-mock-store';
-import {
-  AccessControlContainerClass,
-  IAccessControlContainerProps,
-  IAccessControlContainerState,
-  PartyTypes,
-} from './AccessControlContainer';
-import {render, screen, waitFor} from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import {
-  versionControlHeaderafterAll,
-  versionControlHeaderafterEach,
-  versionControlHeaderBeforeAll,
-    versionControllHeaderApiCalls,
-} from 'app-shared/version-control/versionControlHeader.test';
-
-const newApplicationMetadata: any = {
-  // must be opposite of currentApplicationMetadata.partyTypesAllowed
-  partyTypesAllowed: {
-    bankruptcyEstate: true,
-    subUnit: false,
-    person: true,
-    organisation: false,
-  },
-};
+import { AccessControlContainer } from './AccessControlContainer';
+import { renderWithProviders } from '../../../test/testUtils';
+import { APP_DEVELOPMENT_BASENAME } from '../../../../constants';
+import type { RootState } from 'app-development/store';
 
 const currentApplicationMetadata: any = {
   partyTypesAllowed: {
@@ -33,26 +12,12 @@ const currentApplicationMetadata: any = {
     organisation: true,
   },
 };
-const accessContainerState: IAccessControlContainerState = {
-  partyTypesAllowed: currentApplicationMetadata.partyTypesAllowed,
-  setStateCalled: false,
-};
-const nextAccessContainerProps: IAccessControlContainerProps = {
-  applicationMetadata: newApplicationMetadata,
-  language: {},
-  classes: {},
-};
-const currentAccessContainerProps: IAccessControlContainerProps = {
-  applicationMetadata: currentApplicationMetadata,
-  language: {},
-  classes: {},
-};
 
-const renderAccessControlContainerClass = (applicationMetadata?: any) => {
+const renderAccessControlContainer = (applicationMetadata?: any) => {
   const mockLanguage = {};
 
-  const initialState: any = {
-    language: {
+  const initialState: RootState = {
+    languageState: {
       language: mockLanguage,
     },
     appCluster: {
@@ -85,98 +50,46 @@ const renderAccessControlContainerClass = (applicationMetadata?: any) => {
     },
     repoStatus: {
       resettingLocalRepo: false,
+      branch: null,
+      error: null,
     },
+    dataModelsMetadataState: null,
+    dataModelling: null,
+    serviceInformation: null,
+    userState: null,
   };
-  const store = configureStore()(initialState);
-  const user = userEvent.setup();
 
-  render(
-    <AccessControlContainerClass
-      applicationMetadata={
-        initialState.applicationMetadataState.applicationMetadata
-      }
-      language={{}}
-      classes={{}}
-      dispatch={store.dispatch}
-    />,
+  return renderWithProviders(
+    <AccessControlContainer language={mockLanguage} />,
+    {
+      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
+      preloadedState: initialState,
+    },
   );
-  return { store, user };
 };
 
-beforeAll(versionControlHeaderBeforeAll);
-afterEach(versionControlHeaderafterEach);
-afterAll(versionControlHeaderafterAll);
-
-test('getDerivedStateFromProps should only return object on changed state', () => {
-  const shouldUpdateOnEqualProps =
-    AccessControlContainerClass.getDerivedStateFromProps(
-      nextAccessContainerProps,
-      accessContainerState,
-    );
-  const shouldNotUpdateOnNewProps =
-    AccessControlContainerClass.getDerivedStateFromProps(
-      currentAccessContainerProps,
-      accessContainerState,
-    );
-  const shouldNotUpdateOnNullValues =
-    AccessControlContainerClass.getDerivedStateFromProps(
-      {
-        applicationMetadata: {},
-        language: {},
-        classes: {},
-      },
-      accessContainerState,
-    );
-  expect(shouldUpdateOnEqualProps).not.toBe(null);
-  expect(shouldNotUpdateOnNewProps).toBe(null);
-  expect(shouldNotUpdateOnNullValues).toBe(null);
-});
-
-test('should correctly update partyTypesAllowed state when handlePartyTypesAllowedChange is triggered', async () => {
-  const { user, store } = renderAccessControlContainerClass();
-  const initialState = store.getState() as any;
-  const initialPartyTypesAllowed =
-    initialState.applicationMetadataState.applicationMetadata.partyTypesAllowed;
-  const partyTypes = Object.keys(PartyTypes);
-
-  // Checking that initial state get set correct
-  partyTypes.forEach((partyType) => {
-    const checkbox = screen.getByRole('checkbox', {
-      name: 'access_control.' + partyType,
+describe('When loading AccessControlContainer', () => {
+  it('should render all checkboxes unchecked when applicationMetadata does not contain partyTypesAllowed', () => {
+    const screen = renderAccessControlContainer({
+      ...currentApplicationMetadata,
+      partyTypesAllowed: null,
     });
-    expect(checkbox.hasAttribute('checked')).toBe(
-      initialPartyTypesAllowed[partyType],
-    );
+    const checkboxes = screen.queryAllByRole('checkbox');
+    expect(checkboxes).toHaveLength(4);
+    checkboxes.forEach((c) => expect(c.ariaChecked).toBeFalsy());
   });
 
-  let partyTypeIndex = 0;
-  while (partyTypes[partyTypeIndex]) {
-    await user.click(
-      screen.getByRole('checkbox', {
-        name: 'access_control.' + partyTypes[partyTypeIndex],
-      }),
-    );
-    partyTypeIndex++;
-  }
-
-  const actions = store.getActions();
-  const lastPartyTypesAllowed =
-    actions.at(-1).payload.applicationMetadata.partyTypesAllowed;
-  partyTypes.forEach((partyType) =>
-    expect(lastPartyTypesAllowed[partyType]).toBe(
-      !initialPartyTypesAllowed[partyType],
-    ),
-  );
-});
-
-test('constructor should initiate partyTypesAllowed with empty values if passed as null', async () => {
-  renderAccessControlContainerClass({});
-  await waitFor(() => expect(versionControllHeaderApiCalls).toHaveBeenCalledTimes(2));
-  Object.keys(PartyTypes).forEach((partyType) => {
-    expect(
-      screen.getByRole('checkbox', {
-        name: 'access_control.' + partyType,
-      }),
-    ).not.toBeChecked();
+  it('should render checkboxes as defined by applicationMetadata.partyTypesAllowed object', () => {
+    const screen = renderAccessControlContainer();
+    const checkboxes = screen.queryAllByRole('checkbox');
+    const partyTypesAllowed = currentApplicationMetadata.partyTypesAllowed;
+    expect(checkboxes).toHaveLength(4);
+    checkboxes.forEach((c) => {
+      if (partyTypesAllowed[c.getAttribute('name')]) {
+        expect(c.parentElement.parentElement.className).toContain('Checkbox-module_wrapper--checked');
+      } else {
+        expect(c.parentElement.parentElement.className).not.toContain('Checkbox-module_wrapper--checked');
+      }
+    });
   });
 });

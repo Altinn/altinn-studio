@@ -15,7 +15,8 @@ import TabletDrawerMenu from 'app-shared/navigation/drawer/TabletDrawerMenu';
 import { menu } from './appBarConfig';
 import ProfileMenu from 'app-shared/navigation/main-header/profileMenu';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { useAppSelector } from '../common/hooks';
+import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
+import { useAppSelector } from '../../common/hooks';
 
 export interface IAppBarProps {
   activeSubHeaderSelection?: string;
@@ -98,14 +99,14 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 export const AppBar = ({
-  activeLeftMenuSelection,
-  activeSubHeaderSelection,
-  logoutButton,
-  user,
-  mainMenuItems,
-  subMenuItems,
-  showSubMenu,
-}: IAppBarProps) => {
+                         activeLeftMenuSelection,
+                         activeSubHeaderSelection,
+                         logoutButton,
+                         user,
+                         mainMenuItems,
+                         subMenuItems,
+                         showSubMenu,
+                       }: IAppBarProps) => {
   const classes = useStyles();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const hiddenMdUp = useMediaQuery((theme: Theme) =>
@@ -126,10 +127,7 @@ export const AppBar = ({
     <div className={classes.root}>
       <MuiAppBar
         position='fixed'
-        className={classNames([
-          !app ? classes.appBarDashboard : classes.appBarEditor,
-          classes.appBar,
-        ])}
+        className={classNames([!app ? classes.appBarDashboard : classes.appBarEditor, classes.appBar])}
         elevation={5}
         sx={{
           backgroundColor: '#EFEFEF',
@@ -217,34 +215,44 @@ export const AppBar = ({
         {hiddenSmDown
           ? null
           : showSubMenu && (
-              <Toolbar>
+          <Toolbar>
+            <Grid
+              container
+              direction='row'
+              justifyContent='center'
+              alignItems='center'
+            >
+              <Grid
+                xs
+                item
+              >
+                <VersionControlHeader language={language} />
+              </Grid>
+              {menu.map((item) => (
                 <Grid
-                  container
-                  direction='row'
-                  justifyContent='center'
-                  alignItems='center'
+                  item
+                  key={item.key}
+                  className={classNames(classes.subHeader)}
                 >
-                  {menu.map((item) => (
-                    <Grid
-                      item
-                      key={item.key}
-                      className={classNames(classes.subHeader)}
-                    >
-                      <Link
-                        to={item.link.replace(':org', org).replace(':app', app)}
-                        className={classNames(classes.subHeaderLink, {
-                          [classes.subHeaderLinkActive]:
-                            activeSubHeaderSelection === item.key,
-                        })}
-                        data-testid={item.key}
-                      >
-                        {t(item.key)}
-                      </Link>
-                    </Grid>
-                  ))}
+                  <Link
+                    to={item.link.replace(':org', org).replace(':app', app)}
+                    className={classNames(classes.subHeaderLink, {
+                      [classes.subHeaderLinkActive]: activeSubHeaderSelection === item.key,
+                    })}
+                    data-testid={item.key}
+                  >
+                    {t(item.key)}
+                  </Link>
                 </Grid>
-              </Toolbar>
-            )}
+              ))}
+              <Grid
+                xs
+                item
+              />{' '}
+              {/** Used to keep menu centered */}
+            </Grid>
+          </Toolbar>
+        )}
       </MuiAppBar>
     </div>
   );

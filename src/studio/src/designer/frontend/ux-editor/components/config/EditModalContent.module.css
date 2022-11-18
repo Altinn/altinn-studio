@@ -1,14 +1,22 @@
 .gridItem {
   margin-top: 18px;
 }
+
 .inputHelper {
   margin-top: 2.4rem;
   font-size: 1.6rem;
   line-height: inherit;
   color: #000000;
 }
+
 .addComponentText {
   margin-top: 2.4rem;
   color: #6a6a6a;
   align-content: center;
+}
+
+.fieldset > div {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
