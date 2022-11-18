@@ -130,10 +130,6 @@ namespace Designer.Tests.Services
                 var xsdSchema = XDocument.Parse(xsd);
                 xsdSchema.Root.Should().NotBeNull();
                 xsdSchema.Root.Elements().First().Attributes().First(a => a.Name.LocalName == "name").Should().HaveValue("root");
-
-                var metadataModelJson = await altinnGitRepository.ReadTextByRelativePathAsync("App/models/HvemErHvem_SERES.metadata.json");
-                var jsonSchema = JsonSerializer.Deserialize<ModelMetadata>(metadataModelJson);
-                jsonSchema.Org.Should().Be(org);
             }
             finally
             {
