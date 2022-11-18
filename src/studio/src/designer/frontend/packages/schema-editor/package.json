@@ -3,16 +3,16 @@
   "description": "JSON schema editor",
   "version": "0.1.0",
   "dependencies": {
-    "@mui/lab": "5.0.0-alpha.106"
+    "@mui/lab": "5.0.0-alpha.108"
   },
   "devDependencies": {
     "jest": "29.3.1"
   },
   "peerDependencies": {
     "@altinn/altinn-design-system": "0.23.3",
-    "@mui/icons-material": "5.10.9",
-    "@mui/material": "5.10.12",
-    "@mui/styles": "5.10.10",
+    "@mui/icons-material": "5.10.14",
+    "@mui/material": "5.10.14",
+    "@mui/styles": "5.10.14",
     "@reduxjs/toolkit": "1.9.0",
     "axios": "0.27.2",
     "classnames": "2.3.2",

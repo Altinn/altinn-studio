@@ -5,14 +5,14 @@
   "dependencies": {
     "@altinn/altinn-design-system": "0.23.3",
     "@altinn/schema-editor": "0.1.0",
-    "@mui/icons-material": "5.10.9",
-    "@mui/material": "5.10.12",
-    "@mui/styles": "5.10.10",
+    "@mui/icons-material": "5.10.14",
+    "@mui/material": "5.10.14",
+    "@mui/styles": "5.10.14",
     "@reduxjs/toolkit": "1.9.0",
     "axios": "0.27.2",
     "classnames": "2.3.2",
     "diff": "5.1.0",
-    "dompurify": "2.4.0",
+    "dompurify": "2.4.1",
     "marked": "4.2.2",
     "moment": "2.29.4",
     "monaco-editor": "0.34.1",
@@ -23,13 +23,13 @@
     "react-monaco-editor": "0.50.1",
     "react-redux": "8.0.5",
     "react-router-dom": "6.4.3",
-    "react-select": "5.6.0",
+    "react-select": "5.6.1",
     "redux-saga": "1.2.1"
   },
   "devDependencies": {
     "jest": "29.3.1",
     "tsc": "2.0.4",
-    "typescript": "4.8.4"
+    "typescript": "4.9.3"
   },
   "license": "3-Clause BSD",
   "peerDependencies": {
