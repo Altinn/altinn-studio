@@ -1,23 +1,13 @@
 import React from 'react';
-import { Grid } from '@mui/material';
-import { makeStyles } from '@mui/styles';
 import { Resources } from './Resources';
-
-const useStyles = makeStyles(() => ({
-  rootGrid: {
-    backgroundColor: '#F5F5F5',
-    marginTop: 48,
-  },
-}));
+import classes from './Footer.module.css';
 
 export const Footer = () => {
-  const classes = useStyles();
-
   return (
-    <Grid className={classes.rootGrid} container justifyContent='center'>
-      <Grid item xs={10}>
+    <footer className={classes.footer}>
+      <div className={classes.footerContent}>
         <Resources />
-      </Grid>
-    </Grid>
+      </div>
+    </footer>
   );
 };

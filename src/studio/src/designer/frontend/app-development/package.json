@@ -2,6 +2,12 @@
   "name": "app-development",
   "version": "0.1.2",
   "author": "Altinn",
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 10",
+    "not op_mini all"
+  ],
   "dependencies": {
     "@altinn/altinn-design-system": "0.23.3",
     "@mui/material": "5.10.12",

@@ -23,6 +23,7 @@ __metadata:
   resolution: "@altinn-studio/mockend@workspace:mockend"
   dependencies:
     body-parser: 1.20.1
+    esm: 3.2.25
   languageName: unknown
   linkType: soft
 
@@ -6132,6 +6133,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dashboard@workspace:dashboard"
   dependencies:
+    "@altinn/altinn-design-system": 0.23.3
     "@emotion/styled": 11.10.5
     "@mui/material": 5.10.12
     "@mui/styles": 5.10.10
@@ -7135,6 +7137,13 @@ __metadata:
   bin:
     eslint: bin/eslint.js
   checksum: a2aced939ea060f77d10dcfced5cfeb940f63f383fd7ab1decadea64170ab552582e1c5909db1db641d4283178c9bc569f19b0f8900e00314a5f783e4b3f759d
+  languageName: node
+  linkType: hard
+
+"esm@npm:3.2.25":
+  version: 3.2.25
+  resolution: "esm@npm:3.2.25"
+  checksum: 978aabe2de83541c105605a6d60a26ed8e627ef6bb0a7605fe15a95bbdea6b8348bd045255cb22219c054dd09a81a94823df00843d9e97f42419c92015ce3a64
   languageName: node
   linkType: hard
 

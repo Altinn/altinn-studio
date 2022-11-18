@@ -1,11 +1,6 @@
-import React from 'react';
-import { makeStyles } from '@mui/styles';
-import { Grid } from '@mui/material';
-
-import AltinnButton from 'app-shared/components/AltinnButton';
+import React, { useCallback, useState } from 'react';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-
 import { ServiceOwnerSelector } from './ServiceOwnerSelector';
 import { RepoNameInput } from './RepoNameInput';
 import { validateRepoName } from '../../common/utils';
@@ -15,24 +10,8 @@ import {
   useAddRepoMutation,
 } from '../../services/repoApi';
 import { applicationAboutPage } from '../../common/utils/urlUtils';
-
-const useStyles = makeStyles({
-  button: {
-    fontSize: '16px',
-    padding: '5px 45px 5px 45px',
-    height: '37px !Important',
-  },
-  marginBottom_24: {
-    marginBottom: 24,
-  },
-  marginTop: {
-    marginTop: 100,
-  },
-  cancelWrapper: {
-    display: 'inline-flex',
-    marginLeft: 24,
-  },
-});
+import classes from './CreateService.module.css';
+import { Button, ButtonColor } from '@altinn/altinn-design-system';
 
 enum PageState {
   Idle = 'Idle',
@@ -55,35 +34,21 @@ const validateInputs = ({
   language,
 }: IValidateInputs) => {
   let isValid = true;
-
+  const t = (key: string) => getLanguageFromKey(key, language);
   if (!selectedOrgOrUser) {
-    setOrgErrorMessage(
-      getLanguageFromKey('dashboard.field_cannot_be_empty', language),
-    );
+    setOrgErrorMessage(t('dashboard.field_cannot_be_empty'));
     isValid = false;
   }
-
   if (!repoName) {
-    setRepoErrorMessage(
-      getLanguageFromKey('dashboard.field_cannot_be_empty', language),
-    );
+    setRepoErrorMessage(t('dashboard.field_cannot_be_empty'));
     isValid = false;
   }
-
   if (repoName && !validateRepoName(repoName)) {
-    setRepoErrorMessage(
-      getLanguageFromKey(
-        'dashboard.service_name_has_illegal_characters',
-        language,
-      ),
-    );
+    setRepoErrorMessage(t('dashboard.service_name_has_illegal_characters'));
     isValid = false;
   }
-
   if (repoName.length > 30) {
-    setRepoErrorMessage(
-      getLanguageFromKey('dashboard.service_name_is_too_long', language),
-    );
+    setRepoErrorMessage(t('dashboard.service_name_is_too_long'));
     isValid = false;
   }
   return isValid;
@@ -91,21 +56,20 @@ const validateInputs = ({
 
 export const CreateService = () => {
   const language = useAppSelector((state) => state.language.language);
-  const classes = useStyles();
   const selectedFormat = DataModellingFormat.XSD;
-  const [selectedOrgOrUser, setSelectedOrgOrUser] = React.useState('');
-  const [orgErrorMessage, setOrgErrorMessage] = React.useState(null);
-  const [repoErrorMessage, setRepoErrorMessage] = React.useState(null);
-  const [repoName, setRepoName] = React.useState('');
-  const [pageState, setPageState] = React.useState(PageState.Idle);
+  const [selectedOrgOrUser, setSelectedOrgOrUser] = useState('');
+  const [orgErrorMessage, setOrgErrorMessage] = useState(null);
+  const [repoErrorMessage, setRepoErrorMessage] = useState(null);
+  const [repoName, setRepoName] = useState('');
+  const [pageState, setPageState] = useState(PageState.Idle);
   const [addRepo] = useAddRepoMutation();
-
-  const handleServiceOwnerChanged = React.useCallback((newValue: string) => {
+  const t = (key: string) => getLanguageFromKey(key, language);
+  const handleServiceOwnerChanged = useCallback((newValue: string) => {
     setSelectedOrgOrUser(newValue);
     setOrgErrorMessage(null);
   }, []);
 
-  const handleRepoNameChanged = React.useCallback((newValue: string) => {
+  const handleRepoNameChanged = useCallback((newValue: string) => {
     setRepoName(newValue);
     setRepoErrorMessage(null);
   }, []);
@@ -132,76 +96,46 @@ export const CreateService = () => {
         window.location.assign(
           applicationAboutPage({
             repoFullName: result.full_name,
-          }),
+          })
         );
       } catch (error) {
         if (error.status === 409) {
           setPageState(PageState.Idle);
-
-          setRepoErrorMessage(
-            getLanguageFromKey('dashboard.app_already_exist', language),
-          );
+          setRepoErrorMessage(t('dashboard.app_already_exist'));
         } else {
           setPageState(PageState.Idle);
-
-          setRepoErrorMessage(
-            getLanguageFromKey('dashboard.error_when_creating_app', language),
-          );
+          setRepoErrorMessage(t('dashboard.error_when_creating_app'));
         }
       }
     }
   };
-
-  const handleCancel = () => {
-    window.history.back();
-  };
-
   return (
-    <div className={classes.marginTop}>
-      <Grid container={true} justifyContent='center' direction='row'>
-        <Grid item={true} xs={6}>
-          <div className={classes.marginBottom_24}>
-            <ServiceOwnerSelector
-              onServiceOwnerChanged={handleServiceOwnerChanged}
-              errorMessage={orgErrorMessage}
-              selectedOrgOrUser={selectedOrgOrUser}
-            />
-          </div>
-          <div className={classes.marginBottom_24}>
-            <RepoNameInput
-              onRepoNameChanged={handleRepoNameChanged}
-              repoName={repoName}
-              errorMessage={repoErrorMessage}
-            />
-          </div>
-          {pageState === PageState.Creating ? (
-            <AltinnSpinner
-              spinnerText={getLanguageFromKey(
-                'dashboard.creating_your_service',
-                language,
-              )}
-            />
-          ) : (
-            <>
-              <AltinnButton
-                btnText={getLanguageFromKey(
-                  'dashboard.create_service_btn',
-                  language,
-                )}
-                className={classes.button}
-                onClickFunction={handleCreateService}
-              />
-              <div className={classes.cancelWrapper}>
-                <AltinnButton
-                  btnText={getLanguageFromKey('general.cancel', language)}
-                  secondaryButton={true}
-                  onClickFunction={handleCancel}
-                />
-              </div>
-            </>
-          )}
-        </Grid>
-      </Grid>
+    <div className={classes.createServiceContainer}>
+      <ServiceOwnerSelector
+        onServiceOwnerChanged={handleServiceOwnerChanged}
+        errorMessage={orgErrorMessage}
+        selectedOrgOrUser={selectedOrgOrUser}
+      />
+      <RepoNameInput
+        onRepoNameChanged={handleRepoNameChanged}
+        repoName={repoName}
+        errorMessage={repoErrorMessage}
+      />
+      {pageState === PageState.Creating ? (
+        <AltinnSpinner spinnerText={t('dashboard.creating_your_service')} />
+      ) : (
+        <div className={classes.buttonContainer}>
+          <Button color={ButtonColor.Primary} onClick={handleCreateService}>
+            {t('dashboard.create_service_btn')}
+          </Button>
+          <Button
+            color={ButtonColor.Inverted}
+            onClick={() => window.history.back()}
+          >
+            {t('general.cancel')}
+          </Button>
+        </div>
+      )}
     </div>
   );
 };

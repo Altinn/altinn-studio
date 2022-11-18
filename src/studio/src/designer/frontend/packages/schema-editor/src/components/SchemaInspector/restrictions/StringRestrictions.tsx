@@ -5,7 +5,7 @@ import { getTranslation } from '../../../utils/language';
 import classes from './StringRestrictions.module.css';
 import { Checkbox, FieldSet, Select, TextField } from '@altinn/altinn-design-system';
 import { Dict, StringFormat, StrRestrictionKeys } from '@altinn/schema-model';
-import { Divider } from '../../common/Divider';
+import { Divider } from 'app-shared/primitives';
 import { Label } from '../../common/Label';
 import { getDomFriendlyID } from '../../../utils/ui-schema-utils';
 import {

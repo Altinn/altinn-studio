@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { PropsWithChildren } from 'react';
 import { render as rtlRender } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import type { RenderOptions } from '@testing-library/react';
@@ -19,9 +19,9 @@ export const renderWithProviders = (
     preloadedState = {},
     store = setupStore(preloadedState),
     ...renderOptions
-  }: ExtendedRenderOptions = {},
+  }: ExtendedRenderOptions = {}
 ) => {
-  function Wrapper({ children }: React.PropsWithChildren<unknown>) {
+  function Wrapper({ children }: PropsWithChildren<unknown>) {
     return (
       <Provider store={store}>
         <Router>{children}</Router>

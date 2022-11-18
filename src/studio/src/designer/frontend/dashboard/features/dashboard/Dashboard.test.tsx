@@ -11,7 +11,7 @@ import {
   setupServer,
 } from '../../dashboardTestUtils';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
-import { Dashboard } from './index';
+import { Dashboard } from './Dashboard';
 
 const server = setupServer(...handlers);
 
@@ -20,7 +20,7 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
 const render = (
-  selectedContext: SelectedContextType | number = SelectedContextType.Self,
+  selectedContext: SelectedContextType | number = SelectedContextType.Self
 ) => {
   renderWithProviders(<Dashboard />, {
     preloadedState: {
@@ -56,7 +56,7 @@ describe('Dashboard > index', () => {
     expect(screen.getByText('test-org dashboard.apps')).toBeInTheDocument();
     expect(screen.queryByText('dashboard.my_apps')).not.toBeInTheDocument();
     expect(
-      screen.queryByText('dashboard.search_result'),
+      screen.queryByText('dashboard.search_result')
     ).not.toBeInTheDocument();
   });
 
@@ -66,7 +66,7 @@ describe('Dashboard > index', () => {
     expect(screen.getByText('dashboard.favourites')).toBeInTheDocument();
     expect(screen.getByText('dashboard.my_apps')).toBeInTheDocument();
     expect(
-      screen.queryByText('dashboard.search_result'),
+      screen.queryByText('dashboard.search_result')
     ).not.toBeInTheDocument();
   });
 
@@ -80,7 +80,7 @@ describe('Dashboard > index', () => {
     await user.type(searchInput, 'search');
 
     await waitForElementToBeRemoved(() =>
-      screen.getByText('dashboard.favourites'),
+      screen.getByText('dashboard.favourites')
     );
 
     expect(screen.queryByText('dashboard.favourites')).not.toBeInTheDocument();
@@ -98,7 +98,7 @@ describe('Dashboard > index', () => {
     await user.type(searchInput, 'search');
 
     await waitForElementToBeRemoved(() =>
-      screen.getByText('dashboard.favourites'),
+      screen.getByText('dashboard.favourites')
     );
 
     expect(screen.queryByText('dashboard.favourites')).not.toBeInTheDocument();
@@ -108,13 +108,13 @@ describe('Dashboard > index', () => {
     await user.keyboard('{Escape}');
 
     await waitForElementToBeRemoved(() =>
-      screen.getByText('dashboard.search_result'),
+      screen.getByText('dashboard.search_result')
     );
 
     expect(screen.getByText('dashboard.favourites')).toBeInTheDocument();
     expect(screen.getByText('dashboard.my_apps')).toBeInTheDocument();
     expect(
-      screen.queryByText('dashboard.search_result'),
+      screen.queryByText('dashboard.search_result')
     ).not.toBeInTheDocument();
   });
 
@@ -128,7 +128,7 @@ describe('Dashboard > index', () => {
     await user.type(searchInput, 'search');
 
     await waitForElementToBeRemoved(() =>
-      screen.getByText('dashboard.favourites'),
+      screen.getByText('dashboard.favourites')
     );
 
     expect(screen.queryByText('dashboard.favourites')).not.toBeInTheDocument();
@@ -136,17 +136,17 @@ describe('Dashboard > index', () => {
     expect(screen.getByText('dashboard.search_result')).toBeInTheDocument();
 
     await user.click(
-      screen.getByRole('button', { name: /dashboard.clear_search/i }),
+      screen.getByRole('button', { name: /dashboard.clear_search/i })
     );
 
     await waitForElementToBeRemoved(() =>
-      screen.getByText('dashboard.search_result'),
+      screen.getByText('dashboard.search_result')
     );
 
     expect(screen.getByText('dashboard.favourites')).toBeInTheDocument();
     expect(screen.getByText('dashboard.my_apps')).toBeInTheDocument();
     expect(
-      screen.queryByText('dashboard.search_result'),
+      screen.queryByText('dashboard.search_result')
     ).not.toBeInTheDocument();
   });
 
@@ -157,7 +157,7 @@ describe('Dashboard > index', () => {
     expect(window.location.href.includes('new')).toBe(false);
 
     await user.click(
-      screen.getByRole('link', { name: /dashboard.new_service/i }),
+      screen.getByRole('link', { name: /dashboard.new_service/i })
     );
 
     expect(window.location.href.includes('new')).toBe(true);

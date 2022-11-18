@@ -66,7 +66,7 @@ export const mergeRepos = ({ repos, starredRepos }: MergeReposProps) => {
     return {
       ...repo,
       user_has_starred: starredRepos.find(
-        (starredRepo) => starredRepo.id === repo.id,
+        (starredRepo) => starredRepo.id === repo.id
       )
         ? true
         : false,

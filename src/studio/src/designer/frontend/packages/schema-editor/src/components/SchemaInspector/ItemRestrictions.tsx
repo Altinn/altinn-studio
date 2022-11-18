@@ -18,7 +18,7 @@ import { ObjectRestrictions } from './restrictions/ObjectRestrictions';
 import { StringRestrictions } from './restrictions/StringRestrictions';
 import classes from './ItemRestrictions.module.css';
 import { Button, ButtonColor, ButtonSize, ButtonVariant, Checkbox, FieldSet } from '@altinn/altinn-design-system';
-import { Divider } from '../common/Divider';
+import {Divider} from "app-shared/primitives";
 
 export interface RestrictionItemProps {
   restrictions: any;

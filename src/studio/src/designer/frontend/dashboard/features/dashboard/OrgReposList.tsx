@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { GridSortModel } from '@mui/x-data-grid';
 import { Typography } from '@mui/material';
 import { DashboardActions } from '../../resources/fetchDashboardResources/dashboardSlice';
@@ -17,20 +17,17 @@ export const OrgReposList = () => {
   const pageSize = useAppSelector((state) => state.dashboard.repoRowsPerPage);
   const language = useAppSelector((state) => state.language.language);
   const selectedContext = useAppSelector(
-    (state) => state.dashboard.selectedContext,
+    (state) => state.dashboard.selectedContext
   );
   const userId = useAppSelector((state) => state.dashboard.user.id);
   const { data: orgs = [] } = useGetOrganizationsQuery();
-  const [page, setPage] = React.useState(0);
+  const [page, setPage] = useState(0);
   const uid = getUidFilter({ selectedContext, userId });
-
-  const [sortModel, setSortModel] = React.useState<GridSortModel>([
+  const [sortModel, setSortModel] = useState<GridSortModel>([
     { field: 'name', sort: 'asc' },
   ]);
-
   const { data: starredRepos, isLoading: isLoadingStarred } =
     useGetUserStarredReposQuery();
-
   const { data: repos, isLoading: isLoadingOrgRepos } = useGetSearchQuery({
     uid,
     page: page,
@@ -38,27 +35,19 @@ export const OrgReposList = () => {
     order: sortModel?.[0]?.sort,
     limit: pageSize,
   });
-
   const reposWithStarred = useAugmentReposWithStarred({
     repos: repos?.data,
     starredRepos,
   });
-
-  const handlePageChange = (newPageNumber: number) => {
-    setPage(newPageNumber);
-  };
-
-  const handleSortModelChange = (newSortModel: GridSortModel) => {
+  const handlePageChange = (newPageNumber: number) => setPage(newPageNumber);
+  const handleSortModelChange = (newSortModel: GridSortModel) =>
     setSortModel(newSortModel);
-  };
-
-  const handlePageSizeChange = (newPageSize: number) => {
+  const handlePageSizeChange = (newPageSize: number) =>
     dispatch(
       DashboardActions.repoRowsPerPageChanged({
         repoRowsPerPage: newPageSize,
-      }),
+      })
     );
-  };
 
   return (
     <div>

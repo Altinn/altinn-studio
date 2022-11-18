@@ -1,9 +1,9 @@
 import React from 'react';
-import { RestrictionItemProps } from '../ItemRestrictions';
+import type { RestrictionItemProps } from '../ItemRestrictions';
 import { ArrRestrictionKeys } from '@altinn/schema-model';
 import { RestrictionField } from '../RestrictionField';
 import { getTranslation } from '../../../utils/language';
-import { Divider } from '../../common/Divider';
+import { Divider } from 'app-shared/primitives';
 
 export function ArrayRestrictions({ restrictions, language, path, onChangeRestrictionValue }: RestrictionItemProps) {
   return (

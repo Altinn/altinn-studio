@@ -9,6 +9,7 @@
     "not op_mini all"
   ],
   "dependencies": {
+    "@altinn/altinn-design-system": "0.23.3",
     "@emotion/styled": "11.10.5",
     "@mui/material": "5.10.12",
     "@mui/styles": "5.10.10",

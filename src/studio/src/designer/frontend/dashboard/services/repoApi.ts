@@ -1,5 +1,6 @@
 import { designerApi, TagTypes } from './designerApi';
 import type { IRepository } from 'app-shared/types/global';
+import { repoSearchPath, reposList } from 'app-shared/api-paths';
 
 type Filters = {
   uid?: number;
@@ -65,7 +66,7 @@ export const repoApi = designerApi.injectEndpoints({
         });
 
         return {
-          url: `repos/search`,
+          url: repoSearchPath(),
           params: {
             uid: params.uid,
             keyword: params.keyword,
@@ -85,7 +86,7 @@ export const repoApi = designerApi.injectEndpoints({
     addRepo: builder.mutation<IRepository, AddQuery>({
       query: ({ owner, repoName, modelType }) => {
         return {
-          url: `repos/${owner}`,
+          url: reposList(owner),
           method: 'POST',
           params: {
             repository: repoName,

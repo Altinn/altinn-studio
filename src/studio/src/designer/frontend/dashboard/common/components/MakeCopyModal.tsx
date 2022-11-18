@@ -1,12 +1,7 @@
-import React from 'react';
-import { Typography } from '@mui/material';
+import React, { useState, MouseEvent, ChangeEvent } from 'react';
 import { AltinnSpinner } from 'app-shared/components';
-import AltinnInputField from 'app-shared/components/AltinnInputField';
-import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
-import {
-  getLanguageFromKey,
-  getParsedLanguageFromKey,
-} from 'app-shared/utils/language';
+import { AltinnPopoverComponent } from 'app-shared/components/molecules/AltinnPopoverSimple';
+import { getLanguageFromKey } from 'app-shared/utils/language';
 import { post } from 'app-shared/utils/networking';
 import { DashboardActions } from '../../resources/fetchDashboardResources/dashboardSlice';
 import { PopoverOrigin } from '@mui/material/Popover';
@@ -14,31 +9,20 @@ import { useNavigate } from 'react-router-dom';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { validateRepoName } from '../utils';
 import { useAppDispatch, useAppSelector } from '../hooks';
+import { TextField } from '@altinn/altinn-design-system';
+import { copyAppPath, userReposPath } from 'app-shared/api-paths';
+import classes from './MakeCopyModal.module.css';
+import { SimpleContainer } from 'app-shared/primitives';
 
 export interface IMakeCopyModalProps {
   anchorEl: HTMLElement;
-  handleClose: (event?: React.MouseEvent<HTMLElement>) => void;
+  handleClose: (event?: MouseEvent<HTMLElement>) => void;
   serviceFullName: string;
 }
 
 const transformAnchorOrigin: PopoverOrigin = {
   vertical: 'center',
   horizontal: 'center',
-};
-
-const paperProps = {
-  style: {
-    margin: '2.4rem',
-  },
-};
-
-const typographyStyle = {
-  marginTop: '1.6rem',
-  marginBottom: '1.6rem',
-};
-
-const inputHeaderStyling = {
-  fontSize: '18px',
 };
 
 export const MakeCopyModal = ({
@@ -48,45 +32,33 @@ export const MakeCopyModal = ({
 }: IMakeCopyModalProps) => {
   const language = useAppSelector((state) => state.language.language);
   const navigate = useNavigate();
-  const [repoName, setRepoName] = React.useState<string>('');
-  const [errorMessage, setErrorMessage] = React.useState<string>(null);
-  const [isLoading, setIsLoading] = React.useState<boolean>(false);
+  const [repoName, setRepoName] = useState<string>('');
+  const [errorMessage, setErrorMessage] = useState<string>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const dispatch = useAppDispatch();
-
+  const t = (key: string) => getLanguageFromKey(key, language);
   const handleClone = async () => {
     if (validAppName()) {
       setIsLoading(true);
       try {
         const [org, app] = serviceFullName.split('/');
-
-        const url = `${window.location.origin}/designer/api/v1/repos/copyapp?org=${org}&sourceRepository=${app}&targetRepository=${repoName}`;
-        await post(url);
-        dispatch(
-          DashboardActions.fetchServices({
-            url: `${window.location.origin}/designer/api/v1/user/repos`,
-          }),
-        );
+        await post(copyAppPath(org, app, repoName));
+        dispatch(DashboardActions.fetchServices({ url: userReposPath() }));
         navigate(
-          `${window.location.origin}${APP_DEVELOPMENT_BASENAME}/${org}/${repoName}?copiedApp=true`,
+          `${APP_DEVELOPMENT_BASENAME}/${org}/${repoName}?copiedApp=true`
         );
       } catch (error) {
-        if (error?.response?.status === 409) {
-          setErrorMessage(
-            getLanguageFromKey('dashboard.app_already_exist', language),
-          );
-        } else {
-          setErrorMessage(
-            getParsedLanguageFromKey('dashboard.unknown_error_copy', language),
-          );
-        }
+        error?.response?.status === 409
+          ? setErrorMessage(t('dashboard.app_already_exist'))
+          : setErrorMessage(t('dashboard.unknown_error_copy'));
       }
       setIsLoading(false);
     }
   };
 
   const closeHandler = (
-    _x: string | React.MouseEvent<HTMLElement>,
-    event?: React.MouseEvent<HTMLElement>,
+    _x: string | MouseEvent<HTMLElement>,
+    event?: MouseEvent<HTMLElement>
   ) => {
     if (isLoading) {
       return;
@@ -98,85 +70,62 @@ export const MakeCopyModal = ({
     }
   };
 
-  const handleRepoNameUpdated = (
-    event: React.ChangeEvent<HTMLInputElement>,
-  ) => {
+  const handleRepoNameUpdated = (event: ChangeEvent<HTMLInputElement>) =>
     setRepoName(event.target.value);
-  };
 
   const validAppName = (): boolean => {
     if (!repoName) {
-      setErrorMessage(
-        getLanguageFromKey('dashboard.field_cannot_be_empty', language),
-      );
+      setErrorMessage(t('dashboard.field_cannot_be_empty'));
       return false;
     }
-
     if (repoName.length > 30) {
-      setErrorMessage(
-        getLanguageFromKey('dashboard.service_name_is_too_long', language),
-      );
+      setErrorMessage(t('dashboard.service_name_is_too_long'));
       return false;
     }
-
     if (!validateRepoName(repoName)) {
-      setErrorMessage(
-        getLanguageFromKey(
-          'dashboard.service_name_has_illegal_characters',
-          language,
-        ),
-      );
+      setErrorMessage(t('dashboard.service_name_has_illegal_characters'));
       return false;
     }
-
     return true;
   };
 
   return (
-    <AltinnPopoverSimple
+    <AltinnPopoverComponent
       open={!!anchorEl}
       anchorEl={anchorEl}
       anchorOrigin={transformAnchorOrigin}
       transformOrigin={transformAnchorOrigin}
       handleClose={closeHandler}
-      btnCancelText={
-        isLoading ? null : getLanguageFromKey('general.cancel', language)
-      }
-      btnConfirmText={
-        isLoading ? null : getLanguageFromKey('dashboard.make_copy', language)
-      }
+      btnCancelText={isLoading ? null : t('general.cancel')}
+      btnConfirmText={isLoading ? null : t('dashboard.make_copy')}
       btnClick={handleClone}
-      paperProps={paperProps}
+      paperProps={{
+        style: {
+          margin: '2.4rem',
+        },
+      }}
       btnPrimaryId='clone-button'
       btnSecondaryId='cancel-button'
     >
-      <Typography variant='h2'>
-        {getLanguageFromKey('dashboard.copy_application', language)}
-      </Typography>
-      <Typography
-        variant='body1'
-        style={typographyStyle}
-      >
-        {getLanguageFromKey('dashboard.copy_application_description', language)}
-      </Typography>
-      <AltinnInputField
-        id='new-clone-name'
-        textFieldId='new-clone-name-input'
-        inputHeader={getLanguageFromKey('dashboard.new_service_copy', language)}
-        inputHeaderStyling={inputHeaderStyling}
-        inputValue={repoName}
-        onChangeFunction={handleRepoNameUpdated}
-        error={errorMessage}
-        clearError={() => setErrorMessage(null)}
-      />
-      {isLoading && (
-        <AltinnSpinner
-          spinnerText={getLanguageFromKey(
-            'dashboard.creating_your_copy',
-            language,
+      <SimpleContainer>
+        <h2>{t('dashboard.copy_application')}</h2>
+        <p>{t('dashboard.copy_application_description')}</p>
+        <div>
+          <TextField
+            id='new-clone-name-input'
+            label={t('dashboard.new_service_copy')}
+            value={repoName}
+            onChange={handleRepoNameUpdated}
+            isValid={errorMessage === null}
+          />
+          {errorMessage && (
+            <div className={classes.errorMessage}>{errorMessage}</div>
           )}
-        />
-      )}
-    </AltinnPopoverSimple>
+        </div>
+        {isLoading && (
+          <AltinnSpinner spinnerText={t('dashboard.creating_your_copy')} />
+        )}
+      </SimpleContainer>
+    </AltinnPopoverComponent>
   );
 };
