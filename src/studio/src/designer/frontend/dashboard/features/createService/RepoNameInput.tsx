@@ -34,7 +34,7 @@ export const RepoNameInput = ({
       />
       <p>
         {t('dashboard.service_saved_name_description')}{' '}
-        <strong style={{ fontWeight: '500px' }}>
+        <strong style={{ fontWeight: '500' }}>
           {t('dashboard.service_saved_name_description_cannot_be_changed')}
         </strong>
       </p>
