@@ -20,6 +20,7 @@ const config = {
     '^app-shared/(.*)': path.join(__dirname, 'shared/$1'),
     // prettier-ignore
     '^@altinn/schema-editor/(.*)': path.join(__dirname, 'packages/schema-editor/src/$1',),
+    '^@altinn/schema-model/(.*)': path.join(__dirname, 'packages/schema-model/src/$1',),
     '^uuid$': path.join(__dirname, 'node_modules/uuid/dist/index.js'),
   },
   testRegex: '(\\.(test|spec))\\.(ts|tsx|js)$',

@@ -18,6 +18,7 @@ import {
   setRef,
   setRequired,
   setRestriction,
+  setRestrictions,
   setSelectedId,
   setSelectedTab,
   setTitle,
@@ -38,10 +39,10 @@ import {
   Keywords,
   makePointer,
   ObjectKind,
+  StringFormat,
   StrRestrictionKeys,
   UiSchemaNode,
 } from '@altinn/schema-model';
-import { StringFormat } from '@altinn/schema-model/src/lib/types';
 
 describe('SchemaEditorSlice', () => {
   let state: ISchemaState;
@@ -563,5 +564,19 @@ describe('SchemaEditorSlice', () => {
     checkSetFormat('#/$defs/Dato', StringFormat.DateTime);
     checkSetFormat('#/$defs/Dato');
     checkSetFormat('#/$defs/Tekst', StringFormat.Date);
+  });
+
+  it('Handles setRestrictions', () => {
+    const path = '#/$defs/Tekst';
+    const maxLength = 255;
+    const minLength = 3;
+    const restrictions = {
+      minLength: minLength.toString(),
+      maxLength: maxLength.toString()
+    };
+    const nextState = reducer(state, setRestrictions({ path, restrictions }));
+    const node = getNodeByPointer(nextState.uiSchema, path);
+    expect(node.restrictions.maxLength).toEqual(maxLength);
+    expect(node.restrictions.minLength).toEqual(minLength);
   });
 });

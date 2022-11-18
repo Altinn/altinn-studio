@@ -33,6 +33,11 @@ const mockUiSchema = buildUiSchema(dataMock);
 const getMockSchemaByPath = (selectedId: string): UiSchemaNode =>
   getNodeByPointer(mockUiSchema, selectedId);
 
+const language = {
+  'schema_editor.maxLength': 'Maksimal lengde',
+  'schema_editor.minLength': 'Minimal lengde',
+};
+
 const renderSchemaInspector = (
   uiSchemaMap: UiSchemaNodes,
   selectedItem?: UiSchemaNode,
@@ -45,7 +50,7 @@ const renderSchemaInspector = (
   render(
     <Provider store={store}>
       <SchemaInspector
-        language={{}}
+        language={language}
         selectedItem={selectedItem}
       />
     </Provider>,
@@ -87,31 +92,30 @@ test('renders no item if nothing is selected', () => {
   expect(textboxes).toHaveLength(0);
 });
 
-test('dispatches correctly when changing restriction value', async () => {
+test('dispatches correctly when changing restriction value', () => {
   const { store } = renderSchemaInspector(
     mockUiSchema,
     getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon'),
   );
 
-  const textboxes = screen.getAllByRole('textbox');
+  const minLength = '100';
+  const maxLength = '666';
 
-  textboxes.forEach((textbox) => {
-    if (textbox.id.includes('minlength-value')) {
-      fireEvent.change(textbox, { target: { value: '100' } });
-      fireEvent.blur(textbox);
-    }
-    if (textbox.id.includes('maxlength-value')) {
-      fireEvent.change(textbox, { target: { value: '666' } });
-      fireEvent.blur(textbox);
-    }
-  });
+  const minLengthTextField = screen.getByLabelText(language['schema_editor.minLength']);
+  fireEvent.change(minLengthTextField, { target: { value: minLength } });
+  fireEvent.blur(minLengthTextField);
+
+  const maxLengthTextField = screen.getByLabelText(language['schema_editor.maxLength']);
+  fireEvent.change(maxLengthTextField, { target: { value: maxLength } });
+  fireEvent.blur(maxLengthTextField);
+
   const actions = store.getActions();
   expect(actions).toHaveLength(2);
-  actions.forEach((action) => {
-    expect(action.type).toContain('schemaEditor');
-    expect(['minLength', 'maxLength']).toContain(action.payload.key);
-    expect(['100', '666']).toContain(action.payload.value);
-  });
+
+  expect(actions[0].type).toContain('schemaEditor');
+  expect(actions[0].payload.restrictions).toEqual(expect.objectContaining({ minLength }));
+  expect(actions[1].type).toContain('schemaEditor');
+  expect(actions[1].payload.restrictions).toEqual(expect.objectContaining({ maxLength }));
 });
 
 test('Adds new object field when pressing the enter key', async () => {

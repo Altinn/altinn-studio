@@ -26,9 +26,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@altinn/altinn-design-system@npm:0.23.0":
-  version: 0.23.0
-  resolution: "@altinn/altinn-design-system@npm:0.23.0"
+"@altinn/altinn-design-system@npm:0.23.3":
+  version: 0.23.3
+  resolution: "@altinn/altinn-design-system@npm:0.23.3"
   dependencies:
     "@altinn/figma-design-tokens": ^4.3.0
     "@navikt/ds-icons": ^1.3.38
@@ -40,7 +40,7 @@ __metadata:
   peerDependencies:
     react: ^18.0.0
     react-dom: ^18.0.0
-  checksum: d5dd438a06bdb242f79b997a9696a4bad8388f3f750125ad8e7f1363e4d75c7d69a4bed4c269f3e2fe0c332d1fac3f9701d09d0008bfb99ad98e6816393a52e5
+  checksum: b222062a2eef00880ce83870cc15135a42add0af56b8b5140e478ffc14af9d010de4be331e2603c0462253b4094b77c26763b3162efa6d8e700975bd08fae896
   languageName: node
   linkType: hard
 
@@ -4711,7 +4711,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-development@workspace:app-development"
   dependencies:
-    "@altinn/altinn-design-system": 0.23.0
+    "@altinn/altinn-design-system": 0.23.3
     "@mui/material": 5.10.12
     "@mui/styles": 5.10.10
     "@reduxjs/toolkit": 1.9.0
@@ -4739,7 +4739,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-shared@workspace:shared"
   dependencies:
-    "@altinn/altinn-design-system": 0.23.0
+    "@altinn/altinn-design-system": 0.23.3
     "@altinn/schema-editor": 0.1.0
     "@mui/icons-material": 5.10.9
     "@mui/material": 5.10.12

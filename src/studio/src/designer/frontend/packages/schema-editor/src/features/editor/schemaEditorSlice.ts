@@ -23,6 +23,7 @@ import {
   splitPointerInBaseAndName,
 } from '@altinn/schema-model';
 import { swapArrayElements } from 'app-shared/pure';
+import { Dict } from '../../../../schema-model/src/lib/types';
 
 export const initialState: ISchemaState = {
   schema: {},
@@ -142,6 +143,20 @@ const schemaEditorSlice = createSlice({
         }
       });
       schemaItem.restrictions = restrictions;
+    },
+    setRestrictions(state, action: PayloadAction<{ path: string; restrictions: Dict }>) {
+      const { path, restrictions } = action.payload;
+      const schemaItem = getNodeByPointer(state.uiSchema, path);
+      const schemaItemRestrictions = { ...schemaItem.restrictions };
+      Object.keys(restrictions).forEach((key) => {
+        schemaItemRestrictions[key] = castRestrictionType(key, restrictions[key]);
+      });
+      Object.keys(schemaItemRestrictions).forEach((k) => {
+        if (schemaItemRestrictions[k] === undefined) {
+          delete schemaItemRestrictions[k];
+        }
+      });
+      schemaItem.restrictions = schemaItemRestrictions;
     },
     setRef(state, action: PayloadAction<{ path: string; ref: string }>) {
       const { path, ref } = action.payload;
@@ -298,6 +313,7 @@ export const {
   setRef,
   setRequired,
   setRestriction,
+  setRestrictions,
   setSaveSchemaUrl,
   setSchemaName,
   setSelectedId,

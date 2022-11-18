@@ -1,16 +1,26 @@
-import React, { ChangeEvent, useState } from 'react';
+import React, { ChangeEvent, useReducer, useState } from 'react';
 import { RestrictionItemProps } from '../ItemRestrictions';
 import { RestrictionField } from '../RestrictionField';
 import { getTranslation } from '../../../utils/language';
 import classes from './StringRestrictions.module.css';
-import { FieldSet, Select, TextField } from '@altinn/altinn-design-system';
-import { StrRestrictionKeys } from '@altinn/schema-model';
+import { Checkbox, FieldSet, Select, TextField } from '@altinn/altinn-design-system';
+import { Dict, StringFormat, StrRestrictionKeys } from '@altinn/schema-model';
 import { Divider } from '../../common/Divider';
 import { Label } from '../../common/Label';
-import { StringFormat } from '@altinn/schema-model/src/lib/types';
 import { getDomFriendlyID } from '../../../utils/ui-schema-utils';
+import {
+  stringRestrictionsReducer,
+  StringRestrictionsReducerAction,
+  StringRestrictionsReducerActionType
+} from './StringRestrictionsReducer';
 
-export function StringRestrictions({ language, onChangeRestrictionValue, path, restrictions }: RestrictionItemProps) {
+export function StringRestrictions({
+  language,
+  onChangeRestrictionValue,
+  onChangeRestrictions,
+  path,
+  restrictions
+}: RestrictionItemProps) {
   const t = (key: string) => getTranslation(key, language);
   const [regexTestValue, setRegexTestValue] = useState<string>('');
   const pattern = restrictions[StrRestrictionKeys.pattern] || '';
@@ -23,37 +33,97 @@ export function StringRestrictions({ language, onChangeRestrictionValue, path, r
       setRegexTestValue(value);
     }
   };
+
+  const [formatState, dispatch] = useReducer(stringRestrictionsReducer, {
+    earliestIsInclusive: restrictions[StrRestrictionKeys.formatExclusiveMinimum] === undefined,
+    latestIsInclusive: restrictions[StrRestrictionKeys.formatExclusiveMaximum] === undefined,
+    earliest: restrictions[StrRestrictionKeys.formatExclusiveMinimum] ?? restrictions[StrRestrictionKeys.formatMinimum],
+    latest: restrictions[StrRestrictionKeys.formatExclusiveMaximum] ?? restrictions[StrRestrictionKeys.formatMaximum],
+    restrictions: Object.fromEntries(Object.values(StrRestrictionKeys).map((key) => [key, restrictions[key]]))
+  });
+
+  const changeCallback = (restrictions: Dict) => {
+    onChangeRestrictions(path, restrictions);
+  };
+
+  const setRestriction = (restriction: StrRestrictionKeys, value: string) =>
+    dispatch({ type: StringRestrictionsReducerActionType.setRestriction, restriction, value, changeCallback });
+
+  const dispatchAction = (type: StringRestrictionsReducerActionType, value: any) =>
+    dispatch({ type, value, changeCallback } as StringRestrictionsReducerAction);
+
   const noFormatOption = { label: t('format_none'), value: '' };
+  const formatMinLangKey = 'format_date_after_' + (formatState.earliestIsInclusive ? 'incl' : 'excl');
+  const formatMaxLangKey = 'format_date_before_' + (formatState.latestIsInclusive ? 'incl' : 'excl');
+
   return (
     <>
       <Divider inMenu />
       <Select
         inputId='format-select-input'
         label={t('format')}
-        onChange={(val: string) => onChangeRestrictionValue(path, StrRestrictionKeys.format, val || undefined)}
+        onChange={(value: string) => setRestriction(StrRestrictionKeys.format, value)}
         options={[noFormatOption, ...Object.values(StringFormat).map((f) => ({
           label: t(`format_${f}`),
           value: f as string,
         }))]}
         value={restrictions[StrRestrictionKeys.format] || ''}
       />
+      {[
+        StringFormat.Date,
+        StringFormat.DateTime,
+        StringFormat.Time
+      ].includes(restrictions[StrRestrictionKeys.format]) && (
+        <>
+          <div>
+            <Label htmlFor='format-after-field'>{t(formatMinLangKey)}</Label>
+            <div className={classes.formatFieldsRowContent}>
+              <TextField
+                id='format-after-field'
+                onChange={e => dispatchAction(StringRestrictionsReducerActionType.setEarliest, e.target.value)}
+                value={formatState.earliest}
+              />
+              <Checkbox
+                checked={formatState.earliestIsInclusive}
+                label={t('format_date_inclusive')}
+                onChange={e => dispatchAction(StringRestrictionsReducerActionType.setMinIncl, e.target.checked)}
+              />
+            </div>
+          </div>
+          <div>
+            <Label htmlFor='format-before-field'>{t(formatMaxLangKey)}</Label>
+            <div className={classes.formatFieldsRowContent}>
+              <TextField
+                id='format-before-field'
+                onChange={e => dispatchAction(StringRestrictionsReducerActionType.setLatest, e.target.value)}
+                value={formatState.latest}
+              />
+              <Checkbox
+                checked={formatState.latestIsInclusive}
+                label={t('format_date_inclusive')}
+                onChange={e => dispatchAction(StringRestrictionsReducerActionType.setMaxIncl, e.target.checked)}
+              />
+            </div>
+          </div>
+        </>
+      )}
       <div className={classes.lengthFields}>
-        <RestrictionField
-          className={classes.lengthField}
-          keyName={StrRestrictionKeys.minLength}
-          label={t(StrRestrictionKeys.minLength)}
-          onChangeValue={onChangeRestrictionValue}
-          path={path}
-          value={restrictions[StrRestrictionKeys.minLength] || ''}
-        />
-        <RestrictionField
-          className={classes.lengthField}
-          keyName={StrRestrictionKeys.maxLength}
-          label={t(StrRestrictionKeys.maxLength)}
-          onChangeValue={onChangeRestrictionValue}
-          path={path}
-          value={restrictions[StrRestrictionKeys.maxLength] || ''}
-        />
+        <div className={classes.lengthField}>
+          <TextField
+            formatting={{number: {}}}
+            label={t(StrRestrictionKeys.minLength)}
+            onChange={(e) => setRestriction(StrRestrictionKeys.minLength, e.target.value)}
+            value={restrictions[StrRestrictionKeys.minLength] || ''}
+          />
+        </div>
+        <div className={classes.lengthField}>
+          <TextField
+            formatting={{number: {}}}
+            label={t(StrRestrictionKeys.maxLength)}
+            onChange={(e) => setRestriction(StrRestrictionKeys.maxLength, e.target.value)}
+            value={restrictions[StrRestrictionKeys.maxLength] || ''}
+          />
+        </div>
       </div>
       <Divider inMenu />
       <FieldSet className={classes.fieldSet} legend={t('regex')}>
