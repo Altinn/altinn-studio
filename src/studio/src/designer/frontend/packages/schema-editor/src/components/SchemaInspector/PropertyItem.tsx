@@ -3,11 +3,10 @@ import { useDispatch } from 'react-redux';
 import type { ILanguage } from '../../types';
 import { getTranslation } from '../../utils/language';
 import { setRequired } from '../../features/editor/schemaEditorSlice';
-import { Checkbox, TextField } from '@altinn/altinn-design-system';
+import { Checkbox, Select, TextField } from '@altinn/altinn-design-system';
 import classes from './PropertyItem.module.css';
 import { IconButton } from '../common/IconButton';
 import { IconImage } from '../common/Icon';
-import { Select } from '../common/Select';
 import { getTypeOptions } from './helpers/options';
 import { FieldType } from '@altinn/schema-model';
 
@@ -77,15 +76,16 @@ export function PropertyItem({
           onKeyDown={onKeyDown}
         />
       </div>
-      <Select
-        className={classes.typeSelectCell + ' ' + classes.gridItem}
-        hideLabel
-        id={`${inputId}-typeselect`}
-        label={t('type')}
-        onChange={(type) => onChangeType(fullPath, type as FieldType)}
-        options={getTypeOptions(t)}
-        value={type}
-      />
+      <div className={classes.typeSelectCell + ' ' + classes.gridItem}>
+        <Select
+          hideLabel
+          inputId={`${inputId}-typeselect`}
+          label={t('type')}
+          onChange={(type) => onChangeType(fullPath, type as FieldType)}
+          options={getTypeOptions(t)}
+          value={type}
+        />
+      </div>
       <span className={classes.requiredCheckCell + ' ' + classes.gridItem}>
         <Checkbox
           checked={required ?? false}
