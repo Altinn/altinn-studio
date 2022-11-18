@@ -1,13 +1,7 @@
-.repoLink {
+.repoLink, .repoLink:hover {
   color: #57823d;
 }
-.repoLink:hover {
-  color: #57823d;
-}
-.editLink {
-  color: #165db8;
-}
-.editLink:hover {
+.editLink, .editLink:hover {
   color: #165db8;
 }
 .actionLink {
