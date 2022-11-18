@@ -237,8 +237,9 @@ export function Resources() {
       <h2>{getLanguageFromKey('dashboard.resources', language)}</h2>
       <Divider inMenu />
       <div className={classes.resourcesContainer}>
-        {resources.map((resource) => (
+        {resources.map((resource, index) => (
           <ResourceItem
+            key={`resource-item-${index}`}
             label={resource.label}
             description={resource.description}
             link={resource.url}

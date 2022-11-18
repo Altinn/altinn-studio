@@ -4,7 +4,7 @@ const path = require('path');
 const config = {
   // cacheDirectory: path.join(__dirname),
   transform: {
-    '\\.(ts|tsx)': '@swc/jest',
+    '\\.(ts|tsx|js)': '@swc/jest',
     // prettier-ignore
     'node_modules(\\\\|/)(react-dnd|dnd-core|@react-dnd|react-dnd-html5-backend|@?react-leaflet)(\\\\|/).+\\.(j|t)sx?$': '@swc/jest',
   },

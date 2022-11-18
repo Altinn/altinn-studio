@@ -89,7 +89,7 @@ describe('RepoList', () => {
       );
     render();
 
-    const favoriteBtn = screen.getByRole('button', {
+    const favoriteBtn = screen.getByRole('menuitem', {
       name: /dashboard.star/i,
     });
     await user.click(favoriteBtn);
@@ -106,7 +106,7 @@ describe('RepoList', () => {
       );
     render();
 
-    const unFavoriteBtn = screen.getByRole('button', {
+    const unFavoriteBtn = screen.getByRole('menuitem', {
       name: /dashboard.unstar/i,
     });
     await user.click(unFavoriteBtn);

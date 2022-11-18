@@ -11,12 +11,6 @@ import {
   GridValueFormatterParams,
   GridValueGetterParams,
 } from '@mui/x-data-grid';
-import {
-  Button,
-  ButtonColor,
-  ButtonSize,
-  ButtonVariant,
-} from '@altinn/altinn-design-system';
 import cn from 'classnames';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import type { IRepository } from 'app-shared/types/global';
@@ -115,27 +109,24 @@ export const RepoList = ({
         };
 
         return [
-          <Button
+          <GridActionsCellItem
             key={repo.id}
             id={`fav-repo-${repo.id}`}
             onClick={handleToggleFav}
-            aria-label={
+            label={
               repo.user_has_starred
                 ? t('dashboard.unstar')
                 : t('dashboard.star')
             }
-            variant={ButtonVariant.Quiet}
-            size={ButtonSize.Small}
-            color={ButtonColor.Secondary}
-            className={classes.favoriteButton}
-          >
-            <i
-              className={cn(classes.favoriteIcon, {
-                'fa fa-fav-filled': repo.user_has_starred,
-                'fa fa-fav-outline': !repo.user_has_starred,
-              })}
-            />
-          </Button>,
+            icon={
+              <i
+                className={cn(classes.favoriteIcon, {
+                  'fa fa-fav-filled': repo.user_has_starred,
+                  'fa fa-fav-outline': !repo.user_has_starred,
+                })}
+              />
+            }
+          />,
         ];
       },
     };
