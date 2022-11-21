@@ -8,7 +8,7 @@ describe('urlUtils', () => {
         repoFullName: 'org-name/app-name',
       });
 
-      expect(result).toEqual('http://localhost/editor/org-name/app-name#/');
+      expect(result).toEqual('http://localhost/editor/org-name/app-name/');
     });
   });
 
@@ -18,8 +18,7 @@ describe('urlUtils', () => {
         repoFullName: 'this-repo-has-datamodels',
       });
 
-      expect(result).not.toContain(APP_DEVELOPMENT_BASENAME);
-      expect(result).toContain('#/datamodelling/');
+      expect(result).toBe(`${APP_DEVELOPMENT_BASENAME}/this-repo-has-datamodels/datamodel`);
     });
 
     it('should not return url to datamodelling when repo name does not end with "-datamodels"', () => {
