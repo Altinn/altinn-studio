@@ -7,7 +7,7 @@ interface IApplicationAboutPage {
 export const applicationAboutPage = ({
   repoFullName,
 }: IApplicationAboutPage) => {
-  return `${window.location.origin}${APP_DEVELOPMENT_BASENAME}/${repoFullName}#/`;
+  return `${window.location.origin}${APP_DEVELOPMENT_BASENAME}/${repoFullName}/`;
 };
 
 interface IGetRepoUrl {
@@ -16,7 +16,7 @@ interface IGetRepoUrl {
 
 export const getRepoEditUrl = ({ repoFullName }: IGetRepoUrl) => {
   if (repoFullName.endsWith('-datamodels')) {
-    return `#/datamodelling/${repoFullName}`;
+    return `${APP_DEVELOPMENT_BASENAME}/${repoFullName}/datamodel`;
   }
 
   return `${APP_DEVELOPMENT_BASENAME}/${repoFullName}`;
