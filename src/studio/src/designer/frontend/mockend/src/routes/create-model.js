@@ -10,9 +10,12 @@ const getModel = (modelname) => {
   return template.replaceAll('__modelname__', modelname).replaceAll('__datamodelid__', crypto.randomUUID());
 };
 
-module.exports = (modelname) => {
-  const filepath = getStoragePath(modelname + '.schema.json');
-  const newSchema = getModel(modelname);
+module.exports = (req, res) => {
+  const { modelName } = req.body;
+  const filepath = getStoragePath(`${modelName}.schema.json`);
+  const newSchema = getModel(modelName);
   fs.writeFileSync(filepath, newSchema, 'utf-8');
-  return JSON.parse(newSchema);
+  const content = JSON.parse(newSchema);
+  res.status(201);
+  res.json(content);
 };

@@ -9,7 +9,7 @@ import {
 import { createStyles, makeStyles } from '@mui/styles';
 import classNames from 'classnames';
 import { Link, useParams } from 'react-router-dom';
-import { altinnImgLogoHeaderUrl } from 'app-shared/utils/urlHelper';
+import { altinnImgLogoHeaderUrl } from 'app-shared/cdn-paths';
 import type { IMenuItem } from 'app-shared/navigation/drawer/drawerMenuSettings';
 import TabletDrawerMenu from 'app-shared/navigation/drawer/TabletDrawerMenu';
 import { getTopBarMenu } from './appBarConfig';
@@ -156,7 +156,7 @@ export const AppBar = ({
                   className={classes.aImgStyling}
                 >
                   <img
-                    src={altinnImgLogoHeaderUrl}
+                    src={altinnImgLogoHeaderUrl()}
                     alt='Altinn logo'
                   />
                 </a>

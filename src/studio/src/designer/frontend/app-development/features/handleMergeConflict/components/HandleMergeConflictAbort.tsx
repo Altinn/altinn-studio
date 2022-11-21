@@ -5,6 +5,7 @@ import { getLanguageFromKey } from 'app-shared/utils/language';
 import { get } from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
 import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
+import {abortmergePath} from "app-shared/api-paths";
 
 interface IHandleMergeConflictAbortProps {
   language: any;
@@ -66,11 +67,6 @@ export class HandleMergeConflictAbort extends React.Component<
 
   public AbortConfirmed = async () => {
     const { org, app } = _useParamsClassCompHack();
-
-    const abortUrl =
-      `${window.location.origin}` +
-      `/designer/api/v1/repos/${org}/${app}/abortmerge`;
-
     // Try to abort merge and catch error
     // If successfull merge abort then initiate forceRepoStatusCheck
     try {
@@ -83,7 +79,7 @@ export class HandleMergeConflictAbort extends React.Component<
         },
       });
 
-      const abortRes = await get(abortUrl);
+      const abortRes = await get(abortmergePath(org,app));
       this.setState({
         networkingRes: abortRes,
         popoverState: {

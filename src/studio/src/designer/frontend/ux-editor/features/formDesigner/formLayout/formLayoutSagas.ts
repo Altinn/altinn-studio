@@ -13,13 +13,14 @@ import {
   getDeleteApplicationMetadataUrl,
   getDeleteForLayoutUrl,
   getFetchFormLayoutUrl,
-  getLayoutSchemaUrl,
   getLayoutSettingsUrl,
   getSaveFormLayoutUrl,
   getSaveLayoutSettingsUrl,
   getUpdateApplicationMetadataUrl,
   getUpLayNmeUrl,
 } from '../../../utils/urlHelper';
+import {layoutSchemaUrl} from 'app-shared/cdn-paths';
+
 import { ComponentTypes } from '../../../components';
 import {
   IAddApplicationMetadataAction,
@@ -231,7 +232,7 @@ function* saveFormLayoutSaga(): SagaIterator {
     const layouts = yield select((state: IAppState) => state.formDesigner.layout.layouts);
     const selectedLayout = yield select((state: IAppState) => state.formDesigner.layout.selectedLayout);
     const convertedLayout = {
-      $schema: getLayoutSchemaUrl(),
+      $schema: layoutSchemaUrl(),
       data: {
         layout: convertInternalToLayoutFormat(layouts[selectedLayout]),
       },

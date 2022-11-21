@@ -8,6 +8,7 @@ import { getLanguageFromKey } from 'app-shared/utils/language';
 import { get } from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
 import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
+import {discardChangesPath} from "app-shared/api-paths";
 
 const theme = createTheme(altinnTheme);
 
@@ -94,10 +95,7 @@ class HandleMergeConflictDiscardChanges extends React.Component<
         },
       });
 
-      const discardUrl =
-        `${window.location.origin}/` +
-        `/designer/api/v1/repos/${org}/${app}/discard`;
-      const discardRes = await get(discardUrl);
+      const discardRes = await get(discardChangesPath(org,app));
 
       this.setState({
         networkingRes: discardRes,

@@ -8,4 +8,4 @@ const fs = require('fs');
 const filepath = path.resolve(__dirname, '..', '..', '..', 'app-development', 'public', 'index.html');
 const indexHtml = fs.readFileSync(filepath, 'utf-8');
 
-module.exports = () => indexHtml;
+module.exports = (req, res) => res.send(indexHtml);

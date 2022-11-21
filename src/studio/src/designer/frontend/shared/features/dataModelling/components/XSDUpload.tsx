@@ -3,6 +3,7 @@ import { AltinnSpinner, FileSelector } from '../../../components';
 import { getLanguageFromKey } from '../../../utils/language';
 import axios from 'axios';
 import ErrorPopover from '../../../components/ErrorPopover';
+import {datamodelsUploadPath} from "../../../api-paths";
 
 export interface IXSDUploadProps {
   disabled?: boolean;
@@ -20,10 +21,9 @@ export const XSDUpload = ({ disabled, language, onXSDUploaded, org, repo, submit
   const uploadButton = React.useRef(null);
 
   const handleUpload = (formData: FormData, fileName: string) => {
-    const XSDUploadUrl = `${window.location.origin}/designer/api/${org}/${repo}/datamodels/upload`;
     setUploading(true);
     axios
-      .post(XSDUploadUrl, formData, {
+      .post(datamodelsUploadPath(org,repo), formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },

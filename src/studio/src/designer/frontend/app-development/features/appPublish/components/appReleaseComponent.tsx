@@ -14,10 +14,11 @@ import {
   BuildStatus,
 } from '../../../sharedResources/appRelease/types';
 import {
-  getGitCommitLink,
   getReleaseBuildPipelineLink,
 } from '../../../utils/urlHelper';
 import { useAppSelector } from '../../../common/hooks';
+import {gitCommitPath} from "app-shared/api-paths";
+import {useParams} from "react-router-dom";
 
 const styles = createStyles({
   releaseWrapper: {
@@ -104,7 +105,7 @@ function ReleaseComponent(props: IAppReleaseComponent) {
     }
     return release.body;
   }
-
+  const {org,app} = useParams();
   return (
     <Grid container={true} direction='row' className={classes.releaseWrapper}>
       <Grid container={true} direction='row' justifyContent='space-between'>
@@ -143,7 +144,7 @@ function ReleaseComponent(props: IAppReleaseComponent) {
         <Grid item={true}>
           <Typography className={classes.releaseText}>
             <a
-              href={getGitCommitLink(release.targetCommitish)}
+              href={gitCommitPath(org,app,release.targetCommitish)}
               target='_blank'
               rel='noopener noreferrer'
             >
