@@ -10,7 +10,7 @@ const mui = new Common();
 
 describe('Options', () => {
   it('is possible to retrieve options dynamically', () => {
-    cy.goto('changeName');
+    cy.goto('changename');
     // Case: options are dynamically refetched based on what the user selects as source
     cy.get(appFrontend.changeOfName.sources).should('be.visible');
 

@@ -50,7 +50,12 @@ export function SummaryComponent({ id, grid, ...summaryProps }: ISummaryComponen
   const GetHiddenSelector = makeGetHidden();
   const [componentValidations, setComponentValidations] = React.useState<IComponentValidations>({});
   const [hasValidationMessages, setHasValidationMessages] = React.useState(false);
-  const hidden: boolean = useAppSelector((state) => GetHiddenSelector(state, { id }));
+  const hidden = useAppSelector((state) => {
+    if (GetHiddenSelector(state, { id })) {
+      return true;
+    }
+    return !!(componentRef && GetHiddenSelector(state, { id: componentRef }));
+  });
   const summaryPageName = useAppSelector((state) => state.formLayout.uiConfig.currentView);
   const changeText = useAppSelector(
     (state) =>
@@ -161,7 +166,7 @@ export function SummaryComponent({ id, grid, ...summaryProps }: ISummaryComponen
       md={displayGrid?.md || false}
       lg={displayGrid?.lg || false}
       xl={displayGrid?.xl || false}
-      data-testid='summary-component'
+      data-testid={`summary-${id}`}
     >
       <Grid
         container={true}

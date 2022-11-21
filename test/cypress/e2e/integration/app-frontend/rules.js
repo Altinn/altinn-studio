@@ -7,7 +7,7 @@ const appFrontend = new AppFrontend();
 
 describe('Rules', () => {
   it('Rule is run and new name is a concatenated string', () => {
-    cy.goto('changeName');
+    cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName).type('automation');
     cy.get(appFrontend.changeOfName.newMiddleName).type('is');
     cy.get(appFrontend.changeOfName.newLastName)
@@ -23,7 +23,7 @@ describe('Rules', () => {
   });
 
   it('Rule is run when a backend calculation updates a relevant field', () => {
-    cy.goto('changeName');
+    cy.goto('changename');
     // We update newLastName which triggers a calculation backend that updates NewMiddleName to 'MiddleNameFromCalculation'
     // This should then trigger function which concatenates first + middle + last name to the newFullName field
     cy.get(appFrontend.changeOfName.newLastName).should('be.visible').type('LastName').blur();

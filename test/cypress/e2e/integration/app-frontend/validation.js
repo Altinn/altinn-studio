@@ -10,7 +10,7 @@ const mui = new Common();
 
 describe('Validation', () => {
   it('Required field validation should be visible on submit, not on blur', () => {
-    cy.goto('changeName');
+    cy.goto('changename');
 
     // This field has server-side validations marking it as required, overriding the frontend validation functionality
     // which normally postpones the empty fields validation until the page validation runs. We need to type something,
@@ -78,7 +78,7 @@ describe('Validation', () => {
   });
 
   it('Custom field validation - error', () => {
-    cy.goto('changeName');
+    cy.goto('changename');
     cy.intercept('GET', '**/validate').as('validateData');
     cy.get(appFrontend.changeOfName.newFirstName).should('be.visible').type('test').blur();
     cy.wait('@validateData');
@@ -92,7 +92,7 @@ describe('Validation', () => {
   });
 
   it('Soft validation - warning', () => {
-    cy.goto('changeName');
+    cy.goto('changename');
     cy.intercept('GET', '**/validate').as('validateData');
     cy.get(appFrontend.changeOfName.newMiddleName).should('be.visible').type('test').blur();
     cy.wait('@validateData');
@@ -103,7 +103,7 @@ describe('Validation', () => {
   });
 
   it('Soft validation - info', () => {
-    cy.goto('changeName');
+    cy.goto('changename');
     cy.intercept('GET', '**/validate').as('validateData');
     cy.get(appFrontend.changeOfName.newMiddleName).should('be.visible').type('info').blur();
     cy.wait('@validateData');
@@ -114,7 +114,7 @@ describe('Validation', () => {
   });
 
   it('Soft validation - success', () => {
-    cy.goto('changeName');
+    cy.goto('changename');
     cy.intercept('GET', '**/validate').as('validateData');
     cy.get(appFrontend.changeOfName.newMiddleName).should('be.visible').type('success').blur();
     cy.wait('@validateData');
@@ -125,7 +125,7 @@ describe('Validation', () => {
   });
 
   it('Page validation on clicking next', () => {
-    cy.goto('changeName');
+    cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName).should('be.visible').clear().type('test').blur();
     cy.get(appFrontend.changeOfName.confirmChangeName).should('be.visible').find('input').check();
     cy.intercept('GET', '**/validate').as('validateData');
@@ -176,7 +176,7 @@ describe('Validation', () => {
   });
 
   it('Validation on uploaded attachment type', () => {
-    cy.goto('changeName');
+    cy.goto('changename');
     cy.get(appFrontend.changeOfName.upload).selectFile('e2e/fixtures/test.png', { force: true });
     cy.get(appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.upload.substring(1)))
       .should('exist')
@@ -185,7 +185,7 @@ describe('Validation', () => {
   });
 
   it('Client side validation from json schema', () => {
-    cy.goto('changeName');
+    cy.goto('changename');
     cy.get(appFrontend.changeOfName.newLastName).should('be.visible').type('client').blur();
     cy.get(appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newLastName.substring(1)))
       .should('exist')

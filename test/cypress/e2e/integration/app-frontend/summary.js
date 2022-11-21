@@ -10,11 +10,16 @@ const mui = new Common();
 
 describe('Summary', () => {
   it('Summary of change name form', () => {
-    cy.gotoAndComplete('changeName');
+    cy.interceptLayout('changename', (component) => {
+      if (component.id === 'changeNameFrom') {
+        component.hidden = ['equals', ['component', 'newFirstName'], 'hidePrevName'];
+      }
+    });
+    cy.gotoAndComplete('changename');
     cy.get(appFrontend.backButton).should('be.visible');
 
-    //Summary displays change button for editable fields and does not for readonly fields
-    //navigate back to form and clear date
+    // Summary displays change button for editable fields and does not for readonly fields
+    // navigate back to form and clear date
     cy.get(appFrontend.changeOfName.summaryNameChanges)
       .should('be.visible')
       .then((summary) => {
@@ -43,7 +48,7 @@ describe('Summary', () => {
           });
       });
 
-    //Summary of attachment components
+    // Summary of attachment components
     cy.get(appFrontend.changeOfName.summaryNameChanges)
       .should('exist')
       .siblings()
@@ -59,8 +64,8 @@ describe('Summary', () => {
           .and('contain.text', 'Adresse');
       });
 
-    //Summary displays error when required field is not filled
-    //Navigate to form and fill the required field
+    // Summary displays error when required field is not filled
+    // Navigate to form and fill the required field
     cy.get(appFrontend.changeOfName.summaryNameChanges)
       .should('exist')
       .siblings()
@@ -79,7 +84,7 @@ describe('Summary', () => {
           });
       });
 
-    //Error in summary field is removed when the required field is filled
+    // Error in summary field is removed when the required field is filled
     cy.get(appFrontend.changeOfName.summaryNameChanges)
       .should('exist')
       .siblings()
@@ -87,7 +92,15 @@ describe('Summary', () => {
       .then((summaryDate) => {
         cy.get(summaryDate).contains(texts.dateOfEffect).should('not.have.css', 'color', 'rgb(213, 32, 59)');
         cy.get(summaryDate).contains(mui.gridContainer, texts.requiredFieldDateFrom).should('not.exist');
+
       });
+
+    // Hide the component the Summary refers to, which should hide the summary component as well
+    cy.get('[data-testid=summary-summary-1]').contains('span', 'Du har valgt å endre:').should('be.visible');
+    cy.get(appFrontend.navMenu).find('li > button').first().click();
+    cy.get(appFrontend.changeOfName.newFirstName).clear().type('hidePrevName');
+    cy.get(appFrontend.navMenu).find('li > button').last().click();
+    cy.get('[data-testid=summary-summary-1]').should('not.exist');
   });
 
   it('is possible to view summary of repeating group', () => {
@@ -122,8 +135,21 @@ describe('Summary', () => {
       .find(appFrontend.group.editContainer)
       .find(appFrontend.group.next).click();
     cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].nestedDynamics).click();
-    cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].nestedOptions[1]).click();
-    cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].nestedOptions[2]).click();
+
+    const workAroundSlowSave = JSON.parse('true');
+    if (workAroundSlowSave) {
+      // Blurring each of these works around a problem where clicking these too fast will overwrite the immedateState
+      // value in useDelayedSaveState(). This is a fundamental problem with the useDelayedSaveState() functionality,
+      // and in the future we should fix this properly by simplifying to save data immediately in the redux state
+      // but delay the PUT request instead.
+      // See https://github.com/Altinn/app-frontend-react/issues/339#issuecomment-1321920974
+      cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].nestedOptions[1]).check().blur();
+      cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].nestedOptions[2]).check().blur();
+    } else {
+      cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].nestedOptions[1]).check();
+      cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].nestedOptions[2]).check();
+    }
+
     cy.get(appFrontend.group.rows[0].nestedGroup.saveBtn).click();
     cy.get(appFrontend.group.saveMainGroup).click();
     cy.contains(mui.button, texts.backToSummary).click();
@@ -139,5 +165,12 @@ describe('Summary', () => {
         cy.get(item).eq(5).should('contain.text', texts.nestedOptions);
         cy.get(item).eq(5).should('contain.text', `${texts.nestedOption2}, ${texts.nestedOption3}`);
       });
+
+    // Hiding the group should hide the group summary as well
+    cy.get('[data-testid=summary-summary-1]').should('be.visible');
+    cy.get(appFrontend.navMenu).find('li > button').eq(1).click();
+    cy.get(appFrontend.group.showGroupToContinue).find('input[type=checkbox]').uncheck();
+    cy.get(appFrontend.navMenu).find('li > button').last().click();
+    cy.get('[data-testid=summary-summary-1]').should('not.exist');
   });
 });

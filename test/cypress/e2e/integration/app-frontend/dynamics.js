@@ -8,7 +8,7 @@ const appFrontend = new AppFrontend();
 
 describe('Dynamics', () => {
   it('Show and hide confirm name change checkbox on changing firstname', () => {
-    cy.goto('changeName');
+    cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName)
       .should('be.visible')
       .type('test')
@@ -25,7 +25,7 @@ describe('Dynamics', () => {
   });
 
   it('Show and hide name change reasons radio buttons', () => {
-    cy.goto('changeName');
+    cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName).should('be.visible').type('test');
     cy.get(appFrontend.changeOfName.newLastName).should('be.visible').type('test');
     cy.get(appFrontend.changeOfName.confirmChangeName).should('be.visible').find('input').check();
@@ -42,7 +42,7 @@ describe('Dynamics', () => {
         ];
       }
     });
-    cy.goto('changeName');
+    cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName).type('test');
     cy.get(appFrontend.errorReport)
       .should('exist')
@@ -85,7 +85,7 @@ describe('Dynamics', () => {
         ];
       },
     );
-    cy.goto('changeName');
+    cy.goto('changename');
 
     // Make sure the summary page can be hidden
     cy.get(appFrontend.navMenu).find('li > button').should('have.length', 2);

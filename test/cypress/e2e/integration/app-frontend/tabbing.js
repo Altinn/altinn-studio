@@ -7,7 +7,7 @@ const appFrontend = new AppFrontend();
 
 describe('Tabbing', () => {
   it('Tab through the fields in change name form', () => {
-    cy.goto('changeName');
+    cy.goto('changename');
     cy.get(appFrontend.changeOfName.newFirstName).focus().tab();
     cy.focused().should('have.attr', 'id').and('eq', appFrontend.changeOfName.newLastName.substring(1));
     cy.get(appFrontend.changeOfName.newLastName).type('a').blur().tab().tab().tab();

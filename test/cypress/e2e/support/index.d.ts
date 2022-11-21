@@ -1,6 +1,6 @@
 /// <reference types="cypress" />
 
-export type FrontendTestTask = 'message' | 'changeName' | 'group' | 'likert' | 'confirm';
+export type FrontendTestTask = 'message' | 'changename' | 'group' | 'likert' | 'confirm';
 export type GotoMode = 'fast' | 'with-data';
 
 declare namespace Cypress {
@@ -87,7 +87,7 @@ declare namespace Cypress {
      * Must be called in the beginning of your test.
      */
     interceptLayout(
-      layoutName: string,
+      layoutName: FrontendTestTask | string,
       mutator: (component: any) => void,
       wholeLayoutMutator?: (layoutSet: any) => void,
     ): Chainable<null>;

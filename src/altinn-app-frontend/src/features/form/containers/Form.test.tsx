@@ -219,7 +219,7 @@ describe('Form', () => {
       } as unknown as ILayoutEntry,
     ];
     renderForm(summaryComponent as ILayout);
-    expect(screen.getByTestId('summary-component')).toBeInTheDocument();
+    expect(screen.getByTestId('summary-the-summary')).toBeInTheDocument();
   });
 
   function renderForm(layout = mockComponents, customState: PreloadedState<RootState> = {}) {

@@ -14,7 +14,7 @@ const mui = new Common();
  * when using goto(..., 'fast')
  */
 const validMinimalData = {
-  changeName: {
+  changename: {
     'skjemanummer': '1533',
     'spesifikasjonsnummer': '11172',
     'blankettnummer': 'RF-1453',
@@ -76,7 +76,7 @@ const completeFormFast = {
     completeFormSlow.message();
     genericSendIn();
   },
-  changeName: () => endTaskWithData(validMinimalData.changeName),
+  changename: () => endTaskWithData(validMinimalData.changename),
   group: () => {
     endTaskWithData(validMinimalData.group);
   },
@@ -103,7 +103,7 @@ const completeFormSlow = {
     cy.wait('@createInstance');
     cy.get(appFrontend.closeButton).should('be.visible');
   },
-  changeName: () => {
+  changename: () => {
     cy.get(appFrontend.changeOfName.currentName)
       .should('be.visible')
       .then(() => {
@@ -173,7 +173,7 @@ const completeFormSlow = {
 
 const sendInTask = {
   message: genericSendIn,
-  changeName: genericSendIn,
+  changename: genericSendIn,
   group: genericSendIn,
   likert: genericSendIn,
   confirm: genericSendIn,

@@ -7,7 +7,7 @@ const appFrontend = new AppFrontend();
 
 describe('Texts', () => {
   beforeEach(() => {
-    cy.goto('changeName');
+    cy.goto('changename');
   });
 
   it('Variable in texts work and are updated if the variable is updated with a calculation backend', () => {

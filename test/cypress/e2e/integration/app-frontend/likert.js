@@ -24,7 +24,7 @@ describe('Likert', () => {
     likertPage.selectRadio(likertPage.optionalQuestions[0], likertPage.options[2]);
     likertPage.selectRadio(likertPage.optionalQuestions[1], likertPage.options[1]);
     likertPage.selectRadio(likertPage.optionalQuestions[2], likertPage.options[1]);
-    cy.get('[data-testid=summary-component]').should(($summary) => {
+    cy.get('[data-testid=summary-summary-1]').should(($summary) => {
       const text = $summary.text();
       expect(text).to.contain(likertPage.optionalTableTitle);
       expect(text).to.contain(likertPage.optionalQuestions[0] + ' : ' + likertPage.options[2]);
