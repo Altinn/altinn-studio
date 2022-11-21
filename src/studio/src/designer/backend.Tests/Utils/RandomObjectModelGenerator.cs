@@ -130,7 +130,7 @@ public static class RandomObjectModelGenerator
 
         if (!string.IsNullOrWhiteSpace(pattern))
         {
-            return new Xeger(pattern).Generate();
+            return new Xeger(pattern, Random).Generate();
         }
 
         var length = CalculateStringLength(minlength, maxlength);
@@ -269,7 +269,7 @@ public static class RandomObjectModelGenerator
     {
         var converter = TypeDescriptor.GetConverter(type);
 
-        return converter.ConvertFrom(new Xeger(pattern).Generate());
+        return converter.ConvertFrom(new Xeger(pattern, Random).Generate());
     }
 
     private static bool IsPrimitive(Type type)
