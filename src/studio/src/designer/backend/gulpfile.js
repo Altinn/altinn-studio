@@ -129,43 +129,47 @@ function copyReactCss(cb) {
   return;
 }
 
+const APP_DEVELOPMENT_ROOT = './wwwroot/designer/frontend/app-development';
+const DASHBOARD_ROOT = './wwwroot/designer/frontend/dashboard';
+const LANG_ROOT = './wwwroot/designer/frontend/lang';
+
 function copyDashboardJs() {
   setTimeout(function () {
-    gulp.src(jsDashboardFile).pipe(gulp.dest('./wwwroot/designer/frontend'));
+    gulp.src(jsDashboardFile).pipe(gulp.dest(DASHBOARD_ROOT));
   }, 1000);
   return;
 }
 
 function copyServDevJs() {
   setTimeout(function () {
-    gulp.src(jsServDevFile).pipe(gulp.dest('./wwwroot/designer/frontend'));
-    gulp.src(jsServDevModuleFile0).pipe(gulp.dest('./wwwroot/designer/frontend'));
-    gulp.src(jsServDevModuleFile1).pipe(gulp.dest('./wwwroot/designer/frontend'));
-    gulp.src(jsServDevModuleFile2).pipe(gulp.dest('./wwwroot/designer/frontend'));
-    gulp.src(jsServDevModuleFile3).pipe(gulp.dest('./wwwroot/designer/frontend'));
-    gulp.src(jsServDevMonacoWorker1).pipe(gulp.dest('./wwwroot/designer/frontend'));
-    gulp.src(jsServDevMonacoWorker2).pipe(gulp.dest('./wwwroot/designer/frontend'));
+    gulp.src(jsServDevFile).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
+    gulp.src(jsServDevModuleFile0).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
+    gulp.src(jsServDevModuleFile1).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
+    gulp.src(jsServDevModuleFile2).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
+    gulp.src(jsServDevModuleFile3).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
+    gulp.src(jsServDevMonacoWorker1).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
+    gulp.src(jsServDevMonacoWorker2).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
   }, 1000);
   return;
 }
 
 function copyDashboardCss() {
   setTimeout(function () {
-    gulp.src(cssDashboardFile).pipe(gulp.dest('./wwwroot/designer/frontend'));
+    gulp.src(cssDashboardFile).pipe(gulp.dest(DASHBOARD_ROOT));
   }, 1000);
   return;
 }
 
 function copyServDevCss() {
   setTimeout(function () {
-    gulp.src(cssServDevFile).pipe(gulp.dest('./wwwroot/designer/frontend'));
+    gulp.src(cssServDevFile).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
   }, 1000);
   return;
 }
 
 function copyLangFiles(cb) {
-  gulp.src(langNoFile).pipe(gulp.dest('./wwwroot/designer/frontend/lang'));
-  gulp.src(langEnFile).pipe(gulp.dest('./wwwroot/designer/frontend/lang'));
+  gulp.src(langNoFile).pipe(gulp.dest(LANG_ROOT));
+  gulp.src(langEnFile).pipe(gulp.dest(LANG_ROOT));
   setTimeout(cb, 1000);
   return;
 }
@@ -177,10 +181,10 @@ gulp.task('copy-files', gulp.series(copyNodeModulePackages, copyReactJs, copyRea
 gulp.task(
   'clean',
   gulp.series(
-    () => del('wwwroot/designer/frontend/app-development.css'),
-    () => del('wwwroot/designer/frontend/dashboard.css'),
-    () => del('wwwroot/designer/frontend/app-development.js'),
-    () => del('wwwroot/designer/frontend/dashboard.js'),
+    () => del('wwwroot/designer/frontend/app-development/app-development.css'),
+    () => del('wwwroot/designer/frontend/app-development/app-development.js'),
+    () => del('wwwroot/designer/frontend/dashboard/dashboard.css'),
+    () => del('wwwroot/designer/frontend/dashboard/dashboard.js'),
     () => del(cleanGlobs),
     run('yarn run clean', {
       ...defaultGulpRunOptions,
