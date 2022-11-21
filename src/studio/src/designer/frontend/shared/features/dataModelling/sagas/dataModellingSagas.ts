@@ -24,7 +24,16 @@ export function* fetchDataModelSaga(action: IDataModelAction): SagaIterator {
   const { metadata } = action.payload;
   try {
     const modelPath = metadata?.value?.repositoryRelativeUrl;
-    const result = yield call(get, sharedUrls().getDataModelUrl(modelPath));
+    let result;
+    if (metadata?.value?.fileType === '.xsd') {
+      result = yield call(
+        post,
+        sharedUrls().getAddXsdFromRepoUrl(modelPath.slice(1)),
+      );
+      yield put(DataModelsMetadataActions.getDataModelsMetadata());
+    } else {
+      result = yield call(get, sharedUrls().getDataModelUrl(modelPath));
+    }
     yield put(fetchDataModelFulfilled({ schema: result }));
   } catch (err) {
     yield put(fetchDataModelRejected({ error: err }));

@@ -2,6 +2,7 @@
 import { Action, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import type { IJsonSchema } from '@altinn/schema-editor/types';
 import type { IDataModelsMetadataState } from './metadata';
+import type { IMetadataOption } from '../functions/types';
 
 export interface IDataModelAction {
   payload: IDataModelActionPayload;
@@ -12,7 +13,7 @@ export interface IDataModelActionPayload {
   name?: string;
   schema?: IJsonSchema;
   repoType?: string;
-  metadata?: any;
+  metadata?: IMetadataOption;
 }
 
 export interface IDataModelErrorActionPayload extends Action {

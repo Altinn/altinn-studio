@@ -25,6 +25,8 @@ export const sharedUrls = () => {
       `${dataModelsApi}${pathToModelFile}`,
     saveDataModelUrl: (pathToModelFile: string) =>
       `${dataModelsApi}?modelPath=${encodeURIComponent(pathToModelFile)}`,
+    getAddXsdFromRepoUrl: (pathToModelFile: string) =>
+      `${dataModelsApi}/xsd-from-repo?filePath=${pathToModelFile}`,
   };
 };
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { CSSProperties } from 'react';
 import { Grid } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import Select from 'react-select';
@@ -9,8 +9,38 @@ interface ISchemaSelectProps {
   disabled: boolean;
   selectedOption: IMetadataOption | null;
   onChange: (optionWithMetadata: { value: any; label: string }) => void;
-  options: IMetadataOption[];
+  options: GroupedOption[];
 }
+
+export interface GroupedOption {
+  readonly label: string;
+  readonly options: readonly IMetadataOption[];
+}
+
+const groupStyles = {
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+};
+
+const groupBadgeStyles: CSSProperties = {
+  backgroundColor: '#0062BA',
+  borderRadius: '2em',
+  color: 'white',
+  display: 'inline-block',
+  fontWeight: 'normal',
+  lineHeight: '1',
+  minWidth: 1,
+  padding: '0.2em 0.5em',
+  textAlign: 'center',
+}
+
+const formatGroupLabel = (data: GroupedOption) => (
+  <div style={groupStyles}>
+    <span>{data.label}</span>
+    <span style={groupBadgeStyles}>{data.options.length}</span>
+  </div>
+);
 
 const useStyles = makeStyles({
   root: {
@@ -19,7 +49,7 @@ const useStyles = makeStyles({
     maxHeight: 36,
   },
   select: {
-    minWidth: 147,
+    minWidth: 400,
     zIndex: 1101,
   },
   chevron: {
@@ -52,7 +82,7 @@ export const SchemaSelect = (props: ISchemaSelectProps) => {
   const DropdownIndicator = () => <i className={classNames(['fa fa-nedtrekk', classes.chevron])} aria-hidden />;
   return (
     <Grid item xs={4}>
-      <Select
+      <Select<IMetadataOption, false, GroupedOption>
         id='schema-select-schema'
         styles={customStyles}
         components={{ IndicatorSeparator, DropdownIndicator }}
@@ -61,6 +91,7 @@ export const SchemaSelect = (props: ISchemaSelectProps) => {
         options={options}
         value={selectedOption}
         isDisabled={disabled}
+        formatGroupLabel={formatGroupLabel}
       />
     </Grid>
   );
