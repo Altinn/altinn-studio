@@ -18,7 +18,7 @@ namespace Designer.Tests.Utils;
 [ExcludeFromCodeCoverage]
 public static class RandomObjectModelGenerator
 {
-    private static readonly Random Random = new();
+    public static readonly Random Random = new();
 
     public static object GenerateValidRandomObject(Type type)
     {
@@ -64,7 +64,36 @@ public static class RandomObjectModelGenerator
 
     private static void PopulatePrimitiveProperty(object obj, PropertyInfo property)
     {
+        // Skip fixed data
+        if (property.GetValue(obj) is not null)
+        {
+            return;
+        }
+
         property.SetValue(obj, GeneratePrimitiveType(property.PropertyType, property.CustomAttributes));
+    }
+
+    private static void PopulateList(object obj, PropertyInfo property, int size = 5)
+    {
+        var argumentType = property.PropertyType.GetGenericArguments().First();
+        var list = (IList)Activator.CreateInstance(property.PropertyType);
+
+        var isPrimitive = IsPrimitive(argumentType);
+
+        for (var i = 0; i < size; i++)
+        {
+            if (isPrimitive)
+            {
+                list.Add(GeneratePrimitiveType(argumentType));
+                continue;
+            }
+
+            var listItem = Activator.CreateInstance(argumentType);
+            PopulateObjectWithRandomData(listItem);
+            list.Add(listItem);
+        }
+
+        property.SetValue(obj, list);
     }
 
     private static object GeneratePrimitiveType(Type type, IEnumerable<CustomAttributeData> restrictions = null)
@@ -81,7 +110,7 @@ public static class RandomObjectModelGenerator
 
         if (type == typeof(DateTime))
         {
-            return new DateTime(Random.Next(1990, 2030), Random.Next(1, 12), Random.Next(0, 28), Random.Next(1, 12), Random.Next(1, 59), Random.Next(1, 59));
+            return new DateTime(Random.Next(1990, 2030), Random.Next(1, 12), Random.Next(0, 28));
         }
 
         if (type == typeof(bool))
@@ -104,10 +133,61 @@ public static class RandomObjectModelGenerator
             return new Xeger(pattern).Generate();
         }
 
+        var length = CalculateStringLength(minlength, maxlength);
         var allowedChars = GetAllowedCharacters().ToList();
 
-        var length = CalculateStringLength(minlength, maxlength);
         return string.Join(string.Empty, Enumerable.Repeat(0, length).Select(_ => allowedChars[Random.Next(0, allowedChars.Count)]));
+    }
+
+    private static object GenerateNumberType(Type type, IEnumerable<CustomAttributeData> restrictions = null)
+    {
+        var (lowerLimit, upperLimit) = restrictions.GetRangeLimits();
+        var pattern = restrictions?.GetAttributeValue<string, RegularExpressionAttribute>();
+
+        if (!string.IsNullOrWhiteSpace(pattern))
+        {
+            return CreateTypeFromRegex(type, pattern);
+        }
+
+        if (type == typeof(int))
+        {
+            return NumberRangeGenerator(lowerLimit, upperLimit, () => Random.Next(), d => Convert.ToInt32(Math.Round(d, 0)));
+        }
+
+        if (type == typeof(short))
+        {
+            return NumberRangeGenerator(lowerLimit, upperLimit, () => (short)Random.Next(short.MinValue, short.MaxValue), d => Convert.ToInt16(Math.Round(d, 0)));
+        }
+
+        if (type == typeof(decimal))
+        {
+            return NumberRangeGenerator(lowerLimit, upperLimit, () => Convert.ToDecimal(Random.NextDouble()), Convert.ToDecimal);
+        }
+
+        if (type == typeof(double))
+        {
+            return NumberRangeGenerator(lowerLimit, upperLimit, () => Random.NextDouble(), d => d);
+        }
+
+        if (type == typeof(long))
+        {
+            return NumberRangeGenerator(lowerLimit, upperLimit, () => Random.NextInt64(), d => Convert.ToInt64(Math.Round(d, 0)));
+        }
+
+        throw new Exception("Non supported number type");
+    }
+
+    private static T NumberRangeGenerator<T>(object lowerLimit, object upperLimit, Func<T> randomGenerator, Func<double, T> fromDoubleGenerator)
+        where T : IComparable
+    {
+        var hasRange = lowerLimit is not null && upperLimit is not null;
+        if (hasRange)
+        {
+            var rnd = GenerateRandomDoubleWithinLimits(Convert.ToDouble(lowerLimit), Convert.ToDouble(upperLimit));
+            return fromDoubleGenerator.Invoke(rnd);
+        }
+
+        return randomGenerator.Invoke();
     }
 
     private static IEnumerable<char> GetAllowedCharacters()
@@ -124,8 +204,7 @@ public static class RandomObjectModelGenerator
             .Union(UnicodeRange(230, 230)) // æ
             .Union(UnicodeRange(198, 198)) // Æ
             .Union(UnicodeRange(229, 229)) // å
-            .Union(UnicodeRange(197, 197)) // Æ
-            .ToList();
+            .Union(UnicodeRange(197, 197)); // Æ
     }
 
     private static TValue GetAttributeValue<TValue, TAttributeType>(this IEnumerable<CustomAttributeData> restrictions)
@@ -175,72 +254,7 @@ public static class RandomObjectModelGenerator
         return usualLength;
     }
 
-    private static object GenerateNumberType(Type type, IEnumerable<CustomAttributeData> restrictions = null)
-    {
-        var (lowerLimit, upperLimit) = restrictions.GetRangeLimits();
-        var hasRange = lowerLimit is not null && upperLimit is not null;
-        var pattern = restrictions?.GetAttributeValue<string, RegularExpressionAttribute>();
-
-        if (!string.IsNullOrWhiteSpace(pattern))
-        {
-            return CreateTypeFromRegex(type, pattern);
-        }
-
-        if (type == typeof(int))
-        {
-            if (hasRange)
-            {
-                return Random.Next((int)lowerLimit, (int)upperLimit);
-            }
-
-            return Random.Next();
-        }
-
-        if (type == typeof(short))
-        {
-            if (hasRange)
-            {
-                return (short)Random.Next((int)lowerLimit, (int)upperLimit);
-            }
-
-            return (short)Random.Next(short.MinValue, short.MaxValue);
-        }
-
-        if (type == typeof(decimal))
-        {
-            if (hasRange)
-            {
-                var rnd = GenerateLargeRandom(Convert.ToDouble(lowerLimit), Convert.ToDouble(upperLimit));
-                return new decimal(rnd);
-            }
-
-            return new decimal(Random.NextDouble());
-        }
-
-        if (type == typeof(double))
-        {
-            if (hasRange)
-            {
-                return GenerateLargeRandom(Convert.ToDouble(lowerLimit), Convert.ToDouble(upperLimit));
-            }
-
-            return Random.NextDouble();
-        }
-
-        if (type == typeof(long))
-        {
-            if (hasRange)
-            {
-                return Random.NextInt64((long)lowerLimit, (long)upperLimit);
-            }
-
-            return Random.NextInt64();
-        }
-
-        throw new Exception("Non supported number type");
-    }
-
-    private static double GenerateLargeRandom(double lowerLimit, double upperLimit)
+    private static double GenerateRandomDoubleWithinLimits(double lowerLimit, double upperLimit)
     {
         const double minVal = -1_000_000_000_000;
         const double maxVal = 1_000_000_000_000;
@@ -256,29 +270,6 @@ public static class RandomObjectModelGenerator
         var converter = TypeDescriptor.GetConverter(type);
 
         return converter.ConvertFrom(new Xeger(pattern).Generate());
-    }
-
-    private static void PopulateList(object obj, PropertyInfo property, int size = 5)
-    {
-        var argumentType = property.PropertyType.GetGenericArguments().First();
-        var list = (IList)Activator.CreateInstance(property.PropertyType);
-
-        var isPrimitive = IsPrimitive(argumentType);
-
-        for (var i = 0; i < size; i++)
-        {
-            if (isPrimitive)
-            {
-                list.Add(GeneratePrimitiveType(argumentType));
-                continue;
-            }
-
-            var listItem = Activator.CreateInstance(argumentType);
-            PopulateObjectWithRandomData(listItem);
-            list.Add(listItem);
-        }
-
-        property.SetValue(obj, list);
     }
 
     private static bool IsPrimitive(Type type)

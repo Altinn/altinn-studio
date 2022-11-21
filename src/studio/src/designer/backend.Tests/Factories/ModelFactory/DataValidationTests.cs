@@ -31,6 +31,12 @@ public class DataValidationTests: Xsd2CsharpBaseClass<DataValidationTests>
 
     private object RandomRepresentingObject { get; set; }
 
+    /// <summary>
+    /// If xsd contains integer datatypes validation will fail since random object will be created as random decimal type
+    /// Related task: https://github.com/Altinn/altinn-studio/issues/7866
+    /// Also, enumeration restriction from xsd is not transferred to c# class.
+    /// Related task: https://github.com/Altinn/altinn-studio/issues/9282
+    /// </summary>
     [Theory]
     [ClassData(typeof(ValidationTestData))]
     public void Data_ShouldValidateAgainstSchemas(string xsdSchemaPath)
@@ -63,7 +69,7 @@ public class DataValidationTests: Xsd2CsharpBaseClass<DataValidationTests>
 
     private DataValidationTests RepresentingObject_ShouldBeValid()
     {
-        var isValid = Validator.TryValidateObject(RandomRepresentingObject, new ValidationContext(RandomRepresentingObject), null);
+        var isValid = Validator.TryValidateObject(RandomRepresentingObject, new ValidationContext(RandomRepresentingObject), null, true);
         isValid.Should().BeTrue();
         return this;
     }
