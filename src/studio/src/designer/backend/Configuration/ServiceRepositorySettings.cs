@@ -346,12 +346,7 @@ namespace Altinn.Studio.Designer.Configuration
             developer = developer.AsFileName();
             org = org.AsFileName();
 
-            if (developer != null)
-            {
-                developer += "/";
-            }
-
-            return $"{RepositoryLocation}{developer}{org}/";
+            return Path.Combine(RepositoryLocation, developer ?? string.Empty, org ?? string.Empty);
         }
 
         /// <summary>
@@ -367,8 +362,7 @@ namespace Altinn.Studio.Designer.Configuration
             app = app.AsFileName();
             developer = developer.AsFileName();
 
-            string repositoryLocation = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? RepositoryLocation;
-            return Path.Combine(repositoryLocation, developer ?? string.Empty, org ?? string.Empty, app ?? string.Empty);
+            return Path.Combine(RepositoryLocation, developer ?? string.Empty, org ?? string.Empty, app ?? string.Empty);
         }
 
         /// <summary>
