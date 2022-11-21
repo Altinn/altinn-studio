@@ -92,8 +92,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-            string orgPath = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-                ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + serviceMetadata.Org.AsFileName()
+            string orgPath = (_settings.RepositoryLocation != null)
+                ? _settings.RepositoryLocation + serviceMetadata.Org.AsFileName()
                 : _settings.GetOrgPath(serviceMetadata.Org.AsFileName(), developerUserName);
 
             string appPath = $"{orgPath}/{serviceMetadata.RepositoryName.AsFileName()}";
@@ -1054,9 +1054,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             string[] organisationDirectories = null;
 
-            organisationDirectories = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-            ? Directory.GetDirectories(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation"))
-            : Directory.GetDirectories(_settings.RepositoryLocation);
+            organisationDirectories = Directory.GetDirectories(_settings.RepositoryLocation);
 
             foreach (string organisationDirectory in organisationDirectories)
             {
