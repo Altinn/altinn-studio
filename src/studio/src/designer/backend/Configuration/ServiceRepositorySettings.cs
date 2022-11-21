@@ -425,7 +425,7 @@ namespace Altinn.Studio.Designer.Configuration
             org = org.AsFileName();
             app = app.AsFileName();
             developer = developer.AsFileName();
-            return Path.Combine( RepositoryLocation, developer ?? string.Empty, org, app, UI_RESOURCE_FOLDER_NAME, FORMLAYOUTS_RESOURCE_FOLDER_NAME);
+            return Path.Combine(RepositoryLocation, developer ?? string.Empty, org, app, UI_RESOURCE_FOLDER_NAME, FORMLAYOUTS_RESOURCE_FOLDER_NAME);
         }
 
         /// <summary>
