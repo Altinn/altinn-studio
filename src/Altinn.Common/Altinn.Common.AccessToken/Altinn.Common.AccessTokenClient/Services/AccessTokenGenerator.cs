@@ -85,6 +85,7 @@ namespace Altinn.Common.AccessTokenClient.Services
                 SecurityTokenDescriptor tokenDescriptor = new SecurityTokenDescriptor
                 {
                     Subject = new ClaimsIdentity(principal.Identity),
+                    NotBefore = DateTime.UtcNow.AddSeconds(-5),
                     Expires = DateTime.UtcNow.AddSeconds(_accessTokenSettings.TokenLifetimeInSeconds),
                     SigningCredentials = signingCredentials,
                     Audience = "platform.altinn.no",
