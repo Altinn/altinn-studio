@@ -17,7 +17,7 @@ namespace Altinn.Studio.Designer.Factories
         /// <summary>
         /// Initializes a new instance of the <see cref="AltinnGitRepositoryFactory"/> class.
         /// </summary>
-        /// <param name="serviceRepositorySettings">Settings controlling the where to find the repositories (using the value <see cref="ServiceRepositorySettings.RepositoryLocation"/>.</param>
+        /// <param name="serviceRepositorySettings">Settings controlling where to find the repositories (using the value <see cref="ServiceRepositorySettings.RepositoryLocation"/>.</param>
         public AltinnGitRepositoryFactory(IOptions<ServiceRepositorySettings> serviceRepositorySettings) : this(serviceRepositorySettings.Value.RepositoryLocation)
         {
         }
