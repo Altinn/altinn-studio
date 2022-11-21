@@ -732,7 +732,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 try
                 {
-                    organisation = await GetOrganization(cachekey);
+                    organisation = await GetOrganization(org);
                 }
                 catch
                 {
