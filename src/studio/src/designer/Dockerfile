@@ -15,7 +15,7 @@ RUN yarn --immutable
 RUN yarn build
 
 # Building the backend
-FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine AS generate-studio-backend
+FROM mcr.microsoft.com/dotnet/sdk:7.0-alpine AS generate-studio-backend
 WORKDIR /build
 COPY src/designer/Designer.sln ./
 COPY src/designer/backend ./designer/
