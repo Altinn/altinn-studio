@@ -18,7 +18,7 @@ namespace Designer.Tests.Utils;
 [ExcludeFromCodeCoverage]
 public static class RandomObjectModelGenerator
 {
-    public static readonly Random Random = new();
+    private static readonly Random Random = new();
 
     public static object GenerateValidRandomObject(Type type)
     {
