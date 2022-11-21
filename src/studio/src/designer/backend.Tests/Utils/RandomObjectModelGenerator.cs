@@ -204,7 +204,7 @@ public static class RandomObjectModelGenerator
             .Union(UnicodeRange(230, 230)) // æ
             .Union(UnicodeRange(198, 198)) // Æ
             .Union(UnicodeRange(229, 229)) // å
-            .Union(UnicodeRange(197, 197)); // Æ
+            .Union(UnicodeRange(197, 197)); // Å
     }
 
     private static TValue GetAttributeValue<TValue, TAttributeType>(this IEnumerable<CustomAttributeData> restrictions)
