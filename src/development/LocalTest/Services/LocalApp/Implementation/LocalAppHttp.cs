@@ -33,6 +33,7 @@ namespace LocalTest.Services.LocalApp.Implementation
             _authenticationService = authenticationService;
             _httpClient = httpClientFactory.CreateClient();
             _httpClient.BaseAddress = new Uri(localPlatformSettings.Value.LocalAppUrl);
+            _httpClient.Timeout = TimeSpan.FromHours(1);
             _cache = cache;
         }
         public async Task<string?> GetXACMLPolicy(string appId)
@@ -106,7 +107,10 @@ namespace LocalTest.Services.LocalApp.Implementation
             message.Headers.Authorization = new ("Bearer", GetOrgToken(appId.Split("/")[0], "840747972"));
             var response = await _httpClient.SendAsync(message);
             var stringResponse = await response.Content.ReadAsStringAsync();
-            response.EnsureSuccessStatusCode();
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new HttpRequestException(stringResponse);
+            }
 
             return JsonSerializer.Deserialize<Instance>(stringResponse, new JsonSerializerOptions{PropertyNameCaseInsensitive = true});
         }
