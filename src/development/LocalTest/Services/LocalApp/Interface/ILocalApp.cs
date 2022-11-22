@@ -16,6 +16,6 @@ namespace LocalTest.Services.LocalApp.Interface
 
         Task<TextResource?> GetTextResource(string org, string app, string language);
 
-        Task<Instance?> Instanciate(string appId, Instance instance, string xmlPrefill, string xmlDataId);
+        Task<Instance?> Instantiate(string appId, Instance instance, string xmlPrefill, string xmlDataId);
     }
 }

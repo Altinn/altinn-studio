@@ -100,7 +100,7 @@ namespace LocalTest.Services.LocalApp.Implementation
             return null;
         }
 
-        public Task<Instance?> Instanciate(string appId, Instance instance, string xmlPrefill, string xmlDataId)
+        public Task<Instance?> Instantiate(string appId, Instance instance, string xmlPrefill, string xmlDataId)
         {
             throw new NotImplementedException();
         }

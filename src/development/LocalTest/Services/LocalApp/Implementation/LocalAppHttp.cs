@@ -89,7 +89,7 @@ namespace LocalTest.Services.LocalApp.Implementation
             return ret;
         }
 
-        public async Task<Instance?> Instanciate(string appId, Instance instance, string xmlPrefill, string xmlDataId)
+        public async Task<Instance?> Instantiate(string appId, Instance instance, string xmlPrefill, string xmlDataId)
         {
             var requestUri = $"{appId}/instances";
             var serializedInstance = JsonSerializer.Serialize(instance, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault });
