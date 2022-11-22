@@ -1,9 +1,9 @@
 import React from 'react';
-import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import { Administration } from './Administration';
 import type { ICommit, IRepository } from '../../../types/global';
 import { APP_DEVELOPMENT_BASENAME } from '../../../../constants';
-import { IHandleServiceInformationState } from '../handleServiceInformationSlice';
+import type { IHandleServiceInformationState } from '../handleServiceInformationSlice';
 import { renderWithProviders } from '../../../test/testUtils';
 
 describe('Administration', () => {
@@ -89,120 +89,25 @@ describe('Administration', () => {
     expect(contentLoader).not.toBeNull();
   });
 
-  it('should handle sucessfully updating app name', async () => {
+  it('should show Apps view when repository is app repository', () => {
     const utils = renderWithProviders(<Administration />, {
       startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
       preloadedState: {
         serviceInformation: mockServiceInformation,
       },
     });
-    const dispatchSpy = jest.spyOn(utils.store, 'dispatch');
-    const mockEvent = { target: { value: 'New name' } };
-
-    const editButton = utils.getByText('general.edit').closest('button');
-    fireEvent.click(editButton);
-
-    const inputElement = utils
-      .getByTestId('administration-container')
-      .querySelector('#administrationInputAppName_textField');
-    expect((inputElement as HTMLInputElement).value).toEqual(mockServiceName);
-
-    fireEvent.change(inputElement, mockEvent);
-    expect((inputElement as HTMLInputElement).value).toEqual(
-      mockEvent.target.value,
-    );
-
-    fireEvent.blur(inputElement);
-
-    await waitFor(() => {
-      expect(dispatchSpy).toBeCalledWith({
-        payload: {
-          url: 'http://localhost/designer/undefined/undefined/Config/SetServiceConfig',
-          newServiceName: mockEvent.target.value,
-          newServiceId: mockServiceId,
-          newServiceDescription: mockServiceDescription,
-        },
-        type: 'handleServiceInformation/saveServiceConfig',
-      });
-      expect(dispatchSpy).toBeCalledWith({
-        payload: {
-          url: 'http://localhost/designer/undefined/undefined/Text/SetServiceName',
-          newServiceName: mockEvent.target.value,
-        },
-        type: 'handleServiceInformation/saveServiceName',
-      });
-    });
+    const serviceIdText = utils.getByText('administration.service_id');
+    expect(serviceIdText).not.toBeNull();
   });
 
-  it('should handle sucessfully updating app description', async () => {
+  it('should show Datamodels view when repository name matches "<org>-datamodels" format', () => {
     const utils = renderWithProviders(<Administration />, {
-      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
+      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-org-datamodels`,
       preloadedState: {
         serviceInformation: mockServiceInformation,
       },
     });
-    const mockEvent = { target: { value: 'New description' } };
-    const dispatchSpy = jest.spyOn(utils.store, 'dispatch');
-
-    const inputElement = utils
-      .getByTestId('administration-container')
-      .querySelector('#administrationInputDescription_textField');
-    expect((inputElement as HTMLInputElement).value).toEqual(
-      mockServiceDescription,
-    );
-
-    fireEvent.change(inputElement, mockEvent);
-    expect((inputElement as HTMLInputElement).value).toEqual(
-      mockEvent.target.value,
-    );
-
-    fireEvent.blur(inputElement);
-
-    await waitFor(() => {
-      expect(dispatchSpy).toBeCalledWith({
-        payload: {
-          url: 'http://localhost/designer/undefined/undefined/Config/SetServiceConfig',
-          newServiceName: mockServiceName,
-          newServiceId: mockServiceId,
-          newServiceDescription: mockEvent.target.value,
-        },
-        type: 'handleServiceInformation/saveServiceConfig',
-      });
-    });
-  });
-
-  it('should handle sucessfully updating app id', async () => {
-    const utils = renderWithProviders(<Administration />, {
-      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
-      preloadedState: {
-        serviceInformation: mockServiceInformation,
-      },
-    });
-    const dispatchSpy = jest.spyOn(utils.store, 'dispatch');
-    const mockEvent = { target: { value: 'New id' } };
-
-    const inputElement = utils
-      .getByTestId('administration-container')
-      .querySelector('#administrationInputAppId_textField');
-    expect((inputElement as HTMLInputElement).value).toEqual(mockServiceId);
-
-    fireEvent.change(inputElement, mockEvent);
-    expect((inputElement as HTMLInputElement).value).toEqual(
-      mockEvent.target.value,
-    );
-
-    fireEvent.blur(inputElement);
-
-    await waitFor(() => {
-      expect(dispatchSpy).toBeCalledWith({
-        payload: {
-          url: 'http://localhost/designer/undefined/undefined/Config/SetServiceConfig',
-          newServiceName: mockServiceName,
-          newServiceId: mockEvent.target.value,
-          newServiceDescription: mockServiceDescription,
-        },
-        type: 'handleServiceInformation/saveServiceConfig',
-      });
-    });
+    const infoText = utils.getByText('administration.datamodels_info1');
+    expect(infoText).not.toBeNull();
   });
 });

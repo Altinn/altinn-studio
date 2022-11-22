@@ -122,7 +122,7 @@ export function ServiceAdministration({
 
   return (
     <div
-      data-testid='administration-main-content-container'
+      data-testid='service-administration-container'
       className={classes.root}
     >
       {render ? (

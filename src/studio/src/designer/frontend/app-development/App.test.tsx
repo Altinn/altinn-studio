@@ -25,7 +25,7 @@ describe('App', () => {
 
   it('should not present popover if session is over 10min', () => {
     renderWithProviders(<App />, {
-      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app/`,
+      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
       preloadedState: {
         userState: {
           session: {

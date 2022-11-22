@@ -46,8 +46,8 @@ export function AdministrationComponent() {
             />
           )}
           {repositoryType === RepositoryType.Datamodels && (
-              <DatamodelsAdministration language={language} />
-            )}
+            <DatamodelsAdministration language={language} />
+          )}
         </AltinnColumnLayout>
       )}
       {!repository && (
