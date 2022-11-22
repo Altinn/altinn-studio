@@ -12,11 +12,12 @@ import { Link, useParams } from 'react-router-dom';
 import { altinnImgLogoHeaderUrl } from 'app-shared/utils/urlHelper';
 import type { IMenuItem } from 'app-shared/navigation/drawer/drawerMenuSettings';
 import TabletDrawerMenu from 'app-shared/navigation/drawer/TabletDrawerMenu';
-import { menu } from './appBarConfig';
+import { getTopBarMenu } from './appBarConfig';
 import ProfileMenu from 'app-shared/navigation/main-header/profileMenu';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import { useAppSelector } from '../../common/hooks';
+import { getRepositoryType } from '../../utils/repository';
 
 export interface IAppBarProps {
   activeSubHeaderSelection?: string;
@@ -123,6 +124,8 @@ export const AppBar = ({
     setIsMenuOpen((prev) => !prev);
   };
   const { org, app } = useParams();
+  const repositoryType = getRepositoryType(org, app);
+  const menu = getTopBarMenu(repositoryType);
   return (
     <div className={classes.root}>
       <MuiAppBar
