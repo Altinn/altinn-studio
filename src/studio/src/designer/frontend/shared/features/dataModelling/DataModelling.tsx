@@ -18,7 +18,7 @@ import { CreateNewWrapper } from './components/CreateNewWrapper';
 import { DeleteWrapper } from './components/DeleteWrapper';
 import { SchemaSelect } from './components/SchemaSelect';
 import { XSDUpload } from './components/XSDUpload';
-import {saveDatamodelPath} from "../../api-paths";
+import {datamodelPath} from "../../api-paths";
 
 
 interface IDataModellingContainerProps extends React.PropsWithChildren<any> {
@@ -183,7 +183,7 @@ export function DataModelling({ language, org, repo, createPathOption }: IDataMo
         language={language}
         schema={jsonSchema}
         onSaveSchema={handleSaveSchema}
-        saveUrl={saveDatamodelPath(org,repo,selectedOption?.value?.repositoryRelativeUrl)}
+        saveUrl={datamodelPath(org,repo,selectedOption?.value?.repositoryRelativeUrl)}
         name={selectedOption?.label}
         loading={metadataLoadingState === LoadingState.LoadingModels}
         LandingPagePanel={

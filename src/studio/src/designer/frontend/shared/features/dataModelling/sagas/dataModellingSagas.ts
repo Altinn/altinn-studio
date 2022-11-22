@@ -20,8 +20,8 @@ import {
 import { DataModelsMetadataActions } from './metadata';
 import {
   createDatamodelPath,
-  getDatamodelPath,
-  saveDatamodelPath,
+  datamodelPath,
+  datamodelGetPath,
 } from '../../../api-paths';
 import { _useParamsClassCompHack } from '../../../utils/_useParamsClassCompHack';
 
@@ -30,7 +30,7 @@ export function* fetchDataModelSaga(action: IDataModelAction): SagaIterator {
   try {
     const modelPath = metadata?.value?.repositoryRelativeUrl;
     const { org, app } = _useParamsClassCompHack();
-    const result = yield call(get, getDatamodelPath(org, app, modelPath));
+    const result = yield call(get, datamodelGetPath(org, app, modelPath));
     yield put(fetchDataModelFulfilled({ schema: result }));
   } catch (err) {
     yield put(fetchDataModelRejected({ error: err }));
@@ -46,7 +46,7 @@ function* saveDataModelSaga(action: IDataModelAction) {
   try {
     const { org, app } = _useParamsClassCompHack();
     const modelPath = metadata?.value?.repositoryRelativeUrl;
-    yield call(networkPut, saveDatamodelPath(org, app, modelPath), schema);
+    yield call(networkPut, datamodelPath(org, app, modelPath), schema);
     yield put(saveDataModelFulfilled());
   } catch (err) {
     yield put(saveDataModelRejected({ error: err }));
@@ -83,7 +83,7 @@ function* deleteDataModelSaga(action: IDataModelAction): SagaIterator {
   try {
     const { org, app } = _useParamsClassCompHack();
     const modelPath = metadata?.value?.repositoryRelativeUrl;
-    yield call(del, saveDatamodelPath(org, app, modelPath));
+    yield call(del, datamodelPath(org, app, modelPath));
     yield put(DataModelsMetadataActions.getDataModelsMetadata());
     yield put(deleteDataModelFulfilled());
   } catch (err) {

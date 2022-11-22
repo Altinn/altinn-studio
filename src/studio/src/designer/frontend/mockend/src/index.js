@@ -15,6 +15,7 @@ const {
   serviceConfigPath,
   serviceNamePath,
 } = require('../../shared/api-paths');
+const { datamodelGetPath, datamodelPath} = require('app-shared/api-paths');
 
 module.exports = (middlewares, devServer) => {
   if (!devServer) {
@@ -27,10 +28,10 @@ module.exports = (middlewares, devServer) => {
   const startUrl =
     process.env.npm_package_name === 'dashboard' ? DASHBOARD_BASENAME : `${APP_DEVELOPMENT_BASENAME}/someorg/someapp`;
 
-  app.delete(datamodelsPath(':owner', ':repo'), require('./routes/del-datamodel'));
+  app.delete(datamodelPath(':owner', ':repo'), require('./routes/del-datamodel'));
   app.get('/', (req, res) => res.redirect(startUrl));
   app.get('/designer/:owner/:repo', require('./routes/get-index-html'));
-  app.get('/designer/api/:owner/:repo/datamodelsApp/models/:filename', require('./routes/get-datamodel'));
+  app.get(datamodelGetPath(':owner', ':repo', '/App/models/:filename'), require('./routes/get-datamodel'));
   app.get(datamodelsPath(':owner', ':repo'), require('./routes/get-datamodels'));
   app.get(frontendLangPath(':locale'), (req, res) => res.json(require(`../../language/src/${req.params.locale}.json`)));
   app.get(remainingSessionTimePath(), (req, res) => res.send('9999'));
