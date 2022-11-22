@@ -7,6 +7,7 @@ import {
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { formatNameAndDate } from 'app-shared/utils/formatDate';
 import type { ICommit, IRepository } from '../../../types/global';
+import { RepositoryType } from '../../../types/global';
 import { ResetRepoModal } from './ResetRepoModal';
 import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import { DownloadRepoModal } from './DownloadRepoModal';
@@ -18,6 +19,7 @@ interface ISideMenuContent {
   language: any;
   service: IRepository;
   initialCommit: ICommit;
+  repoType: RepositoryType;
 }
 
 export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
@@ -54,7 +56,13 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
     <div className={classes.container}>
       {/* App owner info */}
       <h3>{t('general.service_owner')}</h3>
-      <div>{t('administration.service_owner_is')}</div>
+      <div>
+        {t(
+          props.repoType === RepositoryType.Datamodels
+            ? 'administration.repo_owner_is'
+            : 'administration.service_owner_is',
+        )}
+      </div>
       <div>
         <img
           src={props.service.owner.avatar_url}

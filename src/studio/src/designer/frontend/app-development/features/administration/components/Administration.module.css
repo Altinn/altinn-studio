@@ -1,3 +1,39 @@
-.spinner {
-  margin: auto;
+.avatar {
+  max-height: '2em';
+}
+.sidebarHeader {
+  margin-bottom: 20;
+  font-size: 20;
+  font-weight: 500;
+}
+
+.sidebarHeaderSecond {
+  margin-top: 36;
+}
+
+.sidebarInfoText {
+  font-size: 16;
+  margin-bottom: 12;
+}
+
+.iconStyling {
+  font-size: 35;
+  text-align: 'right';
+}
+
+.sidebarServiceOwner {
+  margin-top: 10;
+}
+
+.sidebarCreatedBy {
+  font-size: 16;
+  margin-top: 10;
+}
+
+.spinnerLocation {
+  margin: 'auto';
+}
+
+.margin-bottom_24 {
+  margin-bottom: 24;
 }
