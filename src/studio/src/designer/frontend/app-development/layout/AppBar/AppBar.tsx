@@ -15,7 +15,7 @@ import TabletDrawerMenu from 'app-shared/navigation/drawer/TabletDrawerMenu';
 import { getTopBarMenu } from './appBarConfig';
 import ProfileMenu from 'app-shared/navigation/main-header/profileMenu';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
+import { VersionControlContainer } from 'app-shared/version-control/versionControlHeader';
 import { useAppSelector } from '../../common/hooks';
 import { getRepositoryType } from '../../utils/repository';
 
@@ -229,7 +229,7 @@ export const AppBar = ({
                     xs
                     item
                   >
-                    <VersionControlHeader language={language} />
+                    <VersionControlContainer language={language} />
                   </Grid>
                   {menu.map((item) => (
                     <Grid

@@ -611,6 +611,4 @@ class VersionControlHeader extends React.Component<
   }
 }
 
-export default withStyles(styles)(VersionControlHeader);
-
 export const VersionControlContainer = withStyles(styles)(VersionControlHeader);
