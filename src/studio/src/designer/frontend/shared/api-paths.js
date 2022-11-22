@@ -13,6 +13,7 @@ export const keepAlivePath = () => `/designer/api/v1/session/keepalive`;
 export const orgsListPath = () => '/designer/api/v1/orgs';
 export const remainingSessionTimePath = () => `/designer/api/v1/session/remaining`;
 export const repoCommitPath = (owner, repo) => `/designer/api/v1/repos/${owner}/${repo}/commit`;
+export const repoDownloadPath = (owner, repo, full) => `/designer/api/v1/repos/${owner}/${repo}/contents.zip?${s({ full })}`
 export const repoInitialCommitPath = (owner, repo) => `/designer/api/v1/repos/${owner}/${repo}/initialcommit`;
 export const repoMetaPath = (owner, repo) => `/designer/api/v1/repos/${owner}/${repo}`;
 export const repoPullPath = (owner, repo) => `/designer/api/v1/repos/${owner}/${repo}/pull`;
