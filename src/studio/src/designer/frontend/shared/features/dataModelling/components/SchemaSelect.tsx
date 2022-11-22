@@ -5,7 +5,7 @@ import Select from 'react-select';
 import classNames from 'classnames';
 import type { IMetadataOption } from '../functions/types';
 
-interface ISchemaSelectProps {
+export interface ISchemaSelectProps {
   disabled: boolean;
   selectedOption: IMetadataOption | null;
   onChange: (optionWithMetadata: { value: any; label: string }) => void;
@@ -84,6 +84,7 @@ export const SchemaSelect = (props: ISchemaSelectProps) => {
     <Grid item xs={4}>
       <Select<IMetadataOption, false, GroupedOption>
         id='schema-select-schema'
+        data-testid='schema-select-schema'
         styles={customStyles}
         components={{ IndicatorSeparator, DropdownIndicator }}
         onChange={onChange}
