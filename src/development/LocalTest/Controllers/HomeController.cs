@@ -140,9 +140,6 @@ namespace LocalTest.Controllers
                 var prefill = Request.Form.Files.FirstOrDefault();
                 if (prefill != null)
                 {
-                    var owner = prefill.FileName.Split(".")[0];
-                    using var reader = new StreamReader(prefill.OpenReadStream());
-                    var content = await reader.ReadToEndAsync();
                     var instance = new Instance{
                         AppId = app.Id,
                         Org = app.Org,
@@ -150,6 +147,7 @@ namespace LocalTest.Controllers
                         DataValues = new(),
                     };
 
+                    var owner = prefill.FileName.Split(".")[0];
                     if (owner.Length == 9)
                     {
                         instance.InstanceOwner.OrganisationNumber = owner;
@@ -162,8 +160,11 @@ namespace LocalTest.Controllers
                     {
                         throw new Exception($"instance owner must be specified as part of the prefill filename. 9 digigts for OrganisationNumber, 12 for PersonNumber (eg 897069631.xml, not {prefill.FileName})");
                     }
+
                     var xmlDataId = app.DataTypes.First(dt => dt.AppLogic is not null).Id;
 
+                    using var reader = new StreamReader(prefill.OpenReadStream());
+                    var content = await reader.ReadToEndAsync();
                     var newInstance = await _localApp.Instanciate(app.Id, instance, content, xmlDataId);
 
                     return Redirect($"{_generalSettings.GetBaseUrl}/{app.Id}/#/instance/{newInstance.Id}");
