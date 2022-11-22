@@ -105,11 +105,11 @@ namespace Altinn.Platform.Authentication.Configuration
         /// <summary>
         /// Gets the jwt cookie validity time from kubernetes environment variables and appsettings if environment variable is not set
         /// </summary>
-        public string GetJwtCookieValidityTime
+        public int GetJwtCookieValidityTime
         {
             get
             {
-                return Environment.GetEnvironmentVariable("GeneralSettings__GetJwtCookieValidityTime") ?? JwtCookieValidityTime;
+                return Convert.ToInt32(Environment.GetEnvironmentVariable("GeneralSettings__GetJwtCookieValidityTime") ?? JwtCookieValidityTime);
             }
         }
 

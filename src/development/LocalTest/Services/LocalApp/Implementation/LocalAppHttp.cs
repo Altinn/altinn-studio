@@ -104,7 +104,7 @@ namespace LocalTest.Services.LocalApp.Implementation
             using var message = new HttpRequestMessage(HttpMethod.Post, requestUri);
             message.Content = content;
             // TODO: Figure out how to get orgnumber for app owner from appId
-            message.Headers.Authorization = new ("Bearer", GetOrgToken(appId.Split("/")[0], "840747972"));
+            message.Headers.Authorization = new ("Bearer", await _authenticationService.GenerateTokenForOrg(appId.Split("/")[0]));
             var response = await _httpClient.SendAsync(message);
             var stringResponse = await response.Content.ReadAsStringAsync();
             if (!response.IsSuccessStatusCode)
@@ -113,27 +113,6 @@ namespace LocalTest.Services.LocalApp.Implementation
             }
 
             return JsonSerializer.Deserialize<Instance>(stringResponse, new JsonSerializerOptions{PropertyNameCaseInsensitive = true});
-        }
-
-        private string GetOrgToken(string id, string orgNumber)
-        {
-            // Copied from HomeController (should probably be a method of IAuthService)
-            List<Claim> claims = new List<Claim>();
-            string issuer = _generalSettings.Hostname;
-            claims.Add(new Claim(AltinnCoreClaimTypes.Org, id.ToLower(), ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, issuer));
-            claims.Add(new Claim("urn:altinn:scope", "altinn:serviceowner/instances.read", ClaimValueTypes.String, issuer));
-            if (!string.IsNullOrEmpty(orgNumber))
-            {
-                claims.Add(new Claim(AltinnCoreClaimTypes.OrgNumber, orgNumber, ClaimValueTypes.String, issuer));
-            }
-
-            ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
-            identity.AddClaims(claims);
-            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
-
-            // Create a test token with long duration
-            return _authenticationService.GenerateToken(principal, 1337);
         }
     }
 }

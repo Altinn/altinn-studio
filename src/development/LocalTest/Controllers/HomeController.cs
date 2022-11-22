@@ -111,21 +111,9 @@ namespace LocalTest.Controllers
             if (startAppModel.AuthenticationLevel != "-1")
             {
                 UserProfile profile = await _userProfileService.GetUser(startAppModel.UserId);
+                int authenticationLevel = Convert.ToInt32(startAppModel.AuthenticationLevel);
 
-                List<Claim> claims = new List<Claim>();
-                string issuer = _generalSettings.Hostname;
-                claims.Add(new Claim(ClaimTypes.NameIdentifier, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
-                claims.Add(new Claim(AltinnCoreClaimTypes.UserId, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
-                claims.Add(new Claim(AltinnCoreClaimTypes.UserName, profile.UserName, ClaimValueTypes.String, issuer));
-                claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, profile.PartyId.ToString(), ClaimValueTypes.Integer32, issuer));
-                claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, startAppModel.AuthenticationLevel, ClaimValueTypes.Integer32, issuer));
-                claims.AddRange(await _claimsService.GetCustomClaims(profile.UserId, issuer));
-
-                ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
-                identity.AddClaims(claims);
-                ClaimsPrincipal principal = new ClaimsPrincipal(identity);
-
-                string token = _authenticationService.GenerateToken(principal, int.Parse(_generalSettings.GetJwtCookieValidityTime));
+                string token = await _authenticationService.GenerateTokenForProfile(profile, authenticationLevel);
                 CreateJwtCookieAndAppendToResponse(token);
             }
 
@@ -188,19 +176,8 @@ namespace LocalTest.Controllers
                 return NotFound();
             }
 
-            List<Claim> claims = new List<Claim>();
-            string issuer = _generalSettings.Hostname;
-            claims.Add(new Claim(AltinnCoreClaimTypes.UserId, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.UserName, profile.UserName, ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, profile.PartyId.ToString(), ClaimValueTypes.Integer32, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, issuer));
-
-            ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
-            identity.AddClaims(claims);
-            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
-
             // Create a test token with long duration
-            string token = _authenticationService.GenerateToken(principal, 1337);
+            string token = await _authenticationService.GenerateTokenForProfile(profile, 2);
             return Ok(token);
         }
 
@@ -209,26 +186,12 @@ namespace LocalTest.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public async Task<ActionResult> GetTestOrgToken(string id, [FromQuery] string orgNumber = "")
+        public async Task<ActionResult> GetTestOrgToken(string id, [FromQuery] string orgNumber = null)
         {
-            List<Claim> claims = new List<Claim>();
-            string issuer = _generalSettings.Hostname;
-            claims.Add(new Claim(AltinnCoreClaimTypes.Org, id.ToLower(), ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, issuer));
-            claims.Add(new Claim("urn:altinn:scope", "altinn:serviceowner/instances.read", ClaimValueTypes.String, issuer));
-            if (!string.IsNullOrEmpty(orgNumber))
-            {
-                claims.Add(new Claim(AltinnCoreClaimTypes.OrgNumber, orgNumber, ClaimValueTypes.String, issuer));
-            }
-
-            ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
-            identity.AddClaims(claims);
-            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
-
             // Create a test token with long duration
-            string token = _authenticationService.GenerateToken(principal, 1337);
+            string token = await _authenticationService.GenerateTokenForOrg(id, orgNumber);
 
-            return await Task.FromResult(Ok(token));
+            return Ok(token);
         }
 
         /// <summary>
