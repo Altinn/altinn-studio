@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Grid } from '@mui/material';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import { HandleServiceInformationActions } from '../handleServiceInformationSlice';
 import { MainContent } from './MainContent';
@@ -117,8 +116,7 @@ export function ServiceAdministration({
     }
   };
 
-  const render =
-    repository && newName !== null && newDescription !== null && newId !== null;
+  const render = repository && newName !== null && newDescription !== null && newId !== null;
 
   return (
     <div
@@ -143,12 +141,12 @@ export function ServiceAdministration({
           repositoryName={repository?.name || ''}
         />
       ) : (
-        <Grid container={true}>
+        <div>
           <AltinnSpinner
             spinnerText='Laster siden'
             styleObj={classes.spinner}
           />
-        </Grid>
+        </div>
       )}
     </div>
   );

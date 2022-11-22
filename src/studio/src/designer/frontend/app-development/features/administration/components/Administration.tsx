@@ -1,5 +1,4 @@
 import React from 'react';
-import { Grid } from '@mui/material';
 import { useParams } from 'react-router-dom';
 
 import { AltinnColumnLayout } from 'app-shared/components/AltinnColumnLayout';
@@ -51,12 +50,12 @@ export function AdministrationComponent() {
         </AltinnColumnLayout>
       )}
       {!repository && (
-        <Grid container={true}>
+        <div>
           <AltinnSpinner
             spinnerText='Laster siden'
             styleObj={classes.spinnerLocation}
           />
-        </Grid>
+        </div>
       )}
     </div>
   );
