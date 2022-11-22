@@ -8,9 +8,9 @@ import { SideMenuContent } from './SideMenuContent';
 import { useAppSelector } from '../../../common/hooks';
 import { ServiceAdministration } from './ServiceAdministration';
 import { DatamodelsAdministration } from './DatamodelsAdministration';
-import { getRepositoryType } from '../../../utils/repository';
+import { getRepositoryType } from 'app-shared/utils/repository';
 
-import { RepositoryType } from 'app-development/types/global';
+import { RepositoryType } from 'app-shared/types/global';
 import classes from './Administration.module.css';
 
 export function AdministrationComponent() {

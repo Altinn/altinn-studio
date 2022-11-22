@@ -25,12 +25,6 @@ export interface IRepository {
   website: string;
 }
 
-export enum RepositoryType {
-  App = 'App',
-  Datamodels = 'Datamodels',
-  Unknown = 'Unknown',
-}
-
 export interface IOwner {
   avatar_url: string;
   email: string;

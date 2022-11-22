@@ -17,7 +17,7 @@ import ProfileMenu from 'app-shared/navigation/main-header/profileMenu';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import { useAppSelector } from '../../common/hooks';
-import { getRepositoryType } from '../../utils/repository';
+import { getRepositoryType } from 'app-shared/utils/repository';
 
 export interface IAppBarProps {
   activeSubHeaderSelection?: string;

@@ -178,8 +178,9 @@ export const RepoList = ({
         align: 'right',
         getActions: (params: GridRowParams) => {
           const repoFullName = params.row.full_name as string;
+          const [org, repo] = repoFullName.split('/');
           const isDatamodelling = repoFullName.endsWith('-datamodels');
-          const editUrl = getRepoEditUrl({ repoFullName });
+          const editUrl = getRepoEditUrl({ org, repo });
           const editTextKey = isDatamodelling ? 'dashboard.edit_datamodels' : 'dashboard.edit_app';
 
           const colItems = [

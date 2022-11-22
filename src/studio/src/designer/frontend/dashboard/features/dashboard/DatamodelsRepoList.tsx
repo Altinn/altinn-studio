@@ -1,5 +1,4 @@
 import React from 'react';
-import { Typography } from '@mui/material';
 
 import { RepoList } from '../../common/components/RepoList';
 import { useGetSearchQuery } from '../../services/repoApi';
@@ -39,9 +38,7 @@ export const DatamodelsReposList = () => {
 
   return (
     <div>
-      <Typography variant='h2'>
-        {getReposLabel({ selectedContext, orgs, language, isDatamodelsRepo: true })}
-      </Typography>
+      <h2>{getReposLabel({ selectedContext, orgs, language, isDatamodelsRepo: true })}</h2>
       <RepoList
         repos={reposWithStarred}
         isLoading={isLoadingOrgRepos || isLoadingStarred}

@@ -95,7 +95,8 @@ export const CreateService = () => {
 
         window.location.assign(
           applicationAboutPage({
-            repoFullName: result.full_name,
+            org: result.owner.login,
+            repo: result.name,
           })
         );
       } catch (error) {

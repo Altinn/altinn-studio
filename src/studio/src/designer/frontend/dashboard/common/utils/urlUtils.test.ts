@@ -5,7 +5,8 @@ describe('urlUtils', () => {
   describe('applicationAboutPage', () => {
     it('should return url to about page', () => {
       const result = applicationAboutPage({
-        repoFullName: 'org-name/app-name',
+        org: 'org-name',
+        repo: 'app-name',
       });
 
       expect(result).toEqual('http://localhost/editor/org-name/app-name/');
@@ -13,17 +14,19 @@ describe('urlUtils', () => {
   });
 
   describe('getRepoEditUrl', () => {
-    it('should return url to datamodelling when repo name ends with "-datamodels"', () => {
+    it('should return url to datamodelling when repo name matches "<org>-datamodels"', () => {
       const result = getRepoEditUrl({
-        repoFullName: 'this-repo-has-datamodels',
+        org: 'org-name',
+        repo: 'org-name-datamodels',
       });
 
-      expect(result).toBe(`${APP_DEVELOPMENT_BASENAME}/this-repo-has-datamodels/datamodel`);
+      expect(result).toBe(`${APP_DEVELOPMENT_BASENAME}/org-name/org-name-datamodels/datamodel`);
     });
 
-    it('should not return url to datamodelling when repo name does not end with "-datamodels"', () => {
+    it('should not return url to datamodelling when repo name does not match "<org>-datamodels"', () => {
       const result = getRepoEditUrl({
-        repoFullName: 'this-repo-has-datamodels-not',
+        org: 'org-name',
+        repo: 'org-name-datamodels-not',
       });
 
       expect(result).not.toContain('#/datamodelling/');

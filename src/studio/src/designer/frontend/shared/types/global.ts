@@ -50,6 +50,12 @@ export interface IRepository {
   user_has_starred: boolean;
 }
 
+export enum RepositoryType {
+  App = 'App',
+  Datamodels = 'Datamodels',
+  Unknown = 'Unknown',
+}
+
 export interface IUser {
   avatar_url: string;
   login: string;
