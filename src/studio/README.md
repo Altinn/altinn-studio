@@ -78,7 +78,7 @@ docker-compose up -d --build altinn_designer
 ### Running and developing solutions locally
 
 When starting `docker-compose` the solution should be running as it would in production. But you probably want to change
-parts of the solution. The loadbalanser is configured to route the traffic to the right place according to your 
+parts of the solution. The loadbalancer is configured to route the traffic to the right place according to your 
 particular usecase. This is done by placing a `.env`-file in the same folder as docker-compose.yml. The content is as
 follow:
 
