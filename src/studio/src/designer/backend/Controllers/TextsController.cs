@@ -27,14 +27,16 @@ namespace Altinn.Studio.Designer.Controllers
     public class TextsController : ControllerBase
     {
         private readonly ITextsService _textsService;
+        private readonly ILanguagesService _languagesService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TextsController"/> class.
         /// </summary>
         /// <param name="textsService">The texts service.</param>
-        public TextsController(ITextsService textsService)
+        public TextsController(ITextsService textsService, ILanguagesService languagesService)
         {
             _textsService = textsService;
+            _languagesService = languagesService;
         }
 
         /// <summary>
@@ -56,6 +58,38 @@ namespace Altinn.Studio.Designer.Controllers
         public async Task<ActionResult<Dictionary<string, string>>> Get(string org, string repo, [FromRoute] string languageCode)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+            try
+            {
+                Dictionary<string, string> texts = await _textsService.GetTexts(org, repo, developer, languageCode);
+                return Ok(texts);
+            }
+            catch (IOException)
+            {
+                return NotFound($"The texts file, {languageCode}.texts.json, that you are trying to find does not exist.");
+            }
+            catch (JsonException)
+            {
+                return new ObjectResult(new { errorMessage = $"The format of the file, {languageCode}.texts.json, that you tried to access might be invalid." }) { StatusCode = 500 };
+            }
+        }
+
+        /// <summary>
+        /// Endpoint for getting a list of all keys.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repo">Application identifier which is unique within an organisation.</param>
+        /// <returns>List of keys</returns>
+        [HttpGet]
+        [Produces("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Route("keys")]
+        public async Task<ActionResult<List<string>>> Get(string org, string repo)
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            IList<string> languages = _languagesService.GetLanguages(org, repo, developer);
 
             try
             {

@@ -22,6 +22,16 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         public Task<Dictionary<string, string>> GetTexts(string org, string repo, string developer, string languageCode);
 
         /// <summary>
+        /// Gets all keys in use across the languages.
+        /// </summary>
+        /// <param name="org">Organisation</param>
+        /// <param name="repo">Repository</param>
+        /// <param name="developer">Username of developer</param>
+        /// <param name="languages">List of languages in application</param>
+        /// <returns>The text file as a dictionary with ID and text as key:value pairs</returns>
+        public Task<Dictionary<string, string>> GetKeys(string org, string repo, string developer, IList<string> languages);
+
+        /// <summary>
         /// Edit texts file for specific language by overwriting old text file.
         /// </summary>
         /// <param name="org">Organisation</param>
