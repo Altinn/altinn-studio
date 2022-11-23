@@ -97,7 +97,7 @@ public class AddXsdTests : ApiTestsBase<DatamodelsController, AddXsdTests>, IDis
     }
 
     [Fact]
-    public async Task AddXsd_DatamodelsRepo_ShouldReturnCreated()
+    public async Task AddXsd_DatamodelsRepo_NonAsciiName_ShouldReturnCreated()
     {
         // Arrange
         var org = "ttd";
@@ -113,7 +113,7 @@ public class AddXsdTests : ApiTestsBase<DatamodelsController, AddXsdTests>, IDis
         var formData = new MultipartFormDataContent();
         var streamContent = new StreamContent(fileStream);
         streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
-        formData.Add(streamContent, "file", "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd");
+        formData.Add(streamContent, "file", "Kursdomene_HvemErHvem_M_ÅåØøæÆ.xsd");
 
         var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
