@@ -1,13 +1,14 @@
 import { SagaIterator } from 'redux-saga';
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { get } from '../../../../../utils/networking';
-import { sharedUrls } from '../../../../../utils/urlHelper';
 import { DataModelsMetadataActions } from '../dataModelsMetadataSlice';
+import { datamodelsPath } from '../../../../../api-paths';
+import { _useParamsClassCompHack } from '../../../../../utils/_useParamsClassCompHack';
 
 function* getDataModelsMetadataSaga(): SagaIterator {
   try {
-    // yield call(get, sharedUrls().ensureCloneApi);
-    const dataModelsMetadata = yield call(get, sharedUrls().dataModelsApi);
+    const { org, app } = _useParamsClassCompHack();
+    const dataModelsMetadata = yield call(get, datamodelsPath(org, app));
     yield put(
       DataModelsMetadataActions.getDataModelsMetadataFulfilled({
         dataModelsMetadata,

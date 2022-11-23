@@ -1,6 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { actions, moduleName } from './formLayoutActions';
-import { getLayoutSettingsSchemaUrl } from '../../../utils/urlHelper';
 import { sortArray } from '../../../utils/arrayHelpers/arrayLogic';
 import type {
   IAddActiveFormContainerAction,
@@ -28,6 +27,7 @@ import type {
 } from '../formDesignerTypes';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import type { IFormDesignerLayout } from '../../../types/global';
+import {layoutSettingsSchemaUrl} from "app-shared/cdn-paths";
 
 export interface IFormLayoutState extends IFormDesignerLayout {
   fetching: boolean;
@@ -52,7 +52,7 @@ const initialState: IFormLayoutState = {
   activeList: [],
   selectedLayout: 'default',
   layoutSettings: {
-    $schema: getLayoutSettingsSchemaUrl(),
+    $schema: layoutSettingsSchemaUrl(),
     pages: { order: [] },
   },
 };

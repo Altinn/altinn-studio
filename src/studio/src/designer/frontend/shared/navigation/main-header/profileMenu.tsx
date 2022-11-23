@@ -1,10 +1,11 @@
 import React from 'react';
 import { IconButton, Menu, MenuItem } from '@mui/material';
 import { withStyles } from '@mui/styles';
-import { altinnDocsUrl, sharedUrls } from '../../utils/urlHelper';
+import { altinnDocsUrl } from '../../utils/urlHelper';
 import { post } from '../../utils/networking';
 import { AccountCircle } from '@mui/icons-material';
 import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
+import {repositoryPath} from "../../api-paths";
 
 export interface IProfileMenuComponentProps {
   showlogout?: boolean;
@@ -67,7 +68,7 @@ class ProfileMenuComponent extends React.Component<
   public render() {
     const { anchorEl } = this.state;
     const { classes, showlogout } = this.props;
-
+    const { org, app } = _useParamsClassCompHack();
     return (
       <div>
         <IconButton
@@ -102,7 +103,7 @@ class ProfileMenuComponent extends React.Component<
           {this.shouldShowRepositoryLink() && (
             <MenuItem className={classes.menuItem}>
               <a
-                href={sharedUrls().repositoryUrl}
+                href={repositoryPath(org,app)}
                 target='_blank'
                 rel='noopener noreferrer'
               >
