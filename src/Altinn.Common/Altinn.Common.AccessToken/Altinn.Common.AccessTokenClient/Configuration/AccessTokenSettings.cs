@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace Altinn.Common.AccessTokenClient.Configuration
 {
     /// <summary>
@@ -19,6 +14,12 @@ namespace Altinn.Common.AccessTokenClient.Configuration
         /// The lifetime for a token
         /// </summary>
         public int TokenLifetimeInSeconds { get; set; } = 300;
+
+        /// <summary>
+        /// Specify the number of seconds to add (or subtract) to the current time when determining
+        /// when the access token should be considered valid
+        /// </summary>
+        public int ValidFromAdjustmentSeconds { get; set; } = -5;
 
         /// <summary>
         /// The name of the cert for access token signing

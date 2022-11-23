@@ -24,6 +24,8 @@ import { matchPath, useLocation } from 'react-router-dom';
 
 import classes from './App.module.css';
 import { useAppDispatch, useAppSelector } from './common/hooks';
+import { getRepositoryType } from './utils/repository';
+import { RepositoryType } from './types/global';
 
 const theme = createTheme(altinnTheme);
 
@@ -37,6 +39,7 @@ export function App() {
     pathname,
   );
   const { org, app } = match.params;
+  const repositoryType = getRepositoryType(org, app);
   const language = useAppSelector((state) => state.languageState.language);
   const t = (key: string) => getLanguageFromKey(key, language);
   const repoStatus = useAppSelector(GetRepoStatusSelector);
@@ -53,18 +56,15 @@ export function App() {
         url: `${window.location.origin}/designer/frontend/lang/nb.json`,
       }),
     );
-    dispatch(ApplicationMetadataActions.getApplicationMetadata());
     dispatch(DataModelsMetadataActions.getDataModelsMetadata());
-  }, [dispatch]);
+    if (repositoryType === RepositoryType.App) {
+      dispatch(ApplicationMetadataActions.getApplicationMetadata());
+    }
+  }, [dispatch, repositoryType]);
 
   useEffect(() => {
     dispatch(fetchRemainingSession());
     if (app && org) {
-      dispatch(
-        HandleServiceInformationActions.fetchServiceName({
-          url: `${window.location.origin}/designer/${org}/${app}/Text/GetServiceName`,
-        }),
-      );
       dispatch(
         HandleServiceInformationActions.fetchService({
           url: `${window.location.origin}/designer/api/v1/repos/${org}/${app}`,
@@ -75,13 +75,22 @@ export function App() {
           url: `${window.location.origin}/designer/api/v1/repos/${org}/${app}/initialcommit`,
         }),
       );
-      dispatch(
-        HandleServiceInformationActions.fetchServiceConfig({
-          url: `${window.location.origin}/designer/${org}/${app}/Config/GetServiceConfig`,
-        }),
-      );
+
+      if (repositoryType === RepositoryType.App) {
+        dispatch(
+          HandleServiceInformationActions.fetchServiceName({
+            url: `${window.location.origin}/designer/${org}/${app}/Text/GetServiceName`,
+          }),
+        );
+
+        dispatch(
+          HandleServiceInformationActions.fetchServiceConfig({
+            url: `${window.location.origin}/designer/${org}/${app}/Config/GetServiceConfig`,
+          }),
+        );
+      }
     }
-  }, [app, dispatch, org]);
+  }, [app, dispatch, org, repositoryType]);
 
   useEffect(() => {
     const setEventListeners = (subscribe: boolean) => {
