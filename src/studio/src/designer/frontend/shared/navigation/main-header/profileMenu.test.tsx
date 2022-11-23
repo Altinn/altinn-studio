@@ -2,7 +2,7 @@ import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IProfileMenuComponentProps } from './profileMenu';
-import ProfileMenuComponent from './profileMenu';
+import {ProfileMenu} from './profileMenu';
 
 const user = userEvent.setup();
 
@@ -110,5 +110,5 @@ const render = (props: Partial<IProfileMenuComponentProps> = {}) => {
     ...props,
   } as IProfileMenuComponentProps;
 
-  return rtlRender(<ProfileMenuComponent {...allProps} />);
+  return rtlRender(<ProfileMenu {...allProps} />);
 };

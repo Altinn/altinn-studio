@@ -1,5 +1,5 @@
 import React from 'react';
-import FetchChangesComponenet from './fetchChanges';
+import { FetchChangesComponent } from './fetchChanges';
 import type { IFetchChangesComponentProps } from './fetchChanges';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -30,5 +30,5 @@ const render = (props: Partial<IFetchChangesComponentProps> = {}) => {
     ...props,
   };
 
-  return rtlRender(<FetchChangesComponenet {...allProps} />);
+  return rtlRender(<FetchChangesComponent {...allProps} />);
 };
