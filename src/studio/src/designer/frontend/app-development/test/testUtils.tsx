@@ -3,10 +3,9 @@ import type { RenderOptions } from '@testing-library/react';
 import { render } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import type { PreloadedState } from '@reduxjs/toolkit';
-import { Router } from 'react-router-dom';
+import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import type { AppStore, RootState } from '../store';
 import { setupStore } from '../store';
-import { createMemoryHistory } from 'history';
 import { APP_DEVELOPMENT_BASENAME } from '../../constants';
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
@@ -25,17 +24,17 @@ export const renderWithProviders = (
   }: ExtendedRenderOptions = {},
 ) => {
   function Wrapper({ children }: React.PropsWithChildren<unknown>) {
-    const history = createMemoryHistory();
-    history.push(startUrl);
     return (
       <Provider store={store}>
-        <Router
+        <MemoryRouter
           basename={APP_DEVELOPMENT_BASENAME}
-          location={history.location}
-          navigator={history}
+          initialEntries={[startUrl]}
         >
-          {children}
-        </Router>
+          <Routes>
+            <Route path='/:org/:app/*' element={children}/>
+          </Routes>
+
+        </MemoryRouter>
       </Provider>
     );
   }

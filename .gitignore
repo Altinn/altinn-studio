@@ -161,6 +161,7 @@ publish/
 project.lock.json
 
 # yarn lock file
+/yarn.lock
 package-lock.json
 
 # Windows Azure Build Output
@@ -380,3 +381,5 @@ src/Altinn.Apps/AppTemplates/AspNet/App/Properties/launchSettings.json
 ## Test repositories
 src/studio/src/designer/backend.Tests/_TestData/Repositories/*/*/test-repo_*/**
 src/studio/src/designer/backend.Tests/_TestData/Remote/*/test-repo_*/**
+src/studio/.env
+src/studio/.devcontainer/**

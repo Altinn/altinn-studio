@@ -1,13 +1,8 @@
 import React, { Component, createRef, RefObject } from 'react';
 import { connect } from 'react-redux';
 import { Dispatch } from 'redux';
-import altinnTheme from 'app-shared/theme/altinnStudioTheme';
-import { Grid, IconButton } from '@mui/material';
-import { createStyles, WithStyles, withStyles } from '@mui/styles';
 import '../styles/index.css';
-import AltinnInputField from 'app-shared/components/AltinnInputField';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import AltinnCheckBox from 'app-shared/components/AltinnCheckBox';
 import ErrorPopover from 'app-shared/components/ErrorPopover';
 import {
   makeGetActiveFormContainer,
@@ -31,8 +26,19 @@ import type {
 import { DroppableDraggableComponent } from './DroppableDraggableComponent';
 import { DroppableDraggableContainer } from './DroppableDraggableContainer';
 import { EditorDndEvents } from './helpers/dnd-types';
+import {
+  Button,
+  ButtonColor,
+  ButtonVariant,
+  Checkbox,
+  CheckboxGroup,
+  FieldSet,
+  TextField
+} from '@altinn/altinn-design-system';
+import classes from './Container.module.css';
+import cn from 'classnames';
 
-export interface IProvidedContainerProps extends WithStyles<typeof styles> {
+export interface IProvidedContainerProps {
   isBaseContainer?: boolean;
   dispatch?: Dispatch;
   id: string;
@@ -71,68 +77,6 @@ export interface IContainerState {
   tableHeadersPopoverRef: RefObject<HTMLDivElement>;
 }
 
-const styles = createStyles({
-  hoverStyle: {
-    '&:hover': {
-      backgroundColor: '#fff',
-      boxShadow: '0rem 0rem 0.4rem rgba(0, 0, 0, 0.25)',
-    },
-  },
-  borderBottom: {
-    borderBottom: `0.15em dotted ${altinnTheme.altinnPalette.primary.blue}`,
-  },
-  borderTop: {
-    borderTop: `0.15em dotted ${altinnTheme.altinnPalette.primary.blue}`,
-  },
-  icon: {
-    color: altinnTheme.altinnPalette.primary.grey,
-    fontSize: '2.4rem!important',
-  },
-  formGroup: {
-    backgroundColor: altinnTheme.altinnPalette.primary.greyLight,
-    color: `${altinnTheme.altinnPalette.primary.blueDark}!important`,
-    paddingRight: '1.2rem',
-    height: '48px',
-    cursor: 'pointer',
-  },
-  containerEdit: {
-    visibility: 'hidden',
-  },
-  iconButton: {
-    fontSize: '0.6em !important',
-    paddingLeft: '0.4rem',
-    '&:hover': {
-      background: 'none',
-    },
-  },
-  expandIcon: {
-    paddingRight: '0px',
-  },
-  editIcon: {
-    fontSize: '0.85em !important',
-    marginLeft: '-12px',
-    '&:hover': {
-      background: 'none',
-    },
-  },
-  wrapper: {
-    '&:hover $containerEdit ': {
-      visibility: 'visible',
-    },
-  },
-  editWrapper: {
-    '&:hover $containerEdit ': {
-      visibility: 'visible',
-    },
-  },
-  editSection: {
-    backgroundColor: '#fff',
-    boxShadow: '0rem 0rem 0.4rem rgba(0, 0, 0, 0.25)',
-    padding: '0.45rem 1.05rem 1.05rem 1.05rem',
-    marginBottom: '1.2rem',
-    border: '0.15rem solid #fff',
-  },
-});
 export class ContainerComponent extends Component<IContainerProps, IContainerState> {
   public static getDerivedStateFromProps(nextProps: IContainerProps, prevState: IContainerState) {
     if (prevState.currentlyDragging) {
@@ -309,17 +253,11 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
     });
   };
 
-  public handleTableHeadersChange = (id: string, index: number) => {
+  public handleTableHeadersChange = (ids: string[]) => {
+    console.log(ids);
     this.setState((prevState: IContainerState) => {
       const updatedContainer = prevState.tmpContainer;
-      if (!prevState.tmpContainer.tableHeaders) {
-        updatedContainer.tableHeaders = [...prevState.itemOrder];
-      }
-      if (updatedContainer.tableHeaders.includes(id)) {
-        updatedContainer.tableHeaders.splice(updatedContainer.tableHeaders.indexOf(id), 1);
-      } else {
-        updatedContainer.tableHeaders.splice(index, 0, id);
-      }
+      updatedContainer.tableHeaders = [...ids];
       if (updatedContainer.tableHeaders?.length === this.props.itemOrder.length) {
         // table headers is the same as children. We ignore the table header prop
         updatedContainer.tableHeaders = undefined;
@@ -399,201 +337,121 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
   };
 
   public render = (ref?: any): JSX.Element => {
-    const className: string = this.props.isBaseContainer
-      ? 'col-12'
-      : `${this.props.classes.formGroup} ${this.props.classes.borderTop}`;
-    const hoverClass: string = this.props.isBaseContainer ? '' : this.props.classes.hoverStyle;
-    if (this.state.editMode) {
-      return this.renderEditMode();
-    }
+    const { components, containers, id, isBaseContainer, itemOrder } = this.props;
+    const { editMode, expanded } = this.state;
+
+    if (editMode) return this.renderEditMode();
 
     return (
-      <Grid
-        container={true}
-        style={this.props.isBaseContainer ? { paddingTop: '24px', paddingBottom: '24px' } : undefined}
+      <div
+        onClick={this.changeActiveFormContainer}
+        ref={ref}
+        className={cn(classes.wrapper, !isBaseContainer && classes.formGroupWrapper)}
       >
-        <Grid
-          container={true}
-          onClick={this.changeActiveFormContainer}
-          ref={ref}
-          className={this.props.classes.wrapper}
-        >
-          <Grid
-            item={true}
-            xs={11}
-            className={className}
-          >
-            {!this.props.isBaseContainer && (
-              <Grid
-                item={true}
-                style={{ paddingTop: '12px' }}
-              >
-                <IconButton
-                  type='button'
-                  className={`${this.props.classes.iconButton} ${this.props.classes.expandIcon}`}
-                  onClick={this.handleExpand}
-                >
-                  <i
-                    className={`${this.props.classes.icon} fa fa-expand-alt${
-                      this.state.expanded ? ' fa-rotate-90' : ''
-                    }`}
-                  />
-                </IconButton>
-                {`Gruppe - ${this.props.id}`}
-              </Grid>
-            )}
-          </Grid>
-          {!this.props.isBaseContainer && (
-            <Grid
-              item={true}
-              className={this.props.classes.containerEdit}
-              xs={1}
-            >
-              {this.state.editMode ? this.renderEditIcons() : this.renderHoverIcons()}
-            </Grid>
-          )}
-        </Grid>
-        <Grid
-          container={true}
-          direction='row'
-          spacing={0}
-        >
-          <Grid
-            item={true}
-            xs={12}
-          >
-            {!this.props.itemOrder?.length && this.renderContainerPlaceholder()}
-            {this.state.expanded &&
-              this.props.itemOrder?.length > 0 &&
-              this.props.itemOrder.map((id: string, index: number) => {
-                const component = this.props.components[id];
-                if (component) {
-                  return this.renderFormComponent(id, index);
-                }
-                return this.props.containers[id] && this.renderContainer(id, index);
-              })}
-          </Grid>
-        </Grid>
-        {!this.props.isBaseContainer && (
-          <Grid
-            container={true}
-            direction='row'
-            spacing={0}
-          >
-            <Grid
-              item={true}
-              xs={11}
-              className={`${this.props.classes.borderBottom} ${hoverClass}`}
-            />
-          </Grid>
+        {!isBaseContainer && (
+          <div className={classes.formGroup}>
+            <div className={classes.formGroupBar}>
+              <Button
+                color={ButtonColor.Secondary}
+                iconName={expanded ? 'Collapse' : 'Expand'}
+                onClick={this.handleExpand}
+                variant={ButtonVariant.Quiet}
+              />
+              Gruppe - ${id}
+            </div>
+            <div className={classes.containerEdit}>
+              {this.renderHoverIcons()}
+            </div>
+          </div>
         )}
-      </Grid>
+        {!itemOrder?.length && this.renderContainerPlaceholder()}
+        {expanded &&
+          itemOrder?.length > 0 &&
+          itemOrder.map((id: string, index: number) => {
+            const component = components[id];
+            if (component) {
+              return this.renderFormComponent(id, index);
+            }
+            return containers[id] && this.renderContainer(id, index);
+          })}
+      </div>
     );
   };
 
   public renderEditSection = (): JSX.Element => {
+    const { components, itemOrder, language, textResources } = this.props;
+    const {
+      groupIdError,
+      groupIdPopoverRef,
+      tableHeadersError,
+      tmpContainer,
+      tmpId,
+    } = this.state;
+    const t = (key: string) => getLanguageFromKey(key, language);
     return (
-      <Grid
-        direction='column'
-        container={true}
-      >
-        <Grid
-          item={true}
-          xs={12}
-        >
-          <AltinnInputField
+      <FieldSet className={classes.fieldset}>
+        <div>
+          <TextField
             id='group-id'
-            onChangeFunction={this.handleIdChange}
-            onBlurFunction={this.handleNewId}
-            inputValue={this.state.tmpId}
-            inputDescription={getLanguageFromKey('ux_editor.modal_properties_group_change_id', this.props.language)}
-            inputFieldStyling={{ width: '100%', marginBottom: '24px' }}
-            inputDescriptionStyling={{ marginTop: '24px' }}
+            label={t('ux_editor.modal_properties_group_change_id')}
+            onBlur={this.handleNewId}
+            onChange={this.handleIdChange}
+            value={tmpId}
           />
-          <div ref={this.state.groupIdPopoverRef} />
+          <div ref={groupIdPopoverRef} />
           <ErrorPopover
-            anchorEl={this.state.groupIdError ? this.state.groupIdPopoverRef.current : null}
+            anchorEl={groupIdError ? groupIdPopoverRef.current : null}
             onClose={this.handleClosePopup}
-            errorMessage={this.state.groupIdError}
+            errorMessage={groupIdError}
           />
-        </Grid>
-        <Grid
-          item={true}
-          xs={12}
-        >
-          <AltinnCheckBox
-            checked={this.state.tmpContainer.maxCount > 1}
-            onChangeFunction={this.handleChangeRepeatingGroup}
-          />
-          {this.props.language['ux_editor.modal_properties_group_repeating']}
-        </Grid>
-        {this.state.tmpContainer.maxCount > 1 && (
-          <Grid
-            item={true}
-            xs={12}
-          >
+        </div>
+        <Checkbox
+          checked={tmpContainer.maxCount > 1}
+          label={t('ux_editor.modal_properties_group_repeating')}
+          onChange={this.handleChangeRepeatingGroup}
+        />
+        {tmpContainer.maxCount > 1 && (
+          <>
             {renderSelectGroupDataModelBinding(
-              this.state.tmpContainer.dataModelBindings,
+              tmpContainer.dataModelBindings,
               this.handleDataModelGroupChange,
-              this.props.language,
+              language,
               'group',
             )}
-            <AltinnInputField
-              id='modal-properties-maximum-files'
-              onChangeFunction={this.handleMaxOccurChange}
-              inputValue={this.state.tmpContainer.maxCount}
-              inputDescription={getLanguageFromKey('ux_editor.modal_properties_group_max_occur', this.props.language)}
-              inputFieldStyling={{ width: '60px' }}
-              inputDescriptionStyling={{ marginTop: '24px' }}
-              type='number'
-              isDisabled={!!this.state.tmpContainer.dataModelBindings.group}
-            />
+            <div>
+              <TextField
+                disabled={!!tmpContainer.dataModelBindings.group}
+                formatting={{ number: {} }}
+                id='modal-properties-maximum-files'
+                label={t('ux_editor.modal_properties_group_max_occur')}
+                onChange={this.handleMaxOccurChange}
+                value={tmpContainer.maxCount.toString()}
+              />
+            </div>
             {renderOptionalSelectTextFromResources(
               'modal_properties_group_add_button',
               this.handleButtonTextChange,
-              this.props.textResources,
-              this.props.language,
-              this.state.tmpContainer.textResourceBindings?.add_button,
-              this.state.tmpContainer.textResourceBindings?.add_button,
-              getLanguageFromKey('ux_editor.modal_properties_group_add_button_description', this.props.language),
+              textResources,
+              language,
+              tmpContainer.textResourceBindings?.add_button,
+              tmpContainer.textResourceBindings?.add_button,
+              t('ux_editor.modal_properties_group_add_button_description'),
             )}
-            {this.props.itemOrder.length > 0 && (
-              <Grid
-                item={true}
-                style={{ marginTop: '24px' }}
-              >
-                {this.props.language['ux_editor.modal_properties_group_table_headers']}
-                {this.props.itemOrder.map((id: string, index: number) => {
-                  const componentLabel = getTextResource(
-                    this.props.components[id].textResourceBindings?.title,
-                    this.props.textResources,
-                  );
-                  const tableHeaders = this.state.tmpContainer.tableHeaders || this.props.itemOrder;
-                  return (
-                    <Grid
-                      item={true}
-                      xs={12}
-                      key={id}
-                    >
-                      <AltinnCheckBox
-                        checked={tableHeaders.includes(id)}
-                        onChangeFunction={() => this.handleTableHeadersChange(id, index)}
-                      />
-                      {componentLabel}
-                    </Grid>
-                  );
-                })}
-                <div ref={this.state.tableHeadersPopoverRef} />
-                <ErrorPopover
-                  anchorEl={this.state.tableHeadersError ? this.state.tableHeadersPopoverRef.current : null}
-                  onClose={this.handleClosePopup}
-                  errorMessage={this.state.tableHeadersError}
-                />
-              </Grid>
+            {itemOrder.length > 0 && (
+              <CheckboxGroup
+                error={tableHeadersError}
+                items={itemOrder.map((id) => ({
+                  label: getTextResource(components[id].textResourceBindings?.title, textResources),
+                  name: id,
+                  checked: tmpContainer.tableHeaders === undefined || tmpContainer.tableHeaders.includes(id)
+                }))}
+                legend={t('ux_editor.modal_properties_group_table_headers')}
+                onChange={this.handleTableHeadersChange}
+              />
             )}
-          </Grid>
+          </>
         )}
-      </Grid>
+      </FieldSet>
     );
   };
 
@@ -611,94 +469,48 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
     );
   };
 
-  public renderEditMode = (): JSX.Element => {
-    return (
-      <Grid container={true}>
-        <Grid
-          container={true}
-          className={this.props.classes.editWrapper}
-        >
-          <Grid
-            item={true}
-            xs={11}
-            className={this.props.classes.editSection}
-          >
-            {this.renderEditSection()}
-          </Grid>
-          <Grid
-            item={true}
-            xs={1}
-            className={this.props.classes.containerEdit}
-          >
-            {this.renderEditIcons()}
-          </Grid>
-        </Grid>
-      </Grid>
-    );
-  };
+  public renderEditMode = (): JSX.Element => (
+    <div>
+      <div className={classes.editWrapper}>
+        <div className={classes.editSection}>
+          {this.renderEditSection()}
+        </div>
+        <div className={classes.containerEdit}>
+          {this.renderEditIcons()}
+        </div>
+      </div>
+    </div>
+  );
 
-  public renderHoverIcons = (): JSX.Element => {
-    return (
-      <>
-        <Grid
-          item={true}
-          xs={12}
-        >
-          <IconButton
-            type='button'
-            tabIndex={0}
-            onClick={this.handleContainerDelete}
-            className={this.props.classes.iconButton}
-          >
-            <i className='fa fa-circletrash' />
-          </IconButton>
-        </Grid>
-        <Grid
-          item={true}
-          xs={12}
-        >
-          <IconButton
-            type='button'
-            onClick={this.handleEditMode}
-            className={this.props.classes.editIcon}
-          >
-            <i className='fa fa-edit' />
-          </IconButton>
-        </Grid>
-      </>
-    );
-  };
+  public renderHoverIcons = (): JSX.Element =>  (
+    <>
+      <Button
+        iconName='Delete'
+        onClick={this.handleContainerDelete}
+        variant={ButtonVariant.Quiet}
+      />
+      <Button
+        iconName='Edit'
+        onClick={this.handleEditMode}
+        variant={ButtonVariant.Quiet}
+      />
+    </>
+  );
 
-  public renderEditIcons = (): JSX.Element => {
-    return (
-      <>
-        <Grid
-          item={true}
-          xs={12}
-        >
-          <IconButton
-            type='button'
-            className={`${this.props.classes.iconButton}`}
-            onClick={this.handleDiscard}
-          >
-            <i className='fa fa-circlecancel' />
-          </IconButton>
-        </Grid>
-        <Grid
-          item={true}
-          xs={12}
-        >
-          <IconButton
-            type='button'
-            className={`${this.props.classes.iconButton}`}
-            onClick={this.handleSave}
-          >
-            <i className='fa fa-circlecheck' />
-          </IconButton>
-        </Grid>
-      </>
-    );
-  };
+  public renderEditIcons = (): JSX.Element => (
+    <>
+      <Button
+        iconName='Error'
+        onClick={this.handleDiscard}
+        variant={ButtonVariant.Quiet}
+      />
+      <Button
+        iconName='Success'
+        onClick={this.handleDiscard}
+        variant={ButtonVariant.Quiet}
+      />
+    </>
+  );
 
   public renderContainer = (id: string, index: number): JSX.Element => {
     const canDrag = !this.state.activeList.find((element: any) => element.id === id);
@@ -801,4 +613,4 @@ const makeMapStateToProps = () => {
   };
 };
 
-export const Container = withStyles(styles, { withTheme: true })(connect(makeMapStateToProps)(ContainerComponent));
+export const Container = connect(makeMapStateToProps)(ContainerComponent);

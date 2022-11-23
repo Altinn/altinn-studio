@@ -34,8 +34,8 @@ RUN apk add --no-cache icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zli
 
 COPY --from=generate-designer-js    /build/wwwroot ./wwwroot
 COPY --from=generate-studio-backend /app_output .
-COPY --from=generate-studio-frontend /build/dist/app-development ./wwwroot/designer/frontend
-COPY --from=generate-studio-frontend /build/dist/dashboard ./wwwroot/designer/frontend
+COPY --from=generate-studio-frontend /build/dist/app-development ./wwwroot/designer/frontend/app-development
+COPY --from=generate-studio-frontend /build/dist/dashboard ./wwwroot/designer/frontend/dashboard
 COPY --from=generate-studio-frontend /build/dist/language ./wwwroot/designer/frontend/lang
 
 ## Copying app template

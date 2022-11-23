@@ -14,7 +14,7 @@ const userCurrent = require('./routes/user-current');
 const { APP_DEVELOPMENT_BASENAME } = require('../../constants.js');
 const { ensureStorageDir } = require('./utils');
 const { DASHBOARD_BASENAME } = require('../../constants');
-const { userCurrentPath } = require('../../api-paths');
+const { userCurrentPath } = require('../../shared/api-paths');
 
 /**
  * Request URL: http://localhost:8080/designer/api/my-org/my-app/datamodels?modelPath=App%2Fmodels%2Fny-modell.schema.json

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -170,7 +171,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             var jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, fileName, thefile.OpenReadStream());
 
-            return Created(fileName, jsonSchema);
+            return Created(Uri.EscapeDataString(fileName), jsonSchema);
         }
 
         /// <summary>
