@@ -70,11 +70,7 @@ export function HeaderMenu({ language }: HeaderMenuProps) {
 
   return (
     <>
-      <Grid
-        container
-        spacing={2}
-        alignItems='center'
-      >
+      <Grid container spacing={2} alignItems='center'>
         <Grid item>
           <Typography className={classes.typography}>
             {user.full_name || user.login}{' '}

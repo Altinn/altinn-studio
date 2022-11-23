@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, { useEffect } from 'react';
 import postMessages from 'app-shared/utils/postMessages';
 import { useDispatch } from 'react-redux';
 import { ErrorMessageComponent } from './components/message/ErrorMessageComponent';
@@ -20,7 +20,7 @@ import {textResourcesPath} from "app-shared/api-paths";
 
 export function App() {
   const dispatch = useDispatch();
-  const {org,app} = useParams()
+  const {org,app} = useParams();
   useEffect(() => {
     const fetchFiles = () => {
       dispatch(fetchDataModel());

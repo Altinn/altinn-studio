@@ -182,7 +182,6 @@ class FileEditor extends React.Component<
       isLoading: true,
     });
     const { org, app } = _useParamsClassCompHack();
-    getServiceFilesPath(org, app, this.props.mode);
     get(getServiceFilePath(org, app, this.props.mode, fileName)).then(
       (logicFileContent) => {
         this.setState((prevState: IFileEditorState) => {
@@ -213,14 +212,8 @@ class FileEditor extends React.Component<
     }
     const { org, app } = _useParamsClassCompHack();
     const saveRes: any = await post(
-      saveServiceFilePath(
-        org,
-        app,
-        this.props.mode,
-        this.state.selectedFile,
-        stageFile,
-      ),
-      this.state.value,
+        saveServiceFilePath(org, app, this.props.mode, this.state.selectedFile, stageFile),
+        this.state.value,
       {
         headers: {
           'Content-type': 'text/plain;charset=utf-8',
