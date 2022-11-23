@@ -2,12 +2,6 @@ import { get, post } from 'app-shared/utils/networking';
 import { SagaIterator } from 'redux-saga';
 import { call, delay, put, takeLatest } from 'redux-saga/effects';
 import {
-  giteaSignOutUrl,
-  keepAliveUrl,
-  remainingSessionTimeUrl,
-  studioSignOutUrl,
-} from '../../../utils/urlHelper';
-import {
   fetchRemainingSession,
   fetchRemainingSessionFulfilled,
   fetchRemainingSessionRejected,
@@ -16,10 +10,19 @@ import {
   keepAliveSessionRejected,
   signOutUser,
 } from '../userSlice';
+import {
+  keepAlivePath,
+  remainingSessionTimePath,
+  userLogoutAfterPath,
+  userLogoutPath,
+} from 'app-shared/api-paths';
 
 export function* fetchRemainingSessionSaga(): SagaIterator {
   try {
-    const remainingMinutes: number = yield call(get, remainingSessionTimeUrl);
+    const remainingMinutes: number = yield call(
+      get,
+      remainingSessionTimePath(),
+    );
     if (remainingMinutes < 0) {
       throw Error('negative remaining session time');
     }
@@ -42,7 +45,7 @@ export function* watchFetchRemainingSessionSaga(): SagaIterator {
 
 export function* keepAliveSessionSaga(): SagaIterator {
   try {
-    const remainingMinutes = yield call(get, keepAliveUrl);
+    const remainingMinutes = yield call(get, keepAlivePath());
     yield put(keepAliveSessionFulfilled({ remainingMinutes }));
     yield delay(10 * 60 * 1000);
     yield put(fetchRemainingSession());
@@ -61,8 +64,8 @@ export function* watchKeepAliveSaga(): SagaIterator {
 
 export function* signOutUserSaga(): SagaIterator {
   try {
-    yield call(post, giteaSignOutUrl);
-    window.location.assign(studioSignOutUrl);
+    yield call(post, userLogoutPath());
+    window.location.assign(userLogoutAfterPath());
   } catch (error) {
     console.error(error);
   }

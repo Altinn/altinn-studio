@@ -4,7 +4,10 @@ const templatePath = path.resolve(__dirname, '..', 'templates', 'repo-data.templ
 
 const template = fs.readFileSync(templatePath, 'utf-8');
 
-module.exports = (hostname, owner, reponame) =>
-  JSON.parse(
-    template.replaceAll('__hostname__', hostname).replaceAll('__owner__', owner).replaceAll('__repo__', reponame),
+module.exports = (req, res) => {
+  const { owner, repo } = req.params;
+  const content = JSON.parse(
+    template.replaceAll('__hostname__', req.headers.host).replaceAll('__owner__', owner).replaceAll('__repo__', repo)
   );
+  res.json(content);
+};

@@ -10,7 +10,6 @@ import { fetchRepoStatus } from './features/handleMergeConflict/handleMergeConfl
 import { makeGetRepoStatusSelector } from './features/handleMergeConflict/handleMergeConflictSelectors';
 import { ApplicationMetadataActions } from './sharedResources/applicationMetadata/applicationMetadataSlice';
 import { fetchLanguage } from './utils/fetchLanguage/languageSlice';
-import { repoStatusUrl } from './utils/urlHelper';
 import {
   fetchRemainingSession,
   keepAliveSession,
@@ -26,6 +25,13 @@ import classes from './App.module.css';
 import { useAppDispatch, useAppSelector } from './common/hooks';
 import { getRepositoryType } from './utils/repository';
 import { RepositoryType } from './types/global';
+import {
+  frontendLangPath,
+  repoInitialCommitPath,
+  repoMetaPath, repoStatusPath,
+  serviceConfigPath,
+  serviceNamePath,
+} from 'app-shared/api-paths';
 
 const theme = createTheme(altinnTheme);
 
@@ -53,7 +59,7 @@ export function App() {
   useEffect(() => {
     dispatch(
       fetchLanguage({
-        url: `${window.location.origin}/designer/frontend/lang/nb.json`,
+        url: frontendLangPath('nb'),
       }),
     );
     dispatch(DataModelsMetadataActions.getDataModelsMetadata());
@@ -67,25 +73,25 @@ export function App() {
     if (app && org) {
       dispatch(
         HandleServiceInformationActions.fetchService({
-          url: `${window.location.origin}/designer/api/v1/repos/${org}/${app}`,
+          url: repoMetaPath(org, app),
         }),
       );
       dispatch(
         HandleServiceInformationActions.fetchInitialCommit({
-          url: `${window.location.origin}/designer/api/v1/repos/${org}/${app}/initialcommit`,
+          url: repoInitialCommitPath(org, app),
         }),
       );
 
       if (repositoryType === RepositoryType.App) {
         dispatch(
           HandleServiceInformationActions.fetchServiceName({
-            url: `${window.location.origin}/designer/${org}/${app}/Text/GetServiceName`,
+            url: serviceNamePath(org, app),
           }),
         );
 
         dispatch(
           HandleServiceInformationActions.fetchServiceConfig({
-            url: `${window.location.origin}/designer/${org}/${app}/Config/GetServiceConfig`,
+            url: serviceConfigPath(org, app),
           }),
         );
       }
@@ -106,7 +112,7 @@ export function App() {
       if (event.data === postMessages.forceRepoStatusCheck) {
         dispatch(
           fetchRepoStatus({
-            url: repoStatusUrl,
+            url: repoStatusPath(org,app),
             org,
             repo: app,
           }),

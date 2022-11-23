@@ -9,6 +9,11 @@ import AltinnButton from '../components/AltinnButton';
 import { get, post } from '../utils/networking';
 import postMessages from '../utils/postMessages';
 import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
+import {
+  getServiceFilePath,
+  getServiceFilesPath,
+  saveServiceFilePath,
+} from '../api-paths';
 
 const theme = createTheme(altinnTheme);
 
@@ -149,10 +154,7 @@ class FileEditor extends React.Component<
   public componentDidMount() {
     if (!this.props.loadFile) {
       const { org, app } = _useParamsClassCompHack();
-      get(
-        `${window.location.origin}/designer/${org}/${app}/ServiceDevelopment` +
-          `/GetServiceFiles?fileEditorMode=${this.props.mode}`,
-      ).then((response) => {
+      get(getServiceFilesPath(org, app, this.props.mode)).then((response) => {
         const files = response.split(',');
         this.loadFileContent(files[0]);
         this.setState((prevState: IFileEditorState) => {
@@ -180,20 +182,19 @@ class FileEditor extends React.Component<
       isLoading: true,
     });
     const { org, app } = _useParamsClassCompHack();
-    get(
-      `${window.location.origin}/designer/${org}/${app}/ServiceDevelopment` +
-        `/GetServiceFile?fileEditorMode=${this.props.mode}&fileName=${fileName}`,
-    ).then((logicFileContent) => {
-      this.setState((prevState: IFileEditorState) => {
-        return {
-          ...prevState,
-          isLoading: false,
-          selectedFile: fileName,
-          value: logicFileContent,
-          valueOriginal: logicFileContent,
-        };
-      });
-    });
+    get(getServiceFilePath(org, app, this.props.mode, fileName)).then(
+      (logicFileContent) => {
+        this.setState((prevState: IFileEditorState) => {
+          return {
+            ...prevState,
+            isLoading: false,
+            selectedFile: fileName,
+            value: logicFileContent,
+            valueOriginal: logicFileContent,
+          };
+        });
+      },
+    );
   };
 
   public switchFile = (e: any) => {
@@ -209,17 +210,16 @@ class FileEditor extends React.Component<
     ) {
       stageFile = true;
     }
-
     const { org, app } = _useParamsClassCompHack();
-    const postUrl =
-      `${window.location.origin}/designer/${org}/${app}/ServiceDevelopment` +
-      `/SaveServiceFile?fileEditorMode=${this.props.mode}&fileName=${this.state.selectedFile}&stageFile=${stageFile}`;
-
-    const saveRes: any = await post(postUrl, this.state.value, {
-      headers: {
-        'Content-type': 'text/plain;charset=utf-8',
+    const saveRes: any = await post(
+        saveServiceFilePath(org, app, this.props.mode, this.state.selectedFile, stageFile),
+        this.state.value,
+      {
+        headers: {
+          'Content-type': 'text/plain;charset=utf-8',
+        },
       },
-    });
+    );
 
     if (saveRes.isSuccessStatusCode === false) {
       console.error('save error', saveRes);

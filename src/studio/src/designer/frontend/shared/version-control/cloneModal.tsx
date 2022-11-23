@@ -1,42 +1,25 @@
-import React from 'react';
-import { createTheme, Grid, Popover, Typography } from '@mui/material';
-import { createStyles, WithStyles, withStyles } from '@mui/styles';
+import React, { useEffect, useState } from 'react';
+import { Popover, TextField } from '@mui/material';
 import axios from 'axios';
-import AltinnButton from '../components/AltinnButton';
 import AltinnIcon from '../components/AltinnIcon';
-import AltinnInputField from '../components/AltinnInputField';
-import altinnStudioTheme from '../theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../utils/language';
 import { get } from '../utils/networking';
-import { altinnDocsUrl, sharedUrls } from '../utils/urlHelper';
+import {altinnDocsUrl, dataModelUploadPageUrl} from '../utils/urlHelper';
+import { datamodelXsdPath, repositoryGitPath } from '../api-paths';
+import { useParams } from 'react-router-dom';
+import { SimpleContainer } from '../primitives';
+import classes from './cloneModal.module.css';
+import { Button } from '@altinn/altinn-design-system';
 
-const theme = createTheme(altinnStudioTheme);
-
-const styles = createStyles({
-  modalContainer: {
-    padding: 24,
-    width: '319px',
-  },
-  itemSeparator: {
-    paddingBottom: 12,
-  },
-  sectionSeparator: {
-    paddingBottom: 32,
-  },
-  blackText: {
-    color: 'black',
-  },
-});
-
-export interface ICloneModalProps extends WithStyles<typeof styles> {
+export interface ICloneModalProps {
   anchorEl: Element;
   onClose: any;
   open: boolean;
   language: any;
 }
 
-function CloneModal(props: ICloneModalProps) {
-  const [hasDataModel, setHasDataModel] = React.useState(false);
+export function CloneModal(props: ICloneModalProps) {
+  const [hasDataModel, setHasDataModel] = useState(false);
 
   const copyGitUrl = () => {
     const textField = document.querySelector('#repository-url');
@@ -50,12 +33,12 @@ function CloneModal(props: ICloneModalProps) {
     }
     return false;
   };
-
-  React.useEffect(() => {
+  const { org, app } = useParams();
+  useEffect(() => {
     const source = axios.CancelToken.source();
     const checkIfDataModelExists = async () => {
       try {
-        const dataModel: any = await get(sharedUrls().dataModelXsdUrl, {
+        const dataModel: any = await get(datamodelXsdPath(org, app), {
           cancelToken: source.token,
         });
         setHasDataModel(dataModel != null);
@@ -65,12 +48,12 @@ function CloneModal(props: ICloneModalProps) {
         }
       }
     };
-    checkIfDataModelExists();
+    checkIfDataModelExists().then();
     return () => {
       source.cancel('Component got unmounted.');
     };
   }, []);
-
+  const t = (key: string) => getLanguageFromKey(key, props.language);
   return (
     <Popover
       open={props.open}
@@ -81,90 +64,52 @@ function CloneModal(props: ICloneModalProps) {
         horizontal: 'left',
       }}
     >
-      <Grid
-        container={true}
-        direction='column'
-        className={props.classes.modalContainer}
-      >
-        <Grid item={true} className={props.classes.itemSeparator}>
-          <Typography variant='body1' className={props.classes.blackText}>
-            {getLanguageFromKey('sync_header.favourite_tool', props.language)}
-          </Typography>
-        </Grid>
-        <Grid item={true} className={props.classes.sectionSeparator}>
-          <Typography variant='body1'>
-            <a href={altinnDocsUrl} target='_blank' rel='noopener noreferrer'>
-              {getLanguageFromKey(
-                'sync_header.favourite_tool_link',
-                props.language,
-              )}
-            </a>
-          </Typography>
-        </Grid>
+      <SimpleContainer className={classes.modalContainer}>
+        <div className={classes.blackText}>
+          {t('sync_header.favourite_tool')}
+        </div>
+        <a
+          href={altinnDocsUrl}
+          target='_blank'
+          rel='noopener noreferrer'
+        >
+          {t('sync_header.favourite_tool_link')}
+        </a>
         {!hasDataModel && (
-          <Grid item={true} className={props.classes.sectionSeparator}>
-            <Grid item={true} className={props.classes.itemSeparator}>
-              <Typography variant='body1' className={props.classes.blackText}>
-                <AltinnIcon
-                  iconClass='ai ai-circle-exclamation'
-                  iconColor={theme.altinnPalette.primary.blueDark}
-                  iconSize={30}
-                  padding='0px 0px 3px 0px'
-                />
-                {getLanguageFromKey(
-                  'sync_header.data_model_missing',
-                  props.language,
-                )}
-              </Typography>
-            </Grid>
-            <Grid item={true} className={props.classes.itemSeparator}>
-              <Typography variant='body1' className={props.classes.blackText}>
-                {getLanguageFromKey(
-                  'sync_header.data_model_missing_helper',
-                  props.language,
-                )}
-              </Typography>
-            </Grid>
-            <Grid item={true}>
-              <Typography variant='body1'>
-                <a href={sharedUrls().dataModelUploadPageUrl}>
-                  {getLanguageFromKey(
-                    'sync_header.data_model_missing_link',
-                    props.language,
-                  )}
-                </a>
-              </Typography>
-            </Grid>
-          </Grid>
+          <>
+            <div className={classes.blackText}>
+              <AltinnIcon
+                iconClass='ai ai-circle-exclamation'
+                iconColor='#0062BA'
+                iconSize={30}
+                padding='0px 0px 3px 0px'
+              />
+              {t('sync_header.data_model_missing')}
+            </div>
+            <div className={classes.blackText}>
+              {t('sync_header.data_model_missing_helper')}
+            </div>
+            <a href={dataModelUploadPageUrl(org,app)}>
+              {t('sync_header.data_model_missing_link')}
+            </a>
+          </>
         )}
-        <Grid item={true}>
-          <Typography variant='body1' className={props.classes.blackText}>
-            {getLanguageFromKey('sync_header.clone_https', props.language)}
-          </Typography>
-        </Grid>
-        <Grid item={true} className={props.classes.itemSeparator}>
-          <AltinnInputField
+        <>
+          <div className={classes.blackText}>{t('sync_header.clone_https')}</div>
+          <TextField
             id='repository-url-form'
-            inputValue={sharedUrls().repositoryGitUrl}
-            textFieldId='repository-url'
-            fullWidth={true}
+            value={repositoryGitPath(org, app)}
           />
-        </Grid>
+        </>
         {canCopy() && (
-          <Grid item={true}>
-            <AltinnButton
-              onClickFunction={copyGitUrl}
-              btnText={getLanguageFromKey(
-                'sync_header.clone_https_button',
-                props.language,
-              )}
-              id='copy-repository-url-button'
-            />
-          </Grid>
+          <Button
+            onClick={copyGitUrl}
+            id='copy-repository-url-button'
+          >
+            {t('sync_header.clone_https_button')}
+          </Button>
         )}
-      </Grid>
+      </SimpleContainer>
     </Popover>
   );
 }
-
-export default withStyles(styles)(CloneModal);

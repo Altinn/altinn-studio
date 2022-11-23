@@ -25,17 +25,13 @@ import {
 import type { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import { fetchLanguage } from '../../../utils/fetchLanguage/languageSlice';
-import {
-  getGitCommitLink,
-  languageUrl,
-  repoStatusUrl,
-} from '../../../utils/urlHelper';
 import type { IHandleMergeConflictState } from '../../handleMergeConflict/handleMergeConflictSlice';
 import { fetchRepoStatus } from '../../handleMergeConflict/handleMergeConflictSlice';
 import ReleaseComponent from '../components/appReleaseComponent';
 import CreateReleaseComponent from '../components/createAppReleaseComponent';
 import { useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../common/hooks';
+import {frontendLangPath, gitCommitPath, repoStatusPath} from "app-shared/api-paths";
 
 const theme = createTheme(AltinnStudioTheme);
 
@@ -149,12 +145,12 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
   useEffect(() => {
     dispatch(AppReleaseActions.getAppReleaseStartInterval());
     if (!language) {
-      dispatch(fetchLanguage({ url: languageUrl }));
+      dispatch(fetchLanguage({ url: frontendLangPath("nb") }));
     }
     dispatch(RepoStatusActions.getMasterRepoStatus({ org, repo: app }));
     dispatch(
       fetchRepoStatus({
-        url: repoStatusUrl,
+        url: repoStatusPath(org,app),
         org,
         repo: app,
       }),
@@ -393,7 +389,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
           {getLanguageFromKey('app_release.release_title', language)} &nbsp;
           {repoStatus.branch.master ? (
             <a
-              href={getGitCommitLink(repoStatus.branch.master.commit.id)}
+              href={gitCommitPath(org,app,repoStatus.branch.master.commit.id)}
               target='_blank'
               rel='noopener noreferrer'
             >
@@ -412,7 +408,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
           &nbsp;
           {getLanguageFromKey('general.contains', language)}
           &nbsp;
-          <a href={getGitCommitLink(repoStatus.branch.master.commit.id)}>
+          <a href={gitCommitPath(org,app,repoStatus.branch.master.commit.id)}>
             {getLanguageFromKey('app_release.release_title_link', language)}
           </a>
         </>

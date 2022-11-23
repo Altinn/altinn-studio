@@ -1,6 +1,6 @@
 import React from 'react';
 import { Provider } from 'react-redux';
-import AppComponent from './App';
+import { App } from './App';
 import { run } from './sagas';
 import { store } from './store';
 import './styles/index.css';
@@ -22,7 +22,7 @@ export default class SubApp extends React.Component<any, any> {
   public render() {
     return (
       <Provider store={store}>
-        <AppComponent />
+        <App />
       </Provider>
     );
   }

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext, useState } from 'react';
 import {
   Avatar,
   Divider,
@@ -10,9 +10,10 @@ import {
 import { makeStyles } from '@mui/styles';
 import { AltinnMenu } from '../../components';
 import { post } from '../../utils/networking';
-import { sharedUrls } from '../../utils/urlHelper';
 import { getOrgNameById, HeaderContext, SelectedContextType } from './Header';
 import { getLanguageFromKey } from '../../utils/language';
+import { repositoryPath } from '../../api-paths';
+import { useParams } from 'react-router-dom';
 
 const useStyles = makeStyles(() => ({
   avatar: {
@@ -38,10 +39,11 @@ export type HeaderMenuProps = {
 
 export function HeaderMenu({ language }: HeaderMenuProps) {
   const classes = useStyles();
-  const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | Element>(null);
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | Element>(null);
   const { user, selectedContext, selectableOrgs, setSelectedContext } =
-    React.useContext(HeaderContext);
-
+    useContext(HeaderContext);
+  const t = (key: string) => getLanguageFromKey(key, language);
+  const { org, app } = useParams();
   const openMenu = (e: React.MouseEvent) => {
     e.stopPropagation();
     setMenuAnchorEl(e.currentTarget);
@@ -75,7 +77,7 @@ export function HeaderMenu({ language }: HeaderMenuProps) {
             {selectedContext !== SelectedContextType.All &&
               selectedContext !== SelectedContextType.Self && (
                 <>
-                  <br /> {getLanguageFromKey('shared.header_for', language)}{' '}
+                  <br /> {t('shared.header_for')}{' '}
                   {getOrgNameById(selectedContext as number, selectableOrgs)}
                 </>
               )}
@@ -90,7 +92,7 @@ export function HeaderMenu({ language }: HeaderMenuProps) {
             <Avatar
               src={user.avatar_url}
               className={classes.avatar}
-              alt={getLanguageFromKey('shared.header_button_alt', language)}
+              alt={t('shared.header_button_alt')}
             />
           </IconButton>
         </Grid>
@@ -105,7 +107,7 @@ export function HeaderMenu({ language }: HeaderMenuProps) {
           selected={selectedContext === SelectedContextType.All}
           onClick={() => handleSetSelectedContext(SelectedContextType.All)}
         >
-          {getLanguageFromKey('shared.header_all', language)}
+          {t('shared.header_all')}
         </MenuItem>
         {selectableOrgs?.map((org) => {
           return (
@@ -127,18 +129,24 @@ export function HeaderMenu({ language }: HeaderMenuProps) {
           {user.full_name || user.login}
         </MenuItem>
         <Divider />
-        <MenuItem key='placeholder' style={{ display: 'none' }} />
+        <MenuItem
+          key='placeholder'
+          style={{ display: 'none' }}
+        />
         <MenuItem id='menu-gitea'>
           <a
-            href={sharedUrls().repositoryUrl}
+            href={repositoryPath(org, app)}
             target='_blank'
             rel='noopener noreferrer'
           >
-            {getLanguageFromKey('shared.header_go_to_gitea', language)}
+            {t('shared.header_go_to_gitea')}
           </a>
         </MenuItem>
-        <MenuItem id='menu-logout' onClick={handleLogout}>
-          {getLanguageFromKey('shared.header_logout', language)}
+        <MenuItem
+          id='menu-logout'
+          onClick={handleLogout}
+        >
+          {t('shared.header_logout')}
         </MenuItem>
       </AltinnMenu>
     </>

@@ -10,9 +10,15 @@ import postMessages from '../utils/postMessages';
 import FetchChangesComponent from './fetchChanges';
 import ShareChangesComponent from './shareChanges';
 import CloneButton from './cloneButton';
-import CloneModal from './cloneModal';
+import { CloneModal } from './cloneModal';
 import SyncModalComponent from './syncModal';
 import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
+import {
+  repoCommitPath,
+  repoMetaPath,
+  repoPullPath,
+  repoPushPath, repoStatusPath,
+} from '../api-paths';
 
 export interface IVersionControlHeaderProps extends WithStyles<typeof styles> {
   language: any;
@@ -85,7 +91,7 @@ class VersionControlHeader extends React.Component<
 
   public async componentDidMount() {
     this.componentIsMounted = true;
-    if(this.state.hasPushRight === undefined){
+    if (this.state.hasPushRight === undefined) {
       await this.getRepoPermissions();
     }
   }
@@ -96,9 +102,10 @@ class VersionControlHeader extends React.Component<
 
   public getRepoPermissions = async () => {
     const { org, app } = _useParamsClassCompHack();
-    const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}`;
     try {
-      const currentRepo = await get(url, { cancelToken: this.source.token });
+      const currentRepo = await get(repoMetaPath(org, app), {
+        cancelToken: this.source.token,
+      });
       this.setState({
         hasPushRight: currentRepo.permissions.push,
       });
@@ -116,8 +123,7 @@ class VersionControlHeader extends React.Component<
 
   public getStatus(callbackFunc?: any) {
     const { org, app } = _useParamsClassCompHack();
-    const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/status`;
-    get(url)
+    get(repoStatusPath(org,app))
       .then((result: IGitStatus) => {
         if (this.componentIsMounted) {
           this.setState({
@@ -169,9 +175,7 @@ class VersionControlHeader extends React.Component<
     });
 
     const { org, app } = _useParamsClassCompHack();
-    const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/pull`;
-
-    get(url)
+    get(repoPullPath(org, app))
       .then((result: any) => {
         if (this.componentIsMounted) {
           if (result.repositoryStatus === 'Ok') {
@@ -354,9 +358,8 @@ class VersionControlHeader extends React.Component<
     });
 
     const { org, app } = _useParamsClassCompHack();
-    const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/push`;
 
-    post(url)
+    post(repoPushPath(org, app))
       .then(() => {
         if (this.componentIsMounted) {
           this.setState({
@@ -418,12 +421,9 @@ class VersionControlHeader extends React.Component<
       org,
       repository: app,
     });
-
-    const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/commit`;
-    const pullUrl = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/pull`;
-    post(url, bodyData, options)
+    post(repoCommitPath(org, app), bodyData, options)
       .then(() => {
-        get(pullUrl)
+        get(repoPullPath(org, app))
           .then((result: any) => {
             if (this.componentIsMounted) {
               // if pull was successfull, show app updated message
@@ -578,10 +578,10 @@ class VersionControlHeader extends React.Component<
             </Grid>
             {this.renderSyncModalComponent()}
             <CloneModal
-                anchorEl={this.state.cloneModalAnchor}
-                open={this.state.cloneModalOpen}
-                onClose={this.closeCloneModal}
-                language={this.props.language}
+              anchorEl={this.state.cloneModalAnchor}
+              open={this.state.cloneModalOpen}
+              onClose={this.closeCloneModal}
+              language={this.props.language}
             />
           </Grid>
         ) : type === 'fetchButton' ? (
@@ -610,7 +610,5 @@ class VersionControlHeader extends React.Component<
     );
   }
 }
-
-export default withStyles(styles)(VersionControlHeader);
 
 export const VersionControlContainer = withStyles(styles)(VersionControlHeader);
