@@ -1,3 +1,4 @@
+import { Delete as DeleteIcon, Edit as EditIcon, Warning as WarningIcon } from '@navikt/ds-icons';
 import {
   Grid,
   makeStyles,
@@ -189,7 +190,7 @@ export default function AltinnMobileTableItem({
                         data-testid='edit-button'
                         variant={ButtonVariant.Quiet}
                         color={ButtonColor.Secondary}
-                        iconName={valid ? 'Edit' : 'Warning'}
+                        icon={valid ? <EditIcon /> : <WarningIcon />}
                         iconPlacement={!mobileViewSmall ? 'right' : 'left'}
                         onClick={onEditClick}
                         aria-label={`${editButtonText}-${item.value}`}
@@ -218,7 +219,7 @@ export default function AltinnMobileTableItem({
                                 data-testid='delete-button'
                                 variant={ButtonVariant.Quiet}
                                 color={ButtonColor.Danger}
-                                iconName='Delete'
+                                icon={<DeleteIcon />}
                                 iconPlacement={!mobileViewSmall ? 'right' : 'left'}
                                 onClick={onDeleteClick}
                                 aria-label={`${deleteButtonText}-${item.value}`}

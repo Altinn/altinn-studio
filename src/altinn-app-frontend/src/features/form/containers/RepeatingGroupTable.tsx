@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
 import { createTheme, Grid, makeStyles, TableCell, TableRow, useMediaQuery } from '@material-ui/core';
+import { Delete as DeleteIcon, Edit as EditIcon, Warning as WarningIcon } from '@navikt/ds-icons';
 import cn from 'classnames';
 
 import { ExprDefaultsForGroup } from 'src/features/expressions';
@@ -452,7 +453,7 @@ export function RepeatingGroupTable({
                           <Button
                             variant={ButtonVariant.Quiet}
                             color={ButtonColor.Secondary}
-                            iconName={rowHasErrors ? 'Warning' : 'Edit'}
+                            icon={rowHasErrors ? <WarningIcon /> : <EditIcon />}
                             iconPlacement='right'
                             onClick={() => handleEditClick(index)}
                             aria-label={`${editButtonText}-${firstCellData}`}
@@ -476,7 +477,7 @@ export function RepeatingGroupTable({
                                 <Button
                                   variant={ButtonVariant.Quiet}
                                   color={ButtonColor.Danger}
-                                  iconName='Delete'
+                                  icon={<DeleteIcon />}
                                   iconPlacement='right'
                                   disabled={deleting}
                                   onClick={() => handleDeleteClick(index)}

@@ -2,6 +2,7 @@ import React from 'react';
 
 import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
 import { Grid, TableCell, Typography, useMediaQuery } from '@material-ui/core';
+import { Edit as EditIcon } from '@navikt/ds-icons';
 
 import { useAppSelector } from 'src/common/hooks';
 import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
@@ -118,7 +119,7 @@ export default function InstanceSelection({ instances, onNewInstance }: IInstanc
                     <Button
                       variant={ButtonVariant.Quiet}
                       color={ButtonColor.Secondary}
-                      iconName='Edit'
+                      icon={<EditIcon />}
                       iconPlacement='right'
                       onClick={() => openInstance(instance.id)}
                     >
