@@ -1,5 +1,5 @@
 {
-  "name": "Lookup for hidden component inside repeating group",
+  "name": "Lookup for component inside repeating group where another is hidden",
   "expression": ["component", "alder"],
   "expects": 24,
   "layouts": {

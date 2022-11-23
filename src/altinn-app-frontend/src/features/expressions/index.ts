@@ -346,11 +346,7 @@ export const ExprFunctions = {
   }),
   instanceContext: defineFunc({
     impl: function (key): string | null {
-      if (key === null) {
-        throw new LookupNotFound(this, `Cannot lookup property null`);
-      }
-
-      if (instanceContextKeys[key] !== true) {
+      if (key === null || instanceContextKeys[key] !== true) {
         throw new LookupNotFound(this, `Unknown Instance context property ${key}`);
       }
 
@@ -362,7 +358,7 @@ export const ExprFunctions = {
   frontendSettings: defineFunc({
     impl: function (key): any {
       if (key === null) {
-        throw new LookupNotFound(this, `Cannot lookup property null`);
+        throw new LookupNotFound(this, `Value cannot be null. (Parameter 'key')`);
       }
 
       return (this.dataSources.applicationSettings && this.dataSources.applicationSettings[key]) || null;
@@ -403,7 +399,7 @@ export const ExprFunctions = {
   dataModel: defineFunc({
     impl: function (path): any {
       if (path === null) {
-        throw new LookupNotFound(this, `Cannot lookup data model null`);
+        throw new LookupNotFound(this, `Cannot lookup dataModel null`);
       }
 
       const maybeNode = this.failWithoutNode();

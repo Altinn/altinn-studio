@@ -1,0 +1,5 @@
+{
+  "name": "Should treat a 0 as a boolean false",
+  "expression": ["if", 0, 123.456],
+  "expects": null
+}
