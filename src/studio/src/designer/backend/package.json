@@ -9,8 +9,7 @@
     "gulp-develop": "gulp develop-designer-backend",
     "gulp-install-deps": "gulp install-react-app-dependencies",
     "gulp-copy-files": "gulp copy-files",
-    "gulp-develop-dashboard": "gulp develop-dashboard",
-    "gulp-develop-designer-frontend": "gulp develop-designer-frontend"
+    "develop-designer-frontend": "gulp develop-designer-frontend"
   },
   "devDependencies": {
     "cross-env": "7.0.3",

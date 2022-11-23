@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { GridSortModel } from '@mui/x-data-grid';
 import { Typography } from '@mui/material';
 import { getLanguageFromKey } from 'app-shared/utils/language';
@@ -16,12 +16,10 @@ export const SearchResultReposList = ({
   searchValue: string;
 }) => {
   const language = useAppSelector((state) => state.language.language);
-  const [page, setPage] = React.useState(0);
-
-  const [sortModel, setSortModel] = React.useState<GridSortModel>([
+  const [page, setPage] = useState(0);
+  const [sortModel, setSortModel] = useState<GridSortModel>([
     { field: 'alpha', sort: 'asc' },
   ]);
-
   const { data: starredRepos, isLoading: isLoadingStarred } =
     useGetUserStarredReposQuery();
 

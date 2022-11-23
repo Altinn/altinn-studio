@@ -16,7 +16,7 @@ const store = setupStore(loadFromLocalStorage());
 store.subscribe(
   throttle(() => {
     saveToLocalStorage(store.getState());
-  }, 2000),
+  }, 2000)
 );
 
 /**
@@ -32,5 +32,5 @@ root.render(
     <BrowserRouter basename={DASHBOARD_BASENAME}>
       <App />
     </BrowserRouter>
-  </Provider>,
+  </Provider>
 );

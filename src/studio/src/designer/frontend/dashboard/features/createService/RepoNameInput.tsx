@@ -1,14 +1,8 @@
-import React from 'react';
-import { makeStyles } from '@mui/styles';
-import AltinnInformationPaper from 'app-shared/components/AltinnInformationPaper';
-import AltinnInputField from 'app-shared/components/AltinnInputField';
+import React, { useLayoutEffect, useRef } from 'react';
 import AltinnPopper from 'app-shared/components/AltinnPopper';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { useAppSelector } from '../../common/hooks';
-
-const zIndex = {
-  zIndex: 1300,
-};
+import { TextField } from '@altinn/altinn-design-system';
 
 interface IRepoNameInputProps {
   repoName: string;
@@ -16,58 +10,41 @@ interface IRepoNameInputProps {
   onRepoNameChanged: (newValue: string) => void;
 }
 
-const useStyles = makeStyles({
-  strong: {
-    'font-weight': '500',
-  },
-});
-
 export const RepoNameInput = ({
   repoName,
   onRepoNameChanged,
   errorMessage,
 }: IRepoNameInputProps) => {
-  const classes = useStyles();
   const language = useAppSelector((state) => state.language.language);
-  const serviceNameRef = React.useRef(null);
-
-  React.useLayoutEffect(() => {
+  const serviceNameRef = useRef(null);
+  const t = (key: string) => getLanguageFromKey(key, language);
+  useLayoutEffect(() => {
     serviceNameRef.current = document.querySelector('#service-saved-name');
   });
-
-  const handleChange = ({ target }: { target: HTMLInputElement }) => {
+  const handleChange = ({ target }: { target: HTMLInputElement }) =>
     onRepoNameChanged(target.value);
-  };
+
   return (
     <div>
-      <AltinnInputField
+      <TextField
         id='service-saved-name'
-        inputHeader={getLanguageFromKey('general.service_name', language)}
-        inputValue={repoName}
-        onChangeFunction={handleChange}
-        fullWidth={true}
+        label={t('general.service_name')}
+        value={repoName}
+        onChange={handleChange}
       />
-      <div style={{ margin: '12px 0 0 0' }}>
-        <AltinnInformationPaper>
-          <>
-            {getLanguageFromKey(
-              'dashboard.service_saved_name_description',
-              language,
-            )}{' '}
-            <strong className={classes.strong}>
-              {getLanguageFromKey(
-                'dashboard.service_saved_name_description_cannot_be_changed',
-                language,
-              )}
-            </strong>
-          </>
-        </AltinnInformationPaper>
-      </div>
+      <p>
+        {t('dashboard.service_saved_name_description')}{' '}
+        <strong style={{ fontWeight: '500' }}>
+          {t('dashboard.service_saved_name_description_cannot_be_changed')}
+        </strong>
+      </p>
       {errorMessage && (
         <AltinnPopper
           anchorEl={serviceNameRef.current}
           message={errorMessage}
-          styleObj={zIndex}
+          styleObj={{
+            zIndex: 1300,
+          }}
         />
       )}
     </div>

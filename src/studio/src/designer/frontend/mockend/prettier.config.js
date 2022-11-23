@@ -1,5 +1,6 @@
-const projectConfig = require('../prettier.config');
 module.exports = {
-  ...projectConfig,
+  singleQuote: true,
+  jsxSingleQuote: true,
+  endOfLine: 'auto',
   printWidth: 120,
 };

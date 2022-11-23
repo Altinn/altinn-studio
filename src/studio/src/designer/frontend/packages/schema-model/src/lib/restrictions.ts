@@ -10,6 +10,10 @@ export enum IntRestrictionKeys {
 
 export enum StrRestrictionKeys {
   format = 'format',
+  formatExclusiveMaximum = 'formatExclusiveMaximum',
+  formatExclusiveMinimum = 'formatExclusiveMinimum',
+  formatMaximum = 'formatMaximum',
+  formatMinimum = 'formatMinimum',
   maxLength = 'maxLength',
   minLength = 'minLength',
   pattern = 'pattern',

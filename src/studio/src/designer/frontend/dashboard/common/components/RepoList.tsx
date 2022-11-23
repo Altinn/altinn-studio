@@ -11,8 +11,6 @@ import {
   GridValueFormatterParams,
   GridValueGetterParams,
 } from '@mui/x-data-grid';
-import { makeStyles } from '@mui/styles';
-import { IconButton } from '@mui/material';
 import cn from 'classnames';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import type { IRepository } from 'app-shared/types/global';
@@ -24,6 +22,7 @@ import {
   useUnsetStarredRepoMutation,
 } from '../../services/userApi';
 import { useAppSelector } from '../hooks';
+import classes from './RepoList.module.css';
 
 export interface IRepoListProps {
   isLoading: boolean;
@@ -46,50 +45,6 @@ const isRowSelectable = () => false;
 
 const defaultArray: IRepository[] = [];
 
-const useStyles = makeStyles({
-  repoLink: {
-    color: '#57823D',
-    '&:hover': {
-      color: '#57823D',
-    },
-  },
-  editLink: {
-    color: '#165db8',
-
-    '&:hover': {
-      color: '#165db8',
-    },
-  },
-  actionLink: {
-    marginRight: '1rem',
-    display: 'flex',
-    alignItems: 'center',
-
-    '&:hover': {
-      'text-decoration': 'none',
-    },
-
-    '&:hover span': {
-      'text-decoration': 'underline',
-    },
-  },
-  linkIcon: {
-    fontSize: '2rem',
-    marginLeft: '0.5rem',
-  },
-  dropdownIcon: {
-    fontSize: '2rem',
-  },
-  favoriteIcon: {
-    fontSize: 26,
-    color: '#000000',
-  },
-  textWithTooltip: {
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-  },
-});
-
 const gridStyleOverride = {
   border: 'none',
   '.MuiDataGrid-iconSeparator': {
@@ -102,7 +57,6 @@ const gridStyleOverride = {
 
 export const NoResults = () => {
   const language = useAppSelector((state) => state.language.language);
-
   return (
     <GridOverlay>
       <p>{getLanguageFromKey('dashboard.no_repos_result', language)}</p>
@@ -111,8 +65,6 @@ export const NoResults = () => {
 };
 
 const TextWithTooltip = (params: GridRenderCellParams) => {
-  const classes = useStyles();
-
   return (
     <div className={classes.textWithTooltip} title={params.value}>
       {params.value}
@@ -133,13 +85,12 @@ export const RepoList = ({
   sortModel,
   disableVirtualization = false,
 }: IRepoListProps) => {
-  const classes = useStyles();
   const language = useAppSelector((state) => state.language.language);
   const [copyCurrentRepoName, setCopyCurrentRepoName] = useState('');
   const [setStarredRepo] = useSetStarredRepoMutation();
   const [unsetStarredRepo] = useUnsetStarredRepoMutation();
   const copyModalAnchorRef = useRef(null);
-
+  const t = (key: string) => getLanguageFromKey(key, language);
   const cols = useMemo(() => {
     const favouriteActionCol: GridActionsColDef = {
       field: '',
@@ -158,23 +109,24 @@ export const RepoList = ({
         };
 
         return [
-          <IconButton
+          <GridActionsCellItem
             key={repo.id}
             id={`fav-repo-${repo.id}`}
             onClick={handleToggleFav}
-            aria-label={
+            label={
               repo.user_has_starred
-                ? getLanguageFromKey('dashboard.unstar', language)
-                : getLanguageFromKey('dashboard.star', language)
+                ? t('dashboard.unstar')
+                : t('dashboard.star')
             }
-          >
-            <i
-              className={cn(classes.favoriteIcon, {
-                'fa fa-fav-filled': repo.user_has_starred,
-                'fa fa-fav-outline': !repo.user_has_starred,
-              })}
-            />
-          </IconButton>,
+            icon={
+              <i
+                className={cn(classes.favoriteIcon, {
+                  'fa fa-fav-filled': repo.user_has_starred,
+                  'fa fa-fav-outline': !repo.user_has_starred,
+                })}
+              />
+            }
+          />,
         ];
       },
     };
@@ -182,13 +134,13 @@ export const RepoList = ({
     const columns: GridColDef[] = [
       {
         field: 'name',
-        headerName: getLanguageFromKey('dashboard.application', language),
+        headerName: t('dashboard.application'),
         width: 200,
         renderCell: TextWithTooltip,
       },
       {
         field: 'owner.created_by',
-        headerName: getLanguageFromKey('dashboard.created_by', language),
+        headerName: t('dashboard.created_by'),
         sortable: false,
         width: 180,
         renderCell: TextWithTooltip,
@@ -199,7 +151,7 @@ export const RepoList = ({
       },
       {
         field: 'updated_at',
-        headerName: getLanguageFromKey('dashboard.last_modified', language),
+        headerName: t('dashboard.last_modified'),
         width: 120,
         type: 'date',
         valueFormatter: (params: GridValueFormatterParams) => {
@@ -209,7 +161,7 @@ export const RepoList = ({
       },
       {
         field: 'description',
-        headerName: getLanguageFromKey('dashboard.description', language),
+        headerName: t('dashboard.description'),
         flex: 1,
         minWidth: 120,
         renderCell: TextWithTooltip,
@@ -230,9 +182,17 @@ export const RepoList = ({
             <GridActionsCellItem
               className={cn(classes.actionLink, classes.repoLink)}
               data-testid='gitea-repo-link'
-              icon={<i className={cn('fa fa-gitea', classes.linkIcon, classes.repoLink,)}/>}
+              icon={
+                <i
+                  className={cn(
+                    'fa fa-gitea',
+                    classes.linkIcon,
+                    classes.repoLink
+                  )}
+                />
+              }
               key={'dashboard.repository' + params.row.id}
-              label={getLanguageFromKey('dashboard.repository', language)}
+              label={t('dashboard.repository')}
               onClick={() => (window.location.href = params.row.html_url)}
               showInMenu={false}
               edge='end'
@@ -240,23 +200,31 @@ export const RepoList = ({
             <GridActionsCellItem
               data-testid='edit-repo-link'
               className={cn(classes.actionLink, classes.editLink)}
-              icon={<i className={cn('fa fa-edit', classes.linkIcon, classes.editLink,)}/>}
+              icon={
+                <i
+                  className={cn(
+                    'fa fa-edit',
+                    classes.linkIcon,
+                    classes.editLink
+                  )}
+                />
+              }
               key={'dashboard.edit_app' + params.row.id}
-              label={getLanguageFromKey('dashboard.edit_app', language)}
+              label={t('dashboard.edit_app')}
               onClick={() => (window.location.href = editUrl)}
               showInMenu={false}
             />,
             <GridActionsCellItem
               icon={<i className={cn('fa fa-copy', classes.dropdownIcon)} />}
               key={'dashboard.make_copy' + params.row.id}
-              label={getLanguageFromKey('dashboard.make_copy', language)}
+              label={t('dashboard.make_copy')}
               onClick={() => setCopyCurrentRepoName(repoFullName)}
               showInMenu
             />,
             <GridActionsCellItem
               icon={<i className={cn('fa fa-newtab', classes.dropdownIcon)} />}
               key={'dashboard.open_in_new' + params.row.id}
-              label={getLanguageFromKey('dashboard.open_in_new', language)}
+              label={t('dashboard.open_in_new')}
               onClick={() => window.open(editUrl, '_blank')}
               showInMenu
             />,
@@ -286,17 +254,16 @@ export const RepoList = ({
     unsetStarredRepo,
   ]);
 
-  const handleCloseCopyModal = () => {
-    setCopyCurrentRepoName(null);
-  };
+  const handleCloseCopyModal = () => setCopyCurrentRepoName(null);
 
-  const componentPropsLabelOverrides = useMemo(() => {
-    return {
+  const componentPropsLabelOverrides = useMemo(
+    () => ({
       pagination: {
-        labelRowsPerPage: getLanguageFromKey('dashboard.rows_per_page', language),
+        labelRowsPerPage: t('dashboard.rows_per_page'),
       },
-    };
-  }, [language]);
+    }),
+    [language]
+  );
 
   return (
     <div ref={copyModalAnchorRef}>
@@ -342,7 +309,6 @@ export const RepoList = ({
           disableVirtualization={disableVirtualization}
         />
       )}
-
       {copyCurrentRepoName && (
         <MakeCopyModal
           anchorEl={copyModalAnchorRef.current}

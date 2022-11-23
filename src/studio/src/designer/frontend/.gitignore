@@ -8,3 +8,4 @@ language/old/*
 !/.yarn/releases
 !/.yarn/sdks
 !/.yarn/versions
+**/stats.json

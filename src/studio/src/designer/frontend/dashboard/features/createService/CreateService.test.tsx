@@ -50,13 +50,13 @@ describe('CreateService', () => {
     render();
 
     await waitForElementToBeRemoved(() =>
-      screen.getByText('dashboard.loading'),
+      screen.getByText('dashboard.loading')
     );
     const createBtn = await screen.findByText('dashboard.create_service_btn');
     await user.click(createBtn);
 
     const emptyFieldErrors = await screen.findAllByText(
-      'dashboard.field_cannot_be_empty',
+      'dashboard.field_cannot_be_empty'
     );
     expect(emptyFieldErrors.length).toBe(2);
   });
@@ -67,14 +67,14 @@ describe('CreateService', () => {
         'http://localhost/designer/api/v1/orgs',
         async (req, res, ctx) => {
           return res(ctx.json([]));
-        },
-      ),
+        }
+      )
     );
 
     render();
 
     await waitForElementToBeRemoved(() =>
-      screen.getByText('dashboard.loading'),
+      screen.getByText('dashboard.loading')
     );
 
     await waitFor(() => {
@@ -87,26 +87,26 @@ describe('CreateService', () => {
     render();
 
     await waitForElementToBeRemoved(() =>
-      screen.getByText('dashboard.loading'),
+      screen.getByText('dashboard.loading')
     );
 
     await user.click(
       screen.getByRole((content, element) => {
         return element.hasAttribute('aria-haspopup');
-      }),
+      })
     );
 
     await user.click(screen.getByRole('option', { name: /user_full_name/i }));
     await user.type(
       screen.getByRole('textbox'),
-      'this-app-name-is-longer-than-max',
+      'this-app-name-is-longer-than-max'
     );
 
     const createBtn = await screen.findByText('dashboard.create_service_btn');
     await user.click(createBtn);
 
     const emptyFieldErrors = await screen.findAllByText(
-      'dashboard.service_name_is_too_long',
+      'dashboard.service_name_is_too_long'
     );
     expect(emptyFieldErrors.length).toBe(1);
   });
@@ -116,13 +116,13 @@ describe('CreateService', () => {
     render();
 
     await waitForElementToBeRemoved(() =>
-      screen.getByText('dashboard.loading'),
+      screen.getByText('dashboard.loading')
     );
 
     await user.click(
       screen.getByRole((content, element) => {
         return element.hasAttribute('aria-haspopup');
-      }),
+      })
     );
 
     await user.click(screen.getByRole('option', { name: /user_full_name/i }));
@@ -132,7 +132,7 @@ describe('CreateService', () => {
     await user.click(createBtn);
 
     const emptyFieldErrors = await screen.findAllByText(
-      'dashboard.service_name_has_illegal_characters',
+      'dashboard.service_name_has_illegal_characters'
     );
     expect(emptyFieldErrors.length).toBe(1);
   });
@@ -144,20 +144,20 @@ describe('CreateService', () => {
         'http://localhost/designer/api/v1/repos/user_login',
         async (req, res, ctx) => {
           return res(ctx.status(409));
-        },
-      ),
+        }
+      )
     );
 
     render();
 
     await waitForElementToBeRemoved(() =>
-      screen.getByText('dashboard.loading'),
+      screen.getByText('dashboard.loading')
     );
 
     await user.click(
       screen.getByRole((content, element) => {
         return element.hasAttribute('aria-haspopup');
-      }),
+      })
     );
 
     await user.click(screen.getByRole('option', { name: /user_full_name/i }));
@@ -167,7 +167,7 @@ describe('CreateService', () => {
     await user.click(createBtn);
 
     const emptyFieldErrors = await screen.findAllByText(
-      'dashboard.app_already_exist',
+      'dashboard.app_already_exist'
     );
     expect(emptyFieldErrors.length).toBe(1);
   });
@@ -179,20 +179,20 @@ describe('CreateService', () => {
         'http://localhost/designer/api/v1/repos/user_login',
         async (req, res, ctx) => {
           return res(ctx.status(500));
-        },
-      ),
+        }
+      )
     );
 
     render();
 
     await waitForElementToBeRemoved(() =>
-      screen.getByText('dashboard.loading'),
+      screen.getByText('dashboard.loading')
     );
 
     await user.click(
       screen.getByRole((content, element) => {
         return element.hasAttribute('aria-haspopup');
-      }),
+      })
     );
 
     await user.click(screen.getByRole('option', { name: /user_full_name/i }));
@@ -202,7 +202,7 @@ describe('CreateService', () => {
     await user.click(createBtn);
 
     const emptyFieldErrors = await screen.findAllByText(
-      'dashboard.error_when_creating_app',
+      'dashboard.error_when_creating_app'
     );
     expect(emptyFieldErrors.length).toBe(1);
   });

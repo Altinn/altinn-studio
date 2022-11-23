@@ -1,9 +1,9 @@
 import React from 'react';
-import { Divider, Grid, Typography } from '@mui/material';
 import { ResourceItem } from './ResourceItem';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { useAppSelector } from '../hooks';
-
+import { Divider, SimpleContainer } from 'app-shared/primitives';
+import classes from './Resources.module.css';
 interface Resource {
   label: string;
   description: string;
@@ -233,36 +233,20 @@ export function Resources() {
   const language = useAppSelector((state) => state.language.language);
 
   return (
-    <Grid
-      style={{
-        backgroundColor: '#F5F5F5',
-        marginTop: 55,
-        paddingBottom: 55,
-      }}
-      container
-      alignItems='stretch'
-      spacing={2}
-    >
-      <Grid item xs={12}>
-        <Typography variant='h2'>
-          {getLanguageFromKey('dashboard.resources', language)}
-        </Typography>
-      </Grid>
-      <Grid item xs={12}>
-        <Divider style={{ marginBottom: 12 }} />
-      </Grid>
-      {resources.map((resource) => {
-        return (
-          <Grid key={resource.label} item xl={4} lg={4} md={4} sm={6} xs={12}>
-            <ResourceItem
-              label={resource.label}
-              description={resource.description}
-              link={resource.url}
-              icon={resource.icon}
-            />
-          </Grid>
-        );
-      })}
-    </Grid>
+    <SimpleContainer>
+      <h2>{getLanguageFromKey('dashboard.resources', language)}</h2>
+      <Divider inMenu />
+      <div className={classes.resourcesContainer}>
+        {resources.map((resource, index) => (
+          <ResourceItem
+            key={`resource-item-${index}`}
+            label={resource.label}
+            description={resource.description}
+            link={resource.url}
+            icon={resource.icon}
+          />
+        ))}
+      </div>
+    </SimpleContainer>
   );
 }

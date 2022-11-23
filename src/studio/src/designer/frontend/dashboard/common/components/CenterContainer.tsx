@@ -1,16 +1,10 @@
-import React from 'react';
-import { styled } from '@mui/material/styles';
+import React, { ReactNode } from 'react';
+import classes from './CenterContainer.module.css';
 
 type CenterContainerProps = {
-  children: React.ReactNode;
+  children: ReactNode;
 };
 
-const Root = styled('div')(() => ({
-  width: '83.33%',
-  marginLeft: 'auto',
-  marginRight: 'auto',
-}));
-
 export const CenterContainer = ({ children }: CenterContainerProps) => {
-  return <Root>{children}</Root>;
+  return <div className={classes.root}>{children}</div>;
 };

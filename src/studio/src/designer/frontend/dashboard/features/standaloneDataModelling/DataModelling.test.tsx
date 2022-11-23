@@ -1,6 +1,6 @@
 import React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import DataModelling from './DataModelling';
+import { DataModellingContainer } from './DataModelling';
 import { LoadingState } from 'app-shared/features/dataModelling/sagas/metadata';
 import { renderWithProviders } from '../../dashboardTestUtils';
 import { setupStore } from '../../app/store';
@@ -65,15 +65,12 @@ describe('DataModelling', () => {
       .mockImplementation(jest.fn());
     renderWithProviders(
       <Routes>
-        <Route path='/' element={<Navigate to={'/org/repo'} replace/>}/>
-        <Route
-          path='/:org/:repoName'
-          element={<DataModelling language={language} />}
-        />
+        <Route path='/' element={<Navigate to={'/org/repo'} replace />} />
+        <Route path='/:org/:repoName' element={<DataModellingContainer />} />
       </Routes>,
       {
         store: initStore,
-      },
+      }
     );
     expect(dispatch).toHaveBeenCalledWith(initialStoreCall);
   });

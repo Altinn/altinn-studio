@@ -85,11 +85,11 @@ describe('RepoList', () => {
     jest
       .spyOn(userApi, 'useSetStarredRepoMutation')
       .mockImplementation(
-        jest.fn().mockReturnValue([useSetStarredRepoMutationSpy]),
+        jest.fn().mockReturnValue([useSetStarredRepoMutationSpy])
       );
     render();
 
-    const favoriteBtn = screen.getByRole('button', {
+    const favoriteBtn = screen.getByRole('menuitem', {
       name: /dashboard.star/i,
     });
     await user.click(favoriteBtn);
@@ -102,11 +102,11 @@ describe('RepoList', () => {
     jest
       .spyOn(userApi, 'useUnsetStarredRepoMutation')
       .mockImplementation(
-        jest.fn().mockReturnValue([useUnsetStarredRepoMutationSpy]),
+        jest.fn().mockReturnValue([useUnsetStarredRepoMutationSpy])
       );
     render();
 
-    const unFavoriteBtn = screen.getByRole('button', {
+    const unFavoriteBtn = screen.getByRole('menuitem', {
       name: /dashboard.unstar/i,
     });
     await user.click(unFavoriteBtn);
@@ -170,6 +170,6 @@ const render = (props: Partial<IRepoListProps> = {}) => {
   return rtlRender(
     <Provider store={store}>
       <RepoList {...allProps} />
-    </Provider>,
+    </Provider>
   );
 };
