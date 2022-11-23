@@ -89,5 +89,10 @@ namespace LocalTest.Models
         /// List of possible authentication levels
         /// </summary>
         public IEnumerable<SelectListItem> AuthenticationLevels { get; set; }
+
+        /// <summary>
+        /// Modify site conditionally on the app mode
+        /// </summary>
+        public bool AppModeIsHttp { get; set; }
     }
 }

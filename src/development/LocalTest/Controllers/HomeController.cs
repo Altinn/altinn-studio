@@ -78,6 +78,7 @@ namespace LocalTest.Controllers
             model.StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath;
             model.LocalAppUrl = _localPlatformSettings.LocalAppUrl;
             var defaultAuthLevel = _localPlatformSettings.LocalAppMode == "http" ? await GetAppAuthLevel(model.TestApps) : 2;
+            model.AppModeIsHttp = _localPlatformSettings.LocalAppMode == "http";
             model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
             model.LocalFrontendUrl = HttpContext.Request.Cookies[FRONTEND_URL_COOKIE_NAME];
 
