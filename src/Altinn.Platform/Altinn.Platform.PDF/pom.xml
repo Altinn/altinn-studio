@@ -33,7 +33,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>2.7.4</version>
+    <version>2.7.5</version>
   </parent>
   <dependencies>
     <dependency>
@@ -62,12 +62,12 @@
     <dependency>
       <groupId>com.google.code.gson</groupId>
       <artifactId>gson</artifactId>
-      <version>2.9.1</version>
+      <version>2.10</version>
     </dependency>
     <dependency>
       <groupId>com.azure</groupId>
       <artifactId>azure-security-keyvault-secrets</artifactId>
-      <version>4.5.0</version>
+      <version>4.5.2</version>
     </dependency>
     <dependency>
       <groupId>com.microsoft.azure</groupId>
@@ -77,7 +77,7 @@
     <dependency>
       <groupId>com.azure</groupId>
       <artifactId>azure-identity</artifactId>
-      <version>1.6.1</version>
+      <version>1.7.1</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
