@@ -428,14 +428,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private void LogError(Exception ex, string method, string org, string repository, string destinationPath, string branch)
         {
-            var user = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            var developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
             var debugInfo = GetDebugInfo();
 
             _logger.LogError(
                 ex,
-                "Failed executing method {method} for user {user} in org {org} / repository {repository}. Destination: {destinationPath}. Branch: {branch}. Debug info: {debugInfo}",
+                "Failed executing method {method} for user {developer} in org {org} / repository {repository}. Destination: {destinationPath}. Branch: {branch}. Debug info: {debugInfo}",
                 method,
-                user,
+                developer,
                 org,
                 repository,
                 destinationPath,

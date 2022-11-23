@@ -340,8 +340,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public Altinn.Studio.Designer.Models.Commit GetLatestCommitForCurrentUser(string org, string repository)
         {
             List<Altinn.Studio.Designer.Models.Commit> commits = Log(org, repository);
-            var currentUser = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            Altinn.Studio.Designer.Models.Commit latestCommit = commits.FirstOrDefault(commit => commit.Author.Name == currentUser);
+            var developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            Altinn.Studio.Designer.Models.Commit latestCommit = commits.FirstOrDefault(commit => commit.Author.Name == developer);
             return latestCommit;
         }
 
@@ -435,11 +435,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             CheckAndCreateDeveloperFolder();
 
-            string userName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string path = Path.Combine(
-                Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? _settings.RepositoryLocation,
-                $"{userName}/AuthToken.txt");
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string path = Path.Combine(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? _settings.RepositoryLocation, $"{developer}/AuthToken.txt");
+            string newpath = Path.Combine(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? _settings.RepositoryLocation, developer, "AuthToken.txt");
 
+            Console.WriteLine("OLD IN SOURCE: " + path);
+            Console.WriteLine("NEW IN SOURCE: " + newpath);
             File.WriteAllText(path, token);
         }
 
@@ -483,10 +484,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// </summary>
         private void CheckAndCreateDeveloperFolder()
         {
-            string userName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string path = Path.Combine(
-                Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? _settings.RepositoryLocation,
-                $"{userName}/");
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string path = Path.Combine(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? _settings.RepositoryLocation, $"{developer}/");
+            string newpath = Path.Combine(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? _settings.RepositoryLocation, developer);
+
+            Console.WriteLine("Old: " + path);
+            Console.WriteLine("New: " + newpath);
+
             if (!Directory.Exists(path))
             {
                 Directory.CreateDirectory(path);
@@ -501,11 +505,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>The path to the local repository</returns>
         public string FindLocalRepoLocation(string org, string repository)
         {
-            string userName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
 
-            return Path.Combine(
-                Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? _settings.RepositoryLocation,
-                $"{userName}/{org}/{repository}");
+            return Path.Combine(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? _settings.RepositoryLocation, developer, org, repository);
         }
 
         /// <inheritdoc />
@@ -571,11 +573,9 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>The path to the remote repo</returns>
         private string FindRemoteRepoLocation(string org, string repository)
         {
-            string reposBaseUrl = Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL");
+            string reposBaseUrl = Path.Combine(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryBaseURL") ?? _settings.RepositoryBaseURL, org, $"{repository}.git");
 
-            return (reposBaseUrl != null)
-                ? $"{reposBaseUrl}/{org}/{repository}.git"
-                : $"{_settings.RepositoryBaseURL}/{org}/{repository}.git";
+            return reposBaseUrl;
         }
 
         /// <summary>
