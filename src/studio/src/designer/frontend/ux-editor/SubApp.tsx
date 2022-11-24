@@ -7,14 +7,14 @@ import './styles/index.css';
 
 let initializedSagas = false;
 
-export const SubApp = ()=> {
+export const SubApp = () => {
   if (!initializedSagas) {
     run();
     initializedSagas = true;
   }
-    return (
-      <Provider store={store}>
-        <App />
-      </Provider>
-    );
-}
+  return (
+    <Provider store={store}>
+      <App />
+    </Provider>
+  );
+};

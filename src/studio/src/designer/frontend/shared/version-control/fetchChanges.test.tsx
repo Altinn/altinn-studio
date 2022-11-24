@@ -20,7 +20,7 @@ const render = (props: Partial<IFetchChangesComponentProps> = {}) => {
   const allProps = {
     changesInMaster: true,
     fetchChanges: jest.fn(),
-    buttonText: "pull",
+    buttonText: 'pull',
     ...props,
   };
   return rtlRender(<FetchChangesComponent {...allProps} />);

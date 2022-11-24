@@ -6,7 +6,7 @@ import { APP_DEVELOPMENT_BASENAME } from '../../../../constants';
 import type { IHandleServiceInformationState } from '../handleServiceInformationSlice';
 import { renderWithProviders } from '../../../test/testUtils';
 import { ServiceAdministration } from './ServiceAdministration';
-import {setServiceConfigPath, setServiceNamePath} from "app-shared/api-paths";
+import { setServiceConfigPath, setServiceNamePath } from 'app-shared/api-paths';
 
 describe('Administration', () => {
   const mockService: IRepository = {
@@ -84,12 +84,15 @@ describe('Administration', () => {
   };
 
   it('should handle sucessfully updating app name', async () => {
-    const utils = renderWithProviders(<ServiceAdministration language={{}} repository={mockService} />, {
-      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
-      preloadedState: {
-        serviceInformation: mockServiceInformation,
-      },
-    });
+    const utils = renderWithProviders(
+      <ServiceAdministration language={{}} repository={mockService} />,
+      {
+        startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
+        preloadedState: {
+          serviceInformation: mockServiceInformation,
+        },
+      }
+    );
     const dispatchSpy = jest.spyOn(utils.store, 'dispatch');
     const mockEvent = { target: { value: 'New name' } };
 
@@ -102,16 +105,14 @@ describe('Administration', () => {
     expect((inputElement as HTMLInputElement).value).toEqual(mockServiceName);
 
     fireEvent.change(inputElement, mockEvent);
-    expect((inputElement as HTMLInputElement).value).toEqual(
-      mockEvent.target.value,
-    );
+    expect((inputElement as HTMLInputElement).value).toEqual(mockEvent.target.value);
 
     fireEvent.blur(inputElement);
 
     await waitFor(() => {
       expect(dispatchSpy).toBeCalledWith({
         payload: {
-          url: setServiceConfigPath("my-org","my-app"),
+          url: setServiceConfigPath('my-org', 'my-app'),
           newServiceName: mockEvent.target.value,
           newServiceId: mockServiceId,
           newServiceDescription: mockServiceDescription,
@@ -120,7 +121,7 @@ describe('Administration', () => {
       });
       expect(dispatchSpy).toBeCalledWith({
         payload: {
-          url: setServiceNamePath("my-org","my-app"),
+          url: setServiceNamePath('my-org', 'my-app'),
           newServiceName: mockEvent.target.value,
         },
         type: 'handleServiceInformation/saveServiceName',
@@ -141,21 +142,17 @@ describe('Administration', () => {
     const inputElement = utils
       .getByTestId('service-administration-container')
       .querySelector('#administrationInputDescription_textField');
-    expect((inputElement as HTMLInputElement).value).toEqual(
-      mockServiceDescription,
-    );
+    expect((inputElement as HTMLInputElement).value).toEqual(mockServiceDescription);
 
     fireEvent.change(inputElement, mockEvent);
-    expect((inputElement as HTMLInputElement).value).toEqual(
-      mockEvent.target.value,
-    );
+    expect((inputElement as HTMLInputElement).value).toEqual(mockEvent.target.value);
 
     fireEvent.blur(inputElement);
 
     await waitFor(() => {
       expect(dispatchSpy).toBeCalledWith({
         payload: {
-          url: setServiceConfigPath("my-org","my-app"),
+          url: setServiceConfigPath('my-org', 'my-app'),
           newServiceName: mockServiceName,
           newServiceId: mockServiceId,
           newServiceDescription: mockEvent.target.value,
@@ -181,16 +178,14 @@ describe('Administration', () => {
     expect((inputElement as HTMLInputElement).value).toEqual(mockServiceId);
 
     fireEvent.change(inputElement, mockEvent);
-    expect((inputElement as HTMLInputElement).value).toEqual(
-      mockEvent.target.value,
-    );
+    expect((inputElement as HTMLInputElement).value).toEqual(mockEvent.target.value);
 
     fireEvent.blur(inputElement);
 
     await waitFor(() => {
       expect(dispatchSpy).toBeCalledWith({
         payload: {
-          url: setServiceConfigPath("my-org","my-app"),
+          url: setServiceConfigPath('my-org', 'my-app'),
           newServiceName: mockServiceName,
           newServiceId: mockEvent.target.value,
           newServiceDescription: mockServiceDescription,
