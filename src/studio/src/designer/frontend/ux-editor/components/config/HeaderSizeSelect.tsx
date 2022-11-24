@@ -30,12 +30,9 @@ export const HeaderSizeSelect = ({
     { value: HeaderSize.M, label: language['ux_editor.modal_header_type_h3'] },
     { value: HeaderSize.L, label: language['ux_editor.modal_header_type_h2'] },
   ];
-  const selectedHeaderSize =
-    HeaderSize[component.size as keyof typeof HeaderSize] || component.size;
+  const selectedHeaderSize = HeaderSize[component.size as keyof typeof HeaderSize] || component.size;
 
-  const selectedValue = selectedHeaderSize
-    ? sizes.find((size) => size.value === selectedHeaderSize)
-    : sizes[0];
+  const selectedValue = selectedHeaderSize ? sizes.find((size) => size.value === selectedHeaderSize) : sizes[0];
 
   const id = `HeaderSizeSelect-input-${component.id}`;
 

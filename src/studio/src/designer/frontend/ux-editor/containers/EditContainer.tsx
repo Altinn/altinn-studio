@@ -325,16 +325,9 @@ export function EditContainer(props: IEditContainerProvidedProps) {
                   </Grid>
                 ) : (
                   <div className={`${classes.textPrimaryDark} ${classes.formComponentTitle}`}>
-                    <i
-                      className={`${classes.icon} ${
-                        componentIcons[component.type] || 'fa fa-help-circle'
-                      }`}
-                    />
+                    <i className={`${classes.icon} ${componentIcons[component.type] || 'fa fa-help-circle'}`} />
                     {component.textResourceBindings?.title
-                      ? truncate(
-                          getTextResource(component.textResourceBindings.title, textResources),
-                          80
-                        )
+                      ? truncate(getTextResource(component.textResourceBindings.title, textResources), 80)
                       : getComponentTitleByComponentType(component.type, language) ||
                         getLanguageFromKey('ux_editor.component_unknown', language)}
                   </div>
@@ -358,8 +351,7 @@ export function EditContainer(props: IEditContainerProvidedProps) {
                   )}
                 </Grid>
                 <Grid item={true} xs={12}>
-                  {(activeList.length < 1 ||
-                    (activeList.length === 1 && activeListIndex === 0)) && (
+                  {(activeList.length < 1 || (activeList.length === 1 && activeListIndex === 0)) && (
                     <IconButton
                       data-testid='EditContainer-edit-button'
                       type='button'
@@ -379,11 +371,7 @@ export function EditContainer(props: IEditContainerProvidedProps) {
               <Grid
                 container={true}
                 direction='row'
-                className={
-                  props.partOfGroup
-                    ? classes.gridForBtnSingleActiveGroup
-                    : classes.gridForBtnSingleActive
-                }
+                className={props.partOfGroup ? classes.gridForBtnSingleActiveGroup : classes.gridForBtnSingleActive}
               >
                 <Grid item={true} xs={12}>
                   <IconButton

@@ -42,7 +42,10 @@ export const SchemaSelect = (props: ISchemaSelectProps) => {
   };
   const IndicatorSeparator = () => <></>;
   const DropdownIndicator = () => (
-    <i className={classNames([classes['fa.fa-nedtrekk'], 'fa fa-nedtrekk', classes.chevron])} aria-hidden />
+    <i
+      className={classNames([classes['fa.fa-nedtrekk'], 'fa fa-nedtrekk', classes.chevron])}
+      aria-hidden
+    />
   );
   return (
     <Grid item xs={4}>

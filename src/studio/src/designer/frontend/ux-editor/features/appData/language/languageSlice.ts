@@ -39,7 +39,6 @@ const languageSlice = createSlice({
   },
 });
 
-export const { fetchLanguage, fetchLanguageFulfilled, fetchLanguageRejected } =
-  languageSlice.actions;
+export const { fetchLanguage, fetchLanguageFulfilled, fetchLanguageRejected } = languageSlice.actions;
 
 export default languageSlice.reducer;

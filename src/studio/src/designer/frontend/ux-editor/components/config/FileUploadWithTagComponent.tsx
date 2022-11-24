@@ -1,8 +1,8 @@
 import React from 'react';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { SelectTextFromRecources } from '../../utils/render';
-import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
-import AltinnRadio from 'app-shared/components/AltinnRadio';
+import RadioGroup from 'app-shared/components/AltinnRadioGroup';
+import Radio from 'app-shared/components/AltinnRadio';
 import type { FormComponentType, IFormFileUploaderWithTagComponent } from '../../types/global';
 import { TextField } from '@altinn/altinn-design-system';
 
@@ -78,35 +78,25 @@ export const FileUploadWithTagComponent = ({
         />
       </div>
       <p>
-        <a
-          target='_blank'
-          rel='noopener noreferrer'
-          href='https://docs.altinn.studio/app/development/data/options/'
-        >
+        <a target='_blank' rel='noopener noreferrer' href='https://docs.altinn.studio/app/development/data/options/'>
           {t('ux_editor.modal_properties_code_list_read_more')}
         </a>
       </p>
       <div>
-        <AltinnRadioGroup
+        <RadioGroup
           row={true}
           value={component.hasCustomFileEndings ? 'true' : 'false'}
           onChange={handleHasCustomFileEndingsChange}
         >
-          <AltinnRadio
-            label={getLanguageFromKey(
-              'ux_editor.modal_properties_valid_file_endings_all',
-              language
-            )}
+          <Radio
+            label={getLanguageFromKey('ux_editor.modal_properties_valid_file_endings_all', language)}
             value='false'
           />
-          <AltinnRadio
-            label={getLanguageFromKey(
-              'ux_editor.modal_properties_valid_file_endings_custom',
-              language
-            )}
+          <Radio
+            label={getLanguageFromKey('ux_editor.modal_properties_valid_file_endings_custom', language)}
             value='true'
           />
-        </AltinnRadioGroup>
+        </RadioGroup>
       </div>
       {component.hasCustomFileEndings && (
         <div>

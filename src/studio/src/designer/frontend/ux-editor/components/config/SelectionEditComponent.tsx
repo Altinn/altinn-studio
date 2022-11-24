@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import AltinnRadio from 'app-shared/components/AltinnRadio';
-import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
+import Radio from 'app-shared/components/AltinnRadio';
+import RadioGroup from 'app-shared/components/AltinnRadioGroup';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { renderSelectDataModelBinding, SelectTextFromRecources } from '../../utils/render';
 import type {
@@ -11,14 +11,7 @@ import type {
   IFormRadioButtonComponent,
   ITextResource,
 } from '../../types/global';
-import {
-  Button,
-  ButtonColor,
-  ButtonVariant,
-  Checkbox,
-  FieldSet,
-  TextField,
-} from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant, Checkbox, FieldSet, TextField } from '@altinn/altinn-design-system';
 import classes from './SelectionEditComponent.module.css';
 
 export interface ISelectionEditComponentProvidedProps {
@@ -132,7 +125,7 @@ export class SelectionEditComponent extends React.Component<
             onChange={(e) => handleRequiredChange(e, e.target.checked)}
           />
         </div>
-        <AltinnRadioGroup
+        <RadioGroup
           onChange={this.handleRadioButtonChange}
           value={this.state.radioButtonSelection}
           row={true}
@@ -142,9 +135,9 @@ export class SelectionEditComponent extends React.Component<
               : t('ux_editor.modal_properties_add_check_box_options')
           }
         >
-          <AltinnRadio value='codelist' label={t('ux_editor.modal_add_options_codelist')} />
-          <AltinnRadio value='manual' label={t('ux_editor.modal_add_options_manual')} />
-        </AltinnRadioGroup>
+          <Radio value='codelist' label={t('ux_editor.modal_add_options_codelist')} />
+          <Radio value='manual' label={t('ux_editor.modal_add_options_manual')} />
+        </RadioGroup>
         {this.state.radioButtonSelection === 'codelist' && (
           <div>
             <TextField

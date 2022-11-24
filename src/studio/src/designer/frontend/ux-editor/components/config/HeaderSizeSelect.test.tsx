@@ -7,11 +7,7 @@ const h4Text = 'Undertittel (H4)';
 const h3Text = 'Undertittel (H3)';
 const h2Text = 'Undertittel (H2)';
 
-const render = ({
-  size = undefined,
-  handleUpdateHeaderSize = jest.fn(),
-  handleTitleChange = jest.fn(),
-} = {}) => {
+const render = ({ size = undefined, handleUpdateHeaderSize = jest.fn(), handleTitleChange = jest.fn() } = {}) => {
   rtlRender(
     <HeaderSizeSelect
       renderChangeId={() => <div>id</div>}

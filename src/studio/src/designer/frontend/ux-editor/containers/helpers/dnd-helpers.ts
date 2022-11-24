@@ -70,10 +70,7 @@ export const dragSourceSpec = (
  * @param boundingClientRect
  * @param clientOffset
  */
-export const getContainerPosition = (
-  boundingClientRect: DOMRect,
-  clientOffset: XYCoord
-): ContainerPos | undefined => {
+export const getContainerPosition = (boundingClientRect: DOMRect, clientOffset: XYCoord): ContainerPos | undefined => {
   if (!clientOffset) {
     return undefined;
   }

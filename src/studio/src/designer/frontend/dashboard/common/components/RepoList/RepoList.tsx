@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import type {
   GridActionsColDef,
   GridColDef,
@@ -86,7 +86,7 @@ export const RepoList = ({
   const [setStarredRepo] = useSetStarredRepoMutation();
   const [unsetStarredRepo] = useUnsetStarredRepoMutation();
   const copyModalAnchorRef = useRef(null);
-  const t = (key: string) => getLanguageFromKey(key, language);
+  const t = useCallback((key: string) => getLanguageFromKey(key, language), [language]);
 
   const cols = useMemo(() => {
     const favouriteActionCol: GridActionsColDef = {
@@ -225,7 +225,7 @@ export const RepoList = ({
     ];
 
     return [favouriteActionCol, ...columns, ...actionsCol];
-  }, [language, setStarredRepo, unsetStarredRepo]);
+  }, [setStarredRepo, t, unsetStarredRepo]);
 
   const handleCloseCopyModal = () => setCopyCurrentRepoName(null);
 
@@ -235,7 +235,7 @@ export const RepoList = ({
         labelRowsPerPage: t('dashboard.rows_per_page'),
       },
     }),
-    [language]
+    [t]
   );
 
   return (

@@ -56,9 +56,7 @@ export function convertFromLayoutToInternalFormat(formLayout: any[]): IFormLayou
 }
 
 export function convertInternalToLayoutFormat(internalFormat: IFormLayout): any[] {
-  const { components, containers, order } = JSON.parse(
-    JSON.stringify(internalFormat)
-  ) as IFormLayout;
+  const { components, containers, order } = JSON.parse(JSON.stringify(internalFormat)) as IFormLayout;
 
   const baseContainerId = Object.keys(internalFormat.containers)[0];
   const formLayout: any[] = [];

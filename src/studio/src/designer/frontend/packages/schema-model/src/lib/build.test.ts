@@ -11,7 +11,7 @@ import { ObjectKind } from './types';
 import { buildUiSchema } from './build-ui-schema';
 import { buildJsonSchema } from './build-json-schema';
 import { ROOT_POINTER } from './constants';
-import { dataMock } from '../../../schema-editor/src/mockData';
+import { dataMock } from '@altinn/schema-editor/mockData';
 
 test.each(getSeresJsonSchemasForTest())(
   'Seres model %p can be converted',
@@ -26,9 +26,6 @@ test.each(getSeresJsonSchemasForTest())(
       expect(uiSchema.pointer).toBeDefined();
       expect(uiSchema.pointer.startsWith(ROOT_POINTER)).toBeTruthy();
       if (uiSchema.objectKind === ObjectKind.Field) {
-        if (uiSchema.fieldType === undefined) {
-          console.log(uiSchema);
-        }
         expect(uiSchema.fieldType).toBeDefined();
       }
     });

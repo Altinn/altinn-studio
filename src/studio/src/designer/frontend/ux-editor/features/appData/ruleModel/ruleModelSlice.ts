@@ -45,7 +45,6 @@ const ruleModelSlice = createSlice({
   },
 });
 
-export const { fetchRuleModel, fetchRuleModelFulfilled, fetchRuleModelRejected } =
-  ruleModelSlice.actions;
+export const { fetchRuleModel, fetchRuleModelFulfilled, fetchRuleModelRejected } = ruleModelSlice.actions;
 
 export default ruleModelSlice.reducer;

@@ -9,7 +9,7 @@ import type { SelectedContext } from '../resources/fetchDashboardResources/dashb
 import { DashboardActions } from '../resources/fetchDashboardResources/dashboardSlice';
 import { fetchLanguage } from '../resources/fetchLanguage/languageSlice';
 import type { IHeaderContext } from 'app-shared/navigation/main-header/Header';
-import Header, {
+import AppHeader, {
   HeaderContext,
   SelectedContextType,
 } from 'app-shared/navigation/main-header/Header';
@@ -84,7 +84,7 @@ export const App = () => {
         {user && !isLoadingOrganizations ? (
           <div className={classes.root}>
             <HeaderContext.Provider value={headerContextValue}>
-              <Header language={language} />
+              <AppHeader language={language} />
             </HeaderContext.Provider>
             <Routes>
               <Route

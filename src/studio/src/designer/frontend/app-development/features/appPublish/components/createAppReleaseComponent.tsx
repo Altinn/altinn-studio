@@ -85,10 +85,7 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
     if (!tagName.match(new RegExp('^[a-z0-9.-]*$'))) {
       return false;
     }
-    if (tagName.length > 128) {
-      return false;
-    }
-    return true;
+    return tagName.length <= 128;
   }
 
   function handleTagNameChange(event: React.ChangeEvent<HTMLInputElement>) {
