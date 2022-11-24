@@ -21,7 +21,7 @@ export const InfoCard = (
         >
           <div className={classes.textContainer}>
             <h1 className={classes.header}>{props.headerText}</h1>
-            <p className={classes.breadText}>{props.children}</p>
+            <div className={classes.breadText}>{props.children}</div>
           </div>
           <div className={classes.imageContainer}>
             <Illustration />

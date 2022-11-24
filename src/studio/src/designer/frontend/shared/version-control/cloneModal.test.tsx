@@ -1,5 +1,5 @@
 import React from 'react';
-import CloneModal from './cloneModal';
+import {CloneModal} from './cloneModal';
 import type { ICloneModalProps } from './cloneModal';
 import { render as rtlRender, screen } from '@testing-library/react';
 

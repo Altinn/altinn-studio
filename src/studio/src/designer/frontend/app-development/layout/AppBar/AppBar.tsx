@@ -9,13 +9,13 @@ import {
 import { createStyles, makeStyles } from '@mui/styles';
 import classNames from 'classnames';
 import { Link, useParams } from 'react-router-dom';
-import { altinnImgLogoHeaderUrl } from 'app-shared/utils/urlHelper';
+import { altinnImgLogoHeaderUrl } from 'app-shared/cdn-paths';
 import type { IMenuItem } from 'app-shared/navigation/drawer/drawerMenuSettings';
 import TabletDrawerMenu from 'app-shared/navigation/drawer/TabletDrawerMenu';
 import { getTopBarMenu } from './appBarConfig';
 import ProfileMenu from 'app-shared/navigation/main-header/profileMenu';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
+import { VersionControlContainer } from 'app-shared/version-control/versionControlHeader';
 import { useAppSelector } from '../../common/hooks';
 import { getRepositoryType } from '../../utils/repository';
 
@@ -156,7 +156,7 @@ export const AppBar = ({
                   className={classes.aImgStyling}
                 >
                   <img
-                    src={altinnImgLogoHeaderUrl}
+                    src={altinnImgLogoHeaderUrl()}
                     alt='Altinn logo'
                   />
                 </a>
@@ -229,7 +229,7 @@ export const AppBar = ({
                     xs
                     item
                   >
-                    <VersionControlHeader language={language} />
+                    <VersionControlContainer language={language} />
                   </Grid>
                   {menu.map((item) => (
                     <Grid

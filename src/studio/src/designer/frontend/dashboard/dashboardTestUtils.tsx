@@ -7,6 +7,11 @@ import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import { HashRouter as Router } from 'react-router-dom';
 import { AppStore, RootState, setupStore } from './app/store';
+import {
+  orgsListPath,
+  repoSearchPath,
+  userStarredListPath,
+} from 'app-shared/api-paths';
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   preloadedState?: PreloadedState<RootState>;
@@ -39,7 +44,7 @@ export const renderWithProviders = (
 };
 
 export const handlers = [
-  rest.get('http://localhost/designer/api/v1/orgs', (req, res, ctx) => {
+  rest.get(orgsListPath(), (req, res, ctx) => {
     const mockApiResponse = [
       {
         avatar_url: 'avatar.png',
@@ -53,11 +58,11 @@ export const handlers = [
     ];
     return res(ctx.json(mockApiResponse));
   }),
-  rest.get('http://localhost/designer/api/v1/user/starred', (req, res, ctx) => {
+  rest.get(userStarredListPath(), (req, res, ctx) => {
     const mockApiResponse: any = [];
     return res(ctx.json(mockApiResponse));
   }),
-  rest.get('http://localhost/designer/api/v1/repos/search', (req, res, ctx) => {
+  rest.get(repoSearchPath(), (req, res, ctx) => {
     const mockApiResponse: any = [];
     return res(ctx.json(mockApiResponse));
   }),
