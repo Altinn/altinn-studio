@@ -1,0 +1,36 @@
+
+.chevron {
+  margin: 12px;
+  color: #006BD8;
+  font-size: 16px !important;
+  font-weight: 600;
+}
+
+.group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.groupBadge {
+  background-color: #0062BA;
+  border-radius: 2em;
+  color: white;
+  display: inline-block;
+  font-weight: normal;
+  line-height: 10px;
+  min-width: 1px;
+  padding: 0.5em 0.7em;
+  text-align: center;
+}
+
+.root {
+  margin: 12px;
+  width: 100%;
+  max-height: 36px;
+}
+
+.select {
+  min-width: 400px;
+  z-index: 1101;
+}

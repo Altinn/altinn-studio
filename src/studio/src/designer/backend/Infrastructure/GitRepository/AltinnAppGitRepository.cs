@@ -95,7 +95,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="jsonSchema">The Json Schema that should be persisted</param>
         /// <param name="modelName">The name of the model without extensions. This will be used as filename.</param>
         /// <returns>A string containing the relative path to the file saved.</returns>
-        public async Task<string> SaveJsonSchema(string jsonSchema, string modelName)
+        public async override Task<string> SaveJsonSchema(string jsonSchema, string modelName)
         {
             string relativeFilePath = GetRelativeModelFilePath(modelName);
 
@@ -126,25 +126,12 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         /// <param name="xsd">String representing the Xsd to be saved.</param>
         /// <param name="fileName">The filename of the file to be saved excluding path.</param>
         /// <returns>A string containg the relative path to the file saved.</returns>
-        public async Task<string> SaveXsd(string xsd, string fileName)
+        public async override Task<string> SaveXsd(string xsd, string fileName)
         {
             string filePath = Path.Combine(GetRelativeModelFolder(), fileName);
             await WriteTextByRelativePathAsync(filePath, xsd, true);
 
             return filePath;
-        }
-
-        /// <summary>
-        /// Saves the Xsd to the disk.
-        /// </summary>
-        /// <param name="xmlSchema">Xml schema to be saved.</param>
-        /// <param name="fileName">The filename of the file to be saved excluding path.</param>
-        /// <returns>A string containg the relative path to the file saved.</returns>
-        public async Task<string> SaveXsd(XmlSchema xmlSchema, string fileName)
-        {
-            string xsd = await SerializeXsdToString(xmlSchema);
-
-            return await SaveXsd(xsd, fileName);
         }
 
         /// <summary>
