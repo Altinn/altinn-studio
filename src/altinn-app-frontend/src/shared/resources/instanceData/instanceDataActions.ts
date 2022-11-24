@@ -9,6 +9,4 @@ const actions = {
   getInstanceDataRejected: null,
 };
 
-const InstanceDataActions: IInstanceDataActions = bindActionCreators<any, any>(actions, store.dispatch);
-
-export default InstanceDataActions;
+export const InstanceDataActions: IInstanceDataActions = bindActionCreators<any, any>(actions, store.dispatch);

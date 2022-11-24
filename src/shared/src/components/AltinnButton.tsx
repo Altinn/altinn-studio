@@ -8,7 +8,7 @@ export interface IAltinnButtonComponentProvidedProps {
   /** Button ID */
   id?: any;
   /** Text shown on button */
-  btnText: string;
+  btnText: string | undefined;
   /** onClick function */
   onClickFunction?: any;
   /** Class objects created with Material-Ui's createStyle */

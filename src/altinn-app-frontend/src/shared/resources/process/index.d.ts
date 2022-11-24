@@ -26,4 +26,3 @@ interface CommonRejected {
 
 export type ICompleteProcessRejected = CommonRejected;
 export type IGetProcessStateRejected = CommonRejected;
-export type IGoToTaskRejected = CommonRejected;

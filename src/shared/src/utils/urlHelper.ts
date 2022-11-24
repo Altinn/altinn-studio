@@ -1,21 +1,5 @@
-const altinnWindow = window as any;
-const { org, app } = altinnWindow;
-const origin = window.location.origin;
-
-export const getApplicationMetadataUrl = (): string => {
-  return `${origin}/designer/api/v1/${org}/${app}`;
-};
-
 export const altinnAppsIllustrationHelpCircleSvgUrl = 'https://altinncdn.no/img/illustration-help-circle.svg';
-export const altinnAppsImgLogoBlueSvgUrl = 'https://altinncdn.no/img/a-logo-blue.svg';
-export const altinnDocsUrl = 'https://docs.altinn.studio/';
-export const altinnStudioDocsUrl = 'https://altinn.github.io/docs/altinn-studio/';
-export const altinnImgLogoHeaderUrl = 'https://altinncdn.no/img/altinn_logo_header.png';
-export const dataModelUploadPageUrl = `${origin}/designer/${org}/${app}#/datamodel`;
-export const dataModelXsdUrl = `${origin}/designer/${org}/${app}/Model/GetXsd`;
 export const orgsListUrl = 'https://altinncdn.no/orgs/altinn-orgs.json';
-export const repositoryGitUrl = `${origin}/repos/${org}/${app}.git`;
-export const repositoryUrl = `${origin}/repos/${org}/${app}`;
 export const baseHostnameAltinnProd = 'altinn.no';
 export const baseHostnameAltinnTest = 'altinn.cloud';
 export const baseHostnameAltinnLocal = 'altinn3local.no';

@@ -1,19 +1,10 @@
 import React from 'react';
 
 import { TextField } from '@altinn/altinn-design-system';
-import type { ReadOnlyVariant } from '@altinn/altinn-design-system';
 
 import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
 import type { PropsFromGenericComponent } from 'src/components/index';
 import type { IInputFormatting } from 'src/features/form/layout';
-
-export interface IInputBaseProps {
-  id: string;
-  readOnly: boolean | ReadOnlyVariant;
-  required: boolean;
-  handleDataChange: (value: any) => void;
-  inputRef?: ((el: HTMLInputElement) => void) | React.Ref<any>;
-}
 
 export type IInputProps = PropsFromGenericComponent<'Input'>;
 

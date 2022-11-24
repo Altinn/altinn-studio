@@ -714,13 +714,6 @@ describe('utils > validation', () => {
     });
   });
 
-  describe('getErrorCount', () => {
-    it('should count total number of errors correctly', () => {
-      const result = validation.getErrorCount(mockFormValidationResult.validations);
-      expect(result).toEqual(4);
-    });
-  });
-
   describe('canFormBeSaved', () => {
     it('should validate correctly', () => {
       const apiModeComplete = 'Complete';

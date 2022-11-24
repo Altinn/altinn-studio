@@ -12,7 +12,6 @@ export default class AppFrontend {
     };
 
     //Start app instance page
-    this.userId = '#UserId';
     this.appSelection = '#AppPathSelection';
     this.startButton = '.btn';
 

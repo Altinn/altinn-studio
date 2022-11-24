@@ -92,7 +92,7 @@ export function AddressComponent({
     } else {
       delete validationErrors.zipCode;
     }
-    if (houseNumber && !houseNumber.match(/^[a-z,A-Z]{1}\d{4}$/)) {
+    if (houseNumber && !houseNumber.match(/^[a-z,A-Z]\d{4}$/)) {
       validationErrors.houseNumber = getLanguageFromKey('address_component.validation_error_house_number', language);
     } else {
       delete validationErrors.houseNumber;

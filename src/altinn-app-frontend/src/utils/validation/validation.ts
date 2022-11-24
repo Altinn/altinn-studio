@@ -735,31 +735,6 @@ export function mapToComponentValidationsGivenNode(
 }
 
 /*
- * Gets the total number of validation errors
- */
-export function getErrorCount(validations: IValidations) {
-  let count = 0;
-  if (!validations) {
-    return count;
-  }
-  Object.keys(validations).forEach((layoutId: string) => {
-    Object.keys(validations[layoutId])?.forEach((componentId: string) => {
-      const componentValidations: IComponentValidations = validations[layoutId]?.[componentId];
-      if (componentValidations === null) {
-        return;
-      }
-      Object.keys(componentValidations).forEach((bindingKey: string) => {
-        const componentErrors = componentValidations[bindingKey]?.errors;
-        if (componentErrors) {
-          count += componentErrors.length;
-        }
-      });
-    });
-  });
-  return count;
-}
-
-/*
  * Checks if form can be saved. If it contains anything other than valid error messages it returns false
  */
 export function canFormBeSaved(validationResult: IValidationResult | null, apiMode?: string): boolean {

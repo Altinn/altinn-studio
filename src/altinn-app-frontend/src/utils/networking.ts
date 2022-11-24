@@ -7,10 +7,6 @@ export enum HttpStatusCodes {
   Forbidden = 403,
 }
 
-export interface IGetRequestResponse {
-  body: any;
-}
-
 export async function get(url: string, options?: AxiosRequestConfig): Promise<any> {
   const response: AxiosResponse = await axios.get(url, {
     ...options,
@@ -19,7 +15,7 @@ export async function get(url: string, options?: AxiosRequestConfig): Promise<an
   return response.data ? response.data : null;
 }
 
-export async function post(url: string, options?: AxiosRequestConfig, data?: any): Promise<AxiosResponse<any>> {
+export async function post(url: string, options?: AxiosRequestConfig, data?: any): Promise<AxiosResponse> {
   return await axios.post(url, data, options);
 }
 
@@ -28,12 +24,12 @@ export async function put(
   apiMode: string,
   data: any,
   config?: AxiosRequestConfig,
-): Promise<AxiosResponse<any>> {
+): Promise<AxiosResponse> {
   const response: AxiosResponse = await axios.put(`${url}/${apiMode}`, data, config);
   return response.data ? response.data : null;
 }
 
-export async function httpDelete(url: string, options?: AxiosRequestConfig): Promise<AxiosResponse<any>> {
+export async function httpDelete(url: string, options?: AxiosRequestConfig): Promise<AxiosResponse> {
   return await axios.delete(url, options);
 }
 

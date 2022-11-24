@@ -180,7 +180,7 @@ export function getLayoutsetForDataElement(
 export function getHiddenFieldsForGroup(hiddenFields: string[], components: (ILayoutGroup | ILayoutComponent)[]) {
   const result: string[] = [];
   hiddenFields.forEach((fieldKey) => {
-    const fieldKeyWithoutIndex = fieldKey.replace(/-\d{1,}$/, '');
+    const fieldKeyWithoutIndex = fieldKey.replace(/-\d+$/, '');
     if (components.find((component) => component.id === fieldKeyWithoutIndex)) {
       result.push(fieldKey);
     }

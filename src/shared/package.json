@@ -36,8 +36,12 @@
   },
   "jest": {
     "transform": {
-      ".(ts|tsx)": "ts-jest",
-      "\\.js$": "ts-jest"
+      "\\.(js|ts|tsx)$": [
+        "ts-jest",
+        {
+          "isolatedModules": true
+        }
+      ]
     },
     "reporters": [
       "default",

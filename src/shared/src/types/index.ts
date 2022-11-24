@@ -79,11 +79,6 @@ export interface IDataType {
   grouping?: string;
 }
 
-export interface IExtendedInstance {
-  instance: IInstance;
-  party: IParty;
-}
-
 export interface IInstance {
   appId: string;
   created?: string;

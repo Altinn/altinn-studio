@@ -1,29 +1,22 @@
+import type { PopoverProps } from '@material-ui/core';
 import { createTheme, createStyles, Grid, makeStyles, Popover, Typography } from '@material-ui/core';
 import classNames from 'classnames';
 import * as React from 'react';
 import altinnTheme from '../theme/altinnAppTheme';
 import { AltinnButton } from './AltinnButton';
 
-export interface IAltinnPopoverProvidedProps {
-  anchorEl: any;
-  anchorOrigin?: {
-    horizontal: 'left' | 'center' | 'right' | number;
-    vertical: 'top' | 'center' | 'bottom' | number;
-  };
-  btnClick?: any;
-  btnConfirmText?: string;
-  btnCancelText?: string;
-  btnPrimaryId?: string;
-  btnSecondaryId?: string;
-  classes: any;
-  descriptionText?: string;
-  handleClose: any;
+export interface IAnchorOrigin {
+  horizontal: 'left' | 'center' | 'right' | number;
+  vertical: 'top' | 'center' | 'bottom' | number;
+}
+
+export interface IAltinnPopoverProvidedProps extends React.PropsWithChildren {
+  anchorEl?: PopoverProps['anchorEl'];
+  anchorOrigin?: IAnchorOrigin;
+  descriptionText?: string | React.ReactNode;
+  handleClose: () => void;
   header?: string;
-  isLoading?: boolean;
-  nextTobtnConfirmText?: string;
-  paperProps?: any;
-  shouldShowCommitBox?: boolean;
-  shouldShowDoneIcon?: boolean;
+  paperProps?: PopoverProps['PaperProps'];
   transformOrigin?: {
     horizontal: 'left' | 'center' | 'right' | number;
     vertical: 'top' | 'center' | 'bottom' | number;
@@ -64,28 +57,36 @@ const useStyles = makeStyles(() =>
   }),
 );
 
-const AltinnPopoverComponent = (props: any) => {
-  const classes = useStyles(props);
-  const handleClose = () => {
-    props.handleClose();
-  };
+const AltinnPopoverComponent = ({
+  anchorOrigin,
+  anchorEl,
+  handleClose,
+  transformOrigin,
+  paperProps,
+  header,
+  descriptionText,
+  children,
+  closeButtonText,
+  closeButton,
+}: IAltinnPopoverProvidedProps) => {
+  const classes = useStyles();
 
   return (
     <>
       <Popover
-        open={!!props.anchorEl}
-        anchorEl={props.anchorEl}
+        open={!!anchorEl}
+        anchorEl={anchorEl}
         onClose={handleClose}
         onBlur={handleClose}
         anchorOrigin={{
-          horizontal: props.anchorOrigin.horizontal ? props.anchorOrigin.horizontal : 'left',
-          vertical: props.anchorOrigin.vertical ? props.anchorOrigin.vertical : 'top',
+          horizontal: anchorOrigin?.horizontal ? anchorOrigin.horizontal : 'left',
+          vertical: anchorOrigin?.vertical ? anchorOrigin.vertical : 'top',
         }}
         transformOrigin={{
-          horizontal: props.transformOrigin.horizontal ? props.transformOrigin.horizontal : 'left',
-          vertical: props.transformOrigin.vertical ? props.transformOrigin.vertical : 'top',
+          horizontal: transformOrigin?.horizontal ? transformOrigin.horizontal : 'left',
+          vertical: transformOrigin?.vertical ? transformOrigin.vertical : 'top',
         }}
-        PaperProps={{ square: true, ...props.paperProps }}
+        PaperProps={{ square: true, ...paperProps }}
       >
         <Grid
           container={true}
@@ -94,22 +95,22 @@ const AltinnPopoverComponent = (props: any) => {
           aria-live='assertive'
           role='alert'
         >
-          {props.header && (
+          {header && (
             <Typography
               variant='h3'
               className={classNames(classes.header)}
               id='header'
             >
-              {props.header}
+              {header}
             </Typography>
           )}
 
-          {props.descriptionText && <div className={classNames(classes.textWrap)}>{props.descriptionText}</div>}
-          {props.children}
-          {props.closeButton && (
+          {descriptionText && <div className={classNames(classes.textWrap)}>{descriptionText}</div>}
+          {children}
+          {closeButton && (
             <div className={classNames(classes.button)}>
               <AltinnButton
-                btnText={props.closeButtonText}
+                btnText={closeButtonText}
                 onClickFunction={handleClose}
               />
             </div>

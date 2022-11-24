@@ -21,7 +21,7 @@ export const renderWithProviders = (
   component: any,
   { preloadedState = {}, store = setupStore(preloadedState), ...renderOptions }: ExtendedRenderOptions = {},
 ) => {
-  function Wrapper({ children }: React.PropsWithChildren<unknown>) {
+  function Wrapper({ children }: React.PropsWithChildren) {
     const theme = createTheme(AltinnAppTheme);
 
     return (

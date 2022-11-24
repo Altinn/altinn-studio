@@ -27,4 +27,4 @@ export const instancesApi = appApi.injectEndpoints({
   }),
 });
 
-export const { endpoints, useInstantiateWithPrefillMutation } = instancesApi;
+export const { useInstantiateWithPrefillMutation } = instancesApi;

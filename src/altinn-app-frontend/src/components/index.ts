@@ -1,4 +1,5 @@
 import { createContext } from 'react';
+import type React from 'react';
 
 import { AddressComponent as Address } from 'src/components/advanced/AddressComponent';
 import { AttachmentListComponent } from 'src/components/base/AttachmentListComponent';

@@ -6,6 +6,7 @@ import { createTheme, makeStyles } from '@material-ui/core';
 import { AltinnPopover } from 'altinn-shared/components';
 import { AltinnAppTheme } from 'altinn-shared/theme';
 import { getLanguageFromKey } from 'altinn-shared/utils';
+import type { IAnchorOrigin } from 'altinn-shared/components/AltinnPopover';
 import type { ILanguage } from 'altinn-shared/types';
 
 const theme = createTheme(AltinnAppTheme);
@@ -18,12 +19,12 @@ const useStyle = makeStyles({
   },
 });
 
-const anchorOrigin = {
+const anchorOrigin: IAnchorOrigin = {
   horizontal: 'right',
   vertical: 'bottom',
 };
 
-const transformOrigin = {
+const transformOrigin: IAnchorOrigin = {
   horizontal: 'left',
   vertical: 'bottom',
 };
@@ -49,10 +50,8 @@ export default function HelpTextPopover({
     <>
       {!!helpIconRef && (
         <AltinnPopover
-          ariaLabel={`${getLanguageFromKey('popover.popover_open', language)}`}
           anchorOrigin={anchorOrigin}
           transformOrigin={transformOrigin}
-          backgroundColor={theme.altinnPalette.primary.yellowLight.toString()}
           anchorEl={openPopover ? helpIconRef.current : null}
           handleClose={onClose}
           paperProps={{

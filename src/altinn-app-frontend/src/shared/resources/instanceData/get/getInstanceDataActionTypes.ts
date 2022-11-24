@@ -1,3 +1,0 @@
-const moduleName = 'INSTANCE_DATA';
-
-export const GET_INSTANCEDATA_FULFILLED = `${moduleName}.GET_INSTANCEDATA_FULFILLED`;

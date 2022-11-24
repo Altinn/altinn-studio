@@ -47,13 +47,6 @@ export interface FunctionTest extends SharedTest {
   context?: SharedTestFunctionContext;
 }
 
-export interface LispLikeTest {
-  name: string;
-  expression: any;
-  expects?: Expression;
-  expectsFailure?: string;
-}
-
 export interface LayoutPreprocessorTest {
   name: string;
   layouts: Layouts;
