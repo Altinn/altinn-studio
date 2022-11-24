@@ -57,7 +57,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Console.WriteLine("allkeys: " + allKeys.ToString());
             }
 
-            throw new NotImplementedException();
+            return allKeys;
         }
 
         /// <inheritdoc />

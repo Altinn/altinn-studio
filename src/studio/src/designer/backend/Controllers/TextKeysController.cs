@@ -12,7 +12,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace Altinn.Studio.Designer.Controllers
 {
     /// <summary>
-    /// Controller containing actions related to languages
+    /// Controller containing actions related to text keys
     /// </summary>
     [Authorize]
     [AutoValidateAntiforgeryToken]
@@ -23,7 +23,7 @@ namespace Altinn.Studio.Designer.Controllers
         private readonly ITextsService _textsService;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="LanguagesController"/> class.
+        /// Initializes a new instance of the <see cref="TextKeysController"/> class.
         /// </summary>
         /// <param name="languagesService">The languages service.</param>
         /// <param name="textsService">The texts service.</param>
@@ -44,7 +44,6 @@ namespace Altinn.Studio.Designer.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [Route("keys")]
         public async Task<ActionResult<List<string>>> Get(string org, string repo)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
