@@ -13,6 +13,7 @@ test('ObjectRestrictions should redner correctly', async () => {
       path={path}
       readonly={false}
       restrictions={[]}
+      onChangeRestrictions={() => undefined}
     />
   );
   Object.values(ObjRestrictionKeys).forEach((text) => {
