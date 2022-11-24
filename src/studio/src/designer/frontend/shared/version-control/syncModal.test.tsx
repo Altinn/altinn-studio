@@ -1,6 +1,6 @@
 import React from 'react';
 import { render as rtlRender } from '@testing-library/react';
-import SyncModalComponent from './syncModal';
+import { SyncModalComponent } from './syncModal';
 import type { ISyncModalComponentProps } from './syncModal';
 
 describe('syncModal', () => {

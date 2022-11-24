@@ -6,6 +6,7 @@ import { useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 import type { IRepository } from '../../../types/global';
 import classes from './Administration.module.css';
+import { setServiceConfigPath, setServiceNamePath } from 'app-shared/api-paths';
 
 export interface ServiceAdministrationProps {
   language: any;
@@ -13,14 +14,13 @@ export interface ServiceAdministrationProps {
 }
 
 export function ServiceAdministration({ language, repository }: ServiceAdministrationProps) {
+  const { org, app } = useParams();
   const name = useAppSelector((state) => state.serviceInformation.serviceNameObj.name);
   const description = useAppSelector(
     (state) => state.serviceInformation.serviceDescriptionObj.description
   );
   const id = useAppSelector((state) => state.serviceInformation.serviceIdObj.serviceId);
-
   const dispatch = useAppDispatch();
-
   const [newName, setNewName] = useState<string>(name);
   const [newDescription, setNewDescription] = useState<string>(description);
   const [newId, setNewId] = useState<string>(id);
@@ -46,9 +46,7 @@ export function ServiceAdministration({ language, repository }: ServiceAdministr
     setAppNameAnchorEl(null);
   };
 
-  const handleEditAppNameClick = () => {
-    setEditAppName(true);
-  };
+  const handleEditAppNameClick = () => setEditAppName(true);
 
   const handleAppNameBlur = () => {
     if (editAppName && !newName) {
@@ -56,13 +54,13 @@ export function ServiceAdministration({ language, repository }: ServiceAdministr
     } else {
       dispatch(
         HandleServiceInformationActions.saveServiceName({
-          url: `${window.location.origin}/designer/${org}/${app}/Text/SetServiceName`,
+          url: setServiceNamePath(org, app),
           newServiceName: newName,
         })
       );
       dispatch(
         HandleServiceInformationActions.saveServiceConfig({
-          url: `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
+          url: setServiceConfigPath(org, app),
           newServiceDescription: newDescription,
           newServiceId: newId,
           newServiceName: newName,
@@ -76,12 +74,12 @@ export function ServiceAdministration({ language, repository }: ServiceAdministr
     setNewDescription(event.target.value);
     setEditAppDescription(true);
   };
-  const { org, app } = useParams();
+
   const handleAppDescriptionBlur = () => {
     if (editAppDescription) {
       dispatch(
         HandleServiceInformationActions.saveServiceConfig({
-          url: `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
+          url: setServiceConfigPath(org, app),
           newServiceDescription: newDescription,
           newServiceId: newId,
           newServiceName: newName,
@@ -95,11 +93,12 @@ export function ServiceAdministration({ language, repository }: ServiceAdministr
     setNewId(event.target.value);
     setEditAppId(true);
   };
+
   const handleAppIdBlur = () => {
     if (editAppId) {
       dispatch(
         HandleServiceInformationActions.saveServiceConfig({
-          url: `${window.location.origin}/designer/${org}/${app}/Config/SetServiceConfig`,
+          url: setServiceConfigPath(org, app),
           newServiceDescription: newDescription,
           newServiceId: newId,
           newServiceName: newName,

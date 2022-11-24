@@ -1,4 +1,4 @@
-import { RepositoryType } from 'app-development/types/global';
+import { RepositoryType } from '../types/global';
 import { getRepositoryType } from './repository';
 
 describe('getRepositoryType', () => {

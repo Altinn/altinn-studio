@@ -1,8 +1,7 @@
-import type { SagaIterator } from 'redux-saga';
+import { SagaIterator } from 'redux-saga';
 import { call, put, takeLatest } from 'redux-saga/effects';
 import type { IJsonSchema } from '@altinn/schema-editor/types';
 import { del, get, post, put as networkPut } from '../../../utils/networking';
-import type { IDataModelAction } from './dataModellingSlice';
 import {
   createDataModel,
   createDataModelFulfilled,
@@ -13,12 +12,18 @@ import {
   fetchDataModel,
   fetchDataModelFulfilled,
   fetchDataModelRejected,
+  IDataModelAction,
   saveDataModel,
   saveDataModelFulfilled,
   saveDataModelRejected,
 } from './dataModellingSlice';
 import { DataModelsMetadataActions } from './metadata';
-import { createDatamodelPath, datamodelPath, datamodelGetPath } from '../../../api-paths';
+import {
+  createDatamodelPath,
+  datamodelAddXsdFromRepoPath,
+  datamodelPath,
+  datamodelGetPath,
+} from '../../../api-paths';
 import { _useParamsClassCompHack } from '../../../utils/_useParamsClassCompHack';
 
 export function* fetchDataModelSaga(action: IDataModelAction): SagaIterator {
@@ -26,7 +31,13 @@ export function* fetchDataModelSaga(action: IDataModelAction): SagaIterator {
   try {
     const modelPath = metadata?.value?.repositoryRelativeUrl;
     const { org, app } = _useParamsClassCompHack();
-    const result = yield call(get, datamodelGetPath(org, app, modelPath));
+    let result;
+    if (metadata?.value?.fileType === '.xsd') {
+      result = yield call(post, datamodelAddXsdFromRepoPath(org, app, modelPath.slice(1)));
+      yield put(DataModelsMetadataActions.getDataModelsMetadata());
+    } else {
+      result = yield call(get, datamodelGetPath(org, app, modelPath));
+    }
     yield put(fetchDataModelFulfilled({ schema: result }));
   } catch (err) {
     yield put(fetchDataModelRejected({ error: err }));
@@ -58,7 +69,11 @@ function* createDataModelSaga(action: IDataModelAction) {
   const body = { modelName: name, relativeDirectory: relativePath };
   const { org, app } = _useParamsClassCompHack();
   try {
-    const schema: IJsonSchema = yield call(post, createDatamodelPath(org, app), body);
+    const schema: IJsonSchema = yield call(
+      post,
+      createDatamodelPath(org, app),
+      body,
+    );
     yield put(DataModelsMetadataActions.getDataModelsMetadata());
     yield put(createDataModelFulfilled({ schema }));
   } catch (err) {

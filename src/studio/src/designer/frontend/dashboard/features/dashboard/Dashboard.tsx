@@ -10,6 +10,7 @@ import { OrgReposList } from './OrgReposList';
 import { SearchResultReposList } from './SearchResultReposList';
 import { useAppSelector } from '../../common/hooks';
 import classes from './Dashboard.module.css';
+import { DatamodelsReposList } from './DatamodelsRepoList';
 
 export const Dashboard = () => {
   const language = useAppSelector((state) => state.language.language);
@@ -78,6 +79,7 @@ export const Dashboard = () => {
           <div className={classes.marginTop}>
             <OrgReposList />
           </div>
+          <DatamodelsReposList />
         </>
       )}
     </div>

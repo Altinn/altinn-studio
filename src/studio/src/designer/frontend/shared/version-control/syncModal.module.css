@@ -1,0 +1,33 @@
+.popover {
+  width: 445px;
+  padding: 24px;
+}
+
+.header {
+  font-size: 16px;
+  font-weight: 500;
+}
+.subHeader {
+  font-size: 16px;
+  white-space: pre-line;
+}
+
+.spinner {
+  color: #0062ba;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.doneLoadingIcon {
+  color: #12aa64;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.commitMessageField {
+  border: 1px solid #0062ba;
+  box-sizing: border-box;
+  font-size: 16px !important;
+  min-height: 88px;
+  line-height: 1.3;
+}

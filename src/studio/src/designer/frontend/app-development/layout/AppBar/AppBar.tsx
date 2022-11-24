@@ -8,11 +8,11 @@ import { altinnImgLogoHeaderUrl } from 'app-shared/cdn-paths';
 import type { IMenuItem } from 'app-shared/navigation/drawer/drawerMenuSettings';
 import TabletDrawerMenu from 'app-shared/navigation/drawer/TabletDrawerMenu';
 import { getTopBarMenu } from './appBarConfig';
-import ProfileMenu from 'app-shared/navigation/main-header/profileMenu';
+import { ProfileMenu } from 'app-shared/navigation/main-header/profileMenu';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { VersionControlContainer } from 'app-shared/version-control/versionControlHeader';
 import { useAppSelector } from '../../common/hooks';
-import { getRepositoryType } from '../../utils/repository';
+import { getRepositoryType } from 'app-shared/utils/repository';
 
 export interface IAppBarProps {
   activeSubHeaderSelection?: string;

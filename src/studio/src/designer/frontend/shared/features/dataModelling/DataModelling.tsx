@@ -89,7 +89,7 @@ export function DataModelling({
         metadataLoadingState,
       })
     ) {
-      setSelectedOption(metadataOptions[0]);
+      setSelectedOption(metadataOptions[0].options[0]);
     } else {
       const option = findPreferredMetadataOption(
         metadataOptions,
@@ -106,6 +106,14 @@ export function DataModelling({
     if (!schemaPathIsSame(prevFetchedOption?.current, selectedOption)) {
       dispatch(fetchDataModel({ metadata: selectedOption }));
       prevFetchedOption.current = selectedOption;
+      if (selectedOption.value.fileName.endsWith('.xsd')) {
+        const filename = selectedOption.value.fileName;
+        const lowerCaseFileName = filename.toLowerCase();
+        const filenameWithoutXsd = lowerCaseFileName.split('.xsd')[0];
+        const schemaName = filename.substring(0, filenameWithoutXsd.length);
+
+        uploadedOrCreatedFileName.current = schemaName;
+      }
     }
   }, [selectedOption, dispatch]);
 
@@ -138,7 +146,7 @@ export function DataModelling({
   const handleXSDUploaded = (filename: string) => {
     const lowerCaseFileName = filename.toLowerCase();
     const filenameWithoutXsd = lowerCaseFileName.split('.xsd')[0];
-    const schemaName = filename.substr(0, filenameWithoutXsd.length);
+    const schemaName = filename.substring(0, filenameWithoutXsd.length);
 
     uploadedOrCreatedFileName.current = schemaName;
     dispatch(DataModelsMetadataActions.getDataModelsMetadata());

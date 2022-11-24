@@ -1,18 +1,14 @@
 import React from 'react';
-import { createTheme, Grid } from '@mui/material';
-import type { WithStyles } from '@mui/styles';
-import { createStyles, withStyles } from '@mui/styles';
 import axios from 'axios';
 import { get, post } from '../utils/networking';
-import altinnTheme from '../theme/altinnStudioTheme';
 import type { IContentStatus, IGitStatus } from '../types/global';
 import { getLanguageFromKey } from '../utils/language';
 import postMessages from '../utils/postMessages';
-import FetchChangesComponent from './fetchChanges';
-import ShareChangesComponent from './shareChanges';
-import CloneButton from './cloneButton';
+import { FetchChangesComponent } from './fetchChanges';
+import { ShareChangesComponent } from './shareChanges';
+import { CloneButton } from './cloneButton';
 import { CloneModal } from './cloneModal';
-import SyncModalComponent from './syncModal';
+import { SyncModalComponent } from './syncModal';
 import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
 import {
   repoCommitPath,
@@ -21,8 +17,9 @@ import {
   repoPushPath,
   repoStatusPath,
 } from '../api-paths';
+import classes from './versionControlHeader.module.css';
 
-export interface IVersionControlHeaderProps extends WithStyles<typeof styles> {
+export interface IVersionControlHeaderProps {
   language: any;
   type?: 'fetchButton' | 'shareButton' | 'header';
   hasPushRight?: boolean;
@@ -38,15 +35,6 @@ export interface IVersionControlHeaderState {
   cloneModalOpen: boolean;
   cloneModalAnchor: any;
 }
-
-const theme = createTheme(altinnTheme);
-
-const styles = createStyles({
-  headerStyling: {
-    background: theme.altinnPalette.primary.greyLight,
-    paddingTop: 10,
-  },
-});
 
 const initialModalState = {
   header: '',
@@ -64,7 +52,7 @@ function hasLocalChanges(result: IGitStatus) {
   );
 }
 
-class VersionControlHeader extends React.Component<
+export class VersionControlContainer extends React.Component<
   IVersionControlHeaderProps,
   IVersionControlHeaderState
 > {
@@ -483,41 +471,27 @@ class VersionControlHeader extends React.Component<
   };
 
   public render() {
-    const { classes } = this.props;
     const type = this.props.type || 'header';
-
     return (
       <>
         {type === 'header' ? (
-          <Grid
-            container={true}
-            direction='row'
-            className={classes.headerStyling}
-            justifyContent='flex-start'
-            data-testid='version-control-header'
-          >
-            <Grid item={true} style={{ marginRight: '24px' }}>
-              <CloneButton
-                onClick={this.openCloneModal}
-                buttonText={getLanguageFromKey('sync_header.clone', this.props.language)}
-              />
-            </Grid>
-            <Grid item={true} style={{ marginRight: '24px' }}>
-              <FetchChangesComponent
-                changesInMaster={this.state.changesInMaster}
-                fetchChanges={this.fetchChanges}
-                language={this.props.language}
-              />
-            </Grid>
-            <Grid item={true}>
-              <ShareChangesComponent
-                changesInLocalRepo={this.state.changesInLocalRepo}
-                hasMergeConflict={this.state.mergeConflict}
-                hasPushRight={this.state.hasPushRight}
-                language={this.props.language}
-                shareChanges={this.shareChanges}
-              />
-            </Grid>
+          <div className={classes.headerStyling} data-testid='version-control-header'>
+            <CloneButton
+              onClick={this.openCloneModal}
+              buttonText={getLanguageFromKey('sync_header.clone', this.props.language)}
+            />
+            <FetchChangesComponent
+              changesInMaster={this.state.changesInMaster}
+              fetchChanges={this.fetchChanges}
+              buttonText={getLanguageFromKey('sync_header.fetch_changes', this.props.language)}
+            />
+            <ShareChangesComponent
+              changesInLocalRepo={this.state.changesInLocalRepo}
+              hasMergeConflict={this.state.mergeConflict}
+              hasPushRight={this.state.hasPushRight}
+              language={this.props.language}
+              shareChanges={this.shareChanges}
+            />
             {this.renderSyncModalComponent()}
             <CloneModal
               anchorEl={this.state.cloneModalAnchor}
@@ -525,13 +499,13 @@ class VersionControlHeader extends React.Component<
               onClose={this.closeCloneModal}
               language={this.props.language}
             />
-          </Grid>
+          </div>
         ) : type === 'fetchButton' ? (
           <div data-testid='version-control-fetch-button'>
             <FetchChangesComponent
               changesInMaster={this.state.changesInMaster}
               fetchChanges={this.fetchChanges}
-              language={this.props.language}
+              buttonText={getLanguageFromKey('sync_header.fetch_changes', this.props.language)}
             />
             {this.renderSyncModalComponent()}
           </div>
@@ -552,5 +526,3 @@ class VersionControlHeader extends React.Component<
     );
   }
 }
-
-export const VersionControlContainer = withStyles(styles)(VersionControlHeader);

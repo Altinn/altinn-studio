@@ -30,14 +30,21 @@ const styles = () =>
     },
   });
 
-export function IFrameComponent({ classes, iframeEndingUrl }: IIFrameComponentProvidedProps) {
+
+export function IFrameComponent({
+  classes,
+  iframeEndingUrl,
+}: IIFrameComponentProvidedProps) {
   const { org, app } = useParams();
 
   const url = `${window.location.origin}/designer/${org}/${app}/${iframeEndingUrl}`;
   return (
     <div className={classes.mainLayout}>
       {/* eslint-disable-next-line jsx-a11y/iframe-has-title */}
-      <iframe className={classes.iFrameLayout} src={url} />
+      <iframe
+        className={classes.iFrameLayout}
+        src={url}
+      />
     </div>
   );
 }

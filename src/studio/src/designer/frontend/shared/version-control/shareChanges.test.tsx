@@ -1,5 +1,5 @@
 import React from 'react';
-import ShareChangesComponent from './shareChanges';
+import { ShareChangesComponent } from './shareChanges';
 import type { IShareChangesComponentProps } from './shareChanges';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';

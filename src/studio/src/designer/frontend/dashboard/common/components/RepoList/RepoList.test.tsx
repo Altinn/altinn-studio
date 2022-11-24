@@ -4,15 +4,15 @@ import configureStore from 'redux-mock-store';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { IRepoListProps } from './RepoList';
-import * as userApi from '../../services/userApi';
+import * as userApi from '../../../services/userApi';
 import { RepoList } from './RepoList';
 
 const user = userEvent.setup();
 
 afterEach(() => jest.restoreAllMocks());
-jest.mock('../../services/userApi', () => ({
+jest.mock('../../../services/userApi', () => ({
   __esModule: true,
-  ...jest.requireActual('../../services/userApi'),
+  ...jest.requireActual('../../../services/userApi'),
 }));
 
 const repos = [
@@ -114,7 +114,7 @@ describe('RepoList', () => {
     expect(useUnsetStarredRepoMutationSpy).toBeCalledWith(repos[1]);
   });
 
-  it('should show gitea icon and hide edit app when displaying a "-datamodels" repo', () => {
+  it('should show gitea icon and edit models icon when displaying a "-datamodels" repo', () => {
     const datamodelsRepo = {
       name: 'test-datamodels',
       full_name: 'test-datamodels',
@@ -134,7 +134,7 @@ describe('RepoList', () => {
     render({ repos: [datamodelsRepo] });
 
     expect(screen.getByTestId('gitea-repo-link')).toBeInTheDocument();
-    expect(screen.queryByTestId('edit-repo-link')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('edit-repo-link')).toBeInTheDocument();
   });
 
   it('should show gitea icon edit app not when displaying a "-datamodels" repo', () => {

@@ -1,4 +1,4 @@
-import { RepositoryType } from 'app-development/types/global';
+import { RepositoryType } from 'app-shared/types/global';
 
 export interface TopBarMenuItem {
   key: TopBarMenu;

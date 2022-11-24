@@ -77,11 +77,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc/>
-        public IList<AltinnCoreFile> GetSchemaFiles(string org, string repository, string developer)
+        public IList<AltinnCoreFile> GetSchemaFiles(string org, string repository, string developer, bool xsd = false)
         {
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
 
-            return altinnGitRepository.GetSchemaFiles();
+            return altinnGitRepository.GetSchemaFiles(xsd);
         }
 
         /// <inheritdoc/>
@@ -98,15 +98,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
             var altinnGitRepository = _altinnGitRepositoryFactory.GetAltinnGitRepository(org, repository, developer);
             var jsonSchema = Json.Schema.JsonSchema.FromText(jsonContent);
             var serializedJsonContent = SerializeJson(jsonSchema);
-
-            if (await altinnGitRepository.GetRepositoryType() == AltinnRepositoryType.App && !saveOnly)
+            if (saveOnly)
             {
-                await UpdateAllAppModelFiles(org, repository, developer, relativeFilePath, serializedJsonContent);
-            }
-            else
-            {
+                // Only save updated JSON schema - no model file generation
                 await altinnGitRepository.WriteTextByRelativePathAsync(relativeFilePath, serializedJsonContent, true);
+                return;
             }
+
+            var repositoryType = await altinnGitRepository.GetRepositoryType();
+
+            if (repositoryType == AltinnRepositoryType.Datamodels)
+            {
+                // Datamodels repository - save JSON and update XSD
+                await altinnGitRepository.WriteTextByRelativePathAsync(relativeFilePath, serializedJsonContent, true);
+                XmlSchema xsd = _jsonSchemaToXmlSchemaConverter.Convert(jsonSchema);
+                await altinnGitRepository.SaveXsd(xsd, relativeFilePath.Replace(".schema.json", ".xsd"));
+                return;
+            }
+
+            await UpdateModelFilesFromJsonSchema(org, repository, developer, relativeFilePath, serializedJsonContent);
         }
 
         /// <inheritdoc/>
@@ -455,6 +465,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private static async Task UpdateJsonSchema(AltinnAppGitRepository altinnAppGitRepository, string relativeFilePath, string jsonContent)
         {
             await altinnAppGitRepository.WriteTextByRelativePathAsync(relativeFilePath, jsonContent, true);
+        }
+
+        private static async Task UpdateJsonSchema(AltinnGitRepository altinnGitRepository, string relativeFilePath, string jsonContent)
+        {
+            await altinnGitRepository.WriteTextByRelativePathAsync(relativeFilePath, jsonContent, true);
         }
 
         private static async Task UpdateXsd(

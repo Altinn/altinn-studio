@@ -23,8 +23,8 @@ import { matchPath, useLocation } from 'react-router-dom';
 
 import classes from './App.module.css';
 import { useAppDispatch, useAppSelector } from './common/hooks';
-import { getRepositoryType } from './utils/repository';
-import { RepositoryType } from './types/global';
+import { getRepositoryType } from 'app-shared/utils/repository';
+import { RepositoryType } from 'app-shared/types/global';
 import {
   frontendLangPath,
   repoInitialCommitPath,
