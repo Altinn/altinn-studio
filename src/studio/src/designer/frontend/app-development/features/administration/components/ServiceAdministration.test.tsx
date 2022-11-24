@@ -110,7 +110,7 @@ describe('Administration', () => {
     await waitFor(() => {
       expect(dispatchSpy).toBeCalledWith({
         payload: {
-          url: 'http://localhost/designer/my-org/my-app/Config/SetServiceConfig',
+          url: '/designer/my-org/my-app/Config/SetServiceConfig',
           newServiceName: mockEvent.target.value,
           newServiceId: mockServiceId,
           newServiceDescription: mockServiceDescription,
@@ -119,7 +119,7 @@ describe('Administration', () => {
       });
       expect(dispatchSpy).toBeCalledWith({
         payload: {
-          url: 'http://localhost/designer/my-org/my-app/Text/SetServiceName',
+          url: '/designer/my-org/my-app/Text/SetServiceName',
           newServiceName: mockEvent.target.value,
         },
         type: 'handleServiceInformation/saveServiceName',
@@ -154,7 +154,7 @@ describe('Administration', () => {
     await waitFor(() => {
       expect(dispatchSpy).toBeCalledWith({
         payload: {
-          url: 'http://localhost/designer/my-org/my-app/Config/SetServiceConfig',
+          url: '/designer/my-org/my-app/Config/SetServiceConfig',
           newServiceName: mockServiceName,
           newServiceId: mockServiceId,
           newServiceDescription: mockEvent.target.value,
@@ -189,7 +189,7 @@ describe('Administration', () => {
     await waitFor(() => {
       expect(dispatchSpy).toBeCalledWith({
         payload: {
-          url: 'http://localhost/designer/my-org/my-app/Config/SetServiceConfig',
+          url: '/designer/my-org/my-app/Config/SetServiceConfig',
           newServiceName: mockServiceName,
           newServiceId: mockEvent.target.value,
           newServiceDescription: mockServiceDescription,

@@ -11,9 +11,7 @@ describe('fetchChanges', () => {
     const handleFetchChanges = jest.fn();
     render({ fetchChanges: handleFetchChanges });
 
-    const syncButton = screen.getByRole('button', {
-      name: /sync_header\.fetch_changes/i,
-    });
+    const syncButton = screen.getByTestId('fetch-changes-button');
 
     await user.click(syncButton);
 
