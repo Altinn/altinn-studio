@@ -86,10 +86,7 @@ public class Xsd2CsharpBaseClass<TTestType> : FluentTestsBase<TTestType>
 
     protected TTestType MetamodelLoaded(string resourceName)
     {
-        var assembly = Assembly.GetExecutingAssembly();
-        var resource = assembly.GetManifestResourceStream(resourceName);
-        using var reader = new StreamReader(resource);
-        string metamodelString = reader.ReadToEnd();
+        var metamodelString = TestDataHelper.LoadTestDataFromFileAsString(resourceName);
         ModelMetadata = JsonConvert.DeserializeObject<ModelMetadata>(metamodelString);
         return this as TTestType;
     }

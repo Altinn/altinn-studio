@@ -10,7 +10,7 @@ namespace Designer.Tests.Factories.ModelFactory
         public void CreateModelFromMetadata_InputModelWithRestrictionMinimumAndMaximum_GenerateDataAnnotationWithRangeFromMinToMax()
         {
             Given.That.MetamodelLoaded(
-                    "Designer.Tests._TestData.Model.Metadata.restriction-total-digits.metadata.json")
+                    "Model/Metadata/restriction-total-digits.metadata.json")
                 .When.CSharpClassesCreatedFromMetamodel()
                 .Then.CSharpClasses.Should().NotBeNull();
             And.CSharpClasses.Should().Contain("[Range(-7.766279631452242E+18, 7.766279631452242E+18)]");
@@ -20,7 +20,7 @@ namespace Designer.Tests.Factories.ModelFactory
         public void CreateModelFromMetadata_InputModelWithRestrictionMinLengthAndMaxLength_GenerateDataAnnotationWithMinLengthAndMaxLengthAttributes()
         {
             Given.That.MetamodelLoaded(
-                    "Designer.Tests._TestData.Model.Metadata.restriction-total-digits.metadata.json")
+                    "Model/Metadata/restriction-total-digits.metadata.json")
                 .When.CSharpClassesCreatedFromMetamodel()
                 .Then.CSharpClasses.Should().NotBeNull();
             And.CSharpClasses.Should().Contain("[MinLength(1)]");
@@ -31,7 +31,7 @@ namespace Designer.Tests.Factories.ModelFactory
         public void CreateModelFromMetadata_InputModelSpecifiedModelName_GenerateDataAnnotationForRoomElement()
         {
             Given.That.MetamodelLoaded(
-                    "Designer.Tests._TestData.Model.Metadata.RA-0678_M.metadata.json")
+                    "Model/Metadata/RA-0678_M.metadata.json")
                 .When.CSharpClassesCreatedFromMetamodel()
                 .Then.CSharpClasses.Should().NotBeNull();
             And.CSharpClasses.Should().Contain("[XmlRoot(ElementName=\"melding\")]");
@@ -41,7 +41,7 @@ namespace Designer.Tests.Factories.ModelFactory
         public void CreateModelFromMetadata_StringArrayShouldUseNativeType()
         {
             Given.That.MetamodelLoaded(
-                    "Designer.Tests._TestData.Model.Metadata.SimpleStringArray.metadata.json")
+                    "Model/Metadata/SimpleStringArray.metadata.json")
                 .When.CSharpClassesCreatedFromMetamodel()
                 .Then.CSharpClasses.Should().NotBeNull();
             And.CSharpClasses.Should().Contain("List<string>");
@@ -53,7 +53,7 @@ namespace Designer.Tests.Factories.ModelFactory
         public void CreateModelFromMetadata_TargetNamespaceShouldBeCarriedOverToClass()
         {
             Given.That.MetamodelLoaded(
-                    "Designer.Tests._TestData.Model.Metadata.SeresBasicSchemaWithTargetNamespace.metadata.json")
+                    "Model/Metadata/SeresBasicSchemaWithTargetNamespace.metadata.json")
                 .When.CSharpClassesCreatedFromMetamodel()
                 .Then.CSharpClasses.Should().NotBeNull();
             And.CSharpClasses.Should().MatchRegex("\\[XmlRoot\\(.*Namespace=\"urn:no:altinn:message\"\\)\\]");
