@@ -93,16 +93,16 @@ namespace Altinn.Studio.Designer.Controllers
 
             try
             {
-                Dictionary<string, string> texts = await _textsService.GetTexts(org, repo, developer, languageCode);
-                return Ok(texts);
+                List<string> keys = await _textsService.GetKeys(org, repo, developer, languages);
+                return Ok(keys);
             }
             catch (IOException)
             {
-                return NotFound($"The texts file, {languageCode}.texts.json, that you are trying to find does not exist.");
+                return NotFound($"The texts files needed to get keys does not exist.");
             }
             catch (JsonException)
             {
-                return new ObjectResult(new { errorMessage = $"The format of the file, {languageCode}.texts.json, that you tried to access might be invalid." }) { StatusCode = 500 };
+                return new ObjectResult(new { errorMessage = $"The format of the file, .texts.json, that you tried to access might be invalid." }) { StatusCode = 500 };
             }
         }
 

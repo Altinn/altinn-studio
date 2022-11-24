@@ -44,14 +44,17 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Dictionary<string, string>> GetKeys(string org, string repo, string developer, IList<string> languages)
+        public async Task<List<string>> GetKeys(string org, string repo, string developer, IList<string> languages)
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+            List<string> allKeys = new List<string>();
 
             foreach (string languageCode in languages)
             {
                 Dictionary<string, string> jsonTexts = await altinnAppGitRepository.GetTextsV2(languageCode);
-                jsonTexts.Keys;
+                allKeys.AddRange(jsonTexts.Keys.ToList().Except(allKeys));
+                Console.WriteLine("keys: " + jsonTexts.Keys.ToString());
+                Console.WriteLine("allkeys: " + allKeys.ToString());
             }
 
             throw new NotImplementedException();

@@ -29,7 +29,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="developer">Username of developer</param>
         /// <param name="languages">List of languages in application</param>
         /// <returns>The text file as a dictionary with ID and text as key:value pairs</returns>
-        public Task<Dictionary<string, string>> GetKeys(string org, string repo, string developer, IList<string> languages);
+        public Task<List<string>> GetKeys(string org, string repo, string developer, IList<string> languages);
 
         /// <summary>
         /// Edit texts file for specific language by overwriting old text file.
