@@ -27,14 +27,14 @@
     "test:all:headless": "cypress run -s 'e2e/integration/*/*.js'"
   },
   "devDependencies": {
-    "@testing-library/cypress": "8.0.3",
-    "axe-core": "4.5.1",
-    "concurrently": "7.5.0",
-    "cypress": "11.0.1",
+    "@testing-library/cypress": "8.0.7",
+    "axe-core": "4.5.2",
+    "concurrently": "7.6.0",
+    "cypress": "11.1.0",
     "cypress-axe": "1.0.0",
     "cypress-plugin-tab": "1.0.5",
     "dotenv": "16.0.3",
-    "eslint": "8.27.0",
+    "eslint": "8.28.0",
     "eslint-plugin-cypress": "2.12.1",
     "execa": "6.1.0",
     "lint-staged": "13.0.3",
@@ -42,7 +42,7 @@
     "rimraf": "3.0.2",
     "start-server-and-test": "1.14.0"
   },
-  "packageManager": "yarn@3.2.4",
+  "packageManager": "yarn@3.3.0",
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": "../../.husky/pre-commit-check-for-skipped-tests"
   }
