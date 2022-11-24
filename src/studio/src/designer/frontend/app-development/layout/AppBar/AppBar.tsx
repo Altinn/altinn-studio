@@ -229,7 +229,7 @@ export const AppBar = ({
                 xs
                 item
               >
-                <VersionControlHeader language={language} />
+                <VersionControlContainer language={language} />
               </Grid>
               {menu.map((item) => (
                 <Grid
@@ -244,30 +244,8 @@ export const AppBar = ({
                     })}
                     data-testid={item.key}
                   >
-                    <VersionControlContainer language={language} />
-                  </Grid>
-                  {menu.map((item) => (
-                    <Grid
-                      item
-                      key={item.key}
-                      className={classNames(classes.subHeader)}
-                    >
-                      <Link
-                        to={item.link.replace(':org', org).replace(':app', app)}
-                        className={classNames(classes.subHeaderLink, {
-                          [classes.subHeaderLinkActive]: activeSubHeaderSelection === item.key,
-                        })}
-                        data-testid={item.key}
-                      >
-                        {t(item.key)}
-                      </Link>
-                    </Grid>
-                  ))}
-                  <Grid
-                    xs
-                    item
-                  />{' '}
-                  {/** Used to keep menu centered */}
+                    {t(item.key)}
+                  </Link>
                 </Grid>
               ))}
               <Grid
