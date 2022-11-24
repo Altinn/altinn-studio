@@ -1,4 +1,4 @@
-import { RepositoryType } from 'app-development/types/global';
+import { RepositoryType } from 'app-shared/types/global';
 import { getTopBarMenu, menu, TopBarMenu, TopBarMenuItem } from './appBarConfig';
 
 describe('getTopBarMenu', () => {

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { GridSortModel } from '@mui/x-data-grid';
-import { Typography } from '@mui/material';
 import { DashboardActions } from '../../resources/fetchDashboardResources/dashboardSlice';
 import { useAugmentReposWithStarred } from './hooks';
 import { getReposLabel, getUidFilter } from './utils';
@@ -51,11 +50,9 @@ export const OrgReposList = () => {
 
   return (
     <div>
-      <Typography variant='h2'>
-        {getReposLabel({ selectedContext, orgs, language })}
-      </Typography>
+      <h2>{getReposLabel({ selectedContext, orgs, language })}</h2>
       <RepoList
-        repos={reposWithStarred}
+        repos={reposWithStarred.filter((repo) => !repo.name.endsWith('-datamodels'))}
         isLoading={isLoadingOrgRepos || isLoadingStarred}
         onPageSizeChange={handlePageSizeChange}
         isServerSort={true}
