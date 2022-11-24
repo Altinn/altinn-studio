@@ -22,17 +22,9 @@ export interface IToolbarItemProps extends IToolbarItemProvidedProps {
 class ToolbarItem extends React.Component<IToolbarItemProps> {
   public render(): JSX.Element {
     return (
-      <Paper
-        square={true}
-        classes={{ root: classNames(this.props.classes.paper) }}
-      >
-        <ListItem
-          classes={{ root: classNames(this.props.classes.listItem) }}
-          component='div'
-        >
-          <ListItemIcon
-            classes={{ root: classNames(this.props.classes.listComponentIcon) }}
-          >
+      <Paper square={true} classes={{ root: classNames(this.props.classes.paper) }}>
+        <ListItem classes={{ root: classNames(this.props.classes.listItem) }} component='div'>
+          <ListItemIcon classes={{ root: classNames(this.props.classes.listComponentIcon) }}>
             <i className={this.props.icon} />
           </ListItemIcon>
           <ListItemText
@@ -42,10 +34,7 @@ class ToolbarItem extends React.Component<IToolbarItemProps> {
             }}
           >
             {this.props.thirdPartyLabel == null
-              ? getComponentTitleByComponentType(
-                  this.props.componentType,
-                  this.props.language,
-                )
+              ? getComponentTitleByComponentType(this.props.componentType, this.props.language)
               : this.props.thirdPartyLabel}
           </ListItemText>
           <ListItemIcon
@@ -118,12 +107,9 @@ const styles = () =>
     },
   });
 
-const mapStateToProps: (
+const mapStateToProps: (state: IAppState, props: IToolbarItemProvidedProps) => IToolbarItemProps = (
   state: IAppState,
-  props: IToolbarItemProvidedProps,
-) => IToolbarItemProps = (
-  state: IAppState,
-  props: IToolbarItemProvidedProps,
+  props: IToolbarItemProvidedProps
 ) => ({
   language: state.appData.languageState.language,
   componentType: props.componentType,
@@ -133,6 +119,4 @@ const mapStateToProps: (
   icon: props.icon,
 });
 
-export const ToolbarItemComponent = withStyles(styles, { withTheme: true })(
-  connect(mapStateToProps)(ToolbarItem),
-);
+export const ToolbarItemComponent = withStyles(styles, { withTheme: true })(connect(mapStateToProps)(ToolbarItem));

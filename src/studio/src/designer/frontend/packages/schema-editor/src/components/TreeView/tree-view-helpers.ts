@@ -1,4 +1,5 @@
-import { FieldType, ObjectKind, UiSchemaNode } from '@altinn/schema-model';
+import type { UiSchemaNode } from '@altinn/schema-model';
+import { FieldType, ObjectKind } from '@altinn/schema-model';
 
 export const getIconStr = (item: UiSchemaNode) => {
   const { fieldType, isArray } = item;

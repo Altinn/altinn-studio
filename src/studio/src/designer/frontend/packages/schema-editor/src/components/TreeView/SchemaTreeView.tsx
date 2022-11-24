@@ -2,7 +2,7 @@ import React from 'react';
 import { TreeView } from '@mui/lab';
 import { ArrowDropDown, ArrowRight } from '@mui/icons-material';
 import { SchemaItem } from './SchemaItem';
-import { UiSchemaNode } from '@altinn/schema-model';
+import type { UiSchemaNode } from '@altinn/schema-model';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import classes from './SchemaTreeView.module.css';

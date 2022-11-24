@@ -13,14 +13,14 @@ export enum IconImage {
   Property = 'property',
   Reference = 'reference',
   String = 'string',
-  Wastebucket = 'wastebucket'
+  Wastebucket = 'wastebucket',
 }
 
 export interface IconProps {
-  className?: string,
-  image: IconImage
+  className?: string;
+  image: IconImage;
 }
 
-export const Icon = ({className, image}: IconProps) => {
-  return <span className={cn(classes[image], className)}/>;
-}
+export const Icon = ({ className, image }: IconProps) => {
+  return <span className={cn(classes[image], className)} />;
+};

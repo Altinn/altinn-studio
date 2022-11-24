@@ -10,30 +10,19 @@ export interface ITwoArraysObj {
   order: any[];
 }
 
-const changeOrderNum = ({array, order}: ITwoArraysObj) => {
+const changeOrderNum = ({ array, order }: ITwoArraysObj) => {
   array.forEach((component: any) => {
     if (order.indexOf(component.id) >= 0) {
       component.order = order.indexOf(component.id);
     }
   });
   markFirstAndLastObject(array);
-  const cloneOfObj = JSON.parse(JSON.stringify({ array, order }));
-  return cloneOfObj;
+  return JSON.parse(JSON.stringify({ array, order }));
 };
 
 const findMissing = (a: any[]) => {
-  const maximum = Math.max.apply(
-    Math,
-    a.map((o) => {
-      return o.order;
-    }),
-  );
-  const minimum = Math.min.apply(
-    Math,
-    a.map((o) => {
-      return o.order;
-    }),
-  );
+  const maximum = Math.max(...a.map((o) => o.order));
+  const minimum = Math.min(...a.map((o) => o.order));
   let index = 0;
   Array.from(Array(maximum).keys()).forEach((i: number) => {
     const obj = a.find((x: any) => x.order === i);
@@ -64,8 +53,7 @@ const markFirstAndLastObject = (array: any[]) => {
       array[i].lastInActiveList = false;
     }
   }
-  const handleMissingInOrder = findMissing(array);
-  return handleMissingInOrder;
+  return findMissing(array);
 };
 
 const getSortedArray = () => {

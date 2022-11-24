@@ -1,6 +1,7 @@
 import React from 'react';
 import { createTheme, Grid, Input, InputLabel } from '@mui/material';
-import { createStyles, WithStyles, withStyles } from '@mui/styles';
+import type { WithStyles } from '@mui/styles';
+import { createStyles, withStyles } from '@mui/styles';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 const theme = createTheme(altinnTheme);
@@ -54,15 +55,8 @@ export interface IAltinnInputProps
 
 function AltinnInput(props: IAltinnInputProps) {
   const inputRef = React.createRef<HTMLInputElement>();
-  const {
-    classes,
-    iconString,
-    label,
-    widthPercentage,
-    showLabel,
-    validationError,
-    ...rest
-  } = props;
+  const { classes, iconString, label, widthPercentage, showLabel, validationError, ...rest } =
+    props;
 
   function focusInput() {
     inputRef.current.focus();
@@ -76,26 +70,17 @@ function AltinnInput(props: IAltinnInputProps) {
       aria-label={label}
       className={classes.altinnInputWrapper}
       style={{
-        width: !!widthPercentage ? `${widthPercentage}%` : '100%',
+        width: widthPercentage ? `${widthPercentage}%` : '100%',
       }}
     >
-      {showLabel ? (
-        <InputLabel className={classes.altinnInputLabel}>{label}</InputLabel>
-      ) : null}
+      {showLabel ? <InputLabel className={classes.altinnInputLabel}>{label}</InputLabel> : null}
       <Grid
         container={true}
         direction={'row'}
-        className={
-          validationError
-            ? classes.altinnInputValidationError
-            : classes.altinnInput
-        }
+        className={validationError ? classes.altinnInputValidationError : classes.altinnInput}
       >
-        {!!iconString ? (
-          <i
-            className={`${classes.altinnInputIcon} ${iconString}`}
-            onClick={focusInput}
-          />
+        {iconString ? (
+          <i className={`${classes.altinnInputIcon} ${iconString}`} onClick={focusInput} />
         ) : null}
         <Input
           inputProps={{

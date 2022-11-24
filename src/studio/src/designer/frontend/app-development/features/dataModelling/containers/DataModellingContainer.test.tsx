@@ -10,5 +10,5 @@ describe('DataModellingContainer', () => {
     });
     const container = utils.getByTestId('data-modelling-container');
     expect(container).toBeInTheDocument();
-  })
-})
+  });
+});

@@ -1,13 +1,11 @@
-import React, { ChangeEvent, useEffect, useRef, useState } from 'react';
-import AltinnRadio from 'app-shared/components/AltinnRadio';
-import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
+import type { ChangeEvent } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import Radio from 'app-shared/components/AltinnRadio';
+import RadioGroup from 'app-shared/components/AltinnRadioGroup';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import Select from 'react-select';
 import ErrorPopover from 'app-shared/components/ErrorPopover';
-import {
-  renderSelectDataModelBinding,
-  SelectTextFromRecources
-} from '../../utils/render';
+import { renderSelectDataModelBinding, SelectTextFromRecources } from '../../utils/render';
 import { AddressKeys, getTextResourceByAddressKey } from '../../utils/component';
 import { idExists, validComponentId } from '../../utils/formLayout';
 import { SelectionEdit } from './SelectionEditComponent';
@@ -16,7 +14,7 @@ import EditBoilerplate from './EditBoilerplate';
 import HeaderSizeSelectComponent from './HeaderSizeSelect';
 import { ComponentTypes } from '../index';
 import { FileUploadWithTagComponent } from './FileUploadWithTagComponent';
-import {
+import type {
   FormComponentType,
   IAppState,
   IDataModelFieldElement,
@@ -47,10 +45,10 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
   const textResources = useSelector((state: IAppState) => state.appData.textResources.resources);
   const dataModel = useSelector((state: IAppState) => state.appData.dataModel.model);
   const components = useSelector(
-    (state: IAppState) => state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.components,
+    (state: IAppState) => state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.components
   );
   const containers = useSelector(
-    (state: IAppState) => state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.containers,
+    (state: IAppState) => state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.containers
   );
   const [error, setError] = useState<string | null>(null);
   const [tmpId, setTmpId] = useState<string>('');
@@ -250,7 +248,7 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
           label={t('ux_editor.modal_properties_component_change_id')}
           onBlur={handleNewId}
           onChange={handleIdChange}
-          value={tmpId ?? ""}
+          value={tmpId ?? ''}
         />
         <div ref={errorMessageRef} />
         <ErrorPopover
@@ -423,9 +421,7 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
         <FieldSet className={classes.fieldset}>
           {renderChangeId()}
           <div>
-            <p className={classes.inputHelper}>
-              {t('ux_editor.modal_properties_button_type_helper')}
-            </p>
+            <p className={classes.inputHelper}>{t('ux_editor.modal_properties_button_type_helper')}</p>
             <Select
               options={types}
               value={types.find((element) => element.value === component.type)}
@@ -478,7 +474,7 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
               getTextResourceByAddressKey(value, language),
               value,
               value,
-              index,
+              index
             );
           })}
         </FieldSet>
@@ -491,20 +487,10 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
         <FieldSet className={classes.fieldset}>
           {renderChangeId()}
           <div>
-            <AltinnRadioGroup
-              row={true}
-              value={fileUploaderComponent.displayMode}
-              onChange={handleDisplayModeChange}
-            >
-              <AltinnRadio
-                label={t('ux_editor.modal_properties_file_upload_simple')}
-                value='simple'
-              />
-              <AltinnRadio
-                label={t('ux_editor.modal_properties_file_upload_list')}
-                value='list'
-              />
-            </AltinnRadioGroup>
+            <RadioGroup row={true} value={fileUploaderComponent.displayMode} onChange={handleDisplayModeChange}>
+              <Radio label={t('ux_editor.modal_properties_file_upload_simple')} value='simple' />
+              <Radio label={t('ux_editor.modal_properties_file_upload_list')} value='list' />
+            </RadioGroup>
           </div>
           <FieldSet className={classes.fieldset}>
             <SelectTextFromRecources
@@ -525,20 +511,14 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
             />
           </FieldSet>
           <div>
-            <AltinnRadioGroup
+            <RadioGroup
               row={true}
               value={fileUploaderComponent.hasCustomFileEndings ? 'true' : 'false'}
               onChange={handleHasCustomFileEndingsChange}
             >
-              <AltinnRadio
-                label={t('ux_editor.modal_properties_valid_file_endings_all')}
-                value='false'
-              />
-              <AltinnRadio
-                label={t('ux_editor.modal_properties_valid_file_endings_custom')}
-                value='true'
-              />
-            </AltinnRadioGroup>
+              <Radio label={t('ux_editor.modal_properties_valid_file_endings_all')} value='false' />
+              <Radio label={t('ux_editor.modal_properties_valid_file_endings_custom')} value='true' />
+            </RadioGroup>
           </div>
 
           {fileUploaderComponent.hasCustomFileEndings && (
@@ -571,7 +551,9 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
             <TextField
               formatting={{ number: {} }}
               id='modal-properties-file-size'
-              label={`${t('ux_editor.modal_properties_maximum_file_size')} (${t('ux_editor.modal_properties_maximum_file_size_helper')})`}
+              label={`${t('ux_editor.modal_properties_maximum_file_size')} (${t(
+                'ux_editor.modal_properties_maximum_file_size_helper'
+              )})`}
               onChange={handleMaxFileSizeInMBChange}
               value={(fileUploaderComponent.maxFileSizeInMB || 0).toString()}
             />

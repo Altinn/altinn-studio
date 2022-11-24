@@ -1,9 +1,13 @@
-import { FieldType, Keywords, ObjectKind, UiSchemaNode, UiSchemaNodes } from '../types';
+import type { UiSchemaNode, UiSchemaNodes } from '../types';
+import { FieldType, Keywords, ObjectKind } from '../types';
 import { createNodeBase } from '../utils';
 import { getParentNodeByPointer, hasNodePointer } from '../selectors';
 import { deepCopy } from 'app-shared/pure';
 
-export const insertSchemaNode = (uiSchemaNodes: UiSchemaNodes, newNode: UiSchemaNode): UiSchemaNodes => {
+export const insertSchemaNode = (
+  uiSchemaNodes: UiSchemaNodes,
+  newNode: UiSchemaNode
+): UiSchemaNodes => {
   if (hasNodePointer(uiSchemaNodes, newNode.pointer)) {
     throw new Error(`Pointer ${newNode.pointer} exists allready`);
   }
@@ -25,7 +29,11 @@ export const insertSchemaNode = (uiSchemaNodes: UiSchemaNodes, newNode: UiSchema
  * @param displayName
  * @param isDefinition
  */
-export const createChildNode = (parentNode: UiSchemaNode, displayName: string, isDefinition: boolean): UiSchemaNode => {
+export const createChildNode = (
+  parentNode: UiSchemaNode,
+  displayName: string,
+  isDefinition: boolean
+): UiSchemaNode => {
   const { pointer, objectKind, children, fieldType, isArray } = parentNode;
   if (isArray) {
     throw new Error("This application doesn't support combined array types.");

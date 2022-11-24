@@ -1,9 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import {
-  Button,
-  ButtonColor,
-  ButtonVariant,
-} from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { formatNameAndDate } from 'app-shared/utils/formatDate';
 import type { ICommit, IRepository } from '../../../types/global';
@@ -28,9 +24,7 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
   const [resetRepoModalOpen, setResetRepoModalOpen] = useState<boolean>(false);
   const [downloadModalOpen, setDownloadModalOpen] = useState<boolean>(false);
 
-  const repoStatus = useAppSelector(
-    (state) => state.handleMergeConflict.repoStatus,
-  );
+  const repoStatus = useAppSelector((state) => state.handleMergeConflict.repoStatus);
 
   const toggleDownloadModal = () => setDownloadModalOpen(!downloadModalOpen);
   const onCloseModal = () => setResetRepoModalOpen(false);
@@ -60,24 +54,17 @@ export const SideMenuContent = (props: ISideMenuContent): JSX.Element => {
         {t(
           props.repoType === RepositoryType.Datamodels
             ? 'administration.repo_owner_is'
-            : 'administration.service_owner_is',
+            : 'administration.service_owner_is'
         )}
       </div>
       <div>
-        <img
-          src={props.service.owner.avatar_url}
-          style={{ maxHeight: '2em' }}
-          alt=''
-        />{' '}
+        <img src={props.service.owner.avatar_url} style={{ maxHeight: '2em' }} alt='' />{' '}
         {props.service.owner.full_name || props.service.owner.login}
       </div>
       {props.initialCommit && (
         <div>
           {t('administration.created_by')}{' '}
-          {formatNameAndDate(
-            props.initialCommit.author.name,
-            props.service.created_at,
-          )}
+          {formatNameAndDate(props.initialCommit.author.name, props.service.created_at)}
         </div>
       )}
       {/* Reset local repository */}

@@ -2,7 +2,7 @@ import React from 'react';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 import { useSelector } from 'react-redux';
-import { ISchemaState } from '../../types';
+import type { ISchemaState } from '../../types';
 import { getRootNodes, Keywords } from '@altinn/schema-model';
 import classes from './ReferenceSelectionComponent.module.css';
 import { Select } from '@altinn/altinn-design-system';
@@ -24,7 +24,9 @@ export function ReferenceSelectionComponent({
   onChangeRef,
   onGoToDefButtonClick,
 }: IReferenceSelectionProps) {
-  const definitions: UiSchemaNode[] = useSelector((state: ISchemaState) => getRootNodes(state.uiSchema, true));
+  const definitions: UiSchemaNode[] = useSelector((state: ISchemaState) =>
+    getRootNodes(state.uiSchema, true)
+  );
   const selectId = getDomFriendlyID(selectedNode.pointer, { suffix: 'ref-select' });
   const emptyOption = { label: emptyOptionLabel, value: '' };
   return (
@@ -33,10 +35,13 @@ export function ReferenceSelectionComponent({
         inputId={selectId}
         label={label}
         onChange={(value: string) => onChangeRef(selectedNode.pointer, value)}
-        options={[emptyOption, ...definitions.map(({ pointer }) => ({
-          value: pointer,
-          label: pointer.replace(`#/${Keywords.Definitions}/`, ''),
-        }))]}
+        options={[
+          emptyOption,
+          ...definitions.map(({ pointer }) => ({
+            value: pointer,
+            label: pointer.replace(`#/${Keywords.Definitions}/`, ''),
+          })),
+        ]}
         value={selectedNode.ref || ''}
       />
       <button type='button' className={classes.navButton} onClick={onGoToDefButtonClick}>

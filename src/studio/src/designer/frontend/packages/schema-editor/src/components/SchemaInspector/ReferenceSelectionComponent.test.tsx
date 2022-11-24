@@ -1,8 +1,10 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { renderWithRedux } from '../../../test/renderWithRedux';
-import { IReferenceSelectionProps, ReferenceSelectionComponent } from './ReferenceSelectionComponent';
-import { createNodeBase, Keywords, ObjectKind, UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
+import type { IReferenceSelectionProps } from './ReferenceSelectionComponent';
+import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
+import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
+import { createNodeBase, Keywords, ObjectKind } from '@altinn/schema-model';
 import userEvent from '@testing-library/user-event';
 
 const user = userEvent.setup();

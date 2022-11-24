@@ -5,12 +5,9 @@ import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayou
 import type { IFormLayoutOrder } from '../types/global';
 import { DroppableDraggableContainer } from './DroppableDraggableContainer';
 
-import { EditorDndEvents, EditorDndItem, ItemType } from './helpers/dnd-types';
-import {
-  insertArrayElementAtPos,
-  removeArrayElement,
-  swapArrayElements,
-} from 'app-shared/pure/array-functions';
+import type { EditorDndEvents, EditorDndItem } from './helpers/dnd-types';
+import { ItemType } from './helpers/dnd-types';
+import { insertArrayElementAtPos, removeArrayElement, swapArrayElements } from 'app-shared/pure/array-functions';
 
 export interface IDesignerPreviewState {
   layoutOrder: IFormLayoutOrder;
@@ -29,10 +26,7 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
   });
   useEffect(() => setState(initialState), [initialState]);
 
-  const setContainerLayoutOrder = (
-    containerId: string,
-    layoutOrder: string[],
-  ) => {
+  const setContainerLayoutOrder = (containerId: string, layoutOrder: string[]) => {
     if (layoutOrder.includes(containerId)) {
       throw Error("can't add item to itself");
     }
@@ -49,25 +43,14 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
   };
 
   const removeItemFromContainer = (item: EditorDndItem): void => {
-    const layoutOrder = removeArrayElement(
-      state.layoutOrder[item.containerId],
-      item.id,
-    );
+    const layoutOrder = removeArrayElement(state.layoutOrder[item.containerId], item.id);
     setContainerLayoutOrder(item.containerId, layoutOrder);
     item.index = undefined;
     item.containerId = undefined;
   };
 
-  const addItemToContainer = (
-    item: EditorDndItem,
-    targetContainerId: string,
-    targetPos: number,
-  ) => {
-    const newLayoutOrder = insertArrayElementAtPos(
-      state.layoutOrder[targetContainerId],
-      item.id,
-      targetPos,
-    );
+  const addItemToContainer = (item: EditorDndItem, targetContainerId: string, targetPos: number) => {
+    const newLayoutOrder = insertArrayElementAtPos(state.layoutOrder[targetContainerId], item.id, targetPos);
     setContainerLayoutOrder(targetContainerId, newLayoutOrder);
     item.index = newLayoutOrder.indexOf(item.id);
     item.containerId = targetContainerId;
@@ -76,7 +59,7 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
   const moveItemBetweenContainers = (
     item: EditorDndItem,
     targetContainerId: string,
-    targetContainerPosition: number,
+    targetContainerPosition: number
   ) => {
     removeItemFromContainer(item);
     addItemToContainer(item, targetContainerId, targetContainerPosition);
@@ -92,35 +75,21 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
     swapItemsInsideTheSameContainer(item, arr[arr.length - 1]);
   };
 
-  const swapItemsInsideTheSameContainer = (
-    movedItem: EditorDndItem,
-    targetId: string,
-  ): void => {
+  const swapItemsInsideTheSameContainer = (movedItem: EditorDndItem, targetId: string): void => {
     const currentLayoutOrder = state.layoutOrder[movedItem.containerId];
-    const newLayoutOrder = swapArrayElements(
-      currentLayoutOrder,
-      movedItem.id,
-      targetId,
-    );
+    const newLayoutOrder = swapArrayElements(currentLayoutOrder, movedItem.id, targetId);
     setContainerLayoutOrder(movedItem.containerId, newLayoutOrder);
     movedItem.index = newLayoutOrder.indexOf(movedItem.id);
   };
 
-  const moveItem = (
-    movedItem: EditorDndItem,
-    targetItem: EditorDndItem,
-    toIndex?: number,
-  ): void => {
+  const moveItem = (movedItem: EditorDndItem, targetItem: EditorDndItem, toIndex?: number): void => {
     if (!movedItem.id) {
       return;
     }
     if (ItemType.Item && !movedItem.containerId) {
       return;
     }
-    if (
-      targetItem.type === ItemType.Container &&
-      movedItem.containerId === targetItem.id
-    ) {
+    if (targetItem.type === ItemType.Container && movedItem.containerId === targetItem.id) {
       return;
     }
     if (movedItem.id === targetItem.id) {
@@ -132,20 +101,10 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
 
     if (movedItem.containerId === targetItem.containerId) {
       swapItemsInsideTheSameContainer(movedItem, targetItem.id);
-    } else if (
-      targetItem.type === ItemType.Container &&
-      toIndex !== undefined
-    ) {
+    } else if (targetItem.type === ItemType.Container && toIndex !== undefined) {
       moveItemBetweenContainers(movedItem, targetItem.id, toIndex);
-    } else if (
-      targetItem.type === ItemType.Item &&
-      movedItem.id !== targetItem.containerId
-    ) {
-      moveItemBetweenContainers(
-        movedItem,
-        targetItem.containerId,
-        targetItem.index,
-      );
+    } else if (targetItem.type === ItemType.Item && movedItem.id !== targetItem.containerId) {
+      moveItemBetweenContainers(movedItem, targetItem.containerId, targetItem.index);
     } else {
       // There is nothing that should be moved.
     }
@@ -170,7 +129,7 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
       dispatch(
         FormLayoutActions.updateFormComponentOrder({
           updatedOrder: state.layoutOrder,
-        }),
+        })
       );
       setState((prevState: IDesignerPreviewState) => {
         return {
@@ -182,15 +141,12 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
         FormLayoutActions.updateActiveListOrder({
           containerList: state.activeList,
           orderList: state.order as any,
-        }),
+        })
       );
     }
     setBeforeDrag(null);
   };
-  const baseContainerId =
-    Object.keys(state.layoutOrder).length > 0
-      ? Object.keys(state.layoutOrder)[0]
-      : null;
+  const baseContainerId = Object.keys(state.layoutOrder).length > 0 ? Object.keys(state.layoutOrder)[0] : null;
   const dndEvents: EditorDndEvents = {
     moveItem,
     moveItemToBottom,
@@ -199,12 +155,7 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
   };
   return (
     baseContainerId && (
-      <DroppableDraggableContainer
-        id={baseContainerId}
-        isBaseContainer={true}
-        canDrag={false}
-        dndEvents={dndEvents}
-      >
+      <DroppableDraggableContainer id={baseContainerId} isBaseContainer={true} canDrag={false} dndEvents={dndEvents}>
         <Container
           isBaseContainer={true}
           id={baseContainerId}

@@ -1,5 +1,6 @@
 import React from 'react';
-import { Icon, IconImage } from './Icon';
+import type { IconImage } from './Icon';
+import { Icon } from './Icon';
 import classes from './ActionMenu.module.css';
 import cn from 'classnames';
 

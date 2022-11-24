@@ -16,12 +16,9 @@ import type {
   ICreateFormContainer,
 } from '../types/global';
 
-const { addFormComponent, addFormContainer, addWidget, updateActiveListOrder } =
-  FormLayoutActions;
+const { addFormComponent, addFormContainer, addWidget, updateActiveListOrder } = FormLayoutActions;
 
-export function convertFromLayoutToInternalFormat(
-  formLayout: any[],
-): IFormLayout {
+export function convertFromLayoutToInternalFormat(formLayout: any[]): IFormLayout {
   const convertedLayout: IFormLayout = {
     containers: {},
     components: {},
@@ -58,12 +55,8 @@ export function convertFromLayoutToInternalFormat(
   return convertedLayout;
 }
 
-export function convertInternalToLayoutFormat(
-  internalFormat: IFormLayout,
-): any[] {
-  const { components, containers, order } = JSON.parse(
-    JSON.stringify(internalFormat),
-  ) as IFormLayout;
+export function convertInternalToLayoutFormat(internalFormat: IFormLayout): any[] {
+  const { components, containers, order } = JSON.parse(JSON.stringify(internalFormat)) as IFormLayout;
 
   const baseContainerId = Object.keys(internalFormat.containers)[0];
   const formLayout: any[] = [];
@@ -98,13 +91,7 @@ export function convertInternalToLayoutFormat(
             ...components[componentId],
           });
         } else {
-          extractChildrenFromGroupInternal(
-            components,
-            containers,
-            order,
-            formLayout,
-            componentId,
-          );
+          extractChildrenFromGroupInternal(components, containers, order, formLayout, componentId);
         }
       });
     }
@@ -117,7 +104,7 @@ function extractChildrenFromGroupInternal(
   containers: IFormDesignerContainers,
   order: IFormLayoutOrder,
   formLayout: any[],
-  groupId: string,
+  groupId: string
 ) {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { itemType, ...restOfGroup } = containers[groupId];
@@ -135,34 +122,20 @@ function extractChildrenFromGroupInternal(
         ...components[childId],
       });
     } else {
-      extractChildrenFromGroupInternal(
-        components,
-        containers,
-        order,
-        formLayout,
-        childId,
-      );
+      extractChildrenFromGroupInternal(components, containers, order, formLayout, childId);
     }
   });
 }
 
-export function extractChildrenFromGroup(
-  group: any,
-  components: any,
-  convertedLayout: any,
-) {
+export function extractChildrenFromGroup(group: any, components: any, convertedLayout: any) {
   const { id, children, ...restOfGroup } = group;
   restOfGroup.itemType = 'CONTAINER';
   delete restOfGroup.type;
   convertedLayout.containers[id] = restOfGroup;
   convertedLayout.order[id] = children || [];
   children?.forEach((componentId: string) => {
-    const component = components.find(
-      (candidate: any) => candidate.id === componentId,
-    );
-    const location = components.findIndex(
-      (candidate: any) => candidate.id === componentId,
-    );
+    const component = components.find((candidate: any) => candidate.id === componentId);
+    const location = components.findIndex((candidate: any) => candidate.id === componentId);
     if (component.type === 'Group') {
       component.itemType = 'CONTAINER';
       components.splice(location, 1);
@@ -181,7 +154,7 @@ export const mapWidgetToToolbarElement = (
   activeList: any,
   order: any[],
   language: any,
-  dispatch: Dispatch,
+  dispatch: Dispatch
 ): IToolbarElement => {
   return {
     label: getLanguageFromKey(widget.displayName, language),
@@ -193,11 +166,9 @@ export const mapWidgetToToolbarElement = (
           widget,
           position,
           containerId,
-        }),
+        })
       );
-      dispatch(
-        updateActiveListOrder({ containerList: activeList, orderList: order }),
-      );
+      dispatch(updateActiveListOrder({ containerList: activeList, orderList: order }));
     },
   };
 };
@@ -207,7 +178,7 @@ export const mapComponentToToolbarElement = (
   language: any,
   activeList: any,
   order: any[],
-  dispatch: Dispatch,
+  dispatch: Dispatch
 ): IToolbarElement => {
   const customProperties = c.customProperties ? c.customProperties : {};
   let actionMethod = (containerId: string, position: number) => {
@@ -219,10 +190,7 @@ export const mapComponentToToolbarElement = (
           textResourceBindings: {
             title:
               c.name === 'Button'
-                ? getLanguageFromKey(
-                    'ux_editor.modal_properties_button_type_submit',
-                    language,
-                  )
+                ? getLanguageFromKey('ux_editor.modal_properties_button_type_submit', language)
                 : getComponentTitleByComponentType(c.name, language),
           },
           dataModelBindings: {},
@@ -230,11 +198,9 @@ export const mapComponentToToolbarElement = (
         },
         position,
         containerId,
-      }),
+      })
     );
-    dispatch(
-      updateActiveListOrder({ containerList: activeList, orderList: order }),
-    );
+    dispatch(updateActiveListOrder({ containerList: activeList, orderList: order }));
   };
 
   if (c.name === ComponentTypes.Group) {
@@ -250,7 +216,7 @@ export const mapComponentToToolbarElement = (
           addToId: containerId,
           callback: null,
           destinationIndex: index,
-        }),
+        })
       );
     };
   }
@@ -265,15 +231,11 @@ export const mapComponentToToolbarElement = (
 export function idExists(
   id: string,
   components: IFormDesignerComponents,
-  containers: IFormDesignerContainers,
+  containers: IFormDesignerContainers
 ): boolean {
   return (
-    Object.keys(containers || {}).findIndex(
-      (key) => key.toUpperCase() === id.toUpperCase(),
-    ) > -1 ||
-    Object.keys(components || {}).findIndex(
-      (key) => key.toUpperCase() === id.toUpperCase(),
-    ) > -1
+    Object.keys(containers || {}).findIndex((key) => key.toUpperCase() === id.toUpperCase()) > -1 ||
+    Object.keys(components || {}).findIndex((key) => key.toUpperCase() === id.toUpperCase()) > -1
   );
 }
 

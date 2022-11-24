@@ -22,14 +22,27 @@ test.each([
   expect(findUiFieldType(schemaNode)).toBe(expected);
 });
 
-test.each([[[1, 2], FieldType.Number, ['s', 'f'], FieldType.String, [1, 'f'], undefined, [{}, {}], FieldType.Object]])(
-  'correct enum type for %p',
-  (nodeEnum: any[], expected) => expect(findEnumFieldType(nodeEnum)).toBe(expected),
+test.each([
+  [
+    [1, 2],
+    FieldType.Number,
+    ['s', 'f'],
+    FieldType.String,
+    [1, 'f'],
+    undefined,
+    [{}, {}],
+    FieldType.Object,
+  ],
+])('correct enum type for %p', (nodeEnum: any[], expected) =>
+  expect(findEnumFieldType(nodeEnum)).toBe(expected)
 );
 
 test.each([
   [{}, undefined],
-  [{ objectKind: ObjectKind.Field, fieldType: FieldType.String, isNillable: true }, [FieldType.String, FieldType.Null]],
+  [
+    { objectKind: ObjectKind.Field, fieldType: FieldType.String, isNillable: true },
+    [FieldType.String, FieldType.Null],
+  ],
   [{ objectKind: ObjectKind.Field, fieldType: FieldType.Null, isNillable: true }, FieldType.Null],
 ])('correct json type for %p', (uiNode: Partial<UiSchemaNode>, expected) => {
   expect(findJsonFieldType(uiNode as UiSchemaNode)).toStrictEqual(expected);

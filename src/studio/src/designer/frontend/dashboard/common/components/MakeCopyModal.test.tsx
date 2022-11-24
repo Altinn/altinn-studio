@@ -5,8 +5,9 @@ import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import * as networking from 'app-shared/utils/networking';
 import { MemoryRouter } from 'react-router-dom';
-import { IMakeCopyModalProps, MakeCopyModal } from './MakeCopyModal';
-import {copyAppPath} from "app-shared/api-paths";
+import type { IMakeCopyModalProps } from './MakeCopyModal';
+import { MakeCopyModal } from './MakeCopyModal';
+import { copyAppPath } from 'app-shared/api-paths';
 
 const user = userEvent.setup();
 const org = 'org';
@@ -21,16 +22,12 @@ describe('MakeCopyModal', () => {
   it('should show error message when clicking confirm without adding name', async () => {
     render();
 
-    expect(
-      screen.queryByText(/dashboard\.field_cannot_be_empty/i)
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/dashboard\.field_cannot_be_empty/i)).not.toBeInTheDocument();
     const confirmButton = screen.getByRole('button', {
       name: /dashboard\.make_copy/i,
     });
     await user.click(confirmButton);
-    expect(
-      screen.getByText(/dashboard\.field_cannot_be_empty/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/dashboard\.field_cannot_be_empty/i)).toBeInTheDocument();
   });
 
   it('should not show error message when clicking confirm and name is added', async () => {
@@ -39,37 +36,29 @@ describe('MakeCopyModal', () => {
 
     render();
 
-    expect(
-      screen.queryByText(/dashboard\.field_cannot_be_empty/i)
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/dashboard\.field_cannot_be_empty/i)).not.toBeInTheDocument();
     const confirmButton = screen.getByRole('button', {
       name: /dashboard\.make_copy/i,
     });
     const inputField = screen.getByRole('textbox');
     await user.type(inputField, repoName);
     await user.click(confirmButton);
-    expect(
-      screen.queryByText(/dashboard\.field_cannot_be_empty/i)
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/dashboard\.field_cannot_be_empty/i)).not.toBeInTheDocument();
 
-    expect(postSpy).toHaveBeenCalledWith(copyAppPath(org,app,repoName));
+    expect(postSpy).toHaveBeenCalledWith(copyAppPath(org, app, repoName));
   });
 
   it('should show error message when clicking confirm and name is too long', async () => {
     render();
 
-    expect(
-      screen.queryByText(/dashboard\.service_name_is_too_long/i)
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/dashboard\.service_name_is_too_long/i)).not.toBeInTheDocument();
     const confirmButton = screen.getByRole('button', {
       name: /dashboard\.make_copy/i,
     });
     const inputField = screen.getByRole('textbox');
     await user.type(inputField, 'this-new-name-is-way-too-long-to-be-valid');
     await user.click(confirmButton);
-    expect(
-      screen.getByText(/dashboard\.service_name_is_too_long/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/dashboard\.service_name_is_too_long/i)).toBeInTheDocument();
   });
 
   it('should show error message when clicking confirm and name contains invalid characters', async () => {
@@ -84,9 +73,7 @@ describe('MakeCopyModal', () => {
     const inputField = screen.getByRole('textbox');
     await user.type(inputField, 'this name is invalid');
     await user.click(confirmButton);
-    expect(
-      screen.getByText(/dashboard\.service_name_has_illegal_characters/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/dashboard\.service_name_has_illegal_characters/i)).toBeInTheDocument();
   });
 });
 

@@ -16,7 +16,7 @@ const renderToolbar = (Toolbar: JSX.Element = <></>) => {
         saveAction={saveAction}
         editMode={true}
         toggleEditMode={toggleEditMode}
-      />,
+      />
     );
   });
   return { saveAction, toggleEditMode, user };

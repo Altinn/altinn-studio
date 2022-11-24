@@ -16,7 +16,7 @@ module.exports = (req, res) => {
       directory,
       repositoryRelativeUrl,
       fileName,
-      fileType: '.json',
+      fileType: 'json',
       fileStatus: 'Default',
       description: null,
       lastChanged: '2022-09-06T10:14:19.2423776+02:00',

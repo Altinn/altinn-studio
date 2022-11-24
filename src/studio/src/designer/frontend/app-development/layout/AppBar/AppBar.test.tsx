@@ -20,13 +20,11 @@ describe('AppBar', () => {
 
         const activeClassNamePartial = 'subHeaderLinkActive';
 
-        expect(
-          container.querySelectorAll(`[class*="${activeClassNamePartial}"]`),
-        ).toHaveLength(1);
+        expect(container.querySelectorAll(`[class*="${activeClassNamePartial}"]`)).toHaveLength(1);
 
         const link = screen.getByRole('link', { name: entry.key });
         const hasActiveLinkClass = Array.from(link.classList).some((x) =>
-          x.includes(activeClassNamePartial),
+          x.includes(activeClassNamePartial)
         );
 
         expect(hasActiveLinkClass).toBe(true);
@@ -62,6 +60,6 @@ const render = (props: Partial<IAppBarProps> = {}) => {
           <AppBar {...allProps} />
         </ThemeProvider>
       </Provider>
-    </MemoryRouter>,
+    </MemoryRouter>
   );
 };

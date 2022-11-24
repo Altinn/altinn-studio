@@ -1,7 +1,7 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import AltinnRadio from 'app-shared/components/AltinnRadio';
-import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
+import Radio from 'app-shared/components/AltinnRadio';
+import RadioGroup from 'app-shared/components/AltinnRadioGroup';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { renderSelectDataModelBinding, SelectTextFromRecources } from '../../utils/render';
 import type {
@@ -94,11 +94,7 @@ export class SelectionEditComponent extends React.Component<
     const t = (key: string) => getLanguageFromKey(key, language);
     return (
       <>
-        {renderSelectDataModelBinding(
-          component.dataModelBindings,
-          handleDataModelChange,
-          language,
-        )}
+        {renderSelectDataModelBinding(component.dataModelBindings, handleDataModelChange, language)}
         <SelectTextFromRecources
           description={component.textResourceBindings.title}
           labelText={'modal_properties_label_helper'}
@@ -129,7 +125,7 @@ export class SelectionEditComponent extends React.Component<
             onChange={(e) => handleRequiredChange(e, e.target.checked)}
           />
         </div>
-        <AltinnRadioGroup
+        <RadioGroup
           onChange={this.handleRadioButtonChange}
           value={this.state.radioButtonSelection}
           row={true}
@@ -139,15 +135,9 @@ export class SelectionEditComponent extends React.Component<
               : t('ux_editor.modal_properties_add_check_box_options')
           }
         >
-          <AltinnRadio
-            value='codelist'
-            label={t('ux_editor.modal_add_options_codelist')}
-          />
-          <AltinnRadio
-            value='manual'
-            label={t('ux_editor.modal_add_options_manual')}
-          />
-        </AltinnRadioGroup>
+          <Radio value='codelist' label={t('ux_editor.modal_add_options_codelist')} />
+          <Radio value='manual' label={t('ux_editor.modal_add_options_manual')} />
+        </RadioGroup>
         {this.state.radioButtonSelection === 'codelist' && (
           <div>
             <TextField
@@ -230,9 +220,11 @@ export class SelectionEditComponent extends React.Component<
           <TextField
             defaultValue={(component as IFormCheckboxComponent).preselectedOptionIndex}
             formatting={{ number: {} }}
-            label={type === 'Checkboxes'
-              ? t('ux_editor.modal_check_box_set_preselected')
-              : t('ux_editor.modal_radio_button_set_preselected')}
+            label={
+              type === 'Checkboxes'
+                ? t('ux_editor.modal_check_box_set_preselected')
+                : t('ux_editor.modal_radio_button_set_preselected')
+            }
             onChange={handlePreselectedOptionChange}
             placeholder={t('ux_editor.modal_selection_set_preselected_placeholder')}
           />
@@ -244,7 +236,7 @@ export class SelectionEditComponent extends React.Component<
 
 const mapStateToProps = (
   state: IAppState,
-  props: ISelectionEditComponentProvidedProps,
+  props: ISelectionEditComponentProvidedProps
 ): ISelectionEditComponentProps => {
   return {
     language: state.appData.languageState.language,

@@ -1,12 +1,9 @@
 import React from 'react';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { SelectTextFromRecources } from '../../utils/render';
-import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
-import AltinnRadio from 'app-shared/components/AltinnRadio';
-import type {
-  FormComponentType,
-  IFormFileUploaderWithTagComponent,
-} from '../../types/global';
+import RadioGroup from 'app-shared/components/AltinnRadioGroup';
+import Radio from 'app-shared/components/AltinnRadio';
+import type { FormComponentType, IFormFileUploaderWithTagComponent } from '../../types/global';
 import { TextField } from '@altinn/altinn-design-system';
 
 type FileUploadWithTagComponentProps = {
@@ -38,7 +35,6 @@ export const FileUploadWithTagComponent = ({
   handleHasCustomFileEndingsChange,
   handleValidFileEndingsChange,
 }: FileUploadWithTagComponentProps) => {
-
   const handleTagTitleChange = (e: any): void => {
     const updatedComponent = { ...component };
     updatedComponent.textResourceBindings.tagTitle = e ? e.value : null;
@@ -82,35 +78,25 @@ export const FileUploadWithTagComponent = ({
         />
       </div>
       <p>
-        <a
-          target='_blank'
-          rel='noopener noreferrer'
-          href='https://docs.altinn.studio/app/development/data/options/'
-        >
+        <a target='_blank' rel='noopener noreferrer' href='https://docs.altinn.studio/app/development/data/options/'>
           {t('ux_editor.modal_properties_code_list_read_more')}
         </a>
       </p>
       <div>
-        <AltinnRadioGroup
+        <RadioGroup
           row={true}
           value={component.hasCustomFileEndings ? 'true' : 'false'}
           onChange={handleHasCustomFileEndingsChange}
         >
-          <AltinnRadio
-            label={getLanguageFromKey(
-              'ux_editor.modal_properties_valid_file_endings_all',
-              language,
-            )}
+          <Radio
+            label={getLanguageFromKey('ux_editor.modal_properties_valid_file_endings_all', language)}
             value='false'
           />
-          <AltinnRadio
-            label={getLanguageFromKey(
-              'ux_editor.modal_properties_valid_file_endings_custom',
-              language,
-            )}
+          <Radio
+            label={getLanguageFromKey('ux_editor.modal_properties_valid_file_endings_custom', language)}
             value='true'
           />
-        </AltinnRadioGroup>
+        </RadioGroup>
       </div>
       {component.hasCustomFileEndings && (
         <div>
@@ -144,7 +130,9 @@ export const FileUploadWithTagComponent = ({
         <TextField
           formatting={{ number: {} }}
           id='modal-properties-file-size'
-          label={`${t('ux_editor.modal_properties_maximum_file_size')} (${t('ux_editor.modal_properties_maximum_file_size_helper')})`}
+          label={`${t('ux_editor.modal_properties_maximum_file_size')} (${t(
+            'ux_editor.modal_properties_maximum_file_size_helper'
+          )})`}
           onChange={handleMaxFileSizeInMBChange}
           value={(component.maxFileSizeInMB || 0).toString()}
         />

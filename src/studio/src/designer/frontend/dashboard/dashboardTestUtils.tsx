@@ -1,4 +1,5 @@
-import React, { PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
+import React from 'react';
 import { render as rtlRender } from '@testing-library/react';
 import { Provider } from 'react-redux';
 import type { RenderOptions } from '@testing-library/react';
@@ -6,12 +7,9 @@ import type { PreloadedState } from '@reduxjs/toolkit';
 import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import { HashRouter as Router } from 'react-router-dom';
-import { AppStore, RootState, setupStore } from './app/store';
-import {
-  orgsListPath,
-  repoSearchPath,
-  userStarredListPath,
-} from 'app-shared/api-paths';
+import type { AppStore, RootState } from './app/store';
+import { setupStore } from './app/store';
+import { orgsListPath, repoSearchPath, userStarredListPath } from 'app-shared/api-paths';
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   preloadedState?: PreloadedState<RootState>;

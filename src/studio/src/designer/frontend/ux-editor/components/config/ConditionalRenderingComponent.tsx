@@ -197,10 +197,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
     const component: IFormComponent = this.props.formLayoutComponents[id];
     const labelText = getComponentTitleByComponentType(component.type, this.props.language);
     return (
-      <option
-        key={id}
-        value={id}
-      >
+      <option key={id} value={id}>
         {`${labelText} (${id})`}
       </option>
     );
@@ -214,12 +211,9 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
     if (!baseContainer) {
       const name = getComponentTitleByComponentType('Group', this.props.language);
       options.push(
-        <option
-          key={id}
-          value={id}
-        >
+        <option key={id} value={id}>
           {`${name} (${id})`}
-        </option>,
+        </option>
       );
     }
     this.props.order[id].forEach((key) => {
@@ -269,10 +263,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
         </div>
         <div className='modal-body a-modal-body'>
           <div className='form-group a-form-group'>
-            <label
-              htmlFor='selectConditionalRule'
-              className='a-form-label'
-            >
+            <label htmlFor='selectConditionalRule' className='a-form-label'>
               {this.props.language['ux_editor.modal_configure_conditional_rendering_helper']}
             </label>
             <select
@@ -286,10 +277,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
               <option value=''>{this.props.language['general.choose_method']}</option>
               {this.props.ruleModelElements.map((funcObj: any) => {
                 return (
-                  <option
-                    key={funcObj.name}
-                    value={funcObj.name}
-                  >
+                  <option key={funcObj.name} value={funcObj.name}>
                     {funcObj.name}
                   </option>
                 );
@@ -305,16 +293,10 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                 {Object.keys(this.props.ruleModelElements[selectedMethodNr].inputs).map((key: any) => {
                   const paramName = key;
                   return (
-                    <div
-                      className='row align-items-center mb-1'
-                      key={key}
-                    >
+                    <div className='row align-items-center mb-1' key={key}>
                       <div className='col-3 col'>
                         <div className='form-group a-form-group mt-1 disabled'>
-                          <label
-                            className='a-form-label'
-                            htmlFor={paramName}
-                          >
+                          <label className='a-form-label' htmlFor={paramName}>
                             {
                               this.props.language[
                                 'ux_editor.modal_configure_conditional_rendering_configure_input_param_helper'
@@ -350,10 +332,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                 </h2>
                 <div className='row align-items-center mb-1'>
                   <div className='col'>
-                    <label
-                      className='a-form-label'
-                      htmlFor='select_action'
-                    >
+                    <label className='a-form-label' htmlFor='select_action'>
                       {
                         this.props.language[
                           'ux_editor.modal_configure_conditional_rendering_configure_output_action_helper'
@@ -370,10 +349,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                       <option value=''>{this.props.language['general.action']}</option>
                       {this.state.selectableActions.map((value: string) => {
                         return (
-                          <option
-                            key={value}
-                            value={value}
-                          >
+                          <option key={value} value={value}>
                             {value}
                           </option>
                         );
@@ -386,10 +362,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                 </p>
                 {Object.keys(this.state.conditionalRendering.selectedFields).map((key: any) => {
                   return (
-                    <div
-                      className='row align-items-center'
-                      key={key}
-                    >
+                    <div className='row align-items-center' key={key}>
                       <div className='col-11 col'>
                         <select
                           name={key}
@@ -416,11 +389,7 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                 })}
                 <div className='align-items-center row'>
                   <div className='col-6 col'>
-                    <button
-                      type='button'
-                      className='a-btn'
-                      onClick={this.addNewField}
-                    >
+                    <button type='button' className='a-btn' onClick={this.addNewField}>
                       {
                         this.props.language[
                           'ux_editor.modal_configure_conditional_rendering_configure_add_new_field_mapping'
@@ -435,24 +404,18 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
           <div className='row mt-3'>
             <div className='col'>
               {this.state.conditionalRendering.selectedFunction ? (
-                <button
-                  onClick={this.handleSaveEdit}
-                  type='submit'
-                  className='a-btn a-btn-success mr-2'
-                >
+                <button onClick={this.handleSaveEdit} type='submit' className='a-btn a-btn-success mr-2'>
                   {this.props.language['general.save']}
                 </button>
               ) : null}
               {this.props.connectionId ? (
-                <button
-                  type='button'
-                  className='a-btn a-btn-danger mr-2'
-                  onClick={this.handleDeleteConnection}
-                >
+                <button type='button' className='a-btn a-btn-danger mr-2' onClick={this.handleDeleteConnection}>
                   {this.props.language['general.delete']}
                 </button>
               ) : null}
-              <a onClick={this.props.cancelEdit}>{this.props.language['general.cancel']}</a>
+              <button className={'anchor'} onClick={this.props.cancelEdit}>
+                {this.props.language['general.cancel']}
+              </button>
             </div>
           </div>
         </div>

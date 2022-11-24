@@ -1,10 +1,11 @@
-import React, { useState, MouseEvent, ChangeEvent } from 'react';
+import type { MouseEvent, ChangeEvent } from 'react';
+import React, { useState } from 'react';
 import { AltinnSpinner } from 'app-shared/components';
 import { AltinnPopoverComponent } from 'app-shared/components/molecules/AltinnPopoverSimple';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { post } from 'app-shared/utils/networking';
 import { DashboardActions } from '../../resources/fetchDashboardResources/dashboardSlice';
-import { PopoverOrigin } from '@mui/material/Popover';
+import type { PopoverOrigin } from '@mui/material/Popover';
 import { useNavigate } from 'react-router-dom';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { validateRepoName } from '../utils';
@@ -25,11 +26,7 @@ const transformAnchorOrigin: PopoverOrigin = {
   horizontal: 'center',
 };
 
-export const MakeCopyModal = ({
-  anchorEl,
-  handleClose,
-  serviceFullName,
-}: IMakeCopyModalProps) => {
+export const MakeCopyModal = ({ anchorEl, handleClose, serviceFullName }: IMakeCopyModalProps) => {
   const language = useAppSelector((state) => state.language.language);
   const navigate = useNavigate();
   const [repoName, setRepoName] = useState<string>('');
@@ -44,9 +41,7 @@ export const MakeCopyModal = ({
         const [org, app] = serviceFullName.split('/');
         await post(copyAppPath(org, app, repoName));
         dispatch(DashboardActions.fetchServices({ url: userReposPath() }));
-        navigate(
-          `${APP_DEVELOPMENT_BASENAME}/${org}/${repoName}?copiedApp=true`
-        );
+        navigate(`${APP_DEVELOPMENT_BASENAME}/${org}/${repoName}?copiedApp=true`);
       } catch (error) {
         error?.response?.status === 409
           ? setErrorMessage(t('dashboard.app_already_exist'))
@@ -56,10 +51,7 @@ export const MakeCopyModal = ({
     }
   };
 
-  const closeHandler = (
-    _x: string | MouseEvent<HTMLElement>,
-    event?: MouseEvent<HTMLElement>
-  ) => {
+  const closeHandler = (_x: string | MouseEvent<HTMLElement>, event?: MouseEvent<HTMLElement>) => {
     if (isLoading) {
       return;
     }
@@ -118,13 +110,9 @@ export const MakeCopyModal = ({
             onChange={handleRepoNameUpdated}
             isValid={errorMessage === null}
           />
-          {errorMessage && (
-            <div className={classes.errorMessage}>{errorMessage}</div>
-          )}
+          {errorMessage && <div className={classes.errorMessage}>{errorMessage}</div>}
         </div>
-        {isLoading && (
-          <AltinnSpinner spinnerText={t('dashboard.creating_your_copy')} />
-        )}
+        {isLoading && <AltinnSpinner spinnerText={t('dashboard.creating_your_copy')} />}
       </SimpleContainer>
     </AltinnPopoverComponent>
   );

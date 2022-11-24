@@ -1,11 +1,17 @@
-import React, { BaseSyntheticEvent, useEffect } from 'react';
+import type { BaseSyntheticEvent } from 'react';
+import React, { useEffect } from 'react';
 import type { ILanguage, ISchemaState } from '../../types';
 import { PropertyItem } from './PropertyItem';
-import { addProperty, deleteProperty, setPropertyName, setType } from '../../features/editor/schemaEditorSlice';
+import {
+  addProperty,
+  deleteProperty,
+  setPropertyName,
+  setType,
+} from '../../features/editor/schemaEditorSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { getTranslation } from '../../utils/language';
-import type { UiSchemaNode } from '@altinn/schema-model';
-import { FieldType, getChildNodesByPointer, getNodeDisplayName } from '@altinn/schema-model';
+import type { UiSchemaNode, FieldType } from '@altinn/schema-model';
+import { getChildNodesByPointer, getNodeDisplayName } from '@altinn/schema-model';
 import classes from './ItemFieldsTab.module.css';
 import { usePrevious } from '../../hooks/usePrevious';
 import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
@@ -24,7 +30,7 @@ export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) =>
     getChildNodesByPointer(state.uiSchema, selectedItem.pointer).map((node) => ({
       ...node,
       domId: getDomFriendlyID(node.pointer),
-    })),
+    }))
   );
 
   const numberOfChildNodes = childNodes.length;
@@ -45,7 +51,7 @@ export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) =>
       setPropertyName({
         path,
         name: value,
-      }),
+      })
     );
 
   const onChangeType = (path: string, type: FieldType) => dispatch(setType({ path, type }));
@@ -58,7 +64,7 @@ export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) =>
         pointer: selectedItem.pointer,
         keepSelection: true,
         props: {},
-      }),
+      })
     );
 
   const onAddPropertyClicked = (event: BaseSyntheticEvent) => {

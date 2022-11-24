@@ -1,6 +1,7 @@
 import React from 'react';
 import { createTheme, Grid } from '@mui/material';
-import { createStyles, WithStyles, withStyles } from '@mui/styles';
+import type { WithStyles } from '@mui/styles';
+import { createStyles, withStyles } from '@mui/styles';
 import moment from 'moment';
 
 import AltinnContentLoader from 'app-shared/components/molecules/AltinnContentLoader';
@@ -45,32 +46,21 @@ export const DeployContainer = (props: IDeployContainer) => {
   const [environments, setEnvironments] = React.useState([]);
   const [imageOptions, setImageOptions] = React.useState([]);
 
-  const appCluster: IAppClusterState = useAppSelector(
-    (state) => state.appCluster,
-  );
-  const appDeployments: IAppDeploymentState = useAppSelector(
-    (state) => state.appDeployments,
-  );
+  const appCluster: IAppClusterState = useAppSelector((state) => state.appCluster);
+  const appDeployments: IAppDeploymentState = useAppSelector((state) => state.appDeployments);
   const createAppDeploymentErrors: any = useAppSelector(
-    (state) => state.appDeployments.createAppDeploymentErrors,
+    (state) => state.appDeployments.createAppDeploymentErrors
   );
-  const deployableImages: IAppReleaseState = useAppSelector(
-    (state) => state.appReleases,
-  );
-  const configuration: IConfigurationState = useAppSelector(
-    (state) => state.configuration,
-  );
+  const deployableImages: IAppReleaseState = useAppSelector((state) => state.appReleases);
+  const configuration: IConfigurationState = useAppSelector((state) => state.configuration);
   const language: any = useAppSelector((state) => state.languageState.language);
   const orgs: any = useAppSelector((state) => state.configuration.orgs);
   const deployPermissions: string[] = useAppSelector(
-    (state) => state.userState.permissions.deploy.environments,
+    (state) => state.userState.permissions.deploy.environments
   );
   const orgName: string = useAppSelector((state) => {
     let name = '';
-    if (
-      state.configuration.orgs.allOrgs &&
-      state.configuration.orgs.allOrgs[org]
-    ) {
+    if (state.configuration.orgs.allOrgs && state.configuration.orgs.allOrgs[org]) {
       name = state.configuration.orgs.allOrgs[org].name.nb;
     }
     return name;
@@ -84,7 +74,7 @@ export const DeployContainer = (props: IDeployContainer) => {
       dispatch(AppDeploymentActions.getAppDeploymentsStopInterval());
       dispatch(getDeploymentsStopInterval());
     };
-  }, []);
+  }, [dispatch]);
 
   React.useEffect(() => {
     if (
@@ -96,11 +86,9 @@ export const DeployContainer = (props: IDeployContainer) => {
       setEnvironments(
         orgs.allOrgs[org].environments
           .map((envName: string) =>
-            configuration.environments.result.find(
-              (env: any) => env.name === envName,
-            ),
+            configuration.environments.result.find((env: any) => env.name === envName)
           )
-          .filter((element: any) => element != null),
+          .filter((element: any) => element != null)
       );
     }
   }, [orgs, org, configuration]);
@@ -117,9 +105,7 @@ export const DeployContainer = (props: IDeployContainer) => {
     const tempImages = deployableImages.releases
       .filter((image) => image.build.result === BuildResult.succeeded)
       .map((image) => {
-        const releaseTime = moment(new Date(image.created)).format(
-          'DD.MM.YY [kl.] HH:mm',
-        );
+        const releaseTime = moment(new Date(image.created)).format('DD.MM.YY [kl.] HH:mm');
         return {
           value: image.tagName,
           label: `Version ${image.tagName} (${releaseTime})`,
@@ -129,68 +115,24 @@ export const DeployContainer = (props: IDeployContainer) => {
   }, [deployableImages]);
 
   const isLoading = (): boolean => {
-    return (
-      !environments.length ||
-      !appDeployments.deployments ||
-      !deployableImages ||
-      !language
-    );
+    return !environments.length || !appDeployments.deployments || !deployableImages || !language;
   };
 
   if (isLoading()) {
     return (
-      <Grid
-        container={true}
-        direction='row'
-        className={classes.deployContainer}
-      >
-        <AltinnContentLoader
-          width={900}
-          height={320}
-        >
-          <rect
-            x='60'
-            y='13'
-            rx='0'
-            ry='0'
-            width='650'
-            height='76'
-          />
-          <rect
-            x='60'
-            y='110'
-            rx='0'
-            ry='0'
-            width='333'
-            height='44'
-          />
-          <rect
-            x='60'
-            y='171'
-            rx='0'
-            ry='0'
-            width='202'
-            height='41'
-          />
-          <rect
-            x='487'
-            y='111'
-            rx='0'
-            ry='0'
-            width='220'
-            height='42'
-          />
+      <Grid container={true} direction='row' className={classes.deployContainer}>
+        <AltinnContentLoader width={900} height={320}>
+          <rect x='60' y='13' rx='0' ry='0' width='650' height='76' />
+          <rect x='60' y='110' rx='0' ry='0' width='333' height='44' />
+          <rect x='60' y='171' rx='0' ry='0' width='202' height='41' />
+          <rect x='487' y='111' rx='0' ry='0' width='220' height='42' />
         </AltinnContentLoader>
       </Grid>
     );
   }
 
   return (
-    <Grid
-      container={true}
-      direction='row'
-      className={classes.deployContainer}
-    >
+    <Grid container={true} direction='row' className={classes.deployContainer}>
       {environments.map((env: any, index: number) => {
         return (
           <AppDeploymentComponent
@@ -201,22 +143,18 @@ export const DeployContainer = (props: IDeployContainer) => {
             urlToAppLinkTxt={`${org}.${env.appPrefix}.${env.hostname}/${org}/${app}/`}
             deploymentList={
               appCluster.deploymentList &&
-              appCluster.deploymentList.find(
-                (elem: any) => elem.env === env.name,
-              )
+              appCluster.deploymentList.find((elem: any) => elem.env === env.name)
             }
             releases={imageOptions}
             deployHistory={appDeployments.deployments.filter(
-              (deployment: any) => deployment.envName === env.name,
+              (deployment: any) => deployment.envName === env.name
             )}
             deployError={createAppDeploymentErrors.filter(
-              (error: ICreateAppDeploymentErrors) => error.env === env.name,
+              (error: ICreateAppDeploymentErrors) => error.env === env.name
             )}
             language={language}
             deployPermission={
-              deployPermissions.findIndex(
-                (e) => e.toLowerCase() === env.name.toLowerCase(),
-              ) > -1
+              deployPermissions.findIndex((e) => e.toLowerCase() === env.name.toLowerCase()) > -1
             }
             orgName={orgName}
           />

@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  createTheme,
-  FormControl,
-  MenuItem,
-  TextField,
-  Typography,
-} from '@mui/material';
+import { createTheme, FormControl, MenuItem, TextField, Typography } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import classNames from 'classnames';
 import altinnTheme from '../theme/altinnStudioTheme';
@@ -78,8 +72,8 @@ const getDisplayValue = (selectedValue: string, options: (string | DropdownOptio
     return result.label;
   }
 
-  return result??"";
-}
+  return result ?? '';
+};
 
 export const AltinnDropdown = ({
   inputHeader,

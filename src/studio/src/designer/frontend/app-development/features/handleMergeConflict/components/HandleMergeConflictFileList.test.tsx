@@ -34,7 +34,7 @@ const renderHandleMergeConflictFileList = (mockRepostatus?: any) => {
       classes={mockClasses}
       language={mockLanguage}
       repoStatus={repoStatus}
-    />,
+    />
   );
   return { changeSelectedFile, user, repoStatus, container };
 };
@@ -43,17 +43,13 @@ test('should render 3 files', () => {
   const { repoStatus } = renderHandleMergeConflictFileList();
   const handleMergeConflictFileList = screen.getByRole('list');
   expect(handleMergeConflictFileList.id).toBe('handleMergeConflictFileList');
-  expect(screen.getAllByRole('listitem')).toHaveLength(
-    repoStatus.contentStatus.length,
-  );
+  expect(screen.getAllByRole('listitem')).toHaveLength(repoStatus.contentStatus.length);
 });
 
 test('should render correct text in fileListItem', () => {
   const { repoStatus } = renderHandleMergeConflictFileList();
 
-  const expectedFilenames = repoStatus.contentStatus
-    .map((item: any) => item.filePath)
-    .sort();
+  const expectedFilenames = repoStatus.contentStatus.map((item: any) => item.filePath).sort();
   const renderedFilenames = screen
     .getAllByRole('listitem')
     .map((listitem) => listitem.textContent)
@@ -64,12 +60,8 @@ test('should render correct text in fileListItem', () => {
 test('should show correct icons', () => {
   const { container } = renderHandleMergeConflictFileList();
   // Expect correct icons to show
-  expect(container.baseElement.getElementsByClassName('fa-check')).toHaveLength(
-    2,
-  );
-  expect(
-    container.baseElement.getElementsByClassName('fa-circlecancel'),
-  ).toHaveLength(1);
+  expect(container.baseElement.getElementsByClassName('fa-check')).toHaveLength(2);
+  expect(container.baseElement.getElementsByClassName('fa-circlecancel')).toHaveLength(1);
 });
 
 test('should trigger handleListItemClick() when listItem is clicked', async () => {

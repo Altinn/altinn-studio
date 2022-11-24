@@ -1,7 +1,9 @@
-import React, { PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
+import React from 'react';
 import { Provider } from 'react-redux';
 import './App.css';
-import { IEditorProps, SchemaEditor } from './components/SchemaEditor';
+import type { IEditorProps } from './components/SchemaEditor';
+import { SchemaEditor } from './components/SchemaEditor';
 
 import { store } from './store';
 import { run } from './sagas';

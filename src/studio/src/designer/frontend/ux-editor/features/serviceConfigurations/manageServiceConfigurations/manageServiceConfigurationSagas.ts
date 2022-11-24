@@ -1,4 +1,4 @@
-import { SagaIterator } from 'redux-saga';
+import type { SagaIterator } from 'redux-saga';
 import { call, delay, put, select, takeLatest } from 'redux-saga/effects';
 import postMessages from 'app-shared/utils/postMessages';
 import {
@@ -33,12 +33,12 @@ export function* fetchJsonFileSaga(): SagaIterator {
     yield put(
       setConditionalRenderingConnections({
         conditionalRenderingConnections: serviceConfiguration?.data?.conditionalRendering,
-      }),
+      })
     );
     yield put(
       setRuleConnections({
         ruleConnections: serviceConfiguration?.data?.ruleConnection,
-      }),
+      })
     );
   } catch (error) {
     yield put(fetchServiceConfigurationRejected({ error }));
@@ -54,7 +54,7 @@ export function* watchSaveServiceConfigurationSaga(): SagaIterator {
       deleteConditionalRenderingConnnection,
       deleteRuleConnnection,
     ],
-    saveServiceConfigurationSaga,
+    saveServiceConfigurationSaga
   );
 }
 

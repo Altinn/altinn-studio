@@ -1,5 +1,5 @@
 import { get } from 'app-shared/utils/networking';
-import { SagaIterator } from 'redux-saga';
+import type { SagaIterator } from 'redux-saga';
 import { all, call, put, select, take, takeLatest } from 'redux-saga/effects';
 import {
   fetchWidgets,
@@ -41,7 +41,7 @@ export function* fetchWidgetSettingsSaga(): SagaIterator {
     yield put(
       fetchWidgetSettingsFulfilled({
         widgetUrls: widgetSettings?.widgetUrls || [],
-      }),
+      })
     );
   } catch (error) {
     yield put(fetchWidgetSettingsRejected({ error }));

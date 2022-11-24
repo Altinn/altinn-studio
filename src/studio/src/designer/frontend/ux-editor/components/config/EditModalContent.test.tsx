@@ -178,7 +178,7 @@ const render = ({ componentProps = undefined, handleComponentUpdate = jest.fn } 
     rendered: rtlRender(
       <Provider store={store}>
         <EditModalContent component={allComponentProps} handleComponentUpdate={handleComponentUpdate} />
-      </Provider>,
+      </Provider>
     ),
     allComponentProps,
   };

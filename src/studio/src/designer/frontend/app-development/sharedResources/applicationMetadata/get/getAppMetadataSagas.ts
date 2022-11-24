@@ -1,4 +1,4 @@
-import { SagaIterator } from 'redux-saga';
+import type { SagaIterator } from 'redux-saga';
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { get, post } from 'app-shared/utils/networking';
 import { applicationMetadataUrl } from '../../../utils/urlHelper';
@@ -10,7 +10,7 @@ function* getApplicationMetadataSaga(): SagaIterator {
     yield put(
       ApplicationMetadataActions.getApplicationMetadataFulfilled({
         applicationMetadata: result,
-      }),
+      })
     );
   } catch (error) {
     if (error.status === 404) {
@@ -19,16 +19,11 @@ function* getApplicationMetadataSaga(): SagaIterator {
       yield call(post, applicationMetadataUrl);
       yield put(ApplicationMetadataActions.getApplicationMetadata());
     } else {
-      yield put(
-        ApplicationMetadataActions.getApplicationMetadataRejected({ error }),
-      );
+      yield put(ApplicationMetadataActions.getApplicationMetadataRejected({ error }));
     }
   }
 }
 
 export function* watchGetApplicationMetadataSaga(): SagaIterator {
-  yield takeLatest(
-    ApplicationMetadataActions.getApplicationMetadata,
-    getApplicationMetadataSaga,
-  );
+  yield takeLatest(ApplicationMetadataActions.getApplicationMetadata, getApplicationMetadataSaga);
 }

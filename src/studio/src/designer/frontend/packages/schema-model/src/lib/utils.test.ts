@@ -43,15 +43,15 @@ test('that we can getNodeDisplayName', () => {
 test('that we can getUniqueNodePath', () => {
   const uiSchemaNodes = buildUiSchema(selectorsTestSchema);
   expect(getUniqueNodePath(uiSchemaNodes, makePointer(Keywords.Properties, 'hello'))).toBe(
-    makePointer(Keywords.Properties, 'hello0'),
+    makePointer(Keywords.Properties, 'hello0')
   );
 });
 
 test('that we can replaceLastPointerSegment', () => {
   expect(replaceLastPointerSegment(makePointer('some', 'thing', 'cozy'), 'scary')).toBe(
-    makePointer('some', 'thing', 'scary'),
+    makePointer('some', 'thing', 'scary')
   );
   expect(replaceLastPointerSegment(makePointer('trying', 'to', 'fool'), 'to/fool')).toBe(
-    makePointer('trying', 'to', 'to', 'fool'),
+    makePointer('trying', 'to', 'to', 'fool')
   );
 });

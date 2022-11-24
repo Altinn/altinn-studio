@@ -1,11 +1,11 @@
-import { SagaIterator } from 'redux-saga';
+import type { SagaIterator } from 'redux-saga';
 import { call, delay, put, select, takeEvery, takeLatest } from 'redux-saga/effects';
 import { del, get, post } from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
-import { ILayoutSettings } from 'app-shared/types/global';
+import type { ILayoutSettings } from 'app-shared/types/global';
 import Axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
-import { PayloadAction } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
 import { convertFromLayoutToInternalFormat, convertInternalToLayoutFormat } from '../../../utils/formLayout';
 
 import {
@@ -19,10 +19,10 @@ import {
   getUpdateApplicationMetadataUrl,
   getUpLayNmeUrl,
 } from '../../../utils/urlHelper';
-import {layoutSchemaUrl} from 'app-shared/cdn-paths';
+import { layoutSchemaUrl } from 'app-shared/cdn-paths';
 
 import { ComponentTypes } from '../../../components';
-import {
+import type {
   IAddApplicationMetadataAction,
   IAddFormComponentAction,
   IAddFormContainerAction,
@@ -63,7 +63,7 @@ function* addFormComponentSaga({ payload }: PayloadAction<IAddFormComponentActio
         position,
         containerId,
         callback,
-      }),
+      })
     );
     yield put(FormLayoutActions.saveFormLayout());
 
@@ -77,7 +77,7 @@ function* addFormComponentSaga({ payload }: PayloadAction<IAddFormComponentActio
           minFiles: minNumberOfAttachments,
           fileType: validFileEndings,
           maxSize: maxFileSizeInMB,
-        }),
+        })
       );
     }
 
@@ -111,7 +111,7 @@ function* addFormContainerSaga({ payload }: PayloadAction<IAddFormContainerActio
         baseContainerId,
         destinationIndex,
         callback,
-      }),
+      })
     );
     yield put(FormLayoutActions.saveFormLayout());
   } catch (error) {
@@ -160,7 +160,7 @@ function* deleteFormContainerSaga({ payload }: PayloadAction<IDeleteContainerAct
           FormLayoutActions.deleteFormContainerFulfilled({
             id: componentId,
             parentContainerId: id,
-          }),
+          })
         );
       } else {
         yield put(
@@ -168,7 +168,7 @@ function* deleteFormContainerSaga({ payload }: PayloadAction<IDeleteContainerAct
             id: componentId,
             index: currentLayout.order[id].indexOf(componentId),
             parentContainerId: id,
-          }),
+          })
         );
       }
     }
@@ -177,7 +177,7 @@ function* deleteFormContainerSaga({ payload }: PayloadAction<IDeleteContainerAct
         id,
         index,
         parentContainerId: parentContainer,
-      }),
+      })
     );
     yield put(FormLayoutActions.saveFormLayout());
   } catch (error) {
@@ -208,12 +208,12 @@ function* fetchFormLayoutSaga(): SagaIterator {
     yield put(
       FormLayoutActions.fetchFormLayoutFulfilled({
         formLayout: convertedLayouts,
-      }),
+      })
     );
     yield put(
       FormLayoutActions.updateSelectedLayout({
         selectedLayout: Object.keys(convertedLayouts)[0],
-      }),
+      })
     );
     yield put(FormLayoutActions.deleteActiveListFulfilled());
   } catch (error) {
@@ -257,7 +257,7 @@ export function* watchSaveFormLayoutSaga(): SagaIterator {
       FormLayoutActions.updateFormComponentOrder,
       FormLayoutActions.updateContainerId,
     ],
-    saveFormLayoutSaga,
+    saveFormLayoutSaga
   );
 }
 
@@ -291,7 +291,7 @@ function* updateFormComponentSaga({ payload }: PayloadAction<IUpdateFormComponen
           maxFiles: maxNumberOfAttachments,
           maxSize: maxFileSizeInMB,
           minFiles: minNumberOfAttachments,
-        }),
+        })
       );
     }
   }
@@ -365,7 +365,7 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
     const { layout } = payload;
     const layouts: IFormLayouts = yield select((state: IAppState) => state.formDesigner.layout.layouts);
     const layoutOrder: string[] = yield select(
-      (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order,
+      (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order
     );
     const layoutsCopy = JSON.parse(JSON.stringify(layouts));
     if (Object.keys(layoutsCopy).indexOf(layout) !== -1) {
@@ -377,7 +377,7 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
       FormLayoutActions.addLayoutFulfilled({
         layouts: layoutsCopy,
         layoutOrder: [...layoutOrder, layout],
-      }),
+      })
     );
 
     if (Object.keys(layoutsCopy).length > 1) {
@@ -397,17 +397,17 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
           component: { ...NavigationButtonComponent, id: uuidv4() },
           position: 0,
           containerId: Object.keys(layoutsCopy[layout].containers)[0],
-        }),
+        })
       );
       const firstPageKey = layoutOrder[0];
       const firstPage = layouts[firstPageKey];
       yield put(
         FormLayoutActions.updateSelectedLayout({
           selectedLayout: firstPageKey,
-        }),
+        })
       );
       const hasNaviagtionButton = Object.keys(firstPage.components).some(
-        (component: string) => firstPage.components[component].type === 'NavigationButtons',
+        (component: string) => firstPage.components[component].type === 'NavigationButtons'
       );
       if (!hasNaviagtionButton) {
         yield put(
@@ -415,7 +415,7 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
             component: { ...NavigationButtonComponent, id: uuidv4() },
             position: Object.keys(layoutsCopy[firstPageKey].components).length,
             containerId: Object.keys(layoutsCopy[firstPageKey].containers)[0],
-          }),
+          })
         );
       }
 
@@ -462,7 +462,7 @@ export function* fetchFormLayoutSettingSaga(): SagaIterator {
 export function* watchFetchFormLayoutSettingSaga(): SagaIterator {
   yield takeEvery(
     [FormLayoutActions.fetchFormLayoutFulfilled, FormLayoutActions.fetchLayoutSettings],
-    fetchFormLayoutSettingSaga,
+    fetchFormLayoutSettingSaga
   );
 }
 
@@ -483,7 +483,7 @@ export function* watchSaveFormLayoutSettingSaga(): SagaIterator {
       FormLayoutActions.deleteLayoutFulfilled,
       FormLayoutActions.addLayoutFulfilled,
     ],
-    saveFormLayoutSettingSaga,
+    saveFormLayoutSettingSaga
   );
 }
 

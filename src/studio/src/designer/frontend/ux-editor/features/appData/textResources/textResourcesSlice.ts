@@ -1,4 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 import type { ITextResource } from '../../../types/global';
 
 export interface ILoadTextResources {
@@ -42,31 +43,25 @@ const textResourcesSlice = createSlice({
   name: 'textResources',
   initialState,
   reducers: {
-    loadTextResources: (state, action: PayloadAction<ILoadTextResources>) => {
+    loadTextResources: (state, _action: PayloadAction<ILoadTextResources>) => {
       state.fetched = false;
       state.fetching = true;
       state.error = null;
     },
-    loadTextResourcesFulfilled: (
-      state,
-      action: PayloadAction<ILoadTextResourcesFulfilled>,
-    ) => {
+    loadTextResourcesFulfilled: (state, action: PayloadAction<ILoadTextResourcesFulfilled>) => {
       const { textResources } = action.payload;
       state.resources = textResources.resources;
       state.language = textResources.language;
       state.fetched = true;
       state.fetching = false;
     },
-    loadTextResourcesRejected: (
-      state,
-      action: PayloadAction<ILoadTextResourcesRejected>,
-    ) => {
+    loadTextResourcesRejected: (state, action: PayloadAction<ILoadTextResourcesRejected>) => {
       const { error } = action.payload;
       state.error = error;
       state.fetched = false;
       state.fetching = false;
     },
-    addTextResources: (state, action) => {
+    addTextResources: (state, _action) => {
       state.saving = true;
       state.saved = false;
       state.error = null;
@@ -76,10 +71,7 @@ const textResourcesSlice = createSlice({
       state.saved = true;
       state.error = null;
     },
-    addTextResourcesRejected: (
-      state,
-      action: PayloadAction<ILoadTextResourcesRejected>,
-    ) => {
+    addTextResourcesRejected: (state, action: PayloadAction<ILoadTextResourcesRejected>) => {
       const { error } = action.payload;
       state.error = error;
       state.saving = false;

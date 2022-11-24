@@ -4,7 +4,6 @@ import { getRepositoryType } from './repository';
 describe('getRepositoryType', () => {
   const testOrg = 'test-org';
   it('should return "App" when repository name is not "<org>-datamodels"', () => {
-
     expect(getRepositoryType(testOrg, 'some-app-name')).toBe(RepositoryType.App);
   });
 
@@ -19,4 +18,4 @@ describe('getRepositoryType', () => {
   it('should return "Datamodels" when repository name matches "<org>-datamodels" exactly', () => {
     expect(getRepositoryType(testOrg, `${testOrg}-datamodels`)).toBe(RepositoryType.Datamodels);
   });
-})
+});

@@ -11,29 +11,11 @@ interface IToolbarItemProps {
   icon: string;
 }
 
-export const ToolbarItem = ({
-  notDraggable,
-  onDropAction,
-  componentType,
-  onClick,
-  text,
-  icon,
-}: IToolbarItemProps) => {
+export const ToolbarItem = ({ notDraggable, onDropAction, componentType, onClick, text, icon }: IToolbarItemProps) => {
   return (
     <div>
-      <DraggableToolbarItem
-        id={null}
-        index={null}
-        containerId={null}
-        notDraggable={notDraggable}
-        onDrop={onDropAction}
-      >
-        <ToolbarItemComponent
-          onClick={onClick}
-          componentType={componentType}
-          thirdPartyLabel={text}
-          icon={icon}
-        />
+      <DraggableToolbarItem id={null} index={null} containerId={null} notDraggable={notDraggable} onDrop={onDropAction}>
+        <ToolbarItemComponent onClick={onClick} componentType={componentType} thirdPartyLabel={text} icon={icon} />
       </DraggableToolbarItem>
     </div>
   );

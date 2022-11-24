@@ -1,5 +1,6 @@
 import { RepositoryType } from 'app-shared/types/global';
-import { getTopBarMenu, menu, TopBarMenu, TopBarMenuItem } from './appBarConfig';
+import type { TopBarMenuItem } from './appBarConfig';
+import { getTopBarMenu, menu, TopBarMenu } from './appBarConfig';
 
 describe('getTopBarMenu', () => {
   it('should return all items when provided repository type is "App"', () => {
@@ -28,4 +29,4 @@ describe('getTopBarMenu', () => {
 
     expect(getTopBarMenu(RepositoryType.Unknown)).toEqual(expected);
   });
-})
+});

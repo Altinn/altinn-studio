@@ -1,5 +1,5 @@
 import { StrRestrictionKeys } from '@altinn/schema-model';
-import { Dict } from '@altinn/schema-model/src/lib/types';
+import type { Dict } from '@altinn/schema-model/src/lib/types';
 
 type ChangeCallback = (restrictions: Dict) => void;
 
@@ -46,13 +46,10 @@ export type StringRestricionsReducerState = {
   latest: string;
   restrictions: {
     [restriction in StrRestrictionKeys]?: string;
-  }
+  };
 };
 
-const setMinIncl = (
-  state: StringRestricionsReducerState,
-  action: SetInclAction
-) => {
+const setMinIncl = (state: StringRestricionsReducerState, action: SetInclAction) => {
   const { restrictions } = state;
   if (action.value) {
     state.earliestIsInclusive = true;
@@ -69,10 +66,7 @@ const setMinIncl = (
   }
 };
 
-const setMaxIncl = (
-  state: StringRestricionsReducerState,
-  action: SetInclAction
-) => {
+const setMaxIncl = (state: StringRestricionsReducerState, action: SetInclAction) => {
   const { restrictions } = state;
   if (action.value) {
     state.latestIsInclusive = true;
@@ -89,10 +83,7 @@ const setMaxIncl = (
   }
 };
 
-const setEarliest = (
-  state: StringRestricionsReducerState,
-  action: SetEarliestOrLatestAction
-) => {
+const setEarliest = (state: StringRestricionsReducerState, action: SetEarliestOrLatestAction) => {
   const { value } = action;
   const key = state.earliestIsInclusive
     ? StrRestrictionKeys.formatMinimum
@@ -101,10 +92,7 @@ const setEarliest = (
   state.restrictions[key] = value;
 };
 
-const setLatest = (
-  state: StringRestricionsReducerState,
-  action: SetEarliestOrLatestAction
-) => {
+const setLatest = (state: StringRestricionsReducerState, action: SetEarliestOrLatestAction) => {
   const { value } = action;
   const key = state.latestIsInclusive
     ? StrRestrictionKeys.formatMaximum
@@ -113,21 +101,28 @@ const setLatest = (
   state.restrictions[key] = value;
 };
 
-const setRestriction = (
-  state: StringRestricionsReducerState,
-  action: SetRestrictionAction
-) => state.restrictions[action.restriction] = action.value;
+const setRestriction = (state: StringRestricionsReducerState, action: SetRestrictionAction) =>
+  (state.restrictions[action.restriction] = action.value);
 
 export const stringRestrictionsReducer = (
   state: StringRestricionsReducerState,
   action: StringRestrictionsReducerAction
 ) => {
   switch (action.type) {
-    case StringRestrictionsReducerActionType.setMinIncl: setMinIncl(state, action); break;
-    case StringRestrictionsReducerActionType.setMaxIncl: setMaxIncl(state, action); break;
-    case StringRestrictionsReducerActionType.setEarliest: setEarliest(state, action); break;
-    case StringRestrictionsReducerActionType.setLatest: setLatest(state, action); break;
-    case StringRestrictionsReducerActionType.setRestriction: setRestriction(state, action);
+    case StringRestrictionsReducerActionType.setMinIncl:
+      setMinIncl(state, action);
+      break;
+    case StringRestrictionsReducerActionType.setMaxIncl:
+      setMaxIncl(state, action);
+      break;
+    case StringRestrictionsReducerActionType.setEarliest:
+      setEarliest(state, action);
+      break;
+    case StringRestrictionsReducerActionType.setLatest:
+      setLatest(state, action);
+      break;
+    case StringRestrictionsReducerActionType.setRestriction:
+      setRestriction(state, action);
   }
   action.changeCallback(state.restrictions);
   return state;

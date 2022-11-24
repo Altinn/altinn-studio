@@ -14,21 +14,15 @@ describe('EditContainer', () => {
   it('should show edit id when edit button is clicked', async () => {
     render();
 
-    expect(
-      screen.queryByText(/ux_editor\.modal_properties_component_change_id/i),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByText(/ux_editor\.modal_properties_component_change_id/i)).not.toBeInTheDocument();
     expect(screen.queryByDisplayValue(id)).not.toBeInTheDocument();
 
     const editButton = screen.getByTestId('EditContainer-edit-button');
     await user.click(editButton);
 
-    expect(
-      screen.getByText(/ux_editor\.modal_properties_component_change_id/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/ux_editor\.modal_properties_component_change_id/i)).toBeInTheDocument();
     expect(screen.getByDisplayValue(id)).toBeInTheDocument();
-    expect(
-      screen.queryByTestId('EditContainer-edit-button'),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByTestId('EditContainer-edit-button')).not.toBeInTheDocument();
   });
 });
 
@@ -69,9 +63,7 @@ const render = (props: Partial<IEditContainerProvidedProps> = {}) => {
         layouts: {
           default: {
             order: {
-              'd70339c4-bb2d-4c09-b786-fed3622d042c': [
-                '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88',
-              ],
+              'd70339c4-bb2d-4c09-b786-fed3622d042c': ['4a66b4ea-13f1-4187-864a-fd4bb6e8cf88'],
             },
             components: {
               '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88': {
@@ -127,6 +119,6 @@ const render = (props: Partial<IEditContainerProvidedProps> = {}) => {
       <EditContainer {...allProps}>
         <div />
       </EditContainer>
-    </Provider>,
+    </Provider>
   );
 };

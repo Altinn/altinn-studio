@@ -4,7 +4,7 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { TopToolbarButton } from './TopToolbarButton';
 
-jest.mock('./TopToolbarButton.module.css', () => ({iconButton: 'iconButton'}));
+jest.mock('./TopToolbarButton.module.css', () => ({ iconButton: 'iconButton' }));
 
 const renderButton = (text: string, style = 'text', disabled = false) => {
   const handleClick = jest.fn();
@@ -20,7 +20,7 @@ const renderButton = (text: string, style = 'text', disabled = false) => {
         warning={style === 'warning'}
       >
         {text}
-      </TopToolbarButton>,
+      </TopToolbarButton>
     );
   });
   return { handleClick, user };
