@@ -42,16 +42,14 @@ describe('XSDUpload', () => {
   });
 
   it('should show error text when file upload results in error', async () => {
-    mockedAxios.post.mockImplementation(() =>
-      Promise.reject(new Error('mocked error')),
-    );
+    mockedAxios.post.mockImplementation(() => Promise.reject(new Error('mocked error')));
     const file = new File(['hello'], 'hello.xsd', { type: 'text/xml' });
     render();
 
     await clickUploadButton();
 
     expect(
-      screen.queryByText(/form_filler\.file_uploader_validation_error_upload/i),
+      screen.queryByText(/form_filler\.file_uploader_validation_error_upload/i)
     ).not.toBeInTheDocument();
 
     const fileInput = screen.getByTestId('FileSelector-input');
@@ -59,7 +57,7 @@ describe('XSDUpload', () => {
     await user.upload(fileInput, file);
 
     expect(
-      screen.queryByText(/form_filler\.file_uploader_validation_error_upload/i),
+      screen.queryByText(/form_filler\.file_uploader_validation_error_upload/i)
     ).toBeInTheDocument();
   });
 

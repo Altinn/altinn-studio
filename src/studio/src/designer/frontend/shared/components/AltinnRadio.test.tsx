@@ -11,7 +11,7 @@ describe('AltinnRadioButton', () => {
     expect(
       screen.getByRole('radio', {
         name: /label value/i,
-      }),
+      })
     ).toBeInTheDocument();
     expect(screen.getByText('Label value')).toBeInTheDocument();
   });
@@ -23,7 +23,7 @@ describe('AltinnRadioButton', () => {
     expect(
       screen.queryByRole('radio', {
         name: /label value/i,
-      }),
+      })
     ).not.toBeInTheDocument();
     expect(screen.queryByText('Label value')).not.toBeInTheDocument();
   });

@@ -8,20 +8,15 @@ import {
   Typography,
   useMediaQuery,
 } from '@mui/material';
-import { createStyles, WithStyles, withStyles } from '@mui/styles';
+import type { WithStyles } from '@mui/styles';
+import { createStyles, withStyles } from '@mui/styles';
 import AltinnIcon from 'app-shared/components/AltinnIcon';
 import AltinnStudioTheme from 'app-shared/theme/altinnStudioTheme';
-import {
-  getLanguageFromKey,
-  getParsedLanguageFromKey,
-} from 'app-shared/utils/language';
+import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
 import type { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
 import { AppReleaseActions } from '../../../sharedResources/appRelease/appReleaseSlice';
 import type { IRelease } from '../../../sharedResources/appRelease/types';
-import {
-  BuildResult,
-  BuildStatus,
-} from '../../../sharedResources/appRelease/types';
+import { BuildResult, BuildStatus } from '../../../sharedResources/appRelease/types';
 import type { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import { RepoStatusActions } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import { fetchLanguage } from '../../../utils/fetchLanguage/languageSlice';
@@ -31,7 +26,7 @@ import ReleaseComponent from '../components/appReleaseComponent';
 import CreateReleaseComponent from '../components/createAppReleaseComponent';
 import { useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../common/hooks';
-import {frontendLangPath, gitCommitPath, repoStatusPath} from "app-shared/api-paths";
+import { frontendLangPath, gitCommitPath, repoStatusPath } from 'app-shared/api-paths';
 
 const theme = createTheme(AltinnStudioTheme);
 
@@ -117,27 +112,19 @@ const styles = createStyles({
 type IAppReleaseContainer = WithStyles<typeof styles>;
 
 function AppReleaseContainer(props: IAppReleaseContainer) {
-  const hiddenMdDown = useMediaQuery((appTheme: Theme) =>
-    appTheme.breakpoints.down('md'),
-  );
+  const hiddenMdDown = useMediaQuery((appTheme: Theme) => appTheme.breakpoints.down('md'));
   const { classes } = props;
   const dispatch = useAppDispatch();
 
   const [anchorElement, setAchorElement] = React.useState<Element>();
 
-  const [popoverOpenClick, setPopoverOpenClick] =
-    React.useState<boolean>(false);
-  const [popoverOpenHover, setPopoverOpenHover] =
-    React.useState<boolean>(false);
+  const [popoverOpenClick, setPopoverOpenClick] = React.useState<boolean>(false);
+  const [popoverOpenHover, setPopoverOpenHover] = React.useState<boolean>(false);
 
-  const appReleases: IAppReleaseState = useAppSelector(
-    (state) => state.appReleases,
-  );
-  const repoStatus: IRepoStatusState = useAppSelector(
-    (state) => state.repoStatus,
-  );
+  const appReleases: IAppReleaseState = useAppSelector((state) => state.appReleases);
+  const repoStatus: IRepoStatusState = useAppSelector((state) => state.repoStatus);
   const handleMergeConflict: IHandleMergeConflictState = useAppSelector(
-    (state) => state.handleMergeConflict,
+    (state) => state.handleMergeConflict
   );
   const language: any = useAppSelector((state) => state.languageState.language);
   const { org, app } = useParams();
@@ -145,20 +132,20 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
   useEffect(() => {
     dispatch(AppReleaseActions.getAppReleaseStartInterval());
     if (!language) {
-      dispatch(fetchLanguage({ url: frontendLangPath("nb") }));
+      dispatch(fetchLanguage({ url: frontendLangPath('nb') }));
     }
     dispatch(RepoStatusActions.getMasterRepoStatus({ org, repo: app }));
     dispatch(
       fetchRepoStatus({
-        url: repoStatusPath(org,app),
+        url: repoStatusPath(org, app),
         org,
         repo: app,
-      }),
+      })
     );
     return () => {
       dispatch(AppReleaseActions.getAppReleaseStopInterval());
     };
-  }, [dispatch, language]);
+  }, [dispatch, language, org, app]);
 
   function handlePopoverKeyPress(event: React.KeyboardEvent) {
     if (event.key === 'Enter' || event.key === ' ') {
@@ -196,37 +183,24 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
         spacing={1}
       >
         {hiddenMdDown ? null : (
-          <Grid
-            item={true}
-            xs={1}
-          >
+          <Grid item={true} xs={1}>
             <AltinnIcon
               iconClass={`${classes.renderCannotCreateReleaseIcon} ai ai-circle-exclamation`}
               iconColor={theme.altinnPalette.primary.red}
             />
           </Grid>
         )}
-        <Grid
-          item={true}
-          xs={12}
-          md={10}
-        >
-          <Grid
-            container={true}
-            direction='column'
-          >
+        <Grid item={true} xs={12} md={10}>
+          <Grid container={true} direction='column'>
             <Typography className={classes.cannotCreateReleaseTitle}>
               {getParsedLanguageFromKey(
                 'app_create_release_errors.fetch_release_failed',
                 language,
-                ['mailto:tjenesteeier@altinn.no'],
+                ['mailto:tjenesteeier@altinn.no']
               )}
             </Typography>
             <Typography className={classes.cannotCreateReleaseSubTitle}>
-              {getLanguageFromKey(
-                'app_create_release_errors.technical_error_code',
-                language,
-              )}
+              {getLanguageFromKey('app_create_release_errors.technical_error_code', language)}
               &nbsp;
               {appReleases.errors.fetchReleaseErrorCode}
             </Typography>
@@ -240,21 +214,10 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     if (appReleases.errors.fetchReleaseErrorCode !== null) {
       return renderCannotCreateRelease();
     }
-    if (
-      !repoStatus.branch.master ||
-      !handleMergeConflict.repoStatus.contentStatus
-    ) {
+    if (!repoStatus.branch.master || !handleMergeConflict.repoStatus.contentStatus) {
       return (
-        <Grid
-          container={true}
-          direction='row'
-          justifyContent='center'
-        >
-          <Grid
-            container={true}
-            direction='row'
-            justifyContent='center'
-          >
+        <Grid container={true} direction='row' justifyContent='center'>
+          <Grid container={true} direction='row' justifyContent='center'>
             <Grid
               container={true}
               direction='column'
@@ -276,10 +239,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
                     padding: '1.2rem',
                   }}
                 >
-                  {getLanguageFromKey(
-                    'app_create_release.check_status',
-                    language,
-                  )}
+                  {getLanguageFromKey('app_create_release.check_status', language)}
                 </Typography>
               </Grid>
             </Grid>
@@ -299,8 +259,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     // Check if latest
     if (
       !!appReleases.releases[0] &&
-      appReleases.releases[0].targetCommitish ===
-        repoStatus.branch.master.commit.id &&
+      appReleases.releases[0].targetCommitish === repoStatus.branch.master.commit.id &&
       appReleases.releases[0].build.status === BuildStatus.completed &&
       appReleases.releases[0].build.result === BuildResult.succeeded
     ) {
@@ -343,25 +302,18 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     }
     if (
       !!appReleases.releases[0] &&
-      repoStatus.branch.master.commit.id ===
-        appReleases.releases[0].targetCommitish
+      repoStatus.branch.master.commit.id === appReleases.releases[0].targetCommitish
     ) {
       return (
         <Typography>
-          {getLanguageFromKey(
-            'app_create_release.local_changes_cant_build',
-            language,
-          )}
+          {getLanguageFromKey('app_create_release.local_changes_cant_build', language)}
         </Typography>
       );
     }
     if (handleMergeConflict.repoStatus.contentStatus) {
       return (
         <Typography>
-          {getLanguageFromKey(
-            'app_create_release.local_changes_can_build',
-            language,
-          )}
+          {getLanguageFromKey('app_create_release.local_changes_can_build', language)}
         </Typography>
       );
     }
@@ -376,9 +328,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     ) {
       return null;
     }
-    const latestRelease: IRelease = appReleases.releases[0]
-      ? appReleases.releases[0]
-      : null;
+    const latestRelease: IRelease = appReleases.releases[0] ? appReleases.releases[0] : null;
     if (
       !latestRelease ||
       latestRelease.targetCommitish !== repoStatus.branch.master.commit.id ||
@@ -389,7 +339,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
           {getLanguageFromKey('app_release.release_title', language)} &nbsp;
           {repoStatus.branch.master ? (
             <a
-              href={gitCommitPath(org,app,repoStatus.branch.master.commit.id)}
+              href={gitCommitPath(org, app, repoStatus.branch.master.commit.id)}
               target='_blank'
               rel='noopener noreferrer'
             >
@@ -408,7 +358,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
           &nbsp;
           {getLanguageFromKey('general.contains', language)}
           &nbsp;
-          <a href={gitCommitPath(org,app,repoStatus.branch.master.commit.id)}>
+          <a href={gitCommitPath(org, app, repoStatus.branch.master.commit.id)}>
             {getLanguageFromKey('app_release.release_title_link', language)}
           </a>
         </>
@@ -419,38 +369,17 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
 
   return (
     <>
-      <Grid
-        container={true}
-        direction='row'
-        className={classes.appReleaseWrapper}
-      >
-        <Grid
-          container={true}
-          direction='column'
-        >
-          <Grid
-            item={true}
-            className={classes.versionHeader}
-          >
+      <Grid container={true} direction='row' className={classes.appReleaseWrapper}>
+        <Grid container={true} direction='column'>
+          <Grid item={true} className={classes.versionHeader}>
             <Typography className={classes.versionHeaderTitle}>
               {getLanguageFromKey('app_release.release_tab_versions', language)}
             </Typography>
           </Grid>
 
-          <Grid
-            container={true}
-            direction='column'
-            className={classes.appCreateReleaseWrapper}
-          >
-            <Grid
-              container={true}
-              direction='row'
-              justifyContent='space-between'
-            >
-              <Grid
-                item={true}
-                xs={10}
-              >
+          <Grid container={true} direction='column' className={classes.appCreateReleaseWrapper}>
+            <Grid container={true} direction='row' justifyContent='space-between'>
+              <Grid item={true} xs={10}>
                 <Typography className={classes.appCreateReleaseTitle}>
                   {renderCreateReleaseTitle()}
                 </Typography>
@@ -468,10 +397,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
                 {renderStatusIcon()}
               </Grid>
             </Grid>
-            <Grid
-              item={true}
-              className={classes.appReleaseCreateRelease}
-            >
+            <Grid item={true} className={classes.appReleaseCreateRelease}>
               {renderCreateRelease()}
             </Grid>
           </Grid>
@@ -480,16 +406,10 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
               {getLanguageFromKey('app_release.earlier_releases', language)}
             </Typography>
           </Grid>
-          <Grid
-            container={true}
-            className={classes.appReleaseHistory}
-          >
+          <Grid container={true} className={classes.appReleaseHistory}>
             {!!appReleases.releases.length &&
               appReleases.releases.map((release: IRelease, index: number) => (
-                <ReleaseComponent
-                  key={index}
-                  release={release}
-                />
+                <ReleaseComponent key={index} release={release} />
               ))}
           </Grid>
         </Grid>

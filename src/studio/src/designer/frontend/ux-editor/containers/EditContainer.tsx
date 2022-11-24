@@ -222,7 +222,7 @@ export function EditContainer(props: IEditContainerProvidedProps) {
           FormLayoutActions.updateFormComponentId({
             newId: component.id,
             currentId: props.id,
-          }),
+          })
         );
       }
     }
@@ -242,7 +242,7 @@ export function EditContainer(props: IEditContainerProvidedProps) {
       FormLayoutActions.updateFormComponent({
         id: props.id,
         updatedComponent: callbackComponent,
-      }),
+      })
     );
   };
 

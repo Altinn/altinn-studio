@@ -1,4 +1,5 @@
-import { combineReducers, Reducer, ReducersMapObject } from 'redux';
+import type { Reducer, ReducersMapObject } from 'redux';
+import { combineReducers } from 'redux';
 import appDataReducer from './features/appData/appDataReducers';
 import errorReducer from './features/error/errorSlice';
 import formDesignerReducer from './features/formDesigner/formDesignerReducer';

@@ -18,8 +18,7 @@ import { CreateNewWrapper } from './components/CreateNewWrapper';
 import { DeleteWrapper } from './components/DeleteWrapper';
 import { SchemaSelect } from './components/SchemaSelect';
 import { XSDUpload } from './components/XSDUpload';
-import {datamodelPath} from "../../api-paths";
-
+import { datamodelPath } from '../../api-paths';
 
 interface IDataModellingContainerProps extends React.PropsWithChildren<any> {
   language: ILanguage;
@@ -46,7 +45,9 @@ export const shouldSelectFirstEntry = ({
   metadataLoadingState,
 }: shouldSelectFirstEntryProps) => {
   return (
-    metadataOptions?.length > 0 && selectedOption === undefined && metadataLoadingState === LoadingState.ModelsLoaded
+    metadataOptions?.length > 0 &&
+    selectedOption === undefined &&
+    metadataLoadingState === LoadingState.ModelsLoaded
   );
 };
 
@@ -55,10 +56,15 @@ const useStyles = makeStyles(
     button: {
       marginRight: 16,
     },
-  }),
+  })
 );
 
-export function DataModelling({ language, org, repo, createPathOption }: IDataModellingContainerProps): JSX.Element {
+export function DataModelling({
+  language,
+  org,
+  repo,
+  createPathOption,
+}: IDataModellingContainerProps): JSX.Element {
   const classes = useStyles();
   const dispatch = useDispatch();
   const jsonSchema = useSelector((state: any) => state.dataModelling.schema);
@@ -70,7 +76,8 @@ export function DataModelling({ language, org, repo, createPathOption }: IDataMo
   const uploadedOrCreatedFileName = React.useRef(null);
   const prevFetchedOption = React.useRef(null);
 
-  const modelNames = metadataOptions?.map(({ label }: { label: string }) => label.toLowerCase()) || [];
+  const modelNames =
+    metadataOptions?.map(({ label }: { label: string }) => label.toLowerCase()) || [];
 
   useEffect(() => {
     if (metadataLoadingState === LoadingState.LoadingModels) {
@@ -84,7 +91,10 @@ export function DataModelling({ language, org, repo, createPathOption }: IDataMo
     ) {
       setSelectedOption(metadataOptions[0].options[0]);
     } else {
-      const option = findPreferredMetadataOption(metadataOptions, uploadedOrCreatedFileName.current);
+      const option = findPreferredMetadataOption(
+        metadataOptions,
+        uploadedOrCreatedFileName.current
+      );
       if (option) {
         setSelectedOption(option);
         uploadedOrCreatedFileName.current = null;
@@ -108,7 +118,7 @@ export function DataModelling({ language, org, repo, createPathOption }: IDataMo
   }, [selectedOption, dispatch]);
 
   const [landingDialogState, setLandingDialogState] = useState<LandingDialogState>(
-    LandingDialogState.DatamodelsNotLoaded,
+    LandingDialogState.DatamodelsNotLoaded
   );
 
   const closeLandingPage = () => setLandingDialogState(LandingDialogState.DialogShouldNotBeShown);
@@ -123,7 +133,8 @@ export function DataModelling({ language, org, repo, createPathOption }: IDataMo
     }
   }, [jsonSchema, landingDialogState, metadataLoadingState]);
 
-  const handleSaveSchema = (schema: any) => dispatch(saveDataModel({ schema, metadata: selectedOption }));
+  const handleSaveSchema = (schema: any) =>
+    dispatch(saveDataModel({ schema, metadata: selectedOption }));
   const handleDeleteSchema = () => dispatch(deleteDataModel({ metadata: selectedOption }));
   const handleCreateNewFromLandingPage = () => setCreateNewOpen(true);
 
@@ -143,8 +154,11 @@ export function DataModelling({ language, org, repo, createPathOption }: IDataMo
 
   const shouldDisplayLandingPage = landingDialogState === LandingDialogState.DialogIsVisible;
 
-  const [hideIntroPage, setHideIntroPage] = useState(() => getLocalStorageItem('hideIntroPage') ?? false);
-  const handleHideIntroPageButtonClick = () => setHideIntroPage(setLocalStorageItem('hideIntroPage', true));
+  const [hideIntroPage, setHideIntroPage] = useState(
+    () => getLocalStorageItem('hideIntroPage') ?? false
+  );
+  const handleHideIntroPageButtonClick = () =>
+    setHideIntroPage(setLocalStorageItem('hideIntroPage', true));
 
   const [editMode, setEditMode] = useState(() => getLocalStorageItem('editMode'));
   const toggleEditMode = () => setEditMode(setLocalStorageItem('editMode', !editMode));
@@ -191,7 +205,7 @@ export function DataModelling({ language, org, repo, createPathOption }: IDataMo
         language={language}
         schema={jsonSchema}
         onSaveSchema={handleSaveSchema}
-        saveUrl={datamodelPath(org,repo,selectedOption?.value?.repositoryRelativeUrl)}
+        saveUrl={datamodelPath(org, repo, selectedOption?.value?.repositoryRelativeUrl)}
         name={selectedOption?.label}
         loading={metadataLoadingState === LoadingState.LoadingModels}
         LandingPagePanel={

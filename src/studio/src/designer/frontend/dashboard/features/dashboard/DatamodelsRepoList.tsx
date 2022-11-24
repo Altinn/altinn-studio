@@ -11,15 +11,12 @@ import { getUidFilter, getReposLabel } from './utils';
 
 export const DatamodelsReposList = () => {
   const language = useAppSelector((state) => state.language.language);
-  const selectedContext = useAppSelector(
-    (state) => state.dashboard.selectedContext,
-  );
+  const selectedContext = useAppSelector((state) => state.dashboard.selectedContext);
   const userId = useAppSelector((state) => state.dashboard.user.id);
-  const { data: orgs = [] } = useGetOrganizationsQuery()
+  const { data: orgs = [] } = useGetOrganizationsQuery();
   const uid = getUidFilter({ selectedContext, userId });
 
-  const { data: starredRepos, isLoading: isLoadingStarred } =
-    useGetUserStarredReposQuery();
+  const { data: starredRepos, isLoading: isLoadingStarred } = useGetUserStarredReposQuery();
 
   const { data: repos, isLoading: isLoadingOrgRepos } = useGetSearchQuery({
     uid,

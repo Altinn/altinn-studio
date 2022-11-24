@@ -37,9 +37,7 @@ describe('HeaderMenu', () => {
 
     await userEvent.click(logoutButton);
 
-    expect(postSpy).toHaveBeenCalledWith(
-      `${window.location.origin}/repos/user/logout`,
-    );
+    expect(postSpy).toHaveBeenCalledWith(`${window.location.origin}/repos/user/logout`);
   });
 
   it('should call setSelectedContext with all keyword when clicking All item in menu', async () => {
@@ -52,9 +50,7 @@ describe('HeaderMenu', () => {
 
     await userEvent.click(allItem);
 
-    expect(handleSetSelectedContext).toHaveBeenCalledWith(
-      SelectedContextType.All,
-    );
+    expect(handleSetSelectedContext).toHaveBeenCalledWith(SelectedContextType.All);
   });
 
   it('should call setSelectedContext with self keyword when clicking Self item in menu', async () => {
@@ -67,9 +63,7 @@ describe('HeaderMenu', () => {
 
     await userEvent.click(selfItem);
 
-    expect(handleSetSelectedContext).toHaveBeenCalledWith(
-      SelectedContextType.Self,
-    );
+    expect(handleSetSelectedContext).toHaveBeenCalledWith(SelectedContextType.Self);
   });
 
   it('should call setSelectedContext with org-id when selecting org as context', async () => {
@@ -123,7 +117,7 @@ const render = (props: Partial<HeaderMenuProps> = {}) => {
     rendered: rtlRender(
       <HeaderContext.Provider value={headerContextValue}>
         <HeaderMenu {...allProps} />
-      </HeaderContext.Provider>,
+      </HeaderContext.Provider>
     ),
     handleSetSelectedContext,
   };

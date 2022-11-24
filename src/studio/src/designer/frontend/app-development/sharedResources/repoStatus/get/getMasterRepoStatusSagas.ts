@@ -1,7 +1,7 @@
-import { SagaIterator } from 'redux-saga';
+import type { SagaIterator } from 'redux-saga';
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { get } from 'app-shared/utils/networking';
-import { PayloadAction } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
 import { RepoStatusActions } from '../repoStatusSlice';
 import type { IRepoStatusAction } from '../repoStatusSlice';
 import { masterRepoStatusPath } from 'app-shared/api-paths';
@@ -19,8 +19,5 @@ export function* getMasterRepoStatusSaga({
 }
 
 export function* watchGetMasterRepoStatusSaga(): SagaIterator {
-  yield takeLatest(
-    RepoStatusActions.getMasterRepoStatus,
-    getMasterRepoStatusSaga,
-  );
+  yield takeLatest(RepoStatusActions.getMasterRepoStatus, getMasterRepoStatusSaga);
 }

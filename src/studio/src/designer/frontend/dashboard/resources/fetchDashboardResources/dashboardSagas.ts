@@ -1,5 +1,5 @@
-import { PayloadAction } from '@reduxjs/toolkit';
-import { SagaIterator } from 'redux-saga';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import type { SagaIterator } from 'redux-saga';
 import { call, fork, put, takeLatest } from 'redux-saga/effects';
 import type { IRepository } from 'app-shared/types/global';
 import { get } from 'app-shared/utils/networking';
@@ -12,12 +12,8 @@ export function* fetchServicesSaga({
 }: PayloadAction<IFetchDashboardInfoAction>): SagaIterator {
   try {
     const services: IRepository[] = yield call(get, url);
-    const filteredServices = services.filter(
-      (service) => service.name !== 'datamodels'
-    );
-    yield put(
-      DashboardActions.fetchServicesFulfilled({ info: filteredServices })
-    );
+    const filteredServices = services.filter((service) => service.name !== 'datamodels');
+    yield put(DashboardActions.fetchServicesFulfilled({ info: filteredServices }));
   } catch (error) {
     yield put(DashboardActions.fetchServicesFulfilled);
   }

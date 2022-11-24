@@ -14,22 +14,22 @@ const language = {
 describe('Designer > utils/language', () => {
   it('should return specific help text when component type is known', () => {
     expect(getComponentHelperTextByComponentType(ComponentTypes.Header, language)).toBe(
-      language['ux_editor.helper_text_for_header'],
+      language['ux_editor.helper_text_for_header']
     );
     expect(getComponentHelperTextByComponentType(ComponentTypes.Input, language)).toBe(
-      language['ux_editor.helper_text_for_input'],
+      language['ux_editor.helper_text_for_input']
     );
     expect(getComponentHelperTextByComponentType(ComponentTypes.Checkboxes, language)).toBe(
-      language['ux_editor.helper_text_for_check_box'],
+      language['ux_editor.helper_text_for_check_box']
     );
     expect(getComponentHelperTextByComponentType(ComponentTypes.RadioButtons, language)).toBe(
-      language['ux_editor.helper_text_for_radio_button'],
+      language['ux_editor.helper_text_for_radio_button']
     );
     expect(getComponentHelperTextByComponentType(ComponentTypes.Image, language)).toBe(
-      language['ux_editor.helper_text_for_image'],
+      language['ux_editor.helper_text_for_image']
     );
     expect(getComponentHelperTextByComponentType(ComponentTypes.AttachmentList, language)).toBe(
-      language['ux_editor.helper_text_for_attachment_list'],
+      language['ux_editor.helper_text_for_attachment_list']
     );
   });
 
@@ -49,7 +49,7 @@ describe('Designer > utils/language', () => {
 
     unknownComponentTypes.forEach((componentType) => {
       expect(getComponentHelperTextByComponentType(componentType, language)).toBe(
-        language['ux_editor.helper_text_default'],
+        language['ux_editor.helper_text_default']
       );
     });
   });

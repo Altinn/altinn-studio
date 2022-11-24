@@ -3,7 +3,7 @@ import { AltinnSpinner, FileSelector } from '../../../components';
 import { getLanguageFromKey } from '../../../utils/language';
 import axios from 'axios';
 import ErrorPopover from '../../../components/ErrorPopover';
-import {datamodelsUploadPath} from "../../../api-paths";
+import { datamodelsUploadPath } from '../../../api-paths';
 
 export interface IXSDUploadProps {
   disabled?: boolean;
@@ -14,7 +14,14 @@ export interface IXSDUploadProps {
   submitButtonRenderer?: (fileInputClickHandler: (event: any) => void) => JSX.Element;
 }
 
-export const XSDUpload = ({ disabled, language, onXSDUploaded, org, repo, submitButtonRenderer }: IXSDUploadProps) => {
+export const XSDUpload = ({
+  disabled,
+  language,
+  onXSDUploaded,
+  org,
+  repo,
+  submitButtonRenderer,
+}: IXSDUploadProps) => {
   const [uploading, setUploading] = React.useState(false);
   const [errorText, setErrorText] = React.useState(null);
 
@@ -23,7 +30,7 @@ export const XSDUpload = ({ disabled, language, onXSDUploaded, org, repo, submit
   const handleUpload = (formData: FormData, fileName: string) => {
     setUploading(true);
     axios
-      .post(datamodelsUploadPath(org,repo), formData, {
+      .post(datamodelsUploadPath(org, repo), formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
@@ -36,7 +43,9 @@ export const XSDUpload = ({ disabled, language, onXSDUploaded, org, repo, submit
       })
       .catch((error) => {
         if (error) {
-          setErrorText(getLanguageFromKey('form_filler.file_uploader_validation_error_upload', language));
+          setErrorText(
+            getLanguageFromKey('form_filler.file_uploader_validation_error_upload', language)
+          );
         }
       })
       .finally(() => setUploading(false));
@@ -46,7 +55,9 @@ export const XSDUpload = ({ disabled, language, onXSDUploaded, org, repo, submit
     <>
       <span ref={uploadButton}>
         {uploading ? (
-          <AltinnSpinner spinnerText={getLanguageFromKey('app_data_modelling.uploading_xsd', language)} />
+          <AltinnSpinner
+            spinnerText={getLanguageFromKey('app_data_modelling.uploading_xsd', language)}
+          />
         ) : (
           <FileSelector
             busy={false}
@@ -60,7 +71,11 @@ export const XSDUpload = ({ disabled, language, onXSDUploaded, org, repo, submit
         )}
       </span>
       {errorText && (
-        <ErrorPopover anchorEl={uploadButton.current} onClose={() => setErrorText(null)} errorMessage={errorText} />
+        <ErrorPopover
+          anchorEl={uploadButton.current}
+          onClose={() => setErrorText(null)}
+          errorMessage={errorText}
+        />
       )}
     </>
   );

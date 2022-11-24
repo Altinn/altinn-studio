@@ -1,4 +1,4 @@
-import { SagaIterator, Task } from 'redux-saga';
+import type { SagaIterator, Task } from 'redux-saga';
 import { fork } from 'redux-saga/effects';
 import { sagaMiddleware } from './store';
 

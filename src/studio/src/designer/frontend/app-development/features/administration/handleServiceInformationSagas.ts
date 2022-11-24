@@ -1,8 +1,8 @@
-import { SagaIterator } from 'redux-saga';
+import type { SagaIterator } from 'redux-saga';
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { get, post } from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
-import { PayloadAction } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
 import { HandleServiceInformationActions } from './handleServiceInformationSlice';
 import type {
   IFetchInitialCommitAction,
@@ -22,7 +22,7 @@ export function* handleFetchServiceSaga({
     yield put(
       HandleServiceInformationActions.fetchServiceFulfilled({
         repository: result,
-      }),
+      })
     );
   } catch (error) {
     yield put(HandleServiceInformationActions.fetchServiceRejected({ error }));
@@ -30,10 +30,7 @@ export function* handleFetchServiceSaga({
 }
 
 export function* watchHandleFetchServiceSaga(): SagaIterator {
-  yield takeLatest(
-    HandleServiceInformationActions.fetchService,
-    handleFetchServiceSaga,
-  );
+  yield takeLatest(HandleServiceInformationActions.fetchService, handleFetchServiceSaga);
 }
 
 export function* handleFetchServiceNameSaga({
@@ -45,20 +42,15 @@ export function* handleFetchServiceNameSaga({
     yield put(
       HandleServiceInformationActions.fetchServiceNameFulfilled({
         serviceName: serviceName || '',
-      }),
+      })
     );
   } catch (error) {
-    yield put(
-      HandleServiceInformationActions.fetchServiceNameRejected({ error }),
-    );
+    yield put(HandleServiceInformationActions.fetchServiceNameRejected({ error }));
   }
 }
 
 export function* watchHandleFetchServiceNameSaga(): SagaIterator {
-  yield takeLatest(
-    HandleServiceInformationActions.fetchServiceName,
-    handleFetchServiceNameSaga,
-  );
+  yield takeLatest(HandleServiceInformationActions.fetchServiceName, handleFetchServiceNameSaga);
 }
 
 export function* handleSaveServiceNameSaga({
@@ -69,20 +61,15 @@ export function* handleSaveServiceNameSaga({
     yield put(
       HandleServiceInformationActions.saveServiceNameFulfilled({
         newServiceName,
-      }),
+      })
     );
   } catch (error) {
-    yield put(
-      HandleServiceInformationActions.saveServiceNameRejected({ error }),
-    );
+    yield put(HandleServiceInformationActions.saveServiceNameRejected({ error }));
   }
 }
 
 export function* watchHandleSaveServiceNameSaga(): SagaIterator {
-  yield takeLatest(
-    HandleServiceInformationActions.saveServiceName,
-    handleSaveServiceNameSaga,
-  );
+  yield takeLatest(HandleServiceInformationActions.saveServiceName, handleSaveServiceNameSaga);
 }
 
 export function* handleFetchInitialCommitSaga({
@@ -91,20 +78,16 @@ export function* handleFetchInitialCommitSaga({
   try {
     const result = yield call(get, url);
 
-    yield put(
-      HandleServiceInformationActions.fetchInitialCommitFulfilled({ result }),
-    );
+    yield put(HandleServiceInformationActions.fetchInitialCommitFulfilled({ result }));
   } catch (error) {
-    yield put(
-      HandleServiceInformationActions.fetchInitialCommitRejected({ error }),
-    );
+    yield put(HandleServiceInformationActions.fetchInitialCommitRejected({ error }));
   }
 }
 
 export function* watchHandleFetchInitialCommitSaga(): SagaIterator {
   yield takeLatest(
     HandleServiceInformationActions.fetchInitialCommit,
-    handleFetchInitialCommitSaga,
+    handleFetchInitialCommitSaga
   );
 }
 
@@ -117,19 +100,17 @@ export function* handleFetchServiceConfigSaga({
     yield put(
       HandleServiceInformationActions.fetchServiceConfigFulfilled({
         serviceConfig: serviceConfig || null,
-      }),
+      })
     );
   } catch (error) {
-    yield put(
-      HandleServiceInformationActions.fetchInitialCommitRejected({ error }),
-    );
+    yield put(HandleServiceInformationActions.fetchInitialCommitRejected({ error }));
   }
 }
 
 export function* watchHandleFetchServiceConfigSaga(): SagaIterator {
   yield takeLatest(
     HandleServiceInformationActions.fetchServiceConfig,
-    handleFetchServiceConfigSaga,
+    handleFetchServiceConfigSaga
   );
 }
 
@@ -147,19 +128,14 @@ export function* handleSaveServiceConfigSaga({
         newServiceDescription,
         newServiceId,
         newServiceName,
-      }),
+      })
     );
     window.postMessage(postMessages.filesAreSaved, window.location.href);
   } catch (error) {
-    yield put(
-      HandleServiceInformationActions.saveServiceConfigRejected({ error }),
-    );
+    yield put(HandleServiceInformationActions.saveServiceConfigRejected({ error }));
   }
 }
 
 export function* watchHandleSaveServiceConfigSaga(): SagaIterator {
-  yield takeLatest(
-    HandleServiceInformationActions.saveServiceConfig,
-    handleSaveServiceConfigSaga,
-  );
+  yield takeLatest(HandleServiceInformationActions.saveServiceConfig, handleSaveServiceConfigSaga);
 }

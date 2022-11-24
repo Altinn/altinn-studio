@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GridSortModel } from '@mui/x-data-grid';
+import type { GridSortModel } from '@mui/x-data-grid';
 import { Typography } from '@mui/material';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { useAugmentReposWithStarred } from './hooks';
@@ -10,18 +10,11 @@ import { RepoList } from '../../common/components/RepoList';
 
 const rowsPerPageOptions = [8];
 
-export const SearchResultReposList = ({
-  searchValue,
-}: {
-  searchValue: string;
-}) => {
+export const SearchResultReposList = ({ searchValue }: { searchValue: string }) => {
   const language = useAppSelector((state) => state.language.language);
   const [page, setPage] = useState(0);
-  const [sortModel, setSortModel] = useState<GridSortModel>([
-    { field: 'alpha', sort: 'asc' },
-  ]);
-  const { data: starredRepos, isLoading: isLoadingStarred } =
-    useGetUserStarredReposQuery();
+  const [sortModel, setSortModel] = useState<GridSortModel>([{ field: 'alpha', sort: 'asc' }]);
+  const { data: starredRepos, isLoading: isLoadingStarred } = useGetUserStarredReposQuery();
 
   const { data: repos, isLoading: isLoadingOrgRepos } = useGetSearchQuery({
     keyword: searchValue,

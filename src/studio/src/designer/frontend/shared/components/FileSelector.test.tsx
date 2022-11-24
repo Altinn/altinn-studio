@@ -20,9 +20,9 @@ const render = (props: Partial<IFileSelectorProps> = {}) => {
   rtlRender(<FileSelector {...allProps} />);
 };
 
-const testCustomButtonRenderer = (
-  onClick: React.MouseEventHandler<HTMLButtonElement>,
-) => <Button onClick={onClick}>Lorem ipsum</Button>;
+const testCustomButtonRenderer = (onClick: React.MouseEventHandler<HTMLButtonElement>) => (
+  <Button onClick={onClick}>Lorem ipsum</Button>
+);
 
 describe('FileSelector', () => {
   it('should not call submitHandler when no files are selected', async () => {
@@ -43,10 +43,7 @@ describe('FileSelector', () => {
     const fileInput = screen.getByTestId('FileSelector-input');
     await user.upload(fileInput, file);
 
-    expect(handleSubmit).toHaveBeenCalledWith(
-      expect.any(FormData),
-      'hello.png',
-    );
+    expect(handleSubmit).toHaveBeenCalledWith(expect.any(FormData), 'hello.png');
   });
 
   it('Should show text on the button by default', async () => {

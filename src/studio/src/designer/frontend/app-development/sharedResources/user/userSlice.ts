@@ -1,4 +1,5 @@
-import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createAction, createSlice } from '@reduxjs/toolkit';
 
 export interface IUserState {
   permissions: IUserPermissions;
@@ -53,7 +54,7 @@ const userSlice = createSlice({
   reducers: {
     fetchDeployPermissionsFulfilled: (
       state: IUserState,
-      action: PayloadAction<IFetchDeployPermissionsFulfilled>,
+      action: PayloadAction<IFetchDeployPermissionsFulfilled>
     ) => {
       const { environments } = action.payload;
       state.permissions.deploy.environments = environments;
@@ -61,49 +62,42 @@ const userSlice = createSlice({
     },
     fetchDeployPermissionsRejected: (
       state: IUserState,
-      action: PayloadAction<IUserActionRejected>,
+      action: PayloadAction<IUserActionRejected>
     ) => {
       const { error } = action.payload;
       state.error = error;
     },
     fetchRemainingSessionFulfilled: (
       state: IUserState,
-      action: PayloadAction<IFetchRemainingSessionFulfilled>,
+      action: PayloadAction<IFetchRemainingSessionFulfilled>
     ) => {
       const { remainingMinutes } = action.payload;
       state.session.remainingMinutes = remainingMinutes;
     },
     fetchRemainingSessionRejected: (
       state: IUserState,
-      action: PayloadAction<IUserActionRejected>,
+      action: PayloadAction<IUserActionRejected>
     ) => {
       const { error } = action.payload;
       state.error = error;
     },
     keepAliveSessionFulfilled: (
       state: IUserState,
-      action: PayloadAction<IKeepAliveSessionFulfilled>,
+      action: PayloadAction<IKeepAliveSessionFulfilled>
     ) => {
       const { remainingMinutes } = action.payload;
       state.session.remainingMinutes = remainingMinutes;
     },
-    keepAliveSessionRejected: (
-      state: IUserState,
-      action: PayloadAction<IUserActionRejected>,
-    ) => {
+    keepAliveSessionRejected: (state: IUserState, action: PayloadAction<IUserActionRejected>) => {
       const { error } = action.payload;
       state.error = error;
     },
   },
 });
 
-export const fetchDeployPermissions = createAction(
-  `${moduleName}/fetchDeployPermissions`,
-);
+export const fetchDeployPermissions = createAction(`${moduleName}/fetchDeployPermissions`);
 
-export const fetchRemainingSession = createAction(
-  `${moduleName}/fetchRemainingSession`,
-);
+export const fetchRemainingSession = createAction(`${moduleName}/fetchRemainingSession`);
 
 export const keepAliveSession = createAction(`${moduleName}/keepAliveSession`);
 

@@ -48,14 +48,7 @@ export enum DataModellingFormat {
 export const repoApi = designerApi.injectEndpoints({
   endpoints: (builder) => ({
     getSearch: builder.query<QueryResult, Filters>({
-      query: ({
-        uid,
-        keyword,
-        sortby = 'alpha',
-        order = 'asc',
-        page = 1,
-        limit = 10,
-      }) => {
+      query: ({ uid, keyword, sortby = 'alpha', order = 'asc', page = 1, limit = 10 }) => {
         const params = adjustQueryParams({
           uid,
           keyword,

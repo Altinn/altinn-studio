@@ -8,10 +8,6 @@ interface DividerProps {
 }
 export const Divider = ({ inMenu, className }: DividerProps) => (
   <hr
-    className={classNames(
-      classes.root,
-      inMenu ? classes.inMenu : classes.standalone,
-      className,
-    )}
+    className={classNames(classes.root, inMenu ? classes.inMenu : classes.standalone, className)}
   />
 );

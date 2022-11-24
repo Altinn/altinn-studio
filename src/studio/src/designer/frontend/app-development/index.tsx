@@ -22,5 +22,5 @@ root.render(
     <BrowserRouter basename={APP_DEVELOPMENT_BASENAME}>
       <App />
     </BrowserRouter>
-  </Provider>,
+  </Provider>
 );

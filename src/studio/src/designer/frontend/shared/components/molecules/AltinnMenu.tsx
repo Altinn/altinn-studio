@@ -1,5 +1,6 @@
 import React from 'react';
-import { Menu, MenuProps } from '@mui/material';
+import type { MenuProps } from '@mui/material';
+import { Menu } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 
 const useStyles = makeStyles(() => ({

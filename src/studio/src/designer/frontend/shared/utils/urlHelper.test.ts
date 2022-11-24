@@ -1,8 +1,5 @@
 import { returnUrlToMessagebox } from './urlHelper';
-import {
-  APP_DEVELOPMENT_BASENAME,
-  DASHBOARD_BASENAME,
-} from 'app-shared/constants';
+import { APP_DEVELOPMENT_BASENAME, DASHBOARD_BASENAME } from 'app-shared/constants';
 
 describe('Shared urlHelper.ts', () => {
   describe('sharedUrls ', () => {
@@ -11,7 +8,6 @@ describe('Shared urlHelper.ts', () => {
     afterAll(() => {
       window.location = oldWindowLocation;
     });
-
 
     test('sharedUrls generates expected urls on an app-development location', () => {
       delete window.location;

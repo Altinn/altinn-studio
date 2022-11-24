@@ -1,18 +1,21 @@
 import { schemaPathIsSame } from './schemaPathIsSame';
+import type { IMetadataOption } from 'app-shared/features/dataModelling/functions/types';
 
 describe('schemaPathIsSame', () => {
-  const something = {
+  const something: IMetadataOption = {
     label: 'something',
     value: {
       repositoryRelativeUrl: '/some/relative/path/to/something.schema.json',
       fileName: 'something.schema.json',
+      fileType: '.json',
     },
   };
-  const somethingElse = {
+  const somethingElse: IMetadataOption = {
     label: 'somethingElse',
     value: {
       repositoryRelativeUrl: '/some/relative/path/to/somethingElse.schema.json',
       fileName: 'somethingElse.schema.json',
+      fileType: '.json',
     },
   };
 

@@ -1,6 +1,7 @@
 import React from 'react';
 import { CircularProgress, Grid, Typography } from '@mui/material';
-import { createStyles, WithStyles, withStyles } from '@mui/styles';
+import type { WithStyles } from '@mui/styles';
+import { createStyles, withStyles } from '@mui/styles';
 import Moment from 'moment';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
@@ -9,16 +10,11 @@ import type {
   IBuild,
   IRelease,
 } from '../../../sharedResources/appRelease/types';
-import {
-  BuildResult,
-  BuildStatus,
-} from '../../../sharedResources/appRelease/types';
-import {
-  getReleaseBuildPipelineLink,
-} from '../../../utils/urlHelper';
+import { BuildResult, BuildStatus } from '../../../sharedResources/appRelease/types';
+import { getReleaseBuildPipelineLink } from '../../../utils/urlHelper';
 import { useAppSelector } from '../../../common/hooks';
-import {gitCommitPath} from "app-shared/api-paths";
-import {useParams} from "react-router-dom";
+import { gitCommitPath } from 'app-shared/api-paths';
+import { useParams } from 'react-router-dom';
 
 const styles = createStyles({
   releaseWrapper: {
@@ -58,21 +54,15 @@ interface IAppReleaseComponent extends WithStyles<typeof styles> {
 function ReleaseComponent(props: IAppReleaseComponent) {
   const { classes, release } = props;
 
-  const appReleaseErrors: IAppReleaseErrors = useAppSelector(
-    (state) => state.appReleases.errors,
-  );
+  const appReleaseErrors: IAppReleaseErrors = useAppSelector((state) => state.appReleases.errors);
   const language: any = useAppSelector((state) => state.languageState.language);
 
   function renderStatusIcon(status: IBuild) {
     if (status.result === BuildResult.succeeded) {
-      return (
-        <i className={`${classes.buildSucceededIcon} ai ai-check-circle`} />
-      );
+      return <i className={`${classes.buildSucceededIcon} ai ai-check-circle`} />;
     }
     if (status.result === BuildResult.failed) {
-      return (
-        <i className={`${classes.buildFailedIcon} ai ai-circle-exclamation`} />
-      );
+      return <i className={`${classes.buildFailedIcon} ai ai-circle-exclamation`} />;
     }
     if (status.status !== BuildStatus.completed) {
       return (
@@ -92,27 +82,22 @@ function ReleaseComponent(props: IAppReleaseComponent) {
       release.build.status !== BuildStatus.completed &&
       appReleaseErrors.fetchReleaseErrorCode !== null
     ) {
-      return getLanguageFromKey(
-        'app_create_release_errors.check_status_on_build_error',
-        language,
-      );
+      return getLanguageFromKey('app_create_release_errors.check_status_on_build_error', language);
     }
     if (release.build.status !== BuildStatus.completed) {
-      return `${getLanguageFromKey(
-        'app_create_release.release_creating',
-        language,
-      )} ${release.createdBy}`;
+      return `${getLanguageFromKey('app_create_release.release_creating', language)} ${
+        release.createdBy
+      }`;
     }
     return release.body;
   }
-  const {org,app} = useParams();
+  const { org, app } = useParams();
   return (
     <Grid container={true} direction='row' className={classes.releaseWrapper}>
       <Grid container={true} direction='row' justifyContent='space-between'>
         <Grid item={true} className={classes.releaseRow}>
           <Typography className={classes.releaseText}>
-            {getLanguageFromKey('app_release.release_version', language)}{' '}
-            {release.tagName}
+            {getLanguageFromKey('app_release.release_version', language)} {release.tagName}
           </Typography>
         </Grid>
         <Grid item={true} className={classes.releaseRow}>
@@ -144,7 +129,7 @@ function ReleaseComponent(props: IAppReleaseComponent) {
         <Grid item={true}>
           <Typography className={classes.releaseText}>
             <a
-              href={gitCommitPath(org,app,release.targetCommitish)}
+              href={gitCommitPath(org, app, release.targetCommitish)}
               target='_blank'
               rel='noopener noreferrer'
             >

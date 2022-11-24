@@ -1,4 +1,5 @@
-import React, { ChangeEvent, useEffect, useState } from 'react';
+import type { ChangeEvent } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import type { ILanguage, ISchemaState } from '../../types';
 import { NameError } from '../../types';
@@ -17,13 +18,19 @@ import {
 } from '../../features/editor/schemaEditorSlice';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions, getTypeOptions } from './helpers/options';
-import { Checkbox, ErrorMessage, FieldSet, Select, TextArea, TextField } from '@altinn/altinn-design-system';
+import {
+  Checkbox,
+  ErrorMessage,
+  FieldSet,
+  Select,
+  TextArea,
+  TextField,
+} from '@altinn/altinn-design-system';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
-import type { UiSchemaNode } from '@altinn/schema-model';
+import type { UiSchemaNode, CombinationKind } from '@altinn/schema-model';
 import {
   combinationIsNullable,
-  CombinationKind,
   FieldType,
   getChildNodesByPointer,
   getNodeDisplayName,
@@ -31,7 +38,7 @@ import {
   ObjectKind,
 } from '@altinn/schema-model';
 import { getDomFriendlyID, isValidName } from '../../utils/ui-schema-utils';
-import {Divider} from "app-shared/primitives";
+import { Divider } from 'app-shared/primitives';
 
 export interface IItemDataComponentProps {
   selectedItem: UiSchemaNode;
@@ -47,7 +54,9 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
   const [title, setItemTitle] = useState<string>('');
   const { fieldType } = selectedItem;
 
-  const childNodes = useSelector((state: ISchemaState) => getChildNodesByPointer(state.uiSchema, selectedItem.pointer));
+  const childNodes = useSelector((state: ISchemaState) =>
+    getChildNodesByPointer(state.uiSchema, selectedItem.pointer)
+  );
 
   useEffect(() => {
     setNodeName(getNodeDisplayName(selectedItem));
@@ -59,7 +68,9 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
   const onNameChange = ({ target }: ChangeEvent) => {
     const { value } = target as HTMLInputElement;
     setNodeName(value);
-    !isValidName(value) ? setNameError(NameError.InvalidCharacter) : setNameError(NameError.NoError);
+    !isValidName(value)
+      ? setNameError(NameError.InvalidCharacter)
+      : setNameError(NameError.NoError);
   };
 
   const onChangeRef = (path: string, ref: string) => dispatch(setRef({ path, ref }));
@@ -69,7 +80,9 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
 
   const onChangeNullable = (event: ChangeEvent) => {
     if ((event.target as HTMLInputElement)?.checked) {
-      dispatch(addCombinationItem({ pointer: selectedItem.pointer, props: { fieldType: FieldType.Null } }));
+      dispatch(
+        addCombinationItem({ pointer: selectedItem.pointer, props: { fieldType: FieldType.Null } })
+      );
     } else {
       childNodes.forEach((childNode: UiSchemaNode) => {
         if (childNode.fieldType === FieldType.Null) {
@@ -81,7 +94,8 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
 
   const onChangeTitle = () => dispatch(setTitle({ path: selectedNodePointer, title }));
 
-  const onChangeDescription = () => dispatch(setDescription({ path: selectedNodePointer, description }));
+  const onChangeDescription = () =>
+    dispatch(setDescription({ path: selectedNodePointer, description }));
 
   const onGoToDefButtonClick = () => {
     const ref = selectedItem.ref;
@@ -93,7 +107,8 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
   const onChangeCombinationType = (value: CombinationKind) =>
     dispatch(setCombinationType({ path: selectedItem.pointer, type: value }));
 
-  const handleArrayPropertyToggle = () => dispatch(toggleArrayField({ pointer: selectedItem.pointer }));
+  const handleArrayPropertyToggle = () =>
+    dispatch(toggleArrayField({ pointer: selectedItem.pointer }));
 
   const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
   const handleChangeNodeName = () => {
@@ -108,7 +123,7 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
           path: selectedItem.pointer,
           name: nodeName,
           navigate: true,
-        }),
+        })
       );
     }
   };
@@ -164,7 +179,9 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
       {selectedItem.objectKind === ObjectKind.Combination && (
         <Select
           label={t('type')}
-          onChange={(combination: string) => onChangeCombinationType(combination as CombinationKind)}
+          onChange={(combination: string) =>
+            onChangeCombinationType(combination as CombinationKind)
+          }
           options={getCombinationOptions(t)}
           value={selectedItem.fieldType}
         />
@@ -195,7 +212,9 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
             id={descriptionId}
             label={t('description')}
             onBlur={onChangeDescription}
-            onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setItemDescription(event.target.value)}
+            onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
+              setItemDescription(event.target.value)
+            }
             style={{ height: 100 }}
             value={description}
           />

@@ -1,10 +1,6 @@
 import React from 'react';
 import Select from 'react-select';
-import {
-  PropertyLabel,
-  selectStyles,
-  SelectTextFromRecources
-} from '../../utils/render';
+import { PropertyLabel, selectStyles, SelectTextFromRecources } from '../../utils/render';
 
 export interface HeaderSizeSelectProps {
   renderChangeId: () => JSX.Element;
@@ -54,10 +50,7 @@ export const HeaderSizeSelect = ({
         />
       </div>
       <div data-testid='header-size-select-wrapper'>
-        <PropertyLabel
-          textKey={language['ux_editor.modal_header_type_helper']}
-          htmlFor={id}
-        />
+        <PropertyLabel textKey={language['ux_editor.modal_header_type_helper']} htmlFor={id} />
         <Select
           styles={selectStyles}
           defaultValue={selectedValue}

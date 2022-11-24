@@ -7,8 +7,8 @@ import {
   TextField,
 } from '@altinn/altinn-design-system';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import AltinnPopper from 'app-shared/components/AltinnPopper';
-import AltinnInformationPaper from 'app-shared/components/AltinnInformationPaper';
+import Popper from 'app-shared/components/AltinnPopper';
+import InformationPaper from 'app-shared/components/AltinnInformationPaper';
 import classes from './MainContent.module.css';
 import { useAppSelector } from '../../../common/hooks';
 
@@ -30,19 +30,17 @@ interface IMainContentProps {
 }
 
 export const MainContent = (props: IMainContentProps): JSX.Element => {
-  const urlParams = new URLSearchParams(
-    `?${window.location.hash.split('?')[1]}`,
-  );
+  const urlParams = new URLSearchParams(`?${window.location.hash.split('?')[1]}`);
   const copiedApp = Boolean(urlParams.get('copiedApp'));
   const language = useAppSelector((state) => state.languageState.language);
   const t = (key: string) => getLanguageFromKey(key, language);
   return (
     <div className={classes.mainContentContainer}>
       {copiedApp && (
-        <AltinnInformationPaper>
+        <InformationPaper>
           <h2>{t('administration.copied_app_header')}</h2>
           <p>{t('administration.copied_app_information')}</p>
-        </AltinnInformationPaper>
+        </InformationPaper>
       )}
       <h2>{t('general.service_name')}</h2>
       <p>{t('administration.service_name_administration_description')}</p>
@@ -62,7 +60,7 @@ export const MainContent = (props: IMainContentProps): JSX.Element => {
           {t('general.edit')}
         </Button>
       </div>
-      <AltinnPopper
+      <Popper
         anchorEl={props.appNameAnchorEl}
         message={t('administration.service_name_empty_message')}
       />
@@ -76,11 +74,7 @@ export const MainContent = (props: IMainContentProps): JSX.Element => {
       />
       <h2>{t('general.service_saved_name')}</h2>
       <p>{t('administration.service_saved_name_administration_description')}</p>
-      <TextField
-        id='administrationInputReponame'
-        value={props.repositoryName}
-        disabled={true}
-      />
+      <TextField id='administrationInputReponame' value={props.repositoryName} disabled={true} />
       <h2>{t('administration.service_comment')}</h2>
       <p>{t('administration.service_comment_description')}</p>
       <TextArea

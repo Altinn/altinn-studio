@@ -1,16 +1,16 @@
-import {SagaIterator} from 'redux-saga';
-import { call, select, takeLatest } from 'redux-saga/effects'
+import type { SagaIterator } from 'redux-saga';
+import { call, select, takeLatest } from 'redux-saga/effects';
 import { put } from 'app-shared/utils/networking';
 import { SchemaEditorActions } from './schemaEditorSlice';
-import { ISchemaState } from '../../types';
+import type { ISchemaState } from '../../types';
 import { buildJsonSchema } from '@altinn/schema-model';
 
 export const autoSavePropsSelector = (state: ISchemaState) => {
-  return { uiSchema: state.uiSchema, saveUrl: state.saveSchemaUrl}
-}
+  return { uiSchema: state.uiSchema, saveUrl: state.saveSchemaUrl };
+};
 
 export function* autosaveModelSaga(): SagaIterator {
-  try{
+  try {
     const { uiSchema, saveUrl } = yield select(autoSavePropsSelector);
 
     const schema = buildJsonSchema(uiSchema);
@@ -21,24 +21,27 @@ export function* autosaveModelSaga(): SagaIterator {
 }
 
 export function* watchAutosaveModelSaga(): SagaIterator {
-  yield takeLatest([
-    SchemaEditorActions.addCombinationItem,
-    SchemaEditorActions.addEnum,
-    SchemaEditorActions.addProperty,
-    SchemaEditorActions.addRootItem,
-    SchemaEditorActions.changeChildrenOrder,
-    SchemaEditorActions.deleteCombinationItem,
-    SchemaEditorActions.deleteEnum,
-    SchemaEditorActions.deleteProperty,
-    SchemaEditorActions.promoteProperty,
-    SchemaEditorActions.setCombinationType,
-    SchemaEditorActions.setDescription,
-    SchemaEditorActions.setPropertyName,
-    SchemaEditorActions.setRef,
-    SchemaEditorActions.setRequired,
-    SchemaEditorActions.setRestriction,
-    SchemaEditorActions.setTitle,
-    SchemaEditorActions.setType,
-    SchemaEditorActions.toggleArrayField,
-  ], autosaveModelSaga);
+  yield takeLatest(
+    [
+      SchemaEditorActions.addCombinationItem,
+      SchemaEditorActions.addEnum,
+      SchemaEditorActions.addProperty,
+      SchemaEditorActions.addRootItem,
+      SchemaEditorActions.changeChildrenOrder,
+      SchemaEditorActions.deleteCombinationItem,
+      SchemaEditorActions.deleteEnum,
+      SchemaEditorActions.deleteProperty,
+      SchemaEditorActions.promoteProperty,
+      SchemaEditorActions.setCombinationType,
+      SchemaEditorActions.setDescription,
+      SchemaEditorActions.setPropertyName,
+      SchemaEditorActions.setRef,
+      SchemaEditorActions.setRequired,
+      SchemaEditorActions.setRestriction,
+      SchemaEditorActions.setTitle,
+      SchemaEditorActions.setType,
+      SchemaEditorActions.toggleArrayField,
+    ],
+    autosaveModelSaga
+  );
 }

@@ -10,7 +10,7 @@ import { ItemPropertiesTab } from './SchemaInspector/ItemPropertiesTab';
 import { ItemFieldsTab } from './SchemaInspector/ItemFieldsTab';
 import type { ILanguage } from '../types';
 import classes from './SchemaInspector.module.css';
-import {Divider} from "app-shared/primitives";
+import { Divider } from 'app-shared/primitives';
 
 export interface ISchemaInspectorProps {
   language: ILanguage;

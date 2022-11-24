@@ -1,9 +1,10 @@
 import React from 'react';
 import { render as rtlRender } from '@testing-library/react';
-import { SchemaSelect, ISchemaSelectProps } from './SchemaSelect';
+import type { GroupedOption, ISchemaSelectProps } from './SchemaSelect';
+import { SchemaSelect } from './SchemaSelect';
 
 describe('SchemaSelect', () => {
-  const mockOptions = [
+  const mockOptions: GroupedOption[] = [
     {
       label: 'JSONSchema',
       options: [
@@ -13,8 +14,8 @@ describe('SchemaSelect', () => {
             fileName: 'test123.schema.json',
             repositoryRelativeUrl: 'model/test123.schema.json',
             fileType: '.json',
-          }
-        }
+          },
+        },
       ],
     },
     {
@@ -26,8 +27,8 @@ describe('SchemaSelect', () => {
             fileName: 'my-test-xsd.xsd',
             repositoryRelativeUrl: 'model/my-test-xsd.xsd',
             fileType: '.xsd',
-          }
-        }
+          },
+        },
       ],
     },
   ];
@@ -35,7 +36,7 @@ describe('SchemaSelect', () => {
   it('should render empty select when there are no provided options', () => {
     const utils = render();
     const selectComponent = utils.getByRole('combobox');
-    expect(selectComponent.getAttribute('value')).toBe("");
+    expect(selectComponent.getAttribute('value')).toBe('');
   });
 
   it('should not select any item when there are provided options but no selected item provided', async () => {
@@ -53,7 +54,7 @@ describe('SchemaSelect', () => {
           fileName: 'test123.schema.json',
           repositoryRelativeUrl: 'model/test123.schema.json',
           fileType: '.json',
-        }
+        },
       },
     });
     const selectedOptionText = utils.getByText('test123');
@@ -73,10 +74,10 @@ const render = (props?: Partial<ISchemaSelectProps>) => {
       {
         label: 'XSD',
         options: [],
-      }
+      },
     ],
     selectedOption: null,
   };
 
-  return rtlRender(<SchemaSelect {...defaultProps} {...props}/>);
-}
+  return rtlRender(<SchemaSelect {...defaultProps} {...props} />);
+};

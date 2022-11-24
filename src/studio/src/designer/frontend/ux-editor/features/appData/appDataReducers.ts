@@ -1,4 +1,5 @@
-import { combineReducers, Reducer } from 'redux';
+import type { Reducer } from 'redux';
+import { combineReducers } from 'redux';
 import dataModelReducer from './dataModel/dataModelSlice';
 import languageReducer from './language/languageSlice';
 import ruleModelReducer from './ruleModel/ruleModelSlice';

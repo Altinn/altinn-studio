@@ -21,19 +21,15 @@ export const renderWithProviders = (
     store = setupStore(preloadedState),
     startUrl = undefined,
     ...renderOptions
-  }: ExtendedRenderOptions = {},
+  }: ExtendedRenderOptions = {}
 ) => {
   function Wrapper({ children }: React.PropsWithChildren<unknown>) {
     return (
       <Provider store={store}>
-        <MemoryRouter
-          basename={APP_DEVELOPMENT_BASENAME}
-          initialEntries={[startUrl]}
-        >
+        <MemoryRouter basename={APP_DEVELOPMENT_BASENAME} initialEntries={[startUrl]}>
           <Routes>
-            <Route path='/:org/:app/*' element={children}/>
+            <Route path='/:org/:app/*' element={children} />
           </Routes>
-
         </MemoryRouter>
       </Provider>
     );

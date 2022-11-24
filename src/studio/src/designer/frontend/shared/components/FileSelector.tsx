@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyledComponentProps } from '@mui/material';
+import type { StyledComponentProps } from '@mui/material';
 import { getLanguageFromKey } from '../utils/language';
 import { TopToolbarButton } from '../../packages/schema-editor/src/components/TopToolbarButton';
 
@@ -10,9 +10,7 @@ export interface IFileSelectorProps extends StyledComponentProps {
   formFileName: string;
   accept?: string;
   disabled?: boolean;
-  submitButtonRenderer?: (
-    fileInputClickHandler: (event: any) => void,
-  ) => JSX.Element;
+  submitButtonRenderer?: (fileInputClickHandler: (event: any) => void) => JSX.Element;
 }
 
 function FileSelector({
@@ -24,9 +22,7 @@ function FileSelector({
   submitHandler,
   submitButtonRenderer,
 }: IFileSelectorProps) {
-  const defaultSubmitButtonRenderer = (
-    fileInputClickHandler: (event: any) => void,
-  ) => (
+  const defaultSubmitButtonRenderer = (fileInputClickHandler: (event: any) => void) => (
     <TopToolbarButton
       data-testid='upload-button'
       faIcon='fa fa-upload'
@@ -71,9 +67,7 @@ function FileSelector({
         disabled={busy}
         tabIndex={-1}
       />
-      {(submitButtonRenderer ?? defaultSubmitButtonRenderer)(() =>
-        fileInput?.current?.click(),
-      )}
+      {(submitButtonRenderer ?? defaultSubmitButtonRenderer)(() => fileInput?.current?.click())}
     </form>
   );
 }

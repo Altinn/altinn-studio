@@ -1,6 +1,7 @@
-import React, { Component, createRef, RefObject } from 'react';
+import type { RefObject } from 'react';
+import React, { Component, createRef } from 'react';
 import { connect } from 'react-redux';
-import { Dispatch } from 'redux';
+import type { Dispatch } from 'redux';
 import '../styles/index.css';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import ErrorPopover from 'app-shared/components/ErrorPopover';
@@ -25,7 +26,7 @@ import type {
 } from '../types/global';
 import { DroppableDraggableComponent } from './DroppableDraggableComponent';
 import { DroppableDraggableContainer } from './DroppableDraggableContainer';
-import { EditorDndEvents } from './helpers/dnd-types';
+import type { EditorDndEvents } from './helpers/dnd-types';
 import {
   Button,
   ButtonColor,
@@ -33,7 +34,7 @@ import {
   Checkbox,
   CheckboxGroup,
   FieldSet,
-  TextField
+  TextField,
 } from '@altinn/altinn-design-system';
 import classes from './Container.module.css';
 import cn from 'classnames';
@@ -147,7 +148,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
       FormLayoutActions.deleteFormContainer({
         id: this.props.id,
         index: this.props.index,
-      }),
+      })
     );
   };
 
@@ -179,14 +180,14 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
           FormLayoutActions.updateFormContainer({
             updatedContainer: this.state.tmpContainer,
             id: this.props.id,
-          }),
+          })
         );
         dispatch(FormLayoutActions.deleteActiveList());
         dispatch(
           FormLayoutActions.updateContainerId({
             currentId: this.props.id,
             newId: this.state.tmpId,
-          }),
+          })
         );
         this.setState({
           editMode: false,
@@ -196,7 +197,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
       this.setState({
         tableHeadersError: getLanguageFromKey(
           'ux_editor.modal_properties_group_table_headers_error',
-          this.props.language,
+          this.props.language
         ),
       });
     } else {
@@ -205,7 +206,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
         FormLayoutActions.updateFormContainer({
           updatedContainer: this.state.tmpContainer,
           id: this.props.id,
-        }),
+        })
       );
       dispatch(FormLayoutActions.deleteActiveList());
       this.setState({
@@ -254,7 +255,6 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
   };
 
   public handleTableHeadersChange = (ids: string[]) => {
-    console.log(ids);
     this.setState((prevState: IContainerState) => {
       const updatedContainer = prevState.tmpContainer;
       updatedContainer.tableHeaders = [...ids];
@@ -327,7 +327,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
           FormLayoutActions.updateActiveList({
             containerList: this.props.activeList,
             listItem: activeObject,
-          }),
+          })
         );
       }
       return {
@@ -359,9 +359,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
               />
               Gruppe - ${id}
             </div>
-            <div className={classes.containerEdit}>
-              {this.renderHoverIcons()}
-            </div>
+            <div className={classes.containerEdit}>{this.renderHoverIcons()}</div>
           </div>
         )}
         {!itemOrder?.length && this.renderContainerPlaceholder()}
@@ -380,13 +378,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
 
   public renderEditSection = (): JSX.Element => {
     const { components, itemOrder, language, textResources } = this.props;
-    const {
-      groupIdError,
-      groupIdPopoverRef,
-      tableHeadersError,
-      tmpContainer,
-      tmpId,
-    } = this.state;
+    const { groupIdError, groupIdPopoverRef, tableHeadersError, tmpContainer, tmpId } = this.state;
     const t = (key: string) => getLanguageFromKey(key, language);
     return (
       <FieldSet className={classes.fieldset}>
@@ -416,7 +408,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
               tmpContainer.dataModelBindings,
               this.handleDataModelGroupChange,
               language,
-              'group',
+              'group'
             )}
             <div>
               <TextField
@@ -435,7 +427,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
               language,
               tmpContainer.textResourceBindings?.add_button,
               tmpContainer.textResourceBindings?.add_button,
-              t('ux_editor.modal_properties_group_add_button_description'),
+              t('ux_editor.modal_properties_group_add_button_description')
             )}
             {itemOrder.length > 0 && (
               <CheckboxGroup
@@ -443,7 +435,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
                 items={itemOrder.map((id) => ({
                   label: getTextResource(components[id].textResourceBindings?.title, textResources),
                   name: id,
-                  checked: tmpContainer.tableHeaders === undefined || tmpContainer.tableHeaders.includes(id)
+                  checked: tmpContainer.tableHeaders === undefined || tmpContainer.tableHeaders.includes(id),
                 }))}
                 legend={t('ux_editor.modal_properties_group_table_headers')}
                 onChange={this.handleTableHeadersChange}
@@ -472,43 +464,23 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
   public renderEditMode = (): JSX.Element => (
     <div>
       <div className={classes.editWrapper}>
-        <div className={classes.editSection}>
-          {this.renderEditSection()}
-        </div>
-        <div className={classes.containerEdit}>
-          {this.renderEditIcons()}
-        </div>
+        <div className={classes.editSection}>{this.renderEditSection()}</div>
+        <div className={classes.containerEdit}>{this.renderEditIcons()}</div>
       </div>
     </div>
   );
 
-  public renderHoverIcons = (): JSX.Element =>  (
+  public renderHoverIcons = (): JSX.Element => (
     <>
-      <Button
-        iconName='Delete'
-        onClick={this.handleContainerDelete}
-        variant={ButtonVariant.Quiet}
-      />
-      <Button
-        iconName='Edit'
-        onClick={this.handleEditMode}
-        variant={ButtonVariant.Quiet}
-      />
+      <Button iconName='Delete' onClick={this.handleContainerDelete} variant={ButtonVariant.Quiet} />
+      <Button iconName='Edit' onClick={this.handleEditMode} variant={ButtonVariant.Quiet} />
     </>
   );
 
   public renderEditIcons = (): JSX.Element => (
     <>
-      <Button
-        iconName='Error'
-        onClick={this.handleDiscard}
-        variant={ButtonVariant.Quiet}
-      />
-      <Button
-        iconName='Success'
-        onClick={this.handleDiscard}
-        variant={ButtonVariant.Quiet}
-      />
+      <Button iconName='Error' onClick={this.handleDiscard} variant={ButtonVariant.Quiet} />
+      <Button iconName='Success' onClick={this.handleDiscard} variant={ButtonVariant.Quiet} />
     </>
   );
 

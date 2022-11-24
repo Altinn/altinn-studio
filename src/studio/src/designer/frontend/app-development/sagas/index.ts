@@ -1,4 +1,5 @@
-import createSagaMiddleware, { SagaIterator } from 'redux-saga';
+import type { SagaIterator } from 'redux-saga';
+import createSagaMiddleware from 'redux-saga';
 import { fork } from 'redux-saga/effects';
 import { dataModellingSagas } from 'app-shared/features/dataModelling/sagas';
 import {

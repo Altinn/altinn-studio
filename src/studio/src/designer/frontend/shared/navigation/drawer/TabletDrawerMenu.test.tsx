@@ -45,6 +45,6 @@ const render = (props: Partial<ITabletDrawerMenuProps> = {}) => {
   return rtlRender(
     <ThemeProvider theme={theme}>
       <TabletDrawerMenu {...allProps} />
-    </ThemeProvider>,
+    </ThemeProvider>
   );
 };

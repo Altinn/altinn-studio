@@ -31,9 +31,7 @@ describe('ResetRepoModal', () => {
     };
   });
 
-  const RenderResetRepoModal = (
-    props: Partial<IResetRepoModalProps>,
-  ): JSX.Element => {
+  const RenderResetRepoModal = (props: Partial<IResetRepoModalProps>): JSX.Element => {
     const defaultProps = {
       anchorRef: mockAnchorEl,
       handleClickResetRepo: mockFunc,

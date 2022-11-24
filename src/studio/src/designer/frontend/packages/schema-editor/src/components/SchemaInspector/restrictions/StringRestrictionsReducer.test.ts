@@ -1,6 +1,12 @@
 import { StringFormat, StrRestrictionKeys } from '@altinn/schema-model';
-import type { StringRestricionsReducerState, StringRestrictionsReducerAction } from './StringRestrictionsReducer';
-import { stringRestrictionsReducer, StringRestrictionsReducerActionType } from './StringRestrictionsReducer';
+import type {
+  StringRestricionsReducerState,
+  StringRestrictionsReducerAction,
+} from './StringRestrictionsReducer';
+import {
+  stringRestrictionsReducer,
+  StringRestrictionsReducerActionType,
+} from './StringRestrictionsReducer';
 
 // Test data
 const maxDate = '3000-01-01';
@@ -11,24 +17,28 @@ const defaultRestrictions = {
   formatMinimum: minDate,
   formatExclusiveMaximum: undefined,
   formatExclusiveMinimum: undefined,
-  pattern: ''
+  pattern: '',
 };
 const defaultState: StringRestricionsReducerState = {
   earliestIsInclusive: true,
   latestIsInclusive: true,
   earliest: minDate,
   latest: maxDate,
-  restrictions: defaultRestrictions
+  restrictions: defaultRestrictions,
 };
 
 const changeCallback = jest.fn();
 
-const dispatchAction = (action: StringRestrictionsReducerAction, state?: Partial<StringRestricionsReducerState>) =>
-  stringRestrictionsReducer({...defaultState, restrictions: {...defaultRestrictions}, ...state}, action);
-
+const dispatchAction = (
+  action: StringRestrictionsReducerAction,
+  state?: Partial<StringRestricionsReducerState>
+) =>
+  stringRestrictionsReducer(
+    { ...defaultState, restrictions: { ...defaultRestrictions }, ...state },
+    action
+  );
 
 describe('stringRestrictionsReducer', () => {
-
   afterEach(() => jest.clearAllMocks());
 
   describe('setRestriction', () => {
@@ -37,11 +47,13 @@ describe('stringRestrictionsReducer', () => {
         type: StringRestrictionsReducerActionType.setRestriction,
         restriction: StrRestrictionKeys.format,
         value: StringFormat.DateTime,
-        changeCallback
+        changeCallback,
       });
       expect(state.restrictions.format).toEqual(StringFormat.DateTime);
       expect(changeCallback).toHaveBeenCalledTimes(1);
-      expect(changeCallback).toHaveBeenCalledWith(expect.objectContaining({format: StringFormat.DateTime}));
+      expect(changeCallback).toHaveBeenCalledWith(
+        expect.objectContaining({ format: StringFormat.DateTime })
+      );
     });
   });
 
@@ -52,7 +64,7 @@ describe('stringRestrictionsReducer', () => {
       const state = dispatchAction({
         type,
         value: false,
-        changeCallback
+        changeCallback,
       });
       expect(state.earliestIsInclusive).toBe(false);
       expect(state.earliest).toBe(minDate);
@@ -61,25 +73,30 @@ describe('stringRestrictionsReducer', () => {
       expect(state.restrictions.formatMaximum).toBe(maxDate);
       expect(state.restrictions.formatExclusiveMaximum).toBeUndefined();
       expect(changeCallback).toHaveBeenCalledTimes(1);
-      expect(changeCallback).toHaveBeenCalledWith(expect.objectContaining({
-        formatMinimum: undefined,
-        formatExclusiveMinimum: minDate,
-        formatMaximum: maxDate,
-        formatExclusiveMaximum: undefined
-      }));
+      expect(changeCallback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          formatMinimum: undefined,
+          formatExclusiveMinimum: minDate,
+          formatMaximum: maxDate,
+          formatExclusiveMaximum: undefined,
+        })
+      );
     });
 
     it('Updates state correctly on change from exclusive to inclusive', () => {
       const initialRestrictions = {
         ...defaultRestrictions,
         formatMinimum: undefined,
-        formatExclusiveMinimum: minDate
+        formatExclusiveMinimum: minDate,
       };
-      const state = dispatchAction({
-        type,
-        value: true,
-        changeCallback
-      }, { earliestIsInclusive: false, restrictions: initialRestrictions });
+      const state = dispatchAction(
+        {
+          type,
+          value: true,
+          changeCallback,
+        },
+        { earliestIsInclusive: false, restrictions: initialRestrictions }
+      );
       expect(state.earliestIsInclusive).toBe(true);
       expect(state.earliest).toBe(minDate);
       expect(state.restrictions.formatMinimum).toBe(minDate);
@@ -87,12 +104,14 @@ describe('stringRestrictionsReducer', () => {
       expect(state.restrictions.formatMaximum).toBe(maxDate);
       expect(state.restrictions.formatExclusiveMaximum).toBeUndefined();
       expect(changeCallback).toHaveBeenCalledTimes(1);
-      expect(changeCallback).toHaveBeenCalledWith(expect.objectContaining({
-        formatMinimum: minDate,
-        formatExclusiveMinimum: undefined,
-        formatMaximum: maxDate,
-        formatExclusiveMaximum: undefined
-      }));
+      expect(changeCallback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          formatMinimum: minDate,
+          formatExclusiveMinimum: undefined,
+          formatMaximum: maxDate,
+          formatExclusiveMaximum: undefined,
+        })
+      );
     });
   });
 
@@ -108,19 +127,21 @@ describe('stringRestrictionsReducer', () => {
       expect(state.restrictions.formatMaximum).toBeUndefined();
       expect(state.restrictions.formatExclusiveMaximum).toBe(maxDate);
       expect(changeCallback).toHaveBeenCalledTimes(1);
-      expect(changeCallback).toHaveBeenCalledWith(expect.objectContaining({
-        formatMinimum: minDate,
-        formatExclusiveMinimum: undefined,
-        formatMaximum: undefined,
-        formatExclusiveMaximum: maxDate
-      }));
+      expect(changeCallback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          formatMinimum: minDate,
+          formatExclusiveMinimum: undefined,
+          formatMaximum: undefined,
+          formatExclusiveMaximum: maxDate,
+        })
+      );
     });
 
     it('Updates state correctly on change from exclusive to inclusive', () => {
       const initialRestrictions = {
         ...defaultRestrictions,
         formatMaximum: undefined,
-        formatExclusiveMaximum: maxDate
+        formatExclusiveMaximum: maxDate,
       };
       const state = dispatchAction(
         { type, value: true, changeCallback },
@@ -133,12 +154,14 @@ describe('stringRestrictionsReducer', () => {
       expect(state.restrictions.formatMaximum).toBe(maxDate);
       expect(state.restrictions.formatExclusiveMaximum).toBeUndefined();
       expect(changeCallback).toHaveBeenCalledTimes(1);
-      expect(changeCallback).toHaveBeenCalledWith(expect.objectContaining({
-        formatMinimum: minDate,
-        formatExclusiveMinimum: undefined,
-        formatMaximum: maxDate,
-        formatExclusiveMaximum: undefined
-      }));
+      expect(changeCallback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          formatMinimum: minDate,
+          formatExclusiveMinimum: undefined,
+          formatMaximum: maxDate,
+          formatExclusiveMaximum: undefined,
+        })
+      );
     });
   });
 
@@ -155,19 +178,21 @@ describe('stringRestrictionsReducer', () => {
       expect(state.restrictions.formatMaximum).toBe(maxDate);
       expect(state.restrictions.formatExclusiveMaximum).toBeUndefined();
       expect(changeCallback).toHaveBeenCalledTimes(1);
-      expect(changeCallback).toHaveBeenCalledWith(expect.objectContaining({
-        formatMinimum: value,
-        formatExclusiveMinimum: undefined,
-        formatMaximum: maxDate,
-        formatExclusiveMaximum: undefined
-      }));
+      expect(changeCallback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          formatMinimum: value,
+          formatExclusiveMinimum: undefined,
+          formatMaximum: maxDate,
+          formatExclusiveMaximum: undefined,
+        })
+      );
     });
 
     it('Updates state correctly when exclusive', () => {
       const initialRestrictions = {
         ...defaultRestrictions,
         formatMinimum: undefined,
-        formatExclusiveMinimum: minDate
+        formatExclusiveMinimum: minDate,
       };
       const value = '2020-02-02';
       const state = dispatchAction(
@@ -181,12 +206,14 @@ describe('stringRestrictionsReducer', () => {
       expect(state.restrictions.formatMaximum).toBe(maxDate);
       expect(state.restrictions.formatExclusiveMaximum).toBeUndefined();
       expect(changeCallback).toHaveBeenCalledTimes(1);
-      expect(changeCallback).toHaveBeenCalledWith(expect.objectContaining({
-        formatMinimum: undefined,
-        formatExclusiveMinimum: value,
-        formatMaximum: maxDate,
-        formatExclusiveMaximum: undefined
-      }));
+      expect(changeCallback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          formatMinimum: undefined,
+          formatExclusiveMinimum: value,
+          formatMaximum: maxDate,
+          formatExclusiveMaximum: undefined,
+        })
+      );
     });
   });
 
@@ -203,19 +230,21 @@ describe('stringRestrictionsReducer', () => {
       expect(state.restrictions.formatMaximum).toBe(value);
       expect(state.restrictions.formatExclusiveMaximum).toBeUndefined();
       expect(changeCallback).toHaveBeenCalledTimes(1);
-      expect(changeCallback).toHaveBeenCalledWith(expect.objectContaining({
-        formatMinimum: minDate,
-        formatExclusiveMinimum: undefined,
-        formatMaximum: value,
-        formatExclusiveMaximum: undefined
-      }));
+      expect(changeCallback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          formatMinimum: minDate,
+          formatExclusiveMinimum: undefined,
+          formatMaximum: value,
+          formatExclusiveMaximum: undefined,
+        })
+      );
     });
 
     it('Updates state correctly when exclusive', () => {
       const initialRestrictions = {
         ...defaultRestrictions,
         formatMaximum: undefined,
-        formatExclusiveMaximum: maxDate
+        formatExclusiveMaximum: maxDate,
       };
       const value = '2020-02-02';
       const state = dispatchAction(
@@ -229,12 +258,14 @@ describe('stringRestrictionsReducer', () => {
       expect(state.restrictions.formatMaximum).toBeUndefined();
       expect(state.restrictions.formatExclusiveMaximum).toBe(value);
       expect(changeCallback).toHaveBeenCalledTimes(1);
-      expect(changeCallback).toHaveBeenCalledWith(expect.objectContaining({
-        formatMinimum: minDate,
-        formatExclusiveMinimum: undefined,
-        formatMaximum: undefined,
-        formatExclusiveMaximum: value
-      }));
+      expect(changeCallback).toHaveBeenCalledWith(
+        expect.objectContaining({
+          formatMinimum: minDate,
+          formatExclusiveMinimum: undefined,
+          formatMaximum: undefined,
+          formatExclusiveMaximum: value,
+        })
+      );
     });
   });
-})
+});

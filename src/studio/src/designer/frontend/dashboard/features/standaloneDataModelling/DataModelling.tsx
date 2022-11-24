@@ -12,12 +12,7 @@ export const DataModellingContainer = () => {
   if (org && repoName) {
     return (
       <div>
-        <DataModelling
-          language={language}
-          org={org}
-          repo={repoName}
-          createPathOption
-        />
+        <DataModelling language={language} org={org} repo={repoName} createPathOption />
       </div>
     );
   }

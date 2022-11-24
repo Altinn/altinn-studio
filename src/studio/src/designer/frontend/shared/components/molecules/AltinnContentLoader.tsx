@@ -9,9 +9,7 @@ export interface IAltinnContentLoaderProps {
   width?: number;
 }
 
-const AltinnLoaderContent = (
-  props: React.PropsWithChildren<IAltinnContentLoaderProps>,
-) => {
+const AltinnLoaderContent = (props: React.PropsWithChildren<IAltinnContentLoaderProps>) => {
   return (
     <ContentLoader
       height={props.height ? props.height : 200}

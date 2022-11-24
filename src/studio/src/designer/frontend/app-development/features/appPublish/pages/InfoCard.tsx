@@ -9,7 +9,7 @@ export interface IAltinnInformationCardComponentProvidedProps {
 }
 
 export const InfoCard = (
-  props: React.PropsWithChildren<IAltinnInformationCardComponentProvidedProps>,
+  props: React.PropsWithChildren<IAltinnInformationCardComponentProvidedProps>
 ) => {
   return (
     <div className={classes.container}>

@@ -12,7 +12,7 @@ export const getDomFriendlyID = (
   options: {
     suffix?: string;
     reset?: boolean;
-  } = {},
+  } = {}
 ): string => {
   const { reset, ...restOptions } = options;
   if (reset) {
@@ -27,4 +27,5 @@ export const getDomFriendlyID = (
     .replace(/\s/g, '_');
 };
 
-export const isValidName = (name: string) => Boolean(name.match(/^[a-zA-ZæÆøØåÅ][a-zA-Z0-9_.\-æÆøØåÅ ]*$/));
+export const isValidName = (name: string) =>
+  Boolean(name.match(/^[a-zA-ZæÆøØåÅ][a-zA-Z0-9_.\-æÆøØåÅ ]*$/));

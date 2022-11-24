@@ -1,10 +1,5 @@
 import React from 'react';
-import {
-  ListItemIcon,
-  ListItemText,
-  MenuItem,
-  Typography,
-} from '@mui/material';
+import { ListItemIcon, ListItemText, MenuItem, Typography } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 
 export interface IAltinnMenuItemProps {
@@ -26,10 +21,7 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
-function AltinnMenuItem(
-  props: IAltinnMenuItemProps,
-  ref: React.Ref<HTMLLIElement>,
-) {
+function AltinnMenuItem(props: IAltinnMenuItemProps, ref: React.Ref<HTMLLIElement>) {
   const classes = useStyles();
   const { text, iconClass, onClick, disabled, id, className } = props;
   return (
@@ -51,6 +43,4 @@ function AltinnMenuItem(
   );
 }
 
-export default React.forwardRef<HTMLLIElement, IAltinnMenuItemProps>(
-  AltinnMenuItem,
-);
+export default React.forwardRef<HTMLLIElement, IAltinnMenuItemProps>(AltinnMenuItem);

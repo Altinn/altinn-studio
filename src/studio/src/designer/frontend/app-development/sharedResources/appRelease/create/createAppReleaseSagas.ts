@@ -1,8 +1,8 @@
-import { AxiosError } from 'axios';
-import { SagaIterator } from 'redux-saga';
+import type { AxiosError } from 'axios';
+import type { SagaIterator } from 'redux-saga';
 import { call, delay, put, takeLatest } from 'redux-saga/effects';
 import { checkIfAxiosError, post } from 'app-shared/utils/networking';
-import { PayloadAction } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
 import { releasesPostUrl } from '../../../utils/urlHelper';
 import { AppReleaseActions } from '../appReleaseSlice';
 import type { ICreateReleaseAction } from '../types';
@@ -18,17 +18,13 @@ function* createReleaseSaga({
       targetCommitish,
     });
     yield delay(2000);
-    yield put(
-      AppReleaseActions.createAppReleasesFulfilled({ release: responseData }),
-    );
+    yield put(AppReleaseActions.createAppReleasesFulfilled({ release: responseData }));
   } catch (error) {
     if (checkIfAxiosError(error)) {
       const {
         response: { status },
       } = error as AxiosError;
-      yield put(
-        AppReleaseActions.createAppReleasesRejected({ errorCode: status }),
-      );
+      yield put(AppReleaseActions.createAppReleasesRejected({ errorCode: status }));
     }
   }
 }

@@ -8,16 +8,16 @@ interface IDataModellingContainerProps {
 }
 
 const DataModellingContainer = ({ language }: IDataModellingContainerProps) => {
-  const {org, app} = useParams();
+  const { org, app } = useParams();
 
   return (
-    <div className={classes.root} id='data-modelling-container' data-testid='data-modelling-container'>
+    <div
+      className={classes.root}
+      id='data-modelling-container'
+      data-testid='data-modelling-container'
+    >
       <div className={classes.dataModellingWrapper}>
-        <DataModelling
-          language={language}
-          org={org}
-          repo={app}
-        />
+        <DataModelling language={language} org={org} repo={app} />
       </div>
     </div>
   );

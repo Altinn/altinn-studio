@@ -1,5 +1,11 @@
 import { buildUiSchema } from './build-ui-schema';
-import { getNodeByPointer, getParentNodeByPointer, getReferredNodes, getRootNode, getRootNodes } from './selectors';
+import {
+  getNodeByPointer,
+  getParentNodeByPointer,
+  getReferredNodes,
+  getRootNode,
+  getRootNodes,
+} from './selectors';
 import { expect } from '@jest/globals';
 import { getGeneralJsonSchemaForTest, selectorsTestSchema } from '../../test/testUtils';
 import { ROOT_POINTER } from './constants';

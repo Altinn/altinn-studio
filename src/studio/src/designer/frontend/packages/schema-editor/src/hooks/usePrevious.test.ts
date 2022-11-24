@@ -1,10 +1,8 @@
 import { renderHook } from '@testing-library/react';
 import { usePrevious } from './usePrevious';
 
-const renderUsePrevious = () => renderHook(
-  ({ state }) => usePrevious(state),
-  { initialProps: { state: 0 } }
-);
+const renderUsePrevious = () =>
+  renderHook(({ state }) => usePrevious(state), { initialProps: { state: 0 } });
 
 test('Returns undefined on initial render', () => {
   const { result } = renderUsePrevious();

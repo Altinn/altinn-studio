@@ -1,7 +1,11 @@
 import { buildUiSchema } from '../build-ui-schema';
 import { FieldType, Keywords, ObjectKind } from '../types';
 import { buildJsonSchema } from '../build-json-schema';
-import { getGeneralJsonSchemaForTest, simpleTestJsonSchema, validateSchema } from '../../../test/testUtils';
+import {
+  getGeneralJsonSchemaForTest,
+  simpleTestJsonSchema,
+  validateSchema,
+} from '../../../test/testUtils';
 import { createChildNode, insertSchemaNode } from './create-node';
 import { createNodeBase } from '../utils';
 
@@ -32,7 +36,10 @@ test('that we can create nodes', () => {
 test('that we can insert nodes into the node array', () => {
   const uiSchemaNodes = buildUiSchema(complexJsonTestSchema);
   uiSchemaNodes
-    .filter((uiNode) => uiNode.objectKind === ObjectKind.Combination || uiNode.fieldType === FieldType.Object)
+    .filter(
+      (uiNode) =>
+        uiNode.objectKind === ObjectKind.Combination || uiNode.fieldType === FieldType.Object
+    )
     .forEach((uiNode) => {
       [true, false].forEach((isDefinition) => {
         const newNode = createChildNode(uiNode, 'hello', isDefinition);
@@ -50,5 +57,7 @@ test('that we can insert nodes into the node array', () => {
 
 test('that insertSchemaNode throws error on existing pointer', () => {
   const uiSchemaNodes = buildUiSchema(simpleTestJsonSchema);
-  expect(() => insertSchemaNode(uiSchemaNodes, createNodeBase(Keywords.Properties, 'hello'))).toThrowError();
+  expect(() =>
+    insertSchemaNode(uiSchemaNodes, createNodeBase(Keywords.Properties, 'hello'))
+  ).toThrowError();
 });

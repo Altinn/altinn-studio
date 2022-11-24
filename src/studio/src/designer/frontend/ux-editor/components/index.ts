@@ -175,9 +175,6 @@ export const advancedComponents: IComponent[] = [
   },
 ];
 
-const components: IComponent[] = textComponents.concat(
-  schemaComponents,
-  advancedComponents,
-);
+const components: IComponent[] = textComponents.concat(schemaComponents, advancedComponents);
 
 export default components;

@@ -4,12 +4,7 @@ import { createTheme, ThemeProvider } from '@mui/material';
 import { render as rtlRender, screen } from '@testing-library/react';
 
 import type { IHeaderContext } from './Header';
-import {
-  getOrgNameById,
-  Header,
-  HeaderContext,
-  SelectedContextType,
-} from './Header';
+import { getOrgNameById, Header, HeaderContext, SelectedContextType } from './Header';
 import altinnTheme from '../../theme/altinnStudioTheme';
 
 const theme = createTheme(altinnTheme);
@@ -116,6 +111,6 @@ const render = ({
       <HeaderContext.Provider value={headerContextValue}>
         <Header language={{}} />
       </HeaderContext.Provider>
-    </ThemeProvider>,
+    </ThemeProvider>
   );
 };

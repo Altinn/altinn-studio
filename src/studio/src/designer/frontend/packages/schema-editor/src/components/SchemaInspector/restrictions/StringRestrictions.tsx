@@ -1,17 +1,19 @@
-import React, { ChangeEvent, useReducer, useState } from 'react';
-import { RestrictionItemProps } from '../ItemRestrictions';
+import type { ChangeEvent } from 'react';
+import React, { useReducer, useState } from 'react';
+import type { RestrictionItemProps } from '../ItemRestrictions';
 import { RestrictionField } from '../RestrictionField';
 import { getTranslation } from '../../../utils/language';
 import classes from './StringRestrictions.module.css';
 import { Checkbox, FieldSet, Select, TextField } from '@altinn/altinn-design-system';
-import { Dict, StringFormat, StrRestrictionKeys } from '@altinn/schema-model';
+import type { Dict } from '@altinn/schema-model';
+import { StringFormat, StrRestrictionKeys } from '@altinn/schema-model';
 import { Divider } from 'app-shared/primitives';
 import { Label } from '../../common/Label';
 import { getDomFriendlyID } from '../../../utils/ui-schema-utils';
+import type { StringRestrictionsReducerAction } from './StringRestrictionsReducer';
 import {
   stringRestrictionsReducer,
-  StringRestrictionsReducerAction,
-  StringRestrictionsReducerActionType
+  StringRestrictionsReducerActionType,
 } from './StringRestrictionsReducer';
 
 export function StringRestrictions({
@@ -19,7 +21,7 @@ export function StringRestrictions({
   onChangeRestrictionValue,
   onChangeRestrictions,
   path,
-  restrictions
+  restrictions,
 }: RestrictionItemProps) {
   const t = (key: string) => getTranslation(key, language);
   const [regexTestValue, setRegexTestValue] = useState<string>('');
@@ -37,9 +39,15 @@ export function StringRestrictions({
   const [formatState, dispatch] = useReducer(stringRestrictionsReducer, {
     earliestIsInclusive: restrictions[StrRestrictionKeys.formatExclusiveMinimum] === undefined,
     latestIsInclusive: restrictions[StrRestrictionKeys.formatExclusiveMaximum] === undefined,
-    earliest: restrictions[StrRestrictionKeys.formatExclusiveMinimum] ?? restrictions[StrRestrictionKeys.formatMinimum],
-    latest: restrictions[StrRestrictionKeys.formatExclusiveMaximum] ?? restrictions[StrRestrictionKeys.formatMaximum],
-    restrictions: Object.fromEntries(Object.values(StrRestrictionKeys).map((key) => [key, restrictions[key]]))
+    earliest:
+      restrictions[StrRestrictionKeys.formatExclusiveMinimum] ??
+      restrictions[StrRestrictionKeys.formatMinimum],
+    latest:
+      restrictions[StrRestrictionKeys.formatExclusiveMaximum] ??
+      restrictions[StrRestrictionKeys.formatMaximum],
+    restrictions: Object.fromEntries(
+      Object.values(StrRestrictionKeys).map((key) => [key, restrictions[key]])
+    ),
   });
 
   const changeCallback = (restrictions: Dict) => {
@@ -47,14 +55,19 @@ export function StringRestrictions({
   };
 
   const setRestriction = (restriction: StrRestrictionKeys, value: string) =>
-    dispatch({ type: StringRestrictionsReducerActionType.setRestriction, restriction, value, changeCallback });
+    dispatch({
+      type: StringRestrictionsReducerActionType.setRestriction,
+      restriction,
+      value,
+      changeCallback,
+    });
 
   const dispatchAction = (type: StringRestrictionsReducerActionType, value: any) =>
     dispatch({ type, value, changeCallback } as StringRestrictionsReducerAction);
 
   const noFormatOption = { label: t('format_none'), value: '' };
-  const formatMinLangKey = 'format_date_after_' + (formatState.earliestIsInclusive ? 'incl' : 'excl');
-  const formatMaxLangKey = 'format_date_before_' + (formatState.latestIsInclusive ? 'incl' : 'excl');
+  const formatMinLangKey = `format_date_after_${formatState.earliestIsInclusive ? 'incl' : 'excl'}`;
+  const formatMaxLangKey = `format_date_before_${formatState.latestIsInclusive ? 'incl' : 'excl'}`;
 
   return (
     <>
@@ -63,30 +76,35 @@ export function StringRestrictions({
         inputId='format-select-input'
         label={t('format')}
         onChange={(value: string) => setRestriction(StrRestrictionKeys.format, value)}
-        options={[noFormatOption, ...Object.values(StringFormat).map((f) => ({
-          label: t(`format_${f}`),
-          value: f as string,
-        }))]}
+        options={[
+          noFormatOption,
+          ...Object.values(StringFormat).map((f) => ({
+            label: t(`format_${f}`),
+            value: f as string,
+          })),
+        ]}
         value={restrictions[StrRestrictionKeys.format] || ''}
       />
-      {[
-        StringFormat.Date,
-        StringFormat.DateTime,
-        StringFormat.Time
-      ].includes(restrictions[StrRestrictionKeys.format]) && (
+      {[StringFormat.Date, StringFormat.DateTime, StringFormat.Time].includes(
+        restrictions[StrRestrictionKeys.format]
+      ) && (
         <>
           <div>
             <Label htmlFor='format-after-field'>{t(formatMinLangKey)}</Label>
             <div className={classes.formatFieldsRowContent}>
               <TextField
                 id='format-after-field'
-                onChange={e => dispatchAction(StringRestrictionsReducerActionType.setEarliest, e.target.value)}
+                onChange={(e) =>
+                  dispatchAction(StringRestrictionsReducerActionType.setEarliest, e.target.value)
+                }
                 value={formatState.earliest}
               />
               <Checkbox
                 checked={formatState.earliestIsInclusive}
                 label={t('format_date_inclusive')}
-                onChange={e => dispatchAction(StringRestrictionsReducerActionType.setMinIncl, e.target.checked)}
+                onChange={(e) =>
+                  dispatchAction(StringRestrictionsReducerActionType.setMinIncl, e.target.checked)
+                }
               />
             </div>
           </div>
@@ -95,13 +113,17 @@ export function StringRestrictions({
             <div className={classes.formatFieldsRowContent}>
               <TextField
                 id='format-before-field'
-                onChange={e => dispatchAction(StringRestrictionsReducerActionType.setLatest, e.target.value)}
+                onChange={(e) =>
+                  dispatchAction(StringRestrictionsReducerActionType.setLatest, e.target.value)
+                }
                 value={formatState.latest}
               />
               <Checkbox
                 checked={formatState.latestIsInclusive}
                 label={t('format_date_inclusive')}
-                onChange={e => dispatchAction(StringRestrictionsReducerActionType.setMaxIncl, e.target.checked)}
+                onChange={(e) =>
+                  dispatchAction(StringRestrictionsReducerActionType.setMaxIncl, e.target.checked)
+                }
               />
             </div>
           </div>
@@ -110,7 +132,7 @@ export function StringRestrictions({
       <div className={classes.lengthFields}>
         <div className={classes.lengthField}>
           <TextField
-            formatting={{number: {}}}
+            formatting={{ number: {} }}
             label={t(StrRestrictionKeys.minLength)}
             onChange={(e) => setRestriction(StrRestrictionKeys.minLength, e.target.value)}
             value={restrictions[StrRestrictionKeys.minLength] || ''}
@@ -118,7 +140,7 @@ export function StringRestrictions({
         </div>
         <div className={classes.lengthField}>
           <TextField
-            formatting={{number: {}}}
+            formatting={{ number: {} }}
             label={t(StrRestrictionKeys.maxLength)}
             onChange={(e) => setRestriction(StrRestrictionKeys.maxLength, e.target.value)}
             value={restrictions[StrRestrictionKeys.maxLength] || ''}
@@ -141,13 +163,18 @@ export function StringRestrictions({
               (regexTestValueMatchesRegex ? (
                 <span className={classes.regexTestMatchIndicatorTrue}>{t('pattern_matches')}</span>
               ) : (
-                <span className={classes.regexTestMatchIndicatorFalse}>{t('pattern_does_not_match')}</span>
+                <span className={classes.regexTestMatchIndicatorFalse}>
+                  {t('pattern_does_not_match')}
+                </span>
               ))}
           </div>
           <div className={classes.regexTestFieldContainer}>
             <div className={classes.regexTestStyleField}>
               {regexTestValueSplitByMatches.map((strPart, i) => (
-                <span className={strPart.match ? classes.regexTestMatch : undefined} key={`regexTestPart${i}`}>
+                <span
+                  className={strPart.match ? classes.regexTestMatch : undefined}
+                  key={`regexTestPart${i}`}
+                >
                   {strPart.str}
                 </span>
               ))}

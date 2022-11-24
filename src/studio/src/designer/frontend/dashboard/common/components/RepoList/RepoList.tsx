@@ -1,26 +1,21 @@
-import React, { useMemo, useRef, useState } from 'react';
-import {
-  DataGrid,
-  GridActionsCellItem,
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import type {
   GridActionsColDef,
   GridColDef,
-  GridOverlay,
   GridRenderCellParams,
   GridRowParams,
   GridSortModel,
   GridValueFormatterParams,
   GridValueGetterParams,
 } from '@mui/x-data-grid';
+import { DataGrid, GridActionsCellItem, GridOverlay } from '@mui/x-data-grid';
 import cn from 'classnames';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import type { IRepository } from 'app-shared/types/global';
 import type { User } from '../../../resources/fetchDashboardResources/dashboardSlice';
 import { MakeCopyModal } from '../MakeCopyModal';
 import { getRepoEditUrl } from '../../utils/urlUtils';
-import {
-  useSetStarredRepoMutation,
-  useUnsetStarredRepoMutation,
-} from '../../../services/userApi';
+import { useSetStarredRepoMutation, useUnsetStarredRepoMutation } from '../../../services/userApi';
 import { useAppSelector } from '../../hooks';
 
 import classes from './RepoList.module.css';
@@ -91,7 +86,7 @@ export const RepoList = ({
   const [setStarredRepo] = useSetStarredRepoMutation();
   const [unsetStarredRepo] = useUnsetStarredRepoMutation();
   const copyModalAnchorRef = useRef(null);
-  const t = (key: string) => getLanguageFromKey(key, language);
+  const t = useCallback((key: string) => getLanguageFromKey(key, language), [language]);
 
   const cols = useMemo(() => {
     const favouriteActionCol: GridActionsColDef = {
@@ -115,11 +110,7 @@ export const RepoList = ({
             key={repo.id}
             id={`fav-repo-${repo.id}`}
             onClick={handleToggleFav}
-            label={
-              repo.user_has_starred
-                ? t('dashboard.unstar')
-                : t('dashboard.star')
-            }
+            label={repo.user_has_starred ? t('dashboard.unstar') : t('dashboard.star')}
             icon={
               <i
                 className={cn(classes.favoriteIcon, {
@@ -183,12 +174,12 @@ export const RepoList = ({
           const editUrl = getRepoEditUrl({ org, repo });
           const editTextKey = isDatamodelling ? 'dashboard.edit_datamodels' : 'dashboard.edit_app';
 
-          const colItems = [
+          return [
             <GridActionsCellItem
               className={cn(classes.actionLink, classes.repoLink)}
               data-testid='gitea-repo-link'
-              icon={<i className={cn('fa fa-gitea', classes.linkIcon, classes.repoLink,)}/>}
-              key={'dashboard.repository' + params.row.id}
+              icon={<i className={cn('fa fa-gitea', classes.linkIcon, classes.repoLink)} />}
+              key={`dashboard.repository${params.row.id}`}
               label={t('dashboard.repository')}
               onClick={() => (window.location.href = params.row.html_url)}
               showInMenu={false}
@@ -197,8 +188,8 @@ export const RepoList = ({
             <GridActionsCellItem
               data-testid='edit-repo-link'
               className={cn(classes.actionLink, classes.editLink)}
-              icon={<i className={cn('fa fa-edit', classes.linkIcon, classes.editLink,)}/>}
-              key={'dashboard.edit_app' + params.row.id}
+              icon={<i className={cn('fa fa-edit', classes.linkIcon, classes.editLink)} />}
+              key={`dashboard.edit_app${params.row.id}`}
               label={t('dashboard.edit_app')}
               onClick={() => (window.location.href = editUrl)}
               showInMenu={false}
@@ -206,40 +197,35 @@ export const RepoList = ({
               <a
                 key={params.row.id}
                 href={params.row.html_url}
-                data-testid="gitea-repo-link"
+                data-testid='gitea-repo-link'
                 className={cn(classes.actionLink, classes.repoLink)}
               >
                 <span>{t(editTextKey)}</span>
                 <i className={cn('fa fa-edit', classes.linkIcon)} />
-              </a>,
+              </a>
+              ,
             </GridActionsCellItem>,
             <GridActionsCellItem
               icon={<i className={cn('fa fa-copy', classes.dropdownIcon)} />}
-              key={'dashboard.make_copy' + params.row.id}
+              key={`dashboard.make_copy${params.row.id}`}
               label={t('dashboard.make_copy')}
               onClick={() => setCopyCurrentRepoName(repoFullName)}
               showInMenu
             />,
             <GridActionsCellItem
               icon={<i className={cn('fa fa-newtab', classes.dropdownIcon)} />}
-              key={'dashboard.open_in_new' + params.row.id}
+              key={`dashboard.open_in_new${params.row.id}`}
               label={t('dashboard.open_in_new')}
               onClick={() => window.open(editUrl, '_blank')}
               showInMenu
             />,
           ];
-
-          return colItems;
         },
       },
     ];
 
     return [favouriteActionCol, ...columns, ...actionsCol];
-  }, [
-    language,
-    setStarredRepo,
-    unsetStarredRepo,
-  ]);
+  }, [setStarredRepo, t, unsetStarredRepo]);
 
   const handleCloseCopyModal = () => setCopyCurrentRepoName(null);
 
@@ -249,7 +235,7 @@ export const RepoList = ({
         labelRowsPerPage: t('dashboard.rows_per_page'),
       },
     }),
-    [language]
+    [t]
   );
 
   return (

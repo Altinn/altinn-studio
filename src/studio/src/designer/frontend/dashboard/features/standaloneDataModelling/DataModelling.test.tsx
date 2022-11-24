@@ -52,17 +52,13 @@ describe('DataModelling', () => {
 
   it('should fetch models on mount', () => {
     jest.mock('react-router', () => ({
-      useParams: jest
-        .fn()
-        .mockReturnValue({ org: 'test-org', repoName: 'test-repo' }),
+      useParams: jest.fn().mockReturnValue({ org: 'test-org', repoName: 'test-repo' }),
     }));
     const initStore = setupStore({
       ...initialState,
       language: { language },
     } as unknown);
-    const dispatch = jest
-      .spyOn(initStore, 'dispatch')
-      .mockImplementation(jest.fn());
+    const dispatch = jest.spyOn(initStore, 'dispatch').mockImplementation(jest.fn());
     renderWithProviders(
       <Routes>
         <Route path='/' element={<Navigate to={'/org/repo'} replace />} />

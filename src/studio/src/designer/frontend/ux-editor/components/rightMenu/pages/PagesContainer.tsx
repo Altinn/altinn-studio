@@ -5,9 +5,7 @@ import PageElement from './PageElement';
 import type { IAppState } from '../../../types/global';
 
 export default function PagesContainer() {
-  const layoutOrder: string[] = useSelector(
-    (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order,
-  );
+  const layoutOrder: string[] = useSelector((state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order);
 
   return (
     <Grid container={true}>

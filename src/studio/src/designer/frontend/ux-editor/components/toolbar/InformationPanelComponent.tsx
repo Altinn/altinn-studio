@@ -3,7 +3,7 @@ import { Divider, FormControl, InputAdornment, Popover, TextField, Typography } 
 import { createStyles, withStyles } from '@mui/styles';
 import classNames from 'classnames';
 import { connect } from 'react-redux';
-import { ComponentTypes } from '..';
+import type { ComponentTypes } from '..';
 import { getComponentHelperTextByComponentType, getComponentTitleByComponentType } from '../../utils/language';
 import type { IAppState } from '../../types/global';
 
@@ -32,10 +32,7 @@ class InformationPanel extends React.Component<IInformationPanelProps> {
         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         classes={{ paper: classNames(this.props.classes.informationPanel) }}
       >
-        <FormControl
-          classes={{ root: classNames(this.props.classes.searchBox) }}
-          fullWidth={false}
-        >
+        <FormControl classes={{ root: classNames(this.props.classes.searchBox) }} fullWidth={false}>
           <TextField
             id={'component-search'}
             placeholder={'Søk'}
@@ -166,7 +163,7 @@ const styles = () =>
 
 const mapStateToProps: (state: IAppState, props: IInformationPanelProvidedProps) => IInformationPanelProps = (
   state: IAppState,
-  props: IInformationPanelProvidedProps,
+  props: IInformationPanelProvidedProps
 ) => ({
   language: state.appData.languageState.language,
   anchorElement: props.anchorElement,

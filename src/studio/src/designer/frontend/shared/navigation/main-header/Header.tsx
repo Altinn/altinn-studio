@@ -57,12 +57,7 @@ export function Header({ language }: HeaderProps) {
   return (
     <AppBar className={classes.appBar} position='static'>
       <Toolbar className={classes.toolbar}>
-        <Grid
-          container
-          direction='row'
-          alignItems='center'
-          justifyContent='space-between'
-        >
+        <Grid container direction='row' alignItems='center' justifyContent='space-between'>
           <Grid item container xs={6} alignItems='center'>
             <Grid item>
               <a href='/'>

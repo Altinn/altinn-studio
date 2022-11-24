@@ -1,4 +1,5 @@
-import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createAction, createSlice } from '@reduxjs/toolkit';
 import type {
   ICommit,
   IRepository,
@@ -54,61 +55,48 @@ const handleServiceInformationSlice = createSlice({
   name: moduleName,
   initialState,
   reducers: {
-    fetchInitialCommitFulfilled: (
-      state,
-      action: PayloadAction<IFetchInitialCommitFulfilled>,
-    ) => {
+    fetchInitialCommitFulfilled: (state, action: PayloadAction<IFetchInitialCommitFulfilled>) => {
       const { result } = action.payload;
       state.initialCommit = result;
     },
     fetchInitialCommitRejected: (
       state,
-      action: PayloadAction<IHandleServiceInformationActionRejected>,
+      action: PayloadAction<IHandleServiceInformationActionRejected>
     ) => {
       const { error } = action.payload;
       state.error = error;
     },
-    fetchServiceFulfilled: (
-      state,
-      action: PayloadAction<IFetchServiceFulfilled>,
-    ) => {
+    fetchServiceFulfilled: (state, action: PayloadAction<IFetchServiceFulfilled>) => {
       const { repository } = action.payload;
       state.repositoryInfo = repository;
     },
     fetchServiceRejected: (
       state,
-      action: PayloadAction<IHandleServiceInformationActionRejected>,
+      action: PayloadAction<IHandleServiceInformationActionRejected>
     ) => {
       const { error } = action.payload;
       state.error = error;
     },
-    fetchServiceConfigFulfilled: (
-      state,
-      action: PayloadAction<IFetchServiceConfigFulfilled>,
-    ) => {
+    fetchServiceConfigFulfilled: (state, action: PayloadAction<IFetchServiceConfigFulfilled>) => {
       const { serviceConfig } = action.payload;
-      state.serviceDescriptionObj.description =
-        serviceConfig?.serviceDescription || '';
+      state.serviceDescriptionObj.description = serviceConfig?.serviceDescription || '';
       state.serviceIdObj.serviceId = serviceConfig?.serviceId || '';
     },
     fetchServiceConfigRejected: (
       state,
-      action: PayloadAction<IHandleServiceInformationActionRejected>,
+      action: PayloadAction<IHandleServiceInformationActionRejected>
     ) => {
       const { error } = action.payload;
       state.error = error;
     },
-    fetchServiceNameFulfilled: (
-      state,
-      action: PayloadAction<IFetchServiceNameFulfilled>,
-    ) => {
+    fetchServiceNameFulfilled: (state, action: PayloadAction<IFetchServiceNameFulfilled>) => {
       const { serviceName } = action.payload;
       state.serviceNameObj.name = serviceName;
       state.serviceNameObj.saving = false;
     },
     fetchServiceNameRejected: (
       state,
-      action: PayloadAction<IHandleServiceInformationActionRejected>,
+      action: PayloadAction<IHandleServiceInformationActionRejected>
     ) => {
       const { error } = action.payload;
       state.error = error;
@@ -116,15 +104,12 @@ const handleServiceInformationSlice = createSlice({
     saveServiceConfig: (
       state,
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      action: PayloadAction<ISaveServiceConfigAction>,
+      action: PayloadAction<ISaveServiceConfigAction>
     ) => {
       state.serviceDescriptionObj.saving = true;
       state.serviceIdObj.saving = true;
     },
-    saveServiceConfigFulfilled: (
-      state,
-      action: PayloadAction<ISaveServiceConfigFulfilled>,
-    ) => {
+    saveServiceConfigFulfilled: (state, action: PayloadAction<ISaveServiceConfigFulfilled>) => {
       const { newServiceDescription, newServiceId } = action.payload;
       state.serviceDescriptionObj.description = newServiceDescription;
       state.serviceIdObj.serviceId = newServiceId;
@@ -133,7 +118,7 @@ const handleServiceInformationSlice = createSlice({
     },
     saveServiceConfigRejected: (
       state,
-      action: PayloadAction<IHandleServiceInformationActionRejected>,
+      action: PayloadAction<IHandleServiceInformationActionRejected>
     ) => {
       const { error } = action.payload;
       state.error = error;
@@ -144,17 +129,14 @@ const handleServiceInformationSlice = createSlice({
     saveServiceName: (state, action: PayloadAction<ISaveServiceNameAction>) => {
       state.serviceNameObj.saving = true;
     },
-    saveServiceNameFulfilled: (
-      state,
-      action: PayloadAction<ISaveServiceNameFulfilled>,
-    ) => {
+    saveServiceNameFulfilled: (state, action: PayloadAction<ISaveServiceNameFulfilled>) => {
       const { newServiceName } = action.payload;
       state.serviceNameObj.name = newServiceName;
       state.serviceNameObj.saving = false;
     },
     saveServiceNameRejected: (
       state,
-      action: PayloadAction<IHandleServiceInformationActionRejected>,
+      action: PayloadAction<IHandleServiceInformationActionRejected>
     ) => {
       const { error } = action.payload;
       state.error = error;
@@ -165,15 +147,9 @@ const handleServiceInformationSlice = createSlice({
 
 const actions = {
   fetchService: createAction<IFetchServiceAction>(`${moduleName}/fetchService`),
-  fetchServiceConfig: createAction<IFetchServiceConfigAction>(
-    `${moduleName}/fetchServiceConfig`,
-  ),
-  fetchServiceName: createAction<IFetchServiceNameAction>(
-    `${moduleName}/fetchServiceName`,
-  ),
-  fetchInitialCommit: createAction<IFetchInitialCommitAction>(
-    `${moduleName}/fetchInitialCommit`,
-  ),
+  fetchServiceConfig: createAction<IFetchServiceConfigAction>(`${moduleName}/fetchServiceConfig`),
+  fetchServiceName: createAction<IFetchServiceNameAction>(`${moduleName}/fetchServiceName`),
+  fetchInitialCommit: createAction<IFetchInitialCommitAction>(`${moduleName}/fetchInitialCommit`),
 };
 
 export const HandleServiceInformationActions = {

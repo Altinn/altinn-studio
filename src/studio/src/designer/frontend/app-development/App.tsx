@@ -28,7 +28,8 @@ import { RepositoryType } from 'app-shared/types/global';
 import {
   frontendLangPath,
   repoInitialCommitPath,
-  repoMetaPath, repoStatusPath,
+  repoMetaPath,
+  repoStatusPath,
   serviceConfigPath,
   serviceNamePath,
 } from 'app-shared/api-paths';
@@ -40,17 +41,14 @@ const TEN_MINUTES_IN_MILLISECONDS = 600000;
 
 export function App() {
   const { pathname } = useLocation();
-  const match = matchPath(
-    { path: '/:org/:app', caseSensitive: true, end: false },
-    pathname,
-  );
+  const match = matchPath({ path: '/:org/:app', caseSensitive: true, end: false }, pathname);
   const { org, app } = match.params;
   const repositoryType = getRepositoryType(org, app);
   const language = useAppSelector((state) => state.languageState.language);
   const t = (key: string) => getLanguageFromKey(key, language);
   const repoStatus = useAppSelector(GetRepoStatusSelector);
   const remainingSessionMinutes = useAppSelector(
-    (state) => state.userState.session.remainingMinutes,
+    (state) => state.userState.session.remainingMinutes
   );
   const dispatch = useAppDispatch();
   const lastKeepAliveTimestamp = useRef<number>(0);
@@ -60,7 +58,7 @@ export function App() {
     dispatch(
       fetchLanguage({
         url: frontendLangPath('nb'),
-      }),
+      })
     );
     dispatch(DataModelsMetadataActions.getDataModelsMetadata());
     if (repositoryType === RepositoryType.App) {
@@ -74,25 +72,25 @@ export function App() {
       dispatch(
         HandleServiceInformationActions.fetchService({
           url: repoMetaPath(org, app),
-        }),
+        })
       );
       dispatch(
         HandleServiceInformationActions.fetchInitialCommit({
           url: repoInitialCommitPath(org, app),
-        }),
+        })
       );
 
       if (repositoryType === RepositoryType.App) {
         dispatch(
           HandleServiceInformationActions.fetchServiceName({
             url: serviceNamePath(org, app),
-          }),
+          })
         );
 
         dispatch(
           HandleServiceInformationActions.fetchServiceConfig({
             url: serviceConfigPath(org, app),
-          }),
+          })
         );
       }
     }
@@ -104,18 +102,18 @@ export function App() {
       keepAliveListeners.forEach((listener) =>
         (subscribe ? window.addEventListener : window.removeEventListener)(
           listener,
-          keepAliveSessionState,
-        ),
+          keepAliveSessionState
+        )
       );
     };
     const windowEventReceived = (event: any) => {
       if (event.data === postMessages.forceRepoStatusCheck) {
         dispatch(
           fetchRepoStatus({
-            url: repoStatusPath(org,app),
+            url: repoStatusPath(org, app),
             org,
             repo: app,
-          }),
+          })
         );
       }
     };
@@ -150,15 +148,12 @@ export function App() {
         lastKeepAliveTimestamp.current = Date.now();
       }
     },
-    [dispatch],
+    [dispatch]
   );
 
   return (
     <ThemeProvider theme={theme}>
-      <div
-        className={classes.container}
-        ref={sessionExpiredPopoverRef}
-      >
+      <div className={classes.container} ref={sessionExpiredPopoverRef}>
         <AltinnPopoverSimple
           testId='logout-warning'
           anchorEl={sessionExpiredPopoverRef.current}

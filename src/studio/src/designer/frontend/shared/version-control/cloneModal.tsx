@@ -4,7 +4,7 @@ import axios from 'axios';
 import AltinnIcon from '../components/AltinnIcon';
 import { getLanguageFromKey } from '../utils/language';
 import { get } from '../utils/networking';
-import {altinnDocsUrl, dataModelUploadPageUrl} from '../utils/urlHelper';
+import { altinnDocsUrl, dataModelUploadPageUrl } from '../utils/urlHelper';
 import { datamodelXsdPath, repositoryGitPath } from '../api-paths';
 import { useParams } from 'react-router-dom';
 import { SimpleContainer } from '../primitives';
@@ -52,7 +52,7 @@ export function CloneModal(props: ICloneModalProps) {
     return () => {
       source.cancel('Component got unmounted.');
     };
-  }, []);
+  }, [app, org]);
   const t = (key: string) => getLanguageFromKey(key, props.language);
   return (
     <Popover
@@ -65,14 +65,8 @@ export function CloneModal(props: ICloneModalProps) {
       }}
     >
       <SimpleContainer className={classes.modalContainer}>
-        <div className={classes.blackText}>
-          {t('sync_header.favourite_tool')}
-        </div>
-        <a
-          href={altinnDocsUrl}
-          target='_blank'
-          rel='noopener noreferrer'
-        >
+        <div className={classes.blackText}>{t('sync_header.favourite_tool')}</div>
+        <a href={altinnDocsUrl} target='_blank' rel='noopener noreferrer'>
           {t('sync_header.favourite_tool_link')}
         </a>
         {!hasDataModel && (
@@ -86,26 +80,18 @@ export function CloneModal(props: ICloneModalProps) {
               />
               {t('sync_header.data_model_missing')}
             </div>
-            <div className={classes.blackText}>
-              {t('sync_header.data_model_missing_helper')}
-            </div>
-            <a href={dataModelUploadPageUrl(org,app)}>
+            <div className={classes.blackText}>{t('sync_header.data_model_missing_helper')}</div>
+            <a href={dataModelUploadPageUrl(org, app)}>
               {t('sync_header.data_model_missing_link')}
             </a>
           </>
         )}
         <>
           <div className={classes.blackText}>{t('sync_header.clone_https')}</div>
-          <TextField
-            id='repository-url-form'
-            value={repositoryGitPath(org, app)}
-          />
+          <TextField id='repository-url-form' value={repositoryGitPath(org, app)} />
         </>
         {canCopy() && (
-          <Button
-            onClick={copyGitUrl}
-            id='copy-repository-url-button'
-          >
+          <Button onClick={copyGitUrl} id='copy-repository-url-button'>
             {t('sync_header.clone_https_button')}
           </Button>
         )}

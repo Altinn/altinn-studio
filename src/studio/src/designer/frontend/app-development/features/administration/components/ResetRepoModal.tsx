@@ -1,15 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import {
-  Button,
-  ButtonColor,
-  ButtonVariant,
-  TextField,
-} from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant, TextField } from '@altinn/altinn-design-system';
 import { Popover } from '@mui/material';
-import {
-  getLanguageFromKey,
-  getParsedLanguageFromKey,
-} from 'app-shared/utils/language';
+import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import classes from './RepoModal.module.css';
 import { useAppSelector } from '../../../common/hooks';
@@ -27,9 +19,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
   const [canDelete, setCanDelete] = useState<boolean>(false);
   const [deleteRepoName, setDeleteRepoName] = useState<string>('');
 
-  const resetting: boolean = useAppSelector(
-    (state) => state.repoStatus.resettingLocalRepo,
-  );
+  const resetting: boolean = useAppSelector((state) => state.repoStatus.resettingLocalRepo);
 
   useEffect(() => {
     if (deleteRepoName === props.repositoryName) {
@@ -39,8 +29,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
     }
   }, [deleteRepoName, props.repositoryName]);
 
-  const onDeleteRepoNameChange = (event: any) =>
-    setDeleteRepoName(event.target.value);
+  const onDeleteRepoNameChange = (event: any) => setDeleteRepoName(event.target.value);
 
   const onResetWrapper = () => {
     setCanDelete(false);
@@ -75,13 +64,13 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
               'administration.reset_repo_confirm_info',
               props.language,
               [props.repositoryName],
-              true,
+              true
             )}
           </div>
           <label htmlFor='delete-repo-name'>
             <div>{t('administration.reset_repo_confirm_repo_name')}</div>
           </label>
-          <TextField id='delete-repo-name' onChange={onDeleteRepoNameChange}/>
+          <TextField id='delete-repo-name' onChange={onDeleteRepoNameChange} />
           {resetting ? (
             <AltinnSpinner />
           ) : (
