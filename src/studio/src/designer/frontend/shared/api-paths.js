@@ -2,10 +2,12 @@ import { stringify as s } from 'query-string';
 
 export const abortmergePath = (owner, repo) => `/designer/api/v1/repos/${owner}/${repo}/abortmerge`;
 export const createDatamodelPath = (owner, repo) => `/designer/api/${owner}/${repo}/datamodels/post`;
+export const datamodelAddXsdFromRepoPath = (owner, repo, modelPath) => `/designer/api/${owner}/${repo}/datamodels/xsd-from-repo?filePath=${modelPath}`;
 export const datamodelGetPath = (owner, repo, modelPath) => `/designer/api/${owner}/${repo}/datamodels${modelPath}`;
 export const datamodelPath = (owner, repo, modelPath) => `/designer/api/${owner}/${repo}/datamodels?${s({ modelPath })}`;
 export const datamodelXsdPath = (owner, repo) => `/designer/${owner}/${repo}/Model/GetXsd`;
 export const datamodelsPath = (owner, repo) => `/designer/api/${owner}/${repo}/datamodels`;
+export const datamodelsXsdPath = (owner, repo) => `/designer/api/${owner}/${repo}/datamodels/xsd`;
 export const datamodelsUploadPath = (owner, repo) => `/designer/api/${owner}/${repo}/datamodels/upload`;
 export const discardChangesPath = (owner, repo) => `/designer/api/v1/repos/${owner}/${repo}/discard`;
 export const frontendLangPath = (locale) => `/designer/frontend/lang/${locale}.json`;
