@@ -1,0 +1,13 @@
+.paperStyle {
+  border-radius: 1px;
+  min-width: 150px;
+  padding: 0;
+  top: 50px;
+  right: 25px;
+}
+
+.menuItem {
+  font-size: 16px;
+  justify-content: flex-end;
+  padding-right: 25px;
+}

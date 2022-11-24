@@ -14,14 +14,15 @@ import {
 import cn from 'classnames';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import type { IRepository } from 'app-shared/types/global';
-import { User } from '../../resources/fetchDashboardResources/dashboardSlice';
-import { MakeCopyModal } from './MakeCopyModal';
-import { getRepoEditUrl } from '../utils/urlUtils';
+import type { User } from '../../../resources/fetchDashboardResources/dashboardSlice';
+import { MakeCopyModal } from '../MakeCopyModal';
+import { getRepoEditUrl } from '../../utils/urlUtils';
 import {
   useSetStarredRepoMutation,
   useUnsetStarredRepoMutation,
-} from '../../services/userApi';
-import { useAppSelector } from '../hooks';
+} from '../../../services/userApi';
+import { useAppSelector } from '../../hooks';
+
 import classes from './RepoList.module.css';
 
 export interface IRepoListProps {
@@ -91,6 +92,7 @@ export const RepoList = ({
   const [unsetStarredRepo] = useUnsetStarredRepoMutation();
   const copyModalAnchorRef = useRef(null);
   const t = (key: string) => getLanguageFromKey(key, language);
+
   const cols = useMemo(() => {
     const favouriteActionCol: GridActionsColDef = {
       field: '',
@@ -134,7 +136,7 @@ export const RepoList = ({
     const columns: GridColDef[] = [
       {
         field: 'name',
-        headerName: t('dashboard.application'),
+        headerName: t('dashboard.name'),
         width: 200,
         renderCell: TextWithTooltip,
       },
@@ -170,27 +172,22 @@ export const RepoList = ({
     const actionsCol: GridActionsColDef[] = [
       {
         field: 'links',
-        width: 320,
+        width: 400,
         renderHeader: (): null => null,
         type: 'actions',
         align: 'right',
         getActions: (params: GridRowParams) => {
           const repoFullName = params.row.full_name as string;
+          const [org, repo] = repoFullName.split('/');
           const isDatamodelling = repoFullName.endsWith('-datamodels');
-          const editUrl = getRepoEditUrl({ repoFullName });
+          const editUrl = getRepoEditUrl({ org, repo });
+          const editTextKey = isDatamodelling ? 'dashboard.edit_datamodels' : 'dashboard.edit_app';
+
           const colItems = [
             <GridActionsCellItem
               className={cn(classes.actionLink, classes.repoLink)}
               data-testid='gitea-repo-link'
-              icon={
-                <i
-                  className={cn(
-                    'fa fa-gitea',
-                    classes.linkIcon,
-                    classes.repoLink
-                  )}
-                />
-              }
+              icon={<i className={cn('fa fa-gitea', classes.linkIcon, classes.repoLink,)}/>}
               key={'dashboard.repository' + params.row.id}
               label={t('dashboard.repository')}
               onClick={() => (window.location.href = params.row.html_url)}
@@ -200,20 +197,22 @@ export const RepoList = ({
             <GridActionsCellItem
               data-testid='edit-repo-link'
               className={cn(classes.actionLink, classes.editLink)}
-              icon={
-                <i
-                  className={cn(
-                    'fa fa-edit',
-                    classes.linkIcon,
-                    classes.editLink
-                  )}
-                />
-              }
+              icon={<i className={cn('fa fa-edit', classes.linkIcon, classes.editLink,)}/>}
               key={'dashboard.edit_app' + params.row.id}
               label={t('dashboard.edit_app')}
               onClick={() => (window.location.href = editUrl)}
               showInMenu={false}
-            />,
+            >
+              <a
+                key={params.row.id}
+                href={params.row.html_url}
+                data-testid="gitea-repo-link"
+                className={cn(classes.actionLink, classes.repoLink)}
+              >
+                <span>{t(editTextKey)}</span>
+                <i className={cn('fa fa-edit', classes.linkIcon)} />
+              </a>,
+            </GridActionsCellItem>,
             <GridActionsCellItem
               icon={<i className={cn('fa fa-copy', classes.dropdownIcon)} />}
               key={'dashboard.make_copy' + params.row.id}
@@ -230,12 +229,6 @@ export const RepoList = ({
             />,
           ];
 
-          if (isDatamodelling) {
-            // TODO: remove this weird logic once standalone datamodelling is OK
-            // hides context menu and edit app as neither is applicable just yet
-            return colItems.splice(0, 1);
-          }
-
           return colItems;
         },
       },
@@ -243,12 +236,6 @@ export const RepoList = ({
 
     return [favouriteActionCol, ...columns, ...actionsCol];
   }, [
-    classes.actionLink,
-    classes.editLink,
-    classes.repoLink,
-    classes.dropdownIcon,
-    classes.linkIcon,
-    classes.favoriteIcon,
     language,
     setStarredRepo,
     unsetStarredRepo,

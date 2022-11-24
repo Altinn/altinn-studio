@@ -7,23 +7,14 @@ import './styles/index.css';
 
 let initializedSagas = false;
 
-export default class SubApp extends React.Component<any, any> {
-  public store: any;
-
-  constructor(props: any) {
-    super(props);
-    this.store = store;
-    if (!initializedSagas) {
-      run();
-      initializedSagas = true;
-    }
+export const SubApp = () => {
+  if (!initializedSagas) {
+    run();
+    initializedSagas = true;
   }
-
-  public render() {
-    return (
-      <Provider store={store}>
-        <App />
-      </Provider>
-    );
-  }
-}
+  return (
+    <Provider store={store}>
+      <App />
+    </Provider>
+  );
+};

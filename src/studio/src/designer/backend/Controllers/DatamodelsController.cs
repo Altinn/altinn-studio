@@ -54,7 +54,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">the org owning the models repo</param>
         /// <param name="repository">the model repos</param>
         /// <param name="modelName">The name of the data model.</param>
-        /// <remarks>Deprecated use <see cref="PutDatamodel(string, string, string)"/> instead.</remarks>
+        /// <remarks>Deprecated use <see cref="PutDatamodel(string, string, string, bool)"/> instead.</remarks>
         [Authorize]
         [HttpPut]
         [Route("updatedatamodel")]
@@ -175,6 +175,30 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Generates model files from existing XSD in (datamodelling) repo
+        /// </summary>
+        /// <remarks>
+        /// This operation will use the new datamodelling library to convert the XSD into a JSON schema
+        /// </remarks>
+        /// <param name="org">The short name of the application owner.</param>
+        /// <param name="repository">The name of the repository to which the file is being added.</param>
+        /// <param name="filePath">The path to the XSD to use</param>
+        [Authorize]
+        [HttpPost("xsd-from-repo")]
+        public async Task<IActionResult> UseXsdFromRepo(string org, string repository, string filePath)
+        {
+            Guard.AssertArgumentNotNull(filePath, nameof(filePath));
+            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            Guard.AssertFileExtensionIsOfType(filePath, ".xsd");
+
+            var xsd = await _schemaModelService.GetSchema(org, repository, developer, filePath);
+            var xsdStream = new MemoryStream(Encoding.UTF8.GetBytes(xsd ?? string.Empty));
+            var jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, filePath, xsdStream);
+
+            return Created(filePath, jsonSchema);
+        }
+
+        /// <summary>
         /// Creates a new model in the repository.
         /// </summary>
         /// <param name="org">The org owning the repository.</param>
@@ -224,13 +248,7 @@ namespace Altinn.Studio.Designer.Controllers
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var content = await ReadRequestBodyContentAsync();
 
-            if (saveOnly)
-            {
-                await _schemaModelService.UpdateSchema(org, repository, developer, modelPath, content, saveOnly);
-                return Ok();
-            }
-
-            await _schemaModelService.UpdateModelFilesFromJsonSchema(org, repository, developer, modelPath, content);
+            await _schemaModelService.UpdateSchema(org, repository, developer, modelPath, content, saveOnly);
 
             return NoContent();
         }
@@ -253,7 +271,7 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Method that returns all datamodels within repository.
+        /// Method that returns all JSON schema datamodels within repository.
         /// </summary>
         /// <param name="org">the org owning the models repo</param>
         /// <param name="repository">the model repos</param>
@@ -265,6 +283,23 @@ namespace Altinn.Studio.Designer.Controllers
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var schemaFiles = _schemaModelService.GetSchemaFiles(org, repository, developer);
+
+            return Ok(schemaFiles);
+        }
+
+        /// <summary>
+        /// Method that returns all xsd models within repository.
+        /// </summary>
+        /// <param name="org">the org owning the models repo</param>
+        /// <param name="repository">the model repos</param>
+        [Authorize]
+        [HttpGet("xsd")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status302Found)]
+        public ActionResult<IEnumerable<AltinnCoreFile>> GetXSDDatamodels(string org, string repository)
+        {
+            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            var schemaFiles = _schemaModelService.GetSchemaFiles(org, repository, developer, true);
 
             return Ok(schemaFiles);
         }

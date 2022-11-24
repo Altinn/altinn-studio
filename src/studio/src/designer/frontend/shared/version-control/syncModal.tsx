@@ -1,19 +1,11 @@
-import React from 'react';
-import {
-  Button,
-  CircularProgress,
-  createTheme,
-  Grid,
-  Popover,
-  TextField,
-  Typography,
-} from '@mui/material';
-import { createStyles, withStyles } from '@mui/styles';
+import React, { useState } from 'react';
+import { CircularProgress, Popover } from '@mui/material';
 import classNames from 'classnames';
-import altinnTheme from '../theme/altinnStudioTheme';
+import classes from './syncModal.module.css';
+import { Button, ButtonColor, ButtonVariant, TextArea } from '@altinn/altinn-design-system';
+import { SimpleContainer } from '../primitives';
 
 export interface ISyncModalComponentProps {
-  classes: any;
   anchorEl: Element;
   header?: string;
   descriptionText?: string[];
@@ -25,177 +17,69 @@ export interface ISyncModalComponentProps {
   btnClick?: any;
 }
 
-export interface ISyncModalComponentState {
-  commitMessage: string;
-}
-
-const theme = createTheme(altinnTheme);
-
-const styles = createStyles({
-  button: {
-    fontSize: '14px',
-    color: theme.altinnPalette.primary.white,
-    background: theme.altinnPalette.primary.blueDark,
-    maxWidth: '150px',
-    textTransform: 'none',
-    fontWeight: 400,
-    marginTop: '20px',
-    borderRadius: '0',
-    '&:hover': {
-      background: theme.altinnPalette.primary.blueDarker,
-      color: theme.altinnPalette.primary.white,
-    },
-    '&:focus': {
-      background: theme.altinnPalette.primary.blueDarker,
-      color: theme.altinnPalette.primary.white,
-    },
-  },
-  popover: {
-    width: '445px',
-    padding: '24px',
-  },
-  header: {
-    fontSize: '16px',
-    fontWeight: 500,
-  },
-  subHeader: {
-    fontSize: '16px',
-    marginTop: '10px',
-    whiteSpace: 'pre-line',
-  },
-  spinner: {
-    marginTop: '20px',
-    color: theme.altinnPalette.primary.blueDark,
-    marginRight: 'auto',
-    marginLeft: 'auto',
-  },
-  doneLoadingIcon: {
-    marginTop: '20px',
-    color: theme.altinnPalette.primary.green,
-    marginRight: 'auto',
-    marginLeft: 'auto',
-  },
-  commitMessageField: {
-    border: `1px solid ${theme.altinnPalette.primary.blueDark}`,
-    boxSizing: 'border-box',
-    marginTop: '10px',
-    fontSize: '16px !Important',
-    minHeight: '88px',
-    lineHeight: '1.3',
-  },
-});
-
-class SyncModalComponent extends React.Component<
-  ISyncModalComponentProps,
-  ISyncModalComponentState
-> {
-  constructor(_props: ISyncModalComponentProps) {
-    super(_props);
-    this.state = {
-      commitMessage: '',
-    };
-  }
-
-  public handleClose = () => {
-    this.setState({
-      commitMessage: '',
-    });
-    this.props.handleClose();
+export const SyncModalComponent = (props: ISyncModalComponentProps) => {
+  const [commitMessage, setCommitMessage] = useState('');
+  const handleClose = () => {
+    setCommitMessage('');
+    props.handleClose();
   };
 
-  public btnClickedHandler = () => {
-    if (this.props.btnClick) {
-      this.props.btnClick(this.state.commitMessage);
+  const btnClickedHandler = () => {
+    if (props.btnClick) {
+      props.btnClick(commitMessage);
     }
   };
 
-  public handleChange = (event: any) => {
-    this.setState({
-      commitMessage: event.target.value,
-    });
-  };
+  const handleChange = (event: any) => setCommitMessage(event.target.value);
 
-  public renderSpinnerOrDoneIcon() {
-    const { classes } = this.props;
-    if (this.props.isLoading) {
-      return <CircularProgress className={classNames(classes.spinner)} />;
-    }
-    if (this.props.shouldShowDoneIcon) {
-      return (
-        <div className={classNames(classes.doneLoadingIcon)}>
-          <i className={classNames('fa fa-circlecheck')} />
-        </div>
-      );
-    }
-    return null;
-  }
+  const open = Boolean(props.anchorEl);
 
-  public render() {
-    const { classes } = this.props;
-    const open = Boolean(this.props.anchorEl);
-    return (
-      <Popover
-        open={open}
-        anchorEl={this.props.anchorEl}
-        onClose={this.handleClose}
-        anchorOrigin={{
-          vertical: 'bottom',
-          horizontal: 'left',
-        }}
-        anchorReference='anchorEl'
-      >
-        <Grid container={true} direction='column' className={classes.popover}>
-          {this.props.header && (
-            <Typography variant='h3' className={classNames(classes.header)}>
-              {this.props.header}
-            </Typography>
-          )}
+  return (
+    <Popover
+      open={open}
+      anchorEl={props.anchorEl}
+      onClose={handleClose}
+      anchorOrigin={{
+        vertical: 'bottom',
+        horizontal: 'left',
+      }}
+      anchorReference='anchorEl'
+    >
+      <SimpleContainer className={classes.popover}>
+        {props.header && <h3 className={classNames(classes.header)}>{props.header}</h3>}
+        {!props.isLoading && !props.shouldShowDoneIcon && (
+          <div className={classNames(classes.subHeader)}>
+            {props.descriptionText.map((text: any, index: any) => {
+              return props.descriptionText.length - 1 !== index ? (
+                <span key={index}> {`${text}\n\n`} </span>
+              ) : (
+                <span key={index}>{text}</span>
+              );
+            })}
+          </div>
+        )}
+        {props.isLoading && <CircularProgress className={classNames(classes.spinner)} />}
+        {props.shouldShowDoneIcon && (
+          <div className={classNames(classes.doneLoadingIcon)}>
+            <i className={classNames('fa fa-circlecheck')} />
+          </div>
+        )}
+        {props.shouldShowCommitBox && (
+          <TextArea id='test' value={commitMessage} rows={4} onChange={handleChange} />
+        )}
 
-          {this.props.descriptionText && (
-            <Typography className={classNames(classes.subHeader)}>
-              {this.props.descriptionText.map((text: any, index: any) => {
-                return this.props.descriptionText.length - 1 !== index ? (
-                  <span key={index}> {`${text}\n\n`} </span>
-                ) : (
-                  <span key={index}>{text}</span>
-                );
-              })}
-            </Typography>
-          )}
-
-          {this.renderSpinnerOrDoneIcon()}
-
-          {this.props.shouldShowCommitBox && (
-            <TextField
-              id='test'
-              multiline={true}
-              value={this.state.commitMessage}
-              minRows={3}
-              onChange={this.handleChange}
-              InputProps={{
-                disableUnderline: true,
-                classes: {
-                  input: classes.commitMessageField,
-                },
-              }}
-            />
-          )}
-
-          {this.props.btnText && (
-            <Button
-              variant='contained'
-              color='primary'
-              className={classes.button}
-              onClick={this.btnClickedHandler}
-              id='share_changes_modal_button'
-            >
-              {this.props.btnText}
-            </Button>
-          )}
-        </Grid>
-      </Popover>
-    );
-  }
-}
-
-export default withStyles(styles)(SyncModalComponent);
+        {props.btnText && (
+          <Button
+            variant={ButtonVariant.Filled}
+            color={ButtonColor.Primary}
+            className={classes.button}
+            onClick={btnClickedHandler}
+            id='share_changes_modal_button'
+          >
+            {props.btnText}
+          </Button>
+        )}
+      </SimpleContainer>
+    </Popover>
+  );
+};

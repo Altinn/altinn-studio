@@ -1,0 +1,15 @@
+.button {
+  text-transform: uppercase;
+  font-weight: 500;
+}
+.button svg {
+  height: 16px;
+  width: 16px;
+}
+.headerStyling {
+  background: #efefef;
+  padding-top: 10px;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+}

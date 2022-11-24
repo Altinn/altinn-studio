@@ -1,137 +1,67 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { IconButton, Menu, MenuItem } from '@mui/material';
-import { withStyles } from '@mui/styles';
-import { altinnDocsUrl } from '../../utils/urlHelper';
+import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { post } from '../../utils/networking';
 import { AccountCircle } from '@mui/icons-material';
-import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
-import {repositoryPath} from "../../api-paths";
+import { repositoryPath, userLogoutAfterPath, userLogoutPath } from '../../api-paths';
+import classes from './profileMenu.module.css';
+import { useParams } from 'react-router-dom';
 
 export interface IProfileMenuComponentProps {
   showlogout?: boolean;
-  classes?: any;
 }
 
-interface IProfileMenuComponentState {
-  anchorEl: any;
-}
-
-const styles = {
-  paperStyle: {
-    borderRadius: 1,
-    minWidth: 150,
-    padding: 0,
-    top: 50,
-    right: 25,
-  },
-  menuItem: {
-    fontSize: 16,
-    justifyContent: 'flex-end',
-    paddingRight: 25,
-  },
-};
-
-class ProfileMenuComponent extends React.Component<
-  IProfileMenuComponentProps,
-  IProfileMenuComponentState
-> {
-  public state = {
-    anchorEl: null as any,
-  };
-
-  public handleClick = (event: any) => {
-    this.setState({ anchorEl: event.currentTarget });
-  };
-
-  public handleClose = () => {
-    this.setState({ anchorEl: null });
-  };
-
-  public handleLogout = () => {
-    const url = `${window.location.origin}/repos/user/logout`;
-    post(url).then(() => {
-      window.location.assign(`${window.location.origin}/Home/Logout`);
-    });
-    return true;
-  };
-
-  public shouldShowRepositoryLink = () => {
-    if (window) {
-      const { org, app } = _useParamsClassCompHack();
-      if (org && app) {
-        return true;
-      }
-    }
-    return false;
-  };
-
-  public render() {
-    const { anchorEl } = this.state;
-    const { classes, showlogout } = this.props;
-    const { org, app } = _useParamsClassCompHack();
-    return (
-      <div>
-        <IconButton
-          aria-owns={anchorEl ? 'simple-menu' : undefined}
-          aria-haspopup='true'
-          aria-label='profilikon knapp'
-          onClick={this.handleClick}
-        >
-          <AccountCircle
-            fontSize='large'
-            titleAccess='profilikon'
-            aria-label='profilikon'
-          />
-        </IconButton>
-        <Menu
-          id='simple-menu'
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={this.handleClose}
-          anchorReference='none'
-          elevation={1}
-          classes={{ paper: classes.paperStyle }}
-        >
-          <MenuItem
-            key='placeholder'
-            style={{ display: 'none' }}
-          />
-          {
-            // workaround for highlighted menu item not changing.
-            // https://github.com/mui-org/material-ui/issues/5186#issuecomment-337278330
-          }
-          {this.shouldShowRepositoryLink() && (
-            <MenuItem className={classes.menuItem}>
-              <a
-                href={repositoryPath(org,app)}
-                target='_blank'
-                rel='noopener noreferrer'
-              >
-                Åpne repository
-              </a>
-            </MenuItem>
-          )}
+export function ProfileMenu({ showlogout }: IProfileMenuComponentProps) {
+  const [anchorEl, setAnchorEl] = useState<null | Element>(null);
+  const { org, app } = useParams();
+  const handleClick = (event: any) => setAnchorEl(event.currentTarget);
+  const handleClose = () => setAnchorEl(null);
+  const handleLogout = () =>
+    post(userLogoutPath())
+      .then(() => window.location.assign(userLogoutAfterPath()))
+      .finally(() => true);
+  return (
+    <div>
+      <IconButton
+        aria-owns={anchorEl ? 'simple-menu' : undefined}
+        aria-haspopup='true'
+        aria-label='profilikon knapp'
+        onClick={handleClick}
+      >
+        <AccountCircle fontSize='large' titleAccess='profilikon' aria-label='profilikon' />
+      </IconButton>
+      <Menu
+        id='simple-menu'
+        anchorEl={anchorEl}
+        open={Boolean(anchorEl)}
+        onClose={handleClose}
+        anchorReference='none'
+        elevation={1}
+        classes={{ paper: classes.paperStyle }}
+      >
+        <MenuItem key='placeholder' style={{ display: 'none' }} />
+        {
+          // workaround for highlighted menu item not changing.
+          // https://github.com/mui-org/material-ui/issues/5186#issuecomment-337278330
+        }
+        {org && app && (
           <MenuItem className={classes.menuItem}>
-            <a
-              href={altinnDocsUrl}
-              target='_blank'
-              rel='noopener noreferrer'
-            >
-              Dokumentasjon
+            <a href={repositoryPath(org, app)} target='_blank' rel='noopener noreferrer'>
+              Åpne repository
             </a>
           </MenuItem>
-          {showlogout && (
-            <MenuItem
-              onClick={this.handleLogout}
-              className={classes.menuItem}
-            >
-              Logout
-            </MenuItem>
-          )}
-        </Menu>
-      </div>
-    );
-  }
+        )}
+        <MenuItem className={classes.menuItem}>
+          <a href={altinnDocsUrl()} target='_blank' rel='noopener noreferrer'>
+            Dokumentasjon
+          </a>
+        </MenuItem>
+        {showlogout && (
+          <MenuItem onClick={handleLogout} className={classes.menuItem}>
+            Logout
+          </MenuItem>
+        )}
+      </Menu>
+    </div>
+  );
 }
-
-export default withStyles(styles)(ProfileMenuComponent);

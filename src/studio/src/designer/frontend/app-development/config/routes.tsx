@@ -1,4 +1,4 @@
-import uieditorApp from '../../ux-editor/SubApp';
+import { SubApp } from '../../ux-editor/SubApp';
 import { AccessControlContainer } from '../features/accessControl/containers/AccessControlContainer';
 import { Administration } from '../features/administration/components/Administration';
 import DeployPage from '../features/appPublish/pages/deployPage';
@@ -37,7 +37,7 @@ const routes: IRoute[] = [
     activeSubHeaderSelection: TopBarMenu.Create,
     activeLeftMenuSelection: 'UI-Editor',
     menu: 'create',
-    subapp: uieditorApp,
+    subapp: SubApp,
   },
   {
     path: '/:org/:app/texts',

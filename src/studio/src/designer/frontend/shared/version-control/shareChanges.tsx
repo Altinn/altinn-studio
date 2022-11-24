@@ -1,155 +1,44 @@
 import React from 'react';
-import { Button, createTheme, Grid, Typography } from '@mui/material';
-import { createStyles, withStyles } from '@mui/styles';
-import classNames from 'classnames';
-import AltinnIcon from '../components/AltinnIcon';
-import altinnTheme from '../theme/altinnStudioTheme';
 import { getLanguageFromKey } from '../utils/language';
+import {Button, ButtonSize, ButtonVariant} from '@altinn/altinn-design-system';
+import { Upload, Cancel } from '@navikt/ds-icons';
+import classes from './versionControlHeader.module.css';
 
 export interface IShareChangesComponentProps {
   buttonOnly?: boolean;
   changesInLocalRepo: boolean;
-  classes: any;
   hasMergeConflict: boolean;
   hasPushRight: boolean;
   language: any;
   shareChanges: any;
 }
 
-const theme = createTheme(altinnTheme);
-
-const styles = createStyles({
-  bold: {
-    fontWeight: 500,
-  },
-  btn: {
-    textTransform: 'none',
-    padding: 0,
-    '&:hover': {
-      backgroundColor: 'transparent !Important',
-    },
-    '&:focus': {
-      backgroundColor: 'transparent !Important',
-    },
-  },
-  checkIconPositionFix: {
-    position: 'relative',
-    top: '-4px',
-  },
-  clickable: {
-    [theme.breakpoints.down('md')]: {
-      float: 'right',
-      marginRight: '10px',
-    },
-  },
-  color_blueDark: {
-    color: theme.altinnPalette.primary.blueDark,
-  },
-});
-
-class ShareChangesComponent extends React.Component<IShareChangesComponentProps> {
-  public shareChangesHandler = (event: any) => {
-    const noChanges = !this.props.changesInLocalRepo;
-    this.props.shareChanges(event.currentTarget, noChanges);
+export const ShareChangesComponent = (props: IShareChangesComponentProps) => {
+  const shareChangesHandler = (event: any) => {
+    const noChanges = !props.changesInLocalRepo;
+    props.shareChanges(event.currentTarget, noChanges);
+  };
+  const renderCorrectText = () => {
+    if (props.hasMergeConflict) {
+      return getLanguageFromKey('sync_header.merge_conflict', props.language);
+    } else if (props.changesInLocalRepo) {
+      return getLanguageFromKey('sync_header.changes_to_share', props.language);
+    } else {
+      return getLanguageFromKey('sync_header.no_changes_to_share', props.language);
+    }
   };
 
-  public renderCorrectText() {
-    const { classes, hasMergeConflict } = this.props;
-
-    if (hasMergeConflict) {
-      return (
-        <Grid container={true} alignItems='center'>
-          <Grid item={true}>
-            <AltinnIcon
-              iconClass='fa fa-circlecancel'
-              iconColor={theme.altinnPalette.primary.blueDark}
-              margin='0px 5px 0px 0px'
-              weight={600}
-            />
-          </Grid>
-          <Grid item={true}>
-            <Typography
-              variant='body1'
-              className={classNames(classes.color_blueDark, classes.bold)}
-            >
-              {getLanguageFromKey(
-                'sync_header.merge_conflict',
-                this.props.language,
-              )}
-            </Typography>
-          </Grid>
-        </Grid>
-      );
-    } else if (this.props.changesInLocalRepo) {
-      return (
-        <Grid container={true} alignItems='center'>
-          <Grid item={true}>
-            {this.props.hasPushRight && (
-              <AltinnIcon
-                iconClass='fa fa-upload'
-                iconColor={theme.altinnPalette.primary.blueDark}
-                iconSize={36}
-                margin='0px -5px 0px -5px'
-                weight={600}
-              />
-            )}
-          </Grid>
-          <Grid item={true}>
-            <Typography
-              id='changes_to_share_btn'
-              variant='body1'
-              className={classNames(classes.color_blueDark, classes.bold)}
-            >
-              {getLanguageFromKey(
-                'sync_header.changes_to_share',
-                this.props.language,
-              )}
-            </Typography>
-          </Grid>
-        </Grid>
-      );
-    } else {
-      return (
-        <Grid container={true} alignItems='center'>
-          <Grid item={true}>
-            <AltinnIcon
-              iconClass='fa fa-upload'
-              iconColor={theme.altinnPalette.primary.blueDark}
-              iconSize={36}
-              margin='0px -5px 0px -5px'
-            />
-          </Grid>
-          <Grid item={true}>
-            <Typography
-              id='no_changes_to_share_btn'
-              variant='body1'
-              className={classNames(classes.color_blueDark)}
-            >
-              {getLanguageFromKey(
-                'sync_header.no_changes_to_share',
-                this.props.language,
-              )}
-            </Typography>
-          </Grid>
-        </Grid>
-      );
-    }
-  }
-
-  public render() {
-    const { classes } = this.props;
-    return (
-      <Button
-        onClick={this.shareChangesHandler}
-        id='share_changes_button'
-        className={classNames(classes.color_blueDark, classes.btn, {
-          [classes.clickable]: this.props.buttonOnly !== true,
-        })}
-      >
-        {this.renderCorrectText()}
-      </Button>
-    );
-  }
-}
-
-export default withStyles(styles)(ShareChangesComponent);
+  return (
+    <Button
+      onClick={shareChangesHandler}
+      disabled={!props.hasPushRight}
+      id='share_changes_button'
+      svgIconComponent={props.hasMergeConflict ? <Cancel /> : <Upload />}
+      variant={ButtonVariant.Quiet}
+      size={ButtonSize.Small}
+      className={classes.button}
+    >
+      {renderCorrectText()}
+    </Button>
+  );
+};

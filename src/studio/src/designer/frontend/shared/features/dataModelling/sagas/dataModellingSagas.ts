@@ -20,6 +20,7 @@ import {
 import { DataModelsMetadataActions } from './metadata';
 import {
   createDatamodelPath,
+  datamodelAddXsdFromRepoPath,
   datamodelPath,
   datamodelGetPath,
 } from '../../../api-paths';
@@ -30,7 +31,13 @@ export function* fetchDataModelSaga(action: IDataModelAction): SagaIterator {
   try {
     const modelPath = metadata?.value?.repositoryRelativeUrl;
     const { org, app } = _useParamsClassCompHack();
-    const result = yield call(get, datamodelGetPath(org, app, modelPath));
+    let result;
+    if (metadata?.value?.fileType === '.xsd') {
+      result = yield call(post, datamodelAddXsdFromRepoPath(org, app, modelPath.slice(1)));
+      yield put(DataModelsMetadataActions.getDataModelsMetadata());
+    } else {
+      result = yield call(get, datamodelGetPath(org, app, modelPath));
+    }
     yield put(fetchDataModelFulfilled({ schema: result }));
   } catch (err) {
     yield put(fetchDataModelRejected({ error: err }));

@@ -19,8 +19,9 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="org">Organization owning the repository identified by it's short name.</param>
         /// <param name="repository">Repository name to search for schema files.</param>
         /// <param name="developer">Developers short name</param>
+        /// <param name="xsd">Value to indicate if schema files should be XSDs or not</param>
         /// <returns>A total list of schema files within the repository, regardless of location.</returns>
-        IList<AltinnCoreFile> GetSchemaFiles(string org, string repository, string developer);
+        IList<AltinnCoreFile> GetSchemaFiles(string org, string repository, string developer, bool xsd = false);
 
         /// <summary>
         /// Gets the JSON content of the specified schema file.
