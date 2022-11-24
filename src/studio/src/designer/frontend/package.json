@@ -62,7 +62,7 @@
     "lint": "eslint \"./**/*.ts*\"",
     "start-app-development": "yarn workspace app-development start",
     "start-dashboard": "yarn workspace dashboard start",
-    "ts-stats": "node stats.js",
+    "stats": "node stats.js",
     "syncpack": "npx syncpack fix-mismatches && npx syncpack format",
     "test": "jest --maxWorkers=50%",
     "test:ci": "jest --runInBand"
