@@ -1,11 +1,6 @@
 import React, { useState } from 'react';
 import type { Theme } from '@mui/material';
-import {
-  AppBar as MuiAppBar,
-  Grid,
-  Toolbar,
-  useMediaQuery,
-} from '@mui/material';
+import { AppBar as MuiAppBar, Grid, Toolbar, useMediaQuery } from '@mui/material';
 import { createStyles, makeStyles } from '@mui/styles';
 import classNames from 'classnames';
 import { Link, useParams } from 'react-router-dom';
@@ -13,7 +8,7 @@ import { altinnImgLogoHeaderUrl } from 'app-shared/cdn-paths';
 import type { IMenuItem } from 'app-shared/navigation/drawer/drawerMenuSettings';
 import TabletDrawerMenu from 'app-shared/navigation/drawer/TabletDrawerMenu';
 import { getTopBarMenu } from './appBarConfig';
-import ProfileMenu from 'app-shared/navigation/main-header/profileMenu';
+import { ProfileMenu } from 'app-shared/navigation/main-header/profileMenu';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { VersionControlContainer } from 'app-shared/version-control/versionControlHeader';
 import { useAppSelector } from '../../common/hooks';
@@ -96,7 +91,7 @@ const useStyles = makeStyles((theme: Theme) =>
         borderBottom: 'none',
       },
     },
-  }),
+  })
 );
 
 export const AppBar = ({
@@ -110,12 +105,8 @@ export const AppBar = ({
 }: IAppBarProps) => {
   const classes = useStyles();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const hiddenMdUp = useMediaQuery((theme: Theme) =>
-    theme.breakpoints.up('md'),
-  );
-  const hiddenSmDown = useMediaQuery((theme: Theme) =>
-    theme.breakpoints.down('sm'),
-  );
+  const hiddenMdUp = useMediaQuery((theme: Theme) => theme.breakpoints.up('md'));
+  const hiddenSmDown = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
 
   const language = useAppSelector((state) => state.languageState.language);
   const t = (key: string) => getLanguageFromKey(key, language);
@@ -130,7 +121,10 @@ export const AppBar = ({
     <div className={classes.root}>
       <MuiAppBar
         position='fixed'
-        className={classNames([!app ? classes.appBarDashboard : classes.appBarEditor, classes.appBar])}
+        className={classNames([
+          !app ? classes.appBarDashboard : classes.appBarEditor,
+          classes.appBar,
+        ])}
         elevation={5}
         sx={{
           backgroundColor: '#EFEFEF',
@@ -139,60 +133,26 @@ export const AppBar = ({
         }}
       >
         <Toolbar>
-          <Grid
-            container
-            direction='row'
-            alignItems='center'
-            justifyContent='space-between'
-          >
-            <Grid
-              item
-              xs
-              container
-            >
+          <Grid container direction='row' alignItems='center' justifyContent='space-between'>
+            <Grid item xs container>
               <Grid item>
-                <a
-                  href='/'
-                  className={classes.aImgStyling}
-                >
-                  <img
-                    src={altinnImgLogoHeaderUrl()}
-                    alt='Altinn logo'
-                  />
+                <a href='/' className={classes.aImgStyling}>
+                  <img src={altinnImgLogoHeaderUrl()} alt='Altinn logo' />
                 </a>
               </Grid>
               {hiddenMdUp ? null : (
-                <Grid
-                  item
-                  className={classes.breadCrumb}
-                >
-                  {activeSubHeaderSelection &&
-                    `/ ${t(activeSubHeaderSelection)}`}{' '}
-                  /
-                  <span className={classes.breadCrumbSubApp}>
-                    {' '}
-                    {activeLeftMenuSelection}{' '}
-                  </span>
+                <Grid item className={classes.breadCrumb}>
+                  {activeSubHeaderSelection && `/ ${t(activeSubHeaderSelection)}`} /
+                  <span className={classes.breadCrumbSubApp}> {activeLeftMenuSelection} </span>
                 </Grid>
               )}
             </Grid>
             {hiddenSmDown ? null : (
-              <Grid
-                xs
-                item
-                className={classes.paper}
-              >
+              <Grid xs item className={classes.paper}>
                 {org && app ? `${org} / ${app}` : ''}
               </Grid>
             )}
-            <Grid
-              item
-              xs
-              container
-              direction='row'
-              alignItems='center'
-              justifyContent='flex-end'
-            >
+            <Grid item xs container direction='row' alignItems='center' justifyContent='flex-end'>
               {user || ''}
               {hiddenSmDown ? null : (
                 <Grid item>
@@ -219,24 +179,12 @@ export const AppBar = ({
           ? null
           : showSubMenu && (
               <Toolbar>
-                <Grid
-                  container
-                  direction='row'
-                  justifyContent='center'
-                  alignItems='center'
-                >
-                  <Grid
-                    xs
-                    item
-                  >
+                <Grid container direction='row' justifyContent='center' alignItems='center'>
+                  <Grid xs item>
                     <VersionControlContainer language={language} />
                   </Grid>
                   {menu.map((item) => (
-                    <Grid
-                      item
-                      key={item.key}
-                      className={classNames(classes.subHeader)}
-                    >
+                    <Grid item key={item.key} className={classNames(classes.subHeader)}>
                       <Link
                         to={item.link.replace(':org', org).replace(':app', app)}
                         className={classNames(classes.subHeaderLink, {
@@ -248,11 +196,7 @@ export const AppBar = ({
                       </Link>
                     </Grid>
                   ))}
-                  <Grid
-                    xs
-                    item
-                  />{' '}
-                  {/** Used to keep menu centered */}
+                  <Grid xs item /> {/** Used to keep menu centered */}
                 </Grid>
               </Toolbar>
             )}

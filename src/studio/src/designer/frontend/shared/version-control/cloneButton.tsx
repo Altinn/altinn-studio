@@ -1,52 +1,23 @@
 import React from 'react';
-import { Button, createTheme, Grid, Typography } from '@mui/material';
-import { createStyles, WithStyles, withStyles } from '@mui/styles';
-import AltinnIcon from '../components/AltinnIcon';
-import altinnTheme from '../theme/altinnStudioTheme';
+import { Button, ButtonSize, ButtonVariant } from '@altinn/altinn-design-system';
+import { SaveFile } from '@navikt/ds-icons';
+import classes from './versionControlHeader.module.css';
 
-const theme = createTheme(altinnTheme);
-
-const styles = createStyles({
-  cloneButton: {
-    textTransform: 'none',
-    padding: 0,
-    '&:hover': {
-      backgroundColor: 'transparent !Important',
-    },
-    '&:focus': {
-      backgroundColor: 'transparent !Important',
-    },
-  },
-});
-
-export interface ICloneButtonProps extends WithStyles<typeof styles> {
+export interface ICloneButtonProps {
   onClick: (event: React.MouseEvent) => void;
   buttonText: string;
 }
 
-function CloneButton(props: ICloneButtonProps) {
+export function CloneButton(props: ICloneButtonProps) {
   return (
-    <Button onClick={props.onClick} className={props.classes.cloneButton}>
-      <Grid container={true} alignItems='center'>
-        <Grid item={true}>
-          <AltinnIcon
-            iconClass='fa fa-clone'
-            iconColor={theme.altinnPalette.primary.blueDark}
-            iconSize={24}
-            padding='0px 0px 4px 0px'
-          />
-        </Grid>
-        <Grid item={true}>
-          <Typography
-            style={{ color: theme.altinnPalette.primary.blueDark }}
-            variant='body1'
-          >
-            {props.buttonText}
-          </Typography>
-        </Grid>
-      </Grid>
+    <Button
+      onClick={props.onClick}
+      variant={ButtonVariant.Quiet}
+      size={ButtonSize.Small}
+      className={classes.button}
+      svgIconComponent={<SaveFile />}
+    >
+      {props.buttonText}
     </Button>
   );
 }
-
-export default withStyles(styles)(CloneButton);
