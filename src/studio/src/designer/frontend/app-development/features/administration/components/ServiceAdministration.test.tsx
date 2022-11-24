@@ -111,7 +111,7 @@ describe('Administration', () => {
     await waitFor(() => {
       expect(dispatchSpy).toBeCalledWith({
         payload: {
-          url: setServiceConfigPath("my-app","my-app"),
+          url: setServiceConfigPath("my-org","my-app"),
           newServiceName: mockEvent.target.value,
           newServiceId: mockServiceId,
           newServiceDescription: mockServiceDescription,
@@ -120,7 +120,7 @@ describe('Administration', () => {
       });
       expect(dispatchSpy).toBeCalledWith({
         payload: {
-          url: setServiceNamePath("my-app","my-app"),
+          url: setServiceNamePath("my-org","my-app"),
           newServiceName: mockEvent.target.value,
         },
         type: 'handleServiceInformation/saveServiceName',
@@ -155,7 +155,7 @@ describe('Administration', () => {
     await waitFor(() => {
       expect(dispatchSpy).toBeCalledWith({
         payload: {
-          url: setServiceConfigPath("my-app","my-app"),
+          url: setServiceConfigPath("my-org","my-app"),
           newServiceName: mockServiceName,
           newServiceId: mockServiceId,
           newServiceDescription: mockEvent.target.value,
@@ -190,7 +190,7 @@ describe('Administration', () => {
     await waitFor(() => {
       expect(dispatchSpy).toBeCalledWith({
         payload: {
-          url: setServiceConfigPath("my-app","my-app"),
+          url: setServiceConfigPath("my-org","my-app"),
           newServiceName: mockServiceName,
           newServiceId: mockEvent.target.value,
           newServiceDescription: mockServiceDescription,
