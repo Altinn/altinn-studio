@@ -51,12 +51,8 @@ export default function PageElement({ name }: IPageElementProps) {
   const dispatch = useDispatch();
 
   const language = useSelector((state: IAppState) => state.appData.languageState.language);
-  const selectedLayout = useSelector(
-    (state: IAppState) => state.formDesigner.layout.selectedLayout
-  );
-  const layoutOrder = useSelector(
-    (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order
-  );
+  const selectedLayout = useSelector((state: IAppState) => state.formDesigner.layout.selectedLayout);
+  const layoutOrder = useSelector((state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order);
   const [editMode, setEditMode] = React.useState<boolean>(false);
   const [errorMessage, setErrorMessage] = React.useState<string>('');
   const [newName, setNewName] = React.useState<string>('');
@@ -81,10 +77,7 @@ export default function PageElement({ name }: IPageElementProps) {
     setMenuAnchorEl(null);
   };
 
-  const onMenuItemClick = (
-    event: React.SyntheticEvent,
-    action: 'up' | 'down' | 'edit' | 'delete'
-  ) => {
+  const onMenuItemClick = (event: React.SyntheticEvent, action: 'up' | 'down' | 'edit' | 'delete') => {
     event.stopPropagation();
     if (action === 'delete') {
       setDeleteAnchorEl(event.currentTarget);
@@ -111,9 +104,7 @@ export default function PageElement({ name }: IPageElementProps) {
   };
 
   const pageNameExists = (candidateName: string): boolean => {
-    return layoutOrder.some(
-      (pageName: string) => pageName.toLowerCase() === candidateName.toLowerCase()
-    );
+    return layoutOrder.some((pageName: string) => pageName.toLowerCase() === candidateName.toLowerCase());
   };
 
   const handleOnChange = (event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
@@ -135,13 +126,10 @@ export default function PageElement({ name }: IPageElementProps) {
 
   const handleKeyPress = (event: any) => {
     event.stopPropagation();
-    if (event.key === 'Enter') {
-      if (!errorMessage && name !== newName) {
-        dispatch(FormLayoutActions.updateLayoutName({ oldName: name, newName }));
-        setEditMode(false);
-      }
-    }
-    if (event.key === 'Escape') {
+    if (event.key === 'Enter' && !errorMessage && name !== newName) {
+      dispatch(FormLayoutActions.updateLayoutName({ oldName: name, newName }));
+      setEditMode(false);
+    } else if (event.key === 'Escape') {
       setEditMode(false);
       setNewName('');
     }
@@ -232,9 +220,7 @@ export default function PageElement({ name }: IPageElementProps) {
         anchorEl={deleteAnchorEl}
         open={Boolean(deleteAnchorEl)}
         header={getLanguageFromKey('right_menu.page_delete_header', language)}
-        description={getParsedLanguageFromKey('right_menu.page_delete_information', language, [
-          name,
-        ])}
+        description={getParsedLanguageFromKey('right_menu.page_delete_information', language, [name])}
         confirmText={getLanguageFromKey('right_menu.page_delete_confirm', language)}
         cancelText={getLanguageFromKey('right_menu.page_delete_cancel', language)}
         onClose={handleConfirmDeleteClose}

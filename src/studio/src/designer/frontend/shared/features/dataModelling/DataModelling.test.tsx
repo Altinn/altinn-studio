@@ -110,6 +110,7 @@ describe('DataModelling', () => {
               value: {
                 repositoryRelativeUrl: '',
                 fileName: 'option 1.xsd',
+                fileType: '.xsd',
               },
             },
           ],
@@ -128,6 +129,7 @@ describe('DataModelling', () => {
               value: {
                 repositoryRelativeUrl: '',
                 fileName: 'option 1.xsd',
+                fileType: '.xsd',
               },
             },
           ],
@@ -148,6 +150,7 @@ describe('DataModelling', () => {
               value: {
                 repositoryRelativeUrl: '',
                 fileName: 'option 1.xsd',
+                fileType: '.xsd',
               },
             },
           ],

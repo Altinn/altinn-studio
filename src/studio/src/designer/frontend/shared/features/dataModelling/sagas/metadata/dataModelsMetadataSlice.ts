@@ -4,7 +4,7 @@ import { createAction, createSlice } from '@reduxjs/toolkit';
 export interface IDataModelMetadataItem {
   repositoryRelativeUrl: string;
   fileName: string;
-  fileType: string;
+  fileType: '.xsd' | '.json';
   select?: boolean;
 }
 export interface IDataModelsMetadataState {

@@ -1,10 +1,10 @@
 import React from 'react';
 import { render as rtlRender } from '@testing-library/react';
-import type { ISchemaSelectProps } from './SchemaSelect';
+import type { GroupedOption, ISchemaSelectProps } from './SchemaSelect';
 import { SchemaSelect } from './SchemaSelect';
 
 describe('SchemaSelect', () => {
-  const mockOptions = [
+  const mockOptions: GroupedOption[] = [
     {
       label: 'JSONSchema',
       options: [
