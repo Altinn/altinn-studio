@@ -1,8 +1,6 @@
 const gulp = require('gulp');
 const run = require('gulp-run-command').default;
-const chokidar = require('chokidar');
 const del = require('del');
-const fs = require('fs');
 
 // When specifying options, you need to add all options to avoid lint errors.
 // This can be removed if/when https://github.com/Klathmon/gulp-run-command/pull/11 is released
@@ -24,23 +22,17 @@ const cleanGlobs = [
 ];
 
 const jsServDevFile = '../frontend/dist/app-development/app-development.js';
-const jsServDevModuleFile0 =
-  '../frontend/dist/app-development/1.app-development.js';
-const jsServDevModuleFile1 =
-  '../frontend/dist/app-development/2.app-development.js';
-const jsServDevModuleFile2 =
-  '../frontend/dist/app-development/3.app-development.js';
-const jsServDevModuleFile3 =
-  '../frontend/dist/app-development/4.app-development.js';
-const jsServDevMonacoWorker1 =
-  '../frontend/dist/app-development/editor.worker.js';
+const jsServDevModuleFile0 = '../frontend/dist/app-development/1.app-development.js';
+const jsServDevModuleFile1 = '../frontend/dist/app-development/2.app-development.js';
+const jsServDevModuleFile2 = '../frontend/dist/app-development/3.app-development.js';
+const jsServDevModuleFile3 = '../frontend/dist/app-development/4.app-development.js';
+const jsServDevMonacoWorker1 = '../frontend/dist/app-development/editor.worker.js';
 const jsServDevMonacoWorker2 = '../frontend/dist/app-development/ts.worker.js';
 const jsDashboardFile = '../frontend/dist/dashboard/dashboard.js';
 const cssServDevFile = '../frontend/dist/app-development/app-development.css';
 const cssDashboardFile = '../frontend/dist/dashboard/dashboard.css';
-
-let jsWatcher = null;
-let cssWatcher = null;
+const langNoFile = '../frontend/dist/language/nb.json';
+const langEnFile = '../frontend/dist/language/en.json';
 
 const jslibDest = 'wwwroot/designer/js/lib/';
 const copyGlobs = [
@@ -119,14 +111,8 @@ const copyGlobs = [
 ];
 
 function copyNodeModulePackages(cb) {
-  copyGlobs.forEach((copyGlob) =>
-    gulp.src(copyGlob.src).pipe(gulp.dest(copyGlob.dest)),
-  );
+  copyGlobs.forEach((copyGlob) => gulp.src(copyGlob.src).pipe(gulp.dest(copyGlob.dest)));
   cb();
-}
-
-function cleanNodeModulePackages() {
-  return del(cleanGlobs);
 }
 
 function copyReactJs(cb) {
@@ -143,123 +129,63 @@ function copyReactCss(cb) {
   return;
 }
 
+const APP_DEVELOPMENT_ROOT = './wwwroot/designer/frontend/app-development';
+const DASHBOARD_ROOT = './wwwroot/designer/frontend/dashboard';
+const LANG_ROOT = './wwwroot/designer/frontend/lang';
+
 function copyDashboardJs() {
   setTimeout(function () {
-    gulp.src(jsDashboardFile).pipe(gulp.dest('./wwwroot/designer/js/react'));
+    gulp.src(jsDashboardFile).pipe(gulp.dest(DASHBOARD_ROOT));
   }, 1000);
   return;
 }
 
 function copyServDevJs() {
   setTimeout(function () {
-    gulp.src(jsServDevFile).pipe(gulp.dest('./wwwroot/designer/js/react'));
-    gulp
-      .src(jsServDevModuleFile0)
-      .pipe(gulp.dest('./wwwroot/designer/js/react'));
-    gulp
-      .src(jsServDevModuleFile1)
-      .pipe(gulp.dest('./wwwroot/designer/js/react'));
-    gulp
-      .src(jsServDevModuleFile2)
-      .pipe(gulp.dest('./wwwroot/designer/js/react'));
-    gulp
-      .src(jsServDevModuleFile3)
-      .pipe(gulp.dest('./wwwroot/designer/js/react'));
-    gulp
-      .src(jsServDevMonacoWorker1)
-      .pipe(gulp.dest('./wwwroot/designer/js/react'));
-    gulp
-      .src(jsServDevMonacoWorker2)
-      .pipe(gulp.dest('./wwwroot/designer/js/react'));
+    gulp.src(jsServDevFile).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
+    gulp.src(jsServDevModuleFile0).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
+    gulp.src(jsServDevModuleFile1).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
+    gulp.src(jsServDevModuleFile2).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
+    gulp.src(jsServDevModuleFile3).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
+    gulp.src(jsServDevMonacoWorker1).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
+    gulp.src(jsServDevMonacoWorker2).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
   }, 1000);
   return;
 }
 
 function copyDashboardCss() {
   setTimeout(function () {
-    gulp.src(cssDashboardFile).pipe(gulp.dest('./wwwroot/designer/css/react'));
+    gulp.src(cssDashboardFile).pipe(gulp.dest(DASHBOARD_ROOT));
   }, 1000);
   return;
 }
 
 function copyServDevCss() {
   setTimeout(function () {
-    gulp.src(cssServDevFile).pipe(gulp.dest('./wwwroot/designer/css/react'));
+    gulp.src(cssServDevFile).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
   }, 1000);
   return;
 }
 
-function deleteServDevJs() {
-  return del('wwwroot/designer/js/react/app-development.js');
-}
-
-function deleteDashboardJs() {
-  return del('wwwroot/designer/js/react/dashboard.js');
-}
-
-function deleteServDevCss() {
-  return del('wwwroot/designer/css/react/app-development.css');
-}
-
-function deleteDashboardCss() {
-  return del('wwwroot/designer/css/react/dashboard.css');
-}
-
-function setupWatchers(cb) {
-  var checkDashboardJsFile = setInterval(function () {
-    if (fs.existsSync(jsDashboardFile)) {
-      jsWatcher = chokidar.watch(jsDashboardFile);
-      // jsWatcher.on('ready', copyReactJs);
-      jsWatcher.on('change', copyDashboardJs);
-      clearInterval(checkDashboardJsFile);
-    }
-  }, 1000);
-
-  var checkServDevJsFile = setInterval(function () {
-    if (fs.existsSync(jsServDevFile)) {
-      jsWatcher = chokidar.watch(jsServDevFile);
-      // jsWatcher.on('ready', copyReactJs);
-      jsWatcher.on('change', copyServDevJs);
-      clearInterval(checkServDevJsFile);
-    }
-  }, 1000);
-
-  var checkDashboardCssFile = setInterval(function () {
-    if (fs.existsSync(cssDashboardFile)) {
-      cssWatcher = chokidar.watch(cssDashboardFile);
-      // cssWatcher.on('ready', copyReactCss);
-      cssWatcher.on('change', copyDashboardCss);
-      clearInterval(checkDashboardCssFile);
-    }
-  }, 1000);
-
-  var checkServDevCssFile = setInterval(function () {
-    if (fs.existsSync(cssServDevFile)) {
-      cssWatcher = chokidar.watch(cssServDevFile);
-      // cssWatcher.on('ready', copyReactCss);
-      cssWatcher.on('change', copyServDevCss);
-      clearInterval(checkServDevCssFile);
-    }
-  }, 1000);
-
-  cb();
+function copyLangFiles(cb) {
+  gulp.src(langNoFile).pipe(gulp.dest(LANG_ROOT));
+  gulp.src(langEnFile).pipe(gulp.dest(LANG_ROOT));
+  setTimeout(cb, 1000);
+  return;
 }
 
 gulp.task('build', gulp.series([copyNodeModulePackages]));
 
-gulp.task(
-  'copy-files',
-  gulp.series(copyNodeModulePackages, copyReactJs, copyReactCss),
-);
+gulp.task('copy-files', gulp.series(copyNodeModulePackages, copyReactJs, copyReactCss, copyLangFiles));
 
 gulp.task(
   'clean',
   gulp.series(
-    deleteServDevCss,
-    deleteDashboardCss,
-    deleteServDevJs,
-    deleteDashboardJs,
-    cleanNodeModulePackages,
+    () => del('wwwroot/designer/frontend/app-development/app-development.css'),
+    () => del('wwwroot/designer/frontend/app-development/app-development.js'),
+    () => del('wwwroot/designer/frontend/dashboard/dashboard.css'),
+    () => del('wwwroot/designer/frontend/dashboard/dashboard.js'),
+    () => del(cleanGlobs),
     run('yarn run clean', {
       ...defaultGulpRunOptions,
       cwd: '../frontend/dashboard',
@@ -272,14 +198,17 @@ gulp.task(
 );
 
 gulp.task(
-  'develop',
+  'develop-designer-backend',
   gulp.parallel(
     copyNodeModulePackages,
-    setupWatchers,
     run('dotnet run'),
-    run('yarn run webpack-watch', {
+    run('yarn run start', {
       ...defaultGulpRunOptions,
       cwd: '../frontend/app-development',
+    }),
+    run('yarn run start', {
+      ...defaultGulpRunOptions,
+      cwd: '../frontend/dashboard',
     }),
   ),
 );
@@ -288,10 +217,13 @@ gulp.task(
   'develop-designer-frontend',
   gulp.parallel(
     copyNodeModulePackages,
-    setupWatchers,
-    run('yarn run webpack-watch', {
+    run('yarn run start', {
       ...defaultGulpRunOptions,
       cwd: '../frontend/app-development',
+    }),
+    run('yarn run start', {
+      ...defaultGulpRunOptions,
+      cwd: '../frontend/dashboard',
     }),
   ),
 );
@@ -300,23 +232,11 @@ gulp.task(
   'develop-dashboard',
   gulp.parallel(
     copyNodeModulePackages,
-    setupWatchers,
     run('dotnet run'),
-    run('yarn run webpack-watch', {
+    run('yarn run start', {
       ...defaultGulpRunOptions,
       cwd: '../frontend/dashboard',
     }),
-  ),
-);
-
-gulp.task(
-  'build-ux-editor',
-  gulp.series(
-    run('yarn run build', {
-      ...defaultGulpRunOptions,
-      cwd: '../frontend/ux-editor',
-    }),
-    'copy-files',
   ),
 );
 
@@ -335,11 +255,7 @@ gulp.task(
   gulp.series([
     run('yarn run build', {
       ...defaultGulpRunOptions,
-      cwd: '../frontend/app-development',
-    }),
-    run('yarn run build', {
-      ...defaultGulpRunOptions,
-      cwd: '../frontend/dashboard',
+      cwd: '../frontend',
     }),
     'copy-files',
   ]),

@@ -12,22 +12,23 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
+  "@xsdRootElement": "Root",
   "allOf": [
     {
       "properties": {
         "i1": {
           "type": "array",
           "items": {
-            "type": "string"
-          },
-          "@xsdType": "string"
+            "type": "string",
+            "@xsdType": "string"
+          }
         },
         "i2": {
           "type": "array",
           "items": {
-            "type": "string"
-          },
-          "@xsdType": "string"
+            "type": "string",
+            "@xsdType": "string"
+          }
         }
       }
     },

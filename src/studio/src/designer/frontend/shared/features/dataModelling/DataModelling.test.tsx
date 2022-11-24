@@ -4,7 +4,10 @@ import { Provider } from 'react-redux';
 import { DataModelling, shouldSelectFirstEntry } from './DataModelling';
 import { LoadingState } from './sagas/metadata';
 import { render as rtlRender, screen } from '@testing-library/react';
-import { LOCAL_STORAGE_KEY, setLocalStorageItem } from './functions/localStorage';
+import {
+  LOCAL_STORAGE_KEY,
+  setLocalStorageItem,
+} from './functions/localStorage';
 
 // workaround for https://jestjs.io/docs/26.x/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(window, 'matchMedia', {
@@ -52,6 +55,47 @@ const initialStoreCall = {
       value: defaultInitialState.dataModelsMetadataState.dataModelsMetadata[0],
     },
   },
+};
+
+const render = (
+  state: {
+    [K in keyof typeof defaultInitialState]?: Partial<
+      typeof defaultInitialState[K]
+    >;
+  } = {},
+) => {
+  const dataModelsMetadataState = state?.dataModelsMetadataState;
+  const dataModelling = state?.dataModelling;
+
+  const initialState = {
+    dataModelsMetadataState: {
+      ...defaultInitialState.dataModelsMetadataState,
+      ...dataModelsMetadataState,
+    },
+    dataModelling: {
+      ...defaultInitialState.dataModelling,
+      ...dataModelling,
+    },
+  };
+
+  const store = configureStore()(initialState);
+  store.dispatch = jest.fn();
+
+  rtlRender(
+    <Provider store={store}>
+      <DataModelling
+        language={{
+          'administration.first': 'some text',
+          'administration.second': 'other text',
+          'app_data_modelling.landing_dialog_header': 'Dialog header',
+        }}
+        org='test-org'
+        repo='test-repo'
+      />
+    </Provider>,
+  );
+
+  return { store };
 };
 
 describe('DataModelling', () => {
@@ -164,14 +208,18 @@ describe('DataModelling', () => {
   it('Should not show start dialog when the models have not been loaded yet', () => {
     // make sure setting to turn off info dialog is set
     setLocalStorageItem('hideIntroPage', true);
-    render({ dataModelsMetadataState: { loadState: LoadingState.LoadingModels } });
+    render({
+      dataModelsMetadataState: { loadState: LoadingState.LoadingModels },
+    });
     expect(screen.queryByText('Dialog header')).not.toBeInTheDocument();
   });
 
   it('Should not show start dialog when the models have not been loaded yet', () => {
     // make sure setting to turn off info dialog is set
     setLocalStorageItem('hideIntroPage', true);
-    render({ dataModelsMetadataState: { loadState: LoadingState.LoadingModels } });
+    render({
+      dataModelsMetadataState: { loadState: LoadingState.LoadingModels },
+    });
     expect(screen.queryByText('Dialog header')).not.toBeInTheDocument();
   });
 
@@ -186,42 +234,3 @@ describe('DataModelling', () => {
     expect(screen.queryByText('Dialog header')).not.toBeInTheDocument();
   });
 });
-
-const render = (state: { [K in keyof typeof defaultInitialState]?: Partial<typeof defaultInitialState[K]> } = {}) => {
-  const dataModelsMetadataState = state?.dataModelsMetadataState;
-  const dataModelling = state?.dataModelling;
-
-  const initialState = {
-    dataModelsMetadataState: {
-      ...defaultInitialState.dataModelsMetadataState,
-      ...dataModelsMetadataState,
-    },
-    dataModelling: {
-      ...defaultInitialState.dataModelling,
-      ...dataModelling,
-    },
-  };
-
-  const store = configureStore()(initialState);
-  store.dispatch = jest.fn();
-
-  rtlRender(
-    <Provider store={store}>
-      <DataModelling
-        language={{
-          administration: {
-            first: 'some text',
-            second: 'other text',
-          },
-          app_data_modelling: {
-            landing_dialog_header: 'Dialog header',
-          },
-        }}
-        org='test-org'
-        repo='test-repo'
-      />
-    </Provider>,
-  );
-
-  return { store };
-};

@@ -10,7 +10,10 @@ namespace Altinn.Studio.DataModeling.Json.Keywords;
 /// </summary>
 [SchemaKeyword(Name)]
 [SchemaPriority(int.MinValue)]
-[SchemaDraft(Draft.Unspecified)]
+[SchemaDraft(Draft.Draft6)]
+[SchemaDraft(Draft.Draft7)]
+[SchemaDraft(Draft.Draft201909)]
+[SchemaDraft(Draft.Draft202012)]
 [JsonConverter(typeof(FormatMaximumKeywordJsonConverter))]
 public sealed class FormatMaximumKeyword: IJsonSchemaKeyword, IEquatable<FormatMaximumKeyword>
 {
@@ -36,7 +39,7 @@ public sealed class FormatMaximumKeyword: IJsonSchemaKeyword, IEquatable<FormatM
     /// <inheritdoc />
     public void Validate(ValidationContext context)
     {
-        context.Ignore = true;
+        // No validation for keyword.
     }
 
     /// <inheritdoc />
@@ -65,10 +68,10 @@ public sealed class FormatMaximumKeyword: IJsonSchemaKeyword, IEquatable<FormatM
     /// <summary>
     /// Serializer for the FormatMaximumKeyword keyword
     /// </summary>
-    public class FormatMaximumKeywordJsonConverter : JsonConverter<FormatMaximumKeyword>
+    internal class FormatMaximumKeywordJsonConverter : JsonConverter<FormatMaximumKeyword>
     {
         /// <summary>
-        /// Read @xsdType keyword from json schema
+        /// Read formatMaximum keyword from json schema
         /// </summary>
         public override FormatMaximumKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {

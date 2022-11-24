@@ -48,9 +48,7 @@ describe('EditModalContent', () => {
       handleComponentUpdate: handleUpdate,
     });
 
-    const maxFilesInput = screen.getByRole('spinbutton', {
-      name: /ux_editor\.modal_properties_maximum_files/i,
-    });
+    const maxFilesInput = screen.getByLabelText('ux_editor.modal_properties_maximum_files');
 
     await user.clear(maxFilesInput);
     expect(handleUpdate).toHaveBeenCalledWith({
@@ -70,9 +68,7 @@ describe('EditModalContent', () => {
       handleComponentUpdate: handleUpdate,
     });
 
-    const minFilesInput = screen.getByRole('spinbutton', {
-      name: /ux_editor\.modal_properties_minimum_files/i,
-    });
+    const minFilesInput = screen.getByLabelText('ux_editor.modal_properties_minimum_files');
 
     await user.clear(minFilesInput);
     expect(handleUpdate).toHaveBeenCalledWith({
@@ -99,7 +95,7 @@ describe('EditModalContent', () => {
       },
     });
 
-    expect(screen.getByTestId('ImageComponent')).toBeInTheDocument();
+    expect(screen.getByLabelText('ux_editor.modal_properties_image_src_value_label')).toBeInTheDocument();
   });
 
   it('should not render Image component when component type is not Image', () => {
@@ -109,14 +105,11 @@ describe('EditModalContent', () => {
       },
     });
 
-    expect(screen.queryByTestId('ImageComponent')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('ux_editor.modal_properties_image_src_value_label')).not.toBeInTheDocument();
   });
 });
 
-const render = ({
-  componentProps = undefined,
-  handleComponentUpdate = jest.fn,
-} = {}) => {
+const render = ({ componentProps = undefined, handleComponentUpdate = jest.fn } = {}) => {
   const createStore = configureStore();
   const mockLanguage = {
     general: {
@@ -184,11 +177,7 @@ const render = ({
   return {
     rendered: rtlRender(
       <Provider store={store}>
-        <EditModalContent
-          component={allComponentProps}
-          language={mockLanguage}
-          handleComponentUpdate={handleComponentUpdate}
-        />
+        <EditModalContent component={allComponentProps} handleComponentUpdate={handleComponentUpdate} />
       </Provider>,
     ),
     allComponentProps,

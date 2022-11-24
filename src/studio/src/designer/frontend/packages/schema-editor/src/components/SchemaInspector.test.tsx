@@ -1,7 +1,6 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
-import { act } from 'react-dom/test-utils';
 import { SchemaInspector } from './SchemaInspector';
 import { dataMock } from '../mockData';
 import { fireEvent, render, screen } from '@testing-library/react';
@@ -31,25 +30,40 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 const mockUiSchema = buildUiSchema(dataMock);
-const getMockSchemaByPath = (selectedId: string): UiSchemaNode => getNodeByPointer(mockUiSchema, selectedId);
+const getMockSchemaByPath = (selectedId: string): UiSchemaNode =>
+  getNodeByPointer(mockUiSchema, selectedId);
 
-const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSchemaNode) => {
+const language = {
+  'schema_editor.maxLength': 'Maksimal lengde',
+  'schema_editor.minLength': 'Minimal lengde',
+};
+
+const renderSchemaInspector = (
+  uiSchemaMap: UiSchemaNodes,
+  selectedItem?: UiSchemaNode,
+) => {
   const store = configureStore()({
     uiSchema: uiSchemaMap,
   });
   const user = userEvent.setup();
-  act(() => {
-    render(
-      <Provider store={store}>
-        <SchemaInspector language={{}} selectedItem={selectedItem} />
-      </Provider>,
-    );
-  });
+
+  render(
+    <Provider store={store}>
+      <SchemaInspector
+        language={language}
+        selectedItem={selectedItem}
+      />
+    </Provider>,
+  );
+
   return { store, user };
 };
 
 test('dispatches correctly when entering text in textboxes', async () => {
-  const { store, user } = renderSchemaInspector(mockUiSchema, getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon'));
+  const { store, user } = renderSchemaInspector(
+    mockUiSchema,
+    getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon'),
+  );
   expect(screen.getByTestId('schema-inspector')).toBeDefined();
   const tablist = screen.getByRole('tablist');
   expect(tablist).toBeDefined();
@@ -78,27 +92,30 @@ test('renders no item if nothing is selected', () => {
   expect(textboxes).toHaveLength(0);
 });
 
-test('dispatches correctly when changing restriction value', async () => {
-  const { store } = renderSchemaInspector(mockUiSchema, getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon'));
+test('dispatches correctly when changing restriction value', () => {
+  const { store } = renderSchemaInspector(
+    mockUiSchema,
+    getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon'),
+  );
 
-  const textboxes = screen.getAllByRole('textbox');
-  textboxes.forEach((textbox) => {
-    if (textbox.id.includes('minLength-value')) {
-      fireEvent.change(textbox, { target: { value: '100' } });
-      fireEvent.blur(textbox);
-    }
-    if (textbox.id.includes('maxLength-value')) {
-      fireEvent.change(textbox, { target: { value: '666' } });
-      fireEvent.blur(textbox);
-    }
-  });
+  const minLength = '100';
+  const maxLength = '666';
+
+  const minLengthTextField = screen.getByLabelText(language['schema_editor.minLength']);
+  fireEvent.change(minLengthTextField, { target: { value: minLength } });
+  fireEvent.blur(minLengthTextField);
+
+  const maxLengthTextField = screen.getByLabelText(language['schema_editor.maxLength']);
+  fireEvent.change(maxLengthTextField, { target: { value: maxLength } });
+  fireEvent.blur(maxLengthTextField);
+
   const actions = store.getActions();
   expect(actions).toHaveLength(2);
-  actions.forEach((action) => {
-    expect(action.type).toContain('schemaEditor');
-    expect(['minLength', 'maxLength']).toContain(action.payload.key);
-    expect(['100', '666']).toContain(action.payload.value);
-  });
+
+  expect(actions[0].type).toContain('schemaEditor');
+  expect(actions[0].payload.restrictions).toEqual(expect.objectContaining({ minLength }));
+  expect(actions[1].type).toContain('schemaEditor');
+  expect(actions[1].payload.restrictions).toEqual(expect.objectContaining({ maxLength }));
 });
 
 test('Adds new object field when pressing the enter key', async () => {
@@ -113,7 +130,9 @@ test('Adds new object field when pressing the enter key', async () => {
   await user.click(screen.queryAllByRole('tab')[1]);
   await user.click(screen.getByDisplayValue('abc'));
   await user.keyboard('{Enter}');
-  expect(store.getActions().map((a) => a.type)).toContain('schemaEditor/addProperty');
+  expect(store.getActions().map((a) => a.type)).toContain(
+    'schemaEditor/addProperty',
+  );
 });
 
 test('Adds new valid value field when pressing the enter key', async () => {
@@ -126,5 +145,7 @@ test('Adds new valid value field when pressing the enter key', async () => {
   await user.click(screen.queryAllByRole('tab')[1]);
   await user.click(screen.getByDisplayValue('valid value'));
   await user.keyboard('{Enter}');
-  expect(store.getActions().map((a) => a.type)).toContain('schemaEditor/addEnum');
+  expect(store.getActions().map((a) => a.type)).toContain(
+    'schemaEditor/addEnum',
+  );
 });

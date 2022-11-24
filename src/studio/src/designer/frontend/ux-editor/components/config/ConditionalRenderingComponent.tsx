@@ -9,11 +9,11 @@ import {
 } from '../../selectors/getLayoutData';
 import { SelectDataModelComponent } from './SelectDataModelComponent';
 import type {
-  IRuleModelFieldElement,
+  IAppState,
+  IFormComponent,
   IFormDesignerComponents,
   IFormLayoutOrder,
-  IFormComponent,
-  IAppState,
+  IRuleModelFieldElement,
 } from '../../types/global';
 
 export interface IConditionalRenderingComponentProps {
@@ -29,10 +29,7 @@ export interface IConditionalRenderingComponentProps {
   language: any;
 }
 
-class ConditionalRendering extends React.Component<
-  IConditionalRenderingComponentProps,
-  any
-> {
+class ConditionalRendering extends React.Component<IConditionalRenderingComponentProps, any> {
   constructor(props: IConditionalRenderingComponentProps) {
     super(props);
     const id = uuidv1();
@@ -61,8 +58,7 @@ class ConditionalRendering extends React.Component<
         // eslint-disable-next-line max-len
         if (
           this.props.ruleModelElements[i].name ===
-          this.props.conditionalRendering[this.props.connectionId]
-            .selectedFunction
+          this.props.conditionalRendering[this.props.connectionId].selectedFunction
         ) {
           this.setState({
             selectedFunctionNr: i,
@@ -97,8 +93,7 @@ class ConditionalRendering extends React.Component<
    * Methods that updates which function is selected and is to be used when running the conditional rendering rule
    */
   public handleSelectedMethodChange = (e: any): void => {
-    const nr =
-      e.target.selectedIndex - 1 < 0 ? null : e.target.selectedIndex - 1;
+    const nr = e.target.selectedIndex - 1 < 0 ? null : e.target.selectedIndex - 1;
     const value = e.target.value;
     this.setState({
       selectedFunctionNr: nr,
@@ -163,9 +158,7 @@ class ConditionalRendering extends React.Component<
       ...this.state,
       conditionalRendering: {
         ...this.state.conditionalRendering,
-        selectedFields: Object.keys(
-          this.state.conditionalRendering.selectedFields,
-        )
+        selectedFields: Object.keys(this.state.conditionalRendering.selectedFields)
           .filter((id: any) => id !== removeId)
           .reduce((newSelectedFields, item) => {
             return {
@@ -200,49 +193,42 @@ class ConditionalRendering extends React.Component<
     this.props.deleteConnection(this.props.connectionId);
   };
 
-  public renderConditionalRenderingTargetComponentOption = (
-    id: string,
-  ): JSX.Element => {
+  public renderConditionalRenderingTargetComponentOption = (id: string): JSX.Element => {
     const component: IFormComponent = this.props.formLayoutComponents[id];
-    const labelText = getComponentTitleByComponentType(
-      component.type,
-      this.props.language,
-    );
+    const labelText = getComponentTitleByComponentType(component.type, this.props.language);
     return (
-      <option key={id} value={id}>
+      <option
+        key={id}
+        value={id}
+      >
         {`${labelText} (${id})`}
       </option>
     );
   };
 
-  public renderCondtionalRenderingTargetContainerOptions = (
-    id: string,
-    baseContainer?: boolean,
-  ): JSX.Element[] => {
+  public renderCondtionalRenderingTargetContainerOptions = (id: string, baseContainer?: boolean): JSX.Element[] => {
     const options: JSX.Element[] = [];
     if (!this.props.order[id]) {
       return options;
     }
     if (!baseContainer) {
-      const name = getComponentTitleByComponentType(
-        'Group',
-        this.props.language,
-      );
+      const name = getComponentTitleByComponentType('Group', this.props.language);
       options.push(
-        <option key={id} value={id}>
+        <option
+          key={id}
+          value={id}
+        >
           {`${name} (${id})`}
         </option>,
       );
     }
     this.props.order[id].forEach((key) => {
       if (this.props.formLayoutComponents[key]) {
-        const option =
-          this.renderConditionalRenderingTargetComponentOption(key);
+        const option = this.renderConditionalRenderingTargetComponentOption(key);
         options.push(option);
       } else {
         // A container can have components and sub-containers
-        const containerOptions =
-          this.renderCondtionalRenderingTargetContainerOptions(key);
+        const containerOptions = this.renderCondtionalRenderingTargetContainerOptions(key);
         containerOptions.forEach((option) => {
           options.push(option);
         });
@@ -255,13 +241,8 @@ class ConditionalRendering extends React.Component<
     const options: JSX.Element[] = [];
     Object.keys(this.props.order).forEach((key) => {
       const containerKey = Object.keys(this.props.order)[0];
-      const isBaseContainer =
-        this.props.formLayoutContainers[containerKey]?.Type !== 'Group';
-      const containerOptions =
-        this.renderCondtionalRenderingTargetContainerOptions(
-          key,
-          isBaseContainer,
-        );
+      const isBaseContainer = this.props.formLayoutContainers[containerKey]?.Type !== 'Group';
+      const containerOptions = this.renderCondtionalRenderingTargetContainerOptions(key, isBaseContainer);
       containerOptions.forEach((option) => {
         options.push(option);
       });
@@ -281,21 +262,18 @@ class ConditionalRendering extends React.Component<
             </div>
             <h1 className='a-iconText-text mb-0'>
               <span className='a-iconText-text-large'>
-                {
-                  this.props.language.ux_editor
-                    .modal_configure_conditional_rendering_header
-                }
+                {this.props.language['ux_editor.modal_configure_conditional_rendering_header']}
               </span>
             </h1>
           </div>
         </div>
         <div className='modal-body a-modal-body'>
           <div className='form-group a-form-group'>
-            <label htmlFor='selectConditionalRule' className='a-form-label'>
-              {
-                this.props.language.ux_editor
-                  .modal_configure_conditional_rendering_helper
-              }
+            <label
+              htmlFor='selectConditionalRule'
+              className='a-form-label'
+            >
+              {this.props.language['ux_editor.modal_configure_conditional_rendering_helper']}
             </label>
             <select
               name='selectConditionalRule'
@@ -305,12 +283,13 @@ class ConditionalRendering extends React.Component<
               id='selectConditionalRule'
               style={{ fontSize: '16px' }}
             >
-              <option value=''>
-                {this.props.language.general.choose_method}
-              </option>
+              <option value=''>{this.props.language['general.choose_method']}</option>
               {this.props.ruleModelElements.map((funcObj: any) => {
                 return (
-                  <option key={funcObj.name} value={funcObj.name}>
+                  <option
+                    key={funcObj.name}
+                    value={funcObj.name}
+                  >
                     {funcObj.name}
                   </option>
                 );
@@ -321,23 +300,25 @@ class ConditionalRendering extends React.Component<
             <>
               <div className='form-group a-form-group mt-2'>
                 <h2 className='a-h4'>
-                  {
-                    this.props.language.ux_editor
-                      .modal_configure_conditional_rendering_configure_input_header
-                  }
+                  {this.props.language['ux_editor.modal_configure_conditional_rendering_configure_input_header']}
                 </h2>
-                {Object.keys(
-                  this.props.ruleModelElements[selectedMethodNr].inputs,
-                ).map((key: any) => {
+                {Object.keys(this.props.ruleModelElements[selectedMethodNr].inputs).map((key: any) => {
                   const paramName = key;
                   return (
-                    <div className='row align-items-center mb-1' key={key}>
+                    <div
+                      className='row align-items-center mb-1'
+                      key={key}
+                    >
                       <div className='col-3 col'>
                         <div className='form-group a-form-group mt-1 disabled'>
-                          <label className='a-form-label' htmlFor={paramName}>
+                          <label
+                            className='a-form-label'
+                            htmlFor={paramName}
+                          >
                             {
-                              this.props.language.ux_editor
-                                .modal_configure_conditional_rendering_configure_input_param_helper
+                              this.props.language[
+                                'ux_editor.modal_configure_conditional_rendering_configure_input_param_helper'
+                              ]
                             }
                           </label>
                           <input
@@ -345,10 +326,7 @@ class ConditionalRendering extends React.Component<
                             name={paramName}
                             type='text'
                             className='form-control'
-                            value={
-                              this.props.ruleModelElements[selectedMethodNr]
-                                .inputs[key]
-                            }
+                            value={this.props.ruleModelElements[selectedMethodNr].inputs[key]}
                             width={10}
                             disabled={true}
                           />
@@ -356,15 +334,8 @@ class ConditionalRendering extends React.Component<
                       </div>
                       <div className='col-9 col'>
                         <SelectDataModelComponent
-                          onDataModelChange={this.handleParamDataChange.bind(
-                            null,
-                            paramName,
-                          )}
-                          selectedElement={
-                            this.state.conditionalRendering.inputParams[
-                              paramName
-                            ]
-                          }
+                          onDataModelChange={this.handleParamDataChange.bind(null, paramName)}
+                          selectedElement={this.state.conditionalRendering.inputParams[paramName]}
                           hideRestrictions={true}
                           language={this.props.language}
                         />
@@ -375,17 +346,18 @@ class ConditionalRendering extends React.Component<
               </div>
               <div className='form-group a-form-group mt-2'>
                 <h2 className='a-h4'>
-                  {
-                    this.props.language.ux_editor
-                      .modal_configure_conditional_rendering_configure_output_header
-                  }
+                  {this.props.language['ux_editor.modal_configure_conditional_rendering_configure_output_header']}
                 </h2>
                 <div className='row align-items-center mb-1'>
                   <div className='col'>
-                    <label className='a-form-label' htmlFor='select_action'>
+                    <label
+                      className='a-form-label'
+                      htmlFor='select_action'
+                    >
                       {
-                        this.props.language.ux_editor
-                          .modal_configure_conditional_rendering_configure_output_action_helper
+                        this.props.language[
+                          'ux_editor.modal_configure_conditional_rendering_configure_output_action_helper'
+                        ]
                       }
                     </label>
                     <select
@@ -395,12 +367,13 @@ class ConditionalRendering extends React.Component<
                       className='custom-select a-custom-select'
                       style={{ fontSize: '16px' }}
                     >
-                      <option value=''>
-                        {this.props.language.general.action}
-                      </option>
+                      <option value=''>{this.props.language['general.action']}</option>
                       {this.state.selectableActions.map((value: string) => {
                         return (
-                          <option key={value} value={value}>
+                          <option
+                            key={value}
+                            value={value}
+                          >
                             {value}
                           </option>
                         );
@@ -409,32 +382,23 @@ class ConditionalRendering extends React.Component<
                   </div>
                 </div>
                 <p className='mt-2'>
-                  {
-                    this.props.language.ux_editor
-                      .modal_configure_conditional_rendering_configure_output_field_helper
-                  }
+                  {this.props.language['ux_editor.modal_configure_conditional_rendering_configure_output_field_helper']}
                 </p>
-                {Object.keys(
-                  this.state.conditionalRendering.selectedFields,
-                ).map((key: any) => {
+                {Object.keys(this.state.conditionalRendering.selectedFields).map((key: any) => {
                   return (
-                    <div className='row align-items-center' key={key}>
+                    <div
+                      className='row align-items-center'
+                      key={key}
+                    >
                       <div className='col-11 col'>
                         <select
                           name={key}
-                          onChange={this.handleFieldMappingChange.bind(
-                            null,
-                            key,
-                          )}
-                          value={
-                            this.state.conditionalRendering.selectedFields[key]
-                          }
+                          onChange={this.handleFieldMappingChange.bind(null, key)}
+                          value={this.state.conditionalRendering.selectedFields[key]}
                           className='custom-select a-custom-select mb-1'
                           style={{ fontSize: '16px' }}
                         >
-                          <option value=''>
-                            {this.props.language.general.select_component}
-                          </option>
+                          <option value=''>{this.props.language['general.select_component']}</option>
                           {this.renderCondtionalRenderingTargetOptions()}
                         </select>
                       </div>
@@ -458,8 +422,9 @@ class ConditionalRendering extends React.Component<
                       onClick={this.addNewField}
                     >
                       {
-                        this.props.language.ux_editor
-                          .modal_configure_conditional_rendering_configure_add_new_field_mapping
+                        this.props.language[
+                          'ux_editor.modal_configure_conditional_rendering_configure_add_new_field_mapping'
+                        ]
                       }
                     </button>
                   </div>
@@ -475,7 +440,7 @@ class ConditionalRendering extends React.Component<
                   type='submit'
                   className='a-btn a-btn-success mr-2'
                 >
-                  {this.props.language.general.save}
+                  {this.props.language['general.save']}
                 </button>
               ) : null}
               {this.props.connectionId ? (
@@ -484,12 +449,10 @@ class ConditionalRendering extends React.Component<
                   className='a-btn a-btn-danger mr-2'
                   onClick={this.handleDeleteConnection}
                 >
-                  {this.props.language.general.delete}
+                  {this.props.language['general.delete']}
                 </button>
               ) : null}
-              <a onClick={this.props.cancelEdit}>
-                {this.props.language.general.cancel}
-              </a>
+              <a onClick={this.props.cancelEdit}>{this.props.language['general.cancel']}</a>
             </div>
           </div>
         </div>
@@ -503,9 +466,7 @@ const mapStateToProps = (state: IAppState, props: any): any => {
   const getAllComponents = makeGetAllLayoutComponents();
   const getFullOrder = makeGetFullOrder();
   return {
-    ruleModelElements: state.appData.ruleModel.model.filter(
-      (key: any) => key.type === 'condition',
-    ),
+    ruleModelElements: state.appData.ruleModel.model.filter((key: any) => key.type === 'condition'),
     conditionalRendering: state.serviceConfigurations.conditionalRendering,
     selectedFunction: props.selectedFunction,
     formLayoutComponents: getAllComponents(state),
@@ -515,5 +476,4 @@ const mapStateToProps = (state: IAppState, props: any): any => {
   };
 };
 
-export const ConditionalRenderingComponent =
-  connect(mapStateToProps)(ConditionalRendering);
+export const ConditionalRenderingComponent = connect(mapStateToProps)(ConditionalRendering);

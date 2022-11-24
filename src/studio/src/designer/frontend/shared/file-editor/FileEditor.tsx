@@ -6,9 +6,14 @@ import { diffChars } from 'diff';
 import MonacoEditorComponent from './MonacoEditorComponent';
 import altinnTheme from '../theme/altinnStudioTheme';
 import AltinnButton from '../components/AltinnButton';
-import type { IAltinnWindow } from '../types/global';
 import { get, post } from '../utils/networking';
 import postMessages from '../utils/postMessages';
+import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
+import {
+  getServiceFilePath,
+  getServiceFilesPath,
+  saveServiceFilePath,
+} from '../api-paths';
 
 const theme = createTheme(altinnTheme);
 
@@ -148,12 +153,8 @@ class FileEditor extends React.Component<
 
   public componentDidMount() {
     if (!this.props.loadFile) {
-      const { org, app } = window as Window as IAltinnWindow;
-      const appId = `${org}/${app}`;
-      get(
-        `${window.location.origin}/designer/${appId}/ServiceDevelopment` +
-          `/GetServiceFiles?fileEditorMode=${this.props.mode}`,
-      ).then((response) => {
+      const { org, app } = _useParamsClassCompHack();
+      get(getServiceFilesPath(org, app, this.props.mode)).then((response) => {
         const files = response.split(',');
         this.loadFileContent(files[0]);
         this.setState((prevState: IFileEditorState) => {
@@ -180,22 +181,20 @@ class FileEditor extends React.Component<
     this.setState({
       isLoading: true,
     });
-    const { org, app } = window as Window as IAltinnWindow;
-    const appId = `${org}/${app}`;
-    get(
-      `${window.location.origin}/designer/${appId}/ServiceDevelopment` +
-        `/GetServiceFile?fileEditorMode=${this.props.mode}&fileName=${fileName}`,
-    ).then((logicFileContent) => {
-      this.setState((prevState: IFileEditorState) => {
-        return {
-          ...prevState,
-          isLoading: false,
-          selectedFile: fileName,
-          value: logicFileContent,
-          valueOriginal: logicFileContent,
-        };
-      });
-    });
+    const { org, app } = _useParamsClassCompHack();
+    get(getServiceFilePath(org, app, this.props.mode, fileName)).then(
+      (logicFileContent) => {
+        this.setState((prevState: IFileEditorState) => {
+          return {
+            ...prevState,
+            isLoading: false,
+            selectedFile: fileName,
+            value: logicFileContent,
+            valueOriginal: logicFileContent,
+          };
+        });
+      },
+    );
   };
 
   public switchFile = (e: any) => {
@@ -211,18 +210,16 @@ class FileEditor extends React.Component<
     ) {
       stageFile = true;
     }
-
-    const { org, app } = window as Window as IAltinnWindow;
-    const appId = `${org}/${app}`;
-    const postUrl =
-      `${window.location.origin}/designer/${appId}/ServiceDevelopment` +
-      `/SaveServiceFile?fileEditorMode=${this.props.mode}&fileName=${this.state.selectedFile}&stageFile=${stageFile}`;
-
-    const saveRes: any = await post(postUrl, this.state.value, {
-      headers: {
-        'Content-type': 'text/plain;charset=utf-8',
+    const { org, app } = _useParamsClassCompHack();
+    const saveRes: any = await post(
+        saveServiceFilePath(org, app, this.props.mode, this.state.selectedFile, stageFile),
+        this.state.value,
+      {
+        headers: {
+          'Content-type': 'text/plain;charset=utf-8',
+        },
       },
-    });
+    );
 
     if (saveRes.isSuccessStatusCode === false) {
       console.error('save error', saveRes);
@@ -296,7 +293,11 @@ class FileEditor extends React.Component<
 
   public renderCloseButton = (): JSX.Element => {
     return (
-      <Grid item={true} xs={1} className={this.props.classes.fileHeader}>
+      <Grid
+        item={true}
+        xs={1}
+        className={this.props.classes.fileHeader}
+      >
         <IconButton
           type='button'
           className={
@@ -323,7 +324,10 @@ class FileEditor extends React.Component<
           onClick={this.saveFile}
           tabIndex={0}
         >
-          <i className='fa fa-circlecheck' id='fileEditorCheck' />
+          <i
+            className='fa fa-circlecheck'
+            id='fileEditorCheck'
+          />
         </IconButton>
       </Grid>
     );
@@ -378,7 +382,10 @@ class FileEditor extends React.Component<
           alignItems='center'
           className={classes.fileHeader}
         >
-          <Grid item={true} xs={true}>
+          <Grid
+            item={true}
+            xs={true}
+          >
             <span>
               {/* If this.props.loadFile is present,
                * if loadFile contains directories then split and show,
@@ -461,12 +468,16 @@ class FileEditor extends React.Component<
           {/* Contains grid items */}
           {this.props.closeFileEditor ? this.renderCloseButton() : null}
         </Grid>
-        <Grid item={true} xs={12} className={classes.codeEditorContent}>
+        <Grid
+          item={true}
+          xs={12}
+          className={classes.codeEditorContent}
+        >
           <MonacoEditorComponent
             createCompletionSuggestions={this.createCompletionSuggestions}
             heightPx={`${this.props.editorHeight}px`}
             isLoading={this.state.isLoading}
-            language={language.name}
+            language={language['name']}
             onValueChange={this.onValueChange}
             value={this.state.value}
             escRef={
@@ -476,9 +487,17 @@ class FileEditor extends React.Component<
             }
           />
         </Grid>
-        <Grid className={classes.footerContent} item={true} xs={11} />
-        <Grid className={classes.footerContent} item={true} xs={1}>
-          <span>{language.displayName}</span>
+        <Grid
+          className={classes.footerContent}
+          item={true}
+          xs={11}
+        />
+        <Grid
+          className={classes.footerContent}
+          item={true}
+          xs={1}
+        >
+          <span>{language['displayName']}</span>
         </Grid>
       </Grid>
     );

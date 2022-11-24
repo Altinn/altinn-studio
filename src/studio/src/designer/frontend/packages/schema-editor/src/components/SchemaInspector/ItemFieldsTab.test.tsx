@@ -26,15 +26,31 @@ const childNodes = fieldNames.map((childNodeName) => ({
 const numberOfFields = fieldNames.length;
 selectedItem.children = childNodes.map(({ pointer }) => pointer);
 const uiSchema: UiSchemaNodes = [selectedItem, ...childNodes];
-const textRequired = 'Required';
-const textDelete = 'Delete';
 const textAdd = 'Legg til felt';
+const textDelete = 'Slett';
+const textDeleteField = 'Slett felt';
+const textFieldName = 'Navn på felt';
+const textRequired = 'Påkrevd';
+const textType = 'Type';
+const fieldTypeNames = {
+  [FieldType.Boolean]: "Ja/nei",
+  [FieldType.Integer]: "Helt tall",
+  [FieldType.Number]: "Desimaltall",
+  [FieldType.Object]: "Objekt",
+  [FieldType.String]: "Tekst",
+};
 const language = {
-  schema_editor: {
-    add_property: textAdd,
-    delete_field: textDelete,
-    required: textRequired,
-  },
+  'schema_editor.add_property': textAdd,
+  'schema_editor.delete': textDelete,
+  'schema_editor.delete_field': textDeleteField,
+  'schema_editor.field_name': textFieldName,
+  'schema_editor.required': textRequired,
+  'schema_editor.type': textType,
+  'schema.editor.number': fieldTypeNames[FieldType.Number],
+  'schema_editor.boolean': fieldTypeNames[FieldType.Boolean],
+  'schema_editor.integer': fieldTypeNames[FieldType.Integer],
+  'schema_editor.object': fieldTypeNames[FieldType.Object],
+  'schema_editor.string': fieldTypeNames[FieldType.String],
 };
 const defaultProps: ItemFieldsTabProps = {
   language,
@@ -43,7 +59,21 @@ const defaultProps: ItemFieldsTabProps = {
 const defaultState = { uiSchema };
 
 const renderItemFieldsTab = (props?: Partial<ItemFieldsTabProps>, state?: any) =>
-  renderWithRedux(<ItemFieldsTab {...defaultProps} {...props} />, { ...defaultState, ...state });
+  renderWithRedux(
+    <ItemFieldsTab
+      {...defaultProps}
+      {...props}
+    />,
+    { ...defaultState, ...state },
+  );
+
+test('Header texts appear', () => {
+  renderItemFieldsTab();
+  expect(screen.getByText(textFieldName)).toBeDefined();
+  expect(screen.getByText(textType)).toBeDefined();
+  expect(screen.getByText(textRequired)).toBeDefined();
+  expect(screen.getByText(textDelete)).toBeDefined();
+});
 
 test('Inputs and delete buttons appear for all fields', () => {
   renderItemFieldsTab();
@@ -51,7 +81,7 @@ test('Inputs and delete buttons appear for all fields', () => {
   expect(textboxes).toHaveLength(numberOfFields);
   textboxes.forEach((textbox, i) => expect(textbox).toHaveValue(fieldNames[i]));
   expect(screen.getAllByRole('checkbox')).toHaveLength(numberOfFields);
-  expect(screen.queryAllByLabelText(textDelete)).toHaveLength(numberOfFields);
+  expect(screen.queryAllByLabelText(textDeleteField)).toHaveLength(numberOfFields);
 });
 
 test('"Add property" button appears', () => {
@@ -70,6 +100,21 @@ test('setPropertyName action is called with correct payload when a name is chang
   expect(setPropertyNameActions).toHaveLength(numberOfFields);
   setPropertyNameActions.forEach((action, i) => {
     expect(action.payload.name).toEqual(fieldNames[i] + suffix);
+    expect(action.payload.path).toEqual(childNodes[i].pointer);
+  });
+});
+
+test('setType action is called with correct payload when a type is changed', async () => {
+  const { user, store } = renderItemFieldsTab();
+  const newType = FieldType.Integer;
+  for (const i in fieldNames) {
+    await user.click(screen.getAllByRole('combobox')[i]);
+    await user.click(screen.getAllByRole('option', { name: fieldTypeNames[newType] })[i])
+  }
+  const setPropertyNameActions = store.getActions().filter((action) => action.type === 'schemaEditor/setType');
+  expect(setPropertyNameActions).toHaveLength(numberOfFields);
+  setPropertyNameActions.forEach((action, i) => {
+    expect(action.payload.type).toEqual(newType);
     expect(action.payload.path).toEqual(childNodes[i].pointer);
   });
 });
@@ -94,7 +139,7 @@ test('addProperty action is calledd with correct payload when a field is focused
 test('deleteProperty action is called with correct payload when delete button is clicked', async () => {
   const { user, store } = renderItemFieldsTab();
   for (const i in fieldNames) {
-    await user.click(screen.queryAllByLabelText(textDelete)[i]);
+    await user.click(screen.queryAllByLabelText(textDeleteField)[i]);
   }
   const setPropertyNameActions = store.getActions().filter((action) => action.type === 'schemaEditor/deleteProperty');
   expect(setPropertyNameActions).toHaveLength(numberOfFields);
@@ -110,7 +155,13 @@ test('Newly added field gets focus and its text becomes selected', async () => {
   };
   const newSelectedItem = { ...selectedItem, children: [...selectedItem.children, newChildNode.pointer] };
   const newUiSchema = [newSelectedItem, ...childNodes, newChildNode];
-  rerenderWithRedux(<ItemFieldsTab {...defaultProps} selectedItem={newSelectedItem} />, { uiSchema: newUiSchema });
+  rerenderWithRedux(
+    <ItemFieldsTab
+      {...defaultProps}
+      selectedItem={newSelectedItem}
+    />,
+    { uiSchema: newUiSchema },
+  );
   expect(screen.getByDisplayValue(newChildNodeName)).toHaveFocus();
   await user.keyboard('a'); // Should replace the current value since the text should be selected
   expect(screen.getByDisplayValue('a')).toBeDefined();

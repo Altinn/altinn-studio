@@ -117,6 +117,9 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
                         HandleRootMessage(keywords);
                         break;
+                    case XsdRootElementKeyword:
+                        keywords.MarkAsHandled<XsdRootElementKeyword>();
+                        break;
                 }
             }
 
@@ -536,10 +539,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             {
                 attribute.SchemaTypeName = GetTypeNameFromReference(refKeyword.Reference);
             }
-            else if (keywords.TryPull(out TypeKeyword typeKeyword))
-            {
-                attribute.SchemaTypeName = GetTypeNameFromTypeKeyword(typeKeyword, keywords);
-            }
             else if (compatibleTypes.Contains(CompatibleXsdType.SimpleTypeRestriction))
             {
                 var simpleType = new XmlSchemaSimpleType
@@ -549,6 +548,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 attribute.SchemaType = simpleType;
 
                 HandleSimpleType(simpleType, keywords, path);
+            }
+            else if (keywords.TryPull(out TypeKeyword typeKeyword))
+            {
+                attribute.SchemaTypeName = GetTypeNameFromTypeKeyword(typeKeyword, keywords);
             }
             else if (compatibleTypes.Contains(CompatibleXsdType.SimpleTypeList))
             {
@@ -589,7 +592,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 {
                     restriction.BaseTypeName = GetTypeNameFromReference(baseTypeReference.Reference);
 
-                    targetBaseType = FindTargetBaseTypeForSimpleTypeRestriction(baseTypeSchema, path);
+                    targetBaseType = FindTargetBaseTypeForSimpleTypeRestriction(baseTypeSchema);
                     if (targetBaseType == XmlQualifiedName.Empty)
                     {
                         throw new JsonSchemaConvertException($"Could not find target built-in type for SimpleType Restriction in {path}");
@@ -614,6 +617,17 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
                 restrictionsKeywordsList.AddRange(restrictionSchemas.Select(restrictionSchema => restrictionSchema.AsWorkList()));
             }
+            else if (keywords.TryGetKeyword(out XsdStructureKeyword xsdStructure) &&
+                     keywords.TryGetKeyword(out RefKeyword refKeyword))
+            {
+                if (xsdStructure.Value != nameof(XmlSchemaSimpleTypeRestriction))
+                {
+                    throw new JsonSchemaConvertException($"This is not a valid SimpleType restriction {path}");
+                }
+
+                restriction.BaseTypeName = GetTypeNameFromReference(refKeyword.Reference);
+                ValidateTargetBase(keywords, path);
+            }
             else
             {
                 throw new JsonSchemaConvertException($"This is not a valid SimpleType restriction {path}");
@@ -632,9 +646,17 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
         }
 
+        private void ValidateTargetBase(WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)
+        {
+            if (FindTargetBaseTypeForSimpleTypeRestriction(keywords.AsJsonSchema()) == XmlQualifiedName.Empty)
+            {
+                throw new JsonSchemaConvertException($"Could not find target built-in type for SimpleType Restriction in {path}");
+            }
+        }
+
         // Search for target base type by following direct references and then a depth first search through allOf keywords
         // This should result in minimal search effort in real life as base types are usually in a direct reference or in the first subschema when using allOf
-        private XmlQualifiedName FindTargetBaseTypeForSimpleTypeRestriction(JsonSchema schema, JsonPointer path)
+        private XmlQualifiedName FindTargetBaseTypeForSimpleTypeRestriction(JsonSchema schema)
         {
             // follow all direct references
             while (schema.TryGetKeyword(out RefKeyword reference))
@@ -647,7 +669,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             {
                 foreach (var subschema in allOf.Schemas)
                 {
-                    var baseType = FindTargetBaseTypeForSimpleTypeRestriction(subschema, path);
+                    var baseType = FindTargetBaseTypeForSimpleTypeRestriction(subschema);
                     if (baseType != XmlQualifiedName.Empty)
                     {
                         return baseType;
@@ -725,7 +747,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
                         foreach (var value in enumKeyword.Values)
                         {
-                            facets.Add(new XmlSchemaEnumerationFacet { Value = value.GetString() });
+                            facets.Add(new XmlSchemaEnumerationFacet { Value = value.ToString() });
                         }
 
                         break;
@@ -777,6 +799,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     case FormatMaximumKeyword formatMaximum:
                         keywords.MarkAsHandled<FormatMaximumKeyword>();
                         facets.Add(new XmlSchemaMaxInclusiveFacet() { Value = formatMaximum.Value.ToString(NumberFormatInfo.InvariantInfo) });
+                        break;
+                    case XsdTotalDigitsKeyword totalDigitsKeyword:
+                        keywords.MarkAsHandled<XsdTotalDigitsKeyword>();
+                        facets.Add(new XmlSchemaTotalDigitsFacet() { Value = totalDigitsKeyword.Value.ToString(NumberFormatInfo.InvariantInfo) });
                         break;
                     default:
                         continue;
@@ -870,7 +896,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 else
                 {
                     // "value" property only contains restrictions
-                    var targetBaseType = FindTargetBaseTypeForSimpleTypeRestriction(baseTypeSchema, path.Combine(JsonPointer.Parse($"/allOf/[{baseTypeSchemaIndex}]")));
+                    var targetBaseType = FindTargetBaseTypeForSimpleTypeRestriction(baseTypeSchema);
 
                     var valuePropertyKeywords = valuePropertySchema.AsWorkList();
                     var restrictionFacets = GetRestrictionFacets(valuePropertyKeywords, targetBaseType);
@@ -1028,15 +1054,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 SetRequired(subItem, required.Contains(name));
                 SetFixed(subItem, property.Keywords.GetKeyword<ConstKeyword>());
                 SetDefault(subItem, property.Keywords.GetKeyword<DefaultKeyword>());
-
-                if (subItem is XmlSchemaParticle particle)
-                {
-                    var minItemsKeyword = property.Keywords.GetKeyword<MinItemsKeyword>();
-                    if (minItemsKeyword != null)
-                    {
-                        particle.MinOccurs = minItemsKeyword.Value;
-                    }
-                }
+                CarryOccurs(subItem, property);
 
                 switch (subItem)
                 {
@@ -1055,6 +1073,24 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
         }
 
+        private static void CarryOccurs(XmlSchemaObject subItem, JsonSchema property)
+        {
+            if (subItem is not XmlSchemaParticle particle)
+            {
+                return;
+            }
+
+            if (property.Keywords.TryGetKeyword(out XsdMinOccursKeyword minOccursKeyword))
+            {
+                particle.MinOccurs = minOccursKeyword.Value;
+            }
+
+            if (property.Keywords.TryGetKeyword(out XsdMaxOccursKeyword maxOccursKeyword))
+            {
+                particle.MaxOccursString = maxOccursKeyword.Value;
+            }
+        }
+
         private XmlSchemaObject ConvertSubschema(JsonPointer path, JsonSchema schema)
         {
             var compatibleTypes = _metadata.GetCompatibleTypes(path);
@@ -1063,14 +1099,12 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             if (compatibleTypes.Contains(CompatibleXsdType.Array))
             {
-                var itemSchema = schema.GetKeyword<ItemsKeyword>().SingleSchema;
-
-                if (itemSchema.TryGetKeyword(out MinItemsKeyword minItemsKeyword))
+                if (schema.TryGetKeyword(out MinItemsKeyword minItemsKeyword))
                 {
                     arrayMinOccurs = minItemsKeyword.Value.ToString();
                 }
 
-                arrayMaxOccurs = itemSchema.TryGetKeyword(out MaxItemsKeyword maxItemsKeyword) ? maxItemsKeyword.Value.ToString() : "unbounded";
+                arrayMaxOccurs = schema.TryGetKeyword(out MaxItemsKeyword maxItemsKeyword) ? maxItemsKeyword.Value.ToString() : "unbounded";
             }
 
             if (compatibleTypes.Contains(CompatibleXsdType.SimpleType))

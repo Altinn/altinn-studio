@@ -12,6 +12,7 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
+  "@xsdRootElement": "Root",
   "allOf": [
     {
       "properties": {
@@ -23,10 +24,11 @@
           "type": "array",
           "items": {
             "type": "string",
-            "maxItems": 100
+            "@xsdType": "string"
           },
-          "minItems": 0,
-          "@xsdType": "string"
+          "@xsdMinOccurs": 0,
+          "@xsdMaxOccurs": "100",
+          "maxItems": 100
         }
       },
       "required": [
@@ -40,17 +42,18 @@
             "e3": {
               "type": "array",
               "items": {
-                "type": "string"
-              },
-              "@xsdType": "string"
+                "type": "string",
+                "@xsdType": "string"
+              }
             },
             "e4": {
               "type": "array",
               "items": {
-                "type": "string"
+                "type": "string",
+                "@xsdType": "string"
               },
-              "minItems": 0,
-              "@xsdType": "string"
+              "@xsdMinOccurs": 0,
+              "@xsdMaxOccurs": "unbounded"
             }
           }
         },
@@ -59,17 +62,18 @@
             "e5": {
               "type": "array",
               "items": {
-                "type": "string"
-              },
-              "@xsdType": "string"
+                "type": "string",
+                "@xsdType": "string"
+              }
             },
             "e6": {
               "type": "array",
               "items": {
-                "type": "string"
+                "type": "string",
+                "@xsdType": "string"
               },
-              "minItems": 0,
-              "@xsdType": "string"
+              "@xsdMinOccurs": 0,
+              "@xsdMaxOccurs": "unbounded"
             }
           }
         },
@@ -78,17 +82,18 @@
             "e7": {
               "type": "array",
               "items": {
-                "type": "string"
-              },
-              "@xsdType": "string"
+                "type": "string",
+                "@xsdType": "string"
+              }
             },
             "e8": {
               "type": "array",
               "items": {
-                "type": "string"
+                "type": "string",
+                "@xsdType": "string"
               },
-              "minItems": 0,
-              "@xsdType": "string"
+              "@xsdMinOccurs": 0,
+              "@xsdMaxOccurs": "unbounded"
             }
           }
         }

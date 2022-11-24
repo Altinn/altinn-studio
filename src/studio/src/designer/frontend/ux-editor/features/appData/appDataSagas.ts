@@ -14,7 +14,6 @@ import {
 import {
   getAddTextResourcesUrl,
   getFetchDataModelUrl,
-  getFetchLanguageUrl,
   getFetchRuleModelUrl,
 } from '../../utils/urlHelper';
 import {
@@ -37,6 +36,7 @@ import type {
   IDataModelFieldElement,
   IRuleModelFieldElement,
 } from '../../types/global';
+import {frontendLangPath} from "app-shared/api-paths";
 
 function* fetchDataModelSaga(): SagaIterator {
   try {
@@ -117,7 +117,7 @@ export function* fetchLanguageSaga({
 }: PayloadAction<IFetchLanguage>): SagaIterator {
   try {
     const { languageCode } = payload;
-    const language = yield call(get, getFetchLanguageUrl(languageCode));
+    const language = yield call(get, frontendLangPath(languageCode));
     yield put(fetchLanguageFulfilled({ language }));
   } catch (error) {
     yield put(fetchLanguageRejected({ error }));

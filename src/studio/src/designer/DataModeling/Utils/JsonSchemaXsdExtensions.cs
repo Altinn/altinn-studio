@@ -191,5 +191,53 @@ namespace Altinn.Studio.DataModeling.Utils
             builder.Add(new FormatMaximumKeyword(value));
             return builder;
         }
+
+        /// <summary>
+        /// Adds <see cref="XsdMinOccursKeyword"/> keyword to builder
+        /// </summary>
+        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
+        /// <param name="value">MinOccurs value</param>
+        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
+        public static JsonSchemaBuilder XsdMinOccurs(this JsonSchemaBuilder builder, int value)
+        {
+            builder.Add(new XsdMinOccursKeyword(value));
+            return builder;
+        }
+
+        /// <summary>
+        /// Adds <see cref="XsdMaxOccursKeyword"/> keyword to builder
+        /// </summary>
+        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
+        /// <param name="value">MaxOccurs value</param>
+        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
+        public static JsonSchemaBuilder XsdMaxOccurs(this JsonSchemaBuilder builder, string value)
+        {
+            builder.Add(new XsdMaxOccursKeyword(value));
+            return builder;
+        }
+
+        /// <summary>
+        /// Adds <see cref="XsdTotalDigitsKeyword"/> keyword to builder
+        /// </summary>
+        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
+        /// <param name="value">MaxOccurs value</param>
+        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
+        public static JsonSchemaBuilder XsdTotalDigits(this JsonSchemaBuilder builder, uint value)
+        {
+            builder.Add(new XsdTotalDigitsKeyword(value));
+            return builder;
+        }
+
+        /// <summary>
+        /// Adds <see cref="XsdRootElementKeyword"/> keyword to builder
+        /// </summary>
+        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
+        /// <param name="value">MaxOccurs value</param>
+        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
+        public static JsonSchemaBuilder XsdRootElement(this JsonSchemaBuilder builder, string value)
+        {
+            builder.Add(new XsdRootElementKeyword(value));
+            return builder;
+        }
     }
 }

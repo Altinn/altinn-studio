@@ -62,13 +62,13 @@ test('All types should appear as options', () => {
 
 test('Type options should have correct values and labels', () => {
   renderReferenceSelectionComponent();
-  expect(screen.getByRole('option', { name: type1Name })).toHaveValue(type1.pointer);
-  expect(screen.getByRole('option', { name: type2Name })).toHaveValue(type2.pointer);
+  expect(screen.getByRole('option', { name: type1Name })).toHaveAttribute('value', type1.pointer);
+  expect(screen.getByRole('option', { name: type2Name })).toHaveAttribute('value', type2.pointer);
 });
 
 test('Empty option text appears', () => {
   renderReferenceSelectionComponent();
-  expect(screen.getByText(emptyOptionLabel)).toBeDefined();
+  expect(screen.getByRole('option', { name: emptyOptionLabel })).toBeDefined();
 });
 
 test('Empty option is selected by default', () => {
@@ -83,7 +83,7 @@ test('Referenced type is selected if given', () => {
 
 test('onChange handler is called with correct parameters when value changes', async () => {
   renderReferenceSelectionComponent();
-  await user.selectOptions(screen.getByRole('combobox'), type1.pointer);
+  await user.click(screen.getByRole('option', { name: type1Name }));
   expect(onChangeRef).toHaveBeenCalledTimes(1);
   expect(onChangeRef).toHaveBeenCalledWith(selectedNode.pointer, type1.pointer);
 });

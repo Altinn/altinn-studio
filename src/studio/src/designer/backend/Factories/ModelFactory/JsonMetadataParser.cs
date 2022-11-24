@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
 using Altinn.Studio.Designer.Constants;
 using Altinn.Studio.Designer.ModelMetadatalModels;
+using static Altinn.Studio.DataModeling.Utils.RestrictionsHelper;
 
 namespace Altinn.Studio.Designer.Factories.ModelFactory
 {
@@ -235,6 +235,16 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 {
                     classBuilder.AppendLine("    [RegularExpression(@\"" + element.Restrictions["pattern"].Value + "\"" + errorMessage + ")]");
                 }
+
+                if (element.Restrictions.ContainsKey("totalDigits"))
+                {
+                    var totalDigitsValue = uint.Parse(element.Restrictions["totalDigits"].Value);
+                    var regexString = element.XsdValueType == BaseValueType.Decimal
+                        ? TotalDigitsDecimalRegexString(totalDigitsValue)
+                        : TotalDigitsIntegerRegexString(totalDigitsValue);
+                    classBuilder.AppendLine(
+                        $@"    [RegularExpression(@""{regexString}""{errorMessage})]");
+                }
             }
 
             if (element.IsReadOnly)
@@ -253,20 +263,22 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     classBuilder.AppendLine("    [Range(Double.MinValue,Double.MaxValue" + errorMessage + ")]");
                     break;
                 case BaseValueType.Int:
-                case BaseValueType.Integer:
                     classBuilder.AppendLine("    [Range(Int32.MinValue,Int32.MaxValue" + errorMessage + ")]");
                     break;
+                case BaseValueType.Integer:
+                    classBuilder.AppendLine("    [Range(Double.MinValue,Double.MaxValue" + errorMessage + ")]");
+                    break;
                 case BaseValueType.NegativeInteger:
-                    classBuilder.AppendLine("    [Range(Int32.MinValue,-1" + errorMessage + ")]");
+                    classBuilder.AppendLine("    [Range(Double.MinValue,-1" + errorMessage + ")]");
                     break;
                 case BaseValueType.NonPositiveInteger:
-                    classBuilder.AppendLine("    [Range(Int32.MinValue,0" + errorMessage + ")]");
+                    classBuilder.AppendLine("    [Range(Double.MinValue,0" + errorMessage + ")]");
                     break;
                 case BaseValueType.NonNegativeInteger:
-                    classBuilder.AppendLine("    [Range(0,Int32.MaxValue" + errorMessage + ")]");
+                    classBuilder.AppendLine("    [Range(0,Double.MaxValue" + errorMessage + ")]");
                     break;
                 case BaseValueType.PositiveInteger:
-                    classBuilder.AppendLine("    [Range(1,Int32.MaxValue" + errorMessage + ")]");
+                    classBuilder.AppendLine("    [Range(1,Double.MaxValue" + errorMessage + ")]");
                     break;
                 case BaseValueType.GYear:
                     classBuilder.AppendLine("    [RegularExpression(@\"^[0-9]{4}$\"" + errorMessage + ")]");

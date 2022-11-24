@@ -10,7 +10,10 @@ namespace Altinn.Studio.DataModeling.Json.Keywords;
 /// </summary>
 [SchemaKeyword(Name)]
 [SchemaPriority(int.MinValue)]
-[SchemaDraft(Draft.Unspecified)]
+[SchemaDraft(Draft.Draft6)]
+[SchemaDraft(Draft.Draft7)]
+[SchemaDraft(Draft.Draft201909)]
+[SchemaDraft(Draft.Draft202012)]
 [JsonConverter(typeof(FormatExclusiveMinimumKeywordJsonConverter))]
 public sealed class FormatExclusiveMinimumKeyword: IJsonSchemaKeyword, IEquatable<FormatExclusiveMinimumKeyword>
 {
@@ -36,7 +39,7 @@ public sealed class FormatExclusiveMinimumKeyword: IJsonSchemaKeyword, IEquatabl
     /// <inheritdoc />
     public void Validate(ValidationContext context)
     {
-        context.Ignore = true;
+        // No validation for keyword.
     }
 
     /// <inheritdoc />
@@ -65,10 +68,10 @@ public sealed class FormatExclusiveMinimumKeyword: IJsonSchemaKeyword, IEquatabl
     /// <summary>
     /// Serializer for the FormatExclusiveMinimumKeyword keyword
     /// </summary>
-    public class FormatExclusiveMinimumKeywordJsonConverter : JsonConverter<FormatExclusiveMinimumKeyword>
+    internal class FormatExclusiveMinimumKeywordJsonConverter : JsonConverter<FormatExclusiveMinimumKeyword>
     {
         /// <summary>
-        /// Read @xsdType keyword from json schema
+        /// Read formatExclusiveMaximum keyword from json schema
         /// </summary>
         public override FormatExclusiveMinimumKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {

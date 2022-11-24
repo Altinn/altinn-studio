@@ -263,13 +263,6 @@ export interface ICodeListListElement {
   id: number;
 }
 
-export interface IAltinnWindow extends Window {
-  org: string;
-  app: string;
-  instanceId: string;
-  reportee: string;
-}
-
 export interface IRuleModelFieldElement {
   type: string;
   name: string;

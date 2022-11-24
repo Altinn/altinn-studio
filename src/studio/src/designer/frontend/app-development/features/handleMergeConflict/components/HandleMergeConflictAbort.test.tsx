@@ -19,9 +19,11 @@ const findAndClickOpenPopoverButton = (user: UserEvent) =>
     }),
   );
 
-const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {
-  return {};
-});
+afterEach(() => jest.restoreAllMocks());
+jest.mock('app-shared/utils/networking', () => ({
+  __esModule: true,
+  ...jest.requireActual('app-shared/utils/networking'),
+}));
 
 test('should handle successfully returned data from API', async () => {
   // Setting up som mocks and stubs and renders the component
@@ -29,7 +31,7 @@ test('should handle successfully returned data from API', async () => {
 
   const mockGet = jest
     .spyOn(networking, 'get')
-    .mockImplementationOnce(() => Promise.resolve());
+    .mockImplementationOnce(() => Promise.resolve({}));
 
   // the popover should be closed at this point
   expect(screen.queryByRole('presentation')).toBeNull();
@@ -74,10 +76,12 @@ test('should handle unsuccessfully returned data from API', async () => {
   const { user } = renderHandleMergeConflictAbort();
 
   // Mocks
-
   const mockGet = jest
     .spyOn(networking, 'get')
     .mockImplementationOnce(() => Promise.reject('Error'));
+  const consoleError = jest
+    .spyOn(console, 'error')
+    .mockImplementation(() => ({}));
 
   // find and click the button that opens the popover
   await findAndClickOpenPopoverButton(user);
@@ -100,6 +104,9 @@ test('should catch error from networked function', async () => {
   const mockGet = jest
     .spyOn(networking, 'get')
     .mockImplementation(() => Promise.reject(Error('mocked error')));
+  const consoleError = jest
+    .spyOn(console, 'error')
+    .mockImplementation(() => ({}));
 
   // find and click the button that opens the popover
   await findAndClickOpenPopoverButton(user);

@@ -1,13 +1,13 @@
-import React from 'react';
-import { Grid } from '@mui/material';
+import React, { ReactNode } from 'react';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { useAppSelector } from 'common/hooks';
+import { useAppSelector } from '../hooks';
+import classes from './ResourceItem.module.css';
 
 export interface ResourceItemProps {
   link: string;
   label: string;
   description: string;
-  icon: React.ReactNode;
+  icon: ReactNode;
 }
 
 export function ResourceItem({
@@ -16,27 +16,18 @@ export function ResourceItem({
   description,
   icon,
 }: ResourceItemProps) {
-  const language = useAppSelector(state => state.language.language);
-
+  const language = useAppSelector((state) => state.language.language);
   return (
-    <Grid
-      container
-      direction='row'
-      alignItems='flex-start'
-      justifyContent='flex-start'
-      spacing={2}
-    >
-      <Grid item xs='auto'>
-        {icon}
-      </Grid>
-      <Grid item xs>
-        <a href={link} target="_blank" rel="noopener noreferrer">
-          <p style={{ fontWeight: 500, color: 'black', margin: 0 }}>
-            {getLanguageFromKey(label, language)}{' '}
-          </p>{' '}
+    <div className={classes.resourceItem}>
+      <div>{icon}</div>
+      <div>
+        <a href={link} target='_blank' rel='noopener noreferrer'>
+          {getLanguageFromKey(label, language)}
         </a>
-        <p style={{ marginTop: 0 }}>{getLanguageFromKey(description, language)}</p>
-      </Grid>
-    </Grid>
+        <p style={{ marginTop: 0 }}>
+          {getLanguageFromKey(description, language)}
+        </p>
+      </div>
+    </div>
   );
 }

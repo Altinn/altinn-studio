@@ -12,6 +12,7 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
+  "@xsdRootElement": "Root",
   "oneOf": [
     {
       "$ref": "#/$defs/customer"
@@ -55,18 +56,20 @@
                   "type": "array",
                   "items": {
                     "type": "string",
-                    "minItems": 1
+                    "@xsdType": "string"
                   },
-                  "@xsdType": "string",
-                  "minItems": 1
+                  "minItems": 1,
+                  "@xsdMinOccurs": 1,
+                  "@xsdMaxOccurs": "unbounded"
                 },
                 "contacts": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/$defs/contact",
-                    "maxItems": 10
+                    "$ref": "#/$defs/contact"
                   },
-                  "minItems": 0
+                  "@xsdMinOccurs": 0,
+                  "@xsdMaxOccurs": "10",
+                  "maxItems": 10
                 }
               },
               "required": [
@@ -105,19 +108,14 @@
       }
     },
     "priority": {
-      "allOf": [
-        {
-          "type": "string",
-          "@xsdType": "string"
-        },
-        {
-          "enum": [
-            "Low",
-            "Medium",
-            "High"
-          ]
-        }
-      ]
+        "type": "string",
+        "@xsdType": "string",
+        "enum": [
+          "Low",
+          "Medium",
+          "High"
+        ],
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     },
     "name": {
       "properties": {
@@ -140,19 +138,14 @@
       ]
     },
     "title": {
-      "allOf": [
-        {
-          "type": "string",
-          "@xsdType": "string"
-        },
-        {
-          "enum": [
-            "mr",
-            "ms",
-            "miss"
-          ]
-        }
-      ]
+        "type": "string",
+        "@xsdType": "string",
+        "enum": [
+          "mr",
+          "ms",
+          "miss"
+        ],
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     },
     "address": {
       "properties": {
@@ -163,7 +156,7 @@
         "co": {
           "type": "string",
           "@xsdType": "string",
-          "minItems": 0
+          "@xsdMinOccurs": 0
         },
         "zipCode": {
           "type": "string",
@@ -199,18 +192,13 @@
             "co": {
               "type": "string",
               "@xsdType": "string",
-              "minItems": 0
+              "@xsdMinOccurs": 0
             },
             "zipCode": {
-              "allOf": [
-                {
-                  "type": "string",
-                  "@xsdType": "string"
-                },
-                {
-                  "pattern": "^\\d{4}$"
-                }
-              ]
+              "type": "string",
+              "@xsdType": "string",
+              "pattern": "^\\d{4}$",
+              "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
             },
             "city": {
               "type": "string",
@@ -244,18 +232,13 @@
             "co": {
               "type": "string",
               "@xsdType": "string",
-              "minItems": 0
+              "@xsdMinOccurs": 0
             },
             "zipCode": {
-              "allOf": [
-                {
-                  "type": "string",
-                  "@xsdType": "string"
-                },
-                {
-                  "pattern": "^\\d{3} \\d{2}$"
-                }
-              ]
+              "type": "string",
+              "@xsdType": "string",
+              "pattern": "^\\d{3} \\d{2}$",
+              "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
             },
             "city": {
               "type": "string",

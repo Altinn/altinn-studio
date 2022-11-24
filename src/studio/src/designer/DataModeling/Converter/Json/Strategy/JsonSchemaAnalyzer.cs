@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml.Schema;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
 using Json.Pointer;
@@ -30,7 +31,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         protected JsonSchemaXsdMetadata Metadata { get; set; }
 
         /// <inheritdoc/>
-        public abstract JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema, Uri uri);
+        public abstract JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema);
 
         /// <summary>
         /// Determines the type of root model the provided schema has.
@@ -650,6 +651,14 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         /// <returns>True if it should be represented as a SimpleTypeRestriction in the XSD; otherwise, false.</returns>
         protected bool IsValidSimpleTypeRestriction(JsonSchema schema)
         {
+            if (schema.TryGetKeyword(out XsdStructureKeyword xsdStructureKeyword))
+            {
+                if (xsdStructureKeyword.Value == nameof(XmlSchemaSimpleTypeRestriction))
+                {
+                    return true;
+                }
+            }
+
             if (!HasSingleAllOf(schema))
             {
                 var keywords = schema.AsWorkList();
@@ -838,6 +847,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     case FormatExclusiveMinimumKeyword:
                     case FormatMaximumKeyword:
                     case FormatExclusiveMaximumKeyword:
+                        continue;
+
+                    // Add totalDigits restriction
+                    case XsdTotalDigitsKeyword:
                         continue;
 
                     default:

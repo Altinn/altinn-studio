@@ -1,10 +1,23 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
-import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
+import userEvent, {
+  PointerEventsCheckLevel,
+} from '@testing-library/user-event';
 import type { IDeleteWrapper } from './DeleteWrapper';
 import { DeleteWrapper } from './DeleteWrapper';
 
 const user = userEvent.setup();
+
+const render = (props: Partial<IDeleteWrapper> = {}) => {
+  const allProps = {
+    language: { 'administration.delete_model_confirm': 'Delete {0}?' },
+    deleteAction: jest.fn(),
+    schemaName: 'deletable-model',
+    ...props,
+  } as IDeleteWrapper;
+
+  return rtlRender(<DeleteWrapper {...allProps} />);
+};
 
 describe('DeleteWrapper', () => {
   it('should not be able to open the delete dialog if no schemaName is set', async () => {
@@ -107,14 +120,3 @@ describe('DeleteWrapper', () => {
     ).not.toBeInTheDocument();
   });
 });
-
-const render = (props: Partial<IDeleteWrapper> = {}) => {
-  const allProps = {
-    language: { administration: { delete_model_confirm: 'Delete {0}?' } },
-    deleteAction: jest.fn(),
-    schemaName: 'deletable-model',
-    ...props,
-  } as IDeleteWrapper;
-
-  return rtlRender(<DeleteWrapper {...allProps} />);
-};

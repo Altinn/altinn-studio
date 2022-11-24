@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
+using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Unicode;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using System.Xml.Schema;
@@ -24,14 +26,14 @@ namespace Designer.Tests.Services
             var org = "ttd";
             var sourceRepository = "hvem-er-hvem";
             var developer = "testUser";
-            var targetRepository = Guid.NewGuid().ToString();
+            var targetRepository = TestDataHelper.GenerateTestRepoName();
 
             await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
             try
             {
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
 
-                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings, TestDataHelper.XmlSchemaToJsonSchemaConverter, TestDataHelper.JsonSchemaToXmlSchemaConverter);
                 var schemaFiles = schemaModelService.GetSchemaFiles(org, targetRepository, developer);
                 schemaFiles.Should().HaveCount(7);
 
@@ -62,14 +64,14 @@ namespace Designer.Tests.Services
             var org = "ttd";
             var sourceRepository = "xyz-datamodels";
             var developer = "testUser";
-            var targetRepository = Guid.NewGuid().ToString();
+            var targetRepository = TestDataHelper.GenerateTestRepoName();
 
             await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
             try
             {
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
 
-                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings, TestDataHelper.XmlSchemaToJsonSchemaConverter, TestDataHelper.JsonSchemaToXmlSchemaConverter);
                 var schemaFiles = schemaModelService.GetSchemaFiles(org, targetRepository, developer);
                 schemaFiles.Should().HaveCount(6);
 
@@ -94,7 +96,7 @@ namespace Designer.Tests.Services
             var org = "ttd";
             var sourceRepository = "hvem-er-hvem";
             var developer = "testUser";
-            var targetRepository = Guid.NewGuid().ToString();
+            var targetRepository = TestDataHelper.GenerateTestRepoName();
 
             await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
             try
@@ -102,7 +104,7 @@ namespace Designer.Tests.Services
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
 
                 // Act
-                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings, TestDataHelper.XmlSchemaToJsonSchemaConverter, TestDataHelper.JsonSchemaToXmlSchemaConverter);
                 var expectedSchemaUpdates = @"{""properties"":{""root"":{""$ref"":""#/definitions/rootType""}},""definitions"":{""rootType"":{""properties"":{""keyword"":{""type"":""string""}}}}}";
                 await schemaModelService.UpdateSchema(org, targetRepository, developer, $"App/models/HvemErHvem_SERES.schema.json", expectedSchemaUpdates);
 
@@ -110,7 +112,8 @@ namespace Designer.Tests.Services
                 var altinnGitRepository = altinnGitRepositoryFactory.GetAltinnGitRepository(org, targetRepository, developer);
 
                 var updatedSchema = await altinnGitRepository.ReadTextByRelativePathAsync("App/models/HvemErHvem_SERES.schema.json");
-                updatedSchema.Should().BeEquivalentTo(expectedSchemaUpdates);
+                string serializedExpectedSchemaUpdates = FormatJsonString(updatedSchema);
+                updatedSchema.Should().BeEquivalentTo(serializedExpectedSchemaUpdates);
 
                 var xsd = await altinnGitRepository.ReadTextByRelativePathAsync("App/models/HvemErHvem_SERES.xsd");
 
@@ -129,8 +132,7 @@ namespace Designer.Tests.Services
                 xsdSchema.Root.Elements().First().Attributes().First(a => a.Name.LocalName == "name").Should().HaveValue("root");
 
                 var metadataModelJson = await altinnGitRepository.ReadTextByRelativePathAsync("App/models/HvemErHvem_SERES.metadata.json");
-                var jsonSchema = JsonSerializer.Deserialize<ModelMetadata>(metadataModelJson);
-                jsonSchema.Org.Should().Be(org);
+                metadataModelJson.Should().NotBeNullOrEmpty();
             }
             finally
             {
@@ -145,13 +147,13 @@ namespace Designer.Tests.Services
             var org = "ttd";
             var sourceRepository = "empty-app";
             var developer = "testUser";
-            var targetRepository = Guid.NewGuid().ToString();
+            var targetRepository = TestDataHelper.GenerateTestRepoName();
 
             await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
             try
             {
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings, TestDataHelper.XmlSchemaToJsonSchemaConverter, TestDataHelper.JsonSchemaToXmlSchemaConverter);
                 var xsdStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.Xsd.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd");
                 xsdStream.Seek(0, System.IO.SeekOrigin.Begin);
                 var schemaName = "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES";
@@ -182,13 +184,13 @@ namespace Designer.Tests.Services
             var org = "ttd";
             var sourceRepository = "empty-app";
             var developer = "testUser";
-            var targetRepository = Guid.NewGuid().ToString();
+            var targetRepository = TestDataHelper.GenerateTestRepoName();
 
             await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
             try
             {
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings, TestDataHelper.XmlSchemaToJsonSchemaConverter, TestDataHelper.JsonSchemaToXmlSchemaConverter);
                 var xsdStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.Xsd.Skjema-1603-12392.xsd");
                 xsdStream.Seek(0, System.IO.SeekOrigin.Begin);
                 var schemaName = "Skjema-1603-12392";
@@ -224,13 +226,13 @@ namespace Designer.Tests.Services
             var org = "ttd";
             var sourceRepository = "empty-datamodels";
             var developer = "testUser";
-            var targetRepository = Guid.NewGuid().ToString();
+            var targetRepository = TestDataHelper.GenerateTestRepoName();
 
             await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
             try
             {
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings, TestDataHelper.XmlSchemaToJsonSchemaConverter, TestDataHelper.JsonSchemaToXmlSchemaConverter);
                 var xsdStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.Xsd.Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd");
                 xsdStream.Seek(0, System.IO.SeekOrigin.Begin);
                 var schemaName = "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES";
@@ -258,7 +260,7 @@ namespace Designer.Tests.Services
         public void GetSchemaUri_ValidNameProvided_ShouldReturnUri(string org, string repository, string schemaName, string relativePath, string repositoryBaseUrl)
         {
             var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-            var schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
+            var schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings, TestDataHelper.XmlSchemaToJsonSchemaConverter, TestDataHelper.JsonSchemaToXmlSchemaConverter);
 
             var schemaUri = schemaModelService.GetSchemaUri(org, repository, schemaName, relativePath);
 
@@ -272,13 +274,13 @@ namespace Designer.Tests.Services
             var org = "ttd";
             var sourceRepository = "empty-app-pref-json";
             var developer = "testUser";
-            var targetRepository = Guid.NewGuid().ToString();
+            var targetRepository = TestDataHelper.GenerateTestRepoName();
 
             await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
             try
             {
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings, TestDataHelper.XmlSchemaToJsonSchemaConverter, TestDataHelper.JsonSchemaToXmlSchemaConverter);
                 var xsdStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.Xsd.SimpleInvalidNonSeresSchema.xsd");
                 var schemaName = "SimpleInvalidNonSeresSchema";
                 var fileName = $"{schemaName}.xsd";
@@ -303,13 +305,13 @@ namespace Designer.Tests.Services
             var org = "ttd";
             var sourceRepository = "empty-app-pref-json";
             var developer = "testUser";
-            var targetRepository = Guid.NewGuid().ToString();
+            var targetRepository = TestDataHelper.GenerateTestRepoName();
 
             await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
             try
             {
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings, TestDataHelper.XmlSchemaToJsonSchemaConverter, TestDataHelper.JsonSchemaToXmlSchemaConverter);
                 var xsdStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.Xsd.SimpleValidNonSeresSchema.xsd");
                 var schemaName = "SimpleValidNonSeresSchema";
                 var fileName = $"{schemaName}.xsd";
@@ -340,13 +342,13 @@ namespace Designer.Tests.Services
             var org = "ttd";
             var sourceRepository = "empty-app";
             var developer = "testUser";
-            var targetRepository = Guid.NewGuid().ToString();
+            var targetRepository = TestDataHelper.GenerateTestRepoName();
 
             await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
             try
             {
                 var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
-                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings);
+                ISchemaModelService schemaModelService = new SchemaModelService(altinnGitRepositoryFactory, TestDataHelper.LogFactory, TestDataHelper.ServiceRepositorySettings, TestDataHelper.XmlSchemaToJsonSchemaConverter, TestDataHelper.JsonSchemaToXmlSchemaConverter);
                 var xsdStream = TestDataHelper.LoadDataFromEmbeddedResource("Designer.Tests._TestData.Model.Xsd.OED.xsd");
                 var schemaName = "OED_M";
                 var fileName = $"{schemaName}.xsd";
@@ -367,6 +369,12 @@ namespace Designer.Tests.Services
             {
                 TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
             }
+        }
+
+        private static string FormatJsonString(string jsonContent)
+        {
+            var options = new JsonSerializerOptions { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement), WriteIndented = true };
+            return System.Text.Json.JsonSerializer.Serialize(Json.Schema.JsonSchema.FromText(jsonContent), options);
         }
     }
 }

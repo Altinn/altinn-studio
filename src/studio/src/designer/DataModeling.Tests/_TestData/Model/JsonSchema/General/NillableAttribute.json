@@ -12,6 +12,7 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
+  "@xsdRootElement": "Root",
   "oneOf": [
     {
       "$ref": "#/$defs/main"
@@ -27,7 +28,7 @@
         "minzero": {
           "type": "integer",
           "@xsdType": "int",
-          "minItems": 0
+          "@xsdMinOccurs": 0
         },
         "nilint": {
           "type": [
@@ -49,7 +50,7 @@
             "null"
           ],
           "@xsdType": "string",
-          "minItems": 0
+          "@xsdMinOccurs": 0
         },
         "refered": {
           "oneOf": [
@@ -71,7 +72,8 @@
     },
     "referedtype": {
       "type": "integer",
-      "@xsdType": "integer"
+      "@xsdType": "integer",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     }
   }
 }

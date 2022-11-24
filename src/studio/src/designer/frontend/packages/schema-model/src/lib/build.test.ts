@@ -23,6 +23,9 @@ test.each(getSeresJsonSchemasForTest())('Seres model %p can be converted', (name
     expect(uiSchema.pointer).toBeDefined();
     expect(uiSchema.pointer.startsWith(ROOT_POINTER)).toBeTruthy();
     if (uiSchema.objectKind === ObjectKind.Field) {
+      if (uiSchema.fieldType === undefined) {
+        console.log(uiSchema);
+      }
       expect(uiSchema.fieldType).toBeDefined();
     }
   });

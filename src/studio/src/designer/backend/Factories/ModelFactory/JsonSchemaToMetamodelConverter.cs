@@ -6,9 +6,11 @@ using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
+using Altinn.Studio.Designer.Extensions;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using Json.Pointer;
 using Json.Schema;
+using LibGit2Sharp;
 using static Altinn.Studio.Designer.Factories.ModelFactory.MetamodelRestrictionUtils;
 
 namespace Altinn.Studio.Designer.Factories.ModelFactory
@@ -88,19 +90,15 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
         /// <summary>
         /// Converts a Json Schema string to a <see cref="ModelMetadata"/>
         /// </summary>
-        /// <param name="modelName">The name of the model.</param>
         /// <param name="jsonSchema">The Json Schema to be converted</param>
         /// <returns>An flattened representation of the Json Schema in the form of <see cref="ModelMetadata"/></returns>
-        public ModelMetadata Convert(string modelName, string jsonSchema)
+        public ModelMetadata Convert(string jsonSchema)
         {
-            ModelName = modelName;
-
             _modelMetadata = new ModelMetadata();
             _schema = JsonSchema.FromText(jsonSchema);
-            IdKeyword idKeyword;
-            var idKeywordParsed = _schema.TryGetKeyword<IdKeyword>(out idKeyword);
 
-            _schemaXsdMetadata = _schemaAnalyzer.AnalyzeSchema(_schema, idKeywordParsed ? idKeyword.Id : new Uri(modelName, UriKind.Relative));
+            _schemaXsdMetadata = _schemaAnalyzer.AnalyzeSchema(_schema);
+            ModelName = _schemaXsdMetadata.MessageName;
 
             ProcessSchema(_schema);
 
@@ -160,6 +158,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 case MinItemsKeyword:
                 case MaxItemsKeyword:
                 case CommentKeyword:
+                case XsdRootElementKeyword:
                     break;
 
                 case RefKeyword k:
@@ -592,6 +591,15 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             {
                 parseSuccess = Enum.TryParse(xsdTypeKeyword.Value, true, out parsedBaseValueType);
             }
+            else if (subSchema.TryGetKeyword(out AllOfKeyword allOfKeyword))
+            {
+                xsdTypeKeyword = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<TypeKeyword>())
+                    ?.GetKeyword<XsdTypeKeyword>();
+                if (xsdTypeKeyword is not null)
+                {
+                    parseSuccess = Enum.TryParse(xsdTypeKeyword.Value, true, out parsedBaseValueType);
+                }
+            }
 
             baseValueType = parsedBaseValueType;
             return parseSuccess;
@@ -684,7 +692,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             var constKeyword = subSchema.GetKeyword<ConstKeyword>();
             if (constKeyword != null)
             {
-                return constKeyword.Value.GetString();
+                return constKeyword.Value?.AsString();
             }
 
             return null;

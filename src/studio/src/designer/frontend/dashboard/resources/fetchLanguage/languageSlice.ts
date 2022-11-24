@@ -10,7 +10,6 @@ const initialState: IFetchedLanguageState = {
 
 export interface IFetchLanguageAction {
   url: string;
-  languageCode: string;
 }
 export interface IFetchLanguageFulfilled {
   language: any;
@@ -26,7 +25,7 @@ const languageSlice = createSlice({
   reducers: {
     fetchLanguageFulfilled: (
       state,
-      action: PayloadAction<IFetchLanguageFulfilled>,
+      action: PayloadAction<IFetchLanguageFulfilled>
     ) => {
       const { language } = action.payload;
       state.language = language;
@@ -35,10 +34,10 @@ const languageSlice = createSlice({
 });
 
 export const fetchLanguage = createAction<IFetchLanguageAction>(
-  `${moduleName}/fetchLanguage`,
+  `${moduleName}/fetchLanguage`
 );
 export const fetchLanguageRejected = createAction<IFetchLanguageRejected>(
-  `${moduleName}/fetchLanguageRejected`,
+  `${moduleName}/fetchLanguageRejected`
 );
 
 export const { fetchLanguageFulfilled } = languageSlice.actions;

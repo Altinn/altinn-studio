@@ -1,9 +1,3 @@
-export interface IAltinnWindow extends Window {
-  org: string;
-  app?: string;
-  repo?: string;
-}
-
 export interface ISelfLinks {
   apps: string;
   platform: string;
@@ -54,6 +48,12 @@ export interface IRepository {
   clone_url: string;
   id: number;
   user_has_starred: boolean;
+}
+
+export enum RepositoryType {
+  App = 'App',
+  Datamodels = 'Datamodels',
+  Unknown = 'Unknown',
 }
 
 export interface IUser {

@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { widgetSettings } from '../../utils/widgetSettings';
 import type { IWidget } from '../../types/global';
+import {widgetUrl} from "app-shared/cdn-paths";
 
 export interface IWidgetState {
   widgets: IWidget[];
@@ -14,7 +14,7 @@ export interface IFetchWidgetFulfilled {
 
 const initialState: IWidgetState = {
   widgets: [],
-  urls: widgetSettings.widgetUrls,
+  urls: [widgetUrl()],
   error: null,
 };
 

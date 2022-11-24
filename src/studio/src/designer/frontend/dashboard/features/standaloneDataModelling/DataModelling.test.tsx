@@ -1,9 +1,9 @@
 import React from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
-import DataModelling from './DataModelling';
+import { DataModellingContainer } from './DataModelling';
 import { LoadingState } from 'app-shared/features/dataModelling/sagas/metadata';
-import { renderWithProviders } from 'test/testUtils';
-import { setupStore } from 'app/store';
+import { renderWithProviders } from '../../dashboardTestUtils';
+import { setupStore } from '../../app/store';
 
 // workaround for https://jestjs.io/docs/26.x/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(window, 'matchMedia', {
@@ -66,14 +66,11 @@ describe('DataModelling', () => {
     renderWithProviders(
       <Routes>
         <Route path='/' element={<Navigate to={'/org/repo'} replace />} />
-        <Route
-          path='/:org/:repoName'
-          element={<DataModelling language={language} />}
-        />
+        <Route path='/:org/:repoName' element={<DataModellingContainer />} />
       </Routes>,
       {
         store: initStore,
-      },
+      }
     );
     expect(dispatch).toHaveBeenCalledWith(initialStoreCall);
   });

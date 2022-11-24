@@ -2,7 +2,7 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import configureStore from 'redux-mock-store';
 import type { IResetRepoModalProps } from './ResetRepoModal';
-import ResetRepoModal from './ResetRepoModal';
+import { ResetRepoModal } from './ResetRepoModal';
 import { render, screen } from '@testing-library/react';
 
 describe('ResetRepoModal', () => {
@@ -26,14 +26,16 @@ describe('ResetRepoModal', () => {
         reset_repo_confirm_repo_name: 'Skriv inn repo-navn',
       },
     };
-    mockAnchorEl = document.querySelector('body');
+    mockAnchorEl = {
+      current: document.querySelector('body'),
+    };
   });
 
   const RenderResetRepoModal = (
     props: Partial<IResetRepoModalProps>,
   ): JSX.Element => {
     const defaultProps = {
-      anchorEl: mockAnchorEl,
+      anchorRef: mockAnchorEl,
       handleClickResetRepo: mockFunc,
       language: mockLanguage,
       onClose: mockFunc,

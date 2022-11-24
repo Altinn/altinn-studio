@@ -1,0 +1,49 @@
+.actionLink {
+  align-items: center;
+  display: flex;
+  margin-right: 1rem;
+  min-width: 140;
+}
+
+.actionLink:hover {
+  text-decoration: none;
+}
+
+.actionLink:hover span {
+  text-decoration: underline;
+}
+
+.dropdownIcon {
+  font-size: 2rem;
+}
+
+.editLink {
+  color: #165db8;
+}
+
+.editLink:hover {
+  color: #165db8;
+}
+
+.favoriteIcon {
+  font-size: 26;
+  color: #000000;
+}
+
+.linkIcon {
+  font-size: 2rem;
+  margin-left: 0.5rem;
+}
+
+.repoLink {
+  color: #57823D;
+}
+
+.repoLink:hover {
+  color: #57823D;
+}
+
+.textWithTooltip {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

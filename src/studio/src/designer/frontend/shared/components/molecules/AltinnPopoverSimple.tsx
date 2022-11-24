@@ -80,7 +80,7 @@ const defaultTransformOrigin: PopoverOrigin = {
   vertical: 'top',
 };
 
-const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
+export const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
   const {
     anchorOrigin = defaultAnchorOrigin,
     transformOrigin = defaultTransformOrigin,

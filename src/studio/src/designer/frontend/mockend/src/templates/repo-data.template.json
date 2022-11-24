@@ -1,0 +1,37 @@
+{
+  "clone_url": "http://__hostname__/repos/__owner__/__repo__.git",
+  "created_at": "2022-09-02T08:34:15Z",
+  "default_branch": "master",
+  "description": "",
+  "empty": true,
+  "fork": false,
+  "forks_count": 0,
+  "full_name": "__owner__/__repo__",
+  "html_url": "http://__hostname__/repos/__owner__/__repo__",
+  "id": 7,
+  "mirror": false,
+  "name": "__repo__",
+  "open_issues_count": 0,
+  "owner": {
+    "avatar_url": "http://__hostname__/avatar.png",
+    "email": "__owner__@noreply.altinn.no",
+    "full_name": "",
+    "id": 1,
+    "login": "__owner__"
+  },
+  "parent": null,
+  "permissions": {
+    "admin": true,
+    "pull": true,
+    "push": true
+  },
+  "private": false,
+  "size": 76,
+  "ssh_url": "git@__hostname__:__owner__/__repo__.git",
+  "stars_count": 0,
+  "updated_at": "2022-09-02T08:34:15Z",
+  "watchers_count": 1,
+  "website": "",
+  "is_cloned_to_local": true,
+  "repositoryCreatedStatus": 0
+}

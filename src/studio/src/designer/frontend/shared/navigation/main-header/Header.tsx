@@ -38,9 +38,6 @@ const useStyles = makeStyles(() => ({
     paddingLeft: 48,
     paddingRight: 48,
   },
-  typography: {
-    fontSize: '1.75rem',
-  },
   divider: {
     fontSize: '2rem',
     marginLeft: 10,
@@ -75,7 +72,7 @@ export function Header({ language }: HeaderProps) {
             {selectedContext !== SelectedContextType.All &&
               selectedContext !== SelectedContextType.Self && (
                 <Grid data-testid='Header-org-name'>
-                  <Typography className={classes.typography}>
+                  <Typography sx={{ fontSize: '1.75rem' }}>
                     <span className={classes.divider}>/</span>
                     {getOrgNameById(selectedContext as number, selectableOrgs)}
                   </Typography>

@@ -1,6 +1,6 @@
 //Selectors in dashboard
 export const dashboard = {
-  newApp: 'a[href="#/new"]',
+  newApp: "[data-testid='dashboard.new_app']",
   appOwners: '#service-owner',
   appName: '#service-saved-name',
   button: 'button',
@@ -13,7 +13,7 @@ export const dashboard = {
     updatedAt: "div[data-field='updated_at']",
     links: "div[data-field='links']",
     favourite: "button[id*='fav-repo']",
-    edit: "a[href*='/designer/']",
+    edit: "[data-testid='edit-repo-link']",
     previousPage: '[data-testid=KeyboardArrowLeftIcon]',
     nextPage: '[data-testid=KeyboardArrowRightIcon]',
     sortUp: '[data-testid=ArrowUpwardIcon]',

@@ -7,18 +7,7 @@ import { FieldType, Keywords } from '../src';
 /**
  * Some schemas might not be valid
  */
-export const ignoreTestSchemas: string[] = ['ComplexSchema-old', 'ComplexSchema'];
-
-// These filkes are ignored because failed
-ignoreTestSchemas.push(
-  'ComplexSchema',
-  'NestedArrays',
-  'NestedWithArraySequence',
-  'NillableAttribute',
-  'SeresArray',
-  'SeresNillable',
-  'SeresSimpleTypeRestrictions',
-);
+export const ignoreTestSchemas: string[] = ['ComplexSchema-old'];
 
 const defaultPath = path.resolve(__dirname, '../../../../DataModeling.Tests/_TestData/Model/JsonSchema');
 

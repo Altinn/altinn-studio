@@ -1,12 +1,16 @@
 import React from 'react';
 import * as networking from '../../utils/networking';
 import { HeaderContext, SelectedContextType } from './Header';
-import { HeaderMenu } from './HeaderMenu';
 import type { HeaderMenuProps } from './HeaderMenu';
+import { HeaderMenu } from './HeaderMenu';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const originalLocation = window.location;
+jest.mock('../../utils/networking', () => ({
+  __esModule: true,
+  ...jest.requireActual('../../utils/networking'),
+}));
 describe('HeaderMenu', () => {
   beforeEach(() => {
     delete window.location;
@@ -19,6 +23,7 @@ describe('HeaderMenu', () => {
 
   afterEach(() => {
     window.location = originalLocation;
+    jest.restoreAllMocks();
   });
 
   it('should call gitea logout api when clicking log out', async () => {

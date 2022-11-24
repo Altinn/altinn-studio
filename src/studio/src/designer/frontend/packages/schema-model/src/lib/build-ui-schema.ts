@@ -19,6 +19,8 @@ const createUiNode = (schemaNode: Dict, uiNode: UiSchemaNode): UiSchemaNodes => 
     uiNode.isArray = true;
     uiNode.isNillable = schemaTypeIsNillable(schemaNode[Keywords.Type]);
     Object.assign(uiNode.restrictions, findRestrictionsOnNode(schemaNode));
+    Object.assign(uiNode.custom, findCustomAttributes(schemaNode));
+    // If the items keyword exists we will merge the two nodes with this node as base.
     return schemaNode[Keywords.Items] ? createUiNode(schemaNode[Keywords.Items], uiNode) : [uiNode];
   } else {
     // Other fields
@@ -26,10 +28,11 @@ const createUiNode = (schemaNode: Dict, uiNode: UiSchemaNode): UiSchemaNodes => 
     if (!uiNode.isArray) {
       uiNode.isNillable = schemaTypeIsNillable(schemaNode[Keywords.Type]);
     }
-    uiNode.custom = findCustomAttributes(schemaNode);
+
     uiNode.fieldType = findUiFieldType(schemaNode);
     uiNode.implicitType = schemaNode[Keywords.Type] === undefined;
     uiNode.ref = findReference(schemaNode[Keywords.Reference]);
+    Object.assign(uiNode.custom, findCustomAttributes(schemaNode));
     Object.assign(uiNode.restrictions, findRestrictionsOnNode(schemaNode));
     Object.assign(uiNode, findGenericKeywordsOnNode(schemaNode));
     const uiSchemaNodes: UiSchemaNode[] = [uiNode];

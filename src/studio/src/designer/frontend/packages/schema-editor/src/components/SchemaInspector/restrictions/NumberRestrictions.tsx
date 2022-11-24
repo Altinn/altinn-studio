@@ -1,9 +1,9 @@
 import React from 'react';
-import { RestrictionItemProps } from '../ItemRestrictions';
+import type { RestrictionItemProps } from '../ItemRestrictions';
 import { IntRestrictionKeys } from '@altinn/schema-model';
 import { RestrictionField } from '../RestrictionField';
 import { getTranslation } from '../../../utils/language';
-import { Divider } from '../../common/Divider';
+import { Divider } from 'app-shared/primitives';
 
 export function NumberRestrictions({ restrictions, path, language, onChangeRestrictionValue }: RestrictionItemProps) {
   return (

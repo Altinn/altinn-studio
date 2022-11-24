@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { shallowEqual, useDispatch, useSelector } from 'react-redux';
-import { Button, ButtonVariant, Panel } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant, Panel } from '@altinn/altinn-design-system';
 import { SchemaEditorApp } from '@altinn/schema-editor/index';
 import type { ILanguage } from '@altinn/schema-editor/types';
 import { createDataModel, deleteDataModel, fetchDataModel, saveDataModel } from './sagas';
@@ -18,7 +18,8 @@ import { CreateNewWrapper } from './components/CreateNewWrapper';
 import { DeleteWrapper } from './components/DeleteWrapper';
 import { SchemaSelect } from './components/SchemaSelect';
 import { XSDUpload } from './components/XSDUpload';
-import { sharedUrls } from '../../utils/urlHelper';
+import {datamodelPath} from "../../api-paths";
+
 
 interface IDataModellingContainerProps extends React.PropsWithChildren<any> {
   language: ILanguage;
@@ -81,7 +82,7 @@ export function DataModelling({ language, org, repo, createPathOption }: IDataMo
         metadataLoadingState,
       })
     ) {
-      setSelectedOption(metadataOptions[0]);
+      setSelectedOption(metadataOptions[0].options[0]);
     } else {
       const option = findPreferredMetadataOption(metadataOptions, uploadedOrCreatedFileName.current);
       if (option) {
@@ -95,6 +96,14 @@ export function DataModelling({ language, org, repo, createPathOption }: IDataMo
     if (!schemaPathIsSame(prevFetchedOption?.current, selectedOption)) {
       dispatch(fetchDataModel({ metadata: selectedOption }));
       prevFetchedOption.current = selectedOption;
+      if (selectedOption.value.fileName.endsWith('.xsd')) {
+        const filename = selectedOption.value.fileName;
+        const lowerCaseFileName = filename.toLowerCase();
+        const filenameWithoutXsd = lowerCaseFileName.split('.xsd')[0];
+        const schemaName = filename.substring(0, filenameWithoutXsd.length);
+
+        uploadedOrCreatedFileName.current = schemaName;
+      }
     }
   }, [selectedOption, dispatch]);
 
@@ -126,7 +135,7 @@ export function DataModelling({ language, org, repo, createPathOption }: IDataMo
   const handleXSDUploaded = (filename: string) => {
     const lowerCaseFileName = filename.toLowerCase();
     const filenameWithoutXsd = lowerCaseFileName.split('.xsd')[0];
-    const schemaName = filename.substr(0, filenameWithoutXsd.length);
+    const schemaName = filename.substring(0, filenameWithoutXsd.length);
 
     uploadedOrCreatedFileName.current = schemaName;
     dispatch(DataModelsMetadataActions.getDataModelsMetadata());
@@ -141,7 +150,6 @@ export function DataModelling({ language, org, repo, createPathOption }: IDataMo
   const toggleEditMode = () => setEditMode(setLocalStorageItem('editMode', !editMode));
 
   const t = (key: string) => getLanguageFromKey(key, language);
-  const saveModelUrl = sharedUrls().saveDataModelUrl(selectedOption?.value?.repositoryRelativeUrl);
 
   return (
     <>
@@ -158,10 +166,20 @@ export function DataModelling({ language, org, repo, createPathOption }: IDataMo
             </p>
           </div>
           <span className={classes.button}>
-            <Button onClick={() => setHideIntroPage(true)}>Lukk</Button>
+            <Button
+              color={ButtonColor.Primary}
+              onClick={() => setHideIntroPage(true)}
+              variant={ButtonVariant.Outline}
+            >
+              Lukk
+            </Button>
           </span>
           <span className={classes.button}>
-            <Button onClick={handleHideIntroPageButtonClick} variant={ButtonVariant.Secondary}>
+            <Button
+              color={ButtonColor.Secondary}
+              onClick={handleHideIntroPageButtonClick}
+              variant={ButtonVariant.Outline}
+            >
               Ikke vis igjen
             </Button>
           </span>
@@ -173,7 +191,7 @@ export function DataModelling({ language, org, repo, createPathOption }: IDataMo
         language={language}
         schema={jsonSchema}
         onSaveSchema={handleSaveSchema}
-        saveUrl={saveModelUrl}
+        saveUrl={datamodelPath(org,repo,selectedOption?.value?.repositoryRelativeUrl)}
         name={selectedOption?.label}
         loading={metadataLoadingState === LoadingState.LoadingModels}
         LandingPagePanel={

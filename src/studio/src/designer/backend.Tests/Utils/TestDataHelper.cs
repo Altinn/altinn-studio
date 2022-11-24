@@ -5,6 +5,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
+using Altinn.Studio.DataModeling.Converter.Interfaces;
+using Altinn.Studio.DataModeling.Converter.Json;
+using Altinn.Studio.DataModeling.Converter.Xml;
+using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.Designer.Configuration;
 using Manatee.Json;
 using Manatee.Json.Schema;
@@ -131,12 +135,29 @@ namespace Designer.Tests.Utils
             return Path.Combine(remoteRepositoryRootDirectory, org, repository);
         }
 
+        /// <summary>
+        /// Generates test repository name that will be excluded from project and will be git ignored.
+        /// </summary>
+        /// <param name="suffix">If provided appends suffix to test repo.</param>
+        /// <returns>Test repository name.</returns>
+        public static string GenerateTestRepoName(string suffix = null) => $"test-repo_{Guid.NewGuid()}{suffix}";
+
         public async static Task<string> CopyRepositoryForTest(string org, string repository, string developer, string targetRepsository)
         {
             var sourceAppRepository = GetTestDataRepositoryDirectory(org, repository, developer);
             var targetDirectory = Path.Combine(GetTestDataRepositoriesRootDirectory(), developer, org, targetRepsository);
 
             await CopyDirectory(sourceAppRepository, targetDirectory);
+
+            return targetDirectory;
+        }
+
+        public static async Task<string> CopyRemoteRepositoryForTest(string org, string repository, string targetRepository)
+        {
+            var sourceRemoteRepository = GetTestDataRemoteRepository(org, repository);
+            var targetDirectory = Path.Combine(GetTestDataRemoteRepositoryRootDirectory(), org, targetRepository);
+
+            await CopyDirectory(sourceRemoteRepository, targetDirectory);
 
             return targetDirectory;
         }
@@ -322,6 +343,10 @@ namespace Designer.Tests.Utils
         }
 
         public static IOptions<ServiceRepositorySettings> ServiceRepositorySettings { get; } = GetServiceRepositorySettings();
+
+        public static IXmlSchemaToJsonSchemaConverter XmlSchemaToJsonSchemaConverter => new XmlSchemaToJsonSchemaConverter();
+
+        public static IJsonSchemaToXmlSchemaConverter JsonSchemaToXmlSchemaConverter => new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
 
         /// <summary>
         /// File.ReadAllBytes alternative to avoid read and/or write locking

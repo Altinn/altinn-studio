@@ -1,8 +1,12 @@
 import React from 'react';
 import { act, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
-import { handlers, renderWithProviders, setupServer } from 'test/testUtils';
-import { App } from 'app/App';
+import {
+  handlers,
+  renderWithProviders,
+  setupServer,
+} from '../dashboardTestUtils';
+import { App } from './App';
 
 const server = setupServer(...handlers);
 
@@ -59,11 +63,11 @@ describe('Dashboard > App', () => {
     });
 
     await waitForElementToBeRemoved(() =>
-      screen.getByText('dashboard.loading'),
+      screen.getByText('dashboard.loading')
     );
 
     expect(
-      screen.getByRole('link', { name: /dashboard.new_service/i }),
+      screen.getByRole('link', { name: /dashboard.new_service/i })
     ).toBeInTheDocument();
   });
 });

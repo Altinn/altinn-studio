@@ -1,0 +1,13 @@
+.widthAndPlacement {
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+}
+
+.widthContainer {
+  flex: 1;
+}
+
+.placementContainer {
+  flex: 3;
+}

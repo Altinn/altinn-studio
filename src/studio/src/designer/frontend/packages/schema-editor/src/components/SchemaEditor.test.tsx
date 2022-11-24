@@ -18,15 +18,13 @@ import {
 } from '@altinn/schema-model';
 
 const mockLanguage = {
-  schema_editor: {
-    add: 'Legg til',
-    add_element: 'Add Element',
-    add_property: 'Legg til felt',
-    add_reference: 'Legg til referanse',
-    delete: 'Slett',
-    field: 'Felt',
-    reference: 'Referanse',
-  },
+  'schema_editor.add': 'Legg til',
+  'schema_editor.add_element': 'Add Element',
+  'schema_editor.add_property': 'Legg til felt',
+  'schema_editor.add_reference': 'Legg til referanse',
+  'schema_editor.delete': 'Slett',
+  'schema_editor.field': 'Felt',
+  'schema_editor.reference': 'Referanse',
 };
 const renderEditor = (customState?: Partial<ISchemaState>, editMode?: boolean) => {
   const mockInitialState = {
@@ -52,7 +50,7 @@ const renderEditor = (customState?: Partial<ISchemaState>, editMode?: boolean) =
         Toolbar={<div>toolbar goes here</div>}
         LandingPagePanel={<div>landing page panel goes here</div>}
         schema={dataMock}
-        saveUrl={""}
+        saveUrl={''}
         language={mockLanguage}
         onSaveSchema={onSaveSchema}
         name='test'
@@ -67,7 +65,7 @@ const renderEditor = (customState?: Partial<ISchemaState>, editMode?: boolean) =
 const clickOpenAddMenuButton = (user: UserEvent) =>
   user.click(
     screen.getByRole('button', {
-      name: mockLanguage.schema_editor.add,
+      name: mockLanguage['schema_editor.add'],
     }),
   );
 const clickAddMenuItem = (user: UserEvent, name: string) => user.click(screen.getByRole('menuitem', { name }));
@@ -104,7 +102,7 @@ test('renders schema editor with populated schema in edit mode', async () => {
 test('should show context menu and trigger correct dispatch when adding a field on root', async () => {
   const { store, user } = renderEditor();
   await clickOpenAddMenuButton(user);
-  await clickAddMenuItem(user, mockLanguage.schema_editor.field);
+  await clickAddMenuItem(user, mockLanguage['schema_editor.field']);
   const actions = store.getActions();
   const lastAction = actions.at(-1);
   expect(lastAction.type).toBe('schemaEditor/addRootItem');
@@ -117,7 +115,7 @@ test('should show context menu and trigger correct dispatch when adding a field 
 test('should show context menu and trigger correct dispatch when adding a reference on root', async () => {
   const { store, user } = renderEditor();
   await clickOpenAddMenuButton(user);
-  await clickAddMenuItem(user, mockLanguage.schema_editor.reference);
+  await clickAddMenuItem(user, mockLanguage['schema_editor.reference']);
 
   const actions = store.getActions();
   const lastAction = actions.at(-1);
@@ -255,10 +253,10 @@ test('should not show add property or add reference buttons on a field that is n
 test('should show menu with option field, reference, and combination when pressing add', async () => {
   const { user } = renderEditor();
   await clickOpenAddMenuButton(user);
-  expect(screen.getAllByRole('menuitem', { name: mockLanguage.schema_editor.field })).toHaveLength(1);
+  expect(screen.getAllByRole('menuitem', { name: mockLanguage['schema_editor.field'] })).toHaveLength(1);
   expect(
     screen.getAllByRole('menuitem', {
-      name: mockLanguage.schema_editor.reference,
+      name: mockLanguage['schema_editor.reference'],
     }),
   ).toHaveLength(1);
   expect(screen.getAllByRole('menuitem', { name: 'combination' })).toHaveLength(1);

@@ -2,17 +2,23 @@ import React, { MouseEvent } from 'react';
 import { getTranslation } from '../../utils/language';
 import type { ILanguage } from '../../types';
 import type { UiSchemaNode } from '@altinn/schema-model';
-import { FieldType } from '@altinn/schema-model';
+import { FieldType, Dict } from '@altinn/schema-model';
 import { EnumField } from './EnumField';
-import { addEnum, deleteEnum, setRequired, setRestriction } from '../../features/editor/schemaEditorSlice';
+import {
+  addEnum,
+  deleteEnum,
+  setRequired,
+  setRestriction,
+  setRestrictions
+} from '../../features/editor/schemaEditorSlice';
 import { useDispatch } from 'react-redux';
 import { ArrayRestrictions } from './restrictions/ArrayRestrictions';
 import { NumberRestrictions } from './restrictions/NumberRestrictions';
 import { ObjectRestrictions } from './restrictions/ObjectRestrictions';
 import { StringRestrictions } from './restrictions/StringRestrictions';
 import classes from './ItemRestrictions.module.css';
-import { Button, Checkbox, FieldSet } from '@altinn/altinn-design-system';
-import { Divider } from '../common/Divider';
+import { Button, ButtonColor, ButtonSize, ButtonVariant, Checkbox, FieldSet } from '@altinn/altinn-design-system';
+import {Divider} from "app-shared/primitives";
 
 export interface RestrictionItemProps {
   restrictions: any;
@@ -20,6 +26,7 @@ export interface RestrictionItemProps {
   path: string;
   language: ILanguage;
   onChangeRestrictionValue: (id: string, key: string, value?: string) => void;
+  onChangeRestrictions: (id: string, restrictions: Dict) => void;
 }
 export interface ItemRestrictionsProps {
   selectedNode: UiSchemaNode;
@@ -47,6 +54,9 @@ export const ItemRestrictions = ({ selectedNode, language }: ItemRestrictionsPro
         value,
       }),
     );
+
+  const onChangeRestrictions = (path: string, restrictions: Dict) =>
+    dispatch(setRestrictions({ path, restrictions }));
 
   const onChangeEnumValue = (value: string, oldValue?: string) =>
     dispatch(
@@ -78,6 +88,7 @@ export const ItemRestrictions = ({ selectedNode, language }: ItemRestrictionsPro
     readonly: selectedNode.ref !== undefined,
     path: selectedNode.pointer ?? '',
     onChangeRestrictionValue,
+    onChangeRestrictions,
     language,
   };
   return (
@@ -113,15 +124,20 @@ export const ItemRestrictions = ({ selectedNode, language }: ItemRestrictionsPro
                 value={value}
               />
             ))}
-            <Button
-              aria-label={t('add_enum')}
-              className={classes.addEnumButton}
-              id='add-enum-button'
-              onClick={onAddEnumButtonClick}
-            >
-              <i />
-              <span>{t('add_enum')}</span>
-            </Button>
+            <div className={classes.addEnumButton}>
+              <Button
+                aria-label={t('add_enum')}
+                color={ButtonColor.Secondary}
+                fullWidth
+                iconName={'Add'}
+                id='add-enum-button'
+                onClick={onAddEnumButtonClick}
+                size={ButtonSize.Small}
+                variant={ButtonVariant.Outline}
+              >
+                {t('add_enum')}
+              </Button>
+            </div>
           </FieldSet>
         </>
       )}

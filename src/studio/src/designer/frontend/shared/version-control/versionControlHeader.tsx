@@ -4,22 +4,26 @@ import { createStyles, withStyles, WithStyles } from '@mui/styles';
 import axios from 'axios';
 import { get, post } from '../utils/networking';
 import altinnTheme from '../theme/altinnStudioTheme';
-import type {
-  IAltinnWindow,
-  IContentStatus,
-  IGitStatus,
-} from '../types/global';
+import type { IContentStatus, IGitStatus } from '../types/global';
 import { getLanguageFromKey } from '../utils/language';
 import postMessages from '../utils/postMessages';
 import FetchChangesComponent from './fetchChanges';
 import ShareChangesComponent from './shareChanges';
 import CloneButton from './cloneButton';
-import CloneModal from './cloneModal';
+import { CloneModal } from './cloneModal';
 import SyncModalComponent from './syncModal';
+import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
+import {
+  repoCommitPath,
+  repoMetaPath,
+  repoPullPath,
+  repoPushPath, repoStatusPath,
+} from '../api-paths';
 
 export interface IVersionControlHeaderProps extends WithStyles<typeof styles> {
   language: any;
   type?: 'fetchButton' | 'shareButton' | 'header';
+  hasPushRight?: boolean;
 }
 
 export interface IVersionControlHeaderState {
@@ -76,7 +80,7 @@ class VersionControlHeader extends React.Component<
     this.state = {
       changesInMaster: false,
       changesInLocalRepo: false,
-      hasPushRight: null,
+      hasPushRight: _props.hasPushRight,
       anchorEl: null,
       mergeConflict: false,
       modalState: initialModalState,
@@ -85,9 +89,11 @@ class VersionControlHeader extends React.Component<
     };
   }
 
-  public componentDidMount() {
+  public async componentDidMount() {
     this.componentIsMounted = true;
-    this.getRepoPermissions();
+    if (this.state.hasPushRight === undefined) {
+      await this.getRepoPermissions();
+    }
   }
 
   public componentWillUnmount() {
@@ -95,11 +101,11 @@ class VersionControlHeader extends React.Component<
   }
 
   public getRepoPermissions = async () => {
-    const { org, app } = window as Window as IAltinnWindow;
-    const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}`;
-
+    const { org, app } = _useParamsClassCompHack();
     try {
-      const currentRepo = await get(url, { cancelToken: this.source.token });
+      const currentRepo = await get(repoMetaPath(org, app), {
+        cancelToken: this.source.token,
+      });
       this.setState({
         hasPushRight: currentRepo.permissions.push,
       });
@@ -116,9 +122,8 @@ class VersionControlHeader extends React.Component<
   };
 
   public getStatus(callbackFunc?: any) {
-    const { org, app } = window as Window as IAltinnWindow;
-    const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/status`;
-    get(url)
+    const { org, app } = _useParamsClassCompHack();
+    get(repoStatusPath(org,app))
       .then((result: IGitStatus) => {
         if (this.componentIsMounted) {
           this.setState({
@@ -169,10 +174,8 @@ class VersionControlHeader extends React.Component<
       },
     });
 
-    const { org, app } = window as Window as IAltinnWindow;
-    const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/pull`;
-
-    get(url)
+    const { org, app } = _useParamsClassCompHack();
+    get(repoPullPath(org, app))
       .then((result: any) => {
         if (this.componentIsMounted) {
           if (result.repositoryStatus === 'Ok') {
@@ -354,10 +357,9 @@ class VersionControlHeader extends React.Component<
       },
     });
 
-    const { org, app } = window as Window as IAltinnWindow;
-    const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/push`;
+    const { org, app } = _useParamsClassCompHack();
 
-    post(url)
+    post(repoPushPath(org, app))
       .then(() => {
         if (this.componentIsMounted) {
           this.setState({
@@ -407,7 +409,7 @@ class VersionControlHeader extends React.Component<
       },
     });
 
-    const { org, app } = window as Window as IAltinnWindow;
+    const { org, app } = _useParamsClassCompHack();
     const options = {
       headers: {
         Accept: 'application/json',
@@ -419,12 +421,9 @@ class VersionControlHeader extends React.Component<
       org,
       repository: app,
     });
-
-    const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/commit`;
-    const pullUrl = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/pull`;
-    post(url, bodyData, options)
+    post(repoCommitPath(org, app), bodyData, options)
       .then(() => {
-        get(pullUrl)
+        get(repoPullPath(org, app))
           .then((result: any) => {
             if (this.componentIsMounted) {
               // if pull was successfull, show app updated message
@@ -525,17 +524,6 @@ class VersionControlHeader extends React.Component<
     });
   };
 
-  public renderCloneModal = () => {
-    return (
-      <CloneModal
-        anchorEl={this.state.cloneModalAnchor}
-        open={this.state.cloneModalOpen}
-        onClose={this.closeCloneModal}
-        language={this.props.language}
-      />
-    );
-  };
-
   public openCloneModal = (event: React.MouseEvent) => {
     this.setState({
       cloneModalOpen: true,
@@ -548,7 +536,7 @@ class VersionControlHeader extends React.Component<
     const type = this.props.type || 'header';
 
     return (
-      <React.Fragment>
+      <>
         {type === 'header' ? (
           <Grid
             container={true}
@@ -557,7 +545,10 @@ class VersionControlHeader extends React.Component<
             justifyContent='flex-start'
             data-testid='version-control-header'
           >
-            <Grid item={true} style={{ marginRight: '24px' }}>
+            <Grid
+              item={true}
+              style={{ marginRight: '24px' }}
+            >
               <CloneButton
                 onClick={this.openCloneModal}
                 buttonText={getLanguageFromKey(
@@ -566,7 +557,10 @@ class VersionControlHeader extends React.Component<
                 )}
               />
             </Grid>
-            <Grid item={true} style={{ marginRight: '24px' }}>
+            <Grid
+              item={true}
+              style={{ marginRight: '24px' }}
+            >
               <FetchChangesComponent
                 changesInMaster={this.state.changesInMaster}
                 fetchChanges={this.fetchChanges}
@@ -583,7 +577,12 @@ class VersionControlHeader extends React.Component<
               />
             </Grid>
             {this.renderSyncModalComponent()}
-            {this.renderCloneModal()}
+            <CloneModal
+              anchorEl={this.state.cloneModalAnchor}
+              open={this.state.cloneModalOpen}
+              onClose={this.closeCloneModal}
+              language={this.props.language}
+            />
           </Grid>
         ) : type === 'fetchButton' ? (
           <div data-testid='version-control-fetch-button'>
@@ -607,11 +606,9 @@ class VersionControlHeader extends React.Component<
             {this.renderSyncModalComponent()}
           </div>
         ) : null}
-      </React.Fragment>
+      </>
     );
   }
 }
-
-export default withStyles(styles)(VersionControlHeader);
 
 export const VersionControlContainer = withStyles(styles)(VersionControlHeader);

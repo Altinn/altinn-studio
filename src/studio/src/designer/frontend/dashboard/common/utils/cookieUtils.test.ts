@@ -1,4 +1,4 @@
-import { getCookie } from 'common/utils/cookieUtils';
+import { getCookie } from './cookieUtils';
 
 describe('cookieUtils', () => {
   describe('getCookie', () => {

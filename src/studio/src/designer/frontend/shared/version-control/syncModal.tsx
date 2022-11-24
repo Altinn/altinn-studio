@@ -52,7 +52,7 @@ const styles = createStyles({
   },
   popover: {
     width: '445px',
-    margin: '24px',
+    padding: '24px',
   },
   header: {
     fontSize: '16px',
