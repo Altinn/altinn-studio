@@ -15,7 +15,7 @@ using Xunit;
 
 namespace Designer.Tests.Controllers.DataModelsController;
 
-public class AddXsdTests : ApiTestsBase<DatamodelsController, AddXsdTests>
+public class AddXsdTests : ApiTestsBase<DatamodelsController, AddXsdTests>, IDisposable
 {
     private const string VersionPrefix = "/designer/api";
 
@@ -30,6 +30,16 @@ public class AddXsdTests : ApiTestsBase<DatamodelsController, AddXsdTests>
         services.AddSingleton<IGitea, IGiteaMock>();
     }
 
+    private string CreatedFolderPath { get; set; }
+
+    public void Dispose()
+    {
+        if (!string.IsNullOrWhiteSpace(CreatedFolderPath))
+        {
+            TestDataHelper.DeleteDirectory(CreatedFolderPath);
+        }
+    }
+
     [Fact]
     public async Task AddXsd_AppRepo_PreferredXsd_ShouldReturnCreated()
     {
@@ -39,7 +49,7 @@ public class AddXsdTests : ApiTestsBase<DatamodelsController, AddXsdTests>
         var developer = "testUser";
         var targetRepository = TestDataHelper.GenerateTestRepoName();
 
-        await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+        CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
         var url = $"{VersionPrefix}/{org}/{targetRepository}/datamodels/upload";
 
         var fileStream = TestDataHelper.LoadDataFromEmbeddedResource(
@@ -54,15 +64,8 @@ public class AddXsdTests : ApiTestsBase<DatamodelsController, AddXsdTests>
             Content = formData
         };
 
-        try
-        {
-            var response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        }
-        finally
-        {
-            TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
-        }
+        var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 
     [Fact]
@@ -74,7 +77,7 @@ public class AddXsdTests : ApiTestsBase<DatamodelsController, AddXsdTests>
         var developer = "testUser";
         var targetRepository = TestDataHelper.GenerateTestRepoName();
 
-        await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+        CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
         var url = $"{VersionPrefix}/{org}/{targetRepository}/datamodels/upload";
 
         var fileStream = TestDataHelper.LoadDataFromEmbeddedResource(
@@ -89,19 +92,12 @@ public class AddXsdTests : ApiTestsBase<DatamodelsController, AddXsdTests>
             Content = formData
         };
 
-        try
-        {
-            var response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        }
-        finally
-        {
-            TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
-        }
+        var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 
     [Fact]
-    public async Task AddXsd_DatamodelsRepo_ShouldReturnCreated()
+    public async Task AddXsd_DatamodelsRepo_NonAsciiName_ShouldReturnCreated()
     {
         // Arrange
         var org = "ttd";
@@ -109,7 +105,7 @@ public class AddXsdTests : ApiTestsBase<DatamodelsController, AddXsdTests>
         var developer = "testUser";
         var targetRepository = TestDataHelper.GenerateTestRepoName();
 
-        await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
+        CreatedFolderPath = await TestDataHelper.CopyRepositoryForTest(org, sourceRepository, developer, targetRepository);
         var url = $"{VersionPrefix}/{org}/{targetRepository}/datamodels/upload";
 
         var fileStream = TestDataHelper.LoadDataFromEmbeddedResource(
@@ -117,21 +113,14 @@ public class AddXsdTests : ApiTestsBase<DatamodelsController, AddXsdTests>
         var formData = new MultipartFormDataContent();
         var streamContent = new StreamContent(fileStream);
         streamContent.Headers.ContentType = MediaTypeHeaderValue.Parse("multipart/form-data");
-        formData.Add(streamContent, "file", "Kursdomene_HvemErHvem_M_2021-04-08_5742_34627_SERES.xsd");
+        formData.Add(streamContent, "file", "Kursdomene_HvemErHvem_M_ÅåØøæÆ.xsd");
 
         var httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, url)
         {
             Content = formData
         };
 
-        try
-        {
-            var response = await HttpClient.Value.SendAsync(httpRequestMessage);
-            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
-        }
-        finally
-        {
-            TestDataHelper.DeleteAppRepository(org, targetRepository, developer);
-        }
+        var response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
     }
 }

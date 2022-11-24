@@ -3,17 +3,24 @@ import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import { render, screen, waitFor} from '@testing-library/react';
 import { VersionControlContainer } from './versionControlHeader';
-import { sharedUrls } from '../utils/urlHelper';
-import { setWindowLocationForTests, TEST_DOMAIN } from "../../testing/testUtils"
-
+import {setWindowLocationForTests, TEST_DOMAIN} from "../../testing/testUtils"
+import {datamodelXsdPath, repoMetaPath} from "../api-paths";
 
 setWindowLocationForTests('test-org', 'test-app');
+
+jest.mock('react-router-dom', () => ({
+  ...jest.requireActual('react-router-dom'), // use actual for all non-hook parts
+  useParams: () => ({
+    org:"test-org",
+    app:"test-app",
+  }),
+}));
 
 export const versionControllHeaderApiCalls = jest.fn();
 
 const handlers = [
   rest.get(
-      `${TEST_DOMAIN}/designer/api/v1/repos/test-org/test-app`,
+      TEST_DOMAIN + repoMetaPath("test-org","test-app"),
     (req, res, ctx) => {
       versionControllHeaderApiCalls();
       return res(
@@ -26,7 +33,7 @@ const handlers = [
       );
     },
   ),
-  rest.get(sharedUrls().dataModelXsdUrl, (req, res, ctx) => {
+  rest.get(TEST_DOMAIN + datamodelXsdPath("test-org","test-app"), (req, res, ctx) => {
     versionControllHeaderApiCalls();
     return res(ctx.status(200), ctx.json({}));
   }),

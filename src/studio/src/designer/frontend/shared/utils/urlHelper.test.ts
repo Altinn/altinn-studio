@@ -1,4 +1,4 @@
-import { returnUrlToMessagebox, sharedUrls } from './urlHelper';
+import { returnUrlToMessagebox } from './urlHelper';
 import {
   APP_DEVELOPMENT_BASENAME,
   DASHBOARD_BASENAME,
@@ -12,29 +12,14 @@ describe('Shared urlHelper.ts', () => {
       window.location = oldWindowLocation;
     });
 
-    const runUrlTests = () => {
-      expect(sharedUrls().dataModelsApi).toBe(
-        'https://altinn3.no/designer/api/org/repo/datamodels',
-      );
-      expect(sharedUrls().dataModelUploadPageUrl).toContain(
-        `${APP_DEVELOPMENT_BASENAME}/org/repo/datamodel`,
-      );
-      expect(sharedUrls().dataModelXsdUrl).toContain(
-        '/designer/org/repo/Model/GetXsd',
-      );
-      expect(sharedUrls().repositoryGitUrl).toContain('/repos/org/repo.git');
-      expect(sharedUrls().repositoryUrl).toContain('/repos/org/repo');
-    };
 
     test('sharedUrls generates expected urls on an app-development location', () => {
       delete window.location;
-
       window.location = {
         ...oldWindowLocation,
         origin: 'https://altinn3.no',
         pathname: `${APP_DEVELOPMENT_BASENAME}/org/repo`,
       };
-      runUrlTests();
     });
 
     test.skip('sharedUrls generates expected urls on a the dashboard location', () => {
@@ -44,7 +29,6 @@ describe('Shared urlHelper.ts', () => {
         origin: 'https://altinn3.no',
         pathname: `${DASHBOARD_BASENAME}/datamodelling/org/repo`,
       };
-      runUrlTests();
     });
   });
 

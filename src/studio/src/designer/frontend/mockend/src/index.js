@@ -2,23 +2,21 @@
 require = require('esm')(module /*, options*/);
 const bodyParser = require('body-parser');
 
-const createDatamodel = require('./routes/create-model');
-const getDatamodel = require('./routes/get-datamodel');
-const getDatamodels = require('./routes/get-datamodels');
-const getIndexHtml = require('./routes/get-index-html');
-const getRepoData = require('./routes/get-repo-data');
-const putDatamodel = require('./routes/put-datamodel');
-const delDatamodel = require('./routes/del-datamodel');
-const userCurrent = require('./routes/user-current');
-
-const { APP_DEVELOPMENT_BASENAME } = require('../../constants.js');
+const { APP_DEVELOPMENT_BASENAME, DASHBOARD_BASENAME } = require('../../constants.js');
 const { ensureStorageDir } = require('./utils');
-const { DASHBOARD_BASENAME } = require('../../constants');
-const { userCurrentPath } = require('../../shared/api-paths');
+const {
+  userCurrentPath,
+  datamodelsPath,
+  createDatamodelPath,
+  remainingSessionTimePath,
+  repoInitialCommitPath,
+  frontendLangPath,
+  repoMetaPath,
+  serviceConfigPath,
+  serviceNamePath,
+} = require('../../shared/api-paths');
+const { datamodelGetPath, datamodelPath} = require('app-shared/api-paths');
 
-/**
- * Request URL: http://localhost:8080/designer/api/my-org/my-app/datamodels?modelPath=App%2Fmodels%2Fny-modell.schema.json
- */
 module.exports = (middlewares, devServer) => {
   if (!devServer) {
     throw new Error('webpack-dev-server is not defined');
@@ -30,37 +28,20 @@ module.exports = (middlewares, devServer) => {
   const startUrl =
     process.env.npm_package_name === 'dashboard' ? DASHBOARD_BASENAME : `${APP_DEVELOPMENT_BASENAME}/someorg/someapp`;
 
+  app.delete(datamodelPath(':owner', ':repo'), require('./routes/del-datamodel'));
   app.get('/', (req, res) => res.redirect(startUrl));
-  app.get(userCurrentPath(), (req, res) => res.send(userCurrent()));
-
-  app.get('/designer/:owner/:repo', (req, res) => res.send(getIndexHtml()));
-  app.get('/designer/:owner/:repo/Config/GetServiceConfig', (req, res) => res.sendStatus(204));
-  app.get('/designer/:owner/:repo/Text/GetServiceName', (req, res) => res.send(req.params.repo.toUpperCase()));
-  app.get('/designer/api/:owner/:repo/datamodels', (req, res) => res.json(getDatamodels()));
-  app.get('/designer/api/:owner/:repo/datamodelsApp/models/:filename', (req, res) =>
-    res.json(getDatamodel(req.params.filename))
-  );
-  app.get('/designer/frontend/lang/:file', (req, res) => res.json(require(`../../language/src/${req.params.file}`)));
-  app.get('/designer/api/v1/repos/:owner/:repo', (req, res) =>
-    res.json(getRepoData(req.headers.host, req.params.owner, req.params.repo))
-  );
-  app.get('/designer/api/v1/repos/:owner/:repo/initialcommit', (req, res) => res.sendStatus(204));
-  app.get('/designer/api/v1/session/remaining', (req, res) => res.send('9999'));
-  app.post('/designer/api/:owner/:repo/datamodels/post', (req, res) => {
-    const { modelName } = req.body;
-    res.status(201);
-    res.json(createDatamodel(modelName));
-  });
-  app.put('/designer/api/:owner/:repo/datamodels', (req, res) => {
-    const { modelPath } = req.query;
-    res.status(200);
-    res.json(putDatamodel(modelPath, req.body));
-  });
-  app.delete('/designer/api/:owner/:repo/datamodels', (req, res) => {
-    const { modelPath } = req.query;
-    res.status(200);
-    res.json(delDatamodel(modelPath));
-  });
+  app.get('/designer/:owner/:repo', require('./routes/get-index-html'));
+  app.get(datamodelGetPath(':owner', ':repo', '/App/models/:filename'), require('./routes/get-datamodel'));
+  app.get(datamodelsPath(':owner', ':repo'), require('./routes/get-datamodels'));
+  app.get(frontendLangPath(':locale'), (req, res) => res.json(require(`../../language/src/${req.params.locale}.json`)));
+  app.get(remainingSessionTimePath(), (req, res) => res.send('9999'));
+  app.get(repoInitialCommitPath(':owner', ':repo'), (req, res) => res.sendStatus(204));
+  app.get(repoMetaPath(':owner', ':repo'), require('./routes/get-repo-data'));
+  app.get(serviceConfigPath(':owner', ':repo'), (req, res) => res.sendStatus(204));
+  app.get(serviceNamePath(':owner', ':repo'), (req, res) => res.send(req.params.repo.toUpperCase()));
+  app.get(userCurrentPath(), require('./routes/user-current'));
+  app.post(createDatamodelPath(':owner', ':repo'), require('./routes/create-model'));
+  app.put(datamodelsPath(':owner', ':repo'), require('./routes/put-datamodel'));
 
   return middlewares;
 };

@@ -18,7 +18,8 @@ import { CreateNewWrapper } from './components/CreateNewWrapper';
 import { DeleteWrapper } from './components/DeleteWrapper';
 import { SchemaSelect } from './components/SchemaSelect';
 import { XSDUpload } from './components/XSDUpload';
-import { sharedUrls } from '../../utils/urlHelper';
+import {datamodelPath} from "../../api-paths";
+
 
 interface IDataModellingContainerProps extends React.PropsWithChildren<any> {
   language: ILanguage;
@@ -141,7 +142,6 @@ export function DataModelling({ language, org, repo, createPathOption }: IDataMo
   const toggleEditMode = () => setEditMode(setLocalStorageItem('editMode', !editMode));
 
   const t = (key: string) => getLanguageFromKey(key, language);
-  const saveModelUrl = sharedUrls().saveDataModelUrl(selectedOption?.value?.repositoryRelativeUrl);
 
   return (
     <>
@@ -183,7 +183,7 @@ export function DataModelling({ language, org, repo, createPathOption }: IDataMo
         language={language}
         schema={jsonSchema}
         onSaveSchema={handleSaveSchema}
-        saveUrl={saveModelUrl}
+        saveUrl={datamodelPath(org,repo,selectedOption?.value?.repositoryRelativeUrl)}
         name={selectedOption?.label}
         loading={metadataLoadingState === LoadingState.LoadingModels}
         LandingPagePanel={

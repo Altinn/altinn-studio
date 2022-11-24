@@ -2,7 +2,6 @@ import { SagaIterator } from 'redux-saga';
 import { call, put, takeLatest } from 'redux-saga/effects';
 import type { IJsonSchema } from '@altinn/schema-editor/types';
 import { del, get, post, put as networkPut } from '../../../utils/networking';
-import { sharedUrls } from '../../../utils/urlHelper';
 import {
   createDataModel,
   createDataModelFulfilled,
@@ -19,12 +18,19 @@ import {
   saveDataModelRejected,
 } from './dataModellingSlice';
 import { DataModelsMetadataActions } from './metadata';
+import {
+  createDatamodelPath,
+  datamodelPath,
+  datamodelGetPath,
+} from '../../../api-paths';
+import { _useParamsClassCompHack } from '../../../utils/_useParamsClassCompHack';
 
 export function* fetchDataModelSaga(action: IDataModelAction): SagaIterator {
   const { metadata } = action.payload;
   try {
     const modelPath = metadata?.value?.repositoryRelativeUrl;
-    const result = yield call(get, sharedUrls().getDataModelUrl(modelPath));
+    const { org, app } = _useParamsClassCompHack();
+    const result = yield call(get, datamodelGetPath(org, app, modelPath));
     yield put(fetchDataModelFulfilled({ schema: result }));
   } catch (err) {
     yield put(fetchDataModelRejected({ error: err }));
@@ -38,8 +44,9 @@ export function* watchFetchDataModelSaga(): SagaIterator {
 function* saveDataModelSaga(action: IDataModelAction) {
   const { schema, metadata } = action.payload;
   try {
+    const { org, app } = _useParamsClassCompHack();
     const modelPath = metadata?.value?.repositoryRelativeUrl;
-    yield call(networkPut, sharedUrls().saveDataModelUrl(modelPath), schema);
+    yield call(networkPut, datamodelPath(org, app, modelPath), schema);
     yield put(saveDataModelFulfilled());
   } catch (err) {
     yield put(saveDataModelRejected({ error: err }));
@@ -53,8 +60,13 @@ export function* watchSaveDataModelSaga(): SagaIterator {
 function* createDataModelSaga(action: IDataModelAction) {
   const { name, relativePath } = action.payload;
   const body = { modelName: name, relativeDirectory: relativePath };
+  const { org, app } = _useParamsClassCompHack();
   try {
-    const schema: IJsonSchema = yield call(post, sharedUrls().createDataModelUrl, body);
+    const schema: IJsonSchema = yield call(
+      post,
+      createDatamodelPath(org, app),
+      body,
+    );
     yield put(DataModelsMetadataActions.getDataModelsMetadata());
     yield put(createDataModelFulfilled({ schema }));
   } catch (err) {
@@ -69,8 +81,9 @@ export function* watchCreateDataModelSaga(): SagaIterator {
 function* deleteDataModelSaga(action: IDataModelAction): SagaIterator {
   const { metadata } = action.payload;
   try {
+    const { org, app } = _useParamsClassCompHack();
     const modelPath = metadata?.value?.repositoryRelativeUrl;
-    yield call(del, sharedUrls().saveDataModelUrl(modelPath));
+    yield call(del, datamodelPath(org, app, modelPath));
     yield put(DataModelsMetadataActions.getDataModelsMetadata());
     yield put(deleteDataModelFulfilled());
   } catch (err) {

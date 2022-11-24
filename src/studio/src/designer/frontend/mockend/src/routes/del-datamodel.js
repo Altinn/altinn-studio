@@ -1,7 +1,10 @@
 const fs = require('fs');
 const { getStoragePath } = require('../utils');
 
-module.exports = (modelpath) => {
-  const filepath = getStoragePath(modelpath.split('/').pop());
-  return fs.unlinkSync(filepath);
+module.exports = (req, res) => {
+  const { modelPath } = req.query;
+  const filepath = getStoragePath(modelPath.split('/').pop());
+  res.status(200);
+  fs.unlinkSync(filepath);
+  res.json();
 };
