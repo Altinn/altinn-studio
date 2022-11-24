@@ -6,7 +6,7 @@ namespace Designer.Tests.Factories.ModelFactory
 {
     public class JsonMetadataParserTests: Xsd2CsharpBaseClass<JsonMetadataParserTests>
     {
-        [Fact(Skip = "TODO: Investigate why these fail sporadically on build server")]
+        [Fact]
         public void CreateModelFromMetadata_InputModelWithRestrictionMinimumAndMaximum_GenerateDataAnnotationWithRangeFromMinToMax()
         {
             Given.That.MetamodelLoaded(
@@ -16,7 +16,7 @@ namespace Designer.Tests.Factories.ModelFactory
             And.CSharpClasses.Should().Contain("[Range(-7.766279631452242E+18, 7.766279631452242E+18)]");
         }
 
-        [Fact(Skip = "TODO: Investigate why these fail sporadically on build server")]
+        [Fact]
         public void CreateModelFromMetadata_InputModelWithRestrictionMinLengthAndMaxLength_GenerateDataAnnotationWithMinLengthAndMaxLengthAttributes()
         {
             Given.That.MetamodelLoaded(
@@ -27,7 +27,7 @@ namespace Designer.Tests.Factories.ModelFactory
             And.CSharpClasses.Should().Contain("[MaxLength(20)]");
         }
 
-        [Fact(Skip = "TODO: Investigate why these fail sporadically on build server")]
+        [Fact]
         public void CreateModelFromMetadata_InputModelSpecifiedModelName_GenerateDataAnnotationForRoomElement()
         {
             Given.That.MetamodelLoaded(
@@ -37,7 +37,7 @@ namespace Designer.Tests.Factories.ModelFactory
             And.CSharpClasses.Should().Contain("[XmlRoot(ElementName=\"melding\")]");
         }
 
-        [Fact(Skip = "TODO: Investigate why these fail sporadically on build server")]
+        [Fact]
         public void CreateModelFromMetadata_StringArrayShouldUseNativeType()
         {
             Given.That.MetamodelLoaded(
@@ -49,7 +49,7 @@ namespace Designer.Tests.Factories.ModelFactory
             And.CSharpClasses.Should().NotContain("public class String");
         }
 
-        [Fact(Skip = "TODO: Investigate why these fail sporadically on build server")]
+        [Fact]
         public void CreateModelFromMetadata_TargetNamespaceShouldBeCarriedOverToClass()
         {
             Given.That.MetamodelLoaded(
