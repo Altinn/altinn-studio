@@ -1,7 +1,7 @@
 import React from 'react';
 import { getLanguageFromKey } from '../utils/language';
 import {Button, ButtonSize, ButtonVariant} from '@altinn/altinn-design-system';
-import { Upload } from '@navikt/ds-icons';
+import { Upload, Cancel } from '@navikt/ds-icons';
 import classes from './versionControlHeader.module.css';
 
 export interface IShareChangesComponentProps {
@@ -33,7 +33,7 @@ export const ShareChangesComponent = (props: IShareChangesComponentProps) => {
       onClick={shareChangesHandler}
       disabled={!props.hasPushRight}
       id='share_changes_button'
-      svgIconComponent={props.hasMergeConflict ? null : <Upload />}
+      svgIconComponent={props.hasMergeConflict ? <Cancel /> : <Upload />}
       variant={ButtonVariant.Quiet}
       size={ButtonSize.Small}
       className={classes.button}
