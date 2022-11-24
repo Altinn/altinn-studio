@@ -14,11 +14,7 @@ export interface ILeftDrawerMenuProps {
   leftMenuItems: { [key: string]: IMenuItem[] };
 }
 
-export default function LeftDrawerMenu({
-  menuType,
-  activeLeftMenuSelection,
-  leftMenuItems,
-}: ILeftDrawerMenuProps) {
+export default function LeftDrawerMenu({ menuType, activeLeftMenuSelection, leftMenuItems }: ILeftDrawerMenuProps) {
   const [iconColor, setIconColor] = React.useState<any>({});
   const [open, setOpen] = React.useState<boolean>(false);
   const { org, app } = useParams();
@@ -71,8 +67,7 @@ export default function LeftDrawerMenu({
               <span
                 className={cn(
                   classes.listItem,
-                  activeLeftMenuSelection === menuItem.activeLeftMenuSelection &&
-                    classes.activeListItem
+                  activeLeftMenuSelection === menuItem.activeLeftMenuSelection && classes.activeListItem
                 )}
                 onMouseEnter={onMouseEnterListItem(index)}
                 onMouseLeave={onMouseLeaveListItem(index)}
@@ -81,9 +76,7 @@ export default function LeftDrawerMenu({
                   isActive={activeLeftMenuSelection === menuItem.activeLeftMenuSelection}
                   isActiveIconColor={altinnTheme.altinnPalette.primary.blueDark}
                   iconClass={menuItem.iconClass}
-                  iconColor={
-                    iconColor[index] === undefined ? 'rgba(0, 0, 0, 0.54)' : iconColor[index]
-                  }
+                  iconColor={iconColor[index] === undefined ? 'rgba(0, 0, 0, 0.54)' : iconColor[index]}
                 />
                 <span className={classes.listItemText}>{menuItem.displayText}</span>
               </span>
