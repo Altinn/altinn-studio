@@ -158,7 +158,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
     return () => {
       dispatch(AppReleaseActions.getAppReleaseStopInterval());
     };
-  }, [dispatch, language]);
+  }, [dispatch, language, org, app]);
 
   function handlePopoverKeyPress(event: React.KeyboardEvent) {
     if (event.key === 'Enter' || event.key === ' ') {

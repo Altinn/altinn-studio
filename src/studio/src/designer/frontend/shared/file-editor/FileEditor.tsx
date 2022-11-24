@@ -202,7 +202,7 @@ class FileEditor extends React.Component<
     this.loadFileContent(fileName);
   };
 
-  public saveFile = async (e: any) => {
+  public saveFile = async (_e: any) => {
     let stageFile = false;
     if (
       this.props.stageAfterSaveFile === true &&

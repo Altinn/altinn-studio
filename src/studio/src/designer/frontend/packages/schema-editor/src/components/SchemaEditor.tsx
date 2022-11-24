@@ -120,7 +120,7 @@ export const SchemaEditor = ({
     if (selectedDefinitionParent && !expandedDefNodes.includes(selectedDefinitionParent.pointer)) {
       setExpandedDefNodes((prevState) => [...prevState, selectedDefinitionParent.pointer]);
     }
-  }, [selectedPropertyParent, expandedDefNodes]);
+  }, [selectedPropertyParent, expandedDefNodes, selectedDefinitionParent]);
 
   const handlePropertiesNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) => setExpandedPropNodes(nodeIds);
 

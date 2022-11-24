@@ -84,7 +84,7 @@ export const DeployContainer = (props: IDeployContainer) => {
       dispatch(AppDeploymentActions.getAppDeploymentsStopInterval());
       dispatch(getDeploymentsStopInterval());
     };
-  }, []);
+  }, [dispatch]);
 
   React.useEffect(() => {
     if (

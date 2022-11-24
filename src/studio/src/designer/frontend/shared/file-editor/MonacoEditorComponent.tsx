@@ -89,7 +89,7 @@ class MonacoEditorComponent extends React.Component<
     });
   };
 
-  public setFileEditorFocus = (type: string) => (e: any) => {
+  public setFileEditorFocus = (type: string) => (_e: any) => {
     const status = type === 'focus';
 
     this.setState({

@@ -136,7 +136,7 @@ class Rule extends React.Component<IRuleComponentProps, any> {
               style={{ fontSize: '16px' }}
             >
               <option value={''}>{this.props.language['general.choose_method']}</option>
-              {this.props.ruleModelElements.map((funcObj: any, i: any) => {
+              {this.props.ruleModelElements.map((funcObj: any) => {
                 return (
                   <option
                     key={funcObj.name}
@@ -252,7 +252,9 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                   {this.props.language['general.delete']}
                 </button>
               ) : null}
-              <a onClick={this.props.cancelEdit}>{this.props.language['general.cancel']}</a>
+              <button className={'anchor'} onClick={this.props.cancelEdit}>
+                {this.props.language['general.cancel']}
+              </button>
             </div>
           </div>
         </div>

@@ -52,7 +52,7 @@ export function CloneModal(props: ICloneModalProps) {
     return () => {
       source.cancel('Component got unmounted.');
     };
-  }, []);
+  }, [app, org]);
   const t = (key: string) => getLanguageFromKey(key, props.language);
   return (
     <Popover

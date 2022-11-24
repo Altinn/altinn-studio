@@ -452,7 +452,9 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                   {this.props.language['general.delete']}
                 </button>
               ) : null}
-              <a onClick={this.props.cancelEdit}>{this.props.language['general.cancel']}</a>
+              <button className={'anchor'} onClick={this.props.cancelEdit}>
+                {this.props.language['general.cancel']}
+              </button>
             </div>
           </div>
         </div>

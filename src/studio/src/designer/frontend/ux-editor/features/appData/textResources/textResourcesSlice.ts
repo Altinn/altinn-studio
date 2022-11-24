@@ -42,7 +42,7 @@ const textResourcesSlice = createSlice({
   name: 'textResources',
   initialState,
   reducers: {
-    loadTextResources: (state, action: PayloadAction<ILoadTextResources>) => {
+    loadTextResources: (state, _action: PayloadAction<ILoadTextResources>) => {
       state.fetched = false;
       state.fetching = true;
       state.error = null;
@@ -66,7 +66,7 @@ const textResourcesSlice = createSlice({
       state.fetched = false;
       state.fetching = false;
     },
-    addTextResources: (state, action) => {
+    addTextResources: (state, _action) => {
       state.saving = true;
       state.saved = false;
       state.error = null;
