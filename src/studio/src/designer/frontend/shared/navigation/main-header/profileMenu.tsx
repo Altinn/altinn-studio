@@ -5,7 +5,7 @@ import { altinnDocsUrl } from '../../utils/urlHelper';
 import { post } from '../../utils/networking';
 import { AccountCircle } from '@mui/icons-material';
 import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
-import {repositoryPath} from "../../api-paths";
+import { repositoryPath } from '../../api-paths';
 
 export interface IProfileMenuComponentProps {
   showlogout?: boolean;
@@ -77,11 +77,7 @@ class ProfileMenuComponent extends React.Component<
           aria-label='profilikon knapp'
           onClick={this.handleClick}
         >
-          <AccountCircle
-            fontSize='large'
-            titleAccess='profilikon'
-            aria-label='profilikon'
-          />
+          <AccountCircle fontSize='large' titleAccess='profilikon' aria-label='profilikon' />
         </IconButton>
         <Menu
           id='simple-menu'
@@ -92,39 +88,25 @@ class ProfileMenuComponent extends React.Component<
           elevation={1}
           classes={{ paper: classes.paperStyle }}
         >
-          <MenuItem
-            key='placeholder'
-            style={{ display: 'none' }}
-          />
+          <MenuItem key='placeholder' style={{ display: 'none' }} />
           {
             // workaround for highlighted menu item not changing.
             // https://github.com/mui-org/material-ui/issues/5186#issuecomment-337278330
           }
           {this.shouldShowRepositoryLink() && (
             <MenuItem className={classes.menuItem}>
-              <a
-                href={repositoryPath(org,app)}
-                target='_blank'
-                rel='noopener noreferrer'
-              >
+              <a href={repositoryPath(org, app)} target='_blank' rel='noopener noreferrer'>
                 Åpne repository
               </a>
             </MenuItem>
           )}
           <MenuItem className={classes.menuItem}>
-            <a
-              href={altinnDocsUrl}
-              target='_blank'
-              rel='noopener noreferrer'
-            >
+            <a href={altinnDocsUrl} target='_blank' rel='noopener noreferrer'>
               Dokumentasjon
             </a>
           </MenuItem>
           {showlogout && (
-            <MenuItem
-              onClick={this.handleLogout}
-              className={classes.menuItem}
-            >
+            <MenuItem onClick={this.handleLogout} className={classes.menuItem}>
               Logout
             </MenuItem>
           )}

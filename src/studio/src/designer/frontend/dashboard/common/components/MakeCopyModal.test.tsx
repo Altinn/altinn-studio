@@ -5,8 +5,9 @@ import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import * as networking from 'app-shared/utils/networking';
 import { MemoryRouter } from 'react-router-dom';
-import { IMakeCopyModalProps, MakeCopyModal } from './MakeCopyModal';
-import {copyAppPath} from "app-shared/api-paths";
+import type { IMakeCopyModalProps } from './MakeCopyModal';
+import { MakeCopyModal } from './MakeCopyModal';
+import { copyAppPath } from 'app-shared/api-paths';
 
 const user = userEvent.setup();
 const org = 'org';
@@ -52,7 +53,7 @@ describe('MakeCopyModal', () => {
       screen.queryByText(/dashboard\.field_cannot_be_empty/i)
     ).not.toBeInTheDocument();
 
-    expect(postSpy).toHaveBeenCalledWith(copyAppPath(org,app,repoName));
+    expect(postSpy).toHaveBeenCalledWith(copyAppPath(org, app, repoName));
   });
 
   it('should show error message when clicking confirm and name is too long', async () => {

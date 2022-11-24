@@ -1,4 +1,5 @@
-import React, { ChangeEvent, MouseEvent, useEffect, useState } from 'react';
+import type { ChangeEvent, MouseEvent } from 'react';
+import React, { useEffect, useState } from 'react';
 import { TabContext, TabList, TabPanel } from '@mui/lab';
 import { useDispatch, useSelector } from 'react-redux';
 import { AppBar, Button, Typography } from '@mui/material';
@@ -20,6 +21,7 @@ import { SchemaTab } from './common/SchemaTab';
 import { TopToolbar } from './TopToolbar';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { SchemaTreeView } from './TreeView/SchemaTreeView';
+import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
 import {
   CombinationKind,
   FieldType,
@@ -31,8 +33,6 @@ import {
   ObjectKind,
   pointerIsDefinition,
   ROOT_POINTER,
-  UiSchemaNode,
-  UiSchemaNodes,
 } from '@altinn/schema-model';
 import { IconImage } from './common/Icon';
 import { ActionMenu } from './common/ActionMenu';
@@ -61,7 +61,7 @@ const rootNodesSelector = createSelector(
       });
     }
     return nodesmap;
-  },
+  }
 );
 
 const rootChildrenSelector = createSelector(
@@ -72,7 +72,7 @@ const rootChildrenSelector = createSelector(
     } else {
       return undefined;
     }
-  },
+  }
 );
 
 export const SchemaEditor = ({
@@ -104,7 +104,7 @@ export const SchemaEditor = ({
 
   const selectedPropertyNodeId = useSelector((state: ISchemaState) => state.selectedPropertyNodeId);
   const selectedPropertyParent = useSelector((state: ISchemaState) =>
-    getParentNodeByPointer(state.uiSchema, state.selectedPropertyNodeId),
+    getParentNodeByPointer(state.uiSchema, state.selectedPropertyNodeId)
   );
   useEffect(() => {
     if (selectedPropertyParent && !expandedPropNodes.includes(selectedPropertyParent.pointer)) {
@@ -114,7 +114,7 @@ export const SchemaEditor = ({
 
   const selectedDefinitionNodeId = useSelector((state: ISchemaState) => state.selectedDefinitionNodeId);
   const selectedDefinitionParent = useSelector((state: ISchemaState) =>
-    getParentNodeByPointer(state.uiSchema, state.selectedDefinitionNodeId),
+    getParentNodeByPointer(state.uiSchema, state.selectedDefinitionNodeId)
   );
   useEffect(() => {
     if (selectedDefinitionParent && !expandedDefNodes.includes(selectedDefinitionParent.pointer)) {
@@ -145,7 +145,7 @@ export const SchemaEditor = ({
         name: 'name',
         location: makePointer(Keywords.Properties),
         props: newNode,
-      }),
+      })
     );
   };
 
@@ -156,7 +156,7 @@ export const SchemaEditor = ({
         name: 'name',
         location: makePointer(Keywords.Definitions),
         props: { fieldType: FieldType.Object },
-      }),
+      })
     );
   };
 
@@ -167,10 +167,10 @@ export const SchemaEditor = ({
   const t = (key: string) => getTranslation(key, language);
 
   const selectedId = useSelector((state: ISchemaState) =>
-    state.selectedEditorTab === 'properties' ? state.selectedPropertyNodeId : state.selectedDefinitionNodeId,
+    state.selectedEditorTab === 'properties' ? state.selectedPropertyNodeId : state.selectedDefinitionNodeId
   );
   const selectedItem = useSelector((state: ISchemaState) =>
-    selectedId ? getNodeByPointer(state.uiSchema, selectedId) : undefined,
+    selectedId ? getNodeByPointer(state.uiSchema, selectedId) : undefined
   );
   const rootNodeMap = useSelector(rootNodesSelector);
   const rootChildren = useSelector(rootChildrenSelector);
@@ -179,7 +179,7 @@ export const SchemaEditor = ({
   rootChildren?.forEach((childPointer) =>
     pointerIsDefinition(childPointer)
       ? definitions.push(rootNodeMap.get(childPointer))
-      : properties.push(rootNodeMap.get(childPointer)),
+      : properties.push(rootNodeMap.get(childPointer))
   );
   return (
     <div className={classes.root}>

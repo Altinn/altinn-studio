@@ -1,4 +1,5 @@
-import React, { useState, ChangeEvent, KeyboardEvent } from 'react';
+import type { ChangeEvent, KeyboardEvent } from 'react';
+import React, { useState } from 'react';
 import { IconButton, InputAdornment, TextField } from '@mui/material';
 import { useDebounce } from 'react-use';
 import cn from 'classnames';

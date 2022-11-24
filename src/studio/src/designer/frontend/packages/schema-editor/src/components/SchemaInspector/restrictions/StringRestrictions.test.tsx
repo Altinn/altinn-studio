@@ -54,12 +54,7 @@ const defaultProps: RestrictionItemProps = {
 const user = userEvent.setup();
 
 const renderStringRestrictions = (props?: Partial<RestrictionItemProps>) =>
-  render(
-    <StringRestrictions
-      {...defaultProps}
-      {...props}
-    />,
-  );
+  render(<StringRestrictions {...defaultProps} {...props} />);
 
 afterEach(() => {
   onChangeRestrictionValue.mockReset();
@@ -73,10 +68,8 @@ test('All default fields should appear by default', () => {
     StrRestrictionKeys.minLength,
     StrRestrictionKeys.maxLength,
     StrRestrictionKeys.pattern,
-    'pattern_test_field'
-  ].forEach((key) =>
-    expect(screen.getByLabelText(language[`schema_editor.${key}`])).toBeDefined(),
-  );
+    'pattern_test_field',
+  ].forEach((key) => expect(screen.getByLabelText(language[`schema_editor.${key}`])).toBeDefined());
 });
 
 test('Format selection appears with all options', () => {
@@ -84,8 +77,10 @@ test('Format selection appears with all options', () => {
   expect(screen.getByText(language[`schema_editor.format`])).toBeDefined();
   expect(screen.getByLabelText(language[`schema_editor.format`])).toBeDefined();
   Object.values(StringFormat).forEach((format) => {
-    expect(screen.getByRole('option', { name: language[`schema_editor.format_${format}`] }))
-      .toHaveAttribute('value', format);
+    expect(screen.getByRole('option', { name: language[`schema_editor.format_${format}`] })).toHaveAttribute(
+      'value',
+      format
+    );
   });
   expect(screen.getByRole('option', { name: language['schema_editor.format_none'] })).toHaveAttribute('value', '');
 });
@@ -113,10 +108,7 @@ test('onChangeRestrictions is called with correct input when format is changed',
   rerender(<StringRestrictions {...defaultProps} />);
   await user.click(screen.getByRole('option', { name: language[`schema_editor.format_none`] }));
   expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
-  expect(onChangeRestrictions).toHaveBeenCalledWith(
-    path,
-    expect.objectContaining({ [StrRestrictionKeys.format]: '' })
-  );
+  expect(onChangeRestrictions).toHaveBeenCalledWith(path, expect.objectContaining({ [StrRestrictionKeys.format]: '' }));
 });
 
 test('Date restriction fields appear if and only if format is either date, date-time or time', () => {
@@ -144,7 +136,7 @@ test('Date restriction fields appear if and only if format is either date, date-
     StringFormat.UriTemplate,
     StringFormat.JsonPointer,
     StringFormat.RelativeJsonPointer,
-    StringFormat.Regex
+    StringFormat.Regex,
   ].forEach((format: string) => {
     const { unmount } = renderStringRestrictions({ restrictions: { format } });
     expect(screen.queryByLabelText(language['schema_editor.format_date_after_incl'])).toBeFalsy();
@@ -191,7 +183,7 @@ test('"Latest" field has given value and checkbox is unchecked when exclusive', 
 });
 
 test('onChangeRestrictions is called with correct arguments when "earliest" field is changed', async () => {
-  renderStringRestrictions({ restrictions: {format: StringFormat.Date } });
+  renderStringRestrictions({ restrictions: { format: StringFormat.Date } });
   const input = '2';
   await user.type(screen.getByLabelText(language['schema_editor.format_date_after_incl']), input);
   expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
@@ -202,7 +194,7 @@ test('onChangeRestrictions is called with correct arguments when "earliest" fiel
 });
 
 test('onChangeRestrictions is called with correct arguments when "latest" field is changed', async () => {
-  renderStringRestrictions({ restrictions: {format: StringFormat.Date } });
+  renderStringRestrictions({ restrictions: { format: StringFormat.Date } });
   const input = '2';
   await user.type(screen.getByLabelText(language['schema_editor.format_date_before_incl']), input);
   expect(onChangeRestrictions).toHaveBeenCalledTimes(1);
@@ -222,7 +214,7 @@ test('onChangeRestrictions is called with correct arguments when the "inclusive"
     path,
     expect.objectContaining({
       formatMinimum: undefined,
-      formatExclusiveMinimum: formatMinimum
+      formatExclusiveMinimum: formatMinimum,
     })
   );
 });
@@ -237,7 +229,7 @@ test('onChangeRestrictions is called with correct arguments when the "inclusive"
     path,
     expect.objectContaining({
       formatMaximum: undefined,
-      formatExclusiveMaximum: formatMaximum
+      formatExclusiveMaximum: formatMaximum,
     })
   );
 });
@@ -252,7 +244,7 @@ test('onChangeRestrictions is called with correct arguments when the "inclusive"
     path,
     expect.objectContaining({
       formatMinimum: formatExclusiveMinimum,
-      formatExclusiveMinimum: undefined
+      formatExclusiveMinimum: undefined,
     })
   );
 });
@@ -267,7 +259,7 @@ test('onChangeRestrictions is called with correct arguments when the "inclusive"
     path,
     expect.objectContaining({
       formatMaximum: formatExclusiveMaximum,
-      formatExclusiveMaximum: undefined
+      formatExclusiveMaximum: undefined,
     })
   );
 });

@@ -1,4 +1,4 @@
-import { SagaIterator } from 'redux-saga';
+import type { SagaIterator } from 'redux-saga';
 import { call, delay, fork, put, race, select, take } from 'redux-saga/effects';
 import { get } from 'app-shared/utils/networking';
 import {
@@ -8,10 +8,9 @@ import {
   getDeploymentsStopInterval,
 } from '../appClusterSlice';
 import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
-import { RootState } from '../../../store';
+import type { RootState } from '../../../store';
 
-const SelectEnvironments = (store: RootState) =>
-  store.configuration.environments.result;
+const SelectEnvironments = (store: RootState) => store.configuration.environments.result;
 const OrgsSelector = (store: RootState) => store.configuration.orgs.allOrgs;
 
 function* getDeploymentsIntervalSaga(): SagaIterator {
@@ -29,15 +28,11 @@ function* getDeploymentsIntervalSaga(): SagaIterator {
   }
 }
 
-function* fetchEnvironmentDeployments(
-  org: string,
-  app: string,
-  env: any,
-): SagaIterator {
+function* fetchEnvironmentDeployments(org: string, app: string, env: any): SagaIterator {
   try {
     const result = yield call(
       get,
-      `https://${org}.apps.${env.hostname}/kuberneteswrapper/api/v1/deployments?labelSelector=release=${org}-${app}`,
+      `https://${org}.apps.${env.hostname}/kuberneteswrapper/api/v1/deployments?labelSelector=release=${org}-${app}`
     );
 
     yield put(getDeploymentsFulfilled({ result, env: env.name }));

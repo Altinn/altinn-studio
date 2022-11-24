@@ -1,5 +1,6 @@
 import { renderWithRedux } from '../../../test/renderWithRedux';
-import { IItemDataComponentProps, ItemDataComponent } from './ItemDataComponent';
+import type { IItemDataComponentProps } from './ItemDataComponent';
+import { ItemDataComponent } from './ItemDataComponent';
 import {
   CombinationKind,
   createChildNode,
@@ -39,12 +40,8 @@ anotherNode.fieldType = FieldType.String;
 uiSchemaNodes.push(anotherNode);
 const renderItemDataComponent = (props?: Partial<IItemDataComponentProps>, selectedItemIndex?: number) => {
   return renderWithRedux(
-    <ItemDataComponent
-      language={mockLanguage}
-      selectedItem={uiSchemaNodes[selectedItemIndex ?? 0]}
-      {...props}
-    />,
-    { uiSchema: uiSchemaNodes },
+    <ItemDataComponent language={mockLanguage} selectedItem={uiSchemaNodes[selectedItemIndex ?? 0]} {...props} />,
+    { uiSchema: uiSchemaNodes }
   );
 };
 

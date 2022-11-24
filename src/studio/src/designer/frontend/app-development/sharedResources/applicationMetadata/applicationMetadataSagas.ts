@@ -1,4 +1,4 @@
-import { SagaIterator } from 'redux-saga';
+import type { SagaIterator } from 'redux-saga';
 import { fork } from 'redux-saga/effects';
 import { watchGetApplicationMetadataSaga } from './get/getAppMetadataSagas';
 import { watchPutApplicationMetadataSaga } from './put/putAppMetadataSagas';

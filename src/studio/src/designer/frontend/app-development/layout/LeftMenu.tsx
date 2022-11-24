@@ -16,9 +16,7 @@ interface ILeftMenuProps {
 }
 
 const SideBar = () => {
-  const shouldHideLeftMenu = useMediaQuery((theme: Theme) =>
-    theme.breakpoints.down('sm'),
-  );
+  const shouldHideLeftMenu = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
 
   if (shouldHideLeftMenu) {
     return null;
@@ -54,9 +52,7 @@ const LeftMenu = ({ repoStatus, language, className, subAppClassName }: ILeftMen
               <Route
                 key={route.path}
                 path={route.path}
-                element={
-                  <route.subapp {...route.props} language={language} />
-                }
+                element={<route.subapp {...route.props} language={language} />}
               />
             ))}
           </Routes>
@@ -65,10 +61,7 @@ const LeftMenu = ({ repoStatus, language, className, subAppClassName }: ILeftMen
     ) : (
       <div className={subAppClassName}>
         <Routes>
-          <Route
-            path={'/'}
-            element={<Navigate to='/mergeconflict' replace />}
-          />
+          <Route path={'/'} element={<Navigate to='/mergeconflict' replace />} />
           <Route path='/mergeconflict' element={<HandleMergeConflict />} />
         </Routes>
       </div>

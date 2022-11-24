@@ -1,6 +1,7 @@
 import React from 'react';
 import { createTheme, Grid, ThemeProvider, Typography } from '@mui/material';
-import { createStyles, withStyles, WithStyles } from '@mui/styles';
+import type { WithStyles } from '@mui/styles';
+import { createStyles, withStyles } from '@mui/styles';
 import classNames from 'classnames';
 import { connect } from 'react-redux';
 import FileEditor from 'app-shared/file-editor/FileEditor';
@@ -91,9 +92,7 @@ export class HandleMergeConflictContainer extends React.Component<
   };
 
   public setEditorHeight = () => {
-    const height = document.getElementById(
-      'mergeConflictFileList',
-    ).clientHeight;
+    const height = document.getElementById('mergeConflictFileList').clientHeight;
     const editorHeight = height - 47 - 48;
     this.setState({
       editorHeight: editorHeight.toString(),
@@ -108,33 +107,26 @@ export class HandleMergeConflictContainer extends React.Component<
       <React.Fragment>
         <ThemeProvider theme={theme}>
           <div className={classes.root} id='handleMergeConflictContainer'>
-            <Grid
-              container={true}
-              justifyContent='flex-start'
-              alignItems='stretch'
-            >
+            <Grid container={true} justifyContent='flex-start' alignItems='stretch'>
               <Grid item={true} xs={12}>
                 {repoStatus.hasMergeConflict ? null : (
                   <VersionControlContainer language={language} />
                 )}
 
                 <Typography variant='h1'>
-                  {getLanguageFromKey(
-                    'handle_merge_conflict.container_title',
-                    language,
-                  )}
+                  {getLanguageFromKey('handle_merge_conflict.container_title', language)}
                 </Typography>
 
                 {repoStatus.hasMergeConflict ? (
                   <div
                     className={classNames(
                       classes.containerMessage,
-                      classes.containerMessageHasConflict,
+                      classes.containerMessageHasConflict
                     )}
                   >
                     {getLanguageFromKey(
                       'handle_merge_conflict.container_message_has_conflict',
-                      language,
+                      language
                     )}
                   </div>
                 ) : repoStatus.contentStatus ? (
@@ -151,12 +143,12 @@ export class HandleMergeConflictContainer extends React.Component<
                         <div
                           className={classNames(
                             classes.containerMessage,
-                            classes.containerMessageNoConflict,
+                            classes.containerMessageNoConflict
                           )}
                         >
                           {getLanguageFromKey(
                             'handle_merge_conflict.container_message_no_conflict',
-                            language,
+                            language
                           )}
                         </div>
                       </Grid>
@@ -165,7 +157,7 @@ export class HandleMergeConflictContainer extends React.Component<
                     <div className={classNames(classes.containerMessage)}>
                       {getLanguageFromKey(
                         'handle_merge_conflict.container_message_no_files',
-                        language,
+                        language
                       )}
                     </div>
                   )
@@ -193,12 +185,7 @@ export class HandleMergeConflictContainer extends React.Component<
                   />
                 </Grid>
 
-                <Grid
-                  id='monacoEditor'
-                  item={true}
-                  xs={8}
-                  className={classNames(classes.box)}
-                >
+                <Grid id='monacoEditor' item={true} xs={8} className={classNames(classes.box)}>
                   <FileEditor
                     boxShadow={true}
                     checkRepoStatusAfterSaveFile={true}
@@ -250,6 +237,4 @@ const makeMapStateToProps = () => {
   };
 };
 
-export default withStyles(styles)(
-  connect(makeMapStateToProps)(HandleMergeConflictContainer),
-);
+export default withStyles(styles)(connect(makeMapStateToProps)(HandleMergeConflictContainer));

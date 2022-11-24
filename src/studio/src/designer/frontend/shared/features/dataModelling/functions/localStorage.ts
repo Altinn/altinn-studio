@@ -1,6 +1,7 @@
 export const LOCAL_STORAGE_KEY = 'datamodelLocalStorage';
 
-export const getLocalStorageObject = () => JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) ?? {};
+export const getLocalStorageObject = () =>
+  JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY)) ?? {};
 
 export const getLocalStorageItem = (key: string) => getLocalStorageObject()[key];
 

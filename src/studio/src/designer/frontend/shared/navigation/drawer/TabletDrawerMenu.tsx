@@ -2,21 +2,10 @@ import React, { useState } from 'react';
 import classNames from 'classnames';
 import { Link, useParams } from 'react-router-dom';
 import type { IMenuItem } from './drawerMenuSettings';
-import {
-  createLeftDrawerMenuSettings,
-  createMainMenuSettings,
-} from './drawerMenuSettings';
+import { createLeftDrawerMenuSettings, createMainMenuSettings } from './drawerMenuSettings';
 import { post } from '../../utils/networking';
 import { useDrawerStyles } from './tabletDrawerMenustyle';
-import {
-  Button,
-  Collapse,
-  Divider,
-  Drawer,
-  List,
-  ListItem,
-  ListItemText,
-} from '@mui/material';
+import { Button, Collapse, Divider, Drawer, List, ListItem, ListItemText } from '@mui/material';
 
 export interface ITabletDrawerMenuProps {
   handleTabletDrawerMenu: () => void;
@@ -38,9 +27,7 @@ function TabletDrawerMenu({
   handleTabletDrawerMenu,
 }: ITabletDrawerMenuProps) {
   const [openSubMenus, setOpenSubMenus] = useState([]);
-  const [selectedMenuItem, setSelectedMenuItem] = useState(
-    activeSubHeaderSelection,
-  );
+  const [selectedMenuItem, setSelectedMenuItem] = useState(activeSubHeaderSelection);
 
   const handleLogout = () => {
     const altinnWindow: Window = window;
@@ -75,8 +62,7 @@ function TabletDrawerMenu({
   const [stateText, buttonClasses] = tabletDrawerOpen
     ? ['lukk', classNames(classes.commonButton, classes.button)]
     : ['meny', classNames(classes.commonButton, classes.closeButton)];
-  const leftDrawerMenu =
-    mainMenuItems && createLeftDrawerMenuSettings(leftDrawerMenuItems);
+  const leftDrawerMenu = mainMenuItems && createLeftDrawerMenuSettings(leftDrawerMenuItems);
   const { org, app } = useParams();
   return !logoutButton ? (
     <>
@@ -94,10 +80,7 @@ function TabletDrawerMenu({
         SlideProps={{ appear: false }}
       >
         <List>
-          <ListItem
-            button={true}
-            onClick={handleLogout}
-          >
+          <ListItem button={true} onClick={handleLogout}>
             <ListItemText
               classes={{
                 primary: classNames(classes.menuItemText),
@@ -117,8 +100,7 @@ function TabletDrawerMenu({
                   onClick={() => handleMenuItemClicked(menuItem, index)}
                   className={classNames(classes.mainMenuItem, {
                     [classes.activeListItem]:
-                      activeSubHeaderSelection ===
-                      menuItem.activeSubHeaderSelection,
+                      activeSubHeaderSelection === menuItem.activeSubHeaderSelection,
                   })}
                 >
                   <ListItemText
@@ -133,47 +115,39 @@ function TabletDrawerMenu({
                     timeout='auto'
                     unmountOnExit={true}
                   >
-                    <List
-                      component='span'
-                      disablePadding={true}
-                    >
-                      {leftDrawerMenu[menuItem.menuType].map(
-                        (item: IMenuItem) => (
-                          <Link
-                            to={item.navLink
-                              .replace(':org', org)
-                              .replace(':app', app)}
-                            style={{ borderBottom: 0 }}
-                            key={item.navLink}
+                    <List component='span' disablePadding={true}>
+                      {leftDrawerMenu[menuItem.menuType].map((item: IMenuItem) => (
+                        <Link
+                          to={item.navLink.replace(':org', org).replace(':app', app)}
+                          style={{ borderBottom: 0 }}
+                          key={item.navLink}
+                        >
+                          <ListItem
+                            button={true}
+                            disableTouchRipple={true}
+                            className={classes.nested}
                           >
-                            <ListItem
-                              button={true}
-                              disableTouchRipple={true}
-                              className={classes.nested}
-                            >
-                              <ListItemText
-                                disableTypography={true}
-                                inset={true}
-                                primary={item.displayText}
-                                classes={{
-                                  primary: classNames(classes.subMenuItem),
-                                }}
-                                className={classNames({
-                                  [classes.activeListItem]:
-                                    activeLeftMenuSelection ===
-                                    item.activeLeftMenuSelection,
-                                })}
-                              />
-                            </ListItem>
-                          </Link>
-                        ),
-                      )}
+                            <ListItemText
+                              disableTypography={true}
+                              inset={true}
+                              primary={item.displayText}
+                              classes={{
+                                primary: classNames(classes.subMenuItem),
+                              }}
+                              className={classNames({
+                                [classes.activeListItem]:
+                                  activeLeftMenuSelection === item.activeLeftMenuSelection,
+                              })}
+                            />
+                          </ListItem>
+                        </Link>
+                      ))}
                     </List>
                   </Collapse>
                 ) : null}
                 <Divider classes={{ root: classNames(classes.divider) }} />
               </div>
-            ),
+            )
           )}
         </List>
       </Drawer>

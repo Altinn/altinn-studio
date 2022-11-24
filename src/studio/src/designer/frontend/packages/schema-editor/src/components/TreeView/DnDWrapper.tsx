@@ -1,6 +1,8 @@
-import React, { PropsWithChildren, useRef } from 'react';
+import type { PropsWithChildren } from 'react';
+import React, { useRef } from 'react';
 import { useDrag, useDrop } from 'react-dnd';
-import { DragItem, dragSourceSpec, dropTargetSpec } from './dnd-helpers';
+import type { DragItem } from './dnd-helpers';
+import { dragSourceSpec, dropTargetSpec } from './dnd-helpers';
 
 interface Props {
   onMove: (from: DragItem, to: DragItem) => void;

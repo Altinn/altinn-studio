@@ -27,7 +27,7 @@ const render = ({ size = undefined, handleUpdateHeaderSize = jest.fn(), handleTi
         },
         size,
       }}
-    />,
+    />
   );
 };
 
@@ -112,7 +112,7 @@ describe('HeaderSizeSelect', () => {
 
     expect(handleUpdateHeaderSize).toHaveBeenCalledWith(
       { label: 'Undertittel (H2)', value: 'h2' },
-      { action: 'select-option', name: undefined, option: undefined },
+      { action: 'select-option', name: undefined, option: undefined }
     );
   });
 

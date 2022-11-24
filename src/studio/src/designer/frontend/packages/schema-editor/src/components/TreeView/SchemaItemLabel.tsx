@@ -1,6 +1,8 @@
-import React, { SyntheticEvent, useState } from 'react';
+import type { SyntheticEvent } from 'react';
+import React, { useState } from 'react';
 import { IconButton } from '@mui/material';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
+import type { UiSchemaNode } from '@altinn/schema-model';
 import {
   Capabilites,
   CombinationKind,
@@ -10,7 +12,6 @@ import {
   Keywords,
   ObjectKind,
   pointerIsDefinition,
-  UiSchemaNode,
 } from '@altinn/schema-model';
 import classes from './SchemaItemLabel.module.css';
 import classNames from 'classnames';
@@ -83,7 +84,7 @@ export const SchemaItemLabel = ({
   const handleDeleteClick = wrapper(() =>
     selectedNode.objectKind === ObjectKind.Combination
       ? dispatch(deleteCombinationItem({ path: selectedNode.pointer }))
-      : dispatch(deleteProperty({ path: selectedNode.pointer })),
+      : dispatch(deleteProperty({ path: selectedNode.pointer }))
   );
 
   const isArray = selectedNode.isArray || refNode?.isArray;

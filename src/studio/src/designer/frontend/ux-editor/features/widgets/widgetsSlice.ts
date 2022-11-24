@@ -1,6 +1,7 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 import type { IWidget } from '../../types/global';
-import {widgetUrl} from "app-shared/cdn-paths";
+import { widgetUrl } from 'app-shared/cdn-paths';
 
 export interface IWidgetState {
   widgets: IWidget[];
@@ -24,10 +25,7 @@ const widgetsSlice = createSlice({
   reducers: {
     // eslint-disable-next-line @typescript-eslint/no-empty-function
     fetchWidgets: () => {},
-    fetchWidgetsFulfilled: (
-      state,
-      action: PayloadAction<IFetchWidgetFulfilled>,
-    ) => {
+    fetchWidgetsFulfilled: (state, action: PayloadAction<IFetchWidgetFulfilled>) => {
       const { widgets } = action.payload;
       state.widgets = widgets;
       state.error = null;

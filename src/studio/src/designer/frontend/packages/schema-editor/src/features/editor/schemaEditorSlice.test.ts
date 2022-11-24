@@ -29,6 +29,7 @@ import {
 } from './schemaEditorSlice';
 import { dataMock } from '../../mockData';
 import type { ISchemaState } from '../../types';
+import type { UiSchemaNode } from '@altinn/schema-model';
 import {
   CombinationKind,
   FieldType,
@@ -41,7 +42,6 @@ import {
   ObjectKind,
   StringFormat,
   StrRestrictionKeys,
-  UiSchemaNode,
 } from '@altinn/schema-model';
 
 describe('SchemaEditorSlice', () => {
@@ -76,7 +76,7 @@ describe('SchemaEditorSlice', () => {
         path: '#/$defs/Kontaktperson/properties/navn',
         name: '',
         navigate: true,
-      }),
+      })
     );
     expect(nextState).toBe(state);
   });
@@ -86,7 +86,7 @@ describe('SchemaEditorSlice', () => {
       setPropertyName({
         path: '#/$defs/Kontaktperson/properties/navn',
         name: 'navn_endret',
-      }),
+      })
     );
     expect(nextState.uiSchema).not.toHaveProperty('#/$defs/Kontaktperson/properties/navn');
 
@@ -96,7 +96,7 @@ describe('SchemaEditorSlice', () => {
       setPropertyName({
         path: '#/$defs/Kontaktperson',
         name: 'batman',
-      }),
+      })
     );
     const item = getNodeByPointer(nextState.uiSchema, '#/$defs/batman');
     expect(item.children).toContain('#/$defs/batman/properties/navn_endret');
@@ -111,7 +111,7 @@ describe('SchemaEditorSlice', () => {
       setPropertyName({
         path: '#/$defs/anyOfTestSeveralItems',
         name: 'tullballeee',
-      }),
+      })
     );
 
     const updatedAnyOfChildren = getChildNodesByPointer(nextState.uiSchema, '#/$defs/tullballeee');
@@ -131,7 +131,7 @@ describe('SchemaEditorSlice', () => {
   it('handles setSelectedId', () => {
     const nextState = reducer(
       { ...state, selectedEditorTab: 'definitions' },
-      setSelectedId({ pointer: '#/$defs/Kommentar2000Restriksjon' }),
+      setSelectedId({ pointer: '#/$defs/Kommentar2000Restriksjon' })
     );
     expect(nextState.selectedDefinitionNodeId).toEqual('#/$defs/Kommentar2000Restriksjon');
   });
@@ -139,7 +139,7 @@ describe('SchemaEditorSlice', () => {
   it('handles setSelectedId by properties tab', () => {
     const nextState = reducer(
       { ...state, selectedEditorTab: 'properties' },
-      setSelectedId({ pointer: '#/properties/someField' }),
+      setSelectedId({ pointer: '#/properties/someField' })
     );
     expect(nextState.selectedPropertyNodeId).toEqual('#/properties/someField');
   });
@@ -147,7 +147,7 @@ describe('SchemaEditorSlice', () => {
   it('handles navigateToType', () => {
     const nextState = reducer(
       { ...state, selectedEditorTab: 'properties' },
-      navigateToType({ pointer: '#/$defs/someField' }),
+      navigateToType({ pointer: '#/$defs/someField' })
     );
     expect(nextState.selectedEditorTab).toEqual('definitions');
     expect(nextState.selectedDefinitionNodeId).toEqual('#/$defs/someField');
@@ -183,7 +183,7 @@ describe('SchemaEditorSlice', () => {
         mockState,
         deleteProperty({
           path: '#/$defs/Kommentar2000Restriksjon',
-        }),
+        })
       );
     }).toThrow();
   });
@@ -198,7 +198,7 @@ describe('SchemaEditorSlice', () => {
       mockState,
       deleteProperty({
         path: '#/properties/melding',
-      }),
+      })
     );
     expect(nextState.selectedPropertyNodeId).toEqual('');
   });
@@ -213,7 +213,7 @@ describe('SchemaEditorSlice', () => {
         nextState,
         deleteProperty({
           path: refNode.pointer,
-        }),
+        })
       );
     });
     nextState = reducer(nextState, deleteProperty(payload));
@@ -230,7 +230,7 @@ describe('SchemaEditorSlice', () => {
         state,
         deleteProperty({
           path: '#/$defs/Kontaktperson',
-        }),
+        })
       );
     }).toThrowError());
 
@@ -402,7 +402,7 @@ describe('SchemaEditorSlice', () => {
       setCombinationType({
         path: '#/$defs/allOfTest',
         type: CombinationKind.OneOf,
-      }),
+      })
     );
     item = getNodeByPointer(nextState.uiSchema, '#/$defs/allOfTest');
 
@@ -415,7 +415,7 @@ describe('SchemaEditorSlice', () => {
       setCombinationType({
         path: '#/$defs/allOfTest',
         type: CombinationKind.AnyOf,
-      }),
+      })
     );
     item = getNodeByPointer(nextState.uiSchema, '#/$defs/allOfTest');
     expect(item.children).toEqual(['#/$defs/allOfTest/anyOf/0']);
@@ -427,7 +427,7 @@ describe('SchemaEditorSlice', () => {
       setCombinationType({
         path: '#/$defs/allOfTest',
         type: CombinationKind.AllOf,
-      }),
+      })
     );
     item = getNodeByPointer(nextState.uiSchema, '#/$defs/allOfTest');
     expect(item.children).toEqual(['#/$defs/allOfTest/allOf/0']);
@@ -441,7 +441,7 @@ describe('SchemaEditorSlice', () => {
       state,
       deleteCombinationItem({
         path: '#/$defs/anyOfTestSeveralItems/anyOf/1',
-      }),
+      })
     );
     item = getNodeByPointer(nextState.uiSchema, '#/$defs/anyOfTestSeveralItems');
     expect(item.children).toHaveLength(3);
@@ -479,7 +479,7 @@ describe('SchemaEditorSlice', () => {
       addCombinationItem({
         pointer: '#/$defs/anyOfTestSeveralItems',
         props: { fieldType: FieldType.String },
-      }),
+      })
     );
     const updatedAnyOfItem = getNodeByPointer(nextState.uiSchema, '#/$defs/anyOfTestSeveralItems');
     expect(updatedAnyOfItem.children).toHaveLength(5);
@@ -495,7 +495,7 @@ describe('SchemaEditorSlice', () => {
       addCombinationItem({
         pointer: '#/$defs/allOfTest',
         props: { fieldType: FieldType.String },
-      }),
+      })
     );
     const updatedAllOfItem = getNodeByPointer(nextState.uiSchema, '#/$defs/allOfTest');
     expect(updatedAllOfItem.children).toHaveLength(2);
@@ -510,7 +510,7 @@ describe('SchemaEditorSlice', () => {
       addCombinationItem({
         pointer: '#/$defs/oneOfTestNullable',
         props: { fieldType: FieldType.String },
-      }),
+      })
     );
     const updatedOneOfItem = getNodeByPointer(nextState.uiSchema, '#/$defs/oneOfTestNullable');
 
@@ -548,7 +548,7 @@ describe('SchemaEditorSlice', () => {
 
     const expectedUnchanged = reducer(
       nextState,
-      changeChildrenOrder({ pointerA, pointerB: makePointer(Keywords.Properties, 'jibberish') }),
+      changeChildrenOrder({ pointerA, pointerB: makePointer(Keywords.Properties, 'jibberish') })
     );
     expect(nextState).toBe(expectedUnchanged);
   });
@@ -560,7 +560,7 @@ describe('SchemaEditorSlice', () => {
       const nextState = reducer(state, setRestriction({ path, key, value }));
       const node = getNodeByPointer(nextState.uiSchema, path);
       expect(node.restrictions[key]).toEqual(format);
-    }
+    };
     checkSetFormat('#/$defs/Dato', StringFormat.DateTime);
     checkSetFormat('#/$defs/Dato');
     checkSetFormat('#/$defs/Tekst', StringFormat.Date);
@@ -572,7 +572,7 @@ describe('SchemaEditorSlice', () => {
     const minLength = 3;
     const restrictions = {
       minLength: minLength.toString(),
-      maxLength: maxLength.toString()
+      maxLength: maxLength.toString(),
     };
     const nextState = reducer(state, setRestrictions({ path, restrictions }));
     const node = getNodeByPointer(nextState.uiSchema, path);

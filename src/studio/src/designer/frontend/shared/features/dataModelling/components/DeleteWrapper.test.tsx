@@ -1,8 +1,6 @@
 import React from 'react';
 import { render as rtlRender, screen } from '@testing-library/react';
-import userEvent, {
-  PointerEventsCheckLevel,
-} from '@testing-library/user-event';
+import userEvent, { PointerEventsCheckLevel } from '@testing-library/user-event';
 import type { IDeleteWrapper } from './DeleteWrapper';
 import { DeleteWrapper } from './DeleteWrapper';
 
@@ -29,7 +27,7 @@ describe('DeleteWrapper', () => {
     expect(
       screen.queryByRole('heading', {
         name: /delete some-name\?/i,
-      }),
+      })
     ).not.toBeInTheDocument();
 
     const deleteButton = screen.getByRole('button', {
@@ -40,7 +38,7 @@ describe('DeleteWrapper', () => {
     expect(
       screen.queryByRole('heading', {
         name: /delete some-name\?/i,
-      }),
+      })
     ).not.toBeInTheDocument();
   });
 
@@ -50,7 +48,7 @@ describe('DeleteWrapper', () => {
     expect(
       screen.queryByRole('heading', {
         name: /delete some-name\?/i,
-      }),
+      })
     ).not.toBeInTheDocument();
     const deleteButton = screen.getByRole('button', {
       name: /general\.delete/i,
@@ -60,7 +58,7 @@ describe('DeleteWrapper', () => {
     expect(
       screen.getByRole('heading', {
         name: /delete some-name\?/i,
-      }),
+      })
     ).toBeInTheDocument();
   });
 
@@ -85,7 +83,7 @@ describe('DeleteWrapper', () => {
     expect(
       screen.queryByRole('heading', {
         name: /delete some-name\?/i,
-      }),
+      })
     ).not.toBeInTheDocument();
   });
 
@@ -95,7 +93,7 @@ describe('DeleteWrapper', () => {
     expect(
       screen.queryByRole('heading', {
         name: /delete some-name\?/i,
-      }),
+      })
     ).not.toBeInTheDocument();
     const deleteButton = screen.getByRole('button', {
       name: /general\.delete/i,
@@ -105,7 +103,7 @@ describe('DeleteWrapper', () => {
     expect(
       screen.getByRole('heading', {
         name: /delete some-name\?/i,
-      }),
+      })
     ).toBeInTheDocument();
 
     const cancelButton = screen.getByRole('button', {
@@ -116,7 +114,7 @@ describe('DeleteWrapper', () => {
     expect(
       screen.queryByRole('heading', {
         name: /delete some-name\?/i,
-      }),
+      })
     ).not.toBeInTheDocument();
   });
 });

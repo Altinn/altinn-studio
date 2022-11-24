@@ -1,5 +1,5 @@
 import { initialState as dashboardInitialState } from '../../resources/fetchDashboardResources/dashboardSlice';
-import { RootState } from '../../app/store';
+import type { RootState } from '../../app/store';
 
 export const saveToLocalStorage = (state: RootState) => {
   try {
@@ -21,14 +21,12 @@ export const loadFromLocalStorage = () => {
   try {
     const persistedState = localStorage.getItem('dashboardStore');
     if (persistedState) {
-      const parsed = {
+      return {
         dashboard: {
           ...dashboardInitialState,
           ...JSON.parse(persistedState).dashboard,
         },
       };
-
-      return parsed;
     }
   } catch (error) {
     console.error('Could not read dashboardState from localStorage', error);

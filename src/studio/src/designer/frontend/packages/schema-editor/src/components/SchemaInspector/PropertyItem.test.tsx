@@ -1,6 +1,7 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
-import { IPropertyItemProps, PropertyItem } from './PropertyItem';
+import type { IPropertyItemProps } from './PropertyItem';
+import { PropertyItem } from './PropertyItem';
 import { renderWithRedux } from '../../../test/renderWithRedux';
 import { FieldType } from '@altinn/schema-model';
 
@@ -14,11 +15,11 @@ const inputId = 'some-random-id';
 const type = FieldType.String;
 const value = '';
 const fieldTypeNames = {
-  [FieldType.Boolean]: "Ja/nei",
-  [FieldType.Integer]: "Helt tall",
-  [FieldType.Number]: "Desimaltall",
-  [FieldType.Object]: "Objekt",
-  [FieldType.String]: "Tekst",
+  [FieldType.Boolean]: 'Ja/nei',
+  [FieldType.Integer]: 'Helt tall',
+  [FieldType.Number]: 'Desimaltall',
+  [FieldType.Object]: 'Objekt',
+  [FieldType.String]: 'Tekst',
 };
 const mockLanguage = {
   'schema_editor.delete_field': textDeleteField,
@@ -44,12 +45,7 @@ const defaultProps: IPropertyItemProps = {
 };
 
 const renderPropertyItem = (props?: Partial<IPropertyItemProps>) =>
-  renderWithRedux(
-    <PropertyItem
-      {...defaultProps}
-      {...props}
-    />,
-  );
+  renderWithRedux(<PropertyItem {...defaultProps} {...props} />);
 
 test('Text input field appears', () => {
   renderPropertyItem();

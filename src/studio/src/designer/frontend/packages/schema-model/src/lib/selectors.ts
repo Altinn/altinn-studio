@@ -37,7 +37,7 @@ export const getNodeByPointer = (uiSchemaNodes: UiSchemaNodes, pointer: string):
   if (uiSchemaNode) {
     return uiSchemaNode;
   } else {
-    throw new Error("Can't find node with pointer " + pointer);
+    throw new Error(`Can't find node with pointer ${pointer}`);
   }
 };
 

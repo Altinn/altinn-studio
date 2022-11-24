@@ -24,7 +24,7 @@ test.each([
 
 test.each([[[1, 2], FieldType.Number, ['s', 'f'], FieldType.String, [1, 'f'], undefined, [{}, {}], FieldType.Object]])(
   'correct enum type for %p',
-  (nodeEnum: any[], expected) => expect(findEnumFieldType(nodeEnum)).toBe(expected),
+  (nodeEnum: any[], expected) => expect(findEnumFieldType(nodeEnum)).toBe(expected)
 );
 
 test.each([

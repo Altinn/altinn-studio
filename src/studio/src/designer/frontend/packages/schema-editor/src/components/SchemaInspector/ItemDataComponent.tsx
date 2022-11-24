@@ -1,4 +1,5 @@
-import React, { ChangeEvent, useEffect, useState } from 'react';
+import type { ChangeEvent } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import type { ILanguage, ISchemaState } from '../../types';
 import { NameError } from '../../types';
@@ -20,10 +21,9 @@ import { getCombinationOptions, getTypeOptions } from './helpers/options';
 import { Checkbox, ErrorMessage, FieldSet, Select, TextArea, TextField } from '@altinn/altinn-design-system';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
-import type { UiSchemaNode } from '@altinn/schema-model';
+import type { UiSchemaNode, CombinationKind } from '@altinn/schema-model';
 import {
   combinationIsNullable,
-  CombinationKind,
   FieldType,
   getChildNodesByPointer,
   getNodeDisplayName,
@@ -31,7 +31,7 @@ import {
   ObjectKind,
 } from '@altinn/schema-model';
 import { getDomFriendlyID, isValidName } from '../../utils/ui-schema-utils';
-import {Divider} from "app-shared/primitives";
+import { Divider } from 'app-shared/primitives';
 
 export interface IItemDataComponentProps {
   selectedItem: UiSchemaNode;
@@ -108,7 +108,7 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
           path: selectedItem.pointer,
           name: nodeName,
           navigate: true,
-        }),
+        })
       );
     }
   };

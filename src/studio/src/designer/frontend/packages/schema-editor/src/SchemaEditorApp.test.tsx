@@ -25,7 +25,7 @@ test('renders schema editor app', () => {
         onSaveSchema={jest.fn()}
         name='test'
         LandingPagePanel={<div>landing page panel goes here</div>}
-      />,
+      />
     );
   });
   expect(screen.getByTestId('schema-editor')).toBeDefined();

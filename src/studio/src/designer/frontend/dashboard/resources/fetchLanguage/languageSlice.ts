@@ -1,4 +1,5 @@
-import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createAction, createSlice } from '@reduxjs/toolkit';
 
 export interface IFetchedLanguageState {
   language: any;

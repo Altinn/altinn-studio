@@ -2,11 +2,10 @@ import React from 'react';
 import { Collapse, List } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import { getComponentTitleByComponentType } from '../utils/language';
-import { ComponentTypes } from '../components';
+import type { ComponentTypes } from '../components';
 import { CollapsableMenuComponent } from '../components/toolbar/CollapsableMenuComponent';
 import { ToolbarItem } from './ToolbarItem';
-import type { IToolbarElement } from './Toolbar';
-import { CollapsableMenus } from './Toolbar';
+import type { IToolbarElement, CollapsableMenus } from './Toolbar';
 
 export interface IToolbarGroupProps {
   list: string;
@@ -17,10 +16,7 @@ export interface IToolbarGroupProps {
   language: any;
   setCollapsableListAnimationState: (list: string, done: boolean) => void;
   handleCollapsableListClicked: (menu: CollapsableMenus) => void;
-  handleComponentInformationOpen: (
-    component: ComponentTypes,
-    event: any,
-  ) => void;
+  handleComponentInformationOpen: (component: ComponentTypes, event: any) => void;
 }
 
 const useStyles = makeStyles({
@@ -60,12 +56,7 @@ export function ToolbarGroup(props: IToolbarGroupProps) {
         <List dense={false} id={`${props.list}-components`} component='div'>
           {props.components.map((component: IToolbarElement) => (
             <ToolbarItem
-              text={
-                getComponentTitleByComponentType(
-                  component.type,
-                  props.language,
-                ) || component.label
-              }
+              text={getComponentTitleByComponentType(component.type, props.language) || component.label}
               icon={component.icon}
               componentType={component.type}
               onDropAction={component.actionMethod}

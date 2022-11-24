@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button, createTheme, Grid, Typography } from '@mui/material';
-import { createStyles, WithStyles, withStyles } from '@mui/styles';
+import type { WithStyles } from '@mui/styles';
+import { createStyles, withStyles } from '@mui/styles';
 import AltinnIcon from '../components/AltinnIcon';
 import altinnTheme from '../theme/altinnStudioTheme';
 
@@ -37,10 +38,7 @@ function CloneButton(props: ICloneButtonProps) {
           />
         </Grid>
         <Grid item={true}>
-          <Typography
-            style={{ color: theme.altinnPalette.primary.blueDark }}
-            variant='body1'
-          >
+          <Typography style={{ color: theme.altinnPalette.primary.blueDark }} variant='body1'>
             {props.buttonText}
           </Typography>
         </Grid>

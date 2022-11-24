@@ -1,6 +1,7 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { IErrorStateError, removeError } from '../../features/error/errorSlice';
+import type { IErrorStateError } from '../../features/error/errorSlice';
+import { removeError } from '../../features/error/errorSlice';
 import type { IAppState } from '../../types/global';
 
 import './ErrorMessageComponent.css';

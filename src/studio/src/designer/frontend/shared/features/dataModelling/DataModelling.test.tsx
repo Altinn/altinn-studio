@@ -4,10 +4,7 @@ import { Provider } from 'react-redux';
 import { DataModelling, shouldSelectFirstEntry } from './DataModelling';
 import { LoadingState } from './sagas/metadata';
 import { render as rtlRender, screen } from '@testing-library/react';
-import {
-  LOCAL_STORAGE_KEY,
-  setLocalStorageItem,
-} from './functions/localStorage';
+import { LOCAL_STORAGE_KEY, setLocalStorageItem } from './functions/localStorage';
 
 // workaround for https://jestjs.io/docs/26.x/manual-mocks#mocking-methods-which-are-not-implemented-in-jsdom
 Object.defineProperty(window, 'matchMedia', {
@@ -59,10 +56,8 @@ const initialStoreCall = {
 
 const render = (
   state: {
-    [K in keyof typeof defaultInitialState]?: Partial<
-      typeof defaultInitialState[K]
-    >;
-  } = {},
+    [K in keyof typeof defaultInitialState]?: Partial<typeof defaultInitialState[K]>;
+  } = {}
 ) => {
   const dataModelsMetadataState = state?.dataModelsMetadataState;
   const dataModelling = state?.dataModelling;
@@ -92,7 +87,7 @@ const render = (
         org='test-org'
         repo='test-repo'
       />
-    </Provider>,
+    </Provider>
   );
 
   return { store };
@@ -120,7 +115,7 @@ describe('DataModelling', () => {
           ],
           selectedOption: undefined,
           metadataLoadingState: LoadingState.ModelsLoaded,
-        }),
+        })
       ).toBe(true);
     });
 
@@ -140,7 +135,7 @@ describe('DataModelling', () => {
             label: 'some-label',
           },
           metadataLoadingState: LoadingState.ModelsLoaded,
-        }),
+        })
       ).toBe(false);
     });
 
@@ -158,7 +153,7 @@ describe('DataModelling', () => {
           ],
           selectedOption: undefined,
           metadataLoadingState: LoadingState.LoadingModels,
-        }),
+        })
       ).toBe(false);
     });
 
@@ -167,7 +162,7 @@ describe('DataModelling', () => {
         shouldSelectFirstEntry({
           selectedOption: undefined,
           metadataLoadingState: LoadingState.ModelsLoaded,
-        }),
+        })
       ).toBe(false);
     });
 
@@ -177,7 +172,7 @@ describe('DataModelling', () => {
           metadataOptions: [],
           selectedOption: undefined,
           metadataLoadingState: LoadingState.ModelsLoaded,
-        }),
+        })
       ).toBe(false);
     });
   });

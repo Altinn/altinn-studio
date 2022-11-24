@@ -68,10 +68,7 @@ class FetchChangesComponent extends React.Component<IFetchChangesComponentProps>
                 [classes.bold]: this.props.changesInMaster === true,
               })}
             >
-              {getLanguageFromKey(
-                'sync_header.fetch_changes',
-                this.props.language,
-              )}
+              {getLanguageFromKey('sync_header.fetch_changes', this.props.language)}
             </Typography>
           </Grid>
         </Grid>

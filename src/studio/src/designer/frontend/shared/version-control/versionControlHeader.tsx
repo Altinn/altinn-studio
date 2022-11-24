@@ -1,6 +1,7 @@
 import React from 'react';
 import { createTheme, Grid } from '@mui/material';
-import { createStyles, withStyles, WithStyles } from '@mui/styles';
+import type { WithStyles } from '@mui/styles';
+import { createStyles, withStyles } from '@mui/styles';
 import axios from 'axios';
 import { get, post } from '../utils/networking';
 import altinnTheme from '../theme/altinnStudioTheme';
@@ -17,7 +18,8 @@ import {
   repoCommitPath,
   repoMetaPath,
   repoPullPath,
-  repoPushPath, repoStatusPath,
+  repoPushPath,
+  repoStatusPath,
 } from '../api-paths';
 
 export interface IVersionControlHeaderProps extends WithStyles<typeof styles> {
@@ -58,10 +60,7 @@ const initialModalState = {
 
 function hasLocalChanges(result: IGitStatus) {
   return (
-    result &&
-    result.contentStatus.some(
-      (file: IContentStatus) => file.fileStatus !== 'Ignored',
-    )
+    result && result.contentStatus.some((file: IContentStatus) => file.fileStatus !== 'Ignored')
   );
 }
 
@@ -123,7 +122,7 @@ class VersionControlHeader extends React.Component<
 
   public getStatus(callbackFunc?: any) {
     const { org, app } = _useParamsClassCompHack();
-    get(repoStatusPath(org,app))
+    get(repoStatusPath(org, app))
       .then((result: IGitStatus) => {
         if (this.componentIsMounted) {
           this.setState({
@@ -143,10 +142,7 @@ class VersionControlHeader extends React.Component<
         if (this.state.modalState.isLoading) {
           this.setState((prevState) => ({
             modalState: {
-              header: getLanguageFromKey(
-                'sync_header.repo_is_offline',
-                this.props.language,
-              ),
+              header: getLanguageFromKey('sync_header.repo_is_offline', this.props.language),
               isLoading: !prevState.modalState.isLoading,
             },
           }));
@@ -166,10 +162,7 @@ class VersionControlHeader extends React.Component<
     this.setState({
       anchorEl: currentTarget,
       modalState: {
-        header: getLanguageFromKey(
-          'sync_header.fetching_latest_version',
-          this.props.language,
-        ),
+        header: getLanguageFromKey('sync_header.fetching_latest_version', this.props.language),
         isLoading: true,
       },
     });
@@ -186,7 +179,7 @@ class VersionControlHeader extends React.Component<
               modalState: {
                 header: getLanguageFromKey(
                   'sync_header.service_updated_to_latest',
-                  this.props.language,
+                  this.props.language
                 ),
                 isLoading: false,
                 shouldShowDoneIcon: true,
@@ -201,22 +194,19 @@ class VersionControlHeader extends React.Component<
               modalState: {
                 header: getLanguageFromKey(
                   'sync_header.changes_made_samme_place_as_user',
-                  this.props.language,
+                  this.props.language
                 ),
                 descriptionText: [
                   getLanguageFromKey(
                     'sync_header.changes_made_samme_place_submessage',
-                    this.props.language,
+                    this.props.language
                   ),
                   getLanguageFromKey(
                     'sync_header.changes_made_samme_place_subsubmessage',
-                    this.props.language,
+                    this.props.language
                   ),
                 ],
-                btnText: getLanguageFromKey(
-                  'sync_header.fetch_changes_btn',
-                  this.props.language,
-                ),
+                btnText: getLanguageFromKey('sync_header.fetch_changes_btn', this.props.language),
                 shouldShowCommitBox: true,
                 btnMethod: this.commitChanges,
               },
@@ -228,10 +218,7 @@ class VersionControlHeader extends React.Component<
         if (this.state.modalState.isLoading) {
           this.setState((prevState) => ({
             modalState: {
-              header: getLanguageFromKey(
-                'sync_header.repo_is_offline',
-                this.props.language,
-              ),
+              header: getLanguageFromKey('sync_header.repo_is_offline', this.props.language),
               isLoading: !prevState.modalState.isLoading,
             },
           }));
@@ -245,10 +232,7 @@ class VersionControlHeader extends React.Component<
         anchorEl: currentTarget,
         modalState: {
           shouldShowDoneIcon: true,
-          header: getLanguageFromKey(
-            'sync_header.nothing_to_push',
-            this.props.language,
-          ),
+          header: getLanguageFromKey('sync_header.nothing_to_push', this.props.language),
         },
       });
     }
@@ -256,10 +240,7 @@ class VersionControlHeader extends React.Component<
       this.setState({
         anchorEl: currentTarget,
         modalState: {
-          header: getLanguageFromKey(
-            'sync_header.controlling_service_status',
-            this.props.language,
-          ),
+          header: getLanguageFromKey('sync_header.controlling_service_status', this.props.language),
           isLoading: true,
         },
       });
@@ -271,24 +252,15 @@ class VersionControlHeader extends React.Component<
               anchorEl: currentTarget,
               modalState: {
                 shouldShowDoneIcon: true,
-                header: getLanguageFromKey(
-                  'sync_header.nothing_to_push',
-                  this.props.language,
-                ),
+                header: getLanguageFromKey('sync_header.nothing_to_push', this.props.language),
               },
             });
           } else if (!hasLocalChanges(result) && result.aheadBy > 0) {
             this.setState({
               anchorEl: currentTarget,
               modalState: {
-                header: getLanguageFromKey(
-                  'sync_header.validation_completed',
-                  this.props.language,
-                ),
-                btnText: getLanguageFromKey(
-                  'sync_header.share_changes',
-                  this.props.language,
-                ),
+                header: getLanguageFromKey('sync_header.validation_completed', this.props.language),
+                btnText: getLanguageFromKey('sync_header.share_changes', this.props.language),
                 shouldShowDoneIcon: true,
                 isLoading: false,
                 btnMethod: this.pushChanges,
@@ -301,21 +273,21 @@ class VersionControlHeader extends React.Component<
               modalState: {
                 header: getLanguageFromKey(
                   'sync_header.describe_and_validate',
-                  this.props.language,
+                  this.props.language
                 ),
                 descriptionText: [
                   getLanguageFromKey(
                     'sync_header.describe_and_validate_submessage',
-                    this.props.language,
+                    this.props.language
                   ),
                   getLanguageFromKey(
                     'sync_header.describe_and_validate_subsubmessage',
-                    this.props.language,
+                    this.props.language
                   ),
                 ],
                 btnText: getLanguageFromKey(
                   'sync_header.describe_and_validate_btnText',
-                  this.props.language,
+                  this.props.language
                 ),
                 shouldShowCommitBox: true,
                 isLoading: false,
@@ -330,15 +302,12 @@ class VersionControlHeader extends React.Component<
       this.setState({
         anchorEl: currentTarget,
         modalState: {
-          header: getLanguageFromKey(
-            'sync_header.sharing_changes_no_access',
-            this.props.language,
-          ),
+          header: getLanguageFromKey('sync_header.sharing_changes_no_access', this.props.language),
           // eslint-disable-next-line max-len
           descriptionText: [
             getLanguageFromKey(
               'sync_header.sharing_changes_no_access_submessage',
-              this.props.language,
+              this.props.language
             ),
           ],
         },
@@ -349,10 +318,7 @@ class VersionControlHeader extends React.Component<
   public pushChanges = () => {
     this.setState({
       modalState: {
-        header: getLanguageFromKey(
-          'sync_header.sharing_changes',
-          this.props.language,
-        ),
+        header: getLanguageFromKey('sync_header.sharing_changes', this.props.language),
         isLoading: true,
       },
     });
@@ -368,12 +334,12 @@ class VersionControlHeader extends React.Component<
             modalState: {
               header: getLanguageFromKey(
                 'sync_header.sharing_changes_completed',
-                this.props.language,
+                this.props.language
               ),
               descriptionText: [
                 getLanguageFromKey(
                   'sync_header.sharing_changes_completed_submessage',
-                  this.props.language,
+                  this.props.language
                 ),
               ],
               shouldShowDoneIcon: true,
@@ -385,10 +351,7 @@ class VersionControlHeader extends React.Component<
         if (this.state.modalState.isLoading) {
           this.setState((prevState) => ({
             modalState: {
-              header: getLanguageFromKey(
-                'sync_header.repo_is_offline',
-                this.props.language,
-              ),
+              header: getLanguageFromKey('sync_header.repo_is_offline', this.props.language),
               isLoading: !prevState.modalState.isLoading,
             },
           }));
@@ -400,10 +363,7 @@ class VersionControlHeader extends React.Component<
   public commitChanges = (commitMessage: string) => {
     this.setState({
       modalState: {
-        header: getLanguageFromKey(
-          'sync_header.validating_changes',
-          this.props.language,
-        ),
+        header: getLanguageFromKey('sync_header.validating_changes', this.props.language),
         descriptionText: [],
         isLoading: true,
       },
@@ -432,13 +392,10 @@ class VersionControlHeader extends React.Component<
                   modalState: {
                     header: getLanguageFromKey(
                       'sync_header.validation_completed',
-                      this.props.language,
+                      this.props.language
                     ),
                     descriptionText: [],
-                    btnText: getLanguageFromKey(
-                      'sync_header.share_changes',
-                      this.props.language,
-                    ),
+                    btnText: getLanguageFromKey('sync_header.share_changes', this.props.language),
                     shouldShowDoneIcon: true,
                     btnMethod: this.pushChanges,
                   },
@@ -450,18 +407,18 @@ class VersionControlHeader extends React.Component<
                   modalState: {
                     header: getLanguageFromKey(
                       'sync_header.merge_conflict_occured',
-                      this.props.language,
+                      this.props.language
                     ),
                     // eslint-disable-next-line max-len
                     descriptionText: [
                       getLanguageFromKey(
                         'sync_header.merge_conflict_occured_submessage',
-                        this.props.language,
+                        this.props.language
                       ),
                     ],
                     btnText: getLanguageFromKey(
                       'sync_header.merge_conflict_btn',
-                      this.props.language,
+                      this.props.language
                     ),
                     btnMethod: this.forceRepoStatusCheck,
                   },
@@ -473,10 +430,7 @@ class VersionControlHeader extends React.Component<
             if (this.state.modalState.isLoading) {
               this.setState((prevState) => ({
                 modalState: {
-                  header: getLanguageFromKey(
-                    'sync_header.repo_is_offline',
-                    this.props.language,
-                  ),
+                  header: getLanguageFromKey('sync_header.repo_is_offline', this.props.language),
                   isLoading: !prevState.modalState.isLoading,
                 },
               }));
@@ -487,10 +441,7 @@ class VersionControlHeader extends React.Component<
         if (this.state.modalState.isLoading) {
           this.setState((prevState) => ({
             modalState: {
-              header: getLanguageFromKey(
-                'sync_header.repo_is_offline',
-                this.props.language,
-              ),
+              header: getLanguageFromKey('sync_header.repo_is_offline', this.props.language),
               isLoading: !prevState.modalState.isLoading,
             },
           }));
@@ -545,22 +496,13 @@ class VersionControlHeader extends React.Component<
             justifyContent='flex-start'
             data-testid='version-control-header'
           >
-            <Grid
-              item={true}
-              style={{ marginRight: '24px' }}
-            >
+            <Grid item={true} style={{ marginRight: '24px' }}>
               <CloneButton
                 onClick={this.openCloneModal}
-                buttonText={getLanguageFromKey(
-                  'sync_header.clone',
-                  this.props.language,
-                )}
+                buttonText={getLanguageFromKey('sync_header.clone', this.props.language)}
               />
             </Grid>
-            <Grid
-              item={true}
-              style={{ marginRight: '24px' }}
-            >
+            <Grid item={true} style={{ marginRight: '24px' }}>
               <FetchChangesComponent
                 changesInMaster={this.state.changesInMaster}
                 fetchChanges={this.fetchChanges}

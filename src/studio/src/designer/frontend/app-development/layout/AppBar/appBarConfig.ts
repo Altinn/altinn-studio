@@ -45,4 +45,4 @@ export const menu: TopBarMenuItem[] = [
 
 export const getTopBarMenu = (repositoryType: RepositoryType) => {
   return menu.filter((menuItem) => menuItem.repositoryTypes.includes(repositoryType));
-}
+};

@@ -64,7 +64,7 @@ const useStyles = makeStyles(() =>
         color: theme.altinnPalette.primary.black,
       },
     },
-  }),
+  })
 );
 
 const fontSize = { fontSize: 16 };
@@ -79,7 +79,7 @@ const AltinnButton = React.forwardRef(
       onClickFunction,
       btnText,
     }: IAltinnButtonComponentProvidedProps,
-    ref: any,
+    ref: any
   ) => {
     const classes = useStyles();
 
@@ -101,17 +101,15 @@ const AltinnButton = React.forwardRef(
       >
         <span
           className={classNames({
-            [classes.borderBottom]:
-              secondaryButton === true && disabled !== true,
-            [classes.borderBottomDisabled]:
-              secondaryButton === true && disabled === true,
+            [classes.borderBottom]: secondaryButton === true && disabled !== true,
+            [classes.borderBottomDisabled]: secondaryButton === true && disabled === true,
           })}
         >
           {btnText}
         </span>
       </Button>
     );
-  },
+  }
 );
 
 AltinnButton.displayName = 'AltinnButton';

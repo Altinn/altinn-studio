@@ -13,8 +13,8 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): Dict => {
   const out: Dict = {};
   const rootNode = getRootNode(nodes);
   Object.assign(out, rootNode.custom);
-  JSONPointer.set(out, '/' + Keywords.Type, !rootNode.implicitType ? rootNode.fieldType : undefined);
-  JSONPointer.set(out, '/' + Keywords.Required, findRequiredProps(nodes, rootNode.pointer));
+  JSONPointer.set(out, `/${Keywords.Type}`, !rootNode.implicitType ? rootNode.fieldType : undefined);
+  JSONPointer.set(out, `/${Keywords.Required}`, findRequiredProps(nodes, rootNode.pointer));
 
   const sortedUiSchemaNodes = sortNodesByChildren(nodes);
 
@@ -33,7 +33,7 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): Dict => {
         });
 
         Object.values(ArrRestrictionKeys).forEach((key) =>
-          JSONPointer.set(out, [nodePointer, key].join('/'), node.restrictions[key]),
+          JSONPointer.set(out, [nodePointer, key].join('/'), node.restrictions[key])
         );
 
         // Putting the special fields back to items root.
@@ -56,7 +56,7 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): Dict => {
       JSONPointer.set(
         out,
         [jsonPointer, Keywords.Reference].join('/'),
-        typeof node.ref === 'string' ? node.ref : undefined,
+        typeof node.ref === 'string' ? node.ref : undefined
       );
 
       // Setting Type for fields
@@ -71,7 +71,7 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): Dict => {
       JSONPointer.set(
         out,
         [jsonPointer, Keywords.Enum].join('/'),
-        node[Keywords.Enum]?.length ? node[Keywords.Enum] : undefined,
+        node[Keywords.Enum]?.length ? node[Keywords.Enum] : undefined
       );
 
       // Restrictions

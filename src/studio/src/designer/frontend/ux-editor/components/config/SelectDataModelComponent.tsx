@@ -63,16 +63,13 @@ export class SelectDataModel extends React.Component<ISelectDataModelProps, ISel
     ) : (
       Object.keys(selected.restrictions).map(
         (key: string): React.ReactNode => (
-          <li
-            key={key}
-            className='a-dotted'
-          >
+          <li key={key} className='a-dotted'>
             <div className='row'>
               <div className='col-4'>{key}</div>
               <div className='col-8'>{selected.restrictions[key].Value}</div>
             </div>
           </li>
-        ),
+        )
       )
     );
   }
@@ -83,7 +80,7 @@ export class SelectDataModel extends React.Component<ISelectDataModelProps, ISel
       .filter(
         (element) =>
           element.dataBindingName &&
-          ((!selectGroup && element.maxOccurs <= 1) || (selectGroup && element.maxOccurs > 1)),
+          ((!selectGroup && element.maxOccurs <= 1) || (selectGroup && element.maxOccurs > 1))
       )
       .map((element) => ({
         value: element.dataBindingName,

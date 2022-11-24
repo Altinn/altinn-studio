@@ -13,7 +13,7 @@ test('ArrayRestrictions should render correctly', async () => {
       path={path}
       readonly={false}
       restrictions={[]}
-    />,
+    />
   );
   Object.values(ArrRestrictionKeys).forEach((text) => {
     expect(screen.getByLabelText(text)).toBeDefined();

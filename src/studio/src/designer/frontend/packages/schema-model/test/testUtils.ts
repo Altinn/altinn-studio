@@ -65,7 +65,7 @@ export const dumpToDebug = (dirname: string, basename: string, data: any) => {
       fs.mkdirSync(dir);
     }
     const preppedData = data instanceof Map ? Array.from(data) : data;
-    const filename = path.join(dir, basename + '.json');
+    const filename = path.join(dir, `${basename}.json`);
     fs.writeFileSync(filename, JSON.stringify(preppedData, null, 4), 'utf-8');
   }
 };

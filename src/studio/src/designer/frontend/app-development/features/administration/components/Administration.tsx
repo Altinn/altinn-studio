@@ -15,12 +15,8 @@ import classes from './Administration.module.css';
 
 export function AdministrationComponent() {
   const language = useAppSelector((state) => state.languageState.language);
-  const repository = useAppSelector(
-    (state) => state.serviceInformation.repositoryInfo,
-  );
-  const initialCommit = useAppSelector(
-    (state) => state.serviceInformation.initialCommit,
-  );
+  const repository = useAppSelector((state) => state.serviceInformation.repositoryInfo);
+  const initialCommit = useAppSelector((state) => state.serviceInformation.initialCommit);
   const { org, app } = useParams();
   const repositoryType = getRepositoryType(org, app);
 
@@ -39,10 +35,7 @@ export function AdministrationComponent() {
           header={getLanguageFromKey('administration.administration', language)}
         >
           {repositoryType === RepositoryType.App && (
-            <ServiceAdministration
-              language={language}
-              repository={repository}
-            />
+            <ServiceAdministration language={language} repository={repository} />
           )}
           {repositoryType === RepositoryType.Datamodels && (
             <DatamodelsAdministration language={language} />
@@ -51,10 +44,7 @@ export function AdministrationComponent() {
       )}
       {!repository && (
         <div>
-          <AltinnSpinner
-            spinnerText='Laster siden'
-            styleObj={classes.spinnerLocation}
-          />
+          <AltinnSpinner spinnerText='Laster siden' styleObj={classes.spinnerLocation} />
         </div>
       )}
     </div>

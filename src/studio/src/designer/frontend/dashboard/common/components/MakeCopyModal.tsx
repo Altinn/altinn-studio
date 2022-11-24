@@ -1,10 +1,11 @@
-import React, { useState, MouseEvent, ChangeEvent } from 'react';
+import type { MouseEvent, ChangeEvent } from 'react';
+import React, { useState } from 'react';
 import { AltinnSpinner } from 'app-shared/components';
 import { AltinnPopoverComponent } from 'app-shared/components/molecules/AltinnPopoverSimple';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { post } from 'app-shared/utils/networking';
 import { DashboardActions } from '../../resources/fetchDashboardResources/dashboardSlice';
-import { PopoverOrigin } from '@mui/material/Popover';
+import type { PopoverOrigin } from '@mui/material/Popover';
 import { useNavigate } from 'react-router-dom';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { validateRepoName } from '../utils';

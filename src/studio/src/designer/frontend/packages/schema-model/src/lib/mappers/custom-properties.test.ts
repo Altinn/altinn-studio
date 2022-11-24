@@ -7,6 +7,6 @@ test('that we are handling custom properties ', () => {
     findCustomAttributes({
       [Keywords.Enum]: [],
       customData,
-    }),
+    })
   ).toStrictEqual({ customData });
 });

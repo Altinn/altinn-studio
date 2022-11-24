@@ -1,16 +1,7 @@
-import {
-  getContainerPosition,
-  handleDrop,
-  hoverIndexHelper,
-  hoverShouldBeIgnored,
-} from './dnd-helpers';
-import { DropTargetMonitor, XYCoord } from 'react-dnd';
-import {
-  ContainerPos,
-  EditorDndEvents,
-  EditorDndItem,
-  ItemType,
-} from './dnd-types';
+import { getContainerPosition, handleDrop, hoverIndexHelper, hoverShouldBeIgnored } from './dnd-helpers';
+import type { DropTargetMonitor, XYCoord } from 'react-dnd';
+import type { EditorDndEvents, EditorDndItem } from './dnd-types';
+import { ContainerPos, ItemType } from './dnd-types';
 import { randomUUID } from 'crypto';
 
 const boundingBox: DOMRect = {
@@ -39,10 +30,7 @@ test('getContainerPosition returns correct positions', () => {
     expect(result).toBe(expected);
   });
 });
-export const createMockMonitor = (
-  isOver: boolean,
-  itemType: ItemType,
-): DropTargetMonitor => {
+export const createMockMonitor = (isOver: boolean, itemType: ItemType): DropTargetMonitor => {
   const monitor: Partial<DropTargetMonitor> = {
     isOver(): boolean {
       return isOver;
@@ -64,7 +52,7 @@ export const createMockedDndEvents = (): EditorDndEvents => ({
 });
 const createDummyData = (
   itemType: ItemType,
-  isOver: boolean,
+  isOver: boolean
 ): [EditorDndItem, Partial<DropTargetMonitor>, () => void, () => void] => {
   const onDrop = jest.fn();
 
@@ -81,10 +69,7 @@ const createDummyData = (
 };
 
 test('should handle that we are not over drop target', () => {
-  const [droppedItem, monitor, onDrop, onDropItem] = createDummyData(
-    ItemType.Item,
-    false,
-  );
+  const [droppedItem, monitor, onDrop, onDropItem] = createDummyData(ItemType.Item, false);
   handleDrop(droppedItem, monitor, onDropItem, randomUUID(), 3);
   expect(onDrop).not.toBeCalled();
   expect(onDropItem).not.toBeCalled();
@@ -97,30 +82,21 @@ test('should handle that dropped item is undefined', () => {
   expect(onDropItem).not.toBeCalled();
 });
 
-test('should handle that ' + ItemType.Item + ' gets dropped', () => {
-  const [droppedItem, monitor, onDrop, onDropItem] = createDummyData(
-    ItemType.Item,
-    true,
-  );
+test(`should handle that ${ItemType.Item} gets dropped`, () => {
+  const [droppedItem, monitor, onDrop, onDropItem] = createDummyData(ItemType.Item, true);
   handleDrop(droppedItem, monitor, onDropItem, randomUUID(), 3);
   expect(onDrop).not.toBeCalled();
   expect(onDropItem).toBeCalled();
 });
-test('should handle that ' + ItemType.Container + ' gets dropped', () => {
-  const [droppedItem, monitor, onDrop, onDropItem] = createDummyData(
-    ItemType.Container,
-    true,
-  );
+test(`should handle that ${ItemType.Container} gets dropped`, () => {
+  const [droppedItem, monitor, onDrop, onDropItem] = createDummyData(ItemType.Container, true);
   handleDrop(droppedItem, monitor, onDropItem, randomUUID(), 3);
   expect(onDrop).not.toBeCalled();
   expect(onDropItem).toBeCalled();
 });
 
-test('should handle that ' + ItemType.ToolbarItem + ' gets dropped', () => {
-  const [droppedItem, monitor, onDrop, onDropItem] = createDummyData(
-    ItemType.ToolbarItem,
-    true,
-  );
+test(`should handle that ${ItemType.ToolbarItem} gets dropped`, () => {
+  const [droppedItem, monitor, onDrop, onDropItem] = createDummyData(ItemType.ToolbarItem, true);
   handleDrop(droppedItem, monitor, onDropItem, randomUUID(), 3);
   expect(onDrop).toBeCalled();
   expect(onDropItem).not.toBeCalled();
@@ -138,18 +114,10 @@ test('that hoverIndexHelper can be initiated', () => {
     index: 1,
   };
   const clientOffset: XYCoord = { x: 500, y: 290 };
-  expect(
-    hoverIndexHelper(draggedItem, hoveredItem, boundingBox, clientOffset),
-  ).toBeFalsy();
-  expect(
-    hoverIndexHelper(draggedItem, hoveredItem, undefined, clientOffset),
-  ).toBeFalsy();
-  expect(
-    hoverIndexHelper(draggedItem, hoveredItem, boundingBox, undefined),
-  ).toBeFalsy();
-  expect(
-    hoverIndexHelper(draggedItem, draggedItem, boundingBox, clientOffset),
-  ).toBeFalsy();
+  expect(hoverIndexHelper(draggedItem, hoveredItem, boundingBox, clientOffset)).toBeFalsy();
+  expect(hoverIndexHelper(draggedItem, hoveredItem, undefined, clientOffset)).toBeFalsy();
+  expect(hoverIndexHelper(draggedItem, hoveredItem, boundingBox, undefined)).toBeFalsy();
+  expect(hoverIndexHelper(draggedItem, draggedItem, boundingBox, clientOffset)).toBeFalsy();
 });
 
 const id = randomUUID();
@@ -163,5 +131,5 @@ test.each([
   (isOver: boolean, item: EditorDndItem, result: boolean) => {
     const monitor = createMockMonitor(isOver, item?.type);
     expect(hoverShouldBeIgnored(monitor, item)).toBe(result);
-  },
+  }
 );

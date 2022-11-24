@@ -1,14 +1,13 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 import type { IJsonSchema, ISchemaState } from '../../types';
-import type { UiSchemaNode } from '@altinn/schema-model';
+import type { UiSchemaNode, CombinationKind, FieldType } from '@altinn/schema-model';
 import {
   buildJsonSchema,
   buildUiSchema,
   castRestrictionType,
-  CombinationKind,
   convertPropToType,
   createNodeBase,
-  FieldType,
   getNodeByPointer,
   getParentNodeByPointer,
   getUniqueNodePath,
@@ -23,7 +22,7 @@ import {
   splitPointerInBaseAndName,
 } from '@altinn/schema-model';
 import { swapArrayElements } from 'app-shared/pure';
-import { Dict } from '../../../../schema-model/src/lib/types';
+import type { Dict } from '../../../../schema-model/src/lib/types';
 
 export const initialState: ISchemaState = {
   schema: {},
@@ -60,7 +59,7 @@ const schemaEditorSlice = createSlice({
         location: string;
         name: string;
         props: Partial<UiSchemaNode>;
-      }>,
+      }>
     ) {
       const { location, name, props } = action.payload;
       const newPointer = getUniqueNodePath(state.uiSchema, [location, name].join('/'));
@@ -81,7 +80,7 @@ const schemaEditorSlice = createSlice({
         pointer: string;
         keepSelection?: boolean;
         props: Partial<UiSchemaNode>;
-      }>,
+      }>
     ) {
       const { pointer, keepSelection, props } = action.payload;
       const addToNode = getNodeByPointer(state.uiSchema, pointer);
@@ -200,7 +199,7 @@ const schemaEditorSlice = createSlice({
       const addToNode = getNodeByPointer(state.uiSchema, pointer);
       const item = Object.assign(
         createNodeBase(pointer, addToNode.fieldType, addToNode.children.length.toString()),
-        props,
+        props
       );
       item.isCombinationItem = true;
       addToNode.children.push(item.pointer);

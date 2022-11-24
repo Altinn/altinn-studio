@@ -72,10 +72,7 @@ class ShareChangesComponent extends React.Component<IShareChangesComponentProps>
               variant='body1'
               className={classNames(classes.color_blueDark, classes.bold)}
             >
-              {getLanguageFromKey(
-                'sync_header.merge_conflict',
-                this.props.language,
-              )}
+              {getLanguageFromKey('sync_header.merge_conflict', this.props.language)}
             </Typography>
           </Grid>
         </Grid>
@@ -100,10 +97,7 @@ class ShareChangesComponent extends React.Component<IShareChangesComponentProps>
               variant='body1'
               className={classNames(classes.color_blueDark, classes.bold)}
             >
-              {getLanguageFromKey(
-                'sync_header.changes_to_share',
-                this.props.language,
-              )}
+              {getLanguageFromKey('sync_header.changes_to_share', this.props.language)}
             </Typography>
           </Grid>
         </Grid>
@@ -125,10 +119,7 @@ class ShareChangesComponent extends React.Component<IShareChangesComponentProps>
               variant='body1'
               className={classNames(classes.color_blueDark)}
             >
-              {getLanguageFromKey(
-                'sync_header.no_changes_to_share',
-                this.props.language,
-              )}
+              {getLanguageFromKey('sync_header.no_changes_to_share', this.props.language)}
             </Typography>
           </Grid>
         </Grid>

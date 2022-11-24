@@ -1,5 +1,5 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
-import { User } from '../../resources/fetchDashboardResources/dashboardSlice';
+import type { User } from '../../resources/fetchDashboardResources/dashboardSlice';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import type { IGiteaOrganisation } from 'app-shared/types/global';
 import AltinnDropdown from 'app-shared/components/AltinnDropdown';

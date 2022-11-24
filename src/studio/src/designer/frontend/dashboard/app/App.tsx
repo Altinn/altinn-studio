@@ -5,10 +5,8 @@ import { Route, Routes } from 'react-router-dom';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import { post } from 'app-shared/utils/networking';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import {
-  DashboardActions,
-  SelectedContext,
-} from '../resources/fetchDashboardResources/dashboardSlice';
+import type { SelectedContext } from '../resources/fetchDashboardResources/dashboardSlice';
+import { DashboardActions } from '../resources/fetchDashboardResources/dashboardSlice';
 import { fetchLanguage } from '../resources/fetchLanguage/languageSlice';
 import type { IHeaderContext } from 'app-shared/navigation/main-header/Header';
 import Header, {

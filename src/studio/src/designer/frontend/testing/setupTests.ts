@@ -4,13 +4,13 @@ import 'whatwg-fetch';
 
 import failOnConsole from 'jest-fail-on-console';
 
-failOnConsole( {
-    shouldFailOnWarn: true,
+failOnConsole({
+  shouldFailOnWarn: true,
 });
 
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation(query => ({
+  value: jest.fn().mockImplementation((query) => ({
     matches: false,
     media: query,
     onchange: null,

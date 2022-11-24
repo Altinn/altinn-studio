@@ -1,16 +1,10 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
 import { renderWithRedux } from '../../../test/renderWithRedux';
-import { ItemFieldsTab, ItemFieldsTabProps } from './ItemFieldsTab';
-import {
-  createChildNode,
-  createNodeBase,
-  FieldType,
-  Keywords,
-  ObjectKind,
-  UiSchemaNode,
-  UiSchemaNodes,
-} from '@altinn/schema-model';
+import type { ItemFieldsTabProps } from './ItemFieldsTab';
+import { ItemFieldsTab } from './ItemFieldsTab';
+import type { UiSchemaNode, UiSchemaNodes } from '@altinn/schema-model';
+import { createChildNode, createNodeBase, FieldType, Keywords, ObjectKind } from '@altinn/schema-model';
 
 // Test data:
 const selectedItem: UiSchemaNode = {
@@ -33,11 +27,11 @@ const textFieldName = 'Navn på felt';
 const textRequired = 'Påkrevd';
 const textType = 'Type';
 const fieldTypeNames = {
-  [FieldType.Boolean]: "Ja/nei",
-  [FieldType.Integer]: "Helt tall",
-  [FieldType.Number]: "Desimaltall",
-  [FieldType.Object]: "Objekt",
-  [FieldType.String]: "Tekst",
+  [FieldType.Boolean]: 'Ja/nei',
+  [FieldType.Integer]: 'Helt tall',
+  [FieldType.Number]: 'Desimaltall',
+  [FieldType.Object]: 'Objekt',
+  [FieldType.String]: 'Tekst',
 };
 const language = {
   'schema_editor.add_property': textAdd,
@@ -59,13 +53,7 @@ const defaultProps: ItemFieldsTabProps = {
 const defaultState = { uiSchema };
 
 const renderItemFieldsTab = (props?: Partial<ItemFieldsTabProps>, state?: any) =>
-  renderWithRedux(
-    <ItemFieldsTab
-      {...defaultProps}
-      {...props}
-    />,
-    { ...defaultState, ...state },
-  );
+  renderWithRedux(<ItemFieldsTab {...defaultProps} {...props} />, { ...defaultState, ...state });
 
 test('Header texts appear', () => {
   renderItemFieldsTab();
@@ -109,7 +97,7 @@ test('setType action is called with correct payload when a type is changed', asy
   const newType = FieldType.Integer;
   for (const i in fieldNames) {
     await user.click(screen.getAllByRole('combobox')[i]);
-    await user.click(screen.getAllByRole('option', { name: fieldTypeNames[newType] })[i])
+    await user.click(screen.getAllByRole('option', { name: fieldTypeNames[newType] })[i]);
   }
   const setPropertyNameActions = store.getActions().filter((action) => action.type === 'schemaEditor/setType');
   expect(setPropertyNameActions).toHaveLength(numberOfFields);
@@ -155,13 +143,7 @@ test('Newly added field gets focus and its text becomes selected', async () => {
   };
   const newSelectedItem = { ...selectedItem, children: [...selectedItem.children, newChildNode.pointer] };
   const newUiSchema = [newSelectedItem, ...childNodes, newChildNode];
-  rerenderWithRedux(
-    <ItemFieldsTab
-      {...defaultProps}
-      selectedItem={newSelectedItem}
-    />,
-    { uiSchema: newUiSchema },
-  );
+  rerenderWithRedux(<ItemFieldsTab {...defaultProps} selectedItem={newSelectedItem} />, { uiSchema: newUiSchema });
   expect(screen.getByDisplayValue(newChildNodeName)).toHaveFocus();
   await user.keyboard('a'); // Should replace the current value since the text should be selected
   expect(screen.getByDisplayValue('a')).toBeDefined();
@@ -178,7 +160,7 @@ test('Inputs are disabled if the selected item is a reference', () => {
   const referencedNode = createNodeBase(Keywords.Definitions, 'testtype');
   renderItemFieldsTab(
     { selectedItem: { ...selectedItem, objectKind: ObjectKind.Reference, ref: referencedNode.pointer } },
-    { uiSchema: [...uiSchema, referencedNode] },
+    { uiSchema: [...uiSchema, referencedNode] }
   );
   screen.queryAllByRole('textbox').forEach((input) => expect(input).toBeDisabled());
   screen.queryAllByRole('checkbox').forEach((input) => expect(input).toBeDisabled());

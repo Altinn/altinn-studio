@@ -12,19 +12,12 @@ export interface ServiceAdministrationProps {
   repository: IRepository;
 }
 
-export function ServiceAdministration({
-  language,
-  repository,
-}: ServiceAdministrationProps) {
-  const name = useAppSelector(
-    (state) => state.serviceInformation.serviceNameObj.name,
-  );
+export function ServiceAdministration({ language, repository }: ServiceAdministrationProps) {
+  const name = useAppSelector((state) => state.serviceInformation.serviceNameObj.name);
   const description = useAppSelector(
-    (state) => state.serviceInformation.serviceDescriptionObj.description,
+    (state) => state.serviceInformation.serviceDescriptionObj.description
   );
-  const id = useAppSelector(
-    (state) => state.serviceInformation.serviceIdObj.serviceId,
-  );
+  const id = useAppSelector((state) => state.serviceInformation.serviceIdObj.serviceId);
 
   const dispatch = useAppDispatch();
 
@@ -65,7 +58,7 @@ export function ServiceAdministration({
         HandleServiceInformationActions.saveServiceName({
           url: `${window.location.origin}/designer/${org}/${app}/Text/SetServiceName`,
           newServiceName: newName,
-        }),
+        })
       );
       dispatch(
         HandleServiceInformationActions.saveServiceConfig({
@@ -73,7 +66,7 @@ export function ServiceAdministration({
           newServiceDescription: newDescription,
           newServiceId: newId,
           newServiceName: newName,
-        }),
+        })
       );
       setEditAppName(false);
     }
@@ -92,7 +85,7 @@ export function ServiceAdministration({
           newServiceDescription: newDescription,
           newServiceId: newId,
           newServiceName: newName,
-        }),
+        })
       );
       setEditAppDescription(false);
     }
@@ -110,7 +103,7 @@ export function ServiceAdministration({
           newServiceDescription: newDescription,
           newServiceId: newId,
           newServiceName: newName,
-        }),
+        })
       );
       setEditAppId(false);
     }
@@ -119,10 +112,7 @@ export function ServiceAdministration({
   const render = repository && newName !== null && newDescription !== null && newId !== null;
 
   return (
-    <div
-      data-testid='service-administration-container'
-      className={classes.root}
-    >
+    <div data-testid='service-administration-container' className={classes.root}>
       {render ? (
         <MainContent
           appDescription={newDescription}
@@ -142,10 +132,7 @@ export function ServiceAdministration({
         />
       ) : (
         <div>
-          <AltinnSpinner
-            spinnerText='Laster siden'
-            styleObj={classes.spinner}
-          />
+          <AltinnSpinner spinnerText='Laster siden' styleObj={classes.spinner} />
         </div>
       )}
     </div>

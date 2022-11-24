@@ -15,7 +15,7 @@ import {
 
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { CreateService } from './CreateService';
-import {orgsListPath} from "app-shared/api-paths";
+import { orgsListPath } from 'app-shared/api-paths';
 
 const server = setupServer(...handlers);
 
@@ -64,12 +64,9 @@ describe('CreateService', () => {
 
   it('should prefill owner when there are no available orgs, and the only available user is the logged in user', async () => {
     server.use(
-      rest.get(
-          orgsListPath(),
-        async (req, res, ctx) => {
-          return res(ctx.json([]));
-        }
-      )
+      rest.get(orgsListPath(), async (req, res, ctx) => {
+        return res(ctx.json([]));
+      })
     );
 
     render();

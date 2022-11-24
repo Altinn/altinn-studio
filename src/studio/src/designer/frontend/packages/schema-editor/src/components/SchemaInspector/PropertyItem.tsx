@@ -1,4 +1,5 @@
-import React, { ChangeEventHandler, FocusEventHandler, KeyboardEvent, useEffect, useState } from 'react';
+import type { ChangeEventHandler, FocusEventHandler, KeyboardEvent } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch } from 'react-redux';
 import type { ILanguage } from '../../types';
 import { getTranslation } from '../../utils/language';
@@ -8,7 +9,7 @@ import classes from './PropertyItem.module.css';
 import { IconButton } from '../common/IconButton';
 import { IconImage } from '../common/Icon';
 import { getTypeOptions } from './helpers/options';
-import { FieldType } from '@altinn/schema-model';
+import type { FieldType } from '@altinn/schema-model';
 
 export interface IPropertyItemProps {
   fullPath: string;
@@ -56,7 +57,7 @@ export function PropertyItem({
       setRequired({
         path: fullPath,
         required: e.target.checked,
-      }),
+      })
     );
 
   const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => e?.key === 'Enter' && onEnterKeyPress && onEnterKeyPress();
@@ -65,7 +66,7 @@ export function PropertyItem({
 
   return (
     <>
-      <div className={classes.nameInputCell + ' ' + classes.gridItem}>
+      <div className={`${classes.nameInputCell} ${classes.gridItem}`}>
         <TextField
           aria-label={t('field_name')}
           id={inputId}
@@ -76,7 +77,7 @@ export function PropertyItem({
           onKeyDown={onKeyDown}
         />
       </div>
-      <div className={classes.typeSelectCell + ' ' + classes.gridItem}>
+      <div className={`${classes.typeSelectCell} ${classes.gridItem}`}>
         <Select
           hideLabel
           inputId={`${inputId}-typeselect`}
@@ -86,7 +87,7 @@ export function PropertyItem({
           value={type}
         />
       </div>
-      <span className={classes.requiredCheckCell + ' ' + classes.gridItem}>
+      <span className={`${classes.requiredCheckCell} ${classes.gridItem}`}>
         <Checkbox
           checked={required ?? false}
           disabled={readOnly}

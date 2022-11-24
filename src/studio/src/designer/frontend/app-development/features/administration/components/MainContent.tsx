@@ -30,9 +30,7 @@ interface IMainContentProps {
 }
 
 export const MainContent = (props: IMainContentProps): JSX.Element => {
-  const urlParams = new URLSearchParams(
-    `?${window.location.hash.split('?')[1]}`,
-  );
+  const urlParams = new URLSearchParams(`?${window.location.hash.split('?')[1]}`);
   const copiedApp = Boolean(urlParams.get('copiedApp'));
   const language = useAppSelector((state) => state.languageState.language);
   const t = (key: string) => getLanguageFromKey(key, language);
@@ -76,11 +74,7 @@ export const MainContent = (props: IMainContentProps): JSX.Element => {
       />
       <h2>{t('general.service_saved_name')}</h2>
       <p>{t('administration.service_saved_name_administration_description')}</p>
-      <TextField
-        id='administrationInputReponame'
-        value={props.repositoryName}
-        disabled={true}
-      />
+      <TextField id='administrationInputReponame' value={props.repositoryName} disabled={true} />
       <h2>{t('administration.service_comment')}</h2>
       <p>{t('administration.service_comment_description')}</p>
       <TextArea

@@ -1,9 +1,9 @@
 import React from 'react';
 import { FormControlLabel } from '@mui/material';
-import { createStyles, WithStyles, withStyles } from '@mui/styles';
+import type { WithStyles } from '@mui/styles';
+import { createStyles, withStyles } from '@mui/styles';
 
-export interface IAltinnFormControlLabelProvidedProps
-  extends WithStyles<typeof styles> {
+export interface IAltinnFormControlLabelProvidedProps extends WithStyles<typeof styles> {
   /** The id */
   id?: any;
   /** The label */

@@ -1,12 +1,7 @@
 import React from 'react';
-import {
-  createTheme,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-} from '@mui/material';
-import { createStyles, WithStyles, withStyles } from '@mui/styles';
+import { createTheme, List, ListItem, ListItemIcon, ListItemText } from '@mui/material';
+import type { WithStyles } from '@mui/styles';
+import { createStyles, withStyles } from '@mui/styles';
 import classNames from 'classnames';
 import AltinnIcon from 'app-shared/components/AltinnIcon';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
@@ -129,9 +124,7 @@ export class HandleMergeConflictFileList extends React.Component<
                               : theme.altinnPalette.primary.green
                           }
                           iconClass={
-                            item.fileStatus === 'Conflicted'
-                              ? 'fa fa-circlecancel'
-                              : 'fa fa-check'
+                            item.fileStatus === 'Conflicted' ? 'fa fa-circlecancel' : 'fa fa-check'
                           }
                           iconColor={
                             item.fileStatus === 'Conflicted'
@@ -145,10 +138,8 @@ export class HandleMergeConflictFileList extends React.Component<
                         primary={item.filePath}
                         classes={{
                           primary: classNames(classes.primaryText, {
-                            [classes.primaryTextSelected]:
-                              selectedIndex === index,
-                            [classes.primaryTextUnselected]:
-                              !selectedIndex === index,
+                            [classes.primaryTextSelected]: selectedIndex === index,
+                            [classes.primaryTextUnselected]: !selectedIndex === index,
                           }),
                           root: classNames(classes.listItemText),
                         }}

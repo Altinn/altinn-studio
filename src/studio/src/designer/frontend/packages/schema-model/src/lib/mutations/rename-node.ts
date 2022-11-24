@@ -1,4 +1,5 @@
-import { CombinationKind, UiSchemaNodes } from '../types';
+import type { UiSchemaNodes } from '../types';
+import { CombinationKind } from '../types';
 import { getNodeByPointer, hasNodePointer } from '../selectors';
 import { splitPointerInBaseAndName } from '../utils';
 
@@ -25,7 +26,7 @@ export const renameNodePointer = (uiSchemaNodes: UiSchemaNodes, oldPointer: stri
       nodeCopy.ref = nodeCopy.ref.replace(oldPointer, newPointer);
     }
     nodeCopy.children = uiNode.children.map((childPointer) =>
-      pointerIsInBranch(childPointer, oldPointer) ? childPointer.replace(oldPointer, newPointer) : childPointer,
+      pointerIsInBranch(childPointer, oldPointer) ? childPointer.replace(oldPointer, newPointer) : childPointer
     );
     mutatedNodeArray.push(nodeCopy);
   });
@@ -33,4 +34,4 @@ export const renameNodePointer = (uiSchemaNodes: UiSchemaNodes, oldPointer: stri
 };
 
 const pointerIsInBranch = (pointer: string, pointer2: string) =>
-  pointer === pointer2 || pointer.startsWith(pointer2 + '/');
+  pointer === pointer2 || pointer.startsWith(`${pointer2}/`);

@@ -1,4 +1,5 @@
-import React, { PropsWithChildren } from 'react';
+import type { PropsWithChildren } from 'react';
+import React from 'react';
 import { Button, IconButton } from '@mui/material';
 import classNames from 'classnames';
 import classes from './TopToolbarButton.module.css';

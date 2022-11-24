@@ -7,10 +7,7 @@ interface IRedirectComponentProvidedProps {
   classes: any;
 }
 
-export class RedirectComponent extends React.Component<
-  IRedirectComponentProvidedProps,
-  any
-> {
+export class RedirectComponent extends React.Component<IRedirectComponentProvidedProps, any> {
   public openManualTesting = () => {
     const { org, app } = _useParamsClassCompHack();
     const url = `${window.location.origin}/${this.props.redirectUrl}?ReturnUrl=%2Fruntime%2F${org}%2F${app}%2FManualTesting`;

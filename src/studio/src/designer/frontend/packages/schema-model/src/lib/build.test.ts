@@ -6,7 +6,8 @@ import {
   validateSchema,
 } from '../../test/testUtils';
 
-import { Dict, ObjectKind } from './types';
+import type { Dict } from './types';
+import { ObjectKind } from './types';
 import { buildUiSchema } from './build-ui-schema';
 import { buildJsonSchema } from './build-json-schema';
 import { ROOT_POINTER } from './constants';

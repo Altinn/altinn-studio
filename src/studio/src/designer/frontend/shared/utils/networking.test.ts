@@ -1,4 +1,5 @@
-import axios, {AxiosError} from 'axios';
+import type { AxiosError } from 'axios';
+import axios from 'axios';
 import { del, get, post, put } from './networking';
 
 jest.mock('axios');
@@ -10,10 +11,7 @@ describe('get', () => {
     it('should return response data', async () => {
       // given
       const config = {};
-      const data = [
-        { value: '1' },
-        { value: '2' },
-      ];
+      const data = [{ value: '1' }, { value: '2' }];
       mockedAxios.get.mockResolvedValueOnce({ data });
 
       // when
@@ -41,9 +39,9 @@ describe('get', () => {
       // given
       const networkError = {
         message: 'Bad request',
-        code: '400'
+        code: '400',
       } as AxiosError;
-      mockedAxios.get.mockRejectedValueOnce({...networkError});
+      mockedAxios.get.mockRejectedValueOnce({ ...networkError });
       let error;
       try {
         await get(testUrl);
@@ -63,10 +61,7 @@ describe('del', () => {
     it('should return response data', async () => {
       // given
       const config = {};
-      const data = [
-        { value: '1' },
-        { value: '2' },
-      ];
+      const data = [{ value: '1' }, { value: '2' }];
       mockedAxios.delete.mockResolvedValueOnce({ data });
 
       // when
@@ -82,9 +77,9 @@ describe('del', () => {
       // given
       const networkError = {
         message: 'Bad request',
-        code: '400'
+        code: '400',
       } as AxiosError;
-      mockedAxios.delete.mockRejectedValueOnce({...networkError});
+      mockedAxios.delete.mockRejectedValueOnce({ ...networkError });
       let error;
       try {
         await del(testUrl);
@@ -107,10 +102,7 @@ describe('post', () => {
     it('should return response data when it exists', async () => {
       // given
       const config = {};
-      const data = [
-        { value: '1' },
-        { value: '2' },
-      ];
+      const data = [{ value: '1' }, { value: '2' }];
       mockedAxios.post.mockResolvedValueOnce({ data });
 
       // when
@@ -124,10 +116,7 @@ describe('post', () => {
     it('should return null when no response data exists', async () => {
       // given
       const config = {};
-      const data = [
-        { value: '1' },
-        { value: '2' },
-      ];
+      const data = [{ value: '1' }, { value: '2' }];
       mockedAxios.post.mockResolvedValueOnce({});
 
       // when
@@ -143,9 +132,9 @@ describe('post', () => {
       // given
       const networkError = {
         message: 'Bad request',
-        code: '400'
+        code: '400',
       } as AxiosError;
-      mockedAxios.post.mockRejectedValueOnce({...networkError});
+      mockedAxios.post.mockRejectedValueOnce({ ...networkError });
       let error;
       try {
         await post(testUrl, null);
@@ -168,10 +157,7 @@ describe('put', () => {
     it('should return response data when it exists', async () => {
       // given
       const config = {};
-      const data = [
-        { value: '1' },
-        { value: '2' },
-      ];
+      const data = [{ value: '1' }, { value: '2' }];
       mockedAxios.put.mockResolvedValueOnce({ data });
 
       // when
@@ -185,10 +171,7 @@ describe('put', () => {
     it('should return undefined when no response data exists', async () => {
       // given
       const config = {};
-      const data = [
-        { value: '1' },
-        { value: '2' },
-      ];
+      const data = [{ value: '1' }, { value: '2' }];
       mockedAxios.put.mockResolvedValueOnce({});
 
       // when
@@ -204,9 +187,9 @@ describe('put', () => {
       // given
       const networkError = {
         message: 'Bad request',
-        code: '400'
+        code: '400',
       } as AxiosError;
-      mockedAxios.put.mockRejectedValueOnce({...networkError});
+      mockedAxios.put.mockRejectedValueOnce({ ...networkError });
       let error;
       try {
         await put(testUrl, null);
@@ -220,4 +203,3 @@ describe('put', () => {
     });
   });
 });
-

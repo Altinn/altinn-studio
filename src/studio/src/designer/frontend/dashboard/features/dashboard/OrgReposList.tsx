@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { GridSortModel } from '@mui/x-data-grid';
+import type { GridSortModel } from '@mui/x-data-grid';
 import { Typography } from '@mui/material';
 import { DashboardActions } from '../../resources/fetchDashboardResources/dashboardSlice';
 import { useAugmentReposWithStarred } from './hooks';

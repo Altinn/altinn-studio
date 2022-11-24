@@ -182,8 +182,8 @@ test('mapInstanceAttachments() returns correct attachment array', () => {
   expect(
     mapInstanceAttachments(
       instance.data as unknown as IData[],
-      '585b2f4e-5ecb-417b-9d01-82b6e889e1d1',
-    ),
+      '585b2f4e-5ecb-417b-9d01-82b6e889e1d1'
+    )
   ).toEqual(attachmentsTestData);
 });
 

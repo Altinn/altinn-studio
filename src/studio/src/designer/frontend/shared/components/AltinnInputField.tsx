@@ -130,8 +130,7 @@ class AltinnInputFieldComponent extends React.Component<IAltinnInputFieldCompone
           classes={{
             root: classNames(classes.inputField, {
               [classes.disabled]: this.props.isDisabled,
-              [classes.marginTop_10]:
-                this.props.inputDescription || this.props.inputHeader,
+              [classes.marginTop_10]: this.props.inputDescription || this.props.inputHeader,
               [classes.fullWidth]: this.props.fullWidth,
             }),
           }}
@@ -170,8 +169,7 @@ class AltinnInputFieldComponent extends React.Component<IAltinnInputFieldCompone
             type={this.props.type}
             id={this.props.textFieldId}
             onKeyDown={
-              this.props.onReturn &&
-              ((e: React.KeyboardEvent<HTMLDivElement>) => this.onKeyDown(e))
+              this.props.onReturn && ((e: React.KeyboardEvent<HTMLDivElement>) => this.onKeyDown(e))
             }
           />
         </FormControl>

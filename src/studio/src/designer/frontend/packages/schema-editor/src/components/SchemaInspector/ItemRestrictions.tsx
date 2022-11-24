@@ -1,15 +1,16 @@
-import React, { MouseEvent } from 'react';
+import type { MouseEvent } from 'react';
+import React from 'react';
 import { getTranslation } from '../../utils/language';
 import type { ILanguage } from '../../types';
-import type { UiSchemaNode } from '@altinn/schema-model';
-import { FieldType, Dict } from '@altinn/schema-model';
+import type { UiSchemaNode, Dict } from '@altinn/schema-model';
+import { FieldType } from '@altinn/schema-model';
 import { EnumField } from './EnumField';
 import {
   addEnum,
   deleteEnum,
   setRequired,
   setRestriction,
-  setRestrictions
+  setRestrictions,
 } from '../../features/editor/schemaEditorSlice';
 import { useDispatch } from 'react-redux';
 import { ArrayRestrictions } from './restrictions/ArrayRestrictions';
@@ -18,7 +19,7 @@ import { ObjectRestrictions } from './restrictions/ObjectRestrictions';
 import { StringRestrictions } from './restrictions/StringRestrictions';
 import classes from './ItemRestrictions.module.css';
 import { Button, ButtonColor, ButtonSize, ButtonVariant, Checkbox, FieldSet } from '@altinn/altinn-design-system';
-import {Divider} from "app-shared/primitives";
+import { Divider } from 'app-shared/primitives';
 
 export interface RestrictionItemProps {
   restrictions: any;
@@ -41,7 +42,7 @@ export const ItemRestrictions = ({ selectedNode, language }: ItemRestrictionsPro
         setRequired({
           path: selectedNode.pointer,
           required: checked,
-        }),
+        })
       );
     }
   };
@@ -52,11 +53,10 @@ export const ItemRestrictions = ({ selectedNode, language }: ItemRestrictionsPro
         path,
         key,
         value,
-      }),
+      })
     );
 
-  const onChangeRestrictions = (path: string, restrictions: Dict) =>
-    dispatch(setRestrictions({ path, restrictions }));
+  const onChangeRestrictions = (path: string, restrictions: Dict) => dispatch(setRestrictions({ path, restrictions }));
 
   const onChangeEnumValue = (value: string, oldValue?: string) =>
     dispatch(
@@ -64,7 +64,7 @@ export const ItemRestrictions = ({ selectedNode, language }: ItemRestrictionsPro
         path: selectedNode.pointer,
         value,
         oldValue,
-      }),
+      })
     );
 
   const onDeleteEnumClick = (path: string, value: string) => dispatch(deleteEnum({ path, value }));
@@ -74,7 +74,7 @@ export const ItemRestrictions = ({ selectedNode, language }: ItemRestrictionsPro
       addEnum({
         path: selectedNode.pointer,
         value: 'value',
-      }),
+      })
     );
 
   const onAddEnumButtonClick = (event: MouseEvent<HTMLButtonElement>) => {
@@ -115,7 +115,7 @@ export const ItemRestrictions = ({ selectedNode, language }: ItemRestrictionsPro
             {selectedNode.enum?.map((value: string, index) => (
               <EnumField
                 fullWidth={true}
-                key={'add-enum-field-' + index}
+                key={`add-enum-field-${index}`}
                 language={language}
                 onChange={onChangeEnumValue}
                 onDelete={onDeleteEnumClick}
