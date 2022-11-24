@@ -10,11 +10,8 @@ describe('fetchChanges', () => {
   it('should call fetchChanges when clicking sync button', async () => {
     const handleFetchChanges = jest.fn();
     render({ fetchChanges: handleFetchChanges });
-
     const syncButton = screen.getByTestId('fetch-changes-button');
-
     await user.click(syncButton);
-
     expect(handleFetchChanges).toHaveBeenCalled();
   });
 });
@@ -22,11 +19,9 @@ describe('fetchChanges', () => {
 const render = (props: Partial<IFetchChangesComponentProps> = {}) => {
   const allProps = {
     changesInMaster: true,
-    classes: {},
     fetchChanges: jest.fn(),
-    language: {},
+    buttonText: "pull",
     ...props,
   };
-
   return rtlRender(<FetchChangesComponent {...allProps} />);
 };
