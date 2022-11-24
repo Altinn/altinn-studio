@@ -11,7 +11,10 @@ import {
   makeGetLayoutContainerOrder,
   makeGetLayoutContainersSelector,
 } from '../selectors/getLayoutData';
-import { renderOptionalSelectTextFromResources, renderSelectGroupDataModelBinding } from '../utils/render';
+import {
+  renderOptionalSelectTextFromResources,
+  renderSelectGroupDataModelBinding,
+} from '../utils/render';
 import { FormComponentWrapper } from '../components/FormComponent';
 import { getTextResource } from '../utils/language';
 import { idExists, validComponentId } from '../utils/formLayout';
@@ -98,7 +101,9 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
       currentlyDragging: false,
       activeList: [],
       editMode: false,
-      tmpContainer: JSON.parse(JSON.stringify(this.props.containers[this.props.id])) as unknown as ICreateFormContainer,
+      tmpContainer: JSON.parse(
+        JSON.stringify(this.props.containers[this.props.id])
+      ) as unknown as ICreateFormContainer,
       tmpId: this.props.id,
       expanded: true,
       groupIdError: null,
@@ -158,7 +163,9 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
     dispatch(FormLayoutActions.deleteActiveList());
     this.setState({
       editMode: false,
-      tmpContainer: JSON.parse(JSON.stringify(this.props.containers[this.props.id])) as unknown as ICreateFormContainer,
+      tmpContainer: JSON.parse(
+        JSON.stringify(this.props.containers[this.props.id])
+      ) as unknown as ICreateFormContainer,
       tmpId: this.props.id,
     });
   };
@@ -169,11 +176,17 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
     if (this.state.tmpId && this.state.tmpId !== this.props.id) {
       if (idExists(this.state.tmpId, this.props.components, this.props.containers)) {
         this.setState(() => ({
-          groupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_unique_error', this.props.language),
+          groupIdError: getLanguageFromKey(
+            'ux_editor.modal_properties_group_id_not_unique_error',
+            this.props.language
+          ),
         }));
       } else if (!validComponentId.test(this.state.tmpId)) {
         this.setState(() => ({
-          groupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_valid', this.props.language),
+          groupIdError: getLanguageFromKey(
+            'ux_editor.modal_properties_group_id_not_valid',
+            this.props.language
+          ),
         }));
       } else {
         dispatch(
@@ -221,11 +234,17 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
       event.target.value !== this.props.id
     ) {
       this.setState(() => ({
-        groupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_unique_error', this.props.language),
+        groupIdError: getLanguageFromKey(
+          'ux_editor.modal_properties_group_id_not_unique_error',
+          this.props.language
+        ),
       }));
     } else if (!validComponentId.test(event.target.value)) {
       this.setState(() => ({
-        groupIdError: getLanguageFromKey('ux_editor.modal_properties_group_id_not_valid', this.props.language),
+        groupIdError: getLanguageFromKey(
+          'ux_editor.modal_properties_group_id_not_valid',
+          this.props.language
+        ),
       }));
     } else {
       this.setState({
@@ -264,7 +283,10 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
       }
       let errorMessage;
       if (updatedContainer.tableHeaders?.length === 0) {
-        errorMessage = getLanguageFromKey('ux_editor.modal_properties_group_table_headers_error', this.props.language);
+        errorMessage = getLanguageFromKey(
+          'ux_editor.modal_properties_group_table_headers_error',
+          this.props.language
+        );
       }
       return {
         tmpContainer: updatedContainer,
@@ -274,9 +296,11 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
   };
 
   public getMaxOccursForGroupFromDataModel = (dataBindingName: string): number => {
-    const element: IDataModelFieldElement = this.props.dataModel.find((e: IDataModelFieldElement) => {
-      return e.dataBindingName === dataBindingName;
-    });
+    const element: IDataModelFieldElement = this.props.dataModel.find(
+      (e: IDataModelFieldElement) => {
+        return e.dataBindingName === dataBindingName;
+      }
+    );
     return element?.maxOccurs;
   };
 
@@ -435,7 +459,9 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
                 items={itemOrder.map((id) => ({
                   label: getTextResource(components[id].textResourceBindings?.title, textResources),
                   name: id,
-                  checked: tmpContainer.tableHeaders === undefined || tmpContainer.tableHeaders.includes(id),
+                  checked:
+                    tmpContainer.tableHeaders === undefined ||
+                    tmpContainer.tableHeaders.includes(id),
                 }))}
                 legend={t('ux_editor.modal_properties_group_table_headers')}
                 onChange={this.handleTableHeadersChange}
@@ -472,7 +498,11 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
 
   public renderHoverIcons = (): JSX.Element => (
     <>
-      <Button iconName='Delete' onClick={this.handleContainerDelete} variant={ButtonVariant.Quiet} />
+      <Button
+        iconName='Delete'
+        onClick={this.handleContainerDelete}
+        variant={ButtonVariant.Quiet}
+      />
       <Button iconName='Edit' onClick={this.handleEditMode} variant={ButtonVariant.Quiet} />
     </>
   );
@@ -525,8 +555,10 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
         canDrag = false;
       }
     }
-    const firstInActiveList = activeListIndex >= 0 ? this.props.activeList[activeListIndex].firstInActiveList : true;
-    const lastInActiveList = activeListIndex >= 0 ? this.props.activeList[activeListIndex].lastInActiveList : true;
+    const firstInActiveList =
+      activeListIndex >= 0 ? this.props.activeList[activeListIndex].firstInActiveList : true;
+    const lastInActiveList =
+      activeListIndex >= 0 ? this.props.activeList[activeListIndex].lastInActiveList : true;
     return (
       <DroppableDraggableComponent
         canDrag={canDrag}

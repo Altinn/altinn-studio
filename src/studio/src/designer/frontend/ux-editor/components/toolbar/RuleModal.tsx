@@ -19,7 +19,9 @@ export interface IRuleModalProps {
 export default function RuleModal(props: IRuleModalProps) {
   const dispatch = useDispatch();
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
-  const ruleConnection = useSelector((state: IAppState) => state.serviceConfigurations.ruleConnection);
+  const ruleConnection = useSelector(
+    (state: IAppState) => state.serviceConfigurations.ruleConnection
+  );
   const language = useSelector((state: IAppState) => state.appData.languageState.language);
 
   function selectConnection(newSelectedConnectionId: string) {
@@ -46,12 +48,20 @@ export default function RuleModal(props: IRuleModalProps) {
 
   function renderRuleConnections(): JSX.Element {
     if (!ruleConnection || Object.getOwnPropertyNames(ruleConnection).length === 0) {
-      return <Typography variant='caption'>{getLanguageFromKey('right_menu.rules_empty', language)}</Typography>;
+      return (
+        <Typography variant='caption'>
+          {getLanguageFromKey('right_menu.rules_empty', language)}
+        </Typography>
+      );
     }
     return (
       <>
         {Object.keys(ruleConnection || {}).map((key: string) => (
-          <RuleButton key={key} text={ruleConnection[key]?.selectedFunction} onClick={() => selectConnection(key)} />
+          <RuleButton
+            key={key}
+            text={ruleConnection[key]?.selectedFunction}
+            onClick={() => selectConnection(key)}
+          />
         ))}
       </>
     );

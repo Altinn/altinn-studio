@@ -119,4 +119,6 @@ const mapStateToProps: (state: IAppState, props: IToolbarItemProvidedProps) => I
   icon: props.icon,
 });
 
-export const ToolbarItemComponent = withStyles(styles, { withTheme: true })(connect(mapStateToProps)(ToolbarItem));
+export const ToolbarItemComponent = withStyles(styles, { withTheme: true })(
+  connect(mapStateToProps)(ToolbarItem)
+);

@@ -8,7 +8,8 @@ import { convertFromLayoutToInternalFormat } from '../../../utils/formLayout';
 import { addTextResources } from '../../appData/textResources/textResourcesSlice';
 import type { IAppState, IFormLayout } from '../../../types/global';
 
-const selectCurrentLayoutId = (state: IAppState): string => state.formDesigner.layout.selectedLayout;
+const selectCurrentLayoutId = (state: IAppState): string =>
+  state.formDesigner.layout.selectedLayout;
 const selectCurrentLayout = (state: IAppState) => {
   return state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout];
 };

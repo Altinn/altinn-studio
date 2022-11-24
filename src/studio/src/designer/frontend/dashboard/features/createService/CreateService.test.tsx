@@ -1,17 +1,8 @@
 import React from 'react';
-import {
-  screen,
-  waitFor,
-  waitForElementToBeRemoved,
-} from '@testing-library/react';
+import { screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import {
-  handlers,
-  renderWithProviders,
-  rest,
-  setupServer,
-} from '../../dashboardTestUtils';
+import { handlers, renderWithProviders, rest, setupServer } from '../../dashboardTestUtils';
 
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 import { CreateService } from './CreateService';
@@ -50,15 +41,11 @@ describe('CreateService', () => {
     const user = userEvent.setup();
     render();
 
-    await waitForElementToBeRemoved(() =>
-      screen.getByText('dashboard.loading')
-    );
+    await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
     const createBtn = await screen.findByText('dashboard.create_service_btn');
     await user.click(createBtn);
 
-    const emptyFieldErrors = await screen.findAllByText(
-      'dashboard.field_cannot_be_empty'
-    );
+    const emptyFieldErrors = await screen.findAllByText('dashboard.field_cannot_be_empty');
     expect(emptyFieldErrors.length).toBe(2);
   });
 
@@ -71,9 +58,7 @@ describe('CreateService', () => {
 
     render();
 
-    await waitForElementToBeRemoved(() =>
-      screen.getByText('dashboard.loading')
-    );
+    await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
 
     await waitFor(() => {
       expect(screen.getByDisplayValue('user_full_name')).toBeInTheDocument();
@@ -84,9 +69,7 @@ describe('CreateService', () => {
     const user = userEvent.setup();
     render();
 
-    await waitForElementToBeRemoved(() =>
-      screen.getByText('dashboard.loading')
-    );
+    await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
 
     await user.click(
       screen.getByRole((content, element) => {
@@ -95,17 +78,12 @@ describe('CreateService', () => {
     );
 
     await user.click(screen.getByRole('option', { name: /user_full_name/i }));
-    await user.type(
-      screen.getByRole('textbox'),
-      'this-app-name-is-longer-than-max'
-    );
+    await user.type(screen.getByRole('textbox'), 'this-app-name-is-longer-than-max');
 
     const createBtn = await screen.findByText('dashboard.create_service_btn');
     await user.click(createBtn);
 
-    const emptyFieldErrors = await screen.findAllByText(
-      'dashboard.service_name_is_too_long'
-    );
+    const emptyFieldErrors = await screen.findAllByText('dashboard.service_name_is_too_long');
     expect(emptyFieldErrors.length).toBe(1);
   });
 
@@ -113,9 +91,7 @@ describe('CreateService', () => {
     const user = userEvent.setup();
     render();
 
-    await waitForElementToBeRemoved(() =>
-      screen.getByText('dashboard.loading')
-    );
+    await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
 
     await user.click(
       screen.getByRole((content, element) => {
@@ -138,19 +114,14 @@ describe('CreateService', () => {
   it('should show error message that app already exists when trying to create an app with a name that already exists', async () => {
     const user = userEvent.setup();
     server.use(
-      rest.post(
-        'http://localhost/designer/api/v1/repos/user_login',
-        async (req, res, ctx) => {
-          return res(ctx.status(409));
-        }
-      )
+      rest.post('http://localhost/designer/api/v1/repos/user_login', async (req, res, ctx) => {
+        return res(ctx.status(409));
+      })
     );
 
     render();
 
-    await waitForElementToBeRemoved(() =>
-      screen.getByText('dashboard.loading')
-    );
+    await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
 
     await user.click(
       screen.getByRole((content, element) => {
@@ -164,28 +135,21 @@ describe('CreateService', () => {
     const createBtn = await screen.findByText('dashboard.create_service_btn');
     await user.click(createBtn);
 
-    const emptyFieldErrors = await screen.findAllByText(
-      'dashboard.app_already_exist'
-    );
+    const emptyFieldErrors = await screen.findAllByText('dashboard.app_already_exist');
     expect(emptyFieldErrors.length).toBe(1);
   });
 
   it('should show generic error message that app already exists when trying to create an app and something unknown went wrong', async () => {
     const user = userEvent.setup();
     server.use(
-      rest.post(
-        'http://localhost/designer/api/v1/repos/user_login',
-        async (req, res, ctx) => {
-          return res(ctx.status(500));
-        }
-      )
+      rest.post('http://localhost/designer/api/v1/repos/user_login', async (req, res, ctx) => {
+        return res(ctx.status(500));
+      })
     );
 
     render();
 
-    await waitForElementToBeRemoved(() =>
-      screen.getByText('dashboard.loading')
-    );
+    await waitForElementToBeRemoved(() => screen.getByText('dashboard.loading'));
 
     await user.click(
       screen.getByRole((content, element) => {
@@ -199,9 +163,7 @@ describe('CreateService', () => {
     const createBtn = await screen.findByText('dashboard.create_service_btn');
     await user.click(createBtn);
 
-    const emptyFieldErrors = await screen.findAllByText(
-      'dashboard.error_when_creating_app'
-    );
+    const emptyFieldErrors = await screen.findAllByText('dashboard.error_when_creating_app');
     expect(emptyFieldErrors.length).toBe(1);
   });
 });

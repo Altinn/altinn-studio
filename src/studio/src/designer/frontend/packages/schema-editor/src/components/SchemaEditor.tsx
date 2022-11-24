@@ -112,7 +112,9 @@ export const SchemaEditor = ({
     }
   }, [selectedPropertyParent, expandedPropNodes]);
 
-  const selectedDefinitionNodeId = useSelector((state: ISchemaState) => state.selectedDefinitionNodeId);
+  const selectedDefinitionNodeId = useSelector(
+    (state: ISchemaState) => state.selectedDefinitionNodeId
+  );
   const selectedDefinitionParent = useSelector((state: ISchemaState) =>
     getParentNodeByPointer(state.uiSchema, state.selectedDefinitionNodeId)
   );
@@ -122,9 +124,11 @@ export const SchemaEditor = ({
     }
   }, [selectedPropertyParent, expandedDefNodes, selectedDefinitionParent]);
 
-  const handlePropertiesNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) => setExpandedPropNodes(nodeIds);
+  const handlePropertiesNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) =>
+    setExpandedPropNodes(nodeIds);
 
-  const handleDefinitionsNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) => setExpandedDefNodes(nodeIds);
+  const handleDefinitionsNodeExpanded = (_x: ChangeEvent<unknown>, nodeIds: string[]) =>
+    setExpandedDefNodes(nodeIds);
 
   const handleSaveSchema = () => dispatch(updateJsonSchema({ onSaveSchema }));
 
@@ -167,7 +171,9 @@ export const SchemaEditor = ({
   const t = (key: string) => getTranslation(key, language);
 
   const selectedId = useSelector((state: ISchemaState) =>
-    state.selectedEditorTab === 'properties' ? state.selectedPropertyNodeId : state.selectedDefinitionNodeId
+    state.selectedEditorTab === 'properties'
+      ? state.selectedPropertyNodeId
+      : state.selectedDefinitionNodeId
   );
   const selectedItem = useSelector((state: ISchemaState) =>
     selectedId ? getNodeByPointer(state.uiSchema, selectedId) : undefined

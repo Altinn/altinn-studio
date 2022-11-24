@@ -31,7 +31,13 @@ SchemaItem.defaultProps = {
   isPropertiesView: false,
 };
 
-export function SchemaItem({ selectedNode, isPropertiesView, editMode, translate, index }: SchemaItemProps) {
+export function SchemaItem({
+  selectedNode,
+  isPropertiesView,
+  editMode,
+  translate,
+  index,
+}: SchemaItemProps) {
   const dispatch = useDispatch();
   const keyPrefix = isPropertiesView ? 'properties' : 'definitions';
 
@@ -45,7 +51,9 @@ export function SchemaItem({ selectedNode, isPropertiesView, editMode, translate
       ? getChildNodesByPointer(state.uiSchema, refNode.pointer)
       : getChildNodesByPointer(state.uiSchema, selectedNode.pointer)
   );
-  const referredNodes = useSelector((state: ISchemaState) => getReferredNodes(state.uiSchema, selectedNode.pointer));
+  const referredNodes = useSelector((state: ISchemaState) =>
+    getReferredNodes(state.uiSchema, selectedNode.pointer)
+  );
   const focusedNode = refNode ?? selectedNode;
   const childNodesSorted: UiSchemaNodes = [];
   focusedNode.children.forEach((childPointer) => {
@@ -53,7 +61,9 @@ export function SchemaItem({ selectedNode, isPropertiesView, editMode, translate
     node && childNodesSorted.push(node);
   });
   const selectedPointer = useSelector((state: ISchemaState) =>
-    state.selectedEditorTab === 'definitions' ? state.selectedDefinitionNodeId : state.selectedPropertyNodeId
+    state.selectedEditorTab === 'definitions'
+      ? state.selectedDefinitionNodeId
+      : state.selectedPropertyNodeId
   );
   const onLabelClick = (e: any, schemaItem: UiSchemaNode) => {
     e.preventDefault();

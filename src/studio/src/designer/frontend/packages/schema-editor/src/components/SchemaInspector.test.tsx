@@ -30,7 +30,8 @@ Object.defineProperty(window, 'matchMedia', {
   })),
 });
 const mockUiSchema = buildUiSchema(dataMock);
-const getMockSchemaByPath = (selectedId: string): UiSchemaNode => getNodeByPointer(mockUiSchema, selectedId);
+const getMockSchemaByPath = (selectedId: string): UiSchemaNode =>
+  getNodeByPointer(mockUiSchema, selectedId);
 
 const language = {
   'schema_editor.maxLength': 'Maksimal lengde',
@@ -53,7 +54,10 @@ const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSche
 };
 
 test('dispatches correctly when entering text in textboxes', async () => {
-  const { store, user } = renderSchemaInspector(mockUiSchema, getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon'));
+  const { store, user } = renderSchemaInspector(
+    mockUiSchema,
+    getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon')
+  );
   expect(screen.getByTestId('schema-inspector')).toBeDefined();
   const tablist = screen.getByRole('tablist');
   expect(tablist).toBeDefined();
@@ -83,7 +87,10 @@ test('renders no item if nothing is selected', () => {
 });
 
 test('dispatches correctly when changing restriction value', () => {
-  const { store } = renderSchemaInspector(mockUiSchema, getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon'));
+  const { store } = renderSchemaInspector(
+    mockUiSchema,
+    getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon')
+  );
 
   const minLength = '100';
   const maxLength = '666';

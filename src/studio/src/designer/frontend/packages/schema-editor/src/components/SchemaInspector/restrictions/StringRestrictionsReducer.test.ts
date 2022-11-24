@@ -1,6 +1,12 @@
 import { StringFormat, StrRestrictionKeys } from '@altinn/schema-model';
-import type { StringRestricionsReducerState, StringRestrictionsReducerAction } from './StringRestrictionsReducer';
-import { stringRestrictionsReducer, StringRestrictionsReducerActionType } from './StringRestrictionsReducer';
+import type {
+  StringRestricionsReducerState,
+  StringRestrictionsReducerAction,
+} from './StringRestrictionsReducer';
+import {
+  stringRestrictionsReducer,
+  StringRestrictionsReducerActionType,
+} from './StringRestrictionsReducer';
 
 // Test data
 const maxDate = '3000-01-01';
@@ -23,8 +29,14 @@ const defaultState: StringRestricionsReducerState = {
 
 const changeCallback = jest.fn();
 
-const dispatchAction = (action: StringRestrictionsReducerAction, state?: Partial<StringRestricionsReducerState>) =>
-  stringRestrictionsReducer({ ...defaultState, restrictions: { ...defaultRestrictions }, ...state }, action);
+const dispatchAction = (
+  action: StringRestrictionsReducerAction,
+  state?: Partial<StringRestricionsReducerState>
+) =>
+  stringRestrictionsReducer(
+    { ...defaultState, restrictions: { ...defaultRestrictions }, ...state },
+    action
+  );
 
 describe('stringRestrictionsReducer', () => {
   afterEach(() => jest.clearAllMocks());
@@ -39,7 +51,9 @@ describe('stringRestrictionsReducer', () => {
       });
       expect(state.restrictions.format).toEqual(StringFormat.DateTime);
       expect(changeCallback).toHaveBeenCalledTimes(1);
-      expect(changeCallback).toHaveBeenCalledWith(expect.objectContaining({ format: StringFormat.DateTime }));
+      expect(changeCallback).toHaveBeenCalledWith(
+        expect.objectContaining({ format: StringFormat.DateTime })
+      );
     });
   });
 

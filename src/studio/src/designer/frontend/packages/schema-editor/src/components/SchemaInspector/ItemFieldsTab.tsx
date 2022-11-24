@@ -2,7 +2,12 @@ import type { BaseSyntheticEvent } from 'react';
 import React, { useEffect } from 'react';
 import type { ILanguage, ISchemaState } from '../../types';
 import { PropertyItem } from './PropertyItem';
-import { addProperty, deleteProperty, setPropertyName, setType } from '../../features/editor/schemaEditorSlice';
+import {
+  addProperty,
+  deleteProperty,
+  setPropertyName,
+  setType,
+} from '../../features/editor/schemaEditorSlice';
 import { useDispatch, useSelector } from 'react-redux';
 import { getTranslation } from '../../utils/language';
 import type { UiSchemaNode, FieldType } from '@altinn/schema-model';

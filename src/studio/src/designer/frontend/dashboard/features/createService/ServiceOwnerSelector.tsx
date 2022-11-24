@@ -23,10 +23,7 @@ interface ICombineCurrentUserAndOrg {
   organisations: IGiteaOrganisation[];
 }
 
-const combineCurrentUserAndOrg = ({
-  organisations = [],
-  user,
-}: ICombineCurrentUserAndOrg) => {
+const combineCurrentUserAndOrg = ({ organisations = [], user }: ICombineCurrentUserAndOrg) => {
   const allUsers = organisations.map((props: any) => {
     return {
       value: props.username,
@@ -47,8 +44,7 @@ export const ServiceOwnerSelector = ({
   errorMessage,
   selectedOrgOrUser,
 }: IServiceOwnerSelectorProps) => {
-  const { data: organisations, isLoading: isLoadingOrganisations } =
-    useGetOrganizationsQuery();
+  const { data: organisations, isLoading: isLoadingOrganisations } = useGetOrganizationsQuery();
 
   const user = useAppSelector((state) => state.dashboard.user);
   const language = useAppSelector((state) => state.language.language);
@@ -77,11 +73,7 @@ export const ServiceOwnerSelector = ({
   };
 
   if (isLoadingOrganisations) {
-    return (
-      <AltinnSpinner
-        spinnerText={getLanguageFromKey('dashboard.loading', language)}
-      />
-    );
+    return <AltinnSpinner spinnerText={getLanguageFromKey('dashboard.loading', language)} />;
   }
 
   return (
@@ -96,11 +88,7 @@ export const ServiceOwnerSelector = ({
         fullWidth={true}
       />
       {errorMessage && (
-        <Popper
-          anchorEl={serviceOwnerRef.current}
-          message={errorMessage}
-          styleObj={zIndex}
-        />
+        <Popper anchorEl={serviceOwnerRef.current} message={errorMessage} styleObj={zIndex} />
       )}
     </div>
   );

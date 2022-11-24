@@ -29,16 +29,12 @@ export const userApi = designerApi.injectEndpoints({
       }),
       async onQueryStarted(repo, { dispatch, queryFulfilled }) {
         const patchResult = dispatch(
-          userApi.util.updateQueryData(
-            'getUserStarredRepos',
-            undefined,
-            (draft) => {
-              draft.push({
-                ...repo,
-                user_has_starred: true,
-              });
-            }
-          )
+          userApi.util.updateQueryData('getUserStarredRepos', undefined, (draft) => {
+            draft.push({
+              ...repo,
+              user_has_starred: true,
+            });
+          })
         );
         try {
           await queryFulfilled;
@@ -54,16 +50,12 @@ export const userApi = designerApi.injectEndpoints({
       }),
       async onQueryStarted(repo, { dispatch, queryFulfilled }) {
         const patchResult = dispatch(
-          userApi.util.updateQueryData(
-            'getUserStarredRepos',
-            undefined,
-            (draft) => {
-              draft.splice(
-                draft.findIndex((r) => r.id === repo.id),
-                1
-              );
-            }
-          )
+          userApi.util.updateQueryData('getUserStarredRepos', undefined, (draft) => {
+            draft.splice(
+              draft.findIndex((r) => r.id === repo.id),
+              1
+            );
+          })
         );
         try {
           await queryFulfilled;

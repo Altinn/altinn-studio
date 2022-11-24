@@ -194,21 +194,9 @@ const resources: Resource[] = [
           stroke='white'
           strokeMiterlimit='10'
         />
-        <path
-          d='M18.9 33.8L15.6333 37.1834'
-          stroke='white'
-          strokeMiterlimit='10'
-        />
-        <path
-          d='M22.1668 37.1833L17.2668 42.0834'
-          stroke='white'
-          strokeMiterlimit='10'
-        />
-        <path
-          d='M25.4334 40.45L22.1667 43.7166'
-          stroke='white'
-          strokeMiterlimit='10'
-        />
+        <path d='M18.9 33.8L15.6333 37.1834' stroke='white' strokeMiterlimit='10' />
+        <path d='M22.1668 37.1833L17.2668 42.0834' stroke='white' strokeMiterlimit='10' />
+        <path d='M25.4334 40.45L22.1667 43.7166' stroke='white' strokeMiterlimit='10' />
         <path
           d='M28.0002 22.1332C24.8502 21.8999 21.5835 22.9499 19.0168 25.1666L22.7502 28.8999'
           stroke='white'
@@ -219,11 +207,7 @@ const resources: Resource[] = [
           stroke='white'
           strokeMiterlimit='10'
         />
-        <path
-          d='M30.4501 20.3833L38.5001 28.4333'
-          stroke='white'
-          strokeMiterlimit='10'
-        />
+        <path d='M30.4501 20.3833L38.5001 28.4333' stroke='white' strokeMiterlimit='10' />
       </svg>
     ),
   },

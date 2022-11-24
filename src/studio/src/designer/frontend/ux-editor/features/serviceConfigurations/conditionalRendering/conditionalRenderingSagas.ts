@@ -2,12 +2,16 @@ import type { SagaIterator } from 'redux-saga';
 import { put, select, takeLatest } from 'redux-saga/effects';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { IConditionalRenderingState } from '../serviceConfigurationTypes';
-import { setConditionalRenderingConnections, saveServiceConfiguration } from '../serviceConfigurationSlice';
+import {
+  setConditionalRenderingConnections,
+  saveServiceConfiguration,
+} from '../serviceConfigurationSlice';
 import type { IUpdateFormComponentIdAction } from '../../formDesigner/formDesignerTypes';
 import { FormLayoutActions } from '../../formDesigner/formLayout/formLayoutSlice';
 import type { IAppState } from '../../../types/global';
 
-const selectConditionalRuleConnection = (state: IAppState): any => state.serviceConfigurations.conditionalRendering;
+const selectConditionalRuleConnection = (state: IAppState): any =>
+  state.serviceConfigurations.conditionalRendering;
 
 export function* updateConditionalRenderingConnectedIdsSaga({
   payload,
@@ -17,7 +21,9 @@ export function* updateConditionalRenderingConnectedIdsSaga({
       If a component/container has updated the id this change should be reflected in the conditional rendering rules
     */
     const { currentId, newId } = payload;
-    const conditionalRenderingState: IConditionalRenderingState = yield select(selectConditionalRuleConnection);
+    const conditionalRenderingState: IConditionalRenderingState = yield select(
+      selectConditionalRuleConnection
+    );
     let updated = false;
     Object.keys(conditionalRenderingState).forEach((id: string) => {
       Object.keys(conditionalRenderingState[id]?.selectedFields).forEach((fieldId: string) => {

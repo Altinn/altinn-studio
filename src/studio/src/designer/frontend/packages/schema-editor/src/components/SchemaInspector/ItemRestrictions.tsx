@@ -18,7 +18,14 @@ import { NumberRestrictions } from './restrictions/NumberRestrictions';
 import { ObjectRestrictions } from './restrictions/ObjectRestrictions';
 import { StringRestrictions } from './restrictions/StringRestrictions';
 import classes from './ItemRestrictions.module.css';
-import { Button, ButtonColor, ButtonSize, ButtonVariant, Checkbox, FieldSet } from '@altinn/altinn-design-system';
+import {
+  Button,
+  ButtonColor,
+  ButtonSize,
+  ButtonVariant,
+  Checkbox,
+  FieldSet,
+} from '@altinn/altinn-design-system';
 import { Divider } from 'app-shared/primitives';
 
 export interface RestrictionItemProps {
@@ -56,7 +63,8 @@ export const ItemRestrictions = ({ selectedNode, language }: ItemRestrictionsPro
       })
     );
 
-  const onChangeRestrictions = (path: string, restrictions: Dict) => dispatch(setRestrictions({ path, restrictions }));
+  const onChangeRestrictions = (path: string, restrictions: Dict) =>
+    dispatch(setRestrictions({ path, restrictions }));
 
   const onChangeEnumValue = (value: string, oldValue?: string) =>
     dispatch(
@@ -107,11 +115,15 @@ export const ItemRestrictions = ({ selectedNode, language }: ItemRestrictionsPro
           [FieldType.String]: <StringRestrictions {...restrictionProps} />,
         }[selectedNode.fieldType as string]}
       {selectedNode.isArray && <ArrayRestrictions {...restrictionProps} />}
-      {[FieldType.String, FieldType.Integer, FieldType.Number].includes(selectedNode.fieldType as FieldType) && (
+      {[FieldType.String, FieldType.Integer, FieldType.Number].includes(
+        selectedNode.fieldType as FieldType
+      ) && (
         <>
           <Divider inMenu />
           <FieldSet legend={t('enum_legend')}>
-            {!selectedNode.enum?.length && <p className={classes.emptyEnumMessage}>{t('enum_empty')}</p>}
+            {!selectedNode.enum?.length && (
+              <p className={classes.emptyEnumMessage}>{t('enum_empty')}</p>
+            )}
             {selectedNode.enum?.map((value: string, index) => (
               <EnumField
                 fullWidth={true}

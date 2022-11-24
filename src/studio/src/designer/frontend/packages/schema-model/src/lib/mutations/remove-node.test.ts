@@ -1,6 +1,10 @@
 import { buildUiSchema } from '../build-ui-schema';
 import { removeNodeByPointer } from './remove-node';
-import { getGeneralJsonSchemaForTest, simpleTestJsonSchema, validateSchema } from '../../../test/testUtils';
+import {
+  getGeneralJsonSchemaForTest,
+  simpleTestJsonSchema,
+  validateSchema,
+} from '../../../test/testUtils';
 import { buildJsonSchema } from '../build-json-schema';
 import { CombinationKind, FieldType, Keywords } from '../types';
 import { makePointer } from '../utils';
@@ -11,7 +15,10 @@ const testComplexSchema = getGeneralJsonSchemaForTest('ElementAnnotation');
 test('that we can remove a node by pointer', () => {
   const uiSchemaNodes = buildUiSchema(simpleTestJsonSchema);
   expect(uiSchemaNodes).toEqual(buildUiSchema(simpleTestJsonSchema));
-  const changedNodeMap = removeNodeByPointer(uiSchemaNodes, makePointer(Keywords.Properties, 'world'));
+  const changedNodeMap = removeNodeByPointer(
+    uiSchemaNodes,
+    makePointer(Keywords.Properties, 'world')
+  );
   const jsonSchema = buildJsonSchema(changedNodeMap);
   expect(validateSchema(jsonSchema)).toBeTruthy();
   expect(jsonSchema).toEqual({
@@ -30,10 +37,16 @@ test('that we can remove an combination', () => {
       { [Keywords.Type]: FieldType.Number },
     ],
   });
-  const nodesAfterMutation = removeNodeByPointer(uiSchemaNodes, makePointer(CombinationKind.OneOf, 1));
+  const nodesAfterMutation = removeNodeByPointer(
+    uiSchemaNodes,
+    makePointer(CombinationKind.OneOf, 1)
+  );
   const jsonSchema = buildJsonSchema(nodesAfterMutation);
   expect(jsonSchema).toEqual({
-    [CombinationKind.OneOf]: [{ [Keywords.Type]: FieldType.String }, { [Keywords.Type]: FieldType.Number }],
+    [CombinationKind.OneOf]: [
+      { [Keywords.Type]: FieldType.String },
+      { [Keywords.Type]: FieldType.Number },
+    ],
   });
 });
 

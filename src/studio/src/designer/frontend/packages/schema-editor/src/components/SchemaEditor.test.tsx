@@ -68,7 +68,8 @@ const clickOpenAddMenuButton = (user: UserEvent) =>
       name: mockLanguage['schema_editor.add'],
     })
   );
-const clickAddMenuItem = (user: UserEvent, name: string) => user.click(screen.getByRole('menuitem', { name }));
+const clickAddMenuItem = (user: UserEvent, name: string) =>
+  user.click(screen.getByRole('menuitem', { name }));
 
 const clickOpenContextMenuButton = (user: UserEvent) =>
   user.click(screen.getAllByTestId('open-context-menu-button')[0]);
@@ -253,7 +254,9 @@ test('should not show add property or add reference buttons on a field that is n
 test('should show menu with option field, reference, and combination when pressing add', async () => {
   const { user } = renderEditor();
   await clickOpenAddMenuButton(user);
-  expect(screen.getAllByRole('menuitem', { name: mockLanguage['schema_editor.field'] })).toHaveLength(1);
+  expect(
+    screen.getAllByRole('menuitem', { name: mockLanguage['schema_editor.field'] })
+  ).toHaveLength(1);
   expect(
     screen.getAllByRole('menuitem', {
       name: mockLanguage['schema_editor.reference'],

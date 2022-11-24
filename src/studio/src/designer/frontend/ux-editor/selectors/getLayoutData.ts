@@ -1,4 +1,9 @@
-import type { IAppState, IFormDesignerContainers, IFormDesignerComponents, IFormLayoutOrder } from '../types/global';
+import type {
+  IAppState,
+  IFormDesignerContainers,
+  IFormDesignerComponents,
+  IFormLayoutOrder,
+} from '../types/global';
 import type { ParametricSelector } from 'reselect';
 import { createSelector } from 'reselect';
 
@@ -19,7 +24,9 @@ const activeFormContainerSelector = (state: IAppState, props: any) => {
 };
 
 const layoutContainerOrderSelector = (state: IAppState, containerId: string) => {
-  return state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.order[containerId];
+  return state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.order[
+    containerId
+  ];
 };
 
 const allLayoutContainerSelector = (state: IAppState) => {

@@ -13,7 +13,12 @@ export interface IImageComponentProps {
   textResources: any;
 }
 
-export const ImageComponent = ({ component, language, handleComponentUpdate, textResources }: IImageComponentProps) => {
+export const ImageComponent = ({
+  component,
+  language,
+  handleComponentUpdate,
+  textResources,
+}: IImageComponentProps) => {
   const t = (key: string) => getLanguageFromKey(key, language);
   const alignOptions = [
     {
@@ -95,7 +100,10 @@ export const ImageComponent = ({ component, language, handleComponentUpdate, tex
           />
         </div>
         <div className={classes.placementContainer}>
-          <PropertyLabel textKey={t('ux_editor.modal_properties_image_placement_label')} htmlFor={placementSelectId} />
+          <PropertyLabel
+            textKey={t('ux_editor.modal_properties_image_placement_label')}
+            htmlFor={placementSelectId}
+          />
           <Select
             styles={selectStyles}
             options={alignOptions}
@@ -109,7 +117,11 @@ export const ImageComponent = ({ component, language, handleComponentUpdate, tex
       </div>
       <div>
         <p>
-          <a target='_blank' rel='noopener noreferrer' href='https://docs.altinn.studio/app/development/ux/images/'>
+          <a
+            target='_blank'
+            rel='noopener noreferrer'
+            href='https://docs.altinn.studio/app/development/ux/images/'
+          >
             {t('ux_editor.modal_properties_image_read_more')}
           </a>
         </p>

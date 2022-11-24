@@ -5,7 +5,12 @@ import { RestrictionField } from '../RestrictionField';
 import { getTranslation } from '../../../utils/language';
 import { Divider } from 'app-shared/primitives';
 
-export function ArrayRestrictions({ restrictions, language, path, onChangeRestrictionValue }: RestrictionItemProps) {
+export function ArrayRestrictions({
+  restrictions,
+  language,
+  path,
+  onChangeRestrictionValue,
+}: RestrictionItemProps) {
   return (
     <>
       <Divider />

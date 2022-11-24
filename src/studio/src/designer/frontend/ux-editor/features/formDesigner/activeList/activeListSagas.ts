@@ -8,7 +8,9 @@ import type { IAppState } from '../../../types/global';
 
 const selectFormDesigner = (state: IAppState): IFormDesignerState => state.formDesigner;
 
-function* addActiveFormContainerSaga({ payload }: PayloadAction<IAddActiveFormContainerAction>): SagaIterator {
+function* addActiveFormContainerSaga({
+  payload,
+}: PayloadAction<IAddActiveFormContainerAction>): SagaIterator {
   try {
     const { containerId } = payload;
     const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
@@ -35,5 +37,8 @@ export function* deleteActiveListSaga(): SagaIterator {
 }
 
 export function* watchDeleteActiveListSaga(): SagaIterator {
-  yield takeLatest([FormLayoutActions.deleteActiveList, FormLayoutActions.updateSelectedLayout], deleteActiveListSaga);
+  yield takeLatest(
+    [FormLayoutActions.deleteActiveList, FormLayoutActions.updateSelectedLayout],
+    deleteActiveListSaga
+  );
 }

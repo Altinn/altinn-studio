@@ -56,7 +56,9 @@ export function ToolbarGroup(props: IToolbarGroupProps) {
         <List dense={false} id={`${props.list}-components`} component='div'>
           {props.components.map((component: IToolbarElement) => (
             <ToolbarItem
-              text={getComponentTitleByComponentType(component.type, props.language) || component.label}
+              text={
+                getComponentTitleByComponentType(component.type, props.language) || component.label
+              }
               icon={component.icon}
               componentType={component.type}
               onDropAction={component.actionMethod}

@@ -3,7 +3,12 @@ import React, { memo, useRef } from 'react';
 import type { DropTargetHookSpec, DropTargetMonitor } from 'react-dnd';
 import { useDrag, useDrop } from 'react-dnd';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
-import { dragSourceSpec, getContainerPosition, handleDrop, hoverShouldBeIgnored } from './helpers/dnd-helpers';
+import {
+  dragSourceSpec,
+  getContainerPosition,
+  handleDrop,
+  hoverShouldBeIgnored,
+} from './helpers/dnd-helpers';
 import type { EditorDndEvents, EditorDndItem } from './helpers/dnd-types';
 import { ContainerPos, ItemType } from './helpers/dnd-types';
 import { DummyDropTarget } from './DummyDropTarget';
@@ -25,7 +30,8 @@ export const dropTargetSpec = (
       monitor,
       events.onDropItem,
       targetItem.id,
-      getContainerPosition(ref.current?.getBoundingClientRect(), monitor.getClientOffset()) === ContainerPos.Top
+      getContainerPosition(ref.current?.getBoundingClientRect(), monitor.getClientOffset()) ===
+        ContainerPos.Top
         ? 0
         : 99
     );
@@ -40,7 +46,10 @@ export const dropTargetSpec = (
     if (draggedItem.containerId === targetItem.id) {
       return;
     }
-    const containerPos = getContainerPosition(ref.current?.getBoundingClientRect(), monitor.getClientOffset());
+    const containerPos = getContainerPosition(
+      ref.current?.getBoundingClientRect(),
+      monitor.getClientOffset()
+    );
 
     if (!containerPos) {
       return;

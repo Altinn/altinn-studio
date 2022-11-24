@@ -9,11 +9,7 @@ import { setupServer } from 'msw/node';
 import { HashRouter as Router } from 'react-router-dom';
 import type { AppStore, RootState } from './app/store';
 import { setupStore } from './app/store';
-import {
-  orgsListPath,
-  repoSearchPath,
-  userStarredListPath,
-} from 'app-shared/api-paths';
+import { orgsListPath, repoSearchPath, userStarredListPath } from 'app-shared/api-paths';
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   preloadedState?: PreloadedState<RootState>;

@@ -84,8 +84,13 @@ const schemaEditorSlice = createSlice({
     ) {
       const { pointer, keepSelection, props } = action.payload;
       const addToNode = getNodeByPointer(state.uiSchema, pointer);
-      const pointerBase = addToNode.isArray ? makePointer(addToNode.pointer, Keywords.Items) : addToNode.pointer;
-      const newNodePointer = getUniqueNodePath(state.uiSchema, makePointer(pointerBase, Keywords.Properties, 'name'));
+      const pointerBase = addToNode.isArray
+        ? makePointer(addToNode.pointer, Keywords.Items)
+        : addToNode.pointer;
+      const newNodePointer = getUniqueNodePath(
+        state.uiSchema,
+        makePointer(pointerBase, Keywords.Properties, 'name')
+      );
       addToNode.children.push(newNodePointer);
       if (!keepSelection) {
         if (state.selectedEditorTab === 'definitions') {
@@ -194,7 +199,10 @@ const schemaEditorSlice = createSlice({
       uiSchemaNode.fieldType = type;
       state.uiSchema = renameNodePointer(state.uiSchema, oldPointer, newPointer);
     },
-    addCombinationItem(state, action: PayloadAction<{ pointer: string; props: Partial<UiSchemaNode> }>) {
+    addCombinationItem(
+      state,
+      action: PayloadAction<{ pointer: string; props: Partial<UiSchemaNode> }>
+    ) {
       const { pointer, props } = action.payload;
       const addToNode = getNodeByPointer(state.uiSchema, pointer);
       const item = Object.assign(
@@ -212,7 +220,10 @@ const schemaEditorSlice = createSlice({
       const { schema } = action.payload;
       state.schema = schema;
     },
-    setPropertyName(state, action: PayloadAction<{ path: string; name: string; navigate?: boolean }>) {
+    setPropertyName(
+      state,
+      action: PayloadAction<{ path: string; name: string; navigate?: boolean }>
+    ) {
       const { path, navigate, name } = action.payload;
       if (!name || name.length === 0) {
         return;
@@ -238,7 +249,10 @@ const schemaEditorSlice = createSlice({
     setSelectedId(state, action: PayloadAction<{ pointer: string; focusName?: string }>) {
       const { pointer, focusName } = action.payload;
       state.focusNameField = focusName;
-      const key = state.selectedEditorTab === 'definitions' ? 'selectedDefinitionNodeId' : 'selectedPropertyNodeId';
+      const key =
+        state.selectedEditorTab === 'definitions'
+          ? 'selectedDefinitionNodeId'
+          : 'selectedPropertyNodeId';
       Object.assign(state, {
         [key]: pointer,
       });

@@ -13,7 +13,8 @@ const icon = IconImage.Element;
 const onClick = jest.fn();
 const defaultProps: IconButtonProps = { icon, onClick };
 
-const renderIconButton = (props?: Partial<IconButtonProps>) => render(<IconButton {...defaultProps} {...props} />);
+const renderIconButton = (props?: Partial<IconButtonProps>) =>
+  render(<IconButton {...defaultProps} {...props} />);
 
 test('Button appears', () => {
   renderIconButton();

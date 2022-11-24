@@ -56,8 +56,12 @@ export const SchemaItemLabel = ({
   };
 
   const handleGoToType = wrapper(() => dispatch(navigateToType({ pointer: selectedNode.ref })));
-  const handleConvertToReference = wrapper(() => dispatch(promoteProperty({ path: selectedNode.pointer })));
-  const handleConvertToField = wrapper(() => dispatch(promoteProperty({ path: selectedNode.pointer })));
+  const handleConvertToReference = wrapper(() =>
+    dispatch(promoteProperty({ path: selectedNode.pointer }))
+  );
+  const handleConvertToField = wrapper(() =>
+    dispatch(promoteProperty({ path: selectedNode.pointer }))
+  );
   const handleCloseContextMenu = wrapper(() => undefined);
 
   const handleToggleContextMenuClick = (e: SyntheticEvent) => {
@@ -92,7 +96,12 @@ export const SchemaItemLabel = ({
   const isRef = refNode || pointerIsDefinition(selectedNode.pointer);
   const capabilties = getCapabilities(selectedNode);
   return (
-    <div className={classNames(classes.propertiesLabel, { [classes.isArray]: isArray, [classes.isRef]: isRef })}>
+    <div
+      className={classNames(classes.propertiesLabel, {
+        [classes.isArray]: isArray,
+        [classes.isRef]: isRef,
+      })}
+    >
       <div className={classes.label} title={selectedNode.pointer}>
         <span className={classes.iconContainer}>
           <i className={`fa ${icon}`} />

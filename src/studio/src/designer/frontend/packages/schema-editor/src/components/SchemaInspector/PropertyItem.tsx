@@ -42,7 +42,8 @@ export function PropertyItem({
   const dispatch = useDispatch();
 
   useEffect(() => setInputValue(value), [value]);
-  const changeValueHandler: ChangeEventHandler<HTMLInputElement> = (e) => setInputValue(e.target.value);
+  const changeValueHandler: ChangeEventHandler<HTMLInputElement> = (e) =>
+    setInputValue(e.target.value);
 
   const onBlur: FocusEventHandler<HTMLInputElement> = (e) => {
     if (inputValue !== value) {
@@ -60,7 +61,8 @@ export function PropertyItem({
       })
     );
 
-  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) => e?.key === 'Enter' && onEnterKeyPress && onEnterKeyPress();
+  const onKeyDown = (e: KeyboardEvent<HTMLInputElement>) =>
+    e?.key === 'Enter' && onEnterKeyPress && onEnterKeyPress();
 
   const t = (key: string) => getTranslation(key, language);
 
@@ -97,7 +99,11 @@ export function PropertyItem({
           onChange={changeRequiredHandler}
         />
       </span>
-      <IconButton ariaLabel={t('delete_field')} icon={IconImage.Wastebucket} onClick={deleteHandler} />
+      <IconButton
+        ariaLabel={t('delete_field')}
+        icon={IconImage.Wastebucket}
+        onClick={deleteHandler}
+      />
     </>
   );
 }

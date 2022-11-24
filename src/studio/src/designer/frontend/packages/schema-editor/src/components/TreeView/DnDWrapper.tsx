@@ -7,7 +7,13 @@ import { dragSourceSpec, dropTargetSpec } from './dnd-helpers';
 interface Props {
   onMove: (from: DragItem, to: DragItem) => void;
 }
-export const DndItem = ({ children, itemId, containerId, index, onMove }: Props & PropsWithChildren & DragItem) => {
+export const DndItem = ({
+  children,
+  itemId,
+  containerId,
+  index,
+  onMove,
+}: Props & PropsWithChildren & DragItem) => {
   const item = { itemId, index, containerId };
 
   const ref = useRef<HTMLDivElement>(null);

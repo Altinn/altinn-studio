@@ -4,7 +4,11 @@ import { ObjectKind } from '../types';
 import { getParentNodeByPointer, getReferredNodes, hasNodePointer } from '../selectors';
 import { splitPointerInBaseAndName } from '../utils';
 
-export const removeNodeByPointer = (uiNodeMap: UiSchemaNodes, pointer: string, justChildren?: boolean) => {
+export const removeNodeByPointer = (
+  uiNodeMap: UiSchemaNodes,
+  pointer: string,
+  justChildren?: boolean
+) => {
   let mutatedUiNodeMap: UiSchemaNodes = [...uiNodeMap];
 
   // Remove the child node pointer from the parent

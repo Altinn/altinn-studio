@@ -10,9 +10,17 @@ export interface EditBoilerplateProps {
   handleDescriptionChange: (e: any) => void;
   language: any;
 }
-const EditBoilerplate: React.FunctionComponent<EditBoilerplateProps> = (props: EditBoilerplateProps) => {
-  const { component, textResources, handleDataModelChange, handleTitleChange, handleDescriptionChange, language } =
-    props;
+const EditBoilerplate: React.FunctionComponent<EditBoilerplateProps> = (
+  props: EditBoilerplateProps
+) => {
+  const {
+    component,
+    textResources,
+    handleDataModelChange,
+    handleTitleChange,
+    handleDescriptionChange,
+    language,
+  } = props;
   return (
     <>
       {renderSelectDataModelBinding(component.dataModelBindings, handleDataModelChange, language)}

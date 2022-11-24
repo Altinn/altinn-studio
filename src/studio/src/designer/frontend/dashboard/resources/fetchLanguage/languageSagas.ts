@@ -3,11 +3,7 @@ import type { SagaIterator } from 'redux-saga';
 import { call, fork, put, takeLatest } from 'redux-saga/effects';
 import { get } from 'app-shared/utils/networking';
 import type { IFetchLanguageAction } from './languageSlice';
-import {
-  fetchLanguage,
-  fetchLanguageFulfilled,
-  fetchLanguageRejected,
-} from './languageSlice';
+import { fetchLanguage, fetchLanguageFulfilled, fetchLanguageRejected } from './languageSlice';
 
 export function* languageSaga({
   payload: { url },

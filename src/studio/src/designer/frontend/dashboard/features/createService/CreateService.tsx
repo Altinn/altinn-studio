@@ -5,10 +5,7 @@ import { ServiceOwnerSelector } from './ServiceOwnerSelector';
 import { RepoNameInput } from './RepoNameInput';
 import { validateRepoName } from '../../common/utils';
 import { useAppSelector } from '../../common/hooks';
-import {
-  DataModellingFormat,
-  useAddRepoMutation,
-} from '../../services/repoApi';
+import { DataModellingFormat, useAddRepoMutation } from '../../services/repoApi';
 import { applicationAboutPage } from '../../common/utils/urlUtils';
 import classes from './CreateService.module.css';
 import { Button, ButtonColor } from '@altinn/altinn-design-system';
@@ -129,10 +126,7 @@ export const CreateService = () => {
           <Button color={ButtonColor.Primary} onClick={handleCreateService}>
             {t('dashboard.create_service_btn')}
           </Button>
-          <Button
-            color={ButtonColor.Inverted}
-            onClick={() => window.history.back()}
-          >
+          <Button color={ButtonColor.Inverted} onClick={() => window.history.back()}>
             {t('general.cancel')}
           </Button>
         </div>

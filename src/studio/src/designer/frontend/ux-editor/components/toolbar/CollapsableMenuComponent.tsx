@@ -42,7 +42,9 @@ class ToolbarItem extends React.Component<ICollapsableMenuProps> {
       >
         <div className={this.props.classes.listItemIcon}>
           <AltinnIcon
-            iconClass={this.props.menuIsOpen ? 'fa fa-expand-alt fa-rotate-90' : 'fa fa-expand-alt '}
+            iconClass={
+              this.props.menuIsOpen ? 'fa fa-expand-alt fa-rotate-90' : 'fa fa-expand-alt '
+            }
             iconColor=''
           />
         </div>
@@ -84,10 +86,10 @@ const styles = () =>
     },
   });
 
-const mapStateToProps: (state: IAppState, props: ICollapsableMenuProvidedProps) => ICollapsableMenuProps = (
+const mapStateToProps: (
   state: IAppState,
   props: ICollapsableMenuProvidedProps
-) => ({
+) => ICollapsableMenuProps = (state: IAppState, props: ICollapsableMenuProvidedProps) => ({
   language: state.appData.languageState.language,
   onClick: props.onClick,
   classes: props.classes,
@@ -95,4 +97,6 @@ const mapStateToProps: (state: IAppState, props: ICollapsableMenuProvidedProps) 
   menuType: props.menuType,
 });
 
-export const CollapsableMenuComponent = withStyles(styles, { withTheme: true })(connect(mapStateToProps)(ToolbarItem));
+export const CollapsableMenuComponent = withStyles(styles, { withTheme: true })(
+  connect(mapStateToProps)(ToolbarItem)
+);

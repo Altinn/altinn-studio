@@ -11,7 +11,14 @@ import type {
   IFormRadioButtonComponent,
   ITextResource,
 } from '../../types/global';
-import { Button, ButtonColor, ButtonVariant, Checkbox, FieldSet, TextField } from '@altinn/altinn-design-system';
+import {
+  Button,
+  ButtonColor,
+  ButtonVariant,
+  Checkbox,
+  FieldSet,
+  TextField,
+} from '@altinn/altinn-design-system';
 import classes from './SelectionEditComponent.module.css';
 
 export interface ISelectionEditComponentProvidedProps {

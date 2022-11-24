@@ -38,11 +38,8 @@ export const App = () => {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.dashboard.user);
   const language = useAppSelector((state) => state.language.language);
-  const selectedContext = useAppSelector(
-    (state) => state.dashboard.selectedContext
-  );
-  const { data: orgs = [], isLoading: isLoadingOrganizations } =
-    useGetOrganizationsQuery();
+  const selectedContext = useAppSelector((state) => state.dashboard.selectedContext);
+  const { data: orgs = [], isLoading: isLoadingOrganizations } = useGetOrganizationsQuery();
 
   const setSelectedContext = (newSelectedContext: SelectedContext) =>
     dispatch(
@@ -51,10 +48,7 @@ export const App = () => {
       })
     );
 
-  if (
-    !isLoadingOrganizations &&
-    !userHasAccessToSelectedContext({ selectedContext, orgs })
-  ) {
+  if (!isLoadingOrganizations && !userHasAccessToSelectedContext({ selectedContext, orgs })) {
     setSelectedContext(SelectedContextType.Self);
   }
 
@@ -104,24 +98,17 @@ export const App = () => {
                   </>
                 }
               />
-              <Route
-                path='/datamodelling/:org/:repoName'
-                element={<DataModellingContainer />}
-              />
+              <Route path='/datamodelling/:org/:repoName' element={<DataModellingContainer />} />
               <Route path='/new' element={<CreateService />} />
             </Routes>
           </div>
         ) : (
           <CenterContainer>
-            <AltinnSpinner
-              spinnerText={getLanguageFromKey('dashboard.loading', language)}
-            />
+            <AltinnSpinner spinnerText={getLanguageFromKey('dashboard.loading', language)} />
             {showLogOutButton && (
               <Button
                 onClick={() =>
-                  post(userLogoutPath()).then(() =>
-                    window.location.assign(userLogoutAfterPath())
-                  )
+                  post(userLogoutPath()).then(() => window.location.assign(userLogoutAfterPath()))
                 }
               >
                 {getLanguageFromKey('dashboard.logout', language)}

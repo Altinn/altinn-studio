@@ -12,13 +12,17 @@ export enum StringRestrictionsReducerActionType {
 }
 
 interface SetInclAction {
-  type: StringRestrictionsReducerActionType.setMinIncl | StringRestrictionsReducerActionType.setMaxIncl;
+  type:
+    | StringRestrictionsReducerActionType.setMinIncl
+    | StringRestrictionsReducerActionType.setMaxIncl;
   value: boolean;
   changeCallback: ChangeCallback;
 }
 
 interface SetEarliestOrLatestAction {
-  type: StringRestrictionsReducerActionType.setEarliest | StringRestrictionsReducerActionType.setLatest;
+  type:
+    | StringRestrictionsReducerActionType.setEarliest
+    | StringRestrictionsReducerActionType.setLatest;
   value: string;
   changeCallback: ChangeCallback;
 }
@@ -30,7 +34,10 @@ interface SetRestrictionAction {
   changeCallback: ChangeCallback;
 }
 
-export type StringRestrictionsReducerAction = SetInclAction | SetEarliestOrLatestAction | SetRestrictionAction;
+export type StringRestrictionsReducerAction =
+  | SetInclAction
+  | SetEarliestOrLatestAction
+  | SetRestrictionAction;
 
 export type StringRestricionsReducerState = {
   earliestIsInclusive: boolean;
@@ -78,14 +85,18 @@ const setMaxIncl = (state: StringRestricionsReducerState, action: SetInclAction)
 
 const setEarliest = (state: StringRestricionsReducerState, action: SetEarliestOrLatestAction) => {
   const { value } = action;
-  const key = state.earliestIsInclusive ? StrRestrictionKeys.formatMinimum : StrRestrictionKeys.formatExclusiveMinimum;
+  const key = state.earliestIsInclusive
+    ? StrRestrictionKeys.formatMinimum
+    : StrRestrictionKeys.formatExclusiveMinimum;
   state.earliest = value;
   state.restrictions[key] = value;
 };
 
 const setLatest = (state: StringRestricionsReducerState, action: SetEarliestOrLatestAction) => {
   const { value } = action;
-  const key = state.latestIsInclusive ? StrRestrictionKeys.formatMaximum : StrRestrictionKeys.formatExclusiveMaximum;
+  const key = state.latestIsInclusive
+    ? StrRestrictionKeys.formatMaximum
+    : StrRestrictionKeys.formatExclusiveMaximum;
   state.latest = value;
   state.restrictions[key] = value;
 };

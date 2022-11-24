@@ -165,13 +165,17 @@ const makeMapStateToProps = () => {
     classes: props.classes,
     sendListToParent: props.sendListToParent,
     singleSelected: props.singleSelected,
-    component: state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.components[props.id],
+    component:
+      state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.components[
+        props.id
+      ],
     order: GetLayoutOrderSelector(state),
     dataModelElement: state.appData.dataModel.model.find(
       (element) =>
         element.dataBindingName ===
-        state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.components[props.id]
-          .dataModelBindings?.simpleBinding
+        state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.components[
+          props.id
+        ].dataModelBindings?.simpleBinding
     ),
     validationErrors: null,
     textResources: state.appData.textResources.resources,

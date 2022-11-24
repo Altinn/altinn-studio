@@ -24,19 +24,14 @@ const languageSlice = createSlice({
   name: moduleName,
   initialState,
   reducers: {
-    fetchLanguageFulfilled: (
-      state,
-      action: PayloadAction<IFetchLanguageFulfilled>
-    ) => {
+    fetchLanguageFulfilled: (state, action: PayloadAction<IFetchLanguageFulfilled>) => {
       const { language } = action.payload;
       state.language = language;
     },
   },
 });
 
-export const fetchLanguage = createAction<IFetchLanguageAction>(
-  `${moduleName}/fetchLanguage`
-);
+export const fetchLanguage = createAction<IFetchLanguageAction>(`${moduleName}/fetchLanguage`);
 export const fetchLanguageRejected = createAction<IFetchLanguageRejected>(
   `${moduleName}/fetchLanguageRejected`
 );

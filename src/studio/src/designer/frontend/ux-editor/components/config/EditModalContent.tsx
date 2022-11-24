@@ -45,10 +45,12 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
   const textResources = useSelector((state: IAppState) => state.appData.textResources.resources);
   const dataModel = useSelector((state: IAppState) => state.appData.dataModel.model);
   const components = useSelector(
-    (state: IAppState) => state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.components
+    (state: IAppState) =>
+      state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.components
   );
   const containers = useSelector(
-    (state: IAppState) => state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.containers
+    (state: IAppState) =>
+      state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.containers
   );
   const [error, setError] = useState<string | null>(null);
   const [tmpId, setTmpId] = useState<string>('');
@@ -88,7 +90,10 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
     handleComponentUpdate(updatedComponent);
   };
 
-  const handleUpdateOptionValue = (index: number, event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+  const handleUpdateOptionValue = (
+    index: number,
+    event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>
+  ) => {
     event.persist();
     const updatedComponent: IFormComponent = { ...component };
     updatedComponent.options[index].value = event.target?.value;
@@ -112,11 +117,13 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
 
   const getMinOccursFromDataModel = (dataBindingName: string): number => {
     const parentComponent = dataBindingName.replace('.value', '').replace(/\./, '/');
-    return dataModel.find((e: IDataModelFieldElement) => e.xPath === `/${parentComponent}`)?.minOccurs;
+    return dataModel.find((e: IDataModelFieldElement) => e.xPath === `/${parentComponent}`)
+      ?.minOccurs;
   };
 
   const getXsdDataTypeFromDataModel = (dataBindingName: string): string =>
-    dataModel.find((e: IDataModelFieldElement) => e.dataBindingName === dataBindingName)?.xsdValueType;
+    dataModel.find((e: IDataModelFieldElement) => e.dataBindingName === dataBindingName)
+      ?.xsdValueType;
 
   const handleValidFileEndingsChange = (event: any) =>
     handleComponentUpdate({ ...component, validFileEndings: event.target.value } as
@@ -130,14 +137,18 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
       | IFormRadioButtonComponent);
 
   const handleMaxFileSizeInMBChange = (event: any) => {
-    const componentCopy = { ...component } as IFormFileUploaderComponent | IFormFileUploaderWithTagComponent;
+    const componentCopy = { ...component } as
+      | IFormFileUploaderComponent
+      | IFormFileUploaderWithTagComponent;
     const value = parseInt(event.target.value, 10);
     componentCopy.maxFileSizeInMB = value >= 0 ? value : 0;
     handleComponentUpdate(componentCopy);
   };
 
   const handleNumberOfAttachmentsChange = (type: string) => (event: any) => {
-    const componentCopy = { ...component } as IFormFileUploaderComponent | IFormFileUploaderWithTagComponent;
+    const componentCopy = { ...component } as
+      | IFormFileUploaderComponent
+      | IFormFileUploaderWithTagComponent;
     const value = parseInt(event.target.value, 10);
     if (type === 'max') {
       componentCopy.maxNumberOfAttachments = value >= 1 ? value : 1;
@@ -179,7 +190,9 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
   };
 
   const handleHasCustomFileEndingsChange = (event: any) => {
-    const componentCopy = { ...component } as IFormFileUploaderComponent | IFormFileUploaderWithTagComponent;
+    const componentCopy = { ...component } as
+      | IFormFileUploaderComponent
+      | IFormFileUploaderWithTagComponent;
     componentCopy.hasCustomFileEndings = event.target.value === 'true';
     if (!componentCopy.hasCustomFileEndings) {
       componentCopy.validFileEndings = undefined;
@@ -210,7 +223,8 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
       required: getMinOccursFromDataModel(selectedDataModelElement) !== 0,
     };
     if (component.type === 'Datepicker') {
-      modifiedProperties.timeStamp = getXsdDataTypeFromDataModel(selectedDataModelElement) === 'DateTime';
+      modifiedProperties.timeStamp =
+        getXsdDataTypeFromDataModel(selectedDataModelElement) === 'DateTime';
     }
 
     handleComponentUpdate({
@@ -421,7 +435,9 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
         <FieldSet className={classes.fieldset}>
           {renderChangeId()}
           <div>
-            <p className={classes.inputHelper}>{t('ux_editor.modal_properties_button_type_helper')}</p>
+            <p className={classes.inputHelper}>
+              {t('ux_editor.modal_properties_button_type_helper')}
+            </p>
             <Select
               options={types}
               value={types.find((element) => element.value === component.type)}
@@ -487,8 +503,15 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
         <FieldSet className={classes.fieldset}>
           {renderChangeId()}
           <div>
-            <AltinnRadioGroup row={true} value={fileUploaderComponent.displayMode} onChange={handleDisplayModeChange}>
-              <AltinnRadio label={t('ux_editor.modal_properties_file_upload_simple')} value='simple' />
+            <AltinnRadioGroup
+              row={true}
+              value={fileUploaderComponent.displayMode}
+              onChange={handleDisplayModeChange}
+            >
+              <AltinnRadio
+                label={t('ux_editor.modal_properties_file_upload_simple')}
+                value='simple'
+              />
               <AltinnRadio label={t('ux_editor.modal_properties_file_upload_list')} value='list' />
             </AltinnRadioGroup>
           </div>
@@ -516,8 +539,14 @@ export const EditModalContent = ({ component, handleComponentUpdate }: IEditModa
               value={fileUploaderComponent.hasCustomFileEndings ? 'true' : 'false'}
               onChange={handleHasCustomFileEndingsChange}
             >
-              <AltinnRadio label={t('ux_editor.modal_properties_valid_file_endings_all')} value='false' />
-              <AltinnRadio label={t('ux_editor.modal_properties_valid_file_endings_custom')} value='true' />
+              <AltinnRadio
+                label={t('ux_editor.modal_properties_valid_file_endings_all')}
+                value='false'
+              />
+              <AltinnRadio
+                label={t('ux_editor.modal_properties_valid_file_endings_custom')}
+                value='true'
+              />
             </AltinnRadioGroup>
           </div>
 

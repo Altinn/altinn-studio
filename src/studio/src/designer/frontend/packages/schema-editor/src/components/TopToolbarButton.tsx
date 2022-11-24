@@ -32,7 +32,9 @@ export function TopToolbarButton({
     warning && 'warn',
     className,
   ]);
-  const icon = <i className={faIcon} style={{ ...(iconSize && { fontSize: iconSize }) }} aria-hidden />;
+  const icon = (
+    <i className={faIcon} style={{ ...(iconSize && { fontSize: iconSize }) }} aria-hidden />
+  );
   if (hideText) {
     return (
       <IconButton
@@ -47,7 +49,14 @@ export function TopToolbarButton({
     );
   }
   return (
-    <Button id={id} className={computedClasses} onClick={onClick} variant='text' disabled={disabled} startIcon={icon}>
+    <Button
+      id={id}
+      className={computedClasses}
+      onClick={onClick}
+      variant='text'
+      disabled={disabled}
+      startIcon={icon}
+    >
       {children}
     </Button>
   );

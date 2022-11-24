@@ -12,12 +12,8 @@ export function* fetchServicesSaga({
 }: PayloadAction<IFetchDashboardInfoAction>): SagaIterator {
   try {
     const services: IRepository[] = yield call(get, url);
-    const filteredServices = services.filter(
-      (service) => service.name !== 'datamodels'
-    );
-    yield put(
-      DashboardActions.fetchServicesFulfilled({ info: filteredServices })
-    );
+    const filteredServices = services.filter((service) => service.name !== 'datamodels');
+    yield put(DashboardActions.fetchServicesFulfilled({ info: filteredServices }));
   } catch (error) {
     yield put(DashboardActions.fetchServicesFulfilled);
   }

@@ -13,7 +13,12 @@ export interface IconButtonProps {
 }
 
 export const IconButton = ({ ariaLabel, className, icon, id, onClick }: IconButtonProps) => (
-  <button aria-label={ariaLabel} className={cn(classes.iconButton, className)} id={id} onClick={onClick}>
+  <button
+    aria-label={ariaLabel}
+    className={cn(classes.iconButton, className)}
+    id={id}
+    onClick={onClick}
+  >
     <Icon image={icon} className={classes.icon} />
   </button>
 );

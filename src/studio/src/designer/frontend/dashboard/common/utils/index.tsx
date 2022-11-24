@@ -15,10 +15,7 @@ export const userHasAccessToSelectedContext = ({
   selectedContext: SelectedContext;
   orgs: Organizations;
 }) => {
-  if (
-    selectedContext == SelectedContextType.Self ||
-    selectedContext == SelectedContextType.All
-  ) {
+  if (selectedContext == SelectedContextType.Self || selectedContext == SelectedContextType.All) {
     return true;
   }
 

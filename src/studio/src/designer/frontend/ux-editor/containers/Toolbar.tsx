@@ -32,19 +32,22 @@ export enum CollapsableMenus {
 
 export function Toolbar() {
   const dispatch = useDispatch();
-  const [componentInformationPanelOpen, setComponentInformationPanelOpen] = useState<boolean>(false);
+  const [componentInformationPanelOpen, setComponentInformationPanelOpen] =
+    useState<boolean>(false);
   const [componentSelectedForInformationPanel, setComponentSelectedForInformationPanel] =
     useState<ComponentTypes>(null);
   const [anchorElement, setAnchorElement] = useState<any>(null);
   const [componentListOpen, setComponentListOpen] = useState<boolean>(true);
-  const [componentListCloseAnimationDone, setComponentListCloseAnimationDone] = useState<boolean>(false);
+  const [componentListCloseAnimationDone, setComponentListCloseAnimationDone] =
+    useState<boolean>(false);
   const [textListOpen, setTextListOpen] = useState<boolean>(false);
   const [textListCloseAnimationDone, setTextListCloseAnimationDone] = useState<boolean>(false);
   const [advancedComponentListOpen, setAdvancedComponentListOpen] = useState<boolean>(false);
   const [advancedComponentListCloseAnimationDone, setAdvancedComponentListCloseAnimationDone] =
     useState<boolean>(false);
   const [widgetComponentListOpen, setWidgetComponentListOpen] = useState<boolean>(false);
-  const [widgetComponentListCloseAnimationDone, setWidgetComponentListCloseAnimationDone] = useState<boolean>(false);
+  const [widgetComponentListCloseAnimationDone, setWidgetComponentListCloseAnimationDone] =
+    useState<boolean>(false);
 
   const activeList: any[] = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
   const language: any = useSelector((state: IAppState) => state.appData.languageState.language);

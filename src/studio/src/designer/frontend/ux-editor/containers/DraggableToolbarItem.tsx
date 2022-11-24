@@ -13,7 +13,10 @@ export interface IDraggableProps {
   children?: React.ReactNode;
 }
 
-const draggableToolbarItemSpec = (item: EditorDndItem, notDraggable: boolean): DragSourceHookSpec<any, any, any> => ({
+const draggableToolbarItemSpec = (
+  item: EditorDndItem,
+  notDraggable: boolean
+): DragSourceHookSpec<any, any, any> => ({
   item,
   type: item.type,
   canDrag: () => !notDraggable,

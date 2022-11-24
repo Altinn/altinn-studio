@@ -38,16 +38,25 @@ const anotherNode = createNodeBase(Keywords.Properties, 'can be toggled');
 anotherNode.objectKind = ObjectKind.Field;
 anotherNode.fieldType = FieldType.String;
 uiSchemaNodes.push(anotherNode);
-const renderItemDataComponent = (props?: Partial<IItemDataComponentProps>, selectedItemIndex?: number) => {
+const renderItemDataComponent = (
+  props?: Partial<IItemDataComponentProps>,
+  selectedItemIndex?: number
+) => {
   return renderWithRedux(
-    <ItemDataComponent language={mockLanguage} selectedItem={uiSchemaNodes[selectedItemIndex ?? 0]} {...props} />,
+    <ItemDataComponent
+      language={mockLanguage}
+      selectedItem={uiSchemaNodes[selectedItemIndex ?? 0]}
+      {...props}
+    />,
     { uiSchema: uiSchemaNodes }
   );
 };
 
 test('"Multiple answers" checkbox should appear if selected item is field', () => {
   const { renderResult } = renderItemDataComponent({}, 1);
-  expect(renderResult.container.querySelector('input[name="checkedMultipleAnswers"]')).toBeDefined();
+  expect(
+    renderResult.container.querySelector('input[name="checkedMultipleAnswers"]')
+  ).toBeDefined();
 });
 
 test('"Multiple answers" checkbox should not appear if selected item is combination', () => {
@@ -60,7 +69,9 @@ test('setType is called when "multiple answers" checkbox is checked', async () =
   const checkbox = renderResult.container.querySelector('input[name="checkedMultipleAnswers"]');
   if (checkbox === null) fail();
   await user.click(checkbox);
-  expect(store.getActions().some(({ type }) => type === 'schemaEditor/toggleArrayField')).toBeTruthy();
+  expect(
+    store.getActions().some(({ type }) => type === 'schemaEditor/toggleArrayField')
+  ).toBeTruthy();
 });
 
 test('"Nullable" checkbox should appear if selected item is combination', () => {
@@ -78,7 +89,9 @@ test('addCombinationItem is called when "nullable" checkbox is checked', async (
   const checkbox = renderResult.container.querySelector('input[name="checkedNullable"]');
   if (checkbox === null) fail();
   await user.click(checkbox);
-  expect(store.getActions().some(({ type }) => type === 'schemaEditor/addCombinationItem')).toBeTruthy();
+  expect(
+    store.getActions().some(({ type }) => type === 'schemaEditor/addCombinationItem')
+  ).toBeTruthy();
 });
 
 test('"Title" field appears', () => {
@@ -106,7 +119,9 @@ test('setDescription action is called with correct payload when the "description
   const textArea = screen.getByLabelText(mockLanguage['schema_editor.description']);
   await user.type(textArea, 'Lorem ipsum dolor sit amet.');
   await user.tab();
-  const setDescriptionActions = store.getActions().filter(({ type }) => type === 'schemaEditor/setDescription');
+  const setDescriptionActions = store
+    .getActions()
+    .filter(({ type }) => type === 'schemaEditor/setDescription');
   expect(setDescriptionActions).toHaveLength(1);
   expect(setDescriptionActions[0].payload.description).toEqual('Lorem ipsum dolor sit amet.');
 });

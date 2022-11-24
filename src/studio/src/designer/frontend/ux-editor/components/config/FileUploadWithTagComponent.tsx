@@ -78,7 +78,11 @@ export const FileUploadWithTagComponent = ({
         />
       </div>
       <p>
-        <a target='_blank' rel='noopener noreferrer' href='https://docs.altinn.studio/app/development/data/options/'>
+        <a
+          target='_blank'
+          rel='noopener noreferrer'
+          href='https://docs.altinn.studio/app/development/data/options/'
+        >
           {t('ux_editor.modal_properties_code_list_read_more')}
         </a>
       </p>
@@ -89,11 +93,17 @@ export const FileUploadWithTagComponent = ({
           onChange={handleHasCustomFileEndingsChange}
         >
           <AltinnRadio
-            label={getLanguageFromKey('ux_editor.modal_properties_valid_file_endings_all', language)}
+            label={getLanguageFromKey(
+              'ux_editor.modal_properties_valid_file_endings_all',
+              language
+            )}
             value='false'
           />
           <AltinnRadio
-            label={getLanguageFromKey('ux_editor.modal_properties_valid_file_endings_custom', language)}
+            label={getLanguageFromKey(
+              'ux_editor.modal_properties_valid_file_endings_custom',
+              language
+            )}
             value='true'
           />
         </AltinnRadioGroup>
