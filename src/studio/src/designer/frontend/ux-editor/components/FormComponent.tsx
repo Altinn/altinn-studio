@@ -62,14 +62,12 @@ const FormComponent = (props: IFormElementProps) => {
   const handleClick = useCallback(
     (e: any) => {
       const serviceLogicMenu = document.getElementById('serviceLogicMenu');
-      if (serviceLogicMenu) {
-        if (!serviceLogicMenu.contains(e.target)) {
-          const key: any = Object.keys(props.order)[0];
-          const order = props.order[key].indexOf(props.id);
+      if (serviceLogicMenu && !serviceLogicMenu.contains(e.target)) {
+        const key: any = Object.keys(props.order)[0];
+        const order = props.order[key].indexOf(props.id);
 
-          if (wrapperRef && !wrapperRef.contains(e.target) && order === 0) {
-            handleActiveListChange({});
-          }
+        if (wrapperRef && !wrapperRef.contains(e.target) && order === 0) {
+          handleActiveListChange({});
         }
       }
     },

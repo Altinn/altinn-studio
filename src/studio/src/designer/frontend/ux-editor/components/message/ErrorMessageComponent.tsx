@@ -20,13 +20,13 @@ export function ErrorMessageComponent() {
         ? null
         : errors.map((error: IErrorStateError, index: number) => (
             // eslint-disable-next-line jsx-a11y/no-static-element-interactions
-            <div
+            <button
               key={error.errorMessage}
               onClick={removeClickedError.bind(null, index)}
-              className='error-snackbar-items'
+              className='divider error-snackbar-items'
             >
               <p>{error.errorMessage}</p>
-            </div>
+            </button>
           ))}
     </div>
   );

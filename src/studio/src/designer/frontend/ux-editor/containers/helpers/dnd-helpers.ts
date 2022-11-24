@@ -35,11 +35,7 @@ export const hoverIndexHelper = (
   }
 
   // Dragging upwards
-  if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
-    return false;
-  }
-
-  return true;
+  return !(dragIndex > hoverIndex && hoverClientY > hoverMiddleY);
 };
 
 export const dragSourceSpec = (
@@ -128,8 +124,5 @@ export const hoverShouldBeIgnored = (monitor: DropTargetMonitor, draggedItem?: E
   if (!monitor.isOver({ shallow: true })) {
     return true;
   }
-  if (!draggedItem.containerId && draggedItem.type !== ItemType.ToolbarItem) {
-    return true;
-  }
-  return false;
+  return !draggedItem.containerId && draggedItem.type !== ItemType.ToolbarItem;
 };

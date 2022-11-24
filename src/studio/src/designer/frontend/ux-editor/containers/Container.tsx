@@ -255,7 +255,6 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
   };
 
   public handleTableHeadersChange = (ids: string[]) => {
-    console.log(ids);
     this.setState((prevState: IContainerState) => {
       const updatedContainer = prevState.tmpContainer;
       updatedContainer.tableHeaders = [...ids];
