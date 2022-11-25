@@ -6,15 +6,7 @@ export function getLanguageFromKey(key: string, language: any) {
   if (!key) {
     return key;
   }
-  const name = getNestedObject(language, key.split('.'));
-  return name || key;
-}
-
-export function getNestedObject(nestedObj: any, pathArr: string[]) {
-  return pathArr.reduce(
-    (obj, key) => (obj && obj[key] !== 'undefined' ? obj[key] : undefined),
-    nestedObj,
-  );
+  return language[key] || key;
 }
 
 // Example: {getParsedLanguageFromKey('marked.markdown', language, ['hei', 'sann'])}
@@ -22,7 +14,7 @@ export const getParsedLanguageFromKey = (
   key: string,
   language: any,
   params?: any[],
-  stringOutput?: boolean,
+  stringOutput?: boolean
 ) => {
   const name = getLanguageFromKey(key, language);
   const paramParsed = params ? replaceParameters(name, params) : name;

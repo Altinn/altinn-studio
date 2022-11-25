@@ -1,19 +1,18 @@
 import React, { useEffect } from 'react';
 import { Grid, Typography } from '@mui/material';
 import AltinnContentLoader from 'app-shared/components/molecules/AltinnContentLoader';
-import { AltinnInformationCardForChildren } from 'app-shared/components/molecules/AltinnInformationCardForChildren';
 import { getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { ConfigurationActions } from '../../../sharedResources/configuration/configurationSlice';
 import DeployContainerComponent from '../containers/deployContainer';
 import ReleaseContainer from '../containers/releaseContainer';
 import { fetchDeployPermissions } from '../../../sharedResources/user/userSlice';
-import { useAppDispatch, useAppSelector } from 'common/hooks';
-import type { IAltinnWindow } from '../../../types/global';
+import { useParams } from 'react-router-dom';
+import { InfoCard } from './InfoCard';
+import { useAppDispatch, useAppSelector } from '../../../common/hooks';
 
 function DeployPage() {
-  const { org } = window as Window as IAltinnWindow;
+  const { org } = useParams();
   const dispatch = useAppDispatch();
-
   const orgs: any = useAppSelector((state) => state.configuration.orgs);
   const language: any = useAppSelector((state) => state.languageState.language);
 
@@ -52,13 +51,8 @@ function DeployPage() {
       <Grid item={true} sx={{ height: 'calc(100% - 111px)' }}>
         <Grid container={true} direction='row' justifyContent='space-between'>
           <Grid item={true} xs={12}>
-            <AltinnInformationCardForChildren
-              headerText={getParsedLanguageFromKey(
-                'app_publish.no_env_title',
-                language,
-                [],
-              )}
-              imageSource='../../designer/img/illustration-help-2-circle.svg'
+            <InfoCard
+              headerText={getParsedLanguageFromKey('app_publish.no_env_title', language, [])}
               shadow={true}
             >
               <Typography>
@@ -67,7 +61,7 @@ function DeployPage() {
               <Typography sx={{ paddingTop: '2.4rem' }}>
                 {getParsedLanguageFromKey('app_publish.no_env_2', language, [])}
               </Typography>
-            </AltinnInformationCardForChildren>
+            </InfoCard>
           </Grid>
         </Grid>
       </Grid>

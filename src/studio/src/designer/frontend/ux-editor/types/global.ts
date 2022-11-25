@@ -1,8 +1,8 @@
-import { IWidgetState } from '../features/widgets/widgetsSlice';
-import { IAppDataState } from '../features/appData/appDataReducers';
-import { IErrorState } from '../features/error/errorSlice';
-import { IFormDesignerState } from '../features/formDesigner/formDesignerReducer';
-import { IServiceConfigurationState } from '../features/serviceConfigurations/serviceConfigurationTypes';
+import type { IWidgetState } from '../features/widgets/widgetsSlice';
+import type { IAppDataState } from '../features/appData/appDataReducers';
+import type { IErrorState } from '../features/error/errorSlice';
+import type { IFormDesignerState } from '../features/formDesigner/formDesignerReducer';
+import type { IServiceConfigurationState } from '../features/serviceConfigurations/serviceConfigurationTypes';
 
 export interface IFormDesignerNameSpace<T1, T2, T3, T4, T5> {
   formDesigner: T1;
@@ -246,13 +246,6 @@ export interface ICodeListListElement {
   codeListName: string;
   org: string;
   id: number;
-}
-
-export interface IAltinnWindow extends Window {
-  org: string;
-  app: string;
-  instanceId: string;
-  reportee: string;
 }
 
 export interface IRuleModelFieldElement {

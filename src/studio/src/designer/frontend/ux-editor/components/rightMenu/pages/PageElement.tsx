@@ -1,17 +1,8 @@
 import React from 'react';
-import {
-  Button,
-  Divider,
-  Grid,
-  IconButton,
-  TextField,
-  TextFieldProps,
-} from '@mui/material';
+import type { TextFieldProps } from '@mui/material';
+import { Button, Divider, Grid, IconButton, TextField } from '@mui/material';
 import { makeStyles } from '@mui/styles';
-import {
-  getLanguageFromKey,
-  getParsedLanguageFromKey,
-} from 'app-shared/utils/language';
+import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { useDispatch, useSelector } from 'react-redux';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components/';
 import ConfirmModal from '../ConfirmModal';
@@ -59,38 +50,24 @@ export default function PageElement({ name }: IPageElementProps) {
   const classes = useStyles();
   const dispatch = useDispatch();
 
-  const language = useSelector(
-    (state: IAppState) => state.appData.languageState.language,
-  );
-  const selectedLayout = useSelector(
-    (state: IAppState) => state.formDesigner.layout.selectedLayout,
-  );
-  const layoutOrder = useSelector(
-    (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order,
-  );
+  const language = useSelector((state: IAppState) => state.appData.languageState.language);
+  const selectedLayout = useSelector((state: IAppState) => state.formDesigner.layout.selectedLayout);
+  const layoutOrder = useSelector((state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order);
   const [editMode, setEditMode] = React.useState<boolean>(false);
   const [errorMessage, setErrorMessage] = React.useState<string>('');
   const [newName, setNewName] = React.useState<string>('');
-  const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(
-    null,
-  );
-  const [deleteAnchorEl, setDeleteAnchorEl] = React.useState<null | Element>(
-    null,
-  );
+  const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [deleteAnchorEl, setDeleteAnchorEl] = React.useState<null | Element>(null);
   const disableUp = layoutOrder.indexOf(name) === 0;
   const disableDown = layoutOrder.indexOf(name) === layoutOrder.length - 1;
 
   const onPageClick = () => {
     if (selectedLayout !== name) {
-      dispatch(
-        FormLayoutActions.updateSelectedLayout({ selectedLayout: name }),
-      );
+      dispatch(FormLayoutActions.updateSelectedLayout({ selectedLayout: name }));
     }
   };
 
-  const onPageSettingsClick = (
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-  ) => {
+  const onPageSettingsClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     event.stopPropagation();
     setMenuAnchorEl(event.currentTarget);
   };
@@ -100,10 +77,7 @@ export default function PageElement({ name }: IPageElementProps) {
     setMenuAnchorEl(null);
   };
 
-  const onMenuItemClick = (
-    event: React.SyntheticEvent,
-    action: 'up' | 'down' | 'edit' | 'delete',
-  ) => {
+  const onMenuItemClick = (event: React.SyntheticEvent, action: 'up' | 'down' | 'edit' | 'delete') => {
     event.stopPropagation();
     if (action === 'delete') {
       setDeleteAnchorEl(event.currentTarget);
@@ -115,7 +89,7 @@ export default function PageElement({ name }: IPageElementProps) {
         FormLayoutActions.updateLayoutOrder({
           layout: name,
           direction: action,
-        }),
+        })
       );
     }
     setMenuAnchorEl(null);
@@ -130,35 +104,20 @@ export default function PageElement({ name }: IPageElementProps) {
   };
 
   const pageNameExists = (candidateName: string): boolean => {
-    return layoutOrder.some(
-      (pageName: string) =>
-        pageName.toLowerCase() === candidateName.toLowerCase(),
-    );
+    return layoutOrder.some((pageName: string) => pageName.toLowerCase() === candidateName.toLowerCase());
   };
 
-  const handleOnChange = (
-    event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
-  ) => {
+  const handleOnChange = (event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     const nameRegex = new RegExp('^[a-zA-Z0-9_\\-\\.]*$');
-    const newNameCandidate = event.target.value
-      .replace(/[/\\?%*:|"<>]/g, '-')
-      .trim();
+    const newNameCandidate = event.target.value.replace(/[/\\?%*:|"<>]/g, '-').trim();
     if (pageNameExists(newNameCandidate)) {
-      setErrorMessage(
-        getLanguageFromKey('right_menu.pages_error_unique', language),
-      );
+      setErrorMessage(getLanguageFromKey('right_menu.pages_error_unique', language));
     } else if (!newNameCandidate) {
-      setErrorMessage(
-        getLanguageFromKey('right_menu.pages_error_empty', language),
-      );
+      setErrorMessage(getLanguageFromKey('right_menu.pages_error_empty', language));
     } else if (newNameCandidate.length >= 30) {
-      setErrorMessage(
-        getLanguageFromKey('right_menu.pages_error_length', language),
-      );
+      setErrorMessage(getLanguageFromKey('right_menu.pages_error_length', language));
     } else if (!newNameCandidate.match(nameRegex)) {
-      setErrorMessage(
-        getLanguageFromKey('right_menu.pages_error_format', language),
-      );
+      setErrorMessage(getLanguageFromKey('right_menu.pages_error_format', language));
     } else {
       setErrorMessage('');
       setNewName(newNameCandidate);
@@ -167,15 +126,10 @@ export default function PageElement({ name }: IPageElementProps) {
 
   const handleKeyPress = (event: any) => {
     event.stopPropagation();
-    if (event.key === 'Enter') {
-      if (!errorMessage && name !== newName) {
-        dispatch(
-          FormLayoutActions.updateLayoutName({ oldName: name, newName }),
-        );
-        setEditMode(false);
-      }
-    }
-    if (event.key === 'Escape') {
+    if (event.key === 'Enter' && !errorMessage && name !== newName) {
+      dispatch(FormLayoutActions.updateLayoutName({ oldName: name, newName }));
+      setEditMode(false);
+    } else if (event.key === 'Escape') {
       setEditMode(false);
       setNewName('');
     }
@@ -195,11 +149,7 @@ export default function PageElement({ name }: IPageElementProps) {
   return (
     <div className={classes.buttonWrapper}>
       <div className={classes.grid}>
-        <Button
-          onClick={onPageClick}
-          className={classes.mainButton}
-          sx={{ fontSize: '1.4rem' }}
-        >
+        <Button onClick={onPageClick} className={classes.mainButton} sx={{ fontSize: '1.4rem' }}>
           <Grid item={true} xs={1}>
             {selectedLayout === name && (
               <i
@@ -212,11 +162,7 @@ export default function PageElement({ name }: IPageElementProps) {
               />
             )}
           </Grid>
-          <Grid
-            item={true}
-            xs={9}
-            style={{ textAlign: 'left', paddingLeft: '1.2rem' }}
-          >
+          <Grid item={true} xs={9} style={{ textAlign: 'left', paddingLeft: '1.2rem' }}>
             {!editMode && name}
             {editMode && (
               <InlineTextField
@@ -241,11 +187,7 @@ export default function PageElement({ name }: IPageElementProps) {
         </IconButton>
       </div>
 
-      <AltinnMenu
-        anchorEl={menuAnchorEl}
-        open={Boolean(menuAnchorEl)}
-        onClose={onMenuClose}
-      >
+      <AltinnMenu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={onMenuClose}>
         <AltinnMenuItem
           onClick={(event) => onMenuItemClick(event, 'up')}
           disabled={disableUp}
@@ -278,19 +220,9 @@ export default function PageElement({ name }: IPageElementProps) {
         anchorEl={deleteAnchorEl}
         open={Boolean(deleteAnchorEl)}
         header={getLanguageFromKey('right_menu.page_delete_header', language)}
-        description={getParsedLanguageFromKey(
-          'right_menu.page_delete_information',
-          language,
-          [name],
-        )}
-        confirmText={getLanguageFromKey(
-          'right_menu.page_delete_confirm',
-          language,
-        )}
-        cancelText={getLanguageFromKey(
-          'right_menu.page_delete_cancel',
-          language,
-        )}
+        description={getParsedLanguageFromKey('right_menu.page_delete_information', language, [name])}
+        confirmText={getLanguageFromKey('right_menu.page_delete_confirm', language)}
+        cancelText={getLanguageFromKey('right_menu.page_delete_cancel', language)}
         onClose={handleConfirmDeleteClose}
         onCancel={handleConfirmDeleteClose}
         onConfirm={handleConfirmDelete}

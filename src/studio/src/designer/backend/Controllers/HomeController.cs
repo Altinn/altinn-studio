@@ -69,7 +69,7 @@ namespace Altinn.Studio.Designer.Controllers
                 return View("StartPage");
             }
 
-            return this.RedirectToAction("Index", "Home");
+            return LocalRedirect("/dashboard");
         }
 
         /// <summary>

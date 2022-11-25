@@ -21,7 +21,10 @@ const nodePointers: { uiSchemaNodes: UiSchemaNodes; cache: Map<string, UiSchemaN
 };
 
 const getNodePointerCache = (uiSchemaNodes: UiSchemaNodes): Map<string, UiSchemaNode> => {
-  if (nodePointers.uiSchemaNodes !== uiSchemaNodes || nodePointers.cache.size !== uiSchemaNodes.length) {
+  if (
+    nodePointers.uiSchemaNodes !== uiSchemaNodes ||
+    nodePointers.cache.size !== uiSchemaNodes.length
+  ) {
     nodePointers.uiSchemaNodes = uiSchemaNodes;
     nodePointers.cache = new Map();
     uiSchemaNodes.forEach((node) => nodePointers.cache.set(node.pointer, node));
@@ -37,7 +40,7 @@ export const getNodeByPointer = (uiSchemaNodes: UiSchemaNodes, pointer: string):
   if (uiSchemaNode) {
     return uiSchemaNode;
   } else {
-    throw new Error("Can't find node with pointer " + pointer);
+    throw new Error(`Can't find node with pointer ${pointer}`);
   }
 };
 
@@ -47,17 +50,26 @@ export const getNodeByPointer = (uiSchemaNodes: UiSchemaNodes, pointer: string):
  * @param uiSchemaNodes
  * @param pointer
  */
-export const getNodeIndexByPointer = (uiSchemaNodes: UiSchemaNodes, pointer: string): number | undefined => {
+export const getNodeIndexByPointer = (
+  uiSchemaNodes: UiSchemaNodes,
+  pointer: string
+): number | undefined => {
   const index = uiSchemaNodes.findIndex((node) => node.pointer === pointer);
   return index > -1 ? index : undefined;
 };
 
-export const getChildNodesByPointer = (uiSchemaNodes: UiSchemaNodes, pointer: string): UiSchemaNode[] => {
+export const getChildNodesByPointer = (
+  uiSchemaNodes: UiSchemaNodes,
+  pointer: string
+): UiSchemaNode[] => {
   const parentNode = getNodeByPointer(uiSchemaNodes, pointer);
   return parentNode.children.map((childPointer) => getNodeByPointer(uiSchemaNodes, childPointer));
 };
 
-export const getParentNodeByPointer = (uiSchemaNodes: UiSchemaNodes, pointer: string): UiSchemaNode | undefined => {
+export const getParentNodeByPointer = (
+  uiSchemaNodes: UiSchemaNodes,
+  pointer: string
+): UiSchemaNode | undefined => {
   const pointerParts = pointer.split('/');
   while (pointerParts.length) {
     pointerParts.pop();
@@ -80,7 +92,9 @@ export const getReferredNodes = (uiSchemaNodes: UiSchemaNodes, ref: string) => {
     referredNodes.cache = new Map();
     uiSchemaNodes
       .filter((node) => typeof node.ref === 'string')
-      .forEach((node) => referredNodes.cache.set(node.ref ?? '_', [...(referredNodes.cache.get(ref) ?? []), node]));
+      .forEach((node) =>
+        referredNodes.cache.set(node.ref ?? '_', [...(referredNodes.cache.get(ref) ?? []), node])
+      );
   }
   return referredNodes.cache.get(ref) ?? [];
 };

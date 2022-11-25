@@ -1,25 +1,28 @@
 import React from 'react';
-import { createTheme, Grid } from '@mui/material';
-import { createStyles, withStyles, WithStyles } from '@mui/styles';
 import axios from 'axios';
 import { get, post } from '../utils/networking';
-import altinnTheme from '../theme/altinnStudioTheme';
-import type {
-  IAltinnWindow,
-  IContentStatus,
-  IGitStatus,
-} from '../types/global';
+import type { IContentStatus, IGitStatus } from '../types/global';
 import { getLanguageFromKey } from '../utils/language';
 import postMessages from '../utils/postMessages';
-import FetchChangesComponent from './fetchChanges';
-import ShareChangesComponent from './shareChanges';
-import CloneButton from './cloneButton';
-import CloneModal from './cloneModal';
-import SyncModalComponent from './syncModal';
+import { FetchChangesComponent } from './fetchChanges';
+import { ShareChangesComponent } from './shareChanges';
+import { CloneButton } from './cloneButton';
+import { CloneModal } from './cloneModal';
+import { SyncModalComponent } from './syncModal';
+import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
+import {
+  repoCommitPath,
+  repoMetaPath,
+  repoPullPath,
+  repoPushPath,
+  repoStatusPath,
+} from '../api-paths';
+import classes from './versionControlHeader.module.css';
 
-export interface IVersionControlHeaderProps extends WithStyles<typeof styles> {
+export interface IVersionControlHeaderProps {
   language: any;
   type?: 'fetchButton' | 'shareButton' | 'header';
+  hasPushRight?: boolean;
 }
 
 export interface IVersionControlHeaderState {
@@ -33,15 +36,6 @@ export interface IVersionControlHeaderState {
   cloneModalAnchor: any;
 }
 
-const theme = createTheme(altinnTheme);
-
-const styles = createStyles({
-  headerStyling: {
-    background: theme.altinnPalette.primary.greyLight,
-    paddingTop: 10,
-  },
-});
-
 const initialModalState = {
   header: '',
   descriptionText: [] as string[],
@@ -54,14 +48,11 @@ const initialModalState = {
 
 function hasLocalChanges(result: IGitStatus) {
   return (
-    result &&
-    result.contentStatus.some(
-      (file: IContentStatus) => file.fileStatus !== 'Ignored',
-    )
+    result && result.contentStatus.some((file: IContentStatus) => file.fileStatus !== 'Ignored')
   );
 }
 
-class VersionControlHeader extends React.Component<
+export class VersionControlContainer extends React.Component<
   IVersionControlHeaderProps,
   IVersionControlHeaderState
 > {
@@ -76,7 +67,7 @@ class VersionControlHeader extends React.Component<
     this.state = {
       changesInMaster: false,
       changesInLocalRepo: false,
-      hasPushRight: null,
+      hasPushRight: _props.hasPushRight,
       anchorEl: null,
       mergeConflict: false,
       modalState: initialModalState,
@@ -85,9 +76,11 @@ class VersionControlHeader extends React.Component<
     };
   }
 
-  public componentDidMount() {
+  public async componentDidMount() {
     this.componentIsMounted = true;
-    this.getRepoPermissions();
+    if (this.state.hasPushRight === undefined) {
+      await this.getRepoPermissions();
+    }
   }
 
   public componentWillUnmount() {
@@ -95,11 +88,11 @@ class VersionControlHeader extends React.Component<
   }
 
   public getRepoPermissions = async () => {
-    const { org, app } = window as Window as IAltinnWindow;
-    const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}`;
-
+    const { org, app } = _useParamsClassCompHack();
     try {
-      const currentRepo = await get(url, { cancelToken: this.source.token });
+      const currentRepo = await get(repoMetaPath(org, app), {
+        cancelToken: this.source.token,
+      });
       this.setState({
         hasPushRight: currentRepo.permissions.push,
       });
@@ -116,9 +109,8 @@ class VersionControlHeader extends React.Component<
   };
 
   public getStatus(callbackFunc?: any) {
-    const { org, app } = window as Window as IAltinnWindow;
-    const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/status`;
-    get(url)
+    const { org, app } = _useParamsClassCompHack();
+    get(repoStatusPath(org, app))
       .then((result: IGitStatus) => {
         if (this.componentIsMounted) {
           this.setState({
@@ -138,10 +130,7 @@ class VersionControlHeader extends React.Component<
         if (this.state.modalState.isLoading) {
           this.setState((prevState) => ({
             modalState: {
-              header: getLanguageFromKey(
-                'sync_header.repo_is_offline',
-                this.props.language,
-              ),
+              header: getLanguageFromKey('sync_header.repo_is_offline', this.props.language),
               isLoading: !prevState.modalState.isLoading,
             },
           }));
@@ -161,18 +150,13 @@ class VersionControlHeader extends React.Component<
     this.setState({
       anchorEl: currentTarget,
       modalState: {
-        header: getLanguageFromKey(
-          'sync_header.fetching_latest_version',
-          this.props.language,
-        ),
+        header: getLanguageFromKey('sync_header.fetching_latest_version', this.props.language),
         isLoading: true,
       },
     });
 
-    const { org, app } = window as Window as IAltinnWindow;
-    const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/pull`;
-
-    get(url)
+    const { org, app } = _useParamsClassCompHack();
+    get(repoPullPath(org, app))
       .then((result: any) => {
         if (this.componentIsMounted) {
           if (result.repositoryStatus === 'Ok') {
@@ -183,7 +167,7 @@ class VersionControlHeader extends React.Component<
               modalState: {
                 header: getLanguageFromKey(
                   'sync_header.service_updated_to_latest',
-                  this.props.language,
+                  this.props.language
                 ),
                 isLoading: false,
                 shouldShowDoneIcon: true,
@@ -198,22 +182,19 @@ class VersionControlHeader extends React.Component<
               modalState: {
                 header: getLanguageFromKey(
                   'sync_header.changes_made_samme_place_as_user',
-                  this.props.language,
+                  this.props.language
                 ),
                 descriptionText: [
                   getLanguageFromKey(
                     'sync_header.changes_made_samme_place_submessage',
-                    this.props.language,
+                    this.props.language
                   ),
                   getLanguageFromKey(
                     'sync_header.changes_made_samme_place_subsubmessage',
-                    this.props.language,
+                    this.props.language
                   ),
                 ],
-                btnText: getLanguageFromKey(
-                  'sync_header.fetch_changes_btn',
-                  this.props.language,
-                ),
+                btnText: getLanguageFromKey('sync_header.fetch_changes_btn', this.props.language),
                 shouldShowCommitBox: true,
                 btnMethod: this.commitChanges,
               },
@@ -225,10 +206,7 @@ class VersionControlHeader extends React.Component<
         if (this.state.modalState.isLoading) {
           this.setState((prevState) => ({
             modalState: {
-              header: getLanguageFromKey(
-                'sync_header.repo_is_offline',
-                this.props.language,
-              ),
+              header: getLanguageFromKey('sync_header.repo_is_offline', this.props.language),
               isLoading: !prevState.modalState.isLoading,
             },
           }));
@@ -242,10 +220,7 @@ class VersionControlHeader extends React.Component<
         anchorEl: currentTarget,
         modalState: {
           shouldShowDoneIcon: true,
-          header: getLanguageFromKey(
-            'sync_header.nothing_to_push',
-            this.props.language,
-          ),
+          header: getLanguageFromKey('sync_header.nothing_to_push', this.props.language),
         },
       });
     }
@@ -253,10 +228,7 @@ class VersionControlHeader extends React.Component<
       this.setState({
         anchorEl: currentTarget,
         modalState: {
-          header: getLanguageFromKey(
-            'sync_header.controlling_service_status',
-            this.props.language,
-          ),
+          header: getLanguageFromKey('sync_header.controlling_service_status', this.props.language),
           isLoading: true,
         },
       });
@@ -268,24 +240,15 @@ class VersionControlHeader extends React.Component<
               anchorEl: currentTarget,
               modalState: {
                 shouldShowDoneIcon: true,
-                header: getLanguageFromKey(
-                  'sync_header.nothing_to_push',
-                  this.props.language,
-                ),
+                header: getLanguageFromKey('sync_header.nothing_to_push', this.props.language),
               },
             });
           } else if (!hasLocalChanges(result) && result.aheadBy > 0) {
             this.setState({
               anchorEl: currentTarget,
               modalState: {
-                header: getLanguageFromKey(
-                  'sync_header.validation_completed',
-                  this.props.language,
-                ),
-                btnText: getLanguageFromKey(
-                  'sync_header.share_changes',
-                  this.props.language,
-                ),
+                header: getLanguageFromKey('sync_header.validation_completed', this.props.language),
+                btnText: getLanguageFromKey('sync_header.share_changes', this.props.language),
                 shouldShowDoneIcon: true,
                 isLoading: false,
                 btnMethod: this.pushChanges,
@@ -298,21 +261,21 @@ class VersionControlHeader extends React.Component<
               modalState: {
                 header: getLanguageFromKey(
                   'sync_header.describe_and_validate',
-                  this.props.language,
+                  this.props.language
                 ),
                 descriptionText: [
                   getLanguageFromKey(
                     'sync_header.describe_and_validate_submessage',
-                    this.props.language,
+                    this.props.language
                   ),
                   getLanguageFromKey(
                     'sync_header.describe_and_validate_subsubmessage',
-                    this.props.language,
+                    this.props.language
                   ),
                 ],
                 btnText: getLanguageFromKey(
                   'sync_header.describe_and_validate_btnText',
-                  this.props.language,
+                  this.props.language
                 ),
                 shouldShowCommitBox: true,
                 isLoading: false,
@@ -327,15 +290,12 @@ class VersionControlHeader extends React.Component<
       this.setState({
         anchorEl: currentTarget,
         modalState: {
-          header: getLanguageFromKey(
-            'sync_header.sharing_changes_no_access',
-            this.props.language,
-          ),
+          header: getLanguageFromKey('sync_header.sharing_changes_no_access', this.props.language),
           // eslint-disable-next-line max-len
           descriptionText: [
             getLanguageFromKey(
               'sync_header.sharing_changes_no_access_submessage',
-              this.props.language,
+              this.props.language
             ),
           ],
         },
@@ -346,18 +306,14 @@ class VersionControlHeader extends React.Component<
   public pushChanges = () => {
     this.setState({
       modalState: {
-        header: getLanguageFromKey(
-          'sync_header.sharing_changes',
-          this.props.language,
-        ),
+        header: getLanguageFromKey('sync_header.sharing_changes', this.props.language),
         isLoading: true,
       },
     });
 
-    const { org, app } = window as Window as IAltinnWindow;
-    const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/push`;
+    const { org, app } = _useParamsClassCompHack();
 
-    post(url)
+    post(repoPushPath(org, app))
       .then(() => {
         if (this.componentIsMounted) {
           this.setState({
@@ -366,12 +322,12 @@ class VersionControlHeader extends React.Component<
             modalState: {
               header: getLanguageFromKey(
                 'sync_header.sharing_changes_completed',
-                this.props.language,
+                this.props.language
               ),
               descriptionText: [
                 getLanguageFromKey(
                   'sync_header.sharing_changes_completed_submessage',
-                  this.props.language,
+                  this.props.language
                 ),
               ],
               shouldShowDoneIcon: true,
@@ -383,10 +339,7 @@ class VersionControlHeader extends React.Component<
         if (this.state.modalState.isLoading) {
           this.setState((prevState) => ({
             modalState: {
-              header: getLanguageFromKey(
-                'sync_header.repo_is_offline',
-                this.props.language,
-              ),
+              header: getLanguageFromKey('sync_header.repo_is_offline', this.props.language),
               isLoading: !prevState.modalState.isLoading,
             },
           }));
@@ -398,16 +351,13 @@ class VersionControlHeader extends React.Component<
   public commitChanges = (commitMessage: string) => {
     this.setState({
       modalState: {
-        header: getLanguageFromKey(
-          'sync_header.validating_changes',
-          this.props.language,
-        ),
+        header: getLanguageFromKey('sync_header.validating_changes', this.props.language),
         descriptionText: [],
         isLoading: true,
       },
     });
 
-    const { org, app } = window as Window as IAltinnWindow;
+    const { org, app } = _useParamsClassCompHack();
     const options = {
       headers: {
         Accept: 'application/json',
@@ -419,12 +369,9 @@ class VersionControlHeader extends React.Component<
       org,
       repository: app,
     });
-
-    const url = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/commit`;
-    const pullUrl = `${window.location.origin}/designer/api/v1/repos/${org}/${app}/pull`;
-    post(url, bodyData, options)
+    post(repoCommitPath(org, app), bodyData, options)
       .then(() => {
-        get(pullUrl)
+        get(repoPullPath(org, app))
           .then((result: any) => {
             if (this.componentIsMounted) {
               // if pull was successfull, show app updated message
@@ -433,13 +380,10 @@ class VersionControlHeader extends React.Component<
                   modalState: {
                     header: getLanguageFromKey(
                       'sync_header.validation_completed',
-                      this.props.language,
+                      this.props.language
                     ),
                     descriptionText: [],
-                    btnText: getLanguageFromKey(
-                      'sync_header.share_changes',
-                      this.props.language,
-                    ),
+                    btnText: getLanguageFromKey('sync_header.share_changes', this.props.language),
                     shouldShowDoneIcon: true,
                     btnMethod: this.pushChanges,
                   },
@@ -451,18 +395,18 @@ class VersionControlHeader extends React.Component<
                   modalState: {
                     header: getLanguageFromKey(
                       'sync_header.merge_conflict_occured',
-                      this.props.language,
+                      this.props.language
                     ),
                     // eslint-disable-next-line max-len
                     descriptionText: [
                       getLanguageFromKey(
                         'sync_header.merge_conflict_occured_submessage',
-                        this.props.language,
+                        this.props.language
                       ),
                     ],
                     btnText: getLanguageFromKey(
                       'sync_header.merge_conflict_btn',
-                      this.props.language,
+                      this.props.language
                     ),
                     btnMethod: this.forceRepoStatusCheck,
                   },
@@ -474,10 +418,7 @@ class VersionControlHeader extends React.Component<
             if (this.state.modalState.isLoading) {
               this.setState((prevState) => ({
                 modalState: {
-                  header: getLanguageFromKey(
-                    'sync_header.repo_is_offline',
-                    this.props.language,
-                  ),
+                  header: getLanguageFromKey('sync_header.repo_is_offline', this.props.language),
                   isLoading: !prevState.modalState.isLoading,
                 },
               }));
@@ -488,10 +429,7 @@ class VersionControlHeader extends React.Component<
         if (this.state.modalState.isLoading) {
           this.setState((prevState) => ({
             modalState: {
-              header: getLanguageFromKey(
-                'sync_header.repo_is_offline',
-                this.props.language,
-              ),
+              header: getLanguageFromKey('sync_header.repo_is_offline', this.props.language),
               isLoading: !prevState.modalState.isLoading,
             },
           }));
@@ -525,17 +463,6 @@ class VersionControlHeader extends React.Component<
     });
   };
 
-  public renderCloneModal = () => {
-    return (
-      <CloneModal
-        anchorEl={this.state.cloneModalAnchor}
-        open={this.state.cloneModalOpen}
-        onClose={this.closeCloneModal}
-        language={this.props.language}
-      />
-    );
-  };
-
   public openCloneModal = (event: React.MouseEvent) => {
     this.setState({
       cloneModalOpen: true,
@@ -544,53 +471,41 @@ class VersionControlHeader extends React.Component<
   };
 
   public render() {
-    const { classes } = this.props;
     const type = this.props.type || 'header';
-
     return (
-      <React.Fragment>
+      <>
         {type === 'header' ? (
-          <Grid
-            container={true}
-            direction='row'
-            className={classes.headerStyling}
-            justifyContent='flex-start'
-            data-testid='version-control-header'
-          >
-            <Grid item={true} style={{ marginRight: '24px' }}>
-              <CloneButton
-                onClick={this.openCloneModal}
-                buttonText={getLanguageFromKey(
-                  'sync_header.clone',
-                  this.props.language,
-                )}
-              />
-            </Grid>
-            <Grid item={true} style={{ marginRight: '24px' }}>
-              <FetchChangesComponent
-                changesInMaster={this.state.changesInMaster}
-                fetchChanges={this.fetchChanges}
-                language={this.props.language}
-              />
-            </Grid>
-            <Grid item={true}>
-              <ShareChangesComponent
-                changesInLocalRepo={this.state.changesInLocalRepo}
-                hasMergeConflict={this.state.mergeConflict}
-                hasPushRight={this.state.hasPushRight}
-                language={this.props.language}
-                shareChanges={this.shareChanges}
-              />
-            </Grid>
+          <div className={classes.headerStyling} data-testid='version-control-header'>
+            <CloneButton
+              onClick={this.openCloneModal}
+              buttonText={getLanguageFromKey('sync_header.clone', this.props.language)}
+            />
+            <FetchChangesComponent
+              changesInMaster={this.state.changesInMaster}
+              fetchChanges={this.fetchChanges}
+              buttonText={getLanguageFromKey('sync_header.fetch_changes', this.props.language)}
+            />
+            <ShareChangesComponent
+              changesInLocalRepo={this.state.changesInLocalRepo}
+              hasMergeConflict={this.state.mergeConflict}
+              hasPushRight={this.state.hasPushRight}
+              language={this.props.language}
+              shareChanges={this.shareChanges}
+            />
             {this.renderSyncModalComponent()}
-            {this.renderCloneModal()}
-          </Grid>
+            <CloneModal
+              anchorEl={this.state.cloneModalAnchor}
+              open={this.state.cloneModalOpen}
+              onClose={this.closeCloneModal}
+              language={this.props.language}
+            />
+          </div>
         ) : type === 'fetchButton' ? (
           <div data-testid='version-control-fetch-button'>
             <FetchChangesComponent
               changesInMaster={this.state.changesInMaster}
               fetchChanges={this.fetchChanges}
-              language={this.props.language}
+              buttonText={getLanguageFromKey('sync_header.fetch_changes', this.props.language)}
             />
             {this.renderSyncModalComponent()}
           </div>
@@ -607,11 +522,7 @@ class VersionControlHeader extends React.Component<
             {this.renderSyncModalComponent()}
           </div>
         ) : null}
-      </React.Fragment>
+      </>
     );
   }
 }
-
-export default withStyles(styles)(VersionControlHeader);
-
-export const VersionControlContainer = withStyles(styles)(VersionControlHeader);

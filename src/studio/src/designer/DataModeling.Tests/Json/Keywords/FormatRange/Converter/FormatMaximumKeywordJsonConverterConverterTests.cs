@@ -11,9 +11,6 @@ public class FormatMaximumKeywordJsonConverterConverterTests : ValueKeywordConve
 {
     private const string KeywordPlaceholder = "formatMaximum";
 
-    protected override JsonConverter<FormatMaximumKeyword> Converter
-        => new FormatMaximumKeyword.FormatMaximumKeywordJsonConverter();
-
     protected override FormatMaximumKeyword CreateKeywordWithValue(string value) => new(value);
 
     [Theory]
@@ -21,7 +18,7 @@ public class FormatMaximumKeywordJsonConverterConverterTests : ValueKeywordConve
     public void Write_ValidStructure_ShouldWriteToJson(string value)
     {
         Given.That.KeywordCreatedWithValue(value)
-            .When.KeywordWrittenToStream()
+            .When.KeywordSerializedAsJson()
             .Then.SerializedKeywordShouldBe($@"{{""{KeywordPlaceholder}"":""{value}""}}");
     }
 

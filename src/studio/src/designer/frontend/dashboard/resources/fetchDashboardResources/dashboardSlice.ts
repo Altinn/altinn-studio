@@ -1,4 +1,5 @@
-import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createAction, createSlice } from '@reduxjs/toolkit';
 import type { IRepository } from 'app-shared/types/global';
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
 
@@ -54,15 +55,12 @@ const dashboardSlice = createSlice({
   reducers: {
     fetchCurrentUserFulfilled: (
       state,
-      action: PayloadAction<IFetchDashboardInfoActionFulfilled>,
+      action: PayloadAction<IFetchDashboardInfoActionFulfilled>
     ) => {
       const { info } = action.payload;
       state.user = info;
     },
-    fetchServicesFulfilled: (
-      state,
-      action: PayloadAction<IFetchDashboardInfoActionFulfilled>,
-    ) => {
+    fetchServicesFulfilled: (state, action: PayloadAction<IFetchDashboardInfoActionFulfilled>) => {
       const { info } = action.payload;
       state.services = info;
     },
@@ -70,10 +68,7 @@ const dashboardSlice = createSlice({
       const { selectedContext } = action.payload;
       state.selectedContext = selectedContext;
     },
-    repoRowsPerPageChanged: (
-      state,
-      action: PayloadAction<IRepoRowsPerPageChanged>,
-    ) => {
+    repoRowsPerPageChanged: (state, action: PayloadAction<IRepoRowsPerPageChanged>) => {
       const { repoRowsPerPage } = action.payload;
       state.repoRowsPerPage = repoRowsPerPage;
     },
@@ -81,17 +76,13 @@ const dashboardSlice = createSlice({
 });
 
 const actions = {
-  fetchCurrentUser: createAction<IFetchDashboardInfoAction>(
-    `${moduleName}/fetchCurrentUser`,
-  ),
+  fetchCurrentUser: createAction<IFetchDashboardInfoAction>(`${moduleName}/fetchCurrentUser`),
   fetchCurrentUserRejected: createAction<IFetchDashboardInfoActionRejected>(
-    `${moduleName}/fetchCurrentUserRejected`,
+    `${moduleName}/fetchCurrentUserRejected`
   ),
-  fetchServices: createAction<IFetchDashboardInfoAction>(
-    `${moduleName}/fetchServices`,
-  ),
+  fetchServices: createAction<IFetchDashboardInfoAction>(`${moduleName}/fetchServices`),
   fetchServicesRejected: createAction<IFetchDashboardInfoActionRejected>(
-    `${moduleName}/fetchServicesRejected`,
+    `${moduleName}/fetchServicesRejected`
   ),
 };
 

@@ -44,7 +44,7 @@ export function DeleteDialog(props: IDeleteDialogProps) {
     'administration.delete_model_confirm',
     props.language,
     [props.schemaName],
-    true,
+    true
   );
   const classes = useStyles();
   return (
@@ -75,7 +75,9 @@ export function DeleteDialog(props: IDeleteDialogProps) {
           </Button>
 
           <Button id='cancel-delete-button' color='primary' onClick={props.onCancel}>
-            <span className={classes.borderBottom}>{getLanguageFromKey('general.cancel', props.language)}</span>
+            <span className={classes.borderBottom}>
+              {getLanguageFromKey('general.cancel', props.language)}
+            </span>
           </Button>
         </Grid>
       </Grid>

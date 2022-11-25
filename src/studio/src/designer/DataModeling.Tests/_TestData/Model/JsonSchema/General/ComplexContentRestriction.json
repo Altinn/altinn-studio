@@ -12,6 +12,7 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
+  "@xsdRootElement": "Root",
   "allOf": [
     {
       "$ref": "#/$defs/myBase"
@@ -19,16 +20,11 @@
     {
       "properties": {
         "be1": {
-          "allOf": [
-            {
-              "type": "string",
-              "@xsdType": "string"
-            },
-            {
-              "maxLength": 10,
-              "minLength": 10
-            }
-          ]
+          "type": "string",
+          "@xsdType": "string",
+          "maxLength": 10,
+          "minLength": 10,
+          "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
         }
       },
       "required": [
@@ -38,15 +34,10 @@
     {
       "properties": {
         "a1": {
-          "allOf": [
-            {
-              "type": "integer",
-              "@xsdType": "int"
-            },
-            {
-              "exclusiveMinimum": 100
-            }
-          ],
+          "type": "integer",
+          "@xsdType": "int",
+          "exclusiveMinimum": 100,
+          "@xsdStructure": "XmlSchemaSimpleTypeRestriction",
           "@xsdAttribute": true
         }
       }

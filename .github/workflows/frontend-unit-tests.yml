@@ -1,0 +1,48 @@
+name: Frontend Tests
+
+on:
+  push:
+    paths:
+      - 'src/studio/src/designer/frontend/**'
+      - '.github/workflows/frontend-unit-tests.yml'
+
+concurrency:
+  group: ${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Test and build
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Checking Out Code'
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v3
+
+      - name: Get yarn cache directory path
+        working-directory: src/studio/src/designer/frontend
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
+
+      - uses: actions/cache@v3
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - name: 'Installing Dependencies'
+        working-directory: src/studio/src/designer/frontend
+        run: yarn install --immutable --inline-builds
+        env:
+          YARN_ENABLE_GLOBAL_CACHE: 'false'
+          YARN_NM_MODE: 'hardlinks-local'
+          HUSKY: '0'
+
+      - name: 'Running Unit Tests'
+        working-directory: src/studio/src/designer/frontend
+        run: yarn test:ci

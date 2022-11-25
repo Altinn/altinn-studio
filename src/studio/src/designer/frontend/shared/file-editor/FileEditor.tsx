@@ -6,9 +6,10 @@ import { diffChars } from 'diff';
 import MonacoEditorComponent from './MonacoEditorComponent';
 import altinnTheme from '../theme/altinnStudioTheme';
 import AltinnButton from '../components/AltinnButton';
-import type { IAltinnWindow } from '../types/global';
 import { get, post } from '../utils/networking';
 import postMessages from '../utils/postMessages';
+import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
+import { getServiceFilePath, getServiceFilesPath, saveServiceFilePath } from '../api-paths';
 
 const theme = createTheme(altinnTheme);
 
@@ -88,7 +89,7 @@ const styles = createStyles({
     minHeight: '100%',
   },
   selectFile: {
-    borderBottom: '1px solid' + theme.altinnPalette.primary.blueDark,
+    borderBottom: `1px solid${theme.altinnPalette.primary.blueDark}`,
     color: theme.altinnPalette.primary.blueDarker,
     fontSize: '1.6rem',
   },
@@ -127,10 +128,7 @@ const styles = createStyles({
   },
 });
 
-class FileEditor extends React.Component<
-  IFileEditorProvidedProps,
-  IFileEditorState
-> {
+class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorState> {
   constructor(props: IFileEditorProvidedProps) {
     super(props);
     this.state = {
@@ -148,12 +146,8 @@ class FileEditor extends React.Component<
 
   public componentDidMount() {
     if (!this.props.loadFile) {
-      const { org, app } = window as Window as IAltinnWindow;
-      const appId = `${org}/${app}`;
-      get(
-        `${window.location.origin}/designer/${appId}/ServiceDevelopment` +
-          `/GetServiceFiles?fileEditorMode=${this.props.mode}`,
-      ).then((response) => {
+      const { org, app } = _useParamsClassCompHack();
+      get(getServiceFilesPath(org, app, this.props.mode)).then((response) => {
         const files = response.split(',');
         this.loadFileContent(files[0]);
         this.setState((prevState: IFileEditorState) => {
@@ -180,12 +174,8 @@ class FileEditor extends React.Component<
     this.setState({
       isLoading: true,
     });
-    const { org, app } = window as Window as IAltinnWindow;
-    const appId = `${org}/${app}`;
-    get(
-      `${window.location.origin}/designer/${appId}/ServiceDevelopment` +
-        `/GetServiceFile?fileEditorMode=${this.props.mode}&fileName=${fileName}`,
-    ).then((logicFileContent) => {
+    const { org, app } = _useParamsClassCompHack();
+    get(getServiceFilePath(org, app, this.props.mode, fileName)).then((logicFileContent) => {
       this.setState((prevState: IFileEditorState) => {
         return {
           ...prevState,
@@ -203,7 +193,7 @@ class FileEditor extends React.Component<
     this.loadFileContent(fileName);
   };
 
-  public saveFile = async (e: any) => {
+  public saveFile = async (_e: any) => {
     let stageFile = false;
     if (
       this.props.stageAfterSaveFile === true &&
@@ -211,42 +201,34 @@ class FileEditor extends React.Component<
     ) {
       stageFile = true;
     }
-
-    const { org, app } = window as Window as IAltinnWindow;
-    const appId = `${org}/${app}`;
-    const postUrl =
-      `${window.location.origin}/designer/${appId}/ServiceDevelopment` +
-      `/SaveServiceFile?fileEditorMode=${this.props.mode}&fileName=${this.state.selectedFile}&stageFile=${stageFile}`;
-
-    const saveRes: any = await post(postUrl, this.state.value, {
-      headers: {
-        'Content-type': 'text/plain;charset=utf-8',
-      },
-    });
+    const { org, app } = _useParamsClassCompHack();
+    const saveRes: any = await post(
+      saveServiceFilePath(org, app, this.props.mode, this.state.selectedFile, stageFile),
+      this.state.value,
+      {
+        headers: {
+          'Content-type': 'text/plain;charset=utf-8',
+        },
+      }
+    );
 
     if (saveRes.isSuccessStatusCode === false) {
       console.error('save error', saveRes);
     }
 
     if (this.props.checkRepoStatusAfterSaveFile === true) {
-      window.postMessage(
-        postMessages.forceRepoStatusCheck,
-        window.location.href,
-      );
+      window.postMessage(postMessages.forceRepoStatusCheck, window.location.href);
     }
 
     if (this.state.mounted && this.props.closeFileEditor) {
       this.props.closeFileEditor();
     }
   };
-  public createCompletionSuggestions = (
-    monaco: any,
-    filterText: string,
-  ): any[] => {
+  public createCompletionSuggestions = (monaco: any, filterText: string): any[] => {
     const dataModelSuggestions = this.props.getDataModelSuggestions
       ? this.props.getDataModelSuggestions(filterText)
       : [];
-    const suggestions = dataModelSuggestions.map((item: any) => {
+    return dataModelSuggestions.map((item: any) => {
       return {
         label: item.Name,
         kind: monaco.languages.CompletionItemKind.Field,
@@ -254,8 +236,6 @@ class FileEditor extends React.Component<
         insertText: item.Name,
       };
     });
-
-    return suggestions;
   };
 
   public onValueChange = (value: string) => {
@@ -299,11 +279,7 @@ class FileEditor extends React.Component<
       <Grid item={true} xs={1} className={this.props.classes.fileHeader}>
         <IconButton
           type='button'
-          className={
-            this.props.classes.formComponentsBtn +
-            ' ' +
-            this.props.classes.specialBtn
-          }
+          className={`${this.props.classes.formComponentsBtn} ${this.props.classes.specialBtn}`}
           onClick={this.props.closeFileEditor}
           tabIndex={0}
         >
@@ -315,11 +291,7 @@ class FileEditor extends React.Component<
         </IconButton>
         <IconButton
           type='button'
-          className={
-            this.props.classes.formComponentsBtn +
-            ' ' +
-            this.props.classes.specialBtn
-          }
+          className={`${this.props.classes.formComponentsBtn} ${this.props.classes.specialBtn}`}
           onClick={this.saveFile}
           tabIndex={0}
         >
@@ -331,13 +303,7 @@ class FileEditor extends React.Component<
 
   public renderSaveButton = (): JSX.Element => {
     return (
-      <Grid
-        item={true}
-        xs={true}
-        container={true}
-        justifyContent='flex-end'
-        alignItems='center'
-      >
+      <Grid item={true} xs={true} container={true} justifyContent='flex-end' alignItems='center'>
         <Grid item={true}>
           <div ref={this.state.fileEditorSaveRef}>
             <AltinnButton
@@ -401,31 +367,20 @@ class FileEditor extends React.Component<
                   }
                   return (
                     <React.Fragment key={index}>
-                      {folder}{' '}
-                      <i
-                        className='fa fa-expand-alt'
-                        style={{ fontSize: '2rem' }}
-                      />
+                      {folder} <i className='fa fa-expand-alt' style={{ fontSize: '2rem' }} />
                     </React.Fragment>
                   );
                 })
               ) : (
                 <React.Fragment>
-                  <i
-                    className='fa fa-expand-alt'
-                    style={{ fontSize: '2rem' }}
-                  />
+                  <i className='fa fa-expand-alt' style={{ fontSize: '2rem' }} />
                 </React.Fragment>
               )}
 
               {/* If not Loadfile, show select*/}
               {!this.props.loadFile ? (
                 <React.Fragment>
-                  {mode}{' '}
-                  <i
-                    className='fa fa-expand-alt'
-                    style={{ fontSize: '2rem' }}
-                  />
+                  {mode} <i className='fa fa-expand-alt' style={{ fontSize: '2rem' }} />
                   <Select
                     value={this.state.selectedFile}
                     classes={{
@@ -441,11 +396,7 @@ class FileEditor extends React.Component<
                   >
                     {this.state.availableFiles.map((file: string) => {
                       return (
-                        <MenuItem
-                          value={file}
-                          key={file}
-                          className={classes.fileMenuItem}
-                        >
+                        <MenuItem value={file} key={file} className={classes.fileMenuItem}>
                           {file}
                         </MenuItem>
                       );
@@ -466,7 +417,7 @@ class FileEditor extends React.Component<
             createCompletionSuggestions={this.createCompletionSuggestions}
             heightPx={`${this.props.editorHeight}px`}
             isLoading={this.state.isLoading}
-            language={language.name}
+            language={language['name']}
             onValueChange={this.onValueChange}
             value={this.state.value}
             escRef={
@@ -478,7 +429,7 @@ class FileEditor extends React.Component<
         </Grid>
         <Grid className={classes.footerContent} item={true} xs={11} />
         <Grid className={classes.footerContent} item={true} xs={1}>
-          <span>{language.displayName}</span>
+          <span>{language['displayName']}</span>
         </Grid>
       </Grid>
     );

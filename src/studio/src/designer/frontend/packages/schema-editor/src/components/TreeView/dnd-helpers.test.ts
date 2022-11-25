@@ -1,4 +1,5 @@
-import { DragItem, dropTargetSpec, itemType } from './dnd-helpers';
+import type { DragItem } from './dnd-helpers';
+import { dropTargetSpec, itemType } from './dnd-helpers';
 
 test('that dropTargetSpec works', () => {
   const targetItem: DragItem = {

@@ -1,13 +1,12 @@
-import React from 'react';
-import { User } from '../../resources/fetchDashboardResources/dashboardSlice';
+import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
+import type { User } from '../../resources/fetchDashboardResources/dashboardSlice';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import type { IGiteaOrganisation } from 'app-shared/types/global';
-import AltinnDropdown from 'app-shared/components/AltinnDropdown';
-import AltinnPopper from 'app-shared/components/AltinnPopper';
+import Dropdown from 'app-shared/components/AltinnDropdown';
+import Popper from 'app-shared/components/AltinnPopper';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { useGetOrganizationsQuery } from 'services/organizationApi';
-
-import { useAppSelector } from 'common/hooks';
+import { useGetOrganizationsQuery } from '../../services/organizationApi';
+import { useAppSelector } from '../../common/hooks';
 
 const zIndex = {
   zIndex: 1300,
@@ -24,10 +23,7 @@ interface ICombineCurrentUserAndOrg {
   organisations: IGiteaOrganisation[];
 }
 
-const combineCurrentUserAndOrg = ({
-  organisations = [],
-  user,
-}: ICombineCurrentUserAndOrg) => {
+const combineCurrentUserAndOrg = ({ organisations = [], user }: ICombineCurrentUserAndOrg) => {
   const allUsers = organisations.map((props: any) => {
     return {
       value: props.username,
@@ -48,28 +44,27 @@ export const ServiceOwnerSelector = ({
   errorMessage,
   selectedOrgOrUser,
 }: IServiceOwnerSelectorProps) => {
-  const { data: organisations, isLoading: isLoadingOrganisations } =
-    useGetOrganizationsQuery();
+  const { data: organisations, isLoading: isLoadingOrganisations } = useGetOrganizationsQuery();
 
   const user = useAppSelector((state) => state.dashboard.user);
   const language = useAppSelector((state) => state.language.language);
 
-  const serviceOwnerRef = React.useRef(null);
+  const serviceOwnerRef = useRef(null);
 
-  const selectableOrgsOrUser = React.useMemo(() => {
+  const selectableOrgsOrUser = useMemo(() => {
     return combineCurrentUserAndOrg({
       organisations,
       user,
     });
   }, [organisations, user]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (isLoadingOrganisations === false && selectableOrgsOrUser.length === 1) {
       onServiceOwnerChanged(selectableOrgsOrUser[0].value); // auto-select the option when theres only 1 option
     }
   }, [selectableOrgsOrUser, onServiceOwnerChanged, isLoadingOrganisations]);
 
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     serviceOwnerRef.current = document.querySelector('#service-owner');
   });
 
@@ -78,16 +73,12 @@ export const ServiceOwnerSelector = ({
   };
 
   if (isLoadingOrganisations) {
-    return (
-      <AltinnSpinner
-        spinnerText={getLanguageFromKey('dashboard.loading', language)}
-      />
-    );
+    return <AltinnSpinner spinnerText={getLanguageFromKey('dashboard.loading', language)} />;
   }
 
   return (
     <div>
-      <AltinnDropdown
+      <Dropdown
         id='service-owner'
         inputHeader={getLanguageFromKey('general.service_owner', language)}
         handleChange={handleChange}
@@ -97,11 +88,7 @@ export const ServiceOwnerSelector = ({
         fullWidth={true}
       />
       {errorMessage && (
-        <AltinnPopper
-          anchorEl={serviceOwnerRef.current}
-          message={errorMessage}
-          styleObj={zIndex}
-        />
+        <Popper anchorEl={serviceOwnerRef.current} message={errorMessage} styleObj={zIndex} />
       )}
     </div>
   );

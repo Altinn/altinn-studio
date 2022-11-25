@@ -23,21 +23,19 @@ const mainMenuSettings: IMainMenu = {
     {
       displayText: 'Språk',
       activeSubHeaderSelection: 'Språk',
-      navLink: '/texts',
+      navLink: '/:org/:app/texts',
       menuType: 'language',
     },
   ],
 };
 
-export const createMainMenuSettings = (
-  additionalOptions: IMenuItem[] = [],
-): IMainMenu => ({
+export const createMainMenuSettings = (additionalOptions: IMenuItem[] = []): IMainMenu => ({
   ...mainMenuSettings,
   menuItems: [...additionalOptions, ...mainMenuSettings.menuItems],
 });
 
 export const createLeftDrawerMenuSettings = (
-  additionalOptions: { [key: string]: IMenuItem[] } = {},
+  additionalOptions: { [key: string]: IMenuItem[] } = {}
 ): IDrawerMenu => ({
   ...additionalOptions,
   ...leftDrawerMenuSettings,
@@ -47,7 +45,7 @@ const leftDrawerMenuSettings: IDrawerMenu = {
   language: [
     {
       displayText: 'Tekster',
-      navLink: '/texts',
+      navLink: '/:org/:app/texts',
       activeLeftMenuSelection: 'Tekster',
       iconClass: 'fa fa-write',
     },

@@ -1,0 +1,39 @@
+.repoLink, .repoLink:hover {
+  color: #57823d;
+}
+.editLink, .editLink:hover {
+  color: #165db8;
+}
+.actionLink {
+  margin-right: 1rem;
+  display: flex;
+  align-items: center;
+}
+.actionLink:hover {
+  text-decoration: none;
+}
+.actionLink:hover span {
+  text-decoration: underline;
+}
+.linkIcon {
+  font-size: 2rem;
+  margin-left: 0.5rem;
+}
+.dropdownIcon {
+  font-size: 2rem;
+}
+
+.favoriteIcon {
+  font-size: 26px;
+  color: #000000;
+}
+
+.textWithTooltip {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.favoriteButton {
+  height: 36px;
+  width: 36px;
+  padding: 0;
+}

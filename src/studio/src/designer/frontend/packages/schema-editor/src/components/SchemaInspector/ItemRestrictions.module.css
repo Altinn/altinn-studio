@@ -4,13 +4,7 @@
 }
 
 .addEnumButton {
-  align-items: center;
-  background-color: #fff;
-  border: 1px dashed #000;
-  display: inline-flex;
-  flex-direction: row;
   margin-top: 1rem;
-  padding: 3px 8px;
 }
 
 .addEnumButton i::before {

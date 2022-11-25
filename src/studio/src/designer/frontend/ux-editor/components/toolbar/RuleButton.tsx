@@ -21,16 +21,9 @@ export default function RuleButton(props: IRuleButtonProps) {
     >
       <Grid container={true} direction='row'>
         <Grid item={true} xs={1}>
-          <i
-            className='fa fa-settings a-btn-icon-symbol'
-            style={{ width: 'auto' }}
-          />
+          <i className='fa fa-settings a-btn-icon-symbol' style={{ width: 'auto' }} />
         </Grid>
-        <Grid
-          item={true}
-          xs='auto'
-          style={{ textAlign: 'left', marginLeft: '0.8rem' }}
-        >
+        <Grid item={true} xs='auto' style={{ textAlign: 'left', marginLeft: '0.8rem' }}>
           {props.text}
         </Grid>
       </Grid>

@@ -1,4 +1,5 @@
-import React, { ChangeEvent, useEffect, useState } from 'react';
+import type { ChangeEvent } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import type { ILanguage, ISchemaState } from '../../types';
 import { NameError } from '../../types';
@@ -17,13 +18,19 @@ import {
 } from '../../features/editor/schemaEditorSlice';
 import { ReferenceSelectionComponent } from './ReferenceSelectionComponent';
 import { getCombinationOptions, getTypeOptions } from './helpers/options';
-import { Checkbox, ErrorMessage, FieldSet, TextArea, TextField } from '@altinn/altinn-design-system';
+import {
+  Checkbox,
+  ErrorMessage,
+  FieldSet,
+  Select,
+  TextArea,
+  TextField,
+} from '@altinn/altinn-design-system';
 import classes from './ItemDataComponent.module.css';
 import { ItemRestrictions } from './ItemRestrictions';
-import type { UiSchemaNode } from '@altinn/schema-model';
+import type { UiSchemaNode, CombinationKind } from '@altinn/schema-model';
 import {
   combinationIsNullable,
-  CombinationKind,
   FieldType,
   getChildNodesByPointer,
   getNodeDisplayName,
@@ -31,9 +38,7 @@ import {
   ObjectKind,
 } from '@altinn/schema-model';
 import { getDomFriendlyID, isValidName } from '../../utils/ui-schema-utils';
-import { Divider } from '../common/Divider';
-import { Label } from '../common/Label';
-import { Select } from '../common/Select';
+import { Divider } from 'app-shared/primitives';
 
 export interface IItemDataComponentProps {
   selectedItem: UiSchemaNode;
@@ -49,7 +54,9 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
   const [title, setItemTitle] = useState<string>('');
   const { fieldType } = selectedItem;
 
-  const childNodes = useSelector((state: ISchemaState) => getChildNodesByPointer(state.uiSchema, selectedItem.pointer));
+  const childNodes = useSelector((state: ISchemaState) =>
+    getChildNodesByPointer(state.uiSchema, selectedItem.pointer)
+  );
 
   useEffect(() => {
     setNodeName(getNodeDisplayName(selectedItem));
@@ -58,10 +65,12 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
     setItemDescription(selectedItem.description ?? '');
   }, [selectedItem]);
 
-  const onNameChange = (e: any) => {
-    const { value } = e.target;
+  const onNameChange = ({ target }: ChangeEvent) => {
+    const { value } = target as HTMLInputElement;
     setNodeName(value);
-    !isValidName(value) ? setNameError(NameError.InvalidCharacter) : setNameError(NameError.NoError);
+    !isValidName(value)
+      ? setNameError(NameError.InvalidCharacter)
+      : setNameError(NameError.NoError);
   };
 
   const onChangeRef = (path: string, ref: string) => dispatch(setRef({ path, ref }));
@@ -69,9 +78,11 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
   const onChangeFieldType = (pointer: string, type: FieldType) =>
     dispatch(setType({ path: selectedItem.pointer, type }));
 
-  const onChangeNullable = (event: any) => {
-    if (event.target.checked) {
-      dispatch(addCombinationItem({ pointer: selectedItem.pointer, props: { fieldType: FieldType.Null } }));
+  const onChangeNullable = (event: ChangeEvent) => {
+    if ((event.target as HTMLInputElement)?.checked) {
+      dispatch(
+        addCombinationItem({ pointer: selectedItem.pointer, props: { fieldType: FieldType.Null } })
+      );
     } else {
       childNodes.forEach((childNode: UiSchemaNode) => {
         if (childNode.fieldType === FieldType.Null) {
@@ -83,7 +94,8 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
 
   const onChangeTitle = () => dispatch(setTitle({ path: selectedNodePointer, title }));
 
-  const onChangeDescription = () => dispatch(setDescription({ path: selectedNodePointer, description }));
+  const onChangeDescription = () =>
+    dispatch(setDescription({ path: selectedNodePointer, description }));
 
   const onGoToDefButtonClick = () => {
     const ref = selectedItem.ref;
@@ -95,7 +107,8 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
   const onChangeCombinationType = (value: CombinationKind) =>
     dispatch(setCombinationType({ path: selectedItem.pointer, type: value }));
 
-  const handleArrayPropertyToggle = () => dispatch(toggleArrayField({ pointer: selectedItem.pointer }));
+  const handleArrayPropertyToggle = () =>
+    dispatch(toggleArrayField({ pointer: selectedItem.pointer }));
 
   const uiSchema = useSelector((state: ISchemaState) => state.uiSchema);
   const handleChangeNodeName = () => {
@@ -110,26 +123,25 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
           path: selectedItem.pointer,
           name: nodeName,
           navigate: true,
-        }),
+        })
       );
     }
   };
 
   const t = (key: string) => getTranslation(key, language);
-  const titleId = getDomFriendlyID(selectedNodePointer, 'title');
-  const descriptionId = getDomFriendlyID(selectedNodePointer, 'description');
-
+  const titleId = getDomFriendlyID(selectedNodePointer, { suffix: 'title' });
+  const descriptionId = getDomFriendlyID(selectedNodePointer, { suffix: 'description' });
   return (
     <div className={classes.root}>
       {!selectedItem.isCombinationItem && (
         <div>
-          <Label htmlFor='selectedItemName'>{t('name')}</Label>
           <TextField
             aria-describedby='Selected Item Name'
             aria-errormessage={t(nameError)}
             aria-placeholder='Name'
             autoFocus
             id='selectedItemName'
+            label={t('name')}
             onBlur={handleChangeNodeName}
             onChange={onNameChange}
             placeholder='Name'
@@ -140,11 +152,10 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
       )}
       {selectedItem.objectKind === ObjectKind.Field && (
         <Select
-          id={getDomFriendlyID(selectedItem.pointer, 'type-select')}
           label={t('type')}
-          onChange={(type) => onChangeFieldType(selectedItem.pointer, type as FieldType)}
+          onChange={(type: string) => onChangeFieldType(selectedItem.pointer, type as FieldType)}
           options={getTypeOptions(t)}
-          value={fieldType}
+          value={fieldType as string}
         />
       )}
       {selectedItem.objectKind === ObjectKind.Reference && (
@@ -167,9 +178,10 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
       )}
       {selectedItem.objectKind === ObjectKind.Combination && (
         <Select
-          id={getDomFriendlyID(selectedItem.pointer, 'combi-sel')}
           label={t('type')}
-          onChange={(combination) => onChangeCombinationType(combination as CombinationKind)}
+          onChange={(combination: string) =>
+            onChangeCombinationType(combination as CombinationKind)
+          }
           options={getCombinationOptions(t)}
           value={selectedItem.fieldType}
         />
@@ -187,15 +199,22 @@ export function ItemDataComponent({ language, selectedItem }: IItemDataComponent
       <Divider inMenu />
       <FieldSet legend={t('descriptive_fields')} className={classes.fieldSet}>
         <div>
-          <Label htmlFor={titleId}>{t('title')}</Label>
-          <TextField id={titleId} onBlur={onChangeTitle} onChange={(e) => setItemTitle(e.target.value)} value={title} />
+          <TextField
+            id={titleId}
+            label={t('title')}
+            onBlur={onChangeTitle}
+            onChange={(e: ChangeEvent) => setItemTitle((e.target as HTMLInputElement)?.value)}
+            value={title}
+          />
         </div>
         <div>
-          <Label htmlFor={descriptionId}>{t('description')}</Label>
           <TextArea
             id={descriptionId}
+            label={t('description')}
             onBlur={onChangeDescription}
-            onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setItemDescription(event.target.value)}
+            onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
+              setItemDescription(event.target.value)
+            }
             style={{ height: 100 }}
             value={description}
           />

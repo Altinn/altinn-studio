@@ -1,20 +1,26 @@
 {
   "compilerOptions": {
-    "outDir": "compiled",
+    "outDir": "dist",
     "module": "commonjs",
-    "target": "es5",
-    "lib": ["es6", "dom"],
+    "target": "es6",
+    "downlevelIteration": true,
+    "lib": ["es6", "dom", "es7", "esnext"],
     "sourceMap": true,
     "allowJs": true,
     "jsx": "react",
     "moduleResolution": "node",
     "rootDir": "./",
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
+    "resolveJsonModule": true,
     "strictNullChecks": false,
     "noUnusedLocals": true,
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "baseUrl": ".",
+    "paths": {
+      "app-shared/*": ["./shared/*"],
+      "@altinn/schema-editor/*": ["./packages/schema-editor/src/*"]
+    }
   },
-  "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
+  "files": ["./declaration.d.ts"],
+  "include": ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", "tmp"]
 }

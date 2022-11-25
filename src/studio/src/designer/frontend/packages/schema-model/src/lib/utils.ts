@@ -61,12 +61,14 @@ export const splitPointerInBaseAndName = (pointer: string) => {
   };
 };
 
-export const pointerIsDefinition = (pointer: string) => pointer.startsWith(makePointer(Keywords.Definitions));
+export const pointerIsDefinition = (pointer: string) =>
+  pointer.startsWith(makePointer(Keywords.Definitions));
 
 export const combinationIsNullable = (childNodes: UiSchemaNode[]): boolean =>
   childNodes.some((child) => child.fieldType === FieldType.Null);
 
-export const getNodeDisplayName = (uiSchemaNode: UiSchemaNode) => uiSchemaNode.pointer.split('/').pop() ?? '';
+export const getNodeDisplayName = (uiSchemaNode: UiSchemaNode) =>
+  uiSchemaNode.pointer.split('/').pop() ?? '';
 
 export const getUniqueNodePath = (uiNodeMap: UiSchemaNodes, targetPointer: string): string => {
   let newPointer = targetPointer;

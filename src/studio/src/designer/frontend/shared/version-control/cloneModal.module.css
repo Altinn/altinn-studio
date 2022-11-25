@@ -1,0 +1,16 @@
+.modalContainer {
+  padding: 24px;
+  width: 319px;
+}
+
+.itemSeparator {
+  padding-bottom: 12px;
+}
+
+.sectionSeparator {
+  padding-bottom: 32px;
+}
+
+.blackText {
+  color: black;
+}

@@ -1,0 +1,10 @@
+.resourceItem {
+  display: flex;
+  flex: 1 0 30%;
+  min-width: 330px;
+  gap: 16px;
+}
+.resourceItem a {
+  font-weight: 500;
+  color: black;
+}

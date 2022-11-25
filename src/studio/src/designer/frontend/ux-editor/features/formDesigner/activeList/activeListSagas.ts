@@ -1,29 +1,21 @@
-import { SagaIterator } from 'redux-saga';
+import type { SagaIterator } from 'redux-saga';
 import { put, select, takeLatest } from 'redux-saga/effects';
-import { PayloadAction } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
 import type { IFormDesignerState } from '../formDesignerReducer';
 import type { IAddActiveFormContainerAction } from '../formDesignerTypes';
 import { FormLayoutActions } from '../formLayout/formLayoutSlice';
 import type { IAppState } from '../../../types/global';
 
-const selectFormDesigner = (state: IAppState): IFormDesignerState =>
-  state.formDesigner;
+const selectFormDesigner = (state: IAppState): IFormDesignerState => state.formDesigner;
 
-function* addActiveFormContainerSaga({
-  payload,
-}: PayloadAction<IAddActiveFormContainerAction>): SagaIterator {
+function* addActiveFormContainerSaga({ payload }: PayloadAction<IAddActiveFormContainerAction>): SagaIterator {
   try {
     const { containerId } = payload;
-    const formDesignerState: IFormDesignerState = yield select(
-      selectFormDesigner,
-    );
+    const formDesignerState: IFormDesignerState = yield select(selectFormDesigner);
     yield put(
       FormLayoutActions.addActiveFormContainerFulfilled({
-        containerId:
-          containerId === formDesignerState.layout.activeContainer
-            ? ''
-            : containerId,
-      }),
+        containerId: containerId === formDesignerState.layout.activeContainer ? '' : containerId,
+      })
     );
   } catch (error) {
     yield put(FormLayoutActions.addFormComponentRejected({ error }));
@@ -31,10 +23,7 @@ function* addActiveFormContainerSaga({
 }
 
 export function* watchAddActiveFormContainerSaga(): SagaIterator {
-  yield takeLatest(
-    FormLayoutActions.addActiveFormContainer,
-    addActiveFormContainerSaga,
-  );
+  yield takeLatest(FormLayoutActions.addActiveFormContainer, addActiveFormContainerSaga);
 }
 
 export function* deleteActiveListSaga(): SagaIterator {
@@ -46,11 +35,5 @@ export function* deleteActiveListSaga(): SagaIterator {
 }
 
 export function* watchDeleteActiveListSaga(): SagaIterator {
-  yield takeLatest(
-    [
-      FormLayoutActions.deleteActiveList,
-      FormLayoutActions.updateSelectedLayout,
-    ],
-    deleteActiveListSaga,
-  );
+  yield takeLatest([FormLayoutActions.deleteActiveList, FormLayoutActions.updateSelectedLayout], deleteActiveListSaga);
 }

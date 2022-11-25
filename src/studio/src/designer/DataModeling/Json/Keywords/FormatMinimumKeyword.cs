@@ -68,10 +68,10 @@ public sealed class FormatMinimumKeyword: IJsonSchemaKeyword, IEquatable<FormatM
     /// <summary>
     /// Serializer for the FormatMinimumKeyword keyword
     /// </summary>
-    public class FormatMinimumKeywordJsonConverter : JsonConverter<FormatMinimumKeyword>
+    internal class FormatMinimumKeywordJsonConverter : JsonConverter<FormatMinimumKeyword>
     {
         /// <summary>
-        /// Read @xsdType keyword from json schema
+        /// Read formatExclusiveMaximum keyword from json schema
         /// </summary>
         public override FormatMinimumKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {

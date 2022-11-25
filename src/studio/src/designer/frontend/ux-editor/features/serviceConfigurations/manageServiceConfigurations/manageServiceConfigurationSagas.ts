@@ -1,4 +1,4 @@
-import { SagaIterator } from 'redux-saga';
+import type { SagaIterator } from 'redux-saga';
 import { call, delay, put, select, takeLatest } from 'redux-saga/effects';
 import postMessages from 'app-shared/utils/postMessages';
 import {
@@ -17,15 +17,10 @@ import {
 } from '../serviceConfigurationSlice';
 import type { IServiceConfigurationState } from '../serviceConfigurationTypes';
 import { get, post } from 'app-shared/utils/networking';
-import {
-  getFetchRuleConfigurationUrl,
-  getSaveServiceConfigurationUrl,
-} from '../../../utils/urlHelper';
+import { getFetchRuleConfigurationUrl, getSveSerConfUrl } from '../../../utils/urlHelper';
 import type { IAppState } from '../../../types/global';
 
-const selectServiceConfiguration = (
-  state: IAppState,
-): IServiceConfigurationState => state.serviceConfigurations;
+const selectServiceConfiguration = (state: IAppState): IServiceConfigurationState => state.serviceConfigurations;
 
 export function* watchFetchServiceConfigurationSaga(): SagaIterator {
   yield takeLatest(fetchServiceConfiguration, fetchJsonFileSaga);
@@ -33,21 +28,17 @@ export function* watchFetchServiceConfigurationSaga(): SagaIterator {
 
 export function* fetchJsonFileSaga(): SagaIterator {
   try {
-    const serviceConfiguration: any = yield call(
-      get,
-      getFetchRuleConfigurationUrl(),
-    );
+    const serviceConfiguration: any = yield call(get, getFetchRuleConfigurationUrl());
     yield put(fetchServiceConfigurationFulfilled());
     yield put(
       setConditionalRenderingConnections({
-        conditionalRenderingConnections:
-          serviceConfiguration?.data?.conditionalRendering,
-      }),
+        conditionalRenderingConnections: serviceConfiguration?.data?.conditionalRendering,
+      })
     );
     yield put(
       setRuleConnections({
         ruleConnections: serviceConfiguration?.data?.ruleConnection,
-      }),
+      })
     );
   } catch (error) {
     yield put(fetchServiceConfigurationRejected({ error }));
@@ -63,16 +54,14 @@ export function* watchSaveServiceConfigurationSaga(): SagaIterator {
       deleteConditionalRenderingConnnection,
       deleteRuleConnnection,
     ],
-    saveServiceConfigurationSaga,
+    saveServiceConfigurationSaga
   );
 }
 
 export function* saveServiceConfigurationSaga(): SagaIterator {
   try {
     delay(200);
-    const serviceConfigurationState: IServiceConfigurationState = yield select(
-      selectServiceConfiguration,
-    );
+    const serviceConfigurationState: IServiceConfigurationState = yield select(selectServiceConfiguration);
 
     // create new serviceConfigurations object without manageServiceConfiguration status
     const newServiceConfigurationsObj = Object.keys(serviceConfigurationState)
@@ -82,7 +71,7 @@ export function* saveServiceConfigurationSaga(): SagaIterator {
         return acc;
       }, {});
 
-    yield call(post, getSaveServiceConfigurationUrl(), {
+    yield call(post, getSveSerConfUrl(), {
       data: {
         ...newServiceConfigurationsObj,
       },

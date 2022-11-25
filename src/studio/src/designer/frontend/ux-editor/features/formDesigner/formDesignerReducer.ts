@@ -1,4 +1,5 @@
-import { combineReducers, Reducer } from 'redux';
+import type { Reducer } from 'redux';
+import { combineReducers } from 'redux';
 import formLayoutReducer from './formLayout/formLayoutSlice';
 import type { IFormLayoutState } from './formLayout/formLayoutSlice';
 

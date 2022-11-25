@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { createTheme, Grid, ThemeProvider, Typography } from '@mui/material';
-import { makeStyles } from '@mui/styles';
+import { createTheme, ThemeProvider } from '@mui/material';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import postMessages from 'app-shared/utils/postMessages';
 import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
@@ -11,90 +10,91 @@ import { fetchRepoStatus } from './features/handleMergeConflict/handleMergeConfl
 import { makeGetRepoStatusSelector } from './features/handleMergeConflict/handleMergeConflictSelectors';
 import { ApplicationMetadataActions } from './sharedResources/applicationMetadata/applicationMetadataSlice';
 import { fetchLanguage } from './utils/fetchLanguage/languageSlice';
-import { repoStatusUrl } from './utils/urlHelper';
 import {
   fetchRemainingSession,
   keepAliveSession,
   signOutUser,
 } from './sharedResources/user/userSlice';
 import PageHeader from './layout/PageHeader';
-import { useAppDispatch, useAppSelector } from 'common/hooks';
-import type { IAltinnWindow } from './types/global';
 
 import './App.css';
 import LeftMenu from './layout/LeftMenu';
+import { matchPath, useLocation } from 'react-router-dom';
+
+import classes from './App.module.css';
+import { useAppDispatch, useAppSelector } from './common/hooks';
+import { getRepositoryType } from 'app-shared/utils/repository';
+import { RepositoryType } from 'app-shared/types/global';
+import {
+  frontendLangPath,
+  repoInitialCommitPath,
+  repoMetaPath,
+  repoStatusPath,
+  serviceConfigPath,
+  serviceNamePath,
+} from 'app-shared/api-paths';
 
 const theme = createTheme(altinnTheme);
 
-const useStyles = makeStyles({
-  container: {
-    backgroundColor: theme.altinnPalette.primary.greyLight,
-    height: '100%',
-    width: '100%',
-  },
-  mergeConflictApp: {
-    height: '100%',
-    width: '100%',
-  },
-  subApp: {
-    [theme.breakpoints.up('xs')]: {
-      paddingTop: '55px',
-    },
-    [theme.breakpoints.up('md')]: {
-      paddingTop: '111px',
-    },
-    background: theme.altinnPalette.primary.greyLight,
-    height: '100%',
-    width: '100%',
-  },
-});
-
 const GetRepoStatusSelector = makeGetRepoStatusSelector();
-const TEN_MINUTE_IN_MILLISECONDS = 60000 * 10;
+const TEN_MINUTES_IN_MILLISECONDS = 600000;
 
 export function App() {
+  const { pathname } = useLocation();
+  const match = matchPath({ path: '/:org/:app', caseSensitive: true, end: false }, pathname);
+  const { org, app } = match.params;
+  const repositoryType = getRepositoryType(org, app);
   const language = useAppSelector((state) => state.languageState.language);
+  const t = (key: string) => getLanguageFromKey(key, language);
   const repoStatus = useAppSelector(GetRepoStatusSelector);
   const remainingSessionMinutes = useAppSelector(
-    (state) => state.userState.session.remainingMinutes,
+    (state) => state.userState.session.remainingMinutes
   );
   const dispatch = useAppDispatch();
-  const classes = useStyles();
   const lastKeepAliveTimestamp = useRef<number>(0);
   const sessionExpiredPopoverRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const { org, app } = window as Window as IAltinnWindow;
     dispatch(
       fetchLanguage({
-        url: `${window.location.origin}/designerapi/Language/GetLanguageAsJSON`,
-        languageCode: 'nb',
-      }),
+        url: frontendLangPath('nb'),
+      })
     );
-    dispatch(
-      HandleServiceInformationActions.fetchServiceName({
-        url: `${window.location.origin}/designer/${org}/${app}/Text/GetServiceName`,
-      }),
-    );
-    dispatch(ApplicationMetadataActions.getApplicationMetadata());
     dispatch(DataModelsMetadataActions.getDataModelsMetadata());
+    if (repositoryType === RepositoryType.App) {
+      dispatch(ApplicationMetadataActions.getApplicationMetadata());
+    }
+  }, [dispatch, repositoryType]);
+
+  useEffect(() => {
     dispatch(fetchRemainingSession());
-    dispatch(
-      HandleServiceInformationActions.fetchService({
-        url: `${window.location.origin}/designer/api/v1/repos/${org}/${app}`,
-      }),
-    );
-    dispatch(
-      HandleServiceInformationActions.fetchInitialCommit({
-        url: `${window.location.origin}/designer/api/v1/repos/${org}/${app}/initialcommit`,
-      }),
-    );
-    dispatch(
-      HandleServiceInformationActions.fetchServiceConfig({
-        url: `${window.location.origin}/designer/${org}/${app}/Config/GetServiceConfig`,
-      }),
-    );
-  }, [dispatch]);
+    if (app && org) {
+      dispatch(
+        HandleServiceInformationActions.fetchService({
+          url: repoMetaPath(org, app),
+        })
+      );
+      dispatch(
+        HandleServiceInformationActions.fetchInitialCommit({
+          url: repoInitialCommitPath(org, app),
+        })
+      );
+
+      if (repositoryType === RepositoryType.App) {
+        dispatch(
+          HandleServiceInformationActions.fetchServiceName({
+            url: serviceNamePath(org, app),
+          })
+        );
+
+        dispatch(
+          HandleServiceInformationActions.fetchServiceConfig({
+            url: serviceConfigPath(org, app),
+          })
+        );
+      }
+    }
+  }, [app, dispatch, org, repositoryType]);
 
   useEffect(() => {
     const setEventListeners = (subscribe: boolean) => {
@@ -102,13 +102,19 @@ export function App() {
       keepAliveListeners.forEach((listener) =>
         (subscribe ? window.addEventListener : window.removeEventListener)(
           listener,
-          keepAliveSessionState,
-        ),
+          keepAliveSessionState
+        )
       );
     };
     const windowEventReceived = (event: any) => {
       if (event.data === postMessages.forceRepoStatusCheck) {
-        checkForMergeConflict();
+        dispatch(
+          fetchRepoStatus({
+            url: repoStatusPath(org, app),
+            org,
+            repo: app,
+          })
+        );
       }
     };
     const keepAliveSessionState = () => {
@@ -116,21 +122,11 @@ export function App() {
       if (
         remainingSessionMinutes > 10 &&
         remainingSessionMinutes <= 30 &&
-        timeNow - lastKeepAliveTimestamp.current > TEN_MINUTE_IN_MILLISECONDS
+        timeNow - lastKeepAliveTimestamp.current > TEN_MINUTES_IN_MILLISECONDS
       ) {
         lastKeepAliveTimestamp.current = timeNow;
         dispatch(keepAliveSession());
       }
-    };
-    const checkForMergeConflict = () => {
-      const { org, app } = window as Window as IAltinnWindow;
-      dispatch(
-        fetchRepoStatus({
-          url: repoStatusUrl,
-          org,
-          repo: app,
-        }),
-      );
     };
 
     setEventListeners(true);
@@ -139,7 +135,7 @@ export function App() {
       window.removeEventListener('message', windowEventReceived);
       setEventListeners(false);
     };
-  }, [dispatch, lastKeepAliveTimestamp, remainingSessionMinutes]);
+  }, [app, dispatch, lastKeepAliveTimestamp, org, remainingSessionMinutes]);
 
   const handleSessionExpiresClose = useCallback(
     (action: string) => {
@@ -152,7 +148,7 @@ export function App() {
         lastKeepAliveTimestamp.current = Date.now();
       }
     },
-    [dispatch],
+    [dispatch]
   );
 
   return (
@@ -165,29 +161,22 @@ export function App() {
           anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
           transformOrigin={{ vertical: 'top', horizontal: 'center' }}
           handleClose={(event: string) => handleSessionExpiresClose(event)}
-          btnCancelText={getLanguageFromKey('general.sign_out', language)}
-          btnConfirmText={getLanguageFromKey('general.continue', language)}
+          btnCancelText={t('general.sign_out')}
+          btnConfirmText={t('general.continue')}
           btnClick={handleSessionExpiresClose}
           paperProps={{ style: { margin: '2.4rem' } }}
         >
-          <Typography variant='h2'>
-            {getLanguageFromKey('session.expires', language)}
-          </Typography>
-          <Typography variant='body1' style={{ marginTop: '1.6rem' }}>
-            {getLanguageFromKey('session.inactive', language)}
-          </Typography>
+          <h2>{t('session.expires')}</h2>
+          <p style={{ marginTop: '1.6rem' }}>{t('session.inactive')}</p>
         </AltinnPopoverSimple>
-        <Grid container={true} direction='row'>
-          <PageHeader repoStatus={repoStatus} />
-          <LeftMenu
-            repoStatus={repoStatus}
-            classes={classes}
-            language={language}
-          />
-        </Grid>
+        <PageHeader repoStatus={repoStatus} />
+        <LeftMenu
+          className={classes.contentWrapper}
+          language={language}
+          repoStatus={repoStatus}
+          subAppClassName={repoStatus.hasMergeConflict ? classes.mergeConflictApp : classes.subApp}
+        />
       </div>
     </ThemeProvider>
   );
 }
-
-export default App;

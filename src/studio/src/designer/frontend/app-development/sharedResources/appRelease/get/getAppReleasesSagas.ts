@@ -1,14 +1,6 @@
-import { AxiosError } from 'axios';
-import { SagaIterator } from 'redux-saga';
-import {
-  call,
-  delay,
-  fork,
-  put,
-  race,
-  take,
-  takeLatest,
-} from 'redux-saga/effects';
+import type { AxiosError } from 'axios';
+import type { SagaIterator } from 'redux-saga';
+import { call, delay, fork, put, race, take, takeLatest } from 'redux-saga/effects';
 import { checkIfAxiosError, get } from 'app-shared/utils/networking';
 
 import { releasesGetUrl } from '../../../utils/urlHelper';
@@ -17,17 +9,13 @@ import { AppReleaseActions } from '../appReleaseSlice';
 function* getReleasesSaga(): SagaIterator {
   try {
     const result: any = yield call(get, releasesGetUrl);
-    yield put(
-      AppReleaseActions.getAppReleasesFulfilled({ releases: result.results }),
-    );
+    yield put(AppReleaseActions.getAppReleasesFulfilled({ releases: result.results }));
   } catch (error) {
     if (checkIfAxiosError(error)) {
       const {
         response: { status },
       } = error as AxiosError;
-      yield put(
-        AppReleaseActions.getAppReleasesRejected({ errorCode: status }),
-      );
+      yield put(AppReleaseActions.getAppReleasesRejected({ errorCode: status }));
     }
   }
 }

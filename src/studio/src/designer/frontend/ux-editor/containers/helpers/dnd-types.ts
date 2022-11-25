@@ -21,11 +21,7 @@ export enum ContainerPos {
  * @see DesignView
  */
 export interface EditorDndEvents {
-  moveItem: (
-    movedItem: EditorDndItem,
-    targetItem: EditorDndItem,
-    toIndex?: number,
-  ) => void;
+  moveItem: (movedItem: EditorDndItem, targetItem: EditorDndItem, toIndex?: number) => void;
   moveItemToBottom: (item: EditorDndItem) => void;
   moveItemToTop: (item: EditorDndItem) => void;
   onDropItem: (reset?: boolean) => void;

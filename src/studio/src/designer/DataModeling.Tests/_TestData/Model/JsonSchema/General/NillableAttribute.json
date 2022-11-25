@@ -12,6 +12,7 @@
     "BlockDefault": "None",
     "FinalDefault": "None"
   },
+  "@xsdRootElement": "Root",
   "oneOf": [
     {
       "$ref": "#/$defs/main"
@@ -71,7 +72,8 @@
     },
     "referedtype": {
       "type": "integer",
-      "@xsdType": "integer"
+      "@xsdType": "integer",
+      "@xsdStructure": "XmlSchemaSimpleTypeRestriction"
     }
   }
 }

@@ -7,7 +7,6 @@ import type { IDataModelBindings, ITextResource } from '../types/global';
 
 export const styles = {
   inputHelper: {
-    marginTop: '2.4rem',
     fontSize: '1.6rem',
     lineHeight: 'auto',
     color: '#000000',
@@ -48,9 +47,7 @@ export const PropertyLabel = ({ textKey, htmlFor }: IPropertyLabelProps) => {
 };
 
 export function renderOptionalLabel(text: string) {
-  return (
-    <Typography style={styles.optional}>{`(${text.toLowerCase()})`}</Typography>
-  );
+  return <Typography style={styles.optional}>{`(${text.toLowerCase()})`}</Typography>;
 }
 
 export function renderDescription(text: string) {
@@ -62,7 +59,7 @@ export function renderDescription(text: string) {
 }
 
 export function noOptionsMessage(language: any): string {
-  return language.general.no_options;
+  return language['general.no_options'];
 }
 
 export function renderSelectDataModelBinding(
@@ -72,18 +69,17 @@ export function renderSelectDataModelBinding(
   label?: string,
   returnValue?: any,
   key = 'simpleBinding',
-  uniqueKey?: any,
+  uniqueKey?: any
 ): JSX.Element {
-  const onDMChange = (dataModelField: any) =>
-    onDataModelChange(dataModelField, returnValue);
+  const onDMChange = (dataModelField: any) => onDataModelChange(dataModelField, returnValue);
   const noOptMessage = () => noOptionsMessage(language);
   return (
     <div key={uniqueKey || ''}>
       <PropertyLabel
         textKey={
           label
-            ? `${language.ux_editor.modal_properties_data_model_helper} ${language.general.for} ${label}`
-            : language.ux_editor.modal_properties_data_model_helper
+            ? `${language['ux_editor.modal_properties_data_model_helper']} ${language['general.for']} ${label}`
+            : language['ux_editor.modal_properties_data_model_helper']
         }
       />
       <SelectDataModelComponent
@@ -100,19 +96,15 @@ export function renderSelectGroupDataModelBinding(
   dataModelBinding: IDataModelBindings,
   onDataModelChange: any,
   language: any,
-  key = 'simpleBinding',
+  key = 'simpleBinding'
 ): JSX.Element {
   return (
     <div>
-      <PropertyLabel
-        textKey={language.ux_editor.modal_properties_data_model_helper}
-      />
+      <PropertyLabel textKey={language['ux_editor.modal_properties_data_model_helper']} />
 
       <SelectDataModelComponent
         selectedElement={dataModelBinding[key]}
-        onDataModelChange={(dataModelField) =>
-          onDataModelChange(dataModelField, key)
-        }
+        onDataModelChange={(dataModelField) => onDataModelChange(dataModelField, key)}
         language={language}
         selectGroup={true}
         noOptionsMessage={() => noOptionsMessage(language)}
@@ -153,25 +145,17 @@ export const SelectTextFromRecources = ({
           label: `${option}\n(${textResource.id})`,
         };
       });
-  const defaultValue = !selected
-    ? undefined
-    : resources.find(({ value }) => value === selected);
+  const defaultValue = !selected ? undefined : resources.find(({ value }) => value === selected);
   const onChange = (value: any) => onChangeFunction(value);
   const noOptMessage = () => noOptionsMessage(language);
   const placeholderText = placeholder
     ? truncate(getTextResource(placeholder, textResources), 40)
-    : language.ux_editor[labelText];
+    : language[`ux_editor.${labelText}`];
 
   return (
     <div>
-      <div
-        data-testid='SelectTextFromRecources-label'
-        style={{ display: 'flex' }}
-      >
-        <PropertyLabel
-          textKey={language.ux_editor[labelText]}
-          htmlFor={inputId}
-        />
+      <div data-testid='SelectTextFromRecources-label' style={{ display: 'flex' }}>
+        <PropertyLabel textKey={language[`ux_editor.${labelText}`]} htmlFor={inputId} />
         {children}
       </div>
       {description && renderDescription(description)}
@@ -189,31 +173,6 @@ export const SelectTextFromRecources = ({
   );
 };
 
-/**
- * @deprecated use SelectTextFromRecources component directly instead
- */
-export function renderSelectTextFromResources(
-  labelText: string,
-  onChangeFunction: (e: any) => void,
-  textResources: ITextResource[],
-  language: any,
-  selected?: string,
-  placeholder?: string,
-  description?: string,
-) {
-  return (
-    <SelectTextFromRecources
-      labelText={labelText}
-      onChangeFunction={onChangeFunction}
-      textResources={textResources}
-      language={language}
-      selected={selected}
-      placeholder={placeholder}
-      description={description}
-    />
-  );
-}
-
 export function renderOptionalSelectTextFromResources(
   labelText: string,
   onChangeFunction: (e: any) => void,
@@ -221,7 +180,7 @@ export function renderOptionalSelectTextFromResources(
   language: any,
   selected?: string,
   placeholder?: string,
-  description?: string,
+  description?: string
 ): JSX.Element {
   return (
     <SelectTextFromRecources
@@ -233,7 +192,7 @@ export function renderOptionalSelectTextFromResources(
       placeholder={placeholder}
       description={description}
     >
-      {renderOptionalLabel(language.general.optional)}
+      {renderOptionalLabel(language['general.optional'])}
     </SelectTextFromRecources>
   );
 }

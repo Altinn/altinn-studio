@@ -1,9 +1,9 @@
-import { AxiosError } from 'axios';
+import type { AxiosError } from 'axios';
 
 export interface IBuild {
   id: string;
-  status: string|number;
-  result: string|number;
+  status: string | number;
+  result: string | number;
   started: string;
   finished: string;
 }
@@ -24,11 +24,11 @@ export interface ICreateAppDeploymentRejected {
 }
 
 export interface ICreateAppDeploymentEnvObject {
-  'hostname': string;
-  'app': string;
-  'platformPrefix': string;
-  'name': string;
-  'type': string;
+  hostname: string;
+  app: string;
+  platformPrefix: string;
+  name: string;
+  type: string;
 }
 
 export interface ICreateAppDeploymentErrors {

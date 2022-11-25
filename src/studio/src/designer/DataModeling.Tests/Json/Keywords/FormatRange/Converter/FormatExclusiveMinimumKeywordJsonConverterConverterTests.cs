@@ -11,9 +11,6 @@ public class FormatExclusiveMinimumKeywordJsonConverterConverterTests: ValueKeyw
 {
     private const string KeywordPlaceholder = "formatExclusiveMinimum";
 
-    protected override JsonConverter<FormatExclusiveMinimumKeyword> Converter
-    => new FormatExclusiveMinimumKeyword.FormatExclusiveMinimumKeywordJsonConverter();
-
     protected override FormatExclusiveMinimumKeyword CreateKeywordWithValue(string value) => new(value);
 
     [Theory]
@@ -21,7 +18,7 @@ public class FormatExclusiveMinimumKeywordJsonConverterConverterTests: ValueKeyw
     public void Write_ValidStructure_ShouldWriteToJson(string value)
     {
         Given.That.KeywordCreatedWithValue(value)
-            .When.KeywordWrittenToStream()
+            .When.KeywordSerializedAsJson()
             .Then.SerializedKeywordShouldBe($@"{{""{KeywordPlaceholder}"":""{value}""}}");
     }
 

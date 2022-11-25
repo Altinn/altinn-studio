@@ -1,13 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Button, ButtonVariant, TextField } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant, TextField } from '@altinn/altinn-design-system';
 import { Popover } from '@mui/material';
-import {
-  getLanguageFromKey,
-  getParsedLanguageFromKey,
-} from 'app-shared/utils/language';
+import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
-import { useAppSelector } from 'common/hooks';
 import classes from './RepoModal.module.css';
+import { useAppSelector } from '../../../common/hooks';
 
 export interface IResetRepoModalProps {
   anchorRef: React.MutableRefObject<Element>;
@@ -22,9 +19,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
   const [canDelete, setCanDelete] = useState<boolean>(false);
   const [deleteRepoName, setDeleteRepoName] = useState<string>('');
 
-  const resetting: boolean = useAppSelector(
-    (state) => state.repoStatus.resettingLocalRepo,
-  );
+  const resetting: boolean = useAppSelector((state) => state.repoStatus.resettingLocalRepo);
 
   useEffect(() => {
     if (deleteRepoName === props.repositoryName) {
@@ -34,8 +29,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
     }
   }, [deleteRepoName, props.repositoryName]);
 
-  const onDeleteRepoNameChange = (event: any) =>
-    setDeleteRepoName(event.target.value);
+  const onDeleteRepoNameChange = (event: any) => setDeleteRepoName(event.target.value);
 
   const onResetWrapper = () => {
     setCanDelete(false);
@@ -70,7 +64,7 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
               'administration.reset_repo_confirm_info',
               props.language,
               [props.repositoryName],
-              true,
+              true
             )}
           </div>
           <label htmlFor='delete-repo-name'>
@@ -82,17 +76,19 @@ export function ResetRepoModal(props: IResetRepoModalProps) {
           ) : (
             <div className={classes.buttonContainer}>
               <Button
-                onClick={onResetWrapper}
-                id='confirm-reset-repo-button'
-                disabled={!canDelete}
-                variant={ButtonVariant.Cancel}
+                color={ButtonColor.Danger}
                 data-testid='confirm-reset-repo-button'
+                disabled={!canDelete}
+                id='confirm-reset-repo-button'
+                onClick={onResetWrapper}
+                variant={ButtonVariant.Outline}
               >
                 {t('administration.reset_repo_button')}
               </Button>
               <Button
+                color={ButtonColor.Secondary}
                 onClick={onCloseWrapper}
-                variant={ButtonVariant.Secondary}
+                variant={ButtonVariant.Outline}
               >
                 {t('general.cancel')}
               </Button>

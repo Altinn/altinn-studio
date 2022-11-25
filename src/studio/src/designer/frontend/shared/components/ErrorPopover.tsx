@@ -6,10 +6,7 @@ import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IErrorPopoverProps {
   anchorEl: Element | ((element: Element) => Element);
-  onClose: (
-    event: Record<string, unknown>,
-    reason: 'backdropClick' | 'escapeKeyDown',
-  ) => void;
+  onClose: (event: Record<string, unknown>, reason: 'backdropClick' | 'escapeKeyDown') => void;
   errorMessage: string;
 }
 
@@ -27,14 +24,10 @@ const useStyles = makeStyles(() =>
     errorText: {
       fontSize: '16px',
     },
-  }),
+  })
 );
 
-export default function ErrorPopover({
-  anchorEl,
-  onClose,
-  errorMessage,
-}: IErrorPopoverProps) {
+export default function ErrorPopover({ anchorEl, onClose, errorMessage }: IErrorPopoverProps) {
   const classes = useStyles();
 
   return (

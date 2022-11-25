@@ -7,20 +7,12 @@ import { FieldType, Keywords } from '../src';
 /**
  * Some schemas might not be valid
  */
-export const ignoreTestSchemas: string[] = ['ComplexSchema-old', 'ComplexSchema'];
+export const ignoreTestSchemas: string[] = ['ComplexSchema-old'];
 
-// These filkes are ignored because failed
-ignoreTestSchemas.push(
-  'ComplexSchema',
-  'NestedArrays',
-  'NestedWithArraySequence',
-  'NillableAttribute',
-  'SeresArray',
-  'SeresNillable',
-  'SeresSimpleTypeRestrictions',
+const defaultPath = path.resolve(
+  __dirname,
+  '../../../../DataModeling.Tests/_TestData/Model/JsonSchema'
 );
-
-const defaultPath = path.resolve(__dirname, '../../../../DataModeling.Tests/_TestData/Model/JsonSchema');
 
 const cache = new Map();
 
@@ -76,7 +68,7 @@ export const dumpToDebug = (dirname: string, basename: string, data: any) => {
       fs.mkdirSync(dir);
     }
     const preppedData = data instanceof Map ? Array.from(data) : data;
-    const filename = path.join(dir, basename + '.json');
+    const filename = path.join(dir, `${basename}.json`);
     fs.writeFileSync(filename, JSON.stringify(preppedData, null, 4), 'utf-8');
   }
 };

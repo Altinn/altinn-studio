@@ -1,5 +1,6 @@
 import { designerApi, TagTypes } from './designerApi';
 import type { IRepository } from 'app-shared/types/global';
+import { repoSearchPath, reposListPath } from 'app-shared/api-paths';
 
 type Filters = {
   uid?: number;
@@ -47,14 +48,7 @@ export enum DataModellingFormat {
 export const repoApi = designerApi.injectEndpoints({
   endpoints: (builder) => ({
     getSearch: builder.query<QueryResult, Filters>({
-      query: ({
-        uid,
-        keyword,
-        sortby = 'alpha',
-        order = 'asc',
-        page = 1,
-        limit = 10,
-      }) => {
+      query: ({ uid, keyword, sortby = 'alpha', order = 'asc', page = 1, limit = 10 }) => {
         const params = adjustQueryParams({
           uid,
           keyword,
@@ -65,7 +59,7 @@ export const repoApi = designerApi.injectEndpoints({
         });
 
         return {
-          url: `repos/search`,
+          url: repoSearchPath(),
           params: {
             uid: params.uid,
             keyword: params.keyword,
@@ -85,7 +79,7 @@ export const repoApi = designerApi.injectEndpoints({
     addRepo: builder.mutation<IRepository, AddQuery>({
       query: ({ owner, repoName, modelType }) => {
         return {
-          url: `repos/${owner}`,
+          url: reposListPath(owner),
           method: 'POST',
           params: {
             repository: repoName,

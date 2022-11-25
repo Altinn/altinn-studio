@@ -11,8 +11,6 @@ namespace DataModeling.Tests.Json.Keywords.OccursKeywords.Converter
     {
         private const string KeywordPlaceholder = "@xsdMaxOccurs";
 
-        protected override JsonConverter<XsdMaxOccursKeyword> Converter => new XsdMaxOccursKeyword.XsdMaxOccursKeywordJsonConverter();
-
         protected override XsdMaxOccursKeyword CreateKeywordWithValue(string value) => new(value);
 
         [Theory]
@@ -39,7 +37,7 @@ namespace DataModeling.Tests.Json.Keywords.OccursKeywords.Converter
         public void Write_ValidStructure_ShouldWriteToJson(string value)
         {
             Given.That.KeywordCreatedWithValue(value)
-                .When.KeywordWrittenToStream()
+                .When.KeywordSerializedAsJson()
                 .Then.SerializedKeywordShouldBe($@"{{""{KeywordPlaceholder}"":""{value}""}}");
         }
 

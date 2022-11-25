@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { createTheme, Drawer, Grid, Theme, Typography } from '@mui/material';
+import type { Theme } from '@mui/material';
+import { createTheme, Drawer, Grid, Typography } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import classNames from 'classnames';
 import { DndProvider } from 'react-dnd';
@@ -7,33 +8,24 @@ import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDispatch, useSelector } from 'react-redux';
 import FileEditor from 'app-shared/file-editor/FileEditor';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
-import VersionControlHeader from 'app-shared/version-control/versionControlHeader';
 import RightMenu from '../components/rightMenu/RightMenu';
 import { filterDataModelForIntellisense } from '../utils/datamodel';
 import { DesignView } from './DesignView';
 import { Toolbar } from './Toolbar';
 import { fetchServiceConfiguration } from '../features/serviceConfigurations/serviceConfigurationSlice';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
-import type {
-  IAppState,
-  IDataModelFieldElement,
-  LogicMode,
-} from '../types/global';
+import type { IAppState, IDataModelFieldElement, LogicMode } from '../types/global';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 
 const useTheme = createTheme(altinnTheme);
 
 const useStyles = makeStyles((theme: Theme) => ({
   root: {
-    [theme.breakpoints.up('md')]: {
-      paddingLeft: theme.sharedStyles.mainPaddingLeft,
-    },
     flexGrow: 1,
-    height: 'calc(100vh - 110px)',
     overflowY: 'hidden',
+    height: '100%',
   },
   drawerRoot: {
-    height: '100vh',
     overflow: 'hidden',
   },
   button: {
@@ -46,7 +38,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     },
   },
   container: {
-    height: 'calc(100vh - 69px)',
+    height: '100%',
     top: '69px',
     backgroundColor: altinnTheme.altinnPalette.primary.greyLight,
   },
@@ -108,9 +100,6 @@ const useStyles = makeStyles((theme: Theme) => ({
   rightDrawerWrapper: {
     position: 'relative',
   },
-  versionControlHeaderMargin: {
-    marginLeft: 24,
-  },
   pageHeader: {
     marginLeft: 24,
     marginTop: 12,
@@ -128,15 +117,9 @@ function FormDesigner() {
   const [codeEditorOpen, setCodeEditorOpen] = useState<boolean>(false);
   const [codeEditorMode, setCodeEditorMode] = useState<LogicMode>(null);
 
-  const selectedLayout: string = useSelector(
-    (state: IAppState) => state.formDesigner.layout.selectedLayout,
-  );
-  const language = useSelector(
-    (state: IAppState) => state.appData.languageState.language,
-  );
-  const dataModel = useSelector(
-    (state: IAppState) => state.appData.dataModel.model,
-  );
+  const selectedLayout: string = useSelector((state: IAppState) => state.formDesigner.layout.selectedLayout);
+  const language = useSelector((state: IAppState) => state.appData.languageState.language);
+  const dataModel = useSelector((state: IAppState) => state.appData.dataModel.model);
 
   useEffect(() => {
     dispatch(FormLayoutActions.fetchFormLayout());
@@ -148,9 +131,7 @@ function FormDesigner() {
     setCodeEditorMode(mode || null);
   };
 
-  const getDataModelSuggestions = (
-    filterText: string,
-  ): IDataModelFieldElement[] => {
+  const getDataModelSuggestions = (filterText: string): IDataModelFieldElement[] => {
     return filterDataModelForIntellisense(dataModel, filterText);
   };
 
@@ -162,11 +143,7 @@ function FormDesigner() {
 
   const renderLogicEditor = () => {
     return (
-      <Drawer
-        anchor='bottom'
-        open={codeEditorOpen}
-        classes={{ paper: classNames(classes.drawerRoot) }}
-      >
+      <Drawer anchor='bottom' open={codeEditorOpen} classes={{ paper: classNames(classes.drawerRoot) }}>
         <FileEditor
           editorHeight={getEditorHeight()}
           mode={codeEditorMode.toString()}
@@ -178,22 +155,12 @@ function FormDesigner() {
     );
   };
 
-  const activeList = useSelector(
-    (state: IAppState) => state.formDesigner.layout.activeList,
-  );
+  const activeList = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
   const layoutOrder = useSelector((state: IAppState) =>
-    JSON.parse(
-      JSON.stringify(
-        state.formDesigner.layout.layouts[
-          state.formDesigner.layout.selectedLayout
-        ]?.order || {},
-      ),
-    ),
+    JSON.parse(JSON.stringify(state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.order || {}))
   );
 
-  const order = useSelector((state: IAppState) =>
-    makeGetLayoutOrderSelector()(state),
-  );
+  const order = useSelector((state: IAppState) => makeGetLayoutOrderSelector()(state));
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -205,27 +172,12 @@ function FormDesigner() {
           classes={{ container: classNames(classes.container) }}
           id='formFillerGrid'
         >
-          <Grid
-            item={true}
-            xs={2}
-            className={classes.toolbarWrapper}
-            classes={{ item: classNames(classes.item) }}
-          >
+          <Grid item={true} xs={2} className={classes.toolbarWrapper} classes={{ item: classNames(classes.item) }}>
             <Toolbar />
           </Grid>
-          <Grid
-            item={true}
-            xs={8}
-            className={classes.mainContent}
-            classes={{ item: classNames(classes.item) }}
-          >
-            <div className={classes.versionControlHeaderMargin}>
-              <VersionControlHeader language={language} />
-            </div>
+          <Grid item={true} xs={8} className={classes.mainContent} classes={{ item: classNames(classes.item) }}>
             <div className={classes.pageHeader}>
-              <Typography classes={{ root: classes.pageHeaderText }}>
-                {`Side - ${selectedLayout}`}
-              </Typography>
+              <Typography classes={{ root: classes.pageHeaderText }}>{`Side - ${selectedLayout}`}</Typography>
             </div>
             <div
               style={{
@@ -234,20 +186,12 @@ function FormDesigner() {
                 marginLeft: '24px',
               }}
             >
-              <DesignView
-                order={order}
-                activeList={activeList}
-                isDragging={false}
-                layoutOrder={layoutOrder}
-              />
+              <DesignView order={order} activeList={activeList} isDragging={false} layoutOrder={layoutOrder} />
               {codeEditorOpen ? renderLogicEditor() : null}
             </div>
           </Grid>
           <Grid item={true} xs={2} classes={{ item: classNames(classes.item) }}>
-            <RightMenu
-              toggleFileEditor={toggleCodeEditor}
-              language={language}
-            />
+            <RightMenu toggleFileEditor={toggleCodeEditor} language={language} />
           </Grid>
         </Grid>
       </div>

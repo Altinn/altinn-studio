@@ -1,4 +1,5 @@
 using System;
+using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
 using Json.Pointer;
 using Json.Schema;
@@ -16,13 +17,13 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         }
 
         /// <inheritdoc/>
-        public override JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema, Uri uri)
+        public override JsonSchemaXsdMetadata AnalyzeSchema(JsonSchema schema)
         {
             JsonSchema = schema;
             Metadata = new JsonSchemaXsdMetadata
             {
                 SchemaOrigin = "Standard",
-                MessageName = UrlHelper.GetName(uri.ToString()),
+                MessageName = JsonSchema.TryGetKeyword(out XsdRootElementKeyword rootElementKeyword) ? rootElementKeyword.Value : "root",
                 MessageTypeName = string.Empty
             };
 

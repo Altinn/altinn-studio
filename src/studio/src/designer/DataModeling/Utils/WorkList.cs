@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using Json.Schema;
 
 namespace Altinn.Studio.DataModeling.Utils
 {
@@ -14,6 +15,7 @@ namespace Altinn.Studio.DataModeling.Utils
     /// </summary>
     /// <typeparam name="T">Work item base type</typeparam>
     public class WorkList<T> : IEnumerable<T>
+        where T : IJsonSchemaKeyword
     {
         private class WorkItem
         {
@@ -134,6 +136,20 @@ namespace Altinn.Studio.DataModeling.Utils
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumerator();
+        }
+
+        /// <summary>
+        /// Converts to JsonSchema
+        /// </summary>
+        public JsonSchema AsJsonSchema()
+        {
+            var builder = new JsonSchemaBuilder();
+            foreach (var workItem in _list)
+            {
+                builder.Add(workItem.Value);
+            }
+
+            return builder.Build();
         }
     }
 }

@@ -2,7 +2,7 @@ import React from 'react';
 import { createTheme } from '@mui/material';
 import { createStyles, withStyles } from '@mui/styles';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
-import type { IAltinnWindow } from '../../types/global';
+import { useParams } from 'react-router-dom';
 
 interface IIFrameComponentProvidedProps {
   iframeEndingUrl: string;
@@ -30,11 +30,8 @@ const styles = () =>
     },
   });
 
-export function IFrameComponent({
-  classes,
-  iframeEndingUrl,
-}: IIFrameComponentProvidedProps) {
-  const { org, app } = window as Window as IAltinnWindow;
+export function IFrameComponent({ classes, iframeEndingUrl }: IIFrameComponentProvidedProps) {
+  const { org, app } = useParams();
 
   const url = `${window.location.origin}/designer/${org}/${app}/${iframeEndingUrl}`;
   return (

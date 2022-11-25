@@ -1,57 +1,38 @@
 import React from 'react';
-import { Grid } from '@mui/material';
-import {
-  renderSelectDataModelBinding,
-  renderSelectTextFromResources,
-} from '../../utils/render';
+import { renderSelectDataModelBinding, SelectTextFromRecources } from '../../utils/render';
 import type { FormComponentType } from '../../types/global';
 
 export interface EditBoilerplateProps {
   component: FormComponentType;
   textResources: any;
-  handleDataModelChange: (
-    selectedDataModelElement: string,
-    key: string,
-  ) => void;
+  handleDataModelChange: (selectedDataModelElement: string, key: string) => void;
   handleTitleChange: (e: any) => void;
   handleDescriptionChange: (e: any) => void;
   language: any;
 }
-const EditBoilerplate: React.FunctionComponent<EditBoilerplateProps> = (
-  props: EditBoilerplateProps,
-) => {
-  const {
-    component,
-    textResources,
-    handleDataModelChange,
-    handleTitleChange,
-    handleDescriptionChange,
-    language,
-  } = props;
+const EditBoilerplate: React.FunctionComponent<EditBoilerplateProps> = (props: EditBoilerplateProps) => {
+  const { component, textResources, handleDataModelChange, handleTitleChange, handleDescriptionChange, language } =
+    props;
   return (
-    <Grid item={true} xs={12}>
-      {renderSelectDataModelBinding(
-        component.dataModelBindings,
-        handleDataModelChange,
-        language,
-      )}
-      {renderSelectTextFromResources(
-        'modal_properties_label_helper',
-        handleTitleChange,
-        textResources,
-        language,
-        component.textResourceBindings?.title,
-        component.textResourceBindings?.title,
-      )}
-      {renderSelectTextFromResources(
-        'modal_properties_description_helper',
-        handleDescriptionChange,
-        textResources,
-        language,
-        component.textResourceBindings?.description,
-        component.textResourceBindings?.description,
-      )}
-    </Grid>
+    <>
+      {renderSelectDataModelBinding(component.dataModelBindings, handleDataModelChange, language)}
+      <SelectTextFromRecources
+        labelText={'modal_properties_label_helper'}
+        onChangeFunction={handleTitleChange}
+        textResources={textResources}
+        language={language}
+        placeholder={component.textResourceBindings?.title}
+        description={component.textResourceBindings?.title}
+      />
+      <SelectTextFromRecources
+        labelText={'modal_properties_description_helper'}
+        onChangeFunction={handleDescriptionChange}
+        textResources={textResources}
+        language={language}
+        placeholder={component.textResourceBindings?.description}
+        description={component.textResourceBindings?.description}
+      />
+    </>
   );
 };
 

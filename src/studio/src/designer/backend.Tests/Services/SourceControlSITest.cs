@@ -30,10 +30,11 @@ namespace Designer.Tests.Services
         {
             // Arrange
             string org = "ttd";
-            string app = "app-for-deletion";
+            string origApp = "hvem-er-hvem";
+            string app = TestDataHelper.GenerateTestRepoName(origApp);
             string developer = "testUser";
 
-            await PrepareTestData(org, app, developer);
+            await TestDataHelper.CopyRepositoryForTest(org, origApp, developer, app);
 
             Mock<IGitea> mock = new Mock<IGitea>();
             mock.Setup(m => m.DeleteRepository(It.IsAny<string>(), It.IsAny<string>()))
@@ -71,12 +72,6 @@ namespace Designer.Tests.Services
 
             // Assert
             mock.VerifyAll();
-        }
-
-        private static async Task PrepareTestData(string org, string app, string developer)
-        {
-            string source = TestDataHelper.GetTestDataRepositoryDirectory(org, app, developer);
-            await TestDataHelper.CopyDirectory($"{source}.pretest", source, true);
         }
 
         private static HttpContext GetHttpContextForTestUser(string userName)

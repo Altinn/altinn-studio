@@ -134,7 +134,7 @@ namespace LocalTest.Controllers
             // Ensure that the documentstorage in LocalTestingStorageBasePath is updated with the most recent app data
             await _applicationRepository.Update(app);
 
-            return Redirect($"{_generalSettings.GetBaseUrl}/{app.Id}/");
+            return Redirect($"/{app.Id}/");
         }
 
         /// <summary>

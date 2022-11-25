@@ -9,6 +9,10 @@ test('that capabilities work as expected', () => {
   test.fieldType = FieldType.String;
   const caps = getCapabilities(test);
   expect(caps.sort()).toStrictEqual(
-    [Capabilites.CanBeConvertedToArray, Capabilites.CanBeConvertedToReference, Capabilites.CanBeDeleted].sort(),
+    [
+      Capabilites.CanBeConvertedToArray,
+      Capabilites.CanBeConvertedToReference,
+      Capabilites.CanBeDeleted,
+    ].sort()
   );
 });

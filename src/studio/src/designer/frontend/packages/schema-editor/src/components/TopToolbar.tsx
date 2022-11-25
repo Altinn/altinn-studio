@@ -13,7 +13,13 @@ interface TopToolbarProps {
   language: ILanguage;
 }
 
-export function TopToolbar({ editMode, Toolbar, saveAction, toggleEditMode, language }: TopToolbarProps) {
+export function TopToolbar({
+  editMode,
+  Toolbar,
+  saveAction,
+  toggleEditMode,
+  language,
+}: TopToolbarProps) {
   const t = (key: string) => getTranslation(key, language);
 
   return (

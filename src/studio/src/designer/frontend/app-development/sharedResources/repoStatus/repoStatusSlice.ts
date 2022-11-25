@@ -1,4 +1,5 @@
-import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createAction, createSlice } from '@reduxjs/toolkit';
 
 export interface IRepoStatusState {
   branch: IBranch;
@@ -34,18 +35,12 @@ export const repoStatusSlice = createSlice({
   name: moduleName,
   initialState,
   reducers: {
-    getMasterRepoStatusFulfilled: (
-      state,
-      action: PayloadAction<IRepoStatusActionFulfilled>,
-    ) => {
+    getMasterRepoStatusFulfilled: (state, action: PayloadAction<IRepoStatusActionFulfilled>) => {
       const { result } = action.payload;
       state.branch.master = result;
       state.error = null;
     },
-    getMasterRepoStatusRejected: (
-      state,
-      action: PayloadAction<IRepoStatusActionRejected>,
-    ) => {
+    getMasterRepoStatusRejected: (state, action: PayloadAction<IRepoStatusActionRejected>) => {
       const { error } = action.payload;
       state.error = error;
     },
@@ -54,17 +49,11 @@ export const repoStatusSlice = createSlice({
       state.resettingLocalRepo = true;
     },
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    resetLocalRepoFulfilled: (
-      state,
-      action: PayloadAction<IRepoStatusActionFulfilled>,
-    ) => {
+    resetLocalRepoFulfilled: (state, action: PayloadAction<IRepoStatusActionFulfilled>) => {
       state.resettingLocalRepo = false;
       state.error = null;
     },
-    resetLocalRepoRejected: (
-      state,
-      action: PayloadAction<IRepoStatusActionRejected>,
-    ) => {
+    resetLocalRepoRejected: (state, action: PayloadAction<IRepoStatusActionRejected>) => {
       const { error } = action.payload;
       state.error = error;
       state.resettingLocalRepo = false;
@@ -73,9 +62,7 @@ export const repoStatusSlice = createSlice({
 });
 
 const actions = {
-  getMasterRepoStatus: createAction<IRepoStatusAction>(
-    `${moduleName}/getMasterRepoStatus`,
-  ),
+  getMasterRepoStatus: createAction<IRepoStatusAction>(`${moduleName}/getMasterRepoStatus`),
 };
 
 export const RepoStatusActions = {

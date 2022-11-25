@@ -1,4 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 import type {
   IServiceConfigurationState,
   IAddConditionalRendering,
@@ -24,10 +25,7 @@ const serviceConfigurationSlice = createSlice({
   name: 'serviceConfiguration',
   initialState,
   reducers: {
-    addConditionalRenderingConnection: (
-      state,
-      action: PayloadAction<IAddConditionalRendering>,
-    ) => {
+    addConditionalRenderingConnection: (state, action: PayloadAction<IAddConditionalRendering>) => {
       const { newConnection } = action.payload;
       state.conditionalRendering = {
         ...state.conditionalRendering,
@@ -57,10 +55,7 @@ const serviceConfigurationSlice = createSlice({
       state.manageServiceConfiguration.fetching = false;
       state.manageServiceConfiguration.error = null;
     },
-    fetchServiceConfigurationRejected: (
-      state,
-      action: PayloadAction<IFormDesignerActionRejected>,
-    ) => {
+    fetchServiceConfigurationRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
       const { error } = action.payload;
       state.manageServiceConfiguration.error = error;
       state.manageServiceConfiguration.fetched = false;
@@ -74,19 +69,13 @@ const serviceConfigurationSlice = createSlice({
       state.manageServiceConfiguration.saving = false;
       state.manageServiceConfiguration.error = null;
     },
-    saveServiceConfigurationRejected: (
-      state,
-      action: PayloadAction<IFormDesignerActionRejected>,
-    ) => {
+    saveServiceConfigurationRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
       const { error } = action.payload;
       state.manageServiceConfiguration.error = error;
       state.manageServiceConfiguration.saved = false;
       state.manageServiceConfiguration.saving = false;
     },
-    setConditionalRenderingConnections: (
-      state,
-      action: PayloadAction<ISetConditionalRendering>,
-    ) => {
+    setConditionalRenderingConnections: (state, action: PayloadAction<ISetConditionalRendering>) => {
       const { conditionalRenderingConnections } = action.payload;
       state.conditionalRendering = { ...conditionalRenderingConnections };
     },

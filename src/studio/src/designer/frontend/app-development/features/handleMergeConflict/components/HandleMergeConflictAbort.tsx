@@ -4,7 +4,8 @@ import AltinnPopover from 'app-shared/components/AltinnPopover';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { get } from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
-import type { IAltinnWindow } from '../../../types/global';
+import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
+import { abortmergePath } from 'app-shared/api-paths';
 
 interface IHandleMergeConflictAbortProps {
   language: any;
@@ -50,27 +51,22 @@ export class HandleMergeConflictAbort extends React.Component<
         btnMethod: this.AbortConfirmed,
         btnConfirmText: getLanguageFromKey(
           'handle_merge_conflict.abort_merge_button_confirm',
-          this.props.language,
+          this.props.language
         ),
         descriptionText: getLanguageFromKey(
           'handle_merge_conflict.abort_merge_message',
-          this.props.language,
+          this.props.language
         ),
         btnCancelText: getLanguageFromKey(
           'handle_merge_conflict.abort_merge_button_cancel',
-          this.props.language,
+          this.props.language
         ),
       },
     });
   };
 
   public AbortConfirmed = async () => {
-    const { org, app } = window as Window as IAltinnWindow;
-
-    const abortUrl =
-      `${window.location.origin}` +
-      `/designer/api/v1/repos/${org}/${app}/abortmerge`;
-
+    const { org, app } = _useParamsClassCompHack();
     // Try to abort merge and catch error
     // If successfull merge abort then initiate forceRepoStatusCheck
     try {
@@ -83,7 +79,7 @@ export class HandleMergeConflictAbort extends React.Component<
         },
       });
 
-      const abortRes = await get(abortUrl);
+      const abortRes = await get(abortmergePath(org, app));
       this.setState({
         networkingRes: abortRes,
         popoverState: {
@@ -93,10 +89,7 @@ export class HandleMergeConflictAbort extends React.Component<
         },
       });
 
-      window.postMessage(
-        postMessages.forceRepoStatusCheck,
-        window.location.href,
-      );
+      window.postMessage(postMessages.forceRepoStatusCheck, window.location.href);
       this.handleClose();
     } catch (err) {
       this.setState({
@@ -125,7 +118,7 @@ export class HandleMergeConflictAbort extends React.Component<
         <AltinnButton
           btnText={getLanguageFromKey(
             'handle_merge_conflict.abort_merge_button',
-            this.props.language,
+            this.props.language
           )}
           id='abortMergeBtn'
           onClickFunction={this.AbortPopover}

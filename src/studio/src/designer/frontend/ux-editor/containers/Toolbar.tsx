@@ -1,16 +1,9 @@
 import React, { useState } from 'react';
 import { List } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  mapComponentToToolbarElement,
-  mapWidgetToToolbarElement,
-} from '../utils/formLayout';
-import {
-  advancedComponents,
-  ComponentTypes,
-  schemaComponents,
-  textComponents,
-} from '../components';
+import { mapComponentToToolbarElement, mapWidgetToToolbarElement } from '../utils/formLayout';
+import type { ComponentTypes } from '../components';
+import { advancedComponents, schemaComponents, textComponents } from '../components';
 import { InformationPanelComponent } from '../components/toolbar/InformationPanelComponent';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import { ToolbarGroup } from './ToolbarGroup';
@@ -39,93 +32,40 @@ export enum CollapsableMenus {
 
 export function Toolbar() {
   const dispatch = useDispatch();
-  const [componentInformationPanelOpen, setComponentInformationPanelOpen] =
-    useState<boolean>(false);
-  const [
-    componentSelectedForInformationPanel,
-    setComponentSelectedForInformationPanel,
-  ] = useState<ComponentTypes>(null);
+  const [componentInformationPanelOpen, setComponentInformationPanelOpen] = useState<boolean>(false);
+  const [componentSelectedForInformationPanel, setComponentSelectedForInformationPanel] =
+    useState<ComponentTypes>(null);
   const [anchorElement, setAnchorElement] = useState<any>(null);
   const [componentListOpen, setComponentListOpen] = useState<boolean>(true);
-  const [componentListCloseAnimationDone, setComponentListCloseAnimationDone] =
-    useState<boolean>(false);
+  const [componentListCloseAnimationDone, setComponentListCloseAnimationDone] = useState<boolean>(false);
   const [textListOpen, setTextListOpen] = useState<boolean>(false);
-  const [textListCloseAnimationDone, setTextListCloseAnimationDone] =
+  const [textListCloseAnimationDone, setTextListCloseAnimationDone] = useState<boolean>(false);
+  const [advancedComponentListOpen, setAdvancedComponentListOpen] = useState<boolean>(false);
+  const [advancedComponentListCloseAnimationDone, setAdvancedComponentListCloseAnimationDone] =
     useState<boolean>(false);
-  const [advancedComponentListOpen, setAdvancedComponentListOpen] =
-    useState<boolean>(false);
-  const [
-    advancedComponentListCloseAnimationDone,
-    setAdvancedComponentListCloseAnimationDone,
-  ] = useState<boolean>(false);
-  const [widgetComponentListOpen, setWidgetComponentListOpen] =
-    useState<boolean>(false);
-  const [
-    widgetComponentListCloseAnimationDone,
-    setWidgetComponentListCloseAnimationDone,
-  ] = useState<boolean>(false);
+  const [widgetComponentListOpen, setWidgetComponentListOpen] = useState<boolean>(false);
+  const [widgetComponentListCloseAnimationDone, setWidgetComponentListCloseAnimationDone] = useState<boolean>(false);
 
-  const activeList: any[] = useSelector(
-    (state: IAppState) => state.formDesigner.layout.activeList,
-  );
-  const language: any = useSelector(
-    (state: IAppState) => state.appData.languageState.language,
-  );
+  const activeList: any[] = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
+  const language: any = useSelector((state: IAppState) => state.appData.languageState.language);
   const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
-  const order: any[] = useSelector((state: IAppState) =>
-    GetLayoutOrderSelector(state),
-  );
-  const widgetsList: IWidget[] = useSelector(
-    (state: IAppState) => state.widgets.widgets,
-  );
+  const order: any[] = useSelector((state: IAppState) => GetLayoutOrderSelector(state));
+  const widgetsList: IWidget[] = useSelector((state: IAppState) => state.widgets.widgets);
 
   const componentList: IToolbarElement[] = schemaComponents.map((component) => {
-    return mapComponentToToolbarElement(
-      component,
-      language,
-      activeList,
-      order,
-      dispatch,
-    );
+    return mapComponentToToolbarElement(component, language, activeList, order, dispatch);
   });
-  const textComponentList: IToolbarElement[] = textComponents.map(
-    (component: any) => {
-      return mapComponentToToolbarElement(
-        component,
-        language,
-        activeList,
-        order,
-        dispatch,
-      );
-    },
-  );
-  const advancedComponentsList: IToolbarElement[] = advancedComponents.map(
-    (component: any) => {
-      return mapComponentToToolbarElement(
-        component,
-        language,
-        activeList,
-        order,
-        dispatch,
-      );
-    },
-  );
-  const widgetComponentsList: IToolbarElement[] = widgetsList.map(
-    (widget: any) => {
-      return mapWidgetToToolbarElement(
-        widget,
-        activeList,
-        order,
-        language,
-        dispatch,
-      );
-    },
-  );
+  const textComponentList: IToolbarElement[] = textComponents.map((component: any) => {
+    return mapComponentToToolbarElement(component, language, activeList, order, dispatch);
+  });
+  const advancedComponentsList: IToolbarElement[] = advancedComponents.map((component: any) => {
+    return mapComponentToToolbarElement(component, language, activeList, order, dispatch);
+  });
+  const widgetComponentsList: IToolbarElement[] = widgetsList.map((widget: any) => {
+    return mapWidgetToToolbarElement(widget, activeList, order, language, dispatch);
+  });
 
-  const handleComponentInformationOpen = (
-    component: ComponentTypes,
-    event: any,
-  ) => {
+  const handleComponentInformationOpen = (component: ComponentTypes, event: any) => {
     setComponentInformationPanelOpen(true);
     setComponentSelectedForInformationPanel(component);
     setAnchorElement(event.currentTarget);
@@ -215,9 +155,7 @@ export function Toolbar() {
           list='advanced'
           menuType={CollapsableMenus.AdvancedComponents}
           components={advancedComponentsList}
-          componentListCloseAnimationDone={
-            advancedComponentListCloseAnimationDone
-          }
+          componentListCloseAnimationDone={advancedComponentListCloseAnimationDone}
           componentListOpen={advancedComponentListOpen}
           handleCollapsableListClicked={handleCollapsableListClicked}
           handleComponentInformationOpen={handleComponentInformationOpen}
@@ -229,9 +167,7 @@ export function Toolbar() {
           list='widget'
           menuType={CollapsableMenus.Widgets}
           components={widgetComponentsList}
-          componentListCloseAnimationDone={
-            widgetComponentListCloseAnimationDone
-          }
+          componentListCloseAnimationDone={widgetComponentListCloseAnimationDone}
           componentListOpen={widgetComponentListOpen}
           handleCollapsableListClicked={handleCollapsableListClicked}
           handleComponentInformationOpen={handleComponentInformationOpen}

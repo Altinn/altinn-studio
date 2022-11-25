@@ -161,6 +161,7 @@ publish/
 project.lock.json
 
 # yarn lock file
+/yarn.lock
 package-lock.json
 
 # Windows Azure Build Output
@@ -316,6 +317,7 @@ src/studio/src/designer/backend/wwwroot/designer/css/lib
 src/studio/src/designer/backend/wwwroot/designer/css/font-awesome
 src/studio/src/designer/backend/wwwroot/designer/css/fonts
 src/studio/src/designer/backend/wwwroot/designer/css/bootstrap*.css
+src/studio/src/designer/backend/wwwroot/designer/frontend
 
 ######### Testdata created by testrun #########
 src/Altinn.Platform/Altinn.Platform.Authorization/IntegrationTests/Data/blobs/output/
@@ -375,3 +377,9 @@ nb-configuration.xml
 .idea
 src/Altinn.Apps/AppTemplates/AspNet/App/Properties/launchSettings.json
 *.iml
+
+## Test repositories
+src/studio/src/designer/backend.Tests/_TestData/Repositories/*/*/test-repo_*/**
+src/studio/src/designer/backend.Tests/_TestData/Remote/*/test-repo_*/**
+src/studio/.env
+src/studio/.devcontainer/**

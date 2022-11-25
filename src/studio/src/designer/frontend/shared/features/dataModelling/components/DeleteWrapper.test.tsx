@@ -6,6 +6,17 @@ import { DeleteWrapper } from './DeleteWrapper';
 
 const user = userEvent.setup();
 
+const render = (props: Partial<IDeleteWrapper> = {}) => {
+  const allProps = {
+    language: { 'administration.delete_model_confirm': 'Delete {0}?' },
+    deleteAction: jest.fn(),
+    schemaName: 'deletable-model',
+    ...props,
+  } as IDeleteWrapper;
+
+  return rtlRender(<DeleteWrapper {...allProps} />);
+};
+
 describe('DeleteWrapper', () => {
   it('should not be able to open the delete dialog if no schemaName is set', async () => {
     const userWithNoPointerEventCheck = userEvent.setup({
@@ -16,7 +27,7 @@ describe('DeleteWrapper', () => {
     expect(
       screen.queryByRole('heading', {
         name: /delete some-name\?/i,
-      }),
+      })
     ).not.toBeInTheDocument();
 
     const deleteButton = screen.getByRole('button', {
@@ -27,7 +38,7 @@ describe('DeleteWrapper', () => {
     expect(
       screen.queryByRole('heading', {
         name: /delete some-name\?/i,
-      }),
+      })
     ).not.toBeInTheDocument();
   });
 
@@ -37,7 +48,7 @@ describe('DeleteWrapper', () => {
     expect(
       screen.queryByRole('heading', {
         name: /delete some-name\?/i,
-      }),
+      })
     ).not.toBeInTheDocument();
     const deleteButton = screen.getByRole('button', {
       name: /general\.delete/i,
@@ -47,7 +58,7 @@ describe('DeleteWrapper', () => {
     expect(
       screen.getByRole('heading', {
         name: /delete some-name\?/i,
-      }),
+      })
     ).toBeInTheDocument();
   });
 
@@ -72,7 +83,7 @@ describe('DeleteWrapper', () => {
     expect(
       screen.queryByRole('heading', {
         name: /delete some-name\?/i,
-      }),
+      })
     ).not.toBeInTheDocument();
   });
 
@@ -82,7 +93,7 @@ describe('DeleteWrapper', () => {
     expect(
       screen.queryByRole('heading', {
         name: /delete some-name\?/i,
-      }),
+      })
     ).not.toBeInTheDocument();
     const deleteButton = screen.getByRole('button', {
       name: /general\.delete/i,
@@ -92,7 +103,7 @@ describe('DeleteWrapper', () => {
     expect(
       screen.getByRole('heading', {
         name: /delete some-name\?/i,
-      }),
+      })
     ).toBeInTheDocument();
 
     const cancelButton = screen.getByRole('button', {
@@ -103,18 +114,7 @@ describe('DeleteWrapper', () => {
     expect(
       screen.queryByRole('heading', {
         name: /delete some-name\?/i,
-      }),
+      })
     ).not.toBeInTheDocument();
   });
 });
-
-const render = (props: Partial<IDeleteWrapper> = {}) => {
-  const allProps = {
-    language: { administration: { delete_model_confirm: 'Delete {0}?' } },
-    deleteAction: jest.fn(),
-    schemaName: 'deletable-model',
-    ...props,
-  } as IDeleteWrapper;
-
-  return rtlRender(<DeleteWrapper {...allProps} />);
-};

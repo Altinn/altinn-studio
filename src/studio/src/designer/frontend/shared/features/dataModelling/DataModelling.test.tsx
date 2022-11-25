@@ -54,6 +54,45 @@ const initialStoreCall = {
   },
 };
 
+const render = (
+  state: {
+    [K in keyof typeof defaultInitialState]?: Partial<typeof defaultInitialState[K]>;
+  } = {}
+) => {
+  const dataModelsMetadataState = state?.dataModelsMetadataState;
+  const dataModelling = state?.dataModelling;
+
+  const initialState = {
+    dataModelsMetadataState: {
+      ...defaultInitialState.dataModelsMetadataState,
+      ...dataModelsMetadataState,
+    },
+    dataModelling: {
+      ...defaultInitialState.dataModelling,
+      ...dataModelling,
+    },
+  };
+
+  const store = configureStore()(initialState);
+  store.dispatch = jest.fn();
+
+  rtlRender(
+    <Provider store={store}>
+      <DataModelling
+        language={{
+          'administration.first': 'some text',
+          'administration.second': 'other text',
+          'app_data_modelling.landing_dialog_header': 'Dialog header',
+        }}
+        org='test-org'
+        repo='test-repo'
+      />
+    </Provider>
+  );
+
+  return { store };
+};
+
 describe('DataModelling', () => {
   it('should fetch models on mount', () => {
     const { store } = render();
@@ -71,12 +110,13 @@ describe('DataModelling', () => {
               value: {
                 repositoryRelativeUrl: '',
                 fileName: 'option 1.xsd',
+                fileType: '.xsd',
               },
             },
           ],
           selectedOption: undefined,
           metadataLoadingState: LoadingState.ModelsLoaded,
-        }),
+        })
       ).toBe(true);
     });
 
@@ -89,6 +129,7 @@ describe('DataModelling', () => {
               value: {
                 repositoryRelativeUrl: '',
                 fileName: 'option 1.xsd',
+                fileType: '.xsd',
               },
             },
           ],
@@ -96,7 +137,7 @@ describe('DataModelling', () => {
             label: 'some-label',
           },
           metadataLoadingState: LoadingState.ModelsLoaded,
-        }),
+        })
       ).toBe(false);
     });
 
@@ -109,12 +150,13 @@ describe('DataModelling', () => {
               value: {
                 repositoryRelativeUrl: '',
                 fileName: 'option 1.xsd',
+                fileType: '.xsd',
               },
             },
           ],
           selectedOption: undefined,
           metadataLoadingState: LoadingState.LoadingModels,
-        }),
+        })
       ).toBe(false);
     });
 
@@ -123,7 +165,7 @@ describe('DataModelling', () => {
         shouldSelectFirstEntry({
           selectedOption: undefined,
           metadataLoadingState: LoadingState.ModelsLoaded,
-        }),
+        })
       ).toBe(false);
     });
 
@@ -133,7 +175,7 @@ describe('DataModelling', () => {
           metadataOptions: [],
           selectedOption: undefined,
           metadataLoadingState: LoadingState.ModelsLoaded,
-        }),
+        })
       ).toBe(false);
     });
   });
@@ -164,14 +206,18 @@ describe('DataModelling', () => {
   it('Should not show start dialog when the models have not been loaded yet', () => {
     // make sure setting to turn off info dialog is set
     setLocalStorageItem('hideIntroPage', true);
-    render({ dataModelsMetadataState: { loadState: LoadingState.LoadingModels } });
+    render({
+      dataModelsMetadataState: { loadState: LoadingState.LoadingModels },
+    });
     expect(screen.queryByText('Dialog header')).not.toBeInTheDocument();
   });
 
   it('Should not show start dialog when the models have not been loaded yet', () => {
     // make sure setting to turn off info dialog is set
     setLocalStorageItem('hideIntroPage', true);
-    render({ dataModelsMetadataState: { loadState: LoadingState.LoadingModels } });
+    render({
+      dataModelsMetadataState: { loadState: LoadingState.LoadingModels },
+    });
     expect(screen.queryByText('Dialog header')).not.toBeInTheDocument();
   });
 
@@ -186,42 +232,3 @@ describe('DataModelling', () => {
     expect(screen.queryByText('Dialog header')).not.toBeInTheDocument();
   });
 });
-
-const render = (state: { [K in keyof typeof defaultInitialState]?: Partial<typeof defaultInitialState[K]> } = {}) => {
-  const dataModelsMetadataState = state?.dataModelsMetadataState;
-  const dataModelling = state?.dataModelling;
-
-  const initialState = {
-    dataModelsMetadataState: {
-      ...defaultInitialState.dataModelsMetadataState,
-      ...dataModelsMetadataState,
-    },
-    dataModelling: {
-      ...defaultInitialState.dataModelling,
-      ...dataModelling,
-    },
-  };
-
-  const store = configureStore()(initialState);
-  store.dispatch = jest.fn();
-
-  rtlRender(
-    <Provider store={store}>
-      <DataModelling
-        language={{
-          administration: {
-            first: 'some text',
-            second: 'other text',
-          },
-          app_data_modelling: {
-            landing_dialog_header: 'Dialog header',
-          },
-        }}
-        org='test-org'
-        repo='test-repo'
-      />
-    </Provider>,
-  );
-
-  return { store };
-};

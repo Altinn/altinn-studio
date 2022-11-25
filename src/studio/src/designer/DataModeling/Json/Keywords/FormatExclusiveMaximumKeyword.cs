@@ -68,10 +68,10 @@ public sealed class FormatExclusiveMaximumKeyword: IJsonSchemaKeyword, IEquatabl
     /// <summary>
     /// Serializer for the FormatExclusiveMaximumKeyword keyword
     /// </summary>
-    public class FormatExclusiveMaximumKeywordJsonConverter : JsonConverter<FormatExclusiveMaximumKeyword>
+    internal class FormatExclusiveMaximumKeywordJsonConverter : JsonConverter<FormatExclusiveMaximumKeyword>
     {
         /// <summary>
-        /// Read @xsdType keyword from json schema
+        /// Read formatExclusiveMaximum keyword from json schema
         /// </summary>
         public override FormatExclusiveMaximumKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {

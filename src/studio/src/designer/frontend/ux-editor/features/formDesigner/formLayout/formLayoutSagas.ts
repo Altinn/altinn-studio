@@ -1,37 +1,28 @@
-import { SagaIterator } from 'redux-saga';
-import {
-  call,
-  delay,
-  put,
-  select,
-  takeEvery,
-  takeLatest,
-} from 'redux-saga/effects';
+import type { SagaIterator } from 'redux-saga';
+import { call, delay, put, select, takeEvery, takeLatest } from 'redux-saga/effects';
 import { del, get, post } from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
-import { ILayoutSettings } from 'app-shared/types/global';
+import type { ILayoutSettings } from 'app-shared/types/global';
 import Axios from 'axios';
 import { v4 as uuidv4 } from 'uuid';
-import { PayloadAction } from '@reduxjs/toolkit';
-import {
-  convertFromLayoutToInternalFormat,
-  convertInternalToLayoutFormat,
-} from '../../../utils/formLayout';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { convertFromLayoutToInternalFormat, convertInternalToLayoutFormat } from '../../../utils/formLayout';
 
 import {
   getAddApplicationMetadataUrl,
   getDeleteApplicationMetadataUrl,
   getDeleteForLayoutUrl,
   getFetchFormLayoutUrl,
-  getLayoutSchemaUrl,
   getLayoutSettingsUrl,
   getSaveFormLayoutUrl,
   getSaveLayoutSettingsUrl,
   getUpdateApplicationMetadataUrl,
-  getUpdateFormLayoutNameUrl,
+  getUpLayNmeUrl,
 } from '../../../utils/urlHelper';
+import { layoutSchemaUrl } from 'app-shared/cdn-paths';
+
 import { ComponentTypes } from '../../../components';
-import {
+import type {
   IAddApplicationMetadataAction,
   IAddFormComponentAction,
   IAddFormContainerAction,
@@ -45,19 +36,12 @@ import {
   IUpdateLayoutNameAction,
 } from '../formDesignerTypes';
 import { FormLayoutActions } from './formLayoutSlice';
-import type {
-  IAppState,
-  IFormFileUploaderComponent,
-  IFormLayout,
-  IFormLayouts,
-} from '../../../types/global';
+import type { IAppState, IFormFileUploaderComponent, IFormLayout, IFormLayouts } from '../../../types/global';
 
 const selectCurrentLayout = (state: IAppState): IFormLayout =>
   state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout];
 
-function* addFormComponentSaga({
-  payload,
-}: PayloadAction<IAddFormComponentAction>): SagaIterator {
+function* addFormComponentSaga({ payload }: PayloadAction<IAddFormComponentAction>): SagaIterator {
   try {
     let { position, containerId } = payload;
     const { component, callback } = payload;
@@ -79,17 +63,13 @@ function* addFormComponentSaga({
         position,
         containerId,
         callback,
-      }),
+      })
     );
     yield put(FormLayoutActions.saveFormLayout());
 
     if (component.type === 'FileUpload') {
-      const {
-        maxNumberOfAttachments,
-        minNumberOfAttachments,
-        maxFileSizeInMB,
-        validFileEndings,
-      } = component as IFormFileUploaderComponent;
+      const { maxNumberOfAttachments, minNumberOfAttachments, maxFileSizeInMB, validFileEndings } =
+        component as IFormFileUploaderComponent;
       yield put(
         FormLayoutActions.addApplicationMetadata({
           id,
@@ -97,7 +77,7 @@ function* addFormComponentSaga({
           minFiles: minNumberOfAttachments,
           fileType: validFileEndings,
           maxSize: maxFileSizeInMB,
-        }),
+        })
       );
     }
 
@@ -112,19 +92,13 @@ export function* watchAddFormComponentSaga(): SagaIterator {
   yield takeLatest(FormLayoutActions.addFormComponent, addFormComponentSaga);
 }
 
-function* addFormContainerSaga({
-  payload,
-}: PayloadAction<IAddFormContainerAction>): SagaIterator {
+function* addFormContainerSaga({ payload }: PayloadAction<IAddFormContainerAction>): SagaIterator {
   try {
-    const { container, positionAfterId, addToId, callback, destinationIndex } =
-      payload;
+    const { container, positionAfterId, addToId, callback, destinationIndex } = payload;
     const id = uuidv4();
     const currentLayout: IFormLayout = yield select(selectCurrentLayout);
     let baseContainerId;
-    if (
-      Object.keys(currentLayout.order) &&
-      Object.keys(currentLayout.order).length > 0
-    ) {
+    if (Object.keys(currentLayout.order) && Object.keys(currentLayout.order).length > 0) {
       baseContainerId = Object.keys(currentLayout.order)[0];
     }
 
@@ -137,7 +111,7 @@ function* addFormContainerSaga({
         baseContainerId,
         destinationIndex,
         callback,
-      }),
+      })
     );
     yield put(FormLayoutActions.saveFormLayout());
   } catch (error) {
@@ -149,9 +123,7 @@ export function* watchAddFormContainerSaga(): SagaIterator {
   yield takeLatest(FormLayoutActions.addFormContainer, addFormContainerSaga);
 }
 
-function* deleteFormComponentsSaga({
-  payload,
-}: PayloadAction<IDeleteComponentsAction>): SagaIterator {
+function* deleteFormComponentsSaga({ payload }: PayloadAction<IDeleteComponentsAction>): SagaIterator {
   try {
     const { components } = payload;
     const currentLayout: IFormLayout = yield select(selectCurrentLayout);
@@ -169,15 +141,10 @@ function* deleteFormComponentsSaga({
 }
 
 export function* watchDeleteFormComponentSaga(): SagaIterator {
-  yield takeEvery(
-    FormLayoutActions.deleteFormComponents,
-    deleteFormComponentsSaga,
-  );
+  yield takeEvery(FormLayoutActions.deleteFormComponents, deleteFormComponentsSaga);
 }
 
-function* deleteFormContainerSaga({
-  payload,
-}: PayloadAction<IDeleteContainerAction>): SagaIterator {
+function* deleteFormContainerSaga({ payload }: PayloadAction<IDeleteContainerAction>): SagaIterator {
   try {
     const { id, index } = payload;
     const currentLayout: IFormLayout = yield select(selectCurrentLayout);
@@ -193,7 +160,7 @@ function* deleteFormContainerSaga({
           FormLayoutActions.deleteFormContainerFulfilled({
             id: componentId,
             parentContainerId: id,
-          }),
+          })
         );
       } else {
         yield put(
@@ -201,7 +168,7 @@ function* deleteFormContainerSaga({
             id: componentId,
             index: currentLayout.order[id].indexOf(componentId),
             parentContainerId: id,
-          }),
+          })
         );
       }
     }
@@ -210,7 +177,7 @@ function* deleteFormContainerSaga({
         id,
         index,
         parentContainerId: parentContainer,
-      }),
+      })
     );
     yield put(FormLayoutActions.saveFormLayout());
   } catch (error) {
@@ -219,10 +186,7 @@ function* deleteFormContainerSaga({
 }
 
 export function* watchDeleteFormContainerSaga(): SagaIterator {
-  yield takeLatest(
-    FormLayoutActions.deleteFormContainer,
-    deleteFormContainerSaga,
-  );
+  yield takeLatest(FormLayoutActions.deleteFormContainer, deleteFormContainerSaga);
 }
 
 function* fetchFormLayoutSaga(): SagaIterator {
@@ -235,24 +199,21 @@ function* fetchFormLayoutSaga(): SagaIterator {
     } else {
       Object.keys(formLayouts).forEach((layoutName: string) => {
         if (!formLayouts[layoutName] || !formLayouts[layoutName].data) {
-          convertedLayouts[layoutName] =
-            convertFromLayoutToInternalFormat(null);
+          convertedLayouts[layoutName] = convertFromLayoutToInternalFormat(null);
         } else {
-          convertedLayouts[layoutName] = convertFromLayoutToInternalFormat(
-            formLayouts[layoutName].data.layout,
-          );
+          convertedLayouts[layoutName] = convertFromLayoutToInternalFormat(formLayouts[layoutName].data.layout);
         }
       });
     }
     yield put(
       FormLayoutActions.fetchFormLayoutFulfilled({
         formLayout: convertedLayouts,
-      }),
+      })
     );
     yield put(
       FormLayoutActions.updateSelectedLayout({
         selectedLayout: Object.keys(convertedLayouts)[0],
-      }),
+      })
     );
     yield put(FormLayoutActions.deleteActiveListFulfilled());
   } catch (error) {
@@ -268,14 +229,10 @@ export function* watchFetchFormLayoutSaga(): SagaIterator {
 function* saveFormLayoutSaga(): SagaIterator {
   try {
     yield delay(200);
-    const layouts = yield select(
-      (state: IAppState) => state.formDesigner.layout.layouts,
-    );
-    const selectedLayout = yield select(
-      (state: IAppState) => state.formDesigner.layout.selectedLayout,
-    );
+    const layouts = yield select((state: IAppState) => state.formDesigner.layout.layouts);
+    const selectedLayout = yield select((state: IAppState) => state.formDesigner.layout.selectedLayout);
     const convertedLayout = {
-      $schema: getLayoutSchemaUrl(),
+      $schema: layoutSchemaUrl(),
       data: {
         layout: convertInternalToLayoutFormat(layouts[selectedLayout]),
       },
@@ -300,22 +257,16 @@ export function* watchSaveFormLayoutSaga(): SagaIterator {
       FormLayoutActions.updateFormComponentOrder,
       FormLayoutActions.updateContainerId,
     ],
-    saveFormLayoutSaga,
+    saveFormLayoutSaga
   );
 }
 
-function* updateFormComponentSaga({
-  payload,
-}: PayloadAction<IUpdateFormComponentAction>): SagaIterator {
+function* updateFormComponentSaga({ payload }: PayloadAction<IUpdateFormComponentAction>): SagaIterator {
   const { updatedComponent, id } = payload;
 
   if (updatedComponent.type === 'FileUpload') {
-    const {
-      maxNumberOfAttachments,
-      minNumberOfAttachments,
-      maxFileSizeInMB,
-      validFileEndings,
-    } = updatedComponent as IFormFileUploaderComponent;
+    const { maxNumberOfAttachments, minNumberOfAttachments, maxFileSizeInMB, validFileEndings } =
+      updatedComponent as IFormFileUploaderComponent;
 
     if (id !== updatedComponent.id) {
       yield call(addApplicationMetadata, {
@@ -340,27 +291,20 @@ function* updateFormComponentSaga({
           maxFiles: maxNumberOfAttachments,
           maxSize: maxFileSizeInMB,
           minFiles: minNumberOfAttachments,
-        }),
+        })
       );
     }
   }
 }
 
 export function* watchUpdateFormComponentSaga(): SagaIterator {
-  yield takeLatest(
-    FormLayoutActions.updateFormComponent,
-    updateFormComponentSaga,
-  );
+  yield takeLatest(FormLayoutActions.updateFormComponent, updateFormComponentSaga);
 }
 
-export function* addApplicationMetadata({
-  payload,
-}: PayloadAction<IAddApplicationMetadataAction>): SagaIterator {
+export function* addApplicationMetadata({ payload }: PayloadAction<IAddApplicationMetadataAction>): SagaIterator {
   try {
     const { id, maxFiles, minFiles, maxSize, fileType } = payload;
-    const addApplicationMetadataUrl: string = yield call(
-      getAddApplicationMetadataUrl,
-    );
+    const addApplicationMetadataUrl: string = yield call(getAddApplicationMetadataUrl);
     yield call(post, addApplicationMetadataUrl, {
       id,
       maxCount: maxFiles,
@@ -375,20 +319,13 @@ export function* addApplicationMetadata({
 }
 
 export function* watchAddApplicationMetadataSaga(): SagaIterator {
-  yield takeLatest(
-    FormLayoutActions.addApplicationMetadata,
-    addApplicationMetadata,
-  );
+  yield takeLatest(FormLayoutActions.addApplicationMetadata, addApplicationMetadata);
 }
 
-export function* deleteApplicationMetadata({
-  payload,
-}: PayloadAction<IDeleteApplicationMetadataAction>): SagaIterator {
+export function* deleteApplicationMetadata({ payload }: PayloadAction<IDeleteApplicationMetadataAction>): SagaIterator {
   try {
     const { id } = payload;
-    const deleteApplicationMetadataUrl: string = yield call(
-      getDeleteApplicationMetadataUrl,
-    );
+    const deleteApplicationMetadataUrl: string = yield call(getDeleteApplicationMetadataUrl);
     yield call(post, deleteApplicationMetadataUrl + id, {
       id,
     });
@@ -399,20 +336,13 @@ export function* deleteApplicationMetadata({
 }
 
 export function* watchDeleteApplicationMetadataSaga(): SagaIterator {
-  yield takeLatest(
-    FormLayoutActions.deleteApplicationMetadata,
-    deleteApplicationMetadata,
-  );
+  yield takeLatest(FormLayoutActions.deleteApplicationMetadata, deleteApplicationMetadata);
 }
 
-export function* updateApplicationMetadata({
-  payload,
-}: PayloadAction<IUpdateApplicationMetadaAction>): SagaIterator {
+export function* updateApplicationMetadata({ payload }: PayloadAction<IUpdateApplicationMetadaAction>): SagaIterator {
   try {
     const { id, maxFiles, minFiles, maxSize, fileType } = payload;
-    const updateApplicationMetadataUrl: string = yield call(
-      getUpdateApplicationMetadataUrl,
-    );
+    const updateApplicationMetadataUrl: string = yield call(getUpdateApplicationMetadataUrl);
     yield call(post, updateApplicationMetadataUrl, {
       id,
       maxCount: maxFiles,
@@ -427,23 +357,15 @@ export function* updateApplicationMetadata({
 }
 
 export function* watchUpdateApplicationMetadataSaga(): SagaIterator {
-  yield takeLatest(
-    FormLayoutActions.updateApplicationMetadata,
-    updateApplicationMetadata,
-  );
+  yield takeLatest(FormLayoutActions.updateApplicationMetadata, updateApplicationMetadata);
 }
 
-export function* addLayoutSaga({
-  payload,
-}: PayloadAction<IAddLayoutAction>): SagaIterator {
+export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): SagaIterator {
   try {
     const { layout } = payload;
-    const layouts: IFormLayouts = yield select(
-      (state: IAppState) => state.formDesigner.layout.layouts,
-    );
+    const layouts: IFormLayouts = yield select((state: IAppState) => state.formDesigner.layout.layouts);
     const layoutOrder: string[] = yield select(
-      (state: IAppState) =>
-        state.formDesigner.layout.layoutSettings.pages.order,
+      (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order
     );
     const layoutsCopy = JSON.parse(JSON.stringify(layouts));
     if (Object.keys(layoutsCopy).indexOf(layout) !== -1) {
@@ -455,7 +377,7 @@ export function* addLayoutSaga({
       FormLayoutActions.addLayoutFulfilled({
         layouts: layoutsCopy,
         layoutOrder: [...layoutOrder, layout],
-      }),
+      })
     );
 
     if (Object.keys(layoutsCopy).length > 1) {
@@ -475,18 +397,17 @@ export function* addLayoutSaga({
           component: { ...NavigationButtonComponent, id: uuidv4() },
           position: 0,
           containerId: Object.keys(layoutsCopy[layout].containers)[0],
-        }),
+        })
       );
       const firstPageKey = layoutOrder[0];
       const firstPage = layouts[firstPageKey];
       yield put(
         FormLayoutActions.updateSelectedLayout({
           selectedLayout: firstPageKey,
-        }),
+        })
       );
       const hasNaviagtionButton = Object.keys(firstPage.components).some(
-        (component: string) =>
-          firstPage.components[component].type === 'NavigationButtons',
+        (component: string) => firstPage.components[component].type === 'NavigationButtons'
       );
       if (!hasNaviagtionButton) {
         yield put(
@@ -494,13 +415,11 @@ export function* addLayoutSaga({
             component: { ...NavigationButtonComponent, id: uuidv4() },
             position: Object.keys(layoutsCopy[firstPageKey].components).length,
             containerId: Object.keys(layoutsCopy[firstPageKey].containers)[0],
-          }),
+          })
         );
       }
 
-      yield put(
-        FormLayoutActions.updateSelectedLayout({ selectedLayout: layout }),
-      );
+      yield put(FormLayoutActions.updateSelectedLayout({ selectedLayout: layout }));
     }
   } catch (error) {
     console.error(error);
@@ -512,23 +431,14 @@ export function* watchAddLayoutSaga(): SagaIterator {
   yield takeLatest(FormLayoutActions.addLayout, addLayoutSaga);
 }
 
-export function* updateLayoutNameSaga({
-  payload,
-}: PayloadAction<IUpdateLayoutNameAction>): SagaIterator {
+export function* updateLayoutNameSaga({ payload }: PayloadAction<IUpdateLayoutNameAction>): SagaIterator {
   try {
     const { oldName, newName } = payload;
-    yield call(
-      Axios.post,
-      getUpdateFormLayoutNameUrl(oldName),
-      JSON.stringify(newName),
-      { headers: { 'Content-Type': 'application/json' } },
-    );
-    yield put(
-      FormLayoutActions.updateSelectedLayout({ selectedLayout: newName }),
-    );
-    yield put(
-      FormLayoutActions.updateLayoutNameFulfilled({ newName, oldName }),
-    );
+    yield call(Axios.post, getUpLayNmeUrl(oldName), JSON.stringify(newName), {
+      headers: { 'Content-Type': 'application/json' },
+    });
+    yield put(FormLayoutActions.updateSelectedLayout({ selectedLayout: newName }));
+    yield put(FormLayoutActions.updateLayoutNameFulfilled({ newName, oldName }));
   } catch (error) {
     yield put(FormLayoutActions.updateLayoutNameRejected({ error }));
   }
@@ -551,19 +461,14 @@ export function* fetchFormLayoutSettingSaga(): SagaIterator {
 
 export function* watchFetchFormLayoutSettingSaga(): SagaIterator {
   yield takeEvery(
-    [
-      FormLayoutActions.fetchFormLayoutFulfilled,
-      FormLayoutActions.fetchLayoutSettings,
-    ],
-    fetchFormLayoutSettingSaga,
+    [FormLayoutActions.fetchFormLayoutFulfilled, FormLayoutActions.fetchLayoutSettings],
+    fetchFormLayoutSettingSaga
   );
 }
 
 export function* saveFormLayoutSettingSaga(): SagaIterator {
   try {
-    const layoutSettings = yield select(
-      (state: IAppState) => state.formDesigner.layout.layoutSettings,
-    );
+    const layoutSettings = yield select((state: IAppState) => state.formDesigner.layout.layoutSettings);
     yield call(post, getSaveLayoutSettingsUrl(), layoutSettings);
   } catch (err) {
     console.error(err);
@@ -578,13 +483,11 @@ export function* watchSaveFormLayoutSettingSaga(): SagaIterator {
       FormLayoutActions.deleteLayoutFulfilled,
       FormLayoutActions.addLayoutFulfilled,
     ],
-    saveFormLayoutSettingSaga,
+    saveFormLayoutSettingSaga
   );
 }
 
-export function* deleteLayoutSaga({
-  payload,
-}: PayloadAction<IDeleteLayoutAction>): SagaIterator {
+export function* deleteLayoutSaga({ payload }: PayloadAction<IDeleteLayoutAction>): SagaIterator {
   try {
     const { layout } = payload;
     yield put(FormLayoutActions.deleteLayoutFulfilled({ layout }));
