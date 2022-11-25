@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Popover, TextField } from '@mui/material';
+import { Popover } from '@mui/material';
 import axios from 'axios';
 import AltinnIcon from '../components/AltinnIcon';
 import { getLanguageFromKey } from '../utils/language';
@@ -8,13 +8,12 @@ import { altinnDocsUrl, dataModelUploadPageUrl } from '../utils/urlHelper';
 import { datamodelXsdPath, repositoryGitPath } from '../api-paths';
 import { useParams } from 'react-router-dom';
 import { SimpleContainer } from '../primitives';
-import classes from './cloneModal.module.css';
-import { Button } from '@altinn/altinn-design-system';
+import classes from './CloneModal.module.css';
+import { Button, TextField } from '@altinn/altinn-design-system';
 
 export interface ICloneModalProps {
   anchorEl: Element;
   onClose: any;
-  open: boolean;
   language: any;
 }
 
@@ -54,9 +53,10 @@ export function CloneModal(props: ICloneModalProps) {
     };
   }, [app, org]);
   const t = (key: string) => getLanguageFromKey(key, props.language);
+  const open = Boolean(props.anchorEl);
   return (
     <Popover
-      open={props.open}
+      open={open}
       anchorEl={props.anchorEl}
       onClose={props.onClose}
       anchorOrigin={{
@@ -88,7 +88,7 @@ export function CloneModal(props: ICloneModalProps) {
         )}
         <>
           <div className={classes.blackText}>{t('sync_header.clone_https')}</div>
-          <TextField id='repository-url-form' value={repositoryGitPath(org, app)} />
+          <TextField id='repository-url-form' value={repositoryGitPath(org, app)} readOnly />
         </>
         {canCopy() && (
           <Button onClick={copyGitUrl} id='copy-repository-url-button'>

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CircularProgress, Popover } from '@mui/material';
 import classNames from 'classnames';
-import classes from './syncModal.module.css';
+import classes from './SyncModal.module.css';
 import { Button, ButtonColor, ButtonVariant, TextArea } from '@altinn/altinn-design-system';
 import { SimpleContainer } from '../primitives';
 
@@ -17,7 +17,7 @@ export interface ISyncModalComponentProps {
   btnClick?: any;
 }
 
-export const SyncModalComponent = (props: ISyncModalComponentProps) => {
+export const SyncModal = (props: ISyncModalComponentProps) => {
   const [commitMessage, setCommitMessage] = useState('');
   const handleClose = () => {
     setCommitMessage('');
