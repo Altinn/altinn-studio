@@ -2,7 +2,7 @@ import React from 'react';
 import { createTheme, Grid, IconButton, Typography } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import { useDispatch, useSelector } from 'react-redux';
-import altinnTheme from '../../../shared/theme/altinnStudioTheme';
+import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import RuleModal from '../toolbar/RuleModal';
 import ConditionalRenderingModal from '../toolbar/ConditionalRenderingModal';
 import { getLanguageFromKey } from 'app-shared/utils/language';
@@ -59,7 +59,9 @@ export interface IRightMenuProps {
 export default function RightMenu(props: IRightMenuProps) {
   const [conditionalModalOpen, setConditionalModalOpen] = React.useState<boolean>(false);
   const [ruleModalOpen, setRuleModalOpen] = React.useState<boolean>(false);
-  const layoutOrder = useSelector((state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order);
+  const layoutOrder = useSelector(
+    (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order
+  );
   const classes = useStyles();
   const dispatch = useDispatch();
 
@@ -153,7 +155,10 @@ export default function RightMenu(props: IRightMenuProps) {
           <IconButton
             className={classes.addIcon}
             onClick={() => handleModalChange('conditionalRendering')}
-            aria-label={getLanguageFromKey('right_menu.rules_conditional_rendering_add_alt', props.language)}
+            aria-label={getLanguageFromKey(
+              'right_menu.rules_conditional_rendering_add_alt',
+              props.language
+            )}
           >
             <i className='fa fa-plus' />
           </IconButton>

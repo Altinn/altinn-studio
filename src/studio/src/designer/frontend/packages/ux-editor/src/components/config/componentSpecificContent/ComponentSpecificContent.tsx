@@ -8,11 +8,11 @@ import type {
   IFormFileUploaderComponent,
   IFormFileUploaderWithTagComponent,
   IFormImageComponent,
-} from 'ux-editor/types/global';
+} from '../../../types/global';
 import { EditTitle } from '../editModal/EditTitle';
 import type { IGenericEditComponent } from '../componentConfig';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { AddressKeys, getTextResourceByAddressKey } from 'ux-editor/utils/component';
+import { AddressKeys, getTextResourceByAddressKey } from '../../../utils/component';
 import { EditDataModelBindings } from '../editModal/EditDataModelBindings';
 import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
 import AltinnRadio from 'app-shared/components/AltinnRadio';
@@ -53,14 +53,18 @@ export function ComponentSpecificContent({
   };
 
   const handleMaxFileSizeInMBChange = (event: any) => {
-    const componentCopy = { ...component } as IFormFileUploaderComponent | IFormFileUploaderWithTagComponent;
+    const componentCopy = { ...component } as
+      | IFormFileUploaderComponent
+      | IFormFileUploaderWithTagComponent;
     const value = parseInt(event.target.value, 10);
     componentCopy.maxFileSizeInMB = value >= 0 ? value : 0;
     handleComponentChange(componentCopy);
   };
 
   const handleNumberOfAttachmentsChange = (type: string) => (event: any) => {
-    const componentCopy = { ...component } as IFormFileUploaderComponent | IFormFileUploaderWithTagComponent;
+    const componentCopy = { ...component } as
+      | IFormFileUploaderComponent
+      | IFormFileUploaderWithTagComponent;
     const value = parseInt(event.target.value, 10);
     if (type === 'max') {
       componentCopy.maxNumberOfAttachments = value >= 1 ? value : 1;
@@ -76,7 +80,7 @@ export function ComponentSpecificContent({
       | IFormFileUploaderComponent
       | IFormFileUploaderWithTagComponent);
 
-  const handleToggleAddressSimple = (event: object, checked: boolean) =>{
+  const handleToggleAddressSimple = (event: object, checked: boolean) => {
     handleComponentChange({
       ...component,
       simplified: checked,
@@ -91,7 +95,9 @@ export function ComponentSpecificContent({
   };
 
   const handleHasCustomFileEndingsChange = (event: any) => {
-    const componentCopy = { ...component } as IFormFileUploaderComponent | IFormFileUploaderWithTagComponent;
+    const componentCopy = { ...component } as
+      | IFormFileUploaderComponent
+      | IFormFileUploaderWithTagComponent;
     componentCopy.hasCustomFileEndings = event.target.value === 'true';
     if (!componentCopy.hasCustomFileEndings) {
       componentCopy.validFileEndings = undefined;
@@ -100,7 +106,6 @@ export function ComponentSpecificContent({
   };
 
   switch (component.type) {
-
     case ComponentTypes.NavigationButtons:
     case ComponentTypes.Button: {
       const types = [
@@ -116,7 +121,9 @@ export function ComponentSpecificContent({
       return (
         <FieldSet className={classes.fieldset}>
           <div>
-            <p className={classes.inputHelper}>{t('ux_editor.modal_properties_button_type_helper')}</p>
+            <p className={classes.inputHelper}>
+              {t('ux_editor.modal_properties_button_type_helper')}
+            </p>
             <Select
               options={types}
               value={types.find((element) => element.value === component.type).value}
@@ -184,10 +191,7 @@ export function ComponentSpecificContent({
                 label={t('ux_editor.modal_properties_file_upload_simple')}
                 value='simple'
               />
-              <AltinnRadio
-                label={t('ux_editor.modal_properties_file_upload_list')}
-                value='list'
-              />
+              <AltinnRadio label={t('ux_editor.modal_properties_file_upload_list')} value='list' />
             </AltinnRadioGroup>
           </div>
           <FieldSet className={classes.fieldset}>
@@ -252,7 +256,7 @@ export function ComponentSpecificContent({
               formatting={{ number: {} }}
               id='modal-properties-file-size'
               label={`${t('ux_editor.modal_properties_maximum_file_size')} (${t(
-                'ux_editor.modal_properties_maximum_file_size_helper',
+                'ux_editor.modal_properties_maximum_file_size_helper'
               )})`}
               onChange={handleMaxFileSizeInMBChange}
               value={(fileUploaderComponent.maxFileSizeInMB || 0).toString()}

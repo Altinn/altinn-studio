@@ -3,7 +3,7 @@ import { rest } from 'msw';
 import { setupServer } from 'msw/node';
 import { render, screen, waitFor } from '@testing-library/react';
 import { VersionControlHeader } from './VersionControlHeader';
-import { setWindowLocationForTests, TEST_DOMAIN } from '../../testing/testUtils';
+import { setWindowLocationForTests, TEST_DOMAIN } from '../../../../testing/testUtils';
 import { datamodelXsdPath, repoMetaPath } from '../api-paths';
 
 setWindowLocationForTests('test-org', 'test-app');

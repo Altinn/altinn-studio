@@ -1,4 +1,4 @@
-import { SubApp } from '../../ux-editor/SubApp';
+import { SubApp } from '../../packages/ux-editor/src/SubApp';
 import { AccessControlContainer } from '../features/accessControl/containers/AccessControlContainer';
 import { Administration } from '../features/administration/components/Administration';
 import DeployPage from '../features/appPublish/pages/deployPage';
