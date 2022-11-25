@@ -1,7 +1,7 @@
 import React from 'react';
 import type { StyledComponentProps } from '@mui/material';
 import { getLanguageFromKey } from '../utils/language';
-import { TopToolbarButton } from '../../packages/schema-editor/src/components/TopToolbarButton';
+import { TopToolbarButton } from '@altinn/schema-editor/components/TopToolbarButton';
 
 export interface IFileSelectorProps extends StyledComponentProps {
   language: any;

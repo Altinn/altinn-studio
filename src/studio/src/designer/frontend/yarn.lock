@@ -18,9 +18,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@altinn-studio/mockend@workspace:mockend":
+"@altinn-studio/mockend@workspace:testing/mockend":
   version: 0.0.0-use.local
-  resolution: "@altinn-studio/mockend@workspace:mockend"
+  resolution: "@altinn-studio/mockend@workspace:testing/mockend"
   dependencies:
     body-parser: 1.20.1
     esm: 3.2.25
@@ -4748,9 +4748,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"app-shared@0.1.0, app-shared@workspace:shared":
+"app-shared@0.1.0, app-shared@workspace:packages/shared":
   version: 0.0.0-use.local
-  resolution: "app-shared@workspace:shared"
+  resolution: "app-shared@workspace:packages/shared"
   dependencies:
     "@altinn/altinn-design-system": 0.23.3
     "@altinn/schema-editor": 0.1.0
@@ -14036,9 +14036,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ux-editor@workspace:ux-editor":
+"ux-editor@workspace:packages/ux-editor":
   version: 0.0.0-use.local
-  resolution: "ux-editor@workspace:ux-editor"
+  resolution: "ux-editor@workspace:packages/ux-editor"
   dependencies:
     "@mui/material": 5.10.14
     "@mui/styles": 5.10.14

@@ -2,9 +2,9 @@ import React, { useEffect, useState, useRef } from 'react';
 import { TextField } from '@altinn/altinn-design-system';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import ErrorPopover from 'app-shared/components/ErrorPopover';
-import type { FormComponentType, IAppState } from 'ux-editor/types/global';
+import type { FormComponentType, IAppState } from '../../../types/global';
 import { useSelector } from 'react-redux';
-import { idExists, validComponentId } from 'ux-editor/utils/formLayout';
+import { idExists, validComponentId } from '../../../utils/formLayout';
 
 export interface IEditComponentId {
   handleComponentUpdate: (component: FormComponentType) => void;
@@ -14,10 +14,12 @@ export const EditComponentId = ({ component, handleComponentUpdate }: IEditCompo
   const [error, setError] = useState<string | null>(null);
   const [tmpId, setTmpId] = useState<string>(component?.id || '');
   const components = useSelector(
-    (state: IAppState) => state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.components,
+    (state: IAppState) =>
+      state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.components
   );
   const containers = useSelector(
-    (state: IAppState) => state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.containers,
+    (state: IAppState) =>
+      state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.containers
   );
   const language = useSelector((state: IAppState) => state.appData.languageState.language);
   const t = (key: string) => getLanguageFromKey(key, language);
