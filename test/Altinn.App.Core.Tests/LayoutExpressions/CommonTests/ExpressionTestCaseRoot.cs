@@ -42,6 +42,7 @@ public class ExpressionTestCaseRoot
     public string? ExpectsFailure { get; set; }
 
     [JsonPropertyName("layouts")]
+    [JsonConverter(typeof(LayoutModelConverterFromObject))]
     public LayoutModel ComponentModel { get; set; } = default!;
 
     [JsonPropertyName("dataModel")]

@@ -27,6 +27,7 @@ public class ContextListRoot
     public string Name { get; set; } = default!;
 
     [JsonPropertyName("layouts")]
+    [JsonConverter(typeof(LayoutModelConverterFromObject))]
     public LayoutModel ComponentModel { get; set; } = default!;
 
     [JsonPropertyName("dataModel")]

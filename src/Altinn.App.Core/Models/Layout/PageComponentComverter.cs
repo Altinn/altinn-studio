@@ -18,19 +18,19 @@ namespace Altinn.App.Core.Models.Layout;
 /// </remarks>
 public class PageComponentConverter : JsonConverter<PageComponent>
 {
-    private static readonly ConditionalWeakTable<JsonSerializerOptions, string> PageNames = new();
+    private static readonly AsyncLocal<string?> PageName = new();
     /// <summary>
-    /// Add pageName as metadata on JsonSerializerOptions that will be used for deserialization
+    /// Store pageName to be used for deserialization
     /// </summary>
     /// <remarks>
     /// JsonSerializer does not support passing additional arguments for deserialization, and we
     /// need the pageName to be part of the PageCompoenent at construction time to ensure nullability rules
     ///
-    /// This uses a ConditionalWeakTable to attach the pageName to the options object, in a way that does not leak memory
+    /// This uses a AsyncLocal to pass the pageName as an additional parameter
     /// </remarks>
-    public static void AddPageName(JsonSerializerOptions options, string pageName)
+    public static void SetAsyncLocalPageName(string pageName)
     {
-        PageNames.Add(options, pageName);
+        PageName.Value = pageName;
     }
 
 
@@ -38,7 +38,8 @@ public class PageComponentConverter : JsonConverter<PageComponent>
     public override PageComponent? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         // Try to get pagename from metadata in this.AddPageName
-        var pageName = PageNames.TryGetValue(options, out var outPageName) ? outPageName : "UnknownPageName";
+        var pageName = PageName.Value ?? "UnknownPageName";
+        PageName.Value = null;
 
         return ReadNotNull(ref reader, pageName, options);
     }

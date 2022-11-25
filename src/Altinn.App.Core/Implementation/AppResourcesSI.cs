@@ -376,15 +376,9 @@ namespace Altinn.App.Core.Implementation
             foreach (var page in order)
             {
                 var pageBytes = File.ReadAllBytes(Path.Join(folder, page + ".json"));
-                var options = new JsonSerializerOptions()
-                {
-                    // This is the default behaviour from Newtonsoft
-                    AllowTrailingCommas = true,
-                    ReadCommentHandling = JsonCommentHandling.Skip,
-                };
-                // Somewhat ugly (but thread safe) way to pass the page name to the deserializer compoent by associating it with a specific options instance.
-                PageComponentConverter.AddPageName(options, page);
-                layoutModel.Pages[page] = System.Text.Json.JsonSerializer.Deserialize<PageComponent>(pageBytes.RemoveBom(), options) ?? throw new InvalidDataException(page + ".json is \"null\"");
+                // Set the PageName using AsyncLocal before deserializing.
+                PageComponentConverter.SetAsyncLocalPageName(page);
+                layoutModel.Pages[page] = System.Text.Json.JsonSerializer.Deserialize<PageComponent>(pageBytes.RemoveBom(), new JsonSerializerOptions(JsonSerializerDefaults.Web)) ?? throw new InvalidDataException(page + ".json is \"null\"");
             }
 
             return layoutModel;

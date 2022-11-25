@@ -8,7 +8,6 @@ namespace Altinn.App.Core.Models.Layout;
 /// <summary>
 /// Class for handeling a full layout/layoutset
 /// </summary>
-[JsonConverter(typeof(LayoutModelConverter))]
 public class LayoutModel
 {
     /// <summary>

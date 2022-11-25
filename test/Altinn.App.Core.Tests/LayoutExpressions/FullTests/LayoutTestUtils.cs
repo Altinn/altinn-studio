@@ -31,10 +31,9 @@ public static class LayoutTestUtils
             var layout = await File.ReadAllBytesAsync(layoutFile);
             string pageName = layoutFile.Replace(layoutsPath + "/", string.Empty).Replace(".json", string.Empty);
 
-            var pageOptions = new JsonSerializerOptions();
+            var pageOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web);
 
-            // Somewhat ugly (but thread safe) way to pass the page name to the deserializer compoent by associating it with a specific options instance.
-            PageComponentConverter.AddPageName(pageOptions, pageName);
+            PageComponentConverter.SetAsyncLocalPageName(pageName);
 
             layoutModel.Pages[pageName] = JsonSerializer.Deserialize<PageComponent>(layout.RemoveBom(), pageOptions)!;
         }
