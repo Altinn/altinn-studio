@@ -33,9 +33,9 @@ export function Toolbar() {
   const dispatch = useDispatch();
   const [componentInformationPanelOpen, setComponentInformationPanelOpen] = useState<boolean>(false);
   const [componentSelectedForInformationPanel, setComponentSelectedForInformationPanel] =
-    React.useState<ComponentTypes>(null);
-  const [anchorElement, setAnchorElement] = React.useState<any>(null);
-  const [componentListsState, setComponentListsState] = React.useState<any>({
+    useState<ComponentTypes>(null);
+  const [anchorElement, setAnchorElement] = useState<any>(null);
+  const [componentListsState, setComponentListsState] = useState<any>({
     [CollapsableMenus.Components]: { expanded: true, animationDone: false },
     [CollapsableMenus.Texts]: { expanded: false, animationDone: false },
     [CollapsableMenus.AdvancedComponents]: { expanded: false, animationDone: false },

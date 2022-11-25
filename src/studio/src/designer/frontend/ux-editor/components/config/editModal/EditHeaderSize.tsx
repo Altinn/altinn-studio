@@ -2,6 +2,7 @@ import Select from 'react-select';
 import React from 'react';
 import { PropertyLabel, selectStyles } from '../../../utils/render';
 import type { IGenericEditComponent } from '../componentConfig';
+import { getLanguageFromKey } from 'app-shared/utils/language';
 
 enum HeaderSize {
   S = 'h4',
@@ -10,10 +11,11 @@ enum HeaderSize {
 }
 
 export const EditHeaderSize = ({ handleComponentChange, component, language }: IGenericEditComponent) => {
+  const t = (key: string) => getLanguageFromKey(key, language);
   const sizes = [
-    { value: HeaderSize.S, label: language['ux_editor.modal_header_type_h4'] },
-    { value: HeaderSize.M, label: language['ux_editor.modal_header_type_h3'] },
-    { value: HeaderSize.L, label: language['ux_editor.modal_header_type_h2'] },
+    { value: HeaderSize.S, label: t('ux_editor.modal_header_type_h4') },
+    { value: HeaderSize.M, label: t('ux_editor.modal_header_type_h3') },
+    { value: HeaderSize.L, label: t('ux_editor.modal_header_type_h2') },
   ];
   const selectedHeaderSize = HeaderSize[component.size as keyof typeof HeaderSize] || component.size;
 
@@ -32,7 +34,7 @@ export const EditHeaderSize = ({ handleComponentChange, component, language }: I
   return (
     <div data-testid='header-size-select-wrapper'>
       <PropertyLabel
-        textKey={language['ux_editor.modal_header_type_helper']}
+        textKey={t('ux_editor.modal_header_type_helper')}
         htmlFor={component.id}
       />
       <Select

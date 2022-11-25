@@ -78,11 +78,11 @@ export const FileUploadWithTagComponent = ({
           onChange={handleHasCustomFileEndingsChange}
         >
           <AltinnRadio
-            label={getLanguageFromKey('ux_editor.modal_properties_valid_file_endings_all', language)}
+            label={t('ux_editor.modal_properties_valid_file_endings_all')}
             value='false'
           />
           <AltinnRadio
-            label={getLanguageFromKey('ux_editor.modal_properties_valid_file_endings_custom', language)}
+            label={t('ux_editor.modal_properties_valid_file_endings_custom')}
             value='true'
           />
         </RadioGroup>

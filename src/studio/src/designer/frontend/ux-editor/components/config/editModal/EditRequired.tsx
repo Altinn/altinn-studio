@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React from 'react';
 import { Checkbox } from '@altinn/altinn-design-system';
 import type { IGenericEditComponent } from '../componentConfig';
 
