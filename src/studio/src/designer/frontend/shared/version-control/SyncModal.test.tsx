@@ -21,7 +21,7 @@ const render = (props: Partial<ISyncModalComponentProps> = {}) => {
     btnText: 'Button text',
     shouldShowCommitBox: false,
     handleClose: jest.fn(),
-    btnClick: jest.fn(),
+    btnMethod: jest.fn(),
     ...props,
   } as ISyncModalComponentProps;
 
