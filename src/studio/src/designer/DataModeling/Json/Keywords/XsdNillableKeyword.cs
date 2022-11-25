@@ -6,20 +6,20 @@ using Json.Schema;
 namespace Altinn.Studio.DataModeling.Json.Keywords;
 
 /// <summary>
-/// Adds @XsdText keyword to schema indicating if member should be treated as XML text when serialized or deserialized.
+/// Adds @xsdNillable keyword to schema indicating if member should be treated as XML text when serialized or deserialized.
 /// </summary>
 [SchemaKeyword(Name)]
 [SchemaDraft(Draft.Draft6)]
 [SchemaDraft(Draft.Draft7)]
 [SchemaDraft(Draft.Draft201909)]
 [SchemaDraft(Draft.Draft202012)]
-[JsonConverter(typeof(XsdTextKeywordJsonConverter))]
-public sealed class XsdTextKeyword: IJsonSchemaKeyword, IEquatable<XsdTextKeyword>
+[JsonConverter(typeof(XsdNillableKeywordJsonConverter))]
+public sealed class XsdNillableKeyword: IJsonSchemaKeyword, IEquatable<XsdNillableKeyword>
 {
     /// <summary>
     /// The name of the keyword
     /// </summary>
-    private const string Name = "@xsdText";
+    private const string Name = "@xsdNillable";
 
     /// <summary>
     /// Content
@@ -27,16 +27,9 @@ public sealed class XsdTextKeyword: IJsonSchemaKeyword, IEquatable<XsdTextKeywor
     public bool Value { get; }
 
     /// <summary>
-    /// Create a new instance of XsdTextKeyword with the default false value.
+    /// Create a new instance of <see cref="XsdNillableKeyword"/> with the specified false value.
     /// </summary>
-    public XsdTextKeyword() : this(false)
-    {
-    }
-
-    /// <summary>
-    /// Create a new instance of XsdTextKeyword with the specified false value.
-    /// </summary>
-    public XsdTextKeyword(bool value)
+    public XsdNillableKeyword(bool value)
     {
         Value = value;
     }
@@ -50,7 +43,7 @@ public sealed class XsdTextKeyword: IJsonSchemaKeyword, IEquatable<XsdTextKeywor
     }
 
     /// <inheritdoc/>
-    public bool Equals(XsdTextKeyword other)
+    public bool Equals(XsdNillableKeyword other)
     {
         if (other is null)
         {
@@ -63,7 +56,7 @@ public sealed class XsdTextKeyword: IJsonSchemaKeyword, IEquatable<XsdTextKeywor
     /// <inheritdoc/>
     public override bool Equals(object obj)
     {
-        return Equals(obj as XsdTextKeyword);
+        return Equals(obj as XsdNillableKeyword);
     }
 
     /// <inheritdoc/>
@@ -75,21 +68,21 @@ public sealed class XsdTextKeyword: IJsonSchemaKeyword, IEquatable<XsdTextKeywor
     /// <summary>
     /// Serializer for the @xsdText keyword
     /// </summary>
-    internal class XsdTextKeywordJsonConverter : JsonConverter<XsdTextKeyword>
+    internal class XsdNillableKeywordJsonConverter : JsonConverter<XsdNillableKeyword>
     {
         /// <inheritdoc/>
-        public override XsdTextKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        public override XsdNillableKeyword Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             if (reader.TokenType != JsonTokenType.True && reader.TokenType != JsonTokenType.False)
             {
                 throw new JsonException("Expected boolean");
             }
 
-            return new XsdTextKeyword(reader.GetBoolean());
+            return new XsdNillableKeyword(reader.GetBoolean());
         }
 
         /// <inheritdoc/>
-        public override void Write(Utf8JsonWriter writer, XsdTextKeyword value, JsonSerializerOptions options)
+        public override void Write(Utf8JsonWriter writer, XsdNillableKeyword value, JsonSerializerOptions options)
         {
             writer.WriteBoolean(Name, value.Value);
         }
