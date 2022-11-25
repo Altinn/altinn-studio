@@ -52,9 +52,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
             foreach (string languageCode in languages)
             {
                 Dictionary<string, string> jsonTexts = await altinnAppGitRepository.GetTextsV2(languageCode);
-                allKeys.AddRange(jsonTexts.Keys.ToList().Except(allKeys));
-                Console.WriteLine("keys: " + jsonTexts.Keys.ToString());
-                Console.WriteLine("allkeys: " + allKeys.ToString());
+                IEnumerable<string> uniqueKeys = jsonTexts.Keys.ToList().Except(allKeys);
+                allKeys.AddRange(uniqueKeys);
             }
 
             return allKeys;
