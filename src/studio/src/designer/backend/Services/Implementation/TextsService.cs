@@ -52,8 +52,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             foreach (string languageCode in languages)
             {
                 Dictionary<string, string> jsonTexts = await altinnAppGitRepository.GetTextsV2(languageCode);
-                IEnumerable<string> uniqueKeys = jsonTexts.Keys.ToList().Except(allKeys);
-                allKeys.AddRange(uniqueKeys);
+                allKeys = MergeKeysDeterministicResult(allKeys, jsonTexts.Keys.ToList());
             }
 
             return allKeys;
@@ -129,6 +128,23 @@ namespace Altinn.Studio.Designer.Services.Implementation
             Dictionary<string, string> newKeyGuidMapping = await altinnAppGitRepository.AddKeyGuidMapping(newKey);
 
             return newKeyGuidMapping;
+        }
+
+        private static List<string> MergeKeysDeterministicResult(List<string> currentSetOfKeys, List<string> keysToMerge)
+        {
+            foreach (string key in keysToMerge)
+            {
+                int currentPosition = 0;
+                if (currentSetOfKeys.Contains(key))
+                {
+                    currentPosition = currentSetOfKeys.IndexOf(key);
+                    break;
+                }
+
+                currentSetOfKeys.Insert(currentPosition, key);
+            }
+
+            return currentSetOfKeys;
         }
 
         /// <summary>
