@@ -32,16 +32,6 @@ purposes. See deployment for notes on how to deploy the project on a live system
    Settings -> Shared Drives The File sharing tab is only available in Hyper-V mode, because in WSL 2 mode and Windows
    container mode all files are automatically shared by Windows.
 
-   On MacOS: Change docker-compose.yml (both)
-   ```yaml
-   volumes:
-     - "C:/AltinnCore/Repos:/AltinnCore/Repos"
-   ```
-   to:
-   ```yaml
-   volumes:
-     - "/Users/<yourname>/AltinnCore/Repos:/AltinnCore/Repos"
-   ```
 8. World Wide Web Publishing Service must be disabled, Services -> "World Wide Web Publishing Service" rigth click and
    choose "stop"
 
