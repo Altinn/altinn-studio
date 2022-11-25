@@ -98,7 +98,7 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
       });
   };
 
-  const handleClose = () => {
+  const handleSyncModalClose = () => {
     if (!hasMergeConflict) {
       setSyncModalAnchorEl(null);
     }
@@ -307,9 +307,7 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
 
   const forceRepoStatusCheck = () =>
     window.postMessage('forceRepoStatusCheck', window.location.href);
-
   const closeCloneModal = () => setCloneModalAnchor(null);
-
   const openCloneModal = (event: React.MouseEvent) => setCloneModalAnchor(event.currentTarget);
   const type = props.type || 'header';
 
@@ -332,14 +330,8 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
           />
           <SyncModal
             anchorEl={syncModalAnchorEl}
-            header={modalState.header}
-            descriptionText={modalState.descriptionText}
-            isLoading={modalState.isLoading}
-            shouldShowDoneIcon={modalState.shouldShowDoneIcon}
-            btnText={modalState.btnText}
-            shouldShowCommitBox={modalState.shouldShowCommitBox}
-            handleClose={handleClose}
-            btnClick={modalState.btnMethod}
+            handleClose={handleSyncModalClose}
+            {...modalState}
           />
           <CloneModal
             anchorEl={cloneModalAnchor}
@@ -356,14 +348,8 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
           />
           <SyncModal
             anchorEl={syncModalAnchorEl}
-            header={modalState.header}
-            descriptionText={modalState.descriptionText}
-            isLoading={modalState.isLoading}
-            shouldShowDoneIcon={modalState.shouldShowDoneIcon}
-            btnText={modalState.btnText}
-            shouldShowCommitBox={modalState.shouldShowCommitBox}
-            handleClose={handleClose}
-            btnClick={modalState.btnMethod}
+            handleClose={handleSyncModalClose}
+            {...modalState}
           />
         </div>
       ) : type === 'shareButton' ? (
@@ -378,14 +364,8 @@ export const VersionControlHeader = (props: IVersionControlHeaderProps) => {
           />
           <SyncModal
             anchorEl={syncModalAnchorEl}
-            header={modalState.header}
-            descriptionText={modalState.descriptionText}
-            isLoading={modalState.isLoading}
-            shouldShowDoneIcon={modalState.shouldShowDoneIcon}
-            btnText={modalState.btnText}
-            shouldShowCommitBox={modalState.shouldShowCommitBox}
-            handleClose={handleClose}
-            btnClick={modalState.btnMethod}
+            handleClose={handleSyncModalClose}
+            {...modalState}
           />
         </div>
       ) : null}

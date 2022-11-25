@@ -14,7 +14,7 @@ export interface ISyncModalComponentProps {
   btnText?: string;
   shouldShowCommitBox?: boolean;
   handleClose: any;
-  btnClick?: any;
+  btnMethod?: any;
 }
 
 export const SyncModal = (props: ISyncModalComponentProps) => {
@@ -25,8 +25,8 @@ export const SyncModal = (props: ISyncModalComponentProps) => {
   };
 
   const btnClickedHandler = () => {
-    if (props.btnClick) {
-      props.btnClick(commitMessage);
+    if (props.btnMethod) {
+      props.btnMethod(commitMessage);
     }
   };
 
