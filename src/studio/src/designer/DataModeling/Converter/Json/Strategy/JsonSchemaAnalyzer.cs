@@ -269,6 +269,12 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 return true;
             }
 
+            if (schema.TryGetKeyword(out XsdNillableKeyword nillableKeyword) && nillableKeyword.Value)
+            {
+                valueSchema = null;
+                return true;
+            }
+
             // If it doesn't have a oneOf, or the oneOf only has one sub-schema, it's not a candidate for
             // a nillable element.
             if (!schema.TryGetKeyword(out OneOfKeyword oneOfKeyword) || oneOfKeyword.GetSubschemas().Count() < 2)

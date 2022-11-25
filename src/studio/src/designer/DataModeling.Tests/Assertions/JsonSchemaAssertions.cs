@@ -290,6 +290,9 @@ namespace DataModeling.Tests.Assertions
                 case XsdRootElementKeyword expectedKeyword:
                     KeywordEqual(expectedKeyword, (XsdRootElementKeyword)actual);
                     break;
+                case XsdNillableKeyword expectedKeyword:
+                    KeywordEqual(expectedKeyword, (XsdNillableKeyword)actual);
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException(expected.GetType().Name, "Unknown Json Schema Keyword");
             }
@@ -777,6 +780,11 @@ namespace DataModeling.Tests.Assertions
         private static void KeywordEqual(XsdRootElementKeyword expected, XsdRootElementKeyword actual)
         {
             Assert.True(expected.Equals(actual));
+        }
+
+        private static void KeywordEqual(XsdNillableKeyword expected, XsdNillableKeyword actual)
+        {
+            Assert.Equal(expected.Value, actual.Value);
         }
     }
 }

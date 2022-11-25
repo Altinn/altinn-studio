@@ -55,24 +55,12 @@
           "@xsdType": "string"
         },
         "p2": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/simpleType"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "$ref": "#/$defs/simpleType",
+          "@xsdNillable": true
         },
         "p3": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/complexType"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "$ref": "#/$defs/complexType",
+          "@xsdNillable": true
         },
         "p4": {
           "oneOf": [
@@ -98,14 +86,8 @@
           ]
         },
         "p5": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/veryComplexType"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "$ref": "#/$defs/veryComplexType",
+          "@xsdNillable": true
         }
       },
       "required": [

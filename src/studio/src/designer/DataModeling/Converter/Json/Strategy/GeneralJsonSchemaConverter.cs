@@ -406,6 +406,14 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             var compatibleTypes = _metadata.GetCompatibleTypes(path);
 
             var oneOfKeyword = keywords.GetKeyword<OneOfKeyword>();
+
+            if (oneOfKeyword is null && keywords.TryGetKeyword(out XsdNillableKeyword nillableKeyword) && keywords.TryGetKeyword(out RefKeyword reference) && nillableKeyword.Value)
+            {
+                element.SchemaTypeName = GetTypeNameFromReference(reference.Reference);
+                element.IsNillable = true;
+                return;
+            }
+
             var refKeywordSubSchema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
             var propertiesKeywordSubSchema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => s.Keywords.HasKeyword<PropertiesKeyword>());
 
@@ -446,8 +454,16 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 }
                 else
                 {
-                    var refKeyword = itemsKeyword.SingleSchema.GetKeyword<OneOfKeyword>().GetSubschemas().FirstOrDefault(s => s.HasKeyword<RefKeyword>()).GetKeyword<RefKeyword>();
-                    element.SchemaTypeName = GetTypeNameFromReference(refKeyword.Reference);
+                    var oneOf = itemsKeyword.SingleSchema.GetKeyword<OneOfKeyword>();
+                    if (oneOf is null && itemsKeyword.SingleSchema.TryGetKeyword(out RefKeyword itemsRef))
+                    {
+                        element.SchemaTypeName = GetTypeNameFromReference(itemsRef.Reference);
+                    }
+                    else
+                    {
+                        var refKeyword = itemsKeyword.SingleSchema.GetKeyword<OneOfKeyword>().GetSubschemas().FirstOrDefault(s => s.HasKeyword<RefKeyword>()).GetKeyword<RefKeyword>();
+                        element.SchemaTypeName = GetTypeNameFromReference(refKeyword.Reference);
+                    }
                 }
             }
             else

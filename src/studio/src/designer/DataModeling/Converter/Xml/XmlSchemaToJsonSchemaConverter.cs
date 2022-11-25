@@ -1166,19 +1166,10 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
         /// </summary>
         private static void BuildReference(JsonSchemaBuilder typeBuilder, XmlQualifiedName typeName, bool nillable)
         {
+            typeBuilder.Ref(GetReferenceFromTypename(typeName));
             if (nillable)
             {
-                var refSchemaBuilder = new JsonSchemaBuilder();
-                refSchemaBuilder.Ref(GetReferenceFromTypename(typeName));
-
-                var typeSchemaBuilder = new JsonSchemaBuilder();
-                typeSchemaBuilder.Type(SchemaValueType.Null);
-
-                typeBuilder.OneOf(refSchemaBuilder, typeSchemaBuilder);
-            }
-            else
-            {
-                typeBuilder.Ref(GetReferenceFromTypename(typeName));
+                typeBuilder.XsdNillable(true);
             }
         }
 
