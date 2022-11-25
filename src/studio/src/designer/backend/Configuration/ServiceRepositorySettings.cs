@@ -30,7 +30,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <summary>
         /// Constant for the location of language resource files
         /// </summary>
-        public const string LANGUAGE_RESOURCE_FOLDER_NAME = RESOURCE_FOLDER_NAME + "ThirdPartyComponents.json";
+        public const string LANGUAGE_RESOURCE_FOLDER_NAME = "texts/";
 
         /// <summary>
         /// Constant for the location of config folder
@@ -199,7 +199,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <summary>
         /// Gets or sets The name of the ThirdPartyComponents json file Name
         /// </summary>
-        public string ThirdPartyComponentsJSONFileName { get; set; } = "components/components.studio.json";
+        public string ThirdPartyComponentsJSONFileName { get; set; } = RESOURCE_FOLDER_NAME + "ThirdPartyComponents.json";
 
         /// <summary>
         /// Gets or sets The ServiceMetadata file name
