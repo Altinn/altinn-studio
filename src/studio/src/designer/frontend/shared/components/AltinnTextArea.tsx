@@ -1,6 +1,7 @@
 import React from 'react';
 import { createTheme, Grid, InputLabel } from '@mui/material';
-import { createStyles, withStyles, WithStyles } from '@mui/styles';
+import type { WithStyles } from '@mui/styles';
+import { createStyles, withStyles } from '@mui/styles';
 import altinnTheme from '../theme/altinnStudioTheme';
 
 const theme = createTheme(altinnTheme);
@@ -36,15 +37,8 @@ function AltinnTextArea(props: IAltinnTextAreaProps) {
   }
 
   return (
-    <Grid
-      container={true}
-      direction={'column'}
-      onClick={focusTextarea}
-      aria-label={label}
-    >
-      {showLabel ? (
-        <InputLabel className={classes.altinnTextAreaLabel}>{label}</InputLabel>
-      ) : null}
+    <Grid container={true} direction={'column'} onClick={focusTextarea} aria-label={label}>
+      {showLabel ? <InputLabel className={classes.altinnTextAreaLabel}>{label}</InputLabel> : null}
       <Grid
         container={true}
         direction={'row'}
@@ -52,11 +46,7 @@ function AltinnTextArea(props: IAltinnTextAreaProps) {
           width: widthPercentage ? `${widthPercentage}%` : '100%',
         }}
       >
-        <textarea
-          className={classes.altinnTextArea}
-          ref={textAreaReft}
-          {...rest}
-        />
+        <textarea className={classes.altinnTextArea} ref={textAreaReft} {...rest} />
       </Grid>
     </Grid>
   );

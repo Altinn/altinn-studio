@@ -1,6 +1,12 @@
 import type { Dict, UiSchemaNode, UiSchemaNodes } from './types';
 import { JsonSchemaType, Keywords, ObjectKind } from './types';
-import { createNodeBase, getCombinationKind, getObjectKind, makePointer, schemaTypeIsNillable } from './utils';
+import {
+  createNodeBase,
+  getCombinationKind,
+  getObjectKind,
+  makePointer,
+  schemaTypeIsNillable,
+} from './utils';
 import { findCustomAttributes } from './mappers/custom-properties';
 import { findRestrictionsOnNode } from './restrictions';
 import { findUiFieldType } from './mappers/field-type';
@@ -37,7 +43,9 @@ const createUiNode = (schemaNode: Dict, uiNode: UiSchemaNode): UiSchemaNodes => 
     Object.assign(uiNode, findGenericKeywordsOnNode(schemaNode));
     const uiSchemaNodes: UiSchemaNode[] = [uiNode];
 
-    const pointerBase = uiNode.isArray ? makePointer(uiNode.pointer, Keywords.Items) : uiNode.pointer;
+    const pointerBase = uiNode.isArray
+      ? makePointer(uiNode.pointer, Keywords.Items)
+      : uiNode.pointer;
 
     // Combinations
     if (uiNode.objectKind === ObjectKind.Combination) {
@@ -51,7 +59,8 @@ const createUiNode = (schemaNode: Dict, uiNode: UiSchemaNode): UiSchemaNodes => 
     }
 
     // Definitions
-    const definitionsNodes = schemaNode[Keywords.Definitions] ?? schemaNode[Keywords.DeprecatedDefinitions] ?? {};
+    const definitionsNodes =
+      schemaNode[Keywords.Definitions] ?? schemaNode[Keywords.DeprecatedDefinitions] ?? {};
     Object.keys(definitionsNodes).forEach((key) => {
       const child = createNodeBase(pointerBase, Keywords.Definitions, key);
       uiNode.children.push(child.pointer);

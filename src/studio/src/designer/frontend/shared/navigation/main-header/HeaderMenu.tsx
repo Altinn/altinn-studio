@@ -1,12 +1,5 @@
 import React, { useContext, useState } from 'react';
-import {
-  Avatar,
-  Divider,
-  Grid,
-  IconButton,
-  MenuItem,
-  Typography,
-} from '@mui/material';
+import { Avatar, Divider, Grid, IconButton, MenuItem, Typography } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import { AltinnMenu } from '../../components';
 import { post } from '../../utils/networking';
@@ -40,8 +33,7 @@ export type HeaderMenuProps = {
 export function HeaderMenu({ language }: HeaderMenuProps) {
   const classes = useStyles();
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | Element>(null);
-  const { user, selectedContext, selectableOrgs, setSelectedContext } =
-    useContext(HeaderContext);
+  const { user, selectedContext, selectableOrgs, setSelectedContext } = useContext(HeaderContext);
   const t = (key: string) => getLanguageFromKey(key, language);
   const { org, app } = useParams();
   const openMenu = (e: React.MouseEvent) => {
@@ -84,11 +76,7 @@ export function HeaderMenu({ language }: HeaderMenuProps) {
           </Typography>
         </Grid>
         <Grid item>
-          <IconButton
-            id='profile-icon-button'
-            className={classes.iconButton}
-            onClick={openMenu}
-          >
+          <IconButton id='profile-icon-button' className={classes.iconButton} onClick={openMenu}>
             <Avatar
               src={user.avatar_url}
               className={classes.avatar}
@@ -97,11 +85,7 @@ export function HeaderMenu({ language }: HeaderMenuProps) {
           </IconButton>
         </Grid>
       </Grid>
-      <AltinnMenu
-        anchorEl={menuAnchorEl}
-        open={Boolean(menuAnchorEl)}
-        onClose={closeMenu}
-      >
+      <AltinnMenu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={closeMenu}>
         <MenuItem
           id='menu-all'
           selected={selectedContext === SelectedContextType.All}
@@ -112,7 +96,7 @@ export function HeaderMenu({ language }: HeaderMenuProps) {
         {selectableOrgs?.map((org) => {
           return (
             <MenuItem
-              id={'menu-org-' + org.id}
+              id={`menu-org-${org.id}`}
               selected={selectedContext === org.id}
               key={org.id}
               onClick={() => handleSetSelectedContext(org.id)}
@@ -129,23 +113,13 @@ export function HeaderMenu({ language }: HeaderMenuProps) {
           {user.full_name || user.login}
         </MenuItem>
         <Divider />
-        <MenuItem
-          key='placeholder'
-          style={{ display: 'none' }}
-        />
+        <MenuItem key='placeholder' style={{ display: 'none' }} />
         <MenuItem id='menu-gitea'>
-          <a
-            href={repositoryPath(org, app)}
-            target='_blank'
-            rel='noopener noreferrer'
-          >
+          <a href={repositoryPath(org, app)} target='_blank' rel='noopener noreferrer'>
             {t('shared.header_go_to_gitea')}
           </a>
         </MenuItem>
-        <MenuItem
-          id='menu-logout'
-          onClick={handleLogout}
-        >
+        <MenuItem id='menu-logout' onClick={handleLogout}>
           {t('shared.header_logout')}
         </MenuItem>
       </AltinnMenu>

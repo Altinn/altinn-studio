@@ -1,4 +1,5 @@
-import React, { KeyboardEvent, useEffect, useState } from 'react';
+import type { KeyboardEvent } from 'react';
+import React, { useEffect, useState } from 'react';
 import { IconButton } from '../common/IconButton';
 import { getTranslation } from '../../utils/language';
 import type { ILanguage } from '../../types';

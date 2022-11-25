@@ -18,7 +18,7 @@ describe('CreateNewWrapper', () => {
     expect(
       screen.queryByRole('button', {
         name: /schema_editor\.create_model_confirm_button/i,
-      }),
+      })
     ).not.toBeInTheDocument();
 
     await user.click(newButton);
@@ -26,14 +26,14 @@ describe('CreateNewWrapper', () => {
     expect(
       screen.queryByRole('button', {
         name: /general\.create_new/i,
-      }),
+      })
     ).not.toBeInTheDocument();
 
     expect(screen.getByRole('textbox')).toBeInTheDocument();
     expect(
       screen.getByRole('button', {
         name: /schema_editor\.create_model_confirm_button/i,
-      }),
+      })
     ).toBeInTheDocument();
   });
 

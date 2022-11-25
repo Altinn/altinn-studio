@@ -10,8 +10,9 @@ import { fetchDataModel } from './features/appData/dataModel/dataModelSlice';
 import { fetchLanguage } from './features/appData/language/languageSlice';
 import { fetchRuleModel } from './features/appData/ruleModel/ruleModelSlice';
 import { fetchServiceConfiguration } from './features/serviceConfigurations/serviceConfigurationSlice';
-import { useParams} from "react-router-dom";
-import {textResourcesPath} from "app-shared/api-paths";
+import { useParams } from 'react-router-dom';
+import { textResourcesPath } from 'app-shared/api-paths';
+
 /**
  * This is the main React component responsible for controlling
  * the mode of the application and loading initial data for the
@@ -20,13 +21,13 @@ import {textResourcesPath} from "app-shared/api-paths";
 
 export function App() {
   const dispatch = useDispatch();
-  const {org,app} = useParams();
+  const { org, app } = useParams();
   useEffect(() => {
     const fetchFiles = () => {
       dispatch(fetchDataModel());
       dispatch(FormLayoutActions.fetchFormLayout());
       const languageCode = 'nb';
-      dispatch(loadTextResources({ url: textResourcesPath(org,app,languageCode) }));
+      dispatch(loadTextResources({ url: textResourcesPath(org, app, languageCode) }));
       dispatch(fetchServiceConfiguration());
       dispatch(fetchRuleModel());
       dispatch(fetchLanguage({ languageCode }));
@@ -46,7 +47,7 @@ export function App() {
     return () => {
       window.removeEventListener('message', shouldRefetchFiles);
     };
-  }, [dispatch]);
+  }, [dispatch, org, app]);
 
   return (
     <div>

@@ -13,8 +13,12 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): Dict => {
   const out: Dict = {};
   const rootNode = getRootNode(nodes);
   Object.assign(out, rootNode.custom);
-  JSONPointer.set(out, '/' + Keywords.Type, !rootNode.implicitType ? rootNode.fieldType : undefined);
-  JSONPointer.set(out, '/' + Keywords.Required, findRequiredProps(nodes, rootNode.pointer));
+  JSONPointer.set(
+    out,
+    `/${Keywords.Type}`,
+    !rootNode.implicitType ? rootNode.fieldType : undefined
+  );
+  JSONPointer.set(out, `/${Keywords.Required}`, findRequiredProps(nodes, rootNode.pointer));
 
   const sortedUiSchemaNodes = sortNodesByChildren(nodes);
 
@@ -29,11 +33,13 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): Dict => {
 
       if (node.isArray) {
         JSONPointer.set(out, nodePointer, {
-          [Keywords.Type]: node.isNillable ? [JsonSchemaType.Array, FieldType.Null] : JsonSchemaType.Array,
+          [Keywords.Type]: node.isNillable
+            ? [JsonSchemaType.Array, FieldType.Null]
+            : JsonSchemaType.Array,
         });
 
         Object.values(ArrRestrictionKeys).forEach((key) =>
-          JSONPointer.set(out, [nodePointer, key].join('/'), node.restrictions[key]),
+          JSONPointer.set(out, [nodePointer, key].join('/'), node.restrictions[key])
         );
 
         // Putting the special fields back to items root.
@@ -56,33 +62,45 @@ export const buildJsonSchema = (nodes: UiSchemaNodes): Dict => {
       JSONPointer.set(
         out,
         [jsonPointer, Keywords.Reference].join('/'),
-        typeof node.ref === 'string' ? node.ref : undefined,
+        typeof node.ref === 'string' ? node.ref : undefined
       );
 
       // Setting Type for fields
       JSONPointer.set(out, [jsonPointer, Keywords.Type].join('/'), findJsonFieldType(node));
 
       // Adding generics back
-      [Keywords.Default, Keywords.Const, Keywords.Title, Keywords.Description].forEach((keyword) => {
-        JSONPointer.set(out, [jsonPointer, keyword].join('/'), node[keyword as keyof UiSchemaNode]);
-      });
+      [Keywords.Default, Keywords.Const, Keywords.Title, Keywords.Description].forEach(
+        (keyword) => {
+          JSONPointer.set(
+            out,
+            [jsonPointer, keyword].join('/'),
+            node[keyword as keyof UiSchemaNode]
+          );
+        }
+      );
 
       // Adding enums
       JSONPointer.set(
         out,
         [jsonPointer, Keywords.Enum].join('/'),
-        node[Keywords.Enum]?.length ? node[Keywords.Enum] : undefined,
+        node[Keywords.Enum]?.length ? node[Keywords.Enum] : undefined
       );
 
       // Restrictions
       Object.keys(node.restrictions)
         .filter((key) => !Object.keys(ArrRestrictionKeys).includes(key))
-        .forEach((key) => JSONPointer.set(out, [jsonPointer, key].join('/'), node.restrictions[key]));
+        .forEach((key) =>
+          JSONPointer.set(out, [jsonPointer, key].join('/'), node.restrictions[key])
+        );
 
       // We are dealing with an object prep the properties and required keywords.
       if (node.children.length && node.objectKind === ObjectKind.Field) {
         JSONPointer.set(out, [jsonPointer, Keywords.Properties].join('/'), {});
-        JSONPointer.set(out, [jsonPointer, Keywords.Required].join('/'), findRequiredProps(nodes, node.pointer));
+        JSONPointer.set(
+          out,
+          [jsonPointer, Keywords.Required].join('/'),
+          findRequiredProps(nodes, node.pointer)
+        );
       }
       const currentJsonNode = JSONPointer.get(out, jsonPointer);
       if (

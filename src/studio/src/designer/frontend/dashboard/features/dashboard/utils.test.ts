@@ -1,5 +1,5 @@
 import { SelectedContextType } from 'app-shared/navigation/main-header/Header';
-import { Organizations } from '../../services/organizationApi';
+import type { Organizations } from '../../services/organizationApi';
 import { getReposLabel, getUidFilter, mergeRepos } from './utils';
 
 const language = {

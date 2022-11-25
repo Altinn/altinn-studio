@@ -38,10 +38,7 @@ const language = {
   'schema_editor.minLength': 'Minimal lengde',
 };
 
-const renderSchemaInspector = (
-  uiSchemaMap: UiSchemaNodes,
-  selectedItem?: UiSchemaNode,
-) => {
+const renderSchemaInspector = (uiSchemaMap: UiSchemaNodes, selectedItem?: UiSchemaNode) => {
   const store = configureStore()({
     uiSchema: uiSchemaMap,
   });
@@ -49,11 +46,8 @@ const renderSchemaInspector = (
 
   render(
     <Provider store={store}>
-      <SchemaInspector
-        language={language}
-        selectedItem={selectedItem}
-      />
-    </Provider>,
+      <SchemaInspector language={language} selectedItem={selectedItem} />
+    </Provider>
   );
 
   return { store, user };
@@ -62,7 +56,7 @@ const renderSchemaInspector = (
 test('dispatches correctly when entering text in textboxes', async () => {
   const { store, user } = renderSchemaInspector(
     mockUiSchema,
-    getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon'),
+    getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon')
   );
   expect(screen.getByTestId('schema-inspector')).toBeDefined();
   const tablist = screen.getByRole('tablist');
@@ -95,7 +89,7 @@ test('renders no item if nothing is selected', () => {
 test('dispatches correctly when changing restriction value', () => {
   const { store } = renderSchemaInspector(
     mockUiSchema,
-    getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon'),
+    getMockSchemaByPath('#/$defs/Kommentar2000Restriksjon')
   );
 
   const minLength = '100';
@@ -130,9 +124,7 @@ test('Adds new object field when pressing the enter key', async () => {
   await user.click(screen.queryAllByRole('tab')[1]);
   await user.click(screen.getByDisplayValue('abc'));
   await user.keyboard('{Enter}');
-  expect(store.getActions().map((a) => a.type)).toContain(
-    'schemaEditor/addProperty',
-  );
+  expect(store.getActions().map((a) => a.type)).toContain('schemaEditor/addProperty');
 });
 
 test('Adds new valid value field when pressing the enter key', async () => {
@@ -145,7 +137,5 @@ test('Adds new valid value field when pressing the enter key', async () => {
   await user.click(screen.queryAllByRole('tab')[1]);
   await user.click(screen.getByDisplayValue('valid value'));
   await user.keyboard('{Enter}');
-  expect(store.getActions().map((a) => a.type)).toContain(
-    'schemaEditor/addEnum',
-  );
+  expect(store.getActions().map((a) => a.type)).toContain('schemaEditor/addEnum');
 });

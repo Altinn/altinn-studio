@@ -6,10 +6,8 @@ const mergeConflictSelector = (state: RootState) => {
 };
 
 const getRepoStatus = () => {
-  return createSelector(
-      [mergeConflictSelector],
-      (mergeConflictState) => {
-      return mergeConflictState.repoStatus;
+  return createSelector([mergeConflictSelector], (mergeConflictState) => {
+    return mergeConflictState.repoStatus;
   });
 };
 

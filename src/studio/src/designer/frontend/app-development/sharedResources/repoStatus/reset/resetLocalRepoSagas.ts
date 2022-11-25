@@ -1,5 +1,5 @@
-import { PayloadAction } from '@reduxjs/toolkit';
-import { SagaIterator } from 'redux-saga';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import type { SagaIterator } from 'redux-saga';
 import { call, put, takeLatest } from 'redux-saga/effects';
 import { get } from 'app-shared/utils/networking';
 import { RepoStatusActions } from '../repoStatusSlice';
@@ -20,7 +20,7 @@ export function* resetLocalRepoSaga({
         url: repoStatusPath(org, repo),
         org,
         repo,
-      }),
+      })
     );
     window.postMessage(postMessages.filesAreSaved, window.location.href);
     yield put(RepoStatusActions.resetLocalRepoFulfilled({ result }));

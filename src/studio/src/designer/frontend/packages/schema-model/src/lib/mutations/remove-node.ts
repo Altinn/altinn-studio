@@ -1,9 +1,14 @@
 // Changes to the uiNodeMap
-import { ObjectKind, UiSchemaNode, UiSchemaNodes } from '../types';
+import type { UiSchemaNode, UiSchemaNodes } from '../types';
+import { ObjectKind } from '../types';
 import { getParentNodeByPointer, getReferredNodes, hasNodePointer } from '../selectors';
 import { splitPointerInBaseAndName } from '../utils';
 
-export const removeNodeByPointer = (uiNodeMap: UiSchemaNodes, pointer: string, justChildren?: boolean) => {
+export const removeNodeByPointer = (
+  uiNodeMap: UiSchemaNodes,
+  pointer: string,
+  justChildren?: boolean
+) => {
   let mutatedUiNodeMap: UiSchemaNodes = [...uiNodeMap];
 
   // Remove the child node pointer from the parent
@@ -25,7 +30,7 @@ export const removeNodeByPointer = (uiNodeMap: UiSchemaNodes, pointer: string, j
 
   // Remove itself decendants... just using the pointer
   mutatedUiNodeMap = mutatedUiNodeMap.filter(
-    (uiNode: UiSchemaNode) => !uiNode.pointer.startsWith(justChildren ? pointer + '/' : pointer),
+    (uiNode: UiSchemaNode) => !uiNode.pointer.startsWith(justChildren ? `${pointer}/` : pointer)
   );
 
   // dealing with combinations, updating their children is a little more tricky.

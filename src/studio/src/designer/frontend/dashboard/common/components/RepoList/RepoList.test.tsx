@@ -84,9 +84,7 @@ describe('RepoList', () => {
     const useSetStarredRepoMutationSpy = jest.fn();
     jest
       .spyOn(userApi, 'useSetStarredRepoMutation')
-      .mockImplementation(
-        jest.fn().mockReturnValue([useSetStarredRepoMutationSpy])
-      );
+      .mockImplementation(jest.fn().mockReturnValue([useSetStarredRepoMutationSpy]));
     render();
 
     const favoriteBtn = screen.getByRole('menuitem', {
@@ -101,9 +99,7 @@ describe('RepoList', () => {
     const useUnsetStarredRepoMutationSpy = jest.fn();
     jest
       .spyOn(userApi, 'useUnsetStarredRepoMutation')
-      .mockImplementation(
-        jest.fn().mockReturnValue([useUnsetStarredRepoMutationSpy])
-      );
+      .mockImplementation(jest.fn().mockReturnValue([useUnsetStarredRepoMutationSpy]));
     render();
 
     const unFavoriteBtn = screen.getByRole('menuitem', {

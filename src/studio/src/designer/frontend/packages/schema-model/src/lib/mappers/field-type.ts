@@ -1,7 +1,12 @@
 import type { Dict, UiSchemaNode } from '../types';
 import { FieldType, ObjectKind } from '../types';
 import { getCombinationKind, getObjectKind } from '../utils';
-import { ArrRestrictionKeys, IntRestrictionKeys, ObjRestrictionKeys, StrRestrictionKeys } from '../restrictions';
+import {
+  ArrRestrictionKeys,
+  IntRestrictionKeys,
+  ObjRestrictionKeys,
+  StrRestrictionKeys,
+} from '../restrictions';
 import { arrayIntersection, arrayUnique } from 'app-shared/pure';
 
 export const isCompundFieldType = (schemaNodeType: string | string[]) =>

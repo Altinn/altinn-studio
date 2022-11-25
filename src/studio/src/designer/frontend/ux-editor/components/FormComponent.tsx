@@ -1,14 +1,10 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { createStyles, withStyles } from '@mui/styles';
 import { connect, useDispatch } from 'react-redux';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { EditContainer } from '../containers/EditContainer';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
-import type {
-  FormComponentType,
-  IAppState,
-  IDataModelFieldElement,
-} from '../types/global';
+import type { FormComponentType, IAppState, IDataModelFieldElement } from '../types/global';
 
 const styles = createStyles({});
 
@@ -41,23 +37,32 @@ export interface IFormElementProps extends IProvidedProps {
 const FormComponent = (props: IFormElementProps) => {
   const [wrapperRef, setWrapperRef] = React.useState(null);
   const dispatch = useDispatch();
-
-  React.useEffect(() => {
-    window.addEventListener('mousedown', handleClick);
-
-    return () => {
-      window.removeEventListener('mousedown', handleClick);
-    };
-  }, []);
+  const { sendListToParent, activeList } = props;
+  const handleActiveListChange = useCallback(
+    (obj: any) => {
+      if (Object.keys(obj).length === 0 && obj.constructor === Object) {
+        dispatch(FormLayoutActions.deleteActiveList());
+      } else {
+        dispatch(
+          FormLayoutActions.updateActiveList({
+            listItem: obj,
+            containerList: activeList,
+          })
+        );
+      }
+      sendListToParent(activeList);
+    },
+    [dispatch, sendListToParent, activeList]
+  );
 
   /*
    * Handle all types of clicks.
    * Tracks if the click is outside of the formComponent
    */
-  const handleClick = (e: any) => {
-    const serviceLogicMenu = document.getElementById('serviceLogicMenu');
-    if (serviceLogicMenu) {
-      if (!serviceLogicMenu.contains(e.target)) {
+  const handleClick = useCallback(
+    (e: any) => {
+      const serviceLogicMenu = document.getElementById('serviceLogicMenu');
+      if (serviceLogicMenu && !serviceLogicMenu.contains(e.target)) {
         const key: any = Object.keys(props.order)[0];
         const order = props.order[key].indexOf(props.id);
 
@@ -65,8 +70,17 @@ const FormComponent = (props: IFormElementProps) => {
           handleActiveListChange({});
         }
       }
-    }
-  };
+    },
+    [handleActiveListChange, props.id, props.order, wrapperRef]
+  );
+
+  React.useEffect(() => {
+    window.addEventListener('mousedown', handleClick);
+
+    return () => {
+      window.removeEventListener('mousedown', handleClick);
+    };
+  }, [handleClick]);
 
   const getWrapperRef = (node: any) => {
     if (node) {
@@ -78,9 +92,7 @@ const FormComponent = (props: IFormElementProps) => {
    * Return a given textresource from all textresources avaiable
    */
   const getTextResource = (resourceKey: string): string => {
-    const textResource = props.textResources.find(
-      (resource) => resource.id === resourceKey,
-    );
+    const textResource = props.textResources.find((resource) => resource.id === resourceKey);
     return textResource ? textResource.value : resourceKey;
   };
 
@@ -101,37 +113,19 @@ const FormComponent = (props: IFormElementProps) => {
       return null;
     }
     if (props.component.textResourceBindings.title) {
-      const label: string = getTextResource(
-        props.component.textResourceBindings.title,
-      );
+      const label: string = getTextResource(props.component.textResourceBindings.title);
       return (
         <label className='a-form-label title-label' htmlFor={props.id}>
           {label}
           {props.component.required ? null : (
             // TODO: Get text key from common texts for all services.
-            <span className='label-optional'>
-              {getTextResource('(Valgfri)')}
-            </span>
+            <span className='label-optional'>{getTextResource('(Valgfri)')}</span>
           )}
         </label>
       );
     }
 
     return null;
-  };
-
-  const handleActiveListChange = (obj: any) => {
-    if (Object.keys(obj).length === 0 && obj.constructor === Object) {
-      dispatch(FormLayoutActions.deleteActiveList());
-    } else {
-      dispatch(
-        FormLayoutActions.updateActiveList({
-          listItem: obj,
-          containerList: props.activeList,
-        }),
-      );
-    }
-    props.sendListToParent(props.activeList);
   };
 
   /**
@@ -153,7 +147,9 @@ const FormComponent = (props: IFormElementProps) => {
         singleSelected={props.singleSelected}
         partOfGroup={props.partOfGroup}
       >
-        <div onClick={disableEditOnClickForAddedComponent}>{renderLabel()}</div>
+        <button className={'divider'} onClick={disableEditOnClickForAddedComponent}>
+          {renderLabel()}
+        </button>
       </EditContainer>
     </div>
   );
@@ -161,10 +157,7 @@ const FormComponent = (props: IFormElementProps) => {
 
 const makeMapStateToProps = () => {
   const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
-  const mapStateToProps = (
-    state: IAppState,
-    props: IProvidedProps,
-  ): IFormElementProps => ({
+  return (state: IAppState, props: IProvidedProps): IFormElementProps => ({
     activeList: props.activeList,
     id: props.id,
     firstInActiveList: props.firstInActiveList,
@@ -172,28 +165,23 @@ const makeMapStateToProps = () => {
     classes: props.classes,
     sendListToParent: props.sendListToParent,
     singleSelected: props.singleSelected,
-    component:
-      state.formDesigner.layout.layouts[
-        state.formDesigner.layout.selectedLayout
-      ]?.components[props.id],
+    component: state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.components[props.id],
     order: GetLayoutOrderSelector(state),
     dataModelElement: state.appData.dataModel.model.find(
       (element) =>
         element.dataBindingName ===
-        state.formDesigner.layout.layouts[
-          state.formDesigner.layout.selectedLayout
-        ]?.components[props.id].dataModelBindings?.simpleBinding,
+        state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.components[props.id]
+          .dataModelBindings?.simpleBinding
     ),
     validationErrors: null,
     textResources: state.appData.textResources.resources,
     dataModel: state.appData.dataModel.model,
   });
-  return mapStateToProps;
 };
 
 /**
  * Wrapper made available for other compoments
  */
 export const FormComponentWrapper = withStyles(styles, { withTheme: true })(
-  connect(makeMapStateToProps)(FormComponent),
+  connect(makeMapStateToProps)(FormComponent)
 );

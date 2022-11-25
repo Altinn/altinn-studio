@@ -5,7 +5,7 @@ describe('ui-schema-utils', () => {
     it('removes unsupported characters', () => {
       const idWithUnsupportedCharacters = '#my\\id: with+unsupported/CHARACTERS ^ *0';
       expect(getDomFriendlyID(idWithUnsupportedCharacters, { suffix: '1/2#3 4#5/' })).toMatch(
-        /^my-id-_with-unsupported\/characters_-_-0-1\/23_45\//,
+        /^my-id-_with-unsupported\/characters_-_-0-1\/23_45\//
       );
     });
     it('should return a new value each time the command is run until it is reset', () => {

@@ -1,12 +1,14 @@
 import React from 'react';
-import { DropTargetHookSpec, DropTargetMonitor, useDrop } from 'react-dnd';
-import { EditorDndEvents, EditorDndItem, ItemType } from './helpers/dnd-types';
+import type { DropTargetHookSpec, DropTargetMonitor } from 'react-dnd';
+import { useDrop } from 'react-dnd';
+import type { EditorDndEvents, EditorDndItem } from './helpers/dnd-types';
+import { ItemType } from './helpers/dnd-types';
 import { handleDrop, hoverShouldBeIgnored } from './helpers/dnd-helpers';
 
 export const dropTargetSpec = (
   containerId: string,
   index: number,
-  events: EditorDndEvents,
+  events: EditorDndEvents
 ): DropTargetHookSpec<any, any, any> => ({
   accept: Object.values(ItemType),
   collect(monitor: DropTargetMonitor) {
@@ -35,17 +37,7 @@ interface DummyDropTargetProps {
   containerId: string;
   events: EditorDndEvents;
 }
-export const DummyDropTarget = ({
-  index,
-  containerId,
-  events,
-}: DummyDropTargetProps) => {
+export const DummyDropTarget = ({ index, containerId, events }: DummyDropTargetProps) => {
   const [, drop] = useDrop(dropTargetSpec(containerId, index, events));
-  return (
-    <div
-      ref={drop}
-      style={{ height: 12 }}
-      data-testid={'dummy-drop-target'}
-    ></div>
-  );
+  return <div ref={drop} style={{ height: 12 }} data-testid={'dummy-drop-target'}></div>;
 };

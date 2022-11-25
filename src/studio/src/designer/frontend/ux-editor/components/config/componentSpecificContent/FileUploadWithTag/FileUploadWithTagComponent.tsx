@@ -1,7 +1,7 @@
 import React from 'react';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { SelectTextFromRecources } from '../../../../utils/render';
-import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
+import RadioGroup from 'app-shared/components/AltinnRadioGroup';
 import AltinnRadio from 'app-shared/components/AltinnRadio';
 import type { FormComponentType, IFormFileUploaderWithTagComponent } from '../../../../types/global';
 import { TextField } from '@altinn/altinn-design-system';
@@ -72,7 +72,7 @@ export const FileUploadWithTagComponent = ({
         </a>
       </p>
       <div>
-        <AltinnRadioGroup
+        <RadioGroup
           row={true}
           value={component.hasCustomFileEndings ? 'true' : 'false'}
           onChange={handleHasCustomFileEndingsChange}
@@ -85,7 +85,7 @@ export const FileUploadWithTagComponent = ({
             label={getLanguageFromKey('ux_editor.modal_properties_valid_file_endings_custom', language)}
             value='true'
           />
-        </AltinnRadioGroup>
+        </RadioGroup>
       </div>
       {component.hasCustomFileEndings && (
         <div>

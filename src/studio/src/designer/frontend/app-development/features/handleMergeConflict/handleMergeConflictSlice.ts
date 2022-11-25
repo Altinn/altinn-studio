@@ -1,4 +1,5 @@
-import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createAction, createSlice } from '@reduxjs/toolkit';
 
 export interface IHandleMergeConflictState {
   repoStatus: any;
@@ -29,10 +30,7 @@ const handleMergeConflictSlice = createSlice({
   name: moduleName,
   initialState,
   reducers: {
-    fetchRepoStatusFulfilled: (
-      state,
-      action: PayloadAction<IFetchRepoStatusFulfilled>,
-    ) => {
+    fetchRepoStatusFulfilled: (state, action: PayloadAction<IFetchRepoStatusFulfilled>) => {
       const { result } = action.payload;
       state.repoStatus = result;
     },
@@ -40,10 +38,10 @@ const handleMergeConflictSlice = createSlice({
 });
 
 export const fetchRepoStatus = createAction<IFetchRepoStatusAction>(
-  `${moduleName}/fetchRepoStatus`,
+  `${moduleName}/fetchRepoStatus`
 );
 export const fetchRepoStatusRejected = createAction<IFetchRepoStatusRejected>(
-  `${moduleName}/fetchRepoStatusRejected`,
+  `${moduleName}/fetchRepoStatusRejected`
 );
 
 export const { fetchRepoStatusFulfilled } = handleMergeConflictSlice.actions;

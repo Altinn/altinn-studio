@@ -1,11 +1,6 @@
 import React from 'react';
-import {
-  Button,
-  createTheme,
-  Grid,
-  Popover,
-  PopoverOrigin,
-} from '@mui/material';
+import type { PopoverOrigin } from '@mui/material';
+import { Button, createTheme, Grid, Popover } from '@mui/material';
 import { createStyles, makeStyles } from '@mui/styles';
 import altinnTheme from '../../theme/altinnStudioTheme';
 
@@ -67,7 +62,7 @@ const useStyles = makeStyles(() =>
         color: theme.altinnPalette.primary.white,
       },
     },
-  }),
+  })
 );
 
 const defaultAnchorOrigin: PopoverOrigin = {
@@ -81,10 +76,7 @@ const defaultTransformOrigin: PopoverOrigin = {
 };
 
 export const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
-  const {
-    anchorOrigin = defaultAnchorOrigin,
-    transformOrigin = defaultTransformOrigin,
-  } = props;
+  const { anchorOrigin = defaultAnchorOrigin, transformOrigin = defaultTransformOrigin } = props;
 
   const classes = useStyles(props);
 
@@ -111,11 +103,7 @@ export const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
         aria-label={props.ariaLabel ? props.ariaLabel : ''}
         data-testid={props.testId}
       >
-        <Grid
-          container={true}
-          direction='column'
-          sx={{ width: '445px', margin: '24px' }}
-        >
+        <Grid container={true} direction='column' sx={{ width: '445px', margin: '24px' }}>
           <Grid item={true}>
             <div>{props.children}</div>
           </Grid>
@@ -141,9 +129,7 @@ export const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
                   onClick={handleButtonClose}
                   disableTouchRipple={true}
                 >
-                  <span className={classes.borderBottom}>
-                    {props.btnCancelText}
-                  </span>
+                  <span className={classes.borderBottom}>{props.btnCancelText}</span>
                 </Button>
               )}
             </div>

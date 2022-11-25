@@ -1,17 +1,13 @@
-import {
-  DragSourceHookSpec,
-  DragSourceMonitor,
-  DropTargetMonitor,
-  XYCoord,
-} from 'react-dnd';
-import { ContainerPos, EditorDndItem, ItemType } from './dnd-types';
+import type { DragSourceHookSpec, DragSourceMonitor, DropTargetMonitor, XYCoord } from 'react-dnd';
+import type { EditorDndItem } from './dnd-types';
+import { ContainerPos, ItemType } from './dnd-types';
 
 // @see https://react-dnd.github.io/react-dnd/examples/sortable/simple
 export const hoverIndexHelper = (
   draggedItem: EditorDndItem,
   hoveredItem: EditorDndItem,
   hoverBoundingRect?: DOMRect,
-  clientOffset?: XYCoord,
+  clientOffset?: XYCoord
 ): boolean => {
   const dragIndex = draggedItem.index;
   const hoverIndex = hoveredItem.index;
@@ -39,17 +35,13 @@ export const hoverIndexHelper = (
   }
 
   // Dragging upwards
-  if (dragIndex > hoverIndex && hoverClientY > hoverMiddleY) {
-    return false;
-  }
-
-  return true;
+  return !(dragIndex > hoverIndex && hoverClientY > hoverMiddleY);
 };
 
 export const dragSourceSpec = (
   item: EditorDndItem,
   canDrag: boolean,
-  onDropItem: (reset: boolean) => void,
+  onDropItem: (reset: boolean) => void
 ): DragSourceHookSpec<any, any, any> => ({
   type: item.type,
   item,
@@ -78,10 +70,7 @@ export const dragSourceSpec = (
  * @param boundingClientRect
  * @param clientOffset
  */
-export const getContainerPosition = (
-  boundingClientRect: DOMRect,
-  clientOffset: XYCoord,
-): ContainerPos | undefined => {
+export const getContainerPosition = (boundingClientRect: DOMRect, clientOffset: XYCoord): ContainerPos | undefined => {
   if (!clientOffset) {
     return undefined;
   }
@@ -109,7 +98,7 @@ export const handleDrop = (
   monitor: Partial<DropTargetMonitor>,
   onDropItem: () => void,
   containerId: string,
-  index: number,
+  index: number
 ) => {
   if (!droppedItem) {
     return;
@@ -128,18 +117,12 @@ export const handleDrop = (
   }
 };
 
-export const hoverShouldBeIgnored = (
-  monitor: DropTargetMonitor,
-  draggedItem?: EditorDndItem,
-) => {
+export const hoverShouldBeIgnored = (monitor: DropTargetMonitor, draggedItem?: EditorDndItem) => {
   if (!draggedItem) {
     return true;
   }
   if (!monitor.isOver({ shallow: true })) {
     return true;
   }
-  if (!draggedItem.containerId && draggedItem.type !== ItemType.ToolbarItem) {
-    return true;
-  }
-  return false;
+  return !draggedItem.containerId && draggedItem.type !== ItemType.ToolbarItem;
 };

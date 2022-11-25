@@ -3,10 +3,7 @@ import { useDispatch } from 'react-redux';
 import { AltinnColumnLayout } from 'app-shared/components/AltinnColumnLayout';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { ApplicationMetadataActions } from '../../../sharedResources/applicationMetadata/applicationMetadataSlice';
-import {
-  CheckboxGroup,
-  CheckboxGroupVariant,
-} from '@altinn/altinn-design-system';
+import { CheckboxGroup, CheckboxGroupVariant } from '@altinn/altinn-design-system';
 import classes from './AccessControlContainer.module.css';
 import type { RootState } from '../../../store';
 import { useAppSelector } from 'app-development/common/hooks';
@@ -34,21 +31,20 @@ export enum PartyTypes {
   subUnit = 'subUnit',
 }
 
-export function AccessControlContainer({
-  language,
-}: IAccessControlContainerProps) {
+export function AccessControlContainer({ language }: IAccessControlContainerProps) {
   const dispatch = useDispatch();
   const t = (key: string) => getLanguageFromKey(key, language);
 
-  const [partyTypesAllowed, setPartyTypesAllowed] =
-    useState<IPartyTypesAllowed>({
-      bankruptcyEstate: false,
-      organisation: false,
-      person: false,
-      subUnit: false,
-    });
+  const [partyTypesAllowed, setPartyTypesAllowed] = useState<IPartyTypesAllowed>({
+    bankruptcyEstate: false,
+    organisation: false,
+    person: false,
+    subUnit: false,
+  });
 
-  const applicationMetadata = useAppSelector((state: RootState) => state.applicationMetadataState.applicationMetadata);
+  const applicationMetadata = useAppSelector(
+    (state: RootState) => state.applicationMetadataState.applicationMetadata
+  );
 
   useEffect(() => {
     if (!applicationMetadata?.partyTypesAllowed) {
@@ -76,14 +72,12 @@ export function AccessControlContainer({
     });
 
     setPartyTypesAllowed(newPartyTypesAllowed);
-    const newApplicationMetadata = JSON.parse(
-      JSON.stringify(applicationMetadata || {}),
-    );
+    const newApplicationMetadata = JSON.parse(JSON.stringify(applicationMetadata || {}));
     newApplicationMetadata.partyTypesAllowed = newPartyTypesAllowed;
     dispatch(
       ApplicationMetadataActions.putApplicationMetadata({
         applicationMetadata: newApplicationMetadata,
-      }),
+      })
     );
   };
 
@@ -92,21 +86,15 @@ export function AccessControlContainer({
   const SideMenu = (): JSX.Element => {
     return (
       <>
-        <p className={classes.sidebarHeader}>
-          {t('access_control.about_header')}
-        </p>
+        <p className={classes.sidebarHeader}>{t('access_control.about_header')}</p>
         <div className={classes.sidebarSectionContainer}>
           <p className={classes.sidebarSectionHeader}>
             {t('access_control.test_initiation_header')}
           </p>
-          <p className={classes.infoText}>
-            {t('access_control.test_initiation')}
-          </p>
+          <p className={classes.infoText}>{t('access_control.test_initiation')}</p>
         </div>
         <div className={classes.sidebarSectionContainer}>
-          <p className={classes.sidebarSectionHeader}>
-            {t('access_control.test_what_header')}
-          </p>
+          <p className={classes.sidebarSectionHeader}>{t('access_control.test_what_header')}</p>
           <p className={classes.infoText}>{t('access_control.test_what')}</p>
         </div>
       </>
@@ -115,10 +103,7 @@ export function AccessControlContainer({
 
   return (
     <div>
-      <AltinnColumnLayout
-        header={t('access_control.header')}
-        sideMenuChildren={<SideMenu />}
-      >
+      <AltinnColumnLayout header={t('access_control.header')} sideMenuChildren={<SideMenu />}>
         <CheckboxGroup
           data-testid='access-control-container'
           description={t('access_control.party_type')}

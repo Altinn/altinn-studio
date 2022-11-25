@@ -1,5 +1,5 @@
 import React from 'react';
-import {CloneModal} from './cloneModal';
+import { CloneModal } from './cloneModal';
 import type { ICloneModalProps } from './cloneModal';
 import { render as rtlRender, screen } from '@testing-library/react';
 
@@ -13,7 +13,7 @@ describe('cloneModal', () => {
     expect(
       screen.getByRole('button', {
         name: /sync_header\.clone_https_button/i,
-      }),
+      })
     ).toBeInTheDocument();
   });
 
@@ -26,7 +26,7 @@ describe('cloneModal', () => {
     expect(
       screen.queryByRole('button', {
         name: /sync_header\.clone_https_button/i,
-      }),
+      })
     ).not.toBeInTheDocument();
   });
 });

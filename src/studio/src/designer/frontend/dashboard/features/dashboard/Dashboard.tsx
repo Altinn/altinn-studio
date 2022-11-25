@@ -1,4 +1,5 @@
-import React, { useState, ChangeEvent, KeyboardEvent } from 'react';
+import type { ChangeEvent, KeyboardEvent } from 'react';
+import React, { useState } from 'react';
 import { IconButton, InputAdornment, TextField } from '@mui/material';
 import { useDebounce } from 'react-use';
 import cn from 'classnames';
@@ -19,8 +20,7 @@ export const Dashboard = () => {
   useDebounce(() => setDebouncedSearchText(searchText), 500, [searchText]);
   const handleChangeSearch = (event: ChangeEvent<HTMLInputElement>) =>
     setSearchText(event.target.value);
-  const handleKeyDown = (event: KeyboardEvent) =>
-    event.code === 'Escape' && setSearchText('');
+  const handleKeyDown = (event: KeyboardEvent) => event.code === 'Escape' && setSearchText('');
   const handleClearSearch = () => setSearchText('');
   const handleNewLinkFocus = () => setIsNewLinkFocused(true);
   const handleNewLinkFocusOut = () => setIsNewLinkFocused(false);
@@ -39,10 +39,7 @@ export const Dashboard = () => {
               <InputAdornment position='end'>
                 {searchText && (
                   <IconButton
-                    aria-label={getLanguageFromKey(
-                      'dashboard.clear_search',
-                      language
-                    )}
+                    aria-label={getLanguageFromKey('dashboard.clear_search', language)}
                     onClick={handleClearSearch}
                     edge='end'
                   >

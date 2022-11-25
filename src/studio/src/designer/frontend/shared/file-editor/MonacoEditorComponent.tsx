@@ -89,7 +89,7 @@ class MonacoEditorComponent extends React.Component<
     });
   };
 
-  public setFileEditorFocus = (type: string) => (e: any) => {
+  public setFileEditorFocus = (type: string) => (_e: any) => {
     const status = type === 'focus';
 
     this.setState({
@@ -98,10 +98,8 @@ class MonacoEditorComponent extends React.Component<
   };
 
   public handleKeyPress = (e: any) => {
-    const divElement = this.state.monacoWrapperRef.current
-      .firstChild as HTMLDivElement;
-    const txtArea = divElement.children[0].children[0]
-      .children[3] as HTMLTextAreaElement;
+    const divElement = this.state.monacoWrapperRef.current.firstChild as HTMLDivElement;
+    const txtArea = divElement.children[0].children[0].children[3] as HTMLTextAreaElement;
     if (e.key === 'Enter') {
       txtArea.focus();
     } else if (e.keyCode === 9) {
@@ -128,12 +126,7 @@ class MonacoEditorComponent extends React.Component<
           width: this.props.widthPx ? this.props.heightPx : '100%',
         }}
       >
-        <Grid
-          container={true}
-          item={true}
-          alignItems='center'
-          justifyContent='center'
-        >
+        <Grid container={true} item={true} alignItems='center' justifyContent='center'>
           <Grid id='spinnerGridItem' item={true}>
             <CircularProgress className={classes.spinner} />
           </Grid>

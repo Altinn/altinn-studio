@@ -13,7 +13,8 @@ test('NumberRestrictions should redner correctly', async () => {
       path={path}
       readonly={false}
       restrictions={[]}
-    />,
+      onChangeRestrictions={() => undefined}
+    />
   );
   Object.values(IntRestrictionKeys).forEach((text) => {
     expect(screen.getByLabelText(text)).toBeDefined();

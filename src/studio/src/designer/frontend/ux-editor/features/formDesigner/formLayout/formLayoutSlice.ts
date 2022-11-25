@@ -1,4 +1,5 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 import { actions, moduleName } from './formLayoutActions';
 import { sortArray } from '../../../utils/arrayHelpers/arrayLogic';
 import type {
@@ -27,7 +28,7 @@ import type {
 } from '../formDesignerTypes';
 import type { ILayoutSettings } from 'app-shared/types/global';
 import type { IFormDesignerLayout } from '../../../types/global';
-import {layoutSettingsSchemaUrl} from "app-shared/cdn-paths";
+import { layoutSettingsSchemaUrl } from 'app-shared/cdn-paths';
 
 export interface IFormLayoutState extends IFormDesignerLayout {
   fetching: boolean;
@@ -61,27 +62,18 @@ const formLayoutSlice = createSlice({
   name: moduleName,
   initialState,
   reducers: {
-    addActiveFormContainerFulfilled: (
-      state,
-      action: PayloadAction<IAddActiveFormContainerAction>,
-    ) => {
+    addActiveFormContainerFulfilled: (state, action: PayloadAction<IAddActiveFormContainerAction>) => {
       const { containerId, callback } = action.payload;
       if (callback) {
         callback(containerId);
       }
       state.activeContainer = containerId;
     },
-    addApplicationMetadataRejected: (
-      state,
-      action: PayloadAction<IFormDesignerActionRejected>,
-    ) => {
+    addApplicationMetadataRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
       const { error } = action.payload;
       state.error = error;
     },
-    addFormComponentFulfilled: (
-      state,
-      action: PayloadAction<IAddFormComponentActionFulfilled>,
-    ) => {
+    addFormComponentFulfilled: (state, action: PayloadAction<IAddFormComponentActionFulfilled>) => {
       const { component, id, position, containerId, callback } = action.payload;
 
       if (callback) {
@@ -94,25 +86,14 @@ const formLayoutSlice = createSlice({
       if (!selectedLayout.order[containerId]) {
         selectedLayout.order[containerId] = [];
       }
-      state.layouts[state.selectedLayout].order[containerId].splice(
-        position,
-        0,
-        id,
-      );
+      state.layouts[state.selectedLayout].order[containerId].splice(position, 0, id);
     },
-    addFormComponentRejected: (
-      state,
-      action: PayloadAction<IFormDesignerActionRejected>,
-    ) => {
+    addFormComponentRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
       const { error } = action.payload;
       state.error = error;
     },
-    addFormComponentsFulfilled: (
-      state,
-      action: PayloadAction<IAddFormComponentsActionFulfilled>,
-    ) => {
-      const { components, ids, position, containerId, callback } =
-        action.payload;
+    addFormComponentsFulfilled: (state, action: PayloadAction<IAddFormComponentsActionFulfilled>) => {
+      const { components, ids, position, containerId, callback } = action.payload;
 
       if (callback) {
         callback(components, ids);
@@ -122,25 +103,10 @@ const formLayoutSlice = createSlice({
         ...existingComponents,
         ...components,
       };
-      state.layouts[state.selectedLayout].order[containerId].splice(
-        position,
-        0,
-        ...ids,
-      );
+      state.layouts[state.selectedLayout].order[containerId].splice(position, 0, ...ids);
     },
-    addFormContainerFulfilled: (
-      state,
-      action: PayloadAction<IAddFormContainerActionFulfilled>,
-    ) => {
-      const {
-        container,
-        id,
-        positionAfterId,
-        addToId,
-        baseContainerId,
-        callback,
-        destinationIndex,
-      } = action.payload;
+    addFormContainerFulfilled: (state, action: PayloadAction<IAddFormContainerActionFulfilled>) => {
+      const { container, id, positionAfterId, addToId, baseContainerId, callback, destinationIndex } = action.payload;
 
       if (callback) {
         callback(container, id);
@@ -163,7 +129,7 @@ const formLayoutSlice = createSlice({
           selectedLayout.order[baseContainerId].splice(
             selectedLayout.order[baseContainerId].indexOf(positionAfterId) + 1,
             0,
-            id,
+            id
           );
         }
       } else if (!destinationIndex === false || destinationIndex === 0) {
@@ -172,136 +138,85 @@ const formLayoutSlice = createSlice({
         selectedLayout.order[baseContainerId].push(id);
       }
     },
-    addFormContainerRejected: (
-      state,
-      action: PayloadAction<IFormDesignerActionRejected>,
-    ) => {
+    addFormContainerRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
       const { error } = action.payload;
       state.error = error;
     },
-    addLayoutFulfilled: (
-      state,
-      action: PayloadAction<IAddLayoutFulfilledAction>,
-    ) => {
+    addLayoutFulfilled: (state, action: PayloadAction<IAddLayoutFulfilledAction>) => {
       const { layouts, layoutOrder } = action.payload;
       state.layouts = layouts;
       state.layoutSettings.pages.order = layoutOrder;
     },
-    addLayoutRejected: (
-      state,
-      action: PayloadAction<IFormDesignerActionRejected>,
-    ) => {
+    addLayoutRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
       const { error } = action.payload;
       state.error = error;
     },
-    addWidgetFulfilled: (
-      state,
-      action: PayloadAction<IAddWidgetActionFulfilled>,
-    ) => {
-      const { components, containerId, layoutId, containerOrder } =
-        action.payload;
+    addWidgetFulfilled: (state, action: PayloadAction<IAddWidgetActionFulfilled>) => {
+      const { components, containerId, layoutId, containerOrder } = action.payload;
 
       state.layouts[layoutId].components = components;
       state.layouts[layoutId].order[containerId] = containerOrder;
     },
-    addWidgetRejected: (
-      state,
-      action: PayloadAction<IFormDesignerActionRejected>,
-    ) => {
+    addWidgetRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
       const { error } = action.payload;
       state.error = error;
     },
     deleteActiveListFulfilled: (state) => {
       state.activeList = [];
     },
-    deleteActiveListRejected: (
-      state,
-      action: PayloadAction<IFormDesignerActionRejected>,
-    ) => {
+    deleteActiveListRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
       const { error } = action.payload;
       state.error = error;
     },
-    deleteApplicationMetadataRejected: (
-      state,
-      action: PayloadAction<IFormDesignerActionRejected>,
-    ) => {
+    deleteApplicationMetadataRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
       const { error } = action.payload;
       state.error = error;
     },
-    deleteFormComponentFulfilled: (
-      state,
-      action: PayloadAction<IDeleteComponentAction>,
-    ) => {
+    deleteFormComponentFulfilled: (state, action: PayloadAction<IDeleteComponentAction>) => {
       const { id, containerId } = action.payload;
       const selectedLayout = state.layouts[state.selectedLayout];
       delete selectedLayout.components[id];
-      selectedLayout.order[containerId].splice(
-        selectedLayout.order[containerId].indexOf(id),
-        1,
-      );
+      selectedLayout.order[containerId].splice(selectedLayout.order[containerId].indexOf(id), 1);
       state.unSavedChanges = true;
       state.error = null;
     },
-    deleteFormComponentRejected: (
-      state,
-      action: PayloadAction<IFormDesignerActionRejected>,
-    ) => {
+    deleteFormComponentRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
       const { error } = action.payload;
       state.error = error;
     },
-    deleteFormComponents: (
-      state,
-      action: PayloadAction<IDeleteComponentsAction>,
-    ) => {
+    deleteFormComponents: (state, action: PayloadAction<IDeleteComponentsAction>) => {
       const { components } = action.payload;
       const selectedLayout = state.layouts[state.selectedLayout];
       components.forEach((id) => {
         let containerId = Object.keys(selectedLayout.order)[0];
         Object.keys(selectedLayout.order).forEach((cId) => {
-          if (
-            selectedLayout.order[cId].find((componentId) => componentId === id)
-          ) {
+          if (selectedLayout.order[cId].find((componentId) => componentId === id)) {
             containerId = cId;
           }
         });
         delete selectedLayout.components[id];
-        selectedLayout.order[containerId].splice(
-          selectedLayout.order[containerId].indexOf(id),
-          1,
-        );
+        selectedLayout.order[containerId].splice(selectedLayout.order[containerId].indexOf(id), 1);
         state.unSavedChanges = true;
         state.error = null;
       });
     },
-    deleteFormContainerFulfilled: (
-      state,
-      action: PayloadAction<IDeleteContainerAction>,
-    ) => {
+    deleteFormContainerFulfilled: (state, action: PayloadAction<IDeleteContainerAction>) => {
       const { id, parentContainerId } = action.payload;
       const selectedLayout = state.layouts[state.selectedLayout];
       delete selectedLayout.containers[id];
       delete selectedLayout.order[id];
       if (parentContainerId) {
-        selectedLayout.order[parentContainerId].splice(
-          selectedLayout.order[parentContainerId].indexOf(id),
-          1,
-        );
+        selectedLayout.order[parentContainerId].splice(selectedLayout.order[parentContainerId].indexOf(id), 1);
       }
 
       state.unSavedChanges = true;
       state.error = null;
     },
-    deleteFormContainerRejected: (
-      state,
-      action: PayloadAction<IFormDesignerActionRejected>,
-    ) => {
+    deleteFormContainerRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
       const { error } = action.payload;
       state.error = error;
     },
-    deleteLayoutFulfilled: (
-      state,
-      action: PayloadAction<IDeleteLayoutAction>,
-    ) => {
+    deleteLayoutFulfilled: (state, action: PayloadAction<IDeleteLayoutAction>) => {
       const { layout } = action.payload;
       delete state.layouts[layout];
       const pageOrder = state.layoutSettings.pages.order;
@@ -310,10 +225,7 @@ const formLayoutSlice = createSlice({
         state.selectedLayout = pageOrder[0];
       }
     },
-    deleteLayoutRejected: (
-      state,
-      action: PayloadAction<IFormDesignerActionRejected>,
-    ) => {
+    deleteLayoutRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
       const { error } = action.payload;
       state.error = error;
     },
@@ -322,10 +234,7 @@ const formLayoutSlice = createSlice({
       state.fetched = false;
       state.error = null;
     },
-    fetchFormLayoutFulfilled: (
-      state,
-      action: PayloadAction<IFetchFormLayoutFulfilledAction>,
-    ) => {
+    fetchFormLayoutFulfilled: (state, action: PayloadAction<IFetchFormLayoutFulfilledAction>) => {
       const { formLayout } = action.payload;
       state.fetching = false;
       state.fetched = true;
@@ -335,26 +244,17 @@ const formLayoutSlice = createSlice({
         state.layoutSettings.pages.order = Object.keys(formLayout);
       }
     },
-    fetchFormLayoutRejected: (
-      state,
-      action: PayloadAction<IFormDesignerActionRejected>,
-    ) => {
+    fetchFormLayoutRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
       const { error } = action.payload;
       state.fetching = false;
       state.fetched = false;
       state.error = error;
     },
-    fetchLayoutSettingsFulfilled: (
-      state,
-      action: PayloadAction<IFetchLayoutSettingsFulfilledAction>,
-    ) => {
+    fetchLayoutSettingsFulfilled: (state, action: PayloadAction<IFetchLayoutSettingsFulfilledAction>) => {
       const { settings } = action.payload;
       state.layoutSettings = settings;
     },
-    fetchLayoutSettingsRejected: (
-      state,
-      action: PayloadAction<IFormDesignerActionRejected>,
-    ) => {
+    fetchLayoutSettingsRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
       const { error } = action.payload;
       state.error = error;
     },
@@ -365,47 +265,30 @@ const formLayoutSlice = createSlice({
       state.saving = false;
       state.unSavedChanges = false;
     },
-    saveFormLayoutRejected: (
-      state,
-      action: PayloadAction<IFormDesignerActionRejected>,
-    ) => {
+    saveFormLayoutRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
       const { error } = action.payload;
       state.saving = false;
       state.unSavedChanges = true;
       state.error = error;
     },
-    updateActiveListFulfilled: (
-      state,
-      action: PayloadAction<IUpdateActiveListActionFulfilled>,
-    ) => {
+    updateActiveListFulfilled: (state, action: PayloadAction<IUpdateActiveListActionFulfilled>) => {
       const { containerList } = action.payload;
       state.activeList = containerList;
     },
-    updateActiveListOrder: (
-      state,
-      action: PayloadAction<IUpdateActiveListOrderAction>,
-    ) => {
+    updateActiveListOrder: (state, action: PayloadAction<IUpdateActiveListOrderAction>) => {
       const { containerList, orderList } = action.payload;
       const key: any = Object.keys(orderList)[0];
       const func = sortArray();
-      const returnedList = !containerList.length
-        ? []
-        : func({ array: [...containerList], order: orderList[key] });
+      const returnedList = !containerList.length ? [] : func({ array: [...containerList], order: orderList[key] });
       if (returnedList.length > 0) {
         state.activeList = returnedList;
       }
     },
-    updateApplicationMetadataRejected: (
-      state,
-      action: PayloadAction<IFormDesignerActionRejected>,
-    ) => {
+    updateApplicationMetadataRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
       const { error } = action.payload;
       state.error = error;
     },
-    updateContainerId: (
-      state,
-      action: PayloadAction<IUpdateContainerIdFulfilled>,
-    ) => {
+    updateContainerId: (state, action: PayloadAction<IUpdateContainerIdFulfilled>) => {
       const { currentId, newId } = action.payload;
       const selectedLayout = state.layouts[state.selectedLayout];
 
@@ -416,11 +299,9 @@ const formLayoutSlice = createSlice({
       delete selectedLayout.containers[currentId];
 
       // update id in parent container order
-      const parentContainer = Object.keys(selectedLayout.order).find(
-        (containerId: string) => {
-          return selectedLayout.order[containerId].indexOf(currentId) > -1;
-        },
-      );
+      const parentContainer = Object.keys(selectedLayout.order).find((containerId: string) => {
+        return selectedLayout.order[containerId].indexOf(currentId) > -1;
+      });
       const parentContainerOrder = selectedLayout.order[parentContainer];
       const containerIndex = parentContainerOrder.indexOf(currentId);
       parentContainerOrder[containerIndex] = newId;
@@ -430,13 +311,9 @@ const formLayoutSlice = createSlice({
       delete selectedLayout.order[currentId];
     },
     // eslint-disable-next-line max-len
-    updateFormComponent: (
-      state,
-      action: PayloadAction<IUpdateFormComponentActionFulfilled>,
-    ) => {
+    updateFormComponent: (state, action: PayloadAction<IUpdateFormComponentActionFulfilled>) => {
       const { updatedComponent, id } = action.payload;
-      const selectedLayoutComponents =
-        state.layouts[state.selectedLayout].components;
+      const selectedLayoutComponents = state.layouts[state.selectedLayout].components;
       if (id !== updatedComponent.id) {
         const newId = updatedComponent.id;
         selectedLayoutComponents[newId] = {
@@ -447,11 +324,9 @@ const formLayoutSlice = createSlice({
 
         // update id in parent container order
         const selectedLayoutOrder = state.layouts[state.selectedLayout].order;
-        const parentContainer = Object.keys(selectedLayoutOrder).find(
-          (containerId) => {
-            return selectedLayoutOrder[containerId].indexOf(id) > -1;
-          },
-        );
+        const parentContainer = Object.keys(selectedLayoutOrder).find((containerId) => {
+          return selectedLayoutOrder[containerId].indexOf(id) > -1;
+        });
         const parentContainerOrder = selectedLayoutOrder[parentContainer];
         const containerIndex = parentContainerOrder.indexOf(id);
         parentContainerOrder[containerIndex] = newId;
@@ -467,47 +342,31 @@ const formLayoutSlice = createSlice({
       }
       state.unSavedChanges = true;
     },
-    updateFormComponentOrder: (
-      state,
-      action: PayloadAction<IUpdateFormComponentOrderAction>,
-    ) => {
+    updateFormComponentOrder: (state, action: PayloadAction<IUpdateFormComponentOrderAction>) => {
       const { updatedOrder } = action.payload;
       state.layouts[state.selectedLayout].order = updatedOrder;
     },
-    updateFormContainer: (
-      state,
-      action: PayloadAction<IUpdateFormContainerAction>,
-    ) => {
+    updateFormContainer: (state, action: PayloadAction<IUpdateFormContainerAction>) => {
       const { updatedContainer, id } = action.payload;
-      const selectedLayoutContainers =
-        state.layouts[state.selectedLayout].containers;
+      const selectedLayoutContainers = state.layouts[state.selectedLayout].containers;
       selectedLayoutContainers[id] = {
         ...selectedLayoutContainers[id],
         ...updatedContainer,
       };
       state.unSavedChanges = true;
     },
-    updateLayoutNameFulfilled: (
-      state,
-      action: PayloadAction<IUpdateLayoutNameAction>,
-    ) => {
+    updateLayoutNameFulfilled: (state, action: PayloadAction<IUpdateLayoutNameAction>) => {
       const { oldName, newName } = action.payload;
       state.layouts[newName] = { ...state.layouts[oldName] };
       delete state.layouts[oldName];
       const pageOrder = state.layoutSettings.pages.order;
       pageOrder[pageOrder.indexOf(oldName)] = newName;
     },
-    updateLayoutNameRejected: (
-      state,
-      action: PayloadAction<IFormDesignerActionRejected>,
-    ) => {
+    updateLayoutNameRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
       const { error } = action.payload;
       state.error = error;
     },
-    updateLayoutOrder: (
-      state,
-      action: PayloadAction<IUpdateLayoutOrderAction>,
-    ) => {
+    updateLayoutOrder: (state, action: PayloadAction<IUpdateLayoutOrderAction>) => {
       const { layout, direction } = action.payload;
       const newOrder = [...state.layoutSettings.pages.order];
       const currentIndex = state.layoutSettings.pages.order.indexOf(layout);
@@ -521,10 +380,7 @@ const formLayoutSlice = createSlice({
       newOrder.splice(destination, 0, layout);
       state.layoutSettings.pages.order = newOrder;
     },
-    updateSelectedLayout: (
-      state,
-      action: PayloadAction<IUpdateSelectedLayoutAction>,
-    ) => {
+    updateSelectedLayout: (state, action: PayloadAction<IUpdateSelectedLayoutAction>) => {
       const { selectedLayout } = action.payload;
       state.selectedLayout = selectedLayout;
     },

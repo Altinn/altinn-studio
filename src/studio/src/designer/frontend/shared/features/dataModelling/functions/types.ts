@@ -1,8 +1,8 @@
 import type { IDataModelMetadataItem } from '../sagas/metadata';
 
 export interface IMetadataOption {
-  value?: IDataModelMetadataItem;
   label: string;
+  value?: IDataModelMetadataItem;
 }
 
 export enum DatamodelType {

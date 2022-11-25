@@ -1,16 +1,11 @@
 import React, { createRef } from 'react';
-import {
-  createMockedDndEvents,
-  createMockMonitor,
-} from './helpers/dnd-helpers.test';
+import { createMockedDndEvents, createMockMonitor } from './helpers/dnd-helpers.test';
 import { render, screen } from '@testing-library/react';
-import { DndProvider, DropTargetMonitor } from 'react-dnd';
+import type { DropTargetMonitor } from 'react-dnd';
+import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { randomUUID } from 'crypto';
-import {
-  DroppableDraggableContainer,
-  dropTargetSpec as createDropTargetSpec,
-} from './DroppableDraggableContainer';
+import { DroppableDraggableContainer, dropTargetSpec as createDropTargetSpec } from './DroppableDraggableContainer';
 import { ItemType } from './helpers/dnd-types';
 
 test.each([[true], [false]])(
@@ -26,10 +21,10 @@ test.each([[true], [false]])(
           id={randomUUID()}
           isBaseContainer={isBaseContainer}
         />
-      </DndProvider>,
+      </DndProvider>
     );
     expect(screen.getByTestId('droppable-draggable-container')).toBeDefined();
-  },
+  }
 );
 
 test("that DroppableDraggableContainer's droptarget spec is working", () => {
@@ -50,7 +45,7 @@ test("that DroppableDraggableContainer's droptarget spec is working", () => {
       type: ItemType.Item,
       containerId: randomUUID(),
     },
-    monitor,
+    monitor
   );
   expect(events.moveItem).not.toBeCalled();
 

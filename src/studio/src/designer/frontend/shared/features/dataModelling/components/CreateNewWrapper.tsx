@@ -1,12 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { TopToolbarButton } from '@altinn/schema-editor/index';
-import { Button, ButtonColor, ButtonVariant, ErrorMessage, TextField } from '@altinn/altinn-design-system';
+import {
+  Button,
+  ButtonColor,
+  ButtonVariant,
+  ErrorMessage,
+  TextField,
+} from '@altinn/altinn-design-system';
 import AltinnPopoverSimple from '../../../components/molecules/AltinnPopoverSimple';
 import { getLanguageFromKey } from '../../../utils/language';
 
 export interface ICreateNewWrapper {
   language: any;
-  createAction: ({ name, relativePath }: { name: string; relativePath: string | undefined }) => void;
+  createAction: ({
+    name,
+    relativePath,
+  }: {
+    name: string;
+    relativePath: string | undefined;
+  }) => void;
   dataModelNames: string[];
   createPathOption?: boolean;
   disabled: boolean;

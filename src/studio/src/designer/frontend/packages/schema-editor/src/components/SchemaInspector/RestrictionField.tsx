@@ -1,4 +1,5 @@
-import React, { BaseSyntheticEvent, ChangeEvent } from 'react';
+import type { BaseSyntheticEvent, ChangeEvent } from 'react';
+import React from 'react';
 import { TextField } from '@altinn/altinn-design-system';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
 

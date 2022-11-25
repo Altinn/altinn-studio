@@ -1,8 +1,6 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import type {
-  IDataModelFieldElement,
-  IFormDesignerActionRejected,
-} from '../../../types/global';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
+import type { IDataModelFieldElement, IFormDesignerActionRejected } from '../../../types/global';
 
 export interface IDataModelState {
   model: IDataModelFieldElement[];
@@ -31,20 +29,14 @@ const dataModelSlice = createSlice({
       state.fetching = true;
       state.error = null;
     },
-    fetchDataModelFulfilled: (
-      state,
-      action: PayloadAction<IFetchDataModelFulfilled>,
-    ) => {
+    fetchDataModelFulfilled: (state, action: PayloadAction<IFetchDataModelFulfilled>) => {
       const { dataModel } = action.payload;
       state.model = dataModel;
       state.fetched = true;
       state.fetching = false;
       state.error = null;
     },
-    fetchDataModelRejected: (
-      state,
-      action: PayloadAction<IFormDesignerActionRejected>,
-    ) => {
+    fetchDataModelRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
       const { error } = action.payload;
       state.error = error;
       state.fetched = false;
@@ -53,10 +45,6 @@ const dataModelSlice = createSlice({
   },
 });
 
-export const {
-  fetchDataModel,
-  fetchDataModelFulfilled,
-  fetchDataModelRejected,
-} = dataModelSlice.actions;
+export const { fetchDataModel, fetchDataModelFulfilled, fetchDataModelRejected } = dataModelSlice.actions;
 
 export default dataModelSlice.reducer;

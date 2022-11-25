@@ -1,19 +1,16 @@
-import { PayloadAction } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
 import { put, select, takeLatest } from 'redux-saga/effects';
 import { v4 as uuidv4 } from 'uuid';
-import { SagaIterator } from 'redux-saga';
+import type { SagaIterator } from 'redux-saga';
 import { FormLayoutActions } from '../formLayout/formLayoutSlice';
 import type { IAddWidgetAction } from '../formDesignerTypes';
 import { convertFromLayoutToInternalFormat } from '../../../utils/formLayout';
 import { addTextResources } from '../../appData/textResources/textResourcesSlice';
 import type { IAppState, IFormLayout } from '../../../types/global';
 
-const selectCurrentLayoutId = (state: IAppState): string =>
-  state.formDesigner.layout.selectedLayout;
+const selectCurrentLayoutId = (state: IAppState): string => state.formDesigner.layout.selectedLayout;
 const selectCurrentLayout = (state: IAppState) => {
-  return state.formDesigner.layout.layouts[
-    state.formDesigner.layout.selectedLayout
-  ];
+  return state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout];
 };
 
 function* addWidgetSaga(action: PayloadAction<IAddWidgetAction>): SagaIterator {
@@ -22,9 +19,7 @@ function* addWidgetSaga(action: PayloadAction<IAddWidgetAction>): SagaIterator {
     let { containerId } = action.payload;
     const layoutId: string = yield select(selectCurrentLayoutId);
     const currentLayout: IFormLayout = yield select(selectCurrentLayout);
-    const internalComponents = convertFromLayoutToInternalFormat(
-      widget.components,
-    );
+    const internalComponents = convertFromLayoutToInternalFormat(widget.components);
     const components: any = { ...currentLayout.components };
     if (!containerId) {
       // if not containerId set it to base-container
@@ -48,7 +43,7 @@ function* addWidgetSaga(action: PayloadAction<IAddWidgetAction>): SagaIterator {
         containerId,
         layoutId,
         containerOrder,
-      }),
+      })
     );
 
     yield put(FormLayoutActions.saveFormLayout());

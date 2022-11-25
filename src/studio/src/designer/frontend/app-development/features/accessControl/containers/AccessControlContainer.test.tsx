@@ -59,13 +59,10 @@ const renderAccessControlContainer = (applicationMetadata?: any) => {
     userState: null,
   };
 
-  return renderWithProviders(
-    <AccessControlContainer language={mockLanguage} />,
-    {
-      startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
-      preloadedState: initialState,
-    },
-  );
+  return renderWithProviders(<AccessControlContainer language={mockLanguage} />, {
+    startUrl: `${APP_DEVELOPMENT_BASENAME}/my-org/my-app`,
+    preloadedState: initialState,
+  });
 };
 
 describe('When loading AccessControlContainer', () => {
@@ -86,9 +83,13 @@ describe('When loading AccessControlContainer', () => {
     expect(checkboxes).toHaveLength(4);
     checkboxes.forEach((c) => {
       if (partyTypesAllowed[c.getAttribute('name')]) {
-        expect(c.parentElement.parentElement.className).toContain('Checkbox-module_wrapper--checked');
+        expect(c.parentElement.parentElement.className).toContain(
+          'Checkbox-module_wrapper--checked'
+        );
       } else {
-        expect(c.parentElement.parentElement.className).not.toContain('Checkbox-module_wrapper--checked');
+        expect(c.parentElement.parentElement.className).not.toContain(
+          'Checkbox-module_wrapper--checked'
+        );
       }
     });
   });

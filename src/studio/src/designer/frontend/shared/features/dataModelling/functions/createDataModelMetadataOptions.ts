@@ -1,6 +1,6 @@
 import type { IDataModelMetadataItem, IDataModelsMetadataState } from '../sagas/metadata';
-import { GroupedOption } from '../components/SchemaSelect';
-import { IMetadataOption } from './types';
+import type { GroupedOption } from '../components/SchemaSelect';
+import type { IMetadataOption } from './types';
 
 export function createDataModelMetadataOptions({
   dataModelsMetadataState,
@@ -10,12 +10,16 @@ export function createDataModelMetadataOptions({
   const { dataModelsMetadata } = dataModelsMetadataState;
 
   if (!dataModelsMetadata?.length) {
-    return makeGroupedOptions({jsonOptions: [], xsdOptions: []});
+    return makeGroupedOptions({ jsonOptions: [], xsdOptions: [] });
   }
 
-  const jsonOptions = mapModelsMetadataToOptions(dataModelsMetadata.filter((option) => option.fileType === '.json'));
-  const xsdOptions = mapModelsMetadataToOptions(dataModelsMetadata.filter((option) => option.fileType === '.xsd'));
-  return makeGroupedOptions({jsonOptions, xsdOptions});
+  const jsonOptions = mapModelsMetadataToOptions(
+    dataModelsMetadata.filter((option) => option.fileType === '.json')
+  );
+  const xsdOptions = mapModelsMetadataToOptions(
+    dataModelsMetadata.filter((option) => option.fileType === '.xsd')
+  );
+  return makeGroupedOptions({ jsonOptions, xsdOptions });
 }
 
 const mapModelsMetadataToOptions = (metadata: IDataModelMetadataItem[]): IMetadataOption[] => {
@@ -30,14 +34,17 @@ const mapModelsMetadataToOptions = (metadata: IDataModelMetadataItem[]): IMetada
     } else {
       label = value?.fileName?.split('.schema')[0];
     }
-      return label ? [{ value, label }] : [];
-    })
-}
+    return label ? [{ value, label }] : [];
+  });
+};
 
 const makeGroupedOptions = ({
   jsonOptions,
   xsdOptions,
-}: {jsonOptions: IMetadataOption[], xsdOptions: IMetadataOption[]}): GroupedOption[] => {
+}: {
+  jsonOptions: IMetadataOption[];
+  xsdOptions: IMetadataOption[];
+}): GroupedOption[] => {
   return [
     {
       label: 'JSONSchema',
@@ -46,6 +53,6 @@ const makeGroupedOptions = ({
     {
       label: 'XSD',
       options: xsdOptions,
-    }
+    },
   ];
-}
+};

@@ -3,7 +3,7 @@ import React from 'react';
 import classes from '../EditModalContent.module.css';
 import { Checkbox, FieldSet, Select, TextField } from '@altinn/altinn-design-system';
 import { ComponentTypes } from '../..';
-import {
+import type {
   IFormAddressComponent,
   IFormFileUploaderComponent,
   IFormFileUploaderWithTagComponent,
@@ -20,8 +20,12 @@ import { EditDescription } from '../editModal/EditDescription';
 import { FileUploadWithTagComponent } from './FileUploadWithTag';
 import { ImageComponent } from './Image';
 
-
-export function ComponentSpecificContent({ component, handleComponentChange, language, textResources }: IGenericEditComponent) {
+export function ComponentSpecificContent({
+  component,
+  handleComponentChange,
+  language,
+  textResources,
+}: IGenericEditComponent) {
   const t = (key: string) => getLanguageFromKey(key, language);
 
   const handleButtonTypeChange = (selected: any) => {

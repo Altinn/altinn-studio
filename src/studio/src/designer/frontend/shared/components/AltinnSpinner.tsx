@@ -1,7 +1,8 @@
 import React from 'react';
 import { CircularProgress, createTheme, Typography } from '@mui/material';
 import { createStyles, makeStyles } from '@mui/styles';
-import classNames, { Argument } from 'classnames';
+import type { Argument } from 'classnames';
+import classNames from 'classnames';
 
 import altinnTheme from '../theme/altinnStudioTheme';
 
@@ -28,7 +29,7 @@ const useStyles = makeStyles(() =>
       verticalAlign: 'middle',
       marginBottom: '25px',
     },
-  }),
+  })
 );
 
 const AltinnSpinner = (props: IAltinnSpinnerComponentProvidedProps) => {
@@ -41,9 +42,7 @@ const AltinnSpinner = (props: IAltinnSpinnerComponentProvidedProps) => {
         id={props.id ? props.id : undefined}
       />
       {props.spinnerText && (
-        <Typography className={classNames(classes.spinnerText)}>
-          {props.spinnerText}
-        </Typography>
+        <Typography className={classNames(classes.spinnerText)}>{props.spinnerText}</Typography>
       )}
     </div>
   );

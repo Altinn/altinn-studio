@@ -279,9 +279,7 @@ describe('utils/formLayout', () => {
     };
 
     const convertedLayout = convertFromLayoutToInternalFormat(mockLayout);
-    expect(convertedLayout.components).toEqual(
-      expectedComponentResult.components,
-    );
+    expect(convertedLayout.components).toEqual(expectedComponentResult.components);
     expect(Object.keys(convertedLayout.order).length).toEqual(4);
   });
 });

@@ -5,7 +5,12 @@ import { RestrictionField } from '../RestrictionField';
 import { getTranslation } from '../../../utils/language';
 import { Divider } from 'app-shared/primitives';
 
-export function ObjectRestrictions({ restrictions, path, language, onChangeRestrictionValue }: RestrictionItemProps) {
+export function ObjectRestrictions({
+  restrictions,
+  path,
+  language,
+  onChangeRestrictionValue,
+}: RestrictionItemProps) {
   const defaults = Object.values(ObjRestrictionKeys);
   return defaults?.length ? (
     <>

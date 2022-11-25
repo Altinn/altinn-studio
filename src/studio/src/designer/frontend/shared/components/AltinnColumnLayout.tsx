@@ -19,24 +19,14 @@ export const AltinnColumnLayout = ({
   sideMenuChildren,
 }: IAltinnColumnLayoutProps) => {
   return (
-    <div
-      className={cn(className, classes.root)}
-      id={'altinn-column-layout-container'}
-    >
+    <div className={cn(className, classes.root)} id={'altinn-column-layout-container'}>
       <div className={classes.left}>
-        <h1 className={classes.header}>
-          {header}
-        </h1>
-        <div id={'altinn-column-layout-main-content'}>
-          {children}
-        </div>
+        <h1 className={classes.header}>{header}</h1>
+        <div id={'altinn-column-layout-main-content'}>{children}</div>
       </div>
-      <div
-        id={'altinn-column-layout-side-menu'}
-        className={classes.right}
-      >
+      <div id={'altinn-column-layout-side-menu'} className={classes.right}>
         {sideMenuChildren}
       </div>
     </div>
   );
-}
+};

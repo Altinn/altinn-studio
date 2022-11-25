@@ -3,7 +3,7 @@ import { HandleMergeConflictAbort } from './HandleMergeConflictAbort';
 import { render, screen } from '@testing-library/react';
 import * as networking from 'app-shared/utils/networking';
 import userEvent from '@testing-library/user-event';
-import { UserEvent } from '@testing-library/user-event/setup/setup';
+import type { UserEvent } from '@testing-library/user-event/setup/setup';
 
 const renderHandleMergeConflictAbort = () => {
   const user = userEvent.setup();
@@ -16,7 +16,7 @@ const findAndClickOpenPopoverButton = (user: UserEvent) =>
   user.click(
     screen.getByRole('button', {
       name: 'handle_merge_conflict.abort_merge_button',
-    }),
+    })
   );
 
 afterEach(() => jest.restoreAllMocks());
@@ -29,9 +29,7 @@ test('should handle successfully returned data from API', async () => {
   // Setting up som mocks and stubs and renders the component
   const { user } = renderHandleMergeConflictAbort();
 
-  const mockGet = jest
-    .spyOn(networking, 'get')
-    .mockImplementationOnce(() => Promise.resolve({}));
+  const mockGet = jest.spyOn(networking, 'get').mockImplementationOnce(() => Promise.resolve({}));
 
   // the popover should be closed at this point
   expect(screen.queryByRole('presentation')).toBeNull();
@@ -79,9 +77,7 @@ test('should handle unsuccessfully returned data from API', async () => {
   const mockGet = jest
     .spyOn(networking, 'get')
     .mockImplementationOnce(() => Promise.reject('Error'));
-  const consoleError = jest
-    .spyOn(console, 'error')
-    .mockImplementation(() => ({}));
+  const consoleError = jest.spyOn(console, 'error').mockImplementation(() => ({}));
 
   // find and click the button that opens the popover
   await findAndClickOpenPopoverButton(user);
@@ -104,9 +100,7 @@ test('should catch error from networked function', async () => {
   const mockGet = jest
     .spyOn(networking, 'get')
     .mockImplementation(() => Promise.reject(Error('mocked error')));
-  const consoleError = jest
-    .spyOn(console, 'error')
-    .mockImplementation(() => ({}));
+  const consoleError = jest.spyOn(console, 'error').mockImplementation(() => ({}));
 
   // find and click the button that opens the popover
   await findAndClickOpenPopoverButton(user);

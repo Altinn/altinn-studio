@@ -1,5 +1,6 @@
 export { Divider } from './Divider';
-import React, { ReactNode } from 'react';
+import type { ReactNode } from 'react';
+import React from 'react';
 import classes from './Primitives.module.css';
 import classnames from 'classnames';
 
@@ -9,9 +10,5 @@ interface Props {
 }
 
 export const SimpleContainer = ({ children, className }: Props) => {
-  return (
-    <div className={classnames(classes.simpleContainer, className)}>
-      {children}
-    </div>
-  );
+  return <div className={classnames(classes.simpleContainer, className)}>{children}</div>;
 };

@@ -1,6 +1,7 @@
 import React from 'react';
 import { createTheme } from '@mui/material';
-import { createStyles, withStyles, WithStyles } from '@mui/styles';
+import type { WithStyles } from '@mui/styles';
+import { createStyles, withStyles } from '@mui/styles';
 import AltinnButton from 'app-shared/components/AltinnButton';
 import AltinnPopover from 'app-shared/components/AltinnPopover';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
@@ -8,7 +9,7 @@ import { getLanguageFromKey } from 'app-shared/utils/language';
 import { get } from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
 import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
-import {discardChangesPath} from "app-shared/api-paths";
+import { discardChangesPath } from 'app-shared/api-paths';
 
 const theme = createTheme(altinnTheme);
 
@@ -22,8 +23,7 @@ const styles = () =>
     },
   });
 
-interface IHandleMergeConflictDiscardChangesProps
-  extends WithStyles<typeof styles> {
+interface IHandleMergeConflictDiscardChangesProps extends WithStyles<typeof styles> {
   disabled?: boolean;
   language: any;
 }
@@ -67,15 +67,15 @@ class HandleMergeConflictDiscardChanges extends React.Component<
         btnMethod: this.discardChangesConfirmed,
         btnConfirmText: getLanguageFromKey(
           'handle_merge_conflict.discard_changes_button_confirm',
-          this.props.language,
+          this.props.language
         ),
         descriptionText: getLanguageFromKey(
           'handle_merge_conflict.discard_changes_message',
-          this.props.language,
+          this.props.language
         ),
         btnCancelText: getLanguageFromKey(
           'handle_merge_conflict.discard_changes_button_cancel',
-          this.props.language,
+          this.props.language
         ),
       },
     });
@@ -95,7 +95,7 @@ class HandleMergeConflictDiscardChanges extends React.Component<
         },
       });
 
-      const discardRes = await get(discardChangesPath(org,app));
+      const discardRes = await get(discardChangesPath(org, app));
 
       this.setState({
         networkingRes: discardRes,
@@ -106,10 +106,7 @@ class HandleMergeConflictDiscardChanges extends React.Component<
         },
       });
 
-      window.postMessage(
-        postMessages.forceRepoStatusCheck,
-        window.location.href,
-      );
+      window.postMessage(postMessages.forceRepoStatusCheck, window.location.href);
     } catch (err) {
       this.setState({
         errorObj: err,
@@ -138,7 +135,7 @@ class HandleMergeConflictDiscardChanges extends React.Component<
           id='discardMergeChangesBtn'
           btnText={getLanguageFromKey(
             'handle_merge_conflict.discard_changes_button',
-            this.props.language,
+            this.props.language
           )}
           onClickFunction={this.discardChangesPopover}
           secondaryButton={true}

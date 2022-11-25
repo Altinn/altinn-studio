@@ -16,18 +16,11 @@ export interface IConditionalRenderingModalProps {
   handleClose: () => void;
 }
 
-export default function ConditionalRenderingModal(
-  props: IConditionalRenderingModalProps,
-) {
+export default function ConditionalRenderingModal(props: IConditionalRenderingModalProps) {
   const dispatch = useDispatch();
-  const [selectedConnectionId, setSelectedConnectionId] =
-    React.useState<string>(null);
-  const conditionalRendering = useSelector(
-    (state: IAppState) => state.serviceConfigurations.conditionalRendering,
-  );
-  const language = useSelector(
-    (state: IAppState) => state.appData.languageState.language,
-  );
+  const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
+  const conditionalRendering = useSelector((state: IAppState) => state.serviceConfigurations.conditionalRendering);
+  const language = useSelector((state: IAppState) => state.appData.languageState.language);
 
   function selectConnection(newSelectedConnectionId: string) {
     setSelectedConnectionId(newSelectedConnectionId);
@@ -52,15 +45,8 @@ export default function ConditionalRenderingModal(
   }
 
   function renderConditionRuleConnections(): JSX.Element {
-    if (
-      !conditionalRendering ||
-      Object.getOwnPropertyNames(conditionalRendering).length === 0
-    ) {
-      return (
-        <Typography variant='caption'>
-          {getLanguageFromKey('right_menu.rules_empty', language)}
-        </Typography>
-      );
+    if (!conditionalRendering || Object.getOwnPropertyNames(conditionalRendering).length === 0) {
+      return <Typography variant='caption'>{getLanguageFromKey('right_menu.rules_empty', language)}</Typography>;
     }
     return (
       <>
@@ -94,9 +80,7 @@ export default function ConditionalRenderingModal(
           <ConditionalRenderingComponent
             saveEdit={handleSaveChange}
             cancelEdit={handleClose}
-            deleteConnection={(connectionId: any) =>
-              handleDeleteConnection(connectionId)
-            }
+            deleteConnection={(connectionId: any) => handleDeleteConnection(connectionId)}
           />
         )}
       </Modal>

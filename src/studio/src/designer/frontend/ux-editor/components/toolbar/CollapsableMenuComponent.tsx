@@ -4,7 +4,7 @@ import { createStyles, withStyles } from '@mui/styles';
 import classNames from 'classnames';
 import { connect } from 'react-redux';
 import AltinnIcon from 'app-shared/components/AltinnIcon';
-import { CollapsableMenus } from '../../containers/Toolbar';
+import type { CollapsableMenus } from '../../containers/Toolbar';
 import { getCollapsableMenuTitleByType } from '../../utils/language';
 import type { IAppState } from '../../types/global';
 
@@ -42,11 +42,7 @@ class ToolbarItem extends React.Component<ICollapsableMenuProps> {
       >
         <div className={this.props.classes.listItemIcon}>
           <AltinnIcon
-            iconClass={
-              this.props.menuIsOpen
-                ? 'fa fa-expand-alt fa-rotate-90'
-                : 'fa fa-expand-alt '
-            }
+            iconClass={this.props.menuIsOpen ? 'fa fa-expand-alt fa-rotate-90' : 'fa fa-expand-alt '}
             iconColor=''
           />
         </div>
@@ -56,10 +52,7 @@ class ToolbarItem extends React.Component<ICollapsableMenuProps> {
             primary: classNames(this.props.classes.collapsableButtonText),
           }}
         >
-          {getCollapsableMenuTitleByType(
-            this.props.menuType,
-            this.props.language,
-          )}
+          {getCollapsableMenuTitleByType(this.props.menuType, this.props.language)}
         </ListItemText>
       </ListItem>
     );
@@ -91,12 +84,9 @@ const styles = () =>
     },
   });
 
-const mapStateToProps: (
+const mapStateToProps: (state: IAppState, props: ICollapsableMenuProvidedProps) => ICollapsableMenuProps = (
   state: IAppState,
-  props: ICollapsableMenuProvidedProps,
-) => ICollapsableMenuProps = (
-  state: IAppState,
-  props: ICollapsableMenuProvidedProps,
+  props: ICollapsableMenuProvidedProps
 ) => ({
   language: state.appData.languageState.language,
   onClick: props.onClick,
@@ -105,6 +95,4 @@ const mapStateToProps: (
   menuType: props.menuType,
 });
 
-export const CollapsableMenuComponent = withStyles(styles, { withTheme: true })(
-  connect(mapStateToProps)(ToolbarItem),
-);
+export const CollapsableMenuComponent = withStyles(styles, { withTheme: true })(connect(mapStateToProps)(ToolbarItem));

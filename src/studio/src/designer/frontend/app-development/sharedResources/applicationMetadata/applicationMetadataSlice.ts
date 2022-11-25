@@ -1,4 +1,5 @@
-import { createAction, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import type { PayloadAction } from '@reduxjs/toolkit';
+import { createAction, createSlice } from '@reduxjs/toolkit';
 
 export interface IApplicationMetadataState {
   applicationMetadata: any;
@@ -30,28 +31,25 @@ const applicationMetadataSlice = createSlice({
   reducers: {
     getApplicationMetadataFulfilled: (
       state,
-      action: PayloadAction<IGetApplicationMetadataFulfilled>,
+      action: PayloadAction<IGetApplicationMetadataFulfilled>
     ) => {
       const { applicationMetadata } = action.payload;
       state.applicationMetadata = applicationMetadata;
     },
     getApplicationMetadataRejected: (
       state,
-      action: PayloadAction<IApplicationMetadataActionRejected>,
+      action: PayloadAction<IApplicationMetadataActionRejected>
     ) => {
       const { error } = action.payload;
       state.error = error;
     },
-    putApplicationMetadataFulfilled: (
-      state,
-      action: PayloadAction<IPutApplicationMetadata>,
-    ) => {
+    putApplicationMetadataFulfilled: (state, action: PayloadAction<IPutApplicationMetadata>) => {
       const { applicationMetadata } = action.payload;
       state.applicationMetadata = applicationMetadata;
     },
     putApplicationMetadataRejected: (
       state,
-      action: PayloadAction<IApplicationMetadataActionRejected>,
+      action: PayloadAction<IApplicationMetadataActionRejected>
     ) => {
       const { error } = action.payload;
       state.error = error;
@@ -62,7 +60,7 @@ const applicationMetadataSlice = createSlice({
 const actions = {
   getApplicationMetadata: createAction(`${moduleName}/getApplicationMetadata`),
   putApplicationMetadata: createAction<IPutApplicationMetadata>(
-    `${moduleName}/putApplicationMetadata`,
+    `${moduleName}/putApplicationMetadata`
   ),
 };
 

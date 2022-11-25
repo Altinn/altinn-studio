@@ -67,11 +67,7 @@ export default function ConfirmModal(props: IConfirmModalProps) {
             />
           </Grid>
           <Grid item={true} xs={6}>
-            <AltinnButton
-              onClickFunction={props.onCancel}
-              btnText={props.cancelText}
-              secondaryButton={true}
-            />
+            <AltinnButton onClickFunction={props.onCancel} btnText={props.cancelText} secondaryButton={true} />
           </Grid>
         </Grid>
       </Grid>

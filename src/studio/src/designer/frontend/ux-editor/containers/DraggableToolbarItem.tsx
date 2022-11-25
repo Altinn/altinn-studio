@@ -1,7 +1,8 @@
 import React from 'react';
 import { useDrag } from 'react-dnd';
-import { DragSourceHookSpec } from 'react-dnd/src/hooks/types';
-import { EditorDndItem, ItemType } from './helpers/dnd-types';
+import type { DragSourceHookSpec } from 'react-dnd/src/hooks/types';
+import type { EditorDndItem } from './helpers/dnd-types';
+import { ItemType } from './helpers/dnd-types';
 
 export interface IDraggableProps {
   id: string;
@@ -12,21 +13,13 @@ export interface IDraggableProps {
   children?: React.ReactNode;
 }
 
-const draggableToolbarItemSpec = (
-  item: EditorDndItem,
-  notDraggable: boolean,
-): DragSourceHookSpec<any, any, any> => ({
+const draggableToolbarItemSpec = (item: EditorDndItem, notDraggable: boolean): DragSourceHookSpec<any, any, any> => ({
   item,
   type: item.type,
   canDrag: () => !notDraggable,
 });
 
-export const DraggableToolbarItem = ({
-  id,
-  children,
-  onDrop,
-  notDraggable,
-}: IDraggableProps) => {
+export const DraggableToolbarItem = ({ id, children, onDrop, notDraggable }: IDraggableProps) => {
   const item = { id, onDrop, type: ItemType.ToolbarItem };
   const [, drag] = useDrag(draggableToolbarItemSpec(item, notDraggable));
   return <div ref={drag}>{children}</div>;

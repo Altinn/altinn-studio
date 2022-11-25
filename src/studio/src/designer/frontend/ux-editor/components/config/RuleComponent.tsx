@@ -122,10 +122,7 @@ class Rule extends React.Component<IRuleComponentProps, any> {
         </div>
         <div className='modal-body a-modal-body'>
           <div className='form-group a-form-group'>
-            <label
-              htmlFor='selectRule'
-              className='a-form-label'
-            >
+            <label htmlFor='selectRule' className='a-form-label'>
               {this.props.language['ux_editor.modal_configure_rules_helper']}
             </label>
             <select
@@ -136,12 +133,9 @@ class Rule extends React.Component<IRuleComponentProps, any> {
               style={{ fontSize: '16px' }}
             >
               <option value={''}>{this.props.language['general.choose_method']}</option>
-              {this.props.ruleModelElements.map((funcObj: any, i: any) => {
+              {this.props.ruleModelElements.map((funcObj: any) => {
                 return (
-                  <option
-                    key={funcObj.name}
-                    value={funcObj.name}
-                  >
+                  <option key={funcObj.name} value={funcObj.name}>
                     {funcObj.name}
                   </option>
                 );
@@ -157,16 +151,10 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                 {Object.keys(this.props.ruleModelElements[selectedMethodNr].inputs).map((key: any, index: any) => {
                   const paramName = key;
                   return (
-                    <div
-                      className='align-items-center mb-1 row'
-                      key={index}
-                    >
+                    <div className='align-items-center mb-1 row' key={index}>
                       <div className='col-3 col'>
                         <div className='form-group a-form-group mt-1 disabled'>
-                          <label
-                            className='a-form-label'
-                            htmlFor={paramName}
-                          >
+                          <label className='a-form-label' htmlFor={paramName}>
                             {this.props.language['ux_editor.modal_configure_rules_configure_input_param_helper']}
                           </label>
                           <input
@@ -197,16 +185,10 @@ class Rule extends React.Component<IRuleComponentProps, any> {
                   {this.props.language['ux_editor.modal_configure_rules_configure_output_header']}
                 </h2>
                 {/* length is always 1 since method always returns just one thing */}
-                <div
-                  className='align-items-center mt-1 row'
-                  key='0'
-                >
+                <div className='align-items-center mt-1 row' key='0'>
                   <div className='col col-3'>
                     <div className='form-group a-form-group mt-1 disabled'>
-                      <label
-                        className='a-form-label'
-                        htmlFor='outParam'
-                      >
+                      <label className='a-form-label' htmlFor='outParam'>
                         {this.props.language['ux_editor.modal_configure_rules_configure_output_param_helper']}
                       </label>
                       <input
@@ -235,24 +217,18 @@ class Rule extends React.Component<IRuleComponentProps, any> {
           <div className='row mt-3'>
             <div className='col'>
               {this.state.ruleConnection.selectedFunction ? (
-                <button
-                  onClick={this.handleSaveEdit}
-                  type='submit'
-                  className='a-btn a-btn-success mr-2'
-                >
+                <button onClick={this.handleSaveEdit} type='submit' className='a-btn a-btn-success mr-2'>
                   {this.props.language['general.save']}
                 </button>
               ) : null}
               {this.props.connectionId ? (
-                <button
-                  type='button'
-                  className='a-btn a-btn-danger mr-2'
-                  onClick={this.handleDeleteConnection}
-                >
+                <button type='button' className='a-btn a-btn-danger mr-2' onClick={this.handleDeleteConnection}>
                   {this.props.language['general.delete']}
                 </button>
               ) : null}
-              <a onClick={this.props.cancelEdit}>{this.props.language['general.cancel']}</a>
+              <button className={'anchor'} onClick={this.props.cancelEdit}>
+                {this.props.language['general.cancel']}
+              </button>
             </div>
           </div>
         </div>

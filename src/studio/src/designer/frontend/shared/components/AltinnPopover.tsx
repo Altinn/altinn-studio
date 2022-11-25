@@ -104,7 +104,7 @@ const useStyles = makeStyles(() =>
       width: '445px',
       margin: '24px',
     },
-  }),
+  })
 );
 
 const AltinnPopoverComponent = (props: any) => {
@@ -129,12 +129,7 @@ const AltinnPopoverComponent = (props: any) => {
 
   const renderSpinnerOrDoneIcon = () => {
     if (props.isLoading) {
-      return (
-        <CircularProgress
-          className={classNames(classes.spinner)}
-          role='progressbar'
-        />
-      );
+      return <CircularProgress className={classNames(classes.spinner)} role='progressbar' />;
     }
     if (props.shouldShowDoneIcon) {
       return (
@@ -153,20 +148,12 @@ const AltinnPopoverComponent = (props: any) => {
         anchorEl={props.anchorEl}
         onClose={handleClose}
         anchorOrigin={{
-          horizontal: props.anchorOrigin.horizontal
-            ? props.anchorOrigin.horizontal
-            : 'left',
-          vertical: props.anchorOrigin.vertical
-            ? props.anchorOrigin.vertical
-            : 'top',
+          horizontal: props.anchorOrigin.horizontal ? props.anchorOrigin.horizontal : 'left',
+          vertical: props.anchorOrigin.vertical ? props.anchorOrigin.vertical : 'top',
         }}
         transformOrigin={{
-          horizontal: props.transformOrigin.horizontal
-            ? props.transformOrigin.horizontal
-            : 'left',
-          vertical: props.transformOrigin.vertical
-            ? props.transformOrigin.vertical
-            : 'top',
+          horizontal: props.transformOrigin.horizontal ? props.transformOrigin.horizontal : 'left',
+          vertical: props.transformOrigin.vertical ? props.transformOrigin.vertical : 'top',
         }}
         anchorReference='anchorEl'
         PaperProps={{ square: true, ...props.paperProps }}
@@ -203,10 +190,7 @@ const AltinnPopoverComponent = (props: any) => {
                 id={props.btnPrimaryId}
                 variant='contained'
                 color='primary'
-                className={classNames([
-                  classes.buttonCommon,
-                  classes.buttonConfirm,
-                ])}
+                className={classNames([classes.buttonCommon, classes.buttonConfirm])}
                 onClick={btnClickedHandler}
               >
                 {props.btnConfirmText}
@@ -216,15 +200,10 @@ const AltinnPopoverComponent = (props: any) => {
               <Button
                 id={props.btnSecondaryId}
                 color='primary'
-                className={classNames([
-                  classes.buttonCommon,
-                  classes.buttonCancel,
-                ])}
+                className={classNames([classes.buttonCommon, classes.buttonCancel])}
                 onClick={props.handleClose}
               >
-                <span className={classes.borderBottom}>
-                  {props.btnCancelText}
-                </span>
+                <span className={classes.borderBottom}>{props.btnCancelText}</span>
               </Button>
             )}
           </div>

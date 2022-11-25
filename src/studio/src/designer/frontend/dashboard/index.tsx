@@ -5,10 +5,7 @@ import { BrowserRouter } from 'react-router-dom';
 import throttle from 'lodash-es/throttle';
 import { App } from './app/App';
 import { run } from './app/rootSaga';
-import {
-  loadFromLocalStorage,
-  saveToLocalStorage,
-} from './common/utils/localStorage';
+import { loadFromLocalStorage, saveToLocalStorage } from './common/utils/localStorage';
 import { DASHBOARD_BASENAME } from 'app-shared/constants';
 import { setupStore } from './app/store';
 

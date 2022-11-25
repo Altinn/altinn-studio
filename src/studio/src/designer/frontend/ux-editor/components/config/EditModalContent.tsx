@@ -5,7 +5,7 @@ import { ComponentTypes } from '../index';
 import type { FormComponentType, IAppState, IThirdPartyComponent } from '../../types/global';
 import { EditComponentId } from './editModal/EditComponentId';
 import { componentSpecificEditConfig, configComponents } from './componentConfig';
-import { ComponentSpecificContent } from './ComponentSpecificContent';
+import { ComponentSpecificContent } from './componentSpecificContent';
 import { FieldSet } from '@altinn/altinn-design-system';
 import classes from './EditModalContent.module.css';
 

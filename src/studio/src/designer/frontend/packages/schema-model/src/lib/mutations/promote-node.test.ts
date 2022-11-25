@@ -7,7 +7,10 @@ import { simpleTestJsonSchema } from '../../../test/testUtils';
 
 test('that we can convertPropToType', () => {
   const uiSchemaNodes = buildUiSchema(simpleTestJsonSchema);
-  const promotedNodeMap = convertPropToType(uiSchemaNodes, makePointer(Keywords.Properties, 'world'));
+  const promotedNodeMap = convertPropToType(
+    uiSchemaNodes,
+    makePointer(Keywords.Properties, 'world')
+  );
   expect(buildJsonSchema(promotedNodeMap)).toEqual({
     [Keywords.Properties]: {
       hello: { [Keywords.Type]: FieldType.String },
