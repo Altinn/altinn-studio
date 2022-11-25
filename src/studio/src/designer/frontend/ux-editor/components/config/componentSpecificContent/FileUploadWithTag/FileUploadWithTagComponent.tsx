@@ -1,9 +1,9 @@
 import React from 'react';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { SelectTextFromRecources } from '../../utils/render';
+import { SelectTextFromRecources } from '../../../../utils/render';
 import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
 import AltinnRadio from 'app-shared/components/AltinnRadio';
-import type { FormComponentType, IFormFileUploaderWithTagComponent } from '../../types/global';
+import type { FormComponentType, IFormFileUploaderWithTagComponent } from '../../../../types/global';
 import { TextField } from '@altinn/altinn-design-system';
 
 type FileUploadWithTagComponentProps = {
@@ -12,9 +12,6 @@ type FileUploadWithTagComponentProps = {
   handleComponentUpdate: (updatedComponent: FormComponentType) => void;
   language: any;
   textResources: any;
-  handleTitleChange: (e: any) => void;
-  handleDescriptionChange: (e: any) => void;
-  handleOptionsIdChange: (e: any) => void;
   handleNumberOfAttachmentsChange: (type: string) => (e: any) => void;
   handleMaxFileSizeInMBChange: (e: any) => void;
   handleHasCustomFileEndingsChange: (e: any) => void;
@@ -27,9 +24,6 @@ export const FileUploadWithTagComponent = ({
   language,
   textResources,
   handleComponentUpdate,
-  handleTitleChange,
-  handleDescriptionChange,
-  handleOptionsIdChange,
   handleNumberOfAttachmentsChange,
   handleMaxFileSizeInMBChange,
   handleHasCustomFileEndingsChange,
@@ -41,26 +35,17 @@ export const FileUploadWithTagComponent = ({
     handleComponentUpdate(updatedComponent);
   };
 
+  const handleOptionsIdChange = (e: any) => {
+    handleComponentUpdate({
+      ...component,
+      optionsId: e.target.value,
+    });
+  };
+
   const t = (key: string) => getLanguageFromKey(key, language);
 
   return (
     <>
-      <SelectTextFromRecources
-        description={component.textResourceBindings?.title}
-        labelText={'modal_properties_label_helper'}
-        language={language}
-        onChangeFunction={handleTitleChange}
-        placeholder={stateComponent.textResourceBindings?.title}
-        textResources={textResources}
-      />
-      <SelectTextFromRecources
-        description={component.textResourceBindings?.description}
-        labelText={'modal_properties_description_helper'}
-        language={language}
-        onChangeFunction={handleDescriptionChange}
-        placeholder={stateComponent.textResourceBindings?.description}
-        textResources={textResources}
-      />
       <SelectTextFromRecources
         description={component.textResourceBindings?.tagTitle}
         labelText={'modal_properties_tag_helper'}

@@ -11,7 +11,6 @@ import type { IAppDataState } from './features/appData/appDataReducers';
 import type { IErrorState } from './features/error/errorSlice';
 import type { IFormDesignerState } from './features/formDesigner/formDesignerReducer';
 import type { IServiceConfigurationState } from './features/serviceConfigurations/serviceConfigurationTypes';
-import { uiEditorApi } from './services/uiEditor';
 
 export interface IReducers
   extends IFormDesignerNameSpace<
@@ -19,8 +18,7 @@ export interface IReducers
       Reducer<IServiceConfigurationState>,
       Reducer<IAppDataState>,
       Reducer<IErrorState>,
-      Reducer<IWidgetState>,
-      Reducer<any>
+      Reducer<IWidgetState>
     >,
     ReducersMapObject {}
 
@@ -30,7 +28,6 @@ const reducers: IReducers = {
   appData: appDataReducer,
   errors: errorReducer,
   widgets: widgetsReducer,
-  uiEditor: uiEditorApi.reducer,
 };
 
 export default combineReducers(reducers);

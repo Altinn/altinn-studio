@@ -1,8 +1,8 @@
 import React from 'react';
 import Select from 'react-select';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { PropertyLabel, selectStyles, SelectTextFromRecources } from '../../utils/render';
-import type { FormComponentType, IFormImageComponent } from '../../types/global';
+import { PropertyLabel, selectStyles, SelectTextFromRecources } from '../../../../utils/render';
+import type { FormComponentType, IFormImageComponent } from '../../../../types/global';
 import { TextField } from '@altinn/altinn-design-system';
 import classes from './ImageComponent.module.css';
 

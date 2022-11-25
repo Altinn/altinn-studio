@@ -1,4 +1,5 @@
-import { IThirdPartyComponent, IWidgetTexts } from "../types/global";
+import type { IThirdPartyComponent, IWidgetTexts } from '../types/global';
+import type { EditSettings } from './config/componentConfig';
 
 export interface IComponentIcon {
   [key: string]: string;
@@ -14,16 +15,7 @@ export interface IThirdPartyComponentDefinition {
   displayName: string;
   componentDefinition: IThirdPartyComponent;
   editSettings: EditSettings[];
-  texts: IWidgetTexts[]
-}
-
-export enum EditSettings {
-  Title = 'title',
-  Description = 'description',
-  DataModelBindings = 'dataModelBindings',
-  Size = 'size',
-  ReadOnly = 'readonly',
-  Required = 'required',
+  texts: IWidgetTexts[];
 }
 
 export interface IThirdPartyComponentCustomProps {
@@ -200,9 +192,6 @@ export const advancedComponents: IComponent[] = [
   },
 ];
 
-const components: IComponent[] = textComponents.concat(
-  schemaComponents,
-  advancedComponents,
-);
+const components: IComponent[] = textComponents.concat(schemaComponents, advancedComponents);
 
 export default components;

@@ -4,21 +4,19 @@ import { IErrorState } from '../features/error/errorSlice';
 import { IFormDesignerState } from '../features/formDesigner/formDesignerReducer';
 import { IServiceConfigurationState } from '../features/serviceConfigurations/serviceConfigurationTypes';
 
-export interface IFormDesignerNameSpace<T1, T2, T3, T4, T5, T6> {
+export interface IFormDesignerNameSpace<T1, T2, T3, T4, T5> {
   formDesigner: T1;
   serviceConfigurations: T2;
   appData: T3;
   errors: T4;
   widgets: T5;
-  uiEditor: T6;
 }
 export type IAppState = IFormDesignerNameSpace<
   IFormDesignerState,
   IServiceConfigurationState,
   IAppDataState,
   IErrorState,
-  IWidgetState,
-  any
+  IWidgetState
 >;
 
 export interface IAltinnEditableComponent {
@@ -105,6 +103,12 @@ export interface IFormButtonComponent extends IFormComponent {
 }
 
 export interface IFormRadioButtonComponent extends IFormComponent {
+  options: IOptions[];
+  preselectedOptionIndex?: number;
+  optionsId: string;
+}
+
+export interface IFormGenericOptionsComponent extends IFormComponent {
   options: IOptions[];
   preselectedOptionIndex?: number;
   optionsId: string;

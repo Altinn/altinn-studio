@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import {
   mapComponentToToolbarElement,
   mapWidgetToToolbarElement,
-  mapThirdPartyComponentToToolbarElement,
+  // mapThirdPartyComponentToToolbarElement,
 } from '../utils/formLayout';
 import {
   advancedComponents,
@@ -18,7 +18,7 @@ import { ToolbarGroup } from './ToolbarGroup';
 import type { IAppState, IWidget } from '../types/global';
 
 import './ToolBar.css';
-import { useGetJSONQuery } from '../services/uiEditor';
+// import { useGetJSONQuery } from '../services/uiEditor';
 
 export interface IToolbarElement {
   label: string;
@@ -37,7 +37,7 @@ export enum CollapsableMenus {
   Texts = 'texts',
   AdvancedComponents = 'advanced',
   Widgets = 'widget',
-  ThirdParty = 'thirdParty',
+  // ThirdParty = 'thirdParty',
 }
 
 export function Toolbar() {
@@ -54,13 +54,13 @@ export function Toolbar() {
     [CollapsableMenus.Texts]: { expanded: false, animationDone: false },
     [CollapsableMenus.AdvancedComponents]: { expanded: false, animationDone: false },
     [CollapsableMenus.Widgets]: { expanded: false, animationDone: false },
-    [CollapsableMenus.ThirdParty]: { expanded: false, animationDone: false },
+    // [CollapsableMenus.ThirdParty]: { expanded: false, animationDone: false },
   });
 
-  const {
-    data: thirdPartyList,
-    isLoading: thirdPartyIsLoading,
- } = useGetJSONQuery('GetThirdPartyComponents');
+//   const {
+//     data: thirdPartyList,
+//     isLoading: thirdPartyIsLoading,
+//  } = useGetJSONQuery('GetThirdPartyComponents');
 
   const activeList: any[] = useSelector(
     (state: IAppState) => state.formDesigner.layout.activeList,
@@ -119,24 +119,24 @@ export function Toolbar() {
     },
   );
 
-  const thirdPartyComponentList: IToolbarElement[] = thirdPartyIsLoading ? [] : thirdPartyList.components.map(
-    (component: any) => {
-      return mapThirdPartyComponentToToolbarElement(
-        component,
-        language,
-        activeList,
-        order,
-        dispatch,
-      );
-    }
-  );
+  // const thirdPartyComponentList: IToolbarElement[] = thirdPartyIsLoading ? [] : thirdPartyList.components.map(
+  //   (component: any) => {
+  //     return mapThirdPartyComponentToToolbarElement(
+  //       component,
+  //       language,
+  //       activeList,
+  //       order,
+  //       dispatch,
+  //     );
+  //   }
+  // );
 
   const allComponentLists: any = {
     [CollapsableMenus.Components]: componentList,
     [CollapsableMenus.Texts]: textComponentList,
     [CollapsableMenus.AdvancedComponents]: advancedComponentsList,
     [CollapsableMenus.Widgets]: widgetComponentsList,
-    [CollapsableMenus.ThirdParty]: thirdPartyComponentList,
+    // [CollapsableMenus.ThirdParty]: thirdPartyComponentList,
   };
 
   const handleComponentInformationOpen = (

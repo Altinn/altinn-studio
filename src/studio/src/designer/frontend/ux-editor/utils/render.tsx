@@ -69,15 +69,25 @@ export function noOptionsMessage(language: any): string {
   return language['general.no_options'];
 }
 
-export function renderSelectDataModelBinding(
-  dataModelBinding: IDataModelBindings,
-  onDataModelChange: any,
-  language: any,
-  label?: string,
-  returnValue?: any,
+export interface IRenderSelectDataModelBinding {
+  dataModelBinding: IDataModelBindings;
+  onDataModelChange: any;
+  language: any;
+  label?: string;
+  returnValue?: any;
+  key?: string;
+  uniqueKey?: any;
+}
+
+export function renderSelectDataModelBinding({
+  dataModelBinding,
+  onDataModelChange,
+  language,
+  label,
+  returnValue,
   key = 'simpleBinding',
-  uniqueKey?: any,
-): JSX.Element {
+  uniqueKey,
+}: IRenderSelectDataModelBinding): JSX.Element {
   const onDMChange = (dataModelField: any) => onDataModelChange(dataModelField, returnValue);
   const noOptMessage = () => noOptionsMessage(language);
   return (
