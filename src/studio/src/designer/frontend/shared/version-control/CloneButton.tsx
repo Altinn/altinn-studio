@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, ButtonSize, ButtonVariant } from '@altinn/altinn-design-system';
 import { SaveFile } from '@navikt/ds-icons';
-import classes from './versionControlHeader.module.css';
+import classes from './VersionControlHeader.module.css';
 
 export interface ICloneButtonProps {
   onClick: (event: React.MouseEvent) => void;

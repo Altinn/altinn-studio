@@ -1,6 +1,6 @@
 import React from 'react';
-import { FetchChangesComponent } from './fetchChanges';
-import type { IFetchChangesComponentProps } from './fetchChanges';
+import { FetchChangesButton } from './FetchChangesButton';
+import type { IFetchChangesComponentProps } from './FetchChangesButton';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -23,5 +23,5 @@ const render = (props: Partial<IFetchChangesComponentProps> = {}) => {
     buttonText: 'pull',
     ...props,
   };
-  return rtlRender(<FetchChangesComponent {...allProps} />);
+  return rtlRender(<FetchChangesButton {...allProps} />);
 };

@@ -2,7 +2,7 @@ import React from 'react';
 import { getLanguageFromKey } from '../utils/language';
 import { Button, ButtonSize, ButtonVariant } from '@altinn/altinn-design-system';
 import { Upload, Cancel } from '@navikt/ds-icons';
-import classes from './versionControlHeader.module.css';
+import classes from './VersionControlHeader.module.css';
 
 export interface IShareChangesComponentProps {
   buttonOnly?: boolean;
@@ -13,7 +13,7 @@ export interface IShareChangesComponentProps {
   shareChanges: any;
 }
 
-export const ShareChangesComponent = (props: IShareChangesComponentProps) => {
+export const ShareChangesButton = (props: IShareChangesComponentProps) => {
   const shareChangesHandler = (event: any) => {
     const noChanges = !props.changesInLocalRepo;
     props.shareChanges(event.currentTarget, noChanges);

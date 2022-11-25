@@ -7,7 +7,7 @@ import { connect } from 'react-redux';
 import FileEditor from 'app-shared/file-editor/FileEditor';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { VersionControlContainer } from 'app-shared/version-control/versionControlHeader';
+import { VersionControlHeader } from 'app-shared/version-control/VersionControlHeader';
 import { makeGetRepoStatusSelector } from './handleMergeConflictSelectors';
 import HandleMergeConflictAbortComponent from './components/HandleMergeConflictAbort';
 import HandleMergeConflictDiscardChangesComponent from './components/HandleMergeConflictDiscardChanges';
@@ -109,9 +109,7 @@ export class HandleMergeConflictContainer extends React.Component<
           <div className={classes.root} id='handleMergeConflictContainer'>
             <Grid container={true} justifyContent='flex-start' alignItems='stretch'>
               <Grid item={true} xs={12}>
-                {repoStatus.hasMergeConflict ? null : (
-                  <VersionControlContainer language={language} />
-                )}
+                {repoStatus.hasMergeConflict ? null : <VersionControlHeader language={language} />}
 
                 <Typography variant='h1'>
                   {getLanguageFromKey('handle_merge_conflict.container_title', language)}

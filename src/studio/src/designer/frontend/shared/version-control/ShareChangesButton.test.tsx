@@ -1,6 +1,6 @@
 import React from 'react';
-import { ShareChangesComponent } from './shareChanges';
-import type { IShareChangesComponentProps } from './shareChanges';
+import { ShareChangesButton } from './ShareChangesButton';
+import type { IShareChangesComponentProps } from './ShareChangesButton';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
@@ -31,5 +31,5 @@ const render = (props: Partial<IShareChangesComponentProps> = {}) => {
     ...props,
   };
 
-  return rtlRender(<ShareChangesComponent {...allProps} />);
+  return rtlRender(<ShareChangesButton {...allProps} />);
 };

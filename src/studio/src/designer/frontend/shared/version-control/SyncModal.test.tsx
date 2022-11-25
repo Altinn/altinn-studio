@@ -1,7 +1,7 @@
 import React from 'react';
 import { render as rtlRender } from '@testing-library/react';
-import { SyncModalComponent } from './syncModal';
-import type { ISyncModalComponentProps } from './syncModal';
+import { SyncModal } from './SyncModal';
+import type { ISyncModalComponentProps } from './SyncModal';
 
 describe('syncModal', () => {
   it('should match snapshot when anchor element is null', () => {
@@ -21,9 +21,9 @@ const render = (props: Partial<ISyncModalComponentProps> = {}) => {
     btnText: 'Button text',
     shouldShowCommitBox: false,
     handleClose: jest.fn(),
-    btnClick: jest.fn(),
+    btnMethod: jest.fn(),
     ...props,
   } as ISyncModalComponentProps;
 
-  return rtlRender(<SyncModalComponent {...allProps} />);
+  return rtlRender(<SyncModal {...allProps} />);
 };

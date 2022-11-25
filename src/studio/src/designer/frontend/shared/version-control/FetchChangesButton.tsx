@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, ButtonSize, ButtonVariant } from '@altinn/altinn-design-system';
 import { Download } from '@navikt/ds-icons';
-import classes from './versionControlHeader.module.css';
+import classes from './VersionControlHeader.module.css';
 
 export interface IFetchChangesComponentProps {
   changesInMaster: boolean;
@@ -9,10 +9,7 @@ export interface IFetchChangesComponentProps {
   buttonText: string;
 }
 
-export const FetchChangesComponent = ({
-  fetchChanges,
-  buttonText,
-}: IFetchChangesComponentProps) => {
+export const FetchChangesButton = ({ fetchChanges, buttonText }: IFetchChangesComponentProps) => {
   const fetchChangesHandler = (event: any) => fetchChanges(event.currentTarget);
   return (
     <Button
