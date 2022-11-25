@@ -1,7 +1,7 @@
 import React from 'react';
 import { AccessControlContainer } from './AccessControlContainer';
 import { renderWithProviders } from '../../../test/testUtils';
-import { APP_DEVELOPMENT_BASENAME } from '../../../../constants';
+import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import type { RootState } from 'app-development/store';
 
 const currentApplicationMetadata: any = {

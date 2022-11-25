@@ -16,7 +16,8 @@
     "esModuleInterop": true,
     "baseUrl": ".",
     "paths": {
-      "app-shared/*": ["./shared/*"],
+      "app-shared/*": ["./packages/shared/*"],
+      "@altinn/ux-editor/*": ["./packages/ux-editor/*"],
       "@altinn/schema-editor/*": ["./packages/schema-editor/src/*"]
     }
   },

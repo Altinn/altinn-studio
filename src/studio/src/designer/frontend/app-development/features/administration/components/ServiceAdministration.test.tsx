@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react';
 import { Administration } from './Administration';
 import type { ICommit, IRepository } from '../../../types/global';
-import { APP_DEVELOPMENT_BASENAME } from '../../../../constants';
+import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import type { IHandleServiceInformationState } from '../handleServiceInformationSlice';
 import { renderWithProviders } from '../../../test/testUtils';
 import { ServiceAdministration } from './ServiceAdministration';

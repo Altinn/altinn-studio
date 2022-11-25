@@ -74,7 +74,7 @@
     "mockend",
     "packages/schema-editor",
     "packages/schema-model",
-    "shared",
-    "ux-editor"
+    "packages/shared",
+    "packages/ux-editor"
   ]
 }

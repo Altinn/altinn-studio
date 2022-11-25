@@ -13,8 +13,8 @@ module.exports = {
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx', '.css', '.scss', '.svg'],
     alias: {
-      'app-shared': path.resolve(__dirname, 'shared'),
-      // prettier-ignore
+      'app-shared': path.resolve(__dirname, 'packages/shared'),
+      '@altinn/ux-editor': path.resolve(__dirname, 'packages/ux-editor'),
       '@altinn/schema-editor': path.resolve(__dirname, 'packages/schema-editor/src'),
     },
     fallback: {

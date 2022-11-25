@@ -1,4 +1,4 @@
-import { APP_DEVELOPMENT_BASENAME } from '../../../../constants';
+import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import React from 'react';
 import { renderWithProviders } from '../../../test/testUtils';
 import DataModellingContainer from './DataModellingContainer';
