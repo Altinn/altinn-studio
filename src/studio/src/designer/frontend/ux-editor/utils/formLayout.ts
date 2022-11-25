@@ -4,7 +4,7 @@ import type { Dispatch } from 'redux';
 import { LayoutItemType } from '../containers/Toolbar';
 import type { IToolbarElement } from '../containers/Toolbar';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
-import { ComponentTypes } from '../components';
+import { ComponentTypes, IThirdPartyComponentDefinition } from '../components';
 import type { IComponent } from '../components';
 import { getComponentTitleByComponentType } from './language';
 import type {
@@ -15,6 +15,7 @@ import type {
   IWidget,
   ICreateFormContainer,
 } from '../types/global';
+import { addTextResources } from '../features/appData/textResources/textResourcesSlice';
 
 const { addFormComponent, addFormContainer, addWidget, updateActiveListOrder } = FormLayoutActions;
 
@@ -149,6 +150,42 @@ export function extractChildrenFromGroup(group: any, components: any, convertedL
   });
 }
 
+export const mapThirdPartyComponentToToolbarElement = (
+  component: IThirdPartyComponentDefinition,
+  activeList: any,
+  order: any,
+  language: any,
+  dispatch: Dispatch,
+): IToolbarElement => {
+  const {textResourceBindings, ...rest} = JSON.parse(JSON.stringify(component.componentDefinition));
+  return {
+    label: getLanguageFromKey(component.displayName, language),
+    icon: 'fa fa-3rd-party-alt',
+    type: ComponentTypes.ThirdParty,
+    actionMethod: (containerId: string, position: number) => {
+      dispatch(
+        addFormComponent({
+          component: {
+            type: ComponentTypes.ThirdParty,
+            itemType: LayoutItemType.Component,
+            textResourceBindings: textResourceBindings || {
+              title: getLanguageFromKey(component.displayName, language),
+            },
+            dataModelBindings: {},
+            ...rest,
+          },
+          position,
+          containerId,
+        })
+      );
+      dispatch(addTextResources({ textResources: component.texts }));
+      dispatch(
+        updateActiveListOrder({ containerList: activeList, orderList: order }),
+      );
+    }
+  }
+}
+
 export const mapWidgetToToolbarElement = (
   widget: IWidget,
   activeList: any,
@@ -180,7 +217,7 @@ export const mapComponentToToolbarElement = (
   order: any[],
   dispatch: Dispatch
 ): IToolbarElement => {
-  const customProperties = c.customProperties ? c.customProperties : {};
+  const customProperties = c.customProperties || {};
   let actionMethod = (containerId: string, position: number) => {
     dispatch(
       addFormComponent({

@@ -494,7 +494,7 @@ namespace Altinn.Studio.Designer.Configuration
         {
             return Path.Join(GetServicePath(org, app, developer), UI_RESOURCE_FOLDER_NAME, LAYOUT_SETTING_FILE);
         }
-        
+
         /// <summary>
         /// Get name of the rule configuration file.
         /// </summary>

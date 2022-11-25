@@ -1,18 +1,16 @@
 import React from 'react';
 import { fireEvent, render as rtlRender, screen, within } from '@testing-library/react';
 
-import { HeaderSizeSelect } from './HeaderSizeSelect';
+import { EditHeaderSize } from './EditHeaderSize';
 
 const h4Text = 'Undertittel (H4)';
 const h3Text = 'Undertittel (H3)';
 const h2Text = 'Undertittel (H2)';
 
-const render = ({ size = undefined, handleUpdateHeaderSize = jest.fn(), handleTitleChange = jest.fn() } = {}) => {
+const render = ({ size = undefined, handleComponentChange = jest.fn() } = {}) => {
   rtlRender(
-    <HeaderSizeSelect
-      renderChangeId={() => <div>id</div>}
-      handleTitleChange={handleTitleChange}
-      handleUpdateHeaderSize={handleUpdateHeaderSize}
+    <EditHeaderSize
+      handleComponentChange={handleComponentChange}
       language={{
         'ux_editor.modal_header_type_h4': h4Text,
         'ux_editor.modal_header_type_h3': h3Text,
@@ -27,7 +25,7 @@ const render = ({ size = undefined, handleUpdateHeaderSize = jest.fn(), handleTi
         },
         size,
       }}
-    />
+    />,
   );
 };
 
@@ -101,8 +99,8 @@ describe('HeaderSizeSelect', () => {
   });
 
   it('should call handleUpdateHeaderSize when size is changed', () => {
-    const handleUpdateHeaderSize = jest.fn();
-    render({ handleUpdateHeaderSize, size: 'h4' });
+    const handleComponentChange = jest.fn();
+    render({ handleComponentChange, size: 'h4' });
 
     openHeaderSelect({ selectWrapperTestId: 'header-size-select-wrapper' });
 
@@ -110,27 +108,13 @@ describe('HeaderSizeSelect', () => {
 
     fireEvent.click(h2Select);
 
-    expect(handleUpdateHeaderSize).toHaveBeenCalledWith(
-      { label: 'Undertittel (H2)', value: 'h2' },
-      { action: 'select-option', name: undefined, option: undefined }
-    );
-  });
-
-  it('should call handleTitleChange when title is changed', () => {
-    const handleTitleChange = jest.fn();
-    render({ handleTitleChange, size: 'h4' });
-
-    openHeaderSelect({
-      selectWrapperTestId: 'header-resource-select-wrapper',
-    });
-
-    const titleSelect = screen.getByText('Another title (title-1)');
-
-    fireEvent.click(titleSelect);
-
-    expect(handleTitleChange).toHaveBeenCalledWith({
-      label: 'Another title\n(title-1)',
-      value: 'title-1',
+    expect(handleComponentChange).toHaveBeenCalledWith({
+      id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
+      type: 'Header',
+      textResourceBindings: {
+        title: 'ServiceName',
+      },
+      size: 'h2',
     });
   });
 });

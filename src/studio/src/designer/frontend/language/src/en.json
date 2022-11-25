@@ -517,6 +517,7 @@
   "ux_editor.collapsable_text_advanced_components": "Advanced",
   "ux_editor.collapsable_text_components": "Text",
   "ux_editor.collapsable_text_widgets": "Widgets",
+  "ux_editor.collapsable_text_thirdparty_components": "Custom components",
   "ux_editor.component_advanced_address": "Address",
   "ux_editor.component_attachment_list": "Attachment list",
   "ux_editor.component_button": "Button",

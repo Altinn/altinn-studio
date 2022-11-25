@@ -105,6 +105,9 @@ export function getCollapsableMenuTitleByType(menu: CollapsableMenus, language: 
     case CollapsableMenus.Widgets: {
       return language['ux_editor.collapsable_text_widgets'];
     }
+    // case CollapsableMenus.ThirdParty: {
+    //   return language['ux_editor.collapsable_text_thirdparty_components'];
+    // }
     default: {
       return '';
     }

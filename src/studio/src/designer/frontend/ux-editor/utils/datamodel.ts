@@ -36,3 +36,25 @@ export function filterDataModelForIntellisense(
       element.parentElement.toLowerCase() === parentElement
   );
 }
+
+export const getMinOccursFromDataModel = (dataBindingName: string, dataModel: IDataModelFieldElement[]): number => {
+  const parentComponent = dataBindingName
+    .replace('.value', '')
+    .replace(/\./, '/');
+  const element: IDataModelFieldElement = dataModel.find(
+    (e: IDataModelFieldElement) => {
+      return e.xPath === `/${parentComponent}`;
+    },
+  );
+  return element?.minOccurs;
+};
+
+export const getXsdDataTypeFromDataModel = (dataBindingName: string, dataModel: IDataModelFieldElement[]): string => {
+  const element: IDataModelFieldElement = dataModel.find(
+    (e: IDataModelFieldElement) => {
+      return e.dataBindingName === dataBindingName;
+    },
+  );
+
+  return element?.xsdValueType;
+}

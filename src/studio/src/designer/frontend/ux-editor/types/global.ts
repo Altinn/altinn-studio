@@ -80,6 +80,7 @@ export interface IFormComponent extends ICreateFormComponent {
   required?: boolean;
   hidden?: boolean;
   readOnly?: boolean;
+  [id: string]: any;
 }
 
 export interface IFormHeaderComponent extends IFormComponent {
@@ -102,6 +103,12 @@ export interface IFormButtonComponent extends IFormComponent {
 }
 
 export interface IFormRadioButtonComponent extends IFormComponent {
+  options: IOptions[];
+  preselectedOptionIndex?: number;
+  optionsId: string;
+}
+
+export interface IFormGenericOptionsComponent extends IFormComponent {
   options: IOptions[];
   preselectedOptionIndex?: number;
   optionsId: string;
@@ -162,6 +169,16 @@ export interface IFormGroupComponent extends IFormComponent {
   children: string[];
 }
 
+export interface IFormDatepickerComponent extends IFormComponent {
+  timeStamp: boolean;
+}
+
+export interface IThirdPartyComponent extends IFormComponent {
+  tagName: string;
+  framework: string;
+  [id: string]: any;
+}
+
 export type FormComponentType =
   | IFormComponent
   | IFormHeaderComponent
@@ -173,7 +190,9 @@ export type FormComponentType =
   | IFormFileUploaderComponent
   | IFormFileUploaderWithTagComponent
   | IFormAddressComponent
-  | IFormImageComponent;
+  | IFormImageComponent
+  | IFormDatepickerComponent
+  | IThirdPartyComponent;
 
 export interface IFormDesignerComponents {
   [id: string]: IFormComponent;

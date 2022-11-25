@@ -40,7 +40,11 @@ export interface IPropertyLabelProps {
 
 export const PropertyLabel = ({ textKey, htmlFor }: IPropertyLabelProps) => {
   return (
-    <Typography style={styles.inputHelper} component='label' htmlFor={htmlFor}>
+    <Typography
+      style={styles.inputHelper}
+      component='label'
+      htmlFor={htmlFor}
+    >
       {textKey}
     </Typography>
   );
@@ -52,7 +56,10 @@ export function renderOptionalLabel(text: string) {
 
 export function renderDescription(text: string) {
   return (
-    <Typography data-testid='renderDescription' style={styles.description}>
+    <Typography
+      data-testid='renderDescription'
+      style={styles.description}
+    >
       {text}
     </Typography>
   );
@@ -62,15 +69,25 @@ export function noOptionsMessage(language: any): string {
   return language['general.no_options'];
 }
 
-export function renderSelectDataModelBinding(
-  dataModelBinding: IDataModelBindings,
-  onDataModelChange: any,
-  language: any,
-  label?: string,
-  returnValue?: any,
+export interface IRenderSelectDataModelBinding {
+  dataModelBinding: IDataModelBindings;
+  onDataModelChange: any;
+  language: any;
+  label?: string;
+  returnValue?: any;
+  key?: string;
+  uniqueKey?: any;
+}
+
+export function renderSelectDataModelBinding({
+  dataModelBinding,
+  onDataModelChange,
+  language,
+  label,
+  returnValue,
   key = 'simpleBinding',
-  uniqueKey?: any
-): JSX.Element {
+  uniqueKey,
+}: IRenderSelectDataModelBinding): JSX.Element {
   const onDMChange = (dataModelField: any) => onDataModelChange(dataModelField, returnValue);
   const noOptMessage = () => noOptionsMessage(language);
   return (
@@ -96,7 +113,7 @@ export function renderSelectGroupDataModelBinding(
   dataModelBinding: IDataModelBindings,
   onDataModelChange: any,
   language: any,
-  key = 'simpleBinding'
+  key = 'simpleBinding',
 ): JSX.Element {
   return (
     <div>
@@ -154,8 +171,14 @@ export const SelectTextFromRecources = ({
 
   return (
     <div>
-      <div data-testid='SelectTextFromRecources-label' style={{ display: 'flex' }}>
-        <PropertyLabel textKey={language[`ux_editor.${labelText}`]} htmlFor={inputId} />
+      <div
+        data-testid='SelectTextFromRecources-label'
+        style={{ display: 'flex' }}
+      >
+        <PropertyLabel
+          textKey={language[`ux_editor.${labelText}`]}
+          htmlFor={inputId}
+        />
         {children}
       </div>
       {description && renderDescription(description)}
@@ -180,7 +203,7 @@ export function renderOptionalSelectTextFromResources(
   language: any,
   selected?: string,
   placeholder?: string,
-  description?: string
+  description?: string,
 ): JSX.Element {
   return (
     <SelectTextFromRecources

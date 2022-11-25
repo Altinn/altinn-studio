@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { List } from '@mui/material';
 import { useDispatch, useSelector } from 'react-redux';
 import { mapComponentToToolbarElement, mapWidgetToToolbarElement } from '../utils/formLayout';
-import type { ComponentTypes } from '../components';
-import { advancedComponents, schemaComponents, textComponents } from '../components';
+import { advancedComponents, ComponentTypes, schemaComponents, textComponents } from '../components';
 import { InformationPanelComponent } from '../components/toolbar/InformationPanelComponent';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import { ToolbarGroup } from './ToolbarGroup';
@@ -24,10 +23,10 @@ export enum LayoutItemType {
 }
 
 export enum CollapsableMenus {
-  Components,
-  Texts,
-  AdvancedComponents,
-  Widgets,
+  Components = 'schema',
+  Texts = 'texts',
+  AdvancedComponents = 'advanced',
+  Widgets = 'widget',
 }
 
 export function Toolbar() {
@@ -36,15 +35,12 @@ export function Toolbar() {
   const [componentSelectedForInformationPanel, setComponentSelectedForInformationPanel] =
     useState<ComponentTypes>(null);
   const [anchorElement, setAnchorElement] = useState<any>(null);
-  const [componentListOpen, setComponentListOpen] = useState<boolean>(true);
-  const [componentListCloseAnimationDone, setComponentListCloseAnimationDone] = useState<boolean>(false);
-  const [textListOpen, setTextListOpen] = useState<boolean>(false);
-  const [textListCloseAnimationDone, setTextListCloseAnimationDone] = useState<boolean>(false);
-  const [advancedComponentListOpen, setAdvancedComponentListOpen] = useState<boolean>(false);
-  const [advancedComponentListCloseAnimationDone, setAdvancedComponentListCloseAnimationDone] =
-    useState<boolean>(false);
-  const [widgetComponentListOpen, setWidgetComponentListOpen] = useState<boolean>(false);
-  const [widgetComponentListCloseAnimationDone, setWidgetComponentListCloseAnimationDone] = useState<boolean>(false);
+  const [componentListsState, setComponentListsState] = useState<any>({
+    [CollapsableMenus.Components]: { expanded: true, animationDone: false },
+    [CollapsableMenus.Texts]: { expanded: false, animationDone: false },
+    [CollapsableMenus.AdvancedComponents]: { expanded: false, animationDone: false },
+    [CollapsableMenus.Widgets]: { expanded: false, animationDone: false },
+  });
 
   const activeList: any[] = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
   const language: any = useSelector((state: IAppState) => state.appData.languageState.language);
@@ -65,6 +61,14 @@ export function Toolbar() {
     return mapWidgetToToolbarElement(widget, activeList, order, language, dispatch);
   });
 
+  const allComponentLists: any = {
+    [CollapsableMenus.Components]: componentList,
+    [CollapsableMenus.Texts]: textComponentList,
+    [CollapsableMenus.AdvancedComponents]: advancedComponentsList,
+    [CollapsableMenus.Widgets]: widgetComponentsList,
+    // [CollapsableMenus.ThirdParty]: thirdPartyComponentList,
+  };
+
   const handleComponentInformationOpen = (component: ComponentTypes, event: any) => {
     setComponentInformationPanelOpen(true);
     setComponentSelectedForInformationPanel(component);
@@ -77,103 +81,49 @@ export function Toolbar() {
     setAnchorElement(null);
   };
 
-  const handleCollapsableListClicked = (menu: CollapsableMenus) => {
-    switch (menu) {
-      case CollapsableMenus.Components: {
-        setComponentListOpen(!componentListOpen);
-        break;
-      }
-      case CollapsableMenus.Texts: {
-        setTextListOpen(!textListOpen);
-        break;
-      }
-      case CollapsableMenus.AdvancedComponents: {
-        setAdvancedComponentListOpen(!advancedComponentListOpen);
-        break;
-      }
-      case CollapsableMenus.Widgets: {
-        setWidgetComponentListOpen(!widgetComponentListOpen);
-        break;
-      }
-      default:
-        break;
-    }
+  const handleCollapsableListClicked = (menuItem: CollapsableMenus) => {
+    setComponentListsState({
+      ...componentListsState,
+      [menuItem]: {
+        ...componentListsState[menuItem],
+        expanded: !componentListsState[menuItem].expanded,
+      },
+    });
   };
 
   const setCollapsableListAnimationState = (list: string, done: boolean) => {
-    switch (list) {
-      case 'schema': {
-        setComponentListCloseAnimationDone(done);
-        break;
-      }
-      case 'text': {
-        setTextListCloseAnimationDone(done);
-        break;
-      }
-      case 'advanced': {
-        setAdvancedComponentListCloseAnimationDone(done);
-        break;
-      }
-      case 'widget': {
-        setWidgetComponentListCloseAnimationDone(done);
-        break;
-      }
-      default:
-        break;
-    }
+    setComponentListsState({
+      ...componentListsState,
+      [list]: {
+        ...componentListsState[list],
+        animationDone: done,
+      },
+    });
   };
 
   return (
     <div className='col-sm-12'>
-      <List id='collapsable-items' tabIndex={-1} component='div'>
-        <ToolbarGroup
-          key='schema'
-          list='schema'
-          menuType={CollapsableMenus.Components}
-          components={componentList}
-          componentListCloseAnimationDone={componentListCloseAnimationDone}
-          componentListOpen={componentListOpen}
-          handleCollapsableListClicked={handleCollapsableListClicked}
-          handleComponentInformationOpen={handleComponentInformationOpen}
-          language={language}
-          setCollapsableListAnimationState={setCollapsableListAnimationState}
-        />
-        <ToolbarGroup
-          key='text'
-          list='text'
-          menuType={CollapsableMenus.Texts}
-          components={textComponentList}
-          componentListCloseAnimationDone={textListCloseAnimationDone}
-          componentListOpen={textListOpen}
-          handleCollapsableListClicked={handleCollapsableListClicked}
-          handleComponentInformationOpen={handleComponentInformationOpen}
-          language={language}
-          setCollapsableListAnimationState={setCollapsableListAnimationState}
-        />
-        <ToolbarGroup
-          key='advanced'
-          list='advanced'
-          menuType={CollapsableMenus.AdvancedComponents}
-          components={advancedComponentsList}
-          componentListCloseAnimationDone={advancedComponentListCloseAnimationDone}
-          componentListOpen={advancedComponentListOpen}
-          handleCollapsableListClicked={handleCollapsableListClicked}
-          handleComponentInformationOpen={handleComponentInformationOpen}
-          language={language}
-          setCollapsableListAnimationState={setCollapsableListAnimationState}
-        />
-        <ToolbarGroup
-          key='widget'
-          list='widget'
-          menuType={CollapsableMenus.Widgets}
-          components={widgetComponentsList}
-          componentListCloseAnimationDone={widgetComponentListCloseAnimationDone}
-          componentListOpen={widgetComponentListOpen}
-          handleCollapsableListClicked={handleCollapsableListClicked}
-          handleComponentInformationOpen={handleComponentInformationOpen}
-          language={language}
-          setCollapsableListAnimationState={setCollapsableListAnimationState}
-        />
+      <List
+        id='collapsable-items'
+        tabIndex={-1}
+        component='div'
+      >
+        {Object.values(CollapsableMenus).map((key: string) => {
+          return (
+            <ToolbarGroup
+              key={key}
+              list={key}
+              menuType={key as CollapsableMenus}
+              components={allComponentLists[key]}
+              componentListCloseAnimationDone={componentListsState[key].animationDone}
+              componentListOpen={componentListsState[key].expanded}
+              handleCollapsableListClicked={handleCollapsableListClicked}
+              handleComponentInformationOpen={handleComponentInformationOpen}
+              language={language}
+              setCollapsableListAnimationState={setCollapsableListAnimationState}
+            />
+          );
+        })}
       </List>
 
       <InformationPanelComponent
