@@ -30,7 +30,7 @@ namespace Altinn.Studio.Designer.Configuration
         /// <summary>
         /// Constant for the location of language resource files
         /// </summary>
-        public const string LANGUAGE_RESOURCE_FOLDER_NAME = "texts/";
+        public const string LANGUAGE_RESOURCE_FOLDER_NAME = RESOURCE_FOLDER_NAME + "ThirdPartyComponents.json";
 
         /// <summary>
         /// Constant for the location of config folder
@@ -494,7 +494,7 @@ namespace Altinn.Studio.Designer.Configuration
         {
             return Path.Join(GetServicePath(org, app, developer), UI_RESOURCE_FOLDER_NAME, LAYOUT_SETTING_FILE);
         }
-        
+
         /// <summary>
         /// Get name of the rule configuration file.
         /// </summary>
