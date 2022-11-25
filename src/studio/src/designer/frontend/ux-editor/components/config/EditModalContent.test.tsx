@@ -85,7 +85,8 @@ describe('EditModalContent', () => {
       },
     });
 
-    expect(rendered.container.querySelectorAll('input').length).toBe(3);
+    expect(rendered.getByTestId('component-id-inputundefined-default')).toBeInTheDocument();
+    expect(rendered.queryAllByRole('combobox').length).toBe(2);
   });
 
   it('should render Image component when component type is Image', () => {
