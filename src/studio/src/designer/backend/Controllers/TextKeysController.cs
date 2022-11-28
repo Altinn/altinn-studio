@@ -16,9 +16,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// Controller containing actions related to text keys
     /// </summary>
     [Authorize]
-
-    // TODO: Uncomment when done with issue!!!
-    // [AutoValidateAntiforgeryToken]
+    [AutoValidateAntiforgeryToken]
     [Route("designer/api/v1/{org}/{repo}/keys")]
     public class TextKeysController : ControllerBase
     {
