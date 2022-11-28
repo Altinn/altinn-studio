@@ -299,7 +299,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     classBuilder.AppendLine("    [RegularExpression(@\"^-?P([0-9]*Y)?([0-9]*M)?([0-9]*D)?(T([0-9]*H)?([0-9]*M)?([0-9]*S)?)?$\"" + errorMessage + ")]");
                     break;
                 case BaseValueType.Date:
-                    classBuilder.AppendLine("    [RegularExpression(@\"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1,2][0-9]|3[0,1])$\"" + errorMessage + ")]");
+                    classBuilder.AppendLine("    [RegularExpression(@\"^[0-9]{4}-(0[1-9]|1[0-2])-(0[1-9]|[1-2][0-9]|3[0-1])$\"" + errorMessage + ")]");
                     break;
             }
         }
