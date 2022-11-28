@@ -407,10 +407,23 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
             var oneOfKeyword = keywords.GetKeyword<OneOfKeyword>();
 
-            if (oneOfKeyword is null && keywords.TryGetKeyword(out XsdNillableKeyword nillableKeyword) && keywords.TryGetKeyword(out RefKeyword reference) && nillableKeyword.Value)
+            if (oneOfKeyword is null && keywords.HasKeyword<XsdNillableKeyword>(k => k.Value) && keywords.TryGetKeyword(out RefKeyword reference))
             {
                 element.SchemaTypeName = GetTypeNameFromReference(reference.Reference);
                 element.IsNillable = true;
+                return;
+            }
+
+            if (oneOfKeyword is null && keywords.HasKeyword<XsdNillableKeyword>(k => k.Value) && keywords.HasKeyword<PropertiesKeyword>())
+            {
+                var item = new XmlSchemaComplexType
+                {
+                    Parent = element
+                };
+                element.SchemaType = item;
+                element.IsNillable = true;
+
+                HandleComplexType(item, keywords, path);
                 return;
             }
 
