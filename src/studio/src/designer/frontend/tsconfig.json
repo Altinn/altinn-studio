@@ -16,8 +16,10 @@
     "esModuleInterop": true,
     "baseUrl": ".",
     "paths": {
-      "app-shared/*": ["./shared/*"],
-      "@altinn/schema-editor/*": ["./packages/schema-editor/src/*"]
+      "app-shared/*": ["./packages/shared/src/*"],
+      "@altinn/schema-editor/*": ["./packages/schema-editor/src/*"],
+      "@altinn/schema-model": ["./packages/schema-model/src/*"],
+      "@altinn/ux-editor": ["./packages/ux-editor/src/*"]
     }
   },
   "files": ["./declaration.d.ts"],

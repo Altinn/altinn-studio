@@ -547,6 +547,7 @@
   "ux_editor.collapsable_text_advanced_components": "Avansert",
   "ux_editor.collapsable_text_components": "Tekst",
   "ux_editor.collapsable_text_widgets": "Widgets",
+  "ux_editor.collapsable_text_custom_components": "Egendefinerte komponenter",
   "ux_editor.component_advanced_address": "Adresse",
   "ux_editor.component_attachment_list": "Liste over vedlegg",
   "ux_editor.component_button": "Knapp",
