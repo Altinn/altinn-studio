@@ -546,15 +546,8 @@ namespace Altinn.Studio.DataModeling.Converter.Xml
 
         private void HandleNillable(XmlSchemaSequence sequence, bool optional, bool array, JsonSchemaBuilder builder)
         {
-            var steps = new StepsBuilder();
-            steps.Add(b => HandleSequence(sequence, optional, array, b));
-            var propertiesSchemaBuilder = new JsonSchemaBuilder();
-            steps.BuildWithAllOf(propertiesSchemaBuilder);
-
-            var typeSchemaBuilder = new JsonSchemaBuilder();
-            typeSchemaBuilder.Type(SchemaValueType.Null);
-
-            builder.OneOf(propertiesSchemaBuilder, typeSchemaBuilder);
+            HandleSequence(sequence, optional, array, builder);
+            builder.XsdNillable(true);
         }
 
         private static void HandleGroupRef(XmlSchemaGroupRef item, JsonSchemaBuilder builder)

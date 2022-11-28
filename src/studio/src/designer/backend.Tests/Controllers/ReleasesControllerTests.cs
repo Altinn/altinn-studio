@@ -58,8 +58,6 @@ namespace Designer.Tests.Controllers
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
 
-            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(HttpClient.Value, httpRequestMessage);
-
             // Act
             HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
             string responseString = await res.Content.ReadAsStringAsync();
@@ -90,8 +88,6 @@ namespace Designer.Tests.Controllers
                 .ReturnsAsync(new SearchResults<ReleaseEntity> { Results = completedReleases });
 
             HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, uri);
-
-            await AuthenticationUtil.AddAuthenticateAndAuthAndXsrFCookieToRequest(HttpClient.Value, httpRequestMessage);
 
             // Act
             HttpResponseMessage res = await HttpClient.Value.SendAsync(httpRequestMessage);
