@@ -1,0 +1,25 @@
+{
+  "name": "Looking up null returns null",
+  "expression": ["dataModel", "a"],
+  "expects": null,
+  "dataModel": {
+    "a": null
+  },
+  "layouts": {
+    "Page1": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "current-component",
+            "type": "Paragraph"
+          }
+        ]
+      }
+    }
+  },
+  "context": {
+    "component": "current-component",
+    "currentLayout": "Page1"
+  }
+}

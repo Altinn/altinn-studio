@@ -45,7 +45,9 @@ public class JsonDataModel : IDataModelAccessor
                 JsonValueKind.Number => currentModel.GetDouble(),
                 JsonValueKind.True => true,
                 JsonValueKind.False => false,
-                JsonValueKind.Object => null, // TODO: Verify correct
+                JsonValueKind.Object => null,
+                JsonValueKind.Array => null,
+                JsonValueKind.Null => null,
                 _ => throw new NotImplementedException($"Get Data is not implemented for {currentModel.ValueKind}"),
             };
         }
