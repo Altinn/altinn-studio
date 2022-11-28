@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import type { Theme } from '@mui/material';
 import { AppBar as MuiAppBar, Grid, Toolbar, useMediaQuery } from '@mui/material';
@@ -97,14 +95,14 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 export const AppBar = ({
-                         activeLeftMenuSelection,
-                         activeSubHeaderSelection,
-                         logoutButton,
-                         user,
-                         mainMenuItems,
-                         subMenuItems,
-                         showSubMenu,
-                       }: IAppBarProps) => {
+  activeLeftMenuSelection,
+  activeSubHeaderSelection,
+  logoutButton,
+  user,
+  mainMenuItems,
+  subMenuItems,
+  showSubMenu,
+}: IAppBarProps) => {
   const classes = useStyles();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const hiddenMdUp = useMediaQuery((theme: Theme) => theme.breakpoints.up('md'));
@@ -180,28 +178,28 @@ export const AppBar = ({
         {hiddenSmDown
           ? null
           : showSubMenu && (
-          <Toolbar>
-            <Grid container direction='row' justifyContent='center' alignItems='center'>
-              <Grid xs item>
-                <VersionControlHeader language={language} />
-              </Grid>
-              {menu.map((item) => (
-                <Grid item key={item.key} className={classNames(classes.subHeader)}>
-                  <Link
-                    to={item.link.replace(':org', org).replace(':app', app)}
-                    className={classNames(classes.subHeaderLink, {
-                      [classes.subHeaderLinkActive]: activeSubHeaderSelection === item.key,
-                    })}
-                    data-testid={item.key}
-                  >
-                    {t(item.key)}
-                  </Link>
+              <Toolbar>
+                <Grid container direction='row' justifyContent='center' alignItems='center'>
+                  <Grid xs item>
+                    <VersionControlHeader language={language} />
+                  </Grid>
+                  {menu.map((item) => (
+                    <Grid item key={item.key} className={classNames(classes.subHeader)}>
+                      <Link
+                        to={item.link.replace(':org', org).replace(':app', app)}
+                        className={classNames(classes.subHeaderLink, {
+                          [classes.subHeaderLinkActive]: activeSubHeaderSelection === item.key,
+                        })}
+                        data-testid={item.key}
+                      >
+                        {t(item.key)}
+                      </Link>
+                    </Grid>
+                  ))}
+                  <Grid xs item /> {/** Used to keep menu centered */}
                 </Grid>
-              ))}
-              <Grid xs item /> {/** Used to keep menu centered */}
-            </Grid>
-          </Toolbar>
-        )}
+              </Toolbar>
+            )}
       </MuiAppBar>
     </div>
   );
