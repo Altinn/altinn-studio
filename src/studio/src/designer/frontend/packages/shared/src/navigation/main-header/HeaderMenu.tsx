@@ -6,7 +6,6 @@ import { post } from '../../utils/networking';
 import { getOrgNameById, HeaderContext, SelectedContextType } from './Header';
 import { getLanguageFromKey } from '../../utils/language';
 import { repositoryPath } from '../../api-paths';
-import { useParams } from 'react-router-dom';
 
 const useStyles = makeStyles(() => ({
   avatar: {
@@ -28,14 +27,16 @@ const useStyles = makeStyles(() => ({
 
 export type HeaderMenuProps = {
   language: any;
+  org: string;
+  repo?: string;
 };
 
-export function HeaderMenu({ language }: HeaderMenuProps) {
+export function HeaderMenu({ language, org, repo }: HeaderMenuProps) {
   const classes = useStyles();
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | Element>(null);
   const { user, selectedContext, selectableOrgs, setSelectedContext } = useContext(HeaderContext);
   const t = (key: string) => getLanguageFromKey(key, language);
-  const { org, app } = useParams();
+
   const openMenu = (e: React.MouseEvent) => {
     e.stopPropagation();
     setMenuAnchorEl(e.currentTarget);
@@ -115,7 +116,7 @@ export function HeaderMenu({ language }: HeaderMenuProps) {
         <Divider />
         <MenuItem key='placeholder' style={{ display: 'none' }} />
         <MenuItem id='menu-gitea'>
-          <a href={repositoryPath(org, app)} target='_blank' rel='noopener noreferrer'>
+          <a href={repositoryPath(org, repo)} target='_blank' rel='noopener noreferrer'>
             {t('shared.header_go_to_gitea')}
           </a>
         </MenuItem>
