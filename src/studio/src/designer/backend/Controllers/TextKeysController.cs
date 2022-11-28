@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
@@ -15,7 +16,8 @@ namespace Altinn.Studio.Designer.Controllers
     /// Controller containing actions related to text keys
     /// </summary>
     [Authorize]
-    [AutoValidateAntiforgeryToken]
+
+    // [AutoValidateAntiforgeryToken]
     [Route("designer/api/v1/{org}/{repo}/keys")]
     public class TextKeysController : ControllerBase
     {
@@ -53,6 +55,71 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 List<string> keys = await _textsService.GetKeys(org, repo, developer, languages);
                 return Ok(keys);
+            }
+            catch (IOException)
+            {
+                return NotFound($"The texts files needed to get keys does not exist.");
+            }
+            catch (JsonException)
+            {
+                return new ObjectResult(new { errorMessage = $"The format of the file, .texts.json, that you tried to access might be invalid." }) { StatusCode = 500 };
+            }
+        }
+
+        /// <summary>
+        /// Endpoint for posting a single key to the texts files for all languages.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repo">Application identifier which is unique within an organisation.</param>
+        /// <param name="newKey">Key to be added to the texts files.</param>
+        /// <returns>List of keys</returns>
+        [HttpPost]
+        [Produces("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<KeyValuePair<string, string>>> Post(string org, string repo, [FromQuery] string newKey) //fromRoute or as queryParam?
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            IList<string> languages = _languagesService.GetLanguages(org, repo, developer);
+
+            try
+            {
+                KeyValuePair<string, string> keyValuePair = await _textsService.AddKey(org, repo, developer, languages, newKey);
+                return Ok(keyValuePair);
+            }
+            catch (IOException)
+            {
+                return NotFound($"The texts files needed to get keys does not exist.");
+            }
+            catch (JsonException)
+            {
+                return new ObjectResult(new { errorMessage = $"The format of the file, .texts.json, that you tried to access might be invalid." }) { StatusCode = 500 };
+            }
+        }
+
+        /// <summary>
+        /// Endpoint for changing or deleting a single key in the texts files for all languages.
+        /// If deleting, an empty string is sent as "newKey".
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repo">Application identifier which is unique within an organisation.</param>
+        /// <param name="oldKey">Old key to be replaced.</param>
+        /// <param name="newKey">New key to replace the old.</param>
+        [HttpPut]
+        [Produces("application/json")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<KeyValuePair<string, string>>> Put(string org, string repo, [FromQuery] string oldKey, [FromQuery] string newKey) //fromRoute or as queryParam?
+        {
+            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+            IList<string> languages = _languagesService.GetLanguages(org, repo, developer);
+
+            try
+            {
+                KeyValuePair<string, string> keyValuePair = await _textsService.UpdateKey(org, repo, developer, languages, oldKey, newKey);
+                return Ok(keyValuePair);
             }
             catch (IOException)
             {

@@ -59,12 +59,24 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         public void ConvertV1TextsToV2(string org, string repo, string developer);
 
         /// <summary>
-        /// Adds a new key to the key-mapping file for text-ids.
+        /// Adds a new key to all texts files in the top of the file with empty value.
         /// </summary>
         /// <param name="org">Organisation</param>
         /// <param name="repo">Repository</param>
         /// <param name="developer">Username of developer</param>
+        /// <param name="languages">All languages that must be updated with new key</param>
         /// <param name="newKey">The new key to add to the file</param>
-        public Task<Dictionary<string, string>> AddKey(string org, string repo, string developer, string newKey);
+        public Task<KeyValuePair<string, string>> AddKey(string org, string repo, string developer, IList<string> languages, string newKey);
+
+        /// <summary>
+        /// Updates an old key to the key-mapping file for text-ids.
+        /// </summary>
+        /// <param name="org">Organisation</param>
+        /// <param name="repo">Repository</param>
+        /// <param name="developer">Username of developer</param>
+        /// <param name="languages">All languages that must be updated with new key</param>
+        /// <param name="oldKey">The old key that will be replaced</param>
+        /// <param name="newKey">The new key to replace the old</param>
+        public Task<KeyValuePair<string, string>> UpdateKey(string org, string repo, string developer, IList<string> languages, string oldKey, string newKey);
     }
 }

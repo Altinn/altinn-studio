@@ -314,6 +314,8 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             }
         }
 
+        // TODO: REMOVE THIS METHOD
+
         /// <summary>
         /// Creates a guid for the new key that is added to the keyGuidMappingFile. If such file does not yet
         /// exist, it will be created and the guid and key is added.
