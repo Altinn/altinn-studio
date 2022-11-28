@@ -69,7 +69,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         public Task<KeyValuePair<string, string>> AddKey(string org, string repo, string developer, IList<string> languages, string newKey);
 
         /// <summary>
-        /// Updates an old key to the key-mapping file for text-ids.
+        /// Updates an old key to a new key in all texts files.
         /// </summary>
         /// <param name="org">Organisation</param>
         /// <param name="repo">Repository</param>

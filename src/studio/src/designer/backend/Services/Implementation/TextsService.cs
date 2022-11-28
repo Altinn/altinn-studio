@@ -10,6 +10,9 @@ using Altinn.Studio.DataModeling.Templates;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using JetBrains.Annotations;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -135,8 +138,14 @@ namespace Altinn.Studio.Designer.Services.Implementation
             foreach (string languageCode in languages)
             {
                 Dictionary<string, string> jsonTexts = await altinnAppGitRepository.GetTextsV2(languageCode);
+
+                if (jsonTexts.ContainsKey(newKey))
+                {
+                    continue;
+                }
+
                 jsonTexts = new Dictionary<string, string> { { newKey, string.Empty } }.Concat(jsonTexts).ToDictionary(k => k.Key, v => v.Value);
-                altinnAppGitRepository.SaveTextsV2(languageCode, jsonTexts);
+                await altinnAppGitRepository.SaveTextsV2(languageCode, jsonTexts);
             }
 
             return keyValuePair;
@@ -146,18 +155,36 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<KeyValuePair<string, string>> UpdateKey(string org, string repo, string developer, IList<string> languages, string oldKey, string newKey)
         {
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+            Dictionary<string, OrderedDictionary> tempUpdatedTexts = new Dictionary<string, OrderedDictionary>(languages.Count);
             KeyValuePair<string, string> keyValuePair = new KeyValuePair<string, string>(oldKey, string.Empty);
-            foreach (string languageCode in languages)
+            try
             {
-                Dictionary<string, string> jsonTexts = await altinnAppGitRepository.GetTextsV2(languageCode);
-                int indexOfKey = jsonTexts.Keys.ToList().IndexOf(oldKey);
-                string value = jsonTexts[oldKey];
-                keyValuePair = new KeyValuePair<string, string>(newKey, value);
-                OrderedDictionary orderedJsonTexts = ConvertDictionaryToOrderedDictionary(jsonTexts);
-                orderedJsonTexts.Remove(oldKey);
-                orderedJsonTexts.Insert(indexOfKey, newKey, value);
-                Dictionary<string, string> dictionaryJsonTexts = ConvertOrderedDictionaryToDictionary(orderedJsonTexts);
-                await altinnAppGitRepository.SaveTextsV2(languageCode, dictionaryJsonTexts);
+                foreach (string languageCode in languages)
+                {
+                    Dictionary<string, string> jsonTexts = await altinnAppGitRepository.GetTextsV2(languageCode);
+                    OrderedDictionary orderedJsonTexts = ConvertDictionaryToOrderedDictionary(jsonTexts);
+                    if (!newKey.IsNullOrEmpty() && jsonTexts.ContainsKey(oldKey))
+                    {
+                        // handle if oldKey only present in some files and if newKey already present
+                        int indexOfKey = jsonTexts.Keys.ToList().IndexOf(oldKey);
+                        string value = jsonTexts[oldKey];
+                        keyValuePair = new KeyValuePair<string, string>(newKey, value);
+                        orderedJsonTexts.Insert(indexOfKey, newKey, value);
+                    }
+
+                    orderedJsonTexts.Remove(oldKey);
+                    tempUpdatedTexts[languageCode] = orderedJsonTexts;
+                }
+            }
+            catch (ArgumentException)
+            {
+                throw new BadHttpRequestException($"It looks like the key, {newKey}, that you tried to insert already exists in one or more texts files.");
+            }
+
+            foreach (KeyValuePair<string, OrderedDictionary> kvp in tempUpdatedTexts)
+            {
+                Dictionary<string, string> dictionaryJsonTexts = ConvertOrderedDictionaryToDictionary(kvp.Value);
+                await altinnAppGitRepository.SaveTextsV2(kvp.Key, dictionaryJsonTexts);
             }
 
             return keyValuePair;
@@ -307,10 +334,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private static Dictionary<string, string> ConvertOrderedDictionaryToDictionary(OrderedDictionary orderedDictionary)
         {
-            Dictionary<string, string> dictionary = new Dictionary<string, string>(orderedDictionary.Count);
-            foreach (KeyValuePair<string, string> kvp in orderedDictionary)
+            Dictionary<string, string> dictionary = new Dictionary<string, string>();
+            foreach (DictionaryEntry dictionaryEntry in orderedDictionary)
             {
-                dictionary.Add(kvp.Key, kvp.Value);
+                dictionary.Add(dictionaryEntry.Key.ToString() ?? string.Empty, (dictionaryEntry.Value ?? string.Empty).ToString());
             }
 
             return dictionary;
