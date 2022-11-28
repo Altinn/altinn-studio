@@ -12,14 +12,11 @@
       ],
       "appLogic": {
         "autoCreate": true,
-        "classRef": "Altinn.App.Models.Skjema",
-        "allowAnonymousOnStateless": false,
-        "autoDeleteOnProcessEnd": false
+        "classRef": "Altinn.App.Models.Skjema"
       },
       "taskId": "Task_1",
       "maxCount": 1,
-      "minCount": 1,
-      "enablePdfCreation": true
+      "minCount": 1
     },
     {
       "id": "ref-data-as-pdf",
@@ -27,16 +24,14 @@
         "application/pdf"
       ],
       "maxCount": 0,
-      "minCount": 0,
-      "enablePdfCreation": true
+      "minCount": 0
     },
     {
       "id": "d84913c1-2b32-4ab0-a605-409be875bae6",
       "taskId": "Task_1",
       "maxSize": 1,
       "maxCount": 3,
-      "minCount": 1,
-      "enablePdfCreation": true
+      "minCount": 1
     }
   ],
   "partyTypesAllowed": {
@@ -46,8 +41,8 @@
     "subUnit": false
   },
   "autoDeleteOnProcessEnd": false,
-  "created": "2022-11-15T14:02:17.206356Z",
-  "createdBy": "testUser",
-  "lastChanged": "2022-11-15T14:02:17.206356Z",
-  "lastChangedBy": "testUser"
+  "created": "2020-01-14T11:44:56.6415699Z",
+  "createdBy": "jeeva",
+  "lastChanged": "2020-01-14T11:44:56.6415721Z",
+  "lastChangedBy": "jeeva"
 }
