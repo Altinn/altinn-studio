@@ -26,16 +26,14 @@ namespace Altinn.Studio.Designer.Controllers
     public class TextsController : ControllerBase
     {
         private readonly ITextsService _textsService;
-        private readonly ILanguagesService _languagesService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="TextsController"/> class.
         /// </summary>
         /// <param name="textsService">The texts service.</param>
-        public TextsController(ITextsService textsService, ILanguagesService languagesService)
+        public TextsController(ITextsService textsService)
         {
             _textsService = textsService;
-            _languagesService = languagesService;
         }
 
         /// <summary>

@@ -314,36 +314,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
             }
         }
 
-        // TODO: REMOVE THIS METHOD
-
-        /// <summary>
-        /// Creates a guid for the new key that is added to the keyGuidMappingFile. If such file does not yet
-        /// exist, it will be created and the guid and key is added.
-        /// </summary>
-        /// <param name="key">The new key, or text id, to add to the mapping file.</param>
-        /// <returns>The new keyGuidMapping pair as a dictionary.<see cref="Task{TResult}"/> representing the result of the asynchronous operation.</returns>
-        public async Task<Dictionary<string, string>> AddKeyGuidMapping(string key)
-        {
-            string keyGuidMappingFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, KEY_GUID_MAPPER_FILENAME);
-            string guid = Guid.NewGuid().ToString();
-            Dictionary<string, string> newKeyGuidMappingJson = new Dictionary<string, string>() { [guid] = key };
-
-            try
-            {
-                // ID MAY ALREADY EXIST IF USING POSTMAN ETC
-                string existingKeyGuidMapping = await ReadTextByRelativePathAsync(keyGuidMappingFileRelativeFilePath);
-                Dictionary<string, string> existingKeyGuidMappingJson = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(existingKeyGuidMapping);
-                existingKeyGuidMappingJson[guid] = key;
-                await WriteSerializedJsonByRelativePathAsync(keyGuidMappingFileRelativeFilePath, existingKeyGuidMappingJson);
-            }
-            catch (FileNotFoundException)
-            {
-                await WriteSerializedJsonByRelativePathAsync(keyGuidMappingFileRelativeFilePath, newKeyGuidMappingJson);
-            }
-
-            return newKeyGuidMappingJson;
-        }
-
         /// <summary>
         /// Save app texts to resource files
         /// </summary>
