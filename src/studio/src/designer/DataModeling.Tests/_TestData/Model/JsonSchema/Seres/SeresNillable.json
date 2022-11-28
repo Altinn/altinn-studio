@@ -63,27 +63,21 @@
           "@xsdNillable": true
         },
         "p4": {
-          "oneOf": [
-            {
-              "properties": {
-                "fish": {
-                  "type": "string",
-                  "@xsdType": "string"
-                },
-                "stew": {
-                  "type": "string",
-                  "@xsdType": "string"
-                }
-              },
-              "required": [
-                "fish",
-                "stew"
-              ]
+          "properties": {
+            "fish": {
+              "type": "string",
+              "@xsdType": "string"
             },
-            {
-              "type": "null"
+            "stew": {
+              "type": "string",
+              "@xsdType": "string"
             }
-          ]
+          },
+          "required": [
+            "fish",
+            "stew"
+          ],
+          "@xsdNillable": true
         },
         "p5": {
           "$ref": "#/$defs/veryComplexType",
