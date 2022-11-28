@@ -186,7 +186,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// Commit changes
         /// </summary>
         /// <param name="commitInfo">Info about the commit</param>
-        /// <returns>http response message as ok if commit is successfull</returns>
+        /// <returns>http response message as ok if commit is successful</returns>
         [HttpPost]
         [Route("{org}/{repository}/commit")]
         public ActionResult Commit([FromBody] CommitInfo commitInfo)
@@ -271,7 +271,7 @@ namespace Altinn.Studio.Designer.Controllers
         [Route("{org}/{repository}/branches")]
         public async Task<List<Branch>> Branches(string org, string repository)
             => await _giteaApi.GetBranches(org, repository);
- 
+
         /// <summary>
         /// Returns information about a given branch
         /// </summary>
@@ -534,7 +534,7 @@ namespace Altinn.Studio.Designer.Controllers
             try
             {
                 appRoot = _repository.GetAppPath(org, repository);
-            
+
                 if (!Directory.Exists(appRoot))
                 {
                     return BadRequest("User does not have a local clone of the repository.");
@@ -563,7 +563,7 @@ namespace Altinn.Studio.Designer.Controllers
                     archive.CreateEntryFromFile(Path.Join(appRoot, changedFile), changedFile);
                 }
             }
-            
+
             outStream.Seek(0, SeekOrigin.Begin);
 
             return File(outStream, "application/zip", $"{org}-{repository}.zip");
@@ -586,7 +586,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 ret.Add(file.FullName.Replace('\\', '/').Replace(appRoot, string.Empty));
             }
-            
+
             return ret;
         }
     }

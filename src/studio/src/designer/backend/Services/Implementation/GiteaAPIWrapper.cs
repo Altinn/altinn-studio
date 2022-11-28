@@ -94,8 +94,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         public async Task<RepositoryClient.Model.Repository> CreateRepository(string org, CreateRepoOption options)
         {
             var repository = new RepositoryClient.Model.Repository();
-            string developerUserName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string urlEnd = developerUserName == org ? "user/repos" : $"org/{org}/repos";
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string urlEnd = developer == org ? "user/repos" : $"org/{org}/repos";
             HttpResponseMessage response = await _httpClient.PostAsJsonAsync(urlEnd, options);
 
             if (response.StatusCode == HttpStatusCode.Created)
@@ -110,7 +110,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
             else
             {
-                _logger.LogError("User " + AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext) +
+                _logger.LogError("User " + developer +
                     " Create repository failed with statuscode " + response.StatusCode + " for " +
                     org + " and repo-name " + options.Name);
             }
@@ -732,7 +732,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 try
                 {
-                    organisation = await GetOrganization(cachekey);
+                    organisation = await GetOrganization(org);
                 }
                 catch
                 {
