@@ -30,7 +30,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string MARKDOWN_TEXTS_FOLDER_NAME = "md/";
 
         private const string APP_METADATA_FILENAME = "applicationmetadata.json";
-        private const string KEY_GUID_MAPPER_FILENAME = "keyGuidMapper.json";
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AltinnGitRepository"/> class.
@@ -399,13 +398,6 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         {
             string textsFileRelativeFilePath = Path.Combine(CONFIG_FOLDER_PATH, LANGUAGE_RESOURCE_FOLDER_NAME, MARKDOWN_TEXTS_FOLDER_NAME, fileName);
             return textsFileRelativeFilePath;
-        }
-
-        private async Task WriteSerializedJsonByRelativePathAsync(string relativeFilePath, Dictionary<string, string> jsonTexts)
-        {
-            var jsonOptions = new JsonSerializerOptions() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
-            string stringTexts = System.Text.Json.JsonSerializer.Serialize(jsonTexts, jsonOptions);
-            await WriteTextByRelativePathAsync(relativeFilePath, stringTexts);
         }
 
         /// <summary>
