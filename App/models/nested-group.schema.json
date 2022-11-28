@@ -364,6 +364,12 @@
           "items": {
             "$ref": "#/definitions/nested-grp-1234"
           }
+        },
+        "source": {
+          "type": "string"
+        },
+        "reference": {
+          "type": "string"
         }
       },
       "required": [
@@ -423,6 +429,12 @@
           "type": "string"
         },
         "extraOptions": {
+          "type": "string"
+        },
+        "source": {
+          "type": "string"
+        },
+        "reference": {
           "type": "string"
         }
       },

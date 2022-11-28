@@ -188,6 +188,16 @@ namespace Altinn.App.Models
     [JsonPropertyName("nested-grp-1234")]
     public List<nestedgrp1234> nestedgrp1234 { get; set; }
 
+    [XmlElement("source")]
+    [JsonProperty("source")]
+    [JsonPropertyName("source")]
+    public string source { get; set; }
+
+    [XmlElement("reference")]
+    [JsonProperty("reference")]
+    [JsonPropertyName("reference")]
+    public string reference { get; set; }
+
   }
 
   public class Gruppe2{
@@ -293,6 +303,16 @@ namespace Altinn.App.Models
     [JsonProperty("extraOptions")]
     [JsonPropertyName("extraOptions")]
     public string extraOptions { get; set; }
+
+    [XmlElement("source")]
+    [JsonProperty("source")]
+    [JsonPropertyName("source")]
+    public string source { get; set; }
+
+    [XmlElement("reference")]
+    [JsonProperty("reference")]
+    [JsonPropertyName("reference")]
+    public string reference { get; set; }
 
   }
 }
