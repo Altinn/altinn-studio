@@ -436,11 +436,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             CheckAndCreateDeveloperFolder();
 
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string path = Path.Combine(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? _settings.RepositoryLocation, $"{developer}/AuthToken.txt");
-            string newpath = Path.Combine(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? _settings.RepositoryLocation, developer, "AuthToken.txt");
-
-            Console.WriteLine("OLD IN SOURCE: " + path);
-            Console.WriteLine("NEW IN SOURCE: " + newpath);
+            string path = Path.Combine(_settings.RepositoryLocation, developer, "AuthToken.txt");
             File.WriteAllText(path, token);
         }
 
@@ -485,11 +481,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private void CheckAndCreateDeveloperFolder()
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string path = Path.Combine(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? _settings.RepositoryLocation, $"{developer}/");
-            string newpath = Path.Combine(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") ?? _settings.RepositoryLocation, developer);
-
-            Console.WriteLine("Old: " + path);
-            Console.WriteLine("New: " + newpath);
+            string path = Path.Combine(_settings.RepositoryLocation, developer);
 
             if (!Directory.Exists(path))
             {
