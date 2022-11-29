@@ -1,4 +1,8 @@
+using System.Collections.Generic;
+using System.IO;
 using System.Net.Http;
+using System.Net.Http.Json;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Controllers;
@@ -12,7 +16,7 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 
-namespace Designer.Tests.Services;
+namespace Designer.Tests.Controllers;
 
 public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeysControllerTests>
 {
@@ -30,18 +34,180 @@ public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeys
     }
 
     [Fact]
-    public async Task Get_Markdown_200Ok()
+    public async Task Get_Keys_200Ok()
     {
         var targetRepository = TestDataHelper.GenerateTestRepoName();
-        await TestDataHelper.CopyRepositoryForTest("ttd", "markdown-files", "testUser", targetRepository);
-        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/texts/nb";
+        await TestDataHelper.CopyRepositoryForTest("ttd", "keys-management", "testUser", targetRepository);
+        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/keys";
         HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
 
         HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        string list = response.Content.ReadAsStringAsync().Result;
+        List<string> keys = JsonSerializer.Deserialize<List<string>>(list);
 
         try
         {
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+            Assert.Equal(9, keys.Count);
+        }
+        finally
+        {
+            TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
+        }
+    }
+
+    [Fact]
+    public async Task Post_NewKey_200OkAndNewKeyOnTopOfFile()
+    {
+        var targetRepository = TestDataHelper.GenerateTestRepoName();
+        await TestDataHelper.CopyRepositoryForTest("ttd", "keys-management", "testUser", targetRepository);
+        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/keys?newKey=ExampleKey";
+        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, dataPathWithData);
+
+        HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        string urlGetKeys = $"{_versionPrefix}/ttd/{targetRepository}/keys";
+        HttpRequestMessage urlGetKeysRequest = new HttpRequestMessage(HttpMethod.Get, urlGetKeys);
+        HttpResponseMessage responseGetKeys = await HttpClient.Value.SendAsync(urlGetKeysRequest);
+        string list = responseGetKeys.Content.ReadAsStringAsync().Result;
+        List<string> keys = JsonSerializer.Deserialize<List<string>>(list);
+
+        try
+        {
+            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+            Assert.Equal(10, keys.Count);
+            Assert.Equal("ExampleKey", keys[0]);
+        }
+        finally
+        {
+            TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
+        }
+    }
+
+    [Fact]
+    public async Task Post_ExistingKey_200Ok()
+    {
+        var targetRepository = TestDataHelper.GenerateTestRepoName();
+        await TestDataHelper.CopyRepositoryForTest("ttd", "keys-management", "testUser", targetRepository);
+        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/keys?newKey=AlreadyExistingKey";
+        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, dataPathWithData);
+
+        HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        string urlGetKeys = $"{_versionPrefix}/ttd/{targetRepository}/keys";
+        HttpRequestMessage urlGetKeysRequest = new HttpRequestMessage(HttpMethod.Get, urlGetKeys);
+        HttpResponseMessage responseGetKeys = await HttpClient.Value.SendAsync(urlGetKeysRequest);
+        string list = responseGetKeys.Content.ReadAsStringAsync().Result;
+        List<string> keys = JsonSerializer.Deserialize<List<string>>(list);
+
+        try
+        {
+            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+            Assert.Equal(9, keys.Count);
+            Assert.Equal("KeyOnTop", keys[0]);
+        }
+        finally
+        {
+            TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
+        }
+    }
+
+    [Fact]
+    public async Task Put_ReplaceKeyPresentInAllFiles_200OkAndNewKeyAtIndexOfOldKey()
+    {
+        var targetRepository = TestDataHelper.GenerateTestRepoName();
+        await TestDataHelper.CopyRepositoryForTest("ttd", "keys-management", "testUser", targetRepository);
+        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/keys?oldKey=AlreadyExistingKey&newKey=ReplacedKey";
+        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
+
+        HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        string urlGetKeys = $"{_versionPrefix}/ttd/{targetRepository}/keys";
+        HttpRequestMessage urlGetKeysRequest = new HttpRequestMessage(HttpMethod.Get, urlGetKeys);
+        HttpResponseMessage responseGetKeys = await HttpClient.Value.SendAsync(urlGetKeysRequest);
+        string list = responseGetKeys.Content.ReadAsStringAsync().Result;
+        List<string> keys = JsonSerializer.Deserialize<List<string>>(list);
+
+        try
+        {
+            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+            Assert.Equal(8, keys.IndexOf("ReplacedKey"));
+        }
+        finally
+        {
+            TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
+        }
+    }
+
+    [Fact]
+    public async Task Put_AlreadyExistingKeyInFileWhereOldKeyDontExist_200OkAndSameAmountTotalKeys()
+    {
+        var targetRepository = TestDataHelper.GenerateTestRepoName();
+        await TestDataHelper.CopyRepositoryForTest("ttd", "keys-management", "testUser", targetRepository);
+        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/keys?oldKey=KeyNotDefinedInEnglish&newKey=KeyOnlyDefinedInEnglish";
+        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
+
+        HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        string urlGetKeys = $"{_versionPrefix}/ttd/{targetRepository}/keys";
+        HttpRequestMessage urlGetKeysRequest = new HttpRequestMessage(HttpMethod.Get, urlGetKeys);
+        HttpResponseMessage responseGetKeys = await HttpClient.Value.SendAsync(urlGetKeysRequest);
+        string list = responseGetKeys.Content.ReadAsStringAsync().Result;
+        List<string> keys = JsonSerializer.Deserialize<List<string>>(list);
+
+        try
+        {
+            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+            Assert.Equal(8, keys.Count);
+        }
+        finally
+        {
+            TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
+        }
+    }
+
+    [Fact]
+    public async Task Put_AlreadyExistingKeyInSameFileAsOldKey_400BadRequestNoFilesChanged()
+    {
+        var targetRepository = TestDataHelper.GenerateTestRepoName();
+        await TestDataHelper.CopyRepositoryForTest("ttd", "keys-management", "testUser", targetRepository);
+        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/keys?oldKey=AlreadyExistingKey&newKey=KeyOnlyDefinedInEnglish";
+        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
+
+        HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        string urlGetKeys = $"{_versionPrefix}/ttd/{targetRepository}/keys";
+        HttpRequestMessage urlGetKeysRequest = new HttpRequestMessage(HttpMethod.Get, urlGetKeys);
+        HttpResponseMessage responseGetKeys = await HttpClient.Value.SendAsync(urlGetKeysRequest);
+        string list = responseGetKeys.Content.ReadAsStringAsync().Result;
+        List<string> keys = JsonSerializer.Deserialize<List<string>>(list);
+
+        try
+        {
+            Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
+            Assert.True(keys.Contains("AlreadyExistingKey"));
+        }
+        finally
+        {
+            TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
+        }
+    }
+
+    [Fact]
+    public async Task Put_EmptyNewKey_200OkOldKeyIsRemoved()
+    {
+        var targetRepository = TestDataHelper.GenerateTestRepoName();
+        await TestDataHelper.CopyRepositoryForTest("ttd", "keys-management", "testUser", targetRepository);
+        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/keys?oldKey=AlreadyExistingKey&newKey=";
+        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
+
+        HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+        string urlGetKeys = $"{_versionPrefix}/ttd/{targetRepository}/keys";
+        HttpRequestMessage urlGetKeysRequest = new HttpRequestMessage(HttpMethod.Get, urlGetKeys);
+        HttpResponseMessage responseGetKeys = await HttpClient.Value.SendAsync(urlGetKeysRequest);
+        string list = responseGetKeys.Content.ReadAsStringAsync().Result;
+        List<string> keys = JsonSerializer.Deserialize<List<string>>(list);
+
+        try
+        {
+            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
+            Assert.Equal(8, keys.Count);
+            Assert.False(keys.Contains("AlreadyExistingKey"));
         }
         finally
         {
