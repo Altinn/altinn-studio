@@ -12,7 +12,7 @@ namespace Altinn.App.Options
 {
     public class ListCases : IDataListProvider
     {
-        public string Id { get; set; } = "cases";
+        public string Id { get; set; } = "people";
 
         public async Task<DataList> GetDataListAsync(string language, Dictionary<string, string> keyValuePairs)
         {

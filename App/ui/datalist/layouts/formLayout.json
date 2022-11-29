@@ -11,8 +11,7 @@
         "dataModelBindings": {
           "name": "SelectedItem"
         },
-        "dataListId": "cases",
-        "fieldToStoreInDataModel": "idapplication",
+        "dataListId": "people",
         "tableHeaders": [ "Navn", "Alder", "Yrke" ],
         "sortableColumns": [ "Alder" ],
         "pagination": {
