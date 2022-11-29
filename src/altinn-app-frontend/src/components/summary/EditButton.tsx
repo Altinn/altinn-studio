@@ -35,7 +35,10 @@ export function EditButton(props: IEditButtonProps) {
         className={classes.change}
       >
         <span>{props.editText}</span>
-        <i className={`fa fa-editing-file ${classes.editIcon}`} />
+        <i
+          aria-hidden='true'
+          className={`fa fa-editing-file ${classes.editIcon}`}
+        />
       </Typography>
     </IconButton>
   );

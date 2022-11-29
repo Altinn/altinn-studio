@@ -46,6 +46,7 @@ export function ImageComponent(props: IImageProps) {
             type='image/svg+xml'
             id={props.id}
             data={imgSrc}
+            role={'presentation'}
           >
             <img
               src={imgSrc}

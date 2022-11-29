@@ -33,6 +33,7 @@ exports[`SummaryGroupComponent SummaryGroupComponent -- should match snapshot 1`
               Change
             </span>
             <i
+              aria-hidden="true"
               class="fa fa-editing-file makeStyles-editIcon-6"
             />
           </p>

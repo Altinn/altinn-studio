@@ -60,10 +60,7 @@ export function DropzoneComponent({
 }: IDropzoneComponentProps): JSX.Element {
   return (
     <div>
-      <div
-        className='file-upload-text-bold-small'
-        id='max-size'
-      >
+      <div className='file-upload-text-bold-small'>
         {`${getLanguageFromKey('form_filler.file_uploader_max_size', language)} ${maxFileSizeInMB} ${getLanguageFromKey(
           'form_filler.file_uploader_mb',
           language,
@@ -120,7 +117,6 @@ export function DropzoneComponent({
                   <label
                     htmlFor={id}
                     className='file-upload-text-bold'
-                    id='file-upload-description'
                   >
                     {isMobile ? (
                       <>{getLanguageFromKey('form_filler.file_uploader_upload', language)}</>
@@ -138,7 +134,6 @@ export function DropzoneComponent({
                   <label
                     htmlFor={id}
                     className='file-upload-text'
-                    id='file-format-description'
                   >
                     {getLanguageFromKey('form_filler.file_uploader_valid_file_format', language)}
                     {hasCustomFileEndings

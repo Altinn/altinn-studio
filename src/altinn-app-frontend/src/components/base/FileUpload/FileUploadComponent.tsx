@@ -170,11 +170,10 @@ export function FileUploadComponent({
       : getLanguageFromKey('general.loading', language);
 
     return uploaded ? (
-      <div>
+      <div aria-label={status}>
         {mobileView ? null : status}
         <i
           className='ai ai-check-circle'
-          aria-label={status}
           style={mobileView ? { marginLeft: '10px' } : {}}
         />
       </div>
@@ -193,10 +192,11 @@ export function FileUploadComponent({
     return (
       <div
         onClick={handleDeleteFile.bind(this, index)}
-        id={`attachment-delete-${index}`}
         onKeyPress={handleDeleteKeypress.bind(this, index)}
         tabIndex={0}
         role='button'
+        data-testid={`attachment-delete-${index}`}
+        aria-label={getLanguageFromKey('general.delete', language)}
       >
         {attachment.deleting ? (
           <AltinnLoader
@@ -212,10 +212,7 @@ export function FileUploadComponent({
             {mobileView
               ? getLanguageFromKey('general.delete', language)
               : getLanguageFromKey('form_filler.file_uploader_list_delete', language)}
-            <i
-              className='ai ai-trash'
-              aria-label={getLanguageFromKey('general.delete', language)}
-            />
+            <i className='ai ai-trash' />
           </>
         )}
       </div>

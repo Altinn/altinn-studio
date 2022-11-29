@@ -6,16 +6,28 @@ import AppFrontend from '../../pageobjects/app-frontend';
 const appFrontend = new AppFrontend();
 
 describe('WCAG', () => {
-  it('WCAG test in data app', () => {
-    cy.intercept('**/active', []).as('noActiveInstances');
-    cy.startAppInstance(appFrontend.apps.frontendTest);
-    cy.get(appFrontend.closeButton).should('be.visible');
-    cy.get(appFrontend.message['header']).should('exist');
+  it('WCAG test in changename', () => {
+    cy.gotoAndComplete('changename');
     cy.testWcag();
-    cy.get(appFrontend.sendinButton).click();
-    cy.get(appFrontend.changeOfName.newFirstName).should('be.visible').type('a').blur();
-    cy.get(appFrontend.changeOfName.newLastName).should('be.visible').type('a').blur();
-    cy.get(appFrontend.changeOfName.confirmChangeName).should('be.visible').find('input').check();
+    cy.get(appFrontend.navMenu).find('li > button').last().click();
+    cy.testWcag();
+  });
+
+  it('WCAG test in group', () => {
+    cy.gotoAndComplete('group');
+    cy.testWcag();
+    cy.get(appFrontend.navMenu).find('li > button').first().click();
+    cy.testWcag();
+
+    cy.get(appFrontend.navMenu).find('li > button').eq(1).click();
+    cy.testWcag();
+    cy.get(appFrontend.group.edit).click();
+    cy.testWcag();
+    cy.get(appFrontend.group.mainGroup)
+      .find(appFrontend.group.editContainer)
+      .find(appFrontend.group.next)
+      .should('be.visible')
+      .click();
     cy.testWcag();
   });
 });

@@ -29,6 +29,7 @@ exports[`MultipleChoiceSummary MultipleChoiceSummary 1`] = `
             Endre
           </span>
           <i
+            aria-hidden="true"
             class="fa fa-editing-file makeStyles-editIcon-7"
           />
         </p>

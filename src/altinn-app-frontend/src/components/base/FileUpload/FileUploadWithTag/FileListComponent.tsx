@@ -212,10 +212,6 @@ export function FileList(props: FileListProps): JSX.Element | null {
                                 {getLanguageFromKey('form_filler.file_uploader_mb', props.language)}
                                 <i
                                   className='ai ai-check-circle'
-                                  aria-label={getLanguageFromKey(
-                                    'form_filler.file_uploader_list_status_done',
-                                    props.language,
-                                  )}
                                   style={props.mobileView ? { marginLeft: '10px' } : {}}
                                 />
                               </div>
@@ -258,13 +254,7 @@ export function FileList(props: FileListProps): JSX.Element | null {
                         {attachment.uploaded ? (
                           <div>
                             {getLanguageFromKey('form_filler.file_uploader_list_status_done', props.language)}
-                            <i
-                              className='ai ai-check-circle'
-                              aria-label={getLanguageFromKey(
-                                'form_filler.file_uploader_list_status_done',
-                                props.language,
-                              )}
-                            />
+                            <i className='ai ai-check-circle' />
                           </div>
                         ) : (
                           <AltinnLoader

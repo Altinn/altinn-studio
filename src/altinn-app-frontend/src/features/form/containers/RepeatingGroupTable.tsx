@@ -453,7 +453,7 @@ export function RepeatingGroupTable({
                           <Button
                             variant={ButtonVariant.Quiet}
                             color={ButtonColor.Secondary}
-                            icon={rowHasErrors ? <WarningIcon /> : <EditIcon />}
+                            icon={rowHasErrors ? <WarningIcon aria-hidden='true' /> : <EditIcon aria-hidden='true' />}
                             iconPlacement='right'
                             onClick={() => handleEditClick(index)}
                             aria-label={`${editButtonText}-${firstCellData}`}
@@ -477,7 +477,7 @@ export function RepeatingGroupTable({
                                 <Button
                                   variant={ButtonVariant.Quiet}
                                   color={ButtonColor.Danger}
-                                  icon={<DeleteIcon />}
+                                  icon={<DeleteIcon aria-hidden='true' />}
                                   iconPlacement='right'
                                   disabled={deleting}
                                   onClick={() => handleDeleteClick(index)}
