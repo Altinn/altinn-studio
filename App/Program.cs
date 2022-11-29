@@ -23,7 +23,6 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
     services.AddTransient<IInstanceValidator, InstanceValidator>();
     services.AddTransient<IPdfFormatter, PdfFormatter>();
     services.AddTransient<IDataListProvider, ListCases>();
-
 }
 
 // ###########################################################################
