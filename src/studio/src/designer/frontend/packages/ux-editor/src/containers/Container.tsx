@@ -41,6 +41,7 @@ import {
 } from '@altinn/altinn-design-system';
 import classes from './Container.module.css';
 import cn from 'classnames';
+import { Collapse, Delete, Edit, Error, Expand, Success } from '@navikt/ds-icons';
 
 export interface IProvidedContainerProps {
   isBaseContainer?: boolean;
@@ -377,7 +378,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
             <div className={classes.formGroupBar}>
               <Button
                 color={ButtonColor.Secondary}
-                iconName={expanded ? 'Collapse' : 'Expand'}
+                icon={expanded ? <Collapse/> : <Expand/>}
                 onClick={this.handleExpand}
                 variant={ButtonVariant.Quiet}
               />
@@ -499,18 +500,18 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
   public renderHoverIcons = (): JSX.Element => (
     <>
       <Button
-        iconName='Delete'
+        icon={<Delete/>}
         onClick={this.handleContainerDelete}
         variant={ButtonVariant.Quiet}
       />
-      <Button iconName='Edit' onClick={this.handleEditMode} variant={ButtonVariant.Quiet} />
+      <Button icon={<Edit/>} onClick={this.handleEditMode} variant={ButtonVariant.Quiet} />
     </>
   );
 
   public renderEditIcons = (): JSX.Element => (
     <>
-      <Button iconName='Error' onClick={this.handleDiscard} variant={ButtonVariant.Quiet} />
-      <Button iconName='Success' onClick={this.handleDiscard} variant={ButtonVariant.Quiet} />
+      <Button icon={<Error/>} onClick={this.handleDiscard} variant={ButtonVariant.Quiet} />
+      <Button icon={<Success/>} onClick={this.handleDiscard} variant={ButtonVariant.Quiet} />
     </>
   );
 

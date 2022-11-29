@@ -10,6 +10,7 @@ import { Button, ButtonColor, ButtonVariant, FieldSet, TextField } from '@altinn
 import classes from './EditOptions.module.css';
 import { IGenericEditComponent } from '../componentConfig';
 import { EditCodeList } from './EditCodeList';
+import { Add, Delete } from '@navikt/ds-icons';
 
 export interface ISelectionEditComponentProvidedProps extends IGenericEditComponent {
   renderOptions?: {
@@ -173,7 +174,7 @@ export function EditOptions({ component, handleComponentChange, language, textRe
               <div>
                 <Button
                   color={ButtonColor.Danger}
-                  iconName={'Delete'}
+                  icon={<Delete/>}
                   onClick={removeItem}
                   variant={ButtonVariant.Quiet}
                 />
@@ -186,7 +187,7 @@ export function EditOptions({ component, handleComponentChange, language, textRe
           <Button
             disabled={component.options?.some(({ label }) => !label)}
             fullWidth
-            iconName={'Add'}
+            icon={<Add/>}
             onClick={handleAddOption}
             variant={ButtonVariant.Outline}
           >
