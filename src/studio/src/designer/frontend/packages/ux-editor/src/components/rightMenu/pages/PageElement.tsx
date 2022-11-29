@@ -1,58 +1,31 @@
 import React from 'react';
-import type { TextFieldProps } from '@mui/material';
-import { Button, Divider, Grid, IconButton, TextField } from '@mui/material';
-import { makeStyles } from '@mui/styles';
+import { Button, ButtonVariant, TextField } from '@altinn/altinn-design-system';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { useDispatch, useSelector } from 'react-redux';
 import { AltinnMenu, AltinnMenuItem } from 'app-shared/components/';
 import ConfirmModal from '../ConfirmModal';
 import { FormLayoutActions } from '../../../features/formDesigner/formLayout/formLayoutSlice';
 import type { IAppState } from '../../../types/global';
+import { EllipsisV, Right } from '@navikt/ds-icons';
+import classes from './PageElement.module.css';
+import { Divider } from 'app-shared/primitives';
+import cn from 'classnames';
 
 export interface IPageElementProps {
   name: string;
 }
 
-const useStyles = makeStyles({
-  grid: {
-    display: 'grid',
-    gap: '1rem',
-    gridTemplateColumns: '1fr auto',
-  },
-  ellipsisButton: {
-    marginLeft: '1.2rem',
-    visibility: 'hidden',
-  },
-  buttonWrapper: {
-    width: '100%',
-    '&:hover': {
-      background: 'rgba(0, 0, 0, 0.04)',
-    },
-    '&:hover #ellipsis-button': {
-      visibility: 'visible',
-    },
-    '&:focus #ellipsis-button': {
-      visibility: 'visible',
-    },
-    '&:focus-within #ellipsis-button': {
-      visibility: 'visible',
-    },
-  },
-  mainButton: {
-    width: '100%',
-    fontSize: '1.4rem',
-    fontWeight: 400,
-    textTransform: 'unset',
-  },
-});
-
-export default function PageElement({ name }: IPageElementProps) {
-  const classes = useStyles();
+export function PageElement({ name }: IPageElementProps) {
   const dispatch = useDispatch();
 
   const language = useSelector((state: IAppState) => state.appData.languageState.language);
-  const selectedLayout = useSelector((state: IAppState) => state.formDesigner.layout.selectedLayout);
-  const layoutOrder = useSelector((state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order);
+  const t = (key: string) => getLanguageFromKey(key, language);
+  const selectedLayout = useSelector(
+    (state: IAppState) => state.formDesigner.layout.selectedLayout
+  );
+  const layoutOrder = useSelector(
+    (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order
+  );
   const [editMode, setEditMode] = React.useState<boolean>(false);
   const [errorMessage, setErrorMessage] = React.useState<string>('');
   const [newName, setNewName] = React.useState<string>('');
@@ -77,7 +50,10 @@ export default function PageElement({ name }: IPageElementProps) {
     setMenuAnchorEl(null);
   };
 
-  const onMenuItemClick = (event: React.SyntheticEvent, action: 'up' | 'down' | 'edit' | 'delete') => {
+  const onMenuItemClick = (
+    event: React.SyntheticEvent,
+    action: 'up' | 'down' | 'edit' | 'delete'
+  ) => {
     event.stopPropagation();
     if (action === 'delete') {
       setDeleteAnchorEl(event.currentTarget);
@@ -104,20 +80,22 @@ export default function PageElement({ name }: IPageElementProps) {
   };
 
   const pageNameExists = (candidateName: string): boolean => {
-    return layoutOrder.some((pageName: string) => pageName.toLowerCase() === candidateName.toLowerCase());
+    return layoutOrder.some(
+      (pageName: string) => pageName.toLowerCase() === candidateName.toLowerCase()
+    );
   };
 
   const handleOnChange = (event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     const nameRegex = new RegExp('^[a-zA-Z0-9_\\-\\.]*$');
     const newNameCandidate = event.target.value.replace(/[/\\?%*:|"<>]/g, '-').trim();
     if (pageNameExists(newNameCandidate)) {
-      setErrorMessage(getLanguageFromKey('right_menu.pages_error_unique', language));
+      setErrorMessage(t('right_menu.pages_error_unique'));
     } else if (!newNameCandidate) {
-      setErrorMessage(getLanguageFromKey('right_menu.pages_error_empty', language));
+      setErrorMessage(t('right_menu.pages_error_empty'));
     } else if (newNameCandidate.length >= 30) {
-      setErrorMessage(getLanguageFromKey('right_menu.pages_error_length', language));
+      setErrorMessage(t('right_menu.pages_error_length'));
     } else if (!newNameCandidate.match(nameRegex)) {
-      setErrorMessage(getLanguageFromKey('right_menu.pages_error_format', language));
+      setErrorMessage(t('right_menu.pages_error_format'));
     } else {
       setErrorMessage('');
       setNewName(newNameCandidate);
@@ -147,71 +125,68 @@ export default function PageElement({ name }: IPageElementProps) {
   };
 
   return (
-    <div className={classes.buttonWrapper}>
-      <div className={classes.grid}>
-        <Button onClick={onPageClick} className={classes.mainButton} sx={{ fontSize: '1.4rem' }}>
-          <Grid item={true} xs={1}>
-            {selectedLayout === name && (
-              <i
-                className='fa fa-arrowright'
-                style={{
-                  width: 'auto',
-                  color: '#022F51',
-                  marginBottom: '0.4rem',
-                }}
-              />
-            )}
-          </Grid>
-          <Grid item={true} xs={9} style={{ textAlign: 'left', paddingLeft: '1.2rem' }}>
-            {!editMode && name}
-            {editMode && (
-              <InlineTextField
+    <div className={cn({ [classes.selected]: selectedLayout === name })}>
+      <div className={classes.elementContainer}>
+        <div>
+          <Right
+            visibility={selectedLayout === name ? 'visible' : 'hidden'}
+            style={{
+              width: 'auto',
+              color: '#022F51',
+            }}
+          />
+        </div>
+        <div onClick={onPageClick}>
+          {!editMode && name}
+          {editMode && (
+            <>
+              <TextField
                 onBlur={handleOnBlur}
                 onKeyDown={handleKeyPress}
                 onChange={handleOnChange}
                 defaultValue={name}
-                error={Boolean(errorMessage)}
-                helperText={errorMessage}
+                isValid={!errorMessage}
               />
-            )}
-          </Grid>
-        </Button>
-
-        <IconButton
-          onClick={onPageSettingsClick}
-          className={classes.ellipsisButton}
-          id='ellipsis-button'
-          style={menuAnchorEl ? { visibility: 'visible' } : {}}
-        >
-          <i className='fa fa-ellipsismenu' style={{ width: 'auto' }} />
-        </IconButton>
+              <span className={classes.errorMessage}>{errorMessage}</span>
+            </>
+          )}
+        </div>
+        <div>
+          <Button
+            onClick={onPageSettingsClick}
+            className={classes.ellipsisButton}
+            style={menuAnchorEl ? { visibility: 'visible' } : {}}
+            svgIconComponent={<EllipsisV />}
+            variant={ButtonVariant.Quiet}
+          />
+        </div>
       </div>
 
       <AltinnMenu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={onMenuClose}>
         <AltinnMenuItem
           onClick={(event) => onMenuItemClick(event, 'up')}
           disabled={disableUp}
-          text={getLanguageFromKey('right_menu.page_menu_up', language)}
+          text={t('right_menu.page_menu_up')}
           iconClass='fa fa-arrowup'
           id='move-page-up-button'
         />
         <AltinnMenuItem
           onClick={(event) => onMenuItemClick(event, 'down')}
           disabled={disableDown}
-          text={getLanguageFromKey('right_menu.page_menu_down', language)}
+          text={t('right_menu.page_menu_down')}
           iconClass='fa fa-arrowdown'
           id='move-page-down-button'
         />
         <AltinnMenuItem
           onClick={(event) => onMenuItemClick(event, 'edit')}
-          text={getLanguageFromKey('right_menu.page_menu_edit', language)}
+          text={t('right_menu.page_menu_edit')}
           iconClass='fa fa-write'
           id='edit-page-button'
         />
-        <Divider />
+        <Divider inMenu />
         <AltinnMenuItem
           onClick={(event) => onMenuItemClick(event, 'delete')}
-          text={getLanguageFromKey('right_menu.page_menu_delete', language)}
+          text={t('right_menu.page_menu_delete')}
           iconClass='fa fa-trash'
           id='delete-page-button'
         />
@@ -219,10 +194,12 @@ export default function PageElement({ name }: IPageElementProps) {
       <ConfirmModal
         anchorEl={deleteAnchorEl}
         open={Boolean(deleteAnchorEl)}
-        header={getLanguageFromKey('right_menu.page_delete_header', language)}
-        description={getParsedLanguageFromKey('right_menu.page_delete_information', language, [name])}
-        confirmText={getLanguageFromKey('right_menu.page_delete_confirm', language)}
-        cancelText={getLanguageFromKey('right_menu.page_delete_cancel', language)}
+        header={t('right_menu.page_delete_header')}
+        description={getParsedLanguageFromKey('right_menu.page_delete_information', language, [
+          name,
+        ])}
+        confirmText={t('right_menu.page_delete_confirm')}
+        cancelText={t('right_menu.page_delete_cancel')}
         onClose={handleConfirmDeleteClose}
         onCancel={handleConfirmDeleteClose}
         onConfirm={handleConfirmDelete}
@@ -230,11 +207,3 @@ export default function PageElement({ name }: IPageElementProps) {
     </div>
   );
 }
-
-export const InlineTextField = (props: TextFieldProps) => (
-  <TextField
-    inputProps={{ style: { fontSize: '14px' } }}
-    FormHelperTextProps={{ style: { fontSize: '12px' } }}
-    {...props}
-  />
-);
