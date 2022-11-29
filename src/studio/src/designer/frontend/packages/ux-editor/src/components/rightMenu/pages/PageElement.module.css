@@ -6,6 +6,7 @@
   font-weight: 400;
   font-size: 16px;
   line-height: 19px;
+  cursor: pointer;
 }
 
 .selected .elementContainer {
@@ -28,4 +29,10 @@
 }
 .elementContainer:hover .ellipsisButton {
   visibility: visible;
+}
+
+.errorMessage {
+  font-size: 13px;
+  font-weight: 400;
+  padding-top: 6px;
 }

@@ -147,7 +147,7 @@ export function PageElement({ name }: IPageElementProps) {
                 defaultValue={name}
                 isValid={!errorMessage}
               />
-              {errorMessage}
+              <span className={classes.errorMessage}>{errorMessage}</span>
             </>
           )}
         </div>
