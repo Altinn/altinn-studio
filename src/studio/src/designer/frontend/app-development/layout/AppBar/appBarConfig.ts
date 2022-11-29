@@ -37,11 +37,13 @@ export const menu: TopBarMenuItem[] = [
     link: '/:org/:app/texts',
     repositoryTypes: [RepositoryType.App],
   },
+  /*
   {
     key: TopBarMenu.Texts,
     link: '/:org/:app/text-editor',
     repositoryTypes: [RepositoryType.App],
   },
+  */
   {
     key: TopBarMenu.Deploy,
     link: '/:org/:app/deploy',
