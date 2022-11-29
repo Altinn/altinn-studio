@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { TextField, ErrorMessage, TextArea } from '@altinn/altinn-design-system';
 import type { Translations } from './types';
-import { ReactComponent as TrashIcon } from './trash.svg';
+import TrashIcon from './trash.svg';
 
 import classes from './TextRow.module.css';
 

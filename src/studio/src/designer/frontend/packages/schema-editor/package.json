@@ -3,7 +3,8 @@
   "description": "JSON schema editor",
   "version": "0.1.0",
   "dependencies": {
-    "@mui/lab": "5.0.0-alpha.108"
+    "@mui/lab": "5.0.0-alpha.108",
+    "jsonpointer": "5.0.1"
   },
   "devDependencies": {
     "jest": "29.3.1"
@@ -16,7 +17,6 @@
     "@reduxjs/toolkit": "1.9.0",
     "axios": "0.27.2",
     "classnames": "2.3.2",
-    "jsonpointer": "5.0.1",
     "react": "18.2.0",
     "react-dnd": "16.0.1",
     "react-dnd-html5-backend": "16.0.1",
