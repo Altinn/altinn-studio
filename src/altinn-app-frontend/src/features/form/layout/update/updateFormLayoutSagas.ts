@@ -7,6 +7,7 @@ import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import { FormDynamicsActions } from 'src/features/form/dynamics/formDynamicsSlice';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
+import { selectLayoutOrder } from 'src/selectors/getLayoutOrder';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import { OptionsActions } from 'src/shared/resources/options/optionsSlice';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
@@ -45,7 +46,6 @@ import type {
   ILayoutComponent,
   ILayoutComponentOrGroup,
   ILayoutGroup,
-  ILayouts,
 } from 'src/features/form/layout';
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
 import type {
@@ -72,13 +72,15 @@ import type {
 
 import { get, post } from 'altinn-shared/utils';
 
-export const selectFormLayoutState = (state: IRuntimeState): ILayoutState => state.formLayout;
-export const selectFormData = (state: IRuntimeState): IFormDataState => state.formData;
-export const selectFormLayouts = (state: IRuntimeState): ILayouts | null => state.formLayout.layouts;
-export const selectAttachmentState = (state: IRuntimeState): IAttachmentState => state.attachments;
-export const selectValidations = (state: IRuntimeState): IValidations => state.formValidations.validations;
-export const selectUnsavedChanges = (state: IRuntimeState): boolean => state.formData.unsavedChanges;
-export const selectOptions = (state: IRuntimeState): IOptions => state.optionState.options;
+export const selectFormLayoutState = (state: IRuntimeState) => state.formLayout;
+export const selectFormData = (state: IRuntimeState) => state.formData;
+export const selectFormLayouts = (state: IRuntimeState) => state.formLayout.layouts;
+export const selectAttachmentState = (state: IRuntimeState) => state.attachments;
+export const selectValidations = (state: IRuntimeState) => state.formValidations.validations;
+export const selectUnsavedChanges = (state: IRuntimeState) => state.formData.unsavedChanges;
+export const selectOptions = (state: IRuntimeState) => state.optionState.options;
+export const selectAllLayouts = (state: IRuntimeState) => state.formLayout.uiConfig.tracks.order;
+export const selectCurrentLayout = (state: IRuntimeState) => state.formLayout.uiConfig.currentView;
 
 export function* updateRepeatingGroupsSaga({
   payload: { layoutElementId, remove, index },
@@ -457,6 +459,40 @@ export function* calculatePageOrderAndMoveToNextPageSaga({
         }),
       );
     }
+  }
+}
+
+/**
+ * When hiding one or more pages, we cannot show them - so we'll have to make sure we navigate to the next one
+ * in the page order (if currently on a page that is not visible).
+ */
+export function* findAndMoveToNextVisibleLayout(): SagaIterator {
+  const allLayouts: string[] | null = yield select(selectAllLayouts);
+  const visibleLayouts: string[] | null = yield select(selectLayoutOrder);
+  const current: string = yield select(selectCurrentLayout);
+
+  const possibleLayouts = new Set<string>(allLayouts || []);
+  let nextVisiblePage = current;
+  while (visibleLayouts && allLayouts && !visibleLayouts.includes(nextVisiblePage)) {
+    const nextIndex = allLayouts.findIndex((l) => l === nextVisiblePage) + 1;
+    nextVisiblePage = allLayouts[nextIndex];
+
+    // Because findIndex() returns -1 when no item was found, the code above rolls around to index 0, and will
+    // start looking at the first page again (which is intentional). However, if the state is broken we might
+    // never find the visible layout, causing an infinite loop. This code just makes sure our ship is tight and
+    // that loop can't happen.
+    possibleLayouts.delete(nextVisiblePage);
+    if (!possibleLayouts.size) {
+      break;
+    }
+  }
+
+  if (nextVisiblePage && nextVisiblePage !== current) {
+    yield put(
+      FormLayoutActions.updateCurrentView({
+        newView: nextVisiblePage,
+      }),
+    );
   }
 }
 

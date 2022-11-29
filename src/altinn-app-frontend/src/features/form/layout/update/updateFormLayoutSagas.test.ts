@@ -8,8 +8,11 @@ import { FormDynamicsActions } from 'src/features/form/dynamics/formDynamicsSlic
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import {
   calculatePageOrderAndMoveToNextPageSaga,
+  findAndMoveToNextVisibleLayout,
   initRepeatingGroupsSaga,
+  selectAllLayouts,
   selectAttachmentState,
+  selectCurrentLayout,
   selectFormData,
   selectFormLayoutState,
   selectOptions,
@@ -21,6 +24,7 @@ import {
   watchUpdateCurrentViewSaga,
 } from 'src/features/form/layout/update/updateFormLayoutSagas';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
+import { selectLayoutOrder } from 'src/selectors/getLayoutOrder';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import { OptionsActions } from 'src/shared/resources/options/optionsSlice';
 import type { ILayoutCompFileUpload } from 'src/features/form/layout';
@@ -328,6 +332,58 @@ describe('updateLayoutSagas', () => {
           }),
         )
         .run();
+    });
+  });
+
+  describe('findAndMoveToNextVisibleLayout', () => {
+    const allLayouts = ['a', 'b', 'c', 'd'];
+    it.each([
+      {
+        name: 'should do nothing if current page is visible',
+        current: 'b',
+        visible: allLayouts,
+        expected: undefined,
+      },
+      {
+        name: 'should move to c if b is not visible',
+        current: 'b',
+        visible: ['a', 'c', 'd'],
+        expected: 'c',
+      },
+      {
+        name: 'should move to d if b,c is not visible',
+        current: 'b',
+        visible: ['a', 'd'],
+        expected: 'd',
+      },
+      {
+        name: 'should move to a if c,d is not visible',
+        current: 'c',
+        visible: ['a', 'b'],
+        expected: 'a',
+      },
+      {
+        name: 'should do nothing if visible state is broken',
+        current: 'a',
+        visible: ['whatever'],
+        expected: undefined,
+      },
+    ])('$name', ({ current, visible, expected }) => {
+      const ret = expectSaga(findAndMoveToNextVisibleLayout).provide([
+        [select(selectAllLayouts), allLayouts],
+        [select(selectLayoutOrder), visible],
+        [select(selectCurrentLayout), current],
+      ]);
+
+      if (expected) {
+        ret.put(
+          FormLayoutActions.updateCurrentView({
+            newView: expected,
+          }),
+        );
+      }
+
+      return ret.run();
     });
   });
 });
