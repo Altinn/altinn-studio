@@ -15,9 +15,7 @@ import { useGetLanguagesQuery } from '../../services/languagesApi';
 export const TextEditorImpl = () => {
   const [selectedLangCode, setSelectedLangCode] = React.useState<string | null>(null);
   const project = getProjectParams();
-  const { data: appLanguageCodes, isLoading: isInitialLoadingLangCodes } =
-    useGetLanguagesQuery(project);
-
+  const { data: appLanguageCodes, isLoading: isInitialLoadingLangCodes } = useGetLanguagesQuery(project);
   const {
     data: translations,
     isLoading: isInitialLoadingLang,
