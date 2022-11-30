@@ -120,6 +120,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                     case XsdRootElementKeyword:
                         keywords.MarkAsHandled<XsdRootElementKeyword>();
                         break;
+
+                    case DescriptionKeyword:
+                        keywords.MarkAsHandled<DescriptionKeyword>();
+                        break;
                 }
             }
 
