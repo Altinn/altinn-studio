@@ -12,5 +12,10 @@ namespace Altinn.App.Models
         [JsonProperty("DataListItem")]
         [JsonPropertyName("DataListItem")]
         public string SelectedItem { get; set; }
+        
+        [XmlElement("SelectedItemProfession", Order = 2)]
+        [JsonProperty("SelectedItemProfession")]
+        [JsonPropertyName("SelectedItemProfession")]
+        public string SelectedItemProfession { get; set; }
     }
 }

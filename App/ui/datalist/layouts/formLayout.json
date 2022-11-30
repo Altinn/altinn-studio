@@ -9,7 +9,8 @@
           "title": "Hvem gjelder saken?"
         },
         "dataModelBindings": {
-          "name": "SelectedItem"
+          "name": "SelectedItem",
+          "profession": "SelectedItemProfession"
         },
         "dataListId": "people",
         "tableHeaders": [ "Navn", "Alder", "Yrke" ],
@@ -17,15 +18,18 @@
         "pagination": {
           "alternatives": [ 5, 10 ],
           "default": 5
-        }
+        },
+        "required": "true"
       },
       {
-        "id": "sendInButton",
-        "type": "Button",
+        "id": "toSummary",
+        "type": "NavigationButtons",
+        "showPrev": false,
         "textResourceBindings": {
-          "title": "Send inn"
+          "next": "Neste"
         },
-        "dataModelBindings": {}
+        "dataModelBindings": {},
+        "triggers": [ "validatePage" ]
       }
     ]
   }

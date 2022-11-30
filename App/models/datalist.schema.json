@@ -11,7 +11,10 @@
     "Datalist": {
       "properties": {
         "SelectedItem": {
-            "$ref": "#/definitions/Text"
+          "$ref": "#/definitions/Text"
+        },
+        "SelectedItemProfession": {
+          "$ref": "#/definitions/Text"
         }
       },
       "required": [
