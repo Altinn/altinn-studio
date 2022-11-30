@@ -103,7 +103,6 @@ namespace LocalTest.Services.LocalApp.Implementation
 
             using var message = new HttpRequestMessage(HttpMethod.Post, requestUri);
             message.Content = content;
-            // TODO: Figure out how to get orgnumber for app owner from appId
             message.Headers.Authorization = new ("Bearer", await _authenticationService.GenerateTokenForOrg(appId.Split("/")[0]));
             var response = await _httpClient.SendAsync(message);
             var stringResponse = await response.Content.ReadAsStringAsync();
