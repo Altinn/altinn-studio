@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import Select from 'react-select';
-import { Button } from '@altinn/altinn-design-system';
+import { Select, Button } from '@altinn/altinn-design-system';
 import classes from './LanguageSelector.module.css';
 import type { Option } from './types';
 
@@ -21,18 +20,17 @@ export const LanguageSelector = ({ onAddLanguage, options }: ILanguageSelectorPr
     setSelectedOption(emptyOption);
   };
 
-  const handleSelectOnChange = ({ label, value }: Option) => {
-    setSelectedOption({ label, value });
+  const handleSelectOnChange = (value: string) => {
+    const selectedOption = options.filter((option) => option.value === value)[0];
+    setSelectedOption(selectedOption);
   };
   const addButtonProps = {
-    ...(selectedOption?.value
-      ? { disabled: undefined, onClick: handleAddNewLanguage }
-      : { disabled: true }),
+    ...(selectedOption?.value ? { disabled: undefined, onClick: handleAddNewLanguage } : { disabled: true }),
     'data-value': selectedOption.value,
   };
   return (
     <div className={classes.LanguageSelector}>
-      <Select onChange={handleSelectOnChange} options={options} value={selectedOption} />
+      <Select hideLabel={true} onChange={handleSelectOnChange} options={options} value={selectedOption.value} />
       <Button {...addButtonProps}>Legg til</Button>
     </div>
   );
