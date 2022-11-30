@@ -2,6 +2,7 @@ using Altinn.App.Api.Extensions;
 using Altinn.App.Api.Helpers;
 using Altinn.App.Core.Features;
 using Altinn.App.logic.DataProcessing;
+using Altinn.App.logic.PageOrder;
 using Altinn.App.logic.Pdf;
 using Altinn.App.logic.Validation;
 using Altinn.App.Options;
@@ -23,6 +24,7 @@ void RegisterCustomAppServices(IServiceCollection services, IConfiguration confi
     services.AddTransient<IInstanceValidator, InstanceValidator>();
     services.AddTransient<IPdfFormatter, PdfFormatter>();
     services.AddTransient<IDataListProvider, ListCases>();
+    services.AddTransient<IPageOrder, PageOrder>();
 }
 
 // ###########################################################################
