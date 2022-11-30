@@ -3,7 +3,7 @@ import React from 'react';
 import { TextEditor } from '@altinn/text-editor';
 import type { Translations, Language } from '@altinn/text-editor';
 
-import { getProjectParams } from '../../common/hooks/getProjectParams';
+import { getOrgApp } from '../../common/hooks';
 import {
   useGetAppTextsByLangCodeQuery,
   useUpdateTranslationByLangCodeMutation,
@@ -11,18 +11,19 @@ import {
   useAddByLangCodeMutation,
 } from '../../services/textsApi';
 import { useGetLanguagesQuery } from '../../services/languagesApi';
+import { AltinnSpinner } from 'app-shared/components';
 
 export const TextEditorImpl = () => {
   const [selectedLangCode, setSelectedLangCode] = React.useState<string | null>(null);
-  const project = getProjectParams();
-  const { data: appLanguageCodes, isLoading: isInitialLoadingLangCodes } = useGetLanguagesQuery(project);
+  const orgApp = getOrgApp();
+  const { data: appLanguageCodes, isLoading: isInitialLoadingLangCodes } = useGetLanguagesQuery(orgApp);
   const {
     data: translations,
     isLoading: isInitialLoadingLang,
     isFetching: isFetchingTranslations,
   } = useGetAppTextsByLangCodeQuery(
     {
-      ...project,
+      ...orgApp,
       langCode: selectedLangCode,
     },
     { skip: !selectedLangCode }
@@ -39,8 +40,11 @@ export const TextEditorImpl = () => {
   const [addLanguage] = useAddByLangCodeMutation();
 
   if (isInitialLoadingLang || isInitialLoadingLangCodes) {
-    // TODO: apply nicer loading UI
-    return <div>Loading</div>;
+    return (
+      <div>
+        <AltinnSpinner />
+      </div>
+    );
   }
 
   const handleSelectedLanguageChange = ({ value }: Language) => {
@@ -49,7 +53,7 @@ export const TextEditorImpl = () => {
 
   const handleTranslationChange = ({ translations }: { translations: Translations }) => {
     updateLanguage({
-      ...project,
+      ...orgApp,
       langCode: selectedLangCode,
       data: translations,
     });
@@ -57,14 +61,14 @@ export const TextEditorImpl = () => {
 
   const handleAddLanguage = ({ value }: Language) => {
     addLanguage({
-      ...project,
+      ...orgApp,
       langCode: value,
     });
   };
 
   const handleDeleteLanguage = ({ value }: Language) => {
     deleteLanguage({
-      ...project,
+      ...orgApp,
       langCode: value,
     });
   };

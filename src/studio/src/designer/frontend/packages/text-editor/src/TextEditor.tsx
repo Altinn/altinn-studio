@@ -9,6 +9,7 @@ import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
 import AltinnRadio from 'app-shared/components/AltinnRadio';
 import { getLanguageName, getRandNumber, languageOptions } from './utils';
 import { LanguageSelector } from './LanguageSelector';
+import { AltinnSpinner } from 'app-shared/components';
 
 export interface ILanguageEditorProps {
   availableLanguageCodes: string[];
@@ -45,13 +46,7 @@ export const TextEditor = ({
 
   const languageName = getLanguageName({ code: selectedLangCode });
 
-  const handleValueChange = ({
-    newValue,
-    translationKey,
-  }: {
-    newValue: string;
-    translationKey: string;
-  }) => {
+  const handleValueChange = ({ newValue, translationKey }: { newValue: string; translationKey: string }) => {
     const updatedLanguage = {
       ...translations,
     };
@@ -73,15 +68,15 @@ export const TextEditor = ({
     onTranslationChange({ translations: updatedLanguage });
   };
 
-  const addLanguageOptions = languageOptions.filter(
-    (x) => !availableLanguageCodes.includes(x.value)
-  );
+  const addLanguageOptions = languageOptions.filter((x) => !availableLanguageCodes.includes(x.value));
 
   return (
     <div className={classes.LanguageEditor}>
       <div className={classes.LanguageEditor__body}>
         {isFetchingTranslations ? (
-          <div>Loading (TODO: Apply nicer loading UI)</div>
+          <div>
+            <AltinnSpinner />
+          </div>
         ) : (
           <>
             <div className={classes.LanguageEditor__topRow}>
@@ -113,8 +108,8 @@ export const TextEditor = ({
             <div className={classes['LanguageEditor__title-md']}>Språk</div>
           </header>
           <div>
-            Vi anbefaler å legge til oversettelser for bokmål, nynorsk og engelsk. Ved behov kan du
-            også legge til andre språk.
+            Vi anbefaler å legge til oversettelser for bokmål, nynorsk og engelsk. Ved behov kan du også legge til andre
+            språk.
           </div>
         </div>
         <div className={classes.LanguageEditor__verticalContent}>

@@ -7,7 +7,7 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@altinn/altinn-design-system": "0.15.0",
+    "@altinn/altinn-design-system": "0.23.3",
     "iso-639-1": "2.1.15"
   },
   "peerDependencies": {

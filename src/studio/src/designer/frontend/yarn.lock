@@ -45,23 +45,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@altinn/altinn-design-system@npm:0.15.0":
-  version: 0.15.0
-  resolution: "@altinn/altinn-design-system@npm:0.15.0"
-  dependencies:
-    "@altinn/figma-design-tokens": ^4.1.0
-    "@radix-ui/react-popover": ^1.0.0
-    "@react-hookz/web": ^15.0.1
-    leaflet: ^1.8.0
-    react-leaflet: ^4.0.1
-    react-number-format: ^4.9.3
-  peerDependencies:
-    react: ^18.0.0
-    react-dom: ^18.0.0
-  checksum: 96a6f454efda28de17499b81c647fcfdd4ed4d39ed2169bfdd47beb3b88af1e6ffef6f73cf7197499bf38c70cd783b45d66661cb53201d873dfb7461d0a6587f
-  languageName: node
-  linkType: hard
-
 "@altinn/altinn-design-system@npm:0.23.3":
   version: 0.23.3
   resolution: "@altinn/altinn-design-system@npm:0.23.3"
@@ -80,7 +63,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@altinn/figma-design-tokens@npm:^4.1.0, @altinn/figma-design-tokens@npm:^4.3.0":
+"@altinn/figma-design-tokens@npm:^4.3.0":
   version: 4.3.0
   resolution: "@altinn/figma-design-tokens@npm:4.3.0"
   checksum: dac7b1b98a354bafa0ce627ae9fdf34215101fb57669576795d7b40c48dd41761b301ba62ec9026a99a5f21838aee6c4d26c851572ea8f334eb421c94b659a4d
@@ -121,11 +104,11 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@altinn/text-editor@0.1.0, @altinn/text-editor@workspace:packages/text-editor":
+"@altinn/text-editor@workspace:packages/text-editor":
   version: 0.0.0-use.local
   resolution: "@altinn/text-editor@workspace:packages/text-editor"
   dependencies:
-    "@altinn/altinn-design-system": 0.15.0
+    "@altinn/altinn-design-system": 0.23.3
     iso-639-1: 2.1.15
     jest: 29.1.2
     ts-jest: ^29.0.3
@@ -3045,22 +3028,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-hookz/web@npm:^15.0.1":
-  version: 15.1.0
-  resolution: "@react-hookz/web@npm:15.1.0"
-  dependencies:
-    "@react-hookz/deep-equal": ^1.0.3
-  peerDependencies:
-    js-cookie: ^3.0.1
-    react: ^16.8 || ^17 || ^18
-    react-dom: ^16.8 || ^17 || ^18
-  peerDependenciesMeta:
-    js-cookie:
-      optional: true
-  checksum: 74854629a0e86d3035f8fec97a618c79c6d8ae5a71513e6a29b717c5142109e2ec33eea835b9250686d27e9fdb66e7ccf72c7e89edf9300596fac450821130cc
-  languageName: node
-  linkType: hard
-
 "@react-hookz/web@npm:^16.0.0":
   version: 16.1.0
   resolution: "@react-hookz/web@npm:16.1.0"
@@ -4801,7 +4768,6 @@ __metadata:
   resolution: "app-development@workspace:app-development"
   dependencies:
     "@altinn/altinn-design-system": 0.23.3
-    "@altinn/text-editor": 0.1.0
     "@mui/material": 5.10.14
     "@mui/styles": 5.10.14
     "@reduxjs/toolkit": 1.9.0
@@ -12052,18 +12018,6 @@ __metadata:
     monaco-editor: ^0.34.0
     react: ">=17 <= 18"
   checksum: 509a9675bc878adb515d93c4cbfac1b1818f5cf54505aa50a40d9e848e9c243a75257c1ab13b505a9d8cbdbb2b09f90117bcf618e2d1ec1ffe2bf22fd16a3a03
-  languageName: node
-  linkType: hard
-
-"react-number-format@npm:^4.9.3":
-  version: 4.9.4
-  resolution: "react-number-format@npm:4.9.4"
-  dependencies:
-    prop-types: ^15.7.2
-  peerDependencies:
-    react: ^0.14 || ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
-    react-dom: ^0.14 || ^15.0.0 || ^16.0.0 || ^17.0.0 || ^18.0.0
-  checksum: 61df4ce5fecfcd3424309af65928327aebbe80094cda28941da324995e49152d71b28fedb4c6494ca2fdfb9be1879032da9077f4d33a41ecc999f251c604d5c9
   languageName: node
   linkType: hard
 
