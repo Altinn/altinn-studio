@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button, ButtonVariant } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
 
 import { TextRow } from './TextRow';
 import type { Language, Translations } from './types';
@@ -46,7 +46,13 @@ export const TextEditor = ({
 
   const languageName = getLanguageName({ code: selectedLangCode });
 
-  const handleValueChange = ({ newValue, translationKey }: { newValue: string; translationKey: string }) => {
+  const handleValueChange = ({
+    newValue,
+    translationKey,
+  }: {
+    newValue: string;
+    translationKey: string;
+  }) => {
     const updatedLanguage = {
       ...translations,
     };
@@ -68,7 +74,9 @@ export const TextEditor = ({
     onTranslationChange({ translations: updatedLanguage });
   };
 
-  const addLanguageOptions = languageOptions.filter((x) => !availableLanguageCodes.includes(x.value));
+  const addLanguageOptions = languageOptions.filter(
+    (x) => !availableLanguageCodes.includes(x.value)
+  );
 
   return (
     <div className={classes.LanguageEditor}>
@@ -80,7 +88,11 @@ export const TextEditor = ({
         ) : (
           <>
             <div className={classes.LanguageEditor__topRow}>
-              <Button variant={ButtonVariant.Submit} onClick={handleAddNewEntryClick}>
+              <Button
+                variant={ButtonVariant.Filled}
+                color={ButtonColor.Primary}
+                onClick={handleAddNewEntryClick}
+              >
                 Ny tekst
               </Button>
             </div>
@@ -108,8 +120,8 @@ export const TextEditor = ({
             <div className={classes['LanguageEditor__title-md']}>Språk</div>
           </header>
           <div>
-            Vi anbefaler å legge til oversettelser for bokmål, nynorsk og engelsk. Ved behov kan du også legge til andre
-            språk.
+            Vi anbefaler å legge til oversettelser for bokmål, nynorsk og engelsk. Ved behov kan du
+            også legge til andre språk.
           </div>
         </div>
         <div className={classes.LanguageEditor__verticalContent}>
@@ -126,7 +138,8 @@ export const TextEditor = ({
                   <AltinnRadio value={value} label={name} onChange={handleSelectChange} />
                   <Button
                     data-testid={`delete-${value}`}
-                    variant={ButtonVariant.Cancel}
+                    variant={ButtonVariant.Outline}
+                    color={ButtonColor.Danger}
                     onClick={handleDeleteLangClick}
                   >
                     Delete

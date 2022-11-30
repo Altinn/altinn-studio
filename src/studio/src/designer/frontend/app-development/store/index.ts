@@ -8,7 +8,10 @@ import { appDevelopmentApi } from '../services/appDevelopmentApi';
 
 export const middlewares = [sagaMiddleware, appDevelopmentApi.middleware];
 
-const reducer = combineReducers({ ...rootReducer, [appDevelopmentApi.reducerPath]: appDevelopmentApi.reducer });
+const reducer = combineReducers({
+  ...rootReducer,
+  [appDevelopmentApi.reducerPath]: appDevelopmentApi.reducer,
+});
 
 export const setupStore = (preloadedState?: PreloadedState<RootState>) => {
   const store = configureStore({

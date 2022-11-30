@@ -16,7 +16,8 @@ import { AltinnSpinner } from 'app-shared/components';
 export const TextEditorImpl = () => {
   const [selectedLangCode, setSelectedLangCode] = React.useState<string | null>(null);
   const orgApp = getOrgApp();
-  const { data: appLanguageCodes, isLoading: isInitialLoadingLangCodes } = useGetLanguagesQuery(orgApp);
+  const { data: appLanguageCodes, isLoading: isInitialLoadingLangCodes } =
+    useGetLanguagesQuery(orgApp);
   const {
     data: translations,
     isLoading: isInitialLoadingLang,
