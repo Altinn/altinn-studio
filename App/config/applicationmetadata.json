@@ -106,6 +106,19 @@
       ],
       "maxCount": 0,
       "minCount": 0
+    },
+    {
+      "id": "datalist",
+      "allowedContentTypes": [
+        "application/xml"
+      ],
+      "appLogic": {
+        "autoCreate": true,
+        "classRef": "Altinn.App.Models.Datalist"
+      },
+      "taskId": "Task_5",
+      "maxCount": 1,
+      "minCount": 1
     }
   ],
   "partyTypesAllowed": {

@@ -1,29 +1,14 @@
-using System.Threading.Tasks;
-using Altinn.App.Common.Models;
+﻿using Altinn.App.Core.Features;
+using Altinn.App.Core.Models;
 using Altinn.App.Models;
 using System.Collections.Generic;
-using Altinn.App.PlatformServices.Interface;
 using System.Linq;
+using System.Threading.Tasks;
 
-namespace Altinn.App.AppLogic.Print
+namespace Altinn.App.logic.Pdf
 {
-    /// <summary>
-    /// Handler for formatting PDF. 
-    /// </summary>
-    public class PdfHandler : ICustomPdfHandler
+    public class PdfFormatter : IPdfFormatter
     {
-        /// <summary>
-        /// Method to format PDF dynamic
-        /// </summary>
-        /// <example>
-        ///     if (data.GetType() == typeof(Skjema)
-        ///     {
-        ///     // need to create object if not there
-        ///     layoutSettings.Components.ExcludeFromPdf.Add("a23234234");
-        ///     }
-        /// </example>
-        /// <param name="layoutSettings">the layoutsettings</param>
-        /// <param name="data">data object</param>
         public async Task<LayoutSettings> FormatPdf(LayoutSettings layoutSettings, object data)
         {
             if (data is Skjema)
@@ -89,7 +74,7 @@ namespace Altinn.App.AppLogic.Print
 
                 if (skjema.Radioknapp == "8")
                 {
-                 layoutSettings.Components.ExcludeFromPdf.AddRange(new List<string>() {   "reasonRelationship",
+                    layoutSettings.Components.ExcludeFromPdf.AddRange(new List<string>() {   "reasonRelationship",
                     "reasonParents",
                     "reasonSSN",
                     "reasonCohabitant1",
@@ -104,7 +89,7 @@ namespace Altinn.App.AppLogic.Print
 
                 if (skjema.Radioknapp == "9")
                 {
-                   layoutSettings.Components.ExcludeFromPdf.AddRange(new List<string>() { "reasonRelationship",
+                    layoutSettings.Components.ExcludeFromPdf.AddRange(new List<string>() { "reasonRelationship",
                     "reasonParents",
                     "reasonSSN",
                     "reasonCohabitant1",
@@ -124,14 +109,13 @@ namespace Altinn.App.AppLogic.Print
             }
             return await Task.FromResult(layoutSettings);
         }
-
         private void UpdatePageOrder(List<string> pageOrder, NestedGroup formdata)
         {
-            var newValue = formdata?.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788?.FirstOrDefault()?.SkattemeldingEndringEtterFristNyttBelopdatadef37132?.value; 
+            var newValue = formdata?.Endringsmeldinggrp9786?.OversiktOverEndringenegrp9788?.FirstOrDefault()?.SkattemeldingEndringEtterFristNyttBelopdatadef37132?.value;
             if (newValue.HasValue && newValue > 10)
-                {
-                    pageOrder.Remove("hide");
-                }
+            {
+                pageOrder.Remove("hide");
+            }
         }
-    }   
+    }
 }
