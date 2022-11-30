@@ -53,6 +53,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc />
         public async Task<List<string>> GetKeys(string org, string repo, string developer, IList<string> languages)
         {
+            if (languages.IsNullOrEmpty())
+            {
+                throw new FileNotFoundException();
+            }
+
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
             Dictionary<string, string> firstJsonTexts = await altinnAppGitRepository.GetTextsV2(languages[0]);
             languages.RemoveAt(0);
@@ -132,6 +137,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc />
         public async Task<KeyValuePair<string, string>> AddKey(string org, string repo, string developer, IList<string> languages, string newKey)
         {
+            if (languages.IsNullOrEmpty())
+            {
+                throw new FileNotFoundException();
+            }
+
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
             KeyValuePair<string, string> keyValuePair = new KeyValuePair<string, string>(newKey, string.Empty);
 
@@ -154,6 +164,11 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <inheritdoc />
         public async Task<KeyValuePair<string, string>> UpdateKey(string org, string repo, string developer, IList<string> languages, string oldKey, string newKey)
         {
+            if (languages.IsNullOrEmpty())
+            {
+                throw new FileNotFoundException();
+            }
+
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
             Dictionary<string, OrderedDictionary> tempUpdatedTexts = new Dictionary<string, OrderedDictionary>(languages.Count);
             KeyValuePair<string, string> keyValuePair = new KeyValuePair<string, string>(oldKey, string.Empty);

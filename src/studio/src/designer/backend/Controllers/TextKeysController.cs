@@ -5,7 +5,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Services.Interfaces;
-
+using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -59,7 +59,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 return new ObjectResult(new { errorMessage = "The format of one or more texts files that you tried to access might be invalid." }) { StatusCode = 500 };
             }
-            catch (IOException)
+            catch (FileNotFoundException)
             {
                 return NotFound("The texts files needed to add key could not be found or does not exist.");
             }
@@ -91,9 +91,9 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 return new ObjectResult(new { errorMessage = "The format of one or more texts files that you tried to access might be invalid." }) { StatusCode = 500 };
             }
-            catch (IOException)
+            catch (FileNotFoundException)
             {
-                return NotFound("The texts files needed to add key could not be found or does not exist.");
+                return NotFound("The texts files needed to get keys could not be found or does not exist.");
             }
         }
 
@@ -112,6 +112,7 @@ namespace Altinn.Studio.Designer.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<KeyValuePair<string, string>>> Put(string org, string repo, [FromQuery] string oldKey, [FromQuery] string newKey)
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
@@ -119,8 +120,7 @@ namespace Altinn.Studio.Designer.Controllers
 
             try
             {
-                KeyValuePair<string, string> keyValuePair =
-                    await _textsService.UpdateKey(org, repo, developer, languages, oldKey, newKey);
+                KeyValuePair<string, string> keyValuePair = await _textsService.UpdateKey(org, repo, developer, languages, oldKey, newKey);
                 return Ok(keyValuePair);
             }
             catch (JsonException)
@@ -131,7 +131,7 @@ namespace Altinn.Studio.Designer.Controllers
             {
                 return BadRequest(errorMessage);
             }
-            catch (IOException)
+            catch (FileNotFoundException)
             {
                 return NotFound("The texts files needed to update key could not be found or does not exist.");
             }

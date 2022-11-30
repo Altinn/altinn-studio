@@ -57,6 +57,46 @@ public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeys
     }
 
     [Fact]
+    public async Task GetKeys_TextsFileInvalidFormat_500InternalServerError()
+    {
+        var targetRepository = TestDataHelper.GenerateTestRepoName();
+        await TestDataHelper.CopyRepositoryForTest("ttd", "invalid-texts-format", "testUser", targetRepository);
+        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/keys";
+        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
+
+        HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+
+        try
+        {
+            Assert.Equal(StatusCodes.Status500InternalServerError, (int)response.StatusCode);
+        }
+        finally
+        {
+            TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
+        }
+    }
+
+    [Fact]
+    public async Task GetKeys_TextsFilesNotFound_404NotFound()
+    {
+        var targetRepository = TestDataHelper.GenerateTestRepoName();
+        await TestDataHelper.CopyRepositoryForTest("ttd", "empty-app", "testUser", targetRepository);
+        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/keys";
+        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Get, dataPathWithData);
+
+        HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+
+        try
+        {
+            Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
+        }
+        finally
+        {
+            TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
+        }
+    }
+
+    [Fact]
     public async Task Post_NewKey_200OkAndNewKeyOnTopOfFile()
     {
         var targetRepository = TestDataHelper.GenerateTestRepoName();
@@ -103,6 +143,26 @@ public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeys
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
             Assert.Equal(9, keys.Count);
             Assert.Equal("KeyOnTop", keys[0]);
+        }
+        finally
+        {
+            TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
+        }
+    }
+
+    [Fact]
+    public async Task Post_TextsFilesNotFound_404NotFound()
+    {
+        var targetRepository = TestDataHelper.GenerateTestRepoName();
+        await TestDataHelper.CopyRepositoryForTest("ttd", "empty-app", "testUser", targetRepository);
+        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/keys";
+        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, dataPathWithData);
+
+        HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+
+        try
+        {
+            Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
         }
         finally
         {
@@ -208,6 +268,26 @@ public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeys
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
             Assert.Equal(8, keys.Count);
             Assert.False(keys.Contains("AlreadyExistingKey"));
+        }
+        finally
+        {
+            TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
+        }
+    }
+
+    [Fact]
+    public async Task Put_TextsFilesNotFound_404NotFound()
+    {
+        var targetRepository = TestDataHelper.GenerateTestRepoName();
+        await TestDataHelper.CopyRepositoryForTest("ttd", "empty-app", "testUser", targetRepository);
+        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/keys";
+        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
+
+        HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+
+        try
+        {
+            Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
         }
         finally
         {
