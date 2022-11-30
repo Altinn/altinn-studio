@@ -122,29 +122,6 @@
         "displayMode": "simple"
       },
       {
-        "id": "subGroup",
-        "type": "Group",
-        "children": ["comments", "subUploader", "nestedDynamics", "nestedOptions", "nested-source", "nested-reference"],
-        "maxCount": 999,
-        "dataModelBindings": {
-          "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234"
-        },
-        "textResourceBindings": {
-          "title": "Nested group"
-        },
-        "tableHeaders": ["comments", "subUploader", "nestedDynamics", "nestedOptions"],
-        "triggers": ["validation"],
-        "edit": {
-          "filter": [
-            {
-              "key": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.SkattemeldingEndringEtterFristKommentar-datadef-37133.value",
-              "value": "automation"
-            }
-          ],
-          "openByDefault": true
-        }
-      },
-      {
         "id": "source",
         "type": "Dropdown",
         "textResourceBindings": {
@@ -181,6 +158,29 @@
         },
         "mapping": {
           "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].source": "source"
+        }
+      },
+      {
+        "id": "subGroup",
+        "type": "Group",
+        "children": ["comments", "subUploader", "nestedDynamics", "nestedOptions", "nested-source", "nested-reference"],
+        "maxCount": 999,
+        "dataModelBindings": {
+          "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234"
+        },
+        "textResourceBindings": {
+          "title": "Nested group"
+        },
+        "tableHeaders": ["comments", "subUploader", "nestedDynamics", "nestedOptions"],
+        "triggers": ["validation"],
+        "edit": {
+          "filter": [
+            {
+              "key": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.SkattemeldingEndringEtterFristKommentar-datadef-37133.value",
+              "value": "automation"
+            }
+          ],
+          "openByDefault": true
         }
       },
       {

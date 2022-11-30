@@ -366,9 +366,11 @@
           }
         },
         "source": {
+          "@xsdType": "string",
           "type": "string"
         },
         "reference": {
+          "@xsdType": "string",
           "type": "string"
         }
       },
@@ -432,9 +434,11 @@
           "type": "string"
         },
         "source": {
+          "@xsdType": "string",
           "type": "string"
         },
         "reference": {
+          "@xsdType": "string",
           "type": "string"
         }
       },
