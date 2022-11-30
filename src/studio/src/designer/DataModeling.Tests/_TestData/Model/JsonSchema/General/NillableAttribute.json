@@ -53,14 +53,8 @@
           "@xsdMinOccurs": 0
         },
         "refered": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/referedtype"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "$ref": "#/$defs/referedtype",
+          "@xsdNillable": true
         }
       },
       "required": [

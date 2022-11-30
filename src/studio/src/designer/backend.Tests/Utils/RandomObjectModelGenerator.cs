@@ -110,7 +110,7 @@ public static class RandomObjectModelGenerator
 
         if (type == typeof(DateTime))
         {
-            return new DateTime(Random.Next(1990, 2030), Random.Next(1, 12), Random.Next(0, 28));
+            return new DateTime(Random.Next(1990, 2030), Random.Next(1, 12), Random.Next(1, 28));
         }
 
         if (type == typeof(bool))

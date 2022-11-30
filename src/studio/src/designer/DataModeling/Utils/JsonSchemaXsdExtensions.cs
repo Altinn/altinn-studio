@@ -239,5 +239,17 @@ namespace Altinn.Studio.DataModeling.Utils
             builder.Add(new XsdRootElementKeyword(value));
             return builder;
         }
+
+        /// <summary>
+        /// Add <see cref="XsdNillableKeyword"/> keyword to the builder
+        /// </summary>
+        /// <param name="builder">The <see cref="JsonSchemaBuilder"/></param>
+        /// <param name="value">True to set the xsdText keyword</param>
+        /// <returns>The <see cref="JsonSchemaBuilder"/> used for chaining</returns>
+        public static JsonSchemaBuilder XsdNillable(this JsonSchemaBuilder builder, bool value = false)
+        {
+            builder.Add(new XsdNillableKeyword(value));
+            return builder;
+        }
     }
 }

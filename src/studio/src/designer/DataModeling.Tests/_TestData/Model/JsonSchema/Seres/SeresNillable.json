@@ -55,57 +55,33 @@
           "@xsdType": "string"
         },
         "p2": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/simpleType"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "$ref": "#/$defs/simpleType",
+          "@xsdNillable": true
         },
         "p3": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/complexType"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "$ref": "#/$defs/complexType",
+          "@xsdNillable": true
         },
         "p4": {
-          "oneOf": [
-            {
-              "properties": {
-                "fish": {
-                  "type": "string",
-                  "@xsdType": "string"
-                },
-                "stew": {
-                  "type": "string",
-                  "@xsdType": "string"
-                }
-              },
-              "required": [
-                "fish",
-                "stew"
-              ]
+          "properties": {
+            "fish": {
+              "type": "string",
+              "@xsdType": "string"
             },
-            {
-              "type": "null"
+            "stew": {
+              "type": "string",
+              "@xsdType": "string"
             }
-          ]
+          },
+          "required": [
+            "fish",
+            "stew"
+          ],
+          "@xsdNillable": true
         },
         "p5": {
-          "oneOf": [
-            {
-              "$ref": "#/$defs/veryComplexType"
-            },
-            {
-              "type": "null"
-            }
-          ]
+          "$ref": "#/$defs/veryComplexType",
+          "@xsdNillable": true
         }
       },
       "required": [
