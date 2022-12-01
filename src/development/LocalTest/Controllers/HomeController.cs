@@ -58,6 +58,32 @@ namespace LocalTest.Controllers
         }
 
         [AllowAnonymous]
+        public async Task<IActionResult> LocalTestUsersRaw()
+        {
+            var localData = await TestDataDiskReader.ReadFromDisk(_localPlatformSettings.LocalTestingStaticTestDataPath);
+
+            return Json(localData);
+        }
+
+        [AllowAnonymous]
+        public async Task<IActionResult> LocalTestUsers()
+        {
+            var localData = await TestDataDiskReader.ReadFromDisk(_localPlatformSettings.LocalTestingStaticTestDataPath);
+            var constructedAppData = AppTestDataModel.FromTestDataModel(localData);
+
+            return Json(constructedAppData);
+        }
+
+        [AllowAnonymous]
+        public async Task<IActionResult> LocalTestUsersRoundTrip()
+        {
+            var localData = await TestDataDiskReader.ReadFromDisk(_localPlatformSettings.LocalTestingStaticTestDataPath);
+            var constructedAppData = AppTestDataModel.FromTestDataModel(localData);
+
+            return Json(constructedAppData.GetTestDataModel());
+        }
+
+        [AllowAnonymous]
         public async Task<IActionResult> Index()
         {
             StartAppModel model = new StartAppModel();
