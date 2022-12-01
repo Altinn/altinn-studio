@@ -12,6 +12,8 @@ namespace Altinn.Common.AccessTokenClient.Services
     public class SigningCredentialsResolver : ISigningCredentialsResolver
     {
         private readonly AccessTokenSettings _accessTokenSettings;
+        private static X509SigningCredentials _x509SigningCredentials = null;
+        private static readonly object _lockObject = new object();
 
         /// <summary>
         /// Default constructor
@@ -28,10 +30,21 @@ namespace Altinn.Common.AccessTokenClient.Services
         /// <returns></returns>
         public SigningCredentials GetSigningCredentials()
         {
-            string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
-            string certPath = basePath + $"{_accessTokenSettings.AccessTokenSigningKeysFolder}{_accessTokenSettings.AccessTokenSigningCertificateFileName}";
-            X509Certificate2 cert = new X509Certificate2(certPath);
-            return new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
+            if (_x509SigningCredentials == null)
+            {
+                lock (_lockObject)
+                {
+                    if (_x509SigningCredentials == null)
+                    {
+                        string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
+                        string certPath = basePath + $"{_accessTokenSettings.AccessTokenSigningKeysFolder}{_accessTokenSettings.AccessTokenSigningCertificateFileName}";
+                        X509Certificate2 cert = new X509Certificate2(certPath);
+                        _x509SigningCredentials = new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
+                    }
+                }
+            }
+
+            return _x509SigningCredentials;
         }
     }
 }
