@@ -1,10 +1,20 @@
 import React from 'react';
-import { Divider, FormControl, InputAdornment, Popover, TextField, Typography } from '@mui/material';
+import {
+  Divider,
+  FormControl,
+  InputAdornment,
+  Popover,
+  TextField,
+  Typography,
+} from '@mui/material';
 import { createStyles, withStyles } from '@mui/styles';
 import classNames from 'classnames';
 import { connect } from 'react-redux';
 import type { ComponentTypes } from '..';
-import { getComponentHelperTextByComponentType, getComponentTitleByComponentType } from '../../utils/language';
+import {
+  getComponentHelperTextByComponentType,
+  getComponentTitleByComponentType,
+} from '../../utils/language';
 import type { IAppState } from '../../types/global';
 
 export interface IInformationPanelProvidedProps {
@@ -161,10 +171,10 @@ const styles = () =>
     },
   });
 
-const mapStateToProps: (state: IAppState, props: IInformationPanelProvidedProps) => IInformationPanelProps = (
+const mapStateToProps: (
   state: IAppState,
   props: IInformationPanelProvidedProps
-) => ({
+) => IInformationPanelProps = (state: IAppState, props: IInformationPanelProvidedProps) => ({
   language: state.appData.languageState.language,
   anchorElement: props.anchorElement,
   selectedComponent: props.selectedComponent,

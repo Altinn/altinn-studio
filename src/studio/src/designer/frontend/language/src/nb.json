@@ -541,6 +541,7 @@
   "top_menu.create": "Lage",
   "top_menu.datamodel": "Datamodell",
   "top_menu.deploy": "Publiser",
+  "top_menu.texts_old": "Tekst *",
   "top_menu.texts": "Tekst",
   "ux_editor.api_connection_header": "API-tilkoblinger",
   "ux_editor.collapsable_schema_components": "Skjema",

@@ -16,7 +16,7 @@ const currentApplicationMetadata: any = {
 const renderAccessControlContainer = (applicationMetadata?: any) => {
   const mockLanguage = {};
 
-  const initialState: RootState = {
+  const initialState: Partial<RootState> = {
     languageState: {
       language: mockLanguage,
     },

@@ -10,6 +10,7 @@ import configurationReducer from '../sharedResources/configuration/configuration
 import languageReducer from '../utils/fetchLanguage/languageSlice';
 import repoStatusReducer from '../sharedResources/repoStatus/repoStatusSlice';
 import userReducer from '../sharedResources/user/userSlice';
+import { appDevelopmentApi } from '../services/appDevelopmentApi';
 
 export const rootReducer = {
   languageState: languageReducer,
@@ -24,4 +25,5 @@ export const rootReducer = {
   dataModelling: dataModellingReducer,
   dataModelsMetadataState: dataModelsMetadataReducer,
   userState: userReducer,
+  [appDevelopmentApi.reducerPath]: appDevelopmentApi.reducer,
 };
