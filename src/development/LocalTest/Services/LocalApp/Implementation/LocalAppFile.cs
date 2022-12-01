@@ -1,10 +1,7 @@
 #nullable enable
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -13,8 +10,7 @@ using Altinn.Platform.Storage.Interface.Models;
 using LocalTest.Configuration;
 using LocalTest.Helpers;
 using LocalTest.Services.LocalApp.Interface;
-using System.Net.Http;
-using System.Net;
+using LocalTest.Services.TestData;
 
 namespace LocalTest.Services.LocalApp.Implementation
 {
@@ -31,8 +27,13 @@ namespace LocalTest.Services.LocalApp.Implementation
             return await File.ReadAllTextAsync(Path.Join(GetAppPath(appId), $"App/config/authorization/policy.xml"));
         }
 
-        public async Task<Application?> GetApplicationMetadata(string appId)
+        public async Task<Application?> GetApplicationMetadata(string? appId)
         {
+            if(appId is null)
+            {
+                throw new ArgumentNullException(nameof(appId), "AppMode = file does not support null as appId");
+            }
+
             var filename = Path.Join(GetAppPath(appId), $"App/config/applicationmetadata.json");
             if (File.Exists(filename))
             {
@@ -142,5 +143,10 @@ namespace LocalTest.Services.LocalApp.Implementation
             }
         }
 
+        public Task<AppTestDataModel?> GetTestData()
+        {
+            // Not implemented, but empty result is vald, so better than NotImplementedException
+            return Task.FromResult<AppTestDataModel?>(null);
+        }
     }
 }

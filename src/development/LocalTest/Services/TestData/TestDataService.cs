@@ -27,6 +27,21 @@ public class TestDataService
             {
                 entry.SlidingExpiration = TimeSpan.FromSeconds(5);
                 entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(30);
+
+                try
+                {
+                    var appData = await _localApp.GetTestData();
+
+                    if (appData is not null)
+                    {
+                        return appData.GetTestDataModel();
+                    }
+                }
+                catch (HttpRequestException e)
+                {
+                    _logger.LogInformation(e, "Fetching Test data from app failed.");
+                }
+
                 return await TestDataDiskReader.ReadFromDisk(_settings.LocalTestingStaticTestDataPath);
             });
     }
