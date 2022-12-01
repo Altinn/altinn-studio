@@ -83,7 +83,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// key:value pair with the last key:value pair</remarks>
         [HttpPut]
         [Produces("application/json")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [Route("{languageCode}")]
         public async Task<ActionResult> Put(string org, string repo, string languageCode, [FromBody] Dictionary<string, string> jsonTexts)

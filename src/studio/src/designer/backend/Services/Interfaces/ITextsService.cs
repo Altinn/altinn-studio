@@ -22,6 +22,16 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         public Task<Dictionary<string, string>> GetTexts(string org, string repo, string developer, string languageCode);
 
         /// <summary>
+        /// Gets all keys in use across the languages.
+        /// </summary>
+        /// <param name="org">Organisation</param>
+        /// <param name="repo">Repository</param>
+        /// <param name="developer">Username of developer</param>
+        /// <param name="languages">List of languages in application</param>
+        /// <returns>The text file as a dictionary with ID and text as key:value pairs</returns>
+        public Task<List<string>> GetKeys(string org, string repo, string developer, IList<string> languages);
+
+        /// <summary>
         /// Edit texts file for specific language by overwriting old text file.
         /// </summary>
         /// <param name="org">Organisation</param>
@@ -47,5 +57,17 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="repo">Repository</param>
         /// <param name="developer">Username of developer</param>
         public void ConvertV1TextsToV2(string org, string repo, string developer);
+
+        /// <summary>
+        /// Updates an old key to a new key in all texts files.
+        /// If 'newKey' is undefined the 'oldKey' is deleted.
+        /// </summary>
+        /// <param name="org">Organisation</param>
+        /// <param name="repo">Repository</param>
+        /// <param name="developer">Username of developer</param>
+        /// <param name="languages">All languages that must be updated with new key</param>
+        /// <param name="oldKey">The old key that will be replaced</param>
+        /// <param name="newKey">The new key to replace the old</param>
+        public Task<string> UpdateKey(string org, string repo, string developer, IList<string> languages, string oldKey, string newKey);
     }
 }
