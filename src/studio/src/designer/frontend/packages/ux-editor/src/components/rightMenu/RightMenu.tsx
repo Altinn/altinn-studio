@@ -1,55 +1,14 @@
 import React from 'react';
-import { createTheme, Grid, IconButton, Typography } from '@mui/material';
-import { makeStyles } from '@mui/styles';
 import { useDispatch, useSelector } from 'react-redux';
-import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import RuleModal from '../toolbar/RuleModal';
 import ConditionalRenderingModal from '../toolbar/ConditionalRenderingModal';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import PagesContainer from './pages/PagesContainer';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import type { IAppState, LogicMode } from '../../types/global';
-
-const theme = createTheme(altinnTheme);
-
-const useStyles = makeStyles({
-  main: {
-    overflowY: 'scroll',
-    overflowX: 'hidden',
-    height: 'inherit',
-    marginTop: '0px',
-    borderLeft: '1px solid #C9C9C9',
-    paddingBottom: '8.0rem',
-  },
-  headerSection: {
-    paddingLeft: '1.2rem',
-    paddingTop: '2.4rem',
-    color: theme.altinnPalette.primary.blueDarker,
-    fontWeight: 400,
-  },
-  contentSection: {
-    paddingLeft: '1.2rem',
-    paddingTop: '1.2rem',
-    fontSize: '1.4rem',
-    fontWeight: 400,
-    borderBottom: '1px solid #C9C9C9',
-    paddingBottom: '2.4rem',
-    '&:last-child': {
-      borderBottom: 'none',
-    },
-  },
-  addIcon: {
-    color: theme.altinnPalette.primary.blueDarker,
-  },
-  textLink: {
-    textDecoration: 'underline',
-    textDecorationColor: altinnTheme.altinnPalette.primary.black,
-    cursor: 'pointer',
-  },
-  marginTop24: {
-    marginTop: '2.4rem',
-  },
-});
+import classes from './RightMenu.module.css';
+import { Add } from '@navikt/ds-icons';
+import { Button, ButtonVariant } from '@altinn/altinn-design-system';
 
 export interface IRightMenuProps {
   toggleFileEditor: (mode?: LogicMode) => void;
@@ -62,9 +21,8 @@ export default function RightMenu(props: IRightMenuProps) {
   const layoutOrder = useSelector(
     (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order
   );
-  const classes = useStyles();
   const dispatch = useDispatch();
-
+  const t = (key: string) => getLanguageFromKey(key, props.language);
   function handleModalChange(type: 'conditionalRendering' | 'rules') {
     if (type === 'conditionalRendering') {
       setConditionalModalOpen(!conditionalModalOpen);
@@ -74,104 +32,69 @@ export default function RightMenu(props: IRightMenuProps) {
   }
 
   function handleAddPage() {
-    const name = getLanguageFromKey('right_menu.page', props.language) + (layoutOrder.length + 1);
+    const name = t('right_menu.page') + (layoutOrder.length + 1);
     dispatch(FormLayoutActions.addLayout({ layout: name }));
   }
 
   return (
-    <Grid container={true} direction='column' className={classes.main}>
-      <Grid container={true} direction='row' className={classes.headerSection}>
-        <Grid item={true} xs={10}>
-          {getLanguageFromKey('right_menu.pages', props.language)}
-        </Grid>
-        <Grid item={true} xs={2}>
-          <IconButton
-            className={classes.addIcon}
-            onClick={handleAddPage}
-            aria-label={getLanguageFromKey('right_menu.pages_add_alt', props.language)}
-          >
-            <i className='fa fa-plus' />
-          </IconButton>
-        </Grid>
-      </Grid>
-      <Grid container={true} direction='row' className={classes.contentSection}>
-        <Grid item={true} xs={12}>
-          <PagesContainer />
-        </Grid>
-      </Grid>
-      <Grid container={true} direction='row' className={classes.headerSection}>
-        <Grid item={true} xs={12}>
-          {getLanguageFromKey('right_menu.dynamics', props.language)}
-        </Grid>
-      </Grid>
-      <Grid container={true} direction='row' className={classes.contentSection}>
-        <Grid item={true} xs={12}>
-          <Typography variant='caption'>
-            {getLanguageFromKey('right_menu.dynamics_description', props.language)}
-            &nbsp;
-            <a
-              target='_blank'
-              rel='noopener noreferrer'
-              href='https://docs.altinn.studio/app/development/logic/dynamic/'
-            >
-              {getLanguageFromKey('right_menu.dynamics_link', props.language)}
-            </a>
-          </Typography>
-        </Grid>
-        <Grid item={true} xs={12} className={classes.marginTop24}>
-          <Typography
-            variant='caption'
-            classes={{ root: classes.textLink }}
-            onClick={() => props.toggleFileEditor('Dynamics')}
-          >
-            {getLanguageFromKey('right_menu.dynamics_edit', props.language)}
-          </Typography>
-        </Grid>
-      </Grid>
-      <Grid container={true} direction='row' className={classes.headerSection}>
-        <Grid item={true} xs={10}>
-          {getLanguageFromKey('right_menu.rules_calculations', props.language)}
-        </Grid>
-        <Grid item={true} xs={2}>
-          <IconButton
-            className={classes.addIcon}
-            onClick={() => handleModalChange('rules')}
-            aria-label={getLanguageFromKey('right_menu.rules_calculations_add_alt', props.language)}
-          >
-            <i className='fa fa-plus' />
-          </IconButton>
-        </Grid>
-      </Grid>
-      <Grid container={true} direction='row' className={classes.contentSection}>
-        <Grid item={true} xs={12}>
-          <RuleModal modalOpen={ruleModalOpen} handleClose={() => handleModalChange('rules')} />
-        </Grid>
-      </Grid>
-      <Grid container={true} direction='row' className={classes.headerSection}>
-        <Grid item={true} xs={10}>
-          {getLanguageFromKey('right_menu.rules_conditional_rendering', props.language)}
-        </Grid>
-        <Grid item={true} xs={2}>
-          <IconButton
-            className={classes.addIcon}
-            onClick={() => handleModalChange('conditionalRendering')}
-            aria-label={getLanguageFromKey(
-              'right_menu.rules_conditional_rendering_add_alt',
-              props.language
-            )}
-          >
-            <i className='fa fa-plus' />
-          </IconButton>
-        </Grid>
-      </Grid>
-      <Grid container={true} direction='row' className={classes.contentSection}>
-        <Grid item={true} xs={12}>
-          <ConditionalRenderingModal
-            modalOpen={conditionalModalOpen}
-            handleClose={() => handleModalChange('conditionalRendering')}
-          />
-        </Grid>
-      </Grid>
-    </Grid>
+    <div className={classes.main}>
+      <div className={classes.headerSection}>
+        <span>{t('right_menu.pages')}</span>
+        <Button
+          className={classes.addIcon}
+          onClick={handleAddPage}
+          aria-label={t('right_menu.pages_add_alt')}
+          variant={ButtonVariant.Quiet}
+          svgIconComponent={<Add />}
+        />
+      </div>
+      <div className={classes.contentSection}>
+        <PagesContainer />
+      </div>
+      <div className={classes.headerSection}>{t('right_menu.dynamics')}</div>
+      <div className={classes.contentSection}>
+        {t('right_menu.dynamics_description')}
+        &nbsp;
+        <a
+          target='_blank'
+          rel='noopener noreferrer'
+          href='https://docs.altinn.studio/app/development/logic/dynamic/'
+        >
+          {t('right_menu.dynamics_link')}
+        </a>
+        <div className={classes.textLink} onClick={() => props.toggleFileEditor('Dynamics')}>
+          {t('right_menu.dynamics_edit')}
+        </div>
+      </div>
+      <div className={classes.headerSection}>
+        <span>{t('right_menu.rules_calculations')}</span>
+        <Button
+          className={classes.addIcon}
+          onClick={() => handleModalChange('rules')}
+          aria-label={t('right_menu.rules_calculations_add_alt')}
+          variant={ButtonVariant.Quiet}
+          svgIconComponent={<Add />}
+        />
+      </div>
+      <div className={classes.contentSection}>
+        <RuleModal modalOpen={ruleModalOpen} handleClose={() => handleModalChange('rules')} />
+      </div>
+      <div className={classes.headerSection}>
+        <span>{t('right_menu.rules_conditional_rendering')}</span>
+        <Button
+          className={classes.addIcon}
+          onClick={() => handleModalChange('conditionalRendering')}
+          aria-label={t('right_menu.rules_conditional_rendering_add_alt')}
+          variant={ButtonVariant.Quiet}
+          svgIconComponent={<Add />}
+        />
+      </div>
+      <div className={classes.contentSection}>
+        <ConditionalRenderingModal
+          modalOpen={conditionalModalOpen}
+          handleClose={() => handleModalChange('conditionalRendering')}
+        />
+      </div>
+    </div>
   );
 }

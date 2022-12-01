@@ -41,7 +41,7 @@ module.exports = (middlewares, devServer) => {
   app.get(datamodelGetPath(':owner', ':repo', '/App/models/:filename'), require('./routes/get-datamodel'));
   app.get(datamodelsPath(':owner', ':repo'), require('./routes/get-datamodels'));
   //prettier-ignore
-  app.get(frontendLangPath(':locale'), (req, res) => res.json(require(`../../language/src/${req.params.locale}.json`)));
+  app.get(frontendLangPath(':locale'), (req, res) => res.json(require(`../../../language/src/${req.params.locale}.json`)));
   app.get(remainingSessionTimePath(), (req, res) => res.send('9999'));
   app.get(repoInitialCommitPath(':owner', ':repo'), (req, res) => res.sendStatus(204));
   app.get(repoMetaPath(':owner', ':repo'), require('./routes/get-repo-data'));
