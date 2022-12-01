@@ -9,6 +9,7 @@ using LibGit2Sharp;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.Studio.Designer.Controllers
 {
@@ -66,38 +67,6 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Endpoint for posting a single key to the texts files for all languages.
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repo">Application identifier which is unique within an organisation.</param>
-        /// <param name="newKey">Key to be added to the texts files.</param>
-        /// <returns>KeyValuePair of new key and an empty text.</returns>
-        [HttpPost]
-        [Produces("application/json")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<KeyValuePair<string, string>>> Post(string org, string repo, [FromQuery] string newKey)
-        {
-            string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            IList<string> languages = _languagesService.GetLanguages(org, repo, developer);
-
-            try
-            {
-                KeyValuePair<string, string> keyValuePair = await _textsService.AddKey(org, repo, developer, languages, newKey);
-                return Ok(keyValuePair);
-            }
-            catch (JsonException)
-            {
-                return new ObjectResult(new { errorMessage = "The format of one or more texts files that you tried to access might be invalid." }) { StatusCode = 500 };
-            }
-            catch (FileNotFoundException)
-            {
-                return NotFound("The texts files needed to get keys could not be found or does not exist.");
-            }
-        }
-
-        /// <summary>
         /// Endpoint for changing or deleting a single key in the texts files for all languages.
         /// If deleting, an empty string is sent as "newKey". Key and belonging value is
         /// deleted from all texts files.
@@ -120,20 +89,27 @@ namespace Altinn.Studio.Designer.Controllers
 
             try
             {
-                KeyValuePair<string, string> keyValuePair = await _textsService.UpdateKey(org, repo, developer, languages, oldKey, newKey);
-                return Ok(keyValuePair);
+                string response = await _textsService.UpdateKey(org, repo, developer, languages, oldKey, newKey);
+                return Ok(response);
             }
             catch (JsonException)
             {
                 return new ObjectResult(new { errorMessage = "The format of one or more texts files that you tried to access might be invalid." }) { StatusCode = 500 };
             }
-            catch (BadHttpRequestException errorMessage)
-            {
-                return BadRequest(errorMessage);
-            }
             catch (FileNotFoundException)
             {
                 return NotFound("The texts files needed to update key could not be found or does not exist.");
+            }
+            catch (ArgumentException)
+            {
+                string errorMessage = !newKey.IsNullOrEmpty() && !oldKey.IsNullOrEmpty()
+                    ? $"It looks like the key, {newKey}, that you tried to insert already exists in one or more texts files."
+                    : "The arguments sent to this request was illegal.";
+                return BadRequest(errorMessage);
+            }
+            catch (Exception errorMessage)
+            {
+                return BadRequest(errorMessage);
             }
         }
     }

@@ -97,81 +97,7 @@ public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeys
     }
 
     [Fact]
-    public async Task Post_NewKey_200OkAndNewKeyOnTopOfFile()
-    {
-        var targetRepository = TestDataHelper.GenerateTestRepoName();
-        await TestDataHelper.CopyRepositoryForTest("ttd", "keys-management", "testUser", targetRepository);
-        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/keys?newKey=ExampleKey";
-        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, dataPathWithData);
-
-        HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-        string urlGetKeys = $"{_versionPrefix}/ttd/{targetRepository}/keys";
-        HttpRequestMessage urlGetKeysRequest = new HttpRequestMessage(HttpMethod.Get, urlGetKeys);
-        HttpResponseMessage responseGetKeys = await HttpClient.Value.SendAsync(urlGetKeysRequest);
-        string list = responseGetKeys.Content.ReadAsStringAsync().Result;
-        List<string> keys = JsonSerializer.Deserialize<List<string>>(list);
-
-        try
-        {
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-            Assert.Equal(10, keys.Count);
-            Assert.Equal("ExampleKey", keys[0]);
-        }
-        finally
-        {
-            TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
-        }
-    }
-
-    [Fact]
-    public async Task Post_ExistingKey_200Ok()
-    {
-        var targetRepository = TestDataHelper.GenerateTestRepoName();
-        await TestDataHelper.CopyRepositoryForTest("ttd", "keys-management", "testUser", targetRepository);
-        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/keys?newKey=AlreadyExistingKey";
-        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, dataPathWithData);
-
-        HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-        string urlGetKeys = $"{_versionPrefix}/ttd/{targetRepository}/keys";
-        HttpRequestMessage urlGetKeysRequest = new HttpRequestMessage(HttpMethod.Get, urlGetKeys);
-        HttpResponseMessage responseGetKeys = await HttpClient.Value.SendAsync(urlGetKeysRequest);
-        string list = responseGetKeys.Content.ReadAsStringAsync().Result;
-        List<string> keys = JsonSerializer.Deserialize<List<string>>(list);
-
-        try
-        {
-            Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-            Assert.Equal(9, keys.Count);
-            Assert.Equal("KeyOnTop", keys[0]);
-        }
-        finally
-        {
-            TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
-        }
-    }
-
-    [Fact]
-    public async Task Post_TextsFilesNotFound_404NotFound()
-    {
-        var targetRepository = TestDataHelper.GenerateTestRepoName();
-        await TestDataHelper.CopyRepositoryForTest("ttd", "empty-app", "testUser", targetRepository);
-        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/keys";
-        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Post, dataPathWithData);
-
-        HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
-
-        try
-        {
-            Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
-        }
-        finally
-        {
-            TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
-        }
-    }
-
-    [Fact]
-    public async Task Put_ReplaceKeyPresentInAllFiles_200OkAndNewKeyAtIndexOfOldKey()
+    public async Task PutNewKey_OldKeyPresentInAllFiles_200OkAndNewKeyPresent()
     {
         var targetRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.CopyRepositoryForTest("ttd", "keys-management", "testUser", targetRepository);
@@ -188,7 +114,7 @@ public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeys
         try
         {
             Assert.Equal(StatusCodes.Status200OK, (int)response.StatusCode);
-            Assert.Equal(8, keys.IndexOf("ReplacedKey"));
+            Assert.Equal(7, keys.IndexOf("ReplacedKey"));
         }
         finally
         {
@@ -197,7 +123,7 @@ public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeys
     }
 
     [Fact]
-    public async Task Put_AlreadyExistingKeyInFileWhereOldKeyDontExist_200OkAndSameAmountTotalKeys()
+    public async Task Put_NewKeyExistInOneFileOldKeyExistInAnotherFile_200OkAndOneLessTotalKeys()
     {
         var targetRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.CopyRepositoryForTest("ttd", "keys-management", "testUser", targetRepository);
@@ -223,7 +149,7 @@ public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeys
     }
 
     [Fact]
-    public async Task Put_AlreadyExistingKeyInSameFileAsOldKey_400BadRequestNoFilesChanged()
+    public async Task Put_NewKeyExistInSameFileAsOldKey_400BadRequestNoFilesChanged()
     {
         var targetRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.CopyRepositoryForTest("ttd", "keys-management", "testUser", targetRepository);
@@ -280,7 +206,7 @@ public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeys
     {
         var targetRepository = TestDataHelper.GenerateTestRepoName();
         await TestDataHelper.CopyRepositoryForTest("ttd", "empty-app", "testUser", targetRepository);
-        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/keys";
+        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/keys?oldKey=KeyNotDefinedInEnglish&newKey=KeyOnlyDefinedInEnglish";
         HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
 
         HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
@@ -288,6 +214,26 @@ public class TextKeysControllerTests : ApiTestsBase<TextKeysController, TextKeys
         try
         {
             Assert.Equal(StatusCodes.Status404NotFound, (int)response.StatusCode);
+        }
+        finally
+        {
+            TestDataHelper.DeleteAppRepository("ttd", targetRepository, "testUser");
+        }
+    }
+
+    [Fact]
+    public async Task Put_IllegalArguments_400BadRequest()
+    {
+        var targetRepository = TestDataHelper.GenerateTestRepoName();
+        await TestDataHelper.CopyRepositoryForTest("ttd", "keys-management", "testUser", targetRepository);
+        string dataPathWithData = $"{_versionPrefix}/ttd/{targetRepository}/keys?wrongQueryParam=KeyNotDefinedInEnglish&newKey=KeyOnlyDefinedInEnglish";
+        HttpRequestMessage httpRequestMessage = new HttpRequestMessage(HttpMethod.Put, dataPathWithData);
+
+        HttpResponseMessage response = await HttpClient.Value.SendAsync(httpRequestMessage);
+
+        try
+        {
+            Assert.Equal(StatusCodes.Status400BadRequest, (int)response.StatusCode);
         }
         finally
         {

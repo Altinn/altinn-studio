@@ -66,7 +66,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             foreach (string languageCode in languages)
             {
                 Dictionary<string, string> jsonTexts = await altinnAppGitRepository.GetTextsV2(languageCode);
-                allKeys = MergeKeysDeterministicResult(allKeys, jsonTexts.Keys.ToList());
+                allKeys = MergeKeys(allKeys, jsonTexts.Keys.ToList());
             }
 
             return allKeys;
@@ -135,7 +135,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<KeyValuePair<string, string>> AddKey(string org, string repo, string developer, IList<string> languages, string newKey)
+        public async Task<string> UpdateKey(string org, string repo, string developer, IList<string> languages, string oldKey, string newKey)
         {
             if (languages.IsNullOrEmpty())
             {
@@ -143,81 +143,60 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
-            KeyValuePair<string, string> keyValuePair = new KeyValuePair<string, string>(newKey, string.Empty);
-
-            foreach (string languageCode in languages)
-            {
-                Dictionary<string, string> jsonTexts = await altinnAppGitRepository.GetTextsV2(languageCode);
-
-                if (jsonTexts.ContainsKey(newKey))
-                {
-                    continue;
-                }
-
-                jsonTexts = new Dictionary<string, string> { { newKey, string.Empty } }.Concat(jsonTexts).ToDictionary(k => k.Key, v => v.Value);
-                await altinnAppGitRepository.SaveTextsV2(languageCode, jsonTexts);
-            }
-
-            return keyValuePair;
-        }
-
-        /// <inheritdoc />
-        public async Task<KeyValuePair<string, string>> UpdateKey(string org, string repo, string developer, IList<string> languages, string oldKey, string newKey)
-        {
-            if (languages.IsNullOrEmpty())
-            {
-                throw new FileNotFoundException();
-            }
-
-            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
-            Dictionary<string, OrderedDictionary> tempUpdatedTexts = new Dictionary<string, OrderedDictionary>(languages.Count);
-            KeyValuePair<string, string> keyValuePair = new KeyValuePair<string, string>(oldKey, string.Empty);
+            Dictionary<string, Dictionary<string, string>> tempUpdatedTexts = new Dictionary<string, Dictionary<string, string>>(languages.Count);
+            bool oldKeyExistsOriginally = false;
+            string response = string.Empty;
             try
             {
                 foreach (string languageCode in languages)
                 {
                     Dictionary<string, string> jsonTexts = await altinnAppGitRepository.GetTextsV2(languageCode);
-                    OrderedDictionary orderedJsonTexts = ConvertDictionaryToOrderedDictionary(jsonTexts);
-                    if (!newKey.IsNullOrEmpty() && jsonTexts.ContainsKey(oldKey))
+                    oldKeyExistsOriginally = jsonTexts.ContainsKey(oldKey) || oldKeyExistsOriginally;
+                    if (!newKey.IsNullOrEmpty() && jsonTexts.ContainsKey(newKey) && jsonTexts.ContainsKey(oldKey))
                     {
-                        // handle if oldKey only present in some files and if newKey already present
-                        int indexOfKey = jsonTexts.Keys.ToList().IndexOf(oldKey);
-                        string value = jsonTexts[oldKey];
-                        keyValuePair = new KeyValuePair<string, string>(newKey, value);
-                        orderedJsonTexts.Insert(indexOfKey, newKey, value);
+                        throw new ArgumentException();
                     }
 
-                    orderedJsonTexts.Remove(oldKey);
-                    tempUpdatedTexts[languageCode] = orderedJsonTexts;
+                    if (!newKey.IsNullOrEmpty() && jsonTexts.ContainsKey(oldKey))
+                    {
+                        string value = jsonTexts[oldKey];
+                        jsonTexts[newKey] = value;
+                    }
+
+                    jsonTexts.Remove(oldKey);
+                    tempUpdatedTexts[languageCode] = jsonTexts;
+                }
+
+                response = newKey.IsNullOrEmpty() ? $"the key, {oldKey}, was deleted." : $"The old key, {oldKey}, have been replaced with the new key, {newKey}.";
+
+                if (!oldKeyExistsOriginally)
+                {
+                    throw new Exception($"The key, {oldKey}, does not exist.");
                 }
             }
             catch (ArgumentException)
             {
-                throw new BadHttpRequestException($"It looks like the key, {newKey}, that you tried to insert already exists in one or more texts files.");
+                throw new ArgumentException();
             }
 
-            foreach (KeyValuePair<string, OrderedDictionary> kvp in tempUpdatedTexts)
+            foreach (KeyValuePair<string, Dictionary<string, string>> kvp in tempUpdatedTexts)
             {
-                Dictionary<string, string> dictionaryJsonTexts = ConvertOrderedDictionaryToDictionary(kvp.Value);
-                await altinnAppGitRepository.SaveTextsV2(kvp.Key, dictionaryJsonTexts);
+                await altinnAppGitRepository.SaveTextsV2(kvp.Key, kvp.Value);
             }
 
-            return keyValuePair;
+            return response;
         }
 
-        private static List<string> MergeKeysDeterministicResult(List<string> currentSetOfKeys, List<string> keysToMerge)
+        private static List<string> MergeKeys(List<string> currentSetOfKeys, List<string> keysToMerge)
         {
-            int currentPosition = 0;
             foreach (string key in keysToMerge)
             {
                 if (currentSetOfKeys.Contains(key))
                 {
-                    currentPosition = currentSetOfKeys.IndexOf(key);
                     continue;
                 }
 
-                currentSetOfKeys.Insert(currentPosition == 0 ? 0 : currentPosition + 1, key);
-                currentPosition = 0;
+                currentSetOfKeys.Add(key);
             }
 
             return currentSetOfKeys;
@@ -334,28 +313,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return (textsWithMarkdown, texts);
-        }
-
-        private static OrderedDictionary ConvertDictionaryToOrderedDictionary(Dictionary<string, string> dictionary)
-        {
-            OrderedDictionary orderedDictionary = new OrderedDictionary(dictionary.Count);
-            foreach (KeyValuePair<string, string> kvp in dictionary)
-            {
-                orderedDictionary.Add(kvp.Key, kvp.Value);
-            }
-
-            return orderedDictionary;
-        }
-
-        private static Dictionary<string, string> ConvertOrderedDictionaryToDictionary(OrderedDictionary orderedDictionary)
-        {
-            Dictionary<string, string> dictionary = new Dictionary<string, string>();
-            foreach (DictionaryEntry dictionaryEntry in orderedDictionary)
-            {
-                dictionary.Add(dictionaryEntry.Key.ToString() ?? string.Empty, (dictionaryEntry.Value ?? string.Empty).ToString());
-            }
-
-            return dictionary;
         }
     }
 }
