@@ -25,7 +25,8 @@
     "uuid": "9.0.0"
   },
   "devDependencies": {
-    "jest": "29.3.1"
+    "jest": "29.3.1",
+    "redux-devtools-extension": "2.13.9"
   },
   "license": "3-Clause BSD",
   "main": "index.js",

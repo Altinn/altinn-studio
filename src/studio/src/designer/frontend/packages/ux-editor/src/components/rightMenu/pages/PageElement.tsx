@@ -8,9 +8,11 @@ import { AltinnMenu, AltinnMenuItem } from 'app-shared/components/';
 import ConfirmModal from '../ConfirmModal';
 import { FormLayoutActions } from '../../../features/formDesigner/formLayout/formLayoutSlice';
 import type { IAppState } from '../../../types/global';
+import classNames from 'classnames';
 
 export interface IPageElementProps {
   name: string;
+  invalid?: boolean;
 }
 
 const useStyles = makeStyles({
@@ -44,9 +46,12 @@ const useStyles = makeStyles({
     fontWeight: 400,
     textTransform: 'unset',
   },
+  invalid: {
+    color: 'red !important',
+  }
 });
 
-export default function PageElement({ name }: IPageElementProps) {
+export default function PageElement({ name, invalid }: IPageElementProps) {
   const classes = useStyles();
   const dispatch = useDispatch();
 
@@ -62,7 +67,10 @@ export default function PageElement({ name }: IPageElementProps) {
   const disableDown = layoutOrder.indexOf(name) === layoutOrder.length - 1;
 
   const onPageClick = () => {
-    if (selectedLayout !== name) {
+    if (invalid) {
+      alert(`Siden ${name} inneholder ugyldig data, og kan ikke vises.`);
+    }
+    else if (selectedLayout !== name) {
       dispatch(FormLayoutActions.updateSelectedLayout({ selectedLayout: name }));
     }
   };
@@ -149,7 +157,11 @@ export default function PageElement({ name }: IPageElementProps) {
   return (
     <div className={classes.buttonWrapper}>
       <div className={classes.grid}>
-        <Button onClick={onPageClick} className={classes.mainButton} sx={{ fontSize: '1.4rem' }}>
+        <Button onClick={onPageClick} className={
+          classNames({
+            [classes.mainButton]: true,
+            [classes.invalid]: invalid,
+          })} sx={{ fontSize: '1.4rem' }}>
           <Grid item={true} xs={1}>
             {selectedLayout === name && (
               <i
@@ -190,14 +202,14 @@ export default function PageElement({ name }: IPageElementProps) {
       <AltinnMenu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={onMenuClose}>
         <AltinnMenuItem
           onClick={(event) => onMenuItemClick(event, 'up')}
-          disabled={disableUp}
+          disabled={disableUp || invalid}
           text={getLanguageFromKey('right_menu.page_menu_up', language)}
           iconClass='fa fa-arrowup'
           id='move-page-up-button'
         />
         <AltinnMenuItem
           onClick={(event) => onMenuItemClick(event, 'down')}
-          disabled={disableDown}
+          disabled={disableDown || invalid}
           text={getLanguageFromKey('right_menu.page_menu_down', language)}
           iconClass='fa fa-arrowdown'
           id='move-page-down-button'
@@ -207,6 +219,7 @@ export default function PageElement({ name }: IPageElementProps) {
           text={getLanguageFromKey('right_menu.page_menu_edit', language)}
           iconClass='fa fa-write'
           id='edit-page-button'
+          disabled={invalid}
         />
         <Divider />
         <AltinnMenuItem

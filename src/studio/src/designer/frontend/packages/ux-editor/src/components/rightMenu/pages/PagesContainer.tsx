@@ -6,11 +6,13 @@ import type { IAppState } from '../../../types/global';
 
 export default function PagesContainer() {
   const layoutOrder: string[] = useSelector((state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order);
+  const invalidLayouts: string[] = useSelector((state: IAppState) => state.formDesigner.layout.invalidLayouts);
 
   return (
     <Grid container={true}>
       {layoutOrder.map((layout: string) => {
-        return <PageElement name={layout} key={layout} />;
+        const invalid = invalidLayouts.includes(layout);
+        return <PageElement name={layout} key={layout} invalid={invalid} />;
       })}
     </Grid>
   );

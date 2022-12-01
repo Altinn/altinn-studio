@@ -121,6 +121,7 @@ export interface IDeleteLayoutAction {
 
 export interface IFetchFormLayoutFulfilledAction {
   formLayout: IFormLayouts;
+  invalidLayouts: string[];
 }
 
 export interface IFetchLayoutSettingsFulfilledAction {
