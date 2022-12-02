@@ -6,6 +6,7 @@ import { getMockValidationState } from '__mocks__/validationStateMock';
 import Ajv from 'ajv';
 import Ajv2020 from 'ajv/dist/2020';
 import dot from 'dot-object';
+import type { ErrorObject } from 'ajv';
 
 import { Severity } from 'src/types';
 import { createRepeatingGroupComponents, getRepeatingGroups } from 'src/utils/formLayout';
@@ -382,11 +383,23 @@ describe('utils > validation', () => {
               minimum: 0,
             },
             dataModelField_2: {
-              type: 'string',
-              minLength: 10,
+              oneOf: [
+                {
+                  type: 'string',
+                  minLength: 10,
+                },
+                {
+                  type: 'null',
+                },
+              ],
             },
             dataModelField_3: {
               type: 'string',
+            },
+            dataModelField_format: {
+              type: 'string',
+              format: 'date',
+              formatMaximum: '2022-05-05',
             },
             dataModelField_custom: {
               type: 'string',
@@ -1384,6 +1397,109 @@ describe('utils > validation', () => {
         [],
       );
       expect(mockResult).toEqual({ invalidDataTypes: false, validations: {} });
+    });
+
+    it('should handle oneOf/null structure when data is invalid', () => {
+      const mockValidator = validation.createValidator(mockJsonSchema);
+      const useFormData = {
+        dataModelField_1: 5,
+        dataModelField_2: 'Hello',
+        dataModelField_3: 'Test',
+      };
+      const mockResult = validation.validateFormData(
+        useFormData,
+        toCollectionFromData(mockLayout, useFormData),
+        Object.keys(mockLayoutState.layouts),
+        mockValidator,
+        mockLanguage.language,
+        [],
+      );
+      const mockFormValidationResult = {
+        validations: {
+          FormLayout: {
+            componentId_2: {
+              customBinding: {
+                errors: [getParsedLanguageFromKey('validation_errors.minLength', mockLanguage.language, [10], true)],
+              },
+            },
+          },
+        },
+        invalidDataTypes: false,
+      };
+      expect(mockResult).toEqual(mockFormValidationResult);
+    });
+
+    it('should handle oneOf/null structure when data is invalid', () => {
+      const mockValidator = validation.createValidator(mockJsonSchema);
+      const { validator: actualValidator, rootElementPath } = validation.createValidator(mockJsonSchema);
+      const useFormData = {
+        dataModelField_1: 5,
+        dataModelField_2: 'Hello',
+        dataModelField_3: 'Test',
+      };
+
+      const mockResult = validation.validateFormData(
+        useFormData,
+        toCollectionFromData(mockLayout, useFormData),
+        Object.keys(mockLayoutState.layouts),
+        mockValidator,
+        mockLanguage.language,
+        [],
+      );
+      const mockFormValidationResult = {
+        validations: {
+          FormLayout: {
+            componentId_2: {
+              customBinding: {
+                errors: [getParsedLanguageFromKey('validation_errors.minLength', mockLanguage.language, [10], true)],
+              },
+            },
+          },
+        },
+        invalidDataTypes: false,
+      };
+      expect(mockResult).toEqual(mockFormValidationResult);
+
+      // Check that actual validation result contains errors that were ignored
+      const valid = actualValidator.validate(`schema${rootElementPath}`, useFormData);
+      expect(valid).toBeFalsy();
+      expect(actualValidator.errors).toHaveLength(3);
+    });
+  });
+
+  describe('isOneOfError', () => {
+    it('should return fasle if provided error does not have keyword `oneOf`', () => {
+      const error: ErrorObject<string, Record<string, any>, unknown> = {
+        keyword: 'test',
+        instancePath: '',
+        schemaPath: '',
+        params: {},
+      };
+      const result = validation.isOneOfError(error);
+      expect(result).toBeFalsy();
+    });
+    it('should return true if provided error has keyword `oneOf`', () => {
+      const error: ErrorObject<string, Record<string, any>, unknown> = {
+        keyword: 'oneOf',
+        instancePath: '',
+        schemaPath: '',
+        params: {},
+      };
+      const result = validation.isOneOfError(error);
+      expect(result).toBeTruthy();
+    });
+
+    it('should return true if provided error has param "type: null"', () => {
+      const error: ErrorObject<string, Record<string, any>, unknown> = {
+        keyword: 'test',
+        instancePath: '',
+        schemaPath: '',
+        params: {
+          type: 'null',
+        },
+      };
+      const result = validation.isOneOfError(error);
+      expect(result).toBeTruthy();
     });
   });
 

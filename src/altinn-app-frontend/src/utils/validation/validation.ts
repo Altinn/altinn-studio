@@ -179,6 +179,22 @@ export const errorMessageKeys = {
     textKey: 'not',
     paramKey: 'passingSchemas',
   },
+  formatMaximum: {
+    textKey: 'formatMaximum',
+    paramKey: 'limit',
+  },
+  formatMinimum: {
+    textKey: 'formatMinimum',
+    paramKey: 'limit',
+  },
+  formatExclusiveMaximum: {
+    textKey: 'formatMaximum',
+    paramKey: 'limit',
+  },
+  formatExclusiveMinimum: {
+    textKey: 'formatMinimum',
+    paramKey: 'limit',
+  },
 };
 
 export function validateEmptyFields(
@@ -471,12 +487,18 @@ export function validateComponentFormData(
 
   if (!valid) {
     validator.errors
-      ?.filter((error) => processInstancePath(error.instancePath) === dataModelField)
+      ?.filter((error) => {
+        return processInstancePath(error.instancePath) === dataModelField && !isOneOfError(error);
+      })
       .forEach((error) => {
         if (error.keyword === 'type' || error.keyword === 'format' || error.keyword === 'maximum') {
           validationResult.invalidDataTypes = true;
         }
-        let errorParams = error.params[errorMessageKeys[error.keyword].paramKey];
+
+        let errorParams = error.params[errorMessageKeys[error.keyword]?.paramKey];
+        if (!errorParams === undefined) {
+          console.warn(`WARN: Error message for ${error.keyword} not implemented`);
+        }
         if (Array.isArray(errorParams)) {
           errorParams = errorParams.join(', ');
         }
@@ -489,7 +511,7 @@ export function validateComponentFormData(
           errorMessage = getTextResourceByKey(fieldSchema.errorMessage, textResources);
         } else {
           errorMessage = getParsedLanguageFromKey(
-            `validation_errors.${errorMessageKeys[error.keyword].textKey}`,
+            `validation_errors.${errorMessageKeys[error.keyword]?.textKey || error.keyword}`,
             language,
             [errorParams],
             true,
@@ -525,6 +547,18 @@ export function validateComponentSpecificValidations(
   }
   return customComponentValidations;
 }
+
+/**
+ * Check if AVJ validation error is a oneOf error ("must match exactly one schema in oneOf").
+ * We don't currently support oneOf validation.
+ * These can be ignored, as there will be other, specific validation errors that actually
+ * from the specified sub-schemas that will trigger validation errors where relevant.
+ * @param error the AJV validation error object
+ * @returns a value indicating if the provided error is a "oneOf" error.
+ */
+export const isOneOfError = (error: AjvCore.ErrorObject<string, Record<string, any>, unknown>): boolean => {
+  return error.keyword === 'oneOf' || error.params?.type === 'null';
+};
 
 /**
  * Wrapper method around getSchemaPart for schemas made with our old generator tool
@@ -622,9 +656,15 @@ function validateFormDataForLayout(
       continue;
     }
 
+    if (isOneOfError(error)) {
+      continue;
+    }
     result.invalidDataTypes = error.keyword === 'type' || error.keyword === 'format' || result.invalidDataTypes;
 
-    let errorParams = error.params[errorMessageKeys[error.keyword].paramKey];
+    let errorParams = error.params[errorMessageKeys[error.keyword]?.paramKey];
+    if (!errorParams === undefined) {
+      console.warn(`WARN: Error message for ${error.keyword} not implemented`);
+    }
     if (Array.isArray(errorParams)) {
       errorParams = errorParams.join(', ');
     }
@@ -639,7 +679,7 @@ function validateFormDataForLayout(
       errorMessage = getTextResourceByKey(fieldSchema.errorMessage, textResources);
     } else {
       errorMessage = getParsedLanguageFromKey(
-        `validation_errors.${errorMessageKeys[error.keyword].textKey}`,
+        `validation_errors.${errorMessageKeys[error.keyword]?.textKey || error.keyword}`,
         language,
         [errorParams],
         true,
