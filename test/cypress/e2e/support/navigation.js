@@ -157,6 +157,16 @@ const completeFormSlow = {
       .select('altinn');
     cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].uploadTagMulti.attachments[0].tagSave).click();
     cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].uploadTagMulti.attachments[0].tagSelector).should('not.exist');
+
+    cy.intercept('GET', '**/options/*').as('getOptions');
+    cy.get('#nested-source-0-0').should('exist').and('be.visible').select('Annet');
+    cy.wait('@getOptions');
+    cy.get('#nested-reference-0-0').should('exist').and('be.visible').select('Test');
+    cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
+    cy.get('#source-0').should('exist').and('be.visible').select('Digitaliseringsdirektoratet');
+    cy.wait(['@getOptions', '@getOptions']);
+    cy.get('#reference-0').should('exist').and('be.visible').select('Sophie Salt');
+
     cy.get(appFrontend.group.saveMainGroup).should('be.visible').click().should('not.exist');
 
     cy.contains(mui.button, texts.next).click();

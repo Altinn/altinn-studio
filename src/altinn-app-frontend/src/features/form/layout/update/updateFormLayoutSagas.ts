@@ -706,13 +706,17 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
     }
   });
 
-  // preserve current edit index if still valid
+  // preserve current edit and multipage index if still valid
   currentGroupKeys
-    .filter((key) => !groupsToRemoveValidations.includes(key))
+    .filter((key) => newGroups[key] !== undefined)
     .forEach((key) => {
-      const current = currentGroups[key];
-      if (current.editIndex !== undefined && newGroups[key]?.index >= current.editIndex) {
-        newGroups[key].editIndex = currentGroups[key].editIndex;
+      const currentGroup = currentGroups[key];
+      const newGroup = newGroups[key];
+      if (currentGroup.editIndex !== undefined && newGroup.index >= currentGroup.editIndex) {
+        newGroup.editIndex = currentGroups[key].editIndex;
+      }
+      if (currentGroup.multiPageIndex !== undefined) {
+        newGroup.multiPageIndex = currentGroup.multiPageIndex;
       }
     });
   yield put(

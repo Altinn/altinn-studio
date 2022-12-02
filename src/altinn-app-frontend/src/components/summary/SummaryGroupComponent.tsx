@@ -200,11 +200,10 @@ function SummaryGroupComponent({
         });
 
         if (component && 'mapping' in component) {
-          componentDeepCopy.mapping = setMappingForRepeatingGroupComponent(component.mapping, index);
-
           if (parentGroup) {
-            componentDeepCopy.mapping = setMappingForRepeatingGroupComponent(componentDeepCopy.mapping, i);
+            componentDeepCopy.mapping = setMappingForRepeatingGroupComponent(componentDeepCopy.mapping, index);
           }
+          componentDeepCopy.mapping = setMappingForRepeatingGroupComponent(componentDeepCopy.mapping, i);
         }
 
         const formDataForComponent = getDisplayFormDataForComponent(
