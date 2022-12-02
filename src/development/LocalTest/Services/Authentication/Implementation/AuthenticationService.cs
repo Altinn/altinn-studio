@@ -67,7 +67,8 @@ public class AuthenticationService : IAuthentication
         List<Claim> claims = new List<Claim>();
         string issuer = _generalSettings.Hostname;
         claims.Add(new Claim(AltinnCoreClaimTypes.Org, org.ToLower(), ClaimValueTypes.String, issuer));
-        claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, issuer));
+        // 3 is the default level for altinn tokens form Maskinporten
+        claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "3", ClaimValueTypes.Integer32, issuer));
         claims.Add(new Claim("urn:altinn:scope", "altinn:serviceowner/instances.read", ClaimValueTypes.String, issuer));
         if (!string.IsNullOrEmpty(orgNumber))
         {
