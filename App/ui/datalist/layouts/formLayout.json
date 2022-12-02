@@ -12,6 +12,7 @@
           "name": "SelectedItem",
           "profession": "SelectedItemProfession"
         },
+        "bindingToShowInSummary": "SelectedItem",
         "dataListId": "people",
         "tableHeaders": [ "Navn", "Alder", "Yrke" ],
         "sortableColumns": [ "Alder" ],

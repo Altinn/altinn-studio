@@ -8,9 +8,9 @@ namespace Altinn.App.Models
     [XmlRoot(ElementName = "melding")]
     public class Datalist
     {
-        [XmlElement("DataListItem", Order = 1)]
-        [JsonProperty("DataListItem")]
-        [JsonPropertyName("DataListItem")]
+        [XmlElement("SelectedItem", Order = 1)]
+        [JsonProperty("SelectedItem")]
+        [JsonPropertyName("SelectedItem")]
         public string SelectedItem { get; set; }
         
         [XmlElement("SelectedItemProfession", Order = 2)]
