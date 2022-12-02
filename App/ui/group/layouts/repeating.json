@@ -27,7 +27,7 @@
       {
         "id": "mainGroup",
         "type": "Group",
-        "children": ["0:currentValue", "0:newValue", "1:mainUploaderSingle", "1:mainUploaderMulti", "1:subGroup"],
+        "children": ["0:currentValue", "0:newValue", "1:mainUploaderSingle", "1:mainUploaderMulti", "1:subGroup", "2:source", "2:reference"],
         "maxCount": 999,
         "dataModelBindings": {
           "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788"
@@ -35,6 +35,7 @@
         "textResourceBindings": {
           "title": "Group titel"
         },
+        "tableHeaders": ["currentValue", "newValue", "mainUploaderSingle", "mainUploaderMulti"],
         "triggers": ["validation"],
         "edit": {
           "mode": "showTable",
@@ -121,9 +122,48 @@
         "displayMode": "simple"
       },
       {
+        "id": "source",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "hvor fikk du vite om skjemaet?"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.source"
+        },
+        "optionsId": "list",
+        "required": false,
+        "readOnly": false,
+        "labelSettings": { "optionalIndicator": false },
+        "grid": {
+          "md": 6
+        },
+        "preselectedOptionIndex": 0
+      },
+      {
+        "id": "reference",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Referanse"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.reference"
+        },
+        "optionsId": "references",
+        "required": false,
+        "readOnly": false,
+        "secure": false,
+        "labelSettings": { "optionalIndicator": false },
+        "grid": {
+          "md": 6
+        },
+        "mapping": {
+          "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].source": "source"
+        }
+      },
+      {
         "id": "subGroup",
         "type": "Group",
-        "children": ["comments", "subUploader", "nestedDynamics", "nestedOptions"],
+        "children": ["comments", "subUploader", "nestedDynamics", "nestedOptions", "nested-source", "nested-reference"],
         "maxCount": 999,
         "dataModelBindings": {
           "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234"
@@ -131,6 +171,7 @@
         "textResourceBindings": {
           "title": "Nested group"
         },
+        "tableHeaders": ["comments", "subUploader", "nestedDynamics", "nestedOptions"],
         "triggers": ["validation"],
         "edit": {
           "filter": [
@@ -140,6 +181,45 @@
             }
           ],
           "openByDefault": true
+        }
+      },
+      {
+        "id": "nested-source",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "hvor fikk du vite om skjemaet?"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.source"
+        },
+        "optionsId": "list",
+        "required": false,
+        "readOnly": false,
+        "labelSettings": { "optionalIndicator": false },
+        "grid": {
+          "md": 6
+        },
+        "preselectedOptionIndex": 0
+      },
+      {
+        "id": "nested-reference",
+        "type": "Dropdown",
+        "textResourceBindings": {
+          "title": "Referanse"
+        },
+        "dataModelBindings": {
+          "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.reference"
+        },
+        "optionsId": "references",
+        "required": false,
+        "readOnly": false,
+        "secure": false,
+        "labelSettings": { "optionalIndicator": false },
+        "grid": {
+          "md": 6
+        },
+        "mapping": {
+          "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788[{0}].nested-grp-1234[{1}].source": "source"
         }
       },
       {

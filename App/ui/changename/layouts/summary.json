@@ -59,6 +59,18 @@
         "pageRef": "form"
       },
       {
+        "id": "summary-7",
+        "type": "Summary",
+        "componentRef": "reference",
+        "pageRef": "form"
+      },
+      {
+        "id": "summary-8",
+        "type": "Summary",
+        "componentRef": "reference2",
+        "pageRef": "form"
+      },
+      {
         "id": "startAgain",
         "type": "Paragraph",
         "textResourceBindings": {
