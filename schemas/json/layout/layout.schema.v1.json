@@ -253,7 +253,7 @@
         "timeStamp": {
           "type": "boolean",
           "title": "Time stamp",
-          "description": "Boolean value indicating if the date time should be stored as a timeStamp. Defaults to true.",
+          "description": "Boolean value indicating if the date time should be stored as a timeStamp. Defaults to true.\n If true: 'YYYY-MM-DDThh:mm:ss.sssZ', if false 'YYYY-MM-DD';",
           "default": true
         },
         "format": {
