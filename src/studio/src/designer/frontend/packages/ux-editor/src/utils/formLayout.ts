@@ -158,7 +158,6 @@ export function extractChildrenFromGroup(group: any, components: any[], converte
     const internalComponent = {...component};
     if (component.type === 'Group') {
       internalComponent.itemType = 'CONTAINER';
-      // const componentsCopy = [...components];
       extractChildrenFromGroup(component, components, convertedLayout);
     } else {
       internalComponent.itemType = 'COMPONENT';
