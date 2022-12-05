@@ -9,7 +9,6 @@ import type { IAppState } from './types/global';
 export const sagaMiddleware: SagaMiddleware<any> = createSagaMiddleware();
 export const store: Store<IAppState> = configureStore({
   reducer: reducers,
-  devTools: process.env.NODE_ENV !== 'production',
   middleware(getDefaultMiddleware) {
     return getDefaultMiddleware().concat([sagaMiddleware]);
   },
