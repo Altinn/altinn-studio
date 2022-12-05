@@ -27,6 +27,7 @@ import {
   FieldSet,
 } from '@altinn/altinn-design-system';
 import { Divider } from 'app-shared/primitives';
+import { Add } from '@navikt/ds-icons';
 
 export interface RestrictionItemProps {
   restrictions: any;
@@ -141,7 +142,7 @@ export const ItemRestrictions = ({ selectedNode, language }: ItemRestrictionsPro
                 aria-label={t('add_enum')}
                 color={ButtonColor.Secondary}
                 fullWidth
-                iconName={'Add'}
+                icon={<Add/>}
                 id='add-enum-button'
                 onClick={onAddEnumButtonClick}
                 size={ButtonSize.Small}

@@ -11,11 +11,11 @@ export interface ICloneButtonProps {
 export function CloneButton(props: ICloneButtonProps) {
   return (
     <Button
-      onClick={props.onClick}
-      variant={ButtonVariant.Quiet}
-      size={ButtonSize.Small}
       className={classes.button}
-      svgIconComponent={<SaveFile />}
+      icon={<SaveFile />}
+      onClick={props.onClick}
+      size={ButtonSize.Small}
+      variant={ButtonVariant.Quiet}
     >
       {props.buttonText}
     </Button>

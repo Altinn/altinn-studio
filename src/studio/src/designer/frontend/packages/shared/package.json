@@ -4,7 +4,7 @@
   "author": "Altinn",
   "dependencies": {
     "3": "^2.1.0",
-    "@altinn/altinn-design-system": "0.23.3",
+    "@altinn/altinn-design-system": "0.25.3",
     "@altinn/schema-editor": "0.1.0",
     "@mui/icons-material": "5.10.14",
     "@mui/material": "5.10.14",

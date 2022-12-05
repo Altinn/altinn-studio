@@ -41,11 +41,11 @@ export default function RightMenu(props: IRightMenuProps) {
       <div className={classes.headerSection}>
         <span>{t('right_menu.pages')}</span>
         <Button
-          className={classes.addIcon}
-          onClick={handleAddPage}
           aria-label={t('right_menu.pages_add_alt')}
+          className={classes.addIcon}
+          icon={<Add />}
+          onClick={handleAddPage}
           variant={ButtonVariant.Quiet}
-          svgIconComponent={<Add />}
         />
       </div>
       <div className={classes.contentSection}>
@@ -69,11 +69,11 @@ export default function RightMenu(props: IRightMenuProps) {
       <div className={classes.headerSection}>
         <span>{t('right_menu.rules_calculations')}</span>
         <Button
-          className={classes.addIcon}
-          onClick={() => handleModalChange('rules')}
           aria-label={t('right_menu.rules_calculations_add_alt')}
+          className={classes.addIcon}
+          icon={<Add />}
+          onClick={() => handleModalChange('rules')}
           variant={ButtonVariant.Quiet}
-          svgIconComponent={<Add />}
         />
       </div>
       <div className={classes.contentSection}>
@@ -82,11 +82,11 @@ export default function RightMenu(props: IRightMenuProps) {
       <div className={classes.headerSection}>
         <span>{t('right_menu.rules_conditional_rendering')}</span>
         <Button
-          className={classes.addIcon}
-          onClick={() => handleModalChange('conditionalRendering')}
           aria-label={t('right_menu.rules_conditional_rendering_add_alt')}
+          className={classes.addIcon}
+          icon={<Add />}
+          onClick={() => handleModalChange('conditionalRendering')}
           variant={ButtonVariant.Quiet}
-          svgIconComponent={<Add />}
         />
       </div>
       <div className={classes.contentSection}>

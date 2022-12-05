@@ -153,10 +153,10 @@ export function PageElement({ name }: IPageElementProps) {
         </div>
         <div>
           <Button
-            onClick={onPageSettingsClick}
             className={classes.ellipsisButton}
+            icon={<EllipsisV />}
+            onClick={onPageSettingsClick}
             style={menuAnchorEl ? { visibility: 'visible' } : {}}
-            svgIconComponent={<EllipsisV />}
             variant={ButtonVariant.Quiet}
           />
         </div>

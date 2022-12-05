@@ -73,7 +73,7 @@ describe('When loading AccessControlContainer', () => {
     });
     const checkboxes = screen.queryAllByRole('checkbox');
     expect(checkboxes).toHaveLength(4);
-    checkboxes.forEach((c) => expect(c.ariaChecked).toBeFalsy());
+    checkboxes.forEach((c) => expect(c).not.toBeChecked());
   });
 
   it('should render checkboxes as defined by applicationMetadata.partyTypesAllowed object', () => {
@@ -83,13 +83,9 @@ describe('When loading AccessControlContainer', () => {
     expect(checkboxes).toHaveLength(4);
     checkboxes.forEach((c) => {
       if (partyTypesAllowed[c.getAttribute('name')]) {
-        expect(c.parentElement.parentElement.className).toContain(
-          'Checkbox-module_wrapper--checked'
-        );
+        expect(c).toBeChecked();
       } else {
-        expect(c.parentElement.parentElement.className).not.toContain(
-          'Checkbox-module_wrapper--checked'
-        );
+        expect(c).not.toBeChecked();
       }
     });
   });
