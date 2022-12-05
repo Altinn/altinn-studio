@@ -553,374 +553,415 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     return BaseValueType.Decimal;
                 case SchemaValueType.Integer:
                     return MapIntegerValueTypes(subSchema);
+                case SchemaValueType.Array:
+                    return MapValueFromArray(subSchema);
                 default:
                     return null;
             }
         }
 
-        private static BaseValueType MapIntegerValueTypes(JsonSchema subSchema)
+        private static BaseValueType? MapValueFromArray(JsonSchema subSchema)
         {
-            var baseValueType = BaseValueType.Integer;
-
-            if (subSchema.TryGetKeyword(out MinimumKeyword minimumKeyword))
+            if (!subSchema.TryGetKeyword(out ItemsKeyword itemsKeyword))
             {
-                decimal? minimum = minimumKeyword.Value;
-
-                if (minimum > 0.0m)
-                {
-                    baseValueType = BaseValueType.PositiveInteger;
-                }
-                else if (minimum == 0.0m)
-                {
-                    baseValueType = BaseValueType.NonNegativeInteger;
-                }
-            }
-            else if (TryParseXsdTypeKeyword(subSchema, out var parsedBaseValueType))
-            {
-                baseValueType = parsedBaseValueType;
+                return null;
             }
 
-            return baseValueType;
+            var singleSchema = itemsKeyword.SingleSchema;
+            if (singleSchema.TryGetKeyword(out TypeKeyword typeKeyword))
+            {
+                var type = GetPrimitiveType(typeKeyword.Type);
+                if (type != SchemaValueType.Null)
+                {
+                    if (type == SchemaValueType.String)
+                    {
+                        return MapStringValueTypes(subSchema);
+                    }
+
+                    if (type == SchemaValueType.Integer)
+                    {
+                        return MapIntegerValueTypes(subSchema);
+                    }
+
+                    if (type == SchemaValueType.Boolean)
+                    {
+                        return BaseValueType.Boolean;
+                    }
+
+                    if (type == SchemaValueType.Number)
+                    {
+                        return BaseValueType.Decimal;
+                    }
+                }
+
+            }
+
+            return null;
         }
 
-        private static bool TryParseXsdTypeKeyword(JsonSchema subSchema, out BaseValueType baseValueType)
-        {
-            BaseValueType parsedBaseValueType = BaseValueType.String;
-            bool parseSuccess = false;
+        private static BaseValueType MapIntegerValueTypes(JsonSchema subSchema)
+            {
+                var baseValueType = BaseValueType.Integer;
 
-            if (subSchema.TryGetKeyword(out XsdTypeKeyword xsdTypeKeyword) && !string.IsNullOrEmpty(xsdTypeKeyword.Value))
-            {
-                parseSuccess = Enum.TryParse(xsdTypeKeyword.Value, true, out parsedBaseValueType);
+                if (subSchema.TryGetKeyword(out MinimumKeyword minimumKeyword))
+                {
+                    decimal? minimum = minimumKeyword.Value;
+
+                    if (minimum > 0.0m)
+                    {
+                        baseValueType = BaseValueType.PositiveInteger;
+                    }
+                    else if (minimum == 0.0m)
+                    {
+                        baseValueType = BaseValueType.NonNegativeInteger;
+                    }
+                }
+                else if (TryParseXsdTypeKeyword(subSchema, out var parsedBaseValueType))
+                {
+                    baseValueType = parsedBaseValueType;
+                }
+
+                return baseValueType;
             }
-            else if (subSchema.TryGetKeyword(out AllOfKeyword allOfKeyword))
+
+            private static bool TryParseXsdTypeKeyword(JsonSchema subSchema, out BaseValueType baseValueType)
             {
-                xsdTypeKeyword = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<TypeKeyword>())
-                    ?.GetKeyword<XsdTypeKeyword>();
-                if (xsdTypeKeyword is not null)
+                BaseValueType parsedBaseValueType = BaseValueType.String;
+                bool parseSuccess = false;
+
+                if (subSchema.TryGetKeyword(out XsdTypeKeyword xsdTypeKeyword) && !string.IsNullOrEmpty(xsdTypeKeyword.Value))
                 {
                     parseSuccess = Enum.TryParse(xsdTypeKeyword.Value, true, out parsedBaseValueType);
                 }
+                else if (subSchema.TryGetKeyword(out AllOfKeyword allOfKeyword))
+                {
+                    xsdTypeKeyword = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<TypeKeyword>())
+                        ?.GetKeyword<XsdTypeKeyword>();
+                    if (xsdTypeKeyword is not null)
+                    {
+                        parseSuccess = Enum.TryParse(xsdTypeKeyword.Value, true, out parsedBaseValueType);
+                    }
+                }
+
+                baseValueType = parsedBaseValueType;
+                return parseSuccess;
             }
 
-            baseValueType = parsedBaseValueType;
-            return parseSuccess;
-        }
-
-        private static BaseValueType MapStringValueTypes(JsonSchema subSchema)
-        {
-            BaseValueType baseValueType = BaseValueType.String;
-
-            if (subSchema.TryGetKeyword(out FormatKeyword formatKeyword) && !string.IsNullOrEmpty(formatKeyword.Value.Key))
+            private static BaseValueType MapStringValueTypes(JsonSchema subSchema)
             {
-                var format = formatKeyword.Value.Key;
-                switch (format)
+                BaseValueType baseValueType = BaseValueType.String;
+
+                if (subSchema.TryGetKeyword(out FormatKeyword formatKeyword) && !string.IsNullOrEmpty(formatKeyword.Value.Key))
                 {
-                    case "date":
-                        return BaseValueType.Date;
+                    var format = formatKeyword.Value.Key;
+                    switch (format)
+                    {
+                        case "date":
+                            return BaseValueType.Date;
 
-                    case "date-time":
-                        return BaseValueType.DateTime;
+                        case "date-time":
+                            return BaseValueType.DateTime;
 
-                    case "duration":
-                        return BaseValueType.Duration;
+                        case "duration":
+                            return BaseValueType.Duration;
 
-                    case "day":
-                        return BaseValueType.GDay;
+                        case "day":
+                            return BaseValueType.GDay;
 
-                    case "month":
-                        return BaseValueType.GMonth;
+                        case "month":
+                            return BaseValueType.GMonth;
 
-                    case "month-day":
-                        return BaseValueType.GMonthDay;
+                        case "month-day":
+                            return BaseValueType.GMonthDay;
 
-                    case "year":
-                        return BaseValueType.GYear;
+                        case "year":
+                            return BaseValueType.GYear;
 
-                    case "year-month":
-                        return BaseValueType.GYearMonth;
+                        case "year-month":
+                            return BaseValueType.GYearMonth;
 
-                    case "time":
-                        return BaseValueType.Time;
+                        case "time":
+                            return BaseValueType.Time;
 
-                    case "email":
-                        return BaseValueType.String;
+                        case "email":
+                            return BaseValueType.String;
 
-                    case "uri":
-                        return BaseValueType.AnyURI;
+                        case "uri":
+                            return BaseValueType.AnyURI;
+                    }
+                }
+
+                return baseValueType;
+            }
+
+            private static string CombineXPath(string baseXPath, string name)
+            {
+                return (baseXPath == "/") ? $"/{name}" : $"{baseXPath}/{name}";
+            }
+
+            private int GetMinOccurs(JsonSchema subSchema, SchemaContext context)
+            {
+                if (context.IsNillable)
+                {
+                    return 0;
+                }
+
+                int minOccurs = IsRequired(context.Id, context.Name) ? 1 : 0;
+
+                var minItemsKeyword = subSchema.GetKeyword<MinItemsKeyword>();
+                if (minItemsKeyword?.Value > minOccurs)
+                {
+                    minOccurs = (int)minItemsKeyword.Value;
+                }
+
+                return minOccurs;
+            }
+
+            private static int GetMaxOccurs(JsonSchema subSchema, SchemaContext context)
+            {
+                int maxOccurs = 1;
+                if (context.SchemaValueType == SchemaValueType.Array)
+                {
+                    maxOccurs = MAX_MAX_OCCURS;
+                }
+
+                var maxitemsKeyword = subSchema.GetKeyword<MaxItemsKeyword>();
+                return maxitemsKeyword == null ? maxOccurs : (int)maxitemsKeyword.Value;
+            }
+
+            private static string GetFixedValue(JsonSchema subSchema)
+            {
+                var constKeyword = subSchema.GetKeyword<ConstKeyword>();
+                if (constKeyword != null)
+                {
+                    return constKeyword.Value?.AsString();
+                }
+
+                return null;
+            }
+
+            private static ElementType GetType(JsonSchema subSchema)
+            {
+                var xsdAttributeTypeKeyword = subSchema.GetKeyword<XsdAttributeKeyword>();
+                if (xsdAttributeTypeKeyword?.Value == true)
+                {
+                    return ElementType.Attribute;
+                }
+
+                return ElementType.Field;
+            }
+
+            private static string GetDisplayString(string id, string typeName, int minOccurs, int maxOccurs)
+            {
+                return $"{id} : [{minOccurs}..{maxOccurs}] {typeName}";
+            }
+
+            private static string GetDataBindingName(ElementType @type, int maxOccurs, string id, string fixedValue, string xPath)
+            {
+                if (@type != ElementType.Group && id.Contains(".") && string.IsNullOrEmpty(fixedValue))
+                {
+                    return GetDataBindingName(id, xPath);
+                }
+                else if (@type == ElementType.Group && maxOccurs > 1)
+                {
+                    return GetDataBindingName(id, xPath);
+                }
+
+                return null;
+            }
+
+            private static string GetDataBindingName(string id, string xPath)
+            {
+                var firstPropertyName = id[0..id.IndexOf(".")];
+                string dataBindingNameWithoutFirstPropertyName = xPath.Replace("/" + firstPropertyName + "/", string.Empty);
+                string dataBindingName = dataBindingNameWithoutFirstPropertyName.Replace("/", ".");
+
+                return dataBindingName;
+            }
+
+            private bool IsNillableType(JsonPointer path)
+            {
+                return _schemaXsdMetadata.GetCompatibleTypes(path).Contains(CompatibleXsdType.Nillable);
+            }
+
+            private bool IsRestrictionType(JsonPointer path)
+            {
+                return _schemaXsdMetadata.GetCompatibleTypes(path).Contains(CompatibleXsdType.SimpleTypeRestriction);
+            }
+
+            private static string GetTypeNameFromRefPath(JsonPointer pointer)
+            {
+                if (pointer.Segments.Length != 2 || (pointer.Segments[0].Value != "$defs" && pointer.Segments[0].Value != "definitions"))
+                {
+                    return string.Empty;
+                }
+
+                return pointer.Segments[1].Value;
+            }
+
+            private void CheckForRequiredPropertiesKeyword(JsonSchema subSchema, SchemaContext context)
+            {
+                var requiredKeyword = subSchema.GetKeyword<RequiredKeyword>();
+                if (requiredKeyword == null)
+                {
+                    return;
+                }
+
+                AddRequiredProperties(context.Id, requiredKeyword.Properties.ToList());
+            }
+
+            private bool RequiredPropertiesAlreadyAdded(string id)
+            {
+                return _requiredProperties.ContainsKey(id);
+            }
+
+            private void AddRequiredProperties(string id, List<string> requiredProperties)
+            {
+                if (RequiredPropertiesAlreadyAdded(id))
+                {
+                    _requiredProperties[id].AddRange(requiredProperties);
+                }
+                else
+                {
+                    _requiredProperties.Add(id, requiredProperties);
                 }
             }
 
-            return baseValueType;
-        }
-
-        private static string CombineXPath(string baseXPath, string name)
-        {
-            return (baseXPath == "/") ? $"/{name}" : $"{baseXPath}/{name}";
-        }
-
-        private int GetMinOccurs(JsonSchema subSchema, SchemaContext context)
-        {
-            if (context.IsNillable)
+            private bool IsRequired(string id, string name)
             {
-                return 0;
-            }
+                string parentId;
+                if (id.Contains("."))
+                {
+                    parentId = id.Substring(0, id.LastIndexOf("."));
+                }
+                else
+                {
+                    parentId = id;
+                }
 
-            int minOccurs = IsRequired(context.Id, context.Name) ? 1 : 0;
+                if (_requiredProperties.ContainsKey(parentId))
+                {
+                    return _requiredProperties[parentId].Contains(name);
+                }
 
-            var minItemsKeyword = subSchema.GetKeyword<MinItemsKeyword>();
-            if (minItemsKeyword?.Value > minOccurs)
-            {
-                minOccurs = (int)minItemsKeyword.Value;
-            }
-
-            return minOccurs;
-        }
-
-        private static int GetMaxOccurs(JsonSchema subSchema, SchemaContext context)
-        {
-            int maxOccurs = 1;
-            if (context.SchemaValueType == SchemaValueType.Array)
-            {
-                maxOccurs = MAX_MAX_OCCURS;
-            }
-
-            var maxitemsKeyword = subSchema.GetKeyword<MaxItemsKeyword>();
-            return maxitemsKeyword == null ? maxOccurs : (int)maxitemsKeyword.Value;
-        }
-
-        private static string GetFixedValue(JsonSchema subSchema)
-        {
-            var constKeyword = subSchema.GetKeyword<ConstKeyword>();
-            if (constKeyword != null)
-            {
-                return constKeyword.Value?.AsString();
-            }
-
-            return null;
-        }
-
-        private static ElementType GetType(JsonSchema subSchema)
-        {
-            var xsdAttributeTypeKeyword = subSchema.GetKeyword<XsdAttributeKeyword>();
-            if (xsdAttributeTypeKeyword?.Value == true)
-            {
-                return ElementType.Attribute;
-            }
-
-            return ElementType.Field;
-        }
-
-        private static string GetDisplayString(string id, string typeName, int minOccurs, int maxOccurs)
-        {
-            return $"{id} : [{minOccurs}..{maxOccurs}] {typeName}";
-        }
-
-        private static string GetDataBindingName(ElementType @type, int maxOccurs, string id, string fixedValue, string xPath)
-        {
-            if (@type != ElementType.Group && id.Contains(".") && string.IsNullOrEmpty(fixedValue))
-            {
-                return GetDataBindingName(id, xPath);
-            }
-            else if (@type == ElementType.Group && maxOccurs > 1)
-            {
-                return GetDataBindingName(id, xPath);
-            }
-
-            return null;
-        }
-
-        private static string GetDataBindingName(string id, string xPath)
-        {
-            var firstPropertyName = id[0..id.IndexOf(".")];
-            string dataBindingNameWithoutFirstPropertyName = xPath.Replace("/" + firstPropertyName + "/", string.Empty);
-            string dataBindingName = dataBindingNameWithoutFirstPropertyName.Replace("/", ".");
-
-            return dataBindingName;
-        }
-
-        private bool IsNillableType(JsonPointer path)
-        {
-            return _schemaXsdMetadata.GetCompatibleTypes(path).Contains(CompatibleXsdType.Nillable);
-        }
-
-        private bool IsRestrictionType(JsonPointer path)
-        {
-            return _schemaXsdMetadata.GetCompatibleTypes(path).Contains(CompatibleXsdType.SimpleTypeRestriction);
-        }
-
-        private static string GetTypeNameFromRefPath(JsonPointer pointer)
-        {
-            if (pointer.Segments.Length != 2 || (pointer.Segments[0].Value != "$defs" && pointer.Segments[0].Value != "definitions"))
-            {
-                return string.Empty;
-            }
-
-            return pointer.Segments[1].Value;
-        }
-
-        private void CheckForRequiredPropertiesKeyword(JsonSchema subSchema, SchemaContext context)
-        {
-            var requiredKeyword = subSchema.GetKeyword<RequiredKeyword>();
-            if (requiredKeyword == null)
-            {
-                return;
-            }
-
-            AddRequiredProperties(context.Id, requiredKeyword.Properties.ToList());
-        }
-
-        private bool RequiredPropertiesAlreadyAdded(string id)
-        {
-            return _requiredProperties.ContainsKey(id);
-        }
-
-        private void AddRequiredProperties(string id, List<string> requiredProperties)
-        {
-            if (RequiredPropertiesAlreadyAdded(id))
-            {
-                _requiredProperties[id].AddRange(requiredProperties);
-            }
-            else
-            {
-                _requiredProperties.Add(id, requiredProperties);
-            }
-        }
-
-        private bool IsRequired(string id, string name)
-        {
-            string parentId;
-            if (id.Contains("."))
-            {
-                parentId = id.Substring(0, id.LastIndexOf("."));
-            }
-            else
-            {
-                parentId = id;
-            }
-
-            if (_requiredProperties.ContainsKey(parentId))
-            {
-                return _requiredProperties[parentId].Contains(name);
-            }
-
-            return false;
-        }
-
-        private static bool IsRefType(JsonSchema subSchema)
-        {
-            var refkeyword = subSchema.GetKeyword<RefKeyword>();
-
-            return refkeyword != null;
-        }
-
-        /// <summary>
-        /// Gets the primitive type flag set, either exlusively ie. it's
-        /// only one flag set or in combination with null ie. it's a
-        /// primitive nullable type.
-        /// </summary>
-        private static SchemaValueType GetPrimitiveType(SchemaValueType type)
-        {
-            if (IsExclusivePrimitiveType(type))
-            {
-                return type;
-            }
-
-            if (IsNullablePrimitiveType(type, SchemaValueType.String))
-            {
-                return SchemaValueType.String;
-            }
-
-            if (IsNullablePrimitiveType(type, SchemaValueType.Boolean))
-            {
-                return SchemaValueType.Boolean;
-            }
-
-            if (IsNullablePrimitiveType(type, SchemaValueType.Integer))
-            {
-                return SchemaValueType.Integer;
-            }
-
-            if (IsNullablePrimitiveType(type, SchemaValueType.Number))
-            {
-                return SchemaValueType.Number;
-            }
-
-            return SchemaValueType.Null;
-        }
-
-        /// <summary>
-        /// Checks if the actualType parameter is of the expectedType parameter combined with null.
-        /// SchemaValueType is a bitwise Enum and can hold all possible combinations.
-        /// this method checks if one of the primitive types only is combined with null, ie. it's a nullable primitive type.
-        /// </summary>
-        private static bool IsNullablePrimitiveType(SchemaValueType actualType, SchemaValueType expectedType)
-        {
-            if ((actualType | (expectedType | SchemaValueType.Null)) == (expectedType | SchemaValueType.Null))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Uses the type keyword to check if this exclusively is a primitive type.
-        /// Nullable primitive types will return false.
-        /// </summary>
-        private static bool IsSchemaExclusivePrimitiveType(JsonSchema subSchema)
-        {
-            var typeKeyword = subSchema.GetKeyword<TypeKeyword>();
-
-            if (typeKeyword == null)
-            {
                 return false;
             }
 
-            return IsExclusivePrimitiveType(typeKeyword.Type);
-        }
-
-        /// <summary>
-        /// Check if this exclusively is a primitive type, ie. it's not
-        /// combined with any other flags.
-        /// </summary>
-        private static bool IsExclusivePrimitiveType(SchemaValueType type)
-        {
-            switch (type)
+            private static bool IsRefType(JsonSchema subSchema)
             {
-                case SchemaValueType.Boolean:
-                case SchemaValueType.Integer:
-                case SchemaValueType.Number:
-                case SchemaValueType.String:
+                var refkeyword = subSchema.GetKeyword<RefKeyword>();
+
+                return refkeyword != null;
+            }
+
+            /// <summary>
+            /// Gets the primitive type flag set, either exlusively ie. it's
+            /// only one flag set or in combination with null ie. it's a
+            /// primitive nullable type.
+            /// </summary>
+            private static SchemaValueType GetPrimitiveType(SchemaValueType type)
+            {
+                if (IsExclusivePrimitiveType(type))
+                {
+                    return type;
+                }
+
+                if (IsNullablePrimitiveType(type, SchemaValueType.String))
+                {
+                    return SchemaValueType.String;
+                }
+
+                if (IsNullablePrimitiveType(type, SchemaValueType.Boolean))
+                {
+                    return SchemaValueType.Boolean;
+                }
+
+                if (IsNullablePrimitiveType(type, SchemaValueType.Integer))
+                {
+                    return SchemaValueType.Integer;
+                }
+
+                if (IsNullablePrimitiveType(type, SchemaValueType.Number))
+                {
+                    return SchemaValueType.Number;
+                }
+
+                return SchemaValueType.Null;
+            }
+
+            /// <summary>
+            /// Checks if the actualType parameter is of the expectedType parameter combined with null.
+            /// SchemaValueType is a bitwise Enum and can hold all possible combinations.
+            /// this method checks if one of the primitive types only is combined with null, ie. it's a nullable primitive type.
+            /// </summary>
+            private static bool IsNullablePrimitiveType(SchemaValueType actualType, SchemaValueType expectedType)
+            {
+                if ((actualType | (expectedType | SchemaValueType.Null)) == (expectedType | SchemaValueType.Null))
+                {
                     return true;
-                default:
-                    return false;
-            }
-        }
+                }
 
-        private static bool IsExclusiveArrayType(JsonSchema subSchema)
-        {
-            var typeKeyword = subSchema.GetKeyword<TypeKeyword>();
-
-            if (typeKeyword == null)
-            {
                 return false;
             }
 
-            return typeKeyword.Type == SchemaValueType.Array;
-        }
-
-        private void SetTargetNamespace(JsonSchema jsonSchema)
-        {
-            var attributesKeyword = jsonSchema.GetKeyword<XsdSchemaAttributesKeyword>();
-
-            var targetNamespace =
-                attributesKeyword?.Properties?.Where(x => x.Name == nameof(XmlSchema.TargetNamespace))
-                    .Select(x => x.Value).FirstOrDefault();
-
-            if (!string.IsNullOrWhiteSpace(targetNamespace))
+            /// <summary>
+            /// Uses the type keyword to check if this exclusively is a primitive type.
+            /// Nullable primitive types will return false.
+            /// </summary>
+            private static bool IsSchemaExclusivePrimitiveType(JsonSchema subSchema)
             {
-                _modelMetadata.TargetNamespace = targetNamespace;
+                var typeKeyword = subSchema.GetKeyword<TypeKeyword>();
+
+                if (typeKeyword == null)
+                {
+                    return false;
+                }
+
+                return IsExclusivePrimitiveType(typeKeyword.Type);
             }
-        }
+
+            /// <summary>
+            /// Check if this exclusively is a primitive type, ie. it's not
+            /// combined with any other flags.
+            /// </summary>
+            private static bool IsExclusivePrimitiveType(SchemaValueType type)
+            {
+                switch (type)
+                {
+                    case SchemaValueType.Boolean:
+                    case SchemaValueType.Integer:
+                    case SchemaValueType.Number:
+                    case SchemaValueType.String:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
+
+            private static bool IsExclusiveArrayType(JsonSchema subSchema)
+            {
+                var typeKeyword = subSchema.GetKeyword<TypeKeyword>();
+
+                if (typeKeyword == null)
+                {
+                    return false;
+                }
+
+                return typeKeyword.Type == SchemaValueType.Array;
+            }
+
+            private void SetTargetNamespace(JsonSchema jsonSchema)
+            {
+                var attributesKeyword = jsonSchema.GetKeyword<XsdSchemaAttributesKeyword>();
+
+                var targetNamespace =
+                    attributesKeyword?.Properties?.Where(x => x.Name == nameof(XmlSchema.TargetNamespace))
+                        .Select(x => x.Value).FirstOrDefault();
+
+                if (!string.IsNullOrWhiteSpace(targetNamespace))
+                {
+                    _modelMetadata.TargetNamespace = targetNamespace;
+                }
+            }
     }
 }
