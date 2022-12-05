@@ -110,6 +110,7 @@ const render = (props: Partial<HeaderMenuProps> = {}) => {
   };
   const allProps = {
     language: {},
+    org: 'username',
     ...props,
   };
 

@@ -17,7 +17,7 @@ export const masterRepoStatusPath = (owner, repo) => `/designer/api/v1/repos/${o
 export const orgsListPath = () => '/designer/api/v1/orgs';
 export const remainingSessionTimePath = () => `/designer/api/v1/session/remaining`;
 export const repoCommitPath = (owner, repo) => `/designer/api/v1/repos/${owner}/${repo}/commit`;
-export const repoDownloadPath = (owner, repo, full) => `/designer/api/v1/repos/${owner}/${repo}/contents.zip?${s({ full })}`
+export const repoDownloadPath = (owner, repo, full) => `/designer/api/v1/repos/${owner}/${repo}/contents.zip?${s({ full })}`;
 export const repoInitialCommitPath = (owner, repo) => `/designer/api/v1/repos/${owner}/${repo}/initialcommit`;
 export const repoMetaPath = (owner, repo) => `/designer/api/v1/repos/${owner}/${repo}`;
 export const repoPullPath = (owner, repo) => `/designer/api/v1/repos/${owner}/${repo}/pull`;
@@ -27,7 +27,6 @@ export const repoSearchPath = () => '/designer/api/v1/repos/search';
 export const repoStatusPath = (owner, repo) => `/designer/api/v1/repos/${owner}/${repo}/status`;
 export const reposListPath = (owner) => `/designer/api/v1/repos/${owner}`;
 export const repositoryGitPath = (owner, repo) => `/repos/${owner}/${repo}.git`;
-export const repositoryPath = (owner, repo) => `/repos/${owner}/${repo}`;
 export const serviceConfigPath = (owner, repo) => `/designer/${owner}/${repo}/Config/GetServiceConfig`;
 export const serviceNamePath = (owner, repo) => `/designer/${owner}/${repo}/Text/GetServiceName`;
 export const setServiceConfigPath = (owner, repo) => `/designer/${owner}/${repo}/Config/SetServiceConfig`;
@@ -39,6 +38,9 @@ export const userLogoutPath = () => '/repos/user/logout';
 export const userReposPath = () => '/designer/api/v1/user/repos';
 export const userStarredListPath = () => '/designer/api/v1/user/starred';
 export const userStarredRepoPath = (owner, repo) => `/designer/api/v1/user/starred/${owner}/${repo}`;
+export const repositoryPath = (owner, repo) => `/repos/${owner}/${repo}`;
+export const repositoryOwnerPath = (owner) => `/repos/${owner}`;
+export const repositoryBasePath = () => '/repos';
 
 export const copyAppPath = (org, sourceRepository, targetRepository) =>
   `/designer/api/v1/repos/copyapp?${s({

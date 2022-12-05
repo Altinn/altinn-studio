@@ -50,6 +50,11 @@ export const getOrgNameById = (id: number, orgs: IGiteaOrganisation[]) => {
   return org?.full_name || org?.username;
 };
 
+export const getOrgUsernameById = (id: number, orgs: IGiteaOrganisation[]) => {
+  const org = orgs?.find((o) => o.id === id);
+  return org?.username;
+};
+
 export function Header({ language }: HeaderProps) {
   const classes = useStyles();
   const { selectedContext, selectableOrgs } = React.useContext(HeaderContext);
@@ -75,7 +80,10 @@ export function Header({ language }: HeaderProps) {
               )}
           </Grid>
           <Grid item>
-            <HeaderMenu language={language} />
+            <HeaderMenu
+              language={language}
+              org={getOrgUsernameById(selectedContext as number, selectableOrgs)}
+            />
           </Grid>
         </Grid>
       </Toolbar>
