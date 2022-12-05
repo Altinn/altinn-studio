@@ -88,15 +88,12 @@ namespace Altinn.Studio.Designer.Services.Implementation
         #region Service metadata
         public bool CreateServiceMetadata(ModelMetadata serviceMetadata)
         {
-            string developerUserName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
 
             // TODO: Figure out how appsettings.json parses values and merges with environment variables and use these here.
             // Since ":" is not valid in environment variables names in kubernetes, we can't use current docker-compose environment variables
-            string orgPath = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-                ? Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") + serviceMetadata.Org.AsFileName()
-                : _settings.GetOrgPath(serviceMetadata.Org.AsFileName(), developerUserName);
-
-            string appPath = $"{orgPath}/{serviceMetadata.RepositoryName.AsFileName()}";
+            string orgPath = _settings.GetOrgPath(serviceMetadata.Org, developer);
+            string appPath = Path.Combine(orgPath, serviceMetadata.RepositoryName);
 
             Directory.CreateDirectory(orgPath);
             Directory.CreateDirectory(appPath);
@@ -1054,9 +1051,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
             string[] organisationDirectories = null;
 
-            organisationDirectories = (Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation") != null)
-            ? Directory.GetDirectories(Environment.GetEnvironmentVariable("ServiceRepositorySettings__RepositoryLocation"))
-            : Directory.GetDirectories(_settings.RepositoryLocation);
+            organisationDirectories = Directory.GetDirectories(_settings.RepositoryLocation);
 
             foreach (string organisationDirectory in organisationDirectories)
             {
@@ -1080,8 +1075,8 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>The repository created in gitea</returns>
         public async Task<RepositoryClient.Model.Repository> CreateService(string org, ServiceConfiguration serviceConfig)
         {
-            string userName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string repoPath = _settings.GetServicePath(org, serviceConfig.RepositoryName, userName);
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string repoPath = _settings.GetServicePath(org, serviceConfig.RepositoryName, developer);
             var options = new CreateRepoOption(serviceConfig.RepositoryName);
 
             RepositoryClient.Model.Repository repository = await CreateRemoteRepository(org, options);
@@ -1091,7 +1086,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 if (Directory.Exists(repoPath))
                 {
                     // "Soft-delete" of local repo folder with same name to make room for clone of the new repo
-                    string backupPath = _settings.GetServicePath(org, $"{serviceConfig.RepositoryName}_REPLACED_BY_NEW_CLONE_{DateTime.Now.Ticks}", userName);
+                    string backupPath = _settings.GetServicePath(org, $"{serviceConfig.RepositoryName}_REPLACED_BY_NEW_CLONE_{DateTime.Now.Ticks}", developer);
                     Directory.Move(repoPath, backupPath);
                 }
 
@@ -1108,7 +1103,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 CreateServiceMetadata(metadata);
                 CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
                 CreateLanguageResources(org, serviceConfig);
-                await CreateRepositorySettings(org, serviceConfig.RepositoryName, userName);
+                await CreateRepositorySettings(org, serviceConfig.RepositoryName, developer);
 
                 CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
 
@@ -1164,7 +1159,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 Directory.Move(targetRepositoryPath, backupPath);
             }
 
-            _sourceControl.CloneRemoteRepository(org, sourceRepository, _settings.GetServicePath(org, targetRepository, developer));
+            _sourceControl.CloneRemoteRepository(org, sourceRepository, targetRepositoryPath);
             var targetAppRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, targetRepository, developer);
 
             await targetAppRepository.SearchAndReplaceInFile(".git/config", $"repos/{org}/{sourceRepository}.git", $"repos/{org}/{targetRepository}.git");
@@ -1207,13 +1202,13 @@ namespace Altinn.Studio.Designer.Services.Implementation
         /// <returns>True if the reset was successful, otherwise false.</returns>
         public bool ResetLocalRepository(string org, string repositoryName)
         {
-            string userName = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
-            string repoPath = _settings.GetServicePath(org, repositoryName, userName);
+            string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+            string repoPath = _settings.GetServicePath(org, repositoryName, developer);
 
             if (Directory.Exists(repoPath))
             {
                 // "Soft-delete" of local repo folder with same name to make room for clone of the new repo
-                string backupPath = _settings.GetServicePath(org, $"{repositoryName}_REPLACED_BY_NEW_CLONE_{DateTime.Now.Ticks}", userName);
+                string backupPath = _settings.GetServicePath(org, $"{repositoryName}_REPLACED_BY_NEW_CLONE_{DateTime.Now.Ticks}", developer);
                 Directory.Move(repoPath, backupPath);
                 _sourceControl.CloneRemoteRepository(org, repositoryName);
                 return true;
@@ -1647,7 +1642,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         {
             // Read the authorization policy template (XACML file).
             string path = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            string policyPath = path + _generalSettings.AuthorizationPolicyTemplate;
+            string policyPath = Path.Combine(path, _generalSettings.AuthorizationPolicyTemplate);
             string authorizationPolicyData = File.ReadAllText(policyPath, Encoding.UTF8);
 
             // Replace "org" and "app" in the authorization policy file.
@@ -1657,7 +1652,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
         private void CopyFolderToApp(string org, string app, string sourcePath, string path)
         {
-            string targetPath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + path;
+            string targetPath = Path.Combine(_settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)), path);
 
             // Create the app deployment folder
             Directory.CreateDirectory(targetPath);
@@ -1678,7 +1673,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
         private void CopyFileToApp(string org, string app, string fileName)
         {
             string appPath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            File.Copy($"{_generalSettings.TemplatePath}/{fileName}", appPath + fileName);
+            File.Copy($"{_generalSettings.TemplatePath}/{fileName}", Path.Combine(appPath, fileName));
         }
 
         /// <summary>

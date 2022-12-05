@@ -30,7 +30,7 @@ const config = {
   reporters: ['default', 'jest-junit'],
   moduleNameMapper: {
     // prettier-ignore
-    '\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$': path.join(__dirname, 'testing/mocks/fileMock.js'),
+    '\\.(jpg|jpeg|png|gif|eot|otf|svg|webp|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$': path.join(__dirname, 'testing/mocks/fileMock.js'),
     '\\.(css|less)$': path.join(__dirname, 'testing/mocks/styleMock.js'),
     'monaco-editor': path.join(__dirname, 'testing/mocks/fileMock.js'),
     '^app-shared/(.*)': path.join(__dirname, 'packages/shared/src/$1'),

@@ -2,7 +2,12 @@ import type { ReactNode, RefObject } from 'react';
 import React, { memo, useRef } from 'react';
 import type { DropTargetHookSpec, DropTargetMonitor } from 'react-dnd';
 import { useDrag, useDrop } from 'react-dnd';
-import { dragSourceSpec, handleDrop, hoverIndexHelper, hoverShouldBeIgnored } from './helpers/dnd-helpers';
+import {
+  dragSourceSpec,
+  handleDrop,
+  hoverIndexHelper,
+  hoverShouldBeIgnored,
+} from './helpers/dnd-helpers';
 import type { EditorDndEvents, EditorDndItem } from './helpers/dnd-types';
 import { ItemType } from './helpers/dnd-types';
 
@@ -22,7 +27,14 @@ export const dropTargetSpec = (
     if (hoverShouldBeIgnored(monitor, draggedItem)) {
       return;
     }
-    if (!hoverIndexHelper(draggedItem, targetItem, ref.current?.getBoundingClientRect(), monitor.getClientOffset())) {
+    if (
+      !hoverIndexHelper(
+        draggedItem,
+        targetItem,
+        ref.current?.getBoundingClientRect(),
+        monitor.getClientOffset()
+      )
+    ) {
       return;
     }
     events.moveItem(draggedItem, targetItem);

@@ -1,0 +1,38 @@
+.elementContainer {
+  display: flex;
+  gap: 1rem;
+  flex-direction: row;
+  align-items: center;
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 19px;
+  cursor: pointer;
+}
+
+.selected .elementContainer {
+  font-weight: 700;
+}
+
+.elementContainer div:first-child {
+  flex: 0;
+}
+.elementContainer div:nth-child(2) {
+  flex: 1;
+}
+.elementContainer div:last-child {
+  flex: 0;
+}
+
+.ellipsisButton {
+  margin-left: 1.2rem;
+  visibility: hidden;
+}
+.elementContainer:hover .ellipsisButton {
+  visibility: visible;
+}
+
+.errorMessage {
+  font-size: 13px;
+  font-weight: 400;
+  padding-top: 6px;
+}

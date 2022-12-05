@@ -2,7 +2,7 @@
 
 [![Altinn Studio build status](https://dev.azure.com/brreg/altinn-studio/_apis/build/status/altinn-studio-build-designer-image-v2-master?label=Altinn%20Studio)](https://dev.azure.com/brreg/altinn-studio/_build/latest?definitionId=18)
 
-Altinn Studio is the next generation Altinn application development solution. Together with Altinn Apps and Altinn 
+Altinn Studio is the next generation Altinn application development solution. Together with Altinn Apps and Altinn
 Platform, it makes a complete application development and hosting platform.
 
 Altinn Studio is available at <https://altinn.studio>.
@@ -11,7 +11,7 @@ Use the [Altinn Studio documentation][1] to get started.
 
 ## Getting Started
 
-These instructions will get you a copy of Altinn Studio up and running on your local machine for development and testing 
+These instructions will get you a copy of Altinn Studio up and running on your local machine for development and testing
 purposes. See deployment for notes on how to deploy the project on a live system.
 
 ### Prerequisites
@@ -28,21 +28,11 @@ purposes. See deployment for notes on how to deploy the project on a live system
    127.0.0.1 altinn3.no
    ```
    _On MacOS add the same values to values `/private/etc/hosts` with `sudo nano /private/etc/hosts` in treminal._
-7. If you are running Docker Desktop in Hyper-V mode you need to make sure your C drive is shared with Docker, Docker 
-   Settings -> Shared Drives The File sharing tab is only available in Hyper-V mode, because in WSL 2 mode and Windows 
+7. If you are running Docker Desktop in Hyper-V mode you need to make sure your C drive is shared with Docker, Docker
+   Settings -> Shared Drives The File sharing tab is only available in Hyper-V mode, because in WSL 2 mode and Windows
    container mode all files are automatically shared by Windows.
-   
-   On MacOS: Change docker-compose.yml (both)
-   ```yaml
-   volumes:
-     - "C:/AltinnCore/Repos:/AltinnCore/Repos"
-   ```
-   to:
-   ```yaml
-   volumes:
-     - "/Users/<yourname>/AltinnCore/Repos:/AltinnCore/Repos"
-   ```
-8. World Wide Web Publishing Service must be disabled, Services -> "World Wide Web Publishing Service" rigth click and 
+
+8. World Wide Web Publishing Service must be disabled, Services -> "World Wide Web Publishing Service" rigth click and
    choose "stop"
 
 ### Installing
@@ -60,7 +50,7 @@ Run all parts of the solution in containers (Make sure docker is running)
 docker-compose up -d --build
 ```
 
-The solution is now available locally at [altinn3.no](http://altinn3.no). (Just create a new user for testing. No email 
+The solution is now available locally at [altinn3.no](http://altinn3.no). (Just create a new user for testing. No email
 verification required)
 
 If you make changes and want to rebuild a specific project using docker-compose this can be done using
@@ -78,7 +68,7 @@ docker-compose up -d --build altinn_designer
 ### Running and developing solutions locally
 
 When starting `docker-compose` the solution should be running as it would in production. But you probably want to change
-parts of the solution. The loadbalancer is configured to route the traffic to the right place according to your 
+parts of the solution. The loadbalancer is configured to route the traffic to the right place according to your
 particular usecase. This is done by placing a `.env`-file in the same folder as docker-compose.yml. The content is as
 follow:
 
@@ -92,18 +82,9 @@ DEVELOP_APP_DEVELOPMENT=0
 
 Navigate to the designer backend folder `cd src/studio/src/designer/backend`. The first time running, or after any package changes, get the latest packages.
 
-On MacOS you need two extra steps before running .NET.
+- On MacOS you need one extra step before running .NET:
 
-1. change the RepositoryLocation in `src/studio/src/designer/backend/appsettings.json` to
-   ```json
-   {
-      "ServiceRepositorySettings": {
-        "RepositoryLocation": "/Users/<yourname>/AltinnCore/Repos/"
-      }
-   }
-   ```
-   
-2. Change location where the application stores the DataProtectionKeys
+  Change location where the application stores the DataProtectionKeys
    ```bash
    export ALTINN_KEYS_DIRECTORY=/Users/<yourname>/studio/keys
    ```
@@ -142,14 +123,14 @@ Which will build the Designer .NET backend and the designer react app, but not l
 
 #### Building the React apps
 
-If you need to rebuild other react apps, for instance `dashboard` or `app-development`, this can be done by navigating 
+If you need to rebuild other react apps, for instance `dashboard` or `app-development`, this can be done by navigating
 to `src/studio/src/designer/frontend` and then run the following build script, which will build app frontend apps.
 
 ```bash
 yarn run build
 ```
 
-Some of the React projects also have various other predefined scripts, which can be viewed in the `package.json` file 
+Some of the React projects also have various other predefined scripts, which can be viewed in the `package.json` file
 which is located in the root folder of each react project, example `src/studio/src/designer/frontend/dashboard`.
 
 ## Running the tests
@@ -173,7 +154,7 @@ The current build is deployed in Kubernetes on Azure. Automated CI/CD using Azur
 ## Built With
 
 - [React][11]/[Redux][12] - The front-end framework
-- [.NET Core][13]/[C#][14] - The 
+- [.NET Core][13]/[C#][14] - The
   back-end framework
 - [yarn][15] - Package management
 - [Docker][16] - Container platform
@@ -181,14 +162,14 @@ The current build is deployed in Kubernetes on Azure. Automated CI/CD using Azur
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](../../CONTRIBUTING.md) for details on our code of conduct, and the process for submitting 
+Please read [CONTRIBUTING.md](../../CONTRIBUTING.md) for details on our code of conduct, and the process for submitting
 pull requests to us.
 
 ## Authors
 
 - **Altinn Studio development team** - If you want to get in touch, just [create a new issue][18].
 
-See also the list of [contributors][19] who participated in 
+See also the list of [contributors][19] who participated in
 this project.
 
 ## License

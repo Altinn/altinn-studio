@@ -14,13 +14,17 @@ describe('EditContainer', () => {
   it('should show edit id when edit button is clicked', async () => {
     render();
 
-    expect(screen.queryByText(/ux_editor\.modal_properties_component_change_id/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/ux_editor\.modal_properties_component_change_id/i)
+    ).not.toBeInTheDocument();
     expect(screen.queryByDisplayValue(id)).not.toBeInTheDocument();
 
     const editButton = screen.getByTestId('EditContainer-edit-button');
     await user.click(editButton);
 
-    expect(screen.getByText(/ux_editor\.modal_properties_component_change_id/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/ux_editor\.modal_properties_component_change_id/i)
+    ).toBeInTheDocument();
     expect(screen.getByDisplayValue(id)).toBeInTheDocument();
     expect(screen.queryByTestId('EditContainer-edit-button')).not.toBeInTheDocument();
   });

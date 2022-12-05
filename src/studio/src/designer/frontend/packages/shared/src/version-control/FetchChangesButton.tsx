@@ -13,12 +13,12 @@ export const FetchChangesButton = ({ fetchChanges, buttonText }: IFetchChangesCo
   const fetchChangesHandler = (event: any) => fetchChanges(event.currentTarget);
   return (
     <Button
-      onClick={fetchChangesHandler}
-      data-testid='fetch-changes-button'
-      svgIconComponent={<Download />}
-      variant={ButtonVariant.Quiet}
-      size={ButtonSize.Small}
       className={classes.button}
+      data-testid='fetch-changes-button'
+      icon={<Download />}
+      onClick={fetchChangesHandler}
+      size={ButtonSize.Small}
+      variant={ButtonVariant.Quiet}
     >
       <span id='fetch_changes_btn'>{buttonText}</span>
     </Button>

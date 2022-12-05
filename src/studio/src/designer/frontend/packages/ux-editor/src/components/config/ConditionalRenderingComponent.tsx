@@ -203,7 +203,10 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
     );
   };
 
-  public renderCondtionalRenderingTargetContainerOptions = (id: string, baseContainer?: boolean): JSX.Element[] => {
+  public renderCondtionalRenderingTargetContainerOptions = (
+    id: string,
+    baseContainer?: boolean
+  ): JSX.Element[] => {
     const options: JSX.Element[] = [];
     if (!this.props.order[id]) {
       return options;
@@ -236,7 +239,10 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
     Object.keys(this.props.order).forEach((key) => {
       const containerKey = Object.keys(this.props.order)[0];
       const isBaseContainer = this.props.formLayoutContainers[containerKey]?.Type !== 'Group';
-      const containerOptions = this.renderCondtionalRenderingTargetContainerOptions(key, isBaseContainer);
+      const containerOptions = this.renderCondtionalRenderingTargetContainerOptions(
+        key,
+        isBaseContainer
+      );
       containerOptions.forEach((option) => {
         options.push(option);
       });
@@ -288,47 +294,57 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
             <>
               <div className='form-group a-form-group mt-2'>
                 <h2 className='a-h4'>
-                  {this.props.language['ux_editor.modal_configure_conditional_rendering_configure_input_header']}
+                  {
+                    this.props.language[
+                      'ux_editor.modal_configure_conditional_rendering_configure_input_header'
+                    ]
+                  }
                 </h2>
-                {Object.keys(this.props.ruleModelElements[selectedMethodNr].inputs).map((key: any) => {
-                  const paramName = key;
-                  return (
-                    <div className='row align-items-center mb-1' key={key}>
-                      <div className='col-3 col'>
-                        <div className='form-group a-form-group mt-1 disabled'>
-                          <label className='a-form-label' htmlFor={paramName}>
-                            {
-                              this.props.language[
-                                'ux_editor.modal_configure_conditional_rendering_configure_input_param_helper'
-                              ]
-                            }
-                          </label>
-                          <input
-                            id={paramName}
-                            name={paramName}
-                            type='text'
-                            className='form-control'
-                            value={this.props.ruleModelElements[selectedMethodNr].inputs[key]}
-                            width={10}
-                            disabled={true}
+                {Object.keys(this.props.ruleModelElements[selectedMethodNr].inputs).map(
+                  (key: any) => {
+                    const paramName = key;
+                    return (
+                      <div className='row align-items-center mb-1' key={key}>
+                        <div className='col-3 col'>
+                          <div className='form-group a-form-group mt-1 disabled'>
+                            <label className='a-form-label' htmlFor={paramName}>
+                              {
+                                this.props.language[
+                                  'ux_editor.modal_configure_conditional_rendering_configure_input_param_helper'
+                                ]
+                              }
+                            </label>
+                            <input
+                              id={paramName}
+                              name={paramName}
+                              type='text'
+                              className='form-control'
+                              value={this.props.ruleModelElements[selectedMethodNr].inputs[key]}
+                              width={10}
+                              disabled={true}
+                            />
+                          </div>
+                        </div>
+                        <div className='col-9 col'>
+                          <SelectDataModelComponent
+                            onDataModelChange={this.handleParamDataChange.bind(null, paramName)}
+                            selectedElement={this.state.conditionalRendering.inputParams[paramName]}
+                            hideRestrictions={true}
+                            language={this.props.language}
                           />
                         </div>
                       </div>
-                      <div className='col-9 col'>
-                        <SelectDataModelComponent
-                          onDataModelChange={this.handleParamDataChange.bind(null, paramName)}
-                          selectedElement={this.state.conditionalRendering.inputParams[paramName]}
-                          hideRestrictions={true}
-                          language={this.props.language}
-                        />
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  }
+                )}
               </div>
               <div className='form-group a-form-group mt-2'>
                 <h2 className='a-h4'>
-                  {this.props.language['ux_editor.modal_configure_conditional_rendering_configure_output_header']}
+                  {
+                    this.props.language[
+                      'ux_editor.modal_configure_conditional_rendering_configure_output_header'
+                    ]
+                  }
                 </h2>
                 <div className='row align-items-center mb-1'>
                   <div className='col'>
@@ -358,7 +374,11 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                   </div>
                 </div>
                 <p className='mt-2'>
-                  {this.props.language['ux_editor.modal_configure_conditional_rendering_configure_output_field_helper']}
+                  {
+                    this.props.language[
+                      'ux_editor.modal_configure_conditional_rendering_configure_output_field_helper'
+                    ]
+                  }
                 </p>
                 {Object.keys(this.state.conditionalRendering.selectedFields).map((key: any) => {
                   return (
@@ -371,7 +391,9 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
                           className='custom-select a-custom-select mb-1'
                           style={{ fontSize: '16px' }}
                         >
-                          <option value=''>{this.props.language['general.select_component']}</option>
+                          <option value=''>
+                            {this.props.language['general.select_component']}
+                          </option>
                           {this.renderCondtionalRenderingTargetOptions()}
                         </select>
                       </div>
@@ -404,12 +426,20 @@ class ConditionalRendering extends React.Component<IConditionalRenderingComponen
           <div className='row mt-3'>
             <div className='col'>
               {this.state.conditionalRendering.selectedFunction ? (
-                <button onClick={this.handleSaveEdit} type='submit' className='a-btn a-btn-success mr-2'>
+                <button
+                  onClick={this.handleSaveEdit}
+                  type='submit'
+                  className='a-btn a-btn-success mr-2'
+                >
                   {this.props.language['general.save']}
                 </button>
               ) : null}
               {this.props.connectionId ? (
-                <button type='button' className='a-btn a-btn-danger mr-2' onClick={this.handleDeleteConnection}>
+                <button
+                  type='button'
+                  className='a-btn a-btn-danger mr-2'
+                  onClick={this.handleDeleteConnection}
+                >
                   {this.props.language['general.delete']}
                 </button>
               ) : null}

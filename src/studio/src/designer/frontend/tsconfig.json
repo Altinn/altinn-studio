@@ -19,6 +19,7 @@
       "app-shared/*": ["./packages/shared/src/*"],
       "@altinn/schema-editor/*": ["./packages/schema-editor/src/*"],
       "@altinn/schema-model": ["./packages/schema-model/src/*"],
+      "@altinn/text-editor": ["./packages/schema-model/src/*"],
       "@altinn/ux-editor": ["./packages/ux-editor/src/*"]
     }
   },

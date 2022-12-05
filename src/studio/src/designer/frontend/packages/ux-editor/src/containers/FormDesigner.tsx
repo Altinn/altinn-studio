@@ -117,7 +117,9 @@ function FormDesigner() {
   const [codeEditorOpen, setCodeEditorOpen] = useState<boolean>(false);
   const [codeEditorMode, setCodeEditorMode] = useState<LogicMode>(null);
 
-  const selectedLayout: string = useSelector((state: IAppState) => state.formDesigner.layout.selectedLayout);
+  const selectedLayout: string = useSelector(
+    (state: IAppState) => state.formDesigner.layout.selectedLayout
+  );
   const language = useSelector((state: IAppState) => state.appData.languageState.language);
   const dataModel = useSelector((state: IAppState) => state.appData.dataModel.model);
 
@@ -143,7 +145,11 @@ function FormDesigner() {
 
   const renderLogicEditor = () => {
     return (
-      <Drawer anchor='bottom' open={codeEditorOpen} classes={{ paper: classNames(classes.drawerRoot) }}>
+      <Drawer
+        anchor='bottom'
+        open={codeEditorOpen}
+        classes={{ paper: classNames(classes.drawerRoot) }}
+      >
         <FileEditor
           editorHeight={getEditorHeight()}
           mode={codeEditorMode.toString()}
@@ -157,7 +163,11 @@ function FormDesigner() {
 
   const activeList = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
   const layoutOrder = useSelector((state: IAppState) =>
-    JSON.parse(JSON.stringify(state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.order || {}))
+    JSON.parse(
+      JSON.stringify(
+        state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.order || {}
+      )
+    )
   );
 
   const order = useSelector((state: IAppState) => makeGetLayoutOrderSelector()(state));
@@ -172,12 +182,24 @@ function FormDesigner() {
           classes={{ container: classNames(classes.container) }}
           id='formFillerGrid'
         >
-          <Grid item={true} xs={2} className={classes.toolbarWrapper} classes={{ item: classNames(classes.item) }}>
+          <Grid
+            item={true}
+            xs={2}
+            className={classes.toolbarWrapper}
+            classes={{ item: classNames(classes.item) }}
+          >
             <Toolbar />
           </Grid>
-          <Grid item={true} xs={8} className={classes.mainContent} classes={{ item: classNames(classes.item) }}>
+          <Grid
+            item={true}
+            xs={8}
+            className={classes.mainContent}
+            classes={{ item: classNames(classes.item) }}
+          >
             <div className={classes.pageHeader}>
-              <Typography classes={{ root: classes.pageHeaderText }}>{`Side - ${selectedLayout}`}</Typography>
+              <Typography
+                classes={{ root: classes.pageHeaderText }}
+              >{`Side - ${selectedLayout}`}</Typography>
             </div>
             <div
               style={{
@@ -186,7 +208,12 @@ function FormDesigner() {
                 marginLeft: '24px',
               }}
             >
-              <DesignView order={order} activeList={activeList} isDragging={false} layoutOrder={layoutOrder} />
+              <DesignView
+                order={order}
+                activeList={activeList}
+                isDragging={false}
+                layoutOrder={layoutOrder}
+              />
               {codeEditorOpen ? renderLogicEditor() : null}
             </div>
           </Grid>

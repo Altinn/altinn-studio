@@ -30,13 +30,13 @@ export const ShareChangesButton = (props: IShareChangesComponentProps) => {
 
   return (
     <Button
-      onClick={shareChangesHandler}
-      disabled={!props.hasPushRight}
-      id='share_changes_button'
-      svgIconComponent={props.hasMergeConflict ? <Cancel /> : <Upload />}
-      variant={ButtonVariant.Quiet}
-      size={ButtonSize.Small}
       className={classes.button}
+      disabled={!props.hasPushRight}
+      icon={props.hasMergeConflict ? <Cancel /> : <Upload />}
+      id='share_changes_button'
+      onClick={shareChangesHandler}
+      size={ButtonSize.Small}
+      variant={ButtonVariant.Quiet}
     >
       {renderCorrectText()}
     </Button>

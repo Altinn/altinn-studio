@@ -27,14 +27,14 @@ public sealed class XsdTextKeyword: IJsonSchemaKeyword, IEquatable<XsdTextKeywor
     public bool Value { get; }
 
     /// <summary>
-    /// Create a new instance of XsdTypeKeyword with the default false value.
+    /// Create a new instance of XsdTextKeyword with the default false value.
     /// </summary>
     public XsdTextKeyword() : this(false)
     {
     }
 
     /// <summary>
-    /// Create a new instance of XsdTypeKeyword with the specified false value.
+    /// Create a new instance of XsdTextKeyword with the specified false value.
     /// </summary>
     public XsdTextKeyword(bool value)
     {

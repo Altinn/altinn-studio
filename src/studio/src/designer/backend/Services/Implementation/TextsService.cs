@@ -1,11 +1,18 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Altinn.Studio.DataModeling.Templates;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
+using JetBrains.Annotations;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Altinn.Studio.Designer.Services.Implementation
 {
@@ -41,6 +48,28 @@ namespace Altinn.Studio.Designer.Services.Implementation
             }
 
             return jsonTexts;
+        }
+
+        /// <inheritdoc />
+        public async Task<List<string>> GetKeys(string org, string repo, string developer, IList<string> languages)
+        {
+            if (languages.IsNullOrEmpty())
+            {
+                throw new FileNotFoundException();
+            }
+
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+            Dictionary<string, string> firstJsonTexts = await altinnAppGitRepository.GetTextsV2(languages[0]);
+            languages.RemoveAt(0);
+            List<string> allKeys = firstJsonTexts.Keys.ToList();
+
+            foreach (string languageCode in languages)
+            {
+                Dictionary<string, string> jsonTexts = await altinnAppGitRepository.GetTextsV2(languageCode);
+                allKeys = MergeKeys(allKeys, jsonTexts.Keys.ToList());
+            }
+
+            return allKeys;
         }
 
         /// <inheritdoc />
@@ -103,6 +132,74 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 altinnAppGitRepository.DeleteFileByAbsolutePath(languageFile);
             }
+        }
+
+        /// <inheritdoc />
+        public async Task<string> UpdateKey(string org, string repo, string developer, IList<string> languages, string oldKey, string newKey)
+        {
+            if (languages.IsNullOrEmpty())
+            {
+                throw new FileNotFoundException();
+            }
+
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+            Dictionary<string, Dictionary<string, string>> tempUpdatedTexts = new Dictionary<string, Dictionary<string, string>>(languages.Count);
+            bool oldKeyExistsOriginally = false;
+            string response = string.Empty;
+            try
+            {
+                foreach (string languageCode in languages)
+                {
+                    Dictionary<string, string> jsonTexts = await altinnAppGitRepository.GetTextsV2(languageCode);
+                    oldKeyExistsOriginally = jsonTexts.ContainsKey(oldKey) || oldKeyExistsOriginally;
+                    if (!newKey.IsNullOrEmpty() && jsonTexts.ContainsKey(newKey) && jsonTexts.ContainsKey(oldKey))
+                    {
+                        throw new ArgumentException();
+                    }
+
+                    if (!newKey.IsNullOrEmpty() && jsonTexts.ContainsKey(oldKey))
+                    {
+                        string value = jsonTexts[oldKey];
+                        jsonTexts[newKey] = value;
+                    }
+
+                    jsonTexts.Remove(oldKey);
+                    tempUpdatedTexts[languageCode] = jsonTexts;
+                }
+
+                response = newKey.IsNullOrEmpty() ? $"the key, {oldKey}, was deleted." : $"The old key, {oldKey}, have been replaced with the new key, {newKey}.";
+
+                if (!oldKeyExistsOriginally)
+                {
+                    throw new Exception($"The key, {oldKey}, does not exist.");
+                }
+            }
+            catch (ArgumentException)
+            {
+                throw new ArgumentException();
+            }
+
+            foreach (KeyValuePair<string, Dictionary<string, string>> kvp in tempUpdatedTexts)
+            {
+                await altinnAppGitRepository.SaveTextsV2(kvp.Key, kvp.Value);
+            }
+
+            return response;
+        }
+
+        private static List<string> MergeKeys(List<string> currentSetOfKeys, List<string> keysToMerge)
+        {
+            foreach (string key in keysToMerge)
+            {
+                if (currentSetOfKeys.Contains(key))
+                {
+                    continue;
+                }
+
+                currentSetOfKeys.Add(key);
+            }
+
+            return currentSetOfKeys;
         }
 
         /// <summary>

@@ -45,6 +45,7 @@ const dataModelSlice = createSlice({
   },
 });
 
-export const { fetchDataModel, fetchDataModelFulfilled, fetchDataModelRejected } = dataModelSlice.actions;
+export const { fetchDataModel, fetchDataModelFulfilled, fetchDataModelRejected } =
+  dataModelSlice.actions;
 
 export default dataModelSlice.reducer;

@@ -1,0 +1,10 @@
+{
+  "KeyOnTop": "Etternavn på ste- eller fosterforeldre du ønsker å ta navnet til",
+  "BegrunnelseValgNavn": "Begrunnelse for endring av navn",
+  "BekreftNavnTittel": "Bekreftelse av endring",
+  "KeyNotDefinedInEnglish": "Noen ord på bokmål",
+  "DineEndringer": "Dine endringer",
+  "EndreNavnFra": "Du har valgt å endre til:",
+  "EndreNavnTil": "Til:",
+  "AlreadyExistingKey": "En verdi for bokmål"
+}

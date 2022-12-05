@@ -64,7 +64,10 @@ const formLayoutSlice = createSlice({
   name: moduleName,
   initialState,
   reducers: {
-    addActiveFormContainerFulfilled: (state, action: PayloadAction<IAddActiveFormContainerAction>) => {
+    addActiveFormContainerFulfilled: (
+      state,
+      action: PayloadAction<IAddActiveFormContainerAction>
+    ) => {
       const { containerId, callback } = action.payload;
       if (callback) {
         callback(containerId);
@@ -94,7 +97,10 @@ const formLayoutSlice = createSlice({
       const { error } = action.payload;
       state.error = error;
     },
-    addFormComponentsFulfilled: (state, action: PayloadAction<IAddFormComponentsActionFulfilled>) => {
+    addFormComponentsFulfilled: (
+      state,
+      action: PayloadAction<IAddFormComponentsActionFulfilled>
+    ) => {
       const { components, ids, position, containerId, callback } = action.payload;
 
       if (callback) {
@@ -108,7 +114,15 @@ const formLayoutSlice = createSlice({
       state.layouts[state.selectedLayout].order[containerId].splice(position, 0, ...ids);
     },
     addFormContainerFulfilled: (state, action: PayloadAction<IAddFormContainerActionFulfilled>) => {
-      const { container, id, positionAfterId, addToId, baseContainerId, callback, destinationIndex } = action.payload;
+      const {
+        container,
+        id,
+        positionAfterId,
+        addToId,
+        baseContainerId,
+        callback,
+        destinationIndex,
+      } = action.payload;
 
       if (callback) {
         callback(container, id);
@@ -170,7 +184,10 @@ const formLayoutSlice = createSlice({
       const { error } = action.payload;
       state.error = error;
     },
-    deleteApplicationMetadataRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
+    deleteApplicationMetadataRejected: (
+      state,
+      action: PayloadAction<IFormDesignerActionRejected>
+    ) => {
       const { error } = action.payload;
       state.error = error;
     },
@@ -208,7 +225,10 @@ const formLayoutSlice = createSlice({
       delete selectedLayout.containers[id];
       delete selectedLayout.order[id];
       if (parentContainerId) {
-        selectedLayout.order[parentContainerId].splice(selectedLayout.order[parentContainerId].indexOf(id), 1);
+        selectedLayout.order[parentContainerId].splice(
+          selectedLayout.order[parentContainerId].indexOf(id),
+          1
+        );
       }
 
       state.unSavedChanges = true;
@@ -255,7 +275,10 @@ const formLayoutSlice = createSlice({
       state.fetched = false;
       state.error = error;
     },
-    fetchLayoutSettingsFulfilled: (state, action: PayloadAction<IFetchLayoutSettingsFulfilledAction>) => {
+    fetchLayoutSettingsFulfilled: (
+      state,
+      action: PayloadAction<IFetchLayoutSettingsFulfilledAction>
+    ) => {
       const { settings } = action.payload;
       state.layoutSettings = settings;
     },
@@ -284,12 +307,17 @@ const formLayoutSlice = createSlice({
       const { containerList, orderList } = action.payload;
       const key: any = Object.keys(orderList)[0];
       const func = sortArray();
-      const returnedList = !containerList.length ? [] : func({ array: [...containerList], order: orderList[key] });
+      const returnedList = !containerList.length
+        ? []
+        : func({ array: [...containerList], order: orderList[key] });
       if (returnedList.length > 0) {
         state.activeList = returnedList;
       }
     },
-    updateApplicationMetadataRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
+    updateApplicationMetadataRejected: (
+      state,
+      action: PayloadAction<IFormDesignerActionRejected>
+    ) => {
       const { error } = action.payload;
       state.error = error;
     },

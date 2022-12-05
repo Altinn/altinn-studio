@@ -16,6 +16,7 @@ import classes from './ItemFieldsTab.module.css';
 import { usePrevious } from '../../hooks/usePrevious';
 import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
 import { getDomFriendlyID } from '../../utils/ui-schema-utils';
+import { Add } from '@navikt/ds-icons';
 
 export interface ItemFieldsTabProps {
   selectedItem: UiSchemaNode;
@@ -104,7 +105,7 @@ export const ItemFieldsTab = ({ selectedItem, language }: ItemFieldsTabProps) =>
         <div className={classes.addButtonCell}>
           <Button
             color={ButtonColor.Secondary}
-            iconName={'Add'}
+            icon={<Add/>}
             onClick={onAddPropertyClicked}
             variant={ButtonVariant.Outline}
           >

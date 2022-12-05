@@ -403,23 +403,89 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
         private void HandleNillableComplexType(XmlSchemaElement element, JsonPointer path, WorkList<IJsonSchemaKeyword> keywords)
         {
-            var compatibleTypes = _metadata.GetCompatibleTypes(path);
-
             var oneOfKeyword = keywords.GetKeyword<OneOfKeyword>();
-            var refKeywordSubSchema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
-            var propertiesKeywordSubSchema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => s.Keywords.HasKeyword<PropertiesKeyword>());
+
+            var handled = oneOfKeyword is null
+                ? TryHandleNonCompositionNillableComplexType(element, path, keywords)
+                : TryHandleCompositionNillableComplexType(element, oneOfKeyword, path);
+
+            if (!handled)
+            {
+                throw new JsonSchemaConvertException("The provided schema could not be handled as a nillable complex type.");
+            }
+
+            element.IsNillable = true;
+        }
+
+        private bool TryHandleNonCompositionNillableComplexType(XmlSchemaElement element, JsonPointer path, WorkList<IJsonSchemaKeyword> keywords)
+        {
+            if (keywords.HasKeyword<XsdNillableKeyword>(k => k.Value) && keywords.TryGetKeyword(out RefKeyword reference))
+            {
+                element.SchemaTypeName = GetTypeNameFromReference(reference.Reference);
+                return true;
+            }
+
+            if (keywords.HasKeyword<XsdNillableKeyword>(k => k.Value) && keywords.HasKeyword<PropertiesKeyword>())
+            {
+                var item = new XmlSchemaComplexType
+                {
+                    Parent = element
+                };
+                element.SchemaType = item;
+
+                HandleComplexType(item, keywords, path);
+                return true;
+            }
 
             var typeKeyword = keywords.GetKeyword<TypeKeyword>();
             var itemsKeyword = keywords.GetKeyword<ItemsKeyword>();
+
+            if (typeKeyword == null && itemsKeyword == null)
+            {
+                return false;
+            }
+
+            if (_metadata.GetCompatibleTypes(path).Contains(CompatibleXsdType.ComplexContentExtension))
+            {
+                var item = new XmlSchemaComplexType
+                {
+                    Parent = element
+                };
+                element.SchemaType = item;
+
+                HandleComplexType(item, itemsKeyword.SingleSchema.AsWorkList(), path);
+            }
+            else
+            {
+                var oneOf = itemsKeyword.SingleSchema.GetKeyword<OneOfKeyword>();
+                if (oneOf is null && itemsKeyword.SingleSchema.TryGetKeyword(out RefKeyword itemsRef))
+                {
+                    element.SchemaTypeName = GetTypeNameFromReference(itemsRef.Reference);
+                }
+                else
+                {
+                    var refKeyword = itemsKeyword.SingleSchema.GetKeyword<OneOfKeyword>().GetSubschemas().FirstOrDefault(s => s.HasKeyword<RefKeyword>()).GetKeyword<RefKeyword>();
+                    element.SchemaTypeName = GetTypeNameFromReference(refKeyword.Reference);
+                }
+            }
+
+            return true;
+        }
+
+        private bool TryHandleCompositionNillableComplexType(XmlSchemaElement element, OneOfKeyword oneOfKeyword, JsonPointer path)
+        {
+            var refKeywordSubSchema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => s.Keywords.HasKeyword<RefKeyword>());
+            var propertiesKeywordSubSchema = oneOfKeyword.GetSubschemas().FirstOrDefault(s => s.Keywords.HasKeyword<PropertiesKeyword>());
 
             // Element with type reference to a ComplexType
             if (refKeywordSubSchema != null)
             {
                 element.SchemaTypeName = GetTypeNameFromReference(refKeywordSubSchema.GetKeyword<RefKeyword>().Reference);
+                return true;
             }
 
             // Element with inline ComplexType
-            else if (propertiesKeywordSubSchema != null)
+            if (propertiesKeywordSubSchema != null)
             {
                 var item = new XmlSchemaComplexType
                 {
@@ -429,33 +495,10 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
 
                 var propertiesKeywordSubSchemaIndex = GetKeywordSubSchemaIndex<PropertiesKeyword>(oneOfKeyword.Schemas);
                 HandleComplexType(item, propertiesKeywordSubSchema.AsWorkList(), path.Combine(JsonPointer.Parse($"/oneOf/[{propertiesKeywordSubSchemaIndex}]")));
+                return true;
             }
 
-            // Array
-            else if (typeKeyword != null || itemsKeyword != null)
-            {
-                if (compatibleTypes.Contains(CompatibleXsdType.ComplexContentExtension))
-                {
-                    var item = new XmlSchemaComplexType
-                    {
-                        Parent = element
-                    };
-                    element.SchemaType = item;
-
-                    HandleComplexType(item, itemsKeyword.SingleSchema.AsWorkList(), path);
-                }
-                else
-                {
-                    var refKeyword = itemsKeyword.SingleSchema.GetKeyword<OneOfKeyword>().GetSubschemas().FirstOrDefault(s => s.HasKeyword<RefKeyword>()).GetKeyword<RefKeyword>();
-                    element.SchemaTypeName = GetTypeNameFromReference(refKeyword.Reference);
-                }
-            }
-            else
-            {
-                throw new JsonSchemaConvertException("The provided schema could not be handled as a nillable complex type.");
-            }
-
-            element.IsNillable = true;
+            return false;
         }
 
         private void HandleSimpleType(XmlSchemaElement element, WorkList<IJsonSchemaKeyword> keywords, JsonPointer path)

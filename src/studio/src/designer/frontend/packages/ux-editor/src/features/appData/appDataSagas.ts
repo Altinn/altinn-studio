@@ -11,11 +11,27 @@ import {
   loadTextResourcesFulfilled,
   loadTextResourcesRejected,
 } from './textResources/textResourcesSlice';
-import { getAddTextResourcesUrl, getFetchDataModelUrl, getFetchRuleModelUrl } from '../../utils/urlHelper';
-import { fetchDataModel, fetchDataModelFulfilled, fetchDataModelRejected } from './dataModel/dataModelSlice';
+import {
+  getAddTextResourcesUrl,
+  getFetchDataModelUrl,
+  getFetchRuleModelUrl,
+} from '../../utils/urlHelper';
+import {
+  fetchDataModel,
+  fetchDataModelFulfilled,
+  fetchDataModelRejected,
+} from './dataModel/dataModelSlice';
 import type { IFetchLanguage } from './language/languageSlice';
-import { fetchLanguage, fetchLanguageFulfilled, fetchLanguageRejected } from './language/languageSlice';
-import { fetchRuleModel, fetchRuleModelFulfilled, fetchRuleModelRejected } from './ruleModel/ruleModelSlice';
+import {
+  fetchLanguage,
+  fetchLanguageFulfilled,
+  fetchLanguageRejected,
+} from './language/languageSlice';
+import {
+  fetchRuleModel,
+  fetchRuleModelFulfilled,
+  fetchRuleModelRejected,
+} from './ruleModel/ruleModelSlice';
 import type { IDataModelFieldElement, IRuleModelFieldElement } from '../../types/global';
 import { frontendLangPath } from 'app-shared/api-paths';
 

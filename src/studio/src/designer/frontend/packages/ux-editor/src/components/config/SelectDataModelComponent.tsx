@@ -48,12 +48,16 @@ export class SelectDataModel extends React.Component<ISelectDataModelProps, ISel
       return (
         <li className='a-dotted'>
           <div className='row'>
-            <div className='col-12'>{this.props.language['ux_editor.modal_restrictions_helper']}</div>
+            <div className='col-12'>
+              {this.props.language['ux_editor.modal_restrictions_helper']}
+            </div>
           </div>
         </li>
       );
     }
-    const selected = this.props.dataModelElements.find((modelBinding) => modelBinding.dataBindingName === selectedId);
+    const selected = this.props.dataModelElements.find(
+      (modelBinding) => modelBinding.dataBindingName === selectedId
+    );
     return Object.keys(selected.restrictions).length === 0 ? (
       <li className='a-dotted'>
         <div className='row'>

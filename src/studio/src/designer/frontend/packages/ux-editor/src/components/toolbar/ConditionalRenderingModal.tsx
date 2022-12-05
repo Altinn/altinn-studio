@@ -19,7 +19,9 @@ export interface IConditionalRenderingModalProps {
 export default function ConditionalRenderingModal(props: IConditionalRenderingModalProps) {
   const dispatch = useDispatch();
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
-  const conditionalRendering = useSelector((state: IAppState) => state.serviceConfigurations.conditionalRendering);
+  const conditionalRendering = useSelector(
+    (state: IAppState) => state.serviceConfigurations.conditionalRendering
+  );
   const language = useSelector((state: IAppState) => state.appData.languageState.language);
 
   function selectConnection(newSelectedConnectionId: string) {
@@ -46,7 +48,11 @@ export default function ConditionalRenderingModal(props: IConditionalRenderingMo
 
   function renderConditionRuleConnections(): JSX.Element {
     if (!conditionalRendering || Object.getOwnPropertyNames(conditionalRendering).length === 0) {
-      return <Typography variant='caption'>{getLanguageFromKey('right_menu.rules_empty', language)}</Typography>;
+      return (
+        <Typography variant='caption'>
+          {getLanguageFromKey('right_menu.rules_empty', language)}
+        </Typography>
+      );
     }
     return (
       <>

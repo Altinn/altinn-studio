@@ -1,8 +1,7 @@
 import React from 'react';
-import { createTheme, Grid, Popover, Typography } from '@mui/material';
-import { makeStyles } from '@mui/styles';
-import studioTheme from 'app-shared/theme/altinnStudioTheme';
-import AltinnButton from 'app-shared/components/AltinnButton';
+import { Popover } from '@mui/material';
+import classes from './ConfirmModal.module.css';
+import { Button, ButtonColor } from '@altinn/altinn-design-system';
 
 export interface IConfirmModalProps {
   header: string;
@@ -16,27 +15,7 @@ export interface IConfirmModalProps {
   onCancel: () => void;
 }
 
-const theme = createTheme(studioTheme);
-
-const useStyles = makeStyles({
-  main: {
-    padding: 30,
-    maxWidth: 470,
-  },
-  header: {
-    marginBottom: 12,
-  },
-  content: {
-    marginBottom: 24,
-  },
-  confirmButton: {
-    backgroundColor: theme.altinnPalette.primary.red,
-    color: theme.altinnPalette.primary.white,
-  },
-});
-
 export default function ConfirmModal(props: IConfirmModalProps) {
-  const classes = useStyles();
   return (
     <Popover
       open={props.open}
@@ -51,26 +30,22 @@ export default function ConfirmModal(props: IConfirmModalProps) {
       }}
       onClose={props.onClose}
     >
-      <Grid container={true} direction='column' className={classes.main}>
-        <Grid item={true} className={classes.header}>
-          <Typography variant='h2'>{props.header}</Typography>
-        </Grid>
-        <Grid item={true} className={classes.content}>
-          <Typography variant='body1'>{props.description}</Typography>
-        </Grid>
-        <Grid container={true} direction='row' xs={12} item={true}>
-          <Grid item={true} xs={6}>
-            <AltinnButton
-              onClickFunction={props.onConfirm}
-              btnText={props.confirmText}
-              className={classes.confirmButton}
-            />
-          </Grid>
-          <Grid item={true} xs={6}>
-            <AltinnButton onClickFunction={props.onCancel} btnText={props.cancelText} secondaryButton={true} />
-          </Grid>
-        </Grid>
-      </Grid>
+      <div className={classes.main}>
+        <h2 className={classes.header}>{props.header}</h2>
+        <p className={classes.content}>{props.description}</p>
+        <div className={classes.buttonContainer}>
+          <Button
+            onClick={props.onConfirm}
+            className={classes.confirmButton}
+            color={ButtonColor.Danger}
+          >
+            {props.confirmText}
+          </Button>
+          <Button onClick={props.onCancel} color={ButtonColor.Inverted}>
+            {props.cancelText}
+          </Button>
+        </div>
+      </div>
     </Popover>
   );
 }

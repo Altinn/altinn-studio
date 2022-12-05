@@ -4,10 +4,14 @@ import { setupListeners } from '@reduxjs/toolkit/query';
 
 import { rootReducer } from '../reducers';
 import { sagaMiddleware } from '../sagas';
+import { appDevelopmentApi } from '../services/appDevelopmentApi';
 
-export const middlewares = [sagaMiddleware];
+export const middlewares = [sagaMiddleware, appDevelopmentApi.middleware];
 
-const reducer = combineReducers(rootReducer);
+const reducer = combineReducers({
+  ...rootReducer,
+  [appDevelopmentApi.reducerPath]: appDevelopmentApi.reducer,
+});
 
 export const setupStore = (preloadedState?: PreloadedState<RootState>) => {
   const store = configureStore({

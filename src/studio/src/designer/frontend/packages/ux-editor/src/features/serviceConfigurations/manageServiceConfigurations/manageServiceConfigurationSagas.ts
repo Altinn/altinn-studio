@@ -20,7 +20,8 @@ import { get, post } from 'app-shared/utils/networking';
 import { getFetchRuleConfigurationUrl, getSveSerConfUrl } from '../../../utils/urlHelper';
 import type { IAppState } from '../../../types/global';
 
-const selectServiceConfiguration = (state: IAppState): IServiceConfigurationState => state.serviceConfigurations;
+const selectServiceConfiguration = (state: IAppState): IServiceConfigurationState =>
+  state.serviceConfigurations;
 
 export function* watchFetchServiceConfigurationSaga(): SagaIterator {
   yield takeLatest(fetchServiceConfiguration, fetchJsonFileSaga);
@@ -61,7 +62,9 @@ export function* watchSaveServiceConfigurationSaga(): SagaIterator {
 export function* saveServiceConfigurationSaga(): SagaIterator {
   try {
     delay(200);
-    const serviceConfigurationState: IServiceConfigurationState = yield select(selectServiceConfiguration);
+    const serviceConfigurationState: IServiceConfigurationState = yield select(
+      selectServiceConfiguration
+    );
 
     // create new serviceConfigurations object without manageServiceConfiguration status
     const newServiceConfigurationsObj = Object.keys(serviceConfigurationState)
