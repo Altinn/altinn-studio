@@ -12,7 +12,7 @@ namespace Altinn.Common.AccessTokenClient.Services
     public class SigningCredentialsResolver : ISigningCredentialsResolver
     {
         private readonly AccessTokenSettings _accessTokenSettings;
-        private static X509SigningCredentials _x509SigningCredentials = null;
+        private static X509SigningCredentials? _x509SigningCredentials = null;
         private static readonly object _lockObject = new object();
 
         /// <summary>
@@ -30,6 +30,12 @@ namespace Altinn.Common.AccessTokenClient.Services
         /// <returns></returns>
         public SigningCredentials GetSigningCredentials()
         {
+            return GetSigningCredentials(_accessTokenSettings);
+        }
+
+        // Static method to make sonarcloud happy (not update static field from instance method)
+        private static SigningCredentials GetSigningCredentials(AccessTokenSettings accessTokenSettings)
+        {
             if (_x509SigningCredentials == null)
             {
                 lock (_lockObject)
@@ -37,7 +43,7 @@ namespace Altinn.Common.AccessTokenClient.Services
                     if (_x509SigningCredentials == null)
                     {
                         string basePath = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
-                        string certPath = basePath + $"{_accessTokenSettings.AccessTokenSigningKeysFolder}{_accessTokenSettings.AccessTokenSigningCertificateFileName}";
+                        string certPath = basePath + $"{accessTokenSettings.AccessTokenSigningKeysFolder}{accessTokenSettings.AccessTokenSigningCertificateFileName}";
                         X509Certificate2 cert = new X509Certificate2(certPath);
                         _x509SigningCredentials = new X509SigningCredentials(cert, SecurityAlgorithms.RsaSha256);
                     }
