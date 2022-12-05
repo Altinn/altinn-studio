@@ -1,8 +1,6 @@
 module.exports = {
-  trailingComma: "all",
-  singleQuote: true,
-  printWidth: 120,
+  endOfLine: 'auto',
   jsxSingleQuote: true,
-  endOfLine: "auto",
-  singleAttributePerLine: true,
+  printWidth: 100,
+  singleQuote: true,
 };

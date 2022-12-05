@@ -1,12 +1,8 @@
 // eslint-disable-next-line no-global-assign
 require = require('esm')(module /*, options*/);
 const bodyParser = require('body-parser');
-
 const { ensureStorageDir } = require('./utils');
-const {
-  APP_DEVELOPMENT_BASENAME,
-  DASHBOARD_BASENAME,
-} = require('../../../packages/shared/src/constants');
+
 const {
   datamodelGetPath,
   datamodelPath,
@@ -29,14 +25,9 @@ module.exports = (middlewares, devServer) => {
   ensureStorageDir();
   app.use(bodyParser.json());
 
-  const startUrl =
-    process.env.npm_package_name === 'dashboard'
-      ? DASHBOARD_BASENAME
-      : `${APP_DEVELOPMENT_BASENAME}/someorg/someapp`;
-
   app.delete(datamodelPath(':owner', ':repo'), require('./routes/del-datamodel'));
-  app.get('/', (req, res) => res.redirect(startUrl));
-  app.get('/designer/:owner/:repo', require('./routes/get-index-html'));
+  app.get('/', require('./routes/root-redirect'));
+  app.get('/editor/:owner/:repo', require('./routes/get-index-html'));
   //prettier-ignore
   app.get(datamodelGetPath(':owner', ':repo', '/App/models/:filename'), require('./routes/get-datamodel'));
   app.get(datamodelsPath(':owner', ':repo'), require('./routes/get-datamodels'));
@@ -51,6 +42,9 @@ module.exports = (middlewares, devServer) => {
   app.get(userCurrentPath(), require('./routes/user-current'));
   app.post(createDatamodelPath(':owner', ':repo'), require('./routes/create-model'));
   app.put(datamodelsPath(':owner', ':repo'), require('./routes/put-datamodel'));
+
+  app.get('/designer/api/:org/:app/preview-status', require('./routes/preview-get'));
+  app.get('/designer/html/preview.html', require('./routes/get-preview-html'));
 
   return middlewares;
 };
