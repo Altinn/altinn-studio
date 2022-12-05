@@ -12,7 +12,7 @@ namespace Altinn.Common.AccessTokenClient.Services
     public class SigningCredentialsResolver : ISigningCredentialsResolver
     {
         private readonly AccessTokenSettings _accessTokenSettings;
-        private static X509SigningCredentials? _x509SigningCredentials = null;
+        private static X509SigningCredentials _x509SigningCredentials = null;
         private static readonly object _lockObject = new object();
 
         /// <summary>
