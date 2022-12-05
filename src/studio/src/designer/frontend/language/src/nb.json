@@ -361,6 +361,7 @@
   "right_menu.page_delete_confirm": "Slett skjemasiden",
   "right_menu.page_delete_header": "Er du sikker på at du vil slette siden?",
   "right_menu.page_delete_information": "Du kommer nå til å slette “{0}”. Alt innholdet på siden vil bli fjernet.",
+  "right_menu.pages.invalid_page_data": "Siden inneholder ugyldig data, og kan ikke vises. Kontroller alle komponent-IDer og referanser til komponenter fra grupper.",
   "right_menu.page_menu_delete": "Slett",
   "right_menu.page_menu_down": "Flytt ned",
   "right_menu.page_menu_edit": "Gi nytt navn",

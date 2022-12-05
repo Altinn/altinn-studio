@@ -7,13 +7,15 @@ export default function PagesContainer() {
   const layoutOrder: string[] = useSelector(
     (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order
   );
-  const invalidLayouts: string[] = useSelector((state: IAppState) => state.formDesigner.layout.invalidLayouts);
+  const invalidLayouts: string[] = useSelector(
+    (state: IAppState) => state.formDesigner.layout.invalidLayouts
+  );
 
   return (
     <>
       {layoutOrder.map((layout: string) => {
         const invalid = invalidLayouts.includes(layout);
-        <PageElement name={layout} key={layout} invalid={invalid}/>
+        return <PageElement name={layout} key={layout} invalid={invalid}/>
       })}
     </>
   );

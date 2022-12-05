@@ -153,7 +153,6 @@ export function extractChildrenFromGroup(group: any, components: any[], converte
   delete restOfGroup.type;
   convertedLayout.containers[id] = restOfGroup;
   convertedLayout.order[id] = children || [];
-  console.log('components: ', components);
   children?.forEach((componentId: string) => {
     const component = components.find((candidate: any) => candidate.id === componentId);
     const internalComponent = {...component};

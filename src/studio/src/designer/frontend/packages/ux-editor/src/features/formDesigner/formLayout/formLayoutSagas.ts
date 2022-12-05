@@ -220,7 +220,6 @@ function* fetchFormLayoutSaga(): SagaIterator {
     }
   } else {
     Object.keys(formLayouts).forEach((layoutName: string) => {
-      console.log('layout name: ', layoutName);
       if (!formLayouts[layoutName] || !formLayouts[layoutName].data) {
         convertedLayouts[layoutName] = convertFromLayoutToInternalFormat(null);
       } else {

@@ -336,6 +336,7 @@
   "right_menu.page_delete_confirm": "Delete page",
   "right_menu.page_delete_header": "Are you sure you want to delete the page?",
   "right_menu.page_delete_information": "You will now delete “{0}”. All content on the page will be deleted.",
+  "right_menu.pages.invalid_page_data": "The page contains invalid data and cannot be shown. Please check all component IDs and references to components from groups.",
   "right_menu.page_menu_delete": "Delete",
   "right_menu.page_menu_down": "Move down",
   "right_menu.page_menu_edit": "Edit name",

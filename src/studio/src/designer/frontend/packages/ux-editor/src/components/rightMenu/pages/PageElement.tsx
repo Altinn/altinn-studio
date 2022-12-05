@@ -37,7 +37,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
 
   const onPageClick = () => {
     if (invalid) {
-      alert(`Siden ${name} inneholder ugyldig data, og kan ikke vises.`);
+      alert(`${name}: ${t('right_menu.pages.invalid_page_data')}`);
     }
     else if (selectedLayout !== name) {
       dispatch(FormLayoutActions.updateSelectedLayout({ selectedLayout: name }));
