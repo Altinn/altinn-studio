@@ -26,13 +26,6 @@
       "tasks": [
         "Task_4"
       ]
-    },
-    {
-      "id": "datalist",
-      "dataType": "datalist",
-      "tasks": [
-        "Task_5"
-      ]
     }
   ]
 }
