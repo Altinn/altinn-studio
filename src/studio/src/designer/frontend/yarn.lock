@@ -4796,7 +4796,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-preview@workspace:app-preview"
   dependencies:
-    "@altinn/altinn-design-system": 0.23.3
+    "@altinn/altinn-design-system": 0.25.3
     axios: 0.27.2
     classnames: 2.3.2
     cross-env: 7.0.3
