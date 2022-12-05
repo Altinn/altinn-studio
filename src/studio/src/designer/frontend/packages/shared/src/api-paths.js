@@ -38,15 +38,9 @@ export const userLogoutPath = () => '/repos/user/logout';
 export const userReposPath = () => '/designer/api/v1/user/repos';
 export const userStarredListPath = () => '/designer/api/v1/user/starred';
 export const userStarredRepoPath = (owner, repo) => `/designer/api/v1/user/starred/${owner}/${repo}`;
-
-export const repositoryPath = (owner, repo) => {
-  if (owner && repo) {
-    return `/repos/${owner}/${repo}`;
-  } else if (owner) {
-    return `/repos/${owner}`;
-  }
-  return `/repos`;
-};
+export const repositoryPath = (owner, repo) => `/repos/${owner}/${repo}`;
+export const repositoryOwnerPath = (owner) => `/repos/${owner}`;
+export const repositoryBasePath = () => '/repos';
 
 export const copyAppPath = (org, sourceRepository, targetRepository) =>
   `/designer/api/v1/repos/copyapp?${s({
