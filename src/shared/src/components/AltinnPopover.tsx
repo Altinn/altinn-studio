@@ -70,14 +70,29 @@ const AltinnPopoverComponent = ({
   closeButton,
 }: IAltinnPopoverProvidedProps) => {
   const classes = useStyles();
+  const ref = React.useRef<HTMLDivElement>();
+
+  React.useEffect(() => {
+    if (ref.current) {
+      for (const child of Array.from(ref.current.children)) {
+        if (child.parentElement && child.getAttribute('tabIndex') === '0') {
+          child.removeAttribute('tabIndex');
+        }
+      }
+    }
+  }, [anchorEl]);
 
   return (
     <>
       <Popover
+        ref={ref}
         open={!!anchorEl}
         anchorEl={anchorEl}
         onClose={handleClose}
-        onBlur={handleClose}
+        disablePortal={true}
+        disableAutoFocus={true}
+        disableEnforceFocus={true}
+        disableRestoreFocus={true}
         anchorOrigin={{
           horizontal: anchorOrigin?.horizontal ? anchorOrigin.horizontal : 'left',
           vertical: anchorOrigin?.vertical ? anchorOrigin.vertical : 'top',

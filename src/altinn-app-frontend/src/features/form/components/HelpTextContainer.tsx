@@ -21,8 +21,8 @@ export function HelpTextContainer({ language, helpText }: IHelpTextContainerProp
   };
 
   const handlePopoverKeypress = (event: React.KeyboardEvent): void => {
-    if ((event.key === ' ' || event.key === 'Enter') && !openPopover) {
-      setOpenPopover(true);
+    if (event.key === ' ' || event.key === 'Enter') {
+      setOpenPopover(!openPopover);
     }
   };
 
@@ -30,8 +30,17 @@ export function HelpTextContainer({ language, helpText }: IHelpTextContainerProp
     setOpenPopover(false);
   };
 
+  function onBlur(event: React.FocusEvent<HTMLInputElement>) {
+    if (!event.currentTarget.contains(event.relatedTarget)) {
+      handlePopoverClose();
+    }
+  }
+
   return (
-    <>
+    <div
+      tabIndex={-1}
+      onBlur={onBlur}
+    >
       <HelpTextIcon
         helpIconRef={helpIconRef}
         language={language}
@@ -49,6 +58,6 @@ export function HelpTextContainer({ language, helpText }: IHelpTextContainerProp
         helpText={helpText}
         onClose={handlePopoverClose}
       />
-    </>
+    </div>
   );
 }
