@@ -131,7 +131,7 @@ const routes: IRoute[] = [
   {
     path: '/:org/:app/text-editor',
     exact: true,
-    activeSubHeaderSelection: TopBarMenu.Texts,
+    activeSubHeaderSelection: TopBarMenu.Text,
     menu: 'texts',
     subapp: TextEditor,
   },
