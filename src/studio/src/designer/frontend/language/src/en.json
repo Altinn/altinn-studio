@@ -411,6 +411,7 @@
   "schema_editor.format_uri-reference": "URI or relative reference",
   "schema_editor.format_uri-template": "URI template",
   "schema_editor.format_uuid": "UUID",
+  "schema_editor.generate_model_files": "Generate models",
   "schema_editor.go_to_type": "Go to type",
   "schema_editor.import": "Import",
   "schema_editor.info_dialog_1": "Welcome to the new data models page. You can upload XSD datamodels here like before.",

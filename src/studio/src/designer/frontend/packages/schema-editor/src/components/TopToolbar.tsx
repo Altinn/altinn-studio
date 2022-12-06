@@ -29,11 +29,11 @@ export function TopToolbar({
         id='save-model-button'
         onClick={saveAction || (() => undefined)}
         disabled={!editMode || !saveAction}
-        faIcon='fa fa-floppy'
+        faIcon='ai ai-document'
         iconSize={24}
         className={classes.saveButton}
       >
-        {t('save_data_model')}
+        {t('generate_model_files')}
       </TopToolbarButton>
       {toggleEditMode && (
         <ToggleButtonGroup selectedValue={editMode ? 'edit' : 'view'} onChange={toggleEditMode}>
