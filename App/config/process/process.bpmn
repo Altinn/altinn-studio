@@ -7,43 +7,42 @@
 	xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
 	xmlns:di="http://www.omg.org/spec/DD/20100524/DI" targetNamespace="http://bpmn.io/schema/bpmn">
 	<bpmn:process id="SingleDataTask" isExecutable="false">
-		<bpmn:startEvent id="StartEvent_1">
-			<bpmn:outgoing>SequenceFlow_1</bpmn:outgoing>
-		</bpmn:startEvent>
-		<bpmn:task id="Task_1" name="Utfylling" altinn:tasktype="data">
-			<bpmn:incoming>SequenceFlow_1</bpmn:incoming>
-			<bpmn:outgoing>SequenceFlow_2</bpmn:outgoing>
+        <bpmn:startEvent id="StartEvent_1" name="Start">
+            <bpmn:outgoing>To_Task_1</bpmn:outgoing>
+        </bpmn:startEvent>
+		<bpmn:task id="Task_1" name="Utfylling (message)" altinn:tasktype="data">
+			<bpmn:incoming>To_Task_1</bpmn:incoming>
+			<bpmn:outgoing>To_Task_2</bpmn:outgoing>
 		</bpmn:task>
-		<bpmn:task id="Task_2" name="Utfylling" altinn:tasktype="data">
-			<bpmn:incoming>SequenceFlow_2</bpmn:incoming>
-			<bpmn:outgoing>SequenceFlow_3</bpmn:outgoing>
+		<bpmn:task id="Task_2" name="Utfylling (changename)" altinn:tasktype="data">
+			<bpmn:incoming>To_Task_2</bpmn:incoming>
+			<bpmn:outgoing>To_Task_3</bpmn:outgoing>
 		</bpmn:task>
-		<bpmn:task id="Task_3" name="Utfylling" altinn:tasktype="data">
-			<bpmn:incoming>SequenceFlow_3</bpmn:incoming>
-			<bpmn:outgoing>SequenceFlow_4</bpmn:outgoing>
+		<bpmn:task id="Task_3" name="Utfylling (group)" altinn:tasktype="data">
+			<bpmn:incoming>To_Task_3</bpmn:incoming>
+			<bpmn:outgoing>To_Task_4</bpmn:outgoing>
 		</bpmn:task>
-		<bpmn:task id="Task_4" name="Utfylling" altinn:tasktype="data">
-        <bpmn:incoming>SequenceFlow_4</bpmn:incoming>
-        <bpmn:outgoing>SequenceFlow_5</bpmn:outgoing>
-    </bpmn:task>
-    <bpmn:task id="Task_5" name="Utfylling" altinn:tasktype="data">
-      <bpmn:incoming>SequenceFlow_4</bpmn:incoming>
-      <bpmn:outgoing>SequenceFlow_5</bpmn:outgoing>
-    </bpmn:task>
+		<bpmn:task id="Task_4" name="Utfylling (likert)" altinn:tasktype="data">
+            <bpmn:incoming>To_Task_4</bpmn:incoming>
+            <bpmn:outgoing>To_Task_5</bpmn:outgoing>
+        </bpmn:task>
+        <bpmn:task id="Task_5" name="Utfylling (datalist)" altinn:tasktype="data">
+            <bpmn:incoming>To_Task_5</bpmn:incoming>
+            <bpmn:outgoing>To_Task_6</bpmn:outgoing>
+        </bpmn:task>
 		<bpmn:task id="Task_6" name="Tilbakemelding" altinn:tasktype="confirmation">
-			<bpmn:incoming>SequenceFlow_6</bpmn:incoming>
-			<bpmn:outgoing>SequenceFlow_7</bpmn:outgoing>
+			<bpmn:incoming>To_Task_6</bpmn:incoming>
+			<bpmn:outgoing>To_End</bpmn:outgoing>
 		</bpmn:task>
-    
-		<bpmn:endEvent id="EndEvent_1">
-			<bpmn:incoming>SequenceFlow_7</bpmn:incoming>
+		<bpmn:endEvent id="EndEvent_1" name="End">
+			<bpmn:incoming>To_End</bpmn:incoming>
 		</bpmn:endEvent>
-		<bpmn:sequenceFlow id="SequenceFlow_1" sourceRef="StartEvent_1" targetRef="Task_1" />
-		<bpmn:sequenceFlow id="SequenceFlow_2" sourceRef="Task_1" targetRef="Task_2" />
-		<bpmn:sequenceFlow id="SequenceFlow_3" sourceRef="Task_2" targetRef="Task_3" />
-		<bpmn:sequenceFlow id="SequenceFlow_4" sourceRef="Task_3" targetRef="Task_4" />
-		<bpmn:sequenceFlow id="SequenceFlow_5" sourceRef="Task_4" targetRef="Task_5" />
-    <bpmn:sequenceFlow id="SequenceFlow_6" sourceRef="Task_5" targetRef="Task_6" />
-    <bpmn:sequenceFlow id="SequenceFlow_7" sourceRef="Task_6" targetRef="EndEvent_1" />
+		<bpmn:sequenceFlow id="To_Task_1" sourceRef="StartEvent_1" targetRef="Task_1" />
+		<bpmn:sequenceFlow id="To_Task_2" sourceRef="Task_1" targetRef="Task_2" />
+		<bpmn:sequenceFlow id="To_Task_3" sourceRef="Task_2" targetRef="Task_3" />
+		<bpmn:sequenceFlow id="To_Task_4" sourceRef="Task_3" targetRef="Task_4" />
+		<bpmn:sequenceFlow id="To_Task_5" sourceRef="Task_4" targetRef="Task_5" />
+        <bpmn:sequenceFlow id="To_Task_6" sourceRef="Task_5" targetRef="Task_6" />
+        <bpmn:sequenceFlow id="To_End" sourceRef="Task_6" targetRef="EndEvent_1" />
 	</bpmn:process>
 </bpmn:definitions>
