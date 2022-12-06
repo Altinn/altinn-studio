@@ -1,3 +1,5 @@
+import type { SortDirection } from '@altinn/altinn-design-system';
+
 import { mapFormData } from 'src/utils/databindings';
 import type { IFormData } from 'src/features/form/data';
 import type { IAltinnWindow, IMapping } from 'src/types';
@@ -185,6 +187,70 @@ export const getOptionsUrl = ({
 
   if (language) {
     params.language = language;
+  }
+  if (formData && dataMapping) {
+    const mapped = mapFormData(formData, dataMapping);
+
+    params = {
+      ...params,
+      ...mapped,
+    };
+  }
+
+  url.search = new URLSearchParams(params).toString();
+  return url.toString();
+};
+export interface IGetDataListsUrlParams {
+  dataListId: string;
+  dataMapping?: IMapping;
+  formData?: IFormData;
+  language?: string;
+  secure?: boolean;
+  instanceId?: string;
+  pageSize?: string;
+  pageNumber?: string;
+  sortDirection?: SortDirection;
+  sortColumn?: string;
+}
+
+export const getDataListsUrl = ({
+  dataListId,
+  dataMapping,
+  formData,
+  language,
+  pageSize,
+  pageNumber,
+  sortDirection,
+  sortColumn,
+  secure,
+  instanceId,
+}: IGetDataListsUrlParams) => {
+  let url: URL;
+  if (secure) {
+    url = new URL(`${appPath}/instances/${instanceId}/datalists/${dataListId}`);
+  } else {
+    url = new URL(`${appPath}/api/datalists/${dataListId}`);
+  }
+  let params: Record<string, string> = {};
+
+  if (language) {
+    params.language = language;
+  }
+
+  if (pageSize) {
+    params.size = pageSize;
+  }
+
+  if (pageNumber !== undefined) {
+    params.page = pageNumber;
+  }
+
+  if (sortColumn) {
+    params.sortColumn = sortColumn;
+  }
+
+  if (sortDirection) {
+    params.sortDirection = sortDirection;
   }
 
   if (formData && dataMapping) {

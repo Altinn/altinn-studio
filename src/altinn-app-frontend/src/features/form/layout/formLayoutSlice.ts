@@ -17,6 +17,7 @@ import {
   watchMapFileUploaderWithTagSaga,
   watchUpdateCurrentViewSaga,
 } from 'src/features/form/layout/update/updateFormLayoutSagas';
+import { DataListsActions } from 'src/shared/resources/dataLists/dataListsSlice';
 import { OptionsActions } from 'src/shared/resources/options/optionsSlice';
 import { replaceTextResourcesSaga } from 'src/shared/resources/textResources/replace/replaceTextResourcesSagas';
 import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
@@ -53,7 +54,6 @@ export const initialState: ILayoutState = {
   },
   layoutsets: null,
 };
-
 const formLayoutSlice = createSagaSlice((mkAction: MkActionType<ILayoutState>) => ({
   name: 'formLayout',
   initialState,
@@ -74,6 +74,7 @@ const formLayoutSlice = createSagaSlice((mkAction: MkActionType<ILayoutState>) =
       },
       takeLatest: function* () {
         yield put(OptionsActions.fetch());
+        yield put(DataListsActions.fetch());
       },
     }),
     fetchRejected: mkAction<LayoutTypes.IFormLayoutActionRejected>({

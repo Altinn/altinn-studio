@@ -14,7 +14,7 @@ describe('Confirm', () => {
     cy.get(appFrontend.confirm.body).should('contain.text', texts.confirmBody);
     cy.get(appFrontend.confirm.receiptPdf)
       .find('a')
-      .should('have.length', 4)
+      .should('have.length', 5) // This is the number of process data tasks
       .first()
       .should('contain.text', `${appFrontend.apps.frontendTest}.pdf`);
 

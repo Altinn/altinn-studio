@@ -1,6 +1,6 @@
 /// <reference types="cypress" />
 
-export type FrontendTestTask = 'message' | 'changename' | 'group' | 'likert' | 'confirm';
+export type FrontendTestTask = 'message' | 'changename' | 'group' | 'likert' | 'datalist' | 'confirm';
 export type GotoMode = 'fast' | 'with-data';
 
 declare namespace Cypress {

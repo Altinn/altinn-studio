@@ -94,7 +94,10 @@ export function replaceIndexIndicatorsWithIndexes(key: string, indexes: number[]
   }
   Would produce the following output: [[0, 0], [0, 1], [0, 2], [1, 0]]
 */
-export function getIndexCombinations(baseGroupBindings: string[], repeatingGroups: IRepeatingGroups): number[][] {
+export function getIndexCombinations(
+  baseGroupBindings: string[],
+  repeatingGroups: IRepeatingGroups | null,
+): number[][] {
   const combinations: number[][] = [];
 
   if (!baseGroupBindings?.length || !repeatingGroups) {

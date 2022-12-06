@@ -269,5 +269,13 @@ export function nb() {
       no_options: 'Ingen valg tilgjengelig',
       placeholder: 'Velg...',
     },
+    list_component: {
+      rowsPerPage: 'Rader per side',
+      of: 'av',
+      navigateFirstPage: 'Naviger til første side i tabell',
+      previousPage: 'Forrige side i tabell',
+      nextPage: 'Neste side i tabell',
+      navigateLastPage: 'Naviger til siste side i tabell',
+    },
   };
 }

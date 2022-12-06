@@ -99,6 +99,14 @@ export interface ILayoutCompDatePicker extends ILayoutCompBase<'DatePicker'> {
 }
 
 export type ILayoutCompDropdown = ILayoutCompBase<'Dropdown'> & ISelectionComponent;
+export interface ILayoutCompList extends ILayoutCompBase<'List'> {
+  tableHeaders?: string[];
+  sortableColumns?: string[];
+  pagination?: IPagination;
+  dataListId: string;
+  secure?: boolean;
+  bindingToShowInSummary?: string;
+}
 
 export type ILayoutCompMultipleSelect = ILayoutCompBase<'MultipleSelect'> & ISelectionComponent;
 
@@ -207,6 +215,7 @@ interface Map {
   Input: ILayoutCompInput;
   InstantiationButton: ILayoutCompInstantiationButton;
   Likert: ILayoutCompLikert;
+  List: ILayoutCompList;
   Map: ILayoutCompMap;
   MultipleSelect: ILayoutCompMultipleSelect;
   NavigationBar: ILayoutCompNavBar;
@@ -265,11 +274,16 @@ export interface IDataModelBindingsForAddress {
   careOf?: string;
   houseNumber?: string;
 }
+export interface IDataModelBindingsForList {
+  [columnKey: string]: string;
+}
 
-export type IDataModelBindings = Partial<IDataModelBindingsSimple> &
-  Partial<IDataModelBindingsList> &
-  Partial<IDataModelBindingsForGroup> &
-  Partial<IDataModelBindingsForAddress>;
+export type IDataModelBindings =
+  | (Partial<IDataModelBindingsSimple> &
+      Partial<IDataModelBindingsList> &
+      Partial<IDataModelBindingsForGroup> &
+      Partial<IDataModelBindingsForAddress>)
+  | IDataModelBindingsForList;
 
 export interface ITextResourceBindings {
   [id: string]: string;
@@ -317,4 +331,9 @@ export interface SummaryDisplayProperties {
   hideChangeButton?: boolean;
   useComponentGrid?: boolean;
   hideBottomBorder?: boolean;
+}
+
+export interface IPagination {
+  alternatives: number[];
+  default: number;
 }

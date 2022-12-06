@@ -116,7 +116,6 @@ export interface IUpdateFileUploaderWithTagChosenOptions {
   id: string;
   option: IOption;
 }
-
 export interface IUpdateFileUploaderWithTagChosenOptionsFulfilled {
   componentId: string;
   baseComponentId: string;

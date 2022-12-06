@@ -114,6 +114,11 @@ export const getDisplayFormDataForComponent = (
   const formDataObj = {};
   Object.keys(component.dataModelBindings).forEach((key: any) => {
     const binding = component.dataModelBindings && component.dataModelBindings[key];
+
+    if (component.type == 'List' && component.bindingToShowInSummary !== binding) {
+      return;
+    }
+
     formDataObj[key] = getDisplayFormData(
       binding,
       component,

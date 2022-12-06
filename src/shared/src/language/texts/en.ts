@@ -268,5 +268,13 @@ export function en() {
       no_options: 'No options available',
       placeholder: 'Select...',
     },
+    list_component: {
+      rowsPerPage: 'Rows per page',
+      of: 'of',
+      navigateFirstPage: 'Navigate to the first page in the table',
+      previousPage: 'Previous page in the table',
+      nextPage: 'Next page in the table',
+      navigateLastPage: 'Navigate to the last page in the table',
+    },
   };
 }

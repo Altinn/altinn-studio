@@ -1,9 +1,12 @@
+import { SortDirection } from '@altinn/altinn-design-system';
+
 import {
   dataElementUrl,
   fileTagUrl,
   fileUploadUrl,
   getCalculatePageOrderUrl,
   getCreateInstancesUrl,
+  getDataListsUrl,
   getDataValidationUrl,
   getEnvironmentLoginUrl,
   getFetchFormDynamicsUrl,
@@ -298,6 +301,73 @@ describe('Frontend urlHelper.ts', () => {
       });
 
       expect(result).toEqual('https://local.altinn.cloud/ttd/test/instances/someInstanceId/options/country');
+    });
+  });
+
+  describe('getDataListsUrl', () => {
+    it('should return correct url when no language, pagination or sorting parameters are provided', () => {
+      const result = getDataListsUrl({ dataListId: 'country' });
+      expect(result).toEqual('https://local.altinn.cloud/ttd/test/api/datalists/country');
+    });
+
+    it('should return correct url when a language parameter is provided, but no pagination or sorting parameters are provided', () => {
+      const result = getDataListsUrl({ dataListId: 'country', language: 'no' });
+      expect(result).toEqual('https://local.altinn.cloud/ttd/test/api/datalists/country?language=no');
+    });
+
+    it('should return correct url when only sorting paramters are provided', () => {
+      const result = getDataListsUrl({
+        dataListId: 'country',
+        sortColumn: 'id',
+        sortDirection: SortDirection.Descending,
+      });
+      expect(result).toEqual(
+        'https://local.altinn.cloud/ttd/test/api/datalists/country?sortColumn=id&sortDirection=desc',
+      );
+    });
+
+    it('should return correct url when only pagination paramters are provided', () => {
+      const result = getDataListsUrl({
+        dataListId: 'country',
+        pageSize: '10',
+        pageNumber: '2',
+      });
+      expect(result).toEqual('https://local.altinn.cloud/ttd/test/api/datalists/country?size=10&page=2');
+    });
+
+    it('should return correct url when formData/dataMapping is provided', () => {
+      const result = getDataListsUrl({
+        dataListId: 'country',
+        formData: {
+          country: 'Norway',
+        },
+        dataMapping: {
+          country: 'selectedCountry',
+        },
+      });
+
+      expect(result).toEqual('https://local.altinn.cloud/ttd/test/api/datalists/country?selectedCountry=Norway');
+    });
+
+    it('should render correct url when formData/Mapping, language, pagination and sorting paramters are provided', () => {
+      const result = getDataListsUrl({
+        dataListId: 'country',
+        formData: {
+          country: 'Norway',
+        },
+        dataMapping: {
+          country: 'selectedCountry',
+        },
+        pageSize: '10',
+        pageNumber: '2',
+        sortColumn: 'id',
+        sortDirection: SortDirection.Descending,
+        language: 'no',
+      });
+
+      expect(result).toEqual(
+        'https://local.altinn.cloud/ttd/test/api/datalists/country?language=no&size=10&page=2&sortColumn=id&sortDirection=desc&selectedCountry=Norway',
+      );
     });
   });
 

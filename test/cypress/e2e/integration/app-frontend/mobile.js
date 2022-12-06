@@ -5,10 +5,12 @@ import AppFrontend from '../../pageobjects/app-frontend';
 import Common from '../../pageobjects/common';
 import * as texts from '../../fixtures/texts.json';
 import { Likert } from '../../pageobjects/likert';
+import { Datalist } from '../../pageobjects/datalist';
 
 const appFrontend = new AppFrontend();
 const mui = new Common();
 const likertPage = new Likert();
+const dataListPage = new Datalist();
 
 describe('Mobile', () => {
   beforeEach(() => {
@@ -28,7 +30,7 @@ describe('Mobile', () => {
         expect(width).to.be.gt(268);
         expect(width).to.be.lt(289);
       });
-    cy.get(appFrontend.sendinButton).click();
+    cy.sendIn();
     cy.wait('@getLayoutGroup');
     cy.contains(mui.button, texts.next).click();
     cy.get(appFrontend.group.showGroupToContinue).then((checkbox) => {
@@ -46,10 +48,15 @@ describe('Mobile', () => {
     cy.get(appFrontend.navMenu).should('not.have.attr', 'hidden');
     cy.get(appFrontend.navMenu).find('li > button').last().click();
     cy.get(appFrontend.navMenu).should('have.attr', 'hidden');
-    cy.get(appFrontend.sendinButton).click();
+    cy.sendIn();
     likertPage.selectRequiredRadiosInMobile();
-    cy.sendIn('likert');
+    cy.sendIn();
+    cy.get(dataListPage.tableBody).contains('Caroline').parent('td').parent('tr').click();
+    cy.contains(mui.button, texts.next).click();
+    cy.sendIn();
+
     cy.get(appFrontend.confirm.sendIn).should('be.visible').click();
+    cy.get(appFrontend.confirm.sendIn).should('not.exist');
     cy.get(appFrontend.receipt.container).should('be.visible');
     cy.get(appFrontend.receipt.linkToArchive).should('be.visible');
   });

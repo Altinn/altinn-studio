@@ -2,9 +2,11 @@ import AppFrontend from '../pageobjects/app-frontend';
 import Common from '../pageobjects/common';
 import * as texts from '../fixtures/texts.json';
 import { Likert } from '../pageobjects/likert';
+import { Datalist } from '../pageobjects/datalist';
 
 const appFrontend = new AppFrontend();
 const mui = new Common();
+const dataListPage = new Datalist();
 
 /**
  * This object contains a valid data model for each of the tasks that can be fast-skipped. To produce one such data
@@ -83,6 +85,10 @@ const completeFormFast = {
   likert: () => {
     // TODO: Add fast data and skip button for likert?
     completeFormSlow.likert();
+    genericSendIn();
+  },
+  datalist: () => {
+    cy.contains(mui.button, texts.next).click();
     genericSendIn();
   },
   confirm: () => {
@@ -178,6 +184,10 @@ const completeFormSlow = {
     const likertPage = new Likert();
     likertPage.selectRequiredRadios();
   },
+  datalist: () => {
+    cy.get(dataListPage.tableBody).contains('Caroline').parent('td').parent('tr').click();
+    cy.contains(mui.button, texts.next).click();
+  },
   confirm: () => {},
 };
 
@@ -186,7 +196,11 @@ const sendInTask = {
   changename: genericSendIn,
   group: genericSendIn,
   likert: genericSendIn,
-  confirm: genericSendIn,
+  datalist: genericSendIn,
+  confirm: () => {
+    cy.get(appFrontend.confirm.sendIn).should('be.visible').click();
+    cy.get(appFrontend.confirm.sendIn).should('not.exist');
+  },
 };
 
 let currentTask = undefined;

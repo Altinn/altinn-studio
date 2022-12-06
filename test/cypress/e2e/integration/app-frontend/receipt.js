@@ -22,7 +22,7 @@ describe('Receipt', () => {
     cy.get(appFrontend.receipt.linkToArchive).should('be.visible');
     cy.get(appFrontend.receipt.pdf)
       .find('a')
-      .should('have.length', 4)
+      .should('have.length', 5) // This is the number of process data tasks
       .first()
       .should('contain.text', `${appFrontend.apps.frontendTest}.pdf`);
 

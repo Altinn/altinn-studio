@@ -38,7 +38,6 @@ export const repeatingGroupsSelector = (state: IRuntimeState) => state.formLayou
 export function* fetchOptionsSaga(): SagaIterator {
   const layouts: ILayouts = yield selectNotNull(formLayoutSelector);
   const repeatingGroups: IRepeatingGroups = yield selectNotNull(repeatingGroupsSelector);
-
   const fetchedOptions: string[] = [];
   const optionsWithIndexIndicators: IOptionsMetaData[] = [];
 
@@ -119,7 +118,6 @@ export function* checkIfOptionsShouldRefetchSaga({
 }: PayloadAction<IUpdateFormDataFulfilled>): SagaIterator {
   const options: IOptions = yield select(optionsSelector);
   const optionsWithIndexIndicators = yield select(optionsWithIndexIndicatorsSelector);
-
   let foundInExistingOptions = false;
   for (const optionsKey of Object.keys(options)) {
     const { mapping, id, secure } = options[optionsKey] || {};

@@ -42,7 +42,7 @@
           "type": "string",
           "title": "Type",
           "description": "The component type.",
-          "enum": ["AddressComponent", "AttachmentList", "Button", "Checkboxes", "Custom", "Datepicker", "Dropdown", "FileUpload", "FileUploadWithTag", "Group", "Header", "Image", "Input", "InstantiationButton", "Likert", "MultipleSelect", "NavigationButtons", "NavigationBar", "Panel", "Paragraph", "PrintButton", "RadioButtons", "Summary", "TextArea"]
+          "enum": ["AddressComponent", "AttachmentList", "Button", "Checkboxes", "Custom", "Datepicker", "Dropdown", "FileUpload", "FileUploadWithTag", "Group", "Header", "Image", "Input", "InstantiationButton", "Likert","List", "MultipleSelect", "NavigationButtons", "NavigationBar", "Panel", "Paragraph", "PrintButton", "RadioButtons", "Summary", "TextArea"]
         },
         "required": {
           "title": "Required",
@@ -138,7 +138,8 @@
         { "if": {"properties": {"type": { "const": "RadioButtons"}}}, "then": { "$ref": "#/definitions/radioAndCheckboxComponents"}},
         { "if": {"properties": {"type": { "const": "Summary"}}}, "then": {"$ref": "#/definitions/summaryComponent"}},
         { "if": {"properties": {"type": { "const": "Header"}}}, "then": {"$ref": "#/definitions/headerComponent"}},
-        { "if": {"properties": {"type": { "const": "Panel"}}}, "then": {"$ref": "#/definitions/panelComponent"}}
+        { "if": {"properties": {"type": { "const": "Panel"}}}, "then": {"$ref": "#/definitions/panelComponent"}},
+        { "if": {"properties": {"type": { "const": "List"}}}, "then": {"$ref": "#/definitions/listComponent"}}
       ]
     },
     "headerComponent": {
@@ -758,6 +759,71 @@
       "additionalProperties": {
         "type": "string"
       }
+    },
+    "listComponent": {
+      "type": "object",
+      "properties": {
+        "tableHeaders": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Table Headers",
+          "description": "An array of strings that is going to be headers of the table. Can be added to the resource files to change between languages"
+        },
+        "sortableColumns": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "title": "Sortable Columns",
+          "description": "An array of the columns that is going to be sortable. The column has to be represented by the the headername that is written in tableHeaders"
+        },
+        "pagination": {
+          "title": "Pagination",
+          "$ref": "#/definitions/paginationProperties"
+        },
+        "dataListId": {
+          "type": "string",
+          "title": "List ID",
+          "description": "The Id of the list. This id is used to retrive the datalist from the backend"
+        },
+        "secure": {
+          "type": "boolean",
+          "title": "Secure ListItems",
+          "description": "Boolean value indicating if the options should be instance aware. Defaults to false."
+        },
+        "bindingToShowInSummary": {
+          "type": "string",
+          "title": "Binding to show in summary",
+          "description": "The value of this binding will be shown in the summary component for the list. This binding must be one of the specified bindings under dataModelBindings."
+        }
+      },
+      "required": [
+        "dataListId"
+      ]
+    },
+    "paginationProperties": {
+      "type": "object",
+      "properties": {
+        "alternatives": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          },
+          "title": "Alternatives",
+          "description": "List of page sizes the user can choose from. Make sure to test the performance of the largest number of items per page you are allowing."
+        },
+        "default": {
+          "type": "number",
+          "title": "Default",
+          "description": "The pagination size that is set to default"
+        }
+      },
+      "required": [
+        "alternatives",
+        "default"
+      ]
     }
   }
 }
