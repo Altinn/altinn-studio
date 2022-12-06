@@ -12361,6 +12361,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"redux-devtools-extension@npm:2.13.9":
+  version: 2.13.9
+  resolution: "redux-devtools-extension@npm:2.13.9"
+  peerDependencies:
+    redux: ^3.1.0 || ^4.0.0
+  checksum: 603d48fd6acf3922ef373b251ab3fdbb990035e90284191047b29d25b06ea18122bc4ef01e0704ccae495acb27ab5e47b560937e98213605dd88299470025db9
+  languageName: node
+  linkType: hard
+
 "redux-mock-store@npm:1.5.4":
   version: 1.5.4
   resolution: "redux-mock-store@npm:1.5.4"
@@ -14261,6 +14270,7 @@ __metadata:
     react-redux: 8.0.5
     react-select: 5.6.1
     redux: 4.2.0
+    redux-devtools-extension: 2.13.9
     redux-saga: 1.2.1
     reselect: 4.1.7
     typescript: 4.9.3

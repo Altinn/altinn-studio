@@ -13,9 +13,10 @@ import cn from 'classnames';
 
 export interface IPageElementProps {
   name: string;
+  invalid?: boolean;
 }
 
-export function PageElement({ name }: IPageElementProps) {
+export function PageElement({ name, invalid }: IPageElementProps) {
   const dispatch = useDispatch();
 
   const language = useSelector((state: IAppState) => state.appData.languageState.language);
@@ -35,7 +36,10 @@ export function PageElement({ name }: IPageElementProps) {
   const disableDown = layoutOrder.indexOf(name) === layoutOrder.length - 1;
 
   const onPageClick = () => {
-    if (selectedLayout !== name) {
+    if (invalid) {
+      alert(`${name}: ${t('right_menu.pages.invalid_page_data')}`);
+    }
+    else if (selectedLayout !== name) {
       dispatch(FormLayoutActions.updateSelectedLayout({ selectedLayout: name }));
     }
   };
@@ -125,7 +129,7 @@ export function PageElement({ name }: IPageElementProps) {
   };
 
   return (
-    <div className={cn({ [classes.selected]: selectedLayout === name })}>
+    <div className={cn({ [classes.selected]: selectedLayout === name, [classes.invalid]: invalid })}>
       <div className={classes.elementContainer}>
         <div>
           <Right
@@ -165,14 +169,14 @@ export function PageElement({ name }: IPageElementProps) {
       <AltinnMenu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={onMenuClose}>
         <AltinnMenuItem
           onClick={(event) => onMenuItemClick(event, 'up')}
-          disabled={disableUp}
+          disabled={disableUp || invalid}
           text={t('right_menu.page_menu_up')}
           iconClass='fa fa-arrowup'
           id='move-page-up-button'
         />
         <AltinnMenuItem
           onClick={(event) => onMenuItemClick(event, 'down')}
-          disabled={disableDown}
+          disabled={disableDown || invalid}
           text={t('right_menu.page_menu_down')}
           iconClass='fa fa-arrowdown'
           id='move-page-down-button'
@@ -182,6 +186,7 @@ export function PageElement({ name }: IPageElementProps) {
           text={t('right_menu.page_menu_edit')}
           iconClass='fa fa-write'
           id='edit-page-button'
+          disabled={invalid}
         />
         <Divider inMenu />
         <AltinnMenuItem

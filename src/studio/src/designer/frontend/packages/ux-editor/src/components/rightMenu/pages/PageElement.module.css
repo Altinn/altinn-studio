@@ -36,3 +36,7 @@
   font-weight: 400;
   padding-top: 6px;
 }
+
+.invalid {
+  color: red;
+}

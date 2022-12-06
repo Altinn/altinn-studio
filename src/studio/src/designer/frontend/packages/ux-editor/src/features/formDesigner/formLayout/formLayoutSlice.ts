@@ -40,6 +40,7 @@ export interface IFormLayoutState extends IFormDesignerLayout {
   activeList: any;
   selectedLayout: string;
   layoutSettings: ILayoutSettings;
+  invalidLayouts: string[];
 }
 
 const initialState: IFormLayoutState = {
@@ -56,6 +57,7 @@ const initialState: IFormLayoutState = {
     $schema: layoutSettingsSchemaUrl(),
     pages: { order: [] },
   },
+  invalidLayouts: [],
 };
 
 const formLayoutSlice = createSlice({
@@ -255,13 +257,16 @@ const formLayoutSlice = createSlice({
       state.error = null;
     },
     fetchFormLayoutFulfilled: (state, action: PayloadAction<IFetchFormLayoutFulfilledAction>) => {
-      const { formLayout } = action.payload;
+      const { formLayout, invalidLayouts } = action.payload;
       state.fetching = false;
       state.fetched = true;
       state.error = null;
       if (formLayout) {
         state.layouts = formLayout;
         state.layoutSettings.pages.order = Object.keys(formLayout);
+      }
+      if (invalidLayouts?.length) {
+        state.invalidLayouts = invalidLayouts;
       }
     },
     fetchFormLayoutRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {

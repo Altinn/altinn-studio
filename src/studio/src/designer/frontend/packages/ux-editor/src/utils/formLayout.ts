@@ -36,9 +36,9 @@ export function convertFromLayoutToInternalFormat(formLayout: any[]): IFormLayou
   if (!formLayout) {
     return convertedLayout;
   }
-  formLayout = JSON.parse(JSON.stringify(formLayout));
+  const formLayoutCopy: any[] = JSON.parse(JSON.stringify(formLayout));
 
-  for (const element of formLayout) {
+  for (const element of topLevelComponents(formLayoutCopy)) {
     if (element.type.toLowerCase() !== 'group') {
       const { id, ...rest } = element;
       if (!rest.type) {
@@ -49,11 +49,28 @@ export function convertFromLayoutToInternalFormat(formLayout: any[]): IFormLayou
       convertedLayout.components[id] = rest;
       convertedLayout.order[baseContainerId].push(id);
     } else {
-      extractChildrenFromGroup(element, formLayout, convertedLayout);
+      extractChildrenFromGroup(element, formLayoutCopy, convertedLayout);
       convertedLayout.order[baseContainerId].push(element.id);
     }
   }
   return convertedLayout;
+}
+
+/**
+ * Takes a layout and removes the components in it that belong to groups. This returns
+ * only the top-level layout components.
+ */
+ export function topLevelComponents(layout: any[]) {
+  const inGroup = new Set<string>();
+  layout.forEach((component) => {
+    if (component.type === 'Group') {
+      const childList = component.edit?.multiPage
+        ? component.children.map((childId) => childId.split(':')[1] || childId)
+        : component.children;
+      childList.forEach((childId) => inGroup.add(childId));
+    }
+  });
+  return layout.filter((component) => !inGroup.has(component.id));
 }
 
 export function convertInternalToLayoutFormat(internalFormat: IFormLayout): any[] {
@@ -130,7 +147,7 @@ function extractChildrenFromGroupInternal(
   });
 }
 
-export function extractChildrenFromGroup(group: any, components: any, convertedLayout: any) {
+export function extractChildrenFromGroup(group: any, components: any[], convertedLayout: any) {
   const { id, children, ...restOfGroup } = group;
   restOfGroup.itemType = 'CONTAINER';
   delete restOfGroup.type;
@@ -138,16 +155,14 @@ export function extractChildrenFromGroup(group: any, components: any, convertedL
   convertedLayout.order[id] = children || [];
   children?.forEach((componentId: string) => {
     const component = components.find((candidate: any) => candidate.id === componentId);
-    const location = components.findIndex((candidate: any) => candidate.id === componentId);
+    const internalComponent = {...component};
     if (component.type === 'Group') {
-      component.itemType = 'CONTAINER';
-      components.splice(location, 1);
+      internalComponent.itemType = 'CONTAINER';
       extractChildrenFromGroup(component, components, convertedLayout);
     } else {
-      component.itemType = 'COMPONENT';
-      delete component.id;
-      convertedLayout.components[componentId] = component;
-      components.splice(location, 1);
+      internalComponent.itemType = 'COMPONENT';
+      delete internalComponent.id;
+      convertedLayout.components[componentId] = internalComponent;
     }
   });
 }

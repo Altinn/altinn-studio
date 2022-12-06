@@ -2,6 +2,7 @@ import type { Middleware, Store } from 'redux';
 import { applyMiddleware, compose, createStore } from 'redux';
 import type { SagaMiddleware } from 'redux-saga';
 import createSagaMiddleware from 'redux-saga';
+import { composeWithDevTools } from 'redux-devtools-extension';
 import reducers from './reducers';
 import type { IAppState } from './types/global';
 
@@ -16,7 +17,9 @@ export const store: Store<IAppState> = configureStore({
 function configureStore(initialState?: any): Store<IAppState> {
   const middlewares: Middleware[] = [sagaMiddleware];
 
-  const enhancer = compose(applyMiddleware(...middlewares));
+  const enhancer = process.env.NODE_ENV !== 'production' ?
+    composeWithDevTools(applyMiddleware(...middlewares))
+    : compose(applyMiddleware(...middlewares));
 
   const createdStore: Store<IAppState> = createStore(reducers, initialState, enhancer);
 

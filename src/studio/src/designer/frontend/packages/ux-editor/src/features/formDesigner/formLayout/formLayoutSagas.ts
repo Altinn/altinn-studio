@@ -202,38 +202,47 @@ export function* watchDeleteFormContainerSaga(): SagaIterator {
 }
 
 function* fetchFormLayoutSaga(): SagaIterator {
+  let formLayouts: any;
   try {
-    const formLayouts: any = yield call(get, getFetchFormLayoutUrl());
-    const convertedLayouts: IFormLayouts = {};
-    if (!formLayouts || Object.keys(formLayouts).length === 0) {
-      // Default name if no formlayout exists
-      convertedLayouts.FormLayout = convertFromLayoutToInternalFormat(null);
-    } else {
-      Object.keys(formLayouts).forEach((layoutName: string) => {
-        if (!formLayouts[layoutName] || !formLayouts[layoutName].data) {
-          convertedLayouts[layoutName] = convertFromLayoutToInternalFormat(null);
-        } else {
-          convertedLayouts[layoutName] = convertFromLayoutToInternalFormat(
-            formLayouts[layoutName].data.layout
-          );
-        }
-      });
-    }
-    yield put(
-      FormLayoutActions.fetchFormLayoutFulfilled({
-        formLayout: convertedLayouts,
-      })
-    );
-    yield put(
-      FormLayoutActions.updateSelectedLayout({
-        selectedLayout: Object.keys(convertedLayouts)[0],
-      })
-    );
-    yield put(FormLayoutActions.deleteActiveListFulfilled());
+    formLayouts = yield call(get, getFetchFormLayoutUrl());
   } catch (error) {
     console.error(error);
     yield put(FormLayoutActions.fetchFormLayoutRejected({ error }));
   }
+  const convertedLayouts: IFormLayouts = {};
+  const invalidLayouts: string[] = [];
+  if (!formLayouts || Object.keys(formLayouts).length === 0) {
+    // Default name if no formlayout exists
+    try {
+      convertedLayouts.FormLayout = convertFromLayoutToInternalFormat(null);
+    } catch {
+      invalidLayouts.push('FormLayout');
+    }
+  } else {
+    Object.keys(formLayouts).forEach((layoutName: string) => {
+      if (!formLayouts[layoutName] || !formLayouts[layoutName].data) {
+        convertedLayouts[layoutName] = convertFromLayoutToInternalFormat(null);
+      } else {
+        try {
+          convertedLayouts[layoutName] = convertFromLayoutToInternalFormat(formLayouts[layoutName].data.layout);
+        } catch {
+          invalidLayouts.push(layoutName);
+        }
+      }
+    });
+  }
+  yield put(
+    FormLayoutActions.fetchFormLayoutFulfilled({
+      formLayout: convertedLayouts,
+      invalidLayouts,
+    })
+  );
+  yield put(
+    FormLayoutActions.updateSelectedLayout({
+      selectedLayout: Object.keys(convertedLayouts)[0],
+    })
+  );
+  yield put(FormLayoutActions.deleteActiveListFulfilled());
 }
 
 export function* watchFetchFormLayoutSaga(): SagaIterator {
