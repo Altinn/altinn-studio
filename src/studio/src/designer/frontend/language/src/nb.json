@@ -436,6 +436,7 @@
   "schema_editor.format_uri-reference": "URI eller relativ referanse",
   "schema_editor.format_uri-template": "URI-mal",
   "schema_editor.format_uuid": "UUID",
+  "schema_editor.generate_model_files": "Generer modeller",
   "schema_editor.go_to_type": "Gå til type",
   "schema_editor.import": "Importer",
   "schema_editor.info_dialog_1": "Velkommen til den nye siden for datamodellering. Her kan du laste opp XSD datamodell som før.",
