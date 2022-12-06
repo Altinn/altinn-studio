@@ -543,21 +543,15 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
         private static BaseValueType? MapToXsdValueType(SchemaValueType jsonValueType, JsonSchema subSchema)
         {
-            switch (jsonValueType)
+            return jsonValueType switch
             {
-                case SchemaValueType.String:
-                    return MapStringValueTypes(subSchema);
-                case SchemaValueType.Boolean:
-                    return BaseValueType.Boolean;
-                case SchemaValueType.Number:
-                    return BaseValueType.Decimal;
-                case SchemaValueType.Integer:
-                    return MapIntegerValueTypes(subSchema);
-                case SchemaValueType.Array:
-                    return MapValueFromArray(subSchema);
-                default:
-                    return null;
-            }
+                SchemaValueType.String => MapStringValueTypes(subSchema),
+                SchemaValueType.Boolean => BaseValueType.Boolean,
+                SchemaValueType.Number => BaseValueType.Decimal,
+                SchemaValueType.Integer => MapIntegerValueTypes(subSchema),
+                SchemaValueType.Array => MapValueFromArray(subSchema),
+                _ => null
+            };
         }
 
         private static BaseValueType? MapValueFromArray(JsonSchema subSchema)
@@ -568,35 +562,21 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
 
             var singleSchema = itemsKeyword.SingleSchema;
-            if (singleSchema.TryGetKeyword(out TypeKeyword typeKeyword))
+            if (!singleSchema.TryGetKeyword(out TypeKeyword typeKeyword))
             {
-                var type = GetPrimitiveType(typeKeyword.Type);
-                if (type != SchemaValueType.Null)
-                {
-                    if (type == SchemaValueType.String)
-                    {
-                        return MapStringValueTypes(subSchema);
-                    }
-
-                    if (type == SchemaValueType.Integer)
-                    {
-                        return MapIntegerValueTypes(subSchema);
-                    }
-
-                    if (type == SchemaValueType.Boolean)
-                    {
-                        return BaseValueType.Boolean;
-                    }
-
-                    if (type == SchemaValueType.Number)
-                    {
-                        return BaseValueType.Decimal;
-                    }
-                }
-
+                return null;
             }
 
-            return null;
+            var type = GetPrimitiveType(typeKeyword.Type);
+            return type switch
+            {
+                SchemaValueType.Null => null,
+                SchemaValueType.String => MapStringValueTypes(subSchema),
+                SchemaValueType.Integer => MapIntegerValueTypes(subSchema),
+                SchemaValueType.Boolean => BaseValueType.Boolean,
+                SchemaValueType.Number => BaseValueType.Decimal,
+                _ => null
+            };
         }
 
         private static BaseValueType MapIntegerValueTypes(JsonSchema subSchema)
