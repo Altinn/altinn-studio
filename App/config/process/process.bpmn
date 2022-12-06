@@ -26,9 +26,13 @@
         <bpmn:incoming>SequenceFlow_4</bpmn:incoming>
         <bpmn:outgoing>SequenceFlow_5</bpmn:outgoing>
     </bpmn:task>
-		<bpmn:task id="Task_5" name="Tilbakemelding" altinn:tasktype="confirmation">
-			<bpmn:incoming>SequenceFlow_5</bpmn:incoming>
-			<bpmn:outgoing>SequenceFlow_6</bpmn:outgoing>
+    <bpmn:task id="Task_5" name="Utfylling" altinn:tasktype="data">
+      <bpmn:incoming>SequenceFlow_4</bpmn:incoming>
+      <bpmn:outgoing>SequenceFlow_5</bpmn:outgoing>
+    </bpmn:task>
+		<bpmn:task id="Task_6" name="Tilbakemelding" altinn:tasktype="confirmation">
+			<bpmn:incoming>SequenceFlow_6</bpmn:incoming>
+			<bpmn:outgoing>SequenceFlow_7</bpmn:outgoing>
 		</bpmn:task>
     
 		<bpmn:endEvent id="EndEvent_1">
@@ -39,6 +43,7 @@
 		<bpmn:sequenceFlow id="SequenceFlow_3" sourceRef="Task_2" targetRef="Task_3" />
 		<bpmn:sequenceFlow id="SequenceFlow_4" sourceRef="Task_3" targetRef="Task_4" />
 		<bpmn:sequenceFlow id="SequenceFlow_5" sourceRef="Task_4" targetRef="Task_5" />
-    	<bpmn:sequenceFlow id="SequenceFlow_6" sourceRef="Task_5" targetRef="EndEvent_1" />
+    <bpmn:sequenceFlow id="SequenceFlow_6" sourceRef="Task_5" targetRef="Task_6" />
+    <bpmn:sequenceFlow id="SequenceFlow_7" sourceRef="Task_6" targetRef="EndEvent_1" />
 	</bpmn:process>
 </bpmn:definitions>
