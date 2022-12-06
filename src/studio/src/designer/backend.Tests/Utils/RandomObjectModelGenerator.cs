@@ -20,6 +20,14 @@ public static class RandomObjectModelGenerator
 {
     private static readonly Random Random = new();
 
+    private static bool _roundDecimalsToZeroPlaces = true;
+
+    /// <summary>
+    /// Setup to round decimal values to 0 decimal places.
+    /// Currently integers in xsd are represented as decimals in c# class.
+    /// </summary>
+    public static void RoundDecimalToZeroDecimalPlaces(bool generateDecimalAsRound) => _roundDecimalsToZeroPlaces = generateDecimalAsRound;
+
     public static object GenerateValidRandomObject(Type type)
     {
         var obj = Activator.CreateInstance(type);
@@ -64,8 +72,8 @@ public static class RandomObjectModelGenerator
 
     private static void PopulatePrimitiveProperty(object obj, PropertyInfo property)
     {
-        // Skip fixed data
-        if (property.GetValue(obj) is not null)
+        // Skip fixed data from seres
+        if (property.GetValue(obj) is not null && property.PropertyType == typeof(string))
         {
             return;
         }
@@ -151,33 +159,33 @@ public static class RandomObjectModelGenerator
 
         if (type == typeof(int))
         {
-            return NumberRangeGenerator(lowerLimit, upperLimit, () => Random.Next(), d => Convert.ToInt32(Math.Round(d, 0)));
+            return NumberRangeGenerator(lowerLimit, upperLimit, d => Convert.ToInt32(Math.Round(d, 0)));
         }
 
         if (type == typeof(short))
         {
-            return NumberRangeGenerator(lowerLimit, upperLimit, () => (short)Random.Next(short.MinValue, short.MaxValue), d => Convert.ToInt16(Math.Round(d, 0)));
+            return NumberRangeGenerator(lowerLimit, upperLimit, d => Convert.ToInt16(Math.Round(d, 0)));
         }
 
         if (type == typeof(decimal))
         {
-            return NumberRangeGenerator(lowerLimit, upperLimit, () => Convert.ToDecimal(Random.NextDouble()), Convert.ToDecimal);
+            return NumberRangeGenerator(lowerLimit, upperLimit, d => Convert.ToDecimal(_roundDecimalsToZeroPlaces ? Math.Round(d, 0) : d));
         }
 
         if (type == typeof(double))
         {
-            return NumberRangeGenerator(lowerLimit, upperLimit, () => Random.NextDouble(), d => d);
+            return NumberRangeGenerator(lowerLimit, upperLimit, d => d);
         }
 
         if (type == typeof(long))
         {
-            return NumberRangeGenerator(lowerLimit, upperLimit, () => Random.NextInt64(), d => Convert.ToInt64(Math.Round(d, 0)));
+            return NumberRangeGenerator(lowerLimit, upperLimit, d => Convert.ToInt64(Math.Round(d, 0)));
         }
 
         throw new Exception("Non supported number type");
     }
 
-    private static T NumberRangeGenerator<T>(object lowerLimit, object upperLimit, Func<T> randomGenerator, Func<double, T> fromDoubleGenerator)
+    private static T NumberRangeGenerator<T>(object lowerLimit, object upperLimit, Func<double, T> fromDoubleGenerator)
         where T : IComparable
     {
         var hasRange = lowerLimit is not null && upperLimit is not null;
@@ -187,7 +195,8 @@ public static class RandomObjectModelGenerator
             return fromDoubleGenerator.Invoke(rnd);
         }
 
-        return randomGenerator.Invoke();
+        var noLimitsRandom = Random.NextDouble() * Random.Next();
+        return fromDoubleGenerator.Invoke(noLimitsRandom);
     }
 
     private static IEnumerable<char> GetAllowedCharacters()
