@@ -5,7 +5,7 @@ import { AltinnMenu } from '../../components';
 import { post } from '../../utils/networking';
 import { getOrgNameById, HeaderContext, SelectedContextType } from './Header';
 import { getLanguageFromKey } from '../../utils/language';
-import { repositoryOwnerPath, repositoryPath } from '../../api-paths';
+import { repositoryBasePath, repositoryOwnerPath, repositoryPath } from '../../api-paths';
 
 const useStyles = makeStyles(() => ({
   avatar: {
@@ -60,6 +60,17 @@ export function HeaderMenu({ language, org, repo }: HeaderMenuProps) {
     setSelectedContext(context);
     setMenuAnchorEl(null);
   };
+
+  const getRepoPath = () => {
+    const owner = org || user.login;
+    if (owner && repo) {
+      return repositoryPath(owner, repo);
+    }
+    if (owner) {
+      return repositoryOwnerPath(owner);
+    }
+    return repositoryBasePath();
+  }
 
   return (
     <>
@@ -116,7 +127,7 @@ export function HeaderMenu({ language, org, repo }: HeaderMenuProps) {
         <Divider />
         <MenuItem key='placeholder' style={{ display: 'none' }} />
         <MenuItem id='menu-gitea'>
-          <a href={repo ? repositoryPath(org, repo) : repositoryOwnerPath(org)} target='_blank' rel='noopener noreferrer'>
+          <a href={getRepoPath()} target='_blank' rel='noopener noreferrer'>
             {t('shared.header_go_to_gitea')}
           </a>
         </MenuItem>
