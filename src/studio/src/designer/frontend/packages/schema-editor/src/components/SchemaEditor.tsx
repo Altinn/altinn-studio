@@ -1,8 +1,6 @@
 import type { ChangeEvent, MouseEvent } from 'react';
 import React, { useEffect, useState } from 'react';
-import { TabContext, TabList, TabPanel } from '@mui/lab';
 import { useDispatch, useSelector } from 'react-redux';
-import { AppBar, Button, Typography } from '@mui/material';
 import { AltinnSpinner } from 'app-shared/components';
 import type { IJsonSchema, ILanguage, ISchemaState } from '../types';
 import classes from './SchemaEditor.module.css';
@@ -17,7 +15,6 @@ import {
 } from '../features/editor/schemaEditorSlice';
 import { getTranslation } from '../utils/language';
 import { SchemaInspector } from './SchemaInspector';
-import { SchemaTab } from './common/SchemaTab';
 import { TopToolbar } from './TopToolbar';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { SchemaTreeView } from './TreeView/SchemaTreeView';
@@ -37,6 +34,8 @@ import {
 import { IconImage } from './common/Icon';
 import { ActionMenu } from './common/ActionMenu';
 import { createSelector } from '@reduxjs/toolkit';
+import { Button, ButtonVariant, Tabs } from '@altinn/altinn-design-system';
+import { Add } from '@navikt/ds-icons';
 
 export interface IEditorProps {
   Toolbar: JSX.Element;
@@ -132,7 +131,7 @@ export const SchemaEditor = ({
 
   const handleSaveSchema = () => dispatch(updateJsonSchema({ onSaveSchema }));
 
-  const handleTabChanged = (_x: ChangeEvent<unknown>, value: 'definitions' | 'properties') =>
+  const handleTabChanged = (value: 'definitions' | 'properties') =>
     dispatch(setSelectedTab({ selectedTab: value }));
 
   const handleAddProperty = (objectKind: ObjectKind, fieldType?: FieldType) => {
@@ -187,6 +186,88 @@ export const SchemaEditor = ({
       ? definitions.push(rootNodeMap.get(childPointer))
       : properties.push(rootNodeMap.get(childPointer))
   );
+
+  const modelsPanel = (
+    <>
+      {editMode && (
+        <ActionMenu
+          className={classes.addMenu}
+          items={[
+            {
+              action: () => handleAddProperty(ObjectKind.Field),
+              icon: IconImage.Object,
+              text: t('field'),
+            },
+            {
+              action: () => handleAddProperty(ObjectKind.Reference),
+              icon: IconImage.Reference,
+              text: t('reference'),
+            },
+            {
+              action: () => handleAddProperty(ObjectKind.Combination),
+              icon: IconImage.Combination,
+              text: t('combination'),
+            },
+            {
+              action: () => handleAddProperty(ObjectKind.Field, FieldType.String),
+              className: classes.dividerAbove,
+              icon: IconImage.String,
+              text: t('string'),
+            },
+            {
+              action: () => handleAddProperty(ObjectKind.Field, FieldType.Integer),
+              icon: IconImage.Number,
+              text: t('integer'),
+            },
+            {
+              action: () => handleAddProperty(ObjectKind.Field, FieldType.Number),
+              icon: IconImage.Number,
+              text: t('number'),
+            },
+            {
+              action: () => handleAddProperty(ObjectKind.Field, FieldType.Boolean),
+              icon: IconImage.Boolean,
+              text: t('boolean'),
+            },
+          ]}
+          openButtonText={t('add')}
+        />
+      )}
+      <SchemaTreeView
+        editMode={editMode}
+        expanded={expandedPropNodes}
+        items={properties}
+        translate={t}
+        onNodeToggle={handlePropertiesNodeExpanded}
+        selectedPointer={selectedPropertyNodeId}
+        isPropertiesView={true}
+      />
+    </>
+  );
+
+  const typesPanel = (
+    <>
+      {editMode && (
+        <Button
+          icon={<Add/>}
+          onClick={handleAddDefinition}
+          variant={ButtonVariant.Outline}
+        >
+          {t('add_element')}
+        </Button>
+      )}
+      <SchemaTreeView
+        editMode={editMode}
+        expanded={expandedDefNodes}
+        items={definitions}
+        translate={t}
+        onNodeToggle={handleDefinitionsNodeExpanded}
+        selectedPointer={selectedDefinitionNodeId}
+        isPropertiesView={false}
+      />
+    </>
+  );
+
   return (
     <div className={classes.root}>
       <TopToolbar
@@ -200,90 +281,22 @@ export const SchemaEditor = ({
         {LandingPagePanel}
         {name && schema ? (
           <div data-testid='schema-editor' id='schema-editor' className={classes.editor}>
-            <TabContext value={selectedEditorTab}>
-              <AppBar position='static' color='default' className={classes.appBar}>
-                <TabList onChange={handleTabChanged} aria-label='model-tabs'>
-                  <SchemaTab label={t('model')} value='properties' />
-                  <SchemaTab label={t('types')} value='definitions' />
-                </TabList>
-              </AppBar>
-              <TabPanel className={classes.tabPanel} value='properties'>
-                {editMode && (
-                  <ActionMenu
-                    className={classes.addMenu}
-                    items={[
-                      {
-                        action: () => handleAddProperty(ObjectKind.Field),
-                        icon: IconImage.Object,
-                        text: t('field'),
-                      },
-                      {
-                        action: () => handleAddProperty(ObjectKind.Reference),
-                        icon: IconImage.Reference,
-                        text: t('reference'),
-                      },
-                      {
-                        action: () => handleAddProperty(ObjectKind.Combination),
-                        icon: IconImage.Combination,
-                        text: t('combination'),
-                      },
-                      {
-                        action: () => handleAddProperty(ObjectKind.Field, FieldType.String),
-                        className: classes.dividerAbove,
-                        icon: IconImage.String,
-                        text: t('string'),
-                      },
-                      {
-                        action: () => handleAddProperty(ObjectKind.Field, FieldType.Integer),
-                        icon: IconImage.Number,
-                        text: t('integer'),
-                      },
-                      {
-                        action: () => handleAddProperty(ObjectKind.Field, FieldType.Number),
-                        icon: IconImage.Number,
-                        text: t('number'),
-                      },
-                      {
-                        action: () => handleAddProperty(ObjectKind.Field, FieldType.Boolean),
-                        icon: IconImage.Boolean,
-                        text: t('boolean'),
-                      },
-                    ]}
-                    openButtonText={t('add')}
-                  />
-                )}
-                <SchemaTreeView
-                  editMode={editMode}
-                  expanded={expandedPropNodes}
-                  items={properties}
-                  translate={t}
-                  onNodeToggle={handlePropertiesNodeExpanded}
-                  selectedPointer={selectedPropertyNodeId}
-                  isPropertiesView={true}
-                />
-              </TabPanel>
-              <TabPanel className={classes.tabPanel} value='definitions'>
-                {editMode && (
-                  <Button
-                    startIcon={<i className='fa fa-plus' />}
-                    onClick={handleAddDefinition}
-                    className={classes.addButton}
-                    classes={{ startIcon: classes.startIcon }}
-                  >
-                    <Typography variant='body1'>{t('add_element')}</Typography>
-                  </Button>
-                )}
-                <SchemaTreeView
-                  editMode={editMode}
-                  expanded={expandedDefNodes}
-                  items={definitions}
-                  translate={t}
-                  onNodeToggle={handleDefinitionsNodeExpanded}
-                  selectedPointer={selectedDefinitionNodeId}
-                  isPropertiesView={false}
-                />
-              </TabPanel>
-            </TabContext>
+            <Tabs
+              activeTab={selectedEditorTab}
+              items={[
+                {
+                  name: t('model'),
+                  content: modelsPanel,
+                  value: 'properties'
+                },
+                {
+                  name: t('types'),
+                  content: typesPanel,
+                  value: 'definitions'
+                }
+              ]}
+              onChange={handleTabChanged}
+            />
           </div>
         ) : (
           loadingIndicator

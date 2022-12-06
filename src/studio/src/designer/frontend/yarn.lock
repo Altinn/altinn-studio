@@ -12,7 +12,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"3@npm:^2.1.0":
+"3@npm:2.1.0":
   version: 2.1.0
   resolution: "3@npm:2.1.0"
   dependencies:
@@ -45,30 +45,12 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@altinn/altinn-design-system@npm:0.23.3":
-  version: 0.23.3
-  resolution: "@altinn/altinn-design-system@npm:0.23.3"
+"@altinn/altinn-design-system@npm:0.25.5":
+  version: 0.25.5
+  resolution: "@altinn/altinn-design-system@npm:0.25.5"
   dependencies:
     "@altinn/figma-design-tokens": ^4.3.0
-    "@navikt/ds-icons": ^1.3.38
-    "@radix-ui/react-popover": ^1.0.0
-    "@react-hookz/web": ^16.0.0
-    leaflet: ^1.8.0
-    react-leaflet: ^4.0.1
-    react-number-format: ^5.1.1
-  peerDependencies:
-    react: ^18.0.0
-    react-dom: ^18.0.0
-  checksum: b222062a2eef00880ce83870cc15135a42add0af56b8b5140e478ffc14af9d010de4be331e2603c0462253b4094b77c26763b3162efa6d8e700975bd08fae896
-  languageName: node
-  linkType: hard
-
-"@altinn/altinn-design-system@npm:0.25.3":
-  version: 0.25.3
-  resolution: "@altinn/altinn-design-system@npm:0.25.3"
-  dependencies:
-    "@altinn/figma-design-tokens": ^4.3.0
-    "@navikt/ds-icons": ^1.3.38
+    "@navikt/ds-icons": ^2.0.0
     "@radix-ui/react-popover": ^1.0.0
     "@react-hookz/web": ^19.0.0
     leaflet: ^1.8.0
@@ -77,7 +59,7 @@ __metadata:
   peerDependencies:
     react: ^18.0.0
     react-dom: ^18.0.0
-  checksum: 92cb3994d04fa7391a106490404220dd7c3b49c90535b419b1c60d55f5a09bfbc7bfb903b9515ee8f526066777cb35fc10241da03ddd15e3d3b9d59453faaf82
+  checksum: ad42efb500e4f4db1d65f316554abe72a2e0c8b41ff4fd775b8905f6f867a63cbc3344e4fd1368ec904309075acf161bfdb42da46a1e5ea16d57c0c321c36d0a
   languageName: node
   linkType: hard
 
@@ -96,7 +78,7 @@ __metadata:
     jest: 29.3.1
     jsonpointer: 5.0.1
   peerDependencies:
-    "@altinn/altinn-design-system": 0.25.3
+    "@altinn/altinn-design-system": 0.25.5
     "@mui/icons-material": 5.10.14
     "@mui/material": 5.10.14
     "@mui/styles": 5.10.14
@@ -126,15 +108,15 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/text-editor@workspace:packages/text-editor"
   dependencies:
-    "@altinn/altinn-design-system": 0.23.3
+    "@altinn/altinn-design-system": 0.25.5
     iso-639-1: 2.1.15
-    jest: 29.1.2
-    ts-jest: ^29.0.3
+    jest: 29.3.1
+    ts-jest: 29.0.3
   peerDependencies:
-    react: ^18.2.0
-    react-dom: ^18.2.0
-    react-select: ^5.6.1
-    typescript: ^4.9.3
+    react: 18.2.0
+    react-dom: 18.2.0
+    react-select: 5.6.1
+    typescript: 4.9.3
   languageName: unknown
   linkType: soft
 
@@ -1715,7 +1697,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@emotion/react@npm:^11.10.5, @emotion/react@npm:^11.8.1":
+"@emotion/react@npm:11.10.5, @emotion/react@npm:^11.8.1":
   version: 11.10.5
   resolution: "@emotion/react@npm:11.10.5"
   dependencies:
@@ -1759,7 +1741,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@emotion/styled@npm:^11.10.5":
+"@emotion/styled@npm:11.10.5":
   version: 11.10.5
   resolution: "@emotion/styled@npm:11.10.5"
   dependencies:
@@ -1940,7 +1922,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jest/core@npm:^29.1.2, @jest/core@npm:^29.3.1":
+"@jest/core@npm:^29.3.1":
   version: 29.3.1
   resolution: "@jest/core@npm:29.3.1"
   dependencies:
@@ -2173,20 +2155,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@jest/types@npm:^29.1.2, @jest/types@npm:^29.3.1":
-  version: 29.3.1
-  resolution: "@jest/types@npm:29.3.1"
-  dependencies:
-    "@jest/schemas": ^29.0.0
-    "@types/istanbul-lib-coverage": ^2.0.0
-    "@types/istanbul-reports": ^3.0.0
-    "@types/node": "*"
-    "@types/yargs": ^17.0.8
-    chalk: ^4.0.0
-  checksum: 6f9faf27507b845ff3839c1adc6dbd038d7046d03d37e84c9fc956f60718711a801a5094c7eeee6b39ccf42c0ab61347fdc0fa49ab493ae5a8efd2fd41228ee8
-  languageName: node
-  linkType: hard
-
 "@jest/types@npm:^29.2.1":
   version: 29.2.1
   resolution: "@jest/types@npm:29.2.1"
@@ -2198,6 +2166,20 @@ __metadata:
     "@types/yargs": ^17.0.8
     chalk: ^4.0.0
   checksum: a83f20727425179aa05974aa7553c307d207fbb6b7ae5ab1e37fbb6ba9b6655f26655301fc804f2545d33f4c4a6b59d41eed1737c005d2b83fce9e14841b4150
+  languageName: node
+  linkType: hard
+
+"@jest/types@npm:^29.3.1":
+  version: 29.3.1
+  resolution: "@jest/types@npm:29.3.1"
+  dependencies:
+    "@jest/schemas": ^29.0.0
+    "@types/istanbul-lib-coverage": ^2.0.0
+    "@types/istanbul-reports": ^3.0.0
+    "@types/node": "*"
+    "@types/yargs": ^17.0.8
+    chalk: ^4.0.0
+  checksum: 6f9faf27507b845ff3839c1adc6dbd038d7046d03d37e84c9fc956f60718711a801a5094c7eeee6b39ccf42c0ab61347fdc0fa49ab493ae5a8efd2fd41228ee8
   languageName: node
   linkType: hard
 
@@ -2562,16 +2544,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@navikt/ds-icons@npm:^1.3.38":
-  version: 1.5.4
-  resolution: "@navikt/ds-icons@npm:1.5.4"
+"@navikt/ds-icons@npm:^2.0.0":
+  version: 2.0.6
+  resolution: "@navikt/ds-icons@npm:2.0.6"
   peerDependencies:
     "@types/react": ^17.0.30 || ^18.0.0
     react: ^17.0.0 || ^18.0.0
   peerDependenciesMeta:
     "@types/react":
       optional: true
-  checksum: 7c2793ca98e49ce261898b05bfcdda5a0816935d8781e44ce001ad1d61a0c3be2bd8e9f97e4986e0563b36888270ceab60ebfcb8537900c4274c2d7fd8267297
+  checksum: 0375e75678093f363e241ebed961a74f45d24894c90caea058945331156f8231c6261b5baf4e913c279dbbfc69c5858a8c90228e3def57d910994c868f32ad2d
   languageName: node
   linkType: hard
 
@@ -3046,22 +3028,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-hookz/web@npm:^16.0.0":
-  version: 16.1.0
-  resolution: "@react-hookz/web@npm:16.1.0"
-  dependencies:
-    "@react-hookz/deep-equal": ^1.0.3
-  peerDependencies:
-    js-cookie: ^3.0.1
-    react: ^16.8 || ^17 || ^18
-    react-dom: ^16.8 || ^17 || ^18
-  peerDependenciesMeta:
-    js-cookie:
-      optional: true
-  checksum: 5eb92b94d673e6252b380e1541696895875eefa373dcf94ec809390a3de221572f31280dff1c43cad56db5b59df2eaf7fb9c478d0300614b067ecf0ea7c30163
-  languageName: node
-  linkType: hard
-
 "@react-hookz/web@npm:^19.0.0":
   version: 19.2.0
   resolution: "@react-hookz/web@npm:19.2.0"
@@ -3121,7 +3087,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@redux-saga/is@npm:^1.1.3":
+"@redux-saga/is@npm:1.1.3, @redux-saga/is@npm:^1.1.3":
   version: 1.1.3
   resolution: "@redux-saga/is@npm:1.1.3"
   dependencies:
@@ -3131,7 +3097,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@redux-saga/symbols@npm:^1.1.3":
+"@redux-saga/symbols@npm:1.1.3, @redux-saga/symbols@npm:^1.1.3":
   version: 1.1.3
   resolution: "@redux-saga/symbols@npm:1.1.3"
   checksum: 65a8ea23c1ab7b122823f1a4d957f881d48fa50f90898c26db65cac6524f22e2f337b768dadfa87324925b41e3279ff1ebce1c4141e53dc19e74855167b49b74
@@ -3492,7 +3458,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@testing-library/dom@npm:^8.19.0, @testing-library/dom@npm:^8.5.0":
+"@testing-library/dom@npm:8.19.0, @testing-library/dom@npm:^8.5.0":
   version: 8.19.0
   resolution: "@testing-library/dom@npm:8.19.0"
   dependencies:
@@ -3985,7 +3951,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/react@npm:18.0.25, @types/react@npm:^18.0.25":
+"@types/react@npm:18.0.25":
   version: 18.0.25
   resolution: "@types/react@npm:18.0.25"
   dependencies:
@@ -4136,7 +4102,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/eslint-plugin@npm:^5.44.0":
+"@typescript-eslint/eslint-plugin@npm:5.44.0":
   version: 5.44.0
   resolution: "@typescript-eslint/eslint-plugin@npm:5.44.0"
   dependencies:
@@ -4159,7 +4125,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@typescript-eslint/parser@npm:^5.44.0":
+"@typescript-eslint/parser@npm:5.44.0":
   version: 5.44.0
   resolution: "@typescript-eslint/parser@npm:5.44.0"
   dependencies:
@@ -4648,14 +4614,14 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "altinn-studio-frontend@workspace:."
   dependencies:
-    "@emotion/react": ^11.10.5
-    "@emotion/styled": ^11.10.5
-    "@redux-saga/is": ^1.1.3
-    "@redux-saga/symbols": ^1.1.3
+    "@emotion/react": 11.10.5
+    "@emotion/styled": 11.10.5
+    "@redux-saga/is": 1.1.3
+    "@redux-saga/symbols": 1.1.3
     "@svgr/webpack": 6.5.1
     "@swc/core": 1.3.19
     "@swc/jest": 0.2.23
-    "@testing-library/dom": ^8.19.0
+    "@testing-library/dom": 8.19.0
     "@testing-library/jest-dom": 5.16.5
     "@testing-library/react": 13.4.0
     "@testing-library/user-event": 14.4.3
@@ -4665,36 +4631,36 @@ __metadata:
     "@types/react-dom": 18.0.9
     "@types/react-redux": 7.1.24
     "@types/redux-mock-store": 1.0.3
-    "@typescript-eslint/eslint-plugin": ^5.44.0
-    "@typescript-eslint/parser": ^5.44.0
+    "@typescript-eslint/eslint-plugin": 5.44.0
+    "@typescript-eslint/parser": 5.44.0
     cross-env: 7.0.3
     css-loader: 6.7.2
-    eslint: ^8.28.0
-    eslint-config-prettier: ^8.5.0
-    eslint-plugin-import: ^2.26.0
-    eslint-plugin-jsx-a11y: ^6.6.1
-    eslint-plugin-prettier: ^4.2.1
-    eslint-plugin-react: ^7.31.11
-    eslint-plugin-react-hooks: ^4.6.0
-    eslint-plugin-simple-import-sort: ^8.0.0
-    eslint-plugin-sonarjs: ^0.16.0
+    eslint: 8.28.0
+    eslint-config-prettier: 8.5.0
+    eslint-plugin-import: 2.26.0
+    eslint-plugin-jsx-a11y: 6.6.1
+    eslint-plugin-prettier: 4.2.1
+    eslint-plugin-react: 7.31.11
+    eslint-plugin-react-hooks: 4.6.0
+    eslint-plugin-simple-import-sort: 8.0.0
+    eslint-plugin-sonarjs: 0.16.0
     fork-ts-checker-notifier-webpack-plugin: 6.0.0
     fork-ts-checker-webpack-plugin: 7.2.13
-    glob: ^8.0.3
+    glob: 8.0.3
     jest: 29.3.1
     jest-environment-jsdom: 29.3.1
-    jest-fail-on-console: ^3.0.2
+    jest-fail-on-console: 3.0.2
     jest-junit: 14.0.1
     mini-css-extract-plugin: 2.7.0
     monaco-editor: 0.34.1
     monaco-editor-webpack-plugin: 7.0.1
-    msw: ^0.49.1
+    msw: 0.49.1
     prettier: 2.7.1
     react: 18.2.0
     react-dom: 18.2.0
-    react-select: 5.4.0
+    react-select: 5.6.1
     redux-mock-store: 1.5.4
-    redux-saga: ^1.2.1
+    redux-saga: 1.2.1
     redux-saga-test-plan: 4.0.6
     rimraf: 3.0.2
     source-map-loader: 4.0.1
@@ -4704,7 +4670,7 @@ __metadata:
     terser-webpack-plugin: 5.3.6
     ts-morph: 17.0.1
     tsc: 2.0.4
-    typescript: ^4.9.3
+    typescript: 4.9.3
     webpack: 5.75.0
     webpack-cli: 5.0.0
     webpack-dev-server: 4.11.1
@@ -4801,7 +4767,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-development@workspace:app-development"
   dependencies:
-    "@altinn/altinn-design-system": 0.25.3
+    "@altinn/altinn-design-system": 0.25.5
     "@mui/material": 5.10.14
     "@mui/styles": 5.10.14
     "@reduxjs/toolkit": 1.9.0
@@ -4821,7 +4787,7 @@ __metadata:
     reselect: 4.1.7
     tsc: 2.0.4
     typescript: 4.9.3
-    webpack: ^5.75.0
+    webpack: 5.75.0
     webpack-dev-server: 4.11.1
   languageName: unknown
   linkType: soft
@@ -4830,14 +4796,14 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-shared@workspace:packages/shared"
   dependencies:
-    3: ^2.1.0
-    "@altinn/altinn-design-system": 0.25.3
+    3: 2.1.0
+    "@altinn/altinn-design-system": 0.25.5
     "@altinn/schema-editor": 0.1.0
     "@mui/icons-material": 5.10.14
     "@mui/material": 5.10.14
     "@mui/styles": 5.10.14
     "@reduxjs/toolkit": 1.9.0
-    "@types/react": ^18.0.25
+    "@types/react": 18.0.25
     axios: 0.27.2
     classnames: 2.3.2
     diff: 5.1.0
@@ -4849,8 +4815,8 @@ __metadata:
     query-string: 7.1.1
     react: 18.2.0
     react-content-loader: 6.2.0
-    react-dnd: ^16.0.1
-    react-dnd-html5-backend: ^16.0.1
+    react-dnd: 16.0.1
+    react-dnd-html5-backend: 16.0.1
     react-dom: 18.2.0
     react-html-parser: 2.0.2
     react-monaco-editor: 0.50.1
@@ -6284,7 +6250,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dashboard@workspace:dashboard"
   dependencies:
-    "@altinn/altinn-design-system": 0.25.3
+    "@altinn/altinn-design-system": 0.25.5
     "@mui/material": 5.10.14
     "@mui/styles": 5.10.14
     "@mui/x-data-grid": 5.17.12
@@ -6300,7 +6266,7 @@ __metadata:
     redux: 4.2.0
     redux-saga: 1.2.1
     tsc: 2.0.4
-    webpack: ^5.75.0
+    webpack: 5.75.0
     webpack-dev-server: 4.11.1
   languageName: unknown
   linkType: soft
@@ -7068,7 +7034,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-config-prettier@npm:^8.5.0":
+"eslint-config-prettier@npm:8.5.0":
   version: 8.5.0
   resolution: "eslint-config-prettier@npm:8.5.0"
   peerDependencies:
@@ -7101,7 +7067,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-import@npm:^2.26.0":
+"eslint-plugin-import@npm:2.26.0":
   version: 2.26.0
   resolution: "eslint-plugin-import@npm:2.26.0"
   dependencies:
@@ -7124,7 +7090,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-jsx-a11y@npm:^6.6.1":
+"eslint-plugin-jsx-a11y@npm:6.6.1":
   version: 6.6.1
   resolution: "eslint-plugin-jsx-a11y@npm:6.6.1"
   dependencies:
@@ -7147,7 +7113,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-prettier@npm:^4.2.1":
+"eslint-plugin-prettier@npm:4.2.1":
   version: 4.2.1
   resolution: "eslint-plugin-prettier@npm:4.2.1"
   dependencies:
@@ -7162,7 +7128,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-react-hooks@npm:^4.6.0":
+"eslint-plugin-react-hooks@npm:4.6.0":
   version: 4.6.0
   resolution: "eslint-plugin-react-hooks@npm:4.6.0"
   peerDependencies:
@@ -7171,7 +7137,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-react@npm:^7.31.11":
+"eslint-plugin-react@npm:7.31.11":
   version: 7.31.11
   resolution: "eslint-plugin-react@npm:7.31.11"
   dependencies:
@@ -7196,7 +7162,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-simple-import-sort@npm:^8.0.0":
+"eslint-plugin-simple-import-sort@npm:8.0.0":
   version: 8.0.0
   resolution: "eslint-plugin-simple-import-sort@npm:8.0.0"
   peerDependencies:
@@ -7205,7 +7171,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint-plugin-sonarjs@npm:^0.16.0":
+"eslint-plugin-sonarjs@npm:0.16.0":
   version: 0.16.0
   resolution: "eslint-plugin-sonarjs@npm:0.16.0"
   peerDependencies:
@@ -7259,7 +7225,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eslint@npm:^8.28.0":
+"eslint@npm:8.28.0":
   version: 8.28.0
   resolution: "eslint@npm:8.28.0"
   dependencies:
@@ -8054,6 +8020,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"glob@npm:8.0.3, glob@npm:^8.0.1":
+  version: 8.0.3
+  resolution: "glob@npm:8.0.3"
+  dependencies:
+    fs.realpath: ^1.0.0
+    inflight: ^1.0.4
+    inherits: 2
+    minimatch: ^5.0.1
+    once: ^1.3.0
+  checksum: 50bcdea19d8e79d8de5f460b1939ffc2b3299eac28deb502093fdca22a78efebc03e66bf54f0abc3d3d07d8134d19a32850288b7440d77e072aa55f9d33b18c5
+  languageName: node
+  linkType: hard
+
 "glob@npm:^7.0.3, glob@npm:^7.1.3, glob@npm:^7.1.4, glob@npm:^7.1.6":
   version: 7.2.3
   resolution: "glob@npm:7.2.3"
@@ -8065,19 +8044,6 @@ __metadata:
     once: ^1.3.0
     path-is-absolute: ^1.0.0
   checksum: 29452e97b38fa704dabb1d1045350fb2467cf0277e155aa9ff7077e90ad81d1ea9d53d3ee63bd37c05b09a065e90f16aec4a65f5b8de401d1dac40bc5605d133
-  languageName: node
-  linkType: hard
-
-"glob@npm:^8.0.1, glob@npm:^8.0.3":
-  version: 8.0.3
-  resolution: "glob@npm:8.0.3"
-  dependencies:
-    fs.realpath: ^1.0.0
-    inflight: ^1.0.4
-    inherits: 2
-    minimatch: ^5.0.1
-    once: ^1.3.0
-  checksum: 50bcdea19d8e79d8de5f460b1939ffc2b3299eac28deb502093fdca22a78efebc03e66bf54f0abc3d3d07d8134d19a32850288b7440d77e072aa55f9d33b18c5
   languageName: node
   linkType: hard
 
@@ -9256,7 +9222,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-cli@npm:^29.1.2, jest-cli@npm:^29.3.1":
+"jest-cli@npm:^29.3.1":
   version: 29.3.1
   resolution: "jest-cli@npm:29.3.1"
   dependencies:
@@ -9402,7 +9368,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jest-fail-on-console@npm:^3.0.2":
+"jest-fail-on-console@npm:3.0.2":
   version: 3.0.2
   resolution: "jest-fail-on-console@npm:3.0.2"
   dependencies:
@@ -9747,25 +9713,6 @@ __metadata:
     merge-stream: ^2.0.0
     supports-color: ^8.0.0
   checksum: 38687fcbdc2b7ddc70bbb5dfc703ae095b46b3c7f206d62ecdf5f4d16e336178e217302138f3b906125576bb1cfe4cfe8d43681276fa5899d138ed9422099fb3
-  languageName: node
-  linkType: hard
-
-"jest@npm:29.1.2":
-  version: 29.1.2
-  resolution: "jest@npm:29.1.2"
-  dependencies:
-    "@jest/core": ^29.1.2
-    "@jest/types": ^29.1.2
-    import-local: ^3.0.2
-    jest-cli: ^29.1.2
-  peerDependencies:
-    node-notifier: ^8.0.1 || ^9.0.0 || ^10.0.0
-  peerDependenciesMeta:
-    node-notifier:
-      optional: true
-  bin:
-    jest: bin/jest.js
-  checksum: 6b5fca89c6ad1a0c9338a70144542933ed3491d849b6256618ec8d3a420bc6e60ed2c5b952e452ee4bdeaf590bf4c81c6727581c71d6b989faa8dedd7b6e2905
   languageName: node
   linkType: hard
 
@@ -10528,13 +10475,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"memoize-one@npm:^5.0.0":
-  version: 5.2.1
-  resolution: "memoize-one@npm:5.2.1"
-  checksum: a3cba7b824ebcf24cdfcd234aa7f86f3ad6394b8d9be4c96ff756dafb8b51c7f71320785fbc2304f1af48a0467cbbd2a409efc9333025700ed523f254cb52e3d
-  languageName: node
-  linkType: hard
-
 "memoize-one@npm:^6.0.0":
   version: 6.0.0
   resolution: "memoize-one@npm:6.0.0"
@@ -10819,7 +10759,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"msw@npm:^0.49.1":
+"msw@npm:0.49.1":
   version: 0.49.1
   resolution: "msw@npm:0.49.1"
   dependencies:
@@ -11929,7 +11869,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dnd-html5-backend@npm:16.0.1, react-dnd-html5-backend@npm:^16.0.1":
+"react-dnd-html5-backend@npm:16.0.1":
   version: 16.0.1
   resolution: "react-dnd-html5-backend@npm:16.0.1"
   dependencies:
@@ -11938,7 +11878,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-dnd@npm:16.0.1, react-dnd@npm:^16.0.1":
+"react-dnd@npm:16.0.1":
   version: 16.0.1
   resolution: "react-dnd@npm:16.0.1"
   dependencies:
@@ -12155,24 +12095,6 @@ __metadata:
   peerDependencies:
     react: ">=16.8"
   checksum: b89c0495c6837b1457915c08c5acc4eb7a2e9e3fae0420faf9bfc6311ecdfe78627cc1034c0e975bccd9aeeb70d1dcc5021322779dd3053d94c47e37339d77eb
-  languageName: node
-  linkType: hard
-
-"react-select@npm:5.4.0":
-  version: 5.4.0
-  resolution: "react-select@npm:5.4.0"
-  dependencies:
-    "@babel/runtime": ^7.12.0
-    "@emotion/cache": ^11.4.0
-    "@emotion/react": ^11.8.1
-    "@types/react-transition-group": ^4.4.0
-    memoize-one: ^5.0.0
-    prop-types: ^15.6.0
-    react-transition-group: ^4.3.0
-  peerDependencies:
-    react: ^16.8.0 || ^17.0.0 || ^18.0.0
-    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0
-  checksum: da896f0f8b3c7f6250148ce9ded1ace60abb35b812be50d34cf7ba980b12ca75533c3bbfd9e722530cc0e70c17e8997c3c7e93743877d84c00b0d90e4da521e6
   languageName: node
   linkType: hard
 
@@ -12394,7 +12316,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"redux-saga@npm:1.2.1, redux-saga@npm:^1.2.1":
+"redux-saga@npm:1.2.1":
   version: 1.2.1
   resolution: "redux-saga@npm:1.2.1"
   dependencies:
@@ -13776,7 +13698,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ts-jest@npm:^29.0.3":
+"ts-jest@npm:29.0.3":
   version: 29.0.3
   resolution: "ts-jest@npm:29.0.3"
   dependencies:
@@ -13955,7 +13877,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:4.9.3, typescript@npm:^4.9.3":
+"typescript@npm:4.9.3":
   version: 4.9.3
   resolution: "typescript@npm:4.9.3"
   bin:
@@ -13965,7 +13887,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@4.9.3#~builtin<compat/typescript>, typescript@patch:typescript@^4.9.3#~builtin<compat/typescript>":
+"typescript@patch:typescript@4.9.3#~builtin<compat/typescript>":
   version: 4.9.3
   resolution: "typescript@patch:typescript@npm%3A4.9.3#~builtin<compat/typescript>::version=4.9.3&hash=d73830"
   bin:
@@ -14276,7 +14198,7 @@ __metadata:
     typescript: 4.9.3
     uuid: 9.0.0
   peerDependencies:
-    webpack: ^5.75.0
+    webpack: 5.75.0
   languageName: unknown
   linkType: soft
 
@@ -14488,7 +14410,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"webpack@npm:5.75.0, webpack@npm:^5.75.0":
+"webpack@npm:5.75.0":
   version: 5.75.0
   resolution: "webpack@npm:5.75.0"
   dependencies:

@@ -1,11 +1,9 @@
-import React, { useEffect, useState } from 'react';
-import { Panel, PanelVariant } from '@altinn/altinn-design-system';
-import { AppBar } from '@mui/material';
-import { TabContext, TabList, TabPanel } from '@mui/lab';
+import React, { useState } from 'react';
+import { Panel, PanelVariant, Tabs } from '@altinn/altinn-design-system';
+import type { TabItem } from '@altinn/altinn-design-system';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import { FieldType, ObjectKind } from '@altinn/schema-model';
 import { getTranslation } from '../utils/language';
-import { SchemaTab } from './common/SchemaTab';
 import { ItemPropertiesTab } from './SchemaInspector/ItemPropertiesTab';
 import { ItemFieldsTab } from './SchemaInspector/ItemFieldsTab';
 import type { ILanguage } from '../types';
@@ -18,46 +16,51 @@ export interface ISchemaInspectorProps {
 }
 
 export const SchemaInspector = ({ language, selectedItem }: ISchemaInspectorProps) => {
-  const [tabIndex, setTabIndex] = useState('0');
   const t = (key: string) => getTranslation(key, language);
+  enum TabValue {
+    Properties = 'properties',
+    Fields = 'fields'
+  }
+  const [activeTab, setActiveTab] = useState<string>(TabValue.Properties);
 
-  useEffect(() => {
-    if (selectedItem) {
-      if (tabIndex === '2' && selectedItem.fieldType !== FieldType.Object) {
-        setTabIndex('0');
-      }
+  const switchTab = (tabValue: string) => {
+    if ((tabValue === TabValue.Fields.toString() && selectedItem.fieldType !== FieldType.Object) || !selectedItem) {
+      setActiveTab(TabValue.Properties);
     } else {
-      setTabIndex('0');
+      setActiveTab(tabValue);
     }
-  }, [tabIndex, selectedItem]);
+  };
+
+  const tabItems: TabItem[] = [
+    {
+      name: t(TabValue.Properties),
+      content: <ItemPropertiesTab selectedItem={selectedItem} language={language} />,
+      value: TabValue.Properties,
+    }
+  ];
+
+  if (
+    selectedItem?.fieldType === FieldType.Object &&
+    selectedItem.objectKind !== ObjectKind.Combination &&
+    selectedItem.objectKind !== ObjectKind.Reference
+  ) {
+    tabItems.push({
+      name: t(TabValue.Fields),
+      content: <ItemFieldsTab selectedItem={selectedItem} language={language} />,
+      value: TabValue.Fields,
+    });
+  }
 
   return selectedItem ? (
     <div className={classes.root} data-testid='schema-inspector'>
       <Panel variant={PanelVariant.Warning} forceMobileLayout={true}>
         <span>{t('warning_under_development')}</span>
       </Panel>
-      <TabContext value={tabIndex}>
-        <AppBar position='static' color='default' className={classes.appBar}>
-          <TabList onChange={(e: any, v: string) => setTabIndex(v)} aria-label='inspector tabs'>
-            <SchemaTab label={t('properties')} value='0' />
-            <SchemaTab
-              label={t('fields')}
-              value='2'
-              hide={
-                selectedItem.fieldType !== FieldType.Object ||
-                selectedItem.objectKind === ObjectKind.Combination ||
-                selectedItem.objectKind === ObjectKind.Reference
-              }
-            />
-          </TabList>
-        </AppBar>
-        <TabPanel className={classes.tabPanel} value='0'>
-          <ItemPropertiesTab selectedItem={selectedItem} language={language} />
-        </TabPanel>
-        <TabPanel className={classes.tabPanel} value='2'>
-          <ItemFieldsTab selectedItem={selectedItem} language={language} />
-        </TabPanel>
-      </TabContext>
+      <Tabs
+        activeTab={activeTab}
+        items={tabItems}
+        onChange={switchTab}
+      />
     </div>
   ) : (
     <div>

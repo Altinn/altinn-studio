@@ -9,7 +9,7 @@
     "not op_mini all"
   ],
   "dependencies": {
-    "@altinn/altinn-design-system": "0.25.3",
+    "@altinn/altinn-design-system": "0.25.5",
     "@mui/material": "5.10.14",
     "@mui/styles": "5.10.14",
     "@mui/x-data-grid": "5.17.12",
@@ -27,7 +27,7 @@
     "cross-env": "7.0.3",
     "jest": "29.3.1",
     "tsc": "2.0.4",
-    "webpack": "^5.75.0",
+    "webpack": "5.75.0",
     "webpack-dev-server": "4.11.1"
   },
   "license": "3-Clause BSD",

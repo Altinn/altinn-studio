@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "author": "Altinn",
   "dependencies": {
-    "3": "^2.1.0",
-    "@altinn/altinn-design-system": "0.25.3",
+    "3": "2.1.0",
+    "@altinn/altinn-design-system": "0.25.5",
     "@altinn/schema-editor": "0.1.0",
     "@mui/icons-material": "5.10.14",
     "@mui/material": "5.10.14",
@@ -20,8 +20,8 @@
     "query-string": "7.1.1",
     "react": "18.2.0",
     "react-content-loader": "6.2.0",
-    "react-dnd": "^16.0.1",
-    "react-dnd-html5-backend": "^16.0.1",
+    "react-dnd": "16.0.1",
+    "react-dnd-html5-backend": "16.0.1",
     "react-dom": "18.2.0",
     "react-html-parser": "2.0.2",
     "react-monaco-editor": "0.50.1",
@@ -31,7 +31,7 @@
     "redux-saga": "1.2.1"
   },
   "devDependencies": {
-    "@types/react": "^18.0.25",
+    "@types/react": "18.0.25",
     "jest": "29.3.1",
     "tsc": "2.0.4",
     "typescript": "4.9.3"

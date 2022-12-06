@@ -20,37 +20,13 @@
   flex: 1;
   height: 100%;
   min-height: 200px;
-}
-
-.appBar:global(.MuiPaper-root) {
-  border-bottom: 1px solid #c9c9c9;
-  box-shadow: none;
-  background-color: #fff;
-  color: #000;
-  padding-left: 12px;
-}
-
-.appBar:global(.MuiPaper-root) :global(.Mui-selected) {
-  color: #6a6a6a;
-}
-
-.appBar:global(.MuiPaper-root) :global(.MuiTabs-indicator) {
-  background-color: #006bd8;
-}
-
-.tabPanel {
-  flex: 1;
-  overflow-y: scroll;
+  overflow-y: auto;
 }
 
 .inspector {
   background-color: #f7f7f7;
   overflow-x: clip;
   overflow-y: auto;
-}
-
-.startIcon {
-  margin-right: 0;
 }
 
 .addMenu {

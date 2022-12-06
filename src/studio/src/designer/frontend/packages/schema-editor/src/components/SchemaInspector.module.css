@@ -21,33 +21,7 @@
   background: gray;
 }
 
-.appBar {
-  border-bottom: 1px solid #c9c9c9;
-  box-shadow: none !important;
-  color: #000;
-  background-color: transparent !important;
-  padding-left: 12px;
-}
-
-.appBar :global(.Mui-Selected) {
-  color: #6a6a6a;
-}
-
-.appBar :global(.MuiTabs-indicator) {
-  background-color: #006bd8;
-}
-
-.appBar button {
-  padding-left: 12px;
-  padding-right: 12px;
-}
-
 .noItem {
   font-weight: 500;
   margin: 18px;
-}
-
-.tabPanel {
-  flex: 1;
-  overflow-y: scroll;
 }
