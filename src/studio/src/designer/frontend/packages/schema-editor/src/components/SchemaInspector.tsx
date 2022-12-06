@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Panel, PanelVariant, Tabs } from '@altinn/altinn-design-system';
 import type { TabItem } from '@altinn/altinn-design-system';
 import type { UiSchemaNode } from '@altinn/schema-model';
@@ -23,15 +23,13 @@ export const SchemaInspector = ({ language, selectedItem }: ISchemaInspectorProp
   }
   const [activeTab, setActiveTab] = useState<string>(TabValue.Properties);
 
-  useEffect(() => {
-    if (selectedItem) {
-      if (activeTab === TabValue.Fields && selectedItem.fieldType !== FieldType.Object) {
-        setActiveTab(TabValue.Properties);
-      }
-    } else {
+  const switchTab = (tabValue: string) => {
+    if ((tabValue === TabValue.Fields.toString() && selectedItem.fieldType !== FieldType.Object) || !selectedItem) {
       setActiveTab(TabValue.Properties);
+    } else {
+      setActiveTab(tabValue);
     }
-  }, [activeTab, selectedItem]);
+  };
 
   const tabItems: TabItem[] = [
     {
@@ -61,7 +59,7 @@ export const SchemaInspector = ({ language, selectedItem }: ISchemaInspectorProp
       <Tabs
         activeTab={activeTab}
         items={tabItems}
-        onChange={setActiveTab}
+        onChange={switchTab}
       />
     </div>
   ) : (
