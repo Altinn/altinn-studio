@@ -183,6 +183,11 @@ namespace Altinn.App.Models
     [JsonPropertyName("fileUploadList")]
     public List<string> fileUploadList { get; set; }
 
+    [XmlElement("isPrefill")]
+    [JsonProperty("isPrefill")]
+    [JsonPropertyName("isPrefill")]
+    public bool isPrefill { get; set; }
+
     [XmlElement("nested-grp-1234")]
     [JsonProperty("nested-grp-1234")]
     [JsonPropertyName("nested-grp-1234")]
