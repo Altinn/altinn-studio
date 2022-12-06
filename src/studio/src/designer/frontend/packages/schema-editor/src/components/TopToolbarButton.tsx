@@ -50,6 +50,7 @@ export function TopToolbarButton({
   }
   return (
     <Button
+      data-testid={id}
       id={id}
       className={computedClasses}
       onClick={onClick}

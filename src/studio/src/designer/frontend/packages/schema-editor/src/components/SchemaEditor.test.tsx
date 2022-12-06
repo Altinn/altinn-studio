@@ -26,12 +26,13 @@ const mockLanguage = {
   'schema_editor.field': 'Felt',
   'schema_editor.reference': 'Referanse',
 };
+const uiSchema = buildUiSchema(dataMock);
 const renderEditor = (customState?: Partial<ISchemaState>, editMode?: boolean) => {
   const mockInitialState = {
     name: 'test',
     saveSchemaUrl: '',
     schema: dataMock,
-    uiSchema: buildUiSchema(dataMock),
+    uiSchema: uiSchema,
     selectedDefinitionNodeId: '',
     selectedPropertyNodeId: '',
     selectedEditorTab: 'properties',
@@ -62,38 +63,28 @@ const renderEditor = (customState?: Partial<ISchemaState>, editMode?: boolean) =
   return { store, user };
 };
 
-const clickOpenAddMenuButton = (user: UserEvent) =>
-  user.click(
-    screen.getByRole('button', {
-      name: mockLanguage['schema_editor.add'],
-    })
-  );
 const clickAddMenuItem = (user: UserEvent, name: string) =>
   user.click(screen.getByRole('menuitem', { name }));
 
 const clickOpenContextMenuButton = (user: UserEvent) =>
   user.click(screen.getAllByTestId('open-context-menu-button')[0]);
 
-test('renders schema editor with populated schema in view mode', async () => {
+test('renders schema editor with populated schema in view mode', () => {
   renderEditor({}, false);
   const editor = screen.getByTestId('schema-editor');
   expect(editor).toBeDefined();
-  const saveButton = screen.getByRole('button', {
-    name: 'save_data_model',
-  });
+  const saveButton = screen.getByTestId('save-model-button');
   expect(saveButton).toBeDefined();
   expect(saveButton).toBeDisabled();
   const schemaInspector = screen.queryByTestId('schema-inspector');
   expect(schemaInspector).toBeNull();
 });
 
-test('renders schema editor with populated schema in edit mode', async () => {
+test('renders schema editor with populated schema in edit mode', () => {
   renderEditor();
   const editor = screen.getByTestId('schema-editor');
   expect(editor).toBeDefined();
-  const saveButton = screen.getByRole('button', {
-    name: 'save_data_model',
-  });
+  const saveButton = screen.getByTestId('save-model-button');
   expect(saveButton).toBeDefined();
   expect(saveButton).toBeEnabled();
   const schemaInspector = screen.queryByTestId('schema-inspector');
@@ -102,7 +93,6 @@ test('renders schema editor with populated schema in edit mode', async () => {
 
 test('should show context menu and trigger correct dispatch when adding a field on root', async () => {
   const { store, user } = renderEditor();
-  await clickOpenAddMenuButton(user);
   await clickAddMenuItem(user, mockLanguage['schema_editor.field']);
   const actions = store.getActions();
   const lastAction = actions.at(-1);
@@ -115,9 +105,7 @@ test('should show context menu and trigger correct dispatch when adding a field 
 
 test('should show context menu and trigger correct dispatch when adding a reference on root', async () => {
   const { store, user } = renderEditor();
-  await clickOpenAddMenuButton(user);
   await clickAddMenuItem(user, mockLanguage['schema_editor.reference']);
-
   const actions = store.getActions();
   const lastAction = actions.at(-1);
   expect(lastAction.type).toBe('schemaEditor/addRootItem');
@@ -252,8 +240,7 @@ test('should not show add property or add reference buttons on a field that is n
 });
 
 test('should show menu with option field, reference, and combination when pressing add', async () => {
-  const { user } = renderEditor();
-  await clickOpenAddMenuButton(user);
+  renderEditor();
   expect(
     screen.getAllByRole('menuitem', { name: mockLanguage['schema_editor.field'] })
   ).toHaveLength(1);
@@ -267,7 +254,6 @@ test('should show menu with option field, reference, and combination when pressi
 
 test('should trigger correct dispatch when adding combination to root', async () => {
   const { store, user } = renderEditor();
-  await clickOpenAddMenuButton(user);
   await clickAddMenuItem(user, 'combination');
   const actions = store.getActions();
   const lastAction = actions.at(-1);
