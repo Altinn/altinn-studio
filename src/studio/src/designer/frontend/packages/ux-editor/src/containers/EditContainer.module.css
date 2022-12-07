@@ -1,18 +1,35 @@
 .wrapper {
   display: flex;
+  align-items: stretch;
+}
+
+.formComponentWithHandle {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  flex: 1;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+}
+
+.dragHandle {
+  visibility: hidden;
+}
+
+.wrapper:hover .dragHandle {
+  visibility: visible;
+}
+
+.formComponentWithHandle:has(.dragHandle:hover) {
+  box-shadow: 0 0 0.4rem rgba(0, 0, 0, 0.25);
 }
 
 .formComponent {
   background-color: #fff;
   border: 1px solid #6a6a6a;
   color: #022F51;
-  cursor: move;
   flex: 1;
   padding: 1rem;
-}
-
-.formComponent:hover {
-  box-shadow: 0 0 0.4rem rgba(0, 0, 0, 0.25);
 }
 
 .buttons {

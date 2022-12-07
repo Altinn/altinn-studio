@@ -97,7 +97,7 @@ const render = (props: Partial<IEditContainerProvidedProps> = {}) => {
     },
   };
 
-  const allProps = {
+  const allProps: IEditContainerProvidedProps = {
     component: {
       id,
       dataModelBindings: {},
@@ -113,6 +113,8 @@ const render = (props: Partial<IEditContainerProvidedProps> = {}) => {
     lastInActiveList: false,
     singleSelected: false,
     sendItemToParent: jest.fn(),
+    dragHandleRef: null,
+    children: null,
     ...props,
   };
 
@@ -121,7 +123,7 @@ const render = (props: Partial<IEditContainerProvidedProps> = {}) => {
   rtlRender(
     <Provider store={mockStore}>
       <EditContainer {...allProps}>
-        <div />
+        {allProps.children}
       </EditContainer>
     </Provider>
   );

@@ -5,6 +5,7 @@ import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayou
 import { EditContainer } from '../containers/EditContainer';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import type { FormComponentType, IAppState, IDataModelFieldElement } from '../types/global';
+import { ConnectDragSource } from 'react-dnd';
 
 const styles = createStyles({});
 
@@ -20,6 +21,7 @@ export interface IProvidedProps {
   sendListToParent: any;
   singleSelected: boolean;
   partOfGroup?: boolean;
+  dragHandleRef: ConnectDragSource;
 }
 
 /**
@@ -146,6 +148,7 @@ const FormComponent = (props: IFormElementProps) => {
         sendItemToParent={handleActiveListChange}
         singleSelected={props.singleSelected}
         partOfGroup={props.partOfGroup}
+        dragHandleRef={props.dragHandleRef}
       >
         <button className={'divider'} onClick={disableEditOnClickForAddedComponent}>
           {renderLabel()}
@@ -180,6 +183,7 @@ const makeMapStateToProps = () => {
     validationErrors: null,
     textResources: state.appData.textResources.resources,
     dataModel: state.appData.dataModel.model,
+    dragHandleRef: props.dragHandleRef,
   });
 };
 
