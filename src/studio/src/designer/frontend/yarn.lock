@@ -45,6 +45,24 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@altinn/altinn-design-system@npm:0.25.3":
+  version: 0.25.3
+  resolution: "@altinn/altinn-design-system@npm:0.25.3"
+  dependencies:
+    "@altinn/figma-design-tokens": ^4.3.0
+    "@navikt/ds-icons": ^1.3.38
+    "@radix-ui/react-popover": ^1.0.0
+    "@react-hookz/web": ^19.0.0
+    leaflet: ^1.8.0
+    react-leaflet: ^4.0.1
+    react-number-format: ^5.1.1
+  peerDependencies:
+    react: ^18.0.0
+    react-dom: ^18.0.0
+  checksum: 92cb3994d04fa7391a106490404220dd7c3b49c90535b419b1c60d55f5a09bfbc7bfb903b9515ee8f526066777cb35fc10241da03ddd15e3d3b9d59453faaf82
+  languageName: node
+  linkType: hard
+
 "@altinn/altinn-design-system@npm:0.25.5":
   version: 0.25.5
   resolution: "@altinn/altinn-design-system@npm:0.25.5"
@@ -2541,6 +2559,19 @@ __metadata:
     react: ^17.0.2 || ^18.0.0
     react-dom: ^17.0.2 || ^18.0.0
   checksum: 5e4863db2efb2b55a41fc180b5a318e86acc6dbcdb57e003dcf65720237ca84680dc2cf29e04a945d3a6e599f1f55de17a961e48f9d2e7cff71b0e793a76c6ea
+  languageName: node
+  linkType: hard
+
+"@navikt/ds-icons@npm:^1.3.38":
+  version: 1.5.10
+  resolution: "@navikt/ds-icons@npm:1.5.10"
+  peerDependencies:
+    "@types/react": ^17.0.30 || ^18.0.0
+    react: ^17.0.0 || ^18.0.0
+  peerDependenciesMeta:
+    "@types/react":
+      optional: true
+  checksum: d518587eccd5d1a022bcd9cd914060ce2c98d8ff4faa50231db2e4f56f028ba0f64575f4a0110b4e5bbc3bbc043894bcdfd663259bb6ba56d5725f84e5dd7dff
   languageName: node
   linkType: hard
 
@@ -14429,7 +14460,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"webpack@npm:5.75.0":
+"webpack@npm:5.75.0, webpack@npm:^5.75.0":
   version: 5.75.0
   resolution: "webpack@npm:5.75.0"
   dependencies:
