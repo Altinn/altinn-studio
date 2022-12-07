@@ -1,4 +1,4 @@
-import { actionChannel, all, call, put, race, select, take, takeLatest } from 'redux-saga/effects';
+import { all, call, put, race, select, take, takeLatest } from 'redux-saga/effects';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { AxiosRequestConfig } from 'axios';
 import type { SagaIterator } from 'redux-saga';
@@ -31,6 +31,7 @@ import {
 } from 'src/utils/formLayout';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
 import { getOptionLookupKey, removeGroupOptionsByIndex } from 'src/utils/options';
+import { waitFor } from 'src/utils/sagas';
 import {
   canFormBeSaved,
   mapDataElementValidationToRedux,
@@ -77,7 +78,6 @@ export const selectFormData = (state: IRuntimeState) => state.formData;
 export const selectFormLayouts = (state: IRuntimeState) => state.formLayout.layouts;
 export const selectAttachmentState = (state: IRuntimeState) => state.attachments;
 export const selectValidations = (state: IRuntimeState) => state.formValidations.validations;
-export const selectUnsavedChanges = (state: IRuntimeState) => state.formData.unsavedChanges;
 export const selectOptions = (state: IRuntimeState) => state.optionState.options;
 export const selectAllLayouts = (state: IRuntimeState) => state.formLayout.uiConfig.tracks.order;
 export const selectCurrentLayout = (state: IRuntimeState) => state.formLayout.uiConfig.currentView;
@@ -284,13 +284,29 @@ export function* updateCurrentViewSaga({
   payload: { newView, runValidations, returnToView, skipPageCaching, keepScrollPos, focusComponentId },
 }: PayloadAction<IUpdateCurrentView>): SagaIterator {
   try {
+    // When triggering navigation to the next page, we need to make sure there are no unsaved changes. The action to
+    // save it should be triggered elsewhere, but we should wait until the state settles before navigating.
+    yield waitFor((state) => !state.formData.unsavedChanges);
+
     const state: IRuntimeState = yield select();
+    const visibleLayouts: string[] | null = yield select(selectLayoutOrder);
     const viewCacheKey = state.formLayout.uiConfig.currentViewCacheKey;
     const instanceId = state.instanceData.instance?.id;
     if (!viewCacheKey) {
       yield put(FormLayoutActions.setCurrentViewCacheKey({ key: instanceId }));
     }
     const currentViewCacheKey = viewCacheKey || instanceId;
+
+    if (visibleLayouts && !visibleLayouts.includes(newView)) {
+      yield put(
+        FormLayoutActions.updateCurrentViewRejected({
+          error: null,
+          keepScrollPos,
+        }),
+      );
+      return;
+    }
+
     if (!runValidations) {
       if (!skipPageCaching && currentViewCacheKey) {
         localStorage.setItem(currentViewCacheKey, newView);
@@ -489,7 +505,7 @@ export function* findAndMoveToNextVisibleLayout(): SagaIterator {
 
   if (nextVisiblePage && nextVisiblePage !== current) {
     yield put(
-      FormLayoutActions.updateCurrentView({
+      FormLayoutActions.updateCurrentViewFulfilled({
         newView: nextVisiblePage,
       }),
     );
@@ -526,19 +542,6 @@ export function* watchInitialCalculatePageOrderAndMoveToNextPageSaga(): SagaIter
         }),
       );
     }
-  }
-}
-
-export function* watchUpdateCurrentViewSaga(): SagaIterator {
-  const requestChan = yield actionChannel(FormLayoutActions.updateCurrentView);
-  while (true) {
-    yield take(FormLayoutActions.updateCurrentView);
-    const hasUnsavedChanges = yield select(selectUnsavedChanges);
-    if (hasUnsavedChanges) {
-      yield take(FormDataActions.submitFulfilled);
-    }
-    const value = yield take(requestChan);
-    yield call(updateCurrentViewSaga, value);
   }
 }
 

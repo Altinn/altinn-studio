@@ -1,5 +1,5 @@
 import { getInitialStateMock } from '__mocks__/initialStateMock';
-import { actionChannel, call, select, take } from 'redux-saga/effects';
+import { select, take } from 'redux-saga/effects';
 import { expectSaga, testSaga } from 'redux-saga-test-plan';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
@@ -16,12 +16,9 @@ import {
   selectFormData,
   selectFormLayoutState,
   selectOptions,
-  selectUnsavedChanges,
   selectValidations,
-  updateCurrentViewSaga,
   updateRepeatingGroupsSaga,
   watchInitRepeatingGroupsSaga,
-  watchUpdateCurrentViewSaga,
 } from 'src/features/form/layout/update/updateFormLayoutSagas';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
 import { selectLayoutOrder } from 'src/selectors/getLayoutOrder';
@@ -155,54 +152,6 @@ describe('updateLayoutSagas', () => {
         )
         .put(FormDataActions.setFulfilled({ formData: initialFormData }))
         .put(FormDataActions.save({}))
-        .run();
-    });
-  });
-
-  describe('watchUpdateCurrentViewSaga', () => {
-    const fakeChannel = {
-      take: jest.fn(),
-      flush: jest.fn(),
-      close: jest.fn(),
-    };
-    const mockSaga = jest.fn();
-    const mockAction = FormLayoutActions.updateCurrentView({
-      newView: 'test',
-    });
-    const takeChannel = {
-      take({ channel }, next) {
-        if (channel === fakeChannel) {
-          return mockAction;
-        }
-        return next();
-      },
-    };
-    it('should save unsaved changes before updating from layout', () => {
-      return expectSaga(watchUpdateCurrentViewSaga)
-        .provide([
-          [actionChannel(FormLayoutActions.updateCurrentView), fakeChannel],
-          [select(selectUnsavedChanges), true],
-          takeChannel,
-          [call(updateCurrentViewSaga, mockAction), mockSaga],
-        ])
-        .dispatch(FormLayoutActions.updateCurrentView)
-        .dispatch(FormDataActions.submitFulfilled)
-        .take(fakeChannel)
-        .call(updateCurrentViewSaga, mockAction)
-        .run();
-    });
-    it('should not save unsaved changes before updating form layout when no unsaved changes', () => {
-      return expectSaga(watchUpdateCurrentViewSaga)
-        .provide([
-          [actionChannel(FormLayoutActions.updateCurrentView), fakeChannel],
-          [select(selectUnsavedChanges), false],
-          takeChannel,
-          [call(updateCurrentViewSaga, mockAction), mockSaga],
-        ])
-        .dispatch(FormLayoutActions.updateCurrentView)
-        .not.take(FormDataActions.submitFulfilled)
-        .take(fakeChannel)
-        .call(updateCurrentViewSaga, mockAction)
         .run();
     });
   });
@@ -377,7 +326,7 @@ describe('updateLayoutSagas', () => {
 
       if (expected) {
         ret.put(
-          FormLayoutActions.updateCurrentView({
+          FormLayoutActions.updateCurrentViewFulfilled({
             newView: expected,
           }),
         );

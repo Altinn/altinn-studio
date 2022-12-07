@@ -8,6 +8,7 @@ import {
 import {
   calculatePageOrderAndMoveToNextPageSaga,
   findAndMoveToNextVisibleLayout,
+  updateCurrentViewSaga,
   updateFileUploaderWithTagChosenOptionsSaga,
   updateFileUploaderWithTagEditIndexSaga,
   updateRepeatingGroupEditIndexSaga,
@@ -15,7 +16,6 @@ import {
   watchInitialCalculatePageOrderAndMoveToNextPageSaga,
   watchInitRepeatingGroupsSaga,
   watchMapFileUploaderWithTagSaga,
-  watchUpdateCurrentViewSaga,
 } from 'src/features/form/layout/update/updateFormLayoutSagas';
 import { DataListsActions } from 'src/shared/resources/dataLists/dataListsSlice';
 import { OptionsActions } from 'src/shared/resources/options/optionsSlice';
@@ -152,9 +152,14 @@ const formLayoutSlice = createSagaSlice((mkAction: MkActionType<ILayoutState>) =
       },
     }),
     updateCurrentView: mkAction<LayoutTypes.IUpdateCurrentView>({
-      saga: () => watchUpdateCurrentViewSaga,
+      takeLatest: updateCurrentViewSaga,
     }),
     updateCurrentViewFulfilled: mkAction<LayoutTypes.IUpdateCurrentViewFulfilled>({
+      takeEvery: (action) => {
+        if (!action.payload.focusComponentId) {
+          window.scrollTo({ top: 0 });
+        }
+      },
       reducer: (state, action) => {
         state.uiConfig.currentView = action.payload.newView;
         state.uiConfig.returnToView = action.payload.returnToView;
