@@ -12,6 +12,8 @@ import classes from './Dashboard.module.css';
 import { DatamodelsReposList } from './DatamodelsRepoList';
 import { Button, ButtonSize, ButtonVariant, SearchField } from '@altinn/altinn-design-system';
 import { Close } from '@navikt/ds-icons';
+import { CenterContainer } from '../../common/components/CenterContainer';
+import { Footer } from '../../common/components/Footer';
 
 export const Dashboard = () => {
   const language = useAppSelector((state) => state.language.language);
@@ -26,58 +28,62 @@ export const Dashboard = () => {
   const handleNewLinkFocus = () => setIsNewLinkFocused(true);
   const handleNewLinkFocusOut = () => setIsNewLinkFocused(false);
   return (
-    <div className={classes.createServiceContainer}>
-      <div className={classes.topBar}>
-        <div className={classes.searchFieldContainer}>
-          <div>
-            <SearchField
-              id='search-repos'
-              label={getLanguageFromKey('dashboard.search', language)}
-              value={searchText}
-              onChange={handleChangeSearch}
-              onKeyDown={handleKeyDown}
-            />
+    <>
+      <CenterContainer>
+        <div className={classes.createServiceContainer}>
+          <div className={classes.topBar}>
+            <div className={classes.searchFieldContainer}>
+              <div>
+                <SearchField
+                  id='search-repos'
+                  label={getLanguageFromKey('dashboard.search', language)}
+                  value={searchText}
+                  onChange={handleChangeSearch}
+                  onKeyDown={handleKeyDown}
+                />
+              </div>
+              {searchText && (
+                <Button
+                  className={classes.clearSearchButton}
+                  aria-label={getLanguageFromKey('dashboard.clear_search', language)}
+                  onClick={handleClearSearch}
+                  icon={<Close />}
+                  variant={ButtonVariant.Quiet}
+                  size={ButtonSize.Small}
+                />
+              )}
+            </div>
+            <Link
+              to='/new'
+              className={classes.newLink}
+              onMouseEnter={handleNewLinkFocus}
+              onMouseLeave={handleNewLinkFocusOut}
+              data-testid={'dashboard.new_app'}
+            >
+              <span>{getLanguageFromKey('dashboard.new_service', language)}</span>
+              <i
+                className={cn('fa', classes.plusIcon, {
+                  'fa-circle-plus': isNewLinkFocused,
+                  'fa-circle-plus-outline': !isNewLinkFocused,
+                })}
+              />
+            </Link>
           </div>
-          {searchText && (
-            <Button
-              className={classes.clearSearchButton}
-              aria-label={getLanguageFromKey('dashboard.clear_search', language)}
-              onClick={handleClearSearch}
-              icon={<Close />}
-              variant={ButtonVariant.Quiet}
-              size={ButtonSize.Small}
-            />
+
+          {debouncedSearchText ? (
+            <SearchResultReposList searchValue={debouncedSearchText} />
+          ) : (
+            <>
+              <FavoriteReposList />
+              <div className={classes.marginTop}>
+                <OrgReposList />
+              </div>
+              <DatamodelsReposList />
+            </>
           )}
         </div>
-
-        <Link
-          to='/new'
-          className={classes.newLink}
-          onMouseEnter={handleNewLinkFocus}
-          onMouseLeave={handleNewLinkFocusOut}
-          data-testid={'dashboard.new_app'}
-        >
-          <span>{getLanguageFromKey('dashboard.new_service', language)}</span>
-          <i
-            className={cn('fa', classes.plusIcon, {
-              'fa-circle-plus': isNewLinkFocused,
-              'fa-circle-plus-outline': !isNewLinkFocused,
-            })}
-          />
-        </Link>
-      </div>
-
-      {debouncedSearchText ? (
-        <SearchResultReposList searchValue={debouncedSearchText} />
-      ) : (
-        <>
-          <FavoriteReposList />
-          <div className={classes.marginTop}>
-            <OrgReposList />
-          </div>
-          <DatamodelsReposList />
-        </>
-      )}
-    </div>
+      </CenterContainer>
+      <Footer />
+    </>
   );
 };

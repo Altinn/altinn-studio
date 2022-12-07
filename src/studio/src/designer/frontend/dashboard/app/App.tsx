@@ -14,7 +14,6 @@ import AppHeader, {
 import { userHasAccessToSelectedContext } from '../common/utils';
 import { useAppDispatch, useAppSelector } from '../common/hooks';
 import { CenterContainer } from '../common/components/CenterContainer';
-import { Footer } from '../common/components/Footer';
 import './App.css';
 import { useGetOrganizationsQuery } from '../services/organizationApi';
 import { Dashboard } from '../features/dashboard/Dashboard';
@@ -75,43 +74,29 @@ export const App = () => {
     };
   }, [user]);
 
-  return (
-    <>
-      {user && !isLoadingOrganizations ? (
-        <div className={classes.root}>
-          <HeaderContext.Provider value={headerContextValue}>
-            <AppHeader language={language} />
-          </HeaderContext.Provider>
-          <Routes>
-            <Route
-              path='/'
-              element={
-                <>
-                  <CenterContainer>
-                    <Dashboard />
-                  </CenterContainer>
-                  <Footer />
-                </>
-              }
-            />
-            <Route path='/datamodelling/:org/:repoName' element={<DataModellingContainer />} />
-            <Route path='/new' element={<CreateService />} />
-          </Routes>
-        </div>
-      ) : (
-        <CenterContainer>
-          <AltinnSpinner spinnerText={getLanguageFromKey('dashboard.loading', language)} />
-          {showLogOutButton && (
-            <Button
-              onClick={() =>
-                post(userLogoutPath()).then(() => window.location.assign(userLogoutAfterPath()))
-              }
-            >
-              {getLanguageFromKey('dashboard.logout', language)}
-            </Button>
-          )}
-        </CenterContainer>
+  return user && !isLoadingOrganizations ? (
+    <div className={classes.root}>
+      <HeaderContext.Provider value={headerContextValue}>
+        <AppHeader language={language} />
+      </HeaderContext.Provider>
+      <Routes>
+        <Route path='/' element={<Dashboard />} />
+        <Route path='/datamodelling/:org/:repoName' element={<DataModellingContainer />} />
+        <Route path='/new' element={<CreateService />} />
+      </Routes>
+    </div>
+  ) : (
+    <CenterContainer>
+      <AltinnSpinner spinnerText={getLanguageFromKey('dashboard.loading', language)} />
+      {showLogOutButton && (
+        <Button
+          onClick={() =>
+            post(userLogoutPath()).then(() => window.location.assign(userLogoutAfterPath()))
+          }
+        >
+          {getLanguageFromKey('dashboard.logout', language)}
+        </Button>
       )}
-    </>
+    </CenterContainer>
   );
 };
