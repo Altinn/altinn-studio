@@ -44,7 +44,7 @@ namespace LocalTest.Controllers.Authentication
             ClaimsPrincipal principal = HttpContext.User;
             _logger.LogInformation("Refreshing token....");
 
-            string token = _authenticationService.GenerateToken(principal, Convert.ToInt32(_generalSettings.JwtCookieValidityTime));
+            string token = _authenticationService.GenerateToken(principal);
             _logger.LogInformation("End of refreshing token");
             return await Task.FromResult(Ok(token));
         }
@@ -69,8 +69,8 @@ namespace LocalTest.Controllers.Authentication
             identity.AddClaims(claims);
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
-            string token = _authenticationService.GenerateToken(principal, Convert.ToInt32(_generalSettings.JwtCookieValidityTime));
-            
+            string token = _authenticationService.GenerateToken(principal);
+
             return await Task.FromResult(Ok(token));
         }
 
@@ -91,8 +91,8 @@ namespace LocalTest.Controllers.Authentication
             identity.AddClaims(claims);
             ClaimsPrincipal principal = new ClaimsPrincipal(identity);
 
-            string token = _authenticationService.GenerateToken(principal, Convert.ToInt32(_generalSettings.JwtCookieValidityTime));
-            
+            string token = _authenticationService.GenerateToken(principal);
+
             return await Task.FromResult(Ok(token));
         }
     }
