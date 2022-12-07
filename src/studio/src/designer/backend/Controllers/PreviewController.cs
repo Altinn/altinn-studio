@@ -43,19 +43,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>A view with the React form builder</returns>
-        public IActionResult Index(string org, string app)
-        {
-            ViewBag.Org = org;
-            ViewBag.App = app;
-            return View();
-        }
-
-        /// <summary>
-        /// The index action which will show the React form builder
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>A view with the React form builder</returns>
         [Route("api/v1/applicationmetadata")]
         [HttpGet]
         public IActionResult ApplicationMetadata(string org, string app)
