@@ -1,0 +1,16 @@
+.landingPage {
+  background-color: #0a572e;
+}
+
+.iframe {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  border: none;
+}
+
+.header {
+  padding: 10px;
+  border-bottom: 1px solid gray;
+  background-color: #15a859;
+}

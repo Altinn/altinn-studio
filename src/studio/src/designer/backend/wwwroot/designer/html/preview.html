@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>App in preview</title>
+    <link rel="icon" href="https://altinncdn.no/favicon.ico">
+    <link rel="stylesheet" href="https://altinncdn.no/toolkits/fortawesome/altinn-no-bold/0.1/css/embedded-woff.css">
+    <link rel="stylesheet" href="https://altinncdn.no/toolkits/fortawesome/altinn-no-regular/0.1/css/embedded-woff.css">
+    <link rel="stylesheet" href="https://altinncdn.no/toolkits/fortawesome/altinn-studio/0.1/css/embedded-woff.css">
+    <link href="https://altinncdn.no/fonts/altinn-din/altinn-din.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="http://localhost:8080/altinn-app-frontend.css">
+    <style>
+        html, body {
+            height: 100%;
+        }
+    </style>
+    <script>
+        window.isPreview = true;
+        const urlParams = new URLSearchParams(window.location.search);
+        window.org = urlParams.get('org');
+        window.app = urlParams.get('app');
+    </script>
+</head>
+<body>
+<div class="flex-column d-flex media-body">
+    <div id="root" class="media-body flex-column d-flex"></div>
+</div>
+<script src="http://localhost:8080/altinn-app-frontend.js"></script>
+</body>
+</html>

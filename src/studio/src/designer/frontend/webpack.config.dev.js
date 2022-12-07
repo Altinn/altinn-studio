@@ -1,7 +1,7 @@
 const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
 const commonConfig = require('./webpack.common');
 const setupMiddlewares = require('./testing/mockend/src');
-const devServerConfig = require('./testing/mockend/config.json');
+const devServerPorts = require('./testing/mockend/ports.json');
 
 module.exports = {
   ...commonConfig,
@@ -33,10 +33,7 @@ module.exports = {
     setupMiddlewares,
     hot: true,
     allowedHosts: 'all',
-    port:
-      process.env.npm_package_name === 'dashboard'
-        ? devServerConfig.DASHBOARD_PORT
-        : devServerConfig.APP_DEVELOPMENT_PORT,
+    port: devServerPorts[process.env.npm_package_name],
     historyApiFallback: true,
     client: {
       overlay: {

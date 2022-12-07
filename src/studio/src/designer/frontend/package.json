@@ -70,6 +70,7 @@
     "depcheck": "npx depcheck && yarn workspaces foreach run depcheck",
     "lint": "eslint \"./**/*.ts*\"",
     "start-app-development": "yarn workspace app-development start",
+    "start-app-preview": "yarn workspace app-preview start",
     "start-dashboard": "yarn workspace dashboard start",
     "stats": "node stats.js",
     "syncpack": "npx syncpack fix-mismatches && npx syncpack format && npx syncpack set-semver-ranges",
@@ -81,6 +82,7 @@
   },
   "workspaces": [
     "app-development",
+    "app-preview",
     "dashboard",
     "language",
     "testing/mockend",
