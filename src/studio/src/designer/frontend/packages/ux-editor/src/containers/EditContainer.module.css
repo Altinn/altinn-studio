@@ -1,0 +1,31 @@
+.wrapper {
+  display: flex;
+}
+
+.formComponent {
+  background-color: #fff;
+  border: 1px solid #6a6a6a;
+  color: #022F51;
+  cursor: move;
+  flex: 1;
+  padding: 1rem;
+}
+
+.formComponent:hover {
+  box-shadow: 0 0 0.4rem rgba(0, 0, 0, 0.25);
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  margin-left: .5rem;
+}
+
+.wrapper:not(.editMode):not(:hover) .buttons button {
+  visibility: hidden;
+}
+
+.formComponentTitle {
+  margin-top: 0.6rem;
+  color: #022F51;
+}
