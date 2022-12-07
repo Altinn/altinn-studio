@@ -10,9 +10,8 @@ import type { IAppState, IFormLayout } from '../../../types/global';
 
 const selectCurrentLayoutId = (state: IAppState): string =>
   state.formDesigner.layout.selectedLayout;
-const selectCurrentLayout = (state: IAppState) => {
-  return state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout];
-};
+const selectCurrentLayout = (state: IAppState) =>
+  state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout];
 
 function* addWidgetSaga(action: PayloadAction<IAddWidgetAction>): SagaIterator {
   try {

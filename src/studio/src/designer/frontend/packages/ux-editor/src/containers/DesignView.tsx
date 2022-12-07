@@ -164,6 +164,7 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
   };
   const baseContainerId =
     Object.keys(state.layoutOrder).length > 0 ? Object.keys(state.layoutOrder)[0] : null;
+
   const dndEvents: EditorDndEvents = {
     moveItem,
     moveItemToBottom,

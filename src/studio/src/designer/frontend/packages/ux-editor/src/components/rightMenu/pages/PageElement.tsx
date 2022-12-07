@@ -1,4 +1,5 @@
-import React from 'react';
+import type { ChangeEvent, SyntheticEvent, MouseEvent } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, ButtonVariant, TextField } from '@altinn/altinn-design-system';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { useDispatch, useSelector } from 'react-redux';
@@ -10,6 +11,8 @@ import { EllipsisV, Right } from '@navikt/ds-icons';
 import classes from './PageElement.module.css';
 import { Divider } from 'app-shared/primitives';
 import cn from 'classnames';
+import { useSearchParams } from 'react-router-dom';
+import { deepCopy, removeKey } from 'app-shared/pure';
 
 export interface IPageElementProps {
   name: string;
@@ -18,47 +21,42 @@ export interface IPageElementProps {
 
 export function PageElement({ name, invalid }: IPageElementProps) {
   const dispatch = useDispatch();
-
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedLayout = searchParams.get('layout');
   const language = useSelector((state: IAppState) => state.appData.languageState.language);
   const t = (key: string) => getLanguageFromKey(key, language);
-  const selectedLayout = useSelector(
-    (state: IAppState) => state.formDesigner.layout.selectedLayout
-  );
   const layoutOrder = useSelector(
     (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order
   );
-  const [editMode, setEditMode] = React.useState<boolean>(false);
-  const [errorMessage, setErrorMessage] = React.useState<string>('');
-  const [newName, setNewName] = React.useState<string>('');
-  const [menuAnchorEl, setMenuAnchorEl] = React.useState<null | HTMLElement>(null);
-  const [deleteAnchorEl, setDeleteAnchorEl] = React.useState<null | Element>(null);
+  const [editMode, setEditMode] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
+  const [newName, setNewName] = useState<string>('');
+  const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
+  const [deleteAnchorEl, setDeleteAnchorEl] = useState<null | Element>(null);
   const disableUp = layoutOrder.indexOf(name) === 0;
   const disableDown = layoutOrder.indexOf(name) === layoutOrder.length - 1;
+
+  useEffect(() => {
+    if (name !== selectedLayout) {
+      setEditMode(false);
+    }
+  }, [name, selectedLayout]);
 
   const onPageClick = () => {
     if (invalid) {
       alert(`${name}: ${t('right_menu.pages.invalid_page_data')}`);
-    }
-    else if (selectedLayout !== name) {
+    } else if (selectedLayout !== name) {
       dispatch(FormLayoutActions.updateSelectedLayout({ selectedLayout: name }));
+      setSearchParams({ ...deepCopy(searchParams), layout: name });
     }
   };
 
-  const onPageSettingsClick = (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-    event.stopPropagation();
+  const onPageSettingsClick = (event: MouseEvent<HTMLButtonElement>) =>
     setMenuAnchorEl(event.currentTarget);
-  };
 
-  const onMenuClose = (event: React.SyntheticEvent) => {
-    event.stopPropagation();
-    setMenuAnchorEl(null);
-  };
+  const onMenuClose = (_event: SyntheticEvent) => setMenuAnchorEl(null);
 
-  const onMenuItemClick = (
-    event: React.SyntheticEvent,
-    action: 'up' | 'down' | 'edit' | 'delete'
-  ) => {
-    event.stopPropagation();
+  const onMenuItemClick = (event: SyntheticEvent, action: 'up' | 'down' | 'edit' | 'delete') => {
     if (action === 'delete') {
       setDeleteAnchorEl(event.currentTarget);
     } else if (action === 'edit') {
@@ -75,21 +73,18 @@ export function PageElement({ name, invalid }: IPageElementProps) {
     setMenuAnchorEl(null);
   };
 
-  const handleOnBlur = (event: any) => {
-    event.stopPropagation();
+  const handleOnBlur = async (_event: any) => {
     setEditMode(false);
     if (!errorMessage && name !== newName) {
-      dispatch(FormLayoutActions.updateLayoutName({ oldName: name, newName }));
+      await dispatch(FormLayoutActions.updateLayoutName({ oldName: name, newName }));
+      setSearchParams({ ...deepCopy(searchParams), layout: newName });
     }
   };
 
-  const pageNameExists = (candidateName: string): boolean => {
-    return layoutOrder.some(
-      (pageName: string) => pageName.toLowerCase() === candidateName.toLowerCase()
-    );
-  };
+  const pageNameExists = (candidateName: string): boolean =>
+    layoutOrder.some((p: string) => p.toLowerCase() === candidateName.toLowerCase());
 
-  const handleOnChange = (event: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
+  const handleOnChange = (event: ChangeEvent<HTMLTextAreaElement | HTMLInputElement>) => {
     const nameRegex = new RegExp('^[a-zA-Z0-9_\\-\\.]*$');
     const newNameCandidate = event.target.value.replace(/[/\\?%*:|"<>]/g, '-').trim();
     if (pageNameExists(newNameCandidate)) {
@@ -106,10 +101,10 @@ export function PageElement({ name, invalid }: IPageElementProps) {
     }
   };
 
-  const handleKeyPress = (event: any) => {
-    event.stopPropagation();
+  const handleKeyPress = async (event: any) => {
     if (event.key === 'Enter' && !errorMessage && name !== newName) {
-      dispatch(FormLayoutActions.updateLayoutName({ oldName: name, newName }));
+      await dispatch(FormLayoutActions.updateLayoutName({ oldName: name, newName }));
+      setSearchParams({ ...deepCopy(searchParams), layout: newName });
       setEditMode(false);
     } else if (event.key === 'Escape') {
       setEditMode(false);
@@ -117,19 +112,18 @@ export function PageElement({ name, invalid }: IPageElementProps) {
     }
   };
 
-  const handleConfirmDeleteClose = (event?: React.SyntheticEvent) => {
-    event?.stopPropagation();
-    setDeleteAnchorEl(null);
-  };
+  const handleConfirmDeleteClose = () => setDeleteAnchorEl(null);
 
-  const handleConfirmDelete = (event?: React.SyntheticEvent) => {
-    event?.stopPropagation();
+  const handleConfirmDelete = () => {
     setDeleteAnchorEl(null);
     dispatch(FormLayoutActions.deleteLayout({ layout: name }));
+    setSearchParams(removeKey(searchParams, 'layout'));
   };
 
   return (
-    <div className={cn({ [classes.selected]: selectedLayout === name, [classes.invalid]: invalid })}>
+    <div
+      className={cn({ [classes.selected]: selectedLayout === name, [classes.invalid]: invalid })}
+    >
       <div className={classes.elementContainer}>
         <div>
           <Right
@@ -140,30 +134,27 @@ export function PageElement({ name, invalid }: IPageElementProps) {
             }}
           />
         </div>
-        <div onClick={onPageClick}>
-          {!editMode && name}
-          {editMode && (
-            <>
-              <TextField
-                onBlur={handleOnBlur}
-                onKeyDown={handleKeyPress}
-                onChange={handleOnChange}
-                defaultValue={name}
-                isValid={!errorMessage}
-              />
-              <span className={classes.errorMessage}>{errorMessage}</span>
-            </>
-          )}
-        </div>
-        <div>
-          <Button
-            className={classes.ellipsisButton}
-            icon={<EllipsisV />}
-            onClick={onPageSettingsClick}
-            style={menuAnchorEl ? { visibility: 'visible' } : {}}
-            variant={ButtonVariant.Quiet}
-          />
-        </div>
+        {editMode ? (
+          <>
+            <TextField
+              onBlur={handleOnBlur}
+              onKeyDown={handleKeyPress}
+              onChange={handleOnChange}
+              defaultValue={name}
+              isValid={!errorMessage}
+            />
+            <span className={classes.errorMessage}>{errorMessage}</span>
+          </>
+        ) : (
+          <div onClick={onPageClick}>{name}</div>
+        )}
+        <Button
+          className={classes.ellipsisButton}
+          icon={<EllipsisV />}
+          onClick={onPageSettingsClick}
+          style={menuAnchorEl ? { visibility: 'visible' } : {}}
+          variant={ButtonVariant.Quiet}
+        />
       </div>
 
       <AltinnMenu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={onMenuClose}>

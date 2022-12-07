@@ -357,16 +357,12 @@ const formLayoutSlice = createSlice({
 
         // update id in parent container order
         const selectedLayoutOrder = state.layouts[state.selectedLayout].order;
-        const parentContainer = Object.keys(selectedLayoutOrder).find((containerId) => {
-          return selectedLayoutOrder[containerId].indexOf(id) > -1;
-        });
+        const parentContainer = Object.keys(selectedLayoutOrder).find(
+          (containerId) => selectedLayoutOrder[containerId].indexOf(id) > -1
+        );
         const parentContainerOrder = selectedLayoutOrder[parentContainer];
         const containerIndex = parentContainerOrder.indexOf(id);
         parentContainerOrder[containerIndex] = newId;
-
-        // update id of the containers order array
-        // selectedLayoutOrder[newId] = selectedLayoutOrder[id];
-        // delete selectedLayoutOrder[id];
       } else {
         selectedLayoutComponents[id] = {
           ...selectedLayoutComponents[id],
@@ -394,6 +390,7 @@ const formLayoutSlice = createSlice({
       delete state.layouts[oldName];
       const pageOrder = state.layoutSettings.pages.order;
       pageOrder[pageOrder.indexOf(oldName)] = newName;
+      state.selectedLayout = newName;
     },
     updateLayoutNameRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
       const { error } = action.payload;
