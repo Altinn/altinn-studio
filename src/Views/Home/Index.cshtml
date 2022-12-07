@@ -32,8 +32,9 @@
         } else {
           <pre>No application running on @Model.LocalAppUrl</pre>
           <p>
-            Please start your an app on this adress.
+            Please start your an app on this adress. Typically run the following command in an app directory.
           </p>
+          <pre>dotnet run</pre>
         }
       } else {
         <pre>
@@ -65,7 +66,7 @@
 
     <h2>Testing app:  @Model.Org/@Model.App</h2>
 
-    @using (Html.BeginForm("LogInTestUser", "Home", FormMethod.Post, new { Class = "form-signin" }))
+    @using (Html.BeginForm("LogInTestUser", "Home", FormMethod.Post, new { Class = "form-signin", enctype = "multipart/form-data" }))
     {
       @Html.AntiForgeryToken();
       <div class="form-group">
@@ -80,6 +81,13 @@
         <label for="exampleInputEmail1">Select your authentication level</label>
         @Html.DropDownListFor(model => model.AuthenticationLevel, Model.AuthenticationLevels, new { Class = "form-control" })
       </div>
+      @if(Model.AppModeIsHttp)
+      {
+        <div class="form-group">
+          <label for="prefill">Prefill xml. The first part of the filename must be "[orgnr]." or "[fnr]." (eg. "897069631.xml" or "897069631.TST-2345.xml")</label>
+          <input class="form-control" type="file" id="prefill" name="prefill" accept=".xml"/>
+        </div>
+      }
       <button type="submit" class="btn btn-primary">Proceed to app</button>
     }
 

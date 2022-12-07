@@ -100,6 +100,11 @@ namespace LocalTest.Services.LocalApp.Implementation
             return null;
         }
 
+        public Task<Instance?> Instantiate(string appId, Instance instance, string xmlPrefill, string xmlDataId)
+        {
+            throw new NotImplementedException();
+        }
+
         private string GetAppPath(string appId)
         {
             return Path.Join(_localPlatformSettings.AppRepositoryBasePath, appId.Split('/').Last());

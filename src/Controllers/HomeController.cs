@@ -78,6 +78,7 @@ namespace LocalTest.Controllers
             model.StaticTestDataPath = _localPlatformSettings.LocalTestingStaticTestDataPath;
             model.LocalAppUrl = _localPlatformSettings.LocalAppUrl;
             var defaultAuthLevel = _localPlatformSettings.LocalAppMode == "http" ? await GetAppAuthLevel(model.TestApps) : 2;
+            model.AppModeIsHttp = _localPlatformSettings.LocalAppMode == "http";
             model.AuthenticationLevels = GetAuthenticationLevels(defaultAuthLevel);
             model.LocalFrontendUrl = HttpContext.Request.Cookies[FRONTEND_URL_COOKIE_NAME];
 
@@ -111,21 +112,9 @@ namespace LocalTest.Controllers
             if (startAppModel.AuthenticationLevel != "-1")
             {
                 UserProfile profile = await _userProfileService.GetUser(startAppModel.UserId);
+                int authenticationLevel = Convert.ToInt32(startAppModel.AuthenticationLevel);
 
-                List<Claim> claims = new List<Claim>();
-                string issuer = _generalSettings.Hostname;
-                claims.Add(new Claim(ClaimTypes.NameIdentifier, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
-                claims.Add(new Claim(AltinnCoreClaimTypes.UserId, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
-                claims.Add(new Claim(AltinnCoreClaimTypes.UserName, profile.UserName, ClaimValueTypes.String, issuer));
-                claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, profile.PartyId.ToString(), ClaimValueTypes.Integer32, issuer));
-                claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, startAppModel.AuthenticationLevel, ClaimValueTypes.Integer32, issuer));
-                claims.AddRange(await _claimsService.GetCustomClaims(profile.UserId, issuer));
-
-                ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
-                identity.AddClaims(claims);
-                ClaimsPrincipal principal = new ClaimsPrincipal(identity);
-
-                string token = _authenticationService.GenerateToken(principal, int.Parse(_generalSettings.GetJwtCookieValidityTime));
+                string token = await _authenticationService.GenerateTokenForProfile(profile, authenticationLevel);
                 CreateJwtCookieAndAppendToResponse(token);
             }
 
@@ -133,6 +122,43 @@ namespace LocalTest.Controllers
 
             // Ensure that the documentstorage in LocalTestingStorageBasePath is updated with the most recent app data
             await _applicationRepository.Update(app);
+
+            if(_localPlatformSettings.LocalAppMode == "http")
+            {
+                // Instantiate a prefill if a file attachment exists.
+                var prefill = Request.Form.Files.FirstOrDefault();
+                if (prefill != null)
+                {
+                    var instance = new Instance{
+                        AppId = app.Id,
+                        Org = app.Org,
+                        InstanceOwner = new(),
+                        DataValues = new(),
+                    };
+
+                    var owner = prefill.FileName.Split(".")[0];
+                    if (owner.Length == 9)
+                    {
+                        instance.InstanceOwner.OrganisationNumber = owner;
+                    }
+                    else if (owner.Length == 12)
+                    {
+                        instance.InstanceOwner.PersonNumber = owner;
+                    }
+                    else
+                    {
+                        throw new Exception($"instance owner must be specified as part of the prefill filename. 9 digigts for OrganisationNumber, 12 for PersonNumber (eg 897069631.xml, not {prefill.FileName})");
+                    }
+
+                    var xmlDataId = app.DataTypes.First(dt => dt.AppLogic is not null).Id;
+
+                    using var reader = new StreamReader(prefill.OpenReadStream());
+                    var content = await reader.ReadToEndAsync();
+                    var newInstance = await _localApp.Instantiate(app.Id, instance, content, xmlDataId);
+
+                    return Redirect($"{_generalSettings.GetBaseUrl}/{app.Id}/#/instance/{newInstance.Id}");
+                }
+            }
 
             return Redirect($"/{app.Id}/");
         }
@@ -151,19 +177,8 @@ namespace LocalTest.Controllers
                 return NotFound();
             }
 
-            List<Claim> claims = new List<Claim>();
-            string issuer = _generalSettings.Hostname;
-            claims.Add(new Claim(AltinnCoreClaimTypes.UserId, profile.UserId.ToString(), ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.UserName, profile.UserName, ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.PartyID, profile.PartyId.ToString(), ClaimValueTypes.Integer32, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, issuer));
-
-            ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
-            identity.AddClaims(claims);
-            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
-
             // Create a test token with long duration
-            string token = _authenticationService.GenerateToken(principal, 1337);
+            string token = await _authenticationService.GenerateTokenForProfile(profile, 2);
             return Ok(token);
         }
 
@@ -172,26 +187,12 @@ namespace LocalTest.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        public async Task<ActionResult> GetTestOrgToken(string id, [FromQuery] string orgNumber = "")
+        public async Task<ActionResult> GetTestOrgToken(string id, [FromQuery] string orgNumber = null)
         {
-            List<Claim> claims = new List<Claim>();
-            string issuer = _generalSettings.Hostname;
-            claims.Add(new Claim(AltinnCoreClaimTypes.Org, id.ToLower(), ClaimValueTypes.String, issuer));
-            claims.Add(new Claim(AltinnCoreClaimTypes.AuthenticationLevel, "2", ClaimValueTypes.Integer32, issuer));
-            claims.Add(new Claim("urn:altinn:scope", "altinn:serviceowner/instances.read", ClaimValueTypes.String, issuer));
-            if (!string.IsNullOrEmpty(orgNumber))
-            {
-                claims.Add(new Claim(AltinnCoreClaimTypes.OrgNumber, orgNumber, ClaimValueTypes.String, issuer));
-            }
-
-            ClaimsIdentity identity = new ClaimsIdentity(_generalSettings.GetClaimsIdentity);
-            identity.AddClaims(claims);
-            ClaimsPrincipal principal = new ClaimsPrincipal(identity);
-
             // Create a test token with long duration
-            string token = _authenticationService.GenerateToken(principal, 1337);
+            string token = await _authenticationService.GenerateTokenForOrg(id, orgNumber);
 
-            return await Task.FromResult(Ok(token));
+            return Ok(token);
         }
 
         /// <summary>

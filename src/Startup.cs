@@ -21,7 +21,7 @@ using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Repository;
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
-
+using LocalTest.Clients.CdnAltinnOrgs;
 using LocalTest.Configuration;
 using LocalTest.Services.Authentication.Implementation;
 using LocalTest.Services.Authentication.Interface;
@@ -95,6 +95,7 @@ namespace LocalTest
             services.AddSingleton<ITextRepository, TextRepository>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddHttpClient<AuthorizationApiClient>();
+            services.AddHttpClient<AltinnOrgsClient>();
             services.AddSingleton<IPDP, PDPAppSI>();
             services.AddSingleton<IAuthentication, AuthenticationService>();
             services.AddTransient<IAuthorizationHandler, AppAccessHandler>();
