@@ -4,7 +4,7 @@ using Xunit;
 
 namespace Designer.Tests.Factories.ModelFactory
 {
-    public class JsonMetadataParserTests: Xsd2CsharpBaseClass<JsonMetadataParserTests>
+    public class JsonMetadataParserTests: CsharpModelConversionTestsBase<JsonMetadataParserTests>
     {
         [Fact]
         public void CreateModelFromMetadata_InputModelWithRestrictionMinimumAndMaximum_GenerateDataAnnotationWithRangeFromMinToMax()

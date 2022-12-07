@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 
 namespace Designer.Tests.Factories.ModelFactory;
 
-public class DataValidationTests: Xsd2CsharpBaseClass<DataValidationTests>
+public class DataValidationTests: CsharpModelConversionTestsBase<DataValidationTests>
 {
     private readonly ITestOutputHelper _testOutputHelper;
 
@@ -114,7 +114,7 @@ public class DataValidationTests: Xsd2CsharpBaseClass<DataValidationTests>
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement)
         });
         var jsonNode = JsonNode.Parse(json);
-        var validationResults = ConvertedJsonSchema.Validate(jsonNode);
+        var validationResults = JsonSchema.Validate(jsonNode);
         validationResults.IsValid.Should().BeTrue();
     }
 }

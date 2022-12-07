@@ -13,7 +13,7 @@ using static Designer.Tests.Assertions.TypeAssertions;
 
 namespace Designer.Tests.Factories.ModelFactory;
 
-public class CsharpEnd2EndGenerationTests : Xsd2CsharpBaseClass<CsharpEnd2EndGenerationTests>
+public class CsharpEnd2EndGenerationTests : CsharpModelOldConversionTestsBase<CsharpEnd2EndGenerationTests>
 {
     [Theory]
     [ClassData(typeof(CSharpEnd2EndTestData))]

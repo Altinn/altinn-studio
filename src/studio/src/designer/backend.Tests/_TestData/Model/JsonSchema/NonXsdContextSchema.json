@@ -1,0 +1,73 @@
+﻿{
+  "$id": "https://example.com/arrays.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "A representation of a person, company, organization, or place",
+  "type": "object",
+  "properties": {
+    "stringArray": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "referenceObjectArray": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/objectType" }
+    },
+    "numberArray": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    },
+    "integerArray": {
+      "type": "array",
+      "items": {
+        "type": "integer"
+      }
+    },
+    "stringField": {
+      "type": "string"
+    },
+    "numberField": {
+      "type": "number",
+      "description": "Number field."
+    },
+    "integerField": {
+      "type": "integer"
+    },
+    "restrictionNumberFiled": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "restrictionStringFiled": {
+      "type": "string",
+      "minLength": 2,
+      "maxLength": 10,
+      "pattern": "^\\d*$"
+    }
+  },
+  "$defs": {
+    "objectType": {
+      "type": "object",
+      "required": [ "prop1", "prop2" ],
+      "properties": {
+        "prop1": {
+          "type": "string",
+          "description": "Prop 1 description."
+        },
+        "prop2": {
+          "type": "boolean",
+          "description": "Prop 2 description."
+        },
+        "prop3": {
+          "type": "array",
+          "items": {
+            "type": "number"
+          }
+        }
+      }
+    }
+  }
+}

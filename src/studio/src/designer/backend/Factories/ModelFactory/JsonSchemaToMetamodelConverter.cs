@@ -159,6 +159,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                 case MaxItemsKeyword:
                 case CommentKeyword:
                 case XsdRootElementKeyword:
+                case DescriptionKeyword:
                     break;
 
                 case RefKeyword k:
@@ -542,45 +543,66 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
 
         private static BaseValueType? MapToXsdValueType(SchemaValueType jsonValueType, JsonSchema subSchema)
         {
-            switch (jsonValueType)
+            return jsonValueType switch
             {
-                case SchemaValueType.String:
-                    return MapStringValueTypes(subSchema);
-                case SchemaValueType.Boolean:
-                    return BaseValueType.Boolean;
-                case SchemaValueType.Number:
-                    return BaseValueType.Decimal;
-                case SchemaValueType.Integer:
-                    return MapIntegerValueTypes(subSchema);
-                default:
-                    return null;
+                SchemaValueType.String => MapStringValueTypes(subSchema),
+                SchemaValueType.Boolean => BaseValueType.Boolean,
+                SchemaValueType.Number => BaseValueType.Decimal,
+                SchemaValueType.Integer => MapIntegerValueTypes(subSchema),
+                SchemaValueType.Array => MapValueFromArray(subSchema),
+                _ => null
+            };
+        }
+
+        private static BaseValueType? MapValueFromArray(JsonSchema subSchema)
+        {
+            if (!subSchema.TryGetKeyword(out ItemsKeyword itemsKeyword))
+            {
+                return null;
             }
+
+            var singleSchema = itemsKeyword.SingleSchema;
+            if (!singleSchema.TryGetKeyword(out TypeKeyword typeKeyword))
+            {
+                return null;
+            }
+
+            var type = GetPrimitiveType(typeKeyword.Type);
+            return type switch
+            {
+                SchemaValueType.Null => null,
+                SchemaValueType.String => MapStringValueTypes(subSchema),
+                SchemaValueType.Integer => MapIntegerValueTypes(subSchema),
+                SchemaValueType.Boolean => BaseValueType.Boolean,
+                SchemaValueType.Number => BaseValueType.Decimal,
+                _ => null
+            };
         }
 
         private static BaseValueType MapIntegerValueTypes(JsonSchema subSchema)
-        {
-            var baseValueType = BaseValueType.Integer;
-
-            if (subSchema.TryGetKeyword(out MinimumKeyword minimumKeyword))
             {
-                decimal? minimum = minimumKeyword.Value;
+                var baseValueType = BaseValueType.Integer;
 
-                if (minimum > 0.0m)
+                if (subSchema.TryGetKeyword(out MinimumKeyword minimumKeyword))
                 {
-                    baseValueType = BaseValueType.PositiveInteger;
-                }
-                else if (minimum == 0.0m)
-                {
-                    baseValueType = BaseValueType.NonNegativeInteger;
-                }
-            }
-            else if (TryParseXsdTypeKeyword(subSchema, out var parsedBaseValueType))
-            {
-                baseValueType = parsedBaseValueType;
-            }
+                    decimal? minimum = minimumKeyword.Value;
 
-            return baseValueType;
-        }
+                    if (minimum > 0.0m)
+                    {
+                        baseValueType = BaseValueType.PositiveInteger;
+                    }
+                    else if (minimum == 0.0m)
+                    {
+                        baseValueType = BaseValueType.NonNegativeInteger;
+                    }
+                }
+                else if (TryParseXsdTypeKeyword(subSchema, out var parsedBaseValueType))
+                {
+                    baseValueType = parsedBaseValueType;
+                }
+
+                return baseValueType;
+            }
 
         private static bool TryParseXsdTypeKeyword(JsonSchema subSchema, out BaseValueType baseValueType)
         {
