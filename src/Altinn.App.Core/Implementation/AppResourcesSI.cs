@@ -365,7 +365,7 @@ namespace Altinn.App.Core.Implementation
         /// <inheritdoc />
         public LayoutModel GetLayoutModel(string? layoutSetId = null)
         {
-            string folder = Path.Join(_settings.AppBasePath, _settings.UiFolder, layoutSetId);
+            string folder = Path.Join(_settings.AppBasePath, _settings.UiFolder, layoutSetId, "layouts");
             var order = GetLayoutSettingsForSet(layoutSetId)?.Pages?.Order;
             if (order is null)
             {
