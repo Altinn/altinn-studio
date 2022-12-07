@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import type { GridSortModel } from '@mui/x-data-grid';
-import { Typography } from '@mui/material';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { useAugmentReposWithStarred } from './hooks';
 import { useAppSelector } from '../../common/hooks';
@@ -38,9 +37,7 @@ export const SearchResultReposList = ({ searchValue }: { searchValue: string }) 
 
   return (
     <div>
-      <Typography variant='h2'>
-        {getLanguageFromKey('dashboard.search_result', language)}
-      </Typography>
+      <h2>{getLanguageFromKey('dashboard.search_result', language)}</h2>
       <RepoList
         repos={reposWithStarred}
         isLoading={isLoadingOrgRepos || isLoadingStarred}

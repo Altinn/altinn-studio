@@ -1,6 +1,5 @@
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import React, { useState } from 'react';
-import { IconButton, InputAdornment, TextField } from '@mui/material';
 import { useDebounce } from 'react-use';
 import cn from 'classnames';
 import { Link } from 'react-router-dom';
@@ -11,6 +10,8 @@ import { SearchResultReposList } from './SearchResultReposList';
 import { useAppSelector } from '../../common/hooks';
 import classes from './Dashboard.module.css';
 import { DatamodelsReposList } from './DatamodelsRepoList';
+import { Button, ButtonSize, ButtonVariant, SearchField } from '@altinn/altinn-design-system';
+import { Close } from '@navikt/ds-icons';
 
 export const Dashboard = () => {
   const language = useAppSelector((state) => state.language.language);
@@ -27,29 +28,28 @@ export const Dashboard = () => {
   return (
     <div className={classes.createServiceContainer}>
       <div className={classes.topBar}>
-        <TextField
-          id='search-repos'
-          label={getLanguageFromKey('dashboard.search', language)}
-          variant='outlined'
-          value={searchText}
-          onChange={handleChangeSearch}
-          onKeyDown={handleKeyDown}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position='end'>
-                {searchText && (
-                  <IconButton
-                    aria-label={getLanguageFromKey('dashboard.clear_search', language)}
-                    onClick={handleClearSearch}
-                    edge='end'
-                  >
-                    <i className={cn('fa fa-exit', classes.clearIcon)} />
-                  </IconButton>
-                )}
-              </InputAdornment>
-            ),
-          }}
-        />
+        <div className={classes.searchFieldContainer}>
+          <div>
+            <SearchField
+              id='search-repos'
+              label={getLanguageFromKey('dashboard.search', language)}
+              value={searchText}
+              onChange={handleChangeSearch}
+              onKeyDown={handleKeyDown}
+            />
+          </div>
+          {searchText && (
+            <Button
+              className={classes.clearSearchButton}
+              aria-label={getLanguageFromKey('dashboard.clear_search', language)}
+              onClick={handleClearSearch}
+              icon={<Close />}
+              variant={ButtonVariant.Quiet}
+              size={ButtonSize.Small}
+            />
+          )}
+        </div>
+
         <Link
           to='/new'
           className={classes.newLink}
