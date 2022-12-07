@@ -27,12 +27,12 @@ public static class RestrictionsHelper
     /// </summary>
     /// <param name="value">Total digits value</param>
     /// <returns>Regex string for total digits</returns>
-    public static string TotalDigitsIntegerRegexString(uint value) => $@"^[0-9]{{0,{value}}}$";
+    public static string TotalDigitsIntegerRegexString(uint value) => $@"^-?[0-9]{{0,{value}}}$";
 
     /// <summary>
     /// Gets the regex for total digits restriction for decimal data type.
     /// </summary>
     /// <param name="value">Total digits value</param>
     /// <returns>Regex string for total digits</returns>
-    public static string TotalDigitsDecimalRegexString(uint value) => $@"^(([0-9]){{1}}(\.)?){{0,{value}}}$";
+    public static string TotalDigitsDecimalRegexString(uint value) => $@"^-?(([0-9]){{1}}(\.)?){{0,{value}}}$";
 }
