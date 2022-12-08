@@ -19,7 +19,7 @@
   margin: auto;
 }
 
-.point {
+.points span {
   background: #00000040;
   width: var(--point-size);
   height: var(--point-size);
