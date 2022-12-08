@@ -6,6 +6,7 @@ using Altinn.App.Core.Interface;
 using Altinn.App.Core.Internal.AppModel;
 using Altinn.App.Core.Internal.Expressions;
 using Altinn.App.Core.Internal.Pdf;
+using Altinn.App.Core.Models;
 using Altinn.Platform.Storage.Interface.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -163,7 +164,11 @@ public class DefaultTaskEvents : ITaskEvents
         }
         if (_appSettings?.EnableEFormidling == true && _appMetadata.EFormidling?.SendAfterTaskId == endEvent && _eFormidlingService != null)
         {
-            await _eFormidlingService.SendEFormidlingShipment(instance);
+            // The code above updates data elements on the instance. To ensure
+            // we have the latest instance with all the data elements including pdf,
+            // we reload the instance before we pass it on to eFormidling.
+            var updatedInstance = await _instanceClient.GetInstance(instance);
+            await _eFormidlingService.SendEFormidlingShipment(updatedInstance);
         }
 
         if (_appMetadata.AutoDeleteOnProcessEnd)
