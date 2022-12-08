@@ -24,7 +24,7 @@
     "react-dnd-html5-backend": "16.0.1",
     "react-dom": "18.2.0",
     "react-html-parser": "2.0.2",
-    "react-monaco-editor": "0.50.1",
+    "react-monaco-editor": "0.51.0",
     "react-redux": "8.0.5",
     "react-router-dom": "6.4.3",
     "react-select": "5.6.1",
