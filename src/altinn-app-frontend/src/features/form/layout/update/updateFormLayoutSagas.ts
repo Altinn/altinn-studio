@@ -7,7 +7,7 @@ import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import { FormDynamicsActions } from 'src/features/form/dynamics/formDynamicsSlice';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
-import { selectLayoutOrder } from 'src/selectors/getLayoutOrder';
+import { getLayoutOrderFromTracks, selectLayoutOrder } from 'src/selectors/getLayoutOrder';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import { OptionsActions } from 'src/shared/resources/options/optionsSlice';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
@@ -457,7 +457,12 @@ export function* calculatePageOrderAndMoveToNextPageSaga({
       return;
     }
     const returnToView = state.formLayout.uiConfig.returnToView;
-    const newView = returnToView || layoutOrder[layoutOrder.indexOf(currentView) + 1];
+    const newOrder =
+      getLayoutOrderFromTracks({
+        ...state.formLayout.uiConfig.tracks,
+        order: layoutOrder,
+      }) || [];
+    const newView = returnToView || newOrder[newOrder.indexOf(currentView) + 1];
     yield put(
       FormLayoutActions.updateCurrentView({
         newView,

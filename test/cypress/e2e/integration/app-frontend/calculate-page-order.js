@@ -84,4 +84,28 @@ describe('Calculate Page Order', () => {
     // cy.get(appFrontend.navMenuCurrent).should('have.text', '2. repeating');
     // cy.get(appFrontend.navMenuButtons).should('contain.text', '3. hide');
   });
+
+  it('Testing pageOrder with hidden next page via dynamics', () => {
+    cy.interceptLayout('group', (component) => {
+      if (component.type === 'NavigationButtons' && !component.triggers) {
+        component.triggers = ['calculatePageOrder'];
+      } else if (component.type === 'NavigationButtons' && !component.triggers.includes('calculatePageOrder')) {
+        component.triggers.push('calculatePageOrder');
+      }
+    }, (layoutSet) => {
+      layoutSet.hide.data.hidden = ['equals', ['component', 'choose-group-prefills'], 'stor'];
+      layoutSet.repeating.data.hidden = ['equals', ['component', 'choose-group-prefills'], 'stor'];
+    });
+    cy.intercept('POST', '**/pages/order*').as('getPageOrder');
+
+    cy.goto('group');
+    cy.get(appFrontend.navMenuButtons).should('have.length', 4);
+
+    cy.get(appFrontend.group.prefill.stor).click();
+    cy.get(appFrontend.navButtons).contains(mui.button, texts.next).click();
+
+    // Both pages the 'repeating' and 'hide' pages are now hidden
+    cy.get(appFrontend.navMenuCurrent).should('have.text', '2. summary');
+    cy.get(appFrontend.navMenuButtons).should('have.length', 2);
+  });
 });
