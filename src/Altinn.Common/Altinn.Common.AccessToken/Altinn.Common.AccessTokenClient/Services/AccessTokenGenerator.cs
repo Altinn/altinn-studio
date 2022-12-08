@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Runtime.Caching;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using Altinn.Common.AccessTokenClient.Configuration;
 using Altinn.Common.AccessTokenClient.Constants;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -20,18 +20,17 @@ namespace Altinn.Common.AccessTokenClient.Services
         private readonly AccessTokenSettings _accessTokenSettings;
         private readonly ISigningCredentialsResolver _signingKeysResolver;
         private readonly ILogger _logger;
-        private readonly IMemoryCache _memoryCache;
+        private readonly MemoryCache _memoryCache;
 
         /// <summary>
         /// Default constructor. 
         /// </summary>
-        /// <param name="memoryCache">Memory cache</param>
         /// <param name="logger">The logger</param>
         /// <param name="accessTokenSettings">Settings for access token</param>
         /// <param name="signingKeysResolver">The signingkeys resolver</param>
-        public AccessTokenGenerator(IMemoryCache memoryCache, ILogger<AccessTokenGenerator> logger, IOptions<AccessTokenSettings> accessTokenSettings, ISigningCredentialsResolver signingKeysResolver = null)
+        public AccessTokenGenerator(ILogger<AccessTokenGenerator> logger, IOptions<AccessTokenSettings> accessTokenSettings, ISigningCredentialsResolver signingKeysResolver = null)
         {
-            _memoryCache = memoryCache;
+            _memoryCache = MemoryCache.Default;
             _accessTokenSettings = accessTokenSettings.Value;
             _signingKeysResolver = signingKeysResolver;
             _logger = logger;
@@ -73,7 +72,8 @@ namespace Altinn.Common.AccessTokenClient.Services
         {
             string uniqueCacheKey = $"{issuer}:{app}:{signingCredentials.Kid}";
 
-            if (_memoryCache.TryGetValue(uniqueCacheKey, out string tokenstring))
+            string tokenstring;
+            if ((tokenstring = _memoryCache[uniqueCacheKey] as string) != null)
             {
                 return tokenstring;
             }
@@ -104,10 +104,11 @@ namespace Altinn.Common.AccessTokenClient.Services
                 SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
                 tokenstring = tokenHandler.WriteToken(token);
 
-                var cacheEntryOptions = new MemoryCacheEntryOptions()
-                   .SetPriority(CacheItemPriority.High)
-                   .SetAbsoluteExpiration(new TimeSpan(0, 0, 0, _accessTokenSettings.TokenLifetimeInSeconds - 5));
-                _memoryCache.Set(uniqueCacheKey, tokenstring, cacheEntryOptions);
+                _memoryCache.Set(new CacheItem(uniqueCacheKey, tokenstring), new CacheItemPolicy()
+                    {
+                        Priority = CacheItemPriority.NotRemovable,
+                        AbsoluteExpiration = new(DateTime.Now.AddSeconds(_accessTokenSettings.TokenLifetimeInSeconds - 5))
+                    });
 
                 return tokenstring;
             }
