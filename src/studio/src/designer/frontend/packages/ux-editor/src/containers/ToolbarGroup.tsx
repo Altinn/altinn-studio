@@ -1,11 +1,11 @@
 import React from 'react';
-import { Collapse, List } from '@mui/material';
-import { makeStyles } from '@mui/styles';
-import { getComponentTitleByComponentType } from '../utils/language';
 import type { ComponentTypes } from '../components';
-import { CollapsableMenuComponent } from '../components/toolbar/CollapsableMenuComponent';
-import { ToolbarItem } from './ToolbarItem';
 import type { IToolbarElement, CollapsableMenus } from './Toolbar';
+import { CollapsableMenuComponent } from '../components/toolbar/CollapsableMenuComponent';
+import { Collapse } from '@mui/material';
+import { ToolbarItem } from './ToolbarItem';
+import { getComponentTitleByComponentType } from '../utils/language';
+import classes from './ToolbarGroup.module.css';
 
 export interface IToolbarGroupProps {
   list: string;
@@ -19,23 +19,9 @@ export interface IToolbarGroupProps {
   handleComponentInformationOpen: (component: ComponentTypes, event: any) => void;
 }
 
-const useStyles = makeStyles({
-  collapsableContainer: {
-    paddingRight: '2px',
-    paddingLeft: '2px',
-  },
-});
-
 export function ToolbarGroup(props: IToolbarGroupProps) {
-  const classes = useStyles();
-  const handleExitCollapse = () => {
-    props.setCollapsableListAnimationState(props.list, true);
-  };
-
-  const handleEnterCollapse = () => {
-    props.setCollapsableListAnimationState(props.list, false);
-  };
-
+  const handleExitCollapse = () => props.setCollapsableListAnimationState(props.list, true);
+  const handleEnterCollapse = () => props.setCollapsableListAnimationState(props.list, false);
   return (
     <>
       <CollapsableMenuComponent
@@ -49,11 +35,9 @@ export function ToolbarGroup(props: IToolbarGroupProps) {
         onExited={handleExitCollapse}
         onEnter={handleEnterCollapse}
         style={props.componentListCloseAnimationDone ? { display: 'none' } : {}}
-        classes={{
-          root: classes.collapsableContainer,
-        }}
+        className={classes.collapsableContainer}
       >
-        <List dense={false} id={`${props.list}-components`} component='div'>
+        <div>
           {props.components.map((component: IToolbarElement) => (
             <ToolbarItem
               text={
@@ -66,7 +50,7 @@ export function ToolbarGroup(props: IToolbarGroupProps) {
               key={component.type}
             />
           ))}
-        </List>
+        </div>
       </Collapse>
     </>
   );
