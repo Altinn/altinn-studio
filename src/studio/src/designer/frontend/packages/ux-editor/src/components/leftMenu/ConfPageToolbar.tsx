@@ -1,23 +1,31 @@
-import React from 'react';
-import type { IAppState } from '../../types/global';
-import type { IToolbarElement } from '../../containers/Toolbar';
-import { ToolbarItem } from '../../containers/ToolbarItem';
-import { confOnScreenComponents } from '../index';
+import React, { useState } from 'react';
+import type { IAppState, IToolbarElement } from '../../types/global';
+import { ToolbarItem } from './ToolbarItem';
+import { ComponentTypes, confOnScreenComponents } from '..';
 import { getComponentTitleByComponentType } from '../../utils/language';
 import { makeGetLayoutOrderSelector } from '../../selectors/getLayoutData';
 import { mapComponentToToolbarElement } from '../../utils/formLayout';
 import { useDispatch, useSelector } from 'react-redux';
+import { InformationPanelComponent } from '../toolbar/InformationPanelComponent';
 
 export const ConfPageToolbar = () => {
   const dispatch = useDispatch();
+  const [anchorElement, setAnchorElement] = useState<any>(null);
+  const [compSelForInfoPanel, setCompSelForInfoPanel] = useState<ComponentTypes>(null);
   const activeList: any[] = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
   const language: any = useSelector((state: IAppState) => state.appData.languageState.language);
   const order: any[] = useSelector(makeGetLayoutOrderSelector());
   const componentList: IToolbarElement[] = confOnScreenComponents.map((component) =>
     mapComponentToToolbarElement(component, language, activeList, order, dispatch)
   );
-  const handleComponentInformationOpen = () => {
-    console.log('Clicked');
+  const handleComponentInformationOpen = (component: ComponentTypes, event: any) => {
+    setCompSelForInfoPanel(component);
+    setAnchorElement(event.currentTarget);
+  };
+
+  const handleComponentInformationClose = () => {
+    setCompSelForInfoPanel(null);
+    setAnchorElement(null);
   };
   return (
     <>
@@ -31,6 +39,12 @@ export const ConfPageToolbar = () => {
           key={component.type}
         />
       ))}
+      <InformationPanelComponent
+        anchorElement={anchorElement}
+        informationPanelOpen={Boolean(anchorElement)}
+        onClose={handleComponentInformationClose}
+        selectedComponent={compSelForInfoPanel}
+      />
     </>
   );
 };

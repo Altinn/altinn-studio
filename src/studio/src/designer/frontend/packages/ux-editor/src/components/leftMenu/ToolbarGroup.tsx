@@ -1,11 +1,11 @@
 import React from 'react';
-import type { ComponentTypes } from '../components';
-import type { IToolbarElement, CollapsableMenus } from './Toolbar';
-import { CollapsableMenuComponent } from '../components/toolbar/CollapsableMenuComponent';
+import classes from './ToolbarGroup.module.css';
+import type { CollapsableMenus, IToolbarElement } from '../../types/global';
+import type { ComponentTypes } from '..';
+import { CollapsableMenuComponent } from '../toolbar/CollapsableMenuComponent';
 import { Collapse } from '@mui/material';
 import { ToolbarItem } from './ToolbarItem';
-import { getComponentTitleByComponentType } from '../utils/language';
-import classes from './ToolbarGroup.module.css';
+import { getComponentTitleByComponentType } from '../../utils/language';
 
 export interface IToolbarGroupProps {
   list: string;
@@ -37,20 +37,18 @@ export function ToolbarGroup(props: IToolbarGroupProps) {
         style={props.componentListCloseAnimationDone ? { display: 'none' } : {}}
         className={classes.collapsableContainer}
       >
-        <div>
-          {props.components.map((component: IToolbarElement) => (
-            <ToolbarItem
-              text={
-                getComponentTitleByComponentType(component.type, props.language) || component.label
-              }
-              icon={component.icon}
-              componentType={component.type}
-              onDropAction={component.actionMethod}
-              onClick={props.handleComponentInformationOpen}
-              key={component.type}
-            />
-          ))}
-        </div>
+        {props.components.map((component: IToolbarElement) => (
+          <ToolbarItem
+            text={
+              getComponentTitleByComponentType(component.type, props.language) || component.label
+            }
+            icon={component.icon}
+            componentType={component.type}
+            onDropAction={component.actionMethod}
+            onClick={props.handleComponentInformationOpen}
+            key={component.type}
+          />
+        ))}
       </Collapse>
     </>
   );

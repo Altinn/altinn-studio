@@ -19,7 +19,7 @@ export interface IRightMenuProps {
   language: object;
 }
 
-export default function RightMenu(props: IRightMenuProps) {
+export function RightMenu(props: IRightMenuProps) {
   const [conditionalModalOpen, setConditionalModalOpen] = React.useState<boolean>(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const [ruleModalOpen, setRuleModalOpen] = React.useState<boolean>(false);

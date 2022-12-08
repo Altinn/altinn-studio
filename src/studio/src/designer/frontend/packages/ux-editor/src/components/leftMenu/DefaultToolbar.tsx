@@ -1,36 +1,17 @@
 import React, { useState } from 'react';
-import type { ComponentTypes } from '../components';
-import type { IAppState, IWidget } from '../types/global';
-import { InformationPanelComponent } from '../components/toolbar/InformationPanelComponent';
-import { List } from '@mui/material';
+import type { ComponentTypes } from '..';
+import type { IAppState, IToolbarElement, IWidget } from '../../types/global';
+import { CollapsableMenus } from '../../types/global';
+import { InformationPanelComponent } from '../toolbar/InformationPanelComponent';
 import { ToolbarGroup } from './ToolbarGroup';
-import { advancedComponents, schemaComponents, textComponents } from '../components';
-import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
-import { mapComponentToToolbarElement, mapWidgetToToolbarElement } from '../utils/formLayout';
+import { advancedComponents, schemaComponents, textComponents } from '..';
+import { makeGetLayoutOrderSelector } from '../../selectors/getLayoutData';
+import { mapComponentToToolbarElement, mapWidgetToToolbarElement } from '../../utils/formLayout';
 import { useDispatch, useSelector } from 'react-redux';
 
-import './ToolBar.css';
+import './DefaultToolbar.css';
 
-export interface IToolbarElement {
-  label: string;
-  icon?: string;
-  type: string;
-  actionMethod: (containerId: string, position: number) => void;
-}
-
-export enum LayoutItemType {
-  Container = 'CONTAINER',
-  Component = 'COMPONENT',
-}
-
-export enum CollapsableMenus {
-  Components = 'schema',
-  Texts = 'texts',
-  AdvancedComponents = 'advanced',
-  Widgets = 'widget',
-}
-
-export function Toolbar() {
+export function DefaultToolbar() {
   const dispatch = useDispatch();
   const [compInfoPanelOpen, setCompInfoPanelOpen] = useState<boolean>(false);
   const [compSelForInfoPanel, setCompSelForInfoPanel] = useState<ComponentTypes>(null);
@@ -104,32 +85,29 @@ export function Toolbar() {
   };
 
   return (
-    <div className='col-sm-12'>
-      <List id='collapsable-items' tabIndex={-1} component='div'>
-        {Object.values(CollapsableMenus).map((key: string) => {
-          return (
-            <ToolbarGroup
-              key={key}
-              list={key}
-              menuType={key as CollapsableMenus}
-              components={allComponentLists[key]}
-              componentListCloseAnimationDone={componentListsState[key].animationDone}
-              componentListOpen={componentListsState[key].expanded}
-              handleCollapsableListClicked={handleCollapsableListClicked}
-              handleComponentInformationOpen={handleComponentInformationOpen}
-              language={language}
-              setCollapsableListAnimationState={setCollapsableListAnimationState}
-            />
-          );
-        })}
-      </List>
-
+    <>
+      {Object.values(CollapsableMenus).map((key: string) => {
+        return (
+          <ToolbarGroup
+            key={key}
+            list={key}
+            menuType={key as CollapsableMenus}
+            components={allComponentLists[key]}
+            componentListCloseAnimationDone={componentListsState[key].animationDone}
+            componentListOpen={componentListsState[key].expanded}
+            handleCollapsableListClicked={handleCollapsableListClicked}
+            handleComponentInformationOpen={handleComponentInformationOpen}
+            language={language}
+            setCollapsableListAnimationState={setCollapsableListAnimationState}
+          />
+        );
+      })}
       <InformationPanelComponent
         anchorElement={anchorElement}
         informationPanelOpen={compInfoPanelOpen}
         onClose={handleComponentInformationClose}
         selectedComponent={compSelForInfoPanel}
       />
-    </div>
+    </>
   );
 }

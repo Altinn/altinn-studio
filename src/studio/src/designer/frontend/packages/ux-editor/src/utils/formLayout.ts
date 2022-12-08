@@ -1,12 +1,13 @@
+import type { Dispatch } from 'redux';
+import type { IComponent, IThirdPartyComponentDefinition } from '../components';
+import { ComponentTypes } from '../components';
+import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
+import { LayoutItemType } from '../types/global';
+import { addTextResources } from '../features/appData/textResources/textResourcesSlice';
+import { getComponentTitleByComponentType } from './language';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { v4 as uuidv4 } from 'uuid';
-import type { Dispatch } from 'redux';
-import { LayoutItemType } from '../containers/Toolbar';
-import type { IToolbarElement } from '../containers/Toolbar';
-import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
-import { ComponentTypes, IThirdPartyComponentDefinition } from '../components';
-import type { IComponent } from '../components';
-import { getComponentTitleByComponentType } from './language';
+
 import type {
   IFormLayout,
   IFormDesignerComponents,
@@ -14,8 +15,8 @@ import type {
   IFormLayoutOrder,
   IWidget,
   ICreateFormContainer,
+  IToolbarElement,
 } from '../types/global';
-import { addTextResources } from '../features/appData/textResources/textResourcesSlice';
 
 const { addFormComponent, addFormContainer, addWidget, updateActiveListOrder } = FormLayoutActions;
 
@@ -60,7 +61,7 @@ export function convertFromLayoutToInternalFormat(formLayout: any[]): IFormLayou
  * Takes a layout and removes the components in it that belong to groups. This returns
  * only the top-level layout components.
  */
- export function topLevelComponents(layout: any[]) {
+export function topLevelComponents(layout: any[]) {
   const inGroup = new Set<string>();
   layout.forEach((component) => {
     if (component.type === 'Group') {
@@ -155,7 +156,7 @@ export function extractChildrenFromGroup(group: any, components: any[], converte
   convertedLayout.order[id] = children || [];
   children?.forEach((componentId: string) => {
     const component = components.find((candidate: any) => candidate.id === componentId);
-    const internalComponent = {...component};
+    const internalComponent = { ...component };
     if (component.type === 'Group') {
       internalComponent.itemType = 'CONTAINER';
       extractChildrenFromGroup(component, components, convertedLayout);
@@ -172,9 +173,11 @@ export const mapThirdPartyComponentToToolbarElement = (
   activeList: any,
   order: any,
   language: any,
-  dispatch: Dispatch,
+  dispatch: Dispatch
 ): IToolbarElement => {
-  const {textResourceBindings, ...rest} = JSON.parse(JSON.stringify(component.componentDefinition));
+  const { textResourceBindings, ...rest } = JSON.parse(
+    JSON.stringify(component.componentDefinition)
+  );
   return {
     label: getLanguageFromKey(component.displayName, language),
     icon: 'fa fa-3rd-party-alt',
@@ -196,12 +199,10 @@ export const mapThirdPartyComponentToToolbarElement = (
         })
       );
       dispatch(addTextResources({ textResources: component.texts }));
-      dispatch(
-        updateActiveListOrder({ containerList: activeList, orderList: order }),
-      );
-    }
-  }
-}
+      dispatch(updateActiveListOrder({ containerList: activeList, orderList: order }));
+    },
+  };
+};
 
 export const mapWidgetToToolbarElement = (
   widget: IWidget,

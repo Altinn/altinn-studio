@@ -1,6 +1,6 @@
 import React from 'react';
-import { ToolbarItemComponent } from '../components/toolbar/ToolbarItemComponent';
-import { DraggableToolbarItem } from './DraggableToolbarItem';
+import { ToolbarItemComponent } from '../toolbar/ToolbarItemComponent';
+import { DraggableToolbarItem } from '../../containers/DraggableToolbarItem';
 
 interface IToolbarItemProps {
   text: string;

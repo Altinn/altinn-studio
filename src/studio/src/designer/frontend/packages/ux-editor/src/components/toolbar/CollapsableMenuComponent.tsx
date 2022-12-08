@@ -1,12 +1,11 @@
 import React from 'react';
-import { ListItem, ListItemText } from '@mui/material';
-import { createStyles, withStyles } from '@mui/styles';
-import classNames from 'classnames';
-import { connect } from 'react-redux';
 import AltinnIcon from 'app-shared/components/AltinnIcon';
-import type { CollapsableMenus } from '../../containers/Toolbar';
+import classNames from 'classnames';
+import type { IAppState, CollapsableMenus } from '../../types/global';
+import { ListItem, ListItemText } from '@mui/material';
+import { connect } from 'react-redux';
+import { createStyles, withStyles } from '@mui/styles';
 import { getCollapsableMenuTitleByType } from '../../utils/language';
-import type { IAppState } from '../../types/global';
 
 export interface ICollapsableMenuProvidedProps {
   classes: any;
