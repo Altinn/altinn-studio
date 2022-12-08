@@ -10,3 +10,4 @@ language/old/*
 !/.yarn/versions
 **/stats.json
 stats.csv
+script.js

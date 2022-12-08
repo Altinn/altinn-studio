@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import type { IAppState, IToolbarElement } from '../../types/global';
 import { ToolbarItem } from './ToolbarItem';
-import { ComponentTypes, confOnScreenComponents } from '..';
+import type { ComponentTypes } from '..';
+import { confOnScreenComponents } from '..';
 import { getComponentTitleByComponentType } from '../../utils/language';
 import { makeGetLayoutOrderSelector } from '../../selectors/getLayoutData';
 import { mapComponentToToolbarElement } from '../../utils/formLayout';
@@ -40,6 +41,7 @@ export const ConfPageToolbar = () => {
         />
       ))}
       <InformationPanelComponent
+        language={language}
         anchorElement={anchorElement}
         informationPanelOpen={Boolean(anchorElement)}
         onClose={handleComponentInformationClose}

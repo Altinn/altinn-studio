@@ -103,6 +103,7 @@ export function DefaultToolbar() {
         );
       })}
       <InformationPanelComponent
+        language={language}
         anchorElement={anchorElement}
         informationPanelOpen={compInfoPanelOpen}
         onClose={handleComponentInformationClose}
