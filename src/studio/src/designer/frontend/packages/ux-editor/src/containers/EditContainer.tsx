@@ -12,6 +12,8 @@ import classes from './EditContainer.module.css';
 import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
 import { Cancel, Delete, Edit, Success } from '@navikt/ds-icons';
 import cn from 'classnames';
+import { ConnectDragSource } from 'react-dnd';
+import { DragHandle } from '../components/DragHandle';
 
 export interface IEditContainerProvidedProps {
   component: IFormComponent;
@@ -22,6 +24,7 @@ export interface IEditContainerProvidedProps {
   singleSelected: boolean;
   partOfGroup?: boolean;
   children: any;
+  dragHandleRef: ConnectDragSource;
 }
 
 export function EditContainer(props: IEditContainerProvidedProps) {
@@ -122,29 +125,34 @@ export function EditContainer(props: IEditContainerProvidedProps) {
   const activeListIndex = activeList.findIndex((item: any) => item.id === props.id);
   return (
     <div className={cn(classes.wrapper, isEditMode && classes.editMode)}>
-      <div
-        className={classes.formComponent}
-        onClick={handleSetActive}
-        onKeyDown={handleKeyPress}
-        tabIndex={0}
-      >
-        {isEditMode && component ? (
-          <EditModalContent
-            component={JSON.parse(JSON.stringify(component))}
-            handleComponentUpdate={handleComponentUpdate}
-          />
-        ) : (
-          <div className={classes.formComponentTitle}>
-            <i className={componentIcons[component.type] || 'fa fa-help-circle'}/>
-            {component.textResourceBindings?.title
-              ? truncate(
+      <div className={classes.formComponentWithHandle}>
+        <div ref={props.dragHandleRef} className={classes.dragHandle}>
+          <DragHandle/>
+        </div>
+        <div
+          className={classes.formComponent}
+          onClick={handleSetActive}
+          onKeyDown={handleKeyPress}
+          tabIndex={0}
+        >
+          {isEditMode && component ? (
+            <EditModalContent
+              component={JSON.parse(JSON.stringify(component))}
+              handleComponentUpdate={handleComponentUpdate}
+            />
+          ) : (
+            <div className={classes.formComponentTitle}>
+              <i className={componentIcons[component.type] || 'fa fa-help-circle'}/>
+              {component.textResourceBindings?.title
+                ? truncate(
                   getTextResource(component.textResourceBindings.title, textResources),
                   80
                 )
-              : getComponentTitleByComponentType(component.type, language) ||
+                : getComponentTitleByComponentType(component.type, language) ||
                 getLanguageFromKey('ux_editor.component_unknown', language)}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
       {!isEditMode && (
         <div className={classes.buttons}>

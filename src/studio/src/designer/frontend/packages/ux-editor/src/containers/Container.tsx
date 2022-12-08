@@ -482,9 +482,8 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
         id='placeholder'
         index={0}
         containerId={this.props.id}
-      >
-        {this.props.language['ux_editor.container_empty']}
-      </DroppableDraggableComponent>
+        component={() => this.props.language['ux_editor.container_empty']}
+      />
     );
   };
 
@@ -568,17 +567,19 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
         id={id}
         index={index}
         key={id}
-      >
-        <FormComponentWrapper
-          activeList={this.props.activeList}
-          firstInActiveList={firstInActiveList}
-          id={id}
-          lastInActiveList={lastInActiveList}
-          partOfGroup={!this.props.isBaseContainer}
-          sendListToParent={this.handleActiveListChange}
-          singleSelected={this.props.activeList.length === 1}
-        />
-      </DroppableDraggableComponent>
+        component={(dragHandleRef) => (
+          <FormComponentWrapper
+            activeList={this.props.activeList}
+            firstInActiveList={firstInActiveList}
+            id={id}
+            lastInActiveList={lastInActiveList}
+            partOfGroup={!this.props.isBaseContainer}
+            sendListToParent={this.handleActiveListChange}
+            singleSelected={this.props.activeList.length === 1}
+            dragHandleRef={dragHandleRef}
+          />
+        )}
+      />
     );
   };
 

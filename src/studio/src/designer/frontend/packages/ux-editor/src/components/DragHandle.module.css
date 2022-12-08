@@ -1,0 +1,27 @@
+.handle {
+  background-color: #00000010;
+  border-width: 0;
+  border-top-left-radius: 5px;
+  border-bottom-left-radius: 5px;
+  width: 25px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: move;
+  height: 100%;
+}
+
+.points {
+  --point-size: 3px;
+  display: grid;
+  grid-template: var(--point-size) / var(--point-size) var(--point-size);
+  gap: var(--point-size);
+  margin: auto;
+}
+
+.points span {
+  background: #00000040;
+  width: var(--point-size);
+  height: var(--point-size);
+  border-radius: 50%;
+}
