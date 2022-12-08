@@ -424,7 +424,7 @@ describe('utils > validation', () => {
           properties: {
             dataModelField_4: {
               type: 'string',
-              pattern: '^Hello, World!|Cool stuff...|Not now!$',
+              pattern: '^(Hello, World!|Cool stuff...|Not now!)$',
             },
             group_2: {
               type: 'array',

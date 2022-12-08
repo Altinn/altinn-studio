@@ -496,7 +496,7 @@ export function validateComponentFormData(
         }
 
         let errorParams = error.params[errorMessageKeys[error.keyword]?.paramKey];
-        if (!errorParams === undefined) {
+        if (errorParams === undefined) {
           console.warn(`WARN: Error message for ${error.keyword} not implemented`);
         }
         if (Array.isArray(errorParams)) {
@@ -662,7 +662,7 @@ function validateFormDataForLayout(
     result.invalidDataTypes = error.keyword === 'type' || error.keyword === 'format' || result.invalidDataTypes;
 
     let errorParams = error.params[errorMessageKeys[error.keyword]?.paramKey];
-    if (!errorParams === undefined) {
+    if (errorParams === undefined) {
       console.warn(`WARN: Error message for ${error.keyword} not implemented`);
     }
     if (Array.isArray(errorParams)) {
