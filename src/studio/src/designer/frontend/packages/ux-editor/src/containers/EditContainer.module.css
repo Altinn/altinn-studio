@@ -1,18 +1,23 @@
 .wrapper {
-  display: flex;
   align-items: stretch;
+  display: flex;
+  margin-left: var(--margin-left-with-handle);
+  margin-right: var(--margin-right-with-buttons);
 }
 
 .formComponentWithHandle {
+  align-items: stretch;
+  border-bottom-left-radius: 5px;
+  border-top-left-radius: 5px;
   display: flex;
   flex-direction: row;
-  align-items: stretch;
   flex: 1;
-  border-top-left-radius: 5px;
-  border-bottom-left-radius: 5px;
 }
 
 .dragHandle {
+  background-color: #00000010;
+  border-bottom-left-radius: 5px;
+  border-top-left-radius: 5px;
   visibility: hidden;
 }
 
@@ -35,7 +40,8 @@
 .buttons {
   display: flex;
   flex-direction: column;
-  margin-left: .5rem;
+  margin-left: var(--buttons-distance);
+  gap: var(--buttons-distance);
 }
 
 .wrapper:not(.editMode):not(:hover) .buttons button {

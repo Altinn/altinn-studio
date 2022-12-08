@@ -1,8 +1,7 @@
 import type { ReactNode, RefObject } from 'react';
 import React, { memo, useRef } from 'react';
 import type { DropTargetHookSpec, DropTargetMonitor } from 'react-dnd';
-import { useDrag, useDrop } from 'react-dnd';
-import altinnTheme from 'app-shared/theme/altinnStudioTheme';
+import { ConnectDragSource, useDrag, useDrop } from 'react-dnd';
 import {
   dragSourceSpec,
   getContainerPosition,
@@ -12,6 +11,8 @@ import {
 import type { EditorDndEvents, EditorDndItem } from './helpers/dnd-types';
 import { ContainerPos, ItemType } from './helpers/dnd-types';
 import { DummyDropTarget } from './DummyDropTarget';
+import classes from './DroppableDraggableContainer.module.css';
+import cn from 'classnames';
 
 export const dropTargetSpec = (
   targetItem: EditorDndItem,
@@ -68,57 +69,53 @@ export const dropTargetSpec = (
 
 export interface IDroppableDraggableContainerProps {
   canDrag: boolean;
-  children?: ReactNode;
   dndEvents: EditorDndEvents;
   id: string;
   index?: number;
   isBaseContainer: boolean;
   parentContainerId?: string;
+  container: (dragHandleRef?: ConnectDragSource) => ReactNode
 }
 
 export const DroppableDraggableContainer = memo(function DroppableDraggableContainer({
   canDrag,
-  children,
+  container,
   dndEvents,
   id,
   index,
   isBaseContainer,
   parentContainerId,
 }: IDroppableDraggableContainerProps) {
-  const ref = useRef<HTMLDivElement>(null);
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const item = {
     id,
     index,
     containerId: parentContainerId,
     type: ItemType.Container,
   };
-  const [{ isDragging }, drag] = useDrag(dragSourceSpec(item, canDrag, dndEvents.onDropItem));
-  const [{ isOver }, drop] = useDrop(dropTargetSpec(item, dndEvents, ref));
-  const opacity = isDragging ? 0 : 1;
-  const backgroundColor = isOver ? 'white' : altinnTheme.altinnPalette.primary.greyLight;
-  const style = {
-    backgroundColor,
-    paddingLeft: '1.2rem',
-    paddingRight: '1.2rem',
-    border: isBaseContainer ? '1px solid #ccc' : '',
-    opacity,
-  };
-  drag(drop(ref));
+  const [{ isDragging }, drag, dragPreview] = useDrag(dragSourceSpec(item, canDrag, dndEvents.onDropItem));
+  const [{ isOver }, drop] = useDrop(dropTargetSpec(item, dndEvents, wrapperRef));
   return (
-    <>
+    <div ref={wrapperRef}>
       <DummyDropTarget
         index={isBaseContainer ? 0 : index}
         containerId={isBaseContainer ? id : parentContainerId}
         events={dndEvents}
       />
-      <div style={style} ref={ref} data-testid={'droppable-draggable-container'}>
-        {children}
+      <div ref={drop}>
+        <div
+          className={cn({[classes.isDragging]: isDragging, [classes.isOver]: isOver})}
+          data-testid={'droppable-draggable-container'}
+          ref={dragPreview}
+        >
+          {container(canDrag ? drag : undefined)}
+        </div>
       </div>
       <DummyDropTarget
         index={isBaseContainer ? 99 : index + 1}
         containerId={isBaseContainer ? id : parentContainerId}
         events={dndEvents}
       />
-    </>
+    </div>
   );
 });

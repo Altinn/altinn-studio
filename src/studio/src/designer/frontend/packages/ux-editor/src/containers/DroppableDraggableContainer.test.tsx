@@ -23,6 +23,7 @@ test.each([[true], [false]])(
           canDrag
           id={randomUUID()}
           isBaseContainer={isBaseContainer}
+          container={() => null}
         />
       </DndProvider>
     );

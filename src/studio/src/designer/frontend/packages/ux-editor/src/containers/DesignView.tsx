@@ -178,15 +178,16 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
         isBaseContainer={true}
         canDrag={false}
         dndEvents={dndEvents}
-      >
-        <Container
-          isBaseContainer={true}
-          id={baseContainerId}
-          items={state.layoutOrder[baseContainerId]}
-          layoutOrder={state.layoutOrder}
-          dndEvents={dndEvents}
-        />
-      </DroppableDraggableContainer>
+        container={() => (
+          <Container
+            isBaseContainer={true}
+            id={baseContainerId}
+            items={state.layoutOrder[baseContainerId]}
+            layoutOrder={state.layoutOrder}
+            dndEvents={dndEvents}
+          />
+        )}
+      />
     )
   );
 };

@@ -1,0 +1,7 @@
+.isDragging {
+  opacity: 0.25;
+}
+
+.isOver {
+  background-color: #022F5108;
+}

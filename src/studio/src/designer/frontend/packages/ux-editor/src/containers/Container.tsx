@@ -41,7 +41,9 @@ import {
 } from '@altinn/altinn-design-system';
 import classes from './Container.module.css';
 import cn from 'classnames';
-import { Collapse, Delete, Edit, Error, Expand, Success } from '@navikt/ds-icons';
+import { Cancel, Collapse, Delete, Edit, Expand, Success } from '@navikt/ds-icons';
+import { ConnectDragSource } from 'react-dnd';
+import { DragHandle } from '../components/DragHandle';
 
 export interface IProvidedContainerProps {
   isBaseContainer?: boolean;
@@ -52,6 +54,7 @@ export interface IProvidedContainerProps {
   layoutOrder?: IFormLayoutOrder;
   dndEvents: EditorDndEvents;
   sendListToParent?: (item: object) => void;
+  dragHandleRef?: ConnectDragSource;
 }
 
 export interface IContainerProps extends IProvidedContainerProps {
@@ -371,10 +374,17 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
       <div
         onClick={this.changeActiveFormContainer}
         ref={ref}
-        className={cn(classes.wrapper, !isBaseContainer && classes.formGroupWrapper)}
+        className={cn(
+          classes.wrapper,
+          !isBaseContainer && classes.formGroupWrapper,
+          expanded && classes.expanded
+        )}
       >
         {!isBaseContainer && (
           <div className={classes.formGroup}>
+            <div ref={this.props.dragHandleRef} className={classes.dragHandle}>
+              <DragHandle />
+            </div>
             <div className={classes.formGroupBar}>
               <Button
                 color={ButtonColor.Secondary}
@@ -384,19 +394,20 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
               />
               Gruppe - ${id}
             </div>
-            <div className={classes.containerEdit}>{this.renderHoverIcons()}</div>
+            <div className={classes.formGroupButtons}>{this.renderHoverIcons()}</div>
           </div>
         )}
-        {!itemOrder?.length && this.renderContainerPlaceholder()}
-        {expanded &&
-          itemOrder?.length > 0 &&
-          itemOrder.map((id: string, index: number) => {
-            const component = components[id];
-            if (component) {
-              return this.renderFormComponent(id, index);
-            }
-            return containers[id] && this.renderContainer(id, index);
-          })}
+        {expanded && (
+          itemOrder?.length
+            ? itemOrder.map((id: string, index: number) => {
+              const component = components[id];
+              if (component) {
+                return this.renderFormComponent(id, index);
+              }
+              return containers[id] && this.renderContainer(id, index);
+            })
+            : this.renderContainerPlaceholder()
+        )}
       </div>
     );
   };
@@ -482,16 +493,23 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
         id='placeholder'
         index={0}
         containerId={this.props.id}
-        component={() => this.props.language['ux_editor.container_empty']}
+        component={() => (
+          <p className={classes.emptyContainerText}>
+            {this.props.language['ux_editor.container_empty']}
+          </p>
+        )}
       />
     );
   };
 
   public renderEditMode = (): JSX.Element => (
     <div>
-      <div className={classes.editWrapper}>
-        <div className={classes.editSection}>{this.renderEditSection()}</div>
-        <div className={classes.containerEdit}>{this.renderEditIcons()}</div>
+      <div className={classes.editModeWrapper}>
+        <div className={classes.editModeSectionWithHandle}>
+          <div className={classes.editModeHandle} ref={this.props.dragHandleRef}><DragHandle /></div>
+          <div className={classes.editModeSection}>{this.renderEditSection()}</div>
+        </div>
+        <div className={classes.editModeButtons}>{this.renderEditIcons()}</div>
       </div>
     </div>
   );
@@ -509,7 +527,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
 
   public renderEditIcons = (): JSX.Element => (
     <>
-      <Button icon={<Error />} onClick={this.handleDiscard} variant={ButtonVariant.Quiet} />
+      <Button icon={<Cancel />} onClick={this.handleDiscard} variant={ButtonVariant.Quiet} />
       <Button icon={<Success />} onClick={this.handleDiscard} variant={ButtonVariant.Quiet} />
     </>
   );
@@ -525,18 +543,20 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
         canDrag={canDrag}
         dndEvents={this.props.dndEvents}
         key={id}
-      >
-        <Container
-          id={id}
-          key={id}
-          index={index}
-          items={this.props.layoutOrder[id]}
-          isBaseContainer={false}
-          layoutOrder={this.props.layoutOrder}
-          dndEvents={this.props.dndEvents}
-          sendListToParent={this.handleActiveListChange}
-        />
-      </DroppableDraggableContainer>
+        container={(dragHandleRef) => (
+          <Container
+            id={id}
+            key={id}
+            index={index}
+            items={this.props.layoutOrder[id]}
+            isBaseContainer={false}
+            layoutOrder={this.props.layoutOrder}
+            dndEvents={this.props.dndEvents}
+            sendListToParent={this.handleActiveListChange}
+            dragHandleRef={dragHandleRef}
+          />
+        )}
+      />
     );
   };
 
