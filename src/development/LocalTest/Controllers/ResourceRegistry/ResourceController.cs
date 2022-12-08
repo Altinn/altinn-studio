@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace ResourceRegistry.Controllers

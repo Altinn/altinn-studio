@@ -1,6 +1,8 @@
-﻿using System.Text.Json.Serialization;
 using Altinn.ResourceRegistry.Core.Enums;
 using Altinn.ResourceRegistry.Core.Models;
+using System;
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Altinn.ResourceRegistry.Models
 {

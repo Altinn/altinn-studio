@@ -1,0 +1,38 @@
+{
+	"title": {},
+	"sector": null,
+	"status": null,
+	"validTo": "9999-12-31T23:59:59.997",
+	"homepage": null,
+	"isPartOf": null,
+	"keywords": null,
+	"validFrom": "2021-03-19T14:00:04.45",
+	"identifier": "appid-204",
+	"isComplete": false,
+	"description": null,
+	"resourceType": "MaskinportenSchema",
+	"thematicArea": null,
+	"isPublicService": true,
+	"rightDescription": {},
+	"resourceReferences": [
+		{
+			"reference": "18ab3b9a-a0c2-408c-b9fa-21838330c2fa",
+			"referenceType": "DelegationSchemeId",
+			"referenceSource": "Altinn2"
+		},
+		{
+			"reference": "AppId:204",
+			"referenceType": "ServiceCode",
+			"referenceSource": "Altinn2"
+		},
+		{
+			"reference": "1",
+			"referenceType": "ServiceEditionCode",
+			"referenceSource": "Altinn2"
+		}
+	],
+	"hasCompetentAuthority": {
+		"orgcode": "DIGDIR",
+		"organization": "991825827"
+	}
+}
