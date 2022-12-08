@@ -378,7 +378,7 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
             <div className={classes.formGroupBar}>
               <Button
                 color={ButtonColor.Secondary}
-                icon={expanded ? <Collapse/> : <Expand/>}
+                icon={expanded ? <Collapse /> : <Expand />}
                 onClick={this.handleExpand}
                 variant={ButtonVariant.Quiet}
               />
@@ -500,18 +500,18 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
   public renderHoverIcons = (): JSX.Element => (
     <>
       <Button
-        icon={<Delete/>}
+        icon={<Delete />}
         onClick={this.handleContainerDelete}
         variant={ButtonVariant.Quiet}
       />
-      <Button icon={<Edit/>} onClick={this.handleEditMode} variant={ButtonVariant.Quiet} />
+      <Button icon={<Edit />} onClick={this.handleEditMode} variant={ButtonVariant.Quiet} />
     </>
   );
 
   public renderEditIcons = (): JSX.Element => (
     <>
-      <Button icon={<Error/>} onClick={this.handleDiscard} variant={ButtonVariant.Quiet} />
-      <Button icon={<Success/>} onClick={this.handleDiscard} variant={ButtonVariant.Quiet} />
+      <Button icon={<Error />} onClick={this.handleDiscard} variant={ButtonVariant.Quiet} />
+      <Button icon={<Success />} onClick={this.handleDiscard} variant={ButtonVariant.Quiet} />
     </>
   );
 
@@ -600,16 +600,11 @@ const makeMapStateToProps = () => {
     return {
       ...props,
       activeList: state.formDesigner.layout.activeList,
-      isBaseContainer: props.isBaseContainer,
       components: GetLayoutComponentsSelector(state),
       containers: GetLayoutContainersSelector(state),
       dataModel: state.appData.dataModel.model,
       dataModelGroup: container?.dataModelGroup,
-      dispatch: props.dispatch,
-      dndEvents: props.dndEvents,
       formContainerActive: GetActiveFormContainer(state, props),
-      id: props.id,
-      index: props.index,
       itemOrder: !props.items ? itemOrder : props.items,
       language: state.appData.languageState.language,
       repeating: container?.repeating,

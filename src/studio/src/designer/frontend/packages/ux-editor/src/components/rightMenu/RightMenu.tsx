@@ -9,6 +9,8 @@ import type { IAppState, LogicMode } from '../../types/global';
 import classes from './RightMenu.module.css';
 import { Add } from '@navikt/ds-icons';
 import { Button, ButtonVariant } from '@altinn/altinn-design-system';
+import { deepCopy } from 'app-shared/pure';
+import { useSearchParams } from 'react-router-dom';
 
 export interface IRightMenuProps {
   toggleFileEditor: (mode?: LogicMode) => void;
@@ -17,6 +19,7 @@ export interface IRightMenuProps {
 
 export default function RightMenu(props: IRightMenuProps) {
   const [conditionalModalOpen, setConditionalModalOpen] = React.useState<boolean>(false);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [ruleModalOpen, setRuleModalOpen] = React.useState<boolean>(false);
   const layoutOrder = useSelector(
     (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order
@@ -34,6 +37,7 @@ export default function RightMenu(props: IRightMenuProps) {
   function handleAddPage() {
     const name = t('right_menu.page') + (layoutOrder.length + 1);
     dispatch(FormLayoutActions.addLayout({ layout: name }));
+    setSearchParams({ ...deepCopy(searchParams), layout: name });
   }
 
   return (
@@ -53,8 +57,7 @@ export default function RightMenu(props: IRightMenuProps) {
       </div>
       <div className={classes.headerSection}>{t('right_menu.dynamics')}</div>
       <div className={classes.contentSection}>
-        {t('right_menu.dynamics_description')}
-        &nbsp;
+        {t('right_menu.dynamics_description')}&nbsp;
         <a
           target='_blank'
           rel='noopener noreferrer'

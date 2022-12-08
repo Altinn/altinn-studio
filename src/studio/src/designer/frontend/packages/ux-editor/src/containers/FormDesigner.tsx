@@ -16,6 +16,7 @@ import { fetchServiceConfiguration } from '../features/serviceConfigurations/ser
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import type { IAppState, IDataModelFieldElement, LogicMode } from '../types/global';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
+import { deepCopy } from 'app-shared/pure';
 
 const useTheme = createTheme(altinnTheme);
 
@@ -110,7 +111,7 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }));
 
-function FormDesigner() {
+export function FormDesigner() {
   const classes = useStyles(useTheme);
   const dispatch = useDispatch();
 
@@ -163,14 +164,12 @@ function FormDesigner() {
 
   const activeList = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
   const layoutOrder = useSelector((state: IAppState) =>
-    JSON.parse(
-      JSON.stringify(
-        state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.order || {}
-      )
+    deepCopy(
+      state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout]?.order || {}
     )
   );
 
-  const order = useSelector((state: IAppState) => makeGetLayoutOrderSelector()(state));
+  const order = useSelector(makeGetLayoutOrderSelector());
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -225,5 +224,3 @@ function FormDesigner() {
     </DndProvider>
   );
 }
-
-export default FormDesigner;

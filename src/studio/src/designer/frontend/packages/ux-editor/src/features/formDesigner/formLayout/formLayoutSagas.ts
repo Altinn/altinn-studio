@@ -224,7 +224,9 @@ function* fetchFormLayoutSaga(): SagaIterator {
         convertedLayouts[layoutName] = convertFromLayoutToInternalFormat(null);
       } else {
         try {
-          convertedLayouts[layoutName] = convertFromLayoutToInternalFormat(formLayouts[layoutName].data.layout);
+          convertedLayouts[layoutName] = convertFromLayoutToInternalFormat(
+            formLayouts[layoutName].data.layout
+          );
         } catch {
           invalidLayouts.push(layoutName);
         }
@@ -235,11 +237,6 @@ function* fetchFormLayoutSaga(): SagaIterator {
     FormLayoutActions.fetchFormLayoutFulfilled({
       formLayout: convertedLayouts,
       invalidLayouts,
-    })
-  );
-  yield put(
-    FormLayoutActions.updateSelectedLayout({
-      selectedLayout: Object.keys(convertedLayouts)[0],
     })
   );
   yield put(FormLayoutActions.deleteActiveListFulfilled());
@@ -441,10 +438,10 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
           selectedLayout: firstPageKey,
         })
       );
-      const hasNaviagtionButton = Object.keys(firstPage.components).some(
+      const hasNavigationButton = Object.keys(firstPage.components).some(
         (component: string) => firstPage.components[component].type === 'NavigationButtons'
       );
-      if (!hasNaviagtionButton) {
+      if (!hasNavigationButton) {
         yield put(
           FormLayoutActions.addFormComponent({
             component: { ...NavigationButtonComponent, id: uuidv4() },
