@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { List } from '@mui/material';
-import { useDispatch, useSelector } from 'react-redux';
-import { mapComponentToToolbarElement, mapWidgetToToolbarElement } from '../utils/formLayout';
-import { advancedComponents, ComponentTypes, schemaComponents, textComponents } from '../components';
-import { InformationPanelComponent } from '../components/toolbar/InformationPanelComponent';
-import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
-import { ToolbarGroup } from './ToolbarGroup';
+import type { ComponentTypes } from '../components';
 import type { IAppState, IWidget } from '../types/global';
+import { InformationPanelComponent } from '../components/toolbar/InformationPanelComponent';
+import { List } from '@mui/material';
+import { ToolbarGroup } from './ToolbarGroup';
+import { advancedComponents, schemaComponents, textComponents } from '../components';
+import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
+import { mapComponentToToolbarElement, mapWidgetToToolbarElement } from '../utils/formLayout';
+import { useDispatch, useSelector } from 'react-redux';
 
 import './ToolBar.css';
 
@@ -31,9 +32,8 @@ export enum CollapsableMenus {
 
 export function Toolbar() {
   const dispatch = useDispatch();
-  const [componentInformationPanelOpen, setComponentInformationPanelOpen] = useState<boolean>(false);
-  const [componentSelectedForInformationPanel, setComponentSelectedForInformationPanel] =
-    useState<ComponentTypes>(null);
+  const [compInfoPanelOpen, setCompInfoPanelOpen] = useState<boolean>(false);
+  const [compSelForInfoPanel, setCompSelForInfoPanel] = useState<ComponentTypes>(null);
   const [anchorElement, setAnchorElement] = useState<any>(null);
   const [componentListsState, setComponentListsState] = useState<any>({
     [CollapsableMenus.Components]: { expanded: true, animationDone: false },
@@ -44,22 +44,24 @@ export function Toolbar() {
 
   const activeList: any[] = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
   const language: any = useSelector((state: IAppState) => state.appData.languageState.language);
-  const GetLayoutOrderSelector = makeGetLayoutOrderSelector();
-  const order: any[] = useSelector((state: IAppState) => GetLayoutOrderSelector(state));
+  const order: any[] = useSelector(makeGetLayoutOrderSelector());
   const widgetsList: IWidget[] = useSelector((state: IAppState) => state.widgets.widgets);
 
-  const componentList: IToolbarElement[] = schemaComponents.map((component) => {
-    return mapComponentToToolbarElement(component, language, activeList, order, dispatch);
-  });
-  const textComponentList: IToolbarElement[] = textComponents.map((component: any) => {
-    return mapComponentToToolbarElement(component, language, activeList, order, dispatch);
-  });
-  const advancedComponentsList: IToolbarElement[] = advancedComponents.map((component: any) => {
-    return mapComponentToToolbarElement(component, language, activeList, order, dispatch);
-  });
-  const widgetComponentsList: IToolbarElement[] = widgetsList.map((widget: any) => {
-    return mapWidgetToToolbarElement(widget, activeList, order, language, dispatch);
-  });
+  const componentList: IToolbarElement[] = schemaComponents.map((component) =>
+    mapComponentToToolbarElement(component, language, activeList, order, dispatch)
+  );
+
+  const textComponentList: IToolbarElement[] = textComponents.map((component) =>
+    mapComponentToToolbarElement(component, language, activeList, order, dispatch)
+  );
+
+  const advancedComponentsList: IToolbarElement[] = advancedComponents.map((component) =>
+    mapComponentToToolbarElement(component, language, activeList, order, dispatch)
+  );
+
+  const widgetComponentsList: IToolbarElement[] = widgetsList.map((widget) =>
+    mapWidgetToToolbarElement(widget, activeList, order, language, dispatch)
+  );
 
   const allComponentLists: any = {
     [CollapsableMenus.Components]: componentList,
@@ -70,14 +72,14 @@ export function Toolbar() {
   };
 
   const handleComponentInformationOpen = (component: ComponentTypes, event: any) => {
-    setComponentInformationPanelOpen(true);
-    setComponentSelectedForInformationPanel(component);
+    setCompInfoPanelOpen(true);
+    setCompSelForInfoPanel(component);
     setAnchorElement(event.currentTarget);
   };
 
   const handleComponentInformationClose = () => {
-    setComponentInformationPanelOpen(false);
-    setComponentSelectedForInformationPanel(null);
+    setCompInfoPanelOpen(false);
+    setCompSelForInfoPanel(null);
     setAnchorElement(null);
   };
 
@@ -103,11 +105,7 @@ export function Toolbar() {
 
   return (
     <div className='col-sm-12'>
-      <List
-        id='collapsable-items'
-        tabIndex={-1}
-        component='div'
-      >
+      <List id='collapsable-items' tabIndex={-1} component='div'>
         {Object.values(CollapsableMenus).map((key: string) => {
           return (
             <ToolbarGroup
@@ -128,9 +126,9 @@ export function Toolbar() {
 
       <InformationPanelComponent
         anchorElement={anchorElement}
-        informationPanelOpen={componentInformationPanelOpen}
+        informationPanelOpen={compInfoPanelOpen}
         onClose={handleComponentInformationClose}
-        selectedComponent={componentSelectedForInformationPanel}
+        selectedComponent={compSelForInfoPanel}
       />
     </div>
   );

@@ -1,6 +1,5 @@
 .elementContainer {
   display: flex;
-  gap: 1rem;
   flex-direction: row;
   align-items: center;
   font-weight: 400;
@@ -13,13 +12,15 @@
   font-weight: 700;
 }
 
-.elementContainer div:first-child {
+.elementContainer > div:first-child {
   flex: 0;
+  padding: 8px;
 }
-.elementContainer div:nth-child(2) {
+.elementContainer > div:nth-child(2) {
   flex: 1;
+  padding: 8px;
 }
-.elementContainer div:last-child {
+.elementContainer > div:last-child {
   flex: 0;
 }
 

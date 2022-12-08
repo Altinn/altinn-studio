@@ -392,7 +392,7 @@ export function* watchUpdateApplicationMetadataSaga(): SagaIterator {
 
 export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): SagaIterator {
   try {
-    const { layout } = payload;
+    const { layout, isConfirmationPage } = payload;
     const layouts: IFormLayouts = yield select(
       (state: IAppState) => state.formDesigner.layout.layouts
     );
@@ -400,6 +400,15 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
       (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order
     );
     const layoutsCopy = JSON.parse(JSON.stringify(layouts));
+
+    if (isConfirmationPage) {
+      yield put(
+        FormLayoutActions.updateConfirmationOnScreenName({
+          confirmationOnScreenName: layout,
+        })
+      );
+    }
+
     if (Object.keys(layoutsCopy).indexOf(layout) !== -1) {
       throw Error('Layout allready exists');
     }
@@ -408,11 +417,11 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
     yield put(
       FormLayoutActions.addLayoutFulfilled({
         layouts: layoutsCopy,
-        layoutOrder: [...layoutOrder, layout],
+        layoutOrder: isConfirmationPage ? layoutOrder : [...layoutOrder, layout],
       })
     );
 
-    if (Object.keys(layoutsCopy).length > 1) {
+    if (Object.keys(layoutsCopy).length > 1 && !isConfirmationPage) {
       const NavigationButtonComponent = {
         type: 'NavigationButtons',
         componentType: ComponentTypes.NavigationButtons,
@@ -433,11 +442,6 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
       );
       const firstPageKey = layoutOrder[0];
       const firstPage = layouts[firstPageKey];
-      yield put(
-        FormLayoutActions.updateSelectedLayout({
-          selectedLayout: firstPageKey,
-        })
-      );
       const hasNavigationButton = Object.keys(firstPage.components).some(
         (component: string) => firstPage.components[component].type === 'NavigationButtons'
       );
@@ -450,9 +454,8 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
           })
         );
       }
-
-      yield put(FormLayoutActions.updateSelectedLayout({ selectedLayout: layout }));
     }
+    yield put(FormLayoutActions.updateSelectedLayout({ selectedLayout: layout }));
   } catch (error) {
     console.error(error);
     yield put(FormLayoutActions.addLayoutRejected({ error }));
@@ -514,10 +517,11 @@ export function* saveFormLayoutSettingSaga(): SagaIterator {
 export function* watchSaveFormLayoutSettingSaga(): SagaIterator {
   yield takeLatest(
     [
-      FormLayoutActions.updateLayoutNameFulfilled,
-      FormLayoutActions.updateLayoutOrder,
-      FormLayoutActions.deleteLayoutFulfilled,
       FormLayoutActions.addLayoutFulfilled,
+      FormLayoutActions.deleteLayoutFulfilled,
+      FormLayoutActions.updateLayoutNameFulfilled,
+      FormLayoutActions.updateConfirmationOnScreenName,
+      FormLayoutActions.updateLayoutOrder,
     ],
     saveFormLayoutSettingSaga
   );

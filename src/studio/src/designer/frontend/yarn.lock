@@ -3664,6 +3664,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/css-modules@npm:1.0.2":
+  version: 1.0.2
+  resolution: "@types/css-modules@npm:1.0.2"
+  checksum: 6366bc76394d3d98b5ce8c7db5eb057fd069a5a268c34c8a4fc06ecd0c293a9978f1dd32a5194b1dbc8e1f7a20510c55bb4aa1ea9df07f534385a96c21976bc1
+  languageName: node
+  linkType: hard
+
 "@types/debug@npm:^4.1.7":
   version: 4.1.7
   resolution: "@types/debug@npm:4.1.7"
@@ -4656,6 +4663,7 @@ __metadata:
     "@testing-library/jest-dom": 5.16.5
     "@testing-library/react": 13.4.0
     "@testing-library/user-event": 14.4.3
+    "@types/css-modules": 1.0.2
     "@types/jest": 29.2.3
     "@types/lodash-es": 4.17.6
     "@types/react": 18.0.25

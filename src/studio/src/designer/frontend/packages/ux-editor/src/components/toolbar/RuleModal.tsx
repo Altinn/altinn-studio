@@ -16,7 +16,7 @@ export interface IRuleModalProps {
   handleClose: () => void;
 }
 
-export default function RuleModal(props: IRuleModalProps) {
+export function RuleModal(props: IRuleModalProps) {
   const dispatch = useDispatch();
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
   const ruleConnection = useSelector(

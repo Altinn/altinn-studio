@@ -66,132 +66,146 @@ export const componentIcons: IComponentIcon = {
   NavigationButtons: 'fa fa-button',
   AttachmentList: 'fa fa-attachment',
 };
+const Header = {
+  name: ComponentTypes.Header,
+  Icon: componentIcons.Header,
+  customProperties: {
+    size: 'L',
+  },
+};
+const Paragraph = {
+  name: ComponentTypes.Paragraph,
+  Icon: componentIcons.Paragraph,
+};
 
-export const textComponents: IComponent[] = [
-  {
-    name: ComponentTypes.Header,
-    Icon: componentIcons.Header,
-    customProperties: {
-      size: 'L',
+const Input = {
+  name: ComponentTypes.Input,
+  customProperties: {
+    required: true,
+    readOnly: false,
+  },
+  Icon: componentIcons.Input,
+};
+
+const TextArea = {
+  name: ComponentTypes.TextArea,
+  customProperties: {
+    required: true,
+    readOnly: false,
+  },
+  Icon: componentIcons.TextArea,
+};
+const Checkboxes = {
+  name: ComponentTypes.Checkboxes,
+  Icon: componentIcons.Checkboxes,
+  customProperties: {
+    options: [],
+    required: true,
+  },
+};
+const RadioButtons = {
+  name: ComponentTypes.RadioButtons,
+  Icon: componentIcons.RadioButtons,
+  customProperties: {
+    options: [],
+    required: true,
+  },
+};
+const Dropdown = {
+  name: ComponentTypes.Dropdown,
+  Icon: componentIcons.Dropdown,
+};
+const FileUpload = {
+  name: ComponentTypes.FileUpload,
+  Icon: componentIcons.FileUpload,
+  customProperties: {
+    maxFileSizeInMB: 25,
+    maxNumberOfAttachments: 1,
+    minNumberOfAttachments: 1,
+    displayMode: 'simple',
+    required: true,
+  },
+};
+const FileUploadWithTag = {
+  name: ComponentTypes.FileUploadWithTag,
+  Icon: componentIcons.FileUploadWithTag,
+  customProperties: {
+    maxFileSizeInMB: 25,
+    maxNumberOfAttachments: 1,
+    minNumberOfAttachments: 1,
+    required: true,
+  },
+};
+const Datepicker = {
+  name: ComponentTypes.Datepicker,
+  customProperties: {
+    readOnly: false,
+    minDate: '1900-01-01T12:00:00.000Z',
+    maxDate: '2100-01-01T12:00:00.000Z',
+  },
+  Icon: componentIcons.Datepicker,
+};
+const Button = {
+  name: ComponentTypes.Button,
+  Icon: componentIcons.Button,
+};
+const Image = {
+  name: ComponentTypes.Image,
+  Icon: componentIcons.Image,
+  customProperties: {
+    image: {
+      src: {},
+      width: '100%',
+      align: 'center',
     },
   },
-  {
-    name: ComponentTypes.Paragraph,
-    Icon: componentIcons.Paragraph,
+};
+
+const AddressComponent = {
+  name: ComponentTypes.AddressComponent,
+  Icon: componentIcons.AddressComponent,
+  customProperties: {
+    simplified: true,
+    readOnly: false,
   },
+};
+const AttachmentList = {
+  name: ComponentTypes.AttachmentList,
+  Icon: componentIcons.AttachmentList,
+};
+const Group = {
+  name: ComponentTypes.Group,
+  Icon: componentIcons.Group,
+  customProperties: {
+    maxCount: 0,
+    children: [],
+  },
+};
+const NavigationBar = {
+  name: ComponentTypes.NavigationBar,
+  Icon: componentIcons.NavigationBar,
+};
+
+export const advancedComponents: IComponent[] = [
+  AddressComponent,
+  AttachmentList,
+  Group,
+  NavigationBar,
 ];
 
 export const schemaComponents: IComponent[] = [
-  {
-    name: ComponentTypes.Input,
-    customProperties: {
-      required: true,
-      readOnly: false,
-    },
-    Icon: componentIcons.Input,
-  },
-  {
-    name: ComponentTypes.TextArea,
-    customProperties: {
-      required: true,
-      readOnly: false,
-    },
-    Icon: componentIcons.TextArea,
-  },
-  {
-    name: ComponentTypes.Checkboxes,
-    Icon: componentIcons.Checkboxes,
-    customProperties: {
-      options: [],
-      required: true,
-    },
-  },
-  {
-    name: ComponentTypes.RadioButtons,
-    Icon: componentIcons.RadioButtons,
-    customProperties: {
-      options: [],
-      required: true,
-    },
-  },
-  {
-    name: ComponentTypes.Dropdown,
-    Icon: componentIcons.Dropdown,
-  },
-  {
-    name: ComponentTypes.FileUpload,
-    Icon: componentIcons.FileUpload,
-    customProperties: {
-      maxFileSizeInMB: 25,
-      maxNumberOfAttachments: 1,
-      minNumberOfAttachments: 1,
-      displayMode: 'simple',
-      required: true,
-    },
-  },
-  {
-    name: ComponentTypes.FileUploadWithTag,
-    Icon: componentIcons.FileUploadWithTag,
-    customProperties: {
-      maxFileSizeInMB: 25,
-      maxNumberOfAttachments: 1,
-      minNumberOfAttachments: 1,
-      required: true,
-    },
-  },
-  {
-    name: ComponentTypes.Datepicker,
-    customProperties: {
-      readOnly: false,
-      minDate: '1900-01-01T12:00:00.000Z',
-      maxDate: '2100-01-01T12:00:00.000Z',
-    },
-    Icon: componentIcons.Datepicker,
-  },
-  {
-    name: ComponentTypes.Button,
-    Icon: componentIcons.Button,
-  },
-  {
-    name: ComponentTypes.Image,
-    Icon: componentIcons.Image,
-    customProperties: {
-      image: {
-        src: {},
-        width: '100%',
-        align: 'center',
-      },
-    },
-  },
+  Input,
+  TextArea,
+  Checkboxes,
+  RadioButtons,
+  Dropdown,
+  FileUpload,
+  FileUploadWithTag,
+  Datepicker,
+  Button,
+  Image,
 ];
 
-export const advancedComponents: IComponent[] = [
-  {
-    name: ComponentTypes.AddressComponent,
-    Icon: componentIcons.AddressComponent,
-    customProperties: {
-      simplified: true,
-      readOnly: false,
-    },
-  },
-  {
-    name: ComponentTypes.AttachmentList,
-    Icon: componentIcons.AttachmentList,
-  },
-  {
-    name: ComponentTypes.Group,
-    Icon: componentIcons.Group,
-    customProperties: {
-      maxCount: 0,
-      children: [],
-    },
-  },
-  {
-    name: ComponentTypes.NavigationBar,
-    Icon: componentIcons.NavigationBar,
-  },
-];
+export const textComponents: IComponent[] = [Header, Paragraph];
 
-const components: IComponent[] = textComponents.concat(schemaComponents, advancedComponents);
-
-export default components;
+export const confOnScreenComponents: IComponent[] = [Header, Paragraph, AttachmentList, Image];

@@ -26,6 +26,7 @@ export interface ILayoutSettings {
   $schema?: string;
   pages?: IPagesSettings;
   components?: IComponentsSettings;
+  confirmationOnScreenName?: string;
 }
 
 export interface IPagesSettings {

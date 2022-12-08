@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import { PageElement } from './PageElement';
 import type { IAppState } from '../../../types/global';
 
-export default function PagesContainer() {
+export function PagesContainer() {
   const layoutOrder: string[] = useSelector(
     (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order
   );
@@ -15,7 +15,7 @@ export default function PagesContainer() {
     <>
       {layoutOrder.map((layout: string) => {
         const invalid = invalidLayouts.includes(layout);
-        return <PageElement name={layout} key={layout} invalid={invalid}/>
+        return <PageElement name={layout} key={layout} invalid={invalid} />;
       })}
     </>
   );

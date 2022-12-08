@@ -8,7 +8,7 @@ import FileEditor from 'app-shared/file-editor/FileEditor';
 import RightMenu from '../components/rightMenu/RightMenu';
 import { filterDataModelForIntellisense } from '../utils/datamodel';
 import { DesignView } from './DesignView';
-import { Toolbar } from './Toolbar';
+import { ConfPageToolbar as Toolbar } from '../components/leftMenu/ConfPageToolbar';
 import { fetchServiceConfiguration } from '../features/serviceConfigurations/serviceConfigurationSlice';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import type { IAppState, IDataModelFieldElement, LogicMode } from '../types/global';
