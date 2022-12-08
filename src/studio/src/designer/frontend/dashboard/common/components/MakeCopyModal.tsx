@@ -5,7 +5,7 @@ import { AltinnPopoverComponent } from 'app-shared/components/molecules/AltinnPo
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { post } from 'app-shared/utils/networking';
 import { DashboardActions } from '../../resources/fetchDashboardResources/dashboardSlice';
-import type { PopoverOrigin } from '@mui/material/Popover';
+import type { PopoverOrigin } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { APP_DEVELOPMENT_BASENAME } from 'app-shared/constants';
 import { validateRepoName } from '../utils';

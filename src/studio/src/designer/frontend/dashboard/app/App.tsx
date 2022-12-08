@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { StylesProvider } from '@mui/styles';
-import { ThemeProvider } from '@mui/material';
 import { Route, Routes } from 'react-router-dom';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import { post } from 'app-shared/utils/networking';
@@ -14,10 +12,8 @@ import AppHeader, {
   SelectedContextType,
 } from 'app-shared/navigation/main-header/Header';
 import { userHasAccessToSelectedContext } from '../common/utils';
-import { generateClassName, theme } from '../common/utils/muiUtils';
 import { useAppDispatch, useAppSelector } from '../common/hooks';
 import { CenterContainer } from '../common/components/CenterContainer';
-import { Footer } from '../common/components/Footer';
 import './App.css';
 import { useGetOrganizationsQuery } from '../services/organizationApi';
 import { Dashboard } from '../features/dashboard/Dashboard';
@@ -78,45 +74,29 @@ export const App = () => {
     };
   }, [user]);
 
-  return (
-    <StylesProvider generateClassName={generateClassName}>
-      <ThemeProvider theme={theme}>
-        {user && !isLoadingOrganizations ? (
-          <div className={classes.root}>
-            <HeaderContext.Provider value={headerContextValue}>
-              <AppHeader language={language} />
-            </HeaderContext.Provider>
-            <Routes>
-              <Route
-                path='/'
-                element={
-                  <>
-                    <CenterContainer>
-                      <Dashboard />
-                    </CenterContainer>
-                    <Footer />
-                  </>
-                }
-              />
-              <Route path='/datamodelling/:org/:repoName' element={<DataModellingContainer />} />
-              <Route path='/new' element={<CreateService />} />
-            </Routes>
-          </div>
-        ) : (
-          <CenterContainer>
-            <AltinnSpinner spinnerText={getLanguageFromKey('dashboard.loading', language)} />
-            {showLogOutButton && (
-              <Button
-                onClick={() =>
-                  post(userLogoutPath()).then(() => window.location.assign(userLogoutAfterPath()))
-                }
-              >
-                {getLanguageFromKey('dashboard.logout', language)}
-              </Button>
-            )}
-          </CenterContainer>
-        )}
-      </ThemeProvider>
-    </StylesProvider>
+  return user && !isLoadingOrganizations ? (
+    <div className={classes.root}>
+      <HeaderContext.Provider value={headerContextValue}>
+        <AppHeader language={language} />
+      </HeaderContext.Provider>
+      <Routes>
+        <Route path='/' element={<Dashboard />} />
+        <Route path='/datamodelling/:org/:repoName' element={<DataModellingContainer />} />
+        <Route path='/new' element={<CreateService />} />
+      </Routes>
+    </div>
+  ) : (
+    <CenterContainer>
+      <AltinnSpinner spinnerText={getLanguageFromKey('dashboard.loading', language)} />
+      {showLogOutButton && (
+        <Button
+          onClick={() =>
+            post(userLogoutPath()).then(() => window.location.assign(userLogoutAfterPath()))
+          }
+        >
+          {getLanguageFromKey('dashboard.logout', language)}
+        </Button>
+      )}
+    </CenterContainer>
   );
 };

@@ -1,6 +1,5 @@
 import type { ChangeEvent, KeyboardEvent } from 'react';
 import React, { useState } from 'react';
-import { IconButton, InputAdornment, TextField } from '@mui/material';
 import { useDebounce } from 'react-use';
 import cn from 'classnames';
 import { Link } from 'react-router-dom';
@@ -11,6 +10,10 @@ import { SearchResultReposList } from './SearchResultReposList';
 import { useAppSelector } from '../../common/hooks';
 import classes from './Dashboard.module.css';
 import { DatamodelsReposList } from './DatamodelsRepoList';
+import { Button, ButtonSize, ButtonVariant, SearchField } from '@altinn/altinn-design-system';
+import { Close } from '@navikt/ds-icons';
+import { CenterContainer } from '../../common/components/CenterContainer';
+import { Footer } from '../../common/components/Footer';
 
 export const Dashboard = () => {
   const language = useAppSelector((state) => state.language.language);
@@ -25,59 +28,62 @@ export const Dashboard = () => {
   const handleNewLinkFocus = () => setIsNewLinkFocused(true);
   const handleNewLinkFocusOut = () => setIsNewLinkFocused(false);
   return (
-    <div className={classes.createServiceContainer}>
-      <div className={classes.topBar}>
-        <TextField
-          id='search-repos'
-          label={getLanguageFromKey('dashboard.search', language)}
-          variant='outlined'
-          value={searchText}
-          onChange={handleChangeSearch}
-          onKeyDown={handleKeyDown}
-          InputProps={{
-            endAdornment: (
-              <InputAdornment position='end'>
-                {searchText && (
-                  <IconButton
-                    aria-label={getLanguageFromKey('dashboard.clear_search', language)}
-                    onClick={handleClearSearch}
-                    edge='end'
-                  >
-                    <i className={cn('fa fa-exit', classes.clearIcon)} />
-                  </IconButton>
-                )}
-              </InputAdornment>
-            ),
-          }}
-        />
-        <Link
-          to='/new'
-          className={classes.newLink}
-          onMouseEnter={handleNewLinkFocus}
-          onMouseLeave={handleNewLinkFocusOut}
-          data-testid={'dashboard.new_app'}
-        >
-          <span>{getLanguageFromKey('dashboard.new_service', language)}</span>
-          <i
-            className={cn('fa', classes.plusIcon, {
-              'fa-circle-plus': isNewLinkFocused,
-              'fa-circle-plus-outline': !isNewLinkFocused,
-            })}
-          />
-        </Link>
-      </div>
-
-      {debouncedSearchText ? (
-        <SearchResultReposList searchValue={debouncedSearchText} />
-      ) : (
-        <>
-          <FavoriteReposList />
-          <div className={classes.marginTop}>
-            <OrgReposList />
+    <>
+      <CenterContainer>
+        <div className={classes.createServiceContainer}>
+          <div className={classes.topBar}>
+            <div className={classes.searchFieldContainer}>
+              <div>
+                <SearchField
+                  id='search-repos'
+                  label={getLanguageFromKey('dashboard.search', language)}
+                  value={searchText}
+                  onChange={handleChangeSearch}
+                  onKeyDown={handleKeyDown}
+                />
+              </div>
+              {searchText && (
+                <Button
+                  className={classes.clearSearchButton}
+                  aria-label={getLanguageFromKey('dashboard.clear_search', language)}
+                  onClick={handleClearSearch}
+                  icon={<Close />}
+                  variant={ButtonVariant.Quiet}
+                  size={ButtonSize.Small}
+                />
+              )}
+            </div>
+            <Link
+              to='/new'
+              className={classes.newLink}
+              onMouseEnter={handleNewLinkFocus}
+              onMouseLeave={handleNewLinkFocusOut}
+              data-testid={'dashboard.new_app'}
+            >
+              <span>{getLanguageFromKey('dashboard.new_service', language)}</span>
+              <i
+                className={cn('fa', classes.plusIcon, {
+                  'fa-circle-plus': isNewLinkFocused,
+                  'fa-circle-plus-outline': !isNewLinkFocused,
+                })}
+              />
+            </Link>
           </div>
-          <DatamodelsReposList />
-        </>
-      )}
-    </div>
+
+          {debouncedSearchText ? (
+            <SearchResultReposList searchValue={debouncedSearchText} />
+          ) : (
+            <>
+              <FavoriteReposList />
+              <div className={classes.marginTop}>
+                <OrgReposList />
+              </div>
+              <DatamodelsReposList />
+            </>
+          )}
+        </div>
+      </CenterContainer>
+      <Footer />
+    </>
   );
 };

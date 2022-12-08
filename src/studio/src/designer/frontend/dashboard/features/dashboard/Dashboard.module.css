@@ -36,3 +36,15 @@
 .newLink:hover span {
   text-decoration: underline;
 }
+
+.searchFieldContainer {
+  display: flex;
+  align-items: flex-end;
+}
+
+.clearSearchButton {
+  height: 32px;
+  width: 32px;
+  margin-bottom: 5px;
+  margin-left: 5px;
+}

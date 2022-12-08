@@ -60,9 +60,7 @@ describe('Dashboard > index', () => {
     const user = userEvent.setup();
     render();
 
-    const searchInput = screen.getByRole('textbox', {
-      name: /dashboard.search/i,
-    });
+    const searchInput = screen.getByTestId('search-repos-default');
     await user.type(searchInput, 'search');
 
     await waitForElementToBeRemoved(() => screen.getByText('dashboard.favourites'));
@@ -76,9 +74,7 @@ describe('Dashboard > index', () => {
     const user = userEvent.setup();
     render();
 
-    const searchInput = screen.getByRole('textbox', {
-      name: /dashboard.search/i,
-    });
+    const searchInput = screen.getByTestId('search-repos-default');
     await user.type(searchInput, 'search');
 
     await waitForElementToBeRemoved(() => screen.getByText('dashboard.favourites'));
@@ -100,9 +96,7 @@ describe('Dashboard > index', () => {
     const user = userEvent.setup();
     render();
 
-    const searchInput = screen.getByRole('textbox', {
-      name: /dashboard.search/i,
-    });
+    const searchInput = screen.getByTestId('search-repos-default');
     await user.type(searchInput, 'search');
 
     await waitForElementToBeRemoved(() => screen.getByText('dashboard.favourites'));
