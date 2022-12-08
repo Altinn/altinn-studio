@@ -1,9 +1,7 @@
 .handle {
-  background-color: #00000010;
+  --point-size: 3px;
   border-width: 0;
-  border-top-left-radius: 5px;
-  border-bottom-left-radius: 5px;
-  width: 25px;
+  width: var(--drag-handle-width, 25px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12,7 +10,6 @@
 }
 
 .points {
-  --point-size: 3px;
   display: grid;
   grid-template: var(--point-size) / var(--point-size) var(--point-size);
   gap: var(--point-size);

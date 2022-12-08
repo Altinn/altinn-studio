@@ -1,0 +1,55 @@
+.root {
+  --buttons-distance: 0.5rem;
+  --buttons-width: var(--component-button-size-height-small, 36px);
+  --drag-handle-border-radius: 5px;
+  --drag-handle-width: 25px;
+  --margin-horizontal: 5rem;
+  --margin-left-with-handle: calc(var(--margin-horizontal) - var(--drag-handle-width));
+  --margin-right-with-buttons: calc(var(--margin-horizontal) - var(--buttons-width) - var(--buttons-distance));
+  --margin-top: 5rem;
+
+  flex-grow: 1;
+  height: 100%;
+  overflow-y: hidden;
+}
+
+.container {
+  align-items: stretch;
+  background-color: #fff;
+  display: flex;
+  height: 100%;
+  top: 69px;
+}
+
+.item {
+  min-width: 240px;
+  overflow-x: hidden;
+  padding: 0;
+}
+
+.leftContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 12px 0 12px;
+  background-color: #f5f5f5;
+}
+
+.mainContent {
+  border-left: 1px solid #C9C9C9;
+  flex: 4;
+  min-width: 682px !important;
+  overflow-y: auto;
+}
+
+.rightContent {
+  flex: 1;
+  background-color: #f5f5f5;
+}
+
+.pageHeader {
+  margin: var(--margin-top) var(--margin-horizontal) 0 var(--margin-horizontal);
+}
+
+.drawerRoot {
+  overflow: hidden;
+}
