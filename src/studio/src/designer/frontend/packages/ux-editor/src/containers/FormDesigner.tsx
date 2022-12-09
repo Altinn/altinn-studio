@@ -1,6 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { Drawer } from '@mui/material';
-import classNames from 'classnames';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDispatch, useSelector } from 'react-redux';
@@ -54,19 +52,17 @@ export function FormDesigner() {
 
   const renderLogicEditor = () => {
     return (
-      <Drawer
-        anchor='bottom'
-        open={codeEditorOpen}
-        classes={{ paper: classNames(classes.drawerRoot) }}
-      >
-        <FileEditor
-          editorHeight={getEditorHeight()}
-          mode={codeEditorMode.toString()}
-          closeFileEditor={toggleCodeEditor}
-          getDataModelSuggestions={getDataModelSuggestions}
-          boxShadow={true}
-        />
-      </Drawer>
+      <div className={classes.logicEditor}>
+        <div>
+          <FileEditor
+            editorHeight={getEditorHeight()}
+            mode={codeEditorMode.toString()}
+            closeFileEditor={toggleCodeEditor}
+            getDataModelSuggestions={getDataModelSuggestions}
+            boxShadow={true}
+          />
+        </div>
+      </div>
     );
   };
 
