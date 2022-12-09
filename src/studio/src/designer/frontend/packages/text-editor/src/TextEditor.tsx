@@ -1,37 +1,41 @@
 import React, { useState } from 'react';
+import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
+
+import type { Language, Translations } from './types';
+
 import classes from './TextEditor.module.css';
-import type { LangCode, TextResourceFile } from './types';
+import { getLanguageName, getRandNumber } from './utils';
+import { AltinnSpinner } from 'app-shared/components';
 import type { RightMenuProps } from './RightMenu';
 import { RightMenu } from './RightMenu';
-import { AltinnSpinner } from 'app-shared/components';
-import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
-import { getLanguageName, getRandNumber } from './utils';
 import { TextList } from './TextList';
 
 export interface ILanguageEditorProps {
   fetchedTextIds?: string[];
+  fetchedTranslations?: Translations;
   isFetchingTextIds: boolean;
-  translations: TextResourceFile;
-  onTranslationChange: (translations: TextResourceFile) => void;
+  isFetchingTranslations: boolean;
+  onTranslationChange: ({ translations }: { translations: Translations }) => void;
   selectedLangCode: string;
-  onSelectedLanguageChange: (langCode: LangCode) => void;
+  onSelectedLanguageChange: (v: Language) => void;
   availableLanguageCodes: string[];
-  onAddLanguage: (langCode: LangCode) => void;
-  onDeleteLanguage: (langCode: LangCode) => void;
+  onAddLanguage: (v: Language) => void;
+  onDeleteLanguage: (v: Language) => void;
 }
 
 export const TextEditor = ({
   fetchedTextIds,
-  isFetchingTextIds,
-  translations,
+  fetchedTranslations,
   selectedLangCode,
   onTranslationChange,
+  isFetchingTextIds,
   onSelectedLanguageChange,
   availableLanguageCodes,
   onAddLanguage,
   onDeleteLanguage,
 }: ILanguageEditorProps) => {
   const [textIds, setTextIds] = useState<string[]>(fetchedTextIds || []);
+  const [translations] = useState<Translations>(fetchedTranslations || {});
   const rightMenuProps: RightMenuProps = {
     selectedLangCode,
     onSelectedLanguageChange,
@@ -40,10 +44,13 @@ export const TextEditor = ({
     onDeleteLanguage,
   };
   const handleTextIdChange = ({ oldValue, newValue }: { oldValue: string; newValue: string }) => {
+    if (oldValue === newValue) {
+      return;
+    }
     const updatedLanguage = { ...translations };
     updatedLanguage[newValue] = updatedLanguage[oldValue];
     delete updatedLanguage[oldValue];
-    onTranslationChange(updatedLanguage);
+    onTranslationChange({ translations: updatedLanguage });
     const renamedIds = [...textIds];
     renamedIds.splice(
       textIds.findIndex((v) => v === oldValue),
@@ -61,12 +68,22 @@ export const TextEditor = ({
     };
     updatedLanguage[textId] = newValue;
 
-    onTranslationChange(updatedLanguage);
+    onTranslationChange({ translations: updatedLanguage });
   };
   const handleAddNewEntryClick = () => {
     const newId = getRandNumber();
     const newIdList = [`id_${newId}`, ...textIds];
     setTextIds(newIdList);
+  };
+
+  const handleDeleteText = (textId: string) => {
+    // TODO: do api call to delete text here
+    const renamedIds = [...textIds];
+    renamedIds.splice(
+      textIds.findIndex((v) => v === textId),
+      1
+    );
+    setTextIds(renamedIds);
   };
 
   return (
@@ -93,7 +110,8 @@ export const TextEditor = ({
               langCode={selectedLangCode}
               translations={translations}
               onTextIdChange={handleTextIdChange}
-              onTranslationChange={handleTranslationChange}
+              onValueChange={handleTranslationChange}
+              onDeleteText={handleDeleteText}
             />
           </>
         )}

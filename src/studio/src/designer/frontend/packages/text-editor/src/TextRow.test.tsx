@@ -1,36 +1,14 @@
 import React from 'react';
-import type { ILanguageRowProps } from './TextRow';
-import type { TextResourceEntry } from './types';
-import userEvent from '@testing-library/user-event';
 import { TextRow } from './TextRow';
-import type { ILanguageRowProps } from './TextRow';
+import type { LanguageRowProps } from './TextRow';
 import { screen, render as rtlRender } from '@testing-library/react';
-
-const renderTextRow = (props: Partial<ILanguageRowProps> = {}) => {
-  const textResourceEntry: TextResourceEntry = {
-    id: 'key1',
-    value: 'value1',
-  };
-
-  const allProps = {
-    languageName: 'Norsk',
-    langCode: 'nb',
-    translationKey: 'key1',
-    textResourceEntry,
-    upsertEntry: jest.fn(),
-    removeEntry: jest.fn(),
-    idExists: jest.fn(),
-    ...props,
-  } as ILanguageRowProps;
-  const user = userEvent.setup();
-  rtlRender(<TextRow {...allProps} />);
-  return { user };
-};
-
+import userEvent from '@testing-library/user-event';
 describe('TextRow', () => {
-  test.skip('onIdChange should fire when changing id', async () => {
-    const upsertEntry = jest.fn();
-    const { user } = renderTextRow({ upsertEntry });
+  const user = userEvent.setup();
+
+  test('onIdChange should fire when changing id', async () => {
+    const handleIdChange = jest.fn();
+    render({ onTextIdChange: handleIdChange });
     const idInput = screen.getByRole('textbox', {
       name: /id/i,
     });
@@ -38,12 +16,12 @@ describe('TextRow', () => {
     await user.type(idInput, '-updated');
     await user.keyboard('{TAB}');
 
-    expect(upsertEntry).toHaveBeenCalledWith({ newValue: 'key1-updated', oldValue: 'key1' });
+    expect(handleIdChange).toHaveBeenCalledWith({ newValue: 'key1-updated', oldValue: 'key1' });
   });
 
   test('onValueChange should fire when changing value', async () => {
-    const upsertEntry = jest.fn();
-    const { user } = renderTextRow({ upsertEntry });
+    const handleValueChange = jest.fn();
+    render({ onValueChange: handleValueChange });
     const valueInput = screen.getByRole('textbox', {
       name: /norsk/i,
     });
@@ -51,18 +29,39 @@ describe('TextRow', () => {
     await user.type(valueInput, '-updated');
     await user.keyboard('{TAB}');
 
-    expect(upsertEntry).toHaveBeenCalledWith({
-      id: 'key1',
-      value: 'value1-updated',
+    expect(handleValueChange).toHaveBeenCalledWith({
+      newValue: 'value1-updated',
+      translationKey: 'key1',
     });
   });
 
   test('onTranslationChange should fire when deleting a value', async () => {
-    const removeEntry = jest.fn();
-    const { user } = renderTextRow({ removeEntry });
+    const handleTranslationChange = jest.fn();
+    render({ onDeleteText: handleTranslationChange });
     const deleteButton = screen.getByTestId('delete-button');
 
     await user.click(deleteButton);
-    expect(removeEntry).toBeCalledWith('key1');
+    expect(handleTranslationChange).toBeCalledWith({
+      translations: { key2: 'value2' },
+    });
   });
+
+  const render = (props: Partial<LanguageRowProps> = {}) => {
+    const translations = {
+      key1: 'value1',
+      key2: 'value2',
+    };
+    const allProps = {
+      languageName: 'Norsk',
+      langCode: 'nb',
+      translationKey: 'key1',
+      translations,
+      onTextIdChange: jest.fn(),
+      onValueChange: jest.fn(),
+      onDeleteText: jest.fn(),
+      ...props,
+    } as LanguageRowProps;
+
+    rtlRender(<TextRow {...allProps} />);
+  };
 });

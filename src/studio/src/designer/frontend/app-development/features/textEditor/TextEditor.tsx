@@ -1,9 +1,9 @@
-import React, { useCallback, useEffect } from 'react';
-import type { TextResourceFile, LangCode } from '@altinn/text-editor';
-import { AltinnSpinner } from 'app-shared/components';
+import React, { useCallback } from 'react';
+
 import { TextEditor } from '@altinn/text-editor';
+import type { Translations, Language } from '@altinn/text-editor';
+
 import { getOrgApp } from '../../common/hooks';
-import { useGetLanguagesQuery } from '../../services/languagesApi';
 import {
   useGetAppTextsByLangCodeQuery,
   useUpdateTranslationByLangCodeMutation,
@@ -11,24 +11,12 @@ import {
   useAddByLangCodeMutation,
   useGetAppTextIdsQuery,
 } from '../../services/textsApi';
-import { useSearchParams } from 'react-router-dom';
-import { deepCopy } from 'app-shared/pure';
+import { useGetLanguagesQuery } from '../../services/languagesApi';
+import { AltinnSpinner } from 'app-shared/components';
 
 const defaultLangCode = 'nb';
 export const TextEditorImpl = () => {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const selectedLangCode = searchParams.get('lang');
-  const setSelectedLangCode = useCallback(
-    (langCode: string) => setSearchParams({ ...deepCopy(searchParams), lang: langCode }),
-    [searchParams, setSearchParams]
-  );
-
-  useEffect(() => {
-    if (!searchParams.has('lang')) {
-      setSelectedLangCode(defaultLangCode);
-    }
-  }, [searchParams, setSelectedLangCode]);
-
+  const [selectedLangCode, setSelectedLangCode] = React.useState<string | null>(defaultLangCode);
   const orgApp = getOrgApp();
   const { data: appLanguageCodes } = useGetLanguagesQuery(orgApp);
   const {
@@ -45,10 +33,6 @@ export const TextEditorImpl = () => {
     { skip: !selectedLangCode }
   );
 
-  const [updateLanguage] = useUpdateTranslationByLangCodeMutation();
-  const [deleteLanguage] = useDeleteByLangCodeMutation();
-  const [addLanguage] = useAddByLangCodeMutation();
-
   const getLangCodesOrDefault = useCallback(
     () => (appLanguageCodes?.length ? appLanguageCodes : [defaultLangCode]),
     [appLanguageCodes]
@@ -58,6 +42,10 @@ export const TextEditorImpl = () => {
     setSelectedLangCode(getLangCodesOrDefault()[0]);
   }, [getLangCodesOrDefault]);
 
+  const [updateLanguage] = useUpdateTranslationByLangCodeMutation();
+  const [deleteLanguage] = useDeleteByLangCodeMutation();
+  const [addLanguage] = useAddByLangCodeMutation();
+
   if (isInitialLoadingTextIds) {
     return (
       <div>
@@ -66,38 +54,38 @@ export const TextEditorImpl = () => {
     );
   }
 
-  const handleSelectedLanguageChange = (langCode: LangCode) => setSelectedLangCode(langCode);
+  const handleSelectedLanguageChange = ({ value }: Language) => {
+    setSelectedLangCode(value);
+  };
 
-  const handleAddLanguage = (langCode: LangCode) =>
-    addLanguage({
-      ...orgApp,
-      langCode,
-    });
-
-  const handleDeleteLanguage = (langCode: LangCode) =>
-    deleteLanguage({
-      ...orgApp,
-      langCode,
-    });
-
-  const handleTranslationChange = (translations: TextResourceFile) =>
+  const handleTranslationChange = ({ translations }: { translations: Translations }) => {
     updateLanguage({
       ...orgApp,
       langCode: selectedLangCode,
       data: translations,
     });
+  };
+
+  const handleAddLanguage = ({ value }: Language) => {
+    addLanguage({
+      ...orgApp,
+      langCode: value,
+    });
+  };
+
+  const handleDeleteLanguage = ({ value }: Language) => {
+    deleteLanguage({
+      ...orgApp,
+      langCode: value,
+    });
+  };
 
   return (
     <TextEditor
       fetchedTextIds={textIds}
       selectedLangCode={selectedLangCode}
       availableLanguageCodes={getLangCodesOrDefault()}
-      translations={
-        translations || {
-          language: selectedLangCode,
-          resources: [],
-        }
-      }
+      translations={translations}
       isFetchingTextIds={isFetchingTextIds}
       isFetchingTranslations={isFetchingTranslations}
       onSelectedLanguageChange={handleSelectedLanguageChange}
