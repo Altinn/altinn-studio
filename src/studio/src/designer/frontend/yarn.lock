@@ -4877,7 +4877,7 @@ __metadata:
     react-dnd-html5-backend: 16.0.1
     react-dom: 18.2.0
     react-html-parser: 2.0.2
-    react-monaco-editor: 0.50.1
+    react-monaco-editor: 0.51.0
     react-redux: 8.0.5
     react-router-dom: 6.4.3
     react-select: 5.6.1
@@ -12038,16 +12038,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-monaco-editor@npm:0.50.1":
-  version: 0.50.1
-  resolution: "react-monaco-editor@npm:0.50.1"
+"react-monaco-editor@npm:0.51.0":
+  version: 0.51.0
+  resolution: "react-monaco-editor@npm:0.51.0"
   dependencies:
     prop-types: ^15.8.1
   peerDependencies:
     "@types/react": ">=17 <= 18"
-    monaco-editor: ^0.34.0
+    monaco-editor: ^0.34.1
     react: ">=17 <= 18"
-  checksum: 509a9675bc878adb515d93c4cbfac1b1818f5cf54505aa50a40d9e848e9c243a75257c1ab13b505a9d8cbdbb2b09f90117bcf618e2d1ec1ffe2bf22fd16a3a03
+  checksum: 93920bc51b16d047145284d69f6a973da6b307480425ac7ce69ce8248d83b5ffa1029a2f42f32754a84663c2ff1ee9b66226aac20c0d0cea6025744eed6568f6
   languageName: node
   linkType: hard
 
