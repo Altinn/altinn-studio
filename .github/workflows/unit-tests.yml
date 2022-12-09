@@ -29,7 +29,7 @@ jobs:
           node-version: '16'
 
       - name: Get yarn cache directory path
-        working-directory: app-frontend/src
+        working-directory: app-frontend
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
 
@@ -42,21 +42,21 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: install dependencies
-        working-directory: app-frontend/src
+        working-directory: app-frontend
         env:
           GITHUB_PACKAGES_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: yarn --immutable
 
       - name: type-check
-        working-directory: app-frontend/src/altinn-app-frontend
+        working-directory: app-frontend
         run: yarn tsc
 
       - name: run eslint
-        working-directory: app-frontend/src
+        working-directory: app-frontend
         run: yarn lint
 
       - name: run tests
-        working-directory: app-frontend/src
+        working-directory: app-frontend
         run: yarn test --coverage --runInBand
 
       - name: SonarCloud Scan

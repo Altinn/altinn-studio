@@ -5,13 +5,13 @@ on:
     branches: [main]
     paths:
       - 'src/**'
-      - 'test/cypress/**'
+      - 'cypress/**'
       - '.github/workflows/cypress.yml'
   pull_request:
     branches: [main]
     paths:
       - 'src/**'
-      - 'test/cypress/**'
+      - 'cypress/**'
       - '.github/workflows/cypress.yml'
 
   workflow_dispatch:
@@ -42,7 +42,6 @@ jobs:
           node-version: '16'
 
       - name: Get yarn cache directory path
-        working-directory: test/cypress
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
 
@@ -52,17 +51,12 @@ jobs:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-yarn-cypress
+            ${{ runner.os }}-yarn-
 
-      - name: Install frontend dependencies
+      - name: Install dependencies
         env:
           GITHUB_PACKAGES_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: yarn --immutable
-        working-directory: src
-
-      - name: Install cypress dependencies
-        run: yarn --immutable
-        working-directory: test/cypress
 
       - name: Verify cypress and run tests
         run: "
@@ -71,9 +65,9 @@ jobs:
           export CYPRESS_RECORD_KEY=${{ secrets.CYPRESS_RECORD_KEY }}\n
           export GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}\n
           ./node_modules/.bin/start-server-and-test
-            'cd $GITHUB_WORKSPACE/src/altinn-app-frontend && yarn start --no-hot'
+            'yarn start --no-hot'
             http://localhost:8080/altinn-app-frontend.js
-            'yarn run test:all:headless
+            'yarn run cy:test:all:headless
               --env environment=tt02,testUserName=tt02testuser,testUserPwd=${{ secrets.CYPRESS_ALTINN_USERPWD }}
               --record
               --parallel
@@ -81,13 +75,12 @@ jobs:
               --group altinn-app-frontend
               --ci-build-id $GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT'
         "
-        working-directory: test/cypress
 
       - uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: redux-state-history
-          path: test/cypress/redux-history/*.json
+          path: cypress/redux-history/*.json
 
   altinn-app-frontend-test-on-fork-pr:
     if: |
@@ -109,7 +102,6 @@ jobs:
           node-version: '16'
 
       - name: Get yarn cache directory path
-        working-directory: test/cypress
         id: yarn-cache-dir-path
         run: echo "::set-output name=dir::$(yarn config get cacheFolder)"
 
@@ -119,32 +111,26 @@ jobs:
           path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: |
-            ${{ runner.os }}-yarn-cypress
+            ${{ runner.os }}-yarn-
 
-      - name: Install frontend dependencies
+      - name: Install dependencies
         env:
           GITHUB_PACKAGES_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: yarn --immutable
-        working-directory: src
-
-      - name: Install cypress dependencies
-        run: yarn --immutable
-        working-directory: test/cypress
 
       - name: Verify cypress and run tests
         run: "
           yarn run cy:verify\n
           ./node_modules/.bin/start-server-and-test
-            'cd $GITHUB_WORKSPACE/src/altinn-app-frontend && yarn start --no-hot'
+            'yarn start --no-hot'
             http://localhost:8080/altinn-app-frontend.js
-            'yarn run test:all:headless
+            'yarn run cy:test:all:headless
               --config watchForFileChanges=false
               --env environment=tt02,testUserName=testuserexternal,testUserPwd=r@h74Rz7XYQJ'
         "
-        working-directory: test/cypress
 
       - uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: redux-state-history
-          path: test/cypress/redux-history/*.json
+          path: cypress/redux-history/*.json

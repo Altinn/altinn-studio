@@ -1,11 +1,28 @@
 # Altinn 3 app frontend
 
-React SPA used by applications developed in [altinn-studio](https://github.com/Altinn/altinn-studio). The application consists of several different features, and is responsible for presenting the UI for different steps in the workflow of an Altinn application, and interacting with the [altinn app-template](https://github.com/Altinn/app-template-dotnet).
+This is the default frontend for Altinn 3 apps developed in Altinn Studio
+(visit [altinn.studio](https://altinn.studio) or see the [code repository](https://github.com/Altinn/altinn-studio)).
 
-## Prerequisites
+This frontend is tasked with fetching layout files, components and other configuration created in Altinn Studio and
+presents the UI for different steps in the workflow of an Altinn application. It is made to talk with the application
+backend developed using our [nuget packages](https://github.com/Altinn/app-lib-dotnet), usually extended from
+our [application template](https://github.com/Altinn/app-template-dotnet). If you want to try out creating your own
+apps in Altinn Studio, [check out our documentation](https://docs.altinn.studio/app/getting-started/).
 
-### Docker
-If you can't/won't install node on your computer, you can also run frontend in docker using the command.
+## Getting started
+
+Apps created in Altinn Studio uses the latest stable release of this frontend by default.
+When [testing locally](https://docs.altinn.studio/app/testing/local/), you can also
+[try out](https://docs.altinn.studio/app/testing/local/debug/#using-other-frontend-versions) any of
+our [previous versions or pre-releases](https://github.com/Altinn/app-frontend-react/releases).
+
+Alternatively, you can set up this project locally to test code not yet released,
+or [contribute](https://github.com/Altinn/app-frontend-react/blob/main/CONTRIBUTING.md) code yourself.
+There are a few ways to set up this project locally:
+
+<details>
+<summary>Docker (recommended for beginners)</summary>
+You can start a local app-frontend in Docker using these commands:
 
 ```bash
 git clone https://github.com/Altinn/app-frontend-react
@@ -13,22 +30,19 @@ cd app-frontend-react
 # git checkout pr-branch
 docker compose up
 ```
-This is really slow to start and rebuild, but sometimes better than getting someone to install node if you just want to test if a new branch fixes an issue.
 
-### Node and Corepack
+This solution works, but will be slow to start and rebuild. If you just want to run the solution locally, contribute
+by testing a bug fix or new feature before the official release, the Docker method will work fine. We recommend
+installing `node` locally if you are considering contributing code.
 
-- Latest [Node LTS release](https://nodejs.org/en/)
+</details>
+
+<details>
+<summary>Local node and Corepack</summary>
+
+- Install the latest [Node LTS release](https://nodejs.org/en/)
 - Enable [corepack](https://github.com/nodejs/corepack#default-installs) (execute `corepack enable` from a terminal after installing Node 16.9.0 or later)
-
-This project is using [`yarn`](https://yarnpkg.com/) instead of the default `npm` CLI. This means that you should execute package.json scripts with `yarn` instead of `npm`. F.ex instead of `npm run test` you should execute `yarn run test`. With `yarn`, the `run` keyword is optional, so you can also execute `yarn test`.
-
-## Getting Started
-
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
-
-### Installing
-
-Clone the [Altinn app-frontend-react repo](https://github.com/Altinn/app-frontend-react) and navigate to the folder.
+- Clone the [Altinn app-frontend-react repo](https://github.com/Altinn/app-frontend-react) and navigate to the folder.
 
 ```bash
 git clone https://github.com/Altinn/app-frontend-react
@@ -37,92 +51,56 @@ cd app-frontend-react
 
 The development server can be started by following these steps:
 
-- Navigate to `./src/altinn-app-frontend`
-- `yarn --immutable` (only needed when `package.json` has changed)
-- `yarn start` (to start the development server)
+1. `yarn --immutable` (only needed when `package.json` has changed)
+2. `yarn start` (to start the development server)
 
-### Developing app-frontend
+This project is using [`yarn`](https://yarnpkg.com/) instead of the default `npm` CLI. This means that you should execute package.json scripts with `yarn` instead of `npm`. F.ex instead of `npm run test` you should execute `yarn run test`. With `yarn`, the `run` keyword is optional, so you can also execute `yarn test`.
 
-You need an Altinn app to effectively make changes to the app-frontend codebase.
+</details>
 
-Localtest now includes a way to avoid editing your app to use different frontends [see docs](https://docs.altinn.studio/app/testing/local/debug/#using-other-frontend-versions)
+### Running your app
 
+You need an Altinn app for testing when making changes to this codebase. You can either use your own app, or clone our
+[frontend-test app](https://dev.altinn.studio/repos/ttd/frontend-test).
 
-If you want to test in `tt02` or other places, you need to make some changes to `views/Home/Index.cshtml` in the app repo you are using:
+To start the app locally:
 
-```html
-<link
-  rel="stylesheet"
-  type="text/css"
-  href="https://altinncdn.no/toolkits/altinn-app-frontend/3/altinn-app-frontend.css"
-/>
-...
-<script src="https://altinncdn.no/toolkits/altinn-app-frontend/3/altinn-app-frontend.js"></script>
-```
+1. Clone the [Altinn Studio repository](https://github.com/Altinn/altinn-studio)
+2. Follow the steps in the [LOCALAPP.md documentation](https://github.com/Altinn/altinn-studio/blob/master/LOCALAPP.md)
+3. Follow our documentation on [how to use the local app-frontend](https://docs.altinn.studio/app/testing/local/debug/#using-other-frontend-versions) when running locally
 
-to
-
-```html
-<link
-  rel="stylesheet"
-  type="text/css"
-  href="http://localhost:8080/altinn-app-frontend.css"
-/>
-...
-<script src="http://localhost:8080/altinn-app-frontend.js"></script>
-```
-
-This will make the browser request the files from the local development server.
-
-In addition, you need to serve the app from somewhere. There are two ways of doing this, either deploy the application via Altinn Studio, or run the app locally on your machine.
-
-#### Using applications that are deployed via Altinn Studio
-
-After you make the changes to the `views/Home/Index.cshtml` file as mentioned above, you need to [deploy the application](https://docs.altinn.studio/app/deployment/). When accessing the application, it should now be using the app-frontend code that is served from `http://localhost:8080`.
-
-#### Using apps running locally on your machine
-
-If you prefer to run the application locally (useful if you also want to make rapid changes to the application itself), you also need to clone [Altinn Studio repository](https://github.com/Altinn/altinn-studio), and follow the steps in the [LOCALAPP.md documentation](https://github.com/Altinn/altinn-studio/blob/master/LOCALAPP.md).
-
-## Code style
-
-We use [eslint](https://eslint.org/) and [prettier](https://prettier.io/), and automatically set up git hooks to enforce
-these on commits. To avoid confusion, it is recommended to set this up your IDE.
-
-### Visual Studio Code
-
-Install the [eslint extension from the marketplace](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint).
-
-### WebStorm and IntelliJ IDEA
-
-Configure your IDE to run `eslint --fix` on save (prettier will also reformat your code when doing this). It is also recommended to
-[set up Prettier as the default formatter](https://www.jetbrains.com/help/webstorm/prettier.html#ws_prettier_default_formatter).
-
-## Running tests
+## Automated tests
 
 ### End to end tests
 
-End to end tests are using Cypress, see [test readme for how to run these](./test/cypress/README.md).
+End to end tests are using Cypress, see [test readme for how to run these](./cypress/README.md).
 
-### Unit tests and lint rules
+### Unit tests
 
-Unit tests are written using Jest and React testing library. Lint rules are defined with eslint.
+Unit tests are written using Jest and React testing library
 
-#### Lint checks
-
-1. Navigate to the folder `./src`.
-2. Execute `yarn --immutable`. This step is only nescessary if you have not already done it, or when package.json changes.
-3. Execute `yarn run lint`.
-
-#### Unit tests
-
-1. Navigate to the folder `./src`.
-2. Execute `yarn --immutable`. This step is only nescessary if you have not already done it, or when package.json changes.
-3. Execute `yarn run test`.
+1. Execute `yarn --immutable`. This step is only nescessary if you have not already done it, or when package.json changes.
+2. Execute `yarn run test`.
 
 ## Contributing
 
 Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+
+### Code style
+
+We use [eslint](https://eslint.org/) and [prettier](https://prettier.io/), and automatically set up git hooks to enforce
+these on commits. To avoid confusion, it is recommended to set this up your IDE:
+
+<details>
+<summary>Visual Studio Code</summary>
+Install the extensions recommended by the workspace, at least [eslint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint).
+</details>
+
+<details>
+<summary>WebStorm/IntelliJ IDEA</summary>
+Configure your IDE to run `eslint --fix` on save (prettier will also reformat your code when doing this). It is also recommended to
+[set up Prettier as the default formatter](https://www.jetbrains.com/help/webstorm/prettier.html#ws_prettier_default_formatter).
+</details>
 
 ## Authors
 

@@ -2,11 +2,11 @@ version: '3.6'
 
 services:
   webpack:
-    container_name: altinn-app-frontend
+    container_name: app-frontend-react
     image: node:18
     volumes:
       - ./:/usr/src/app
-    working_dir: /usr/src/app/src/altinn-app-frontend
+    working_dir: /usr/src/app
     command: bash -c "yarn --immutable && yarn docker"
     ports:
       - "8080:8080"

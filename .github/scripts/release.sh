@@ -37,7 +37,7 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-SOURCE=src/altinn-app-frontend/dist
+SOURCE=dist
 TARGET=toolkits/altinn-app-frontend
 
 if ! test -d "$PATH_TO_CDN" || ! test -d "$PATH_TO_CDN/$TARGET"; then

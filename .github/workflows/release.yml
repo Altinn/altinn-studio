@@ -20,13 +20,13 @@ jobs:
           node-version: '16'
 
       - name: install dependencies
-        working-directory: app-frontend/src
+        working-directory: app-frontend
         env:
           GITHUB_PACKAGES_PAT: ${{ secrets.GITHUB_TOKEN }}
         run: yarn --immutable
 
       - name: run build
-        working-directory: app-frontend/src/altinn-app-frontend
+        working-directory: app-frontend
         run: yarn build
 
       - name: Checkout Altinn-CDN repository
