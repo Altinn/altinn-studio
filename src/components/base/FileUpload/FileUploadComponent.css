@@ -1,4 +1,4 @@
-.cursor-pointer{
+.cursor-pointer {
   cursor: pointer;
 }
 
@@ -21,8 +21,8 @@
 
 .file-upload-invalid:focus {
   border-style: solid !important;
-  outline-color: #E23B53 !important;
-  border-color: #E23B53 !important;
+  outline-color: #e23b53 !important;
+  border-color: #e23b53 !important;
 }
 
 .file-upload:hover {
@@ -37,11 +37,11 @@
 }
 
 .blue-underline {
-  border-bottom: 2px solid #1EADF7;
+  border-bottom: 2px solid #1eadf7;
 }
 
 .blue-underline-dotted {
-  border-bottom: 1px dotted #1EADF7;
+  border-bottom: 1px dotted #1eadf7;
 }
 
 .file-upload-table > thead > tr > th {

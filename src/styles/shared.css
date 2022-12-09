@@ -1,5 +1,5 @@
 .validation-error {
-  border: 2px solid #E23B53 !important;
+  border: 2px solid #e23b53 !important;
 }
 .disabled-date {
   border: none !important;
@@ -7,15 +7,9 @@
   color: #000 !important;
 }
 .disabled {
-  border: 2px solid #6A6A6A !important;
+  border: 2px solid #6a6a6a !important;
   color: #000;
-  background: repeating-linear-gradient(
-    135deg,
-    #efefef,
-    #efefef 2px,
-    #fff 3px,
-    #fff 5px
-  ) !important;
+  background: repeating-linear-gradient(135deg, #efefef, #efefef 2px, #fff 3px, #fff 5px) !important;
 }
 input:hover:not(.disabled) {
   border-color: #0062ba !important;

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
-import { createTheme, Grid, makeStyles } from '@material-ui/core';
+import { Grid, makeStyles } from '@material-ui/core';
 import { Delete as DeleteIcon } from '@navikt/ds-icons';
 import cn from 'classnames';
 
@@ -10,7 +10,7 @@ import type { ILayout, ILayoutComponent, ILayoutGroup } from 'src/features/form/
 import type { ITextResource } from 'src/types';
 
 import { AltinnButton } from 'src/components/shared';
-import altinnAppTheme from 'src/theme/altinnAppTheme';
+import theme from 'src/theme/altinnStudioTheme';
 import { getLanguageFromKey, getTextResourceByKey } from 'src/utils/sharedUtils';
 import type { ILanguage } from 'src/types/shared';
 
@@ -35,33 +35,32 @@ export interface IRepeatingGroupsEditContainer {
   filteredIndexes?: number[] | null;
 }
 
-const theme = createTheme(altinnAppTheme);
-
 const useStyles = makeStyles({
   editContainer: {
-    display: 'inline-block',
-    borderTop: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
-    borderBottom: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
-    padding: '24px',
-    paddingTop: '12px',
     width: '100%',
-    marginBottom: '24px',
-    backgroundColor: 'rgba(227, 247, 255, 0.5)',
-    '@media (min-width:768px)': {
-      padding: '24px',
+    display: 'inline-block',
+    padding: '12px 24px',
+    '@media (min-width: 768px)': {
+      padding: '24px 84px',
     },
-    '@media (min-width:993px)': {
-      padding: '36px',
+    '@media (min-width: 992px)': {
+      padding: '36px 96px',
     },
-    '& &': {
-      padding: '24px',
-      border: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
-      backgroundColor: theme.altinnPalette.primary.blueLighter,
-    },
+  },
+  nestedEditContainer: {
+    width: '100%',
+    display: 'inline-block',
+    padding: '12px 24px',
   },
   deleteItem: {
     paddingBottom: '0px !important',
     paddingTop: '0px !important',
+  },
+  showAll: {
+    backgroundColor: '#f1fbff',
+    borderTop: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
+    borderBottom: `2px dotted ${theme.altinnPalette.primary.blueMedium}`,
+    marginBottom: '-2px',
   },
 });
 
@@ -119,9 +118,15 @@ export function RepeatingGroupsEditContainer({
     }
   };
 
+  const isNested = typeof container.baseComponentId === 'string';
+
   return (
     <div
-      className={cn([classes.editContainer], className)}
+      className={cn(
+        isNested ? classes.nestedEditContainer : classes.editContainer,
+        { [classes.showAll]: container.edit?.mode === 'showAll' },
+        className,
+      )}
       data-testid='group-edit-container'
     >
       <Grid

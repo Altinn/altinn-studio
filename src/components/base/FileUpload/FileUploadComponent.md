@@ -9,8 +9,8 @@ const createStore = configureStore();
 
 const initialState = {
   attachments: {
-    attachments: {}
-  }
+    attachments: {},
+  },
 };
 
 const mockStore = createStore(initialState);
@@ -26,5 +26,5 @@ const mockStore = createStore(initialState);
     minNumberOfAttachments={0}
     readOnly={false}
   />
-</Provider>
+</Provider>;
 ```

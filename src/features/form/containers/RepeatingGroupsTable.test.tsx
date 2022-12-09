@@ -200,21 +200,6 @@ describe('RepeatingGroupTable', () => {
     });
   });
 
-  describe('tablet view', () => {
-    const { setScreenWidth } = mockMediaQuery(992);
-    beforeEach(() => {
-      setScreenWidth(992);
-    });
-
-    it('should render as mobile-version for small screens', () => {
-      render();
-
-      const altinnMobileTable = screen.queryByTestId(/altinn-mobile-table/i);
-
-      expect(altinnMobileTable).toBeInTheDocument();
-    });
-  });
-
   describe('mobile view', () => {
     const { setScreenWidth } = mockMediaQuery(768);
     beforeEach(() => {

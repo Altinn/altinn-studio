@@ -1,9 +1,11 @@
 Address component: `simplified = true`
 
 ```tsx
-import {nb} from '../../shared/resources/language/texts/nb';
-import {getTextResource} from '../../utils/formComponentUtils';
-const dummyFunc = () => {return;}
+import { nb } from '../../shared/resources/language/texts/nb';
+import { getTextResource } from '../../utils/formComponentUtils';
+const dummyFunc = () => {
+  return;
+};
 
 <AddressComponent
   id={'simpleAddressComponent'}
@@ -29,16 +31,17 @@ const dummyFunc = () => {return;}
     zipCode: 'Zip code',
     houseNumber: 'House number',
   }}
-
-/>
+/>;
 ```
 
 Address component: `simplified = false`
 
 ```tsx
-import {nb} from '../../shared/resources/language/languages';
-import {getTextResource} from '../../utils/formComponentUtils';
-const dummyFunc = () => {return;}
+import { nb } from '../../shared/resources/language/languages';
+import { getTextResource } from '../../utils/formComponentUtils';
+const dummyFunc = () => {
+  return;
+};
 
 <AddressComponent
   id={'complexAddressComponent'}
@@ -64,6 +67,5 @@ const dummyFunc = () => {return;}
     zipCode: 'Zip code',
     houseNumber: 'House number',
   }}
-
-/>
+/>;
 ```

@@ -55,11 +55,7 @@
             "dataModelBindings": {
               "simpleBinding": "Bedrifter.Ansatte.Navn"
             },
-            "hidden": [
-              "and",
-              ["greaterThan", ["component", "alder"], 99],
-              ["notEquals", ["component", "alder"], 101]
-            ],
+            "hidden": ["and", ["greaterThan", ["component", "alder"], 99], ["notEquals", ["component", "alder"], 101]],
             "required": ["dataModel", "Bedrifter.isRequired"]
           },
           {
@@ -136,11 +132,7 @@
             "dataModelBindings": {
               "simpleBinding": "Bedrifter.Ansatte.Navn"
             },
-            "hidden": [
-              "and",
-              ["greaterThan", ["component", "alder"], 99],
-              ["notEquals", ["component", "alder"], 101]
-            ],
+            "hidden": ["and", ["greaterThan", ["component", "alder"], 99], ["notEquals", ["component", "alder"], 101]],
             "required": ["dataModel", "Bedrifter.isRequired"]
           },
           {

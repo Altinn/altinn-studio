@@ -2,14 +2,7 @@
   "name": "Inside a lookup argument",
   "expression": [
     "dataModel",
-    [
-      "concat",
-      "FirstPart",
-      ".",
-      ["dataModel", "Middle"],
-      ".Last",
-      ["frontendSettings", "suffix"]
-    ]
+    ["concat", "FirstPart", ".", ["dataModel", "Middle"], ".Last", ["frontendSettings", "suffix"]]
   ],
   "expects": "foo bar",
   "dataModel": {

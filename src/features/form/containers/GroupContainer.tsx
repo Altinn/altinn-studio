@@ -1,11 +1,12 @@
 import React, { useCallback, useMemo } from 'react';
 
-import { Grid, makeStyles } from '@material-ui/core';
+import { Button, ButtonSize, ButtonVariant } from '@altinn/altinn-design-system';
+import { Grid } from '@material-ui/core';
+import { Add as AddIcon } from '@navikt/ds-icons';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import { ExprDefaultsForGroup } from 'src/features/expressions';
 import { useExpressions } from 'src/features/expressions/useExpressions';
-import { RepeatingGroupAddButton } from 'src/features/form/components/RepeatingGroupAddButton';
 import { RepeatingGroupsEditContainer } from 'src/features/form/containers/RepeatingGroupsEditContainer';
 import { RepeatingGroupsLikertContainer } from 'src/features/form/containers/RepeatingGroupsLikertContainer';
 import { RepeatingGroupTable } from 'src/features/form/containers/RepeatingGroupTable';
@@ -17,38 +18,14 @@ import { getHiddenFieldsForGroup } from 'src/utils/layout';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
 import type { ILayoutComponent, ILayoutComponentOrGroup, ILayoutGroup } from 'src/features/form/layout';
 import type { IRuntimeState } from 'src/types';
+
+import { getLanguageFromKey, getTextResourceByKey } from 'src/language/sharedLanguage';
 export interface IGroupProps {
   id: string;
   container: ILayoutGroup;
   components: ILayoutComponentOrGroup[];
   triggers?: Triggers[];
 }
-
-const useStyles = makeStyles({
-  minusMargin: {
-    left: '24px',
-    width: 'calc(100% + 48px)',
-    position: 'relative',
-    marginLeft: '-48px',
-    '@media (min-width:768px)': {
-      left: '50px',
-      width: 'calc(100% + 48px)',
-      marginLeft: '-74px',
-    },
-    '@media (min-width:993px)': {
-      left: '37px',
-      width: 'calc(100% + 154px)',
-    },
-    '& &': {
-      width: '100%',
-      marginLeft: '0',
-      left: '0',
-      '& div[role=button]': {
-        margin: '0 -24px',
-      },
-    },
-  },
-});
 
 const getValidationMethod = (container: ILayoutGroup) => {
   // Validation for whole group takes precedent over single-row validation if both are present.
@@ -124,6 +101,25 @@ export function GroupContainer({ id, container, components }: IGroupProps): JSX.
     [dispatch, id],
   );
 
+  const addButton = () => (
+    <Button
+      id={`add-button-${id}`}
+      onClick={onClickAdd}
+      onKeyUp={onKeypressAdd}
+      variant={ButtonVariant.Outline}
+      size={ButtonSize.Medium}
+      icon={<AddIcon aria-hidden='true' />}
+      iconPlacement='left'
+      fullWidth
+    >
+      {`${getLanguageFromKey('general.add_new', language ?? {})} ${
+        container.textResourceBindings?.add_button
+          ? getTextResourceByKey(container.textResourceBindings.add_button, textResources)
+          : ''
+      }`}
+    </Button>
+  );
+
   const onClickAdd = useCallback(() => {
     dispatch(FormLayoutActions.updateRepeatingGroups({ layoutElementId: id }));
     if (edit?.mode !== 'showAll') {
@@ -154,7 +150,7 @@ export function GroupContainer({ id, container, components }: IGroupProps): JSX.
     }
   }, [edit?.multiPage, multiPageIndex, setMultiPageIndex]);
 
-  const onKeypressAdd = (event: React.KeyboardEvent<HTMLDivElement>) => {
+  const onKeypressAdd = (event: React.KeyboardEvent<HTMLButtonElement>) => {
     if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
       onClickAdd();
     }
@@ -183,8 +179,6 @@ export function GroupContainer({ id, container, components }: IGroupProps): JSX.
     }
   };
 
-  const classes = useStyles();
-
   if (hidden || !language || !layout || !repeatingGroups) {
     return null;
   }
@@ -206,7 +200,6 @@ export function GroupContainer({ id, container, components }: IGroupProps): JSX.
     <Grid
       container={true}
       item={true}
-      className={classes.minusMargin}
     >
       {(!edit?.mode || edit?.mode === 'showTable' || (edit?.mode === 'hideTable' && editIndex < 0)) && (
         <RepeatingGroupTable
@@ -242,16 +235,8 @@ export function GroupContainer({ id, container, components }: IGroupProps): JSX.
       {edit?.mode !== 'showAll' &&
         edit?.addButton !== false &&
         editIndex < 0 &&
-        repeatingGroupIndex + 1 < (container.maxCount === undefined ? -99 : container.maxCount) && (
-          <RepeatingGroupAddButton
-            id={`add-button-${id}`}
-            container={container}
-            language={language}
-            onClickAdd={onClickAdd}
-            onKeypressAdd={onKeypressAdd}
-            textResources={textResources}
-          />
-        )}
+        repeatingGroupIndex + 1 < (container.maxCount === undefined ? -99 : container.maxCount) &&
+        addButton()}
       {editIndex >= 0 && edit?.mode === 'hideTable' && (
         <RepeatingGroupsEditContainer
           container={container}
@@ -300,16 +285,8 @@ export function GroupContainer({ id, container, components }: IGroupProps): JSX.
           })}
       {edit?.mode === 'showAll' &&
         edit?.addButton !== false &&
-        repeatingGroupIndex + 1 < (container.maxCount === undefined ? -99 : container.maxCount) && (
-          <RepeatingGroupAddButton
-            id={`add-button-${id}`}
-            container={container}
-            language={language}
-            onClickAdd={onClickAdd}
-            onKeypressAdd={onKeypressAdd}
-            textResources={textResources}
-          />
-        )}
+        repeatingGroupIndex + 1 < (container.maxCount === undefined ? -99 : container.maxCount) &&
+        addButton()}
       <Grid
         item={true}
         xs={12}
