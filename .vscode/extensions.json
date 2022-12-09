@@ -1,11 +1,6 @@
 {
   "recommendations": [
     "dbaeumer.vscode-eslint",
-    "github.vscode-pull-request-github",
-    "ms-azuretools.vscode-docker",
-    "ms-dotnettools.csharp",
-    "ms-vscode-remote.remote-containers",
-    "ms-vsliveshare.vsliveshare",
     "esbenp.prettier-vscode",
     "editorconfig.editorconfig"
   ]
