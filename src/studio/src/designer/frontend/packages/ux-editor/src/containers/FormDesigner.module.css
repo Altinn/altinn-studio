@@ -50,6 +50,17 @@
   margin: var(--margin-top) var(--margin-horizontal) 0 var(--margin-horizontal);
 }
 
-.drawerRoot {
+.logicEditor {
+  background-color: #022F5180;
+  height: 100vh;
+  left: 0;
   overflow: hidden;
+  position: absolute;
+  top: 0;
+  width: 100vw;
+  z-index: 1;
+}
+
+.logicEditor > * {
+  margin: 1rem;
 }
