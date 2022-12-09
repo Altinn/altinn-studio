@@ -2,6 +2,7 @@ import * as React from 'react';
 
 import { AttachmentSummaryComponent } from 'src/components/summary/AttachmentSummaryComponent';
 import { AttachmentWithTagSummaryComponent } from 'src/components/summary/AttachmentWithTagSummaryComponent';
+import HeaderSummary from 'src/components/summary/HeaderSummary';
 import MapComponentSummary from 'src/components/summary/MapComponentSummary';
 import MultipleChoiceSummary from 'src/components/summary/MultipleChoiceSummary';
 import SingleInputSummary from 'src/components/summary/SingleInputSummary';
@@ -17,7 +18,7 @@ export interface ISummaryComponentSwitch extends Omit<ILayoutCompSummary, 'type'
   };
   formComponent?: ExprResolved<ILayoutComponent | ILayoutGroup>;
   hasValidationMessages?: boolean;
-  label?: any;
+  label?: JSX.Element | JSX.Element[] | null | undefined;
   formData?: any;
   groupProps?: {
     parentGroup?: string;
@@ -28,6 +29,7 @@ export interface ISummaryComponentSwitch extends Omit<ILayoutCompSummary, 'type'
 }
 
 export default function SummaryComponentSwitch({
+  id,
   change,
   formComponent,
   label,
@@ -111,6 +113,15 @@ export default function SummaryComponentSwitch({
           formData={formData}
         />
       </>
+    );
+  }
+  if (formComponent.type === 'Header') {
+    return (
+      <HeaderSummary
+        id={id}
+        label={label}
+        component={formComponent}
+      />
     );
   }
 

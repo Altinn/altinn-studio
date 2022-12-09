@@ -18,7 +18,7 @@ interface IHeaderSizeProps {
   size?: string;
 }
 
-const HeaderSize = ({ id, size, text }: IHeaderSizeProps) => {
+export const HeaderSize = ({ id, size, text }: IHeaderSizeProps) => {
   switch (size) {
     case 'L':
     case 'h2': {
