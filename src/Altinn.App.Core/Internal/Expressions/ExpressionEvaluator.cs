@@ -82,12 +82,12 @@ public static class ExpressionEvaluator
             throw new ArgumentException("Cannot lookup component null");
         }
 
-        if (context.Component is GroupComponent)
+        var targetContext = state.GetComponentContext(context.Component.PageId, componentId, context.RowIndices);
+
+        if (targetContext.Component is GroupComponent)
         {
             throw new NotImplementedException("Component lookup for components in groups not implemented");
         }
-
-        var targetContext = state.GetComponentContext(context.Component.PageId, componentId, context.RowIndices);
 
         if (!targetContext.Component.DataModelBindings.TryGetValue("simpleBinding", out var binding))
         {

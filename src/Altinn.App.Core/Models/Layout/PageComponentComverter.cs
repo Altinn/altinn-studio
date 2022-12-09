@@ -238,7 +238,7 @@ public class PageComponentConverter : JsonConverter<PageComponent>
                     pageRef = reader.GetString();
                     break;
                 // option
-                case "optionid":
+                case "optionsid":
                     optionId = reader.GetString();
                     break;
                 case "options":
