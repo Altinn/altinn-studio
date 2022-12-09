@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 
 import { TextEditor } from '@altinn/text-editor';
 import type { Translations, Language } from '@altinn/text-editor';
@@ -13,8 +13,9 @@ import {
 import { useGetLanguagesQuery } from '../../services/languagesApi';
 import { AltinnSpinner } from 'app-shared/components';
 
+const defaultLangCode = 'nb';
 export const TextEditorImpl = () => {
-  const [selectedLangCode, setSelectedLangCode] = React.useState<string | null>(null);
+  const [selectedLangCode, setSelectedLangCode] = React.useState<string | null>(defaultLangCode);
   const orgApp = getOrgApp();
   const { data: appLanguageCodes, isLoading: isInitialLoadingLangCodes } =
     useGetLanguagesQuery(orgApp);
@@ -30,11 +31,16 @@ export const TextEditorImpl = () => {
     { skip: !selectedLangCode }
   );
 
+  const getLangCodesOrDefault = useCallback(
+    () => (appLanguageCodes?.length ? appLanguageCodes : [defaultLangCode]),
+    [appLanguageCodes]
+  );
+
   React.useEffect(() => {
     if (!isInitialLoadingLangCodes) {
-      setSelectedLangCode(appLanguageCodes[0]);
+      setSelectedLangCode(getLangCodesOrDefault()[0]);
     }
-  }, [appLanguageCodes, isInitialLoadingLangCodes]);
+  }, [getLangCodesOrDefault, isInitialLoadingLangCodes]);
 
   const [updateLanguage] = useUpdateTranslationByLangCodeMutation();
   const [deleteLanguage] = useDeleteByLangCodeMutation();
@@ -77,8 +83,8 @@ export const TextEditorImpl = () => {
   return (
     <TextEditor
       selectedLangCode={selectedLangCode}
-      availableLanguageCodes={appLanguageCodes}
-      translations={translations}
+      availableLanguageCodes={getLangCodesOrDefault()}
+      translations={translations || {}}
       isFetchingTranslations={isFetchingTranslations}
       onSelectedLanguageChange={handleSelectedLanguageChange}
       onTranslationChange={handleTranslationChange}

@@ -13,11 +13,13 @@ type OrgAppLangData = OrgAppLang & {
   data: Translations;
 };
 
+const languageFileUrl = ({ org, app, langCode }) => `v2/${org}/${app}/texts/${langCode}`;
+
 export const textsApi = appDevelopmentApi.injectEndpoints({
   endpoints: (builder) => ({
     getAppTextsByLangCode: builder.query<Translations, OrgAppLang>({
-      query: ({ org, app, langCode }) => {
-        const url = `v2/${org}/${app}/texts/${langCode}`;
+      query: (params) => {
+        const url = languageFileUrl(params);
 
         return {
           url,
@@ -33,8 +35,8 @@ export const textsApi = appDevelopmentApi.injectEndpoints({
       },
     }),
     updateTranslationByLangCode: builder.mutation<void, OrgAppLangData>({
-      query: ({ org, app, langCode, data }) => {
-        const url = `v2/${org}/${app}/texts/${langCode}`;
+      query: ({ data, ...params }) => {
+        const url = languageFileUrl(params);
 
         return {
           url,
@@ -63,8 +65,8 @@ export const textsApi = appDevelopmentApi.injectEndpoints({
       },
     }),
     deleteByLangCode: builder.mutation<void, OrgAppLang>({
-      query: ({ org, app, langCode }) => {
-        const url = `v2/${org}/${app}/texts/${langCode}`;
+      query: (params) => {
+        const url = languageFileUrl(params);
 
         return {
           url,
@@ -97,8 +99,8 @@ export const textsApi = appDevelopmentApi.injectEndpoints({
       ],
     }),
     addByLangCode: builder.mutation<void, OrgAppLang>({
-      query: ({ org, app, langCode }) => {
-        const url = `v2/${org}/${app}/texts/${langCode}`;
+      query: (params) => {
+        const url = languageFileUrl(params);
 
         return {
           url,
