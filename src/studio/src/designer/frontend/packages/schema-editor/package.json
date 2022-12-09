@@ -3,7 +3,7 @@
   "description": "JSON schema editor",
   "version": "0.1.0",
   "dependencies": {
-    "@mui/lab": "5.0.0-alpha.108",
+    "@mui/lab": "5.0.0-alpha.110",
     "jsonpointer": "5.0.1"
   },
   "devDependencies": {
