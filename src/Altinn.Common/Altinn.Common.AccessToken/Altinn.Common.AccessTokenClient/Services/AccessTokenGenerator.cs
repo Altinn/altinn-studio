@@ -1,12 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Runtime.Caching;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
-
 using Altinn.Common.AccessTokenClient.Configuration;
 using Altinn.Common.AccessTokenClient.Constants;
-
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -21,6 +20,7 @@ namespace Altinn.Common.AccessTokenClient.Services
         private readonly AccessTokenSettings _accessTokenSettings;
         private readonly ISigningCredentialsResolver _signingKeysResolver;
         private readonly ILogger _logger;
+        private readonly MemoryCache _memoryCache;
 
         /// <summary>
         /// Default constructor. 
@@ -30,6 +30,7 @@ namespace Altinn.Common.AccessTokenClient.Services
         /// <param name="signingKeysResolver">The signingkeys resolver</param>
         public AccessTokenGenerator(ILogger<AccessTokenGenerator> logger, IOptions<AccessTokenSettings> accessTokenSettings, ISigningCredentialsResolver signingKeysResolver = null)
         {
+            _memoryCache = MemoryCache.Default;
             _accessTokenSettings = accessTokenSettings.Value;
             _signingKeysResolver = signingKeysResolver;
             _logger = logger;
@@ -69,6 +70,14 @@ namespace Altinn.Common.AccessTokenClient.Services
 
         private string GenerateAccessToken(string issuer, string app, SigningCredentials signingCredentials)
         {
+            string uniqueCacheKey = $"{issuer}:{app}:{signingCredentials.Kid}";
+
+            string tokenstring;
+            if ((tokenstring = _memoryCache[uniqueCacheKey] as string) != null)
+            {
+                return tokenstring;
+            }
+
             try
             {
                 List<Claim> claims = new List<Claim>();
@@ -93,7 +102,13 @@ namespace Altinn.Common.AccessTokenClient.Services
                 };
 
                 SecurityToken token = tokenHandler.CreateToken(tokenDescriptor);
-                string tokenstring = tokenHandler.WriteToken(token);
+                tokenstring = tokenHandler.WriteToken(token);
+
+                _memoryCache.Set(new CacheItem(uniqueCacheKey, tokenstring), new CacheItemPolicy()
+                    {
+                        Priority = CacheItemPriority.NotRemovable,
+                        AbsoluteExpiration = new(DateTime.Now.AddSeconds(_accessTokenSettings.TokenLifetimeInSeconds - 5))
+                    });
 
                 return tokenstring;
             }
