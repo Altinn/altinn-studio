@@ -16,7 +16,7 @@ export interface IConditionalRenderingModalProps {
   handleClose: () => void;
 }
 
-export default function ConditionalRenderingModal(props: IConditionalRenderingModalProps) {
+export function ConditionalRenderingModal(props: IConditionalRenderingModalProps) {
   const dispatch = useDispatch();
   const [selectedConnectionId, setSelectedConnectionId] = React.useState<string>(null);
   const conditionalRendering = useSelector(

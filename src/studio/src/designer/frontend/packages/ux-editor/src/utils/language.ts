@@ -1,6 +1,6 @@
-import { CollapsableMenus } from '../containers/Toolbar';
-import { ComponentTypes } from '../components';
 import type { ITextResource } from '../types/global';
+import { CollapsableMenus } from '../types/global';
+import { ComponentTypes } from '../components';
 
 export function getComponentHelperTextByComponentType(type: string, language: any): string {
   switch (type) {

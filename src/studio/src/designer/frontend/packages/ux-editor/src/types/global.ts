@@ -297,3 +297,22 @@ export interface IWidgetTexts {
 }
 
 export type LogicMode = 'Calculation' | 'Dynamics' | 'Validation' | null;
+
+export interface IToolbarElement {
+  label: string;
+  icon?: string;
+  type: string;
+  actionMethod: (containerId: string, position: number) => void;
+}
+
+export enum CollapsableMenus {
+  Components = 'schema',
+  Texts = 'texts',
+  AdvancedComponents = 'advanced',
+  Widgets = 'widget',
+}
+
+export enum LayoutItemType {
+  Container = 'CONTAINER',
+  Component = 'COMPONENT',
+}

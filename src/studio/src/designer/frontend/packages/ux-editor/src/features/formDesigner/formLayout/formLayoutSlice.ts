@@ -4,7 +4,6 @@ import { actions, moduleName } from './formLayoutActions';
 import { sortArray } from '../../../utils/arrayHelpers/arrayLogic';
 import type {
   IAddActiveFormContainerAction,
-  IFormDesignerActionRejected,
   IAddFormComponentActionFulfilled,
   IAddFormComponentsActionFulfilled,
   IAddFormContainerActionFulfilled,
@@ -16,8 +15,10 @@ import type {
   IDeleteLayoutAction,
   IFetchFormLayoutFulfilledAction,
   IFetchLayoutSettingsFulfilledAction,
+  IFormDesignerActionRejected,
   IUpdateActiveListActionFulfilled,
   IUpdateActiveListOrderAction,
+  IUpdateConfirmationOnScreenNameAction,
   IUpdateContainerIdFulfilled,
   IUpdateFormComponentActionFulfilled,
   IUpdateFormComponentOrderAction,
@@ -169,7 +170,6 @@ const formLayoutSlice = createSlice({
     },
     addWidgetFulfilled: (state, action: PayloadAction<IAddWidgetActionFulfilled>) => {
       const { components, containerId, layoutId, containerOrder } = action.payload;
-
       state.layouts[layoutId].components = components;
       state.layouts[layoutId].order[containerId] = containerOrder;
     },
@@ -242,7 +242,12 @@ const formLayoutSlice = createSlice({
       const { layout } = action.payload;
       delete state.layouts[layout];
       const pageOrder = state.layoutSettings.pages.order;
-      pageOrder.splice(pageOrder.indexOf(layout), 1);
+      if (pageOrder.includes(layout)) {
+        pageOrder.splice(pageOrder.indexOf(layout), 1);
+      }
+      if (state.layoutSettings.confirmationOnScreenName === layout) {
+        state.layoutSettings.confirmationOnScreenName = undefined;
+      }
       if (state.selectedLayout === layout) {
         state.selectedLayout = pageOrder[0];
       }
@@ -263,7 +268,6 @@ const formLayoutSlice = createSlice({
       state.error = null;
       if (formLayout) {
         state.layouts = formLayout;
-        state.layoutSettings.pages.order = Object.keys(formLayout);
       }
       if (invalidLayouts?.length) {
         state.invalidLayouts = invalidLayouts;
@@ -389,7 +393,12 @@ const formLayoutSlice = createSlice({
       state.layouts[newName] = { ...state.layouts[oldName] };
       delete state.layouts[oldName];
       const pageOrder = state.layoutSettings.pages.order;
-      pageOrder[pageOrder.indexOf(oldName)] = newName;
+      if (pageOrder.includes(oldName)) {
+        pageOrder[pageOrder.indexOf(oldName)] = newName;
+      }
+      if (state.layoutSettings.confirmationOnScreenName === oldName) {
+        state.layoutSettings.confirmationOnScreenName = newName;
+      }
       state.selectedLayout = newName;
     },
     updateLayoutNameRejected: (state, action: PayloadAction<IFormDesignerActionRejected>) => {
@@ -409,6 +418,13 @@ const formLayoutSlice = createSlice({
       newOrder.splice(currentIndex, 1);
       newOrder.splice(destination, 0, layout);
       state.layoutSettings.pages.order = newOrder;
+    },
+    updateConfirmationOnScreenName: (
+      state,
+      action: PayloadAction<IUpdateConfirmationOnScreenNameAction>
+    ) => {
+      const { confirmationOnScreenName } = action.payload;
+      state.layoutSettings.confirmationOnScreenName = confirmationOnScreenName;
     },
     updateSelectedLayout: (state, action: PayloadAction<IUpdateSelectedLayoutAction>) => {
       const { selectedLayout } = action.payload;

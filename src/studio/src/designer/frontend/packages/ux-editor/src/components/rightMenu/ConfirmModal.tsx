@@ -15,7 +15,7 @@ export interface IConfirmModalProps {
   onCancel: () => void;
 }
 
-export default function ConfirmModal(props: IConfirmModalProps) {
+export function ConfirmModal(props: IConfirmModalProps) {
   return (
     <Popover
       open={props.open}

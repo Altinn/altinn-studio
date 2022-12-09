@@ -23,7 +23,7 @@
       "@altinn/ux-editor": ["./packages/ux-editor/src/*"]
     }
   },
-  "files": ["./declaration.d.ts"],
+  "files": ["declaration.d.ts"],
   "include": ["**/*.js", "**/*.jsx", "**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules", "tmp"]
 }

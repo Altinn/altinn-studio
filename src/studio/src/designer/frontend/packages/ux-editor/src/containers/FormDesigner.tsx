@@ -5,10 +5,11 @@ import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import { useDispatch, useSelector } from 'react-redux';
 import FileEditor from 'app-shared/file-editor/FileEditor';
-import RightMenu from '../components/rightMenu/RightMenu';
+import { RightMenu } from '../components/rightMenu/RightMenu';
 import { filterDataModelForIntellisense } from '../utils/datamodel';
 import { DesignView } from './DesignView';
-import { Toolbar } from './Toolbar';
+import { ConfPageToolbar } from '../components/leftMenu/ConfPageToolbar';
+import { DefaultToolbar } from '../components/leftMenu/DefaultToolbar';
 import { fetchServiceConfiguration } from '../features/serviceConfigurations/serviceConfigurationSlice';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import type { IAppState, IDataModelFieldElement, LogicMode } from '../types/global';
@@ -27,6 +28,9 @@ export function FormDesigner() {
   );
   const language = useSelector((state: IAppState) => state.appData.languageState.language);
   const dataModel = useSelector((state: IAppState) => state.appData.dataModel.model);
+  const confirmationOnScreenName = useSelector(
+    (state: IAppState) => state.formDesigner.layout.layoutSettings.confirmationOnScreenName
+  );
 
   useEffect(() => {
     dispatch(FormLayoutActions.fetchFormLayout());
@@ -78,17 +82,12 @@ export function FormDesigner() {
   return (
     <DndProvider backend={HTML5Backend}>
       <div className={classes.root}>
-        <div
-          className={classes.container}
-          id='formFillerGrid'
-        >
+        <div className={classes.container} id='formFillerGrid'>
           <div className={classes.leftContent + ' ' + classes.item}>
-            <Toolbar />
+            {confirmationOnScreenName === selectedLayout ? <ConfPageToolbar /> : <DefaultToolbar />}
           </div>
           <div className={classes.mainContent + ' ' + classes.item}>
-            <h1 className={classes.pageHeader}>
-              {selectedLayout}
-            </h1>
+            <h1 className={classes.pageHeader}>{selectedLayout}</h1>
             <DesignView
               order={order}
               activeList={activeList}

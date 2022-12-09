@@ -1,23 +1,25 @@
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import RuleModal from '../toolbar/RuleModal';
-import ConditionalRenderingModal from '../toolbar/ConditionalRenderingModal';
-import { getLanguageFromKey } from 'app-shared/utils/language';
-import PagesContainer from './pages/PagesContainer';
-import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
-import type { IAppState, LogicMode } from '../../types/global';
 import classes from './RightMenu.module.css';
+import type { IAppState, LogicMode } from '../../types/global';
 import { Add } from '@navikt/ds-icons';
 import { Button, ButtonVariant } from '@altinn/altinn-design-system';
+import { ConditionalRenderingModal } from '../toolbar/ConditionalRenderingModal';
+import { ConfirmationPageElement } from './pages/ConfirmationPageElement';
+import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
+import { PagesContainer } from './pages/PagesContainer';
+import { RuleModal } from '../toolbar/RuleModal';
 import { deepCopy } from 'app-shared/pure';
+import { getLanguageFromKey } from 'app-shared/utils/language';
+import { useDispatch, useSelector } from 'react-redux';
 import { useSearchParams } from 'react-router-dom';
+import { Divider } from 'app-shared/primitives';
 
 export interface IRightMenuProps {
   toggleFileEditor: (mode?: LogicMode) => void;
   language: object;
 }
 
-export default function RightMenu(props: IRightMenuProps) {
+export function RightMenu(props: IRightMenuProps) {
   const [conditionalModalOpen, setConditionalModalOpen] = React.useState<boolean>(false);
   const [searchParams, setSearchParams] = useSearchParams();
   const [ruleModalOpen, setRuleModalOpen] = React.useState<boolean>(false);
@@ -36,7 +38,7 @@ export default function RightMenu(props: IRightMenuProps) {
 
   function handleAddPage() {
     const name = t('right_menu.page') + (layoutOrder.length + 1);
-    dispatch(FormLayoutActions.addLayout({ layout: name }));
+    dispatch(FormLayoutActions.addLayout({ layout: name, isConfirmationPage: false }));
     setSearchParams({ ...deepCopy(searchParams), layout: name });
   }
 
@@ -54,6 +56,8 @@ export default function RightMenu(props: IRightMenuProps) {
       </div>
       <div className={classes.contentSection}>
         <PagesContainer />
+        <Divider />
+        <ConfirmationPageElement />
       </div>
       <div className={classes.headerSection}>{t('right_menu.dynamics')}</div>
       <div className={classes.contentSection}>

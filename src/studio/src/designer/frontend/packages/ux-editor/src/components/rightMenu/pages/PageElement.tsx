@@ -1,18 +1,18 @@
-import type { ChangeEvent, SyntheticEvent, MouseEvent } from 'react';
 import React, { useEffect, useState } from 'react';
+import classes from './PageElement.module.css';
+import cn from 'classnames';
+import type { ChangeEvent, SyntheticEvent, MouseEvent } from 'react';
+import type { IAppState } from '../../../types/global';
+import { AltinnMenu, AltinnMenuItem } from 'app-shared/components/';
 import { Button, ButtonVariant, TextField } from '@altinn/altinn-design-system';
+import { ConfirmModal } from '../ConfirmModal';
+import { Divider } from 'app-shared/primitives';
+import { EllipsisV, Right } from '@navikt/ds-icons';
+import { FormLayoutActions } from '../../../features/formDesigner/formLayout/formLayoutSlice';
+import { deepCopy, removeKey } from 'app-shared/pure';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { useDispatch, useSelector } from 'react-redux';
-import { AltinnMenu, AltinnMenuItem } from 'app-shared/components/';
-import ConfirmModal from '../ConfirmModal';
-import { FormLayoutActions } from '../../../features/formDesigner/formLayout/formLayoutSlice';
-import type { IAppState } from '../../../types/global';
-import { EllipsisV, Right } from '@navikt/ds-icons';
-import classes from './PageElement.module.css';
-import { Divider } from 'app-shared/primitives';
-import cn from 'classnames';
 import { useSearchParams } from 'react-router-dom';
-import { deepCopy, removeKey } from 'app-shared/pure';
 
 export interface IPageElementProps {
   name: string;
@@ -158,20 +158,24 @@ export function PageElement({ name, invalid }: IPageElementProps) {
       </div>
 
       <AltinnMenu anchorEl={menuAnchorEl} open={Boolean(menuAnchorEl)} onClose={onMenuClose}>
-        <AltinnMenuItem
-          onClick={(event) => onMenuItemClick(event, 'up')}
-          disabled={disableUp || invalid}
-          text={t('right_menu.page_menu_up')}
-          iconClass='fa fa-arrowup'
-          id='move-page-up-button'
-        />
-        <AltinnMenuItem
-          onClick={(event) => onMenuItemClick(event, 'down')}
-          disabled={disableDown || invalid}
-          text={t('right_menu.page_menu_down')}
-          iconClass='fa fa-arrowdown'
-          id='move-page-down-button'
-        />
+        {layoutOrder.includes(name) && (
+          <AltinnMenuItem
+            onClick={(event) => onMenuItemClick(event, 'up')}
+            disabled={disableUp || invalid}
+            text={t('right_menu.page_menu_up')}
+            iconClass='fa fa-arrowup'
+            id='move-page-up-button'
+          />
+        )}
+        {layoutOrder.includes(name) && (
+          <AltinnMenuItem
+            onClick={(event) => onMenuItemClick(event, 'down')}
+            disabled={disableDown || invalid}
+            text={t('right_menu.page_menu_down')}
+            iconClass='fa fa-arrowdown'
+            id='move-page-down-button'
+          />
+        )}
         <AltinnMenuItem
           onClick={(event) => onMenuItemClick(event, 'edit')}
           text={t('right_menu.page_menu_edit')}
