@@ -1,18 +1,18 @@
 import React from 'react';
 
-import { getInitialStateMock } from '__mocks__/mocks';
-import { partyMock } from '__mocks__/partyMock';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import axios from 'axios';
-import { renderWithProviders } from 'testUtils';
 
+import { getInitialStateMock } from 'src/__mocks__/mocks';
+import { partyMock } from 'src/__mocks__/partyMock';
 import Presentation from 'src/shared/containers/Presentation';
+import { renderWithProviders } from 'src/testUtils';
+import { AltinnAppTheme } from 'src/theme';
 import { ProcessTaskType } from 'src/types';
 import { HttpStatusCodes } from 'src/utils/network/networking';
-import type { IPresentationProvidedProps } from 'src/shared/containers/Presentation';
 import { returnUrlToMessagebox } from 'src/utils/urls/urlHelper';
-import { AltinnAppTheme } from 'src/theme';
+import type { IPresentationProvidedProps } from 'src/shared/containers/Presentation';
 
 jest.mock('axios');
 

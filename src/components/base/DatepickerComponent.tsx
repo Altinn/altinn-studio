@@ -8,9 +8,8 @@ import type { MaterialUiPickersDate } from '@material-ui/pickers/typings/date';
 
 import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
 import { getDateConstraint, getDateFormat, getDateString } from 'src/utils/dateHelpers';
-import type { PropsFromGenericComponent } from 'src/components';
-
 import { getLanguageFromKey } from 'src/utils/sharedUtils';
+import type { PropsFromGenericComponent } from 'src/components';
 
 import 'src/components/base/DatepickerComponent.css';
 import 'src/styles/shared.css';

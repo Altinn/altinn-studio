@@ -2,14 +2,13 @@ import { all, call, put, select, take, takeLatest } from 'redux-saga/effects';
 import type { SagaIterator } from 'redux-saga';
 
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { getLanguageFromCode } from 'src/language/languages';
 import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import { ApplicationMetadataActions } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
 import { LanguageActions } from 'src/shared/resources/language/languageSlice';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import { waitFor } from 'src/utils/sagas';
-
-import { getLanguageFromCode } from 'src/language/languages';
 
 export function* fetchLanguageSaga(defaultLanguage = false): SagaIterator {
   try {

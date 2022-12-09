@@ -1,9 +1,11 @@
-import type { PopoverProps } from '@material-ui/core';
-import { createTheme, createStyles, Grid, makeStyles, Popover, Typography } from '@material-ui/core';
-import classNames from 'classnames';
 import * as React from 'react';
+
+import { createStyles, createTheme, Grid, makeStyles, Popover, Typography } from '@material-ui/core';
+import classNames from 'classnames';
+import type { PopoverProps } from '@material-ui/core';
+
+import { AltinnButton } from 'src/components/AltinnButton';
 import altinnTheme from 'src/theme/altinnAppTheme';
-import { AltinnButton } from './AltinnButton';
 
 export interface IAnchorOrigin {
   horizontal: 'left' | 'center' | 'right' | number;

@@ -3,10 +3,9 @@ import React from 'react';
 import { AppBar, Grid, Toolbar } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
 
-import { renderParty } from 'src/shared/resources/utils/party';
-
-import { AltinnLogo } from 'src/components/shared';
 import { LandmarkShortcuts } from 'src/components/LandmarkShortcuts';
+import { AltinnLogo } from 'src/components/shared';
+import { renderParty } from 'src/shared/resources/utils/party';
 import { AltinnAppTheme } from 'src/theme';
 import { getLanguageFromKey, returnUrlToMessagebox } from 'src/utils/sharedUtils';
 import { returnUrlToAllSchemas, returnUrlToProfile } from 'src/utils/urls/urlHelper';

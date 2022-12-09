@@ -5,7 +5,6 @@ import type {
   IFetchApplicationSettingsRejected,
 } from 'src/shared/resources/applicationSettings/applicationSettingsTypes';
 import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
-
 import type { IApplicationSettings } from 'src/types/shared';
 
 export interface IApplicationSettingsState {

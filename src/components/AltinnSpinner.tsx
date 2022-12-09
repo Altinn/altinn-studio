@@ -1,7 +1,9 @@
-import { CircularProgress, createTheme, createStyles, makeStyles, Typography } from '@material-ui/core';
-import type { ArgumentArray } from 'classnames';
-import classNames from 'classnames';
 import * as React from 'react';
+
+import { CircularProgress, createStyles, createTheme, makeStyles, Typography } from '@material-ui/core';
+import classNames from 'classnames';
+import type { ArgumentArray } from 'classnames';
+
 import altinnTheme from 'src/theme/altinnStudioTheme';
 
 export interface IAltinnSpinnerComponentProvidedProps {

@@ -1,13 +1,13 @@
 import React from 'react';
 
-import { getInitialStateMock } from '__mocks__/initialStateMock';
-import { screen, within, act } from '@testing-library/react';
+import { act, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import configureStore from 'redux-mock-store';
-import { mockMediaQuery, renderWithProviders } from 'testUtils';
 import type { Store } from 'redux';
 
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import InstanceSelection from 'src/features/instantiate/containers/InstanceSelection';
+import { mockMediaQuery, renderWithProviders } from 'src/testUtils';
 import type { IInstanceSelectionProps } from 'src/features/instantiate/containers/InstanceSelection';
 import type { IRuntimeState, ISimpleInstance } from 'src/types';
 

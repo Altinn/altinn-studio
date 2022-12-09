@@ -1,14 +1,14 @@
 import * as React from 'react';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 
-import { getInitialStateMock } from '__mocks__/mocks';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import mockAxios from 'jest-mock-axios';
-import { renderWithProviders } from 'testUtils';
 
+import { getInitialStateMock } from 'src/__mocks__/mocks';
 import { InstantiationButton } from 'src/components/base/ButtonComponent/InstantiationButton';
 import { setupStore } from 'src/store';
+import { renderWithProviders } from 'src/testUtils';
 import type { InstantiationButtonProps as InstantiationButtonProps } from 'src/components/base/ButtonComponent/InstantiationButton';
 
 const render = ({ props = {} }) => {

@@ -1,6 +1,6 @@
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import type { IRuntimeState } from 'src/types';
-import { getInitialStateMock } from './initialStateMock';
 
 export const statelessAndAllowAnonymousMock = (allowAnonymous: boolean | undefined) => {
   const initialState = getInitialStateMock();

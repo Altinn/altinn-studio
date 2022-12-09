@@ -1,8 +1,10 @@
 import React from 'react';
+
 import { render as rtlRender, screen } from '@testing-library/react';
-import type { IAltinnLogoProps } from './AltinnLogo';
-import { AltinnLogo } from './AltinnLogo';
+
+import { AltinnLogo } from 'src/components/AltinnLogo';
 import altinnTheme from 'src/theme/altinnAppTheme';
+import type { IAltinnLogoProps } from 'src/components/AltinnLogo';
 
 describe('AltinnLogo', () => {
   it('should have black image src and custom color as filter class when passing a custom color string', () => {

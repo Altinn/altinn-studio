@@ -1,6 +1,7 @@
 import * as React from 'react';
 import ContentLoader from 'react-content-loader';
-import { AltinnContentIcon } from '../atoms/AltinnContentIcon';
+
+import { AltinnContentIcon } from 'src/components/atoms/AltinnContentIcon';
 
 export interface IAltinnContentLoaderProps {
   height?: number | string;

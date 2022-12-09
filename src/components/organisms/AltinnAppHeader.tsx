@@ -1,12 +1,13 @@
-import { AppBar, Grid, Typography, makeStyles } from '@material-ui/core';
 import React from 'react';
 
-import type { ILanguage, IParty } from 'src/types/shared';
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
+import { AppBar, Grid, makeStyles, Typography } from '@material-ui/core';
+
+import { AltinnLogo } from 'src/components/AltinnLogo';
+import { LandmarkShortcuts } from 'src/components/LandmarkShortcuts';
+import AltinnAppHeaderMenu from 'src/components/organisms/AltinnAppHeaderMenu';
 import { renderPartyName } from 'src/utils/party';
-import { AltinnLogo } from '../AltinnLogo';
-import { LandmarkShortcuts } from '../LandmarkShortcuts';
-import AltinnAppHeaderMenu from './AltinnAppHeaderMenu';
+import { getLanguageFromKey } from 'src/utils/sharedUtils';
+import type { ILanguage, IParty } from 'src/types/shared';
 
 export interface IAltinnAppHeaderProps {
   /** The party of the instance owner */

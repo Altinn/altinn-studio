@@ -1,12 +1,12 @@
 import {
-  returnUrlToMessagebox,
-  returnUrlToProfile,
-  returnUrlToAllSchemas,
-  returnBaseUrlToAltinn,
   customEncodeURI,
   logoutUrlAltinn,
   makeUrlRelativeIfSameDomain,
-} from './urlHelper';
+  returnBaseUrlToAltinn,
+  returnUrlToAllSchemas,
+  returnUrlToMessagebox,
+  returnUrlToProfile,
+} from 'src/utils/urls/urlHelper';
 
 describe('Shared urlHelper.ts', () => {
   test('returnUrlToMessagebox() returning production messagebox', () => {

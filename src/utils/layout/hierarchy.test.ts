@@ -1,5 +1,4 @@
-import { getInitialStateMock } from '__mocks__/mocks';
-
+import { getInitialStateMock } from 'src/__mocks__/mocks';
 import { getRepeatingGroups } from 'src/utils/formLayout';
 import {
   layoutAsHierarchy,

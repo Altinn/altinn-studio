@@ -1,5 +1,4 @@
 import { appApi } from 'src/services/AppApi';
-
 import type { IInstance } from 'src/types/shared';
 
 export interface Prefill {

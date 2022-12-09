@@ -1,7 +1,6 @@
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import { profileStateSelector } from 'src/selectors/simpleSelectors';
 import type { IRuntimeState } from 'src/types';
-
 import type { IProfile } from 'src/types/shared';
 
 const selectedAppLanguageStateSelector = (state: IRuntimeState) => state.language.selectedAppLanguage;

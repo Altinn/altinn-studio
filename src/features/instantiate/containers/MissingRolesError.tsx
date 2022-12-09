@@ -3,9 +3,8 @@ import { Link } from 'react-router-dom';
 
 import { useAppSelector } from 'src/common/hooks';
 import InstantiationErrorPage from 'src/features/instantiate/containers/InstantiationErrorPage';
-import { getHostname } from 'src/utils/urls/appUrlHelper';
-
 import { getLanguageFromKey, getParsedLanguageFromKey, getParsedLanguageFromText } from 'src/utils/sharedUtils';
+import { getHostname } from 'src/utils/urls/appUrlHelper';
 
 function MissingRolesError() {
   const language = useAppSelector((state) => state.language.language);

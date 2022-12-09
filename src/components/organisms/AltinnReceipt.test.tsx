@@ -1,7 +1,8 @@
 import * as React from 'react';
+
 import { render as rtlRender, screen } from '@testing-library/react';
 
-import AltinnReceipt from './AltinnReceipt';
+import AltinnReceipt from 'src/components/organisms/AltinnReceipt';
 
 const render = (props = {}) => {
   const allProps = {

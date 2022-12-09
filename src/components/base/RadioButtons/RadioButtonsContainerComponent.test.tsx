@@ -1,12 +1,12 @@
 import React from 'react';
 
-import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { act, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { mockComponentProps, renderWithProviders } from 'testUtils';
 import type { PreloadedState } from 'redux';
 
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { RadioButtonContainerComponent } from 'src/components/base/RadioButtons/RadioButtonsContainerComponent';
+import { mockComponentProps, renderWithProviders } from 'src/testUtils';
 import { LayoutStyle } from 'src/types';
 import type { IRadioButtonsContainerProps } from 'src/components/base/RadioButtons/RadioButtonsContainerComponent';
 import type { IOptionsState } from 'src/shared/resources/options';

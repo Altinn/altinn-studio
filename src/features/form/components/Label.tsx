@@ -6,7 +6,6 @@ import { HelpTextContainer } from 'src/features/form/components/HelpTextContaine
 import { OptionalIndicator } from 'src/features/form/components/OptionalIndicator';
 import { RequiredIndicator } from 'src/features/form/components/RequiredIndicator';
 import type { ILabelSettings } from 'src/types';
-
 import type { ILanguage } from 'src/types/shared';
 
 export interface IFormLabelProps {

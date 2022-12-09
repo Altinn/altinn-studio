@@ -3,9 +3,8 @@ import * as React from 'react';
 import { ErrorMessage } from '@altinn/altinn-design-system';
 
 import { SoftValidations } from 'src/features/form/components/SoftValidations';
-import type { IComponentBindingValidation } from 'src/types';
-
 import { getParsedLanguageFromText } from 'src/utils/sharedUtils';
+import type { IComponentBindingValidation } from 'src/types';
 
 export function renderValidationMessagesForComponent(
   validationMessages: IComponentBindingValidation | undefined | null,

@@ -5256,6 +5256,7 @@ __metadata:
     eslint-plugin-import: 2.26.0
     eslint-plugin-jsx-a11y: 6.6.1
     eslint-plugin-no-relative-import-paths: 1.5.0
+    eslint-plugin-preferred-import-path: ^1.1.0
     eslint-plugin-prettier: 4.2.1
     eslint-plugin-react: 7.31.11
     eslint-plugin-react-hooks: 4.6.0
@@ -7815,6 +7816,13 @@ __metadata:
   version: 1.5.0
   resolution: "eslint-plugin-no-relative-import-paths@npm:1.5.0"
   checksum: 812fb801b4bfe4bd93199cd9eae572ae356009cf2421f4553902421167f31ed47527eee2482ab350241fcef9256f3ecc717ac0cdf709347e7893107285727d2a
+  languageName: node
+  linkType: hard
+
+"eslint-plugin-preferred-import-path@npm:^1.1.0":
+  version: 1.1.0
+  resolution: "eslint-plugin-preferred-import-path@npm:1.1.0"
+  checksum: e15bd32ea0dc2e00b7deb24e18630c72fedb3f9a1bf0fa60f22874de49abdeb804ae50b22807887952acb008297ab920359ce005f07800d5159e3e0a873d05cb
   languageName: node
   linkType: hard
 

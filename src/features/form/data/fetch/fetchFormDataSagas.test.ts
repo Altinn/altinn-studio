@@ -1,8 +1,8 @@
-import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { call, select } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
 import type { AxiosError } from 'axios';
 
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import {
   fetchFormDataInitialSaga,
   fetchFormDataSaga,
@@ -21,11 +21,10 @@ import {
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import { getCurrentTaskDataElementId, getDataTypeByLayoutSetId } from 'src/utils/appMetadata';
+import * as networking from 'src/utils/network/sharedNetworking';
 import * as appUrlHelper from 'src/utils/urls/appUrlHelper';
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import type { ILayoutSets } from 'src/types';
-
-import * as networking from 'src/utils/network/sharedNetworking';
 import type { IApplication } from 'src/types/shared';
 
 describe('fetchFormDataSagas', () => {

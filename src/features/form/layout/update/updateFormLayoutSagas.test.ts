@@ -1,10 +1,9 @@
-import { getInitialStateMock } from '__mocks__/initialStateMock';
+import mockAxios from 'jest-mock-axios';
 import { select, take } from 'redux-saga/effects';
 import { expectSaga, testSaga } from 'redux-saga-test-plan';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
-import mockAxios from 'jest-mock-axios';
-
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import { FormDynamicsActions } from 'src/features/form/dynamics/formDynamicsSlice';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';

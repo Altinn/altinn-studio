@@ -1,7 +1,9 @@
-import type { TableRowProps } from '@material-ui/core';
+import React from 'react';
+
 import { makeStyles, TableRow } from '@material-ui/core';
 import cn from 'classnames';
-import React from 'react';
+import type { TableRowProps } from '@material-ui/core';
+
 import theme from 'src/theme/altinnAppTheme';
 
 export interface IAltinnTableRow {

@@ -2,11 +2,10 @@ import React from 'react';
 
 import { createTheme, Grid, makeStyles } from '@material-ui/core';
 
-import type { ILayoutGroup } from 'src/features/form/layout';
-import type { ITextResource } from 'src/types';
-
 import altinnAppTheme from 'src/theme/altinnAppTheme';
 import { getLanguageFromKey, getTextResourceByKey } from 'src/utils/sharedUtils';
+import type { ILayoutGroup } from 'src/features/form/layout';
+import type { ITextResource } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
 
 export interface IRepeatingGroupAddButton {

@@ -7,7 +7,6 @@ import {
 import type { IFormData } from 'src/features/form/data';
 import type { ILayout } from 'src/features/form/layout';
 import type { IMapping, IOptions, IOptionSource, IRepeatingGroups } from 'src/types';
-
 import type { IDataSources, ITextResource } from 'src/types/shared';
 
 describe('utils > options', () => {

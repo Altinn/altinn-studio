@@ -19,11 +19,10 @@ import {
 } from 'src/utils/formComponentUtils';
 import { getOptionLookupKey } from 'src/utils/options';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
+import { getLanguageFromKey } from 'src/utils/sharedUtils';
 import type { PropsFromGenericComponent } from 'src/components';
 import type { IAttachment } from 'src/shared/resources/attachments';
 import type { IRuntimeState } from 'src/types';
-
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
 
 export type IFileUploadWithTagProps = PropsFromGenericComponent<'FileUploadWithTag'>;
 

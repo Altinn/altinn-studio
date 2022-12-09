@@ -2,9 +2,8 @@ import * as React from 'react';
 
 import { OptionalIndicator } from 'src/features/form/components/OptionalIndicator';
 import { RequiredIndicator } from 'src/features/form/components/RequiredIndicator';
-import type { ILabelSettings } from 'src/types';
-
 import { getLanguageFromKey } from 'src/utils/sharedUtils';
+import type { ILabelSettings } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
 
 interface IAddressLabel {

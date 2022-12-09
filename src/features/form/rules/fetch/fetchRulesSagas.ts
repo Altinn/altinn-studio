@@ -4,12 +4,11 @@ import type { SagaIterator } from 'redux-saga';
 import { FormRulesActions } from 'src/features/form/rules/rulesSlice';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import { getLayoutSetIdForApplication } from 'src/utils/appMetadata';
-import { getRulehandlerUrl } from 'src/utils/urls/appUrlHelper';
 import { get } from 'src/utils/network/networking';
 import { getRuleModelFields } from 'src/utils/rules';
+import { getRulehandlerUrl } from 'src/utils/urls/appUrlHelper';
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import type { ILayoutSets, IRuntimeState } from 'src/types';
-
 import type { IInstance } from 'src/types/shared';
 
 const layoutSetsSelector = (state: IRuntimeState) => state.formLayout.layoutsets;

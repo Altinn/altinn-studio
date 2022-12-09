@@ -17,6 +17,7 @@ import { createRepeatingGroupComponents, getVariableTextKeysForRepeatingGroupCom
 import { buildInstanceContext } from 'src/utils/instanceContext';
 import { matchLayoutComponent, setupGroupComponents } from 'src/utils/layout';
 import { nodesInLayout, resolvedNodesInLayouts } from 'src/utils/layout/hierarchy';
+import { getLanguageFromKey, getParsedLanguageFromKey, getTextResourceByKey } from 'src/utils/sharedUtils';
 import type { IFormData } from 'src/features/form/data';
 import type { ILayout, ILayoutComponent, ILayoutGroup, ILayouts } from 'src/features/form/layout';
 import type { ILayoutCompDatePicker } from 'src/features/form/layout/index';
@@ -34,10 +35,8 @@ import type {
   IValidationResult,
   IValidations,
 } from 'src/types';
-import type { LayoutNode, LayoutObject, LayoutRootNode, LayoutRootNodeCollection } from 'src/utils/layout/hierarchy';
-
-import { getLanguageFromKey, getParsedLanguageFromKey, getTextResourceByKey } from 'src/utils/sharedUtils';
 import type { ILanguage } from 'src/types/shared';
+import type { LayoutNode, LayoutObject, LayoutRootNode, LayoutRootNodeCollection } from 'src/utils/layout/hierarchy';
 
 export interface ISchemaValidators {
   [id: string]: ISchemaValidator;

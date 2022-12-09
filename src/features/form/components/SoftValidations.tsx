@@ -3,7 +3,6 @@ import React from 'react';
 import { useAppSelector } from 'src/common/hooks';
 import { Panel } from 'src/features/form/components/Panel';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
-
 import type { ILanguage, ITextResource } from 'src/types/shared';
 
 export interface ISoftValidationProps {

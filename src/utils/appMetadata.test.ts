@@ -1,5 +1,4 @@
-import { instanceOwner, partyTypesAllowed } from '__mocks__/constants';
-
+import { instanceOwner, partyTypesAllowed } from 'src/__mocks__/constants';
 import {
   getCurrentDataTypeForApplication,
   getCurrentDataTypeId,
@@ -9,7 +8,6 @@ import {
   isStatelessApp,
 } from 'src/utils/appMetadata';
 import type { ILayoutSets } from 'src/types';
-
 import type { IApplication, IData, IInstance, ITask } from 'src/types/shared';
 
 describe('appMetadata.ts', () => {

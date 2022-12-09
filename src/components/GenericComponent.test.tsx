@@ -1,10 +1,10 @@
 import React from 'react';
 
-import { getFormDataStateMock, getFormLayoutStateMock, getInitialStateMock } from '__mocks__/mocks';
 import { screen } from '@testing-library/react';
-import { mockComponentProps, renderWithProviders } from 'testUtils';
 
+import { getFormDataStateMock, getFormLayoutStateMock, getInitialStateMock } from 'src/__mocks__/mocks';
 import { GenericComponent } from 'src/components/GenericComponent';
+import { mockComponentProps, renderWithProviders } from 'src/testUtils';
 import type { IActualGenericComponentProps } from 'src/components/GenericComponent';
 
 const render = (props: Partial<IActualGenericComponentProps<any>> = {}) => {

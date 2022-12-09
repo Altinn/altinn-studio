@@ -1,7 +1,8 @@
 import * as React from 'react';
+
 import { render as rtlRender, screen } from '@testing-library/react';
 
-import { AltinnContentLoader } from './AltinnContentLoader';
+import { AltinnContentLoader } from 'src/components/molecules/AltinnContentLoader';
 
 const render = (props = {}) => {
   const allProps = {

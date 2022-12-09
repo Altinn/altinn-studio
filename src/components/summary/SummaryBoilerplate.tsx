@@ -4,9 +4,8 @@ import { Grid, makeStyles, Typography } from '@material-ui/core';
 import cn from 'classnames';
 
 import { EditButton } from 'src/components/summary/EditButton';
-import type { ILayoutCompSummary } from 'src/features/form/layout';
-
 import appTheme from 'src/theme/altinnAppTheme';
+import type { ILayoutCompSummary } from 'src/features/form/layout';
 
 export interface SummaryBoilerplateProps extends Omit<ILayoutCompSummary, 'type' | 'id'> {
   hasValidationMessages?: boolean;

@@ -1,15 +1,14 @@
 import React from 'react';
 
 import { ProcessNavigation } from 'src/components/presentation/ProcessNavigation';
+import { AltinnReceipt } from 'src/components/shared';
 import { returnConfirmSummaryObject } from 'src/features/confirm/helpers/returnConfirmSummaryObject';
 import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
+import { getAttachmentGroupings, getInstancePdf } from 'src/utils/attachmentsUtils';
+import { mapInstanceAttachments } from 'src/utils/sharedUtils';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import type { ITextResource } from 'src/types';
-
-import { AltinnReceipt } from 'src/components/shared';
-import { mapInstanceAttachments } from 'src/utils/sharedUtils';
-import { getAttachmentGroupings, getInstancePdf } from 'src/utils/attachmentsUtils';
 import type { IInstance, ILanguage, IParty } from 'src/types/shared';
 
 export interface Props {

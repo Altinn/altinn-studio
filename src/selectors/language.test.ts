@@ -1,5 +1,4 @@
-import { getInitialStateMock } from '__mocks__/initialStateMock';
-
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { selectAppName, selectAppOwner } from 'src/selectors/language';
 
 describe('src > selectors > language', () => {

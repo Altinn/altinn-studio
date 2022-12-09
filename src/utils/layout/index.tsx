@@ -13,7 +13,6 @@ import type {
   ILayouts,
 } from 'src/features/form/layout';
 import type { ILayoutSet, ILayoutSets } from 'src/types';
-
 import type { IInstance } from 'src/types/shared';
 
 export function getLayoutComponentById(id: string, layouts: ILayouts | null): ILayoutComponentOrGroup | undefined {

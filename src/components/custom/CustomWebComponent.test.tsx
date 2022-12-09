@@ -1,10 +1,8 @@
 import React from 'react';
 
-import { mockComponentProps, renderWithProviders } from 'testUtils';
-
 import CustomWebComponent from 'src/components/custom/CustomWebComponent';
+import { mockComponentProps, renderWithProviders } from 'src/testUtils';
 import type { ICustomComponentProps } from 'src/components/custom/CustomWebComponent';
-
 import type { ITextResource } from 'src/types/shared';
 
 const jsonAttributeValue = { customKey: 'customValue' };

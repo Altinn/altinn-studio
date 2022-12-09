@@ -9,8 +9,8 @@ import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import { makeGetHasErrorsSelector } from 'src/selectors/getErrors';
 import ProcessWrapper from 'src/shared/containers/ProcessWrapper';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
-import { getEnvironmentLoginUrl, refreshJwtTokenUrl } from 'src/utils/urls/appUrlHelper';
 import { get } from 'src/utils/network/networking';
+import { getEnvironmentLoginUrl, refreshJwtTokenUrl } from 'src/utils/urls/appUrlHelper';
 
 // 1 minute = 60.000ms
 const TEN_MINUTE_IN_MILLISECONDS: number = 60000 * 10;

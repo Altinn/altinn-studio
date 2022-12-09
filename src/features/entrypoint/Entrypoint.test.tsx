@@ -1,17 +1,16 @@
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
-import mockAxios from 'jest-mock-axios';
 
-import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { act, screen, waitFor } from '@testing-library/react';
+import mockAxios from 'jest-mock-axios';
 import { createStore } from 'redux';
-import { renderWithProviders } from 'testUtils';
 import type { AxiosError } from 'axios';
 
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import Entrypoint from 'src/features/entrypoint/Entrypoint';
+import { renderWithProviders } from 'src/testUtils';
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import type { IRuntimeState } from 'src/types';
-
 import type { IApplicationLogic } from 'src/types/shared';
 
 describe('Entrypoint', () => {

@@ -1,13 +1,13 @@
 import React from 'react';
 
-import { getAttachments } from '__mocks__/attachmentsMock';
-import { getFormLayoutStateMock } from '__mocks__/formLayoutStateMock';
-import { getInitialStateMock } from '__mocks__/initialStateMock';
-import { getUiConfigStateMock } from '__mocks__/uiConfigStateMock';
 import { screen } from '@testing-library/react';
-import { mockComponentProps, renderWithProviders } from 'testUtils';
 
+import { getAttachments } from 'src/__mocks__/attachmentsMock';
+import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
+import { getUiConfigStateMock } from 'src/__mocks__/uiConfigStateMock';
 import { FileUploadWithTagComponent } from 'src/components/base/FileUpload/FileUploadWithTag/FileUploadWithTagComponent';
+import { mockComponentProps, renderWithProviders } from 'src/testUtils';
 import { AsciiUnitSeparator } from 'src/utils/attachment';
 import type { IFileUploadWithTagProps } from 'src/components/base/FileUpload/FileUploadWithTag/FileUploadWithTagComponent';
 import type { IAttachment } from 'src/shared/resources/attachments';

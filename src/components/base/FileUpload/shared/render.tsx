@@ -1,7 +1,6 @@
 import * as React from 'react';
 
 import { getFileEnding, removeFileEnding } from 'src/utils/attachment';
-
 import { getLanguageFromKey } from 'src/utils/sharedUtils';
 
 export const FileName = ({ children }: { children: string | undefined }) => {

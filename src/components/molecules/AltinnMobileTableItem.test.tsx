@@ -1,8 +1,10 @@
 import React from 'react';
+
 import { render as renderRtl, screen } from '@testing-library/react';
-import type { IAltinnMobileTableItemProps, IMobileTableItem } from './AltinnMobileTableItem';
-import AltinnMobileTableItem from './AltinnMobileTableItem';
 import userEvent from '@testing-library/user-event';
+
+import AltinnMobileTableItem from 'src/components/molecules/AltinnMobileTableItem';
+import type { IAltinnMobileTableItemProps, IMobileTableItem } from 'src/components/molecules/AltinnMobileTableItem';
 
 const user = userEvent.setup();
 

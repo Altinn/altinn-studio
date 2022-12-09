@@ -3,12 +3,11 @@ import * as React from 'react';
 import { Box } from '@material-ui/core';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { AltinnSpinner, Select } from 'src/components/shared';
 import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 import { useGetAppLanguageQuery } from 'src/services/LanguageApi';
 import { LanguageActions } from 'src/shared/resources/language/languageSlice';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
-
-import { AltinnSpinner, Select } from 'src/components/shared';
 
 export const LanguageSelector = () => {
   const language = useAppSelector((state) => state.language.language || {});

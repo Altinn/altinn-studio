@@ -1,5 +1,4 @@
 import { buildInstanceContext } from 'src/utils/instanceContext';
-
 import type { IInstance, IInstanceContext } from 'src/types/shared';
 
 describe('instanceContext', () => {

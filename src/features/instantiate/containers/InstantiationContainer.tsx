@@ -5,9 +5,8 @@ import { Grid, makeStyles } from '@material-ui/core';
 import { useAppSelector } from 'src/common/hooks';
 import Header from 'src/shared/components/altinnAppHeader';
 import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
-import { changeBodyBackground } from 'src/utils/bodyStyling';
-
 import { AltinnAppTheme } from 'src/theme';
+import { changeBodyBackground } from 'src/utils/bodyStyling';
 
 const useStyles = makeStyles((theme) => ({
   instantiatePage: {

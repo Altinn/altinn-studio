@@ -1,6 +1,5 @@
-import { getFormLayoutStateMock } from '__mocks__/formLayoutStateMock';
-import { getInitialStateMock } from '__mocks__/initialStateMock';
-
+import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import {
   appMetaDataSelector,
   currentSelectedPartyIdSelector,

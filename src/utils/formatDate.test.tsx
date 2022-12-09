@@ -1,4 +1,4 @@
-import { formatNameAndDate, returnDatestringFromDate } from './formatDate';
+import { formatNameAndDate, returnDatestringFromDate } from 'src/utils/formatDate';
 
 describe('formatNameAndDate', () => {
   it('should return positive result with date and name', () => {

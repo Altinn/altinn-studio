@@ -1,16 +1,16 @@
 import React from 'react';
-import { createTheme, MuiThemeProvider } from '@material-ui/core';
 import { Provider } from 'react-redux';
+import { MemoryRouter, Navigate, Route, Routes } from 'react-router-dom';
+
+import { createTheme, MuiThemeProvider } from '@material-ui/core';
 import { render as rtlRender } from '@testing-library/react';
 import type { RenderOptions } from '@testing-library/react';
 import type { PreloadedState } from 'redux';
 
-import type { RootState, AppStore } from 'src/store';
 import { setupStore } from 'src/store';
 import { AltinnAppTheme } from 'src/theme';
-
-import { MemoryRouter, Navigate, Route, Routes } from 'react-router-dom';
 import type { IComponentProps } from 'src/components';
+import type { AppStore, RootState } from 'src/store';
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {
   preloadedState?: PreloadedState<RootState>;

@@ -5,7 +5,6 @@ import { Box, useTheme } from '@material-ui/core';
 import { useAppSelector } from 'src/common/hooks';
 import { CloseButton } from 'src/components/presentation/CloseButton';
 import { LanguageSelector } from 'src/components/presentation/LanguageSelector';
-
 import { getLanguageFromKey } from 'src/utils/sharedUtils';
 
 export interface INavBarProps {

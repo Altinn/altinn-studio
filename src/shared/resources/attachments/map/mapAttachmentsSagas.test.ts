@@ -1,7 +1,7 @@
-import { getInitialStateMock } from '__mocks__/mocks';
 import { select } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
 
+import { getInitialStateMock } from 'src/__mocks__/mocks';
 import { selectFormLayouts } from 'src/features/form/layout/update/updateFormLayoutSagas';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import {

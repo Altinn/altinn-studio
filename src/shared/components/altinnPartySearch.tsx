@@ -3,7 +3,6 @@ import React from 'react';
 import { Grid, makeStyles } from '@material-ui/core';
 
 import { useAppSelector } from 'src/common/hooks';
-
 import { AltinnInput } from 'src/components/shared';
 import { getLanguageFromKey } from 'src/utils/sharedUtils';
 

@@ -5,9 +5,10 @@ import type { SagaIterator } from 'redux-saga';
 import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 import { listStateSelector } from 'src/selectors/dataListStateSelector';
 import { DataListsActions } from 'src/shared/resources/dataLists/dataListsSlice';
-import { getDataListsUrl } from 'src/utils/urls/appUrlHelper';
 import { getDataListLookupKey, getDataListLookupKeys } from 'src/utils/dataList';
 import { selectNotNull } from 'src/utils/sagas';
+import { get } from 'src/utils/sharedUtils';
+import { getDataListsUrl } from 'src/utils/urls/appUrlHelper';
 import type { IFormData } from 'src/features/form/data';
 import type { ILayouts } from 'src/features/form/layout';
 import type {
@@ -17,8 +18,6 @@ import type {
   IFetchSpecificDataListSaga,
 } from 'src/shared/resources/dataLists/index';
 import type { IRepeatingGroups, IRuntimeState } from 'src/types';
-
-import { get } from 'src/utils/sharedUtils';
 
 export const formLayoutSelector = (state: IRuntimeState): ILayouts | null => state.formLayout?.layouts;
 export const formDataSelector = (state: IRuntimeState) => state.formData.formData;

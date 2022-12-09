@@ -1,12 +1,12 @@
 import * as React from 'react';
 
-import { getFormLayoutGroupMock } from '__mocks__/mocks';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import * as ResizeObserverModule from 'resize-observer-polyfill';
-import { mockMediaQuery, renderWithProviders } from 'testUtils';
 
+import { getFormLayoutGroupMock } from 'src/__mocks__/mocks';
 import { RepeatingGroupTable } from 'src/features/form/containers/RepeatingGroupTable';
+import { mockMediaQuery, renderWithProviders } from 'src/testUtils';
 import { createRepeatingGroupComponents } from 'src/utils/formLayout';
 import type { IRepeatingGroupTableProps } from 'src/features/form/containers/RepeatingGroupTable';
 import type { IFormData } from 'src/features/form/data';
@@ -14,7 +14,6 @@ import type { ILayoutComponent, ILayoutGroup, ISelectionComponentProps } from 's
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
 import type { IAttachments } from 'src/shared/resources/attachments';
 import type { IOption, ITextResource } from 'src/types';
-
 import type { ILanguage } from 'src/types/shared';
 
 (global as any).ResizeObserver = ResizeObserverModule.default;

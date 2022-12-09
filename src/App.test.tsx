@@ -1,14 +1,14 @@
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
-import { getInitialStateMock, getInstanceDataStateMock } from '__mocks__/mocks';
 import { screen } from '@testing-library/react';
 import axios from 'axios';
-import { renderWithProviders } from 'testUtils';
 
+import { getInitialStateMock, getInstanceDataStateMock } from 'src/__mocks__/mocks';
 import { App } from 'src/App';
 import * as appSelector from 'src/common/hooks/useAppSelector';
 import * as anonymousSelector from 'src/selectors/getAllowAnonymous';
+import { renderWithProviders } from 'src/testUtils';
 import { ProcessTaskType } from 'src/types';
 import type { IRuntimeState } from 'src/types';
 

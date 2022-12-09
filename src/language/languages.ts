@@ -1,6 +1,6 @@
-import { nb } from './texts/nb';
-import { en } from './texts/en';
-import { nn } from './texts/nn';
+import { en } from 'src/language/texts/en';
+import { nb } from 'src/language/texts/nb';
+import { nn } from 'src/language/texts/nn';
 
 export function getLanguageFromCode(languageCode: string) {
   switch (languageCode) {

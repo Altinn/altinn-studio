@@ -2,14 +2,13 @@ import { all, call, select, take, takeLatest } from 'redux-saga/effects';
 import { expectSaga } from 'redux-saga-test-plan';
 
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { getLanguageFromCode } from 'src/language/languages';
 import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import { ApplicationMetadataActions } from 'src/shared/resources/applicationMetadata/applicationMetadataSlice';
 import { fetchLanguageSaga, watchFetchLanguageSaga } from 'src/shared/resources/language/fetch/fetchLanguageSagas';
 import { LanguageActions } from 'src/shared/resources/language/languageSlice';
 import { waitFor } from 'src/utils/sagas';
-
-import { getLanguageFromCode } from 'src/language/languages';
 
 describe('languageActions', () => {
   it('should create an action with correct type: FETCH_LANGUAGE', () => {

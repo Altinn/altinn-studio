@@ -3,11 +3,10 @@ import type { SagaIterator } from 'redux-saga';
 
 import { ProcessActions } from 'src/shared/resources/process/processSlice';
 import { ProcessTaskType } from 'src/types';
+import { get } from 'src/utils/sharedUtils';
 import { getProcessStateUrl } from 'src/utils/urls/appUrlHelper';
 import type { IProcessState } from 'src/shared/resources/process';
 import type { IRuntimeState } from 'src/types';
-
-import { get } from 'src/utils/sharedUtils';
 import type { IProcess } from 'src/types/shared';
 
 const processSelector = (state: IRuntimeState): IProcessState => state.process;

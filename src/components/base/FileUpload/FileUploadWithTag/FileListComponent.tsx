@@ -14,14 +14,13 @@ import {
 
 import { EditWindowComponent } from 'src/components/base/FileUpload/FileUploadWithTag/EditWindowComponent';
 import { FileName } from 'src/components/base/FileUpload/shared/render';
+import { AltinnLoader } from 'src/components/shared';
+import { AltinnAppTheme } from 'src/theme';
 import { atleastOneTagExists } from 'src/utils/formComponentUtils';
+import { getLanguageFromKey } from 'src/utils/sharedUtils';
 import type { PropsFromGenericComponent } from 'src/components';
 import type { IAttachment } from 'src/shared/resources/attachments';
 import type { IDataModelBindings, IOption } from 'src/types';
-
-import { AltinnLoader } from 'src/components/shared';
-import { AltinnAppTheme } from 'src/theme';
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
 
 const useStyles = makeStyles({
   table: {

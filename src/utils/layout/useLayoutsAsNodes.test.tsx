@@ -1,9 +1,9 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import { getInitialStateMock } from '__mocks__/mocks';
 import { renderHook } from '@testing-library/react';
 
+import { getInitialStateMock } from 'src/__mocks__/mocks';
 import { setupStore } from 'src/store';
 import { useLayoutsAsNodes } from 'src/utils/layout/useLayoutsAsNodes';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';

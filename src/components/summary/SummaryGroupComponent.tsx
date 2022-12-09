@@ -10,19 +10,18 @@ import { EditButton } from 'src/components/summary/EditButton';
 import GroupInputSummary from 'src/components/summary/GroupInputSummary';
 import { DisplayGroupContainer } from 'src/features/form/containers/DisplayGroupContainer';
 import { renderLayoutComponent } from 'src/features/form/containers/Form';
+import appTheme from 'src/theme/altinnAppTheme';
 import { getDisplayFormDataForComponent, getFormDataForComponentInRepeatingGroup } from 'src/utils/formComponentUtils';
 import {
   getRepeatingGroupStartStopIndex,
   getVariableTextKeysForRepeatingGroupComponent,
   setMappingForRepeatingGroupComponent,
 } from 'src/utils/formLayout';
+import { getLanguageFromKey } from 'src/utils/sharedUtils';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { ComponentFromSummary } from 'src/features/form/containers/DisplayGroupContainer';
 import type { ILayout, ILayoutComponent, ILayoutGroup, SummaryDisplayProperties } from 'src/features/form/layout';
 import type { IRuntimeState } from 'src/types';
-
-import appTheme from 'src/theme/altinnAppTheme';
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
 
 export interface ISummaryGroupComponent {
   pageRef?: string;

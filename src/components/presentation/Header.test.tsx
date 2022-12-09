@@ -1,11 +1,11 @@
 import React from 'react';
 
-import { getFormLayoutStateMock } from '__mocks__/formLayoutStateMock';
-import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { screen } from '@testing-library/react';
-import { renderWithProviders } from 'testUtils';
 
+import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import Header from 'src/components/presentation/Header';
+import { renderWithProviders } from 'src/testUtils';
 import { ProcessTaskType } from 'src/types';
 
 describe('Header', () => {

@@ -1,8 +1,10 @@
 import React from 'react';
+
+import { act, render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+
 import { AltinnAppHeader } from 'src/components/shared';
 import type { IParty } from 'src/types/shared';
-import { render, screen, act } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 
 describe('organisms/AltinnAppHeader', () => {
   const partyPerson = {

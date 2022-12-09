@@ -14,23 +14,27 @@ import { createTheme, Grid, makeStyles, useMediaQuery } from '@material-ui/core'
 import { Delete as DeleteIcon, Edit as EditIcon, ErrorColored as ErrorIcon } from '@navikt/ds-icons';
 import cn from 'classnames';
 
+import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
 import { ExprDefaultsForGroup } from 'src/features/expressions';
 import { useExpressions } from 'src/features/expressions/useExpressions';
+import {
+  fullWidthWrapper,
+  xPaddingLarge,
+  xPaddingMedium,
+  xPaddingSmall,
+} from 'src/features/form/components/FullWidthWrapper';
 import { RepeatingGroupsEditContainer } from 'src/features/form/containers/RepeatingGroupsEditContainer';
+import altinnAppTheme from 'src/theme/altinnAppTheme';
 import { getFormDataForComponentInRepeatingGroup, getTextResource } from 'src/utils/formComponentUtils';
 import { createRepeatingGroupComponents } from 'src/utils/formLayout';
 import { setupGroupComponents } from 'src/utils/layout';
+import { getLanguageFromKey, getTextResourceByKey } from 'src/utils/sharedUtils';
 import { componentHasValidations, repeatingGroupHasValidations } from 'src/utils/validation';
 import type { IFormData } from 'src/features/form/data';
 import type { ILayout, ILayoutCompInput, ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
 import type { IAttachments } from 'src/shared/resources/attachments';
 import type { IOptions, IRepeatingGroups, ITextResource, ITextResourceBindings, IValidations } from 'src/types';
-
-import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
-import altinnAppTheme from 'src/theme/altinnAppTheme';
-import { getLanguageFromKey, getTextResourceByKey } from 'src/utils/sharedUtils';
 import type { ILanguage } from 'src/types/shared';
-import { fullWidthWrapper, xPaddingLarge, xPaddingMedium, xPaddingSmall } from '../components/FullWidthWrapper';
 
 export interface IRepeatingGroupTableProps {
   id: string;

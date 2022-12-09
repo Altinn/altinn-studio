@@ -7,7 +7,6 @@ import type {
   IProfileState,
 } from 'src/shared/resources/profile';
 import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
-
 import type { IProfile } from 'src/types/shared';
 
 const initialState: IProfileState = {

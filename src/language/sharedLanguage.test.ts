@@ -1,20 +1,20 @@
-import type {
-  ITextResource,
-  IDataSources,
-  IDataSource,
-  IApplicationSettings,
-  IInstanceContext,
-  IAltinnOrg,
-  IAltinnOrgs,
-  IApplication,
-} from 'src/types/shared';
 import {
   getAppName,
   getAppOwner,
   getParsedLanguageFromText,
   getTextResourceByKey,
   replaceTextResourceParams,
-} from './sharedLanguage';
+} from 'src/language/sharedLanguage';
+import type {
+  IAltinnOrg,
+  IAltinnOrgs,
+  IApplication,
+  IApplicationSettings,
+  IDataSource,
+  IDataSources,
+  IInstanceContext,
+  ITextResource,
+} from 'src/types/shared';
 
 describe('language.ts', () => {
   const adjectiveValue = 'awesome';

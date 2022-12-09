@@ -24,6 +24,7 @@ import {
   selectComponentTexts,
 } from 'src/utils/formComponentUtils';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
+import { getTextResourceByKey } from 'src/utils/sharedUtils';
 import type { IComponentProps, IFormComponentContext, PropsFromGenericComponent } from 'src/components';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { ISingleFieldValidation } from 'src/features/form/data/formDataTypes';
@@ -35,8 +36,6 @@ import type {
   ILayoutComponent,
 } from 'src/features/form/layout';
 import type { IComponentValidations, ILabelSettings } from 'src/types';
-
-import { getTextResourceByKey } from 'src/utils/sharedUtils';
 import type { ILanguage } from 'src/types/shared';
 
 export interface IGenericComponentProps {

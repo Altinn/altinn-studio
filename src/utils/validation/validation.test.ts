@@ -1,13 +1,14 @@
-import { getInitialStateMock } from '__mocks__/initialStateMock';
-import * as complexSchema from '__mocks__/json-schema/complex.json';
-import * as oneOfOnRootSchema from '__mocks__/json-schema/one-of-on-root.json';
-import * as refOnRootSchema from '__mocks__/json-schema/ref-on-root.json';
-import { getMockValidationState } from '__mocks__/validationStateMock';
 import Ajv from 'ajv';
 import Ajv2020 from 'ajv/dist/2020';
 import dot from 'dot-object';
 import type { ErrorObject } from 'ajv';
 
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
+import * as complexSchema from 'src/__mocks__/json-schema/complex.json';
+import * as oneOfOnRootSchema from 'src/__mocks__/json-schema/one-of-on-root.json';
+import * as refOnRootSchema from 'src/__mocks__/json-schema/ref-on-root.json';
+import { getMockValidationState } from 'src/__mocks__/validationStateMock';
+import { getParsedLanguageFromKey, getTextResourceByKey } from 'src/language/sharedLanguage';
 import { Severity } from 'src/types';
 import { createRepeatingGroupComponents, getRepeatingGroups } from 'src/utils/formLayout';
 import { nodesInLayouts } from 'src/utils/layout/hierarchy';
@@ -24,8 +25,6 @@ import type {
   IValidations,
 } from 'src/types';
 import type { LayoutRootNodeCollection } from 'src/utils/layout/hierarchy';
-
-import { getParsedLanguageFromKey, getTextResourceByKey } from 'src/language/sharedLanguage';
 
 function toCollection(mockLayouts: ILayouts, repeatingGroups: IRepeatingGroups = {}) {
   return nodesInLayouts(

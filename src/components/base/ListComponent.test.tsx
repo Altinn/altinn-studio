@@ -1,12 +1,12 @@
 import React from 'react';
 
-import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { SortDirection } from '@altinn/altinn-design-system';
 import { screen } from '@testing-library/react';
-import { mockComponentProps, renderWithProviders } from 'testUtils';
 import type { PreloadedState } from 'redux';
 
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { ListComponent } from 'src/components/base/ListComponent';
+import { mockComponentProps, renderWithProviders } from 'src/testUtils';
 import type { IListProps } from 'src/components/base/ListComponent';
 import type { IDataListsState } from 'src/shared/resources/dataLists';
 import type { RootState } from 'src/store';

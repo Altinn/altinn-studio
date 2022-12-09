@@ -6,9 +6,8 @@ import classNames from 'classnames';
 import { useAppSelector } from 'src/common/hooks';
 import { Progress } from 'src/components/presentation/Progress';
 import { ProcessTaskType } from 'src/types';
-import type { PresentationType } from 'src/types';
-
 import { getLanguageFromKey } from 'src/utils/sharedUtils';
+import type { PresentationType } from 'src/types';
 
 export interface IHeaderProps {
   type: ProcessTaskType | PresentationType;

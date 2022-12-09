@@ -18,7 +18,6 @@ import type {
   IRepeatingGroups,
   ITextResourceBindings,
 } from 'src/types';
-
 import type { ITextResource } from 'src/types/shared';
 
 interface SplitKey {

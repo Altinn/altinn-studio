@@ -8,12 +8,11 @@ import { FullWidthWrapper } from 'src/features/form/components/FullWidthWrapper'
 import { renderLayoutComponent } from 'src/features/form/containers/Form';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { nodesInLayouts } from 'src/utils/layout/hierarchy';
+import { getLanguageFromKey, getParsedLanguageFromText } from 'src/utils/sharedUtils';
 import { getMappedErrors, getUnmappedErrors } from 'src/utils/validation';
 import type { ILayout } from 'src/features/form/layout';
 import type { AnyChildNode } from 'src/utils/layout/hierarchy.types';
 import type { FlatError } from 'src/utils/validation';
-
-import { getLanguageFromKey, getParsedLanguageFromText } from 'src/utils/sharedUtils';
 
 export interface IErrorReportProps {
   components: ILayout;

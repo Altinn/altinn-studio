@@ -1,5 +1,4 @@
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
-
 import type { ILanguage, IParty, ITextResource } from 'src/types/shared';
 
 export interface ISummaryData {

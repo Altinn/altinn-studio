@@ -24,7 +24,15 @@
     },
     "sourceType": "module"
   },
-  "plugins": ["@typescript-eslint", "import", "sonarjs", "no-relative-import-paths", "simple-import-sort", "cypress"],
+  "plugins": [
+    "@typescript-eslint",
+    "import",
+    "sonarjs",
+    "no-relative-import-paths",
+    "preferred-import-path",
+    "simple-import-sort",
+    "cypress"
+  ],
   "settings": {
     "import/extensions": [".js", ".jsx", ".ts", ".tsx"],
     "import/parsers": {
@@ -87,9 +95,15 @@
       }
     },
     {
-      "files": ["altinn-app-frontend/src/**"],
+      "files": ["src/**"],
       "rules": {
         "no-relative-import-paths/no-relative-import-paths": ["warn", { "allowSameFolder": false }],
+        "preferred-import-path/preferred-import-path": [
+          "warn",
+          {
+            "^/src": "src"
+          }
+        ],
         "simple-import-sort/imports": [
           "error",
           {
@@ -117,13 +131,6 @@
                 // Our internal packages
                 "^src/[^\\u0000]+$",
                 "^src/.*\\u0000$"
-              ],
-              [
-                // Imports from altinn-app-frontend (mostly mocks and test utilities)
-                "^__mocks__/[^\\u0000]+$",
-                "^__mocks__/.*\\u0000$",
-                "^testUtils[^\\u0000]$",
-                "^testUtils$"
               ],
               [
                 // Lastly, style imports

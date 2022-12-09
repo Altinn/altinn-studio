@@ -1,11 +1,10 @@
 import React from 'react';
 
 import { useAppDispatch, useAppSelector, useInstanceIdParams } from 'src/common/hooks';
+import { AltinnContentIconReceipt, AltinnContentLoader } from 'src/components/shared';
 import { ConfirmPage } from 'src/features/confirm/containers/ConfirmPage';
 import { selectAppName } from 'src/selectors/language';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
-
-import { AltinnContentIconReceipt, AltinnContentLoader } from 'src/components/shared';
 
 export const Confirm = () => {
   const { instanceId } = useInstanceIdParams();

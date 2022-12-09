@@ -3,16 +3,15 @@ import * as React from 'react';
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import Header from 'src/components/presentation/Header';
 import NavBar from 'src/components/presentation/NavBar';
+import { AltinnAppHeader, AltinnSubstatusPaper } from 'src/components/shared';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { getLayoutOrderFromTracks } from 'src/selectors/getLayoutOrder';
+import { AltinnAppTheme } from 'src/theme';
 import { PresentationType, ProcessTaskType } from 'src/types';
-import { getRedirectUrl } from 'src/utils/urls/appUrlHelper';
 import { getNextView } from 'src/utils/formLayout';
 import { get } from 'src/utils/network/networking';
-
-import { AltinnAppHeader, AltinnSubstatusPaper } from 'src/components/shared';
-import { AltinnAppTheme } from 'src/theme';
 import { getTextResourceByKey, returnUrlFromQueryParameter, returnUrlToMessagebox } from 'src/utils/sharedUtils';
+import { getRedirectUrl } from 'src/utils/urls/appUrlHelper';
 
 export interface IPresentationProvidedProps {
   header?: string | JSX.Element | JSX.Element[];

@@ -1,10 +1,10 @@
 import * as React from 'react';
 
-import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { screen } from '@testing-library/react';
-import { renderWithProviders } from 'testUtils';
 
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { AttachmentWithTagSummaryComponent } from 'src/components/summary/AttachmentWithTagSummaryComponent';
+import { renderWithProviders } from 'src/testUtils';
 import type { ILayoutCompFileUploadWithTag } from 'src/features/form/layout';
 import type { RootState } from 'src/store';
 

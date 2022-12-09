@@ -1,7 +1,10 @@
+import * as React from 'react';
+
 import { makeStyles } from '@material-ui/core/styles';
 import cn from 'classnames';
-import * as React from 'react';
+
 import { AltinnAppTheme } from 'src/theme/index';
+
 import 'src/styles/shared.css';
 
 const useStyles = makeStyles({

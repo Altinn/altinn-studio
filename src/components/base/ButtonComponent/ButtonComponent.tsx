@@ -7,12 +7,11 @@ import { SaveButton } from 'src/components/base/ButtonComponent/SaveButton';
 import { SubmitButton } from 'src/components/base/ButtonComponent/SubmitButton';
 import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import { ProcessActions } from 'src/shared/resources/process/processSlice';
+import { getLanguageFromKey } from 'src/utils/sharedUtils';
 import type { IComponentProps } from 'src/components';
 import type { ButtonMode } from 'src/components/base/ButtonComponent/getComponentFromMode';
 import type { ILayoutCompButton } from 'src/features/form/layout';
 import type { IAltinnWindow } from 'src/types';
-
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
 
 export interface IButtonProvidedProps extends IComponentProps, ILayoutCompButton {
   disabled: boolean;

@@ -5,9 +5,8 @@ import { createTheme, MuiThemeProvider, Typography } from '@material-ui/core';
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
 import { ProcessActions } from 'src/shared/resources/process/processSlice';
-import { getTextFromAppOrDefault } from 'src/utils/textResource';
-
 import { AltinnAppTheme } from 'src/theme';
+import { getTextFromAppOrDefault } from 'src/utils/textResource';
 
 const theme = createTheme(AltinnAppTheme);
 

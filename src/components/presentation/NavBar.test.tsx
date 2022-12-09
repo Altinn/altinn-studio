@@ -1,16 +1,15 @@
 import React from 'react';
 
-import { getFormLayoutStateMock } from '__mocks__/formLayoutStateMock';
-import { getUiConfigStateMock } from '__mocks__/uiConfigStateMock';
-import { screen, waitForElementToBeRemoved, act } from '@testing-library/react';
+import { act, screen, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import mockAxios from 'jest-mock-axios';
-import { renderWithProviders } from 'testUtils';
 
+import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
+import { getUiConfigStateMock } from 'src/__mocks__/uiConfigStateMock';
 import NavBar from 'src/components/presentation/NavBar';
-import type { ITextResource } from 'src/types';
-
 import { getLanguageFromCode } from 'src/language/languages';
+import { renderWithProviders } from 'src/testUtils';
+import type { ITextResource } from 'src/types';
 import type { IAppLanguage } from 'src/types/shared';
 
 afterEach(() => mockAxios.reset());

@@ -1,6 +1,5 @@
-import type { ITextResource } from 'src/types';
-
 import { getParsedLanguageFromKey, getParsedLanguageFromText, getTextResourceByKey } from 'src/utils/sharedUtils';
+import type { ITextResource } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
 
 export function getTextFromAppOrDefault(

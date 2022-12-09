@@ -6,9 +6,8 @@ import type { PropsFromGenericComponent } from '..';
 
 import { useAppSelector } from 'src/common/hooks';
 import { useGetOptions } from 'src/components/hooks';
-import type { IOption } from 'src/types';
-
 import { getLanguageFromKey } from 'src/utils/sharedUtils';
+import type { IOption } from 'src/types';
 
 import 'src/components/base/MultipleSelect.css';
 

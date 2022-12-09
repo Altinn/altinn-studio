@@ -3,10 +3,9 @@ import type { SagaIterator } from 'redux-saga';
 
 import { PartyActions } from 'src/shared/resources/party/partySlice';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
-import { currentPartyUrl, validPartiesUrl } from 'src/utils/urls/appUrlHelper';
 import { get } from 'src/utils/network/networking';
+import { currentPartyUrl, validPartiesUrl } from 'src/utils/urls/appUrlHelper';
 import type { IRuntimeState } from 'src/types';
-
 import type { IParty } from 'src/types/shared';
 
 const PartiesSelector = (state: IRuntimeState) => state.party.parties;

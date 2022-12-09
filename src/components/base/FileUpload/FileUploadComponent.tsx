@@ -8,15 +8,14 @@ import { v4 as uuidv4 } from 'uuid';
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import { DropzoneComponent, handleRejectedFiles } from 'src/components/base/FileUpload/shared';
 import { AttachmentsCounter, FileName } from 'src/components/base/FileUpload/shared/render';
+import { AltinnLoader } from 'src/components/shared';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
+import { AltinnAppTheme } from 'src/theme/index';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
+import { getLanguageFromKey } from 'src/utils/sharedUtils';
 import type { PropsFromGenericComponent } from 'src/components';
 import type { IAttachment } from 'src/shared/resources/attachments';
 import type { IComponentValidations } from 'src/types';
-
-import { AltinnLoader } from 'src/components/shared';
-import { AltinnAppTheme } from 'src/theme/index';
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
 
 import 'src/components/base/FileUpload/FileUploadComponent.css';
 

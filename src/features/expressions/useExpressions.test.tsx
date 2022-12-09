@@ -1,10 +1,10 @@
 import React from 'react';
 import { Provider } from 'react-redux';
 
-import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { act, renderHook } from '@testing-library/react';
 import type { MockInstance } from 'jest-mock';
 
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { useExpressions } from 'src/features/expressions/useExpressions';
 import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import { setupStore } from 'src/store';

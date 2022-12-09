@@ -1,6 +1,5 @@
-import { getProfileStateMock } from '__mocks__/profileStateMock';
-import { statelessAndAllowAnonymousMock } from '__mocks__/statelessAndAllowAnonymousMock';
-
+import { getProfileStateMock } from 'src/__mocks__/profileStateMock';
+import { statelessAndAllowAnonymousMock } from 'src/__mocks__/statelessAndAllowAnonymousMock';
 import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 
 describe('appLanguageStateSelector', () => {

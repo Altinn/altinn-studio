@@ -1,7 +1,6 @@
 import * as React from 'react';
 
 import { useAppSelector } from 'src/common/hooks';
-
 import { getLanguageFromKey } from 'src/utils/sharedUtils';
 
 interface CloseButtonProps {

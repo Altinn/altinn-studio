@@ -3,10 +3,9 @@ import * as React from 'react';
 import { Grid, Typography } from '@material-ui/core';
 
 import { useAppSelector } from 'src/common/hooks';
-import type { PropsFromGenericComponent } from 'src/components';
-
 import { AltinnAttachment } from 'src/components/shared';
 import { mapInstanceAttachments } from 'src/utils/sharedUtils';
+import type { PropsFromGenericComponent } from 'src/components';
 
 export type IAttachmentListProps = PropsFromGenericComponent<'AttachmentList'>;
 

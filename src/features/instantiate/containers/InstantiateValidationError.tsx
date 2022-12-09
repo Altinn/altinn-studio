@@ -2,9 +2,8 @@ import * as React from 'react';
 
 import { useAppSelector } from 'src/common/hooks';
 import InstantiationErrorPage from 'src/features/instantiate/containers/InstantiationErrorPage';
-import { getTextFromAppOrDefault } from 'src/utils/textResource';
-
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'src/utils/sharedUtils';
+import { getTextFromAppOrDefault } from 'src/utils/textResource';
 
 function InstantiateValidationError(props: { message: string }) {
   const language = useAppSelector((state) => state.language.language);

@@ -3,10 +3,9 @@ import React from 'react';
 import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { useGetOptions } from 'src/components/hooks';
 import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
+import { AltinnSpinner, Select } from 'src/components/shared';
 import { getOptionLookupKey } from 'src/utils/options';
 import type { PropsFromGenericComponent } from 'src/components';
-
-import { AltinnSpinner, Select } from 'src/components/shared';
 
 export type IDropdownProps = PropsFromGenericComponent<'Dropdown'>;
 

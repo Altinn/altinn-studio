@@ -6,7 +6,6 @@ import { ProfileActions } from 'src/shared/resources/profile/profileSlice';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import { get } from 'src/utils/network/networking';
 import type { IFetchProfile } from 'src/shared/resources/profile';
-
 import type { IProfile } from 'src/types/shared';
 
 export function* fetchProfileSaga({ payload: { url } }: PayloadAction<IFetchProfile>): SagaIterator {

@@ -4,7 +4,6 @@ import type { SagaIterator } from 'redux-saga';
 
 import { appLanguageStateSelector } from 'src/selectors/appLanguageStateSelector';
 import { OptionsActions } from 'src/shared/resources/options/optionsSlice';
-import { getOptionsUrl } from 'src/utils/urls/appUrlHelper';
 import {
   getKeyIndex,
   getKeyWithoutIndex,
@@ -13,6 +12,8 @@ import {
 } from 'src/utils/databindings';
 import { getOptionLookupKey, getOptionLookupKeys } from 'src/utils/options';
 import { selectNotNull } from 'src/utils/sagas';
+import { get } from 'src/utils/sharedUtils';
+import { getOptionsUrl } from 'src/utils/urls/appUrlHelper';
 import type { IFormData } from 'src/features/form/data';
 import type { IUpdateFormDataFulfilled } from 'src/features/form/data/formDataTypes';
 import type { ILayouts, ISelectionComponentProps } from 'src/features/form/layout';
@@ -24,8 +25,6 @@ import type {
   IRepeatingGroups,
   IRuntimeState,
 } from 'src/types';
-
-import { get } from 'src/utils/sharedUtils';
 
 export const formLayoutSelector = (state: IRuntimeState): ILayouts | null => state.formLayout?.layouts;
 export const formDataSelector = (state: IRuntimeState) => state.formData.formData;

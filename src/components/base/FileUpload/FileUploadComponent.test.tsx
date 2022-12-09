@@ -1,11 +1,11 @@
 import React from 'react';
 
-import { getAttachments } from '__mocks__/attachmentsMock';
-import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { screen } from '@testing-library/react';
-import { mockComponentProps, renderWithProviders } from 'testUtils';
 
+import { getAttachments } from 'src/__mocks__/attachmentsMock';
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { FileUploadComponent } from 'src/components/base/FileUpload/FileUploadComponent';
+import { mockComponentProps, renderWithProviders } from 'src/testUtils';
 import type { IFileUploadProps } from 'src/components/base/FileUpload/FileUploadComponent';
 import type { IAttachment } from 'src/shared/resources/attachments';
 

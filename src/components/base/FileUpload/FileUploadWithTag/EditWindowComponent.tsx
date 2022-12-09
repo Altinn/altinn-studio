@@ -5,15 +5,14 @@ import classNames from 'classnames';
 
 import { useAppDispatch } from 'src/common/hooks';
 import { FileName } from 'src/components/base/FileUpload/shared/render';
+import { AltinnButton, AltinnLoader } from 'src/components/shared';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
+import { AltinnAppTheme } from 'src/theme/index';
 import { renderValidationMessages } from 'src/utils/render';
+import { getLanguageFromKey } from 'src/utils/sharedUtils';
 import type { PropsFromGenericComponent } from 'src/components';
 import type { IAttachment } from 'src/shared/resources/attachments';
 import type { IOption } from 'src/types';
-
-import { AltinnButton, AltinnLoader } from 'src/components/shared';
-import { AltinnAppTheme } from 'src/theme/index';
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
 
 const useStyles = makeStyles({
   textContainer: {

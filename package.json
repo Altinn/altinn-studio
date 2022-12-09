@@ -127,6 +127,7 @@
     "classnames": "2.3.2",
     "dompurify": "2.4.1",
     "dot-object": "2.1.4",
+    "eslint-plugin-preferred-import-path": "^1.1.0",
     "html-react-parser": "3.0.4",
     "jsonpointer": "5.0.1",
     "marked": "4.2.4",
@@ -172,8 +173,6 @@
       "\\.(css|less|scss)$": "identity-obj-proxy",
       "\\./applicationMetadataMock.json": "<rootDir>/src/__mocks__/applicationMetadataMock.json",
       "^src/(.*)$": "<rootDir>/src/$1",
-      "^__mocks__/(.*)$": "<rootDir>/src/__mocks__/$1",
-      "^testUtils$": "<rootDir>/src/testUtils.tsx",
       "^uuid$": "<rootDir>/node_modules/uuid/dist/index.js"
     },
     "testRegex": "(/__tests__/.*|.*.(test|spec)).(ts|tsx|js|jsx)$",

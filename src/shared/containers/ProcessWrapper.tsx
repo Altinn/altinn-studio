@@ -2,6 +2,7 @@ import React from 'react';
 
 import { useAppSelector, useInstanceIdParams, useProcess } from 'src/common/hooks';
 import { useApiErrorCheck } from 'src/common/hooks/useApiErrorCheck';
+import { AltinnContentIconFormData, AltinnContentLoader } from 'src/components/shared';
 import { Confirm } from 'src/features/confirm/containers/Confirm';
 import Feedback from 'src/features/feedback/Feedback';
 import { Form } from 'src/features/form/containers/Form';
@@ -11,8 +12,6 @@ import Presentation from 'src/shared/containers/Presentation';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 import { ProcessTaskType } from 'src/types';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
-
-import { AltinnContentIconFormData, AltinnContentLoader } from 'src/components/shared';
 
 const ProcessWrapper = () => {
   const instantiating = useAppSelector((state) => state.instantiation.instantiating);

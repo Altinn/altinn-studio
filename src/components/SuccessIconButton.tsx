@@ -1,6 +1,7 @@
-import { makeStyles, IconButton } from '@material-ui/core';
-import type { ReactNode } from 'react';
 import React from 'react';
+import type { ReactNode } from 'react';
+
+import { IconButton, makeStyles } from '@material-ui/core';
 
 export interface ISuccessIconButtonProps {
   label: ReactNode;

@@ -18,7 +18,6 @@ import {
   getCurrentTaskDataElementId,
   isStatelessApp,
 } from 'src/utils/appMetadata';
-import { getCalculatePageOrderUrl, getDataValidationUrl } from 'src/utils/urls/appUrlHelper';
 import { shiftAttachmentRowInRepeatingGroup } from 'src/utils/attachment';
 import { convertDataBindingToModel, findChildAttachments, removeGroupData } from 'src/utils/databindings';
 import {
@@ -32,6 +31,8 @@ import {
 import { getLayoutsetForDataElement } from 'src/utils/layout';
 import { getOptionLookupKey, removeGroupOptionsByIndex } from 'src/utils/options';
 import { waitFor } from 'src/utils/sagas';
+import { get, post } from 'src/utils/sharedUtils';
+import { getCalculatePageOrderUrl, getDataValidationUrl } from 'src/utils/urls/appUrlHelper';
 import {
   canFormBeSaved,
   mapDataElementValidationToRedux,
@@ -70,8 +71,6 @@ import type {
   IValidationIssue,
   IValidations,
 } from 'src/types';
-
-import { get, post } from 'src/utils/sharedUtils';
 
 export const selectFormLayoutState = (state: IRuntimeState) => state.formLayout;
 export const selectFormData = (state: IRuntimeState) => state.formData;

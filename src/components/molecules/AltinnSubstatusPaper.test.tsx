@@ -1,6 +1,8 @@
 import React from 'react';
+
 import { render, screen } from '@testing-library/react';
-import AltinnSubstatusPaper from './AltinnSubstatusPaper';
+
+import AltinnSubstatusPaper from 'src/components/molecules/AltinnSubstatusPaper';
 
 describe('AltinnSubstatusPaper', () => {
   it('should render label and description', () => {

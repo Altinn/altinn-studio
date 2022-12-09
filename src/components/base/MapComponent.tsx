@@ -4,9 +4,8 @@ import { Map } from '@altinn/altinn-design-system';
 import { makeStyles, Typography } from '@material-ui/core';
 import type { Location } from '@altinn/altinn-design-system';
 
-import type { PropsFromGenericComponent } from 'src/components';
-
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'src/utils/sharedUtils';
+import type { PropsFromGenericComponent } from 'src/components';
 
 export type IMapComponentProps = PropsFromGenericComponent<'Map'>;
 

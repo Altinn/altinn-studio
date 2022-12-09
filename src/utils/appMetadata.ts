@@ -1,7 +1,6 @@
 import { getInstanceIdRegExp } from 'src/utils';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
 import type { ILayoutSets } from 'src/types';
-
 import type { IApplication, IInstance } from 'src/types/shared';
 
 export function getDataTypeByLayoutSetId(layoutSetId: string | undefined, layoutSets: ILayoutSets | undefined | null) {

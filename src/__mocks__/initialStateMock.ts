@@ -1,12 +1,12 @@
+import { applicationMetadataMock } from 'src/__mocks__/applicationMetadataMock';
+import { applicationSettingsMock } from 'src/__mocks__/applicationSettingsMock';
+import { getFormDataStateMock } from 'src/__mocks__/formDataStateMock';
+import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
+import { getInstanceDataStateMock } from 'src/__mocks__/instanceDataStateMock';
+import { partyMock } from 'src/__mocks__/partyMock';
+import { getProfileStateMock } from 'src/__mocks__/profileStateMock';
 import { getLanguageFromCode } from 'src/language/languages';
 import type { IRuntimeState } from 'src/types';
-import { getFormLayoutStateMock } from './formLayoutStateMock';
-import { getFormDataStateMock } from './formDataStateMock';
-import { applicationMetadataMock } from './applicationMetadataMock';
-import { applicationSettingsMock } from './applicationSettingsMock';
-import { getInstanceDataStateMock } from './instanceDataStateMock';
-import { partyMock } from './partyMock';
-import { getProfileStateMock } from './profileStateMock';
 
 export function getInitialStateMock(customStates?: Partial<IRuntimeState>): IRuntimeState {
   const initialState: IRuntimeState = {

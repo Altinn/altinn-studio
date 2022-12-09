@@ -1,13 +1,13 @@
 import * as React from 'react';
 import { Provider } from 'react-redux';
 
-import { fireEvent, render as rtlRender, screen, act } from '@testing-library/react';
+import { act, fireEvent, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import mockAxios from 'jest-mock-axios';
 import configureStore from 'redux-mock-store';
-import { mockComponentProps } from 'testUtils';
 
 import { AddressComponent } from 'src/components/advanced/AddressComponent';
+import { mockComponentProps } from 'src/testUtils';
 import type { IAddressComponentProps } from 'src/components/advanced/AddressComponent';
 
 const render = (props: Partial<IAddressComponentProps> = {}) => {

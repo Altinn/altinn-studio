@@ -1,4 +1,4 @@
-import { commonTheme } from './commonTheme';
+import { commonTheme } from 'src/theme/commonTheme';
 
 const theme = {
   ...commonTheme,

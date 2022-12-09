@@ -1,6 +1,8 @@
+import * as React from 'react';
+
 import { createTheme, Paper } from '@material-ui/core';
 import { makeStyles } from '@material-ui/core/styles';
-import * as React from 'react';
+
 import altinnTheme from 'src/theme/altinnStudioTheme';
 
 const theme = createTheme(altinnTheme);

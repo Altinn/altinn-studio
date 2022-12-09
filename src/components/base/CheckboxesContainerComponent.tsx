@@ -10,13 +10,12 @@ import type { CheckboxProps } from '@material-ui/core/Checkbox';
 import { useAppSelector, useHasChangedIgnoreUndefined } from 'src/common/hooks';
 import { useGetOptions } from 'src/components/hooks';
 import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
+import { AltinnSpinner } from 'src/components/shared';
 import { shouldUseRowLayout } from 'src/utils/layout';
 import { getOptionLookupKey } from 'src/utils/options';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
 import type { PropsFromGenericComponent } from 'src/components';
 import type { IComponentValidations, IOption } from 'src/types';
-
-import { AltinnSpinner } from 'src/components/shared';
 
 export interface ICheckboxContainerProps extends PropsFromGenericComponent<'Checkboxes'> {
   validationMessages: IComponentValidations;

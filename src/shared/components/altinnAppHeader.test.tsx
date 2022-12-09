@@ -1,14 +1,13 @@
 import React from 'react';
 
-import { organisationMock } from '__mocks__/organisationMock';
-import { getProfileStateMock } from '__mocks__/profileStateMock';
 import { screen } from '@testing-library/react';
-import { renderWithProviders } from 'testUtils';
 
-import Header from 'src/shared/components/altinnAppHeader';
-import type { IHeaderProps } from 'src/shared/components/altinnAppHeader';
-
+import { organisationMock } from 'src/__mocks__/organisationMock';
+import { getProfileStateMock } from 'src/__mocks__/profileStateMock';
 import { getLanguageFromCode } from 'src/language/languages';
+import Header from 'src/shared/components/altinnAppHeader';
+import { renderWithProviders } from 'src/testUtils';
+import type { IHeaderProps } from 'src/shared/components/altinnAppHeader';
 
 describe('AltinnAppHeader', () => {
   it('should show organisation name when profile has party, and party has organisation with name, and "type" is not set', () => {

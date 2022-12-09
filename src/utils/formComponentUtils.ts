@@ -6,6 +6,12 @@ import { AsciiUnitSeparator } from 'src/utils/attachment';
 import { getDateFormat } from 'src/utils/dateHelpers';
 import { setMappingForRepeatingGroupComponent } from 'src/utils/formLayout';
 import { getOptionLookupKey, getRelevantFormDataForOptionSource, setupSourceOptions } from 'src/utils/options';
+import {
+  formatISOString,
+  getLanguageFromKey,
+  getParsedLanguageFromText,
+  getTextResourceByKey,
+} from 'src/utils/sharedUtils';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { IFormData } from 'src/features/form/data';
 import type {
@@ -26,13 +32,6 @@ import type {
   ITextResourceBindings,
   IValidations,
 } from 'src/types';
-
-import {
-  formatISOString,
-  getLanguageFromKey,
-  getParsedLanguageFromText,
-  getTextResourceByKey,
-} from 'src/utils/sharedUtils';
 import type { ILanguage } from 'src/types/shared';
 
 export const componentValidationsHandledByGenericComponent = (

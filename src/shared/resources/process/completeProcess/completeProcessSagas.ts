@@ -7,13 +7,12 @@ import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceD
 import { IsLoadingActions } from 'src/shared/resources/isLoading/isLoadingSlice';
 import { ProcessActions } from 'src/shared/resources/process/processSlice';
 import { ProcessTaskType } from 'src/types';
-import { getProcessNextUrl } from 'src/utils/urls/appUrlHelper';
 import { behavesLikeDataTask } from 'src/utils/formLayout';
+import { put as httpPut } from 'src/utils/sharedUtils';
+import { getProcessNextUrl } from 'src/utils/urls/appUrlHelper';
 import type { IInstanceDataState } from 'src/shared/resources/instanceData';
 import type { ICompleteProcessFulfilled } from 'src/shared/resources/process';
 import type { IRuntimeState } from 'src/types';
-
-import { put as httpPut } from 'src/utils/sharedUtils';
 import type { IProcess } from 'src/types/shared';
 
 const instanceDataSelector = (state: IRuntimeState) => state.instanceData;

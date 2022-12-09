@@ -1,5 +1,7 @@
 import React from 'react';
+
 import appTheme from 'src/theme/altinnAppTheme';
+
 import 'src/styles/shared.css';
 
 export interface IAltinnLogoProps {

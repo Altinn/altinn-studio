@@ -1,11 +1,11 @@
 import React from 'react';
 
-import { fireEvent, screen, act } from '@testing-library/react';
+import { act, fireEvent, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { mockComponentProps, mockMediaQuery, renderWithProviders } from 'testUtils';
 import type { PreloadedState } from 'redux';
 
 import DatepickerComponent from 'src/components/base/DatepickerComponent';
+import { mockComponentProps, mockMediaQuery, renderWithProviders } from 'src/testUtils';
 import type { IDatePickerProps } from 'src/components/base/DatepickerComponent';
 import type { RootState } from 'src/store';
 

@@ -1,7 +1,9 @@
 import React from 'react';
+
 import { render as rtlRender, screen } from '@testing-library/react';
-import type { IAltinnLoaderProps } from './AltinnLoader';
-import AltinnLoader from './AltinnLoader';
+
+import AltinnLoader from 'src/components/AltinnLoader';
+import type { IAltinnLoaderProps } from 'src/components/AltinnLoader';
 
 describe('AltinnLoader', () => {
   it('should not show the hidden text, but should be in the document', () => {

@@ -1,5 +1,4 @@
-import { instanceIdExample } from '__mocks__/mocks';
-
+import { instanceIdExample } from 'src/__mocks__/mocks';
 import { getInstanceIdRegExp } from 'src/utils/instanceIdRegExp';
 
 describe('instanceIdRegExp', () => {

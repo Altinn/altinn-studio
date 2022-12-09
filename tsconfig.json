@@ -18,9 +18,7 @@
     "esModuleInterop": true,
     "baseUrl": ".",
     "paths": {
-      "src/*": ["src/*"],
-      "__mocks__/*": ["src/__mocks__/*"],
-      "testUtils": ["src/testUtils.tsx"]
+      "src/*": ["src/*"]
     }
   },
   "include": ["src/**/*.ts", "src/**/*.tsx"],

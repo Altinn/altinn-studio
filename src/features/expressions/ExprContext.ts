@@ -4,9 +4,8 @@ import { ExprRuntimeError, NodeNotFound, NodeNotFoundWithoutContext } from 'src/
 import { prettyErrors, prettyErrorsToConsole } from 'src/features/expressions/prettyErrors';
 import type { Expression } from 'src/features/expressions/types';
 import type { IFormData } from 'src/features/form/data';
-import type { LayoutNode, LayoutRootNode } from 'src/utils/layout/hierarchy';
-
 import type { IApplicationSettings, IInstanceContext } from 'src/types/shared';
+import type { LayoutNode, LayoutRootNode } from 'src/utils/layout/hierarchy';
 
 export interface ContextDataSources {
   instanceContext: IInstanceContext | null;

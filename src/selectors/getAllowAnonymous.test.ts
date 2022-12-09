@@ -1,6 +1,5 @@
-import { getInitialStateMock } from '__mocks__/initialStateMock';
-import { statelessAndAllowAnonymousMock } from '__mocks__/statelessAndAllowAnonymousMock';
-
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
+import { statelessAndAllowAnonymousMock } from 'src/__mocks__/statelessAndAllowAnonymousMock';
 import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import type { IRuntimeState } from 'src/types';
 

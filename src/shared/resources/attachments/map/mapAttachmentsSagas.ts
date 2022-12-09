@@ -13,7 +13,6 @@ import type { ILayouts } from 'src/features/form/layout';
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import type { IAttachments } from 'src/shared/resources/attachments';
 import type { ILayoutSets, IRuntimeState } from 'src/types';
-
 import type { IData, IInstance } from 'src/types/shared';
 
 export function* watchMapAttachmentsSaga(): SagaIterator {

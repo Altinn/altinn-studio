@@ -1,10 +1,11 @@
-import { Typography, makeStyles, Collapse, List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
 import React from 'react';
+
+import { Collapse, List, ListItem, ListItemIcon, ListItemText, makeStyles, Typography } from '@material-ui/core';
 import cn from 'classnames';
 
+import { AltinnIcon } from 'src/components/AltinnIcon';
+import AltinnAttachmentComponent from 'src/components/atoms/AltinnAttachment';
 import type { IAttachment } from 'src/types/shared';
-import { AltinnIcon } from '../AltinnIcon';
-import AltinnAttachmentComponent from '../atoms/AltinnAttachment';
 
 const useStyles = makeStyles(() => ({
   listItemTextPadding: {

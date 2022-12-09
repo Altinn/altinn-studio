@@ -6,14 +6,13 @@ import type { SagaIterator } from 'redux-saga';
 import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
-import { fileUploadUrl } from 'src/utils/urls/appUrlHelper';
 import { getFileUploadComponentValidations } from 'src/utils/formComponentUtils';
 import { post } from 'src/utils/network/networking';
+import { customEncodeURI } from 'src/utils/sharedUtils';
+import { fileUploadUrl } from 'src/utils/urls/appUrlHelper';
 import type { IAttachment } from 'src/shared/resources/attachments';
 import type { IUploadAttachmentAction } from 'src/shared/resources/attachments/upload/uploadAttachmentActions';
 import type { IRuntimeState } from 'src/types';
-
-import { customEncodeURI } from 'src/utils/sharedUtils';
 import type { ILanguage } from 'src/types/shared';
 
 export function* uploadAttachmentSaga({

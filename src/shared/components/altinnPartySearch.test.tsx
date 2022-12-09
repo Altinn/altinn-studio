@@ -1,11 +1,11 @@
 import React from 'react';
 
-import { getInitialStateMock } from '__mocks__/initialStateMock';
-import { screen, act } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders } from 'testUtils';
 
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import AltinnPartySearch from 'src/shared/components/altinnPartySearch';
+import { renderWithProviders } from 'src/testUtils';
 import type { IAltinnPartySearchProps } from 'src/shared/components/altinnPartySearch';
 
 const user = userEvent.setup();

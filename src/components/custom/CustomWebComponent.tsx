@@ -2,10 +2,9 @@ import React from 'react';
 import ReactDOMServer from 'react-dom/server';
 
 import { useAppSelector } from 'src/common/hooks';
+import { getTextResourceByKey } from 'src/utils/sharedUtils';
 import type { PropsFromGenericComponent } from 'src/components';
 import type { ITextResource, ITextResourceBindings } from 'src/types';
-
-import { getTextResourceByKey } from 'src/utils/sharedUtils';
 
 export type ICustomComponentProps = PropsFromGenericComponent<'Custom'> & {
   [key: string]: string | number | boolean | object | null | undefined;

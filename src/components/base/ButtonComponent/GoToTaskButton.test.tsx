@@ -1,12 +1,12 @@
 import * as React from 'react';
 
-import { getInitialStateMock } from '__mocks__/mocks';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders } from 'testUtils';
 
+import { getInitialStateMock } from 'src/__mocks__/mocks';
 import { GoToTaskButton } from 'src/components/base/ButtonComponent/GoToTaskButton';
 import { setupStore } from 'src/store';
+import { renderWithProviders } from 'src/testUtils';
 import type { Props as GoToTaskButtonProps } from 'src/components/base/ButtonComponent/GoToTaskButton';
 
 const render = ({ props = {}, dispatch = jest.fn() } = {}) => {

@@ -1,14 +1,14 @@
 import React from 'react';
 
-import { getFormLayoutGroupMock, getInitialStateMock } from '__mocks__/mocks';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { mockMediaQuery, renderWithProviders } from 'testUtils';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
+import { getFormLayoutGroupMock, getInitialStateMock } from 'src/__mocks__/mocks';
 import { GroupContainer } from 'src/features/form/containers/GroupContainer';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { setupStore } from 'src/store';
+import { mockMediaQuery, renderWithProviders } from 'src/testUtils';
 import { Triggers } from 'src/types';
 import type { ILayoutGroup } from 'src/features/form/layout';
 import type {

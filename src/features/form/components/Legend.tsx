@@ -6,7 +6,6 @@ import { OptionalIndicator } from 'src/features/form/components/OptionalIndicato
 import { RequiredIndicator } from 'src/features/form/components/RequiredIndicator';
 import { LayoutStyle } from 'src/types';
 import type { ILabelSettings } from 'src/types';
-
 import type { ILanguage } from 'src/types/shared';
 
 export interface IFormLegendProps {

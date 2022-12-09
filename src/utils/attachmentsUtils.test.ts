@@ -1,5 +1,5 @@
+import { getInstancePdf, mapInstanceAttachments } from 'src/utils/attachmentsUtils';
 import type { IData } from 'src/types/shared';
-import { getInstancePdf, mapInstanceAttachments } from './attachmentsUtils';
 
 test('mapInstanceAttachments() returns correct attachment array', () => {
   const instance = {

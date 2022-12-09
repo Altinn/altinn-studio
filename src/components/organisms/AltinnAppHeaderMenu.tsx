@@ -1,8 +1,10 @@
-import { IconButton, makeStyles, Menu, MenuItem } from '@material-ui/core';
 import * as React from 'react';
+
+import { IconButton, makeStyles, Menu, MenuItem } from '@material-ui/core';
+
 import { AltinnIcon } from 'src/components/shared';
-import type { IParty } from 'src/types/shared';
 import { logoutUrlAltinn } from 'src/utils/sharedUtils';
+import type { IParty } from 'src/types/shared';
 
 export interface IAltinnAppHeaderMenuProps {
   party: IParty | undefined;

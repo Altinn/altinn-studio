@@ -1,5 +1,5 @@
-import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 import axios from 'axios';
+import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
 
 export async function get(url: string, options?: AxiosRequestConfig): Promise<any> {
   const response: AxiosResponse = await axios.get(url, {

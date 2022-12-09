@@ -2,8 +2,8 @@ import { expectSaga } from 'redux-saga-test-plan';
 
 import { ApplicationSettingsActions } from 'src/shared/resources/applicationSettings/applicationSettingsSlice';
 import { getApplicationSettings } from 'src/shared/resources/applicationSettings/fetch/fetchApplicationSettingsSaga';
-import { applicationSettingsApiUrl } from 'src/utils/urls/appUrlHelper';
 import * as networking from 'src/utils/network/networking';
+import { applicationSettingsApiUrl } from 'src/utils/urls/appUrlHelper';
 
 describe('fetchApplicationSettingsSaga', () => {
   it('should set state with result if get is successful ', () => {

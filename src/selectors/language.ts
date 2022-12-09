@@ -1,8 +1,7 @@
 import { createSelector } from 'reselect';
 
-import type { IRuntimeState } from 'src/types';
-
 import { getAppName, getAppOwner } from 'src/utils/sharedUtils';
+import type { IRuntimeState } from 'src/types';
 
 const selectTextResources = (state: IRuntimeState) => state.textResources.resources;
 const selectApplicationMetadata = (state: IRuntimeState) => state.applicationMetadata.applicationMetadata;

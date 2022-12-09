@@ -8,9 +8,9 @@ import { ApplicationMetadataActions } from 'src/shared/resources/applicationMeta
 import { LanguageActions } from 'src/shared/resources/language/languageSlice';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import { TextResourcesActions } from 'src/shared/resources/textResources/textResourcesSlice';
-import { oldTextResourcesUrl, textResourcesUrl } from 'src/utils/urls/appUrlHelper';
 import { get } from 'src/utils/network/networking';
 import { waitFor } from 'src/utils/sagas';
+import { oldTextResourcesUrl, textResourcesUrl } from 'src/utils/urls/appUrlHelper';
 
 export function* fetchTextResources(): SagaIterator {
   try {

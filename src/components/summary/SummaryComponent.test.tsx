@@ -1,11 +1,11 @@
 import * as React from 'react';
 
-import { getFormLayoutStateMock, getInitialStateMock } from '__mocks__/mocks';
 import { fireEvent, screen } from '@testing-library/react';
-import { renderWithProviders } from 'testUtils';
 
+import { getFormLayoutStateMock, getInitialStateMock } from 'src/__mocks__/mocks';
 import { SummaryComponent } from 'src/components/summary/SummaryComponent';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { renderWithProviders } from 'src/testUtils';
 import type { ISummaryComponent } from 'src/components/summary/SummaryComponent';
 import type { ILayoutComponent } from 'src/features/form/layout';
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';

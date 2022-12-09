@@ -1,5 +1,4 @@
 import { appApi } from 'src/services/AppApi';
-
 import type { IAppLanguage } from 'src/types/shared';
 
 export const languageApi = appApi.injectEndpoints({

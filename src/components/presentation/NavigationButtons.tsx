@@ -5,14 +5,13 @@ import { Grid } from '@material-ui/core';
 import type { PropsFromGenericComponent } from '..';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { AltinnButton } from 'src/components/shared';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { selectLayoutOrder } from 'src/selectors/getLayoutOrder';
 import { Triggers } from 'src/types';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { IKeepComponentScrollPos } from 'src/features/form/layout/formLayoutTypes';
 import type { ILayoutNavigation, INavigationConfig } from 'src/types';
-
-import { AltinnButton } from 'src/components/shared';
 
 export type INavigationButtons = PropsFromGenericComponent<'NavigationButtons'>;
 

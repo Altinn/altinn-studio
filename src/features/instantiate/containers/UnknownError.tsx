@@ -2,7 +2,6 @@ import * as React from 'react';
 
 import { useAppSelector } from 'src/common/hooks';
 import InstantiationErrorPage from 'src/features/instantiate/containers/InstantiationErrorPage';
-
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'src/utils/sharedUtils';
 
 function UnknownError() {

@@ -5,10 +5,6 @@ import { Grid, TableCell, Typography, useMediaQuery } from '@material-ui/core';
 import { Edit as EditIcon } from '@navikt/ds-icons';
 
 import { useAppSelector } from 'src/common/hooks';
-import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
-import { getInstanceUiUrl } from 'src/utils/urls/appUrlHelper';
-import type { ISimpleInstance } from 'src/types';
-
 import {
   AltinnButton,
   AltinnMobileTable,
@@ -18,7 +14,10 @@ import {
   AltinnTableHeader,
   AltinnTableRow,
 } from 'src/components/shared';
+import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
 import { getLanguageFromKey } from 'src/utils/sharedUtils';
+import { getInstanceUiUrl } from 'src/utils/urls/appUrlHelper';
+import type { ISimpleInstance } from 'src/types';
 
 export interface IInstanceSelectionProps {
   instances: ISimpleInstance[];

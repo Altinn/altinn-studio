@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { Table, TableBody, TableRow, TableCell, Typography, makeStyles } from '@material-ui/core';
+
+import { makeStyles, Table, TableBody, TableCell, TableRow, Typography } from '@material-ui/core';
 import classNames from 'classnames';
 
 const returnGridRow = (name: string, prop: string, classes: any, index: number) => {

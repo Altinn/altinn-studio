@@ -1,9 +1,9 @@
 import DOMPurify from 'dompurify';
-import type { HTMLReactParserOptions } from 'html-react-parser';
 import parseHtmlToReact from 'html-react-parser';
 import { marked } from 'marked';
+import type { HTMLReactParserOptions } from 'html-react-parser';
 
-import type { ITextResource, IDataSources, ILanguage, IApplication, IAltinnOrgs } from 'src/types/shared';
+import type { IAltinnOrgs, IApplication, IDataSources, ILanguage, ITextResource } from 'src/types/shared';
 
 DOMPurify.addHook('afterSanitizeAttributes', (node) => {
   if (node.tagName === 'A') {

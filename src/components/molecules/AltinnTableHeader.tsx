@@ -1,7 +1,9 @@
-import { makeStyles, TableHead } from '@material-ui/core';
 import React from 'react';
-import theme from 'src/theme/altinnAppTheme';
+
+import { makeStyles, TableHead } from '@material-ui/core';
 import cn from 'classnames';
+
+import theme from 'src/theme/altinnAppTheme';
 
 export interface IAltinnTableHeaderProps {
   id: string;

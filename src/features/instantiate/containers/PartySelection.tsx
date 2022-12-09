@@ -5,19 +5,18 @@ import { Grid, makeStyles, Typography } from '@material-ui/core';
 import AddIcon from '@material-ui/icons/Add';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { AltinnCheckBox } from 'src/components/shared';
 import { InstantiationContainer } from 'src/features/instantiate/containers';
 import NoValidPartiesError from 'src/features/instantiate/containers/NoValidPartiesError';
 import { InstantiationActions } from 'src/features/instantiate/instantiation/instantiationSlice';
 import AltinnParty from 'src/shared/components/altinnParty';
 import AltinnPartySearch from 'src/shared/components/altinnPartySearch';
 import { PartyActions } from 'src/shared/resources/party/partySlice';
+import { AltinnAppTheme } from 'src/theme';
 import { changeBodyBackground } from 'src/utils/bodyStyling';
 import { HttpStatusCodes } from 'src/utils/network/networking';
-import { capitalizeName } from 'src/utils/stringHelper';
-
-import { AltinnCheckBox } from 'src/components/shared';
-import { AltinnAppTheme } from 'src/theme';
 import { getLanguageFromKey } from 'src/utils/sharedUtils';
+import { capitalizeName } from 'src/utils/stringHelper';
 import type { IParty } from 'src/types/shared';
 
 const useStyles = makeStyles((theme) => ({

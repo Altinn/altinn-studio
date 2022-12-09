@@ -1,5 +1,6 @@
-import { Typography, makeStyles } from '@material-ui/core';
 import React from 'react';
+
+import { makeStyles, Typography } from '@material-ui/core';
 
 export interface IReceiptComponentProps {
   body: string | JSX.Element | JSX.Element[];

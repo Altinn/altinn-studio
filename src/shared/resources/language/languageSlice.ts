@@ -6,7 +6,6 @@ import { OptionsActions } from 'src/shared/resources/options/optionsSlice';
 import { createSagaSlice } from 'src/shared/resources/utils/sagaSlice';
 import type { MkActionType } from 'src/shared/resources/utils/sagaSlice';
 import type { IAltinnWindow } from 'src/types';
-
 import type { ILanguage } from 'src/types/shared';
 
 export interface IFetchLanguageFulfilled {

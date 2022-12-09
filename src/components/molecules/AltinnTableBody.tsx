@@ -1,5 +1,6 @@
-import { makeStyles, TableBody } from '@material-ui/core';
 import React from 'react';
+
+import { makeStyles, TableBody } from '@material-ui/core';
 
 export interface IAltinnTableBody {
   children: React.ReactNode;

@@ -1,7 +1,9 @@
-import { Grid, makeStyles } from '@material-ui/core';
 import React from 'react';
-import theme from 'src/theme/altinnStudioTheme';
+
+import { Grid, makeStyles } from '@material-ui/core';
 import cn from 'classnames';
+
+import theme from 'src/theme/altinnStudioTheme';
 
 export interface IAltinnMobileTableProps {
   children: React.ReactNode;

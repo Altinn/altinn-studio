@@ -3,13 +3,12 @@ import type { SagaIterator } from 'redux-saga';
 
 import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
+import { replaceTextResourceParams } from 'src/language/sharedLanguage';
 import { TextResourcesActions } from 'src/shared/resources/textResources/textResourcesSlice';
 import { buildInstanceContext } from 'src/utils/instanceContext';
 import type { IFormData } from 'src/features/form/data';
 import type { ITextResourcesState } from 'src/shared/resources/textResources';
 import type { IRepeatingGroups, IRuntimeState } from 'src/types';
-
-import { replaceTextResourceParams } from 'src/language/sharedLanguage';
 import type { IApplicationSettings, IDataSources, IInstance, IInstanceContext, ITextResource } from 'src/types/shared';
 
 export const InstanceSelector: (state: IRuntimeState) => IInstance | null = (state) => state.instanceData?.instance;

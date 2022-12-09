@@ -1,11 +1,11 @@
 import React from 'react';
 import { Route, useLocation } from 'react-router-dom';
 
-import { instanceIdExample } from '__mocks__/mocks';
 import { render, screen } from '@testing-library/react';
-import { MemoryRouterWithRedirectingRoot } from 'testUtils';
 
+import { instanceIdExample } from 'src/__mocks__/mocks';
 import { useInstanceIdParams } from 'src/common/hooks/useInstanceIdParams';
+import { MemoryRouterWithRedirectingRoot } from 'src/testUtils';
 
 const TestComponent = () => {
   const { instanceId, partyId, instanceGuid } = useInstanceIdParams();

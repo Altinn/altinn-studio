@@ -1,7 +1,6 @@
 import { createSelector } from 'reselect';
 
 import type { IRuntimeState } from 'src/types';
-
 import type { IInstance, IInstanceContext } from 'src/types/shared';
 
 const getInstance = (state: IRuntimeState) => state.instanceData.instance;

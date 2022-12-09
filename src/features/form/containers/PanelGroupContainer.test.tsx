@@ -1,12 +1,12 @@
 import React from 'react';
 
-import { getInitialStateMock } from '__mocks__/initialStateMock';
-import { screen, act } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { renderWithProviders } from 'testUtils';
 import type { PreloadedState } from 'redux';
 
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { PanelGroupContainer } from 'src/features/form/containers/PanelGroupContainer';
+import { renderWithProviders } from 'src/testUtils';
 import type { IPanelGroupContainerProps } from 'src/features/form/containers/PanelGroupContainer';
 import type { ILayout, ILayoutGroup } from 'src/features/form/layout';
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';

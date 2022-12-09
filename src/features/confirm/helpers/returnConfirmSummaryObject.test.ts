@@ -1,5 +1,4 @@
 import { returnConfirmSummaryObject } from 'src/features/confirm/helpers/returnConfirmSummaryObject';
-
 import type { IParty } from 'src/types/shared';
 
 describe('returnConfirmSummaryObject', () => {

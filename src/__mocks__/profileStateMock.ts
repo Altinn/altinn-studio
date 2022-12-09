@@ -1,5 +1,5 @@
+import { partyMock } from 'src/__mocks__/partyMock';
 import type { IProfileState } from 'src/shared/resources/profile';
-import { partyMock } from './partyMock';
 
 export function getProfileStateMock(customStates?: Partial<IProfileState>): IProfileState {
   const profileStateMock = {

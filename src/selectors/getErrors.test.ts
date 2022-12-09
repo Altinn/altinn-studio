@@ -1,5 +1,4 @@
-import { getInitialStateMock } from '__mocks__/initialStateMock';
-
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { makeGetHasErrorsSelector } from 'src/selectors/getErrors';
 import type { IFormDataState } from 'src/features/form/data';
 import type { IFormDynamicState } from 'src/features/form/dynamics';

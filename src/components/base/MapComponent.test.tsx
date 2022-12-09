@@ -1,9 +1,9 @@
 import React from 'react';
 
 import { render as rtlRender, screen } from '@testing-library/react';
-import { mockComponentProps } from 'testUtils';
 
 import { MapComponent } from 'src/components/base/MapComponent';
+import { mockComponentProps } from 'src/testUtils';
 import type { IMapComponentProps } from 'src/components/base/MapComponent';
 
 const render = (props: Partial<IMapComponentProps> = {}) => {

@@ -12,10 +12,9 @@ import {
   watchFetchTextResourcesSaga,
 } from 'src/shared/resources/textResources/fetch/fetchTextResourcesSagas';
 import { TextResourcesActions } from 'src/shared/resources/textResources/textResourcesSlice';
-import { textResourcesUrl } from 'src/utils/urls/appUrlHelper';
 import { get } from 'src/utils/network/networking';
 import { waitFor } from 'src/utils/sagas';
-
+import { textResourcesUrl } from 'src/utils/urls/appUrlHelper';
 import type { IProfile } from 'src/types/shared';
 
 describe('fetchTextResourcesSagas', () => {

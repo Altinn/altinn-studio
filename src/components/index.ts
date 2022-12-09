@@ -32,9 +32,8 @@ import type {
   IGrid,
   ILayoutComponent,
 } from 'src/features/form/layout';
-import type { IComponentFormData } from 'src/utils/formComponentUtils';
-
 import type { ILanguage } from 'src/types/shared';
+import type { IComponentFormData } from 'src/utils/formComponentUtils';
 
 const components: {
   [Type in ComponentExceptGroupAndSummary]: (props: any) => JSX.Element | null;

@@ -1,11 +1,11 @@
 import React from 'react';
 
-import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { screen } from '@testing-library/react';
-import { renderWithProviders } from 'testUtils';
 
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { FormComponentContext } from 'src/components';
 import { getVariant, Panel, PanelVariant } from 'src/features/form/components/Panel';
+import { renderWithProviders } from 'src/testUtils';
 import type { IFormComponentContext } from 'src/components';
 import type { IPanelProps } from 'src/features/form/components/Panel';
 import type { IRuntimeState } from 'src/types';

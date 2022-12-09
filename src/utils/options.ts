@@ -5,6 +5,7 @@ import {
   keyHasIndexIndicators,
   replaceIndexIndicatorsWithIndexes,
 } from 'src/utils/databindings';
+import { replaceTextResourceParams } from 'src/utils/sharedUtils';
 import type { IFormData } from 'src/features/form/data';
 import type { ILayout } from 'src/features/form/layout';
 import type {
@@ -16,8 +17,6 @@ import type {
   IRepeatingGroups,
   ITextResource,
 } from 'src/types';
-
-import { replaceTextResourceParams } from 'src/utils/sharedUtils';
 import type { IDataSources } from 'src/types/shared';
 
 export function getOptionLookupKey({ id, mapping }: IOptionsMetaData) {

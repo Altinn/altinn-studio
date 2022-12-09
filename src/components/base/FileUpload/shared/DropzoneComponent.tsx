@@ -3,11 +3,10 @@ import DropZone from 'react-dropzone';
 import type { FileRejection } from 'react-dropzone';
 
 import { mapExtensionToAcceptMime } from 'src/components/base/FileUpload/shared/mapExtensionToAcceptMime';
-import type { ILayoutCompFileUpload } from 'src/features/form/layout';
-import type { ITextResourceBindings } from 'src/types';
-
 import { AltinnAppTheme } from 'src/theme';
 import { getLanguageFromKey } from 'src/utils/sharedUtils';
+import type { ILayoutCompFileUpload } from 'src/features/form/layout';
+import type { ITextResourceBindings } from 'src/types';
 
 export interface IDropzoneComponentProps {
   id: string;

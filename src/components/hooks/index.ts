@@ -5,7 +5,6 @@ import { useAppSelector } from 'src/common/hooks';
 import { buildInstanceContext } from 'src/utils/instanceContext';
 import { getOptionLookupKey, getRelevantFormDataForOptionSource, setupSourceOptions } from 'src/utils/options';
 import type { IMapping, IOption, IOptionSource } from 'src/types';
-
 import type { IDataSources } from 'src/types/shared';
 
 interface IUseGetOptionsParams {

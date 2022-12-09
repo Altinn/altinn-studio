@@ -1,10 +1,10 @@
 import React from 'react';
 
-import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { screen } from '@testing-library/react';
-import { renderWithProviders } from 'testUtils';
 
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { PrintButtonComponent } from 'src/components/base/PrintButtonComponent';
+import { renderWithProviders } from 'src/testUtils';
 
 const render = (preloaded = {}) => {
   const preloadedState = {

@@ -5,8 +5,8 @@ import type { SagaIterator } from 'redux-saga';
 
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
 import { getCurrentTaskDataElementId } from 'src/utils/appMetadata';
-import { getDataValidationUrl } from 'src/utils/urls/appUrlHelper';
 import { get } from 'src/utils/network/networking';
+import { getDataValidationUrl } from 'src/utils/urls/appUrlHelper';
 import { mapDataElementValidationToRedux, mergeValidationObjects } from 'src/utils/validation';
 import type { IRunSingleFieldValidation } from 'src/features/form/validation/validationSlice';
 import type { IRuntimeState, IValidationIssue } from 'src/types';

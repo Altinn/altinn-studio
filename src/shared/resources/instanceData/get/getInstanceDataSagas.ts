@@ -3,8 +3,8 @@ import type { PayloadAction } from '@reduxjs/toolkit';
 import type { SagaIterator } from 'redux-saga';
 
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
-import { instancesControllerUrl, invalidateCookieUrl, redirectToUpgrade } from 'src/utils/urls/appUrlHelper';
 import { get, putWithoutConfig } from 'src/utils/network/networking';
+import { instancesControllerUrl, invalidateCookieUrl, redirectToUpgrade } from 'src/utils/urls/appUrlHelper';
 import type { IGetInstanceData } from 'src/shared/resources/instanceData';
 
 export function* getInstanceDataSaga({ payload: { instanceId } }: PayloadAction<IGetInstanceData>): SagaIterator {

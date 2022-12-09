@@ -1,4 +1,6 @@
-import { Delete as DeleteIcon, Edit as EditIcon, Warning as WarningIcon } from '@navikt/ds-icons';
+import React from 'react';
+
+import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
 import {
   Grid,
   makeStyles,
@@ -10,13 +12,13 @@ import {
   Typography,
   useMediaQuery,
 } from '@material-ui/core';
-import React from 'react';
-import theme from 'src/theme/altinnStudioTheme';
+import { Delete as DeleteIcon, Edit as EditIcon, Warning as WarningIcon } from '@navikt/ds-icons';
 import cn from 'classnames';
+
+import { DeleteWarningPopover } from 'src/components/molecules/DeleteWarningPopover';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
+import theme from 'src/theme/altinnStudioTheme';
 import type { ILanguage } from 'src/types/shared';
-import { DeleteWarningPopover } from './DeleteWarningPopover';
-import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
 
 export interface IMobileTableItem {
   key: React.Key;

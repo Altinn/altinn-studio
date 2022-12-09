@@ -1,5 +1,5 @@
-import type { IValidations } from 'src/types';
 import { getTextResourceByKey } from 'src/utils/sharedUtils';
+import type { IValidations } from 'src/types';
 
 export function getMockValidationState(withFixed = false): IValidations {
   const fixed = withFixed ? [] : undefined;

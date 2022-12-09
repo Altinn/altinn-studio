@@ -1,13 +1,12 @@
 import React from 'react';
 
-import { applicationMetadataMock, getInitialStateMock, getInstanceDataStateMock } from '__mocks__/mocks';
 import { screen } from '@testing-library/react';
-import { renderWithProviders } from 'testUtils';
 
+import { applicationMetadataMock, getInitialStateMock, getInstanceDataStateMock } from 'src/__mocks__/mocks';
 import { AttachmentListComponent } from 'src/components/base/AttachmentListComponent';
+import { renderWithProviders } from 'src/testUtils';
 import type { IAttachmentListProps } from 'src/components/base/AttachmentListComponent';
 import type { IInstanceDataState } from 'src/shared/resources/instanceData';
-
 import type { IData } from 'src/types/shared';
 
 describe('FileUploadComponent', () => {

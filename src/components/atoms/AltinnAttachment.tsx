@@ -1,10 +1,11 @@
-import { Typography, makeStyles, List, ListItem, ListItemIcon, ListItemText } from '@material-ui/core';
-import cn from 'classnames';
 import React from 'react';
 
+import { List, ListItem, ListItemIcon, ListItemText, makeStyles, Typography } from '@material-ui/core';
+import cn from 'classnames';
+
+import { AltinnIcon } from 'src/components/AltinnIcon';
 import { makeUrlRelativeIfSameDomain } from 'src/utils/urls/urlHelper';
 import type { IAttachment } from 'src/types/shared';
-import { AltinnIcon } from '../AltinnIcon';
 
 const useStyles = makeStyles(() => ({
   a: {

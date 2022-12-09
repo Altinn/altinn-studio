@@ -1,5 +1,6 @@
 import parseHtmlToReact from 'html-react-parser';
 
+import { parseOptions } from 'src/language/sharedLanguage';
 import { AsciiUnitSeparator } from 'src/utils/attachment';
 import {
   atleastOneTagExists,
@@ -27,8 +28,6 @@ import type {
   IRepeatingGroups,
   ITextResource,
 } from 'src/types';
-
-import { parseOptions } from 'src/language/sharedLanguage';
 
 describe('formComponentUtils', () => {
   const mockFormData: IFormData = {

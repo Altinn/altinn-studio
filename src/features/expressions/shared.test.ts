@@ -10,9 +10,8 @@ import type { ContextDataSources } from 'src/features/expressions/ExprContext';
 import type { FunctionTest, SharedTestContext, SharedTestContextList } from 'src/features/expressions/shared';
 import type { Expression } from 'src/features/expressions/types';
 import type { IRepeatingGroups } from 'src/types';
-import type { LayoutNode } from 'src/utils/layout/hierarchy';
-
 import type { IApplicationSettings, IInstanceContext } from 'src/types/shared';
+import type { LayoutNode } from 'src/utils/layout/hierarchy';
 
 function toComponentId({ component, rowIndices }: Exclude<FunctionTest['context'], undefined>) {
   return (component || 'no-component') + (rowIndices ? `-${rowIndices.join('-')}` : '');

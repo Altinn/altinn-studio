@@ -1,4 +1,5 @@
 import React from 'react';
+
 import { Collapse, Grid } from '@material-ui/core';
 
 export interface IAltinnCollapsableListProps {

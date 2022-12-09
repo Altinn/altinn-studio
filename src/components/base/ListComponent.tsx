@@ -18,7 +18,6 @@ import type { PropsFromGenericComponent } from '..';
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import { useGetDataList } from 'src/components/hooks';
 import { DataListsActions } from 'src/shared/resources/dataLists/dataListsSlice';
-
 import { getLanguageFromKey } from 'src/utils/sharedUtils';
 
 export type IListProps = PropsFromGenericComponent<'List'>;

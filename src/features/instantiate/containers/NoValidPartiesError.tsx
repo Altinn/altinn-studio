@@ -2,9 +2,8 @@ import * as React from 'react';
 
 import { useAppSelector } from 'src/common/hooks';
 import InstantiationErrorPage from 'src/features/instantiate/containers/InstantiationErrorPage';
-import { getHostname } from 'src/utils/urls/appUrlHelper';
-
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'src/utils/sharedUtils';
+import { getHostname } from 'src/utils/urls/appUrlHelper';
 
 function NoValidPartiesError() {
   const language = useAppSelector((state) => state.language.language);

@@ -1,11 +1,11 @@
 import React from 'react';
 import { Route, useLocation } from 'react-router-dom';
 
-import { dataTypes, instanceOwner, partyMember, partyTypesAllowed, userProfile } from '__mocks__/constants';
 import { screen } from '@testing-library/react';
-import { MemoryRouterWithRedirectingRoot, renderWithProviders } from 'testUtils';
 
+import { dataTypes, instanceOwner, partyMember, partyTypesAllowed, userProfile } from 'src/__mocks__/constants';
 import ReceiptContainer, { returnInstanceMetaDataObject } from 'src/features/receipt/containers/ReceiptContainer';
+import { MemoryRouterWithRedirectingRoot, renderWithProviders } from 'src/testUtils';
 
 interface IRender {
   populateStore?: boolean;

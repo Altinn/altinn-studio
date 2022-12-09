@@ -3,19 +3,18 @@ import React, { useEffect, useState } from 'react';
 import moment from 'moment';
 
 import { useAppDispatch, useAppSelector, useInstanceIdParams } from 'src/common/hooks';
-import { selectAppName } from 'src/selectors/language';
-import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
-import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
-import { getTextFromAppOrDefault } from 'src/utils/textResource';
-
 import {
   AltinnContentIconReceipt,
   AltinnContentLoader,
   AltinnReceipt,
   AltinnReceiptSimple,
 } from 'src/components/shared';
-import { getLanguageFromKey, mapInstanceAttachments, returnUrlToArchive } from 'src/utils/sharedUtils';
+import { selectAppName } from 'src/selectors/language';
+import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
+import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 import { getAttachmentGroupings, getInstancePdf } from 'src/utils/attachmentsUtils';
+import { getLanguageFromKey, mapInstanceAttachments, returnUrlToArchive } from 'src/utils/sharedUtils';
+import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { IAttachment, IParty } from 'src/types/shared';
 
 export const returnInstanceMetaDataObject = (

@@ -4,10 +4,9 @@ import type { SagaIterator } from 'redux-saga';
 
 import { ProcessActions } from 'src/shared/resources/process/processSlice';
 import { ProcessTaskType } from 'src/types';
+import { get } from 'src/utils/sharedUtils';
 import { getProcessNextUrl } from 'src/utils/urls/appUrlHelper';
 import type { IGetTasksFulfilled } from 'src/shared/resources/process';
-
-import { get } from 'src/utils/sharedUtils';
 import type { IProcess } from 'src/types/shared';
 
 export function* getTasksSaga({ payload: { processStep } }: PayloadAction<IGetTasksFulfilled>): SagaIterator {

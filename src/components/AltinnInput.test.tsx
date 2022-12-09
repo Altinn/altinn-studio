@@ -1,9 +1,10 @@
 import * as React from 'react';
-import { render as rtlRender, screen, act } from '@testing-library/react';
+
+import { act, render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-import type { IAltinnInputProps } from './AltinnInput';
-import AltinnInput from './AltinnInput';
+import AltinnInput from 'src/components/AltinnInput';
+import type { IAltinnInputProps } from 'src/components/AltinnInput';
 
 const render = (props: Partial<IAltinnInputProps> = {}) => {
   const allProps = {

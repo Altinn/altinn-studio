@@ -6,9 +6,9 @@ import type { SagaIterator } from 'redux-saga';
 import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
-import { dataElementUrl } from 'src/utils/urls/appUrlHelper';
 import { getFileUploadComponentValidations } from 'src/utils/formComponentUtils';
 import { httpDelete } from 'src/utils/network/networking';
+import { dataElementUrl } from 'src/utils/urls/appUrlHelper';
 import type { IDeleteAttachmentAction } from 'src/shared/resources/attachments/delete/deleteAttachmentActions';
 import type { IRuntimeState } from 'src/types';
 

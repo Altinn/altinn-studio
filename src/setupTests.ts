@@ -1,6 +1,7 @@
 import 'jest';
 import '@testing-library/jest-dom/extend-expect';
-import { TextEncoder, TextDecoder } from 'util';
+
+import { TextDecoder, TextEncoder } from 'util';
 
 import type { IAltinnWindow } from 'src/types';
 

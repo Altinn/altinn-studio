@@ -11,9 +11,10 @@ import { makeGetAllowAnonymousSelector } from 'src/selectors/getAllowAnonymous';
 import { ProcessActions } from 'src/shared/resources/process/processSlice';
 import { Severity } from 'src/types';
 import { getCurrentDataTypeForApplication, getCurrentTaskDataElementId, isStatelessApp } from 'src/utils/appMetadata';
-import { dataElementUrl, getStatelessFormDataUrl, getValidationUrl } from 'src/utils/urls/appUrlHelper';
 import { convertDataBindingToModel, convertModelToDataBinding, filterOutInvalidData } from 'src/utils/databindings';
 import { post } from 'src/utils/network/networking';
+import { get, put } from 'src/utils/sharedUtils';
+import { dataElementUrl, getStatelessFormDataUrl, getValidationUrl } from 'src/utils/urls/appUrlHelper';
 import {
   canFormBeSaved,
   hasValidationsOfSeverity,
@@ -24,8 +25,6 @@ import {
 import type { ISubmitDataAction, IUpdateFormDataFulfilled } from 'src/features/form/data/formDataTypes';
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
 import type { IRuntimeState, IRuntimeStore, IUiConfig, IValidationIssue } from 'src/types';
-
-import { get, put } from 'src/utils/sharedUtils';
 
 const LayoutSelector: (store: IRuntimeStore) => ILayoutState = (store: IRuntimeStore) => store.formLayout;
 const UIConfigSelector: (store: IRuntimeStore) => IUiConfig = (store: IRuntimeStore) => store.formLayout.uiConfig;

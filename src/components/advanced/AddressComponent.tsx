@@ -6,10 +6,9 @@ import axios from 'axios';
 import { AddressLabel } from 'src/components/advanced/AddressLabel';
 import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
+import { get, getLanguageFromKey } from 'src/utils/sharedUtils';
 import type { PropsFromGenericComponent } from 'src/components';
 import type { IComponentValidations } from 'src/types';
-
-import { get, getLanguageFromKey } from 'src/utils/sharedUtils';
 
 import 'src/components/advanced/AddressComponent.css';
 

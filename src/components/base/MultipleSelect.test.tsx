@@ -1,11 +1,11 @@
 import React from 'react';
 
-import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { fireEvent, screen } from '@testing-library/react';
-import { mockComponentProps, renderWithProviders } from 'testUtils';
 import type { PreloadedState } from 'redux';
 
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { MultipleSelect } from 'src/components/base/MultipleSelect';
+import { mockComponentProps, renderWithProviders } from 'src/testUtils';
 import type { IMultipleSelectProps } from 'src/components/base/MultipleSelect';
 import type { RootState } from 'src/store';
 

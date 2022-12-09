@@ -1,12 +1,12 @@
 import * as React from 'react';
 
-import { screen, act } from '@testing-library/react';
+import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { mockMediaQuery, renderWithProviders } from 'testUtils';
 
 import { NavigationBar } from 'src/components/base/NavigationBar';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { setupStore } from 'src/store';
+import { mockMediaQuery, renderWithProviders } from 'src/testUtils';
 import type { INavigationBar } from 'src/components/base/NavigationBar';
 
 const { setScreenWidth } = mockMediaQuery(600);

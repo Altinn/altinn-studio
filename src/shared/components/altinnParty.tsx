@@ -3,7 +3,6 @@ import React from 'react';
 import { Grid, makeStyles, Paper, Typography } from '@material-ui/core';
 
 import { useAppSelector } from 'src/common/hooks';
-
 import { AltinnCollapsableList } from 'src/components/shared';
 import { getLanguageFromKey } from 'src/utils/sharedUtils';
 import type { IParty } from 'src/types/shared';

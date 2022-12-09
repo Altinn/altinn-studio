@@ -7,11 +7,10 @@ import { ApplicationMetadataActions } from 'src/shared/resources/applicationMeta
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import { getCurrentDataTypeForApplication, isStatelessApp } from 'src/utils/appMetadata';
-import { getJsonSchemaUrl } from 'src/utils/urls/appUrlHelper';
 import { get } from 'src/utils/network/networking';
+import { getJsonSchemaUrl } from 'src/utils/urls/appUrlHelper';
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import type { ILayoutSets, IRuntimeState } from 'src/types';
-
 import type { IInstance } from 'src/types/shared';
 
 const AppMetadataSelector: (state: IRuntimeState) => IApplicationMetadata | null = (state: IRuntimeState) =>

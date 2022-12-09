@@ -1,12 +1,12 @@
 import React from 'react';
 import { MemoryRouter } from 'react-router-dom';
 
-import { getInstanceDataStateMock } from '__mocks__/instanceDataStateMock';
-import { partyMock } from '__mocks__/partyMock';
 import { screen } from '@testing-library/react';
-import { renderWithProviders } from 'testUtils';
 
+import { getInstanceDataStateMock } from 'src/__mocks__/instanceDataStateMock';
+import { partyMock } from 'src/__mocks__/partyMock';
 import { Confirm } from 'src/features/confirm/containers/Confirm';
+import { renderWithProviders } from 'src/testUtils';
 
 describe('Confirm', () => {
   it('should show spinner when loading required data', () => {

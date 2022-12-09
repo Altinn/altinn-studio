@@ -1,11 +1,12 @@
 import React from 'react';
-import { Typography, makeStyles } from '@material-ui/core';
+
+import { makeStyles, Typography } from '@material-ui/core';
 import useMediaQuery from '@material-ui/core/useMediaQuery';
 
+import AltinnAttachmentComponent from 'src/components/atoms/AltinnAttachment';
+import AltinnCollapsibleAttachmentsComponent from 'src/components/molecules/AltinnCollapsibleAttachments';
+import AltinnSummaryTable from 'src/components/molecules/AltinnSummaryTable';
 import type { IAttachment, IAttachmentGrouping } from 'src/types/shared';
-import AltinnAttachmentComponent from '../atoms/AltinnAttachment';
-import AltinnCollapsibleAttachmentsComponent from '../molecules/AltinnCollapsibleAttachments';
-import AltinnSummaryTable from '../molecules/AltinnSummaryTable';
 
 export interface IReceiptComponentProps {
   attachmentGroupings?: IAttachmentGrouping;

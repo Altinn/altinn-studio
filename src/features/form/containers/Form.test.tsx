@@ -1,13 +1,13 @@
 import * as React from 'react';
 import { Route } from 'react-router-dom';
 
-import { getFormLayoutStateMock } from '__mocks__/formLayoutStateMock';
-import { getInitialStateMock } from '__mocks__/mocks';
 import { screen, within } from '@testing-library/react';
-import { MemoryRouterWithRedirectingRoot, renderWithProviders } from 'testUtils';
 import type { PreloadedState } from 'redux';
 
+import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
+import { getInitialStateMock } from 'src/__mocks__/mocks';
 import { Form } from 'src/features/form/containers/Form';
+import { MemoryRouterWithRedirectingRoot, renderWithProviders } from 'src/testUtils';
 import type { ILayout, ILayoutComponent, ILayoutEntry } from 'src/features/form/layout';
 import type { RootState } from 'src/store';
 

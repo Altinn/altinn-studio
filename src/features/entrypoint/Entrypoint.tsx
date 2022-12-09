@@ -4,6 +4,7 @@ import { Navigate } from 'react-router-dom';
 import type { AxiosError } from 'axios';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
+import { AltinnContentIconFormData, AltinnContentLoader } from 'src/components/shared';
 import { Form } from 'src/features/form/containers/Form';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
 import InstanceSelection from 'src/features/instantiate/containers/InstanceSelection';
@@ -15,12 +16,10 @@ import Presentation from 'src/shared/containers/Presentation';
 import { QueueActions } from 'src/shared/resources/queue/queueSlice';
 import { PresentationType, ProcessTaskType } from 'src/types';
 import { isStatelessApp } from 'src/utils/appMetadata';
-import { getActiveInstancesUrl, getPartyValidationUrl } from 'src/utils/urls/appUrlHelper';
 import { checkIfAxiosError, get, HttpStatusCodes, post } from 'src/utils/network/networking';
+import { getActiveInstancesUrl, getPartyValidationUrl } from 'src/utils/urls/appUrlHelper';
 import type { ShowTypes } from 'src/shared/resources/applicationMetadata';
 import type { ISimpleInstance } from 'src/types';
-
-import { AltinnContentIconFormData, AltinnContentLoader } from 'src/components/shared';
 
 export default function Entrypoint({ allowAnonymous }: any) {
   const [action, setAction] = React.useState<ShowTypes | null>(null);

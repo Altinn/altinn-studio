@@ -1,18 +1,17 @@
 import React from 'react';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 
-import { getInitialStateMock } from '__mocks__/initialStateMock';
 import { createTheme, MuiThemeProvider } from '@material-ui/core';
 import { screen, waitFor, within } from '@testing-library/react';
-import { renderWithProviders } from 'testUtils';
 
+import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
 import { InstantiateContainer } from 'src/features/instantiate/containers';
 import { InstantiationActions } from 'src/features/instantiate/instantiation/instantiationSlice';
 import { setupStore } from 'src/store';
+import { renderWithProviders } from 'src/testUtils';
+import { AltinnAppTheme } from 'src/theme';
 import { HttpStatusCodes } from 'src/utils/network/networking';
 import type { IRuntimeState } from 'src/types';
-
-import { AltinnAppTheme } from 'src/theme';
 
 describe('InstantiateContainer', () => {
   function DefinedRoutes() {
