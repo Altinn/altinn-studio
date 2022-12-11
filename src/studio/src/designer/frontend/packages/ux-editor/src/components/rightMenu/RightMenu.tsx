@@ -13,6 +13,7 @@ import { getLanguageFromKey } from 'app-shared/utils/language';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSearchParams } from 'react-router-dom';
 import { Divider } from 'app-shared/primitives';
+import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
 
 export interface IRightMenuProps {
   toggleFileEditor: (mode?: LogicMode) => void;
@@ -56,8 +57,12 @@ export function RightMenu(props: IRightMenuProps) {
       </div>
       <div className={classes.contentSection}>
         <PagesContainer />
-        <Divider />
-        <ConfirmationPageElement />
+        {!_useIsProdHack() && (
+          <>
+            <Divider />
+            <ConfirmationPageElement />
+          </>
+        )}
       </div>
       <div className={classes.headerSection}>{t('right_menu.dynamics')}</div>
       <div className={classes.contentSection}>
