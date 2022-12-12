@@ -1,10 +1,8 @@
 import React from 'react';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { SelectTextFromRecources } from '../../../../utils/render';
-import RadioGroup from 'app-shared/components/AltinnRadioGroup';
-import AltinnRadio from 'app-shared/components/AltinnRadio';
 import type { FormComponentType, IFormFileUploaderWithTagComponent } from '../../../../types/global';
-import { TextField } from '@altinn/altinn-design-system';
+import { RadioGroup, RadioGroupVariant, TextField } from '@altinn/altinn-design-system';
 
 type FileUploadWithTagComponentProps = {
   component: IFormFileUploaderWithTagComponent;
@@ -14,7 +12,7 @@ type FileUploadWithTagComponentProps = {
   textResources: any;
   handleNumberOfAttachmentsChange: (type: string) => (e: any) => void;
   handleMaxFileSizeInMBChange: (e: any) => void;
-  handleHasCustomFileEndingsChange: (e: any) => void;
+  handleHasCustomFileEndingsChange: (value: string) => void;
   handleValidFileEndingsChange: (e: any) => void;
 };
 
@@ -71,22 +69,22 @@ export const FileUploadWithTagComponent = ({
           {t('ux_editor.modal_properties_code_list_read_more')}
         </a>
       </p>
-      <div>
-        <RadioGroup
-          row={true}
-          value={component.hasCustomFileEndings ? 'true' : 'false'}
-          onChange={handleHasCustomFileEndingsChange}
-        >
-          <AltinnRadio
-            label={t('ux_editor.modal_properties_valid_file_endings_all')}
-            value='false'
-          />
-          <AltinnRadio
-            label={t('ux_editor.modal_properties_valid_file_endings_custom')}
-            value='true'
-          />
-        </RadioGroup>
-      </div>
+      <RadioGroup
+        items={[
+          {
+            label: t('ux_editor.modal_properties_valid_file_endings_all'),
+            value: 'false',
+          },
+          {
+            label: t('ux_editor.modal_properties_valid_file_endings_custom'),
+            value: 'true',
+          }
+        ]}
+        name={`${component.id}-valid-file-endings`}
+        onChange={handleHasCustomFileEndingsChange}
+        value={component.hasCustomFileEndings ? 'true' : 'false'}
+        variant={RadioGroupVariant.Horizontal}
+      />
       {component.hasCustomFileEndings && (
         <div>
           <TextField

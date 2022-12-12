@@ -9,7 +9,7 @@
     "not op_mini all"
   ],
   "dependencies": {
-    "@altinn/altinn-design-system": "0.25.5",
+    "@altinn/altinn-design-system": "0.25.8",
     "@mui/material": "5.10.14",
     "@mui/styles": "5.10.14",
     "@reduxjs/toolkit": "1.9.0",

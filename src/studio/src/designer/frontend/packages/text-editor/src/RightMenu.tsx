@@ -1,8 +1,6 @@
 import classes from './RightMenu.module.css';
-import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
 import { getLanguageName, languageOptions } from './utils';
-import AltinnRadio from 'app-shared/components/AltinnRadio';
-import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant, FieldSet, RadioButton } from '@altinn/altinn-design-system';
 import { LanguageSelector } from './LanguageSelector';
 import React from 'react';
 import type { Language } from './types';
@@ -43,40 +41,47 @@ export const RightMenu = ({
         </div>
       </div>
       <div className={classes.RightMenu__verticalContent}>
-        <div className={classes['LanguageEditor__title-sm']}>Aktive språk:</div>
-        <AltinnRadioGroup value={selectedLangCode} className={classes.RightMenu__radioGroup}>
-          {availableLanguageCodes?.map((value) => {
-            const handleDeleteLangClick = () => {
-              onDeleteLanguage({ value });
-            };
-            const name = getLanguageName({ code: value });
+        <FieldSet legend="Aktive språk:">
+          <div className={classes.RightMenu__radioGroup}>
+            {availableLanguageCodes?.map((value) => {
+              const handleDeleteLangClick = () => {
+                onDeleteLanguage({ value });
+              };
+              const name = getLanguageName({ code: value });
 
-            return (
-              <div key={value} className={classes.RightMenu__radio}>
-                <AltinnRadio value={value} label={name} onChange={handleSelectChange} />
-                {canDeleteLanguage ? (
-                  <Button
-                    data-testid={`delete-${value}`}
-                    color={ButtonColor.Danger}
-                    onClick={handleDeleteLangClick}
-                  >
-                    Delete
-                  </Button>
-                ) : (
-                  <Button
-                    data-testid={`delete-${value}`}
-                    variant={ButtonVariant.Outline}
-                    color={ButtonColor.Danger}
-                    onClick={handleDeleteLangClick}
-                    disabled={true}
-                  >
-                    Delete
-                  </Button>
-                )}
-              </div>
-            );
-          })}
-        </AltinnRadioGroup>
+              return (
+                <div key={value} className={classes.RightMenu__radio}>
+                  <RadioButton
+                    value={value}
+                    label={name}
+                    name={'activeLanguages'}
+                    onChange={handleSelectChange}
+                    checked={value === selectedLangCode}
+                  />
+                  {canDeleteLanguage ? (
+                    <Button
+                      data-testid={`delete-${value}`}
+                      color={ButtonColor.Danger}
+                      onClick={handleDeleteLangClick}
+                    >
+                      Delete
+                    </Button>
+                  ) : (
+                    <Button
+                      data-testid={`delete-${value}`}
+                      variant={ButtonVariant.Outline}
+                      color={ButtonColor.Danger}
+                      onClick={handleDeleteLangClick}
+                      disabled={true}
+                    >
+                      Delete
+                    </Button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </FieldSet>
       </div>
       <div className={classes.RightMenu__verticalContent}>
         <div className={classes['LanguageEditor__title-sm']}>Legg til språk:</div>

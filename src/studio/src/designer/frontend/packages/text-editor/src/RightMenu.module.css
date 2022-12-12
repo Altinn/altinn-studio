@@ -23,7 +23,6 @@
   gap: 1rem;
   justify-content: space-between;
   border-bottom: 1px solid #bcc7cc;
-  margin-top: -2.4rem !important; /* to counteract builtin margin from AltinnRadioGroup - can be removed when we replace with design system components */
   padding-bottom: 1rem;
 }
 

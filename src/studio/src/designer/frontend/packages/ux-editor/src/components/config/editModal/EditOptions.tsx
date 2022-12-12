@@ -1,12 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import AltinnRadio from 'app-shared/components/AltinnRadio';
-import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { SelectTextFromRecources } from '../../../utils/render';
-import type {
-  IOptions,
-} from '../../../types/global';
-import { Button, ButtonColor, ButtonVariant, FieldSet, TextField } from '@altinn/altinn-design-system';
+import type { IOptions, } from '../../../types/global';
+import {
+  Button,
+  ButtonColor,
+  ButtonVariant,
+  FieldSet,
+  RadioGroup,
+  RadioGroupVariant,
+  TextField
+} from '@altinn/altinn-design-system';
 import classes from './EditOptions.module.css';
 import { IGenericEditComponent } from '../componentConfig';
 import { EditCodeList } from './EditCodeList';
@@ -16,10 +20,6 @@ export interface ISelectionEditComponentProvidedProps extends IGenericEditCompon
   renderOptions?: {
     onlyCodeListOptions?: boolean;
   }
-}
-
-export interface ISelectionEditComponentState {
-  radioButtonSelection: string;
 }
 
 export enum SelectedOptionsType {
@@ -47,8 +47,8 @@ export function EditOptions({ component, handleComponentChange, language, textRe
     resetPrevOptionsType();
   }, [selectedOptionsType]);
 
-  const handleOptionsTypeChange = (e: any) => {
-    setSelectedOptionsType(e.target.value);
+  const handleOptionsTypeChange = (value) => {
+    setSelectedOptionsType(value);
   };
 
   const resetPrevOptionsType = () => {
@@ -107,25 +107,25 @@ export function EditOptions({ component, handleComponentChange, language, textRe
 
   return (
     <>
-      <AltinnRadioGroup
+      <RadioGroup
+        items={[
+          {
+            value: 'codelist',
+            label: t('ux_editor.modal_add_options_codelist'),
+          },
+          {
+            value: 'manual',
+            label: t('ux_editor.modal_add_options_manual'),
+          }
+        ]}
+        legend={component.type === 'RadioButtons'
+          ? t('ux_editor.modal_properties_add_radio_button_options')
+          : t('ux_editor.modal_properties_add_check_box_options')}
+        name={`${component.id}-options`}
         onChange={handleOptionsTypeChange}
         value={selectedOptionsType}
-        row={true}
-        description={
-          component.type === 'RadioButtons'
-            ? t('ux_editor.modal_properties_add_radio_button_options')
-            : t('ux_editor.modal_properties_add_check_box_options')
-        }
-      >
-        <AltinnRadio
-          value='codelist'
-          label={t('ux_editor.modal_add_options_codelist')}
-        />
-        <AltinnRadio
-          value='manual'
-          label={t('ux_editor.modal_add_options_manual')}
-        />
-      </AltinnRadioGroup>
+        variant={RadioGroupVariant.Horizontal}
+      />
       {selectedOptionsType === SelectedOptionsType.Codelist && (
         <EditCodeList
           component={component}
