@@ -1,0 +1,40 @@
+{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "ConfirmationOnScreenHeader",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "ConfirmationOnScreen.Title"
+        },
+        "dataModelBindings": {},
+        "size": "h2"
+      },
+      {
+        "id": "ConfirmationOnScreenSummary",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "ConfirmationOnScreen.Summary"
+        },
+        "dataModelBindings": {}
+      },
+      {
+        "id": "ConfirmationOnScreenParagraph",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "ConfirmationOnScreen.Content"
+        },
+        "dataModelBindings": {}
+      },
+      {
+        "id": "ConfirmationOnScreenAttachmentList",
+        "type": "AttachmentList",
+        "textResourceBindings": {
+          "title": "ConfirmationOnScreen.AttachmentList"
+        },
+        "dataModelBindings": {}
+      }
+    ]
+  }
+}

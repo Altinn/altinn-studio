@@ -189,7 +189,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         }
 
         /// <summary>
-        /// Overwrite or creates a markdown file for a specific text for a specific language.
+        /// Overwrite or creates a markdown file for a specific text for a specific get.
         /// </summary>
         /// <param name="languageCode">Language identifier</param>
         /// <param name="text">Keyvaluepair containing markdown text</param>

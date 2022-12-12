@@ -1,3 +1,35 @@
 {
-
+  "language": "nb",
+  "resources": [
+    {
+      "id": "ConfirmationOnScreen.Summary",
+      "value": "Dato sendt: {1} \nAvsender: {2} \nMottaker: {3} \nReferansenummer: {4}",
+      "variables": [
+        {
+          "key": "instanceDateSent",
+          "dataSource": "instanceContext"
+        },
+        {
+          "key": "instanceSender",
+          "dataSource": "instanceContext"
+        },
+        {
+          "key": "instanceReceiver",
+          "dataSource": "instanceContext"
+        },
+        {
+          "key": "instanceGuid",
+          "dataSource": "instanceContext"
+        }
+      ]
+    },
+    {
+      "id": "ConfirmationOnScreen.Content",
+      "value": "[Kopi av din kvittering er sendt til ditt arkiv](https://temp-link) \n\nDet er gjennomført en maskinell kontroll under utfylling, men vi tar forbehold om at det kan bli oppdaget feil under saksbehandlingen og at annen dokumentasjon kan være nødvendig. Vennligst oppgi referansenummer ved eventuelle henvendelser til etaten."
+    },
+    {
+      "id": "ConfirmationOnScreen.AttachmentList",
+      "value": "Følgende er sendt inn"
+    }
+  ]
 }
