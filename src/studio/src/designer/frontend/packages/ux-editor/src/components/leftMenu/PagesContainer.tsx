@@ -1,7 +1,7 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { PageElement } from './PageElement';
-import type { IAppState } from '../../../types/global';
+import type { IAppState } from '../../types/global';
 
 export function PagesContainer() {
   const layoutOrder: string[] = useSelector(

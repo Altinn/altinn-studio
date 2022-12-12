@@ -1,0 +1,21 @@
+.header {
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.externalLink::after {
+  display: none !important;
+}
+
+.externalLinkIcon {
+  margin-left: .5rem;
+}
+
+.textLink {
+  cursor: pointer;
+  text-decoration-color: #000;
+  text-decoration: underline;
+}

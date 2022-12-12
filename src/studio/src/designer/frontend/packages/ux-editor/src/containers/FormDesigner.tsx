@@ -6,14 +6,13 @@ import FileEditor from 'app-shared/file-editor/FileEditor';
 import { RightMenu } from '../components/rightMenu/RightMenu';
 import { filterDataModelForIntellisense } from '../utils/datamodel';
 import { DesignView } from './DesignView';
-import { ConfPageToolbar } from '../components/leftMenu/ConfPageToolbar';
-import { DefaultToolbar } from '../components/leftMenu/DefaultToolbar';
 import { fetchServiceConfiguration } from '../features/serviceConfigurations/serviceConfigurationSlice';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import type { IAppState, IDataModelFieldElement, LogicMode } from '../types/global';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import { deepCopy } from 'app-shared/pure';
 import classes from './FormDesigner.module.css';
+import { LeftMenu } from '../components/leftMenu/LeftMenu';
 
 export function FormDesigner() {
   const dispatch = useDispatch();
@@ -26,9 +25,6 @@ export function FormDesigner() {
   );
   const language = useSelector((state: IAppState) => state.appData.languageState.language);
   const dataModel = useSelector((state: IAppState) => state.appData.dataModel.model);
-  const confirmationOnScreenName = useSelector(
-    (state: IAppState) => state.formDesigner.layout.layoutSettings.confirmationOnScreenName
-  );
 
   useEffect(() => {
     dispatch(FormLayoutActions.fetchFormLayout());
@@ -80,7 +76,7 @@ export function FormDesigner() {
       <div className={classes.root}>
         <div className={classes.container} id='formFillerGrid'>
           <div className={classes.leftContent + ' ' + classes.item}>
-            {confirmationOnScreenName === selectedLayout ? <ConfPageToolbar /> : <DefaultToolbar />}
+            <LeftMenu/>
           </div>
           <div className={classes.mainContent + ' ' + classes.item}>
             <h1 className={classes.pageHeader}>{selectedLayout}</h1>

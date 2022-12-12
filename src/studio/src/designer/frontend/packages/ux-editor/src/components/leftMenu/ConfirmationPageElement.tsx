@@ -1,7 +1,7 @@
 import React from 'react';
 import type { IAppState } from 'packages/ux-editor/src/types/global';
 import { Button, ButtonVariant } from '@altinn/altinn-design-system';
-import { FormLayoutActions } from '../../../features/formDesigner/formLayout/formLayoutSlice';
+import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { PageElement } from './PageElement';
 import { useDispatch, useSelector } from 'react-redux';
 import { deepCopy } from 'app-shared/pure';
@@ -20,15 +20,17 @@ export function ConfirmationPageElement() {
     setSearchParams({ ...deepCopy(searchParams), layout: 'Kvittering' });
   };
   return confirmationOnScreenName ? (
-    <>
-      <PageElement name={confirmationOnScreenName} />
-      <div className={classes.warningbox}>
-        <Warning /> Denne funksjonaliteten er enda ikke implementert i Appene.
+      <>
+        <PageElement name={confirmationOnScreenName}/>
+        <div className={classes.warningbox}>
+          <Warning/> Denne funksjonaliteten er ennå ikke implementert i appene.
+        </div>
+      </>
+    ) : (
+      <div className={classes.buttonWrapper}>
+        <Button variant={ButtonVariant.Quiet} onClick={handleAddPage}>
+          Opprett kvitteringsside
+        </Button>
       </div>
-    </>
-  ) : (
-    <Button variant={ButtonVariant.Quiet} onClick={handleAddPage}>
-      Opprett kvitteringsside
-    </Button>
-  );
+    );
 }
