@@ -1,7 +1,13 @@
 import React, { useState } from 'react';
-import { TextField, ErrorMessage, TextArea } from '@altinn/altinn-design-system';
+import {
+  Button,
+  ButtonVariant,
+  ErrorMessage,
+  TextArea,
+  TextField,
+} from '@altinn/altinn-design-system';
 import type { Translations } from './types';
-import TrashIcon from './trash.svg';
+import { Delete } from '@navikt/ds-icons';
 
 import classes from './TextRow.module.css';
 
@@ -100,13 +106,13 @@ export const TextRow = ({
             </div>
           </div>
           <div>
-            <button
+            <Button
               data-testid={'delete-button'}
               className={classes['LanguageRow__delete-button']}
               onClick={handleDeleteClick}
-            >
-              <TrashIcon />
-            </button>
+              icon={<Delete />}
+              variant={ButtonVariant.Quiet}
+            />
           </div>
         </div>
       </div>

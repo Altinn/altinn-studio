@@ -61,15 +61,14 @@ export const TextEditor = ({
   }) => {
     const updatedLanguage = {
       ...translations,
+      [translationKey]: newValue,
     };
-    updatedLanguage[translationKey] = newValue;
 
     onTranslationChange({ translations: updatedLanguage });
   };
   const handleAddNewEntryClick = () => {
-    const newId = getRandNumber();
     const updatedLanguage = {
-      [`id_${newId}`]: '',
+      [`id_${getRandNumber()}`]: '',
       ...translations,
     };
 
@@ -96,20 +95,18 @@ export const TextEditor = ({
               </Button>
             </div>
             {translations &&
-              Object.keys(translations).map((translationKey) => {
-                return (
-                  <TextRow
-                    key={`${selectedLangCode}.${translationKey}`}
-                    languageName={languageName}
-                    langCode={selectedLangCode}
-                    translationKey={translationKey}
-                    translations={translations}
-                    onIdChange={handleIdChange}
-                    onValueChange={handleValueChange}
-                    onTranslationChange={onTranslationChange}
-                  />
-                );
-              })}
+              Object.keys(translations).map((translationKey) => (
+                <TextRow
+                  key={`${selectedLangCode}.${translationKey}`}
+                  languageName={languageName}
+                  langCode={selectedLangCode}
+                  translationKey={translationKey}
+                  translations={translations}
+                  onIdChange={handleIdChange}
+                  onValueChange={handleValueChange}
+                  onTranslationChange={onTranslationChange}
+                />
+              ))}
           </>
         )}
       </div>
