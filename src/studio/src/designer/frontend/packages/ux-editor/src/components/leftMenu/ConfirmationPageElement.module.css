@@ -1,0 +1,9 @@
+.warningbox {
+  padding-bottom: 10px;
+  padding-left: var(--toolbar-margin-left);
+  padding-top: 10px;
+}
+
+.buttonWrapper {
+  padding: 10px;
+}

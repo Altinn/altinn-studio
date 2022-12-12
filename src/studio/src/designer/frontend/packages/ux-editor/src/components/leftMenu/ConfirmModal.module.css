@@ -1,13 +1,16 @@
 .main {
-    padding: 30px;
     max-width: 470px;
+    padding: 30px;
 }
+
 .header {
     margin-bottom: 12px;
 }
+
 .content {
     margin-bottom: 24px;
 }
+
 .buttonContainer {
     display: flex;
     flex-direction: row;

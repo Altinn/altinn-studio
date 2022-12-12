@@ -2,17 +2,17 @@ import React, { useEffect, useState } from 'react';
 import classes from './PageElement.module.css';
 import cn from 'classnames';
 import type { ChangeEvent, SyntheticEvent, MouseEvent } from 'react';
-import type { IAppState } from '../../../types/global';
-import { AltinnMenu, AltinnMenuItem } from 'app-shared/components/';
+import type { IAppState } from '../../types/global';
 import { Button, ButtonVariant, TextField } from '@altinn/altinn-design-system';
-import { ConfirmModal } from '../ConfirmModal';
+import { ConfirmModal } from './ConfirmModal';
 import { Divider } from 'app-shared/primitives';
 import { EllipsisV, Right } from '@navikt/ds-icons';
-import { FormLayoutActions } from '../../../features/formDesigner/formLayout/formLayoutSlice';
+import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { deepCopy, removeKey } from 'app-shared/pure';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { useDispatch, useSelector } from 'react-redux';
 import { useSearchParams } from 'react-router-dom';
+import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
 
 export interface IPageElementProps {
   name: string;
@@ -44,7 +44,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
 
   const onPageClick = () => {
     if (invalid) {
-      alert(`${name}: ${t('right_menu.pages.invalid_page_data')}`);
+      alert(`${name}: ${t('left_menu.pages.invalid_page_data')}`);
     } else if (selectedLayout !== name) {
       dispatch(FormLayoutActions.updateSelectedLayout({ selectedLayout: name }));
       setSearchParams({ ...deepCopy(searchParams), layout: name });
@@ -88,13 +88,13 @@ export function PageElement({ name, invalid }: IPageElementProps) {
     const nameRegex = new RegExp('^[a-zA-Z0-9_\\-\\.]*$');
     const newNameCandidate = event.target.value.replace(/[/\\?%*:|"<>]/g, '-').trim();
     if (pageNameExists(newNameCandidate)) {
-      setErrorMessage(t('right_menu.pages_error_unique'));
+      setErrorMessage(t('left_menu.pages_error_unique'));
     } else if (!newNameCandidate) {
-      setErrorMessage(t('right_menu.pages_error_empty'));
+      setErrorMessage(t('left_menu.pages_error_empty'));
     } else if (newNameCandidate.length >= 30) {
-      setErrorMessage(t('right_menu.pages_error_length'));
+      setErrorMessage(t('left_menu.pages_error_length'));
     } else if (!newNameCandidate.match(nameRegex)) {
-      setErrorMessage(t('right_menu.pages_error_format'));
+      setErrorMessage(t('left_menu.pages_error_format'));
     } else {
       setErrorMessage('');
       setNewName(newNameCandidate);
@@ -162,7 +162,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
           <AltinnMenuItem
             onClick={(event) => onMenuItemClick(event, 'up')}
             disabled={disableUp || invalid}
-            text={t('right_menu.page_menu_up')}
+            text={t('left_menu.page_menu_up')}
             iconClass='fa fa-arrowup'
             id='move-page-up-button'
           />
@@ -171,14 +171,14 @@ export function PageElement({ name, invalid }: IPageElementProps) {
           <AltinnMenuItem
             onClick={(event) => onMenuItemClick(event, 'down')}
             disabled={disableDown || invalid}
-            text={t('right_menu.page_menu_down')}
+            text={t('left_menu.page_menu_down')}
             iconClass='fa fa-arrowdown'
             id='move-page-down-button'
           />
         )}
         <AltinnMenuItem
           onClick={(event) => onMenuItemClick(event, 'edit')}
-          text={t('right_menu.page_menu_edit')}
+          text={t('left_menu.page_menu_edit')}
           iconClass='fa fa-write'
           id='edit-page-button'
           disabled={invalid}
@@ -186,7 +186,7 @@ export function PageElement({ name, invalid }: IPageElementProps) {
         <Divider inMenu />
         <AltinnMenuItem
           onClick={(event) => onMenuItemClick(event, 'delete')}
-          text={t('right_menu.page_menu_delete')}
+          text={t('left_menu.page_menu_delete')}
           iconClass='fa fa-trash'
           id='delete-page-button'
         />
@@ -194,12 +194,12 @@ export function PageElement({ name, invalid }: IPageElementProps) {
       <ConfirmModal
         anchorEl={deleteAnchorEl}
         open={Boolean(deleteAnchorEl)}
-        header={t('right_menu.page_delete_header')}
-        description={getParsedLanguageFromKey('right_menu.page_delete_information', language, [
+        header={t('left_menu.page_delete_header')}
+        description={getParsedLanguageFromKey('left_menu.page_delete_information', language, [
           name,
         ])}
-        confirmText={t('right_menu.page_delete_confirm')}
-        cancelText={t('right_menu.page_delete_cancel')}
+        confirmText={t('left_menu.page_delete_confirm')}
+        cancelText={t('left_menu.page_delete_cancel')}
         onClose={handleConfirmDeleteClose}
         onCancel={handleConfirmDeleteClose}
         onConfirm={handleConfirmDelete}
