@@ -3,6 +3,7 @@ import { TextRow } from './TextRow';
 import type { ILanguageRowProps } from './TextRow';
 import { screen, render as rtlRender } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+
 describe('TextRow', () => {
   const user = userEvent.setup();
 
