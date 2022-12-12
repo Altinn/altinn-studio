@@ -63,21 +63,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@altinn/altinn-design-system@npm:0.25.5":
-  version: 0.25.5
-  resolution: "@altinn/altinn-design-system@npm:0.25.5"
+"@altinn/altinn-design-system@npm:0.25.8":
+  version: 0.25.8
+  resolution: "@altinn/altinn-design-system@npm:0.25.8"
   dependencies:
     "@altinn/figma-design-tokens": ^4.3.0
     "@navikt/ds-icons": ^2.0.0
     "@radix-ui/react-popover": ^1.0.0
-    "@react-hookz/web": ^19.0.0
+    "@react-hookz/web": ^20.0.0
     leaflet: ^1.8.0
     react-leaflet: ^4.0.1
     react-number-format: ^5.1.1
   peerDependencies:
     react: ^18.0.0
     react-dom: ^18.0.0
-  checksum: ad42efb500e4f4db1d65f316554abe72a2e0c8b41ff4fd775b8905f6f867a63cbc3344e4fd1368ec904309075acf161bfdb42da46a1e5ea16d57c0c321c36d0a
+  checksum: 9103cd5b9214f9a2a29c0c84886eb540220a13f7d6c626cf958d484013476a77ba1b5df2375bd8bf87455ce350573d59c326682c449ca9ddb454eb51db9cc2c9
   languageName: node
   linkType: hard
 
@@ -96,7 +96,7 @@ __metadata:
     jest: 29.3.1
     jsonpointer: 5.0.1
   peerDependencies:
-    "@altinn/altinn-design-system": 0.25.5
+    "@altinn/altinn-design-system": 0.25.8
     "@mui/icons-material": 5.10.14
     "@mui/material": 5.10.14
     "@mui/styles": 5.10.14
@@ -126,7 +126,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/text-editor@workspace:packages/text-editor"
   dependencies:
-    "@altinn/altinn-design-system": 0.25.5
+    "@altinn/altinn-design-system": 0.25.8
     iso-639-1: 2.1.15
     jest: 29.3.1
     ts-jest: 29.0.3
@@ -3191,6 +3191,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@react-hookz/web@npm:^20.0.0":
+  version: 20.0.1
+  resolution: "@react-hookz/web@npm:20.0.1"
+  dependencies:
+    "@react-hookz/deep-equal": ^1.0.3
+  peerDependencies:
+    js-cookie: ^3.0.1
+    react: ^16.8 || ^17 || ^18
+    react-dom: ^16.8 || ^17 || ^18
+  peerDependenciesMeta:
+    js-cookie:
+      optional: true
+  checksum: 433dcb140953a877d4c81e1c176cd4302c184293ccddc5ee8de3ae3e592441b528c0c88bc07ed29fea2c993bacb146dfe0c7541832cb56785f07d8717626a1a2
+  languageName: node
+  linkType: hard
+
 "@react-leaflet/core@npm:^2.1.0":
   version: 2.1.0
   resolution: "@react-leaflet/core@npm:2.1.0"
@@ -4922,7 +4938,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-development@workspace:app-development"
   dependencies:
-    "@altinn/altinn-design-system": 0.25.5
+    "@altinn/altinn-design-system": 0.25.8
     "@mui/material": 5.10.14
     "@mui/styles": 5.10.14
     "@reduxjs/toolkit": 1.9.0
@@ -4971,7 +4987,7 @@ __metadata:
   resolution: "app-shared@workspace:packages/shared"
   dependencies:
     3: 2.1.0
-    "@altinn/altinn-design-system": 0.25.5
+    "@altinn/altinn-design-system": 0.25.8
     "@altinn/schema-editor": 0.1.0
     "@mui/icons-material": 5.10.14
     "@mui/material": 5.10.14
@@ -6424,7 +6440,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dashboard@workspace:dashboard"
   dependencies:
-    "@altinn/altinn-design-system": 0.25.5
+    "@altinn/altinn-design-system": 0.25.8
     "@mui/x-data-grid": 5.17.12
     "@reduxjs/toolkit": 1.9.0
     cross-env: 7.0.3

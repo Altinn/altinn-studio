@@ -1,7 +1,7 @@
 import React from 'react';
 
 import classes from '../EditModalContent.module.css';
-import { Checkbox, FieldSet, Select, TextField } from '@altinn/altinn-design-system';
+import { Checkbox, FieldSet, RadioGroup, RadioGroupVariant, Select, TextField } from '@altinn/altinn-design-system';
 import { ComponentTypes } from '../..';
 import type {
   IFormAddressComponent,
@@ -14,8 +14,6 @@ import type { IGenericEditComponent } from '../componentConfig';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { AddressKeys, getTextResourceByAddressKey } from '../../../utils/component';
 import { EditDataModelBindings } from '../editModal/EditDataModelBindings';
-import AltinnRadioGroup from 'app-shared/components/AltinnRadioGroup';
-import AltinnRadio from 'app-shared/components/AltinnRadio';
 import { EditDescription } from '../editModal/EditDescription';
 import { FileUploadWithTagComponent } from './FileUploadWithTag';
 import { ImageComponent } from './Image';
@@ -87,18 +85,15 @@ export function ComponentSpecificContent({
     });
   };
 
-  const handleDisplayModeChange = (e: any) => {
-    handleComponentChange({
-      ...component,
-      displayMode: e.target.value,
-    });
+  const handleDisplayModeChange = (displayMode: string) => {
+    handleComponentChange({ ...component, displayMode });
   };
 
-  const handleHasCustomFileEndingsChange = (event: any) => {
+  const handleHasCustomFileEndingsChange = (value: string) => {
     const componentCopy = { ...component } as
       | IFormFileUploaderComponent
       | IFormFileUploaderWithTagComponent;
-    componentCopy.hasCustomFileEndings = event.target.value === 'true';
+    componentCopy.hasCustomFileEndings = value === 'true';
     if (!componentCopy.hasCustomFileEndings) {
       componentCopy.validFileEndings = undefined;
     }
@@ -181,19 +176,22 @@ export function ComponentSpecificContent({
       const fileUploaderComponent = component as IFormFileUploaderComponent;
       return (
         <FieldSet className={classes.fieldset}>
-          <div>
-            <AltinnRadioGroup
-              row={true}
-              value={fileUploaderComponent.displayMode}
-              onChange={handleDisplayModeChange}
-            >
-              <AltinnRadio
-                label={t('ux_editor.modal_properties_file_upload_simple')}
-                value='simple'
-              />
-              <AltinnRadio label={t('ux_editor.modal_properties_file_upload_list')} value='list' />
-            </AltinnRadioGroup>
-          </div>
+          <RadioGroup
+            items={[
+              {
+                label: t('ux_editor.modal_properties_file_upload_simple'),
+                value: 'simple',
+              },
+              {
+                label: t('ux_editor.modal_properties_file_upload_list'),
+                value: 'list',
+              }
+            ]}
+            name={`${component.id}-display-mode`}
+            onChange={handleDisplayModeChange}
+            value={fileUploaderComponent.displayMode}
+            variant={RadioGroupVariant.Horizontal}
+          />
           <FieldSet className={classes.fieldset}>
             <EditTitle
               component={component}
@@ -208,22 +206,22 @@ export function ComponentSpecificContent({
               textResources={textResources}
             />
           </FieldSet>
-          <div>
-            <AltinnRadioGroup
-              row={true}
-              value={fileUploaderComponent.hasCustomFileEndings ? 'true' : 'false'}
-              onChange={handleHasCustomFileEndingsChange}
-            >
-              <AltinnRadio
-                label={t('ux_editor.modal_properties_valid_file_endings_all')}
-                value='false'
-              />
-              <AltinnRadio
-                label={t('ux_editor.modal_properties_valid_file_endings_custom')}
-                value='true'
-              />
-            </AltinnRadioGroup>
-          </div>
+          <RadioGroup
+            items={[
+              {
+                label: t('ux_editor.modal_properties_valid_file_endings_all'),
+                value: 'false',
+              },
+              {
+                label: t('ux_editor.modal_properties_valid_file_endings_custom'),
+                value: 'true',
+              }
+            ]}
+            name={`${component.id}-valid-file-endings`}
+            onChange={handleHasCustomFileEndingsChange}
+            value={fileUploaderComponent.hasCustomFileEndings ? 'true' : 'false'}
+            variant={RadioGroupVariant.Horizontal}
+          />
 
           {fileUploaderComponent.hasCustomFileEndings && (
             <TextField
