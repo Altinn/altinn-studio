@@ -37,6 +37,10 @@
           {
             "label": "En enorm endring",
             "value": "enorm"
+          },
+          {
+            "label": "Endring markert som prefill",
+            "value": "prefill"
           }
         ]
       },

@@ -45,6 +45,7 @@ namespace Altinn.App.logic.DataProcessing
                     prefillRows["stor"] = new List<int> { 1233, 3488 };
                     prefillRows["svaer"] = new List<int> { 80323, 123455 };
                     prefillRows["enorm"] = new List<int> { 9872345, 18872345 };
+                    prefillRows["prefill"] = new List<int> { 1234, 4321 };
 
                     // A real app should make sure not to delete user-provided data at this point, so instead of just
                     // resetting the group contents, existing data should be merged in.
@@ -66,7 +67,8 @@ namespace Altinn.App.logic.DataProcessing
                                 {
                                     orid = 37132,
                                     value = prefillRows[valg][1]
-                                }
+                                },
+                                isPrefill = valg.Equals("prefill")
                             });
                         }
                     }

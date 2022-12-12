@@ -357,6 +357,9 @@
             "type": "string"
           }
         },
+        "isPrefill": {
+          "type": "boolean"
+        },
         "nested-grp-1234": {
           "type": "array",
           "minItems": 0,

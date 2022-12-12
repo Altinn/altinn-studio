@@ -33,14 +33,29 @@
           "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788"
         },
         "textResourceBindings": {
-          "title": "Group titel"
+          "title": "Group title",
+          "edit_button_open": [
+            "if",
+            ["or", ["equals", [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ], true ],
+                  ["equals", [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ], "undefined" ],
+                  ["equals", [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ], "" ], 
+                  ["equals", [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ], "true" ] 
+                ],
+            "Se innhold",
+            "else",
+            "Rediger"
+          ]
         },
         "tableHeaders": ["currentValue", "newValue", "mainUploaderSingle", "mainUploaderMulti"],
         "triggers": ["validation"],
         "edit": {
           "mode": "showTable",
           "saveButton": true,
-          "deleteButton": true,
+          "deleteButton": ["not",["or", ["equals", [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ], true ],
+          ["equals", [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ], "undefined" ],
+          ["equals", [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ], "" ], 
+          ["equals", [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ], "true" ] 
+        ]],
           "multiPage": true,
           "openByDefault": false
         }
@@ -55,7 +70,11 @@
           "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
         },
         "required": false,
-        "readOnly": false,
+        "readOnly": [
+          "equals",
+          [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ],
+          "true"
+        ],
         "labelSettings": { "optionalIndicator": false },
         "grid": {
           "md": 6
@@ -79,7 +98,11 @@
           "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristNyttBelop-datadef-37132.value"
         },
         "required": false,
-        "readOnly": false,
+        "readOnly": [
+          "equals",
+          [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ],
+          "true"
+        ],
         "grid": {
           "md": 6
         },
