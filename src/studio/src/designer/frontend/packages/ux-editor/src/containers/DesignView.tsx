@@ -33,11 +33,10 @@ export const DesignView = ({
 }: DesignViewProps) => {
   const [beforeDrag, setBeforeDrag] = useState(null);
 
-  const initialState = {layoutOrder, isDragging};
-  const [state, setState] = useState<DesignViewState>(initialState);
+  const [state, setState] = useState<DesignViewState>({ layoutOrder, isDragging });
   useEffect(
-    () => setState(initialState),
-    [initialState.isDragging, initialState.layoutOrder]
+    () => setState({ layoutOrder, isDragging }),
+    [layoutOrder, isDragging]
   );
 
   const setContainerLayoutOrder = (containerId: string, layoutOrder: string[]) => {
