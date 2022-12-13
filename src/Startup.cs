@@ -19,6 +19,7 @@ using Altinn.Platform.Register.Core;
 using Altinn.Platform.Storage.Clients;
 using Altinn.Platform.Storage.Helpers;
 using Altinn.Platform.Storage.Repository;
+using Altinn.ResourceRegistry.Core;
 using AltinnCore.Authentication.Constants;
 using AltinnCore.Authentication.JwtCookie;
 using LocalTest.Clients.CdnAltinnOrgs;
@@ -47,6 +48,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
+using ResourceRegistryTest.Mocks;
 
 namespace LocalTest
 {
@@ -107,6 +109,9 @@ namespace LocalTest
             services.AddSingleton<IPolicyInformationRepository, PolicyInformationRepository>();
             services.AddSingleton<IRoles, RolesWrapper>();
             services.AddSingleton<IPartiesWithInstancesClient, PartiesWithInstancesClient>();
+            services.AddSingleton<IPolicyRepository, PolicyRepositoryMock>();
+            services.AddSingleton<IResourceRegistry, ResourceRegistryService>();
+            services.AddSingleton<IResourceRegistryRepository, RegisterResourceRepositoryMock>();
             services.AddMemoryCache();
 
             X509Certificate2 cert = new X509Certificate2("JWTValidationCert.cer");
