@@ -67,7 +67,7 @@
           "title": "Text resource bindings",
           "description": "Text resource bindings for a component.",
           "additionalProperties": {
-            "type": "string"
+            "$ref": "expression.schema.v1.json#/definitions/string"
           },
           "examples": [
             {

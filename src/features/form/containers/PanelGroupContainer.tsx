@@ -7,6 +7,8 @@ import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import { ConditionalWrapper } from 'src/components/ConditionalWrapper';
 import { EditIconButton } from 'src/components/EditIconButton';
 import { SuccessIconButton } from 'src/components/SuccessIconButton';
+import { ExprDefaultsForGroup } from 'src/features/expressions';
+import { useExpressions } from 'src/features/expressions/useExpressions';
 import { FullWidthGroupWrapper } from 'src/features/form/components/FullWidthGroupWrapper';
 import { FullWidthWrapper } from 'src/features/form/components/FullWidthWrapper';
 import { getVariant } from 'src/features/form/components/Panel';
@@ -63,20 +65,22 @@ export function PanelGroupContainer({ container, components }: IPanelGroupContai
   const textResources = useAppSelector((state) => state.textResources.resources);
   const hiddenFields = useAppSelector((state) => state.formLayout.uiConfig.hiddenFields);
   const hidden = useAppSelector((state) => GetHiddenSelector(state, { id: container.id }));
+
+  const textResourceBindings = useExpressions(container.textResourceBindings, {
+    forComponentId: container.id,
+    defaults: ExprDefaultsForGroup.textResourceBindings,
+  });
+
   const title = useAppSelector(
     (state) =>
-      container.textResourceBindings?.title &&
-      getTextResource(container.textResourceBindings.title, state.textResources.resources),
+      textResourceBindings?.title && getTextResource(textResourceBindings.title, state.textResources.resources),
   );
   const body = useAppSelector(
-    (state) =>
-      container.textResourceBindings?.body &&
-      getTextResource(container.textResourceBindings.body, state.textResources.resources),
+    (state) => textResourceBindings?.body && getTextResource(textResourceBindings.body, state.textResources.resources),
   );
   const addLabel = useAppSelector(
     (state) =>
-      container.textResourceBindings?.add_label &&
-      getTextResource(container.textResourceBindings.add_label, state.textResources.resources),
+      textResourceBindings?.add_label && getTextResource(textResourceBindings.add_label, state.textResources.resources),
   );
   const repeatingGroups = useAppSelector((state) => state.formLayout.uiConfig.repeatingGroups) || {};
   const { iconUrl, iconAlt } = container.panel || {};

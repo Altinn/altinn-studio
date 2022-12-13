@@ -244,6 +244,29 @@ describe('Group', () => {
     cy.get(appFrontend.group.prefill.liten).click();
     cy.contains(mui.button, texts.next).click();
     expectRows(['NOK 9 872 345', 'NOK 18 872 345']);
+
+    cy.contains(mui.button, texts.prev).click();
+    cy.get(appFrontend.group.prefill.marked).click();
+    cy.contains(mui.button, texts.next).click();
+    expectRows(['NOK 9 872 345', 'NOK 18 872 345'], ['NOK 1 234', 'NOK 4 321']);
+    cy.get(appFrontend.group.mainGroup)
+      .find(mui.tableBody)
+      .then((table) => {
+        cy.wrap(table).children().eq(0).find(appFrontend.group.delete).should('be.visible');
+        cy.wrap(table)
+          .children()
+          .eq(0)
+          .find(appFrontend.group.edit)
+          .should('be.visible')
+          .should('have.text', texts.edit);
+        cy.wrap(table).children().eq(1).find(appFrontend.group.delete).should('not.exist');
+        cy.wrap(table)
+          .children()
+          .eq(1)
+          .find(appFrontend.group.edit)
+          .should('be.visible')
+          .should('have.text', texts.view);
+      });
   });
 
   it('Delete group row after validation', () => {

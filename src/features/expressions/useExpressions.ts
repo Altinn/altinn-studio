@@ -26,6 +26,12 @@ export interface UseExpressionsOptions<T> {
    * value instead.
    */
   defaults?: ExprDefaultValues<T>;
+
+  /**
+   * The index of a repeating group row that the expression should run for. Only applicable when the component
+   * running expression for is a group-component.
+   */
+  rowIndex?: number;
 }
 
 /**
@@ -52,17 +58,21 @@ export function useExpressions<T>(input: T, _options?: UseExpressionsOptions<T>)
   const instanceContextSelector = getInstanceContextSelector();
   const instanceContext: IInstanceContext = useAppSelector(instanceContextSelector);
   const id = (options && options.forComponentId) || component.id;
+  const rowIndex: number | undefined = options && options.rowIndex;
 
   const node = useMemo(() => {
     if (id) {
       const foundNode = nodes.findById(id);
+      if (typeof rowIndex == 'number' && foundNode && foundNode.item.type == 'Group') {
+        return foundNode.children(undefined, rowIndex)[0];
+      }
       if (foundNode) {
         return foundNode;
       }
     }
 
     return new NodeNotFoundWithoutContext(id);
-  }, [nodes, id]);
+  }, [nodes, id, rowIndex]);
 
   const dataSources = useMemo(
     (): ContextDataSources => ({

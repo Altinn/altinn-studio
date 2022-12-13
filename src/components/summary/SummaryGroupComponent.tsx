@@ -8,20 +8,17 @@ import { useAppSelector } from 'src/common/hooks';
 import ErrorPaper from 'src/components/message/ErrorPaper';
 import { EditButton } from 'src/components/summary/EditButton';
 import GroupInputSummary from 'src/components/summary/GroupInputSummary';
+import { useExpressions } from 'src/features/expressions/useExpressions';
 import { DisplayGroupContainer } from 'src/features/form/containers/DisplayGroupContainer';
 import { renderLayoutComponent } from 'src/features/form/containers/Form';
 import appTheme from 'src/theme/altinnAppTheme';
 import { getDisplayFormDataForComponent, getFormDataForComponentInRepeatingGroup } from 'src/utils/formComponentUtils';
-import {
-  getRepeatingGroupStartStopIndex,
-  getVariableTextKeysForRepeatingGroupComponent,
-  setMappingForRepeatingGroupComponent,
-} from 'src/utils/formLayout';
+import { getRepeatingGroupStartStopIndex, setMappingForRepeatingGroupComponent } from 'src/utils/formLayout';
 import { getLanguageFromKey } from 'src/utils/sharedUtils';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { ComponentFromSummary } from 'src/features/form/containers/DisplayGroupContainer';
 import type { ILayout, ILayoutComponent, ILayoutGroup, SummaryDisplayProperties } from 'src/features/form/layout';
-import type { IRuntimeState } from 'src/types';
+import type { IRuntimeState, ITextResourceBindings } from 'src/types';
 
 export interface ISummaryGroupComponent {
   pageRef?: string;
@@ -97,6 +94,10 @@ function SummaryGroupComponent({
       undefined,
     shallowEqual,
   );
+
+  const textResourceBindings = useExpressions(groupComponent?.textResourceBindings, {
+    forComponentId: groupComponent?.id,
+  });
   const repeatingGroups = useAppSelector((state) => state.formLayout.uiConfig.repeatingGroups);
   const layout = useAppSelector(
     (state) => (state.formLayout.layouts && pageRef && state.formLayout.layouts[pageRef]) || [],
@@ -110,8 +111,8 @@ function SummaryGroupComponent({
   const hiddenFields = useAppSelector((state) => new Set(state.formLayout.uiConfig.hiddenFields));
 
   React.useEffect(() => {
-    if (textResources && groupComponent) {
-      const titleKey = groupComponent.textResourceBindings?.title;
+    if (textResources && textResourceBindings) {
+      const titleKey = textResourceBindings.title;
       setTitle(
         (titleKey &&
           getTextFromAppOrDefault(
@@ -124,7 +125,7 @@ function SummaryGroupComponent({
           '',
       );
     }
-  }, [textResources, groupComponent]);
+  }, [textResources, textResourceBindings]);
 
   React.useEffect(() => {
     if (groupComponent && groupComponent.children) {
@@ -214,24 +215,16 @@ function SummaryGroupComponent({
           repeatingGroups,
         );
 
-        const textResourceBindings = getVariableTextKeysForRepeatingGroupComponent(
-          textResources,
-          component?.textResourceBindings,
-          i,
-        );
-
         return (
-          <GroupInputSummary
-            key={componentId}
-            formData={formDataForComponent}
-            label={getTextFromAppOrDefault(
-              textResourceBindings?.title,
-              textResources,
-              {}, // TODO: Figure out if this should pass `language` instead
-              [],
-              false,
-            )}
-          />
+          component && (
+            <GroupInputSummary
+              key={componentId}
+              index={i}
+              formData={formDataForComponent}
+              textResourceBindings={component.textResourceBindings as ITextResourceBindings}
+              textResources={textResources}
+            />
+          )
         );
       });
       componentArray.push(

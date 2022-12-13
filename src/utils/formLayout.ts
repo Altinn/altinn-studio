@@ -296,7 +296,7 @@ export function createRepeatingGroupComponents(
   return componentArray;
 }
 
-interface ICreateRepeatingGroupCoomponentsForIndexProps {
+interface ICreateRepeatingGroupComponentsForIndexProps {
   container: ILayoutGroup;
   renderComponents: (ILayoutComponent | ILayoutGroup)[];
   textResources: ITextResource[];
@@ -310,7 +310,7 @@ export function createRepeatingGroupComponentsForIndex({
   textResources,
   index,
   hiddenFields,
-}: ICreateRepeatingGroupCoomponentsForIndexProps) {
+}: ICreateRepeatingGroupComponentsForIndexProps) {
   return renderComponents.map((component: ILayoutComponent | ILayoutGroup) => {
     if (component.type === 'Group' && component.panel?.groupReference) {
       // Do not treat as a regular group child as this is merely an option
@@ -334,11 +334,11 @@ export function createRepeatingGroupComponentsForIndex({
     const deepCopyId = `${componentDeepCopy.id}-${index}`;
     componentDeepCopy.textResourceBindings = getVariableTextKeysForRepeatingGroupComponent(
       textResources,
-      componentDeepCopy.textResourceBindings,
+      componentDeepCopy.textResourceBindings as ITextResourceBindings,
       index,
     );
     const hidden = !!hiddenFields?.find((field) => field === `${deepCopyId}[${index}]`);
-    let mapping;
+    let mapping: IMapping | undefined;
     if ('mapping' in componentDeepCopy) {
       mapping = setMappingForRepeatingGroupComponent(componentDeepCopy.mapping, index);
     }

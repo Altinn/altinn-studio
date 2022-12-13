@@ -3,6 +3,8 @@ import React from 'react';
 import { Grid, makeStyles, Typography } from '@material-ui/core';
 
 import { useAppSelector } from 'src/common/hooks';
+import { ExprDefaultsForGroup } from 'src/features/expressions';
+import { useExpressions } from 'src/features/expressions/useExpressions';
 import { makeGetHidden } from 'src/selectors/getLayoutData';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { ILayout, ILayoutComponent, ILayoutComponentOrGroup, ILayoutGroup } from 'src/features/form/layout';
@@ -31,11 +33,16 @@ const useStyles = makeStyles({
 });
 
 export function DisplayGroupContainer(props: IDisplayGroupContainer) {
+  const textResourceBindings = useExpressions(props.container.textResourceBindings, {
+    forComponentId: props.container.id,
+    defaults: ExprDefaultsForGroup.textResourceBindings,
+  });
+
   const GetHiddenSelector = makeGetHidden();
   const hidden: boolean = useAppSelector((state) => GetHiddenSelector(state, { id: props.container.id }));
   const classes = useStyles();
   const title = useAppSelector((state) => {
-    const titleKey = props.container.textResourceBindings?.title;
+    const titleKey = textResourceBindings?.title;
     if (titleKey && state.language.language) {
       return getTextFromAppOrDefault(titleKey, state.textResources.resources, state.language.language, [], true);
     }

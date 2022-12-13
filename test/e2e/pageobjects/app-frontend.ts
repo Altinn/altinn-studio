@@ -122,6 +122,7 @@ export default class AppFrontend {
       stor: 'input[name=stor]',
       svaer: 'input[name=svaer]',
       enorm: 'input[name=enorm]',
+      marked: 'input[name=prefill]',
     },
     showGroupToContinue: '#showGroupToContinue',
     mainGroup: '#group-mainGroup',

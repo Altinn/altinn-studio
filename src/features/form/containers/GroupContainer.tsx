@@ -46,6 +46,11 @@ export function GroupContainer({ id, container, components }: IGroupProps): JSX.
     defaults: ExprDefaultsForGroup.edit,
   });
 
+  const textResourceBindingsResolved = useExpressions(container.textResourceBindings, {
+    forComponentId: id,
+    defaults: ExprDefaultsForGroup.textResourceBindings,
+  });
+
   const editIndex = useAppSelector(
     (state: IRuntimeState) =>
       (state.formLayout.uiConfig.repeatingGroups && state.formLayout.uiConfig.repeatingGroups[id]?.editIndex) ?? -1,
@@ -112,8 +117,8 @@ export function GroupContainer({ id, container, components }: IGroupProps): JSX.
       fullWidth
     >
       {`${getLanguageFromKey('general.add_new', language ?? {})} ${
-        container.textResourceBindings?.add_button
-          ? getTextResourceByKey(container.textResourceBindings.add_button, textResources)
+        textResourceBindingsResolved?.add_button
+          ? getTextResourceByKey(textResourceBindingsResolved.add_button, textResources)
           : ''
       }`}
     </Button>
@@ -219,7 +224,6 @@ export function GroupContainer({ id, container, components }: IGroupProps): JSX.
           deleting={deletingIndexes.includes(repeatingGroupIndex)}
           setEditIndex={setEditIndex}
           onClickRemove={onClickRemove}
-          hideDeleteButton={edit?.deleteButton === false}
           setMultiPageIndex={setMultiPageIndex}
           multiPageIndex={multiPageIndex}
           textResources={textResources}

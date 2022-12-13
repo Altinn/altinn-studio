@@ -22,7 +22,6 @@ export { AltinnTableHeader } from '../molecules/AltinnTableHeader';
 export { default as AltinnTableBody } from '../molecules/AltinnTableBody';
 export { default as AltinnTableRow } from '../molecules/AltinnTableRow';
 export { default as AltinnMobileTable } from '../molecules/AltinnMobileTable';
-export { default as AltinnMobileTableItem } from '../molecules/AltinnMobileTableItem';
 
 // organisms
 export { default as AltinnAppHeader } from '../organisms/AltinnAppHeader';

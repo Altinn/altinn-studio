@@ -8,12 +8,12 @@ import { useAppSelector } from 'src/common/hooks';
 import {
   AltinnButton,
   AltinnMobileTable,
-  AltinnMobileTableItem,
   AltinnTable,
   AltinnTableBody,
   AltinnTableHeader,
   AltinnTableRow,
 } from 'src/components/shared';
+import AltinnMobileTableItem from 'src/features/form/containers/AltinnMobileTableItem';
 import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
 import { getLanguageFromKey } from 'src/utils/sharedUtils';
 import { getInstanceUiUrl } from 'src/utils/urls/appUrlHelper';

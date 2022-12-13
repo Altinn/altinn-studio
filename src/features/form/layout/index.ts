@@ -286,7 +286,7 @@ export type IDataModelBindings =
   | IDataModelBindingsForList;
 
 export interface ITextResourceBindings {
-  [id: string]: string;
+  [id: string]: ExpressionOr<'string'>;
 }
 
 export type ILayout = ILayoutComponentOrGroup[];
@@ -315,10 +315,10 @@ export interface IGroupEditProperties {
   filter?: IGroupFilter[];
   addButton?: ExpressionOr<'boolean'>;
   saveButton?: ExpressionOr<'boolean'>;
-  deleteButton?: ExpressionOr<'boolean'>; // TODO: Make expressions resolve per-row
+  deleteButton?: ExpressionOr<'boolean'>;
   multiPage?: boolean;
   openByDefault?: boolean | 'first' | 'last';
-  alertOnDelete?: ExpressionOr<'boolean'>; // TODO: Make expressions resolve per-row
+  alertOnDelete?: ExpressionOr<'boolean'>;
   saveAndNextButton?: ExpressionOr<'boolean'>;
 }
 
