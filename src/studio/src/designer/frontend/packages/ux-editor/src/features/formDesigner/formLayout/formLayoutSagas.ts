@@ -45,6 +45,9 @@ import type {
   IFormLayout,
   IFormLayouts,
 } from '../../../types/global';
+import { upsertTextResources } from '../../appData/textResources/textResourcesSlice';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { generateRandomId } from 'app-shared/utils/generateRandomId';
 
 const selectCurrentLayout = (state: IAppState): IFormLayout =>
   state.formDesigner.layout.layouts[state.formDesigner.layout.selectedLayout];
@@ -64,6 +67,25 @@ function* addFormComponentSaga({ payload }: PayloadAction<IAddFormComponentActio
       // if position is undefined, put it on top
       position = 0;
     }
+
+    // Add new text resources for component
+    const newTextResources = {};
+    const newTextResourceBindings = {};
+    const newTextResourcesArray = [];
+    Object.entries(component.textResourceBindings).forEach(([key, value]) => {
+      const newTextId = generateRandomId(12);
+      Object.assign(newTextResourceBindings, { [key]: newTextId });
+      Object.assign(newTextResources, { [newTextId]: value });
+      newTextResourcesArray.push({ id: newTextId, value });
+    });
+    yield put(
+      upsertTextResources({
+        language: DEFAULT_LANGUAGE,
+        textResources: newTextResources,
+      })
+    );
+    component.textResourceBindings = newTextResourceBindings;
+
     yield put(
       FormLayoutActions.addFormComponentFulfilled({
         component,
@@ -410,7 +432,7 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
     }
 
     if (Object.keys(layoutsCopy).indexOf(layout) !== -1) {
-      throw Error('Layout allready exists');
+      throw Error('Layout already exists');
     }
     layoutsCopy[layout] = convertFromLayoutToInternalFormat(null);
 

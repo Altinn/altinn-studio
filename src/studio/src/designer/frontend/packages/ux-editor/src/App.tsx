@@ -4,16 +4,17 @@ import { useDispatch, useSelector } from 'react-redux';
 import { ErrorMessageComponent } from './components/message/ErrorMessageComponent';
 import { FormDesigner } from './containers/FormDesigner';
 import { FormLayoutActions } from './features/formDesigner/formLayout/formLayoutSlice';
-import { loadTextResources } from './features/appData/textResources/textResourcesSlice';
+import { loadLanguages, loadTextResources } from './features/appData/textResources/textResourcesSlice';
 import { fetchWidgets, fetchWidgetSettings } from './features/widgets/widgetsSlice';
 import { fetchDataModel } from './features/appData/dataModel/dataModelSlice';
 import { fetchLanguage } from './features/appData/language/languageSlice';
 import { fetchRuleModel } from './features/appData/ruleModel/ruleModelSlice';
 import { fetchServiceConfiguration } from './features/serviceConfigurations/serviceConfigurationSlice';
 import { useParams, useSearchParams } from 'react-router-dom';
-import { textResourcesPath } from 'app-shared/api-paths';
+import { languagePath, textResourcesPath } from 'app-shared/api-paths';
 import type { IAppState } from './types/global';
 import { deepCopy } from 'app-shared/pure';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
 /**
  * This is the main React component responsible for controlling
@@ -24,7 +25,6 @@ import { deepCopy } from 'app-shared/pure';
 export function App() {
   const dispatch = useDispatch();
   const { org, app } = useParams();
-  const languageCode = 'nb';
   const [searchParams, setSearchParams] = useSearchParams();
   const layoutOrder = useSelector(
     (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order
@@ -49,10 +49,14 @@ export function App() {
     const fetchFiles = () => {
       dispatch(fetchDataModel());
       dispatch(FormLayoutActions.fetchFormLayout());
-      dispatch(loadTextResources({ url: textResourcesPath(org, app, languageCode) }));
+      dispatch(loadTextResources({
+        textResourcesUrl: (langCode) => textResourcesPath(org, app, langCode),
+        languagesUrl: languagePath(org, app)
+      }));
+      dispatch(loadLanguages({ url: languagePath(org, app) }));
       dispatch(fetchServiceConfiguration());
       dispatch(fetchRuleModel());
-      dispatch(fetchLanguage({ languageCode }));
+      dispatch(fetchLanguage({ languageCode: DEFAULT_LANGUAGE }));
       dispatch(fetchWidgetSettings());
       dispatch(FormLayoutActions.fetchLayoutSettings());
       dispatch(fetchWidgets());

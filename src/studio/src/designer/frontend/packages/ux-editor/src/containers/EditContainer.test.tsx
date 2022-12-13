@@ -5,7 +5,8 @@ import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { EditContainer } from './EditContainer';
-import type { IEditContainerProvidedProps } from './EditContainer';
+import type { IEditContainerProps } from './EditContainer';
+import { IAppState } from '../types/global';
 
 const user = userEvent.setup();
 const id = '4a66b4ea-13f1-4187-864a-fd4bb6e8cf88';
@@ -30,9 +31,9 @@ describe('EditContainer', () => {
   });
 });
 
-const render = (props: Partial<IEditContainerProvidedProps> = {}) => {
+const render = (props: Partial<IEditContainerProps> = {}) => {
   const createStore = configureStore();
-  const initialState = {
+  const initialState: IAppState = {
     appData: {
       languageState: {
         language: {
@@ -43,16 +44,28 @@ const render = (props: Partial<IEditContainerProvidedProps> = {}) => {
             for: 'for',
           },
         },
+        error: null
       },
       dataModel: {
         model: [] as any[],
+        error: null,
+        fetched: true,
+        fetching: false
       },
       textResources: {
-        resources: [{ id: 'appName', value: 'Test' }],
+        resources: {
+          nb: [{ id: 'appName', value: 'Test' }]
+        },
+        error: null,
+        fetched: true,
+        currentEditId: undefined,
+        fetching: false,
+        language: 'nb',
+        saving: false,
+        languages: ['nb'],
+        saved: true
       },
-      codeLists: {
-        codeLists: [] as any[],
-      },
+      ruleModel: null
     },
     formDesigner: {
       layout: {
@@ -81,23 +94,34 @@ const render = (props: Partial<IEditContainerProvidedProps> = {}) => {
                 type: 'Input',
               },
             },
+            containers: null
           },
         },
         selectedLayout: 'default',
+        activeContainer: null,
+        error: null,
+        fetched: true,
+        fetching: false,
+        invalidLayouts: [],
+        layoutSettings: null,
+        saving: false,
+        unSavedChanges: false
       },
     },
     serviceConfigurations: {
+      manageServiceConfiguration: null,
+      conditionalRendering: null,
+      ruleConnection: null,
       APIs: {
         availableCodeLists: null as any,
         connections: null as any,
       },
     },
-    thirdPartyComponents: {
-      components: null as any,
-    },
+    errors: null,
+    widgets: null
   };
 
-  const allProps: IEditContainerProvidedProps = {
+  const allProps: IEditContainerProps = {
     component: {
       id,
       dataModelBindings: {},

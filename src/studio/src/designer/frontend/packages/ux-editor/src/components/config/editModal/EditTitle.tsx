@@ -1,27 +1,25 @@
 import React from 'react';
-import { SelectTextFromRecources } from '../../../utils/render';
 import type { IGenericEditComponent } from '../componentConfig';
+import { TextResource } from '../../TextResource';
+import { getLanguageFromKey } from 'app-shared/utils/language';
 
-export const EditTitle = ({ component, handleComponentChange, language, textResources }: IGenericEditComponent) => {
-  const handleTitleChange = (e: any) => {
-    const selectedTitle = e.value;
-    handleComponentChange({
-      ...component,
-      textResourceBindings: {
-        ...component.textResourceBindings,
-        title: selectedTitle,
-      },
-    });
-  };
-
+export const EditTitle = ({
+  component,
+  handleComponentChange,
+  language,
+}: IGenericEditComponent) => {
+  const handleIdChange = (id: string) => handleComponentChange({
+    ...component,
+    textResourceBindings: {
+      ...component.textResourceBindings,
+      title: id,
+    }
+  });
   return (
-    <SelectTextFromRecources
-      description={component.textResourceBindings?.title}
-      labelText={'modal_properties_label_helper'}
-      language={language}
-      onChangeFunction={handleTitleChange}
-      placeholder={component.textResourceBindings?.title}
-      textResources={textResources}
+    <TextResource
+      handleIdChange={handleIdChange}
+      label={getLanguageFromKey('ux_editor.modal_properties_label', language)}
+      textResourceId={component.textResourceBindings?.title}
     />
   );
 };

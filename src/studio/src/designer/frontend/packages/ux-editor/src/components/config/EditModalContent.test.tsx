@@ -4,6 +4,8 @@ import configureStore from 'redux-mock-store';
 import { EditModalContent } from './EditModalContent';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { IAppState } from '../../types/global';
+import { appDataMock, appStateMock } from '../../testing/mocks';
 
 const user = userEvent.setup();
 
@@ -15,7 +17,7 @@ describe('EditModalContent', () => {
       },
     });
 
-    expect(rendered.container.querySelectorAll('input').length).toBe(6);
+    expect(rendered.container.querySelectorAll('input').length).toBe(4);
   });
 
   it('should return header specific content when type header', () => {
@@ -25,7 +27,7 @@ describe('EditModalContent', () => {
       },
     });
 
-    expect(rendered.container.querySelectorAll('input').length).toBe(3);
+    expect(rendered.container.querySelectorAll('input').length).toBe(2);
   });
 
   it('should return file uploader specific content when type file uploader', () => {
@@ -35,7 +37,7 @@ describe('EditModalContent', () => {
       },
     });
 
-    expect(rendered.container.querySelectorAll('input').length).toBe(10);
+    expect(rendered.container.querySelectorAll('input').length).toBe(8);
   });
 
   it('should call handleComponentUpdate with max number of attachments to 1 when clearing max number of attachments', async () => {
@@ -86,7 +88,7 @@ describe('EditModalContent', () => {
     });
 
     expect(rendered.getByTestId('component-id-inputundefined-default')).toBeInTheDocument();
-    expect(rendered.queryAllByRole('combobox').length).toBe(2);
+    expect(rendered.queryAllByRole('combobox').length).toBe(1);
   });
 
   it('should render Image component when component type is Image', () => {
@@ -131,37 +133,50 @@ const render = ({ componentProps = undefined, handleComponentUpdate = jest.fn } 
       modal_properties_image_width_label: 'Width',
     },
   };
-  const initialState = {
+  const initialState: IAppState = {
+    ...appStateMock,
     appData: {
-      codeLists: {
-        codeLists: [] as any,
-        error: null as any,
-        fetched: true,
-        fetching: false,
-      },
+      ...appDataMock,
       languageState: {
         language: mockLanguage,
+        error: null,
       },
       dataModel: {
         model: [] as any[],
+        fetching: false,
+        fetched: true,
+        error: null,
       },
       textResources: {
-        resources: [{ id: 'appName', value: 'Test' }],
+        error: null,
+        fetched: true,
+        fetching: false,
+        language: 'nb',
+        languages: ['nb'],
+        resources: { nb: [{ id: 'appName', value: 'Test' }] },
+        saved: true,
+        saving: false,
       },
-    },
-    thirdPartyComponents: {
-      components: null as any,
-      error: null as any,
     },
     formDesigner: {
       layout: {
-        selectedLayout: 'FormLayout',
+        activeContainer: null,
+        activeList: null,
+        error: null,
+        fetched: true,
+        fetching: false,
+        invalidLayouts: [],
+        layoutSettings: null,
         layouts: {
           FormLayout: {
             components: {},
             containers: {},
+            order: {},
           },
         },
+        saving: false,
+        selectedLayout: 'FormLayout',
+        unSavedChanges: false,
       },
     },
   };

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { SelectTextFromRecources } from '../../../utils/render';
 import type { IOptions, } from '../../../types/global';
 import {
   Button,
@@ -15,6 +14,7 @@ import classes from './EditOptions.module.css';
 import { IGenericEditComponent } from '../componentConfig';
 import { EditCodeList } from './EditCodeList';
 import { Add, Delete } from '@navikt/ds-icons';
+import { TextResource } from '../../TextResource';
 
 export interface ISelectionEditComponentProvidedProps extends IGenericEditComponent {
   renderOptions?: {
@@ -38,7 +38,11 @@ const getSelectedOptionsType = (codeListId: string, options: IOptions[]): Select
   return SelectedOptionsType.Unknown;
 }
 
-export function EditOptions({ component, handleComponentChange, language, textResources }: ISelectionEditComponentProvidedProps) {
+export function EditOptions({
+  component,
+  handleComponentChange,
+  language,
+}: ISelectionEditComponentProvidedProps) {
   const [selectedOptionsType, setSelectedOptionsType] =
     useState(getSelectedOptionsType(component.optionsId, component.options));
   const t = (key: string) => getLanguageFromKey(key, language);
@@ -69,9 +73,9 @@ export function EditOptions({ component, handleComponentChange, language, textRe
     }
   };
 
-  const handleUpdateOptionLabel = (index: number, optionsLabel: any) => {
+  const handleUpdateOptionLabel = (index: number) => (id: string) => {
     const options = [...component.options];
-    options[index].label = optionsLabel.value;
+    options[index].label = id;
     handleComponentChange({
       ...component,
       options,
@@ -135,7 +139,6 @@ export function EditOptions({ component, handleComponentChange, language, textRe
       )}
       {selectedOptionsType === SelectedOptionsType.Manual &&
         component.options?.map((option, index) => {
-          const updateLabel = (e: any) => handleUpdateOptionLabel(index, e);
           const updateValue = (e: any) => handleUpdateOptionValue(index, e);
           const removeItem = () => handleRemoveOption(index);
           const key = `${option.label}-${index}`; // Figure out a way to remove index from key.
@@ -152,13 +155,12 @@ export function EditOptions({ component, handleComponentChange, language, textRe
               <div className={classes.optionContentWrapper}>
                 <FieldSet legend={optionTitle}>
                   <div className={classes.optionContent}>
-                    <SelectTextFromRecources
-                      description={t('general.text')}
-                      labelText={'modal_text'}
-                      language={language}
-                      onChangeFunction={updateLabel}
-                      placeholder={option.label}
-                      textResources={textResources}
+                    <TextResource
+                      handleIdChange={handleUpdateOptionLabel(index)}
+                      placeholder={component.type === 'RadioButtons'
+                        ? t('ux_editor.modal_radio_button_add_label')
+                        : t('ux_editor.modal_check_box_add_label')}
+                      textResourceId={option.label}
                     />
                     <div>
                       <TextField

@@ -8,6 +8,8 @@ import { componentSpecificEditConfig, configComponents } from './componentConfig
 import { ComponentSpecificContent } from './componentSpecificContent';
 import { FieldSet } from '@altinn/altinn-design-system';
 import classes from './EditModalContent.module.css';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
+import { textResourcesByLanguageSelector } from '../../selectors/textResourceSelectors';
 
 export interface IEditModalContentProps {
   cancelEdit?: () => void;
@@ -23,7 +25,7 @@ export const EditModalContent = ({
   thirdPartyComponentConfig,
 }: IEditModalContentProps) => {
   const language = useSelector((state: IAppState) => state.appData.languageState.language);
-  const textResources = useSelector((state: IAppState) => state.appData.textResources.resources);
+  const textResources = useSelector(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
   const renderFromComponentSpecificDefinition = (configDef: EditSettings[]) => {
     if (!configDef) return null;
 

@@ -154,8 +154,7 @@ The current build is deployed in Kubernetes on Azure. Automated CI/CD using Azur
 ## Built With
 
 - [React][11]/[Redux][12] - The front-end framework
-- [.NET Core][13]/[C#][14] - The
-  back-end framework
+- [.NET Core][13]/[C#][14] - The back-end framework
 - [yarn][15] - Package management
 - [Docker][16] - Container platform
 - [Kubernetes][17] - Container orchestration

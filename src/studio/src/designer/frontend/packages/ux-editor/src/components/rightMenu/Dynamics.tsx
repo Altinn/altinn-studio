@@ -1,16 +1,15 @@
 import React from 'react';
 import classes from './Dynamics.module.css';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import { LogicMode } from '../../types/global';
 import { ExternalLink } from '@navikt/ds-icons';
+import { useText } from '../../hooks';
 
 interface DynamicsProps {
-  language: object;
   toggleFileEditor: (mode?: LogicMode) => void;
 }
 
-export const Dynamics = ({language, toggleFileEditor}: DynamicsProps) => {
-  const t = (key: string) => getLanguageFromKey(key, language);
+export const Dynamics = ({ toggleFileEditor }: DynamicsProps) => {
+  const t = useText();
   return <div>
     <div className={classes.header}>{t('right_menu.dynamics')}</div>
     <div>

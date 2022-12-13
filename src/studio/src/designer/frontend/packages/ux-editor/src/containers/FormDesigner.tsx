@@ -24,7 +24,6 @@ export function FormDesigner() {
   const selectedLayout: string = useSelector(
     (state: IAppState) => state.formDesigner.layout.selectedLayout
   );
-  const language = useSelector((state: IAppState) => state.appData.languageState.language);
   const dataModel = useSelector((state: IAppState) => state.appData.dataModel.model);
 
   useEffect(() => {
@@ -95,7 +94,7 @@ export function FormDesigner() {
             {codeEditorOpen ? renderLogicEditor() : null}
           </div>
           <div className={classes.rightContent + ' ' + classes.item}>
-            <RightMenu toggleFileEditor={toggleCodeEditor} language={language} />
+            <RightMenu toggleFileEditor={toggleCodeEditor} />
           </div>
         </div>
       </div>
