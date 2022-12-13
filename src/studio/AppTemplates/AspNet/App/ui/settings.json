@@ -3,5 +3,5 @@
   "pages": {
     "order": []
   },
-  "confirmationOnScreenName": "confirmationOnScreen"
+  "receiptLayoutName": "receipt"
 }
