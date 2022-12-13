@@ -13,6 +13,7 @@ import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import { deepCopy } from 'app-shared/pure';
 import classes from './FormDesigner.module.css';
 import { LeftMenu } from '../components/leftMenu/LeftMenu';
+import { Warning } from '@navikt/ds-icons';
 
 export function FormDesigner() {
   const dispatch = useDispatch();
@@ -80,6 +81,11 @@ export function FormDesigner() {
           </div>
           <div className={classes.mainContent + ' ' + classes.item}>
             <h1 className={classes.pageHeader}>{selectedLayout}</h1>
+            {selectedLayout === 'Kvittering' && (
+              <p className={classes.warningMessage}>
+                <Warning/> Denne funksjonaliteten er ennå ikke implementert i appene.
+              </p>
+            )}
             <DesignView
               order={order}
               activeList={activeList}

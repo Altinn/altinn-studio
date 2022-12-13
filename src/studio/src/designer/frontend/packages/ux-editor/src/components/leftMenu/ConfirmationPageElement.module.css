@@ -1,7 +1,5 @@
-.warningbox {
-  padding-bottom: 10px;
-  padding-left: var(--toolbar-margin-left);
-  padding-top: 10px;
+.pageElementWrapper {
+  background-color: #E4FFF0;
 }
 
 .buttonWrapper {
