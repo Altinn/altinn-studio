@@ -1,3 +1,4 @@
+#nullable enable
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -33,7 +34,7 @@ public class LayoutModelConverterFromObject : JsonConverter<LayoutModel>
         {
             if (reader.TokenType != JsonTokenType.PropertyName)
             {
-                throw new JsonException(); //Think this is impossible. After a JsonTokenType.StartObject, everything should be JsonTokenType.PropertyName
+                throw new JsonException(); // Think this is impossible. After a JsonTokenType.StartObject, everything should be JsonTokenType.PropertyName
             }
 
             var pageName = reader.GetString()!;

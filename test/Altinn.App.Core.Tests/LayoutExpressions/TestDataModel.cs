@@ -256,7 +256,7 @@ public class TestDataModel
                 {
                     new()
                     {
-                        Name = new(){ Value = "Ole"},
+                        Name = new() { Value = "Ole" },
                     }
                 }
             });
@@ -301,7 +301,7 @@ public class TestDataModel
                 {
                     new()
                     {
-                        Name = new(){ Value = "Ole"},
+                        Name = new() { Value = "Ole" },
                     }
                 }
             });
@@ -347,7 +347,7 @@ public class TestDataModel
 
         // non-existant-fields in subfield works, no error
         modelHelper.RemoveField("friends.doesNotExist");
- 
+
         // non-existant-fields in subfield works, no error
         modelHelper.RemoveField("friends[0].doesNotExist");
     }

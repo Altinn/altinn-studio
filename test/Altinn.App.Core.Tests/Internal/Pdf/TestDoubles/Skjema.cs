@@ -7,15 +7,15 @@ using Newtonsoft.Json;
 
 namespace Altinn.App.Core.Internal.Pdf.TestDoubles;
 public class Skjema
-  {
+{
     [XmlElement("melding", Order = 1)]
     [JsonProperty("melding")]
     [JsonPropertyName("melding")]
     public Dummy Melding { get; set; }
-  }
+}
 
-  public class Dummy
-  {
+public class Dummy
+{
     [XmlElement("name", Order = 1)]
     [JsonProperty("name")]
     [JsonPropertyName("name")]
@@ -45,18 +45,18 @@ public class Skjema
     [JsonProperty("toggle")]
     [JsonPropertyName("toggle")]
     public bool Toggle { get; set; }
-  }
+}
 
-  public class ValuesList
-  {
+public class ValuesList
+{
     [XmlElement("simple_keyvalues", Order = 1)]
     [JsonProperty("simple_keyvalues")]
     [JsonPropertyName("simple_keyvalues")]
     public List<SimpleKeyvalues> SimpleKeyvalues { get; set; }
-  }
+}
 
-  public class SimpleKeyvalues
-  {
+public class SimpleKeyvalues
+{
     [XmlElement("key", Order = 1)]
     [JsonProperty("key")]
     [JsonPropertyName("key")]
@@ -72,10 +72,10 @@ public class Skjema
     [JsonProperty("intValue")]
     [JsonPropertyName("intValue")]
     public decimal IntValue { get; set; }
-  }
+}
 
-  public class Nested
-  {
+public class Nested
+{
     [XmlElement("key", Order = 1)]
     [JsonProperty("key")]
     [JsonPropertyName("key")]
@@ -85,4 +85,4 @@ public class Skjema
     [JsonProperty("values")]
     [JsonPropertyName("values")]
     public List<SimpleKeyvalues> Values { get; set; }
-  }
+}
