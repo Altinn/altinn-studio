@@ -42,16 +42,7 @@
       "version": "detect"
     }
   },
-  "ignorePatterns": [
-    "node_modules",
-    "coverage",
-    "**/*.snap",
-    "cypress/e2e/fixtures/*.json",
-    "cypress/e2e/fixtures/*.png",
-    "cypress/e2e/fixtures/*.pdf",
-    "cypress/e2e/support/*.ts",
-    "cypress/e2e/config"
-  ],
+  "ignorePatterns": ["node_modules", "coverage", "dist", "**/*.snap"],
   "rules": {
     "no-console": [
       "warn",
@@ -79,66 +70,73 @@
     "sonarjs/no-identical-functions": ["warn"],
     "sonarjs/no-small-switch": ["warn"],
     "sonarjs/no-nested-template-literals": ["warn"],
-    "react/prop-types": ["off"]
+    "react/prop-types": ["off"],
+    "no-relative-import-paths/no-relative-import-paths": ["warn", { "allowSameFolder": false }],
+    "preferred-import-path/preferred-import-path": [
+      "warn",
+      {
+        "^/src": "src",
+        "^/test/": "test/"
+      }
+    ],
+    "simple-import-sort/imports": [
+      "error",
+      {
+        "groups": [
+          [
+            // React related packages come first.
+            "^react[^\\u0000]*$",
+            "^react.*\\u0000$"
+          ],
+          [
+            // Side effect imports (discouraged!)
+            "^\\u0000"
+          ],
+          [
+            // All imports from external packages in node_modules (with type-only imports last)
+            "^@?(?!src/|test/)\\w+[^\\u0000]*$",
+            "^@?(?!src/|test/)\\w+.*\\u0000$"
+          ],
+          [
+            // Relative/sibling imports
+            "^\\./?[^\\u0000]*$",
+            "^\\./?.*\\u0000$"
+          ],
+          [
+            // Cypress/test packages
+            "^test/[^\\u0000]+$",
+            "^test/.*\\u0000$"
+          ],
+          [
+            // Our internal packages
+            "^src/[^\\u0000]+$",
+            "^src/.*\\u0000$"
+          ],
+          [
+            // Lastly, style imports
+            "^.+\\.(s?css|less)$"
+          ]
+        ]
+      }
+    ]
   },
   "overrides": [
     {
-      "files": ["*.ts", "*.tsx"],
+      "files": ["**/*.ts", "**/*.tsx"],
       "parserOptions": {
         "project": "tsconfig.json"
+      }
+    },
+    {
+      "files": ["test/**/*.ts"],
+      "parserOptions": {
+        "project": "test/tsconfig.json"
       }
     },
     {
       "files": ["*.js", "*.jsx"],
       "rules": {
         "@typescript-eslint/no-var-requires": ["off"]
-      }
-    },
-    {
-      "files": ["src/**"],
-      "rules": {
-        "no-relative-import-paths/no-relative-import-paths": ["warn", { "allowSameFolder": false }],
-        "preferred-import-path/preferred-import-path": [
-          "warn",
-          {
-            "^/src": "src"
-          }
-        ],
-        "simple-import-sort/imports": [
-          "error",
-          {
-            "groups": [
-              [
-                // React related packages come first.
-                "^react[^\\u0000]*$",
-                "^react.*\\u0000$"
-              ],
-              [
-                // Side effect imports (discouraged!)
-                "^\\u0000"
-              ],
-              [
-                // All imports from external packages in node_modules (with type-only imports last)
-                "^@?(?!src)\\w+[^\\u0000]*$",
-                "^@?(?!src)\\w+.*\\u0000$"
-              ],
-              [
-                // Relative/sibling imports
-                "^\\./?[^\\u0000]*$",
-                "^\\./?.*\\u0000$"
-              ],
-              [
-                // Our internal packages
-                "^src/[^\\u0000]+$",
-                "^src/.*\\u0000$"
-              ],
-              [
-                // Lastly, style imports
-                "^.+\\.(s?css|less)$"
-              ]
-            ]
-          }
-        ]
       }
     }
   ]

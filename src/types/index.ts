@@ -14,6 +14,7 @@ export interface IAltinnWindow extends Window {
   reportee: string;
   evalExpression: (maybeExpression: any, forComponentId?: string) => any;
   reduxStore: ToolkitStore<IRuntimeState>;
+  reduxActionLog: any[];
 }
 
 export interface IComponentBindingValidation {

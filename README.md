@@ -73,7 +73,7 @@ To start the app locally:
 
 ### End to end tests
 
-End to end tests are using Cypress, see [test readme for how to run these](./cypress/README.md).
+End to end tests are using Cypress, see [test readme for how to run these](./test/README.md).
 
 ### Unit tests
 

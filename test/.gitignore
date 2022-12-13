@@ -1,0 +1,12 @@
+# Screenshots and videos
+/screenshots/
+/videos/
+
+# Reports
+/reports/
+
+# Downloads
+/downloads/
+
+# Redux state history saved when tests fail
+/redux-history

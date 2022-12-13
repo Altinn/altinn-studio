@@ -5,13 +5,13 @@ on:
     branches: [main]
     paths:
       - 'src/**'
-      - 'cypress/**'
+      - 'test/**'
       - '.github/workflows/cypress.yml'
   pull_request:
     branches: [main]
     paths:
       - 'src/**'
-      - 'cypress/**'
+      - 'test/**'
       - '.github/workflows/cypress.yml'
 
   workflow_dispatch:
@@ -80,7 +80,7 @@ jobs:
         if: failure()
         with:
           name: redux-state-history
-          path: cypress/redux-history/*.json
+          path: test/redux-history/*.json
 
   altinn-app-frontend-test-on-fork-pr:
     if: |
@@ -133,4 +133,4 @@ jobs:
         if: failure()
         with:
           name: redux-state-history
-          path: cypress/redux-history/*.json
+          path: test/redux-history/*.json

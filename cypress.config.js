@@ -15,23 +15,23 @@ module.exports = defineConfig({
 Valid environments are:
 - ${validEnvironments.join('\n- ')}`);
     },
-    specPattern: 'cypress/e2e/integration/',
-    supportFile: 'cypress/e2e/support/index.js',
+    specPattern: 'test/e2e/integration/',
+    supportFile: 'test/e2e/support/index.ts',
   },
   video: false,
-  fixturesFolder: 'cypress/e2e/fixtures',
-  downloadsFolder: 'cypress/downloads',
+  fixturesFolder: 'test/e2e/fixtures',
+  downloadsFolder: 'test/downloads',
   screenshotOnRunFailure: true,
-  screenshotsFolder: 'cypress/screenshots',
+  screenshotsFolder: 'test/screenshots',
   trashAssetsBeforeRuns: true,
-  videosFolder: 'cypress/videos',
+  videosFolder: 'test/videos',
   viewportHeight: 768,
   viewportWidth: 1536,
   requestTimeout: 10000,
   defaultCommandTimeout: 8000,
   reporter: 'junit',
   reporterOptions: {
-    mochaFile: 'cypress/reports/result-[hash].xml',
+    mochaFile: 'test/reports/result-[hash].xml',
   },
   retries: {
     runMode: 1,
@@ -40,6 +40,6 @@ Valid environments are:
 });
 
 async function getConfigurationByFile(file) {
-  const pathToJsonDataFile = path.resolve('cypress/e2e/config', `${file}.json`);
+  const pathToJsonDataFile = path.resolve('test/e2e/config', `${file}.json`);
   return JSON.parse((await fs.readFile(pathToJsonDataFile)).toString());
 }

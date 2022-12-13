@@ -48,7 +48,7 @@ export const store = setupStore();
 if (process.env.NODE_ENV === 'development') {
   // Expose a log containing all dispatched actions. This is useful when Cypress tests fail, so that we can gather
   // the logged actions to re-construct the redux state history using the redux devtools.
-  (window as any).reduxActionLog = actionLog;
+  (window as unknown as IAltinnWindow).reduxActionLog = actionLog;
 }
 
 export type RootState = ReturnType<typeof reducers>;

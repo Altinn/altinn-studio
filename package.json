@@ -12,8 +12,9 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:watchall": "jest --watchAll",
-    "tsc": "tsc && cd cypress && tsc",
+    "tsc": "tsc && tsc --project test/tsconfig.json",
     "tsc:watch": "tsc --watch",
+    "tsc:watch:cypress": "tsc --watch --project test/tsconfig.json",
     "lint": "eslint .",
     "clean": "rimraf dist",
     "webpack-watch": "cross-env NODE_ENV=development webpack --mode=development --config webpack.config.development.js --watch --progress",
@@ -23,16 +24,16 @@
     "cy:cachelist": "cypress cache list",
     "cy:run": "cypress run",
     "cy:prunecache": "cypress cache prune",
-    "cy:delete:reports": "rimraf cypress/reports/* || true",
-    "cy:start:localtest": "node ./scripts/startLocaltest.mjs",
-    "cy:start:app": "node ./scripts/startApp.mjs",
+    "cy:delete:reports": "rimraf test/reports/* || true",
+    "cy:start:localtest": "node test/scripts/startLocaltest.mjs",
+    "cy:start:app": "node test/scripts/startApp.mjs",
     "cy:before:appfrontend": "concurrently --kill-others --names localtest,app,frontend \"yarn cy:start:localtest\" \"yarn cy:start:app\" \"yarn start\"",
-    "cy:test:anonymous-stateless": "yarn run cy:delete:reports && cypress run -b chrome -s 'cypress/e2e/integration/app-anonymous-stateless/*.js'",
-    "cy:test:frontend": "yarn run cy:delete:reports && cypress run -b chrome -s 'cypress/e2e/integration/app-frontend/*.js'",
-    "cy:test:stateless": "yarn run cy:delete:reports && cypress run -b chrome -s 'cypress/e2e/integration/app-stateless/*.js'",
-    "cy:test:stateless-anonymous": "yarn run cy:delete:reports && cypress run -b chrome -s 'cypress/e2e/integration/app-stateless-anonymous/*.js'",
-    "cy:test:all": "yarn run cy:delete:reports && cypress run -b chrome -s 'cypress/e2e/integration/*/*.js'",
-    "cy:test:all:headless": "yarn run cy:delete:reports && cypress run -s 'cypress/e2e/integration/*/*.js'"
+    "cy:test:anonymous-stateless": "yarn run cy:delete:reports && cypress run -b chrome -s 'test/e2e/integration/app-anonymous-stateless/*.ts'",
+    "cy:test:frontend": "yarn run cy:delete:reports && cypress run -b chrome -s 'test/e2e/integration/app-frontend/*.ts'",
+    "cy:test:stateless": "yarn run cy:delete:reports && cypress run -b chrome -s 'test/e2e/integration/app-stateless/*.ts'",
+    "cy:test:stateless-anonymous": "yarn run cy:delete:reports && cypress run -b chrome -s 'test/e2e/integration/app-stateless-anonymous/*.ts'",
+    "cy:test:all": "yarn run cy:delete:reports && cypress run -b chrome -s 'test/e2e/integration/*/*.ts'",
+    "cy:test:all:headless": "yarn run cy:delete:reports && cypress run -s 'test/e2e/integration/*/*.ts'"
   },
   "devDependencies": {
     "@babel/core": "7.20.5",
@@ -169,13 +170,13 @@
       "jest-junit"
     ],
     "moduleNameMapper": {
-      "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/src/__mocks__/fileMock.js",
+      "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "<rootDir>/src/__mocks__/fileMock.ts",
       "\\.(css|less|scss)$": "identity-obj-proxy",
       "\\./applicationMetadataMock.json": "<rootDir>/src/__mocks__/applicationMetadataMock.json",
       "^src/(.*)$": "<rootDir>/src/$1",
       "^uuid$": "<rootDir>/node_modules/uuid/dist/index.js"
     },
-    "testRegex": "(/__tests__/.*|.*.(test|spec)).(ts|tsx|js|jsx)$",
+    "testRegex": "\\.test\\.(ts|tsx|js|jsx)$",
     "moduleFileExtensions": [
       "ts",
       "tsx",
@@ -186,7 +187,6 @@
       "<rootDir>/src/setupTests.ts"
     ],
     "collectCoverageFrom": [
-      "!__tests__/**/*",
       "src/**/*.{ts,tsx}"
     ],
     "testEnvironmentOptions": {
