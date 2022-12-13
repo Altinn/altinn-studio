@@ -13,36 +13,39 @@ import {
   swapArrayElements,
 } from 'app-shared/pure/array-functions';
 
-export interface IDesignerPreviewState {
+export interface DesignViewProps {
+  activeList: any[];
+  isDragging: boolean;
   layoutOrder: IFormLayoutOrder;
   order: IFormLayoutOrder;
-  activeList: any[];
+}
+
+export interface DesignViewState {
+  layoutOrder: IFormLayoutOrder;
   isDragging: boolean;
 }
 
-export const DesignView = (initialState: IDesignerPreviewState) => {
+export const DesignView = ({
+  activeList,
+  isDragging,
+  layoutOrder,
+  order,
+}: DesignViewProps) => {
   const [beforeDrag, setBeforeDrag] = useState(null);
-  const [state, setState] = useState<IDesignerPreviewState>({
-    layoutOrder: {},
-    order: {},
-    activeList: [],
-    isDragging: false,
-  });
-  useEffect(() => setState(initialState), [initialState]);
+
+  const [state, setState] = useState<DesignViewState>({ layoutOrder, isDragging });
+  useEffect(
+    () => setState({ layoutOrder, isDragging }),
+    [layoutOrder, isDragging]
+  );
 
   const setContainerLayoutOrder = (containerId: string, layoutOrder: string[]) => {
     if (layoutOrder.includes(containerId)) {
       throw Error("can't add item to itself");
     }
-    setState((prevState: IDesignerPreviewState) => {
-      return {
-        ...prevState,
-        layoutOrder: {
-          ...prevState.layoutOrder,
-          [containerId]: layoutOrder,
-        },
-        isDragging: true,
-      };
+    setState({
+      layoutOrder: { ...state.layoutOrder, [containerId]: layoutOrder },
+      isDragging: true,
     });
   };
 
@@ -99,18 +102,13 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
     targetItem: EditorDndItem,
     toIndex?: number
   ): void => {
-    if (!movedItem.id) {
-      return;
-    }
-    if (ItemType.Item && !movedItem.containerId) {
-      return;
-    }
-    if (targetItem.type === ItemType.Container && movedItem.containerId === targetItem.id) {
-      return;
-    }
-    if (movedItem.id === targetItem.id) {
-      return;
-    }
+    if (
+      !movedItem.id ||
+      (ItemType.Item && !movedItem.containerId) ||
+      (targetItem.type === ItemType.Container && movedItem.containerId === targetItem.id) ||
+      (movedItem.id === targetItem.id)
+    ) return;
+
     if (!beforeDrag) {
       setBeforeDrag(state.layoutOrder);
     }
@@ -127,15 +125,7 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
   };
 
   const resetState = () => {
-    if (beforeDrag) {
-      setState((prevState: IDesignerPreviewState) => {
-        return {
-          ...prevState,
-          layoutOrder: beforeDrag,
-          isDragging: false,
-        };
-      });
-    }
+    beforeDrag && setState({ layoutOrder: beforeDrag, isDragging: false });
   };
   const dispatch = useDispatch();
   const onDropItem = (reset?: boolean) => {
@@ -147,16 +137,11 @@ export const DesignView = (initialState: IDesignerPreviewState) => {
           updatedOrder: state.layoutOrder,
         })
       );
-      setState((prevState: IDesignerPreviewState) => {
-        return {
-          ...prevState,
-          isDragging: false,
-        };
-      });
+      setState({ ...state, isDragging: false });
       dispatch(
         FormLayoutActions.updateActiveListOrder({
-          containerList: state.activeList,
-          orderList: state.order as any,
+          containerList: activeList,
+          orderList: order as any,
         })
       );
     }
