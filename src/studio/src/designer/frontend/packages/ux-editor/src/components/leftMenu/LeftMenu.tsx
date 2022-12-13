@@ -50,9 +50,9 @@ export const LeftMenu = () => {
     <div className={classes.pagesList}>
       <PagesContainer />
     </div>
+    {!_useIsProdHack() && <div className={classes.receipt}><ConfirmationPageElement /></div>}
     <div className={classes.toolbar}>
       {confirmationOnScreenName === selectedLayout ? <ConfPageToolbar/> : <DefaultToolbar/>}
     </div>
-    {!_useIsProdHack() && <div className={classes.receipt}><ConfirmationPageElement /></div>}
   </div>;
 };

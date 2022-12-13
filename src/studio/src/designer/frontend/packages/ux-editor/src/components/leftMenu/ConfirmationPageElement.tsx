@@ -6,7 +6,6 @@ import { PageElement } from './PageElement';
 import { useDispatch, useSelector } from 'react-redux';
 import { deepCopy } from 'app-shared/pure';
 import { useSearchParams } from 'react-router-dom';
-import { Warning } from '@navikt/ds-icons';
 import classes from './ConfirmationPageElement.module.css';
 
 export function ConfirmationPageElement() {
@@ -20,12 +19,9 @@ export function ConfirmationPageElement() {
     setSearchParams({ ...deepCopy(searchParams), layout: 'Kvittering' });
   };
   return confirmationOnScreenName ? (
-      <>
-        <PageElement name={confirmationOnScreenName}/>
-        <div className={classes.warningbox}>
-          <Warning/> Denne funksjonaliteten er ennå ikke implementert i appene.
-        </div>
-      </>
+    <div className={classes.pageElementWrapper}>
+      <PageElement name={confirmationOnScreenName}/>
+    </div>
     ) : (
       <div className={classes.buttonWrapper}>
         <Button variant={ButtonVariant.Quiet} onClick={handleAddPage}>

@@ -49,6 +49,10 @@
   margin: var(--margin-top) var(--margin-horizontal) 0 var(--margin-horizontal);
 }
 
+.warningMessage {
+  margin: 1rem var(--margin-horizontal);
+}
+
 .logicEditor {
   background-color: #022F5180;
   height: 100vh;
