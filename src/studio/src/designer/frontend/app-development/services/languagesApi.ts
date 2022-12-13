@@ -10,19 +10,14 @@ type OrgApp = {
 export const languagesApi = appDevelopmentApi.injectEndpoints({
   endpoints: (builder) => ({
     getLanguages: builder.query<LanguageList, OrgApp>({
-      query: ({ org, app }) => {
-        const url = `v1/${org}/${app}/languages`;
-        return {
-          url,
-        };
-      },
-      providesTags: () => {
-        return [
-          {
-            type: Tags.DefinedLanguages,
-          },
-        ];
-      },
+      query: ({ org, app }) => ({
+        url: `/designer/api/v1/${org}/${app}/languages`,
+      }),
+      providesTags: () => [
+        {
+          type: Tags.DefinedLanguages,
+        },
+      ],
     }),
   }),
 });

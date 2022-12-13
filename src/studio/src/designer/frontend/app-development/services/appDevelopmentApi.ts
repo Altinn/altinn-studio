@@ -6,9 +6,7 @@ import type { AxiosError, AxiosRequestConfig } from 'axios';
 
 import { Tags } from './tags';
 
-const axiosBaseQuery = (
-  { baseUrl }: { baseUrl: string } = { baseUrl: '' }
-): BaseQueryFn<
+const axiosBaseQuery = (): BaseQueryFn<
   {
     url: string;
     method?: AxiosRequestConfig['method'];
@@ -20,7 +18,7 @@ const axiosBaseQuery = (
 > => {
   return async ({ url, method = 'GET', data, headers }) => {
     try {
-      const result = await axios(`${baseUrl}${url}`, {
+      const result = await axios(url, {
         method,
         data,
         headers,
@@ -38,8 +36,6 @@ const axiosBaseQuery = (
 export const appDevelopmentApi = createApi({
   reducerPath: 'appDevelopmentApi',
   tagTypes: Object.values(Tags),
-  baseQuery: axiosBaseQuery({
-    baseUrl: `${window.location.origin}/designer/api/`,
-  }),
+  baseQuery: axiosBaseQuery(),
   endpoints: () => ({}),
 });

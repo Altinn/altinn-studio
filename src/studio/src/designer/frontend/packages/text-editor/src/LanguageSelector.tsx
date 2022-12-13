@@ -25,12 +25,19 @@ export const LanguageSelector = ({ onAddLanguage, options }: ILanguageSelectorPr
     setSelectedOption(selectedOption);
   };
   const addButtonProps = {
-    ...(selectedOption?.value ? { disabled: undefined, onClick: handleAddNewLanguage } : { disabled: true }),
+    ...(selectedOption?.value
+      ? { disabled: undefined, onClick: handleAddNewLanguage }
+      : { disabled: true }),
     'data-value': selectedOption.value,
   };
   return (
     <div className={classes.LanguageSelector}>
-      <Select hideLabel={true} onChange={handleSelectOnChange} options={options} value={selectedOption.value} />
+      <Select
+        hideLabel={true}
+        onChange={handleSelectOnChange}
+        options={options}
+        value={selectedOption.value}
+      />
       <Button {...addButtonProps}>Legg til</Button>
     </div>
   );

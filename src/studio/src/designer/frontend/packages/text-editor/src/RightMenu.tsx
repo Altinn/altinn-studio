@@ -1,6 +1,12 @@
 import classes from './RightMenu.module.css';
 import { getLanguageName, languageOptions } from './utils';
-import { Button, ButtonColor, ButtonVariant, FieldSet, RadioButton } from '@altinn/altinn-design-system';
+import {
+  Button,
+  ButtonColor,
+  ButtonVariant,
+  FieldSet,
+  RadioButton,
+} from '@altinn/altinn-design-system';
 import { LanguageSelector } from './LanguageSelector';
 import React from 'react';
 import type { Language } from './types';
@@ -41,45 +47,28 @@ export const RightMenu = ({
         </div>
       </div>
       <div className={classes.RightMenu__verticalContent}>
-        <FieldSet legend="Aktive språk:">
+        <FieldSet legend='Aktive språk:'>
           <div className={classes.RightMenu__radioGroup}>
-            {availableLanguageCodes?.map((value) => {
-              const handleDeleteLangClick = () => {
-                onDeleteLanguage({ value });
-              };
-              const name = getLanguageName({ code: value });
-
-              return (
-                <div key={value} className={classes.RightMenu__radio}>
-                  <RadioButton
-                    value={value}
-                    label={name}
-                    name={'activeLanguages'}
-                    onChange={handleSelectChange}
-                    checked={value === selectedLangCode}
-                  />
-                  {canDeleteLanguage ? (
-                    <Button
-                      data-testid={`delete-${value}`}
-                      color={ButtonColor.Danger}
-                      onClick={handleDeleteLangClick}
-                    >
-                      Delete
-                    </Button>
-                  ) : (
-                    <Button
-                      data-testid={`delete-${value}`}
-                      variant={ButtonVariant.Outline}
-                      color={ButtonColor.Danger}
-                      onClick={handleDeleteLangClick}
-                      disabled={true}
-                    >
-                      Delete
-                    </Button>
-                  )}
-                </div>
-              );
-            })}
+            {availableLanguageCodes?.map((value) => (
+              <div key={value} className={classes.RightMenu__radio}>
+                <RadioButton
+                  value={value}
+                  label={getLanguageName({ code: value })}
+                  name={'activeLanguages'}
+                  onChange={handleSelectChange}
+                  checked={value === selectedLangCode}
+                />
+                <Button
+                  variant={canDeleteLanguage ? ButtonVariant.Filled : ButtonVariant.Outline}
+                  data-testid={`delete-${value}`}
+                  color={ButtonColor.Danger}
+                  onClick={() => onDeleteLanguage({ value })}
+                  disabled={!canDeleteLanguage}
+                >
+                  Delete
+                </Button>
+              </div>
+            ))}
           </div>
         </FieldSet>
       </div>
