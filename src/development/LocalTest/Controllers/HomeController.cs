@@ -118,7 +118,7 @@ namespace LocalTest.Controllers
                 CreateJwtCookieAndAppendToResponse(token);
             }
 
-            if(startAppModel.AppPathSelection.Equals("accessmanagement"))
+            if (startAppModel.AppPathSelection.Equals("accessmanagement"))
             {
                 return Redirect($"/accessmanagement/ui/api-delegations");
             }

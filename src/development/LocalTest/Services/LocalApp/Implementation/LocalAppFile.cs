@@ -47,10 +47,10 @@ namespace LocalTest.Services.LocalApp.Implementation
         {
             var ret = new Dictionary<string, Application>();
 
-            Application acccessManamgenent = await GetAccessManagment();
-            if(acccessManamgenent != null)
+            Application accessManagement = await GetAccessManagment();
+            if (accessManagement != null)
             {
-                ret.Add("accessmanagement", acccessManamgenent);
+                ret.Add("accessmanagement", accessManagement);
                 return ret;
             }
 
