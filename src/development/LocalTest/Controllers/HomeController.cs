@@ -118,6 +118,11 @@ namespace LocalTest.Controllers
                 CreateJwtCookieAndAppendToResponse(token);
             }
 
+            if (startAppModel.AppPathSelection.Equals("accessmanagement"))
+            {
+                return Redirect($"/accessmanagement/ui/api-delegations");
+            }
+
             Application app = await _localApp.GetApplicationMetadata(startAppModel.AppPathSelection);
 
             // Ensure that the documentstorage in LocalTestingStorageBasePath is updated with the most recent app data

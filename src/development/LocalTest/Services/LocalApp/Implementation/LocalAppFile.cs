@@ -13,6 +13,8 @@ using Altinn.Platform.Storage.Interface.Models;
 using LocalTest.Configuration;
 using LocalTest.Helpers;
 using LocalTest.Services.LocalApp.Interface;
+using System.Net.Http;
+using System.Net;
 
 namespace LocalTest.Services.LocalApp.Implementation
 {
@@ -44,6 +46,14 @@ namespace LocalTest.Services.LocalApp.Implementation
         public async Task<Dictionary<string, Application>> GetApplications()
         {
             var ret = new Dictionary<string, Application>();
+
+            Application accessManagement = await GetAccessManagment();
+            if (accessManagement != null)
+            {
+                ret.Add("accessmanagement", accessManagement);
+                return ret;
+            }
+
             // Get list of apps from the configured folder AppRepositoryBasePath
             string path = _localPlatformSettings.AppRepositoryBasePath;
 
@@ -109,5 +119,28 @@ namespace LocalTest.Services.LocalApp.Implementation
         {
             return Path.Join(_localPlatformSettings.AppRepositoryBasePath, appId.Split('/').Last());
         }
+
+        private async Task<Application> GetAccessManagment()
+        {
+            try
+            {
+                HttpClient client = new HttpClient();
+                client.BaseAddress = new Uri("http://localhost:5117/");
+                HttpResponseMessage respnse = await client.GetAsync("swagger/index.html");
+                if (respnse.StatusCode.Equals(HttpStatusCode.OK))
+                {
+                    Dictionary<string, string> title =  new Dictionary<string, string>();
+                    title.Add("nb", "Access Management");
+                    return new Application() { Id = "accessmanagement/ui", Title = title, Org="ALT" };
+                }
+
+                return null;
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
     }
 }
