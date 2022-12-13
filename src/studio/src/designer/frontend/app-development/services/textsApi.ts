@@ -13,37 +13,28 @@ type OrgAppLangData = OrgAppLang & {
   data: Translations;
 };
 
-const languageFileUrl = ({ org, app, langCode }) => `v2/${org}/${app}/texts/${langCode}`;
+const languageFileUrl = ({ org, app, langCode }) =>
+  `/designer/api/v2/${org}/${app}/texts/${langCode}`;
 
 export const textsApi = appDevelopmentApi.injectEndpoints({
   endpoints: (builder) => ({
     getAppTextsByLangCode: builder.query<Translations, OrgAppLang>({
-      query: (params) => {
-        const url = languageFileUrl(params);
-
-        return {
-          url,
-        };
-      },
-      providesTags: (result, error, arg) => {
-        return [
-          {
-            type: Tags.Translations,
-            id: arg.langCode,
-          },
-        ];
-      },
+      query: (params) => ({
+        url: languageFileUrl(params),
+      }),
+      providesTags: (result, error, arg) => [
+        {
+          type: Tags.Translations,
+          id: arg.langCode,
+        },
+      ],
     }),
     updateTranslationByLangCode: builder.mutation<void, OrgAppLangData>({
-      query: ({ data, ...params }) => {
-        const url = languageFileUrl(params);
-
-        return {
-          url,
-          method: 'PUT',
-          data,
-        };
-      },
+      query: ({ data, ...params }) => ({
+        url: languageFileUrl(params),
+        method: 'PUT',
+        data,
+      }),
       invalidatesTags: (result, error, arg) => [
         {
           type: Tags.Translations,
@@ -52,10 +43,8 @@ export const textsApi = appDevelopmentApi.injectEndpoints({
       ],
       async onQueryStarted({ org, app, langCode, data }, { dispatch, queryFulfilled }) {
         dispatch(
-          textsApi.util.updateQueryData('getAppTextsByLangCode', { org, app, langCode }, () => {
-            // Optimistically update the store with the updated language data, so UI is updated immediately
-            return data;
-          })
+          // Optimistically update the store with the updated language data, so UI is updated immediately
+          textsApi.util.updateQueryData('getAppTextsByLangCode', { org, app, langCode }, () => data)
         );
         try {
           await queryFulfilled;
@@ -65,19 +54,15 @@ export const textsApi = appDevelopmentApi.injectEndpoints({
       },
     }),
     deleteByLangCode: builder.mutation<void, OrgAppLang>({
-      query: (params) => {
-        const url = languageFileUrl(params);
-
-        return {
-          url,
-          method: 'DELETE',
-        };
-      },
+      query: (params) => ({
+        url: languageFileUrl(params),
+        method: 'DELETE',
+      }),
       async onQueryStarted({ org, app, langCode: deletedLangCode }, { dispatch, queryFulfilled }) {
         dispatch(
-          languagesApi.util.updateQueryData('getLanguages', { org, app }, (draft) => {
-            return draft.filter((existingLangCode) => existingLangCode !== deletedLangCode);
-          })
+          languagesApi.util.updateQueryData('getLanguages', { org, app }, (draft) =>
+            draft.filter((existingLangCode) => existingLangCode !== deletedLangCode)
+          )
         );
         try {
           await queryFulfilled;
@@ -99,20 +84,16 @@ export const textsApi = appDevelopmentApi.injectEndpoints({
       ],
     }),
     addByLangCode: builder.mutation<void, OrgAppLang>({
-      query: (params) => {
-        const url = languageFileUrl(params);
-
-        return {
-          url,
-          method: 'PUT',
-          data: {},
-        };
-      },
+      query: (params) => ({
+        url: languageFileUrl(params),
+        method: 'PUT',
+        data: {},
+      }),
       async onQueryStarted({ org, app, langCode: addedLangCode }, { dispatch, queryFulfilled }) {
         dispatch(
-          languagesApi.util.updateQueryData('getLanguages', { org, app }, (draft) => {
-            return [...draft, addedLangCode].sort();
-          })
+          languagesApi.util.updateQueryData('getLanguages', { org, app }, (draft) =>
+            [...draft, addedLangCode].sort()
+          )
         );
         try {
           await queryFulfilled;
