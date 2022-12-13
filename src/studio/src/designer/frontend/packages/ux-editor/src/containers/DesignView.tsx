@@ -35,7 +35,10 @@ export const DesignView = ({
 
   const initialState = {layoutOrder, isDragging};
   const [state, setState] = useState<DesignViewState>(initialState);
-  useEffect(() => setState(initialState), [initialState]);
+  useEffect(
+    () => setState(initialState),
+    [initialState.isDragging, initialState.layoutOrder]
+  );
 
   const setContainerLayoutOrder = (containerId: string, layoutOrder: string[]) => {
     if (layoutOrder.includes(containerId)) {
