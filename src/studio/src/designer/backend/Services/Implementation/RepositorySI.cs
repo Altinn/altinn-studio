@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
@@ -28,7 +29,7 @@ using Microsoft.Extensions.Options;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-
+using YamlDotNet.Serialization.NamingConventions;
 using PlatformStorageModels = Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -1132,10 +1133,10 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 TextResource textResource = await altinnAppGitRepository.GetTextV1("nb");
                 textResource.Resources.Add(new TextResourceElement() { Id = "appName", Value = serviceConfig.ServiceName });
                 textResource.Resources.Add(new TextResourceElement() { Id = "confirmationOnScreen.Title", Value = $"{serviceConfig.ServiceName} er nå sendt inn" });
-                var jsonOptions = new JsonSerializerOptions() { WriteIndented = true, Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+                var jsonOptions = new JsonSerializerOptions() { WriteIndented = true, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull};
                 string textResourceString = System.Text.Json.JsonSerializer.Serialize(textResource, jsonOptions);
 
-                SaveLanguageResource(org, serviceConfig.RepositoryName, "nb", textResourceString);
+                SaveLanguageResource(org, serviceConfig.RepositoryName, "nb", textResourceString.ToLower());
             }
         }
 
