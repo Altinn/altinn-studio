@@ -9,7 +9,7 @@
     "@reduxjs/toolkit": "1.9.0",
     "altinn-designsystem": "4.2.0",
     "app-shared": "0.1.0",
-    "axios": "0.27.2",
+    "axios": "1.2.1",
     "classnames": "2.3.2",
     "react": "18.2.0",
     "react-dnd": "16.0.1",
