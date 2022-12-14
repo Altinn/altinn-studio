@@ -64,7 +64,7 @@ describe('Entrypoint', () => {
     const contentLoader = await screen.findByText('Loading...');
     expect(contentLoader).not.toBeNull();
 
-    const instantiationText = await screen.findByText('Hold deg fast, nå starter vi!');
+    const instantiationText = await screen.findByText('Vent litt, vi henter det du trenger');
     expect(instantiationText).not.toBeNull();
   });
 

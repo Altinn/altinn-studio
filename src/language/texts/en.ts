@@ -171,7 +171,7 @@ export function en() {
       authorization_error_info_customer_service: 'You can also contact customer service at {0}.',
       authorization_error_instantiate_validation_info_customer_service:
         'If you need help, contact customer service at {0}.',
-      starting: "Seatbelts on, it's time to launch!",
+      starting: 'Just a minute, we’ll get the information you need',
     },
     language: {
       full_name: {
