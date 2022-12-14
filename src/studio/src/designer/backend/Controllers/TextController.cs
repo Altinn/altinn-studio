@@ -246,12 +246,15 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// Method to update multiple id and texts for a given language in the text resource files in the old format.
+        /// Method to update multiple texts for given keys and a given
+        /// language in the text resource files in the old format.
+        /// Non-existing keys will be added.
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="keysTexts">List of Key/Value pairs that should be updated or added if not present.</param>
         /// <param name="id">The languageCode for the text resource file that is being edited.</param>
+        /// <remarks>Temporary method that should live until old text format is replaced by the new.</remarks>
         [HttpPut]
         public IActionResult UpdateTextsForKeys(string org, string app, [FromBody] Dictionary<string, string> keysTexts, string id)
         {
