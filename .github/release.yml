@@ -4,15 +4,31 @@ changelog:
   exclude:
     labels:
       - skip-releasenotes
-    authors:
-      - renovate
   categories:
-    - title: Data modelling
+    - title: Apps editor 🛠
+      labels: 
+        - area/ui-editor
+      exclude:
+        labels: kind/bug
+    - title: Dashboard 🖥
+      labels: 
+        - area/dashboard
+      exclude:
+        labels: kind/bug
+    - title: Text editor 💬
+      labels: 
+        - area/text-editor
+      exclude:
+        labels: kind/bug
+    - title: Data modelling 📈
       labels:
         - area/data-modeling
     - title: Bugfixes 🐞
       labels:
         - kind/bug
+    - title: Dependency Upgrades 📦
+      labels:
+        - kind/dependencies
     - title: Other Changes
       labels:
         - "*"
