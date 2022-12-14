@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Unicode;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
@@ -17,7 +18,7 @@ using Json.Schema;
 namespace DataModeling.Tests.BaseClasses;
 
 [ExcludeFromCodeCoverage]
-public class SchemaConversionTestsBase<TTestType> : FluentTestsBase<TTestType>
+public abstract class SchemaConversionTestsBase<TTestType> : FluentTestsBase<TTestType>
     where TTestType : class
 {
     protected XmlSchema LoadedXsdSchema { get; set; }
@@ -28,7 +29,7 @@ public class SchemaConversionTestsBase<TTestType> : FluentTestsBase<TTestType>
 
     protected JsonSchema ConvertedJsonSchema { get; set; }
 
-    public SchemaConversionTestsBase()
+    protected SchemaConversionTestsBase()
     {
         JsonSchemaKeywords.RegisterXsdKeywords();
         JsonSchemaFormats.RegisterFormats();
@@ -76,12 +77,10 @@ public class SchemaConversionTestsBase<TTestType> : FluentTestsBase<TTestType>
         return sw.ToString();
     }
 
-    protected static async Task<string> SerializeJsonSchemaAsync(JsonSchema schema)
-    {
-        await using var ms = new MemoryStream();
-        await using var writer = new Utf8JsonWriter(ms, new JsonWriterOptions { Indented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
-        schema.ToJsonDocument().WriteTo(writer);
-        await writer.FlushAsync();
-        return Encoding.UTF8.GetString(ms.GetBuffer(), 0, (int)ms.Length);
-    }
+    protected static string SerializeJsonSchemaAsync(JsonSchema schema) =>
+        JsonSerializer.Serialize(schema, new JsonSerializerOptions
+        {
+            Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement),
+            WriteIndented = true,
+        });
 }
