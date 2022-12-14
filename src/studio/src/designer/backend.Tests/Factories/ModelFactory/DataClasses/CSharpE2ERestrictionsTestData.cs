@@ -18,6 +18,9 @@ public class CSharpE2ERestrictionsTestData: IEnumerable<object[]>
         yield return new object[] { "Model/Xsd/SimpleTypeRestrictions.xsd", "n1", "decimal", @"[Range(-100, 100)]" };
         yield return new object[] { "Model/Xsd/SimpleTypeRestrictions.xsd", "i1", "int", @"[RegularExpression(@""^-?[0-9]{0,10}$"")]" };
         yield return new object[] { "Model/Xsd/SimpleTypeRestrictions.xsd", "i2", "decimal", @"[RegularExpression(@""^-?[0-9]{0,10}$"")]" };
+        yield return new object[] { "Model/Xsd/SimpleTypeRestrictions.xsd", "nonPrimitive", "string", @"[RegularExpression(@""[0-9]+"")]" };
+        yield return new object[] { "Model/Xsd/SimpleTypeRestrictions.xsd", "nonPrimitive", "string", "[MinLength(5)]" };
+        yield return new object[] { "Model/Xsd/SimpleTypeRestrictions.xsd", "nonPrimitive", "string", "[MaxLength(20)]" };
     }
 
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

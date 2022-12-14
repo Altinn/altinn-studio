@@ -10,7 +10,6 @@ using Altinn.Studio.Designer.Extensions;
 using Altinn.Studio.Designer.ModelMetadatalModels;
 using Json.Pointer;
 using Json.Schema;
-using LibGit2Sharp;
 using static Altinn.Studio.Designer.Factories.ModelFactory.MetamodelRestrictionUtils;
 
 namespace Altinn.Studio.Designer.Factories.ModelFactory
@@ -37,6 +36,8 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             public bool IsNillable { get; set; } = false;
 
             public bool XmlText { get; set; }
+
+            public Dictionary<string, Restriction> Restrictions { get; set; } = new();
         }
 
         /// <summary>
@@ -387,6 +388,14 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             }
             else
             {
+                var refKeyword = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<RefKeyword>())?.GetKeyword<RefKeyword>();
+                if (refKeyword is not null)
+                {
+                    PopulateRestrictions(allOfKeyword, context.Restrictions);
+                    ProcessRefType(allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<RefKeyword>()), context);
+                    return;
+                }
+
                 var typeKeyword = allOfKeyword.GetSubschemas().FirstOrDefault(s => s.HasKeyword<TypeKeyword>()).GetKeyword<TypeKeyword>();
                 context.SchemaValueType = typeKeyword.Type;
 
@@ -444,7 +453,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             int maxOccurs = GetMaxOccurs(subSchema, context);
             string xPath = CombineXPath(context.XPath, context.Name);
             string name = ConvertToCSharpCompatibleName(context.Name);
-
+            EnrichRestrictions(MapToXsdValueType(context.SchemaValueType, subSchema), subSchema, context.Restrictions);
             _modelMetadata.Elements.Add(
                 id,
                 new ElementMetadata()
@@ -459,7 +468,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     MinOccurs = minOccurs,
                     MaxOccurs = maxOccurs,
                     Type = ElementType.Group,
-                    Restrictions = GetRestrictions(MapToXsdValueType(context.SchemaValueType, subSchema), subSchema),
+                    Restrictions = context.Restrictions,
                     DataBindingName = GetDataBindingName(ElementType.Group, maxOccurs, id, null, xPath),
                     DisplayString = GetDisplayString(id, typeName, minOccurs, maxOccurs),
                     IsTagContent = context.XmlText
@@ -497,6 +506,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
             var fixedValue = GetFixedValue(subSchema);
             var xPath = CombineXPath(context.XPath, context.Name);
             var xsdValueType = MapToXsdValueType(context.SchemaValueType, subSchema);
+            EnrichRestrictions(xsdValueType, subSchema, context.Restrictions);
             _modelMetadata.Elements.Add(
                 context.Id,
                 new ElementMetadata()
@@ -512,7 +522,7 @@ namespace Altinn.Studio.Designer.Factories.ModelFactory
                     MinOccurs = minOccurs,
                     MaxOccurs = maxOccurs,
                     Type = @type,
-                    Restrictions = GetRestrictions(xsdValueType, subSchema),
+                    Restrictions = context.Restrictions,
                     FixedValue = fixedValue,
                     DataBindingName = GetDataBindingName(@type, maxOccurs, id, fixedValue, xPath),
                     DisplayString = GetDisplayString(id, context.SchemaValueType.ToString(), minOccurs, maxOccurs),

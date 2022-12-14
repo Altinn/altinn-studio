@@ -17,6 +17,7 @@
         <xsd:element name="f4" type="numberRestrictionsFractional3" />
         <xsd:element name="f5" type="numberRestrictionsFractional4" />
         <xsd:element name="f6" type="numberRestrictionsFractional5" />
+        <xsd:element name="nonPrimitive" type="nestedStringRestrictions" />
       </xsd:sequence>
     </xsd:complexType>
   </xsd:element>
@@ -94,6 +95,11 @@
   <xsd:simpleType name="numberRestrictionsFractional5">
     <xsd:restriction base="xsd:decimal">
       <xsd:fractionDigits value="5" />
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:simpleType name="nestedStringRestrictions">
+    <xsd:restriction base="stringMinMaxLengthRestrictions">
+      <xsd:pattern value="[0-9]+"/>
     </xsd:restriction>
   </xsd:simpleType>
 </xsd:schema>

@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Text.Encodings.Web;
-using System.Text.Json;
-using System.Text.Unicode;
 using System.Xml.Serialization;
 using Designer.Tests.Factories.ModelFactory.BaseClasses;
 using Designer.Tests.Factories.ModelFactory.DataClasses;
