@@ -1,4 +1,4 @@
-﻿namespace DataModeling.Tests;
+﻿namespace DataModeling.Tests.BaseClasses;
 
 /// <summary>
 /// Base class for fluent tests.

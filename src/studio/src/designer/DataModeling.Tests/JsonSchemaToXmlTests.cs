@@ -23,7 +23,7 @@ namespace DataModeling.Tests
 
             JsonSchemaToXmlSchemaConverter converter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
 
-            JsonSchema jsonSchema = await ResourceHelpers.LoadJsonSchemaTestData(schemaPath);
+            JsonSchema jsonSchema = await ResourceHelpers.LoadJsonSchemaTestDataAsync(schemaPath);
             XmlSchema expected = ResourceHelpers.LoadXmlSchemaTestData(expectedPath);
 
             // Act

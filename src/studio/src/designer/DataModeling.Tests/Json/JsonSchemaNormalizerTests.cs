@@ -41,7 +41,7 @@ namespace DataModeling.Tests.Json
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
 
-            var jsonSchema = await ResourceHelpers.LoadJsonSchemaTestData(jsonSchemaTestdata);
+            var jsonSchema = await ResourceHelpers.LoadJsonSchemaTestDataAsync(jsonSchemaTestdata);
             var jsonSchemaText = JsonSerializer.Serialize(jsonSchema, new JsonSerializerOptions() { Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement) });
 
             var jsonSchemaNormalizer = new JsonSchemaNormalizer() { PerformNormalization = false };
@@ -65,13 +65,13 @@ namespace DataModeling.Tests.Json
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
 
-            var jsonSchema = await ResourceHelpers.LoadJsonSchemaTestData(jsonSchemaTestdata);
+            var jsonSchema = await ResourceHelpers.LoadJsonSchemaTestDataAsync(jsonSchemaTestdata);
 
             var jsonSchemaNormalizer = new JsonSchemaNormalizer();
             var normalizedJsonSchema = jsonSchemaNormalizer.Normalize(jsonSchema);
             var normalizedJsonSchemaText = JsonSerializer.Serialize(normalizedJsonSchema);
 
-            var expectedNormalizedJsonSchema = await ResourceHelpers.LoadJsonSchemaTestData(expectedNormalizedSchemaTestdata);
+            var expectedNormalizedJsonSchema = await ResourceHelpers.LoadJsonSchemaTestDataAsync(expectedNormalizedSchemaTestdata);
             var expectedNormalizedJsonSchemaText = JsonSerializer.Serialize(expectedNormalizedJsonSchema);
 
             var json = JsonSerializer.Serialize(normalizedJsonSchema, new JsonSerializerOptions { WriteIndented = true });

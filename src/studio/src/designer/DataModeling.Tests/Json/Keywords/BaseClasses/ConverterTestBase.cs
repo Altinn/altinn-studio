@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using System.Text.Unicode;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Altinn.Studio.DataModeling.Utils;
+using DataModeling.Tests.BaseClasses;
 using FluentAssertions;
 using Json.Schema;
 

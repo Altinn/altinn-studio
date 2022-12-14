@@ -48,7 +48,7 @@ namespace DataModeling.Tests.Json
 
         private static async Task<XmlSchema> ConvertJsonSchema(string jsonPath)
         {
-            var jsonSchema = await ResourceHelpers.LoadJsonSchemaTestData(jsonPath);
+            var jsonSchema = await ResourceHelpers.LoadJsonSchemaTestDataAsync(jsonPath);
             var converter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
 
             var actualXsd = converter.Convert(jsonSchema);
