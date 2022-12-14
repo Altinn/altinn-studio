@@ -19,18 +19,27 @@ export const removeTextEntry = (
 };
 
 export const upsertTextEntry = (
-  translations: TextResourceFile,
+  resourceFile: TextResourceFile,
   newEntry: TextResourceEntry
 ): TextResourceFile => {
-  const updatedTranslations = deepCopy(translations);
-  const existingEntryIndex = updatedTranslations.resources.findIndex(
-    (entry) => entry.id === newEntry.id
-  );
-  if (updatedTranslations.resources[existingEntryIndex]) {
-    updatedTranslations.resources[existingEntryIndex].value = newEntry.value;
-    updatedTranslations.resources[existingEntryIndex].variables = newEntry.variables;
+  const updatedFile = deepCopy(resourceFile);
+  const existingEntryIndex = updatedFile.resources.findIndex((e) => e.id === newEntry.id);
+  if (updatedFile.resources[existingEntryIndex]) {
+    updatedFile.resources[existingEntryIndex].value = newEntry.value;
+    updatedFile.resources[existingEntryIndex].variables = newEntry.variables;
   } else {
-    updatedTranslations.resources.push(newEntry);
+    updatedFile.resources.push(newEntry);
   }
-  return updatedTranslations;
+  return updatedFile;
+};
+
+export const updateTextEntryId = (resourceFile: TextResourceFile, oldId: string, newId: string) => {
+  const updatedFile = deepCopy(resourceFile);
+  const existingEntryIndex = updatedFile.resources.findIndex((e) => e.id === oldId);
+  if (updatedFile.resources[existingEntryIndex]) {
+    updatedFile.resources[existingEntryIndex].id = newId;
+    return updatedFile;
+  } else {
+    throw Error("Can't find this text-id");
+  }
 };
