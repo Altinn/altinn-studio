@@ -3,19 +3,19 @@
   "description": "JSON schema editor",
   "version": "0.1.0",
   "dependencies": {
-    "@mui/lab": "5.0.0-alpha.110",
+    "@mui/lab": "5.0.0-alpha.112",
     "jsonpointer": "5.0.1"
   },
   "devDependencies": {
     "jest": "29.3.1"
   },
   "peerDependencies": {
-    "@altinn/altinn-design-system": "0.25.8",
-    "@mui/icons-material": "5.10.14",
-    "@mui/material": "5.10.14",
-    "@mui/styles": "5.10.14",
-    "@reduxjs/toolkit": "1.9.0",
-    "axios": "0.27.2",
+    "@altinn/altinn-design-system": "0.25.9",
+    "@mui/icons-material": "5.11.0",
+    "@mui/material": "5.11.0",
+    "@mui/styles": "5.11.0",
+    "@reduxjs/toolkit": "1.9.1",
+    "axios": "1.2.1",
     "classnames": "2.3.2",
     "react": "18.2.0",
     "react-dnd": "16.0.1",
@@ -23,7 +23,7 @@
     "react-dom": "18.2.0",
     "react-redux": "8.0.5",
     "redux": "4.2.0",
-    "redux-saga": "1.2.1"
+    "redux-saga": "1.2.2"
   },
   "private": true,
   "scripts": {
