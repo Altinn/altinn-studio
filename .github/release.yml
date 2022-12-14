@@ -9,17 +9,20 @@ changelog:
       labels: 
         - area/ui-editor
       exclude:
-        labels: kind/bug
+        labels:
+          - kind/bug
     - title: Dashboard 🖥
       labels: 
         - area/dashboard
       exclude:
-        labels: kind/bug
+        labels:
+          - kind/bug
     - title: Text editor 💬
       labels: 
         - area/text-editor
       exclude:
-        labels: kind/bug
+        labels:
+          - kind/bug
     - title: Data modelling 📈
       labels:
         - area/data-modeling
