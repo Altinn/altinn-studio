@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Select, Button } from '@altinn/altinn-design-system';
 import classes from './LanguageSelector.module.css';
-import type { Option } from './types';
+import type { LangCode, Option } from './types';
 
 export interface ILanguageSelectorProps {
-  onAddLanguage: (languageOption: Option) => void;
+  onAddLanguage: (langCode: LangCode) => void;
   options: Option[];
 }
 
@@ -16,14 +16,13 @@ const emptyOption: Option = {
 export const LanguageSelector = ({ onAddLanguage, options }: ILanguageSelectorProps) => {
   const [selectedOption, setSelectedOption] = useState<Option>(emptyOption);
   const handleAddNewLanguage = () => {
-    onAddLanguage(selectedOption);
+    onAddLanguage(selectedOption.value);
     setSelectedOption(emptyOption);
   };
 
-  const handleSelectOnChange = (value: string) => {
-    const selectedOption = options.filter((option) => option.value === value)[0];
-    setSelectedOption(selectedOption);
-  };
+  const handleSelectOnChange = (value: string) =>
+    setSelectedOption(options.filter((option) => option.value === value)[0]);
+
   const addButtonProps = {
     ...(selectedOption?.value
       ? { disabled: undefined, onClick: handleAddNewLanguage }

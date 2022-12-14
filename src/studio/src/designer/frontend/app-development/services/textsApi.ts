@@ -1,7 +1,8 @@
 import { appDevelopmentApi } from './appDevelopmentApi';
-import type { Translations } from '@altinn/text-editor';
+import type { TextResourceFile } from '@altinn/text-editor';
 import { Tags } from './tags';
 import { languagesApi } from './languagesApi';
+import { textResourcesPath } from 'app-shared/api-paths';
 
 type OrgAppLang = {
   org: string;
@@ -10,17 +11,17 @@ type OrgAppLang = {
 };
 
 type OrgAppLangData = OrgAppLang & {
-  data: Translations;
+  data: TextResourceFile;
 };
 
 const languageFileUrl = ({ org, app, langCode }) =>
-  `/designer/api/v2/${org}/${app}/texts/${langCode}`;
+  `/designer/${org}/${app}/Text/SaveResource/${langCode}`;
 
 export const textsApi = appDevelopmentApi.injectEndpoints({
   endpoints: (builder) => ({
-    getAppTextsByLangCode: builder.query<Translations, OrgAppLang>({
-      query: (params) => ({
-        url: languageFileUrl(params),
+    getAppTextsByLangCode: builder.query<TextResourceFile, OrgAppLang>({
+      query: ({ org, app, langCode }) => ({
+        url: textResourcesPath(org, app, langCode),
       }),
       providesTags: (result, error, arg) => [
         {
@@ -32,7 +33,7 @@ export const textsApi = appDevelopmentApi.injectEndpoints({
     updateTranslationByLangCode: builder.mutation<void, OrgAppLangData>({
       query: ({ data, ...params }) => ({
         url: languageFileUrl(params),
-        method: 'PUT',
+        method: 'POST',
         data,
       }),
       invalidatesTags: (result, error, arg) => [

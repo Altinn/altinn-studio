@@ -3,13 +3,23 @@ import { TextEditor } from './TextEditor';
 import type { ILanguageEditorProps } from './TextEditor';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { TextResourceFile } from './types';
 
 describe('TextEditor', () => {
   const user = userEvent.setup();
 
-  const translations = {
-    key1: 'value1',
-    key2: 'value2',
+  const translations: TextResourceFile = {
+    language: 'nb',
+    resources: [
+      {
+        id: 'key1',
+        value: 'value1',
+      },
+      {
+        id: 'key2',
+        value: 'value2',
+      },
+    ],
   };
 
   beforeEach(() => {
@@ -20,7 +30,7 @@ describe('TextEditor', () => {
     jest.spyOn(global.Math, 'random').mockRestore();
   });
 
-  const render = (props: Partial<ILanguageEditorProps> = {}) => {
+  const renderTextEditor = (props: Partial<ILanguageEditorProps> = {}) => {
     const allProps = {
       availableLanguageCodes: ['nb', 'en'],
       translations,
@@ -36,9 +46,9 @@ describe('TextEditor', () => {
   };
 
   it('fires onTranslationChange when Add new is clicked', async () => {
-    const handleAddNew = jest.fn();
-    render({
-      onTranslationChange: handleAddNew,
+    const onTranslationChange = jest.fn();
+    renderTextEditor({
+      onTranslationChange: onTranslationChange,
     });
     const addBtn = screen.getByRole('button', {
       name: /ny tekst/i,
@@ -46,29 +56,40 @@ describe('TextEditor', () => {
 
     await user.click(addBtn);
 
-    expect(handleAddNew).toHaveBeenCalledWith({
-      translations: {
-        id_1000: '',
-        ...translations,
-      },
+    expect(onTranslationChange).toHaveBeenCalledWith({
+      language: 'nb',
+      resources: [
+        {
+          id: 'key1',
+          value: 'value1',
+        },
+        {
+          id: 'key2',
+          value: 'value2',
+        },
+        {
+          id: 'id_1000',
+          value: '',
+        },
+      ],
     });
   });
 
   it('fires onDeleteLanguage when Delete language is clicked', async () => {
     const handleDeleteLanguage = jest.fn();
-    render({
+    renderTextEditor({
       onDeleteLanguage: handleDeleteLanguage,
     });
     const deleteBtn = screen.getByTestId('delete-en');
 
     await user.click(deleteBtn);
 
-    expect(handleDeleteLanguage).toHaveBeenCalledWith({ value: 'en' });
+    expect(handleDeleteLanguage).toHaveBeenCalledWith('en');
   });
 
   it('fires onSelectedLanguage change when language is changed', async () => {
     const handleSelectedLanguageChange = jest.fn();
-    render({
+    renderTextEditor({
       onSelectedLanguageChange: handleSelectedLanguageChange,
     });
 
@@ -83,6 +104,6 @@ describe('TextEditor', () => {
 
     await user.click(englishRadio);
 
-    expect(handleSelectedLanguageChange).toHaveBeenCalledWith({ value: 'en' });
+    expect(handleSelectedLanguageChange).toHaveBeenCalledWith('en');
   });
 });
