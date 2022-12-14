@@ -3,7 +3,7 @@ import classes from './LandingPage.module.css';
 import { PreviewContext } from '../PreviewContext';
 import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
 import { useParams } from 'react-router-dom';
-import { stringify } from 'query-string';
+import { stringify } from 'qs';
 
 export const LandingPage = () => {
   const { org, app } = useParams();
