@@ -171,7 +171,11 @@ namespace Altinn.App.Core.EFormidling.Implementation
 
         private async Task<Statuses> GetStatusesForShipment(string shipmentId)
         {
-            var requestHeaders = new Dictionary<string, string>();
+            var requestHeaders = new Dictionary<string, string>
+            {
+                { General.SubscriptionKeyHeaderName, _platformSettings.SubscriptionKey }
+            };
+
             Statuses statuses = await _eFormidlingClient.GetMessageStatusById(shipmentId, requestHeaders);
 
             if (statuses != null && statuses.Content != null)

@@ -6,6 +6,7 @@ using Altinn.App.Core.EFormidling.Implementation;
 using Altinn.App.Core.Infrastructure.Clients.Maskinporten;
 using Altinn.App.Core.Models;
 using Altinn.Common.EFormidlingClient;
+using Altinn.Common.PEP.Configuration;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -57,7 +58,11 @@ namespace Altinn.App.Api.Tests.EFormidling
 
             var maskinportenSettingsMock = new Mock<IOptions<MaskinportenSettings>>();
             var x509CertificateProviderMock = new Mock<IX509CertificateProvider>();
-            var platformSettingsMock = new Mock<IOptions<PlatformSettings>>();
+            IOptions <Core.Configuration.PlatformSettings> platformSettingsMock = Options.Create(new Altinn.App.Core.Configuration.PlatformSettings()
+            {
+                ApiEventsEndpoint = "http://localhost:5101/events/api/v1/",
+                SubscriptionKey = "key"
+            });
             var generalSettingsMock = new Mock<IOptions<GeneralSettings>>();
 
             EformidlingStatusCheckEventHandler eventHandler = new(
@@ -67,7 +72,7 @@ namespace Altinn.App.Api.Tests.EFormidling
                 maskinportenServiceMock.Object,
                 maskinportenSettingsMock.Object,
                 x509CertificateProviderMock.Object,
-                platformSettingsMock.Object,
+                platformSettingsMock,
                 generalSettingsMock.Object
                 );
             return eventHandler;
