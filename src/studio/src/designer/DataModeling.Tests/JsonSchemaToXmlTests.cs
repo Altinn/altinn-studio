@@ -14,10 +14,10 @@ namespace DataModeling.Tests
             Given.That.JsonSchemaLoaded(jsonPath)
                 .And.XsdSchemaLoaded(xsdPath)
                 .When.LoadedJsonSchemaConvertedToXsdSchema()
-                .Then.LoadedAndConvertedJsonSchemasShouldBeEquivalent();
+                .Then.LoadedAndConvertedXmlSchemasShouldBeEquivalent();
         }
 
-        private void LoadedAndConvertedJsonSchemasShouldBeEquivalent()
+        private void LoadedAndConvertedXmlSchemasShouldBeEquivalent()
         {
             XmlSchemaAssertions.IsEquivalentTo(LoadedXsdSchema, ConvertedXsdSchema);
         }
