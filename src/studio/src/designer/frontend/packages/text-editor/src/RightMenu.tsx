@@ -1,5 +1,9 @@
+import React from 'react';
 import classes from './RightMenu.module.css';
+import type { LangCode } from './types';
+import { LanguageSelector } from './LanguageSelector';
 import { getLanguageName, languageOptions } from './utils';
+
 import {
   Button,
   ButtonColor,
@@ -7,16 +11,13 @@ import {
   FieldSet,
   RadioButton,
 } from '@altinn/altinn-design-system';
-import { LanguageSelector } from './LanguageSelector';
-import React from 'react';
-import type { Language } from './types';
 
 export interface RightMenuProps {
   selectedLangCode: string;
-  onSelectedLanguageChange: (v: Language) => void;
+  onSelectedLanguageChange: (langCode: LangCode) => void;
   availableLanguageCodes: string[];
-  onAddLanguage: (v: Language) => void;
-  onDeleteLanguage: (v: Language) => void;
+  onAddLanguage: (langCode: LangCode) => void;
+  onDeleteLanguage: (langCode: LangCode) => void;
 }
 
 export const RightMenu = ({
@@ -30,10 +31,9 @@ export const RightMenu = ({
     (x) => !availableLanguageCodes.includes(x.value)
   );
   const canDeleteLanguage = availableLanguageCodes.length > 1;
-  const handleSelectChange = ({ target }: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = target;
-    onSelectedLanguageChange({ value });
-  };
+  const handleSelectChange = ({ target }: React.ChangeEvent<HTMLInputElement>) =>
+    onSelectedLanguageChange(target.value);
+
   // TODO: is fetching translations
   return (
     <aside className={classes.RightMenu__sidebar}>
@@ -49,20 +49,20 @@ export const RightMenu = ({
       <div className={classes.RightMenu__verticalContent}>
         <FieldSet legend='Aktive språk:'>
           <div className={classes.RightMenu__radioGroup}>
-            {availableLanguageCodes?.map((value) => (
-              <div key={value} className={classes.RightMenu__radio}>
+            {availableLanguageCodes?.map((langCode) => (
+              <div key={langCode} className={classes.RightMenu__radio}>
                 <RadioButton
-                  value={value}
-                  label={getLanguageName({ code: value })}
+                  value={langCode}
+                  label={getLanguageName({ code: langCode })}
                   name={'activeLanguages'}
                   onChange={handleSelectChange}
-                  checked={value === selectedLangCode}
+                  checked={langCode === selectedLangCode}
                 />
                 <Button
                   variant={canDeleteLanguage ? ButtonVariant.Filled : ButtonVariant.Outline}
-                  data-testid={`delete-${value}`}
+                  data-testid={`delete-${langCode}`}
                   color={ButtonColor.Danger}
-                  onClick={() => onDeleteLanguage({ value })}
+                  onClick={() => onDeleteLanguage(langCode)}
                   disabled={!canDeleteLanguage}
                 >
                   Delete

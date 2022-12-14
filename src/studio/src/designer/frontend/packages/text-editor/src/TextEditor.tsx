@@ -1,24 +1,23 @@
 import React from 'react';
-import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
-
-import { TextRow } from './TextRow';
-import type { Language, Translations } from './types';
-
 import classes from './TextEditor.module.css';
-import { getLanguageName, getRandNumber } from './utils';
-import { AltinnSpinner } from 'app-shared/components';
+import type { LangCode, TextResourceEntry, TextResourceFile } from './types';
 import type { RightMenuProps } from './RightMenu';
+import { AltinnSpinner } from 'app-shared/components';
+import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
 import { RightMenu } from './RightMenu';
+import { TextRow } from './TextRow';
+import { getLanguageName, getRandNumber } from './utils';
+import { findTextEntry, removeTextEntry, upsertTextEntry } from './mutations';
 
 export interface ILanguageEditorProps {
-  translations: Translations;
+  translations: TextResourceFile;
   isFetchingTranslations: boolean;
-  onTranslationChange: ({ translations }: { translations: Translations }) => void;
+  onTranslationChange: (translations: TextResourceFile) => void;
   selectedLangCode: string;
-  onSelectedLanguageChange: (v: Language) => void;
+  onSelectedLanguageChange: (langCode: LangCode) => void;
   availableLanguageCodes: string[];
-  onAddLanguage: (v: Language) => void;
-  onDeleteLanguage: (v: Language) => void;
+  onAddLanguage: (langCode: LangCode) => void;
+  onDeleteLanguage: (langCode: LangCode) => void;
 }
 
 export const TextEditor = ({
@@ -38,44 +37,41 @@ export const TextEditor = ({
     onAddLanguage,
     onDeleteLanguage,
   };
-  const handleIdChange = ({ oldValue, newValue }: { oldValue: string; newValue: string }) => {
-    if (oldValue === newValue) {
-      return;
-    }
-    // TODO: Ensure index does not change, to avoid it looking like the row disappears
-    const updatedLanguage = { ...translations };
-    updatedLanguage[newValue] = updatedLanguage[oldValue];
-    delete updatedLanguage[oldValue];
-
-    onTranslationChange({ translations: updatedLanguage });
-  };
-
   const languageName = getLanguageName({ code: selectedLangCode });
+  /*
+const handleIdChange = ({ oldValue, newValue }: { oldValue: string; newValue: string }) => {
+  if (oldValue === newValue) {
+    return;
+  }
+  // TODO: Ensure index does not change, to avoid it looking like the row disappears
+  const updatedLanguage = { ...translations };
+  updatedLanguage[newValue] = updatedLanguage[oldValue];
+  delete updatedLanguage[oldValue];
 
-  const handleValueChange = ({
-    newValue,
-    translationKey,
-  }: {
-    newValue: string;
-    translationKey: string;
-  }) => {
-    const updatedLanguage = {
-      ...translations,
-      [translationKey]: newValue,
-    };
+  onTranslationChange({ translations: updatedLanguage });
+};
 
-    onTranslationChange({ translations: updatedLanguage });
-  };
-  const handleAddNewEntryClick = () => {
-    const updatedLanguage = {
-      [`id_${getRandNumber()}`]: '',
-      ...translations,
-    };
+const handleValueChange = ({
+  newValue,
+  translationKey,
+}: {
+  newValue: string;
+  translationKey: string;
+}) => onTranslationChange(upsertTextEntry(translations, { id: translationKey, value: newValue }));
+*/
+  const handleAddNewEntryClick = () =>
+    onTranslationChange(
+      upsertTextEntry(translations, {
+        id: `id_${getRandNumber()}`,
+        value: '',
+      })
+    );
 
-    onTranslationChange({ translations: updatedLanguage });
-  };
+  const removeEntry = (entryId: string) =>
+    onTranslationChange(removeTextEntry(translations, entryId));
+  const idExits = (entryId: string) => Boolean(findTextEntry(translations, entryId));
+  const upsertEntry = (entry: TextResourceEntry) => upsertTextEntry(translations, entry);
 
-  // TODO: is fetching keys NOT TRANSLATIONS
   return (
     <div className={classes.TextEditor}>
       <div className={classes.TextEditor__body}>
@@ -95,16 +91,15 @@ export const TextEditor = ({
               </Button>
             </div>
             {translations &&
-              Object.keys(translations).map((translationKey) => (
+              translations.resources.map((entry) => (
                 <TextRow
-                  key={`${selectedLangCode}.${translationKey}`}
+                  key={`${selectedLangCode}.${entry.id}`}
                   languageName={languageName}
                   langCode={selectedLangCode}
-                  translationKey={translationKey}
-                  translations={translations}
-                  onIdChange={handleIdChange}
-                  onValueChange={handleValueChange}
-                  onTranslationChange={onTranslationChange}
+                  textResourceEntry={entry}
+                  idExists={idExits}
+                  upsertEntry={upsertEntry}
+                  removeEntry={removeEntry}
                 />
               ))}
           </>

@@ -37,7 +37,8 @@ export const getRandNumber = ({ min = 1000, max = 9999 }: GetRandNumber = {}) =>
   Math.floor(Math.random() * (max - min + 1) + min);
 
 export const languageOptions: Option[] = ISO6391.getAllCodes()
-  .map((code: string) => {
-    return { value: code, label: getLanguageName({ code }) };
-  })
+  .map((code: string) => ({
+    value: code,
+    label: getLanguageName({ code }),
+  }))
   .sort((a, b) => a.label.localeCompare(b.label));

@@ -37,5 +37,5 @@ it('fires onAddLanguage when add button is clicked', async () => {
   expect(addBtn).not.toBeDisabled();
   await user.click(addBtn);
 
-  expect(handleAddLanguage).toHaveBeenCalledWith({ label: 'nordsamisk', value: 'se' });
+  expect(handleAddLanguage).toHaveBeenCalledWith('se');
 });
