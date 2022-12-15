@@ -5244,7 +5244,7 @@ __metadata:
     concurrently: 7.6.0
     cross-env: 7.0.3
     css-loader: 6.7.2
-    cypress: 11.2.0
+    cypress: 12.0.2
     cypress-axe: 1.1.0
     cypress-plugin-tab: 1.0.5
     dompurify: 2.4.1
@@ -6891,9 +6891,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cypress@npm:11.2.0":
-  version: 11.2.0
-  resolution: "cypress@npm:11.2.0"
+"cypress@npm:12.0.2":
+  version: 12.0.2
+  resolution: "cypress@npm:12.0.2"
   dependencies:
     "@cypress/request": ^2.88.10
     "@cypress/xvfb": ^1.2.4
@@ -6939,7 +6939,7 @@ __metadata:
     yauzl: ^2.10.0
   bin:
     cypress: bin/cypress
-  checksum: e13649fb4b62a3c9dff7cc571f4e01dba009d8179b05c4f885c5ceb4ed76b78a7323fec491d992da35527708b54e596bfc9edb1d702f788317889f794d8c1e76
+  checksum: 9b5394749cd8363a62554fe03d64329c906df5ccf5f0f2899b68678c7c51eef0acf91d2b93c5ade8312e803d92f7972ef3265a489ab9caaf1a4100b731b9fee3
   languageName: node
   linkType: hard
 
