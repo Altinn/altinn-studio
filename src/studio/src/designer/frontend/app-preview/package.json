@@ -9,7 +9,7 @@
     "not op_mini all"
   ],
   "dependencies": {
-    "@altinn/altinn-design-system": "0.25.9",
+    "@altinn/altinn-design-system": "0.25.10",
     "axios": "1.2.1",
     "classnames": "2.3.2",
     "qs": "6.11.0",

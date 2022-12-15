@@ -9,7 +9,7 @@
     "not op_mini all"
   ],
   "dependencies": {
-    "@altinn/altinn-design-system": "0.25.9",
+    "@altinn/altinn-design-system": "0.25.10",
     "@mui/x-data-grid": "5.17.14",
     "@reduxjs/toolkit": "1.9.1",
     "lodash-es": "4.17.21",
