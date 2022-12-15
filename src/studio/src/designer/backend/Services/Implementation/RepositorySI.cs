@@ -1132,11 +1132,16 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 TextResource textResource = await altinnAppGitRepository.GetTextV1("nb");
                 textResource.Resources.Add(new TextResourceElement() { Id = "appName", Value = serviceConfig.ServiceName });
-                textResource.Resources.Add(new TextResourceElement() { Id = "confirmationOnScreen.Title", Value = $"{serviceConfig.ServiceName} er nå sendt inn" });
+                textResource.Resources.Add(new TextResourceElement() { Id = "appReceipt.Title", Value = $"{serviceConfig.ServiceName} er nå sendt inn" });
                 var jsonOptions = new JsonSerializerOptions() { WriteIndented = true, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull};
-                string textResourceString = System.Text.Json.JsonSerializer.Serialize(textResource, jsonOptions);
+                var jsonSerializerSettings = new JsonSerializerSettings
+                {
+                    Formatting = Newtonsoft.Json.Formatting.Indented,
+                    NullValueHandling = NullValueHandling.Ignore
+                };
+                string textResourceString = JsonConvert.SerializeObject(textResource, jsonSerializerSettings);
 
-                SaveLanguageResource(org, serviceConfig.RepositoryName, "nb", textResourceString.ToLower());
+                SaveLanguageResource(org, serviceConfig.RepositoryName, "nb", textResourceString);
             }
         }
 

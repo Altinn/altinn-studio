@@ -6,7 +6,7 @@
         "id": "ConfirmationOnScreenHeader",
         "type": "Header",
         "textResourceBindings": {
-          "title": "ConfirmationOnScreen.Title"
+          "title": "appReceipt.Title"
         },
         "dataModelBindings": {},
         "size": "h2"
@@ -15,7 +15,7 @@
         "id": "ConfirmationOnScreenSummary",
         "type": "Paragraph",
         "textResourceBindings": {
-          "title": "ConfirmationOnScreen.Summary"
+          "title": "appReceipt.Summary"
         },
         "dataModelBindings": {}
       },
@@ -23,7 +23,7 @@
         "id": "ConfirmationOnScreenParagraph",
         "type": "Paragraph",
         "textResourceBindings": {
-          "title": "ConfirmationOnScreen.Content"
+          "title": "appReceipt.Content"
         },
         "dataModelBindings": {}
       },
@@ -31,7 +31,7 @@
         "id": "ConfirmationOnScreenAttachmentList",
         "type": "AttachmentList",
         "textResourceBindings": {
-          "title": "ConfirmationOnScreen.AttachmentList"
+          "title": "appReceipt.AttachmentList"
         },
         "dataModelBindings": {}
       }

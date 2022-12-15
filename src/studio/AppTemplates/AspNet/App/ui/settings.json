@@ -3,5 +3,5 @@
   "pages": {
     "order": []
   },
-  "receiptLayoutName": "receipt"
+  "appReceiptLayoutName": "appKvittering"
 }
