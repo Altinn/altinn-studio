@@ -14,22 +14,21 @@ export const LikertComponent = (props: IRadioButtonsContainerProps) => {
   const { layout } = props;
   const useRadioProps = useRadioButtons(props);
 
-  switch (layout) {
-    case LayoutStyle.Table:
-      return (
-        <RadioGroupTableRow
-          {...props}
-          {...useRadioProps}
-        />
-      );
-    default:
-      return (
-        <ControlledRadioGroup
-          {...props}
-          {...useRadioProps}
-        />
-      );
+  if (layout === LayoutStyle.Table) {
+    return (
+      <RadioGroupTableRow
+        {...props}
+        {...useRadioProps}
+      />
+    );
   }
+
+  return (
+    <ControlledRadioGroup
+      {...props}
+      {...useRadioProps}
+    />
+  );
 };
 
 const RadioGroupTableRow = ({

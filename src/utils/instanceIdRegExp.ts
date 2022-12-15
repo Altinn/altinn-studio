@@ -9,8 +9,10 @@ export function getInstanceIdRegExp(arg?: { prefix?: string; postfix?: string; f
   if (!(prefix || postfix)) {
     return instanceIdRegExp;
   }
+  const actualPostfix = postfix && (postfix !== '$' ? `/${postfix}` : postfix);
+
   return new RegExp(
-    `${prefix}${prefix && '/'}${instanceIdRegExp.source}${postfix && (postfix !== '$' ? `/${postfix}` : postfix)}`,
+    `${prefix}${prefix && '/'}${instanceIdRegExp.source}${actualPostfix}`,
     flags || instanceIdRegExp.flags,
   );
 }

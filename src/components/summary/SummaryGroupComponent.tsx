@@ -177,7 +177,8 @@ function SummaryGroupComponent({
     const componentArray: JSX.Element[] = [];
     for (let i = startIndex; i <= stopIndex; ++i) {
       const childSummaryComponents = groupChildComponents.map((componentId: string) => {
-        const componentIdSuffix = `${typeof index === 'number' && index >= 0 ? `-${index}` : ''}-${i}`;
+        const componentIdPart1 = typeof index === 'number' && index >= 0 ? `-${index}` : '';
+        const componentIdSuffix = `${componentIdPart1}-${i}`;
         if (hiddenFields.has(`${componentId}-${i}`) || hiddenFields.has(`${componentId}${componentIdSuffix}`)) {
           return null;
         }

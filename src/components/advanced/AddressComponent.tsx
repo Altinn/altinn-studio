@@ -41,6 +41,7 @@ export function AddressComponent({
   simplified,
   saveWhileTyping,
 }: IAddressComponentProps) {
+  // eslint-disable-next-line import/no-named-as-default-member
   const cancelToken = axios.CancelToken;
   const source = cancelToken.source();
 
@@ -149,6 +150,7 @@ export function AddressComponent({
         }
         hasFetchedPostPlace.current = true;
       } catch (err) {
+        // eslint-disable-next-line import/no-named-as-default-member
         if (axios.isCancel(err)) {
           // Intentionally ignored
         } else {
