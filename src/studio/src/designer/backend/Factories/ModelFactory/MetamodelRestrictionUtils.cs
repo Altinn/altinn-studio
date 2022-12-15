@@ -32,6 +32,9 @@ public static class MetamodelRestrictionUtils
         typeof(XsdTotalDigitsKeyword)
     };
 
+    private static IEnumerable<Type> AllSupportedRestrictions =>
+        SupportedNumberRestrictions.Union(SupportedStringRestrictions);
+
     /// <summary>
     /// Getting restriction for given type from provided json Subschema.
     /// Currently calculating Restrictions only for following types:
@@ -47,13 +50,12 @@ public static class MetamodelRestrictionUtils
     /// </summary>
     /// <param name="xsdValueType">A <see cref="BaseValueType"/></param>
     /// <param name="subSchema">A <see cref="JsonSchema"/> holding restrictions in json schema</param>
-    /// <returns></returns>
-    public static Dictionary<string, Restriction> GetRestrictions(BaseValueType? xsdValueType, JsonSchema subSchema)
+    /// <param name="restrictions">Restrictions dictionary</param>
+    public static void EnrichRestrictions(BaseValueType? xsdValueType, JsonSchema subSchema, Dictionary<string, Restriction> restrictions)
     {
-        var restrictions = new Dictionary<string, Restriction>();
         if (xsdValueType == null)
         {
-            return restrictions;
+            return;
         }
 
         switch (xsdValueType)
@@ -73,8 +75,22 @@ public static class MetamodelRestrictionUtils
                 AddNumberRestrictions(subSchema, restrictions);
                 break;
         }
+    }
 
-        return restrictions;
+    /// <summary>
+    /// Populates restrictions from subschemas
+    /// </summary>
+    /// <param name="allOfKeyword">Composition keyword.</param>
+    /// <param name="restrictions">Restrictions dictionary to populate.</param>
+    public static void PopulateRestrictions(AllOfKeyword allOfKeyword, Dictionary<string, Restriction> restrictions)
+    {
+        foreach (var restrictionKeywordType in AllSupportedRestrictions)
+        {
+            if (allOfKeyword.TryGetKeywordFromSubSchemas(restrictionKeywordType, out var keyword))
+            {
+                restrictions.AddRestrictionFromKeyword(keyword);
+            }
+        }
     }
 
     /// <summary>
@@ -132,7 +148,7 @@ public static class MetamodelRestrictionUtils
             valueBuilder.Append(@enum.AsString());
         }
 
-        restrictions.Add("enumeration", new Restriction() { Value = valueBuilder.ToString() });
+        restrictions.TryAdd("enumeration", new Restriction() { Value = valueBuilder.ToString() });
     }
 
     /// <summary>
@@ -199,7 +215,7 @@ public static class MetamodelRestrictionUtils
             _ => throw new Exception("Not supported keyword type")
 
         };
-        restrictions.Add(keyword.Keyword(), new Restriction { Value = valueString });
+        restrictions.TryAdd(keyword.Keyword(), new Restriction { Value = valueString });
     }
 
     private static bool TryGetKeywordByType(this JsonSchema schema, Type type, out IJsonSchemaKeyword keyword)

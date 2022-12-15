@@ -13,10 +13,16 @@ namespace DataModeling.Tests
     [ExcludeFromCodeCoverage]
     public static class ResourceHelpers
     {
-        public static async Task<JsonSchema> LoadJsonSchemaTestData(string resourceName)
+        public static async Task<JsonSchema> LoadJsonSchemaTestDataAsync(string resourceName)
         {
             await using Stream jsonStream = LoadTestData(resourceName);
             return await JsonSerializer.DeserializeAsync<JsonSchema>(jsonStream, new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
+        }
+
+        public static JsonSchema LoadJsonSchemaTestData(string resourceName)
+        {
+            using var jsonStream = LoadTestData(resourceName);
+            return JsonSerializer.Deserialize<JsonSchema>(jsonStream, new JsonSerializerOptions { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
         }
 
         public static string LoadTestDataAsString(string resourceName)

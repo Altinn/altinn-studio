@@ -1,4 +1,5 @@
 ﻿using Altinn.Studio.DataModeling.Json.Keywords;
+using DataModeling.Tests.BaseClasses;
 using Json.Schema;
 using Xunit;
 
