@@ -12,21 +12,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@altinn/altinn-design-system@npm:0.25.7":
-  version: 0.25.7
-  resolution: "@altinn/altinn-design-system@npm:0.25.7"
+"@altinn/altinn-design-system@npm:0.25.8":
+  version: 0.25.8
+  resolution: "@altinn/altinn-design-system@npm:0.25.8"
   dependencies:
     "@altinn/figma-design-tokens": ^4.3.0
     "@navikt/ds-icons": ^2.0.0
     "@radix-ui/react-popover": ^1.0.0
-    "@react-hookz/web": ^19.0.0
+    "@react-hookz/web": ^20.0.0
     leaflet: ^1.8.0
     react-leaflet: ^4.0.1
     react-number-format: ^5.1.1
   peerDependencies:
     react: ^18.0.0
     react-dom: ^18.0.0
-  checksum: e99b838c0b496d9d75fe3e26727c188e745b2af49cad7138f478032f08cb5155860bf60c792b75335bbe4d278ae5c773d74d9bfd1a3206780e59f207ed887c61
+  checksum: 9103cd5b9214f9a2a29c0c84886eb540220a13f7d6c626cf958d484013476a77ba1b5df2375bd8bf87455ce350573d59c326682c449ca9ddb454eb51db9cc2c9
   languageName: node
   linkType: hard
 
@@ -3677,9 +3677,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-hookz/web@npm:^19.0.0":
-  version: 19.2.0
-  resolution: "@react-hookz/web@npm:19.2.0"
+"@react-hookz/web@npm:^20.0.0":
+  version: 20.0.1
+  resolution: "@react-hookz/web@npm:20.0.1"
   dependencies:
     "@react-hookz/deep-equal": ^1.0.3
   peerDependencies:
@@ -3689,7 +3689,7 @@ __metadata:
   peerDependenciesMeta:
     js-cookie:
       optional: true
-  checksum: 0fda3d3a0f967b6b38817f1e72d111711fc01036a8e6d0850bd4e3b3fa41af8635b260babf19e384402ac6d2dfa7db779585c0c8b16700cc0f568df9662ca517
+  checksum: 433dcb140953a877d4c81e1c176cd4302c184293ccddc5ee8de3ae3e592441b528c0c88bc07ed29fea2c993bacb146dfe0c7541832cb56785f07d8717626a1a2
   languageName: node
   linkType: hard
 
@@ -5205,7 +5205,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-frontend-react@workspace:."
   dependencies:
-    "@altinn/altinn-design-system": 0.25.7
+    "@altinn/altinn-design-system": 0.25.8
     "@babel/core": 7.20.5
     "@babel/polyfill": 7.12.1
     "@babel/preset-env": 7.20.2
