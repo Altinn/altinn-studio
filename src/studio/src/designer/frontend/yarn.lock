@@ -45,9 +45,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@altinn/altinn-design-system@npm:0.25.9":
-  version: 0.25.9
-  resolution: "@altinn/altinn-design-system@npm:0.25.9"
+"@altinn/altinn-design-system@npm:0.25.10":
+  version: 0.25.10
+  resolution: "@altinn/altinn-design-system@npm:0.25.10"
   dependencies:
     "@altinn/figma-design-tokens": ^4.3.0
     "@navikt/ds-icons": ^2.0.0
@@ -59,7 +59,7 @@ __metadata:
   peerDependencies:
     react: ^18.0.0
     react-dom: ^18.0.0
-  checksum: 433e66110b3589a68373fd94b933c5d7a8f579410fd75377a4b3cca94361bf09c0269c9ece603479749a1e44c257d35e89b1a3bf81396b66468cbe57aa0f4889
+  checksum: 53bb2b72a4f47c8dfcee635cefd50393ab038da75bb10b6cdebce1dc8f506bc739fc83cca5bacbad1cd286eecd9958a17d532f3d8017d637cfe43eafe1889c58
   languageName: node
   linkType: hard
 
@@ -78,7 +78,7 @@ __metadata:
     jest: 29.3.1
     jsonpointer: 5.0.1
   peerDependencies:
-    "@altinn/altinn-design-system": 0.25.9
+    "@altinn/altinn-design-system": 0.25.10
     "@mui/icons-material": 5.11.0
     "@mui/material": 5.11.0
     "@mui/styles": 5.11.0
@@ -108,7 +108,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/text-editor@workspace:packages/text-editor"
   dependencies:
-    "@altinn/altinn-design-system": 0.25.9
+    "@altinn/altinn-design-system": 0.25.10
     iso-639-1: 2.1.15
     jest: 29.3.1
     ts-jest: 29.0.3
@@ -4784,7 +4784,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-development@workspace:app-development"
   dependencies:
-    "@altinn/altinn-design-system": 0.25.9
+    "@altinn/altinn-design-system": 0.25.10
     "@mui/material": 5.11.0
     "@mui/styles": 5.11.0
     "@reduxjs/toolkit": 1.9.1
@@ -4813,7 +4813,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-preview@workspace:app-preview"
   dependencies:
-    "@altinn/altinn-design-system": 0.25.9
+    "@altinn/altinn-design-system": 0.25.10
     axios: 1.2.1
     classnames: 2.3.2
     cross-env: 7.0.3
@@ -4834,7 +4834,7 @@ __metadata:
   resolution: "app-shared@workspace:packages/shared"
   dependencies:
     3: 2.1.0
-    "@altinn/altinn-design-system": 0.25.9
+    "@altinn/altinn-design-system": 0.25.10
     "@altinn/schema-editor": 0.1.0
     "@mui/icons-material": 5.11.0
     "@mui/material": 5.11.0
@@ -6288,7 +6288,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dashboard@workspace:dashboard"
   dependencies:
-    "@altinn/altinn-design-system": 0.25.9
+    "@altinn/altinn-design-system": 0.25.10
     "@mui/x-data-grid": 5.17.14
     "@reduxjs/toolkit": 1.9.1
     cross-env: 7.0.3
