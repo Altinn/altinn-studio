@@ -61,7 +61,7 @@ export const TextRow = ({
   const handleDeleteClick = () => removeEntry(textResourceEntry.id);
 
   const idForValue = `value-${langCode}-${textResourceEntry.id}`;
-
+  const variables = textResourceEntry.variables || [];
   return (
     <div data-testid={'lang-row'} className={classes.textRow}>
       <div className={classes.leftCol}>
@@ -85,6 +85,11 @@ export const TextRow = ({
           onChange={handleValueChange}
           rows={3}
         />
+        {variables.map((variable) => (
+          <div key={variable.key} className={classes.chip}>
+            {variable.key}: {variable.dataSource}
+          </div>
+        ))}
       </div>
       <div className={classes.rightCol}>
         <Button

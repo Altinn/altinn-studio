@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import type { LangCode } from '@altinn/text-editor/src/types';
-import type { TextResourceFile } from '@altinn/text-editor';
+import type { TextResourceFile, LangCode } from '@altinn/text-editor';
 import { AltinnSpinner } from 'app-shared/components';
 import { TextEditor } from '@altinn/text-editor';
 import { getOrgApp } from '../../common/hooks';
