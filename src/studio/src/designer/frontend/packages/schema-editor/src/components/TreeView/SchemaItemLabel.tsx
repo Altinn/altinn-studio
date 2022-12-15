@@ -1,7 +1,7 @@
 import type { SyntheticEvent } from 'react';
 import React, { useState } from 'react';
-import { IconButton } from '@mui/material';
-import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
+import classNames from 'classnames';
+import classes from './SchemaItemLabel.module.css';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import {
   Capabilites,
@@ -13,8 +13,10 @@ import {
   ObjectKind,
   pointerIsDefinition,
 } from '@altinn/schema-model';
-import classes from './SchemaItemLabel.module.css';
-import classNames from 'classnames';
+import { AltinnMenu, AltinnMenuItem } from 'app-shared/components';
+import { Button, ButtonSize, ButtonVariant } from '@altinn/altinn-design-system';
+import { EllipsisH, Warning } from '@navikt/ds-icons';
+import { useDispatch } from 'react-redux';
 import {
   addCombinationItem,
   addProperty,
@@ -23,8 +25,6 @@ import {
   navigateToType,
   promoteProperty,
 } from '../../features/editor/schemaEditorSlice';
-import { useDispatch } from 'react-redux';
-import { Warning } from '@mui/icons-material';
 
 export interface SchemaItemLabelProps {
   editMode: boolean;
@@ -127,15 +127,16 @@ export const SchemaItemLabel = ({
           </span>
         )}
       </div>
-      <IconButton
+      <Button
         data-testid='open-context-menu-button'
         className={classes.contextButton}
         aria-controls='simple-menu'
         aria-haspopup='true'
         onClick={handleToggleContextMenuClick}
-      >
-        <i className='fa fa-ellipsismenu' />
-      </IconButton>
+        icon={<EllipsisH />}
+        variant={ButtonVariant.Quiet}
+        size={ButtonSize.Small}
+      />
       <AltinnMenu
         id='root-properties-context-menu'
         anchorEl={contextAnchor}

@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { IconButton, Menu, MenuItem } from '@mui/material';
+import classes from './profileMenu.module.css';
+import { Button, ButtonVariant } from '@altinn/altinn-design-system';
+import { Menu, MenuItem } from '@mui/material';
+import { PeopleInCircleFilled } from '@navikt/ds-icons';
 import { altinnDocsUrl } from 'app-shared/ext-urls';
 import { post } from '../../utils/networking';
-import { AccountCircle } from '@mui/icons-material';
 import { repositoryPath, userLogoutAfterPath, userLogoutPath } from '../../api-paths';
-import classes from './profileMenu.module.css';
 import { useParams } from 'react-router-dom';
 
 export interface IProfileMenuComponentProps {
@@ -22,14 +23,14 @@ export function ProfileMenu({ showlogout }: IProfileMenuComponentProps) {
       .finally(() => true);
   return (
     <div>
-      <IconButton
+      <Button
         aria-owns={anchorEl ? 'simple-menu' : undefined}
         aria-haspopup='true'
         aria-label='profilikon knapp'
         onClick={handleClick}
-      >
-        <AccountCircle fontSize='large' titleAccess='profilikon' aria-label='profilikon' />
-      </IconButton>
+        variant={ButtonVariant.Quiet}
+        icon={<PeopleInCircleFilled aria-label='profilikon' />}
+      />
       <Menu
         id='simple-menu'
         anchorEl={anchorEl}

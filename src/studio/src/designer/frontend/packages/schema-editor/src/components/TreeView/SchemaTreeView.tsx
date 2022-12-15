@@ -1,11 +1,11 @@
 import React from 'react';
-import { TreeView } from '@mui/lab';
-import { ArrowDropDown, ArrowRight } from '@mui/icons-material';
-import { SchemaItem } from './SchemaItem';
+import classes from './SchemaTreeView.module.css';
 import type { UiSchemaNode } from '@altinn/schema-model';
 import { DndProvider } from 'react-dnd';
+import { Expand, Next } from '@navikt/ds-icons';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import classes from './SchemaTreeView.module.css';
+import { SchemaItem } from './SchemaItem';
+import { TreeView } from '@mui/lab';
 
 export interface SchemaTreeViewProps {
   editMode: boolean;
@@ -32,8 +32,8 @@ export const SchemaTreeView = ({
         className={classes.treeView}
         multiSelect={false}
         selected={selectedPointer}
-        defaultCollapseIcon={<ArrowDropDown />}
-        defaultExpandIcon={<ArrowRight />}
+        defaultCollapseIcon={<Expand />}
+        defaultExpandIcon={<Next />}
         expanded={expanded}
         onNodeToggle={onNodeToggle}
       >
