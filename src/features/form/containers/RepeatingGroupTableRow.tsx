@@ -75,7 +75,13 @@ const useStyles = makeStyles({
   tableButton: {
     width: 'max-content', // Stops column from shrinking too much
   },
-  breakWord: {
+  contentFormatting: {
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    display: '-webkit-box',
+    WebkitLineClamp: 2,
+    lineClamp: 2,
+    WebkitBoxOrient: 'vertical',
     wordBreak: 'break-word',
   },
 });
@@ -207,21 +213,23 @@ export function RepeatingGroupTableRow({
         tableComponents.map((component: ILayoutComponent) => (
           <TableCell
             key={`${component.id}-${index}`}
-            className={classes.breakWord}
             style={{ textAlign: getTextAlignment(component) }}
           >
-            <span>{!isEditingRow ? getFormDataForComponent(component, index) : null}</span>
+            <span className={classes.contentFormatting}>
+              {!isEditingRow ? getFormDataForComponent(component, index) : null}
+            </span>
           </TableCell>
         ))
       ) : (
-        <TableCell className={classes.breakWord}>
+        <TableCell>
           {tableComponents.map(
             (component: ILayoutComponent, i, { length }) =>
               !isEditingRow && (
                 <React.Fragment key={`${component.id}-${index}`}>
-                  <b>{getTextResource(getTableTitle(componentTextResourceBindingsResolved[i]), textResources)}:</b>
-                  <br />
-                  <span>{getFormDataForComponent(component, index)}</span>
+                  <b className={classes.contentFormatting}>
+                    {getTextResource(getTableTitle(componentTextResourceBindingsResolved[i]), textResources)}:
+                  </b>
+                  <span className={classes.contentFormatting}>{getFormDataForComponent(component, index)}</span>
                   {i < length - 1 && <div style={{ height: 8 }} />}
                 </React.Fragment>
               ),
