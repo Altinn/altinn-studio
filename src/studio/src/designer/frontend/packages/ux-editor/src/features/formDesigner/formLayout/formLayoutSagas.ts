@@ -403,8 +403,8 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
 
     if (isConfirmationPage) {
       yield put(
-        FormLayoutActions.updateConfirmationOnScreenName({
-          confirmationOnScreenName: layout,
+        FormLayoutActions.updateAppReceiptLayoutName({
+          appReceiptLayoutName: layout,
         })
       );
     }
@@ -520,7 +520,7 @@ export function* watchSaveFormLayoutSettingSaga(): SagaIterator {
       FormLayoutActions.addLayoutFulfilled,
       FormLayoutActions.deleteLayoutFulfilled,
       FormLayoutActions.updateLayoutNameFulfilled,
-      FormLayoutActions.updateConfirmationOnScreenName,
+      FormLayoutActions.updateAppReceiptLayoutName,
       FormLayoutActions.updateLayoutOrder,
     ],
     saveFormLayoutSettingSaga

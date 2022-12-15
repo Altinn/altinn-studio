@@ -21,8 +21,8 @@ export const LeftMenu = () => {
   const selectedLayout: string = useSelector(
     (state: IAppState) => state.formDesigner.layout.selectedLayout
   );
-  const confirmationOnScreenName = useSelector(
-    (state: IAppState) => state.formDesigner.layout.layoutSettings.confirmationOnScreenName
+  const appReceiptLayoutName = useSelector(
+    (state: IAppState) => state.formDesigner.layout.layoutSettings.appReceiptLayoutName
   );
   const layoutOrder = useSelector(
     (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order
@@ -52,7 +52,7 @@ export const LeftMenu = () => {
     </div>
     {!_useIsProdHack() && <div className={classes.receipt}><ConfirmationPageElement /></div>}
     <div className={classes.toolbar}>
-      {confirmationOnScreenName === selectedLayout ? <ConfPageToolbar/> : <DefaultToolbar/>}
+      {appReceiptLayoutName === selectedLayout ? <ConfPageToolbar/> : <DefaultToolbar/>}
     </div>
   </div>;
 };

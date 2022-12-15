@@ -18,7 +18,7 @@ import type {
   IFormDesignerActionRejected,
   IUpdateActiveListActionFulfilled,
   IUpdateActiveListOrderAction,
-  IUpdateConfirmationOnScreenNameAction,
+  IUpdateAppReceiptLayoutNameAction,
   IUpdateContainerIdFulfilled,
   IUpdateFormComponentActionFulfilled,
   IUpdateFormComponentOrderAction,
@@ -245,8 +245,8 @@ const formLayoutSlice = createSlice({
       if (pageOrder.includes(layout)) {
         pageOrder.splice(pageOrder.indexOf(layout), 1);
       }
-      if (state.layoutSettings.confirmationOnScreenName === layout) {
-        state.layoutSettings.confirmationOnScreenName = undefined;
+      if (state.layoutSettings.appReceiptLayoutName === layout) {
+        state.layoutSettings.appReceiptLayoutName = undefined;
       }
       if (state.selectedLayout === layout) {
         state.selectedLayout = pageOrder[0];
@@ -396,8 +396,8 @@ const formLayoutSlice = createSlice({
       if (pageOrder.includes(oldName)) {
         pageOrder[pageOrder.indexOf(oldName)] = newName;
       }
-      if (state.layoutSettings.confirmationOnScreenName === oldName) {
-        state.layoutSettings.confirmationOnScreenName = newName;
+      if (state.layoutSettings.appReceiptLayoutName === oldName) {
+        state.layoutSettings.appReceiptLayoutName = newName;
       }
       state.selectedLayout = newName;
     },
@@ -419,12 +419,12 @@ const formLayoutSlice = createSlice({
       newOrder.splice(destination, 0, layout);
       state.layoutSettings.pages.order = newOrder;
     },
-    updateConfirmationOnScreenName: (
+    updateAppReceiptLayoutName: (
       state,
-      action: PayloadAction<IUpdateConfirmationOnScreenNameAction>
+      action: PayloadAction<IUpdateAppReceiptLayoutNameAction>
     ) => {
-      const { confirmationOnScreenName } = action.payload;
-      state.layoutSettings.confirmationOnScreenName = confirmationOnScreenName;
+      const { appReceiptLayoutName } = action.payload;
+      state.layoutSettings.appReceiptLayoutName = appReceiptLayoutName;
     },
     updateSelectedLayout: (state, action: PayloadAction<IUpdateSelectedLayoutAction>) => {
       const { selectedLayout } = action.payload;

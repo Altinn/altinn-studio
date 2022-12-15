@@ -26,7 +26,7 @@ export interface ILayoutSettings {
   $schema?: string;
   pages?: IPagesSettings;
   components?: IComponentsSettings;
-  confirmationOnScreenName?: string;
+  appReceiptLayoutName?: string;
 }
 
 export interface IPagesSettings {

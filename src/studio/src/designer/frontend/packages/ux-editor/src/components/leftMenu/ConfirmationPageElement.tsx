@@ -12,7 +12,7 @@ export function ConfirmationPageElement() {
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
   const confirmationOnScreenName = useSelector(
-    (state: IAppState) => state.formDesigner.layout.layoutSettings.confirmationOnScreenName
+    (state: IAppState) => state.formDesigner.layout.layoutSettings.appReceiptLayoutName
   );
   const handleAddPage = () => {
     dispatch(FormLayoutActions.addLayout({ layout: 'Kvittering', isConfirmationPage: true }));

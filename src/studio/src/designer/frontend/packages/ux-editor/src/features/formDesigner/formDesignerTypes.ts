@@ -195,6 +195,6 @@ export interface IUpdateSelectedLayoutAction {
   selectedLayout: string;
 }
 
-export interface IUpdateConfirmationOnScreenNameAction {
-  confirmationOnScreenName: string;
+export interface IUpdateAppReceiptLayoutNameAction {
+  appReceiptLayoutName: string;
 }
