@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +7,7 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-
+using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -211,6 +212,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="serviceName">The service name</param>
         [HttpPost]
+        [Obsolete("SetServiceName is deprecated, please use UpdateTextsForKeys instead. Use the following arguments; string org, string app, [FromBody] Dictionary<string, string> keysTexts, and add /{languageCode} to url route.")]
         public void SetServiceName(string org, string app, [FromBody] dynamic serviceName)
         {
             string defaultLang = "nb";
@@ -240,6 +242,60 @@ namespace Altinn.Studio.Designer.Controllers
                 };
 
                 _repository.SaveLanguageResource(org, app, "nb", JsonConvert.SerializeObject(resourceCollection, _serializerSettings));
+            }
+        }
+
+        /// <summary>
+        /// Method to update multiple texts for given keys and a given
+        /// language in the text resource files in the old format.
+        /// Non-existing keys will be added.
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="app">Application identifier which is unique within an organisation.</param>
+        /// <param name="keysTexts">List of Key/Value pairs that should be updated or added if not present.</param>
+        /// <param name="id">The languageCode for the text resource file that is being edited.</param>
+        /// <remarks>Temporary method that should live until old text format is replaced by the new.</remarks>
+        [HttpPut]
+        public IActionResult UpdateTextsForKeys(string org, string app, [FromBody] Dictionary<string, string> keysTexts, string id)
+        {
+            try
+            {
+                string filename = $"resource.{id}.json";
+                string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+                string textResourceDirectoryPath = _settings.GetLanguageResourcePath(org, app, developer) + filename;
+
+                TextResource textResourceObject = new TextResource() { Language = id, Resources = new List<TextResourceElement> {} };
+
+                if (System.IO.File.Exists(textResourceDirectoryPath))
+                {
+                    string textResource = System.IO.File.ReadAllText(textResourceDirectoryPath, Encoding.UTF8);
+                    textResourceObject = JsonConvert.DeserializeObject<TextResource>(textResource);
+                }
+
+                foreach (KeyValuePair<string, string> kvp in keysTexts)
+                {
+                    TextResourceElement textResourceContainsKey = textResourceObject.Resources.Find(textResourceElement => textResourceElement.Id == kvp.Key);
+                    if (textResourceContainsKey is null)
+                    {
+                        textResourceObject.Resources.Add(new TextResourceElement() { Id = kvp.Key, Value = kvp.Value });
+                    }
+                    else
+                    {
+                        int indexTextResourceElementUpdateKey = textResourceObject.Resources.IndexOf(textResourceContainsKey);
+                        textResourceObject.Resources[indexTextResourceElementUpdateKey] = new TextResourceElement() { Id = kvp.Key, Value = kvp.Value };
+                    }
+                }
+
+                string resourceString = JsonConvert.SerializeObject(textResourceObject, _serializerSettings);
+
+                _repository.SaveLanguageResource(org, app, id, resourceString);
+
+                return Ok($"The text resource, resource.{id}.json, was updated.");
+
+            }
+            catch (Exception)
+            {
+                return BadRequest($"The text resource, resource.{id}.json, could not be updated.");
             }
         }
     }
