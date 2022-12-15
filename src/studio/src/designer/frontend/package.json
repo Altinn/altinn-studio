@@ -76,7 +76,7 @@
     "stats": "node stats.js",
     "syncpack": "npx syncpack fix-mismatches && npx syncpack format && npx syncpack set-semver-ranges",
     "test": "jest --maxWorkers=50%",
-    "test:ci": "jest --runInBand"
+    "test:ci": "jest --ci --max-workers=2 --cacheDirectory=$(yarn config get cacheFolder)"
   },
   "syncpack": {
     "semverRange": ""
