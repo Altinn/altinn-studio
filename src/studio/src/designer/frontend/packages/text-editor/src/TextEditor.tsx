@@ -7,7 +7,7 @@ import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system
 import { RightMenu } from './RightMenu';
 import { TextRow } from './TextRow';
 import { getLanguageName, getRandNumber } from './utils';
-import { findTextEntry, removeTextEntry, upsertTextEntry } from './mutations';
+import { findTextEntry, removeTextEntry, updateTextEntryId, upsertTextEntry } from './mutations';
 
 export interface ILanguageEditorProps {
   translations: TextResourceFile;
@@ -38,27 +38,9 @@ export const TextEditor = ({
     onDeleteLanguage,
   };
   const languageName = getLanguageName({ code: selectedLangCode });
-  /*
-const handleIdChange = ({ oldValue, newValue }: { oldValue: string; newValue: string }) => {
-  if (oldValue === newValue) {
-    return;
-  }
-  // TODO: Ensure index does not change, to avoid it looking like the row disappears
-  const updatedLanguage = { ...translations };
-  updatedLanguage[newValue] = updatedLanguage[oldValue];
-  delete updatedLanguage[oldValue];
 
-  onTranslationChange({ translations: updatedLanguage });
-};
+  const idExits = (entryId: string) => Boolean(findTextEntry(translations, entryId));
 
-const handleValueChange = ({
-  newValue,
-  translationKey,
-}: {
-  newValue: string;
-  translationKey: string;
-}) => onTranslationChange(upsertTextEntry(translations, { id: translationKey, value: newValue }));
-*/
   const handleAddNewEntryClick = () =>
     onTranslationChange(
       upsertTextEntry(translations, {
@@ -69,8 +51,10 @@ const handleValueChange = ({
 
   const removeEntry = (entryId: string) =>
     onTranslationChange(removeTextEntry(translations, entryId));
-  const idExits = (entryId: string) => Boolean(findTextEntry(translations, entryId));
-  const upsertEntry = (entry: TextResourceEntry) => upsertTextEntry(translations, entry);
+  const upsertEntry = (entry: TextResourceEntry) =>
+    onTranslationChange(upsertTextEntry(translations, entry));
+  const updateEntryId = (oldId: string, newId: string) =>
+    onTranslationChange(updateTextEntryId(translations, oldId, newId));
 
   return (
     <div className={classes.TextEditor}>
@@ -100,6 +84,7 @@ const handleValueChange = ({
                   idExists={idExits}
                   upsertEntry={upsertEntry}
                   removeEntry={removeEntry}
+                  updateEntryId={updateEntryId}
                 />
               ))}
           </>

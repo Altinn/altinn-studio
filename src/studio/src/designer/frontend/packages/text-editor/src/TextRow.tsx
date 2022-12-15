@@ -17,6 +17,7 @@ export interface ILanguageRowProps {
   // TODO: Cleanup/simplify these, could probably stick with just `onTranslationChange`? See how they are used in TextEditor.tsx - they all end up calling the same callback with the same args
   upsertEntry: (entry: TextResourceEntry) => void;
   removeEntry: (textResourceId: string) => void;
+  updateEntryId: (oldId: string, newId: string) => void;
   idExists: (textResourceId: string) => boolean;
 }
 
@@ -26,6 +27,7 @@ export const TextRow = ({
   textResourceEntry,
   upsertEntry,
   removeEntry,
+  updateEntryId,
   idExists,
 }: ILanguageRowProps) => {
   const [idValue, setIdValue] = useState(textResourceEntry.id);
@@ -41,17 +43,20 @@ export const TextRow = ({
       setIdValue(newValue);
     }
   };
-
-  const handleIdBlur = () => {
-    if (!keyError) {
-      // would have done something herer
-    }
-  };
-
   const handleValueChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
     setValueValue(e.currentTarget.value);
 
-  const handleValueBlur = () => upsertEntry({ id: textResourceEntry.id, value: valueValue });
+  const handleIdBlur = () => {
+    if (!keyError && textResourceEntry.id !== idValue) {
+      updateEntryId(textResourceEntry.id, idValue);
+    }
+  };
+
+  const handleValueBlur = () => {
+    if (textResourceEntry.value !== valueValue) {
+      upsertEntry({ id: textResourceEntry.id, value: valueValue });
+    }
+  };
 
   const handleDeleteClick = () => removeEntry(textResourceEntry.id);
 
