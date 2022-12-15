@@ -95,7 +95,7 @@ export const TextRow = ({
           <div
             key={variable.key}
             className={classes.chip}
-            title={'Ikke lagt til støtte for å editeres i studio.'}
+            title={'Det er ikke lagt til støtte for redigering av variabler i Studio.'}
           >
             {variable.key}: {variable.dataSource}
           </div>
@@ -115,7 +115,7 @@ export const TextRow = ({
               open={infoboxOpen}
               onOpenChange={setInfoboxOpen}
             >
-              <div>Ikke mulig å editere i studio.</div>
+              <div>Det er ikke mulig å redigere variabler i Studio.</div>
             </PopoverPanel>
           </span>
         )}
