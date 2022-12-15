@@ -1,4 +1,3 @@
-const ForkTsCheckerNotifierWebpackPlugin = require('fork-ts-checker-notifier-webpack-plugin');
 const commonConfig = require('./webpack.common');
 const setupMiddlewares = require('./testing/mockend/src');
 const devServerPorts = require('./testing/mockend/ports.json');
@@ -28,7 +27,7 @@ module.exports = {
       },
     ],
   },
-  plugins: [...commonConfig.plugins, new ForkTsCheckerNotifierWebpackPlugin()],
+  plugins: [...commonConfig.plugins],
   devServer: {
     setupMiddlewares,
     hot: true,
