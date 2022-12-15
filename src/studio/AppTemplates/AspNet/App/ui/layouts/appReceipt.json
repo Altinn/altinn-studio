@@ -8,7 +8,6 @@
         "textResourceBindings": {
           "title": "appReceipt.Title"
         },
-        "dataModelBindings": {},
         "size": "h2"
       },
       {
@@ -17,16 +16,14 @@
         "textResourceBindings": {
           "title": "appReceipt.Summary"
         },
-        "dataModelBindings": {}
       },
       {
         "id": "AppReceiptParagraph",
         "type": "Paragraph",
         "textResourceBindings": {
           "title": "appReceipt.Content"
-        },
-        "dataModelBindings": {}
-      },
+        }
+      }
       {
         "id": "AppReceiptAttachmentList",
         "type": "AttachmentList",
