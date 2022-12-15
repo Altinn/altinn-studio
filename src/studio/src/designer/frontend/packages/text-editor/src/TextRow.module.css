@@ -26,3 +26,19 @@
 .deleteButton:hover {
   color: red;
 }
+
+.chip {
+  border-radius: 50px;
+  margin: 5px;
+  background-color: gray;
+  display: inline-block;
+  color: white;
+  padding-left: 10px;
+  padding-right: 10px;
+  font-size: 14px;
+  vertical-align: text-bottom;
+}
+
+.infoButton {
+  display: inline-block;
+}

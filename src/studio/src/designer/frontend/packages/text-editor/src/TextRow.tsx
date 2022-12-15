@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
 import classes from './TextRow.module.css';
 import type { TextResourceEntry } from './types';
-import { Delete } from '@navikt/ds-icons';
+import { Delete, InformationColored } from '@navikt/ds-icons';
 import {
   Button,
+  ButtonSize,
   ButtonVariant,
   ErrorMessage,
+  PanelVariant,
+  PopoverPanel,
   TextArea,
   TextField,
 } from '@altinn/altinn-design-system';
@@ -61,6 +64,9 @@ export const TextRow = ({
   const handleDeleteClick = () => removeEntry(textResourceEntry.id);
 
   const idForValue = `value-${langCode}-${textResourceEntry.id}`;
+  const variables = textResourceEntry.variables || [];
+
+  const [infoboxOpen, setInfoboxOpen] = useState(false);
 
   return (
     <div data-testid={'lang-row'} className={classes.textRow}>
@@ -85,6 +91,34 @@ export const TextRow = ({
           onChange={handleValueChange}
           rows={3}
         />
+        {variables.map((variable) => (
+          <div
+            key={variable.key}
+            className={classes.chip}
+            title={'Det er ikke lagt til støtte for redigering av variabler i Studio.'}
+          >
+            {variable.key}: {variable.dataSource}
+          </div>
+        ))}
+        {variables.length > 0 && (
+          <span className={classes.infoButton}>
+            <PopoverPanel
+              title={'Kun for visning'}
+              variant={PanelVariant.Info}
+              trigger={
+                <Button
+                  icon={<InformationColored />}
+                  variant={ButtonVariant.Quiet}
+                  size={ButtonSize.Small}
+                />
+              }
+              open={infoboxOpen}
+              onOpenChange={setInfoboxOpen}
+            >
+              <div>Det er ikke mulig å redigere variabler i Studio.</div>
+            </PopoverPanel>
+          </span>
+        )}
       </div>
       <div className={classes.rightCol}>
         <Button
