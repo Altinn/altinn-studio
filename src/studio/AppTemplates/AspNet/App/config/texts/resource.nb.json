@@ -3,7 +3,7 @@
   "resources": [
     {
       "id": "appReceipt.Summary",
-      "value": "Dato sendt: {1} \nAvsender: {2} \nMottaker: {3} \nReferansenummer: {4}",
+      "value": "Dato sendt: {0} <br>Avsender: {1} <br>Mottaker: {2} <br>Referansenummer: {3}<br>",
       "variables": [
         {
           "key": "instanceDateSent",
@@ -25,7 +25,7 @@
     },
     {
       "id": "appReceipt.Content",
-      "value": "[Kopi av din kvittering er sendt til ditt arkiv](https://temp-link) \n\nDet er gjennomført en maskinell kontroll under utfylling, men vi tar forbehold om at det kan bli oppdaget feil under saksbehandlingen og at annen dokumentasjon kan være nødvendig. Vennligst oppgi referansenummer ved eventuelle henvendelser til etaten."
+      "value": "[Kopi av din kvittering er sendt til ditt arkiv](https://temp-link) <br><br>Det er gjennomført en maskinell kontroll under utfylling, men vi tar forbehold om at det kan bli oppdaget feil under saksbehandlingen og at annen dokumentasjon kan være nødvendig. Vennligst oppgi referansenummer ved eventuelle henvendelser til etaten."
     },
     {
       "id": "appReceipt.AttachmentList",

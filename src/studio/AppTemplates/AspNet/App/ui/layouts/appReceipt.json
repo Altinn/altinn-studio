@@ -15,7 +15,7 @@
         "type": "Paragraph",
         "textResourceBindings": {
           "title": "appReceipt.Summary"
-        },
+        }
       },
       {
         "id": "AppReceiptParagraph",
@@ -23,7 +23,7 @@
         "textResourceBindings": {
           "title": "appReceipt.Content"
         }
-      }
+      },
       {
         "id": "AppReceiptAttachmentList",
         "type": "AttachmentList",
