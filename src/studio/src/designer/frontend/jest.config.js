@@ -40,7 +40,7 @@ const config = {
     '^uuid$': path.join(__dirname, 'node_modules/uuid/dist/index.js'),
     '^unified$': path.join(__dirname, 'node_modules/unified/index.js'),
   },
-  testRegex: '(\\.(test|spec))\\.(ts|tsx|js)$',
+  testRegex: '(\\.(test|spec))\\.(ts|tsx)$',
   moduleFileExtensions: ['ts', 'tsx', 'js'],
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: [path.join(__dirname, 'testing/setupTests.ts')],

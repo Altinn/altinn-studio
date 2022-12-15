@@ -10,13 +10,29 @@ import {
   useDeleteByLangCodeMutation,
   useAddByLangCodeMutation,
 } from '../../services/textsApi';
+import { useSearchParams } from 'react-router-dom';
+import { deepCopy } from 'app-shared/pure';
 
 const defaultLangCode = 'nb';
 export const TextEditorImpl = () => {
-  const [selectedLangCode, setSelectedLangCode] = useState<string | null>(defaultLangCode);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const selectedLangCode = searchParams.get('lang');
+  const setSelectedLangCode = useCallback(
+    (langCode: string) => setSearchParams({ ...deepCopy(searchParams), lang: langCode }),
+    [searchParams, setSearchParams]
+  );
+
+  useEffect(() => {
+    if (!searchParams.has('lang')) {
+      setSelectedLangCode(defaultLangCode);
+    }
+  }, [searchParams, setSelectedLangCode]);
+
   const orgApp = getOrgApp();
+
   const { data: appLanguageCodes, isLoading: isInitialLoadingLangCodes } =
     useGetLanguagesQuery(orgApp);
+
   const {
     data: translations,
     isLoading: isInitialLoadingLang,
@@ -33,12 +49,6 @@ export const TextEditorImpl = () => {
     () => (appLanguageCodes?.length ? appLanguageCodes : [defaultLangCode]),
     [appLanguageCodes]
   );
-
-  useEffect(() => {
-    if (!isInitialLoadingLangCodes) {
-      setSelectedLangCode(getLangCodesOrDefault()[0]);
-    }
-  }, [getLangCodesOrDefault, isInitialLoadingLangCodes]);
 
   const [updateLanguage] = useUpdateTranslationByLangCodeMutation();
   const [deleteLanguage] = useDeleteByLangCodeMutation();
