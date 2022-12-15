@@ -5,11 +5,13 @@ on:
       - main
     paths:
       - 'src/**'
+      - 'yarn.lock'
       - '.github/workflows/unit-tests.yml'
   pull_request:
     types: [opened, synchronize, reopened]
     paths:
       - 'src/**'
+      - 'yarn.lock'
       - '.github/workflows/unit-tests.yml'
 
 jobs:
