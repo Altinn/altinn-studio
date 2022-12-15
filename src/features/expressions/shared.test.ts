@@ -11,10 +11,30 @@ import type { FunctionTest, SharedTestContext, SharedTestContextList } from 'src
 import type { Expression } from 'src/features/expressions/types';
 import type { IRepeatingGroups } from 'src/types';
 import type { IApplicationSettings, IInstanceContext } from 'src/types/shared';
-import type { LayoutNode } from 'src/utils/layout/hierarchy';
+import type { LayoutNode, LayoutRootNodeCollection } from 'src/utils/layout/hierarchy';
 
-function toComponentId({ component, rowIndices }: Exclude<FunctionTest['context'], undefined>) {
-  return (component || 'no-component') + (rowIndices ? `-${rowIndices.join('-')}` : '');
+function findComponent(context: FunctionTest['context'], collection: LayoutRootNodeCollection<any>) {
+  const { component, rowIndices } = context || { component: 'no-component' };
+  const componentId = (component || 'no-component') + (rowIndices ? `-${rowIndices.join('-')}` : '');
+  const found = collection.findById(componentId);
+  if (found) {
+    return found;
+  }
+
+  if (component && rowIndices && rowIndices.length) {
+    const componentId2 = `${component}-${rowIndices.slice(0, rowIndices.length - 1).join('-')}`.replace(/-+$/, '');
+    const foundMaybeGroup = collection.findById(componentId2);
+    if (foundMaybeGroup && foundMaybeGroup.item.type === 'Group') {
+      // Special case for using a group component with a row index, looking up within the
+      // group context, but actually pointing to a row inside the group. This is supported
+      // in useExpressions() itself, but evalExpr() requires the context of an actual component
+      // inside the group.
+      const rowIndex = [...rowIndices].pop();
+      return foundMaybeGroup.children(undefined, rowIndex)[0];
+    }
+  }
+
+  return new NodeNotFoundWithoutContext(componentId);
 }
 
 describe('Expressions shared function tests', () => {
@@ -44,8 +64,7 @@ describe('Expressions shared function tests', () => {
         const rootCollection = expectsFailure
           ? nodesInLayouts(_layouts, currentLayout, repeatingGroups)
           : resolvedNodesInLayouts(_layouts, currentLayout, repeatingGroups, dataSources);
-        const componentId = context ? toComponentId(context) : 'no-component';
-        const component = rootCollection.findById(componentId) || new NodeNotFoundWithoutContext(componentId);
+        const component = findComponent(context, rootCollection);
 
         if (expectsFailure) {
           expect(() => {

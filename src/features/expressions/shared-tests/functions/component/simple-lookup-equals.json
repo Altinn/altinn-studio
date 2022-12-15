@@ -1,6 +1,10 @@
 {
   "name": "Simple lookup equals other lookup",
-  "expression": ["equals", ["component", "my-component"], ["component", "my-other-component"]],
+  "expression": [
+    "equals",
+    ["component", "my-component"],
+    ["component", "my-other-component"]
+  ],
   "expects": true,
   "layouts": {
     "Page1": {

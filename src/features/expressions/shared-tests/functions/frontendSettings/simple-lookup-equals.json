@@ -1,6 +1,10 @@
 {
   "name": "Simple lookup equals other lookup",
-  "expression": ["equals", ["frontendSettings", "mySetting1"], ["frontendSettings", "mySetting2"]],
+  "expression": [
+    "equals",
+    ["frontendSettings", "mySetting1"],
+    ["frontendSettings", "mySetting2"]
+  ],
   "expects": true,
   "frontendSettings": {
     "mySetting1": "foo",

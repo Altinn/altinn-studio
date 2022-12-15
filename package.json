@@ -154,7 +154,8 @@
       ".husky/pre-commit-check-for-skipped-tests",
       "eslint --cache --fix"
     ],
-    "*.{css,md,json}": "prettier --write"
+    "*.{json}": "eslint --cache --fix",
+    "*.{css,md}": "prettier --write"
   },
   "jest": {
     "transform": {

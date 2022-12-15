@@ -42,7 +42,13 @@
       "version": "detect"
     }
   },
-  "ignorePatterns": ["node_modules", "coverage", "dist", "**/*.snap"],
+  "ignorePatterns": [
+    "node_modules",
+    "coverage",
+    "dist",
+    "**/*.snap",
+    "src/features/expressions/shared-tests/**/*.json"
+  ],
   "rules": {
     "no-console": [
       "warn",
