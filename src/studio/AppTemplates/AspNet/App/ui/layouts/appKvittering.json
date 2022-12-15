@@ -3,7 +3,7 @@
   "data": {
     "layout": [
       {
-        "id": "ConfirmationOnScreenHeader",
+        "id": "AppReceiptHeader",
         "type": "Header",
         "textResourceBindings": {
           "title": "appReceipt.Title"
@@ -12,7 +12,7 @@
         "size": "h2"
       },
       {
-        "id": "ConfirmationOnScreenSummary",
+        "id": "AppReceiptSummary",
         "type": "Paragraph",
         "textResourceBindings": {
           "title": "appReceipt.Summary"
@@ -20,7 +20,7 @@
         "dataModelBindings": {}
       },
       {
-        "id": "ConfirmationOnScreenParagraph",
+        "id": "AppReceiptParagraph",
         "type": "Paragraph",
         "textResourceBindings": {
           "title": "appReceipt.Content"
@@ -28,7 +28,7 @@
         "dataModelBindings": {}
       },
       {
-        "id": "ConfirmationOnScreenAttachmentList",
+        "id": "AppReceiptAttachmentList",
         "type": "AttachmentList",
         "textResourceBindings": {
           "title": "appReceipt.AttachmentList"
