@@ -47,7 +47,8 @@
     "coverage",
     "dist",
     "**/*.snap",
-    "src/features/expressions/shared-tests/**/*.json"
+    "src/features/expressions/shared-tests/**/*.json",
+    "schemas/**/*.json"
   ],
   "rules": {
     "no-console": [

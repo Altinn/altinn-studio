@@ -35,8 +35,8 @@
         "id": {
           "type": "string",
           "title": "id",
-          "pattern": "^[0-9a-zA-Z][0-9a-zA-Z-]*[0-9a-zA-Z]$",
-          "description": "The component ID. Must be unique within a given layout."
+          "pattern": "^[0-9a-zA-Z][0-9a-zA-Z-]*(-?[a-zA-Z]+|[a-zA-Z][0-9])$",
+          "description": "The component ID. Must be unique within all layouts/pages in a layout-set. Cannot end with <dash><number>."
         },
         "type": {
           "type": "string",
