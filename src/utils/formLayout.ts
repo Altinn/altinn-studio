@@ -1,13 +1,7 @@
 import { INDEX_KEY_INDICATOR_REGEX } from 'src/utils/databindings';
 import type { IFormData } from 'src/features/form/data';
-import type {
-  ComponentTypes,
-  IGroupEditProperties,
-  IGroupFilter,
-  ILayout,
-  ILayoutComponent,
-  ILayoutGroup,
-} from 'src/features/form/layout';
+import type { IGroupEditProperties, IGroupFilter, ILayoutGroup } from 'src/layout/Group/types';
+import type { ComponentTypes, ILayout, ILayoutComponent } from 'src/layout/layout';
 import type { IAttachmentState } from 'src/shared/resources/attachments';
 import type {
   IFileUploadersWithTag,

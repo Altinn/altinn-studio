@@ -13,7 +13,9 @@ import { Severity } from 'src/types';
 import { createRepeatingGroupComponents, getRepeatingGroups } from 'src/utils/formLayout';
 import { nodesInLayouts } from 'src/utils/layout/hierarchy';
 import * as validation from 'src/utils/validation/validation';
-import type { ILayoutCompDatePicker, ILayoutComponent, ILayoutGroup, ILayouts } from 'src/features/form/layout';
+import type { ILayoutCompDatepicker } from 'src/layout/Datepicker/types';
+import type { ILayoutGroup } from 'src/layout/Group/types';
+import type { ILayoutComponent, ILayouts } from 'src/layout/layout';
 import type {
   IComponentBindingValidation,
   IComponentValidations,
@@ -2722,7 +2724,7 @@ describe('utils > validation', () => {
           minDate: '2020-01-01T12:00:00.000+01:00',
           maxDate: '2020-12-01T12:00:00.000+01:00',
           format: 'DD.MM.YYYY',
-        } as ILayoutCompDatePicker,
+        } as ILayoutCompDatepicker,
         mockLanguage.language,
       );
 
@@ -2738,7 +2740,7 @@ describe('utils > validation', () => {
           minDate: '2020-01-01T12:00:00.000+01:00',
           maxDate: '2020-12-01T12:00:00.000+01:00',
           format: 'DD.MM.YYYY',
-        } as ILayoutCompDatePicker,
+        } as ILayoutCompDatepicker,
         mockLanguage.language,
       );
 
@@ -2754,7 +2756,7 @@ describe('utils > validation', () => {
           minDate: '2020-01-01T12:00:00.000+01:00',
           maxDate: '2020-12-01T12:00:00.000+01:00',
           format: 'DD.MM.YYYY',
-        } as ILayoutCompDatePicker,
+        } as ILayoutCompDatepicker,
         mockLanguage.language,
       );
 
@@ -2770,7 +2772,7 @@ describe('utils > validation', () => {
           minDate: '2020-01-01T12:00:00.000+01:00',
           maxDate: '2020-12-01T12:00:00.000+01:00',
           format: 'DD.MM.YYYY',
-        } as ILayoutCompDatePicker,
+        } as ILayoutCompDatepicker,
         mockLanguage.language,
       );
 
@@ -2786,7 +2788,7 @@ describe('utils > validation', () => {
           minDate: '2020-01-01T12:00:00.000+01:00',
           maxDate: '2020-12-31T12:00:00.000+01:00',
           format: 'DD.MM.YYYY',
-        } as ILayoutCompDatePicker,
+        } as ILayoutCompDatepicker,
         mockLanguage.language,
       );
 
@@ -2802,7 +2804,7 @@ describe('utils > validation', () => {
           minDate: '2020-01-01T12:00:00.000+01:00',
           maxDate: '2020-12-01T12:00:00.000+01:00',
           format: 'DD.MM.YYYY',
-        } as ILayoutCompDatePicker,
+        } as ILayoutCompDatepicker,
         mockLanguage.language,
       );
 
@@ -2818,7 +2820,7 @@ describe('utils > validation', () => {
           minDate: '2020-01-01T12:00:00.000+01:00',
           maxDate: '2020-12-01T12:00:00.000+01:00',
           format: 'DD.MM.YYYY',
-        } as ILayoutCompDatePicker,
+        } as ILayoutCompDatepicker,
         mockLanguage.language,
       );
 
@@ -2834,7 +2836,7 @@ describe('utils > validation', () => {
           minDate: '2020-01-01T12:00:00.000+01:00',
           maxDate: '2020-12-01T12:00:00.000+01:00',
           format: 'DD.MM.YYYY',
-        } as ILayoutCompDatePicker,
+        } as ILayoutCompDatepicker,
         mockLanguage.language,
       );
 

@@ -1,15 +1,17 @@
 import * as React from 'react';
 
-import { AttachmentSummaryComponent } from 'src/components/summary/AttachmentSummaryComponent';
-import { AttachmentWithTagSummaryComponent } from 'src/components/summary/AttachmentWithTagSummaryComponent';
-import HeaderSummary from 'src/components/summary/HeaderSummary';
-import MapComponentSummary from 'src/components/summary/MapComponentSummary';
-import MultipleChoiceSummary from 'src/components/summary/MultipleChoiceSummary';
 import SingleInputSummary from 'src/components/summary/SingleInputSummary';
 import SummaryBoilerplate from 'src/components/summary/SummaryBoilerplate';
 import SummaryGroupComponent from 'src/components/summary/SummaryGroupComponent';
+import MultipleChoiceSummary from 'src/layout/Checkboxes/MultipleChoiceSummary';
+import { AttachmentSummaryComponent } from 'src/layout/FileUpload/AttachmentSummaryComponent';
+import { AttachmentWithTagSummaryComponent } from 'src/layout/FileUploadWithTag/AttachmentWithTagSummaryComponent';
+import HeaderSummary from 'src/layout/Header/HeaderSummary';
+import MapComponentSummary from 'src/layout/Map/MapComponentSummary';
 import type { ExprResolved } from 'src/features/expressions/types';
-import type { ILayoutComponent, ILayoutCompSummary, ILayoutGroup } from 'src/features/form/layout';
+import type { ILayoutGroup } from 'src/layout/Group/types';
+import type { ILayoutComponent } from 'src/layout/layout';
+import type { ILayoutCompSummary } from 'src/layout/Summary/types';
 
 export interface ISummaryComponentSwitch extends Omit<ILayoutCompSummary, 'type'> {
   change: {

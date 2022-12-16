@@ -1,4 +1,4 @@
-import type { ILayouts } from 'src/features/form/layout';
+import type { ILayouts } from 'src/layout/layout';
 import type {
   IFileUploadersWithTag,
   IHiddenLayoutsExpressions,

@@ -12,7 +12,7 @@ import { getValidator, validateComponentFormData } from 'src/utils/validation';
 import { mergeComponentValidations, validateComponentSpecificValidations } from 'src/utils/validation/validation';
 import type { IFormData } from 'src/features/form/data';
 import type { IDeleteAttachmentReference, IUpdateFormData } from 'src/features/form/data/formDataTypes';
-import type { ILayoutComponent, ILayouts } from 'src/features/form/layout';
+import type { ILayoutComponent, ILayouts } from 'src/layout/layout';
 import type { IAttachments } from 'src/shared/resources/attachments';
 import type { IRuntimeState } from 'src/types';
 

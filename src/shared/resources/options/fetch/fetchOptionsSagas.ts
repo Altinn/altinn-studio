@@ -16,7 +16,7 @@ import { get } from 'src/utils/sharedUtils';
 import { getOptionsUrl } from 'src/utils/urls/appUrlHelper';
 import type { IFormData } from 'src/features/form/data';
 import type { IUpdateFormDataFulfilled } from 'src/features/form/data/formDataTypes';
-import type { ILayouts, ISelectionComponentProps } from 'src/features/form/layout';
+import type { ILayouts, ISelectionComponentProps } from 'src/layout/layout';
 import type {
   IFetchSpecificOptionSaga,
   IOption,

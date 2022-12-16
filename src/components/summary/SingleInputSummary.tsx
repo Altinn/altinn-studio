@@ -4,7 +4,7 @@ import { Grid, makeStyles, Typography } from '@material-ui/core';
 
 import { useDisplayData } from 'src/components/hooks';
 import SummaryBoilerplate from 'src/components/summary/SummaryBoilerplate';
-import type { SummaryDisplayProperties } from 'src/features/form/layout';
+import type { SummaryDisplayProperties } from 'src/layout/Summary/types';
 
 export interface ISingleInputSummary {
   formData: any;

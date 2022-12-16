@@ -1,15 +1,15 @@
 import React, { useState } from 'react';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
-import { SubmitButton } from 'src/components/base/ButtonComponent';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
+import { SubmitButton } from 'src/layout/Button/SubmitButton';
 import { ProcessActions } from 'src/shared/resources/process/processSlice';
 import { ProcessTaskType } from 'src/types';
 import { get } from 'src/utils/network/networking';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import { getValidationUrl } from 'src/utils/urls/appUrlHelper';
 import { mapDataElementValidationToRedux } from 'src/utils/validation';
-import type { BaseButtonProps } from 'src/components/base/ButtonComponent/WrappedButton';
+import type { BaseButtonProps } from 'src/layout/Button/WrappedButton';
 import type { IAltinnWindow } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
 

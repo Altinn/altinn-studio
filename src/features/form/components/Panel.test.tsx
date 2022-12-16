@@ -3,11 +3,11 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
-import { FormComponentContext } from 'src/components';
 import { getVariant, Panel, PanelVariant } from 'src/features/form/components/Panel';
+import { FormComponentContext } from 'src/layout';
 import { renderWithProviders } from 'src/testUtils';
-import type { IFormComponentContext } from 'src/components';
 import type { IPanelProps } from 'src/features/form/components/Panel';
+import type { IFormComponentContext } from 'src/layout';
 import type { IRuntimeState } from 'src/types';
 
 describe('Panel', () => {

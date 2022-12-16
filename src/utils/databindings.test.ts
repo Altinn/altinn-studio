@@ -10,7 +10,7 @@ import {
   removeGroupData,
 } from 'src/utils/databindings';
 import type { IFormData } from 'src/features/form/data';
-import type { ILayout, ILayoutComponent } from 'src/features/form/layout';
+import type { ILayout, ILayoutComponent } from 'src/layout/layout';
 import type { IMapping, IRepeatingGroups } from 'src/types';
 
 describe('utils/databindings.ts', () => {

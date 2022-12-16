@@ -1,4 +1,4 @@
-import type { IDataModelBindings } from 'src/types';
+import type { IDataModelBindings } from 'src/layout/layout';
 
 export interface IFetchFormData {
   url: string;

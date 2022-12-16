@@ -10,7 +10,7 @@ import { selectNotNull } from 'src/utils/sagas';
 import { get } from 'src/utils/sharedUtils';
 import { getDataListsUrl } from 'src/utils/urls/appUrlHelper';
 import type { IFormData } from 'src/features/form/data';
-import type { ILayouts } from 'src/features/form/layout';
+import type { ILayouts } from 'src/layout/layout';
 import type {
   IDataList,
   IDataLists,

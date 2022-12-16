@@ -7,7 +7,7 @@ import {
 } from 'src/utils/databindings';
 import { replaceTextResourceParams } from 'src/utils/sharedUtils';
 import type { IFormData } from 'src/features/form/data';
-import type { ILayout } from 'src/features/form/layout';
+import type { ILayout } from 'src/layout/layout';
 import type {
   IMapping,
   IOption,

@@ -43,12 +43,6 @@ import {
 } from 'src/utils/validation';
 import { filterValidationsByRow } from 'src/utils/validation/validation';
 import type { IFormDataState } from 'src/features/form/data';
-import type {
-  ILayoutCompFileUploadWithTag,
-  ILayoutComponent,
-  ILayoutComponentOrGroup,
-  ILayoutGroup,
-} from 'src/features/form/layout';
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
 import type {
   ICalculatePageOrderAndMoveToNextPage,
@@ -58,6 +52,9 @@ import type {
   IUpdateRepeatingGroups,
   IUpdateRepeatingGroupsEditIndex,
 } from 'src/features/form/layout/formLayoutTypes';
+import type { ILayoutCompFileUploadWithTag } from 'src/layout/FileUploadWithTag/types';
+import type { ILayoutGroup } from 'src/layout/Group/types';
+import type { ILayoutComponent, ILayoutComponentOrGroup } from 'src/layout/layout';
 import type { IAttachmentState } from 'src/shared/resources/attachments';
 import type {
   IDeleteAttachmentActionFulfilled,

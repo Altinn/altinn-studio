@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 
 import type { Expression } from 'src/features/expressions/types';
-import type { ILayout, ILayouts } from 'src/features/form/layout';
+import type { ILayout, ILayouts } from 'src/layout/layout';
 import type { IApplicationSettings, IInstanceContext } from 'src/types/shared';
 
 export interface Layouts {

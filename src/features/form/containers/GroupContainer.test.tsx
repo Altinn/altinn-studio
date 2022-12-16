@@ -10,11 +10,11 @@ import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { setupStore } from 'src/store';
 import { mockMediaQuery, renderWithProviders } from 'src/testUtils';
 import { Triggers } from 'src/types';
-import type { ILayoutGroup } from 'src/features/form/layout';
 import type {
   IUpdateRepeatingGroupsEditIndex,
   IUpdateRepeatingGroupsMultiPageIndex,
 } from 'src/features/form/layout/formLayoutTypes';
+import type { ILayoutGroup } from 'src/layout/Group/types';
 
 const mockContainer = getFormLayoutGroupMock();
 

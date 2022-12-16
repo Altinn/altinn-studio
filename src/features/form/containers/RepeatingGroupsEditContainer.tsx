@@ -11,7 +11,8 @@ import { useExpressions } from 'src/features/expressions/useExpressions';
 import theme from 'src/theme/altinnStudioTheme';
 import { renderGenericComponent } from 'src/utils/layout';
 import { getLanguageFromKey, getTextResourceByKey } from 'src/utils/sharedUtils';
-import type { ILayout, ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
+import type { ILayoutGroup } from 'src/layout/Group/types';
+import type { ILayout, ILayoutComponent } from 'src/layout/layout';
 import type { ITextResource } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
 

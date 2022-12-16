@@ -9,7 +9,7 @@ import type { PreloadedState } from 'redux';
 
 import { setupStore } from 'src/store';
 import { AltinnAppTheme } from 'src/theme';
-import type { IComponentProps } from 'src/components';
+import type { IComponentProps } from 'src/layout';
 import type { AppStore, RootState } from 'src/store';
 
 interface ExtendedRenderOptions extends Omit<RenderOptions, 'queries'> {

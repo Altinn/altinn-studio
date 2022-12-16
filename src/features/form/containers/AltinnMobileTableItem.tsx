@@ -20,7 +20,7 @@ import { ExprDefaultsForGroup } from 'src/features/expressions';
 import { useExpressions } from 'src/features/expressions/useExpressions';
 import { getLanguageFromKey } from 'src/language/sharedLanguage';
 import theme from 'src/theme/altinnStudioTheme';
-import type { ILayoutGroup } from 'src/features/form/layout/';
+import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ITextResourceBindings } from 'src/types';
 import type { ILanguage, ITextResource } from 'src/types/shared';
 

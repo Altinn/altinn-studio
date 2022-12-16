@@ -9,7 +9,7 @@ import {
 } from 'src/features/expressions';
 import { prettyErrors, prettyErrorsToConsole } from 'src/features/expressions/prettyErrors';
 import type { BaseValue, Expression, ExprFunction, FuncDef } from 'src/features/expressions/types';
-import type { ILayout } from 'src/features/form/layout';
+import type { ILayout } from 'src/layout/layout';
 
 enum ValidationErrorMessage {
   InvalidType = 'Invalid type "%s"',

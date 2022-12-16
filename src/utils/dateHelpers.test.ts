@@ -2,8 +2,8 @@ import moment from 'moment';
 
 import { DateFlags } from 'src/types/index';
 import {
-  DatePickerMaxDateDefault,
-  DatePickerMinDateDefault,
+  DatepickerMaxDateDefault,
+  DatepickerMinDateDefault,
   getDateConstraint,
   getDateString,
   getISOString,
@@ -54,10 +54,10 @@ describe('dateHelpers', () => {
     it.each(['min', 'max'])('should return default min/max if input is undefined', (constraint: 'min' | 'max') => {
       const dateConstraint = getDateConstraint(undefined, constraint);
       if (constraint === 'min') {
-        expect(dateConstraint).toEqual(DatePickerMinDateDefault);
+        expect(dateConstraint).toEqual(DatepickerMinDateDefault);
       }
       if (constraint === 'max') {
-        expect(dateConstraint).toEqual(DatePickerMaxDateDefault);
+        expect(dateConstraint).toEqual(DatepickerMaxDateDefault);
       }
     });
     it.each([
@@ -70,10 +70,10 @@ describe('dateHelpers', () => {
     ])('should return default min/max if input is invalid', (invalidInput: string, constraint: 'min' | 'max') => {
       const dateConstraint = getDateConstraint(invalidInput, constraint);
       if (constraint === 'min') {
-        expect(dateConstraint).toEqual(DatePickerMinDateDefault);
+        expect(dateConstraint).toEqual(DatepickerMinDateDefault);
       }
       if (constraint === 'max') {
-        expect(dateConstraint).toEqual(DatePickerMaxDateDefault);
+        expect(dateConstraint).toEqual(DatepickerMaxDateDefault);
       }
     });
     it.each(['min', 'max'])('should return correct date if given DateFlags.Today', (constraint: 'min' | 'max') => {

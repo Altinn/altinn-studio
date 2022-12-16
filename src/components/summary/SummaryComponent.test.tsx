@@ -7,8 +7,8 @@ import { SummaryComponent } from 'src/components/summary/SummaryComponent';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import { renderWithProviders } from 'src/testUtils';
 import type { ISummaryComponent } from 'src/components/summary/SummaryComponent';
-import type { ILayoutComponent } from 'src/features/form/layout';
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
+import type { ILayoutComponent } from 'src/layout/layout';
 import type { IValidations } from 'src/types';
 
 describe('SummaryComponent', () => {

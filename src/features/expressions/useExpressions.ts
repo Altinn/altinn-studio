@@ -1,15 +1,15 @@
 import { useContext, useMemo } from 'react';
 
 import { useAppSelector } from 'src/common/hooks';
-import { FormComponentContext } from 'src/components';
 import { NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
 import { evalExprInObj, ExprDefaultsForComponent, ExprDefaultsForGroup } from 'src/features/expressions/index';
+import { FormComponentContext } from 'src/layout';
 import { getInstanceContextSelector } from 'src/utils/instanceContext';
 import { useLayoutsAsNodes } from 'src/utils/layout/useLayoutsAsNodes';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
 import type { EvalExprInObjArgs } from 'src/features/expressions/index';
 import type { ExprDefaultValues, ExprResolved } from 'src/features/expressions/types';
-import type { ILayoutComponentOrGroup } from 'src/features/form/layout';
+import type { ILayoutComponentOrGroup } from 'src/layout/layout';
 import type { IInstanceContext } from 'src/types/shared';
 
 export interface UseExpressionsOptions<T> {
@@ -94,16 +94,26 @@ export function useExpressions<T>(input: T, _options?: UseExpressionsOptions<T>)
   }, [dataSources, input, node, options]);
 }
 
-const componentDefaults: any = {
-  ...ExprDefaultsForComponent,
-  ...ExprDefaultsForGroup,
-};
+let componentDefaults: any = undefined;
+function getComponentDefaults(): any {
+  // The default values can be stored in the variable above, but it cannot be constructed as soon as this
+  // file is imported, as that relies on the global import order (and may start to fail if files are moved around).
+  if (componentDefaults === undefined) {
+    componentDefaults = {
+      ...ExprDefaultsForComponent,
+      ...ExprDefaultsForGroup,
+    };
+  }
+
+  return componentDefaults;
+}
 
 export function useExpressionsForComponent<T extends ILayoutComponentOrGroup | undefined | null>(
   input: T,
 ): ExprResolved<T> {
+  const defaults = getComponentDefaults();
   return useExpressions(input, {
     forComponentId: (typeof input === 'object' && input !== null && input.id) || undefined,
-    defaults: componentDefaults,
+    defaults,
   });
 }

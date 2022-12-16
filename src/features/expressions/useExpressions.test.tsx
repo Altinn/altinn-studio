@@ -11,7 +11,8 @@ import { setupStore } from 'src/store';
 import type { ExpressionOr } from 'src/features/expressions/types';
 import type { UseExpressionsOptions } from 'src/features/expressions/useExpressions';
 import type { IFormData } from 'src/features/form/data';
-import type { ILayout, ILayoutComponent, ILayoutGroup } from 'src/features/form/layout';
+import type { ILayoutGroup } from 'src/layout/Group/types';
+import type { ILayout, ILayoutComponent } from 'src/layout/layout';
 import type { IRuntimeState } from 'src/types';
 
 interface ExampleThingWithExpressions {

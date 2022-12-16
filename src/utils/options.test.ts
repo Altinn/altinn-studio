@@ -5,7 +5,7 @@ import {
   setupSourceOptions,
 } from 'src/utils/options';
 import type { IFormData } from 'src/features/form/data';
-import type { ILayout } from 'src/features/form/layout';
+import type { ILayout } from 'src/layout/layout';
 import type { IMapping, IOptions, IOptionSource, IRepeatingGroups } from 'src/types';
 import type { IDataSources, ITextResource } from 'src/types/shared';
 

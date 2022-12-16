@@ -8,7 +8,7 @@ import { getFormLayoutStateMock } from 'src/__mocks__/formLayoutStateMock';
 import { getInitialStateMock } from 'src/__mocks__/mocks';
 import { Form } from 'src/features/form/containers/Form';
 import { MemoryRouterWithRedirectingRoot, renderWithProviders } from 'src/testUtils';
-import type { ILayout, ILayoutComponent, ILayoutEntry } from 'src/features/form/layout';
+import type { ILayout, ILayoutComponent, ILayoutEntry } from 'src/layout/layout';
 import type { RootState } from 'src/store';
 
 describe('Form', () => {

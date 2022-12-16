@@ -3,12 +3,12 @@ import React from 'react';
 import { screen } from '@testing-library/react';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
-import { FormComponentContext } from 'src/components';
 import { getPanelTitle, SoftValidations } from 'src/features/form/components/SoftValidations';
 import { nb } from 'src/language/texts/nb';
+import { FormComponentContext } from 'src/layout';
 import { renderWithProviders } from 'src/testUtils';
-import type { IFormComponentContext } from 'src/components';
 import type { ISoftValidationProps, SoftValidationVariant } from 'src/features/form/components/SoftValidations';
+import type { IFormComponentContext } from 'src/layout';
 import type { IRuntimeState, ITextResource } from 'src/types';
 
 const render = (

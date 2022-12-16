@@ -5,7 +5,7 @@ import cn from 'classnames';
 
 import { EditButton } from 'src/components/summary/EditButton';
 import appTheme from 'src/theme/altinnAppTheme';
-import type { ILayoutCompSummary } from 'src/features/form/layout';
+import type { ILayoutCompSummary } from 'src/layout/Summary/types';
 
 export interface SummaryBoilerplateProps extends Omit<ILayoutCompSummary, 'type' | 'id'> {
   hasValidationMessages?: boolean;

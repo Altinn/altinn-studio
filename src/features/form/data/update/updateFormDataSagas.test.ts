@@ -12,8 +12,9 @@ import {
   SelectLayouts,
 } from 'src/features/form/data/update/updateFormDataSagas';
 import type { IDeleteAttachmentReference } from 'src/features/form/data/formDataTypes';
+import type { IDataModelBindings } from 'src/layout/layout';
 import type { IAttachment, IAttachments } from 'src/shared/resources/attachments';
-import type { IDataModelBindings, IRuntimeState } from 'src/types';
+import type { IRuntimeState } from 'src/types';
 
 describe('updateFormDataSagas', () => {
   const testDeleteAttachmentReferenceSaga =

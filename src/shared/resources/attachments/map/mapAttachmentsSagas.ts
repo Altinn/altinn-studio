@@ -9,7 +9,7 @@ import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceD
 import { getCurrentTaskData } from 'src/utils/appMetadata';
 import { mapAttachmentListToAttachments } from 'src/utils/attachment';
 import type { IFormData } from 'src/features/form/data';
-import type { ILayouts } from 'src/features/form/layout';
+import type { ILayouts } from 'src/layout/layout';
 import type { IApplicationMetadata } from 'src/shared/resources/applicationMetadata';
 import type { IAttachments } from 'src/shared/resources/attachments';
 import type { ILayoutSets, IRuntimeState } from 'src/types';

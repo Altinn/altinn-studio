@@ -1,6 +1,7 @@
 import { getFormLayoutGroupMock, getFormLayoutStateMock, getMultiPageGroupMock } from 'src/__mocks__/mocks';
 import { mapGroupComponents } from 'src/features/form/containers/formUtils';
-import type { ILayout, ILayoutGroup } from 'src/features/form/layout';
+import type { ILayoutGroup } from 'src/layout/Group/types';
+import type { ILayout } from 'src/layout/layout';
 
 describe('formUtils/mapGroupComponents', () => {
   const makeFormLayout = () => {

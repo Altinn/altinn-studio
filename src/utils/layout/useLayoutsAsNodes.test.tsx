@@ -7,7 +7,7 @@ import { getInitialStateMock } from 'src/__mocks__/mocks';
 import { setupStore } from 'src/store';
 import { useLayoutsAsNodes } from 'src/utils/layout/useLayoutsAsNodes';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
-import type { ILayouts } from 'src/features/form/layout';
+import type { ILayouts } from 'src/layout/layout';
 import type { IRepeatingGroups } from 'src/types';
 
 const mockLayouts: ILayouts = {

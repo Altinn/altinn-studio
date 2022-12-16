@@ -15,7 +15,7 @@ import {
 } from 'src/shared/resources/options/fetch/fetchOptionsSagas';
 import * as networking from 'src/utils/network/sharedNetworking';
 import { selectNotNull } from 'src/utils/sagas';
-import type { ILayouts, ISelectionComponentProps } from 'src/features/form/layout';
+import type { ILayouts, ISelectionComponentProps } from 'src/layout/layout';
 import type { IOptions, IRuntimeState } from 'src/types';
 import type { IInstance } from 'src/types/shared';
 

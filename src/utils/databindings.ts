@@ -2,9 +2,10 @@ import { dot, object } from 'dot-object';
 
 import { getParentGroup } from 'src/utils/validation';
 import type { IFormData } from 'src/features/form/data';
-import type { ILayout, ILayoutCompFileUpload } from 'src/features/form/layout';
+import type { ILayoutCompFileUpload } from 'src/layout/FileUpload/types';
+import type { IDataModelBindings, ILayout } from 'src/layout/layout';
 import type { IAttachment, IAttachments } from 'src/shared/resources/attachments';
-import type { IDataModelBindings, IMapping, IRepeatingGroup, IRepeatingGroups } from 'src/types';
+import type { IMapping, IRepeatingGroup, IRepeatingGroups } from 'src/types';
 
 /**
  * Converts the formdata in store (that is flat) to a JSON

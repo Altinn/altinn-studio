@@ -1,5 +1,5 @@
+import type { IDataModelBindings } from 'src/layout/layout';
 import type { IAttachment } from 'src/shared/resources/attachments';
-import type { IDataModelBindings } from 'src/types';
 
 export interface IDeleteAttachmentAction {
   attachment: IAttachment;

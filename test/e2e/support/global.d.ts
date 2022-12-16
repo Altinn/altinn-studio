@@ -1,6 +1,6 @@
 import type { PayloadAction } from '@reduxjs/toolkit';
 
-import type { ILayoutComponentOrGroup } from 'src/features/form/layout';
+import type { ILayoutComponentOrGroup } from 'src/layout/layout';
 import type { IRuntimeState } from 'src/types';
 
 export type FrontendTestTask = 'message' | 'changename' | 'group' | 'likert' | 'datalist' | 'confirm';

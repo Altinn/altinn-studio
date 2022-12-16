@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import type { IComponentProps } from 'src/components';
+import type { IComponentProps } from 'src/layout';
 
 export interface DelayedSavedStateRetVal {
   value: string | undefined;

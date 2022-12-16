@@ -1,17 +1,12 @@
 import * as React from 'react';
 
-import { GenericComponent } from 'src/components/GenericComponent';
 import { GroupContainer } from 'src/features/form/containers/GroupContainer';
-import { PanelGroupContainer } from 'src/features/form/containers/PanelGroupContainer';
+import { GenericComponent } from 'src/layout/GenericComponent';
+import { PanelGroupContainer } from 'src/layout/Panel/PanelGroupContainer';
 import { LayoutStyle } from 'src/types';
 import { setMappingForRepeatingGroupComponent } from 'src/utils/formLayout';
-import type {
-  ILayout,
-  ILayoutComponent,
-  ILayoutComponentOrGroup,
-  ILayoutGroup,
-  ILayouts,
-} from 'src/features/form/layout';
+import type { ILayoutGroup } from 'src/layout/Group/types';
+import type { ILayout, ILayoutComponent, ILayoutComponentOrGroup, ILayouts } from 'src/layout/layout';
 import type { ILayoutSet, ILayoutSets } from 'src/types';
 import type { IInstance } from 'src/types/shared';
 

@@ -19,7 +19,7 @@ import {
   smartLowerCaseFirst,
 } from 'src/utils/formComponentUtils';
 import type { IFormData } from 'src/features/form/data';
-import type { IGridStyling, ILayoutComponent, ISelectionComponentProps } from 'src/features/form/layout';
+import type { IGridStyling, ILayoutComponent, ISelectionComponentProps } from 'src/layout/layout';
 import type { IAttachment, IAttachments } from 'src/shared/resources/attachments';
 import type {
   IComponentBindingValidation,
@@ -429,7 +429,7 @@ describe('formComponentUtils', () => {
     });
 
     it('should return true when component type is Datepicker', () => {
-      const result = componentValidationsHandledByGenericComponent({ simpleBinding: 'group.superdate' }, 'DatePicker');
+      const result = componentValidationsHandledByGenericComponent({ simpleBinding: 'group.superdate' }, 'Datepicker');
       expect(result).toEqual(true);
     });
 

@@ -1,5 +1,5 @@
 import { getFileEnding, removeFileEnding, shiftAttachmentRowInRepeatingGroup } from 'src/utils/attachment';
-import type { ILayoutComponent } from 'src/features/form/layout';
+import type { ILayoutComponent } from 'src/layout/layout';
 import type { IAttachment, IAttachments } from 'src/shared/resources/attachments';
 
 describe('attachment utils', () => {
