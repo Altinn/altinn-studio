@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import type { TextResourceFile, LangCode } from '@altinn/text-editor';
 import { AltinnSpinner } from 'app-shared/components';
 import { TextEditor } from '@altinn/text-editor';

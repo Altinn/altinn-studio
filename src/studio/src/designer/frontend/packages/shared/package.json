@@ -6,7 +6,6 @@
     "3": "2.1.0",
     "@altinn/altinn-design-system": "0.25.10",
     "@altinn/schema-editor": "0.1.0",
-    "@mui/icons-material": "5.11.0",
     "@mui/material": "5.11.0",
     "@mui/styles": "5.11.0",
     "@reduxjs/toolkit": "1.9.1",
