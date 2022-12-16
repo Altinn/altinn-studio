@@ -46,3 +46,15 @@ jobs:
       - name: 'Running Unit Tests'
         working-directory: src/studio/src/designer/frontend
         run: yarn test:ci
+
+      - name: SonarCloud Scan
+        if: |
+          github.repository_owner == 'Altinn' &&
+          (github.event_name != 'pull_request' && github.event.repository.fork == false) ||
+          (github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork == false)
+        with:
+          projectBaseDir: src/studio/src/designer/frontend
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

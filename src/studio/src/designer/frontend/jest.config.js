@@ -48,5 +48,7 @@ const config = {
 
 if (process.env.CI) {
   config.reporters.push('github-actions');
+  config.collectCoverage = true;
+  config.coverageDirectory = './coverage';
 }
 module.exports = config;
