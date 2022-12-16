@@ -14,6 +14,7 @@ import { renderLayoutComponent } from 'src/features/form/containers/Form';
 import appTheme from 'src/theme/altinnAppTheme';
 import { getDisplayFormDataForComponent, getFormDataForComponentInRepeatingGroup } from 'src/utils/formComponentUtils';
 import { getRepeatingGroupStartStopIndex, setMappingForRepeatingGroupComponent } from 'src/utils/formLayout';
+import { nodesInLayout } from 'src/utils/layout/hierarchy';
 import { getLanguageFromKey } from 'src/utils/sharedUtils';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { ComponentFromSummary } from 'src/features/form/containers/DisplayGroupContainer';
@@ -154,26 +155,21 @@ function SummaryGroupComponent({
   );
 
   React.useEffect(() => {
-    let groupErrors = false;
-    if (!largeGroup) {
-      for (let i = startIndex; i <= stopIndex; i++) {
-        if (groupErrors) {
-          break;
-        }
-
-        groupChildComponents.forEach((componentId: string) => {
-          const component = layout?.find((c: ILayoutComponent) => c.id === componentId);
-          const mainIndex = typeof index === 'number' && index >= 0 ? `-${index}` : '';
-          const componentIdWithIndex = component && `${component.id}${mainIndex}-${i}`;
-
-          if (pageRef && componentIdWithIndex && validations[pageRef] && validations[pageRef][componentIdWithIndex]) {
-            groupErrors = true;
-          }
-        });
+    if (!largeGroup && groupComponent && pageRef) {
+      const nodes = nodesInLayout(layout, repeatingGroups);
+      const groupNode = nodes.findById(groupComponent.id);
+      if (groupNode) {
+        const allChildren = groupNode.flat(true);
+        const hasGroupErrors = allChildren.some((child) =>
+          Object.keys(validations[pageRef]?.[child.item.id] || {}).some((bindingKey: string) => {
+            const length = validations[pageRef][child.item.id][bindingKey]?.errors?.length;
+            return length && length > 0;
+          }),
+        );
+        setGroupHasErrors(hasGroupErrors);
       }
-      setGroupHasErrors(groupErrors);
     }
-  }, [validations, largeGroup, pageRef, groupChildComponents, layout, index, stopIndex, startIndex]);
+  }, [groupComponent, largeGroup, layout, pageRef, repeatingGroups, validations]);
 
   const createRepeatingGroupSummaryComponents = () => {
     const componentArray: JSX.Element[] = [];
