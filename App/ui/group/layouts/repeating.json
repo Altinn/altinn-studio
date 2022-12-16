@@ -36,26 +36,37 @@
           "title": "Group title",
           "edit_button_open": [
             "if",
-            ["or", ["equals", [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ], true ],
-                  ["equals", [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ], "undefined" ],
-                  ["equals", [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ], "" ], 
-                  ["equals", [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ], "true" ] 
-                ],
-            "Se innhold",
+              ["dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"],
+              "Se innhold",
             "else",
-            "Rediger"
+              "Rediger"
+          ],
+          "edit_button_close": [
+            "if",
+              ["dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"],
+              "Lukk",
+            "else",
+              "Lagre og lukk"
+          ],
+          "save_button": [
+            "if",
+              ["dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill"],
+              "Lukk",
+            "else",
+              "Lagre og lukk"
           ]
         },
         "tableHeaders": ["currentValue", "newValue", "mainUploaderSingle", "mainUploaderMulti"],
         "triggers": ["validation"],
         "edit": {
           "mode": "showTable",
-          "saveButton": true,
-          "deleteButton": ["not",["or", ["equals", [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ], true ],
-          ["equals", [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ], "undefined" ],
-          ["equals", [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ], "" ], 
-          ["equals", [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ], "true" ] 
-        ]],
+          "saveButton": ["not",
+            ["and",
+              [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ],
+              [ "equals", ["component", "currentValue"], 1]
+            ]
+          ],
+          "deleteButton": ["not", [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ]],
           "multiPage": true,
           "openByDefault": false
         }
@@ -70,11 +81,7 @@
           "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristOpprinneligBelop-datadef-37131.value"
         },
         "required": false,
-        "readOnly": [
-          "equals",
-          [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ],
-          "true"
-        ],
+        "readOnly": [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ],
         "labelSettings": { "optionalIndicator": false },
         "grid": {
           "md": 6
@@ -98,11 +105,7 @@
           "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.SkattemeldingEndringEtterFristNyttBelop-datadef-37132.value"
         },
         "required": false,
-        "readOnly": [
-          "equals",
-          [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ],
-          "true"
-        ],
+        "readOnly": [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ],
         "grid": {
           "md": 6
         },
@@ -128,7 +131,8 @@
         "maxFileSizeInMB": 25,
         "maxNumberOfAttachments": 1,
         "minNumberOfAttachments": 0,
-        "displayMode": "simple"
+        "displayMode": "simple",
+        "hidden": [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ]
       },
       {
         "id": "mainUploaderMulti",
@@ -142,7 +146,8 @@
         "maxFileSizeInMB": 25,
         "maxNumberOfAttachments": 5,
         "minNumberOfAttachments": 0,
-        "displayMode": "simple"
+        "displayMode": "simple",
+        "hidden": [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ]
       },
       {
         "id": "source",
@@ -204,7 +209,12 @@
             }
           ],
           "openByDefault": true
-        }
+        },
+        "hidden": [
+          "and",
+          [ "dataModel", "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.isPrefill" ],
+          [ "greaterThan", ["component", "currentValue"], 100]
+        ]
       },
       {
         "id": "nested-source",

@@ -36,8 +36,10 @@ namespace Altinn.App.logic.DataProcessing
                     {
                         model.Endringsmeldinggrp9786 = new Endringsmeldinggrp9786();
                     }
-
-                    model.Endringsmeldinggrp9786.OversiktOverEndringenegrp9788 = new List<OversiktOverEndringenegrp9788>();
+                    if (model.Endringsmeldinggrp9786.OversiktOverEndringenegrp9788 == null)
+                    {
+                        model.Endringsmeldinggrp9786.OversiktOverEndringenegrp9788 = new List<OversiktOverEndringenegrp9788>();
+                    }
 
                     var prefillRows = new Dictionary<string, List<int>>();
                     prefillRows["liten"] = new List<int> { 1, 5 };
@@ -45,32 +47,56 @@ namespace Altinn.App.logic.DataProcessing
                     prefillRows["stor"] = new List<int> { 1233, 3488 };
                     prefillRows["svaer"] = new List<int> { 80323, 123455 };
                     prefillRows["enorm"] = new List<int> { 9872345, 18872345 };
-                    prefillRows["prefill"] = new List<int> { 1234, 4321 };
 
-                    // A real app should make sure not to delete user-provided data at this point, so instead of just
-                    // resetting the group contents, existing data should be merged in.
-                    if (!string.IsNullOrEmpty(model.PrefillValues))
+                    var valgList = string.IsNullOrEmpty(model.PrefillValues)
+                        ? new List<string>()
+                        : model.PrefillValues.Split(',').ToList();
+                    var valgListPrevious = string.IsNullOrEmpty(model.PrefillValuesShadow)
+                        ? new List<string>()
+                        : model.PrefillValuesShadow.Split(',').ToList();
+
+                    var newPrefills = valgList.Where(l => valgListPrevious.All(p => p != l));
+                    var removedPrefills = valgListPrevious.Where(p => valgList.All(l => l != p));
+                    var rowsToRemove = new List<OversiktOverEndringenegrp9788>();
+
+                    foreach (var toRemove in removedPrefills)
                     {
-                        var valgList = model.PrefillValues?.Split(',').ToList();
-                        foreach (var valg in valgList)
+                        foreach (var aRow in model.Endringsmeldinggrp9786.OversiktOverEndringenegrp9788)
                         {
-                            model.Endringsmeldinggrp9786.OversiktOverEndringenegrp9788.Add(new OversiktOverEndringenegrp9788
+                            if (aRow.isPrefill &&
+                                aRow.SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131.value ==
+                                prefillRows[toRemove][0] &&
+                                aRow.SkattemeldingEndringEtterFristNyttBelopdatadef37132.value ==
+                                prefillRows[toRemove][1])
                             {
-                                SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131 =
-                                new SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131
-                                {
-                                    orid = 37131,
-                                    value = prefillRows[valg][0]
-                                },
-                                SkattemeldingEndringEtterFristNyttBelopdatadef37132 =
-                                new SkattemeldingEndringEtterFristNyttBelopdatadef37132
-                                {
-                                    orid = 37132,
-                                    value = prefillRows[valg][1]
-                                },
-                                isPrefill = valg.Equals("prefill")
-                            });
+                                rowsToRemove.Add(aRow);
+                            }
                         }
+                    }
+
+                    foreach (var rowToRemove in rowsToRemove)
+                    {
+                        model.Endringsmeldinggrp9786.OversiktOverEndringenegrp9788.Remove(rowToRemove);
+                    }
+
+                    foreach (var toAdd in newPrefills)
+                    {
+                        model.Endringsmeldinggrp9786.OversiktOverEndringenegrp9788.Add(new OversiktOverEndringenegrp9788
+                        {
+                            SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131 =
+                            new SkattemeldingEndringEtterFristOpprinneligBelopdatadef37131
+                            {
+                                orid = 37131,
+                                value = prefillRows[toAdd][0]
+                            },
+                            SkattemeldingEndringEtterFristNyttBelopdatadef37132 =
+                            new SkattemeldingEndringEtterFristNyttBelopdatadef37132
+                            {
+                                orid = 37132,
+                                value = prefillRows[toAdd][1]
+                            },
+                            isPrefill = true
+                        });
                     }
 
                     model.PrefillValuesShadow = model.PrefillValues;
