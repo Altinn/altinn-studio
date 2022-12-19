@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import classes from './TextRow.module.css';
-import type { TextResourceEntry } from './types';
+import type { TextResourceFile } from './types';
+
+type IdChange = { from: string; to?: string };
+type TranslationChange = { textId: string; to?: string };
+
 import { Delete, InformationColored } from '@navikt/ds-icons';
 import {
   Button,
@@ -13,112 +17,115 @@ import {
   TextField,
 } from '@altinn/altinn-design-system';
 
-export interface ILanguageRowProps {
+export interface LanguageRowProps {
   languageName: string;
   langCode: string;
-  textResourceEntry: TextResourceEntry;
-  // TODO: Cleanup/simplify these, could probably stick with just `onTranslationChange`? See how they are used in TextEditor.tsx - they all end up calling the same callback with the same args
-  upsertEntry: (entry: TextResourceEntry) => void;
-  removeEntry: (textResourceId: string) => void;
-  updateEntryId: (oldId: string, newId: string) => void;
+  textId: string;
+  textResources?: TextResourceFile;
+  onTextIdChange: (change: IdChange) => void;
+  onTranslationChange: (change: TranslationChange) => void;
+  onRemoveEntry: (textId: string) => void;
   idExists: (textResourceId: string) => boolean;
 }
 
 export const TextRow = ({
   languageName,
   langCode,
-  textResourceEntry,
-  upsertEntry,
-  removeEntry,
-  updateEntryId,
+  textId,
+  textResources,
+  onTextIdChange,
+  onTranslationChange,
+  onRemoveEntry,
   idExists,
-}: ILanguageRowProps) => {
-  const [idValue, setIdValue] = useState(textResourceEntry.id);
-  const [valueValue, setValueValue] = useState(textResourceEntry.value);
-  const [keyError, setKeyError] = useState('');
+}: LanguageRowProps) => {
+  const getTextResource = (id: string) => (textResources || {})[id];
+  const [idValue, setIdValue] = useState(textId);
+  const [translationValue, setTranslationValue] = useState(getTextResource(textId));
+  const [textIdError, setTextIdError] = useState('');
 
   const handleIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = e.currentTarget.value;
-    if (idExists(newValue)) {
-      setKeyError('Denne IDen finnes allerede');
-    } else {
-      setKeyError('');
-      setIdValue(newValue);
+    const newId = e.currentTarget.value;
+    setTextIdError('');
+    setIdValue(newId);
+    if (idExists(newId)) {
+      setTextIdError('Denne IDen finnes allerede');
     }
   };
-  const handleValueChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
-    setValueValue(e.currentTarget.value);
+  const handleTranslationValueChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
+    setTranslationValue(e.currentTarget.value);
 
   const handleIdBlur = () => {
-    if (!keyError && textResourceEntry.id !== idValue) {
-      updateEntryId(textResourceEntry.id, idValue);
+    if (!textIdError && textId !== idValue) {
+      onTextIdChange({ from: textId, to: idValue });
     }
   };
 
-  const handleValueBlur = () => {
-    if (textResourceEntry.value !== valueValue) {
-      upsertEntry({ id: textResourceEntry.id, value: valueValue });
+  const handleTranslationValueBlur = () => {
+    if (getTextResource(textId) || '' !== translationValue) {
+      onTranslationChange({ to: translationValue, textId });
     }
   };
 
-  const handleDeleteClick = () => removeEntry(textResourceEntry.id);
+  const handleDeleteClick = () => onRemoveEntry(textId);
 
-  const idForValue = `value-${langCode}-${textResourceEntry.id}`;
-  const variables = textResourceEntry.variables || [];
+  const variables = [];
 
+  const translationDomId = `value-${langCode}-${textId}`;
   const [infoboxOpen, setInfoboxOpen] = useState(false);
 
   return (
     <div data-testid={'lang-row'} className={classes.textRow}>
       <div className={classes.leftCol}>
         <TextField
-          isValid={!keyError}
+          isValid={!textIdError}
           value={idValue}
           type='text'
           onBlur={handleIdBlur}
           onChange={handleIdChange}
           label={'ID'}
         />
-        {keyError ? <ErrorMessage>{keyError}</ErrorMessage> : null}
+        {textIdError ? <ErrorMessage>{textIdError}</ErrorMessage> : null}
       </div>
       <div className={classes.centerCol}>
-        <label htmlFor={idForValue}>{languageName}</label>
-        <TextArea
-          resize='vertical'
-          id={idForValue}
-          value={valueValue}
-          onBlur={handleValueBlur}
-          onChange={handleValueChange}
-          rows={3}
-        />
-        {variables.map((variable) => (
-          <div
-            key={variable.key}
-            className={classes.chip}
-            title={'Det er ikke lagt til støtte for redigering av variabler i Studio.'}
-          >
-            {variable.key}: {variable.dataSource}
-          </div>
-        ))}
-        {variables.length > 0 && (
-          <span className={classes.infoButton}>
-            <PopoverPanel
-              title={'Kun for visning'}
-              variant={PanelVariant.Info}
-              trigger={
-                <Button
-                  icon={<InformationColored />}
-                  variant={ButtonVariant.Quiet}
-                  size={ButtonSize.Small}
-                />
-              }
-              open={infoboxOpen}
-              onOpenChange={setInfoboxOpen}
+        <label htmlFor={translationDomId}>{languageName}</label>
+        <div>
+          <TextArea
+            resize='vertical'
+            id={translationDomId}
+            value={translationValue}
+            onBlur={handleTranslationValueBlur}
+            onChange={handleTranslationValueChange}
+            rows={3}
+          />
+          {variables.map((variable) => (
+            <div
+              key={variable.key}
+              className={classes.chip}
+              title={'Det er ikke lagt til støtte for redigering av variabler i Studio.'}
             >
-              <div>Det er ikke mulig å redigere variabler i Studio.</div>
-            </PopoverPanel>
-          </span>
-        )}
+              {variable.key}: {variable.dataSource}
+            </div>
+          ))}
+          {variables.length > 0 && (
+            <span className={classes.infoButton}>
+              <PopoverPanel
+                title={'Kun for visning'}
+                variant={PanelVariant.Info}
+                trigger={
+                  <Button
+                    icon={<InformationColored />}
+                    variant={ButtonVariant.Quiet}
+                    size={ButtonSize.Small}
+                  />
+                }
+                open={infoboxOpen}
+                onOpenChange={setInfoboxOpen}
+              >
+                <div>Det er ikke mulig å redigere variabler i Studio.</div>
+              </PopoverPanel>
+            </span>
+          )}
+        </div>
       </div>
       <div className={classes.rightCol}>
         <Button

@@ -9,6 +9,7 @@ import {
   useUpdateTranslationByLangCodeMutation,
   useDeleteByLangCodeMutation,
   useAddByLangCodeMutation,
+  useGetAppTextIdsQuery,
 } from '../../services/textsApi';
 import { useSearchParams } from 'react-router-dom';
 import { deepCopy } from 'app-shared/pure';
@@ -29,15 +30,14 @@ export const TextEditorImpl = () => {
   }, [searchParams, setSelectedLangCode]);
 
   const orgApp = getOrgApp();
-
-  const { data: appLanguageCodes, isLoading: isInitialLoadingLangCodes } =
-    useGetLanguagesQuery(orgApp);
-
+  const { data: appLanguageCodes } = useGetLanguagesQuery(orgApp);
   const {
-    data: translations,
-    isLoading: isInitialLoadingLang,
-    isFetching: isFetchingTranslations,
-  } = useGetAppTextsByLangCodeQuery(
+    data: textIds,
+    isLoading: isInitialLoadingTextIds,
+    isFetching: isFetchingTextIds,
+  } = useGetAppTextIdsQuery(orgApp);
+
+  const { data: translations, isFetching: isFetchingTranslations } = useGetAppTextsByLangCodeQuery(
     {
       ...orgApp,
       langCode: selectedLangCode,
@@ -45,16 +45,20 @@ export const TextEditorImpl = () => {
     { skip: !selectedLangCode }
   );
 
+  const [updateLanguage] = useUpdateTranslationByLangCodeMutation();
+  const [deleteLanguage] = useDeleteByLangCodeMutation();
+  const [addLanguage] = useAddByLangCodeMutation();
+
   const getLangCodesOrDefault = useCallback(
     () => (appLanguageCodes?.length ? appLanguageCodes : [defaultLangCode]),
     [appLanguageCodes]
   );
 
-  const [updateLanguage] = useUpdateTranslationByLangCodeMutation();
-  const [deleteLanguage] = useDeleteByLangCodeMutation();
-  const [addLanguage] = useAddByLangCodeMutation();
+  React.useEffect(() => {
+    setSelectedLangCode(getLangCodesOrDefault()[0]);
+  }, [getLangCodesOrDefault]);
 
-  if (isInitialLoadingLang || isInitialLoadingLangCodes) {
+  if (isInitialLoadingTextIds) {
     return (
       <div>
         <AltinnSpinner />
@@ -85,6 +89,7 @@ export const TextEditorImpl = () => {
 
   return (
     <TextEditor
+      fetchedTextIds={textIds}
       selectedLangCode={selectedLangCode}
       availableLanguageCodes={getLangCodesOrDefault()}
       translations={
@@ -93,6 +98,7 @@ export const TextEditorImpl = () => {
           resources: [],
         }
       }
+      isFetchingTextIds={isFetchingTextIds}
       isFetchingTranslations={isFetchingTranslations}
       onSelectedLanguageChange={handleSelectedLanguageChange}
       onTranslationChange={handleTranslationChange}

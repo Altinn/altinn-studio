@@ -10,7 +10,7 @@ export type TextResourceEntry = {
 };
 
 export type TextResourceVariable = {
-  key: string;
+  id: string;
   dataSource: string;
 };
 

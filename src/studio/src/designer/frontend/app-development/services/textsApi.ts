@@ -4,9 +4,12 @@ import { Tags } from './tags';
 import { languagesApi } from './languagesApi';
 import { textResourcesPath } from 'app-shared/api-paths';
 
-type OrgAppLang = {
+type OrgApp = {
   org: string;
   app: string;
+};
+
+type OrgAppLang = OrgApp & {
   langCode: string;
 };
 
@@ -14,11 +17,22 @@ type OrgAppLangData = OrgAppLang & {
   data: TextResourceFile;
 };
 
-const languageFileUrl = ({ org, app, langCode }) =>
-  `/designer/${org}/${app}/Text/SaveResource/${langCode}`;
+const textIdUrl = ({ org, app }) => `/designer/api/v1/${org}/${app}/keys`;
+const languageFileUrl = ({ org, app, langCode }) => `/designer/api/v2/${org}/${app}/texts/${langCode}`;
 
 export const textsApi = appDevelopmentApi.injectEndpoints({
   endpoints: (builder) => ({
+    getAppTextIds: builder.query<string[], OrgApp>({
+      query: (params) => ({
+        url: textIdUrl(params),
+      }),
+      providesTags: (result, error, arg) => [
+        {
+          type: Tags.TextIds,
+          id: arg.app,
+        },
+      ],
+    }),
     getAppTextsByLangCode: builder.query<TextResourceFile, OrgAppLang>({
       query: ({ org, app, langCode }) => ({
         url: textResourcesPath(org, app, langCode),
@@ -33,7 +47,7 @@ export const textsApi = appDevelopmentApi.injectEndpoints({
     updateTranslationByLangCode: builder.mutation<void, OrgAppLangData>({
       query: ({ data, ...params }) => ({
         url: languageFileUrl(params),
-        method: 'POST',
+        method: 'PUT',
         data,
       }),
       invalidatesTags: (result, error, arg) => [
@@ -117,7 +131,7 @@ export const textsApi = appDevelopmentApi.injectEndpoints({
 });
 
 export const {
-  endpoints,
+  useGetAppTextIdsQuery,
   useGetAppTextsByLangCodeQuery,
   useUpdateTranslationByLangCodeMutation,
   useDeleteByLangCodeMutation,

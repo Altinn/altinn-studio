@@ -3,6 +3,7 @@ import type { ILanguageRowProps } from './TextRow';
 import type { TextResourceEntry } from './types';
 import userEvent from '@testing-library/user-event';
 import { TextRow } from './TextRow';
+import type { ILanguageRowProps } from './TextRow';
 import { screen, render as rtlRender } from '@testing-library/react';
 
 const renderTextRow = (props: Partial<ILanguageRowProps> = {}) => {

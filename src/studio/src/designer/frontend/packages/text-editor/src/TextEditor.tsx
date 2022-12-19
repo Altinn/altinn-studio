@@ -1,17 +1,17 @@
-import React from 'react';
+import React, { useState } from 'react';
 import classes from './TextEditor.module.css';
-import type { LangCode, TextResourceEntry, TextResourceFile } from './types';
+import type { LangCode, TextResourceFile } from './types';
 import type { RightMenuProps } from './RightMenu';
+import { RightMenu } from './RightMenu';
 import { AltinnSpinner } from 'app-shared/components';
 import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
-import { RightMenu } from './RightMenu';
-import { TextRow } from './TextRow';
 import { getLanguageName, getRandNumber } from './utils';
-import { findTextEntry, removeTextEntry, updateTextEntryId, upsertTextEntry } from './mutations';
+import { TextList } from './TextList';
 
 export interface ILanguageEditorProps {
+  fetchedTextIds?: string[];
+  isFetchingTextIds: boolean;
   translations: TextResourceFile;
-  isFetchingTranslations: boolean;
   onTranslationChange: (translations: TextResourceFile) => void;
   selectedLangCode: string;
   onSelectedLanguageChange: (langCode: LangCode) => void;
@@ -21,15 +21,17 @@ export interface ILanguageEditorProps {
 }
 
 export const TextEditor = ({
+  fetchedTextIds,
+  isFetchingTextIds,
   translations,
   selectedLangCode,
   onTranslationChange,
-  isFetchingTranslations,
   onSelectedLanguageChange,
   availableLanguageCodes,
   onAddLanguage,
   onDeleteLanguage,
 }: ILanguageEditorProps) => {
+  const [textIds, setTextIds] = useState<string[]>(fetchedTextIds || []);
   const rightMenuProps: RightMenuProps = {
     selectedLangCode,
     onSelectedLanguageChange,
@@ -37,29 +39,40 @@ export const TextEditor = ({
     onAddLanguage,
     onDeleteLanguage,
   };
+  const handleTextIdChange = ({ oldValue, newValue }: { oldValue: string; newValue: string }) => {
+    const updatedLanguage = { ...translations };
+    updatedLanguage[newValue] = updatedLanguage[oldValue];
+    delete updatedLanguage[oldValue];
+    onTranslationChange(updatedLanguage);
+    const renamedIds = [...textIds];
+    renamedIds.splice(
+      textIds.findIndex((v) => v === oldValue),
+      1,
+      newValue
+    );
+    setTextIds(renamedIds);
+  };
+
   const languageName = getLanguageName({ code: selectedLangCode });
 
-  const idExits = (entryId: string) => Boolean(findTextEntry(translations, entryId));
+  const handleTranslationChange = ({ newValue, textId }: { newValue: string; textId: string }) => {
+    const updatedLanguage = {
+      ...translations,
+    };
+    updatedLanguage[textId] = newValue;
 
-  const handleAddNewEntryClick = () =>
-    onTranslationChange(
-      upsertTextEntry(translations, {
-        id: `id_${getRandNumber()}`,
-        value: '',
-      })
-    );
-
-  const removeEntry = (entryId: string) =>
-    onTranslationChange(removeTextEntry(translations, entryId));
-  const upsertEntry = (entry: TextResourceEntry) =>
-    onTranslationChange(upsertTextEntry(translations, entry));
-  const updateEntryId = (oldId: string, newId: string) =>
-    onTranslationChange(updateTextEntryId(translations, oldId, newId));
+    onTranslationChange(updatedLanguage);
+  };
+  const handleAddNewEntryClick = () => {
+    const newId = getRandNumber();
+    const newIdList = [`id_${newId}`, ...textIds];
+    setTextIds(newIdList);
+  };
 
   return (
     <div className={classes.TextEditor}>
       <div className={classes.TextEditor__body}>
-        {isFetchingTranslations ? (
+        {isFetchingTextIds ? (
           <div>
             <AltinnSpinner />
           </div>
@@ -74,19 +87,14 @@ export const TextEditor = ({
                 Ny tekst
               </Button>
             </div>
-            {translations &&
-              translations.resources.map((entry) => (
-                <TextRow
-                  key={`${selectedLangCode}.${entry.id}`}
-                  languageName={languageName}
-                  langCode={selectedLangCode}
-                  textResourceEntry={entry}
-                  idExists={idExits}
-                  upsertEntry={upsertEntry}
-                  removeEntry={removeEntry}
-                  updateEntryId={updateEntryId}
-                />
-              ))}
+            <TextList
+              textIds={textIds}
+              languageName={languageName}
+              langCode={selectedLangCode}
+              translations={translations}
+              onTextIdChange={handleTextIdChange}
+              onTranslationChange={handleTranslationChange}
+            />
           </>
         )}
       </div>
