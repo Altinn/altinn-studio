@@ -84,11 +84,15 @@ export const textsApi = appDevelopmentApi.injectEndpoints({
         },
       ],
     }),
+
     addByLangCode: builder.mutation<void, OrgAppLang>({
       query: (params) => ({
         url: languageFileUrl(params),
-        method: 'PUT',
-        data: {},
+        method: 'POST',
+        data: {
+          language: params.langCode,
+          resources: [],
+        },
       }),
       async onQueryStarted({ org, app, langCode: addedLangCode }, { dispatch, queryFulfilled }) {
         dispatch(

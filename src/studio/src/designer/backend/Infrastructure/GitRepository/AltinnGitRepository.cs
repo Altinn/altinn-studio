@@ -27,7 +27,7 @@ namespace Altinn.Studio.Designer.Infrastructure.GitRepository
         private const string SCHEMA_FILES_PATTERN_JSON = "*.schema.json";
         private const string SCHEMA_FILES_PATTERN_XSD = "*.xsd";
         private const string STUDIO_SETTINGS_FILEPATH = ".altinnstudio/settings.json";
-        private const string TEXT_FILES_PATTERN_JSON = "*.texts.json";
+        private const string TEXT_FILES_PATTERN_JSON = "resource.*.json";
 
         private AltinnStudioSettings _altinnStudioSettings;
 
