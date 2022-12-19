@@ -45,7 +45,7 @@ Run all parts of the solution in containers (Make sure docker is running)
 docker-compose up -d --build
 ```
 
-The solution is now available locally at [local.altinn.studio](http://local.altinn.studio). (Just create a new user for testing. No email
+The solution is now available locally at [altinn.localhost](http://altinn.localhost). (Just create a new user for testing. No email
 verification required)
 
 If you make changes and want to rebuild a specific project using docker-compose this can be done using
@@ -180,7 +180,7 @@ This project is licensed under the 3-Clause BSD License - see the [LICENSE.md](L
 [7]: https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp
 [8]: https://www.docker.com/products/docker-desktop
 [9]: https://github.com/Altinn/altinn-studio
-[10]: http://altinn3.no
+[10]: http://altinn.localhost
 [11]: https://reactjs.org/
 [12]: https://redux.js.org/
 [13]: https://docs.microsoft.com/en-us/dotnet/core/

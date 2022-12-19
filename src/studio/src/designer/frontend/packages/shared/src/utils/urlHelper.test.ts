@@ -13,7 +13,7 @@ describe('Shared urlHelper.ts', () => {
       delete window.location;
       window.location = {
         ...oldWindowLocation,
-        origin: 'https://local.altinn.studio',
+        origin: 'https://altinn.localhost',
         pathname: `${APP_DEVELOPMENT_BASENAME}/org/repo`,
       };
     });
@@ -22,7 +22,7 @@ describe('Shared urlHelper.ts', () => {
       delete window.location;
       window.location = {
         ...oldWindowLocation,
-        origin: 'https://local.altinn.studio',
+        origin: 'https://altinn.localhost',
         pathname: `${DASHBOARD_BASENAME}/datamodelling/org/repo`,
       };
     });
@@ -40,8 +40,8 @@ describe('Shared urlHelper.ts', () => {
     });
 
     test('returnUrlToMessagebox() returning studio messagebox', () => {
-      const origin = 'https://local.altinn.studio/tdd/tjeneste-20190826-1130';
-      expect(returnUrlToMessagebox(origin)).toContain('local.altinn.studio');
+      const origin = 'https://altinn.localhost/tdd/tjeneste-20190826-1130';
+      expect(returnUrlToMessagebox(origin)).toContain('altinn.localhost');
     });
 
     test('returnUrlToMessagebox() returning null when unknown origin', () => {
