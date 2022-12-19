@@ -35,11 +35,30 @@ namespace Altinn.Studio.Designer.Services.Implementation
             {
                 string fileName = Path.GetFileName(languageFile);
                 string[] nameParts = fileName.Split('.');
-                languages.Add(nameParts[1]);
+                languages.Add(nameParts[0]);
             }
 
             languages.Sort();
 
+            return languages;
+        }
+
+        /// <summary>
+        /// GetLanguagesOldFormat
+        /// </summary>
+        public IList<string> GetLanguagesOldFormat(string org, string repo, string developer)
+        {
+            var altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, repo, developer);
+            List<string> languages = new List<string>();
+            IList<string> languageFiles = altinnAppGitRepository.GetLanguageResourceFiles();
+            foreach (string languageFile in languageFiles)
+            {
+                string fileName = Path.GetFileName(languageFile);
+                string[] nameParts = fileName.Split('.');
+                languages.Add(nameParts[1]);
+            }
+
+            languages.Sort();
             return languages;
         }
     }

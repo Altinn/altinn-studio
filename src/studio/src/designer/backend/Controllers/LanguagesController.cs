@@ -41,7 +41,7 @@ namespace Altinn.Studio.Designer.Controllers
         {
             string developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            List<string> languages = new List<string>(_languagesService.GetLanguages(org, repo, developer));
+            List<string> languages = new List<string>(_languagesService.GetLanguagesOldFormat(org, repo, developer));
 
             return Ok(languages);
         }
