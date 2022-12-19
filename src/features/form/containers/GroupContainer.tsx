@@ -252,10 +252,8 @@ export function GroupContainer({ id, container, components }: IGroupProps): JSX.
           textResources={textResources}
           layout={layout}
           repeatingGroupDeepCopyComponents={repeatingGroupDeepCopyComponents}
-          hideSaveButton={edit?.saveButton === false}
           multiPageIndex={multiPageIndex}
           setMultiPageIndex={setMultiPageIndex}
-          showSaveAndNextButton={edit?.saveAndNextButton === true}
           filteredIndexes={filteredIndexList}
         />
       )}
@@ -282,8 +280,7 @@ export function GroupContainer({ id, container, components }: IGroupProps): JSX.
                 setEditIndex={setEditIndex}
                 onClickRemove={onClickRemove}
                 repeatingGroupDeepCopyComponents={repeatingGroupDeepCopyComponents}
-                hideSaveButton={true}
-                hideDeleteButton={edit?.deleteButton === false}
+                forceHideSaveButton={true}
               />
             );
           })}

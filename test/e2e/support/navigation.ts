@@ -144,28 +144,28 @@ const completeFormSlow: { [key in FrontendTestTask]: () => void } = {
       cy.wrap(checkbox).should('be.visible').find('input').check();
     });
     cy.addItemToGroup(1, 2, 'automation');
-    cy.get(appFrontend.group.rows[0].editBtn).click();
+    cy.get(appFrontend.group.row(0).editBtn).click();
     cy.get(appFrontend.group.editContainer).find(appFrontend.group.next).click();
-    cy.get(appFrontend.group.rows[0].uploadSingle.dropZone).selectFile(mkFile('attachment-in-single.pdf'), {
+    cy.get(appFrontend.group.row(0).uploadSingle.dropZone).selectFile(mkFile('attachment-in-single.pdf'), {
       force: true,
     });
-    cy.get(appFrontend.group.rows[0].uploadMulti.dropZone).selectFile(mkFile('attachment-in-multi1.pdf'), {
+    cy.get(appFrontend.group.row(0).uploadMulti.dropZone).selectFile(mkFile('attachment-in-multi1.pdf'), {
       force: true,
     });
-    cy.get(appFrontend.group.rows[0].uploadMulti.addMoreBtn).click();
-    cy.get(appFrontend.group.rows[0].uploadMulti.dropZone).selectFile(mkFile('attachment-in-multi2.pdf'), {
+    cy.get(appFrontend.group.row(0).uploadMulti.addMoreBtn).click();
+    cy.get(appFrontend.group.row(0).uploadMulti.dropZone).selectFile(mkFile('attachment-in-multi2.pdf'), {
       force: true,
     });
-    cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].editBtn).click();
-    cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].uploadTagMulti.dropZone).selectFile(
+    cy.get(appFrontend.group.row(0).nestedGroup.row(0).editBtn).click();
+    cy.get(appFrontend.group.row(0).nestedGroup.row(0).uploadTagMulti.dropZone).selectFile(
       mkFile('attachment-in-nested.pdf'),
       { force: true },
     );
-    cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].uploadTagMulti.attachments[0].tagSelector || 'nothing')
+    cy.get(appFrontend.group.row(0).nestedGroup.row(0).uploadTagMulti.attachments(0).tagSelector || 'nothing')
       .should('be.visible')
       .select('altinn');
-    cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].uploadTagMulti.attachments[0].tagSave || 'nothing').click();
-    cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].uploadTagMulti.attachments[0].tagSelector || 'nothing').should(
+    cy.get(appFrontend.group.row(0).nestedGroup.row(0).uploadTagMulti.attachments(0).tagSave || 'nothing').click();
+    cy.get(appFrontend.group.row(0).nestedGroup.row(0).uploadTagMulti.attachments(0).tagSelector || 'nothing').should(
       'not.exist',
     );
 

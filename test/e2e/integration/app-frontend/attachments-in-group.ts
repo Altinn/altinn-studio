@@ -11,11 +11,10 @@ const mui = new Common();
 
 interface IUploadFileArgs {
   item: ReturnType<typeof makeUploaderSelectors>;
-  idx: string | number;
+  idx: number;
   fileName: string;
   verifyTableRow: boolean;
   tableRow;
-  isTaggedUploader?: boolean;
   secondPage?: boolean;
 }
 
@@ -66,25 +65,18 @@ describe('Repeating group attachments', () => {
     }
   };
 
-  const uploadFile = ({
-    item,
-    idx,
-    fileName,
-    verifyTableRow,
-    tableRow,
-    isTaggedUploader,
-    secondPage = false,
-  }: IUploadFileArgs) => {
+  const uploadFile = ({ item, idx, fileName, verifyTableRow, tableRow, secondPage = false }: IUploadFileArgs) => {
     cy.get(item.dropZoneContainer).should('be.visible');
     cy.get(item.dropZone).selectFile(makeTestFile(fileName), { force: true });
 
-    if (isTaggedUploader) {
-      cy.get(item.attachments[idx].tagSelector).should('be.visible').select('altinn');
-      cy.get(item.attachments[idx].tagSave).click();
+    const attachment = item.attachments(idx);
+    if (attachment.tagSelector !== undefined && attachment.tagSave !== undefined) {
+      cy.get(attachment.tagSelector).should('be.visible').select('altinn');
+      cy.get(attachment.tagSave).click();
     }
 
-    cy.get(item.attachments[idx].status).should('be.visible').should('contain.text', texts.finishedUploading);
-    cy.get(item.attachments[idx].name).should('be.visible').should('contain.text', fileName);
+    cy.get(attachment.status).should('be.visible').should('contain.text', texts.finishedUploading);
+    cy.get(attachment.name).should('be.visible').should('contain.text', fileName);
 
     if (verifyTableRow) {
       cy.get(tableRow.editBtn).click();
@@ -171,28 +163,28 @@ describe('Repeating group attachments', () => {
     ];
 
     uploadFile({
-      item: appFrontend.group.rows[0].uploadSingle,
+      item: appFrontend.group.row(0).uploadSingle,
       idx: 0,
       fileName: filenames[0].single,
       verifyTableRow: true,
-      tableRow: appFrontend.group.rows[0],
+      tableRow: appFrontend.group.row(0),
       secondPage: true,
     });
     getState().should('deep.equal', {
-      [appFrontend.group.rows[0].uploadSingle.stateKey]: [filenames[0].single],
+      [appFrontend.group.row(0).uploadSingle.stateKey]: [filenames[0].single],
     });
 
     filenames[0].multi.forEach((fileName, idx) => {
       uploadFile({
-        item: appFrontend.group.rows[0].uploadMulti,
+        item: appFrontend.group.row(0).uploadMulti,
         idx,
         fileName,
         verifyTableRow: true,
-        tableRow: appFrontend.group.rows[0],
+        tableRow: appFrontend.group.row(0),
         secondPage: true,
       });
       if (idx !== filenames[0].multi.length - 1) {
-        cy.get(appFrontend.group.rows[0].uploadMulti.addMoreBtn).click();
+        cy.get(appFrontend.group.row(0).uploadMulti.addMoreBtn).click();
       }
     });
 
@@ -202,47 +194,46 @@ describe('Repeating group attachments', () => {
     gotoSecondPage();
 
     uploadFile({
-      item: appFrontend.group.rows[1].uploadSingle,
+      item: appFrontend.group.row(1).uploadSingle,
       idx: 0,
       fileName: filenames[1].single,
       verifyTableRow: true,
-      tableRow: appFrontend.group.rows[1],
+      tableRow: appFrontend.group.row(1),
       secondPage: true,
     });
     filenames[1].multi.forEach((fileName, idx) => {
       uploadFile({
-        item: appFrontend.group.rows[1].uploadMulti,
+        item: appFrontend.group.row(1).uploadMulti,
         idx,
         fileName,
         verifyTableRow: true,
-        tableRow: appFrontend.group.rows[1],
+        tableRow: appFrontend.group.row(1),
         secondPage: true,
       });
       if (idx !== filenames[1].multi.length - 1) {
-        cy.get(appFrontend.group.rows[1].uploadMulti.addMoreBtn).click();
+        cy.get(appFrontend.group.row(1).uploadMulti.addMoreBtn).click();
       }
     });
     cy.get(appFrontend.group.saveMainGroup).click();
     cy.get(appFrontend.group.saveMainGroup).should('not.exist');
 
     [0, 1].forEach((row) => {
-      cy.get(appFrontend.group.rows[row].editBtn).click();
+      cy.get(appFrontend.group.row(row).editBtn).click();
       gotoSecondPage();
       filenames[row].nested.forEach((nestedRow, nestedRowIdx) => {
         nestedRow.forEach((fileName, idx) => {
           uploadFile({
-            item: appFrontend.group.rows[row].nestedGroup.rows[nestedRowIdx].uploadTagMulti,
+            item: appFrontend.group.row(row).nestedGroup.row(nestedRowIdx).uploadTagMulti,
             idx,
             fileName,
             verifyTableRow: true,
-            isTaggedUploader: true,
-            tableRow: appFrontend.group.rows[row].nestedGroup.rows[nestedRowIdx],
+            tableRow: appFrontend.group.row(row).nestedGroup.row(nestedRowIdx),
           });
         });
-        cy.get(appFrontend.group.rows[row].nestedGroup.saveBtn).click();
-        cy.get(appFrontend.group.rows[row].nestedGroup.saveBtn).should('not.exist');
+        cy.get(appFrontend.group.row(row).nestedGroup.saveBtn).click();
+        cy.get(appFrontend.group.row(row).nestedGroup.saveBtn).should('not.exist');
         if (nestedRowIdx === 0) {
-          cy.get(appFrontend.group.rows[row].nestedGroup.groupContainer)
+          cy.get(appFrontend.group.row(row).nestedGroup.groupContainer)
             .parent()
             .find(appFrontend.group.addNewItemSubGroup)
             .click();
@@ -253,87 +244,87 @@ describe('Repeating group attachments', () => {
     });
 
     getState().should('deep.equal', {
-      [appFrontend.group.rows[0].uploadSingle.stateKey]: [filenames[0].single],
-      [appFrontend.group.rows[0].uploadMulti.stateKey]: filenames[0].multi,
-      [appFrontend.group.rows[1].uploadSingle.stateKey]: [filenames[1].single],
-      [appFrontend.group.rows[1].uploadMulti.stateKey]: filenames[1].multi,
-      [appFrontend.group.rows[0].nestedGroup.rows[0].uploadTagMulti.stateKey]: filenames[0].nested[0],
-      [appFrontend.group.rows[0].nestedGroup.rows[1].uploadTagMulti.stateKey]: filenames[0].nested[1],
-      [appFrontend.group.rows[1].nestedGroup.rows[0].uploadTagMulti.stateKey]: filenames[1].nested[0],
-      [appFrontend.group.rows[1].nestedGroup.rows[1].uploadTagMulti.stateKey]: filenames[1].nested[1],
+      [appFrontend.group.row(0).uploadSingle.stateKey]: [filenames[0].single],
+      [appFrontend.group.row(0).uploadMulti.stateKey]: filenames[0].multi,
+      [appFrontend.group.row(1).uploadSingle.stateKey]: [filenames[1].single],
+      [appFrontend.group.row(1).uploadMulti.stateKey]: filenames[1].multi,
+      [appFrontend.group.row(0).nestedGroup.row(0).uploadTagMulti.stateKey]: filenames[0].nested[0],
+      [appFrontend.group.row(0).nestedGroup.row(1).uploadTagMulti.stateKey]: filenames[0].nested[1],
+      [appFrontend.group.row(1).nestedGroup.row(0).uploadTagMulti.stateKey]: filenames[1].nested[0],
+      [appFrontend.group.row(1).nestedGroup.row(1).uploadTagMulti.stateKey]: filenames[1].nested[1],
     });
 
     const deletedAttachmentNames: string[] = [];
     const verifyPreview = (firstRowDeleted = false) => {
       let idx = 0;
       if (!firstRowDeleted) {
-        verifyTableRowPreview(appFrontend.group.rows[idx].uploadSingle, filenames[0].single, deletedAttachmentNames);
-        verifyTableRowPreview(appFrontend.group.rows[idx].uploadMulti, filenames[0].multi[0], deletedAttachmentNames);
-        verifyTableRowPreview(appFrontend.group.rows[idx].uploadMulti, filenames[0].multi[1], deletedAttachmentNames);
-        verifyTableRowPreview(appFrontend.group.rows[idx].uploadMulti, filenames[0].multi[2], deletedAttachmentNames);
+        verifyTableRowPreview(appFrontend.group.row(idx).uploadSingle, filenames[0].single, deletedAttachmentNames);
+        verifyTableRowPreview(appFrontend.group.row(idx).uploadMulti, filenames[0].multi[0], deletedAttachmentNames);
+        verifyTableRowPreview(appFrontend.group.row(idx).uploadMulti, filenames[0].multi[1], deletedAttachmentNames);
+        verifyTableRowPreview(appFrontend.group.row(idx).uploadMulti, filenames[0].multi[2], deletedAttachmentNames);
         idx++;
       }
 
-      verifyTableRowPreview(appFrontend.group.rows[idx].uploadSingle, filenames[1].single, deletedAttachmentNames);
-      verifyTableRowPreview(appFrontend.group.rows[idx].uploadMulti, filenames[1].multi[0], deletedAttachmentNames);
-      verifyTableRowPreview(appFrontend.group.rows[idx].uploadMulti, filenames[1].multi[1], deletedAttachmentNames);
-      verifyTableRowPreview(appFrontend.group.rows[idx].uploadMulti, filenames[1].multi[2], deletedAttachmentNames);
-      verifyTableRowPreview(appFrontend.group.rows[idx].uploadMulti, filenames[1].multi[3], deletedAttachmentNames);
+      verifyTableRowPreview(appFrontend.group.row(idx).uploadSingle, filenames[1].single, deletedAttachmentNames);
+      verifyTableRowPreview(appFrontend.group.row(idx).uploadMulti, filenames[1].multi[0], deletedAttachmentNames);
+      verifyTableRowPreview(appFrontend.group.row(idx).uploadMulti, filenames[1].multi[1], deletedAttachmentNames);
+      verifyTableRowPreview(appFrontend.group.row(idx).uploadMulti, filenames[1].multi[2], deletedAttachmentNames);
+      verifyTableRowPreview(appFrontend.group.row(idx).uploadMulti, filenames[1].multi[3], deletedAttachmentNames);
     };
 
     verifyPreview();
 
-    cy.get(appFrontend.group.rows[0].editBtn).click();
+    cy.get(appFrontend.group.row(0).editBtn).click();
     gotoSecondPage();
 
     interceptFormDataSave();
 
     // Now that all attachments described above have been uploaded and verified, start deleting the middle attachment
     // of the first-row multi-uploader to verify that the next attachment is shifted upwards.
-    cy.get(appFrontend.group.rows[0].uploadMulti.attachments[1].deleteBtn).click();
+    cy.get(appFrontend.group.row(0).uploadMulti.attachments(1).deleteBtn).click();
     deletedAttachmentNames.push(filenames[0].multi[1]);
     waitForFormDataSave();
 
     // The next attachment filename should now replace the deleted one:
-    cy.get(appFrontend.group.rows[0].uploadMulti.attachments[1].name)
+    cy.get(appFrontend.group.row(0).uploadMulti.attachments(1).name)
       .should('be.visible')
       .should('contain.text', filenames[0].multi[2]);
 
     // This verifies that the deleted filename is no longer part of the table header preview:
-    cy.get(appFrontend.group.rows[0].editBtn).click();
+    cy.get(appFrontend.group.row(0).editBtn).click();
     verifyPreview();
 
     // Let's also delete one of the nested attachments to verify the same thing happens there.
-    cy.get(appFrontend.group.rows[0].editBtn).click();
+    cy.get(appFrontend.group.row(0).editBtn).click();
     cy.get(appFrontend.group.saveMainGroup).click();
     cy.get(appFrontend.group.saveMainGroup).should('not.exist');
-    cy.get(appFrontend.group.rows[1].editBtn).click();
+    cy.get(appFrontend.group.row(1).editBtn).click();
     gotoSecondPage();
-    cy.get(appFrontend.group.rows[1].nestedGroup.rows[1].editBtn).click();
-    cy.get(appFrontend.group.rows[1].nestedGroup.rows[1].uploadTagMulti.attachments[1].editBtn || '').click();
+    cy.get(appFrontend.group.row(1).nestedGroup.row(1).editBtn).click();
+    cy.get(appFrontend.group.row(1).nestedGroup.row(1).uploadTagMulti.attachments(1).editBtn || '').click();
 
-    cy.get(appFrontend.group.rows[1].nestedGroup.rows[1].uploadTagMulti.attachments[1].deleteBtn).click();
+    cy.get(appFrontend.group.row(1).nestedGroup.row(1).uploadTagMulti.attachments(1).deleteBtn).click();
     deletedAttachmentNames.push(filenames[1].nested[1][1]);
     waitForFormDataSave();
 
     // The next filename should have replaced it:
-    cy.get(appFrontend.group.rows[1].nestedGroup.rows[1].uploadTagMulti.attachments[1].name)
+    cy.get(appFrontend.group.row(1).nestedGroup.row(1).uploadTagMulti.attachments(1).name)
       .should('be.visible')
       .should('contain.text', filenames[1].nested[1][2]);
 
-    cy.get(appFrontend.group.rows[1].editBtn).click();
+    cy.get(appFrontend.group.row(1).editBtn).click();
     verifyPreview();
-    cy.get(appFrontend.group.rows[1].editBtn).click();
+    cy.get(appFrontend.group.row(1).editBtn).click();
 
     const expectedAttachmentState = {
-      [appFrontend.group.rows[0].uploadSingle.stateKey]: [filenames[0].single],
-      [appFrontend.group.rows[0].uploadMulti.stateKey]: [filenames[0].multi[0], filenames[0].multi[2]],
-      [appFrontend.group.rows[1].uploadSingle.stateKey]: [filenames[1].single],
-      [appFrontend.group.rows[1].uploadMulti.stateKey]: filenames[1].multi,
-      [appFrontend.group.rows[0].nestedGroup.rows[0].uploadTagMulti.stateKey]: filenames[0].nested[0],
-      [appFrontend.group.rows[0].nestedGroup.rows[1].uploadTagMulti.stateKey]: filenames[0].nested[1],
-      [appFrontend.group.rows[1].nestedGroup.rows[0].uploadTagMulti.stateKey]: filenames[1].nested[0],
-      [appFrontend.group.rows[1].nestedGroup.rows[1].uploadTagMulti.stateKey]: [
+      [appFrontend.group.row(0).uploadSingle.stateKey]: [filenames[0].single],
+      [appFrontend.group.row(0).uploadMulti.stateKey]: [filenames[0].multi[0], filenames[0].multi[2]],
+      [appFrontend.group.row(1).uploadSingle.stateKey]: [filenames[1].single],
+      [appFrontend.group.row(1).uploadMulti.stateKey]: filenames[1].multi,
+      [appFrontend.group.row(0).nestedGroup.row(0).uploadTagMulti.stateKey]: filenames[0].nested[0],
+      [appFrontend.group.row(0).nestedGroup.row(1).uploadTagMulti.stateKey]: filenames[0].nested[1],
+      [appFrontend.group.row(1).nestedGroup.row(0).uploadTagMulti.stateKey]: filenames[1].nested[0],
+      [appFrontend.group.row(1).nestedGroup.row(1).uploadTagMulti.stateKey]: [
         filenames[1].nested[1][0],
         filenames[1].nested[1][2],
       ],
@@ -384,20 +375,20 @@ describe('Repeating group attachments', () => {
 
     // Delete the first row of the nested repeating group. This should make the second row in that nested group shift
     // the attachments upwards.
-    cy.get(appFrontend.group.rows[0].editBtn).click();
+    cy.get(appFrontend.group.row(0).editBtn).click();
     gotoSecondPage();
-    cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].deleteBtn).click();
+    cy.get(appFrontend.group.row(0).nestedGroup.row(0).deleteBtn).click();
 
     waitForFormDataSave();
 
     const expectedAttachmentStateAfterDeletingFirstNestedRow = {
-      [appFrontend.group.rows[0].uploadSingle.stateKey]: [filenames[0].single],
-      [appFrontend.group.rows[0].uploadMulti.stateKey]: [filenames[0].multi[0], filenames[0].multi[2]],
-      [appFrontend.group.rows[1].uploadSingle.stateKey]: [filenames[1].single],
-      [appFrontend.group.rows[1].uploadMulti.stateKey]: filenames[1].multi,
-      [appFrontend.group.rows[0].nestedGroup.rows[0].uploadTagMulti.stateKey]: filenames[0].nested[1],
-      [appFrontend.group.rows[1].nestedGroup.rows[0].uploadTagMulti.stateKey]: filenames[1].nested[0],
-      [appFrontend.group.rows[1].nestedGroup.rows[1].uploadTagMulti.stateKey]: [
+      [appFrontend.group.row(0).uploadSingle.stateKey]: [filenames[0].single],
+      [appFrontend.group.row(0).uploadMulti.stateKey]: [filenames[0].multi[0], filenames[0].multi[2]],
+      [appFrontend.group.row(1).uploadSingle.stateKey]: [filenames[1].single],
+      [appFrontend.group.row(1).uploadMulti.stateKey]: filenames[1].multi,
+      [appFrontend.group.row(0).nestedGroup.row(0).uploadTagMulti.stateKey]: filenames[0].nested[1],
+      [appFrontend.group.row(1).nestedGroup.row(0).uploadTagMulti.stateKey]: filenames[1].nested[0],
+      [appFrontend.group.row(1).nestedGroup.row(1).uploadTagMulti.stateKey]: [
         filenames[1].nested[1][0],
         filenames[1].nested[1][2],
       ],
@@ -428,11 +419,11 @@ describe('Repeating group attachments', () => {
 
     // Verify that one of the attachments in the next nested row is visible in the table header. This is also a trick
     // to ensure we wait until the deletion is done before we fetch the redux state.
-    cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].uploadTagMulti.tableRowPreview).should(
+    cy.get(appFrontend.group.row(0).nestedGroup.row(0).uploadTagMulti.tableRowPreview).should(
       'contain.text',
       filenames[0].nested[1][2],
     );
-    cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].editBtn).click();
+    cy.get(appFrontend.group.row(0).nestedGroup.row(0).editBtn).click();
 
     cy.getReduxState(simplifyFormData).should('deep.equal', expectedFormDataAfterDeletingFirstNestedRow);
     getState().should('deep.equal', expectedAttachmentStateAfterDeletingFirstNestedRow);
@@ -441,16 +432,16 @@ describe('Repeating group attachments', () => {
     // nested rows.
     cy.get(appFrontend.group.saveMainGroup).click();
     cy.get(appFrontend.group.saveMainGroup).should('not.exist');
-    cy.get(appFrontend.group.rows[0].deleteBtn).click();
+    cy.get(appFrontend.group.row(0).deleteBtn).click();
 
     verifyPreview(true);
     waitForFormDataSave();
 
     const expectedAttachmentStateAfterDeletingFirstRow = {
-      [appFrontend.group.rows[0].uploadSingle.stateKey]: [filenames[1].single],
-      [appFrontend.group.rows[0].uploadMulti.stateKey]: filenames[1].multi,
-      [appFrontend.group.rows[0].nestedGroup.rows[0].uploadTagMulti.stateKey]: filenames[1].nested[0],
-      [appFrontend.group.rows[0].nestedGroup.rows[1].uploadTagMulti.stateKey]: [
+      [appFrontend.group.row(0).uploadSingle.stateKey]: [filenames[1].single],
+      [appFrontend.group.row(0).uploadMulti.stateKey]: filenames[1].multi,
+      [appFrontend.group.row(0).nestedGroup.row(0).uploadTagMulti.stateKey]: filenames[1].nested[0],
+      [appFrontend.group.row(0).nestedGroup.row(1).uploadTagMulti.stateKey]: [
         filenames[1].nested[1][0],
         filenames[1].nested[1][2],
       ],

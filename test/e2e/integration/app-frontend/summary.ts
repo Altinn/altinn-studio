@@ -161,9 +161,9 @@ describe('Summary', () => {
       });
 
     // Check to show a couple of nested options, then go back to the summary
-    cy.get(appFrontend.group.rows[0].editBtn).click();
+    cy.get(appFrontend.group.row(0).editBtn).click();
     cy.get(appFrontend.group.mainGroup).find(appFrontend.group.editContainer).find(appFrontend.group.next).click();
-    cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].nestedDynamics).click();
+    cy.get(appFrontend.group.row(0).nestedGroup.row(0).nestedDynamics).click();
 
     const workAroundSlowSave = JSON.parse('true');
     if (workAroundSlowSave) {
@@ -172,14 +172,14 @@ describe('Summary', () => {
       // and in the future we should fix this properly by simplifying to save data immediately in the redux state
       // but delay the PUT request instead.
       // See https://github.com/Altinn/app-frontend-react/issues/339#issuecomment-1321920974
-      cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].nestedOptions[1]).check().blur();
-      cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].nestedOptions[2]).check().blur();
+      cy.get(appFrontend.group.row(0).nestedGroup.row(0).nestedOptions[1]).check().blur();
+      cy.get(appFrontend.group.row(0).nestedGroup.row(0).nestedOptions[2]).check().blur();
     } else {
-      cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].nestedOptions[1]).check();
-      cy.get(appFrontend.group.rows[0].nestedGroup.rows[0].nestedOptions[2]).check();
+      cy.get(appFrontend.group.row(0).nestedGroup.row(0).nestedOptions[1]).check();
+      cy.get(appFrontend.group.row(0).nestedGroup.row(0).nestedOptions[2]).check();
     }
 
-    cy.get(appFrontend.group.rows[0].nestedGroup.saveBtn).click();
+    cy.get(appFrontend.group.row(0).nestedGroup.saveBtn).click();
     cy.get(appFrontend.group.saveMainGroup).click();
     cy.contains(mui.button, texts.backToSummary).click();
 

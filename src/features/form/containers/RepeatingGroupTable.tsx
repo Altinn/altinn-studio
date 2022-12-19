@@ -304,10 +304,8 @@ export function RepeatingGroupTable({
           textResources={textResources}
           layout={layout}
           repeatingGroupDeepCopyComponents={repeatingGroupDeepCopyComponents}
-          hideSaveButton={edit?.saveButton === false}
           multiPageIndex={multiPageIndex}
           setMultiPageIndex={setMultiPageIndex}
-          showSaveAndNextButton={edit?.saveAndNextButton === true}
           filteredIndexes={filteredIndexes}
         />
       )

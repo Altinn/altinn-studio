@@ -150,7 +150,7 @@ describe('Group', () => {
       cy.get(appFrontend.group.addNewItem).should('exist').and('be.visible').focus().click();
       cy.get(appFrontend.group.currentValue).should('be.visible').type('123').blur();
 
-      cy.get(appFrontend.group.rows[0].editBtn).should('exist').and('be.visible').focus().click();
+      cy.get(appFrontend.group.row(0).editBtn).should('exist').and('be.visible').focus().click();
       cy.get(appFrontend.group.saveMainGroup).focus().should('be.visible').click();
 
       cy.wait('@validate');
@@ -165,7 +165,7 @@ describe('Group', () => {
         cy.get(appFrontend.errorReport).should('not.exist');
       }
 
-      cy.get(appFrontend.group.rows[0].editBtn).should('exist').and('be.visible').focus().click();
+      cy.get(appFrontend.group.row(0).editBtn).should('exist').and('be.visible').focus().click();
       cy.get(appFrontend.group.currentValue).should('be.visible').clear().blur();
       cy.get(appFrontend.group.saveMainGroup).focus().should('be.visible').click();
 
@@ -222,51 +222,39 @@ describe('Group', () => {
     cy.get(appFrontend.group.showGroupToContinue).find('input').check();
     expectRows();
 
-    cy.contains(mui.button, texts.prev).click();
-    cy.get(appFrontend.group.prefill.liten).click();
-    cy.contains(mui.button, texts.next).click();
+    function clickOnPrefills(...items: (keyof typeof appFrontend.group.prefill)[]) {
+      cy.contains(mui.button, texts.prev).click();
+      for (const item of items) {
+        cy.get(appFrontend.group.prefill[item]).click().blur();
+      }
+      cy.contains(mui.button, texts.next).click();
+    }
+
+    clickOnPrefills('liten');
     expectRows(['NOK 1', 'NOK 5']);
 
-    cy.contains(mui.button, texts.prev).click();
-    cy.get(appFrontend.group.prefill.middels).click();
-    cy.get(appFrontend.group.prefill.svaer).click();
-    cy.contains(mui.button, texts.next).click();
+    clickOnPrefills('middels', 'svaer');
     expectRows(['NOK 1', 'NOK 5'], ['NOK 120', 'NOK 350'], ['NOK 80 323', 'NOK 123 455']);
 
-    cy.contains(mui.button, texts.prev).click();
-    cy.get(appFrontend.group.prefill.middels).click();
-    cy.get(appFrontend.group.prefill.svaer).click();
-    cy.contains(mui.button, texts.next).click();
+    clickOnPrefills('middels', 'svaer');
     expectRows(['NOK 1', 'NOK 5']);
 
-    cy.contains(mui.button, texts.prev).click();
-    cy.get(appFrontend.group.prefill.enorm).click();
-    cy.get(appFrontend.group.prefill.liten).click();
-    cy.contains(mui.button, texts.next).click();
+    clickOnPrefills('enorm', 'liten');
     expectRows(['NOK 9 872 345', 'NOK 18 872 345']);
 
-    cy.contains(mui.button, texts.prev).click();
-    cy.get(appFrontend.group.prefill.marked).click();
-    cy.contains(mui.button, texts.next).click();
-    expectRows(['NOK 9 872 345', 'NOK 18 872 345'], ['NOK 1 234', 'NOK 4 321']);
-    cy.get(appFrontend.group.mainGroup)
-      .find(mui.tableBody)
-      .then((table) => {
-        cy.wrap(table).children().eq(0).find(appFrontend.group.delete).should('be.visible');
-        cy.wrap(table)
-          .children()
-          .eq(0)
-          .find(appFrontend.group.edit)
-          .should('be.visible')
-          .should('have.text', texts.edit);
-        cy.wrap(table).children().eq(1).find(appFrontend.group.delete).should('not.exist');
-        cy.wrap(table)
-          .children()
-          .eq(1)
-          .find(appFrontend.group.edit)
-          .should('be.visible')
-          .should('have.text', texts.view);
-      });
+    clickOnPrefills('liten');
+    expectRows(['NOK 9 872 345', 'NOK 18 872 345'], ['NOK 1', 'NOK 5']);
+
+    cy.get(appFrontend.group.row(0).editBtn).should('have.text', 'Se innhold');
+    cy.get(appFrontend.group.row(0).deleteBtn).should('not.exist');
+    cy.get(appFrontend.group.row(0).editBtn).click().should('have.text', 'Lukk');
+    cy.get(appFrontend.group.saveMainGroup).should('have.text', 'Lukk').click().should('not.exist');
+
+    // The 'liten' row differs, as it should not have a save button on the bottom
+    cy.get(appFrontend.group.row(1).editBtn).should('have.text', 'Se innhold');
+    cy.get(appFrontend.group.row(1).deleteBtn).should('not.exist');
+    cy.get(appFrontend.group.row(1).editBtn).click().should('have.text', 'Lukk');
+    cy.get(appFrontend.group.saveMainGroup).should('not.exist');
   });
 
   it('Delete group row after validation', () => {

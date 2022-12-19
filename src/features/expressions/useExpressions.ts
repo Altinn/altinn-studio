@@ -110,10 +110,12 @@ function getComponentDefaults(): any {
 
 export function useExpressionsForComponent<T extends ILayoutComponentOrGroup | undefined | null>(
   input: T,
+  options?: Omit<UseExpressionsOptions<T>, 'forComponentId' | 'defaults'>,
 ): ExprResolved<T> {
   const defaults = getComponentDefaults();
   return useExpressions(input, {
     forComponentId: (typeof input === 'object' && input !== null && input.id) || undefined,
     defaults,
+    ...options,
   });
 }

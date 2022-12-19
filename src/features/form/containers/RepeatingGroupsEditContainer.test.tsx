@@ -111,8 +111,6 @@ describe('RepeatingGroupsEditContainer', () => {
       repeatingGroupIndex: repeatingGroupIndex,
       setEditIndex: jest.fn(),
       onClickRemove: jest.fn(),
-      hideDeleteButton: false,
-      showSaveAndNextButton: multiPageGroup.edit?.saveAndNextButton === true,
       ...props,
     };
 

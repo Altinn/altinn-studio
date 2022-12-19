@@ -122,7 +122,6 @@ export default class AppFrontend {
       stor: 'input[name=stor]',
       svaer: 'input[name=svaer]',
       enorm: 'input[name=enorm]',
-      marked: 'input[name=prefill]',
     },
     showGroupToContinue: '#showGroupToContinue',
     mainGroup: '#group-mainGroup',
@@ -157,14 +156,14 @@ export default class AppFrontend {
     popOverCancelButton: '[data-testid="warning-popover-cancel-button"]',
     edit: '[data-testid=edit-button]',
     delete: '[data-testid=delete-button]',
-    rows: [0, 1].map((idx) => ({
-      uploadSingle: makeUploaderSelectors('mainUploaderSingle', idx, 3),
-      uploadMulti: makeUploaderSelectors('mainUploaderMulti', idx, 4),
-      editBtn: `#group-mainGroup-table-body > tr:nth-child(${idx + 1}) > td:nth-last-of-type(2n) button`,
-      deleteBtn: `#group-mainGroup-table-body > tr:nth-child(${idx + 1}) > td:last-of-type button`,
+    row: (idx: number) => ({
+      uploadSingle: makeUploaderSelectors('mainUploaderSingle', idx, 3, 'untagged'),
+      uploadMulti: makeUploaderSelectors('mainUploaderMulti', idx, 4, 'untagged'),
+      editBtn: `#group-mainGroup-table-body > tr:nth-child(${idx + 1}) [data-testid=edit-button]`,
+      deleteBtn: `#group-mainGroup-table-body > tr:nth-child(${idx + 1}) [data-testid=delete-button]`,
       nestedGroup: {
-        rows: [0, 1].map((subIdx) => ({
-          uploadTagMulti: makeUploaderSelectors('subUploader', `${idx}-${subIdx}`, 2, true),
+        row: (subIdx: number) => ({
+          uploadTagMulti: makeUploaderSelectors('subUploader', `${idx}-${subIdx}`, 2, 'tagged'),
           nestedDynamics: `#nestedDynamics-${idx}-${subIdx} input[type=checkbox]`,
           nestedOptions: [
             `#nestedOptions-${idx}-${subIdx} input[type=checkbox]:nth(0)`,
@@ -173,11 +172,11 @@ export default class AppFrontend {
           ],
           editBtn: `#group-subGroup-${idx}-table-body > tr:nth-child(${subIdx + 1}) > td:nth-last-of-type(2n) button`,
           deleteBtn: `#group-subGroup-${idx}-table-body > tr:nth-child(${subIdx + 1}) > td:last-of-type button`,
-        })),
+        }),
         groupContainer: `#group-subGroup-${idx}`,
         saveBtn: `#add-button-grp-subGroup-${idx}`,
       },
-    })),
+    }),
   };
 
   //Stateless-app
@@ -209,36 +208,35 @@ export default class AppFrontend {
   };
 }
 
-export const makeUploaderSelectors = (
+type Type = 'tagged' | 'untagged';
+
+export function makeUploaderSelectors<T extends Type>(
   id: string,
   row: number | string,
   tablePreviewColumn: number,
-  isTagged = false,
-) => {
-  const tableSelector = isTagged
-    ? `#form-content-${id}-${row} div[data-testid=tagFile] > div > table`
-    : `#altinn-fileuploader-${id}-${row} .file-upload-table`;
-  const statusIdx = isTagged ? 4 : 3;
+  type: T,
+) {
+  const tableSelector =
+    type === 'tagged'
+      ? `#form-content-${id}-${row} div[data-testid=tagFile] > div > table`
+      : `#altinn-fileuploader-${id}-${row} .file-upload-table`;
+  const statusIdx = type === 'tagged' ? 4 : 3;
 
   return {
     stateKey: `${id}-${row}`,
     dropZoneContainer: `#altinn-drop-zone-${id}-${row}`,
     dropZone: `#altinn-drop-zone-${id}-${row} input[type=file]`,
-    attachments: [...Array(5)].map((_, idx) => ({
+    attachments: (idx) => ({
       name: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) > td:nth-child(1)`,
       status: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) > td:nth-child(${statusIdx})`,
       deleteBtn: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) div[role=button]`,
-      ...(isTagged
-        ? {
-            tagSelector: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) select`,
-            tagSave: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) button[id^=attachment-save-tag-button]`,
-            editBtn: `${tableSelector} > tbody > tr:nth-child(${
-              idx + 1
-            }) td:last-of-type button[class*=editTextContainer]`,
-            deleteBtn: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) button[class*=deleteButton]`,
-          }
-        : {}),
-    })),
+      ...(type === 'tagged' && {
+        tagSelector: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) select`,
+        tagSave: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) button[id^=attachment-save-tag-button]`,
+        editBtn: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) td:last-of-type button[class*=editTextContainer]`,
+        deleteBtn: `${tableSelector} > tbody > tr:nth-child(${idx + 1}) button[class*=deleteButton]`,
+      }),
+    }),
     addMoreBtn: `#altinn-fileuploader-${id}-${row} > button`,
     tableRowPreview:
       typeof row === 'number'
@@ -249,4 +247,4 @@ export const makeUploaderSelectors = (
 
     test: '#group-subGroup-0-table-body > tr > td:nth-child(2)',
   };
-};
+}
