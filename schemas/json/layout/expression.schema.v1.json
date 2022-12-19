@@ -54,7 +54,9 @@
       "oneOf": [
         { "type": "null", "title": "Null/missing value" },
         { "$ref": "#/definitions/strict-string" },
-        { "$ref": "#/definitions/func-if" }
+        { "$ref": "#/definitions/func-if" },
+        { "$ref": "#/definitions/strict-number", "description": "Numbers can be cast to strings" },
+        { "$ref": "#/definitions/strict-boolean", "description": "Booleans can be cast to strings" }
       ]
     },
     "strict-string": {
@@ -73,7 +75,9 @@
       "oneOf": [
         { "type": "null", "title": "Null/missing value" },
         { "$ref": "#/definitions/strict-boolean" },
-        { "$ref": "#/definitions/func-if" }
+        { "$ref": "#/definitions/func-if" },
+        { "$ref": "#/definitions/strict-string", "description": "Stringy true/false/0/1 can be cast to boolean" },
+        { "$ref": "#/definitions/strict-number", "description": "Numeric 0/1 can be cast to boolean" }
       ]
     },
     "strict-boolean": {
@@ -86,6 +90,7 @@
         { "$ref": "#/definitions/func-greaterThanEq" },
         { "$ref": "#/definitions/func-lessThan" },
         { "$ref": "#/definitions/func-lessThanEq" },
+        { "$ref": "#/definitions/func-not" },
         { "$ref": "#/definitions/func-and" },
         { "$ref": "#/definitions/func-or" }
       ]
@@ -95,7 +100,8 @@
       "oneOf": [
         { "type": "null", "title": "Null/missing value" },
         { "$ref": "#/definitions/strict-number" },
-        { "$ref": "#/definitions/func-if" }
+        { "$ref": "#/definitions/func-if" },
+        { "$ref": "#/definitions/strict-string", "description": "Numeric strings can be cast to numbers" }
       ]
     },
     "strict-number": {
@@ -207,6 +213,16 @@
         { "const":  "notEquals" },
         { "$ref": "#/definitions/any" },
         { "$ref": "#/definitions/any" }
+      ],
+      "additionalItems": false
+    },
+    "func-not": {
+      "title": "Not function",
+      "description": "This function inverts a boolean, returning true if given false, and vice versa.",
+      "type": "array",
+      "items": [
+        { "const":  "not" },
+        { "$ref": "#/definitions/boolean" }
       ],
       "additionalItems": false
     },
