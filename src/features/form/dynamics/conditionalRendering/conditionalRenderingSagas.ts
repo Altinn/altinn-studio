@@ -128,8 +128,11 @@ export function* checkIfConditionalRulesShouldRunSaga({
 function runExpressionRules(layouts: LayoutRootNodeCollection<'resolved'>, present: Set<string>, future: Set<string>) {
   for (const layout of Object.values(layouts.all())) {
     for (const node of layout.flat(true)) {
-      if (node.item.hidden === true) {
+      if (node.item.hidden === true || future.has(node.item.id)) {
         future.add(node.item.id);
+        for (const childNode of node.children().flat()) {
+          future.add(childNode.item.id);
+        }
       }
     }
   }

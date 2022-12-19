@@ -1,0 +1,50 @@
+{
+  "name": "Lookup for component inside visible non-repeating group",
+  "expression": ["component", "dagligLederNavn"],
+  "expects": "Kaare",
+  "layouts": {
+    "Page1": {
+      "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+      "data": {
+        "layout": [
+          {
+            "id": "bedrift",
+            "type": "Group",
+            "dataModelBindings": {
+              "group": "Bedrift"
+            },
+            "children": ["bedriftsNavn", "dagligLederNavn"],
+            "hidden": ["greaterThan", ["dataModel", "Bedrift.DagligLeder.Alder"], 35]
+          },
+          {
+            "id": "bedriftsNavn",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Bedrift.Navn"
+            }
+          },
+          {
+            "id": "dagligLederNavn",
+            "type": "Input",
+            "dataModelBindings": {
+              "simpleBinding": "Bedrift.DagligLeder.Navn"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "dataModel": {
+    "Bedrift": {
+      "Navn": "Hell og lykke AS",
+      "DagligLeder": {
+        "Navn": "Kaare",
+        "Alder": 24
+      }
+    }
+  },
+  "context": {
+    "component": "bedriftsNavn",
+    "currentLayout": "Page1"
+  }
+}
