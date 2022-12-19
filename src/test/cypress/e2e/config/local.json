@@ -1,6 +1,6 @@
 {
   "$schema": "https://on.cypress.io/cypress.schema.json",
-  "baseUrl": "http://altinn3.no",
+  "baseUrl": "http://altinn.localhost",
   "env": {
     "autoTestUser": "testuser",
     "autoTestUserPwd": "Studio@123",

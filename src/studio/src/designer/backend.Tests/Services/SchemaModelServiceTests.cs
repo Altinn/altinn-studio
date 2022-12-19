@@ -255,8 +255,8 @@ namespace Designer.Tests.Services
         }
 
         [Theory]
-        [InlineData("ttd", "apprepo", "test", "", "http://altinn3.no/repos")]
-        [InlineData("ttd", "apprepo", "test", "/path/to/folder/", "http://altinn3.no/repos")]
+        [InlineData("ttd", "apprepo", "test", "", "http://altinn.localhost/repos")]
+        [InlineData("ttd", "apprepo", "test", "/path/to/folder/", "http://altinn.localhost/repos")]
         public void GetSchemaUri_ValidNameProvided_ShouldReturnUri(string org, string repository, string schemaName, string relativePath, string repositoryBaseUrl)
         {
             var altinnGitRepositoryFactory = new AltinnGitRepositoryFactory(TestDataHelper.GetTestDataRepositoriesRootDirectory());
