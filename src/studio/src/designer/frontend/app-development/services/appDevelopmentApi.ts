@@ -1,8 +1,7 @@
-import { createApi } from '@reduxjs/toolkit/query/react';
-
 import axios from 'axios';
-import type { BaseQueryFn } from '@reduxjs/toolkit/query/react';
 import type { AxiosError, AxiosRequestConfig } from 'axios';
+import type { BaseQueryFn } from '@reduxjs/toolkit/query/react';
+import { createApi } from '@reduxjs/toolkit/query/react';
 
 import { Tags } from './tags';
 
