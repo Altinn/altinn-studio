@@ -392,7 +392,7 @@ export function* watchUpdateApplicationMetadataSaga(): SagaIterator {
 
 export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): SagaIterator {
   try {
-    const { layout, isConfirmationPage } = payload;
+    const { layout, isReceiptPage } = payload;
     const layouts: IFormLayouts = yield select(
       (state: IAppState) => state.formDesigner.layout.layouts
     );
@@ -401,10 +401,10 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
     );
     const layoutsCopy = JSON.parse(JSON.stringify(layouts));
 
-    if (isConfirmationPage) {
+    if (isReceiptPage) {
       yield put(
-        FormLayoutActions.updateAppReceiptLayoutName({
-          appReceiptLayoutName: layout,
+        FormLayoutActions.updateReceiptLayoutName({
+          receiptLayoutName: layout,
         })
       );
     }
@@ -417,11 +417,11 @@ export function* addLayoutSaga({ payload }: PayloadAction<IAddLayoutAction>): Sa
     yield put(
       FormLayoutActions.addLayoutFulfilled({
         layouts: layoutsCopy,
-        layoutOrder: isConfirmationPage ? layoutOrder : [...layoutOrder, layout],
+        layoutOrder: isReceiptPage ? layoutOrder : [...layoutOrder, layout],
       })
     );
 
-    if (Object.keys(layoutsCopy).length > 1 && !isConfirmationPage) {
+    if (Object.keys(layoutsCopy).length > 1 && !isReceiptPage) {
       const NavigationButtonComponent = {
         type: 'NavigationButtons',
         componentType: ComponentTypes.NavigationButtons,

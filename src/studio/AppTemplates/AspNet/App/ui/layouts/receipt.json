@@ -3,34 +3,32 @@
   "data": {
     "layout": [
       {
-        "id": "AppReceiptHeader",
+        "id": "receiptHeader",
         "type": "Header",
         "textResourceBindings": {
-          "title": "appReceipt.Title"
+          "title": "receipt.title"
         },
         "size": "h2"
       },
       {
-        "id": "AppReceiptSummary",
+        "id": "receiptSummary",
+        "type": "InstanceInformation"
+      },
+      {
+        "id": "receiptParagraph",
         "type": "Paragraph",
         "textResourceBindings": {
-          "title": "appReceipt.Summary"
+          "title": "receipt.body"
         }
       },
       {
-        "id": "AppReceiptParagraph",
-        "type": "Paragraph",
-        "textResourceBindings": {
-          "title": "appReceipt.Content"
-        }
-      },
-      {
-        "id": "AppReceiptAttachmentList",
+        "id": "receiptAttachmentListPdf",
         "type": "AttachmentList",
         "textResourceBindings": {
-          "title": "appReceipt.AttachmentList"
+          "title": "receipt.title_submitted"
         },
-        "dataModelBindings": {}
+        "dataTypeIds": ["ref-data-as-pdf"],
+        "includePDF": true
       }
     ]
   }

@@ -18,7 +18,7 @@ import type {
   IFormDesignerActionRejected,
   IUpdateActiveListActionFulfilled,
   IUpdateActiveListOrderAction,
-  IUpdateAppReceiptLayoutNameAction,
+  IUpdateReceiptLayoutNameAction,
   IUpdateContainerIdFulfilled,
   IUpdateFormComponentActionFulfilled,
   IUpdateFormComponentOrderAction,
@@ -245,8 +245,8 @@ const formLayoutSlice = createSlice({
       if (pageOrder.includes(layout)) {
         pageOrder.splice(pageOrder.indexOf(layout), 1);
       }
-      if (state.layoutSettings.appReceiptLayoutName === layout) {
-        state.layoutSettings.appReceiptLayoutName = undefined;
+      if (state.layoutSettings.receiptLayoutName === layout) {
+        state.layoutSettings.receiptLayoutName = undefined;
       }
       if (state.selectedLayout === layout) {
         state.selectedLayout = pageOrder[0];
@@ -396,8 +396,8 @@ const formLayoutSlice = createSlice({
       if (pageOrder.includes(oldName)) {
         pageOrder[pageOrder.indexOf(oldName)] = newName;
       }
-      if (state.layoutSettings.appReceiptLayoutName === oldName) {
-        state.layoutSettings.appReceiptLayoutName = newName;
+      if (state.layoutSettings.receiptLayoutName === oldName) {
+        state.layoutSettings.receiptLayoutName = newName;
       }
       state.selectedLayout = newName;
     },
@@ -421,10 +421,10 @@ const formLayoutSlice = createSlice({
     },
     updateAppReceiptLayoutName: (
       state,
-      action: PayloadAction<IUpdateAppReceiptLayoutNameAction>
+      action: PayloadAction<IUpdateReceiptLayoutNameAction>
     ) => {
-      const { appReceiptLayoutName } = action.payload;
-      state.layoutSettings.appReceiptLayoutName = appReceiptLayoutName;
+      const { receiptLayoutName } = action.payload;
+      state.layoutSettings.receiptLayoutName = receiptLayoutName;
     },
     updateSelectedLayout: (state, action: PayloadAction<IUpdateSelectedLayoutAction>) => {
       const { selectedLayout } = action.payload;

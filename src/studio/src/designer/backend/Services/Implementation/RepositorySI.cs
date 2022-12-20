@@ -1121,7 +1121,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await altinnGitRepository.SaveAltinnStudioSettings(settings);
         }
 
-        private async void CreateLanguageResources(string org, ServiceConfiguration serviceConfig)
+        private async Task CreateLanguageResources(string org, ServiceConfiguration serviceConfig)
         {
             if (!string.IsNullOrEmpty(serviceConfig.ServiceName))
             {
@@ -1130,7 +1130,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
 
                 TextResource textResource = await altinnAppGitRepository.GetTextV1("nb");
                 textResource.Resources.Add(new TextResourceElement() { Id = "appName", Value = serviceConfig.ServiceName });
-                textResource.Resources.Add(new TextResourceElement() { Id = "appReceipt.Title", Value = $"{serviceConfig.ServiceName} er nå sendt inn" });
+                textResource.Resources.Add(new TextResourceElement() { Id = "receipt.title", Value = $"{serviceConfig.ServiceName} er nå sendt inn" });
                 var jsonOptions = new JsonSerializerOptions() { WriteIndented = true, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull};
                 var jsonSerializerSettings = new JsonSerializerSettings
                 {

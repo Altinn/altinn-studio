@@ -26,7 +26,7 @@ export interface ILayoutSettings {
   $schema?: string;
   pages?: IPagesSettings;
   components?: IComponentsSettings;
-  appReceiptLayoutName?: string;
+  receiptLayoutName?: string;
 }
 
 export interface IPagesSettings {

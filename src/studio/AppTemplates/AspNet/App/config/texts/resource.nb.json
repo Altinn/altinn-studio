@@ -1,35 +1,5 @@
 {
   "language": "nb",
   "resources": [
-    {
-      "id": "appReceipt.Summary",
-      "value": "Dato sendt: {0} <br>Avsender: {1} <br>Mottaker: {2} <br>Referansenummer: {3}<br>",
-      "variables": [
-        {
-          "key": "instanceDateSent",
-          "dataSource": "instanceContext"
-        },
-        {
-          "key": "instanceSender",
-          "dataSource": "instanceContext"
-        },
-        {
-          "key": "instanceReceiver",
-          "dataSource": "instanceContext"
-        },
-        {
-          "key": "instanceGuid",
-          "dataSource": "instanceContext"
-        }
-      ]
-    },
-    {
-      "id": "appReceipt.Content",
-      "value": "[Kopi av din kvittering er sendt til ditt arkiv](https://temp-link) <br><br>Det er gjennomført en maskinell kontroll under utfylling, men vi tar forbehold om at det kan bli oppdaget feil under saksbehandlingen og at annen dokumentasjon kan være nødvendig. Vennligst oppgi referansenummer ved eventuelle henvendelser til etaten."
-    },
-    {
-      "id": "appReceipt.AttachmentList",
-      "value": "Følgende er sendt inn"
-    }
   ]
 }
