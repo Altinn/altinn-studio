@@ -11,7 +11,7 @@ export const languagesApi = appDevelopmentApi.injectEndpoints({
   endpoints: (builder) => ({
     getLanguages: builder.query<LanguageList, OrgApp>({
       query: ({ org, app }) => ({
-        url: `/designer/api/v1/${org}/${app}/languages`,
+        url: `/designer/${org}/${app}/Text/GetLanguages`,
       }),
       providesTags: () => [
         {
