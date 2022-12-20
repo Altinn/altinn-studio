@@ -54,7 +54,7 @@ services:
       - ServiceRepositorySettings:ApiEndPoint=http://altinn-repositories:3000/api/v1/
       - ServiceRepositorySettings:ApiEndPointHost=altinn-repositories
       - ServiceRepositorySettings:RepositoryBaseURL=http://altinn-repositories:3000
-      - ServiceRepositorySettings:GiteaLoginUrl=http://altinn.localhost/repos/user/login
+      - ServiceRepositorySettings:GiteaLoginUrl=http://studio.localhost/repos/user/login
       - GeneralSettings:TemplateLocation=/Templates
       - GeneralSettings:DeploymentLocation=/Templates/deployment
       - GeneralSettings:LanguageFilesLocation=Languages/
@@ -62,7 +62,7 @@ services:
       - GeneralSettings:DeploymentLocation=Templates/AspNet/deployment
       - GeneralSettings:AppLocation=Templates/AspNet/App
       - GeneralSettings:IntegrationTestsLocation=Templates/AspNet/App.IntegrationTests
-      - GeneralSettings:AltinnStudioEndpoint=http://altinn.localhost/
+      - GeneralSettings:AltinnStudioEndpoint=http://studio.localhost/
       - TestdataRepositorySettings:RepositoryLocation=/Testdata
     ports:
       - "6000:6000"
@@ -89,9 +89,9 @@ services:
       - USER_UID=1000
       - USER_GID=1000
       - GITEA____RUN_MODE=prod
-      - GITEA__server__SSH_DOMAIN=altinn.localhost
-      - GITEA__server__DOMAIN=altinn.localhost
-      - GITEA__server__ROOT_URL=http://altinn.localhost/repos
+      - GITEA__server__SSH_DOMAIN=studio.localhost
+      - GITEA__server__DOMAIN=studio.localhost
+      - GITEA__server__ROOT_URL=http://studio.localhost/repos
       - GITEA__session__COOKIE_SECURE=false
       - GITEA__designer__LFS_JWT_SECRET=MRlYoCcrcHmcKzUoQwaK6vKO3o4FPEJ74em5JnPRii0
       - GITEA__database__DB_TYPE=sqlite3

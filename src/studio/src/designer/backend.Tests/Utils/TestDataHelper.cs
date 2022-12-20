@@ -338,7 +338,7 @@ namespace Designer.Tests.Utils
         public static IOptions<ServiceRepositorySettings> GetServiceRepositorySettings()
         {
             IOptions<ServiceRepositorySettings> options = Options.Create(new ServiceRepositorySettings());
-            options.Value.RepositoryBaseURL = @"http://altinn.localhost/repos";
+            options.Value.RepositoryBaseURL = @"http://studio.localhost/repos";
             return options;
         }
 

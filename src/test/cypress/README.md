@@ -28,10 +28,10 @@ Start the solution by following the procedure [here](https://github.com/Altinn/a
 
 You need login credentials for the first user created in local studio, since this user has automatically got admin rights.
 If you have issues logging in as this user, the simplest solution is to delete the `altinn-repositories` container and the Gitea volumes in Docker, and then rebuild the container.
-Then you can start all over and create a new, first user from http://altinn.localhost.
+Then you can start all over and create a new, first user from http://studio.localhost.
 
 After logging in as the admin user, you need to create an access token.
-This is done under the applications pane in the Gitea user settings; http://altinn.localhost/repos/user/settings/applications.
+This is done under the applications pane in the Gitea user settings; http://studio.localhost/repos/user/settings/applications.
 
 Create a new file name `cypress.env.json` under `src\test\cypress` with the data created above.
 
