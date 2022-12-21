@@ -1123,7 +1123,6 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
         /// <summary>
         /// Carries explicitly defined default values for minOccurs and maxOccurs from the original xsd if they were defined.
         /// XsdMinOccursKeyword and XsdMaxOccursKeyword have least priority so they won't be took into consideration if minOccurs and maxOccurs were previously calculated.
-        /// Example: <xsd:element name="foo" type="xsd:string" minOccurs="1" maxOccurs="1" /> Will setup minOccurs and maxOccurs to 1 and 1 respectively when converting back to xsd.
         /// </summary>
         private static void CarryXsdOccursIfNotSet(XmlSchemaObject subItem, JsonSchema property)
         {
