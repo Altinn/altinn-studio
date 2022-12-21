@@ -18,7 +18,7 @@
     "AltinnCoreDesigner": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "http://altinn.localhost/",
+      "launchUrl": "http://studio.localhost/",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
@@ -26,7 +26,7 @@
     "AltinnStudioOsX": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "http://altinn.localhost/",
+      "launchUrl": "http://studio.localhost/",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ServiceRepositorySettings__RepositoryLocation": "/tmp/altinn/repos/",

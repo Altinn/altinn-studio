@@ -46,7 +46,7 @@ namespace Designer.Tests.Services
             // use real http client with mocked handler here
             var httpClient = new HttpClient(handlerMock.Object)
             {
-                BaseAddress = new Uri("http://altinn.localhost/repos/api/v1")
+                BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
             };
 
             GiteaAPIWrapper sut = GetServiceForTest("testUser", httpClient);
@@ -78,7 +78,7 @@ namespace Designer.Tests.Services
             // use real http client with mocked handler here
             var httpClient = new HttpClient(handlerMock.Object)
             {
-                BaseAddress = new Uri("http://altinn.localhost/repos/api/v1")
+                BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
             };
 
             GiteaAPIWrapper sut = GetServiceForTest("testUser", httpClient);
@@ -118,7 +118,7 @@ namespace Designer.Tests.Services
             // use real http client with mocked handler here
             var httpClient = new HttpClient(handlerMock.Object)
             {
-                BaseAddress = new Uri("http://altinn.localhost/repos/api/v1")
+                BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
             };
 
             GiteaAPIWrapper giteaApi = GetServiceForTest("testUser", httpClient);
@@ -159,7 +159,7 @@ namespace Designer.Tests.Services
             // use real http client with mocked handler here
             var httpClient = new HttpClient(handlerMock.Object)
             {
-                BaseAddress = new Uri("http://altinn.localhost/repos/api/v1")
+                BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
             };
 
             GiteaAPIWrapper giteaApi = GetServiceForTest("testUser", httpClient);
@@ -193,7 +193,7 @@ namespace Designer.Tests.Services
             // use real http client with mocked handler here
             var httpClient = new HttpClient(handlerMock.Object)
             {
-                BaseAddress = new Uri("http://altinn.localhost/repos/api/v1")
+                BaseAddress = new Uri("http://studio.localhost/repos/api/v1")
             };
 
             GiteaAPIWrapper giteaApi = GetServiceForTest("testUser", httpClient);
@@ -227,7 +227,7 @@ namespace Designer.Tests.Services
             // use real http client with mocked handler here
             var httpClient = new HttpClient(handlerMock.Object)
             {
-                BaseAddress = new Uri("http://altinn.localhost/designer/api/v1/user/starred")
+                BaseAddress = new Uri("http://studio.localhost/designer/api/v1/user/starred")
             };
 
             GiteaAPIWrapper giteaApi = GetServiceForTest("testUser", httpClient);
@@ -259,7 +259,7 @@ namespace Designer.Tests.Services
             // use real http client with mocked handler here
             var httpClient = new HttpClient(handlerMock.Object)
             {
-                BaseAddress = new Uri("http://altinn.localhost/designer/api/v1/user/starred")
+                BaseAddress = new Uri("http://studio.localhost/designer/api/v1/user/starred")
             };
 
             GiteaAPIWrapper giteaApi = GetServiceForTest("testUser", httpClient);
@@ -292,7 +292,7 @@ namespace Designer.Tests.Services
             // use real http client with mocked handler here
             var httpClient = new HttpClient(handlerMock.Object)
             {
-                BaseAddress = new Uri("http://altinn.localhost/designer/api/v1/user/starred")
+                BaseAddress = new Uri("http://studio.localhost/designer/api/v1/user/starred")
             };
 
             GiteaAPIWrapper giteaApi = GetServiceForTest("testUser", httpClient);
@@ -346,7 +346,7 @@ namespace Designer.Tests.Services
             // Injecting the mock handler into a real http client
             var httpClient = new HttpClient(handlerMock.Object)
             {
-                BaseAddress = new Uri("http://altinn.localhost/designer/api/v1/")
+                BaseAddress = new Uri("http://studio.localhost/designer/api/v1/")
             };
 
             // Passing the test specific mock setup in, sprinkles a bit more mock setup and returns a valid GiteaAPIWrapper

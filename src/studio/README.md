@@ -22,7 +22,7 @@ purposes. See deployment for notes on how to deploy the project on a live system
 4. A code editor - we like [Visual Studio Code][5]
    - Also install [recommended extensions][6] (f.ex. [C#][7])
 5. [Docker Desktop][8]
-6. _On MacOS add `127.0.0.1 altinn.localhost` to `/private/etc/hosts` to enable access from Safari.
+6. _On MacOS add `127.0.0.1 studio.localhost` to `/private/etc/hosts` to enable access from Safari.
 7. If you are running Docker Desktop in Hyper-V mode you need to make sure your C drive is shared with Docker, Docker
    Settings -> Shared Drives The File sharing tab is only available in Hyper-V mode, because in WSL 2 mode and Windows
    container mode all files are automatically shared by Windows.
@@ -45,7 +45,7 @@ Run all parts of the solution in containers (Make sure docker is running)
 docker-compose up -d --build
 ```
 
-The solution is now available locally at [altinn.localhost](http://altinn.localhost). (Just create a new user for testing. No email
+The solution is now available locally at [studio.localhost](http://studio.localhost). (Just create a new user for testing. No email
 verification required)
 
 If you make changes and want to rebuild a specific project using docker-compose this can be done using
@@ -180,7 +180,7 @@ This project is licensed under the 3-Clause BSD License - see the [LICENSE.md](L
 [7]: https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp
 [8]: https://www.docker.com/products/docker-desktop
 [9]: https://github.com/Altinn/altinn-studio
-[10]: http://altinn.localhost
+[10]: http://studio.localhost
 [11]: https://reactjs.org/
 [12]: https://redux.js.org/
 [13]: https://docs.microsoft.com/en-us/dotnet/core/
