@@ -1101,7 +1101,7 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
                 SetRequired(subItem, required.Contains(name));
                 SetFixed(subItem, property.Keywords.GetKeyword<ConstKeyword>());
                 SetDefault(subItem, property.Keywords.GetKeyword<DefaultKeyword>());
-                CarryOccurs(subItem, property);
+                CarryXsdOccursIfNotSet(subItem, property);
 
                 switch (subItem)
                 {
@@ -1120,19 +1120,23 @@ namespace Altinn.Studio.DataModeling.Converter.Json.Strategy
             }
         }
 
-        private static void CarryOccurs(XmlSchemaObject subItem, JsonSchema property)
+        /// <summary>
+        /// Carries explicitly defined default values for minOccurs and maxOccurs from the original xsd if they were defined.
+        /// XsdMinOccursKeyword and XsdMaxOccursKeyword have least priority so they won't be took into consideration if minOccurs and maxOccurs were previously calculated.
+        /// </summary>
+        private static void CarryXsdOccursIfNotSet(XmlSchemaObject subItem, JsonSchema property)
         {
             if (subItem is not XmlSchemaParticle particle)
             {
                 return;
             }
 
-            if (property.Keywords.TryGetKeyword(out XsdMinOccursKeyword minOccursKeyword))
+            if (property.Keywords.TryGetKeyword(out XsdMinOccursKeyword minOccursKeyword) && particle.MinOccursString is null)
             {
                 particle.MinOccurs = minOccursKeyword.Value;
             }
 
-            if (property.Keywords.TryGetKeyword(out XsdMaxOccursKeyword maxOccursKeyword))
+            if (property.Keywords.TryGetKeyword(out XsdMaxOccursKeyword maxOccursKeyword) && particle.MaxOccursString is null)
             {
                 particle.MaxOccursString = maxOccursKeyword.Value;
             }
