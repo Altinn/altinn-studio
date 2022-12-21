@@ -1,18 +1,18 @@
 import React from 'react';
-import type { ILanguageRowProps } from './TextRow';
+import type { ILangRowProps } from './TextRow';
 import type { TextResourceEntry } from './types';
 import userEvent from '@testing-library/user-event';
 import { TextRow } from './TextRow';
 import { screen, render as rtlRender } from '@testing-library/react';
 
-const renderTextRow = (props: Partial<ILanguageRowProps> = {}) => {
+const renderTextRow = (props: Partial<ILangRowProps> = {}) => {
   const textResourceEntry: TextResourceEntry = {
     id: 'key1',
     value: 'value1',
   };
 
   const allProps = {
-    languageName: 'Norsk',
+    langName: 'Norsk',
     langCode: 'nb',
     translationKey: 'key1',
     textResourceEntry,
@@ -20,7 +20,7 @@ const renderTextRow = (props: Partial<ILanguageRowProps> = {}) => {
     removeEntry: jest.fn(),
     idExists: jest.fn(),
     ...props,
-  } as ILanguageRowProps;
+  } as ILangRowProps;
   const user = userEvent.setup();
   rtlRender(<TextRow {...allProps} />);
   return { user };

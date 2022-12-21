@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import classes from './TextRow.module.css';
-import type { TextResourceEntry } from './types';
+import type { TextDetail, TextResourceEntry } from './types';
 import { Delete, InformationColored } from '@navikt/ds-icons';
 import {
   Button,
@@ -13,11 +13,11 @@ import {
   TextField,
 } from '@altinn/altinn-design-system';
 
-export interface ILanguageRowProps {
-  languageName: string;
+export interface ILangRowProps {
+  textId: string;
+  langName: string;
   langCode: string;
-  textResourceEntry: TextResourceEntry;
-  // TODO: Cleanup/simplify these, could probably stick with just `onTranslationChange`? See how they are used in TextEditor.tsx - they all end up calling the same callback with the same args
+  textResourceEntry: TextDetail;
   upsertEntry: (entry: TextResourceEntry) => void;
   removeEntry: (textResourceId: string) => void;
   updateEntryId: (oldId: string, newId: string) => void;
@@ -25,51 +25,54 @@ export interface ILanguageRowProps {
 }
 
 export const TextRow = ({
-  languageName,
+  textId,
+  langName,
   langCode,
   textResourceEntry,
   upsertEntry,
   removeEntry,
   updateEntryId,
   idExists,
-}: ILanguageRowProps) => {
-  const [idValue, setIdValue] = useState(textResourceEntry.id);
-  const [valueValue, setValueValue] = useState(textResourceEntry.value);
+}: ILangRowProps) => {
+  const [idValue, setIdValue] = useState(textId);
+  const [valueValue, setValueValue] = useState(textResourceEntry?.value || '');
   const [keyError, setKeyError] = useState('');
-
+  useEffect(() => {
+    setValueValue(textResourceEntry?.value || '');
+  }, [textResourceEntry]);
   const handleIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.currentTarget.value;
     if (idExists(newValue)) {
       setKeyError('Denne IDen finnes allerede');
     } else {
       setKeyError('');
-      setIdValue(newValue);
     }
+    setIdValue(newValue);
   };
   const handleValueChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
     setValueValue(e.currentTarget.value);
 
   const handleIdBlur = () => {
-    if (!keyError && textResourceEntry.id !== idValue) {
-      updateEntryId(textResourceEntry.id, idValue);
+    if (!keyError && textId !== idValue) {
+      updateEntryId(textId, idValue);
     }
   };
 
   const handleValueBlur = () => {
-    if (textResourceEntry.value !== valueValue) {
-      upsertEntry({ id: textResourceEntry.id, value: valueValue });
+    if (textResourceEntry?.value !== valueValue) {
+      upsertEntry({ id: textId, value: valueValue });
     }
   };
 
-  const handleDeleteClick = () => removeEntry(textResourceEntry.id);
+  const handleDeleteClick = () => removeEntry(textId);
 
-  const idForValue = `value-${langCode}-${textResourceEntry.id}`;
-  const variables = textResourceEntry.variables || [];
+  const idForValue = `value-${langCode}-${textId}`;
+  const variables = textResourceEntry?.variables || [];
 
   const [infoboxOpen, setInfoboxOpen] = useState(false);
 
   return (
-    <div data-testid={'lang-row'} className={classes.textRow}>
+    <li data-testid={'lang-row'} className={classes.textRow}>
       <div className={classes.leftCol}>
         <TextField
           isValid={!keyError}
@@ -82,7 +85,7 @@ export const TextRow = ({
         {keyError ? <ErrorMessage>{keyError}</ErrorMessage> : null}
       </div>
       <div className={classes.centerCol}>
-        <label htmlFor={idForValue}>{languageName}</label>
+        <label htmlFor={idForValue}>{langName}</label>
         <TextArea
           resize='vertical'
           id={idForValue}
@@ -129,6 +132,6 @@ export const TextRow = ({
           variant={ButtonVariant.Quiet}
         />
       </div>
-    </div>
+    </li>
   );
 };

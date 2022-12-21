@@ -1,6 +1,6 @@
 import React from 'react';
 import { TextEditor } from './TextEditor';
-import type { ILanguageEditorProps } from './TextEditor';
+import type { ILangEditorProps } from './TextEditor';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { TextResourceFile } from './types';
@@ -30,17 +30,17 @@ describe('TextEditor', () => {
     jest.spyOn(global.Math, 'random').mockRestore();
   });
 
-  const renderTextEditor = (props: Partial<ILanguageEditorProps> = {}) => {
+  const renderTextEditor = (props: Partial<ILangEditorProps> = {}) => {
     const allProps = {
-      availableLanguageCodes: ['nb', 'en'],
+      availableLangCodes: ['nb', 'en'],
       translations,
       selectedLangCode: 'nb',
-      onAddLanguage: jest.fn(),
+      onAddLang: jest.fn(),
       onTranslationChange: jest.fn(),
-      onSelectedLanguageChange: jest.fn(),
-      onDeleteLanguage: jest.fn(),
+      onSelectedLangChange: jest.fn(),
+      onDeleteLang: jest.fn(),
       ...props,
-    } as ILanguageEditorProps;
+    } as ILangEditorProps;
 
     rtlRender(<TextEditor {...allProps} />);
   };
@@ -75,22 +75,22 @@ describe('TextEditor', () => {
     });
   });
 
-  it('fires onDeleteLanguage when Delete language is clicked', async () => {
-    const handleDeleteLanguage = jest.fn();
+  it('fires onDeleteLang when Delete lang is clicked', async () => {
+    const handleDeleteLang = jest.fn();
     renderTextEditor({
-      onDeleteLanguage: handleDeleteLanguage,
+      onDeleteLang: handleDeleteLang,
     });
     const deleteBtn = screen.getByTestId('delete-en');
 
     await user.click(deleteBtn);
 
-    expect(handleDeleteLanguage).toHaveBeenCalledWith('en');
+    expect(handleDeleteLang).toHaveBeenCalledWith('en');
   });
 
-  it('fires onSelectedLanguage change when language is changed', async () => {
-    const handleSelectedLanguageChange = jest.fn();
+  it('fires onSelectedLang change when lang is changed', async () => {
+    const handleSelectedLangChange = jest.fn();
     renderTextEditor({
-      onSelectedLanguageChange: handleSelectedLanguageChange,
+      onSelectedLangChange: handleSelectedLangChange,
     });
 
     const norwegianRadio = screen.getByRole('radio', {
@@ -104,6 +104,6 @@ describe('TextEditor', () => {
 
     await user.click(englishRadio);
 
-    expect(handleSelectedLanguageChange).toHaveBeenCalledWith('en');
+    expect(handleSelectedLangChange).toHaveBeenCalledWith('en');
   });
 });

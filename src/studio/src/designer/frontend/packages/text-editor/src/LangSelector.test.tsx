@@ -1,23 +1,23 @@
 import React from 'react';
-import { LanguageSelector } from './LanguageSelector';
-import type { ILanguageSelectorProps } from './LanguageSelector';
+import { LangSelector } from './LangSelector';
+import type { ILangSelectorProps } from './LangSelector';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 const user = userEvent.setup();
 
-const render = (props: Partial<ILanguageSelectorProps> = {}) => {
+const render = (props: Partial<ILangSelectorProps> = {}) => {
   const allProps = {
     ...props,
-  } as ILanguageSelectorProps;
+  } as ILangSelectorProps;
 
-  rtlRender(<LanguageSelector {...allProps} />);
+  rtlRender(<LangSelector {...allProps} />);
 };
 
-it('fires onAddLanguage when add button is clicked', async () => {
-  const handleAddLanguage = jest.fn();
+it('fires onAddLang when add button is clicked', async () => {
+  const handleAddLang = jest.fn();
   render({
-    onAddLanguage: handleAddLanguage,
+    onAddLang: handleAddLang,
     options: [
       { label: 'bokmål', value: 'nb' },
       { label: 'engelsk', value: 'en' },
@@ -37,5 +37,5 @@ it('fires onAddLanguage when add button is clicked', async () => {
   expect(addBtn).not.toBeDisabled();
   await user.click(addBtn);
 
-  expect(handleAddLanguage).toHaveBeenCalledWith('se');
+  expect(handleAddLang).toHaveBeenCalledWith('se');
 });
