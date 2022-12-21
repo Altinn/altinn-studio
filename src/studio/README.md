@@ -22,21 +22,20 @@ purposes. See deployment for notes on how to deploy the project on a live system
 4. A code editor - we like [Visual Studio Code][5]
    - Also install [recommended extensions][6] (f.ex. [C#][7])
 5. [Docker Desktop][8]
-6. _On MacOS add `127.0.0.1 studio.localhost` to `/private/etc/hosts` to enable access from Safari.
-7. If you are running Docker Desktop in Hyper-V mode you need to make sure your C drive is shared with Docker, Docker
+6. If you are running Docker Desktop in Hyper-V mode you need to make sure your C drive is shared with Docker, Docker
    Settings -> Shared Drives The File sharing tab is only available in Hyper-V mode, because in WSL 2 mode and Windows
    container mode all files are automatically shared by Windows.
-
-8. World Wide Web Publishing Service must be disabled, Services -> "World Wide Web Publishing Service" rigth click and
+7. World Wide Web Publishing Service must be disabled, Services -> "World Wide Web Publishing Service" rigth click and
    choose "stop"
+
+_NOTE: If you want to use Safari on MacOS add `127.0.0.1 studio.localhost` to `/private/etc/hosts`_
 
 ### Installing
 
-Clone [Altinn Studio repo][9] and navigate to the `studio` folder.
+Clone [Altinn Studio repo][9]
 
 ```bash
 git clone https://github.com/Altinn/altinn-studio
-cd altinn-studio/src/studio
 ```
 
 Run all parts of the solution in containers (Make sure docker is running)
@@ -65,7 +64,7 @@ docker-compose up -d --build altinn_designer
 When starting `docker-compose` the solution should be running as it would in production. But you probably want to change
 parts of the solution. The loadbalancer is configured to route the traffic to the right place according to your
 particular usecase. This is done by placing a `.env`-file in the same folder as docker-compose.yml. The content is as
-follow:
+follows:
 
 ```text
 DEVELOP_BACKEND=0
@@ -125,7 +124,7 @@ to `src/studio/src/designer/frontend` and then run the following build script, w
 yarn run build
 ```
 
-Some of the React projects also have various other predefined scripts, which can be viewed in the `package.json` file
+Some React projects also have various other predefined scripts, which can be viewed in the `package.json` file
 which is located in the root folder of each react project, example `src/studio/src/designer/frontend/dashboard`.
 
 ## Running the tests
@@ -149,15 +148,14 @@ The current build is deployed in Kubernetes on Azure. Automated CI/CD using Azur
 ## Built With
 
 - [React][11]/[Redux][12] - The front-end framework
-- [.NET Core][13]/[C#][14] - The
-  back-end framework
+- [.NET Core][13]/[C#][14] - The back-end framework
 - [yarn][15] - Package management
 - [Docker][16] - Container platform
 - [Kubernetes][17] - Container orchestration
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](../../CONTRIBUTING.md) for details on our code of conduct, and the process for submitting
+Please read [CONTRIBUTING.md](../../docs/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting
 pull requests to us.
 
 ## Authors
@@ -169,7 +167,7 @@ this project.
 
 ## License
 
-This project is licensed under the 3-Clause BSD License - see the [LICENSE.md](LICENSE.md) file for details.
+This project is licensed under the 3-Clause BSD License - see the [LICENSE.md](../../LICENSE.md) file for details.
 
 [1]: https://docs.altinn.studio/
 [2]: https://dotnet.microsoft.com/download/dotnet/6.0

@@ -17,7 +17,7 @@ We've also created a [into course for app development](https://docs.altinn.studi
 
 ## Developing apps?
 
-If you just want to quickly perform tests of your app on your development machine you can follow the instructions on how to [run apps locally](LOCALAPP.md).
+If you just want to quickly perform tests of your app on your development machine you can follow the instructions on how to [run apps locally](docs/LOCALAPP.md).
 
 ## Getting Started
 
@@ -43,7 +43,8 @@ First make sure to [follow the prerequisites for Altinn Studio](/src/studio/READ
 _If you need to develop or debug App-Frontend, you can follow the description in **[app-frontend-react repository](https://github.com/Altinn/app-frontend-react#developing-app-frontend)**_
 
 It's possible to run an app locally in order to test and debug it. It needs a local version of the platform services to work.
-_NOTE: Currently, it is not possible to run Apps and Altinn Studio (designer) in parallel. To run Apps, make sure that none of the containers for Altinn Studio are running, f.ex. by navigating to the root of the altinn-studio repo, and running the command_
+_NOTE: Currently, it is not possible to run Apps and Altinn Studio (designer) in parallel. To run Apps, make sure that 
+none of the containers for Altinn Studio are running, f.ex. by navigating to the root of the altinn-studio repo, and running the command_
 
 ```bash
 docker-compose down
@@ -97,13 +98,15 @@ Log in with a test user, using your app name and org name. This will redirect yo
 
 #### Building other react apps
 
-If you need to rebuild other react apps, for instance Dashboard or ServiceDevelopment, this can be done by navigating to their respective folders, example `src/studio/src/designer/frontend/dashboard` and then run the following build script
+If you need to rebuild other react apps, for instance Dashboard or ServiceDevelopment, this can be done by navigating to 
+their respective folders, example `src/studio/src/designer/frontend/dashboard` and then run the following build script
 
 ```bash
 yarn run build
 ```
 
-Some of the react projects also have various other predefined yarn tasks, which can be viewed in the `package.json` file which is located in the root folder of each react project, example `src/studio/stc/designer/frontend/dashboard/package.json`
+Some of the react projects also have various other predefined yarn tasks, which can be viewed in the `package.json` file 
+which is located in the root folder of each react project, example `src/studio/stc/designer/frontend/dashboard/package.json`
 
 ## Running the tests
 
@@ -113,7 +116,7 @@ Some of the react projects also have various other predefined yarn tasks, which 
 
 ### Frontend lint and unit tests
 
-See readme in [studio](/src/studio/README.md#running-the-tests) and [Altinn.Apps AppFrontend](/src/Altinn.Apps/AppFrontend/react/README.md#running-the-tests) projects for details on how to run these tests.
+See readme in [studio](/src/studio/README.md#running-the-tests).
 
 ## Deployment
 
@@ -131,7 +134,7 @@ Automated build/deploy process is being developed.
 
 ## Contributing
 
-Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+Please read [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
 ## Authors
 

@@ -8,7 +8,8 @@ docker-compose.*.yml
 **/node_modules
 **/bin
 **/obj
-src/react-apps/ux-editor/node_modules
-src/react-apps/ux-editor/compiled
 src/Altinn.Platform
+src/Altinn.Apps
+src/test
 !src/Altinn.Platform/Altinn.Platform.Receipt
+

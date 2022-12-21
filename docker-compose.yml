@@ -34,9 +34,9 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - ./src/designer/frontend/language/src:/www-root/designer/frontend/lang:ro
-      - ./src/load-balancer:/etc/nginx/templates/:ro
-      - ./src/load-balancer:/www/:ro
+      - ./src/studio/src/designer/frontend/language/src:/www-root/designer/frontend/lang:ro
+      - ./development/load-balancer:/etc/nginx/templates/:ro
+      - ./development/load-balancer:/www/:ro
 
   altinn_designer:
     container_name: altinn-designer
@@ -70,7 +70,7 @@ services:
       - altinn_repositories
     build:
       context: .
-      dockerfile: ./src/designer/Dockerfile
+      dockerfile: Dockerfile
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
@@ -112,7 +112,7 @@ services:
       - "3000:3000"
       - "222:22"
     build:
-      context: ./src/repositories/
+      context: ./gitea/
       dockerfile: Dockerfile
     extra_hosts:
       - "host.docker.internal:host-gateway"
