@@ -6,11 +6,11 @@ on:
   push:
     branches: [ master ]
     paths:
-      - 'src/studio/src/designer/**/Dockerfile'
+      - 'Dockerfile'
   pull_request:
     branches: [ master ]
     paths:
-      - 'src/studio/src/designer/**/Dockerfile'
+      - 'Dockerfile'
 
 jobs:
   build:
@@ -25,4 +25,4 @@ jobs:
         # See https://github.com/goodwithtech/dockle/issues/188
         DOCKLE_HOST: "unix:///var/run/docker.sock"
       with:
-        image-name: altinn-designer:${{ github.sha }}
+        image-name: altinn-designer:${{github.sha}}

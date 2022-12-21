@@ -7,9 +7,6 @@ solution/app-backend:
   - 'src/Altinn.Apps/AppTemplates/**/*'
   - 'src/studio/AppTemplates/**/*'
 
-solution/app-frontend:
-  - 'src/Altinn.Apps/AppFrontend/**/*'
-
 solution/apps:
   - 'src/Altinn.Apps/KubernetesWrapper/**/*'
 
@@ -17,8 +14,7 @@ solution/studio/designer:
   - 'src/studio/src/designer/**/*'
 
 solution/studio/repos:
-  - 'src/studio/src/repositories/**/*'
-
+  - 'gitea/**/*'
 
 # Labels for areas
 
