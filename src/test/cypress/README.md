@@ -20,7 +20,7 @@ The tests require that the solution has to be started with captcha settings disa
 
 Remove the mounted volume of studio gitea using `docker-compose down -v` (only needed first time)
 
-Disable the captcha for user registration by making `ENABLE_CAPTCHA` to `false` in this [file](https://github.com/Altinn/altinn-studio/blob/master/src/studio/src/repositories/gitea-data/gitea/conf/app.ini#L80).
+Disable the captcha for user registration by making `ENABLE_CAPTCHA` to `false` in this [file](https://github.com/Altinn/altinn-studio/blob/master/gitea/files/conf/app.ini#L80).
 
 Start the solution by following the procedure [here](https://github.com/Altinn/altinn-studio/tree/master/src/studio#running-solutions-locally).
 

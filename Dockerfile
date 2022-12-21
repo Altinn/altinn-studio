@@ -1,7 +1,7 @@
 # Building studio frontend
 FROM node:alpine AS generate-studio-frontend
 WORKDIR /build
-COPY ./src/designer/frontend .
+COPY src/studio/src/designer/frontend .
 RUN corepack enable
 RUN yarn --immutable
 RUN yarn build
@@ -9,7 +9,7 @@ RUN yarn build
 # Building studio frontend static served by the backend
 FROM node:alpine AS generate-designer-js
 WORKDIR /build
-COPY src/designer/backend .
+COPY src/studio/src/designer/backend .
 RUN corepack enable
 RUN yarn --immutable
 RUN yarn build
@@ -17,9 +17,9 @@ RUN yarn build
 # Building the backend
 FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine AS generate-studio-backend
 WORKDIR /build
-COPY src/designer/Designer.sln ./
-COPY src/designer/backend ./designer/
-COPY src/designer/DataModeling ./DataModeling/
+COPY src/studio/src/designer/Designer.sln ./
+COPY src/studio/src/designer/backend ./designer/
+COPY src/studio/src/designer/DataModeling ./DataModeling/
 RUN dotnet build designer/Designer.csproj -c Release -o /app_output
 RUN dotnet publish designer/Designer.csproj -c Release -o /app_output
 RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
@@ -39,8 +39,7 @@ COPY --from=generate-studio-frontend /build/dist/dashboard ./wwwroot/designer/fr
 COPY --from=generate-studio-frontend /build/dist/language ./wwwroot/designer/frontend/lang
 
 ## Copying app template
-## TODO: find out how to reference files outside docker context
-COPY /AppTemplates/AspNet ./Templates/AspNet
-COPY src/designer/backend/Migration ./Migration
+COPY src/studio/AppTemplates/AspNet ./Templates/AspNet
+COPY src/studio/src/designer/backend/Migration ./Migration
 
 ENTRYPOINT ["dotnet", "Altinn.Studio.Designer.dll"]

@@ -5,8 +5,6 @@ VisualStudioVersion = 16.0.29215.179
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Designer", "backend\Designer.csproj", "{6D0AC0E2-5A9A-4804-AA89-48000067AEB0}"
 EndProject
-Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "..\..\docker-compose.dcproj", "{56321ACF-FBE6-4445-98BB-FAF9B18C5EB4}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Designer.Tests", "backend.Tests\Designer.Tests.csproj", "{9DB55096-4A57-4E3D-9D2C-B2405C461267}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataModeling", "DataModeling\DataModeling.csproj", "{C7D0A356-65CA-411E-AB7E-6EBBA109D6CA}"

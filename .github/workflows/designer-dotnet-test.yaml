@@ -14,7 +14,7 @@ jobs:
   analyze:
     strategy:
       matrix:
-        os: [macos-latest,windows-latest,ubuntu-latest] # TODO: Fix test to run on ubuntu-latest also
+        os: [macos-latest,windows-latest,ubuntu-latest]
     name: Run dotnet build and test
     runs-on: ${{ matrix.os}}
     env:
