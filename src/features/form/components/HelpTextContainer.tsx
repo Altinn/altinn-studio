@@ -36,7 +36,7 @@ export function HelpTextContainer({ language, helpText }: IHelpTextContainerProp
   }
 
   return (
-    <div
+    <span
       tabIndex={-1}
       onBlur={onBlur}
     >
@@ -57,6 +57,6 @@ export function HelpTextContainer({ language, helpText }: IHelpTextContainerProp
         helpText={helpText}
         onClose={handlePopoverClose}
       />
-    </div>
+    </span>
   );
 }
