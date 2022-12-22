@@ -6,7 +6,17 @@ export const removeTextEntry = (texts: TextResourceMap, entryId: string) => {
   delete updatedTranslations[entryId];
   return updatedTranslations;
 };
-
+export const generateTextResourceFile = (
+  language: string,
+  ids: string[],
+  entries: TextResourceMap
+) => ({
+  language,
+  resources: ids.map((id) => ({
+    id,
+    ...entries[id],
+  })),
+});
 export const mapTextResources = (resources: TextResourceEntry[]) =>
   resources.reduce(
     (acc, { id, ...rest }) => ({

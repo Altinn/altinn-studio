@@ -5,13 +5,19 @@ import type {
   TextResourceEntry,
   TextResourceFile,
   TextResourceEntryDeletion,
-  TextResourceIdMutation
+  TextResourceIdMutation,
 } from './types';
 import { AltinnSpinner } from 'app-shared/components';
 import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
 import { RightMenu } from './RightMenu';
 import { getRandNumber } from './utils';
-import { mapTextResources, removeTextEntry, updateTextEntryId, upsertTextEntry } from './mutations';
+import {
+  generateTextResourceFile,
+  mapTextResources,
+  removeTextEntry,
+  updateTextEntryId,
+  upsertTextEntry,
+} from './mutations';
 import { useDefaultLang } from './hooks';
 import { TextList } from './TextList';
 
@@ -62,16 +68,12 @@ export const TextEditor = ({
     setTextIds([newId, ...textIds]);
   };
   const removeEntry = ({ textId }: TextResourceEntryDeletion) => {
-    const mutatingIds = textIds.filter((v) => v !== textId);
+    const mutatedIds = textIds.filter((v) => v !== textId);
     const mutatedEntries = removeTextEntry(texts, textId);
-    onTranslationChange({
-      language: translations.language,
-      resources: mutatingIds.map((id) => ({
-        id,
-        ...mutatedEntries[id],
-      })),
-    });
-    setTextIds(mutatingIds);
+    onTranslationChange(
+      generateTextResourceFile(translations.language, mutatedIds, mutatedEntries)
+    );
+    setTextIds(mutatedIds);
   };
   const upsertEntry = (entry: TextResourceEntry) =>
     onTranslationChange(upsertTextEntry(translations, entry));

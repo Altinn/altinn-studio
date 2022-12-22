@@ -6,7 +6,6 @@ import userEvent from '@testing-library/user-event';
 import type { TextResourceFile } from './types';
 
 describe('TextEditor', () => {
-  const user = userEvent.setup();
 
   const norwegianTranslation: TextResourceFile = {
     language: 'nb',
@@ -41,13 +40,14 @@ describe('TextEditor', () => {
       onDeleteLang: jest.fn(),
       ...props,
     } as TextEditorProps;
-
+    const user = userEvent.setup();
     rtlRender(<TextEditor {...allProps} />);
+    return { user };
   };
 
   it('fires onTranslationChange when Add new is clicked', async () => {
     const onTranslationChange = jest.fn();
-    renderTextEditor({
+    const { user } = renderTextEditor({
       onTranslationChange: onTranslationChange,
     });
     const addBtn = screen.getByRole('button', {
@@ -70,7 +70,7 @@ describe('TextEditor', () => {
 
   it('fires onDeleteLang when Delete lang is clicked', async () => {
     const handleDeleteLang = jest.fn();
-    renderTextEditor({
+    const { user } = renderTextEditor({
       onDeleteLang: handleDeleteLang,
     });
     const deleteBtn = screen.getByTestId('delete-en');
@@ -82,7 +82,7 @@ describe('TextEditor', () => {
 
   it('calls setSelectedLang code when lang is changed', async () => {
     const setSelectedLangCode = jest.fn((lang: string) => lang);
-    renderTextEditor({
+    const { user } = renderTextEditor({
       setSelectedLangCode,
     });
     const norwegianRadio = screen.getByRole('radio', {
@@ -108,6 +108,18 @@ describe('TextEditor', () => {
     expect(setSelectedLangCode).toHaveBeenCalledWith('nb');
   });
 
-  it.todo('removes an entry from the rendered list of entries');
+  it.todo(
+    'removes an entry from the rendered list of entries'
+    /* async ()=>{
+    const onDeleteLang = jest.fn();
+    const { user } = renderTextEditor({
+      onDeleteLang,
+    });
+    const result = screen.getAllByText(/Slett textId/i);
+    expect(result).toHaveLength(2);
+    await user.click(result[0]);
+    expect(onDeleteLang).toHaveBeenCalledWith('meh');
+  }*/
+  );
   it.todo('syncs the textIds across languages');
 });

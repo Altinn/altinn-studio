@@ -1,5 +1,10 @@
 import type { TextResourceFile } from './types';
-import { mapTextResources, removeTextEntry, upsertTextEntry } from './mutations';
+import {
+  generateTextResourceFile,
+  mapTextResources,
+  removeTextEntry,
+  upsertTextEntry,
+} from './mutations';
 
 const testTextResource: TextResourceFile = {
   language: 'nb',
@@ -33,15 +38,43 @@ test('that we can update an entry', () => {
   expect(mutated.resources[0].value).toBe('Førnavn');
 });
 
-test('that we can add an entry', () => {
-  const mutated = upsertTextEntry(testTextResource, {
-    id: 'etternavn',
-    value: 'Etternavn',
+test('that we can generate an old-school resource file', () => {
+  const ids = ['a', 'b', 'c'];
+  const entries = {
+    a: { value: 'foo' },
+    b: { value: 'bar' },
+    c: { value: 'buz' },
+  };
+  const expected = {
+    language: 'nb',
+    resources: [
+      { id: 'a', value: 'foo' },
+      { id: 'b', value: 'bar' },
+      { id: 'c', value: 'buz' },
+    ],
+  };
+  const generatedFile1 = generateTextResourceFile('nb', ids, entries);
+  expect(generatedFile1).toEqual(expected);
+
+  const variables = [
+    {
+      key: 'fiz',
+      dataSource: 'boo',
+    },
+  ];
+  const generatedFile2 = generateTextResourceFile('nb', ids, {
+    ...entries,
+    c: {
+      value: 'buz',
+      variables,
+    },
   });
-  expect(mutated.language).toBe('nb');
-  expect(mutated.resources).toHaveLength(2);
-  expect(mutated.resources[0].id).toBe('fornavn');
-  expect(mutated.resources[0].value).toBe('Fornavn');
-  expect(mutated.resources[1].id).toBe('etternavn');
-  expect(mutated.resources[1].value).toBe('Etternavn');
+  const expected2 = { ...expected };
+  expected2.resources[2]['variables'] = [
+    {
+      key: 'fiz',
+      dataSource: 'boo',
+    },
+  ];
+  expect(generatedFile2).toEqual(expected2);
 });

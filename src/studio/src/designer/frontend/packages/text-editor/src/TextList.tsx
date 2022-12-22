@@ -17,16 +17,8 @@ export type TextListProps = {
   removeEntry: ({ textId }: TextResourceEntryDeletion) => void;
   updateEntryId: ({ oldId, newId }: TextResourceIdMutation) => void;
 };
-export const TextList = ({
-  textIds,
-  selectedLangCode,
-  texts,
-  upsertEntry,
-  removeEntry,
-  updateEntryId,
-}: TextListProps) => {
+export const TextList = ({ textIds, selectedLangCode, texts, ...rest }: TextListProps) => {
   const langName = getLangName({ code: selectedLangCode });
-
   const idExits = (entryId: string) => textIds.includes(entryId);
   return (
     <ul className={classes.TextEditor__body}>
@@ -35,12 +27,9 @@ export const TextList = ({
           key={`${selectedLangCode}.${id}`}
           textId={id}
           langName={langName}
-          langCode={selectedLangCode}
-          textResourceEntry={texts[id]}
           idExists={idExits}
-          upsertEntry={upsertEntry}
-          removeEntry={removeEntry}
-          updateEntryId={updateEntryId}
+          textData={texts[id]}
+          {...rest}
         />
       ))}
     </ul>
