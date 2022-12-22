@@ -925,7 +925,11 @@ export function mapDataElementValidationToRedux(
           validationResult[layoutId][componentId] = componentValidations;
         } else {
           const currentValidations = validationResult[layoutId][componentId];
-          validationResult[layoutId][componentId] = mergeComponentValidations(currentValidations, componentValidations);
+          validationResult[layoutId][componentId] = mergeComponentValidations(
+            currentValidations,
+            componentValidations,
+            false,
+          );
         }
       } else {
         // unmapped error
@@ -1197,12 +1201,14 @@ export function mergeValidationObjects(...sources: (IValidations | null)[]): IVa
 export function mergeLayoutValidations(
   currentLayoutValidations: ILayoutValidations,
   newLayoutValidations: ILayoutValidations,
+  fixValidations = true,
 ): ILayoutValidations {
   const mergedValidations: ILayoutValidations = { ...currentLayoutValidations };
   Object.keys(newLayoutValidations).forEach((component) => {
     mergedValidations[component] = mergeComponentValidations(
       currentLayoutValidations[component] || {},
       newLayoutValidations[component] || {},
+      fixValidations,
     );
   });
   return mergedValidations;
@@ -1211,6 +1217,7 @@ export function mergeLayoutValidations(
 export function mergeComponentValidations(
   currentComponentValidations: IComponentValidations,
   newComponentValidations: IComponentValidations,
+  fixValidations = true,
 ): IComponentValidations {
   const mergedValidations: IComponentValidations = {
     ...currentComponentValidations,
@@ -1219,6 +1226,7 @@ export function mergeComponentValidations(
     mergedValidations[binding] = mergeComponentBindingValidations(
       currentComponentValidations[binding],
       newComponentValidations[binding],
+      fixValidations,
     );
   });
   return mergedValidations;
@@ -1227,24 +1235,35 @@ export function mergeComponentValidations(
 export function mergeComponentBindingValidations(
   existingValidations?: IComponentBindingValidation,
   newValidations?: IComponentBindingValidation,
+  fixValidations = true,
 ): IComponentBindingValidation {
   const existingErrors = existingValidations?.errors || [];
   const existingWarnings = existingValidations?.warnings || [];
   const existingInfo = existingValidations?.info || [];
   const existingSuccess = existingValidations?.success || [];
+  const existingFixed = existingValidations?.fixed || [];
 
   // Only merge items that are not already in the existing components errors/warnings array
   const uniqueNewErrors = getUniqueNewElements(existingErrors, newValidations?.errors);
   const uniqueNewWarnings = getUniqueNewElements(existingWarnings, newValidations?.warnings);
   const uniqueNewInfo = getUniqueNewElements(existingInfo, newValidations?.info);
   const uniqueNewSuccess = getUniqueNewElements(existingSuccess, newValidations?.success);
+  const uniqueNewFixed = getUniqueNewElements(existingFixed, newValidations?.fixed);
 
-  const merged = {
-    errors: removeFixedValidations(existingErrors.concat(uniqueNewErrors), newValidations?.fixed),
-    warnings: removeFixedValidations(existingWarnings.concat(uniqueNewWarnings), newValidations?.fixed),
-    info: removeFixedValidations(existingInfo.concat(uniqueNewInfo), newValidations?.fixed),
-    success: removeFixedValidations(existingSuccess.concat(uniqueNewSuccess), newValidations?.fixed),
-  };
+  const merged = fixValidations
+    ? {
+        errors: removeFixedValidations(existingErrors.concat(uniqueNewErrors), newValidations?.fixed),
+        warnings: removeFixedValidations(existingWarnings.concat(uniqueNewWarnings), newValidations?.fixed),
+        info: removeFixedValidations(existingInfo.concat(uniqueNewInfo), newValidations?.fixed),
+        success: removeFixedValidations(existingSuccess.concat(uniqueNewSuccess), newValidations?.fixed),
+      }
+    : {
+        errors: existingErrors.concat(uniqueNewErrors),
+        warnings: existingWarnings.concat(uniqueNewWarnings),
+        info: existingInfo.concat(uniqueNewInfo),
+        success: existingSuccess.concat(uniqueNewSuccess),
+        fixed: existingFixed.concat(uniqueNewFixed),
+      };
 
   Object.keys(merged).forEach((key) => {
     if (!merged[key] || merged[key].length === 0) {
