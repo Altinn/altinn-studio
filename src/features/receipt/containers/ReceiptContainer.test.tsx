@@ -168,7 +168,13 @@ describe('ReceiptContainer', () => {
 
     expect(
       screen.getByRole('heading', {
-        name: /app frontend komponenter receipt\.title_part_is_submitted/i,
+        name: 'receipt.title',
+      }),
+    ).toBeInTheDocument();
+
+    expect(
+      screen.getByRole('heading', {
+        name: 'receipt.title_submitted',
       }),
     ).toBeInTheDocument();
 
@@ -198,7 +204,7 @@ describe('ReceiptContainer', () => {
 
     expect(
       screen.getByRole('heading', {
-        name: /app frontend komponenter receipt\.title_part_is_submitted/i,
+        name: /receipt\.title/i,
       }),
     ).toBeInTheDocument();
 

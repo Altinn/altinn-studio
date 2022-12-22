@@ -4,7 +4,7 @@ import { makeStyles, Typography } from '@material-ui/core';
 
 export interface IReceiptComponentProps {
   body: string | JSX.Element | JSX.Element[];
-  title: string;
+  title: string | JSX.Element | JSX.Element[];
 }
 
 const useStyles = makeStyles(() => ({

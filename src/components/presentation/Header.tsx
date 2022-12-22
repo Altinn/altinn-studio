@@ -6,7 +6,7 @@ import classNames from 'classnames';
 import { useAppSelector } from 'src/common/hooks';
 import { Progress } from 'src/components/presentation/Progress';
 import { ProcessTaskType } from 'src/types';
-import { getLanguageFromKey } from 'src/utils/sharedUtils';
+import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { PresentationType } from 'src/types';
 
 export interface IHeaderProps {
@@ -18,6 +18,7 @@ export interface IHeaderProps {
 const Header = ({ type, header, appOwner }: IHeaderProps) => {
   const showProgressSettings = useAppSelector((state) => state.formLayout.uiConfig.showProgress);
   const language = useAppSelector((state) => state.language.language);
+  const textResources = useAppSelector((state) => state.textResources.resources);
 
   const showProgress = type !== ProcessTaskType.Archived && showProgressSettings;
 
@@ -50,7 +51,7 @@ const Header = ({ type, header, appOwner }: IHeaderProps) => {
                   data-testid='presentation-heading'
                 >
                   {type === ProcessTaskType.Archived ? (
-                    <span>{getLanguageFromKey('receipt.receipt', language)}</span>
+                    <span>{getTextFromAppOrDefault('receipt.receipt', textResources, language)}</span>
                   ) : (
                     header
                   )}
