@@ -7,38 +7,20 @@
   border-bottom: 1px solid #c9c9c9;
   padding-bottom: 1rem;
 }
-.centerCol {
+.leftCol {
   flex-grow: 1;
 }
-.centerCol textarea {
+.leftCol textarea {
   width: 100%;
 }
 .rightCol {
   padding-top: 25px;
 }
-
 .deleteButton {
   border: none;
   background: transparent;
   margin-left: 8px;
 }
-
 .deleteButton:hover {
   color: red;
-}
-
-.chip {
-  border-radius: 50px;
-  margin: 5px;
-  background-color: gray;
-  display: inline-block;
-  color: white;
-  padding-left: 10px;
-  padding-right: 10px;
-  font-size: 14px;
-  vertical-align: text-bottom;
-}
-
-.infoButton {
-  display: inline-block;
 }

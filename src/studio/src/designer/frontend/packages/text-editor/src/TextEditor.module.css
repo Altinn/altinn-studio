@@ -8,16 +8,6 @@
   justify-items: center;
 }
 
-.TextEditor__body {
-  padding: 2rem 4rem;
-  margin: 0 auto;
-  width: 100%;
-  background-color: #fff;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
 .RightMenu__verticalContent {
   width: 100%;
   display: flex;
@@ -64,4 +54,15 @@
   border-bottom: 1px solid #bcc7cc;
   margin-bottom: 2rem;
   padding: 2rem 0;
+  display:block;
+}
+
+.TextEditor__main {
+  padding: 2rem 4rem;
+  margin: 0 auto;
+  width: 100%;
+  background-color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }

@@ -1,22 +1,30 @@
-import type { TextResourceEntry, TextResourceFile } from './types';
-import { deepCopy, removeArrayElement } from 'app-shared/pure';
+import type { TextResourceEntry, TextResourceFile, TextResourceMap } from './types';
+import { deepCopy } from 'app-shared/pure';
 
-export const findTextEntry = (
-  translations: TextResourceFile,
-  entryId: string
-): TextResourceEntry | undefined => translations.resources.find((entry) => entry.id === entryId);
-
-export const removeTextEntry = (
-  translations: TextResourceFile,
-  entryId: string
-): TextResourceFile => {
-  const updatedTranslations = deepCopy(translations);
-  updatedTranslations.resources = removeArrayElement(
-    translations.resources,
-    findTextEntry(translations, entryId)
-  );
+export const removeTextEntry = (texts: TextResourceMap, entryId: string) => {
+  const updatedTranslations = { ...texts };
+  delete updatedTranslations[entryId];
   return updatedTranslations;
 };
+export const generateTextResourceFile = (
+  language: string,
+  ids: string[],
+  entries: TextResourceMap
+) => ({
+  language,
+  resources: ids.map((id) => ({
+    id,
+    ...entries[id],
+  })),
+});
+export const mapTextResources = (resources: TextResourceEntry[]) =>
+  resources.reduce(
+    (acc, { id, ...rest }) => ({
+      ...acc,
+      [id]: rest,
+    }),
+    {}
+  );
 
 export const upsertTextEntry = (
   resourceFile: TextResourceFile,

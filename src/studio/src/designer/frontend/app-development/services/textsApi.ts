@@ -1,5 +1,5 @@
 import { appDevelopmentApi } from './appDevelopmentApi';
-import type { TextResourceFile } from '@altinn/text-editor';
+import type { TextResourceFile, TextResourceEntry } from '@altinn/text-editor';
 import { Tags } from './tags';
 import { languagesApi } from './languagesApi';
 import { textResourcesPath } from 'app-shared/api-paths';
@@ -88,13 +88,13 @@ export const textsApi = appDevelopmentApi.injectEndpoints({
       ],
     }),
 
-    addByLangCode: builder.mutation<void, OrgAppLang>({
+    addByLangCode: builder.mutation<void, OrgAppLang & { resources: TextResourceEntry[] }>({
       query: (params) => ({
         url: languageFileUrl(params),
         method: 'POST',
         data: {
           language: params.langCode,
-          resources: [],
+          resources: params.resources,
         },
       }),
       async onQueryStarted({ org, app, langCode: addedLangCode }, { dispatch, queryFulfilled }) {
@@ -124,7 +124,6 @@ export const textsApi = appDevelopmentApi.injectEndpoints({
 });
 
 export const {
-  endpoints,
   useGetAppTextsByLangCodeQuery,
   useUpdateTranslationByLangCodeMutation,
   useDeleteByLangCodeMutation,

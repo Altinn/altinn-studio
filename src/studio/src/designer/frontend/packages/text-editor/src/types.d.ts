@@ -3,12 +3,23 @@ export type TextResourceFile = {
   resources: TextResourceEntry[];
 };
 
-export type TextResourceEntry = {
-  id: string;
+export type TextDetail = {
   value: string;
   variables?: TextResourceVariable[];
 };
-
+export type TextResourceIdMutation = {
+  oldId: string;
+  newId?: string;
+};
+export type TextResourceEntryDeletion = {
+  textId: string;
+};
+export type TextResourceEntry = {
+  id: string;
+} & TextDetail;
+export type TextResourceMap = {
+  [id: string]: TextDetail;
+};
 export type TextResourceVariable = {
   key: string;
   dataSource: string;

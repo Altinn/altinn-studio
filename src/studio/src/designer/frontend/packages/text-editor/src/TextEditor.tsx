@@ -1,23 +1,35 @@
-import React from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import classes from './TextEditor.module.css';
-import type { LangCode, TextResourceEntry, TextResourceFile } from './types';
-import type { RightMenuProps } from './RightMenu';
+import type {
+  LangCode,
+  TextResourceEntry,
+  TextResourceFile,
+  TextResourceEntryDeletion,
+  TextResourceIdMutation,
+} from './types';
 import { AltinnSpinner } from 'app-shared/components';
 import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
 import { RightMenu } from './RightMenu';
-import { TextRow } from './TextRow';
-import { getLanguageName, getRandNumber } from './utils';
-import { findTextEntry, removeTextEntry, updateTextEntryId, upsertTextEntry } from './mutations';
+import { getRandNumber } from './utils';
+import {
+  generateTextResourceFile,
+  mapTextResources,
+  removeTextEntry,
+  updateTextEntryId,
+  upsertTextEntry,
+} from './mutations';
+import { defaultLangCode } from './constants';
+import { TextList } from './TextList';
 
-export interface ILanguageEditorProps {
+export interface TextEditorProps {
   translations: TextResourceFile;
   isFetchingTranslations: boolean;
   onTranslationChange: (translations: TextResourceFile) => void;
   selectedLangCode: string;
-  onSelectedLanguageChange: (langCode: LangCode) => void;
-  availableLanguageCodes: string[];
-  onAddLanguage: (langCode: LangCode) => void;
-  onDeleteLanguage: (langCode: LangCode) => void;
+  setSelectedLangCode: (langCode: LangCode) => void;
+  availableLangCodes: string[];
+  onAddLang: (langCode: LangCode) => void;
+  onDeleteLang: (langCode: LangCode) => void;
 }
 
 export const TextEditor = ({
@@ -25,72 +37,87 @@ export const TextEditor = ({
   selectedLangCode,
   onTranslationChange,
   isFetchingTranslations,
-  onSelectedLanguageChange,
-  availableLanguageCodes,
-  onAddLanguage,
-  onDeleteLanguage,
-}: ILanguageEditorProps) => {
-  const rightMenuProps: RightMenuProps = {
-    selectedLangCode,
-    onSelectedLanguageChange,
-    availableLanguageCodes,
-    onAddLanguage,
-    onDeleteLanguage,
-  };
-  const languageName = getLanguageName({ code: selectedLangCode });
+  setSelectedLangCode,
+  availableLangCodes,
+  onAddLang,
+  onDeleteLang,
+}: TextEditorProps) => {
+  const handleSelectedLangChange = (langCode: LangCode) => setSelectedLangCode(langCode);
+  const { resources } = translations;
+  const [textIds, setTextIds] = useState(resources.map(({ id }) => id) || []);
+  const getUpdatedTexts = useCallback(() => mapTextResources(resources), [resources]);
+  const [texts, setTexts] = useState(getUpdatedTexts());
+  useEffect(() => {
+    if (!selectedLangCode) {
+      setSelectedLangCode(defaultLangCode);
+    }
+  }, [selectedLangCode, setSelectedLangCode]);
+  useEffect(() => {
+    setTexts(getUpdatedTexts());
+  }, [getUpdatedTexts, resources]);
 
-  const idExits = (entryId: string) => Boolean(findTextEntry(translations, entryId));
-
-  const handleAddNewEntryClick = () =>
+  const handleAddNewEntryClick = () => {
+    const newId = `id_${getRandNumber()}`;
     onTranslationChange(
       upsertTextEntry(translations, {
-        id: `id_${getRandNumber()}`,
+        id: newId,
         value: '',
       })
     );
-
-  const removeEntry = (entryId: string) =>
-    onTranslationChange(removeTextEntry(translations, entryId));
+    setTextIds([newId, ...textIds]);
+  };
+  const removeEntry = ({ textId }: TextResourceEntryDeletion) => {
+    const mutatedIds = textIds.filter((v) => v !== textId);
+    const mutatedEntries = removeTextEntry(texts, textId);
+    onTranslationChange(
+      generateTextResourceFile(translations.language, mutatedIds, mutatedEntries)
+    );
+    setTextIds(mutatedIds);
+  };
   const upsertEntry = (entry: TextResourceEntry) =>
     onTranslationChange(upsertTextEntry(translations, entry));
-  const updateEntryId = (oldId: string, newId: string) =>
+  const updateEntryId = ({ oldId, newId }: TextResourceIdMutation) => {
     onTranslationChange(updateTextEntryId(translations, oldId, newId));
+    const mutatingIds = [...textIds];
+    const idx = mutatingIds.findIndex((v) => v === oldId);
+    mutatingIds[idx] = newId;
+    setTextIds(mutatingIds);
+  };
 
   return (
     <div className={classes.TextEditor}>
-      <div className={classes.TextEditor__body}>
+      <div className={classes.TextEditor__main}>
+        <div className={classes.TextEditor__topRow}>
+          <Button
+            variant={ButtonVariant.Filled}
+            color={ButtonColor.Primary}
+            onClick={handleAddNewEntryClick}
+            disabled={isFetchingTranslations}
+          >
+            Ny tekst
+          </Button>
+        </div>
+        <TextList
+          textIds={textIds}
+          selectedLangCode={selectedLangCode}
+          texts={texts}
+          upsertEntry={upsertEntry}
+          removeEntry={removeEntry}
+          updateEntryId={updateEntryId}
+        />
         {isFetchingTranslations ? (
           <div>
             <AltinnSpinner />
           </div>
-        ) : (
-          <>
-            <div className={classes.TextEditor__topRow}>
-              <Button
-                variant={ButtonVariant.Filled}
-                color={ButtonColor.Primary}
-                onClick={handleAddNewEntryClick}
-              >
-                Ny tekst
-              </Button>
-            </div>
-            {translations &&
-              translations.resources.map((entry) => (
-                <TextRow
-                  key={`${selectedLangCode}.${entry.id}`}
-                  languageName={languageName}
-                  langCode={selectedLangCode}
-                  textResourceEntry={entry}
-                  idExists={idExits}
-                  upsertEntry={upsertEntry}
-                  removeEntry={removeEntry}
-                  updateEntryId={updateEntryId}
-                />
-              ))}
-          </>
-        )}
+        ) : null}
       </div>
-      <RightMenu {...rightMenuProps} />
+      <RightMenu
+        onAddLang={onAddLang}
+        onDeleteLang={onDeleteLang}
+        selectedLangCode={selectedLangCode}
+        onSelectedLangChange={handleSelectedLangChange}
+        availableLangCodes={availableLangCodes || [defaultLangCode]}
+      />
     </div>
   );
 };

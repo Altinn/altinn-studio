@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { Select, Button } from '@altinn/altinn-design-system';
-import classes from './LanguageSelector.module.css';
+import classes from './LangSelector.module.css';
 import type { LangCode, Option } from './types';
 
-export interface ILanguageSelectorProps {
-  onAddLanguage: (langCode: LangCode) => void;
+export interface ILangSelectorProps {
+  onAddLang: (langCode: LangCode) => void;
   options: Option[];
 }
 
@@ -13,10 +13,10 @@ const emptyOption: Option = {
   label: '',
 };
 
-export const LanguageSelector = ({ onAddLanguage, options }: ILanguageSelectorProps) => {
+export const LangSelector = ({ onAddLang, options }: ILangSelectorProps) => {
   const [selectedOption, setSelectedOption] = useState<Option>(emptyOption);
-  const handleAddNewLanguage = () => {
-    onAddLanguage(selectedOption.value);
+  const handleAddNewLang = () => {
+    onAddLang(selectedOption.value);
     setSelectedOption(emptyOption);
   };
 
@@ -25,12 +25,12 @@ export const LanguageSelector = ({ onAddLanguage, options }: ILanguageSelectorPr
 
   const addButtonProps = {
     ...(selectedOption?.value
-      ? { disabled: undefined, onClick: handleAddNewLanguage }
+      ? { disabled: undefined, onClick: handleAddNewLang }
       : { disabled: true }),
     'data-value': selectedOption.value,
   };
   return (
-    <div className={classes.LanguageSelector}>
+    <div className={classes.LangSelector}>
       <Select
         hideLabel={true}
         onChange={handleSelectOnChange}

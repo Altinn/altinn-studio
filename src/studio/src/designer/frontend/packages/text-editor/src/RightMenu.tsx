@@ -1,8 +1,8 @@
 import React from 'react';
 import classes from './RightMenu.module.css';
 import type { LangCode } from './types';
-import { LanguageSelector } from './LanguageSelector';
-import { getLanguageName, languageOptions } from './utils';
+import { LangSelector } from './LangSelector';
+import { getLangName, langOptions } from './utils';
 
 import {
   Button,
@@ -11,35 +11,34 @@ import {
   FieldSet,
   RadioButton,
 } from '@altinn/altinn-design-system';
+import { defaultLangCode } from './constants';
 
 export interface RightMenuProps {
   selectedLangCode: string;
-  onSelectedLanguageChange: (langCode: LangCode) => void;
-  availableLanguageCodes: string[];
-  onAddLanguage: (langCode: LangCode) => void;
-  onDeleteLanguage: (langCode: LangCode) => void;
+  onSelectedLangChange: (langCode: LangCode) => void;
+  availableLangCodes: string[];
+  onAddLang: (langCode: LangCode) => void;
+  onDeleteLang: (langCode: LangCode) => void;
 }
 
 export const RightMenu = ({
   selectedLangCode,
-  onSelectedLanguageChange,
-  availableLanguageCodes,
-  onAddLanguage,
-  onDeleteLanguage,
+  onSelectedLangChange,
+  availableLangCodes,
+  onAddLang,
+  onDeleteLang,
 }: RightMenuProps) => {
-  const addLanguageOptions = languageOptions.filter(
-    (x) => !availableLanguageCodes.includes(x.value)
-  );
-  const canDeleteLanguage = availableLanguageCodes.length > 1;
+  const addLangOptions = langOptions.filter((x) => !availableLangCodes.includes(x.value));
+  const canDeleteLang = (code) => availableLangCodes.length > 1 && code !== defaultLangCode;
   const handleSelectChange = ({ target }: React.ChangeEvent<HTMLInputElement>) =>
-    onSelectedLanguageChange(target.value);
+    onSelectedLangChange(target.value);
 
   // TODO: is fetching translations
   return (
     <aside className={classes.RightMenu__sidebar}>
       <div className={classes.RightMenu__verticalContent}>
         <header>
-          <div className={classes['LanguageEditor__title-md']}>Språk</div>
+          <div className={classes['LangEditor__title-md']}>Språk</div>
         </header>
         <div>
           Vi anbefaler å legge til oversettelser for bokmål, nynorsk og engelsk. Ved behov kan du
@@ -49,21 +48,21 @@ export const RightMenu = ({
       <div className={classes.RightMenu__verticalContent}>
         <FieldSet legend='Aktive språk:'>
           <div className={classes.RightMenu__radioGroup}>
-            {availableLanguageCodes?.map((langCode) => (
+            {availableLangCodes?.map((langCode) => (
               <div key={langCode} className={classes.RightMenu__radio}>
                 <RadioButton
                   value={langCode}
-                  label={getLanguageName({ code: langCode })}
-                  name={'activeLanguages'}
+                  label={getLangName({ code: langCode })}
+                  name={'activeLangs'}
                   onChange={handleSelectChange}
                   checked={langCode === selectedLangCode}
                 />
                 <Button
-                  variant={canDeleteLanguage ? ButtonVariant.Filled : ButtonVariant.Outline}
+                  variant={canDeleteLang(langCode) ? ButtonVariant.Filled : ButtonVariant.Outline}
                   data-testid={`delete-${langCode}`}
                   color={ButtonColor.Danger}
-                  onClick={() => onDeleteLanguage(langCode)}
-                  disabled={!canDeleteLanguage}
+                  onClick={() => onDeleteLang(langCode)}
+                  disabled={!canDeleteLang(langCode)}
                 >
                   Delete
                 </Button>
@@ -73,8 +72,8 @@ export const RightMenu = ({
         </FieldSet>
       </div>
       <div className={classes.RightMenu__verticalContent}>
-        <div className={classes['LanguageEditor__title-sm']}>Legg til språk:</div>
-        <LanguageSelector onAddLanguage={onAddLanguage} options={addLanguageOptions} />
+        <div className={classes['LangEditor__title-sm']}>Legg til språk:</div>
+        <LangSelector onAddLang={onAddLang} options={addLangOptions} />
       </div>
     </aside>
   );

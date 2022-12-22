@@ -1,13 +1,13 @@
-import { getLanguageName, getRandNumber } from './utils';
+import { getLangName, getRandNumber } from './utils';
 
-describe('getLanguageName', () => {
+describe('getLangName', () => {
   it('should return empty string when language code is undefined', () => {
-    const result = getLanguageName({ code: undefined });
+    const result = getLangName({ code: undefined });
     expect(result).toBe('');
   });
 
   it('should return "norsk bokmål" when language code is nb', () => {
-    const result = getLanguageName({ code: 'nb' });
+    const result = getLangName({ code: 'nb' });
     expect(result).toBe('norsk bokmål');
   });
 
@@ -19,14 +19,14 @@ describe('getLanguageName', () => {
       resolvedOptions: jest.fn(),
     };
 
-    const result = getLanguageName({ code: 'nb', intlDisplayNames: mockIntl });
+    const result = getLangName({ code: 'nb', intlDisplayNames: mockIntl });
 
     expect(result).toBe('norwegian bokmål');
   });
 
   it('should return code when language code is something unknown', () => {
     const code = 'xx';
-    const result = getLanguageName({ code });
+    const result = getLangName({ code });
     expect(result).toBe(code);
   });
 });
