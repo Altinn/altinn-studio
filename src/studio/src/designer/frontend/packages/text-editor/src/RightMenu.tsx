@@ -28,9 +28,7 @@ export const RightMenu = ({
   onAddLang,
   onDeleteLang,
 }: RightMenuProps) => {
-  const addLangOptions = langOptions.filter(
-    (x) => !availableLangCodes.includes(x.value)
-  );
+  const addLangOptions = langOptions.filter((x) => !availableLangCodes.includes(x.value));
   const { langCode } = useDefaultLang();
   const canDeleteLang = (code) => availableLangCodes.length > 1 && code !== langCode;
   const handleSelectChange = ({ target }: React.ChangeEvent<HTMLInputElement>) =>
@@ -61,9 +59,7 @@ export const RightMenu = ({
                   checked={langCode === selectedLangCode}
                 />
                 <Button
-                  variant={
-                    canDeleteLang(langCode) ? ButtonVariant.Filled : ButtonVariant.Outline
-                  }
+                  variant={canDeleteLang(langCode) ? ButtonVariant.Filled : ButtonVariant.Outline}
                   data-testid={`delete-${langCode}`}
                   color={ButtonColor.Danger}
                   onClick={() => onDeleteLang(langCode)}

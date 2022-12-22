@@ -6,7 +6,6 @@ import userEvent from '@testing-library/user-event';
 import type { TextResourceFile } from './types';
 
 describe('TextEditor', () => {
-
   const norwegianTranslation: TextResourceFile = {
     language: 'nb',
     resources: [
