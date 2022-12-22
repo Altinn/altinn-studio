@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -20,5 +20,10 @@ namespace Altinn.ResourceRegistry.Core.Models
         /// The organization code
         /// </summary>
         public string Orgcode { get; set; }
+
+        /// <summary>
+        /// The organization name. If not set it will be retrived from register based on Organization number
+        /// </summary>
+        public Dictionary<string, string>? Name { get; set; }
     }
 }
