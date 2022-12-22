@@ -42,7 +42,7 @@ services:
     networks:
       - altinntestlocal_network
     ports:
-      - "3000:3000"
+      - "5300:3000"
     extra_hosts:
       - "${TEST_DOMAIN:-local.altinn.cloud}:host-gateway"
   altinn_localtest:
