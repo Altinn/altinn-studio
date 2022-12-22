@@ -1,15 +1,21 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import classes from './TextEditor.module.css';
-import type { LangCode, TextResourceEntry, TextResourceFile } from './types';
+import type {
+  LangCode,
+  TextResourceEntry,
+  TextResourceFile,
+  TextResourceEntryDeletion,
+  TextResourceIdMutation
+} from './types';
 import { AltinnSpinner } from 'app-shared/components';
 import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
 import { RightMenu } from './RightMenu';
 import { getRandNumber } from './utils';
-import { removeTextEntry, updateTextEntryId, upsertTextEntry } from './mutations';
+import { mapTextResources, removeTextEntry, updateTextEntryId, upsertTextEntry } from './mutations';
 import { useDefaultLang } from './hooks';
 import { TextList } from './TextList';
 
-export interface ILangEditorProps {
+export interface TextEditorProps {
   translations: TextResourceFile;
   isFetchingTranslations: boolean;
   onTranslationChange: (translations: TextResourceFile) => void;
@@ -29,22 +35,12 @@ export const TextEditor = ({
   availableLangCodes,
   onAddLang,
   onDeleteLang,
-}: ILangEditorProps) => {
+}: TextEditorProps) => {
   const { langCode: defaultLang } = useDefaultLang();
   const handleSelectedLangChange = (langCode: LangCode) => setSelectedLangCode(langCode);
   const { resources } = translations;
   const [textIds, setTextIds] = useState(resources.map(({ id }) => id) || []);
-  const getUpdatedTexts = useCallback(
-    () =>
-      resources.reduce(
-        (acc, { id, ...rest }) => ({
-          ...acc,
-          [id]: rest,
-        }),
-        {}
-      ),
-    [resources]
-  );
+  const getUpdatedTexts = useCallback(() => mapTextResources(resources), [resources]);
   const [texts, setTexts] = useState(getUpdatedTexts());
   useEffect(() => {
     if (!selectedLangCode) {
@@ -65,9 +61,9 @@ export const TextEditor = ({
     );
     setTextIds([newId, ...textIds]);
   };
-  const removeEntry = (entryId: string) => {
-    const mutatingIds = textIds.filter((v) => v !== entryId);
-    const mutatedEntries = removeTextEntry(texts, entryId);
+  const removeEntry = ({ textId }: TextResourceEntryDeletion) => {
+    const mutatingIds = textIds.filter((v) => v !== textId);
+    const mutatedEntries = removeTextEntry(texts, textId);
     onTranslationChange({
       language: translations.language,
       resources: mutatingIds.map((id) => ({
@@ -79,7 +75,7 @@ export const TextEditor = ({
   };
   const upsertEntry = (entry: TextResourceEntry) =>
     onTranslationChange(upsertTextEntry(translations, entry));
-  const updateEntryId = (oldId: string, newId: string) => {
+  const updateEntryId = ({ oldId, newId }: TextResourceIdMutation) => {
     onTranslationChange(updateTextEntryId(translations, oldId, newId));
     const mutatingIds = [...textIds];
     const idx = mutatingIds.findIndex((v) => v === oldId);

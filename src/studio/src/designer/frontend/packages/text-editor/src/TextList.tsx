@@ -1,7 +1,12 @@
 import classes from './TextEditor.module.css';
 import { TextRow } from './TextRow';
 import React from 'react';
-import type { TextResourceEntry, TextResourceMap } from './types';
+import type {
+  TextResourceEntry,
+  TextResourceEntryDeletion,
+  TextResourceIdMutation,
+  TextResourceMap,
+} from './types';
 import { getLangName } from './utils';
 
 export type TextListProps = {
@@ -9,8 +14,8 @@ export type TextListProps = {
   selectedLangCode: string;
   texts: TextResourceMap;
   upsertEntry: (entry: TextResourceEntry) => void;
-  removeEntry: (entryId: string) => void;
-  updateEntryId: (oldId: string, newId: string) => void;
+  removeEntry: ({ textId }: TextResourceEntryDeletion) => void;
+  updateEntryId: ({ oldId, newId }: TextResourceIdMutation) => void;
 };
 export const TextList = ({
   textIds,

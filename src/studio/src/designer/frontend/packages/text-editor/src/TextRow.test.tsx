@@ -1,17 +1,18 @@
 import React from 'react';
-import type { ILangRowProps } from './TextRow';
+import type { LangRowProps } from './TextRow';
 import type { TextResourceEntry } from './types';
 import userEvent from '@testing-library/user-event';
 import { TextRow } from './TextRow';
 import { screen, render as rtlRender } from '@testing-library/react';
 
-const renderTextRow = (props: Partial<ILangRowProps> = {}) => {
+const renderTextRow = (props: Partial<LangRowProps> = {}) => {
   const textResourceEntry: TextResourceEntry = {
     id: 'key1',
     value: 'value1',
   };
 
   const allProps = {
+    textId: 'key1',
     langName: 'Norsk',
     langCode: 'nb',
     translationKey: 'key1',
@@ -20,7 +21,7 @@ const renderTextRow = (props: Partial<ILangRowProps> = {}) => {
     removeEntry: jest.fn(),
     idExists: jest.fn(),
     ...props,
-  } as ILangRowProps;
+  } as LangRowProps;
   const user = userEvent.setup();
   rtlRender(<TextRow {...allProps} />);
   return { user };
@@ -62,6 +63,6 @@ describe('TextRow', () => {
     const deleteButton = screen.getByTestId('delete-button');
 
     await user.click(deleteButton);
-    expect(removeEntry).toBeCalledWith('key1');
+    expect(removeEntry).toBeCalledWith({ textId: 'key1' });
   });
 });

@@ -13,14 +13,14 @@ import {
   TextField,
 } from '@altinn/altinn-design-system';
 
-export interface ILangRowProps {
+export interface LangRowProps {
   textId: string;
   langName: string;
   langCode: string;
   textResourceEntry: TextDetail;
   upsertEntry: (entry: TextResourceEntry) => void;
-  removeEntry: (textResourceId: string) => void;
-  updateEntryId: (oldId: string, newId: string) => void;
+  removeEntry: ({ textId }) => void;
+  updateEntryId: ({ oldId, newId }) => void;
   idExists: (textResourceId: string) => boolean;
 }
 
@@ -33,38 +33,37 @@ export const TextRow = ({
   removeEntry,
   updateEntryId,
   idExists,
-}: ILangRowProps) => {
-  const [idValue, setIdValue] = useState(textId);
-  const [valueValue, setValueValue] = useState(textResourceEntry?.value || '');
+}: LangRowProps) => {
+  const [textIdValue, setTextIdValue] = useState(textId);
+  const [textEntryValue, setTextEntryValue] = useState(textResourceEntry?.value || '');
   const [keyError, setKeyError] = useState('');
   useEffect(() => {
-    setValueValue(textResourceEntry?.value || '');
+    setTextEntryValue(textResourceEntry?.value || '');
   }, [textResourceEntry]);
-  const handleIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTextEntryChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
+    setTextEntryValue(e.currentTarget.value);
+
+  const handleTextEntryBlur = () => {
+    if (textResourceEntry?.value !== textEntryValue) {
+      upsertEntry({ ...textResourceEntry, id: textId, value: textEntryValue });
+    }
+  };
+  const handleTextIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.currentTarget.value;
     if (idExists(newValue)) {
       setKeyError('Denne IDen finnes allerede');
     } else {
       setKeyError('');
     }
-    setIdValue(newValue);
+    setTextIdValue(newValue);
   };
-  const handleValueChange = (e: React.ChangeEvent<HTMLTextAreaElement>) =>
-    setValueValue(e.currentTarget.value);
-
-  const handleIdBlur = () => {
-    if (!keyError && textId !== idValue) {
-      updateEntryId(textId, idValue);
+  const handleTextIdBlur = () => {
+    if (!keyError && textId !== textIdValue) {
+      updateEntryId({ oldId: textId, newId: textIdValue });
     }
   };
 
-  const handleValueBlur = () => {
-    if (textResourceEntry?.value !== valueValue) {
-      upsertEntry({ id: textId, value: valueValue });
-    }
-  };
-
-  const handleDeleteClick = () => removeEntry(textId);
+  const handleDeleteClick = () => removeEntry({ textId });
 
   const idForValue = `value-${langCode}-${textId}`;
   const variables = textResourceEntry?.variables || [];
@@ -73,25 +72,14 @@ export const TextRow = ({
 
   return (
     <li data-testid={'lang-row'} className={classes.textRow}>
-      <div className={classes.leftCol}>
-        <TextField
-          isValid={!keyError}
-          value={idValue}
-          type='text'
-          onBlur={handleIdBlur}
-          onChange={handleIdChange}
-          label={'ID'}
-        />
-        {keyError ? <ErrorMessage>{keyError}</ErrorMessage> : null}
-      </div>
       <div className={classes.centerCol}>
         <label htmlFor={idForValue}>{langName}</label>
         <TextArea
           resize='vertical'
           id={idForValue}
-          value={valueValue}
-          onBlur={handleValueBlur}
-          onChange={handleValueChange}
+          value={textEntryValue}
+          onBlur={handleTextEntryBlur}
+          onChange={handleTextEntryChange}
           rows={3}
         />
         {variables.map((variable) => (
@@ -123,6 +111,17 @@ export const TextRow = ({
           </span>
         )}
       </div>
+      <div className={classes.leftCol}>
+        <TextField
+          isValid={!keyError}
+          value={textIdValue}
+          type='text'
+          onBlur={handleTextIdBlur}
+          onChange={handleTextIdChange}
+          label={'ID'}
+        />
+        {keyError ? <ErrorMessage>{keyError}</ErrorMessage> : null}
+      </div>
       <div className={classes.rightCol}>
         <Button
           data-testid={'delete-button'}
@@ -130,7 +129,9 @@ export const TextRow = ({
           onClick={handleDeleteClick}
           icon={<Delete />}
           variant={ButtonVariant.Quiet}
-        />
+        >
+          <span className={'sr-only'}>Slett {textId}</span>
+        </Button>
       </div>
     </li>
   );

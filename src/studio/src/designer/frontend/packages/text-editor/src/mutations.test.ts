@@ -1,5 +1,5 @@
 import type { TextResourceFile } from './types';
-import { findTextEntry, removeTextEntry, upsertTextEntry } from './mutations';
+import { mapTextResources, removeTextEntry, upsertTextEntry } from './mutations';
 
 const testTextResource: TextResourceFile = {
   language: 'nb',
@@ -11,19 +11,15 @@ const testTextResource: TextResourceFile = {
   ],
 };
 
-test('that we can find entries', () => {
-  expect(findTextEntry(testTextResource, 'fornavn')).toStrictEqual({
-    id: 'fornavn',
-    value: 'Fornavn',
-  });
-  expect(findTextEntry(testTextResource, 'etternavn')).toBeFalsy();
-});
-
-test('that we can remove entries', () => {
-  const mutated1 = removeTextEntry(testTextResource, 'fornavn');
-  expect(mutated1.resources).toHaveLength(0);
-  const mutated2 = removeTextEntry(testTextResource, 'etternavn');
-  expect(mutated2.resources).toHaveLength(1);
+test('that we can remove entries, does not mutate and creates new object', () => {
+  const mappedResource = mapTextResources(testTextResource.resources);
+  const mutated1 = removeTextEntry(mappedResource, 'fornavn');
+  expect(mutated1).toEqual({});
+  expect(mutated1).not.toBe(mappedResource);
+  const mutated2 = removeTextEntry(mappedResource, 'etternavn');
+  expect(mutated2).toEqual({ fornavn: { value: 'Fornavn' } });
+  expect(mappedResource).toEqual({ fornavn: { value: 'Fornavn' } });
+  expect(mutated2).not.toBe(mappedResource);
 });
 
 test('that we can update an entry', () => {

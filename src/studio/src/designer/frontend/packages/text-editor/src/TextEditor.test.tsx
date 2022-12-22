@@ -1,23 +1,23 @@
 import React from 'react';
 import { TextEditor } from './TextEditor';
-import type { ILangEditorProps } from './TextEditor';
+import type { TextEditorProps } from './TextEditor';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { TextResourceFile } from './types';
+import type { TextResourceFile } from './types';
 
 describe('TextEditor', () => {
   const user = userEvent.setup();
 
-  const translations: TextResourceFile = {
+  const norwegianTranslation: TextResourceFile = {
     language: 'nb',
     resources: [
       {
-        id: 'key1',
-        value: 'value1',
+        id: 'textId1',
+        value: 'norsk-1',
       },
       {
-        id: 'key2',
-        value: 'value2',
+        id: 'textId2',
+        value: 'norsk-2',
       },
     ],
   };
@@ -30,17 +30,17 @@ describe('TextEditor', () => {
     jest.spyOn(global.Math, 'random').mockRestore();
   });
 
-  const renderTextEditor = (props: Partial<ILangEditorProps> = {}) => {
+  const renderTextEditor = (props: Partial<TextEditorProps> = {}) => {
     const allProps = {
       availableLangCodes: ['nb', 'en'],
-      translations,
+      translations: norwegianTranslation,
       selectedLangCode: 'nb',
+      setSelectedLangCode: jest.fn(),
       onAddLang: jest.fn(),
       onTranslationChange: jest.fn(),
-      onSelectedLangChange: jest.fn(),
       onDeleteLang: jest.fn(),
       ...props,
-    } as ILangEditorProps;
+    } as TextEditorProps;
 
     rtlRender(<TextEditor {...allProps} />);
   };
@@ -59,14 +59,7 @@ describe('TextEditor', () => {
     expect(onTranslationChange).toHaveBeenCalledWith({
       language: 'nb',
       resources: [
-        {
-          id: 'key1',
-          value: 'value1',
-        },
-        {
-          id: 'key2',
-          value: 'value2',
-        },
+        ...norwegianTranslation.resources,
         {
           id: 'id_1000',
           value: '',
@@ -87,12 +80,11 @@ describe('TextEditor', () => {
     expect(handleDeleteLang).toHaveBeenCalledWith('en');
   });
 
-  it('fires onSelectedLang change when lang is changed', async () => {
-    const handleSelectedLangChange = jest.fn();
+  it('calls setSelectedLang code when lang is changed', async () => {
+    const setSelectedLangCode = jest.fn((lang: string) => lang);
     renderTextEditor({
-      onSelectedLangChange: handleSelectedLangChange,
+      setSelectedLangCode,
     });
-
     const norwegianRadio = screen.getByRole('radio', {
       name: /norsk bokmål/i,
     });
@@ -104,6 +96,18 @@ describe('TextEditor', () => {
 
     await user.click(englishRadio);
 
-    expect(handleSelectedLangChange).toHaveBeenCalledWith('en');
+    expect(setSelectedLangCode).toHaveBeenCalledWith('en');
   });
+
+  it('sets the language to nb (default) if no language is selected', async () => {
+    const setSelectedLangCode = jest.fn((lang: string) => lang);
+    renderTextEditor({
+      setSelectedLangCode,
+      selectedLangCode: undefined,
+    });
+    expect(setSelectedLangCode).toHaveBeenCalledWith('nb');
+  });
+
+  it.todo('removes an entry from the rendered list of entries');
+  it.todo('syncs the textIds across languages');
 });

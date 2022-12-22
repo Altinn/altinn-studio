@@ -7,6 +7,15 @@ export const removeTextEntry = (texts: TextResourceMap, entryId: string) => {
   return updatedTranslations;
 };
 
+export const mapTextResources = (resources: TextResourceEntry[]) =>
+  resources.reduce(
+    (acc, { id, ...rest }) => ({
+      ...acc,
+      [id]: rest,
+    }),
+    {}
+  );
+
 export const upsertTextEntry = (
   resourceFile: TextResourceFile,
   newEntry: TextResourceEntry

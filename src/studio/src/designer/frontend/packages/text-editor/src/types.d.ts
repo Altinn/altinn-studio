@@ -7,6 +7,13 @@ export type TextDetail = {
   value: string;
   variables?: TextResourceVariable[];
 };
+export type TextResourceIdMutation = {
+  oldId: string;
+  newId?: string;
+};
+export type TextResourceEntryDeletion = {
+  textId: string;
+};
 export type TextResourceEntry = {
   id: string;
 } & TextDetail;
