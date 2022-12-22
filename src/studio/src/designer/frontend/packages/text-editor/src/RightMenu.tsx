@@ -11,7 +11,7 @@ import {
   FieldSet,
   RadioButton,
 } from '@altinn/altinn-design-system';
-import { useDefaultLang } from './hooks';
+import { defaultLangCode } from './constants';
 
 export interface RightMenuProps {
   selectedLangCode: string;
@@ -29,8 +29,7 @@ export const RightMenu = ({
   onDeleteLang,
 }: RightMenuProps) => {
   const addLangOptions = langOptions.filter((x) => !availableLangCodes.includes(x.value));
-  const { langCode } = useDefaultLang();
-  const canDeleteLang = (code) => availableLangCodes.length > 1 && code !== langCode;
+  const canDeleteLang = (code) => availableLangCodes.length > 1 && code !== defaultLangCode;
   const handleSelectChange = ({ target }: React.ChangeEvent<HTMLInputElement>) =>
     onSelectedLangChange(target.value);
 

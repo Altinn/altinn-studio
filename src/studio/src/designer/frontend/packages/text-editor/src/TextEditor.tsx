@@ -18,7 +18,7 @@ import {
   updateTextEntryId,
   upsertTextEntry,
 } from './mutations';
-import { useDefaultLang } from './hooks';
+import { defaultLangCode } from './constants';
 import { TextList } from './TextList';
 
 export interface TextEditorProps {
@@ -42,7 +42,6 @@ export const TextEditor = ({
   onAddLang,
   onDeleteLang,
 }: TextEditorProps) => {
-  const { langCode: defaultLang } = useDefaultLang();
   const handleSelectedLangChange = (langCode: LangCode) => setSelectedLangCode(langCode);
   const { resources } = translations;
   const [textIds, setTextIds] = useState(resources.map(({ id }) => id) || []);
@@ -50,9 +49,9 @@ export const TextEditor = ({
   const [texts, setTexts] = useState(getUpdatedTexts());
   useEffect(() => {
     if (!selectedLangCode) {
-      setSelectedLangCode(defaultLang);
+      setSelectedLangCode(defaultLangCode);
     }
-  }, [defaultLang, selectedLangCode, setSelectedLangCode]);
+  }, [selectedLangCode, setSelectedLangCode]);
   useEffect(() => {
     setTexts(getUpdatedTexts());
   }, [getUpdatedTexts, resources]);
@@ -117,7 +116,7 @@ export const TextEditor = ({
         onDeleteLang={onDeleteLang}
         selectedLangCode={selectedLangCode}
         onSelectedLangChange={handleSelectedLangChange}
-        availableLangCodes={availableLangCodes || [defaultLang]}
+        availableLangCodes={availableLangCodes || [defaultLangCode]}
       />
     </div>
   );

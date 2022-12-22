@@ -74,8 +74,8 @@ export const TextRow = ({
   return (
     <li data-testid={'lang-row'} className={classes.textRow}>
       <div className={classes.leftCol}>
-        <label htmlFor={idForValue}>{langName}</label>
         <TextArea
+          label={langName}
           resize='vertical'
           id={idForValue}
           value={textEntryValue}

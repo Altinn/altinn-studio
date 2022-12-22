@@ -14,7 +14,6 @@ describe('TextRow', () => {
     const allProps: LangRowProps = {
       textId: 'key1',
       langName: 'Norsk',
-      langCode: 'nb',
       textData,
       upsertEntry: (_args) => undefined,
       removeEntry: (_args) => undefined,
