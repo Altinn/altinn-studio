@@ -550,8 +550,7 @@ namespace Altinn.App.Api.Controllers
                 return BadRequest("No data found in content");
             }
 
-            string serviceModelJsonString = JsonSerializer.Serialize(serviceModel);
-            bool changedByCalculation = await _dataProcessor.ProcessDataWrite(instance, dataGuid, serviceModel);
+            Dictionary<string, object> changedFields = await JsonHelper.ProcessDataWriteWithDiff(instance, dataGuid, serviceModel, _dataProcessor, _logger);
 
             await UpdatePresentationTextsOnInstance(instance, dataType, serviceModel);
             await UpdateDataValuesOnInstance(instance, dataType, serviceModel);
@@ -569,21 +568,10 @@ namespace Altinn.App.Api.Controllers
             SelfLinkHelper.SetDataAppSelfLinks(instanceOwnerPartyId, instanceGuid, updatedDataElement, Request);
 
             string dataUrl = updatedDataElement.SelfLinks.Apps;
-
-            if (changedByCalculation)
+            if (changedFields is not null)
             {
-                string updatedServiceModelString = JsonSerializer.Serialize(serviceModel);
                 CalculationResult calculationResult = new CalculationResult(updatedDataElement);
-                try
-                {
-                    Dictionary<string, object> changedFields = JsonHelper.FindChangedFields(serviceModelJsonString, updatedServiceModelString);
-                    calculationResult.ChangedFields = changedFields;
-                }
-                catch (Exception e)
-                {
-                    _logger.LogError(e, "Unable to determine changed fields");
-                }
-
+                calculationResult.ChangedFields = changedFields;
                 return StatusCode((int)HttpStatusCode.SeeOther, calculationResult);
             }
 
