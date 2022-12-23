@@ -121,7 +121,7 @@ __metadata:
     del: 6.1.1
     gulp: 4.0.2
     gulp-run-command: 0.0.10
-    jquery: 3.6.1
+    jquery: 3.6.2
     jquery-ui-dist: 1.13.2
     jquery-validation: 1.19.5
     jquery-validation-unobtrusive: 3.2.12
@@ -2167,10 +2167,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jquery@npm:3.6.1":
-  version: 3.6.1
-  resolution: "jquery@npm:3.6.1"
-  checksum: 6177d866a74f1137cad800f142c7cdbd5ab19cd4282546f8bdb4890c9f933b1d542ab96f2aa15d007e43c98de7315b0513e849ec5359d3ac5640f720892fe547
+"jquery@npm:3.6.2":
+  version: 3.6.2
+  resolution: "jquery@npm:3.6.2"
+  checksum: b8ca408b9447e67e614204dbc4b2e71c6ea76eff281942d233769d969eed97fe28ffa34976e9ad9d3faad9b0a0d947d7e326ed272243679a9f5812a586c84168
   languageName: node
   linkType: hard
 

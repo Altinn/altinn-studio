@@ -20,11 +20,11 @@
     "delete:reports": "rm reports/* || true"
   },
   "devDependencies": {
-    "axe-core": "4.5.2",
+    "axe-core": "4.6.1",
     "cypress": "10.11.0",
-    "cypress-axe": "1.1.0",
+    "cypress-axe": "1.2.0",
     "cypress-plugin-tab": "1.0.5",
-    "eslint": "8.29.0",
+    "eslint": "8.30.0",
     "eslint-plugin-cypress": "2.12.1",
     "fs-extra": "11.1.0",
     "path": "0.12.7",
