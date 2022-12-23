@@ -1,23 +1,22 @@
 import React from 'react';
 import Select from 'react-select';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { PropertyLabel, selectStyles, SelectTextFromRecources } from '../../../../utils/render';
+import { PropertyLabel, selectStyles } from '../../../../utils/render';
 import type { FormComponentType, IFormImageComponent } from '../../../../types/global';
 import { TextField } from '@altinn/altinn-design-system';
 import classes from './ImageComponent.module.css';
+import { TextResource } from '../../../TextResource';
 
 export interface IImageComponentProps {
   component: IFormImageComponent;
   handleComponentUpdate: (updatedComponent: FormComponentType) => void;
   language: any;
-  textResources: any;
 }
 
 export const ImageComponent = ({
   component,
-  language,
   handleComponentUpdate,
-  textResources,
+  language,
 }: IImageComponentProps) => {
   const t = (key: string) => getLanguageFromKey(key, language);
   const alignOptions = [
@@ -52,9 +51,9 @@ export const ImageComponent = ({
     handleComponentUpdate(updatedComponent);
   };
 
-  const handleAltTextChange = (e: any) => {
+  const handleAltTextChange = (id: string) => {
     const updatedComponent = { ...component };
-    updatedComponent.textResourceBindings.altTextImg = e ? e.value : null;
+    updatedComponent.textResourceBindings.altTextImg = id;
 
     handleComponentUpdate(updatedComponent);
   };
@@ -67,7 +66,6 @@ export const ImageComponent = ({
   };
 
   const placementSelectId = `image_placement-input-${component.id}`;
-  const altTextSelectId = `image_alt-input-${component.id}`;
 
   return (
     <>
@@ -79,17 +77,11 @@ export const ImageComponent = ({
           value={nbSrc}
         />
       </div>
-      <div>
-        <SelectTextFromRecources
-          labelText={'modal_properties_image_alt_text_label'}
-          textResources={textResources}
-          onChangeFunction={handleAltTextChange}
-          language={language}
-          selected={component.textResourceBindings?.altTextImg}
-          placeholder={component.textResourceBindings?.altTextImg}
-          inputId={altTextSelectId}
-        />
-      </div>
+      <TextResource
+        handleIdChange={handleAltTextChange}
+        label={t('ux_editor.modal_properties_image_alt_text_label')}
+        textResourceId={component.textResourceBindings?.altTextImg}
+      />
       <div className={classes.widthAndPlacement}>
         <div className={classes.widthContainer}>
           <TextField

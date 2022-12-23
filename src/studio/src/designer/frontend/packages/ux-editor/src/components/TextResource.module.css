@@ -1,0 +1,24 @@
+.label {
+  margin: 0;
+}
+
+.description {
+  margin: 0;
+  font-size: 1.4rem;
+}
+
+.textResource {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.placeholder {
+  color: #c9c9c9;
+}
+
+.isEditing {
+  border-radius: 2px;
+  outline-offset: 4px;
+  outline: 1px dashed #008fd6;
+}

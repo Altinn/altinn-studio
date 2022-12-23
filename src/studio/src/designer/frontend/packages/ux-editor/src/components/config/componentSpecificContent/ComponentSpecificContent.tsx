@@ -116,10 +116,8 @@ export function ComponentSpecificContent({
       return (
         <FieldSet className={classes.fieldset}>
           <div>
-            <p className={classes.inputHelper}>
-              {t('ux_editor.modal_properties_button_type_helper')}
-            </p>
             <Select
+              label={t('ux_editor.modal_properties_button_type_helper')}
               options={types}
               value={types.find((element) => element.value === component.type).value}
               onChange={handleButtonTypeChange}
@@ -130,7 +128,6 @@ export function ComponentSpecificContent({
               component={component}
               handleComponentChange={handleComponentChange}
               language={language}
-              textResources={textResources}
             />
           )}
         </FieldSet>
@@ -271,7 +268,6 @@ export function ComponentSpecificContent({
             component={component as IFormFileUploaderWithTagComponent}
             stateComponent={component}
             language={language}
-            textResources={textResources}
             handleComponentUpdate={handleComponentChange}
             handleNumberOfAttachmentsChange={handleNumberOfAttachmentsChange}
             handleMaxFileSizeInMBChange={handleMaxFileSizeInMBChange}
@@ -289,7 +285,6 @@ export function ComponentSpecificContent({
             component={component as IFormImageComponent}
             handleComponentUpdate={handleComponentChange}
             language={language}
-            textResources={textResources}
           />
         </FieldSet>
       );

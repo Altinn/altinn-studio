@@ -14,8 +14,9 @@ import { Cancel, Delete, Edit, Success } from '@navikt/ds-icons';
 import cn from 'classnames';
 import { ConnectDragSource } from 'react-dnd';
 import { DragHandle } from '../components/DragHandle';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
-export interface IEditContainerProvidedProps {
+export interface IEditContainerProps {
   component: IFormComponent;
   id: string;
   firstInActiveList: boolean;
@@ -27,10 +28,10 @@ export interface IEditContainerProvidedProps {
   dragHandleRef: ConnectDragSource;
 }
 
-export function EditContainer(props: IEditContainerProvidedProps) {
+export function EditContainer(props: IEditContainerProps) {
   const dispatch = useDispatch();
 
-  const [component, setComponent] = useState<any>({
+  const [component, setComponent] = useState<IFormComponent>({
     id: props.id,
     ...props.component,
   });
@@ -47,7 +48,7 @@ export function EditContainer(props: IEditContainerProvidedProps) {
   const activeList = useSelector((state: IAppState) => state.formDesigner.layout.activeList);
   const language = useSelector((state: IAppState) => state.appData.languageState.language);
   const orderList = useSelector((state: IAppState) => GetLayoutOrderSelector(state));
-  const textResources = useSelector((state: IAppState) => state.appData.textResources.resources);
+  const textResources = useSelector((state: IAppState) => state.appData.textResources.resources[DEFAULT_LANGUAGE]);
 
   const handleComponentUpdate = (updatedComponent: IFormComponent): void => {
     setComponent({ ...updatedComponent });

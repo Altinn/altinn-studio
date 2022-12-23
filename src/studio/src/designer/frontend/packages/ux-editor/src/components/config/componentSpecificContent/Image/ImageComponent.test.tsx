@@ -1,9 +1,11 @@
 import React from 'react';
-import { render as rtlRender, screen } from '@testing-library/react';
+import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import type { IImageComponentProps } from './ImageComponent';
 import { ImageComponent } from './ImageComponent';
+import { appDataMock, renderWithMockStore } from '../../../../testing/mocks';
+import { IAppDataState } from '../../../../features/appData/appDataReducers';
 
 const user = userEvent.setup();
 
@@ -16,7 +18,7 @@ const componentData = {
   },
 };
 const render = (props: Partial<IImageComponentProps> = {}) => {
-  const allProps = {
+  const allProps: IImageComponentProps = {
     component: componentData,
     language: {
       'ux_editor.modal_properties_image_src_value_label': 'Source',
@@ -28,15 +30,23 @@ const render = (props: Partial<IImageComponentProps> = {}) => {
       'ux_editor.modal_properties_image_placement_right': 'Right',
     },
     handleComponentUpdate: jest.fn(),
-    textResources: [
-      { id: 'altTextImg', value: 'Alternative text' },
-      { id: 'altTextImg2', value: 'Alternative text 2' },
-    ],
-
     ...props,
-  } as IImageComponentProps;
+  };
 
-  return rtlRender(<ImageComponent {...allProps} />);
+  const appData: IAppDataState = {
+    ...appDataMock,
+    textResources: {
+      ...appDataMock.textResources,
+      resources: {
+        nb: [
+          { id: 'altTextImg', value: 'Alternative text' },
+          { id: 'altTextImg2', value: 'Alternative text 2' },
+        ]
+      }
+    }
+  }
+
+  return renderWithMockStore({ appData })(<ImageComponent {...allProps} />);
 };
 
 describe('ImageComponent', () => {
@@ -98,25 +108,6 @@ describe('ImageComponent', () => {
       image: {
         ...componentData.image,
         align: 'flex-start',
-      },
-    });
-  });
-
-  it('should call handleComponentUpdate callback with alt text value when alt text input is changed', async () => {
-    const handleUpdate = jest.fn();
-    render({ handleComponentUpdate: handleUpdate });
-
-    const altTextInput = screen.getByRole('combobox', {
-      name: /alt text/i,
-    });
-
-    await user.type(altTextInput, 'A'); // Type something to trigger showing Select options
-    await user.click(screen.getByText(/alternative text 2 \(alttextimg2\)/i));
-
-    expect(handleUpdate).toHaveBeenCalledWith({
-      ...componentData,
-      textResourceBindings: {
-        altTextImg: 'altTextImg2',
       },
     });
   });

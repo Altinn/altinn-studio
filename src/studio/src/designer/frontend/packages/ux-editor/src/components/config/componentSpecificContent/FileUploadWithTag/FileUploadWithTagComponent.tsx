@@ -1,15 +1,14 @@
 import React from 'react';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import { SelectTextFromRecources } from '../../../../utils/render';
 import type { FormComponentType, IFormFileUploaderWithTagComponent } from '../../../../types/global';
 import { RadioGroup, RadioGroupVariant, TextField } from '@altinn/altinn-design-system';
+import { TextResource } from '../../../TextResource';
 
 type FileUploadWithTagComponentProps = {
   component: IFormFileUploaderWithTagComponent;
   stateComponent: any;
   handleComponentUpdate: (updatedComponent: FormComponentType) => void;
   language: any;
-  textResources: any;
   handleNumberOfAttachmentsChange: (type: string) => (e: any) => void;
   handleMaxFileSizeInMBChange: (e: any) => void;
   handleHasCustomFileEndingsChange: (value: string) => void;
@@ -18,18 +17,16 @@ type FileUploadWithTagComponentProps = {
 
 export const FileUploadWithTagComponent = ({
   component,
-  stateComponent,
   language,
-  textResources,
   handleComponentUpdate,
   handleNumberOfAttachmentsChange,
   handleMaxFileSizeInMBChange,
   handleHasCustomFileEndingsChange,
   handleValidFileEndingsChange,
 }: FileUploadWithTagComponentProps) => {
-  const handleTagTitleChange = (e: any): void => {
+  const handleTagTitleChange = (id: string): void => {
     const updatedComponent = { ...component };
-    updatedComponent.textResourceBindings.tagTitle = e ? e.value : null;
+    updatedComponent.textResourceBindings.tagTitle = id;
     handleComponentUpdate(updatedComponent);
   };
 
@@ -44,13 +41,11 @@ export const FileUploadWithTagComponent = ({
 
   return (
     <>
-      <SelectTextFromRecources
-        description={component.textResourceBindings?.tagTitle}
-        labelText={'modal_properties_tag_helper'}
-        language={language}
-        onChangeFunction={handleTagTitleChange}
-        placeholder={stateComponent.textResourceBindings?.tagTitle}
-        textResources={textResources}
+      <TextResource
+        handleIdChange={handleTagTitleChange}
+        label={t('ux_editor.modal_properties_tag')}
+        placeholder={t('ux_editor.modal_properties_tag_add')}
+        textResourceId={component.textResourceBindings?.tagTitle}
       />
       <div>
         <TextField

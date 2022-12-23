@@ -3,19 +3,18 @@ import classes from './CalculationsTab.module.css';
 import { Button, ButtonVariant } from '@altinn/altinn-design-system';
 import { Add } from '@navikt/ds-icons';
 import { RuleModal } from '../toolbar/RuleModal';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import { LogicMode } from '../../types/global';
 import { Dynamics } from './Dynamics';
 import { Divider } from 'app-shared/primitives';
+import { useText } from '../../hooks';
 
 interface CalculationsTabProps {
-  language: object;
   toggleFileEditor: (mode?: LogicMode) => void;
 }
 
-export const CalculationsTab = ({language, toggleFileEditor}: CalculationsTabProps) => {
+export const CalculationsTab = ({ toggleFileEditor }: CalculationsTabProps) => {
   const [modalOpen, setModalOpen] = React.useState<boolean>(false);
-  const t = (key: string) => getLanguageFromKey(key, language);
+  const t = useText();
   return <div className={classes.calculations}>
     <div>
       <div className={classes.header}>
@@ -30,6 +29,6 @@ export const CalculationsTab = ({language, toggleFileEditor}: CalculationsTabPro
       <RuleModal modalOpen={modalOpen} handleClose={() => setModalOpen(false)} />
     </div>
     <Divider inMenu />
-    <Dynamics language={language} toggleFileEditor={toggleFileEditor} />
+    <Dynamics toggleFileEditor={toggleFileEditor} />
   </div>;
 };

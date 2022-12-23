@@ -1,0 +1,1 @@
+export { useText } from './useText';

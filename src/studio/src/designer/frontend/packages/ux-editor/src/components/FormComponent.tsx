@@ -1,13 +1,11 @@
 import React, { useCallback } from 'react';
-import { createStyles, withStyles } from '@mui/styles';
 import { connect, useDispatch } from 'react-redux';
 import { FormLayoutActions } from '../features/formDesigner/formLayout/formLayoutSlice';
 import { EditContainer } from '../containers/EditContainer';
 import { makeGetLayoutOrderSelector } from '../selectors/getLayoutData';
 import type { FormComponentType, IAppState, IDataModelFieldElement } from '../types/global';
 import { ConnectDragSource } from 'react-dnd';
-
-const styles = createStyles({});
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
 /**
  * Properties defined for input for wrapper
@@ -15,7 +13,6 @@ const styles = createStyles({});
 export interface IProvidedProps {
   id: string;
   activeList: any[];
-  classes: any;
   firstInActiveList: boolean;
   lastInActiveList: boolean;
   sendListToParent: any;
@@ -94,7 +91,7 @@ const FormComponent = (props: IFormElementProps) => {
    * Return a given textresource from all textresources avaiable
    */
   const getTextResource = (resourceKey: string): string => {
-    const textResource = props.textResources.find((resource) => resource.id === resourceKey);
+    const textResource = props.textResources?.find((resource) => resource.id === resourceKey);
     return textResource ? textResource.value : resourceKey;
   };
 
@@ -165,7 +162,6 @@ const makeMapStateToProps = () => {
     id: props.id,
     firstInActiveList: props.firstInActiveList,
     lastInActiveList: props.lastInActiveList,
-    classes: props.classes,
     sendListToParent: props.sendListToParent,
     singleSelected: props.singleSelected,
     component:
@@ -181,7 +177,7 @@ const makeMapStateToProps = () => {
         ].dataModelBindings?.simpleBinding
     ),
     validationErrors: null,
-    textResources: state.appData.textResources.resources,
+    textResources: state.appData.textResources.resources?.[DEFAULT_LANGUAGE],
     dataModel: state.appData.dataModel.model,
     dragHandleRef: props.dragHandleRef,
   });
@@ -190,6 +186,4 @@ const makeMapStateToProps = () => {
 /**
  * Wrapper made available for other compoments
  */
-export const FormComponentWrapper = withStyles(styles, { withTheme: true })(
-  connect(makeMapStateToProps)(FormComponent)
-);
+export const FormComponentWrapper = connect(makeMapStateToProps)(FormComponent);

@@ -26,3 +26,4 @@ export const getUpLayNmeUrl = (layoutName: string) =>
 export const getUpdateApplicationMetadataUrl = (): string =>
   `${basePath}/UIEditor/UpdateMetadataForAttachment`;
 export const getWidgetsSettingsUrl = (): string => `${basePath}/UIEditor/GetWidgetSettings`;
+export const getPutTextResourcesUrl = (language: string): string => `${basePath}/Text/UpdateTextsForKeys/${language}`;

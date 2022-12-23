@@ -11,10 +11,7 @@ import {
   makeGetLayoutContainerOrder,
   makeGetLayoutContainersSelector,
 } from '../selectors/getLayoutData';
-import {
-  renderOptionalSelectTextFromResources,
-  renderSelectGroupDataModelBinding,
-} from '../utils/render';
+import { renderSelectGroupDataModelBinding } from '../utils/render';
 import { FormComponentWrapper } from '../components/FormComponent';
 import { getTextResource } from '../utils/language';
 import { idExists, validComponentId } from '../utils/formLayout';
@@ -44,6 +41,8 @@ import cn from 'classnames';
 import { Cancel, Collapse, Delete, Edit, Expand, Success } from '@navikt/ds-icons';
 import { ConnectDragSource } from 'react-dnd';
 import { DragHandle } from '../components/DragHandle';
+import { TextResource } from '../components/TextResource';
+import { DEFAULT_LANGUAGE } from 'app-shared/constants';
 
 export interface IProvidedContainerProps {
   isBaseContainer?: boolean;
@@ -264,13 +263,13 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
     });
   };
 
-  public handleButtonTextChange = (e: any) => {
+  public handleButtonTextChange = (id: string) => {
     this.setState((prevState: IContainerState) => {
       const updatedContainer = prevState.tmpContainer;
       if (!updatedContainer.textResourceBindings) {
         updatedContainer.textResourceBindings = {};
       }
-      updatedContainer.textResourceBindings.add_button = e ? e.value : null;
+      updatedContainer.textResourceBindings.add_button = id;
       return {
         tmpContainer: updatedContainer,
       };
@@ -456,15 +455,12 @@ export class ContainerComponent extends Component<IContainerProps, IContainerSta
                 value={tmpContainer.maxCount.toString()}
               />
             </div>
-            {renderOptionalSelectTextFromResources(
-              'modal_properties_group_add_button',
-              this.handleButtonTextChange,
-              textResources,
-              language,
-              tmpContainer.textResourceBindings?.add_button,
-              tmpContainer.textResourceBindings?.add_button,
-              t('ux_editor.modal_properties_group_add_button_description')
-            )}
+            <TextResource
+              description={t('ux_editor.modal_properties_group_add_button_description')}
+              handleIdChange={this.handleButtonTextChange}
+              label={t('ux_editor.modal_properties_group_add_button')}
+              textResourceId={tmpContainer.textResourceBindings?.add_button}
+            />
             {itemOrder.length > 0 && (
               <CheckboxGroup
                 error={tableHeadersError}
@@ -629,7 +625,7 @@ const makeMapStateToProps = () => {
       itemOrder: !props.items ? itemOrder : props.items,
       language: state.appData.languageState.language,
       repeating: container?.repeating,
-      textResources: state.appData.textResources.resources,
+      textResources: state.appData.textResources.resources?.[DEFAULT_LANGUAGE],
     };
   };
 };

@@ -1,27 +1,26 @@
 import React from 'react';
-import { SelectTextFromRecources } from '../../../utils/render';
 import type { IGenericEditComponent } from '../componentConfig';
+import { TextResource } from '../../TextResource';
+import { getLanguageFromKey } from 'app-shared/utils/language';
 
-export const EditDescription = ({ component, handleComponentChange, language, textResources }: IGenericEditComponent) => {
-
-  const handleDescriptionChange = (e: any) => {
-    const selectedDescription = e.value;
-    handleComponentChange({
-      ...component,
-      textResourceBindings: {
-        ...component.textResourceBindings,
-        description: selectedDescription,
-      },
-    });
-  };
-
+export const EditDescription = ({
+  component,
+  handleComponentChange,
+  language,
+}: IGenericEditComponent) => {
+  const handleIdChange = (id: string) => handleComponentChange({
+    ...component,
+    textResourceBindings: {
+      ...component.textResourceBindings,
+      description: id,
+    }
+  });
   return (
-    <SelectTextFromRecources
-      labelText='modal_properties_description_helper'
-      language={language}
-      onChangeFunction={handleDescriptionChange}
-      textResources={textResources}
-      placeholder={component.textResourceBindings?.description}
+    <TextResource
+      handleIdChange={handleIdChange}
+      label={getLanguageFromKey('ux_editor.modal_properties_description', language)}
+      placeholder={getLanguageFromKey('ux_editor.modal_properties_description_add', language)}
+      textResourceId={component.textResourceBindings?.description}
     />
   );
 };

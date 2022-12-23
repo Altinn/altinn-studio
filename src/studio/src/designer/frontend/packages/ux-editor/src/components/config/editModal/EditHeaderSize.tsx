@@ -10,6 +10,7 @@ enum HeaderSize {
   L = 'h2',
 }
 
+// Todo: This should be called "level" instead of "size"
 export const EditHeaderSize = ({ handleComponentChange, component, language }: IGenericEditComponent) => {
   const t = (key: string) => getLanguageFromKey(key, language);
   const sizes = [
