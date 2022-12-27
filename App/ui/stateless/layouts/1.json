@@ -39,7 +39,7 @@
         "dataModelBindings": {
           "simpleBinding": "OpplysningerOmArbeidstakeren-grp-8819.OpplysningerOmArbeidstakeren-grp-8855.AnsattNavn-datadef-1223.value"
         },
-        "required": false,
+        "required": true,
         "readOnly": false,
         "labelSettings": {"optionalIndicator": false}
       },
@@ -92,6 +92,11 @@
           "title": "Velg epost"
         },
         "optionsId": "epostOptions"
+      },
+      {
+        "id": "pageNext",
+        "type": "NavigationButtons",
+        "triggers": ["validatePage"]
       }
     ]
   }
