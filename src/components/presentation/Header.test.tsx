@@ -28,7 +28,6 @@ describe('Header', () => {
     });
     const header = screen.getByRole('banner');
     expect(header).toHaveClass('a-modal-background-success');
-    expect(header).toHaveTextContent('Kvittering');
   });
 
   it('should not render progress', () => {

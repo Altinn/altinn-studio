@@ -4,7 +4,7 @@ import { Grid, Typography } from '@material-ui/core';
 
 import { useAppSelector } from 'src/common/hooks';
 import { AltinnAttachment } from 'src/components/shared';
-import { mapInstanceAttachments } from 'src/utils/sharedUtils';
+import { getInstancePdf, mapInstanceAttachments } from 'src/utils/sharedUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 
 export type IAttachmentListProps = PropsFromGenericComponent<'AttachmentList'>;
@@ -22,11 +22,14 @@ export function AttachmentListComponent(props: IAttachmentListProps) {
       return dataTypes && dataTypes.findIndex((type) => dataElement.dataType === type.id) > -1;
     });
   });
+  const includePDF = props.includePDF;
   const attachments = useAppSelector((state) => {
     const appLogicDataTypes = state.applicationMetadata.applicationMetadata?.dataTypes.filter((dataType) => {
       return dataType.appLogic && dataType.taskId === currentTaskId;
     });
-    return mapInstanceAttachments(dataForTask, appLogicDataTypes?.map((type) => type.id) || []);
+    return includePDF
+      ? getInstancePdf(dataForTask)
+      : mapInstanceAttachments(dataForTask, appLogicDataTypes?.map((type) => type.id) || []);
   });
 
   return (

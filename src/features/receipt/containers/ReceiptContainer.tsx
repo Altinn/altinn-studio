@@ -9,6 +9,7 @@ import {
   AltinnReceipt,
   AltinnReceiptSimple,
 } from 'src/components/shared';
+import { CustomReceipt } from 'src/features/customReceipt/containers/CustomReceipt';
 import { ReadyForPrint } from 'src/shared/components/ReadyForPrint';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 import { getAttachmentGroupings, getInstancePdf } from 'src/utils/attachmentsUtils';
@@ -57,6 +58,7 @@ const ReceiptContainer = () => {
   const [instanceMetaObject, setInstanceMetaObject] = useState({});
   const [userLanguage, setUserLanguage] = useState('nb');
 
+  const receiptLayoutName = useAppSelector((state) => state.formLayout.uiConfig.receiptLayoutName);
   const allOrgs = useAppSelector((state) => state.organisationMetaData.allOrgs);
   const applicationMetadata = useAppSelector((state) => state.applicationMetadata.applicationMetadata);
   const instance = useAppSelector((state) => state.instanceData.instance);
@@ -64,6 +66,7 @@ const ReceiptContainer = () => {
   const parties = useAppSelector((state) => state.party.parties);
   const textResources = useAppSelector((state) => state.textResources.resources);
   const profile = useAppSelector((state) => state.profile.profile);
+  const layouts = useAppSelector((state) => Object.keys(state.formLayout.layouts || {}));
 
   const origin = window.location.origin;
 
@@ -127,19 +130,22 @@ const ReceiptContainer = () => {
       language &&
       parties ? (
         <>
-          {!applicationMetadata.autoDeleteOnProcessEnd && (
-            <AltinnReceipt
-              attachmentGroupings={getAttachmentGroupings(attachments, applicationMetadata, textResources)}
-              body={getTextFromAppOrDefault('receipt.body', textResources, language)}
-              collapsibleTitle={getTextFromAppOrDefault('receipt.attachments', textResources, language)}
-              instanceMetaDataObject={instanceMetaObject}
-              subtitle={getTextFromAppOrDefault('receipt.subtitle', textResources, language)}
-              subtitleurl={returnUrlToArchive(origin) || undefined}
-              title={getTextFromAppOrDefault('receipt.title', textResources, language)}
-              titleSubmitted={getTextFromAppOrDefault('receipt.title_submitted', textResources, language)}
-              pdf={pdf || undefined}
-            />
-          )}
+          {!applicationMetadata.autoDeleteOnProcessEnd &&
+            (receiptLayoutName && layouts.includes(receiptLayoutName) ? (
+              <CustomReceipt />
+            ) : (
+              <AltinnReceipt
+                attachmentGroupings={getAttachmentGroupings(attachments, applicationMetadata, textResources)}
+                body={getTextFromAppOrDefault('receipt.body', textResources, language)}
+                collapsibleTitle={getTextFromAppOrDefault('receipt.attachments', textResources, language)}
+                instanceMetaDataObject={instanceMetaObject}
+                subtitle={getTextFromAppOrDefault('receipt.subtitle', textResources, language)}
+                subtitleurl={returnUrlToArchive(origin) || undefined}
+                title={getTextFromAppOrDefault('receipt.title', textResources, language)}
+                titleSubmitted={getTextFromAppOrDefault('receipt.title_submitted', textResources, language)}
+                pdf={pdf || undefined}
+              />
+            ))}
           {applicationMetadata.autoDeleteOnProcessEnd && (
             <AltinnReceiptSimple
               body={getTextFromAppOrDefault('receipt.body_simple', textResources, language, undefined, false)}

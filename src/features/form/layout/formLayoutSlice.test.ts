@@ -70,6 +70,7 @@ describe('layoutSlice', () => {
         pages: {
           order: ['page1', 'page2'],
         },
+        receiptLayoutName: 'receipt',
       };
       const nextState = slice.reducer(
         initialState,
@@ -89,6 +90,7 @@ describe('layoutSlice', () => {
         pages: {
           order: ['page1', 'page2'],
         },
+        receiptLayoutName: 'receipt',
       };
       const nextState = slice.reducer(
         {
@@ -114,6 +116,7 @@ describe('layoutSlice', () => {
         pages: {
           order: ['page1', 'page2'],
         },
+        receiptLayoutName: 'receipt',
       };
       const nextState = slice.reducer(
         {

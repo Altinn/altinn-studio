@@ -44,6 +44,7 @@ export interface IAttachment {
   iconClass: string;
   url?: string;
   dataType: string;
+  includePDF?: boolean;
   tags?: string[];
 }
 

@@ -4,13 +4,17 @@ import { Route, useLocation } from 'react-router-dom';
 import { screen } from '@testing-library/react';
 
 import { dataTypes, instanceOwner, partyMember, partyTypesAllowed, userProfile } from 'src/__mocks__/constants';
+import { getInstanceDataStateMock } from 'src/__mocks__/mocks';
 import ReceiptContainer, { returnInstanceMetaDataObject } from 'src/features/receipt/containers/ReceiptContainer';
 import { MemoryRouterWithRedirectingRoot, renderWithProviders } from 'src/testUtils';
+import type { ILayout } from 'src/layout/layout';
 
 interface IRender {
   populateStore?: boolean;
   autoDeleteOnProcessEnd?: boolean;
   hasPdf?: boolean;
+  setCustomReceipt?: boolean;
+  receiptLayoutExist?: boolean;
 }
 
 const exampleGuid = '75154373-aed4-41f7-95b4-e5b5115c2edc';
@@ -37,7 +41,12 @@ const DefinedRoutes = () => {
   );
 };
 
-function getMockState({ autoDeleteOnProcessEnd = false, hasPdf = true }) {
+function getMockState({
+  autoDeleteOnProcessEnd = false,
+  hasPdf = true,
+  setCustomReceipt = false,
+  receiptLayoutExist = false,
+}) {
   const pdfData = hasPdf
     ? [
         {
@@ -62,6 +71,38 @@ function getMockState({ autoDeleteOnProcessEnd = false, hasPdf = true }) {
         },
       ]
     : [];
+
+  const receipt: ILayout = [
+    {
+      id: 'ReceiptHeader',
+      type: 'Header',
+      textResourceBindings: {
+        title: 'receipt.title',
+      },
+      size: 'h2',
+    },
+    {
+      id: 'ReceiptParagraph',
+      type: 'Paragraph',
+      textResourceBindings: {
+        title: 'receipt.body',
+      },
+    },
+    {
+      id: 'ReceiptInstanceInformation',
+      type: 'InstanceInformation',
+    },
+    {
+      id: 'ReceiptAttachmentList',
+      type: 'AttachmentList',
+      dataTypeIds: ['ref-data-as-pdf'],
+      includePDF: true,
+    },
+  ];
+
+  const receiptLayout = receiptLayoutExist ? { receipt } : {};
+
+  const customReceipt = setCustomReceipt ? { hiddenFields: [], receiptLayoutName: 'receipt' } : {};
 
   return {
     organisationMetaData: {
@@ -96,8 +137,15 @@ function getMockState({ autoDeleteOnProcessEnd = false, hasPdf = true }) {
         lastChangedBy: 'jeeva',
       },
     },
+    formLayout: {
+      uiConfig: customReceipt,
+      layouts: {
+        ...receiptLayout,
+      },
+    },
     instanceData: {
       instance: {
+        ...getInstanceDataStateMock().instance,
         id: exampleInstanceId,
         instanceOwner,
         org: 'ttd',
@@ -139,8 +187,14 @@ function getMockState({ autoDeleteOnProcessEnd = false, hasPdf = true }) {
   } as any;
 }
 
-const render = ({ populateStore = true, autoDeleteOnProcessEnd = false, hasPdf = true }: IRender = {}) => {
-  const mockState = getMockState({ hasPdf, autoDeleteOnProcessEnd });
+const render = ({
+  populateStore = true,
+  autoDeleteOnProcessEnd = false,
+  hasPdf = true,
+  setCustomReceipt = false,
+  receiptLayoutExist = false,
+}: IRender = {}) => {
+  const mockState = getMockState({ hasPdf, autoDeleteOnProcessEnd, setCustomReceipt, receiptLayoutExist });
   renderWithProviders(<DefinedRoutes />, {
     preloadedState: populateStore ? mockState : {},
   });
@@ -218,7 +272,7 @@ describe('ReceiptContainer', () => {
   });
 
   it('should show complex receipt when autoDeleteOnProcessEnd is false', () => {
-    render({ autoDeleteOnProcessEnd: false });
+    render();
 
     expect(screen.queryByText(/receipt\.body_simple/i)).not.toBeInTheDocument();
   });
@@ -227,6 +281,24 @@ describe('ReceiptContainer', () => {
     render({ autoDeleteOnProcessEnd: true });
 
     expect(screen.getByText(/receipt\.body_simple/i)).toBeInTheDocument();
+  });
+
+  it('should show custom receipt when receiptLayoutName is found in uiConfig and the layout exists', () => {
+    render({ setCustomReceipt: true, receiptLayoutExist: true });
+
+    expect(screen.getByTestId('custom-receipt')).toBeInTheDocument();
+  });
+
+  it('should not show custom receipt when receiptLayoutName is found in uiConfig but the layout does not exists', () => {
+    render({ setCustomReceipt: true });
+
+    expect(screen.getByTestId('altinn-receipt')).toBeInTheDocument();
+  });
+
+  it('should not show custom receipt when receiptLayoutName not is found in uiConfig but the layout exists', () => {
+    render({ receiptLayoutExist: true });
+
+    expect(screen.getByTestId('altinn-receipt')).toBeInTheDocument();
   });
 });
 

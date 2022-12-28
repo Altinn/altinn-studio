@@ -15,6 +15,7 @@ import type { IDataModelBindingsForGroup, ILayoutGroup } from 'src/layout/Group/
 import type { ILayoutCompHeader } from 'src/layout/Header/types';
 import type { ILayoutCompImage } from 'src/layout/Image/types';
 import type { ILayoutCompInput } from 'src/layout/Input/types';
+import type { ILayoutCompInstanceInformation } from 'src/layout/InstanceInformation/types';
 import type { ILayoutCompInstantiationButton } from 'src/layout/InstantiationButton/types';
 import type { ILayoutCompLikert } from 'src/layout/Likert/types';
 import type { IDataModelBindingsForList, ILayoutCompList } from 'src/layout/List/types';
@@ -107,6 +108,7 @@ interface Map {
   Image: ILayoutCompImage;
   Input: ILayoutCompInput;
   InstantiationButton: ILayoutCompInstantiationButton;
+  InstanceInformation: ILayoutCompInstanceInformation;
   Likert: ILayoutCompLikert;
   List: ILayoutCompList;
   Map: ILayoutCompMap;

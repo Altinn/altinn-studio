@@ -13,6 +13,7 @@ import { FileUploadWithTagComponent } from 'src/layout/FileUploadWithTag/FileUpl
 import { HeaderComponent } from 'src/layout/Header/HeaderComponent';
 import { ImageComponent } from 'src/layout/Image/ImageComponent';
 import { InputComponent } from 'src/layout/Input/InputComponent';
+import { InstanceInformationComponent } from 'src/layout/InstanceInformation/InstanceInformationComponent';
 import { InstantiationButtonComponent } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
 import { LikertComponent } from 'src/layout/Likert/LikertComponent';
 import { ListComponent } from 'src/layout/List/ListComponent';
@@ -46,6 +47,7 @@ const components: {
   Header: HeaderComponent,
   Image: ImageComponent,
   Input: InputComponent,
+  InstanceInformation: InstanceInformationComponent,
   InstantiationButton: InstantiationButtonComponent,
   Likert: LikertComponent,
   Map: MapComponent,

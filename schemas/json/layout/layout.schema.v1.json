@@ -42,7 +42,7 @@
           "type": "string",
           "title": "Type",
           "description": "The component type.",
-          "enum": ["AddressComponent", "AttachmentList", "Button", "Checkboxes", "Custom", "Datepicker", "Dropdown", "FileUpload", "FileUploadWithTag", "Group", "Header", "Image", "Input", "InstantiationButton", "Likert","List", "MultipleSelect", "NavigationButtons", "NavigationBar", "Panel", "Paragraph", "PrintButton", "RadioButtons", "Summary", "TextArea"]
+          "enum": ["AddressComponent", "AttachmentList", "Button", "Checkboxes", "Custom", "Datepicker", "Dropdown", "FileUpload", "FileUploadWithTag", "Group", "Header", "Image", "Input", "InstanceInformation", "InstantiationButton", "Likert","List", "MultipleSelect", "NavigationButtons", "NavigationBar", "Panel", "Paragraph", "PrintButton", "RadioButtons", "Summary", "TextArea"]
         },
         "required": {
           "title": "Required",
@@ -131,6 +131,7 @@
         { "if": {"properties": {"type": { "const": "Image"}}}, "then": { "$ref": "#/definitions/imageComponent"}},
         { "if": {"properties": {"type": { "const": "Input"}}}, "then": { "$ref": "#/definitions/inputComponent"}},
         { "if": {"properties": {"type": { "const": "TextArea"}}}, "then": { "$ref": "#/definitions/textAreaComponent"}},
+        { "if": {"properties": {"type": { "const": "InstanceInformation"}}}, "then": { "$ref": "#/definitions/instanceInformationComponent"}},
         { "if": {"properties": {"type": { "const": "InstantiationButton"}}}, "then": { "$ref": "#/definitions/instantiationButtonComponent"}},
         { "if": {"properties": {"type": { "const": "Likert"}}}, "then": { "$ref": "#/definitions/radioAndCheckboxComponents"}},
         { "if": {"properties": {"type": { "const": "MultipleSelect"}}}, "then": { "$ref": "#/definitions/selectionComponents"}},
@@ -273,6 +274,41 @@
           "type": "boolean",
           "title": "Show back button",
           "description": "Shows two buttons (back/next) instead of just 'next'."
+        }
+      }
+    },
+    "instanceInformationComponent": {
+      "properties": {
+        "elements": {
+          "title": "Instance information choices",
+          "description": "The properties to include in the instanceInformation summary",
+          "type": "object",
+          "properties": {
+            "dateSent":{
+              "title": "Date sent",
+              "description": "Date when the schema was sent.",
+              "type": "boolean",
+              "default": true
+            },
+            "sender": {
+              "title": "Schema sender",
+              "description": "The sender of the schema.",
+              "type": "boolean",
+              "default": true
+            },
+            "receiver": {
+              "title": "Schema receiver",
+              "description": "The receiver of the schema.",
+              "type": "boolean",
+              "default": true
+            },
+            "referenceNumber": {
+              "title": "Schema reference number",
+              "description": "The reference number of the schema gathered from the instance Guid.",
+              "type": "boolean",
+              "default": true
+            }
+          }
         }
       }
     },
@@ -661,6 +697,12 @@
           "title": "Data type IDs",
           "description": "List of data type IDs for the attachment list to show.",
           "examples": [["SomeDataType", "SomeOtherDataType"]]
+        },
+        "includePDF": {
+          "type": "boolean",
+          "title": "Include PDF as attachments",
+          "description": "Set the flag if the list of attachments should include PDF of answers.",
+          "default": false
         }
       }
     },

@@ -42,6 +42,7 @@ export const initialState: ILayoutState = {
     autoSave: null,
     repeatingGroups: null,
     fileUploadersWithTag: {},
+    receiptLayoutName: undefined,
     currentView: 'FormLayout',
     navigationConfig: {},
     tracks: {
@@ -112,6 +113,7 @@ const formLayoutSlice = createSagaSlice((mkAction: MkActionType<ILayoutState>) =
     fetchSettingsFulfilled: mkAction<LayoutTypes.IFetchLayoutSettingsFulfilled>({
       reducer: (state, action) => {
         const { settings } = action.payload;
+        state.uiConfig.receiptLayoutName = settings?.receiptLayoutName;
         if (settings && settings.pages) {
           updateCommonPageSettings(state, settings.pages);
           const order = settings.pages.order;
