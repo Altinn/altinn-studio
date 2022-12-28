@@ -30,6 +30,7 @@ const renderTextList = (props: Partial<TextListProps> = {}) => {
   const allProps: TextListProps = {
     textIds: ['a', 'b', 'c', 'd', 'e', 'f'],
     selectedLangCode: 'nb',
+    searchQuery: undefined,
     texts,
     updateEntryId: (_arg) => undefined,
     removeEntry: (_arg) => undefined,

@@ -46,4 +46,6 @@ test('that filter function works as intended', () => {
   expect(filterFunction('test', 'spock', '')).toBe(true);
   expect(filterFunction('test', 'spock', 'test')).toBe(true);
   expect(filterFunction('test', 'spock', 'testen')).toBe(false);
+  expect(filterFunction('test', 'spock', undefined)).toBe(true);
+  expect(filterFunction('test', undefined, undefined)).toBe(true);
 });

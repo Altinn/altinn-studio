@@ -43,8 +43,20 @@ export const langOptions: Option[] = ISO6391.getAllCodes()
   }))
   .sort((a, b) => a.label.localeCompare(b.label));
 
-export const filterFunction = (id: string, value: string, searchQuery: string) => {
-  if (searchQuery.length < 1) {
+export const filterFunction = (
+  id: string | undefined,
+  value: string | undefined,
+  searchQuery: string | undefined
+) => {
+  if (!searchQuery) {
     return true;
-  } else return id.includes(searchQuery) || value.includes(searchQuery);
+  } else if (searchQuery.length < 1) {
+    return true;
+  } else if (id?.includes(searchQuery)) {
+    return true;
+  } else if (value?.includes(searchQuery)) {
+    return true;
+  } else {
+    return false;
+  }
 };

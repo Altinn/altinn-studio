@@ -30,7 +30,7 @@ export const TextList = ({
   return (
     <ul className={classes.TextEditor__body}>
       {textIds
-        .filter((id) => filterFunction(id, texts[id].value, searchQuery))
+        .filter((id) => filterFunction(id, texts[id] ? texts[id].value : '', searchQuery))
         .map((id) => (
           <TextRow
             key={`${selectedLangCode}.${id}`}
