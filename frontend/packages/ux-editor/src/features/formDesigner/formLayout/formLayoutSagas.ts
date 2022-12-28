@@ -542,7 +542,7 @@ export function* watchSaveFormLayoutSettingSaga(): SagaIterator {
       FormLayoutActions.addLayoutFulfilled,
       FormLayoutActions.deleteLayoutFulfilled,
       FormLayoutActions.updateLayoutNameFulfilled,
-      FormLayoutActions.updateAppReceiptLayoutName,
+      FormLayoutActions.updateReceiptLayoutName,
       FormLayoutActions.updateLayoutOrder,
     ],
     saveFormLayoutSettingSaga
