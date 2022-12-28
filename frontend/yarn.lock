@@ -45,28 +45,27 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@altinn/altinn-design-system@npm:0.25.10":
-  version: 0.25.10
-  resolution: "@altinn/altinn-design-system@npm:0.25.10"
+"@altinn/altinn-design-system@npm:0.25.11":
+  version: 0.25.11
+  resolution: "@altinn/altinn-design-system@npm:0.25.11"
   dependencies:
-    "@altinn/figma-design-tokens": ^4.3.0
+    "@altinn/figma-design-tokens": ^5.0.0
     "@navikt/ds-icons": ^2.0.0
     "@radix-ui/react-popover": ^1.0.0
-    "@react-hookz/web": ^20.0.0
     leaflet: ^1.8.0
     react-leaflet: ^4.0.1
     react-number-format: ^5.1.1
   peerDependencies:
     react: ^18.0.0
     react-dom: ^18.0.0
-  checksum: 53bb2b72a4f47c8dfcee635cefd50393ab038da75bb10b6cdebce1dc8f506bc739fc83cca5bacbad1cd286eecd9958a17d532f3d8017d637cfe43eafe1889c58
+  checksum: 97a9f2c4755ad6124d04150b594b49eb1255e95d5315f2d4e1158e99cd7ab7288cd512b898ce7790156caf2a2a914456218cf373431de280957ed40a2ab43b32
   languageName: node
   linkType: hard
 
-"@altinn/figma-design-tokens@npm:^4.3.0":
-  version: 4.3.0
-  resolution: "@altinn/figma-design-tokens@npm:4.3.0"
-  checksum: dac7b1b98a354bafa0ce627ae9fdf34215101fb57669576795d7b40c48dd41761b301ba62ec9026a99a5f21838aee6c4d26c851572ea8f334eb421c94b659a4d
+"@altinn/figma-design-tokens@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "@altinn/figma-design-tokens@npm:5.0.0"
+  checksum: faf2405a088bc993e63e3cf0f790f343c75c34cdd0c8616ca8d0d43e8c512e8d267fe91890eeb9f6ea78ba043f472e0568529d4ae567c5fe5cf58ec397cabf72
   languageName: node
   linkType: hard
 
@@ -78,7 +77,7 @@ __metadata:
     jest: 29.3.1
     jsonpointer: 5.0.1
   peerDependencies:
-    "@altinn/altinn-design-system": 0.25.10
+    "@altinn/altinn-design-system": 0.25.11
     "@mui/icons-material": 5.11.0
     "@mui/material": 5.11.1
     "@mui/styles": 5.11.1
@@ -108,7 +107,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@altinn/text-editor@workspace:packages/text-editor"
   dependencies:
-    "@altinn/altinn-design-system": 0.25.10
+    "@altinn/altinn-design-system": 0.25.11
     iso-639-1: 2.1.15
     jest: 29.3.1
     ts-jest: 29.0.3
@@ -3097,29 +3096,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@react-hookz/deep-equal@npm:^1.0.3":
-  version: 1.0.3
-  resolution: "@react-hookz/deep-equal@npm:1.0.3"
-  checksum: d482b43746a0371094b90e1957d3e3a6aa70cbe8bd9cd88c759d8dcf21c2c1f57fbd1846b2103bccc20600e77d04d44e35c320ba9001fb5382c70a9a3385d34a
-  languageName: node
-  linkType: hard
-
-"@react-hookz/web@npm:^20.0.0":
-  version: 20.0.1
-  resolution: "@react-hookz/web@npm:20.0.1"
-  dependencies:
-    "@react-hookz/deep-equal": ^1.0.3
-  peerDependencies:
-    js-cookie: ^3.0.1
-    react: ^16.8 || ^17 || ^18
-    react-dom: ^16.8 || ^17 || ^18
-  peerDependenciesMeta:
-    js-cookie:
-      optional: true
-  checksum: 433dcb140953a877d4c81e1c176cd4302c184293ccddc5ee8de3ae3e592441b528c0c88bc07ed29fea2c993bacb146dfe0c7541832cb56785f07d8717626a1a2
-  languageName: node
-  linkType: hard
-
 "@react-leaflet/core@npm:^2.1.0":
   version: 2.1.0
   resolution: "@react-leaflet/core@npm:2.1.0"
@@ -4849,7 +4825,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-development@workspace:app-development"
   dependencies:
-    "@altinn/altinn-design-system": 0.25.10
+    "@altinn/altinn-design-system": 0.25.11
     "@mui/material": 5.11.1
     "@mui/styles": 5.11.1
     "@reduxjs/toolkit": 1.9.1
@@ -4878,7 +4854,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "app-preview@workspace:app-preview"
   dependencies:
-    "@altinn/altinn-design-system": 0.25.10
+    "@altinn/altinn-design-system": 0.25.11
     axios: 1.2.1
     classnames: 2.3.2
     cross-env: 7.0.3
@@ -4899,7 +4875,7 @@ __metadata:
   resolution: "app-shared@workspace:packages/shared"
   dependencies:
     3: 2.1.0
-    "@altinn/altinn-design-system": 0.25.10
+    "@altinn/altinn-design-system": 0.25.11
     "@altinn/schema-editor": 0.1.0
     "@mui/material": 5.11.1
     "@mui/styles": 5.11.1
@@ -6352,7 +6328,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "dashboard@workspace:dashboard"
   dependencies:
-    "@altinn/altinn-design-system": 0.25.10
+    "@altinn/altinn-design-system": 0.25.11
     "@mui/x-data-grid": 5.17.16
     "@reduxjs/toolkit": 1.9.1
     cross-env: 7.0.3
