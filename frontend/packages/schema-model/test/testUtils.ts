@@ -1,7 +1,7 @@
 import path from 'path';
 import fs from 'fs';
 import Ajv2020 from 'ajv/dist/2020';
-import type { Dict } from '../src/lib/types';
+import type { Dict } from '../src';
 import { FieldType, Keywords } from '../src';
 
 /**
@@ -11,7 +11,7 @@ export const ignoreTestSchemas: string[] = ['ComplexSchema-old'];
 
 const defaultPath = path.resolve(
   __dirname,
-  '../../../../DataModeling.Tests/_TestData/Model/JsonSchema'
+  '../../../../src/studio/src/designer/DataModeling.Tests/_TestData/Model/JsonSchema'
 );
 
 const cache = new Map();
