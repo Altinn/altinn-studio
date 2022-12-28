@@ -34,7 +34,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     volumes:
-      - ./src/studio/src/designer/frontend/language/src:/www-root/designer/frontend/lang:ro
+      - ./frontend/language/src:/www-root/designer/frontend/lang:ro
       - ./development/load-balancer:/etc/nginx/templates/:ro
       - ./development/load-balancer:/www/:ro
 

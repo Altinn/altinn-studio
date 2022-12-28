@@ -118,26 +118,26 @@ Which will build the Designer .NET backend and the designer react app, but not l
 #### Building the React apps
 
 If you need to rebuild other react apps, for instance `dashboard` or `app-development`, this can be done by navigating
-to `src/studio/src/designer/frontend` and then run the following build script, which will build app frontend apps.
+to `frontend` and then run the following build script, which will build app frontend apps.
 
 ```bash
 yarn run build
 ```
 
 Some React projects also have various other predefined scripts, which can be viewed in the `package.json` file
-which is located in the root folder of each react project, example `src/studio/src/designer/frontend/dashboard`.
+which is located in the root folder of each react project, example `frontend/dashboard`.
 
 ## Running the tests
 
 ### Lint checks
 
-1. Navigate to the folder `src/studio/src/designer/frontend`.
+1. Navigate to the folder `frontend`.
 2. Execute `yarn --immutable`. This step is only nescessary if you have not already done it, or if you change branches.
 3. Execute `yarn run lint`.
 
 ### Unit tests
 
-1. Navigate to the folder `src/studio/src/designer/frontend`.
+1. Navigate to the folder `frontend`.
 2. Execute `yarn --immutable`. This step is only nescessary if you have not already done it, or if you change branches.
 3. Execute `yarn run test`.
 

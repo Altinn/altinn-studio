@@ -99,14 +99,14 @@ Log in with a test user, using your app name and org name. This will redirect yo
 #### Building other react apps
 
 If you need to rebuild other react apps, for instance Dashboard or ServiceDevelopment, this can be done by navigating to 
-their respective folders, example `src/studio/src/designer/frontend/dashboard` and then run the following build script
+their respective folders, example `frontend/dashboard` and then run the following build script
 
 ```bash
 yarn run build
 ```
 
 Some of the react projects also have various other predefined yarn tasks, which can be viewed in the `package.json` file 
-which is located in the root folder of each react project, example `src/studio/stc/designer/frontend/dashboard/package.json`
+which is located in the root folder of each react project, example `frontend/dashboard/package.json`
 
 ## Running the tests
 

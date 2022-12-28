@@ -3,7 +3,7 @@ name: Frontend Tests
 on:
   push:
     paths:
-      - 'src/studio/src/designer/frontend/**'
+      - 'frontend/**'
       - '.github/workflows/frontend-unit-tests.yml'
 
 concurrency:
@@ -23,7 +23,7 @@ jobs:
       - uses: actions/setup-node@v3
 
       - name: Get yarn cache directory path
-        working-directory: src/studio/src/designer/frontend
+        working-directory: frontend
         id: yarn-cache-dir-path
         run: echo "dir=$(yarn config get cacheFolder)" >> $GITHUB_OUTPUT
 
@@ -36,7 +36,7 @@ jobs:
             ${{ runner.os }}-yarn-
 
       - name: 'Installing Dependencies'
-        working-directory: src/studio/src/designer/frontend
+        working-directory: frontend
         run: yarn install --immutable --inline-builds
         env:
           YARN_ENABLE_GLOBAL_CACHE: 'false'
@@ -44,5 +44,5 @@ jobs:
           HUSKY: '0'
 
       - name: 'Running Unit Tests'
-        working-directory: src/studio/src/designer/frontend
+        working-directory: frontend
         run: yarn test:ci
