@@ -5,7 +5,6 @@
   "scripts": {
     "build": "gulp build",
     "gulp": "gulp",
-    "gulp-clean": "gulp clean",
     "gulp-develop": "gulp develop-designer-backend",
     "gulp-install-deps": "gulp install-react-app-dependencies",
     "gulp-copy-files": "gulp copy-files",
