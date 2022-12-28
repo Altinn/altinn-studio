@@ -27,11 +27,9 @@ export interface ISummaryComponent extends Omit<ILayoutCompSummary, 'type'> {
 }
 
 const useStyles = makeStyles({
-  row: {
+  border: {
     marginBottom: 10,
     paddingBottom: 10,
-  },
-  border: {
     borderBottom: '1px dashed #008FD6',
   },
   link: {
@@ -171,7 +169,7 @@ export function SummaryComponent({ id, grid, ...summaryProps }: ISummaryComponen
     >
       <Grid
         container={true}
-        className={cn(classes.row, {
+        className={cn({
           [classes.border]: !display?.hideBottomBorder,
         })}
       >
