@@ -20,7 +20,7 @@
     "altinn-designsystem": "2.7.12",
     "bootstrap": "4.6.2",
     "bootstrap-list-filter": "0.3.4",
-    "jquery": "3.6.2",
+    "jquery": "3.6.3",
     "jquery-ui-dist": "1.13.2",
     "jquery-validation": "1.19.5",
     "jquery-validation-unobtrusive": "3.2.12",
@@ -35,5 +35,5 @@
     "sightglass": "0.2.6",
     "underscore": "1.13.6"
   },
-  "packageManager": "yarn@3.3.0"
+  "packageManager": "yarn@3.3.1"
 }

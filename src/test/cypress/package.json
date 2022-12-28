@@ -31,5 +31,5 @@
     "prettier": "2.8.1",
     "start-server-and-test": "1.15.2"
   },
-  "packageManager": "yarn@3.3.0"
+  "packageManager": "yarn@3.3.1"
 }
