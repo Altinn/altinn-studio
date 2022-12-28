@@ -1,7 +1,7 @@
 # Building studio frontend
 FROM node:alpine AS generate-studio-frontend
 WORKDIR /build
-COPY src/studio/src/designer/frontend .
+COPY frontend .
 RUN corepack enable
 RUN yarn --immutable
 RUN yarn build

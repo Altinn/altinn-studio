@@ -4,7 +4,10 @@ const { projectRootDir } = require('../utils');
 
 const filepath = path.resolve(
   projectRootDir(),
-  '..',
+  'src',
+  'studio',
+  'src',
+  'designer',
   'backend',
   'wwwroot',
   'designer',

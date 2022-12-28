@@ -29,14 +29,14 @@ area/authorization:
   - 'src/Altinn.Common/Altinn.Common.PEP/**/*'
 
 area/app-deploy:
-  - 'src/studio/src/designer/frontend/app-development/features/appPublish/**/*'
-  - 'src/studio/src/designer/frontend/app-development/sharedResources/appDeployment/**/*'
+  - 'frontend/app-development/features/appPublish/**/*'
+  - 'frontend/app-development/sharedResources/appDeployment/**/*'
   - 'src/studio/src/designer/backend/Controllers/DeploymentsController.cs'
   - 'src/Altinn.Apps/AppTemplates/AspNet/deployment/**/*'
   - 'src/studio/AppTemplates/AspNet/deployment/**/*'
 
 area/dashboard:
-  - 'src/studio/src/designer/frontend/dashboard/**/*'
+  - 'frontend/dashboard/**/*'
 
 area/pdf:
   - 'src/Altinn.Platform/Altinn.Platform.PDF/**/*'
@@ -46,7 +46,7 @@ area/process:
   - 'src/Altinn.Apps/AppTemplates/AspNet/App/config/process/**/*'
 
 area/ui-editor:
-  - 'src/studio/src/designer/frontend/ux-editor/**/*'
+  - 'frontend/packages/ux-editor/**/*'
 
 area/test:
   - 'src/test/**/*'

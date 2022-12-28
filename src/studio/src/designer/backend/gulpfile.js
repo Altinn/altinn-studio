@@ -1,6 +1,7 @@
 const gulp = require('gulp');
 const run = require('gulp-run-command').default;
 const del = require('del');
+const path = require('path');
 
 // When specifying options, you need to add all options to avoid lint errors.
 // This can be removed if/when https://github.com/Klathmon/gulp-run-command/pull/11 is released
@@ -20,19 +21,19 @@ const cleanGlobs = [
   'wwwroot/designer/css/bootstrap*.css',
   'wwwroot/designer/css/font/fontawesome*.*',
 ];
-
-const jsServDevFile = '../frontend/dist/app-development/app-development.js';
-const jsServDevModuleFile0 = '../frontend/dist/app-development/1.app-development.js';
-const jsServDevModuleFile1 = '../frontend/dist/app-development/2.app-development.js';
-const jsServDevModuleFile2 = '../frontend/dist/app-development/3.app-development.js';
-const jsServDevModuleFile3 = '../frontend/dist/app-development/4.app-development.js';
-const jsServDevMonacoWorker1 = '../frontend/dist/app-development/editor.worker.js';
-const jsServDevMonacoWorker2 = '../frontend/dist/app-development/ts.worker.js';
-const jsDashboardFile = '../frontend/dist/dashboard/dashboard.js';
-const cssServDevFile = '../frontend/dist/app-development/app-development.css';
-const cssDashboardFile = '../frontend/dist/dashboard/dashboard.css';
-const langNoFile = '../frontend/dist/language/nb.json';
-const langEnFile = '../frontend/dist/language/en.json';
+const FRONTEND_FOLDER = path.resolve(__dirname,"..","..","..","..","..","frontend");
+const jsServDevFile = path.join(FRONTEND_FOLDER, 'dist/app-development/app-development.js');
+const jsServDevModuleFile1 = path.join(FRONTEND_FOLDER, 'dist/app-development/1.app-development.js');
+const jsServDevModuleFile2 = path.join(FRONTEND_FOLDER, 'dist/app-development/2.app-development.js');
+const jsServDevModuleFile3 = path.join(FRONTEND_FOLDER, 'dist/app-development/3.app-development.js');
+const jsServDevModuleFile4 = path.join(FRONTEND_FOLDER, 'dist/app-development/4.app-development.js');
+const jsServDevMonacoWorker1 = path.join(FRONTEND_FOLDER, 'dist/app-development/editor.worker.js');
+const jsServDevMonacoWorker2 = path.join(FRONTEND_FOLDER, 'dist/app-development/ts.worker.js');
+const jsDashboardFile = path.join(FRONTEND_FOLDER, 'dist/dashboard/dashboard.js');
+const cssServDevFile = path.join(FRONTEND_FOLDER, 'dist/app-development/app-development.css');
+const cssDashboardFile = path.join(FRONTEND_FOLDER, 'dist/dashboard/dashboard.css');
+const langNoFile = path.join(FRONTEND_FOLDER, 'dist/language/nb.json');
+const langEnFile = path.join(FRONTEND_FOLDER, 'dist/language/en.json');
 
 const jslibDest = 'wwwroot/designer/js/lib/';
 const copyGlobs = [
@@ -143,10 +144,10 @@ function copyDashboardJs() {
 function copyServDevJs() {
   setTimeout(function () {
     gulp.src(jsServDevFile).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
-    gulp.src(jsServDevModuleFile0).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
     gulp.src(jsServDevModuleFile1).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
     gulp.src(jsServDevModuleFile2).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
     gulp.src(jsServDevModuleFile3).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
+    gulp.src(jsServDevModuleFile4).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
     gulp.src(jsServDevMonacoWorker1).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
     gulp.src(jsServDevMonacoWorker2).pipe(gulp.dest(APP_DEVELOPMENT_ROOT));
   }, 1000);
@@ -178,24 +179,6 @@ gulp.task('build', gulp.series([copyNodeModulePackages]));
 
 gulp.task('copy-files', gulp.series(copyNodeModulePackages, copyReactJs, copyReactCss, copyLangFiles));
 
-gulp.task(
-  'clean',
-  gulp.series(
-    () => del('wwwroot/designer/frontend/app-development/app-development.css'),
-    () => del('wwwroot/designer/frontend/app-development/app-development.js'),
-    () => del('wwwroot/designer/frontend/dashboard/dashboard.css'),
-    () => del('wwwroot/designer/frontend/dashboard/dashboard.js'),
-    () => del(cleanGlobs),
-    run('yarn run clean', {
-      ...defaultGulpRunOptions,
-      cwd: '../frontend/dashboard',
-    }),
-    run('yarn run clean', {
-      ...defaultGulpRunOptions,
-      cwd: '../frontend/app-development',
-    }),
-  ),
-);
 
 gulp.task(
   'develop-designer-backend',
@@ -204,11 +187,11 @@ gulp.task(
     run('dotnet run'),
     run('yarn run start', {
       ...defaultGulpRunOptions,
-      cwd: '../frontend/app-development',
+      cwd: path.join(FRONTEND_FOLDER,'app-development'),
     }),
     run('yarn run start', {
       ...defaultGulpRunOptions,
-      cwd: '../frontend/dashboard',
+      cwd: path.join(FRONTEND_FOLDER,'dashboard'),
     }),
   ),
 );
@@ -219,11 +202,11 @@ gulp.task(
     copyNodeModulePackages,
     run('yarn run start', {
       ...defaultGulpRunOptions,
-      cwd: '../frontend/app-development',
+      cwd: path.join(FRONTEND_FOLDER,'app-development'),
     }),
     run('yarn run start', {
       ...defaultGulpRunOptions,
-      cwd: '../frontend/dashboard',
+      cwd: path.join(FRONTEND_FOLDER,'dashboard'),
     }),
   ),
 );
@@ -235,7 +218,7 @@ gulp.task(
     run('dotnet run'),
     run('yarn run start', {
       ...defaultGulpRunOptions,
-      cwd: '../frontend/dashboard',
+      cwd: path.join(FRONTEND_FOLDER,'dashboard'),
     }),
   ),
 );
@@ -245,7 +228,7 @@ gulp.task(
   gulp.series(
     run('yarn --immutable', {
       ...defaultGulpRunOptions,
-      cwd: '../frontend',
+      cwd: FRONTEND_FOLDER,
     }),
   ),
 );
@@ -255,7 +238,7 @@ gulp.task(
   gulp.series([
     run('yarn run build', {
       ...defaultGulpRunOptions,
-      cwd: '../frontend',
+      cwd: FRONTEND_FOLDER,
     }),
     'copy-files',
   ]),
