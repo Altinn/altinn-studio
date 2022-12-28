@@ -1,0 +1,35 @@
+{
+  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "data": {
+    "layout": [
+      {
+        "id": "receiptHeader",
+        "type": "Header",
+        "textResourceBindings": {
+          "title": "receipt.title"
+        },
+        "size": "h2"
+      },
+      {
+        "id": "receiptSummary",
+        "type": "InstanceInformation"
+      },
+      {
+        "id": "receiptParagraph",
+        "type": "Paragraph",
+        "textResourceBindings": {
+          "title": "receipt.body"
+        }
+      },
+      {
+        "id": "receiptAttachmentListPdf",
+        "type": "AttachmentList",
+        "textResourceBindings": {
+          "title": "receipt.title_submitted"
+        },
+        "dataTypeIds": ["ref-data-as-pdf"],
+        "includePDF": true
+      }
+    ]
+  }
+}

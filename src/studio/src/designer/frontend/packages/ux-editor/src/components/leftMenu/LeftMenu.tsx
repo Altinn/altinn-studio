@@ -7,7 +7,7 @@ import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system
 import { Add } from '@navikt/ds-icons';
 import { PagesContainer } from './PagesContainer';
 import { _useIsProdHack } from 'app-shared/utils/_useIsProdHack';
-import { ConfirmationPageElement } from './ConfirmationPageElement';
+import { ReceiptPageElement } from './ReceiptPageElement';
 import { FormLayoutActions } from '../../features/formDesigner/formLayout/formLayoutSlice';
 import { deepCopy } from 'app-shared/pure';
 import { useSearchParams } from 'react-router-dom';
@@ -21,8 +21,8 @@ export const LeftMenu = () => {
   const selectedLayout: string = useSelector(
     (state: IAppState) => state.formDesigner.layout.selectedLayout
   );
-  const confirmationOnScreenName = useSelector(
-    (state: IAppState) => state.formDesigner.layout.layoutSettings.confirmationOnScreenName
+  const receiptLayoutName = useSelector(
+    (state: IAppState) => state.formDesigner.layout.layoutSettings.receiptLayoutName
   );
   const layoutOrder = useSelector(
     (state: IAppState) => state.formDesigner.layout.layoutSettings.pages.order
@@ -32,7 +32,7 @@ export const LeftMenu = () => {
 
   function handleAddPage() {
     const name = t('left_menu.page') + (layoutOrder.length + 1);
-    dispatch(FormLayoutActions.addLayout({ layout: name, isConfirmationPage: false }));
+    dispatch(FormLayoutActions.addLayout({ layout: name, isReceiptPage: false }));
     setSearchParams({ ...deepCopy(searchParams), layout: name });
   }
 
@@ -50,9 +50,9 @@ export const LeftMenu = () => {
     <div className={classes.pagesList}>
       <PagesContainer />
     </div>
-    {!_useIsProdHack() && <div className={classes.receipt}><ConfirmationPageElement /></div>}
+    {!_useIsProdHack() && <div className={classes.receipt}><ReceiptPageElement /></div>}
     <div className={classes.toolbar}>
-      {confirmationOnScreenName === selectedLayout ? <ConfPageToolbar/> : <DefaultToolbar/>}
+      {receiptLayoutName === selectedLayout ? <ConfPageToolbar/> : <DefaultToolbar/>}
     </div>
   </div>;
 };

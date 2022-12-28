@@ -6,21 +6,21 @@ import { PageElement } from './PageElement';
 import { useDispatch, useSelector } from 'react-redux';
 import { deepCopy } from 'app-shared/pure';
 import { useSearchParams } from 'react-router-dom';
-import classes from './ConfirmationPageElement.module.css';
+import classes from './ReceiptPageElement.module.css';
 
-export function ConfirmationPageElement() {
+export function ReceiptPageElement() {
   const dispatch = useDispatch();
   const [searchParams, setSearchParams] = useSearchParams();
-  const confirmationOnScreenName = useSelector(
-    (state: IAppState) => state.formDesigner.layout.layoutSettings.confirmationOnScreenName
+  const receiptName = useSelector(
+    (state: IAppState) => state.formDesigner.layout.layoutSettings.receiptLayoutName
   );
   const handleAddPage = () => {
-    dispatch(FormLayoutActions.addLayout({ layout: 'Kvittering', isConfirmationPage: true }));
+    dispatch(FormLayoutActions.addLayout({ layout: 'Kvittering', isReceiptPage: true }));
     setSearchParams({ ...deepCopy(searchParams), layout: 'Kvittering' });
   };
-  return confirmationOnScreenName ? (
+  return receiptName ? (
     <div className={classes.pageElementWrapper}>
-      <PageElement name={confirmationOnScreenName}/>
+      <PageElement name={receiptName}/>
     </div>
     ) : (
       <div className={classes.buttonWrapper}>

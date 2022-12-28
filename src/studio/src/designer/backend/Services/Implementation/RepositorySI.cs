@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
@@ -26,7 +28,6 @@ using Microsoft.Extensions.Options;
 
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-
 using PlatformStorageModels = Altinn.Platform.Storage.Interface.Models;
 
 namespace Altinn.Studio.Designer.Services.Implementation
@@ -1120,21 +1121,25 @@ namespace Altinn.Studio.Designer.Services.Implementation
             await altinnGitRepository.SaveAltinnStudioSettings(settings);
         }
 
-        private void CreateLanguageResources(string org, ServiceConfiguration serviceConfig)
+        private async Task CreateLanguageResources(string org, ServiceConfiguration serviceConfig)
         {
             if (!string.IsNullOrEmpty(serviceConfig.ServiceName))
             {
-                // This creates the language resources file for nb
-                JObject json = JObject.FromObject(new
-                {
-                    language = "nb",
-                    resources = new[]
-                    {
-                        new { id = "appName", value = serviceConfig.ServiceName }
-                    },
-                });
+                string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
+                AltinnAppGitRepository altinnAppGitRepository = _altinnGitRepositoryFactory.GetAltinnAppGitRepository(org, serviceConfig.ServiceName, developer);
 
-                SaveLanguageResource(org, serviceConfig.RepositoryName, "nb", json.ToString());
+                TextResource textResource = await altinnAppGitRepository.GetTextV1("nb");
+                textResource.Resources.Add(new TextResourceElement() { Id = "appName", Value = serviceConfig.ServiceName });
+                textResource.Resources.Add(new TextResourceElement() { Id = "receipt.title", Value = $"{serviceConfig.ServiceName} er nå sendt inn" });
+                var jsonOptions = new JsonSerializerOptions() { WriteIndented = true, DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull};
+                var jsonSerializerSettings = new JsonSerializerSettings
+                {
+                    Formatting = Newtonsoft.Json.Formatting.Indented,
+                    NullValueHandling = NullValueHandling.Ignore
+                };
+                string textResourceString = JsonConvert.SerializeObject(textResource, jsonSerializerSettings);
+
+                SaveLanguageResource(org, serviceConfig.RepositoryName, "nb", textResourceString);
             }
         }
 

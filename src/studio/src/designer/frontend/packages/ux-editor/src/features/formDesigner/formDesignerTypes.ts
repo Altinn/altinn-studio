@@ -75,7 +75,7 @@ export interface IAddFormContainerActionFulfilled {
 
 export interface IAddLayoutAction {
   layout: string;
-  isConfirmationPage?: boolean;
+  isReceiptPage?: boolean;
 }
 
 export interface IAddLayoutFulfilledAction {
@@ -195,6 +195,6 @@ export interface IUpdateSelectedLayoutAction {
   selectedLayout: string;
 }
 
-export interface IUpdateConfirmationOnScreenNameAction {
-  confirmationOnScreenName: string;
+export interface IUpdateReceiptLayoutNameAction {
+  receiptLayoutName: string;
 }
