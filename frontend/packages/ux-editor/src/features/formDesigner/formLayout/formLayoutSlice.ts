@@ -419,7 +419,7 @@ const formLayoutSlice = createSlice({
       newOrder.splice(destination, 0, layout);
       state.layoutSettings.pages.order = newOrder;
     },
-    updateAppReceiptLayoutName: (
+    updateReceiptLayoutName: (
       state,
       action: PayloadAction<IUpdateReceiptLayoutNameAction>
     ) => {
