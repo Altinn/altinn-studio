@@ -69,7 +69,7 @@ namespace Altinn.ResourceRegistry.Models
         /// <summary>
         /// ResourceReference
         /// </summary>
-        public ResourceReference? ResourceReference { get; set;  }
+        public List<ResourceReference> ResourceReferences { get; set; }
 
         /// <summary>
         /// IsComplete
