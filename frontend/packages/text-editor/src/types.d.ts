@@ -31,6 +31,7 @@ type Option = {
 };
 
 type LangCode = string;
+
 type Language = {
   label?: string;
   value: LangCode;
