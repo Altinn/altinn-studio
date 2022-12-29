@@ -15,13 +15,24 @@ import { useSearchParams } from 'react-router-dom';
 export const TextEditorImpl = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const getSelectedLangCode = () => searchParams.get('lang');
-  const getSearchQuery = () => searchParams.get('search');
+  const getSearchQuery = () => searchParams.get('search') || '';
   const orgApp = getOrgApp();
   const { data: appLangCodes } = useGetLanguagesQuery(orgApp);
-  const setSelectedLangCode = (langCode: string) =>
-    setSearchParams({ lang: langCode, search: getSearchQuery() });
-  const setSearchQuery = (searchQuery: string) =>
-    setSearchParams({ lang: getSelectedLangCode(), search: searchQuery });
+  const setSelectedLangCode = (lang: string) => {
+    const params: any = { lang };
+    if (getSearchQuery().length > 0) {
+      params.search = getSearchQuery();
+    }
+    setSearchParams(params);
+  };
+  const setSearchQuery = (search: string) => {
+    const params: any = { lang: getSelectedLangCode() };
+    if (search.length > 0) {
+      params.search = search;
+    }
+    setSearchParams(params);
+  };
+
   const {
     data: translations,
     isLoading: isInitialLoadingLang,

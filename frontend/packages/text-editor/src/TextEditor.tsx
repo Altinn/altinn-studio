@@ -62,6 +62,7 @@ export const TextEditor = ({
 
   const handleAddNewEntryClick = () => {
     const newId = `id_${getRandNumber()}`;
+    setSearchQuery('');
     onTranslationChange(
       upsertTextEntry(translations, {
         id: newId,
