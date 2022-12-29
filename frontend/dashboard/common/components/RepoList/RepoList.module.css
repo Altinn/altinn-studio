@@ -2,7 +2,7 @@
   align-items: center;
   display: flex;
   margin-right: 1rem;
-  min-width: 140;
+  min-width: 40px;
 }
 
 .actionLink:hover {
@@ -26,24 +26,28 @@
 }
 
 .favoriteIcon {
-  font-size: 26;
+  font-size: 26px;
   color: #000000;
 }
 
 .linkIcon {
   font-size: 2rem;
-  margin-left: 0.5rem;
+  height: 32px;
+  width: 32px;
 }
 
 .repoLink {
-  color: #57823D;
+  color: #57823d;
 }
 
 .repoLink:hover {
-  color: #57823D;
+  color: #57823d;
 }
 
 .textWithTooltip {
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.columnHeader {
+  background-color: white !important;
 }
