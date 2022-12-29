@@ -1,17 +1,15 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
-
-import { AltinnColumnLayout } from 'app-shared/components/AltinnColumnLayout';
-import AltinnSpinner from 'app-shared/components/AltinnSpinner';
-import { getLanguageFromKey } from 'app-shared/utils/language';
-import { SideMenuContent } from './SideMenuContent';
-import { useAppSelector } from '../../../common/hooks';
-import { ServiceAdministration } from './ServiceAdministration';
-import { DatamodelsAdministration } from './DatamodelsAdministration';
-import { getRepositoryType } from 'app-shared/utils/repository';
-
-import { RepositoryType } from 'app-shared/types/global';
 import classes from './Administration.module.css';
+import { AltinnColumnLayout } from 'app-shared/components/AltinnColumnLayout';
+import { AltinnSpinner } from 'app-shared/components';
+import { DatamodelsAdministration } from './DatamodelsAdministration';
+import { RepositoryType } from 'app-shared/types/global';
+import { ServiceAdministration } from './ServiceAdministration';
+import { SideMenuContent } from './SideMenuContent';
+import { getLanguageFromKey } from 'app-shared/utils/language';
+import { getRepositoryType } from 'app-shared/utils/repository';
+import { useAppSelector } from '../../../common/hooks';
+import { useParams } from 'react-router-dom';
 
 export function AdministrationComponent() {
   const language = useAppSelector((state) => state.languageState.language);
@@ -43,9 +41,7 @@ export function AdministrationComponent() {
         </AltinnColumnLayout>
       )}
       {!repository && (
-        <div>
-          <AltinnSpinner spinnerText='Laster siden' styleObj={classes.spinnerLocation} />
-        </div>
+        <AltinnSpinner spinnerText='Laster siden' className={classes.spinnerLocation} />
       )}
     </div>
   );

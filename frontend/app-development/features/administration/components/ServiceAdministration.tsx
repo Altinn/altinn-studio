@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from 'react';
-import AltinnSpinner from 'app-shared/components/AltinnSpinner';
+import classes from './Administration.module.css';
+import type { IRepository } from '../../../types/global';
+import { AltinnSpinner } from 'app-shared/components';
 import { HandleServiceInformationActions } from '../handleServiceInformationSlice';
 import { MainContent } from './MainContent';
-import { useParams } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../../../common/hooks';
-import type { IRepository } from '../../../types/global';
-import classes from './Administration.module.css';
 import { setServiceConfigPath, setServiceNamePath } from 'app-shared/api-paths';
+import { useAppDispatch, useAppSelector } from '../../../common/hooks';
+import { useParams } from 'react-router-dom';
 
 export interface ServiceAdministrationProps {
   language: any;
@@ -130,9 +130,7 @@ export function ServiceAdministration({ language, repository }: ServiceAdministr
           repositoryName={repository?.name || ''}
         />
       ) : (
-        <div>
-          <AltinnSpinner spinnerText='Laster siden' styleObj={classes.spinner} />
-        </div>
+        <AltinnSpinner spinnerText='Laster siden' className={classes.spinner} />
       )}
     </div>
   );

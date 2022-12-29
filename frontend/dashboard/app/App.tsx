@@ -1,26 +1,26 @@
 import React, { useEffect, useState } from 'react';
-import { Route, Routes } from 'react-router-dom';
-import AltinnSpinner from 'app-shared/components/AltinnSpinner';
-import { post } from 'app-shared/utils/networking';
-import { getLanguageFromKey } from 'app-shared/utils/language';
-import type { SelectedContext } from '../resources/fetchDashboardResources/dashboardSlice';
-import { DashboardActions } from '../resources/fetchDashboardResources/dashboardSlice';
-import { fetchLanguage } from '../resources/fetchLanguage/languageSlice';
+import './App.css';
+import classes from './App.module.css';
 import type { IHeaderContext } from 'app-shared/navigation/main-header/Header';
+import type { SelectedContext } from '../resources/fetchDashboardResources/dashboardSlice';
+import { AltinnSpinner } from 'app-shared/components';
+import { Button } from '@altinn/altinn-design-system';
+import { CenterContainer } from '../common/components/CenterContainer';
+import { CreateService } from '../features/createService/CreateService';
+import { Dashboard } from '../features/dashboard/Dashboard';
+import { DashboardActions } from '../resources/fetchDashboardResources/dashboardSlice';
+import { DataModellingContainer } from '../features/standaloneDataModelling/DataModelling';
+import { Route, Routes } from 'react-router-dom';
+import { fetchLanguage } from '../resources/fetchLanguage/languageSlice';
+import { getLanguageFromKey } from 'app-shared/utils/language';
+import { post } from 'app-shared/utils/networking';
+import { useAppDispatch, useAppSelector } from '../common/hooks';
+import { useGetOrganizationsQuery } from '../services/organizationApi';
+import { userHasAccessToSelectedContext } from '../common/utils';
 import AppHeader, {
   HeaderContext,
   SelectedContextType,
 } from 'app-shared/navigation/main-header/Header';
-import { userHasAccessToSelectedContext } from '../common/utils';
-import { useAppDispatch, useAppSelector } from '../common/hooks';
-import { CenterContainer } from '../common/components/CenterContainer';
-import './App.css';
-import { useGetOrganizationsQuery } from '../services/organizationApi';
-import { Dashboard } from '../features/dashboard/Dashboard';
-import { DataModellingContainer } from '../features/standaloneDataModelling/DataModelling';
-import { CreateService } from '../features/createService/CreateService';
-import classes from './App.module.css';
-
 import {
   frontendLangPath,
   userCurrentPath,
@@ -28,7 +28,6 @@ import {
   userLogoutPath,
   userReposPath,
 } from 'app-shared/api-paths';
-import { Button } from '@altinn/altinn-design-system';
 
 export const App = () => {
   const dispatch = useAppDispatch();

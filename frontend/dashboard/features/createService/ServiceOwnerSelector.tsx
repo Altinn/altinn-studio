@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import type { User } from '../../resources/fetchDashboardResources/dashboardSlice';
-import AltinnSpinner from 'app-shared/components/AltinnSpinner';
+import { AltinnSpinner } from 'app-shared/components';
 import type { IGiteaOrganisation } from 'app-shared/types/global';
 import { AltinnDropdown } from 'app-shared/components/AltinnDropdown';
 import { AltinnPopper } from 'app-shared/components/AltinnPopper';

@@ -50,11 +50,7 @@ export const TextEditorImpl = () => {
   const [addLanguage] = useAddByLangCodeMutation();
 
   if (isInitialLoadingLang) {
-    return (
-      <div>
-        <AltinnSpinner />
-      </div>
-    );
+    return <AltinnSpinner />;
   }
 
   const handleAddLanguage = (langCode: LangCode) =>

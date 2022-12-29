@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import AltinnSpinner from 'app-shared/components/AltinnSpinner';
+import { AltinnSpinner } from 'app-shared/components';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { ServiceOwnerSelector } from './ServiceOwnerSelector';
 import { RepoNameInput } from './RepoNameInput';

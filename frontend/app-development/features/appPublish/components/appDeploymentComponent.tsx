@@ -1,5 +1,23 @@
 import React, { useCallback } from 'react';
+import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
+import Select from 'react-select';
+import altinnTheme from 'app-shared/theme/altinnStudioTheme';
+import classNames from 'classnames';
+import moment from 'moment';
+import type { IEnvironmentItem } from '../../../sharedResources/appCluster/appClusterSlice';
 import type { Theme } from '@mui/material';
+import { AltinnButton, AltinnIcon, AltinnLink, AltinnSpinner } from 'app-shared/components';
+import { AppDeploymentActions } from '../../../sharedResources/appDeployment/appDeploymentSlice';
+import { createStyles, makeStyles } from '@mui/styles';
+import { getAzureDevopsBuildResultUrl } from '../../../utils/urlHelper';
+import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
+import { getValueByPath } from 'app-shared/utils/getValueByPath';
+import { useDispatch } from 'react-redux';
+import type {
+  ICreateAppDeploymentEnvObject,
+  ICreateAppDeploymentErrors,
+  IDeployment,
+} from '../../../sharedResources/appDeployment/types';
 import {
   createTheme,
   Grid,
@@ -11,25 +29,6 @@ import {
   Typography,
   useMediaQuery,
 } from '@mui/material';
-import { createStyles, makeStyles } from '@mui/styles';
-import classNames from 'classnames';
-import moment from 'moment';
-import Select from 'react-select';
-import { AltinnButton, AltinnIcon, AltinnLink } from 'app-shared/components';
-import AltinnSpinner from 'app-shared/components/AltinnSpinner';
-import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
-import altinnTheme from 'app-shared/theme/altinnStudioTheme';
-import { getValueByPath } from 'app-shared/utils/getValueByPath';
-import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
-import { useDispatch } from 'react-redux';
-import type { IEnvironmentItem } from '../../../sharedResources/appCluster/appClusterSlice';
-import { AppDeploymentActions } from '../../../sharedResources/appDeployment/appDeploymentSlice';
-import type {
-  ICreateAppDeploymentEnvObject,
-  ICreateAppDeploymentErrors,
-  IDeployment,
-} from '../../../sharedResources/appDeployment/types';
-import { getAzureDevopsBuildResultUrl } from '../../../utils/urlHelper';
 
 interface IAppDeploymentComponentProps {
   envName: string;
