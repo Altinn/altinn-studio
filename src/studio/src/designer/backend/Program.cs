@@ -309,11 +309,6 @@ void Configure(IConfiguration configuration)
                 app = "^[a-z]+[a-zA-Z0-9-]+[a-zA-Z0-9]$",
             });
 
-        endpoints.MapControllerRoute(
-            name: "defaultRoute",
-            pattern: "dashboard/{*AllValues}",
-            defaults: new { controller = "Home", action = "Index" });
-
         // ------------------------- DEV ----------------------------- //
         endpoints.MapControllerRoute(
             name: "orgRoute",
@@ -352,17 +347,6 @@ void Configure(IConfiguration configuration)
                 name: "reposRoute",
                 pattern: "{controller}/{action}/",
                 defaults: new { controller = "Redirect" });
-
-        // -------------------------- DEFAULT ------------------------- //
-        endpoints.MapControllerRoute(
-           name: "defaultRoute2",
-           pattern: "{controller}/{action=StartPage}/{id?}",
-           defaults: new { controller = "Home" });
-
-        endpoints.MapControllerRoute(
-            name: "defaultRoute",
-            pattern: "{action=StartPage}/{id?}",
-            defaults: new { controller = "Home" });
 
         // ---------------------- MONITORING -------------------------- //
         endpoints.MapHealthChecks("/health");

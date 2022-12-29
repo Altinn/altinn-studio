@@ -55,9 +55,11 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// the default page for altinn studio when the user is not logged inn
+        /// the default page for altinn studio when the user is not logged in
         /// </summary>
         /// <returns>The start page</returns>
+        [Route("/")]
+        [Route("/[controller]/[action]")]
         public async Task<ActionResult> StartPage()
         {
             string userName = await _giteaApi.GetUserNameFromUI();
@@ -75,10 +77,11 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// The default action presenting a list of available apps when the user is logged in
         /// </summary>
-        /// <param name="repositorySearch">the search parameter object</param>
         /// <returns>The front page</returns>
         [Authorize]
-        public ActionResult Index(RepositorySearch repositorySearch)
+        [Route("/")]
+        [Route("/dashboard/{*AllValues}")]
+        public ActionResult Index()
         {
             return View();
         }
