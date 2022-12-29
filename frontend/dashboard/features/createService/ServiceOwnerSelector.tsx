@@ -2,8 +2,8 @@ import React, { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import type { User } from '../../resources/fetchDashboardResources/dashboardSlice';
 import AltinnSpinner from 'app-shared/components/AltinnSpinner';
 import type { IGiteaOrganisation } from 'app-shared/types/global';
-import Dropdown from 'app-shared/components/AltinnDropdown';
-import Popper from 'app-shared/components/AltinnPopper';
+import { AltinnDropdown } from 'app-shared/components/AltinnDropdown';
+import { AltinnPopper } from 'app-shared/components/AltinnPopper';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { useGetOrganizationsQuery } from '../../services/organizationApi';
 import { useAppSelector } from '../../common/hooks';
@@ -78,7 +78,7 @@ export const ServiceOwnerSelector = ({
 
   return (
     <div>
-      <Dropdown
+      <AltinnDropdown
         id='service-owner'
         inputHeader={getLanguageFromKey('general.service_owner', language)}
         handleChange={handleChange}
@@ -88,7 +88,7 @@ export const ServiceOwnerSelector = ({
         fullWidth={true}
       />
       {errorMessage && (
-        <Popper anchorEl={serviceOwnerRef.current} message={errorMessage} styleObj={zIndex} />
+        <AltinnPopper anchorEl={serviceOwnerRef.current} message={errorMessage} styleObj={zIndex} />
       )}
     </div>
   );

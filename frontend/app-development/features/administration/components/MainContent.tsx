@@ -7,7 +7,7 @@ import {
   TextField,
 } from '@altinn/altinn-design-system';
 import { getLanguageFromKey } from 'app-shared/utils/language';
-import Popper from 'app-shared/components/AltinnPopper';
+import { AltinnPopper } from 'app-shared/components/AltinnPopper';
 import InformationPaper from 'app-shared/components/AltinnInformationPaper';
 import classes from './MainContent.module.css';
 import { useAppSelector } from '../../../common/hooks';
@@ -60,7 +60,7 @@ export const MainContent = (props: IMainContentProps): JSX.Element => {
           {t('general.edit')}
         </Button>
       </div>
-      <Popper
+      <AltinnPopper
         anchorEl={props.appNameAnchorEl}
         message={t('administration.service_name_empty_message')}
       />

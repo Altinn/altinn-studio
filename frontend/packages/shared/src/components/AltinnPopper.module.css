@@ -1,0 +1,9 @@
+.snackbarError {
+  color: #000;
+  background: #f9cad3;
+  border-radius: 0;
+  box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.25);
+  font-size: 16px;
+  padding: 12px 24px 12px 24px;
+  max-width: 550px;
+}

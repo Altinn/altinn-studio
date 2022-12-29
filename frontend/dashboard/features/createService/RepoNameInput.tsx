@@ -1,5 +1,5 @@
 import React, { useLayoutEffect, useRef } from 'react';
-import Popper from 'app-shared/components/AltinnPopper';
+import { AltinnPopper } from 'app-shared/components/AltinnPopper';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { useAppSelector } from '../../common/hooks';
 import { TextField } from '@altinn/altinn-design-system';
@@ -39,7 +39,7 @@ export const RepoNameInput = ({
         </strong>
       </p>
       {errorMessage && (
-        <Popper
+        <AltinnPopper
           anchorEl={serviceNameRef.current}
           message={errorMessage}
           styleObj={{
