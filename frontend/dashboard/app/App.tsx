@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import AltinnSpinner from 'app-shared/components/AltinnSpinner';
+import { AltinnSpinner } from 'app-shared/components';
 import { post } from 'app-shared/utils/networking';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import type { SelectedContext } from '../resources/fetchDashboardResources/dashboardSlice';

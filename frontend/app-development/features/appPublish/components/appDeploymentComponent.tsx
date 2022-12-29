@@ -16,7 +16,7 @@ import classNames from 'classnames';
 import moment from 'moment';
 import Select from 'react-select';
 import { AltinnButton, AltinnIcon, AltinnLink } from 'app-shared/components';
-import AltinnSpinner from 'app-shared/components/AltinnSpinner';
+import { AltinnSpinner } from 'app-shared/components';
 import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
 import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getValueByPath } from 'app-shared/utils/getValueByPath';

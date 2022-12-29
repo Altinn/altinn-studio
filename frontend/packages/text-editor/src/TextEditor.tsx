@@ -105,11 +105,7 @@ export const TextEditor = ({
           removeEntry={removeEntry}
           updateEntryId={updateEntryId}
         />
-        {isFetchingTranslations ? (
-          <div>
-            <AltinnSpinner />
-          </div>
-        ) : null}
+        {isFetchingTranslations ? <AltinnSpinner /> : null}
       </div>
       <RightMenu
         onAddLang={onAddLang}
