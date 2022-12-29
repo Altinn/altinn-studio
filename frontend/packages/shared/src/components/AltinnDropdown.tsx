@@ -150,5 +150,3 @@ export const AltinnDropdown = ({
     </React.Fragment>
   );
 };
-
-export default AltinnDropdown;
