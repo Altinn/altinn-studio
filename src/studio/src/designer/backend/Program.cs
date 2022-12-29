@@ -298,59 +298,10 @@ void Configure(IConfiguration configuration)
 
     app.UseEndpoints(endpoints =>
     {
-        // ------------------------- FRONTEND ----------------------------- //
-        endpoints.MapControllerRoute(
-            name: "serviceDevelopmentRoute",
-            pattern: "editor/{org}/{app}/{*AllValues}",
-            defaults: new { controller = "ServiceDevelopment", action = "Index" },
-            constraints: new
-            {
-                app = "^[a-z]+[a-zA-Z0-9-]+[a-zA-Z0-9]$",
-            });
-
-        // ------------------------- DEV ----------------------------- //
-        endpoints.MapControllerRoute(
-            name: "orgRoute",
-            pattern: "designer/{org}/{controller}/{action=Index}/",
-            defaults: new { controller = "Config" },
-            constraints: new
-            {
-                controller = "Config|Datamodels",
-            });
-
-        endpoints.MapControllerRoute(
-                name: "designerApiRoute",
-                pattern: "designerapi/{controller}/{action=Index}/{id?}",
-                defaults: new { controller = "Repository" },
-                constraints: new
-                {
-                    controller = @"(Repository|Language|User)",
-                });
-        endpoints.MapControllerRoute(
-                  name: "serviceRoute",
-                  pattern: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
-                  defaults: new { controller = "Service" },
-                  constraints: new
-                  {
-                      controller = @"(Config|RuntimeAPI|ManualTesting|Model|Rules|ServiceMetadata|Text|UI|UIEditor|ServiceDevelopment)",
-                      app = "^[a-z]+[a-zA-Z0-9-]+[a-zA-Z0-9]$",
-                      id = "[a-zA-Z0-9_\\-\\.]{1,30}",
-                  });
-
-        endpoints.MapControllerRoute(
-               name: "applicationMetadataApiRoute",
-               pattern: "designer/api/v1/{org}/{app}",
-               defaults: new { controller = "ApplicationMetadata", action = "ApplicationMetadata" });
-
-        endpoints.MapControllerRoute(
-                name: "reposRoute",
-                pattern: "{controller}/{action}/",
-                defaults: new { controller = "Redirect" });
-
         // ---------------------- MONITORING -------------------------- //
         endpoints.MapHealthChecks("/health");
     });
-    logger.LogInformation($"// Program.cs // Configure // Configuration complete");
+    logger.LogInformation("// Program.cs // Configure // Configuration complete");
 }
 
 void CreateDirectory(IConfiguration configuration)

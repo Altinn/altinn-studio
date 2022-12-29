@@ -18,6 +18,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// </summary>
     [Authorize]
     [AutoValidateAntiforgeryToken]
+    [Route("designer/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/[controller]/[action]")]
     public class ServiceDevelopmentController : Controller
     {
         private readonly IRepository _repository;
@@ -39,6 +40,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// Default action for the designer.
         /// </summary>
         /// <returns>default view for the app builder.</returns>
+        [Route("/editor/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}")]
         public IActionResult Index(string org, string app)
         {
             _sourceControl.VerifyCloneExists(org, app);
@@ -52,7 +54,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="fileEditorMode">The mode for which files should be fetched.</param>
         /// <returns>A comma-separated list of all the files.</returns>
-        public ActionResult GetServiceFiles(string org, string app, FileEditorMode fileEditorMode)
+        public IActionResult GetServiceFiles(string org, string app, FileEditorMode fileEditorMode)
         {
             switch (fileEditorMode)
             {
@@ -77,7 +79,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="fileEditorMode">The mode for which files should be fetched.</param>
         /// <param name="fileName">The name of the file to fetch.</param>
         /// <returns>The content of the file.</returns>
-        public ActionResult GetServiceFile(string org, string app, FileEditorMode fileEditorMode, string fileName)
+        public IActionResult GetServiceFile(string org, string app, FileEditorMode fileEditorMode, string fileName)
         {
             if (!ApplicationHelper.IsValidFilename(fileName))
             {
@@ -122,7 +124,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="stageFile">true if the file needs to be staged</param>
         /// <returns>The content of the file.</returns>
         [HttpPost]
-        public ActionResult<HttpResponseMessage> SaveServiceFile(string org, string app, FileEditorMode fileEditorMode, string fileName, bool stageFile)
+        public IActionResult SaveServiceFile(string org, string app, FileEditorMode fileEditorMode, string fileName, bool stageFile)
         {
             if (!ApplicationHelper.IsValidFilename(fileName))
             {
@@ -160,7 +162,7 @@ namespace Altinn.Studio.Designer.Controllers
                         break;
                     default:
                         // Return 501 Not Implemented
-                        return new HttpResponseMessage(HttpStatusCode.NotImplemented);
+                        return new ObjectResult(new { HttpStatusCode.NotImplemented });
                 }
 
                 if (stageFile)
@@ -168,38 +170,38 @@ namespace Altinn.Studio.Designer.Controllers
                     _sourceControl.StageChange(org, app, fileName);
                 }
 
-                return new HttpResponseMessage(HttpStatusCode.OK);
+                return NoContent();
             }
             catch (Exception)
             {
-                return new HttpResponseMessage(HttpStatusCode.InternalServerError);
+                return new ObjectResult(new { HttpStatusCode.InternalServerError });
             }
         }
 
-        private ActionResult GetImplementationFiles(string org, string app)
+        private IActionResult GetImplementationFiles(string org, string app)
         {
             List<AltinnCoreFile> files = _repository.GetImplementationFiles(org, app);
 
             return Content(GetCommaSeparatedFileList(files), "text/plain", Encoding.UTF8);
         }
 
-        private ActionResult GetCalculationFiles(string org, string app)
+        private IActionResult GetCalculationFiles(string org, string app)
         {
           List<AltinnCoreFile> files = _repository.GetCalculationFiles(org, app);
 
           return Content(GetCommaSeparatedFileList(files), "text/plain", Encoding.UTF8);
         }
 
-        private ActionResult GetValidationFiles(string org, string app)
+        private IActionResult GetValidationFiles(string org, string app)
         {
             List<AltinnCoreFile> files = _repository.GetValidationFiles(org, app);
 
             return Content(GetCommaSeparatedFileList(files), "text/plain", Encoding.UTF8);
         }
 
-        private ActionResult GetResourceFiles(string org, string app, bool dynamics)
+        private IActionResult GetResourceFiles(string org, string app, bool dynamics)
         {
-            List<AltinnCoreFile> files = null;
+            List<AltinnCoreFile> files;
 
             if (dynamics)
             {
@@ -218,7 +220,7 @@ namespace Altinn.Studio.Designer.Controllers
             var fileList = new StringBuilder();
             foreach (AltinnCoreFile file in files)
             {
-                fileList.Append(file.FileName + ",");                
+                fileList.Append(file.FileName + ",");
             }
 
             return fileList.ToString().Substring(0, fileList.Length - 1);

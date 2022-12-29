@@ -160,7 +160,7 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// Copies a repository within an organisation
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="sourceRepository">The name of the repository to be copied.</param>        
+        /// <param name="sourceRepository">The name of the repository to be copied.</param>
         /// <param name="targetRepository">The name of the new repository.</param>
         /// <param name="developer">Developer's username</param>
         /// <returns>The repository created in gitea</returns>
@@ -325,14 +325,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         string GetJsonFormLayouts(string org, string app);
 
         /// <summary>
-        /// Get the Json third party components from disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>Returns the json object as a string</returns>
-        string GetJsonThirdPartyComponents(string org, string app);
-
-        /// <summary>
         /// Get the rule handler Json form model from disk
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -385,15 +377,6 @@ namespace Altinn.Studio.Designer.Services.Interfaces
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The content as string</returns>
         string GetLayoutSettings(string org, string app);
-
-        /// <summary>
-        /// Save the JSON third party components to disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="resource">The content of the resource file</param>
-        /// <returns>A boolean indicating if saving was ok</returns>
-        bool SaveJsonThirdPartyComponents(string org, string app, string resource);
 
         /// <summary>
         /// Gets the widget settings for an app

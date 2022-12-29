@@ -7,7 +7,6 @@ using System.Net;
 using System.Threading.Tasks;
 
 using Altinn.Studio.Designer.Configuration;
-using Altinn.Studio.Designer.Enums;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.RepositoryClient.Model;

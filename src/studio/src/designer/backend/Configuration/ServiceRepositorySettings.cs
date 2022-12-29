@@ -429,22 +429,6 @@ namespace Altinn.Studio.Designer.Configuration
         }
 
         /// <summary>
-        /// Method that returns the path to the third party component file
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="developer">The current developer</param>
-        /// <returns>The full path, ending with "/"</returns>
-        public string GetThirdPartyComponentsPath(string org, string app, string developer)
-        {
-            org = org.AsFileName();
-            app = app.AsFileName();
-            developer = developer.AsFileName();
-
-            return Path.Combine(GetServicePath(org, app, developer), UI_RESOURCE_FOLDER_NAME, RuleHandlerFileName);
-        }
-
-        /// <summary>
         /// Get the path to rule handler file
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -457,7 +441,7 @@ namespace Altinn.Studio.Designer.Configuration
         }
 
         /// <summary>
-        /// Get the path to the layout setttings file
+        /// Get the path to the layout settings file
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>

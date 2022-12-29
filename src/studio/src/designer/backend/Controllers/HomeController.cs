@@ -91,7 +91,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// Action for presenting the Not Authorized View
         /// </summary>
         /// <returns>The view telling user that user was not authorized</returns>
-        [Route("[action]")]
         public IActionResult NotAuthorized()
         {
             return View();
@@ -101,7 +100,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// Action for presenting documentation
         /// </summary>
         /// <returns>The Doc view</returns>
-        [Route("[action]")]
         [Route("/[action]")]
         public IActionResult Docs()
         {
@@ -112,7 +110,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// Action for presenting error
         /// </summary>
         /// <returns>The Error view</returns>
-        [Route("[action]")]
         [Route("/[action]")]
         public IActionResult Error()
         {
@@ -123,7 +120,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// Login
         /// </summary>
         /// <returns>The login page</returns>
-        [Route("[action]")]
         [Route("/[action]")]
         public async Task<IActionResult> Login()
         {
@@ -194,7 +190,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// Logout
         /// </summary>
         /// <returns>The logout page</returns>
-        [Route("[action]")]
         [Route("/[action]")]
         public async Task<IActionResult> Logout()
         {
@@ -218,7 +213,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>redirects user</returns>
         [Authorize]
         [HttpPost]
-        [Route("[action]")]
         [Route("/[action]")]
         public IActionResult AppToken(AppKey appKey)
         {
