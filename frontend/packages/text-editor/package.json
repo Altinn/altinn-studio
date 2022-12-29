@@ -2,7 +2,7 @@
   "name": "@altinn/text-editor",
   "version": "0.1.0",
   "dependencies": {
-    "@altinn/altinn-design-system": "0.25.10",
+    "@altinn/altinn-design-system": "0.25.11",
     "iso-639-1": "2.1.15"
   },
   "devDependencies": {
