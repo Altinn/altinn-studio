@@ -42,3 +42,21 @@ export const langOptions: Option[] = ISO6391.getAllCodes()
     label: getLangName({ code }),
   }))
   .sort((a, b) => a.label.localeCompare(b.label));
+
+export const filterFunction = (
+  id: string | undefined,
+  value: string | undefined,
+  searchQuery: string | undefined
+) => {
+  if (!searchQuery) {
+    return true;
+  } else if (searchQuery.length < 1) {
+    return true;
+  } else if (id?.includes(searchQuery)) {
+    return true;
+  } else if (value?.includes(searchQuery)) {
+    return true;
+  } else {
+    return false;
+  }
+};

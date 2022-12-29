@@ -54,7 +54,8 @@
   border-bottom: 1px solid #bcc7cc;
   margin-bottom: 2rem;
   padding: 2rem 0;
-  display:block;
+  display:flex;
+  justify-content: space-between;
 }
 
 .TextEditor__main {

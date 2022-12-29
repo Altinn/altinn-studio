@@ -1,4 +1,4 @@
-import { getLangName, getRandNumber } from './utils';
+import { filterFunction, getLangName, getRandNumber } from './utils';
 
 describe('getLangName', () => {
   it('should return empty string when language code is undefined', () => {
@@ -38,4 +38,14 @@ describe('getRandNumber', () => {
 
     expect(n1).not.toEqual(n2);
   });
+});
+
+test('that filter function works as intended', () => {
+  expect(filterFunction('test', 'spock', 'ock')).toBe(true);
+  expect(filterFunction('test', 'spock', 'rock')).toBe(false);
+  expect(filterFunction('test', 'spock', '')).toBe(true);
+  expect(filterFunction('test', 'spock', 'test')).toBe(true);
+  expect(filterFunction('test', 'spock', 'testen')).toBe(false);
+  expect(filterFunction('test', 'spock', undefined)).toBe(true);
+  expect(filterFunction('test', undefined, undefined)).toBe(true);
 });

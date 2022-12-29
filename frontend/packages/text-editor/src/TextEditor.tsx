@@ -8,7 +8,7 @@ import type {
   TextResourceIdMutation,
 } from './types';
 import { AltinnSpinner } from 'app-shared/components';
-import { Button, ButtonColor, ButtonVariant } from '@altinn/altinn-design-system';
+import { Button, ButtonColor, ButtonVariant, SearchField } from '@altinn/altinn-design-system';
 import { RightMenu } from './RightMenu';
 import { getRandNumber } from './utils';
 import {
@@ -26,7 +26,9 @@ export interface TextEditorProps {
   isFetchingTranslations: boolean;
   onTranslationChange: (translations: TextResourceFile) => void;
   selectedLangCode: string;
+  searchQuery: string;
   setSelectedLangCode: (langCode: LangCode) => void;
+  setSearchQuery: (searchQuery: string) => void;
   availableLangCodes: string[];
   onAddLang: (langCode: LangCode) => void;
   onDeleteLang: (langCode: LangCode) => void;
@@ -35,9 +37,11 @@ export interface TextEditorProps {
 export const TextEditor = ({
   translations,
   selectedLangCode,
+  searchQuery,
   onTranslationChange,
   isFetchingTranslations,
   setSelectedLangCode,
+  setSearchQuery,
   availableLangCodes,
   onAddLang,
   onDeleteLang,
@@ -58,6 +62,7 @@ export const TextEditor = ({
 
   const handleAddNewEntryClick = () => {
     const newId = `id_${getRandNumber()}`;
+    setSearchQuery('');
     onTranslationChange(
       upsertTextEntry(translations, {
         id: newId,
@@ -84,6 +89,7 @@ export const TextEditor = ({
     setTextIds(mutatingIds);
   };
 
+  const handleSearchChange = (event: any) => setSearchQuery(event.target.value);
   return (
     <div className={classes.TextEditor}>
       <div className={classes.TextEditor__main}>
@@ -96,10 +102,18 @@ export const TextEditor = ({
           >
             Ny tekst
           </Button>
+          <div>
+            <SearchField
+              label='Søk etter tekst eller id'
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
+          </div>
         </div>
         <TextList
           textIds={textIds}
           selectedLangCode={selectedLangCode}
+          searchQuery={searchQuery}
           texts={texts}
           upsertEntry={upsertEntry}
           removeEntry={removeEntry}

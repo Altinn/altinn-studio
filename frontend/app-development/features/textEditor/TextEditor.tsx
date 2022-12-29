@@ -11,15 +11,28 @@ import {
   useAddByLangCodeMutation,
 } from '../../services/textsApi';
 import { useSearchParams } from 'react-router-dom';
-import { deepCopy } from 'app-shared/pure';
 
 export const TextEditorImpl = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const getSelectedLangCode = () => searchParams.get('lang');
+  const getSearchQuery = () => searchParams.get('search') || '';
   const orgApp = getOrgApp();
   const { data: appLangCodes } = useGetLanguagesQuery(orgApp);
-  const setSelectedLangCode = (langCode: string) =>
-    setSearchParams({ ...deepCopy(searchParams), lang: langCode });
+  const setSelectedLangCode = (lang: string) => {
+    const params: any = { lang };
+    if (getSearchQuery().length > 0) {
+      params.search = getSearchQuery();
+    }
+    setSearchParams(params);
+  };
+  const setSearchQuery = (search: string) => {
+    const params: any = { lang: getSelectedLangCode() };
+    if (search.length > 0) {
+      params.search = search;
+    }
+    setSearchParams(params);
+  };
+
   const {
     data: translations,
     isLoading: isInitialLoadingLang,
@@ -71,7 +84,9 @@ export const TextEditorImpl = () => {
     <>
       <TextEditor
         selectedLangCode={getSelectedLangCode()}
+        searchQuery={getSearchQuery()}
         setSelectedLangCode={setSelectedLangCode}
+        setSearchQuery={setSearchQuery}
         availableLangCodes={appLangCodes}
         translations={
           translations || {
