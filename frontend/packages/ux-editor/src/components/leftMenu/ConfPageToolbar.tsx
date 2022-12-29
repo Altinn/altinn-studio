@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import type { IAppState, IToolbarElement } from '../../types/global';
-import { ToolbarItem } from './ToolbarItem';
 import type { ComponentTypes } from '..';
+import type { IAppState, IToolbarElement } from '../../types/global';
+import { InformationPanelComponent } from '../toolbar/InformationPanelComponent';
+import { ToolbarItem } from './ToolbarItem';
 import { confOnScreenComponents } from '..';
 import { getComponentTitleByComponentType } from '../../utils/language';
 import { makeGetLayoutOrderSelector } from '../../selectors/getLayoutData';
 import { mapComponentToToolbarElement } from '../../utils/formLayout';
 import { useDispatch, useSelector } from 'react-redux';
-import { InformationPanelComponent } from '../toolbar/InformationPanelComponent';
 
 export const ConfPageToolbar = () => {
   const dispatch = useDispatch();

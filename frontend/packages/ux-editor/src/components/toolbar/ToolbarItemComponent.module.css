@@ -1,0 +1,32 @@
+.toolbarItem {
+  margin-bottom: 6px;
+  background-color: #ffffff;
+  display: flex;
+  box-shadow: rgb(0 0 0 / 20%) 0 2px 1px -1px, rgb(0 0 0 / 14%) 0 1px 1px 0,
+    rgb(0 0 0 / 12%) 0 1px 3px 0;
+  padding: 8px;
+  align-items: center;
+}
+
+.componentIcon {
+  min-width: 40px;
+  flex: 0 0 32px;
+}
+
+.componentLabel {
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1 1 auto;
+}
+
+.componentHelpIcon {
+  flex: 0 0 32px;
+  color: #0062ba;
+  cursor: pointer;
+  font-size: 2em !important;
+}
+.componentHelpIcon:hover {
+  color: #000000;
+}
