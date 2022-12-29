@@ -1,0 +1,29 @@
+.collapsableMenuComponent {
+  display: flex;
+  padding: 8px;
+  border: none;
+  background-color: transparent;
+  width: 100%;
+}
+.icon {
+  color: rgba(0, 0, 0, 0.54);
+  margin-left: auto;
+  margin-right: auto;
+  flex: 0 0 50px;
+  cursor: pointer;
+}
+.icon svg {
+  height: 24px;
+  width: 24px;
+}
+.text {
+  font-size: 16px;
+  padding: 0;
+  text-align: start;
+  color: #022f51;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1 1 auto;
+  cursor: pointer;
+}

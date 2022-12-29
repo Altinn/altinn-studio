@@ -1,101 +1,25 @@
 import React from 'react';
-import AltinnIcon from 'app-shared/components/AltinnIcon';
-import classNames from 'classnames';
-import type { IAppState, CollapsableMenus } from '../../types/global';
-import { ListItem, ListItemText } from '@mui/material';
-import { connect } from 'react-redux';
-import { createStyles, withStyles } from '@mui/styles';
+import classes from './CollapsableMenuComponent.module.css';
+import type { CollapsableMenus, IAppState } from '../../types/global';
+import { Expand, Next } from '@navikt/ds-icons';
 import { getCollapsableMenuTitleByType } from '../../utils/language';
+import { useSelector } from 'react-redux';
 
 export interface ICollapsableMenuProvidedProps {
-  classes: any;
   onClick: any;
   menuType: CollapsableMenus;
   menuIsOpen: boolean;
 }
 
-export interface ICollapsableMenuProps extends ICollapsableMenuProvidedProps {
-  language: any;
-}
-
-class ToolbarItem extends React.Component<ICollapsableMenuProps> {
-  constructor(props: ICollapsableMenuProps) {
-    super(props);
-    this.handleKeyPress = this.handleKeyPress.bind(this);
-  }
-
-  private handleKeyPress(event: any) {
-    if (event.key === 'Enter') {
-      this.props.onClick(this.props.menuType);
-    }
-  }
-
-  public render(): JSX.Element {
-    return (
-      <ListItem
-        classes={{ root: this.props.classes.collapsableButton }}
-        onClick={this.props.onClick.bind(this, this.props.menuType)}
-        onKeyPress={this.handleKeyPress}
-        tabIndex={0}
-        component='div'
-      >
-        <div className={this.props.classes.listItemIcon}>
-          <AltinnIcon
-            iconClass={
-              this.props.menuIsOpen ? 'fa fa-expand-alt fa-rotate-90' : 'fa fa-expand-alt '
-            }
-            iconColor=''
-          />
-        </div>
-        <ListItemText
-          classes={{
-            root: classNames(this.props.classes.collapsableButtonTextRoot),
-            primary: classNames(this.props.classes.collapsableButtonText),
-          }}
-        >
-          {getCollapsableMenuTitleByType(this.props.menuType, this.props.language)}
-        </ListItemText>
-      </ListItem>
-    );
-  }
-}
-
-const styles = () =>
-  createStyles({
-    collapsableButtonText: {
-      fontSize: '16px',
-      marginLeft: '6px',
-      padding: '0px',
-      color: '#022F51',
-      whiteSpace: 'nowrap',
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-    },
-    collapsableButtonTextRoot: {
-      padding: '0px',
-    },
-    collapsableButton: {
-      padding: '0px',
-      cursor: 'pointer',
-    },
-    listItemIcon: {
-      color: 'rgba(0, 0, 0, 0.54)',
-      marginLeft: 'auto',
-      marginRight: 'auto',
-    },
-  });
-
-const mapStateToProps: (
-  state: IAppState,
-  props: ICollapsableMenuProvidedProps
-) => ICollapsableMenuProps = (state: IAppState, props: ICollapsableMenuProvidedProps) => ({
-  language: state.appData.languageState.language,
-  onClick: props.onClick,
-  classes: props.classes,
-  menuIsOpen: props.menuIsOpen,
-  menuType: props.menuType,
-});
-
-export const CollapsableMenuComponent = withStyles(styles, { withTheme: true })(
-  connect(mapStateToProps)(ToolbarItem)
-);
+export const CollapsableMenuComponent = (props: ICollapsableMenuProvidedProps) => {
+  const language = useSelector((state: IAppState) => state.appData.languageState.language);
+  return (
+    <button
+      className={classes.collapsableMenuComponent}
+      onClick={() => props.onClick(props.menuType)}
+    >
+      <div className={classes.icon}>{props.menuIsOpen ? <Expand /> : <Next />}</div>
+      <div className={classes.text}>{getCollapsableMenuTitleByType(props.menuType, language)}</div>
+    </button>
+  );
+};
