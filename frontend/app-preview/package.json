@@ -9,14 +9,14 @@
     "not op_mini all"
   ],
   "dependencies": {
-    "@altinn/altinn-design-system": "0.25.10",
-    "axios": "1.2.1",
+    "@altinn/altinn-design-system": "0.25.11",
+    "axios": "1.2.2",
     "classnames": "2.3.2",
     "qs": "6.11.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-redux": "8.0.5",
-    "react-router-dom": "6.5.0"
+    "react-router-dom": "6.6.1"
   },
   "devDependencies": {
     "cross-env": "7.0.3",
