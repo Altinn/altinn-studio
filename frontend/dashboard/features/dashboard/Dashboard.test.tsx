@@ -12,6 +12,7 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
 const render = (selectedContext: SelectedContextType | number = SelectedContextType.Self) => {
+  const user = userEvent.setup();
   renderWithProviders(<Dashboard />, {
     preloadedState: {
       language: {
@@ -31,6 +32,7 @@ const render = (selectedContext: SelectedContextType | number = SelectedContextT
       },
     },
   });
+  return { user };
 };
 
 describe('Dashboard > index', () => {
@@ -57,8 +59,7 @@ describe('Dashboard > index', () => {
   });
 
   it('should show search results list and hide FavoriteReposList and OrgReposList when user types into search input', async () => {
-    const user = userEvent.setup();
-    render();
+    const { user } = render();
 
     const searchInput = screen.getByTestId('search-repos-default');
     await user.type(searchInput, 'search');
@@ -71,8 +72,7 @@ describe('Dashboard > index', () => {
   });
 
   it('should hide search results list and show FavoriteReposList and OrgReposList again when user hits escape while the search input is focused', async () => {
-    const user = userEvent.setup();
-    render();
+    const { user } = render();
 
     const searchInput = screen.getByTestId('search-repos-default');
     await user.type(searchInput, 'search');
@@ -93,8 +93,7 @@ describe('Dashboard > index', () => {
   });
 
   it('should hide search results list and show FavoriteReposList and OrgReposList again when user hits clear button on input field', async () => {
-    const user = userEvent.setup();
-    render();
+    const { user } = render();
 
     const searchInput = screen.getByTestId('search-repos-default');
     await user.type(searchInput, 'search');
@@ -115,8 +114,7 @@ describe('Dashboard > index', () => {
   });
 
   it('should navigate to create new app when clicking new app link', async () => {
-    const user = userEvent.setup();
-    render();
+    const { user } = render();
 
     expect(window.location.href.includes('new')).toBe(false);
 

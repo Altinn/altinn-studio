@@ -1,12 +1,10 @@
 import type { EnhancedStore } from '@reduxjs/toolkit';
 import { configureStore } from '@reduxjs/toolkit';
-import { reducer as schemaReducer } from './features/editor/schemaEditorSlice';
+import { reducer } from './features/editor/schemaEditorSlice';
 import { sagaMiddleware } from './sagas';
 
-export const middlewares = [sagaMiddleware];
-
 export const store: EnhancedStore = configureStore({
-  reducer: schemaReducer,
+  reducer,
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
       serializableCheck: {
