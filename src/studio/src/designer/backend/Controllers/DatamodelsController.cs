@@ -124,6 +124,30 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
+        /// Post action that is used when uploading a XSD and secondary XSD. TODO: To be removed?
+        /// </summary>
+        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
+        /// <param name="repository">Application identifier which is unique within an organisation.</param>
+        /// <param name="xsdFile">The main XSD</param>
+        /// <returns>Return JSON of the generated model</returns>
+        [HttpPost]
+        public async Task<ActionResult<string>> Upload(string org, string repository, [FromForm(Name = "file")] IFormFile xsdFile)
+        {
+            Guard.AssertArgumentNotNull(xsdFile, nameof(xsdFile));
+
+            string mainFileName = GetFileNameFromUploadedFile(xsdFile);
+            Guard.AssertFileExtensionIsOfType(mainFileName, ".xsd");
+
+            MemoryStream fileMemoryStream = CopyFileStream(xsdFile);
+
+            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
+
+            var jsonSchema = await _schemaModelService.CreateSchemaFromXsd(org, repository, developer, mainFileName, fileMemoryStream);
+
+            return Created(mainFileName, jsonSchema);
+        }
+
+        /// <summary>
         /// Upload an XSD.
         /// </summary>
         /// <remarks>

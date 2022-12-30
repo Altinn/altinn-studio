@@ -102,7 +102,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// Action for presenting documentation
         /// </summary>
         /// <returns>The Doc view</returns>
-        //[Route("/[action]")]
         public IActionResult Docs()
         {
             return View();
@@ -112,7 +111,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// Action for presenting error
         /// </summary>
         /// <returns>The Error view</returns>
-        //[Route("/[action]")]
         public IActionResult Error()
         {
             return View();
@@ -191,7 +189,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// Logout
         /// </summary>
         /// <returns>The logout page</returns>
-        //[Route("/[action]")]
         public async Task<IActionResult> Logout()
         {
             HttpContext.Response.Cookies.Append(
@@ -224,7 +221,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// Debug info
         /// </summary>
         /// <returns>The debug info you want</returns>
-        //[Route("/[action]")]
         public async Task<IActionResult> Debug()
         {
             StringBuilder stringBuilder = new StringBuilder();

@@ -154,7 +154,7 @@ namespace Altinn.Studio.Designer.Controllers
         public IActionResult GetResourceSchema()
         {
             string schema = System.IO.File.ReadAllText(_hostingEnvironment.WebRootPath + $"/designer/json/schema/resource-schema.json");
-            return Content(schema, "application/json", System.Text.Encoding.UTF8);
+            return Content(schema, "application/json", Encoding.UTF8);
         }
 
         /// <summary>
@@ -269,7 +269,7 @@ namespace Altinn.Studio.Designer.Controllers
                 string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
                 string textResourceDirectoryPath = _settings.GetLanguageResourcePath(org, app, developer) + filename;
 
-                TextResource textResourceObject = new TextResource() { Language = languageCode, Resources = new List<TextResourceElement> {} };
+                TextResource textResourceObject = new TextResource { Language = languageCode, Resources = new List<TextResourceElement>() };
 
                 if (System.IO.File.Exists(textResourceDirectoryPath))
                 {
