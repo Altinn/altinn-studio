@@ -1,13 +1,11 @@
 import React from 'react';
-
 import { RepoList } from '../../common/components/RepoList';
-import { useGetSearchQuery } from '../../services/repoApi';
-import { useGetOrganizationsQuery } from '../../services/organizationApi';
-import { useAppSelector } from '../../common/hooks';
-import { useGetUserStarredReposQuery } from '../../services/userApi';
-
-import { useAugmentReposWithStarred } from './hooks';
 import { getUidFilter, getReposLabel } from './utils';
+import { useAppSelector } from '../../common/hooks';
+import { useAugmentReposWithStarred } from './hooks';
+import { useGetOrganizationsQuery } from '../../services/organizationApi';
+import { useGetSearchQuery } from '../../services/repoApi';
+import { useGetUserStarredReposQuery } from '../../services/userApi';
 
 export const DatamodelsReposList = () => {
   const language = useAppSelector((state) => state.language.language);
@@ -34,7 +32,7 @@ export const DatamodelsReposList = () => {
   }
 
   return (
-    <div>
+    <div data-testid='datamodels-repos-list'>
       <h2>{getReposLabel({ selectedContext, orgs, language, isDatamodelsRepo: true })}</h2>
       <RepoList
         repos={reposWithStarred}

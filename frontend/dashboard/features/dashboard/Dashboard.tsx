@@ -1,26 +1,30 @@
-import type { ChangeEvent, KeyboardEvent } from 'react';
 import React, { useState } from 'react';
-import { useDebounce } from 'react-use';
+import classes from './Dashboard.module.css';
 import cn from 'classnames';
-import { Link } from 'react-router-dom';
-import { getLanguageFromKey } from 'app-shared/utils/language';
+import type { ChangeEvent, KeyboardEvent } from 'react';
+import { Button, ButtonSize, ButtonVariant, SearchField } from '@altinn/altinn-design-system';
+import { CenterContainer } from '../../common/components/CenterContainer';
+import { Close } from '@navikt/ds-icons';
+import { DatamodelsReposList } from './DatamodelsRepoList';
 import { FavoriteReposList } from './FavoriteReposList';
+import { Footer } from '../../common/components/Footer';
+import { Link } from 'react-router-dom';
 import { OrgReposList } from './OrgReposList';
 import { SearchResultReposList } from './SearchResultReposList';
+import { getLanguageFromKey } from 'app-shared/utils/language';
 import { useAppSelector } from '../../common/hooks';
-import classes from './Dashboard.module.css';
-import { DatamodelsReposList } from './DatamodelsRepoList';
-import { Button, ButtonSize, ButtonVariant, SearchField } from '@altinn/altinn-design-system';
-import { Close } from '@navikt/ds-icons';
-import { CenterContainer } from '../../common/components/CenterContainer';
-import { Footer } from '../../common/components/Footer';
+import { useDebounce } from 'react-use';
 
-export const Dashboard = () => {
+type DashboardProps = {
+  disableDebounce?: boolean;
+};
+
+export const Dashboard = ({ disableDebounce }: DashboardProps) => {
   const language = useAppSelector((state) => state.language.language);
   const [searchText, setSearchText] = useState('');
   const [isNewLinkFocused, setIsNewLinkFocused] = useState(false);
   const [debouncedSearchText, setDebouncedSearchText] = useState('');
-  useDebounce(() => setDebouncedSearchText(searchText), 500, [searchText]);
+  useDebounce(() => setDebouncedSearchText(searchText), disableDebounce ? 1 : 500, [searchText]);
   const handleChangeSearch = (event: ChangeEvent<HTMLInputElement>) =>
     setSearchText(event.target.value);
   const handleKeyDown = (event: KeyboardEvent) => event.code === 'Escape' && setSearchText('');
@@ -44,6 +48,7 @@ export const Dashboard = () => {
               </div>
               {searchText && (
                 <Button
+                  data-testid='clear-search-button'
                   className={classes.clearSearchButton}
                   aria-label={getLanguageFromKey('dashboard.clear_search', language)}
                   onClick={handleClearSearch}

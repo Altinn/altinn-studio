@@ -9,6 +9,7 @@ export interface IAltinnMenuItemProps {
   disabled?: boolean;
   id: string;
   className?: string;
+  testId?: string;
 }
 
 const useStyles = makeStyles(() => ({
@@ -23,9 +24,10 @@ const useStyles = makeStyles(() => ({
 
 function AltinnMenuItem(props: IAltinnMenuItemProps, ref: React.Ref<HTMLLIElement>) {
   const classes = useStyles();
-  const { text, iconClass, onClick, disabled, id, className } = props;
+  const { text, iconClass, onClick, disabled, id, className, testId } = props;
   return (
     <MenuItem
+      data-testid={testId}
       className={className}
       onClick={onClick}
       disabled={disabled}

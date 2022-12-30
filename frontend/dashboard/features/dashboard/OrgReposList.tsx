@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import type { GridSortModel } from '@mui/x-data-grid';
 import { DashboardActions } from '../../resources/fetchDashboardResources/dashboardSlice';
-import { useAugmentReposWithStarred } from './hooks';
+import { RepoList } from '../../common/components/RepoList';
 import { getReposLabel, getUidFilter } from './utils';
 import { useAppDispatch, useAppSelector } from '../../common/hooks';
+import { useAugmentReposWithStarred } from './hooks';
 import { useGetOrganizationsQuery } from '../../services/organizationApi';
-import { useGetUserStarredReposQuery } from '../../services/userApi';
 import { useGetSearchQuery } from '../../services/repoApi';
-import { RepoList } from '../../common/components/RepoList';
+import { useGetUserStarredReposQuery } from '../../services/userApi';
 
 const rowsPerPageOptions = [5, 10, 20, 50, 100];
 
@@ -43,7 +43,7 @@ export const OrgReposList = () => {
     );
 
   return (
-    <div>
+    <div data-testid='org-repos-list'>
       <h2>{getReposLabel({ selectedContext, orgs, language })}</h2>
       <RepoList
         repos={reposWithStarred.filter((repo) => !repo.name.endsWith('-datamodels'))}
