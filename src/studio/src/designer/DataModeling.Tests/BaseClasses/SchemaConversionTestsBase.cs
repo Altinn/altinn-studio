@@ -3,7 +3,6 @@ using System.IO;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Unicode;
-using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Schema;
 using Altinn.Studio.DataModeling.Converter.Json;
@@ -67,15 +66,15 @@ public abstract class SchemaConversionTestsBase<TTestType> : FluentTestsBase<TTe
     }
 
     // Debug helper methods
-    protected static async Task<string> SerializeXsdSchemaAsync(XmlSchema xmlSchema)
+    protected static string SerializeXsdSchema(XmlSchema xmlSchema)
     {
-        await using var sw = new StringWriter();
-        await using var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true });
+        using var sw = new StringWriter();
+        using var xw = XmlWriter.Create(sw, new XmlWriterSettings { Indent = true, Async = true });
         xmlSchema.Write(xw);
         return sw.ToString();
     }
 
-    protected static string SerializeJsonSchemaAsync(JsonSchema schema) =>
+    protected static string SerializeJsonSchema(JsonSchema schema) =>
         JsonSerializer.Serialize(schema, new JsonSerializerOptions
         {
             Encoder = JavaScriptEncoder.Create(UnicodeRanges.BasicLatin, UnicodeRanges.Latin1Supplement),
