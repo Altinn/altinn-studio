@@ -94,6 +94,7 @@ export const RepoList = ({
       renderHeader: (): null => null,
       hideSortIcons: true,
       type: 'actions',
+      headerClassName: classes.columnHeader,
       width: 50,
       getActions: (params: GridRowParams) => {
         const repo = params.row as IRepository;
