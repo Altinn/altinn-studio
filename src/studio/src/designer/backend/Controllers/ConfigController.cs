@@ -46,32 +46,6 @@ namespace Altinn.Studio.Designer.Controllers
             _logger = logger;
         }
 
-        /*
-        /// <summary>
-        /// View for basic app configuration
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The View for JSON editor</returns>
-        [Route("")]
-        public IActionResult Index(string org, string app)
-        {
-            return View();
-        }
-
-        /// <summary>
-        /// The View for configuration of security for an app
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The view with JSON editor</returns>
-        [Route("[action]")]
-        public IActionResult Security(string org, string app)
-        {
-            return View();
-        }
-        */
-
         /// <summary>
         /// Common method to update the local config
         /// </summary>

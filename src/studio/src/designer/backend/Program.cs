@@ -36,6 +36,8 @@ ConfigureSetupLogging();
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddControllers();
+
 await SetConfigurationProviders(builder.Configuration, builder.Environment);
 
 ConfigureLogging(builder.Logging);
@@ -282,8 +284,6 @@ void Configure(IConfiguration configuration)
         c.SwaggerEndpoint($"/{swaggerRoutePrefix}/v1/swagger.json", "Altinn Designer API V1");
     });
 
-    app.UseRouting();
-
     if (!app.Environment.IsDevelopment())
     {
         app.UseHsts();
@@ -296,11 +296,10 @@ void Configure(IConfiguration configuration)
     app.UseResponseCompression();
     app.UseRequestLocalization();
 
-    app.UseEndpoints(endpoints =>
-    {
-        // ---------------------- MONITORING -------------------------- //
-        endpoints.MapHealthChecks("/health");
-    });
+    app.MapControllers();
+
+    app.MapHealthChecks("/health");
+
     logger.LogInformation("// Program.cs // Configure // Configuration complete");
 }
 

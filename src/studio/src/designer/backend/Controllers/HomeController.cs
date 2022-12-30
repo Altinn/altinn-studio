@@ -24,6 +24,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// <summary>
     /// The default MVC controller in the application
     /// </summary>
+    [Route("[action]")]
     [Route("[controller]/[action]")]
     public class HomeController : Controller
     {
@@ -60,8 +61,8 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <returns>The start page</returns>
         [Route("/")]
-        [Route("/[action]")]
-        [Route("/[controller]/[action]", Name = "DefaultNotLoggedIn")]
+        [Route("/[controller]")]
+        [Route("/[controller]/[action]/{id?}", Name = "DefaultNotLoggedIn")]
         public async Task<ActionResult> StartPage()
         {
             string userName = await _giteaApi.GetUserNameFromUI();
@@ -80,6 +81,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// The default action presenting a list of available apps when the user is logged in
         /// </summary>
         /// <returns>The front page</returns>
+        [Route("/[controller]/[action]")]
         [Authorize]
         [Route("/dashboard/{*AllValues}", Name = "DefaultLoggedIn")]
         public ActionResult Index()
@@ -100,7 +102,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// Action for presenting documentation
         /// </summary>
         /// <returns>The Doc view</returns>
-        [Route("/[action]")]
+        //[Route("/[action]")]
         public IActionResult Docs()
         {
             return View();
@@ -110,7 +112,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// Action for presenting error
         /// </summary>
         /// <returns>The Error view</returns>
-        [Route("/[action]")]
+        //[Route("/[action]")]
         public IActionResult Error()
         {
             return View();
@@ -120,7 +122,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// Login
         /// </summary>
         /// <returns>The login page</returns>
-        [Route("/[action]")]
         public async Task<IActionResult> Login()
         {
             string userName = string.Empty;
@@ -190,7 +191,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// Logout
         /// </summary>
         /// <returns>The logout page</returns>
-        [Route("/[action]")]
+        //[Route("/[action]")]
         public async Task<IActionResult> Logout()
         {
             HttpContext.Response.Cookies.Append(
@@ -213,7 +214,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>redirects user</returns>
         [Authorize]
         [HttpPost]
-        [Route("/[action]")]
         public IActionResult AppToken(AppKey appKey)
         {
             _sourceControl.StoreAppTokenForUser(appKey.Key);
@@ -224,7 +224,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// Debug info
         /// </summary>
         /// <returns>The debug info you want</returns>
-        [Route("/[action]")]
+        //[Route("/[action]")]
         public async Task<IActionResult> Debug()
         {
             StringBuilder stringBuilder = new StringBuilder();
