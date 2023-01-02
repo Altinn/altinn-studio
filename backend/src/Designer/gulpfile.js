@@ -21,7 +21,7 @@ const cleanGlobs = [
   'wwwroot/designer/css/bootstrap*.css',
   'wwwroot/designer/css/font/fontawesome*.*',
 ];
-const FRONTEND_FOLDER = path.resolve(__dirname,"..","..","..","..","..","frontend");
+const FRONTEND_FOLDER = path.resolve(__dirname,"..","..","..","frontend");
 const jsServDevFile = path.join(FRONTEND_FOLDER, 'dist/app-development/app-development.js');
 const jsServDevModuleFile1 = path.join(FRONTEND_FOLDER, 'dist/app-development/1.app-development.js');
 const jsServDevModuleFile2 = path.join(FRONTEND_FOLDER, 'dist/app-development/2.app-development.js');

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
@@ -23,13 +23,13 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
-    <AdditionalFiles Include="..\..\..\..\..\stylecop.json">
+    <AdditionalFiles Include="..\..\stylecop.json">
       <Link>stylecop.json</Link>
     </AdditionalFiles>
   </ItemGroup>
 
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
-    <CodeAnalysisRuleSet>..\..\..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -97,7 +97,7 @@
     <None Remove="_TestData\Model\Xml\SeresBasic.xml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\DataModeling\DataModeling.csproj" />
+    <ProjectReference Include="..\..\src\DataModeling\DataModeling.csproj" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="_TestData\Model\XmlSchema\Seres\SeresArray.xsd">
