@@ -1103,7 +1103,7 @@ namespace Altinn.Studio.Designer.Services.Implementation
                 // This creates all files
                 CreateServiceMetadata(metadata);
                 CreateApplicationMetadata(org, serviceConfig.RepositoryName, serviceConfig.ServiceName);
-                CreateLanguageResources(org, serviceConfig);
+                await CreateLanguageResources(org, serviceConfig);
                 await CreateRepositorySettings(org, serviceConfig.RepositoryName, developer);
 
                 CommitInfo commitInfo = new CommitInfo() { Org = org, Repository = serviceConfig.RepositoryName, Message = "App created" };
