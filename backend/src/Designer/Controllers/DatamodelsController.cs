@@ -4,15 +4,10 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
-using System.Xml;
-using Altinn.Studio.Designer.Factories.ModelFactory;
 using Altinn.Studio.Designer.Helpers;
-using Altinn.Studio.Designer.Helpers.Extensions;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
 using Altinn.Studio.Designer.ViewModels.Request;
-using Manatee.Json;
-using Manatee.Json.Schema;
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -53,7 +48,8 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [Route("datamodel")]
-        public async Task<ActionResult<string>> Get([FromRoute] string org, [FromRoute] string repository, [FromQuery] string modelPath)
+        public async Task<ActionResult<string>> Get([FromRoute] string org, [FromRoute] string repository,
+            [FromQuery] string modelPath)
         {
             var decodedPath = System.Uri.UnescapeDataString(modelPath);
 
@@ -109,7 +105,8 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="thefile">The XSD file being uploaded.</param>
         [HttpPost]
         [Route("upload")]
-        public async Task<IActionResult> AddXsd(string org, string repository, [FromForm(Name = "file")] IFormFile thefile)
+        public async Task<IActionResult> AddXsd(string org, string repository,
+            [FromForm(Name = "file")] IFormFile thefile)
         {
             Guard.AssertArgumentNotNull(thefile, nameof(thefile));
 
@@ -118,7 +115,9 @@ namespace Altinn.Studio.Designer.Controllers
 
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
 
-            var jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, fileName, thefile.OpenReadStream());
+            var jsonSchema =
+                await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, fileName,
+                    thefile.OpenReadStream());
 
             return Created(Uri.EscapeDataString(fileName), jsonSchema);
         }
@@ -132,7 +131,8 @@ namespace Altinn.Studio.Designer.Controllers
         [Produces("application/json")]
         [HttpPost]
         [Route("new")]
-        public async Task<ActionResult<string>> Post(string org, string repository, [FromBody] CreateModelViewModel createModel)
+        public async Task<ActionResult<string>> Post(string org, string repository,
+            [FromBody] CreateModelViewModel createModel)
         {
             if (!ModelState.IsValid)
             {
@@ -140,12 +140,14 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-            var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(org, repository, developer, createModel.ModelName, createModel.RelativeDirectory, createModel.Altinn2Compatible);
+            var (relativePath, model) = await _schemaModelService.CreateSchemaFromTemplate(org, repository, developer,
+                createModel.ModelName, createModel.RelativeDirectory, createModel.Altinn2Compatible);
 
             // Sets the location header and content-type manually instead of using CreatedAtAction
             // because the latter overrides the content type and sets it to text/plain.
             var baseUrl = GetBaseUrl();
-            var locationUrl = $"{baseUrl}/designer/api/{org}/{repository}/datamodels/datamodel?modelPath={relativePath}";
+            var locationUrl =
+                $"{baseUrl}/designer/api/{org}/{repository}/datamodels/datamodel?modelPath={relativePath}";
             Response.Headers.Add("Location", locationUrl);
             Response.StatusCode = (int)HttpStatusCode.Created;
 
@@ -176,7 +178,8 @@ namespace Altinn.Studio.Designer.Controllers
 
             var xsd = await _schemaModelService.GetSchema(org, repository, developer, filePath);
             var xsdStream = new MemoryStream(Encoding.UTF8.GetBytes(xsd ?? string.Empty));
-            var jsonSchema = await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, filePath, xsdStream);
+            var jsonSchema =
+                await _schemaModelService.BuildSchemaFromXsd(org, repository, developer, filePath, xsdStream);
 
             return Created(filePath, jsonSchema);
         }
@@ -191,7 +194,8 @@ namespace Altinn.Studio.Designer.Controllers
         [HttpPut]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [Route("datamodel")]
-        public async Task<IActionResult> PutDatamodel(string org, string repository, [FromQuery] string modelPath, [FromQuery] bool saveOnly = false)
+        public async Task<IActionResult> PutDatamodel(string org, string repository, [FromQuery] string modelPath,
+            [FromQuery] bool saveOnly = false)
         {
             var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
             var content = await ReadRequestBodyContentAsync();
@@ -218,119 +222,6 @@ namespace Altinn.Studio.Designer.Controllers
             return NoContent();
         }
 
-        /// <summary>
-        /// Post action that is used when uploading a XSD and secondary XSD. TODO: To be removed?
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="repository">Application identifier which is unique within an organisation.</param>
-        /// <param name="xsdFile">The main XSD</param>
-        /// <returns>Return JSON of the generated model</returns>
-        [HttpPost]
-        [Route("do-not-use/uploaddatamodel")]
-        [Obsolete]
-        public async Task<ActionResult<string>> Upload(string org, string repository, [FromForm(Name = "file")] IFormFile xsdFile)
-        {
-            Guard.AssertArgumentNotNull(xsdFile, nameof(xsdFile));
-
-            string mainFileName = GetFileNameFromUploadedFile(xsdFile);
-            Guard.AssertFileExtensionIsOfType(mainFileName, ".xsd");
-
-            MemoryStream fileMemoryStream = CopyFileStream(xsdFile);
-
-            var developer = AuthenticationHelper.GetDeveloperUserName(HttpContext);
-
-            var jsonSchema = await _schemaModelService.CreateSchemaFromXsd(org, repository, developer, mainFileName, fileMemoryStream);
-
-            return Created(mainFileName, jsonSchema);
-        }
-
-        /// <summary>
-        /// Returns datamodel
-        /// </summary>
-        /// <param name="org">The org</param>
-        /// <param name="repository">the repository</param>
-        /// <param name="modelName">The name of the data model.</param>
-        /// <returns></returns>
-        [HttpGet]
-        [Route("do-not-use/getdatamodel")]
-        [Obsolete]
-        public async Task<IActionResult> GetDatamodel(string org, string repository, [FromQuery] string modelName)
-        {
-            try
-            {
-                modelName = modelName.AsFileName();
-            }
-            catch
-            {
-                return BadRequest("Invalid model name value.");
-            }
-
-            string filePath = $"App/models/{modelName}";
-            try
-            {
-                using (Stream dataStream = await _repository.ReadData(org, repository, $"{filePath}.schema.json"))
-                {
-                    TextReader textReader = new StreamReader(dataStream);
-                    JsonValue jsonValue = await JsonValue.ParseAsync(textReader);
-                    return Ok(jsonValue.ToString());
-                }
-            }
-            catch
-            {
-                // Will fallback to checking for XSD. See below
-            }
-
-            try
-            {
-                using (Stream dataStream = await _repository.ReadData(org, repository, $"{filePath}.xsd"))
-                {
-                    XmlReader xsdReader = XmlReader.Create(dataStream);
-                    XsdToJsonSchema xsdToJsonSchemaConverter = new XsdToJsonSchema(xsdReader);
-                    JsonSchema convertedSchema = xsdToJsonSchemaConverter.AsJsonSchema();
-
-                    Manatee.Json.Serialization.JsonSerializer serializer = new Manatee.Json.Serialization.JsonSerializer();
-                    JsonValue serializedConvertedSchema = serializer.Serialize(convertedSchema);
-
-                    return Ok(serializedConvertedSchema.ToString());
-                }
-            }
-            catch
-            {
-                return NotFound();
-            }
-        }
-
-        /// <summary>
-        /// Deletes datamodel by name
-        /// </summary>
-        /// <param name="org">The org</param>
-        /// <param name="repository">the repository</param>
-        /// <param name="modelName">The name of the data model.</param>
-        [HttpDelete]
-        [Route("do-not-use/deletedatamodel")]
-        [Obsolete]
-        public IActionResult DeleteDatamodel(string org, string repository, string modelName)
-        {
-            try
-            {
-                modelName = modelName.AsFileName();
-            }
-            catch
-            {
-                return BadRequest("Invalid model name value.");
-            }
-
-            if (_repository.DeleteMetadataForAttachment(org, repository, modelName))
-            {
-                string filePath = $"App/models/{modelName}";
-                _repository.DeleteData(org, repository, $"{filePath}.schema.json");
-                _repository.DeleteData(org, repository, $"{filePath}.xsd");
-                return Ok();
-            }
-
-            return BadRequest();
-        }
-
         private async Task<string> ReadRequestBodyContentAsync()
         {
             string content;
@@ -341,15 +232,6 @@ namespace Altinn.Studio.Designer.Controllers
             }
 
             return content;
-        }
-
-        private static MemoryStream CopyFileStream(IFormFile thefile)
-        {
-            var memoryStream = new MemoryStream();
-            thefile.OpenReadStream().CopyTo(memoryStream);
-            memoryStream.Position = 0;
-
-            return memoryStream;
         }
 
         private static string GetFileNameFromUploadedFile(IFormFile thefile)
