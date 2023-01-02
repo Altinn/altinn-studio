@@ -15,6 +15,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DataModeling.Tests", "tests
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Designer.Tests", "tests\Designer.Tests\Designer.Tests.csproj", "{BF1AA940-F128-44EB-A274-41D020555FCE}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "package groups", "package groups", "{1338C442-7838-4987-BECB-E8F45481D3BF}"
+	ProjectSection(SolutionItems) = preProject
+		package groups\NuGet.props = package groups\NuGet.props
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

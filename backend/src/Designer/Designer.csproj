@@ -18,43 +18,42 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Altinn.Common.AccessToken" Version="1.2.0" />
-    <PackageReference Include="Altinn.Common.AccessTokenClient" Version="1.1.3" />
-    <PackageReference Include="Altinn.Platform.Storage.Interface" Version="3.11.0" />
-    <PackageReference Include="CompilerAttributes" Version="1.1.2" />
-    <PackageReference Include="ini-parser-netstandard" Version="2.5.2" />
-    <PackageReference Include="JWTCookieAuthentication" Version="2.4.2" />
-    <!-- Do not upgrade this package unless extensively tested-->
-    <PackageReference Include="LibGit2Sharp" Version="0.27.0-preview-0182" />
-    <PackageReference Include="Manatee.Json" Version="13.0.5" />
-    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.21.0" />
-    <PackageReference Include="Microsoft.ApplicationInsights.Kubernetes" Version="3.1.0" />
-    <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="5.2.9" />
-    <PackageReference Include="Microsoft.AspNetCore.DataProtection.AzureKeyVault" Version="3.1.24" />
-    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="6.0.11" />
-    <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
-    <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3">
+    <PackageReference Include="Altinn.Common.AccessToken"/>
+    <PackageReference Include="Altinn.Common.AccessTokenClient" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" />
+    <PackageReference Include="CompilerAttributes" />
+    <PackageReference Include="ini-parser-netstandard" />
+    <PackageReference Include="JWTCookieAuthentication" />
+    <PackageReference Include="LibGit2Sharp" />
+    <PackageReference Include="Manatee.Json" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" />
+    <PackageReference Include="Microsoft.ApplicationInsights.Kubernetes" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.Client" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.AzureKeyVault" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
+    <PackageReference Include="Microsoft.Azure.KeyVault" />
+    <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" Version="3.1.24" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.BrowserLink" Version="2.2.0" />
-    <PackageReference Include="HtmlAgilityPack" Version="1.11.46" />
-    <PackageReference Include="Microsoft.DiaSymReader.Native" Version="1.7.0" />
-    <PackageReference Include="Markdig" Version="0.30.4" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.10" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.7" />
-    <PackageReference Include="Scrutor" Version="4.2.0" />
-    <PackageReference Include="Yuniql.AspNetCore" Version="1.2.25" />
-    <PackageReference Include="Yuniql.PostgreSql" Version="1.3.15" />
-    <PackageReference Include="RestSharp" Version="108.0.3" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.4.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.BrowserLink" />
+    <PackageReference Include="HtmlAgilityPack" />
+    <PackageReference Include="Microsoft.DiaSymReader.Native" />
+    <PackageReference Include="Markdig" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Scrutor" />
+    <PackageReference Include="Yuniql.AspNetCore" />
+    <PackageReference Include="Yuniql.PostgreSql" />
+    <PackageReference Include="RestSharp" />
+    <PackageReference Include="Swashbuckle.AspNetCore" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
-     <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.435">
+     <PackageReference Include="StyleCop.Analyzers">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
