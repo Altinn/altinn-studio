@@ -1,5 +1,5 @@
 import { getLayoutOrderFromTracks } from 'src/selectors/getLayoutOrder';
-import { getCurrentDataTypeId } from 'src/utils/appMetadata';
+import { getCurrentDataTypeForApplication } from 'src/utils/appMetadata';
 import { convertDataBindingToModel } from 'src/utils/databindings';
 import { resolvedLayoutsFromState } from 'src/utils/layout/hierarchy';
 import {
@@ -36,11 +36,11 @@ export function runClientSideValidation(state: IRuntimeState): ValidationResult 
     return out;
   }
 
-  const currentDataTaskDataTypeId = getCurrentDataTypeId(
-    state.applicationMetadata.applicationMetadata,
-    state.instanceData.instance,
-    state.formLayout.layoutsets,
-  );
+  const currentDataTaskDataTypeId = getCurrentDataTypeForApplication({
+    application: state.applicationMetadata.applicationMetadata,
+    instance: state.instanceData.instance,
+    layoutSets: state.formLayout.layoutsets,
+  });
   out.model = convertDataBindingToModel(state.formData.formData);
   const validator = getValidator(currentDataTaskDataTypeId, state.formDataModel.schemas);
 

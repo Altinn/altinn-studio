@@ -94,6 +94,10 @@ export const getCurrentTaskData = (appMetaData: IApplication, instance: IInstanc
   return instance.data.find((element) => element.dataType === currentDataTypeId);
 };
 
+/**
+ * @deprecated Prefer getCurrentDataTypeForApplication() instead, as this function should be unexported - it does
+ * not account for stateless apps.
+ */
 export const getCurrentDataTypeId = (
   appMetaData: IApplication | null,
   instance?: IInstance | null,

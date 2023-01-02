@@ -8,7 +8,7 @@ import type { Options } from 'ajv';
 import type * as AjvCore from 'ajv/dist/core';
 
 import { Severity } from 'src/types';
-import { getCurrentDataTypeId } from 'src/utils/appMetadata';
+import { getCurrentDataTypeForApplication } from 'src/utils/appMetadata';
 import { AsciiUnitSeparator } from 'src/utils/attachment';
 import { convertDataBindingToModel, getFormDataFromFieldKey, getKeyWithoutIndex } from 'src/utils/databindings';
 import { getDateConstraint, getDateFormat } from 'src/utils/dateHelpers';
@@ -1327,11 +1327,11 @@ export function validateGroup(groupId: string, state: IRuntimeState, onlyInRowIn
     return {};
   }
 
-  const currentDataTaskDataTypeId = getCurrentDataTypeId(
-    state.applicationMetadata.applicationMetadata,
-    state.instanceData.instance,
-    state.formLayout.layoutsets,
-  );
+  const currentDataTaskDataTypeId = getCurrentDataTypeForApplication({
+    application: state.applicationMetadata.applicationMetadata,
+    instance: state.instanceData.instance,
+    layoutSets: state.formLayout.layoutsets,
+  });
   const validator = getValidator(currentDataTaskDataTypeId, state.formDataModel.schemas);
   const emptyFieldsValidations = validateEmptyFieldsForNodes(
     formData,

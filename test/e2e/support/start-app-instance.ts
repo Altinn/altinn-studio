@@ -40,12 +40,11 @@ Cypress.Commands.add('startAppInstance', (appName, anonymous = false) => {
     }
   }).as('frontend');
 
-  cy.visit('/', visitOptions);
-
   if (Cypress.env('environment') === 'local') {
     if (anonymous) {
       cy.visit(`${Cypress.config('baseUrl')}/ttd/${appName}/`, visitOptions);
     } else {
+      cy.visit('/', visitOptions);
       cy.get(appFrontend.appSelection).select(appName);
       cy.get(appFrontend.startButton).click();
     }
