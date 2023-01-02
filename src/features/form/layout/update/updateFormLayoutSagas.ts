@@ -30,7 +30,7 @@ import {
 } from 'src/utils/formLayout';
 import { getLayoutsetForDataElement } from 'src/utils/layout';
 import { getOptionLookupKey, removeGroupOptionsByIndex } from 'src/utils/options';
-import { waitFor } from 'src/utils/sagas';
+import { selectNotNull, waitFor } from 'src/utils/sagas';
 import { get, post } from 'src/utils/sharedUtils';
 import { getCalculatePageOrderUrl, getDataValidationUrl } from 'src/utils/urls/appUrlHelper';
 import {
@@ -656,10 +656,10 @@ export function* updateRepeatingGroupEditIndexSaga({
 }
 
 export function* initRepeatingGroupsSaga(): SagaIterator {
+  const layouts = yield selectNotNull(selectFormLayouts);
   const formDataState: IFormDataState = yield select(selectFormData);
   const state: IRuntimeState = yield select();
   const currentGroups = state.formLayout.uiConfig.repeatingGroups || {};
-  const layouts = yield select(selectFormLayouts);
   let newGroups: IRepeatingGroups = {};
   Object.keys(layouts).forEach((layoutKey: string) => {
     newGroups = {
@@ -728,15 +728,7 @@ export function* initRepeatingGroupsSaga(): SagaIterator {
       repeatingGroups: newGroups,
     }),
   );
-}
-
-export function* watchInitRepeatingGroupsSaga(): SagaIterator {
-  yield take(FormLayoutActions.fetchFulfilled);
-  yield call(initRepeatingGroupsSaga);
-  yield takeLatest(
-    [FormDataActions.fetchFulfilled, FormLayoutActions.initRepeatingGroups, FormLayoutActions.fetchFulfilled],
-    initRepeatingGroupsSaga,
-  );
+  yield put(FormDynamicsActions.checkIfConditionalRulesShouldRun({}));
 }
 
 export function* updateFileUploaderWithTagEditIndexSaga({

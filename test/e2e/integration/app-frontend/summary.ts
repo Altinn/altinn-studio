@@ -195,6 +195,52 @@ describe('Summary', () => {
         cy.wrap(item).eq(5).should('contain.text', `${texts.nestedOption2}, ${texts.nestedOption3}`);
       });
 
+    cy.get(appFrontend.navMenu).find('li > button').first().click();
+    cy.get(appFrontend.group.prefill.liten).click().blur();
+    cy.get(appFrontend.group.prefill.middels).click().blur();
+    cy.get(appFrontend.group.prefill.svaer).click().blur();
+    cy.get(appFrontend.navMenu).find('li > button').last().click();
+
+    function assertSummaryItem(groupRow: number, items: { [key: string]: boolean }) {
+      cy.get(appFrontend.group.mainGroupSummary)
+        .eq(groupRow)
+        .then((row) => {
+          for (const item of Object.keys(items)) {
+            const shouldExist = items[item];
+            cy.wrap(row)
+              .find(`[data-testid="summary-${item}"]`)
+              .should(shouldExist ? 'be.visible' : 'not.exist');
+          }
+        });
+    }
+
+    const regularRow = {
+      'currentValue-summary': true,
+      'newValue-summary': true,
+      'mainUploaderSingle-summary': true,
+      'mainUploaderMulti-summary': true,
+      'subGroup-summary-group': true,
+    };
+
+    // Rows that come from prefill have their uploaders removed, so these should be hidden
+    const prefillRow = {
+      ...regularRow,
+      'mainUploaderSingle-summary': false,
+      'mainUploaderMulti-summary': false,
+    };
+
+    // Rows that come from prefill AND have a 'currentValue' above 100 have their subGroup removed
+    const prefillRowAbove100 = {
+      ...prefillRow,
+      'subGroup-summary-group': false,
+    };
+
+    cy.get(appFrontend.group.mainGroupSummary).should('have.length', 4);
+    assertSummaryItem(0, regularRow);
+    assertSummaryItem(1, prefillRow);
+    assertSummaryItem(2, prefillRowAbove100);
+    assertSummaryItem(3, prefillRowAbove100);
+
     // Hiding the group should hide the group summary as well
     cy.get('[data-testid=summary-summary-1]').should('be.visible');
     cy.get(appFrontend.navMenu).find('li > button').eq(1).click();

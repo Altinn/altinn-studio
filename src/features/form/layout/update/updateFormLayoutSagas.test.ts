@@ -1,6 +1,6 @@
 import mockAxios from 'jest-mock-axios';
 import { select, take } from 'redux-saga/effects';
-import { expectSaga, testSaga } from 'redux-saga-test-plan';
+import { expectSaga } from 'redux-saga-test-plan';
 import type { PayloadAction } from '@reduxjs/toolkit';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
@@ -10,7 +10,6 @@ import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import {
   calculatePageOrderAndMoveToNextPageSaga,
   findAndMoveToNextVisibleLayout,
-  initRepeatingGroupsSaga,
   selectAllLayouts,
   selectAttachmentState,
   selectCurrentLayout,
@@ -19,7 +18,6 @@ import {
   selectOptions,
   selectValidations,
   updateRepeatingGroupsSaga,
-  watchInitRepeatingGroupsSaga,
 } from 'src/features/form/layout/update/updateFormLayoutSagas';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
 import { selectLayoutOrder } from 'src/selectors/getLayoutOrder';
@@ -38,24 +36,6 @@ import type { IRuntimeState } from 'src/types';
 describe('updateLayoutSagas', () => {
   beforeEach(() => {
     mockAxios.reset();
-  });
-
-  describe('watchInitRepeatingGroupsSaga', () => {
-    it('should wait for layout, then wait trigger on relevant actions', () => {
-      const saga = testSaga(watchInitRepeatingGroupsSaga);
-      saga
-        .next()
-        .take(FormLayoutActions.fetchFulfilled)
-        .next()
-        .call(initRepeatingGroupsSaga)
-        .next()
-        .takeLatest(
-          [FormDataActions.fetchFulfilled, FormLayoutActions.initRepeatingGroups, FormLayoutActions.fetchFulfilled],
-          initRepeatingGroupsSaga,
-        )
-        .next()
-        .isDone();
-    });
   });
 
   describe('updateRepeatingGroupsSaga', () => {
