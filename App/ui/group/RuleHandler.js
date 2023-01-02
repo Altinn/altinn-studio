@@ -47,6 +47,10 @@ var conditionalRuleHandlerObject = {
 
   showExtraOptions: function (obj) {
     return (obj.value === 'Ja');
+  },
+
+  hideCommentField: function (obj) {
+    return (obj.value === 'Ja');
   }
 }
 var conditionalRuleHandlerHelper = {
@@ -75,6 +79,11 @@ var conditionalRuleHandlerHelper = {
   },
 
   showExtraOptions: function () {
+    return {
+      value: 'value'
+    }
+  },
+  hideCommentField: function () {
     return {
       value: 'value'
     }

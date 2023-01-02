@@ -36,6 +36,20 @@
                     "groupId": "mainGroup",
                     "childGroupId": "subGroup"
                 }
+            },
+            "hide-comment-field": {
+                "selectedFunction": "hideCommentField",
+                "inputParams": {
+                    "value": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788{0}.nested-grp-1234{1}.hideComment"
+                },
+                "selectedAction": "Hide",
+                "selectedFields": {
+                    "abc123": "comments{0}{1}"
+                },
+                "repeatingGroup": {
+                    "groupId": "mainGroup",
+                    "childGroupId": "subGroup"
+                }
             }
         }
     }

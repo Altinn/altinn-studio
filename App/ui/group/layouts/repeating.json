@@ -1,5 +1,5 @@
 ﻿{
-  "$schema": "https://altinncdn.no/schemas/json/layout/layout.schema.v1.json",
+  "$schema": "/Users/magnusrm/repos/app-frontend-react/schemas/json/layout/layout.schema.v1.json",
   "data": {
     "layout": [
       {
@@ -191,7 +191,7 @@
       {
         "id": "subGroup",
         "type": "Group",
-        "children": ["comments", "subUploader", "nestedDynamics", "nestedOptions", "nested-source", "nested-reference"],
+        "children": ["comments", "subUploader", "nestedDynamics", "nestedOptions", "nested-source", "nested-reference", "hideComment"],
         "maxCount": 999,
         "dataModelBindings": {
           "group": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234"
@@ -310,9 +310,27 @@
         },
         "required": false,
         "readOnly": false,
-        "labelSettings": { "optionalIndicator": false },
-        "triggers": ["validation"]
+      "labelSettings": { "optionalIndicator": false },
+      "triggers": ["validation"]
+    },
+    {
+      "id": "hideComment",
+      "type": "Checkboxes",
+      "textResourceBindings": {
+        "title": "Skjul kommentar felt"
       },
+      "dataModelBindings": {
+        "simpleBinding": "Endringsmelding-grp-9786.OversiktOverEndringene-grp-9788.nested-grp-1234.hideComment"
+      },
+      "options": [
+        {
+          "label": "Ja",
+          "value": "Ja"
+        }
+      ],
+      "required": false,
+      "readOnly": false
+    },
       {
         "id": "subUploader",
         "type": "FileUploadWithTag",
