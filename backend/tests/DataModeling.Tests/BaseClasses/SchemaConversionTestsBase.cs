@@ -11,6 +11,7 @@ using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Json.Formats;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Json.Schema;
+using Tests.SharedResources;
 
 namespace DataModeling.Tests.BaseClasses;
 
@@ -34,7 +35,7 @@ public abstract class SchemaConversionTestsBase<TTestType> : FluentTestsBase<TTe
 
     protected TTestType XsdSchemaLoaded(string xsdSchemaPath)
     {
-        LoadedXsdSchema = ResourceHelpers.LoadXmlSchemaTestData(xsdSchemaPath);
+        LoadedXsdSchema = SharedResourcesHelper.LoadXmlSchemaTestData(xsdSchemaPath);
         return this as TTestType;
     }
 
@@ -47,7 +48,7 @@ public abstract class SchemaConversionTestsBase<TTestType> : FluentTestsBase<TTe
 
     protected TTestType JsonSchemaLoaded(string jsonSchemaPath)
     {
-        LoadedJsonSchema = ResourceHelpers.LoadJsonSchemaTestData(jsonSchemaPath);
+        LoadedJsonSchema = SharedResourcesHelper.LoadJsonSchemaTestData(jsonSchemaPath);
         return this as TTestType;
     }
 

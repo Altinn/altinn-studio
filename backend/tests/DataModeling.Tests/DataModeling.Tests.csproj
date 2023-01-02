@@ -12,7 +12,7 @@
     <PackageReference Include="Moq" />
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
-    <PackageReference Include="coverlet.collector" >
+    <PackageReference Include="coverlet.collector">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -98,6 +98,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\DataModeling\DataModeling.csproj" />
+    <ProjectReference Include="..\Tests.SharedResources\Tests.SharedResources.csproj" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="_TestData\Model\XmlSchema\Seres\SeresArray.xsd">

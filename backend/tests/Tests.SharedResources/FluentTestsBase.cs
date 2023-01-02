@@ -1,4 +1,4 @@
-﻿namespace DataModeling.Tests.BaseClasses;
+﻿namespace Tests.SharedResources;
 
 /// <summary>
 /// Base class for fluent tests.

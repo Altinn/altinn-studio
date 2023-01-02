@@ -6,6 +6,7 @@ using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using FluentAssertions;
 using Json.Pointer;
+using Tests.SharedResources;
 using Xunit;
 
 namespace DataModeling.Tests.Json
@@ -18,7 +19,7 @@ namespace DataModeling.Tests.Json
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
 
-            var schema = await ResourceHelpers.LoadJsonSchemaTestDataAsync(path);
+            var schema = SharedResourcesHelper.LoadJsonSchemaTestData(path);
             var analyzer = new SeresJsonSchemaAnalyzer();
 
             var metadata = analyzer.AnalyzeSchema(schema);
@@ -35,7 +36,7 @@ namespace DataModeling.Tests.Json
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
 
-            var schema = await ResourceHelpers.LoadJsonSchemaTestDataAsync(path);
+            var schema = SharedResourcesHelper.LoadJsonSchemaTestData(path);
             var analyzer = new SeresJsonSchemaAnalyzer();
 
             var metadata = analyzer.AnalyzeSchema(schema);
@@ -49,7 +50,7 @@ namespace DataModeling.Tests.Json
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
 
-            var schema = await ResourceHelpers.LoadJsonSchemaTestDataAsync(path);
+            var schema = SharedResourcesHelper.LoadJsonSchemaTestData(path);
             var analyzer = new SeresJsonSchemaAnalyzer();
 
             var metadata = analyzer.AnalyzeSchema(schema);
@@ -92,7 +93,7 @@ namespace DataModeling.Tests.Json
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
 
-            var schema = await ResourceHelpers.LoadJsonSchemaTestDataAsync(path);
+            var schema = SharedResourcesHelper.LoadJsonSchemaTestData(path);
             var analyzer = new SeresJsonSchemaAnalyzer();
 
             var metadata = analyzer.AnalyzeSchema(schema);
@@ -112,7 +113,7 @@ namespace DataModeling.Tests.Json
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
 
-            var schema = await ResourceHelpers.LoadJsonSchemaTestDataAsync(path);
+            var schema = SharedResourcesHelper.LoadJsonSchemaTestData(path);
             var analyzer = new SeresJsonSchemaAnalyzer();
 
             var metadata = analyzer.AnalyzeSchema(schema);

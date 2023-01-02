@@ -1,6 +1,7 @@
 ﻿using Altinn.Studio.DataModeling.Json.Keywords;
 using DataModeling.Tests.BaseClasses;
 using Json.Schema;
+using Tests.SharedResources;
 using Xunit;
 
 namespace DataModeling.Tests.Json.Keywords.BaseClasses;

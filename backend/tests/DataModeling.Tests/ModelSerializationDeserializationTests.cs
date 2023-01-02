@@ -6,6 +6,7 @@ using Altinn.Studio.DataModeling.Json.Keywords;
 using DataModeling.Tests.TestHelpers;
 using FluentAssertions;
 using Json.Schema;
+using Tests.SharedResources;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -15,10 +16,10 @@ namespace DataModeling.Tests
     {
         private readonly ITestOutputHelper _testOutputHelper;
 
-        private const string SERESBASIC_XML_RESOURCE = "DataModeling.Tests._TestData.Model.Xml.Seres.SeresBasic.xml";
-        private const string SERESBASIC_XSD_RESOURCE = "DataModeling.Tests._TestData.Model.XmlSchema.Seres.SeresBasicSchema.xsd";
-        private const string SERESBASIC_JSON_RESOURCE = "DataModeling.Tests._TestData.Model.Json.Seres.SeresBasic.json";
-        private const string SERESBASIC_JSON_SCHEMA_RESOURCE = "DataModeling.Tests._TestData.Model.JsonSchema.Seres.SeresBasicSchema.json";
+        private const string SERESBASIC_XML_RESOURCE = "Model.Xml.Seres.SeresBasic.xml";
+        private const string SERESBASIC_XSD_RESOURCE = "Model.XmlSchema.Seres.SeresBasicSchema.xsd";
+        private const string SERESBASIC_JSON_RESOURCE = "Model.Json.Seres.SeresBasic.json";
+        private const string SERESBASIC_JSON_SCHEMA_RESOURCE = "Model.JsonSchema.Seres.SeresBasicSchema.json";
 
         public ModelSerializationDeserializationTests(ITestOutputHelper testOutputHelper)
         {
@@ -28,7 +29,7 @@ namespace DataModeling.Tests
         [Fact]
         public void XmlModel_SeresBasic_ShouldValidate()
         {
-            var xml = EmbeddedResource.LoadDataFromEmbeddedResourceAsString(SERESBASIC_XML_RESOURCE);
+            var xml = SharedResourcesHelper.LoadTestDataAsString(SERESBASIC_XML_RESOURCE);
 
             var validXml = ValidateXml(xml);
 
@@ -58,8 +59,8 @@ namespace DataModeling.Tests
         [Fact]
         public async Task JsonModel_SeresBasic_ShouldValidate()
         {
-            var json = EmbeddedResource.LoadDataFromEmbeddedResourceAsString(SERESBASIC_JSON_RESOURCE);
-            var jsonSchema = await EmbeddedResource.LoadDataFromEmbeddedResourceAsJsonSchema(SERESBASIC_JSON_SCHEMA_RESOURCE);
+            var json = SharedResourcesHelper.LoadTestDataAsString(SERESBASIC_JSON_RESOURCE);
+            var jsonSchema = SharedResourcesHelper.LoadJsonSchemaTestData(SERESBASIC_JSON_SCHEMA_RESOURCE);
             var jsonDocument = JsonDocument.Parse(json);
 
             var validationResults = jsonSchema.Validate(jsonDocument.RootElement, new ValidationOptions() { OutputFormat = OutputFormat.Detailed });
@@ -70,20 +71,20 @@ namespace DataModeling.Tests
         [Fact]
         public void JsonModel_SeresBasic_ShouldDeserializeAndValidate()
         {
-            var json = EmbeddedResource.LoadDataFromEmbeddedResourceAsString(SERESBASIC_JSON_RESOURCE);
+            var json = SharedResourcesHelper.LoadTestDataAsString(SERESBASIC_JSON_RESOURCE);
             _TestData.Model.CSharp.melding melding = JsonSerializer.Deserialize<_TestData.Model.CSharp.melding>(json);
 
             melding.E1.Should().Be("Yo");
         }
 
         [Fact]
-        public async Task CSharpModel_SeresBasic_ShouldSerializeToValidJson()
+        public void CSharpModel_SeresBasic_ShouldSerializeToValidJson()
         {
             JsonSchemaKeywords.RegisterXsdKeywords();
             var melding = new _TestData.Model.CSharp.melding() { E1 = "Yo" };
 
             var json = JsonSerializer.Serialize(melding);
-            var jsonSchema = await EmbeddedResource.LoadDataFromEmbeddedResourceAsJsonSchema(SERESBASIC_JSON_SCHEMA_RESOURCE);
+            var jsonSchema = SharedResourcesHelper.LoadJsonSchemaTestData(SERESBASIC_JSON_SCHEMA_RESOURCE);
             var jsonDocument = JsonDocument.Parse(json);
 
             var validationResults = jsonSchema.Validate(jsonDocument.RootElement, new ValidationOptions() { OutputFormat = OutputFormat.Detailed });
@@ -93,14 +94,14 @@ namespace DataModeling.Tests
 
         private static _TestData.Model.CSharp.melding DeserializeFromXmlResource(string xmlResource)
         {
-            var xmlStream = EmbeddedResource.LoadDataFromEmbeddedResource(xmlResource);
+            var xmlStream = SharedResourcesHelper.LoadTestData(xmlResource);
 
             return (_TestData.Model.CSharp.melding)new System.Xml.Serialization.XmlSerializer(typeof(_TestData.Model.CSharp.melding)).Deserialize(xmlStream);
         }
 
         private bool ValidateXml(string xml)
         {
-            var xmlSchemaStream = EmbeddedResource.LoadDataFromEmbeddedResource(SERESBASIC_XSD_RESOURCE);
+            var xmlSchemaStream = SharedResourcesHelper.LoadTestData(SERESBASIC_XSD_RESOURCE);
             var xmlSchemaValidator = new XmlSchemaValidator(xmlSchemaStream);
 
             var validXml = xmlSchemaValidator.Validate(xml);

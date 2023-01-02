@@ -2,6 +2,7 @@ using System.Xml.Schema;
 using DataModeling.Tests.Assertions;
 using DataModeling.Tests.BaseClasses;
 using DataModeling.Tests.TestDataClasses;
+using Tests.SharedResources;
 using Xunit;
 using Xunit.Abstractions;
 using XmlSchemaValidator = DataModeling.Tests.TestHelpers.XmlSchemaValidator;
@@ -40,7 +41,7 @@ namespace DataModeling.Tests
         {
             if (!string.IsNullOrEmpty(xmlPath))
             {
-                var xml = ResourceHelpers.LoadTestDataAsString(xmlPath);
+                var xml = SharedResourcesHelper.LoadTestDataAsString(xmlPath);
                 Assert.True(ValidateXml(schema, xml));
             }
 

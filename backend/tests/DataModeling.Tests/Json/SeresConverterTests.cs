@@ -9,6 +9,7 @@ using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using DataModeling.Tests.Assertions;
+using Tests.SharedResources;
 using Xunit;
 
 namespace DataModeling.Tests.Json
@@ -37,7 +38,7 @@ namespace DataModeling.Tests.Json
         [InlineData(@"Model/JsonSchema/Seres/SeresSimpleContentRestriction.json", @"Model/XmlSchema/Seres/SeresSimpleContentRestriction.fromJson.xsd")]
         public async Task Convert_SeresBasicSchema(string jsonPath, string xsdPath)
         {
-            var expectedXsd = ResourceHelpers.LoadXmlSchemaTestData(xsdPath);
+            var expectedXsd = SharedResourcesHelper.LoadXmlSchemaTestData(xsdPath);
 
             XmlSchema actualXsd = await ConvertJsonSchema(jsonPath);
 
@@ -48,7 +49,7 @@ namespace DataModeling.Tests.Json
 
         private static async Task<XmlSchema> ConvertJsonSchema(string jsonPath)
         {
-            var jsonSchema = await ResourceHelpers.LoadJsonSchemaTestDataAsync(jsonPath);
+            var jsonSchema = SharedResourcesHelper.LoadJsonSchemaTestData(jsonPath);
             var converter = new JsonSchemaToXmlSchemaConverter(new JsonSchemaNormalizer());
 
             var actualXsd = converter.Convert(jsonSchema);
