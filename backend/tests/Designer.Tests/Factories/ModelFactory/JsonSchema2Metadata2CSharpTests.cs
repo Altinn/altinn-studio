@@ -18,6 +18,7 @@ using Designer.Tests.Utils;
 using FluentAssertions;
 using Manatee.Json;
 using Manatee.Json.Schema;
+using Tests.SharedResources;
 using Xunit;
 using Xunit.Abstractions;
 using InfoKeyword = Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json.InfoKeyword;

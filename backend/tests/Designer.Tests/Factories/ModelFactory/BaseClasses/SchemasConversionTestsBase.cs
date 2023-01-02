@@ -7,6 +7,7 @@ using Altinn.Studio.DataModeling.Json.Formats;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using Designer.Tests.Utils;
 using Json.Schema;
+using Tests.SharedResources;
 
 namespace Designer.Tests.Factories.ModelFactory.BaseClasses;
 

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Testing.Handlers;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Tests.SharedResources;
 using Xunit;
 using static Designer.Tests.Utils.TestSetupUtils;
 

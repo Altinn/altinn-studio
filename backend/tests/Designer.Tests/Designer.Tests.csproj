@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\Designer\Designer.csproj" />
+    <ProjectReference Include="..\Tests.SharedResources\Tests.SharedResources.csproj" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)'=='Debug'">
