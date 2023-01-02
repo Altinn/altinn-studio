@@ -42,6 +42,7 @@ const render = (props: Partial<IListProps> = {}, customState: PreloadedState<Roo
     sortableColumns: ['Population', 'HighestMountain'],
     pagination: { alternatives: [2, 5], default: 2 },
     getTextResourceAsString: (value) => value,
+    legend: () => <span>legend</span>,
     ...props,
   };
 

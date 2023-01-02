@@ -309,6 +309,7 @@ export function GenericComponent<Type extends ComponentExceptGroup>(_props: IAct
     'NavigationBar',
     'Likert',
     'Panel',
+    'List',
   ];
 
   const showValidationMessages =

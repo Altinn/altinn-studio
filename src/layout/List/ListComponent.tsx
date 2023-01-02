@@ -11,10 +11,13 @@ import {
   TableHeader,
   TableRow,
 } from '@altinn/altinn-design-system';
+import { FormControl, FormLabel } from '@material-ui/core';
+import cn from 'classnames';
 import type { ChangeProps, RowData, SortProps } from '@altinn/altinn-design-system';
 
 import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import { useGetDataList } from 'src/components/hooks';
+import { useRadioStyles } from 'src/layout/RadioButtons/radioButtonsUtils';
 import { DataListsActions } from 'src/shared/resources/dataLists/dataListsSlice';
 import { getLanguageFromKey } from 'src/utils/sharedUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
@@ -36,6 +39,7 @@ export const ListComponent = ({
   sortableColumns,
   dataModelBindings,
   language,
+  legend,
 }: IListProps) => {
   const dynamicDataList = useGetDataList({ id });
   const calculatedDataList = dynamicDataList || defaultDataList;
@@ -127,67 +131,85 @@ export const ListComponent = ({
     return JSON.stringify(rowAsValue(datalist));
   };
 
-  const createLabelRadioButton = (datalist) => {
+  const createLabelRadioButton = (datalist, headers) => {
     let label = '';
-    for (const key in formData) {
-      label += `${key} ${datalist[key]} `;
+    let index = 0;
+    for (const key in datalist) {
+      label += `${headers[index]} ${datalist[key]} `;
+      index++;
     }
     return label;
   };
 
+  const classes = useRadioStyles();
+  const RenderLegend = legend;
+
   return (
-    <Table
-      selectRows={true}
-      onChange={handleChange}
-      selectedValue={formData as RowData}
-    >
-      <TableHeader>
-        <TableRow>
-          <TableCell radiobutton={true}></TableCell>
-          {renderHeaders(tableHeaders)}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {calculatedDataList.map((datalist) => {
-          return (
-            <TableRow
-              key={JSON.stringify(datalist)}
-              rowData={rowAsValue(datalist)}
-            >
-              <TableCell radiobutton={true}>
-                <RadioButton
-                  name={datalist}
-                  onChange={() => {
-                    // Intentionally empty to prevent double-selection
-                  }}
-                  value={rowAsValueString(datalist)}
-                  checked={rowAsValueString(datalist) === JSON.stringify(formData) ? true : false}
-                  label={createLabelRadioButton(datalist)}
-                  hideLabel={true}
-                ></RadioButton>
-              </TableCell>
-              {renderRow(datalist)}
-            </TableRow>
-          );
-        })}
-      </TableBody>
-      {pagination && (
-        <TableFooter>
+    <FormControl component='fieldset'>
+      <FormLabel
+        component='legend'
+        classes={{ root: cn(classes.legend) }}
+        id={`${id}-label`}
+      >
+        <RenderLegend />
+      </FormLabel>
+
+      <Table
+        selectRows={true}
+        onChange={handleChange}
+        selectedValue={formData as RowData}
+        aria-labelledby={`${id}-label`}
+        id={id}
+        tabIndex={0}
+      >
+        <TableHeader>
           <TableRow>
-            <TableCell colSpan={tableHeaders && 1 + tableHeaders?.length}>
-              <Pagination
-                numberOfRows={totalItemsCount}
-                rowsPerPageOptions={pagination.alternatives}
-                rowsPerPage={rowsPerPage}
-                onRowsPerPageChange={handleChangeRowsPerPage}
-                currentPage={currentPage}
-                setCurrentPage={handleChangeCurrentPage}
-                descriptionTexts={getLanguageFromKey('list_component', language)}
-              />
-            </TableCell>
+            <td />
+            {renderHeaders(tableHeaders)}
           </TableRow>
-        </TableFooter>
-      )}
-    </Table>
+        </TableHeader>
+        <TableBody>
+          {calculatedDataList.map((datalist) => {
+            return (
+              <TableRow
+                key={JSON.stringify(datalist)}
+                rowData={rowAsValue(datalist)}
+              >
+                <TableCell radiobutton={true}>
+                  <RadioButton
+                    name={datalist}
+                    onChange={() => {
+                      // Intentionally empty to prevent double-selection
+                    }}
+                    value={rowAsValueString(datalist)}
+                    checked={rowAsValueString(datalist) === JSON.stringify(formData) ? true : false}
+                    label={createLabelRadioButton(datalist, tableHeaders)}
+                    hideLabel={true}
+                  ></RadioButton>
+                </TableCell>
+                {renderRow(datalist)}
+              </TableRow>
+            );
+          })}
+        </TableBody>
+        {pagination && (
+          <TableFooter>
+            <TableRow>
+              <TableCell colSpan={tableHeaders && 1 + tableHeaders?.length}>
+                <Pagination
+                  numberOfRows={totalItemsCount}
+                  rowsPerPageOptions={pagination.alternatives}
+                  rowsPerPage={rowsPerPage}
+                  onRowsPerPageChange={handleChangeRowsPerPage}
+                  currentPage={currentPage}
+                  setCurrentPage={handleChangeCurrentPage}
+                  descriptionTexts={getLanguageFromKey('list_component', language)}
+                />
+              </TableCell>
+            </TableRow>
+          </TableFooter>
+        )}
+      </Table>
+    </FormControl>
   );
 };
