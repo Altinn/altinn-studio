@@ -23,7 +23,7 @@ public static class SharedResourcesHelper
     {
         var resourceNameEnding = ("_TestData." + resourceName).Replace('/', '.');
         var embeddedResourceName = SharedResourcesAssembly.GetManifestResourceNames()
-            .First(x => x.EndsWith(resourceNameEnding));
+            .Single(x => x.EndsWith(resourceNameEnding));
         return SharedResourcesAssembly.GetManifestResourceStream(embeddedResourceName);
     }
 
