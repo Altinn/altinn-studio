@@ -1,11 +1,7 @@
-using System.Collections.Generic;
-using System.IO;
-using System.Net.Http;
-using System.Threading.Tasks;
+#nullable enable
 using Altinn.Platform.Authorization.Services.Interface;
 using Authorization.Interface.Models;
-using LocalTest.Configuration;
-using Microsoft.Extensions.Logging;
+using LocalTest.Services.TestData;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -16,44 +12,30 @@ namespace Altinn.Platform.Authorization.Services.Implementation
     /// </summary>
     public class RolesWrapper : IRoles
     {
-        private readonly LocalPlatformSettings _localPlatformSettings;
+        private readonly TestDataService _testDataService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RolesWrapper"/> class
         /// </summary>
-        /// <param name="rolesClient">the client handler for roles api</param>
-        public RolesWrapper(IOptions<LocalPlatformSettings> localPlatformSettings)
+        /// <param name="testDataService">Service to fetch test data</param>
+        public RolesWrapper(TestDataService testDataService)
         {
-            this._localPlatformSettings = localPlatformSettings.Value;
+            this._testDataService = testDataService;
         }
 
         /// <inheritdoc />
         public async Task<List<Role>> GetDecisionPointRolesForUser(int coveredByUserId, int offeredByPartyId)
         {
-            string rolesPath = GetRolesPath(coveredByUserId, offeredByPartyId);
-
-            List<Role> roles = new List<Role>();
-
-            if (File.Exists(rolesPath))
+            var data = await _testDataService.GetTestData();
+            if(data.Authorization.Roles.TryGetValue(coveredByUserId.ToString(), out var user))
             {
-                string content = System.IO.File.ReadAllText(rolesPath);
-                roles = (List<Role>)JsonConvert.DeserializeObject(content, typeof(List<Role>));
+                if(user.TryGetValue(offeredByPartyId.ToString(), out var roles))
+                {
+                    return roles;
+                }
             }
 
-            return await Task.FromResult(roles);
-        }
-
-        private string GetRolesPath(int userId, int resourcePartyId)
-        {
-            string[] pathArray = new string[] {
-                this._localPlatformSettings.LocalTestingStaticTestDataPath,
-                this._localPlatformSettings.AuthorizationDataFolder,
-                this._localPlatformSettings.RolesFolder,
-                $"User_{userId}/",
-                $"party_{resourcePartyId}/",
-                "roles.json"
-            };
-            return Path.Combine(pathArray);
+            return new List<Role>();
         }
     }
 }

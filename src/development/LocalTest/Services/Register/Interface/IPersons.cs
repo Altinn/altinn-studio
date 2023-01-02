@@ -1,5 +1,5 @@
+#nullable enable
 using Altinn.Platform.Register.Models;
-using System.Threading.Tasks;
 
 namespace LocalTest.Services.Register.Interface
 {
@@ -13,6 +13,6 @@ namespace LocalTest.Services.Register.Interface
         /// </summary>
         /// <param name="ssn">The persons ssn</param>
         /// <returns></returns>
-        Task<Person> GetPerson(string ssn);
+        Task<Person?> GetPerson(string ssn);
     }
 }

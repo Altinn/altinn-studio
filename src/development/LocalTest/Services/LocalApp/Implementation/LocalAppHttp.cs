@@ -1,33 +1,36 @@
 #nullable enable
-using System;
-using System.Collections.Generic;
-using System.Net.Http;
-using System.Security.Claims;
+
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Caching.Memory;
 
 using Altinn.Platform.Storage.Interface.Models;
 using LocalTest.Services.Authentication.Interface;
-using AltinnCore.Authentication.Constants;
 
 using LocalTest.Configuration;
 using LocalTest.Services.LocalApp.Interface;
+using LocalTest.Services.TestData;
 
 namespace LocalTest.Services.LocalApp.Implementation
 {
     public class LocalAppHttp : ILocalApp
     {
+        public static readonly JsonSerializerOptions JSON_OPTIONS = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+        {
+            Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
+        };
         public const string XACML_CACHE_KEY = "/api/v1/meta/authorizationpolicy/";
         public const string APPLICATION_METADATA_CACHE_KEY = "/api/v1/applicationmetadata?checkOrgApp=false";
         public const string TEXT_RESOURCE_CACE_KEY = "/api/v1/texts";
+        public const string TEST_DATA_CACHE_KEY = "TEST_DATA_CACHE_KEY";
         private readonly GeneralSettings _generalSettings;
         private readonly IAuthentication _authenticationService;
         private readonly HttpClient _httpClient;
         private readonly IMemoryCache _cache;
-        public LocalAppHttp(IOptions<GeneralSettings> generalSettings, IAuthentication authenticationService, IHttpClientFactory httpClientFactory, IOptions<LocalPlatformSettings> localPlatformSettings, IMemoryCache cache)
+        private readonly ILogger<LocalAppHttp> _logger;
+
+        public LocalAppHttp(IOptions<GeneralSettings> generalSettings, IAuthentication authenticationService, IHttpClientFactory httpClientFactory, IOptions<LocalPlatformSettings> localPlatformSettings, IMemoryCache cache, ILogger<LocalAppHttp> logger)
         {
             _generalSettings = generalSettings.Value;
             _authenticationService = authenticationService;
@@ -35,6 +38,7 @@ namespace LocalTest.Services.LocalApp.Implementation
             _httpClient.BaseAddress = new Uri(localPlatformSettings.Value.LocalAppUrl);
             _httpClient.Timeout = TimeSpan.FromHours(1);
             _cache = cache;
+            _logger = logger;
         }
         public async Task<string?> GetXACMLPolicy(string appId)
         {
@@ -45,15 +49,17 @@ namespace LocalTest.Services.LocalApp.Implementation
                 return await _httpClient.GetStringAsync($"{appId}/api/v1/meta/authorizationpolicy");
             });
         }
-        public async Task<Application?> GetApplicationMetadata(string appId)
+        public async Task<Application?> GetApplicationMetadata(string? appId)
         {
+            appId = appId ?? "dummyOrg/dummyApp";
             var content = await _cache.GetOrCreateAsync(APPLICATION_METADATA_CACHE_KEY + appId, async cacheEntry =>
             {
                 // Cache with very short duration to not slow down page load, where this file can be accessed many many times
                 cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
                 return await _httpClient.GetStringAsync($"{appId}/api/v1/applicationmetadata?checkOrgApp=false");
             });
-            return JsonSerializer.Deserialize<Application>(content, new JsonSerializerOptions{PropertyNameCaseInsensitive = true} );
+
+            return JsonSerializer.Deserialize<Application>(content, JSON_OPTIONS);
         }
 
         public async Task<TextResource?> GetTextResource(string org, string app, string language)
@@ -64,7 +70,7 @@ namespace LocalTest.Services.LocalApp.Implementation
                 return await _httpClient.GetStringAsync($"{org}/{app}/api/v1/texts/{language}");
             });
 
-            var textResource = JsonSerializer.Deserialize<TextResource>(content, new JsonSerializerOptions{PropertyNameCaseInsensitive = true});
+            var textResource = JsonSerializer.Deserialize<TextResource>(content, JSON_OPTIONS);
             if (textResource != null)
             {
                 textResource.Id = $"{org}-{app}-{language}";
@@ -80,7 +86,7 @@ namespace LocalTest.Services.LocalApp.Implementation
         {
             var ret = new Dictionary<string, Application>();
             // Return a single element as only one app can run on port 5005
-            var app = await GetApplicationMetadata("dummyOrg/dummyApp");
+            var app = await GetApplicationMetadata(null);
             if (app != null)
             {
                 ret.Add(app.Id, app);
@@ -112,6 +118,39 @@ namespace LocalTest.Services.LocalApp.Implementation
             }
 
             return JsonSerializer.Deserialize<Instance>(stringResponse, new JsonSerializerOptions{PropertyNameCaseInsensitive = true});
+        }
+
+        public async Task<AppTestDataModel?> GetTestData()
+        {
+            return await _cache.GetOrCreateAsync(TEST_DATA_CACHE_KEY, async (cacheEntry) =>
+            {
+                cacheEntry.SetSlidingExpiration(TimeSpan.FromSeconds(5));
+
+                try
+                {
+                    var applicationmetadata = await GetApplicationMetadata(null);
+                    if (applicationmetadata is null)
+                    {
+                        return null;
+                    }
+
+                    var response = await _httpClient.GetAsync($"{applicationmetadata.Id}/testData.json");
+                    if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    {
+                        _logger.LogInformation("No custom www/testData.json found. Using default test users");
+                        return null;
+                    }
+
+                    response.EnsureSuccessStatusCode();
+                    return JsonSerializer.Deserialize<AppTestDataModel>(await response.Content.ReadAsByteArrayAsync(), JSON_OPTIONS);
+                }
+                catch (HttpRequestException e)
+                {
+                    _logger.LogCritical(e, "Failed to get Test data");
+                    return null;
+                }
+
+            });
         }
     }
 }

@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#nullable enable
 using System.Security.Claims;
-using System.Threading.Tasks;
 
 namespace Altinn.Platform.Authorization.Services.Interface
 {
