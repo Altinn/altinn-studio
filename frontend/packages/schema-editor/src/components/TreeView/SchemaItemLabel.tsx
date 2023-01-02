@@ -34,7 +34,14 @@ export interface SchemaItemLabelProps {
   selectedNode: UiSchemaNode;
   translate: (key: string) => string;
 }
-
+export enum SchemaItemLabelTestIds {
+  contextMenuAddReference = 'context-menu-add-reference',
+  contextMenuDelete = 'context-menu-delete',
+  contextMenuConvertToField = 'context-menu-convert-to-field',
+  contextMenuConvertToReference = 'context-menu-convert-to-reference',
+  contextMenuAddField = 'context-menu-add-field',
+  contextMenuAddCombination = 'context-menu-add-combination',
+}
 export const SchemaItemLabel = ({
   editMode,
   hasReferredNodes,
@@ -145,7 +152,9 @@ export const SchemaItemLabel = ({
       >
         {capabilties.includes(Capabilites.CanHaveReferenceAdded) && (
           <AltinnMenuItem
+            testId={SchemaItemLabelTestIds.contextMenuAddReference}
             id='add-reference-to-node-button'
+            data-testid={''}
             key='add_reference'
             onClick={(event) => handleAddNode(event, ObjectKind.Reference)}
             text={translate('add_reference')}
@@ -155,6 +164,7 @@ export const SchemaItemLabel = ({
         )}
         {capabilties.includes(Capabilites.CanHaveFieldAdded) && (
           <AltinnMenuItem
+            testId={SchemaItemLabelTestIds.contextMenuAddField}
             id='add-field-to-node-button'
             key='add_field'
             onClick={(event) => handleAddNode(event, ObjectKind.Field)}
@@ -165,6 +175,7 @@ export const SchemaItemLabel = ({
         )}
         {capabilties.includes(Capabilites.CanHaveCombinationAdded) && (
           <AltinnMenuItem
+            testId={SchemaItemLabelTestIds.contextMenuAddCombination}
             id='add-combination-to-node-button'
             key='add_combination'
             onClick={(event) => handleAddNode(event, ObjectKind.Combination)}
@@ -175,6 +186,7 @@ export const SchemaItemLabel = ({
         )}
         {capabilties.includes(Capabilites.CanBeConvertedToReference) && (
           <AltinnMenuItem
+            testId={SchemaItemLabelTestIds.contextMenuConvertToReference}
             id='convert-node-to-reference-button'
             key='convert-node-to-reference'
             onClick={handleConvertToReference}
@@ -185,6 +197,7 @@ export const SchemaItemLabel = ({
         )}
         {capabilties.includes(Capabilites.CanBeConvertedToField) && (
           <AltinnMenuItem
+            testId={SchemaItemLabelTestIds.contextMenuConvertToField}
             id='convert-node-to-field-buttonn'
             key='convert-node-to-field'
             onClick={handleConvertToField}
@@ -195,6 +208,7 @@ export const SchemaItemLabel = ({
         )}
         {capabilties.includes(Capabilites.CanBeDeleted) && (
           <AltinnMenuItem
+            testId={SchemaItemLabelTestIds.contextMenuDelete}
             id='delete-node-button'
             key='delete'
             className={classes.contextMenuLastItem}

@@ -36,7 +36,7 @@ export const SearchResultReposList = ({ searchValue }: { searchValue: string }) 
   };
 
   return (
-    <div>
+    <div data-testid='search-result-repos-list'>
       <h2>{getLanguageFromKey('dashboard.search_result', language)}</h2>
       <RepoList
         repos={reposWithStarred}
