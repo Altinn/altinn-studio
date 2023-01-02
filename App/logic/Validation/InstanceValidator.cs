@@ -17,30 +17,47 @@ namespace Altinn.App.logic.Validation
                 Skjema model = (Skjema)data;
                 string middleName = model?.NyttNavngrp9313?.NyttNavngrp9314?.PersonMellomnavnNyttdatadef34759?.value;
                 string firstName = model?.NyttNavngrp9313?.NyttNavngrp9314?.PersonFornavnNyttdatadef34758?.value;
+                string modelMiddleName = "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value";
+                string modelFirstName = "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonFornavnNytt-datadef-34758.value";
+                string modelChangesFirstName = "Innledning-grp-9309.NavneendringenGjelderFor-grp-9310.SubjektFornavnFolkeregistrert-datadef-34730.value";
+
                 if (!string.IsNullOrEmpty(middleName) && middleName.Contains("test"))
                 {
-                    validationResults.AddModelError("NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value", "*WARNING*test er ikke en gyldig verdi");
-                    validationResults.AddModelError("Innledning-grp-9309.NavneendringenGjelderFor-grp-9310.SubjektFornavnFolkeregistrert-datadef-34730.value", "*WARNING*test er ikke en gyldig verdi");
+                    validationResults.AddModelError(modelMiddleName, "*WARNING*test er ikke en gyldig verdi");
+                    validationResults.AddModelError(modelChangesFirstName, "*WARNING*test er ikke en gyldig verdi");
                 }
                 if (!string.IsNullOrEmpty(middleName) && middleName.Contains("info"))
                 {
-                    validationResults.AddModelError("NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value", "*INFO*Dette er en infomelding");
+                    validationResults.AddModelError(modelMiddleName, "*INFO*Dette er en infomelding");
                 }
                 if (!string.IsNullOrEmpty(middleName) && middleName.Contains("success"))
                 {
-                    validationResults.AddModelError("NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value", "*SUCCESS*Dette er en sukessmelding");
+                    validationResults.AddModelError(modelMiddleName, "*SUCCESS*Dette er en sukessmelding");
                 }
                 if (!string.IsNullOrEmpty(middleName) && !middleName.Contains("test"))
                 {
-                    validationResults.AddModelError("NyttNavn-grp-9313.NyttNavn-grp-9314.PersonMellomnavnNytt-datadef-34759.value", "*FIXED*test er ikke en gyldig verdi");
+                    validationResults.AddModelError(modelMiddleName, "*FIXED*test er ikke en gyldig verdi");
                 }
                 if (string.IsNullOrEmpty(firstName))
                 {
-                    validationResults.AddModelError("NyttNavn-grp-9313.NyttNavn-grp-9314.PersonFornavnNytt-datadef-34758.value", "Feltet er påkrevd");
+                    validationResults.AddModelError(modelFirstName, "Feltet er påkrevd (fra backend)");
                 }
                 if (!string.IsNullOrEmpty(firstName) && firstName.Contains("test"))
                 {
-                    validationResults.AddModelError("NyttNavn-grp-9313.NyttNavn-grp-9314.PersonFornavnNytt-datadef-34758.value", "error.testValue");
+                    validationResults.AddModelError(modelFirstName, "error.testValue");
+                }
+
+                string modelRadios = "Radioknapp";
+                string modelCheckboxes = "NyttNavn-grp-9313.NyttNavn-grp-9314.PersonBekrefterNyttNavn.value";
+                if (!string.IsNullOrEmpty(firstName) && firstName.Equals("ErrorOnCheckboxesAndRadios"))
+                {
+                    validationResults.AddModelError(modelCheckboxes, "Ugyldig valg 1");
+                    validationResults.AddModelError(modelRadios, "Ugyldig valg 2");
+                }
+                else
+                {
+                    validationResults.AddModelError(modelCheckboxes, "*FIXED*Ugyldig valg 1");
+                    validationResults.AddModelError(modelRadios, "*FIXED*Ugyldig valg 2");
                 }
             }
 
