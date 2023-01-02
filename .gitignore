@@ -379,7 +379,7 @@ src/Altinn.Apps/AppTemplates/AspNet/App/Properties/launchSettings.json
 *.iml
 
 ## Test repositories
-src/studio/src/designer/backend.Tests/_TestData/Repositories/*/*/test-repo_*/**
-src/studio/src/designer/backend.Tests/_TestData/Remote/*/test-repo_*/**
+backend/tests/Designer.Tests/_TestData/Repositories/*/*/test-repo_*/**
+backend/tests/Designer.Tests/_TestData/Remote/*/test-repo_*/**
 **/.env
 src/studio/.devcontainer/**
