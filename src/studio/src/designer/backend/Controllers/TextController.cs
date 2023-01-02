@@ -7,7 +7,6 @@ using Altinn.Studio.Designer.Configuration;
 using Altinn.Studio.Designer.Helpers;
 using Altinn.Studio.Designer.Models;
 using Altinn.Studio.Designer.Services.Interfaces;
-using Altinn.Studio.Designer.TypedHttpClients.AltinnStorage;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -25,6 +24,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// </summary>
     [Authorize]
     [AutoValidateAntiforgeryToken]
+    [Route("designer/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/[controller]/[action]")]
     public class TextController : Controller
     {
         private readonly IWebHostEnvironment _hostingEnvironment;
@@ -62,6 +62,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The view with JSON editor</returns>
+        [Route("/designer/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/[controller]")]
         public IActionResult Index(string org, string app)
         {
             IList<string> languages = _repository.GetLanguages(org, app);
@@ -91,14 +92,15 @@ namespace Altinn.Studio.Designer.Controllers
         /// Save a resource file
         /// </summary>
         /// <param name="jsonData">The JSON Data</param>
-        /// <param name="id">The resource language id (for example <code>nb, en</code> )</param>
+        /// <param name="languageCode">The resource language id (for example <code>nb, en</code> )</param>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>A View with update status</returns>
         [HttpPost]
-        public IActionResult SaveResource([FromBody] dynamic jsonData, string id, string org, string app)
+        [Route("{languageCode}")]
+        public IActionResult SaveResource([FromBody] dynamic jsonData, string languageCode, string org, string app)
         {
-            id = id.Split('-')[0];
+            languageCode = languageCode.Split('-')[0];
             JObject json = jsonData;
 
             JArray resources = json["resources"] as JArray;
@@ -117,16 +119,12 @@ namespace Altinn.Studio.Designer.Controllers
             if (!(appTitleToken == null))
             {
                 string appTitle = appTitleToken.Value<string>("value");
-                _repository.UpdateAppTitle(org, app, id, appTitle);
+                _repository.UpdateAppTitle(org, app, languageCode, appTitle);
             }
 
-            _repository.SaveLanguageResource(org, app, id, json.ToString());
+            _repository.SaveLanguageResource(org, app, languageCode, json.ToString());
 
-            return Json(new
-            {
-                Success = true,
-                Message = "Språk lagret",
-            });
+            return Ok("Resource saved");
         }
 
         /// <summary>
@@ -134,13 +132,18 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="id">The resource language id (for example <code>nb, en</code>)</param>
+        /// <param name="languageCode">The resource language id (for example <code>nb, en</code>)</param>
         /// <returns>Deletes a language resource</returns>
         [HttpDelete]
-        public IActionResult DeleteLanguage(string org, string app, string id)
+        [Route("{languageCode}")]
+        public IActionResult DeleteLanguage(string org, string app, string languageCode)
         {
-            bool deleted = _repository.DeleteLanguage(org, app, id);
-            return Json(new { Message = "Språket " + id + " er nå slettet!", Id = id, GikkBra = deleted });
+            if (_repository.DeleteLanguage(org, app, languageCode))
+            {
+                return Ok($"Resources.{languageCode}.json was successfully deleted.");
+            }
+
+            return BadRequest($"Resource.{languageCode}.json could not be deleted.");
         }
 
         /// <summary>
@@ -151,7 +154,7 @@ namespace Altinn.Studio.Designer.Controllers
         public IActionResult GetResourceSchema()
         {
             string schema = System.IO.File.ReadAllText(_hostingEnvironment.WebRootPath + $"/designer/json/schema/resource-schema.json");
-            return Content(schema, "application/json", System.Text.Encoding.UTF8);
+            return Content(schema, "application/json", Encoding.UTF8);
         }
 
         /// <summary>
@@ -159,13 +162,14 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="id">The resource language id (for example <code>nb, en</code>)</param>
+        /// <param name="languageCode">The resource language id (for example <code>nb, en</code>)</param>
         /// <returns>The JSON config</returns>
         [HttpGet]
-        public IActionResult GetResource(string org, string app, string id)
+        [Route("{languageCode}")]
+        public IActionResult GetResource(string org, string app, string languageCode)
         {
-            id = id.Split('-')[0];
-            string resourceJson = _repository.GetLanguageResource(org, app, id);
+            languageCode = languageCode.Split('-')[0];
+            string resourceJson = _repository.GetLanguageResource(org, app, languageCode);
             if (string.IsNullOrWhiteSpace(resourceJson))
             {
                 resourceJson = string.Empty;
@@ -253,18 +257,19 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="keysTexts">List of Key/Value pairs that should be updated or added if not present.</param>
-        /// <param name="id">The languageCode for the text resource file that is being edited.</param>
+        /// <param name="languageCode">The languageCode for the text resource file that is being edited.</param>
         /// <remarks>Temporary method that should live until old text format is replaced by the new.</remarks>
         [HttpPut]
-        public IActionResult UpdateTextsForKeys(string org, string app, [FromBody] Dictionary<string, string> keysTexts, string id)
+        [Route("{languageCode}")]
+        public IActionResult UpdateTextsForKeys(string org, string app, [FromBody] Dictionary<string, string> keysTexts, string languageCode)
         {
             try
             {
-                string filename = $"resource.{id}.json";
+                string filename = $"resource.{languageCode}.json";
                 string developer = AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext);
                 string textResourceDirectoryPath = _settings.GetLanguageResourcePath(org, app, developer) + filename;
 
-                TextResource textResourceObject = new TextResource() { Language = id, Resources = new List<TextResourceElement> {} };
+                TextResource textResourceObject = new TextResource { Language = languageCode, Resources = new List<TextResourceElement>() };
 
                 if (System.IO.File.Exists(textResourceDirectoryPath))
                 {
@@ -288,14 +293,14 @@ namespace Altinn.Studio.Designer.Controllers
 
                 string resourceString = JsonConvert.SerializeObject(textResourceObject, _serializerSettings);
 
-                _repository.SaveLanguageResource(org, app, id, resourceString);
+                _repository.SaveLanguageResource(org, app, languageCode, resourceString);
 
-                return Ok($"The text resource, resource.{id}.json, was updated.");
+                return Ok($"The text resource, resource.{languageCode}.json, was updated.");
 
             }
             catch (Exception)
             {
-                return BadRequest($"The text resource, resource.{id}.json, could not be updated.");
+                return BadRequest($"The text resource, resource.{languageCode}.json, could not be updated.");
             }
         }
     }

@@ -20,6 +20,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// </summary>
     [Authorize]
     [AutoValidateAntiforgeryToken]
+    [Route("designer/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/[controller]/[action]")]
     public class ConfigController : Controller
     {
         private readonly IWebHostEnvironment _hostingEnvironment;
@@ -46,55 +47,32 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// View for basic app configuration
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The View for JSON editor</returns>
-        public IActionResult Index(string org, string app)
-        {
-            return View();
-        }
-
-        /// <summary>
-        /// The View for configuration of security for an app
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The view with JSON editor</returns>
-        public IActionResult Security(string org, string app)
-        {
-            return View();
-        }
-
-        /// <summary>
         /// Common method to update the local config
         /// </summary>
         /// <param name="jsonData">The JSON Data</param>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="id">The name of the config</param>
+        /// <param name="configName">The name of the config</param>
         /// <returns>A View with update status</returns>
         [HttpPost]
-        public IActionResult SaveConfig([FromBody]dynamic jsonData, string org, string app, string id)
+        [Route("{configName}")]
+        public IActionResult SaveConfig([FromBody]dynamic jsonData, [FromRoute] string org, string app, string configName)
         {
-            _repository.SaveConfiguration(org, app, id + ".json", jsonData.ToString());
-            return Json(new
-            {
-                Success = true,
-                Message = "Konfigurasjon lagret",
-            });
+            _repository.SaveConfiguration(org, app, configName + ".json", jsonData.ToString());
+            return Ok("Config successfully saved.");
         }
 
         /// <summary>
         /// Get the JSON schema
         /// </summary>
-        /// <param name="id">The name of schema</param>
+        /// <param name="schemaName">The name of schema</param>
         /// <returns>JSON content</returns>
         [HttpGet]
-        public IActionResult Schema(string id)
+        [Produces("application/json")]
+        [Route("{schemaName}")]
+        public IActionResult Schema(string schemaName)
         {
-            string schema = System.IO.File.ReadAllText(_hostingEnvironment.WebRootPath + $"/designer/json/schema/{id.AsFileName()}.json");
+            string schema = System.IO.File.ReadAllText(_hostingEnvironment.WebRootPath + $"/designer/json/schema/{schemaName.AsFileName()}.json");
             return Content(schema, "application/json", System.Text.Encoding.UTF8);
         }
 
@@ -103,12 +81,13 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="id">The name on config</param>
+        /// <param name="configName">The name on config</param>
         /// <returns>The JSON config</returns>
         [HttpGet]
-        public IActionResult GetConfig(string org, string app, string id)
+        [Route("{configName}")]
+        public IActionResult GetConfig([FromRoute] string org, string app, string configName)
         {
-            string configJson = _repository.GetConfiguration(org, app, id + ".json");
+            string configJson = _repository.GetConfiguration(org, app, configName + ".json");
             if (string.IsNullOrWhiteSpace(configJson))
             {
                 configJson = "{}";
@@ -126,7 +105,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The service configuration</returns>
         [HttpGet]
-        public ServiceConfiguration GetServiceConfig(string org, string app)
+        public ServiceConfiguration GetServiceConfig([FromRoute] string org, string app)
         {
             string serviceConfigPath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceConfigFileName;
             ServiceConfiguration serviceConfigurationObject = null;
@@ -149,7 +128,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <param name="serviceConfig">the service config</param>
         [HttpPost]
-        public void SetServiceConfig(string org, string app, [FromBody] dynamic serviceConfig)
+        public void SetServiceConfig([FromRoute] string org, string app, [FromBody] dynamic serviceConfig)
         {
             string serviceConfigPath = _settings.GetServicePath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext)) + _settings.ServiceConfigFileName;
             ServiceConfiguration serviceConfigurationObject = null;

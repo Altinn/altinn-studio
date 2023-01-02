@@ -39,7 +39,7 @@ public class UpdateDatamodelTests : ApiTestsBase<DatamodelsController, UpdateDat
     }
 
     /// <summary>
-    /// Scenario: Post a Json Schema
+    /// Scenario: Update a Json Schema
     /// </summary>
     [Theory]
     [InlineData("RA-0678_M.xsd", "0678")]

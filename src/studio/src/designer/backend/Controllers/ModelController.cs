@@ -28,6 +28,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// </summary>
     [Authorize]
     [AutoValidateAntiforgeryToken]
+    [Route("designer/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/[controller]/[action]")]
     public class ModelController : Controller
     {
         private readonly IRepository _repository;
@@ -53,6 +54,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The model main page</returns>
+        [Route("")]
         public ActionResult Index(string org, string app)
         {
             ModelMetadata metadata = _repository.GetModelMetadata(org, app);
@@ -142,15 +144,19 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="texts">Boolean indicating if text should be included</param>
-        /// <param name="restrictions">Boolean indicating if restrictions should be included</param>
-        /// <param name="attributes">Boolean indicating if attributes should be included</param>
         /// <returns>The model as JSON</returns>
         [HttpGet]
-        public ActionResult GetJson(string org, string app, bool texts = true, bool restrictions = true, bool attributes = true)
+        public IActionResult GetJson(string org, string app)
         {
-            ModelMetadata metadata = _repository.GetModelMetadata(org, app);
-            return Json(metadata, new JsonSerializerSettings() { Formatting = Newtonsoft.Json.Formatting.Indented });
+            try
+            {
+                ModelMetadata metadata = _repository.GetModelMetadata(org, app);
+                return Json(metadata, new JsonSerializerSettings() { Formatting = Newtonsoft.Json.Formatting.Indented });
+            }
+            catch
+            {
+                return NotFound();
+            }
         }
 
         /// <summary>

@@ -17,6 +17,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// </summary>
     [Authorize]
     [AutoValidateAntiforgeryToken]
+    [Route("designer/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/[controller]/[action]")]
     public class UIEditorController : Controller
     {
         private readonly IRepository _repository;
@@ -38,10 +39,9 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// The index action which will show the React form builder
         /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>A view with the React form builder</returns>
-        public IActionResult Index(string org, string app)
+        [Route("")]
+        public IActionResult Index()
         {
             return RedirectToAction("Index", "ServiceDevelopment");
         }
@@ -53,21 +53,9 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The model representation as JSON</returns>
         [HttpGet]
-        public ActionResult GetFormLayout(string org, string app)
+        public IActionResult GetFormLayout(string org, string app)
         {
             return Content(_repository.GetJsonFormLayouts(org, app), "text/plain", Encoding.UTF8);
-        }
-
-        /// <summary>
-        /// Get third party components listed as JSON
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>The model representation as JSON</returns>
-        [HttpGet]
-        public ActionResult GetThirdPartyComponents(string org, string app)
-        {
-            return Content(_repository.GetJsonThirdPartyComponents(org, app), "text/plain", Encoding.UTF8);
         }
 
         /// <summary>
@@ -77,7 +65,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The model representation as JSON</returns>
         [HttpGet]
-        public ActionResult GetRuleHandler(string org, string app)
+        public IActionResult GetRuleHandler(string org, string app)
         {
             return Content(_repository.GetRuleHandler(org, app), "application/javascript", Encoding.UTF8);
         }
@@ -87,13 +75,21 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="id">The language id for the text resource file</param>
+        /// <param name="languageCode">The language id for the text resource file</param>
         /// <returns>The model representation as JSON</returns>
         [HttpGet]
-        public ActionResult GetTextResources(string org, string app, string id)
+        [Route("{languageCode}")]
+        public IActionResult GetTextResources(string org, string app, string languageCode)
         {
-            var result = _repository.GetLanguageResource(org, app, id);
-            return Content(result);
+            try
+            {
+                var result = _repository.GetLanguageResource(org, app, languageCode);
+                return Ok(result);
+            }
+            catch
+            {
+                return NotFound($"The text resource, resource.{languageCode}.json, was not found.");
+            }
         }
 
         /// <summary>
@@ -104,13 +100,14 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="textResources">The collection of text resources to be added</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
-        public ActionResult AddTextResources(string org, string app, [FromBody] List<TextResource> textResources)
+        public IActionResult AddTextResources(string org, string app, [FromBody] List<TextResource> textResources)
         {
-            var success = _repository.AddTextResources(org, app, textResources);
-            return Json(new
+            if (_repository.AddTextResources(org, app, textResources))
             {
-                Success = success
-            });
+                return Ok();
+            }
+
+            return BadRequest("Text resource could not be added.");
         }
 
         /// <summary>
@@ -119,18 +116,15 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="jsonData">The code list data to save</param>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="id">The name of the form layout to be saved.</param>
+        /// <param name="layoutName">The name of the form layout to be saved.</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
-        public ActionResult SaveFormLayout([FromBody] dynamic jsonData, string org, string app, string id)
+        [Route("{layoutName}")]
+        public IActionResult SaveFormLayout([FromBody] dynamic jsonData, string org, string app, string layoutName)
         {
-            _repository.SaveFormLayout(org, app, id, jsonData.ToString());
+            _repository.SaveFormLayout(org, app, layoutName, jsonData.ToString());
 
-            return Json(new
-            {
-                Success = true,
-                Message = "Skjema lagret",
-            });
+            return Ok("From layout successfully saved.");
         }
 
         /// <summary>
@@ -138,25 +132,18 @@ namespace Altinn.Studio.Designer.Controllers
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="id">The form layout to be deleted</param>
+        /// <param name="layoutName">The form layout to be deleted</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpDelete]
-        public ActionResult DeleteFormLayout(string org, string app, string id)
+        [Route("{layoutName}")]
+        public IActionResult DeleteFormLayout(string org, string app, string layoutName)
         {
-            if (_repository.DeleteFormLayout(org, app, id))
+            if (_repository.DeleteFormLayout(org, app, layoutName))
             {
-                return Json(new
-                {
-                    Success = true,
-                    Message = "Skjema slettet",
-                });
+                return Ok("From layout successfully deleted.");
             }
 
-            return Json(new
-            {
-                Success = false,
-                Message = "Ikke slettet",
-            });
+            return BadRequest("Form layout could not be deleted.");
         }
 
         /// <summary>
@@ -165,16 +152,18 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="newName">The new name of the form layout.</param>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="id">The current name of the form layuout</param>
+        /// <param name="layoutName">The current name of the form layuout</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
-        public ActionResult UpdateFormLayoutName([FromBody] string newName, string org, string app, string id)
+        [Route("{layoutName}")]
+        public IActionResult UpdateFormLayoutName([FromBody] string newName, string org, string app, string layoutName)
         {
-            bool success = _repository.UpdateFormLayoutName(org, app, id, newName);
-            return Json(new
+            if (_repository.UpdateFormLayoutName(org, app, layoutName, newName))
             {
-                Success = success,
-            });
+                return Ok("From layout name successfully updated.");
+            }
+
+            return BadRequest("Form layout name could not be updated.");
         }
 
         /// <summary>
@@ -184,14 +173,14 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>A success message if the save was successful</returns>
-        public ActionResult SaveLayoutSettings([FromBody] dynamic jsonData, string org, string app)
+        public IActionResult SaveLayoutSettings([FromBody] dynamic jsonData, string org, string app)
         {
-            _repository.SaveLayoutSettings(org, app, jsonData.ToString());
-            return Json(new
+            if (_repository.SaveLayoutSettings(org, app, jsonData.ToString()))
             {
-                Success = true,
-                Message = "Setting lagret",
-            });
+                return Ok("Layout settings successfully saved.");
+            }
+
+            return BadRequest("Layout settings could not be saved.");
         }
 
         /// <summary>
@@ -200,28 +189,9 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The content of the settings file</returns>
-        public ActionResult GetLayoutSettings(string org, string app)
+        public IActionResult GetLayoutSettings(string org, string app)
         {
             return Content(_repository.GetLayoutSettings(org, app), "application/json", Encoding.UTF8);
-        }
-
-        /// <summary>
-        /// Save form layout as JSON
-        /// </summary>
-        /// <param name="jsonData">The code list data to save</param>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>A success message if the save was successful</returns>
-        [HttpPost]
-        public ActionResult SaveThirdPartyComponents([FromBody] dynamic jsonData, string org, string app)
-        {
-            _repository.SaveJsonThirdPartyComponents(org, app, jsonData.ToString());
-
-            return Json(new
-            {
-                Success = true,
-                Message = "Tredjeparts komponenter lagret",
-            });
         }
 
         /// <summary>
@@ -233,7 +203,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="fileName">The filename to be saved as</param>
         /// <returns>A success message if the save was successful</returns>
         [HttpPost]
-        public ActionResult SaveJsonFile([FromBody] dynamic jsonData, string org, string app, string fileName)
+        public IActionResult SaveJsonFile([FromBody] dynamic jsonData, string org, string app, [FromQuery] string fileName)
         {
             if (!ApplicationHelper.IsValidFilename(fileName))
             {
@@ -249,11 +219,7 @@ namespace Altinn.Studio.Designer.Controllers
                 _repository.SaveJsonFile(org, app, jsonData.ToString(), fileName);
             }
 
-            return Json(new
-            {
-                Success = true,
-                Message = fileName + " saved",
-            });
+            return Ok($"{fileName} saved");
         }
 
         /// <summary>
@@ -264,7 +230,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="fileName">The filename to read from</param>
         /// <returns>The model representation as JSON</returns>
         [HttpGet]
-        public ActionResult GetJsonFile(string org, string app, string fileName)
+        public IActionResult GetJsonFile(string org, string app, [FromQuery] string fileName)
         {
             if (!ApplicationHelper.IsValidFilename(fileName))
             {
@@ -282,14 +248,17 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns></returns>
         [HttpPost]
-        public ActionResult AddMetadataForAttachment([FromBody] dynamic applicationMetadata, string org, string app)
+        public IActionResult AddMetadataForAttachment([FromBody] dynamic applicationMetadata, string org, string app)
         {
-            _repository.AddMetadataForAttachment(org, app, applicationMetadata.ToString());
-            return Json(new
+            try
             {
-                Success = true,
-                Message = " Metadata saved",
-            });
+                _repository.AddMetadataForAttachment(org, app, applicationMetadata.ToString());
+                return Ok("Metadata saved");
+            }
+            catch
+            {
+                return BadRequest("Could not save metadata");
+            }
         }
 
         /// <summary>
@@ -300,14 +269,17 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns></returns>
         [HttpPost]
-        public ActionResult UpdateMetadataForAttachment([FromBody] dynamic applicationMetadata, string org, string app)
+        public IActionResult UpdateMetadataForAttachment([FromBody] dynamic applicationMetadata, string org, string app)
         {
-            _repository.UpdateMetadataForAttachment(org, app, applicationMetadata.ToString());
-            return Json(new
+            try
             {
-                Success = true,
-                Message = " Metadata saved",
-            });
+                _repository.UpdateMetadataForAttachment(org, app, applicationMetadata.ToString());
+                return Ok("Metadata updated");
+            }
+            catch
+            {
+                return BadRequest("Could not update metadata");
+            }
         }
 
         /// <summary>
@@ -318,14 +290,17 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="id">the id of the component</param>
         /// <returns></returns>
         [HttpPost]
-        public ActionResult DeleteMetadataForAttachment(string org, string app, string id)
+        public IActionResult DeleteMetadataForAttachment(string org, string app, string id)
         {
-            _repository.DeleteMetadataForAttachment(org, app, id);
-            return Json(new
+            try
             {
-                Success = true,
-                Message = " Metadata saved",
-            });
+                _repository.DeleteMetadataForAttachment(org, app, id);
+                return Ok("Metadata deleted");
+            }
+            catch
+            {
+                return BadRequest("Could not delete metdata");
+            }
         }
 
         /// <summary>
@@ -335,7 +310,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="app">Application identifier which is unique within an organisation.</param>
         /// <returns>The widget settings for the app.</returns>
         [HttpGet]
-        public ActionResult GetWidgetSettings(string org, string app) 
+        public ActionResult GetWidgetSettings(string org, string app)
         {
             var widgetSettings = _repository.GetWidgetSettings(org, app);
             return Ok(widgetSettings);

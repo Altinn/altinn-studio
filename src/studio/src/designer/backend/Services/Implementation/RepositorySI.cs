@@ -575,25 +575,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
         }
 
         /// <summary>
-        /// Get the Json third party components from disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <returns>Returns the json object as a string</returns>
-        public string GetJsonThirdPartyComponents(string org, string app)
-        {
-            string filePath = _settings.GetThirdPartyComponentsPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            string fileData = null;
-
-            if (File.Exists(filePath))
-            {
-                fileData = File.ReadAllText(filePath, Encoding.UTF8);
-            }
-
-            return fileData;
-        }
-
-        /// <summary>
         /// Get the Json form model from disk for Dynamics
         /// </summary>
         /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
@@ -714,22 +695,6 @@ namespace Altinn.Studio.Designer.Services.Implementation
             string filePath = _settings.GetRuleHandlerPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
             new FileInfo(filePath).Directory.Create();
             File.WriteAllText(filePath, content, Encoding.UTF8);
-
-            return true;
-        }
-
-        /// <summary>
-        /// Save the JSON third party components to disk
-        /// </summary>
-        /// <param name="org">Unique identifier of the organisation responsible for the app.</param>
-        /// <param name="app">Application identifier which is unique within an organisation.</param>
-        /// <param name="resource">The content of the resource file</param>
-        /// <returns>A boolean indicating if saving was ok</returns>
-        public bool SaveJsonThirdPartyComponents(string org, string app, string resource)
-        {
-            string filePath = _settings.GetThirdPartyComponentsPath(org, app, AuthenticationHelper.GetDeveloperUserName(_httpContextAccessor.HttpContext));
-            new FileInfo(filePath).Directory.Create();
-            File.WriteAllText(filePath, resource, Encoding.UTF8);
 
             return true;
         }
