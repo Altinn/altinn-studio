@@ -1,11 +1,7 @@
-using System;
-using System.IO;
-using System.Threading.Tasks;
+#nullable enable
 using Altinn.Platform.Register.Models;
-using LocalTest.Configuration;
 using LocalTest.Services.Register.Interface;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
+using LocalTest.Services.TestData;
 
 namespace LocalTest.Services.Register.Implementation
 {
@@ -14,25 +10,18 @@ namespace LocalTest.Services.Register.Implementation
     /// </summary>
     public class PersonsWrapper : IPersons
     {
-        private readonly LocalPlatformSettings _localPlatformSettings;
+        private readonly TestDataService _testDataService;
 
-        public PersonsWrapper(IOptions<LocalPlatformSettings> localPlatformSettings)
+        public PersonsWrapper(TestDataService testDataService)
         {
-            _localPlatformSettings = localPlatformSettings.Value;
+            _testDataService = testDataService;
         }
 
         /// <inheritdoc />
-        public async Task<Person> GetPerson(string ssn)
+        public async Task<Person?> GetPerson(string ssn)
         {
-            Person person = null;
-            string path = this._localPlatformSettings.LocalTestingStaticTestDataPath + "Register/Person/" + ssn + ".json";
-            if (File.Exists(path))
-            {
-                string content = File.ReadAllText(path);
-                person = (Person)JsonConvert.DeserializeObject(content, typeof(Person));
-            }
-
-            return await Task.FromResult(person);
+            var data = await _testDataService.GetTestData();
+            return data.Register.Person.TryGetValue(ssn, out var value) ? value : null;
         }
     }
 }

@@ -1,11 +1,7 @@
-using System.IO;
-using System.Threading.Tasks;
-using Altinn.Platform.Authorization.Services.Interface;
+#nullable enable
 using Altinn.Platform.Profile.Models;
-using LocalTest.Configuration;
 using LocalTest.Services.Profile.Interface;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
+using LocalTest.Services.TestData;
 
 namespace LocalTest.Services.Profile.Implementation
 {
@@ -14,29 +10,27 @@ namespace LocalTest.Services.Profile.Implementation
     /// </summary>
     public class UserProfilesWrapper : IUserProfiles
     {
-        private readonly LocalPlatformSettings _localPlatformSettings;
+        private readonly TestDataService _testDataService;
 
         private readonly LocalTest.Services.Register.Interface.IParties _partiesService;
 
-        public UserProfilesWrapper(IOptions<LocalPlatformSettings> localPlatformSettings, LocalTest.Services.Register.Interface.IParties partiesService)
+        public UserProfilesWrapper(TestDataService testDataService, LocalTest.Services.Register.Interface.IParties partiesService)
         {
-            _localPlatformSettings = localPlatformSettings.Value;
+            _testDataService = testDataService;
             _partiesService = partiesService;
         }
 
         /// <inheritdoc />
-        public async Task<UserProfile> GetUser(int userId)
+        public async Task<UserProfile?> GetUser(int userId)
         {
-            UserProfile user = null;
-            string path = this._localPlatformSettings.LocalTestingStaticTestDataPath + "Profile/User/" + userId + ".json";
-            if (File.Exists(path))
+            var data = await _testDataService.GetTestData();
+            if (data.Profile.User.TryGetValue(userId.ToString(), out UserProfile? user))
             {
-                string content = File.ReadAllText(path);
-                user = (UserProfile)JsonConvert.DeserializeObject(content, typeof(UserProfile));
+                user.Party = await _partiesService.GetParty(user.PartyId);
+                return user;
             }
 
-            user.Party = await _partiesService.GetParty(user.PartyId);
-           return user;
+            return null;
         }
     }
 }

@@ -1,44 +1,28 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿#nullable enable
 using System.Security.Claims;
-using System.Threading.Tasks;
-using Altinn.Platform.Authentication.Model;
 using Altinn.Platform.Authorization.Services.Interface;
-using LocalTest.Configuration;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
+using LocalTest.Services.TestData;
 
 namespace LocalTest.Services.Authorization.Implementation
 {
     public class ClaimsService : IClaims
     {
-        private readonly LocalPlatformSettings _localPlatformSettings;
+        private readonly TestDataService _testDataService;
 
-        public ClaimsService(IOptions<LocalPlatformSettings> localPlatformSettings)
+        public ClaimsService(TestDataService testDataService)
         {
-            _localPlatformSettings = localPlatformSettings.Value;
+            _testDataService = testDataService;
         }
 
-        public Task<List<Claim>> GetCustomClaims(int userId, string issuer)
+        public async Task<List<Claim>> GetCustomClaims(int userId, string issuer)
         {
-            var path = GetCustomClaimsPath(userId);
-
-            if (File.Exists(path))
+            var data = await _testDataService.GetTestData();
+            if(data.Authorization.Claims.TryGetValue(userId.ToString(), out var customClaims))
             {
-                var content = File.ReadAllText(path);
-                var claims = JsonConvert.DeserializeObject<List<CustomClaim>>(content) ?? new List<CustomClaim>();
-                return Task.FromResult(claims.Select(c => new Claim(c.Type, c.Value, c.ValueType, issuer)).ToList());
+                return customClaims.Select(c => new Claim(c.Type, c.Value, c.ValueType, issuer)).ToList();
             }
 
-            return Task.FromResult(new List<Claim>());
-        }
-
-        private string GetCustomClaimsPath(int userId)
-        {
-            return _localPlatformSettings.LocalTestingStaticTestDataPath +
-                   _localPlatformSettings.AuthorizationDataFolder + _localPlatformSettings.ClaimsFolder + userId +
-                   ".json";
+            return new List<Claim>();
         }
     }
 }
