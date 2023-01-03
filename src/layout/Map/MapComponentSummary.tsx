@@ -5,6 +5,7 @@ import { Typography } from '@material-ui/core';
 
 import { useAppSelector } from 'src/common/hooks';
 import { parseLocation, useStyles } from 'src/layout/Map/MapComponent';
+import { markerIcon } from 'src/layout/Map/MapIcons';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'src/utils/sharedUtils';
 import type { ILayoutCompMap } from 'src/layout/Map/types';
 
@@ -35,6 +36,7 @@ function MapComponentSummary({ component, formData }: IMapComponentSummary) {
           centerLocation={location}
           zoom={16}
           markerLocation={location}
+          markerIcon={markerIcon}
         />
       )}
       <Typography className={classes.footer}>{footerText}</Typography>
