@@ -360,6 +360,9 @@
         "isPrefill": {
           "type": "boolean"
         },
+        "hideComment": {
+          "type": "string"
+        },
         "nested-grp-1234": {
           "type": "array",
           "minItems": 0,
