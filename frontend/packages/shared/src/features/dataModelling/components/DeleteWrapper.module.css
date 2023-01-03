@@ -1,0 +1,3 @@
+.root:not(:hover):not(:disabled) {
+  color: #E23B53 !important;
+}

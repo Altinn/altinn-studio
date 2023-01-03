@@ -4,7 +4,7 @@ import { Administration } from '../features/administration/components/Administra
 import { TextEditor } from '../features/textEditor';
 import DeployPage from '../features/appPublish/pages/deployPage';
 import HandleMergeConflictContainerComponent from '../features/handleMergeConflict/HandleMergeConflictContainer';
-import { IFrame } from '../features/iFrame/iFrameComponent';
+import { IFrame } from '../features/iFrame/IFrameComponent';
 import DataModellingContainer from '../features/dataModelling/containers/DataModellingContainer';
 import { TopBarMenu } from '../layout/AppBar/appBarConfig';
 

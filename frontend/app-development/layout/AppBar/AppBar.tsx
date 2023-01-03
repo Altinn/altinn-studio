@@ -1,7 +1,5 @@
 import React, { useState } from 'react';
-import type { Theme } from '@mui/material';
-import { AppBar as MuiAppBar, Grid, Toolbar, useMediaQuery } from '@mui/material';
-import { createStyles, makeStyles } from '@mui/styles';
+import { AppBar as MuiAppBar, Grid, Toolbar } from '@mui/material';
 import classNames from 'classnames';
 import { Link, useParams } from 'react-router-dom';
 import { altinnImgLogoHeaderUrl } from 'app-shared/cdn-paths';
@@ -13,6 +11,8 @@ import { getLanguageFromKey } from 'app-shared/utils/language';
 import { VersionControlHeader } from 'app-shared/version-control/VersionControlHeader';
 import { useAppSelector } from '../../common/hooks';
 import { getRepositoryType } from 'app-shared/utils/repository';
+import classes from './AppBar.module.css';
+import { useMediaQuery } from '../../common/hooks';
 
 export interface IAppBarProps {
   activeSubHeaderSelection?: string;
@@ -24,76 +24,6 @@ export interface IAppBarProps {
   subMenuItems?: { [key: string]: IMenuItem[] };
 }
 
-const useStyles = makeStyles((theme: Theme) =>
-  createStyles({
-    root: {
-      flexGrow: 1,
-      zIndex: 1,
-      color: theme.altinnPalette.primary.black,
-    },
-    appBar: {
-      borderBottom: '1px solid',
-      borderBottomColor: '#C9C9C9',
-      color: theme.altinnPalette.primary.black,
-      position: 'fixed',
-    },
-    appBarDashboard: {
-      backgroundColor: theme.altinnPalette.primary.white,
-    },
-    appBarEditor: {
-      backgroundColor: theme.altinnPalette.primary.greyLight,
-    },
-    breadCrumb: {
-      paddingLeft: 30,
-      fontSize: 20,
-    },
-    breadCrumbSubApp: {
-      color: '#0062BA',
-    },
-    paper: {
-      textAlign: 'center',
-    },
-    subHeader: {
-      paddingLeft: 12,
-      paddingRight: 12,
-      paddingBottom: 0,
-      fontSize: 20,
-    },
-    subHeaderLink: {
-      borderBottom: '1px solid',
-      borderBottomColor: 'transparent', // To mitigate the 1 pixel adjustment
-      '&:hover': {
-        borderBottom: '1px solid',
-        borderBottomColor: theme.altinnPalette.primary.blueDark,
-        color: theme.altinnPalette.primary.blueDark,
-      },
-    },
-    subHeaderLinkActive: {
-      borderBottom: '1px solid',
-      borderBottomColor: theme.altinnPalette.primary.blueDark,
-      color: theme.altinnPalette.primary.blueDark,
-      fontWeight: 500,
-      '&:hover': {
-        borderBottom: '1px solid',
-        borderBottomColor: theme.altinnPalette.primary.blueDark,
-        color: theme.altinnPalette.primary.blueDark,
-      },
-    },
-    topRightService: {
-      paddingRight: 22,
-    },
-    aImgStyling: {
-      borderBottom: 'none',
-      '&:hover': {
-        borderBottom: 'none',
-      },
-      '&:active': {
-        borderBottom: 'none',
-      },
-    },
-  })
-);
-
 export const AppBar = ({
   activeLeftMenuSelection,
   activeSubHeaderSelection,
@@ -103,10 +33,9 @@ export const AppBar = ({
   subMenuItems,
   showSubMenu,
 }: IAppBarProps) => {
-  const classes = useStyles();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const hiddenMdUp = useMediaQuery((theme: Theme) => theme.breakpoints.up('md'));
-  const hiddenSmDown = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
+  const hiddenMdUp = useMediaQuery('(min-width: 1025px)');
+  const hiddenSmDown = useMediaQuery('(max-width: 600px)');
 
   const language = useAppSelector((state) => state.languageState.language);
   const t = (key: string) => getLanguageFromKey(key, language);
@@ -132,7 +61,7 @@ export const AppBar = ({
           color: 'black',
         }}
       >
-        <Toolbar>
+        <Toolbar className={classes.muiToolbar}>
           <Grid container direction='row' alignItems='center' justifyContent='space-between'>
             <Grid item xs container>
               <Grid item>
@@ -178,13 +107,13 @@ export const AppBar = ({
         {hiddenSmDown
           ? null
           : showSubMenu && (
-              <Toolbar>
+              <Toolbar className={classes.muiToolbar}>
                 <Grid container direction='row' justifyContent='center' alignItems='center'>
                   <Grid xs item>
                     <VersionControlHeader language={language} />
                   </Grid>
                   {menu.map((item) => (
-                    <Grid item key={item.key} className={classNames(classes.subHeader)}>
+                    <Grid item key={item.key} className={classes.subHeader}>
                       <Link
                         to={item.link.replace(':org', org).replace(':app', app)}
                         className={classNames(classes.subHeaderLink, {

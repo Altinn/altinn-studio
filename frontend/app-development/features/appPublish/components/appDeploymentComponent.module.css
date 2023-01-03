@@ -1,0 +1,88 @@
+.mainContainer {
+  height: fit-content;
+}
+
+.headingContainer {
+  border-bottom: 2px solid #C9C9C9;
+  border-top: 2px solid #000000;
+  margin-bottom: 3.6rem;
+  margin-top: 2rem;
+  padding: 2rem 5rem;
+  width: 100%;
+}
+
+.dropdownGrid {
+  padding-bottom: 5rem;
+  padding-left: 5rem;
+  padding-right: 6rem;
+}
+
+.select {
+  max-width: 34rem;
+  z-index: 900;
+}
+
+.gridItem {
+  padding-right: 2rem;
+}
+
+.gridBorder {
+  border: 1px solid black;
+}
+
+.gridEnvTitle {
+  max-width: 22.5rem;
+  padding-right: 0.5rem;
+}
+
+.envTitle {
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.table {
+  background-color: #ffffff;
+  min-width: 30rem;
+}
+
+.colorBlack {
+  color: #000;
+}
+
+.tableRow {
+  height: 2.6rem;
+}
+
+.tableWrapper {
+  max-height: 350px;
+  overflow: auto;
+}
+
+.deployButton {
+  margin-top: 2.6rem;
+}
+
+.deployStatusGridContainer {
+  margin-top: 2.6rem;
+}
+
+.deploySpinnerGridItem {
+  min-width: 4.4rem;
+}
+
+.deploymentListGrid {
+  padding-left: 4.8rem;
+}
+
+.deployUnavailableContainer {
+  background-color: #F9CAD3;
+  padding: 1.2rem;
+}
+
+.paperProps {
+  background-color: #F9CAD3;
+}
+
+.typographyTekniskFeilkode {
+  padding-top: 1.2rem;
+}

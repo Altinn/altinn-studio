@@ -1,12 +1,9 @@
 import React from 'react';
-import { createTheme, ThemeProvider } from '@mui/material';
 import type { ITabletDrawerMenuProps } from './TabletDrawerMenu';
 import TabletDrawerMenu from './TabletDrawerMenu';
-import altinnTheme from '../../theme/altinnStudioTheme';
 import { render as rtlRender, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
-const theme = createTheme(altinnTheme);
 const user = userEvent.setup();
 
 describe('TabletDrawerMenu', () => {
@@ -43,8 +40,6 @@ const render = (props: Partial<ITabletDrawerMenuProps> = {}) => {
   } as ITabletDrawerMenuProps;
 
   return rtlRender(
-    <ThemeProvider theme={theme}>
-      <TabletDrawerMenu {...allProps} />
-    </ThemeProvider>
+    <TabletDrawerMenu {...allProps} />
   );
 };

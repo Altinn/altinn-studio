@@ -5,7 +5,6 @@
   "author": "Altinn",
   "dependencies": {
     "@mui/material": "5.11.2",
-    "@mui/styles": "5.11.2",
     "@reduxjs/toolkit": "1.9.1",
     "altinn-designsystem": "4.2.0",
     "app-shared": "0.1.0",

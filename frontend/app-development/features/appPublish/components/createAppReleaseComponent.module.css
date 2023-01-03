@@ -1,0 +1,30 @@
+.createReleaseFormItem {
+  padding: 1.2rem;
+}
+
+.createReleaseInvalidTagNameText {
+  background-color: #FBF6BD;
+  padding: 1.2rem;
+}
+
+.createReleaseInvalidTagNameWrapper {
+  padding: 1.2rem 0 1.2rem 0;
+}
+
+.createReleaseErrorPopoverRoot {
+  background-color: #F9CAD3;
+}
+
+.popoverErrorIcon {
+  color: #E23B53;
+  padding-top: 0.8rem;
+}
+
+.popoverErrorText {
+  padding-top: 0.5rem;
+}
+
+.popoverTechnicalErrorText {
+  font-size: 1.4rem;
+  padding-top: 0.5rem;
+}

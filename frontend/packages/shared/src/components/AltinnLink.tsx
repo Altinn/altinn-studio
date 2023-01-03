@@ -1,34 +1,16 @@
 import React from 'react';
-import { createTheme } from '@mui/material';
-import { withStyles } from '@mui/styles';
-import altinnTheme from '../theme/altinnStudioTheme';
 import AltinnIcon from './AltinnIcon';
+import classes from './AltinnLink.module.css';
 
 export interface IAltinnLinkComponentProvidedProps {
-  classes: any;
   url: string;
   linkTxt: string;
   openInNewTab?: boolean;
   shouldShowIcon: boolean;
 }
 
-const theme = createTheme(altinnTheme);
-
-const styles = {
-  link: {
-    borderBottom: `1px solid ${theme.altinnPalette.primary.blueDark}`,
-    color: theme.altinnPalette.primary.blueDarker,
-    '&:hover': {
-      fontWeight: 500,
-      textDecoration: 'none',
-      color: theme.altinnPalette.primary.blueDarker,
-      borderBottom: `1px solid ${theme.altinnPalette.primary.blueMedium}`,
-    },
-  },
-};
-
 const AltinnLink = (props: IAltinnLinkComponentProvidedProps) => {
-  const { classes, openInNewTab } = props;
+  const { openInNewTab } = props;
   return (
     <a
       href={props.url}
@@ -41,7 +23,7 @@ const AltinnLink = (props: IAltinnLinkComponentProvidedProps) => {
         <AltinnIcon
           isActive={false}
           iconClass='ai ai-arrowrightup'
-          iconColor={theme.altinnPalette.primary.black}
+          iconColor={'#000'}
           iconSize={20}
           margin='5px'
         />
@@ -50,4 +32,4 @@ const AltinnLink = (props: IAltinnLinkComponentProvidedProps) => {
   );
 };
 
-export default withStyles(styles)(AltinnLink);
+export default AltinnLink;

@@ -1,0 +1,46 @@
+.borderBottom {
+  border-bottom: 1px solid #0062BA;
+}
+
+.borderBottomDisabled {
+  border-bottom: 1px solid #BCC7CC;
+}
+
+.button {
+  background: #0062BA;
+  border-radius: 0;
+  color: #FFF;
+  font-weight: 400;
+  height: 36px;
+  text-transform: none;
+}
+
+.button:hover {
+  background: #022F51;
+  color: #FFF;
+}
+
+.button:focus {
+  background: #022F51;
+  color: #FFF;
+}
+
+.secondaryButton {
+  background: transparent;
+  border-radius: 0;
+  color: #022F51;
+  font-size: 14px;
+  font-weight: 400;
+  height: 36px;
+  text-transform: none;
+}
+
+.button:hover {
+  background: #EFEFEF;
+  color: #022F51;
+}
+
+.button:focus {
+  background: #EFEFEF;
+  color: #000;
+}

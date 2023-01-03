@@ -7,7 +7,6 @@
     "@altinn/altinn-design-system": "0.25.11",
     "@altinn/schema-editor": "0.1.0",
     "@mui/material": "5.11.2",
-    "@mui/styles": "5.11.2",
     "@reduxjs/toolkit": "1.9.1",
     "axios": "1.2.2",
     "classnames": "2.3.2",

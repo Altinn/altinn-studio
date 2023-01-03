@@ -1,0 +1,12 @@
+.popoverRoot {
+  background-color: #F9CAD3;
+}
+
+.errorIcon {
+  color: #E23B53;
+  font-size: 36px;
+}
+
+.errorText {
+  font-size: 16px;
+}

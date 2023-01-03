@@ -1,19 +1,9 @@
 import React from 'react';
 import type { MenuProps } from '@mui/material';
 import { Menu } from '@mui/material';
-import { makeStyles } from '@mui/styles';
-
-const useStyles = makeStyles(() => ({
-  paper: {
-    border: '1px solid #d3d4d5',
-  },
-  list: {
-    padding: 0,
-  },
-}));
+import classes from './AltinnMenu.module.css';
 
 function AltinnMenu(props: MenuProps) {
-  const classes = useStyles();
   return (
     <Menu
       classes={classes}

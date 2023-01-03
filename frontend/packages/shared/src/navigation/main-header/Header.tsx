@@ -1,9 +1,9 @@
 import React from 'react';
 import { AppBar, Grid, Toolbar, Typography } from '@mui/material';
-import { makeStyles } from '@mui/styles';
 import type { IGiteaOrganisation, IUser } from '../../types/global';
 import AltinnStudioLogo from './AltinnStudioLogo';
 import { HeaderMenu } from './HeaderMenu';
+import classes from './Header.module.css';
 
 export enum SelectedContextType {
   All = 'all',
@@ -28,23 +28,6 @@ type HeaderProps = {
   language: any;
 };
 
-const useStyles = makeStyles(() => ({
-  appBar: {
-    backgroundColor: '#022F51',
-    boxShadow: 'none',
-  },
-  toolbar: {
-    height: 96,
-    paddingLeft: 48,
-    paddingRight: 48,
-  },
-  divider: {
-    fontSize: '2rem',
-    marginLeft: 10,
-    marginRight: 10,
-  },
-}));
-
 export const getOrgNameById = (id: number, orgs: IGiteaOrganisation[]) => {
   const org = orgs?.find((o) => o.id === id);
   return org?.full_name || org?.username;
@@ -56,7 +39,6 @@ export const getOrgUsernameById = (id: number, orgs: IGiteaOrganisation[]) => {
 };
 
 export function Header({ language }: HeaderProps) {
-  const classes = useStyles();
   const { selectedContext, selectableOrgs } = React.useContext(HeaderContext);
 
   return (

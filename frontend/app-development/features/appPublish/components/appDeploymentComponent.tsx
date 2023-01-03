@@ -1,14 +1,10 @@
 import React, { useCallback } from 'react';
 import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
 import Select from 'react-select';
-import altinnTheme from 'app-shared/theme/altinnStudioTheme';
-import classNames from 'classnames';
 import moment from 'moment';
 import type { IEnvironmentItem } from '../../../sharedResources/appCluster/appClusterSlice';
-import type { Theme } from '@mui/material';
 import { AltinnButton, AltinnIcon, AltinnLink, AltinnSpinner } from 'app-shared/components';
 import { AppDeploymentActions } from '../../../sharedResources/appDeployment/appDeploymentSlice';
-import { createStyles, makeStyles } from '@mui/styles';
 import { getAzureDevopsBuildResultUrl } from '../../../utils/urlHelper';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
 import { getValueByPath } from 'app-shared/utils/getValueByPath';
@@ -19,7 +15,6 @@ import type {
   IDeployment,
 } from '../../../sharedResources/appDeployment/types';
 import {
-  createTheme,
   Grid,
   Table,
   TableBody,
@@ -27,8 +22,9 @@ import {
   TableHead,
   TableRow,
   Typography,
-  useMediaQuery,
 } from '@mui/material';
+import classes from './appDeploymentComponent.module.css';
+import { useMediaQuery } from '../../../common/hooks';
 
 interface IAppDeploymentComponentProps {
   envName: string;
@@ -43,91 +39,6 @@ interface IAppDeploymentComponentProps {
   deployPermission: boolean;
   orgName: string;
 }
-
-const theme = createTheme(altinnTheme);
-
-const useStyles = makeStyles(() =>
-  createStyles({
-    mainContainer: {
-      height: 'fit-content',
-    },
-    headingContainer: {
-      borderTop: '2px solid #000000',
-      borderBottom: '2px solid #C9C9C9',
-      marginTop: '2rem',
-      marginBottom: '3.6rem',
-      paddingLeft: '5rem',
-      paddingRight: '5rem',
-      paddingTop: '2rem',
-      paddingBottom: '2rem',
-      width: '100%',
-    },
-    dropdownGrid: {
-      paddingBottom: '5rem',
-      paddingRight: '6rem',
-      paddingLeft: '5rem',
-    },
-    select: {
-      maxWidth: '34rem',
-      zIndex: 900,
-    },
-    gridItem: {
-      paddingRight: '2rem',
-    },
-    gridBorder: {
-      border: '1px solid black',
-    },
-    gridEnvTitle: {
-      maxWidth: '22.5rem',
-      paddingRight: '0.5rem',
-    },
-    envTitle: {
-      fontSize: 18,
-      fontWeight: 500,
-    },
-    table: {
-      backgroundColor: '#ffffff',
-      [theme.breakpoints.up('xs')]: {
-        minWidth: '30rem',
-      },
-      [theme.breakpoints.up('lg')]: {
-        minWidth: '56rem',
-      },
-    },
-    colorBlack: {
-      color: '#000',
-    },
-    tableRow: {
-      height: '2.6rem',
-    },
-    tableWrapper: {
-      maxHeight: 350,
-      overflow: 'auto',
-    },
-    deployButton: {
-      marginTop: '2.6rem',
-    },
-    deployStatusGridContainer: {
-      marginTop: '2.6rem',
-    },
-    deploySpinnerGridItem: {
-      minWidth: '4.4rem',
-    },
-    deploymentListGrid: {
-      paddingLeft: '4.8rem',
-    },
-    deployUnavailableContainer: {
-      backgroundColor: theme.altinnPalette.primary.redLight,
-      padding: '1.2rem',
-    },
-    paperProps: {
-      backgroundColor: '#F9CAD3',
-    },
-    typographyTekniskFeilkode: {
-      paddingTop: '1.2rem',
-    },
-  })
-);
 
 enum DeploymentStatus {
   canceled = 'canceled',
@@ -162,10 +73,9 @@ const AppDeploymentComponent = ({
   urlToAppLinkTxt,
   orgName,
 }: IAppDeploymentComponentProps) => {
-  const classes = useStyles();
   const dispatch = useDispatch();
-  const hiddenMdDown = useMediaQuery((theme: Theme) => theme.breakpoints.down('md'));
-  const breakpointMdUp = useMediaQuery((theme: Theme) => theme.breakpoints.up('md'));
+
+  const breakpointMdUp = useMediaQuery('(min-width: 1025px)');
 
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [deployButtonDisabled, setDeployButtonDisabled] = React.useState(true);
@@ -339,7 +249,7 @@ const AppDeploymentComponent = ({
       <Grid item={true} className={classes.deploySpinnerGridItem} xs={1}>
         <AltinnIcon
           iconClass='fa fa-info-circle'
-          iconColor={theme.altinnPalette.primary.black}
+          iconColor='#000'
           iconSize='3.6rem'
         />
       </Grid>
@@ -401,7 +311,7 @@ const AppDeploymentComponent = ({
             {deploymentStatus === DeploymentStatus.succeeded && (
               <AltinnIcon
                 iconClass='ai ai-check-circle'
-                iconColor={theme.altinnPalette.primary.green}
+                iconColor='#12AA64'
                 iconSize='3.6rem'
               />
             )}
@@ -409,7 +319,7 @@ const AppDeploymentComponent = ({
               deploymentStatus === DeploymentStatus.none) && (
               <AltinnIcon
                 iconClass='ai ai-info-circle'
-                iconColor={theme.altinnPalette.primary.blueMedium}
+                iconColor='#008FD6'
                 iconSize='3.6rem'
               />
             )}
@@ -417,7 +327,7 @@ const AppDeploymentComponent = ({
               deploymentStatus === DeploymentStatus.failed) && (
               <AltinnIcon
                 iconClass='ai ai-circle-exclamation'
-                iconColor={theme.altinnPalette.primary.red}
+                iconColor='#E23B53'
                 iconSize='3.6rem'
               />
             )}
@@ -495,7 +405,7 @@ const AppDeploymentComponent = ({
         <Grid item={true} className={classes.deploySpinnerGridItem} xs={1}>
           <AltinnIcon
             iconClass='ai ai-circle-exclamation'
-            iconColor={theme.altinnPalette.primary.red}
+            iconColor='#E23B53'
             iconSize='3.6rem'
           />
         </Grid>
@@ -538,7 +448,6 @@ const AppDeploymentComponent = ({
           </Grid>
           <Grid item={true} className={classes.gridItem} xs={6}>
             <AltinnLink
-              classes={{}}
               url={urlToApp}
               linkTxt={urlToAppLinkTxt}
               shouldShowIcon={false}
@@ -547,7 +456,7 @@ const AppDeploymentComponent = ({
           </Grid>
         </Grid>
 
-        <Grid item={true} xs={12} sm={12} md={5} className={classNames(classes.dropdownGrid)}>
+        <Grid item={true} xs={12} sm={12} md={5} className={classes.dropdownGrid}>
           {!deployPermission && returnMissingPermissionsText()}
           {deploymentList &&
             deploymentList.getStatus.success === true &&
@@ -602,7 +511,7 @@ const AppDeploymentComponent = ({
                           )}
                         </Typography>
                       </TableCell>
-                      {hiddenMdDown ? null : (
+                      {!breakpointMdUp ? null : (
                         <TableCell className={classes.colorBlack}>
                           <Typography>
                             {getParsedLanguageFromKey('app_deploy_table.deployed_by_col', language)}
@@ -623,7 +532,7 @@ const AppDeploymentComponent = ({
                               {moment(new Date(deploy.build.finished)).format('DD.MM.YY HH:mm')}
                             </Typography>
                           </TableCell>
-                          {hiddenMdDown ? null : (
+                          {!breakpointMdUp ? null : (
                             <TableCell>
                               <Typography>{deploy.createdBy}</Typography>
                             </TableCell>

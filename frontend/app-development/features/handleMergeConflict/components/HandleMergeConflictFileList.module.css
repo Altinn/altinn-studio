@@ -1,0 +1,56 @@
+.root {
+  background: #FFF;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.25);
+  height: 100%;
+  padding-bottom: 0;
+  padding-top: 0;
+}
+
+.listItemFocusVisible {
+  background-color: #FFF;
+  border: 2px solid #1eaef7;
+  color: #0062BA;
+  text-decoration: underline;
+}
+
+.listItemIcon {
+  margin-right: 6px;
+}
+
+.listItemButton {
+  transition: none;
+  background-color: #FFF;
+}
+
+.listItemButton:hover {
+  color: #0062ba;
+}
+
+@media (hover: none) {
+  /* Reset on touch devices, it doesn't add specificity */
+  .listItemButton:hover {
+    background-color: transparent;
+  }
+}
+
+.listItemText {
+  padding: 0;
+}
+
+.primaryText {
+  font-size: 16px;
+}
+
+.primaryTextSelected {
+  color: #0062BA;
+  text-decoration: underline;
+}
+
+.primaryTextUnselected {
+  color: #022F51;
+}
+
+.secondaryText {
+  color: #1EAEF7;
+  font-size: 12px;
+}

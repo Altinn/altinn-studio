@@ -1,0 +1,75 @@
+.drawer {
+  flex-shrink: 0;
+  padding-right: 16px;
+}
+
+.divider {
+  background: black;
+  margin-left: 25px;
+}
+
+.innerHover:hover {
+  background-color: transparent;
+  color: #0062BA;
+  font-weight: 500;
+}
+
+.nested {
+  composes: innerHover;
+  padding-left: 25px;
+}
+
+.subMenuItem {
+  font-size: 16px;
+}
+
+.menuItemText {
+  text-align: right;
+  font-size: 16px;
+  padding-right: 0;
+}
+
+.mainMenuItem {
+  composes: innerHover;
+  font-size: 20px;
+}
+
+.drawerMenuPaper {
+  border-radius: 1px;
+  padding-right: 25px;
+  top: 92px;
+  width: 240px;
+}
+
+.commonButton {
+  border-radius: 0;
+  border: 2px solid #0062BA;
+  font-size: 18px;
+  margin-left: 8px;
+  padding: 2px 8px 4px 8px;
+  text-transform: lowercase;
+  width: 46px;
+}
+
+.button {
+  color: #0062BA;
+}
+
+.button:hover {
+  background-color: transparent;
+}
+
+.closeButton {
+  color: #FFF;
+  background-color: #0062BA;
+  font-weight: 400;
+}
+
+.closeButton:hover {
+  background-color: #0062BA;
+}
+
+.activeListItem {
+  font-weight: 500;
+  color: #0062BA;
+}

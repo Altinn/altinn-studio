@@ -1,51 +1,18 @@
 import React from 'react';
 import { Grid, Typography } from '@mui/material';
-import type { WithStyles } from '@mui/styles';
-import { createStyles, withStyles } from '@mui/styles';
 
 import AltinnButton from 'app-shared/components/AltinnButton';
-import AltinnInput from 'app-shared/components/AltinnInput';
-import AltinnTextArea from 'app-shared/components/AltinnTextArea';
 import AltinnPopover from 'app-shared/components/molecules/AltinnPopoverSimple';
-import theme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import type { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
 import { AppReleaseActions } from '../../../sharedResources/appRelease/appReleaseSlice';
 import { BuildResult, BuildStatus } from '../../../sharedResources/appRelease/types';
 import type { IRepoStatusState } from '../../../sharedResources/repoStatus/repoStatusSlice';
 import { useAppDispatch, useAppSelector } from '../../../common/hooks';
+import { TextField, TextArea } from '@altinn/altinn-design-system';
+import classes from './createAppReleaseComponent.module.css';
 
-const styles = createStyles({
-  createReleaseFormItem: {
-    padding: '1.2rem',
-  },
-  createReleaseInvalidTagNameText: {
-    backgroundColor: theme.altinnPalette.primary.yellowLight,
-    padding: '1.2rem',
-  },
-  createReleaseInvalidTagNameWrapper: {
-    padding: '1.2rem 0rem 1.2rem 0rem',
-  },
-  createReleaseErrorPopoverRoot: {
-    backgroundColor: theme.altinnPalette.primary.redLight,
-  },
-  popoverErrorIcon: {
-    color: theme.altinnPalette.primary.red,
-    paddingTop: '0.8rem',
-  },
-  popoverErrorText: {
-    paddingTop: '0.5rem',
-  },
-  popoverTechnicalErrorText: {
-    fontSize: '1.4rem',
-    paddingTop: '0.5rem',
-  },
-});
-
-type ICreateAppReleaseComponent = WithStyles<typeof styles>;
-
-function ReleaseComponent(props: ICreateAppReleaseComponent) {
-  const { classes } = props;
+function ReleaseComponent() {
   const dispatch = useAppDispatch();
 
   const [tagName, setTagName] = React.useState<string>('');
@@ -135,17 +102,18 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
                 </Typography>
               </Grid>
             ) : null}
-            <AltinnInput
-              label={getLanguageFromKey('app_create_release.release_versionnumber', language)}
-              onChange={handleTagNameChange}
-              value={tagName}
-              widthPercentage={50}
-              validationError={!versionNameValid()}
-            />
+            <div style={{width: '50%'}}>
+              <TextField
+                label={getLanguageFromKey('app_create_release.release_versionnumber', language)}
+                onChange={handleTagNameChange}
+                value={tagName}
+                isValid={versionNameValid()}
+              />
+            </div>
           </Grid>
         </Grid>
         <Grid container={true} direction='column' className={classes.createReleaseFormItem}>
-          <AltinnTextArea
+          <TextArea
             label={getLanguageFromKey('app_create_release.release_description', language)}
             value={body}
             onChange={handleBodyChange}
@@ -214,4 +182,4 @@ function ReleaseComponent(props: ICreateAppReleaseComponent) {
   );
 }
 
-export default withStyles(styles)(ReleaseComponent);
+export default ReleaseComponent;

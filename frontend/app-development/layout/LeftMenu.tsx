@@ -1,12 +1,11 @@
 import React from 'react';
-import type { Theme } from '@mui/material';
-import { useMediaQuery } from '@mui/material';
 import LeftDrawerMenu from 'app-shared/navigation/drawer/LeftDrawerMenu';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import type { IShareChangesComponentProps } from 'app-shared/version-control/ShareChangesButton';
 import routes from '../config/routes';
 import appDevelopmentLeftDrawerSettings from '../config/subPathSettings';
 import HandleMergeConflict from '../features/handleMergeConflict/HandleMergeConflictContainer';
+import { useMediaQuery } from '../common/hooks';
 
 interface ILeftMenuProps {
   className: string;
@@ -16,7 +15,7 @@ interface ILeftMenuProps {
 }
 
 const SideBar = () => {
-  const shouldHideLeftMenu = useMediaQuery((theme: Theme) => theme.breakpoints.down('sm'));
+  const shouldHideLeftMenu = useMediaQuery('(max-width: 600px)');
 
   if (shouldHideLeftMenu) {
     return null;

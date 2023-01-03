@@ -1,8 +1,7 @@
 import React from 'react';
-import { createTheme, FormControl, MenuItem, TextField, Typography } from '@mui/material';
-import { makeStyles } from '@mui/styles';
+import { FormControl, MenuItem, TextField, Typography } from '@mui/material';
 import classNames from 'classnames';
-import altinnTheme from '../theme/altinnStudioTheme';
+import classes from './AltinnDropdown.module.css';
 
 export interface IAltinnDropdownComponentProvidedProps {
   id: string;
@@ -14,46 +13,6 @@ export interface IAltinnDropdownComponentProvidedProps {
   disabled: boolean;
   fullWidth?: boolean;
 }
-
-const theme = createTheme(altinnTheme);
-
-const useStyles = makeStyles({
-  inputHeader: {
-    fontSize: '24px',
-    fontWeight: 400,
-  },
-  marginTop_10: {
-    marginTop: '10px',
-  },
-  descriptionInput: {
-    fontSize: '16px',
-  },
-  inputField: {
-    border: `1px solid ${theme.altinnPalette.primary.blueDark}`,
-    background: 'none',
-    width: '386px',
-  },
-  inputField_disabled: {
-    background: theme.altinnPalette.primary.greyLight,
-    border: `1px solid ${theme.altinnPalette.primary.grey}`,
-  },
-  inputFieldText: {
-    fontSize: '16px',
-    color: `${theme.altinnPalette.primary.black} !Important`,
-    padding: '6px',
-    underline: {
-      '&&&:before': {
-        borderBottom: 'none',
-      },
-      '&&:after': {
-        borderBottom: 'none',
-      },
-    },
-  },
-  fullWidth: {
-    width: '100% !important',
-  },
-});
 
 type DropdownOption = {
   value: string;
@@ -85,8 +44,6 @@ export const AltinnDropdown = ({
   dropdownItems,
   fullWidth = false,
 }: IAltinnDropdownComponentProvidedProps) => {
-  const classes = useStyles();
-
   const formControlClasses = React.useMemo(() => {
     return {
       root: classNames(classes.inputField, {

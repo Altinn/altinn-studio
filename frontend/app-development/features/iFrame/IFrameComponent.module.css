@@ -1,0 +1,9 @@
+.iFrameLayout {
+  height: calc(100vh - 110px);
+  width: 100%;
+  border: 0;
+}
+
+.mainLayout {
+  padding-left: 73px;
+}

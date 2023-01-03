@@ -1,0 +1,67 @@
+.borderBottom {
+  border-bottom: 1px solid #0062BA;
+}
+
+.buttonCommon {
+  border-radius: 0;
+  font-size: 14px;
+  font-weight: 400;
+  margin-top: 20px;
+  text-transform: none;
+}
+
+.buttonCancel {
+  color: #022F51;
+  background: #FFF;
+}
+
+.buttonCancel:hover, .buttonCancel:focus {
+  color: #022F51;
+}
+
+.buttonConfirm {
+  color: #FFF;
+  background: #0062BA;
+}
+
+.buttonConfirm:hover, .buttonConfirm:focus {
+  background: #022F51;
+}
+
+.commitMessageField {
+  border: 1px solid #0062BA;
+  box-sizing: border-box;
+  font-size: 16px !Important;
+  line-height: 1.3;
+  margin-top: 10px;
+  min-height: 88px;
+}
+
+.doneLoadingIcon {
+  color: #12AA64;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 20px;
+}
+
+.header {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.spinner {
+  color: #0062BA;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 20px;
+}
+
+.subHeader {
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+.popover {
+  margin: 24px;
+  width: 445px;
+}
