@@ -1,3 +1,5 @@
+using Altinn.Platform.Storage.Interface.Models;
+
 namespace Altinn.App.Core.Models
 {
     /// <summary>
@@ -26,6 +28,12 @@ namespace Altinn.App.Core.Models
             (InstanceOwnerPartyId, InstanceGuid) = DeconstructInstanceId(instanceId);
             IsNoInstance = false;
         }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="InstanceIdentifier"/> class.
+        /// </summary>
+        /// <param name="instance">Is the instance you want to get an idenifier from</param>
+        public InstanceIdentifier(Instance instance) : this(instance.Id) {}
 
         /// <summary>
         /// Initializes a new instance of the <see cref="InstanceIdentifier"/> class. For instances without OwnerPartyId and InstanceId, ex: Stateless applications.
