@@ -4,7 +4,17 @@ import { throwError } from 'redux-saga-test-plan/providers';
 import type { AxiosRequestConfig } from 'axios';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
-import { runSingleFieldValidationSaga } from 'src/features/form/validation/singleField/singleFieldValidationSagas';
+import {
+  runSingleFieldValidationSaga,
+  selectApplicationMetadataState,
+  selectFormLayoutState,
+  selectHiddenFieldsState,
+  selectInstanceState,
+  selectLayoutSetsState,
+  selectLayoutsState,
+  selectTextResourcesState,
+  selectValidationsState,
+} from 'src/features/form/validation/singleField/singleFieldValidationSagas';
 import { ValidationActions } from 'src/features/form/validation/validationSlice';
 import { Severity } from 'src/types';
 import { get } from 'src/utils/network/networking';
@@ -61,7 +71,14 @@ describe('singleFieldValidationSagas', () => {
       },
     })
       .provide([
-        [select(), mockState],
+        [select(selectApplicationMetadataState), mockState.applicationMetadata.applicationMetadata],
+        [select(selectFormLayoutState), mockState.formLayout],
+        [select(selectLayoutsState), mockState.formLayout.layouts],
+        [select(selectHiddenFieldsState), mockState.formLayout.uiConfig.hiddenFields],
+        [select(selectInstanceState), mockState.instanceData.instance],
+        [select(selectLayoutSetsState), mockState.formLayout.layoutsets],
+        [select(selectTextResourcesState), mockState.textResources.resources],
+        [select(selectValidationsState), mockState.formValidations.validations],
         [call(get, url, options), validationIssues],
       ])
       .put(
@@ -93,7 +110,14 @@ describe('singleFieldValidationSagas', () => {
       },
     })
       .provide([
-        [select(), mockState],
+        [select(selectApplicationMetadataState), mockState.applicationMetadata.applicationMetadata],
+        [select(selectFormLayoutState), mockState.formLayout],
+        [select(selectLayoutsState), mockState.formLayout.layouts],
+        [select(selectHiddenFieldsState), mockState.formLayout.uiConfig.hiddenFields],
+        [select(selectInstanceState), mockState.instanceData.instance],
+        [select(selectLayoutSetsState), mockState.formLayout.layoutsets],
+        [select(selectTextResourcesState), mockState.textResources.resources],
+        [select(selectValidationsState), mockState.formValidations.validations],
         [call(get, url, options), throwError(error)],
       ])
       .put(ValidationActions.runSingleFieldValidationRejected({ error }))

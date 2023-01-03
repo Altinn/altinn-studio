@@ -156,6 +156,7 @@ export default class AppFrontend {
     popOverCancelButton: '[data-testid="warning-popover-cancel-button"]',
     edit: '[data-testid=edit-button]',
     delete: '[data-testid=delete-button]',
+    hideCommentField: '[id^="hideComment"]',
     row: (idx: number) => ({
       uploadSingle: makeUploaderSelectors('mainUploaderSingle', idx, 3, 'untagged'),
       uploadMulti: makeUploaderSelectors('mainUploaderMulti', idx, 4, 'untagged'),

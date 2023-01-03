@@ -23,7 +23,7 @@ describe('Validation', () => {
     cy.get(appFrontend.fieldValidationError.replace('field', appFrontend.changeOfName.newFirstName.substring(1)))
       .should('exist')
       .should('be.visible')
-      .should('have.text', texts.requiredField);
+      .should('have.text', texts.requiredFieldFromBackend);
 
     // Doing the same for any other field (without server-side required validation) should not show an error
     cy.get(appFrontend.changeOfName.newMiddleName)
@@ -195,5 +195,34 @@ describe('Validation', () => {
     ]);
     cy.get(appFrontend.sendinButton).should('be.visible').click();
     cy.get(appFrontend.errorReport).should('exist').should('be.visible').should('contain.text', 'task validation');
+  });
+
+  it('Validations are removed for hidden fields', () => {
+    // Init and add data to group
+    cy.goto('group');
+    cy.contains(mui.button, texts.next).click();
+    cy.get(appFrontend.group.showGroupToContinue).should('be.visible').find('input').check();
+    cy.get(appFrontend.group.addNewItem).should('be.visible').click();
+    cy.get(appFrontend.group.currentValue).should('be.visible').type('123');
+    cy.get(appFrontend.group.newValue).should('be.visible').type('321');
+
+    // Create validation error
+    cy.get(appFrontend.group.mainGroup)
+      .find(appFrontend.group.editContainer)
+      .find(appFrontend.group.next)
+      .should('be.visible')
+      .click();
+    cy.get(appFrontend.group.comments).type('test').blur();
+    cy.get(appFrontend.fieldValidationError.replace('field', 'comments'))
+      .should('exist')
+      .should('be.visible')
+      .should('have.text', texts.testIsNotValidValue);
+    cy.get(appFrontend.errorReport).should('exist').should('be.visible');
+
+    // Hide field that contains validation error and verify validation messages are gone
+    cy.get(appFrontend.group.hideCommentField).should('be.visible').find('input').check();
+    cy.get(appFrontend.group.comments).should('not.exist');
+    cy.get(appFrontend.fieldValidationError.replace('field', 'comments')).should('not.exist');
+    cy.get(appFrontend.errorReport).should('not.exist');
   });
 });

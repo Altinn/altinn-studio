@@ -27,7 +27,7 @@ export interface IRunSingleFieldValidation {
 }
 
 export interface IValidationActionRejected {
-  error: Error;
+  error?: Error;
 }
 
 export const initialState: IValidationState = {
@@ -51,8 +51,10 @@ const validationSlice = createSagaSlice((mkAction: MkActionType<IValidationState
     }),
     runSingleFieldValidationRejected: mkAction<IValidationActionRejected>({
       reducer: (state, action) => {
-        const { error } = action.payload;
-        state.error = error;
+        if (action.payload.error) {
+          const { error } = action.payload;
+          state.error = error;
+        }
       },
     }),
     updateComponentValidations: mkAction<IUpdateComponentValidations>({
