@@ -59,15 +59,9 @@
         "pageRef": "form"
       },
       {
-        "id": "summary-7",
+        "id": "summary-reference",
         "type": "Summary",
-        "componentRef": "reference",
-        "pageRef": "form"
-      },
-      {
-        "id": "summary-8",
-        "type": "Summary",
-        "componentRef": "reference2",
+        "componentRef": "reference-group",
         "pageRef": "form"
       },
       {
