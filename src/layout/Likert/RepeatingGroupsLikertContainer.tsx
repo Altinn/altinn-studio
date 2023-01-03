@@ -13,13 +13,13 @@ import { LayoutStyle } from 'src/types';
 import { getTextResource } from 'src/utils/formComponentUtils';
 import { getOptionLookupKey } from 'src/utils/options';
 import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { ILayoutComponent } from 'src/layout/layout';
+import type { ComponentInGroup } from 'src/layout/layout';
 import type { IRadioButtonsContainerProps } from 'src/layout/RadioButtons/RadioButtonsContainerComponent';
 import type { ITextResource } from 'src/types';
 
 type RepeatingGroupsLikertContainerProps = {
   id: string;
-  repeatingGroupDeepCopyComponents: ILayoutComponent[];
+  repeatingGroupDeepCopyComponents: ComponentInGroup[];
   textResources: ITextResource[];
   container: ILayoutGroup;
 };
@@ -93,10 +93,15 @@ export const RepeatingGroupsLikertContainer = ({
           aria-describedby={(description && descriptionId) || undefined}
         >
           {repeatingGroupDeepCopyComponents.map((comp) => {
+            if (comp.type === 'Group') {
+              console.warn('Unexpected group inside likert container', comp);
+              return;
+            }
+
             return (
               <GenericComponent
                 key={comp.id}
-                {...(comp as ILayoutComponent)}
+                {...comp}
               />
             );
           })}
@@ -143,6 +148,11 @@ export const RepeatingGroupsLikertContainer = ({
             padding={'dense'}
           >
             {repeatingGroupDeepCopyComponents.map((comp) => {
+              if (comp.type === 'Group') {
+                console.warn('Unexpected group inside likert container', comp);
+                return;
+              }
+
               return (
                 <GenericComponent
                   key={comp.id}

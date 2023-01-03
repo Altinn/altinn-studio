@@ -59,7 +59,7 @@ export default function Legend(props: IFormLegendProps) {
       {props.descriptionText && (
         <Description
           description={props.descriptionText}
-          {...props}
+          id={props.id}
         />
       )}
     </>

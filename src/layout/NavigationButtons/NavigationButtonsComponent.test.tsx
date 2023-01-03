@@ -5,8 +5,8 @@ import { render, screen } from '@testing-library/react';
 import configureStore from 'redux-mock-store';
 
 import { getFormLayoutStateMock, getInitialStateMock } from 'src/__mocks__/mocks';
-import { NavigationButtons } from 'src/layout/NavigationButtons/NavigationButtons';
-import type { INavigationButtons } from 'src/layout/NavigationButtons/NavigationButtons';
+import { NavigationButtonsComponent } from 'src/layout/NavigationButtons/NavigationButtonsComponent';
+import type { INavigationButtons } from 'src/layout/NavigationButtons/NavigationButtonsComponent';
 
 describe('NavigationButton', () => {
   let mockStore;
@@ -92,7 +92,7 @@ describe('NavigationButton', () => {
   test('renders default NavigationButtons component', () => {
     render(
       <Provider store={mockStore}>
-        <NavigationButtons
+        <NavigationButtonsComponent
           {...({} as INavigationButtons)}
           id='nav-button-1'
           showBackButton={false}
@@ -107,7 +107,7 @@ describe('NavigationButton', () => {
   test('renders NavigationButtons component without back button if there is no previous page', () => {
     render(
       <Provider store={mockStore}>
-        <NavigationButtons
+        <NavigationButtonsComponent
           {...({} as INavigationButtons)}
           id='nav-button-1'
           showBackButton={true}
@@ -136,7 +136,7 @@ describe('NavigationButton', () => {
     const store = createStoreNew(initialState);
     render(
       <Provider store={store}>
-        <NavigationButtons
+        <NavigationButtonsComponent
           {...({} as INavigationButtons)}
           id='nav-button-2'
           showBackButton={true}

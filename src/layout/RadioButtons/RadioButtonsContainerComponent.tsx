@@ -4,9 +4,7 @@ import { ControlledRadioGroup } from 'src/layout/RadioButtons/ControlledRadioGro
 import { useRadioButtons } from 'src/layout/RadioButtons/radioButtonsUtils';
 import type { PropsFromGenericComponent } from 'src/layout';
 
-export interface IRadioButtonsContainerProps extends PropsFromGenericComponent<'RadioButtons'> {
-  validationMessages?: any;
-}
+export type IRadioButtonsContainerProps = PropsFromGenericComponent<'RadioButtons'>;
 
 export const RadioButtonContainerComponent = (props: IRadioButtonsContainerProps) => {
   const useRadioProps = useRadioButtons(props);

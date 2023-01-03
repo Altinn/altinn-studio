@@ -18,12 +18,13 @@ import { createRepeatingGroupComponents, getRepeatingGroupFilteredIndices } from
 import { getHiddenFieldsForGroup } from 'src/utils/layout';
 import { renderValidationMessagesForComponent } from 'src/utils/render';
 import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { ILayoutComponent, ILayoutComponentOrGroup } from 'src/layout/layout';
+import type { ComponentInGroup, ILayoutComponent } from 'src/layout/layout';
 import type { IRuntimeState } from 'src/types';
+
 export interface IGroupProps {
   id: string;
   container: ILayoutGroup;
-  components: ILayoutComponentOrGroup[];
+  components: ComponentInGroup[];
   triggers?: Triggers[];
 }
 
@@ -193,7 +194,7 @@ export function GroupContainer({ id, container, components }: IGroupProps): JSX.
       <>
         <RepeatingGroupsLikertContainer
           id={id}
-          repeatingGroupDeepCopyComponents={repeatingGroupDeepCopyComponents.map((c) => c[0] as ILayoutComponent)}
+          repeatingGroupDeepCopyComponents={repeatingGroupDeepCopyComponents.map((c) => c[0])}
           textResources={textResources}
           container={container}
         />

@@ -12,10 +12,10 @@ export interface IFormLabelProps {
   labelText: any;
   id: string;
   language: ILanguage;
-  required: boolean;
-  readOnly: boolean;
+  required?: boolean;
+  readOnly?: boolean;
   labelSettings?: ILabelSettings;
-  helpText: string;
+  helpText: string | number | boolean | React.ReactNode | undefined | null;
 }
 
 export default function Label(props: IFormLabelProps) {

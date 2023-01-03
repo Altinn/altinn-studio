@@ -6,7 +6,14 @@ import { PanelGroupContainer } from 'src/layout/Panel/PanelGroupContainer';
 import { LayoutStyle } from 'src/types';
 import { setMappingForRepeatingGroupComponent } from 'src/utils/formLayout';
 import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { ILayout, ILayoutComponent, ILayoutComponentOrGroup, ILayouts } from 'src/layout/layout';
+import type {
+  ComponentInGroup,
+  ILayout,
+  ILayoutComponent,
+  ILayoutComponentOrGroup,
+  ILayouts,
+  RenderableGenericComponent,
+} from 'src/layout/layout';
 import type { ILayoutSet, ILayoutSets } from 'src/types';
 import type { IInstance } from 'src/types/shared';
 
@@ -59,7 +66,7 @@ export function matchLayoutComponent(providedId: string, componentId: string) {
 }
 
 interface RenderGenericComponentProps {
-  component: ILayoutComponentOrGroup;
+  component: RenderableGenericComponent | ILayoutGroup;
   layout?: ILayout | null;
   index?: number;
 }
@@ -82,7 +89,7 @@ export function renderLayoutGroup(layoutGroup: ILayoutGroup, layout?: ILayout, i
     .map((child) => {
       return layout?.find((c) => c.id === child);
     })
-    .filter((item) => item !== undefined) as ILayoutComponentOrGroup[];
+    .filter((item) => item !== undefined) as ComponentInGroup[];
 
   const panel = layoutGroup.panel;
   if (panel) {
@@ -99,13 +106,7 @@ export function renderLayoutGroup(layoutGroup: ILayoutGroup, layout?: ILayout, i
   const repeating = layoutGroup.maxCount && layoutGroup.maxCount > 1;
   if (!repeating) {
     // If not repeating, treat as regular components
-    return (
-      <>
-        {deepCopyComponents.map((component: ILayoutComponent) => {
-          return renderGenericComponent({ component, layout });
-        })}
-      </>
-    );
+    return <>{deepCopyComponents.map((component) => renderGenericComponent({ component, layout }))}</>;
   }
 
   return (
@@ -119,11 +120,11 @@ export function renderLayoutGroup(layoutGroup: ILayoutGroup, layout?: ILayout, i
 }
 
 export function setupGroupComponents(
-  components: (ILayoutComponent | ILayoutGroup)[],
+  components: ComponentInGroup[],
   groupDataModelBinding: string | undefined,
   index: number | undefined,
-): (ILayoutGroup | ILayoutComponent)[] {
-  return components.map((component: ILayoutComponent | ILayoutGroup) => {
+): ComponentInGroup[] {
+  return components.map((component) => {
     if (component.type === 'Group' && component.panel?.groupReference) {
       // Do not treat as a regular group child as this is merely an option to add elements for another group from this group context
       return component;
@@ -133,7 +134,7 @@ export function setupGroupComponents(
       return component;
     }
 
-    const componentDeepCopy: ILayoutComponent = JSON.parse(JSON.stringify(component));
+    const componentDeepCopy: ComponentInGroup = JSON.parse(JSON.stringify(component));
     const dataModelBindings = { ...componentDeepCopy.dataModelBindings };
     Object.keys(dataModelBindings).forEach((key) => {
       const originalGroupBinding = groupDataModelBinding.replace(`[${index}]`, '');

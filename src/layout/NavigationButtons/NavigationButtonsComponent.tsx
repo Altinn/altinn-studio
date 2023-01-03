@@ -14,7 +14,7 @@ import type { ILayoutNavigation, INavigationConfig } from 'src/types';
 
 export type INavigationButtons = PropsFromGenericComponent<'NavigationButtons'>;
 
-export function NavigationButtons(props: INavigationButtons) {
+export function NavigationButtonsComponent(props: INavigationButtons) {
   const dispatch = useAppDispatch();
 
   const refPrev = React.useRef<HTMLButtonElement>();

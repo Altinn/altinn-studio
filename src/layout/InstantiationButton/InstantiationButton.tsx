@@ -8,12 +8,11 @@ import { useInstantiateWithPrefillMutation } from 'src/services/InstancesApi';
 import { AttachmentActions } from 'src/shared/resources/attachments/attachmentSlice';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
 import { mapFormData } from 'src/utils/databindings';
-import type { ButtonProps } from 'src/layout/Button/WrappedButton';
 import type { IInstantiationButtonComponentProps } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
 
-export type InstantiationButtonProps = Omit<ButtonProps, 'onClick'> & Omit<IInstantiationButtonComponentProps, 'text'>;
+type Props = Omit<React.PropsWithChildren<IInstantiationButtonComponentProps>, 'text'>;
 
-export const InstantiationButton = ({ children, ...props }: InstantiationButtonProps) => {
+export const InstantiationButton = ({ children, ...props }: Props) => {
   const dispatch = useAppDispatch();
   const [instantiateWithPrefill, { isSuccess, data, isLoading, isError }] = useInstantiateWithPrefillMutation();
   const formData = useAppSelector((state) => state.formData.formData);

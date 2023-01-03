@@ -1,65 +1,67 @@
 import { createContext } from 'react';
 import type React from 'react';
 
-import { AddressComponent as Address } from 'src/layout/Address/AddressComponent';
-import { AttachmentListComponent } from 'src/layout/AttachmentList/AttachmentListComponent';
-import { ButtonComponent } from 'src/layout/Button/ButtonComponent';
-import { CheckboxContainerComponent } from 'src/layout/Checkboxes/CheckboxesContainerComponent';
-import { CustomWebComponent } from 'src/layout/Custom/CustomWebComponent';
-import { DatepickerComponent } from 'src/layout/Datepicker/DatepickerComponent';
-import { DropdownComponent } from 'src/layout/Dropdown/DropdownComponent';
-import { FileUploadComponent } from 'src/layout/FileUpload/FileUploadComponent';
-import { FileUploadWithTagComponent } from 'src/layout/FileUploadWithTag/FileUploadWithTagComponent';
-import { HeaderComponent } from 'src/layout/Header/HeaderComponent';
-import { ImageComponent } from 'src/layout/Image/ImageComponent';
-import { InputComponent } from 'src/layout/Input/InputComponent';
-import { InstanceInformationComponent } from 'src/layout/InstanceInformation/InstanceInformationComponent';
-import { InstantiationButtonComponent } from 'src/layout/InstantiationButton/InstantiationButtonComponent';
-import { LikertComponent } from 'src/layout/Likert/LikertComponent';
-import { ListComponent } from 'src/layout/List/ListComponent';
-import { MapComponent } from 'src/layout/Map/MapComponent';
-import { MultipleSelect } from 'src/layout/MultipleSelect/MultipleSelect';
-import { NavigationBar as NavigationBarComponent } from 'src/layout/NavigationBar/NavigationBar';
-import { NavigationButtons as NavigationButtonsComponent } from 'src/layout/NavigationButtons/NavigationButtons';
-import { PanelComponent } from 'src/layout/Panel/PanelComponent';
-import { ParagraphComponent } from 'src/layout/Paragraph/ParagraphComponent';
-import { PrintButtonComponent } from 'src/layout/PrintButton/PrintButtonComponent';
-import { RadioButtonContainerComponent } from 'src/layout/RadioButtons/RadioButtonsContainerComponent';
-import { TextAreaComponent } from 'src/layout/TextArea/TextAreaComponent';
+import { Address } from 'src/layout/Address/index';
+import { AttachmentList } from 'src/layout/AttachmentList/index';
+import { Button } from 'src/layout/Button/index';
+import { Checkboxes } from 'src/layout/Checkboxes/index';
+import { Custom } from 'src/layout/Custom/index';
+import { Datepicker } from 'src/layout/Datepicker/index';
+import { Dropdown } from 'src/layout/Dropdown/index';
+import { FileUpload } from 'src/layout/FileUpload/index';
+import { FileUploadWithTag } from 'src/layout/FileUploadWithTag/index';
+import { Header } from 'src/layout/Header/index';
+import { Image } from 'src/layout/Image/index';
+import { Input } from 'src/layout/Input/index';
+import { InstanceInformation } from 'src/layout/InstanceInformation/index';
+import { InstantiationButton } from 'src/layout/InstantiationButton/index';
+import { Likert } from 'src/layout/Likert/index';
+import { List } from 'src/layout/List/index';
+import { Map } from 'src/layout/Map/index';
+import { MultipleSelect } from 'src/layout/MultipleSelect/index';
+import { NavigationBar } from 'src/layout/NavigationBar/index';
+import { NavigationButtons } from 'src/layout/NavigationButtons/index';
+import { Panel } from 'src/layout/Panel/index';
+import { Paragraph } from 'src/layout/Paragraph/index';
+import { PrintButton } from 'src/layout/PrintButton/index';
+import { RadioButtons } from 'src/layout/RadioButtons/index';
+import { TextArea } from 'src/layout/TextArea/index';
 import type { ExprResolved } from 'src/features/expressions/types';
 import type { IGenericComponentProps } from 'src/layout/GenericComponent';
 import type { ComponentExceptGroup, ComponentExceptGroupAndSummary, IGrid, ILayoutComponent } from 'src/layout/layout';
+import type { LayoutComponent } from 'src/layout/LayoutComponent';
+import type { IComponentValidations } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
 import type { IComponentFormData } from 'src/utils/formComponentUtils';
 
 const components: {
-  [Type in ComponentExceptGroupAndSummary]: (props: any) => JSX.Element | null;
+  [Type in ComponentExceptGroupAndSummary]: LayoutComponent<Type>;
 } = {
-  AddressComponent: Address,
-  AttachmentList: AttachmentListComponent,
-  Button: ButtonComponent,
-  Checkboxes: CheckboxContainerComponent,
-  Custom: CustomWebComponent,
-  Datepicker: DatepickerComponent,
-  Dropdown: DropdownComponent,
-  FileUpload: FileUploadComponent,
-  FileUploadWithTag: FileUploadWithTagComponent,
-  Header: HeaderComponent,
-  Image: ImageComponent,
-  Input: InputComponent,
-  InstanceInformation: InstanceInformationComponent,
-  InstantiationButton: InstantiationButtonComponent,
-  Likert: LikertComponent,
-  Map: MapComponent,
-  MultipleSelect: MultipleSelect,
-  NavigationBar: NavigationBarComponent,
-  NavigationButtons: NavigationButtonsComponent,
-  Panel: PanelComponent,
-  Paragraph: ParagraphComponent,
-  PrintButton: PrintButtonComponent,
-  RadioButtons: RadioButtonContainerComponent,
-  TextArea: TextAreaComponent,
-  List: ListComponent,
+  AddressComponent: new Address(),
+  AttachmentList: new AttachmentList(),
+  Button: new Button(),
+  Checkboxes: new Checkboxes(),
+  Custom: new Custom(),
+  Datepicker: new Datepicker(),
+  Dropdown: new Dropdown(),
+  FileUpload: new FileUpload(),
+  FileUploadWithTag: new FileUploadWithTag(),
+  Header: new Header(),
+  Image: new Image(),
+  Input: new Input(),
+  InstanceInformation: new InstanceInformation(),
+  InstantiationButton: new InstantiationButton(),
+  Likert: new Likert(),
+  Map: new Map(),
+  MultipleSelect: new MultipleSelect(),
+  NavigationBar: new NavigationBar(),
+  NavigationButtons: new NavigationButtons(),
+  Panel: new Panel(),
+  Paragraph: new Paragraph(),
+  PrintButton: new PrintButton(),
+  RadioButtons: new RadioButtons(),
+  TextArea: new TextArea(),
+  List: new List(),
 };
 
 export interface IComponentProps extends IGenericComponentProps {
@@ -79,6 +81,7 @@ export interface IComponentProps extends IGenericComponentProps {
   legend: () => JSX.Element;
   formData: IComponentFormData;
   isValid?: boolean;
+  componentValidations?: IComponentValidations;
 }
 
 export type PropsFromGenericComponent<T extends ComponentExceptGroup> = IComponentProps &

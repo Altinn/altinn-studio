@@ -6,23 +6,32 @@ import userEvent from '@testing-library/user-event';
 import { getInitialStateMock } from 'src/__mocks__/mocks';
 import { GoToTaskButton } from 'src/layout/Button/GoToTaskButton';
 import { setupStore } from 'src/store';
-import { renderWithProviders } from 'src/testUtils';
-import type { Props as GoToTaskButtonProps } from 'src/layout/Button/GoToTaskButton';
+import { mockComponentProps, renderWithProviders } from 'src/testUtils';
+import type { IButtonProvidedProps } from 'src/layout/Button/ButtonComponent';
 
-const render = ({ props = {}, dispatch = jest.fn() } = {}) => {
-  const allProps = {
-    id: 'go-to-task-button',
-    ...props,
-  } as GoToTaskButtonProps;
+interface RenderProps {
+  props: Partial<IButtonProvidedProps>;
+  dispatch: (...args: any[]) => any;
+}
+
+const render = ({ props, dispatch }: RenderProps) => {
   const stateMock = getInitialStateMock();
   stateMock.process.availableNextTasks = ['a', 'b'];
   const store = setupStore(stateMock);
 
   store.dispatch = dispatch;
 
-  renderWithProviders(<GoToTaskButton {...allProps}>Go to task</GoToTaskButton>, {
-    store,
-  });
+  renderWithProviders(
+    <GoToTaskButton
+      {...mockComponentProps}
+      {...props}
+    >
+      Go to task
+    </GoToTaskButton>,
+    {
+      store,
+    },
+  );
 };
 
 describe('GoToTaskButton', () => {

@@ -8,17 +8,10 @@ import { SaveButton } from 'src/layout/Button/SaveButton';
 import { SubmitButton } from 'src/layout/Button/SubmitButton';
 import { ProcessActions } from 'src/shared/resources/process/processSlice';
 import { getLanguageFromKey } from 'src/utils/sharedUtils';
-import type { IComponentProps } from 'src/layout';
-import type { ButtonMode } from 'src/layout/Button/getComponentFromMode';
-import type { ILayoutCompButton } from 'src/layout/Button/types';
+import type { PropsFromGenericComponent } from 'src/layout';
 import type { IAltinnWindow } from 'src/types';
 
-export interface IButtonProvidedProps extends IComponentProps, ILayoutCompButton {
-  disabled: boolean;
-  id: string;
-  mode?: ButtonMode;
-  taskId?: string;
-}
+export type IButtonProvidedProps = PropsFromGenericComponent<'Button'>;
 
 export const ButtonComponent = ({ mode, ...props }: IButtonProvidedProps) => {
   const dispatch = useAppDispatch();
@@ -29,6 +22,10 @@ export const ButtonComponent = ({ mode, ...props }: IButtonProvidedProps) => {
   const currentTaskType = useAppSelector((state) => state.instanceData.instance?.process.currentTask?.altinnTaskType);
   if (mode && !(mode === 'save' || mode === 'submit')) {
     const GenericButton = getComponentFromMode(mode);
+    if (!GenericButton) {
+      return null;
+    }
+
     return (
       <div className='container pl-0'>
         <div className={css['button-group']}>

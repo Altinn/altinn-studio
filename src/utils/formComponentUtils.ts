@@ -15,13 +15,7 @@ import {
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { IFormData } from 'src/features/form/data';
 import type { ILayoutGroup } from 'src/layout/Group/types';
-import type {
-  IDataModelBindings,
-  IGridStyling,
-  ILayoutComponent,
-  ILayoutEntry,
-  ISelectionComponentProps,
-} from 'src/layout/layout';
+import type { IDataModelBindings, IGridStyling, ILayoutComponent, ISelectionComponentProps } from 'src/layout/layout';
 import type { IAttachment, IAttachments } from 'src/shared/resources/attachments';
 import type {
   IComponentValidations,
@@ -33,13 +27,6 @@ import type {
   IValidations,
 } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
-
-export const componentValidationsHandledByGenericComponent = (
-  dataModelBindings: IDataModelBindings | undefined,
-  type: ILayoutEntry['type'],
-): boolean => {
-  return !!dataModelBindings?.simpleBinding && type !== 'FileUpload' && type !== 'FileUploadWithTag';
-};
 
 export const componentHasValidationMessages = (componentValidations: IComponentValidations | undefined) => {
   if (!componentValidations) {

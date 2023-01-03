@@ -8,14 +8,9 @@ import mockAxios from 'jest-mock-axios';
 import { getInitialStateMock } from 'src/__mocks__/mocks';
 import { InstantiationButton } from 'src/layout/InstantiationButton/InstantiationButton';
 import { setupStore } from 'src/store';
-import { renderWithProviders } from 'src/testUtils';
-import type { InstantiationButtonProps as InstantiationButtonProps } from 'src/layout/InstantiationButton/InstantiationButton';
+import { mockComponentProps, renderWithProviders } from 'src/testUtils';
 
-const render = ({ props = {} }) => {
-  const allProps = {
-    id: 'instantiate-button',
-    ...props,
-  } as InstantiationButtonProps;
+const render = () => {
   const stateMock = getInitialStateMock();
   const store = setupStore(stateMock);
 
@@ -26,7 +21,7 @@ const render = ({ props = {} }) => {
       <Routes>
         <Route
           path={'/'}
-          element={<InstantiationButton {...allProps}>Instantiate</InstantiationButton>}
+          element={<InstantiationButton {...mockComponentProps}>Instantiate</InstantiationButton>}
         />
         <Route
           path='/instance/abc123'
@@ -45,7 +40,7 @@ const render = ({ props = {} }) => {
 describe('InstantiationButton', () => {
   it('should show button and it should be possible to click and start loading', async () => {
     mockAxios.reset();
-    const dispatch = render({});
+    const dispatch = render();
     expect(screen.getByText('Instantiate')).toBeInTheDocument();
 
     expect(dispatch).toHaveBeenCalledTimes(0);

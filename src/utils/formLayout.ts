@@ -1,7 +1,7 @@
 import { INDEX_KEY_INDICATOR_REGEX } from 'src/utils/databindings';
 import type { IFormData } from 'src/features/form/data';
 import type { IGroupEditProperties, IGroupFilter, ILayoutGroup } from 'src/layout/Group/types';
-import type { ComponentTypes, ILayout, ILayoutComponent } from 'src/layout/layout';
+import type { ComponentInGroup, ComponentTypes, ILayout, ILayoutComponent } from 'src/layout/layout';
 import type { IAttachmentState } from 'src/shared/resources/attachments';
 import type {
   IFileUploadersWithTag,
@@ -273,8 +273,8 @@ export function createRepeatingGroupComponents(
   repeatingGroupIndex: number,
   textResources: ITextResource[],
   hiddenFields?: string[],
-): Array<Array<ILayoutComponent | ILayoutGroup>> {
-  const componentArray: Array<Array<ILayoutComponent | ILayoutGroup>> = [];
+): ComponentInGroup[][] {
+  const componentArray: ComponentInGroup[][] = [];
   const { startIndex, stopIndex } = getRepeatingGroupStartStopIndex(repeatingGroupIndex, container.edit);
   for (let index = startIndex; index <= stopIndex; index++) {
     componentArray.push(
@@ -305,7 +305,7 @@ export function createRepeatingGroupComponentsForIndex({
   index,
   hiddenFields,
 }: ICreateRepeatingGroupComponentsForIndexProps) {
-  return renderComponents.map((component: ILayoutComponent | ILayoutGroup) => {
+  return renderComponents.map((component: ComponentInGroup) => {
     if (component.type === 'Group' && component.panel?.groupReference) {
       // Do not treat as a regular group child as this is merely an option
       // to add elements for another group from this group context
@@ -344,7 +344,7 @@ export function createRepeatingGroupComponentsForIndex({
       baseComponentId: componentDeepCopy.baseComponentId || componentDeepCopy.id,
       hidden,
       mapping,
-    };
+    } as ComponentInGroup;
   });
 }
 

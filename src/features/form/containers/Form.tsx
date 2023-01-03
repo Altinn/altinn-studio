@@ -15,7 +15,7 @@ import { extractBottomButtons, hasRequiredFields, topLevelComponents } from 'src
 import { renderGenericComponent } from 'src/utils/layout';
 import { getFormHasErrors, missingFieldsInLayoutValidations } from 'src/utils/validation';
 import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { ILayout, ILayoutComponent } from 'src/layout/layout';
+import type { ILayout, ILayoutComponent, RenderableGenericComponent } from 'src/layout/layout';
 
 export function renderLayoutComponent(
   layoutComponent: ILayoutComponent | ILayoutGroup,
@@ -44,7 +44,7 @@ export function renderLayoutComponent(
   }
 }
 
-function GenericComponent(component: ILayoutComponent, layout: ILayout) {
+function GenericComponent(component: RenderableGenericComponent, layout: ILayout) {
   return renderGenericComponent({ component, layout });
 }
 

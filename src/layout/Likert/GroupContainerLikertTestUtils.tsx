@@ -13,7 +13,7 @@ import type { IUpdateFormData } from 'src/features/form/data/formDataTypes';
 import type { ILayoutState } from 'src/features/form/layout/formLayoutSlice';
 import type { IValidationState } from 'src/features/form/validation/validationSlice';
 import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { ILayoutComponent } from 'src/layout/layout';
+import type { ComponentInGroup, ILayoutComponent } from 'src/layout/layout';
 import type { ILayoutCompLikert } from 'src/layout/Likert/types';
 import type { ITextResourcesState } from 'src/shared/resources/textResources';
 import type { ILayoutValidations, ITextResource } from 'src/types';
@@ -109,7 +109,11 @@ export const createFormDataUpdateAction = (index: number, optionValue: string): 
   };
 };
 
-const createLayout = (container: ILayoutGroup, components: ILayoutComponent[], groupIndex: number): ILayoutState => {
+const createLayout = (
+  container: ILayoutGroup,
+  components: (ILayoutComponent | ComponentInGroup)[],
+  groupIndex: number,
+): ILayoutState => {
   return {
     error: null,
     layoutsets: null,
@@ -210,7 +214,7 @@ export const render = ({
 }: Partial<IRenderProps> = {}) => {
   const mockRadioButton = createRadioButton(radioButtonProps);
   const mockLikertContainer = createLikertContainer(likertContainerProps);
-  const components: ILayoutComponent[] = [mockRadioButton];
+  const components: ComponentInGroup[] = [mockRadioButton];
   const mockData: IFormDataState = {
     formData: generateMockFormData(mockQuestions),
     error: null,

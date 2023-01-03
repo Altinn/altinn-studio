@@ -4,9 +4,9 @@ import { fireEvent, screen } from '@testing-library/react';
 import type { PreloadedState } from 'redux';
 
 import { getInitialStateMock } from 'src/__mocks__/initialStateMock';
-import { MultipleSelect } from 'src/layout/MultipleSelect/MultipleSelect';
+import { MultipleSelectComponent } from 'src/layout/MultipleSelect/MultipleSelectComponent';
 import { mockComponentProps, renderWithProviders } from 'src/testUtils';
-import type { IMultipleSelectProps } from 'src/layout/MultipleSelect/MultipleSelect';
+import type { IMultipleSelectProps } from 'src/layout/MultipleSelect/MultipleSelectComponent';
 import type { RootState } from 'src/store';
 
 const dummyLabel = 'dummyLabel';
@@ -33,7 +33,7 @@ const render = (props: Partial<IMultipleSelectProps> = {}, customState: Preloade
   return renderWithProviders(
     <>
       <label htmlFor={allProps.id}>{dummyLabel}</label>
-      <MultipleSelect {...allProps} />
+      <MultipleSelectComponent {...allProps} />
     </>,
     {
       preloadedState: {

@@ -15,7 +15,7 @@ const invalidBorderColor = '#D5203B !important';
 
 export type IMultipleSelectProps = PropsFromGenericComponent<'MultipleSelect'>;
 
-export function MultipleSelect({
+export function MultipleSelectComponent({
   options,
   optionsId,
   mapping,

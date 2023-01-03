@@ -23,7 +23,7 @@ import { componentHasValidations, repeatingGroupHasValidations } from 'src/utils
 import type { IFormData } from 'src/features/form/data';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayoutCompInput } from 'src/layout/Input/types';
-import type { ILayout, ILayoutComponent } from 'src/layout/layout';
+import type { ComponentInGroup, ILayout, ILayoutComponent } from 'src/layout/layout';
 import type { IAttachments } from 'src/shared/resources/attachments';
 import type { IOptions, IRepeatingGroups, ITextResource, ITextResourceBindings, IValidations } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
@@ -31,10 +31,10 @@ import type { ILanguage } from 'src/types/shared';
 export interface IRepeatingGroupTableProps {
   id: string;
   container: ILayoutGroup;
-  components: (ILayoutComponent | ILayoutGroup)[];
+  components: ComponentInGroup[];
   repeatingGroupIndex: number;
   repeatingGroups: IRepeatingGroups | null;
-  repeatingGroupDeepCopyComponents: (ILayoutComponent | ILayoutGroup)[][];
+  repeatingGroupDeepCopyComponents: ComponentInGroup[][];
   hiddenFields: string[];
   formData: IFormData;
   attachments: IAttachments;
@@ -267,7 +267,9 @@ export function RepeatingGroupTable({
     }
 
     const childGroupIndex = repeatingGroups[childGroup.id]?.index;
-    const childGroupComponents = layout.filter((childElement) => childGroup.children?.indexOf(childElement.id) > -1);
+    const childGroupComponents = layout.filter(
+      (childElement) => childGroup.children?.indexOf(childElement.id) > -1,
+    ) as ComponentInGroup[];
     const childRenderComponents = setupGroupComponents(
       childGroupComponents,
       childGroup.dataModelBindings?.group,

@@ -4,10 +4,10 @@ import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
-import { NavigationBar } from 'src/layout/NavigationBar/NavigationBar';
+import { NavigationBarComponent } from 'src/layout/NavigationBar/NavigationBarComponent';
 import { setupStore } from 'src/store';
 import { mockMediaQuery, renderWithProviders } from 'src/testUtils';
-import type { INavigationBar } from 'src/layout/NavigationBar/NavigationBar';
+import type { INavigationBar } from 'src/layout/NavigationBar/NavigationBarComponent';
 
 const { setScreenWidth } = mockMediaQuery(600);
 
@@ -114,7 +114,7 @@ const render = ({ props = {}, dispatch = jest.fn() } = {}) => {
 
   store.dispatch = dispatch;
 
-  renderWithProviders(<NavigationBar {...allProps} />, {
+  renderWithProviders(<NavigationBarComponent {...allProps} />, {
     store,
   });
 };

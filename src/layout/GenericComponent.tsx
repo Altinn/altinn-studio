@@ -12,11 +12,11 @@ import Legend from 'src/features/form/components/Legend';
 import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import components, { FormComponentContext } from 'src/layout/index';
+import { getLayoutComponentObject } from 'src/layout/LayoutComponent';
 import { makeGetFocus, makeGetHidden } from 'src/selectors/getLayoutData';
-import { LayoutStyle, Triggers } from 'src/types';
+import { Triggers } from 'src/types';
 import {
   componentHasValidationMessages,
-  componentValidationsHandledByGenericComponent,
   getFormDataForComponent,
   getTextResource,
   gridBreakpoints,
@@ -29,17 +29,15 @@ import type { ExprResolved } from 'src/features/expressions/types';
 import type { ISingleFieldValidation } from 'src/features/form/data/formDataTypes';
 import type { IComponentProps, IFormComponentContext, PropsFromGenericComponent } from 'src/layout/index';
 import type {
-  ComponentExceptGroup,
+  ComponentExceptGroupAndSummary,
   ComponentTypes,
   IGridStyling,
   ILayoutCompBase,
   ILayoutComponent,
 } from 'src/layout/layout';
-import type { IComponentValidations, ILabelSettings } from 'src/types';
-import type { ILanguage } from 'src/types/shared';
+import type { ILabelSettings, LayoutStyle } from 'src/types';
 
 export interface IGenericComponentProps {
-  componentValidations?: IComponentValidations;
   labelSettings?: ILabelSettings;
   layout?: LayoutStyle;
   groupContainerId?: string;
@@ -97,7 +95,9 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export function GenericComponent<Type extends ComponentExceptGroup>(_props: IActualGenericComponentProps<Type>) {
+export function GenericComponent<Type extends ComponentExceptGroupAndSummary>(
+  _props: IActualGenericComponentProps<Type>,
+) {
   const props = useExpressionsForComponent(_props as ILayoutComponent) as ExprResolved<
     IActualGenericComponentProps<Type>
   > & {
@@ -201,27 +201,8 @@ export function GenericComponent<Type extends ComponentExceptGroup>(_props: IAct
     );
   };
 
-  const getValidationsForInternalHandling = () => {
-    if (
-      props.type === 'AddressComponent' ||
-      props.type === 'Datepicker' ||
-      props.type === 'FileUpload' ||
-      props.type === 'FileUploadWithTag' ||
-      (props.type === 'Likert' && props.layout === LayoutStyle.Table)
-    ) {
-      return componentValidations;
-    }
-    return null;
-  };
-
-  // some components handle their validations internally (i.e merge with internal validation state)
-  const internalComponentValidations = getValidationsForInternalHandling();
-  if (internalComponentValidations !== null) {
-    passThroughProps.componentValidations = internalComponentValidations;
-  }
-
-  const RenderComponent = components[props.type as keyof typeof components];
-  if (!RenderComponent) {
+  const layoutComponent = getLayoutComponentObject(_props.type);
+  if (!layoutComponent) {
     return (
       <div>
         Unknown component type: {props.type}
@@ -231,16 +212,20 @@ export function GenericComponent<Type extends ComponentExceptGroup>(_props: IAct
     );
   }
 
-  const RenderLabel = () => {
-    return (
-      <RenderLabelScoped
-        props={props}
-        passThroughProps={passThroughProps}
-        language={language}
-        texts={texts}
-      />
-    );
-  };
+  const RenderComponent = layoutComponent.render;
+
+  const RenderLabel = () => (
+    <Label
+      key={`label-${props.id}`}
+      labelText={texts.title}
+      helpText={texts.help}
+      language={language}
+      id={props.id}
+      readOnly={props.readOnly}
+      required={props.required}
+      labelSettings={props.labelSettings}
+    />
+  );
 
   const RenderDescription = () => {
     if (!props.textResourceBindings?.description) {
@@ -252,7 +237,6 @@ export function GenericComponent<Type extends ComponentExceptGroup>(_props: IAct
         key={`description-${props.id}`}
         description={texts.description}
         id={id}
-        {...passThroughProps}
       />
     );
   };
@@ -265,8 +249,10 @@ export function GenericComponent<Type extends ComponentExceptGroup>(_props: IAct
         descriptionText={texts.description}
         helpText={texts.help}
         language={language}
-        {...props}
-        {...passThroughProps}
+        id={props.id}
+        required={props.required}
+        labelSettings={props.labelSettings}
+        layout={props.layout}
       />
     );
   };
@@ -291,32 +277,18 @@ export function GenericComponent<Type extends ComponentExceptGroup>(_props: IAct
     text: texts.title,
     label: RenderLabel,
     legend: RenderLegend,
+    componentValidations,
     ...passThroughProps,
   } as unknown as PropsFromGenericComponent<Type>;
 
-  const noLabelComponents: ComponentTypes[] = [
-    'Header',
-    'Paragraph',
-    'Image',
-    'NavigationButtons',
-    'Custom',
-    'AddressComponent',
-    'Button',
-    'Checkboxes',
-    'RadioButtons',
-    'AttachmentList',
-    'InstantiationButton',
-    'NavigationBar',
-    'Likert',
-    'Panel',
-    'List',
-  ];
+  const showValidationMessages = hasValidationMessages && layoutComponent.renderDefaultValidations();
 
-  const showValidationMessages =
-    componentValidationsHandledByGenericComponent(props.dataModelBindings, props.type) && hasValidationMessages;
-
-  if (props.type === 'Likert' && props.layout === LayoutStyle.Table) {
-    return <RenderComponent {...componentProps} />;
+  if (layoutComponent.directRender(componentProps)) {
+    return (
+      <FormComponentContext.Provider value={formComponentContext}>
+        <RenderComponent {...componentProps} />
+      </FormComponentContext.Provider>
+    );
   }
 
   return (
@@ -331,22 +303,17 @@ export function GenericComponent<Type extends ComponentExceptGroup>(_props: IAct
           'form-group',
           'a-form-group',
           classes.container,
-          gridToHiddenProps(props.grid?.labelGrid, classes),
+          gridToClasses(props.grid?.labelGrid, classes),
         )}
         alignItems='baseline'
       >
-        {!noLabelComponents.includes(props.type) && (
+        {layoutComponent.renderWithLabel() && (
           <Grid
             item={true}
             {...gridBreakpoints(props.grid?.labelGrid)}
           >
-            <RenderLabelScoped
-              props={props}
-              passThroughProps={passThroughProps}
-              language={language}
-              texts={texts}
-            />
-            <RenderDescription key={`description-${props.id}`} />
+            <RenderLabel />
+            <RenderDescription />
           </Grid>
         )}
         <Grid
@@ -364,29 +331,9 @@ export function GenericComponent<Type extends ComponentExceptGroup>(_props: IAct
   );
 }
 
-interface IRenderLabelProps {
-  texts: any;
-  language: ILanguage;
-  props: any;
-  passThroughProps: any;
-}
-
-const RenderLabelScoped = (props: IRenderLabelProps) => {
-  return (
-    <Label
-      key={`label-${props.props.id}`}
-      labelText={props.texts.title}
-      helpText={props.texts.help}
-      language={props.language}
-      {...props.props}
-      {...props.passThroughProps}
-    />
-  );
-};
-
-const gridToHiddenProps = (labelGrid: IGridStyling | undefined, classes: ReturnType<typeof useStyles>) => {
+const gridToClasses = (labelGrid: IGridStyling | undefined, classes: ReturnType<typeof useStyles>) => {
   if (!labelGrid) {
-    return undefined;
+    return {};
   }
 
   return {

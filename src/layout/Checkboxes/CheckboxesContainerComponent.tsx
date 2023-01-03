@@ -13,13 +13,10 @@ import { useDelayedSavedState } from 'src/components/hooks/useDelayedSavedState'
 import { AltinnSpinner } from 'src/components/shared';
 import { shouldUseRowLayout } from 'src/utils/layout';
 import { getOptionLookupKey } from 'src/utils/options';
-import { renderValidationMessagesForComponent } from 'src/utils/render';
 import type { PropsFromGenericComponent } from 'src/layout';
-import type { IComponentValidations, IOption } from 'src/types';
+import type { IOption } from 'src/types';
 
-export interface ICheckboxContainerProps extends PropsFromGenericComponent<'Checkboxes'> {
-  validationMessages: IComponentValidations;
-}
+export type ICheckboxContainerProps = PropsFromGenericComponent<'Checkboxes'>;
 
 interface IStyledCheckboxProps extends CheckboxProps {
   label: string;
@@ -92,7 +89,6 @@ export const CheckboxContainerComponent = ({
   readOnly,
   getTextResourceAsString,
   getTextResource,
-  validationMessages,
   mapping,
   source,
 }: ICheckboxContainerProps) => {
@@ -177,28 +173,23 @@ export const CheckboxContainerComponent = ({
         ) : (
           <>
             {calculatedOptions.map((option, index) => (
-              <React.Fragment key={option.value}>
-                <FormControlLabel
-                  tabIndex={-1}
-                  key={option.value}
-                  classes={{ root: cn(classes.formControl) }}
-                  disabled={readOnly}
-                  control={
-                    <StyledCheckbox
-                      checked={isOptionSelected(option.value)}
-                      onChange={handleChange}
-                      value={index}
-                      key={option.value}
-                      name={option.value}
-                      label={getTextResourceAsString(option.label)}
-                    />
-                  }
-                  label={getTextResource(option.label)}
-                />
-                {validationMessages &&
-                  isOptionSelected(option.value) &&
-                  renderValidationMessagesForComponent(validationMessages.simpleBinding, id)}
-              </React.Fragment>
+              <FormControlLabel
+                tabIndex={-1}
+                key={option.value}
+                classes={{ root: cn(classes.formControl) }}
+                disabled={readOnly}
+                control={
+                  <StyledCheckbox
+                    checked={isOptionSelected(option.value)}
+                    onChange={handleChange}
+                    value={index}
+                    key={option.value}
+                    name={option.value}
+                    label={getTextResourceAsString(option.label)}
+                  />
+                }
+                label={getTextResource(option.label)}
+              />
             ))}
           </>
         )}

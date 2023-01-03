@@ -128,6 +128,8 @@ type AllComponents = Map[ComponentTypes];
 
 export type ComponentExceptGroup = Exclude<ComponentTypes, 'Group'>;
 export type ComponentExceptGroupAndSummary = Exclude<ComponentExceptGroup, 'Summary'>;
+export type RenderableGenericComponent = ILayoutComponent<ComponentExceptGroupAndSummary>;
+export type ComponentInGroup = RenderableGenericComponent | ILayoutGroup;
 
 /**
  * This type can be used to reference the layout declaration for a component. You can either use it to specify

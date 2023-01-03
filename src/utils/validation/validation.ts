@@ -21,7 +21,7 @@ import { getLanguageFromKey, getParsedLanguageFromKey, getTextResourceByKey } fr
 import type { IFormData } from 'src/features/form/data';
 import type { ILayoutCompDatepicker } from 'src/layout/Datepicker/types';
 import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { IDataModelBindings, ILayout, ILayoutComponent, ILayouts } from 'src/layout/layout';
+import type { ComponentInGroup, IDataModelBindings, ILayout, ILayoutComponent, ILayouts } from 'src/layout/layout';
 import type { IAttachment, IAttachments } from 'src/shared/resources/attachments';
 import type {
   IComponentBindingValidation,
@@ -1158,7 +1158,9 @@ export function repeatingGroupHasValidations(
         return false;
       }
       const childGroupIndex = repeatingGroups[element.id]?.index;
-      const childGroupComponents = layout.filter((childElement) => element.children?.indexOf(childElement.id) > -1);
+      const childGroupComponents = layout.filter(
+        (childElement) => element.children?.indexOf(childElement.id) > -1,
+      ) as ComponentInGroup[];
       const renderComponents = setupGroupComponents(childGroupComponents, element.dataModelBindings?.group, index);
       const deepCopyComponents = createRepeatingGroupComponents(
         element,

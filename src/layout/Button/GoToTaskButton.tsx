@@ -6,14 +6,12 @@ import { useAppDispatch, useAppSelector } from 'src/common/hooks';
 import { WrappedButton } from 'src/layout/Button/WrappedButton';
 import { ProcessActions } from 'src/shared/resources/process/processSlice';
 import { ProcessTaskType } from 'src/types';
-import type { ButtonProps } from 'src/layout/Button/WrappedButton';
+import type { IButtonProvidedProps } from 'src/layout/Button/ButtonComponent';
 
-export type Props = Omit<ButtonProps, 'onClick'> & { taskId: string };
-
-export const GoToTaskButton = ({ children, taskId, ...props }: Props) => {
+export const GoToTaskButton = ({ children, taskId, ...props }: React.PropsWithChildren<IButtonProvidedProps>) => {
   const dispatch = useAppDispatch();
   const availableProcessTasks = useAppSelector((state) => state.process.availableNextTasks);
-  const canGoToTask = availableProcessTasks && availableProcessTasks.includes(taskId);
+  const canGoToTask = availableProcessTasks && availableProcessTasks.includes(taskId || '');
   const navigateToTask = () => {
     if (canGoToTask) {
       dispatch(

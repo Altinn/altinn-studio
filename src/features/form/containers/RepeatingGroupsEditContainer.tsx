@@ -11,7 +11,7 @@ import theme from 'src/theme/altinnStudioTheme';
 import { renderGenericComponent } from 'src/utils/layout';
 import { getLanguageFromKey, getTextResourceByKey } from 'src/utils/sharedUtils';
 import type { ILayoutGroup } from 'src/layout/Group/types';
-import type { ILayout, ILayoutComponent } from 'src/layout/layout';
+import type { ComponentInGroup, ILayout } from 'src/layout/layout';
 import type { ITextResource } from 'src/types';
 import type { ILanguage } from 'src/types/shared';
 
@@ -19,7 +19,7 @@ export interface IRepeatingGroupsEditContainer {
   id: string;
   className?: string;
   container: ILayoutGroup;
-  repeatingGroupDeepCopyComponents: (ILayoutComponent | ILayoutGroup)[][];
+  repeatingGroupDeepCopyComponents: ComponentInGroup[][];
   language: ILanguage;
   textResources: ITextResource[];
   layout: ILayout | null;
@@ -168,7 +168,7 @@ export function RepeatingGroupsEditContainer({
           item={true}
           spacing={3}
         >
-          {repeatingGroupDeepCopyComponents[editIndex]?.map((component: ILayoutComponent) => {
+          {repeatingGroupDeepCopyComponents[editIndex]?.map((component) => {
             if (
               group.edit?.multiPage &&
               typeof multiPageIndex === 'number' &&

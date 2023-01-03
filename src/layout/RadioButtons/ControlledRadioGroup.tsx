@@ -11,7 +11,6 @@ import { AltinnSpinner } from 'src/components/shared';
 import { useRadioStyles } from 'src/layout/RadioButtons/radioButtonsUtils';
 import { StyledRadio } from 'src/layout/RadioButtons/StyledRadio';
 import { shouldUseRowLayout } from 'src/utils/layout';
-import { renderValidationMessagesForComponent } from 'src/utils/render';
 import type { IRadioButtonsContainerProps } from 'src/layout/RadioButtons/RadioButtonsContainerComponent';
 import type { IOption } from 'src/types';
 
@@ -28,7 +27,6 @@ export const ControlledRadioGroup = ({
   layout,
   legend,
   getTextResource,
-  validationMessages,
   fetchingOptions,
   selected,
   readOnly,
@@ -72,9 +70,6 @@ export const ControlledRadioGroup = ({
                 value={option.value}
                 classes={{ root: cn(classes.formControl) }}
               />
-              {validationMessages &&
-                selected === option.value &&
-                renderValidationMessagesForComponent(validationMessages.simpleBinding, id)}
             </React.Fragment>
           ))}
         </RadioGroup>

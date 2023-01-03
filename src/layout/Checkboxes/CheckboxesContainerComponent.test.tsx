@@ -35,7 +35,6 @@ const render = (props: Partial<ICheckboxContainerProps> = {}, customState: Prelo
     options: [],
     optionsId: 'countries',
     preselectedOptionIndex: undefined,
-    validationMessages: {},
     legend: () => <span>legend</span>,
     handleDataChange: jest.fn(),
     getTextResource: (value) => value,
