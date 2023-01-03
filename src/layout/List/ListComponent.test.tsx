@@ -32,6 +32,9 @@ export const testState: IDataListsState = {
   },
   dataListsWithIndexIndicator: [],
   error: null,
+  dataListCount: 1,
+  dataListLoadedCount: 1,
+  loading: false,
 };
 
 const render = (props: Partial<IListProps> = {}, customState: PreloadedState<RootState> = {}) => {
@@ -57,8 +60,11 @@ const render = (props: Partial<IListProps> = {}, customState: PreloadedState<Roo
           name: '',
           message: '',
         },
-        ...customState,
+        dataListCount: 1,
+        dataListLoadedCount: 1,
+        loading: false,
       },
+      ...customState,
     },
   });
 };

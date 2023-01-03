@@ -97,6 +97,7 @@ export default function SummaryComponentSwitch({
         hasValidationMessages={!!hasValidationMessages}
         formData={formData}
         readOnlyComponent={formComponent.readOnly}
+        display={display}
       />
     );
   }

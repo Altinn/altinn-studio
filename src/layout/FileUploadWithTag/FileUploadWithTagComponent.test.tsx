@@ -227,6 +227,9 @@ const render = ({ props = {}, initialState = {} }: IRenderProps = {}) => {
         },
       },
       error: null,
+      optionsCount: 1,
+      optionsLoadedCount: 1,
+      loading: false,
     },
     formLayout: {
       ...getFormLayoutStateMock(),

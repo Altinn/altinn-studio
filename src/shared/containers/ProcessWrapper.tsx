@@ -1,4 +1,5 @@
 import React from 'react';
+import { useSearchParams } from 'react-router-dom';
 
 import { useAppSelector, useInstanceIdParams, useProcess } from 'src/common/hooks';
 import { useApiErrorCheck } from 'src/common/hooks/useApiErrorCheck';
@@ -7,6 +8,7 @@ import { Confirm } from 'src/features/confirm/containers/Confirm';
 import Feedback from 'src/features/feedback/Feedback';
 import { Form } from 'src/features/form/containers/Form';
 import UnknownError from 'src/features/instantiate/containers/UnknownError';
+import PDFView from 'src/features/pdf/PDFView';
 import Receipt from 'src/features/receipt/containers/ReceiptContainer';
 import Presentation from 'src/shared/containers/Presentation';
 import { InstanceDataActions } from 'src/shared/resources/instanceData/instanceDataSlice';
@@ -23,6 +25,9 @@ const ProcessWrapper = () => {
   const instanceId = useAppSelector((state) => state.instantiation.instanceId);
   const instanceIdFromUrl = useInstanceIdParams()?.instanceId;
   window['instanceId'] = instanceIdFromUrl;
+
+  const [searchParams] = useSearchParams();
+  const pdf = searchParams.get('pdf') === '1';
 
   React.useEffect(() => {
     if (!instantiating && !instanceId) {
@@ -41,6 +46,16 @@ const ProcessWrapper = () => {
     return null;
   }
   const { taskType } = process;
+
+  if (pdf) {
+    return (
+      <PDFView
+        appName={appName as string}
+        appOwner={appOwner}
+      />
+    );
+  }
+
   return (
     <Presentation
       header={appName}

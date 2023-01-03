@@ -3,6 +3,7 @@ import * as React from 'react';
 import { Grid, List, ListItem, ListItemText, makeStyles } from '@material-ui/core';
 
 import SummaryBoilerplate from 'src/components/summary/SummaryBoilerplate';
+import type { SummaryDisplayProperties } from 'src/layout/Summary/types';
 
 export interface IMultipleChoiceSummaryProps {
   formData: any;
@@ -11,17 +12,15 @@ export interface IMultipleChoiceSummaryProps {
   changeText: any;
   onChangeClick: () => void;
   readOnlyComponent?: boolean;
+  display?: SummaryDisplayProperties;
 }
 
 const useStyles = makeStyles({
-  row: {
-    borderBottom: '1px dashed #008FD6',
-    marginBottom: 10,
-    paddingBottom: 10,
-  },
   list: {
-    paddingLeft: 0,
-    paddingRight: 0,
+    padding: 0,
+  },
+  listItem: {
+    padding: 0,
   },
   // Match style in \src\components\summary\SingleInputSummary.tsx
   data: {
@@ -41,6 +40,7 @@ export default function MultipleChoiceSummary({
   changeText,
   onChangeClick,
   readOnlyComponent,
+  display,
 }: IMultipleChoiceSummaryProps) {
   const classes = useStyles();
 
@@ -52,18 +52,19 @@ export default function MultipleChoiceSummary({
         label={label}
         hasValidationMessages={hasValidationMessages}
         readOnlyComponent={readOnlyComponent}
+        display={display}
       />
       <Grid
         item
         xs={12}
         data-testid={'multiple-choice-summary'}
       >
-        <List>
+        <List classes={{ root: classes.list }}>
           {formData &&
             Object.keys(formData).map((key) => (
               <ListItem
                 key={key}
-                classes={{ root: classes.list }}
+                classes={{ root: classes.listItem }}
               >
                 <ListItemText
                   id={key}

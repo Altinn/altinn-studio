@@ -570,6 +570,10 @@ export const ExprDefaultsForComponent: ExprDefaultValues<ILayoutComponent> = {
   textResourceBindings: {
     [DEFAULT_FOR_ALL_VALUES_IN_OBJ]: '',
   },
+  pageBreak: {
+    breakBefore: false,
+    breakAfter: false,
+  },
 };
 
 export const ExprDefaultsForGroup: ExprDefaultValues<ILayoutGroup> = {

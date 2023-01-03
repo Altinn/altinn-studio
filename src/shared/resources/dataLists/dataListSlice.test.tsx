@@ -25,6 +25,9 @@ export const testState: IDataListsState = {
   },
   dataListsWithIndexIndicator: [],
   error: null,
+  dataListCount: 1,
+  dataListLoadedCount: 1,
+  loading: false,
 };
 
 describe('languageSlice', () => {

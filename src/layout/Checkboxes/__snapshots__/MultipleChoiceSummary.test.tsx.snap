@@ -44,10 +44,10 @@ exports[`MultipleChoiceSummary MultipleChoiceSummary 1`] = `
     data-testid="multiple-choice-summary"
   >
     <ul
-      class="MuiList-root MuiList-padding"
+      class="MuiList-root makeStyles-list-1 MuiList-padding"
     >
       <li
-        class="MuiListItem-root makeStyles-list-2 MuiListItem-gutters"
+        class="MuiListItem-root makeStyles-listItem-2 MuiListItem-gutters"
       >
         <div
           class="MuiListItemText-root"
@@ -61,7 +61,7 @@ exports[`MultipleChoiceSummary MultipleChoiceSummary 1`] = `
         </div>
       </li>
       <li
-        class="MuiListItem-root makeStyles-list-2 MuiListItem-gutters"
+        class="MuiListItem-root makeStyles-listItem-2 MuiListItem-gutters"
       >
         <div
           class="MuiListItemText-root"

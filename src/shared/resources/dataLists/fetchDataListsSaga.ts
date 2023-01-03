@@ -32,6 +32,7 @@ export function* fetchDataListsSaga(): SagaIterator {
   const repeatingGroups: IRepeatingGroups = yield selectNotNull(repeatingGroupsSelector);
   const fetchedDataLists: string[] = [];
   const dataListsWithIndexIndicators: IDataListsMetaData[] = [];
+  let count = 0;
   for (const layoutId of Object.keys(layouts)) {
     for (const element of layouts[layoutId] || []) {
       if (element.type !== 'List' || !element.id) {
@@ -65,11 +66,13 @@ export function* fetchDataListsSaga(): SagaIterator {
             secure,
             paginationDefaultValue: paginationDefault,
           });
+          count++;
           fetchedDataLists.push(lookupKey);
         }
       }
     }
   }
+  yield put(DataListsActions.dataListCountFulfilled({ count }));
   yield put(
     DataListsActions.setDataListsWithIndexIndicators({
       dataListsWithIndexIndicators,

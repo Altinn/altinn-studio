@@ -4,6 +4,9 @@ export interface IOptionsState {
   error: Error | null;
   options: IOptions;
   optionsWithIndexIndicators?: IOptionsMetaData[];
+  optionsCount: number;
+  optionsLoadedCount: number;
+  loading: boolean;
 }
 
 export interface IFetchOptionsFulfilledAction {
@@ -19,6 +22,10 @@ export interface IFetchOptionsRejectedAction {
 export interface IFetchingOptionsAction {
   key: string;
   metaData: IOptionsMetaData;
+}
+
+export interface IFetchOptionsCountFulfilledAction {
+  count: number;
 }
 
 export interface ISetOptionsWithIndexIndicators {

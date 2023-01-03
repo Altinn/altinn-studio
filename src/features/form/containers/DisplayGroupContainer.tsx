@@ -1,11 +1,12 @@
 import React from 'react';
 
 import { Grid, makeStyles, Typography } from '@material-ui/core';
+import cn from 'classnames';
 
 import { useAppSelector } from 'src/common/hooks';
-import { ExprDefaultsForGroup } from 'src/features/expressions';
-import { useExpressions } from 'src/features/expressions/useExpressions';
+import { useExpressionsForComponent } from 'src/features/expressions/useExpressions';
 import { makeGetHidden } from 'src/selectors/getLayoutData';
+import printStyles from 'src/styles/print.module.css';
 import { getTextFromAppOrDefault } from 'src/utils/textResource';
 import type { ILayoutGroup } from 'src/layout/Group/types';
 import type { ILayout, ILayoutComponent, ILayoutComponentOrGroup } from 'src/layout/layout';
@@ -34,16 +35,13 @@ const useStyles = makeStyles({
 });
 
 export function DisplayGroupContainer(props: IDisplayGroupContainer) {
-  const textResourceBindings = useExpressions(props.container.textResourceBindings, {
-    forComponentId: props.container.id,
-    defaults: ExprDefaultsForGroup.textResourceBindings,
-  });
+  const container = useExpressionsForComponent(props.container);
 
   const GetHiddenSelector = makeGetHidden();
   const hidden: boolean = useAppSelector((state) => GetHiddenSelector(state, { id: props.container.id }));
   const classes = useStyles();
   const title = useAppSelector((state) => {
-    const titleKey = textResourceBindings?.title;
+    const titleKey = container.textResourceBindings?.title;
     if (titleKey && state.language.language) {
       return getTextFromAppOrDefault(titleKey, state.textResources.resources, state.language.language, [], true);
     }
@@ -62,7 +60,10 @@ export function DisplayGroupContainer(props: IDisplayGroupContainer) {
       container={true}
       item={true}
       id={props.container.id}
-      className={classes.groupContainer}
+      className={cn(classes.groupContainer, {
+        [printStyles['break-before']]: container.pageBreak?.breakBefore,
+        [printStyles['break-after']]: container.pageBreak?.breakAfter,
+      })}
       spacing={3}
       alignItems='flex-start'
       data-testid='display-group-container'

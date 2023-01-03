@@ -47,6 +47,9 @@
         },
         "showLanguageSelector": {
           "$ref": "#/definitions/showLanguageSelector"
+        },
+        "pdfLayoutName": {
+          "$ref": "#/definitions/pdfLayoutName"
         }
       }
     },
@@ -77,6 +80,11 @@
       "additionalProperties": false,
       "description": "An attribute specifying if the translation dropdown menu should be visible",
       "type": "boolean"
+    },
+    "pdfLayoutName": {
+      "additionalProperties": false,
+      "description": "Name of a custom layout file to use for PDF creation instead of the automatically generated PDF.",
+      "type": "string"
     }
   }
 }

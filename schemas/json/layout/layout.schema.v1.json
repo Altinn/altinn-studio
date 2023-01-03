@@ -117,6 +117,9 @@
           ]
         }
       },
+      "pageBreak": {
+        "$ref": "#/definitions/pageBreak"
+      },
       "required": ["id", "type"],
       "allOf": [
         { "if": {"properties": {"type": { "const": "AddressComponent"}}}, "then": { "$ref": "#/definitions/addressComponent"}},
@@ -663,6 +666,11 @@
           "title": "Large group",
           "description": "Boolean value indicating if summary of repeating group should be displayed in large format. Useful for displaying summary with nested groups."
         },
+        "excludedChildren": {
+          "type": "array",
+          "title": "Excluded child components",
+          "description": "Array of component ids that should not be shown in a repeating group's summary"
+        },
         "display": {
           "type": "object",
           "title": "Display properties",
@@ -866,6 +874,23 @@
         "alternatives",
         "default"
       ]
+    },
+    "pageBreak": {
+      "type": "object",
+      "properties": {
+        "breakBefore": {
+          "title": "Page break before",
+          "description": "PDF only: Boolean value or expression indicating if a page break should be added before the component.",
+          "default": false,
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
+        },
+        "breakAfter": {
+          "title": "Page break after",
+          "description": "PDF only: Boolean value or expression indicating if a page break should be added after the component.",
+          "default": false,
+          "$ref": "expression.schema.v1.json#/definitions/boolean"
+        }
+      }
     }
   }
 }

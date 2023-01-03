@@ -52,7 +52,7 @@ export default function SummaryBoilerplate({
       >
         <Typography
           variant='body1'
-          className={cn(hasValidationMessages && classes.labelWithError)}
+          className={cn(hasValidationMessages && !display?.hideValidationMessages && classes.labelWithError)}
           component='span'
         >
           {label}

@@ -9,9 +9,11 @@ export type IParagraphProps = PropsFromGenericComponent<'Paragraph'>;
 
 const useStyles = makeStyles({
   spacing: {
-    letterSpacing: '0.3px',
-    maxWidth: '684px',
-    marginTop: '-12px',
+    '@media only screen': {
+      letterSpacing: '0.3px',
+      maxWidth: '684px',
+      marginTop: '-12px',
+    },
   },
   // Class to override default stylings for headers created by markdown parsing. Done to align help text icon.
   typography: {

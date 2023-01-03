@@ -39,7 +39,7 @@ export function* fetchOptionsSaga(): SagaIterator {
   const repeatingGroups: IRepeatingGroups = yield selectNotNull(repeatingGroupsSelector);
   const fetchedOptions: string[] = [];
   const optionsWithIndexIndicators: IOptionsMetaData[] = [];
-
+  let count = 0;
   for (const layoutId of Object.keys(layouts)) {
     for (const element of layouts[layoutId] || []) {
       const { optionsId, mapping, secure } = element as ISelectionComponentProps;
@@ -72,11 +72,13 @@ export function* fetchOptionsSaga(): SagaIterator {
             dataMapping: mapping,
             secure,
           });
+          count++;
           fetchedOptions.push(lookupKey);
         }
       }
     }
   }
+  yield put(OptionsActions.optionCountFulfilled({ count }));
   yield put(
     OptionsActions.setOptionsWithIndexIndicators({
       optionsWithIndexIndicators,

@@ -14,6 +14,7 @@ import { FormLayoutActions } from 'src/features/form/layout/formLayoutSlice';
 import components, { FormComponentContext } from 'src/layout/index';
 import { getLayoutComponentObject } from 'src/layout/LayoutComponent';
 import { makeGetFocus, makeGetHidden } from 'src/selectors/getLayoutData';
+import printStyles from 'src/styles/print.module.css';
 import { Triggers } from 'src/types';
 import {
   componentHasValidationMessages,
@@ -304,6 +305,10 @@ export function GenericComponent<Type extends ComponentExceptGroupAndSummary>(
           'a-form-group',
           classes.container,
           gridToClasses(props.grid?.labelGrid, classes),
+          {
+            [printStyles['break-before']]: props.pageBreak?.breakBefore,
+            [printStyles['break-after']]: props.pageBreak?.breakAfter,
+          },
         )}
         alignItems='baseline'
       >

@@ -1,0 +1,24 @@
+.pdf-wrapper h1 {
+  font-size: xx-large;
+  margin-bottom: 0;
+}
+
+.title-margin {
+  margin-bottom: 2rem !important;
+}
+
+.pdf-wrapper p[role='doc-subtitle'] {
+  font-size: x-large;
+}
+
+.component-container {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.component-container:empty {
+  display: none;
+}

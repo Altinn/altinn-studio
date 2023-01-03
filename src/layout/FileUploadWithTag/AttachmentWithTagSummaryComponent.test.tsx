@@ -104,6 +104,9 @@ describe('AttachmentWithTagSummaryComponent', () => {
           ],
         },
       },
+      optionsCount: 4,
+      optionsLoadedCount: 4,
+      loading: false,
     },
   };
   test('should render file upload with tag without content', () => {

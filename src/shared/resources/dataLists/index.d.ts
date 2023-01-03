@@ -6,6 +6,9 @@ export interface IDataListsState {
   error: Error | null;
   dataLists: IDataLists;
   dataListsWithIndexIndicator?: IDataListsMetaData[];
+  dataListCount: number;
+  dataListLoadedCount: number;
+  loading: boolean;
 }
 
 export interface IFetchDataListsFulfilledAction {
@@ -22,6 +25,10 @@ export interface IFetchDataListsRejectedAction {
 export interface IFetchingDataListsAction {
   key: string;
   metaData: IOptionsMetaData;
+}
+
+export interface IFetchDataListCountFulfilledAction {
+  count: number;
 }
 
 export interface ISetDataListsWithIndexIndicators {

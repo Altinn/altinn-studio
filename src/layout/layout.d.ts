@@ -60,6 +60,7 @@ export interface ILayoutCompBase<Type extends ComponentTypes = ComponentTypes> e
   grid?: IGrid;
   triggers?: Triggers[];
   labelSettings?: ILabelSettings;
+  pageBreak?: IPageBreak;
 }
 
 interface ILayoutCompWillBeSavedWhileTyping {
@@ -190,4 +191,9 @@ export interface IGridStyling {
   md?: GridSize;
   lg?: GridSize;
   xl?: GridSize;
+}
+
+export interface IPageBreak {
+  breakBefore?: ExpressionOr<'boolean'>;
+  breakAfter?: ExpressionOr<'boolean'>;
 }
