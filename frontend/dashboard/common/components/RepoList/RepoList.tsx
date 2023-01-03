@@ -135,7 +135,6 @@ export const RepoList = ({
       {
         field: 'owner.created_by',
         headerName: t('dashboard.created_by'),
-        sortable: false,
         width: 180,
         renderCell: TextWithTooltip,
         valueGetter: (params: GridValueGetterParams) => {
