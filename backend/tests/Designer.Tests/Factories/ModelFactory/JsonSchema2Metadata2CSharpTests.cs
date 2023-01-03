@@ -22,7 +22,7 @@ using Tests.SharedResources;
 using Xunit;
 using Xunit.Abstractions;
 using InfoKeyword = Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json.InfoKeyword;
-using XmlSchemaValidator = Designer.Tests.Utils.XmlSchemaValidator;
+using XmlSchemaValidator = Tests.SharedResources.XmlSchemaValidator;
 
 namespace Designer.Tests.Factories.ModelFactory
 {

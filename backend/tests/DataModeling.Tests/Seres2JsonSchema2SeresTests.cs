@@ -5,7 +5,7 @@ using DataModeling.Tests.TestDataClasses;
 using Tests.SharedResources;
 using Xunit;
 using Xunit.Abstractions;
-using XmlSchemaValidator = DataModeling.Tests.TestHelpers.XmlSchemaValidator;
+using XmlSchemaValidator = Tests.SharedResources.XmlSchemaValidator;
 
 namespace DataModeling.Tests
 {

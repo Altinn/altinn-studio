@@ -3,7 +3,6 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Altinn.Studio.DataModeling.Json.Keywords;
-using DataModeling.Tests.TestHelpers;
 using FluentAssertions;
 using Json.Schema;
 using Tests.SharedResources;
