@@ -150,7 +150,7 @@ export const RepoList = ({
         type: 'date',
         valueFormatter: (params: GridValueFormatterParams) => {
           const date = params.value as string;
-          return new Date(date).toLocaleDateString('nb');
+          return new Date(date).toLocaleDateString('nb', { dateStyle: 'short' });
         },
       },
       {
