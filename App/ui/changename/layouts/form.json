@@ -336,6 +336,18 @@
         }
       },
       {
+        "id": "reference-group",
+        "type": "Group",
+        "textResourceBindings": {
+          "title": "Referanse"
+        },
+        "children": [
+          "sources",
+          "reference",
+          "reference2"
+        ]
+      },
+      {
         "id": "sources",
         "type": "Dropdown",
         "textResourceBindings": {
