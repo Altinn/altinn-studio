@@ -21,7 +21,7 @@ public static class SharedResourcesHelper
 
     public static Stream LoadTestData(string resourceName)
     {
-        var resourceNameEnding = ("_TestData." + resourceName).Replace('/', '.');
+        var resourceNameEnding = resourceName.Replace('/', '.');
         var embeddedResourceName = SharedResourcesAssembly.GetManifestResourceNames()
             .Single(x => x.EndsWith(resourceNameEnding));
         return SharedResourcesAssembly.GetManifestResourceStream(embeddedResourceName);
