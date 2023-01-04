@@ -122,11 +122,13 @@ export function setupSourceOptions({
 
   const options: IOption[] = [];
   for (let i = 0; i <= repGroup.index; i++) {
-    const option: IOption = {
-      label: replacedOptionLabels[i + 1].value,
-      value: replaceOptionDataField(relevantFormData, source.value, i),
-    };
-    options.push(option);
+    if (typeof replacedOptionLabels[i + 1]?.value !== 'undefined') {
+      const option: IOption = {
+        label: replacedOptionLabels[i + 1].value,
+        value: replaceOptionDataField(relevantFormData, source.value, i),
+      };
+      options.push(option);
+    }
   }
   return options;
 }
