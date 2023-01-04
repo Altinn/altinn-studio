@@ -182,7 +182,8 @@ namespace LocalTest.Controllers
 
                     using var reader = new StreamReader(prefill.OpenReadStream());
                     var content = await reader.ReadToEndAsync();
-                    var newInstance = await _localApp.Instantiate(app.Id, instance, content, xmlDataId);
+                    var token = await _authenticationService.GenerateTokenForOrg(app.Id.Split("/")[0]);
+                    var newInstance = await _localApp.Instantiate(app.Id, instance, content, xmlDataId, token);
 
                     return Redirect($"{_generalSettings.GetBaseUrl}/{app.Id}/#/instance/{newInstance.Id}");
                 }
