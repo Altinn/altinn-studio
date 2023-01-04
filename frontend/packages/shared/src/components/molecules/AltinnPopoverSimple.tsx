@@ -1,8 +1,7 @@
 import React from 'react';
 import type { PopoverOrigin } from '@mui/material';
-import { Button, createTheme, Grid, Popover } from '@mui/material';
-import { createStyles, makeStyles } from '@mui/styles';
-import altinnTheme from '../../theme/altinnStudioTheme';
+import { Button, Grid, Popover } from '@mui/material';
+import classes from './AltinnPopoverSimple.module.css';
 
 export interface IAltinnPopoverProps {
   anchorEl: any;
@@ -22,49 +21,6 @@ export interface IAltinnPopoverProps {
   open: boolean;
 }
 
-const theme = createTheme(altinnTheme);
-
-const useStyles = makeStyles(() =>
-  createStyles({
-    borderBottom: {
-      borderBottom: `1px solid ${altinnTheme.altinnPalette.primary.blueDark}`,
-    },
-    buttonCancel: {
-      fontSize: '14px',
-      color: theme.altinnPalette.primary.blueDarker,
-      background: theme.altinnPalette.primary.white,
-      textTransform: 'none',
-      fontWeight: 400,
-      marginTop: '20px',
-      borderRadius: '0',
-      '&:hover': {
-        color: theme.altinnPalette.primary.blueDarker,
-      },
-      '&:focus': {
-        background: theme.altinnPalette.primary.blueDarker,
-        color: theme.altinnPalette.primary.white,
-      },
-    },
-    buttonConfirm: {
-      fontSize: '14px',
-      color: theme.altinnPalette.primary.white,
-      background: theme.altinnPalette.primary.blueDark,
-      textTransform: 'none',
-      fontWeight: 400,
-      marginTop: '20px',
-      borderRadius: '0',
-      '&:hover': {
-        background: theme.altinnPalette.primary.blueDarker,
-        color: theme.altinnPalette.primary.white,
-      },
-      '&:focus': {
-        background: theme.altinnPalette.primary.blueDarker,
-        color: theme.altinnPalette.primary.white,
-      },
-    },
-  })
-);
-
 const defaultAnchorOrigin: PopoverOrigin = {
   horizontal: 'left',
   vertical: 'top',
@@ -77,8 +33,6 @@ const defaultTransformOrigin: PopoverOrigin = {
 
 export const AltinnPopoverComponent = (props: IAltinnPopoverProps) => {
   const { anchorOrigin = defaultAnchorOrigin, transformOrigin = defaultTransformOrigin } = props;
-
-  const classes = useStyles(props);
 
   const handleButtonClose = (event: React.MouseEvent<HTMLElement>) => {
     props.handleClose('close', event);

@@ -1,9 +1,6 @@
 import React from 'react';
 import { CircularProgress, Grid, Typography } from '@mui/material';
-import type { WithStyles } from '@mui/styles';
-import { createStyles, withStyles } from '@mui/styles';
 import Moment from 'moment';
-import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import type {
   IAppReleaseErrors,
@@ -15,44 +12,14 @@ import { getReleaseBuildPipelineLink } from '../../../utils/urlHelper';
 import { useAppSelector } from '../../../common/hooks';
 import { gitCommitPath } from 'app-shared/api-paths';
 import { useParams } from 'react-router-dom';
+import classes from './appReleaseComponent.module.css';
 
-const styles = createStyles({
-  releaseWrapper: {
-    padding: '1.2rem',
-    borderBottom: `1px solid ${altinnTheme.altinnPalette.primary.greyMedium}`,
-  },
-  releaseRow: {
-    paddingTop: '1rem',
-  },
-  buildFailedIcon: {
-    color: altinnTheme.altinnPalette.primary.red,
-    height: 10,
-    width: 10,
-    padding: '1.2rem 1rem 1.2rem 0rem',
-  },
-  buildSucceededIcon: {
-    color: altinnTheme.altinnPalette.primary.green,
-    height: 10,
-    width: 10,
-    padding: '1.2rem 1rem 1.2rem 0rem',
-  },
-  spinnerRoot: {
-    color: altinnTheme.altinnPalette.primary.blue,
-    marginRight: '1rem',
-  },
-  releaseText: {
-    fontSize: '1.6rem',
-    wordWrap: 'normal',
-    wordBreak: 'break-word',
-  },
-});
-
-interface IAppReleaseComponent extends WithStyles<typeof styles> {
+interface IAppReleaseComponent {
   release: IRelease;
 }
 
 function ReleaseComponent(props: IAppReleaseComponent) {
-  const { classes, release } = props;
+  const { release } = props;
 
   const appReleaseErrors: IAppReleaseErrors = useAppSelector((state) => state.appReleases.errors);
   const language: any = useAppSelector((state) => state.languageState.language);
@@ -149,4 +116,4 @@ function ReleaseComponent(props: IAppReleaseComponent) {
   );
 }
 
-export default withStyles(styles)(ReleaseComponent);
+export default ReleaseComponent;

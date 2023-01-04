@@ -1,17 +1,11 @@
 import React, { useEffect } from 'react';
-import type { Theme } from '@mui/material';
 import {
   CircularProgress,
-  createTheme,
   Grid,
   Popover,
   Typography,
-  useMediaQuery,
 } from '@mui/material';
-import type { WithStyles } from '@mui/styles';
-import { createStyles, withStyles } from '@mui/styles';
 import AltinnIcon from 'app-shared/components/AltinnIcon';
-import AltinnStudioTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey, getParsedLanguageFromKey } from 'app-shared/utils/language';
 import type { IAppReleaseState } from '../../../sharedResources/appRelease/appReleaseSlice';
 import { AppReleaseActions } from '../../../sharedResources/appRelease/appReleaseSlice';
@@ -25,95 +19,12 @@ import { fetchRepoStatus } from '../../handleMergeConflict/handleMergeConflictSl
 import ReleaseComponent from '../components/appReleaseComponent';
 import CreateReleaseComponent from '../components/createAppReleaseComponent';
 import { useParams } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../../../common/hooks';
+import { useAppDispatch, useAppSelector, useMediaQuery } from '../../../common/hooks';
 import { frontendLangPath, gitCommitPath, repoStatusPath } from 'app-shared/api-paths';
+import classes from './releaseContainer.module.css';
 
-const theme = createTheme(AltinnStudioTheme);
-
-const styles = createStyles({
-  appReleaseWrapper: {
-    maxWidth: '78.6rem',
-    minWidth: '24.6rem',
-    background: 'white',
-    borderLeft: `1px solid ${theme.altinnPalette.primary.greyMedium}`,
-    borderBottom: `1px solid ${theme.altinnPalette.primary.greyMedium}`,
-    display: 'flex',
-    [theme.breakpoints.up('xs')]: {
-      height: 'calc(100vh - 55px)',
-    },
-    [theme.breakpoints.up('md')]: {
-      height: 'calc(100vh - 111px)',
-    },
-    flexGrow: 1,
-    overflowX: 'hidden',
-    overflowY: 'scroll',
-  },
-  appReleaseCreateRelease: {
-    flexGrow: 1,
-  },
-  appReleaseHistory: {
-    overflowY: 'scroll',
-  },
-  appReleaseHistoryTitle: {
-    fontSize: '1.8rem',
-    fontWeight: 500,
-    padding: '2rem 1.2rem 2rem 1.2rem',
-  },
-  appCreateReleaseWrapper: {
-    minHeight: '400px',
-  },
-  appCreateReleaseTitle: {
-    padding: '1.2rem',
-    fontWeight: 500,
-    fontSize: '1.8rem',
-  },
-  appCreateReleaseStatusIcon: {
-    paddingTop: '1.2rem',
-    color: theme.altinnPalette.primary.blue,
-    height: '48px',
-    width: '48px',
-  },
-  popover: {
-    pointerEvents: 'none',
-  },
-  popoverPaper: {
-    padding: '2rem',
-    maxWidth: '50rem',
-    backgroundColor: theme.altinnPalette.primary.yellowLight,
-  },
-  cannotCreateReleaseContainer: {
-    margin: '1.2rem',
-    backgroundColor: theme.altinnPalette.primary.redLight,
-    height: '100%',
-  },
-  cannotCreateReleaseTitle: {
-    padding: '1.2rem',
-  },
-  cannotCreateReleaseSubTitle: {
-    padding: '1.2rem',
-    fontSize: '1.4rem',
-  },
-  renderCannotCreateReleaseIcon: {
-    paddingTop: '2rem',
-  },
-  versionHeader: {
-    borderBottom: `1px solid ${theme.altinnPalette.primary.greyMedium}`,
-    padding: `1rem 2rem 0`,
-  },
-  versionHeaderTitle: {
-    borderBottom: `2px solid ${theme.altinnPalette.primary.blue}`,
-    padding: 0,
-    display: 'inline-block',
-    fontWeight: 500,
-    marginBottom: '-2px',
-  },
-});
-
-type IAppReleaseContainer = WithStyles<typeof styles>;
-
-function AppReleaseContainer(props: IAppReleaseContainer) {
-  const hiddenMdDown = useMediaQuery((appTheme: Theme) => appTheme.breakpoints.down('md'));
-  const { classes } = props;
+function AppReleaseContainer() {
+  const hiddenMdDown = useMediaQuery('(max-width: 1025px)');
   const dispatch = useAppDispatch();
 
   const [anchorElement, setAchorElement] = React.useState<Element>();
@@ -186,7 +97,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
           <Grid item={true} xs={1}>
             <AltinnIcon
               iconClass={`${classes.renderCannotCreateReleaseIcon} ai ai-circle-exclamation`}
-              iconColor={theme.altinnPalette.primary.red}
+              iconColor='#E23B53'
             />
           </Grid>
         )}
@@ -229,7 +140,7 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
               <Grid item={true}>
                 <CircularProgress
                   style={{
-                    color: theme.altinnPalette.primary.blue,
+                    color: '#1EAEF7',
                   }}
                 />
               </Grid>
@@ -437,4 +348,4 @@ function AppReleaseContainer(props: IAppReleaseContainer) {
   );
 }
 
-export default withStyles(styles)(AppReleaseContainer);
+export default AppReleaseContainer;

@@ -2,15 +2,7 @@ import React from 'react';
 import { TopToolbarButton } from '@altinn/schema-editor/index';
 import { getLanguageFromKey } from '../../../utils/language';
 import { DeleteDialog } from './DeleteDialog';
-import { makeStyles } from '@mui/styles';
-
-const useStyles = makeStyles({
-  root: {
-    '&:not(:hover):not(:disabled)': {
-      color: '#E23B53 !important',
-    },
-  },
-});
+import classes from './DeleteWrapper.module.css';
 
 export interface IDeleteWrapper {
   language: any;
@@ -30,7 +22,6 @@ export function DeleteWrapper(props: IDeleteWrapper) {
   const onCancelDelete = () => {
     setDeleteButtonAnchor(null);
   };
-  const classes = useStyles();
 
   return (
     <>

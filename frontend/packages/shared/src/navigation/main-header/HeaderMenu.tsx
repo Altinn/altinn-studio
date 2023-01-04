@@ -1,29 +1,11 @@
 import React, { useContext, useState } from 'react';
 import { Avatar, Divider, Grid, IconButton, MenuItem, Typography } from '@mui/material';
-import { makeStyles } from '@mui/styles';
 import { AltinnMenu } from '../../components';
 import { post } from '../../utils/networking';
 import { getOrgNameById, HeaderContext, SelectedContextType } from './Header';
 import { getLanguageFromKey } from '../../utils/language';
 import { repositoryBasePath, repositoryOwnerPath, repositoryPath } from '../../api-paths';
-
-const useStyles = makeStyles(() => ({
-  avatar: {
-    height: 60,
-    width: 60,
-  },
-  typography: {
-    textAlign: 'right',
-  },
-  iconButton: {
-    '&:hover': {
-      backgroundColor: '#193d61',
-    },
-    '&:focus': {
-      backgroundColor: '#193d61',
-    },
-  },
-}));
+import classes from './HeaderMenu.module.css';
 
 export type HeaderMenuProps = {
   language: any;
@@ -32,7 +14,6 @@ export type HeaderMenuProps = {
 };
 
 export function HeaderMenu({ language, org, repo }: HeaderMenuProps) {
-  const classes = useStyles();
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | Element>(null);
   const { user, selectedContext, selectableOrgs, setSelectedContext } = useContext(HeaderContext);
   const t = (key: string) => getLanguageFromKey(key, language);

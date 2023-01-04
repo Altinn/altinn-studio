@@ -5,7 +5,6 @@ import AltinnIcon from '../../components/AltinnIcon';
 import type { IMenuItem } from './drawerMenuSettings';
 import { createLeftDrawerMenuSettings } from './drawerMenuSettings';
 
-import altinnTheme from '../../theme/altinnStudioTheme';
 import classes from './LeftDrawerMenu.module.css';
 
 export interface ILeftDrawerMenuProps {
@@ -34,7 +33,7 @@ export default function LeftDrawerMenu({
     event.stopPropagation();
     const newIconColor = {
       ...iconColor,
-      [index]: altinnTheme.altinnPalette.primary.blueDark,
+      [index]: '#0062BA',
     };
     setIconColor(newIconColor);
   };
@@ -79,7 +78,7 @@ export default function LeftDrawerMenu({
               >
                 <AltinnIcon
                   isActive={activeLeftMenuSelection === menuItem.activeLeftMenuSelection}
-                  isActiveIconColor={altinnTheme.altinnPalette.primary.blueDark}
+                  isActiveIconColor='#0062BA'
                   iconClass={menuItem.iconClass}
                   iconColor={
                     iconColor[index] === undefined ? 'rgba(0, 0, 0, 0.54)' : iconColor[index]

@@ -4,8 +4,8 @@ import { Link, useParams } from 'react-router-dom';
 import type { IMenuItem } from './drawerMenuSettings';
 import { createLeftDrawerMenuSettings, createMainMenuSettings } from './drawerMenuSettings';
 import { post } from '../../utils/networking';
-import { useDrawerStyles } from './tabletDrawerMenustyle';
 import { Button, Collapse, Divider, Drawer, List, ListItem, ListItemText } from '@mui/material';
+import classes from './TabletDrawerMenu.module.css';
 
 export interface ITabletDrawerMenuProps {
   handleTabletDrawerMenu: () => void;
@@ -57,8 +57,6 @@ function TabletDrawerMenu({
     };
   };
 
-  const classes = useDrawerStyles();
-
   const [stateText, buttonClasses] = tabletDrawerOpen
     ? ['lukk', classNames(classes.commonButton, classes.button)]
     : ['meny', classNames(classes.commonButton, classes.closeButton)];
@@ -70,7 +68,7 @@ function TabletDrawerMenu({
         data-test-id='tablet-drawer-menu'
         variant='persistent'
         anchor='right'
-        className={classNames(classes.drawer)}
+        className={classes.drawer}
         open={tabletDrawerOpen}
         PaperProps={{
           classes: {
@@ -83,13 +81,13 @@ function TabletDrawerMenu({
           <ListItem button={true} onClick={handleLogout}>
             <ListItemText
               classes={{
-                primary: classNames(classes.menuItemText),
+                primary: classes.menuItemText,
               }}
               primary='Logg ut'
             />
           </ListItem>
         </List>
-        <Divider classes={{ root: classNames(classes.divider) }} />
+        <Divider classes={{ root: classes.divider }} />
         <List>
           {createMainMenuSettings(mainMenuItems).menuItems.map(
             (menuItem: IMenuItem, index: number) => (
@@ -105,7 +103,7 @@ function TabletDrawerMenu({
                 >
                   <ListItemText
                     disableTypography={true}
-                    classes={{ root: classNames(classes.mainMenuItem) }}
+                    classes={{ root: classes.mainMenuItem }}
                     primary={menuItem.activeSubHeaderSelection}
                   />
                 </ListItem>
@@ -145,7 +143,7 @@ function TabletDrawerMenu({
                     </List>
                   </Collapse>
                 ) : null}
-                <Divider classes={{ root: classNames(classes.divider) }} />
+                <Divider classes={{ root: classes.divider }} />
               </div>
             )
           )}

@@ -1,0 +1,16 @@
+.appBar {
+  background-color: #022F51;
+  box-shadow: none;
+}
+
+.toolbar {
+  height: 96px;
+  padding-left: 48px;
+  padding-right: 48px;
+}
+
+.divider {
+  font-size: 2rem;
+  margin-left: 10px;
+  margin-right: 10px;
+}

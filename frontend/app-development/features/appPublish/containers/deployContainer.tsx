@@ -1,11 +1,8 @@
 import React from 'react';
-import { createTheme, Grid } from '@mui/material';
-import type { WithStyles } from '@mui/styles';
-import { createStyles, withStyles } from '@mui/styles';
+import { Grid } from '@mui/material';
 import moment from 'moment';
 
 import AltinnContentLoader from 'app-shared/components/molecules/AltinnContentLoader';
-import StudioTheme from 'app-shared/theme/altinnStudioTheme';
 import type { IAppClusterState } from '../../../sharedResources/appCluster/appClusterSlice';
 import {
   getDeploymentsStartInterval,
@@ -21,26 +18,10 @@ import { ConfigurationActions } from '../../../sharedResources/configuration/con
 import AppDeploymentComponent from '../components/appDeploymentComponent';
 import { useParams } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../../common/hooks';
+import classes from './deployContainer.module.css';
 
-const theme = createTheme(StudioTheme);
-
-const styles = createStyles({
-  deployContainer: {
-    overflow: 'scroll',
-    [theme.breakpoints.up('xs')]: {
-      height: 'calc(100vh - 55px)',
-    },
-    [theme.breakpoints.up('md')]: {
-      height: 'calc(100vh - 111px)',
-    },
-  },
-});
-
-type IDeployContainer = WithStyles<typeof styles>;
-
-export const DeployContainer = (props: IDeployContainer) => {
+export const DeployContainer = () => {
   const { org, app } = useParams();
-  const { classes } = props;
   const dispatch = useAppDispatch();
 
   const [environments, setEnvironments] = React.useState([]);
@@ -164,4 +145,4 @@ export const DeployContainer = (props: IDeployContainer) => {
   );
 };
 
-export default withStyles(styles)(DeployContainer);
+export default DeployContainer;

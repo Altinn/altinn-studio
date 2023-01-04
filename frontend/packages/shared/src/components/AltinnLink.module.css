@@ -1,0 +1,11 @@
+.link {
+  border-bottom: 1px solid #0062BA;
+  color: #022F51;
+}
+
+.link:hover {
+  border-bottom: 1px solid #008FD6;
+  color: #022F51;
+  font-weight: 500;
+  text-decoration: none;
+}

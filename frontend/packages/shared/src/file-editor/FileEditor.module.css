@@ -1,0 +1,67 @@
+.temp {
+  background: blue;
+}
+
+.fileHeader {
+  background: #FFF;
+  border-bottom: 1px solid #C9C9C9;
+  margin-bottom: 0.1rem;
+  min-height: 4.4rem;
+  padding-left: 1.3rem;
+}
+
+.boxShadow {
+  background: #FFF;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.25);
+}
+
+.codeEditorContent {
+  min-height: 100%;
+}
+
+.selectFile {
+  border-bottom: 1px solid #0062BA;
+  color: #022F51;
+  font-size: 1.6rem;
+}
+
+.file {
+  color: #022F51;
+  font-size: 1.6rem;
+}
+
+.fileMenuItem {
+  font-size: 1.6rem;
+}
+
+.selectMenu {
+  padding-right: 0;
+}
+
+.hideIcon {
+  display: none;
+}
+
+.formComponentsBtn {
+  fill: #1EAEF7;
+  font-size: 0.85em;
+  margin-top: 0.1em;
+  outline: none !important;
+  padding-left: 0;
+}
+
+.formComponentsBtn:hover {
+  background: none;
+}
+
+.specialBtn {
+  font-size: 0.6em !important;
+}
+
+.footerContent {
+  color: #6A6A6A;
+  min-height: 3em;
+  padding-bottom: 1.2em;
+  padding-right: 1.2em;
+  text-align: end;
+}

@@ -1,0 +1,22 @@
+.borderBottom {
+  border-bottom: 1px solid #0062BA;
+}
+
+.buttonCancel {
+  font-size: 14px;
+  color: #022F51;
+  background: #FFF;
+  text-transform: none;
+  font-weight: 400;
+  margin-top: 20px;
+  border-radius: 0;
+}
+
+.buttonCancel:hover {
+  color: #022F51;
+}
+
+.buttonCancel:focus {
+  background: #022F51;
+  color: #FFF;
+}

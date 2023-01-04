@@ -1,5 +1,7 @@
 .container {
-  --header-height: 111px;
+  --toolbar-height: 55px;
+  --header-border-bottom-width: 1px;
+  --header-height: calc(var(--toolbar-height) * 2 + var(--header-border-bottom-width));
   --left-menu-width: 68px;
 
   background-color: lightgray;
@@ -7,6 +9,12 @@
   width: 100%;
   display: flex;
   flex-direction: column;
+}
+
+@media screen and (max-width: 600px) {
+  .container {
+    --header-height: calc(var(--toolbar-height) + var(--header-border-bottom-width));
+  }
 }
 
 .contentWrapper {
