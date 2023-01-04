@@ -1,13 +1,13 @@
 import React from 'react';
 import type { IGenericEditComponent } from '../componentConfig';
 import { TextResource } from '../../TextResource';
-import { getLanguageFromKey } from 'app-shared/utils/language';
+import { useText } from '../../../hooks';
 
 export const EditTitle = ({
   component,
   handleComponentChange,
-  language,
 }: IGenericEditComponent) => {
+  const t = useText();
   const handleIdChange = (id: string) => handleComponentChange({
     ...component,
     textResourceBindings: {
@@ -18,7 +18,7 @@ export const EditTitle = ({
   return (
     <TextResource
       handleIdChange={handleIdChange}
-      label={getLanguageFromKey('ux_editor.modal_properties_label', language)}
+      label={t('ux_editor.modal_properties_label')}
       textResourceId={component.textResourceBindings?.title}
     />
   );

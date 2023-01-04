@@ -60,6 +60,7 @@ export interface IRenderSelectDataModelBinding {
   returnValue?: any;
   key?: string;
   uniqueKey?: any;
+  t: (key: string) => any;
 }
 
 export function renderSelectDataModelBinding({
@@ -70,23 +71,23 @@ export function renderSelectDataModelBinding({
   returnValue,
   key = 'simpleBinding',
   uniqueKey,
+  t,
 }: IRenderSelectDataModelBinding): JSX.Element {
   const onDMChange = (dataModelField: any) => onDataModelChange(dataModelField, returnValue);
-  const noOptMessage = () => noOptionsMessage(language);
   return (
     <div key={uniqueKey || ''}>
       <PropertyLabel
         textKey={
           label
-            ? `${language['ux_editor.modal_properties_data_model_helper']} ${language['general.for']} ${label}`
-            : language['ux_editor.modal_properties_data_model_helper']
+            ? `${t('ux_editor.modal_properties_data_model_helper')} ${t('general.for')} ${label}`
+            : t('ux_editor.modal_properties_data_model_helper')
         }
       />
       <SelectDataModelComponent
         selectedElement={dataModelBinding[key]}
         onDataModelChange={onDMChange}
         language={language}
-        noOptionsMessage={noOptMessage}
+        noOptionsMessage={t('general.no_options')}
       />
     </div>
   );

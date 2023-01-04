@@ -1,1 +1,0 @@
-export { FileUploadWithTagComponent } from './FileUploadWithTagComponent';
