@@ -341,6 +341,7 @@
         "textResourceBindings": {
           "title": "Referanser"
         },
+        "dataModelBindings": {},
         "children": [
           "sources",
           "reference",
