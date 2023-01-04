@@ -73,6 +73,15 @@ const rootChildrenSelector = createSelector(
     }
   }
 );
+export enum SchemaEditorTestIds {
+  menuAddReference = 'action-menu-add-reference',
+  menuAddField = 'action-menu-add-field',
+  menuAddCombination = 'action-menu-add-combination',
+  menuAddString = 'action-menu-add-string',
+  menuAddInteger = 'action-menu-add-integer',
+  menuAddNumber = 'action-menu-add-number',
+  menuAddBoolean = 'action-menu-add-boolean',
+}
 
 export const SchemaEditor = ({
   Toolbar,
@@ -197,37 +206,44 @@ export const SchemaEditor = ({
               action: () => handleAddProperty(ObjectKind.Field),
               icon: IconImage.Object,
               text: t('field'),
+              testId: SchemaEditorTestIds.menuAddField,
             },
             {
               action: () => handleAddProperty(ObjectKind.Reference),
               icon: IconImage.Reference,
               text: t('reference'),
+              testId: SchemaEditorTestIds.menuAddReference,
             },
             {
               action: () => handleAddProperty(ObjectKind.Combination),
               icon: IconImage.Combination,
               text: t('combination'),
+              testId: SchemaEditorTestIds.menuAddCombination,
             },
             {
               action: () => handleAddProperty(ObjectKind.Field, FieldType.String),
               className: classes.dividerAbove,
               icon: IconImage.String,
               text: t('string'),
+              testId: SchemaEditorTestIds.menuAddString,
             },
             {
               action: () => handleAddProperty(ObjectKind.Field, FieldType.Integer),
               icon: IconImage.Number,
               text: t('integer'),
+              testId: SchemaEditorTestIds.menuAddInteger,
             },
             {
               action: () => handleAddProperty(ObjectKind.Field, FieldType.Number),
               icon: IconImage.Number,
               text: t('number'),
+              testId: SchemaEditorTestIds.menuAddNumber,
             },
             {
               action: () => handleAddProperty(ObjectKind.Field, FieldType.Boolean),
               icon: IconImage.Boolean,
               text: t('boolean'),
+              testId: SchemaEditorTestIds.menuAddBoolean,
             },
           ]}
           openButtonText={t('add')}
@@ -248,11 +264,7 @@ export const SchemaEditor = ({
   const typesPanel = (
     <>
       {editMode && (
-        <Button
-          icon={<Add/>}
-          onClick={handleAddDefinition}
-          variant={ButtonVariant.Outline}
-        >
+        <Button icon={<Add />} onClick={handleAddDefinition} variant={ButtonVariant.Outline}>
           {t('add_element')}
         </Button>
       )}
@@ -287,13 +299,13 @@ export const SchemaEditor = ({
                 {
                   name: t('model'),
                   content: modelsPanel,
-                  value: 'properties'
+                  value: 'properties',
                 },
                 {
                   name: t('types'),
                   content: typesPanel,
-                  value: 'definitions'
-                }
+                  value: 'definitions',
+                },
               ]}
               onChange={handleTabChanged}
             />

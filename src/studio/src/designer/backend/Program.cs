@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Altinn.Common.AccessToken.Configuration;
@@ -36,6 +35,8 @@ string applicationInsightsKey = string.Empty;
 ConfigureSetupLogging();
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
 
 await SetConfigurationProviders(builder.Configuration, builder.Environment);
 
@@ -283,8 +284,6 @@ void Configure(IConfiguration configuration)
         c.SwaggerEndpoint($"/{swaggerRoutePrefix}/v1/swagger.json", "Altinn Designer API V1");
     });
 
-    app.UseRouting();
-
     if (!app.Environment.IsDevelopment())
     {
         app.UseHsts();
@@ -297,77 +296,11 @@ void Configure(IConfiguration configuration)
     app.UseResponseCompression();
     app.UseRequestLocalization();
 
-    app.UseEndpoints(endpoints =>
-    {
-        // ------------------------- FRONTEND ----------------------------- //
-        endpoints.MapControllerRoute(
-            name: "serviceDevelopmentRoute",
-            pattern: "editor/{org}/{app}/{*AllValues}",
-            defaults: new { controller = "ServiceDevelopment", action = "Index" },
-            constraints: new
-            {
-                app = "^[a-z]+[a-zA-Z0-9-]+[a-zA-Z0-9]$",
-            });
+    app.MapControllers();
 
-        endpoints.MapControllerRoute(
-            name: "defaultRoute",
-            pattern: "dashboard/{*AllValues}",
-            defaults: new { controller = "Home", action = "Index" });
+    app.MapHealthChecks("/health");
 
-        // ------------------------- DEV ----------------------------- //
-        endpoints.MapControllerRoute(
-            name: "orgRoute",
-            pattern: "designer/{org}/{controller}/{action=Index}/",
-            defaults: new { controller = "Config" },
-            constraints: new
-            {
-                controller = "Config|Datamodels",
-            });
-
-        endpoints.MapControllerRoute(
-                name: "designerApiRoute",
-                pattern: "designerapi/{controller}/{action=Index}/{id?}",
-                defaults: new { controller = "Repository" },
-                constraints: new
-                {
-                    controller = @"(Repository|Language|User)",
-                });
-        endpoints.MapControllerRoute(
-                  name: "serviceRoute",
-                  pattern: "designer/{org}/{app}/{controller}/{action=Index}/{id?}",
-                  defaults: new { controller = "Service" },
-                  constraints: new
-                  {
-                      controller = @"(Config|RuntimeAPI|ManualTesting|Model|Rules|ServiceMetadata|Text|UI|UIEditor|ServiceDevelopment)",
-                      app = "^[a-z]+[a-zA-Z0-9-]+[a-zA-Z0-9]$",
-                      id = "[a-zA-Z0-9_\\-\\.]{1,30}",
-                  });
-
-        endpoints.MapControllerRoute(
-               name: "applicationMetadataApiRoute",
-               pattern: "designer/api/v1/{org}/{app}",
-               defaults: new { controller = "ApplicationMetadata", action = "ApplicationMetadata" });
-
-        endpoints.MapControllerRoute(
-                name: "reposRoute",
-                pattern: "{controller}/{action}/",
-                defaults: new { controller = "Redirect" });
-
-        // -------------------------- DEFAULT ------------------------- //
-        endpoints.MapControllerRoute(
-           name: "defaultRoute2",
-           pattern: "{controller}/{action=StartPage}/{id?}",
-           defaults: new { controller = "Home" });
-
-        endpoints.MapControllerRoute(
-            name: "defaultRoute",
-            pattern: "{action=StartPage}/{id?}",
-            defaults: new { controller = "Home" });
-
-        // ---------------------- MONITORING -------------------------- //
-        endpoints.MapHealthChecks("/health");
-    });
-    logger.LogInformation($"// Program.cs // Configure // Configuration complete");
+    logger.LogInformation("// Program.cs // Configure // Configuration complete");
 }
 
 void CreateDirectory(IConfiguration configuration)

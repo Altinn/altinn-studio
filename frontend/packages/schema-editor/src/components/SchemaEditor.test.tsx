@@ -5,7 +5,7 @@ import { dataMock } from '../mockData';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { UserEvent } from '@testing-library/user-event/dist/types/setup/setup';
-import { SchemaEditor } from './SchemaEditor';
+import { SchemaEditor, SchemaEditorTestIds } from './SchemaEditor';
 import type { ISchemaState } from '../types';
 import {
   buildUiSchema,
@@ -16,6 +16,7 @@ import {
   makePointer,
   ObjectKind,
 } from '@altinn/schema-model';
+import { SchemaItemLabelTestIds } from '@altinn/schema-editor/components/TreeView/SchemaItemLabel';
 
 const mockLanguage = {
   'schema_editor.add': 'Legg til',
@@ -63,37 +64,30 @@ const renderEditor = (customState?: Partial<ISchemaState>, editMode?: boolean) =
   return { store, user };
 };
 
-const clickAddMenuItem = (user: UserEvent, name: string) =>
-  user.click(screen.getByRole('menuitem', { name }));
+const clickMenuItem = (user: UserEvent, testId: string) => user.click(screen.getByTestId(testId));
 
 const clickOpenContextMenuButton = (user: UserEvent) =>
   user.click(screen.getAllByTestId('open-context-menu-button')[0]);
 
 test('renders schema editor with populated schema in view mode', () => {
   renderEditor({}, false);
-  const editor = screen.getByTestId('schema-editor');
-  expect(editor).toBeDefined();
-  const saveButton = screen.getByTestId('save-model-button');
-  expect(saveButton).toBeDefined();
-  expect(saveButton).toBeDisabled();
-  const schemaInspector = screen.queryByTestId('schema-inspector');
-  expect(schemaInspector).toBeNull();
+  expect(screen.getByTestId('schema-editor')).toBeDefined();
+  expect(screen.getByTestId('save-model-button')).toBeDefined();
+  expect(screen.getByTestId('save-model-button')).toBeDisabled();
+  expect(screen.queryByTestId('schema-inspector')).toBeNull();
 });
 
 test('renders schema editor with populated schema in edit mode', () => {
   renderEditor();
-  const editor = screen.getByTestId('schema-editor');
-  expect(editor).toBeDefined();
-  const saveButton = screen.getByTestId('save-model-button');
-  expect(saveButton).toBeDefined();
-  expect(saveButton).toBeEnabled();
-  const schemaInspector = screen.queryByTestId('schema-inspector');
-  expect(schemaInspector).toBeDefined();
+  expect(screen.getByTestId('schema-editor')).toBeDefined();
+  expect(screen.getByTestId('save-model-button')).toBeDefined();
+  expect(screen.getByTestId('save-model-button')).toBeEnabled();
+  expect(screen.queryByTestId('schema-inspector')).toBeDefined();
 });
 
 test('should show context menu and trigger correct dispatch when adding a field on root', async () => {
   const { store, user } = renderEditor();
-  await clickAddMenuItem(user, mockLanguage['schema_editor.field']);
+  await clickMenuItem(user, SchemaEditorTestIds.menuAddField);
   const actions = store.getActions();
   const lastAction = actions.at(-1);
   expect(lastAction.type).toBe('schemaEditor/addRootItem');
@@ -105,7 +99,7 @@ test('should show context menu and trigger correct dispatch when adding a field 
 
 test('should show context menu and trigger correct dispatch when adding a reference on root', async () => {
   const { store, user } = renderEditor();
-  await clickAddMenuItem(user, mockLanguage['schema_editor.reference']);
+  await clickMenuItem(user, SchemaEditorTestIds.menuAddReference);
   const actions = store.getActions();
   const lastAction = actions.at(-1);
   expect(lastAction.type).toBe('schemaEditor/addRootItem');
@@ -125,7 +119,7 @@ test('should show context menu and trigger correct dispatch when adding field on
     uiSchema: buildUiSchema(jsonSchema),
   });
   await clickOpenContextMenuButton(user);
-  await clickAddMenuItem(user, 'add_field');
+  await clickMenuItem(user, SchemaItemLabelTestIds.contextMenuAddField);
   const actions = store.getActions();
   const lastAction = actions.at(-1);
   expect(lastAction.type).toBe('schemaEditor/addProperty');
@@ -144,7 +138,7 @@ test('should show context menu and trigger correct dispatch when adding referenc
     uiSchema: buildUiSchema(jsonSchema),
   });
   await clickOpenContextMenuButton(user);
-  await clickAddMenuItem(user, 'Legg til referanse');
+  await clickMenuItem(user, SchemaItemLabelTestIds.contextMenuAddReference);
   const actions = store.getActions();
   const lastAction = actions.at(-1);
   expect(lastAction.type).toBe('schemaEditor/addProperty');
@@ -156,7 +150,7 @@ test('should show context menu and trigger correct dispatch when adding referenc
 test('should show context menu and trigger correct dispatch when deleting a specific node', async () => {
   const { store, user } = renderEditor();
   await clickOpenContextMenuButton(user);
-  await clickAddMenuItem(user, 'Slett');
+  await clickMenuItem(user, SchemaItemLabelTestIds.contextMenuDelete);
   const actions = store.getActions();
   const lastAction = actions.at(-1);
   expect(lastAction.type).toBe('schemaEditor/deleteProperty');
@@ -241,20 +235,14 @@ test('should not show add property or add reference buttons on a field that is n
 
 test('should show menu with option field, reference, and combination when pressing add', async () => {
   renderEditor();
-  expect(
-    screen.getAllByRole('menuitem', { name: mockLanguage['schema_editor.field'] })
-  ).toHaveLength(1);
-  expect(
-    screen.getAllByRole('menuitem', {
-      name: mockLanguage['schema_editor.reference'],
-    })
-  ).toHaveLength(1);
-  expect(screen.getAllByRole('menuitem', { name: 'combination' })).toHaveLength(1);
+  expect(screen.getAllByTestId(SchemaEditorTestIds.menuAddField)).toHaveLength(1);
+  expect(screen.getAllByTestId(SchemaEditorTestIds.menuAddReference)).toHaveLength(1);
+  expect(screen.getAllByTestId(SchemaEditorTestIds.menuAddCombination)).toHaveLength(1);
 });
 
 test('should trigger correct dispatch when adding combination to root', async () => {
   const { store, user } = renderEditor();
-  await clickAddMenuItem(user, 'combination');
+  await clickMenuItem(user, SchemaEditorTestIds.menuAddCombination);
   const actions = store.getActions();
   const lastAction = actions.at(-1);
   expect(lastAction.type).toBe('schemaEditor/addRootItem');
@@ -273,7 +261,7 @@ test('should show context menu and trigger correct dispatch when adding a combin
     uiSchema: buildUiSchema(jsonSchema),
   });
   await clickOpenContextMenuButton(user);
-  await clickAddMenuItem(user, 'add_combination');
+  await clickMenuItem(user, SchemaItemLabelTestIds.contextMenuAddCombination);
   const actions = store.getActions();
   const lastAction = actions.at(-1);
   expect(lastAction.type).toBe('schemaEditor/addProperty');

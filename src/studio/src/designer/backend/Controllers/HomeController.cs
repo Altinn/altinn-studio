@@ -24,6 +24,8 @@ namespace Altinn.Studio.Designer.Controllers
     /// <summary>
     /// The default MVC controller in the application
     /// </summary>
+    [Route("[action]")]
+    [Route("[controller]/[action]")]
     public class HomeController : Controller
     {
         private readonly IGitea _giteaApi;
@@ -55,16 +57,19 @@ namespace Altinn.Studio.Designer.Controllers
         }
 
         /// <summary>
-        /// the default page for altinn studio when the user is not logged inn
+        /// the default page for altinn studio when the user is not logged in
         /// </summary>
         /// <returns>The start page</returns>
+        [Route("/")]
+        [Route("/[controller]")]
+        [Route("/[controller]/[action]/{id?}", Name = "DefaultNotLoggedIn")]
         public async Task<ActionResult> StartPage()
         {
             string userName = await _giteaApi.GetUserNameFromUI();
 
             if (string.IsNullOrEmpty(userName))
             {
-                Response.Cookies.Delete(Altinn.Studio.Designer.Constants.General.DesignerCookieName);
+                Response.Cookies.Delete(Constants.General.DesignerCookieName);
                 Response.Cookies.Delete(_settings.GiteaCookieName);
                 return View("StartPage");
             }
@@ -75,20 +80,11 @@ namespace Altinn.Studio.Designer.Controllers
         /// <summary>
         /// The default action presenting a list of available apps when the user is logged in
         /// </summary>
-        /// <param name="repositorySearch">the search parameter object</param>
         /// <returns>The front page</returns>
+        [Route("/[controller]/[action]")]
         [Authorize]
-        public ActionResult Index(RepositorySearch repositorySearch)
-        {
-            return View();
-        }
-
-        /// <summary>
-        /// View for creating new org
-        /// </summary>
-        /// <returns>The create org page</returns>
-        [Authorize]
-        public ActionResult CreateOrg()
+        [Route("/dashboard/{*AllValues}", Name = "DefaultLoggedIn")]
+        public ActionResult Index()
         {
             return View();
         }
@@ -206,17 +202,6 @@ namespace Altinn.Studio.Designer.Controllers
 
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return LocalRedirect("/");
-        }
-
-        /// <summary>
-        /// Go to app token view
-        /// </summary>
-        /// <returns>The app token view</returns>
-        [Authorize]
-        [HttpGet]
-        public IActionResult AppToken()
-        {
-            return View();
         }
 
         /// <summary>

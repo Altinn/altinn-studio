@@ -1,44 +1,33 @@
-using System.IO;
-using System.Threading.Tasks;
-
+#nullable enable
 using Altinn.Platform.Register.Enums;
 using Altinn.Platform.Register.Models;
 
-using LocalTest.Configuration;
 using LocalTest.Services.Register.Interface;
-
-using Microsoft.Extensions.Options;
-
-using Newtonsoft.Json;
+using LocalTest.Services.TestData;
 
 namespace LocalTest.Services.Register.Implementation
 {
     public class PartiesWrapper : IParties
     {
-        private readonly LocalPlatformSettings _localPlatformSettings;
+        private readonly TestDataService _testDataService;
         private readonly IPersons _personService;
         private readonly IOrganizations _organizationService;
 
         public PartiesWrapper(
-            IOptions<LocalPlatformSettings> localPlatformSettings,
+            TestDataService testDataService,
             IPersons personsService,
             IOrganizations organizationService)
         {
-            _localPlatformSettings = localPlatformSettings.Value;
+            _testDataService = testDataService;
             _organizationService = organizationService;
             _personService = personsService;
         }
 
         /// <inheritdoc />
-        public async Task<Party> GetParty(int partyId)
+        public async Task<Party?> GetParty(int partyId)
         {
-            Party party = null;
-            string path = _localPlatformSettings.LocalTestingStaticTestDataPath + "Register/Party/" + partyId + ".json";
-            if (File.Exists(path))
-            {
-                string content = File.ReadAllText(path);
-                party = (Party)JsonConvert.DeserializeObject(content, typeof(Party));
-            }
+            var data = await _testDataService.GetTestData();
+            Party? party = data.Register.Party.TryGetValue(partyId.ToString()!, out var value) ? value : null;
 
             await AddPersonOrOrganization(party);
 
@@ -46,9 +35,9 @@ namespace LocalTest.Services.Register.Implementation
         }
 
         /// <inheritdoc />
-        public async Task<Party> LookupPartyBySSNOrOrgNo(string lookupValue)
+        public async Task<Party?> LookupPartyBySSNOrOrgNo(string lookupValue)
         {
-            Party party = FindParty(lookupValue);
+            Party? party = await FindParty(lookupValue);
 
             await AddPersonOrOrganization(party);
 
@@ -58,35 +47,18 @@ namespace LocalTest.Services.Register.Implementation
         /// <inheritdoc />
         public async Task<int> LookupPartyIdBySSNOrOrgNo(string lookupValue)
         {
-            await Task.CompletedTask;
-
-            Party party = FindParty(lookupValue);
+            Party? party = await FindParty(lookupValue);
 
             return party?.PartyId ?? -1;
         }
 
-        private Party FindParty(string lookupValue)
+        private async Task<Party?> FindParty(string lookupValue)
         {
-            string path = _localPlatformSettings.LocalTestingStaticTestDataPath + "Register/Party";
-            string[] allPathsToParties = Directory.GetFiles(path);
-
-            foreach (string partyPath in allPathsToParties)
-            {
-                string content = File.ReadAllText(partyPath);
-
-                string targetOrgNbr = $"\"orgNumber\": \"{lookupValue}\"";
-                string targetSsn = $"\"ssn\": \"{lookupValue}\"";
-
-                if (content.Contains(targetOrgNbr) || content.Contains(targetSsn))
-                {
-                    return (Party)JsonConvert.DeserializeObject(content, typeof(Party));
-                }
-            }
-
-            return null;
+            var data = await _testDataService.GetTestData();
+            return data.Register.Party.Values.FirstOrDefault((party)=> party.OrgNumber == lookupValue || party.SSN == lookupValue);
         }
 
-        private async Task AddPersonOrOrganization(Party party)
+        private async Task AddPersonOrOrganization(Party? party)
         {
             if (party is null)
             {

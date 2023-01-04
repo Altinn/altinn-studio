@@ -12,7 +12,8 @@ afterEach(() => server.resetHandlers());
 afterAll(() => server.close());
 
 const render = (selectedContext: SelectedContextType | number = SelectedContextType.Self) => {
-  renderWithProviders(<Dashboard />, {
+  const user = userEvent.setup();
+  renderWithProviders(<Dashboard disableDebounce />, {
     preloadedState: {
       language: {
         language: {},
@@ -31,92 +32,87 @@ const render = (selectedContext: SelectedContextType | number = SelectedContextT
       },
     },
   });
+  return { user };
 };
 
 describe('Dashboard > index', () => {
   it('displays FavoriteReposList and OrgReposList when selected context is an organization', async () => {
     const organizationId = 1;
     render(organizationId);
+    await waitFor(() => expect(screen.getByText('test-org dashboard.apps')).toBeInTheDocument());
 
-    await waitFor(() => {
-      expect(screen.getByText('test-org dashboard.apps')).toBeInTheDocument();
-    });
-
-    expect(screen.getByText('dashboard.favourites')).toBeInTheDocument();
     expect(screen.getByText('test-org dashboard.apps')).toBeInTheDocument();
-    expect(screen.queryByText('dashboard.my_apps')).not.toBeInTheDocument();
-    expect(screen.queryByText('dashboard.search_result')).not.toBeInTheDocument();
+
+    expect(screen.queryByTestId('favorite-repos-list')).toBeInTheDocument();
+
+    expect(screen.queryByTestId('org-repos-list')).toBeInTheDocument();
+    expect(screen.queryByTestId('search-result-repos-list')).not.toBeInTheDocument();
   });
 
   it('displays FavoriteReposList and OrgReposList, and not search results list by default', () => {
     render();
 
-    expect(screen.getByText('dashboard.favourites')).toBeInTheDocument();
-    expect(screen.getByText('dashboard.my_apps')).toBeInTheDocument();
-    expect(screen.queryByText('dashboard.search_result')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('favorite-repos-list')).toBeInTheDocument();
+    expect(screen.queryByTestId('org-repos-list')).toBeInTheDocument();
+    expect(screen.queryByTestId('search-result-repos-list')).not.toBeInTheDocument();
   });
 
   it('should show search results list and hide FavoriteReposList and OrgReposList when user types into search input', async () => {
-    const user = userEvent.setup();
-    render();
+    const { user } = render();
 
     const searchInput = screen.getByTestId('search-repos-default');
     await user.type(searchInput, 'search');
-
-    await waitForElementToBeRemoved(() => screen.getByText('dashboard.favourites'));
-
-    expect(screen.queryByText('dashboard.favourites')).not.toBeInTheDocument();
-    expect(screen.queryByText('dashboard.my_apps')).not.toBeInTheDocument();
-    expect(screen.getByText('dashboard.search_result')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByTestId('favorite-repos-list')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('org-repos-list')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('search-result-repos-list')).toBeInTheDocument();
+    });
   });
 
   it('should hide search results list and show FavoriteReposList and OrgReposList again when user hits escape while the search input is focused', async () => {
-    const user = userEvent.setup();
-    render();
+    const { user } = render();
 
     const searchInput = screen.getByTestId('search-repos-default');
     await user.type(searchInput, 'search');
 
-    await waitForElementToBeRemoved(() => screen.getByText('dashboard.favourites'));
-
-    expect(screen.queryByText('dashboard.favourites')).not.toBeInTheDocument();
-    expect(screen.queryByText('dashboard.my_apps')).not.toBeInTheDocument();
-    expect(screen.getByText('dashboard.search_result')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByTestId('favorite-repos-list')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('org-repos-list')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('search-result-repos-list')).toBeInTheDocument();
+    });
 
     await user.keyboard('{Escape}');
 
-    await waitForElementToBeRemoved(() => screen.getByText('dashboard.search_result'));
+    await waitForElementToBeRemoved(screen.queryByTestId('search-result-repos-list'));
 
-    expect(screen.getByText('dashboard.favourites')).toBeInTheDocument();
-    expect(screen.getByText('dashboard.my_apps')).toBeInTheDocument();
-    expect(screen.queryByText('dashboard.search_result')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('favorite-repos-list')).toBeInTheDocument();
+    expect(screen.queryByTestId('org-repos-list')).toBeInTheDocument();
+    expect(screen.queryByTestId('search-result-repos-list')).not.toBeInTheDocument();
   });
 
   it('should hide search results list and show FavoriteReposList and OrgReposList again when user hits clear button on input field', async () => {
-    const user = userEvent.setup();
-    render();
+    const { user } = render();
 
     const searchInput = screen.getByTestId('search-repos-default');
     await user.type(searchInput, 'search');
 
-    await waitForElementToBeRemoved(() => screen.getByText('dashboard.favourites'));
+    await waitFor(() => {
+      expect(screen.queryByTestId('favorite-repos-list')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('org-repos-list')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('search-result-repos-list')).toBeInTheDocument();
+    });
 
-    expect(screen.queryByText('dashboard.favourites')).not.toBeInTheDocument();
-    expect(screen.queryByText('dashboard.my_apps')).not.toBeInTheDocument();
-    expect(screen.getByText('dashboard.search_result')).toBeInTheDocument();
+    await user.click(screen.getByTestId('clear-search-button'));
 
-    await user.click(screen.getByRole('button', { name: /dashboard.clear_search/i }));
+    await waitForElementToBeRemoved(() => screen.queryByTestId('search-result-repos-list'));
 
-    await waitForElementToBeRemoved(() => screen.getByText('dashboard.search_result'));
-
-    expect(screen.getByText('dashboard.favourites')).toBeInTheDocument();
-    expect(screen.getByText('dashboard.my_apps')).toBeInTheDocument();
-    expect(screen.queryByText('dashboard.search_result')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('favorite-repos-list')).toBeInTheDocument();
+    expect(screen.queryByTestId('org-repos-list')).toBeInTheDocument();
+    expect(screen.queryByTestId('search-result-repos-list')).not.toBeInTheDocument();
   });
 
   it('should navigate to create new app when clicking new app link', async () => {
-    const user = userEvent.setup();
-    render();
+    const { user } = render();
 
     expect(window.location.href.includes('new')).toBe(false);
 
