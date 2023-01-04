@@ -11,7 +11,7 @@ export const ignoreTestSchemas: string[] = ['ComplexSchema-old'];
 
 const defaultPath = path.resolve(
   __dirname,
-  '../../../../src/studio/src/designer/DataModeling.Tests/_TestData/Model/JsonSchema'
+  '../../../../testdata/Model/JsonSchema'
 );
 
 const cache = new Map();
