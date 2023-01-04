@@ -108,6 +108,7 @@ services:
       - GITEA__mailer__SKIP_VERIFY=false
       - GITEA__mailer__REGISTER_EMAIL_CONFIRM=false
       - GITEA__mailer__ENABLE_NOTIFY_MAIL=false
+      - GITEA__service__ENABLE_CAPTCHA=false
     ports:
       - "3000:3000"
       - "222:22"
