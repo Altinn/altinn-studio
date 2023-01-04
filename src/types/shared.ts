@@ -110,6 +110,7 @@ export interface IInstanceOwner {
   partyId: string;
   personNumber?: string;
   organisationNumber?: string | null;
+  username?: string;
 }
 
 export interface IInstanceState {
@@ -261,9 +262,12 @@ export interface IApplicationSettings {
   [source: string]: string;
 }
 
+export type InstanceOwnerPartyType = 'unknown' | 'org' | 'person' | 'selfIdentified';
+
 /** Describes an object with key values from current instance to be used in texts. */
 export interface IInstanceContext {
   instanceId: string;
   appId: string;
   instanceOwnerPartyId: string;
+  instanceOwnerPartyType: InstanceOwnerPartyType;
 }

@@ -519,6 +519,7 @@ describe('Hierarchical layout tools', () => {
         instanceId: 'test',
         instanceOwnerPartyId: 'test',
         appId: 'test',
+        instanceOwnerPartyType: 'unknown',
       },
       applicationSettings: {},
       hiddenFields: new Set(),

@@ -18,6 +18,7 @@ describe('instanceContext', () => {
       appId: appId,
       instanceId: instaceId,
       instanceOwnerPartyId: partyId,
+      instanceOwnerPartyType: 'unknown',
     };
     const actual = buildInstanceContext(mockInstance);
 

@@ -256,6 +256,7 @@ const instanceContextKeys: { [key in keyof IInstanceContext]: true } = {
   instanceId: true,
   appId: true,
   instanceOwnerPartyId: true,
+  instanceOwnerPartyType: true,
 };
 
 /**

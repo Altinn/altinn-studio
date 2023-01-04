@@ -6,14 +6,22 @@ import type { IInstance, IInstanceContext } from 'src/types/shared';
 const getInstance = (state: IRuntimeState) => state.instanceData.instance;
 
 export function buildInstanceContext(instance?: IInstance | null): IInstanceContext | null {
-  if (!instance) {
+  if (!instance || !instance.instanceOwner) {
     return null;
   }
+  const instanceOwnerPartyType = instance.instanceOwner.organisationNumber
+    ? 'org'
+    : instance.instanceOwner.personNumber
+    ? 'person'
+    : instance.instanceOwner.username
+    ? 'selfIdentified'
+    : 'unknown';
 
   return {
     appId: instance.appId,
     instanceId: instance.id,
-    instanceOwnerPartyId: instance.instanceOwner.partyId,
+    instanceOwnerPartyId: instance.instanceOwner?.partyId,
+    instanceOwnerPartyType,
   };
 }
 

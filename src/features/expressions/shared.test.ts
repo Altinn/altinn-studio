@@ -5,12 +5,13 @@ import { NodeNotFoundWithoutContext } from 'src/features/expressions/errors';
 import { convertLayouts, getSharedTests } from 'src/features/expressions/shared';
 import { asExpression } from 'src/features/expressions/validation';
 import { getRepeatingGroups, splitDashedKey } from 'src/utils/formLayout';
+import { buildInstanceContext } from 'src/utils/instanceContext';
 import { nodesInLayouts, resolvedNodesInLayouts } from 'src/utils/layout/hierarchy';
 import type { ContextDataSources } from 'src/features/expressions/ExprContext';
 import type { FunctionTest, SharedTestContext, SharedTestContextList } from 'src/features/expressions/shared';
 import type { Expression } from 'src/features/expressions/types';
 import type { IRepeatingGroups } from 'src/types';
-import type { IApplicationSettings, IInstanceContext } from 'src/types/shared';
+import type { IApplicationSettings } from 'src/types/shared';
 import type { LayoutNode, LayoutRootNodeCollection } from 'src/utils/layout/hierarchy';
 
 function findComponent(context: FunctionTest['context'], collection: LayoutRootNodeCollection<any>) {
@@ -43,10 +44,10 @@ describe('Expressions shared function tests', () => {
   describe.each(sharedTests.content)('Function: $folderName', (folder) => {
     it.each(folder.content)(
       '$name',
-      ({ expression, expects, expectsFailure, context, layouts, dataModel, instanceContext, frontendSettings }) => {
+      ({ expression, expects, expectsFailure, context, layouts, dataModel, instance, frontendSettings }) => {
         const dataSources: ContextDataSources = {
           formData: dataModel ? dot.dot(dataModel) : {},
-          instanceContext: instanceContext || ({} as IInstanceContext),
+          instanceContext: buildInstanceContext(instance),
           applicationSettings: frontendSettings || ({} as IApplicationSettings),
           hiddenFields: new Set<string>(),
         };
@@ -129,10 +130,10 @@ describe('Expressions shared context tests', () => {
   }
 
   describe.each(sharedTests.content)('$folderName', (folder) => {
-    it.each(folder.content)('$name', ({ layouts, dataModel, instanceContext, frontendSettings, expectedContexts }) => {
+    it.each(folder.content)('$name', ({ layouts, dataModel, instance, frontendSettings, expectedContexts }) => {
       const dataSources: ContextDataSources = {
         formData: dataModel ? dot.dot(dataModel) : {},
-        instanceContext: instanceContext || ({} as IInstanceContext),
+        instanceContext: buildInstanceContext(instance),
         applicationSettings: frontendSettings || ({} as IApplicationSettings),
         hiddenFields: new Set(),
       };

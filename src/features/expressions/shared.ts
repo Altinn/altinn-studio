@@ -2,7 +2,7 @@ import fs from 'node:fs';
 
 import type { Expression } from 'src/features/expressions/types';
 import type { ILayout, ILayouts } from 'src/layout/layout';
-import type { IApplicationSettings, IInstanceContext } from 'src/types/shared';
+import type { IApplicationSettings, IInstance } from 'src/types/shared';
 
 export interface Layouts {
   [key: string]: {
@@ -18,7 +18,7 @@ export interface SharedTest {
   name: string;
   layouts?: Layouts;
   dataModel?: any;
-  instanceContext?: IInstanceContext;
+  instance?: IInstance;
   frontendSettings?: IApplicationSettings;
 }
 
