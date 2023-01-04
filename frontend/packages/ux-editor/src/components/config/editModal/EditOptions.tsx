@@ -101,7 +101,7 @@ export function EditOptions({
   };
 
   const handleAddOption = () => {
-    const options = [...component.options];
+    const options = [...component.options || []];
     options.push({ label: '', value: '' });
     handleComponentChange({
       ...component,
