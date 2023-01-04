@@ -339,7 +339,7 @@
         "id": "reference-group",
         "type": "Group",
         "textResourceBindings": {
-          "title": "Referanse"
+          "title": "Referanser"
         },
         "children": [
           "sources",
