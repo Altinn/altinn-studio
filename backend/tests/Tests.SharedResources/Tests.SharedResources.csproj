@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+      <IsPackable>false</IsPackable>
+    </PropertyGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\..\testdata\**\*.*" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Remove="..\..\..\testdata\Model\CSharp\melding.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\..\testdata\Model\CSharp\melding.cs">
+      <Link>Model\CSharp\melding.cs</Link>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="JsonSchema.Net" />
+  </ItemGroup>
+
+</Project>

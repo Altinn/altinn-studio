@@ -30,7 +30,7 @@ jobs:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
       - name: Build
         run: |
-           dotnet build src/studio/src/designer/Designer.sln -v m
+           dotnet build backend/Designer.sln -v m
       - name: Test
         run: |
-           dotnet test src/studio/src/designer/Designer.sln -v m
+           dotnet test backend/Designer.sln -v m
