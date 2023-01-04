@@ -15,7 +15,7 @@ using Designer.Tests.Assertions;
 using Designer.Tests.Utils;
 using FluentAssertions;
 using Json.Schema;
-using Tests.SharedResources;
+using SharedResources.Tests;
 using Xunit;
 using Xunit.Abstractions;
 

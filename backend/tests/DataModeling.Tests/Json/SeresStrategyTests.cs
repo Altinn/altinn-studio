@@ -6,7 +6,7 @@ using Altinn.Studio.DataModeling.Converter.Json.Strategy;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using FluentAssertions;
 using Json.Pointer;
-using Tests.SharedResources;
+using SharedResources.Tests;
 using Xunit;
 
 namespace DataModeling.Tests.Json

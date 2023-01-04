@@ -8,7 +8,7 @@ using Altinn.Studio.DataModeling.Utils;
 using DataModeling.Tests.BaseClasses;
 using FluentAssertions;
 using Json.Schema;
-using Tests.SharedResources;
+using SharedResources.Tests;
 
 namespace DataModeling.Tests.Json.Keywords.BaseClasses;
 

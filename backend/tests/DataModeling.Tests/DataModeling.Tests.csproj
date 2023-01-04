@@ -98,7 +98,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\DataModeling\DataModeling.csproj" />
-    <ProjectReference Include="..\Tests.SharedResources\Tests.SharedResources.csproj" />
+    <ProjectReference Include="..\SharedResources.Tests\SharedResources.Tests.csproj" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="_TestData\Model\XmlSchema\Seres\SeresArray.xsd">

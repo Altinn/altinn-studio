@@ -9,7 +9,7 @@ using Altinn.Studio.DataModeling.Converter.Json;
 using Altinn.Studio.DataModeling.Json;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using DataModeling.Tests.Assertions;
-using Tests.SharedResources;
+using SharedResources.Tests;
 using Xunit;
 
 namespace DataModeling.Tests.Json

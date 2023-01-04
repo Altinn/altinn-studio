@@ -18,11 +18,11 @@ using Designer.Tests.Utils;
 using FluentAssertions;
 using Manatee.Json;
 using Manatee.Json.Schema;
-using Tests.SharedResources;
+using SharedResources.Tests;
 using Xunit;
 using Xunit.Abstractions;
 using InfoKeyword = Altinn.Studio.Designer.Factories.ModelFactory.Manatee.Json.InfoKeyword;
-using XmlSchemaValidator = Tests.SharedResources.XmlSchemaValidator;
+using XmlSchemaValidator = SharedResources.Tests.XmlSchemaValidator;
 
 namespace Designer.Tests.Factories.ModelFactory
 {

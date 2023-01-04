@@ -5,7 +5,7 @@ using System.Xml;
 using System.Xml.Schema;
 using Json.Schema;
 
-namespace Tests.SharedResources;
+namespace SharedResources.Tests;
 
 public static class SharedResourcesHelper
 {

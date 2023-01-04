@@ -2,10 +2,10 @@ using System.Xml.Schema;
 using DataModeling.Tests.Assertions;
 using DataModeling.Tests.BaseClasses;
 using DataModeling.Tests.TestDataClasses;
-using Tests.SharedResources;
+using SharedResources.Tests;
 using Xunit;
 using Xunit.Abstractions;
-using XmlSchemaValidator = Tests.SharedResources.XmlSchemaValidator;
+using XmlSchemaValidator = SharedResources.Tests.XmlSchemaValidator;
 
 namespace DataModeling.Tests
 {

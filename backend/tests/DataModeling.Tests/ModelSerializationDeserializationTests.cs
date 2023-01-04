@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Altinn.Studio.DataModeling.Json.Keywords;
 using FluentAssertions;
 using Json.Schema;
-using Tests.SharedResources;
+using SharedResources.Tests;
 using Xunit;
 using Xunit.Abstractions;
 

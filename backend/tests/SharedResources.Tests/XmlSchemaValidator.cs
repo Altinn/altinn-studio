@@ -4,7 +4,7 @@ using System.Text;
 using System.Xml;
 using System.Xml.Schema;
 
-namespace Tests.SharedResources
+namespace SharedResources.Tests
 {
     public class XmlSchemaValidator
     {

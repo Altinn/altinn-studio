@@ -1,4 +1,4 @@
-﻿namespace Tests.SharedResources;
+﻿namespace SharedResources.Tests;
 
 /// <summary>
 /// Base class for fluent tests.
