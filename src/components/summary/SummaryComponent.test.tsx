@@ -26,7 +26,7 @@ describe('SummaryComponent', () => {
                 dataModelBindings: {},
                 textResourceBindings: {},
                 children: [],
-                maxCount: 0,
+                maxCount: 10,
               } as ILayoutComponent),
           ),
         ],

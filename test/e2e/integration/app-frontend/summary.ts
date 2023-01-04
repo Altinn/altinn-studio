@@ -98,17 +98,27 @@ describe('Summary', () => {
     cy.get(appFrontend.navMenu).find('li > button').last().click();
     cy.get('[data-testid=summary-summary-1]').should('not.exist');
 
+    // Test summary of non-repeating group
+    cy.get('#reference-group').should('exist').and('be.visible');
+    cy.get('#reference-group > div').eq(0).should('contain.text', 'Referanser');
+    cy.get('#reference-group > [data-testid=summary-__summary__sources]').should('exist').and('be.visible');
+    cy.get('#reference-group > [data-testid=summary-__summary__reference]').should('exist').and('be.visible');
+    cy.get('#reference-group > [data-testid=summary-__summary__reference2]').should('exist').and('be.visible');
+
     // Test mapped options in summary
 
-    cy.get('[data-testid=summary-summary-7]').should('exist').and('be.visible');
-    cy.get('[data-testid=summary-summary-8]').should('exist').and('be.visible');
+    cy.get('[data-testid=summary-__summary__reference]').should('exist').and('be.visible');
+    cy.get('[data-testid=summary-__summary__reference2]').should('exist').and('be.visible');
 
     cy.get(appFrontend.navMenu).find('li > button').first().click();
     cy.get('#reference').should('exist').and('be.visible').select('Ola Nordmann');
     cy.get('#reference2').should('exist').and('be.visible').select('Ole');
     cy.get(appFrontend.navMenu).find('li > button').last().click();
-    cy.get('[data-testid=summary-summary-7]').should('exist').and('be.visible').and('contain.text', 'Ola Nordmann');
-    cy.get('[data-testid=summary-summary-8]').should('exist').and('be.visible').and('contain.text', 'Ole');
+    cy.get('[data-testid=summary-__summary__reference]')
+      .should('exist')
+      .and('be.visible')
+      .and('contain.text', 'Ola Nordmann');
+    cy.get('[data-testid=summary-__summary__reference2]').should('exist').and('be.visible').and('contain.text', 'Ole');
 
     cy.get(appFrontend.navMenu).find('li > button').first().click();
     cy.intercept('GET', '**/options/*').as('getOptions');
@@ -117,8 +127,11 @@ describe('Summary', () => {
     cy.get('#reference').should('exist').and('be.visible').select('Sophie Salt');
     cy.get('#reference2').should('exist').and('be.visible').select('Dole');
     cy.get(appFrontend.navMenu).find('li > button').last().click();
-    cy.get('[data-testid=summary-summary-7]').should('exist').and('be.visible').and('contain.text', 'Sophie Salt');
-    cy.get('[data-testid=summary-summary-8]').should('exist').and('be.visible').and('contain.text', 'Dole');
+    cy.get('[data-testid=summary-__summary__reference]')
+      .should('exist')
+      .and('be.visible')
+      .and('contain.text', 'Sophie Salt');
+    cy.get('[data-testid=summary-__summary__reference2]').should('exist').and('be.visible').and('contain.text', 'Dole');
 
     cy.get(appFrontend.navMenu).find('li > button').first().click();
     cy.get('#sources').should('exist').and('be.visible').select('Annet');
@@ -126,8 +139,11 @@ describe('Summary', () => {
     cy.get('#reference').should('exist').and('be.visible').select('Test');
     cy.get('#reference2').should('exist').and('be.visible').select('Doffen');
     cy.get(appFrontend.navMenu).find('li > button').last().click();
-    cy.get('[data-testid=summary-summary-7]').should('exist').and('be.visible').and('contain.text', 'Test');
-    cy.get('[data-testid=summary-summary-8]').should('exist').and('be.visible').and('contain.text', 'Doffen');
+    cy.get('[data-testid=summary-__summary__reference]').should('exist').and('be.visible').and('contain.text', 'Test');
+    cy.get('[data-testid=summary-__summary__reference2]')
+      .should('exist')
+      .and('be.visible')
+      .and('contain.text', 'Doffen');
   });
 
   it('is possible to view summary of repeating group', () => {
