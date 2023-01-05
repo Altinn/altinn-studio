@@ -33,7 +33,7 @@ test('should render SelectComponent with 3 options', async () => {
   expect(screen.getAllByRole('option')).toHaveLength(3);
 });
 
-test('should be able to select a option "small" and the option key should be "size"', async () => {
+test('should be able to select option "small" and the "optionKey" should be "size"', async () => {
   const onSelectChange = jest.fn();
   const { user } = renderSelectComponent({
     optionKey: 'size',

@@ -7,7 +7,7 @@ type EditSelectOption = {
   value: string;
 };
 
-export interface SelectComponentProps extends Omit<IGenericEditComponent, 'language'> {
+export interface SelectComponentProps extends IGenericEditComponent {
   optionKey: string;
   options: string[];
 }
