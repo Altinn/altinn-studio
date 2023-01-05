@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import type { IOptions, } from '../../../types/global';
 import {
   Button,
@@ -15,6 +14,7 @@ import { IGenericEditComponent } from '../componentConfig';
 import { EditCodeList } from './EditCodeList';
 import { Add, Delete } from '@navikt/ds-icons';
 import { TextResource } from '../../TextResource';
+import { useText } from '../../../hooks';
 
 export interface ISelectionEditComponentProvidedProps extends IGenericEditComponent {
   renderOptions?: {
@@ -41,11 +41,10 @@ const getSelectedOptionsType = (codeListId: string, options: IOptions[]): Select
 export function EditOptions({
   component,
   handleComponentChange,
-  language,
 }: ISelectionEditComponentProvidedProps) {
   const [selectedOptionsType, setSelectedOptionsType] =
     useState(getSelectedOptionsType(component.optionsId, component.options));
-  const t = (key: string) => getLanguageFromKey(key, language);
+  const t = useText();
 
   useEffect(() => {
     resetPrevOptionsType();
@@ -134,7 +133,6 @@ export function EditOptions({
         <EditCodeList
           component={component}
           handleComponentChange={handleComponentChange}
-          language={language}
         />
       )}
       {selectedOptionsType === SelectedOptionsType.Manual &&

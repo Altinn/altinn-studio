@@ -37,12 +37,8 @@ const render = (props: Partial<IEditContainerProps> = {}) => {
     appData: {
       languageState: {
         language: {
-          ux_editor: {
-            modal_properties_data_model_helper: 'Lenke til datamodell',
-          },
-          general: {
-            for: 'for',
-          },
+          'ux_editor.modal_properties_data_model_helper': 'Lenke til datamodell',
+          'general.for': 'for',
         },
         error: null
       },

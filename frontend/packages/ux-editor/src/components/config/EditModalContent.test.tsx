@@ -9,6 +9,9 @@ import { appDataMock, appStateMock } from '../../testing/mocks';
 
 const user = userEvent.setup();
 
+// Test data:
+const srcValueLabel = 'Source';
+
 describe('EditModalContent', () => {
   it('should return input specific content when type input', () => {
     const { rendered } = render({
@@ -98,9 +101,7 @@ describe('EditModalContent', () => {
       },
     });
 
-    expect(
-      screen.getByLabelText('ux_editor.modal_properties_image_src_value_label')
-    ).toBeInTheDocument();
+    expect(screen.getByLabelText(srcValueLabel)).toBeInTheDocument();
   });
 
   it('should not render Image component when component type is not Image', () => {
@@ -110,28 +111,22 @@ describe('EditModalContent', () => {
       },
     });
 
-    expect(
-      screen.queryByLabelText('ux_editor.modal_properties_image_src_value_label')
-    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(srcValueLabel)).not.toBeInTheDocument();
   });
 });
 
 const render = ({ componentProps = undefined, handleComponentUpdate = jest.fn } = {}) => {
   const createStore = configureStore();
   const mockLanguage = {
-    general: {
-      label: '',
-      value: '',
-    },
-    ux_editor: {
-      modal_header_type_h2: 'H2',
-      modal_header_type_h3: 'H3',
-      modal_header_type_h4: 'H4',
-      modal_properties_image_src_value_label: 'Source',
-      modal_properties_image_placement_label: 'Placement',
-      modal_properties_image_alt_text_label: 'Alt text',
-      modal_properties_image_width_label: 'Width',
-    },
+    'general.label': '',
+    'general.value': '',
+    'ux_editor.modal_header_type_h2': 'H2',
+    'ux_editor.modal_header_type_h3': 'H3',
+    'ux_editor.modal_header_type_h4': 'H4',
+    'ux_editor.modal_properties_image_src_value_label': srcValueLabel,
+    'ux_editor.modal_properties_image_placement_label': 'Placement',
+    'ux_editor.modal_properties_image_alt_text_label': 'Alt text',
+    'ux_editor.modal_properties_image_width_label': 'Width',
   };
   const initialState: IAppState = {
     ...appStateMock,

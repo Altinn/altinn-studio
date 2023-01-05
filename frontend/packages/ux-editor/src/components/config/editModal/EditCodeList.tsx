@@ -1,12 +1,8 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
-import { getLanguageFromKey } from 'app-shared/utils/language';
-import type {
-  IAppState,
-  IFormGenericOptionsComponent,
-} from '../../../types/global';
+import type { IFormGenericOptionsComponent } from '../../../types/global';
 import { TextField } from '@altinn/altinn-design-system';
 import { IGenericEditComponent } from '../componentConfig';
+import { useText } from '../../../hooks';
 
 export enum SelectedOptionsType {
   Codelist = 'codelist',
@@ -15,8 +11,7 @@ export enum SelectedOptionsType {
 }
 
 export function EditCodeList({ component, handleComponentChange }: IGenericEditComponent) {
-  const language = useSelector((state: IAppState) => state.appData.languageState.language);
-  const t = (key: string) => getLanguageFromKey(key, language);
+  const t = useText();
 
   const handleOptionsIdChange = (e: any) => {
     handleComponentChange({

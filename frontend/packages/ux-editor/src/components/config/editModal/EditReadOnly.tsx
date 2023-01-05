@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Checkbox } from '@altinn/altinn-design-system';
 import type { IGenericEditComponent } from '../componentConfig';
+import { useText } from '../../../hooks';
 
-export const EditReadOnly = ({ component, handleComponentChange, language }: IGenericEditComponent) => {
-  const [checked, setChecked] = React.useState(component.readOnly);
+export const EditReadOnly = ({ component, handleComponentChange }: IGenericEditComponent) => {
+  const [checked, setChecked] = useState(component.readOnly);
+  const t = useText();
 
   const handleChange = () => {
     setChecked(!checked);
@@ -19,7 +21,7 @@ export const EditReadOnly = ({ component, handleComponentChange, language }: IGe
         checked={checked}
         onChange={handleChange}
         checkboxId={`readonly-checkbox-${component.id}`}
-        label={language['ux_editor.modal_configure_read_only']}
+        label={t('ux_editor.modal_configure_read_only')}
       />
     </div>
   );
