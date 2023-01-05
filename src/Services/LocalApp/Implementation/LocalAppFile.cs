@@ -48,7 +48,7 @@ namespace LocalTest.Services.LocalApp.Implementation
         {
             var ret = new Dictionary<string, Application>();
 
-            Application accessManagement = await GetAccessManagment();
+            Application? accessManagement = await GetAccessManagment();
             if (accessManagement != null)
             {
                 ret.Add("accessmanagement", accessManagement);
@@ -111,7 +111,7 @@ namespace LocalTest.Services.LocalApp.Implementation
             return null;
         }
 
-        public Task<Instance?> Instantiate(string appId, Instance instance, string xmlPrefill, string xmlDataId)
+        public Task<Instance?> Instantiate(string appId, Instance instance, string xmlPrefill, string xmlDataId, string token)
         {
             throw new NotImplementedException();
         }
@@ -121,7 +121,7 @@ namespace LocalTest.Services.LocalApp.Implementation
             return Path.Join(_localPlatformSettings.AppRepositoryBasePath, appId.Split('/').Last());
         }
 
-        private async Task<Application> GetAccessManagment()
+        private async Task<Application?> GetAccessManagment()
         {
             try
             {
@@ -137,7 +137,7 @@ namespace LocalTest.Services.LocalApp.Implementation
 
                 return null;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 return null;
             }

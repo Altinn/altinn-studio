@@ -6,7 +6,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Caching.Memory;
 
 using Altinn.Platform.Storage.Interface.Models;
-using LocalTest.Services.Authentication.Interface;
 
 using LocalTest.Configuration;
 using LocalTest.Services.LocalApp.Interface;
@@ -25,15 +24,13 @@ namespace LocalTest.Services.LocalApp.Implementation
         public const string TEXT_RESOURCE_CACE_KEY = "/api/v1/texts";
         public const string TEST_DATA_CACHE_KEY = "TEST_DATA_CACHE_KEY";
         private readonly GeneralSettings _generalSettings;
-        private readonly IAuthentication _authenticationService;
         private readonly HttpClient _httpClient;
         private readonly IMemoryCache _cache;
         private readonly ILogger<LocalAppHttp> _logger;
 
-        public LocalAppHttp(IOptions<GeneralSettings> generalSettings, IAuthentication authenticationService, IHttpClientFactory httpClientFactory, IOptions<LocalPlatformSettings> localPlatformSettings, IMemoryCache cache, ILogger<LocalAppHttp> logger)
+        public LocalAppHttp(IOptions<GeneralSettings> generalSettings, IHttpClientFactory httpClientFactory, IOptions<LocalPlatformSettings> localPlatformSettings, IMemoryCache cache, ILogger<LocalAppHttp> logger)
         {
             _generalSettings = generalSettings.Value;
-            _authenticationService = authenticationService;
             _httpClient = httpClientFactory.CreateClient();
             _httpClient.BaseAddress = new Uri(localPlatformSettings.Value.LocalAppUrl);
             _httpClient.Timeout = TimeSpan.FromHours(1);
@@ -95,7 +92,7 @@ namespace LocalTest.Services.LocalApp.Implementation
             return ret;
         }
 
-        public async Task<Instance?> Instantiate(string appId, Instance instance, string xmlPrefill, string xmlDataId)
+        public async Task<Instance?> Instantiate(string appId, Instance instance, string xmlPrefill, string xmlDataId, string token)
         {
             var requestUri = $"{appId}/instances";
             var serializedInstance = JsonSerializer.Serialize(instance, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault });
@@ -109,7 +106,7 @@ namespace LocalTest.Services.LocalApp.Implementation
 
             using var message = new HttpRequestMessage(HttpMethod.Post, requestUri);
             message.Content = content;
-            message.Headers.Authorization = new ("Bearer", await _authenticationService.GenerateTokenForOrg(appId.Split("/")[0]));
+            message.Headers.Authorization = new ("Bearer", token);
             var response = await _httpClient.SendAsync(message);
             var stringResponse = await response.Content.ReadAsStringAsync();
             if (!response.IsSuccessStatusCode)
