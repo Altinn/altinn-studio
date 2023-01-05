@@ -13,7 +13,7 @@ export function ComponentSpecificContent({
   component,
   handleComponentChange
 }: IGenericEditComponent) {
-  const t = useText();
+  const translate = useText();
 
   switch (component.type) {
     case ComponentTypes.NavigationButtons:
@@ -45,8 +45,9 @@ export function ComponentSpecificContent({
     case ComponentTypes.Panel: {
       return (
         <SelectComponent
+          label={translate('ux_editor.choose_variant')}
           optionKey='variant'
-          options={[t('ux_editor.info'), t('ux_editor.warning'), t('ux_editor.success')]}
+          options={[translate('ux_editor.info'), translate('ux_editor.warning'), translate('ux_editor.success')]}
           component={component}
           handleComponentChange={handleComponentChange}
         />

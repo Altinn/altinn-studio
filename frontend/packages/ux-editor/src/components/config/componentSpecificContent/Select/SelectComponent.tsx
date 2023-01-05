@@ -8,10 +8,12 @@ type Option = {
 };
 
 export interface SelectComponentProps extends IGenericEditComponent {
+  label: string;
   optionKey: string;
   options: string[];
 }
 export const SelectComponent = ({
+  label,
   component,
   optionKey,
   options,
@@ -28,7 +30,7 @@ export const SelectComponent = ({
 
   return (
     <FieldSet>
-      <Select options={mappedOptions} onChange={handleSelectChange} />
+      <Select label={label} options={mappedOptions} onChange={handleSelectChange} />
     </FieldSet>
   );
 };

@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { SelectComponent, SelectComponentProps } from './SelectComponent';
 
 const renderSelectComponent = ({
+  label,
   component,
   optionKey,
   options,
@@ -13,6 +14,7 @@ const renderSelectComponent = ({
 
   render(
     <SelectComponent
+      label={label}
       component={component}
       optionKey={optionKey}
       options={options}
@@ -23,11 +25,14 @@ const renderSelectComponent = ({
   return { user };
 };
 
-test('should render SelectComponent with 3 options', async () => {
+test('should render SelectComponent with label and 3 options', async () => {
   const { user } = renderSelectComponent({
+    label: 'Choose variant',
     optionKey: 'variant',
     options: ['success', 'error', 'warning']
   });
+
+  expect(screen.getByLabelText('Choose variant')).toBeInTheDocument();
 
   await user.click(screen.getByRole('combobox'));
   expect(screen.getAllByRole('option')).toHaveLength(3);
@@ -36,6 +41,7 @@ test('should render SelectComponent with 3 options', async () => {
 test('should be able to select option "small" and the "optionKey" should be "size"', async () => {
   const onSelectChange = jest.fn();
   const { user } = renderSelectComponent({
+    label: 'Choose size',
     optionKey: 'size',
     options: ['small', 'medium', 'large'],
     handleComponentChange: onSelectChange
