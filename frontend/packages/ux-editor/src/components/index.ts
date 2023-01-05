@@ -1,7 +1,9 @@
 import type { IThirdPartyComponent, IWidgetTexts } from '../types/global';
 import type { EditSettings } from './config/componentConfig';
 
-type ComponentIconType = Record<ComponentTypes, string>;
+export interface IComponentIcon {
+  [key: string]: string;
+}
 
 export interface IComponent {
   name: string;
@@ -46,7 +48,7 @@ export enum ComponentTypes {
   InformationPanel = 'InformationPanel',
 }
 
-export const componentIcons: Partial<ComponentIconType> = {
+export const componentIcons: IComponentIcon = {
   Header: 'fa fa-title',
   Paragraph: 'fa fa-paragraph',
   Input: 'fa fa-short-answer',
