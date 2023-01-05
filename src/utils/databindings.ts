@@ -230,7 +230,6 @@ export function removeGroupData(
 export function removeAttachmentReference(
   formData: IFormData,
   attachmentId: string,
-  layout: ILayout,
   attachments: IAttachments,
   dataModelBindings: IDataModelBindings,
   componentId: string,

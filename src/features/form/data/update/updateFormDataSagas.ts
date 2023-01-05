@@ -12,7 +12,7 @@ import { getValidator, validateComponentFormData } from 'src/utils/validation';
 import { mergeComponentValidations, validateComponentSpecificValidations } from 'src/utils/validation/validation';
 import type { IFormData } from 'src/features/form/data';
 import type { IDeleteAttachmentReference, IUpdateFormData } from 'src/features/form/data/formDataTypes';
-import type { ILayoutComponent, ILayouts } from 'src/layout/layout';
+import type { ILayoutComponent } from 'src/layout/layout';
 import type { IAttachments } from 'src/shared/resources/attachments';
 import type { IRuntimeState } from 'src/types';
 
@@ -115,24 +115,18 @@ function shouldUpdateFormData(currentData: any, newData: any): boolean {
 }
 
 export const SelectFormData = (s: IRuntimeState) => s.formData.formData;
-export const SelectLayouts = (s: IRuntimeState) => s.formLayout.layouts;
 export const SelectAttachments = (s: IRuntimeState) => s.attachments.attachments;
-export const SelectCurrentView = (s: IRuntimeState) => s.formLayout.uiConfig.currentView;
 
 export function* deleteAttachmentReferenceSaga({
   payload: { attachmentId, componentId, dataModelBindings },
 }: PayloadAction<IDeleteAttachmentReference>): SagaIterator {
   try {
     const formData: IFormData = yield select(SelectFormData);
-    const layouts: ILayouts = yield select(SelectLayouts);
     const attachments: IAttachments = yield select(SelectAttachments);
-    const currentView: string = yield select(SelectCurrentView);
-    const layout = layouts[currentView] || [];
 
     const updatedFormData = removeAttachmentReference(
       formData,
       attachmentId,
-      layout,
       attachments,
       dataModelBindings,
       componentId,

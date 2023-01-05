@@ -31,7 +31,8 @@
     "no-relative-import-paths",
     "preferred-import-path",
     "simple-import-sort",
-    "cypress"
+    "cypress",
+    "unused-imports"
   ],
   "settings": {
     "import/extensions": [".js", ".jsx", ".ts", ".tsx"],
@@ -66,7 +67,18 @@
     "jsx-a11y/no-autofocus": ["off"],
     "@typescript-eslint/no-explicit-any": ["off"],
     "import/no-unresolved": ["off"],
-    "@typescript-eslint/no-unused-vars": ["error", { "ignoreRestSiblings": true, "argsIgnorePattern": "^_" }],
+    "no-unused-vars": ["off"],
+    "@typescript-eslint/no-unused-vars": ["off"],
+    "unused-imports/no-unused-imports": ["error"],
+    "unused-imports/no-unused-vars": [
+      "warn",
+      {
+        "vars": "all",
+        "varsIgnorePattern": "^_",
+        "args": "all",
+        "argsIgnorePattern": "^_"
+      }
+    ],
     "@typescript-eslint/consistent-type-imports": ["warn"],
     "react-hooks/exhaustive-deps": ["error"],
     "prefer-template": ["warn"],

@@ -7,7 +7,7 @@ const selectFocusedComponent = (state: RootState) => state.formLayout.uiConfig.f
 
 const selectHiddenFields = (state: RootState) => state.formLayout.uiConfig.hiddenFields;
 
-const selectId = (state, props) => props.id;
+const selectId = (_state, props) => props.id;
 
 export const makeGetFocus = (): ParametricSelector<
   RootState,

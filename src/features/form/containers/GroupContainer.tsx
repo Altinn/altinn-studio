@@ -262,7 +262,7 @@ export function GroupContainer({ id, container, components }: IGroupProps): JSX.
         // Generate array of length repeatingGroupIndex and iterate over indexes
         Array(repeatingGroupIndex + 1)
           .fill(0)
-          .map((v, index) => {
+          .map((_, index) => {
             if (filteredIndexList && filteredIndexList.length > 0 && !filteredIndexList.includes(index)) {
               return null;
             }

@@ -7,9 +7,7 @@ import { FormDataActions } from 'src/features/form/data/formDataSlice';
 import {
   deleteAttachmentReferenceSaga,
   SelectAttachments,
-  SelectCurrentView,
   SelectFormData,
-  SelectLayouts,
 } from 'src/features/form/data/update/updateFormDataSagas';
 import type { IDeleteAttachmentReference } from 'src/features/form/data/formDataTypes';
 import type { IDataModelBindings } from 'src/layout/layout';
@@ -50,9 +48,7 @@ describe('updateFormDataSagas', () => {
       return expectSaga(deleteAttachmentReferenceSaga, action)
         .provide([
           [select(SelectFormData), SelectFormData(state)],
-          [select(SelectLayouts), SelectLayouts(state)],
           [select(SelectAttachments), SelectAttachments(state)],
-          [select(SelectCurrentView), SelectCurrentView(state)],
         ])
         .put(
           FormDataActions.setFulfilled({

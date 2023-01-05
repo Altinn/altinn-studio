@@ -47,7 +47,7 @@ const useStyles = makeStyles({
 export function SummaryComponent(_props: ISummaryComponent) {
   const { id, grid, ...summaryProps } = _props;
   const { componentRef, display, ...groupProps } = summaryProps;
-  const { parentGroup, index, pageRef, formData, ...containerProps } = _props;
+  const { index, pageRef, formData, ...containerProps } = _props;
   const container = { ...containerProps, type: 'Summary' } as ILayoutCompSummary;
   const classes = useStyles();
   const dispatch = useAppDispatch();

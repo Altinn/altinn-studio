@@ -39,7 +39,7 @@ export function* checkIfConditionalRulesShouldRunSaga({
     const hiddenFields = new Set(uiConfig.hiddenFields);
     const futureHiddenFields = runConditionalRenderingRules(conditionalRenderingState, formData, repeatingGroups);
 
-    runExpressionRules(resolvedNodes, hiddenFields, futureHiddenFields);
+    runExpressionRules(resolvedNodes, futureHiddenFields);
 
     const hiddenLayouts = new Set(uiConfig.tracks.hidden);
     const futureHiddenLayouts = runExpressionsForLayouts(resolvedNodes, uiConfig.tracks.hiddenExpr, dataSources);
@@ -125,7 +125,7 @@ export function* checkIfConditionalRulesShouldRunSaga({
   }
 }
 
-function runExpressionRules(layouts: LayoutRootNodeCollection<'resolved'>, present: Set<string>, future: Set<string>) {
+function runExpressionRules(layouts: LayoutRootNodeCollection<'resolved'>, future: Set<string>) {
   for (const layout of Object.values(layouts.all())) {
     for (const node of layout.flat(true)) {
       if (node.item.hidden === true || future.has(node.item.id)) {
