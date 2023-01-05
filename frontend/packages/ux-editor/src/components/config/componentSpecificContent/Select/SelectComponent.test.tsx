@@ -5,6 +5,7 @@ import { SelectComponent, SelectComponentProps } from './SelectComponent';
 
 const renderSelectComponent = ({
   label,
+  defaultValue,
   component,
   optionKey,
   options,
@@ -15,6 +16,7 @@ const renderSelectComponent = ({
   render(
     <SelectComponent
       label={label}
+      defaultValue={defaultValue}
       component={component}
       optionKey={optionKey}
       options={options}
@@ -50,4 +52,16 @@ test('should be able to select option "small" and the "optionKey" should be "siz
   await user.click(screen.getByRole('combobox'));
   await user.click(screen.getByRole('option', { name: 'small' }));
   expect(onSelectChange).toHaveBeenCalledWith({ size: 'small' });
+});
+
+test('should render with "defaultValue" medium', () => {
+  renderSelectComponent({
+    label: 'Choose size',
+    optionKey: 'size',
+    defaultValue: 'medium',
+    options: ['small', 'medium', 'large'],
+    handleComponentChange: () => {}
+  });
+
+  expect(screen.getByRole('combobox')).toHaveValue('medium');
 });
