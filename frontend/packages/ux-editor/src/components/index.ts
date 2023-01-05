@@ -1,9 +1,7 @@
 import type { IThirdPartyComponent, IWidgetTexts } from '../types/global';
 import type { EditSettings } from './config/componentConfig';
 
-export interface IComponentIcon {
-  [key: string]: string;
-}
+type ComponentIconType = Record<ComponentTypes, string>;
 
 export interface IComponent {
   name: string;
@@ -45,9 +43,10 @@ export enum ComponentTypes {
   NavigationButtons = 'NavigationButtons',
   AttachmentList = 'AttachmentList',
   ThirdParty = 'ThirdParty',
+  InformationPanel = 'InformationPanel',
 }
 
-export const componentIcons: IComponentIcon = {
+export const componentIcons: Partial<ComponentIconType> = {
   Header: 'fa fa-title',
   Paragraph: 'fa fa-paragraph',
   Input: 'fa fa-short-answer',
@@ -65,20 +64,21 @@ export const componentIcons: IComponentIcon = {
   NavigationBar: 'fa fa-page-navigation',
   NavigationButtons: 'fa fa-button',
   AttachmentList: 'fa fa-attachment',
+  InformationPanel: 'fa fa-paragraph', // TODO make sure to use the correct icon.
 };
-const Header = {
+const Header: IComponent = {
   name: ComponentTypes.Header,
   Icon: componentIcons.Header,
   customProperties: {
     size: 'L',
   },
 };
-const Paragraph = {
+const Paragraph: IComponent = {
   name: ComponentTypes.Paragraph,
   Icon: componentIcons.Paragraph,
 };
 
-const Input = {
+const Input: IComponent = {
   name: ComponentTypes.Input,
   customProperties: {
     required: true,
@@ -87,7 +87,7 @@ const Input = {
   Icon: componentIcons.Input,
 };
 
-const TextArea = {
+const TextArea: IComponent = {
   name: ComponentTypes.TextArea,
   customProperties: {
     required: true,
@@ -95,7 +95,7 @@ const TextArea = {
   },
   Icon: componentIcons.TextArea,
 };
-const Checkboxes = {
+const Checkboxes: IComponent = {
   name: ComponentTypes.Checkboxes,
   Icon: componentIcons.Checkboxes,
   customProperties: {
@@ -103,7 +103,7 @@ const Checkboxes = {
     required: true,
   },
 };
-const RadioButtons = {
+const RadioButtons: IComponent = {
   name: ComponentTypes.RadioButtons,
   Icon: componentIcons.RadioButtons,
   customProperties: {
@@ -111,11 +111,11 @@ const RadioButtons = {
     required: true,
   },
 };
-const Dropdown = {
+const Dropdown: IComponent = {
   name: ComponentTypes.Dropdown,
   Icon: componentIcons.Dropdown,
 };
-const FileUpload = {
+const FileUpload: IComponent = {
   name: ComponentTypes.FileUpload,
   Icon: componentIcons.FileUpload,
   customProperties: {
@@ -126,7 +126,7 @@ const FileUpload = {
     required: true,
   },
 };
-const FileUploadWithTag = {
+const FileUploadWithTag: IComponent = {
   name: ComponentTypes.FileUploadWithTag,
   Icon: componentIcons.FileUploadWithTag,
   customProperties: {
@@ -136,7 +136,7 @@ const FileUploadWithTag = {
     required: true,
   },
 };
-const Datepicker = {
+const Datepicker: IComponent = {
   name: ComponentTypes.Datepicker,
   customProperties: {
     readOnly: false,
@@ -145,11 +145,11 @@ const Datepicker = {
   },
   Icon: componentIcons.Datepicker,
 };
-const Button = {
+const Button: IComponent = {
   name: ComponentTypes.Button,
   Icon: componentIcons.Button,
 };
-const Image = {
+const Image: IComponent = {
   name: ComponentTypes.Image,
   Icon: componentIcons.Image,
   customProperties: {
@@ -161,7 +161,7 @@ const Image = {
   },
 };
 
-const AddressComponent = {
+const AddressComponent: IComponent = {
   name: ComponentTypes.AddressComponent,
   Icon: componentIcons.AddressComponent,
   customProperties: {
@@ -169,11 +169,11 @@ const AddressComponent = {
     readOnly: false,
   },
 };
-const AttachmentList = {
+const AttachmentList: IComponent = {
   name: ComponentTypes.AttachmentList,
   Icon: componentIcons.AttachmentList,
 };
-const Group = {
+const Group: IComponent = {
   name: ComponentTypes.Group,
   Icon: componentIcons.Group,
   customProperties: {
@@ -181,9 +181,14 @@ const Group = {
     children: [],
   },
 };
-const NavigationBar = {
+const NavigationBar: IComponent = {
   name: ComponentTypes.NavigationBar,
   Icon: componentIcons.NavigationBar,
+};
+
+const InformationPanel: IComponent = {
+  name: ComponentTypes.InformationPanel,
+  Icon: componentIcons.InformationPanel,
 };
 
 export const advancedComponents: IComponent[] = [
@@ -206,6 +211,6 @@ export const schemaComponents: IComponent[] = [
   Image,
 ];
 
-export const textComponents: IComponent[] = [Header, Paragraph];
+export const textComponents: IComponent[] = [Header, Paragraph, InformationPanel];
 
 export const confOnScreenComponents: IComponent[] = [Header, Paragraph, AttachmentList, Image];

@@ -1,13 +1,20 @@
 import React from 'react';
 
 import classes from '../EditModalContent.module.css';
-import { Checkbox, FieldSet, RadioGroup, RadioGroupVariant, Select, TextField } from '@altinn/altinn-design-system';
+import {
+  Checkbox,
+  FieldSet,
+  RadioGroup,
+  RadioGroupVariant,
+  Select,
+  TextField
+} from '@altinn/altinn-design-system';
 import { ComponentTypes } from '../..';
 import type {
   IFormAddressComponent,
   IFormFileUploaderComponent,
   IFormFileUploaderWithTagComponent,
-  IFormImageComponent,
+  IFormImageComponent
 } from '../../../types/global';
 import { EditTitle } from '../editModal/EditTitle';
 import type { IGenericEditComponent } from '../componentConfig';
@@ -16,13 +23,14 @@ import { AddressKeys, getTextResourceByAddressKey } from '../../../utils/compone
 import { EditDataModelBindings } from '../editModal/EditDataModelBindings';
 import { EditDescription } from '../editModal/EditDescription';
 import { FileUploadWithTagComponent } from './FileUploadWithTag';
+import { EditSelect } from '../editModal/EditSelect';
 import { ImageComponent } from './Image';
 
 export function ComponentSpecificContent({
   component,
   handleComponentChange,
   language,
-  textResources,
+  textResources
 }: IGenericEditComponent) {
   const t = (key: string) => getLanguageFromKey(key, language);
 
@@ -81,7 +89,7 @@ export function ComponentSpecificContent({
   const handleToggleAddressSimple = (event: object, checked: boolean) => {
     handleComponentChange({
       ...component,
-      simplified: checked,
+      simplified: checked
     });
   };
 
@@ -106,12 +114,12 @@ export function ComponentSpecificContent({
       const types = [
         {
           value: 'Button',
-          label: t('ux_editor.modal_properties_button_type_submit'),
+          label: t('ux_editor.modal_properties_button_type_submit')
         },
         {
           value: 'NavigationButtons',
-          label: t('ux_editor.modal_properties_button_type_navigation'),
-        },
+          label: t('ux_editor.modal_properties_button_type_navigation')
+        }
       ];
       return (
         <FieldSet className={classes.fieldset}>
@@ -160,7 +168,7 @@ export function ComponentSpecificContent({
                   label: getTextResourceByAddressKey(value, language),
                   returnValue: value,
                   key: value,
-                  uniqueKey: index,
+                  uniqueKey: index
                 }}
               />
             );
@@ -177,11 +185,11 @@ export function ComponentSpecificContent({
             items={[
               {
                 label: t('ux_editor.modal_properties_file_upload_simple'),
-                value: 'simple',
+                value: 'simple'
               },
               {
                 label: t('ux_editor.modal_properties_file_upload_list'),
-                value: 'list',
+                value: 'list'
               }
             ]}
             name={`${component.id}-display-mode`}
@@ -207,11 +215,11 @@ export function ComponentSpecificContent({
             items={[
               {
                 label: t('ux_editor.modal_properties_valid_file_endings_all'),
-                value: 'false',
+                value: 'false'
               },
               {
                 label: t('ux_editor.modal_properties_valid_file_endings_custom'),
-                value: 'true',
+                value: 'true'
               }
             ]}
             name={`${component.id}-valid-file-endings`}
@@ -290,6 +298,22 @@ export function ComponentSpecificContent({
       );
     }
 
+    case ComponentTypes.InformationPanel: {
+      return (
+        <FieldSet>
+          <EditSelect
+            optionKey='variant'
+            options={[
+              language['ux_editor.info'],
+              language['ux_editor.warning'],
+              language['ux_editor.success']
+            ]}
+            component={component}
+            handleComponentChange={handleComponentChange}
+          />
+        </FieldSet>
+      );
+    }
     default: {
       return null;
     }

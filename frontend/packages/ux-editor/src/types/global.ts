@@ -179,6 +179,22 @@ export interface IThirdPartyComponent extends IFormComponent {
   [id: string]: any;
 }
 
+export interface PanelComponent extends IFormComponent {
+  variant: {
+    title: string;
+    description: string;
+    type: string;
+    enum: 'info' | 'warning' | 'success';
+    default: 'info';
+  };
+  showIcon: {
+    title: string;
+    description: string;
+    type: boolean;
+    default: true;
+  };
+}
+
 export type FormComponentType =
   | IFormComponent
   | IFormHeaderComponent
@@ -192,7 +208,8 @@ export type FormComponentType =
   | IFormAddressComponent
   | IFormImageComponent
   | IFormDatepickerComponent
-  | IThirdPartyComponent;
+  | IThirdPartyComponent
+  | PanelComponent;
 
 export interface IFormDesignerComponents {
   [id: string]: IFormComponent;
