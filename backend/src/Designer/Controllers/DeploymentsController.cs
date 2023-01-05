@@ -68,7 +68,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>List of environment names</returns>
         [HttpGet]
         [Route("permissions")]
-        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
         public async Task<List<string>> Permissions([FromRoute] string org)
         {
             List<string> permittedEnvironments;

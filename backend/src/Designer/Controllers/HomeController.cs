@@ -24,8 +24,8 @@ namespace Altinn.Studio.Designer.Controllers
     /// <summary>
     /// The default MVC controller in the application
     /// </summary>
-    [Route("[action]")]
-    [Route("[controller]/[action]")]
+    [Route("[action]/{id?}")]
+    [Route("[controller]/[action]/{id?}")]
     public class HomeController : Controller
     {
         private readonly IGitea _giteaApi;
