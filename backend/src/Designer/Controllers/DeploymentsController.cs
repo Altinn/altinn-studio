@@ -48,7 +48,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="query">Document query model</param>
         /// <returns>SearchResults of type DeploymentEntity</returns>
         [HttpGet]
-        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
         public async Task<SearchResults<DeploymentEntity>> Get([FromQuery] DocumentQueryModel query)
         {
             SearchResults<DeploymentEntity> deployments = await _deploymentService.GetAsync(query);
@@ -68,7 +67,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>List of environment names</returns>
         [HttpGet]
         [Route("permissions")]
-        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Get))]
         public async Task<List<string>> Permissions([FromRoute] string org)
         {
             List<string> permittedEnvironments;
@@ -90,7 +88,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// <returns>Created release</returns>
         [HttpPost]
         [Authorize(Policy = AltinnPolicy.MustHaveGiteaDeployPermission)]
-        [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Post))]
         public async Task<ActionResult<DeploymentEntity>> Create([FromBody] CreateDeploymentRequestViewModel createDeployment)
         {
             if (!ModelState.IsValid)
