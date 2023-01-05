@@ -1,0 +1,116 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
+    <AssemblyName>Altinn.Studio.Designer</AssemblyName>
+    <Company>Altinn</Company>
+    <TypeScriptToolsVersion>Latest</TypeScriptToolsVersion>
+    <TypeScriptCompileBlocked>True</TypeScriptCompileBlocked>
+    <MvcRazorExcludeRefAssembliesFromPublish>false</MvcRazorExcludeRefAssembliesFromPublish>
+    <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>
+    <UserSecretsId>c958e7e5-da9b-411d-8ee0-70bcfe1f64ed</UserSecretsId>
+    <RootNamespace>Altinn.Studio.Designer</RootNamespace>
+    <!-- SonarCloud needs this -->
+    <ProjectGuid>{6D0AC0E2-5A9A-4804-AA89-48000067AEB0}</ProjectGuid>
+    <InvariantGlobalization>false</InvariantGlobalization>
+    <Configurations>Release;Debug</Configurations>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Altinn.Common.AccessToken"/>
+    <PackageReference Include="Altinn.Common.AccessTokenClient" />
+    <PackageReference Include="Altinn.Platform.Storage.Interface" />
+    <PackageReference Include="CompilerAttributes" />
+    <PackageReference Include="ini-parser-netstandard" />
+    <PackageReference Include="JWTCookieAuthentication" />
+    <PackageReference Include="LibGit2Sharp" />
+    <PackageReference Include="Manatee.Json" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" />
+    <PackageReference Include="Microsoft.ApplicationInsights.Kubernetes" />
+    <PackageReference Include="Microsoft.AspNet.WebApi.Client" />
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.AzureKeyVault" />
+    <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
+    <PackageReference Include="Microsoft.Azure.KeyVault" />
+    <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Configuration.AzureKeyVault" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.BrowserLink" />
+    <PackageReference Include="HtmlAgilityPack" />
+    <PackageReference Include="Microsoft.DiaSymReader.Native" />
+    <PackageReference Include="Markdig" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+    <PackageReference Include="Scrutor" />
+    <PackageReference Include="Yuniql.AspNetCore" />
+    <PackageReference Include="Yuniql.PostgreSql" />
+    <PackageReference Include="RestSharp" />
+    <PackageReference Include="Swashbuckle.AspNetCore" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Configuration)'=='Debug'">
+     <PackageReference Include="StyleCop.Analyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+    <AdditionalFiles Include="..\..\..\stylecop.json">
+      <Link>stylecop.json</Link>
+    </AdditionalFiles>
+  </ItemGroup>
+
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'">
+    <CodeAnalysisRuleSet>..\..\..\Altinn3.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="wwwroot/**/*;Views/**/*;Areas/**/Views;">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+    <Watch Include="**\*.cs;**\*.csproj" Exclude="node_modules\**\*;**\*.js.map;obj\**\*;bin\**\*;**\*.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <CoreTemplates Include="../Templates/**/*" />
+    <CoreTestdata Include="../Testdata/**/*" />
+    <CoreLanguage Include="../Common/Languages/ini/*" />
+    <Compile Remove="Controllers\ManualTestingController.cs" />
+    <None Remove="jwtselfsignedcert.pfx" />
+    <Watch Remove="Services\Implementation\SourceControlLoggingDecorator.cs" />
+    <Content Include="jwtselfsignedcert.pfx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DataModeling\DataModeling.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="Views\Home\AppToken.cshtml">
+      <Pack>$(IncludeRazorContentInPack)</Pack>
+    </Content>
+  </ItemGroup>
+
+  <Target Name="AfterPublishScript" AfterTargets="Publish">
+    <MakeDir Directories="$(PublishDir)Templates" Condition="!Exists('$(PublishDir)Templates')" />
+    <MakeDir Directories="$(PublishDir)Testdata" Condition="!Exists('$(PublishDir)Testdata')" />
+    <MakeDir Directories="$(PublishDir)Languages" Condition="!Exists('$(PublishDir)Languages')" />
+    <Copy SourceFiles="@(CoreTemplates)" DestinationFolder="$(PublishDir)Templates\%(RecursiveDir)" />
+    <Copy SourceFiles="@(CoreTestdata)" DestinationFolder="$(PublishDir)Testdata\%(RecursiveDir)" />
+    <Copy SourceFiles="@(CoreLanguage)" DestinationFolder="$(PublishDir)Languages" />
+  </Target>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <OutputPath>bin\Release</OutputPath>
+    <DocumentationFile>bin\Release\AltinnCore.Designer.xml</DocumentationFile>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
+</Project>

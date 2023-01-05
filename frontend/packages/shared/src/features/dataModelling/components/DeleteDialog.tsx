@@ -1,8 +1,7 @@
 import React from 'react';
 import { Button, Grid, Popover, Typography } from '@mui/material';
-import { makeStyles } from '@mui/styles';
 import { getLanguageFromKey, getParsedLanguageFromKey } from '../../../utils/language';
-import altinnTheme from '../../../theme/altinnStudioTheme';
+import classes from './DeleteDialog.module.css';
 
 export interface IDeleteDialogProps {
   anchor: Element;
@@ -12,33 +11,6 @@ export interface IDeleteDialogProps {
   onCancel: () => void;
 }
 
-const useStyles = makeStyles({
-  root: {
-    padding: 20,
-    maxWidth: 470,
-    '& button': {
-      margin: 8,
-    },
-  },
-  borderBottom: {
-    borderBottom: `1px solid ${altinnTheme.altinnPalette.primary.blueDark}`,
-  },
-  deleteButton: {
-    backgroundColor: '#dc044c',
-    color: '#fff',
-    '&:hover': {
-      backgroundColor: '#9a0036',
-    },
-  },
-  iconWrapper: {
-    color: '#dc044c',
-    fontSize: '1.5em',
-  },
-  icon: {
-    margin: 4,
-  },
-});
-
 export function DeleteDialog(props: IDeleteDialogProps) {
   const description = getParsedLanguageFromKey(
     'administration.delete_model_confirm',
@@ -46,7 +18,6 @@ export function DeleteDialog(props: IDeleteDialogProps) {
     [props.schemaName],
     true
   );
-  const classes = useStyles();
   return (
     <Popover
       open={!!props.anchor}

@@ -11,7 +11,6 @@ import { DataModelsMetadataActions, LoadingState } from './sagas/metadata';
 import type { IMetadataOption } from './functions/types';
 import { LandingPagePanel } from './components/LandingPagePanel';
 import { Dialog } from '@mui/material';
-import { createStyles, makeStyles } from '@mui/styles';
 import { getLanguageFromKey } from '../../utils/language';
 import { getLocalStorageItem, setLocalStorageItem } from './functions/localStorage';
 import { CreateNewWrapper } from './components/CreateNewWrapper';
@@ -19,6 +18,7 @@ import { DeleteWrapper } from './components/DeleteWrapper';
 import { SchemaSelect } from './components/SchemaSelect';
 import { XSDUpload } from './components/XSDUpload';
 import { datamodelPath } from '../../api-paths';
+import classes from './DataModelling.module.css';
 
 interface IDataModellingContainerProps extends React.PropsWithChildren<any> {
   language: ILanguage;
@@ -51,21 +51,12 @@ export const shouldSelectFirstEntry = ({
   );
 };
 
-const useStyles = makeStyles(
-  createStyles({
-    button: {
-      marginRight: 16,
-    },
-  })
-);
-
 export function DataModelling({
   language,
   org,
   repo,
   createPathOption,
 }: IDataModellingContainerProps): JSX.Element {
-  const classes = useStyles();
   const dispatch = useDispatch();
   const jsonSchema = useSelector((state: any) => state.dataModelling.schema);
   const metadataOptions = useSelector(createDataModelMetadataOptions, shallowEqual);

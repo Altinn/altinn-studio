@@ -2,16 +2,13 @@ import React from 'react';
 import {
   Button,
   CircularProgress,
-  createTheme,
   Grid,
   Popover,
   TextField,
   Typography,
 } from '@mui/material';
-import { createStyles, makeStyles } from '@mui/styles';
 import classNames from 'classnames';
-
-import altinnTheme from '../theme/altinnStudioTheme';
+import classes from './AltinnPopover.module.css';
 
 export interface IAltinnPopoverProvidedProps {
   anchorEl: any;
@@ -38,77 +35,7 @@ export interface IAltinnPopoverProvidedProps {
   };
 }
 
-const theme = createTheme(altinnTheme);
-
-const useStyles = makeStyles(() =>
-  createStyles({
-    borderBottom: {
-      borderBottom: `1px solid ${altinnTheme.altinnPalette.primary.blueDark}`,
-    },
-    buttonCommon: {
-      fontSize: '14px',
-      textTransform: 'none',
-      fontWeight: 400,
-      marginTop: '20px',
-      borderRadius: '0',
-    },
-    buttonCancel: {
-      color: theme.altinnPalette.primary.blueDarker,
-      background: theme.altinnPalette.primary.white,
-      '&:hover': {
-        color: theme.altinnPalette.primary.blueDarker,
-      },
-      '&:focus': {
-        background: theme.altinnPalette.primary.blueDarker,
-      },
-    },
-    buttonConfirm: {
-      color: theme.altinnPalette.primary.white,
-      background: theme.altinnPalette.primary.blueDark,
-      '&:hover': {
-        background: theme.altinnPalette.primary.blueDarker,
-      },
-      '&:focus': {
-        background: theme.altinnPalette.primary.blueDarker,
-      },
-    },
-    commitMessageField: {
-      border: `1px solid ${theme.altinnPalette.primary.blueDark}`,
-      boxSizing: 'border-box',
-      marginTop: '10px',
-      fontSize: '16px !Important',
-      minHeight: '88px',
-      lineHeight: '1.3',
-    },
-    doneLoadingIcon: {
-      marginTop: '20px',
-      color: theme.altinnPalette.primary.green,
-      marginRight: 'auto',
-      marginLeft: 'auto',
-    },
-    header: {
-      fontSize: '16px',
-      fontWeight: 500,
-    },
-    spinner: {
-      marginTop: '20px',
-      color: theme.altinnPalette.primary.blueDark,
-      marginRight: 'auto',
-      marginLeft: 'auto',
-    },
-    subHeader: {
-      fontSize: '16px',
-      marginTop: '10px',
-    },
-    popover: {
-      width: '445px',
-      margin: '24px',
-    },
-  })
-);
-
 const AltinnPopoverComponent = (props: any) => {
-  const classes = useStyles(props);
 
   const [commitMessage, setCommitMessage] = React.useState('');
 

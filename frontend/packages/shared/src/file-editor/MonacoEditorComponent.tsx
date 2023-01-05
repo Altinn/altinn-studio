@@ -1,10 +1,7 @@
 import React from 'react';
-import { CircularProgress, createTheme, Grid } from '@mui/material';
-import { createStyles, withStyles } from '@mui/styles';
+import { CircularProgress, Grid } from '@mui/material';
 import MonacoEditor from 'react-monaco-editor';
-import altinnTheme from '../theme/altinnStudioTheme';
-
-const theme = createTheme(altinnTheme);
+import classes from './MonacoEditorComponent.module.css';
 
 export interface IMonacoEditorComponentProps {
   classes: any;
@@ -23,12 +20,6 @@ export interface IMonacoEditorComponentState {
   fileEditorFocus: boolean;
   monacoWrapperRef: React.RefObject<HTMLDivElement>;
 }
-
-const styles = createStyles({
-  spinner: {
-    color: theme.altinnPalette.primary.blue,
-  },
-});
 
 class MonacoEditorComponent extends React.Component<
   IMonacoEditorComponentProps,
@@ -114,7 +105,6 @@ class MonacoEditorComponent extends React.Component<
   };
 
   public render() {
-    const { classes } = this.props;
     return this.props.isLoading ? (
       <Grid
         container={true}
@@ -168,4 +158,4 @@ class MonacoEditorComponent extends React.Component<
   }
 }
 
-export default withStyles(styles, { withTheme: true })(MonacoEditorComponent);
+export default MonacoEditorComponent;

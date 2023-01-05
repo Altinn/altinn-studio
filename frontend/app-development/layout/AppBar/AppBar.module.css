@@ -1,0 +1,70 @@
+.root {
+  color: #000;
+  flex-grow: 1;
+  z-index: 1;
+}
+
+.appBar {
+  border-bottom-color: #C9C9C9 !important;
+  border-bottom: var(--header-border-bottom-width) solid;
+  color: #000;
+  position: fixed;
+}
+
+.appBarDashboard {
+  background-color: #FFF;
+}
+
+.appBarEditor {
+  background-color: #EFEFEF;
+}
+
+.muiToolbar {
+  min-height: var(--toolbar-height) !important;
+}
+
+.breadCrumb {
+  font-size: 20px;
+  padding-left: 30px;
+}
+
+.breadCrumbSubApp {
+  color: #0062BA;
+}
+
+.paper {
+  text-align: center;
+}
+
+.subHeader {
+  font-size: 20px;
+  padding-left: 12px;
+  padding-right: 12px;
+  padding-bottom: 0;
+}
+
+.subHeaderLink {
+  border-bottom: 1px solid;
+  border-bottom-color: transparent; /* To mitigate the 1 pixel adjustment */
+}
+
+.subHeaderLink:hover, .subHeaderLinkActive:focus {
+  border-bottom: 1px solid;
+  border-bottom-color: #0062BA;
+  color: #0062BA;
+}
+
+.subHeaderLinkActive {
+  border-bottom: 1px solid;
+  border-bottom-color: #0062BA;
+  color: #0062BA;
+  font-weight: 500;
+}
+
+.topRightService {
+  padding-right: 22px;
+}
+
+.aImgStyling, .aImgStyling:hover, .aImgStyling:active {
+  border-bottom: none;
+}

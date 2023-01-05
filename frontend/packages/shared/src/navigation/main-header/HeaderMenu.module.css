@@ -1,0 +1,12 @@
+.avatar {
+  height: 60px;
+  width: 60px;
+}
+
+.typography {
+  text-align: right;
+}
+
+.iconButton:hover, .iconButton:focus {
+  background-color: #193d61;
+}

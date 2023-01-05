@@ -1,29 +1,14 @@
 import React from 'react';
-import { createTheme } from '@mui/material';
-import type { WithStyles } from '@mui/styles';
-import { createStyles, withStyles } from '@mui/styles';
 import AltinnButton from 'app-shared/components/AltinnButton';
 import AltinnPopover from 'app-shared/components/AltinnPopover';
-import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { get } from 'app-shared/utils/networking';
 import postMessages from 'app-shared/utils/postMessages';
 import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
 import { discardChangesPath } from 'app-shared/api-paths';
 
-const theme = createTheme(altinnTheme);
 
-const styles = () =>
-  createStyles({
-    textDisabled: {
-      color: theme.altinnPalette.primary.grey,
-    },
-    input: {
-      marginRight: 49,
-    },
-  });
-
-interface IHandleMergeConflictDiscardChangesProps extends WithStyles<typeof styles> {
+interface IHandleMergeConflictDiscardChangesProps {
   disabled?: boolean;
   language: any;
 }
@@ -162,4 +147,4 @@ class HandleMergeConflictDiscardChanges extends React.Component<
   }
 }
 
-export default withStyles(styles)(HandleMergeConflictDiscardChanges);
+export default HandleMergeConflictDiscardChanges;

@@ -1,13 +1,9 @@
 import React from 'react';
-import { createTheme, ThemeProvider } from '@mui/material';
 
 import { render as rtlRender, screen } from '@testing-library/react';
 
 import type { IHeaderContext } from './Header';
 import { getOrgNameById, Header, HeaderContext, SelectedContextType } from './Header';
-import altinnTheme from '../../theme/altinnStudioTheme';
-
-const theme = createTheme(altinnTheme);
 
 const orgId = 1;
 const orgFullName = 'Organization 1';
@@ -107,10 +103,8 @@ const render = ({
   };
 
   return rtlRender(
-    <ThemeProvider theme={theme}>
-      <HeaderContext.Provider value={headerContextValue}>
-        <Header language={{}} />
-      </HeaderContext.Provider>
-    </ThemeProvider>
+    <HeaderContext.Provider value={headerContextValue}>
+      <Header language={{}} />
+    </HeaderContext.Provider>
   );
 };

@@ -8,6 +8,7 @@ import configureStore from 'redux-mock-store';
 import React from 'react';
 import type { ILanguageState } from '../features/appData/language/languageSlice';
 import { IServiceConfigurationState } from '../features/serviceConfigurations/serviceConfigurationTypes';
+import { IDataModelState } from '../features/appData/dataModel/dataModelSlice';
 
 export const textResourcesMock: ITextResourcesState = {
   currentEditId: undefined,
@@ -21,13 +22,20 @@ export const textResourcesMock: ITextResourcesState = {
   saving: false,
 }
 
+export const dataModelStateMock: IDataModelState = {
+  model: [],
+  fetching: false,
+  fetched: true,
+  error: null,
+}
+
 export const languageStateMock: ILanguageState = {
   error: null,
   language: {},
 }
 
 export const appDataMock: IAppDataState = {
-  dataModel: null,
+  dataModel: dataModelStateMock,
   languageState: languageStateMock,
   ruleModel: null,
   textResources: textResourcesMock,

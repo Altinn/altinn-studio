@@ -1,24 +1,22 @@
 import React from 'react';
 import Select from 'react-select';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import { PropertyLabel, selectStyles } from '../../../../utils/render';
 import type { FormComponentType, IFormImageComponent } from '../../../../types/global';
-import { TextField } from '@altinn/altinn-design-system';
+import { FieldSet, TextField } from '@altinn/altinn-design-system';
 import classes from './ImageComponent.module.css';
 import { TextResource } from '../../../TextResource';
+import { useText } from '../../../../hooks';
 
 export interface IImageComponentProps {
   component: IFormImageComponent;
   handleComponentUpdate: (updatedComponent: FormComponentType) => void;
-  language: any;
 }
 
 export const ImageComponent = ({
   component,
   handleComponentUpdate,
-  language,
 }: IImageComponentProps) => {
-  const t = (key: string) => getLanguageFromKey(key, language);
+  const t = useText();
   const alignOptions = [
     {
       value: 'flex-start',
@@ -68,7 +66,7 @@ export const ImageComponent = ({
   const placementSelectId = `image_placement-input-${component.id}`;
 
   return (
-    <>
+    <FieldSet className={classes.root}>
       <div>
         <TextField
           id={`image_nb_src-input-${component.id}`}
@@ -118,6 +116,6 @@ export const ImageComponent = ({
           </a>
         </p>
       </div>
-    </>
+    </FieldSet>
   );
 };

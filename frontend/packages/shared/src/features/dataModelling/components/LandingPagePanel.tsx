@@ -1,56 +1,8 @@
 import React from 'react';
-import { makeStyles } from '@mui/styles';
 import { AltinnButton } from '../../../components';
 import { getLanguageFromKey } from '../../../utils/language';
 import { XSDUpload } from './XSDUpload';
-
-const useStyles = makeStyles({
-  landingDialog: {
-    backgroundColor: '#E3F7FF',
-    borderRadius: 0,
-    boxShadow: '1px 1px 3px 2px rgb(0 0 0 / 25%)',
-    height: 229,
-    marginLeft: 'auto',
-    marginRight: 'auto',
-    marginTop: 36,
-    padding: '3rem',
-    paddingLeft: 96,
-    width: 783,
-    '& h1': {
-      fontSize: 18,
-      fontWeight: 'bold',
-    },
-  },
-  background: {
-    backgroundColor: '#F7F7F7',
-  },
-  buttons: {
-    display: 'flex',
-    '& > :first-child button': {
-      marginRight: '2rem',
-      overflow: 'hidden', // Without this, the :before symbol makes the focus outline look weird
-      '&:before': {
-        content: '"\\f02f"',
-        fontFamily: 'AltinnStudio',
-        fontSize: '4rem',
-        marginRight: '1rem',
-      },
-    },
-    '& > :last-child': {
-      backgroundColor: '#FFF',
-      border: '2px solid #50ABDD',
-      color: '#50ABDD',
-      transition: 'none',
-      '& .MuiButton-label span': {
-        borderBottomWidth: 0,
-      },
-      '&:hover': {
-        borderColor: '#0062BA',
-        color: '#0062BA',
-      },
-    },
-  },
-});
+import classes from './LandingPagePanel.module.css';
 
 export interface LandingPageProps {
   language: any;
@@ -69,7 +21,6 @@ export function LandingPagePanel({
   handleXSDUploaded,
   handleCreateModelClick,
 }: LandingPageProps) {
-  const classes = useStyles();
   const t = (key: string) => getLanguageFromKey(key, language);
 
   return (

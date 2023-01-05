@@ -11,7 +11,7 @@ solution/apps:
   - 'src/Altinn.Apps/KubernetesWrapper/**/*'
 
 solution/studio/designer:
-  - 'src/studio/src/designer/**/*'
+  - 'backend/**/*'
 
 solution/studio/repos:
   - 'gitea/**/*'
@@ -31,7 +31,7 @@ area/authorization:
 area/app-deploy:
   - 'frontend/app-development/features/appPublish/**/*'
   - 'frontend/app-development/sharedResources/appDeployment/**/*'
-  - 'src/studio/src/designer/backend/Controllers/DeploymentsController.cs'
+  - 'backend/src/Designer/Controllers/DeploymentsController.cs'
   - 'src/Altinn.Apps/AppTemplates/AspNet/deployment/**/*'
   - 'src/studio/AppTemplates/AspNet/deployment/**/*'
 

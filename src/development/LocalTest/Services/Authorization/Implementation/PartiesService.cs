@@ -1,37 +1,23 @@
+#nullable enable
 using Altinn.Platform.Authorization.Services.Interface;
 using Altinn.Platform.Register.Models;
-using LocalTest.Configuration;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+using LocalTest.Services.TestData;
 
 namespace LocalTest.Services.Authorization.Implementation
 {
     public class PartiesService : IParties
     {
-        private readonly LocalPlatformSettings _localPlatformSettings;
+        private readonly TestDataService _testDataService;
 
-        public PartiesService(IOptions<LocalPlatformSettings> localPlatformSettings)
+        public PartiesService(TestDataService testDataService)
         {
-            _localPlatformSettings = localPlatformSettings.Value;
+            _testDataService = testDataService;
         }
 
-        public Task<List<Party>> GetParties(int userId)
+        public async Task<List<Party>?> GetParties(int userId)
         {
-            string path = GetPartyListPath(userId);
-            
-            if (File.Exists(path))
-            {
-                string content = System.IO.File.ReadAllText(path);
-                List<Party> instance = (List<Party>)JsonConvert.DeserializeObject(content, typeof(List<Party>));
-                return Task.FromResult(instance);
-            }
-
-            return null;
+            var data = await _testDataService.GetTestData();
+            return data.Authorization.PartyList.TryGetValue(userId.ToString(), out var result) ? result : null;
         }
 
         public Task<bool> ValidateSelectedParty(int userId, int partyId)
@@ -39,10 +25,5 @@ namespace LocalTest.Services.Authorization.Implementation
             return Task.FromResult(true);
         }
 
-
-        private string GetPartyListPath(int userId)
-        {
-            return _localPlatformSettings.LocalTestingStaticTestDataPath + _localPlatformSettings.AuthorizationDataFolder + _localPlatformSettings.PartyListFolder + userId + ".json";
-        }
     }
 }

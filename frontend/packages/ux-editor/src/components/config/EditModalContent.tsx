@@ -1,15 +1,12 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
 import type { EditSettings, IGenericEditComponent } from './componentConfig';
 import { ComponentTypes } from '../index';
-import type { FormComponentType, IAppState, IThirdPartyComponent } from '../../types/global';
+import type { FormComponentType, IThirdPartyComponent } from '../../types/global';
 import { EditComponentId } from './editModal/EditComponentId';
 import { componentSpecificEditConfig, configComponents } from './componentConfig';
 import { ComponentSpecificContent } from './componentSpecificContent';
 import { FieldSet } from '@altinn/altinn-design-system';
 import classes from './EditModalContent.module.css';
-import { DEFAULT_LANGUAGE } from 'app-shared/constants';
-import { textResourcesByLanguageSelector } from '../../selectors/textResourceSelectors';
 
 export interface IEditModalContentProps {
   cancelEdit?: () => void;
@@ -24,8 +21,6 @@ export const EditModalContent = ({
   handleComponentUpdate,
   thirdPartyComponentConfig,
 }: IEditModalContentProps) => {
-  const language = useSelector((state: IAppState) => state.appData.languageState.language);
-  const textResources = useSelector(textResourcesByLanguageSelector(DEFAULT_LANGUAGE));
   const renderFromComponentSpecificDefinition = (configDef: EditSettings[]) => {
     if (!configDef) return null;
 
@@ -36,8 +31,6 @@ export const EditModalContent = ({
         key: configType,
         handleComponentChange: handleComponentUpdate,
         component,
-        language,
-        textResources,
       });
     });
   };
@@ -51,7 +44,7 @@ export const EditModalContent = ({
   };
 
   return (
-    <FieldSet className={classes.fieldset}>
+    <FieldSet className={classes.root}>
       <EditComponentId
         component={component}
         handleComponentUpdate={handleComponentUpdate}
@@ -60,8 +53,6 @@ export const EditModalContent = ({
       <ComponentSpecificContent
         component={component}
         handleComponentChange={handleComponentUpdate}
-        language={language}
-        textResources={textResources}
       />
     </FieldSet>
   );

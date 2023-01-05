@@ -1,6 +1,4 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { createTheme, ThemeProvider } from '@mui/material';
-import altinnTheme from 'app-shared/theme/altinnStudioTheme';
 import postMessages from 'app-shared/utils/postMessages';
 import AltinnPopoverSimple from 'app-shared/components/molecules/AltinnPopoverSimple';
 import { getLanguageFromKey } from 'app-shared/utils/language';
@@ -33,8 +31,6 @@ import {
   serviceConfigPath,
   serviceNamePath,
 } from 'app-shared/api-paths';
-
-const theme = createTheme(altinnTheme);
 
 const GetRepoStatusSelector = makeGetRepoStatusSelector();
 const TEN_MINUTES_IN_MILLISECONDS = 600000;
@@ -152,31 +148,29 @@ export function App() {
   );
 
   return (
-    <ThemeProvider theme={theme}>
-      <div className={classes.container} ref={sessionExpiredPopoverRef}>
-        <AltinnPopoverSimple
-          testId='logout-warning'
-          anchorEl={sessionExpiredPopoverRef.current}
-          open={remainingSessionMinutes < 11}
-          anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
-          transformOrigin={{ vertical: 'top', horizontal: 'center' }}
-          handleClose={(event: string) => handleSessionExpiresClose(event)}
-          btnCancelText={t('general.sign_out')}
-          btnConfirmText={t('general.continue')}
-          btnClick={handleSessionExpiresClose}
-          paperProps={{ style: { margin: '2.4rem' } }}
-        >
-          <h2>{t('session.expires')}</h2>
-          <p style={{ marginTop: '1.6rem' }}>{t('session.inactive')}</p>
-        </AltinnPopoverSimple>
-        <PageHeader repoStatus={repoStatus} />
-        <LeftMenu
-          className={classes.contentWrapper}
-          language={language}
-          repoStatus={repoStatus}
-          subAppClassName={repoStatus.hasMergeConflict ? classes.mergeConflictApp : classes.subApp}
-        />
-      </div>
-    </ThemeProvider>
+    <div className={classes.container} ref={sessionExpiredPopoverRef}>
+      <AltinnPopoverSimple
+        testId='logout-warning'
+        anchorEl={sessionExpiredPopoverRef.current}
+        open={remainingSessionMinutes < 11}
+        anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'center' }}
+        handleClose={(event: string) => handleSessionExpiresClose(event)}
+        btnCancelText={t('general.sign_out')}
+        btnConfirmText={t('general.continue')}
+        btnClick={handleSessionExpiresClose}
+        paperProps={{ style: { margin: '2.4rem' } }}
+      >
+        <h2>{t('session.expires')}</h2>
+        <p style={{ marginTop: '1.6rem' }}>{t('session.inactive')}</p>
+      </AltinnPopoverSimple>
+      <PageHeader repoStatus={repoStatus} />
+      <LeftMenu
+        className={classes.contentWrapper}
+        language={language}
+        repoStatus={repoStatus}
+        subAppClassName={repoStatus.hasMergeConflict ? classes.mergeConflictApp : classes.subApp}
+      />
+    </div>
   );
 }

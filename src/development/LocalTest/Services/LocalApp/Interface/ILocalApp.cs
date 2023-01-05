@@ -1,8 +1,6 @@
 #nullable enable
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Altinn.Platform.Storage.Interface.Models;
+using LocalTest.Services.TestData;
 
 namespace LocalTest.Services.LocalApp.Interface
 {
@@ -10,12 +8,17 @@ namespace LocalTest.Services.LocalApp.Interface
     {
         Task<string?> GetXACMLPolicy(string appId);
 
-        Task<Application?> GetApplicationMetadata(string appId);
+        Task<Application?> GetApplicationMetadata(string? appId);
 
         Task<Dictionary<string, Application>> GetApplications();
 
         Task<TextResource?> GetTextResource(string org, string app, string language);
 
-        Task<Instance?> Instantiate(string appId, Instance instance, string xmlPrefill, string xmlDataId);
+        /// <summary>
+        /// Make a new instance with a given xml prefill, and using an access token
+        /// </summary>
+        Task<Instance?> Instantiate(string appId, Instance instance, string xmlPrefill, string xmlDataId, string token);
+
+        Task<AppTestDataModel?> GetTestData();
     }
 }

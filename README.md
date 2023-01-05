@@ -24,89 +24,133 @@ If you just want to quickly perform tests of your app on your development machin
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
 See deployment for notes on how to deploy the project on a live system.
 
+### Prerequisites
+
+1. Newest [.NET 6 SDK][2]
+2. [Node.js][3] (version 16.\*)
+3. Newest [Git][4]
+4. A code editor - we like [Visual Studio Code][5]
+   - Also install [recommended extensions][6] (f.ex. [C#][7])
+5. [Docker Desktop][8]
+6. If you are running Docker Desktop in Hyper-V mode you need to make sure your C drive is shared with Docker, Docker
+   Settings -> Shared Drives The File sharing tab is only available in Hyper-V mode, because in WSL 2 mode and Windows
+   container mode all files are automatically shared by Windows.
+7. World Wide Web Publishing Service must be disabled, Services -> "World Wide Web Publishing Service" rigth click and
+   choose "stop"
+
+_NOTE: If you want to use Safari on MacOS add `127.0.0.1 studio.localhost` to `/private/etc/hosts`_
+
 ### Installing
 
-Clone the [Altinn Studio repo](https://github.com/Altinn/altinn-studio) and navigate to the folder.
+Clone [Altinn Studio repo][9]
 
 ```bash
 git clone https://github.com/Altinn/altinn-studio
-cd altinn-studio
 ```
 
-#### Develop Altinn Studio
-
-To run Altinn Studio locally, follow the [Altinn Studio instructions](/src/studio/README.md).
-
-#### Develop or run Apps
-
-First make sure to [follow the prerequisites for Altinn Studio](/src/studio/README.md#prerequisites).
-_If you need to develop or debug App-Frontend, you can follow the description in **[app-frontend-react repository](https://github.com/Altinn/app-frontend-react#developing-app-frontend)**_
-
-It's possible to run an app locally in order to test and debug it. It needs a local version of the platform services to work.
-_NOTE: Currently, it is not possible to run Apps and Altinn Studio (designer) in parallel. To run Apps, make sure that 
-none of the containers for Altinn Studio are running, f.ex. by navigating to the root of the altinn-studio repo, and running the command_
+Run all parts of the solution in containers (Make sure docker is running)
 
 ```bash
-docker-compose down
+docker-compose up -d --build
 ```
 
-##### Setting up local platform services for test
+The solution is now available locally at [studio.localhost](http://studio.localhost). (Just create a new user for testing. No email
+verification required)
 
-1. Navigate to the `development` folder in the altinn-studio repo
+If you make changes and want to rebuild a specific project using docker-compose this can be done using
 
+```bash
+docker-compose up -d --build <container>
+```
+
+Example
+
+```bash
+docker-compose up -d --build altinn_designer
+```
+
+### Running and developing solutions locally
+
+When starting `docker-compose` the solution should be running as it would in production. But you probably want to change
+parts of the solution. The loadbalancer is configured to route the traffic to the right place according to your
+particular usecase. This is done by placing a `.env`-file in the same folder as docker-compose.yml. The content is as
+follows:
+
+```text
+DEVELOP_BACKEND=0
+DEVELOP_DASHBOARD=0
+DEVELOP_APP_DEVELOPMENT=0
+```
+
+#### Developing Backend
+
+Navigate to the designer backend folder `cd src/studio/src/designer/backend`. The first time running, or after any package changes, get the latest packages.
+
+- On MacOS you need one extra step before running .NET:
+
+  Change location where the application stores the DataProtectionKeys
    ```bash
-   cd src/development
+   export ALTINN_KEYS_DIRECTORY=/Users/<yourname>/studio/keys
    ```
 
-2. Start the loadbalancer container that routes between the local platform services and the app
+Build and prepare for running the application.
 
-   ```bash
-   docker-compose up -d --build
-   ```
+```bash
+dotnet build
+yarn run gulp # run this when there are changes in frontend that you want to serve from backend
+```
 
-3. Set path to app folder in local platform services. There are two ways to do this:
+An optional step if you want to run also frontend from the backend. At the time being this is still a thing.
 
-   1. Edit the appsettings.json file:
-      - Open `appSettings.json` in the `LocalTest` folder in an editor, for example in Visual Studio Code
-      - Change the setting `"AppRepsitoryBasePath"` to the full path to your app on the disk. Save the file.
-   2. Define a value using [user-secrets](https://docs.microsoft.com/en-us/aspnet/core/security/app-secrets?view=aspnetcore-6.0&tabs=windows#set-a-secret). User secrets is a set of developer specific settings that will overwrite values from the `appSettings.json` file when the application is started in developer "mode".
-      ```bash
-      dotnet user-secrets set "LocalPlatformSettings:AppRepositoryBasePath" "C:\Repos"
-      ```
+```bash
+cd src/studio/src/designer/backend
+yarn --immutable
+yarn run gulp-install-deps
+```
 
-4. Start the local platform services (make sure you are in the LocalTest folder)
+There are multiple ways to start the frontend applications
 
-   ```bash
-   dotnet run
-   ```
+```bash
+yarn run develop-designer-frontend # Run the front end watching dashboard
+```
 
-5. Navigate to the app folder (specified in the step above), and start the app
+If you are not going to edit the designer react app (frontend) you can use
 
-   ```bash
-   cd /<path to app on disk>
-   ```
+```bash
+cd src/studio/src/designer/backend
+yarn --immutable
+yarn run gulp # run this when there are changes in frontend that you want to serve from backend
+dotnet run
+```
 
-   ```bash
-   dotnet run -p App.csproj
-   ```
+Which will build the Designer .NET backend and the designer react app, but not listen to changes to the react app.
 
-   - If you need to debug (or run locally) the app front-end, see details in [app-frontend-react repository](https://github.com/Altinn/app-frontend-react#developing-app-frontend)
+#### Building the React apps
 
-The app and local platform services are now running locally, and the app can be accessed on local.altinn.cloud.
-
-Log in with a test user, using your app name and org name. This will redirect you to the app.
-
-#### Building other react apps
-
-If you need to rebuild other react apps, for instance Dashboard or ServiceDevelopment, this can be done by navigating to 
-their respective folders, example `frontend/dashboard` and then run the following build script
+If you need to rebuild other react apps, for instance `dashboard` or `app-development`, this can be done by navigating
+to `frontend` and then run the following build script, which will build app frontend apps.
 
 ```bash
 yarn run build
 ```
 
-Some of the react projects also have various other predefined yarn tasks, which can be viewed in the `package.json` file 
-which is located in the root folder of each react project, example `frontend/dashboard/package.json`
+Some React projects also have various other predefined scripts, which can be viewed in the `package.json` file
+which is located in the root folder of each react project, example `frontend/dashboard`.
+
+## Running the tests
+
+### Lint checks
+
+1. Navigate to the folder `frontend`.
+2. Execute `yarn --immutable`. This step is only nescessary if you have not already done it, or if you change branches.
+3. Execute `yarn run lint`.
+
+### Unit tests
+
+1. Navigate to the folder `frontend`.
+2. Execute `yarn --immutable`. This step is only nescessary if you have not already done it, or if you change branches.
+3. Execute `yarn run test`.
+
 
 ## Running the tests
 
@@ -114,15 +158,9 @@ which is located in the root folder of each react project, example `frontend/das
 
 [Integration tests](https://github.com/Altinn/altinn-studio/tree/master/src/test/cypress) for local studio.
 
-### Frontend lint and unit tests
-
-See readme in [studio](/src/studio/README.md#running-the-tests).
-
 ## Deployment
 
-The current build is deployed in Kubernetes on Azure.
-
-Automated build/deploy process is being developed.
+The current build is deployed in Kubernetes on Azure. Automated CI/CD using Azure DevOps pipelines.
 
 ## Built With
 
@@ -145,3 +183,23 @@ See also the [list of contributors](https://github.com/Altinn/altinn-studio/grap
 ## License
 
 This project is licensed under the 3-Clause BSD License - see the [LICENSE.md](LICENSE.md) file for details.
+
+[1]: https://docs.altinn.studio/
+[2]: https://dotnet.microsoft.com/download/dotnet/6.0
+[3]: https://nodejs.org
+[4]: https://git-scm.com/downloads
+[5]: https://code.visualstudio.com/Download
+[6]: https://code.visualstudio.com/docs/editor/extension-gallery#_workspace-recommended-extensions
+[7]: https://marketplace.visualstudio.com/items?itemName=ms-vscode.csharp
+[8]: https://www.docker.com/products/docker-desktop
+[9]: https://github.com/Altinn/altinn-studio
+[10]: http://studio.localhost
+[11]: https://reactjs.org/
+[12]: https://redux.js.org/
+[13]: https://docs.microsoft.com/en-us/dotnet/core/
+[14]: https://docs.microsoft.com/en-us/dotnet/csharp/
+[15]: https://yarnpkg.com/
+[16]: https://www.docker.com/
+[17]: https://kubernetes.io/
+[18]: https://github.com/Altinn/altinn-studio/issues/new
+[19]: https://github.com/Altinn/altinn-studio/graphs/contributors

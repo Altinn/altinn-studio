@@ -1,4 +1,4 @@
-import type { FormComponentType, ITextResource } from '../../types/global';
+import type { FormComponentType } from '../../types/global';
 import { ComponentTypes } from '../index';
 import { EditCodeList } from './editModal/EditCodeList';
 import { EditDataModelBindings } from './editModal/EditDataModelBindings';
@@ -13,8 +13,6 @@ import { EditTitle } from './editModal/EditTitle';
 export interface IGenericEditComponent {
   component: FormComponentType;
   handleComponentChange: (component: FormComponentType) => void;
-  language: any;
-  textResources?: ITextResource[];
 }
 
 export enum EditSettings {

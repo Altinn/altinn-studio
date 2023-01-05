@@ -1,6 +1,6 @@
 import React from 'react';
 import { ListItemIcon, ListItemText, MenuItem, Typography } from '@mui/material';
-import { makeStyles } from '@mui/styles';
+import classes from './AltinnMenuItem.module.css';
 
 export interface IAltinnMenuItemProps {
   text: string;
@@ -12,18 +12,7 @@ export interface IAltinnMenuItemProps {
   testId?: string;
 }
 
-const useStyles = makeStyles(() => ({
-  menu: {
-    paddingTop: '0px',
-    paddingBottom: '0px',
-  },
-  icon: {
-    minWidth: '3.0rem',
-  },
-}));
-
 function AltinnMenuItem(props: IAltinnMenuItemProps, ref: React.Ref<HTMLLIElement>) {
-  const classes = useStyles();
   const { text, iconClass, onClick, disabled, id, className, testId } = props;
   return (
     <MenuItem

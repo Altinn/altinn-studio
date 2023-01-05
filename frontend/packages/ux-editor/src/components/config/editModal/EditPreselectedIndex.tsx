@@ -1,13 +1,13 @@
 import React from 'react';
-import { getLanguageFromKey } from 'app-shared/utils/language';
 import type {
   IFormGenericOptionsComponent,
 } from '../../../types/global';
 import { TextField } from '@altinn/altinn-design-system';
 import { IGenericEditComponent } from '../componentConfig';
+import { useText } from '../../../hooks';
 
-export function EditPreselectedIndex({ component, handleComponentChange, language }: IGenericEditComponent) {
-  const t = (key: string) => getLanguageFromKey(key, language);
+export function EditPreselectedIndex({ component, handleComponentChange }: IGenericEditComponent) {
+  const t = useText();
 
   const handlePreselectedOptionChange = (e: any) => {
     handleComponentChange({

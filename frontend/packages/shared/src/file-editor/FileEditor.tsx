@@ -1,17 +1,14 @@
 import React from 'react';
-import { createTheme, Grid, IconButton, MenuItem, Select } from '@mui/material';
-import { createStyles, withStyles } from '@mui/styles';
+import { Grid, IconButton, MenuItem, Select } from '@mui/material';
 import classNames from 'classnames';
 import { diffChars } from 'diff';
 import MonacoEditorComponent from './MonacoEditorComponent';
-import altinnTheme from '../theme/altinnStudioTheme';
 import AltinnButton from '../components/AltinnButton';
 import { get, post } from '../utils/networking';
 import postMessages from '../utils/postMessages';
 import { _useParamsClassCompHack } from 'app-shared/utils/_useParamsClassCompHack';
 import { getServiceFilePath, getServiceFilesPath, saveServiceFilePath } from '../api-paths';
-
-const theme = createTheme(altinnTheme);
+import classes from './FileEditor.module.css';
 
 export interface ICodeLanguageItem {
   name: string;
@@ -48,7 +45,6 @@ const languages: ICodeLanguage = {
 export interface IFileEditorProvidedProps {
   boxShadow?: boolean;
   checkRepoStatusAfterSaveFile?: boolean;
-  classes: any;
   closeFileEditor?: () => void;
   editorHeight?: string;
   getDataModelSuggestions?: (filterText: string) => any[];
@@ -69,64 +65,6 @@ export interface IFileEditorState {
   fileEditorCancelRef: React.RefObject<HTMLDivElement>;
   fileEditorSaveRef: React.RefObject<HTMLDivElement>;
 }
-
-const styles = createStyles({
-  temp: {
-    background: 'blue',
-  },
-  fileHeader: {
-    background: theme.altinnPalette.primary.white,
-    borderBottom: '1px solid #C9C9C9',
-    marginBottom: '0.1rem',
-    paddingLeft: '1.3rem',
-    minHeight: '4.4rem',
-  },
-  boxShadow: {
-    background: theme.altinnPalette.primary.white,
-    boxShadow: theme.sharedStyles.boxShadow,
-  },
-  codeEditorContent: {
-    minHeight: '100%',
-  },
-  selectFile: {
-    borderBottom: `1px solid${theme.altinnPalette.primary.blueDark}`,
-    color: theme.altinnPalette.primary.blueDarker,
-    fontSize: '1.6rem',
-  },
-  file: {
-    color: theme.altinnPalette.primary.blueDarker,
-    fontSize: '1.6rem',
-  },
-  fileMenuItem: {
-    fontSize: '1.6rem',
-  },
-  selectMenu: {
-    paddingRight: '0',
-  },
-  hideIcon: {
-    display: 'none',
-  },
-  formComponentsBtn: {
-    fontSize: '0.85em',
-    fill: theme.altinnPalette.primary.blue,
-    paddingLeft: '0',
-    marginTop: '0.1em',
-    outline: 'none !important',
-    '&:hover': {
-      background: 'none',
-    },
-  },
-  specialBtn: {
-    fontSize: '0.6em !important',
-  },
-  footerContent: {
-    minHeight: '3em',
-    textAlign: 'end',
-    color: '#6A6A6A',
-    paddingRight: '1.2em',
-    paddingBottom: '1.2em',
-  },
-});
 
 class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorState> {
   constructor(props: IFileEditorProvidedProps) {
@@ -276,10 +214,10 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
 
   public renderCloseButton = (): JSX.Element => {
     return (
-      <Grid item={true} xs={1} className={this.props.classes.fileHeader}>
+      <Grid item={true} xs={1} className={classes.fileHeader}>
         <IconButton
           type='button'
-          className={`${this.props.classes.formComponentsBtn} ${this.props.classes.specialBtn}`}
+          className={`${classes.formComponentsBtn} ${classes.specialBtn}`}
           onClick={this.props.closeFileEditor}
           tabIndex={0}
         >
@@ -291,7 +229,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
         </IconButton>
         <IconButton
           type='button'
-          className={`${this.props.classes.formComponentsBtn} ${this.props.classes.specialBtn}`}
+          className={`${classes.formComponentsBtn} ${classes.specialBtn}`}
           onClick={this.saveFile}
           tabIndex={0}
         >
@@ -327,7 +265,7 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
   };
 
   public render() {
-    const { classes, mode } = this.props;
+    const { mode } = this.props;
     const language: ICodeLanguageItem = this.getLanguageFromFileName();
     return (
       <Grid
@@ -384,12 +322,12 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
                   <Select
                     value={this.state.selectedFile}
                     classes={{
-                      select: classNames(classes.selectFile),
-                      icon: classNames(classes.hideIcon),
+                      select: classes.selectFile,
+                      icon: classes.hideIcon,
                     }}
                     MenuProps={{
                       classes: {
-                        root: classNames(classes.selectMenu),
+                        root: classes.selectMenu,
                       },
                     }}
                     onChange={this.switchFile}
@@ -436,4 +374,4 @@ class FileEditor extends React.Component<IFileEditorProvidedProps, IFileEditorSt
   }
 }
 
-export default withStyles(styles, { withTheme: true })(FileEditor);
+export default FileEditor;

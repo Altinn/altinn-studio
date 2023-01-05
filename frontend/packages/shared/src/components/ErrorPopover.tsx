@@ -1,8 +1,7 @@
 import React from 'react';
-import { createTheme, Grid, Typography } from '@mui/material';
-import { createStyles, makeStyles } from '@mui/styles';
+import { Grid, Typography } from '@mui/material';
 import AltinnPopover from './molecules/AltinnPopoverSimple';
-import altinnTheme from '../theme/altinnStudioTheme';
+import classes from './ErrorPopover.module.css';
 
 export interface IErrorPopoverProps {
   anchorEl: Element | ((element: Element) => Element);
@@ -10,26 +9,7 @@ export interface IErrorPopoverProps {
   errorMessage: string;
 }
 
-const theme = createTheme(altinnTheme);
-
-const useStyles = makeStyles(() =>
-  createStyles({
-    popoverRoot: {
-      backgroundColor: theme.altinnPalette.primary.redLight,
-    },
-    errorIcon: {
-      color: theme.altinnPalette.primary.red,
-      fontSize: '36px',
-    },
-    errorText: {
-      fontSize: '16px',
-    },
-  })
-);
-
 export default function ErrorPopover({ anchorEl, onClose, errorMessage }: IErrorPopoverProps) {
-  const classes = useStyles();
-
   return (
     <AltinnPopover
       open={!!anchorEl}

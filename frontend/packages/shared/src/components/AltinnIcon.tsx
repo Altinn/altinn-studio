@@ -1,8 +1,4 @@
 import React from 'react';
-import { createTheme } from '@mui/material';
-import { withStyles } from '@mui/styles';
-import classNames from 'classnames';
-import altinnTheme from '../theme/altinnStudioTheme';
 
 export interface IAltinnIconComponentProvidedProps {
   iconClass: string;
@@ -14,14 +10,6 @@ export interface IAltinnIconComponentProvidedProps {
   margin?: string;
   weight?: number;
 }
-
-const theme = createTheme(altinnTheme);
-
-const styles = {
-  activeIcon: {
-    color: theme.altinnPalette.primary.blueDark,
-  },
-};
 
 export function AltinnIconComponent(props: IAltinnIconComponentProvidedProps) {
   const color = props.isActive ? props.isActiveIconColor : props.iconColor;
@@ -35,10 +23,10 @@ export function AltinnIconComponent(props: IAltinnIconComponentProvidedProps) {
   };
   return (
     <i
-      className={classNames(props.iconClass)}
+      className={props.iconClass}
       style={Object.keys(style).length ? style : undefined}
     />
   );
 }
 
-export default withStyles(styles)(AltinnIconComponent);
+export default AltinnIconComponent;

@@ -17,18 +17,18 @@ const componentData = {
     src: {},
   },
 };
+const texts = {
+  'ux_editor.modal_properties_image_src_value_label': 'Source',
+  'ux_editor.modal_properties_image_placement_label': 'Placement',
+  'ux_editor.modal_properties_image_alt_text_label': 'Alt text',
+  'ux_editor.modal_properties_image_width_label': 'Width',
+  'ux_editor.modal_properties_image_placement_left': 'Left',
+  'ux_editor.modal_properties_image_placement_center': 'Center',
+  'ux_editor.modal_properties_image_placement_right': 'Right',
+};
 const render = (props: Partial<IImageComponentProps> = {}) => {
   const allProps: IImageComponentProps = {
     component: componentData,
-    language: {
-      'ux_editor.modal_properties_image_src_value_label': 'Source',
-      'ux_editor.modal_properties_image_placement_label': 'Placement',
-      'ux_editor.modal_properties_image_alt_text_label': 'Alt text',
-      'ux_editor.modal_properties_image_width_label': 'Width',
-      'ux_editor.modal_properties_image_placement_left': 'Left',
-      'ux_editor.modal_properties_image_placement_center': 'Center',
-      'ux_editor.modal_properties_image_placement_right': 'Right',
-    },
     handleComponentUpdate: jest.fn(),
     ...props,
   };
@@ -43,8 +43,12 @@ const render = (props: Partial<IImageComponentProps> = {}) => {
           { id: 'altTextImg2', value: 'Alternative text 2' },
         ]
       }
-    }
-  }
+    },
+    languageState: {
+      ...appDataMock.languageState,
+      language: texts,
+    },
+  };
 
   return renderWithMockStore({ appData })(<ImageComponent {...allProps} />);
 };

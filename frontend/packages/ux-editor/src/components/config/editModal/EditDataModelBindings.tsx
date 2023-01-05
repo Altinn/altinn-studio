@@ -4,6 +4,8 @@ import type { IAppState } from '../../../types/global';
 import type { IGenericEditComponent } from '../componentConfig';
 import { getMinOccursFromDataModel, getXsdDataTypeFromDataModel } from '../../../utils/datamodel';
 import { ComponentTypes } from '../../index';
+import { useText } from '../../../hooks';
+import { textSelector } from '../../../selectors/textSelectors';
 
 export interface EditDataModelBindingsProps extends IGenericEditComponent {
   renderOptions?: {
@@ -19,8 +21,9 @@ export const EditDataModelBindings = ({
   handleComponentChange,
   renderOptions,
 }: EditDataModelBindingsProps) => {
-  const language = useSelector((state: IAppState) => state.appData.languageState.language);
+  const language = useSelector(textSelector);
   const dataModel = useSelector((state: IAppState) => state.appData.dataModel.model);
+  const t = useText();
 
   const handleDataModelChange = (selectedDataModelElement: string, key = 'simpleBinding') => {
     handleComponentChange({
@@ -41,6 +44,7 @@ export const EditDataModelBindings = ({
     dataModelBinding: component.dataModelBindings,
     onDataModelChange: handleDataModelChange,
     language,
+    t,
     ...renderOptions,
   });
 };

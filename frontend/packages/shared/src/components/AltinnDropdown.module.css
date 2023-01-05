@@ -1,0 +1,33 @@
+.inputHeader {
+  font-size: 24px;
+  font-weight: 400;
+}
+
+.marginTop_10 {
+  margin-top: 10px;
+}
+
+.descriptionInput {
+  font-size: 16px;
+}
+
+.inputField {
+  background: none;
+  border: 1px solid #0062BA;
+  width: 386px;
+}
+
+.inputField_disabled {
+  background: #EFEFEF;
+  border: 1px solid #6a6a6a;
+}
+
+.inputFieldText {
+  color: #000 !Important;
+  font-size: 16px;
+  padding: 6px;
+}
+
+.fullWidth {
+  width: 100% !important;
+}

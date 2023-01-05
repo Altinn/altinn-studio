@@ -1,0 +1,30 @@
+.root {
+  max-width: 470px;
+  padding: 20px;
+}
+
+.root button {
+  margin: 8px;
+}
+
+.borderBottom {
+  border-bottom: 1px solid #0062BA;
+}
+
+.deleteButton {
+  background-color: #dc044c;
+  color: #fff;
+}
+
+.deleteButton:hover {
+  background-color: #9a0036;
+}
+
+.iconWrapper {
+  color: #dc044c;
+  font-size: 1.5em;
+}
+
+.icon {
+  margin: 4px;
+}

@@ -135,7 +135,6 @@ export const RepoList = ({
       {
         field: 'owner.created_by',
         headerName: t('dashboard.created_by'),
-        sortable: false,
         width: 180,
         renderCell: TextWithTooltip,
         valueGetter: (params: GridValueGetterParams) => {
@@ -150,7 +149,7 @@ export const RepoList = ({
         type: 'date',
         valueFormatter: (params: GridValueFormatterParams) => {
           const date = params.value as string;
-          return new Date(date).toLocaleDateString('nb');
+          return new Date(date).toLocaleDateString('nb', { dateStyle: 'short' });
         },
       },
       {

@@ -9,7 +9,7 @@ RUN yarn build
 # Building studio frontend static served by the backend
 FROM node:alpine AS generate-designer-js
 WORKDIR /build
-COPY src/studio/src/designer/backend .
+COPY backend/src/Designer .
 RUN corepack enable
 RUN yarn --immutable
 RUN yarn build
@@ -17,11 +17,9 @@ RUN yarn build
 # Building the backend
 FROM mcr.microsoft.com/dotnet/sdk:6.0-alpine AS generate-studio-backend
 WORKDIR /build
-COPY src/studio/src/designer/Designer.sln ./
-COPY src/studio/src/designer/backend ./designer/
-COPY src/studio/src/designer/DataModeling ./DataModeling/
-RUN dotnet build designer/Designer.csproj -c Release -o /app_output
-RUN dotnet publish designer/Designer.csproj -c Release -o /app_output
+COPY backend ./
+RUN dotnet build src/Designer/Designer.csproj -c Release -o /app_output
+RUN dotnet publish src/Designer/Designer.csproj -c Release -o /app_output
 RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
 
 # Building the final image
@@ -40,6 +38,6 @@ COPY --from=generate-studio-frontend /build/dist/language ./wwwroot/designer/fro
 
 ## Copying app template
 COPY src/studio/AppTemplates/AspNet ./Templates/AspNet
-COPY src/studio/src/designer/backend/Migration ./Migration
+COPY backend/src/Designer/Migration ./Migration
 
 ENTRYPOINT ["dotnet", "Altinn.Studio.Designer.dll"]

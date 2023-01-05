@@ -1,22 +1,35 @@
 import React from 'react';
-import { fireEvent, render as rtlRender, screen, within } from '@testing-library/react';
+import { fireEvent, screen, within } from '@testing-library/react';
 
 import { EditHeaderSize } from './EditHeaderSize';
+import { appDataMock, languageStateMock, renderWithMockStore, textResourcesMock } from '../../../testing/mocks';
+import { IAppDataState } from '../../../features/appData/appDataReducers';
 
 const h4Text = 'Undertittel (H4)';
 const h3Text = 'Undertittel (H3)';
 const h2Text = 'Undertittel (H2)';
 
 const render = ({ size = undefined, handleComponentChange = jest.fn() } = {}) => {
-  rtlRender(
-    <EditHeaderSize
-      handleComponentChange={handleComponentChange}
-      language={{
+  const appData: IAppDataState = {
+    ...appDataMock,
+    languageState: {
+      ...languageStateMock,
+      language: {
         'ux_editor.modal_header_type_h4': h4Text,
         'ux_editor.modal_header_type_h3': h3Text,
         'ux_editor.modal_header_type_h2': h2Text,
-      }}
-      textResources={[{ id: 'title-1', value: 'Another title' }]}
+      },
+    },
+    textResources: {
+      ...textResourcesMock,
+      resources: {
+        nb: [{ id: 'title-1', value: 'Another title' }]
+      },
+    }
+  }
+  renderWithMockStore({ appData })(
+    <EditHeaderSize
+      handleComponentChange={handleComponentChange}
       component={{
         id: 'c24d0812-0c34-4582-8f31-ff4ce9795e96',
         type: 'Header',

@@ -1,5 +1,5 @@
+#nullable enable
 using Altinn.Platform.Register.Models;
-using System.Threading.Tasks;
 
 namespace LocalTest.Services.Register.Interface
 {
@@ -13,7 +13,7 @@ namespace LocalTest.Services.Register.Interface
         /// </summary>
         /// <param name="partyId">The party id</param>
         /// <returns></returns>
-        Task<Party> GetParty(int partyId);
+        Task<Party?> GetParty(int partyId);
 
         /// <summary>
         /// Method that looks up a party id based on social security number or organisation number.
@@ -27,6 +27,6 @@ namespace LocalTest.Services.Register.Interface
         /// </summary>
         /// <param name="lookupValue">SSN or org number</param>
         /// <returns></returns>
-        Task<Party> LookupPartyBySSNOrOrgNo(string lookupValue);
+        Task<Party?> LookupPartyBySSNOrOrgNo(string lookupValue);
     }
 }
