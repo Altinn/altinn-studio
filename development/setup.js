@@ -1,8 +1,9 @@
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
-const { execSync } = require("child_process");
-const http = require("http");
+const gitaApi = require("./utils/gitea-api.js");
+const waitFor = require("./utils/wait-for.js");
+const runCommand = require("./utils/run-command.js");
 
 const randomPass = () =>
   [
@@ -17,32 +18,23 @@ const defaultEnvVars = {
   DEVELOP_PREVIEW: 0,
   GITEA_ADMIN_USER: "localgiteaadmin",
   GITEA_ADMIN_PASS: randomPass(),
-};
-
-const runCommand = (command) => {
-  console.log("Running command:", command);
-  try {
-    execSync(command, {
-      cwd: path.resolve(__dirname, ".."),
-    });
-  } catch (e) {
-    console.error(`Error: ${e.stdout}`);
-  }
+  CYPRESS_TEST_APP: "autodeploy-v3",
+  GITEA_ORG_USER: "ttd",
 };
 
 const ensureDotEnv = () => {
   const dotenvLocations = path.resolve(__dirname, "..", ".env");
   const envData = { ...defaultEnvVars };
-  if (fs.existsSync(dotenvLocations)) {
-    const existingData = fs.readFileSync(dotenvLocations, "utf-8");
-    existingData.split(os.EOL).forEach((line) => {
-      const trimmedLine = line.trim();
-      if (trimmedLine.length > 0 && trimmedLine[0] !== "#") {
-        const [key, value] = trimmedLine.split("=");
-        envData[key] = value;
-      }
-    });
-  }
+  const existingData = fs.existsSync(dotenvLocations)
+    ? fs.readFileSync(dotenvLocations, "utf-8").split(os.EOL)
+    : [];
+  existingData.forEach((line) => {
+    const trimmedLine = line.trim();
+    if (trimmedLine.length > 0 && trimmedLine[0] !== "#") {
+      const [key, value] = trimmedLine.split("=");
+      envData[key] = value;
+    }
+  });
   const newEnv = [];
   Object.keys(envData).forEach((key) =>
     newEnv.push([key, envData[key]].join("="))
@@ -77,68 +69,41 @@ const ensureAdminPassword = (env) =>
 
 // http://studio.localhost/repos/api/swagger
 const createTestDepOrg = (env) =>
-  new Promise(function (resolve, reject) {
-    const postBody = {
-      username: "ttd",
+  gitaApi({
+    path: "/repos/api/v1/orgs",
+    method: "POST",
+    user: env.GITEA_ADMIN_USER,
+    pass: env.GITEA_ADMIN_PASS,
+    body: {
+      username: env.GITEA_ORG_USER,
       full_name: "Testdepartementet",
       description: "Internt organisasjon for test av løsning",
-    };
-    const req = http.request(
-      {
-        host: "studio.localhost",
-        path: "/repos/api/v1/orgs",
-        auth: [env.GITEA_ADMIN_USER, env.GITEA_ADMIN_PASS].join(":"),
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      },
-      (response) => {
-        const data = [];
-        response.on("data", (chunk) => data.push(chunk));
-        response.on("end", () => {
-          console.log(data.join());
-          resolve(data.join());
-        });
-      }
-    );
-    req.write(JSON.stringify(postBody));
-    req.end(() => {});
+    },
   });
 
-const checkIfGiteaIsUp = () => {
-  const url = "http://studio.localhost/repos/";
-  return new Promise(function (resolve, reject) {
-    let attemts = 0;
-    const intervalId = setInterval(function () {
-      http
-        .get(url, (res) => {
-          if (res.statusCode === 200) {
-            console.log(url, " is up!");
-            clearInterval(intervalId);
-            resolve();
-          } else {
-            console.log("Waiting for:", url);
-          }
-          if (attemts > 5) {
-            clearInterval(intervalId);
-            console.log("Giving up: ", url);
-            reject("Giving up this");
-          }
-          attemts++;
-        })
-        .end();
-    }, 1000);
+const addUserToOwnersTeam = async (env) => {
+  const teams = await gitaApi({
+    path: `/repos/api/v1/orgs/${env.GITEA_ORG_USER}/teams`,
+    method: "GET",
+    user: env.GITEA_ADMIN_USER,
+    pass: env.GITEA_ADMIN_PASS,
+  });
+  await gitaApi({
+    path: `/repos/api/v1/teams/${teams[0].id}/members/${env.GITEA_ADMIN_USER}`,
+    method: "PUT",
+    user: env.GITEA_ADMIN_USER,
+    pass: env.GITEA_ADMIN_PASS,
   });
 };
 
 const script = async () => {
   const currentEnv = ensureDotEnv();
   await startingDockerCompose();
-  await checkIfGiteaIsUp();
+  await waitFor("http://studio.localhost/repos/");
   await createAdminUser(currentEnv);
   await ensureAdminPassword(currentEnv);
   await createTestDepOrg(currentEnv);
+  await addUserToOwnersTeam(currentEnv);
   process.exit(0);
 };
 
