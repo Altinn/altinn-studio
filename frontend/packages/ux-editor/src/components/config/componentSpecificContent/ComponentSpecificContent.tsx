@@ -47,13 +47,15 @@ export function ComponentSpecificContent({
       return (
         <>
           <CheckboxComponent
-            component={component}
             label={t('ux_editor.show_icon')}
+            defaultValue={true}
+            component={component}
             onChangeKey='showIcon'
             handleComponentChange={handleComponentChange}
           />
           <SelectComponent
             label={t('ux_editor.choose_variant')}
+            defaultValue={t('ux_editor.info')}
             optionKey='variant'
             options={[t('ux_editor.info'), t('ux_editor.warning'), t('ux_editor.success')]}
             component={component}

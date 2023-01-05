@@ -6,6 +6,7 @@ import { CheckboxComponent, CheckboxComponentProps } from './CheckboxComponent';
 const renderCheckboxComponent = ({
   label,
   component,
+  defaultValue,
   onChangeKey,
   handleComponentChange
 }: Partial<CheckboxComponentProps>) => {
@@ -14,6 +15,7 @@ const renderCheckboxComponent = ({
   render(
     <CheckboxComponent
       label={label}
+      defaultValue={defaultValue}
       component={component}
       onChangeKey={onChangeKey}
       handleComponentChange={handleComponentChange}
@@ -23,7 +25,18 @@ const renderCheckboxComponent = ({
   return { user };
 };
 
-test('should render CheckboxComponent with label and "onChangeKey" should be "showIcon"', async () => {
+test('should render CheckboxComponent with label and should not be checked as default', async () => {
+  renderCheckboxComponent({
+    label: 'Should icon be displayed?',
+    onChangeKey: 'showIcon',
+    handleComponentChange: () => {}
+  });
+
+  const checkboxLabel = screen.getByLabelText('Should icon be displayed?');
+  expect(checkboxLabel).not.toBeChecked();
+});
+
+test('should be able to toggle show icon and "onChangeKey" should be "showIcon"', async () => {
   const onCheckboxChanged = jest.fn();
   const { user } = renderCheckboxComponent({
     label: 'Should icon be displayed?',
@@ -36,4 +49,16 @@ test('should render CheckboxComponent with label and "onChangeKey" should be "sh
   await user.click(checkboxLabel);
   expect(checkboxLabel).toBeChecked();
   expect(onCheckboxChanged).toHaveBeenCalledWith({ showIcon: true });
+});
+
+test('should be able to set defaultValue', () => {
+  renderCheckboxComponent({
+    label: 'Should icon be displayed?',
+    onChangeKey: 'showIcon',
+    defaultValue: true,
+    handleComponentChange: () => {}
+  });
+
+  const checkboxLabel = screen.getByLabelText('Should icon be displayed?');
+  expect(checkboxLabel).toBeChecked();
 });
