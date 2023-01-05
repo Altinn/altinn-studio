@@ -26,7 +26,7 @@ const renderSelectComponent = ({
 test('should render SelectComponent with 3 options', async () => {
   const { user } = renderSelectComponent({
     optionKey: 'variant',
-    options: ['success', 'error', 'waring']
+    options: ['success', 'error', 'warning']
   });
 
   await user.click(screen.getByRole('combobox'));
