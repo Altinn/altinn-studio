@@ -85,6 +85,9 @@ export function getComponentTitleByComponentType(type: string, language: any): s
     case ComponentTypes.NavigationBar: {
       return language['ux_editor.component_navigation_bar'];
     }
+    case ComponentTypes.Panel: {
+      return language['ux_editor.component_information_panel'];
+    }
     default: {
       return '';
     }

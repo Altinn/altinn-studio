@@ -1,18 +1,18 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { EditSelect, EditSelectProps } from './EditSelect';
+import { SelectComponent, SelectComponentProps } from './SelectComponent';
 
-const renderEditSelect = ({
+const renderSelectComponent = ({
   component,
   optionKey,
   options,
   handleComponentChange
-}: Partial<EditSelectProps>) => {
+}: Partial<SelectComponentProps>) => {
   const user = userEvent.setup();
 
   render(
-    <EditSelect
+    <SelectComponent
       component={component}
       optionKey={optionKey}
       options={options}
@@ -23,8 +23,8 @@ const renderEditSelect = ({
   return { user };
 };
 
-test('should render EditSelect with 3 options', async () => {
-  const { user } = renderEditSelect({
+test('should render SelectComponent with 3 options', async () => {
+  const { user } = renderSelectComponent({
     optionKey: 'variant',
     options: ['success', 'error', 'waring']
   });
@@ -35,7 +35,7 @@ test('should render EditSelect with 3 options', async () => {
 
 test('should be able to select a option "small" and the option key should be "size"', async () => {
   const onSelectChange = jest.fn();
-  const { user } = renderEditSelect({
+  const { user } = renderSelectComponent({
     optionKey: 'size',
     options: ['small', 'medium', 'large'],
     handleComponentChange: onSelectChange

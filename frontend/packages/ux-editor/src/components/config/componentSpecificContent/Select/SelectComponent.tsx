@@ -1,5 +1,5 @@
 import React from 'react';
-import { Select } from '@altinn/altinn-design-system';
+import { Select, FieldSet } from '@altinn/altinn-design-system';
 import type { IGenericEditComponent } from '../../componentConfig';
 
 type EditSelectOption = {
@@ -7,16 +7,16 @@ type EditSelectOption = {
   value: string;
 };
 
-export interface EditSelectProps extends Omit<IGenericEditComponent, 'language'> {
+export interface SelectComponentProps extends Omit<IGenericEditComponent, 'language'> {
   optionKey: string;
   options: string[];
 }
-export const EditSelect = ({
+export const SelectComponent = ({
   component,
   optionKey,
   options,
   handleComponentChange
-}: EditSelectProps): JSX.Element => {
+}: SelectComponentProps): JSX.Element => {
   const handleSelectChange = (value: string): void => {
     handleComponentChange({ ...component, [optionKey]: value });
   };
@@ -26,5 +26,9 @@ export const EditSelect = ({
     value: option
   }));
 
-  return <Select options={mappedOptions} onChange={handleSelectChange} />;
+  return (
+    <FieldSet>
+      <Select options={mappedOptions} onChange={handleSelectChange} />
+    </FieldSet>
+  );
 };

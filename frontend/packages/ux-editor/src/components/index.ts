@@ -45,7 +45,7 @@ export enum ComponentTypes {
   NavigationButtons = 'NavigationButtons',
   AttachmentList = 'AttachmentList',
   ThirdParty = 'ThirdParty',
-  InformationPanel = 'InformationPanel',
+  Panel = 'Panel',
 }
 
 export const componentIcons: IComponentIcon = {
@@ -66,7 +66,7 @@ export const componentIcons: IComponentIcon = {
   NavigationBar: 'fa fa-page-navigation',
   NavigationButtons: 'fa fa-button',
   AttachmentList: 'fa fa-attachment',
-  InformationPanel: 'fa fa-paragraph', // TODO make sure to use the correct icon.
+  Panel: 'fa fa-paragraph', // TODO make sure to use the correct icon.
 };
 const Header: IComponent = {
   name: ComponentTypes.Header,
@@ -189,8 +189,8 @@ const NavigationBar: IComponent = {
 };
 
 const InformationPanel: IComponent = {
-  name: ComponentTypes.InformationPanel,
-  Icon: componentIcons.InformationPanel,
+  name: ComponentTypes.Panel,
+  Icon: componentIcons.Panel,
 };
 
 export const advancedComponents: IComponent[] = [
