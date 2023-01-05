@@ -4,6 +4,15 @@ const ReactRefreshTypeScript = require('react-refresh-typescript');
 
 const common = require('./webpack.common');
 
+const enableEnv = 'NOTIFY_ON_ERRORS';
+const enableNotifier = !(enableEnv in process.env) || process.env[enableEnv] === 'true';
+
+const plugins = [...common.plugins, new ReactRefreshWebpackPlugin()];
+
+if (enableNotifier) {
+  plugins.push(new ForkTsCheckerNotifierWebpackPlugin());
+}
+
 module.exports = {
   ...common,
   mode: 'development',
@@ -35,7 +44,7 @@ module.exports = {
       },
     ],
   },
-  plugins: [...common.plugins, new ForkTsCheckerNotifierWebpackPlugin(), new ReactRefreshWebpackPlugin()],
+  plugins,
   devServer: {
     historyApiFallback: true,
     allowedHosts: 'all',

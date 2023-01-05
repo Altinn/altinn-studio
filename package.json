@@ -7,6 +7,7 @@
   "scripts": {
     "postinstall": "husky install",
     "start": "cross-env NODE_ENV=development webpack-dev-server --config webpack.config.development.js --mode development --progress",
+    "start:silent": "cross-env NOTIFY_ON_ERRORS=false yarn start",
     "build": "cross-env NODE_ENV=production webpack --config webpack.config.production.js --progress",
     "docker": "cross-env NODE_ENV=development webpack-dev-server --config webpack.config.docker.js --mode development --progress",
     "test": "jest",
