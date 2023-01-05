@@ -17,6 +17,10 @@
   box-shadow: 0 0 0 var(--frame-offset) var(--search-background-color);
 }
 
+.root.previewMode:not(.isSearching):not(:hover) .button {
+  visibility: hidden;
+}
+
 .label {
   margin: 0;
 }
@@ -30,6 +34,13 @@
   display: inline-flex;
   align-items: center;
   gap: 1rem;
+}
+
+.button {
+  --icon-size: 1em;
+  height: 1.5em;
+  width: 1.5em;
+  padding: 0.25em !important;
 }
 
 .placeholder {

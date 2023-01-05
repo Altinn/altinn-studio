@@ -1,7 +1,7 @@
 .handle {
   --point-size: 3px;
   border-width: 0;
-  width: var(--drag-handle-width, 25px);
+  width: var(--drag-handle-inner-width, var(--drag-handle-width, 25px));
   display: flex;
   align-items: center;
   justify-content: center;

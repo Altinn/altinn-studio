@@ -1,0 +1,52 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+.addSection {
+  background-color: #f5f5f5;
+  border-radius: 5px;
+  padding: 1rem;
+  width: 100%;
+  border: 1px solid #c9c9c9;
+}
+
+.addSection fieldset > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.addSectionFields {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 2rem;
+}
+
+.addButtons {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+}
+
+.addButton {
+  margin-left: -12px;
+}
+
+.addCheckbox {
+  align-items: center;
+  background-color: #118849;
+  border-radius: 3px;
+  display: inline-flex;
+  height: 24px;
+  justify-content: center;
+  width: 24px;
+}
+
+.addCheckbox path {
+  fill: #fff;
+  stroke: #fff;
+}
