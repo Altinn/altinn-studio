@@ -40,7 +40,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// Default action for the designer.
         /// </summary>
         /// <returns>default view for the app builder.</returns>
-        [Route("/editor/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}")]
+        [Route("/editor/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/{*AllValues}")]
         public IActionResult Index(string org, string app)
         {
             _sourceControl.VerifyCloneExists(org, app);
