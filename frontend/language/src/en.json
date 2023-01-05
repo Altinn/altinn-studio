@@ -724,6 +724,7 @@
   "ux_editor.component_paragraph": "Paragraph",
   "ux_editor.component_radio_button": "Radio Button",
   "ux_editor.component_text_area": "Long answer",
+  "ux_editor.component_information_panel": "Panel",
   "ux_editor.component_unknown": "Unknown component",
   "ux_editor.conditional_rendering_connection_header": "Conditional Rendering Connections",
   "ux_editor.container_empty": "Empty, drag something in here...",
@@ -872,5 +873,8 @@
   "validation_errors.maxLength": "Use {0} or fewer characters",
   "validation_errors.min": "Minimum valid value is {0}",
   "validation_errors.minLength": "Use {0} or more characters",
-  "validation_errors.pattern": "Feil format eller verdi"
+  "validation_errors.pattern": "Wrong format or value",
+  "ux_editor.info": "Information",
+  "ux_editor.warning": "Warning",
+  "ux_editor.success": "Success"
 }

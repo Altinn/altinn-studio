@@ -51,11 +51,24 @@ export const componentSpecificEditConfig: IComponentEditConfig = {
   [ComponentTypes.Paragraph]: [EditSettings.Title],
   [ComponentTypes.AttachmentList]: [EditSettings.Title],
   [ComponentTypes.RadioButtons]: [...editBoilerPlate],
-  [ComponentTypes.Checkboxes]: [...editBoilerPlate, EditSettings.Options, EditSettings.PreselectedIndex],
-  [ComponentTypes.RadioButtons]: [...editBoilerPlate, EditSettings.Options, EditSettings.PreselectedIndex],
-  [ComponentTypes.Dropdown]: [...editBoilerPlate, EditSettings.CodeList, EditSettings.PreselectedIndex],
+  [ComponentTypes.Checkboxes]: [
+    ...editBoilerPlate,
+    EditSettings.Options,
+    EditSettings.PreselectedIndex,
+  ],
+  [ComponentTypes.RadioButtons]: [
+    ...editBoilerPlate,
+    EditSettings.Options,
+    EditSettings.PreselectedIndex,
+  ],
+  [ComponentTypes.Dropdown]: [
+    ...editBoilerPlate,
+    EditSettings.CodeList,
+    EditSettings.PreselectedIndex,
+  ],
   [ComponentTypes.AddressComponent]: [EditSettings.Title],
   [ComponentTypes.FileUploadWithTag]: [EditSettings.Title, EditSettings.Description],
+  [ComponentTypes.Panel]: [EditSettings.Title, EditSettings.Description],
 };
 
 export const configComponents: IConfigComponents = {
