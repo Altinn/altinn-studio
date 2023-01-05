@@ -84,7 +84,7 @@ DEVELOP_APP_DEVELOPMENT=0
 
 #### Developing Backend
 
-Navigate to the designer backend folder `cd src/studio/src/designer/backend`. The first time running, or after any package changes, get the latest packages.
+Navigate to the designer backend folder `cd backend/src/Designer`. The first time running, or after any package changes, get the latest packages.
 
 - On MacOS you need one extra step before running .NET:
 
@@ -103,7 +103,7 @@ yarn run gulp # run this when there are changes in frontend that you want to ser
 An optional step if you want to run also frontend from the backend. At the time being this is still a thing.
 
 ```bash
-cd src/studio/src/designer/backend
+cd backend/src/Designer
 yarn --immutable
 yarn run gulp-install-deps
 ```
@@ -117,7 +117,7 @@ yarn run develop-designer-frontend # Run the front end watching dashboard
 If you are not going to edit the designer react app (frontend) you can use
 
 ```bash
-cd src/studio/src/designer/backend
+cd backend/src/Designer
 yarn --immutable
 yarn run gulp # run this when there are changes in frontend that you want to serve from backend
 dotnet run
