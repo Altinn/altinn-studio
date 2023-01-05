@@ -8,7 +8,7 @@ import { Popover } from '@mui/material';
 import { SearchField } from '@altinn/altinn-design-system';
 import {
   getComponentHelperTextByComponentType,
-  getComponentTitleByComponentType,
+  getComponentTitleByComponentType
 } from '../../utils/language';
 
 export interface IInformationPanelProvidedProps {
@@ -16,44 +16,49 @@ export interface IInformationPanelProvidedProps {
   anchorElement: any;
   selectedComponent: ComponentTypes;
   informationPanelOpen: boolean;
-  onClose: any;
+  onClose: () => void;
   thirdPartyLibrary?: boolean;
 }
 
-export const InformationPanelComponent = (props: IInformationPanelProvidedProps) => {
-  return (
-    <Popover
-      anchorEl={props.anchorElement}
-      open={props.informationPanelOpen}
-      onClose={props.onClose}
-      PaperProps={{ square: true }}
-      anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-      transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-      classes={{ paper: classNames(classes.informationPanel) }}
-    >
-      <SearchField id={'component-search'} placeholder={'Søk'} />
-      <Divider />
-      <div className={classNames(classes.informationPanelHeader)}>
-        {getComponentTitleByComponentType(props.selectedComponent, props.language)}
-      </div>
-      <div className={classNames(classes.informationPanelText)}>
-        {getComponentHelperTextByComponentType(props.selectedComponent, props.language)}
-      </div>
-      <div className={classNames(classes.informationPanelText)}>
-        <InformationColored className={classes.informationIcon} />
-        {!props.thirdPartyLibrary
-          ? props.language['ux_editor.information_altinn_library']
-          : props.language['ux_editor.information_third_party_library']}
-      </div>
-      <div className={classNames(classes.informationPanelLink)}>
-        <a
-          href='https://docs.altinn.studio/technology/solutions/altinn-studio/designer/functional/build-app/ui-designer/components/'
-          target='_blank'
-          rel='noopener noreferrer'
-        >
-          {props.language['ux_editor.information_more_info_link']}
-        </a>
-      </div>
-    </Popover>
-  );
-};
+export const InformationPanelComponent = ({
+  anchorElement,
+  informationPanelOpen,
+  language,
+  onClose,
+  selectedComponent,
+  thirdPartyLibrary
+}: IInformationPanelProvidedProps) => (
+  <Popover
+    anchorEl={anchorElement}
+    open={informationPanelOpen}
+    onClose={onClose}
+    PaperProps={{ square: true }}
+    anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+    transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+    classes={{ paper: classNames(classes.informationPanel) }}
+  >
+    <SearchField id={'component-search'} placeholder={'Søk'} />
+    <Divider />
+    <div className={classNames(classes.informationPanelHeader)}>
+      {getComponentTitleByComponentType(selectedComponent, language)}
+    </div>
+    <div className={classNames(classes.informationPanelText)}>
+      {getComponentHelperTextByComponentType(selectedComponent, language)}
+    </div>
+    <div className={classNames(classes.informationPanelText)}>
+      <InformationColored className={classes.informationIcon} />
+      {!thirdPartyLibrary
+        ? language['ux_editor.information_altinn_library']
+        : language['ux_editor.information_third_party_library']}
+    </div>
+    <div className={classNames(classes.informationPanelLink)}>
+      <a
+        href='https://docs.altinn.studio/technology/solutions/altinn-studio/designer/functional/build-app/ui-designer/components/'
+        target='_blank'
+        rel='noopener noreferrer'
+      >
+        {language['ux_editor.information_more_info_link']}
+      </a>
+    </div>
+  </Popover>
+);
