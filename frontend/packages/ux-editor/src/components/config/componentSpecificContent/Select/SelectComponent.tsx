@@ -2,7 +2,7 @@ import React from 'react';
 import { Select, FieldSet } from '@altinn/altinn-design-system';
 import type { IGenericEditComponent } from '../../componentConfig';
 
-type SelectOption = {
+type Option = {
   label: string;
   value: string;
 };
@@ -17,7 +17,7 @@ export const SelectComponent = ({
   options,
   handleComponentChange
 }: SelectComponentProps): JSX.Element => {
-  const mappedOptions: SelectOption[] = options.map((option) => ({
+  const mappedOptions: Option[] = options.map((option) => ({
     label: option,
     value: option
   }));
