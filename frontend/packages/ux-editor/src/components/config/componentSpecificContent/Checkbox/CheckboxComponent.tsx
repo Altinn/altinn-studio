@@ -1,0 +1,24 @@
+import React, { useState } from 'react';
+import { Checkbox } from '@altinn/altinn-design-system';
+import type { IGenericEditComponent } from '../../componentConfig';
+
+export interface CheckboxComponentProps extends IGenericEditComponent {
+  label: string;
+  onChangeKey: string;
+}
+export const CheckboxComponent = ({
+  component,
+  label,
+  onChangeKey,
+  handleComponentChange
+}: CheckboxComponentProps): JSX.Element => {
+  const [checked, setChecked] = useState(false);
+
+  const handleOnChange = (event: React.ChangeEvent<HTMLInputElement>): void => {
+    const isChecked = event.target.checked;
+    setChecked(isChecked);
+    handleComponentChange({ ...component, [onChangeKey]: isChecked });
+  };
+
+  return <Checkbox label={label} onChange={handleOnChange} checked={checked} />;
+};

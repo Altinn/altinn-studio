@@ -875,6 +875,7 @@
   "validation_errors.minLength": "Use {0} or more characters",
   "validation_errors.pattern": "Wrong format or value",
   "ux_editor.choose_variant": "Choose message variant",
+  "ux_editor.show_icon": "Should the icon be displayed?",
   "ux_editor.info": "Information",
   "ux_editor.warning": "Warning",
   "ux_editor.success": "Success"

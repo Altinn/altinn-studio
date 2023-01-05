@@ -911,6 +911,7 @@
   "validation_errors.minLength": "Bruk {0} eller flere tegn",
   "validation_errors.pattern": "Feil format eller verdi",
   "ux_editor.choose_variant": "Velg meldingstype",
+  "ux_editor.show_icon": "Skal ikonet vises?",
   "ux_editor.info": "Informasjon",
   "ux_editor.warning": "Advarsel",
   "ux_editor.success": "Vellykket"

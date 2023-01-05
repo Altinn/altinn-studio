@@ -4,6 +4,7 @@ import { ButtonComponent } from './Button';
 import { AddressComponent } from './Address';
 import { FileUploadComponent } from './FileUpload';
 import { SelectComponent } from './Select';
+import { CheckboxComponent } from './Checkbox';
 import type { IGenericEditComponent } from '../componentConfig';
 import { ComponentTypes } from '../..';
 import { useText } from '../../../hooks';
@@ -44,13 +45,21 @@ export function ComponentSpecificContent({
 
     case ComponentTypes.Panel: {
       return (
-        <SelectComponent
-          label={t('ux_editor.choose_variant')}
-          optionKey='variant'
-          options={[t('ux_editor.info'), t('ux_editor.warning'), t('ux_editor.success')]}
-          component={component}
-          handleComponentChange={handleComponentChange}
-        />
+        <>
+          <CheckboxComponent
+            component={component}
+            label={t('ux_editor.show_icon')}
+            onChangeKey='showIcon'
+            handleComponentChange={handleComponentChange}
+          />
+          <SelectComponent
+            label={t('ux_editor.choose_variant')}
+            optionKey='variant'
+            options={[t('ux_editor.info'), t('ux_editor.warning'), t('ux_editor.success')]}
+            component={component}
+            handleComponentChange={handleComponentChange}
+          />
+        </>
       );
     }
     default: {
