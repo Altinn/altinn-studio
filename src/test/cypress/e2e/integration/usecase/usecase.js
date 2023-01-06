@@ -15,6 +15,12 @@ context(
     before(() => {
       cy.visit('/');
       cy.studiologin(Cypress.env('useCaseUser'), Cypress.env('useCaseUserPwd'));
+      cy.getrepo(Cypress.env('deployApp'), Cypress.env('accessToken')).then((response) => {
+        if (response.status === 404) {
+          const [orgName, appName] = Cypress.env('deployApp').split('/');
+          cy.createapp(orgName, appName);
+        }
+      });
     });
     beforeEach(() => {
       cy.intercept('GET', '**/datamodels').as('getDatamodels');
@@ -26,9 +32,7 @@ context(
     });
 
     it('Navigation', () => {
-      cy.get(designer.aboutApp.repoName)
-        .invoke('val')
-        .should('contain', Cypress.env('deployApp').split('/')[1]);
+      cy.get(designer.aboutApp.repoName).invoke('val').should('contain', Cypress.env('deployApp').split('/')[1]);
       cy.get(designer.appMenu.edit).should('be.visible').click();
       cy.get(designer.formComponents.shortAnswer).parentsUntil(designer.draggable).should('be.visible');
       cy.get(designer.appMenu.texts).should('be.visible').click();

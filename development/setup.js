@@ -2,6 +2,9 @@ const gitaApi = require("./utils/gitea-api.js");
 const waitFor = require("./utils/wait-for.js");
 const runCommand = require("./utils/run-command.js");
 const ensureDotEnv = require("./utils/ensure-dot-env.js");
+const path = require("path");
+const fs = require("fs");
+const os = require("os");
 
 const startingDockerCompose = () =>
   runCommand("docker compose up -d --remove-orphans");
@@ -56,6 +59,55 @@ const addUserToOwnersTeam = async (env) => {
   });
 };
 
+const createCypressEnvFile = async (env) => {
+  const tokenPrefix = "setup.js";
+  const envFile = {
+    adminUser: env.GITEA_ADMIN_USER,
+    adminPwd: env.GITEA_ADMIN_PASS,
+    accessToken: "",
+  };
+  const allTokens = await gitaApi({
+    path: `/repos/api/v1/users/${env.GITEA_ADMIN_USER}/tokens`,
+    method: "GET",
+    user: env.GITEA_ADMIN_USER,
+    pass: env.GITEA_ADMIN_PASS,
+  });
+  const deleteTokenOperations = [];
+  allTokens.forEach((token) => {
+    if (token.name.startsWith(tokenPrefix)) {
+      deleteTokenOperations.push(
+        gitaApi({
+          path: `/repos/api/v1/users/${env.GITEA_ADMIN_USER}/tokens/${token.id}`,
+          method: "DELETE",
+          user: env.GITEA_ADMIN_USER,
+          pass: env.GITEA_ADMIN_PASS,
+        })
+      );
+    }
+  });
+  const result = await gitaApi({
+    path: `/repos/api/v1/users/${env.GITEA_ADMIN_USER}/tokens`,
+    method: "POST",
+    user: env.GITEA_ADMIN_USER,
+    pass: env.GITEA_ADMIN_PASS,
+    body: {
+      name: tokenPrefix + " " + Date.now(),
+    },
+  });
+  envFile.accessToken = result.sha1;
+  await Promise.all(deleteTokenOperations);
+  const cypressEnvFilePath = path.resolve(
+    __dirname,
+    "..",
+    "src",
+    "test",
+    "cypress",
+    "cypress.env.json"
+  );
+  fs.writeFileSync(cypressEnvFilePath, JSON.stringify(envFile), "utf-8");
+  console.log("Wrote a new:", cypressEnvFilePath);
+};
+
 const script = async () => {
   const currentEnv = ensureDotEnv();
   await startingDockerCompose();
@@ -64,6 +116,7 @@ const script = async () => {
   await ensureAdminPassword(currentEnv);
   await createTestDepOrg(currentEnv);
   await addUserToOwnersTeam(currentEnv);
+  await createCypressEnvFile(currentEnv);
   process.exit(0);
 };
 

@@ -7,6 +7,7 @@ import { AltinnPopper } from 'app-shared/components/AltinnPopper';
 import { getLanguageFromKey } from 'app-shared/utils/language';
 import { useGetOrganizationsQuery } from '../../services/organizationApi';
 import { useAppSelector } from '../../common/hooks';
+import { Select, SingleOnChangeEvent } from '@altinn/altinn-design-system';
 
 const zIndex = {
   zIndex: 1300,
@@ -68,8 +69,8 @@ export const ServiceOwnerSelector = ({
     serviceOwnerRef.current = document.querySelector('#service-owner');
   });
 
-  const handleChange = ({ target }: { target: HTMLInputElement }) => {
-    onServiceOwnerChanged(target.value);
+  const handleChange = (value: string) => {
+    onServiceOwnerChanged(value);
   };
 
   if (isLoadingOrganisations) {
@@ -78,14 +79,13 @@ export const ServiceOwnerSelector = ({
 
   return (
     <div>
-      <AltinnDropdown
-        id='service-owner'
-        inputHeader={getLanguageFromKey('general.service_owner', language)}
-        handleChange={handleChange}
-        dropdownItems={selectableOrgsOrUser}
-        selectedValue={selectedOrgOrUser}
+      <Select
+        inputId='service-owner'
+        label={getLanguageFromKey('general.service_owner', language)}
+        onChange={handleChange}
+        options={selectableOrgsOrUser}
+        value={selectedOrgOrUser}
         disabled={selectableOrgsOrUser.length === 1}
-        fullWidth={true}
       />
       {errorMessage && (
         <AltinnPopper anchorEl={serviceOwnerRef.current} message={errorMessage} styleObj={zIndex} />
