@@ -21,9 +21,7 @@ COPY backend ./
 RUN dotnet build src/Designer/Designer.csproj -c Release -o /app_output
 RUN dotnet publish src/Designer/Designer.csproj -c Release -o /app_output
 RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
-
 # Prepare app template
-FROM alpine:3.17.0 as app-template
 WORKDIR /app_template
 RUN apk add jq
 RUN wget -O - https://api.github.com/repos/Altinn/app-template-dotnet/releases/latest | jq '.tarball_url' | xargs wget -O - | tar -xz
@@ -44,7 +42,7 @@ COPY --from=generate-studio-frontend /build/dist/dashboard ./wwwroot/designer/fr
 COPY --from=generate-studio-frontend /build/dist/language ./wwwroot/designer/frontend/lang
 
 ## Copying app template
-COPY --from=app-template /app_template ./Templates/AspNet
+COPY --from=generate-studio-backend /app_template ./Templates/AspNet
 COPY backend/src/Designer/Migration ./Migration
 
 ENTRYPOINT ["dotnet", "Altinn.Studio.Designer.dll"]
