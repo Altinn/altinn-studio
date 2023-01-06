@@ -19,6 +19,7 @@
         "dataModelBindings": {
           "group": "some.data"
         },
+        "maxCount": 5,
         "hidden": ["notEquals", ["dataModel", "some.notRepeating"], "showGroup"]
       },
       {

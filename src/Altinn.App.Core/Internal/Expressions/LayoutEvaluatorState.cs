@@ -49,31 +49,28 @@ public class LayoutEvaluatorState
 
     private static ComponentContext GetComponentContextsRecurs(BaseComponent component, IDataModelAccessor dataModel, ReadOnlySpan<int> indexes)
     {
-        if (!(component is GroupComponent groupComponent && groupComponent.Children.Any()))
-        {
-            // Non group components are simple
-            return new ComponentContext(component, ToArrayOrNullForEmpty(indexes));
-        }
-
         var children = new List<ComponentContext>();
 
-        if (groupComponent.DataModelBindings.TryGetValue("group", out var groupBinding))
+        if(component is RepeatingGroupComponent repeatingGroupComponent)
         {
-            var rowLength = dataModel.GetModelDataCount(groupBinding, indexes.ToArray()) ?? 0;
-            foreach (var index in Enumerable.Range(0, rowLength))
+            if (repeatingGroupComponent.DataModelBindings.TryGetValue("group", out var groupBinding))
             {
-                foreach (var child in groupComponent.Children)
+                var rowLength = dataModel.GetModelDataCount(groupBinding, indexes.ToArray()) ?? 0;
+                foreach (var index in Enumerable.Range(0, rowLength))
                 {
-                    // concatenate [...indexes, index]
-                    var subIndexes = new int[indexes.Length + 1];
-                    indexes.CopyTo(subIndexes.AsSpan());
-                    subIndexes[^1] = index;
+                    foreach (var child in repeatingGroupComponent.Children)
+                    {
+                        // concatenate [...indexes, index]
+                        var subIndexes = new int[indexes.Length + 1];
+                        indexes.CopyTo(subIndexes.AsSpan());
+                        subIndexes[^1] = index;
 
-                    children.Add(GetComponentContextsRecurs(child, dataModel, subIndexes));
+                        children.Add(GetComponentContextsRecurs(child, dataModel, subIndexes));
+                    }
                 }
             }
         }
-        else
+        else if (component is GroupComponent groupComponent )
         {
             foreach (var child in groupComponent.Children)
             {

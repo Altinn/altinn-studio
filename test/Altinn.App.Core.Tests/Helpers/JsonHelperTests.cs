@@ -72,14 +72,6 @@ public class JsonHelperTests
         diff.Should().BeNull();
     }
 
-    [Fact(Skip = "Curently empty diffs are sendt to frontend, so the result here is an empty dictionary")]
-    public async Task SimpleNoChangeTestTrueReturn()
-    {
-        var data = new TestModel();
-        var diff = await DoTest(data, (model) => true);
-        diff.Should().BeNull();
-    }
-
     [Fact]
     public async Task InitializingPropertiesLeadsToNoDiff()
     {
@@ -109,9 +101,9 @@ public class JsonHelperTests
         // Not sure if RecursiveTest should be null here, but apparently it does not hurt
         diff.Should().Equal(new Dictionary<string, object?>()
         {
-            {"RecursiveTest.IntegerTest", 0},
-            {"RecursiveTest.DecimalTest", 0M},
-            {"RecursiveTest", null},
+            { "RecursiveTest.IntegerTest", 0 },
+            { "RecursiveTest.DecimalTest", 0M },
+            { "RecursiveTest", null },
         });
     }
 
@@ -164,26 +156,7 @@ public class JsonHelperTests
 
         diff.Should().Equal(new Dictionary<string, object?>
         {
-            {"jsonPropertyName", "New Value"},
-        });
-    }
-
-    [Fact(Skip = "System.Text.Json annotation is required")]
-    public async Task NewtonsoftJsonAnnotation()
-    {
-        var data = new TestModel()
-        {
-            NewtonsoftAttributeWorks = "Original Value",
-        };
-        var diff = await DoTest(data, (model) =>
-        {
-            model.NewtonsoftAttributeWorks = "New Value";
-            return true;
-        });
-
-        diff.Should().Equal(new Dictionary<string, object?>
-        {
-            {"newtonsoftString", "New Value"},
+            { "jsonPropertyName", "New Value" },
         });
     }
 

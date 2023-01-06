@@ -15,6 +15,9 @@ public class LayoutModel
     /// </summary>
     public Dictionary<string, PageComponent> Pages { get; init; } = new Dictionary<string, PageComponent>();
 
+    /// <summary>
+    /// Get a page from the <see cref="Pages" /> dictionary
+    /// </summary>
     public PageComponent GetPage(string pageName)
     {
         if (Pages.TryGetValue(pageName, out var page))
