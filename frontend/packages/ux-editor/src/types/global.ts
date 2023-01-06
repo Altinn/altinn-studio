@@ -195,6 +195,24 @@ export interface PanelComponent extends IFormComponent {
   };
 }
 
+export interface MapComponent extends IFormComponent {
+  markerLocation: {
+    title: string;
+    type: object;
+    description: string;
+    latitude: {
+      type: number;
+      title: string;
+      description: string;
+    };
+    longitude: {
+      type: number;
+      title: string;
+      description: string;
+    };
+  };
+}
+
 export type FormComponentType =
   | IFormComponent
   | IFormHeaderComponent
@@ -209,7 +227,8 @@ export type FormComponentType =
   | IFormImageComponent
   | IFormDatepickerComponent
   | IThirdPartyComponent
-  | PanelComponent;
+  | PanelComponent
+  | MapComponent;
 
 export interface IFormDesignerComponents {
   [id: string]: IFormComponent;
