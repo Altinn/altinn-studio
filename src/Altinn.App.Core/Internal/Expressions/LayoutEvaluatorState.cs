@@ -170,6 +170,16 @@ public class LayoutEvaluatorState
             "instanceOwnerPartyId" => _instanceContext.InstanceOwner.PartyId,
             "appId" => _instanceContext.AppId,
             "instanceId" => _instanceContext.Id,
+            "instanceOwnerPartyType" => 
+            (
+                !string.IsNullOrWhiteSpace(_instanceContext.InstanceOwner.OrganisationNumber)
+                ? "org"
+                : !string.IsNullOrWhiteSpace(_instanceContext.InstanceOwner.PersonNumber)
+                ? "person"
+                : !string.IsNullOrWhiteSpace(_instanceContext.InstanceOwner.Username)
+                ? "selfIdentified"
+                : "unknown"
+            ),
             _ => throw new ExpressionEvaluatorTypeErrorException($"Unknown Instance context property {key}"),
         };
     }

@@ -2,7 +2,7 @@
   "name": "Only works on one level (as a dictionary)",
   "expression": ["equals", ["instanceContext", "deep.key"], null],
   "expectsFailure": "Unknown Instance context property deep.key",
-  "instanceContext": {
+  "instance": {
     "deep": {
       "key": "should not be found"
     }

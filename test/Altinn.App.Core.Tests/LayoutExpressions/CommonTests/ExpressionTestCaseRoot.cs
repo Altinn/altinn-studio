@@ -51,52 +51,12 @@ public class ExpressionTestCaseRoot
     [JsonPropertyName("frontendSettings")]
     public FrontEndSettings? FrontEndSettings { get; set; }
 
-    [JsonPropertyName("instanceContext")]
-    [JsonConverter(typeof(InstanceConverter))]
-    public Instance? InstanceContext { get; set; }
+    [JsonPropertyName("instance")]
+    public Instance? Instance { get; set; }
 
     public override string ToString()
     {
         return $"{Filename}: {Name}";
-    }
-}
-
-public class InstanceConverter : JsonConverter<Instance>
-{
-    public override Instance? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-    {
-        var testInstance = JsonSerializer.Deserialize<InstanceForTestSpec>(ref reader, options);
-        if (testInstance is null)
-        {
-            return null;
-        }
-
-        return new Instance
-        {
-            AppId = testInstance.AppId,
-            Id = testInstance.InstanceId,
-            InstanceOwner = new()
-            {
-                PartyId = testInstance.InstanceOwnerPartyId,
-            }
-        };
-    }
-
-    public override void Write(Utf8JsonWriter writer, Instance value, JsonSerializerOptions options)
-    {
-        throw new NotImplementedException();
-    }
-
-    public class InstanceForTestSpec
-    {
-        [JsonPropertyName("instanceId")]
-        public string InstanceId { get; set; } = default!;
-
-        [JsonPropertyName("appId")]
-        public string AppId { get; set; } = default!;
-
-        [JsonPropertyName("instanceOwnerPartyId")]
-        public string InstanceOwnerPartyId { get; set; } = default!;
     }
 }
 

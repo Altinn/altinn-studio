@@ -29,12 +29,18 @@ public class TestInvalid
         _output.WriteLine(testCase.FullPath);
         Action act = () =>
         {
-            var test = JsonSerializer.Deserialize<ExpressionTestCaseRoot>(testCase.RawJson!)!;
+            var test = JsonSerializer.Deserialize<ExpressionTestCaseRoot>(
+                testCase.RawJson!,
+                new JsonSerializerOptions
+                {
+                    ReadCommentHandling = JsonCommentHandling.Skip,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                })!;
             var state = new LayoutEvaluatorState(
                 new JsonDataModel(test.DataModel),
                 test.ComponentModel,
                 test.FrontEndSettings ?? new(),
-                test.InstanceContext ?? new());
+                test.Instance ?? new());
             ExpressionEvaluator.EvaluateExpression(state, test.Expression, test.Context?.ToContext(test.ComponentModel) ?? null!);
         };
         act.Should().Throw<Exception>().WithMessage(testCase.ExpectsFailure);

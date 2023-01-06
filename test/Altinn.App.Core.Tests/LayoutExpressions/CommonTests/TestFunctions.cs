@@ -93,7 +93,7 @@ public class TestFunctions
             new JsonDataModel(test.DataModel),
             test.ComponentModel,
             test.FrontEndSettings ?? new(),
-            test.InstanceContext ?? new());
+            test.Instance ?? new());
 
         if (test.ExpectsFailure is not null)
         {
@@ -176,6 +176,7 @@ public class SharedTestAttribute : DataAttribute
                     new JsonSerializerOptions
                     {
                         ReadCommentHandling = JsonCommentHandling.Skip,
+                        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                     })!;
             }
             catch (Exception e)
