@@ -1,7 +1,7 @@
 const { execSync } = require("child_process");
 const path = require("path");
 module.exports = (command) => {
-  console.log("Running command:", command);
+  console.log("CMD:", command);
   try {
     execSync(command, {
       cwd: path.resolve(__dirname, ".."),

@@ -115,6 +115,5 @@ services:
     build:
       context: ./gitea/
       dockerfile: Dockerfile
-
     extra_hosts:
       - "host.docker.internal:host-gateway"
