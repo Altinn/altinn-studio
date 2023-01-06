@@ -15,10 +15,23 @@ const handleIdChange = jest.fn();
 const defaultProps: TextResourceProps = { handleIdChange }
 const addText = 'Legg til';
 const editText = 'Rediger';
+const searchText = 'Søk';
+const closeSearchText = 'ukk tekstsøk';
+const searchLabelText = 'Velg tekst-ID';
+const noTextChosenText = 'Ingen tekst';
 const texts = {
   'general.add': addText,
-  'general.edit': editText
-}
+  'general.edit': editText,
+  'general.search': searchText,
+  'ux_editor.search_text_resources_close': closeSearchText,
+  'ux_editor.search_text_resources_label': searchLabelText,
+  'ux_editor.search_text_resources_none': noTextChosenText,
+};
+const textResources = [
+  { id: '1', value: 'Text 1' },
+  { id: '2', value: 'Text 2' },
+  { id: '3', value: 'Text 3' },
+];
 
 describe('TextResource', () => {
 
@@ -108,7 +121,50 @@ describe('TextResource', () => {
     render({ description });
     expect(screen.getByText(description)).toBeInTheDocument();
   });
+
+  it('Does not render search section by default', () => {
+    render();
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+  });
+
+  it('Renders search section when search button is clicked', async () => {
+    await renderAndOpenSearchSection();
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
+  });
+
+  it('Renders correct number of options in search section', async () => {
+    await renderAndOpenSearchSection();
+    expect(screen.getByRole('combobox')).toBeInTheDocument();
+    expect(screen.getAllByRole('option')).toHaveLength(textResources.length + 1); // + 1 because of the "none" option
+  });
+
+  it('Calls handleIdChange when selection in search section is changed', async () => {
+    await renderAndOpenSearchSection();
+    await user.click(screen.getByLabelText(searchLabelText));
+    await user.click(screen.getByRole('option', { name: textResources[1].id }));
+    expect(handleIdChange).toHaveBeenCalledTimes(1);
+    expect(handleIdChange).toHaveBeenCalledWith(textResources[1].id);
+  });
+
+  it('Calls handleIdChange with undefined when "none" is selected', async () => {
+    await renderAndOpenSearchSection();
+    await user.click(screen.getByLabelText(searchLabelText));
+    await user.click(screen.getByRole('option', { name: noTextChosenText }));
+    expect(handleIdChange).toHaveBeenCalledTimes(1);
+    expect(handleIdChange).toHaveBeenCalledWith(undefined);
+  });
+
+  it('Closes search section when close button is clicked', async () => {
+    await renderAndOpenSearchSection();
+    await user.click(screen.getByLabelText(closeSearchText));
+    expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+  });
 });
+
+const renderAndOpenSearchSection = async () => {
+  render(undefined, textResources);
+  await user.click(screen.getByLabelText(searchText));
+};
 
 const render = (props?: Partial<TextResourceProps>, resources?: ITextResource[]) => {
 
