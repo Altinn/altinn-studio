@@ -121,14 +121,12 @@ const ensureDeploymentEntry = async () => {
 const script = async () => {
   const currentEnv = ensureDotEnv();
   await startingDockerCompose();
-  /*
   await waitFor("http://studio.localhost/repos/");
   await createAdminUser(currentEnv);
   await ensureAdminPassword(currentEnv);
   await createTestDepOrg(currentEnv);
   await addUserToOwnersTeam(currentEnv);
   await createCypressEnvFile(currentEnv);
-   */
   await ensureDeploymentEntry();
   process.exit(0);
 };
