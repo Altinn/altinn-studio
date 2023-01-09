@@ -69,7 +69,6 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="thefile">The main XSD</param>
         /// <returns>Return JSON of the generated model</returns>
         [HttpPost]
-        [Obsolete]
         public ActionResult Upload(string org, string app, IFormFile thefile)
         {
             if (thefile == null)
