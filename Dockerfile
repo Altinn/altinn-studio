@@ -23,9 +23,8 @@ RUN dotnet publish src/Designer/Designer.csproj -c Release -o /app_output
 RUN rm -f /app_output/Altinn.Studio.Designer.staticwebassets.runtime.json
 # Prepare app template
 WORKDIR /app_template
-RUN apk add jq
-RUN wget -O - https://api.github.com/repos/Altinn/app-template-dotnet/releases/latest | jq '.tarball_url' | xargs wget -O - | tar -xz
-RUN mv Altinn-app-template-dotnet-* AppTemplateRoot ; mv AppTemplateRoot/src/* . ; rm -r AppTemplateRoot
+RUN apk add jq zip
+RUN wget -O - https://api.github.com/repos/Altinn/app-template-dotnet/releases/latest | jq '.assets[]|select(.name | startswith("app-template-dotnet-") and endswith(".zip"))' | jq '.browser_download_url' | xargs wget -O apptemplate.zip && unzip apptemplate.zip && rm apptemplate.zip 
 
 # Building the final image
 FROM mcr.microsoft.com/dotnet/aspnet:6.0-alpine AS final

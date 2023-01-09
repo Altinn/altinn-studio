@@ -11,6 +11,9 @@
   <ItemGroup>
     <EmbeddedResource Remove="..\..\..\testdata\Model\CSharp\melding.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Remove="..\..\..\testdata\AppTemplates\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <Compile Include="..\..\..\testdata\Model\CSharp\melding.cs">
