@@ -28,7 +28,7 @@ namespace Altinn.Studio.Designer.Controllers
     /// </summary>
     [Authorize]
     [AutoValidateAntiforgeryToken]
-    [Route("designer/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/[controller]/[action]")]
+    [Route("designer/{org}/{app:regex(^[[a-z]]+[[a-zA-Z0-9-]]+[[a-zA-Z0-9]]$)}/[controller]/{action=Index}")]
     public class ModelController : Controller
     {
         private readonly IRepository _repository;
@@ -69,6 +69,7 @@ namespace Altinn.Studio.Designer.Controllers
         /// <param name="thefile">The main XSD</param>
         /// <returns>Return JSON of the generated model</returns>
         [HttpPost]
+        [Obsolete]
         public ActionResult Upload(string org, string app, IFormFile thefile)
         {
             if (thefile == null)
